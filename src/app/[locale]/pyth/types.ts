@@ -16,15 +16,20 @@ export type PythTabId =
   | 'cross-chain';
 
 export interface NetworkStats {
-  activeNodes: number;
-  dataFeeds: number;
-  nodeUptime: number;
-  avgResponseTime: number;
+  activeNodes?: number;
+  dataFeeds?: number;
+  nodeUptime?: number;
+  avgResponseTime?: number;
   updateFrequency?: number;
   latency?: number;
   hourlyActivity?: number[];
   status?: string;
   totalStaked?: number;
+  activeChains?: number;
+  successRate?: number;
+  dataSources?: number;
+  consumerContracts?: number;
+  dataFreshness?: number;
 }
 
 export interface PythServiceNetworkStats {

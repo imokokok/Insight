@@ -13,33 +13,31 @@ import { RealtimeThroughputMonitor } from './RealtimeThroughputMonitor';
 export function ChainlinkNetworkView({ config, networkStats }: ChainlinkNetworkViewProps) {
   const t = useTranslations();
 
-  const networkData = networkStats || config.networkData;
-
   const metrics = [
     {
       label: t('chainlink.network.activeNodes'),
-      value: networkData.activeNodes?.toLocaleString() || '1,847',
-      change: '+5%',
+      value: networkStats?.activeNodes?.toLocaleString() ?? '-',
+      change: null,
       trend: 'up',
       icon: Server,
     },
     {
       label: t('chainlink.network.dataFeeds'),
-      value: networkData.dataFeeds?.toLocaleString() || '1,243',
-      change: '+12%',
+      value: networkStats?.dataFeeds?.toLocaleString() ?? '-',
+      change: null,
       trend: 'up',
       icon: Activity,
     },
     {
       label: t('chainlink.network.responseTime'),
-      value: `${networkData.avgResponseTime || 245}ms`,
-      change: '-8%',
+      value: networkStats?.avgResponseTime ? `${networkStats.avgResponseTime}ms` : '-',
+      change: null,
       trend: 'down',
       icon: Clock,
     },
     {
       label: t('chainlink.network.uptime'),
-      value: `${networkData.nodeUptime || 99.9}%`,
+      value: networkStats?.nodeUptime ? `${networkStats.nodeUptime}%` : '-',
       change: null,
       trend: null,
       icon: CheckCircle,
@@ -47,15 +45,14 @@ export function ChainlinkNetworkView({ config, networkStats }: ChainlinkNetworkV
   ];
 
   const overviewStats = [
-    { label: t('chainlink.network.totalRequests'), value: '4.2M' },
-    { label: t('chainlink.network.avgGas'), value: '85,420' },
-    { label: t('chainlink.network.activeChains'), value: '15' },
-    { label: t('chainlink.network.nodeOperators'), value: '1,240' },
+    { label: t('chainlink.network.totalRequests'), value: '-' },
+    { label: t('chainlink.network.avgGas'), value: '-' },
+    { label: t('chainlink.network.activeChains'), value: networkStats?.activeChains?.toString() ?? '-' },
+    { label: t('chainlink.network.nodeOperators'), value: '-' },
   ];
 
   return (
     <div className="space-y-8">
-      {/* 核心网络指标 - 简洁统计布局 */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
         {metrics.map((metric, index) => {
           const Icon = metric.icon;
@@ -86,12 +83,9 @@ export function ChainlinkNetworkView({ config, networkStats }: ChainlinkNetworkV
         })}
       </div>
 
-      {/* 分隔线 */}
       <div className="border-t border-gray-200" />
 
-      {/* 网络性能概览 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* 每小时活动 - 简化容器 */}
         <div>
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-base font-medium text-gray-900">
@@ -99,20 +93,26 @@ export function ChainlinkNetworkView({ config, networkStats }: ChainlinkNetworkV
             </h3>
             <span className="text-sm text-gray-500">24h</span>
           </div>
-          <div className="h-40 flex items-end gap-0.5">
-            {config.networkData.hourlyActivity?.map((value, index) => {
-              const max = Math.max(...(config.networkData.hourlyActivity || []));
-              const height = (value / max) * 100;
-              return (
-                <div
-                  key={index}
-                  className="flex-1 bg-blue-500/20 hover:bg-blue-500/30 transition-colors rounded-t"
-                  style={{ height: `${Math.max(height, 8)}%` }}
-                  title={`${value.toLocaleString()} requests`}
-                />
-              );
-            })}
-          </div>
+          {config.networkData.hourlyActivity && config.networkData.hourlyActivity.length > 0 ? (
+            <div className="h-40 flex items-end gap-0.5">
+              {config.networkData.hourlyActivity.map((value, index) => {
+                const max = Math.max(...(config.networkData.hourlyActivity || []));
+                const height = (value / max) * 100;
+                return (
+                  <div
+                    key={index}
+                    className="flex-1 bg-blue-500/20 hover:bg-blue-500/30 transition-colors rounded-t"
+                    style={{ height: `${Math.max(height, 8)}%` }}
+                    title={`${value.toLocaleString()} requests`}
+                  />
+                );
+              })}
+            </div>
+          ) : (
+            <div className="h-40 flex items-center justify-center bg-gray-50 rounded">
+              <p className="text-sm text-gray-500">{t('chainlink.network.noActivityData')}</p>
+            </div>
+          )}
           <div className="flex justify-between text-xs text-gray-400 mt-2">
             <span>{t('time.00:00')}</span>
             <span>{t('time.06:00')}</span>
@@ -122,7 +122,6 @@ export function ChainlinkNetworkView({ config, networkStats }: ChainlinkNetworkV
           </div>
         </div>
 
-        {/* 网络性能指标 - 简洁进度条 */}
         <div>
           <h3 className="text-base font-medium text-gray-900 mb-5">
             {t('chainlink.network.performance')}
@@ -132,31 +131,31 @@ export function ChainlinkNetworkView({ config, networkStats }: ChainlinkNetworkV
               <div className="flex justify-between text-sm mb-2">
                 <span className="text-gray-600">{t('chainlink.network.successRate')}</span>
                 <span className="font-medium text-gray-900">
-                  {networkData.successRate || '99.97'}%
+                  {networkStats?.successRate ? `${networkStats.successRate}%` : '-'}
                 </span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500">{t('chainlink.network.activeNodes')}</span>
                 <span className="font-medium">
-                  {networkData.activeNodes?.toLocaleString() || '1,240'}
+                  {networkStats?.activeNodes?.toLocaleString() ?? '-'}
                 </span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500">{t('chainlink.network.dataSources')}</span>
-                <span className="font-medium">{networkData.dataSources || '156'}</span>
+                <span className="font-medium">{networkStats?.dataSources ?? '-'}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500">{t('chainlink.network.dataFeeds')}</span>
-                <span className="font-medium">{networkData.dataFeeds || '2,847'}</span>
+                <span className="font-medium">{networkStats?.dataFeeds?.toLocaleString() ?? '-'}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500">{t('chainlink.network.consumerContracts')}</span>
-                <span className="font-medium">{networkData.consumerContracts || '4,521'}</span>
+                <span className="font-medium">{networkStats?.consumerContracts ?? '-'}</span>
               </div>
               <div className="w-full bg-gray-100 rounded-full h-1.5">
                 <div
                   className="bg-emerald-500 h-1.5 rounded-full"
-                  style={{ width: `${networkData.successRate || 99.97}%` }}
+                  style={{ width: `${networkStats?.successRate ?? 0}%` }}
                 />
               </div>
             </div>
@@ -164,14 +163,14 @@ export function ChainlinkNetworkView({ config, networkStats }: ChainlinkNetworkV
               <div className="flex justify-between text-sm mb-2">
                 <span className="text-gray-600">{t('chainlink.network.avgResponse')}</span>
                 <span className="font-medium text-gray-900">
-                  {networkData.avgResponseTime || 245}ms
+                  {networkStats?.avgResponseTime ? `${networkStats.avgResponseTime}ms` : '-'}
                 </span>
               </div>
               <div className="w-full bg-gray-100 rounded-full h-1.5">
                 <div
                   className="bg-blue-500 h-1.5 rounded-full"
                   style={{
-                    width: `${Math.min(((networkData.avgResponseTime || 245) / 350) * 100, 100)}%`,
+                    width: `${networkStats?.avgResponseTime ? Math.min(((networkStats.avgResponseTime) / 350) * 100, 100) : 0}%`,
                   }}
                 />
               </div>
@@ -180,13 +179,13 @@ export function ChainlinkNetworkView({ config, networkStats }: ChainlinkNetworkV
               <div className="flex justify-between text-sm mb-2">
                 <span className="text-gray-600">{t('chainlink.network.dataFreshness')}</span>
                 <span className="font-medium text-gray-900">
-                  &lt; {networkData.dataFreshness || 1}min
+                  {networkStats?.dataFreshness ? `< ${networkStats.dataFreshness}min` : '-'}
                 </span>
               </div>
               <div className="w-full bg-gray-100 rounded-full h-1.5">
                 <div
                   className="bg-amber-500 h-1.5 rounded-full"
-                  style={{ width: `${Math.max(100 - (networkData.dataFreshness || 1) * 5, 0)}%` }}
+                  style={{ width: `${networkStats?.dataFreshness ? Math.max(100 - (networkStats.dataFreshness) * 5, 0) : 0}%` }}
                 />
               </div>
             </div>
@@ -194,10 +193,8 @@ export function ChainlinkNetworkView({ config, networkStats }: ChainlinkNetworkV
         </div>
       </div>
 
-      {/* 分隔线 */}
       <div className="border-t border-gray-200" />
 
-      {/* 网络统计摘要 - 简洁行内布局 */}
       <div>
         <h3 className="text-base font-medium text-gray-900 mb-4">
           {t('chainlink.network.overview')}
@@ -212,22 +209,16 @@ export function ChainlinkNetworkView({ config, networkStats }: ChainlinkNetworkV
         </div>
       </div>
 
-      {/* 分隔线 */}
       <div className="border-t border-gray-200" />
 
-      {/* 实时吞吐量监控 */}
       <RealtimeThroughputMonitor />
 
-      {/* 分隔线 */}
       <div className="border-t border-gray-200" />
 
-      {/* 网络拓扑概览 */}
       <NetworkTopologyOverview />
 
-      {/* 分隔线 */}
       <div className="border-t border-gray-200" />
 
-      {/* 节点地理分布 */}
       <NodeGeographicDistribution />
     </div>
   );

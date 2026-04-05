@@ -25,24 +25,12 @@ export function DIAStakingView() {
 
   const isLoading = stakingLoading || detailsLoading;
 
-  // 锁定期选项
-  const lockPeriods = stakingDetails?.lockPeriods ?? [30, 90, 180, 365];
-  const aprByPeriod = stakingDetails?.aprByPeriod ?? {
-    30: 8.5,
-    90: 12.0,
-    180: 18.5,
-    365: 25.0,
-  };
+  // 锁定期选项 - 从API获取，没有则显示空
+  const lockPeriods = stakingDetails?.lockPeriods ?? [];
+  const aprByPeriod = stakingDetails?.aprByPeriod ?? {};
 
-  // 历史 APR 数据 - 使用固定时间戳
-  const historicalApr = stakingDetails?.historicalApr ?? [
-    { timestamp: BASE_TIMESTAMP - 90 * 24 * 60 * 60 * 1000, apr: 15.2 },
-    { timestamp: BASE_TIMESTAMP - 60 * 24 * 60 * 60 * 1000, apr: 16.8 },
-    { timestamp: BASE_TIMESTAMP - 30 * 24 * 60 * 60 * 1000, apr: 18.5 },
-    { timestamp: BASE_TIMESTAMP - 14 * 24 * 60 * 60 * 1000, apr: 19.2 },
-    { timestamp: BASE_TIMESTAMP - 7 * 24 * 60 * 60 * 1000, apr: 20.5 },
-    { timestamp: BASE_TIMESTAMP, apr: staking?.stakingApr ?? 21.0 },
-  ];
+  // 历史 APR 数据 - 从API获取
+  const historicalApr = stakingDetails?.historicalApr ?? [];
 
   // 格式化历史数据用于图表
   const chartData = historicalApr.map((point) => ({
@@ -60,64 +48,60 @@ export function DIAStakingView() {
       {/* 质押统计 - 简洁行布局 */}
       <div className="flex flex-wrap items-center gap-x-8 gap-y-4">
         <div className="flex items-center gap-3">
-          <Coins className="w-4 h-4 text-gray-400" />
-          <div>
-            <p className="text-xs text-gray-500 uppercase tracking-wide">
-              {t('dia.staking.totalStaked')}
-            </p>
-            <div className="flex items-baseline gap-2">
-              <p className="text-xl font-semibold text-gray-900">
-                {isLoading ? '-' : `${((staking?.totalStaked ?? 0) / 1e6).toFixed(2)}M DIA`}
-              </p>
-              <span className="text-xs text-emerald-600 font-medium">+5.2%</span>
+              <Coins className="w-4 h-4 text-gray-400" />
+              <div>
+                <p className="text-xs text-gray-500 uppercase tracking-wide">
+                  {t('dia.staking.totalStaked')}
+                </p>
+                <div className="flex items-baseline gap-2">
+                  <p className="text-xl font-semibold text-gray-900">
+                    {isLoading ? '-' : staking?.totalStaked ? `${(staking.totalStaked / 1e6).toFixed(2)}M DIA` : '--'}
+                  </p>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-        <div className="h-8 w-px bg-gray-200 hidden sm:block" />
-        <div className="flex items-center gap-3">
-          <TrendingUp className="w-4 h-4 text-gray-400" />
-          <div>
-            <p className="text-xs text-gray-500 uppercase tracking-wide">
-              {t('dia.staking.stakingApr')}
-            </p>
-            <div className="flex items-baseline gap-2">
-              <p className="text-xl font-semibold text-gray-900">
-                {isLoading ? '-' : `${(staking?.stakingApr ?? 0).toFixed(2)}%`}
-              </p>
-              <span className="text-xs text-emerald-600 font-medium">+0.3%</span>
+            <div className="h-8 w-px bg-gray-200 hidden sm:block" />
+            <div className="flex items-center gap-3">
+              <TrendingUp className="w-4 h-4 text-gray-400" />
+              <div>
+                <p className="text-xs text-gray-500 uppercase tracking-wide">
+                  {t('dia.staking.stakingApr')}
+                </p>
+                <div className="flex items-baseline gap-2">
+                  <p className="text-xl font-semibold text-gray-900">
+                    {isLoading ? '-' : staking?.stakingApr ? `${staking.stakingApr.toFixed(2)}%` : '--'}
+                  </p>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-        <div className="h-8 w-px bg-gray-200 hidden sm:block" />
-        <div className="flex items-center gap-3">
-          <Users className="w-4 h-4 text-gray-400" />
-          <div>
-            <p className="text-xs text-gray-500 uppercase tracking-wide">
-              {t('dia.staking.stakerCount')}
-            </p>
-            <div className="flex items-baseline gap-2">
-              <p className="text-xl font-semibold text-gray-900">
-                {isLoading ? '-' : (staking?.stakerCount ?? 0).toLocaleString()}
-              </p>
-              <span className="text-xs text-emerald-600 font-medium">+12</span>
+            <div className="h-8 w-px bg-gray-200 hidden sm:block" />
+            <div className="flex items-center gap-3">
+              <Users className="w-4 h-4 text-gray-400" />
+              <div>
+                <p className="text-xs text-gray-500 uppercase tracking-wide">
+                  {t('dia.staking.stakerCount')}
+                </p>
+                <div className="flex items-baseline gap-2">
+                  <p className="text-xl font-semibold text-gray-900">
+                    {isLoading ? '-' : staking?.stakerCount ? staking.stakerCount.toLocaleString() : '--'}
+                  </p>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-        <div className="h-8 w-px bg-gray-200 hidden sm:block" />
-        <div className="flex items-center gap-3">
-          <Gift className="w-4 h-4 text-gray-400" />
-          <div>
-            <p className="text-xs text-gray-500 uppercase tracking-wide">
-              {t('dia.staking.rewardsDistributed')}
-            </p>
-            <div className="flex items-baseline gap-2">
-              <p className="text-xl font-semibold text-gray-900">
-                {isLoading ? '-' : `${((staking?.rewardPool ?? 0) / 1e6).toFixed(2)}M DIA`}
-              </p>
-              <span className="text-xs text-emerald-600 font-medium">+8.5%</span>
+            <div className="h-8 w-px bg-gray-200 hidden sm:block" />
+            <div className="flex items-center gap-3">
+              <Gift className="w-4 h-4 text-gray-400" />
+              <div>
+                <p className="text-xs text-gray-500 uppercase tracking-wide">
+                  {t('dia.staking.rewardsDistributed')}
+                </p>
+                <div className="flex items-baseline gap-2">
+                  <p className="text-xl font-semibold text-gray-900">
+                    {isLoading ? '-' : staking?.rewardPool ? `${(staking.rewardPool / 1e6).toFixed(2)}M DIA` : '--'}
+                  </p>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
       </div>
 
       {/* 质押详情 - 两栏布局 */}
@@ -139,7 +123,9 @@ export function DIAStakingView() {
                 <p className="text-lg font-semibold text-gray-900">
                   {isLoading
                     ? '-'
-                    : `${(stakingDetails?.minStakeAmount ?? 1000).toLocaleString()} DIA`}
+                    : stakingDetails?.minStakeAmount
+                      ? `${stakingDetails.minStakeAmount.toLocaleString()} DIA`
+                      : '--'}
                 </p>
               </div>
             </div>
@@ -149,7 +135,7 @@ export function DIAStakingView() {
                 <span className="text-sm text-gray-600">{t('dia.staking.unbondingPeriod')}</span>
               </div>
               <div className="text-right">
-                <p className="text-lg font-semibold text-gray-900">14 {t('dia.staking.days')}</p>
+                <p className="text-lg font-semibold text-gray-900">--</p>
               </div>
             </div>
             <div className="flex items-center justify-between py-3">
@@ -158,7 +144,7 @@ export function DIAStakingView() {
                 <span className="text-sm text-gray-600">{t('dia.staking.compounding')}</span>
               </div>
               <div className="text-right">
-                <p className="text-lg font-semibold text-gray-900">{t('dia.staking.auto')}</p>
+                <p className="text-lg font-semibold text-gray-900">--</p>
               </div>
             </div>
           </div>

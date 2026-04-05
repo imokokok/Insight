@@ -1,5 +1,7 @@
 'use client';
 
+import { useState, useEffect } from 'react';
+
 import {
   Server,
   TrendingUp,
@@ -10,102 +12,57 @@ import {
   Shield,
   Wallet,
   BarChart3,
+  Loader2,
+  AlertTriangle,
 } from 'lucide-react';
 
 import { useTranslations } from '@/i18n';
 
 import { type NodeData, type ChainlinkDataTableProps } from '../types';
+import { getChainlinkService } from '../services/chainlinkService';
 
 import { ChainlinkDataTable } from './ChainlinkDataTable';
 import { NodeEarningsPanel } from './NodeEarningsPanel';
 import { NodePerformanceTrends } from './NodePerformanceTrends';
 import { StakingRewardsCalculator } from './StakingRewardsCalculator';
 
-const mockNodes: NodeData[] = [
-  {
-    id: '1',
-    name: 'LinkPool',
-    region: 'North America',
-    responseTime: 120,
-    successRate: 99.9,
-    reputation: 98.5,
-    stakedAmount: 2500000,
-  },
-  {
-    id: '2',
-    name: 'Certus One',
-    region: 'Europe',
-    responseTime: 135,
-    successRate: 99.8,
-    reputation: 97.2,
-    stakedAmount: 1800000,
-  },
-  {
-    id: '3',
-    name: 'Fiews',
-    region: 'North America',
-    responseTime: 110,
-    successRate: 99.9,
-    reputation: 96.8,
-    stakedAmount: 2200000,
-  },
-  {
-    id: '4',
-    name: 'Everstake',
-    region: 'Europe',
-    responseTime: 145,
-    successRate: 99.7,
-    reputation: 95.5,
-    stakedAmount: 1500000,
-  },
-  {
-    id: '5',
-    name: 'Figment',
-    region: 'North America',
-    responseTime: 125,
-    successRate: 99.8,
-    reputation: 94.9,
-    stakedAmount: 1900000,
-  },
-  {
-    id: '6',
-    name: 'Staked',
-    region: 'Asia',
-    responseTime: 155,
-    successRate: 99.6,
-    reputation: 93.8,
-    stakedAmount: 1200000,
-  },
-  {
-    id: '7',
-    name: 'Blockdaemon',
-    region: 'Europe',
-    responseTime: 140,
-    successRate: 99.7,
-    reputation: 93.2,
-    stakedAmount: 1600000,
-  },
-  {
-    id: '8',
-    name: 'Chorus One',
-    region: 'Europe',
-    responseTime: 130,
-    successRate: 99.8,
-    reputation: 92.5,
-    stakedAmount: 1400000,
-  },
-];
-
-const getRegionStats = (t: (key: string) => string) => [
-  { region: t('regions.northAmerica'), count: 4, percentage: 50 },
-  { region: t('regions.europe'), count: 3, percentage: 37.5 },
-  { region: t('regions.asia'), count: 1, percentage: 12.5 },
-];
-
 export function ChainlinkNodesView() {
   const t = useTranslations();
+  const [nodes, setNodes] = useState<NodeData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
-  const regionStats = getRegionStats(t);
+  useEffect(() => {
+    const fetchNodes = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const service = getChainlinkService();
+        const nodeData = await service.getNodes();
+        setNodes(nodeData);
+      } catch (err) {
+        setError(err instanceof Error ? err : new Error('Failed to load node data'));
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchNodes();
+  }, []);
+
+  const regionStats = nodes.reduce((acc, node) => {
+    const region = node.region;
+    const existing = acc.find((r) => r.region === region);
+    if (existing) {
+      existing.count++;
+    } else {
+      acc.push({ region, count: 1, percentage: 0 });
+    }
+    return acc;
+  }, [] as { region: string; count: number; percentage: number }[]);
+
+  regionStats.forEach((r) => {
+    r.percentage = nodes.length > 0 ? Math.round((r.count / nodes.length) * 100) : 0;
+  });
 
   const columns: ChainlinkDataTableProps<NodeData>['columns'] = [
     { key: 'name', header: t('chainlink.nodes.name'), sortable: true },
@@ -142,22 +99,52 @@ export function ChainlinkNodesView() {
     },
   ];
 
-  const totalStaked = mockNodes.reduce((acc, n) => acc + n.stakedAmount, 0);
-  const avgSuccessRate = (
-    mockNodes.reduce((acc, n) => acc + n.successRate, 0) / mockNodes.length
-  ).toFixed(1);
-  const avgResponseTime = Math.round(
-    mockNodes.reduce((acc, n) => acc + n.responseTime, 0) / mockNodes.length
-  );
+  const totalStaked = nodes.reduce((acc, n) => acc + n.stakedAmount, 0);
+  const avgSuccessRate =
+    nodes.length > 0
+      ? (nodes.reduce((acc, n) => acc + n.successRate, 0) / nodes.length).toFixed(1)
+      : '0';
+  const avgResponseTime =
+    nodes.length > 0
+      ? Math.round(nodes.reduce((acc, n) => acc + n.responseTime, 0) / nodes.length)
+      : 0;
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+        <span className="ml-3 text-gray-500">{t('common.loading')}</span>
+      </div>
+    );
+  }
+
+  if (error && nodes.length === 0) {
+    return (
+      <div className="bg-gray-50 rounded-lg p-8 text-center">
+        <AlertTriangle className="w-10 h-10 text-amber-500 mx-auto mb-4" />
+        <h3 className="text-lg font-medium text-gray-900 mb-2">{t('chainlink.nodes.dataUnavailable')}</h3>
+        <p className="text-sm text-gray-500">{error.message}</p>
+      </div>
+    );
+  }
+
+  if (nodes.length === 0) {
+    return (
+      <div className="bg-gray-50 rounded-lg p-8 text-center">
+        <Server className="w-10 h-10 text-gray-400 mx-auto mb-4" />
+        <h3 className="text-lg font-medium text-gray-900 mb-2">{t('chainlink.nodes.noNodesFound')}</h3>
+        <p className="text-sm text-gray-500">{t('chainlink.nodes.noNodesDesc')}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
-      {/* 节点统计概览 - 简化内联展示 */}
       <div className="flex flex-wrap items-center gap-6 py-4 border-b border-gray-100">
         <div className="flex items-center gap-2">
           <Activity className="w-4 h-4 text-gray-400" />
           <span className="text-sm text-gray-500">{t('chainlink.nodes.total')}</span>
-          <span className="text-lg font-semibold text-gray-900">{mockNodes.length}</span>
+          <span className="text-lg font-semibold text-gray-900">{nodes.length}</span>
         </div>
         <div className="w-px h-4 bg-gray-200" />
         <div className="flex items-center gap-2">
@@ -181,9 +168,7 @@ export function ChainlinkNodesView() {
         </div>
       </div>
 
-      {/* 主内容区域 */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        {/* 左侧 - 节点表格 */}
         <div className="lg:col-span-3 space-y-4">
           <div className="flex items-center gap-2">
             <Server className="w-4 h-4 text-gray-500" />
@@ -191,45 +176,43 @@ export function ChainlinkNodesView() {
               {t('chainlink.nodes.activeNodes')}
             </h2>
           </div>
-          <ChainlinkDataTable<NodeData> data={mockNodes} columns={columns} />
+          <ChainlinkDataTable<NodeData> data={nodes} columns={columns} />
         </div>
 
-        {/* 右侧边栏 */}
         <div className="space-y-8">
-          {/* 质押计算器 */}
           <section>
             <StakingRewardsCalculator />
           </section>
 
-          {/* 区域分布 */}
-          <section className="space-y-4">
-            <div className="flex items-center gap-2">
-              <Globe className="w-4 h-4 text-gray-500" />
-              <h3 className="text-sm font-medium text-gray-900">
-                {t('chainlink.nodes.regionDistribution')}
-              </h3>
-            </div>
-            <div className="space-y-4">
-              {regionStats.map((stat, index) => (
-                <div key={index}>
-                  <div className="flex items-center justify-between text-sm mb-1.5">
-                    <span className="text-gray-600">{stat.region}</span>
-                    <span className="font-medium text-gray-900">
-                      {stat.count} <span className="text-gray-400">({stat.percentage}%)</span>
-                    </span>
+          {regionStats.length > 0 && (
+            <section className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Globe className="w-4 h-4 text-gray-500" />
+                <h3 className="text-sm font-medium text-gray-900">
+                  {t('chainlink.nodes.regionDistribution')}
+                </h3>
+              </div>
+              <div className="space-y-4">
+                {regionStats.map((stat, index) => (
+                  <div key={index}>
+                    <div className="flex items-center justify-between text-sm mb-1.5">
+                      <span className="text-gray-600">{stat.region}</span>
+                      <span className="font-medium text-gray-900">
+                        {stat.count} <span className="text-gray-400">({stat.percentage}%)</span>
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-100 rounded-full h-1.5">
+                      <div
+                        className="bg-gray-400 h-1.5 rounded-full transition-all"
+                        style={{ width: `${stat.percentage}%` }}
+                      />
+                    </div>
                   </div>
-                  <div className="w-full bg-gray-100 rounded-full h-1.5">
-                    <div
-                      className="bg-gray-400 h-1.5 rounded-full transition-all"
-                      style={{ width: `${stat.percentage}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
+                ))}
+              </div>
+            </section>
+          )}
 
-          {/* 概览统计 */}
           <section className="space-y-4">
             <div className="flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-gray-500" />
@@ -239,14 +222,16 @@ export function ChainlinkNodesView() {
               <div className="flex justify-between">
                 <span className="text-gray-500">{t('chainlink.nodes.avgReputation')}</span>
                 <span className="font-medium text-gray-900">
-                  {(mockNodes.reduce((acc, n) => acc + n.reputation, 0) / mockNodes.length).toFixed(
-                    1
-                  )}
+                  {nodes.length > 0
+                    ? (nodes.reduce((acc, n) => acc + n.reputation, 0) / nodes.length).toFixed(1)
+                    : '-'}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">{t('chainlink.nodes.topPerformers')}</span>
-                <span className="font-medium text-gray-900">3</span>
+                <span className="font-medium text-gray-900">
+                  {nodes.filter((n) => n.reputation >= 95).length}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">{t('chainlink.nodes.regions')}</span>
@@ -257,10 +242,8 @@ export function ChainlinkNodesView() {
         </div>
       </div>
 
-      {/* 分隔线 */}
       <div className="border-t border-gray-200 my-8" />
 
-      {/* 节点收益分析 */}
       <section className="space-y-4">
         <div className="flex items-center gap-2">
           <Wallet className="w-4 h-4 text-gray-500" />
@@ -268,13 +251,11 @@ export function ChainlinkNodesView() {
             {t('chainlink.nodes.earningsAnalysis')}
           </h2>
         </div>
-        <NodeEarningsPanel nodes={mockNodes} />
+        <NodeEarningsPanel nodes={nodes} />
       </section>
 
-      {/* 分隔线 */}
       <div className="border-t border-gray-200 my-8" />
 
-      {/* 节点性能趋势 */}
       <section className="space-y-4">
         <div className="flex items-center gap-2">
           <BarChart3 className="w-4 h-4 text-gray-500" />
@@ -282,7 +263,7 @@ export function ChainlinkNodesView() {
             {t('chainlink.nodes.performanceTrends')}
           </h2>
         </div>
-        <NodePerformanceTrends nodes={mockNodes} />
+        <NodePerformanceTrends nodes={nodes} />
       </section>
     </div>
   );

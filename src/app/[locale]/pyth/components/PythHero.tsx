@@ -23,9 +23,9 @@ export interface PythHeroProps {
   price: PriceData | null;
   historicalData: PriceData[];
   networkStats?: {
-    avgResponseTime: number;
-    nodeUptime: number;
-    dataFeeds: number;
+    avgResponseTime?: number;
+    nodeUptime?: number;
+    dataFeeds?: number;
   } | null;
   publishers?: unknown[];
   validators?: unknown[];

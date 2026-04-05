@@ -1,132 +1,68 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
-import { Activity, CheckCircle2, Clock, TrendingUp } from 'lucide-react';
+import { Activity, CheckCircle2, Clock, TrendingUp, Loader2, AlertTriangle } from 'lucide-react';
 
 import { useTranslations } from '@/i18n';
 
 import { type DataFeed, type ChainlinkDataTableProps } from '../types';
+import { getChainlinkService } from '../services/chainlinkService';
 
 import { ChainlinkDataTable } from './ChainlinkDataTable';
 
-const mockDataFeeds: DataFeed[] = [
-  {
-    id: '1',
-    name: 'ETH/USD',
-    category: 'crypto',
-    updateFrequency: '60s',
-    deviationThreshold: '0.5%',
-    status: 'active',
-    totalRequests: 12500000,
-    reliability: 99.99,
-  },
-  {
-    id: '2',
-    name: 'BTC/USD',
-    category: 'crypto',
-    updateFrequency: '60s',
-    deviationThreshold: '0.5%',
-    status: 'active',
-    totalRequests: 15200000,
-    reliability: 99.99,
-  },
-  {
-    id: '3',
-    name: 'LINK/USD',
-    category: 'crypto',
-    updateFrequency: '60s',
-    deviationThreshold: '1%',
-    status: 'active',
-    totalRequests: 8900000,
-    reliability: 99.98,
-  },
-  {
-    id: '4',
-    name: 'EUR/USD',
-    category: 'forex',
-    updateFrequency: '300s',
-    deviationThreshold: '0.1%',
-    status: 'active',
-    totalRequests: 5600000,
-    reliability: 99.97,
-  },
-  {
-    id: '5',
-    name: 'GBP/USD',
-    category: 'forex',
-    updateFrequency: '300s',
-    deviationThreshold: '0.1%',
-    status: 'active',
-    totalRequests: 3200000,
-    reliability: 99.96,
-  },
-  {
-    id: '6',
-    name: 'XAU/USD',
-    category: 'commodities',
-    updateFrequency: '600s',
-    deviationThreshold: '0.2%',
-    status: 'active',
-    totalRequests: 2100000,
-    reliability: 99.95,
-  },
-  {
-    id: '7',
-    name: 'Aave V2',
-    category: 'defi',
-    updateFrequency: '120s',
-    deviationThreshold: '0.5%',
-    status: 'active',
-    totalRequests: 7800000,
-    reliability: 99.98,
-  },
-  {
-    id: '8',
-    name: 'Uniswap V3',
-    category: 'defi',
-    updateFrequency: '120s',
-    deviationThreshold: '0.5%',
-    status: 'active',
-    totalRequests: 9200000,
-    reliability: 99.98,
-  },
-];
-
-const getCategories = (t: (key: string) => string) => [
-  { id: 'all', label: t('dataFeedsFilter.all'), count: mockDataFeeds.length },
-  {
-    id: 'crypto',
-    label: t('dataFeedsFilter.crypto'),
-    count: mockDataFeeds.filter((f) => f.category === 'crypto').length,
-  },
-  {
-    id: 'forex',
-    label: t('dataFeedsFilter.forex'),
-    count: mockDataFeeds.filter((f) => f.category === 'forex').length,
-  },
-  {
-    id: 'commodities',
-    label: t('dataFeedsFilter.commodities'),
-    count: mockDataFeeds.filter((f) => f.category === 'commodities').length,
-  },
-  {
-    id: 'defi',
-    label: t('dataFeedsFilter.defi'),
-    count: mockDataFeeds.filter((f) => f.category === 'defi').length,
-  },
-];
-
 export function ChainlinkDataFeedsView() {
   const t = useTranslations('chainlink');
+  const [dataFeeds, setDataFeeds] = useState<DataFeed[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
-  const categories = getCategories(t);
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const service = getChainlinkService();
+        const feeds = await service.getDataFeeds();
+        setDataFeeds(feeds);
+      } catch (err) {
+        setError(err instanceof Error ? err : new Error('Failed to load data feeds'));
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  const categories = [
+    { id: 'all', label: t('dataFeedsFilter.all'), count: dataFeeds.length },
+    {
+      id: 'crypto',
+      label: t('dataFeedsFilter.crypto'),
+      count: dataFeeds.filter((f) => f.category === 'crypto').length,
+    },
+    {
+      id: 'forex',
+      label: t('dataFeedsFilter.forex'),
+      count: dataFeeds.filter((f) => f.category === 'forex').length,
+    },
+    {
+      id: 'commodities',
+      label: t('dataFeedsFilter.commodities'),
+      count: dataFeeds.filter((f) => f.category === 'commodities').length,
+    },
+    {
+      id: 'defi',
+      label: t('dataFeedsFilter.defi'),
+      count: dataFeeds.filter((f) => f.category === 'defi').length,
+    },
+  ];
 
   const filteredFeeds =
     selectedCategory === 'all'
-      ? mockDataFeeds
-      : mockDataFeeds.filter((feed) => feed.category === selectedCategory);
+      ? dataFeeds
+      : dataFeeds.filter((feed) => feed.category === selectedCategory);
 
   const columns: ChainlinkDataTableProps<DataFeed>['columns'] = [
     { key: 'name', header: t('dataFeeds.name'), sortable: true },
@@ -183,15 +119,43 @@ export function ChainlinkDataFeedsView() {
     },
   ];
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+        <span className="ml-3 text-gray-500">{t('common.loading')}</span>
+      </div>
+    );
+  }
+
+  if (error && dataFeeds.length === 0) {
+    return (
+      <div className="bg-gray-50 rounded-lg p-8 text-center">
+        <AlertTriangle className="w-10 h-10 text-amber-500 mx-auto mb-4" />
+        <h3 className="text-lg font-medium text-gray-900 mb-2">{t('dataFeeds.dataUnavailable')}</h3>
+        <p className="text-sm text-gray-500">{error.message}</p>
+      </div>
+    );
+  }
+
+  if (dataFeeds.length === 0) {
+    return (
+      <div className="bg-gray-50 rounded-lg p-8 text-center">
+        <Activity className="w-10 h-10 text-gray-400 mx-auto mb-4" />
+        <h3 className="text-lg font-medium text-gray-900 mb-2">{t('dataFeeds.noFeedsFound')}</h3>
+        <p className="text-sm text-gray-500">{t('dataFeeds.noFeedsDesc')}</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8">
-      {/* Stats Row */}
       <div className="flex flex-wrap items-center gap-6 md:gap-8">
         <div className="flex items-center gap-3">
           <Activity className="w-5 h-5 text-gray-400" />
           <div>
             <p className="text-xs text-gray-500 uppercase tracking-wider">{t('dataFeeds.total')}</p>
-            <p className="text-xl font-semibold text-gray-900">{mockDataFeeds.length}</p>
+            <p className="text-xl font-semibold text-gray-900">{dataFeeds.length}</p>
           </div>
         </div>
         <div className="hidden md:block w-px h-8 bg-gray-200" />
@@ -202,7 +166,7 @@ export function ChainlinkDataFeedsView() {
               {t('dataFeeds.active')}
             </p>
             <p className="text-xl font-semibold text-emerald-600">
-              {mockDataFeeds.filter((f) => f.status === 'active').length}
+              {dataFeeds.filter((f) => f.status === 'active').length}
             </p>
           </div>
         </div>
@@ -214,7 +178,7 @@ export function ChainlinkDataFeedsView() {
               {t('dataFeeds.totalRequests')}
             </p>
             <p className="text-xl font-semibold text-gray-900">
-              {(mockDataFeeds.reduce((acc, f) => acc + f.totalRequests, 0) / 1e6).toFixed(1)}M
+              {(dataFeeds.reduce((acc, f) => acc + f.totalRequests, 0) / 1e6).toFixed(1)}M
             </p>
           </div>
         </div>
@@ -227,7 +191,7 @@ export function ChainlinkDataFeedsView() {
             </p>
             <p className="text-xl font-semibold text-gray-900">
               {(
-                mockDataFeeds.reduce((acc, f) => acc + f.reliability, 0) / mockDataFeeds.length
+                dataFeeds.reduce((acc, f) => acc + f.reliability, 0) / dataFeeds.length
               ).toFixed(2)}
               %
             </p>
@@ -235,7 +199,6 @@ export function ChainlinkDataFeedsView() {
         </div>
       </div>
 
-      {/* Category Filters */}
       <div className="flex flex-wrap gap-1 border-b border-gray-200 pb-4">
         {categories.map((category) => (
           <button
@@ -259,7 +222,6 @@ export function ChainlinkDataFeedsView() {
         ))}
       </div>
 
-      {/* Data Table */}
       <div>
         <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">
           {t('dataFeeds.title')}
@@ -267,7 +229,6 @@ export function ChainlinkDataFeedsView() {
         <ChainlinkDataTable<DataFeed> data={filteredFeeds} columns={columns} />
       </div>
 
-      {/* About Section */}
       <div className="pt-6 border-t border-gray-200">
         <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">
           {t('dataFeeds.about')}

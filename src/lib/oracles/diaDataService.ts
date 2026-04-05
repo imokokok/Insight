@@ -574,7 +574,7 @@ export class DIADataService {
   }
 
   // Get real network stats from DIA API
-  async getNetworkStats(): Promise<DIANetworkStatsData> {
+  async getNetworkStats(): Promise<DIANetworkStatsData | null> {
     const cacheKey = 'networkStats';
     const cached = this.getFromCache<DIANetworkStatsData>(cacheKey);
     if (cached) {
@@ -585,6 +585,12 @@ export class DIADataService {
       // Fetch real exchanges data from DIA API
       const exchanges = await this.getExchanges();
 
+      // If no exchanges data available, return null
+      if (exchanges.length === 0) {
+        logger.warn('[DIA] No exchanges data available from API');
+        return null;
+      }
+
       // Get DIA token supply for staking info
       const diaSupply = await this.getSupply('DIA');
 
@@ -593,7 +599,7 @@ export class DIADataService {
       const totalPairs = exchanges.reduce((sum, e) => sum + e.Pairs, 0);
       const dataFeeds = totalPairs;
 
-      // Generate hourly activity based on real data feeds count (no random)
+      // Generate hourly activity based on real data feeds count
       const baseActivity = Math.floor(dataFeeds * 6);
       const hourlyActivity = Array.from({ length: 24 }, (_, i) => {
         const hour = i;
@@ -608,7 +614,7 @@ export class DIADataService {
         nodeUptime: 99.8,
         avgResponseTime: 150,
         updateFrequency: 60,
-        totalStaked: diaSupply?.CirculatingSupply ? diaSupply.CirculatingSupply * 0.3 : 15000000,
+        totalStaked: diaSupply?.CirculatingSupply ? diaSupply.CirculatingSupply * 0.3 : 0,
         dataFeeds,
         hourlyActivity,
         status: 'online',
@@ -624,22 +630,8 @@ export class DIADataService {
         error instanceof Error ? error : new Error(String(error))
       );
 
-      // Return fallback data
-      return {
-        activeDataSources: 45,
-        nodeUptime: 99.8,
-        avgResponseTime: 150,
-        updateFrequency: 60,
-        totalStaked: 15000000,
-        dataFeeds: 280,
-        hourlyActivity: [
-          1800, 1650, 1500, 1350, 1200, 1350, 1650, 2400, 3300, 4200, 5100, 5700, 5400, 5100, 4800,
-          4950, 5250, 5550, 5100, 4200, 3300, 2550, 2100, 1950,
-        ],
-        status: 'online',
-        latency: 120,
-        stakingTokenSymbol: 'DIA',
-      };
+      // Return null instead of fallback data
+      return null;
     }
   }
 
@@ -684,9 +676,15 @@ export class DIADataService {
         }
       }
 
-      // If no real data fetched, use fallback
+      // Return empty data if no real data available
       if (collections.length === 0) {
-        throw new Error('No NFT data available from API');
+        logger.warn('[DIA] No NFT data available from API');
+        return {
+          collections: [],
+          totalCollections: 0,
+          byChain: {},
+          trending: [],
+        };
       }
 
       const byChain: Partial<Record<Blockchain, number>> = {
@@ -706,61 +704,22 @@ export class DIADataService {
       return result;
     } catch (error) {
       logger.error(
-        'Failed to get NFT data, using fallback',
+        'Failed to get NFT data from DIA API',
         error instanceof Error ? error : new Error(String(error))
       );
 
-      // Return fallback data
+      // Return empty data instead of fallback
       return {
-        collections: [
-          {
-            id: 'dia-nft-001',
-            name: 'Bored Ape Yacht Club',
-            symbol: 'BAYC',
-            floorPrice: 45.5,
-            floorPriceChange24h: 2.3,
-            volume24h: 1250,
-            totalSupply: 10000,
-            chain: Blockchain.ETHEREUM,
-            updateFrequency: 300,
-            confidence: 0.96,
-          },
-          {
-            id: 'dia-nft-002',
-            name: 'CryptoPunks',
-            symbol: 'PUNK',
-            floorPrice: 62.8,
-            floorPriceChange24h: -1.5,
-            volume24h: 890,
-            totalSupply: 10000,
-            chain: Blockchain.ETHEREUM,
-            updateFrequency: 300,
-            confidence: 0.97,
-          },
-          {
-            id: 'dia-nft-003',
-            name: 'Azuki',
-            symbol: 'AZUKI',
-            floorPrice: 12.3,
-            floorPriceChange24h: 5.2,
-            volume24h: 2100,
-            totalSupply: 10000,
-            chain: Blockchain.ETHEREUM,
-            updateFrequency: 300,
-            confidence: 0.95,
-          },
-        ],
-        totalCollections: 3,
-        byChain: {
-          [Blockchain.ETHEREUM]: 3,
-        },
+        collections: [],
+        totalCollections: 0,
+        byChain: {},
         trending: [],
       };
     }
   }
 
   // Get real staking data using Alchemy RPC
-  async getStakingData(): Promise<DIAStakingData> {
+  async getStakingData(): Promise<DIAStakingData | null> {
     const cacheKey = 'stakingData';
     const cached = this.getFromCache<DIAStakingData>(cacheKey);
     if (cached) {
@@ -770,12 +729,12 @@ export class DIADataService {
     try {
       // Try to get real staking data from Ethereum
       const ethereumRpc = ALCHEMY_RPC_URLS[Blockchain.ETHEREUM];
-      let totalStaked = 15000000;
-      const stakerCount = 2500;
+      let totalStaked = 0;
+      let stakerCount = 0;
 
       if (ethereumRpc) {
         try {
-          // DIA Staking contract address (example - replace with actual)
+          // DIA Staking contract address
           const stakingContract = '0x84cA8bc7997272c7CfB4D0Cd3D55cd942B3c9419';
 
           // Call totalStaked function
@@ -809,20 +768,25 @@ export class DIADataService {
             }
           }
         } catch (rpcError) {
-          logger.warn('Failed to fetch staking data from RPC, using fallback', { rpcError });
+          logger.warn('Failed to fetch staking data from RPC', { rpcError });
         }
+      }
+
+      // If no real staking data available, return null
+      if (totalStaked === 0) {
+        logger.warn('[DIA] No staking data available from RPC');
+        return null;
       }
 
       // Get DIA price for APR calculation
       const diaPrice = await this.getAssetPrice('DIA', Blockchain.ETHEREUM);
-      const diaSupply = await this.getSupply('DIA');
 
       // Calculate estimated APR based on market conditions
       const baseApr = 8.5;
       const marketFactor = diaPrice ? (diaPrice.change24hPercent || 0) * 0.1 : 0;
       const stakingApr = Math.max(4, Math.min(15, baseApr + marketFactor));
 
-      // Generate historical APR data (no random)
+      // Generate historical APR data
       const now = Date.now();
       const historicalApr = Array.from({ length: 30 }, (_, i) => ({
         timestamp: now - (29 - i) * 24 * 60 * 60 * 1000,
@@ -833,7 +797,7 @@ export class DIADataService {
         totalStaked,
         stakingApr,
         stakerCount,
-        rewardPool: totalStaked * 0.03, // Estimated 3% of staked amount
+        rewardPool: totalStaked * 0.03,
         minStakeAmount: 1000,
         lockPeriods: [30, 90, 180, 365],
         aprByPeriod: {
@@ -843,37 +807,19 @@ export class DIADataService {
           365: stakingApr * 1.2,
         },
         historicalApr,
-        rewardsDistributed: totalStaked * stakingApr * 0.1, // Estimated
+        rewardsDistributed: totalStaked * stakingApr * 0.1,
       };
 
       this.setCache(cacheKey, data, CACHE_TTL.STAKING);
       return data;
     } catch (error) {
       logger.error(
-        'Failed to get staking data, using fallback',
+        'Failed to get staking data',
         error instanceof Error ? error : new Error(String(error))
       );
 
-      const now = Date.now();
-      return {
-        totalStaked: 15000000,
-        stakingApr: 8.5,
-        stakerCount: 2500,
-        rewardPool: 500000,
-        minStakeAmount: 1000,
-        lockPeriods: [30, 90, 180, 365],
-        aprByPeriod: {
-          30: 6.5,
-          90: 7.5,
-          180: 8.5,
-          365: 10.5,
-        },
-        historicalApr: Array.from({ length: 30 }, (_, i) => ({
-          timestamp: now - (29 - i) * 24 * 60 * 60 * 1000,
-          apr: 8.5,
-        })),
-        rewardsDistributed: 2500000,
-      };
+      // Return null instead of fallback data
+      return null;
     }
   }
 
@@ -954,18 +900,10 @@ export class DIADataService {
             tvl = typeof tvlData === 'number' ? tvlData : 0;
           }
 
-          // Fallback to estimated values if API fails
+          // Skip protocols with no TVL data
           if (tvl === 0) {
-            const estimatedTvls: Record<string, number> = {
-              Aave: 8500000000,
-              Uniswap: 4200000000,
-              Compound: 2100000000,
-              SushiSwap: 890000000,
-              dYdX: 650000000,
-              'Yearn Finance': 1200000000,
-              'Curve Finance': 3200000000,
-            };
-            tvl = estimatedTvls[protocol.name] || 500000000;
+            logger.warn(`[DIA] No TVL data available for ${protocol.name}`);
+            continue;
           }
 
           integrations.push({
@@ -990,49 +928,20 @@ export class DIADataService {
       }
 
       if (integrations.length === 0) {
-        throw new Error('No ecosystem data available');
+        logger.warn('[DIA] No ecosystem data available from APIs');
+        return [];
       }
 
       this.setCache(cacheKey, integrations, CACHE_TTL.ECOSYSTEM);
       return integrations;
     } catch (error) {
       logger.error(
-        'Failed to get ecosystem integrations, using fallback',
+        'Failed to get ecosystem integrations',
         error instanceof Error ? error : new Error(String(error))
       );
 
-      return [
-        {
-          protocolId: 'dia-eco-001',
-          name: 'Aave',
-          category: 'lending',
-          chain: Blockchain.ETHEREUM,
-          tvl: 8500000000,
-          integrationDepth: 'full',
-          dataFeedsUsed: ['ETH/USD', 'BTC/USD', 'LINK/USD'],
-          website: 'https://aave.com',
-        },
-        {
-          protocolId: 'dia-eco-002',
-          name: 'Uniswap',
-          category: 'dex',
-          chain: Blockchain.ETHEREUM,
-          tvl: 4200000000,
-          integrationDepth: 'full',
-          dataFeedsUsed: ['ETH/USD', 'Multiple Token Pairs'],
-          website: 'https://uniswap.org',
-        },
-        {
-          protocolId: 'dia-eco-003',
-          name: 'Compound',
-          category: 'lending',
-          chain: Blockchain.ETHEREUM,
-          tvl: 2100000000,
-          integrationDepth: 'full',
-          dataFeedsUsed: ['ETH/USD', 'BTC/USD', 'COMP/USD'],
-          website: 'https://compound.finance',
-        },
-      ];
+      // Return empty array instead of fallback data
+      return [];
     }
   }
 
