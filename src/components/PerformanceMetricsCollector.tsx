@@ -20,7 +20,10 @@ interface PricesResponse {
 
 async function fetchPrices(): Promise<Record<string, number>> {
   try {
-    const response = await apiClient.get<PricesResponse>('/api/prices', { cache: 'no-store' });
+    const response = await apiClient.get<PricesResponse>('/api/prices', {
+      cache: 'no-store',
+      timeout: 15000,
+    });
 
     if (response.data.stale) {
       logger.warn('Using stale price data');
@@ -30,7 +33,8 @@ async function fetchPrices(): Promise<Record<string, number>> {
 
     return response.data.prices;
   } catch (error) {
-    logger.error('Failed to fetch prices', error as Error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logger.warn(`Failed to fetch prices: ${errorMessage}`);
     return {};
   }
 }
