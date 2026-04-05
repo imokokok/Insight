@@ -1,24 +1,30 @@
+export { PythDataService, getPythDataService, resetPythDataService } from './PythDataService';
+
+export { PythCache } from './pythCache';
+
 export {
-  PythDataService,
-  getPythDataService,
-  resetPythDataService,
-  PythCache,
   PythWebSocket,
   type PriceUpdateCallback,
   type PythWebSocketOptions,
+} from './pythWebSocket';
+
+export {
   parsePythPrice,
   calculateConfidenceInterval,
   calculateConfidenceScore,
   parsePublishers,
   parsePublisherStatus,
   parseValidators,
+} from './pythParser';
+
+export {
   type CacheEntry,
   type WebSocketConnectionStatus,
   type WebSocketConnectionState,
   type ConnectionStateListener,
   type PythPriceRaw,
   isPythPriceRaw,
-} from './pyth/index';
+} from './types';
 
 export type {
   CrossChainPriceData,
