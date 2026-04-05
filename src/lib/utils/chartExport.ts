@@ -77,11 +77,11 @@ export interface ZIPExportOptions {
   };
 }
 
-export const RESOLUTION_CONFIG: Record<Resolution, { scale: number; label: string; dpi: number }> =
+export const RESOLUTION_CONFIG: Record<Resolution, { scale: number; labelKey: string; dpi: number }> =
   {
-    standard: { scale: 2, label: '标准 (2x)', dpi: 144 },
-    high: { scale: 4, label: '高清 (4x)', dpi: 288 },
-    ultra: { scale: 6, label: '超清 (6x)', dpi: 432 },
+    standard: { scale: 2, labelKey: 'export.resolution.standard', dpi: 144 },
+    high: { scale: 4, labelKey: 'export.resolution.high', dpi: 288 },
+    ultra: { scale: 6, labelKey: 'export.resolution.ultra', dpi: 432 },
   };
 
 export interface ChartExportData {
@@ -99,7 +99,8 @@ export interface ExportMetadata {
 export interface ExportProgress {
   status: 'idle' | 'preparing' | 'exporting' | 'completed' | 'error';
   progress: number;
-  message: string;
+  messageKey: string;
+  messageParams?: Record<string, string | number>;
 }
 
 export type ExportProgressCallback = (progress: ExportProgress) => void;
@@ -135,7 +136,7 @@ export async function exportToCSV(
     throw new Error('No data to export');
   }
 
-  onProgress?.({ status: 'preparing', progress: 10, message: '准备 CSV 数据...' });
+  onProgress?.({ status: 'preparing', progress: 10, messageKey: 'export.progress.preparingCSV' });
 
   const batchSize = 10000;
   const totalBatches = Math.ceil(data.length / batchSize);
@@ -144,10 +145,10 @@ export async function exportToCSV(
   const headers = Object.keys(data[0]);
 
   if (metadata) {
-    chunks.push(`# 导出时间: ${metadata.exportedAt}`);
-    if (metadata.dataSource) chunks.push(`# 数据源: ${metadata.dataSource}`);
-    if (metadata.timeRange) chunks.push(`# 时间范围: ${metadata.timeRange}`);
-    if (metadata.totalRecords !== undefined) chunks.push(`# 总记录数: ${metadata.totalRecords}`);
+    chunks.push(`# Exported At: ${metadata.exportedAt}`);
+    if (metadata.dataSource) chunks.push(`# Data Source: ${metadata.dataSource}`);
+    if (metadata.timeRange) chunks.push(`# Time Range: ${metadata.timeRange}`);
+    if (metadata.totalRecords !== undefined) chunks.push(`# Total Records: ${metadata.totalRecords}`);
     chunks.push('#');
   }
 
@@ -177,7 +178,8 @@ export async function exportToCSV(
     onProgress?.({
       status: 'exporting',
       progress,
-      message: `处理数据 ${end}/${data.length}...`,
+      messageKey: 'export.progress.processingData',
+      messageParams: { current: end, total: data.length },
     });
 
     if (i < totalBatches - 1) {
@@ -185,7 +187,7 @@ export async function exportToCSV(
     }
   }
 
-  onProgress?.({ status: 'exporting', progress: 95, message: '生成文件...' });
+  onProgress?.({ status: 'exporting', progress: 95, messageKey: 'export.progress.generatingFile' });
 
   const csvContent = chunks.join('\n');
   const BOM = '\uFEFF';
@@ -194,7 +196,7 @@ export async function exportToCSV(
 
   downloadBlob(blob, `${sanitizedFilename}.csv`);
 
-  onProgress?.({ status: 'completed', progress: 100, message: '导出完成' });
+  onProgress?.({ status: 'completed', progress: 100, messageKey: 'export.progress.completed' });
 }
 
 export async function exportToJSON(
@@ -203,7 +205,7 @@ export async function exportToJSON(
   metadata?: ExportMetadata,
   onProgress?: ExportProgressCallback
 ): Promise<void> {
-  onProgress?.({ status: 'preparing', progress: 10, message: '准备 JSON 数据...' });
+  onProgress?.({ status: 'preparing', progress: 10, messageKey: 'export.progress.preparingJSON' });
 
   const exportData = Array.isArray(data) ? data : [data];
 
@@ -215,17 +217,17 @@ export async function exportToJSON(
     data: exportData,
   };
 
-  onProgress?.({ status: 'exporting', progress: 50, message: '序列化数据...' });
+  onProgress?.({ status: 'exporting', progress: 50, messageKey: 'export.progress.serializingData' });
 
   const jsonContent = JSON.stringify(output, null, 2);
   const blob = new Blob([jsonContent], { type: 'application/json;charset=utf-8;' });
   const sanitizedFilename = sanitizeFilename(filename);
 
-  onProgress?.({ status: 'exporting', progress: 90, message: '生成文件...' });
+  onProgress?.({ status: 'exporting', progress: 90, messageKey: 'export.progress.generatingFile' });
 
   downloadBlob(blob, `${sanitizedFilename}.json`);
 
-  onProgress?.({ status: 'completed', progress: 100, message: '导出完成' });
+  onProgress?.({ status: 'completed', progress: 100, messageKey: 'export.progress.completed' });
 }
 
 export async function exportToPNG(
@@ -255,14 +257,14 @@ export async function exportToPNG(
 
   const scale = RESOLUTION_CONFIG[resolution].scale;
 
-  onProgress?.({ status: 'preparing', progress: 10, message: '准备图表截图...' });
+  onProgress?.({ status: 'preparing', progress: 10, messageKey: 'export.progress.preparingChart' });
 
   const svgElement = chartElement.querySelector('svg');
   if (!svgElement) {
     throw new Error('No SVG element found in chart container');
   }
 
-  onProgress?.({ status: 'exporting', progress: 20, message: '克隆 SVG 元素...' });
+  onProgress?.({ status: 'exporting', progress: 20, messageKey: 'export.progress.cloningSVG' });
 
   const clone = svgElement.cloneNode(true) as SVGSVGElement;
   const svgRect = svgElement.getBoundingClientRect();
@@ -297,13 +299,13 @@ export async function exportToPNG(
     ctx.fillText(chartTitle, (totalWidth * scale) / 2, padding * scale + 30 * scale);
   }
 
-  onProgress?.({ status: 'exporting', progress: 40, message: '序列化 SVG...' });
+  onProgress?.({ status: 'exporting', progress: 40, messageKey: 'export.progress.serializingSVG' });
 
   const svgData = new XMLSerializer().serializeToString(clone);
   const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
   const svgUrl = URL.createObjectURL(svgBlob);
 
-  onProgress?.({ status: 'exporting', progress: 50, message: '渲染图像...' });
+  onProgress?.({ status: 'exporting', progress: 50, messageKey: 'export.progress.renderingImage' });
 
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -347,13 +349,13 @@ export async function exportToPNG(
           ctx.restore();
         }
 
-        onProgress?.({ status: 'exporting', progress: 80, message: '生成 PNG 文件...' });
+        onProgress?.({ status: 'exporting', progress: 80, messageKey: 'export.progress.generatingPNG' });
 
         canvas.toBlob(
           (blob) => {
             if (blob) {
               URL.revokeObjectURL(svgUrl);
-              onProgress?.({ status: 'completed', progress: 100, message: '导出完成' });
+              onProgress?.({ status: 'completed', progress: 100, messageKey: 'export.progress.completed' });
               resolve(blob);
             } else {
               reject(new Error('Failed to create PNG blob'));
@@ -399,14 +401,14 @@ export async function exportToSVG(
     watermark = false,
   } = options;
 
-  onProgress?.({ status: 'preparing', progress: 10, message: '准备 SVG 导出...' });
+  onProgress?.({ status: 'preparing', progress: 10, messageKey: 'export.progress.preparingSVG' });
 
   const svgElement = chartElement.querySelector('svg');
   if (!svgElement) {
     throw new Error('No SVG element found in chart container');
   }
 
-  onProgress?.({ status: 'exporting', progress: 30, message: '克隆 SVG 元素...' });
+  onProgress?.({ status: 'exporting', progress: 30, messageKey: 'export.progress.cloningSVG' });
 
   const clone = svgElement.cloneNode(true) as SVGSVGElement;
   const svgRect = svgElement.getBoundingClientRect();
@@ -553,18 +555,18 @@ export async function exportToSVG(
     clone.appendChild(watermarkGroup);
   }
 
-  onProgress?.({ status: 'exporting', progress: 60, message: '序列化 SVG...' });
+  onProgress?.({ status: 'exporting', progress: 60, messageKey: 'export.progress.serializingSVG' });
 
   clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
   clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
 
   const svgData = new XMLSerializer().serializeToString(clone);
 
-  onProgress?.({ status: 'exporting', progress: 80, message: '生成文件...' });
+  onProgress?.({ status: 'exporting', progress: 80, messageKey: 'export.progress.generatingFile' });
 
   const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8;' });
 
-  onProgress?.({ status: 'completed', progress: 100, message: '导出完成' });
+  onProgress?.({ status: 'completed', progress: 100, messageKey: 'export.progress.completed' });
 
   return blob;
 }
@@ -575,7 +577,7 @@ export async function exportToPDF(
 ): Promise<void> {
   const { filename, charts, includeWatermark = true, includeMetadata = true, metadata } = options;
 
-  onProgress?.({ status: 'preparing', progress: 10, message: '准备 PDF 导出...' });
+  onProgress?.({ status: 'preparing', progress: 10, messageKey: 'export.progress.preparingPDF' });
 
   const JsPDF = await getJsPDF();
   const doc = new JsPDF({
@@ -598,7 +600,8 @@ export async function exportToPDF(
     onProgress?.({
       status: 'exporting',
       progress: 10 + Math.floor((i / charts.length) * 70),
-      message: `处理图表 ${i + 1}/${charts.length}: ${chart.title}...`,
+      messageKey: 'export.progress.processingChart',
+      messageParams: { current: i + 1, total: charts.length, title: chart.title },
     });
 
     // 添加标题
@@ -683,12 +686,12 @@ export async function exportToPDF(
     }
   }
 
-  onProgress?.({ status: 'exporting', progress: 90, message: '保存 PDF 文件...' });
+  onProgress?.({ status: 'exporting', progress: 90, messageKey: 'export.progress.savingPDF' });
 
   const sanitizedFilename = sanitizeFilename(filename);
   doc.save(`${sanitizedFilename}.pdf`);
 
-  onProgress?.({ status: 'completed', progress: 100, message: 'PDF 导出完成' });
+  onProgress?.({ status: 'completed', progress: 100, messageKey: 'export.progress.pdfCompleted' });
 }
 
 function blobToBase64(blob: Blob): Promise<string> {
@@ -709,7 +712,7 @@ export async function exportToZIP(
 ): Promise<void> {
   const { filename, charts, settings } = options;
 
-  onProgress?.({ status: 'preparing', progress: 10, message: '准备批量导出...' });
+  onProgress?.({ status: 'preparing', progress: 10, messageKey: 'export.progress.preparingBatch' });
 
   const JSZip = (await import('jszip')).default;
   const zip = new JSZip();
@@ -721,7 +724,8 @@ export async function exportToZIP(
     onProgress?.({
       status: 'exporting',
       progress,
-      message: `导出图表 ${i + 1}/${charts.length}: ${chart.name}...`,
+      messageKey: 'export.progress.exportingChart',
+      messageParams: { current: i + 1, total: charts.length, name: chart.name },
     });
 
     try {
@@ -760,13 +764,13 @@ export async function exportToZIP(
     }
   }
 
-  onProgress?.({ status: 'exporting', progress: 95, message: '生成 ZIP 文件...' });
+  onProgress?.({ status: 'exporting', progress: 95, messageKey: 'export.progress.generatingZIP' });
 
   const content = await zip.generateAsync({ type: 'blob' });
   const sanitizedFilename = sanitizeFilename(filename);
   downloadBlob(content, `${sanitizedFilename}.zip`);
 
-  onProgress?.({ status: 'completed', progress: 100, message: '批量导出完成' });
+  onProgress?.({ status: 'completed', progress: 100, messageKey: 'export.progress.batchCompleted' });
 }
 
 function convertToCSV(data: ChartExportData[]): string {
@@ -903,7 +907,8 @@ export async function exportMultipleCharts(
       onProgress?.({
         ...progress,
         progress: chartProgress + progress.progress / totalCharts,
-        message: `[${chart.name}] ${progress.message}`,
+        messageKey: 'export.progress.chartPrefix',
+        messageParams: { name: chart.name, messageKey: progress.messageKey },
       });
     };
 
@@ -915,50 +920,50 @@ export async function exportMultipleCharts(
     );
   }
 
-  onProgress?.({ status: 'completed', progress: 100, message: '所有图表导出完成' });
+  onProgress?.({ status: 'completed', progress: 100, messageKey: 'export.progress.allChartsCompleted' });
 }
 
 export function getSupportedExportFormats(): Array<{
   format: ExportOptions['format'];
   label: string;
-  description: string;
+  descriptionKey: string;
   requiresChartRef: boolean;
 }> {
   return [
     {
       format: 'csv',
       label: 'CSV',
-      description: '逗号分隔值文件，适合数据分析',
+      descriptionKey: 'export.formats.csvDescription',
       requiresChartRef: false,
     },
     {
       format: 'json',
       label: 'JSON',
-      description: '结构化数据格式，适合程序处理',
+      descriptionKey: 'export.formats.jsonDescription',
       requiresChartRef: false,
     },
     {
       format: 'excel',
       label: 'Excel',
-      description: 'Excel 兼容格式，适合表格处理',
+      descriptionKey: 'export.formats.excelDescription',
       requiresChartRef: false,
     },
     {
       format: 'png',
       label: 'PNG',
-      description: '高清图片格式，适合分享和报告',
+      descriptionKey: 'export.formats.pngDescription',
       requiresChartRef: true,
     },
     {
       format: 'svg',
       label: 'SVG',
-      description: '矢量图形格式，可无损缩放',
+      descriptionKey: 'export.formats.svgDescription',
       requiresChartRef: true,
     },
     {
       format: 'pdf',
       label: 'PDF',
-      description: 'PDF 文档格式，包含图表和摘要',
+      descriptionKey: 'export.formats.pdfDescription',
       requiresChartRef: true,
     },
   ];

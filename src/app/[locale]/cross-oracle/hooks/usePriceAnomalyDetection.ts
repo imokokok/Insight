@@ -27,8 +27,8 @@ export interface PriceAnomaly {
   deviationPercent: number;
   /** 异常严重程度 */
   severity: AnomalySeverity;
-  /** 可能的原因分析 */
-  reason: string;
+  /** 可能的原因分析翻译键列表 */
+  reasonKeys: string[];
   /** 异常检测时间戳 */
   timestamp: number;
   /** 数据新鲜度（秒） */
@@ -62,41 +62,41 @@ function analyzeReason(
   deviationPercent: number,
   freshnessSeconds: number,
   confidence?: number | null
-): string {
-  const reasons: string[] = [];
+): string[] {
+  const reasonKeys: string[] = [];
 
   const absDeviation = Math.abs(deviationPercent);
   if (absDeviation > 5) {
-    reasons.push('价格严重偏离市场均值');
+    reasonKeys.push('anomalyDetection.reasons.severeDeviation');
   } else if (absDeviation > SEVERITY_THRESHOLDS.HIGH) {
-    reasons.push('市场波动较大');
+    reasonKeys.push('anomalyDetection.reasons.highVolatility');
   } else if (absDeviation > ANOMALY_THRESHOLD) {
-    reasons.push('数据源存在差异');
+    reasonKeys.push('anomalyDetection.reasons.dataSourceDifference');
   }
 
   if (freshnessSeconds > FRESHNESS_THRESHOLDS.SEVERELY_DELAYED) {
-    reasons.push('数据源延迟超过5分钟');
+    reasonKeys.push('anomalyDetection.reasons.severelyDelayed');
   } else if (freshnessSeconds > FRESHNESS_THRESHOLDS.DELAYED) {
-    reasons.push('数据源延迟');
+    reasonKeys.push('anomalyDetection.reasons.delayed');
   }
 
   if (confidence !== undefined && confidence !== null) {
     if (confidence < CONFIDENCE_THRESHOLDS.LOW) {
-      reasons.push('数据源置信度较低');
+      reasonKeys.push('anomalyDetection.reasons.lowConfidence');
     } else if (confidence < CONFIDENCE_THRESHOLDS.MEDIUM) {
-      reasons.push('数据源置信度一般');
+      reasonKeys.push('anomalyDetection.reasons.mediumConfidence');
     }
   }
 
-  if (reasons.length === 0) {
+  if (reasonKeys.length === 0) {
     if (absDeviation >= ANOMALY_THRESHOLD) {
-      reasons.push('价格偏差超过阈值');
+      reasonKeys.push('anomalyDetection.reasons.overThreshold');
     } else {
-      reasons.push('轻微价格偏差');
+      reasonKeys.push('anomalyDetection.reasons.minorDeviation');
     }
   }
 
-  return reasons.join('，');
+  return reasonKeys;
 }
 
 export function usePriceAnomalyDetection(
@@ -129,14 +129,14 @@ export function usePriceAnomalyDetection(
       if (Math.abs(deviationPercent) >= ANOMALY_THRESHOLD) {
         const freshnessSeconds = Math.floor((now - data.timestamp) / 1000);
         const severity = getSeverity(deviationPercent);
-        const reason = analyzeReason(deviationPercent, freshnessSeconds, data.confidence);
+        const reasonKeys = analyzeReason(deviationPercent, freshnessSeconds, data.confidence);
 
         anomalies.push({
           provider: data.provider,
           price: data.price,
           deviationPercent,
           severity,
-          reason,
+          reasonKeys,
           timestamp: data.timestamp,
           freshnessSeconds,
         });

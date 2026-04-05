@@ -1150,5 +1150,109 @@
       "unknownError": "发生未知错误，请重试。",
       "retry": "重试"
     }
+  },
+  "oracles": {
+    "descriptions": {
+      "chainlink": "行业领先的去中心化预言机网络，为智能合约提供安全可靠的链下数据连接",
+      "bandProtocol": "基于 Cosmos SDK 构建的跨链数据预言机平台，实现快速最终性和原生互操作性",
+      "uma": "乐观预言机协议，通过争议解决机制构建无价的合成资产和金融合约",
+      "pyth": "高频金融数据预言机，具有第一方交易所数据和亚秒级延迟",
+      "api3": "第一方预言机网络，实现去中心化 API 连接",
+      "redstone": "模块化预言机解决方案，支持高效的数据流和灵活的集成选项",
+      "dia": "开源的跨链数据预言机平台，提供透明且可验证的金融数据馈送",
+      "tellor": "去中心化加密原生预言机，通过质押挖矿机制确保数据透明度和安全性",
+      "chronicle": "MakerDAO 原生预言机，采用 Scuttlebutt 安全协议",
+      "winklink": "TRON 生态预言机，专注游戏和 DeFi"
+    }
+  },
+  "riskMetrics": {
+    "volatility": {
+      "insufficientData": "数据不足，无法计算波动率",
+      "description": "价格波动率为 {volatility}%"
+    },
+    "consistency": {
+      "good": "数据一致性良好",
+      "description": "数据一致性评分为 {value}，标准差为 {stdDev}%"
+    },
+    "sensitivity": {
+      "description": "异常检测敏感度设置为 {value}，当前检测到 {anomalyCount} 个异常"
+    },
+    "health": {
+      "noData": "系统健康度极低：无有效价格数据",
+      "description": "系统健康度为 {value}，基于 {sourceCount} 个数据源"
+    }
+  },
+  "anomalyDetection": {
+    "reasons": {
+      "severeDeviation": "价格严重偏离市场均值",
+      "highVolatility": "市场波动较大",
+      "dataSourceDifference": "数据源存在差异",
+      "severelyDelayed": "数据源延迟超过5分钟",
+      "delayed": "数据源延迟",
+      "lowConfidence": "数据源置信度较低",
+      "mediumConfidence": "数据源置信度一般",
+      "overThreshold": "价格偏差超过阈值",
+      "minorDeviation": "轻微价格偏差"
+    }
+  },
+  "errors": {
+    "suggestions": {
+      "default": "请稍后重试或联系支持团队",
+      "validationError": "请检查输入数据是否符合要求",
+      "authenticationError": "请重新登录或检查您的认证信息",
+      "authorizationError": "请确认您有权限执行此操作",
+      "notFound": "请确认请求的资源存在",
+      "rateLimitExceeded": "请稍后再试，或降低请求频率",
+      "internalError": "请稍后重试，如果问题持续存在请联系支持团队",
+      "priceFetchError": "请检查网络连接或稍后重试",
+      "oracleClientError": "预言机服务暂时不可用，请稍后重试",
+      "badRequest": "请检查请求参数是否正确",
+      "unauthorized": "请先登录后再执行此操作",
+      "forbidden": "您没有权限访问此资源",
+      "conflict": "请求与当前资源状态冲突，请刷新后重试",
+      "serviceUnavailable": "服务暂时不可用，请稍后重试",
+      "networkError": "网络连接异常，请检查网络设置",
+      "timeoutError": "请求超时，请稍后重试",
+      "unknownError": "发生未知错误，请稍后重试或联系支持"
+    }
+  },
+  "export": {
+    "resolution": {
+      "standard": "标准 (2x)",
+      "high": "高清 (4x)",
+      "ultra": "超清 (6x)"
+    },
+    "progress": {
+      "preparingCSV": "准备 CSV 数据...",
+      "preparingJSON": "准备 JSON 数据...",
+      "preparingChart": "准备图表截图...",
+      "preparingSVG": "准备 SVG 导出...",
+      "preparingPDF": "准备 PDF 导出...",
+      "preparingBatch": "准备批量导出...",
+      "processingData": "处理数据 {current}/{total}...",
+      "processingChart": "处理图表 {current}/{total}: {title}...",
+      "exportingChart": "导出图表 {current}/{total}: {name}...",
+      "cloningSVG": "克隆 SVG 元素...",
+      "serializingSVG": "序列化 SVG...",
+      "serializingData": "序列化数据...",
+      "renderingImage": "渲染图像...",
+      "generatingFile": "生成文件...",
+      "generatingPNG": "生成 PNG 文件...",
+      "generatingZIP": "生成 ZIP 文件...",
+      "savingPDF": "保存 PDF 文件...",
+      "completed": "导出完成",
+      "pdfCompleted": "PDF 导出完成",
+      "batchCompleted": "批量导出完成",
+      "allChartsCompleted": "所有图表导出完成",
+      "chartPrefix": "[{name}] {messageKey}"
+    },
+    "formats": {
+      "csvDescription": "逗号分隔值文件，适合数据分析",
+      "jsonDescription": "结构化数据格式，适合程序处理",
+      "excelDescription": "Excel 兼容格式，适合表格处理",
+      "pngDescription": "高清图片格式，适合分享和报告",
+      "svgDescription": "矢量图形格式，可无损缩放",
+      "pdfDescription": "PDF 文档格式，包含图表和摘要"
+    }
   }
 }

@@ -459,7 +459,29 @@
     "btcUsdTwap": "BTC/USD TWAP",
     "btcUsdTwapDesc": "1-hour TWAP for BTC/USD",
     "customData": "Custom Data",
-    "customDataDesc": "Custom weather data for NYC"
+    "customDataDesc": "Custom weather data for NYC",
+    "queryTypes": {
+      "spotPrice": {
+        "name": "SpotPrice",
+        "description": "Spot price query to get real-time asset prices",
+        "example": "ETH/USD, BTC/USDT"
+      },
+      "legacyRequest": {
+        "name": "LegacyRequest",
+        "description": "Legacy request type for backward compatibility with older Tellor versions",
+        "example": "Request ID: 1, 2, 3..."
+      },
+      "twap": {
+        "name": "TWAP",
+        "description": "Time-weighted average price, calculates average price over a specified period",
+        "example": "ETH/USD 24h TWAP"
+      },
+      "customQuery": {
+        "name": "CustomQuery",
+        "description": "Custom query type supporting arbitrary data queries",
+        "example": "Custom encoded query data"
+      }
+    }
   },
   "tellorLayer": {
     "overview": {

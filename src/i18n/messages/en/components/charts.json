@@ -280,6 +280,48 @@
       "dataPoints": "Data Points",
       "oracleCount": "Oracle Count",
       "warningCount": "Warning Count"
+    },
+    "confidenceInterval": {
+      "title": "Confidence Interval Visualization",
+      "confidenceLevel": "Confidence Level",
+      "upperBound": "Upper Bound",
+      "lowerBound": "Lower Bound",
+      "actualPrice": "Actual Price",
+      "predictedPrice": "Predicted Price",
+      "intervalWidth": "Interval Width",
+      "withinInterval": "Within Interval",
+      "outsideInterval": "Outside Interval",
+      "coverageRate": "Coverage Rate",
+      "avgWidth": "Avg Interval Width",
+      "minWidth": "Min Interval Width",
+      "maxWidth": "Max Interval Width",
+      "predictionAccuracy": "Prediction Accuracy",
+      "selectConfidence": "Select Confidence Level",
+      "percent": "%",
+      "showActual": "Show Actual Price",
+      "showPrediction": "Show Prediction",
+      "showBounds": "Show Confidence Bounds",
+      "noData": "No confidence interval data available",
+      "refreshData": "Refresh Data",
+      "levels": {
+        "high": "High Confidence",
+        "medium": "Medium Confidence",
+        "fairlyLow": "Fairly Low Confidence",
+        "low": "Low Confidence"
+      },
+      "score": "Confidence Score",
+      "historicalTrend": "Historical Confidence Trend",
+      "timePoint": "Time Point",
+      "confidence": "Confidence",
+      "average": "Average",
+      "currentPrice": "Current Price",
+      "width": "Interval Width",
+      "spread": "Spread",
+      "priceDistribution": "Price Interval Distribution",
+      "aboutPyth": {
+        "title": "About Pyth Confidence Interval",
+        "description": "Pyth oracle provides confidence intervals to represent price uncertainty. A narrower interval indicates higher price certainty, while a wider interval indicates higher volatility or greater divergence among data sources. The confidence score is calculated based on interval width - higher scores indicate more reliable price data."
+      }
     }
   },
   "priceVolatility": {

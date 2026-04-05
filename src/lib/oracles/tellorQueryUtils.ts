@@ -193,36 +193,36 @@ export const POPULAR_QUERIES: PopularQuery[] = [];
 export const QUERY_TYPES_INFO: Array<{
   type: QueryType;
   name: string;
-  description: string;
-  example: string;
+  descriptionKey: string;
+  exampleKey: string;
   params: string[];
 }> = [
   {
     type: 'SpotPrice',
     name: 'SpotPrice',
-    description: '现货价格查询，获取资产的实时价格',
-    example: 'ETH/USD, BTC/USDT',
+    descriptionKey: 'tellor.queryData.queryTypes.spotPrice.description',
+    exampleKey: 'tellor.queryData.queryTypes.spotPrice.example',
     params: ['asset (string)', 'currency (string)'],
   },
   {
     type: 'LegacyRequest',
     name: 'LegacyRequest',
-    description: '遗留请求类型，用于向后兼容旧版Tellor',
-    example: 'Request ID: 1, 2, 3...',
+    descriptionKey: 'tellor.queryData.queryTypes.legacyRequest.description',
+    exampleKey: 'tellor.queryData.queryTypes.legacyRequest.example',
     params: ['requestId (uint256)'],
   },
   {
     type: 'TWAP',
     name: 'TWAP',
-    description: '时间加权平均价格，计算指定时间段的平均价格',
-    example: 'ETH/USD 24h TWAP',
+    descriptionKey: 'tellor.queryData.queryTypes.twap.description',
+    exampleKey: 'tellor.queryData.queryTypes.twap.example',
     params: ['asset (string)', 'currency (string)', 'timeframe (uint256)'],
   },
   {
     type: 'CustomQuery',
     name: 'CustomQuery',
-    description: '自定义查询类型，支持任意数据查询',
-    example: '自定义编码的查询数据',
+    descriptionKey: 'tellor.queryData.queryTypes.customQuery.description',
+    exampleKey: 'tellor.queryData.queryTypes.customQuery.example',
     params: ['queryData (bytes)'],
   },
 ];

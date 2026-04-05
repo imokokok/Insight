@@ -280,6 +280,48 @@
       "dataPoints": "数据点",
       "oracleCount": "预言机数量",
       "warningCount": "警告次数"
+    },
+    "confidenceInterval": {
+      "title": "置信区间可视化",
+      "confidenceLevel": "置信度",
+      "upperBound": "上界",
+      "lowerBound": "下界",
+      "actualPrice": "实际价格",
+      "predictedPrice": "预测价格",
+      "intervalWidth": "区间宽度",
+      "withinInterval": "区间内",
+      "outsideInterval": "区间外",
+      "coverageRate": "覆盖率",
+      "avgWidth": "平均区间宽度",
+      "minWidth": "最小区间宽度",
+      "maxWidth": "最大区间宽度",
+      "predictionAccuracy": "预测准确率",
+      "selectConfidence": "选择置信度",
+      "percent": "%",
+      "showActual": "显示实际价格",
+      "showPrediction": "显示预测",
+      "showBounds": "显示置信边界",
+      "noData": "暂无置信区间数据",
+      "refreshData": "刷新数据",
+      "levels": {
+        "high": "高置信度",
+        "medium": "中等置信度",
+        "fairlyLow": "较低置信度",
+        "low": "低置信度"
+      },
+      "score": "置信度评分",
+      "historicalTrend": "历史置信度趋势",
+      "timePoint": "时间点",
+      "confidence": "置信度",
+      "average": "平均",
+      "currentPrice": "当前价格",
+      "width": "区间宽度",
+      "spread": "价差",
+      "priceDistribution": "价格区间分布",
+      "aboutPyth": {
+        "title": "关于 Pyth 置信区间",
+        "description": "Pyth 预言机提供置信区间来表示价格的不确定性。区间越窄表示价格越确定，越宽表示波动性越大或数据源分歧越大。置信度评分基于区间宽度计算，分数越高表示价格数据越可靠。"
+      }
     }
   },
   "priceVolatility": {

@@ -12,6 +12,8 @@ import type { OraclePriceHistory } from '@/components/oracle/charts/PriceVolatil
 import type { OraclePerformanceData } from '@/components/oracle/data-display/OraclePerformanceRanking';
 import type { FavoriteConfig } from '@/hooks/data';
 import type { UserFavorite } from '@/lib/supabase/queries';
+import type { CalculatedPerformanceMetrics } from '@/lib/oracles/performanceMetricsCalculator';
+import type { MemoryStats } from '@/lib/oracles/memoryManager';
 import {
   type OracleProvider,
   type PriceData,
@@ -368,7 +370,7 @@ export interface UseOracleDataReturn {
   fetchPriceData: () => Promise<void>;
   refreshInterval: RefreshInterval;
   setRefreshInterval: (interval: RefreshInterval) => void;
-  performanceMetrics: import('@/lib/oracles/performanceMetricsCalculator').CalculatedPerformanceMetrics[];
+  performanceMetrics: CalculatedPerformanceMetrics[];
   isCalculatingMetrics: boolean;
   oracleDataError: OracleDataError;
   retryConfig: RetryConfig;
@@ -377,13 +379,13 @@ export interface UseOracleDataReturn {
   retryAllFailed: () => Promise<void>;
   isRetrying: boolean;
   retryingOracles: OracleProvider[];
-  getMemoryStats: () => import('@/lib/oracles/memoryManager').MemoryStats;
+  getMemoryStats: () => MemoryStats;
   clearHistoryData: () => void;
   getDetailedMemoryStats: () => {
-    localPriceHistory: import('@/lib/oracles/memoryManager').MemoryStats;
+    localPriceHistory: MemoryStats;
     calculatorStats: {
       basic: { totalEntries: number; providerCount: number; cacheSize: number };
-      memory: import('@/lib/oracles/memoryManager').MemoryStats;
+      memory: MemoryStats;
       entriesByProvider: Record<string, number>;
     };
     formattedBytes: string;
@@ -700,7 +702,7 @@ export interface OracleFeature {
   symbolCount: number;
   avgLatency: number;
   features: string[];
-  description: string;
+  descriptionKey: string;
 }
 
 // ============================================================================

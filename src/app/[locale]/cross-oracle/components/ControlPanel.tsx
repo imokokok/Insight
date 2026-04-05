@@ -21,11 +21,9 @@ import {
 
 import { SegmentedControl, DropdownSelect } from '@/components/ui';
 import { getPriceOracleProvidersSortedByMarketCap, getOracleConfig } from '@/lib/config/oracles';
-import { type OracleProvider } from '@/types/oracle';
 
 import {
   timeRanges,
-  oracleNames,
   tradingPairs,
   type PriceOracleProvider,
   priceOracleNames,
@@ -77,8 +75,8 @@ const getOracleFeatureInfo = (provider: PriceOracleProvider): OracleFeature => {
     name: config.name,
     symbolCount: config.networkData.dataFeeds,
     avgLatency: config.networkData.avgResponseTime,
-    features: features.slice(0, 3), // 最多显示3个特性
-    description: config.description,
+    features: features.slice(0, 3),
+    descriptionKey: config.descriptionKey,
   };
 };
 

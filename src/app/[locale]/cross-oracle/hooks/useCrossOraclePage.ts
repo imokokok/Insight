@@ -5,11 +5,8 @@
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 
-import { useRouter } from 'next/navigation';
-
-import { useFavorites, type FavoriteConfig } from '@/hooks';
+import { useFavorites } from '@/hooks';
 import { useTranslations } from '@/i18n';
-import type { UserFavorite } from '@/lib/supabase/queries';
 import { useUser } from '@/stores/authStore';
 import type { PriceData, SnapshotStats } from '@/types/oracle';
 import { OracleProvider } from '@/types/oracle';
@@ -24,7 +21,7 @@ import { useOracleData } from './useOracleData';
 import { usePriceAnomalyDetection } from './usePriceAnomalyDetection';
 import { usePriceStats } from './usePriceStats';
 
-import type { TabId, HistoryMinMax, MovingAverageData, QualityTrendData } from '../types/index';
+import type { TabId, MovingAverageData, QualityTrendData } from '../types/index';
 
 interface UseCrossOraclePageOptions {
   initialSymbol?: string;
@@ -33,7 +30,6 @@ interface UseCrossOraclePageOptions {
 
 export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
   const t = useTranslations();
-  const router = useRouter();
   const user = useUser();
 
   const { initialSymbol = 'BTC/USD', initialOracles = [OracleProvider.PYTH] } = options;
@@ -336,7 +332,7 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
       avgLatency: 1500,
       updateFrequency: 'Real-time',
       features: ['high-frequency', 'cross-chain', 'first-party'],
-      description: `${oracle} is a leading blockchain oracle solution`,
+      descriptionKey: `oracles.descriptions.${oracle.toLowerCase()}`,
     }));
   }, [selectedOracles]);
 

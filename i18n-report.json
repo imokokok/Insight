@@ -1,65 +1,91 @@
 {
-  "timestamp": "2026-04-05T17:29:23.973Z",
+  "timestamp": "2026-04-05T17:36:22.548Z",
   "stats": {
     "sourceFiles": 995,
-    "enKeys": 10382,
-    "zhKeys": 10540,
+    "enKeys": 10400,
+    "zhKeys": 10558,
     "usedKeys": 5484,
     "unusedKeys": 5581,
-    "missingInCode": 669
+    "missingInCode": 651
   },
   "missingInCode": [
     {
       "key": "./home-components/ProfessionalHero",
-      "locations": ["src/app/[locale]/HomeContent.tsx"]
+      "locations": [
+        "src/app/[locale]/HomeContent.tsx"
+      ]
     },
     {
       "key": "ecosystem.timeRange.${range}",
-      "locations": ["src/app/[locale]/api3/components/API3EcosystemView.tsx"]
+      "locations": [
+        "src/app/[locale]/api3/components/API3EcosystemView.tsx"
+      ]
     },
     {
       "key": "api3.riskView.level.${factor.level}",
-      "locations": ["src/app/[locale]/api3/components/API3RiskView.tsx"]
+      "locations": [
+        "src/app/[locale]/api3/components/API3RiskView.tsx"
+      ]
     },
     {
       "key": "band.bandProtocol.risk.level.${factor.level}",
-      "locations": ["src/app/[locale]/band-protocol/components/BandProtocolRiskView.tsx"]
+      "locations": [
+        "src/app/[locale]/band-protocol/components/BandProtocolRiskView.tsx"
+      ]
     },
     {
       "key": "Gini: ${riskMetrics.giniCoefficient.toFixed(3)} | Nakamoto: ${riskMetrics.nakamotoCoefficient} | Top 10: ${riskMetrics.top10ValidatorsShare.toFixed(1)}%",
-      "locations": ["src/app/[locale]/band-protocol/components/BandProtocolRiskView.tsx"]
+      "locations": [
+        "src/app/[locale]/band-protocol/components/BandProtocolRiskView.tsx"
+      ]
     },
     {
       "key": "chainlink.automation.trigger${type.charAt(0).toUpperCase() + type.slice(1)}",
-      "locations": ["src/app/[locale]/chainlink/components/ChainlinkAutomationView.tsx"]
+      "locations": [
+        "src/app/[locale]/chainlink/components/ChainlinkAutomationView.tsx"
+      ]
     },
     {
       "key": "chainlink.${metric.nameKey}",
-      "locations": ["src/app/[locale]/chainlink/components/ChainlinkRiskView.tsx"]
+      "locations": [
+        "src/app/[locale]/chainlink/components/ChainlinkRiskView.tsx"
+      ]
     },
     {
       "key": "chainlink.${metric.descKey}",
-      "locations": ["src/app/[locale]/chainlink/components/ChainlinkRiskView.tsx"]
+      "locations": [
+        "src/app/[locale]/chainlink/components/ChainlinkRiskView.tsx"
+      ]
     },
     {
       "key": "chainlink.benchmark.${value}",
-      "locations": ["src/app/[locale]/chainlink/components/ChainlinkRiskView.tsx"]
+      "locations": [
+        "src/app/[locale]/chainlink/components/ChainlinkRiskView.tsx"
+      ]
     },
     {
       "key": "chainlink.benchmark.${item.metric}",
-      "locations": ["src/app/[locale]/chainlink/components/ChainlinkRiskView.tsx"]
+      "locations": [
+        "src/app/[locale]/chainlink/components/ChainlinkRiskView.tsx"
+      ]
     },
     {
       "key": "chainlink.riskEvents.${selectedEvent.title}",
-      "locations": ["src/app/[locale]/chainlink/components/ChainlinkRiskView.tsx"]
+      "locations": [
+        "src/app/[locale]/chainlink/components/ChainlinkRiskView.tsx"
+      ]
     },
     {
       "key": "chainlink.riskEvents.${selectedEvent.description}",
-      "locations": ["src/app/[locale]/chainlink/components/ChainlinkRiskView.tsx"]
+      "locations": [
+        "src/app/[locale]/chainlink/components/ChainlinkRiskView.tsx"
+      ]
     },
     {
       "key": "chainlink.${factor.categoryKey}",
-      "locations": ["src/app/[locale]/chainlink/components/ChainlinkRiskView.tsx"]
+      "locations": [
+        "src/app/[locale]/chainlink/components/ChainlinkRiskView.tsx"
+      ]
     },
     {
       "key": "chainlink.${factor.descKey}",
@@ -70,11 +96,15 @@
     },
     {
       "key": "chainlink.${detailKey}",
-      "locations": ["src/app/[locale]/chainlink/components/ChainlinkRiskView.tsx"]
+      "locations": [
+        "src/app/[locale]/chainlink/components/ChainlinkRiskView.tsx"
+      ]
     },
     {
       "key": "chainlink.staking.status.${item.status}",
-      "locations": ["src/app/[locale]/chainlink/components/ChainlinkStakingView.tsx"]
+      "locations": [
+        "src/app/[locale]/chainlink/components/ChainlinkStakingView.tsx"
+      ]
     },
     {
       "key": "chainlink.${TIER_CONFIG[tier].labelKey}",
@@ -93,87 +123,129 @@
     },
     {
       "key": "chainlink.${SCENARIOS[key].labelKey}",
-      "locations": ["src/app/[locale]/chainlink/components/StakingRewardsCalculator.tsx"]
+      "locations": [
+        "src/app/[locale]/chainlink/components/StakingRewardsCalculator.tsx"
+      ]
     },
     {
       "key": "chainlink.${scenario.descKey}",
-      "locations": ["src/app/[locale]/chainlink/components/StakingRewardsCalculator.tsx"]
+      "locations": [
+        "src/app/[locale]/chainlink/components/StakingRewardsCalculator.tsx"
+      ]
     },
     {
       "key": "chronicle.scuttlebutt.events.${item.event}",
-      "locations": ["src/app/[locale]/chronicle/components/ChronicleScuttlebuttView.tsx"]
+      "locations": [
+        "src/app/[locale]/chronicle/components/ChronicleScuttlebuttView.tsx"
+      ]
     },
     {
       "key": "chronicle.scuttlebutt.resolutions.${item.resolution}",
-      "locations": ["src/app/[locale]/chronicle/components/ChronicleScuttlebuttView.tsx"]
+      "locations": [
+        "src/app/[locale]/chronicle/components/ChronicleScuttlebuttView.tsx"
+      ]
     },
     {
       "key": "chronicle.status.${statusKey}",
-      "locations": ["src/app/[locale]/chronicle/components/ChronicleValidatorsView.tsx"]
+      "locations": [
+        "src/app/[locale]/chronicle/components/ChronicleValidatorsView.tsx"
+      ]
     },
     {
       "key": "crossChain.filters",
-      "locations": ["src/app/[locale]/cross-chain/components/CrossChainFilters.tsx"]
+      "locations": [
+        "src/app/[locale]/cross-chain/components/CrossChainFilters.tsx"
+      ]
     },
     {
       "key": "crossChain.visibleChains",
-      "locations": ["src/app/[locale]/cross-chain/components/CrossChainFilters.tsx"]
+      "locations": [
+        "src/app/[locale]/cross-chain/components/CrossChainFilters.tsx"
+      ]
     },
     {
       "key": "crossChain.filter${filter.charAt(0).toUpperCase() + filter.slice(1)}",
-      "locations": ["src/app/[locale]/cross-chain/components/PriceComparisonTable.tsx"]
+      "locations": [
+        "src/app/[locale]/cross-chain/components/PriceComparisonTable.tsx"
+      ]
     },
     {
       "key": "consistency.${getConsistencyRating(standardDeviationPercent)}",
-      "locations": ["src/app/[locale]/cross-chain/page.tsx"]
+      "locations": [
+        "src/app/[locale]/cross-chain/page.tsx"
+      ]
     },
     {
       "key": "crossChain.stability.${stabilityRating}",
-      "locations": ["src/app/[locale]/cross-chain/page.tsx"]
+      "locations": [
+        "src/app/[locale]/cross-chain/page.tsx"
+      ]
     },
     {
       "key": "a",
-      "locations": ["src/app/[locale]/cross-chain/useCrossChainData.ts"]
+      "locations": [
+        "src/app/[locale]/cross-chain/useCrossChainData.ts"
+      ]
     },
     {
       "key": "comparison.benchmark.industryAverage",
-      "locations": ["src/app/[locale]/cross-oracle/components/BenchmarkComparisonSection.tsx"]
+      "locations": [
+        "src/app/[locale]/cross-oracle/components/BenchmarkComparisonSection.tsx"
+      ]
     },
     {
       "key": "comparison.oracleComparison.medianPrice",
-      "locations": ["src/app/[locale]/cross-oracle/components/BenchmarkComparisonSection.tsx"]
+      "locations": [
+        "src/app/[locale]/cross-oracle/components/BenchmarkComparisonSection.tsx"
+      ]
     },
     {
       "key": "comparison.benchmark.marketLeader",
-      "locations": ["src/app/[locale]/cross-oracle/components/BenchmarkComparisonSection.tsx"]
+      "locations": [
+        "src/app/[locale]/cross-oracle/components/BenchmarkComparisonSection.tsx"
+      ]
     },
     {
       "key": "comparison.oracleComparison.oracle",
-      "locations": ["src/app/[locale]/cross-oracle/components/BenchmarkComparisonSection.tsx"]
+      "locations": [
+        "src/app/[locale]/cross-oracle/components/BenchmarkComparisonSection.tsx"
+      ]
     },
     {
       "key": "comparison.oracleComparison.price",
-      "locations": ["src/app/[locale]/cross-oracle/components/BenchmarkComparisonSection.tsx"]
+      "locations": [
+        "src/app/[locale]/cross-oracle/components/BenchmarkComparisonSection.tsx"
+      ]
     },
     {
       "key": "comparison.benchmark.gap",
-      "locations": ["src/app/[locale]/cross-oracle/components/BenchmarkComparisonSection.tsx"]
+      "locations": [
+        "src/app/[locale]/cross-oracle/components/BenchmarkComparisonSection.tsx"
+      ]
     },
     {
       "key": "crossOracle.timeRange.${range}",
-      "locations": ["src/app/[locale]/cross-oracle/components/ControlPanel.tsx"]
+      "locations": [
+        "src/app/[locale]/cross-oracle/components/ControlPanel.tsx"
+      ]
     },
     {
       "key": "crossOracle.filter.filtersActive",
-      "locations": ["src/app/[locale]/cross-oracle/components/ControlPanel.tsx"]
+      "locations": [
+        "src/app/[locale]/cross-oracle/components/ControlPanel.tsx"
+      ]
     },
     {
       "key": "crossOracle.filter.clearAll",
-      "locations": ["src/app/[locale]/cross-oracle/components/ControlPanel.tsx"]
+      "locations": [
+        "src/app/[locale]/cross-oracle/components/ControlPanel.tsx"
+      ]
     },
     {
       "key": "crossOracle.retrying",
-      "locations": ["src/app/[locale]/cross-oracle/components/OracleErrorPanel.tsx"]
+      "locations": [
+        "src/app/[locale]/cross-oracle/components/OracleErrorPanel.tsx"
+      ]
     },
     {
       "key": "crossOracle.retry",
@@ -184,19 +256,27 @@
     },
     {
       "key": "crossOracle.partialSuccessDesc",
-      "locations": ["src/app/[locale]/cross-oracle/components/OracleErrorPanel.tsx"]
+      "locations": [
+        "src/app/[locale]/cross-oracle/components/OracleErrorPanel.tsx"
+      ]
     },
     {
       "key": "crossOracle.retryAll",
-      "locations": ["src/app/[locale]/cross-oracle/components/OracleErrorPanel.tsx"]
+      "locations": [
+        "src/app/[locale]/cross-oracle/components/OracleErrorPanel.tsx"
+      ]
     },
     {
       "key": "crossOracle.globalError",
-      "locations": ["src/app/[locale]/cross-oracle/components/OracleErrorPanel.tsx"]
+      "locations": [
+        "src/app/[locale]/cross-oracle/components/OracleErrorPanel.tsx"
+      ]
     },
     {
       "key": "crossOracle.failedOracles",
-      "locations": ["src/app/[locale]/cross-oracle/components/OracleErrorPanel.tsx"]
+      "locations": [
+        "src/app/[locale]/cross-oracle/components/OracleErrorPanel.tsx"
+      ]
     },
     {
       "key": "navbar.${currentQueryTarget.oracle.toLowerCase()}",
@@ -269,19 +349,27 @@
     },
     {
       "key": "crossOracle.analysisTab.movingAverage",
-      "locations": ["src/app/[locale]/cross-oracle/components/tabs/AnalysisTab.tsx"]
+      "locations": [
+        "src/app/[locale]/cross-oracle/components/tabs/AnalysisTab.tsx"
+      ]
     },
     {
       "key": "crossOracle.analysisTab.dataQuality",
-      "locations": ["src/app/[locale]/cross-oracle/components/tabs/AnalysisTab.tsx"]
+      "locations": [
+        "src/app/[locale]/cross-oracle/components/tabs/AnalysisTab.tsx"
+      ]
     },
     {
       "key": "crossOracle.analysisTab.performanceComparison",
-      "locations": ["src/app/[locale]/cross-oracle/components/tabs/AnalysisTab.tsx"]
+      "locations": [
+        "src/app/[locale]/cross-oracle/components/tabs/AnalysisTab.tsx"
+      ]
     },
     {
       "key": "crossOracle.analysisTab.selectOracle",
-      "locations": ["src/app/[locale]/cross-oracle/components/tabs/AnalysisTab.tsx"]
+      "locations": [
+        "src/app/[locale]/cross-oracle/components/tabs/AnalysisTab.tsx"
+      ]
     },
     {
       "key": "crossOracle.analysisTab.allOracles",
@@ -292,119 +380,177 @@
     },
     {
       "key": "crossOracle.analysisTab.selectOraclePlaceholder",
-      "locations": ["src/app/[locale]/cross-oracle/components/tabs/AnalysisTab.tsx"]
+      "locations": [
+        "src/app/[locale]/cross-oracle/components/tabs/AnalysisTab.tsx"
+      ]
     },
     {
       "key": "crossOracle.analysisTab.summary",
-      "locations": ["src/app/[locale]/cross-oracle/components/tabs/AnalysisTab.tsx"]
+      "locations": [
+        "src/app/[locale]/cross-oracle/components/tabs/AnalysisTab.tsx"
+      ]
     },
     {
       "key": "crossOracle.analysisTab.responseTime",
-      "locations": ["src/app/[locale]/cross-oracle/components/tabs/AnalysisTab.tsx"]
+      "locations": [
+        "src/app/[locale]/cross-oracle/components/tabs/AnalysisTab.tsx"
+      ]
     },
     {
       "key": "crossOracle.analysisTab.accuracy",
-      "locations": ["src/app/[locale]/cross-oracle/components/tabs/AnalysisTab.tsx"]
+      "locations": [
+        "src/app/[locale]/cross-oracle/components/tabs/AnalysisTab.tsx"
+      ]
     },
     {
       "key": "crossOracle.analysisTab.stability",
-      "locations": ["src/app/[locale]/cross-oracle/components/tabs/AnalysisTab.tsx"]
+      "locations": [
+        "src/app/[locale]/cross-oracle/components/tabs/AnalysisTab.tsx"
+      ]
     },
     {
       "key": "crossOracle.analysisTab.advancedAnalysis",
-      "locations": ["src/app/[locale]/cross-oracle/components/tabs/AnalysisTab.tsx"]
+      "locations": [
+        "src/app/[locale]/cross-oracle/components/tabs/AnalysisTab.tsx"
+      ]
     },
     {
       "key": "crossOracle.ofMedian",
-      "locations": ["src/app/[locale]/cross-oracle/components/tabs/PriceComparisonTab.tsx"]
+      "locations": [
+        "src/app/[locale]/cross-oracle/components/tabs/PriceComparisonTab.tsx"
+      ]
     },
     {
       "key": "crossOracle.timeRange.${timeRange}",
-      "locations": ["src/app/[locale]/cross-oracle/components/tabs/PriceComparisonTab.tsx"]
+      "locations": [
+        "src/app/[locale]/cross-oracle/components/tabs/PriceComparisonTab.tsx"
+      ]
     },
     {
       "key": "crossOracle.risk.noData",
-      "locations": ["src/app/[locale]/cross-oracle/components/tabs/RiskHeatmap.tsx"]
+      "locations": [
+        "src/app/[locale]/cross-oracle/components/tabs/RiskHeatmap.tsx"
+      ]
     },
     {
       "key": "crossOracle.risk.noDataDesc",
-      "locations": ["src/app/[locale]/cross-oracle/components/tabs/RiskHeatmap.tsx"]
+      "locations": [
+        "src/app/[locale]/cross-oracle/components/tabs/RiskHeatmap.tsx"
+      ]
     },
     {
       "key": "价格波动率为 ${volatilityPercent.toFixed(2)}%",
-      "locations": ["src/app/[locale]/cross-oracle/hooks/useRiskMetrics.ts"]
+      "locations": [
+        "src/app/[locale]/cross-oracle/hooks/useRiskMetrics.ts"
+      ]
     },
     {
       "key": "数据一致性评分为 ${value}，标准差为 ${stdDevPercent.toFixed(2)}%",
-      "locations": ["src/app/[locale]/cross-oracle/hooks/useRiskMetrics.ts"]
+      "locations": [
+        "src/app/[locale]/cross-oracle/hooks/useRiskMetrics.ts"
+      ]
     },
     {
       "key": "系统健康度为 ${value}，基于 ${validPrices.length} 个数据源",
-      "locations": ["src/app/[locale]/cross-oracle/hooks/useRiskMetrics.ts"]
+      "locations": [
+        "src/app/[locale]/cross-oracle/hooks/useRiskMetrics.ts"
+      ]
     },
     {
       "key": "发现 ${highRiskAnomalies.length} 个高风险价格异常，偏差超过 3%。建议立即检查相关预言机数据源。",
-      "locations": ["src/app/[locale]/cross-oracle/hooks/useRiskRecommendations.ts"]
+      "locations": [
+        "src/app/[locale]/cross-oracle/hooks/useRiskRecommendations.ts"
+      ]
     },
     {
       "key": "检测到 ${mediumRiskAnomalies.length} 个中等风险的价格偏差（1-3%）。建议监控这些数据源的表现。",
-      "locations": ["src/app/[locale]/cross-oracle/hooks/useRiskRecommendations.ts"]
+      "locations": [
+        "src/app/[locale]/cross-oracle/hooks/useRiskRecommendations.ts"
+      ]
     },
     {
       "key": "共有 ${anomalies.length} 个数据源报告异常。这可能表明市场波动剧烈或存在系统性问题。",
-      "locations": ["src/app/[locale]/cross-oracle/hooks/useRiskRecommendations.ts"]
+      "locations": [
+        "src/app/[locale]/cross-oracle/hooks/useRiskRecommendations.ts"
+      ]
     },
     {
       "key": "${staleDataAnomalies.length} 个预言机数据更新延迟超过 5 分钟。这可能影响价格准确性。",
-      "locations": ["src/app/[locale]/cross-oracle/hooks/useRiskRecommendations.ts"]
+      "locations": [
+        "src/app/[locale]/cross-oracle/hooks/useRiskRecommendations.ts"
+      ]
     },
     {
       "key": "当前数据完整性为 ${completeness.toFixed(1)}%，低于 80% 阈值。部分预言机可能无法提供有效数据。",
-      "locations": ["src/app/[locale]/cross-oracle/hooks/useRiskRecommendations.ts"]
+      "locations": [
+        "src/app/[locale]/cross-oracle/hooks/useRiskRecommendations.ts"
+      ]
     },
     {
       "key": "检测到最高 ${maxDeviation.toFixed(2)}% 的价格偏差。各预言机之间的价格一致性较差。",
-      "locations": ["src/app/[locale]/cross-oracle/hooks/useRiskRecommendations.ts"]
+      "locations": [
+        "src/app/[locale]/cross-oracle/hooks/useRiskRecommendations.ts"
+      ]
     },
     {
       "key": "dia.status.${feed.status}",
-      "locations": ["src/app/[locale]/dia/components/DIADataFeedsView.tsx"]
+      "locations": [
+        "src/app/[locale]/dia/components/DIADataFeedsView.tsx"
+      ]
     },
     {
       "key": "dia.status.${source.status}",
-      "locations": ["src/app/[locale]/dia/components/DIADataFeedsView.tsx"]
+      "locations": [
+        "src/app/[locale]/dia/components/DIADataFeedsView.tsx"
+      ]
     },
     {
       "key": "dia.ecosystem.category.${category}",
-      "locations": ["src/app/[locale]/dia/components/DIAEcosystemView.tsx"]
+      "locations": [
+        "src/app/[locale]/dia/components/DIAEcosystemView.tsx"
+      ]
     },
     {
       "key": "risk.factor.${factor.key}",
-      "locations": ["src/app/[locale]/dia/components/DIARiskView.tsx"]
+      "locations": [
+        "src/app/[locale]/dia/components/DIARiskView.tsx"
+      ]
     },
     {
       "key": "risk.severity.${factor.severity}",
-      "locations": ["src/app/[locale]/dia/components/DIARiskView.tsx"]
+      "locations": [
+        "src/app/[locale]/dia/components/DIARiskView.tsx"
+      ]
     },
     {
       "key": "risk.status.${source.status}",
-      "locations": ["src/app/[locale]/dia/components/DIARiskView.tsx"]
+      "locations": [
+        "src/app/[locale]/dia/components/DIARiskView.tsx"
+      ]
     },
     {
       "key": "./ParticleNetwork",
-      "locations": ["src/app/[locale]/home-components/HeroBackground.tsx"]
+      "locations": [
+        "src/app/[locale]/home-components/HeroBackground.tsx"
+      ]
     },
     {
       "key": "./DataFlowLines",
-      "locations": ["src/app/[locale]/home-components/HeroBackground.tsx"]
+      "locations": [
+        "src/app/[locale]/home-components/HeroBackground.tsx"
+      ]
     },
     {
       "key": "timeframes.${tf}",
-      "locations": ["src/app/[locale]/market-overview/components/BenchmarkComparison.tsx"]
+      "locations": [
+        "src/app/[locale]/market-overview/components/BenchmarkComparison.tsx"
+      ]
     },
     {
       "key": "common.actions.clear",
-      "locations": ["src/app/[locale]/market-overview/components/ChartContainer.tsx"]
+      "locations": [
+        "src/app/[locale]/market-overview/components/ChartContainer.tsx"
+      ]
     },
     {
       "key": "ui.chart.${type.translationKey}",
@@ -414,136 +560,94 @@
       ]
     },
     {
-      "key": "marketOverview.exportConfig.metrics.tvs",
-      "locations": ["src/app/[locale]/market-overview/components/ExportConfig.tsx"]
-    },
-    {
-      "key": "marketOverview.exportConfig.metrics.tvl",
-      "locations": ["src/app/[locale]/market-overview/components/ExportConfig.tsx"]
-    },
-    {
-      "key": "marketOverview.exportConfig.metrics.volume",
-      "locations": ["src/app/[locale]/market-overview/components/ExportConfig.tsx"]
-    },
-    {
-      "key": "marketOverview.exportConfig.metrics.fees",
-      "locations": ["src/app/[locale]/market-overview/components/ExportConfig.tsx"]
-    },
-    {
-      "key": "marketOverview.exportConfig.metrics.revenue",
-      "locations": ["src/app/[locale]/market-overview/components/ExportConfig.tsx"]
-    },
-    {
-      "key": "marketOverview.exportConfig.metrics.users",
-      "locations": ["src/app/[locale]/market-overview/components/ExportConfig.tsx"]
-    },
-    {
-      "key": "marketOverview.exportConfig.exportFormat",
-      "locations": ["src/app/[locale]/market-overview/components/ExportConfig.tsx"]
-    },
-    {
-      "key": "marketOverview.exportConfig.timeRange",
-      "locations": ["src/app/[locale]/market-overview/components/ExportConfig.tsx"]
-    },
-    {
-      "key": "marketOverview.exportConfig.timeRanges.7d",
-      "locations": ["src/app/[locale]/market-overview/components/ExportConfig.tsx"]
-    },
-    {
-      "key": "marketOverview.exportConfig.timeRanges.30d",
-      "locations": ["src/app/[locale]/market-overview/components/ExportConfig.tsx"]
-    },
-    {
-      "key": "marketOverview.exportConfig.timeRanges.90d",
-      "locations": ["src/app/[locale]/market-overview/components/ExportConfig.tsx"]
-    },
-    {
-      "key": "marketOverview.exportConfig.timeRanges.1y",
-      "locations": ["src/app/[locale]/market-overview/components/ExportConfig.tsx"]
-    },
-    {
-      "key": "marketOverview.exportConfig.timeRanges.all",
-      "locations": ["src/app/[locale]/market-overview/components/ExportConfig.tsx"]
-    },
-    {
-      "key": "marketOverview.exportConfig.includeMetrics",
-      "locations": ["src/app/[locale]/market-overview/components/ExportConfig.tsx"]
-    },
-    {
-      "key": "marketOverview.exportConfig.includeMetadata",
-      "locations": ["src/app/[locale]/market-overview/components/ExportConfig.tsx"]
-    },
-    {
-      "key": "marketOverview.exportConfig.includeCharts",
-      "locations": ["src/app/[locale]/market-overview/components/ExportConfig.tsx"]
-    },
-    {
-      "key": "marketOverview.export.exporting",
-      "locations": ["src/app/[locale]/market-overview/components/ExportConfig.tsx"]
-    },
-    {
-      "key": "marketOverview.exportConfig.exportData",
-      "locations": ["src/app/[locale]/market-overview/components/ExportConfig.tsx"]
-    },
-    {
       "key": "Price change detected for ${selectedAnomaly.dataKey}",
-      "locations": ["src/app/[locale]/market-overview/page.tsx"]
+      "locations": [
+        "src/app/[locale]/market-overview/page.tsx"
+      ]
     },
     {
       "key": "dataQuality.${SCORE_CONFIG[getScoreLevel(metric.completenessScore)].labelKey}",
-      "locations": ["src/app/[locale]/price-query/components/DataQualityPanel.tsx"]
+      "locations": [
+        "src/app/[locale]/price-query/components/DataQualityPanel.tsx"
+      ]
     },
     {
       "key": "dataQuality.${SCORE_CONFIG[item.level].labelKey}",
-      "locations": ["src/app/[locale]/price-query/components/DataQualityPanel.tsx"]
+      "locations": [
+        "src/app/[locale]/price-query/components/DataQualityPanel.tsx"
+      ]
     },
     {
       "key": "dataQuality.${SCORE_CONFIG[level].labelKey}",
-      "locations": ["src/app/[locale]/price-query/components/DataQualityPanel.tsx"]
+      "locations": [
+        "src/app/[locale]/price-query/components/DataQualityPanel.tsx"
+      ]
     },
     {
       "key": "${result.provider} (${result.chain})",
-      "locations": ["src/app/[locale]/price-query/components/DataQualityPanel.tsx"]
+      "locations": [
+        "src/app/[locale]/price-query/components/DataQualityPanel.tsx"
+      ]
     },
     {
       "key": "priceQuery.errors.networkError",
-      "locations": ["src/app/[locale]/price-query/components/ErrorBanner.tsx"]
+      "locations": [
+        "src/app/[locale]/price-query/components/ErrorBanner.tsx"
+      ]
     },
     {
       "key": "priceQuery.errors.timeoutError",
-      "locations": ["src/app/[locale]/price-query/components/ErrorBanner.tsx"]
+      "locations": [
+        "src/app/[locale]/price-query/components/ErrorBanner.tsx"
+      ]
     },
     {
       "key": "priceQuery.errors.dataError",
-      "locations": ["src/app/[locale]/price-query/components/ErrorBanner.tsx"]
+      "locations": [
+        "src/app/[locale]/price-query/components/ErrorBanner.tsx"
+      ]
     },
     {
       "key": "priceQuery.errors.unknownError",
-      "locations": ["src/app/[locale]/price-query/components/ErrorBanner.tsx"]
+      "locations": [
+        "src/app/[locale]/price-query/components/ErrorBanner.tsx"
+      ]
     },
     {
       "key": "priceQuery.errors.retry",
-      "locations": ["src/app/[locale]/price-query/components/ErrorBanner.tsx"]
+      "locations": [
+        "src/app/[locale]/price-query/components/ErrorBanner.tsx"
+      ]
     },
     {
       "key": "priceQuery.errors.retryAll",
-      "locations": ["src/app/[locale]/price-query/components/ErrorBanner.tsx"]
+      "locations": [
+        "src/app/[locale]/price-query/components/ErrorBanner.tsx"
+      ]
     },
     {
       "key": "priceQuery.errors.dismiss",
-      "locations": ["src/app/[locale]/price-query/components/ErrorBanner.tsx"]
+      "locations": [
+        "src/app/[locale]/price-query/components/ErrorBanner.tsx"
+      ]
     },
     {
       "key": "priceQuery.errors.showLess",
-      "locations": ["src/app/[locale]/price-query/components/ErrorBanner.tsx"]
+      "locations": [
+        "src/app/[locale]/price-query/components/ErrorBanner.tsx"
+      ]
     },
     {
       "key": "priceQuery.exportConfig.title",
-      "locations": ["src/app/[locale]/price-query/components/ExportConfig.tsx"]
+      "locations": [
+        "src/app/[locale]/price-query/components/ExportConfig.tsx"
+      ]
     },
     {
       "key": "priceQuery.exportConfig.format",
-      "locations": ["src/app/[locale]/price-query/components/ExportConfig.tsx"]
+      "locations": [
+        "src/app/[locale]/price-query/components/ExportConfig.tsx"
+      ]
     },
     {
       "key": "priceQuery.exportConfig.fields",
@@ -554,163 +658,243 @@
     },
     {
       "key": "priceQuery.exportConfig.selectAll",
-      "locations": ["src/app/[locale]/price-query/components/ExportConfig.tsx"]
+      "locations": [
+        "src/app/[locale]/price-query/components/ExportConfig.tsx"
+      ]
     },
     {
       "key": "priceQuery.exportConfig.deselectAll",
-      "locations": ["src/app/[locale]/price-query/components/ExportConfig.tsx"]
+      "locations": [
+        "src/app/[locale]/price-query/components/ExportConfig.tsx"
+      ]
     },
     {
       "key": "priceQuery.export.${field.label}",
-      "locations": ["src/app/[locale]/price-query/components/ExportConfig.tsx"]
+      "locations": [
+        "src/app/[locale]/price-query/components/ExportConfig.tsx"
+      ]
     },
     {
       "key": "priceQuery.exportConfig.timeRange",
-      "locations": ["src/app/[locale]/price-query/components/ExportConfig.tsx"]
+      "locations": [
+        "src/app/[locale]/price-query/components/ExportConfig.tsx"
+      ]
     },
     {
       "key": "priceQuery.exportConfig.startTime",
-      "locations": ["src/app/[locale]/price-query/components/ExportConfig.tsx"]
+      "locations": [
+        "src/app/[locale]/price-query/components/ExportConfig.tsx"
+      ]
     },
     {
       "key": "priceQuery.exportConfig.endTime",
-      "locations": ["src/app/[locale]/price-query/components/ExportConfig.tsx"]
+      "locations": [
+        "src/app/[locale]/price-query/components/ExportConfig.tsx"
+      ]
     },
     {
       "key": "priceQuery.exportConfig.pdfOptions",
-      "locations": ["src/app/[locale]/price-query/components/ExportConfig.tsx"]
+      "locations": [
+        "src/app/[locale]/price-query/components/ExportConfig.tsx"
+      ]
     },
     {
       "key": "priceQuery.exportConfig.includeChart",
-      "locations": ["src/app/[locale]/price-query/components/ExportConfig.tsx"]
+      "locations": [
+        "src/app/[locale]/price-query/components/ExportConfig.tsx"
+      ]
     },
     {
       "key": "priceQuery.exportConfig.includeStats",
-      "locations": ["src/app/[locale]/price-query/components/ExportConfig.tsx"]
+      "locations": [
+        "src/app/[locale]/price-query/components/ExportConfig.tsx"
+      ]
     },
     {
       "key": "priceQuery.exportConfig.preview",
-      "locations": ["src/app/[locale]/price-query/components/ExportConfig.tsx"]
+      "locations": [
+        "src/app/[locale]/price-query/components/ExportConfig.tsx"
+      ]
     },
     {
       "key": "priceQuery.exportConfig.symbol",
-      "locations": ["src/app/[locale]/price-query/components/ExportConfig.tsx"]
+      "locations": [
+        "src/app/[locale]/price-query/components/ExportConfig.tsx"
+      ]
     },
     {
       "key": "priceQuery.exportConfig.oracleCount",
-      "locations": ["src/app/[locale]/price-query/components/ExportConfig.tsx"]
+      "locations": [
+        "src/app/[locale]/price-query/components/ExportConfig.tsx"
+      ]
     },
     {
       "key": "priceQuery.exportConfig.chainCount",
-      "locations": ["src/app/[locale]/price-query/components/ExportConfig.tsx"]
+      "locations": [
+        "src/app/[locale]/price-query/components/ExportConfig.tsx"
+      ]
     },
     {
       "key": "priceQuery.exportConfig.timeRangeLabel",
-      "locations": ["src/app/[locale]/price-query/components/ExportConfig.tsx"]
+      "locations": [
+        "src/app/[locale]/price-query/components/ExportConfig.tsx"
+      ]
     },
     {
       "key": "priceQuery.exportConfig.estimatedRecords",
-      "locations": ["src/app/[locale]/price-query/components/ExportConfig.tsx"]
+      "locations": [
+        "src/app/[locale]/price-query/components/ExportConfig.tsx"
+      ]
     },
     {
       "key": "priceQuery.exportConfig.records",
-      "locations": ["src/app/[locale]/price-query/components/ExportConfig.tsx"]
+      "locations": [
+        "src/app/[locale]/price-query/components/ExportConfig.tsx"
+      ]
     },
     {
       "key": "priceQuery.exportConfig.fieldCount",
-      "locations": ["src/app/[locale]/price-query/components/ExportConfig.tsx"]
+      "locations": [
+        "src/app/[locale]/price-query/components/ExportConfig.tsx"
+      ]
     },
     {
       "key": "priceQuery.exportConfig.estimatedSize",
-      "locations": ["src/app/[locale]/price-query/components/ExportConfig.tsx"]
+      "locations": [
+        "src/app/[locale]/price-query/components/ExportConfig.tsx"
+      ]
     },
     {
       "key": "priceQuery.exportConfig.export",
-      "locations": ["src/app/[locale]/price-query/components/ExportConfig.tsx"]
+      "locations": [
+        "src/app/[locale]/price-query/components/ExportConfig.tsx"
+      ]
     },
     {
       "key": "blockchain.${currentQueryTarget.chain.toLowerCase()}",
-      "locations": ["src/app/[locale]/price-query/components/QueryResults.tsx"]
+      "locations": [
+        "src/app/[locale]/price-query/components/QueryResults.tsx"
+      ]
     },
     {
       "key": "priceQuery.stats.consistency.excellent",
-      "locations": ["src/app/[locale]/price-query/components/QueryResults.tsx"]
+      "locations": [
+        "src/app/[locale]/price-query/components/QueryResults.tsx"
+      ]
     },
     {
       "key": "priceQuery.stats.consistency.good",
-      "locations": ["src/app/[locale]/price-query/components/QueryResults.tsx"]
+      "locations": [
+        "src/app/[locale]/price-query/components/QueryResults.tsx"
+      ]
     },
     {
       "key": "priceQuery.stats.consistency.fair",
-      "locations": ["src/app/[locale]/price-query/components/QueryResults.tsx"]
+      "locations": [
+        "src/app/[locale]/price-query/components/QueryResults.tsx"
+      ]
     },
     {
       "key": "priceQuery.stats.consistency.poor",
-      "locations": ["src/app/[locale]/price-query/components/QueryResults.tsx"]
+      "locations": [
+        "src/app/[locale]/price-query/components/QueryResults.tsx"
+      ]
     },
     {
       "key": "navbar.${oracleI18nKeys[oracle]}",
-      "locations": ["src/app/[locale]/price-query/components/Selectors.tsx"]
+      "locations": [
+        "src/app/[locale]/price-query/components/Selectors.tsx"
+      ]
     },
     {
       "key": "blockchain.${chain.toLowerCase()}",
-      "locations": ["src/app/[locale]/price-query/components/Selectors.tsx"]
+      "locations": [
+        "src/app/[locale]/price-query/components/Selectors.tsx"
+      ]
     },
     {
       "key": "priceQuery.timeRanges.${range.key}",
-      "locations": ["src/app/[locale]/price-query/components/Selectors.tsx"]
+      "locations": [
+        "src/app/[locale]/price-query/components/Selectors.tsx"
+      ]
     },
     {
       "key": "priceQuery.priceChart.export.csvTitle",
-      "locations": ["src/app/[locale]/price-query/page.tsx"]
+      "locations": [
+        "src/app/[locale]/price-query/page.tsx"
+      ]
     },
     {
       "key": "priceQuery.priceChart.export.symbol",
-      "locations": ["src/app/[locale]/price-query/page.tsx"]
+      "locations": [
+        "src/app/[locale]/price-query/page.tsx"
+      ]
     },
     {
       "key": "priceQuery.priceChart.export.exportTime",
-      "locations": ["src/app/[locale]/price-query/page.tsx"]
+      "locations": [
+        "src/app/[locale]/price-query/page.tsx"
+      ]
     },
     {
       "key": "priceQuery.priceChart.export.reportTitle",
-      "locations": ["src/app/[locale]/price-query/page.tsx"]
+      "locations": [
+        "src/app/[locale]/price-query/page.tsx"
+      ]
     },
     {
       "key": "priceQuery.priceChart.export.queryParams",
-      "locations": ["src/app/[locale]/price-query/page.tsx"]
+      "locations": [
+        "src/app/[locale]/price-query/page.tsx"
+      ]
     },
     {
       "key": "priceQuery.priceChart.export.statsSummary",
-      "locations": ["src/app/[locale]/price-query/page.tsx"]
+      "locations": [
+        "src/app/[locale]/price-query/page.tsx"
+      ]
     },
     {
       "key": "priceQuery.priceChart.export.indicator",
-      "locations": ["src/app/[locale]/price-query/page.tsx"]
+      "locations": [
+        "src/app/[locale]/price-query/page.tsx"
+      ]
     },
     {
       "key": "priceQuery.priceChart.export.value",
-      "locations": ["src/app/[locale]/price-query/page.tsx"]
+      "locations": [
+        "src/app/[locale]/price-query/page.tsx"
+      ]
     },
     {
       "key": "priceQuery.priceChart.export.priceDataTitle",
-      "locations": ["src/app/[locale]/price-query/page.tsx"]
+      "locations": [
+        "src/app/[locale]/price-query/page.tsx"
+      ]
     },
     {
       "key": "价格在短时间内变化 ${changePercent.toFixed(2)}%，超过阈值 ${PRICE_CHANGE_THRESHOLD_PERCENT}%",
-      "locations": ["src/app/[locale]/price-query/utils/priceValidator.ts"]
+      "locations": [
+        "src/app/[locale]/price-query/utils/priceValidator.ts"
+      ]
     },
     {
       "key": "时间戳 ${new Date(timestamp).toISOString()} 在当前时间之后",
-      "locations": ["src/app/[locale]/price-query/utils/priceValidator.ts"]
+      "locations": [
+        "src/app/[locale]/price-query/utils/priceValidator.ts"
+      ]
     },
     {
       "key": "数据距今已 ${ageMinutes} 分钟，超过最大有效期 ${Math.floor(maxAgeMs / 60000)} 分钟",
-      "locations": ["src/app/[locale]/price-query/utils/priceValidator.ts"]
+      "locations": [
+        "src/app/[locale]/price-query/utils/priceValidator.ts"
+      ]
     },
     {
       "key": "pyth.publisher.lastUpdate",
-      "locations": ["src/app/[locale]/pyth/components/PublisherDetailModal.tsx"]
+      "locations": [
+        "src/app/[locale]/pyth/components/PublisherDetailModal.tsx"
+      ]
     },
     {
       "key": "common.retry",
@@ -721,27 +905,39 @@
     },
     {
       "key": "common.timeRange.24h",
-      "locations": ["src/app/[locale]/pyth/components/PythNetworkView.tsx"]
+      "locations": [
+        "src/app/[locale]/pyth/components/PythNetworkView.tsx"
+      ]
     },
     {
       "key": "common.time.00:00",
-      "locations": ["src/app/[locale]/pyth/components/PythNetworkView.tsx"]
+      "locations": [
+        "src/app/[locale]/pyth/components/PythNetworkView.tsx"
+      ]
     },
     {
       "key": "common.time.06:00",
-      "locations": ["src/app/[locale]/pyth/components/PythNetworkView.tsx"]
+      "locations": [
+        "src/app/[locale]/pyth/components/PythNetworkView.tsx"
+      ]
     },
     {
       "key": "common.time.12:00",
-      "locations": ["src/app/[locale]/pyth/components/PythNetworkView.tsx"]
+      "locations": [
+        "src/app/[locale]/pyth/components/PythNetworkView.tsx"
+      ]
     },
     {
       "key": "common.time.18:00",
-      "locations": ["src/app/[locale]/pyth/components/PythNetworkView.tsx"]
+      "locations": [
+        "src/app/[locale]/pyth/components/PythNetworkView.tsx"
+      ]
     },
     {
       "key": "common.time.23:59",
-      "locations": ["src/app/[locale]/pyth/components/PythNetworkView.tsx"]
+      "locations": [
+        "src/app/[locale]/pyth/components/PythNetworkView.tsx"
+      ]
     },
     {
       "key": "pyth.publishers.name",
@@ -752,135 +948,201 @@
     },
     {
       "key": "pyth.validators.sortByUptime",
-      "locations": ["src/app/[locale]/pyth/components/PythValidatorsView.tsx"]
+      "locations": [
+        "src/app/[locale]/pyth/components/PythValidatorsView.tsx"
+      ]
     },
     {
       "key": ", error);\n      }\n    }, FALLBACK_POLLING_INTERVAL);\n  }, [config.symbol, handlePriceUpdate]);\n\n  const stopFallbackPolling = useCallback(() => {\n    if (fallbackIntervalRef.current) {\n      clearInterval(fallbackIntervalRef.current);\n      fallbackIntervalRef.current = null;\n    }\n    setIsUsingFallback(false);\n  }, []);\n\n  useEffect(() => {\n    const pythService = getPythDataService();\n\n    unsubscribeConnectionRef.current = pythService.subscribeToConnectionState(\n      (state: WebSocketConnectionState) => {\n        setRealtimeState((prev) => ({\n          ...prev,\n          isConnected: state.isConnected,\n          connectionStatus: state.status,\n          lastUpdateLatency: state.lastUpdateLatency,\n        }));\n\n        if (state.error) {\n          setWsError(state.error);\n        }\n\n        if (state.reconnectAttempts >= MAX_RECONNECT_ATTEMPTS && state.status === ",
-      "locations": ["src/app/[locale]/pyth/hooks/usePythPage.ts"]
+      "locations": [
+        "src/app/[locale]/pyth/hooks/usePythPage.ts"
+      ]
     },
     {
       "key": ", error);\n        }\n      }\n    },\n    minLoadingTime: 500,\n  });\n\n  const dataFreshnessStatus = useDataFreshness(lastUpdated);\n\n  const handleTabChange = useCallback((tab: PythTabId) => {\n    setActiveTab(tab);\n  }, []);\n\n  const manualReconnect = useCallback(() => {\n    setWsError(null);\n    stopFallbackPolling();\n\n    if (unsubscribePriceRef.current) {\n      unsubscribePriceRef.current();\n      unsubscribePriceRef.current = null;\n    }\n\n    const pythService = getPythDataService();\n    unsubscribePriceRef.current = pythService.subscribeToPriceUpdates(\n      config.symbol,\n      handlePriceUpdate\n    );\n  }, [config.symbol, handlePriceUpdate, stopFallbackPolling]);\n\n  const reconnectAttempts = useMemo(() => {\n    const pythService = getPythDataService();\n    return pythService.getConnectionState().reconnectAttempts;\n  }, []);\n\n  return {\n    activeTab,\n    config,\n    price,\n    historicalData,\n    networkStats,\n    publishers,\n    validators,\n    isLoading,\n    isError,\n    error: errors[0] || wsError || null,\n    lastUpdated,\n    isRefreshing,\n    dataFreshnessStatus,\n    shouldRefreshData: dataFreshnessStatus.status === ",
-      "locations": ["src/app/[locale]/pyth/hooks/usePythPage.ts"]
+      "locations": [
+        "src/app/[locale]/pyth/hooks/usePythPage.ts"
+      ]
     },
     {
       "key": "redstone.gasCalculator.scenarios.${key}",
-      "locations": ["src/app/[locale]/redstone/components/GasCostCalculator.tsx"]
+      "locations": [
+        "src/app/[locale]/redstone/components/GasCostCalculator.tsx"
+      ]
     },
     {
       "key": "redstone.gasCalculator.frequencies.${freq}",
-      "locations": ["src/app/[locale]/redstone/components/GasCostCalculator.tsx"]
+      "locations": [
+        "src/app/[locale]/redstone/components/GasCostCalculator.tsx"
+      ]
     },
     {
       "key": "redstone.gasCalculator.complexity.${complexity}",
-      "locations": ["src/app/[locale]/redstone/components/GasCostCalculator.tsx"]
+      "locations": [
+        "src/app/[locale]/redstone/components/GasCostCalculator.tsx"
+      ]
     },
     {
       "key": "Comprehensive security audit by Trail of Bits completed with no critical findings.",
-      "locations": ["src/app/[locale]/redstone/components/RedStoneAVSView.tsx"]
+      "locations": [
+        "src/app/[locale]/redstone/components/RedStoneAVSView.tsx"
+      ]
     },
     {
       "key": "Slashing conditions optimized to improve economic security incentives.",
-      "locations": ["src/app/[locale]/redstone/components/RedStoneAVSView.tsx"]
+      "locations": [
+        "src/app/[locale]/redstone/components/RedStoneAVSView.tsx"
+      ]
     },
     {
       "key": "Brief sync delay resolved within 5 minutes. No slashing occurred.",
-      "locations": ["src/app/[locale]/redstone/components/RedStoneAVSView.tsx"]
+      "locations": [
+        "src/app/[locale]/redstone/components/RedStoneAVSView.tsx"
+      ]
     },
     {
       "key": "Total value staked through RedStone AVS exceeded 100M ETH.",
-      "locations": ["src/app/[locale]/redstone/components/RedStoneAVSView.tsx"]
+      "locations": [
+        "src/app/[locale]/redstone/components/RedStoneAVSView.tsx"
+      ]
     },
     {
       "key": "redstone.hero.chains",
-      "locations": ["src/app/[locale]/redstone/components/RedStoneHero.tsx"]
+      "locations": [
+        "src/app/[locale]/redstone/components/RedStoneHero.tsx"
+      ]
     },
     {
       "key": "RedStone core contracts passed Certora formal verification and OpenZeppelin security audit with no critical vulnerabilities found.",
-      "locations": ["src/app/[locale]/redstone/components/RedStoneRiskView.tsx"]
+      "locations": [
+        "src/app/[locale]/redstone/components/RedStoneRiskView.tsx"
+      ]
     },
     {
       "key": "Released RedStone Core v2.0 with more efficient data compression and lower gas costs.",
-      "locations": ["src/app/[locale]/redstone/components/RedStoneRiskView.tsx"]
+      "locations": [
+        "src/app/[locale]/redstone/components/RedStoneRiskView.tsx"
+      ]
     },
     {
       "key": "Node operators exceeded 150, covering 30+ countries and regions, significantly improving decentralization.",
-      "locations": ["src/app/[locale]/redstone/components/RedStoneRiskView.tsx"]
+      "locations": [
+        "src/app/[locale]/redstone/components/RedStoneRiskView.tsx"
+      ]
     },
     {
       "key": "Due to extreme market volatility, some asset price feeds experienced brief deviations. Team responded quickly and restored normal operation within 15 minutes.",
-      "locations": ["src/app/[locale]/redstone/components/RedStoneRiskView.tsx"]
+      "locations": [
+        "src/app/[locale]/redstone/components/RedStoneRiskView.tsx"
+      ]
     },
     {
       "key": "RedStone officially launched on Ethereum mainnet, providing decentralized data feeds for DeFi protocols.",
-      "locations": ["src/app/[locale]/redstone/components/RedStoneRiskView.tsx"]
+      "locations": [
+        "src/app/[locale]/redstone/components/RedStoneRiskView.tsx"
+      ]
     },
     {
       "key": "White hat hackers reported a low-severity vulnerability through the Bug Bounty program, which was fixed during the testnet phase.",
-      "locations": ["src/app/[locale]/redstone/components/RedStoneRiskView.tsx"]
+      "locations": [
+        "src/app/[locale]/redstone/components/RedStoneRiskView.tsx"
+      ]
     },
     {
       "key": "Multiple audits by leading security firms including Certora and OpenZeppelin. No critical vulnerabilities found.",
-      "locations": ["src/app/[locale]/redstone/components/RedStoneRiskView.tsx"]
+      "locations": [
+        "src/app/[locale]/redstone/components/RedStoneRiskView.tsx"
+      ]
     },
     {
       "key": "Decentralized node network with reputation system and economic incentives through staking.",
-      "locations": ["src/app/[locale]/redstone/components/RedStoneRiskView.tsx"]
+      "locations": [
+        "src/app/[locale]/redstone/components/RedStoneRiskView.tsx"
+      ]
     },
     {
       "key": "Newer protocol with shorter track record compared to established oracles. Token economics still evolving.",
-      "locations": ["src/app/[locale]/redstone/components/RedStoneRiskView.tsx"]
+      "locations": [
+        "src/app/[locale]/redstone/components/RedStoneRiskView.tsx"
+      ]
     },
     {
       "key": "Potential regulatory changes in DeFi sector and emerging oracle services classification.",
-      "locations": ["src/app/[locale]/redstone/components/RedStoneRiskView.tsx"]
+      "locations": [
+        "src/app/[locale]/redstone/components/RedStoneRiskView.tsx"
+      ]
     },
     {
       "key": "common.price.title",
-      "locations": ["src/app/[locale]/redstone/hooks/useRedStonePage.ts"]
+      "locations": [
+        "src/app/[locale]/redstone/hooks/useRedStonePage.ts"
+      ]
     },
     {
       "key": "redstone.tabs.historical",
-      "locations": ["src/app/[locale]/redstone/hooks/useRedStonePage.ts"]
+      "locations": [
+        "src/app/[locale]/redstone/hooks/useRedStonePage.ts"
+      ]
     },
     {
       "key": "redstone.metrics.title",
-      "locations": ["src/app/[locale]/redstone/hooks/useRedStonePage.ts"]
+      "locations": [
+        "src/app/[locale]/redstone/hooks/useRedStonePage.ts"
+      ]
     },
     {
       "key": "menu.title",
-      "locations": ["src/app/[locale]/tellor/TellorPageClient.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/TellorPageClient.tsx"
+      ]
     },
     {
       "key": "navigation.title",
-      "locations": ["src/app/[locale]/tellor/TellorPageClient.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/TellorPageClient.tsx"
+      ]
     },
     {
       "key": "disputes.totalDisputes",
-      "locations": ["src/app/[locale]/tellor/components/TellorDisputesView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorDisputesView.tsx"
+      ]
     },
     {
       "key": "disputes.open",
-      "locations": ["src/app/[locale]/tellor/components/TellorDisputesView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorDisputesView.tsx"
+      ]
     },
     {
       "key": "disputes.successRate",
-      "locations": ["src/app/[locale]/tellor/components/TellorDisputesView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorDisputesView.tsx"
+      ]
     },
     {
       "key": "disputes.totalRewards",
-      "locations": ["src/app/[locale]/tellor/components/TellorDisputesView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorDisputesView.tsx"
+      ]
     },
     {
       "key": "disputes.howItWorks",
-      "locations": ["src/app/[locale]/tellor/components/TellorDisputesView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorDisputesView.tsx"
+      ]
     },
     {
       "key": "disputes.recentDisputes",
-      "locations": ["src/app/[locale]/tellor/components/TellorDisputesView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorDisputesView.tsx"
+      ]
     },
     {
       "key": "disputes.all",
-      "locations": ["src/app/[locale]/tellor/components/TellorDisputesView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorDisputesView.tsx"
+      ]
     },
     {
       "key": "disputes.pending",
@@ -891,31 +1153,45 @@
     },
     {
       "key": "disputes.resolved",
-      "locations": ["src/app/[locale]/tellor/components/TellorDisputesView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorDisputesView.tsx"
+      ]
     },
     {
       "key": "disputes.id",
-      "locations": ["src/app/[locale]/tellor/components/TellorDisputesView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorDisputesView.tsx"
+      ]
     },
     {
       "key": "disputes.reporter",
-      "locations": ["src/app/[locale]/tellor/components/TellorDisputesView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorDisputesView.tsx"
+      ]
     },
     {
       "key": "disputes.stake",
-      "locations": ["src/app/[locale]/tellor/components/TellorDisputesView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorDisputesView.tsx"
+      ]
     },
     {
       "key": "disputes.status",
-      "locations": ["src/app/[locale]/tellor/components/TellorDisputesView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorDisputesView.tsx"
+      ]
     },
     {
       "key": "disputes.votes",
-      "locations": ["src/app/[locale]/tellor/components/TellorDisputesView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorDisputesView.tsx"
+      ]
     },
     {
       "key": "disputes.reward",
-      "locations": ["src/app/[locale]/tellor/components/TellorDisputesView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorDisputesView.tsx"
+      ]
     },
     {
       "key": "reporters.viewOnEtherscan",
@@ -927,139 +1203,207 @@
     },
     {
       "key": "disputes.reporterWon",
-      "locations": ["src/app/[locale]/tellor/components/TellorDisputesView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorDisputesView.tsx"
+      ]
     },
     {
       "key": "disputes.disputerWon",
-      "locations": ["src/app/[locale]/tellor/components/TellorDisputesView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorDisputesView.tsx"
+      ]
     },
     {
       "key": "disputes.reason",
-      "locations": ["src/app/[locale]/tellor/components/TellorDisputesView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorDisputesView.tsx"
+      ]
     },
     {
       "key": "disputes.time",
-      "locations": ["src/app/[locale]/tellor/components/TellorDisputesView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorDisputesView.tsx"
+      ]
     },
     {
       "key": "disputes.votingProgress",
-      "locations": ["src/app/[locale]/tellor/components/TellorDisputesView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorDisputesView.tsx"
+      ]
     },
     {
       "key": "ecosystem.totalProtocols",
-      "locations": ["src/app/[locale]/tellor/components/TellorEcosystemView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorEcosystemView.tsx"
+      ]
     },
     {
       "key": "ecosystem.totalTvl",
-      "locations": ["src/app/[locale]/tellor/components/TellorEcosystemView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorEcosystemView.tsx"
+      ]
     },
     {
       "key": "ecosystem.dataFeeds",
-      "locations": ["src/app/[locale]/tellor/components/TellorEcosystemView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorEcosystemView.tsx"
+      ]
     },
     {
       "key": "ecosystem.totalUsage",
-      "locations": ["src/app/[locale]/tellor/components/TellorEcosystemView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorEcosystemView.tsx"
+      ]
     },
     {
       "key": "ecosystem.protocolsByCategory",
-      "locations": ["src/app/[locale]/tellor/components/TellorEcosystemView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorEcosystemView.tsx"
+      ]
     },
     {
       "key": "ecosystem.allCategories",
-      "locations": ["src/app/[locale]/tellor/components/TellorEcosystemView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorEcosystemView.tsx"
+      ]
     },
     {
       "key": "ecosystem.topProtocols",
-      "locations": ["src/app/[locale]/tellor/components/TellorEcosystemView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorEcosystemView.tsx"
+      ]
     },
     {
       "key": "ecosystem.tvl",
-      "locations": ["src/app/[locale]/tellor/components/TellorEcosystemView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorEcosystemView.tsx"
+      ]
     },
     {
       "key": "ecosystem.uses",
-      "locations": ["src/app/[locale]/tellor/components/TellorEcosystemView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorEcosystemView.tsx"
+      ]
     },
     {
       "key": "ecosystem.growthTrend",
-      "locations": ["src/app/[locale]/tellor/components/TellorEcosystemView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorEcosystemView.tsx"
+      ]
     },
     {
       "key": "ecosystem.growth.tvlGrowth",
-      "locations": ["src/app/[locale]/tellor/components/TellorEcosystemView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorEcosystemView.tsx"
+      ]
     },
     {
       "key": "governance.totalVotingPower",
-      "locations": ["src/app/[locale]/tellor/components/TellorGovernanceView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorGovernanceView.tsx"
+      ]
     },
     {
       "key": "governance.activeProposals",
-      "locations": ["src/app/[locale]/tellor/components/TellorGovernanceView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorGovernanceView.tsx"
+      ]
     },
     {
       "key": "governance.participationRate",
-      "locations": ["src/app/[locale]/tellor/components/TellorGovernanceView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorGovernanceView.tsx"
+      ]
     },
     {
       "key": "governance.nextDeadline",
-      "locations": ["src/app/[locale]/tellor/components/TellorGovernanceView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorGovernanceView.tsx"
+      ]
     },
     {
       "key": "governance.proposals",
-      "locations": ["src/app/[locale]/tellor/components/TellorGovernanceView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorGovernanceView.tsx"
+      ]
     },
     {
       "key": "governance.endsIn",
-      "locations": ["src/app/[locale]/tellor/components/TellorGovernanceView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorGovernanceView.tsx"
+      ]
     },
     {
       "key": "governance.howToParticipate",
-      "locations": ["src/app/[locale]/tellor/components/TellorGovernanceView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorGovernanceView.tsx"
+      ]
     },
     {
       "key": "governance.step1Title",
-      "locations": ["src/app/[locale]/tellor/components/TellorGovernanceView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorGovernanceView.tsx"
+      ]
     },
     {
       "key": "governance.step1Desc",
-      "locations": ["src/app/[locale]/tellor/components/TellorGovernanceView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorGovernanceView.tsx"
+      ]
     },
     {
       "key": "governance.step2Title",
-      "locations": ["src/app/[locale]/tellor/components/TellorGovernanceView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorGovernanceView.tsx"
+      ]
     },
     {
       "key": "governance.step2Desc",
-      "locations": ["src/app/[locale]/tellor/components/TellorGovernanceView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorGovernanceView.tsx"
+      ]
     },
     {
       "key": "governance.step3Title",
-      "locations": ["src/app/[locale]/tellor/components/TellorGovernanceView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorGovernanceView.tsx"
+      ]
     },
     {
       "key": "governance.step3Desc",
-      "locations": ["src/app/[locale]/tellor/components/TellorGovernanceView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorGovernanceView.tsx"
+      ]
     },
     {
       "key": "hero.priceAlert",
-      "locations": ["src/app/[locale]/tellor/components/TellorHero.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorHero.tsx"
+      ]
     },
     {
       "key": "hero.addMonitor",
-      "locations": ["src/app/[locale]/tellor/components/TellorHero.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorHero.tsx"
+      ]
     },
     {
       "key": "hero.apiDocs",
-      "locations": ["src/app/[locale]/tellor/components/TellorHero.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorHero.tsx"
+      ]
     },
     {
       "key": "hero.switchNetwork",
-      "locations": ["src/app/[locale]/tellor/components/TellorHero.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorHero.tsx"
+      ]
     },
     {
       "key": "hero.defaultUpdates.priceUpdate",
-      "locations": ["src/app/[locale]/tellor/components/TellorHero.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorHero.tsx"
+      ]
     },
     {
       "key": "hero.minutesAgo",
@@ -1071,31 +1415,45 @@
     },
     {
       "key": "hero.defaultUpdates.newReporter",
-      "locations": ["src/app/[locale]/tellor/components/TellorHero.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorHero.tsx"
+      ]
     },
     {
       "key": "hero.defaultUpdates.feedUpdate",
-      "locations": ["src/app/[locale]/tellor/components/TellorHero.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorHero.tsx"
+      ]
     },
     {
       "key": "hero.defaultUpdates.maintenanceComplete",
-      "locations": ["src/app/[locale]/tellor/components/TellorHero.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorHero.tsx"
+      ]
     },
     {
       "key": "hero.latestUpdates",
-      "locations": ["src/app/[locale]/tellor/components/TellorHero.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorHero.tsx"
+      ]
     },
     {
       "key": "hero.price",
-      "locations": ["src/app/[locale]/tellor/components/TellorHero.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorHero.tsx"
+      ]
     },
     {
       "key": "hero.marketCap",
-      "locations": ["src/app/[locale]/tellor/components/TellorHero.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorHero.tsx"
+      ]
     },
     {
       "key": "hero.activeReporters",
-      "locations": ["src/app/[locale]/tellor/components/TellorHero.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorHero.tsx"
+      ]
     },
     {
       "key": "hero.low",
@@ -1106,7 +1464,9 @@
     },
     {
       "key": "hero.dataFeeds",
-      "locations": ["src/app/[locale]/tellor/components/TellorHero.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorHero.tsx"
+      ]
     },
     {
       "key": "hero.now",
@@ -1118,135 +1478,201 @@
     },
     {
       "key": "hero.stakedAmount",
-      "locations": ["src/app/[locale]/tellor/components/TellorHero.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorHero.tsx"
+      ]
     },
     {
       "key": "hero.supportedChains",
-      "locations": ["src/app/[locale]/tellor/components/TellorHero.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorHero.tsx"
+      ]
     },
     {
       "key": "hero.uptime",
-      "locations": ["src/app/[locale]/tellor/components/TellorHero.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorHero.tsx"
+      ]
     },
     {
       "key": "hero.avgResponse",
-      "locations": ["src/app/[locale]/tellor/components/TellorHero.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorHero.tsx"
+      ]
     },
     {
       "key": "hero.dataUpdate",
-      "locations": ["src/app/[locale]/tellor/components/TellorHero.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorHero.tsx"
+      ]
     },
     {
       "key": "hero.trend24h",
-      "locations": ["src/app/[locale]/tellor/components/TellorHero.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorHero.tsx"
+      ]
     },
     {
       "key": "hero.ago",
-      "locations": ["src/app/[locale]/tellor/components/TellorHero.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorHero.tsx"
+      ]
     },
     {
       "key": "hero.health",
-      "locations": ["src/app/[locale]/tellor/components/TellorHero.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorHero.tsx"
+      ]
     },
     {
       "key": "hero.gas",
-      "locations": ["src/app/[locale]/tellor/components/TellorHero.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorHero.tsx"
+      ]
     },
     {
       "key": "hero.response",
-      "locations": ["src/app/[locale]/tellor/components/TellorHero.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorHero.tsx"
+      ]
     },
     {
       "key": "hero.online",
-      "locations": ["src/app/[locale]/tellor/components/TellorHero.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorHero.tsx"
+      ]
     },
     {
       "key": "hero.support",
-      "locations": ["src/app/[locale]/tellor/components/TellorHero.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorHero.tsx"
+      ]
     },
     {
       "key": "hero.chains",
-      "locations": ["src/app/[locale]/tellor/components/TellorHero.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorHero.tsx"
+      ]
     },
     {
       "key": "hero.medium",
-      "locations": ["src/app/[locale]/tellor/components/TellorHero.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorHero.tsx"
+      ]
     },
     {
       "key": "hero.high",
-      "locations": ["src/app/[locale]/tellor/components/TellorHero.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorHero.tsx"
+      ]
     },
     {
       "key": "stats.marketCap",
-      "locations": ["src/app/[locale]/tellor/components/TellorMarketView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorMarketView.tsx"
+      ]
     },
     {
       "key": "stats.volume24h",
-      "locations": ["src/app/[locale]/tellor/components/TellorMarketView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorMarketView.tsx"
+      ]
     },
     {
       "key": "stats.circulatingSupply",
-      "locations": ["src/app/[locale]/tellor/components/TellorMarketView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorMarketView.tsx"
+      ]
     },
     {
       "key": "stats.stakingApr",
-      "locations": ["src/app/[locale]/tellor/components/TellorMarketView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorMarketView.tsx"
+      ]
     },
     {
       "key": "stats.activeReporters",
-      "locations": ["src/app/[locale]/tellor/components/TellorMarketView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorMarketView.tsx"
+      ]
     },
     {
       "key": "stats.dataFeeds",
-      "locations": ["src/app/[locale]/tellor/components/TellorMarketView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorMarketView.tsx"
+      ]
     },
     {
       "key": "stats.responseTime",
-      "locations": ["src/app/[locale]/tellor/components/TellorMarketView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorMarketView.tsx"
+      ]
     },
     {
       "key": "market.dataSources.tellorMainnet",
-      "locations": ["src/app/[locale]/tellor/components/TellorMarketView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorMarketView.tsx"
+      ]
     },
     {
       "key": "market.dataSources.ethereumMainnet",
-      "locations": ["src/app/[locale]/tellor/components/TellorMarketView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorMarketView.tsx"
+      ]
     },
     {
       "key": "market.dataSources.arbitrumOne",
-      "locations": ["src/app/[locale]/tellor/components/TellorMarketView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorMarketView.tsx"
+      ]
     },
     {
       "key": "market.dataSources.backupReporter",
-      "locations": ["src/app/[locale]/tellor/components/TellorMarketView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorMarketView.tsx"
+      ]
     },
     {
       "key": "market.tradingPair",
-      "locations": ["src/app/[locale]/tellor/components/TellorMarketView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorMarketView.tsx"
+      ]
     },
     {
       "key": "market.depthScore",
-      "locations": ["src/app/[locale]/tellor/components/TellorMarketView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorMarketView.tsx"
+      ]
     },
     {
       "key": "panels.title",
-      "locations": ["src/app/[locale]/tellor/components/TellorMarketView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorMarketView.tsx"
+      ]
     },
     {
       "key": "tabs.priceStream",
-      "locations": ["src/app/[locale]/tellor/components/TellorMarketView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorMarketView.tsx"
+      ]
     },
     {
       "key": "tabs.marketDepth",
-      "locations": ["src/app/[locale]/tellor/components/TellorMarketView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorMarketView.tsx"
+      ]
     },
     {
       "key": "tabs.multiChain",
-      "locations": ["src/app/[locale]/tellor/components/TellorMarketView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorMarketView.tsx"
+      ]
     },
     {
       "key": "network.activeReporters",
-      "locations": ["src/app/[locale]/tellor/components/TellorNetworkView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorNetworkView.tsx"
+      ]
     },
     {
       "key": "network.dataFeeds",
@@ -1257,63 +1683,93 @@
     },
     {
       "key": "network.avgResponseTime",
-      "locations": ["src/app/[locale]/tellor/components/TellorNetworkView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorNetworkView.tsx"
+      ]
     },
     {
       "key": "network.uptime",
-      "locations": ["src/app/[locale]/tellor/components/TellorNetworkView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorNetworkView.tsx"
+      ]
     },
     {
       "key": "network.chainStatus",
-      "locations": ["src/app/[locale]/tellor/components/TellorNetworkView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorNetworkView.tsx"
+      ]
     },
     {
       "key": "network.chain",
-      "locations": ["src/app/[locale]/tellor/components/TellorNetworkView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorNetworkView.tsx"
+      ]
     },
     {
       "key": "network.status",
-      "locations": ["src/app/[locale]/tellor/components/TellorNetworkView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorNetworkView.tsx"
+      ]
     },
     {
       "key": "network.reporters",
-      "locations": ["src/app/[locale]/tellor/components/TellorNetworkView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorNetworkView.tsx"
+      ]
     },
     {
       "key": "network.latency",
-      "locations": ["src/app/[locale]/tellor/components/TellorNetworkView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorNetworkView.tsx"
+      ]
     },
     {
       "key": "network.performance",
-      "locations": ["src/app/[locale]/tellor/components/TellorNetworkView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorNetworkView.tsx"
+      ]
     },
     {
       "key": "network.healthy",
-      "locations": ["src/app/[locale]/tellor/components/TellorNetworkView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorNetworkView.tsx"
+      ]
     },
     {
       "key": "network.degraded",
-      "locations": ["src/app/[locale]/tellor/components/TellorNetworkView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorNetworkView.tsx"
+      ]
     },
     {
       "key": "network.down",
-      "locations": ["src/app/[locale]/tellor/components/TellorNetworkView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorNetworkView.tsx"
+      ]
     },
     {
       "key": "network.hourlyActivity",
-      "locations": ["src/app/[locale]/tellor/components/TellorNetworkView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorNetworkView.tsx"
+      ]
     },
     {
       "key": "network.requests",
-      "locations": ["src/app/[locale]/tellor/components/TellorNetworkView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorNetworkView.tsx"
+      ]
     },
     {
       "key": "network.updates",
-      "locations": ["src/app/[locale]/tellor/components/TellorNetworkView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorNetworkView.tsx"
+      ]
     },
     {
       "key": "reporters.totalReporters",
-      "locations": ["src/app/[locale]/tellor/components/TellorReportersView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorReportersView.tsx"
+      ]
     },
     {
       "key": "reporters.active",
@@ -1324,19 +1780,27 @@
     },
     {
       "key": "reporters.totalStaked",
-      "locations": ["src/app/[locale]/tellor/components/TellorReportersView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorReportersView.tsx"
+      ]
     },
     {
       "key": "reporters.avg",
-      "locations": ["src/app/[locale]/tellor/components/TellorReportersView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorReportersView.tsx"
+      ]
     },
     {
       "key": "reporters.avgResponse",
-      "locations": ["src/app/[locale]/tellor/components/TellorReportersView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorReportersView.tsx"
+      ]
     },
     {
       "key": "reporters.avgSuccess",
-      "locations": ["src/app/[locale]/tellor/components/TellorReportersView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorReportersView.tsx"
+      ]
     },
     {
       "key": "reporters.reports24h",
@@ -1347,459 +1811,688 @@
     },
     {
       "key": "reporters.avgRewards",
-      "locations": ["src/app/[locale]/tellor/components/TellorReportersView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorReportersView.tsx"
+      ]
     },
     {
       "key": "reporters.overview",
-      "locations": ["src/app/[locale]/tellor/components/TellorReportersView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorReportersView.tsx"
+      ]
     },
     {
       "key": "reporters.regionDistribution",
-      "locations": ["src/app/[locale]/tellor/components/TellorReportersView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorReportersView.tsx"
+      ]
     },
     {
       "key": "reporters.topReporters",
-      "locations": ["src/app/[locale]/tellor/components/TellorReportersView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorReportersView.tsx"
+      ]
     },
     {
       "key": "reporters.rank",
-      "locations": ["src/app/[locale]/tellor/components/TellorReportersView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorReportersView.tsx"
+      ]
     },
     {
       "key": "reporters.address",
-      "locations": ["src/app/[locale]/tellor/components/TellorReportersView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorReportersView.tsx"
+      ]
     },
     {
       "key": "reporters.staked",
-      "locations": ["src/app/[locale]/tellor/components/TellorReportersView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorReportersView.tsx"
+      ]
     },
     {
       "key": "reporters.reports",
-      "locations": ["src/app/[locale]/tellor/components/TellorReportersView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorReportersView.tsx"
+      ]
     },
     {
       "key": "reporters.accuracy",
-      "locations": ["src/app/[locale]/tellor/components/TellorReportersView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorReportersView.tsx"
+      ]
     },
     {
       "key": "reporters.reward",
-      "locations": ["src/app/[locale]/tellor/components/TellorReportersView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorReportersView.tsx"
+      ]
     },
     {
       "key": "reporters.status",
-      "locations": ["src/app/[locale]/tellor/components/TellorReportersView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorReportersView.tsx"
+      ]
     },
     {
       "key": "reporters.inactive",
-      "locations": ["src/app/[locale]/tellor/components/TellorReportersView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorReportersView.tsx"
+      ]
     },
     {
       "key": "reporters.region",
-      "locations": ["src/app/[locale]/tellor/components/TellorReportersView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorReportersView.tsx"
+      ]
     },
     {
       "key": "reporters.lastReport",
-      "locations": ["src/app/[locale]/tellor/components/TellorReportersView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorReportersView.tsx"
+      ]
     },
     {
       "key": "reporters.activityRate",
-      "locations": ["src/app/[locale]/tellor/components/TellorReportersView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorReportersView.tsx"
+      ]
     },
     {
       "key": "risk.lowRisk",
-      "locations": ["src/app/[locale]/tellor/components/TellorRiskView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorRiskView.tsx"
+      ]
     },
     {
       "key": "risk.mediumRisk",
-      "locations": ["src/app/[locale]/tellor/components/TellorRiskView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorRiskView.tsx"
+      ]
     },
     {
       "key": "risk.highRisk",
-      "locations": ["src/app/[locale]/tellor/components/TellorRiskView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorRiskView.tsx"
+      ]
     },
     {
       "key": "risk.basedOnMetrics",
-      "locations": ["src/app/[locale]/tellor/components/TellorRiskView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorRiskView.tsx"
+      ]
     },
     {
       "key": "risk.categories",
-      "locations": ["src/app/[locale]/tellor/components/TellorRiskView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorRiskView.tsx"
+      ]
     },
     {
       "key": "risk.securityEvents",
-      "locations": ["src/app/[locale]/tellor/components/TellorRiskView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorRiskView.tsx"
+      ]
     },
     {
       "key": "risk.mitigationMeasures",
-      "locations": ["src/app/[locale]/tellor/components/TellorRiskView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorRiskView.tsx"
+      ]
     },
     {
       "key": "risk.disclaimer",
-      "locations": ["src/app/[locale]/tellor/components/TellorRiskView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorRiskView.tsx"
+      ]
     },
     {
       "key": "risk.disclaimerText",
-      "locations": ["src/app/[locale]/tellor/components/TellorRiskView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorRiskView.tsx"
+      ]
     },
     {
       "key": "staking.totalStaked",
-      "locations": ["src/app/[locale]/tellor/components/TellorStakingView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorStakingView.tsx"
+      ]
     },
     {
       "key": "staking.stakingApr",
-      "locations": ["src/app/[locale]/tellor/components/TellorStakingView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorStakingView.tsx"
+      ]
     },
     {
       "key": "staking.totalStakers",
-      "locations": ["src/app/[locale]/tellor/components/TellorStakingView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorStakingView.tsx"
+      ]
     },
     {
       "key": "staking.rewardPool",
-      "locations": ["src/app/[locale]/tellor/components/TellorStakingView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorStakingView.tsx"
+      ]
     },
     {
       "key": "staking.tiers",
-      "locations": ["src/app/[locale]/tellor/components/TellorStakingView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorStakingView.tsx"
+      ]
     },
     {
       "key": "staking.calculator.title",
-      "locations": ["src/app/[locale]/tellor/components/TellorStakingView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorStakingView.tsx"
+      ]
     },
     {
       "key": "staking.calculator.stakeAmount",
-      "locations": ["src/app/[locale]/tellor/components/TellorStakingView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorStakingView.tsx"
+      ]
     },
     {
       "key": "staking.calculator.duration",
-      "locations": ["src/app/[locale]/tellor/components/TellorStakingView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorStakingView.tsx"
+      ]
     },
     {
       "key": "staking.calculator.months",
-      "locations": ["src/app/[locale]/tellor/components/TellorStakingView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorStakingView.tsx"
+      ]
     },
     {
       "key": "staking.calculator.estimatedReward",
-      "locations": ["src/app/[locale]/tellor/components/TellorStakingView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorStakingView.tsx"
+      ]
     },
     {
       "key": "staking.calculator.totalReward",
-      "locations": ["src/app/[locale]/tellor/components/TellorStakingView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorStakingView.tsx"
+      ]
     },
     {
       "key": "staking.calculator.stakeNow",
-      "locations": ["src/app/[locale]/tellor/components/TellorStakingView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorStakingView.tsx"
+      ]
     },
     {
       "key": "staking.risks",
-      "locations": ["src/app/[locale]/tellor/components/TellorStakingView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorStakingView.tsx"
+      ]
     },
     {
       "key": "staking.slashingRisk",
-      "locations": ["src/app/[locale]/tellor/components/TellorStakingView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorStakingView.tsx"
+      ]
     },
     {
       "key": "staking.slashingRiskDesc",
-      "locations": ["src/app/[locale]/tellor/components/TellorStakingView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorStakingView.tsx"
+      ]
     },
     {
       "key": "staking.lockupPeriod",
-      "locations": ["src/app/[locale]/tellor/components/TellorStakingView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorStakingView.tsx"
+      ]
     },
     {
       "key": "staking.lockupPeriodDesc",
-      "locations": ["src/app/[locale]/tellor/components/TellorStakingView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorStakingView.tsx"
+      ]
     },
     {
       "key": "staking.marketRisk",
-      "locations": ["src/app/[locale]/tellor/components/TellorStakingView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorStakingView.tsx"
+      ]
     },
     {
       "key": "staking.marketRiskDesc",
-      "locations": ["src/app/[locale]/tellor/components/TellorStakingView.tsx"]
+      "locations": [
+        "src/app/[locale]/tellor/components/TellorStakingView.tsx"
+      ]
     },
     {
       "key": "uma.crossChain.${section}",
-      "locations": ["src/app/[locale]/uma/components/CrossChainVerification.tsx"]
+      "locations": [
+        "src/app/[locale]/uma/components/CrossChainVerification.tsx"
+      ]
     },
     {
       "key": "uma.syncStatus.${validator.syncStatus}",
-      "locations": ["src/app/[locale]/uma/components/CrossChainVerification.tsx"]
+      "locations": [
+        "src/app/[locale]/uma/components/CrossChainVerification.tsx"
+      ]
     },
     {
       "key": "uma.bridgeStatus.${health.status}",
-      "locations": ["src/app/[locale]/uma/components/CrossChainVerification.tsx"]
+      "locations": [
+        "src/app/[locale]/uma/components/CrossChainVerification.tsx"
+      ]
     },
     {
       "key": "uma.componentStatus.${component.status}",
-      "locations": ["src/app/[locale]/uma/components/CrossChainVerification.tsx"]
+      "locations": [
+        "src/app/[locale]/uma/components/CrossChainVerification.tsx"
+      ]
     },
     {
       "key": "uma.dataRequest.types.${type}",
-      "locations": ["src/app/[locale]/uma/components/DataRequestBrowser.tsx"]
+      "locations": [
+        "src/app/[locale]/uma/components/DataRequestBrowser.tsx"
+      ]
     },
     {
       "key": "uma.validators.types.${selectedValidatorData.type}",
-      "locations": ["src/app/[locale]/uma/components/DelegationAnalysis.tsx"]
+      "locations": [
+        "src/app/[locale]/uma/components/DelegationAnalysis.tsx"
+      ]
     },
     {
       "key": "uma.validators.types.${validator.type}",
-      "locations": ["src/app/[locale]/uma/components/DelegationAnalysis.tsx"]
+      "locations": [
+        "src/app/[locale]/uma/components/DelegationAnalysis.tsx"
+      ]
     },
     {
       "key": "Proposal to increase the minimum staking requirement for validators from 10,000 UMA to 15,000 UMA to enhance network security and validator commitment.",
-      "locations": ["src/app/[locale]/uma/components/GovernanceView.tsx"]
+      "locations": [
+        "src/app/[locale]/uma/components/GovernanceView.tsx"
+      ]
     },
     {
       "key": "Upgrade UMA Optimistic Oracle to V2.5, introducing new dispute resolution mechanisms and faster finality times.",
-      "locations": ["src/app/[locale]/uma/components/GovernanceView.tsx"]
+      "locations": [
+        "src/app/[locale]/uma/components/GovernanceView.tsx"
+      ]
     },
     {
       "key": "Proposal to allocate 500,000 UMA from treasury for ecosystem development fund to support UMA-based projects.",
-      "locations": ["src/app/[locale]/uma/components/GovernanceView.tsx"]
+      "locations": [
+        "src/app/[locale]/uma/components/GovernanceView.tsx"
+      ]
     },
     {
       "key": "Modify dispute fee structure to lower participation threshold for small disputes while maintaining deterrence against malicious disputes.",
-      "locations": ["src/app/[locale]/uma/components/GovernanceView.tsx"]
+      "locations": [
+        "src/app/[locale]/uma/components/GovernanceView.tsx"
+      ]
     },
     {
       "key": "Fund development of community governance dashboard providing better proposal tracking and voting analysis tools.",
-      "locations": ["src/app/[locale]/uma/components/GovernanceView.tsx"]
+      "locations": [
+        "src/app/[locale]/uma/components/GovernanceView.tsx"
+      ]
     },
     {
       "key": "Protocol Upgrade V2.5",
-      "locations": ["src/app/[locale]/uma/components/GovernanceView.tsx"]
+      "locations": [
+        "src/app/[locale]/uma/components/GovernanceView.tsx"
+      ]
     },
     {
       "key": "winklink.gaming.noData",
-      "locations": ["src/app/[locale]/winklink/components/WinklinkGamingView.tsx"]
+      "locations": [
+        "src/app/[locale]/winklink/components/WinklinkGamingView.tsx"
+      ]
     },
     {
       "key": "winklink.gaming.noDataDescription",
-      "locations": ["src/app/[locale]/winklink/components/WinklinkGamingView.tsx"]
+      "locations": [
+        "src/app/[locale]/winklink/components/WinklinkGamingView.tsx"
+      ]
     },
     {
       "key": "winklink.market.noData",
-      "locations": ["src/app/[locale]/winklink/components/WinklinkMarketView.tsx"]
+      "locations": [
+        "src/app/[locale]/winklink/components/WinklinkMarketView.tsx"
+      ]
     },
     {
       "key": "winklink.market.noDataDescription",
-      "locations": ["src/app/[locale]/winklink/components/WinklinkMarketView.tsx"]
+      "locations": [
+        "src/app/[locale]/winklink/components/WinklinkMarketView.tsx"
+      ]
     },
     {
       "key": "winklink.priceConfidence",
-      "locations": ["src/app/[locale]/winklink/components/WinklinkMarketView.tsx"]
+      "locations": [
+        "src/app/[locale]/winklink/components/WinklinkMarketView.tsx"
+      ]
     },
     {
       "key": "winklink.network.noData",
-      "locations": ["src/app/[locale]/winklink/components/WinklinkNetworkView.tsx"]
+      "locations": [
+        "src/app/[locale]/winklink/components/WinklinkNetworkView.tsx"
+      ]
     },
     {
       "key": "winklink.network.noDataDescription",
-      "locations": ["src/app/[locale]/winklink/components/WinklinkNetworkView.tsx"]
+      "locations": [
+        "src/app/[locale]/winklink/components/WinklinkNetworkView.tsx"
+      ]
     },
     {
       "key": "winklink.network.updateFrequency",
-      "locations": ["src/app/[locale]/winklink/components/WinklinkNetworkView.tsx"]
+      "locations": [
+        "src/app/[locale]/winklink/components/WinklinkNetworkView.tsx"
+      ]
     },
     {
       "key": "winklink.network.totalStaked",
-      "locations": ["src/app/[locale]/winklink/components/WinklinkNetworkView.tsx"]
+      "locations": [
+        "src/app/[locale]/winklink/components/WinklinkNetworkView.tsx"
+      ]
     },
     {
       "key": "winklink.network.status",
-      "locations": ["src/app/[locale]/winklink/components/WinklinkNetworkView.tsx"]
+      "locations": [
+        "src/app/[locale]/winklink/components/WinklinkNetworkView.tsx"
+      ]
     },
     {
       "key": "winklink.risk.noData",
-      "locations": ["src/app/[locale]/winklink/components/WinklinkRiskView.tsx"]
+      "locations": [
+        "src/app/[locale]/winklink/components/WinklinkRiskView.tsx"
+      ]
     },
     {
       "key": "winklink.risk.noDataDescription",
-      "locations": ["src/app/[locale]/winklink/components/WinklinkRiskView.tsx"]
+      "locations": [
+        "src/app/[locale]/winklink/components/WinklinkRiskView.tsx"
+      ]
     },
     {
       "key": "winklink.staking.noData",
-      "locations": ["src/app/[locale]/winklink/components/WinklinkStakingView.tsx"]
+      "locations": [
+        "src/app/[locale]/winklink/components/WinklinkStakingView.tsx"
+      ]
     },
     {
       "key": "winklink.staking.noDataDescription",
-      "locations": ["src/app/[locale]/winklink/components/WinklinkStakingView.tsx"]
+      "locations": [
+        "src/app/[locale]/winklink/components/WinklinkStakingView.tsx"
+      ]
     },
     {
       "key": "winklink.staking.noNodes",
-      "locations": ["src/app/[locale]/winklink/components/WinklinkStakingView.tsx"]
+      "locations": [
+        "src/app/[locale]/winklink/components/WinklinkStakingView.tsx"
+      ]
     },
     {
       "key": "winklink.tron.noData",
-      "locations": ["src/app/[locale]/winklink/components/WinklinkTRONView.tsx"]
+      "locations": [
+        "src/app/[locale]/winklink/components/WinklinkTRONView.tsx"
+      ]
     },
     {
       "key": "winklink.tron.noDataDescription",
-      "locations": ["src/app/[locale]/winklink/components/WinklinkTRONView.tsx"]
+      "locations": [
+        "src/app/[locale]/winklink/components/WinklinkTRONView.tsx"
+      ]
     },
     {
       "key": "winklink.tron.noDapps",
-      "locations": ["src/app/[locale]/winklink/components/WinklinkTRONView.tsx"]
+      "locations": [
+        "src/app/[locale]/winklink/components/WinklinkTRONView.tsx"
+      ]
     },
     {
       "key": "winklink.vrf.noData",
-      "locations": ["src/app/[locale]/winklink/components/WinklinkVRFView.tsx"]
+      "locations": [
+        "src/app/[locale]/winklink/components/WinklinkVRFView.tsx"
+      ]
     },
     {
       "key": "winklink.vrf.noDataDescription",
-      "locations": ["src/app/[locale]/winklink/components/WinklinkVRFView.tsx"]
+      "locations": [
+        "src/app/[locale]/winklink/components/WinklinkVRFView.tsx"
+      ]
     },
     {
       "key": "Uses elliptic curve cryptography (ECVRF) to generate verifiable random outputs that cannot be predicted or manipulated.",
-      "locations": ["src/app/[locale]/winklink/components/WinklinkVRFView.tsx"]
+      "locations": [
+        "src/app/[locale]/winklink/components/WinklinkVRFView.tsx"
+      ]
     },
     {
       "key": "Every random value comes with a cryptographic proof that can be verified on-chain by anyone.",
-      "locations": ["src/app/[locale]/winklink/components/WinklinkVRFView.tsx"]
+      "locations": [
+        "src/app/[locale]/winklink/components/WinklinkVRFView.tsx"
+      ]
     },
     {
       "key": "Multiple independent oracle nodes participate in randomness generation, eliminating single points of failure.",
-      "locations": ["src/app/[locale]/winklink/components/WinklinkVRFView.tsx"]
+      "locations": [
+        "src/app/[locale]/winklink/components/WinklinkVRFView.tsx"
+      ]
     },
     {
       "key": "Each request includes a unique nonce and consumer address to prevent replay attacks.",
-      "locations": ["src/app/[locale]/winklink/components/WinklinkVRFView.tsx"]
+      "locations": [
+        "src/app/[locale]/winklink/components/WinklinkVRFView.tsx"
+      ]
     },
     {
       "key": "Invalid request ID format. Expected 66-character hex string starting with 0x",
-      "locations": ["src/app/[locale]/winklink/components/WinklinkVRFView.tsx"]
+      "locations": [
+        "src/app/[locale]/winklink/components/WinklinkVRFView.tsx"
+      ]
     },
     {
       "key": "common.copyFailed",
-      "locations": ["src/app/[locale]/winklink/components/shared/CopyButton.tsx"]
+      "locations": [
+        "src/app/[locale]/winklink/components/shared/CopyButton.tsx"
+      ]
     },
     {
       "key": "common.copied",
-      "locations": ["src/app/[locale]/winklink/components/shared/CopyButton.tsx"]
+      "locations": [
+        "src/app/[locale]/winklink/components/shared/CopyButton.tsx"
+      ]
     },
     {
       "key": "common.copy",
-      "locations": ["src/app/[locale]/winklink/components/shared/CopyButton.tsx"]
+      "locations": [
+        "src/app/[locale]/winklink/components/shared/CopyButton.tsx"
+      ]
     },
     {
       "key": "Invalid request data. Check action and alertIds fields.",
-      "locations": ["src/app/api/alerts/batch/route.ts"]
+      "locations": [
+        "src/app/api/alerts/batch/route.ts"
+      ]
     },
     {
       "key": "Invalid request data. Check name, config_type, and config_data fields.",
-      "locations": ["src/app/api/favorites/route.ts"]
+      "locations": [
+        "src/app/api/favorites/route.ts"
+      ]
     },
     {
       "key": ",\n      error instanceof Error ? error : new Error(String(error))\n    );\n    return NextResponse.json(\n      {\n        error: ",
-      "locations": ["src/app/api/market-data/route.ts", "src/app/api/market-data/route.ts"]
+      "locations": [
+        "src/app/api/market-data/route.ts",
+        "src/app/api/market-data/route.ts"
+      ]
     },
     {
       "key": "Invalid request data. Check symbol, selected_oracles, price_data, and stats fields.",
-      "locations": ["src/app/api/snapshots/route.ts"]
+      "locations": [
+        "src/app/api/snapshots/route.ts"
+      ]
     },
     {
       "key": "alerts.mute.duration.${opt.value}",
-      "locations": ["src/components/alerts/AlertMutePeriod.tsx"]
+      "locations": [
+        "src/components/alerts/AlertMutePeriod.tsx"
+      ]
     },
     {
       "key": "common.days.${day.value}",
-      "locations": ["src/components/alerts/AlertMutePeriod.tsx"]
+      "locations": [
+        "src/components/alerts/AlertMutePeriod.tsx"
+      ]
     },
     {
       "key": "alerts.mute.duration.${config.duration}",
-      "locations": ["src/components/alerts/AlertMutePeriod.tsx"]
+      "locations": [
+        "src/components/alerts/AlertMutePeriod.tsx"
+      ]
     },
     {
       "key": "common.days.${d}",
-      "locations": ["src/components/alerts/AlertMutePeriod.tsx"]
+      "locations": [
+        "src/components/alerts/AlertMutePeriod.tsx"
+      ]
     },
     {
       "key": "industry.priceDeviation",
-      "locations": ["src/components/comparison/BenchmarkComparison.tsx"]
+      "locations": [
+        "src/components/comparison/BenchmarkComparison.tsx"
+      ]
     },
     {
       "key": "industry.responseTime",
-      "locations": ["src/components/comparison/BenchmarkComparison.tsx"]
+      "locations": [
+        "src/components/comparison/BenchmarkComparison.tsx"
+      ]
     },
     {
       "key": "industry.uptime",
-      "locations": ["src/components/comparison/BenchmarkComparison.tsx"]
+      "locations": [
+        "src/components/comparison/BenchmarkComparison.tsx"
+      ]
     },
     {
       "key": "industry.accuracy",
-      "locations": ["src/components/comparison/BenchmarkComparison.tsx"]
+      "locations": [
+        "src/components/comparison/BenchmarkComparison.tsx"
+      ]
     },
     {
       "key": "industry.updateFrequency",
-      "locations": ["src/components/comparison/BenchmarkComparison.tsx"]
+      "locations": [
+        "src/components/comparison/BenchmarkComparison.tsx"
+      ]
     },
     {
       "key": "industry.priceDeviationDesc",
-      "locations": ["src/components/comparison/BenchmarkComparison.tsx"]
+      "locations": [
+        "src/components/comparison/BenchmarkComparison.tsx"
+      ]
     },
     {
       "key": "industry.responseTimeDesc",
-      "locations": ["src/components/comparison/BenchmarkComparison.tsx"]
+      "locations": [
+        "src/components/comparison/BenchmarkComparison.tsx"
+      ]
     },
     {
       "key": "industry.uptimeDesc",
-      "locations": ["src/components/comparison/BenchmarkComparison.tsx"]
+      "locations": [
+        "src/components/comparison/BenchmarkComparison.tsx"
+      ]
     },
     {
       "key": "industry.accuracyDesc",
-      "locations": ["src/components/comparison/BenchmarkComparison.tsx"]
+      "locations": [
+        "src/components/comparison/BenchmarkComparison.tsx"
+      ]
     },
     {
       "key": "industry.updateFrequencyDesc",
-      "locations": ["src/components/comparison/BenchmarkComparison.tsx"]
+      "locations": [
+        "src/components/comparison/BenchmarkComparison.tsx"
+      ]
     },
     {
       "key": "${columns[col + 1].label} 列",
-      "locations": ["src/components/comparison/EnhancedComparisonTable.tsx"]
+      "locations": [
+        "src/components/comparison/EnhancedComparisonTable.tsx"
+      ]
     },
     {
       "key": "${columns[col - 1].label} 列",
-      "locations": ["src/components/comparison/EnhancedComparisonTable.tsx"]
+      "locations": [
+        "src/components/comparison/EnhancedComparisonTable.tsx"
+      ]
     },
     {
       "key": "第 ${Math.min(row + 6, maxRow + 1)} 行",
-      "locations": ["src/components/comparison/EnhancedComparisonTable.tsx"]
+      "locations": [
+        "src/components/comparison/EnhancedComparisonTable.tsx"
+      ]
     },
     {
       "key": "第 ${Math.max(row - 4, 1)} 行",
-      "locations": ["src/components/comparison/EnhancedComparisonTable.tsx"]
+      "locations": [
+        "src/components/comparison/EnhancedComparisonTable.tsx"
+      ]
     },
     {
       "key": "已按 ${columns[col].label} 排序",
-      "locations": ["src/components/comparison/EnhancedComparisonTable.tsx"]
+      "locations": [
+        "src/components/comparison/EnhancedComparisonTable.tsx"
+      ]
     },
     {
       "key": "dataTransparency.freshness.${freshness}",
-      "locations": ["src/components/data-transparency/DataUpdateTime.tsx"]
+      "locations": [
+        "src/components/data-transparency/DataUpdateTime.tsx"
+      ]
     },
     {
       "key": "Error caught at ${context.level} level",
-      "locations": ["src/components/error-boundary/ErrorBoundary.tsx"]
+      "locations": [
+        "src/components/error-boundary/ErrorBoundary.tsx"
+      ]
     },
     {
       "key": "The requested resource was not found.",
-      "locations": ["src/components/error-boundary/ErrorBoundary.tsx"]
+      "locations": [
+        "src/components/error-boundary/ErrorBoundary.tsx"
+      ]
     },
     {
       "key": "Please sign in to access this feature.",
-      "locations": ["src/components/error-boundary/ErrorBoundary.tsx"]
+      "locations": [
+        "src/components/error-boundary/ErrorBoundary.tsx"
+      ]
     },
     {
       "key": "Too many requests. Please try again later.",
-      "locations": ["src/components/error-boundary/ErrorBoundary.tsx"]
+      "locations": [
+        "src/components/error-boundary/ErrorBoundary.tsx"
+      ]
     },
     {
       "key": "Connection failed. Please check your internet connection.",
-      "locations": ["src/components/error-boundary/ErrorBoundary.tsx"]
+      "locations": [
+        "src/components/error-boundary/ErrorBoundary.tsx"
+      ]
     },
     {
       "key": "An unexpected error occurred.",
-      "locations": ["src/components/error-boundary/ErrorBoundary.tsx"]
+      "locations": [
+        "src/components/error-boundary/ErrorBoundary.tsx"
+      ]
     },
     {
       "key": ".",
@@ -1811,127 +2504,189 @@
     },
     {
       "key": "${translationNamespace}.${item.labelKey}",
-      "locations": ["src/components/oracle/UnifiedSidebar.tsx"]
+      "locations": [
+        "src/components/oracle/UnifiedSidebar.tsx"
+      ]
     },
     {
       "key": "cdfChart.p50Desc",
-      "locations": ["src/components/oracle/charts/CDFChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/CDFChart.tsx"
+      ]
     },
     {
       "key": "cdfChart.p95Desc",
-      "locations": ["src/components/oracle/charts/CDFChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/CDFChart.tsx"
+      ]
     },
     {
       "key": "cdfChart.p99Desc",
-      "locations": ["src/components/oracle/charts/CDFChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/CDFChart.tsx"
+      ]
     },
     {
       "key": "cdfChart.samples",
-      "locations": ["src/components/oracle/charts/CDFChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/CDFChart.tsx"
+      ]
     },
     {
       "key": "cdfChart.mean",
-      "locations": ["src/components/oracle/charts/CDFChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/CDFChart.tsx"
+      ]
     },
     {
       "key": "cdfChart.min",
-      "locations": ["src/components/oracle/charts/CDFChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/CDFChart.tsx"
+      ]
     },
     {
       "key": "cdfChart.max",
-      "locations": ["src/components/oracle/charts/CDFChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/CDFChart.tsx"
+      ]
     },
     {
       "key": "cdfChart.stdDev",
-      "locations": ["src/components/oracle/charts/CDFChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/CDFChart.tsx"
+      ]
     },
     {
       "key": "cdfChart.latency",
-      "locations": ["src/components/oracle/charts/CDFChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/CDFChart.tsx"
+      ]
     },
     {
       "key": "cdfChart.value",
-      "locations": ["src/components/oracle/charts/CDFChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/CDFChart.tsx"
+      ]
     },
     {
       "key": "cdfChart.probability",
-      "locations": ["src/components/oracle/charts/CDFChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/CDFChart.tsx"
+      ]
     },
     {
       "key": "cdfChart.count",
-      "locations": ["src/components/oracle/charts/CDFChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/CDFChart.tsx"
+      ]
     },
     {
       "key": "cdfChart.noData",
-      "locations": ["src/components/oracle/charts/CDFChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/CDFChart.tsx"
+      ]
     },
     {
       "key": "cdfChart.chartTitle",
-      "locations": ["src/components/oracle/charts/CDFChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/CDFChart.tsx"
+      ]
     },
     {
       "key": "cdfChart.chartDesc",
-      "locations": ["src/components/oracle/charts/CDFChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/CDFChart.tsx"
+      ]
     },
     {
       "key": "cdfChart.xAxisLabel",
-      "locations": ["src/components/oracle/charts/CDFChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/CDFChart.tsx"
+      ]
     },
     {
       "key": "cdfChart.yAxisLabel",
-      "locations": ["src/components/oracle/charts/CDFChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/CDFChart.tsx"
+      ]
     },
     {
       "key": "cdfChart.cdfCurve",
-      "locations": ["src/components/oracle/charts/CDFChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/CDFChart.tsx"
+      ]
     },
     {
       "key": "cdfChart.aboutTitle",
-      "locations": ["src/components/oracle/charts/CDFChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/CDFChart.tsx"
+      ]
     },
     {
       "key": "cdfChart.aboutDesc",
-      "locations": ["src/components/oracle/charts/CDFChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/CDFChart.tsx"
+      ]
     },
     {
       "key": "steps.zoom.title",
-      "locations": ["src/components/oracle/charts/ChartGuide/ChartGuide.tsx"]
+      "locations": [
+        "src/components/oracle/charts/ChartGuide/ChartGuide.tsx"
+      ]
     },
     {
       "key": "steps.zoom.description",
-      "locations": ["src/components/oracle/charts/ChartGuide/ChartGuide.tsx"]
+      "locations": [
+        "src/components/oracle/charts/ChartGuide/ChartGuide.tsx"
+      ]
     },
     {
       "key": "steps.fullscreen.title",
-      "locations": ["src/components/oracle/charts/ChartGuide/ChartGuide.tsx"]
+      "locations": [
+        "src/components/oracle/charts/ChartGuide/ChartGuide.tsx"
+      ]
     },
     {
       "key": "steps.fullscreen.description",
-      "locations": ["src/components/oracle/charts/ChartGuide/ChartGuide.tsx"]
+      "locations": [
+        "src/components/oracle/charts/ChartGuide/ChartGuide.tsx"
+      ]
     },
     {
       "key": "steps.hover.title",
-      "locations": ["src/components/oracle/charts/ChartGuide/ChartGuide.tsx"]
+      "locations": [
+        "src/components/oracle/charts/ChartGuide/ChartGuide.tsx"
+      ]
     },
     {
       "key": "steps.hover.description",
-      "locations": ["src/components/oracle/charts/ChartGuide/ChartGuide.tsx"]
+      "locations": [
+        "src/components/oracle/charts/ChartGuide/ChartGuide.tsx"
+      ]
     },
     {
       "key": "steps.indicators.title",
-      "locations": ["src/components/oracle/charts/ChartGuide/ChartGuide.tsx"]
+      "locations": [
+        "src/components/oracle/charts/ChartGuide/ChartGuide.tsx"
+      ]
     },
     {
       "key": "steps.indicators.description",
-      "locations": ["src/components/oracle/charts/ChartGuide/ChartGuide.tsx"]
+      "locations": [
+        "src/components/oracle/charts/ChartGuide/ChartGuide.tsx"
+      ]
     },
     {
       "key": "steps.export.title",
-      "locations": ["src/components/oracle/charts/ChartGuide/ChartGuide.tsx"]
+      "locations": [
+        "src/components/oracle/charts/ChartGuide/ChartGuide.tsx"
+      ]
     },
     {
       "key": "steps.export.description",
-      "locations": ["src/components/oracle/charts/ChartGuide/ChartGuide.tsx"]
+      "locations": [
+        "src/components/oracle/charts/ChartGuide/ChartGuide.tsx"
+      ]
     },
     {
       "key": "comparison.title",
@@ -1942,67 +2697,99 @@
     },
     {
       "key": "comparison.previous",
-      "locations": ["src/components/oracle/charts/EnhancedTooltip/EnhancedTooltip.tsx"]
+      "locations": [
+        "src/components/oracle/charts/EnhancedTooltip/EnhancedTooltip.tsx"
+      ]
     },
     {
       "key": "comparison.current",
-      "locations": ["src/components/oracle/charts/EnhancedTooltip/EnhancedTooltip.tsx"]
+      "locations": [
+        "src/components/oracle/charts/EnhancedTooltip/EnhancedTooltip.tsx"
+      ]
     },
     {
       "key": "volume.unit",
-      "locations": ["src/components/oracle/charts/EnhancedTooltip/EnhancedTooltip.tsx"]
+      "locations": [
+        "src/components/oracle/charts/EnhancedTooltip/EnhancedTooltip.tsx"
+      ]
     },
     {
       "key": "volume.label",
-      "locations": ["src/components/oracle/charts/EnhancedTooltip/EnhancedTooltip.tsx"]
+      "locations": [
+        "src/components/oracle/charts/EnhancedTooltip/EnhancedTooltip.tsx"
+      ]
     },
     {
       "key": "toolbar.indicators",
-      "locations": ["src/components/oracle/charts/InteractivePriceChart/InteractivePriceChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/InteractivePriceChart/InteractivePriceChart.tsx"
+      ]
     },
     {
       "key": "tooltips.ma7",
-      "locations": ["src/components/oracle/charts/InteractivePriceChart/InteractivePriceChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/InteractivePriceChart/InteractivePriceChart.tsx"
+      ]
     },
     {
       "key": "tooltips.ma14",
-      "locations": ["src/components/oracle/charts/InteractivePriceChart/InteractivePriceChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/InteractivePriceChart/InteractivePriceChart.tsx"
+      ]
     },
     {
       "key": "tooltips.ma30",
-      "locations": ["src/components/oracle/charts/InteractivePriceChart/InteractivePriceChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/InteractivePriceChart/InteractivePriceChart.tsx"
+      ]
     },
     {
       "key": "toolbar.view",
-      "locations": ["src/components/oracle/charts/InteractivePriceChart/InteractivePriceChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/InteractivePriceChart/InteractivePriceChart.tsx"
+      ]
     },
     {
       "key": "buttons.volume",
-      "locations": ["src/components/oracle/charts/InteractivePriceChart/InteractivePriceChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/InteractivePriceChart/InteractivePriceChart.tsx"
+      ]
     },
     {
       "key": "tooltips.volume",
-      "locations": ["src/components/oracle/charts/InteractivePriceChart/InteractivePriceChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/InteractivePriceChart/InteractivePriceChart.tsx"
+      ]
     },
     {
       "key": "buttons.comparison",
-      "locations": ["src/components/oracle/charts/InteractivePriceChart/InteractivePriceChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/InteractivePriceChart/InteractivePriceChart.tsx"
+      ]
     },
     {
       "key": "tooltips.comparison",
-      "locations": ["src/components/oracle/charts/InteractivePriceChart/InteractivePriceChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/InteractivePriceChart/InteractivePriceChart.tsx"
+      ]
     },
     {
       "key": "series.price",
-      "locations": ["src/components/oracle/charts/InteractivePriceChart/InteractivePriceChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/InteractivePriceChart/InteractivePriceChart.tsx"
+      ]
     },
     {
       "key": "series.comparison",
-      "locations": ["src/components/oracle/charts/InteractivePriceChart/InteractivePriceChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/InteractivePriceChart/InteractivePriceChart.tsx"
+      ]
     },
     {
       "key": "legend.current",
-      "locations": ["src/components/oracle/charts/InteractivePriceChart/InteractivePriceChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/InteractivePriceChart/InteractivePriceChart.tsx"
+      ]
     },
     {
       "key": "legend.comparison",
@@ -2013,115 +2800,171 @@
     },
     {
       "key": "legend.price",
-      "locations": ["src/components/oracle/charts/InteractivePriceChart/InteractivePriceChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/InteractivePriceChart/InteractivePriceChart.tsx"
+      ]
     },
     {
       "key": "chartToolbar.buttons.refresh",
-      "locations": ["src/components/oracle/charts/OracleChartToolbar.tsx"]
+      "locations": [
+        "src/components/oracle/charts/OracleChartToolbar.tsx"
+      ]
     },
     {
       "key": "chartToolbar.buttons.exitFullscreen",
-      "locations": ["src/components/oracle/charts/OracleChartToolbar.tsx"]
+      "locations": [
+        "src/components/oracle/charts/OracleChartToolbar.tsx"
+      ]
     },
     {
       "key": "chartToolbar.buttons.fullscreen",
-      "locations": ["src/components/oracle/charts/OracleChartToolbar.tsx"]
+      "locations": [
+        "src/components/oracle/charts/OracleChartToolbar.tsx"
+      ]
     },
     {
       "key": "-1.0",
-      "locations": ["src/components/oracle/charts/PriceCorrelationMatrix.tsx"]
+      "locations": [
+        "src/components/oracle/charts/PriceCorrelationMatrix.tsx"
+      ]
     },
     {
       "key": "-0.5",
-      "locations": ["src/components/oracle/charts/PriceCorrelationMatrix.tsx"]
+      "locations": [
+        "src/components/oracle/charts/PriceCorrelationMatrix.tsx"
+      ]
     },
     {
       "key": "0.0",
-      "locations": ["src/components/oracle/charts/PriceCorrelationMatrix.tsx"]
+      "locations": [
+        "src/components/oracle/charts/PriceCorrelationMatrix.tsx"
+      ]
     },
     {
       "key": "0.5",
-      "locations": ["src/components/oracle/charts/PriceCorrelationMatrix.tsx"]
+      "locations": [
+        "src/components/oracle/charts/PriceCorrelationMatrix.tsx"
+      ]
     },
     {
       "key": "1.0",
-      "locations": ["src/components/oracle/charts/PriceCorrelationMatrix.tsx"]
+      "locations": [
+        "src/components/oracle/charts/PriceCorrelationMatrix.tsx"
+      ]
     },
     {
       "key": "< 0.1%",
-      "locations": ["src/components/oracle/charts/PriceDeviationHeatmap.tsx"]
+      "locations": [
+        "src/components/oracle/charts/PriceDeviationHeatmap.tsx"
+      ]
     },
     {
       "key": "0.1-0.25%",
-      "locations": ["src/components/oracle/charts/PriceDeviationHeatmap.tsx"]
+      "locations": [
+        "src/components/oracle/charts/PriceDeviationHeatmap.tsx"
+      ]
     },
     {
       "key": "0.25-0.5%",
-      "locations": ["src/components/oracle/charts/PriceDeviationHeatmap.tsx"]
+      "locations": [
+        "src/components/oracle/charts/PriceDeviationHeatmap.tsx"
+      ]
     },
     {
       "key": "0.5-0.75%",
-      "locations": ["src/components/oracle/charts/PriceDeviationHeatmap.tsx"]
+      "locations": [
+        "src/components/oracle/charts/PriceDeviationHeatmap.tsx"
+      ]
     },
     {
       "key": "0.75-1%",
-      "locations": ["src/components/oracle/charts/PriceDeviationHeatmap.tsx"]
+      "locations": [
+        "src/components/oracle/charts/PriceDeviationHeatmap.tsx"
+      ]
     },
     {
       "key": "1-1.5%",
-      "locations": ["src/components/oracle/charts/PriceDeviationHeatmap.tsx"]
+      "locations": [
+        "src/components/oracle/charts/PriceDeviationHeatmap.tsx"
+      ]
     },
     {
       "key": "1.5-2%",
-      "locations": ["src/components/oracle/charts/PriceDeviationHeatmap.tsx"]
+      "locations": [
+        "src/components/oracle/charts/PriceDeviationHeatmap.tsx"
+      ]
     },
     {
       "key": "priceDistribution.tooltip.max",
-      "locations": ["src/components/oracle/charts/PriceDistributionBoxPlot.tsx"]
+      "locations": [
+        "src/components/oracle/charts/PriceDistributionBoxPlot.tsx"
+      ]
     },
     {
       "key": "priceDistribution.tooltip.upperWhisker",
-      "locations": ["src/components/oracle/charts/PriceDistributionBoxPlot.tsx"]
+      "locations": [
+        "src/components/oracle/charts/PriceDistributionBoxPlot.tsx"
+      ]
     },
     {
       "key": "priceDistribution.tooltip.q3",
-      "locations": ["src/components/oracle/charts/PriceDistributionBoxPlot.tsx"]
+      "locations": [
+        "src/components/oracle/charts/PriceDistributionBoxPlot.tsx"
+      ]
     },
     {
       "key": "priceDistribution.tooltip.median",
-      "locations": ["src/components/oracle/charts/PriceDistributionBoxPlot.tsx"]
+      "locations": [
+        "src/components/oracle/charts/PriceDistributionBoxPlot.tsx"
+      ]
     },
     {
       "key": "priceDistribution.tooltip.q1",
-      "locations": ["src/components/oracle/charts/PriceDistributionBoxPlot.tsx"]
+      "locations": [
+        "src/components/oracle/charts/PriceDistributionBoxPlot.tsx"
+      ]
     },
     {
       "key": "priceDistribution.tooltip.lowerWhisker",
-      "locations": ["src/components/oracle/charts/PriceDistributionBoxPlot.tsx"]
+      "locations": [
+        "src/components/oracle/charts/PriceDistributionBoxPlot.tsx"
+      ]
     },
     {
       "key": "priceDistribution.tooltip.min",
-      "locations": ["src/components/oracle/charts/PriceDistributionBoxPlot.tsx"]
+      "locations": [
+        "src/components/oracle/charts/PriceDistributionBoxPlot.tsx"
+      ]
     },
     {
       "key": "priceDistribution.tooltip.iqr",
-      "locations": ["src/components/oracle/charts/PriceDistributionBoxPlot.tsx"]
+      "locations": [
+        "src/components/oracle/charts/PriceDistributionBoxPlot.tsx"
+      ]
     },
     {
       "key": "priceDistribution.tooltip.outliers",
-      "locations": ["src/components/oracle/charts/PriceDistributionBoxPlot.tsx"]
+      "locations": [
+        "src/components/oracle/charts/PriceDistributionBoxPlot.tsx"
+      ]
     },
     {
       "key": "priceDistribution.tooltip.outlierCount",
-      "locations": ["src/components/oracle/charts/PriceDistributionBoxPlot.tsx"]
+      "locations": [
+        "src/components/oracle/charts/PriceDistributionBoxPlot.tsx"
+      ]
     },
     {
       "key": "priceDistribution.noData",
-      "locations": ["src/components/oracle/charts/PriceDistributionBoxPlot.tsx"]
+      "locations": [
+        "src/components/oracle/charts/PriceDistributionBoxPlot.tsx"
+      ]
     },
     {
       "key": "priceVolatility.level.${dataPoint.levelKey}",
-      "locations": ["src/components/oracle/charts/PriceVolatilityChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/PriceVolatilityChart.tsx"
+      ]
     },
     {
       "key": "${factor.name} has reached critical risk level (${factor.score.toFixed(1)})",
@@ -2157,207 +3000,309 @@
     },
     {
       "key": "stakingDistribution.clickForDetails",
-      "locations": ["src/components/oracle/charts/StakingDistributionChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/StakingDistributionChart.tsx"
+      ]
     },
     {
       "key": "stakingDistribution.riskLevel.low",
-      "locations": ["src/components/oracle/charts/StakingDistributionChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/StakingDistributionChart.tsx"
+      ]
     },
     {
       "key": "stakingDistribution.riskLevel.medium",
-      "locations": ["src/components/oracle/charts/StakingDistributionChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/StakingDistributionChart.tsx"
+      ]
     },
     {
       "key": "stakingDistribution.riskLevel.high",
-      "locations": ["src/components/oracle/charts/StakingDistributionChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/StakingDistributionChart.tsx"
+      ]
     },
     {
       "key": "stakingDistribution.riskLevel.critical",
-      "locations": ["src/components/oracle/charts/StakingDistributionChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/StakingDistributionChart.tsx"
+      ]
     },
     {
       "key": "stakingDistribution.othersValidators",
-      "locations": ["src/components/oracle/charts/StakingDistributionChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/StakingDistributionChart.tsx"
+      ]
     },
     {
       "key": "stakingDistribution.top10StakeRatio",
-      "locations": ["src/components/oracle/charts/StakingDistributionChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/StakingDistributionChart.tsx"
+      ]
     },
     {
       "key": "stakingDistribution.totalStake",
-      "locations": ["src/components/oracle/charts/StakingDistributionChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/StakingDistributionChart.tsx"
+      ]
     },
     {
       "key": "stakingDistribution.nakamotoCoefficient",
-      "locations": ["src/components/oracle/charts/StakingDistributionChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/StakingDistributionChart.tsx"
+      ]
     },
     {
       "key": "stakingDistribution.validators",
-      "locations": ["src/components/oracle/charts/StakingDistributionChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/StakingDistributionChart.tsx"
+      ]
     },
     {
       "key": "stakingDistribution.top3Ratio",
-      "locations": ["src/components/oracle/charts/StakingDistributionChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/StakingDistributionChart.tsx"
+      ]
     },
     {
       "key": "stakingDistribution.top5Ratio",
-      "locations": ["src/components/oracle/charts/StakingDistributionChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/StakingDistributionChart.tsx"
+      ]
     },
     {
       "key": "stakingDistribution.herfindahlIndex",
-      "locations": ["src/components/oracle/charts/StakingDistributionChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/StakingDistributionChart.tsx"
+      ]
     },
     {
       "key": "stakingDistribution.top10Ratio",
-      "locations": ["src/components/oracle/charts/StakingDistributionChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/StakingDistributionChart.tsx"
+      ]
     },
     {
       "key": "stakingDistribution.hhiDesc",
-      "locations": ["src/components/oracle/charts/StakingDistributionChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/StakingDistributionChart.tsx"
+      ]
     },
     {
       "key": "stakingDistribution.validatorDetails",
-      "locations": ["src/components/oracle/charts/StakingDistributionChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/StakingDistributionChart.tsx"
+      ]
     },
     {
       "key": "stakingDistribution.rank",
-      "locations": ["src/components/oracle/charts/StakingDistributionChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/StakingDistributionChart.tsx"
+      ]
     },
     {
       "key": "stakingDistribution.validator",
-      "locations": ["src/components/oracle/charts/StakingDistributionChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/StakingDistributionChart.tsx"
+      ]
     },
     {
       "key": "stakingDistribution.cumulativeRatio",
-      "locations": ["src/components/oracle/charts/StakingDistributionChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/StakingDistributionChart.tsx"
+      ]
     },
     {
       "key": "stakingDistribution.concentrationWarning",
-      "locations": ["src/components/oracle/charts/StakingDistributionChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/StakingDistributionChart.tsx"
+      ]
     },
     {
       "key": "stakingDistribution.concentrationReminder",
-      "locations": ["src/components/oracle/charts/StakingDistributionChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/StakingDistributionChart.tsx"
+      ]
     },
     {
       "key": "stakingDistribution.concentrationReminderDesc",
-      "locations": ["src/components/oracle/charts/StakingDistributionChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/StakingDistributionChart.tsx"
+      ]
     },
     {
       "key": "stakingDistribution.metricsExplanation",
-      "locations": ["src/components/oracle/charts/StakingDistributionChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/StakingDistributionChart.tsx"
+      ]
     },
     {
       "key": "stakingDistribution.nakamotoExplanation",
-      "locations": ["src/components/oracle/charts/StakingDistributionChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/StakingDistributionChart.tsx"
+      ]
     },
     {
       "key": "stakingDistribution.hhiExplanation",
-      "locations": ["src/components/oracle/charts/StakingDistributionChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/StakingDistributionChart.tsx"
+      ]
     },
     {
       "key": "stakingDistribution.topNExplanation",
-      "locations": ["src/components/oracle/charts/StakingDistributionChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/StakingDistributionChart.tsx"
+      ]
     },
     {
       "key": "common.noEvents",
-      "locations": ["src/components/oracle/charts/TimelineChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/TimelineChart.tsx"
+      ]
     },
     {
       "key": "common.clickForDetails",
-      "locations": ["src/components/oracle/charts/TimelineChart.tsx"]
+      "locations": [
+        "src/components/oracle/charts/TimelineChart.tsx"
+      ]
     },
     {
       "key": "common.time.justNow",
-      "locations": ["src/components/oracle/data-display/DataSourceIndicator.tsx"]
+      "locations": [
+        "src/components/oracle/data-display/DataSourceIndicator.tsx"
+      ]
     },
     {
       "key": "forms.exporting",
-      "locations": ["src/components/oracle/forms/DataExportButton.tsx"]
+      "locations": [
+        "src/components/oracle/forms/DataExportButton.tsx"
+      ]
     },
     {
       "key": "forms.export",
-      "locations": ["src/components/oracle/forms/DataExportButton.tsx"]
+      "locations": [
+        "src/components/oracle/forms/DataExportButton.tsx"
+      ]
     },
     {
       "key": "forms.selectExportFormat",
-      "locations": ["src/components/oracle/forms/DataExportButton.tsx"]
+      "locations": [
+        "src/components/oracle/forms/DataExportButton.tsx"
+      ]
     },
     {
       "key": "forms.csvFile",
-      "locations": ["src/components/oracle/forms/DataExportButton.tsx"]
+      "locations": [
+        "src/components/oracle/forms/DataExportButton.tsx"
+      ]
     },
     {
       "key": "forms.csvFormat",
-      "locations": ["src/components/oracle/forms/DataExportButton.tsx"]
+      "locations": [
+        "src/components/oracle/forms/DataExportButton.tsx"
+      ]
     },
     {
       "key": "forms.jsonFile",
-      "locations": ["src/components/oracle/forms/DataExportButton.tsx"]
+      "locations": [
+        "src/components/oracle/forms/DataExportButton.tsx"
+      ]
     },
     {
       "key": "forms.jsonFormat",
-      "locations": ["src/components/oracle/forms/DataExportButton.tsx"]
+      "locations": [
+        "src/components/oracle/forms/DataExportButton.tsx"
+      ]
     },
     {
       "key": "pythNetwork.solana.status.active",
-      "locations": ["src/components/oracle/panels/SolanaNetworkStatusCard.tsx"]
+      "locations": [
+        "src/components/oracle/panels/SolanaNetworkStatusCard.tsx"
+      ]
     },
     {
       "key": "pythNetwork.solana.status.inactive",
-      "locations": ["src/components/oracle/panels/SolanaNetworkStatusCard.tsx"]
+      "locations": [
+        "src/components/oracle/panels/SolanaNetworkStatusCard.tsx"
+      ]
     },
     {
       "key": "pythNetwork.solana.status.degraded",
-      "locations": ["src/components/oracle/panels/SolanaNetworkStatusCard.tsx"]
+      "locations": [
+        "src/components/oracle/panels/SolanaNetworkStatusCard.tsx"
+      ]
     },
     {
       "key": "pythNetwork.solana.title",
-      "locations": ["src/components/oracle/panels/SolanaNetworkStatusCard.tsx"]
+      "locations": [
+        "src/components/oracle/panels/SolanaNetworkStatusCard.tsx"
+      ]
     },
     {
       "key": "pythNetwork.solana.subtitle",
-      "locations": ["src/components/oracle/panels/SolanaNetworkStatusCard.tsx"]
+      "locations": [
+        "src/components/oracle/panels/SolanaNetworkStatusCard.tsx"
+      ]
     },
     {
       "key": "pythNetwork.solana.pythProgramStatus",
-      "locations": ["src/components/oracle/panels/SolanaNetworkStatusCard.tsx"]
+      "locations": [
+        "src/components/oracle/panels/SolanaNetworkStatusCard.tsx"
+      ]
     },
     {
       "key": "pythNetwork.solana.blockConfirmationTime",
-      "locations": ["src/components/oracle/panels/SolanaNetworkStatusCard.tsx"]
+      "locations": [
+        "src/components/oracle/panels/SolanaNetworkStatusCard.tsx"
+      ]
     },
     {
       "key": "pythNetwork.solana.avgConfirmation",
-      "locations": ["src/components/oracle/panels/SolanaNetworkStatusCard.tsx"]
+      "locations": [
+        "src/components/oracle/panels/SolanaNetworkStatusCard.tsx"
+      ]
     },
     {
       "key": "pythNetwork.solana.slotHeight",
-      "locations": ["src/components/oracle/panels/SolanaNetworkStatusCard.tsx"]
+      "locations": [
+        "src/components/oracle/panels/SolanaNetworkStatusCard.tsx"
+      ]
     },
     {
       "key": "pythNetwork.solana.currentSlot",
-      "locations": ["src/components/oracle/panels/SolanaNetworkStatusCard.tsx"]
+      "locations": [
+        "src/components/oracle/panels/SolanaNetworkStatusCard.tsx"
+      ]
     },
     {
       "key": "pythNetwork.solana.tps",
-      "locations": ["src/components/oracle/panels/SolanaNetworkStatusCard.tsx"]
+      "locations": [
+        "src/components/oracle/panels/SolanaNetworkStatusCard.tsx"
+      ]
     },
     {
       "key": "pythNetwork.solana.transactionsPerSecond",
-      "locations": ["src/components/oracle/panels/SolanaNetworkStatusCard.tsx"]
+      "locations": [
+        "src/components/oracle/panels/SolanaNetworkStatusCard.tsx"
+      ]
     },
     {
       "key": "pythNetwork.solana.totalStake",
-      "locations": ["src/components/oracle/panels/SolanaNetworkStatusCard.tsx"]
+      "locations": [
+        "src/components/oracle/panels/SolanaNetworkStatusCard.tsx"
+      ]
     },
     {
       "key": "pythNetwork.solana.validators",
-      "locations": ["src/components/oracle/panels/SolanaNetworkStatusCard.tsx"]
+      "locations": [
+        "src/components/oracle/panels/SolanaNetworkStatusCard.tsx"
+      ]
     },
     {
       "key": "pythNetwork.solana.pythProgramAccount",
-      "locations": ["src/components/oracle/panels/SolanaNetworkStatusCard.tsx"]
+      "locations": [
+        "src/components/oracle/panels/SolanaNetworkStatusCard.tsx"
+      ]
     },
     {
       "key": "uma.validatorAnalytics.historyTrend",
@@ -2387,19 +3332,27 @@
     },
     {
       "key": "dataFreshness.fresh",
-      "locations": ["src/components/oracle/shared/DataFreshnessIndicator.tsx"]
+      "locations": [
+        "src/components/oracle/shared/DataFreshnessIndicator.tsx"
+      ]
     },
     {
       "key": "dataFreshness.stale",
-      "locations": ["src/components/oracle/shared/DataFreshnessIndicator.tsx"]
+      "locations": [
+        "src/components/oracle/shared/DataFreshnessIndicator.tsx"
+      ]
     },
     {
       "key": "dataFreshness.expired",
-      "locations": ["src/components/oracle/shared/DataFreshnessIndicator.tsx"]
+      "locations": [
+        "src/components/oracle/shared/DataFreshnessIndicator.tsx"
+      ]
     },
     {
       "key": "dataFreshness.unknown",
-      "locations": ["src/components/oracle/shared/DataFreshnessIndicator.tsx"]
+      "locations": [
+        "src/components/oracle/shared/DataFreshnessIndicator.tsx"
+      ]
     },
     {
       "key": "common.error.loadingFailed",
@@ -2410,7 +3363,9 @@
     },
     {
       "key": "common.warning.partialData",
-      "locations": ["src/components/oracle/shared/PartialDataWarning.tsx"]
+      "locations": [
+        "src/components/oracle/shared/PartialDataWarning.tsx"
+      ]
     },
     {
       "key": "connectionStatus.${connectionStatus}",
@@ -2422,11 +3377,15 @@
     },
     {
       "key": "connectionStatus.reconnecting",
-      "locations": ["src/components/realtime/ConnectionStatus.tsx"]
+      "locations": [
+        "src/components/realtime/ConnectionStatus.tsx"
+      ]
     },
     {
       "key": "connectionStatus.reconnect",
-      "locations": ["src/components/realtime/ConnectionStatus.tsx"]
+      "locations": [
+        "src/components/realtime/ConnectionStatus.tsx"
+      ]
     },
     {
       "key": "connectionStatus.title",
@@ -2437,175 +3396,264 @@
     },
     {
       "key": "search.blockchains.${chain.toLowerCase()}Desc",
-      "locations": ["src/components/search/data.ts"]
+      "locations": [
+        "src/components/search/data.ts"
+      ]
     },
     {
       "key": "settings.preferences.searchSymbol",
-      "locations": ["src/components/settings/PreferencesPanel.tsx"]
+      "locations": [
+        "src/components/settings/PreferencesPanel.tsx"
+      ]
     },
     {
       "key": "settings.preferences.selectSymbol",
-      "locations": ["src/components/settings/PreferencesPanel.tsx"]
+      "locations": [
+        "src/components/settings/PreferencesPanel.tsx"
+      ]
     },
     {
       "key": "shortcuts.title",
-      "locations": ["src/components/shortcuts/ShortcutHelpPanel.tsx"]
+      "locations": [
+        "src/components/shortcuts/ShortcutHelpPanel.tsx"
+      ]
     },
     {
       "key": "shortcuts.subtitle",
-      "locations": ["src/components/shortcuts/ShortcutHelpPanel.tsx"]
+      "locations": [
+        "src/components/shortcuts/ShortcutHelpPanel.tsx"
+      ]
     },
     {
       "key": "shortcuts.tips.title",
-      "locations": ["src/components/shortcuts/ShortcutHelpPanel.tsx"]
+      "locations": [
+        "src/components/shortcuts/ShortcutHelpPanel.tsx"
+      ]
     },
     {
       "key": "shortcuts.tips.description",
-      "locations": ["src/components/shortcuts/ShortcutHelpPanel.tsx"]
+      "locations": [
+        "src/components/shortcuts/ShortcutHelpPanel.tsx"
+      ]
     },
     {
       "key": "shortcuts.footer.hint",
-      "locations": ["src/components/shortcuts/ShortcutHelpPanel.tsx"]
+      "locations": [
+        "src/components/shortcuts/ShortcutHelpPanel.tsx"
+      ]
     },
     {
       "key": "shortcuts.help",
-      "locations": ["src/components/shortcuts/ShortcutInitializer.tsx"]
+      "locations": [
+        "src/components/shortcuts/ShortcutInitializer.tsx"
+      ]
     },
     {
       "key": "shortcuts.close",
-      "locations": ["src/components/shortcuts/ShortcutInitializer.tsx"]
+      "locations": [
+        "src/components/shortcuts/ShortcutInitializer.tsx"
+      ]
     },
     {
       "key": "freshness.fresh",
-      "locations": ["src/components/ui/DataFreshnessIndicator.tsx"]
+      "locations": [
+        "src/components/ui/DataFreshnessIndicator.tsx"
+      ]
     },
     {
       "key": "freshness.freshShort",
-      "locations": ["src/components/ui/DataFreshnessIndicator.tsx"]
+      "locations": [
+        "src/components/ui/DataFreshnessIndicator.tsx"
+      ]
     },
     {
       "key": "freshness.stale",
-      "locations": ["src/components/ui/DataFreshnessIndicator.tsx"]
+      "locations": [
+        "src/components/ui/DataFreshnessIndicator.tsx"
+      ]
     },
     {
       "key": "freshness.staleShort",
-      "locations": ["src/components/ui/DataFreshnessIndicator.tsx"]
+      "locations": [
+        "src/components/ui/DataFreshnessIndicator.tsx"
+      ]
     },
     {
       "key": "freshness.expired",
-      "locations": ["src/components/ui/DataFreshnessIndicator.tsx"]
+      "locations": [
+        "src/components/ui/DataFreshnessIndicator.tsx"
+      ]
     },
     {
       "key": "freshness.expiredShort",
-      "locations": ["src/components/ui/DataFreshnessIndicator.tsx"]
+      "locations": [
+        "src/components/ui/DataFreshnessIndicator.tsx"
+      ]
     },
     {
       "key": "connection.connected",
-      "locations": ["src/components/ui/DataFreshnessIndicator.tsx"]
+      "locations": [
+        "src/components/ui/DataFreshnessIndicator.tsx"
+      ]
     },
     {
       "key": "connection.connecting",
-      "locations": ["src/components/ui/DataFreshnessIndicator.tsx"]
+      "locations": [
+        "src/components/ui/DataFreshnessIndicator.tsx"
+      ]
     },
     {
       "key": "connection.reconnecting",
-      "locations": ["src/components/ui/DataFreshnessIndicator.tsx"]
+      "locations": [
+        "src/components/ui/DataFreshnessIndicator.tsx"
+      ]
     },
     {
       "key": "connection.disconnected",
-      "locations": ["src/components/ui/DataFreshnessIndicator.tsx"]
+      "locations": [
+        "src/components/ui/DataFreshnessIndicator.tsx"
+      ]
     },
     {
       "key": "connection.error",
-      "locations": ["src/components/ui/DataFreshnessIndicator.tsx"]
+      "locations": [
+        "src/components/ui/DataFreshnessIndicator.tsx"
+      ]
     },
     {
       "key": "freshness.title",
-      "locations": ["src/components/ui/DataFreshnessIndicator.tsx"]
+      "locations": [
+        "src/components/ui/DataFreshnessIndicator.tsx"
+      ]
     },
     {
       "key": "freshness.lastUpdate",
-      "locations": ["src/components/ui/DataFreshnessIndicator.tsx"]
+      "locations": [
+        "src/components/ui/DataFreshnessIndicator.tsx"
+      ]
     },
     {
       "key": "freshness.age",
-      "locations": ["src/components/ui/DataFreshnessIndicator.tsx"]
+      "locations": [
+        "src/components/ui/DataFreshnessIndicator.tsx"
+      ]
     },
     {
       "key": "freshness.nextRefresh",
-      "locations": ["src/components/ui/DataFreshnessIndicator.tsx"]
+      "locations": [
+        "src/components/ui/DataFreshnessIndicator.tsx"
+      ]
     },
     {
       "key": "freshness.connection",
-      "locations": ["src/components/ui/DataFreshnessIndicator.tsx"]
+      "locations": [
+        "src/components/ui/DataFreshnessIndicator.tsx"
+      ]
     },
     {
       "key": "freshness.refresh",
-      "locations": ["src/components/ui/DataFreshnessIndicator.tsx"]
+      "locations": [
+        "src/components/ui/DataFreshnessIndicator.tsx"
+      ]
     },
     {
       "key": "density.compact",
-      "locations": ["src/components/ui/DataTablePro.tsx"]
+      "locations": [
+        "src/components/ui/DataTablePro.tsx"
+      ]
     },
     {
       "key": "density.normal",
-      "locations": ["src/components/ui/DataTablePro.tsx"]
+      "locations": [
+        "src/components/ui/DataTablePro.tsx"
+      ]
     },
     {
       "key": "density.comfortable",
-      "locations": ["src/components/ui/DataTablePro.tsx"]
+      "locations": [
+        "src/components/ui/DataTablePro.tsx"
+      ]
     },
     {
       "key": "${type}.title",
-      "locations": ["src/components/ui/EmptyStateEnhanced.tsx"]
+      "locations": [
+        "src/components/ui/EmptyStateEnhanced.tsx"
+      ]
     },
     {
       "key": "${type}.description",
-      "locations": ["src/components/ui/EmptyStateEnhanced.tsx"]
+      "locations": [
+        "src/components/ui/EmptyStateEnhanced.tsx"
+      ]
     },
     {
       "key": "liveStatus.connected",
-      "locations": ["src/components/ui/LiveStatusBar.tsx"]
+      "locations": [
+        "src/components/ui/LiveStatusBar.tsx"
+      ]
     },
     {
       "key": "liveStatus.disconnected",
-      "locations": ["src/components/ui/LiveStatusBar.tsx"]
+      "locations": [
+        "src/components/ui/LiveStatusBar.tsx"
+      ]
     },
     {
       "key": "liveStatus.reconnecting",
-      "locations": ["src/components/ui/LiveStatusBar.tsx"]
+      "locations": [
+        "src/components/ui/LiveStatusBar.tsx"
+      ]
     },
     {
       "key": "liveStatus.dataFresh",
-      "locations": ["src/components/ui/LiveStatusBar.tsx", "src/components/ui/LiveStatusBar.tsx"]
+      "locations": [
+        "src/components/ui/LiveStatusBar.tsx",
+        "src/components/ui/LiveStatusBar.tsx"
+      ]
     },
     {
       "key": "liveStatus.dataStale",
-      "locations": ["src/components/ui/LiveStatusBar.tsx", "src/components/ui/LiveStatusBar.tsx"]
+      "locations": [
+        "src/components/ui/LiveStatusBar.tsx",
+        "src/components/ui/LiveStatusBar.tsx"
+      ]
     },
     {
       "key": "liveStatus.dataExpired",
-      "locations": ["src/components/ui/LiveStatusBar.tsx", "src/components/ui/LiveStatusBar.tsx"]
+      "locations": [
+        "src/components/ui/LiveStatusBar.tsx",
+        "src/components/ui/LiveStatusBar.tsx"
+      ]
     },
     {
       "key": "metrics.responseTime",
-      "locations": ["src/components/ui/LiveStatusBar.tsx"]
+      "locations": [
+        "src/components/ui/LiveStatusBar.tsx"
+      ]
     },
     {
       "key": "ui.closeNotification",
-      "locations": ["src/components/ui/Toast.tsx"]
+      "locations": [
+        "src/components/ui/Toast.tsx"
+      ]
     },
     {
       "key": "Trend changed to ${direction} with ${strength.toFixed(1)}% strength",
-      "locations": ["src/lib/analytics/anomalyDetection.ts"]
+      "locations": [
+        "src/lib/analytics/anomalyDetection.ts"
+      ]
     },
     {
       "key": "Volatility spiked to ${anomaly.value.toFixed(2)}%",
-      "locations": ["src/lib/analytics/anomalyDetection.ts"]
+      "locations": [
+        "src/lib/analytics/anomalyDetection.ts"
+      ]
     },
     {
       "key": "Volume ${anomaly.isUpper ? ",
-      "locations": ["src/lib/analytics/anomalyDetection.ts"]
+      "locations": [
+        "src/lib/analytics/anomalyDetection.ts"
+      ]
     },
     {
       "key": "../middleware/enhancedErrorMiddleware",
@@ -2616,123 +3664,183 @@
     },
     {
       "key": "Retry attempt ${context.attempt}",
-      "locations": ["src/lib/api/recovery/errorRecoveryHook.ts"]
+      "locations": [
+        "src/lib/api/recovery/errorRecoveryHook.ts"
+      ]
     },
     {
       "key": "Retry attempt ${attempt}/${this.config.maxAttempts}",
-      "locations": ["src/lib/api/retry/enhancedRetry.ts"]
+      "locations": [
+        "src/lib/api/retry/enhancedRetry.ts"
+      ]
     },
     {
       "key": "Failed to ${context.operation}: ${errorMessage}",
-      "locations": ["src/lib/api/utils.ts"]
+      "locations": [
+        "src/lib/api/utils.ts"
+      ]
     },
     {
       "key": "Retry attempt ${attempt}/${config.maxAttempts} after ${delay}ms",
-      "locations": ["src/lib/errors/errorRecovery.ts"]
+      "locations": [
+        "src/lib/errors/errorRecovery.ts"
+      ]
     },
     {
       "key": "Coverage pool collateralization target adjusted to ${coverageData.collateralizationRatio.toFixed(1)}%",
-      "locations": ["src/lib/oracles/api3/coveragePoolService.ts"]
+      "locations": [
+        "src/lib/oracles/api3/coveragePoolService.ts"
+      ]
     },
     {
       "key": "${deviation.symbol} 价格偏差严重",
-      "locations": ["src/lib/oracles/api3AlertDetection.ts"]
+      "locations": [
+        "src/lib/oracles/api3AlertDetection.ts"
+      ]
     },
     {
       "key": "${deviation.symbol} 价格偏差警告",
-      "locations": ["src/lib/oracles/api3AlertDetection.ts"]
+      "locations": [
+        "src/lib/oracles/api3AlertDetection.ts"
+      ]
     },
     {
       "key": "${deviation.symbol} dAPI 价格与市场价格偏差达到 ${deviation.deviation.toFixed(2)}%，超过临界阈值 ${criticalValue}%",
-      "locations": ["src/lib/oracles/api3AlertDetection.ts"]
+      "locations": [
+        "src/lib/oracles/api3AlertDetection.ts"
+      ]
     },
     {
       "key": "${deviation.symbol} dAPI 价格与市场价格偏差达到 ${deviation.deviation.toFixed(2)}%，建议关注",
-      "locations": ["src/lib/oracles/api3AlertDetection.ts"]
+      "locations": [
+        "src/lib/oracles/api3AlertDetection.ts"
+      ]
     },
     {
       "key": "平均响应时间 ${airnodeStats.avgResponseTime}ms 超过阈值 ${responseTimeThreshold.threshold}ms",
-      "locations": ["src/lib/oracles/api3AlertDetection.ts"]
+      "locations": [
+        "src/lib/oracles/api3AlertDetection.ts"
+      ]
     },
     {
       "key": "节点在线率 ${airnodeStats.nodeUptime}% 低于正常水平",
-      "locations": ["src/lib/oracles/api3AlertDetection.ts"]
+      "locations": [
+        "src/lib/oracles/api3AlertDetection.ts"
+      ]
     },
     {
       "key": "覆盖池抵押率 ${coveragePercent.toFixed(1)}% 低于阈值 ${ratioThreshold.threshold}%，建议增加质押",
-      "locations": ["src/lib/oracles/api3AlertDetection.ts"]
+      "locations": [
+        "src/lib/oracles/api3AlertDetection.ts"
+      ]
     },
     {
       "key": "覆盖池抵押率 ${coveragePool.collateralizationRatio}% 低于 100%，存在偿付风险",
-      "locations": ["src/lib/oracles/api3AlertDetection.ts"]
+      "locations": [
+        "src/lib/oracles/api3AlertDetection.ts"
+      ]
     },
     {
       "key": ", error);\n          }\n        };\n\n        this.ws.onerror = (error) => {\n          this.isConnecting = false;\n          this.status = {\n            ...this.status,\n            error: ",
-      "locations": ["src/lib/oracles/api3WebSocket.ts"]
+      "locations": [
+        "src/lib/oracles/api3WebSocket.ts"
+      ]
     },
     {
       "key": "${feed.symbol} price feed",
-      "locations": ["src/lib/oracles/bandProtocol/bandRpcService.ts"]
+      "locations": [
+        "src/lib/oracles/bandProtocol/bandRpcService.ts"
+      ]
     },
     {
       "key": ", new Error(String(error)));\n      };\n\n      this.wsConnection.onclose = () => {\n        logger.warn(",
-      "locations": ["src/lib/oracles/pythHermesClient.ts"]
+      "locations": [
+        "src/lib/oracles/pythHermesClient.ts"
+      ]
     },
     {
       "key": ",\n            error instanceof Error ? error : new Error(String(error))\n          );\n        }\n      };\n\n      this.wsConnection.onerror = (error) => {\n        logger.error(",
-      "locations": ["src/lib/oracles/pythHermesClient.ts"]
+      "locations": [
+        "src/lib/oracles/pythHermesClient.ts"
+      ]
     },
     {
       "key": ", new Error(message.error || ",
-      "locations": ["src/lib/services/api3WebSocket.ts"]
+      "locations": [
+        "src/lib/services/api3WebSocket.ts"
+      ]
     },
     {
       "key": "DeFiLlama API returned ${response.status}",
-      "locations": ["src/lib/services/marketData/defiLlamaApi/oracles.ts"]
+      "locations": [
+        "src/lib/services/marketData/defiLlamaApi/oracles.ts"
+      ]
     },
     {
       "key": "DeFiLlama API is unreachable: ${error instanceof Error ? error.message : String(error)}",
-      "locations": ["src/lib/services/marketData/defiLlamaApi/oracles.ts"]
+      "locations": [
+        "src/lib/services/marketData/defiLlamaApi/oracles.ts"
+      ]
     },
     {
       "key": "Layer 2 scaling solution with ${chain.latency}ms latency",
-      "locations": ["src/lib/services/oracle/clients/redstone.ts"]
+      "locations": [
+        "src/lib/services/oracle/clients/redstone.ts"
+      ]
     },
     {
       "key": "Superchain ecosystem member with ${chain.updateFreq}s updates",
-      "locations": ["src/lib/services/oracle/clients/redstone.ts"]
+      "locations": [
+        "src/lib/services/oracle/clients/redstone.ts"
+      ]
     },
     {
       "key": "High-speed sidechain with ${chain.latency}ms latency",
-      "locations": ["src/lib/services/oracle/clients/redstone.ts"]
+      "locations": [
+        "src/lib/services/oracle/clients/redstone.ts"
+      ]
     },
     {
       "key": "Coinbase L2 network with ${chain.latency}ms latency",
-      "locations": ["src/lib/services/oracle/clients/redstone.ts"]
+      "locations": [
+        "src/lib/services/oracle/clients/redstone.ts"
+      ]
     },
     {
       "key": "Consensys zkEVM with ${chain.latency}ms latency",
-      "locations": ["src/lib/services/oracle/clients/redstone.ts"]
+      "locations": [
+        "src/lib/services/oracle/clients/redstone.ts"
+      ]
     },
     {
       "key": "Modular L2 solution with ${chain.updateFreq}s updates",
-      "locations": ["src/lib/services/oracle/clients/redstone.ts"]
+      "locations": [
+        "src/lib/services/oracle/clients/redstone.ts"
+      ]
     },
     {
       "key": "ZK rollup with ${chain.latency}ms latency",
-      "locations": ["src/lib/services/oracle/clients/redstone.ts"]
+      "locations": [
+        "src/lib/services/oracle/clients/redstone.ts"
+      ]
     },
     {
       "key": "${providers.length} active providers with ${(avgReputation * 100).toFixed(1)}% avg reputation",
-      "locations": ["src/lib/services/oracle/clients/redstone.ts"]
+      "locations": [
+        "src/lib/services/oracle/clients/redstone.ts"
+      ]
     },
     {
       "key": "准备 CSV 数据...",
-      "locations": ["src/lib/utils/chartExport.ts"]
+      "locations": [
+        "src/lib/utils/chartExport.ts"
+      ]
     },
     {
       "key": "处理数据 ${end}/${data.length}...",
-      "locations": ["src/lib/utils/chartExport.ts"]
+      "locations": [
+        "src/lib/utils/chartExport.ts"
+      ]
     },
     {
       "key": "生成文件...",
@@ -2744,79 +3852,119 @@
     },
     {
       "key": "准备 JSON 数据...",
-      "locations": ["src/lib/utils/chartExport.ts"]
+      "locations": [
+        "src/lib/utils/chartExport.ts"
+      ]
     },
     {
       "key": "序列化数据...",
-      "locations": ["src/lib/utils/chartExport.ts"]
+      "locations": [
+        "src/lib/utils/chartExport.ts"
+      ]
     },
     {
       "key": "准备图表截图...",
-      "locations": ["src/lib/utils/chartExport.ts"]
+      "locations": [
+        "src/lib/utils/chartExport.ts"
+      ]
     },
     {
       "key": "克隆 SVG 元素...",
-      "locations": ["src/lib/utils/chartExport.ts", "src/lib/utils/chartExport.ts"]
+      "locations": [
+        "src/lib/utils/chartExport.ts",
+        "src/lib/utils/chartExport.ts"
+      ]
     },
     {
       "key": "序列化 SVG...",
-      "locations": ["src/lib/utils/chartExport.ts", "src/lib/utils/chartExport.ts"]
+      "locations": [
+        "src/lib/utils/chartExport.ts",
+        "src/lib/utils/chartExport.ts"
+      ]
     },
     {
       "key": "渲染图像...",
-      "locations": ["src/lib/utils/chartExport.ts"]
+      "locations": [
+        "src/lib/utils/chartExport.ts"
+      ]
     },
     {
       "key": "生成 PNG 文件...",
-      "locations": ["src/lib/utils/chartExport.ts"]
+      "locations": [
+        "src/lib/utils/chartExport.ts"
+      ]
     },
     {
       "key": "准备 SVG 导出...",
-      "locations": ["src/lib/utils/chartExport.ts"]
+      "locations": [
+        "src/lib/utils/chartExport.ts"
+      ]
     },
     {
       "key": "准备 PDF 导出...",
-      "locations": ["src/lib/utils/chartExport.ts"]
+      "locations": [
+        "src/lib/utils/chartExport.ts"
+      ]
     },
     {
       "key": "处理图表 ${i + 1}/${charts.length}: ${chart.title}...",
-      "locations": ["src/lib/utils/chartExport.ts"]
+      "locations": [
+        "src/lib/utils/chartExport.ts"
+      ]
     },
     {
       "key": "保存 PDF 文件...",
-      "locations": ["src/lib/utils/chartExport.ts"]
+      "locations": [
+        "src/lib/utils/chartExport.ts"
+      ]
     },
     {
       "key": "准备批量导出...",
-      "locations": ["src/lib/utils/chartExport.ts"]
+      "locations": [
+        "src/lib/utils/chartExport.ts"
+      ]
     },
     {
       "key": "导出图表 ${i + 1}/${charts.length}: ${chart.name}...",
-      "locations": ["src/lib/utils/chartExport.ts"]
+      "locations": [
+        "src/lib/utils/chartExport.ts"
+      ]
     },
     {
       "key": "生成 ZIP 文件...",
-      "locations": ["src/lib/utils/chartExport.ts"]
+      "locations": [
+        "src/lib/utils/chartExport.ts"
+      ]
     },
     {
       "key": "[${chart.name}] ${progress.message}",
-      "locations": ["src/lib/utils/chartExport.ts"]
+      "locations": [
+        "src/lib/utils/chartExport.ts"
+      ]
     },
     {
       "key": "FCP is ${metrics.fcp.toFixed(0)}ms, which is above the recommended 1.8s",
-      "locations": ["src/hooks/ui/usePerformanceOptimizer.ts"]
+      "locations": [
+        "src/hooks/ui/usePerformanceOptimizer.ts"
+      ]
     },
     {
       "key": "LCP is ${metrics.lcp.toFixed(0)}ms, which is above the recommended 2.5s",
-      "locations": ["src/hooks/ui/usePerformanceOptimizer.ts"]
+      "locations": [
+        "src/hooks/ui/usePerformanceOptimizer.ts"
+      ]
     },
     {
       "key": "FID is ${metrics.fid.toFixed(0)}ms, which is above the recommended 100ms",
-      "locations": ["src/hooks/ui/usePerformanceOptimizer.ts"]
+      "locations": [
+        "src/hooks/ui/usePerformanceOptimizer.ts"
+      ]
     },
     {
       "key": "CLS is ${metrics.cls.toFixed(3)}, which is above the recommended 0.1",
-      "locations": ["src/hooks/ui/usePerformanceOptimizer.ts"]
+      "locations": [
+        "src/hooks/ui/usePerformanceOptimizer.ts"
+      ]
     }
   ],
   "missingInZh": [
