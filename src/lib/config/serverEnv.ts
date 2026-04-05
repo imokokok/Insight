@@ -16,6 +16,7 @@ export const ALCHEMY_RPC = {
   optimism: process.env.ALCHEMY_OPTIMISM_RPC || '',
   solana: process.env.ALCHEMY_SOLANA_RPC || '',
   bnb: process.env.ALCHEMY_BNB_RPC || '',
+  avalanche: process.env.ALCHEMY_AVALANCHE_RPC || '',
 };
 
 // TRON 配置

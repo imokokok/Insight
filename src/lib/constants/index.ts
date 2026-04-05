@@ -66,6 +66,8 @@ export const chainNames: Record<Blockchain, string> = {
   [Blockchain.POLKADOT]: 'Polkadot',
   [Blockchain.KAVA]: 'Kava',
   [Blockchain.MOONBEAM]: 'Moonbeam',
+  [Blockchain.MOONRIVER]: 'Moonriver',
+  [Blockchain.METIS]: 'Metis',
   [Blockchain.STARKEX]: 'StarkEx',
 };
 
@@ -104,6 +106,8 @@ export const chainColors: Record<Blockchain, string> = {
   [Blockchain.POLKADOT]: configChainColors.polkadot,
   [Blockchain.KAVA]: configChainColors.kava,
   [Blockchain.MOONBEAM]: configChainColors.moonbeam,
+  [Blockchain.MOONRIVER]: configChainColors.moonriver,
+  [Blockchain.METIS]: configChainColors.metis,
   [Blockchain.STARKEX]: configChainColors.starkex,
 };
 
@@ -218,6 +222,8 @@ export const CHAIN_CATEGORIES: Record<Blockchain, ChainCategory> = {
   [Blockchain.JUNO]: 'cosmos',
   [Blockchain.GNOSIS]: 'cosmos',
   [Blockchain.MOONBEAM]: 'cosmos',
+  [Blockchain.MOONRIVER]: 'cosmos',
+  [Blockchain.METIS]: 'l2',
 } as const;
 
 /**

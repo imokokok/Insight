@@ -193,6 +193,8 @@ export const chainColors = {
   polkadot: '#E6007A',
   kava: '#FF564F',
   moonbeam: '#53CBC8',
+  moonriver: '#F2A902',
+  metis: '#00D2FF',
   starkex: '#0C0C4F',
 } as const;
 

@@ -110,6 +110,8 @@ const blockchainIcons: Record<Blockchain, string> = {
   [Blockchain.POLKADOT]: '',
   [Blockchain.KAVA]: '',
   [Blockchain.MOONBEAM]: '',
+  [Blockchain.MOONRIVER]: '',
+  [Blockchain.METIS]: '',
   [Blockchain.STARKEX]: '',
 };
 

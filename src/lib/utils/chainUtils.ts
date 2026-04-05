@@ -252,6 +252,8 @@ export function getChainShortName(chain: Blockchain): string {
     [Blockchain.POLKADOT]: 'DOT',
     [Blockchain.KAVA]: 'KAVA',
     [Blockchain.MOONBEAM]: 'GLMR',
+    [Blockchain.MOONRIVER]: 'MOVR',
+    [Blockchain.METIS]: 'METIS',
     [Blockchain.STARKEX]: 'STX',
   };
   return shortNames[chain] || chain.toUpperCase().slice(0, 4);

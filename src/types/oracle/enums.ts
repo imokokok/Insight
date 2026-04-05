@@ -46,6 +46,8 @@ export const enum Blockchain {
   POLKADOT = 'polkadot',
   KAVA = 'kava',
   MOONBEAM = 'moonbeam',
+  MOONRIVER = 'moonriver',
+  METIS = 'metis',
   STARKEX = 'starkex',
 }
 
@@ -99,5 +101,7 @@ export const BLOCKCHAIN_VALUES: readonly Blockchain[] = [
   Blockchain.POLKADOT,
   Blockchain.KAVA,
   Blockchain.MOONBEAM,
+  Blockchain.MOONRIVER,
+  Blockchain.METIS,
   Blockchain.STARKEX,
 ] as const;

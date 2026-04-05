@@ -63,6 +63,13 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
       decimals: 8,
       category: 'crypto',
     },
+    10: {
+      address: '0x13e3Ee699D1909E989722E753853AE30b17e08c5',
+      name: 'ETH / USD',
+      symbol: 'ETH',
+      decimals: 8,
+      category: 'crypto',
+    },
   },
   BTC: {
     1: {
@@ -107,6 +114,13 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
       decimals: 8,
       category: 'crypto',
     },
+    10: {
+      address: '0xD702DD976Fb76Fffc2D3963D037dfDae5b04E593',
+      name: 'BTC / USD',
+      symbol: 'BTC',
+      decimals: 8,
+      category: 'crypto',
+    },
   },
   LINK: {
     1: {
@@ -146,6 +160,13 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
     },
     56: {
       address: '0x1B329402Cb1825C6F30A0d92aB9E2862BE47333f',
+      name: 'LINK / USD',
+      symbol: 'LINK',
+      decimals: 8,
+      category: 'crypto',
+    },
+    10: {
+      address: '0xCc232dcFAA0B0C57f147E7D5a3f2DdC1f4B8928b',
       name: 'LINK / USD',
       symbol: 'LINK',
       decimals: 8,
@@ -269,6 +290,9 @@ export const CHAINLINK_CONTRACTS: Record<number, ChainlinkContracts> = {
   56: {
     linkToken: '0xF8A0BF9cF54Bb92F17374d9e9A321E6a111a51bD',
   },
+  10: {
+    linkToken: '0x350a791Bfc2C21F9Ed5d10980Dad2e2638ffa7f6',
+  },
 };
 
 export const CHAINLINK_RPC_CONFIG: Record<number, ChainlinkRPCConfig> = {
@@ -308,21 +332,32 @@ export const CHAINLINK_RPC_CONFIG: Record<number, ChainlinkRPCConfig> = {
   },
   43114: {
     endpoints: [
+      ALCHEMY_RPC.avalanche,
       'https://api.avax.network/ext/bc/C/rpc',
       'https://avalanche.publicnode.com',
       'https://rpc.ankr.com/avalanche',
-    ],
+    ].filter(Boolean),
     chainId: 43114,
     name: 'Avalanche C-Chain',
   },
   56: {
     endpoints: [
+      ALCHEMY_RPC.bnb,
       'https://bsc-dataseed.binance.org',
       'https://bsc.publicnode.com',
       'https://rpc.ankr.com/bsc',
-    ],
+    ].filter(Boolean),
     chainId: 56,
     name: 'BNB Chain',
+  },
+  10: {
+    endpoints: [
+      ALCHEMY_RPC.optimism,
+      'https://mainnet.optimism.io',
+      'https://optimism.publicnode.com',
+    ].filter(Boolean),
+    chainId: 10,
+    name: 'Optimism',
   },
 };
 
