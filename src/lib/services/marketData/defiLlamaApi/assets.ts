@@ -38,93 +38,18 @@ function estimateOracleCount(symbol: string): number {
 }
 
 function generateFallbackAssetData(symbols: string[]): AssetData[] {
-  const fallbackData: Record<string, Partial<AssetData>> = {
-    BTC: {
-      price: 67432.5,
-      change24h: 2.4,
-      change7d: 5.2,
-      volume24h: 28500000000,
-      marketCap: 1320000000000,
-    },
-    ETH: {
-      price: 3521.8,
-      change24h: -1.2,
-      change7d: 3.8,
-      volume24h: 15200000000,
-      marketCap: 423000000000,
-    },
-    SOL: {
-      price: 142.3,
-      change24h: 5.6,
-      change7d: 12.4,
-      volume24h: 3200000000,
-      marketCap: 64000000000,
-    },
-    AVAX: {
-      price: 35.4,
-      change24h: -0.8,
-      change7d: 2.1,
-      volume24h: 890000000,
-      marketCap: 13400000000,
-    },
-    LINK: {
-      price: 18.2,
-      change24h: 1.5,
-      change7d: 8.9,
-      volume24h: 450000000,
-      marketCap: 11200000000,
-    },
-    MATIC: {
-      price: 0.65,
-      change24h: -3.2,
-      change7d: -5.4,
-      volume24h: 280000000,
-      marketCap: 6500000000,
-    },
-    ARB: {
-      price: 1.85,
-      change24h: 0.9,
-      change7d: 4.2,
-      volume24h: 320000000,
-      marketCap: 5900000000,
-    },
-    OP: {
-      price: 2.45,
-      change24h: -2.1,
-      change7d: 1.8,
-      volume24h: 180000000,
-      marketCap: 2600000000,
-    },
-    UNI: { price: 9.8, change24h: 3.4, change7d: 7.5, volume24h: 220000000, marketCap: 5900000000 },
-    AAVE: {
-      price: 125.4,
-      change24h: -1.8,
-      change7d: 4.5,
-      volume24h: 150000000,
-      marketCap: 1900000000,
-    },
-  };
-
-  return symbols.map((symbol) => {
-    const fallback = fallbackData[symbol] || {
-      price: 1,
-      change24h: 0,
-      change7d: 0,
-      volume24h: 0,
-      marketCap: 0,
-    };
-    return {
-      symbol,
-      price: fallback.price || 1,
-      change24h: fallback.change24h || 0,
-      change7d: fallback.change7d || 0,
-      volume24h: fallback.volume24h || 0,
-      marketCap: fallback.marketCap || 0,
-      primaryOracle: estimatePrimaryOracle(symbol),
-      oracleCount: estimateOracleCount(symbol),
-      priceSources: [],
-    };
-  });
+  logger.warn('Using fallback asset data - API unavailable');
+  return symbols.map((symbol) => ({
+    symbol,
+    price: 0,
+    change24h: 0,
+    change7d: 0,
+    volume24h: 0,
+    marketCap: 0,
+    primaryOracle: estimatePrimaryOracle(symbol),
+    oracleCount: estimateOracleCount(symbol),
+    priceSources: [],
+  }));
 }
 
 export async function fetchAssetsData(
@@ -365,67 +290,6 @@ export async function fetchAssetCategories(): Promise<AssetCategory[]> {
 }
 
 function generateFallbackAssetCategories(): AssetCategory[] {
-  logger.warn('Using fallback asset categories data');
-  return [
-    {
-      category: 'l1-tokens',
-      label: 'L1 Tokens',
-      value: 28500000000,
-      share: 42.5,
-      color: chartColors.sequence[0],
-      assets: ['ETH', 'SOL', 'AVAX', 'BNB', 'MATIC'],
-      avgVolatility: 3.2,
-      avgLiquidity: 95.8,
-    },
-    {
-      category: 'stablecoins',
-      label: 'Stablecoins',
-      value: 18200000000,
-      share: 27.1,
-      color: chartColors.sequence[1],
-      assets: ['USDC', 'USDT', 'DAI', 'USDe', 'sUSDe'],
-      avgVolatility: 0.15,
-      avgLiquidity: 99.2,
-    },
-    {
-      category: 'l2-tokens',
-      label: 'L2 Tokens',
-      value: 6800000000,
-      share: 10.1,
-      color: chartColors.sequence[3],
-      assets: ['ARB', 'OP', 'STRK', 'MANTLE', 'BASE'],
-      avgVolatility: 4.8,
-      avgLiquidity: 88.5,
-    },
-    {
-      category: 'defi-governance',
-      label: 'DeFi Governance',
-      value: 5200000000,
-      share: 7.7,
-      color: chartColors.sequence[2],
-      assets: ['UNI', 'AAVE', 'MKR', 'CRV', 'SNX'],
-      avgVolatility: 5.2,
-      avgLiquidity: 82.3,
-    },
-    {
-      category: 'liquid-staking',
-      label: 'Liquid Staking',
-      value: 4800000000,
-      share: 7.1,
-      color: chartColors.sequence[4],
-      assets: ['stETH', 'rETH', 'cbETH', 'wstETH', 'sfrxETH'],
-      avgVolatility: 2.8,
-      avgLiquidity: 91.5,
-    },
-    {
-      category: 'rwa',
-      label: 'RWA',
-      value: 3500000000,
-      share: 5.5,
-      color: chartColors.chart.indigo,
-      assets: ['ONDO', 'CFG', 'CPOOL', 'TRU', 'MAPLE'],
-      avgVolatility: 2.1,
-      avgLiquidity: 75.8,
-    },
-  ].sort((a, b) => b.value - a.value);
+  logger.warn('Using fallback asset categories data - API unavailable');
+  return [];
 }

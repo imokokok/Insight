@@ -439,20 +439,15 @@ export class BandProtocolClient extends BaseOracleClient {
 
   /**
    * 计算质押奖励
+   * 注意：Band Protocol RPC 不提供实时 APY 数据
    */
   calculateStakingReward(
     amount: number,
     durationDays: number
   ): { principal: number; duration: number; estimatedReward: number; apy: number } {
-    // 模拟计算质押奖励
-    const apy = 0.15; // 15% APY
-    const durationYears = durationDays / 365;
-    const estimatedReward = amount * apy * durationYears;
-    return {
-      principal: amount,
-      duration: durationDays,
-      estimatedReward,
-      apy: apy * 100,
-    };
+    throw this.createError(
+      'Staking reward calculation requires real-time APY data which is not available from Band Protocol RPC.',
+      'BAND_PROTOCOL_STAKING_REWARD_CALCULATION_NOT_AVAILABLE'
+    );
   }
 }

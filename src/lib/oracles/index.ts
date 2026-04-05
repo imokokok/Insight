@@ -101,7 +101,6 @@ export { WINkLinkClient } from '@/lib/services/oracle/clients/winklink';
 export type { RedStoneMetrics, RedStoneProviderInfo } from './redstone';
 export type {
   DataSourceTransparency,
-  CrossChainAsset,
   CrossChainCoverage,
   DataSourceVerification,
   DIANetworkStats,

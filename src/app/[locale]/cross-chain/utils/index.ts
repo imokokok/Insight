@@ -5,20 +5,14 @@ export { chainNames, chainColors };
 export type { Blockchain };
 
 export {
-  getDiffColorGradient,
   getDiffTextColor,
-  getDiffColorGradientWithStyle,
   getHeatmapColor,
   getCorrelationColor,
   getConsistencyRating,
   getStabilityRating,
   getIntegrityColor,
-  getJumpColor,
   getVolatilityColor,
-  getDataFreshness,
   formatPrice,
-  formatPriceValue,
-  generateFilename,
 } from './colorUtils';
 
 export {
