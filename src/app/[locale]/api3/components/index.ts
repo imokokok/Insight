@@ -5,6 +5,5 @@ export { API3AirnodeView } from './API3AirnodeView';
 export { API3DapiView } from './API3DapiView';
 export { API3EcosystemView } from './API3EcosystemView';
 export { API3RiskView } from './API3RiskView';
-export { API3OevView } from './API3OevView';
 export { API3Hero } from './API3Hero';
 export { API3AnalyticsView } from './API3AnalyticsView';

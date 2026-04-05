@@ -76,6 +76,4 @@ export {
   useAPI3QualityHistory,
   useAPI3CrossOracle,
   useAPI3AllData,
-  useAPI3OEVStats,
-  useAPI3OEVAuctions,
 } from './oracles/api3';

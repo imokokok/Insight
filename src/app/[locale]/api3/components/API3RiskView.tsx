@@ -28,7 +28,6 @@ import { CoveragePoolDashboard } from '@/components/oracle/panels/CoveragePoolDa
 import {
   useAPI3CoveragePoolDetails,
   useAPI3CoveragePoolClaims,
-  useAPI3StakerRewards,
 } from '@/hooks/oracles/api3';
 import { useTranslations } from '@/i18n';
 import { chartColors } from '@/lib/config/colors';
@@ -222,7 +221,6 @@ export function API3RiskView({ isLoading }: API3RiskViewProps) {
 
   const { coveragePoolDetails } = useAPI3CoveragePoolDetails(!isLoading);
   const { claims } = useAPI3CoveragePoolClaims(undefined, !isLoading);
-  const { stakerRewards } = useAPI3StakerRewards(undefined, !isLoading);
 
   const getRiskColor = (level: string) => {
     switch (level) {
@@ -269,7 +267,6 @@ export function API3RiskView({ isLoading }: API3RiskViewProps) {
       <CoveragePoolDashboard
         coveragePoolDetails={coveragePoolDetails}
         claims={claims}
-        stakerRewards={stakerRewards}
         isLoading={isLoading}
       />
 

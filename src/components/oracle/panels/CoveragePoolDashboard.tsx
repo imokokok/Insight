@@ -20,12 +20,11 @@ import GaugeChart from '@/components/GaugeChart';
 import { ProgressRing } from '@/components/oracle/charts/ProgressRing';
 import { useTranslations } from '@/i18n';
 import { chartColors } from '@/lib/config/colors';
-import type { CoveragePoolDetails, CoveragePoolClaim, StakerReward } from '@/lib/oracles/api3';
+import type { CoveragePoolDetails, CoveragePoolClaim } from '@/lib/oracles/api3';
 
 interface CoveragePoolDashboardProps {
   coveragePoolDetails?: CoveragePoolDetails | null;
   claims?: CoveragePoolClaim[];
-  stakerRewards?: StakerReward[];
   isLoading?: boolean;
 }
 
@@ -56,7 +55,6 @@ function formatNumber(value: number): string {
 export function CoveragePoolDashboard({
   coveragePoolDetails,
   claims = [],
-  stakerRewards = [],
   isLoading = false,
 }: CoveragePoolDashboardProps) {
   const t = useTranslations();
@@ -451,63 +449,7 @@ export function CoveragePoolDashboard({
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="text-sm font-medium text-gray-700 mb-4">
-          {t('api3.coveragePool.stakerStats') || 'Top Stakers Statistics'}
-        </h3>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-gray-100">
-                <th className="text-left text-xs font-medium text-gray-500 pb-3">
-                  {t('api3.coveragePool.stakerAddress') || 'Address'}
-                </th>
-                <th className="text-left text-xs font-medium text-gray-500 pb-3">
-                  {t('api3.coveragePool.stakedAmount') || 'Staked Amount'}
-                </th>
-                <th className="text-left text-xs font-medium text-gray-500 pb-3">
-                  {t('api3.coveragePool.pendingRewards') || 'Pending Rewards'}
-                </th>
-                <th className="text-left text-xs font-medium text-gray-500 pb-3">
-                  {t('api3.coveragePool.claimedRewards') || 'Claimed Rewards'}
-                </th>
-                <th className="text-left text-xs font-medium text-gray-500 pb-3">
-                  {t('api3.coveragePool.apr') || 'APR'}
-                </th>
-                <th className="text-left text-xs font-medium text-gray-500 pb-3">
-                  {t('api3.coveragePool.stakeDate') || 'Stake Date'}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {stakerRewards.slice(0, 5).map((staker, index) => (
-                <tr key={index} className="border-b border-gray-50 hover:bg-gray-50">
-                  <td className="py-3 text-sm font-mono text-gray-600">
-                    {formatAddress(staker.stakerAddress)}
-                  </td>
-                  <td className="py-3 text-sm font-medium text-gray-900">
-                    {formatNumber(staker.stakedAmount)} API3
-                  </td>
-                  <td className="py-3 text-sm text-emerald-600 font-medium">
-                    {staker.pendingRewards.toFixed(2)} API3
-                  </td>
-                  <td className="py-3 text-sm text-gray-600">
-                    {staker.claimedRewards.toFixed(2)} API3
-                  </td>
-                  <td className="py-3">
-                    <span className="inline-flex px-2 py-1 rounded-md text-xs font-medium bg-blue-50 text-blue-600">
-                      {staker.apr}%
-                    </span>
-                  </td>
-                  <td className="py-3 text-sm text-gray-500">
-                    {new Date(staker.stakeDate).toLocaleDateString()}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+
 
       <div className="bg-white rounded-xl border border-gray-200 p-6">
         <h3 className="text-sm font-medium text-gray-700 mb-4">

@@ -24,7 +24,7 @@ interface ConfidenceIntervalChartProps {
     bid: number;
     ask: number;
     widthPercentage: number;
-  };
+  } | null;
   historicalConfidence?: number[];
   showTrend?: boolean;
   height?: number;
@@ -327,6 +327,24 @@ export function ConfidenceIntervalChart({
   className,
 }: ConfidenceIntervalChartProps) {
   const [animatedScore, setAnimatedScore] = useState(0);
+  
+  // 如果没有置信区间数据，显示空状态
+  if (!confidenceInterval) {
+    return (
+      <DashboardCard
+        title="置信区间可视化"
+        className={cn('overflow-hidden', className)}
+      >
+        <div className="flex flex-col items-center justify-center py-12 text-gray-400">
+          <svg className="w-12 h-12 mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
+          <p className="text-sm">暂无置信区间数据</p>
+        </div>
+      </DashboardCard>
+    );
+  }
+  
   const confidenceScore = useMemo(
     () => calculateConfidenceScore(confidenceInterval.widthPercentage),
     [confidenceInterval.widthPercentage]
@@ -353,19 +371,13 @@ export function ConfidenceIntervalChart({
   }, [confidenceScore]);
 
   const historicalData = useMemo((): HistoricalDataPoint[] => {
-    if (historicalConfidence.length === 0) {
-      return Array.from({ length: 20 }, (_, i) => ({
-        index: i + 1,
-        confidence: Math.round(confidenceScore + (Math.random() - 0.5) * 20),
-        timestamp: `T-${20 - i}`,
-      }));
-    }
+    // 移除模拟数据生成，只使用真实数据
     return historicalConfidence.map((conf, i) => ({
       index: i + 1,
       confidence: conf,
       timestamp: `T-${historicalConfidence.length - i}`,
     }));
-  }, [historicalConfidence, confidenceScore]);
+  }, [historicalConfidence]);
 
   return (
     <DashboardCard

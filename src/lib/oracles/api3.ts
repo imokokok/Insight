@@ -8,12 +8,8 @@ export type {
   CoveragePoolEvent,
   CoveragePoolDetails,
   CoveragePoolClaim,
-  StakerReward,
   AirnodeNetworkStats,
   DAPICoverage,
   StakingData,
-  OEVAuction,
-  OEVParticipant,
-  OEVNetworkStats,
   FirstPartyOracleData,
 } from '@/lib/services/oracle/clients/api3';

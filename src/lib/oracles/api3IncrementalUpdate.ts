@@ -12,7 +12,6 @@ export interface UpdateRequest {
     | 'airnodeStats'
     | 'dapiCoverage'
     | 'staking'
-    | 'oev'
     | 'alerts'
     | 'coveragePool';
   symbol?: string;
@@ -309,9 +308,6 @@ export class API3IncrementalUpdateService {
       case 'staking':
         data = await this.client.getStakingData();
         break;
-      case 'oev':
-        data = await this.client.getOEVNetworkStats();
-        break;
       case 'alerts':
         data = await this.client.getActiveAlerts();
         break;
@@ -367,7 +363,6 @@ export class API3IncrementalUpdateService {
       airnodeStats: CACHE_CONFIG.api3.airnodeStats,
       dapiCoverage: CACHE_CONFIG.api3.dapiCoverage,
       staking: CACHE_CONFIG.api3.staking,
-      oev: CACHE_CONFIG.api3.oev,
       alerts: CACHE_CONFIG.api3.alerts,
       coveragePool: CACHE_CONFIG.api3.coveragePool,
       firstParty: CACHE_CONFIG.api3.firstParty,

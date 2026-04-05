@@ -2,7 +2,6 @@ export { useAPI3Price } from './useAPI3Price';
 export { useAPI3HistoricalPrices } from './useAPI3HistoricalPrices';
 export { useAPI3AirnodeStats } from './useAPI3AirnodeStats';
 export { useAPI3DapiCoverage } from './useAPI3DapiCoverage';
-export { useAPI3StakingData } from './useAPI3StakingData';
 export { useAPI3LatencyDistribution } from './useAPI3LatencyDistribution';
 export { useAPI3QualityMetrics } from './useAPI3QualityMetrics';
 export { useAPI3Analytics } from './useAPI3Analytics';

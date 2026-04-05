@@ -12,9 +12,6 @@ import type {
   CoveragePoolEvent,
   CoveragePoolDetails,
   CoveragePoolClaim,
-  StakerReward,
-  OEVNetworkStats,
-  OEVAuction,
   API3Alert,
   AlertThreshold,
 } from '@/lib/oracles/api3';
@@ -39,14 +36,11 @@ export type API3DataType =
   | 'ohlc'
   | 'qualityHistory'
   | 'crossOracle'
-  | 'oevStats'
-  | 'oevAuctions'
   | 'alerts'
   | 'alertHistory'
   | 'alertThresholds'
   | 'coveragePoolDetails'
-  | 'coveragePoolClaims'
-  | 'stakerRewards';
+  | 'coveragePoolClaims';
 
 export const getAPI3Key = (type: API3DataType, params?: Record<string, unknown>): string[] => {
   const baseKey = ['api3', type];
@@ -146,9 +140,6 @@ export type {
   CoveragePoolEvent,
   CoveragePoolDetails,
   CoveragePoolClaim,
-  StakerReward,
-  OEVNetworkStats,
-  OEVAuction,
   API3Alert,
   AlertThreshold,
 };

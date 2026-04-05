@@ -7,7 +7,6 @@ import type {
   FirstPartyOracleData,
   DAPIPriceDeviation,
   DataSourceInfo,
-  OEVNetworkStats,
 } from '@/lib/oracles/api3';
 import { type PriceData, type Blockchain } from '@/types/oracle';
 
@@ -18,7 +17,6 @@ export type API3TabId =
   | 'dapi'
   | 'ecosystem'
   | 'risk'
-  | 'oev'
   | 'analytics';
 
 export interface NetworkStats {
@@ -38,7 +36,6 @@ export interface API3PageState {
   isLoading: boolean;
   isError: boolean;
   error: Error | null;
-  lastUpdated: Date | null;
 }
 
 export interface API3PageActions {
@@ -91,11 +88,6 @@ export interface API3RiskViewProps {
   staking?: StakingData | null;
   airnodeStats?: AirnodeNetworkStats | null;
   dapiCoverage?: DAPICoverage | null;
-  isLoading: boolean;
-}
-
-export interface API3OevViewProps {
-  oevStats?: OEVNetworkStats | null;
   isLoading: boolean;
 }
 

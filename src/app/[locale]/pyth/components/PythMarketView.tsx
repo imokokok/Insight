@@ -39,23 +39,16 @@ export function PythMarketView({
     if (price?.confidenceInterval) {
       return price.confidenceInterval;
     }
-    const currentPrice = price?.price ?? 0.45;
-    const spread = currentPrice * 0.002;
-    return {
-      bid: currentPrice - spread / 2,
-      ask: currentPrice + spread / 2,
-      widthPercentage: 0.2,
-    };
+    // 无真实数据时返回 null，不显示模拟数据
+    return null;
   }, [price]);
 
   const historicalConfidenceData = useMemo(() => {
     if (historicalData && historicalData.length > 0) {
       return historicalData.filter((d) => d.confidence !== undefined).map((d) => d.confidence!);
     }
-    const baseConfidence = 85;
-    return Array.from({ length: 20 }, () =>
-      Math.round(baseConfidence + (Math.random() - 0.5) * 20)
-    );
+    // 无历史数据时返回空数组，不显示模拟数据
+    return [];
   }, [historicalData]);
 
   const emaData = useMemo(() => {
@@ -121,13 +114,13 @@ export function PythMarketView({
   const networkStatus = [
     {
       label: t('pyth.networkHealth.activePublishers'),
-      value: '85+',
+      value: '-',
       status: 'healthy',
       icon: Server,
     },
-    { label: t('pyth.networkHealth.priceFeeds'), value: '400+', status: 'healthy', icon: Zap },
-    { label: t('pyth.networkHealth.responseTime'), value: '200ms', status: 'healthy', icon: Clock },
-    { label: t('pyth.networkHealth.confidence'), value: '99.9%', status: 'healthy', icon: Shield },
+    { label: t('pyth.networkHealth.priceFeeds'), value: '-', status: 'healthy', icon: Zap },
+    { label: t('pyth.networkHealth.responseTime'), value: networkStats?.avgResponseTime ? `${networkStats.avgResponseTime}ms` : '-', status: 'healthy', icon: Clock },
+    { label: t('pyth.networkHealth.confidence'), value: '-', status: 'healthy', icon: Shield },
   ];
 
   return (
@@ -257,7 +250,7 @@ export function PythMarketView({
             </h3>
           </div>
           <ConfidenceIntervalChart
-            price={price?.price ?? 0.45}
+            price={price?.price ?? 0}
             confidenceInterval={confidenceIntervalData}
             historicalConfidence={historicalConfidenceData}
             showTrend={true}

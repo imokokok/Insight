@@ -24,14 +24,11 @@ type PrefetchDataType =
   | 'gasFees'
   | 'qualityHistory'
   | 'crossOracle'
-  | 'oevStats'
-  | 'oevAuctions'
   | 'alerts'
   | 'alertHistory'
   | 'alertThresholds'
   | 'coveragePoolDetails'
-  | 'coveragePoolClaims'
-  | 'stakerRewards';
+  | 'coveragePoolClaims';
 
 interface PrefetchOptions {
   priority?: 'high' | 'low';
@@ -126,12 +123,6 @@ export function useAPI3Prefetch() {
               case 'crossOracle':
                 result = await api3Client.getCrossOracleComparison();
                 break;
-              case 'oevStats':
-                result = await api3Client.getOEVNetworkStats();
-                break;
-              case 'oevAuctions':
-                result = await api3Client.getOEVAuctions(params?.limit as number);
-                break;
               case 'alerts':
                 result = await api3Client.getActiveAlerts();
                 break;
@@ -146,9 +137,6 @@ export function useAPI3Prefetch() {
                 break;
               case 'coveragePoolClaims':
                 result = await api3Client.getCoveragePoolClaims(params?.status as string);
-                break;
-              case 'stakerRewards':
-                result = await api3Client.getStakerRewards(params?.address as string);
                 break;
               default:
                 throw new Error(`Unknown data type: ${dataType}`);
@@ -189,7 +177,6 @@ export function useAPI3Prefetch() {
       }> = [
         { type: 'dapiCoverage' },
         { type: 'staking' },
-        { type: 'oevStats' },
         { type: 'coveragePoolDetails' },
         { type: 'historical', params: { symbol: symbol || 'BTC/USD', chain, period: 7 } },
       ];
@@ -203,7 +190,6 @@ export function useAPI3Prefetch() {
         { type: 'gasFees' },
         { type: 'qualityHistory' },
         { type: 'crossOracle' },
-        { type: 'oevAuctions' },
         { type: 'alertThresholds' },
       ];
 
