@@ -43,7 +43,10 @@
     "activeGames": "活跃游戏",
     "dataFeeds": "数据喂送",
     "responseTime": "响应时间",
-    "successRate": "成功率"
+    "successRate": "成功率",
+    "price": "价格",
+    "change24h": "24h 变化",
+    "confidence": "置信度"
   },
   "networkStatus": "网络状态",
   "dataSource": "数据来源",

@@ -9,9 +9,9 @@ import {
   OracleErrorBoundary,
 } from '@/components/oracle';
 import { MobileSidebar } from '@/components/ui/MobileSidebar';
+import { useTellorPrice, useTellorHistorical, useTellorNetworkStats } from '@/hooks/oracles/tellor';
 import { useTranslations } from '@/i18n';
 import { getOracleConfig } from '@/lib/config/oracles';
-import { type PriceData } from '@/types/oracle';
 import { OracleProvider } from '@/types/oracle';
 
 import { TellorDisputesView } from './components/TellorDisputesView';
@@ -34,33 +34,48 @@ export function TellorPageClient({ locale }: TellorPageClientProps) {
   const t = useTranslations('tellor');
   const config = useMemo(() => getOracleConfig(OracleProvider.TELLOR), []);
   const [activeTab, setActiveTab] = useState<TellorTabId>('market');
-  const [price, setPrice] = useState<PriceData | null>({
-    price: config.marketData?.change24hValue || 45.85,
-    timestamp: Date.now(),
-    confidence: 0.95,
-    provider: OracleProvider.TELLOR,
-    symbol: 'TRB',
-  });
-  const [historicalData, setHistoricalData] = useState<PriceData[]>([]);
-  const [networkStats, setNetworkStats] = useState<NetworkStats | null>({
-    activeNodes: 72,
-    dataFeeds: 350,
-    nodeUptime: 99.9,
-    avgResponseTime: 95,
-    latency: 120,
-  });
-  const [isLoading, setIsLoading] = useState(false);
-  const [isError, setIsError] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(new Date());
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  // 使用 hooks 获取真实数据
+  const {
+    price,
+    isLoading: isPriceLoading,
+    error: priceError,
+    refetch: refetchPrice,
+  } = useTellorPrice({ symbol: 'TRB' });
+
+  const {
+    historicalData,
+    isLoading: isHistoricalLoading,
+    refetch: refetchHistorical,
+  } = useTellorHistorical({ symbol: 'TRB', period: 7 });
+
+  const {
+    networkStats: tellorNetworkStats,
+    isLoading: isNetworkStatsLoading,
+    refetch: refetchNetworkStats,
+  } = useTellorNetworkStats();
+
+  const isLoading = isPriceLoading || isHistoricalLoading || isNetworkStatsLoading;
+  const isError = !!priceError;
+  const isRefreshing = isLoading;
+  const lastUpdated = price ? new Date(price.timestamp) : null;
+
+  // 转换网络统计数据格式
+  const networkStats: NetworkStats | null = tellorNetworkStats
+    ? {
+        activeNodes: tellorNetworkStats.activeNodes,
+        dataFeeds: tellorNetworkStats.dataFeeds,
+        nodeUptime: tellorNetworkStats.nodeUptime,
+        avgResponseTime: tellorNetworkStats.avgResponseTime,
+        latency: tellorNetworkStats.latency,
+      }
+    : null;
+
   const handleRefresh = () => {
-    setIsRefreshing(true);
-    setTimeout(() => {
-      setIsRefreshing(false);
-      setLastUpdated(new Date());
-    }, 1000);
+    refetchPrice();
+    refetchHistorical();
+    refetchNetworkStats();
   };
 
   const handleExport = () => {};
@@ -138,7 +153,7 @@ export function TellorPageClient({ locale }: TellorPageClientProps) {
       <div className="min-h-screen bg-insight">
         <TellorHero
           config={config}
-          price={price}
+          price={price ?? null}
           historicalData={historicalData}
           isLoading={isLoading}
           isError={isError}

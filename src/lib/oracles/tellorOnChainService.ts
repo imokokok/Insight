@@ -450,7 +450,7 @@ export class TellorOnChainService {
       return result;
     } catch (error) {
       console.error('Failed to fetch Tellor staking data:', error);
-      return this.getFallbackStakingData();
+      throw error;
     }
   }
 
@@ -526,7 +526,7 @@ export class TellorOnChainService {
       return reporters;
     } catch (error) {
       console.error('Failed to fetch Tellor reporter list:', error);
-      return this.getFallbackReporterList();
+      throw error;
     }
   }
 
@@ -629,7 +629,7 @@ export class TellorOnChainService {
       return result;
     } catch (error) {
       console.error('Failed to fetch Tellor dispute data:', error);
-      return this.getFallbackDisputeData();
+      throw error;
     }
   }
 
@@ -687,7 +687,7 @@ export class TellorOnChainService {
       return result;
     } catch (error) {
       console.error('Failed to fetch Tellor autopay data:', error);
-      return this.getFallbackAutopayData();
+      throw error;
     }
   }
 
@@ -740,44 +740,6 @@ export class TellorOnChainService {
     if (totalStaked === BigInt(0)) return 0;
     const apr = (Number(yearlyRewards) / Number(totalStaked)) * 100;
     return Math.min(Math.max(apr, 0), 100);
-  }
-
-  private getFallbackStakingData(): TellorStakingData {
-    return {
-      totalStaked: BigInt('20000000000000000000000000'),
-      stakerCount: 3200,
-      apr: 10.2,
-      unstakingAmount: BigInt(0),
-      unstakingCount: 0,
-    };
-  }
-
-  private getFallbackReporterList(): Reporter[] {
-    // 返回空数组，表示暂无数据
-    return [];
-  }
-
-  private getFallbackDisputeData(): DisputeStats {
-    return {
-      totalDisputes: 0,
-      openDisputes: 0,
-      resolvedDisputes: 0,
-      successRate: 0,
-      avgResolutionTime: 0,
-      totalRewardsDistributed: 0,
-      totalSlashed: 0,
-      recentDisputes: [],
-      disputeTrend: [],
-    };
-  }
-
-  private getFallbackAutopayData(): TellorAutopayData {
-    return {
-      totalTipPool: BigInt(0),
-      fundedFeeds: 0,
-      activeTips: 0,
-      totalPaidOut: BigInt(0),
-    };
   }
 
   async getBlockNumber(chainId: number = 1): Promise<number> {

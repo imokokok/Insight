@@ -2,6 +2,7 @@ import { BaseOracleClient } from '@/lib/oracles/base';
 import type { OracleClientConfig } from '@/lib/oracles/base';
 import { tellorSymbols } from '@/lib/oracles/supportedSymbols';
 import { tellorOnChainService } from '@/lib/oracles/tellorOnChainService';
+import { getQueryIdFromQuery, type SpotPriceQuery } from '@/lib/oracles/tellorQueryUtils';
 import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
@@ -311,9 +312,58 @@ export class TellorClient extends BaseOracleClient {
   }
 
   /**
+   * 从 Tellor 预言机获取代币价格
+   * 使用 SpotPrice 查询类型
+   */
+  private async getPriceFromTellorOracle(
+    symbol: string,
+    chain?: Blockchain
+  ): Promise<PriceData | null> {
+    try {
+      const chainId = chain ? this.getChainId(chain) : 1;
+      const upperSymbol = symbol.toUpperCase();
+
+      // 构建 SpotPrice 查询
+      const query: SpotPriceQuery = {
+        type: 'SpotPrice',
+        asset: upperSymbol,
+        currency: 'USD',
+      };
+
+      const queryId = getQueryIdFromQuery(query) as `0x${string}`;
+
+      // 从链上获取当前值
+      const currentValue = await this.onChainService.getCurrentValue(queryId, chainId);
+
+      if (!currentValue) {
+        console.warn(`[TellorClient] No data found in Tellor oracle for ${upperSymbol}`);
+        return null;
+      }
+
+      // 解码价格值 (uint256, 18位小数)
+      const priceValue = Number(currentValue.value) / 1e18;
+      const timestamp = Number(currentValue.timestamp) * 1000; // 转换为毫秒
+
+      return {
+        provider: this.name,
+        symbol: upperSymbol,
+        price: priceValue,
+        timestamp: timestamp,
+        decimals: 18,
+        confidence: 0.9,
+        chain,
+        source: 'tellor-oracle',
+      };
+    } catch (error) {
+      console.error(`[TellorClient] Failed to fetch price from Tellor oracle:`, error);
+      return null;
+    }
+  }
+
+  /**
    * 获取代币价格
    * 当查询 TRB 代币价格时，直接使用 Binance API
-   * 其他代币使用现有的逻辑
+   * 其他代币优先从 Tellor 预言机读取，失败时回退到 Binance API
    */
   async getPrice(symbol: string, chain?: Blockchain): Promise<PriceData> {
     const upperSymbol = symbol.toUpperCase();
@@ -341,6 +391,17 @@ export class TellorClient extends BaseOracleClient {
       }
     }
 
+    // 非 TRB 代币：优先从 Tellor 预言机读取
+    const tellorPrice = await this.getPriceFromTellorOracle(symbol, chain);
+    if (tellorPrice) {
+      this.lastDataSource = 'on-chain';
+      return tellorPrice;
+    }
+
+    // 如果预言机没有数据，回退到 Binance API
+    console.warn(
+      `[TellorClient] Tellor oracle has no data for ${upperSymbol}, falling back to Binance API`
+    );
     const result = await this.getPriceWithSource(symbol, chain);
     return result.data;
   }
@@ -373,29 +434,9 @@ export class TellorClient extends BaseOracleClient {
         }));
       }
 
-      // 如果 Binance 失败，基于当前价格生成历史数据点
-      console.warn(
-        `[TellorClient] Binance failed, generating historical data from current price for ${symbol}`
-      );
-      const currentPrice = await this.getPrice(symbol, chain);
-      const prices: PriceData[] = [];
-      const now = Date.now();
-      const hourMs = 3600 * 1000;
-
-      for (let i = period; i >= 0; i--) {
-        const timestamp = now - i * hourMs;
-        const variation = Math.sin(i * 0.5) * 0.02;
-        const price = currentPrice.price * (1 + variation);
-
-        prices.push({
-          ...currentPrice,
-          price: Number(price.toFixed(8)),
-          timestamp,
-          source: 'derived-from-current',
-        });
-      }
-
-      return prices;
+      // 如果 Binance 失败，返回空数组
+      console.warn(`[TellorClient] No historical data available for ${symbol}`);
+      return [];
     } catch (error) {
       console.error(`[TellorClient] Failed to fetch historical prices for ${symbol}:`, error);
       return [];
@@ -885,117 +926,16 @@ export class TellorClient extends BaseOracleClient {
   }
 
   async getEcosystemStats(): Promise<EcosystemStats> {
-    // 生态数据主要基于已知集成，这部分难以从链上直接获取
-    // 但我们可以基于链上活动来估算
-    try {
-      await this.onChainService.getAutopayData(1);
-
-      const protocols: EcosystemProtocol[] = [
-        {
-          id: '1',
-          name: 'Aave',
-          category: 'lending',
-          tvl: 8500000000,
-          dataFeeds: ['ETH/USD', 'BTC/USD', 'LINK/USD'],
-          integrationDate: Date.now() - 86400000 * 365,
-        },
-        {
-          id: '2',
-          name: 'Compound',
-          category: 'lending',
-          tvl: 4200000000,
-          dataFeeds: ['ETH/USD', 'USDC/USD', 'DAI/USD'],
-          integrationDate: Date.now() - 86400000 * 300,
-        },
-        {
-          id: '3',
-          name: 'Synthetix',
-          category: 'derivatives',
-          tvl: 2800000000,
-          dataFeeds: ['ETH/USD', 'BTC/USD', 'SNX/USD'],
-          integrationDate: Date.now() - 86400000 * 280,
-        },
-        {
-          id: '4',
-          name: 'Liquity',
-          category: 'lending',
-          tvl: 1200000000,
-          dataFeeds: ['ETH/USD'],
-          integrationDate: Date.now() - 86400000 * 250,
-        },
-        {
-          id: '5',
-          name: 'Alchemix',
-          category: 'yield',
-          tvl: 450000000,
-          dataFeeds: ['ETH/USD', 'DAI/USD'],
-          integrationDate: Date.now() - 86400000 * 200,
-        },
-        {
-          id: '6',
-          name: 'Ribbon Finance',
-          category: 'derivatives',
-          tvl: 380000000,
-          dataFeeds: ['ETH/USD', 'BTC/USD'],
-          integrationDate: Date.now() - 86400000 * 180,
-        },
-      ];
-
-      const categories = ['lending', 'dex', 'derivatives', 'yield', 'insurance', 'other'];
-      const protocolsByCategory = categories
-        .map((cat) => {
-          const catProtocols = protocols.filter((p) => p.category === cat);
-          return {
-            category: cat,
-            count: catProtocols.length,
-            tvl: catProtocols.reduce((sum, p) => sum + p.tvl, 0),
-          };
-        })
-        .filter((c) => c.count > 0);
-
-      const monthlyGrowth = Array.from({ length: 12 }, (_, i) => ({
-        timestamp: Date.now() - (11 - i) * 30 * 86400000,
-        protocolCount: Math.floor(5 + i * 0.5),
-        totalTvl: 0, // 不使用模拟数据
-      }));
-
-      const dataFeedUsage = [
-        {
-          feedId: '1',
-          feedName: 'ETH/USD',
-          usageCount: 45,
-          protocols: ['Aave', 'Compound', 'Synthetix'],
-        },
-        {
-          feedId: '2',
-          feedName: 'BTC/USD',
-          usageCount: 32,
-          protocols: ['Aave', 'Synthetix', 'Ribbon'],
-        },
-        { feedId: '3', feedName: 'LINK/USD', usageCount: 28, protocols: ['Aave', 'Nexus Mutual'] },
-        { feedId: '4', feedName: 'DAI/USD', usageCount: 25, protocols: ['Compound', 'Alchemix'] },
-        { feedId: '5', feedName: 'USDC/USD', usageCount: 22, protocols: ['Compound', 'Uniswap'] },
-      ];
-
-      return {
-        totalProtocols: protocols.length,
-        totalTvl: protocols.reduce((sum, p) => sum + p.tvl, 0),
-        protocolsByCategory,
-        topProtocols: protocols.slice(0, 6),
-        monthlyGrowth,
-        dataFeedUsage,
-      };
-    } catch (error) {
-      console.warn('[Tellor] Failed to fetch ecosystem stats:', error);
-      return {
-        totalProtocols: 0,
-        totalTvl: 0,
-        protocolsByCategory: [],
-        topProtocols: [],
-        monthlyGrowth: [],
-        dataFeedUsage: [],
-      };
-    }
+    // 生态数据需要从外部 API 获取，暂时返回空数据
+    // TODO: 集成外部数据源获取真实的协议集成数据
+    return {
+      totalProtocols: 0,
+      totalTvl: 0,
+      protocolsByCategory: [],
+      topProtocols: [],
+      monthlyGrowth: [],
+      dataFeedUsage: [],
+    };
   }
 
   async getDisputeStats(): Promise<DisputeStats> {

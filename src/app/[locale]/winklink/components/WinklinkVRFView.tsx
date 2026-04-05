@@ -18,11 +18,11 @@ import {
   AlertCircle,
   Copy,
   ExternalLink,
+  Gamepad2,
 } from 'lucide-react';
 
 import { useTranslations } from '@/i18n';
 
-import { BASE_TIMESTAMP } from '../constants';
 import { type WinklinkVRFViewProps, type VRFRequest, type VRFUseCase } from '../types';
 
 import { WinklinkDataTable } from './WinklinkDataTable';
@@ -149,55 +149,15 @@ const SECURITY_MECHANISMS = [
   },
 ];
 
-const DEFAULT_VRF_DATA = {
-  totalRequests: 12500000,
-  dailyRequests: 125000,
-  averageResponseTime: 105,
-  successRate: 99.95,
-  activeConsumers: 85,
+// 空状态数据 - 当没有真实数据时使用
+const EMPTY_VRF_DATA = {
+  totalRequests: 0,
+  dailyRequests: 0,
+  averageResponseTime: 0,
+  successRate: 0,
+  activeConsumers: 0,
   totalRandomnessGenerated: '256 bits',
-  recentRequests: [
-    {
-      requestId: '0x8a7b3c2d1e0f9a8b7c6d5e4f3a2b1c0d',
-      consumer: 'TV6MuMXfmLbBqPZvBHdwFsDnQAaY4zQ4Qc',
-      randomValue: '0x7f3a9c2e8b1d4f6a5c3b2e1d0f9a8c7b',
-      status: 'fulfilled',
-      timestamp: BASE_TIMESTAMP - 120000,
-      proof: '0x1a2b3c4d5e6f...',
-    },
-    {
-      requestId: '0x9b8c7d6e5f4a3b2c1d0e9f8a7b6c5d4e',
-      consumer: 'TV6MuMXfmLbBqPZvBHdwFsDnQAaY4zQ4Qd',
-      randomValue: '0x3e5f7a9c1b2d4e6f8a0c2b4d6e8f0a2c',
-      status: 'fulfilled',
-      timestamp: BASE_TIMESTAMP - 300000,
-      proof: '0x2b3c4d5e6f7a...',
-    },
-    {
-      requestId: '0x1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f',
-      consumer: 'TV6MuMXfmLbBqPZvBHdwFsDnQAaY4zQ4Qe',
-      randomValue: '0x9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d',
-      status: 'pending',
-      timestamp: BASE_TIMESTAMP - 60000,
-      proof: null,
-    },
-    {
-      requestId: '0x2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a',
-      consumer: 'TV6MuMXfmLbBqPZvBHdwFsDnQAaY4zQ4Qf',
-      randomValue: '0x5f7a9c1b2d4e6f8a0c2b4d6e8f0a2c4e',
-      status: 'fulfilled',
-      timestamp: BASE_TIMESTAMP - 600000,
-      proof: '0x3c4d5e6f7a8b...',
-    },
-    {
-      requestId: '0x3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b',
-      consumer: 'TV6MuMXfmLbBqPZvBHdwFsDnQAaY4zQ4Qg',
-      randomValue: null,
-      status: 'failed',
-      timestamp: BASE_TIMESTAMP - 900000,
-      proof: null,
-    },
-  ],
+  recentRequests: [] as VRFRequest[],
 };
 
 export function WinklinkVRFView({ vrf, isLoading }: WinklinkVRFViewProps) {
@@ -216,7 +176,8 @@ export function WinklinkVRFView({ vrf, isLoading }: WinklinkVRFViewProps) {
     error?: string;
   }>({ status: 'idle' });
 
-  const vrfData = useMemo(() => vrf || DEFAULT_VRF_DATA, [vrf]);
+  // 使用真实数据，如果没有则显示空状态
+  const vrfData = vrf || EMPTY_VRF_DATA;
 
   const handleVerify = async () => {
     if (!requestIdInput.trim()) return;
@@ -233,7 +194,7 @@ export function WinklinkVRFView({ vrf, isLoading }: WinklinkVRFViewProps) {
           randomValue: '0x7f3a9c2e8b1d4f6a5c3b2e1d0f9a8c7b6d5e4f3a2b1c0d9e8f7a6b5c4d',
           proof: '0x1a2b3c4d5e6f7890abcdef1234567890abcdef1234567890abcdef1234567890',
           verified: true,
-          timestamp: BASE_TIMESTAMP - 300000,
+          timestamp: Date.now() - 300000,
           consumer: 'TV6MuMXfmLbBqPZvBHdwFsDnQAaY4zQ4Qc',
         },
       });
@@ -317,7 +278,7 @@ export function WinklinkVRFView({ vrf, isLoading }: WinklinkVRFViewProps) {
         header: t('winklink.vrf.timestamp'),
         sortable: true,
         render: (item: VRFRequest) => {
-          const diff = BASE_TIMESTAMP - item.timestamp;
+          const diff = Date.now() - item.timestamp;
           const minutes = Math.floor(diff / 60000);
           const hours = Math.floor(diff / 3600000);
           if (hours > 0) return t('winklink.hero.hoursAgo', { count: hours });
@@ -328,6 +289,19 @@ export function WinklinkVRFView({ vrf, isLoading }: WinklinkVRFViewProps) {
     ],
     [t]
   );
+
+  // 空状态显示
+  if (!vrf && !isLoading) {
+    return (
+      <div className="space-y-8">
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <Gamepad2 className="w-12 h-12 text-gray-300 mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">{t('winklink.vrf.noData')}</h3>
+          <p className="text-sm text-gray-500 max-w-md">{t('winklink.vrf.noDataDescription')}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -340,7 +314,7 @@ export function WinklinkVRFView({ vrf, isLoading }: WinklinkVRFViewProps) {
               {t('winklink.vrf.totalRequests')}
             </p>
             <p className="text-xl font-semibold text-gray-900">
-              {(vrfData.totalRequests / 1e6).toFixed(1)}M
+              {vrfData.totalRequests > 0 ? `${(vrfData.totalRequests / 1e6).toFixed(1)}M` : '-'}
             </p>
           </div>
         </div>
@@ -352,7 +326,7 @@ export function WinklinkVRFView({ vrf, isLoading }: WinklinkVRFViewProps) {
               {t('winklink.vrf.dailyRequests')}
             </p>
             <p className="text-xl font-semibold text-emerald-600">
-              {(vrfData.dailyRequests / 1e3).toFixed(0)}K
+              {vrfData.dailyRequests > 0 ? `${(vrfData.dailyRequests / 1e3).toFixed(0)}K` : '-'}
             </p>
           </div>
         </div>
@@ -363,7 +337,9 @@ export function WinklinkVRFView({ vrf, isLoading }: WinklinkVRFViewProps) {
             <p className="text-xs text-gray-500 uppercase tracking-wider">
               {t('winklink.vrf.avgResponseTime')}
             </p>
-            <p className="text-xl font-semibold text-gray-900">{vrfData.averageResponseTime}ms</p>
+            <p className="text-xl font-semibold text-gray-900">
+              {vrfData.averageResponseTime > 0 ? `${vrfData.averageResponseTime}ms` : '-'}
+            </p>
           </div>
         </div>
         <div className="hidden md:block w-px h-8 bg-gray-200" />
@@ -373,7 +349,9 @@ export function WinklinkVRFView({ vrf, isLoading }: WinklinkVRFViewProps) {
             <p className="text-xs text-gray-500 uppercase tracking-wider">
               {t('winklink.vrf.successRate')}
             </p>
-            <p className="text-xl font-semibold text-gray-900">{vrfData.successRate}%</p>
+            <p className="text-xl font-semibold text-gray-900">
+              {vrfData.successRate > 0 ? `${vrfData.successRate}%` : '-'}
+            </p>
           </div>
         </div>
       </div>
@@ -576,30 +554,32 @@ export function WinklinkVRFView({ vrf, isLoading }: WinklinkVRFViewProps) {
       </div>
 
       {/* Recent VRF Requests Table */}
-      <div className="border-t border-gray-200 pt-8">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">
-            {t('winklink.vrf.recentRequests')}
-          </h3>
-          <button className="text-sm text-pink-600 hover:text-pink-700 flex items-center gap-1">
-            {t('winklink.vrf.viewAll')}
-            <ExternalLink className="w-3 h-3" />
-          </button>
+      {vrfData.recentRequests.length > 0 && (
+        <div className="border-t border-gray-200 pt-8">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">
+              {t('winklink.vrf.recentRequests')}
+            </h3>
+            <button className="text-sm text-pink-600 hover:text-pink-700 flex items-center gap-1">
+              {t('winklink.vrf.viewAll')}
+              <ExternalLink className="w-3 h-3" />
+            </button>
+          </div>
+          <WinklinkDataTable
+            data={vrfData.recentRequests as unknown as Record<string, unknown>[]}
+            columns={
+              requestColumns as unknown as Array<{
+                key: string;
+                header: string;
+                width?: string;
+                sortable?: boolean;
+                render?: (item: Record<string, unknown>) => React.ReactNode;
+              }>
+            }
+            isLoading={isLoading}
+          />
         </div>
-        <WinklinkDataTable
-          data={vrfData.recentRequests as Record<string, unknown>[]}
-          columns={
-            requestColumns as unknown as Array<{
-              key: string;
-              header: string;
-              width?: string;
-              sortable?: boolean;
-              render?: (item: Record<string, unknown>) => React.ReactNode;
-            }>
-          }
-          isLoading={isLoading}
-        />
-      </div>
+      )}
 
       {/* VRF Use Cases */}
       <div className="border-t border-gray-200 pt-8">

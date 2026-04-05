@@ -110,6 +110,7 @@ const eslintConfig = defineConfig([
     'dist/**',
     '*.config.{js,mjs,ts}',
     'scripts/**',
+    'src/i18n/generated-types.ts',
   ]),
 ]);
 

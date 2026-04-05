@@ -160,6 +160,65 @@ export interface TRONNetworkGrowth {
   tvl?: number;
 }
 
+// 空数据对象
+const EMPTY_TRON_ECOSYSTEM: TRONEcosystem = {
+  networkStats: {
+    totalTransactions: 0,
+    tps: 0,
+    blockHeight: 0,
+    blockTime: 0,
+    totalAccounts: 0,
+    dailyActiveUsers: 0,
+    energyConsumption: 0,
+    bandwidthConsumption: 0,
+  },
+  integratedDApps: [],
+  totalValueLocked: 0,
+  dailyTransactions: 0,
+  integrationCoverage: 0,
+};
+
+const EMPTY_STAKING_DATA: NodeStakingData = {
+  totalStaked: 0,
+  totalNodes: 0,
+  activeNodes: 0,
+  averageApr: 0,
+  rewardPool: 0,
+  stakingTiers: [],
+  nodes: [],
+};
+
+const EMPTY_GAMING_DATA: WINkLinkGamingData = {
+  totalGamingVolume: 0,
+  activeGames: 0,
+  dailyRandomRequests: 0,
+  dataSources: [],
+  randomNumberServices: [],
+};
+
+const EMPTY_NETWORK_STATS: WINkLinkNetworkStats = {
+  activeNodes: 0,
+  nodeUptime: 0,
+  avgResponseTime: 0,
+  updateFrequency: 0,
+  totalStaked: 0,
+  dataFeeds: 0,
+  hourlyActivity: [],
+  status: 'offline',
+  latency: 0,
+  stakingTokenSymbol: 'WIN',
+};
+
+const EMPTY_RISK_METRICS: WINkLinkRiskMetrics = {
+  overallRisk: 0,
+  decentralization: 0,
+  dataQuality: 0,
+  uptime: 0,
+  staleness: 0,
+  deviation: 0,
+  lastUpdate: Date.now(),
+};
+
 export class WINkLinkClient extends BaseOracleClient {
   name = OracleProvider.WINKLINK;
   supportedChains = [Blockchain.TRON, Blockchain.BNB_CHAIN];
@@ -245,7 +304,6 @@ export class WINkLinkClient extends BaseOracleClient {
         const networkStats = await realDataService.getTRONNetworkStats();
 
         if (networkStats) {
-          const now = Date.now();
           return {
             networkStats: {
               totalTransactions: networkStats.totalTransactions,
@@ -264,17 +322,14 @@ export class WINkLinkClient extends BaseOracleClient {
           };
         }
       } catch (error) {
-        throw this.createError(
-          `Failed to fetch TRON ecosystem data: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          'TRON_ECOSYSTEM_ERROR'
-        );
+        console.warn('Failed to fetch TRON ecosystem data:', error);
+        // 返回空数据而不是抛出错误
+        return EMPTY_TRON_ECOSYSTEM;
       }
     }
 
-    throw this.createError(
-      'Real data is not available. Please enable USE_REAL_DATA to fetch TRON ecosystem data.',
-      'REAL_DATA_NOT_AVAILABLE'
-    );
+    // 返回空数据
+    return EMPTY_TRON_ECOSYSTEM;
   }
 
   async getNodeStaking(): Promise<NodeStakingData> {
@@ -296,17 +351,14 @@ export class WINkLinkClient extends BaseOracleClient {
           };
         }
       } catch (error) {
-        throw this.createError(
-          `Failed to fetch staking data: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          'STAKING_ERROR'
-        );
+        console.warn('Failed to fetch staking data:', error);
+        // 返回空数据而不是抛出错误
+        return EMPTY_STAKING_DATA;
       }
     }
 
-    throw this.createError(
-      'Real data is not available. Please enable USE_REAL_DATA to fetch staking data.',
-      'REAL_DATA_NOT_AVAILABLE'
-    );
+    // 返回空数据
+    return EMPTY_STAKING_DATA;
   }
 
   async getGamingData(): Promise<WINkLinkGamingData> {
@@ -326,17 +378,14 @@ export class WINkLinkClient extends BaseOracleClient {
           };
         }
       } catch (error) {
-        throw this.createError(
-          `Failed to fetch gaming data: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          'GAMING_ERROR'
-        );
+        console.warn('Failed to fetch gaming data:', error);
+        // 返回空数据而不是抛出错误
+        return EMPTY_GAMING_DATA;
       }
     }
 
-    throw this.createError(
-      'Real data is not available. Please enable USE_REAL_DATA to fetch gaming data.',
-      'REAL_DATA_NOT_AVAILABLE'
-    );
+    // 返回空数据
+    return EMPTY_GAMING_DATA;
   }
 
   async getNetworkStats(): Promise<WINkLinkNetworkStats> {
@@ -350,17 +399,14 @@ export class WINkLinkClient extends BaseOracleClient {
           return networkStats;
         }
       } catch (error) {
-        throw this.createError(
-          `Failed to fetch network stats: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          'NETWORK_STATS_ERROR'
-        );
+        console.warn('Failed to fetch network stats:', error);
+        // 返回空数据而不是抛出错误
+        return EMPTY_NETWORK_STATS;
       }
     }
 
-    throw this.createError(
-      'Real data is not available. Please enable USE_REAL_DATA to fetch network stats.',
-      'REAL_DATA_NOT_AVAILABLE'
-    );
+    // 返回空数据
+    return EMPTY_NETWORK_STATS;
   }
 
   async getStakingData(): Promise<{
@@ -382,17 +428,24 @@ export class WINkLinkClient extends BaseOracleClient {
           };
         }
       } catch (error) {
-        throw this.createError(
-          `Failed to fetch staking data: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          'STAKING_ERROR'
-        );
+        console.warn('Failed to fetch staking data:', error);
+        // 返回空数据而不是抛出错误
+        return {
+          totalStaked: 0,
+          stakingApr: 0,
+          stakerCount: 0,
+          rewardPool: 0,
+        };
       }
     }
 
-    throw this.createError(
-      'Real data is not available. Please enable USE_REAL_DATA to fetch staking data.',
-      'REAL_DATA_NOT_AVAILABLE'
-    );
+    // 返回空数据
+    return {
+      totalStaked: 0,
+      stakingApr: 0,
+      stakerCount: 0,
+      rewardPool: 0,
+    };
   }
 
   async getRiskMetrics(): Promise<WINkLinkRiskMetrics> {
@@ -406,17 +459,14 @@ export class WINkLinkClient extends BaseOracleClient {
           return riskMetrics;
         }
       } catch (error) {
-        throw this.createError(
-          `Failed to fetch risk metrics: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          'RISK_METRICS_ERROR'
-        );
+        console.warn('Failed to fetch risk metrics:', error);
+        // 返回空数据而不是抛出错误
+        return EMPTY_RISK_METRICS;
       }
     }
 
-    throw this.createError(
-      'Real data is not available. Please enable USE_REAL_DATA to fetch risk metrics.',
-      'REAL_DATA_NOT_AVAILABLE'
-    );
+    // 返回空数据
+    return EMPTY_RISK_METRICS;
   }
 
   /**
