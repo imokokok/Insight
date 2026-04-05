@@ -99,7 +99,7 @@ export {
   useAPI3QualityHistory,
   useAPI3CrossOracle,
   useAPI3AllData,
-} from './api3';
+} from './api3/index';
 
 // UMA
 export {
