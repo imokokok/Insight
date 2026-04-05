@@ -379,5 +379,31 @@
     "confidenceInterval": {
       "threshold": "Threshold: {threshold}"
     }
+  },
+  "exportConfig": {
+    "metrics": {
+      "tvs": "Total Value Secured",
+      "tvl": "Total Value Locked",
+      "volume": "Trading Volume",
+      "fees": "Protocol Fees",
+      "revenue": "Revenue",
+      "users": "Active Users"
+    },
+    "exportFormat": "Export Format",
+    "timeRange": "Time Range",
+    "timeRanges": {
+      "7d": "7 Days",
+      "30d": "30 Days",
+      "90d": "90 Days",
+      "1y": "1 Year",
+      "all": "All Time"
+    },
+    "includeMetrics": "Include Metrics",
+    "includeMetadata": "Include Metadata",
+    "includeCharts": "Include Charts",
+    "exportData": "Export Data"
+  },
+  "export": {
+    "exporting": "Exporting..."
   }
 }

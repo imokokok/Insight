@@ -9,10 +9,10 @@
       "instructions": {
         "title": "Instructions",
         "items": {
-          "1": "Select the trading pair you want to monitor",
-          "2": "Set alert conditions (above/below target price, or change percentage)",
-          "3": "Enter target price or percentage",
-          "4": "You will be notified when the alert triggers"
+          "0": "Select the trading pair you want to monitor",
+          "1": "Set alert conditions (above/below target price, or change percentage)",
+          "2": "Enter target price or percentage",
+          "3": "You will be notified when the alert triggers"
         }
       }
     },

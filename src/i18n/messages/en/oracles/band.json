@@ -347,7 +347,10 @@
       "slashing": "Slashing Rate",
       "slashingDesc": "For double signing",
       "maxValidators": "Max Validators",
-      "maxValidatorsDesc": "Active set size"
+      "maxValidatorsDesc": "Active set size",
+      "loadError": "Failed to Load Validators",
+      "failedToLoad": "Unable to fetch validators data. Please try again.",
+      "retry": "Retry"
     },
     "dataFeeds": {
       "dataFeeds": "Data Feeds",
@@ -428,7 +431,10 @@
       "showing": "Showing",
       "of": "of",
       "previous": "Previous",
-      "next": "Next"
+      "next": "Next",
+      "loadError": "Failed to Load Oracle Scripts",
+      "failedToLoad": "Unable to fetch oracle scripts data. Please try again.",
+      "retry": "Retry"
     },
     "staking": {
       "totalStaked": "Total Staked",

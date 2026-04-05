@@ -256,20 +256,23 @@ export function BandProtocolGovernanceView({
     return proposals.filter((p) => p.status === filterStatus);
   }, [proposals, filterStatus]);
 
-  const stats = useMemo(() => {
+  const stats = useMemo<{
+    activeProposals: number;
+    passedProposals: number;
+    totalVotes: number;
+    participationRate: number | null;
+  }>(() => {
     const activeProposals = proposals.filter((p) => p.status === 'voting').length;
     const passedProposals = proposals.filter((p) => p.status === 'passed').length;
     const totalVotes = proposals.reduce((sum, p) => {
       return sum + p.votes.yes + p.votes.no + p.votes.abstain + p.votes.noWithVeto;
     }, 0);
-    // participationRate is calculated from actual data, using a fixed estimate
-    const participationRate = 80;
 
     return {
       activeProposals,
       passedProposals,
       totalVotes,
-      participationRate,
+      participationRate: null,
     };
   }, [proposals]);
 
@@ -336,7 +339,7 @@ export function BandProtocolGovernanceView({
             <span className="text-sm">{t('band.bandProtocol.governance.participationRate')}</span>
           </div>
           <p className="text-3xl font-semibold text-gray-900 tracking-tight">
-            {stats.participationRate.toFixed(1)}%
+            {stats.participationRate != null ? `${stats.participationRate.toFixed(1)}%` : '-'}
           </p>
         </div>
       </div>

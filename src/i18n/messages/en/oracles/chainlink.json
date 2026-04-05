@@ -265,7 +265,12 @@
     "viewAll": "View All",
     "reputation": "Reputation",
     "rewards": "Rewards",
-    "disclaimer": "This calculator is for reference only. Actual rewards may vary based on network conditions, staking pool size, and protocol parameters. Staking involves risks including potential slashing penalties."
+    "disclaimer": "This calculator is for reference only. Actual rewards may vary based on network conditions, staking pool size, and protocol parameters. Staking involves risks including potential slashing penalties.",
+    "dataUnavailable": "Staking data temporarily unavailable",
+    "poolStatsUnavailable": "Pool statistics unavailable",
+    "noSlashingEvents": "No slashing events recorded",
+    "noUnlockQueue": "No pending unlock requests",
+    "noOperatorData": "No operator data available"
   },
   "risk": {
     "metrics": "Risk Metrics",
@@ -512,7 +517,8 @@
     "avgGas": "Avg Gas",
     "activeChains": "Active Chains",
     "nodeOperators": "Node Operators",
-    "dataFreshness": "Data Freshness"
+    "dataFreshness": "Data Freshness",
+    "noActivityData": "No activity data available"
   },
   "nodes": {
     "name": "Node Name",
@@ -532,6 +538,9 @@
     "topPerformers": "Top Performers",
     "regions": "Regions",
     "avgSuccessRate": "Avg Success Rate",
+    "dataUnavailable": "Node data temporarily unavailable",
+    "noNodesFound": "No nodes found",
+    "noNodesDesc": "Unable to fetch node data. Please try again later.",
     "selected": "Selected",
     "avgResponseTime": "Avg Response Time",
     "last30Days": "Last 30 Days",
@@ -762,7 +771,18 @@
     "feature2Desc": "Trigger executions based on custom conditions defined in your smart contract.",
     "feature3Title": "Log-based Triggers",
     "feature3Desc": "React to on-chain events and trigger automated responses in real-time.",
-    "disclaimer": "Automation statistics are based on network data and may vary. Task execution depends on network conditions and gas prices. Ensure adequate LINK balance to maintain uninterrupted service."
+    "disclaimer": "Automation statistics are based on network data and may vary. Task execution depends on network conditions and gas prices. Ensure adequate LINK balance to maintain uninterrupted service.",
+    "noGasData": "No gas consumption data available",
+    "noTriggerData": "No trigger distribution data available",
+    "triggerTimeBased": "Time-based",
+    "triggerLogicBased": "Logic-based",
+    "triggerLogBased": "Log-based",
+    "noTasks": "No automation tasks found",
+    "latency": "Latency",
+    "noExecutionData": "No execution history data available",
+    "noLatencyData": "No latency analysis data available",
+    "noCancelQueue": "No pending cancellations",
+    "dataUnavailable": "Automation data temporarily unavailable"
   },
   "functions": {
     "title": "Functions",

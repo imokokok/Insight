@@ -40,6 +40,9 @@ export interface BandNetworkStats {
   inflationRate: number;
   communityPool: number;
   timestamp: number;
+  successRate?: number;
+  availability?: number;
+  avgLatency?: number;
 }
 
 export interface ChainDataRequest {

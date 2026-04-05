@@ -347,7 +347,10 @@
       "slashing": "惩罚率",
       "slashingDesc": "双重签名惩罚",
       "maxValidators": "最大验证者数",
-      "maxValidatorsDesc": "活跃验证者集合大小"
+      "maxValidatorsDesc": "活跃验证者集合大小",
+      "loadError": "加载验证者失败",
+      "failedToLoad": "无法获取验证者数据，请重试。",
+      "retry": "重试"
     },
     "dataFeeds": {
       "dataFeeds": "数据馈送",
@@ -405,7 +408,10 @@
       "showing": "显示",
       "of": "共",
       "previous": "上一页",
-      "next": "下一页"
+      "next": "下一页",
+      "loadError": "加载预言机脚本失败",
+      "failedToLoad": "无法获取预言机脚本数据，请重试。",
+      "retry": "重试"
     },
     "oracleScripts": {
       "title": "预言机脚本",

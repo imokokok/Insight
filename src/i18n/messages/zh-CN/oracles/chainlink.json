@@ -269,7 +269,12 @@
     "viewAll": "查看全部",
     "reputation": "声誉",
     "rewards": "奖励",
-    "disclaimer": "此计算器仅供参考，实际收益可能因网络条件、质押池规模和协议参数变化而有所不同。质押涉及风险，包括潜在的惩罚损失。"
+    "disclaimer": "此计算器仅供参考，实际收益可能因网络条件、质押池规模和协议参数变化而有所不同。质押涉及风险，包括潜在的惩罚损失。",
+    "dataUnavailable": "质押数据暂时不可用",
+    "poolStatsUnavailable": "池统计数据不可用",
+    "noSlashingEvents": "无惩罚事件记录",
+    "noUnlockQueue": "无待处理的解锁请求",
+    "noOperatorData": "无运营者数据"
   },
   "risk": {
     "metrics": "风险指标",
@@ -527,7 +532,8 @@
     "avgGas": "平均 Gas",
     "activeChains": "活跃链",
     "nodeOperators": "节点运营者",
-    "dataFreshness": "数据新鲜度"
+    "dataFreshness": "数据新鲜度",
+    "noActivityData": "暂无活动数据"
   },
   "nodes": {
     "name": "节点名称",
@@ -547,6 +553,9 @@
     "topPerformers": "表现最佳",
     "regions": "地区数",
     "avgSuccessRate": "平均成功率",
+    "dataUnavailable": "节点数据暂时不可用",
+    "noNodesFound": "未找到节点",
+    "noNodesDesc": "无法获取节点数据，请稍后重试。",
     "selected": "已选择",
     "avgResponseTime": "平均响应时间",
     "last30Days": "过去30天",
@@ -777,7 +786,18 @@
     "feature2Desc": "根据智能合约中定义的自定义条件触发执行。",
     "feature3Title": "基于日志的触发器",
     "feature3Desc": "响应链上事件并实时触发自动化响应。",
-    "disclaimer": "自动化统计数据基于网络数据，可能会有所变化。任务执行取决于网络条件和 Gas 价格。请确保有足够的 LINK 余额以维持不间断服务。"
+    "disclaimer": "自动化统计数据基于网络数据，可能会有所变化。任务执行取决于网络条件和 Gas 价格。请确保有足够的 LINK 余额以维持不间断服务。",
+    "noGasData": "暂无 Gas 消耗数据",
+    "noTriggerData": "暂无触发类型分布数据",
+    "triggerTimeBased": "基于时间",
+    "triggerLogicBased": "基于逻辑",
+    "triggerLogBased": "基于日志",
+    "noTasks": "未找到自动化任务",
+    "latency": "延迟",
+    "noExecutionData": "暂无执行历史数据",
+    "noLatencyData": "暂无延迟分析数据",
+    "noCancelQueue": "无待处理的取消请求",
+    "dataUnavailable": "自动化数据暂时不可用"
   },
   "functions": {
     "title": "Functions",

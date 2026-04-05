@@ -160,38 +160,38 @@ function useMetricsDisplay(
         {
           id: 'decentralization',
           name: t('band.bandProtocol.risk.metricsDisplay.decentralization.name'),
-          value: 72,
+          value: null as number | null,
           max: 100,
-          description: t('band.bandProtocol.risk.metricsDisplay.decentralization.description'),
-          status: 'medium',
-          trend: 'up',
+          description: '-',
+          status: 'unknown',
+          trend: null,
         },
         {
           id: 'security',
           name: t('band.bandProtocol.risk.metricsDisplay.security.name'),
-          value: 78,
+          value: null as number | null,
           max: 100,
-          description: t('band.bandProtocol.risk.metricsDisplay.security.description'),
-          status: 'medium',
-          trend: 'stable',
+          description: '-',
+          status: 'unknown',
+          trend: null,
         },
         {
           id: 'reliability',
           name: t('band.bandProtocol.risk.metricsDisplay.reliability.name'),
-          value: 94.2,
+          value: null as number | null,
           max: 100,
-          description: t('band.bandProtocol.risk.metricsDisplay.reliability.description'),
-          status: 'low',
-          trend: 'up',
+          description: '-',
+          status: 'unknown',
+          trend: null,
         },
         {
           id: 'transparency',
           name: t('band.bandProtocol.risk.metricsDisplay.transparency.name'),
-          value: 75,
+          value: null as number | null,
           max: 100,
-          description: t('band.bandProtocol.risk.metricsDisplay.transparency.description'),
-          status: 'medium',
-          trend: 'stable',
+          description: '-',
+          status: 'unknown',
+          trend: null,
         },
       ];
     }
@@ -209,7 +209,7 @@ function useMetricsDisplay(
             : riskMetrics.decentralizationScore >= 60
               ? 'medium'
               : 'high',
-        trend: 'up',
+        trend: 'stable',
       },
       {
         id: 'security',
@@ -237,7 +237,7 @@ function useMetricsDisplay(
             : riskMetrics.reliabilityScore >= 85
               ? 'medium'
               : 'high',
-        trend: 'up',
+        trend: 'stable',
       },
       {
         id: 'transparency',
@@ -259,7 +259,7 @@ function useMetricsDisplay(
 
 interface MetricsSectionProps {
   metricsDisplay: ReturnType<typeof useMetricsDisplay>;
-  overallScore: number;
+  overallScore: number | null;
   t: ReturnType<typeof useTranslations>;
 }
 
@@ -279,7 +279,8 @@ function MetricsSection({ metricsDisplay, overallScore, t }: MetricsSectionProps
         <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 rounded-md">
           <Shield className="w-5 h-5 text-emerald-600" />
           <span className="text-sm font-medium text-emerald-700">
-            {t('band.bandProtocol.risk.overallScore')}: {overallScore.toFixed(1)}/100
+            {t('band.bandProtocol.risk.overallScore')}:{' '}
+            {overallScore != null ? `${overallScore.toFixed(1)}/100` : '-'}
           </span>
         </div>
       </div>
@@ -289,22 +290,28 @@ function MetricsSection({ metricsDisplay, overallScore, t }: MetricsSectionProps
           <div key={metric.id} className="space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-500">{metric.name}</span>
-              {getTrendIcon(metric.trend)}
+              {metric.trend && getTrendIcon(metric.trend)}
             </div>
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-bold text-gray-900">{metric.value.toFixed(1)}</span>
-              <span className="text-sm text-gray-400">/ {metric.max}</span>
+              <span className="text-3xl font-bold text-gray-900">
+                {metric.value != null ? metric.value.toFixed(1) : '-'}
+              </span>
+              {metric.value != null && (
+                <span className="text-sm text-gray-400">/ {metric.max}</span>
+              )}
             </div>
-            <div className="w-full bg-gray-100 rounded-full h-1.5">
-              <div
-                className="h-1.5 rounded-full transition-all duration-500"
-                style={{
-                  width: `${(metric.value / metric.max) * 100}%`,
-                  backgroundColor:
-                    metric.value >= 95 ? '#10b981' : metric.value >= 80 ? '#3b82f6' : '#f59e0b',
-                }}
-              />
-            </div>
+            {metric.value != null && (
+              <div className="w-full bg-gray-100 rounded-full h-1.5">
+                <div
+                  className="h-1.5 rounded-full transition-all duration-500"
+                  style={{
+                    width: `${(metric.value / metric.max) * 100}%`,
+                    backgroundColor:
+                      metric.value >= 95 ? '#10b981' : metric.value >= 80 ? '#3b82f6' : '#f59e0b',
+                  }}
+                />
+              </div>
+            )}
             <p className="text-xs text-gray-400 leading-relaxed">{metric.description}</p>
           </div>
         ))}
@@ -697,9 +704,16 @@ export function BandProtocolRiskView() {
   const isLoading = isLoadingMetrics || isLoadingTrend || isLoadingEvents;
   const metricsDisplay = useMetricsDisplay(riskMetrics, t);
 
-  const overallScore =
-    riskMetrics?.overallScore ??
-    metricsDisplay.reduce((sum, m) => sum + m.value, 0) / metricsDisplay.length;
+  const overallScore = useMemo(() => {
+    if (riskMetrics?.overallScore != null) {
+      return riskMetrics.overallScore;
+    }
+    const validMetrics = metricsDisplay.filter((m) => m.value != null);
+    if (validMetrics.length === 0) {
+      return null;
+    }
+    return validMetrics.reduce((sum, m) => sum + (m.value ?? 0), 0) / validMetrics.length;
+  }, [riskMetrics, metricsDisplay]);
 
   const historicalRiskEvents = useMemo(() => {
     return securityEvents.map(convertRiskEventToTimelineEvent);
