@@ -43,7 +43,10 @@
     "activeGames": "Active Games",
     "dataFeeds": "Data Feeds",
     "responseTime": "Response Time",
-    "successRate": "Success Rate"
+    "successRate": "Success Rate",
+    "price": "Price",
+    "change24h": "24h Change",
+    "confidence": "Confidence"
   },
   "networkStatus": "Network Status",
   "dataSource": "Data Source",

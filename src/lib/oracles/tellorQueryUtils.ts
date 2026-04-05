@@ -179,79 +179,16 @@ export function isValidQueryData(queryData: string): boolean {
   return /^0x[a-fA-F0-9]*$/.test(queryData) && queryData.length >= 2;
 }
 
-export const POPULAR_QUERIES: Array<{
+export interface PopularQuery {
   queryId: string;
   queryData: string;
   description: string;
   type: QueryType;
   lastUpdated: Date;
   currentValue: string;
-}> = [
-  {
-    queryId: '0x0000000000000000000000000000000000000000000000000000000000000001',
-    queryData: '0x...',
-    description: 'ETH/USD Spot Price',
-    type: 'SpotPrice',
-    lastUpdated: new Date(Date.now() - 30000),
-    currentValue: '$3,245.67',
-  },
-  {
-    queryId: '0x0000000000000000000000000000000000000000000000000000000000000002',
-    queryData: '0x...',
-    description: 'BTC/USD Spot Price',
-    type: 'SpotPrice',
-    lastUpdated: new Date(Date.now() - 45000),
-    currentValue: '$67,890.12',
-  },
-  {
-    queryId: '0x0000000000000000000000000000000000000000000000000000000000000003',
-    queryData: '0x...',
-    description: 'TRB/USD Spot Price',
-    type: 'SpotPrice',
-    lastUpdated: new Date(Date.now() - 60000),
-    currentValue: '$45.85',
-  },
-  {
-    queryId: '0x0000000000000000000000000000000000000000000000000000000000000004',
-    queryData: '0x...',
-    description: 'ETH/USD 24h TWAP',
-    type: 'TWAP',
-    lastUpdated: new Date(Date.now() - 120000),
-    currentValue: '$3,240.15',
-  },
-  {
-    queryId: '0x0000000000000000000000000000000000000000000000000000000000000005',
-    queryData: '0x...',
-    description: 'BTC/USD 12h TWAP',
-    type: 'TWAP',
-    lastUpdated: new Date(Date.now() - 90000),
-    currentValue: '$67,750.00',
-  },
-  {
-    queryId: '0x0000000000000000000000000000000000000000000000000000000000000006',
-    queryData: '0x...',
-    description: 'LINK/USD Spot Price',
-    type: 'SpotPrice',
-    lastUpdated: new Date(Date.now() - 75000),
-    currentValue: '$14.32',
-  },
-  {
-    queryId: '0x0000000000000000000000000000000000000000000000000000000000000007',
-    queryData: '0x...',
-    description: 'Legacy Request #1',
-    type: 'LegacyRequest',
-    lastUpdated: new Date(Date.now() - 180000),
-    currentValue: '1,234.56',
-  },
-  {
-    queryId: '0x0000000000000000000000000000000000000000000000000000000000000008',
-    queryData: '0x...',
-    description: 'MATIC/USD Spot Price',
-    type: 'SpotPrice',
-    lastUpdated: new Date(Date.now() - 50000),
-    currentValue: '$0.89',
-  },
-];
+}
+
+export const POPULAR_QUERIES: PopularQuery[] = [];
 
 export const QUERY_TYPES_INFO: Array<{
   type: QueryType;

@@ -6,8 +6,6 @@ import { Calculator, TrendingUp, Clock, Calendar, AlertCircle, Info } from 'luci
 
 import { useTranslations } from '@/i18n';
 
-import { STAKING_SCENARIOS, DEFAULT_WIN_PRICE } from '../constants';
-
 type ScenarioType = 'conservative' | 'moderate' | 'optimistic';
 
 interface ScenarioConfig {
@@ -16,6 +14,31 @@ interface ScenarioConfig {
   color: string;
   description: string;
 }
+
+// 本地定义场景配置，不再从 constants 导入
+const STAKING_SCENARIOS: Record<ScenarioType, ScenarioConfig> = {
+  conservative: {
+    label: 'Conservative',
+    apy: 8.5,
+    color: '#60a5fa',
+    description: 'Lower risk, stable returns',
+  },
+  moderate: {
+    label: 'Moderate',
+    apy: 12.5,
+    color: '#3b82f6',
+    description: 'Balanced risk and reward',
+  },
+  optimistic: {
+    label: 'Optimistic',
+    apy: 16.0,
+    color: '#1d4ed8',
+    description: 'Higher risk, potential for greater returns',
+  },
+};
+
+// 默认 WIN 价格（当 API 不可用时使用）
+const DEFAULT_WIN_PRICE = 0.00012;
 
 interface StakingRewardsCalculatorProps {
   winPrice?: number;
