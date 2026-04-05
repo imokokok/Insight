@@ -14,28 +14,28 @@ export function PythNetworkView({ config, networkStats, isLoading }: PythNetwork
   const metrics = [
     {
       label: t('pyth.network.activePublishers'),
-      value: networkData.activeNodes?.toLocaleString() || '90',
-      change: '+8%',
-      trend: 'up',
+      value: networkData.activeNodes?.toLocaleString() || '-',
+      change: '-',
+      trend: 'neutral',
       icon: Server,
     },
     {
       label: t('pyth.network.priceFeeds'),
-      value: networkData.dataFeeds?.toLocaleString() || '500',
-      change: '+12%',
-      trend: 'up',
+      value: networkData.dataFeeds?.toLocaleString() || '-',
+      change: '-',
+      trend: 'neutral',
       icon: Activity,
     },
     {
       label: t('pyth.network.responseTime'),
-      value: `${networkData.avgResponseTime || 100}ms`,
-      change: '-5%',
-      trend: 'down',
+      value: networkData.avgResponseTime ? `${networkData.avgResponseTime}ms` : '-',
+      change: '-',
+      trend: 'neutral',
       icon: Clock,
     },
     {
       label: t('pyth.network.uptime'),
-      value: `${networkData.nodeUptime || 99.9}%`,
+      value: networkData.nodeUptime ? `${networkData.nodeUptime}%` : '-',
       change: null,
       trend: null,
       icon: CheckCircle,
@@ -43,10 +43,10 @@ export function PythNetworkView({ config, networkStats, isLoading }: PythNetwork
   ];
 
   const overviewStats = [
-    { label: t('pyth.network.totalRequests'), value: '2.8M' },
-    { label: t('pyth.network.avgGas'), value: '45,230' },
-    { label: t('pyth.network.activeChains'), value: '20+' },
-    { label: t('pyth.network.publisherCount'), value: '85+' },
+    { label: t('pyth.network.totalRequests'), value: '-' },
+    { label: t('pyth.network.avgGas'), value: '-' },
+    { label: t('pyth.network.activeChains'), value: '70+' },
+    { label: t('pyth.network.publisherCount'), value: '-' },
   ];
 
   return (

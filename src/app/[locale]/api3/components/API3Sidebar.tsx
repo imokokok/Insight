@@ -7,7 +7,6 @@ import {
   Database,
   Network,
   ShieldAlert,
-  Zap,
   LineChart,
 } from 'lucide-react';
 
@@ -35,11 +34,6 @@ const navItems = [
     id: 'dapi' as API3TabId,
     labelKey: 'api3.menu.dapi',
     icon: <Database className="w-5 h-5" strokeWidth={1.5} />,
-  },
-  {
-    id: 'oev' as API3TabId,
-    labelKey: 'api3.menu.oev',
-    icon: <Zap className="w-5 h-5" strokeWidth={1.5} />,
   },
   {
     id: 'ecosystem' as API3TabId,

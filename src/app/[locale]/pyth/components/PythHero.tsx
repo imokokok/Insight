@@ -67,12 +67,9 @@ export function PythHero({
     if (historicalData.length > 0) {
       return historicalData.slice(-24).map((d) => d.price);
     }
-    return Array.from({ length: 24 }, (_, i) => {
-      const seed = (i * 9301 + 49297) % 233280;
-      const random = seed / 233280;
-      return currentPrice * (1 + (random - 0.5) * 0.1);
-    });
-  }, [historicalData, currentPrice]);
+    // 无历史数据时返回空数组，不显示模拟数据
+    return [];
+  }, [historicalData]);
 
   const tMetrics = useTranslations('ui.oracleMetrics');
 
@@ -90,32 +87,32 @@ export function PythHero({
     {
       title: tMetrics('tvs'),
       value: `$${(config.marketData.marketCap / 1e6).toFixed(1)}M`,
-      change: '+8.5%',
-      changeType: 'positive',
+      change: config.marketData.change24hPercent ? `${config.marketData.change24hPercent >= 0 ? '+' : ''}${config.marketData.change24hPercent.toFixed(2)}%` : '-',
+      changeType: config.marketData.change24hPercent && config.marketData.change24hPercent >= 0 ? 'positive' : 'negative',
       icon: <Wallet className="w-4 h-4" />,
       subtitle: tMetrics('subtitle24h'),
     },
     {
       title: tMetrics('activeValidators'),
-      value: `${publishers?.length ?? 95}`,
-      change: '+12',
-      changeType: 'positive',
+      value: `${publishers?.length ?? '-'}`,
+      change: '-',
+      changeType: 'neutral',
       icon: <Users className="w-4 h-4" />,
       subtitle: tPyth('hero.thisMonth'),
     },
     {
       title: tMetrics('dataFeeds'),
-      value: `${networkStats?.dataFeeds ?? 450}+`,
-      change: '+15%',
-      changeType: 'positive',
+      value: networkStats?.dataFeeds ? `${networkStats.dataFeeds}` : '-',
+      change: '-',
+      changeType: 'neutral',
       icon: <Database className="w-4 h-4" />,
       subtitle: tMetrics('subtitle24h'),
     },
     {
       title: tMetrics('nodeCount'),
-      value: `${validators?.length ?? 85}`,
-      change: '+5',
-      changeType: 'positive',
+      value: `${validators?.length ?? '-'}`,
+      change: '-',
+      changeType: 'neutral',
       icon: <Shield className="w-4 h-4" />,
       subtitle: tPyth('hero.thisMonth'),
     },

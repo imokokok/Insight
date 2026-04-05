@@ -401,11 +401,11 @@ export function PythCrossChainView({ isLoading: propIsLoading }: PythCrossChainV
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <p className="text-gray-500">{tPyth('crossChain.activeGuardians')}</p>
-                  <p className="text-lg font-semibold text-gray-900">19/19</p>
+                  <p className="text-lg font-semibold text-gray-900">-</p>
                 </div>
                 <div>
                   <p className="text-gray-500">{tPyth('crossChain.vaaLatency')}</p>
-                  <p className="text-lg font-semibold text-gray-900">~3s</p>
+                  <p className="text-lg font-semibold text-gray-900">-</p>
                 </div>
               </div>
             </div>
@@ -428,7 +428,7 @@ export function PythCrossChainView({ isLoading: propIsLoading }: PythCrossChainV
               <div className="mt-3 flex items-center gap-2">
                 <Clock className="w-4 h-4 text-gray-400" />
                 <span className="text-xs text-gray-500">
-                  {tPyth('crossChain.avgTransferTime')}: ~5s
+                  {tPyth('crossChain.avgTransferTime')}: -
                 </span>
               </div>
             </div>
@@ -472,10 +472,10 @@ export function PythCrossChainView({ isLoading: propIsLoading }: PythCrossChainV
           <div className="p-4 rounded-lg border border-gray-200">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm text-gray-500">{tPyth('crossChain.overallScore')}</span>
-              <span className="text-2xl font-bold text-emerald-600">98.5</span>
+              <span className="text-2xl font-bold text-emerald-600">-</span>
             </div>
             <div className="w-full bg-gray-100 rounded-full h-2">
-              <div className="bg-emerald-500 h-2 rounded-full" style={{ width: '98.5%' }} />
+              <div className="bg-emerald-500 h-2 rounded-full" style={{ width: '0%' }} />
             </div>
             <p className="text-xs text-gray-400 mt-2">{tPyth('crossChain.excellent')}</p>
           </div>
@@ -483,10 +483,10 @@ export function PythCrossChainView({ isLoading: propIsLoading }: PythCrossChainV
           <div className="p-4 rounded-lg border border-gray-200">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm text-gray-500">{tPyth('crossChain.updateSync')}</span>
-              <span className="text-2xl font-bold text-violet-600">99.2%</span>
+              <span className="text-2xl font-bold text-violet-600">-</span>
             </div>
             <div className="w-full bg-gray-100 rounded-full h-2">
-              <div className="bg-violet-500 h-2 rounded-full" style={{ width: '99.2%' }} />
+              <div className="bg-violet-500 h-2 rounded-full" style={{ width: '0%' }} />
             </div>
             <p className="text-xs text-gray-400 mt-2">{tPyth('crossChain.chainsSynced')}</p>
           </div>
@@ -494,10 +494,10 @@ export function PythCrossChainView({ isLoading: propIsLoading }: PythCrossChainV
           <div className="p-4 rounded-lg border border-gray-200">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm text-gray-500">{tPyth('crossChain.arbOpportunity')}</span>
-              <span className="text-2xl font-bold text-amber-600">0.12%</span>
+              <span className="text-2xl font-bold text-amber-600">-</span>
             </div>
             <div className="w-full bg-gray-100 rounded-full h-2">
-              <div className="bg-amber-500 h-2 rounded-full" style={{ width: '24%' }} />
+              <div className="bg-amber-500 h-2 rounded-full" style={{ width: '0%' }} />
             </div>
             <p className="text-xs text-gray-400 mt-2">{tPyth('crossChain.lowArb')}</p>
           </div>

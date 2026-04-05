@@ -18,7 +18,6 @@ import {
   API3DapiView,
   API3EcosystemView,
   API3RiskView,
-  API3OevView,
   API3Hero,
   API3AnalyticsView,
 } from './components';
@@ -37,7 +36,6 @@ export default function API3Page() {
     firstParty,
     deviations,
     sourceTrace,
-    oevStats,
     isLoading,
     isError,
     error,
@@ -116,8 +114,6 @@ export default function API3Page() {
             isLoading={isLoading}
           />
         );
-      case 'oev':
-        return <API3OevView oevStats={oevStats} isLoading={isLoading} />;
       case 'analytics':
         return <API3AnalyticsView />;
       default:

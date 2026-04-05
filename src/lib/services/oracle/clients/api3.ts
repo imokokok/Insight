@@ -9,8 +9,6 @@ import {
   getCoveragePoolEvents,
   getCoveragePoolClaims,
 } from '@/lib/oracles/api3/coveragePoolService';
-import { getOEVNetworkStats, getOEVAuctions } from '@/lib/oracles/api3/oevService';
-import { getStakerRewards } from '@/lib/oracles/api3/stakingService';
 import { api3DataAggregator } from '@/lib/oracles/api3DataAggregator';
 import { BaseOracleClient } from '@/lib/oracles/base';
 import type { OracleClientConfig } from '@/lib/oracles/base';
@@ -29,12 +27,9 @@ import type {
   DataSourceInfo,
   CoveragePoolDetails,
   CoveragePoolEvent,
-  OEVNetworkStats,
-  OEVAuction,
   API3Alert,
   AlertThreshold,
   CoveragePoolClaim,
-  StakerReward,
 } from '@/types/oracle/api3';
 
 export type {
@@ -46,13 +41,9 @@ export type {
   CoveragePoolEvent,
   CoveragePoolDetails,
   CoveragePoolClaim,
-  StakerReward,
   AirnodeNetworkStats,
   DAPICoverage,
   StakingData,
-  OEVAuction,
-  OEVParticipant,
-  OEVNetworkStats,
   FirstPartyOracleData,
 } from '@/types/oracle/api3';
 
@@ -384,14 +375,6 @@ export class API3Client extends BaseOracleClient {
     ];
   }
 
-  async getOEVNetworkStats(): Promise<AnnotatedData<OEVNetworkStats>> {
-    return getOEVNetworkStats();
-  }
-
-  async getOEVAuctions(limit: number = 20): Promise<OEVAuction[]> {
-    return getOEVAuctions(limit);
-  }
-
   async getActiveAlerts(): Promise<API3Alert[]> {
     return getActiveAlerts();
   }
@@ -413,10 +396,6 @@ export class API3Client extends BaseOracleClient {
 
   async getCoveragePoolClaims(status?: string): Promise<CoveragePoolClaim[]> {
     return getCoveragePoolClaims(status);
-  }
-
-  async getStakerRewards(address?: string): Promise<StakerReward[]> {
-    return getStakerRewards(address);
   }
 
   getSupportedSymbols(): string[] {
