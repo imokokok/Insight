@@ -49,13 +49,17 @@ export { ChartGuide, useChartGuide } from './ChartGuide';
 export type { ChartGuideProps } from './ChartGuide';
 
 export {
-  EnhancedChartToolbar,
-  type EnhancedChartToolbarProps,
+  OracleChartToolbar,
+  type OracleChartToolbarProps,
   type ToolbarButton,
   type ToolbarGroup,
-  type ToolbarButtonSize,
   type ToolbarButtonVariant,
-} from './ChartToolbar';
+} from './OracleChartToolbar';
+
+export {
+  OracleChartToolbar as EnhancedChartToolbar,
+  type OracleChartToolbarProps as EnhancedChartToolbarProps,
+} from './OracleChartToolbar';
 
 export {
   EnhancedTooltip,

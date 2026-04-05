@@ -3,11 +3,11 @@
 import AnomalyModal from './components/AnomalyModal';
 import AssetsTable from './components/AssetsTable';
 import ChartContainer from './components/ChartContainer';
-import { ChartErrorBoundary } from './components/ChartErrorBoundary';
 import MarketHeader from './components/MarketHeader';
 import MarketSidebar from './components/MarketSidebar';
 import MarketStats from './components/MarketStats';
 import { useMarketPage } from './useMarketPage';
+import { SectionErrorBoundary } from '@/components/error-boundary';
 
 export default function MarketOverviewPage() {
   const {
@@ -85,21 +85,21 @@ export default function MarketOverviewPage() {
           />
 
           <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-4 sm:p-6">
-            <ChartErrorBoundary componentName="MarketStats">
+            <SectionErrorBoundary componentName="MarketStats">
               <MarketStats
                 marketStats={marketStats}
                 totalTVS={totalTVS}
                 totalChains={totalChains}
                 totalProtocols={totalProtocols}
               />
-            </ChartErrorBoundary>
+            </SectionErrorBoundary>
           </div>
 
           <div className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
               <div className="lg:col-span-2">
                 <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-4 sm:p-6 h-full">
-                  <ChartErrorBoundary componentName="ChartContainer">
+                  <SectionErrorBoundary componentName="ChartContainer">
                     <ChartContainer
                       chartContainerRef={chartContainerRef}
                       activeChart={activeChart}
@@ -138,7 +138,7 @@ export default function MarketOverviewPage() {
                       benchmarkData={benchmarkData}
                       correlationData={correlationData}
                     />
-                  </ChartErrorBoundary>
+                  </SectionErrorBoundary>
                 </div>
               </div>
 
@@ -157,7 +157,7 @@ export default function MarketOverviewPage() {
             </div>
 
             <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-4 sm:p-6">
-              <ChartErrorBoundary componentName="AssetsTable">
+              <SectionErrorBoundary componentName="AssetsTable">
                 <AssetsTable
                   assets={filteredAssets}
                   filters={filter.filters}
@@ -168,7 +168,7 @@ export default function MarketOverviewPage() {
                   hasActiveFilters={filter.hasActiveFilters}
                   totalAssetsCount={assets.length}
                 />
-              </ChartErrorBoundary>
+              </SectionErrorBoundary>
             </div>
           </div>
         </div>

@@ -1,9 +1,14 @@
-export { EnhancedChartToolbar } from './EnhancedChartToolbar';
+export { OracleChartToolbar } from '../OracleChartToolbar';
 export type {
-  EnhancedChartToolbarProps,
+  OracleChartToolbarProps,
   ToolbarButton,
   ToolbarGroup,
-  ToolbarButtonSize,
   ToolbarButtonVariant,
-} from './EnhancedChartToolbar';
-export { default } from './EnhancedChartToolbar';
+} from '../OracleChartToolbar';
+
+export { OracleChartToolbar as EnhancedChartToolbar } from '../OracleChartToolbar';
+export type {
+  OracleChartToolbarProps as EnhancedChartToolbarProps,
+} from '../OracleChartToolbar';
+
+export { default } from '../OracleChartToolbar';

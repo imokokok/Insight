@@ -18,9 +18,10 @@ import {
 } from '@/stores/uiStore';
 import { type Blockchain } from '@/types/oracle';
 
+import { OracleChartToolbar } from '../OracleChartToolbar';
+
 import { ChartCanvas } from './ChartCanvas';
 import { ChartLegend } from './ChartLegend';
-import { ChartToolbar } from './ChartToolbar';
 import { calculateChartHeights } from './chartUtils';
 import { type ConfidenceLevel } from './priceChartConfig';
 import { calculatePredictionIntervals } from './priceChartUtils';
@@ -257,7 +258,7 @@ function PriceChartBase({
   return (
     <div className="h-full flex flex-col">
       {showToolbar && (
-        <ChartToolbar
+        <OracleChartToolbar
           symbol={symbol}
           currentPrice={currentPrice}
           priceChange={priceChange}

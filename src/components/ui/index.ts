@@ -64,6 +64,17 @@ export { EmptyStateEnhanced } from './EmptyStateEnhanced';
 
 export { ProgressBar, DataLoadingProgress } from './LoadingProgress';
 
+export {
+  LoadingState,
+  PageLoadingState,
+  CardLoadingState,
+  TableLoadingState,
+  ChartLoadingState,
+  ListLoadingState,
+  DetailLoadingState,
+} from './LoadingStates';
+export type { LoadingStatesProps } from './LoadingStates';
+
 export { CompactStatCard } from './CompactStatCard';
 export type { CompactStatCardProps } from './CompactStatCard';
 

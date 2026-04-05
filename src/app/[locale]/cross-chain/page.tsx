@@ -33,7 +33,6 @@ import { useColorblindMode, useSetColorblindMode } from '@/stores/crossChainStor
 import { Blockchain } from '@/types/oracle';
 
 import { BenchmarkComparisonSection } from './components/BenchmarkComparisonSection';
-import { ChartErrorBoundary } from './components/ChartErrorBoundary';
 import { CointegrationAnalysis } from './components/CointegrationAnalysis';
 import { CollapsibleSection } from './components/CollapsibleSection';
 import { CompactStatsGrid } from './components/CompactStatsGrid';
@@ -50,6 +49,7 @@ import { TabNavigation, type TabId } from './components/TabNavigation';
 import { VolatilitySurface } from './components/VolatilitySurface';
 import { type ChainStats, type RefreshInterval } from './constants';
 import { useCrossChainData } from './useCrossChainData';
+import { SectionErrorBoundary } from '@/components/error-boundary';
 import {
   chainNames,
   chainColors,
@@ -61,6 +61,7 @@ import {
   formatPrice,
 } from './utils';
 
+// eslint-disable-next-line max-lines-per-function
 export default function CrossChainPage() {
   const t = useTranslations();
   const router = useRouter();
@@ -389,17 +390,16 @@ export default function CrossChainPage() {
     </>
   );
 
-  // 渲染相关性标签内容
   const renderCorrelationTab = () => (
     <>
       <div id="correlation">
-        <ChartErrorBoundary chartName="Correlation Matrix">
+        <SectionErrorBoundary componentName="Correlation Matrix">
           <CorrelationMatrix data={data} />
-        </ChartErrorBoundary>
+        </SectionErrorBoundary>
       </div>
-      <ChartErrorBoundary chartName="Rolling Correlation">
+      <SectionErrorBoundary componentName="Rolling Correlation">
         <RollingCorrelationChart data={data} />
-      </ChartErrorBoundary>
+      </SectionErrorBoundary>
     </>
   );
 
@@ -413,9 +413,9 @@ export default function CrossChainPage() {
         storageKey="cointegrationExpanded"
       >
         <div className="p-4">
-          <ChartErrorBoundary chartName="Cointegration Analysis">
+          <SectionErrorBoundary componentName="Cointegration Analysis">
             <CointegrationAnalysis data={data} />
-          </ChartErrorBoundary>
+          </SectionErrorBoundary>
         </div>
       </CollapsibleSection>
 
@@ -530,7 +530,7 @@ export default function CrossChainPage() {
       </div>
 
       <div id="chart">
-        <ChartErrorBoundary chartName="Interactive Price Chart">
+        <SectionErrorBoundary componentName="Interactive Price Chart">
           <InteractivePriceChart
             chartData={chartData}
             chartDataWithMA={chartDataWithMA}
@@ -542,7 +542,7 @@ export default function CrossChainPage() {
             onLegendClick={handleLegendClick}
             onLegendDoubleClick={handleLegendDoubleClick}
           />
-        </ChartErrorBoundary>
+        </SectionErrorBoundary>
       </div>
     </>
   );
@@ -756,9 +756,9 @@ export default function CrossChainPage() {
               <CrossChainFilters data={data} />
 
               {/* Price Spread Heatmap */}
-              <ChartErrorBoundary chartName="Price Spread Heatmap">
+              <SectionErrorBoundary componentName="Price Spread Heatmap">
                 <PriceSpreadHeatmap data={data} />
-              </ChartErrorBoundary>
+              </SectionErrorBoundary>
 
               {/* Auto Refresh Setting */}
               <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
