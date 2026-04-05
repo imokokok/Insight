@@ -54,25 +54,25 @@ export function BandProtocolStakingView({
   const metrics = [
     {
       label: t('band.bandProtocol.staking.totalStaked'),
-      value: stakingInfo ? `${formatNumber(stakingInfo.totalStaked)} BAND` : '85M BAND',
+      value: stakingInfo ? `${formatNumber(stakingInfo.totalStaked)} BAND` : '-',
       subLabel: t('band.bandProtocol.staking.ofTotalSupply'),
       icon: Coins,
     },
     {
       label: t('band.bandProtocol.staking.stakingApr'),
-      value: stakingInfo ? `${stakingInfo.stakingAPR.toFixed(2)}%` : '12.5%',
+      value: stakingInfo ? `${stakingInfo.stakingAPR.toFixed(2)}%` : '-',
       subLabel: t('band.bandProtocol.staking.annualReturn'),
       icon: TrendingUp,
     },
     {
       label: t('band.bandProtocol.staking.inflationRate'),
-      value: stakingInfo ? `${stakingInfo.inflation.toFixed(2)}%` : '8.5%',
+      value: stakingInfo ? `${stakingInfo.inflation.toFixed(2)}%` : '-',
       subLabel: t('band.bandProtocol.staking.annual'),
       icon: TrendingUp,
     },
     {
       label: t('band.bandProtocol.staking.unbondingPeriod'),
-      value: stakingInfo ? `${stakingInfo.unbondingPeriod}` : '21',
+      value: stakingInfo ? `${stakingInfo.unbondingPeriod}` : '-',
       subLabel: t('band.bandProtocol.staking.days'),
       icon: Clock,
     },
@@ -81,17 +81,17 @@ export function BandProtocolStakingView({
   const stakingParams = [
     {
       label: t('band.bandProtocol.staking.minStake'),
-      value: stakingInfo ? `${stakingInfo.minStake} BAND` : '100 BAND',
+      value: stakingInfo ? `${stakingInfo.minStake} BAND` : '-',
       desc: t('band.bandProtocol.staking.minStakeDesc'),
     },
     {
       label: t('band.bandProtocol.validators.slashing'),
-      value: stakingInfo ? `${(stakingInfo.slashingRate * 100).toFixed(1)}%` : '5%',
+      value: stakingInfo ? `${(stakingInfo.slashingRate * 100).toFixed(1)}%` : '-',
       desc: t('band.bandProtocol.validators.slashingDesc'),
     },
     {
       label: t('band.bandProtocol.staking.communityPool'),
-      value: stakingInfo ? `${formatNumber(stakingInfo.communityPool)} BAND` : '550K BAND',
+      value: stakingInfo ? `${formatNumber(stakingInfo.communityPool)} BAND` : '-',
       desc: t('band.bandProtocol.staking.communityPoolDesc'),
     },
   ];
@@ -148,87 +148,97 @@ export function BandProtocolStakingView({
             </h3>
           </div>
 
-          <div className="flex items-center gap-4 mb-6">
-            <div className="relative w-32 h-32">
-              <svg viewBox="0 0 36 36" className="w-full h-full">
-                {stakingDistribution.map((item, index) => {
-                  const prevPercentage = stakingDistribution
-                    .slice(0, index)
-                    .reduce((sum, d) => sum + d.percentage, 0);
-                  const startAngle = (prevPercentage / totalPercentage) * 360;
-                  const endAngle = ((prevPercentage + item.percentage) / totalPercentage) * 360;
-
-                  const startRad = (startAngle - 90) * (Math.PI / 180);
-                  const endRad = (endAngle - 90) * (Math.PI / 180);
-
-                  const x1 = 18 + 16 * Math.cos(startRad);
-                  const y1 = 18 + 16 * Math.sin(startRad);
-                  const x2 = 18 + 16 * Math.cos(endRad);
-                  const y2 = 18 + 16 * Math.sin(endRad);
-
-                  const largeArc = item.percentage > 50 ? 1 : 0;
-
-                  return (
-                    <path
-                      key={index}
-                      d={`M 18 18 L ${x1} ${y1} A 16 16 0 ${largeArc} 1 ${x2} ${y2} Z`}
-                      fill={distributionColors[index % distributionColors.length]}
-                      className="hover:opacity-80 transition-opacity"
-                    />
-                  );
-                })}
-              </svg>
+          {stakingDistribution.length === 0 ? (
+            <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
+              {t('common.noData')}
             </div>
+          ) : (
+            <>
+              <div className="flex items-center gap-4 mb-6">
+                <div className="relative w-32 h-32">
+                  <svg viewBox="0 0 36 36" className="w-full h-full">
+                    {stakingDistribution.map((item, index) => {
+                      const prevPercentage = stakingDistribution
+                        .slice(0, index)
+                        .reduce((sum, d) => sum + d.percentage, 0);
+                      const startAngle = (prevPercentage / totalPercentage) * 360;
+                      const endAngle = ((prevPercentage + item.percentage) / totalPercentage) * 360;
 
-            <div className="flex-1 space-y-2">
-              {stakingDistribution.slice(0, 4).map((item, index) => (
-                <div key={index} className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-3 h-3 rounded-full"
-                      style={{ backgroundColor: distributionColors[index] }}
-                    />
-                    <span className="text-gray-600">{item.range}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium text-gray-900">{item.percentage.toFixed(1)}%</span>
-                    <span className="text-gray-400 text-xs">({item.count})</span>
-                  </div>
+                      const startRad = (startAngle - 90) * (Math.PI / 180);
+                      const endRad = (endAngle - 90) * (Math.PI / 180);
+
+                      const x1 = 18 + 16 * Math.cos(startRad);
+                      const y1 = 18 + 16 * Math.sin(startRad);
+                      const x2 = 18 + 16 * Math.cos(endRad);
+                      const y2 = 18 + 16 * Math.sin(endRad);
+
+                      const largeArc = item.percentage > 50 ? 1 : 0;
+
+                      return (
+                        <path
+                          key={index}
+                          d={`M 18 18 L ${x1} ${y1} A 16 16 0 ${largeArc} 1 ${x2} ${y2} Z`}
+                          fill={distributionColors[index % distributionColors.length]}
+                          className="hover:opacity-80 transition-opacity"
+                        />
+                      );
+                    })}
+                  </svg>
                 </div>
-              ))}
-            </div>
-          </div>
 
-          <div className="space-y-2">
-            {stakingDistribution.map((item, index) => (
-              <div key={index} className="flex items-center gap-3">
-                <div
-                  className="w-3 h-3 rounded-full flex-shrink-0"
-                  style={{ backgroundColor: distributionColors[index] }}
-                />
-                <div className="flex-1 flex items-center justify-between">
-                  <span className="text-sm text-gray-600">{item.range}</span>
-                  <div className="flex items-center gap-4">
-                    <span className="text-sm text-gray-500">
-                      {item.count} {t('band.bandProtocol.staking.validators')}
-                    </span>
-                    <div className="w-24 bg-gray-100 rounded-full h-2">
-                      <div
-                        className="h-2 rounded-full transition-all"
-                        style={{
-                          width: `${item.percentage}%`,
-                          backgroundColor: distributionColors[index],
-                        }}
-                      />
+                <div className="flex-1 space-y-2">
+                  {stakingDistribution.slice(0, 4).map((item, index) => (
+                    <div key={index} className="flex items-center justify-between text-sm">
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="w-3 h-3 rounded-full"
+                          style={{ backgroundColor: distributionColors[index] }}
+                        />
+                        <span className="text-gray-600">{item.range}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-gray-900">
+                          {item.percentage.toFixed(1)}%
+                        </span>
+                        <span className="text-gray-400 text-xs">({item.count})</span>
+                      </div>
                     </div>
-                    <span className="text-sm font-medium text-gray-900 w-12 text-right">
-                      {item.percentage.toFixed(1)}%
-                    </span>
-                  </div>
+                  ))}
                 </div>
               </div>
-            ))}
-          </div>
+
+              <div className="space-y-2">
+                {stakingDistribution.map((item, index) => (
+                  <div key={index} className="flex items-center gap-3">
+                    <div
+                      className="w-3 h-3 rounded-full flex-shrink-0"
+                      style={{ backgroundColor: distributionColors[index] }}
+                    />
+                    <div className="flex-1 flex items-center justify-between">
+                      <span className="text-sm text-gray-600">{item.range}</span>
+                      <div className="flex items-center gap-4">
+                        <span className="text-sm text-gray-500">
+                          {item.count} {t('band.bandProtocol.staking.validators')}
+                        </span>
+                        <div className="w-24 bg-gray-100 rounded-full h-2">
+                          <div
+                            className="h-2 rounded-full transition-all"
+                            style={{
+                              width: `${item.percentage}%`,
+                              backgroundColor: distributionColors[index],
+                            }}
+                          />
+                        </div>
+                        <span className="text-sm font-medium text-gray-900 w-12 text-right">
+                          {item.percentage.toFixed(1)}%
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
         </div>
 
         <div>

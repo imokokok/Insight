@@ -18,58 +18,55 @@ export function BandProtocolNetworkView({ config, networkStats }: BandProtocolNe
   const metrics = [
     {
       label: t('band.bandProtocol.network.activeValidators'),
-      value: data?.activeValidators?.toLocaleString() || '70',
-      change: '+2%',
-      trend: 'up' as const,
+      value: data?.activeValidators?.toLocaleString() ?? '-',
+      change: null,
+      trend: null,
       icon: Server,
     },
     {
       label: t('band.bandProtocol.network.stakingRatio'),
-      value: `${data?.stakingRatio?.toFixed(1) || '51.5'}%`,
-      change: '+1.2%',
-      trend: 'up' as const,
+      value: data?.stakingRatio != null ? `${data.stakingRatio.toFixed(1)}%` : '-',
+      change: null,
+      trend: null,
       icon: Activity,
     },
     {
       label: t('band.bandProtocol.network.blockTime'),
-      value: `${data?.blockTime?.toFixed(1) || '2.8'}s`,
-      change: '-5%',
-      trend: 'down' as const,
+      value: data?.blockTime != null ? `${data.blockTime.toFixed(1)}s` : '-',
+      change: null,
+      trend: null,
       icon: Clock,
     },
     {
       label: t('band.bandProtocol.network.inflationRate'),
-      value: `${data?.inflationRate?.toFixed(1) || '8.5'}%`,
+      value: data?.inflationRate != null ? `${data.inflationRate.toFixed(1)}%` : '-',
       change: null,
       trend: null,
       icon: CheckCircle,
     },
   ];
 
-  const hourlyActivity = config.networkData.hourlyActivity || [
-    5800, 5200, 4800, 4400, 4100, 4300, 5600, 7800, 10200, 12500, 14200, 15100, 14800, 14400, 13900,
-    14100, 14500, 15000, 14700, 13200, 11800, 9800, 7800, 6500,
-  ];
+  const hourlyActivity = config.networkData.hourlyActivity ?? [];
 
   const overviewStats = [
     {
       label: t('band.bandProtocol.network.blockHeight'),
-      value: data?.latestBlockHeight?.toLocaleString() || '15,500,000',
+      value: data?.latestBlockHeight?.toLocaleString() ?? '-',
       isBlockHeight: true,
     },
     {
       label: t('band.bandProtocol.network.totalValidators'),
-      value: data?.totalValidators?.toLocaleString() || '80',
+      value: data?.totalValidators?.toLocaleString() ?? '-',
       isBlockHeight: false,
     },
     {
       label: t('band.bandProtocol.network.bondedTokens'),
-      value: `${((data?.bondedTokens || 85000000) / 1e6).toFixed(1)}M BAND`,
+      value: data?.bondedTokens != null ? `${(data.bondedTokens / 1e6).toFixed(1)}M BAND` : '-',
       isBlockHeight: false,
     },
     {
       label: t('band.bandProtocol.network.communityPool'),
-      value: `${((data?.communityPool || 550000) / 1e3).toFixed(1)}K BAND`,
+      value: data?.communityPool != null ? `${(data.communityPool / 1e3).toFixed(1)}K BAND` : '-',
       isBlockHeight: false,
     },
   ];
@@ -152,28 +149,49 @@ export function BandProtocolNetworkView({ config, networkStats }: BandProtocolNe
             <div>
               <div className="flex justify-between text-sm mb-2">
                 <span className="text-gray-600">{t('band.bandProtocol.network.successRate')}</span>
-                <span className="font-medium text-gray-900">99.85%</span>
+                <span className="font-medium text-gray-900">
+                  {data?.successRate != null ? `${data.successRate.toFixed(2)}%` : '-'}
+                </span>
               </div>
               <div className="w-full bg-gray-100 rounded-full h-1.5">
-                <div className="bg-emerald-500 h-1.5 rounded-full" style={{ width: '99.85%' }} />
+                {data?.successRate != null && (
+                  <div
+                    className="bg-emerald-500 h-1.5 rounded-full"
+                    style={{ width: `${data.successRate}%` }}
+                  />
+                )}
               </div>
             </div>
             <div>
               <div className="flex justify-between text-sm mb-2">
                 <span className="text-gray-600">{t('band.bandProtocol.network.availability')}</span>
-                <span className="font-medium text-gray-900">99.99%</span>
+                <span className="font-medium text-gray-900">
+                  {data?.availability != null ? `${data.availability.toFixed(2)}%` : '-'}
+                </span>
               </div>
               <div className="w-full bg-gray-100 rounded-full h-1.5">
-                <div className="bg-purple-500 h-1.5 rounded-full" style={{ width: '99.99%' }} />
+                {data?.availability != null && (
+                  <div
+                    className="bg-purple-500 h-1.5 rounded-full"
+                    style={{ width: `${data.availability}%` }}
+                  />
+                )}
               </div>
             </div>
             <div>
               <div className="flex justify-between text-sm mb-2">
                 <span className="text-gray-600">{t('band.bandProtocol.network.latency')}</span>
-                <span className="font-medium text-gray-900">150ms avg</span>
+                <span className="font-medium text-gray-900">
+                  {data?.avgLatency != null ? `${data.avgLatency}ms avg` : '-'}
+                </span>
               </div>
               <div className="w-full bg-gray-100 rounded-full h-1.5">
-                <div className="bg-amber-500 h-1.5 rounded-full" style={{ width: '75%' }} />
+                {data?.avgLatency != null && (
+                  <div
+                    className="bg-amber-500 h-1.5 rounded-full"
+                    style={{ width: `${Math.min(data.avgLatency / 2, 100)}%` }}
+                  />
+                )}
               </div>
             </div>
             <div>
@@ -181,10 +199,17 @@ export function BandProtocolNetworkView({ config, networkStats }: BandProtocolNe
                 <span className="text-gray-600">
                   {t('band.bandProtocol.network.stakingParticipation')}
                 </span>
-                <span className="font-medium text-gray-900">51.5%</span>
+                <span className="font-medium text-gray-900">
+                  {data?.stakingRatio != null ? `${data.stakingRatio.toFixed(1)}%` : '-'}
+                </span>
               </div>
               <div className="w-full bg-gray-100 rounded-full h-1.5">
-                <div className="bg-blue-500 h-1.5 rounded-full" style={{ width: '51.5%' }} />
+                {data?.stakingRatio != null && (
+                  <div
+                    className="bg-blue-500 h-1.5 rounded-full"
+                    style={{ width: `${data.stakingRatio}%` }}
+                  />
+                )}
               </div>
             </div>
           </div>

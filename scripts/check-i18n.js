@@ -14,6 +14,39 @@ const SOURCE_DIRS = [
 ];
 const FILE_EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx'];
 
+const MESSAGE_FILES_CONFIG = [
+  { name: 'common' },
+  { name: 'navigation' },
+  { name: 'home' },
+  { name: 'ui', namespace: 'ui' },
+  { name: 'marketOverview', namespace: 'marketOverview' },
+  { name: 'priceQuery' },
+  { name: 'comparison' },
+  { name: 'crossOracle' },
+  { name: 'crossChain' },
+  { name: 'dataQuality' },
+  { name: 'dataTransparency' },
+  { name: 'chainlink', directory: 'oracles', namespace: 'chainlink' },
+  { name: 'pyth', directory: 'oracles', namespace: 'pyth' },
+  { name: 'api3', directory: 'oracles', namespace: 'api3' },
+  { name: 'band', directory: 'oracles', namespace: 'band' },
+  { name: 'tellor', directory: 'oracles', namespace: 'tellor' },
+  { name: 'uma', directory: 'oracles', namespace: 'uma' },
+  { name: 'dia', directory: 'oracles', namespace: 'dia' },
+  { name: 'redstone', directory: 'oracles', namespace: 'redstone' },
+  { name: 'chronicle', directory: 'oracles', namespace: 'chronicle' },
+  { name: 'winklink', directory: 'oracles', namespace: 'winklink' },
+  { name: 'charts', directory: 'components' },
+  { name: 'alerts', directory: 'components' },
+  { name: 'export', directory: 'components', namespace: 'export' },
+  { name: 'favorites', directory: 'components' },
+  { name: 'search', directory: 'components' },
+  { name: 'settings', directory: 'features' },
+  { name: 'auth', directory: 'features' },
+  { name: 'methodology', directory: 'features' },
+  { name: 'docs' },
+];
+
 function loadTranslationFile(filePath) {
   try {
     const content = fs.readFileSync(filePath, 'utf-8');
@@ -23,47 +56,34 @@ function loadTranslationFile(filePath) {
   }
 }
 
-function getJsonFiles(dir) {
-  const files = [];
-  if (!fs.existsSync(dir)) return files;
-
-  const entries = fs.readdirSync(dir, { withFileTypes: true });
-  for (const entry of entries) {
-    const fullPath = path.join(dir, entry.name);
-    if (entry.isDirectory()) {
-      files.push(...getJsonFiles(fullPath));
-    } else if (entry.name.endsWith('.json')) {
-      files.push(fullPath);
-    }
-  }
-  return files;
-}
-
-function loadTranslationsWithNamespace(messagesDir) {
+function loadTranslationsWithConfig(messagesDir) {
   const messages = {};
   const namespaceMap = {};
-  const jsonFiles = getJsonFiles(messagesDir);
 
-  for (const filePath of jsonFiles) {
-    const relativePath = path.relative(messagesDir, filePath);
-    const namespace = relativePath.replace(/\.json$/, '').replace(/[/\\]/g, '/');
+  for (const config of MESSAGE_FILES_CONFIG) {
+    const pathParts = [messagesDir];
+    if (config.directory) {
+      pathParts.push(config.directory);
+    }
+    pathParts.push(`${config.name}.json`);
+    const filePath = path.join(...pathParts);
+
+    if (!fs.existsSync(filePath)) {
+      continue;
+    }
+
     const content = loadTranslationFile(filePath);
 
-    if (namespace === 'common') {
-      messages.common = content;
-      Object.assign(messages, content);
+    if (config.namespace) {
+      messages[config.namespace] = content;
       for (const key of Object.keys(content)) {
-        namespaceMap[key] = 'common.json';
-      }
-    } else if (namespace === 'components/export') {
-      Object.assign(messages, content);
-      for (const key of Object.keys(content)) {
-        namespaceMap[key] = 'components/export.json';
+        namespaceMap[`${config.namespace}.${key}`] =
+          `${config.directory ? config.directory + '/' : ''}${config.name}.json`;
       }
     } else {
       Object.assign(messages, content);
       for (const key of Object.keys(content)) {
-        namespaceMap[key] = namespace + '.json';
+        namespaceMap[key] = `${config.directory ? config.directory + '/' : ''}${config.name}.json`;
       }
     }
   }
@@ -333,8 +353,8 @@ async function main() {
   console.log('🔍 开始翻译验证...\n');
 
   const { messages: enMessages, namespaceMap: _enNamespaceMap } =
-    loadTranslationsWithNamespace(EN_MESSAGES_DIR);
-  const { messages: zhMessages } = loadTranslationsWithNamespace(ZH_MESSAGES_DIR);
+    loadTranslationsWithConfig(EN_MESSAGES_DIR);
+  const { messages: zhMessages } = loadTranslationsWithConfig(ZH_MESSAGES_DIR);
 
   const enKeys = flattenKeys(enMessages);
   const zhKeys = flattenKeys(zhMessages);

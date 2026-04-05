@@ -1073,6 +1073,11 @@
       "high": "高"
     }
   },
+  "status": {
+    "critical": "严重",
+    "warning": "警告",
+    "normal": "正常"
+  },
   "analytics": {
     "title": "分析工具",
     "subtitle": "高级数据分析与预测工具",

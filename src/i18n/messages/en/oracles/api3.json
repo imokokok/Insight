@@ -1056,6 +1056,11 @@
       "high": "High"
     }
   },
+  "status": {
+    "critical": "Critical",
+    "warning": "Warning",
+    "normal": "Normal"
+  },
   "analytics": {
     "title": "Analytics Tools",
     "subtitle": "Advanced data analysis and prediction tools",
@@ -1064,6 +1069,55 @@
       "comparison": "Data Comparison",
       "prediction": "Trend Prediction",
       "anomaly": "Anomaly Detection"
+    },
+    "categories": {
+      "market": "Market Metrics",
+      "performance": "Performance Metrics",
+      "network": "Network Metrics",
+      "staking": "Staking Metrics",
+      "risk": "Risk Metrics"
+    },
+    "metrics": {
+      "price": {
+        "name": "Price",
+        "description": "Current API3 token price"
+      },
+      "volume": {
+        "name": "Volume",
+        "description": "24-hour trading volume"
+      },
+      "marketCap": {
+        "name": "Market Cap",
+        "description": "Total market capitalization"
+      },
+      "responseTime": {
+        "name": "Response Time",
+        "description": "Average API response time"
+      },
+      "successRate": {
+        "name": "Success Rate",
+        "description": "Request success rate"
+      },
+      "activeAirnodes": {
+        "name": "Active Airnodes",
+        "description": "Number of active Airnode operators"
+      },
+      "activeDapis": {
+        "name": "Active dAPIs",
+        "description": "Number of active data feeds"
+      },
+      "stakingApr": {
+        "name": "Staking APR",
+        "description": "Annual percentage return for staking"
+      },
+      "totalStaked": {
+        "name": "Total Staked",
+        "description": "Total tokens staked in coverage pool"
+      },
+      "coverageRatio": {
+        "name": "Coverage Ratio",
+        "description": "Coverage pool collateralization ratio"
+      }
     },
     "reportGenerator": {
       "title": "Custom Report Generator",
