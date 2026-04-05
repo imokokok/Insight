@@ -6,7 +6,7 @@ import { type Blockchain } from '@/lib/oracles';
 import { isBlockchain } from '@/lib/utils/chainUtils';
 
 import { type useCrossChainData } from '../useCrossChainData';
-import { chainNames, chainColors, getDiffTextColor, calculateZScore, isOutlier } from '../utils';
+import { chainNames, chainColors, calculateZScore, isOutlier } from '../utils';
 
 interface PriceComparisonTableProps {
   data: ReturnType<typeof useCrossChainData>;

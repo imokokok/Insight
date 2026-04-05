@@ -73,6 +73,7 @@
     },
     "health": "健康度",
     "supported": "支持",
+    "chains": "链",
     "chainsCount": "{count} 条链",
     "priceTrend24h": "24小时价格趋势",
     "timeAgo": {

@@ -1,10 +1,22 @@
 import { BaseOracleClient } from '@/lib/oracles/base';
 import type { OracleClientConfig } from '@/lib/oracles/base';
-import { getDIADataService } from '@/lib/oracles/diaDataService';
+import {
+  getDIADataService,
+  type DIAStakingData,
+  type DIANFTData,
+  type DIANFTCollection,
+  type DIAEcosystemIntegration,
+  type DIANetworkStatsData,
+} from '@/lib/oracles/diaDataService';
 import { diaSymbols } from '@/lib/oracles/supportedSymbols';
 import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
+
+export type StakingDetails = DIAStakingData;
+export type NFTData = DIANFTData;
+export type NFTCollection = DIANFTCollection;
+export type EcosystemIntegration = DIAEcosystemIntegration;
 
 export interface DataSourceTransparency {
   sourceId: string;
@@ -17,7 +29,7 @@ export interface DataSourceTransparency {
   dataPoints: number;
 }
 
-export interface CrossChainAsset {
+interface CrossChainAsset {
   symbol: string;
   name: string;
   chains: Blockchain[];
@@ -48,56 +60,12 @@ export interface DataSourceVerification {
   validatorCount: number;
 }
 
-export interface DIANetworkStats {
-  activeDataSources: number;
-  nodeUptime: number;
-  avgResponseTime: number;
-  updateFrequency: number;
-  totalStaked: number;
-  dataFeeds: number;
-  hourlyActivity: number[];
-  status: 'online' | 'warning' | 'offline';
-  latency: number;
-  stakingTokenSymbol: string;
-  // Risk view properties
+export interface DIANetworkStats extends DIANetworkStatsData {
   uptime?: number;
   dataQuality?: number;
   oracleDiversity?: number;
   avgConfidence?: number;
   riskLevel?: 'low' | 'medium' | 'high';
-}
-
-export interface NFTCollection {
-  id: string;
-  name: string;
-  symbol: string;
-  floorPrice: number;
-  floorPriceChange24h: number;
-  volume24h: number;
-  totalSupply: number;
-  chain: Blockchain;
-  imageUrl?: string;
-  updateFrequency: number;
-  confidence: number;
-}
-
-export interface NFTData {
-  collections: NFTCollection[];
-  totalCollections: number;
-  byChain: Partial<Record<Blockchain, number>>;
-  trending: NFTCollection[];
-}
-
-export interface StakingDetails {
-  totalStaked: number;
-  stakingApr: number;
-  stakerCount: number;
-  rewardPool: number;
-  minStakeAmount: number;
-  lockPeriods: number[];
-  aprByPeriod: Record<number, number>;
-  historicalApr: { timestamp: number; apr: number }[];
-  rewardsDistributed: number;
 }
 
 export interface CustomFeed {
@@ -111,18 +79,6 @@ export interface CustomFeed {
   dataSources: string[];
   createdAt: number;
   status: 'active' | 'paused' | 'deprecated';
-}
-
-export interface EcosystemIntegration {
-  protocolId: string;
-  name: string;
-  category: 'dex' | 'lending' | 'derivatives' | 'yield' | 'insurance' | 'other';
-  chain: Blockchain;
-  tvl: number;
-  integrationDepth: 'full' | 'partial' | 'experimental';
-  dataFeedsUsed: string[];
-  logoUrl?: string;
-  website: string;
 }
 
 export class DIAClient extends BaseOracleClient {
@@ -236,30 +192,10 @@ export class DIAClient extends BaseOracleClient {
         dataPoints: exchange.Trades || Math.floor(exchange.Volume24h / 1000),
       }));
 
-    // If no exchanges found, return fallback data
+    // If no exchanges found, return empty array
     if (exchangeSources.length === 0) {
-      return [
-        {
-          sourceId: 'dia-src-001',
-          name: 'Binance',
-          type: 'exchange',
-          credibilityScore: 98,
-          lastUpdate: Date.now(),
-          status: 'active',
-          verificationMethod: 'API Verification',
-          dataPoints: 2000000,
-        },
-        {
-          sourceId: 'dia-src-002',
-          name: 'Kraken',
-          type: 'exchange',
-          credibilityScore: 96,
-          lastUpdate: Date.now() - 5000,
-          status: 'active',
-          verificationMethod: 'API Verification',
-          dataPoints: 1500000,
-        },
-      ];
+      console.warn('[DIA] No exchanges found from API');
+      return [];
     }
 
     return exchangeSources;
@@ -357,54 +293,8 @@ export class DIAClient extends BaseOracleClient {
   }
 
   async getDataSourceVerification(): Promise<DataSourceVerification[]> {
-    const now = Date.now();
-    return [
-      {
-        verificationId: 'dia-vrf-001',
-        sourceId: 'dia-src-001',
-        timestamp: now - 3600000,
-        status: 'verified',
-        method: 'Cryptographic Signature',
-        details: 'Successfully verified Uniswap V3 price feed signatures',
-        validatorCount: 12,
-      },
-      {
-        verificationId: 'dia-vrf-002',
-        sourceId: 'dia-src-002',
-        timestamp: now - 7200000,
-        status: 'verified',
-        method: 'Cryptographic Signature',
-        details: 'Successfully verified Curve Finance price feed signatures',
-        validatorCount: 10,
-      },
-      {
-        verificationId: 'dia-vrf-003',
-        sourceId: 'dia-src-003',
-        timestamp: now - 1800000,
-        status: 'verified',
-        method: 'API Key Authentication',
-        details: 'Binance API response validated successfully',
-        validatorCount: 8,
-      },
-      {
-        verificationId: 'dia-vrf-004',
-        sourceId: 'dia-src-004',
-        timestamp: now - 5400000,
-        status: 'verified',
-        method: 'API Key Authentication',
-        details: 'Coinbase API response validated successfully',
-        validatorCount: 9,
-      },
-      {
-        verificationId: 'dia-vrf-005',
-        sourceId: 'dia-src-005',
-        timestamp: now - 900000,
-        status: 'pending',
-        method: 'Multi-source Consensus',
-        details: 'Awaiting additional validator confirmations',
-        validatorCount: 5,
-      },
-    ];
+    console.warn('[DIA] Data source verification not available from API');
+    return [];
   }
 
   async getNetworkStats(): Promise<DIANetworkStats> {
@@ -428,115 +318,30 @@ export class DIAClient extends BaseOracleClient {
     stakerCount: number;
     rewardPool: number;
   }> {
-    const diaService = getDIADataService();
-    const realStakingData = await diaService.getStakingData();
-
+    const data = await this.getStakingDetails();
     return {
-      totalStaked: realStakingData.totalStaked,
-      stakingApr: realStakingData.stakingApr,
-      stakerCount: realStakingData.stakerCount,
-      rewardPool: realStakingData.rewardPool,
+      totalStaked: data.totalStaked,
+      stakingApr: data.stakingApr,
+      stakerCount: data.stakerCount,
+      rewardPool: data.rewardPool,
     };
   }
 
   async getNFTData(): Promise<NFTData> {
-    const diaService = getDIADataService();
-    const realNFTData = await diaService.getNFTData();
-
-    return {
-      collections: realNFTData.collections,
-      totalCollections: realNFTData.totalCollections,
-      byChain: realNFTData.byChain,
-      trending: realNFTData.trending,
-    };
+    return getDIADataService().getNFTData();
   }
 
   async getStakingDetails(): Promise<StakingDetails> {
-    const diaService = getDIADataService();
-    return await diaService.getStakingData();
+    return getDIADataService().getStakingData();
   }
 
   async getCustomFeeds(): Promise<CustomFeed[]> {
-    // DIA API doesn't provide a list of all supported feeds
-    // Return standard feeds based on commonly supported assets
-    return [
-      {
-        feedId: 'dia-feed-001',
-        name: 'ETH/USD',
-        description: 'Ethereum to USD price feed',
-        assetType: 'crypto',
-        chains: [Blockchain.ETHEREUM, Blockchain.ARBITRUM, Blockchain.POLYGON],
-        updateFrequency: 60,
-        confidence: 0.99,
-        dataSources: ['Uniswap V3', 'Binance', 'Coinbase'],
-        createdAt: Date.now() - 365 * 24 * 60 * 60 * 1000,
-        status: 'active',
-      },
-      {
-        feedId: 'dia-feed-002',
-        name: 'BTC/USD',
-        description: 'Bitcoin to USD price feed',
-        assetType: 'crypto',
-        chains: [Blockchain.ETHEREUM, Blockchain.ARBITRUM, Blockchain.POLYGON, Blockchain.BASE],
-        updateFrequency: 60,
-        confidence: 0.99,
-        dataSources: ['Uniswap V3', 'Binance', 'Coinbase', 'Kraken'],
-        createdAt: Date.now() - 365 * 24 * 60 * 60 * 1000,
-        status: 'active',
-      },
-      {
-        feedId: 'dia-feed-003',
-        name: 'USDC/USD',
-        description: 'USD Coin to USD price feed',
-        assetType: 'crypto',
-        chains: [Blockchain.ETHEREUM, Blockchain.ARBITRUM, Blockchain.POLYGON, Blockchain.BASE],
-        updateFrequency: 60,
-        confidence: 0.99,
-        dataSources: ['Uniswap V3', 'Curve', 'Binance'],
-        createdAt: Date.now() - 365 * 24 * 60 * 60 * 1000,
-        status: 'active',
-      },
-      {
-        feedId: 'dia-feed-004',
-        name: 'LINK/USD',
-        description: 'Chainlink to USD price feed',
-        assetType: 'crypto',
-        chains: [Blockchain.ETHEREUM, Blockchain.ARBITRUM, Blockchain.POLYGON],
-        updateFrequency: 120,
-        confidence: 0.97,
-        dataSources: ['Uniswap V3', 'Binance', 'Coinbase'],
-        createdAt: Date.now() - 300 * 24 * 60 * 60 * 1000,
-        status: 'active',
-      },
-      {
-        feedId: 'dia-feed-005',
-        name: 'UNI/USD',
-        description: 'Uniswap to USD price feed',
-        assetType: 'crypto',
-        chains: [Blockchain.ETHEREUM, Blockchain.ARBITRUM, Blockchain.POLYGON],
-        updateFrequency: 120,
-        confidence: 0.96,
-        dataSources: ['Uniswap V3', 'Binance'],
-        createdAt: Date.now() - 250 * 24 * 60 * 60 * 1000,
-        status: 'active',
-      },
-    ];
+    console.warn('[DIA] Custom feeds not available from API');
+    return [];
   }
 
   async getEcosystemIntegrations(): Promise<EcosystemIntegration[]> {
-    const diaService = getDIADataService();
-    const realIntegrations = await diaService.getEcosystemIntegrations();
-
-    return realIntegrations.map((integration) => ({
-      protocolId: integration.protocolId,
-      name: integration.name,
-      category: integration.category,
-      chain: integration.chain,
-      tvl: integration.tvl,
-      integrationDepth: integration.integrationDepth,
-      dataFeedsUsed: integration.dataFeedsUsed,
-      website: integration.website,
-    }));
+    return getDIADataService().getEcosystemIntegrations();
   }
 
   getSupportedSymbols(): string[] {

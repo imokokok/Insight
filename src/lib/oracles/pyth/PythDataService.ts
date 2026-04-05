@@ -169,10 +169,8 @@ export class PythDataService {
       return cached;
     }
 
-    logger.debug('Returning fallback validator data');
-    const fallbackData = this.getFallbackValidators();
-    this.cache.set(cacheKey, fallbackData, CACHE_TTL.VALIDATORS);
-    return fallbackData;
+    logger.warn('No validator data available - API does not provide validator data');
+    return [];
   }
 
   async getNetworkStats(): Promise<PythServiceNetworkStats> {
@@ -644,108 +642,6 @@ export class PythDataService {
         });
       }
     }
-  }
-
-  private getFallbackValidators(): ValidatorData[] {
-    logger.warn('Using fallback validator data - API unavailable');
-    return [
-      {
-        id: 'validator-1',
-        name: 'Validator A',
-        reliabilityScore: 0.99,
-        latency: 50,
-        status: 'active',
-        staked: 5000000,
-        stake: 5000000,
-        region: 'us-east',
-        uptime: 99.9,
-        commission: 5,
-        totalResponses: 1000000,
-        rewards: 125000,
-        performance: 99,
-        source: 'mock-fallback',
-      },
-      {
-        id: 'validator-2',
-        name: 'Validator B',
-        reliabilityScore: 0.98,
-        latency: 60,
-        status: 'active',
-        staked: 4200000,
-        stake: 4200000,
-        region: 'eu-west',
-        uptime: 99.8,
-        commission: 5,
-        totalResponses: 800000,
-        rewards: 105000,
-        performance: 98,
-        source: 'mock-fallback',
-      },
-      {
-        id: 'validator-3',
-        name: 'Validator C',
-        reliabilityScore: 0.97,
-        latency: 70,
-        status: 'active',
-        staked: 3800000,
-        stake: 3800000,
-        region: 'ap-southeast',
-        uptime: 99.7,
-        commission: 5,
-        totalResponses: 600000,
-        rewards: 95000,
-        performance: 97,
-        source: 'mock-fallback',
-      },
-      {
-        id: 'validator-4',
-        name: 'Validator D',
-        reliabilityScore: 0.96,
-        latency: 80,
-        status: 'active',
-        staked: 2900000,
-        stake: 2900000,
-        region: 'us-west',
-        uptime: 98.5,
-        commission: 5,
-        totalResponses: 400000,
-        rewards: 72500,
-        performance: 96,
-        source: 'mock-fallback',
-      },
-      {
-        id: 'validator-5',
-        name: 'Validator E',
-        reliabilityScore: 0.95,
-        latency: 90,
-        status: 'inactive',
-        staked: 2100000,
-        stake: 2100000,
-        region: 'eu-central',
-        uptime: 97.2,
-        commission: 5,
-        totalResponses: 200000,
-        rewards: 52500,
-        performance: 95,
-        source: 'mock-fallback',
-      },
-      {
-        id: 'validator-6',
-        name: 'Validator F',
-        reliabilityScore: 0.9,
-        latency: 120,
-        status: 'inactive',
-        staked: 1500000,
-        stake: 1500000,
-        region: 'ap-northeast',
-        uptime: 95.0,
-        commission: 5,
-        totalResponses: 100000,
-        rewards: 37500,
-        performance: 90,
-        source: 'mock-fallback',
-      },
-    ];
   }
 
   private getFallbackNetworkStats(): PythServiceNetworkStats {
