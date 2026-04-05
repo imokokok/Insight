@@ -50,7 +50,12 @@ export type {
 
 // 风险相关类型导出
 export type { RiskTrendPoint, RiskTrendsResult } from './useRiskTrends';
-export type { RiskMetric, RiskMetricsResult, TrendDirection } from './useRiskMetrics';
+export type {
+  RiskMetric,
+  RiskMetricsResult,
+  TrendDirection,
+  HistoricalRiskMetric,
+} from './useRiskMetrics';
 export type {
   RiskRecommendation,
   RiskRecommendationsResult,

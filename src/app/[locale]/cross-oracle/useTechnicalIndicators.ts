@@ -2,7 +2,7 @@ import { useMemo, useRef } from 'react';
 
 import { type OracleProvider, type PriceData } from '@/types/oracle';
 
-import { type TechnicalIndicatorsResult, type QualityTrendDataPoint } from './types';
+import { type TechnicalIndicatorsResult, type QualityTrendDataPoint } from './types/index';
 
 // Fixed base timestamp for deterministic mock data
 const BASE_TIMESTAMP = 1704067200000; // 2024-01-01 00:00:00 UTC

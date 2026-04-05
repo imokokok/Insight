@@ -9,12 +9,7 @@ export interface SparklineProps {
   height?: number;
 }
 
-export function Sparkline({
-  data,
-  positive,
-  width = 60,
-  height = 24,
-}: SparklineProps) {
+export function Sparkline({ data, positive, width = 60, height = 24 }: SparklineProps) {
   if (!data || data.length < 2) return null;
 
   const min = Math.min(...data);

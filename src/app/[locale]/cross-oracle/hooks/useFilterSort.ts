@@ -16,6 +16,7 @@ import {
   type DeviationFilter,
   type TimeRange,
 } from '../constants';
+import { DEVIATION_FILTER_THRESHOLDS } from '../thresholds';
 
 import type {
   FilterSortResult,
@@ -120,11 +121,6 @@ export function useFilterSort({
     [validPrices.length, avgPrice]
   );
 
-  /**
-   * 检查价格是否符合偏差筛选条件
-   * @param deviationPercent - 偏离百分比
-   * @returns 是否符合条件
-   */
   const matchesDeviationFilter = useCallback(
     (deviationPercent: number | null): boolean => {
       if (deviationFilter === 'all') return true;
@@ -132,11 +128,14 @@ export function useFilterSort({
 
       switch (deviationFilter) {
         case 'excellent':
-          return deviationPercent < 0.1;
+          return deviationPercent < DEVIATION_FILTER_THRESHOLDS.EXCELLENT;
         case 'good':
-          return deviationPercent >= 0.1 && deviationPercent < 0.5;
+          return (
+            deviationPercent >= DEVIATION_FILTER_THRESHOLDS.EXCELLENT &&
+            deviationPercent < DEVIATION_FILTER_THRESHOLDS.GOOD
+          );
         case 'poor':
-          return deviationPercent >= 0.5;
+          return deviationPercent >= DEVIATION_FILTER_THRESHOLDS.POOR;
         default:
           return true;
       }

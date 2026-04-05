@@ -67,12 +67,11 @@ export class BandProtocolClient extends BaseOracleClient {
   /**
    * 获取代币价格
    * 当查询 BAND 代币价格时，直接使用 Binance API
-   * 其他代币返回默认数据
+   * 其他代币抛出不支持错误
    */
   async getPrice(symbol: string, chain?: Blockchain): Promise<PriceData> {
     const upperSymbol = symbol.toUpperCase();
 
-    // 当查询自己预言机的代币 (BAND) 时，直接使用 Binance API
     if (upperSymbol === 'BAND') {
       try {
         const marketData = await binanceMarketService.getTokenMarketData(symbol);
@@ -90,19 +89,25 @@ export class BandProtocolClient extends BaseOracleClient {
             source: 'binance-api',
           };
         }
+        throw this.createError(
+          `Failed to fetch BAND price: no market data returned from Binance`,
+          'BAND_PROTOCOL_PRICE_UNAVAILABLE'
+        );
       } catch (error) {
-        console.error(`[BandProtocolClient] Failed to fetch BAND price from Binance:`, error);
+        if (error instanceof Error && error.message.includes('BAND_PROTOCOL_PRICE_UNAVAILABLE')) {
+          throw error;
+        }
+        throw this.createError(
+          `Failed to fetch BAND price from Binance: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          'BAND_PROTOCOL_PRICE_FETCH_ERROR'
+        );
       }
     }
 
-    // Return default price data instead of throwing error
-    return {
-      symbol: upperSymbol,
-      price: 0,
-      timestamp: Date.now(),
-      provider: OracleProvider.BAND_PROTOCOL,
-      confidence: 0,
-    };
+    throw this.createError(
+      `Symbol '${upperSymbol}' is not supported by Band Protocol client. Only BAND token is supported.`,
+      'BAND_PROTOCOL_SYMBOL_NOT_SUPPORTED'
+    );
   }
 
   async getHistoricalPrices(

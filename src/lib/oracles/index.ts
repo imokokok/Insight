@@ -198,3 +198,20 @@ export {
   type PriceHistoryEntry,
   type MetricsCalculationConfig,
 } from './performanceMetricsCalculator';
+
+// Oracle Data Utilities
+export {
+  getHoursForTimeRange,
+  fetchOraclePrice,
+  fetchMultipleOraclePrices,
+  createPriceHistoryManager,
+  extractBaseSymbol,
+  type TimeRangeValue,
+  type OraclePriceFetchResult,
+  type FetchOraclePriceOptions,
+  type FetchOraclePriceResult,
+  type FetchMultipleOraclePricesOptions,
+  type FetchMultipleOraclePricesResult,
+  type PriceHistoryPoint,
+  type PriceHistoryManager,
+} from './oracleDataUtils';

@@ -3,19 +3,10 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 
 import {
-  OracleProvider,
+  type OracleProvider,
   type Blockchain,
   type PriceData,
-  ChainlinkClient,
-  BandProtocolClient,
-  UMAClient,
-  PythClient,
-  API3Client,
-  RedStoneClient,
-  DIAClient,
-  TellorClient,
-  ChronicleClient,
-  WINkLinkClient,
+  OracleClientFactory,
 } from '@/lib/oracles';
 import { performanceMetricsCalculator } from '@/lib/services/marketData';
 import { createLogger } from '@/lib/utils/logger';
@@ -28,6 +19,13 @@ import {
   validateTimeSeries,
   type AnomalyInfo,
 } from '../utils/priceValidator';
+import {
+  withTimeout,
+  limitConcurrency,
+  buildQueryTasks,
+  processQueryResults,
+  type QueryTask,
+} from '../utils/queryTaskUtils';
 
 const logger = createLogger('price-query-data');
 
@@ -36,19 +34,6 @@ export interface QueryError {
   chain: Blockchain;
   error: string;
 }
-
-const oracleClients = {
-  [OracleProvider.CHAINLINK]: new ChainlinkClient(),
-  [OracleProvider.BAND_PROTOCOL]: new BandProtocolClient(),
-  [OracleProvider.UMA]: new UMAClient(),
-  [OracleProvider.PYTH]: new PythClient(),
-  [OracleProvider.API3]: new API3Client(),
-  [OracleProvider.REDSTONE]: new RedStoneClient(),
-  [OracleProvider.DIA]: new DIAClient(),
-  [OracleProvider.TELLOR]: new TellorClient(),
-  [OracleProvider.CHRONICLE]: new ChronicleClient(),
-  [OracleProvider.WINKLINK]: new WINkLinkClient(),
-};
 
 export interface UsePriceQueryDataParams {
   selectedOracleRef: React.MutableRefObject<OracleProvider | null>;
@@ -178,99 +163,18 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
     const MAX_CONCURRENT = 6;
     const TIMEOUT_MS = 30000;
 
-    const withTimeout = <T>(promise: Promise<T>, ms: number): Promise<T> => {
-      return new Promise((resolve, reject) => {
-        const timer = setTimeout(() => reject(new Error(`Request timeout after ${ms}ms`)), ms);
-        promise
-          .then((result) => {
-            clearTimeout(timer);
-            resolve(result);
-          })
-          .catch((error) => {
-            clearTimeout(timer);
-            reject(error);
-          });
-      });
-    };
-
-    const limitConcurrency = async <T, R>(
-      items: T[],
-      handler: (item: T) => Promise<R>,
-      maxConcurrent: number
-    ): Promise<PromiseSettledResult<R>[]> => {
-      const results: PromiseSettledResult<R>[] = new Array(items.length);
-      const executing: Promise<void>[] = [];
-
-      for (let i = 0; i < items.length; i++) {
-        const item = items[i];
-        const index = i;
-
-        const promise = Promise.allSettled([handler(item)]).then(([result]) => {
-          results[index] = result;
-        });
-
-        const wrapped = promise.then(() => {
-          const idx = executing.indexOf(wrapped);
-          if (idx > -1) executing.splice(idx, 1);
-        });
-        executing.push(wrapped);
-
-        if (executing.length >= maxConcurrent) {
-          await Promise.race(executing);
-        }
-      }
-
-      await Promise.all(executing);
-      return results;
-    };
-
-    let totalQueries = 0;
-    if (currentSelectedOracle && currentSelectedChain) {
-      const client = oracleClients[currentSelectedOracle];
-      const supportedChains = client.supportedChains;
-      if (supportedChains.includes(currentSelectedChain)) {
-        totalQueries = 1;
-      }
-    }
+    const { primaryTasks, compareTasks, totalQueries } = buildQueryTasks(
+      currentSelectedOracle,
+      currentSelectedChain,
+      currentSelectedSymbol,
+      currentSelectedTimeRange,
+      currentIsCompareMode,
+      currentCompareTimeRange,
+      OracleClientFactory
+    );
 
     const actualTotalQueries = currentIsCompareMode ? totalQueries * 2 : totalQueries;
     setQueryProgress({ completed: 0, total: actualTotalQueries });
-
-    interface QueryTask {
-      provider: OracleProvider;
-      chain: Blockchain;
-      client: (typeof oracleClients)[OracleProvider];
-      timeRange: number;
-      isCompare: boolean;
-    }
-
-    const primaryTasks: QueryTask[] = [];
-    const compareTasks: QueryTask[] = [];
-
-    if (currentSelectedOracle && currentSelectedChain) {
-      const client = oracleClients[currentSelectedOracle];
-      const supportedChains = client.supportedChains;
-
-      if (supportedChains.includes(currentSelectedChain)) {
-        primaryTasks.push({
-          provider: currentSelectedOracle,
-          chain: currentSelectedChain,
-          client,
-          timeRange: currentSelectedTimeRange,
-          isCompare: false,
-        });
-
-        if (currentIsCompareMode) {
-          compareTasks.push({
-            provider: currentSelectedOracle,
-            chain: currentSelectedChain,
-            client,
-            timeRange: currentCompareTimeRange,
-            isCompare: true,
-          });
-        }
-      }
-    }
 
     const allTasks = [...primaryTasks, ...compareTasks];
 
@@ -303,11 +207,6 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
     let completedQueries = 0;
     let dataProcessingDuration: number | undefined;
     let validationDuration: number | undefined;
-    const results: QueryResult[] = [];
-    const histories: Partial<Record<string, PriceData[]>> = {};
-    const compareResults: QueryResult[] = [];
-    const compareHistories: Partial<Record<string, PriceData[]>> = {};
-    const collectedErrors: QueryError[] = [];
 
     try {
       const taskResults = await limitConcurrency(
@@ -326,20 +225,13 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
         MAX_CONCURRENT
       );
 
+      const { results, histories, compareResults, compareHistories, collectedErrors } =
+        processQueryResults(taskResults, allTasks);
+
       for (const settledResult of taskResults) {
         if (settledResult.status === 'fulfilled') {
-          const { provider, chain, priceData, history, isCompare } = settledResult.value;
-          const key = `${provider}-${chain}`;
+          const { provider, priceData, history } = settledResult.value;
 
-          if (isCompare) {
-            compareResults.push({ provider, chain, priceData });
-            compareHistories[key] = history;
-          } else {
-            results.push({ provider, chain, priceData });
-            histories[key] = history;
-          }
-
-          // 收集性能指标数据
           if (priceData) {
             performanceMetricsCalculator.addPriceData({
               oracle: provider,
@@ -349,7 +241,6 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
               confidence: priceData.confidence,
             });
 
-            // 同时收集历史数据用于更准确的指标计算
             if (history && history.length > 0) {
               history.forEach((dataPoint) => {
                 performanceMetricsCalculator.addPriceData({
@@ -365,15 +256,6 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
         } else {
           const task = allTasks[taskResults.indexOf(settledResult)];
           if (task) {
-            const errorMessage =
-              settledResult.reason instanceof Error
-                ? settledResult.reason.message
-                : String(settledResult.reason);
-            collectedErrors.push({
-              provider: task.provider,
-              chain: task.chain,
-              error: errorMessage,
-            });
             logger.error(
               `Error fetching ${task.isCompare ? 'compare data' : ''} ${task.provider} on ${task.chain}`,
               settledResult.reason instanceof Error
@@ -480,7 +362,7 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
 
   const retryDataSource = useCallback(
     async (provider: OracleProvider, chain: Blockchain) => {
-      const client = oracleClients[provider];
+      const client = OracleClientFactory.getClient(provider);
       const currentSelectedSymbol = selectedSymbolRef.current;
       const currentSelectedTimeRange = selectedTimeRangeRef.current;
       const currentIsCompareMode = isCompareModeRef.current;
@@ -582,7 +464,7 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
   const supportedChainsBySelectedOracles = useMemo(() => {
     if (!selectedOracle) return new Set<Blockchain>();
     const supported = new Set<Blockchain>();
-    const client = oracleClients[selectedOracle];
+    const client = OracleClientFactory.getClient(selectedOracle);
     client.supportedChains.forEach((chain) => supported.add(chain));
     return supported;
   }, [selectedOracle]);

@@ -27,6 +27,108 @@ import type { OracleStorageConfig } from './storage';
 export { shouldUseDatabase, configureStorage, getStorageConfig };
 export type { OracleStorageConfig };
 
+export const ORACLE_CACHE_TTL = {
+  PRICE: 30000,
+  HISTORICAL: 60000,
+  NETWORK_STATS: 120000,
+  PROVIDERS: 60000,
+  NFT: 60000,
+  SUPPLY: 300000,
+  ECOSYSTEM: 600000,
+} as const;
+
+export type OracleCacheTTLKey = keyof typeof ORACLE_CACHE_TTL;
+
+interface CacheEntry<T> {
+  data: T;
+  timestamp: number;
+  ttl: number;
+}
+
+export class OracleCache {
+  private cache: Map<string, CacheEntry<unknown>> = new Map();
+
+  get<T>(key: string): T | null {
+    const entry = this.cache.get(key) as CacheEntry<T> | undefined;
+    if (!entry) return null;
+
+    const now = Date.now();
+    if (now - entry.timestamp > entry.ttl) {
+      this.cache.delete(key);
+      return null;
+    }
+
+    return entry.data;
+  }
+
+  set<T>(key: string, data: T, ttl: number): void {
+    this.cache.set(key, {
+      data,
+      timestamp: Date.now(),
+      ttl,
+    });
+  }
+
+  delete(key: string): boolean {
+    return this.cache.delete(key);
+  }
+
+  clear(): void {
+    this.cache.clear();
+  }
+
+  has(key: string): boolean {
+    const entry = this.cache.get(key);
+    if (!entry) return false;
+
+    const now = Date.now();
+    if (now - entry.timestamp > entry.ttl) {
+      this.cache.delete(key);
+      return false;
+    }
+
+    return true;
+  }
+
+  size(): number {
+    return this.cache.size;
+  }
+
+  getStats(): { size: number; keys: string[] } {
+    return {
+      size: this.cache.size,
+      keys: Array.from(this.cache.keys()),
+    };
+  }
+
+  cleanup(): number {
+    const now = Date.now();
+    let cleaned = 0;
+    for (const [key, entry] of this.cache.entries()) {
+      if (now - entry.timestamp > entry.ttl) {
+        this.cache.delete(key);
+        cleaned++;
+      }
+    }
+    return cleaned;
+  }
+}
+
+export const OracleErrorCodes = {
+  SYMBOL_NOT_SUPPORTED: 'SYMBOL_NOT_SUPPORTED' as OracleErrorCode,
+  NO_DATA_AVAILABLE: 'NO_DATA_AVAILABLE' as OracleErrorCode,
+  PROVIDER_UNAVAILABLE: 'PROVIDER_UNAVAILABLE' as OracleErrorCode,
+  NETWORK_ERROR: 'NETWORK_ERROR' as OracleErrorCode,
+  TIMEOUT_ERROR: 'TIMEOUT_ERROR' as OracleErrorCode,
+  RATE_LIMIT_ERROR: 'RATE_LIMIT_ERROR' as OracleErrorCode,
+  INVALID_RESPONSE: 'INVALID_RESPONSE' as OracleErrorCode,
+  STALE_DATA: 'STALE_DATA' as OracleErrorCode,
+  INVALID_PRICE: 'INVALID_PRICE' as OracleErrorCode,
+  INSUFFICIENT_DATA: 'INSUFFICIENT_DATA' as OracleErrorCode,
+} as const;
+
+export type OracleErrorCodeType = (typeof OracleErrorCodes)[keyof typeof OracleErrorCodes];
+
 export interface OracleClientConfig {
   useDatabase?: boolean;
   validateData?: boolean;
@@ -87,12 +189,81 @@ export abstract class BaseOracleClient {
     return this.defaultUpdateIntervalMinutes;
   }
 
-  protected createError(message: string, code?: string): OracleError {
+  protected createError(
+    message: string,
+    code?: OracleErrorCode,
+    options?: {
+      retryable?: boolean;
+      details?: Record<string, unknown>;
+    }
+  ): OracleError {
     return {
       message,
       provider: this.name,
-      code: code as OracleErrorCode,
+      code,
+      timestamp: Date.now(),
+      retryable: options?.retryable ?? false,
+      details: options?.details,
     };
+  }
+
+  protected createUnsupportedSymbolError(symbol: string, chain?: Blockchain): OracleError {
+    return this.createError(
+      `Symbol '${symbol}' is not supported${chain ? ` on chain '${chain}'` : ''} by ${this.name}`,
+      OracleErrorCodes.SYMBOL_NOT_SUPPORTED,
+      {
+        retryable: false,
+        details: {
+          symbol,
+          chain,
+          supportedSymbols: this.getSupportedSymbols(),
+          supportedChains: this.supportedChains,
+        },
+      }
+    );
+  }
+
+  protected createNoDataError(symbol: string, chain?: Blockchain, reason?: string): OracleError {
+    return this.createError(
+      `No data available for symbol '${symbol}'${chain ? ` on chain '${chain}'` : ''}${reason ? `: ${reason}` : ''}`,
+      OracleErrorCodes.NO_DATA_AVAILABLE,
+      {
+        retryable: true,
+        details: {
+          symbol,
+          chain,
+          reason,
+        },
+      }
+    );
+  }
+
+  protected createProviderError(
+    reason: string,
+    originalError?: Error | unknown,
+    options?: {
+      retryable?: boolean;
+      code?: OracleErrorCode;
+    }
+  ): OracleError {
+    return this.createError(
+      `Provider ${this.name} error: ${reason}`,
+      options?.code ?? OracleErrorCodes.PROVIDER_UNAVAILABLE,
+      {
+        retryable: options?.retryable ?? true,
+        details: {
+          reason,
+          originalError:
+            originalError instanceof Error
+              ? {
+                  name: originalError.name,
+                  message: originalError.message,
+                  stack: originalError.stack,
+                }
+              : originalError,
+        },
+      }
+    );
   }
 
   protected validatePriceData(data: unknown, context?: string): PriceData {

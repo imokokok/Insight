@@ -3,12 +3,11 @@
 import { UnifiedExport, type ExportField } from '@/components/export';
 import { useTranslations } from '@/i18n';
 
-import { type CrossOracleData } from '../types';
+import { type CrossOracleData } from '../types/index';
 
 interface UnifiedExportSectionProps {
   loading: boolean;
   crossOracleData: CrossOracleData[];
-  chartContainerRef: React.RefObject<HTMLDivElement | null>;
   selectedAssets: string[];
   selectedOracles: string[];
 }
@@ -16,7 +15,6 @@ interface UnifiedExportSectionProps {
 export default function UnifiedExportSection({
   loading,
   crossOracleData,
-  chartContainerRef,
   selectedAssets,
   selectedOracles,
 }: UnifiedExportSectionProps) {
@@ -107,9 +105,7 @@ export default function UnifiedExportSection({
       data={crossOracleData}
       dataSource="cross-oracle"
       fields={exportFields}
-      /* eslint-disable react-hooks/no-accessing-refs-in-useEffect */
-      chartElement={chartContainerRef.current}
-      /* eslint-disable react-hooks/no-accessing-refs-in-useEffect */
+      chartElement={undefined}
       stats={stats}
       disabled={loading || crossOracleData.length === 0}
     />

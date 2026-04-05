@@ -2,12 +2,12 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { oracleClients } from '@/components/oracle/charts/CrossOracleComparison/crossOracleConfig';
 import {
   CROSS_ORACLE_GC_TIME,
   CROSS_ORACLE_QUERY_KEY,
   CROSS_ORACLE_STALE_TIME,
 } from '@/components/oracle/charts/CrossOracleComparison/useCrossOraclePrices';
+import { OracleClientFactory, extractBaseSymbol } from '@/lib/oracles';
 import { createLogger } from '@/lib/utils/logger';
 import { Blockchain, type OracleProvider, type PriceData } from '@/types/oracle';
 
@@ -105,13 +105,14 @@ export function useCrossOracleWithMetrics({
     const results: OraclePriceResult[] = [];
     const priceDataArray: OraclePriceData[] = [];
     const newErrors: Error[] = [];
+    const baseSymbol = extractBaseSymbol(selectedSymbol);
 
     await Promise.all(
       selectedOracles.map(async (provider) => {
         const requestStart = Date.now();
         try {
-          const client = oracleClients[provider];
-          const priceData: PriceData = await client.getPrice(selectedSymbol, Blockchain.ETHEREUM);
+          const client = OracleClientFactory.getClient(provider);
+          const priceData: PriceData = await client.getPrice(baseSymbol, Blockchain.ETHEREUM);
           const responseTime = Date.now() - requestStart;
 
           const result: OraclePriceResult = {
@@ -177,12 +178,27 @@ export function useCrossOracleWithMetrics({
 
   // 初始加载和定时刷新
   useEffect(() => {
-    fetchAllPrices();
+    let isMounted = true;
+
+    const doFetch = async () => {
+      if (isMounted) {
+        await fetchAllPrices();
+      }
+    };
+
+    doFetch();
 
     if (refetchInterval && typeof refetchInterval === 'number') {
-      const intervalId = setInterval(fetchAllPrices, refetchInterval);
-      return () => clearInterval(intervalId);
+      const intervalId = setInterval(doFetch, refetchInterval);
+      return () => {
+        isMounted = false;
+        clearInterval(intervalId);
+      };
     }
+
+    return () => {
+      isMounted = false;
+    };
   }, [fetchAllPrices, refetchInterval]);
 
   // 手动刷新

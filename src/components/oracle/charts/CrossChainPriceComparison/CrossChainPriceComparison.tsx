@@ -94,6 +94,8 @@ export function CrossChainPriceComparison({
 
   const diaService = useMemo(() => getDIADataService(), []);
 
+  const chainsKey = useMemo(() => chains.join(','), [chains]);
+
   const fetchData = async () => {
     setIsRefreshing(true);
     setError(null);
@@ -216,7 +218,7 @@ export function CrossChainPriceComparison({
 
   useEffect(() => {
     fetchData();
-  }, [symbol, chains.join(',')]);
+  }, [symbol, chainsKey]);
 
   const toggleChain = (chain: Blockchain) => {
     setExpandedChains((prev) => {

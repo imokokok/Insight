@@ -1,0 +1,116 @@
+/**
+ * @fileoverview 多预言机对比功能 - 统一阈值配置
+ * @description 集中管理所有异常检测相关的阈值配置
+ */
+
+// ============================================================================
+// 价格异常检测阈值
+// ============================================================================
+
+/** 价格异常偏差阈值（1%）- 超过此值视为异常 */
+export const ANOMALY_THRESHOLD = 1.0;
+
+/** 异常严重程度阈值（百分比） */
+export const SEVERITY_THRESHOLDS = {
+  /** 高风险阈值：偏差 > 3% */
+  HIGH: 3.0,
+  /** 中风险阈值：偏差 1-3% */
+  MEDIUM: 1.0,
+} as const;
+
+// ============================================================================
+// 数据延迟阈值
+// ============================================================================
+
+/** 数据延迟阈值（毫秒）- 30秒，超过此值数据不够新鲜 */
+export const DATA_DELAY_THRESHOLD = 30000;
+
+/** 数据延迟警告阈值（毫秒）- 60秒，超过此值需要警告 */
+export const DATA_DELAY_WARNING_THRESHOLD = 60000;
+
+/** 数据延迟危险阈值（毫秒）- 5分钟，超过此值数据可能不可靠 */
+export const DATA_DELAY_DANGER_THRESHOLD = 300000;
+
+/** 数据延迟阈值配置 */
+export const DATA_DELAY_THRESHOLDS = {
+  /** 正常：延迟 < 30秒 */
+  NORMAL: DATA_DELAY_THRESHOLD,
+  /** 警告：30秒 <= 延迟 < 60秒 */
+  WARNING: DATA_DELAY_WARNING_THRESHOLD,
+  /** 危险：延迟 >= 5分钟 */
+  DANGER: DATA_DELAY_DANGER_THRESHOLD,
+} as const;
+
+// ============================================================================
+// 偏差筛选阈值
+// ============================================================================
+
+/** 偏差筛选阈值（百分比） */
+export const DEVIATION_FILTER_THRESHOLDS = {
+  /** 优秀：偏差 < 0.1% */
+  EXCELLENT: 0.1,
+  /** 良好：0.1% <= 偏差 < 0.5% */
+  GOOD: 0.5,
+  /** 较差：偏差 >= 0.5% */
+  POOR: 0.5,
+} as const;
+
+// ============================================================================
+// 一致性评级阈值
+// ============================================================================
+
+/** 一致性评级阈值（标准差百分比） */
+export const CONSISTENCY_RATING_THRESHOLDS = {
+  /** 优秀：标准差 < 0.1% */
+  EXCELLENT: 0.1,
+  /** 良好：0.1% <= 标准差 < 0.3% */
+  GOOD: 0.3,
+  /** 一般：0.3% <= 标准差 < 0.5% */
+  FAIR: 0.5,
+} as const;
+
+// ============================================================================
+// Z-Score 异常值检测阈值
+// ============================================================================
+
+/** Z-Score 异常值阈值 - 超过此值视为异常值 */
+export const ZSCORE_OUTLIER_THRESHOLD = 2;
+
+// ============================================================================
+// 数据新鲜度阈值（秒）
+// ============================================================================
+
+/** 数据新鲜度阈值（秒） */
+export const FRESHNESS_THRESHOLDS = {
+  /** 新鲜：延迟 < 30秒 */
+  FRESH: 30,
+  /** 一般：30秒 <= 延迟 < 60秒 */
+  NORMAL: 60,
+  /** 延迟：延迟 >= 60秒 */
+  DELAYED: 60,
+  /** 严重延迟：延迟 >= 5分钟 */
+  SEVERELY_DELAYED: 300,
+} as const;
+
+// ============================================================================
+// 置信度阈值
+// ============================================================================
+
+/** 置信度阈值 */
+export const CONFIDENCE_THRESHOLDS = {
+  /** 低置信度：< 0.5 */
+  LOW: 0.5,
+  /** 中等置信度：0.5 <= 置信度 < 0.8 */
+  MEDIUM: 0.8,
+} as const;
+
+// ============================================================================
+// 类型导出
+// ============================================================================
+
+export type SeverityThreshold = typeof SEVERITY_THRESHOLDS;
+export type DataDelayThreshold = typeof DATA_DELAY_THRESHOLDS;
+export type DeviationFilterThreshold = typeof DEVIATION_FILTER_THRESHOLDS;
+export type ConsistencyRatingThreshold = typeof CONSISTENCY_RATING_THRESHOLDS;
+export type FreshnessThreshold = typeof FRESHNESS_THRESHOLDS;
+export type ConfidenceThreshold = typeof CONFIDENCE_THRESHOLDS;

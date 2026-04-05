@@ -38,6 +38,42 @@ const RETRY_DELAY = 1000;
 
 const delay = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
 
+function isValidNumber(value: unknown): value is number {
+  return typeof value === 'number' && !isNaN(value) && isFinite(value);
+}
+
+function isValidPositiveNumber(value: unknown): value is number {
+  return isValidNumber(value) && value > 0;
+}
+
+function validatePrice(value: unknown, fieldName: string): number {
+  const num =
+    typeof value === 'string' ? parseFloat(value) : typeof value === 'number' ? value : NaN;
+
+  if (!isValidPositiveNumber(num)) {
+    logger.warn(`Invalid ${fieldName}: ${value}, returning 0`);
+    return 0;
+  }
+
+  return num;
+}
+
+function validateOptionalNumber(value: unknown, fieldName: string): number {
+  if (value === null || value === undefined || value === '') {
+    return 0;
+  }
+
+  const num =
+    typeof value === 'string' ? parseFloat(value) : typeof value === 'number' ? value : NaN;
+
+  if (!isValidNumber(num)) {
+    logger.warn(`Invalid ${fieldName}: ${value}, returning 0`);
+    return 0;
+  }
+
+  return num;
+}
+
 async function fetchWithTimeout(
   url: string,
   options: RequestInit = {},
@@ -370,38 +406,69 @@ export async function getTokenMarketData(symbol: string): Promise<TokenMarketDat
 
     logger.info(`Fetching market data for ${symbol} (${binanceSymbol})...`);
 
-    // 获取24小时统计数据
     const tickerResponse = await fetchWithRetry(
       `${BINANCE_API_BASE}/ticker/24hr?symbol=${binanceSymbol}`
     );
 
     const tickerData = await tickerResponse.json();
 
-    // 获取最新价格
+    if (!tickerData || typeof tickerData !== 'object') {
+      logger.error(`Invalid ticker data received for ${symbol}`);
+      return null;
+    }
+
     const priceResponse = await fetchWithRetry(
       `${BINANCE_API_BASE}/ticker/price?symbol=${binanceSymbol}`
     );
 
     const priceData = await priceResponse.json();
 
+    if (!priceData || typeof priceData !== 'object') {
+      logger.error(`Invalid price data received for ${symbol}`);
+      return null;
+    }
+
+    const currentPrice = validatePrice(priceData.price, 'currentPrice');
+
+    if (currentPrice === 0) {
+      logger.error(`Invalid current price for ${symbol}, skipping market data`);
+      return null;
+    }
+
+    const high24h = validatePrice(tickerData.highPrice, 'high24h');
+    const low24h = validatePrice(tickerData.lowPrice, 'low24h');
+    const priceChange24h = validateOptionalNumber(tickerData.priceChange, 'priceChange24h') ?? 0;
+    const priceChangePercentage24h =
+      validateOptionalNumber(tickerData.priceChangePercent, 'priceChangePercentage24h') ?? 0;
+
+    const volume = validateOptionalNumber(tickerData.volume, 'volume');
+    const weightedAvgPrice = validateOptionalNumber(
+      tickerData.weightedAvgPrice,
+      'weightedAvgPrice'
+    );
+    const totalVolume24h =
+      volume !== null && weightedAvgPrice !== null ? volume * weightedAvgPrice : 0;
+
     const marketData: TokenMarketData = {
       symbol: symbol.toUpperCase(),
       name: TOKEN_NAMES[symbol.toUpperCase()] || symbol.toUpperCase(),
-      currentPrice: parseFloat(priceData.price),
-      marketCap: 0, // Binance API 不直接提供市值
-      marketCapRank: 0, // Binance API 不直接提供排名
-      totalVolume24h: parseFloat(tickerData.volume) * parseFloat(tickerData.weightedAvgPrice),
-      high24h: parseFloat(tickerData.highPrice),
-      low24h: parseFloat(tickerData.lowPrice),
-      priceChange24h: parseFloat(tickerData.priceChange),
-      priceChangePercentage24h: parseFloat(tickerData.priceChangePercent),
-      circulatingSupply: 0, // Binance API 不直接提供流通量
+      currentPrice,
+      marketCap: 0,
+      marketCapRank: 0,
+      totalVolume24h,
+      high24h,
+      low24h,
+      priceChange24h,
+      priceChangePercentage24h,
+      circulatingSupply: 0,
       totalSupply: 0,
-      ath: 0, // Binance API 不直接提供历史最高价
+      ath: 0,
       athChangePercentage: 0,
       atl: 0,
       atlChangePercentage: 0,
-      lastUpdated: new Date(tickerData.closeTime).toISOString(),
+      lastUpdated: tickerData.closeTime
+        ? new Date(tickerData.closeTime).toISOString()
+        : new Date().toISOString(),
     };
 
     logger.info(`Successfully fetched market data for ${symbol}`);

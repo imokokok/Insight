@@ -2,6 +2,58 @@
  * Statistical utility functions for calculating CDF, quantiles, and other statistical metrics
  */
 
+export interface WeightedData {
+  value: number;
+  weight?: number | null;
+}
+
+export function calculateMean(values: number[]): number {
+  if (values.length === 0) return 0;
+  return values.reduce((sum, v) => sum + v, 0) / values.length;
+}
+
+export function calculateMedian(values: number[]): number {
+  if (values.length === 0) return 0;
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
+}
+
+export function calculateVariance(values: number[], mean?: number): number {
+  if (values.length < 2) return 0;
+  const actualMean = mean ?? calculateMean(values);
+  return values.reduce((sum, v) => sum + Math.pow(v - actualMean, 2), 0) / values.length;
+}
+
+export function calculateStdDev(values: number[], mean?: number): number {
+  if (values.length < 2) return 0;
+  const actualMean = mean ?? calculateMean(values);
+  const variance = values.reduce((sum, v) => sum + Math.pow(v - actualMean, 2), 0) / values.length;
+  return Math.sqrt(variance);
+}
+
+export function calculateStandardDeviationFromVariance(variance: number): number {
+  return Math.sqrt(variance);
+}
+
+export function calculateWeightedAverage(
+  data: Array<{ value: number; weight?: number | null }> | WeightedData[]
+): number {
+  const validData = data.filter((d) => d.value > 0);
+  if (validData.length === 0) return 0;
+
+  let weightedSum = 0;
+  let weightSum = 0;
+
+  validData.forEach((d) => {
+    const weight = d.weight && d.weight > 0 ? d.weight : 1;
+    weightedSum += d.value * weight;
+    weightSum += weight;
+  });
+
+  return weightSum > 0 ? weightedSum / weightSum : 0;
+}
+
 export interface CDFPoint {
   value: number;
   probability: number;

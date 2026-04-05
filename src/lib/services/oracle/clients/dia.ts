@@ -107,7 +107,6 @@ export class DIAClient extends BaseOracleClient {
     try {
       const upperSymbol = symbol.toUpperCase();
 
-      // 当查询自己预言机的代币 (DIA) 时，直接使用 Binance API
       if (upperSymbol === 'DIA') {
         const marketData = await binanceMarketService.getTokenMarketData(symbol);
         if (marketData) {
@@ -124,6 +123,13 @@ export class DIAClient extends BaseOracleClient {
             source: 'binance-api',
           };
         }
+        console.error(
+          '[DIA] Failed to fetch DIA token price from Binance API: no market data returned'
+        );
+        throw this.createError(
+          'Failed to fetch DIA token price from Binance API. Binance returned no market data.',
+          'BINANCE_NO_DATA'
+        );
       }
 
       const diaService = getDIADataService();

@@ -1,5 +1,10 @@
 import { createLogger } from '@/lib/utils/logger';
-import { OracleProvider, type PriceData } from '@/types/oracle';
+import { type OracleProvider, type PriceData } from '@/types/oracle';
+
+import { getPerformanceMetricsConfig, getProviderDefaults } from './performanceMetricsConfig';
+import { memoryManager, type MemoryStats } from './memoryManager';
+
+import type { PerformanceMetricsConfig } from './performanceMetricsConfig';
 
 const logger = createLogger('performanceMetricsCalculator');
 
@@ -32,21 +37,26 @@ export interface MetricsCalculationConfig {
   referencePriceProvider?: OracleProvider;
 }
 
-const DEFAULT_CONFIG: MetricsCalculationConfig = {
-  accuracyWindowMs: 24 * 60 * 60 * 1000, // 24小时
-  reliabilityWindowMs: 60 * 60 * 1000, // 1小时
-  updateFrequencyWindowMs: 60 * 60 * 1000, // 1小时
-  minSampleSize: 5,
-  referencePriceProvider: undefined, // 默认使用所有预言机的中位数
-};
+interface CacheEntry<T> {
+  value: T;
+  timestamp: number;
+}
 
 export class PerformanceMetricsCalculator {
   private priceHistory: Map<string, PriceHistoryEntry[]> = new Map();
+  private metricsCache: Map<string, CacheEntry<CalculatedPerformanceMetrics>> = new Map();
   private config: MetricsCalculationConfig;
-  private readonly maxHistorySize = 1000;
 
   constructor(config: Partial<MetricsCalculationConfig> = {}) {
-    this.config = { ...DEFAULT_CONFIG, ...config };
+    const metricsConfig = getPerformanceMetricsConfig();
+    this.config = {
+      accuracyWindowMs: metricsConfig.calculation.accuracyWindowMs,
+      reliabilityWindowMs: metricsConfig.calculation.reliabilityWindowMs,
+      updateFrequencyWindowMs: metricsConfig.calculation.updateFrequencyWindowMs,
+      minSampleSize: metricsConfig.calculation.minSampleSize,
+      referencePriceProvider: undefined,
+      ...config,
+    };
   }
 
   addPriceData(
@@ -70,10 +80,19 @@ export class PerformanceMetricsCalculator {
       source: data.source,
     });
 
-    // 限制历史数据大小
-    if (history.length > this.maxHistorySize) {
+    const metricsConfig = getPerformanceMetricsConfig();
+    const memConfig = metricsConfig.memoryManagement;
+
+    if (memConfig.enabled) {
+      const cleanedHistory = memoryManager.smartCleanup(history);
+      if (cleanedHistory.length !== history.length) {
+        this.priceHistory.set(key, cleanedHistory);
+      }
+    } else if (history.length > metricsConfig.calculation.maxHistorySize) {
       history.shift();
     }
+
+    this.invalidateCache(provider, symbol);
   }
 
   calculateAllMetrics(
@@ -81,10 +100,21 @@ export class PerformanceMetricsCalculator {
     symbol: string,
     allProvidersData: Map<OracleProvider, PriceHistoryEntry[]>
   ): CalculatedPerformanceMetrics {
+    const cacheKey = `${provider}-${symbol}`;
+    const metricsConfig = getPerformanceMetricsConfig();
+
+    if (metricsConfig.cache.enabled) {
+      const cached = this.metricsCache.get(cacheKey);
+      if (cached && Date.now() - cached.timestamp < metricsConfig.cache.ttlMs) {
+        logger.debug(`Returning cached metrics for ${provider}-${symbol}`);
+        return cached.value;
+      }
+    }
+
     const key = `${provider}-${symbol}`;
     const history = this.priceHistory.get(key) || [];
 
-    return {
+    const metrics: CalculatedPerformanceMetrics = {
       provider,
       responseTime: this.calculateAverageResponseTime(provider, symbol),
       updateFrequency: this.calculateUpdateFrequency(provider, symbol),
@@ -96,6 +126,12 @@ export class PerformanceMetricsCalculator {
       lastCalculated: Date.now(),
       sampleSize: history.length,
     };
+
+    if (metricsConfig.cache.enabled) {
+      this.setCache(cacheKey, metrics, metricsConfig);
+    }
+
+    return metrics;
   }
 
   private calculateAverageResponseTime(provider: OracleProvider, symbol: string): number {
@@ -146,7 +182,7 @@ export class PerformanceMetricsCalculator {
       return this.getDefaultUpdateFrequency(provider);
     }
 
-    const avgFrequency = timeSpan / updateCount / 1000; // 转换为秒
+    const avgFrequency = timeSpan / updateCount / 1000;
 
     logger.debug(`Calculated update frequency for ${provider}: ${avgFrequency.toFixed(0)}s`);
     return Math.round(avgFrequency);
@@ -205,9 +241,10 @@ export class PerformanceMetricsCalculator {
     timestamp: number,
     excludeProvider: OracleProvider,
     allProvidersData: Map<OracleProvider, PriceHistoryEntry[]>,
-    symbol: string
+    _symbol: string
   ): number | null {
     const prices: number[] = [];
+    const metricsConfig = getPerformanceMetricsConfig();
 
     for (const [provider, history] of allProvidersData) {
       if (provider === excludeProvider) continue;
@@ -215,22 +252,23 @@ export class PerformanceMetricsCalculator {
       const symbolHistory = history.filter((h) => h.success);
       if (symbolHistory.length === 0) continue;
 
-      // 找到最接近目标时间的条目
       const closestEntry = symbolHistory.reduce((closest, current) => {
         const currentDiff = Math.abs(current.timestamp - timestamp);
         const closestDiff = Math.abs(closest.timestamp - timestamp);
         return currentDiff < closestDiff ? current : closest;
       });
 
-      // 如果时间差太大，忽略这个条目
-      if (Math.abs(closestEntry.timestamp - timestamp) > 60000) continue;
+      if (
+        Math.abs(closestEntry.timestamp - timestamp) >
+        metricsConfig.calculation.referencePriceMaxTimeDiff
+      )
+        continue;
 
       prices.push(closestEntry.price);
     }
 
     if (prices.length === 0) return null;
 
-    // 使用中位数作为参考价格
     const sorted = [...prices].sort((a, b) => a - b);
     const mid = Math.floor(sorted.length / 2);
     return sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
@@ -260,31 +298,16 @@ export class PerformanceMetricsCalculator {
   }
 
   private calculateDecentralizationScore(provider: OracleProvider): number {
-    // 基于预言机类型的去中心化评分
-    const scores: Record<OracleProvider, number> = {
-      [OracleProvider.CHAINLINK]: 95,
-      [OracleProvider.PYTH]: 90,
-      [OracleProvider.BAND_PROTOCOL]: 85,
-      [OracleProvider.API3]: 80,
-      [OracleProvider.REDSTONE]: 85,
-      [OracleProvider.DIA]: 75,
-      [OracleProvider.TELLOR]: 95,
-      [OracleProvider.UMA]: 88,
-      [OracleProvider.CHRONICLE]: 92,
-      [OracleProvider.WINKLINK]: 70,
-    };
-
-    return scores[provider] || 80;
+    const defaults = getProviderDefaults(provider);
+    return defaults.decentralizationScore;
   }
 
   private calculateDataSources(provider: OracleProvider, symbol: string): number {
     const key = `${provider}-${symbol}`;
     const history = this.priceHistory.get(key) || [];
 
-    // 统计不同数据源的数量
     const sources = new Set(history.map((h) => h.source).filter(Boolean));
 
-    // 如果没有真实数据源，返回默认值
     if (sources.size === 0) {
       return this.getDefaultDataSources(provider);
     }
@@ -293,121 +316,91 @@ export class PerformanceMetricsCalculator {
   }
 
   private getSupportedChainsCount(provider: OracleProvider): number {
-    const chains: Record<OracleProvider, number> = {
-      [OracleProvider.CHAINLINK]: 15,
-      [OracleProvider.PYTH]: 10,
-      [OracleProvider.BAND_PROTOCOL]: 8,
-      [OracleProvider.API3]: 5,
-      [OracleProvider.REDSTONE]: 6,
-      [OracleProvider.DIA]: 12,
-      [OracleProvider.TELLOR]: 4,
-      [OracleProvider.UMA]: 5,
-      [OracleProvider.CHRONICLE]: 3,
-      [OracleProvider.WINKLINK]: 1,
-    };
-
-    return chains[provider] || 5;
+    const defaults = getProviderDefaults(provider);
+    return defaults.supportedChains;
   }
 
-  // 默认值方法
   private getDefaultResponseTime(provider: OracleProvider): number {
-    const defaults: Record<OracleProvider, number> = {
-      [OracleProvider.CHAINLINK]: 450,
-      [OracleProvider.PYTH]: 120,
-      [OracleProvider.BAND_PROTOCOL]: 600,
-      [OracleProvider.API3]: 900,
-      [OracleProvider.REDSTONE]: 200,
-      [OracleProvider.DIA]: 800,
-      [OracleProvider.TELLOR]: 1500,
-      [OracleProvider.UMA]: 1200,
-      [OracleProvider.CHRONICLE]: 500,
-      [OracleProvider.WINKLINK]: 600,
-    };
-    return defaults[provider] || 600;
+    const defaults = getProviderDefaults(provider);
+    return defaults.responseTime;
   }
 
   private getDefaultUpdateFrequency(provider: OracleProvider): number {
-    const defaults: Record<OracleProvider, number> = {
-      [OracleProvider.CHAINLINK]: 3600,
-      [OracleProvider.PYTH]: 1,
-      [OracleProvider.BAND_PROTOCOL]: 1800,
-      [OracleProvider.API3]: 3600,
-      [OracleProvider.REDSTONE]: 1,
-      [OracleProvider.DIA]: 3600,
-      [OracleProvider.TELLOR]: 7200,
-      [OracleProvider.UMA]: 7200,
-      [OracleProvider.CHRONICLE]: 3600,
-      [OracleProvider.WINKLINK]: 1800,
-    };
-    return defaults[provider] || 3600;
+    const defaults = getProviderDefaults(provider);
+    return defaults.updateFrequency;
   }
 
   private getDefaultAccuracy(provider: OracleProvider): number {
-    const defaults: Record<OracleProvider, number> = {
-      [OracleProvider.CHAINLINK]: 99.8,
-      [OracleProvider.PYTH]: 99.5,
-      [OracleProvider.BAND_PROTOCOL]: 99.2,
-      [OracleProvider.API3]: 98.9,
-      [OracleProvider.REDSTONE]: 99.3,
-      [OracleProvider.DIA]: 98.8,
-      [OracleProvider.TELLOR]: 98.4,
-      [OracleProvider.UMA]: 98.5,
-      [OracleProvider.CHRONICLE]: 99.7,
-      [OracleProvider.WINKLINK]: 98.5,
-    };
-    return defaults[provider] || 98.0;
+    const defaults = getProviderDefaults(provider);
+    return defaults.accuracy;
   }
 
   private getDefaultReliability(provider: OracleProvider): number {
-    const defaults: Record<OracleProvider, number> = {
-      [OracleProvider.CHAINLINK]: 99.9,
-      [OracleProvider.PYTH]: 99.8,
-      [OracleProvider.BAND_PROTOCOL]: 99.5,
-      [OracleProvider.API3]: 99.7,
-      [OracleProvider.REDSTONE]: 99.8,
-      [OracleProvider.DIA]: 99.5,
-      [OracleProvider.TELLOR]: 99.0,
-      [OracleProvider.UMA]: 99.2,
-      [OracleProvider.CHRONICLE]: 99.9,
-      [OracleProvider.WINKLINK]: 99.3,
-    };
-    return defaults[provider] || 99.0;
+    const defaults = getProviderDefaults(provider);
+    return defaults.reliability;
   }
 
   private getDefaultDataSources(provider: OracleProvider): number {
-    const defaults: Record<OracleProvider, number> = {
-      [OracleProvider.CHAINLINK]: 350,
-      [OracleProvider.PYTH]: 180,
-      [OracleProvider.BAND_PROTOCOL]: 150,
-      [OracleProvider.API3]: 168,
-      [OracleProvider.REDSTONE]: 120,
-      [OracleProvider.DIA]: 80,
-      [OracleProvider.TELLOR]: 50,
-      [OracleProvider.UMA]: 30,
-      [OracleProvider.CHRONICLE]: 25,
-      [OracleProvider.WINKLINK]: 40,
-    };
-    return defaults[provider] || 50;
+    const defaults = getProviderDefaults(provider);
+    return defaults.dataSources;
   }
 
-  // 清理旧数据
-  clearOldData(maxAgeMs: number = 7 * 24 * 60 * 60 * 1000): void {
-    const cutoff = Date.now() - maxAgeMs;
+  private invalidateCache(provider: OracleProvider, symbol: string): void {
+    const cacheKey = `${provider}-${symbol}`;
+    this.metricsCache.delete(cacheKey);
+  }
+
+  private setCache(
+    key: string,
+    value: CalculatedPerformanceMetrics,
+    config: PerformanceMetricsConfig
+  ): void {
+    if (this.metricsCache.size >= config.cache.maxSize) {
+      const oldestKey = this.metricsCache.keys().next().value;
+      if (oldestKey) {
+        this.metricsCache.delete(oldestKey);
+      }
+    }
+
+    this.metricsCache.set(key, {
+      value,
+      timestamp: Date.now(),
+    });
+  }
+
+  clearCache(): void {
+    this.metricsCache.clear();
+    logger.info('Cleared metrics cache');
+  }
+
+  clearOldData(maxAgeMs?: number): void {
+    const config = getPerformanceMetricsConfig();
+    const ageMs = maxAgeMs ?? config.memoryManagement.maxAgeMs;
+    const cutoff = Date.now() - ageMs;
 
     for (const [key, data] of this.priceHistory) {
-      const filtered = data.filter((p) => p.timestamp >= cutoff);
+      const filtered = memoryManager.cleanupByTime(data, ageMs);
       if (filtered.length === 0) {
         this.priceHistory.delete(key);
+        this.metricsCache.delete(key);
       } else {
         this.priceHistory.set(key, filtered);
       }
     }
 
-    logger.info('Cleared old performance metrics data');
+    logger.info('Cleared old performance metrics data', {
+      maxAgeMs: ageMs,
+      cutoffTime: new Date(cutoff).toISOString(),
+    });
   }
 
-  // 获取统计信息
-  getStats(): { totalEntries: number; providerCount: number } {
+  clearAllData(): void {
+    this.priceHistory.clear();
+    this.metricsCache.clear();
+    logger.info('Cleared all performance metrics data and cache');
+  }
+
+  getStats(): { totalEntries: number; providerCount: number; cacheSize: number } {
     let totalEntries = 0;
     for (const data of this.priceHistory.values()) {
       totalEntries += data.length;
@@ -419,9 +412,39 @@ export class PerformanceMetricsCalculator {
       providers.add(provider);
     }
 
-    return { totalEntries, providerCount: providers.size };
+    return {
+      totalEntries,
+      providerCount: providers.size,
+      cacheSize: this.metricsCache.size,
+    };
+  }
+
+  getMemoryStats(): MemoryStats {
+    const stats = memoryManager.getMemoryStats(this.priceHistory);
+    memoryManager.checkMemoryThreshold(stats);
+    return stats;
+  }
+
+  getDetailedStats(): {
+    basic: { totalEntries: number; providerCount: number; cacheSize: number };
+    memory: MemoryStats;
+    entriesByProvider: Record<string, number>;
+  } {
+    const basic = this.getStats();
+    const memory = this.getMemoryStats();
+    const entriesByProvider: Record<string, number> = {};
+
+    for (const [key, entries] of this.priceHistory) {
+      const provider = key.split('-')[0];
+      entriesByProvider[provider] = (entriesByProvider[provider] || 0) + entries.length;
+    }
+
+    return {
+      basic,
+      memory,
+      entriesByProvider,
+    };
   }
 }
 
-// 单例实例
 export const performanceMetricsCalculator = new PerformanceMetricsCalculator();

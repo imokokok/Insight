@@ -5,23 +5,83 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 
+import { OracleClientFactory, getHoursForTimeRange, extractBaseSymbol } from '@/lib/oracles';
 import {
   PerformanceMetricsCalculator,
   type CalculatedPerformanceMetrics,
 } from '@/lib/oracles/performanceMetricsCalculator';
+import { getPerformanceMetricsConfig } from '@/lib/oracles/performanceMetricsConfig';
+import { memoryManager, type MemoryStats } from '@/lib/oracles/memoryManager';
 import { createLogger } from '@/lib/utils/logger';
+import { getRequestQueue, type RequestPriority } from '@/lib/utils/requestQueue';
 import { type OracleProvider, type PriceData } from '@/types/oracle';
 
-import {
-  oracleClients,
-  type TimeRange,
-  type RefreshInterval,
-  type PriceOracleProvider,
-} from '../constants';
+import { type TimeRange, type RefreshInterval, type PriceOracleProvider } from '../constants';
+import type {
+  UseOracleDataReturn,
+  OracleErrorInfo,
+  OracleErrorType,
+  OracleDataError,
+  PartialSuccessState,
+  RetryConfig,
+} from '../types';
 
-import type { UseOracleDataReturn } from '../types/index';
+import { useOracleRetry } from './useOracleRetry';
 
 const logger = createLogger('useOracleData');
+
+type OracleErrorTypeValue = 'network' | 'timeout' | 'data_format' | 'rate_limit' | 'unknown';
+
+function classifyError(error: unknown): { errorType: OracleErrorTypeValue; retryable: boolean } {
+  if (error instanceof Error) {
+    const message = error.message.toLowerCase();
+    const name = error.name.toLowerCase();
+
+    if (name.includes('timeout') || message.includes('timeout') || message.includes('timed out')) {
+      return { errorType: 'timeout', retryable: true };
+    }
+
+    if (
+      name.includes('network') ||
+      message.includes('network') ||
+      message.includes('fetch') ||
+      message.includes('enotfound') ||
+      message.includes('econnrefused') ||
+      message.includes('econnreset')
+    ) {
+      return { errorType: 'network', retryable: true };
+    }
+
+    if (message.includes('rate limit') || message.includes('too many') || message.includes('429')) {
+      return { errorType: 'rate_limit', retryable: true };
+    }
+
+    if (
+      message.includes('parse') ||
+      message.includes('json') ||
+      message.includes('format') ||
+      message.includes('invalid')
+    ) {
+      return { errorType: 'data_format', retryable: false };
+    }
+  }
+
+  return { errorType: 'unknown', retryable: true };
+}
+
+function createOracleErrorInfo(provider: OracleProvider, error: unknown): OracleErrorInfo {
+  const { errorType, retryable } = classifyError(error);
+  const message = error instanceof Error ? error.message : String(error);
+
+  return {
+    provider,
+    errorType: errorType as OracleErrorType,
+    message,
+    originalError: error instanceof Error ? error : undefined,
+    retryable,
+    timestamp: Date.now(),
+  };
+}
 
 interface UseOracleDataOptions {
   selectedOracles: PriceOracleProvider[];
@@ -29,6 +89,9 @@ interface UseOracleDataOptions {
   timeRange: TimeRange;
   initialRefreshInterval?: RefreshInterval;
   enablePerformanceMetrics?: boolean;
+  initialRetryConfig?: Partial<RetryConfig>;
+  requestTimeout?: number;
+  requestPriority?: RequestPriority;
 }
 
 export function useOracleData({
@@ -37,6 +100,9 @@ export function useOracleData({
   timeRange,
   initialRefreshInterval = 0,
   enablePerformanceMetrics = true,
+  initialRetryConfig,
+  requestTimeout,
+  requestPriority = 'normal',
 }: UseOracleDataOptions): UseOracleDataReturn {
   const [priceData, setPriceData] = useState<PriceData[]>([]);
   const [historicalData, setHistoricalData] = useState<
@@ -47,7 +113,6 @@ export function useOracleData({
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [refreshInterval, setRefreshInterval] = useState<RefreshInterval>(initialRefreshInterval);
 
-  // 性能指标计算
   const [performanceMetrics, setPerformanceMetrics] = useState<CalculatedPerformanceMetrics[]>([]);
   const [isCalculatingMetrics, setIsCalculatingMetrics] = useState(false);
   const metricsCalculatorRef = useRef<PerformanceMetricsCalculator>(
@@ -69,28 +134,14 @@ export function useOracleData({
   const abortControllerRef = useRef<AbortController | null>(null);
   const isMountedRef = useRef(true);
 
-  const getHoursForTimeRange = useCallback((range: TimeRange): number | undefined => {
-    switch (range) {
-      case '1H':
-        return 1;
-      case '24H':
-        return 24;
-      case '7D':
-        return 168;
-      case '30D':
-        return 720;
-      case '90D':
-        return 2160;
-      case '1Y':
-        return 8760;
-      case 'ALL':
-        return undefined;
-      default:
-        return 24;
-    }
-  }, []);
+  const [oracleDataError, setOracleDataError] = useState<OracleDataError>({
+    hasError: false,
+    isPartialSuccess: false,
+    partialSuccess: null,
+    errors: [],
+    globalError: null,
+  });
 
-  // 计算性能指标
   const calculatePerformanceMetrics = useCallback(() => {
     if (!enablePerformanceMetrics) return;
 
@@ -98,7 +149,7 @@ export function useOracleData({
 
     try {
       const newMetrics: CalculatedPerformanceMetrics[] = [];
-      const baseSymbol = selectedSymbol.split('/')[0];
+      const baseSymbol = extractBaseSymbol(selectedSymbol);
 
       selectedOracles.forEach((oracle) => {
         const metrics = metricsCalculatorRef.current.calculateAllMetrics(
@@ -125,121 +176,293 @@ export function useOracleData({
     }
   }, [enablePerformanceMetrics, selectedOracles, selectedSymbol]);
 
+  const fetchSingleOracle = useCallback(
+    async (
+      oracle: PriceOracleProvider,
+      baseSymbol: string,
+      hours: number,
+      signal: AbortSignal
+    ): Promise<{ price: PriceData; history: PriceData[] } | null> => {
+      const requestStart = Date.now();
+      const requestQueue = getRequestQueue();
+
+      try {
+        const client = OracleClientFactory.getClient(oracle);
+
+        const [price, history] = await Promise.all([
+          requestQueue.add(
+            () => client.getPrice(baseSymbol),
+            {
+              priority: requestPriority,
+              timeout: requestTimeout,
+              abortSignal: signal,
+            }
+          ),
+          requestQueue.add(
+            () => client.getHistoricalPrices(baseSymbol, undefined, hours),
+            {
+              priority: requestPriority,
+              timeout: requestTimeout,
+              abortSignal: signal,
+            }
+          ),
+        ]);
+
+        if (signal.aborted) {
+          return null;
+        }
+
+        const responseTime = Date.now() - requestStart;
+
+        if (enablePerformanceMetrics && isMountedRef.current) {
+          metricsCalculatorRef.current.addPriceData(
+            oracle as OracleProvider,
+            baseSymbol,
+            price,
+            responseTime,
+            true
+          );
+
+          if (!priceHistoryMapRef.current.has(oracle as OracleProvider)) {
+            priceHistoryMapRef.current.set(oracle as OracleProvider, []);
+          }
+          const historyData = priceHistoryMapRef.current.get(oracle as OracleProvider)!;
+          historyData.push({
+            price: price.price,
+            timestamp: price.timestamp,
+            responseTime,
+            success: true,
+            source: price.source,
+          });
+
+          const memConfig = getPerformanceMetricsConfig().memoryManagement;
+          if (memConfig.enabled) {
+            const cleanedData = memoryManager.smartCleanup(historyData);
+            if (cleanedData.length !== historyData.length) {
+              priceHistoryMapRef.current.set(oracle as OracleProvider, cleanedData);
+            }
+          } else if (historyData.length > 1000) {
+            historyData.shift();
+          }
+        }
+
+        return { price, history };
+      } catch (err) {
+        const responseTime = Date.now() - requestStart;
+        logger.error(
+          `Error fetching data from ${oracle}`,
+          err instanceof Error ? err : new Error(String(err))
+        );
+
+        if (enablePerformanceMetrics) {
+          metricsCalculatorRef.current.addPriceData(
+            oracle as OracleProvider,
+            baseSymbol,
+            {
+              provider: oracle as OracleProvider,
+              symbol: baseSymbol,
+              price: 0,
+              timestamp: Date.now(),
+            },
+            responseTime,
+            false
+          );
+
+          if (!priceHistoryMapRef.current.has(oracle as OracleProvider)) {
+            priceHistoryMapRef.current.set(oracle as OracleProvider, []);
+          }
+          const historyData = priceHistoryMapRef.current.get(oracle as OracleProvider)!;
+          historyData.push({
+            price: 0,
+            timestamp: Date.now(),
+            responseTime,
+            success: false,
+            source: 'error',
+          });
+        }
+
+        throw err;
+      }
+    },
+    [enablePerformanceMetrics, requestTimeout, requestPriority]
+  );
+
+  const handlePriceDataUpdate = useCallback(
+    (provider: OracleProvider, data: { price: PriceData; history: PriceData[] }) => {
+      setPriceData((prev) => {
+        const filtered = prev.filter((p) => p.provider !== provider);
+        return [...filtered, data.price];
+      });
+
+      setHistoricalData((prev) => ({
+        ...prev,
+        [provider]: data.history,
+      }));
+
+      setOracleDataError((prev) => {
+        const newErrors = prev.errors.filter((e) => e.provider !== provider);
+        const newFailedOracles =
+          prev.partialSuccess?.failedOracles.filter((o) => o !== provider) || [];
+        const newSuccessOracles = [...(prev.partialSuccess?.successOracles || []), provider];
+
+        const newPartialSuccess: PartialSuccessState | null =
+          newFailedOracles.length > 0
+            ? {
+                isSuccess: true,
+                successCount: newSuccessOracles.length,
+                failedCount: newFailedOracles.length,
+                totalCount: selectedOracles.length,
+                failedOracles: newFailedOracles,
+                successOracles: newSuccessOracles,
+              }
+            : null;
+
+        return {
+          hasError: newErrors.length > 0,
+          isPartialSuccess: newPartialSuccess !== null,
+          partialSuccess: newPartialSuccess,
+          errors: newErrors,
+          globalError: null,
+        };
+      });
+    },
+    [selectedOracles.length]
+  );
+
+  const handleErrorUpdate = useCallback(
+    (provider: OracleProvider, errorInfo: OracleErrorInfo | null) => {
+      setOracleDataError((prev) => {
+        if (errorInfo === null) {
+          const newErrors = prev.errors.filter((e) => e.provider !== provider);
+          return {
+            ...prev,
+            errors: newErrors,
+          };
+        }
+        const newErrors = prev.errors.map((e) => (e.provider === provider ? errorInfo : e));
+        return {
+          ...prev,
+          errors: newErrors,
+        };
+      });
+    },
+    []
+  );
+
+  const {
+    retryConfig,
+    setRetryConfig,
+    retryOracle,
+    retryAllFailed: retryAllFailedBase,
+    isRetrying,
+    retryingOracles,
+  } = useOracleRetry({
+    selectedOracles,
+    selectedSymbol,
+    timeRange,
+    initialRetryConfig,
+    fetchSingleOracle,
+    onPriceDataUpdate: handlePriceDataUpdate,
+    onErrorUpdate: handleErrorUpdate,
+  });
+
+  const retryAllFailed = useCallback(async () => {
+    await retryAllFailedBase(oracleDataError);
+  }, [retryAllFailedBase, oracleDataError]);
+
   const fetchPriceData = useCallback(async () => {
-    // 取消之前的请求
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
     abortControllerRef.current = new AbortController();
+    const signal = abortControllerRef.current.signal;
 
     setIsLoading(true);
     setError(null);
+    setOracleDataError({
+      hasError: false,
+      isPartialSuccess: false,
+      partialSuccess: null,
+      errors: [],
+      globalError: null,
+    });
 
     const prices: PriceData[] = [];
     const histories: Partial<Record<OracleProvider, PriceData[]>> = {};
-    const hours = getHoursForTimeRange(timeRange);
-    const baseSymbol = selectedSymbol.split('/')[0];
+    const errors: OracleErrorInfo[] = [];
+    const hours = getHoursForTimeRange(timeRange) ?? 24;
+    const baseSymbol = extractBaseSymbol(selectedSymbol);
 
     try {
       const fetchPromises = selectedOracles.map(async (oracle) => {
-        const requestStart = Date.now();
         try {
-          const client = oracleClients[oracle];
-          const [price, history] = await Promise.all([
-            client.getPrice(baseSymbol),
-            client.getHistoricalPrices(baseSymbol, undefined, hours),
-          ]);
-
-          const responseTime = Date.now() - requestStart;
-
-          if (isMountedRef.current) {
-            prices.push(price);
-            histories[oracle] = history;
-
-            // 记录性能数据
-            if (enablePerformanceMetrics) {
-              // 添加到计算器
-              metricsCalculatorRef.current.addPriceData(
-                oracle as OracleProvider,
-                baseSymbol,
-                price,
-                responseTime,
-                true
-              );
-
-              // 添加到本地历史
-              if (!priceHistoryMapRef.current.has(oracle as OracleProvider)) {
-                priceHistoryMapRef.current.set(oracle as OracleProvider, []);
-              }
-              const history = priceHistoryMapRef.current.get(oracle as OracleProvider)!;
-              history.push({
-                price: price.price,
-                timestamp: price.timestamp,
-                responseTime,
-                success: true,
-                source: price.source,
-              });
-              // 限制历史大小
-              if (history.length > 1000) {
-                history.shift();
-              }
-            }
+          const result = await fetchSingleOracle(oracle, baseSymbol, hours, signal);
+          if (result && isMountedRef.current) {
+            prices.push(result.price);
+            histories[oracle] = result.history;
           }
         } catch (err) {
-          const responseTime = Date.now() - requestStart;
-          logger.error(
-            `Error fetching data from ${oracle}`,
-            err instanceof Error ? err : new Error(String(err))
-          );
-
-          // 记录失败
-          if (enablePerformanceMetrics) {
-            metricsCalculatorRef.current.addPriceData(
-              oracle as OracleProvider,
-              baseSymbol,
-              {
-                provider: oracle as OracleProvider,
-                symbol: baseSymbol,
-                price: 0,
-                timestamp: Date.now(),
-              },
-              responseTime,
-              false
-            );
-
-            if (!priceHistoryMapRef.current.has(oracle as OracleProvider)) {
-              priceHistoryMapRef.current.set(oracle as OracleProvider, []);
-            }
-            const history = priceHistoryMapRef.current.get(oracle as OracleProvider)!;
-            history.push({
-              price: 0,
-              timestamp: Date.now(),
-              responseTime,
-              success: false,
-              source: 'error',
-            });
+          if (!signal.aborted && isMountedRef.current) {
+            errors.push(createOracleErrorInfo(oracle as OracleProvider, err));
           }
-          // 继续处理其他预言机，不中断整个流程
         }
       });
 
       await Promise.all(fetchPromises);
 
-      if (isMountedRef.current) {
-        setPriceData(prices);
-        setHistoricalData(histories);
-        setLastUpdated(new Date());
+      if (signal.aborted || !isMountedRef.current) {
+        return;
+      }
 
-        // 计算性能指标
-        if (enablePerformanceMetrics) {
-          calculatePerformanceMetrics();
-        }
+      const successOracles = prices.map((p) => p.provider);
+      const failedOracles = selectedOracles.filter(
+        (o) => !successOracles.includes(o as OracleProvider)
+      ) as OracleProvider[];
+
+      const partialSuccess: PartialSuccessState | null =
+        failedOracles.length > 0 && successOracles.length > 0
+          ? {
+              isSuccess: successOracles.length > 0,
+              successCount: successOracles.length,
+              failedCount: failedOracles.length,
+              totalCount: selectedOracles.length,
+              failedOracles,
+              successOracles,
+            }
+          : null;
+
+      const isPartialSuccess = partialSuccess !== null;
+      const hasError = errors.length > 0;
+
+      setPriceData(prices);
+      setHistoricalData(histories);
+      setLastUpdated(new Date());
+      setOracleDataError({
+        hasError,
+        isPartialSuccess,
+        partialSuccess,
+        errors,
+        globalError:
+          failedOracles.length === selectedOracles.length
+            ? new Error('All oracles failed to fetch data')
+            : null,
+      });
+
+      if (enablePerformanceMetrics) {
+        calculatePerformanceMetrics();
       }
     } catch (err) {
-      const error = err instanceof Error ? err : new Error(String(err));
-      logger.error('Failed to fetch price data', error);
+      const appError = err instanceof Error ? err : new Error(String(err));
+      logger.error('Failed to fetch price data', appError);
       if (isMountedRef.current) {
-        setError(error);
+        setError(appError);
+        setOracleDataError({
+          hasError: true,
+          isPartialSuccess: false,
+          partialSuccess: null,
+          errors: [],
+          globalError: appError,
+        });
       }
     } finally {
       if (isMountedRef.current) {
@@ -250,14 +473,14 @@ export function useOracleData({
     selectedOracles,
     selectedSymbol,
     timeRange,
-    getHoursForTimeRange,
     enablePerformanceMetrics,
     calculatePerformanceMetrics,
+    fetchSingleOracle,
   ]);
 
-  // 初始加载和数据变化时自动获取
   useEffect(() => {
     isMountedRef.current = true;
+    memoryManager.startPeriodicCleanup();
     fetchPriceData();
 
     return () => {
@@ -265,10 +488,10 @@ export function useOracleData({
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
       }
+      memoryManager.stopPeriodicCleanup();
     };
   }, [fetchPriceData]);
 
-  // 自动刷新
   useEffect(() => {
     if (refreshInterval === 0) return;
 
@@ -279,6 +502,27 @@ export function useOracleData({
     return () => clearInterval(intervalId);
   }, [refreshInterval, fetchPriceData]);
 
+  const getMemoryStats = useCallback((): MemoryStats => {
+    return memoryManager.getMemoryStats(priceHistoryMapRef.current);
+  }, []);
+
+  const clearHistoryData = useCallback(() => {
+    priceHistoryMapRef.current.clear();
+    metricsCalculatorRef.current.clearAllData();
+    logger.info('Cleared all price history data');
+  }, []);
+
+  const getDetailedMemoryStats = useCallback(() => {
+    const calculatorStats = metricsCalculatorRef.current.getDetailedStats();
+    const localStats = getMemoryStats();
+
+    return {
+      localPriceHistory: localStats,
+      calculatorStats,
+      formattedBytes: memoryManager.formatBytes(localStats.estimatedBytes),
+    };
+  }, [getMemoryStats]);
+
   return {
     priceData,
     historicalData,
@@ -288,9 +532,18 @@ export function useOracleData({
     fetchPriceData,
     refreshInterval,
     setRefreshInterval,
-    // 性能指标相关
     performanceMetrics,
     isCalculatingMetrics,
+    oracleDataError,
+    retryConfig,
+    setRetryConfig,
+    retryOracle,
+    retryAllFailed,
+    isRetrying,
+    retryingOracles,
+    getMemoryStats,
+    clearHistoryData,
+    getDetailedMemoryStats,
   };
 }
 

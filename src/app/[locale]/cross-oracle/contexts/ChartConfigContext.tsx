@@ -11,7 +11,7 @@ import { type OracleProvider } from '@/types/oracle';
 
 import { type TimeRange } from '../constants';
 
-import type { QualityTrendData } from '../types';
+import type { QualityTrendData } from '../types/index';
 
 interface ChartConfigContextValue {
   // 选中的预言机

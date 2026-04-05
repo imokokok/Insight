@@ -3,6 +3,8 @@
  * @description 统一导出所有类型定义，确保类型系统清晰一致
  */
 
+import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
+
 import type { OraclePriceSeries } from '@/components/oracle/charts/PriceCorrelationMatrix';
 import type { PriceDeviationDataPoint } from '@/components/oracle/charts/PriceDeviationHeatmap';
 import type { OraclePriceData } from '@/components/oracle/charts/PriceDistributionBoxPlot';
@@ -203,8 +205,159 @@ export interface TechnicalIndicatorsResult {
 }
 
 // ============================================================================
+// 错误类型定义
+// ============================================================================
+
+export type OracleErrorType = 'network' | 'timeout' | 'data_format' | 'rate_limit' | 'unknown';
+
+export interface OracleErrorInfo {
+  provider: OracleProvider;
+  errorType: OracleErrorType;
+  message: string;
+  originalError?: Error;
+  retryable: boolean;
+  timestamp: number;
+}
+
+export interface PartialSuccessState {
+  isSuccess: boolean;
+  successCount: number;
+  failedCount: number;
+  totalCount: number;
+  failedOracles: OracleProvider[];
+  successOracles: OracleProvider[];
+}
+
+export interface OracleDataError {
+  hasError: boolean;
+  isPartialSuccess: boolean;
+  partialSuccess: PartialSuccessState | null;
+  errors: OracleErrorInfo[];
+  globalError: Error | null;
+}
+
+export interface RetryConfig {
+  maxRetries: number;
+  retryDelay: number;
+  exponentialBackoff: boolean;
+}
+
+// ============================================================================
 // Hook 返回类型
 // ============================================================================
+
+export interface UseCrossOraclePageReturn {
+  selectedOracles: OracleProvider[];
+  setSelectedOracles: React.Dispatch<React.SetStateAction<OracleProvider[]>>;
+  selectedSymbol: string;
+  setSelectedSymbol: React.Dispatch<React.SetStateAction<string>>;
+  priceData: PriceData[];
+  historicalData: Partial<Record<OracleProvider, PriceData[]>>;
+  isLoading: boolean;
+  lastUpdated: Date | null;
+  sortColumn: SortColumn;
+  sortDirection: SortDirection;
+  refreshInterval: RefreshInterval;
+  setRefreshInterval: React.Dispatch<React.SetStateAction<RefreshInterval>>;
+  timeRange: TimeRange;
+  setTimeRange: React.Dispatch<React.SetStateAction<TimeRange>>;
+  prevStats: SnapshotStats | null;
+  lastStats: SnapshotStats | null;
+  zoomLevel: number;
+  deviationFilter: DeviationFilter;
+  setDeviationFilter: React.Dispatch<React.SetStateAction<DeviationFilter>>;
+  oracleFilter: OracleProvider | 'all';
+  setOracleFilter: React.Dispatch<React.SetStateAction<OracleProvider | 'all'>>;
+  expandedRow: number | null;
+  setExpandedRow: React.Dispatch<React.SetStateAction<number | null>>;
+  isFilterPanelOpen: boolean;
+  setIsFilterPanelOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  filterPanelRef: React.RefObject<HTMLDivElement | null>;
+  isChartFullscreen: boolean;
+  setIsChartFullscreen: React.Dispatch<React.SetStateAction<boolean>>;
+  historyMinMax: HistoryMinMax;
+  selectedSnapshot: OracleSnapshot | null;
+  setSelectedSnapshot: React.Dispatch<React.SetStateAction<OracleSnapshot | null>>;
+  showComparison: boolean;
+  setShowComparison: React.Dispatch<React.SetStateAction<boolean>>;
+  selectedRowIndex: number | null;
+  hoveredRowIndex: number | null;
+  highlightedOutlierIndex: number | null;
+  tableRef: React.RefObject<HTMLTableSectionElement | null>;
+  chartContainerRef: React.RefObject<HTMLDivElement | null>;
+  showFavoritesDropdown: boolean;
+  setShowFavoritesDropdown: React.Dispatch<React.SetStateAction<boolean>>;
+  favoritesDropdownRef: React.RefObject<HTMLDivElement | null>;
+  useAccessibleColors: boolean;
+  setUseAccessibleColors: React.Dispatch<React.SetStateAction<boolean>>;
+  hoveredOracle: OracleProvider | null;
+  setHoveredOracle: React.Dispatch<React.SetStateAction<OracleProvider | null>>;
+  selectedOracleFromChart: OracleProvider | null;
+  setSelectedOracleFromChart: React.Dispatch<React.SetStateAction<OracleProvider | null>>;
+  selectedPerformanceOracle: OracleProvider | null;
+  setSelectedPerformanceOracle: React.Dispatch<React.SetStateAction<OracleProvider | null>>;
+  getOracleLatencyData: (oracle: OracleProvider | null) => number[];
+  t: (key: string, params?: Record<string, string | number>) => string;
+  router: AppRouterInstance;
+  user: { id: string } | null;
+  oracleFavorites: UserFavorite[];
+  currentFavoriteConfig: FavoriteConfig;
+  validPrices: number[];
+  avgPrice: number;
+  weightedAvgPrice: number;
+  maxPrice: number;
+  minPrice: number;
+  priceRange: number;
+  variance: number;
+  standardDeviation: number;
+  standardDeviationPercent: number;
+  currentStats: SnapshotStats;
+  sortedPriceData: PriceData[];
+  filteredPriceData: PriceData[];
+  activeFilterCount: number;
+  outlierStats: OutlierStats;
+  oracleChartColors: Record<OracleProvider, string>;
+  getChartData: () => ChartDataPoint[];
+  heatmapData: PriceDeviationDataPoint[];
+  boxPlotData: OraclePriceData[];
+  volatilityData: OraclePriceHistory[];
+  correlationData: OraclePriceSeries[];
+  latencyData: number[];
+  performanceData: OraclePerformanceData[];
+  maData: MovingAverageData[];
+  gasFeeData: GasFeeData[];
+  atrData: ATRData[];
+  bollingerData: BollingerData[];
+  qualityTrendData: QualityTrendData[];
+  qualityScoreData: QualityScoreData;
+  handleSort: (column: SortColumn) => void;
+  handleZoomIn: () => void;
+  handleZoomOut: () => void;
+  handleResetZoom: () => void;
+  handleSaveSnapshot: () => void;
+  handleSelectSnapshot: (snapshot: OracleSnapshot) => void;
+  handleClearFilters: () => void;
+  getFilterSummary: () => string[];
+  toggleOracle: (oracle: OracleProvider) => void;
+  handleApplyFavorite: (config: FavoriteConfig) => void;
+  handleExportCSV: () => void;
+  handleExportJSON: () => void;
+  scrollToOutlier: () => void;
+  calculateChangePercent: (current: number, previous: number) => number | null;
+  fetchPriceData: () => Promise<void>;
+  getLineStrokeDasharray: (oracle: OracleProvider) => string;
+  getConsistencyRating: (stdDevPercent: number) => string;
+  activeTab: TabId;
+  handleTabChange: (tab: TabId) => void;
+  setHoveredRowIndex: (index: number | null) => void;
+  setSelectedRowIndex: (index: number | null) => void;
+  symbols: string[];
+  onQuery: () => void;
+  onClearFilters: () => void;
+  onSymbolChange: (symbol: string) => void;
+  onDeviationFilterChange: (filter: DeviationFilter) => void;
+  onAccessibleColorsChange: (value: boolean) => void;
+}
 
 export interface UseOracleDataReturn {
   priceData: PriceData[];
@@ -215,9 +368,26 @@ export interface UseOracleDataReturn {
   fetchPriceData: () => Promise<void>;
   refreshInterval: RefreshInterval;
   setRefreshInterval: (interval: RefreshInterval) => void;
-  // 性能指标相关
   performanceMetrics: import('@/lib/oracles/performanceMetricsCalculator').CalculatedPerformanceMetrics[];
   isCalculatingMetrics: boolean;
+  oracleDataError: OracleDataError;
+  retryConfig: RetryConfig;
+  setRetryConfig: (config: Partial<RetryConfig>) => void;
+  retryOracle: (provider: OracleProvider) => Promise<void>;
+  retryAllFailed: () => Promise<void>;
+  isRetrying: boolean;
+  retryingOracles: OracleProvider[];
+  getMemoryStats: () => import('@/lib/oracles/memoryManager').MemoryStats;
+  clearHistoryData: () => void;
+  getDetailedMemoryStats: () => {
+    localPriceHistory: import('@/lib/oracles/memoryManager').MemoryStats;
+    calculatorStats: {
+      basic: { totalEntries: number; providerCount: number; cacheSize: number };
+      memory: import('@/lib/oracles/memoryManager').MemoryStats;
+      entriesByProvider: Record<string, number>;
+    };
+    formattedBytes: string;
+  };
 }
 
 export interface UseChartConfigReturn extends ChartConfigResult {

@@ -7,6 +7,7 @@ export * from './format';
 export * from './logger';
 export * from './lttb';
 export * from './oracle-helpers';
+export * from './requestQueue';
 export * from './riskUtils';
 export * from './searchHistory';
 export * from './statistics';

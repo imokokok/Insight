@@ -1,16 +1,5 @@
 import { chartColors } from '@/lib/config/colors';
-import {
-  ChainlinkClient,
-  BandProtocolClient,
-  UMAClient,
-  PythClient,
-  API3Client,
-  RedStoneClient,
-  DIAClient,
-  TellorClient,
-  ChronicleClient,
-  WINkLinkClient,
-} from '@/lib/oracles';
+import { OracleClientFactory } from '@/lib/oracles';
 import { type CalculatedPerformanceMetrics } from '@/lib/oracles/performanceMetricsCalculator';
 import { OracleProvider } from '@/types/oracle';
 
@@ -112,19 +101,6 @@ export interface PriceDeviationDetail {
   deviationFromBenchmark: number;
   rank: number;
 }
-
-export const oracleClients = {
-  [OracleProvider.CHAINLINK]: new ChainlinkClient(),
-  [OracleProvider.BAND_PROTOCOL]: new BandProtocolClient(),
-  [OracleProvider.UMA]: new UMAClient(),
-  [OracleProvider.PYTH]: new PythClient(),
-  [OracleProvider.API3]: new API3Client(),
-  [OracleProvider.REDSTONE]: new RedStoneClient(),
-  [OracleProvider.DIA]: new DIAClient(),
-  [OracleProvider.TELLOR]: new TellorClient(),
-  [OracleProvider.CHRONICLE]: new ChronicleClient(),
-  [OracleProvider.WINKLINK]: new WINkLinkClient(),
-};
 
 export const oracleNames: Record<OracleProvider, string> = {
   [OracleProvider.CHAINLINK]: 'Chainlink',

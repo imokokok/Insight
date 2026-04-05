@@ -16,6 +16,7 @@ import {
   ReferenceLine,
 } from 'recharts';
 
+import { SectionErrorBoundary } from '@/components/error-boundary';
 import { FavoriteButton } from '@/components/favorites';
 import {
   EmptyStateEnhanced,
@@ -49,7 +50,6 @@ import { TabNavigation, type TabId } from './components/TabNavigation';
 import { VolatilitySurface } from './components/VolatilitySurface';
 import { type ChainStats, type RefreshInterval } from './constants';
 import { useCrossChainData } from './useCrossChainData';
-import { SectionErrorBoundary } from '@/components/error-boundary';
 import {
   chainNames,
   chainColors,

@@ -17,7 +17,7 @@ import { DropdownSelect } from '@/components/ui';
 import { type OracleProvider, type PriceData } from '@/types/oracle';
 
 import { oracleNames } from '../../constants';
-import { type QualityTrendData } from '../../types';
+import { type QualityTrendData } from '../../types/index';
 import { BenchmarkComparisonSection } from '../BenchmarkComparisonSection';
 import { OracleComparisonSection } from '../OracleComparisonSection';
 

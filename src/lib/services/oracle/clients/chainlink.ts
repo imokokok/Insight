@@ -156,14 +156,14 @@ export class ChainlinkClient extends BaseOracleClient {
 
       if (this.useRealData) {
         const days = Math.ceil(period / 24);
-        const binancePrices = await this.getHistoricalPricesFromCoinGecko(symbol, days);
+        const coinGeckoPrices = await this.getHistoricalPricesFromCoinGecko(symbol, days);
 
-        if (binancePrices && binancePrices.length > 0) {
-          logger.info(`Using Binance real historical data for ${symbol}`, {
+        if (coinGeckoPrices && coinGeckoPrices.length > 0) {
+          logger.info(`Using CoinGecko historical data for ${symbol}`, {
             symbol,
-            points: binancePrices.length,
+            points: coinGeckoPrices.length,
           });
-          return binancePrices;
+          return coinGeckoPrices;
         }
 
         if (isPriceFeedSupported(symbol, chainId)) {
@@ -392,17 +392,17 @@ export class ChainlinkClient extends BaseOracleClient {
         symbol: marketData.symbol,
         name: marketData.name,
         currentPrice: marketData.currentPrice,
-        marketCap: marketData.marketCap,
-        marketCapRank: marketData.marketCapRank,
+        marketCap: marketData.marketCap ?? 0,
+        marketCapRank: marketData.marketCapRank ?? 0,
         totalVolume24h: marketData.totalVolume24h,
         high24h: marketData.high24h,
         low24h: marketData.low24h,
         priceChange24h: marketData.priceChange24h,
         priceChangePercentage24h: marketData.priceChangePercentage24h,
         priceChangePercentage7d: marketData.priceChangePercentage7d,
-        circulatingSupply: marketData.circulatingSupply,
-        totalSupply: marketData.totalSupply,
-        maxSupply: marketData.maxSupply,
+        circulatingSupply: marketData.circulatingSupply ?? 0,
+        totalSupply: marketData.totalSupply ?? 0,
+        maxSupply: marketData.maxSupply ?? undefined,
         stakingApr: 4.32,
       };
     } catch (error) {

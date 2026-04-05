@@ -5,24 +5,26 @@ import React from 'react';
 import { semanticColors, baseColors, chainColors } from '@/lib/config/colors';
 import { PRICE_ORACLE_PROVIDERS, type PriceOracleProvider } from '@/lib/config/oracles';
 import { providerNames, type RefreshInterval } from '@/lib/constants';
+import { OracleClientFactory } from '@/lib/oracles';
+import { getDeviationColor } from '@/lib/utils/chartSharedUtils';
 import {
-  ChainlinkClient,
-  BandProtocolClient,
-  PythClient,
-  API3Client,
-  RedStoneClient,
-  DIAClient,
-  TellorClient,
-  WINkLinkClient,
-  UMAClient,
-  ChronicleClient,
-  type BaseOracleClient,
-} from '@/lib/oracles';
-import {
-  getDeviationColor,
-  calculateStandardDeviation as calcStdDev,
-} from '@/lib/utils/chartSharedUtils';
+  calculateWeightedAverage as calcWeightedAverage,
+  calculateVariance,
+  calculateStandardDeviationFromVariance,
+  calculateStdDev,
+} from '@/lib/utils/statistics';
 import { OracleProvider } from '@/types/oracle';
+
+import {
+  ANOMALY_THRESHOLD,
+  DATA_DELAY_THRESHOLD,
+  DATA_DELAY_WARNING_THRESHOLD,
+  DATA_DELAY_DANGER_THRESHOLD,
+  DEVIATION_FILTER_THRESHOLDS,
+  CONSISTENCY_RATING_THRESHOLDS,
+  ZSCORE_OUTLIER_THRESHOLD,
+  FRESHNESS_THRESHOLDS,
+} from './thresholds';
 
 export type { PriceOracleProvider };
 
@@ -215,19 +217,6 @@ export const symbols = tradingPairs.map((pair) => pair.symbol);
 
 export { type RefreshInterval };
 
-export const oracleClients: Record<PriceOracleProvider, BaseOracleClient> = {
-  [OracleProvider.CHAINLINK]: new ChainlinkClient(),
-  [OracleProvider.BAND_PROTOCOL]: new BandProtocolClient(),
-  [OracleProvider.UMA]: new UMAClient(),
-  [OracleProvider.PYTH]: new PythClient(),
-  [OracleProvider.API3]: new API3Client(),
-  [OracleProvider.REDSTONE]: new RedStoneClient(),
-  [OracleProvider.DIA]: new DIAClient(),
-  [OracleProvider.TELLOR]: new TellorClient(),
-  [OracleProvider.CHRONICLE]: new ChronicleClient(),
-  [OracleProvider.WINKLINK]: new WINkLinkClient(),
-};
-
 export const oracleNames = providerNames;
 
 export const priceOracleNames: Record<PriceOracleProvider, string> = {
@@ -263,9 +252,11 @@ export const getDeviationColorClass = (deviationPercent: number | null): string 
 export const getDeviationBgClass = (deviationPercent: number | null): string => {
   if (deviationPercent === null) return '';
   const absDeviation = Math.abs(deviationPercent);
-  if (absDeviation < 0.1) return `bg-[${semanticColors.success.DEFAULT}]`;
-  if (absDeviation < 0.5) return `bg-[${semanticColors.warning.DEFAULT}]`;
-  if (absDeviation < 1.0) return `bg-[${semanticColors.warning.dark}]`;
+  if (absDeviation < DEVIATION_FILTER_THRESHOLDS.EXCELLENT)
+    return `bg-[${semanticColors.success.DEFAULT}]`;
+  if (absDeviation < DEVIATION_FILTER_THRESHOLDS.GOOD)
+    return `bg-[${semanticColors.warning.DEFAULT}]`;
+  if (absDeviation < ANOMALY_THRESHOLD) return `bg-[${semanticColors.warning.dark}]`;
   return `bg-[${semanticColors.danger.DEFAULT}]`;
 };
 
@@ -279,7 +270,7 @@ export const getFreshnessInfo = (
   let text: string;
   let colorClass: string;
 
-  if (seconds < 30) {
+  if (seconds < FRESHNESS_THRESHOLDS.FRESH) {
     text =
       seconds <= 1
         ? t
@@ -289,7 +280,7 @@ export const getFreshnessInfo = (
           ? t('crossOracle.freshnessOptions.secondsAgo', { seconds })
           : `${seconds}s ago`;
     colorClass = `text-[${semanticColors.success.dark}]`;
-  } else if (seconds < 60) {
+  } else if (seconds < FRESHNESS_THRESHOLDS.NORMAL) {
     text = t ? t('crossOracle.freshnessOptions.secondsAgo', { seconds }) : `${seconds}s ago`;
     colorClass = `text-[${semanticColors.warning.dark}]`;
   } else if (seconds < 3600) {
@@ -306,47 +297,27 @@ export const getFreshnessInfo = (
 };
 
 export const getFreshnessDotColor = (seconds: number): string => {
-  if (seconds < 30) return `bg-[${semanticColors.success.DEFAULT}]`;
-  if (seconds < 60) return `bg-[${semanticColors.warning.DEFAULT}]`;
+  if (seconds < FRESHNESS_THRESHOLDS.FRESH) return `bg-[${semanticColors.success.DEFAULT}]`;
+  if (seconds < FRESHNESS_THRESHOLDS.NORMAL) return `bg-[${semanticColors.warning.DEFAULT}]`;
   return `bg-[${semanticColors.danger.DEFAULT}]`;
 };
 
 export const calculateWeightedAverage = (
   prices: { price: number; confidence?: number | null | undefined }[]
 ): number => {
-  const validData = prices.filter((d) => d.price > 0);
-  if (validData.length === 0) return 0;
-
-  let weightedSum = 0;
-  let weightSum = 0;
-
-  validData.forEach((data) => {
-    const weight = data.confidence && data.confidence > 0 ? data.confidence : 1;
-    weightedSum += data.price * weight;
-    weightSum += weight;
-  });
-
-  return weightSum > 0 ? weightedSum / weightSum : 0;
+  return calcWeightedAverage(prices.map((p) => ({ value: p.price, weight: p.confidence })));
 };
 
-export const calculateVariance = (prices: number[], mean: number): number => {
-  if (prices.length < 2) return 0;
-  const sumSquaredDiff = prices.reduce((sum, price) => sum + Math.pow(price - mean, 2), 0);
-  return sumSquaredDiff / prices.length;
-};
+export { calculateVariance };
 
-export const calculateStandardDeviation = (variance: number): number => {
-  return Math.sqrt(variance);
-};
+export const calculateStandardDeviation = calculateStandardDeviationFromVariance;
 
-export const calculateStandardDeviationFromValues = (values: number[]): number => {
-  return calcStdDev(values);
-};
+export const calculateStandardDeviationFromValues = calculateStdDev;
 
 export const getConsistencyRating = (stdDevPercent: number): string => {
-  if (stdDevPercent < 0.1) return 'excellent';
-  if (stdDevPercent < 0.3) return 'good';
-  if (stdDevPercent < 0.5) return 'fair';
+  if (stdDevPercent < CONSISTENCY_RATING_THRESHOLDS.EXCELLENT) return 'excellent';
+  if (stdDevPercent < CONSISTENCY_RATING_THRESHOLDS.GOOD) return 'good';
+  if (stdDevPercent < CONSISTENCY_RATING_THRESHOLDS.FAIR) return 'fair';
   return 'poor';
 };
 
@@ -725,20 +696,15 @@ export const getRefreshOptions = (
 export const timeRanges: TimeRange[] = ['1H', '24H', '7D', '30D', '90D', '1Y', 'ALL'];
 
 // ============================================================================
-// 风险预警阈值常量
+// 风险预警阈值常量（从 thresholds.ts 重新导出）
 // ============================================================================
 
-/** 价格异常偏差阈值（1%） */
-export const ANOMALY_THRESHOLD = 1.0;
-
-/** 数据延迟阈值（毫秒）- 30秒 */
-export const DATA_DELAY_THRESHOLD = 30000;
-
-/** 数据延迟警告阈值（毫秒）- 60秒 */
-export const DATA_DELAY_WARNING_THRESHOLD = 60000;
-
-/** 数据延迟危险阈值（毫秒）- 5分钟 */
-export const DATA_DELAY_DANGER_THRESHOLD = 300000;
+export {
+  ANOMALY_THRESHOLD,
+  DATA_DELAY_THRESHOLD,
+  DATA_DELAY_WARNING_THRESHOLD,
+  DATA_DELAY_DANGER_THRESHOLD,
+};
 
 export interface HistoryMinMax {
   avgPrice: { min: number; max: number };
