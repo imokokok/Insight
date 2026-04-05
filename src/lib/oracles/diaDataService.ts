@@ -50,6 +50,8 @@ const DIA_CHAIN_MAPPING: Record<Blockchain, string> = {
   [Blockchain.LINEA]: 'Linea',
   [Blockchain.SCROLL]: 'Scroll',
   [Blockchain.ZKSYNC]: 'ZkSync',
+  [Blockchain.MOONRIVER]: 'Moonriver',
+  [Blockchain.METIS]: 'Metis',
   [Blockchain.STARKEX]: 'StarkEx',
 };
 

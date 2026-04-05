@@ -98,6 +98,8 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
     [Blockchain.POLKADOT]: configChainColors.polkadot,
     [Blockchain.KAVA]: configChainColors.kava,
     [Blockchain.MOONBEAM]: configChainColors.moonbeam,
+    [Blockchain.MOONRIVER]: configChainColors.moonriver,
+    [Blockchain.METIS]: configChainColors.metis,
     [Blockchain.STARKEX]: configChainColors.starkex,
   };
 

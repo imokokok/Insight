@@ -98,6 +98,7 @@
     },
     "dataIntegrity": "Data Integrity",
     "priceJumpFrequency": "Price Jump Frequency",
+    "priceJumps": "Price Jumps",
     "detailComparison": "Detail Comparison",
     "priceTrendComparison": "Price Trend Comparison",
     "anomalyPoint": "Anomaly Point",

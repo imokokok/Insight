@@ -69,6 +69,8 @@ const BLOCKCHAIN_TO_CHAIN_ID: Record<Blockchain, number> = {
   [Blockchain.POLKADOT]: 0,
   [Blockchain.KAVA]: 2222,
   [Blockchain.MOONBEAM]: 1284,
+  [Blockchain.MOONRIVER]: 1285,
+  [Blockchain.METIS]: 1088,
   [Blockchain.STARKEX]: 0,
 };
 
