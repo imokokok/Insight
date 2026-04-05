@@ -5,72 +5,125 @@
   "priceQuery": {
     "title": "Price Query",
     "description": "Query real-time price data across multiple oracles and blockchains",
-    "loading": "Loading",
+    "loading": "Loading...",
     "loadingData": "Loading data...",
     "query": "Query",
     "querying": "Querying...",
     "noResults": {
-      "title": "No results found for {symbol}",
-      "description": "No price data available for the selected criteria",
-      "suggestion": "Try adjusting your oracle, blockchain, or symbol selection",
-      "popularTokens": "Popular tokens"
+      "title": "No price data found for \"{symbol}\"",
+      "description": "This token may not exist or is not currently supported by any oracle",
+      "suggestion": "Please check the token symbol or try searching for popular tokens below",
+      "popularTokens": "Popular Tokens"
     },
     "results": {
-      "title": "results",
+      "title": "Price Query Results",
       "count": "{count} results",
-      "empty": "No results to display",
+      "empty": "Please select oracles and blockchains to query",
+      "filterPlaceholder": "Filter results...",
+      "oracle": "Oracle",
+      "blockchain": "Blockchain",
+      "price": "Price",
+      "deviation": "Deviation",
+      "timestamp": "Timestamp",
+      "dataSource": "Data Source",
+      "noMatchingData": "No matching data",
+      "showing": "Showing {filtered} / {total} results",
+      "tableLabel": "Price query results table",
+      "sortAscending": "sorted ascending",
+      "sortDescending": "sorted descending",
+      "resultsCount": "results",
+      "showFilters": "Show filters",
+      "hideFilters": "Hide filters",
+      "filterLabel": "Filter results",
       "table": {
         "oracle": "Oracle",
         "blockchain": "Blockchain",
         "price": "Price",
+        "timestamp": "Timestamp",
         "change24h": "24h Change",
         "freshness": "Freshness",
         "confidence": "Confidence",
-        "source": "Source"
+        "dataSource": "Data Source"
+      },
+      "dataSources": {
+        "real": "Real-time",
+        "mock": "Mock",
+        "api": "API",
+        "fallback": "Fallback"
+      },
+      "oracleFeatures": {
+        "chainlink": "Multi-chain",
+        "band": "Cross-chain",
+        "uma": "Optimistic",
+        "pyth": "Low-latency",
+        "api3": "First-party",
+        "redstone": "Modular",
+        "dia": "Open-source",
+        "tellor": "Decentralized",
+        "chronicle": "MakerDAO",
+        "winklink": "TRON Eco"
+      },
+      "qualityScore": {
+        "excellent": "Excellent",
+        "good": "Good",
+        "warning": "Warning",
+        "critical": "Critical"
       }
     },
     "subtitle": "Query real-time price data across multiple oracles and blockchains",
     "filter": {
-      "placeholder": "Filter results...",
-      "noResults": "No results match your filter"
+      "placeholder": "Search oracle or blockchain...",
+      "results": "Showing {count} / {total} results",
+      "noResults": "No matching results found"
     },
     "pagination": {
-      "perPage": "per page",
+      "perPage": "Per page",
       "items": "items",
+      "total": "Total {count} items",
       "prevPage": "Previous",
       "nextPage": "Next"
     },
     "selectors": {
-      "symbol": "Symbol",
-      "oracle": "Oracles",
-      "blockchain": "Blockchains",
+      "symbol": "Trading Pair",
+      "oracle": "Oracle",
+      "blockchain": "Blockchain",
       "timeRange": "Time Range",
       "selectAll": "Select All",
       "deselectAll": "Deselect All",
       "advancedOptions": "Advanced Options",
       "compareMode": "Compare Mode",
       "showBaseline": "Show Baseline",
-      "compareTime": "Compare Time"
+      "compareTime": "Compare Time",
+      "panelLabel": "Price query selectors",
+      "symbolLabel": "Select trading pair",
+      "oracleLabel": "Select oracles",
+      "blockchainLabel": "Select blockchains",
+      "timeRangeLabel": "Select time range",
+      "compareTimeLabel": "Select comparison time range",
+      "compareModeDesc": "Enable to compare prices between two time periods",
+      "baselineDesc": "Show average price baseline on the chart",
+      "symbolNotSupported": "This symbol is not supported",
+      "singleOracleNotSupport": "{oracle} does not support {symbol}",
+      "multipleOraclesNotSupport": "The following oracles do not support {symbol}: {oracles}",
+      "selectOracle": "Select Oracle",
+      "selectBlockchain": "Select Blockchain"
     },
     "stats": {
       "avgPrice": "Average Price",
+      "maxPrice": "Highest Price",
+      "minPrice": "Lowest Price",
+      "priceRange": "Price Range",
+      "standardDeviation": "Standard Deviation",
+      "dataPoints": "Data Points",
+      "consistencyRating": "Consistency Rating",
+      "absoluteValue": "Absolute Value",
+      "queryDuration": "Query Duration",
       "change24h": "24h Change",
       "volatility": "Volatility",
       "annualized": "Annualized",
-      "dataPoints": "Data Points",
-      "maxPrice": "Maximum Price",
-      "minPrice": "Minimum Price",
-      "priceRange": "Price Range",
-      "standardDeviation": "Standard Deviation",
-      "absoluteValue": "Absolute",
-      "queryDuration": "Query Duration",
       "compare": "Compare",
-      "consistency": {
-        "excellent": "Excellent",
-        "good": "Good",
-        "fair": "Fair",
-        "poor": "Poor"
-      }
+      "collapse": "Collapse",
+      "expand": "View More"
     },
     "export": {
       "header": "Price Query Export",
@@ -179,10 +232,7 @@
         "hour": "Hour",
         "day": "Day"
       },
-      "timeRange": {
-        "label": "Time Range",
-        "all": "All"
-      },
+      "timeRange": "Time Range",
       "timeComparison": {
         "title": "Time Comparison",
         "period1": "Period 1",
@@ -201,8 +251,7 @@
       "show": "Show",
       "hide": "Hide",
       "avgPrice": "Average Price",
-      "dataPoints": "Data Points",
-      "timeRange": "Time Range"
+      "dataPoints": "Data Points"
     },
     "charts": {
       "priceHistory": "Price History",
@@ -246,124 +295,6 @@
       "chainlinkDesc": "Decentralized oracle network"
     },
     "scrollHint": "← Swipe to view more →",
-    "filter": {
-      "placeholder": "Search oracle or blockchain...",
-      "results": "Showing {count} / {total} results",
-      "noResults": "No matching results found"
-    },
-    "noResults": {
-      "title": "No price data found for \"{symbol}\"",
-      "description": "This token may not exist or is not currently supported by any oracle",
-      "suggestion": "Please check the token symbol or try searching for popular tokens below",
-      "popularTokens": "Popular Tokens"
-    },
-    "selectors": {
-      "symbol": "Trading Pair",
-      "oracle": "Oracle",
-      "blockchain": "Blockchain",
-      "timeRange": "Time Range",
-      "selectAll": "Select All",
-      "deselectAll": "Deselect All",
-      "advancedOptions": "Advanced Options",
-      "compareMode": "Compare Mode",
-      "showBaseline": "Show Baseline",
-      "compareTime": "Compare Time",
-      "panelLabel": "Price query selectors",
-      "symbolLabel": "Select trading pair",
-      "oracleLabel": "Select oracles",
-      "blockchainLabel": "Select blockchains",
-      "timeRangeLabel": "Select time range",
-      "compareTimeLabel": "Select comparison time range",
-      "compareModeDesc": "Enable to compare prices between two time periods",
-      "baselineDesc": "Show average price baseline on the chart",
-      "symbolNotSupported": "This symbol is not supported",
-      "singleOracleNotSupport": "{oracle} does not support {symbol}",
-      "multipleOraclesNotSupport": "The following oracles do not support {symbol}: {oracles}",
-      "selectOracle": "Select Oracle",
-      "selectBlockchain": "Select Blockchain"
-    },
-    "query": "Query",
-    "querying": "Querying...",
-    "loading": "Loading...",
-    "pagination": {
-      "perPage": "Per page",
-      "items": "items",
-      "total": "Total {count} items",
-      "prevPage": "Previous",
-      "nextPage": "Next"
-    },
-    "results": {
-      "title": "Price Query Results",
-      "count": "{count} results",
-      "empty": "Please select oracles and blockchains to query",
-      "filterPlaceholder": "Filter results...",
-      "oracle": "Oracle",
-      "blockchain": "Blockchain",
-      "price": "Price",
-      "deviation": "Deviation",
-      "timestamp": "Timestamp",
-      "dataSource": "Data Source",
-      "noMatchingData": "No matching data",
-      "showing": "Showing {filtered} / {total} results",
-      "tableLabel": "Price query results table",
-      "sortAscending": "sorted ascending",
-      "sortDescending": "sorted descending",
-      "resultsCount": "results",
-      "showFilters": "Show filters",
-      "hideFilters": "Hide filters",
-      "filterLabel": "Filter results",
-      "table": {
-        "oracle": "Oracle",
-        "blockchain": "Blockchain",
-        "price": "Price",
-        "timestamp": "Timestamp",
-        "change24h": "24h Change",
-        "freshness": "Freshness",
-        "confidence": "Confidence",
-        "dataSource": "Data Source"
-      },
-      "dataSources": {
-        "real": "Real-time",
-        "mock": "Mock",
-        "api": "API",
-        "fallback": "Fallback"
-      },
-      "oracleFeatures": {
-        "chainlink": "Multi-chain",
-        "band": "Cross-chain",
-        "uma": "Optimistic",
-        "pyth": "Low-latency",
-        "api3": "First-party",
-        "redstone": "Modular",
-        "dia": "Open-source",
-        "tellor": "Decentralized",
-        "chronicle": "MakerDAO",
-        "winklink": "TRON Eco"
-      },
-      "qualityScore": {
-        "excellent": "Excellent",
-        "good": "Good",
-        "warning": "Warning",
-        "critical": "Critical"
-      }
-    },
-    "stats": {
-      "avgPrice": "Average Price",
-      "maxPrice": "Highest Price",
-      "minPrice": "Lowest Price",
-      "priceRange": "Price Range",
-      "standardDeviation": "Standard Deviation",
-      "dataPoints": "Data Points",
-      "consistencyRating": "Consistency Rating",
-      "absoluteValue": "Absolute Value",
-      "queryDuration": "Query Duration",
-      "change24h": "24h Change",
-      "volatility": "Volatility",
-      "annualized": "Annualized",
-      "compare": "Compare",
-      "collapse": "Collapse",
-      "expand": "View More"
-    },
     "config": {
       "save": "Save Config",
       "load": "Load Config",

@@ -18,15 +18,14 @@
     "avgCredibility": "Avg Credibility",
     "sourceName": "Source Name",
     "type": "Type",
-    "credibility": "Credibility",
-    "status": "Status",
-    "verification": "Verification Method",
     "credibility": {
       "high": "High Credibility",
       "medium": "Medium Credibility",
       "low": "Low Credibility",
       "unverified": "Unverified"
     },
+    "status": "Status",
+    "verification": "Verification Method",
     "credibilityLevel": {
       "high": "High Credibility",
       "medium": "Medium Credibility",

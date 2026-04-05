@@ -454,13 +454,8 @@
     "export": "导出"
   },
   "timeRange": {
-    "1H": "1小时",
-    "24H": "24小时",
-    "7D": "7天",
-    "30D": "30天",
-    "90D": "90天",
-    "1Y": "1年",
-    "ALL": "全部"
+    "30d": "30天",
+    "thisMonth": "本月"
   },
   "pageTitles": {
     "market": "市场数据",
@@ -473,10 +468,6 @@
     "crossOracle": "跨预言机分析"
   },
   "subtitle": "去中心化预言机网络领导者",
-  "timeRange": {
-    "30d": "30天",
-    "thisMonth": "本月"
-  },
   "network": {
     "allRegions": "全部地区",
     "northAmerica": "北美",

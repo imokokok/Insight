@@ -18,15 +18,14 @@
     "avgCredibility": "平均可信度",
     "sourceName": "数据源名称",
     "type": "类型",
-    "credibility": "可信度",
-    "status": "状态",
-    "verification": "验证方式",
     "credibility": {
       "high": "高可信度",
       "medium": "中等可信度",
       "low": "低可信度",
       "unverified": "未验证"
     },
+    "status": "状态",
+    "verification": "验证方式",
     "credibilityLevel": {
       "high": "高可信度",
       "medium": "中等可信度",
