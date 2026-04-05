@@ -51,33 +51,47 @@ async function fetchBinancePrices(): Promise<Record<string, number>> {
 
   const url = `https://api.binance.com/api/v3/ticker/price?symbols=${encodeURIComponent(JSON.stringify(symbols))}`;
 
-  const response = await fetch(url, {
-    cache: 'no-store',
-    headers: {
-      Accept: 'application/json',
-    },
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000);
 
-  if (!response.ok) {
-    const errorText = await response.text().catch(() => 'Unknown error');
-    throw new Error(`Binance API error: ${response.status} - ${errorText}`);
-  }
+  try {
+    const response = await fetch(url, {
+      cache: 'no-store',
+      headers: {
+        Accept: 'application/json',
+      },
+      signal: controller.signal,
+    });
 
-  const data = await response.json();
+    clearTimeout(timeoutId);
 
-  const prices: Record<string, number> = { ...FIXED_PRICES };
-  const symbolToAsset = Object.fromEntries(
-    Object.entries(BINANCE_SYMBOLS).map(([asset, symbol]) => [symbol, asset])
-  );
-
-  data.forEach((item: { symbol: string; price: string }) => {
-    const asset = symbolToAsset[item.symbol];
-    if (asset) {
-      prices[asset] = parseFloat(item.price);
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => 'Unknown error');
+      throw new Error(`Binance API error: ${response.status} - ${errorText}`);
     }
-  });
 
-  return prices;
+    const data = await response.json();
+
+    const prices: Record<string, number> = { ...FIXED_PRICES };
+    const symbolToAsset = Object.fromEntries(
+      Object.entries(BINANCE_SYMBOLS).map(([asset, symbol]) => [symbol, asset])
+    );
+
+    data.forEach((item: { symbol: string; price: string }) => {
+      const asset = symbolToAsset[item.symbol];
+      if (asset) {
+        prices[asset] = parseFloat(item.price);
+      }
+    });
+
+    return prices;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error('Binance API request timeout');
+    }
+    throw error;
+  }
 }
 
 export async function GET() {
