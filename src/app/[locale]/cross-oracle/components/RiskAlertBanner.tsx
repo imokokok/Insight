@@ -223,7 +223,7 @@ function RiskAlertBannerComponent({
                 {anomaly.deviationPercent.toFixed(2)}%
               </span>
             </span>
-            <span className="text-gray-400 text-xs truncate">{anomaly.reason}</span>
+            <span className="text-gray-400 text-xs truncate">{anomaly.reasonKeys.join(', ')}</span>
           </div>
         ))}
         {remainingCount > 0 && (

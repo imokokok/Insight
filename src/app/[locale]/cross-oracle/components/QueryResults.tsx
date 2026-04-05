@@ -36,7 +36,7 @@ interface OracleFeature {
   avgLatency: number;
   updateFrequency: string;
   features: string[];
-  description: string;
+  descriptionKey: string;
 }
 
 interface QueryResultsProps {

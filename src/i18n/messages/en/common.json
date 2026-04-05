@@ -1150,5 +1150,109 @@
       "unknownError": "An unknown error occurred. Please try again.",
       "retry": "Retry"
     }
+  },
+  "oracles": {
+    "descriptions": {
+      "chainlink": "Industry-leading decentralized oracle network providing secure and reliable off-chain data connectivity for smart contracts",
+      "bandProtocol": "Cross-chain data oracle platform built on Cosmos SDK, enabling fast finality and native interoperability",
+      "uma": "Optimistic oracle protocol building trustless synthetic assets and financial contracts through dispute resolution mechanisms",
+      "pyth": "High-frequency financial data oracle with first-party exchange data and sub-second latency",
+      "api3": "First-party oracle network enabling decentralized API connectivity",
+      "redstone": "Modular oracle solution supporting efficient data streams and flexible integration options",
+      "dia": "Open-source cross-chain data oracle platform providing transparent and verifiable financial data feeds",
+      "tellor": "Decentralized crypto-native oracle ensuring data transparency and security through staking mining mechanisms",
+      "chronicle": "MakerDAO's native oracle using the Scuttlebutt security protocol",
+      "winklink": "TRON ecosystem oracle focused on gaming and DeFi"
+    }
+  },
+  "riskMetrics": {
+    "volatility": {
+      "insufficientData": "Insufficient data to calculate volatility",
+      "description": "Price volatility is {volatility}%"
+    },
+    "consistency": {
+      "good": "Data consistency is good",
+      "description": "Data consistency score is {value}, standard deviation is {stdDev}%"
+    },
+    "sensitivity": {
+      "description": "Anomaly detection sensitivity set to {value}, currently detected {anomalyCount} anomalies"
+    },
+    "health": {
+      "noData": "System health is extremely low: no valid price data",
+      "description": "System health is {value}, based on {sourceCount} data sources"
+    }
+  },
+  "anomalyDetection": {
+    "reasons": {
+      "severeDeviation": "Price severely deviates from market average",
+      "highVolatility": "High market volatility",
+      "dataSourceDifference": "Data source discrepancy",
+      "severelyDelayed": "Data source delayed over 5 minutes",
+      "delayed": "Data source delayed",
+      "lowConfidence": "Low data source confidence",
+      "mediumConfidence": "Moderate data source confidence",
+      "overThreshold": "Price deviation exceeds threshold",
+      "minorDeviation": "Minor price deviation"
+    }
+  },
+  "errors": {
+    "suggestions": {
+      "default": "Please try again later or contact support",
+      "validationError": "Please check if the input data meets the requirements",
+      "authenticationError": "Please log in again or check your authentication information",
+      "authorizationError": "Please confirm you have permission to perform this action",
+      "notFound": "Please confirm the requested resource exists",
+      "rateLimitExceeded": "Please try again later or reduce request frequency",
+      "internalError": "Please try again later, if the problem persists please contact support",
+      "priceFetchError": "Please check your network connection or try again later",
+      "oracleClientError": "Oracle service is temporarily unavailable, please try again later",
+      "badRequest": "Please check if the request parameters are correct",
+      "unauthorized": "Please log in first to perform this action",
+      "forbidden": "You do not have permission to access this resource",
+      "conflict": "Request conflicts with current resource state, please refresh and try again",
+      "serviceUnavailable": "Service is temporarily unavailable, please try again later",
+      "networkError": "Network connection error, please check your network settings",
+      "timeoutError": "Request timed out, please try again later",
+      "unknownError": "An unknown error occurred, please try again later or contact support"
+    }
+  },
+  "export": {
+    "resolution": {
+      "standard": "Standard (2x)",
+      "high": "High (4x)",
+      "ultra": "Ultra (6x)"
+    },
+    "progress": {
+      "preparingCSV": "Preparing CSV data...",
+      "preparingJSON": "Preparing JSON data...",
+      "preparingChart": "Preparing chart screenshot...",
+      "preparingSVG": "Preparing SVG export...",
+      "preparingPDF": "Preparing PDF export...",
+      "preparingBatch": "Preparing batch export...",
+      "processingData": "Processing data {current}/{total}...",
+      "processingChart": "Processing chart {current}/{total}: {title}...",
+      "exportingChart": "Exporting chart {current}/{total}: {name}...",
+      "cloningSVG": "Cloning SVG element...",
+      "serializingSVG": "Serializing SVG...",
+      "serializingData": "Serializing data...",
+      "renderingImage": "Rendering image...",
+      "generatingFile": "Generating file...",
+      "generatingPNG": "Generating PNG file...",
+      "generatingZIP": "Generating ZIP file...",
+      "savingPDF": "Saving PDF file...",
+      "completed": "Export completed",
+      "pdfCompleted": "PDF export completed",
+      "batchCompleted": "Batch export completed",
+      "allChartsCompleted": "All charts exported successfully",
+      "chartPrefix": "[{name}] {messageKey}"
+    },
+    "formats": {
+      "csvDescription": "Comma-separated values file, suitable for data analysis",
+      "jsonDescription": "Structured data format, suitable for programmatic processing",
+      "excelDescription": "Excel compatible format, suitable for spreadsheet processing",
+      "pngDescription": "High-quality image format, suitable for sharing and reports",
+      "svgDescription": "Vector graphics format, scalable without quality loss",
+      "pdfDescription": "PDF document format, includes charts and summary"
+    }
   }
 }

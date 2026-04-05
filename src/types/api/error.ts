@@ -182,22 +182,22 @@ export const RETRYABLE_HTTP_STATUSES: number[] = [
 ];
 
 export const ERROR_CODE_SUGGESTIONS: Record<string, string> = {
-  [ErrorCode.VALIDATION_ERROR]: '请检查输入数据是否符合要求',
-  [ErrorCode.AUTHENTICATION_ERROR]: '请重新登录或检查您的认证信息',
-  [ErrorCode.AUTHORIZATION_ERROR]: '请确认您有权限执行此操作',
-  [ErrorCode.NOT_FOUND]: '请确认请求的资源存在',
-  [ErrorCode.RATE_LIMIT_EXCEEDED]: '请稍后再试，或降低请求频率',
-  [ErrorCode.INTERNAL_ERROR]: '请稍后重试，如果问题持续存在请联系支持团队',
-  [ErrorCode.PRICE_FETCH_ERROR]: '请检查网络连接或稍后重试',
-  [ErrorCode.ORACLE_CLIENT_ERROR]: '预言机服务暂时不可用，请稍后重试',
-  [ErrorCode.BAD_REQUEST]: '请检查请求参数是否正确',
-  [ErrorCode.UNAUTHORIZED]: '请先登录后再执行此操作',
-  [ErrorCode.FORBIDDEN]: '您没有权限访问此资源',
-  [ErrorCode.CONFLICT]: '请求与当前资源状态冲突，请刷新后重试',
-  [ErrorCode.SERVICE_UNAVAILABLE]: '服务暂时不可用，请稍后重试',
-  [ErrorCode.NETWORK_ERROR]: '网络连接异常，请检查网络设置',
-  [ErrorCode.TIMEOUT_ERROR]: '请求超时，请稍后重试',
-  [ErrorCode.UNKNOWN_ERROR]: '发生未知错误，请稍后重试或联系支持',
+  [ErrorCode.VALIDATION_ERROR]: 'errors.suggestions.validationError',
+  [ErrorCode.AUTHENTICATION_ERROR]: 'errors.suggestions.authenticationError',
+  [ErrorCode.AUTHORIZATION_ERROR]: 'errors.suggestions.authorizationError',
+  [ErrorCode.NOT_FOUND]: 'errors.suggestions.notFound',
+  [ErrorCode.RATE_LIMIT_EXCEEDED]: 'errors.suggestions.rateLimitExceeded',
+  [ErrorCode.INTERNAL_ERROR]: 'errors.suggestions.internalError',
+  [ErrorCode.PRICE_FETCH_ERROR]: 'errors.suggestions.priceFetchError',
+  [ErrorCode.ORACLE_CLIENT_ERROR]: 'errors.suggestions.oracleClientError',
+  [ErrorCode.BAD_REQUEST]: 'errors.suggestions.badRequest',
+  [ErrorCode.UNAUTHORIZED]: 'errors.suggestions.unauthorized',
+  [ErrorCode.FORBIDDEN]: 'errors.suggestions.forbidden',
+  [ErrorCode.CONFLICT]: 'errors.suggestions.conflict',
+  [ErrorCode.SERVICE_UNAVAILABLE]: 'errors.suggestions.serviceUnavailable',
+  [ErrorCode.NETWORK_ERROR]: 'errors.suggestions.networkError',
+  [ErrorCode.TIMEOUT_ERROR]: 'errors.suggestions.timeoutError',
+  [ErrorCode.UNKNOWN_ERROR]: 'errors.suggestions.unknownError',
 };
 
 export const ERROR_CODE_DOCUMENTATION: Record<string, string> = {
@@ -254,7 +254,7 @@ export function classifyError(error: { code?: string; statusCode?: number }): Er
 }
 
 export function getSuggestedAction(errorCode: string): string {
-  return ERROR_CODE_SUGGESTIONS[errorCode] || '请稍后重试或联系支持团队';
+  return ERROR_CODE_SUGGESTIONS[errorCode] || 'errors.suggestions.default';
 }
 
 export function getErrorDocumentationUrl(errorCode: string, baseUrl?: string): string | undefined {

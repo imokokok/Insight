@@ -460,7 +460,29 @@
     "btcUsdTwap": "BTC/USD TWAP",
     "btcUsdTwapDesc": "BTC/USD 1小时TWAP",
     "customData": "自定义数据",
-    "customDataDesc": "纽约市自定义天气数据"
+    "customDataDesc": "纽约市自定义天气数据",
+    "queryTypes": {
+      "spotPrice": {
+        "name": "SpotPrice",
+        "description": "现货价格查询，获取资产的实时价格",
+        "example": "ETH/USD, BTC/USDT"
+      },
+      "legacyRequest": {
+        "name": "LegacyRequest",
+        "description": "遗留请求类型，用于向后兼容旧版Tellor",
+        "example": "Request ID: 1, 2, 3..."
+      },
+      "twap": {
+        "name": "TWAP",
+        "description": "时间加权平均价格，计算指定时间段的平均价格",
+        "example": "ETH/USD 24h TWAP"
+      },
+      "customQuery": {
+        "name": "CustomQuery",
+        "description": "自定义查询类型，支持任意数据查询",
+        "example": "自定义编码的查询数据"
+      }
+    }
   },
   "tellorLayer": {
     "overview": {

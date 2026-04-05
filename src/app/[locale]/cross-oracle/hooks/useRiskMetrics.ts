@@ -23,8 +23,10 @@ export interface RiskMetric {
   trendValue: number;
   /** 指标状态 */
   status: 'good' | 'warning' | 'danger';
-  /** 指标描述 */
-  description: string;
+  /** 指标描述翻译键 */
+  descriptionKey: string;
+  /** 描述参数 */
+  descriptionParams?: Record<string, string | number>;
 }
 
 /** 历史风险指标（用于趋势计算） */
@@ -108,7 +110,7 @@ function calculateVolatilityMetric(validPrices: number[], previousValue?: number
       trend: 'stable',
       trendValue: 0,
       status: 'good',
-      description: '数据不足，无法计算波动率',
+      descriptionKey: 'riskMetrics.volatility.insufficientData',
     };
   }
 
@@ -126,7 +128,8 @@ function calculateVolatilityMetric(validPrices: number[], previousValue?: number
     trend,
     trendValue,
     status: getStatus(value, { good: 70, warning: 40 }),
-    description: `价格波动率为 ${volatilityPercent.toFixed(2)}%`,
+    descriptionKey: 'riskMetrics.volatility.description',
+    descriptionParams: { volatility: volatilityPercent.toFixed(2) },
   };
 }
 
@@ -143,7 +146,7 @@ function calculateConsistencyMetric(validPrices: number[], previousValue?: numbe
       trend: 'stable',
       trendValue: 0,
       status: 'good',
-      description: '数据一致性良好',
+      descriptionKey: 'riskMetrics.consistency.good',
     };
   }
 
@@ -161,7 +164,8 @@ function calculateConsistencyMetric(validPrices: number[], previousValue?: numbe
     trend,
     trendValue,
     status: getStatus(value, { good: 80, warning: 60 }),
-    description: `数据一致性评分为 ${value}，标准差为 ${stdDevPercent.toFixed(2)}%`,
+    descriptionKey: 'riskMetrics.consistency.description',
+    descriptionParams: { value, stdDev: stdDevPercent.toFixed(2) },
   };
 }
 
@@ -190,7 +194,8 @@ function calculateSensitivityMetric(
     trend,
     trendValue,
     status: getStatus(value, { good: 70, warning: 50 }),
-    description: `异常检测敏感度设置为 ${value}，当前检测到 ${anomalyCount} 个异常`,
+    descriptionKey: 'riskMetrics.sensitivity.description',
+    descriptionParams: { value, anomalyCount },
   };
 }
 
@@ -214,7 +219,7 @@ function calculateHealthMetric(
       trend: 'down',
       trendValue: 0,
       status: 'danger',
-      description: '系统健康度极低：无有效价格数据',
+      descriptionKey: 'riskMetrics.health.noData',
     };
   }
 
@@ -243,7 +248,8 @@ function calculateHealthMetric(
     trend,
     trendValue,
     status: getStatus(value, { good: 80, warning: 60 }),
-    description: `系统健康度为 ${value}，基于 ${validPrices.length} 个数据源`,
+    descriptionKey: 'riskMetrics.health.description',
+    descriptionParams: { value, sourceCount: validPrices.length },
   };
 }
 

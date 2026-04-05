@@ -19,7 +19,7 @@ import {
   type BaseOracleClient,
 } from '@/lib/oracles';
 import { getTokenMarketData } from '@/lib/services/marketData/binanceMarketService';
-import { OracleProvider, Blockchain, type PriceData } from '@/types/oracle';
+import { OracleProvider, Blockchain } from '@/types/oracle';
 
 export interface OracleTab {
   id: string;
@@ -37,7 +37,7 @@ export interface OracleViewConfig {
 export interface OracleConfig {
   provider: OracleProvider;
   name: string;
-  description: string;
+  descriptionKey: string;
   symbol: string;
   defaultChain: Blockchain;
   supportedChains: Blockchain[];
@@ -136,7 +136,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
   [OracleProvider.CHAINLINK]: {
     provider: OracleProvider.CHAINLINK,
     name: 'Chainlink',
-    description: '行业领先的去中心化预言机网络，为智能合约提供安全可靠的链下数据连接',
+    descriptionKey: 'oracles.descriptions.chainlink',
     symbol: 'LINK',
     defaultChain: Blockchain.ETHEREUM,
     supportedChains: [
@@ -215,7 +215,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
   [OracleProvider.BAND_PROTOCOL]: {
     provider: OracleProvider.BAND_PROTOCOL,
     name: 'Band Protocol',
-    description: '基于 Cosmos SDK 构建的跨链数据预言机平台，实现快速最终性和原生互操作性',
+    descriptionKey: 'oracles.descriptions.bandProtocol',
     symbol: 'BAND',
     defaultChain: Blockchain.COSMOS,
     supportedChains: [
@@ -272,7 +272,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
   [OracleProvider.UMA]: {
     provider: OracleProvider.UMA,
     name: 'UMA',
-    description: '乐观预言机协议，通过争议解决机制构建无价的合成资产和金融合约',
+    descriptionKey: 'oracles.descriptions.uma',
     symbol: 'UMA',
     defaultChain: Blockchain.ETHEREUM,
     supportedChains: [
@@ -315,7 +315,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
   [OracleProvider.PYTH]: {
     provider: OracleProvider.PYTH,
     name: 'Pyth',
-    description: '高频金融数据预言机，具有第一方交易所数据和亚秒级延迟',
+    descriptionKey: 'oracles.descriptions.pyth',
     symbol: 'PYTH',
     defaultChain: Blockchain.SOLANA,
     supportedChains: [
@@ -374,7 +374,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
   [OracleProvider.API3]: {
     provider: OracleProvider.API3,
     name: 'API3',
-    description: '第一方预言机网络，实现去中心化 API 连接',
+    descriptionKey: 'oracles.descriptions.api3',
     symbol: 'API3',
     defaultChain: Blockchain.ETHEREUM,
     supportedChains: [
@@ -421,7 +421,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
   [OracleProvider.REDSTONE]: {
     provider: OracleProvider.REDSTONE,
     name: 'RedStone',
-    description: '模块化预言机解决方案，支持高效的数据流和灵活的集成选项',
+    descriptionKey: 'oracles.descriptions.redstone',
     symbol: 'RED',
     defaultChain: Blockchain.ETHEREUM,
     supportedChains: [
@@ -473,7 +473,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
   [OracleProvider.DIA]: {
     provider: OracleProvider.DIA,
     name: 'DIA',
-    description: '开源的跨链数据预言机平台，提供透明且可验证的金融数据馈送',
+    descriptionKey: 'oracles.descriptions.dia',
     symbol: 'DIA',
     defaultChain: Blockchain.ETHEREUM,
     supportedChains: [
@@ -518,7 +518,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
   [OracleProvider.TELLOR]: {
     provider: OracleProvider.TELLOR,
     name: 'Tellor',
-    description: '去中心化加密原生预言机，通过质押挖矿机制确保数据透明度和安全性',
+    descriptionKey: 'oracles.descriptions.tellor',
     symbol: 'TRB',
     defaultChain: Blockchain.ETHEREUM,
     supportedChains: [
@@ -562,7 +562,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
   [OracleProvider.CHRONICLE]: {
     provider: OracleProvider.CHRONICLE,
     name: 'Chronicle',
-    description: 'MakerDAO 原生预言机，采用 Scuttlebutt 安全协议',
+    descriptionKey: 'oracles.descriptions.chronicle',
     symbol: 'CHRONICLE',
     defaultChain: Blockchain.ETHEREUM,
     supportedChains: [
@@ -604,7 +604,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
   [OracleProvider.WINKLINK]: {
     provider: OracleProvider.WINKLINK,
     name: 'WINkLink',
-    description: 'TRON 生态预言机，专注游戏和 DeFi',
+    descriptionKey: 'oracles.descriptions.winklink',
     symbol: 'WIN/USD',
     defaultChain: Blockchain.BNB_CHAIN,
     supportedChains: [Blockchain.BNB_CHAIN, Blockchain.TRON, Blockchain.ETHEREUM],

@@ -1,5 +1,7 @@
 'use client';
 
+import { useState, useEffect } from 'react';
+
 import { AlertTriangle, CheckCircle2, Clock, Database, Shield, TrendingUp } from 'lucide-react';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
@@ -100,10 +102,19 @@ export function QualityAnalysisTab({
   totalCount,
   t,
 }: QualityAnalysisTabProps) {
-  // 计算数据新鲜度（分钟）
-  const freshnessMinutes = Math.floor((Date.now() - lastUpdated.getTime()) / 1000 / 60);
+  const [freshnessMinutes, setFreshnessMinutes] = useState(() =>
+    Math.floor((Date.now() - lastUpdated.getTime()) / 1000 / 60)
+  );
 
-  // 计算完整性百分比
+  useEffect(() => {
+    const updateFreshness = () => {
+      setFreshnessMinutes(Math.floor((Date.now() - lastUpdated.getTime()) / 1000 / 60));
+    };
+    updateFreshness();
+    const interval = setInterval(updateFreshness, 60000);
+    return () => clearInterval(interval);
+  }, [lastUpdated]);
+
   const completenessPercent = totalCount > 0 ? (successCount / totalCount) * 100 : 0;
 
   return (
@@ -178,7 +189,7 @@ export function QualityAnalysisTab({
                             </span>
                           </div>
                         </div>
-                        <p className="text-xs text-gray-500 mt-2">{anomaly.reason}</p>
+                        <p className="text-xs text-gray-500 mt-2">{anomaly.reasonKeys.join(', ')}</p>
                       </div>
                     </div>
                   </div>

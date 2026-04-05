@@ -15,7 +15,6 @@ import {
   getSupportedExportFormats,
   type Resolution,
   RESOLUTION_CONFIG,
-  ExportRange,
   type ExportSettings,
   type PDFExportOptions,
   type BatchExportItem,
@@ -62,9 +61,14 @@ export function ChartExportButton({
   dataSource,
   availableCharts = [],
   dateRange,
-  onDateRangeChange,
+  onDateRangeChange: _onDateRangeChange,
 }: ChartExportButtonProps) {
   const t = useTranslations();
+  const [defaultDateRange] = useState(() => ({
+    start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+    end: new Date(),
+  }));
+  
   const [isOpen, setIsOpen] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showResolutionPicker, setShowResolutionPicker] = useState(false);
@@ -75,7 +79,7 @@ export function ChartExportButton({
   const [progress, setProgress] = useState<ExportProgress>({
     status: 'idle',
     progress: 0,
-    message: '',
+    messageKey: '',
   });
 
   const [settings, setSettings] = useState<ExportSettings>({
@@ -84,10 +88,7 @@ export function ChartExportButton({
     includeWatermark: true,
     filenameTemplate: '{title}_{date}_{time}',
     customFilename: filename,
-    dateRange: dateRange || {
-      start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-      end: new Date(),
-    },
+    dateRange: dateRange || defaultDateRange,
   });
 
   const [selectedCharts, setSelectedCharts] = useState<Set<string>>(new Set());
@@ -144,7 +145,7 @@ export function ChartExportButton({
     async (format: ExportOptions['format'], resolution: Resolution) => {
       if (progress.status === 'exporting') return;
 
-      setProgress({ status: 'preparing', progress: 0, message: t('priceChart.export.exporting') });
+      setProgress({ status: 'preparing', progress: 0, messageKey: 'priceChart.export.exporting' });
       setShowResolutionPicker(false);
       setShowSettings(false);
       setPendingFormat(null);
@@ -198,18 +199,18 @@ export function ChartExportButton({
         onExportComplete?.();
 
         setTimeout(() => {
-          setProgress({ status: 'idle', progress: 0, message: '' });
+          setProgress({ status: 'idle', progress: 0, messageKey: '' });
         }, 2000);
       } catch (error) {
         setProgress({
           status: 'error',
           progress: 0,
-          message: error instanceof Error ? error.message : t('priceChart.export.exportFailed'),
+          messageKey: 'priceChart.export.exportFailed',
         });
         onExportError?.(error instanceof Error ? error : new Error('Export failed'));
 
         setTimeout(() => {
-          setProgress({ status: 'idle', progress: 0, message: '' });
+          setProgress({ status: 'idle', progress: 0, messageKey: '' });
         }, 3000);
       }
     },
@@ -233,7 +234,7 @@ export function ChartExportButton({
   const executeBatchExport = useCallback(async () => {
     if (selectedCharts.size === 0 || progress.status === 'exporting') return;
 
-    setProgress({ status: 'preparing', progress: 0, message: t('priceChart.export.exporting') });
+    setProgress({ status: 'preparing', progress: 0, messageKey: 'priceChart.export.exporting' });
     setShowBatchSelector(false);
 
     try {
@@ -267,19 +268,19 @@ export function ChartExportButton({
       onExportComplete?.();
 
       setTimeout(() => {
-        setProgress({ status: 'idle', progress: 0, message: '' });
+        setProgress({ status: 'idle', progress: 0, messageKey: '' });
         setSelectedCharts(new Set());
       }, 2000);
     } catch (error) {
       setProgress({
         status: 'error',
         progress: 0,
-        message: error instanceof Error ? error.message : t('priceChart.export.exportFailed'),
+        messageKey: 'priceChart.export.exportFailed',
       });
       onExportError?.(error instanceof Error ? error : new Error('Batch export failed'));
 
       setTimeout(() => {
-        setProgress({ status: 'idle', progress: 0, message: '' });
+        setProgress({ status: 'idle', progress: 0, messageKey: '' });
       }, 3000);
     }
   }, [
@@ -499,7 +500,7 @@ export function ChartExportButton({
         <DropdownSelect
           options={(Object.keys(RESOLUTION_CONFIG) as Resolution[]).map((res) => ({
             value: res,
-            label: RESOLUTION_CONFIG[res].label,
+            label: t(RESOLUTION_CONFIG[res].labelKey),
           }))}
           value={selectedResolution}
           onChange={(value) => setSelectedResolution(value as Resolution)}
@@ -646,7 +647,7 @@ export function ChartExportButton({
               </div>
               <span className="text-xs text-gray-500">{progress.progress}%</span>
             </div>
-            <p className="text-xs text-gray-600 truncate">{progress.message}</p>
+            <p className="text-xs text-gray-600 truncate">{t(progress.messageKey, progress.messageParams)}</p>
           </div>
         )}
 
@@ -667,7 +668,7 @@ export function ChartExportButton({
                     : 'text-gray-700 hover:bg-gray-50'
                 }`}
               >
-                {RESOLUTION_CONFIG[res].label}
+                {t(RESOLUTION_CONFIG[res].labelKey)}
               </button>
             ))}
           </div>
@@ -697,7 +698,7 @@ export function ChartExportButton({
                     <span className="font-medium">{format.label}</span>
                     <span className="text-xs text-gray-400">{format.format.toUpperCase()}</span>
                   </div>
-                  <p className="text-xs text-gray-500 mt-0.5">{format.description}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{t(format.descriptionKey)}</p>
                 </button>
               );
             })}
@@ -853,7 +854,7 @@ export function ChartExportButton({
               style={{ width: `${progress.progress}%` }}
             />
           </div>
-          <p className="text-xs text-gray-600 mt-2">{progress.message}</p>
+          <p className="text-xs text-gray-600 mt-2">{t(progress.messageKey, progress.messageParams)}</p>
         </div>
       )}
 
@@ -879,7 +880,7 @@ export function ChartExportButton({
                 }`}
               >
                 <div className="flex items-center justify-between">
-                  <span className="font-medium">{RESOLUTION_CONFIG[res].label}</span>
+                  <span className="font-medium">{t(RESOLUTION_CONFIG[res].labelKey)}</span>
                   {selectedResolution === res && (
                     <svg
                       className="w-4 h-4 text-primary-600"
@@ -929,7 +930,7 @@ export function ChartExportButton({
                     </div>
                     <div>
                       <span className="font-medium text-gray-900">{format.label}</span>
-                      <p className="text-xs text-gray-500 mt-0.5">{format.description}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">{t(format.descriptionKey)}</p>
                     </div>
                   </div>
                   {!isDisabled && (
