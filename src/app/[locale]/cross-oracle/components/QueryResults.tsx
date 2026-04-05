@@ -11,8 +11,10 @@ import { Database } from 'lucide-react';
 
 import { EmptyStateEnhanced, ProgressBar } from '@/components/ui';
 import { useTranslations } from '@/i18n';
+import type { CalculatedPerformanceMetrics } from '@/lib/oracles/performanceMetricsCalculator';
 import type { OracleProvider, PriceData } from '@/types/oracle';
 
+import { OracleErrorPanel } from './OracleErrorPanel';
 import { TabContentSwitcher, type TabType } from './TabContentSwitcher';
 import { RiskAlertTab } from './tabs/RiskAlertTab';
 import { SimplePriceComparisonTab } from './tabs/SimplePriceComparisonTab';
@@ -21,6 +23,7 @@ import { SimpleQualityAnalysisTab } from './tabs/SimpleQualityAnalysisTab';
 import type { TimeRange } from '../constants';
 import type { DataQualityScore } from '../hooks/useDataQualityScore';
 import type { PriceAnomaly } from '../hooks/usePriceAnomalyDetection';
+import type { OracleDataError } from '../types';
 
 // ============================================================================
 // 类型定义
@@ -82,8 +85,15 @@ interface QueryResultsProps {
   onRefresh: () => void;
 
   // 性能指标（新增）
-  performanceMetrics: import('@/lib/oracles/performanceMetricsCalculator').CalculatedPerformanceMetrics[];
+  performanceMetrics: CalculatedPerformanceMetrics[];
   isCalculatingMetrics: boolean;
+
+  // 错误处理（新增）
+  oracleDataError?: OracleDataError;
+  retryOracle?: (provider: OracleProvider) => Promise<void>;
+  retryAllFailed?: () => Promise<void>;
+  isRetrying?: boolean;
+  retryingOracles?: OracleProvider[];
 }
 
 // ============================================================================
@@ -175,11 +185,17 @@ function QueryResultsComponent({
   mediumRiskCount,
   lowRiskCount,
   maxDeviation,
-  qualityScore,
+  qualityScore: _qualityScore,
   historicalData,
   oracleColors,
-  performanceMetrics,
-  isCalculatingMetrics,
+  performanceMetrics: _performanceMetrics,
+  isCalculatingMetrics: _isCalculatingMetrics,
+  oracleDataError,
+  retryOracle,
+  retryAllFailed,
+  isRetrying,
+  retryingOracles,
+  onRefresh,
 }: QueryResultsProps) {
   const t = useTranslations();
   const [activeTab, setActiveTab] = useState<TabType>('priceComparison');
@@ -194,7 +210,24 @@ function QueryResultsComponent({
     return <LoadingState queryProgress={queryProgress} currentQueryTarget={currentQueryTarget} />;
   }
 
-  // 空状态
+  // 全局错误状态（所有预言机都失败）
+  if (oracleDataError?.globalError && !oracleDataError.isPartialSuccess && priceData.length === 0) {
+    return (
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <OracleErrorPanel
+          oracleDataError={oracleDataError}
+          retryOracle={retryOracle}
+          retryAllFailed={retryAllFailed}
+          isRetrying={isRetrying}
+          retryingOracles={retryingOracles}
+          onRefresh={onRefresh}
+          t={t}
+        />
+      </div>
+    );
+  }
+
+  // 空状态（没有选择预言机或没有数据）
   if (priceData.length === 0) {
     return <EmptyState selectedSymbol={selectedSymbol} />;
   }
@@ -272,17 +305,32 @@ function QueryResultsComponent({
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-      {/* Tab 切换导航 */}
-      <TabContentSwitcher
-        activeTab={activeTab}
-        onTabChange={handleTabChange}
-        riskAlertCount={anomalyCount}
-        t={t}
-      />
+    <div className="space-y-4">
+      {/* 部分成功错误面板 */}
+      {oracleDataError?.hasError && oracleDataError.isPartialSuccess && (
+        <OracleErrorPanel
+          oracleDataError={oracleDataError}
+          retryOracle={retryOracle}
+          retryAllFailed={retryAllFailed}
+          isRetrying={isRetrying}
+          retryingOracles={retryingOracles}
+          onRefresh={onRefresh}
+          t={t}
+        />
+      )}
 
-      {/* Tab 内容区域 */}
-      <div className="min-h-[400px]">{renderTabContent()}</div>
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        {/* Tab 切换导航 */}
+        <TabContentSwitcher
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+          riskAlertCount={anomalyCount}
+          t={t}
+        />
+
+        {/* Tab 内容区域 */}
+        <div className="min-h-[400px]">{renderTabContent()}</div>
+      </div>
     </div>
   );
 }

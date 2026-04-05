@@ -8,16 +8,7 @@ import {
   OracleProvider,
   type Blockchain,
   type PriceData,
-  ChainlinkClient,
-  BandProtocolClient,
-  UMAClient,
-  PythClient,
-  API3Client,
-  RedStoneClient,
-  DIAClient,
-  TellorClient,
-  ChronicleClient,
-  WINkLinkClient,
+  OracleClientFactory,
   type BaseOracleClient,
 } from '@/lib/oracles';
 import { isBlockchain, safeBlockchainCast } from '@/lib/utils/chainUtils';
@@ -170,20 +161,8 @@ function detectAnomalousPrices(
   return anomalies;
 }
 
-const oracleClients = {
-  [OracleProvider.CHAINLINK]: new ChainlinkClient(),
-  [OracleProvider.BAND_PROTOCOL]: new BandProtocolClient(),
-  [OracleProvider.UMA]: new UMAClient(),
-  [OracleProvider.PYTH]: new PythClient(),
-  [OracleProvider.API3]: new API3Client(),
-  [OracleProvider.REDSTONE]: new RedStoneClient(),
-  [OracleProvider.DIA]: new DIAClient(),
-  [OracleProvider.TELLOR]: new TellorClient(),
-  [OracleProvider.CHRONICLE]: new ChronicleClient(),
-  [OracleProvider.WINKLINK]: new WINkLinkClient(),
-};
-
 const CACHE_EXPIRATION_MS = 5 * 60 * 1000;
+const MAX_CACHE_SIZE = 50;
 
 interface CacheEntry {
   currentPrices: PriceData[];
@@ -195,6 +174,25 @@ const dataCache = new Map<string, CacheEntry>();
 
 const getCacheKey = (provider: OracleProvider, symbol: string, timeRange: number): string => {
   return `${provider}-${symbol}-${timeRange}`;
+};
+
+const cleanupCache = () => {
+  const now = Date.now();
+  const expiredKeys: string[] = [];
+
+  dataCache.forEach((entry, key) => {
+    if (now - entry.timestamp >= CACHE_EXPIRATION_MS) {
+      expiredKeys.push(key);
+    }
+  });
+
+  expiredKeys.forEach((key) => dataCache.delete(key));
+
+  if (dataCache.size > MAX_CACHE_SIZE) {
+    const entries = Array.from(dataCache.entries()).sort((a, b) => a[1].timestamp - b[1].timestamp);
+    const toDelete = entries.slice(0, dataCache.size - MAX_CACHE_SIZE);
+    toDelete.forEach(([key]) => dataCache.delete(key));
+  }
 };
 
 const clearCache = () => {
@@ -401,7 +399,7 @@ export function useCrossChainData(): UseCrossChainDataReturn {
     handleSort,
   } = useCrossChainStore();
 
-  const currentClient = oracleClients[selectedProvider];
+  const currentClient = OracleClientFactory.getClient(selectedProvider);
   const supportedChains = currentClient.supportedChains;
 
   const fetchData = useCallback(async () => {
@@ -508,6 +506,8 @@ export function useCrossChainData(): UseCrossChainDataReturn {
           })),
         });
       }
+
+      cleanupCache();
 
       dataCache.set(cacheKey, {
         currentPrices: validatedCurrentResults,
@@ -939,7 +939,9 @@ export function useCrossChainData(): UseCrossChainDataReturn {
 
         prices.forEach((priceData) => {
           if (priceData.price < iqrResult.lowerBound || priceData.price > iqrResult.upperBound) {
-            const deviation = Math.abs(priceData.price - iqrResult.q3) / iqrResult.iqr;
+            const boundValue =
+              priceData.price < iqrResult.lowerBound ? iqrResult.lowerBound : iqrResult.upperBound;
+            const deviation = Math.abs(priceData.price - boundValue) / iqrResult.iqr;
             result.push({
               timestamp: priceData.timestamp,
               chain,
@@ -1105,17 +1107,21 @@ export function useCrossChainData(): UseCrossChainDataReturn {
 
     const calculateActualUpdateInterval = (prices: PriceData[]): number => {
       if (prices.length < 2) return defaultUpdateIntervalMinutes;
+
       const intervals: number[] = [];
       for (let i = 1; i < prices.length; i++) {
         const diffMs = prices[i].timestamp - prices[i - 1].timestamp;
         const diffMinutes = diffMs / (1000 * 60);
-        if (diffMinutes > 0) {
+        if (diffMinutes > 0 && diffMinutes < defaultUpdateIntervalMinutes * 10) {
           intervals.push(diffMinutes);
         }
       }
+
       if (intervals.length === 0) return defaultUpdateIntervalMinutes;
-      const avgInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length;
-      return avgInterval;
+
+      const sorted = intervals.sort((a, b) => a - b);
+      const median = sorted[Math.floor(sorted.length / 2)];
+      return median;
     };
 
     filteredChains.forEach((chain) => {
@@ -1340,11 +1346,11 @@ export function useCrossChainData(): UseCrossChainDataReturn {
         chain,
         chainName: chainNames[chain],
         color: chainColors[chain],
-        min: nonOutliers.length > 0 ? Math.min(...nonOutliers) : sorted[0],
+        min: nonOutliers.length > 0 ? Math.min(...nonOutliers) : lowerBound,
         q1,
         median: sorted[Math.floor(n / 2)],
         q3,
-        max: nonOutliers.length > 0 ? Math.max(...nonOutliers) : sorted[n - 1],
+        max: nonOutliers.length > 0 ? Math.max(...nonOutliers) : upperBound,
         outliers,
         iqr,
         lowerWhisker: lowerBound,

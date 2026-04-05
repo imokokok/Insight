@@ -65,9 +65,6 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
     null
   );
 
-  // 历史统计
-  const [lastStats, setLastStats] = useState<SnapshotStats | null>(null);
-
   // Refs
   const filterPanelRef = useRef<HTMLDivElement>(null);
   const favoritesDropdownRef = useRef<HTMLDivElement>(null);
@@ -84,6 +81,13 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
     fetchPriceData,
     performanceMetrics,
     isCalculatingMetrics,
+    oracleDataError,
+    retryConfig,
+    setRetryConfig,
+    retryOracle,
+    retryAllFailed,
+    isRetrying,
+    retryingOracles,
   } = useOracleData({
     selectedOracles,
     selectedSymbol,
@@ -95,12 +99,12 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
   // ==========================================================================
   const priceStats = usePriceStats(priceData);
 
-  // 更新历史统计
-  useEffect(() => {
+  const lastStats = useMemo<SnapshotStats | null>(() => {
     if (priceStats.validPrices.length > 0) {
-      setLastStats(priceStats.currentStats);
+      return priceStats.currentStats;
     }
-  }, [priceStats.currentStats]);
+    return null;
+  }, [priceStats.validPrices.length, priceStats.currentStats]);
 
   // ==========================================================================
   // 价格异常检测
@@ -127,6 +131,7 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
     useAccessibleColors,
     validPrices: priceStats.validPrices,
     avgPrice: priceStats.avgPrice,
+    performanceMetrics,
   });
 
   // ==========================================================================
@@ -267,18 +272,26 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
   // 质量分数数据（兼容旧格式）
   // ==========================================================================
   const qualityScoreData = useMemo(
-    () => ({
-      freshness: { lastUpdated: lastUpdated || new Date() },
-      completeness: {
-        successCount: priceData.length,
-        totalCount: selectedOracles.length,
-      },
-      reliability: {
-        historicalAccuracy: 98.5,
-        responseSuccessRate:
-          selectedOracles.length > 0 ? (priceData.length / selectedOracles.length) * 100 : 0,
-      },
-    }),
+    () => {
+      const lastUpdatedTime = lastUpdated?.getTime() ?? 0;
+      const freshnessScore = lastUpdatedTime > 0 ? 100 : 0;
+
+      return {
+        freshness: {
+          lastUpdated: lastUpdated || new Date(),
+          freshnessScore,
+        },
+        completeness: {
+          successCount: priceData.length,
+          totalCount: selectedOracles.length,
+        },
+        reliability: {
+          historicalAccuracy: 98.5,
+          responseSuccessRate:
+            selectedOracles.length > 0 ? (priceData.length / selectedOracles.length) * 100 : 0,
+        },
+      };
+    },
     [priceData.length, selectedOracles.length, lastUpdated]
   );
 
@@ -417,6 +430,15 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
     // 性能指标（新增）
     performanceMetrics,
     isCalculatingMetrics,
+
+    // 错误处理（新增）
+    oracleDataError,
+    retryConfig,
+    setRetryConfig,
+    retryOracle,
+    retryAllFailed,
+    isRetrying,
+    retryingOracles,
 
     // 回调函数
     handleTabChange,

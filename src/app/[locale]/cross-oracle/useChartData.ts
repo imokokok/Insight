@@ -10,7 +10,7 @@ import { type OracleProvider, type PriceData } from '@/types/oracle';
 
 import { getMaxPointsForTimeRange, getOracleChartColors } from './chartConfig';
 import { oracleNames, type TimeRange } from './constants';
-import { type ChartDataResult, type ChartDataPoint } from './types';
+import { type ChartDataResult, type ChartDataPoint } from './types/index';
 
 export function useChartData(
   historicalData: Partial<Record<OracleProvider, PriceData[]>>,

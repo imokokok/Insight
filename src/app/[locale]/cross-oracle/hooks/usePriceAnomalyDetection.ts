@@ -7,7 +7,12 @@ import { useMemo } from 'react';
 
 import { type PriceData, type OracleProvider } from '@/types/oracle';
 
-import { ANOMALY_THRESHOLD } from '../constants';
+import {
+  ANOMALY_THRESHOLD,
+  SEVERITY_THRESHOLDS,
+  FRESHNESS_THRESHOLDS,
+  CONFIDENCE_THRESHOLDS,
+} from '../thresholds';
 
 /** 异常严重程度 */
 export type AnomalySeverity = 'low' | 'medium' | 'high';
@@ -32,37 +37,16 @@ export interface PriceAnomaly {
 
 /** 异常检测结果 */
 export interface AnomalyDetectionResult {
-  /** 异常列表 */
   anomalies: PriceAnomaly[];
-  /** 异常数量 */
   count: number;
-  /** 高风险异常数量 */
   highRiskCount: number;
-  /** 中风险异常数量 */
   mediumRiskCount: number;
-  /** 低风险异常数量 */
   lowRiskCount: number;
-  /** 是否存在异常 */
   hasAnomalies: boolean;
-  /** 最高偏差值 */
   maxDeviation: number;
-  /** 异常预言机名称列表 */
   anomalyOracleNames: string[];
 }
 
-/** 严重程度阈值（百分比） */
-const SEVERITY_THRESHOLDS = {
-  /** 高风险阈值：>3% */
-  HIGH: 3.0,
-  /** 中风险阈值：1-3% */
-  MEDIUM: 1.0,
-};
-
-/**
- * 根据偏差百分比确定严重程度
- * @param deviationPercent - 偏差百分比
- * @returns 严重程度等级
- */
 function getSeverity(deviationPercent: number): AnomalySeverity {
   const absDeviation = Math.abs(deviationPercent);
   if (absDeviation > SEVERITY_THRESHOLDS.HIGH) {
@@ -74,13 +58,6 @@ function getSeverity(deviationPercent: number): AnomalySeverity {
   return 'low';
 }
 
-/**
- * 分析异常可能的原因
- * @param deviationPercent - 偏差百分比
- * @param freshnessSeconds - 数据新鲜度（秒）
- * @param confidence - 置信度
- * @returns 原因分析文本
- */
 function analyzeReason(
   deviationPercent: number,
   freshnessSeconds: number,
@@ -88,33 +65,29 @@ function analyzeReason(
 ): string {
   const reasons: string[] = [];
 
-  // 根据偏差程度分析
   const absDeviation = Math.abs(deviationPercent);
   if (absDeviation > 5) {
     reasons.push('价格严重偏离市场均值');
-  } else if (absDeviation > 3) {
+  } else if (absDeviation > SEVERITY_THRESHOLDS.HIGH) {
     reasons.push('市场波动较大');
-  } else if (absDeviation > 1) {
+  } else if (absDeviation > ANOMALY_THRESHOLD) {
     reasons.push('数据源存在差异');
   }
 
-  // 根据数据新鲜度分析
-  if (freshnessSeconds > 300) {
+  if (freshnessSeconds > FRESHNESS_THRESHOLDS.SEVERELY_DELAYED) {
     reasons.push('数据源延迟超过5分钟');
-  } else if (freshnessSeconds > 60) {
+  } else if (freshnessSeconds > FRESHNESS_THRESHOLDS.DELAYED) {
     reasons.push('数据源延迟');
   }
 
-  // 根据置信度分析
   if (confidence !== undefined && confidence !== null) {
-    if (confidence < 0.5) {
+    if (confidence < CONFIDENCE_THRESHOLDS.LOW) {
       reasons.push('数据源置信度较低');
-    } else if (confidence < 0.8) {
+    } else if (confidence < CONFIDENCE_THRESHOLDS.MEDIUM) {
       reasons.push('数据源置信度一般');
     }
   }
 
-  // 如果没有检测到特定原因，提供默认分析
   if (reasons.length === 0) {
     if (absDeviation >= ANOMALY_THRESHOLD) {
       reasons.push('价格偏差超过阈值');
@@ -126,15 +99,10 @@ function analyzeReason(
   return reasons.join('，');
 }
 
-/**
- * 检测价格异常
- * @param priceData - 价格数据数组
- * @param avgPrice - 平均价格
- * @returns 异常检测结果
- */
 export function usePriceAnomalyDetection(
   priceData: PriceData[],
-  avgPrice: number
+  avgPrice: number,
+  currentTime?: number
 ): AnomalyDetectionResult {
   return useMemo(() => {
     if (!priceData.length || avgPrice <= 0) {
@@ -150,17 +118,14 @@ export function usePriceAnomalyDetection(
       };
     }
 
-    const now = Date.now();
+    const now = currentTime ?? 0;
     const anomalies: PriceAnomaly[] = [];
 
     priceData.forEach((data) => {
-      // 跳过无效价格
       if (data.price <= 0) return;
 
-      // 计算偏差百分比
       const deviationPercent = ((data.price - avgPrice) / avgPrice) * 100;
 
-      // 只记录超过阈值的异常
       if (Math.abs(deviationPercent) >= ANOMALY_THRESHOLD) {
         const freshnessSeconds = Math.floor((now - data.timestamp) / 1000);
         const severity = getSeverity(deviationPercent);
@@ -178,19 +143,15 @@ export function usePriceAnomalyDetection(
       }
     });
 
-    // 按偏差绝对值降序排序
     anomalies.sort((a, b) => Math.abs(b.deviationPercent) - Math.abs(a.deviationPercent));
 
-    // 统计各等级异常数量
     const highRiskCount = anomalies.filter((a) => a.severity === 'high').length;
     const mediumRiskCount = anomalies.filter((a) => a.severity === 'medium').length;
     const lowRiskCount = anomalies.filter((a) => a.severity === 'low').length;
 
-    // 获取最大偏差值
     const maxDeviation =
       anomalies.length > 0 ? Math.max(...anomalies.map((a) => Math.abs(a.deviationPercent))) : 0;
 
-    // 获取异常预言机名称
     const anomalyOracleNames = anomalies.map((a) => a.provider);
 
     return {
@@ -203,7 +164,7 @@ export function usePriceAnomalyDetection(
       maxDeviation,
       anomalyOracleNames,
     };
-  }, [priceData, avgPrice]);
+  }, [priceData, avgPrice, currentTime]);
 }
 
 export default usePriceAnomalyDetection;

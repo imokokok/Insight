@@ -1,5 +1,7 @@
 'use client';
 
+import { SectionErrorBoundary } from '@/components/error-boundary';
+
 import AnomalyModal from './components/AnomalyModal';
 import AssetsTable from './components/AssetsTable';
 import ChartContainer from './components/ChartContainer';
@@ -7,7 +9,6 @@ import MarketHeader from './components/MarketHeader';
 import MarketSidebar from './components/MarketSidebar';
 import MarketStats from './components/MarketStats';
 import { useMarketPage } from './useMarketPage';
-import { SectionErrorBoundary } from '@/components/error-boundary';
 
 export default function MarketOverviewPage() {
   const {

@@ -6,7 +6,7 @@ import Link from 'next/link';
 
 import {
   isAppError,
-  AppError,
+  type AppError,
   ValidationError,
   NotFoundError,
   PriceFetchError,

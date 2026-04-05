@@ -3,7 +3,7 @@
  * @description 准备图表数据、计算统计指标、管理图表颜色配置
  */
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 
 import type { OraclePriceSeries } from '@/components/oracle/charts/PriceCorrelationMatrix';
 import type { PriceDeviationDataPoint } from '@/components/oracle/charts/PriceDeviationHeatmap';
@@ -11,6 +11,7 @@ import type { OraclePriceData } from '@/components/oracle/charts/PriceDistributi
 import type { OraclePriceHistory } from '@/components/oracle/charts/PriceVolatilityChart';
 import type { OraclePerformanceData } from '@/components/oracle/data-display/OraclePerformanceRanking';
 import { chartColors } from '@/lib/config/colors';
+import type { CalculatedPerformanceMetrics } from '@/lib/oracles/performanceMetricsCalculator';
 import { type OracleProvider, type PriceData } from '@/types/oracle';
 
 import { oracleNames, type TimeRange } from '../constants';
@@ -24,6 +25,7 @@ interface UseChartConfigOptions {
   useAccessibleColors: boolean;
   validPrices: number[];
   avgPrice: number;
+  performanceMetrics: CalculatedPerformanceMetrics[];
 }
 
 const initialHistoryMinMax: HistoryMinMax = {
@@ -43,9 +45,8 @@ export function useChartConfig({
   useAccessibleColors,
   validPrices,
   avgPrice,
+  performanceMetrics,
 }: UseChartConfigOptions): UseChartConfigReturn {
-  const [historyMinMax, setHistoryMinMax] = useState<HistoryMinMax>(initialHistoryMinMax);
-
   // 计算图表颜色配置
   const oracleChartColors = useMemo(() => {
     const colors: Record<OracleProvider, string> = {} as Record<OracleProvider, string>;
@@ -181,11 +182,12 @@ export function useChartConfig({
     });
   }, [historicalData, selectedOracles]);
 
-  // 模拟延迟数据
   const latencyData = useMemo(() => {
-    // 生成模拟延迟数据
-    return [150, 180, 200, 220, 250, 280, 300, 320, 350, 400, 450, 500];
-  }, []);
+    if (performanceMetrics.length === 0) {
+      return [];
+    }
+    return performanceMetrics.map((metric) => metric.responseTime);
+  }, [performanceMetrics]);
 
   // 生成性能数据
   const performanceData = useMemo(() => {
@@ -214,36 +216,26 @@ export function useChartConfig({
     });
   }, [selectedOracles, historicalData, oracleChartColors, avgPrice]);
 
-  // 更新历史极值
-  useEffect(() => {
-    if (validPrices.length === 0) return;
+  // 计算历史极值
+  const historyMinMax = useMemo((): HistoryMinMax => {
+    if (validPrices.length === 0) {
+      return initialHistoryMinMax;
+    }
 
     const currentAvg = validPrices.reduce((a, b) => a + b, 0) / validPrices.length;
     const currentMax = Math.max(...validPrices);
     const currentMin = Math.min(...validPrices);
     const currentRange = currentMax - currentMin;
 
-    setHistoryMinMax((prev: HistoryMinMax) => ({
-      avgPrice: {
-        min: Math.min(prev.avgPrice.min, currentAvg),
-        max: Math.max(prev.avgPrice.max, currentAvg),
-      },
-      maxPrice: {
-        min: Math.min(prev.maxPrice.min, currentMax),
-        max: Math.max(prev.maxPrice.max, currentMax),
-      },
-      minPrice: {
-        min: Math.min(prev.minPrice.min, currentMin),
-        max: Math.max(prev.minPrice.max, currentMin),
-      },
-      priceRange: {
-        min: Math.min(prev.priceRange.min, currentRange),
-        max: Math.max(prev.priceRange.max, currentRange),
-      },
-      weightedAvgPrice: prev.weightedAvgPrice,
-      standardDeviationPercent: prev.standardDeviationPercent,
-      variance: prev.variance,
-    }));
+    return {
+      avgPrice: { min: currentAvg, max: currentAvg },
+      maxPrice: { min: currentMax, max: currentMax },
+      minPrice: { min: currentMin, max: currentMin },
+      priceRange: { min: currentRange, max: currentRange },
+      weightedAvgPrice: { min: Infinity, max: -Infinity },
+      standardDeviationPercent: { min: Infinity, max: -Infinity },
+      variance: { min: Infinity, max: -Infinity },
+    };
   }, [validPrices]);
 
   return {

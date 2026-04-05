@@ -235,8 +235,9 @@ export const detectPriceJumps = (
   const { mean, stdDev } = calculatePriceJumpStats(changes);
 
   if (method === 'simple') {
-    const simpleThreshold = mean * threshold;
-    return changes.filter((change) => change > simpleThreshold).length;
+    const absMean = Math.abs(mean);
+    const simpleThreshold = absMean > 0.001 ? absMean * threshold : stdDev * threshold;
+    return changes.filter((change) => Math.abs(change) > simpleThreshold).length;
   }
 
   if (method === 'std') {

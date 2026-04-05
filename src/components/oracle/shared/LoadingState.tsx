@@ -104,11 +104,7 @@ export function LoadingState({
         <div className={cn('flex items-center', sizes.gap)}>
           {showSpinner ? (
             <Loader2
-              className={cn(
-                sizes.spinner,
-                'animate-spin',
-                hexColor ? '' : colorStyles?.spinner
-              )}
+              className={cn(sizes.spinner, 'animate-spin', hexColor ? '' : colorStyles?.spinner)}
               style={hexColor ? { color: hexColor } : undefined}
             />
           ) : (
@@ -132,11 +128,7 @@ export function LoadingState({
         <div className={cn('flex flex-col items-center', sizes.gap)}>
           {showSpinner ? (
             <Loader2
-              className={cn(
-                sizes.spinner,
-                'animate-spin',
-                hexColor ? '' : colorStyles?.spinner
-              )}
+              className={cn(sizes.spinner, 'animate-spin', hexColor ? '' : colorStyles?.spinner)}
               style={hexColor ? { color: hexColor } : undefined}
             />
           ) : (
@@ -159,11 +151,7 @@ export function LoadingState({
       <div className={cn('flex flex-col items-center', sizes.gap)}>
         {showSpinner ? (
           <Loader2
-            className={cn(
-              sizes.spinner,
-              'animate-spin',
-              hexColor ? '' : colorStyles?.spinner
-            )}
+            className={cn(sizes.spinner, 'animate-spin', hexColor ? '' : colorStyles?.spinner)}
             style={hexColor ? { color: hexColor } : undefined}
           />
         ) : (
@@ -186,7 +174,9 @@ export function PageLoadingState({
   message,
   className,
 }: Omit<LoadingStateProps, 'variant'>) {
-  return <LoadingState variant="page" themeColor={themeColor} message={message} className={className} />;
+  return (
+    <LoadingState variant="page" themeColor={themeColor} message={message} className={className} />
+  );
 }
 
 export function CardLoadingState({
@@ -196,7 +186,13 @@ export function CardLoadingState({
   className,
 }: Omit<LoadingStateProps, 'variant'>) {
   return (
-    <LoadingState variant="card" themeColor={themeColor} message={message} size={size} className={className} />
+    <LoadingState
+      variant="card"
+      themeColor={themeColor}
+      message={message}
+      size={size}
+      className={className}
+    />
   );
 }
 
@@ -207,6 +203,12 @@ export function InlineLoadingState({
   className,
 }: Omit<LoadingStateProps, 'variant'>) {
   return (
-    <LoadingState variant="inline" themeColor={themeColor} message={message} size={size} className={className} />
+    <LoadingState
+      variant="inline"
+      themeColor={themeColor}
+      message={message}
+      size={size}
+      className={className}
+    />
   );
 }

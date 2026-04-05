@@ -133,7 +133,18 @@ export const calculatePearsonCorrelationWithSignificance = (
 
   const correlation = numerator / denominator;
 
-  const tStatistic = correlation * Math.sqrt((n - 2) / (1 - correlation * correlation));
+  const correlationDenominator = 1 - correlation * correlation;
+  if (correlationDenominator <= 0) {
+    return {
+      correlation,
+      pValue: 0,
+      sampleSize: n,
+      isSignificant: true,
+      significanceLevel: '***',
+    };
+  }
+
+  const tStatistic = correlation * Math.sqrt((n - 2) / correlationDenominator);
 
   const df = n - 2;
   const pValue = approximatePValue(Math.abs(tStatistic), df);
@@ -220,7 +231,18 @@ export const calculatePearsonCorrelationWithSignificanceByTimestamp = (
 
   const correlation = numerator / denominator;
 
-  const tStatistic = correlation * Math.sqrt((n - 2) / (1 - correlation * correlation));
+  const correlationDenominator = 1 - correlation * correlation;
+  if (correlationDenominator <= 0) {
+    return {
+      correlation,
+      pValue: 0,
+      sampleSize: n,
+      isSignificant: true,
+      significanceLevel: '***',
+    };
+  }
+
+  const tStatistic = correlation * Math.sqrt((n - 2) / correlationDenominator);
 
   const df = n - 2;
   const pValue = approximatePValue(Math.abs(tStatistic), df);

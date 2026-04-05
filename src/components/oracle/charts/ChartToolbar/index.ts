@@ -7,8 +7,6 @@ export type {
 } from '../OracleChartToolbar';
 
 export { OracleChartToolbar as EnhancedChartToolbar } from '../OracleChartToolbar';
-export type {
-  OracleChartToolbarProps as EnhancedChartToolbarProps,
-} from '../OracleChartToolbar';
+export type { OracleChartToolbarProps as EnhancedChartToolbarProps } from '../OracleChartToolbar';
 
 export { default } from '../OracleChartToolbar';

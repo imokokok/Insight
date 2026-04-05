@@ -112,10 +112,7 @@ const ScoreCard = forwardRef<HTMLDivElement, ScoreCardProps>(
 
     if (variant === 'compact') {
       return (
-        <div
-          ref={ref}
-          className={cn('bg-gray-50 rounded-lg p-3', className)}
-        >
+        <div ref={ref} className={cn('bg-gray-50 rounded-lg p-3', className)}>
           <div className="flex items-center justify-between mb-2">
             <p className="text-[10px] text-gray-500 uppercase tracking-wider">{title}</p>
             {label && (

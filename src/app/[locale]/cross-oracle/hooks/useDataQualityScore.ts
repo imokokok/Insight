@@ -5,6 +5,12 @@
 
 import { useMemo } from 'react';
 
+import {
+  calculateMean,
+  calculateMedian,
+  calculateStdDev,
+  calculatePercentile,
+} from '@/lib/utils/statistics';
 import type { OracleProvider, PriceData } from '@/types/oracle';
 
 import type {
@@ -24,51 +30,6 @@ export type {
   ProfessionalQualityMetrics,
 };
 
-/**
- * 计算百分位数
- */
-function calculatePercentile(sortedValues: number[], percentile: number): number {
-  if (sortedValues.length === 0) return 0;
-  if (sortedValues.length === 1) return sortedValues[0];
-
-  const index = (percentile / 100) * (sortedValues.length - 1);
-  const lower = Math.floor(index);
-  const upper = Math.ceil(index);
-  const weight = index - lower;
-
-  return sortedValues[lower] * (1 - weight) + sortedValues[upper] * weight;
-}
-
-/**
- * 计算中位数
- */
-function calculateMedian(values: number[]): number {
-  if (values.length === 0) return 0;
-  const sorted = [...values].sort((a, b) => a - b);
-  const mid = Math.floor(sorted.length / 2);
-  return sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
-}
-
-/**
- * 计算平均值
- */
-function calculateMean(values: number[]): number {
-  if (values.length === 0) return 0;
-  return values.reduce((sum, v) => sum + v, 0) / values.length;
-}
-
-/**
- * 计算标准差
- */
-function calculateStdDev(values: number[], mean: number): number {
-  if (values.length < 2) return 0;
-  const variance = values.reduce((sum, v) => sum + Math.pow(v - mean, 2), 0) / values.length;
-  return Math.sqrt(variance);
-}
-
-/**
- * 计算专业质量指标
- */
 function calculateProfessionalMetrics(prices: number[]): ProfessionalQualityMetrics {
   const validPrices = prices.filter((p) => p > 0);
   const sampleSize = validPrices.length;
@@ -324,7 +285,7 @@ export function useDataQualityScore(params: {
   const { prices = [], lastUpdated, successCount = 0, totalCount = 0 } = params;
 
   const score = useMemo<DataQualityScoreType>(() => {
-    const now = Date.now();
+    const now = lastUpdated && lastUpdated > 0 ? lastUpdated : 0;
     const validPrices = prices.filter((p) => p > 0);
     let consistency = 100;
     if (validPrices.length >= 2) {

@@ -67,10 +67,9 @@ export async function GET(request: Request) {
 
     switch (type) {
       case 'market': {
-        // 优先 CoinGecko，失败时降级到 Binance
         logger.info(`Fetching market data for ${symbol} (priority: CoinGecko)`);
         const marketData = await coinGeckoMarketService.getTokenMarketData(symbol);
-        if (marketData && marketData.marketCap > 0) {
+        if (marketData && marketData.marketCap !== null && marketData.marketCap > 0) {
           data = marketData;
           source = 'coingecko';
         } else {

@@ -22,7 +22,7 @@ import { chartColors, baseColors } from '@/lib/config/colors';
 import { type OracleProvider, type PriceData, type SnapshotStats } from '@/types/oracle';
 
 import { oracleNames } from '../../constants';
-import { type TimeRange, type ChartDataPoint } from '../../types';
+import { type TimeRange, type ChartDataPoint } from '../../types/index';
 import { ChartTooltip } from '../ChartTooltip';
 import { DataSourcePanel } from '../DataSourcePanel';
 import { PriceTableSection } from '../PriceTableSection';
@@ -61,7 +61,7 @@ interface PriceComparisonTabProps {
   oracleChartColors: Record<OracleProvider, string>;
   getChartData: () => ChartDataPoint[];
   qualityScoreData: {
-    freshness: { lastUpdated: Date };
+    freshness: { lastUpdated: Date; freshnessScore: number };
     completeness: { successCount: number; totalCount: number };
     reliability: { historicalAccuracy: number; responseSuccessRate: number };
   };
@@ -245,13 +245,7 @@ export function PriceComparisonTab({
         <QualityScoreCard
           score={{
             consistency: qualityScoreData.reliability.historicalAccuracy,
-            freshness: Math.max(
-              0,
-              100 -
-                Math.floor(
-                  (Date.now() - qualityScoreData.freshness.lastUpdated.getTime()) / 1000 / 60
-                )
-            ),
+            freshness: qualityScoreData.freshness.freshnessScore,
             completeness:
               (qualityScoreData.completeness.successCount /
                 qualityScoreData.completeness.totalCount) *
@@ -450,7 +444,6 @@ export function PriceComparisonTab({
         <UnifiedExportSection
           loading={isLoading}
           crossOracleData={filteredPriceData}
-          chartContainerRef={chartContainerRef}
           selectedAssets={[selectedSymbol]}
           selectedOracles={selectedOracles.map((o) => oracleNames[o])}
         />

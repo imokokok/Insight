@@ -66,6 +66,13 @@ export default function CrossOraclePage() {
     performanceMetrics,
     isCalculatingMetrics,
 
+    // 错误处理（新增）
+    oracleDataError,
+    retryOracle,
+    retryAllFailed,
+    isRetrying,
+    retryingOracles,
+
     // 回调
     toggleOracle,
 
@@ -235,6 +242,11 @@ export default function CrossOraclePage() {
             onRefresh={fetchPriceData}
             performanceMetrics={performanceMetrics}
             isCalculatingMetrics={isCalculatingMetrics}
+            oracleDataError={oracleDataError}
+            retryOracle={retryOracle}
+            retryAllFailed={retryAllFailed}
+            isRetrying={isRetrying}
+            retryingOracles={retryingOracles}
           />
         </main>
       </div>

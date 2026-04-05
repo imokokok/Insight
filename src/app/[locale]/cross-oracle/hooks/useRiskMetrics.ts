@@ -5,6 +5,7 @@
 
 import { useMemo } from 'react';
 
+import { calculateMean, calculateStdDev } from '@/lib/utils/statistics';
 import type { PriceData } from '@/types/oracle';
 
 import type { PriceAnomaly } from './usePriceAnomalyDetection';
@@ -26,6 +27,18 @@ export interface RiskMetric {
   description: string;
 }
 
+/** 历史风险指标（用于趋势计算） */
+export interface HistoricalRiskMetric {
+  /** 价格波动率 */
+  volatility?: number;
+  /** 数据一致性评分 */
+  consistency?: number;
+  /** 异常检测敏感度 */
+  sensitivity?: number;
+  /** 系统健康度 */
+  health?: number;
+}
+
 /** 风险指标结果 */
 export interface RiskMetricsResult {
   /** 价格波动率 */
@@ -42,43 +55,29 @@ export interface RiskMetricsResult {
   lastUpdated: number;
 }
 
-/**
- * 计算标准差
- * @param values - 数值数组
- * @param mean - 平均值
- * @returns 标准差
- */
-function calculateStdDev(values: number[], mean: number): number {
-  if (values.length < 2) return 0;
-  const variance = values.reduce((sum, v) => sum + Math.pow(v - mean, 2), 0) / values.length;
-  return Math.sqrt(variance);
-}
+function calculateTrend(
+  currentValue: number,
+  previousValue?: number,
+  threshold: number = 2
+): { trend: TrendDirection; trendValue: number } {
+  if (previousValue === undefined || previousValue === null) {
+    return { trend: 'stable', trendValue: 0 };
+  }
 
-/**
- * 计算平均值
- * @param values - 数值数组
- * @returns 平均值
- */
-function calculateMean(values: number[]): number {
-  if (values.length === 0) return 0;
-  return values.reduce((sum, v) => sum + v, 0) / values.length;
-}
+  if (previousValue === 0) {
+    return { trend: currentValue > 0 ? 'up' : 'stable', trendValue: 0 };
+  }
 
-/**
- * 生成随机趋势
- * @returns 趋势方向和变化值
- */
-function generateRandomTrend(): { trend: TrendDirection; trendValue: number } {
-  const random = Math.random();
-  const trendValue = parseFloat((Math.random() * 10).toFixed(1));
+  const changePercent = ((currentValue - previousValue) / previousValue) * 100;
+  const trendValue = parseFloat(changePercent.toFixed(1));
 
-  if (random < 0.33) {
+  if (changePercent > threshold) {
     return { trend: 'up', trendValue };
   }
-  if (random < 0.66) {
+  if (changePercent < -threshold) {
     return { trend: 'down', trendValue };
   }
-  return { trend: 'stable', trendValue: 0 };
+  return { trend: 'stable', trendValue };
 }
 
 /**
@@ -99,9 +98,10 @@ function getStatus(
 /**
  * 计算波动率指标
  * @param validPrices - 有效价格数组
+ * @param previousValue - 之前的波动率值（用于趋势计算）
  * @returns 波动率指标
  */
-function calculateVolatilityMetric(validPrices: number[]): RiskMetric {
+function calculateVolatilityMetric(validPrices: number[], previousValue?: number): RiskMetric {
   if (validPrices.length < 2) {
     return {
       value: 0,
@@ -115,13 +115,11 @@ function calculateVolatilityMetric(validPrices: number[]): RiskMetric {
   const mean = calculateMean(validPrices);
   const stdDev = calculateStdDev(validPrices, mean);
 
-  // 波动率百分比（标准差/平均值）
   const volatilityPercent = mean !== 0 ? (stdDev / mean) * 100 : 0;
 
-  // 将波动率转换为 0-100 的评分（波动率越低越好）
   const value = Math.max(0, Math.min(100, Math.round(100 - volatilityPercent * 10)));
 
-  const { trend, trendValue } = generateRandomTrend();
+  const { trend, trendValue } = calculateTrend(value, previousValue);
 
   return {
     value,
@@ -135,9 +133,10 @@ function calculateVolatilityMetric(validPrices: number[]): RiskMetric {
 /**
  * 计算一致性指标
  * @param validPrices - 有效价格数组
+ * @param previousValue - 之前的一致性值（用于趋势计算）
  * @returns 一致性指标
  */
-function calculateConsistencyMetric(validPrices: number[]): RiskMetric {
+function calculateConsistencyMetric(validPrices: number[], previousValue?: number): RiskMetric {
   if (validPrices.length < 2) {
     return {
       value: 100,
@@ -151,13 +150,11 @@ function calculateConsistencyMetric(validPrices: number[]): RiskMetric {
   const mean = calculateMean(validPrices);
   const stdDev = calculateStdDev(validPrices, mean);
 
-  // 标准差百分比
   const stdDevPercent = mean !== 0 ? (stdDev / mean) * 100 : 0;
 
-  // 一致性评分 = 100 - 标准差百分比
   const value = Math.max(0, Math.min(100, Math.round(100 - stdDevPercent)));
 
-  const { trend, trendValue } = generateRandomTrend();
+  const { trend, trendValue } = calculateTrend(value, previousValue);
 
   return {
     value,
@@ -172,18 +169,21 @@ function calculateConsistencyMetric(validPrices: number[]): RiskMetric {
  * 计算敏感度指标
  * @param anomalyCount - 异常数量
  * @param totalCount - 总数据数量
+ * @param previousValue - 之前的敏感度值（用于趋势计算）
  * @returns 敏感度指标
  */
-function calculateSensitivityMetric(anomalyCount: number, totalCount: number): RiskMetric {
-  // 敏感度基于异常检测阈值（固定值或基于异常比例）
+function calculateSensitivityMetric(
+  anomalyCount: number,
+  totalCount: number,
+  previousValue?: number
+): RiskMetric {
   const anomalyRatio = totalCount > 0 ? anomalyCount / totalCount : 0;
 
-  // 敏感度评分（异常比例越低，敏感度设置越合理）
   const baseValue = 75;
   const adjustment = anomalyRatio > 0.3 ? -20 : anomalyRatio > 0.1 ? -10 : 0;
   const value = Math.max(0, Math.min(100, baseValue + adjustment));
 
-  const { trend, trendValue } = generateRandomTrend();
+  const { trend, trendValue } = calculateTrend(value, previousValue);
 
   return {
     value,
@@ -199,12 +199,14 @@ function calculateSensitivityMetric(anomalyCount: number, totalCount: number): R
  * @param validPrices - 有效价格数组
  * @param anomalies - 异常列表
  * @param priceData - 完整价格数据
+ * @param previousValue - 之前的健康度值（用于趋势计算）
  * @returns 健康度指标
  */
 function calculateHealthMetric(
   validPrices: number[],
   anomalies: PriceAnomaly[],
-  priceData: PriceData[]
+  priceData: PriceData[],
+  previousValue?: number
 ): RiskMetric {
   if (validPrices.length === 0) {
     return {
@@ -216,20 +218,16 @@ function calculateHealthMetric(
     };
   }
 
-  // 基于多个因素计算健康度
   const mean = calculateMean(validPrices);
   const stdDev = calculateStdDev(validPrices, mean);
   const stdDevPercent = mean !== 0 ? (stdDev / mean) * 100 : 0;
 
-  // 异常惩罚
   const anomalyPenalty = Math.min(30, anomalies.length * 5);
 
-  // 数据新鲜度惩罚
   const now = Date.now();
   const staleDataCount = priceData.filter((p) => p.price > 0 && now - p.timestamp > 60000).length;
   const freshnessPenalty = priceData.length > 0 ? (staleDataCount / priceData.length) * 20 : 0;
 
-  // 综合计算健康度
   const baseHealth = 100;
   const deviationPenalty = Math.min(30, stdDevPercent * 5);
 
@@ -238,7 +236,7 @@ function calculateHealthMetric(
     Math.min(100, Math.round(baseHealth - deviationPenalty - anomalyPenalty - freshnessPenalty))
   );
 
-  const { trend, trendValue } = generateRandomTrend();
+  const { trend, trendValue } = calculateTrend(value, previousValue);
 
   return {
     value,
@@ -289,23 +287,32 @@ function calculateOverallRiskScore(
  * 风险指标计算 Hook
  * @param priceData - 价格数据数组
  * @param anomalies - 异常检测结果
+ * @param previousMetrics - 之前的指标值（用于趋势计算）
  * @returns 风险指标结果
  */
 export function useRiskMetrics(
   priceData: PriceData[],
-  anomalies: PriceAnomaly[]
+  anomalies: PriceAnomaly[],
+  previousMetrics?: HistoricalRiskMetric,
+  currentTime?: number
 ): RiskMetricsResult {
   return useMemo(() => {
-    // 过滤有效价格数据
     const validPrices = priceData.filter((p) => p.price > 0).map((p) => p.price);
 
-    // 计算各项风险指标
-    const volatility = calculateVolatilityMetric(validPrices);
-    const consistency = calculateConsistencyMetric(validPrices);
-    const sensitivity = calculateSensitivityMetric(anomalies.length, priceData.length);
-    const health = calculateHealthMetric(validPrices, anomalies, priceData);
+    const volatility = calculateVolatilityMetric(validPrices, previousMetrics?.volatility);
+    const consistency = calculateConsistencyMetric(validPrices, previousMetrics?.consistency);
+    const sensitivity = calculateSensitivityMetric(
+      anomalies.length,
+      priceData.length,
+      previousMetrics?.sensitivity
+    );
+    const health = calculateHealthMetric(
+      validPrices,
+      anomalies,
+      priceData,
+      previousMetrics?.health
+    );
 
-    // 计算综合风险评分
     const overallRiskScore = calculateOverallRiskScore(
       volatility,
       consistency,
@@ -319,10 +326,9 @@ export function useRiskMetrics(
       sensitivity,
       health,
       overallRiskScore,
-      // eslint-disable-next-line react-hooks/purity
-      lastUpdated: Date.now(),
+      lastUpdated: currentTime ?? 0,
     };
-  }, [priceData, anomalies]);
+  }, [priceData, anomalies, previousMetrics, currentTime]);
 }
 
 /**

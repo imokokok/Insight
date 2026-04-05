@@ -8,7 +8,7 @@ import {
 } from '@/lib/oracles/redstoneConstants';
 import { redstoneSymbols } from '@/lib/oracles/supportedSymbols';
 import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
-import { OracleProvider, Blockchain } from '@/types/oracle';
+import { OracleProvider, Blockchain, type OracleErrorCode } from '@/types/oracle';
 import type { PriceData, ConfidenceInterval } from '@/types/oracle';
 
 const REDSTONE_API_BASE = 'https://api.redstone.finance';
@@ -28,16 +28,6 @@ const REDSTONE_CACHE_TTL = {
  */
 function timestampSecondsToMillis(timestampInSeconds: number): number {
   return timestampInSeconds * 1000;
-}
-
-/**
- * Converts a timestamp from milliseconds to seconds.
- * Useful when sending timestamps to RedStone API.
- * @param timestampInMillis - Timestamp in milliseconds
- * @returns Timestamp in seconds
- */
-function timestampMillisToSeconds(timestampInMillis: number): number {
-  return Math.floor(timestampInMillis / 1000);
 }
 
 interface CacheEntry<T> {
@@ -382,22 +372,21 @@ export class RedStoneClient extends BaseOracleClient {
    * @throws OracleError if price fetching fails
    */
   async getPrice(symbol: string, chain?: Blockchain): Promise<PriceData> {
-    try {
-      const upperSymbol = symbol.toUpperCase();
+    const upperSymbol = symbol.toUpperCase();
 
-      // 当查询自己预言机的代币 (RED) 时，直接使用 Binance API，不尝试 RedStone API
-      if (upperSymbol === 'RED') {
-        const binancePrice = await this.fetchPriceFromBinance(symbol, chain);
-        if (binancePrice) {
-          return binancePrice;
-        }
-        throw new RedStoneApiError(
-          `No price data available for ${symbol} from Binance API`,
-          'FETCH_ERROR',
-          { symbol }
-        );
+    // 当查询自己预言机的代币 (RED) 时，直接使用 Binance API，不尝试 RedStone API
+    if (upperSymbol === 'RED') {
+      const binancePrice = await this.fetchPriceFromBinance(symbol, chain);
+      if (binancePrice) {
+        return binancePrice;
       }
+      throw this.createError(
+        `No price data available for ${symbol} from Binance API`,
+        'FETCH_ERROR'
+      );
+    }
 
+    try {
       const realPrice = await this.fetchRealPrice(symbol);
 
       if (realPrice) {
@@ -414,24 +403,13 @@ export class RedStoneClient extends BaseOracleClient {
       }
 
       // If no price data available from any source, throw error
-      throw new RedStoneApiError(
+      throw this.createError(
         `No price data available for ${symbol} from RedStone or Binance API`,
-        'FETCH_ERROR',
-        { symbol }
+        'FETCH_ERROR'
       );
     } catch (error) {
-      // Try Binance API as fallback if RedStone API fails
-      try {
-        const binancePrice = await this.fetchPriceFromBinance(symbol, chain);
-        if (binancePrice) {
-          return binancePrice;
-        }
-      } catch (binanceError) {
-        console.warn(`[RedStone] Binance fallback also failed for ${symbol}:`, binanceError);
-      }
-
       if (error instanceof RedStoneApiError) {
-        throw this.createError(error.message, error.code);
+        throw this.createError(error.message, error.code as OracleErrorCode);
       }
       throw this.createError(
         error instanceof Error ? error.message : 'Failed to fetch price from RedStone',
@@ -1301,16 +1279,16 @@ export class RedStoneClient extends BaseOracleClient {
         symbol: marketData.symbol,
         name: marketData.name,
         currentPrice: marketData.currentPrice,
-        marketCap: marketData.marketCap,
-        marketCapRank: marketData.marketCapRank,
+        marketCap: marketData.marketCap ?? 0,
+        marketCapRank: marketData.marketCapRank ?? 0,
         totalVolume24h: marketData.totalVolume24h,
         high24h: marketData.high24h,
         low24h: marketData.low24h,
         priceChange24h: marketData.priceChange24h,
         priceChangePercentage24h: marketData.priceChangePercentage24h,
-        circulatingSupply: marketData.circulatingSupply,
-        totalSupply: marketData.totalSupply,
-        maxSupply: marketData.maxSupply,
+        circulatingSupply: marketData.circulatingSupply ?? 0,
+        totalSupply: marketData.totalSupply ?? 0,
+        maxSupply: marketData.maxSupply ?? undefined,
         stakingApr: 0,
       };
     } catch (error) {

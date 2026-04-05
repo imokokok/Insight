@@ -39,24 +39,23 @@ export class PythClient extends BaseOracleClient {
   }
 
   private generateConfidenceInterval(price: number, symbol: string): ConfidenceInterval {
-    if (!symbol) {
-      return {
-        bid: price * 0.995,
-        ask: price * 1.005,
-        widthPercentage: 0.5,
-      };
-    }
-    const baseSpread = SPREAD_PERCENTAGES[symbol.toUpperCase()] || 0.05;
-    // 使用固定因子代替随机数
-    const fixedFactor = 1.0;
-    const spreadPercentage = baseSpread * fixedFactor;
+    const baseSpread = SPREAD_PERCENTAGES[symbol?.toUpperCase()] || 0.1;
 
-    const halfSpread = price * (spreadPercentage / 100 / 2);
+    let priceAdjustedSpread = baseSpread;
+    if (price > 10000) {
+      priceAdjustedSpread = baseSpread * 0.5;
+    } else if (price > 1000) {
+      priceAdjustedSpread = baseSpread * 0.7;
+    } else if (price > 100) {
+      priceAdjustedSpread = baseSpread * 0.85;
+    }
+
+    const halfSpread = price * (priceAdjustedSpread / 100 / 2);
 
     return {
       bid: Number((price - halfSpread).toFixed(4)),
       ask: Number((price + halfSpread).toFixed(4)),
-      widthPercentage: Number(spreadPercentage.toFixed(4)),
+      widthPercentage: Number(priceAdjustedSpread.toFixed(4)),
     };
   }
 
@@ -142,18 +141,20 @@ export class PythClient extends BaseOracleClient {
           .sort((a, b) => a.timestamp - b.timestamp);
       }
 
-      logger.info(`Pyth historical data insufficient for ${symbol}, trying Binance...`, { symbol });
+      logger.info(`Pyth historical data insufficient for ${symbol}, trying CoinGecko...`, {
+        symbol,
+      });
       const { coinGeckoMarketService } =
         await import('@/lib/services/marketData/coinGeckoMarketService');
       const days = Math.ceil(period / 24);
-      const binancePrices = await coinGeckoMarketService.getHistoricalPrices(symbol, days);
+      const coinGeckoPrices = await coinGeckoMarketService.getHistoricalPrices(symbol, days);
 
-      if (binancePrices && binancePrices.length > 0) {
-        logger.info(`Using Binance real historical data for ${symbol}`, {
+      if (coinGeckoPrices && coinGeckoPrices.length > 0) {
+        logger.info(`Using CoinGecko historical data for ${symbol}`, {
           symbol,
-          points: binancePrices.length,
+          points: coinGeckoPrices.length,
         });
-        return binancePrices.map((point) => ({
+        return coinGeckoPrices.map((point) => ({
           provider: this.name,
           chain: chain || Blockchain.ETHEREUM,
           symbol,
@@ -163,7 +164,7 @@ export class PythClient extends BaseOracleClient {
           confidence: 0.95,
           change24h: 0,
           change24hPercent: 0,
-          source: 'binance-api',
+          source: 'coingecko-api',
         }));
       }
 
