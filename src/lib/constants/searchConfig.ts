@@ -366,15 +366,6 @@ export const searchableItems: SearchableItem[] = [
     path: '/tellor',
   },
   {
-    id: 'oracle-chronicle',
-    type: 'oracle',
-    name: 'Chronicle',
-    symbol: 'CHR',
-    aliases: ['chronicle', '编年史'],
-    category: 'oracle',
-    path: '/chronicle',
-  },
-  {
     id: 'oracle-winklink',
     type: 'oracle',
     name: 'WINkLink',

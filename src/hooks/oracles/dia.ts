@@ -5,30 +5,9 @@ import { useMemo, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
 import { DIAClient } from '@/lib/oracles/dia';
-import type {
-  DataSourceTransparency,
-  CrossChainCoverage,
-  DataSourceVerification,
-  DIANetworkStats,
-  NFTData,
-  StakingDetails,
-  CustomFeed,
-  EcosystemIntegration,
-} from '@/lib/oracles/dia';
 import { type Blockchain, type PriceData } from '@/types/oracle';
 
-type DIADataType =
-  | 'price'
-  | 'historical'
-  | 'dataTransparency'
-  | 'crossChainCoverage'
-  | 'dataSourceVerification'
-  | 'networkStats'
-  | 'staking'
-  | 'nftData'
-  | 'stakingDetails'
-  | 'customFeeds'
-  | 'ecosystem';
+type DIADataType = 'price' | 'historical';
 
 const getDIAKey = (type: DIADataType, params?: Record<string, unknown>): string[] => {
   const baseKey = ['dia', type];
@@ -100,221 +79,6 @@ export function useDIAHistorical(options: UseDIAHistoricalOptions) {
   };
 }
 
-export function useDIADataTransparency(enabled = true) {
-  const diaClient = useMemo(() => new DIAClient(), []);
-  const queryKey = getDIAKey('dataTransparency');
-
-  const { data, error, isLoading, refetch } = useQuery<DataSourceTransparency[], Error>({
-    queryKey,
-    queryFn: () => diaClient.getDataTransparency(),
-    enabled,
-    staleTime: 60000,
-    gcTime: 120000,
-    refetchInterval: 60000,
-    refetchOnWindowFocus: false,
-    retry: 3,
-  });
-
-  return {
-    dataTransparency: data ?? [],
-    error,
-    isLoading,
-    refetch,
-  };
-}
-
-export function useDIACrossChainCoverage(enabled = true) {
-  const diaClient = useMemo(() => new DIAClient(), []);
-  const queryKey = getDIAKey('crossChainCoverage');
-
-  const { data, error, isLoading, refetch } = useQuery<CrossChainCoverage, Error>({
-    queryKey,
-    queryFn: () => diaClient.getCrossChainCoverage(),
-    enabled,
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
-    refetchInterval: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
-    retry: 3,
-  });
-
-  return {
-    crossChainCoverage: data,
-    error,
-    isLoading,
-    refetch,
-  };
-}
-
-export function useDIADataSourceVerification(enabled = true) {
-  const diaClient = useMemo(() => new DIAClient(), []);
-  const queryKey = getDIAKey('dataSourceVerification');
-
-  const { data, error, isLoading, refetch } = useQuery<DataSourceVerification[], Error>({
-    queryKey,
-    queryFn: () => diaClient.getDataSourceVerification(),
-    enabled,
-    staleTime: 60000,
-    gcTime: 120000,
-    refetchInterval: 60000,
-    refetchOnWindowFocus: false,
-    retry: 3,
-  });
-
-  return {
-    dataSourceVerification: data ?? [],
-    error,
-    isLoading,
-    refetch,
-  };
-}
-
-export function useDIANetworkStats(enabled = true) {
-  const diaClient = useMemo(() => new DIAClient(), []);
-  const queryKey = getDIAKey('networkStats');
-
-  const { data, error, isLoading, refetch } = useQuery<DIANetworkStats | null, Error>({
-    queryKey,
-    queryFn: () => diaClient.getNetworkStats(),
-    enabled,
-    staleTime: 60000,
-    gcTime: 120000,
-    refetchInterval: 60000,
-    refetchOnWindowFocus: false,
-    retry: 3,
-  });
-
-  return {
-    networkStats: data,
-    error,
-    isLoading,
-    refetch,
-  };
-}
-
-export function useDIAStaking(enabled = true) {
-  const diaClient = useMemo(() => new DIAClient(), []);
-  const queryKey = getDIAKey('staking');
-
-  const { data, error, isLoading, refetch } = useQuery<
-    {
-      totalStaked: number;
-      stakingApr: number;
-      stakerCount: number;
-      rewardPool: number;
-    } | null,
-    Error
-  >({
-    queryKey,
-    queryFn: () => diaClient.getStakingData(),
-    enabled,
-    staleTime: 60000,
-    gcTime: 120000,
-    refetchInterval: 60000,
-    refetchOnWindowFocus: false,
-    retry: 3,
-  });
-
-  return {
-    staking: data,
-    error,
-    isLoading,
-    refetch,
-  };
-}
-
-export function useDIANFTData(enabled = true) {
-  const diaClient = useMemo(() => new DIAClient(), []);
-  const queryKey = getDIAKey('nftData');
-
-  const { data, error, isLoading, refetch } = useQuery<NFTData, Error>({
-    queryKey,
-    queryFn: () => diaClient.getNFTData(),
-    enabled,
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
-    refetchInterval: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
-    retry: 3,
-  });
-
-  return {
-    nftData: data,
-    error,
-    isLoading,
-    refetch,
-  };
-}
-
-export function useDIAStakingDetails(enabled = true) {
-  const diaClient = useMemo(() => new DIAClient(), []);
-  const queryKey = getDIAKey('stakingDetails');
-
-  const { data, error, isLoading, refetch } = useQuery<StakingDetails | null, Error>({
-    queryKey,
-    queryFn: () => diaClient.getStakingDetails(),
-    enabled,
-    staleTime: 60000,
-    gcTime: 120000,
-    refetchInterval: 60000,
-    refetchOnWindowFocus: false,
-    retry: 3,
-  });
-
-  return {
-    stakingDetails: data,
-    error,
-    isLoading,
-    refetch,
-  };
-}
-
-export function useDIACustomFeeds(enabled = true) {
-  const diaClient = useMemo(() => new DIAClient(), []);
-  const queryKey = getDIAKey('customFeeds');
-
-  const { data, error, isLoading, refetch } = useQuery<CustomFeed[], Error>({
-    queryKey,
-    queryFn: () => diaClient.getCustomFeeds(),
-    enabled,
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
-    refetchInterval: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
-    retry: 3,
-  });
-
-  return {
-    customFeeds: data ?? [],
-    error,
-    isLoading,
-    refetch,
-  };
-}
-
-export function useDIAEcosystem(enabled = true) {
-  const diaClient = useMemo(() => new DIAClient(), []);
-  const queryKey = getDIAKey('ecosystem');
-
-  const { data, error, isLoading, refetch } = useQuery<EcosystemIntegration[], Error>({
-    queryKey,
-    queryFn: () => diaClient.getEcosystemIntegrations(),
-    enabled,
-    staleTime: 10 * 60 * 1000,
-    gcTime: 20 * 60 * 1000,
-    refetchInterval: 10 * 60 * 1000,
-    refetchOnWindowFocus: false,
-    retry: 3,
-  });
-
-  return {
-    ecosystem: data ?? [],
-    error,
-    isLoading,
-    refetch,
-  };
-}
-
 interface UseDIAAllDataOptions {
   symbol: string;
   chain?: Blockchain;
@@ -324,23 +88,6 @@ interface UseDIAAllDataOptions {
 interface UseDIAAllDataReturn {
   price: PriceData | undefined;
   historicalData: PriceData[];
-  dataTransparency: DataSourceTransparency[];
-  crossChainCoverage: CrossChainCoverage | undefined;
-  dataSourceVerification: DataSourceVerification[];
-  networkStats: DIANetworkStats | null | undefined;
-  staking:
-    | {
-        totalStaked: number;
-        stakingApr: number;
-        stakerCount: number;
-        rewardPool: number;
-      }
-    | null
-    | undefined;
-  nftData: NFTData | undefined;
-  stakingDetails: StakingDetails | null | undefined;
-  customFeeds: CustomFeed[];
-  ecosystem: EcosystemIntegration[];
   isLoading: boolean;
   isError: boolean;
   errors: Error[];
@@ -352,116 +99,28 @@ export function useDIAAllData(options: UseDIAAllDataOptions): UseDIAAllDataRetur
 
   const priceQuery = useDIAPrice({ symbol, chain, enabled });
   const historicalQuery = useDIAHistorical({ symbol, chain, period: 7, enabled });
-  const dataTransparencyQuery = useDIADataTransparency(enabled);
-  const crossChainCoverageQuery = useDIACrossChainCoverage(enabled);
-  const dataSourceVerificationQuery = useDIADataSourceVerification(enabled);
-  const networkStatsQuery = useDIANetworkStats(enabled);
-  const stakingQuery = useDIAStaking(enabled);
-  const nftDataQuery = useDIANFTData(enabled);
-  const stakingDetailsQuery = useDIAStakingDetails(enabled);
-  const customFeedsQuery = useDIACustomFeeds(enabled);
-  const ecosystemQuery = useDIAEcosystem(enabled);
 
   const isLoading = useMemo(() => {
     if (!enabled) return false;
-    return (
-      priceQuery.isLoading ||
-      historicalQuery.isLoading ||
-      dataTransparencyQuery.isLoading ||
-      crossChainCoverageQuery.isLoading ||
-      dataSourceVerificationQuery.isLoading ||
-      networkStatsQuery.isLoading ||
-      stakingQuery.isLoading ||
-      nftDataQuery.isLoading ||
-      stakingDetailsQuery.isLoading ||
-      customFeedsQuery.isLoading ||
-      ecosystemQuery.isLoading
-    );
-  }, [
-    enabled,
-    priceQuery.isLoading,
-    historicalQuery.isLoading,
-    dataTransparencyQuery.isLoading,
-    crossChainCoverageQuery.isLoading,
-    dataSourceVerificationQuery.isLoading,
-    networkStatsQuery.isLoading,
-    stakingQuery.isLoading,
-    nftDataQuery.isLoading,
-    stakingDetailsQuery.isLoading,
-    customFeedsQuery.isLoading,
-    ecosystemQuery.isLoading,
-  ]);
+    return priceQuery.isLoading || historicalQuery.isLoading;
+  }, [enabled, priceQuery.isLoading, historicalQuery.isLoading]);
 
   const errors = useMemo(() => {
     const errs: Error[] = [];
     if (priceQuery.error) errs.push(priceQuery.error);
     if (historicalQuery.error) errs.push(historicalQuery.error);
-    if (dataTransparencyQuery.error) errs.push(dataTransparencyQuery.error);
-    if (crossChainCoverageQuery.error) errs.push(crossChainCoverageQuery.error);
-    if (dataSourceVerificationQuery.error) errs.push(dataSourceVerificationQuery.error);
-    if (networkStatsQuery.error) errs.push(networkStatsQuery.error);
-    if (stakingQuery.error) errs.push(stakingQuery.error);
-    if (nftDataQuery.error) errs.push(nftDataQuery.error);
-    if (stakingDetailsQuery.error) errs.push(stakingDetailsQuery.error);
-    if (customFeedsQuery.error) errs.push(customFeedsQuery.error);
-    if (ecosystemQuery.error) errs.push(ecosystemQuery.error);
     return errs;
-  }, [
-    priceQuery.error,
-    historicalQuery.error,
-    dataTransparencyQuery.error,
-    crossChainCoverageQuery.error,
-    dataSourceVerificationQuery.error,
-    networkStatsQuery.error,
-    stakingQuery.error,
-    nftDataQuery.error,
-    stakingDetailsQuery.error,
-    customFeedsQuery.error,
-    ecosystemQuery.error,
-  ]);
+  }, [priceQuery.error, historicalQuery.error]);
 
   const isError = errors.length > 0;
 
   const refetchAll = useCallback(async () => {
-    await Promise.all([
-      priceQuery.refetch(),
-      historicalQuery.refetch(),
-      dataTransparencyQuery.refetch(),
-      crossChainCoverageQuery.refetch(),
-      dataSourceVerificationQuery.refetch(),
-      networkStatsQuery.refetch(),
-      stakingQuery.refetch(),
-      nftDataQuery.refetch(),
-      stakingDetailsQuery.refetch(),
-      customFeedsQuery.refetch(),
-      ecosystemQuery.refetch(),
-    ]);
-  }, [
-    priceQuery.refetch,
-    historicalQuery.refetch,
-    dataTransparencyQuery.refetch,
-    crossChainCoverageQuery.refetch,
-    dataSourceVerificationQuery.refetch,
-    networkStatsQuery.refetch,
-    stakingQuery.refetch,
-    nftDataQuery.refetch,
-    stakingDetailsQuery.refetch,
-    customFeedsQuery.refetch,
-    ecosystemQuery.refetch,
-  ]);
+    await Promise.all([priceQuery.refetch(), historicalQuery.refetch()]);
+  }, [priceQuery.refetch, historicalQuery.refetch]);
 
   return {
     price: priceQuery.price,
     historicalData: historicalQuery.historicalData,
-    dataTransparency: dataTransparencyQuery.dataTransparency,
-    crossChainCoverage: crossChainCoverageQuery.crossChainCoverage,
-    dataSourceVerification: dataSourceVerificationQuery.dataSourceVerification,
-    networkStats: networkStatsQuery.networkStats,
-    staking: stakingQuery.staking,
-    nftData: nftDataQuery.nftData,
-    stakingDetails: stakingDetailsQuery.stakingDetails,
-    customFeeds: customFeedsQuery.customFeeds,
-    ecosystem: ecosystemQuery.ecosystem,
     isLoading,
     isError,
     errors,

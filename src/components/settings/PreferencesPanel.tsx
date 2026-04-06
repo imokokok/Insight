@@ -63,7 +63,6 @@ const oracleOptions = [
   { value: 'redstone', label: 'Redstone' },
   { value: 'dia', label: 'DIA' },
   { value: 'tellor', label: 'Tellor' },
-  { value: 'chronicle', label: 'Chronicle' },
   { value: 'winklink', label: 'WINkLink' },
 ];
 

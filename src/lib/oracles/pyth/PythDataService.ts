@@ -7,7 +7,7 @@ import type {
   CrossChainPriceData,
   CrossChainResult,
   PythServicePriceFeed,
-} from '@/app/[locale]/pyth/types';
+} from './types';
 import { createLogger } from '@/lib/utils/logger';
 import type { PriceData } from '@/types/oracle';
 

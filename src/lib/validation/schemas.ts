@@ -9,7 +9,6 @@ const OracleProviderEnum = z.enum([
   'redstone',
   'dia',
   'tellor',
-  'chronicle',
   'winklink',
 ]);
 

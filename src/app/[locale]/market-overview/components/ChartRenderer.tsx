@@ -347,7 +347,6 @@ export default function ChartRenderer({
       redstone: chartColors.oracle.redstone,
       dia: chartColors.oracle.dia,
       tellor: chartColors.oracle.tellor,
-      chronicle: chartColors.oracle.chronicle,
       winklink: chartColors.oracle.winklink,
     };
     const oracleNames: Record<string, string> = {
@@ -359,7 +358,6 @@ export default function ChartRenderer({
       redstone: 'RedStone',
       dia: 'DIA',
       tellor: 'Tellor',
-      chronicle: 'Chronicle',
       winklink: 'WINkLink',
     };
 

@@ -1,6 +1,5 @@
 'use client';
 
-import { ComparisonReportExporter } from '@/components/oracle/forms/ComparisonReportExporter';
 import { SegmentedControl, DropdownSelect } from '@/components/ui';
 import { useTranslations } from '@/i18n';
 import { getOracleProvidersSortedByMarketCap } from '@/lib/config/oracles';
@@ -111,7 +110,7 @@ export function SettingsTab({
           {getOracleProvidersSortedByMarketCap()
             .filter(
               (provider) =>
-                ![OracleProvider.UMA, OracleProvider.CHRONICLE, OracleProvider.WINKLINK].includes(
+                ![OracleProvider.UMA, OracleProvider.WINKLINK].includes(
                   provider
                 )
             )
@@ -239,11 +238,7 @@ export function SettingsTab({
               {isLoading ? t('status.loading') : t('actions.refresh')}
             </button>
           </div>
-          <ComparisonReportExporter
-            data={exportData}
-            chartRef={chartRef}
-            fileName={`cross-oracle-comparison-${selectedSymbol}-${lastUpdated ? lastUpdated.toISOString().split('T')[0] : 'unknown'}`}
-          />
+
         </div>
       </div>
     </div>

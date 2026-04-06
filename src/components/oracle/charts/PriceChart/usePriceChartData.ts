@@ -2,14 +2,13 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 
-import { type TimeRange } from '@/components/oracle/shared/TabNavigation';
+
 import {
   useTechnicalIndicators,
   type IndicatorDataPoint,
   useUMARealtimePrice,
   type UMAPriceData,
 } from '@/hooks';
-import { BandProtocolClient } from '@/lib/oracles/bandProtocol';
 import { type BaseOracleClient } from '@/lib/oracles/base';
 import { TellorClient } from '@/lib/oracles/tellor';
 import { UMAClient } from '@/lib/oracles/uma';
@@ -30,7 +29,7 @@ import {
   calculatePriceChange,
   detectAnomalies,
 } from './chartUtils';
-import { type DataGranularity } from './priceChartConfig';
+import { type DataGranularity, type TimeRange } from './priceChartConfig';
 import {
   generateHistoricalData,
   convertHistoricalPricePoints,
@@ -95,7 +94,6 @@ interface UsePriceChartDataReturn {
   volumeRange: { min: number; max: number };
   priceChange: { value: number; percent: number };
   detectedAnomalies: AnomalyPoint[];
-  isBandClient: boolean;
   isTellorClient: boolean;
   isUMAClient: boolean;
   umaRealtimePrice: { confidence: number } | null;
@@ -140,7 +138,6 @@ export function usePriceChartData({
   const globalTimeRange = useGlobalTimeRange();
   const timeRange = globalTimeRange;
 
-  const isBandClient = client instanceof BandProtocolClient;
   const isTellorClient = client instanceof TellorClient;
   const isUMAClient = client instanceof UMAClient;
 
@@ -269,22 +266,7 @@ export function usePriceChartData({
 
       setCurrentPrice(priceData.price);
 
-      if (isBandClient && symbol.toUpperCase() === 'BAND') {
-        const bandClient = client as BandProtocolClient;
-        const periodMap: Record<TimeRange, '1d' | '7d' | '30d' | '90d' | '1y'> = {
-          '1H': '1d',
-          '24H': '1d',
-          '7D': '7d',
-          '30D': '30d',
-          '90D': '90d',
-          '1Y': '1y',
-          ALL: '1y',
-        };
-        const historicalPoints = await bandClient.getHistoricalBandPrices(periodMap[timeRange]);
-        const chartData = convertHistoricalPricePoints(historicalPoints);
-        const downsampledData = applyDownsampling(chartData);
-        setRawData(downsampledData);
-      } else if (isTellorClient) {
+      if (isTellorClient) {
         const tellorClient = client as TellorClient;
         const periodHours = {
           '1H': 1,
@@ -346,7 +328,6 @@ export function usePriceChartData({
     symbol,
     timeRange,
     defaultPrice,
-    isBandClient,
     isTellorClient,
     abortControllerRef,
     setIsRefreshing,
@@ -376,23 +357,7 @@ export function usePriceChartData({
       const period2Start = new Date(comparison.period2Start);
       const period2End = new Date(comparison.period2End);
 
-      if (isBandClient && symbol.toUpperCase() === 'BAND') {
-        const bandClient = client as BandProtocolClient;
-        const historicalPoints = await bandClient.getHistoricalBandPrices('1y');
-
-        const period1Points = historicalPoints.filter(
-          (p) => p.timestamp >= period1Start.getTime() && p.timestamp <= period1End.getTime()
-        );
-        const period2Points = historicalPoints.filter(
-          (p) => p.timestamp >= period2Start.getTime() && p.timestamp <= period2End.getTime()
-        );
-
-        const period1Data = convertHistoricalPricePoints(period1Points, false);
-        const period2Data = convertHistoricalPricePoints(period2Points, true);
-
-        setRawData(applyDownsampling(period1Data));
-        setComparisonData(applyDownsampling(period2Data));
-      } else {
+      {
         const period1Data = generateDataWithGranularity(
           priceData.price,
           period1Start,
@@ -425,7 +390,6 @@ export function usePriceChartData({
     symbol,
     chain,
     granularity,
-    isBandClient,
     setIsLoading,
     setCurrentPrice,
     setRawData,
@@ -528,7 +492,6 @@ export function usePriceChartData({
     volumeRange,
     priceChange,
     detectedAnomalies,
-    isBandClient,
     isTellorClient,
     isUMAClient,
     umaRealtimePrice,

@@ -49,7 +49,6 @@ export const FEATURE_FLAGS = {
   useRealWinklinkData: process.env.USE_REAL_WINKLINK_DATA === 'true',
   useRealChainlinkData: process.env.USE_REAL_CHAINLINK_DATA === 'true',
   useRealTellorData: process.env.USE_REAL_TELLOR_DATA === 'true',
-  useRealChronicleData: process.env.USE_REAL_CHRONICLE_DATA === 'true',
   useRealUmaData: process.env.USE_REAL_UMA_DATA === 'true',
   useRealApi3Data: process.env.USE_REAL_API3_DATA === 'true',
 };

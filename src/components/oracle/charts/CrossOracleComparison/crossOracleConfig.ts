@@ -111,7 +111,6 @@ export const oracleNames: Record<OracleProvider, string> = {
   [OracleProvider.REDSTONE]: 'RedStone',
   [OracleProvider.DIA]: 'DIA',
   [OracleProvider.TELLOR]: 'Tellor',
-  [OracleProvider.CHRONICLE]: 'Chronicle',
   [OracleProvider.WINKLINK]: 'WINkLink',
 };
 
@@ -124,7 +123,6 @@ export const oracleColors: Record<OracleProvider, string> = {
   [OracleProvider.REDSTONE]: chartColors.oracle.redstone,
   [OracleProvider.DIA]: chartColors.oracle.dia,
   [OracleProvider.TELLOR]: chartColors.oracle.tellor,
-  [OracleProvider.CHRONICLE]: chartColors.oracle.chronicle,
   [OracleProvider.WINKLINK]: chartColors.oracle.winklink,
 };
 

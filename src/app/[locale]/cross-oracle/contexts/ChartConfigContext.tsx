@@ -2,16 +2,18 @@
 
 import React, { createContext, useContext, type ReactNode } from 'react';
 
-import type { OraclePriceSeries } from '@/components/oracle/charts/PriceCorrelationMatrix';
-import type { PriceDeviationDataPoint } from '@/components/oracle/charts/PriceDeviationHeatmap';
-import type { OraclePriceData } from '@/components/oracle/charts/PriceDistributionBoxPlot';
-import type { OraclePriceHistory } from '@/components/oracle/charts/PriceVolatilityChart';
-import type { OraclePerformanceData } from '@/components/oracle/data-display/OraclePerformanceRanking';
 import { type OracleProvider } from '@/types/oracle';
 
 import { type TimeRange } from '../constants';
 
-import type { QualityTrendData } from '../types/index';
+import type {
+  OraclePriceSeries,
+  PriceDeviationDataPoint,
+  OraclePriceData,
+  OraclePriceHistory,
+  OraclePerformanceData,
+  QualityTrendData,
+} from '../types/index';
 
 interface ChartConfigContextValue {
   // 选中的预言机

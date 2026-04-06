@@ -51,9 +51,6 @@ export const umaSymbols = ['UMA'] as const;
 // DIA 支持的币种
 export const diaSymbols = ['BTC', 'ETH', 'USDC', 'USDT', 'LINK', 'UNI'] as const;
 
-// Chronicle 支持的币种（按市值排序）
-export const chronicleSymbols = ['WBTC', 'ETH', 'USDC', 'DAI', 'LINK'] as const;
-
 // Band Protocol 支持的币种
 export const bandProtocolSymbols = [
   'BTC',
@@ -120,7 +117,6 @@ export const oracleSupportedSymbols = {
   redstone: redstoneSymbols,
   uma: umaSymbols,
   dia: diaSymbols,
-  chronicle: chronicleSymbols,
   bandProtocol: bandProtocolSymbols,
   api3: api3Symbols,
   tellor: tellorSymbols,
@@ -133,7 +129,6 @@ export type ChainlinkSymbol = (typeof chainlinkSymbols)[number];
 export type RedstoneSymbol = (typeof redstoneSymbols)[number];
 export type UmaSymbol = (typeof umaSymbols)[number];
 export type DiaSymbol = (typeof diaSymbols)[number];
-export type ChronicleSymbol = (typeof chronicleSymbols)[number];
 export type BandProtocolSymbol = (typeof bandProtocolSymbols)[number];
 export type Api3Symbol = (typeof api3Symbols)[number];
 export type TellorSymbol = (typeof tellorSymbols)[number];

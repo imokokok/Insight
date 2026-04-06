@@ -255,7 +255,6 @@ export function sanitizeProvider(provider: string): string {
     'api3',
     'pyth',
     'redstone',
-    'chronicle',
     'dia',
     'tellor',
     'winklink',

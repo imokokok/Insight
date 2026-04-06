@@ -159,18 +159,7 @@ const routePrefetchConfigs: Record<string, RoutePrefetchConfig> = {
       },
     ],
   },
-  '/chronicle': {
-    route: '/chronicle',
-    priority: 'high',
-    targets: [
-      {
-        queryKey: ['oracles', 'detail', 'chronicle'],
-        queryFn: () => apiClient.get('/api/oracles/chronicle').then((r) => r.data),
-        type: 'network',
-        priority: 'high',
-      },
-    ],
-  },
+
   '/winklink': {
     route: '/winklink',
     priority: 'high',

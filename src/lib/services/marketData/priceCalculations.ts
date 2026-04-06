@@ -48,7 +48,6 @@ export function generateTVSTrendData(
     redstone: 2.1,
     dia: 1.6,
     tellor: 1.3,
-    chronicle: 1.0,
     winklink: 0.7,
   };
 
@@ -73,8 +72,6 @@ export function generateTVSTrendData(
     const dia = (baseValues.dia || defaults.dia) * (1 + (Math.random() - 0.5) * volatility);
     const tellor =
       (baseValues.tellor || defaults.tellor) * (1 + (Math.random() - 0.5) * volatility);
-    const chronicle =
-      (baseValues.chronicle || defaults.chronicle) * (1 + (Math.random() - 0.5) * volatility);
     const winklink =
       (baseValues.winklink || defaults.winklink) * (1 + (Math.random() - 0.5) * volatility);
 
@@ -105,9 +102,6 @@ export function generateTVSTrendData(
       tellor: Number(tellor.toFixed(2)),
       tellorUpper: Number((tellor * (1 + CONFIDENCE_INTERVAL)).toFixed(2)),
       tellorLower: Number((tellor * (1 - CONFIDENCE_INTERVAL)).toFixed(2)),
-      chronicle: Number(chronicle.toFixed(2)),
-      chronicleUpper: Number((chronicle * (1 + CONFIDENCE_INTERVAL)).toFixed(2)),
-      chronicleLower: Number((chronicle * (1 - CONFIDENCE_INTERVAL)).toFixed(2)),
       winklink: Number(winklink.toFixed(2)),
       winklinkUpper: Number((winklink * (1 + CONFIDENCE_INTERVAL)).toFixed(2)),
       winklinkLower: Number((winklink * (1 - CONFIDENCE_INTERVAL)).toFixed(2)),
@@ -121,7 +115,6 @@ export function generateTVSTrendData(
           redstone +
           dia +
           tellor +
-          chronicle +
           winklink
         ).toFixed(2)
       ),

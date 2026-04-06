@@ -85,8 +85,6 @@ function ResultIcon({ result }: { result: SearchResult }) {
 // Search result item component
 function SearchResultItem({ result, isActive, onSelect, onHover, itemRef }: SearchResultItemProps) {
   const t = useTranslations();
-  const tUi = useTranslations('ui');
-  const isChronicle = result.href?.includes('/chronicle');
 
   return (
     <div
@@ -94,20 +92,18 @@ function SearchResultItem({ result, isActive, onSelect, onHover, itemRef }: Sear
       role="option"
       aria-selected={isActive}
       tabIndex={-1}
-      onClick={isChronicle ? undefined : onSelect}
+      onClick={onSelect}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
-          if (!isChronicle) {
-            onSelect();
-          }
+          onSelect();
         }
       }}
       onMouseEnter={onHover}
       className={`
         flex items-center gap-3 px-4 py-3 sm:py-4 transition-colors duration-150 rounded-lg
         ${isActive ? 'bg-primary-50 border-l-2 border-primary-500' : 'hover:bg-gray-50 border-l-2 border-transparent'}
-        ${isChronicle ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}
+        cursor-pointer
         focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-inset
       `}
     >
@@ -130,12 +126,7 @@ function SearchResultItem({ result, isActive, onSelect, onHover, itemRef }: Sear
           </div>
         )}
       </div>
-      {isChronicle && (
-        <span className="px-2 py-1 bg-amber-500 text-white text-xs font-medium rounded flex-shrink-0">
-          {tUi('common.comingSoon')}
-        </span>
-      )}
-      {isActive && !isChronicle && (
+      {isActive && (
         <CornerDownLeft className="w-4 h-4 text-primary-500 flex-shrink-0" aria-hidden="true" />
       )}
     </div>

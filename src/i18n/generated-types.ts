@@ -1700,7 +1700,6 @@ export type IntlMessages = {
           umaDesc: string;
           diaDesc: string;
           tellorDesc: string;
-          chronicleDesc: string;
           winklinkDesc: string;
         };
         blockchains: {
@@ -4145,8 +4144,6 @@ export type IntlMessages = {
       diaDesc: string;
       tellor: string;
       tellorDesc: string;
-      chronicle: string;
-      chronicleDesc: string;
       winklink: string;
       winklinkDesc: string;
       favorites: string;
@@ -6925,481 +6922,6 @@ export type IntlMessages = {
         priceDelayEventDesc: string;
         stakingContractRelease: string;
         stakingContractReleaseDesc: string;
-      };
-    };
-    chronicle: {
-      title: string;
-      subtitle: string;
-      analytics: string;
-      menu: {
-        marketData: string;
-        networkHealth: string;
-        validators: string;
-        makerDAO: string;
-        scuttlebutt: string;
-        crossOracleComparison: string;
-        riskAssessment: string;
-        vaultStatus: string;
-        crossChainAnalysis: string;
-        priceDeviation: string;
-        title: string;
-      };
-      navigation: {
-        title: string;
-      };
-      normal: string;
-      warning: string;
-      dataSource: string;
-      dataSources: {
-        chronicleOracle: string;
-        ethereumMainnet: string;
-        makerdaoFeed: string;
-        backupNode: string;
-      };
-      networkStatus: string;
-      volume24h: string;
-      liquidity: string;
-      marketDepth: string;
-      depthScore: string;
-      successRate: string;
-      networkHealth: {
-        responseTime: string;
-      };
-      tabs: {
-        market: string;
-        makerdao: string;
-        validators: string;
-        network: string;
-        scuttlebutt: string;
-        risk: string;
-        riskAssessment: string;
-      };
-      priceTrend: string;
-      quickStats: string;
-      tradingPair: string;
-      stats: {
-        activeValidators: string;
-        makerDAOSupport: string;
-        stakingApr: string;
-        networkUptime: string;
-        volume24h: string;
-        marketCap: string;
-        circulatingSupply: string;
-        dataFeeds: string;
-        thisMonth: string;
-        thisWeek: string;
-      };
-      scuttlebutt: {
-        title: string;
-        securityLevel: string;
-        auditScore: string;
-        securityFeatures: string;
-        verificationStatus: string;
-        lastAudit: string;
-        historicalEvents: string;
-        date: string;
-        severity: string;
-        event: string;
-        validator: string;
-        vote: string;
-        weight: string;
-        signature: string;
-        status: string;
-        keyType: string;
-        expiry: string;
-        reason: string;
-        amount: string;
-        consensusMechanism: string;
-        consensusTime: string;
-        totalVotes: string;
-        approvalRate: string;
-        forkStatus: string;
-        votingPowerDistribution: string;
-        identityVerification: string;
-        activeKeys: string;
-        pendingRotation: string;
-        lastKeyAudit: string;
-        signatureProcess: string;
-        sybilResistance: string;
-        stakingThreshold: string;
-        totalStaked: string;
-        avgReputation: string;
-        reputationFactors: string;
-        slashingRecords: string;
-        realtimeMonitoring: string;
-        anomalyAlerts: string;
-        nodeHealth: string;
-        networkPartition: string;
-        resolved: string;
-        noPartitionDetected: string;
-        connectedPartitions: string;
-        networkConnectivity: string;
-        isolatedNodes: string;
-        feature1: string;
-        feature2: string;
-        feature3: string;
-        feature4: string;
-        feature5: string;
-        feature6: string;
-        events: {
-          securityAuditCompleted: string;
-          validatorResponseTimeDegradation: string;
-          newValidatorNodeAdded: string;
-          priceFeedDeviationExceeded: string;
-          scuttlebuttProtocolUpgrade: string;
-        };
-        resolutions: {
-          allSystemsPassed: string;
-          autoFailoverActivated: string;
-          manualReviewCompleted: string;
-        };
-      };
-      makerdao: {
-        title: string;
-        tvl: string;
-        daiSupply: string;
-        systemSurplus: string;
-        debtCeiling: string;
-        integrationVersion: string;
-        supportedAssets: string;
-        asset: string;
-        type: string;
-        price: string;
-        collateralRatio: string;
-        stabilityFee: string;
-        integrationInfo: string;
-        lastUpdate: string;
-        oracleType: string;
-        updateFrequency: string;
-        allAssets: string;
-        primaryPriceFeed: string;
-      };
-      assetType: {
-        stablecoin: string;
-        crypto: string;
-        rwa: string;
-      };
-      status: {
-        active: string;
-        inactive: string;
-        jailed: string;
-      };
-      network: {
-        online: string;
-        warning: string;
-        offline: string;
-        excellent: string;
-        good: string;
-        fair: string;
-        poor: string;
-        status: string;
-        validators: string;
-        responseTime: string;
-        dataFeeds: string;
-        uptime: string;
-        activeValidators: string;
-        avgLatency: string;
-        activeFeeds: string;
-        healthOverview: string;
-        networkHealthStatus: string;
-        totalStaked: string;
-        updateFrequency: string;
-        avgReputation: string;
-        latency: string;
-        validatorDistribution: string;
-        active: string;
-        inactive: string;
-        stakingDistribution: string;
-        hourlyActivity: string;
-        features: string;
-        decentralized: string;
-        decentralizedDesc: string;
-        realtime: string;
-        realtimeDesc: string;
-        scalable: string;
-        scalableDesc: string;
-        reliable: string;
-        reliableDesc: string;
-        secure: string;
-        secureDesc: string;
-        monitoring: string;
-        monitoringDesc: string;
-        performance: string;
-        successRate: string;
-        availability: string;
-        overview: string;
-        totalRequests: string;
-        avgGas: string;
-        activeChains: string;
-        validatorOperators: string;
-      };
-      securityLevel: {
-        high: string;
-        medium: string;
-        low: string;
-      };
-      verificationStatus: {
-        verified: string;
-        pending: string;
-        failed: string;
-      };
-      severity: {
-        critical: string;
-        warning: string;
-        info: string;
-      };
-      validators: {
-        title: string;
-        total: string;
-        active: string;
-        avgReputation: string;
-        avgSuccess: string;
-        totalStaked: string;
-        networkHealth: string;
-        list: string;
-        name: string;
-        region: string;
-        reputation: string;
-        uptime: string;
-        responseTime: string;
-        avgResponse: string;
-        successRate: string;
-        staked: string;
-        status: string;
-        activeValidators: string;
-        regionDistribution: string;
-        overview: string;
-        topPerformers: string;
-        regions: string;
-        statusActive: string;
-        statusInactive: string;
-        statusJailed: string;
-        voteApprove: string;
-        voteReject: string;
-        voteAbstain: string;
-        validatorId: string;
-        basicInfo: string;
-        address: string;
-        operator: string;
-        joinedAt: string;
-        location: string;
-        performanceAnalysis: string;
-        responseTimeTrend: string;
-        successRateTrend: string;
-        reputationTrend: string;
-        last30Days: string;
-        stakingDetails: string;
-        currentStake: string;
-        totalEarnings: string;
-        unlockSchedule: string;
-        pendingUnlocks: string;
-        delegationInfo: string;
-        delegators: string;
-        delegatedAmount: string;
-        votingRecords: string;
-        participationRate: string;
-        consensusContribution: string;
-        voteStats: string;
-        proposal: string;
-        vote: string;
-        weight: string;
-        time: string;
-        validatorInfo: string;
-        validatorInfoDesc: string;
-        close: string;
-      };
-      risk: {
-        overviewTitle: string;
-        overviewDescription: string;
-        overallRiskScore: string;
-        dataQuality: string;
-        dataQualityDesc: string;
-        validatorConcentration: string;
-        validatorConcentrationDesc: string;
-        priceDeviation: string;
-        priceDeviationDesc: string;
-        systemStability: string;
-        systemStabilityDesc: string;
-        auditScore: string;
-        auditScoreDesc: string;
-        incidentSummary: string;
-        incidents30d: string;
-        lastIncident: string;
-        lastAudit: string;
-        riskFactors: string;
-        factor1Title: string;
-        factor1Desc: string;
-        factor2Title: string;
-        factor2Desc: string;
-        factor3Title: string;
-        factor3Desc: string;
-        lowRisk: string;
-        mediumRisk: string;
-        highRisk: string;
-        criticalRisk: string;
-        securityLevel: string;
-        verificationStatus: string;
-        scuttlebuttIntegration: string;
-        scuttlebuttNote: string;
-        scuttlebuttNoteDesc: string;
-        mitigationMeasuresTitle: string;
-        mitigationMeasures: {
-          scuttlebuttVerification: string;
-          validatorRotation: string;
-          multiChainValidation: string;
-          thresholdSignature: string;
-          decentralizedGovernance: string;
-          monitoring: string;
-        };
-      };
-      vault: {
-        title: string;
-        overview: string;
-        totalVaults: string;
-        totalCollateral: string;
-        totalDebt: string;
-        avgCollateralRatio: string;
-        vaultTypes: string;
-        liquidation: string;
-        activeAuctions: string;
-        liquidationHistory: string;
-        riskParameters: string;
-        vaultTypeDistribution: string;
-        collateralType: string;
-        vaultCount: string;
-        collateralValue: string;
-        debtValue: string;
-        collateralRatio: string;
-        stabilityFee: string;
-        debtCeilingUsed: string;
-        vaultId: string;
-        status: string;
-        collateralAmount: string;
-        debtAmount: string;
-        startTime: string;
-        liquidationWarnings: string;
-        liquidatedCollateral: string;
-        debtCovered: string;
-        liquidationPrice: string;
-        date: string;
-        systemHealth: string;
-        collateral: string;
-        debt: string;
-        ratio: string;
-        ceiling: string;
-        completed: string;
-        pending: string;
-        vaultsAtRisk: string;
-        currentRatio: string;
-        minRequired: string;
-        minCollateralRatio: string;
-        liquidationPenalty: string;
-        totalActiveAuctions: string;
-        liquidations30d: string;
-        avgLiquidationPrice: string;
-        systemSurplus: string;
-      };
-      crossChain: {
-        title: string;
-        priceComparison: string;
-        deviationHeatmap: string;
-        latencyAnalysis: string;
-        bridgeStatus: string;
-        chain: string;
-        price: string;
-        deviation: string;
-        lastUpdate: string;
-        status: string;
-        medianPrice: string;
-        blockTime: string;
-        finality: string;
-        gasComparison: string;
-        totalTxns: string;
-        avgDelay: string;
-        activeChains: string;
-        maxDeviation: string;
-        activeBridges: string;
-        totalBridgeTxns: string;
-      };
-      priceDeviation: {
-        title: string;
-        realtime: string;
-        history: string;
-        analysis: string;
-        impact: string;
-        source: string;
-        chroniclePrice: string;
-        referencePrice: string;
-        realtimeTitle: string;
-        realtimeDesc: string;
-        reliability: string;
-        marketVolatility: string;
-        marketVolatilityDesc: string;
-        updateDelay: string;
-        updateDelayDesc: string;
-        liquidityIssue: string;
-        liquidityIssueDesc: string;
-        historyTitle: string;
-        deviation: string;
-        maxDeviation: string;
-        avgDeviation: string;
-        minDeviation: string;
-        deviationCount: string;
-        analysisTitle: string;
-        impactTitle: string;
-        affectedVaults: string;
-        vaultsDesc: string;
-        liquidationRisk: string;
-        liquidationRiskDesc: string;
-        arbitrageOpportunity: string;
-        available: string;
-        unavailable: string;
-        arbitrageDesc: string;
-        potentialProfit: string;
-        profitDesc: string;
-        distributionTitle: string;
-        normalRange: string;
-        moderateRange: string;
-        highRange: string;
-        timeSpent: string;
-        arbitrageAlert: string;
-        active: string;
-        arbitrageDetail: string;
-        buyAt: string;
-        sellAt: string;
-        potential: string;
-        infoTitle: string;
-        infoDesc: string;
-      };
-      scuttlebuttDeep: {
-        title: string;
-        consensus: string;
-        identity: string;
-        antiSybil: string;
-        monitoring: string;
-      };
-      hero: {
-        price: string;
-        tvs: string;
-        validators: string;
-        dataFeeds: string;
-        staking: string;
-        supportedChains: string;
-        avgResponse: string;
-        uptime: string;
-        nodes: string;
-        health: string;
-        gas: string;
-        response: string;
-        online: string;
-        support: string;
-        trend24h: string;
-        '24hAgo': string;
-        now: string;
-      };
-      timeAgo: {
-        hours: string;
-        days: string;
       };
     };
     dia: {
@@ -11550,7 +11072,6 @@ export type IntlMessages = {
           redstone: string;
           dia: string;
           tellor: string;
-          chronicle: string;
           winklink: string;
         };
         qualityScore: {
@@ -12344,7 +11865,6 @@ export type IntlMessages = {
       umaPrice: string;
       trbPrice: string;
       diaPrice: string;
-      chroniclePrice: string;
       api3Price: string;
       airnodeCount: string;
       redPrice: string;
@@ -16080,7 +15600,6 @@ export type TranslationKey =
   | 'dataSources'
   | 'dataSources.api3Market'
   | 'dataSources.backupNode'
-  | 'dataSources.chronicleOracle'
   | 'dataSources.ethereumMainnet'
   | 'dataSources.makerdaoFeed'
   | 'dataSources.publisherConsensus'
@@ -18390,8 +17909,6 @@ export type TranslationKey =
   | 'navbar.bandProtocolDesc'
   | 'navbar.chainlink'
   | 'navbar.chainlinkDesc'
-  | 'navbar.chronicle'
-  | 'navbar.chronicleDesc'
   | 'navbar.crossChain'
   | 'navbar.crossChainDesc'
   | 'navbar.crossOracle'
@@ -19010,7 +18527,6 @@ export type TranslationKey =
   | 'oracleMetrics.avgBlockTime'
   | 'oracleMetrics.avgResponse'
   | 'oracleMetrics.bandPrice'
-  | 'oracleMetrics.chroniclePrice'
   | 'oracleMetrics.crossChainBridge'
   | 'oracleMetrics.dataFeeds'
   | 'oracleMetrics.dataUpdate'
@@ -19417,7 +18933,6 @@ export type TranslationKey =
   | 'priceDeviation.avgDeviationDesc'
   | 'priceDeviation.buyAt'
   | 'priceDeviation.chainlinkPrice'
-  | 'priceDeviation.chroniclePrice'
   | 'priceDeviation.criticalThreshold'
   | 'priceDeviation.currentComparison'
   | 'priceDeviation.deviation'
@@ -19778,7 +19293,6 @@ export type TranslationKey =
   | 'priceQuery.results.oracleFeatures.api3'
   | 'priceQuery.results.oracleFeatures.band'
   | 'priceQuery.results.oracleFeatures.chainlink'
-  | 'priceQuery.results.oracleFeatures.chronicle'
   | 'priceQuery.results.oracleFeatures.dia'
   | 'priceQuery.results.oracleFeatures.pyth'
   | 'priceQuery.results.oracleFeatures.redstone'
@@ -20999,7 +20513,6 @@ export type TranslationKey =
   | 'search.oracles.api3Desc'
   | 'search.oracles.bandDesc'
   | 'search.oracles.chainlinkDesc'
-  | 'search.oracles.chronicleDesc'
   | 'search.oracles.diaDesc'
   | 'search.oracles.pythDesc'
   | 'search.oracles.redstoneDesc'

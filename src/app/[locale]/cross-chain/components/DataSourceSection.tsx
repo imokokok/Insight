@@ -30,7 +30,6 @@ function getCredibilityLevel(
   const highCredibility: OracleProvider[] = [
     OracleProvider.CHAINLINK,
     OracleProvider.PYTH,
-    OracleProvider.CHRONICLE,
   ];
   const mediumCredibility: OracleProvider[] = [
     OracleProvider.API3,

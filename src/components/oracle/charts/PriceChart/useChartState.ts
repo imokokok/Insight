@@ -2,8 +2,8 @@
 
 import { useState, useCallback, useRef } from 'react';
 
-import { TimeRange } from '@/components/oracle/shared/TabNavigation';
 import { type IndicatorDataPoint } from '@/hooks';
+import { type TimeRange } from './priceChartConfig';
 
 import { type DataGranularity, type ComparisonPeriod } from './priceChartConfig';
 

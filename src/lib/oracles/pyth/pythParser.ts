@@ -1,6 +1,7 @@
-import type { PublisherData, ValidatorData, PublisherStatus } from '@/app/[locale]/pyth/types';
 import { OracleProvider } from '@/types/oracle';
 import type { PriceData, ConfidenceInterval } from '@/types/oracle';
+
+import type { PublisherData, PublisherStatus, ValidatorData } from './types';
 
 import type { PythPriceRaw } from './types';
 

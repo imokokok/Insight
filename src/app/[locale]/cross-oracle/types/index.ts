@@ -5,11 +5,6 @@
 
 import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 
-import type { OraclePriceSeries } from '@/components/oracle/charts/PriceCorrelationMatrix';
-import type { PriceDeviationDataPoint } from '@/components/oracle/charts/PriceDeviationHeatmap';
-import type { OraclePriceData } from '@/components/oracle/charts/PriceDistributionBoxPlot';
-import type { OraclePriceHistory } from '@/components/oracle/charts/PriceVolatilityChart';
-import type { OraclePerformanceData } from '@/components/oracle/data-display/OraclePerformanceRanking';
 import type { FavoriteConfig } from '@/hooks/data';
 import type { UserFavorite } from '@/lib/supabase/queries';
 import type { CalculatedPerformanceMetrics } from '@/lib/oracles/performanceMetricsCalculator';
@@ -20,6 +15,15 @@ import {
   type SnapshotStats,
   type OracleSnapshot,
 } from '@/types/oracle';
+
+import type {
+  OraclePriceSeries,
+  PriceDeviationDataPoint,
+  OraclePriceData,
+  OraclePriceHistory,
+  OraclePerformanceData,
+  LatencyStats,
+} from './charts';
 
 // 从 constants.tsx 导入基础类型
 import type { SortColumn, SortDirection, TimeRange, DeviationFilter } from '../constants';
@@ -645,24 +649,6 @@ export interface ProfessionalQualityMetrics {
 }
 
 /**
- * 延迟统计
- */
-export interface LatencyStats {
-  /** P50 中位数延迟 */
-  p50: number;
-  /** P95 延迟 */
-  p95: number;
-  /** P99 延迟 */
-  p99: number;
-  /** 最小延迟 */
-  min: number;
-  /** 最大延迟 */
-  max: number;
-  /** 平均延迟 */
-  avg: number;
-}
-
-/**
  * 单个预言机质量指标
  */
 export interface OracleQualityMetrics {
@@ -710,3 +696,21 @@ export interface OracleFeature {
 // ============================================================================
 
 export type { OracleProvider, PriceData, SnapshotStats, OracleSnapshot };
+
+// 重新导出图表类型
+export type {
+  OraclePriceSeries,
+  PriceDeviationDataPoint,
+  OraclePriceData,
+  OraclePriceHistory,
+  OraclePerformanceData,
+  BoxPlotStats,
+  VolatilityResult,
+  VolatilityTrendPoint,
+  MovingAverageChartProps,
+  QualityDataPoint,
+  DataQualityTrendProps,
+  HistogramBin,
+  LatencyStats,
+  LatencyDistributionHistogramProps,
+} from './charts';

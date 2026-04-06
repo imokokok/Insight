@@ -268,12 +268,6 @@ export const oracleColorBlindFriendly = {
     symbol: '★',
     description: '粉色点状星形',
   },
-  chronicle: {
-    color: '#7f7f7f',
-    pattern: 'crossHatch',
-    symbol: '●',
-    description: '灰色交叉圆',
-  },
   winklink: {
     color: '#bcbd22',
     pattern: 'diagonal',

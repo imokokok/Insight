@@ -17,14 +17,9 @@ import {
 
 import { useTranslations } from '@/i18n';
 import { chartColors, baseColors } from '@/lib/config/colors';
-import { type ChartExportData } from '@/lib/utils/chartExport';
-import { createLogger } from '@/lib/utils/logger';
 
-import { ChartGuide, useChartGuide } from '../ChartGuide';
-import { MultiSeriesTooltip } from '../EnhancedTooltip';
-import { OracleChartToolbar, type ToolbarGroup } from '../OracleChartToolbar';
 
-const logger = createLogger('InteractivePriceChart');
+
 
 // Types
 export interface ChartDataPoint {
@@ -70,8 +65,6 @@ export function InteractivePriceChart({
   const [showComparison, setShowComparison] = useState(!!comparisonData);
   const [brushRange, setBrushRange] = useState<{ startIndex?: number; endIndex?: number }>({});
 
-  const { shouldShowGuide, resetGuide: _resetGuide } = useChartGuide(chartId);
-
   // Calculate price change
   const priceChange = useMemo(() => {
     if (data.length < 2) return { value: 0, percent: 0 };
@@ -84,134 +77,6 @@ export function InteractivePriceChart({
 
   const currentPrice = data[data.length - 1]?.price || 0;
 
-  // Prepare export data
-  const exportData: ChartExportData[] = useMemo(
-    () =>
-      data.map((d) => ({
-        time: d.time,
-        timestamp: d.timestamp,
-        price: d.price,
-        volume: d.volume,
-        ma7: d.ma7,
-        ma14: d.ma14,
-        ma30: d.ma30,
-      })),
-    [data]
-  );
-
-  // Toolbar button groups
-  const toolbarGroups: ToolbarGroup[] = useMemo(
-    () => [
-      {
-        id: 'indicators',
-        title: t('toolbar.indicators'),
-        buttons: [
-          {
-            id: 'ma7',
-            icon: (
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-                />
-              </svg>
-            ),
-            label: 'MA7',
-            tooltip: t('tooltips.ma7'),
-            onClick: () => setShowMA7(!showMA7),
-            isActive: showMA7,
-            shortcut: '7',
-          },
-          {
-            id: 'ma14',
-            icon: (
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-                />
-              </svg>
-            ),
-            label: 'MA14',
-            tooltip: t('tooltips.ma14'),
-            onClick: () => setShowMA14(!showMA14),
-            isActive: showMA14,
-            shortcut: '4',
-          },
-          {
-            id: 'ma30',
-            icon: (
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-                />
-              </svg>
-            ),
-            label: 'MA30',
-            tooltip: t('tooltips.ma30'),
-            onClick: () => setShowMA30(!showMA30),
-            isActive: showMA30,
-            shortcut: '3',
-          },
-        ],
-      },
-      {
-        id: 'view',
-        title: t('toolbar.view'),
-        buttons: [
-          {
-            id: 'volume',
-            icon: (
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                />
-              </svg>
-            ),
-            label: t('buttons.volume'),
-            tooltip: t('tooltips.volume'),
-            onClick: () => setShowVolume(!showVolume),
-            isActive: showVolume,
-            shortcut: 'V',
-          },
-          ...(comparisonData
-            ? [
-                {
-                  id: 'comparison',
-                  icon: (
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                      />
-                    </svg>
-                  ),
-                  label: t('buttons.comparison'),
-                  tooltip: t('tooltips.comparison'),
-                  onClick: () => setShowComparison(!showComparison),
-                  isActive: showComparison,
-                  shortcut: 'C',
-                },
-              ]
-            : []),
-        ],
-      },
-    ],
-    [showMA7, showMA14, showMA30, showVolume, showComparison, comparisonData, t]
-  );
-
   // Handle fullscreen change
   const handleFullscreen = useCallback(() => {
     setIsFullscreen(!isFullscreen);
@@ -219,7 +84,6 @@ export function InteractivePriceChart({
 
   // Handle refresh
   const handleRefresh = useCallback(() => {
-    logger.info('Chart refresh requested');
     // Implement refresh logic here
   }, []);
 
@@ -234,59 +98,20 @@ export function InteractivePriceChart({
   }) => {
     if (!active || !payload || payload.length === 0) return null;
 
-    const seriesNames: Record<string, string> = {
-      price: t('series.price'),
-      comparisonPrice: t('series.comparison'),
-      ma7: 'MA7',
-      ma14: 'MA14',
-      ma30: 'MA30',
-    };
-
     return (
-      <MultiSeriesTooltip
-        active={active}
-        payload={payload.map((p) => ({
-          dataKey: p.dataKey,
-          value: p.value,
-          color: p.color,
-          payload: p.payload,
-          name: seriesNames[p.dataKey] || p.dataKey,
-        }))}
-        label={label}
-        seriesNames={seriesNames}
-        isMobile={isMobile}
-      />
+      <div className="bg-white p-2 border border-gray-200 rounded shadow">
+        <div className="text-sm font-medium">{label}</div>
+        {payload.map((p, i) => (
+          <div key={i} className="text-xs" style={{ color: p.color }}>
+            {p.dataKey}: {p.value}
+          </div>
+        ))}
+      </div>
     );
   };
 
   return (
     <div className={`flex flex-col ${className}`}>
-      {/* Chart Guide */}
-      {showGuide && shouldShowGuide && (
-        <ChartGuide chartId={chartId} onClose={() => logger.info('Chart guide closed')} />
-      )}
-
-      {/* Enhanced Toolbar */}
-      <OracleChartToolbar
-        symbol={symbol}
-        currentPrice={currentPrice}
-        priceChange={priceChange}
-        chartContainerRef={chartContainerRef}
-        exportData={exportData}
-        groups={toolbarGroups}
-        showFullscreen={true}
-        showExport={true}
-        showRefresh={true}
-        showSettings={false}
-        showGranularity={false}
-        showTechnicalIndicators={false}
-        onRefresh={handleRefresh}
-        onFullscreen={handleFullscreen}
-        isFullscreen={isFullscreen}
-        isMobile={isMobile}
-        className="mb-4"
-      />
-
       {/* Chart Container */}
       <div
         ref={chartContainerRef}

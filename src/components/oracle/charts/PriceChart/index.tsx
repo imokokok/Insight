@@ -18,8 +18,6 @@ import {
 } from '@/stores/uiStore';
 import { type Blockchain } from '@/types/oracle';
 
-import { OracleChartToolbar } from '../OracleChartToolbar';
-
 import { ChartCanvas } from './ChartCanvas';
 import { ChartLegend } from './ChartLegend';
 import { calculateChartHeights } from './chartUtils';
@@ -257,63 +255,6 @@ function PriceChartBase({
 
   return (
     <div className="h-full flex flex-col">
-      {showToolbar && (
-        <OracleChartToolbar
-          symbol={symbol}
-          currentPrice={currentPrice}
-          priceChange={priceChange}
-          chartContainerRef={chartContainerRef as React.RefObject<HTMLDivElement>}
-          exportData={exportData}
-          granularity={granularity}
-          onGranularityChange={setGranularity}
-          showMA7={showMA7}
-          showMA14={showMA14}
-          showMA30={showMA30}
-          showMA60={showMA60}
-          showMA20={showMA20}
-          showBollingerBands={showBollingerBands}
-          showRSI={showRSI}
-          showMACD={showMACD}
-          showVolume={showVolume}
-          onToggleMA7={toggleMA7}
-          onToggleMA14={toggleMA14}
-          onToggleMA30={toggleMA30}
-          onToggleMA60={toggleMA60}
-          onToggleMA20={toggleMA20}
-          onToggleBollingerBands={toggleBollingerBands}
-          onToggleRSI={toggleRSI}
-          onToggleMACD={toggleMACD}
-          onToggleVolume={toggleVolume}
-          showComparisonPanel={showComparisonPanel}
-          onToggleComparisonPanel={() => setShowComparisonPanel(!showComparisonPanel)}
-          comparison={comparison}
-          onComparisonChange={setComparison}
-          onApplyComparison={handleComparisonApply}
-          onCancelComparison={cancelComparison}
-          anomalyDetectionEnabled={anomalyDetectionEnabled}
-          showPredictionInterval={showPredictionInterval}
-          confidenceLevel={confidenceLevel}
-          anomaliesCount={anomalies.length}
-          onToggleAnomalyDetection={() =>
-            updateChartSettings({ anomalyDetectionEnabled: !anomalyDetectionEnabled })
-          }
-          onTogglePredictionInterval={() =>
-            updateChartSettings({ showPredictionInterval: !showPredictionInterval })
-          }
-          onConfidenceLevelChange={(level) =>
-            updateChartSettings({ confidenceLevel: level as ConfidenceLevel })
-          }
-          onShowAnomalyStats={() => setShowAnomalyStats(!showAnomalyStats)}
-          isMobile={isMobile}
-          isUMAClient={isUMAClient}
-          realtimeEnabled={realtimeEnabled}
-          umaConnectionStatus={
-            umaConnectionStatus as 'connected' | 'connecting' | 'reconnecting' | 'disconnected'
-          }
-          umaRealtimePrice={umaRealtimePrice}
-        />
-      )}
-
       <div
         ref={chartContainerRef}
         className={`flex-1 min-h-0 transition-all duration-300 ${isRefreshing ? 'ring-2' : ''} ${isMobile ? 'p-1' : 'p-2 sm:p-4'}`}

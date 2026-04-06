@@ -25,8 +25,6 @@ import { useTranslations } from '@/i18n';
 import { baseColors, chartColors } from '@/lib/config/colors';
 import { OracleProvider } from '@/types/oracle';
 
-import { PriceDeviationHistoryChart } from '../PriceDeviationHistoryChart';
-
 import {
   oracleNames,
   oracleColors,
@@ -424,16 +422,6 @@ export function ChartsTab({
         </div>
       </div>
 
-      {/* 价格偏差历史 */}
-      <PriceDeviationHistoryChart
-        priceHistory={Object.fromEntries(
-          Object.entries(priceHistory).map(([k, v]) => [k, v.map((p) => p.price)])
-        )}
-        selectedOracles={selectedOracles}
-        oracleColors={oracleColors}
-        oracleNames={oracleNames}
-        chainlinkPrice={priceData.find((d) => d.provider === OracleProvider.CHAINLINK)?.price}
-      />
     </div>
   );
 }

@@ -13,7 +13,6 @@ export const providerNames: Record<OracleProvider, string> = {
   [OracleProvider.REDSTONE]: 'RedStone',
   [OracleProvider.DIA]: 'DIA',
   [OracleProvider.TELLOR]: 'Tellor',
-  [OracleProvider.CHRONICLE]: 'Chronicle',
   [OracleProvider.WINKLINK]: 'WINkLink',
 };
 
@@ -27,7 +26,6 @@ export const oracleI18nKeys: Record<OracleProvider, string> = {
   [OracleProvider.REDSTONE]: 'redstone',
   [OracleProvider.DIA]: 'dia',
   [OracleProvider.TELLOR]: 'tellor',
-  [OracleProvider.CHRONICLE]: 'chronicle',
   [OracleProvider.WINKLINK]: 'winklink',
 };
 
@@ -120,7 +118,6 @@ export const oracleColors: Record<OracleProvider, string> = {
   [OracleProvider.REDSTONE]: configChartColors.oracle.redstone,
   [OracleProvider.DIA]: configChartColors.oracle.dia,
   [OracleProvider.TELLOR]: configChartColors.oracle.tellor,
-  [OracleProvider.CHRONICLE]: configChartColors.oracle.chronicle,
   [OracleProvider.WINKLINK]: configChartColors.oracle.winklink,
 };
 

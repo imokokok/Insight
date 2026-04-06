@@ -39,7 +39,7 @@ export {
   getCategoryIcon,
 } from './useRiskRecommendations';
 
-export type { TabId } from '../components/TabNavigation';
+// Tab types removed - no longer needed
 export type { CommonSymbolInfo, UseCommonSymbolsResult } from './useCommonSymbols';
 // export type { UseDataQualityScoreParams } from './useDataQualityScore';
 export type {

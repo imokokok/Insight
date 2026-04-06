@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { devtools, persist, createJSONStorage } from 'zustand/middleware';
 
-import { type TimeRange } from '@/components/oracle/shared/TabNavigation';
+import { type UITimeRange } from '@/types/ui/layout';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('uiStore');
@@ -52,7 +52,7 @@ export interface SelectedTimeRange {
 type TimeRangeCallback = (range: SelectedTimeRange) => void;
 
 interface TimeRangeState {
-  globalTimeRange: TimeRange;
+  globalTimeRange: UITimeRange;
   syncEnabled: boolean;
   customDateRange: CustomDateRange | null;
   brushRange: BrushRange | null;
@@ -84,7 +84,7 @@ interface UIStore extends TimeRangeState {
   setTheme: (theme: Theme) => void;
   setIsMobile: (isMobile: boolean) => void;
 
-  setGlobalTimeRange: (range: TimeRange) => void;
+  setGlobalTimeRange: (range: UITimeRange) => void;
   setSyncEnabled: (enabled: boolean) => void;
   setCustomDateRange: (range: CustomDateRange | null) => void;
   setBrushRange: (range: BrushRange | null) => void;
@@ -105,9 +105,9 @@ const _STORAGE_KEYS = {
   SELECTED_HOUR: 'insight_selectedHour',
 } as const;
 
-const isValidTimeRange = (value: unknown): value is TimeRange => {
-  const validRanges: TimeRange[] = ['1H', '24H', '7D', '30D', '90D', '1Y', 'ALL'];
-  return typeof value === 'string' && validRanges.includes(value as TimeRange);
+const isValidTimeRange = (value: unknown): value is UITimeRange => {
+  const validRanges: UITimeRange[] = ['1H', '24H', '7D', '30D', '90D', '1Y', 'ALL'];
+  return typeof value === 'string' && validRanges.includes(value as UITimeRange);
 };
 
 const parseCustomDateRange = (value: unknown): CustomDateRange | null => {

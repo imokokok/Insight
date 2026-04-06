@@ -227,7 +227,6 @@ export const chartColors = {
     dia: '#6366F1',
     flux: '#F38181',
     tellor: '#AA96DA',
-    chronicle: '#E11D48',
     winklink: '#FF4D4D',
   } as const,
 
@@ -243,7 +242,6 @@ export const chartColors = {
     dia: { color: '#059669', pattern: 'dotted' },
     flux: { color: '#ea580c', pattern: 'dashDot' },
     tellor: { color: '#7c3aed', pattern: 'longDash' },
-    chronicle: { color: '#be123c', pattern: 'solid' },
     winklink: { color: '#dc2626', pattern: 'dashed' },
   } as const,
 
@@ -493,7 +491,7 @@ export const accessibleColors = {
       '#f95d6a', // 粉红
       '#ff7c43', // 橙色
       '#ffa600', // 黄色
-      '#00b4d8', // 青色 - Chronicle
+      '#00b4d8', // 青色
       '#e63946', // 红色 - WINkLink
     ],
     // 高对比度模式

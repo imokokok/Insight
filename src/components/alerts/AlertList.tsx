@@ -4,7 +4,7 @@ import { useState, useCallback, useRef } from 'react';
 
 import { useVirtualizer } from '@tanstack/react-virtual';
 
-import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { useUpdateAlert, useDeleteAlert, useBatchAlerts } from '@/hooks';
 import { useTranslations } from '@/i18n';
 import { providerNames, chainNames, oracleColors, chainColors } from '@/lib/constants';
@@ -176,40 +176,54 @@ export function AlertList({ alerts, isLoading, onRefresh }: AlertListProps) {
 
   if (isLoading) {
     return (
-      <DashboardCard title={t('alerts.list.title')}>
-        <div className="flex items-center justify-center py-8">
-          <div className="w-6 h-6 border-2 border-gray-900 border-t-transparent animate-spin" />
-        </div>
-      </DashboardCard>
+      <Card>
+        <CardHeader>
+          <CardTitle>{t('alerts.list.title')}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center py-8">
+            <div className="w-6 h-6 border-2 border-gray-900 border-t-transparent animate-spin" />
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
   if (alerts.length === 0) {
     return (
-      <DashboardCard title={t('alerts.list.title')}>
-        <div className="text-center py-8 text-gray-500">
-          <svg
-            className="mx-auto h-12 w-12 text-gray-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-            />
-          </svg>
-          <p className="mt-2 text-sm">{t('alerts.list.empty')}</p>
-          <p className="text-xs text-gray-400">{t('alerts.list.emptyHint')}</p>
-        </div>
-      </DashboardCard>
+      <Card>
+        <CardHeader>
+          <CardTitle>{t('alerts.list.title')}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8 text-gray-500">
+            <svg
+              className="mx-auto h-12 w-12 text-gray-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+              />
+            </svg>
+            <p className="mt-2 text-sm">{t('alerts.list.empty')}</p>
+            <p className="text-xs text-gray-400">{t('alerts.list.emptyHint')}</p>
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <DashboardCard title={`${t('alerts.list.title')} (${alerts.length})`}>
-      <div className="space-y-3">
+    <Card>
+      <CardHeader>
+        <CardTitle>{`${t('alerts.list.title')} (${alerts.length})`}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-3">
         <AlertBatchOperations
           selectedAlerts={selectedAlerts}
           alerts={alerts}
@@ -424,6 +438,7 @@ export function AlertList({ alerts, isLoading, onRefresh }: AlertListProps) {
           )}
         </div>
       </div>
-    </DashboardCard>
+      </CardContent>
+    </Card>
   );
 }

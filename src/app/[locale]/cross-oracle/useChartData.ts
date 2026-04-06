@@ -1,16 +1,19 @@
 import { useMemo, useCallback } from 'react';
 
-import type { OraclePriceSeries } from '@/components/oracle/charts/PriceCorrelationMatrix';
-import type { PriceDeviationDataPoint } from '@/components/oracle/charts/PriceDeviationHeatmap';
-import type { OraclePriceData } from '@/components/oracle/charts/PriceDistributionBoxPlot';
-import type { OraclePriceHistory } from '@/components/oracle/charts/PriceVolatilityChart';
-import type { OraclePerformanceData } from '@/components/oracle/data-display/OraclePerformanceRanking';
 import { lttbDownsample } from '@/lib/utils/lttb';
 import { type OracleProvider, type PriceData } from '@/types/oracle';
 
 import { getMaxPointsForTimeRange, getOracleChartColors } from './chartConfig';
 import { oracleNames, type TimeRange } from './constants';
-import { type ChartDataResult, type ChartDataPoint } from './types/index';
+import type {
+  ChartDataResult,
+  ChartDataPoint,
+  OraclePriceSeries,
+  PriceDeviationDataPoint,
+  OraclePriceData,
+  OraclePriceHistory,
+  OraclePerformanceData,
+} from './types/index';
 
 export function useChartData(
   historicalData: Partial<Record<OracleProvider, PriceData[]>>,

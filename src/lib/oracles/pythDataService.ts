@@ -18,12 +18,9 @@ export {
   type ConnectionStateListener,
   type PythPriceRaw,
   isPythPriceRaw,
+  type CrossChainPriceData,
+  type CrossChainResult,
+  type PythServicePriceFeed,
+  type PublisherData,
+  type ValidatorData,
 } from './pyth/index';
-
-export type {
-  CrossChainPriceData,
-  CrossChainResult,
-  PythServicePriceFeed as PriceFeed,
-  PublisherData,
-  ValidatorData,
-} from '@/app/[locale]/pyth/types';
