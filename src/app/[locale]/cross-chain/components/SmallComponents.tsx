@@ -21,7 +21,7 @@ interface ProgressBarProps {
 export function ProgressBar({
   progress,
   value,
-  total = 100,
+  total: _total = 100,
   max = 100,
   showPercentage = false,
   size = 'md',

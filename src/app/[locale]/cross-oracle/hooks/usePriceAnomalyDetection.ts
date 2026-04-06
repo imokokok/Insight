@@ -3,7 +3,7 @@
  * @description 检测价格数据中的异常值，提供异常分级和原因分析
  */
 
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 
 import { type PriceData, type OracleProvider } from '@/types/oracle';
 
@@ -104,6 +104,12 @@ export function usePriceAnomalyDetection(
   avgPrice: number,
   currentTime?: number
 ): AnomalyDetectionResult {
+  const nowRef = useRef<number | null>(null);
+  if (nowRef.current === null) {
+    nowRef.current = currentTime ?? Date.now();
+  }
+  const now = nowRef.current;
+
   return useMemo(() => {
     if (!priceData.length || avgPrice <= 0) {
       return {
@@ -118,7 +124,6 @@ export function usePriceAnomalyDetection(
       };
     }
 
-    const now = currentTime ?? Date.now();
     const anomalies: PriceAnomaly[] = [];
 
     priceData.forEach((data) => {

@@ -1,11 +1,19 @@
 'use client';
 
-import { DropdownSelect } from '@/components/ui';
 import { type OracleProvider, type PriceData } from '@/types/oracle';
 
 import { oracleNames } from '../../constants';
 import { BenchmarkComparisonSection } from '../BenchmarkComparisonSection';
 import { OracleComparisonSection } from '../OracleComparisonSection';
+
+import { DataQualityTrend } from './components/DataQualityTrend';
+import { MovingAverageChart } from './components/MovingAverageChart';
+import { OraclePerformanceRanking } from './components/OraclePerformanceRanking';
+import { PerformanceAnalysisSection } from './components/PerformanceAnalysisSection';
+import { PriceCorrelationMatrix } from './components/PriceCorrelationMatrix';
+import { PriceDeviationHeatmap } from './components/PriceDeviationHeatmap';
+import { PriceDistributionBoxPlot } from './components/PriceDistributionBoxPlot';
+import { PriceVolatilityChart } from './components/PriceVolatilityChart';
 
 import type {
   QualityTrendData,
@@ -15,117 +23,6 @@ import type {
   OraclePriceHistory,
   OraclePerformanceData,
 } from '../../types/index';
-
-// 占位符组件 - 实际组件待实现
-function DataQualityTrend({
-  data,
-  oracleNames,
-}: {
-  data: QualityTrendData[];
-  oracleNames: Record<string, string>;
-}) {
-  return (
-    <div className="bg-gray-50 p-4 rounded-lg">
-      <p className="text-sm text-gray-500">Data Quality Trend Chart (Placeholder)</p>
-    </div>
-  );
-}
-
-function LatencyDistributionHistogram({
-  data,
-  oracleName,
-}: {
-  data: number[];
-  oracleName: string;
-}) {
-  return (
-    <div className="bg-gray-50 p-4 rounded-lg">
-      <p className="text-sm text-gray-500">Latency Distribution for {oracleName} (Placeholder)</p>
-    </div>
-  );
-}
-
-function MovingAverageChart({
-  data,
-  oracleNames,
-}: {
-  data: { oracle: OracleProvider; prices: { timestamp: number; price: number }[] }[];
-  oracleNames: Record<string, string>;
-}) {
-  return (
-    <div className="bg-gray-50 p-4 rounded-lg">
-      <p className="text-sm text-gray-500">Moving Average Chart (Placeholder)</p>
-    </div>
-  );
-}
-
-function PriceCorrelationMatrix({
-  data,
-  oracleNames,
-}: {
-  data: OraclePriceSeries[];
-  oracleNames: Record<string, string>;
-}) {
-  return (
-    <div className="bg-gray-50 p-4 rounded-lg">
-      <p className="text-sm text-gray-500">Price Correlation Matrix (Placeholder)</p>
-    </div>
-  );
-}
-
-function PriceDeviationHeatmap({
-  data,
-  useAccessibleColors,
-}: {
-  data: PriceDeviationDataPoint[];
-  useAccessibleColors?: boolean;
-}) {
-  return (
-    <div className="bg-gray-50 p-4 rounded-lg">
-      <p className="text-sm text-gray-500">Price Deviation Heatmap (Placeholder)</p>
-    </div>
-  );
-}
-
-function PriceDistributionBoxPlot({
-  data,
-  oracleNames,
-}: {
-  data: OraclePriceData[];
-  oracleNames: Record<string, string>;
-}) {
-  return (
-    <div className="bg-gray-50 p-4 rounded-lg">
-      <p className="text-sm text-gray-500">Price Distribution Box Plot (Placeholder)</p>
-    </div>
-  );
-}
-
-function PriceVolatilityChart({
-  data,
-  oracleNames,
-}: {
-  data: OraclePriceHistory[];
-  oracleNames: Record<string, string>;
-}) {
-  return (
-    <div className="bg-gray-50 p-4 rounded-lg">
-      <p className="text-sm text-gray-500">Price Volatility Chart (Placeholder)</p>
-    </div>
-  );
-}
-
-function OraclePerformanceRanking({
-  performanceData,
-}: {
-  performanceData: OraclePerformanceData[];
-}) {
-  return (
-    <div className="bg-gray-50 p-4 rounded-lg">
-      <p className="text-sm text-gray-500">Oracle Performance Ranking (Placeholder)</p>
-    </div>
-  );
-}
 
 interface AnalysisTabProps {
   priceData: PriceData[];
@@ -164,7 +61,6 @@ export function AnalysisTab({
 }: AnalysisTabProps) {
   return (
     <>
-      {/* 预言机对比和基准对比部分 - 从Overview移过来 */}
       {priceData.length > 0 && (
         <OracleComparisonSection
           priceData={priceData}
@@ -177,28 +73,24 @@ export function AnalysisTab({
         <BenchmarkComparisonSection priceData={priceData} loading={isLoading} />
       )}
 
-      {/* 价格偏差热力图 */}
       {heatmapData.length > 0 && (
         <div className="mb-6">
           <PriceDeviationHeatmap data={heatmapData} useAccessibleColors={useAccessibleColors} />
         </div>
       )}
 
-      {/* 价格分布箱线图 */}
       {boxPlotData.some((d) => d.prices.length > 0) && (
         <div className="mb-6">
           <PriceDistributionBoxPlot data={boxPlotData} oracleNames={oracleNames} />
         </div>
       )}
 
-      {/* 波动率图表 */}
       {volatilityData.some((d) => d.prices.length > 0) && (
         <div className="mb-6">
           <PriceVolatilityChart data={volatilityData} oracleNames={oracleNames} />
         </div>
       )}
 
-      {/* 移动平均线图表 */}
       <div className="mb-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">
           {t('crossOracle.analysisTab.movingAverage')}
@@ -208,7 +100,6 @@ export function AnalysisTab({
         )}
       </div>
 
-      {/* 数据质量趋势 */}
       <div className="mb-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">
           {t('crossOracle.analysisTab.dataQuality')}
@@ -218,93 +109,15 @@ export function AnalysisTab({
         )}
       </div>
 
-      {/* 性能分析部分 */}
-      <div className="mb-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">
-          {t('crossOracle.analysisTab.performanceComparison')}
-        </h2>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white border border-gray-200 p-4 rounded-lg">
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                {t('crossOracle.analysisTab.selectOracle')}
-              </label>
-              <DropdownSelect
-                options={[
-                  { value: '', label: t('crossOracle.analysisTab.allOracles') },
-                  ...selectedOracles.map((oracle) => ({
-                    value: oracle,
-                    label: oracleNames[oracle],
-                  })),
-                ]}
-                value={selectedPerformanceOracle || ''}
-                onChange={(value) =>
-                  setSelectedPerformanceOracle(value ? (value as OracleProvider) : null)
-                }
-                placeholder={t('crossOracle.analysisTab.selectOraclePlaceholder')}
-                className="w-full"
-              />
-            </div>
-            <LatencyDistributionHistogram
-              data={getOracleLatencyData(selectedPerformanceOracle)}
-              oracleName={
-                selectedPerformanceOracle
-                  ? oracleNames[selectedPerformanceOracle]
-                  : t('crossOracle.analysisTab.allOracles')
-              }
-            />
-          </div>
-          <div className="bg-white border border-gray-200 p-4 rounded-lg">
-            <h3 className="text-sm font-semibold text-gray-900 mb-4">
-              {t('crossOracle.analysisTab.summary')}
-            </h3>
-            <div className="space-y-4">
-              {performanceData.map((data) => (
-                <div
-                  key={data.provider}
-                  className={`flex items-center justify-between p-4 border transition-colors overflow-hidden rounded-lg ${
-                    selectedPerformanceOracle === data.provider
-                      ? 'bg-primary-50 border-primary-200'
-                      : 'bg-gray-50 border-gray-100'
-                  }`}
-                  onClick={() => setSelectedPerformanceOracle(data.provider)}
-                  style={{ cursor: 'pointer' }}
-                  title={t('crossOracle.analysisTab.tooltip', {
-                    name: data.name,
-                    responseTime: data.responseTime,
-                    accuracy: data.accuracy.toFixed(1),
-                    stability: data.stability.toFixed(1),
-                  })}
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div
-                      className="w-3 h-3 flex-shrink-0"
-                      style={{ backgroundColor: data.color }}
-                    />
-                    <span className="font-medium text-gray-900 truncate">{data.name}</span>
-                  </div>
-                  <div className="flex items-center gap-4 text-xs text-gray-600 flex-shrink-0">
-                    <div className="text-center">
-                      <p className="text-gray-400">{t('crossOracle.analysisTab.responseTime')}</p>
-                      <p className="font-semibold text-gray-900 truncate">{data.responseTime}ms</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-gray-400">{t('crossOracle.analysisTab.accuracy')}</p>
-                      <p className="font-semibold text-success-600">{data.accuracy.toFixed(1)}%</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-gray-400">{t('crossOracle.analysisTab.stability')}</p>
-                      <p className="font-semibold text-primary-600">{data.stability.toFixed(1)}%</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
+      <PerformanceAnalysisSection
+        selectedOracles={selectedOracles}
+        selectedPerformanceOracle={selectedPerformanceOracle}
+        setSelectedPerformanceOracle={setSelectedPerformanceOracle}
+        performanceData={performanceData}
+        getOracleLatencyData={getOracleLatencyData}
+        t={t}
+      />
 
-      {/* 相关性矩阵 */}
       <div className="mb-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">
           {t('crossOracle.analysisTab.advancedAnalysis')}
@@ -316,7 +129,6 @@ export function AnalysisTab({
         )}
       </div>
 
-      {/* 性能排名 */}
       {performanceData.length > 0 && (
         <div className="mb-6">
           <OraclePerformanceRanking performanceData={performanceData} />

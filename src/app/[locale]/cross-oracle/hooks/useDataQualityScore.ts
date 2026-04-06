@@ -11,7 +11,7 @@ import {
   calculateStdDev,
   calculatePercentile,
 } from '@/lib/utils/statistics';
-import type { OracleProvider, PriceData } from '@/types/oracle';
+import type { PriceData } from '@/types/oracle';
 
 import type {
   DataQualityScore as DataQualityScoreType,

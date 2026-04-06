@@ -1,4 +1,4 @@
-import { calculatePercentile, calculateZScore } from './statisticsUtils';
+import { calculateZScore } from './statisticsUtils';
 
 export interface RollingVolatilityPoint {
   timestamp: number;

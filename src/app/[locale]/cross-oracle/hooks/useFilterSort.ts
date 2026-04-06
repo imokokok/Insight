@@ -18,12 +18,7 @@ import {
 } from '../constants';
 import { DEVIATION_FILTER_THRESHOLDS } from '../thresholds';
 
-import type {
-  FilterSortResult,
-  UseFilterSortReturn,
-  OutlierStats,
-  OutlierInfo,
-} from '../types/index';
+import type { UseFilterSortReturn, OutlierStats, OutlierInfo } from '../types';
 
 interface UseFilterSortParams {
   priceData: PriceData[];

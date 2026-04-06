@@ -129,7 +129,7 @@ function PriceTableComponent({
   onSort,
   onExpandRow,
   onSetHoveredRow,
-  onHoverOracle,
+  onHoverOracle: _onHoverOracle,
   t,
 }: PriceTableProps) {
   const [expandedRowIndex, setExpandedRowIndex] = useState<number | null>(expandedRow);

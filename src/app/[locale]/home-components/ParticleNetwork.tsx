@@ -145,13 +145,10 @@ export default function ParticleNetwork({
       const particles = particlesRef.current;
       const accentColor = '#8b5cf6';
 
-      // 更新和绘制粒子
       particles.forEach((particle, i) => {
-        // 更新位置
         particle.x += particle.vx;
         particle.y += particle.vy;
 
-        // 边缘碰撞检测
         if (particle.x <= particle.radius || particle.x >= width - particle.radius) {
           particle.vx = -particle.vx;
           particle.x = Math.max(particle.radius, Math.min(width - particle.radius, particle.x));
@@ -161,14 +158,12 @@ export default function ParticleNetwork({
           particle.y = Math.max(particle.radius, Math.min(height - particle.radius, particle.y));
         }
 
-        // 绘制粒子
         ctx.beginPath();
         ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
         ctx.fillStyle = i % 3 === 0 ? accentColor : themeColor;
         ctx.fill();
       });
 
-      // 绘制连线
       for (let i = 0; i < particles.length; i++) {
         for (let j = i + 1; j < particles.length; j++) {
           const dx = particles[i].x - particles[j].x;
@@ -190,22 +185,18 @@ export default function ParticleNetwork({
     [connectionDistance, themeColor]
   );
 
-  const animate = useCallback(() => {
+  useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    drawParticles(ctx, canvas.width, canvas.height);
-
-    animationRef.current = requestAnimationFrame(animate);
-  }, [drawParticles]);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+    const animate = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawParticles(ctx, canvas.width, canvas.height);
+      animationRef.current = requestAnimationFrame(animate);
+    };
 
     const handleResize = () => {
       canvas.width = window.innerWidth;
@@ -227,7 +218,7 @@ export default function ParticleNetwork({
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [initParticles, animate, degradation.reason]);
+  }, [initParticles, drawParticles, degradation.reason]);
 
   if (degradation.reason === 'prefers-reduced-motion') {
     return (

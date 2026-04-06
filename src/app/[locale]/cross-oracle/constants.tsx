@@ -3,9 +3,8 @@
 import React from 'react';
 
 import { semanticColors, baseColors, chainColors } from '@/lib/config/colors';
-import { PRICE_ORACLE_PROVIDERS, type PriceOracleProvider } from '@/lib/config/oracles';
+import { type PriceOracleProvider } from '@/lib/config/oracles';
 import { providerNames, type RefreshInterval } from '@/lib/constants';
-import { OracleClientFactory } from '@/lib/oracles';
 import { getDeviationColor } from '@/lib/utils/chartSharedUtils';
 import {
   calculateWeightedAverage as calcWeightedAverage,
@@ -22,7 +21,6 @@ import {
   DATA_DELAY_DANGER_THRESHOLD,
   DEVIATION_FILTER_THRESHOLDS,
   CONSISTENCY_RATING_THRESHOLDS,
-  ZSCORE_OUTLIER_THRESHOLD,
   FRESHNESS_THRESHOLDS,
 } from './thresholds';
 

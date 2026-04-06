@@ -3,8 +3,6 @@
 import { useState, useMemo } from 'react';
 
 import {
-  OracleMarketData,
-  AssetData,
   type MarketStats,
   type ChartType,
   type ViewType,

@@ -5,7 +5,7 @@
  * @description 展示变异系数/标准差的时间序列变化
  */
 
-import { memo, useMemo } from 'react';
+import { memo } from 'react';
 
 import { TrendingUp } from 'lucide-react';
 import {
@@ -49,7 +49,7 @@ interface TrendDataPoint {
  * 生成模拟历史数据
  * 实际项目中应替换为真实历史数据
  */
-function generateMockHistory(_currentMetrics: ProfessionalQualityMetrics): TrendDataPoint[] {
+function _generateMockHistory(_currentMetrics: ProfessionalQualityMetrics): TrendDataPoint[] {
   throw new Error('Mock data is disabled. Please provide real quality metrics data.');
 }
 
@@ -100,7 +100,7 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
 // 主组件
 // ============================================================================
 
-function QualityTrendChartComponent({ metrics, t, className }: QualityTrendChartProps) {
+function QualityTrendChartComponent({ metrics: _metrics, t, className }: QualityTrendChartProps) {
   const data: TrendDataPoint[] = [];
 
   // 计算阈值线

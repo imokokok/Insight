@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 
-import { ChevronDown, ChevronUp, Search, RefreshCw } from 'lucide-react';
+import { Search, RefreshCw } from 'lucide-react';
 
 import { SegmentedControl, DropdownSelect, type SelectorOption } from '@/components/ui';
 import { useTranslations } from '@/i18n';
@@ -46,7 +46,7 @@ export function Selectors({
   supportedChainsBySelectedOracles,
 }: SelectorsProps) {
   const t = useTranslations();
-  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [_showAdvanced, _setShowAdvanced] = useState(false);
 
   // 使用 useOracleSymbols Hook 获取预言机相关的币种和链信息
   const { supportedSymbols, isSymbolSupported, getSupportedChainsForSymbol } = useOracleSymbols(

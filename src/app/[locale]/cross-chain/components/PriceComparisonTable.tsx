@@ -132,10 +132,10 @@ export function PriceComparisonTable({ data }: PriceComparisonTableProps) {
       minWidth: 110,
       align: 'right',
       sortable: true,
-      formatter: (value: unknown, row: TableRow) => {
+      formatter: (value: unknown, _row: TableRow) => {
         const diff = value as number;
         const isPositive = diff >= 0;
-        const isSignificant = Math.abs(row.diffPercent) > 0.5;
+        const isSignificant = Math.abs(diff) > 0.5;
 
         return (
           <span
@@ -161,7 +161,7 @@ export function PriceComparisonTable({ data }: PriceComparisonTableProps) {
       minWidth: 110,
       align: 'right',
       sortable: true,
-      formatter: (value: unknown, row: TableRow) => {
+      formatter: (value: unknown, _row: TableRow) => {
         const diffPercent = value as number;
         const isSignificant = Math.abs(diffPercent) > 0.5;
 
@@ -198,7 +198,7 @@ export function PriceComparisonTable({ data }: PriceComparisonTableProps) {
       minWidth: 80,
       align: 'right',
       sortable: true,
-      formatter: (value: unknown, row: TableRow) => {
+      formatter: (value: unknown, _row: TableRow) => {
         const zScore = value as number | null;
         if (zScore === null) return <span className="text-gray-400">-</span>;
 
@@ -222,8 +222,6 @@ export function PriceComparisonTable({ data }: PriceComparisonTableProps) {
       align: 'center',
       sortable: false,
       formatter: (_value: unknown, row: TableRow) => {
-        const chain = row.chain;
-        const color = chainColors[chain];
         const prices = row.priceHistory;
 
         if (!prices || prices.length < 2) {

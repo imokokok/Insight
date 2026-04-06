@@ -108,7 +108,7 @@ export function PriceComparisonTab({
   selectedRowIndex,
   hoveredRowIndex,
   setHoveredRowIndex,
-  setSelectedRowIndex,
+  setSelectedRowIndex: _setSelectedRowIndex,
   medianPrice,
   maxPrice,
   minPrice,
@@ -136,7 +136,7 @@ export function PriceComparisonTab({
 
   // 计算变化率
   const medianPriceChange = calculateChangePercent(medianPrice, lastStats?.avgPrice || 0);
-  const maxPriceChange = calculateChangePercent(maxPrice, lastStats?.maxPrice || 0);
+  const _maxPriceChange = calculateChangePercent(maxPrice, lastStats?.maxPrice || 0);
 
   return (
     <>

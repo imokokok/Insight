@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { type DisputeType } from './types';
+import { type DisputeType, type DisputeCategory } from './types';
 
 export const PriceDisputeIcon = ({ className = 'w-4 h-4' }: { className?: string }) => (
   <svg
@@ -71,7 +71,7 @@ export const OtherDisputeIcon = ({ className = 'w-4 h-4' }: { className?: string
   </svg>
 );
 
-export const getDisputeIcon = (type: DisputeType): React.ReactNode => {
+export const getDisputeIcon = (type: DisputeCategory): React.ReactNode => {
   switch (type) {
     case 'price':
       return <PriceDisputeIcon />;

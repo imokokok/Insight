@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 
-import { Mail, Lock, Eye, EyeOff, LogIn, Loader2, AlertCircle, MailWarning } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, LogIn, AlertCircle, MailWarning } from 'lucide-react';
 
 import { Button } from '@/components/ui';
 import { useTranslations, useLocale } from '@/i18n';

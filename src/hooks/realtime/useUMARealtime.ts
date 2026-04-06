@@ -2,7 +2,11 @@
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 
-import { type DisputeData, type DisputeType, type UMANetworkStats } from '@/lib/oracles/uma/types';
+import {
+  type DisputeData,
+  type DisputeCategory,
+  type UMANetworkStats,
+} from '@/lib/oracles/uma/types';
 import {
   useUMAWebSocketOptional,
   type WebSocketMessage,
@@ -82,7 +86,7 @@ export interface UseUMARealtimeDisputesOptions {
   enabled?: boolean;
   onDisputeUpdate?: (data: UMADisputeUpdate) => void;
   filterStatus?: ('active' | 'resolved' | 'rejected')[];
-  filterType?: DisputeType[];
+  filterType?: DisputeCategory[];
   throttleMs?: number;
 }
 
@@ -566,7 +570,7 @@ export interface UseUMARealtimeOptions {
   enableNetwork?: boolean;
   enableRequests?: boolean;
   disputeFilterStatus?: ('active' | 'resolved' | 'rejected')[];
-  disputeFilterType?: DisputeType[];
+  disputeFilterType?: DisputeCategory[];
   validatorIds?: string[];
   requestFilterStatus?: ('pending' | 'verified' | 'disputed' | 'resolved')[];
   throttleMs?: number;

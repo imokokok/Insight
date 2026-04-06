@@ -24,7 +24,7 @@ export default function RefreshControl({
 }: RefreshControlProps) {
   const t = useTranslations('marketOverview.refresh');
   const locale = useLocale();
-  const [countdown, setCountdown] = useState<number>(0);
+  const [countdown, setCountdown] = useState<number>(autoRefreshInterval);
 
   const intervalOptions = useMemo(
     () => [
@@ -40,7 +40,6 @@ export default function RefreshControl({
   useEffect(() => {
     if (autoRefreshInterval <= 0) return;
 
-    setCountdown(autoRefreshInterval);
     const timer = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {

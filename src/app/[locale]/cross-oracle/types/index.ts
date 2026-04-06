@@ -24,8 +24,6 @@ import type {
   OraclePerformanceData,
   LatencyStats,
 } from './charts';
-
-// 从 constants.tsx 导入基础类型
 import type { SortColumn, SortDirection, TimeRange, DeviationFilter } from '../constants';
 
 // 重新导出基础类型

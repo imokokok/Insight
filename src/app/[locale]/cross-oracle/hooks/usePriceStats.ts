@@ -6,10 +6,8 @@
 import { useMemo } from 'react';
 
 import {
-  calculateMean,
   calculateMedian,
   calculateVariance,
-  calculateStdDev,
   calculateWeightedAverage,
   calculateStandardDeviationFromVariance,
 } from '@/lib/utils/statistics';

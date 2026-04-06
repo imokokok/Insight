@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useCallback } from 'react';
 
 import { ChartToolbar } from '@/components/charts/ChartToolbar';
 import { useTranslations } from '@/i18n';

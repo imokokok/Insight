@@ -23,32 +23,31 @@ export default function HeroBackground({
   enableParticles = true,
   enableDataFlow = true,
 }: HeroBackgroundProps) {
-  const [mounted, setMounted] = useState(false);
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
-  const [particleCount, setParticleCount] = useState(25);
+  const [mounted] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return true;
+  });
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  });
+  const [particleCount] = useState(() => {
+    if (typeof window === 'undefined') return 25;
+    const isMobile = /iPhone|iPad|Android/i.test(navigator.userAgent);
+    const isLowEnd = navigator.hardwareConcurrency && navigator.hardwareConcurrency < 4;
+    if (isLowEnd) return 10;
+    if (isMobile) return 15;
+    return 25;
+  });
 
   useEffect(() => {
-    setMounted(true);
-
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setPrefersReducedMotion(mediaQuery.matches);
 
     const handleChange = (e: MediaQueryListEvent) => {
       setPrefersReducedMotion(e.matches);
     };
 
     mediaQuery.addEventListener('change', handleChange);
-
-    const isMobile = /iPhone|iPad|Android/i.test(navigator.userAgent);
-    const isLowEnd = navigator.hardwareConcurrency && navigator.hardwareConcurrency < 4;
-
-    if (isLowEnd) {
-      setParticleCount(10);
-    } else if (isMobile) {
-      setParticleCount(15);
-    } else {
-      setParticleCount(25);
-    }
 
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);

@@ -9,21 +9,30 @@ import {
   CACHE_TTL,
   normalizeSymbol,
   getSymbolFromPriceId,
-  DEFAULT_RETRY_CONFIG,
 } from '../pythConstants';
-import { PYTH_PUBLISHERS, PYTH_PUBLISHER_STATS } from '../pythPublishersData';
 
+import { getCrossChainPrices } from './crossChain';
+import {
+  fetchPublishers,
+  fetchValidators,
+  fetchPriceFeeds,
+  fetchNetworkStats,
+} from './metadataFetching';
+import {
+  fetchLatestPrice,
+  fetchMultiplePrices,
+  fetchPriceAtTimestamp,
+  fetchHistoricalPrices,
+} from './priceFetching';
 import { PythCache } from './pythCache';
 import { parsePythPrice } from './pythParser';
 import { PythWebSocket } from './pythWebSocket';
 import { isPythPriceRaw } from './types';
 
-import type { RetryConfig } from '../pythConstants';
 import type {
   PublisherData,
   ValidatorData,
   PythServiceNetworkStats,
-  CrossChainPriceData,
   CrossChainResult,
   PythServicePriceFeed,
   WebSocketConnectionState,
@@ -32,37 +41,6 @@ import type {
 } from './types';
 
 const logger = createLogger('PythDataService');
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-async function withRetry<T>(
-  operation: () => Promise<T>,
-  config: RetryConfig = DEFAULT_RETRY_CONFIG,
-  operationName: string = 'operation'
-): Promise<T> {
-  let lastError: Error | undefined;
-  let delay = config.baseDelay;
-
-  for (let attempt = 1; attempt <= config.maxAttempts; attempt++) {
-    try {
-      return await operation();
-    } catch (error) {
-      lastError = error instanceof Error ? error : new Error(String(error));
-      logger.warn(`${operationName} failed (attempt ${attempt}/${config.maxAttempts})`, {
-        error: lastError.message,
-      });
-
-      if (attempt < config.maxAttempts) {
-        await sleep(delay);
-        delay = Math.min(delay * config.backoffMultiplier, config.maxDelay);
-      }
-    }
-  }
-
-  throw lastError || new Error(`${operationName} failed after ${config.maxAttempts} attempts`);
-}
 
 export class PythDataService {
   private hermesClient: HermesClient;
@@ -92,170 +70,23 @@ export class PythDataService {
   }
 
   async getLatestPrice(symbol: string): Promise<PriceData | null> {
-    const cacheKey = `price:${symbol}`;
-    const cached = this.cache.get<PriceData>(cacheKey);
-    if (cached) {
-      logger.debug('Returning cached price', { symbol });
-      return cached;
-    }
-
-    try {
-      const result = await withRetry(
-        async () => {
-          const pythSymbol = normalizeSymbol(symbol);
-          const priceId = PYTH_PRICE_FEED_IDS[pythSymbol];
-
-          if (!priceId) {
-            logger.warn('No price feed ID found for symbol', { symbol });
-            return null;
-          }
-
-          const priceUpdates = await this.hermesClient.getLatestPriceUpdates([priceId]);
-
-          if (!priceUpdates.parsed || priceUpdates.parsed.length === 0) {
-            logger.warn('No price data available', { symbol });
-            return null;
-          }
-
-          const parsed = priceUpdates.parsed[0];
-
-          if (!parsed || !parsed.price || !isPythPriceRaw(parsed.price)) {
-            logger.error('Invalid price data format', new Error(JSON.stringify(parsed)));
-            return null;
-          }
-
-          return parsePythPrice(parsed.price, symbol);
-        },
-        DEFAULT_RETRY_CONFIG,
-        'getLatestPrice'
-      );
-
-      if (result) {
-        this.cache.set(cacheKey, result, CACHE_TTL.PRICE);
-      }
-
-      return result;
-    } catch (error) {
-      logger.error(
-        'Failed to get latest price',
-        error instanceof Error ? error : new Error(String(error)),
-        { symbol }
-      );
-      return null;
-    }
+    return fetchLatestPrice(this.hermesClient, this.cache, symbol);
   }
 
   async getPublishers(): Promise<PublisherData[]> {
-    const cacheKey = 'publishers';
-    const cached = this.cache.get<PublisherData[]>(cacheKey);
-    if (cached) {
-      logger.debug('Returning cached publishers');
-      return cached;
-    }
-
-    logger.info('Returning official Pyth publishers data');
-    const publishers = PYTH_PUBLISHERS.map((p) => ({
-      ...p,
-      lastUpdate: Date.now(),
-    }));
-
-    this.cache.set(cacheKey, publishers, CACHE_TTL.PUBLISHERS);
-    return publishers;
+    return fetchPublishers(this.cache);
   }
 
   async getValidators(): Promise<ValidatorData[]> {
-    const cacheKey = 'validators';
-    const cached = this.cache.get<ValidatorData[]>(cacheKey);
-    if (cached) {
-      logger.debug('Returning cached validators');
-      return cached;
-    }
-
-    logger.warn('No validator data available - API does not provide validator data');
-    return [];
+    return fetchValidators(this.cache);
   }
 
   async getNetworkStats(): Promise<PythServiceNetworkStats> {
-    const cacheKey = 'networkStats';
-    const cached = this.cache.get<PythServiceNetworkStats>(cacheKey);
-    if (cached) {
-      logger.debug('Returning cached network stats');
-      return cached;
-    }
-
-    try {
-      const result = await withRetry(
-        async () => {
-          const [publishers, feeds] = await Promise.all([
-            this.getPublishers(),
-            this.getPriceFeeds(),
-          ]);
-
-          const activePublishers = publishers.filter((p) => p.status === 'active').length;
-
-          return {
-            totalPublishers: publishers.length,
-            activePublishers,
-            totalPriceFeeds: feeds.length,
-            totalSubmissions24h: this.calculateTotalSubmissions(publishers),
-            averageLatency: this.calculateAverageLatency(publishers),
-            uptimePercentage: 99.9,
-            lastUpdated: Date.now(),
-          };
-        },
-        DEFAULT_RETRY_CONFIG,
-        'getNetworkStats'
-      );
-
-      this.cache.set(cacheKey, result, CACHE_TTL.STATS);
-      return result;
-    } catch (error) {
-      logger.error(
-        'Failed to get network stats',
-        error instanceof Error ? error : new Error(String(error))
-      );
-      return this.getFallbackNetworkStats();
-    }
+    return fetchNetworkStats(this.cache);
   }
 
   async getPriceFeeds(): Promise<PythServicePriceFeed[]> {
-    const cacheKey = 'priceFeeds';
-    const cached = this.cache.get<PythServicePriceFeed[]>(cacheKey);
-    if (cached) {
-      logger.debug('Returning cached price feeds');
-      return cached;
-    }
-
-    try {
-      const result = await withRetry(
-        async () => {
-          const feeds: PythServicePriceFeed[] = [];
-
-          for (const [symbol, id] of Object.entries(PYTH_PRICE_FEED_IDS)) {
-            feeds.push({
-              id,
-              symbol,
-              description: `${symbol} Price Feed`,
-              assetType: symbol.includes('USD') ? 'Crypto' : 'Unknown',
-              status: 'active',
-            });
-          }
-
-          return feeds;
-        },
-        DEFAULT_RETRY_CONFIG,
-        'getPriceFeeds'
-      );
-
-      this.cache.set(cacheKey, result, CACHE_TTL.FEEDS);
-      return result;
-    } catch (error) {
-      logger.error(
-        'Failed to get price feeds',
-        error instanceof Error ? error : new Error(String(error))
-      );
-      return [];
-    }
+    return fetchPriceFeeds(this.cache);
   }
 
   subscribeToPriceUpdates(symbol: string, callback: (price: PriceData) => void): () => void {
@@ -296,94 +127,11 @@ export class PythDataService {
   }
 
   async getMultiplePrices(symbols: string[]): Promise<Map<string, PriceData>> {
-    const results = new Map<string, PriceData>();
-
-    const priceIds: string[] = [];
-    const symbolToId = new Map<string, string>();
-
-    for (const symbol of symbols) {
-      const pythSymbol = normalizeSymbol(symbol);
-      const priceId = PYTH_PRICE_FEED_IDS[pythSymbol];
-      if (priceId) {
-        priceIds.push(priceId);
-        symbolToId.set(priceId, symbol);
-      }
-    }
-
-    if (priceIds.length === 0) {
-      return results;
-    }
-
-    try {
-      const priceUpdates = await withRetry(
-        () => this.hermesClient.getLatestPriceUpdates(priceIds),
-        DEFAULT_RETRY_CONFIG,
-        'getMultiplePrices'
-      );
-
-      if (priceUpdates.parsed) {
-        for (const parsed of priceUpdates.parsed) {
-          if (parsed.price && isPythPriceRaw(parsed.price)) {
-            const symbol = symbolToId.get(parsed.id);
-            if (symbol) {
-              const priceData = parsePythPrice(parsed.price, symbol);
-              results.set(symbol, priceData);
-            }
-          }
-        }
-      }
-    } catch (error) {
-      logger.error(
-        'Failed to get multiple prices',
-        error instanceof Error ? error : new Error(String(error)),
-        { symbols }
-      );
-    }
-
-    return results;
+    return fetchMultiplePrices(this.hermesClient, symbols);
   }
 
   async getPriceAtTimestamp(symbol: string, timestamp: number): Promise<PriceData | null> {
-    try {
-      const pythSymbol = normalizeSymbol(symbol);
-      const priceId = PYTH_PRICE_FEED_IDS[pythSymbol];
-
-      if (!priceId) {
-        logger.warn('No price feed ID found for symbol', { symbol });
-        return null;
-      }
-
-      const result = await withRetry(
-        async () => {
-          const priceUpdates = await this.hermesClient.getPriceUpdatesAtTimestamp(
-            Math.floor(timestamp / 1000),
-            [priceId]
-          );
-
-          if (!priceUpdates.parsed || priceUpdates.parsed.length === 0) {
-            return null;
-          }
-
-          const parsed = priceUpdates.parsed[0];
-          if (!parsed || !parsed.price || !isPythPriceRaw(parsed.price)) {
-            return null;
-          }
-
-          return parsePythPrice(parsed.price, symbol);
-        },
-        DEFAULT_RETRY_CONFIG,
-        'getPriceAtTimestamp'
-      );
-
-      return result;
-    } catch (error) {
-      logger.error(
-        'Failed to get price at timestamp',
-        error instanceof Error ? error : new Error(String(error)),
-        { symbol, timestamp }
-      );
-      return null;
-    }
+    return fetchPriceAtTimestamp(this.hermesClient, symbol, timestamp);
   }
 
   async getHistoricalPrices(
@@ -391,124 +139,7 @@ export class PythDataService {
     hours: number = 24,
     intervalMinutes: number = 60
   ): Promise<PriceData[]> {
-    const cacheKey = `historical:${symbol}:${hours}:${intervalMinutes}`;
-    const cached = this.cache.get<PriceData[]>(cacheKey);
-    if (cached) {
-      logger.debug('Returning cached historical prices', { symbol, hours });
-      return cached;
-    }
-
-    try {
-      const pythSymbol = normalizeSymbol(symbol);
-      const priceId = PYTH_PRICE_FEED_IDS[pythSymbol];
-
-      if (!priceId) {
-        logger.warn('No price feed ID found for symbol', { symbol });
-        return [];
-      }
-
-      const now = Math.floor(Date.now() / 1000);
-      const from = now - hours * 60 * 60;
-      const dataPoints = Math.ceil((hours * 60) / intervalMinutes);
-
-      logger.info(`Fetching historical prices for ${symbol} (${hours}h, ${dataPoints} points)`);
-
-      const result = await withRetry(
-        async () => {
-          // Pyth Hermes API 的 getPriceUpdatesAtTimestamp 获取的是特定时间点的价格更新
-          // 我们需要查询多个时间点来构建历史数据
-          const allPrices: PriceData[] = [];
-          const timestamps: number[] = [];
-
-          // 生成需要查询的时间点（从from到现在，每隔intervalMinutes分钟）
-          for (let i = 0; i < dataPoints; i++) {
-            const timestamp = from + i * (intervalMinutes * 60);
-            if (timestamp <= now) {
-              timestamps.push(timestamp);
-            }
-          }
-
-          // 批量查询各个时间点的价格
-          // 注意：由于API限制，我们可能需要限制并发请求数
-          const batchSize = 5;
-          for (let i = 0; i < timestamps.length; i += batchSize) {
-            const batch = timestamps.slice(i, i + batchSize);
-            const batchPromises = batch.map(async (timestamp) => {
-              try {
-                const priceUpdates = await this.hermesClient.getPriceUpdatesAtTimestamp(timestamp, [
-                  priceId,
-                ]);
-
-                if (priceUpdates.parsed && priceUpdates.parsed.length > 0) {
-                  const parsed = priceUpdates.parsed[0];
-                  if (parsed && parsed.price && isPythPriceRaw(parsed.price)) {
-                    return parsePythPrice(parsed.price, symbol);
-                  }
-                }
-                return null;
-              } catch (error) {
-                logger.warn(`Failed to get price at timestamp ${timestamp}`, {
-                  symbol,
-                  error: error instanceof Error ? error.message : String(error),
-                });
-                return null;
-              }
-            });
-
-            const batchResults = await Promise.all(batchPromises);
-            batchResults.forEach((price) => {
-              if (price) {
-                allPrices.push(price);
-              }
-            });
-
-            // 添加小延迟避免请求过快
-            if (i + batchSize < timestamps.length) {
-              await sleep(100);
-            }
-          }
-
-          if (allPrices.length === 0) {
-            logger.warn('No historical price data available', { symbol, hours });
-            return [];
-          }
-
-          // 按时间戳排序
-          allPrices.sort((a, b) => a.timestamp - b.timestamp);
-
-          // 去重（相同时间戳的只保留一个）
-          const uniquePrices: PriceData[] = [];
-          const seenTimestamps = new Set<number>();
-          for (const price of allPrices) {
-            if (!seenTimestamps.has(price.timestamp)) {
-              seenTimestamps.add(price.timestamp);
-              uniquePrices.push(price);
-            }
-          }
-
-          logger.info(
-            `Fetched ${uniquePrices.length} unique historical price points for ${symbol}`
-          );
-          return uniquePrices;
-        },
-        DEFAULT_RETRY_CONFIG,
-        'getHistoricalPrices'
-      );
-
-      if (result.length > 0) {
-        this.cache.set(cacheKey, result, CACHE_TTL.PRICE);
-        logger.info(`Successfully cached ${result.length} historical price points for ${symbol}`);
-      }
-
-      return result;
-    } catch (error) {
-      logger.error(
-        'Failed to get historical prices',
-        error instanceof Error ? error : new Error(String(error)),
-        { symbol, hours }
-      );
-      return [];
-    }
+    return fetchHistoricalPrices(this.hermesClient, this.cache, symbol, hours, intervalMinutes);
   }
 
   async getCrossChainPrices(symbol: string = 'SOL/USD'): Promise<CrossChainResult> {
@@ -520,42 +151,7 @@ export class PythDataService {
     }
 
     try {
-      const result = await withRetry(
-        async () => {
-          const pythSymbol = normalizeSymbol(symbol);
-          const priceId = PYTH_PRICE_FEED_IDS[pythSymbol];
-
-          if (!priceId) {
-            throw new Error(`No price feed ID found for symbol: ${symbol}`);
-          }
-
-          const priceUpdates = await this.hermesClient.getLatestPriceUpdates([priceId]);
-
-          if (!priceUpdates.parsed || priceUpdates.parsed.length === 0) {
-            throw new Error(`No price data available for cross-chain: ${symbol}`);
-          }
-
-          const parsed = priceUpdates.parsed[0];
-          if (!parsed || !parsed.price || !isPythPriceRaw(parsed.price)) {
-            throw new Error(`Invalid price data format for ${symbol}`);
-          }
-
-          const basePriceData = parsePythPrice(parsed.price, symbol);
-          const basePrice = basePriceData.price;
-          const timestamp = basePriceData.timestamp;
-
-          const chainData = await this.fetchChainSpecificData(priceId, basePrice);
-
-          return {
-            data: chainData,
-            basePrice,
-            timestamp,
-          };
-        },
-        DEFAULT_RETRY_CONFIG,
-        'getCrossChainPrices'
-      );
-
+      const result = await getCrossChainPrices(this.hermesClient, symbol);
       this.cache.set(cacheKey, result, CACHE_TTL.CROSS_CHAIN);
       return result;
     } catch (error) {
@@ -566,99 +162,6 @@ export class PythDataService {
       );
       throw error;
     }
-  }
-
-  private async fetchChainSpecificData(
-    priceId: string,
-    basePrice: number
-  ): Promise<CrossChainPriceData[]> {
-    const chains = [
-      { id: 'solana', name: 'Solana', endpoint: HERMES_API_URL },
-      { id: 'ethereum', name: 'Ethereum', endpoint: HERMES_API_URL },
-      { id: 'arbitrum', name: 'Arbitrum', endpoint: HERMES_API_URL },
-      { id: 'optimism', name: 'Optimism', endpoint: HERMES_API_URL },
-      { id: 'polygon', name: 'Polygon', endpoint: HERMES_API_URL },
-      { id: 'base', name: 'Base', endpoint: HERMES_API_URL },
-      { id: 'avalanche', name: 'Avalanche', endpoint: HERMES_API_URL },
-      { id: 'bsc', name: 'BNB Chain', endpoint: HERMES_API_URL },
-    ];
-
-    const results: CrossChainPriceData[] = [];
-
-    for (const chain of chains) {
-      try {
-        const chainStartTime = Date.now();
-        const response = await fetch(
-          `${chain.endpoint}/api/latest_price_updates?ids[]=${priceId}`,
-          {
-            signal: AbortSignal.timeout(5000),
-          }
-        );
-
-        const latency = Date.now() - chainStartTime;
-
-        if (!response.ok) {
-          results.push({
-            chain: chain.id,
-            price: basePrice,
-            deviation: 0,
-            latency,
-            status: 'degraded',
-            lastUpdate: new Date(),
-          });
-          continue;
-        }
-
-        const data = await response.json();
-        const parsed = data.parsed?.[0];
-
-        if (parsed?.price && isPythPriceRaw(parsed.price)) {
-          const priceValue =
-            typeof parsed.price.price === 'string'
-              ? parseInt(parsed.price.price, 10)
-              : parsed.price.price;
-          const exponent = parsed.price.expo ?? -8;
-          const price = priceValue * Math.pow(10, exponent);
-          const deviation = basePrice > 0 ? ((price - basePrice) / basePrice) * 100 : 0;
-
-          const status: 'online' | 'degraded' | 'offline' =
-            latency < 200 && Math.abs(deviation) < 0.5
-              ? 'online'
-              : latency < 500 && Math.abs(deviation) < 1
-                ? 'degraded'
-                : 'offline';
-
-          results.push({
-            chain: chain.id,
-            price,
-            deviation,
-            latency,
-            status,
-            lastUpdate: new Date((parsed.price.publish_time ?? Date.now() / 1000) * 1000),
-          });
-        } else {
-          results.push({
-            chain: chain.id,
-            price: basePrice,
-            deviation: 0,
-            latency,
-            status: 'degraded',
-            lastUpdate: new Date(),
-          });
-        }
-      } catch (_error) {
-        results.push({
-          chain: chain.id,
-          price: basePrice,
-          deviation: 0,
-          latency: 999,
-          status: 'offline',
-          lastUpdate: new Date(),
-        });
-      }
-    }
-
-    return results;
   }
 
   clearCache(): void {
@@ -692,28 +195,6 @@ export class PythDataService {
         });
       }
     }
-  }
-
-  private getFallbackNetworkStats(): PythServiceNetworkStats {
-    return {
-      totalPublishers: PYTH_PUBLISHER_STATS.totalPublishers,
-      activePublishers: PYTH_PUBLISHER_STATS.activePublishers,
-      totalPriceFeeds: Object.keys(PYTH_PRICE_FEED_IDS).length,
-      totalSubmissions24h: PYTH_PUBLISHER_STATS.totalStake,
-      averageLatency: 42,
-      uptimePercentage: 99.9,
-      lastUpdated: Date.now(),
-    };
-  }
-
-  private calculateTotalSubmissions(publishers: PublisherData[]): number {
-    return publishers.reduce((sum, p) => sum + (p.totalSubmissions ?? 0), 0);
-  }
-
-  private calculateAverageLatency(publishers: PublisherData[]): number {
-    if (publishers.length === 0) return 0;
-    const total = publishers.reduce((sum, p) => sum + (p.averageLatency ?? 0), 0);
-    return Math.round(total / publishers.length);
   }
 }
 
