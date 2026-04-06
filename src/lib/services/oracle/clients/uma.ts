@@ -1,8 +1,7 @@
 import { BaseOracleClient } from '@/lib/oracles/base';
 import type { OracleClientConfig } from '@/lib/oracles/base';
 import { umaSymbols } from '@/lib/oracles/supportedSymbols';
-import { isUMASupportedOnChain } from '@/lib/oracles/umaDataSources';
-import { umaOnChainService, type UMATokenData } from '@/lib/oracles/umaOnChainService';
+import type { UMATokenData } from '@/lib/oracles/umaOnChainService';
 import { umaSubgraphService } from '@/lib/oracles/umaSubgraphService';
 import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
 import { OracleProvider, Blockchain } from '@/types/oracle';
@@ -32,7 +31,6 @@ interface CacheEntry<T> {
 const CACHE_TTL_MS = 5 * 60 * 1000;
 
 let disputesCache: CacheEntry<DisputeData[]> | null = null;
-const heatmapCache: CacheEntry<ValidatorPerformanceHeatmapData[]> | null = null;
 
 const BLOCKCHAIN_TO_CHAIN_ID: Record<Blockchain, number> = {
   [Blockchain.ETHEREUM]: 1,
@@ -333,14 +331,14 @@ export class UMAClient extends BaseOracleClient {
     );
   }
 
-  async getValidatorHistory(validatorId: string, days?: number): Promise<ValidatorHistoryData[]> {
+  async getValidatorHistory(_validatorId: string, _days?: number): Promise<ValidatorHistoryData[]> {
     throw this.createError(
       'Validator history is not available from UMA on-chain service.',
       'UMA_VALIDATOR_HISTORY_NOT_AVAILABLE'
     );
   }
 
-  async calculateStaking(amount: number, duration: number): Promise<StakingCalculation> {
+  async calculateStaking(_amount: number, _duration: number): Promise<StakingCalculation> {
     throw this.createError(
       'Staking calculation is not available from UMA on-chain service.',
       'UMA_STAKING_CALCULATION_NOT_AVAILABLE'
@@ -348,9 +346,9 @@ export class UMAClient extends BaseOracleClient {
   }
 
   async calculateStakingRewards(
-    stakeAmount: number,
-    validatorType: string,
-    disputeFrequency: string
+    _stakeAmount: number,
+    _validatorType: string,
+    _disputeFrequency: string
   ): Promise<StakingCalculation> {
     throw this.createError(
       'Staking rewards calculation is not available from UMA on-chain service.',
@@ -359,7 +357,7 @@ export class UMAClient extends BaseOracleClient {
   }
 
   async getValidatorEarningsAttribution(
-    validatorId: string
+    _validatorId: string
   ): Promise<ValidatorEarningsAttribution> {
     throw this.createError(
       'Validator earnings attribution is not available from UMA on-chain service.',

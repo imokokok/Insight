@@ -1,5 +1,3 @@
-import { chartColors } from '@/lib/config/colors';
-
 import { logger } from './client';
 import { fetchOraclesData } from './oracles';
 import {
@@ -11,15 +9,6 @@ import {
   type OracleMarketData,
   type RadarDataPoint,
 } from './types';
-
-const ORACLE_COLOR_MAP: Record<string, string> = {
-  Chainlink: chartColors.marketOverview.chainlink,
-  'Pyth Network': chartColors.marketOverview.pyth,
-  'Band Protocol': chartColors.marketOverview.bandProtocol,
-  API3: chartColors.marketOverview.api3,
-  UMA: chartColors.marketOverview.uma,
-  RedStone: chartColors.oracle.redstone,
-};
 
 function calculateComparisonMetrics(oracleData: OracleMarketData[]): ComparisonData[] {
   if (oracleData.length === 0) {

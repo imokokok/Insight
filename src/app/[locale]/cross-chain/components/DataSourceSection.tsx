@@ -27,10 +27,7 @@ interface DataSourceSectionProps {
 function getCredibilityLevel(
   provider: OracleProvider = OracleProvider.CHAINLINK
 ): 'high' | 'medium' | 'low' | 'unverified' {
-  const highCredibility: OracleProvider[] = [
-    OracleProvider.CHAINLINK,
-    OracleProvider.PYTH,
-  ];
+  const highCredibility: OracleProvider[] = [OracleProvider.CHAINLINK, OracleProvider.PYTH];
   const mediumCredibility: OracleProvider[] = [
     OracleProvider.API3,
     OracleProvider.BAND_PROTOCOL,

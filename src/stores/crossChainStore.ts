@@ -206,7 +206,18 @@ export const useCrossChainStore = create<CrossChainStore>()(
           tableFilter: state.tableFilter,
           sortColumn: state.sortColumn,
           sortDirection: state.sortDirection,
+          hiddenLines: Array.from(state.hiddenLines),
         }),
+        onRehydrateStorage: () => (state) => {
+          if (state) {
+            const hiddenLines = state.hiddenLines as unknown;
+            if (Array.isArray(hiddenLines)) {
+              (state as { hiddenLines: Set<string> }).hiddenLines = new Set(hiddenLines);
+            } else if (!(hiddenLines instanceof Set)) {
+              (state as { hiddenLines: Set<string> }).hiddenLines = new Set();
+            }
+          }
+        },
       }
     ),
     { name: 'CrossChainStore' }

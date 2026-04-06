@@ -284,6 +284,8 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
       const allAnomalies: AnomalyInfo[] = [];
 
       for (const result of results) {
+        if (!result.priceData) continue;
+
         const priceValidation = validatePrice(result.priceData.price);
         const timestampValidation = validateTimestamp(result.priceData.timestamp);
 

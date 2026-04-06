@@ -730,7 +730,7 @@ export class DIADataService {
       // Try to get real staking data from Ethereum
       const ethereumRpc = ALCHEMY_RPC_URLS[Blockchain.ETHEREUM];
       let totalStaked = 0;
-      let stakerCount = 0;
+      const stakerCount = 0;
 
       if (ethereumRpc) {
         try {

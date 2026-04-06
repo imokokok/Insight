@@ -44,7 +44,7 @@ const routePrefetchMap: Record<string, RoutePrefetchConfig> = {
           try {
             const response = await apiClient.get('/api/oracles/chainlink');
             return response.data;
-          } catch (error) {
+          } catch {
             throw new PriceFetchError('Failed to fetch chainlink data', {
               provider: 'chainlink',
               retryable: true,
@@ -66,7 +66,7 @@ const routePrefetchMap: Record<string, RoutePrefetchConfig> = {
           try {
             const response = await apiClient.get('/api/oracles/pyth');
             return response.data;
-          } catch (error) {
+          } catch {
             throw new PriceFetchError('Failed to fetch pyth data', {
               provider: 'pyth',
               retryable: true,
@@ -88,7 +88,7 @@ const routePrefetchMap: Record<string, RoutePrefetchConfig> = {
           try {
             const response = await apiClient.get('/api/oracles/api3');
             return response.data;
-          } catch (error) {
+          } catch {
             throw new PriceFetchError('Failed to fetch api3 data', {
               provider: 'api3',
               retryable: true,
@@ -110,7 +110,7 @@ const routePrefetchMap: Record<string, RoutePrefetchConfig> = {
           try {
             const response = await apiClient.get('/api/oracles/band-protocol');
             return response.data;
-          } catch (error) {
+          } catch {
             throw new PriceFetchError('Failed to fetch band-protocol data', {
               provider: 'band-protocol',
               retryable: true,
@@ -132,7 +132,7 @@ const routePrefetchMap: Record<string, RoutePrefetchConfig> = {
           try {
             const response = await apiClient.get('/api/oracles/redstone');
             return response.data;
-          } catch (error) {
+          } catch {
             throw new PriceFetchError('Failed to fetch redstone data', {
               provider: 'redstone',
               retryable: true,
@@ -154,7 +154,7 @@ const routePrefetchMap: Record<string, RoutePrefetchConfig> = {
           try {
             const response = await apiClient.get('/api/oracles/uma');
             return response.data;
-          } catch (error) {
+          } catch {
             throw new PriceFetchError('Failed to fetch uma data', {
               provider: 'uma',
               retryable: true,
@@ -176,7 +176,7 @@ const routePrefetchMap: Record<string, RoutePrefetchConfig> = {
           try {
             const response = await apiClient.get('/api/oracles/dia');
             return response.data;
-          } catch (error) {
+          } catch {
             throw new PriceFetchError('Failed to fetch dia data', {
               provider: 'dia',
               retryable: true,
@@ -198,7 +198,7 @@ const routePrefetchMap: Record<string, RoutePrefetchConfig> = {
           try {
             const response = await apiClient.get('/api/oracles/tellor');
             return response.data;
-          } catch (error) {
+          } catch {
             throw new PriceFetchError('Failed to fetch tellor data', {
               provider: 'tellor',
               retryable: true,
@@ -221,7 +221,7 @@ const routePrefetchMap: Record<string, RoutePrefetchConfig> = {
           try {
             const response = await apiClient.get('/api/oracles/winklink');
             return response.data;
-          } catch (error) {
+          } catch {
             throw new PriceFetchError('Failed to fetch winklink data', {
               provider: 'winklink',
               retryable: true,
@@ -243,7 +243,7 @@ const routePrefetchMap: Record<string, RoutePrefetchConfig> = {
           try {
             const response = await apiClient.get('/api/oracles');
             return response.data;
-          } catch (error) {
+          } catch {
             throw new PriceFetchError('Failed to fetch oracles list', { retryable: true });
           }
         },
@@ -262,7 +262,7 @@ const routePrefetchMap: Record<string, RoutePrefetchConfig> = {
           try {
             const response = await apiClient.get('/api/oracles?crossChain=true');
             return response.data;
-          } catch (error) {
+          } catch {
             throw new PriceFetchError('Failed to fetch cross-chain data', { retryable: true });
           }
         },
@@ -281,7 +281,7 @@ const routePrefetchMap: Record<string, RoutePrefetchConfig> = {
           try {
             const response = await apiClient.get('/api/oracles');
             return response.data;
-          } catch (error) {
+          } catch {
             throw new PriceFetchError('Failed to fetch prices', { retryable: true });
           }
         },
@@ -300,7 +300,7 @@ const routePrefetchMap: Record<string, RoutePrefetchConfig> = {
           try {
             const response = await apiClient.get('/api/oracles');
             return response.data;
-          } catch (error) {
+          } catch {
             throw new PriceFetchError('Failed to fetch market overview', { retryable: true });
           }
         },

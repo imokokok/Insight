@@ -84,6 +84,7 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
     retryAllFailed,
     isRetrying,
     retryingOracles,
+    queryProgress,
   } = useOracleData({
     selectedOracles,
     selectedSymbol,
@@ -267,29 +268,26 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
   // ==========================================================================
   // 质量分数数据（兼容旧格式）
   // ==========================================================================
-  const qualityScoreData = useMemo(
-    () => {
-      const lastUpdatedTime = lastUpdated?.getTime() ?? 0;
-      const freshnessScore = lastUpdatedTime > 0 ? 100 : 0;
+  const qualityScoreData = useMemo(() => {
+    const lastUpdatedTime = lastUpdated?.getTime() ?? 0;
+    const freshnessScore = lastUpdatedTime > 0 ? 100 : 0;
 
-      return {
-        freshness: {
-          lastUpdated: lastUpdated || new Date(),
-          freshnessScore,
-        },
-        completeness: {
-          successCount: priceData.length,
-          totalCount: selectedOracles.length,
-        },
-        reliability: {
-          historicalAccuracy: 98.5,
-          responseSuccessRate:
-            selectedOracles.length > 0 ? (priceData.length / selectedOracles.length) * 100 : 0,
-        },
-      };
-    },
-    [priceData.length, selectedOracles.length, lastUpdated]
-  );
+    return {
+      freshness: {
+        lastUpdated: lastUpdated || new Date(),
+        freshnessScore,
+      },
+      completeness: {
+        successCount: priceData.length,
+        totalCount: selectedOracles.length,
+      },
+      reliability: {
+        historicalAccuracy: 98.5,
+        responseSuccessRate:
+          selectedOracles.length > 0 ? (priceData.length / selectedOracles.length) * 100 : 0,
+      },
+    };
+  }, [priceData.length, selectedOracles.length, lastUpdated]);
 
   // ==========================================================================
   // 技术指标数据（简化版）
@@ -435,6 +433,7 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
     retryAllFailed,
     isRetrying,
     retryingOracles,
+    queryProgress,
 
     // 回调函数
     handleTabChange,

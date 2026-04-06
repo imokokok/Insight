@@ -1,8 +1,8 @@
 import { create } from 'zustand';
 import { devtools, persist, createJSONStorage } from 'zustand/middleware';
 
-import { type UITimeRange } from '@/types/ui/layout';
 import { createLogger } from '@/lib/utils/logger';
+import { type UITimeRange } from '@/types/ui/layout';
 
 const logger = createLogger('uiStore');
 

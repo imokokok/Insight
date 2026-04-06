@@ -106,17 +106,7 @@ export function generateTVSTrendData(
       winklinkUpper: Number((winklink * (1 + CONFIDENCE_INTERVAL)).toFixed(2)),
       winklinkLower: Number((winklink * (1 - CONFIDENCE_INTERVAL)).toFixed(2)),
       total: Number(
-        (
-          chainlink +
-          pyth +
-          band +
-          api3 +
-          uma +
-          redstone +
-          dia +
-          tellor +
-          winklink
-        ).toFixed(2)
+        (chainlink + pyth + band + api3 + uma + redstone + dia + tellor + winklink).toFixed(2)
       ),
     });
   }

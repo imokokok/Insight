@@ -4,6 +4,20 @@ import Image from 'next/image';
 
 import { type MarketDataConfig } from '@/components/oracle/panels/MarketDataPanel';
 import { chartColors } from '@/lib/config/colors';
+import {
+  ChainlinkClient,
+  BandProtocolClient,
+  UMAClient,
+  PythClient,
+  API3Client,
+  RedStoneClient,
+  DIAClient,
+  TellorClient,
+  WINkLinkClient,
+  type BaseOracleClient,
+} from '@/lib/oracles';
+import { getTokenMarketData } from '@/lib/services/marketData/binanceMarketService';
+import { OracleProvider, Blockchain } from '@/types/oracle';
 
 // Network data configuration type
 interface NetworkDataConfig {
@@ -19,20 +33,6 @@ interface NetworkDataConfig {
   stakingTokenSymbol: string;
   bandProtocolMetrics?: unknown;
 }
-import {
-  ChainlinkClient,
-  BandProtocolClient,
-  UMAClient,
-  PythClient,
-  API3Client,
-  RedStoneClient,
-  DIAClient,
-  TellorClient,
-  WINkLinkClient,
-  type BaseOracleClient,
-} from '@/lib/oracles';
-import { getTokenMarketData } from '@/lib/services/marketData/binanceMarketService';
-import { OracleProvider, Blockchain } from '@/types/oracle';
 
 export interface OracleTab {
   id: string;

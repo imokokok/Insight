@@ -16,7 +16,7 @@ async function fetchCoveragePoolEventsFromChain(): Promise<CoveragePoolEvent[]> 
 
     // Generate events based on real on-chain metrics
     // Weekly reward distributions
-    const weeklyReward = Number(stakingData.totalStaked) / 1e18 * (stakingData.apr / 100) / 52;
+    const weeklyReward = ((Number(stakingData.totalStaked) / 1e18) * (stakingData.apr / 100)) / 52;
 
     for (let i = 0; i < 8; i++) {
       events.push({
@@ -46,7 +46,13 @@ async function fetchCoveragePoolEventsFromChain(): Promise<CoveragePoolEvent[]> 
     // Historical claims
     const historicalClaims = Math.min(coverageData.processedClaims, 5);
     for (let i = 0; i < historicalClaims; i++) {
-      const statuses: ('approved' | 'rejected' | 'completed')[] = ['approved', 'approved', 'approved', 'rejected', 'completed'];
+      const statuses: ('approved' | 'rejected' | 'completed')[] = [
+        'approved',
+        'approved',
+        'approved',
+        'rejected',
+        'completed',
+      ];
       events.push({
         id: `evt-claim-${i}`,
         type: 'claim',
@@ -100,11 +106,12 @@ async function fetchCoveragePoolClaimsFromChain(): Promise<CoveragePoolClaim[]> 
         type: 'pending',
         amount: [50000, 18000, 25000][i] || 30000,
         requester: `0x${Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join('')}`,
-        reason: [
-          'Price deviation claim for BTC/USD feed on Arbitrum - deviation exceeded 2% threshold',
-          'AVAX/USD feed latency issue causing user losses',
-          'ETH/USD feed manipulation incident during high volatility period',
-        ][i] || 'Price feed deviation claim',
+        reason:
+          [
+            'Price deviation claim for BTC/USD feed on Arbitrum - deviation exceeded 2% threshold',
+            'AVAX/USD feed latency issue causing user losses',
+            'ETH/USD feed manipulation incident during high volatility period',
+          ][i] || 'Price feed deviation claim',
         submittedAt: new Date(Date.now() - (i + 1) * 86400000),
         votingDeadline: new Date(Date.now() + (3 - i) * 86400000),
         votesFor: [1250000, 890000, 2100000][i] || 1000000,

@@ -52,19 +52,6 @@ const DEFAULT_OPTIONS: SanitizationOptions = {
   normalizeUnicode: true,
 };
 
-const XSS_PATTERNS = [
-  /<script[^>]*>.*?<\/script>/gi,
-  /<script[^>]*\/>/gi,
-  /javascript:/gi,
-  /on\w+\s*=/gi,
-  /<iframe[^>]*>.*?<\/iframe>/gi,
-  /<object[^>]*>.*?<\/object>/gi,
-  /<embed[^>]*>.*?<\/embed>/gi,
-  /<form[^>]*>.*?<\/form>/gi,
-  /data:text\/html/gi,
-  /data:application\/xhtml/gi,
-];
-
 const SQL_INJECTION_PATTERNS = [
   /(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|EXECUTE|UNION|TRUNCATE)\b)/gi,
   /(\b(OR|AND)\b\s+\d+\s*=\s*\d+)/gi,

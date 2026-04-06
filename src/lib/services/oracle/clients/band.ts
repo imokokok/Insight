@@ -72,7 +72,7 @@ export class BandProtocolClient extends BaseOracleClient {
   async getHistoricalPrices(
     symbol: string,
     chain?: Blockchain,
-    period: number = 24
+    _period: number = 24
   ): Promise<PriceData[]> {
     throw this.createError(
       'Band Protocol does not provide direct historical price feeds.',

@@ -77,12 +77,14 @@ export interface ZIPExportOptions {
   };
 }
 
-export const RESOLUTION_CONFIG: Record<Resolution, { scale: number; labelKey: string; dpi: number }> =
-  {
-    standard: { scale: 2, labelKey: 'export.resolution.standard', dpi: 144 },
-    high: { scale: 4, labelKey: 'export.resolution.high', dpi: 288 },
-    ultra: { scale: 6, labelKey: 'export.resolution.ultra', dpi: 432 },
-  };
+export const RESOLUTION_CONFIG: Record<
+  Resolution,
+  { scale: number; labelKey: string; dpi: number }
+> = {
+  standard: { scale: 2, labelKey: 'export.resolution.standard', dpi: 144 },
+  high: { scale: 4, labelKey: 'export.resolution.high', dpi: 288 },
+  ultra: { scale: 6, labelKey: 'export.resolution.ultra', dpi: 432 },
+};
 
 export interface ChartExportData {
   [key: string]: string | number | undefined;
@@ -148,7 +150,8 @@ export async function exportToCSV(
     chunks.push(`# Exported At: ${metadata.exportedAt}`);
     if (metadata.dataSource) chunks.push(`# Data Source: ${metadata.dataSource}`);
     if (metadata.timeRange) chunks.push(`# Time Range: ${metadata.timeRange}`);
-    if (metadata.totalRecords !== undefined) chunks.push(`# Total Records: ${metadata.totalRecords}`);
+    if (metadata.totalRecords !== undefined)
+      chunks.push(`# Total Records: ${metadata.totalRecords}`);
     chunks.push('#');
   }
 
@@ -217,7 +220,11 @@ export async function exportToJSON(
     data: exportData,
   };
 
-  onProgress?.({ status: 'exporting', progress: 50, messageKey: 'export.progress.serializingData' });
+  onProgress?.({
+    status: 'exporting',
+    progress: 50,
+    messageKey: 'export.progress.serializingData',
+  });
 
   const jsonContent = JSON.stringify(output, null, 2);
   const blob = new Blob([jsonContent], { type: 'application/json;charset=utf-8;' });
@@ -349,13 +356,21 @@ export async function exportToPNG(
           ctx.restore();
         }
 
-        onProgress?.({ status: 'exporting', progress: 80, messageKey: 'export.progress.generatingPNG' });
+        onProgress?.({
+          status: 'exporting',
+          progress: 80,
+          messageKey: 'export.progress.generatingPNG',
+        });
 
         canvas.toBlob(
           (blob) => {
             if (blob) {
               URL.revokeObjectURL(svgUrl);
-              onProgress?.({ status: 'completed', progress: 100, messageKey: 'export.progress.completed' });
+              onProgress?.({
+                status: 'completed',
+                progress: 100,
+                messageKey: 'export.progress.completed',
+              });
               resolve(blob);
             } else {
               reject(new Error('Failed to create PNG blob'));
@@ -770,7 +785,11 @@ export async function exportToZIP(
   const sanitizedFilename = sanitizeFilename(filename);
   downloadBlob(content, `${sanitizedFilename}.zip`);
 
-  onProgress?.({ status: 'completed', progress: 100, messageKey: 'export.progress.batchCompleted' });
+  onProgress?.({
+    status: 'completed',
+    progress: 100,
+    messageKey: 'export.progress.batchCompleted',
+  });
 }
 
 function convertToCSV(data: ChartExportData[]): string {
@@ -920,7 +939,11 @@ export async function exportMultipleCharts(
     );
   }
 
-  onProgress?.({ status: 'completed', progress: 100, messageKey: 'export.progress.allChartsCompleted' });
+  onProgress?.({
+    status: 'completed',
+    progress: 100,
+    messageKey: 'export.progress.allChartsCompleted',
+  });
 }
 
 export function getSupportedExportFormats(): Array<{

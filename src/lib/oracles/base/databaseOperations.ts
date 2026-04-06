@@ -3,8 +3,6 @@ import { type Blockchain, type PriceData, type OracleProvider } from '@/types/or
 
 import {
   shouldUseDatabase,
-  savePriceToDatabase,
-  savePricesToDatabase,
   getPriceFromDatabase,
   getHistoricalPricesFromDatabase,
 } from '../storage';

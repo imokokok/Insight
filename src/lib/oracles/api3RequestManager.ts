@@ -9,12 +9,6 @@ interface QueuedRequest<T> {
   timestamp: number;
 }
 
-interface RequestDeduper {
-  pendingRequests: Map<string, Promise<unknown>>;
-  maxConcurrent: number;
-  currentConcurrent: number;
-}
-
 const PRIORITY_WEIGHTS: Record<RequestPriority, number> = {
   critical: 4,
   high: 3,

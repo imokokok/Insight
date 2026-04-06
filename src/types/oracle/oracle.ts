@@ -1,4 +1,4 @@
-import { type DataStatus, type TrendDirection } from './constants';
+import { type DataStatus } from './constants';
 import { type OracleProvider, type Blockchain } from './enums';
 
 export type OracleErrorCode =

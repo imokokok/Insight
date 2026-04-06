@@ -1,13 +1,5 @@
 import { HermesClient } from '@pythnetwork/hermes-client';
 
-import type {
-  PublisherData,
-  ValidatorData,
-  PythServiceNetworkStats,
-  CrossChainPriceData,
-  CrossChainResult,
-  PythServicePriceFeed,
-} from './types';
 import { createLogger } from '@/lib/utils/logger';
 import type { PriceData } from '@/types/oracle';
 
@@ -22,12 +14,22 @@ import {
 import { PYTH_PUBLISHERS, PYTH_PUBLISHER_STATS } from '../pythPublishersData';
 
 import { PythCache } from './pythCache';
-import { parsePythPrice, parsePublisherStatus } from './pythParser';
-import { PythWebSocket, PriceUpdateCallback } from './pythWebSocket';
+import { parsePythPrice } from './pythParser';
+import { PythWebSocket } from './pythWebSocket';
 import { isPythPriceRaw } from './types';
 
 import type { RetryConfig } from '../pythConstants';
-import type { WebSocketConnectionState, ConnectionStateListener, PythPriceRaw } from './types';
+import type {
+  PublisherData,
+  ValidatorData,
+  PythServiceNetworkStats,
+  CrossChainPriceData,
+  CrossChainResult,
+  PythServicePriceFeed,
+  WebSocketConnectionState,
+  ConnectionStateListener,
+  PythPriceRaw,
+} from './types';
 
 const logger = createLogger('PythDataService');
 
@@ -413,33 +415,81 @@ export class PythDataService {
 
       const result = await withRetry(
         async () => {
-          const priceUpdates = await this.hermesClient.getPriceUpdatesAtTimestamp(from, [priceId]);
+          // Pyth Hermes API 的 getPriceUpdatesAtTimestamp 获取的是特定时间点的价格更新
+          // 我们需要查询多个时间点来构建历史数据
+          const allPrices: PriceData[] = [];
+          const timestamps: number[] = [];
 
-          if (!priceUpdates.parsed || priceUpdates.parsed.length === 0) {
+          // 生成需要查询的时间点（从from到现在，每隔intervalMinutes分钟）
+          for (let i = 0; i < dataPoints; i++) {
+            const timestamp = from + i * (intervalMinutes * 60);
+            if (timestamp <= now) {
+              timestamps.push(timestamp);
+            }
+          }
+
+          // 批量查询各个时间点的价格
+          // 注意：由于API限制，我们可能需要限制并发请求数
+          const batchSize = 5;
+          for (let i = 0; i < timestamps.length; i += batchSize) {
+            const batch = timestamps.slice(i, i + batchSize);
+            const batchPromises = batch.map(async (timestamp) => {
+              try {
+                const priceUpdates = await this.hermesClient.getPriceUpdatesAtTimestamp(timestamp, [
+                  priceId,
+                ]);
+
+                if (priceUpdates.parsed && priceUpdates.parsed.length > 0) {
+                  const parsed = priceUpdates.parsed[0];
+                  if (parsed && parsed.price && isPythPriceRaw(parsed.price)) {
+                    return parsePythPrice(parsed.price, symbol);
+                  }
+                }
+                return null;
+              } catch (error) {
+                logger.warn(`Failed to get price at timestamp ${timestamp}`, {
+                  symbol,
+                  error: error instanceof Error ? error.message : String(error),
+                });
+                return null;
+              }
+            });
+
+            const batchResults = await Promise.all(batchPromises);
+            batchResults.forEach((price) => {
+              if (price) {
+                allPrices.push(price);
+              }
+            });
+
+            // 添加小延迟避免请求过快
+            if (i + batchSize < timestamps.length) {
+              await sleep(100);
+            }
+          }
+
+          if (allPrices.length === 0) {
             logger.warn('No historical price data available', { symbol, hours });
             return [];
           }
 
-          const allPrices: PriceData[] = [];
-          for (const parsed of priceUpdates.parsed) {
-            if (parsed && parsed.price && isPythPriceRaw(parsed.price)) {
-              const priceData = parsePythPrice(parsed.price, symbol);
-              allPrices.push(priceData);
-            }
-          }
-
+          // 按时间戳排序
           allPrices.sort((a, b) => a.timestamp - b.timestamp);
 
-          if (allPrices.length > dataPoints * 2) {
-            const sampled: PriceData[] = [];
-            const step = Math.floor(allPrices.length / dataPoints);
-            for (let i = 0; i < allPrices.length; i += step) {
-              sampled.push(allPrices[i]);
+          // 去重（相同时间戳的只保留一个）
+          const uniquePrices: PriceData[] = [];
+          const seenTimestamps = new Set<number>();
+          for (const price of allPrices) {
+            if (!seenTimestamps.has(price.timestamp)) {
+              seenTimestamps.add(price.timestamp);
+              uniquePrices.push(price);
             }
-            return sampled;
           }
 
-          return allPrices;
+          logger.info(
+            `Fetched ${uniquePrices.length} unique historical price points for ${symbol}`
+          );
+          return uniquePrices;
         },
         DEFAULT_RETRY_CONFIG,
         'getHistoricalPrices'
@@ -447,7 +497,7 @@ export class PythDataService {
 
       if (result.length > 0) {
         this.cache.set(cacheKey, result, CACHE_TTL.PRICE);
-        logger.info(`Successfully fetched ${result.length} historical price points for ${symbol}`);
+        logger.info(`Successfully cached ${result.length} historical price points for ${symbol}`);
       }
 
       return result;

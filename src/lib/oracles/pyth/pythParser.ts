@@ -1,9 +1,7 @@
 import { OracleProvider } from '@/types/oracle';
 import type { PriceData, ConfidenceInterval } from '@/types/oracle';
 
-import type { PublisherData, PublisherStatus, ValidatorData } from './types';
-
-import type { PythPriceRaw } from './types';
+import type { PublisherData, PublisherStatus, ValidatorData, PythPriceRaw } from './types';
 
 export function parsePythPrice(pythPrice: PythPriceRaw, symbol: string): PriceData {
   const priceValue =

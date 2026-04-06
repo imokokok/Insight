@@ -918,7 +918,7 @@ export class UMASubgraphService {
 
         this.workingEndpoint = endpoint;
         return { healthy: true, endpoint };
-      } catch (error) {
+      } catch {
         continue;
       }
     }

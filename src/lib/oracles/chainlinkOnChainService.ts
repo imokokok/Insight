@@ -6,7 +6,6 @@ import {
   getChainlinkPriceFeed,
   getChainlinkContracts,
   getChainlinkRPCConfig,
-  type ChainlinkPriceFeed,
 } from './chainlinkDataSources';
 
 export interface ChainlinkPriceData {
@@ -51,16 +50,7 @@ function encodeAggregatorCall(
   });
 }
 
-function encodeTokenCall(
-  functionName: 'totalSupply',
-  args?: readonly [`0x${string}`]
-): `0x${string}` {
-  if (functionName === 'totalSupply') {
-    return viemEncodeFunctionData({
-      abi: CHAINLINK_TOKEN_ABI,
-      functionName: 'totalSupply',
-    });
-  }
+function encodeTokenCall(_functionName: 'totalSupply'): `0x${string}` {
   return viemEncodeFunctionData({
     abi: CHAINLINK_TOKEN_ABI,
     functionName: 'totalSupply',

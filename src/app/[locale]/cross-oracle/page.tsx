@@ -73,6 +73,9 @@ export default function CrossOraclePage() {
     isRetrying,
     retryingOracles,
 
+    // 查询进度
+    queryProgress,
+
     // 回调
     toggleOracle,
 
@@ -92,15 +95,6 @@ export default function CrossOraclePage() {
     onRefresh: fetchPriceData,
     onSearch: debouncedSearchFocus,
   });
-
-  // 构建 queryProgress（模拟进度）
-  const queryProgress = useMemo(
-    () => ({
-      completed: isLoading ? Math.floor(priceData.length / 2) : priceData.length,
-      total: selectedOracles.length,
-    }),
-    [isLoading, priceData.length, selectedOracles.length]
-  );
 
   // 当前查询目标
   const currentQueryTarget = useMemo(

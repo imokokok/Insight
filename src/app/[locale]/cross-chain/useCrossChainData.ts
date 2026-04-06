@@ -11,7 +11,7 @@ import {
   OracleClientFactory,
   type BaseOracleClient,
 } from '@/lib/oracles';
-import { isBlockchain, safeBlockchainCast } from '@/lib/utils/chainUtils';
+import { isBlockchain } from '@/lib/utils/chainUtils';
 import { createLogger } from '@/lib/utils/logger';
 import { useUser } from '@/stores/authStore';
 import { useCrossChainStore } from '@/stores/crossChainStore';
@@ -30,8 +30,6 @@ import {
   calculateVariance,
   calculateStandardDeviation,
   calculatePercentile,
-  calculatePearsonCorrelation,
-  calculatePearsonCorrelationWithSignificance,
   calculatePearsonCorrelationByTimestamp,
   calculatePearsonCorrelationWithSignificanceByTimestamp,
   calculateSMA,
@@ -45,6 +43,7 @@ import {
   type TimestampedPrice,
 } from './utils';
 
+const isClient = typeof window !== 'undefined';
 const logger = createLogger('useCrossChainData');
 
 interface ValidationResult {
@@ -170,13 +169,28 @@ interface CacheEntry {
   timestamp: number;
 }
 
-const dataCache = new Map<string, CacheEntry>();
+const getGlobalCache = (): Map<string, CacheEntry> => {
+  if (!isClient) {
+    return new Map();
+  }
+  if (
+    !(window as unknown as { __crossChainDataCache?: Map<string, CacheEntry> })
+      .__crossChainDataCache
+  ) {
+    (
+      window as unknown as { __crossChainDataCache?: Map<string, CacheEntry> }
+    ).__crossChainDataCache = new Map();
+  }
+  return (window as unknown as { __crossChainDataCache: Map<string, CacheEntry> })
+    .__crossChainDataCache;
+};
 
 const getCacheKey = (provider: OracleProvider, symbol: string, timeRange: number): string => {
   return `${provider}-${symbol}-${timeRange}`;
 };
 
 const cleanupCache = () => {
+  const dataCache = getGlobalCache();
   const now = Date.now();
   const expiredKeys: string[] = [];
 
@@ -196,10 +210,12 @@ const cleanupCache = () => {
 };
 
 const clearCache = () => {
+  const dataCache = getGlobalCache();
   dataCache.clear();
 };
 
 const clearCacheForProvider = (provider: OracleProvider) => {
+  const dataCache = getGlobalCache();
   const keysToDelete: string[] = [];
   dataCache.forEach((_, key) => {
     if (key.startsWith(`${provider}-`)) {
@@ -343,6 +359,8 @@ export function useCrossChainData(): UseCrossChainDataReturn {
   const { favorites: chainFavorites } = useFavorites({ configType: 'chain_config' });
   const [showFavoritesDropdown, setShowFavoritesDropdown] = useState(false);
   const favoritesDropdownRef = useRef<HTMLDivElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const refreshSuccessTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const {
     selectedProvider,
@@ -402,19 +420,149 @@ export function useCrossChainData(): UseCrossChainDataReturn {
   const currentClient = OracleClientFactory.getClient(selectedProvider);
   const supportedChains = currentClient.supportedChains;
 
-  const fetchData = useCallback(async () => {
-    setRefreshStatus('refreshing');
-    setLoading(true);
-    try {
-      const cacheKey = getCacheKey(selectedProvider, selectedSymbol, selectedTimeRange);
-      const cachedEntry = dataCache.get(cacheKey);
-      const now = Date.now();
+  const fetchData = useCallback(
+    async (signal?: AbortSignal) => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      const abortController = new AbortController();
+      abortControllerRef.current = abortController;
+      const currentSignal = signal || abortController.signal;
 
-      if (cachedEntry && now - cachedEntry.timestamp < CACHE_EXPIRATION_MS) {
-        setCurrentPrices(cachedEntry.currentPrices);
-        setHistoricalPrices(cachedEntry.historicalPrices);
+      setRefreshStatus('refreshing');
+      setLoading(true);
+      try {
+        const dataCache = getGlobalCache();
+        const cacheKey = getCacheKey(selectedProvider, selectedSymbol, selectedTimeRange);
+        const cachedEntry = dataCache.get(cacheKey);
+        const now = Date.now();
 
-        const validPrices = cachedEntry.currentPrices.map((d) => d.price).filter((p) => p > 0);
+        if (cachedEntry && now - cachedEntry.timestamp < CACHE_EXPIRATION_MS) {
+          if (currentSignal.aborted) return;
+
+          setCurrentPrices(cachedEntry.currentPrices);
+          setHistoricalPrices(cachedEntry.historicalPrices);
+
+          const validPrices = cachedEntry.currentPrices.map((d) => d.price).filter((p) => p > 0);
+          const newAvgPrice =
+            validPrices.length > 0
+              ? validPrices.reduce((a, b) => a + b, 0) / validPrices.length
+              : 0;
+          const newMaxPrice = validPrices.length > 0 ? Math.max(...validPrices) : 0;
+          const newMinPrice = validPrices.length > 0 ? Math.min(...validPrices) : 0;
+          const newPriceRange = newMaxPrice - newMinPrice;
+          const variance =
+            validPrices.length > 1
+              ? validPrices.reduce((sum, price) => sum + Math.pow(price - newAvgPrice, 2), 0) /
+                validPrices.length
+              : 0;
+          const stdDev = Math.sqrt(variance);
+          const newStdDevPercent = newAvgPrice > 0 ? (stdDev / newAvgPrice) * 100 : 0;
+
+          setPrevStats({
+            avgPrice: newAvgPrice,
+            maxPrice: newMaxPrice,
+            minPrice: newMinPrice,
+            priceRange: newPriceRange,
+            standardDeviationPercent: newStdDevPercent,
+          });
+
+          if (supportedChains.length > 0) {
+            const chainWithMostData = supportedChains.reduce((best, chain) => {
+              const bestLen = cachedEntry.historicalPrices[best]?.length || 0;
+              const chainLen = cachedEntry.historicalPrices[chain]?.length || 0;
+              return chainLen > bestLen ? chain : best;
+            }, supportedChains[0]);
+            setRecommendedBaseChain(chainWithMostData);
+          }
+
+          setLastUpdated(new Date());
+          setRefreshStatus('success');
+          setShowRefreshSuccess(true);
+          if (refreshSuccessTimerRef.current) {
+            clearTimeout(refreshSuccessTimerRef.current);
+          }
+          refreshSuccessTimerRef.current = setTimeout(() => {
+            if (!abortControllerRef.current?.signal.aborted) {
+              setShowRefreshSuccess(false);
+            }
+          }, 2000);
+          setLoading(false);
+          return;
+        }
+
+        const currentPromises = supportedChains.map((chain) =>
+          currentClient.getPrice(selectedSymbol, chain)
+        );
+        const currentResults = await Promise.all(currentPromises);
+
+        if (currentSignal.aborted) return;
+
+        const validatedCurrentResults = currentResults.filter((priceData) => {
+          if (!priceData.chain) return false;
+          const validation = validatePriceData(
+            priceData.price,
+            priceData.timestamp,
+            priceData.chain
+          );
+          if (!validation.isValid) {
+            validation.errors.forEach((error) =>
+              logger.warn('价格数据验证失败', { error, chain: priceData.chain })
+            );
+            return false;
+          }
+          return true;
+        });
+
+        setCurrentPrices(validatedCurrentResults);
+
+        const historicalPromises = supportedChains.map((chain) =>
+          currentClient.getHistoricalPrices(selectedSymbol, chain, selectedTimeRange)
+        );
+        const historicalResults = await Promise.all(historicalPromises);
+
+        if (currentSignal.aborted) return;
+
+        const historicalMap: Partial<Record<Blockchain, PriceData[]>> = {};
+
+        supportedChains.forEach((chain, index) => {
+          const rawPrices = historicalResults[index] || [];
+          const validatedPrices = rawPrices.filter((priceData) => {
+            const validation = validatePriceData(priceData.price, priceData.timestamp, chain);
+            if (!validation.isValid) {
+              validation.errors.forEach((error) =>
+                logger.warn('历史价格数据验证失败', { error, chain })
+              );
+              return false;
+            }
+            return true;
+          });
+          historicalMap[chain] = validatedPrices;
+        });
+
+        setHistoricalPrices(historicalMap);
+
+        const anomalies = detectAnomalousPrices(validatedCurrentResults, supportedChains);
+        if (anomalies.length > 0) {
+          logger.info(`检测到 ${anomalies.length} 个异常价格点`, {
+            anomalies: anomalies.map((a) => ({
+              chain: a.chain,
+              price: a.price,
+              reason: a.reason,
+              deviation: a.deviation.toFixed(2),
+            })),
+          });
+        }
+
+        cleanupCache();
+
+        dataCache.set(cacheKey, {
+          currentPrices: validatedCurrentResults,
+          historicalPrices: historicalMap,
+          timestamp: now,
+        });
+
+        const validPrices = validatedCurrentResults.map((d) => d.price).filter((p) => p > 0);
         const newAvgPrice =
           validPrices.length > 0 ? validPrices.reduce((a, b) => a + b, 0) / validPrices.length : 0;
         const newMaxPrice = validPrices.length > 0 ? Math.max(...validPrices) : 0;
@@ -438,8 +586,8 @@ export function useCrossChainData(): UseCrossChainDataReturn {
 
         if (supportedChains.length > 0) {
           const chainWithMostData = supportedChains.reduce((best, chain) => {
-            const bestLen = cachedEntry.historicalPrices[best]?.length || 0;
-            const chainLen = cachedEntry.historicalPrices[chain]?.length || 0;
+            const bestLen = historicalMap[best]?.length || 0;
+            const chainLen = historicalMap[chain]?.length || 0;
             return chainLen > bestLen ? chain : best;
           }, supportedChains[0]);
           setRecommendedBaseChain(chainWithMostData);
@@ -448,124 +596,50 @@ export function useCrossChainData(): UseCrossChainDataReturn {
         setLastUpdated(new Date());
         setRefreshStatus('success');
         setShowRefreshSuccess(true);
-        setTimeout(() => setShowRefreshSuccess(false), 2000);
-        setLoading(false);
-        return;
-      }
-
-      const currentPromises = supportedChains.map((chain) =>
-        currentClient.getPrice(selectedSymbol, chain)
-      );
-      const currentResults = await Promise.all(currentPromises);
-
-      const validatedCurrentResults = currentResults.filter((priceData) => {
-        if (!priceData.chain) return false;
-        const validation = validatePriceData(priceData.price, priceData.timestamp, priceData.chain);
-        if (!validation.isValid) {
-          validation.errors.forEach((error) =>
-            logger.warn('价格数据验证失败', { error, chain: priceData.chain })
-          );
-          return false;
+        if (refreshSuccessTimerRef.current) {
+          clearTimeout(refreshSuccessTimerRef.current);
         }
-        return true;
-      });
-
-      setCurrentPrices(validatedCurrentResults);
-
-      const historicalPromises = supportedChains.map((chain) =>
-        currentClient.getHistoricalPrices(selectedSymbol, chain, selectedTimeRange)
-      );
-      const historicalResults = await Promise.all(historicalPromises);
-      const historicalMap: Partial<Record<Blockchain, PriceData[]>> = {};
-
-      supportedChains.forEach((chain, index) => {
-        const rawPrices = historicalResults[index] || [];
-        const validatedPrices = rawPrices.filter((priceData) => {
-          const validation = validatePriceData(priceData.price, priceData.timestamp, chain);
-          if (!validation.isValid) {
-            validation.errors.forEach((error) =>
-              logger.warn('历史价格数据验证失败', { error, chain })
-            );
-            return false;
+        refreshSuccessTimerRef.current = setTimeout(() => {
+          if (!abortControllerRef.current?.signal.aborted) {
+            setShowRefreshSuccess(false);
           }
-          return true;
-        });
-        historicalMap[chain] = validatedPrices;
-      });
+        }, 2000);
+      } catch (error) {
+        if (currentSignal.aborted) return;
 
-      setHistoricalPrices(historicalMap);
-
-      const anomalies = detectAnomalousPrices(validatedCurrentResults, supportedChains);
-      if (anomalies.length > 0) {
-        logger.info(`检测到 ${anomalies.length} 个异常价格点`, {
-          anomalies: anomalies.map((a) => ({
-            chain: a.chain,
-            price: a.price,
-            reason: a.reason,
-            deviation: a.deviation.toFixed(2),
-          })),
-        });
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        logger.error(
+          'Error fetching data',
+          error instanceof Error ? error : new Error(String(error))
+        );
+        setRefreshStatus('error');
+        toast.error('数据获取失败', `无法获取价格数据: ${errorMessage}`);
+      } finally {
+        if (!abortControllerRef.current?.signal.aborted) {
+          setLoading(false);
+        }
       }
-
-      cleanupCache();
-
-      dataCache.set(cacheKey, {
-        currentPrices: validatedCurrentResults,
-        historicalPrices: historicalMap,
-        timestamp: now,
-      });
-
-      const validPrices = validatedCurrentResults.map((d) => d.price).filter((p) => p > 0);
-      const newAvgPrice =
-        validPrices.length > 0 ? validPrices.reduce((a, b) => a + b, 0) / validPrices.length : 0;
-      const newMaxPrice = validPrices.length > 0 ? Math.max(...validPrices) : 0;
-      const newMinPrice = validPrices.length > 0 ? Math.min(...validPrices) : 0;
-      const newPriceRange = newMaxPrice - newMinPrice;
-      const variance =
-        validPrices.length > 1
-          ? validPrices.reduce((sum, price) => sum + Math.pow(price - newAvgPrice, 2), 0) /
-            validPrices.length
-          : 0;
-      const stdDev = Math.sqrt(variance);
-      const newStdDevPercent = newAvgPrice > 0 ? (stdDev / newAvgPrice) * 100 : 0;
-
-      setPrevStats({
-        avgPrice: newAvgPrice,
-        maxPrice: newMaxPrice,
-        minPrice: newMinPrice,
-        priceRange: newPriceRange,
-        standardDeviationPercent: newStdDevPercent,
-      });
-
-      if (supportedChains.length > 0) {
-        const chainWithMostData = supportedChains.reduce((best, chain) => {
-          const bestLen = historicalMap[best]?.length || 0;
-          const chainLen = historicalMap[chain]?.length || 0;
-          return chainLen > bestLen ? chain : best;
-        }, supportedChains[0]);
-        setRecommendedBaseChain(chainWithMostData);
-      }
-
-      setLastUpdated(new Date());
-      setRefreshStatus('success');
-      setShowRefreshSuccess(true);
-      setTimeout(() => setShowRefreshSuccess(false), 2000);
-    } catch (error) {
-      logger.error(
-        'Error fetching data',
-        error instanceof Error ? error : new Error(String(error))
-      );
-      setRefreshStatus('error');
-    } finally {
-      setLoading(false);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentClient, supportedChains, selectedSymbol, selectedTimeRange, selectedProvider]);
+    },
+    [currentClient, supportedChains, selectedSymbol, selectedTimeRange, selectedProvider]
+  );
 
   useEffect(() => {
     fetchData();
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedProvider, selectedSymbol, selectedTimeRange]);
+
+  useEffect(() => {
+    return () => {
+      if (refreshSuccessTimerRef.current) {
+        clearTimeout(refreshSuccessTimerRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (refreshInterval === 0) return;

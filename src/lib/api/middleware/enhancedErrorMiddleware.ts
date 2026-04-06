@@ -1,20 +1,7 @@
 import { NextResponse } from 'next/server';
 
-import {
-  AppError,
-  isAppError,
-  ValidationError,
-  AuthenticationError,
-  AuthorizationError,
-  NotFoundError,
-  RateLimitError,
-  InternalError,
-  PriceFetchError,
-  OracleClientError,
-} from '@/lib/errors';
+import { isAppError } from '@/lib/errors';
 import { createLogger } from '@/lib/utils/logger';
-
-import { ApiResponseBuilder } from '../response';
 
 const logger = createLogger('enhanced-error-middleware');
 
@@ -222,13 +209,7 @@ function createErrorResponse(
  * 创建增强的错误处理中间件
  */
 export function createEnhancedErrorMiddleware(options: EnhancedErrorMiddlewareOptions = {}) {
-  const {
-    includeStackTrace = false,
-    logErrors = true,
-    includeRequestId = true,
-    includeTimestamp = true,
-    includeDocumentationUrl = true,
-  } = options;
+  const { logErrors = true, includeRequestId = true } = options;
 
   return async (
     error: unknown,

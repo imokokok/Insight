@@ -6,9 +6,9 @@
 import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 
 import type { FavoriteConfig } from '@/hooks/data';
-import type { UserFavorite } from '@/lib/supabase/queries';
-import type { CalculatedPerformanceMetrics } from '@/lib/oracles/performanceMetricsCalculator';
 import type { MemoryStats } from '@/lib/oracles/memoryManager';
+import type { CalculatedPerformanceMetrics } from '@/lib/oracles/performanceMetricsCalculator';
+import type { UserFavorite } from '@/lib/supabase/queries';
 import {
   type OracleProvider,
   type PriceData,
@@ -214,7 +214,14 @@ export interface TechnicalIndicatorsResult {
 // 错误类型定义
 // ============================================================================
 
-export type OracleErrorType = 'network' | 'timeout' | 'data_format' | 'rate_limit' | 'unknown';
+export type OracleErrorType =
+  | 'network'
+  | 'timeout'
+  | 'data_format'
+  | 'rate_limit'
+  | 'server_error'
+  | 'cors'
+  | 'unknown';
 
 export interface OracleErrorInfo {
   provider: OracleProvider;
@@ -394,6 +401,7 @@ export interface UseOracleDataReturn {
     };
     formattedBytes: string;
   };
+  queryProgress: { completed: number; total: number };
 }
 
 export interface UseChartConfigReturn extends ChartConfigResult {

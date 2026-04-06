@@ -4,8 +4,13 @@ import type { OracleClientConfig } from '@/lib/oracles/base';
 import { SPREAD_PERCENTAGES } from '@/lib/oracles/redstoneConstants';
 import { redstoneSymbols } from '@/lib/oracles/supportedSymbols';
 import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
-import { OracleProvider, Blockchain, type OracleErrorCode } from '@/types/oracle';
-import type { PriceData, ConfidenceInterval } from '@/types/oracle';
+import {
+  OracleProvider,
+  Blockchain,
+  type OracleErrorCode,
+  type PriceData,
+  type ConfidenceInterval,
+} from '@/types/oracle';
 
 const REDSTONE_API_BASE = 'https://api.redstone.finance';
 const REDSTONE_CACHE_TTL = {
@@ -183,7 +188,6 @@ export class RedStoneClient extends BaseOracleClient {
       return cached;
     }
 
-    let lastError: Error | undefined;
     let attemptCount = 0;
 
     try {
@@ -243,9 +247,6 @@ export class RedStoneClient extends BaseOracleClient {
           maxAttempts: 3,
           baseDelay: 1000,
           operationName: 'fetchRealPrice',
-          onRetry: (attempt, error) => {
-            lastError = error;
-          },
         }
       );
 
@@ -622,5 +623,3 @@ export class RedStoneClient extends BaseOracleClient {
     }
   }
 }
-
-

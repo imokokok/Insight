@@ -380,8 +380,6 @@ export const ChartCanvas = memo(function ChartCanvas({
             <Bar yAxisId="price" dataKey="high" shape={<CandlestickShape />} fill="transparent" />
           )}
 
-
-
           {!showRSI && !showMACD && (
             <Brush
               dataKey="time"
