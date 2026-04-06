@@ -5,8 +5,8 @@ import { useMemo, useCallback } from 'react';
 import { useQuery, useQueries } from '@tanstack/react-query';
 
 import { UMAClient } from '@/lib/oracles/uma';
-import type { UMANetworkStats, ValidatorData, DisputeData } from '@/lib/oracles/uma/types';
 import { type Blockchain, type PriceData } from '@/types/oracle';
+import type { UMANetworkStats, ValidatorData, DisputeData } from '@/types/oracle/uma';
 
 import { useLastUpdated } from './useLastUpdated';
 

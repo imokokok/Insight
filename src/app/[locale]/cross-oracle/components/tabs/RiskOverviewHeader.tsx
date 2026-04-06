@@ -188,7 +188,7 @@ function RiskOverviewHeaderComponent({
 }: RiskOverviewHeaderProps) {
   const riskConfig = getRiskLevelConfig(isSafe, riskScore, highRiskCount, mediumRiskCount, t);
   const riskScoreColor = getRiskScoreColor(riskScore);
-  const riskScoreBg = getRiskScoreBgColor(riskScore);
+  const _riskScoreBg = getRiskScoreBgColor(riskScore);
 
   return (
     <div

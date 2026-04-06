@@ -2,11 +2,11 @@
 
 import { useState } from 'react';
 
-import { ChevronDown, ChevronUp, Filter, X } from 'lucide-react';
+import { ChevronDown, ChevronUp, Filter } from 'lucide-react';
 
 import { DropdownSelect, SegmentedControl } from '@/components/ui';
 import { useTranslations } from '@/i18n';
-import { baseColors, chainColors as configChainColors } from '@/lib/config/colors';
+import { chainColors as configChainColors } from '@/lib/config/colors';
 import { getPriceOracleProvidersSortedByMarketCap } from '@/lib/config/oracles';
 import { type OracleProvider, Blockchain } from '@/lib/oracles';
 import { isBlockchain } from '@/lib/utils/chainUtils';

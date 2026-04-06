@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 
 import {
   LineChart,
@@ -25,35 +25,38 @@ interface BenchmarkComparisonProps {
 
 type Timeframe = '1d' | '7d' | '30d' | '90d' | '1y';
 
+function CustomTooltip({
+  active,
+  payload,
+  label,
+  formatPercent,
+}: TooltipProps & { formatPercent: (value: number) => string }) {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-lg">
+        <p className="font-semibold text-gray-900 mb-2">{label}</p>
+        <div className="space-y-1">
+          {payload.map((entry, index: number) => (
+            <div key={index} className="flex items-center gap-2 text-sm">
+              <div className="w-3 h-3 rounded" style={{ backgroundColor: entry.color }} />
+              <span className="text-gray-600">{entry.name}:</span>
+              <span className="font-medium text-gray-900">{formatPercent(entry.value)}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+  return null;
+}
+
 export default function BenchmarkComparison({ data, loading = false }: BenchmarkComparisonProps) {
   const t = useTranslations('marketOverview.benchmark');
   const [selectedTimeframe, setSelectedTimeframe] = useState<Timeframe>('30d');
 
-  // 格式化百分比
-  const formatPercent = (value: number) => {
+  const formatPercent = useCallback((value: number) => {
     return `${value >= 0 ? '+' : ''}${value.toFixed(2)}%`;
-  };
-
-  // 自定义Tooltip
-  const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-lg">
-          <p className="font-semibold text-gray-900 mb-2">{label}</p>
-          <div className="space-y-1">
-            {payload.map((entry, index: number) => (
-              <div key={index} className="flex items-center gap-2 text-sm">
-                <div className="w-3 h-3 rounded" style={{ backgroundColor: entry.color }} />
-                <span className="text-gray-600">{entry.name}:</span>
-                <span className="font-medium text-gray-900">{formatPercent(entry.value)}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      );
-    }
-    return null;
-  };
+  }, []);
 
   if (loading) {
     return (
@@ -111,7 +114,7 @@ export default function BenchmarkComparison({ data, loading = false }: Benchmark
               tick={{ fill: '#4b5563', fontSize: 12 }}
               stroke="#9ca3af"
             />
-            <Tooltip content={<CustomTooltip />} />
+            <Tooltip content={<CustomTooltip formatPercent={formatPercent} />} />
             <Legend />
             <Line
               type="monotone"

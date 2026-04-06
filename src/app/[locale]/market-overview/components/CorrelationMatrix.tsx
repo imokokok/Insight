@@ -31,14 +31,6 @@ export default function CorrelationMatrix({ data, loading = false }: Correlation
     return 'bg-gray-200';
   };
 
-  // 获取相关性强度标签
-  const getCorrelationLabel = (value: number) => {
-    const absValue = Math.abs(value);
-    if (absValue > 0.7) return t('strong');
-    if (absValue > 0.4) return t('moderate');
-    return t('weak');
-  };
-
   if (loading) {
     return (
       <div className="h-full flex items-center justify-center">

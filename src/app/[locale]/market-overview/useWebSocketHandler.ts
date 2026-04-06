@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 import {
   usePriceAlerts,
@@ -48,6 +48,7 @@ export function useWebSocketHandler({
   setLastUpdated,
 }: UseWebSocketHandlerParams): UseWebSocketHandlerReturn {
   const [wsMessageCount, setWsMessageCount] = useState(0);
+  const wsMessageCountRef = useRef(0);
   const [wsConnectedChannels] = useState(['prices', 'tvs', 'marketStats']);
   const [triggeredAlerts, setTriggeredAlerts] = useState<AlertCheckResult[]>([]);
 
@@ -108,7 +109,8 @@ export function useWebSocketHandler({
   useEffect(() => {
     if (!wsLastMessage) return;
 
-    setWsMessageCount((prev) => prev + 1);
+    wsMessageCountRef.current += 1;
+    setWsMessageCount(wsMessageCountRef.current);
 
     switch (wsLastMessage.channel) {
       case 'prices': {

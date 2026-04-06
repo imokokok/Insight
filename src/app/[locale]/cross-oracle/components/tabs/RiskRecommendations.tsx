@@ -229,7 +229,7 @@ interface RecommendationCardProps {
   t: (key: string, params?: Record<string, string | number>) => string;
 }
 
-function RecommendationCard({ recommendation, index, t }: RecommendationCardProps) {
+function RecommendationCard({ recommendation, index, t: _t }: RecommendationCardProps) {
   const colors = getPriorityColorConfig(recommendation.priority);
 
   return (

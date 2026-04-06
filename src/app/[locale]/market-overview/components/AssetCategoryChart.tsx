@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 
@@ -16,58 +16,70 @@ interface AssetCategoryChartProps {
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#6b7280'];
 
+function CustomTooltip({
+  active,
+  payload,
+  t,
+  getCategoryLabel,
+  formatTVS,
+}: TooltipProps<AssetCategory> & {
+  t: (key: string) => string;
+  getCategoryLabel: (category: string) => string;
+  formatTVS: (value: number) => string;
+}) {
+  if (active && payload && payload.length) {
+    const item = payload[0].payload;
+    if (!item) return null;
+    return (
+      <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-lg">
+        <p className="font-semibold text-gray-900 mb-2">{getCategoryLabel(item.category)}</p>
+        <div className="space-y-1.5 text-sm">
+          <div className="flex justify-between gap-4">
+            <span className="text-gray-500">{t('tvs')}:</span>
+            <span className="font-medium text-gray-900">{formatTVS(item.value)}</span>
+          </div>
+          <div className="flex justify-between gap-4">
+            <span className="text-gray-500">{t('share')}:</span>
+            <span className="font-medium text-gray-900">{item.share.toFixed(1)}%</span>
+          </div>
+          <div className="flex justify-between gap-4">
+            <span className="text-gray-500">{t('assets')}:</span>
+            <span className="font-medium text-gray-900">{item.assets.length}</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  return null;
+}
+
 export default function AssetCategoryChart({ data, loading = false }: AssetCategoryChartProps) {
   const t = useTranslations('marketOverview.assetCategory');
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
+  // 获取类别标签
+  const getCategoryLabel = useCallback(
+    (category: string) => {
+      const labels: Record<string, string> = {
+        stablecoins: t('stablecoins'),
+        layer1: t('layer1'),
+        layer2: t('layer2'),
+        defi: t('defi'),
+        nft: t('nft'),
+        gaming: t('gaming'),
+        other: t('other'),
+      };
+      return labels[category] || category;
+    },
+    [t]
+  );
+
   // 格式化数值
-  const formatTVS = (value: number) => {
+  const formatTVS = useCallback((value: number) => {
     if (value >= 1e9) return `$${(value / 1e9).toFixed(1)}B`;
     if (value >= 1e6) return `$${(value / 1e6).toFixed(1)}M`;
     return `$${value.toFixed(0)}`;
-  };
-
-  // 获取类别标签
-  const getCategoryLabel = (category: string) => {
-    const labels: Record<string, string> = {
-      stablecoins: t('stablecoins'),
-      layer1: t('layer1'),
-      layer2: t('layer2'),
-      defi: t('defi'),
-      nft: t('nft'),
-      gaming: t('gaming'),
-      other: t('other'),
-    };
-    return labels[category] || category;
-  };
-
-  // 自定义Tooltip
-  const CustomTooltip = ({ active, payload }: TooltipProps<AssetCategory>) => {
-    if (active && payload && payload.length) {
-      const item = payload[0].payload;
-      if (!item) return null;
-      return (
-        <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-lg">
-          <p className="font-semibold text-gray-900 mb-2">{getCategoryLabel(item.category)}</p>
-          <div className="space-y-1.5 text-sm">
-            <div className="flex justify-between gap-4">
-              <span className="text-gray-500">{t('tvs')}:</span>
-              <span className="font-medium text-gray-900">{formatTVS(item.value)}</span>
-            </div>
-            <div className="flex justify-between gap-4">
-              <span className="text-gray-500">{t('share')}:</span>
-              <span className="font-medium text-gray-900">{item.share.toFixed(1)}%</span>
-            </div>
-            <div className="flex justify-between gap-4">
-              <span className="text-gray-500">{t('assets')}:</span>
-              <span className="font-medium text-gray-900">{item.assets.length}</span>
-            </div>
-          </div>
-        </div>
-      );
-    }
-    return null;
-  };
+  }, []);
 
   if (loading) {
     return (
@@ -116,7 +128,11 @@ export default function AssetCategoryChart({ data, loading = false }: AssetCateg
                 />
               ))}
             </Pie>
-            <Tooltip content={<CustomTooltip />} />
+            <Tooltip
+              content={
+                <CustomTooltip t={t} getCategoryLabel={getCategoryLabel} formatTVS={formatTVS} />
+              }
+            />
           </PieChart>
         </ResponsiveContainer>
       </div>

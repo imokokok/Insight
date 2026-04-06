@@ -54,7 +54,7 @@ interface SimplePriceComparisonTabProps {
 // 辅助函数
 // ============================================================================
 
-function formatPrice(value: number): string {
+function _formatPrice(value: number): string {
   if (value <= 0) return '-';
   if (value >= 1000) {
     return `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -68,14 +68,14 @@ function formatPrice(value: number): string {
 
 function SimplePriceComparisonTabComponent({
   priceData,
-  selectedOracles,
+  selectedOracles: _selectedOracles,
   selectedSymbol,
   medianPrice,
   minPrice,
   maxPrice,
-  priceRange,
+  priceRange: _priceRange,
   standardDeviation,
-  standardDeviationPercent,
+  standardDeviationPercent: _standardDeviationPercent,
   avgPrice,
   validPrices,
   anomalies,

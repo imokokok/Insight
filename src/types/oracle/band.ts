@@ -350,3 +350,88 @@ export interface DataSourceListResponse {
   total: number;
   hasMore: boolean;
 }
+
+export interface BlockInfo {
+  height: number;
+  hash: string;
+  time: string;
+  proposerAddress: string;
+  txCount: number;
+  chainId: string;
+}
+
+export interface TransactionInfo {
+  hash: string;
+  height: number;
+  timestamp: string;
+  gasUsed: number;
+  gasWanted: number;
+  code: number;
+  memo: string;
+  messages: Array<{
+    type: string;
+    [key: string]: unknown;
+  }>;
+}
+
+export interface DelegationInfo {
+  delegatorAddress: string;
+  validatorAddress: string;
+  shares: number;
+  balance: number;
+}
+
+export interface RewardInfo {
+  validatorAddress: string;
+  rewards: Array<{
+    denom: string;
+    amount: number;
+  }>;
+}
+
+export interface AccountInfo {
+  address: string;
+  accountNumber: number;
+  sequence: number;
+  balances: Array<{
+    denom: string;
+    amount: number;
+  }>;
+}
+
+export interface IBCChannelInfo {
+  channelId: string;
+  portId: string;
+  state: string;
+  ordering: string;
+  counterpartyChannelId: string;
+  counterpartyPortId: string;
+  connectionHops: string[];
+  version: string;
+}
+
+export interface IBCConnectionInfo {
+  connectionId: string;
+  clientId: string;
+  state: string;
+  counterpartyConnectionId: string;
+  counterpartyClientId: string;
+  versions: Array<{
+    identifier: string;
+    features: string[];
+  }>;
+}
+
+export interface OracleRequestInfo {
+  id: number;
+  oracleScriptId: number;
+  calldata: string;
+  askCount: number;
+  minCount: number;
+  requestHeight: number;
+  requestTime: string;
+  resolveHeight: number;
+  resolveTime: string;
+  result: string;
+  status: string;
+}

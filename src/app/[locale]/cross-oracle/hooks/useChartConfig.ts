@@ -3,7 +3,7 @@
  * @description 准备图表数据、计算统计指标、管理图表颜色配置
  */
 
-import { useState, useCallback, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 
 import { chartColors } from '@/lib/config/colors';
 import type { CalculatedPerformanceMetrics } from '@/lib/oracles/performanceMetricsCalculator';
@@ -15,11 +15,7 @@ import type {
   ChartDataPoint,
   HistoryMinMax,
   UseChartConfigReturn,
-  OraclePriceSeries,
   PriceDeviationDataPoint,
-  OraclePriceData,
-  OraclePriceHistory,
-  OraclePerformanceData,
 } from '../types/index';
 
 interface UseChartConfigOptions {
@@ -45,7 +41,7 @@ const initialHistoryMinMax: HistoryMinMax = {
 export function useChartConfig({
   historicalData,
   selectedOracles,
-  timeRange,
+  timeRange: _timeRange,
   useAccessibleColors,
   validPrices,
   avgPrice,

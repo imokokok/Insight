@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState, useMemo } from 'react';
+import { useCallback, useState, useMemo } from 'react';
 
 import { useUser, useProfile } from '@/stores/authStore';
 
@@ -63,7 +63,7 @@ function getLocalPreferences(): Partial<UserPreferences> {
 export function usePreferences() {
   const user = useUser();
   const profile = useProfile();
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading] = useState(false);
 
   const preferences = useMemo(() => {
     const localPrefs = getLocalPreferences();
@@ -92,10 +92,6 @@ export function usePreferences() {
     }
     return { ...defaultPreferences, ...localPrefs };
   }, [user, profile]);
-
-  useEffect(() => {
-    setIsLoading(false);
-  }, []);
 
   const savePreferencesToLocal = useCallback((prefs: UserPreferences) => {
     localStorage.setItem(

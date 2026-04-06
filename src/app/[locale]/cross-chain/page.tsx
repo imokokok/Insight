@@ -4,7 +4,7 @@ import { useState } from 'react';
 
 import { useRouter } from 'next/navigation';
 
-import { Network, Download, RefreshCw, Eye } from 'lucide-react';
+import { Download, RefreshCw, Eye } from 'lucide-react';
 import {
   BarChart,
   Bar,
@@ -18,15 +18,7 @@ import {
 
 import { SectionErrorBoundary } from '@/components/error-boundary';
 import { FavoriteButton } from '@/components/favorites';
-import {
-  EmptyStateEnhanced,
-  ProgressBar as LoadingProgressBar,
-  DataLoadingProgress,
-  LiveStatusBar,
-  SegmentedControl,
-  DropdownSelect,
-  MultiSelect,
-} from '@/components/ui';
+import { LiveStatusBar, SegmentedControl } from '@/components/ui';
 import type { FavoriteConfig } from '@/hooks';
 import { useTranslations } from '@/i18n';
 import { baseColors, semanticColors, chartColors } from '@/lib/config/colors';
@@ -100,7 +92,6 @@ export default function CrossChainPage() {
     totalDataPoints,
     scatterData,
     chainVolatility,
-    updateDelays,
     dataIntegrity,
     priceJumpFrequency,
     meanBinIndex,

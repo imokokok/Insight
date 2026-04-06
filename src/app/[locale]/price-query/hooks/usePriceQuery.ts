@@ -7,7 +7,7 @@ import { useTranslations } from '@/i18n';
 import type { PriceData, OracleProvider, Blockchain } from '@/lib/oracles';
 import { useUser } from '@/stores/authStore';
 
-import { type QueryResult, providerNames, chainNames, oracleI18nKeys } from '../constants';
+import { type QueryResult } from '../constants';
 
 import { usePriceQueryChart, type ChartDataPoint } from './usePriceQueryChart';
 import { usePriceQueryData, type QueryError } from './usePriceQueryData';

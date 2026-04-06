@@ -56,3 +56,7 @@ export {
   type RollingVolatilityPoint,
   type VolatilityConePoint,
 } from './volatilityUtils';
+
+export { validatePriceData, type ValidationResult } from './validation';
+
+export { detectAnomalousPrices, type AnomalousPricePoint } from './anomalyDetection';

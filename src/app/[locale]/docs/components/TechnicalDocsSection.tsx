@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 
-import { Code, BookOpen, Server, Database, ArrowRight, FileText, Layers, Zap } from 'lucide-react';
+import { Code, BookOpen, Server, Database, ArrowRight, Layers, Zap } from 'lucide-react';
 
 import { useTranslations } from '@/i18n';
 

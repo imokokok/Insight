@@ -7,7 +7,7 @@ import { isChineseLocale } from '@/i18n/routing';
 import { useSetIsMobile } from '@/stores/uiStore';
 
 import { useMarketFilter } from './hooks/useMarketFilter';
-import { ChartType, ViewType, type TVSTrendData } from './types';
+import { type TVSTrendData } from './types';
 import { useMarketOverviewData } from './useMarketOverviewData';
 
 export function useMarketPage() {

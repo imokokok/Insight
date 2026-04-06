@@ -60,7 +60,7 @@ interface TooltipPayloadEntry {
 /**
  * 生成模拟数据
  */
-function generateMockData(_timeRange: TimeRange): RiskDataPoint[] {
+function _generateMockData(_timeRange: TimeRange): RiskDataPoint[] {
   throw new Error('Mock data is disabled. Please provide real risk data.');
 }
 

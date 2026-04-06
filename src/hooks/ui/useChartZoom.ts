@@ -140,12 +140,12 @@ export function useChartZoom(options: UseChartZoomOptions = {}): UseChartZoomRet
   const [isPanning, setIsPanning] = useState(false);
 
   // 历史记录
-  const [history, setHistory] = useState<ZoomHistoryEntry[]>([
+  const [history, setHistory] = useState<ZoomHistoryEntry[]>(() => [
     {
       scale: initialScale,
       translateX: initialTranslateX,
       translateY: initialTranslateY,
-      timestamp: Date.now(),
+      timestamp: 0,
     },
   ]);
   const [currentHistoryIndex, setCurrentHistoryIndex] = useState(0);
@@ -417,7 +417,7 @@ export function useChartZoom(options: UseChartZoomOptions = {}): UseChartZoomRet
       const centerY = event.clientY - rect.top;
 
       const delta = event.deltaY > 0 ? -1 : 1;
-      const newScale = clampScale(scale * (1 + delta * config.scaleStep));
+      const _newScale = clampScale(scale * (1 + delta * config.scaleStep));
 
       setIsZooming(true);
 
@@ -667,11 +667,12 @@ export function useBrushZoom(options: UseBrushZoomOptions): UseBrushZoomReturn {
   const [startIndex, setStartIndex] = useState(defaultStartIndex);
   const [endIndex, setEndIndex] = useState(defaultEndIndex);
 
-  // 当数据长度变化时重置
-  useEffect(() => {
+  const prevDataLengthRef = useRef(dataLength);
+  if (prevDataLengthRef.current !== dataLength) {
+    prevDataLengthRef.current = dataLength;
     setStartIndex(defaultStartIndex);
     setEndIndex(defaultEndIndex);
-  }, [dataLength, defaultStartIndex, defaultEndIndex]);
+  }
 
   const visibleDataCount = endIndex - startIndex + 1;
   const totalDataCount = dataLength;

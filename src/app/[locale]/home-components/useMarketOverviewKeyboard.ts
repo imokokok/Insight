@@ -26,16 +26,10 @@ export interface UseMarketOverviewKeyboardReturn {
   viewTypeButtonRefs: React.MutableRefObject<Record<ViewType, HTMLButtonElement | null>>;
 }
 
-const chartTypeMap: Record<string, ChartType> = {
-  '1': 'pie',
-  '2': 'trend',
-  '3': 'bar',
-};
-
 const timeRanges = ['1H', '24H', '7D', '30D', '90D', '1Y', 'ALL'] as const;
 
 export function useMarketOverviewKeyboard({
-  activeChart,
+  activeChart: _activeChart,
   setActiveChart,
   viewType,
   setViewType,
