@@ -16,10 +16,7 @@ interface DataSourcePanelProps {
 
 // Map oracle provider to credibility level
 function getCredibilityLevel(provider: OracleProvider): 'high' | 'medium' | 'low' | 'unverified' {
-  const highCredibility: OracleProvider[] = [
-    OracleProvider.CHAINLINK,
-    OracleProvider.PYTH,
-  ];
+  const highCredibility: OracleProvider[] = [OracleProvider.CHAINLINK, OracleProvider.PYTH];
   const mediumCredibility: OracleProvider[] = [
     OracleProvider.API3,
     OracleProvider.BAND_PROTOCOL,

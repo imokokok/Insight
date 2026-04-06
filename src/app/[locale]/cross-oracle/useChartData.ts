@@ -5,6 +5,7 @@ import { type OracleProvider, type PriceData } from '@/types/oracle';
 
 import { getMaxPointsForTimeRange, getOracleChartColors } from './chartConfig';
 import { oracleNames, type TimeRange } from './constants';
+
 import type {
   ChartDataResult,
   ChartDataPoint,

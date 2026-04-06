@@ -6,17 +6,20 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
 import { OracleClientFactory, getHoursForTimeRange, extractBaseSymbol } from '@/lib/oracles';
+import { memoryManager, type MemoryStats } from '@/lib/oracles/memoryManager';
 import {
   PerformanceMetricsCalculator,
   type CalculatedPerformanceMetrics,
 } from '@/lib/oracles/performanceMetricsCalculator';
 import { getPerformanceMetricsConfig } from '@/lib/oracles/performanceMetricsConfig';
-import { memoryManager, type MemoryStats } from '@/lib/oracles/memoryManager';
 import { createLogger } from '@/lib/utils/logger';
 import { getRequestQueue, type RequestPriority } from '@/lib/utils/requestQueue';
 import { type OracleProvider, type PriceData } from '@/types/oracle';
 
 import { type TimeRange, type RefreshInterval, type PriceOracleProvider } from '../constants';
+
+import { useOracleRetry } from './useOracleRetry';
+
 import type {
   UseOracleDataReturn,
   OracleErrorInfo,
@@ -26,11 +29,16 @@ import type {
   RetryConfig,
 } from '../types';
 
-import { useOracleRetry } from './useOracleRetry';
-
 const logger = createLogger('useOracleData');
 
-type OracleErrorTypeValue = 'network' | 'timeout' | 'data_format' | 'rate_limit' | 'unknown';
+type OracleErrorTypeValue =
+  | 'network'
+  | 'timeout'
+  | 'data_format'
+  | 'rate_limit'
+  | 'server_error'
+  | 'cors'
+  | 'unknown';
 
 function classifyError(error: unknown): { errorType: OracleErrorTypeValue; retryable: boolean } {
   if (error instanceof Error) {
@@ -42,17 +50,47 @@ function classifyError(error: unknown): { errorType: OracleErrorTypeValue; retry
     }
 
     if (
+      message.includes('cors') ||
+      message.includes('cross-origin') ||
+      message.includes('blocked by cors') ||
+      message.includes('access-control')
+    ) {
+      return { errorType: 'cors', retryable: false };
+    }
+
+    if (
+      message.includes('500') ||
+      message.includes('502') ||
+      message.includes('503') ||
+      message.includes('504') ||
+      message.includes('internal server error') ||
+      message.includes('bad gateway') ||
+      message.includes('service unavailable') ||
+      message.includes('gateway timeout')
+    ) {
+      return { errorType: 'server_error', retryable: true };
+    }
+
+    if (
       name.includes('network') ||
       message.includes('network') ||
       message.includes('fetch') ||
       message.includes('enotfound') ||
       message.includes('econnrefused') ||
-      message.includes('econnreset')
+      message.includes('econnreset') ||
+      message.includes('networkerror') ||
+      message.includes('failed to fetch')
     ) {
       return { errorType: 'network', retryable: true };
     }
 
-    if (message.includes('rate limit') || message.includes('too many') || message.includes('429')) {
+    if (
+      message.includes('rate limit') ||
+      message.includes('too many') ||
+      message.includes('429') ||
+      message.includes('throttl') ||
+      message.includes('quota exceeded')
+    ) {
       return { errorType: 'rate_limit', retryable: true };
     }
 
@@ -60,9 +98,20 @@ function classifyError(error: unknown): { errorType: OracleErrorTypeValue; retry
       message.includes('parse') ||
       message.includes('json') ||
       message.includes('format') ||
-      message.includes('invalid')
+      message.includes('invalid') ||
+      message.includes('unexpected token') ||
+      message.includes('syntaxerror')
     ) {
       return { errorType: 'data_format', retryable: false };
+    }
+
+    if (
+      message.includes('unauthorized') ||
+      message.includes('forbidden') ||
+      message.includes('401') ||
+      message.includes('403')
+    ) {
+      return { errorType: 'network', retryable: false };
     }
   }
 
@@ -133,6 +182,16 @@ export function useOracleData({
 
   const abortControllerRef = useRef<AbortController | null>(null);
   const isMountedRef = useRef(true);
+  const prevDepsRef = useRef<{
+    selectedOracles: PriceOracleProvider[];
+    selectedSymbol: string;
+    timeRange: TimeRange;
+  }>({
+    selectedOracles: [],
+    selectedSymbol: '',
+    timeRange: '24H',
+  });
+  const isInitialMountRef = useRef(true);
 
   const [oracleDataError, setOracleDataError] = useState<OracleDataError>({
     hasError: false,
@@ -141,6 +200,8 @@ export function useOracleData({
     errors: [],
     globalError: null,
   });
+
+  const [queryProgress, setQueryProgress] = useState({ completed: 0, total: 0 });
 
   const calculatePerformanceMetrics = useCallback(() => {
     if (!enablePerformanceMetrics) return;
@@ -190,22 +251,16 @@ export function useOracleData({
         const client = OracleClientFactory.getClient(oracle);
 
         const [price, history] = await Promise.all([
-          requestQueue.add(
-            () => client.getPrice(baseSymbol),
-            {
-              priority: requestPriority,
-              timeout: requestTimeout,
-              abortSignal: signal,
-            }
-          ),
-          requestQueue.add(
-            () => client.getHistoricalPrices(baseSymbol, undefined, hours),
-            {
-              priority: requestPriority,
-              timeout: requestTimeout,
-              abortSignal: signal,
-            }
-          ),
+          requestQueue.add(() => client.getPrice(baseSymbol), {
+            priority: requestPriority,
+            timeout: requestTimeout,
+            abortSignal: signal,
+          }),
+          requestQueue.add(() => client.getHistoricalPrices(baseSymbol, undefined, hours), {
+            priority: requestPriority,
+            timeout: requestTimeout,
+            abortSignal: signal,
+          }),
         ]);
 
         if (signal.aborted) {
@@ -371,6 +426,13 @@ export function useOracleData({
   }, [retryAllFailedBase, oracleDataError]);
 
   const fetchPriceData = useCallback(async () => {
+    if (selectedOracles.length === 0) {
+      setPriceData([]);
+      setHistoricalData({});
+      setQueryProgress({ completed: 0, total: 0 });
+      return;
+    }
+
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
@@ -386,12 +448,14 @@ export function useOracleData({
       errors: [],
       globalError: null,
     });
+    setQueryProgress({ completed: 0, total: selectedOracles.length });
 
     const prices: PriceData[] = [];
     const histories: Partial<Record<OracleProvider, PriceData[]>> = {};
     const errors: OracleErrorInfo[] = [];
     const hours = getHoursForTimeRange(timeRange) ?? 24;
     const baseSymbol = extractBaseSymbol(selectedSymbol);
+    let completedCount = 0;
 
     try {
       const fetchPromises = selectedOracles.map(async (oracle) => {
@@ -404,6 +468,11 @@ export function useOracleData({
         } catch (err) {
           if (!signal.aborted && isMountedRef.current) {
             errors.push(createOracleErrorInfo(oracle as OracleProvider, err));
+          }
+        } finally {
+          if (isMountedRef.current) {
+            completedCount++;
+            setQueryProgress({ completed: completedCount, total: selectedOracles.length });
           }
         }
       });
@@ -481,7 +550,19 @@ export function useOracleData({
   useEffect(() => {
     isMountedRef.current = true;
     memoryManager.startPeriodicCleanup();
-    fetchPriceData();
+
+    const depsChanged =
+      isInitialMountRef.current ||
+      prevDepsRef.current.selectedOracles.length !== selectedOracles.length ||
+      prevDepsRef.current.selectedOracles.some((o, i) => o !== selectedOracles[i]) ||
+      prevDepsRef.current.selectedSymbol !== selectedSymbol ||
+      prevDepsRef.current.timeRange !== timeRange;
+
+    if (depsChanged) {
+      prevDepsRef.current = { selectedOracles, selectedSymbol, timeRange };
+      isInitialMountRef.current = false;
+      fetchPriceData();
+    }
 
     return () => {
       isMountedRef.current = false;
@@ -490,7 +571,7 @@ export function useOracleData({
       }
       memoryManager.stopPeriodicCleanup();
     };
-  }, [fetchPriceData]);
+  }, [selectedOracles, selectedSymbol, timeRange, fetchPriceData]);
 
   useEffect(() => {
     if (refreshInterval === 0) return;
@@ -501,6 +582,13 @@ export function useOracleData({
 
     return () => clearInterval(intervalId);
   }, [refreshInterval, fetchPriceData]);
+
+  useEffect(() => {
+    return () => {
+      priceHistoryMapRef.current.clear();
+      metricsCalculatorRef.current.clearAllData();
+    };
+  }, []);
 
   const getMemoryStats = useCallback((): MemoryStats => {
     return memoryManager.getMemoryStats(priceHistoryMapRef.current);
@@ -544,6 +632,7 @@ export function useOracleData({
     getMemoryStats,
     clearHistoryData,
     getDetailedMemoryStats,
+    queryProgress,
   };
 }
 

@@ -164,21 +164,6 @@ interface CommunityPoolResult {
   }>;
 }
 
-// Oracle interfaces
-interface OracleDataSourceResult {
-  data_sources: Array<{
-    id: string;
-    owner: string;
-    name: string;
-    description: string;
-    filename: string;
-  }>;
-  pagination: {
-    next_key: string | null;
-    total: string;
-  };
-}
-
 interface OracleScriptResult {
   oracle_scripts: Array<{
     id: string;
@@ -369,28 +354,6 @@ interface IBCConnectionsResult {
         key_prefix: string;
       };
     };
-  }>;
-  pagination: {
-    next_key: string | null;
-    total: string;
-  };
-}
-
-interface IBCTransfersResult {
-  transfers: Array<{
-    source_port: string;
-    source_channel: string;
-    token: {
-      denom: string;
-      amount: string;
-    };
-    sender: string;
-    receiver: string;
-    timeout_height: {
-      revision_number: string;
-      revision_height: string;
-    };
-    timeout_timestamp: string;
   }>;
   pagination: {
     next_key: string | null;
@@ -1165,7 +1128,7 @@ class BandRpcService {
         PROPOSAL_STATUS_FAILED: 'failed',
       };
 
-      return result.proposals.map((p, index) => {
+      return result.proposals.map((p) => {
         const yes = parseInt(p.final_tally_result.yes, 10);
         const no = parseInt(p.final_tally_result.no, 10);
         const abstain = parseInt(p.final_tally_result.abstain, 10);
@@ -1227,7 +1190,7 @@ class BandRpcService {
   // Get governance params
   async getGovernanceParams(): Promise<GovernanceParams> {
     try {
-      const result = await this.makeRestCall<{
+      await this.makeRestCall<{
         voting_params: { voting_period: string };
         deposit_params: {
           min_deposit: Array<{ denom: string; amount: string }>;

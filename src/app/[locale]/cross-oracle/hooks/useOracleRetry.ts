@@ -40,6 +40,7 @@ interface UseOracleRetryReturn {
   retryAllFailed: (oracleDataError: OracleDataError) => Promise<void>;
   isRetrying: boolean;
   retryingOracles: OracleProvider[];
+  cancelRetry: () => void;
 }
 
 export function useOracleRetry({
@@ -55,9 +56,11 @@ export function useOracleRetry({
     ...DEFAULT_RETRY_CONFIG,
     ...initialRetryConfig,
   });
-  const [isRetrying, setIsRetrying] = useState(false);
   const [retryingOracles, setRetryingOracles] = useState<OracleProvider[]>([]);
   const retryAttemptsRef = useRef<Map<OracleProvider, number>>(new Map());
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  const isRetrying = retryingOracles.length > 0;
 
   const setRetryConfig = useCallback((config: Partial<RetryConfig>) => {
     setRetryConfigState((prev) => ({ ...prev, ...config }));
@@ -65,6 +68,14 @@ export function useOracleRetry({
 
   const delay = useCallback((ms: number) => {
     return new Promise((resolve) => setTimeout(resolve, ms));
+  }, []);
+
+  const cancelRetry = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    setRetryingOracles([]);
   }, []);
 
   const retryOracle = useCallback(
@@ -81,7 +92,12 @@ export function useOracleRetry({
       }
 
       setRetryingOracles((prev) => [...prev, provider]);
-      setIsRetrying(true);
+
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      abortControllerRef.current = new AbortController();
+      const signal = abortControllerRef.current.signal;
 
       const hours = getHoursForTimeRange(timeRange) ?? 24;
       const baseSymbol = extractBaseSymbol(selectedSymbol);
@@ -93,19 +109,28 @@ export function useOracleRetry({
 
         await delay(delayMs);
 
+        if (signal.aborted) {
+          logger.info(`Retry cancelled for ${provider}`);
+          return;
+        }
+
         const result = await fetchSingleOracle(
           provider as PriceOracleProvider,
           baseSymbol,
           hours,
-          new AbortController().signal
+          signal
         );
 
-        if (result) {
+        if (result && !signal.aborted) {
           onPriceDataUpdate(provider, result);
           retryAttemptsRef.current.delete(provider);
           logger.info(`Successfully retried ${provider}`);
         }
       } catch (err) {
+        if (signal.aborted) {
+          logger.info(`Retry cancelled for ${provider}`);
+          return;
+        }
         retryAttemptsRef.current.set(provider, currentAttempts + 1);
         logger.error(
           `Retry failed for ${provider}`,
@@ -123,7 +148,6 @@ export function useOracleRetry({
         onErrorUpdate(provider, errorInfo);
       } finally {
         setRetryingOracles((prev) => prev.filter((o) => o !== provider));
-        setIsRetrying(false);
       }
     },
     [
@@ -145,35 +169,46 @@ export function useOracleRetry({
         return;
       }
 
-      setIsRetrying(true);
       setRetryingOracles(failedOracles);
+
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      abortControllerRef.current = new AbortController();
+      const signal = abortControllerRef.current.signal;
 
       const hours = getHoursForTimeRange(timeRange) ?? 24;
       const baseSymbol = extractBaseSymbol(selectedSymbol);
 
       const results = await Promise.allSettled(
         failedOracles.map(async (provider) => {
+          if (signal.aborted) return null;
+
           const currentAttempts = retryAttemptsRef.current.get(provider) || 0;
           const delayMs = retryConfig.exponentialBackoff
             ? retryConfig.retryDelay * Math.pow(2, currentAttempts)
             : retryConfig.retryDelay;
 
           await delay(delayMs);
-          return fetchSingleOracle(
-            provider as PriceOracleProvider,
-            baseSymbol,
-            hours,
-            new AbortController().signal
-          );
+
+          if (signal.aborted) return null;
+
+          return fetchSingleOracle(provider as PriceOracleProvider, baseSymbol, hours, signal);
         })
       );
+
+      if (signal.aborted) {
+        logger.info('Retry all cancelled');
+        setRetryingOracles([]);
+        return;
+      }
 
       results.forEach((result, index) => {
         const provider = failedOracles[index];
         if (result.status === 'fulfilled' && result.value) {
           onPriceDataUpdate(provider, result.value);
           retryAttemptsRef.current.delete(provider);
-        } else {
+        } else if (result.status !== 'fulfilled' || result.value === null) {
           const error = result.status === 'rejected' ? result.reason : new Error('Unknown error');
           const errorInfo: OracleErrorInfo = {
             provider,
@@ -188,7 +223,6 @@ export function useOracleRetry({
         }
       });
 
-      setIsRetrying(false);
       setRetryingOracles([]);
     },
     [
@@ -209,6 +243,7 @@ export function useOracleRetry({
     retryAllFailed,
     isRetrying,
     retryingOracles,
+    cancelRetry,
   };
 }
 

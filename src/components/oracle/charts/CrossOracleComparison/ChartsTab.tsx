@@ -23,7 +23,7 @@ import {
 
 import { useTranslations } from '@/i18n';
 import { baseColors, chartColors } from '@/lib/config/colors';
-import { OracleProvider } from '@/types/oracle';
+import { type OracleProvider } from '@/types/oracle';
 
 import {
   oracleNames,
@@ -421,7 +421,6 @@ export function ChartsTab({
           </ResponsiveContainer>
         </div>
       </div>
-
     </div>
   );
 }

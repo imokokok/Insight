@@ -18,6 +18,27 @@ export interface RollingCorrelationPoint {
   correlation: number;
 }
 
+const DEFAULT_TIMESTAMP_TOLERANCE_MS = 60000;
+
+const findClosestPrice = (
+  timestamp: number,
+  data: TimestampedPrice[],
+  toleranceMs: number = DEFAULT_TIMESTAMP_TOLERANCE_MS
+): number | null => {
+  let closestItem: TimestampedPrice | null = null;
+  let minDiff = Infinity;
+
+  for (const item of data) {
+    const diff = Math.abs(item.timestamp - timestamp);
+    if (diff <= toleranceMs && diff < minDiff) {
+      minDiff = diff;
+      closestItem = item;
+    }
+  }
+
+  return closestItem?.price ?? null;
+};
+
 export const calculatePearsonCorrelation = (x: number[], y: number[]): number => {
   const n = Math.min(x.length, y.length);
   if (n < 2) return 0;
@@ -48,7 +69,8 @@ export const calculatePearsonCorrelation = (x: number[], y: number[]): number =>
 
 export const calculatePearsonCorrelationByTimestamp = (
   dataX: TimestampedPrice[],
-  dataY: TimestampedPrice[]
+  dataY: TimestampedPrice[],
+  toleranceMs: number = DEFAULT_TIMESTAMP_TOLERANCE_MS
 ): number => {
   if (dataX.length < 2 || dataY.length < 2) return 0;
 
@@ -56,10 +78,16 @@ export const calculatePearsonCorrelationByTimestamp = (
   dataY.forEach((item) => mapY.set(item.timestamp, item.price));
 
   const matchedPairs: { x: number; y: number }[] = [];
+
   dataX.forEach((itemX) => {
     const priceY = mapY.get(itemX.timestamp);
     if (priceY !== undefined) {
       matchedPairs.push({ x: itemX.price, y: priceY });
+    } else {
+      const closestPrice = findClosestPrice(itemX.timestamp, dataY, toleranceMs);
+      if (closestPrice !== null) {
+        matchedPairs.push({ x: itemX.price, y: closestPrice });
+      }
     }
   });
 
@@ -169,7 +197,8 @@ export const calculatePearsonCorrelationWithSignificance = (
 
 export const calculatePearsonCorrelationWithSignificanceByTimestamp = (
   dataX: TimestampedPrice[],
-  dataY: TimestampedPrice[]
+  dataY: TimestampedPrice[],
+  toleranceMs: number = DEFAULT_TIMESTAMP_TOLERANCE_MS
 ): CorrelationResult => {
   if (dataX.length < 3 || dataY.length < 3) {
     return {
@@ -189,6 +218,11 @@ export const calculatePearsonCorrelationWithSignificanceByTimestamp = (
     const priceY = mapY.get(itemX.timestamp);
     if (priceY !== undefined) {
       matchedPairs.push({ x: itemX.price, y: priceY });
+    } else {
+      const closestPrice = findClosestPrice(itemX.timestamp, dataY, toleranceMs);
+      if (closestPrice !== null) {
+        matchedPairs.push({ x: itemX.price, y: closestPrice });
+      }
     }
   });
 

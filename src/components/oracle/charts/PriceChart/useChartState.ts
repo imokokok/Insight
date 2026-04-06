@@ -3,9 +3,8 @@
 import { useState, useCallback, useRef } from 'react';
 
 import { type IndicatorDataPoint } from '@/hooks';
-import { type TimeRange } from './priceChartConfig';
 
-import { type DataGranularity, type ComparisonPeriod } from './priceChartConfig';
+import { type TimeRange, type DataGranularity, type ComparisonPeriod } from './priceChartConfig';
 
 export interface ChartState {
   chartType: 'line' | 'candlestick';

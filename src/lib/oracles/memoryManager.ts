@@ -66,10 +66,7 @@ export class MemoryManager {
     this.lastCleanupTime = Date.now();
   }
 
-  cleanupByTime<T extends PriceHistoryEntry>(
-    data: T[],
-    maxAgeMs?: number
-  ): T[] {
+  cleanupByTime<T extends PriceHistoryEntry>(data: T[], maxAgeMs?: number): T[] {
     const config = getPerformanceMetricsConfig().memoryManagement;
     const cutoff = Date.now() - (maxAgeMs ?? config.maxAgeMs);
 
@@ -85,10 +82,7 @@ export class MemoryManager {
     return filtered;
   }
 
-  cleanupBySize<T extends PriceHistoryEntry>(
-    data: T[],
-    maxSize?: number
-  ): T[] {
+  cleanupBySize<T extends PriceHistoryEntry>(data: T[], maxSize?: number): T[] {
     const config = getPerformanceMetricsConfig().memoryManagement;
     const limit = maxSize ?? config.maxSize;
 

@@ -267,7 +267,7 @@ describe('Enhanced Retry System', () => {
         .mockRejectedValueOnce(new Error('Error'))
         .mockResolvedValue('success');
 
-      const result = await withRetry(operation, 'test', {
+      await withRetry(operation, 'test', {
         maxAttempts: 2,
         baseDelay: 100,
         strategy: 'fixed',

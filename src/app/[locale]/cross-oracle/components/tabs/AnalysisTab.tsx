@@ -4,6 +4,9 @@ import { DropdownSelect } from '@/components/ui';
 import { type OracleProvider, type PriceData } from '@/types/oracle';
 
 import { oracleNames } from '../../constants';
+import { BenchmarkComparisonSection } from '../BenchmarkComparisonSection';
+import { OracleComparisonSection } from '../OracleComparisonSection';
+
 import type {
   QualityTrendData,
   OraclePriceSeries,
@@ -12,8 +15,6 @@ import type {
   OraclePriceHistory,
   OraclePerformanceData,
 } from '../../types/index';
-import { BenchmarkComparisonSection } from '../BenchmarkComparisonSection';
-import { OracleComparisonSection } from '../OracleComparisonSection';
 
 // 占位符组件 - 实际组件待实现
 function DataQualityTrend({
@@ -30,7 +31,13 @@ function DataQualityTrend({
   );
 }
 
-function LatencyDistributionHistogram({ data, oracleName }: { data: number[]; oracleName: string }) {
+function LatencyDistributionHistogram({
+  data,
+  oracleName,
+}: {
+  data: number[];
+  oracleName: string;
+}) {
   return (
     <div className="bg-gray-50 p-4 rounded-lg">
       <p className="text-sm text-gray-500">Latency Distribution for {oracleName} (Placeholder)</p>
@@ -108,7 +115,11 @@ function PriceVolatilityChart({
   );
 }
 
-function OraclePerformanceRanking({ performanceData }: { performanceData: OraclePerformanceData[] }) {
+function OraclePerformanceRanking({
+  performanceData,
+}: {
+  performanceData: OraclePerformanceData[];
+}) {
   return (
     <div className="bg-gray-50 p-4 rounded-lg">
       <p className="text-sm text-gray-500">Oracle Performance Ranking (Placeholder)</p>

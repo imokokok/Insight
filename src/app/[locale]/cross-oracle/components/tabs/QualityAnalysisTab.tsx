@@ -189,7 +189,9 @@ export function QualityAnalysisTab({
                             </span>
                           </div>
                         </div>
-                        <p className="text-xs text-gray-500 mt-2">{anomaly.reasonKeys.join(', ')}</p>
+                        <p className="text-xs text-gray-500 mt-2">
+                          {anomaly.reasonKeys.join(', ')}
+                        </p>
                       </div>
                     </div>
                   </div>

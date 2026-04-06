@@ -68,7 +68,7 @@ export function ChartExportButton({
     start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
     end: new Date(),
   }));
-  
+
   const [isOpen, setIsOpen] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showResolutionPicker, setShowResolutionPicker] = useState(false);
@@ -647,7 +647,9 @@ export function ChartExportButton({
               </div>
               <span className="text-xs text-gray-500">{progress.progress}%</span>
             </div>
-            <p className="text-xs text-gray-600 truncate">{t(progress.messageKey, progress.messageParams)}</p>
+            <p className="text-xs text-gray-600 truncate">
+              {t(progress.messageKey, progress.messageParams)}
+            </p>
           </div>
         )}
 
@@ -854,7 +856,9 @@ export function ChartExportButton({
               style={{ width: `${progress.progress}%` }}
             />
           </div>
-          <p className="text-xs text-gray-600 mt-2">{t(progress.messageKey, progress.messageParams)}</p>
+          <p className="text-xs text-gray-600 mt-2">
+            {t(progress.messageKey, progress.messageParams)}
+          </p>
         </div>
       )}
 

@@ -5,13 +5,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { captureException, addBreadcrumb } from '@/lib/monitoring';
 import { createLogger } from '@/lib/utils/logger';
 
-import {
-  EnhancedRetryManager,
-  type EnhancedRetryConfig,
-  type RetryResult,
-  type RetryCallbacks,
-  retryStrategies,
-} from '../retry/enhancedRetry';
+import { EnhancedRetryManager, type EnhancedRetryConfig } from '../retry/enhancedRetry';
 
 const logger = createLogger('error-recovery-hook');
 

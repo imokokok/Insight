@@ -253,7 +253,10 @@ function TableRow({ anomaly, index, isExpanded, onToggleExpand, t }: TableRowPro
 
         {/* 原因分析 */}
         <td className="px-4 py-3">
-          <p className="text-sm text-gray-600 truncate max-w-[200px]" title={anomaly.reasonKeys.join(', ')}>
+          <p
+            className="text-sm text-gray-600 truncate max-w-[200px]"
+            title={anomaly.reasonKeys.join(', ')}
+          >
             {anomaly.reasonKeys.join(', ')}
           </p>
         </td>
@@ -367,7 +370,9 @@ function TableRow({ anomaly, index, isExpanded, onToggleExpand, t }: TableRowPro
                   <h4 className="text-sm font-medium text-gray-900">
                     {t('crossOracle.risk.analysis')}
                   </h4>
-                  <p className="text-sm text-gray-600 leading-relaxed">{anomaly.reasonKeys.join(', ')}</p>
+                  <p className="text-sm text-gray-600 leading-relaxed">
+                    {anomaly.reasonKeys.join(', ')}
+                  </p>
                   <div className="pt-2">
                     <Button variant="secondary" size="sm" className="text-xs h-8">
                       {t('crossOracle.risk.investigate')}

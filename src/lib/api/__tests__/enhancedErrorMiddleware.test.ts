@@ -2,14 +2,7 @@ import { NextResponse } from 'next/server';
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-import {
-  AppError,
-  ValidationError,
-  NotFoundError,
-  AuthenticationError,
-  RateLimitError,
-  InternalError,
-} from '@/lib/errors';
+import { ValidationError, NotFoundError, RateLimitError, InternalError } from '@/lib/errors';
 
 import {
   createEnhancedErrorMiddleware,
@@ -260,6 +253,8 @@ describe('Enhanced Error Middleware', () => {
 
       const response = await developmentErrorMiddleware(error);
       const body = (await response.json()) as StandardizedErrorResponse;
+
+      expect(body.error.stackTrace).toBeDefined();
 
       process.env.NODE_ENV = originalEnv;
     });

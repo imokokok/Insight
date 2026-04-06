@@ -18,9 +18,6 @@ import {
 import { useTranslations } from '@/i18n';
 import { chartColors, baseColors } from '@/lib/config/colors';
 
-
-
-
 // Types
 export interface ChartDataPoint {
   time: string;

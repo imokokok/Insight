@@ -8,7 +8,6 @@ import { API3Client } from './api3';
 import { BandProtocolClient } from './bandProtocol';
 import { BaseOracleClient } from './base';
 import { ChainlinkClient } from './chainlink';
-
 import { DIAClient } from './dia';
 import { PythClient } from './pythNetwork';
 import { RedStoneClient } from './redstone';

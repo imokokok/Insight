@@ -141,7 +141,7 @@ function generateLatencyRecommendations(anomalies: PriceAnomaly[]): RiskRecommen
 
   // 检查延迟相关的异常
   const staleDataAnomalies = anomalies.filter(
-    (a) => a.reasonKeys.some(key => key.includes('Delayed')) || a.freshnessSeconds > 300
+    (a) => a.reasonKeys.some((key) => key.includes('Delayed')) || a.freshnessSeconds > 300
   );
 
   if (staleDataAnomalies.length > 0) {

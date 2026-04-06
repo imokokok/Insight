@@ -7,7 +7,6 @@ import {
   QueryClient,
   QueryCache,
   MutationCache,
-  type QueryOptions,
   type UseQueryOptions,
   type FetchQueryOptions,
 } from '@tanstack/react-query';
@@ -210,7 +209,6 @@ export const queryClientUtils = {
    */
   getQueryStats: (queryClient: QueryClient) => {
     const queries = queryClient.getQueryCache().getAll();
-    const now = Date.now();
 
     return {
       totalQueries: queries.length,

@@ -182,18 +182,6 @@ function decodeUint256(data: string): bigint {
   return BigInt('0x' + cleanData);
 }
 
-function decodeUint256Array(data: string): bigint[] {
-  const cleanData = data.startsWith('0x') ? data.slice(2) : data;
-  const results: bigint[] = [];
-  for (let i = 0; i < cleanData.length; i += 64) {
-    const chunk = cleanData.slice(i, i + 64);
-    if (chunk) {
-      results.push(BigInt('0x' + chunk));
-    }
-  }
-  return results;
-}
-
 export class API3OnChainService {
   private rpcEndpoints: Record<number, string[]>;
   private currentEndpointIndex: Record<number, number> = {};

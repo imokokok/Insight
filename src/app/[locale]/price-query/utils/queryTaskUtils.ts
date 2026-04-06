@@ -45,9 +45,18 @@ export async function limitConcurrency<T, R>(
     const item = items[i];
     const index = i;
 
-    const promise = Promise.allSettled([handler(item)]).then(([result]) => {
-      results[index] = result;
-    });
+    // 创建执行promise，但不立即启动
+    const executePromise = async (): Promise<void> => {
+      try {
+        const result = await handler(item);
+        results[index] = { status: 'fulfilled', value: result };
+      } catch (reason) {
+        results[index] = { status: 'rejected', reason };
+      }
+    };
+
+    // 启动执行
+    const promise = executePromise();
 
     const wrapped = promise.then(() => {
       const idx = executing.indexOf(wrapped);

@@ -2,7 +2,16 @@
 
 import { memo, useCallback } from 'react';
 
-import { AlertCircle, RefreshCw, Wifi, Clock, FileWarning, AlertTriangle } from 'lucide-react';
+import {
+  AlertCircle,
+  RefreshCw,
+  Wifi,
+  Clock,
+  FileWarning,
+  AlertTriangle,
+  Server,
+  Shield,
+} from 'lucide-react';
 
 import { Button } from '@/components/ui';
 import type { OracleProvider } from '@/types/oracle';
@@ -43,6 +52,20 @@ function getErrorTypeInfo(errorType: OracleErrorType): {
         color: 'text-amber-600',
         bgColor: 'bg-amber-50',
         labelKey: 'crossOracle.errorTypes.rateLimit',
+      };
+    case 'server_error':
+      return {
+        icon: Server,
+        color: 'text-red-700',
+        bgColor: 'bg-red-50',
+        labelKey: 'crossOracle.errorTypes.serverError',
+      };
+    case 'cors':
+      return {
+        icon: Shield,
+        color: 'text-purple-600',
+        bgColor: 'bg-purple-50',
+        labelKey: 'crossOracle.errorTypes.cors',
       };
     default:
       return {

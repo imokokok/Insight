@@ -1,5 +1,5 @@
 import type { OracleProvider, Blockchain, PriceData } from '@/types';
-import type { RefreshInterval, DeviationThreshold } from '@/types/comparison';
+import type { RefreshInterval } from '@/types/comparison';
 
 export type TableFilter = 'all' | 'abnormal' | 'normal';
 export type RefreshStatus = 'idle' | 'refreshing' | 'success' | 'error';

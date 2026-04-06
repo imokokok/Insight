@@ -1,10 +1,5 @@
 import { isBlockchain } from '@/lib/utils/chainUtils';
-import {
-  type OracleProvider,
-  type Blockchain,
-  ORACLE_PROVIDER_VALUES,
-  BLOCKCHAIN_VALUES,
-} from '@/types/oracle';
+import { type OracleProvider, type Blockchain, ORACLE_PROVIDER_VALUES } from '@/types/oracle';
 
 export interface QueryConfig {
   oracles: OracleProvider[];
@@ -14,7 +9,6 @@ export interface QueryConfig {
 }
 
 const VALID_ORACLES = ORACLE_PROVIDER_VALUES;
-const VALID_CHAINS = BLOCKCHAIN_VALUES;
 const VALID_TIME_RANGES = [1, 6, 12, 24, 72, 168, 720];
 
 export function parseQueryParams(search: string): Partial<QueryConfig> {

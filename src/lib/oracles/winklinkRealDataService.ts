@@ -24,7 +24,7 @@ const WINKLINK_PRICE_FEEDS: Record<string, string> = {
   'BTT-USD': 'TBAAW545oJ6iTxqzezGvagrSUzCpz1S8eR',
   'JST-USD': 'TE5rKoDzKmpVAQp1sn7x6V8biivR3d5r47',
   'SUN-USD': 'TRMgzSPsuWEcVpd5hv19XtLeCk8Z799sZa',
-  'HTX-USD': 'TBD', // 需要确认地址
+  'HTX-USD': 'TBD',
   'LTC-USD': 'TGxGL85kN3W5sGdBiobgWabWFcMEtoqRJJ',
   'NFT-USD': 'TEC8b2oL6sAQFMiea73tTgjtTLwyV1GuZU',
   'TUSD-USD': 'TBc3yBP8xcyQ1E3hDTUhRxToMrgekLH2kh',
@@ -32,56 +32,6 @@ const WINKLINK_PRICE_FEEDS: Record<string, string> = {
   'WBTC-USD': 'TCYS6aj9shB6rZNpTCqSkN1aTwkSnz1wHq',
 };
 
-// AggregatorInterface ABI (简化版)
-const AGGREGATOR_ABI = [
-  {
-    constant: true,
-    inputs: [],
-    name: 'latestAnswer',
-    outputs: [{ name: '', type: 'int256' }],
-    payable: false,
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    constant: true,
-    inputs: [],
-    name: 'latestTimestamp',
-    outputs: [{ name: '', type: 'uint256' }],
-    payable: false,
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    constant: true,
-    inputs: [],
-    name: 'latestRound',
-    outputs: [{ name: '', type: 'uint256' }],
-    payable: false,
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    constant: true,
-    inputs: [],
-    name: 'decimals',
-    outputs: [{ name: '', type: 'uint8' }],
-    payable: false,
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    constant: true,
-    inputs: [],
-    name: 'description',
-    outputs: [{ name: '', type: 'string' }],
-    payable: false,
-    stateMutability: 'view',
-    type: 'function',
-  },
-];
-
-// TRON 网络统计接口
 interface TRONNetworkInfo {
   totalTransactions: number;
   tps: number;
@@ -381,7 +331,6 @@ export class WINkLinkRealDataService {
 
       const blockData = await blockResponse.json();
       const blockHeight = blockData.block_header?.raw_data?.number || 0;
-      const blockTime = blockData.block_header?.raw_data?.timestamp || Date.now();
 
       // 获取网络统计
       const statsResponse = await fetch(`${TRON_RPC_URL}/wallet/getnodeinfo`, {
@@ -516,7 +465,6 @@ export class WINkLinkRealDataService {
       const WIN_CONTRACT = 'TNDSHKGBmgRx9mDYA9CnxPx55nu672yQw2';
 
       // 尝试获取 WIN 代币总供应量
-      let totalSupply = 0;
       try {
         const supplyResponse = await fetch(`${TRON_RPC_URL}/wallet/triggerconstantcontract`, {
           method: 'POST',
@@ -533,12 +481,11 @@ export class WINkLinkRealDataService {
         if (supplyResponse.ok) {
           const supplyData = await supplyResponse.json();
           if (supplyData.constant_result?.[0]) {
-            totalSupply = parseInt(supplyData.constant_result[0], 16) / Math.pow(10, 6);
+            void (parseInt(supplyData.constant_result[0], 16) / Math.pow(10, 6));
           }
         }
       } catch {
         // 如果获取失败使用默认值
-        totalSupply = 999000000000; // 999B WIN
       }
 
       // 基于真实数据构建质押信息
@@ -714,7 +661,7 @@ export class WINkLinkRealDataService {
 
     try {
       // 获取 TRON 网络统计
-      const tronStats = await this.getTRONNetworkStats();
+      await this.getTRONNetworkStats();
 
       // 基于真实数据计算风险指标
       const now = Date.now();

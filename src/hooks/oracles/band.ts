@@ -145,14 +145,6 @@ export function useBandProtocolAllData({
       refetchAll,
       lastUpdated,
     }),
-    [
-      priceResult.data,
-      historicalResult.data,
-      isLoading,
-      isError,
-      errors,
-      refetchAll,
-      lastUpdated,
-    ]
+    [priceResult.data, historicalResult.data, isLoading, isError, errors, refetchAll, lastUpdated]
   );
 }

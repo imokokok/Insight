@@ -37,7 +37,12 @@ export function useWINkLinkPrice(symbol: string, chain?: Blockchain, enabled = t
   });
 }
 
-export function useWINkLinkHistoricalPrices(symbol: string, chain?: Blockchain, period = 24, enabled = true) {
+export function useWINkLinkHistoricalPrices(
+  symbol: string,
+  chain?: Blockchain,
+  period = 24,
+  enabled = true
+) {
   return useQuery({
     queryKey: ['winklink', 'historical', symbol, chain, period],
     queryFn: () => client.getHistoricalPrices(symbol, chain, period),
@@ -110,7 +115,7 @@ export function useWINkLinkAllData({ symbol, chain, enabled = true }: UseWINkLin
     updateLastUpdated();
   }, [results]);
 
-  const createDataSourceState = <T,>(
+  const createDataSourceState = <T>(
     result: UseQueryResult<T, Error>,
     key: string,
     refetchFn: () => Promise<void>

@@ -108,12 +108,7 @@ export function SettingsTab({
         </h3>
         <div className="flex flex-wrap gap-2 mb-3">
           {getOracleProvidersSortedByMarketCap()
-            .filter(
-              (provider) =>
-                ![OracleProvider.UMA, OracleProvider.WINKLINK].includes(
-                  provider
-                )
-            )
+            .filter((provider) => ![OracleProvider.UMA, OracleProvider.WINKLINK].includes(provider))
             .map((provider) => (
               <button
                 key={provider}
@@ -238,7 +233,6 @@ export function SettingsTab({
               {isLoading ? t('status.loading') : t('actions.refresh')}
             </button>
           </div>
-
         </div>
       </div>
     </div>

@@ -1,16 +1,6 @@
 'use client';
 
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  useCallback,
-  useRef,
-  type ReactNode,
-} from 'react';
-
-import { createLogger } from '@/lib/utils/logger';
+import { createContext, useContext, useState, useCallback, useRef, type ReactNode } from 'react';
 
 import {
   useWebSocket,
@@ -18,8 +8,6 @@ import {
   type PerformanceMetrics,
   type WebSocketStatus,
 } from './websocket';
-
-const logger = createLogger('UMAWebSocketContext');
 
 export type { WebSocketMessage, PerformanceMetrics, WebSocketStatus };
 

@@ -12,15 +12,7 @@ import {
   fetchPriceWithDatabase,
   fetchHistoricalPricesWithDatabase,
 } from './base/databaseOperations';
-import {
-  shouldUseDatabase,
-  savePriceToDatabase,
-  savePricesToDatabase,
-  getPriceFromDatabase,
-  getHistoricalPricesFromDatabase,
-  configureStorage,
-  getStorageConfig,
-} from './storage';
+import { shouldUseDatabase, configureStorage, getStorageConfig } from './storage';
 
 import type { OracleStorageConfig } from './storage';
 

@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 
-
 import {
   useTechnicalIndicators,
   type IndicatorDataPoint,

@@ -118,7 +118,7 @@ export function usePriceAnomalyDetection(
       };
     }
 
-    const now = currentTime ?? 0;
+    const now = currentTime ?? Date.now();
     const anomalies: PriceAnomaly[] = [];
 
     priceData.forEach((data) => {

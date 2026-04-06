@@ -1,8 +1,8 @@
 import { createLogger } from '@/lib/utils/logger';
 import { type OracleProvider, type PriceData } from '@/types/oracle';
 
-import { getPerformanceMetricsConfig, getProviderDefaults } from './performanceMetricsConfig';
 import { memoryManager, type MemoryStats } from './memoryManager';
+import { getPerformanceMetricsConfig, getProviderDefaults } from './performanceMetricsConfig';
 
 import type { PerformanceMetricsConfig } from './performanceMetricsConfig';
 
