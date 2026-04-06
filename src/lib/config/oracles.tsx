@@ -3,8 +3,22 @@ import { type ReactNode } from 'react';
 import Image from 'next/image';
 
 import { type MarketDataConfig } from '@/components/oracle/panels/MarketDataPanel';
-import { type NetworkDataConfig } from '@/components/oracle/panels/NetworkHealthPanel';
 import { chartColors } from '@/lib/config/colors';
+
+// Network data configuration type
+interface NetworkDataConfig {
+  activeNodes: number;
+  nodeUptime: number;
+  avgResponseTime: number;
+  updateFrequency: number;
+  totalStaked: number;
+  dataFeeds: number;
+  hourlyActivity: unknown[];
+  status: string;
+  latency: number;
+  stakingTokenSymbol: string;
+  bandProtocolMetrics?: unknown;
+}
 import {
   ChainlinkClient,
   BandProtocolClient,
@@ -14,7 +28,6 @@ import {
   RedStoneClient,
   DIAClient,
   TellorClient,
-  ChronicleClient,
   WINkLinkClient,
   type BaseOracleClient,
 } from '@/lib/oracles';
@@ -559,48 +572,6 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       { id: 'risk', labelKey: 'tellor.tabs.riskAssessment' },
     ],
   },
-  [OracleProvider.CHRONICLE]: {
-    provider: OracleProvider.CHRONICLE,
-    name: 'Chronicle',
-    descriptionKey: 'oracles.descriptions.chronicle',
-    symbol: 'CHRONICLE',
-    defaultChain: Blockchain.ETHEREUM,
-    supportedChains: [
-      Blockchain.ETHEREUM,
-      Blockchain.ARBITRUM,
-      Blockchain.OPTIMISM,
-      Blockchain.POLYGON,
-      Blockchain.BASE,
-      Blockchain.BNB_CHAIN,
-      Blockchain.AVALANCHE,
-      Blockchain.FANTOM,
-      Blockchain.GNOSIS,
-    ],
-    client: new ChronicleClient(),
-    iconBgColor: `bg-[${chartColors.oracle.chronicle}]`,
-    themeColor: '#f59e0b',
-    icon: <Image src="/logos/oracles/chronicle.svg" alt="Chronicle" width={48} height={48} />,
-    marketData: getDefaultMarketData('CHRONICLE', 'Chronicle'),
-    networkData: getDefaultNetworkData(),
-    features: {
-      hasNodeAnalytics: false,
-      hasValidatorAnalytics: true,
-      hasPublisherAnalytics: false,
-      hasDisputeResolution: false,
-      hasPriceFeeds: false,
-      hasQuantifiableSecurity: false,
-      hasFirstPartyOracle: false,
-      hasCoreFeatures: true,
-    },
-    tabs: [
-      { id: 'market', labelKey: 'chronicle.tabs.market' },
-      { id: 'makerdao', labelKey: 'chronicle.tabs.makerdao' },
-      { id: 'validators', labelKey: 'chronicle.tabs.validators' },
-      { id: 'network', labelKey: 'chronicle.tabs.network' },
-      { id: 'scuttlebutt', labelKey: 'chronicle.tabs.scuttlebutt' },
-      { id: 'risk', labelKey: 'chronicle.tabs.riskAssessment' },
-    ],
-  },
   [OracleProvider.WINKLINK]: {
     provider: OracleProvider.WINKLINK,
     name: 'WINkLink',
@@ -684,7 +655,6 @@ export const PRICE_ORACLE_PROVIDERS: PriceOracleProvider[] = [
   OracleProvider.REDSTONE,
   OracleProvider.DIA,
   OracleProvider.TELLOR,
-  OracleProvider.CHRONICLE,
   OracleProvider.WINKLINK,
 ];
 
@@ -723,8 +693,6 @@ export function createOracleClient(provider: OracleProvider): BaseOracleClient {
       return new DIAClient();
     case OracleProvider.TELLOR:
       return new TellorClient();
-    case OracleProvider.CHRONICLE:
-      return new ChronicleClient();
     case OracleProvider.WINKLINK:
       return new WINkLinkClient();
     default:

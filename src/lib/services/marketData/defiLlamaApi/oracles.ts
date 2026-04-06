@@ -242,7 +242,7 @@ export async function fetchOraclesData(): Promise<OracleMarketData[]> {
             'switchboard',
             'dia',
             'tellor',
-            'chronicle',
+
             'winklink',
           ].some((name) => p.name.toLowerCase().includes(name.toLowerCase()))
       );

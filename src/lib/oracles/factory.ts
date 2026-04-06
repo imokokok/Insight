@@ -8,7 +8,7 @@ import { API3Client } from './api3';
 import { BandProtocolClient } from './bandProtocol';
 import { BaseOracleClient } from './base';
 import { ChainlinkClient } from './chainlink';
-import { ChronicleClient } from './chronicle';
+
 import { DIAClient } from './dia';
 import { PythClient } from './pythNetwork';
 import { RedStoneClient } from './redstone';
@@ -84,7 +84,6 @@ export class OracleClientFactory {
       OracleProvider.REDSTONE,
       OracleProvider.DIA,
       OracleProvider.TELLOR,
-      OracleProvider.CHRONICLE,
       OracleProvider.WINKLINK,
     ];
 
@@ -191,7 +190,6 @@ export class OracleClientFactory {
       OracleProvider.REDSTONE,
       OracleProvider.DIA,
       OracleProvider.TELLOR,
-      OracleProvider.CHRONICLE,
       OracleProvider.WINKLINK,
     ];
 
@@ -214,7 +212,6 @@ export class OracleClientFactory {
     const useRealChainlinkData = FEATURE_FLAGS.useRealChainlinkData;
     const useRealUMData = FEATURE_FLAGS.useRealUmaData;
     const useRealTellorData = FEATURE_FLAGS.useRealTellorData;
-    const useRealChronicleData = FEATURE_FLAGS.useRealChronicleData;
     const useRealAPI3Data = FEATURE_FLAGS.useRealApi3Data;
 
     switch (provider) {
@@ -234,8 +231,6 @@ export class OracleClientFactory {
         return new DIAClient(this.config);
       case OracleProvider.TELLOR:
         return new TellorClient({ ...this.config, useRealData: useRealTellorData });
-      case OracleProvider.CHRONICLE:
-        return new ChronicleClient({ ...this.config, useRealData: useRealChronicleData });
       case OracleProvider.WINKLINK:
         return new WINkLinkClient(this.config);
       default:

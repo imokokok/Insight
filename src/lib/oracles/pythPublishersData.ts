@@ -1,4 +1,4 @@
-import { type PublisherData } from '@/app/[locale]/pyth/types';
+import type { PublisherData } from './pyth/types';
 
 export const PYTH_PUBLISHERS: PublisherData[] = [
   {

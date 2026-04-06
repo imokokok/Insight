@@ -24,12 +24,11 @@ export {
   type ConnectionStateListener,
   type PythPriceRaw,
   isPythPriceRaw,
+  type PublisherStatus,
+  type PublisherData,
+  type ValidatorData,
+  type CrossChainPriceData,
+  type CrossChainResult,
+  type PythServicePriceFeed,
+  type PythServiceNetworkStats,
 } from './types';
-
-export type {
-  CrossChainPriceData,
-  CrossChainResult,
-  PythServicePriceFeed as PriceFeed,
-  PublisherData,
-  ValidatorData,
-} from '@/app/[locale]/pyth/types';

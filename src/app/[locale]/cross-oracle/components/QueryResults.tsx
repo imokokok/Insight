@@ -2,10 +2,10 @@
 
 /**
  * @fileoverview 多预言机对比查询结果组件
- * @description 使用 Tab 切换展示价格对比、数据质量检测、风险预警三大核心功能
+ * @description 展示价格对比核心功能
  */
 
-import { memo, useState, useCallback } from 'react';
+import { memo } from 'react';
 
 import { Database } from 'lucide-react';
 
@@ -15,10 +15,7 @@ import type { CalculatedPerformanceMetrics } from '@/lib/oracles/performanceMetr
 import type { OracleProvider, PriceData } from '@/types/oracle';
 
 import { OracleErrorPanel } from './OracleErrorPanel';
-import { TabContentSwitcher, type TabType } from './TabContentSwitcher';
-import { RiskAlertTab } from './tabs/RiskAlertTab';
 import { SimplePriceComparisonTab } from './tabs/SimplePriceComparisonTab';
-import { SimpleQualityAnalysisTab } from './tabs/SimpleQualityAnalysisTab';
 
 import type { TimeRange } from '../constants';
 import type { DataQualityScore } from '../hooks/useDataQualityScore';
@@ -180,11 +177,11 @@ function QueryResultsComponent({
   standardDeviationPercent,
   validPrices,
   anomalies,
-  anomalyCount,
-  highRiskCount,
-  mediumRiskCount,
-  lowRiskCount,
-  maxDeviation,
+  anomalyCount: _anomalyCount,
+  highRiskCount: _highRiskCount,
+  mediumRiskCount: _mediumRiskCount,
+  lowRiskCount: _lowRiskCount,
+  maxDeviation: _maxDeviation,
   qualityScore: _qualityScore,
   historicalData,
   oracleColors,
@@ -198,12 +195,6 @@ function QueryResultsComponent({
   onRefresh,
 }: QueryResultsProps) {
   const t = useTranslations();
-  const [activeTab, setActiveTab] = useState<TabType>('priceComparison');
-
-  // Tab 切换回调
-  const handleTabChange = useCallback((tab: TabType) => {
-    setActiveTab(tab);
-  }, []);
 
   // 加载状态
   if (isLoading) {
@@ -232,78 +223,6 @@ function QueryResultsComponent({
     return <EmptyState selectedSymbol={selectedSymbol} />;
   }
 
-  // 渲染 Tab 内容
-  const renderTabContent = () => {
-    switch (activeTab) {
-      case 'priceComparison':
-        return (
-          <div
-            className="p-6"
-            role="tabpanel"
-            id="tabpanel-priceComparison"
-            aria-labelledby="tab-priceComparison"
-          >
-            <SimplePriceComparisonTab
-              priceData={priceData}
-              selectedOracles={selectedOracles}
-              selectedSymbol={selectedSymbol}
-              medianPrice={medianPrice}
-              minPrice={minPrice}
-              maxPrice={maxPrice}
-              priceRange={priceRange}
-              standardDeviation={standardDeviation}
-              standardDeviationPercent={standardDeviationPercent}
-              avgPrice={avgPrice}
-              validPrices={validPrices}
-              anomalies={anomalies}
-              historicalData={historicalData}
-              oracleColors={oracleColors}
-              t={t}
-            />
-          </div>
-        );
-
-      case 'dataQuality':
-        return (
-          <div
-            className="p-6"
-            role="tabpanel"
-            id="tabpanel-dataQuality"
-            aria-labelledby="tab-dataQuality"
-          >
-            <SimpleQualityAnalysisTab
-              priceData={priceData}
-              selectedOracles={selectedOracles}
-              t={t}
-            />
-          </div>
-        );
-
-      case 'riskAlert':
-        return (
-          <div
-            className="p-6"
-            role="tabpanel"
-            id="tabpanel-riskAlert"
-            aria-labelledby="tab-riskAlert"
-          >
-            <RiskAlertTab
-              anomalies={anomalies}
-              anomalyCount={anomalyCount}
-              highRiskCount={highRiskCount}
-              mediumRiskCount={mediumRiskCount}
-              lowRiskCount={lowRiskCount}
-              maxDeviation={maxDeviation}
-              t={t}
-            />
-          </div>
-        );
-
-      default:
-        return null;
-    }
-  };
-
   return (
     <div className="space-y-4">
       {/* 部分成功错误面板 */}
@@ -320,16 +239,26 @@ function QueryResultsComponent({
       )}
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        {/* Tab 切换导航 */}
-        <TabContentSwitcher
-          activeTab={activeTab}
-          onTabChange={handleTabChange}
-          riskAlertCount={anomalyCount}
-          t={t}
-        />
-
-        {/* Tab 内容区域 */}
-        <div className="min-h-[400px]">{renderTabContent()}</div>
+        {/* 价格对比内容 */}
+        <div className="min-h-[400px] p-6">
+          <SimplePriceComparisonTab
+            priceData={priceData}
+            selectedOracles={selectedOracles}
+            selectedSymbol={selectedSymbol}
+            medianPrice={medianPrice}
+            minPrice={minPrice}
+            maxPrice={maxPrice}
+            priceRange={priceRange}
+            standardDeviation={standardDeviation}
+            standardDeviationPercent={standardDeviationPercent}
+            avgPrice={avgPrice}
+            validPrices={validPrices}
+            anomalies={anomalies}
+            historicalData={historicalData}
+            oracleColors={oracleColors}
+            t={t}
+          />
+        </div>
       </div>
     </div>
   );

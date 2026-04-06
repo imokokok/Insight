@@ -1,8 +1,12 @@
-import { useMemo, useRef } from 'react';
+import { useMemo } from 'react';
 
 import { type OracleProvider, type PriceData } from '@/types/oracle';
 
-import { type TechnicalIndicatorsResult, type QualityTrendDataPoint } from './types/index';
+import type {
+  TechnicalIndicatorsResult,
+  QualityTrendDataPoint,
+  OraclePerformanceData,
+} from './types/index';
 
 // Fixed base timestamp for deterministic mock data
 const BASE_TIMESTAMP = 1704067200000; // 2024-01-01 00:00:00 UTC
@@ -11,7 +15,7 @@ export function useTechnicalIndicators(
   historicalData: Partial<Record<OracleProvider, PriceData[]>>,
   selectedOracles: OracleProvider[],
   priceData: PriceData[],
-  performanceData: import('@/components/oracle/data-display/OraclePerformanceRanking').OraclePerformanceData[]
+  performanceData: OraclePerformanceData[]
 ): TechnicalIndicatorsResult {
   const maData = useMemo(() => {
     return selectedOracles.map((oracle) => ({

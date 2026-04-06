@@ -61,8 +61,7 @@ export type { FavoriteConfig, UseFavoritesOptions } from './useFavorites';
 export { useRealtimeAlerts } from './useRealtimeAlerts';
 export { useDataFreshness } from './useDataFreshness';
 export type { DataFreshnessStatus, UseDataFreshnessReturn } from './useDataFreshness';
-export { useOraclePage } from './useOraclePage';
-export type { NetworkStats, OraclePageData, UseOraclePageOptions } from './useOraclePage';
+// useOraclePage removed - no longer needed
 export {
   useOptimizedQuery,
   useBatchQueries,

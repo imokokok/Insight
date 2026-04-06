@@ -1501,7 +1501,6 @@ export function useCrossChainData(): UseCrossChainDataReturn {
         [OracleProvider.REDSTONE]: 'RedStone',
         [OracleProvider.DIA]: 'DIA',
         [OracleProvider.TELLOR]: 'Tellor',
-        [OracleProvider.CHRONICLE]: 'Chronicle',
         [OracleProvider.WINKLINK]: 'WINkLink',
       };
 

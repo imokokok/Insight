@@ -228,7 +228,6 @@ export const priceOracleNames: Record<PriceOracleProvider, string> = {
   [OracleProvider.REDSTONE]: 'RedStone',
   [OracleProvider.DIA]: 'DIA',
   [OracleProvider.TELLOR]: 'Tellor',
-  [OracleProvider.CHRONICLE]: 'Chronicle',
   [OracleProvider.WINKLINK]: 'WINkLink',
 };
 

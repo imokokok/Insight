@@ -1,6 +1,5 @@
-import { type TimeRange } from '@/components/oracle/shared/TabNavigation';
-
-export type { TimeRange };
+// TimeRange type for chart time periods
+export type TimeRange = '1H' | '24H' | '7D' | '30D' | '90D' | '1Y' | 'ALL';
 
 export type ChartType = 'line' | 'candlestick';
 export type DataGranularity = 'minute' | 'hour' | 'day';

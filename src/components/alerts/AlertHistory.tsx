@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useCallback } from 'react';
 
-import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { DropdownSelect } from '@/components/ui';
 import { useAcknowledgeAlert } from '@/hooks';
 import { useTranslations } from '@/i18n';
@@ -53,30 +53,37 @@ export function AlertHistory({ events, isLoading, onRefresh }: AlertHistoryProps
 
   if (isLoading) {
     return (
-      <DashboardCard title={t('alerts.history.title')}>
-        <div className="flex items-center justify-center py-8">
-          <div className="w-6 h-6 border-2 border-gray-900 border-t-transparent animate-spin" />
-        </div>
-      </DashboardCard>
+      <Card>
+        <CardHeader>
+          <CardTitle>{t('alerts.history.title')}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center py-8">
+            <div className="w-6 h-6 border-2 border-gray-900 border-t-transparent animate-spin" />
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <DashboardCard
-      title={t('alerts.history.title')}
-      headerAction={
-        <div className="flex items-center gap-2">
-          {unacknowledgedCount > 0 && (
-            <span className="px-2 py-0.5 text-xs font-medium bg-danger-100 text-danger-700 rounded">
-              {t('alerts.history.unacknowledgedCount').replace(
-                '{count}',
-                String(unacknowledgedCount)
-              )}
-            </span>
-          )}
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between w-full">
+          <CardTitle>{t('alerts.history.title')}</CardTitle>
+          <div className="flex items-center gap-2">
+            {unacknowledgedCount > 0 && (
+              <span className="px-2 py-0.5 text-xs font-medium bg-danger-100 text-danger-700 rounded">
+                {t('alerts.history.unacknowledgedCount').replace(
+                  '{count}',
+                  String(unacknowledgedCount)
+                )}
+              </span>
+            )}
+          </div>
         </div>
-      }
-    >
+      </CardHeader>
+      <CardContent>
       <div className="space-y-4">
         <div className="flex items-center gap-4 flex-wrap">
           <div className="flex items-center gap-2">
@@ -192,6 +199,7 @@ export function AlertHistory({ events, isLoading, onRefresh }: AlertHistoryProps
           </div>
         )}
       </div>
-    </DashboardCard>
+      </CardContent>
+    </Card>
   );
 }

@@ -1,45 +1,16 @@
 import { BaseOracleClient } from '@/lib/oracles/base';
 import type { OracleClientConfig } from '@/lib/oracles/base';
-import { getChainlinkPriceFeed, isPriceFeedSupported } from '@/lib/oracles/chainlinkDataSources';
+import { isPriceFeedSupported } from '@/lib/oracles/chainlinkDataSources';
 import {
   chainlinkOnChainService,
   type ChainlinkPriceData,
 } from '@/lib/oracles/chainlinkOnChainService';
-import { coinGeckoMarketService } from '@/lib/services/marketData/coinGeckoMarketService';
+import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
 import { createLogger } from '@/lib/utils/logger';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
 
 const logger = createLogger('ChainlinkClient');
-
-export interface ChainlinkNetworkStats {
-  activeNodes?: number;
-  dataFeeds: number;
-  nodeUptime?: number;
-  avgResponseTime?: number;
-  latency?: number;
-  totalValueSecured?: number;
-  updateFrequency?: number;
-  activeChains?: number;
-}
-
-export interface ChainlinkMarketData {
-  symbol: string;
-  name: string;
-  currentPrice: number;
-  marketCap: number;
-  marketCapRank: number;
-  totalVolume24h: number;
-  high24h: number;
-  low24h: number;
-  priceChange24h: number;
-  priceChangePercentage24h: number;
-  priceChangePercentage7d?: number;
-  circulatingSupply: number;
-  totalSupply: number;
-  maxSupply?: number;
-  stakingApr?: number;
-}
 
 const BLOCKCHAIN_TO_CHAIN_ID: Record<Blockchain, number> = {
   [Blockchain.ETHEREUM]: 1,
@@ -128,7 +99,7 @@ export class ChainlinkClient extends BaseOracleClient {
 
       const chainId = this.getChainId(chain);
 
-      if (this.useRealData && isPriceFeedSupported(symbol, chainId)) {
+      if (this.useRealData && this.isPriceFeedSupported(symbol, chain)) {
         const realData = await chainlinkOnChainService.getPrice(symbol, chainId);
         return this.convertToPriceData(realData, chain);
       }
@@ -155,30 +126,15 @@ export class ChainlinkClient extends BaseOracleClient {
         throw this.createError('Symbol is required', 'INVALID_SYMBOL');
       }
 
-      const chainId = this.getChainId(chain);
+      const days = Math.ceil(period / 24);
+      const binancePrices = await this.getHistoricalPricesFromBinance(symbol, days);
 
-      if (this.useRealData) {
-        const days = Math.ceil(period / 24);
-        const coinGeckoPrices = await this.getHistoricalPricesFromCoinGecko(symbol, days);
-
-        if (coinGeckoPrices && coinGeckoPrices.length > 0) {
-          logger.info(`Using CoinGecko historical data for ${symbol}`, {
-            symbol,
-            points: coinGeckoPrices.length,
-          });
-          return coinGeckoPrices;
-        }
-
-        if (isPriceFeedSupported(symbol, chainId)) {
-          const graphPrices = await this.fetchHistoricalPricesFromSubgraph(symbol, chain, period);
-          if (graphPrices && graphPrices.length > 0) {
-            logger.info(`Using TheGraph real historical data for ${symbol}`, {
-              symbol,
-              points: graphPrices.length,
-            });
-            return graphPrices;
-          }
-        }
+      if (binancePrices && binancePrices.length > 0) {
+        logger.info(`Using Binance historical data for ${symbol}`, {
+          symbol,
+          points: binancePrices.length,
+        });
+        return binancePrices;
       }
 
       logger.warn(`No historical data available for ${symbol}`, { symbol });
@@ -191,202 +147,12 @@ export class ChainlinkClient extends BaseOracleClient {
     }
   }
 
-  /**
-   * 方案4: 使用 TheGraph 查询 Chainlink Price Feed 的链上历史数据
-   */
-  private async fetchHistoricalPricesFromSubgraph(
+  private async getHistoricalPricesFromBinance(
     symbol: string,
-    chain?: Blockchain,
-    period: number = 24
-  ): Promise<PriceData[]> {
-    try {
-      const feed = getChainlinkPriceFeed(symbol, this.getChainId(chain));
-      if (!feed) {
-        return [];
-      }
-
-      // Chainlink 官方 Subgraph
-      const subgraphUrls: Record<number, string> = {
-        1: 'https://api.thegraph.com/subgraphs/name/smartcontractkit/chainlink-price-feeds',
-        137: 'https://api.thegraph.com/subgraphs/name/smartcontractkit/chainlink-price-feeds-polygon',
-        42161:
-          'https://api.thegraph.com/subgraphs/name/smartcontractkit/chainlink-price-feeds-arbitrum',
-        10: 'https://api.thegraph.com/subgraphs/name/smartcontractkit/chainlink-price-feeds-optimism',
-        43114:
-          'https://api.thegraph.com/subgraphs/name/smartcontractkit/chainlink-price-feeds-avalanche',
-        56: 'https://api.thegraph.com/subgraphs/name/smartcontractkit/chainlink-price-feeds-bsc',
-      };
-
-      const chainId = this.getChainId(chain);
-      const subgraphUrl = subgraphUrls[chainId];
-
-      if (!subgraphUrl) {
-        logger.warn(`No subgraph available for chain`, { chainId });
-        return [];
-      }
-
-      const now = Math.floor(Date.now() / 1000);
-      const from = now - period * 60 * 60;
-
-      const query = `
-        query GetPriceHistory($feed: String!, $from: Int!, $to: Int!) {
-          answerUpdateds(
-            where: { 
-              feed: $feed,
-              blockTimestamp_gte: $from,
-              blockTimestamp_lte: $to
-            }
-            orderBy: blockTimestamp
-            orderDirection: asc
-            first: 1000
-          ) {
-            current
-            blockTimestamp
-            roundId
-          }
-        }
-      `;
-
-      const response = await fetch(subgraphUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          query,
-          variables: {
-            feed: feed.address.toLowerCase(),
-            from,
-            to: now,
-          },
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`TheGraph API error: ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      if (data.errors) {
-        throw new Error(`TheGraph query error: ${JSON.stringify(data.errors)}`);
-      }
-
-      const updates = data.data?.answerUpdateds || [];
-
-      if (updates.length === 0) {
-        return [];
-      }
-
-      const lastPrice = Number(updates[updates.length - 1].current) / Math.pow(10, feed.decimals);
-
-      return updates
-        .map((update: { current: string; blockTimestamp: string; roundId: string }) => {
-          const price = Number(update.current) / Math.pow(10, feed.decimals);
-          const timestamp = Number(update.blockTimestamp) * 1000;
-
-          return {
-            provider: this.name,
-            chain: chain || Blockchain.ETHEREUM,
-            symbol,
-            price,
-            timestamp,
-            decimals: feed.decimals,
-            confidence: 0.98,
-            change24h: 0,
-            change24hPercent: 0,
-            source: 'chainlink-subgraph',
-          };
-        })
-        .map((item: PriceData, index: number) => {
-          if (index === 0) return item;
-          const firstPrice = updates[0]
-            ? Number(updates[0].current) / Math.pow(10, feed.decimals)
-            : lastPrice;
-          const change24hPercent = ((item.price - firstPrice) / firstPrice) * 100;
-          const change24h = item.price - firstPrice;
-          return {
-            ...item,
-            change24h: Number(change24h.toFixed(4)),
-            change24hPercent: Number(change24hPercent.toFixed(2)),
-          };
-        });
-    } catch (error) {
-      logger.warn('Failed to fetch from TheGraph', { error, symbol });
-      return [];
-    }
-  }
-
-  async getNetworkStats(): Promise<ChainlinkNetworkStats> {
-    const supportedSymbols = chainlinkOnChainService.getSupportedSymbols();
-
-    let totalFeeds = 0;
-    const activeChains = new Set<number>();
-
-    for (const symbol of supportedSymbols) {
-      const chainIds = chainlinkOnChainService.getSupportedChainIds(symbol);
-      totalFeeds += chainIds.length;
-      chainIds.forEach((id) => activeChains.add(id));
-    }
-
-    return {
-      dataFeeds: totalFeeds,
-      activeChains: activeChains.size,
-    };
-  }
-
-  isPriceFeedSupported(symbol: string, chain?: Blockchain): boolean {
-    const chainId = this.getChainId(chain);
-    return isPriceFeedSupported(symbol, chainId);
-  }
-
-  getSupportedSymbols(): string[] {
-    return chainlinkOnChainService.getSupportedSymbols();
-  }
-
-  getSupportedChainIds(symbol: string): number[] {
-    return chainlinkOnChainService.getSupportedChainIds(symbol);
-  }
-
-  async getMarketData(symbol: string = 'LINK'): Promise<ChainlinkMarketData | null> {
-    try {
-      const marketData = await coinGeckoMarketService.getTokenMarketData(symbol);
-
-      if (!marketData) {
-        logger.warn(`No market data found for ${symbol}`, { symbol });
-        return null;
-      }
-
-      return {
-        symbol: marketData.symbol,
-        name: marketData.name,
-        currentPrice: marketData.currentPrice,
-        marketCap: marketData.marketCap ?? 0,
-        marketCapRank: marketData.marketCapRank ?? 0,
-        totalVolume24h: marketData.totalVolume24h,
-        high24h: marketData.high24h,
-        low24h: marketData.low24h,
-        priceChange24h: marketData.priceChange24h,
-        priceChangePercentage24h: marketData.priceChangePercentage24h,
-        priceChangePercentage7d: marketData.priceChangePercentage7d,
-        circulatingSupply: marketData.circulatingSupply ?? 0,
-        totalSupply: marketData.totalSupply ?? 0,
-        maxSupply: marketData.maxSupply ?? undefined,
-      };
-    } catch (error) {
-      logger.error(
-        `Failed to fetch market data for ${symbol}`,
-        error instanceof Error ? error : new Error(String(error)),
-        { symbol }
-      );
-      return null;
-    }
-  }
-
-  async getHistoricalPricesFromCoinGecko(
-    symbol: string = 'LINK',
     days: number = 30
   ): Promise<PriceData[]> {
     try {
-      const historicalPrices = await coinGeckoMarketService.getHistoricalPrices(symbol, days);
+      const historicalPrices = await binanceMarketService.getHistoricalPrices(symbol, days);
 
       if (!historicalPrices || historicalPrices.length === 0) {
         logger.warn(`No historical prices found for ${symbol}`, { symbol });
@@ -413,11 +179,37 @@ export class ChainlinkClient extends BaseOracleClient {
         };
       });
     } catch (error) {
-      logger.warn(`Failed to fetch historical prices from CoinGecko for ${symbol}`, {
+      logger.warn(`Failed to fetch historical prices from Binance for ${symbol}`, {
         error,
         symbol,
       });
       return [];
     }
+  }
+
+  private isPriceFeedSupported(symbol: string, chain?: Blockchain): boolean {
+    const chainId = this.getChainId(chain);
+    return isPriceFeedSupported(symbol, chainId);
+  }
+
+  getSupportedSymbols(): string[] {
+    return chainlinkOnChainService.getSupportedSymbols();
+  }
+
+  isSymbolSupported(symbol: string, chain?: Blockchain): boolean {
+    return this.isPriceFeedSupported(symbol, chain);
+  }
+
+  getSupportedChainsForSymbol(symbol: string): Blockchain[] {
+    const chainIds = chainlinkOnChainService.getSupportedChainIds(symbol);
+    const chains: Blockchain[] = [];
+
+    for (const [blockchain, chainId] of Object.entries(BLOCKCHAIN_TO_CHAIN_ID)) {
+      if (chainIds.includes(chainId)) {
+        chains.push(blockchain as Blockchain);
+      }
+    }
+
+    return chains;
   }
 }

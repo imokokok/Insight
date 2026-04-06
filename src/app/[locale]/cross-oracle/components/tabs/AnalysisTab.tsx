@@ -1,25 +1,120 @@
 'use client';
 
-import { DataQualityTrend } from '@/components/oracle/charts/DataQualityTrend';
-import { LatencyDistributionHistogram } from '@/components/oracle/charts/LatencyDistributionHistogram';
-import { MovingAverageChart } from '@/components/oracle/charts/MovingAverageChart';
-import type { OraclePriceSeries } from '@/components/oracle/charts/PriceCorrelationMatrix';
-import { PriceCorrelationMatrix } from '@/components/oracle/charts/PriceCorrelationMatrix';
-import type { PriceDeviationDataPoint } from '@/components/oracle/charts/PriceDeviationHeatmap';
-import { PriceDeviationHeatmap } from '@/components/oracle/charts/PriceDeviationHeatmap';
-import type { OraclePriceData } from '@/components/oracle/charts/PriceDistributionBoxPlot';
-import { PriceDistributionBoxPlot } from '@/components/oracle/charts/PriceDistributionBoxPlot';
-import type { OraclePriceHistory } from '@/components/oracle/charts/PriceVolatilityChart';
-import { PriceVolatilityChart } from '@/components/oracle/charts/PriceVolatilityChart';
-import type { OraclePerformanceData } from '@/components/oracle/data-display/OraclePerformanceRanking';
-import { OraclePerformanceRanking } from '@/components/oracle/data-display/OraclePerformanceRanking';
 import { DropdownSelect } from '@/components/ui';
 import { type OracleProvider, type PriceData } from '@/types/oracle';
 
 import { oracleNames } from '../../constants';
-import { type QualityTrendData } from '../../types/index';
+import type {
+  QualityTrendData,
+  OraclePriceSeries,
+  PriceDeviationDataPoint,
+  OraclePriceData,
+  OraclePriceHistory,
+  OraclePerformanceData,
+} from '../../types/index';
 import { BenchmarkComparisonSection } from '../BenchmarkComparisonSection';
 import { OracleComparisonSection } from '../OracleComparisonSection';
+
+// 占位符组件 - 实际组件待实现
+function DataQualityTrend({
+  data,
+  oracleNames,
+}: {
+  data: QualityTrendData[];
+  oracleNames: Record<string, string>;
+}) {
+  return (
+    <div className="bg-gray-50 p-4 rounded-lg">
+      <p className="text-sm text-gray-500">Data Quality Trend Chart (Placeholder)</p>
+    </div>
+  );
+}
+
+function LatencyDistributionHistogram({ data, oracleName }: { data: number[]; oracleName: string }) {
+  return (
+    <div className="bg-gray-50 p-4 rounded-lg">
+      <p className="text-sm text-gray-500">Latency Distribution for {oracleName} (Placeholder)</p>
+    </div>
+  );
+}
+
+function MovingAverageChart({
+  data,
+  oracleNames,
+}: {
+  data: { oracle: OracleProvider; prices: { timestamp: number; price: number }[] }[];
+  oracleNames: Record<string, string>;
+}) {
+  return (
+    <div className="bg-gray-50 p-4 rounded-lg">
+      <p className="text-sm text-gray-500">Moving Average Chart (Placeholder)</p>
+    </div>
+  );
+}
+
+function PriceCorrelationMatrix({
+  data,
+  oracleNames,
+}: {
+  data: OraclePriceSeries[];
+  oracleNames: Record<string, string>;
+}) {
+  return (
+    <div className="bg-gray-50 p-4 rounded-lg">
+      <p className="text-sm text-gray-500">Price Correlation Matrix (Placeholder)</p>
+    </div>
+  );
+}
+
+function PriceDeviationHeatmap({
+  data,
+  useAccessibleColors,
+}: {
+  data: PriceDeviationDataPoint[];
+  useAccessibleColors?: boolean;
+}) {
+  return (
+    <div className="bg-gray-50 p-4 rounded-lg">
+      <p className="text-sm text-gray-500">Price Deviation Heatmap (Placeholder)</p>
+    </div>
+  );
+}
+
+function PriceDistributionBoxPlot({
+  data,
+  oracleNames,
+}: {
+  data: OraclePriceData[];
+  oracleNames: Record<string, string>;
+}) {
+  return (
+    <div className="bg-gray-50 p-4 rounded-lg">
+      <p className="text-sm text-gray-500">Price Distribution Box Plot (Placeholder)</p>
+    </div>
+  );
+}
+
+function PriceVolatilityChart({
+  data,
+  oracleNames,
+}: {
+  data: OraclePriceHistory[];
+  oracleNames: Record<string, string>;
+}) {
+  return (
+    <div className="bg-gray-50 p-4 rounded-lg">
+      <p className="text-sm text-gray-500">Price Volatility Chart (Placeholder)</p>
+    </div>
+  );
+}
+
+function OraclePerformanceRanking({ performanceData }: { performanceData: OraclePerformanceData[] }) {
+  return (
+    <div className="bg-gray-50 p-4 rounded-lg">
+      <p className="text-sm text-gray-500">Oracle Performance Ranking (Placeholder)</p>
+    </div>
+  );
+}
 
 interface AnalysisTabProps {
   priceData: PriceData[];

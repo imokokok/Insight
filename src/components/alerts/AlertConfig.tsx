@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useMemo } from 'react';
 
-import { DashboardCard } from '@/components/oracle/data-display/DashboardCard';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { DropdownSelect, SegmentedControl, type SelectorOption } from '@/components/ui';
 import { useCreateAlert, type CreateAlertInput } from '@/hooks';
 import { useTranslations } from '@/i18n';
@@ -178,7 +178,11 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
   }, [conditionType, t]);
 
   return (
-    <DashboardCard title={t('alerts.create.title')}>
+    <Card>
+      <CardHeader>
+        <CardTitle>{t('alerts.create.title')}</CardTitle>
+      </CardHeader>
+      <CardContent>
       <form onSubmit={handleSubmit} className="space-y-4">
         <AlertTemplates onSelectTemplate={handleApplyTemplate} selectedSymbol={symbol} />
 
@@ -359,6 +363,7 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
           {isCreating ? t('alerts.create.submitting') : t('alerts.create.submit')}
         </button>
       </form>
-    </DashboardCard>
+      </CardContent>
+    </Card>
   );
 }

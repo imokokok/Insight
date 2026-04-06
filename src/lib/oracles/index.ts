@@ -66,91 +66,7 @@ export {
   type DIAExchange,
 } from './diaDataService';
 export { TellorClient } from '@/lib/services/oracle/clients/tellor';
-export {
-  TellorOnChainService,
-  tellorOnChainService,
-  type TellorStakingData,
-  type TellorAutopayData,
-  type TellorCurrentValue,
-} from './tellorOnChainService';
-export { ChronicleClient } from '@/lib/services/oracle/clients/chronicle';
-export {
-  getChroniclePriceFromChain,
-  getChroniclePriceWithRead,
-  getMakerDAOVaultData,
-  formatChroniclePrice,
-  formatMakerDAORay,
-  formatMakerDAOWad,
-  isRealDataAvailable as isChronicleRealDataAvailable,
-} from './chronicleOnChainService';
-export {
-  CHRONICLE_PRICE_FEEDS,
-  CHRONICLE_RPC_CONFIG,
-  CHRONICLE_ORACLE_ABI,
-  MAKER_DSS_ABI,
-  getChroniclePriceFeed,
-  getChronicleRPCConfig,
-  getMakerDSSContracts,
-  getSupportedSymbols as getChronicleSupportedSymbols,
-  isPriceFeedSupported as isChroniclePriceFeedSupported,
-  type ChroniclePriceFeed,
-  type ChronicleContracts,
-  type ChronicleRPCConfig,
-} from './chronicleDataSources';
 export { WINkLinkClient } from '@/lib/services/oracle/clients/winklink';
-export type { RedStoneMetrics, RedStoneProviderInfo } from './redstone';
-export type {
-  DataSourceTransparency,
-  CrossChainCoverage,
-  DataSourceVerification,
-  DIANetworkStats,
-} from './dia';
-export type {
-  PriceStreamPoint,
-  MarketDepthLevel,
-  MarketDepth,
-  MultiChainPrice,
-  MultiChainAggregation,
-  TellorNetworkStats,
-} from './tellor';
-export type {
-  ScuttlebuttData,
-  MakerDAOAsset,
-  MakerDAOIntegration,
-  ChronicleValidator,
-  ValidatorNetwork,
-  ChronicleNetworkStats,
-  VaultData,
-  VaultTypeData,
-  AuctionData,
-  LiquidationHistory,
-  ScuttlebuttConsensus,
-  ValidatorVote,
-  CrossChainPrice,
-  ChainPriceData,
-  ChainLatencyData,
-  BridgeStatusData,
-  CrossChainData,
-  PriceDeviation,
-  DeviationDataSource,
-  DeviationHistoryPoint,
-  DeviationStats,
-  DeviationFactor,
-  DeviationImpact,
-  DeviationData,
-} from './chronicle';
-export type {
-  TRONNetworkStats,
-  WINkLinkNetworkStats,
-  TRONDApp,
-  TRONEcosystem,
-  WINkLinkNode,
-  NodeStakingData,
-  GamingDataSource,
-  RandomNumberService,
-  WINkLinkGamingData,
-  WINkLinkRiskMetrics,
-} from './winklink';
 export {
   PythHermesClient,
   getPythHermesClient,
@@ -161,7 +77,6 @@ export {
   PythDataService,
   getPythDataService,
   resetPythDataService,
-  type PriceFeed,
   type PublisherData,
   type ValidatorData,
   type CrossChainPriceData,

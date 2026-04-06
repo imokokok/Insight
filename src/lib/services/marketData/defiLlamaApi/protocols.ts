@@ -15,7 +15,6 @@ function detectProtocolOracles(protocol: DefiLlamaProtocol): {
     Switchboard: ['switchboard'],
     DIA: ['dia'],
     Tellor: ['tellor'],
-    Chronicle: ['chronicle'],
   };
 
   const detectedOracles: string[] = [];

@@ -16,7 +16,6 @@ import {
   PythClient,
   TellorClient,
   DIAClient,
-  ChronicleClient,
   RedStoneClient,
   WINkLinkClient,
 } from '@/lib/oracles';
@@ -62,7 +61,6 @@ const clients: Partial<Record<OracleProvider, OracleClient>> = {
   [OracleProvider.PYTH]: new PythClient() as OracleClient,
   [OracleProvider.TELLOR]: new TellorClient() as OracleClient,
   [OracleProvider.DIA]: new DIAClient() as OracleClient,
-  [OracleProvider.CHRONICLE]: new ChronicleClient() as OracleClient,
   [OracleProvider.REDSTONE]: new RedStoneClient() as OracleClient,
   [OracleProvider.WINKLINK]: new WINkLinkClient() as OracleClient,
 };

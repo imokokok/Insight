@@ -45,7 +45,6 @@ const providerToSymbolKey: Record<OracleProvider, keyof typeof oracleSupportedSy
   [OracleProvider.REDSTONE]: 'redstone',
   [OracleProvider.DIA]: 'dia',
   [OracleProvider.TELLOR]: 'tellor',
-  [OracleProvider.CHRONICLE]: 'chronicle',
   [OracleProvider.WINKLINK]: 'winklink',
 };
 

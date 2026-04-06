@@ -76,9 +76,7 @@ export interface TVSTrendData {
   tellor: number;
   tellorUpper: number;
   tellorLower: number;
-  chronicle: number;
-  chronicleUpper: number;
-  chronicleLower: number;
+
   winklink: number;
   winklinkUpper: number;
   winklinkLower: number;

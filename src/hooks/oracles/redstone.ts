@@ -5,29 +5,12 @@ import { useCallback, useMemo } from 'react';
 import { useQuery, useQueries } from '@tanstack/react-query';
 
 import { RedStoneApiError } from '@/lib/errors';
-import {
-  type RedStoneClient,
-  type RedStoneProviderInfo,
-  type RedStoneMetrics,
-  type RedStoneNetworkStats,
-  type RedStoneEcosystemData,
-  type RedStoneRiskMetrics,
-  type RedStoneChainInfo,
-} from '@/lib/oracles/redstone';
+import { type RedStoneClient } from '@/lib/oracles/redstone';
 import { type Blockchain, type PriceData } from '@/types/oracle';
 
 import { useLastUpdated } from './useLastUpdated';
 
-type RedStoneDataType =
-  | 'price'
-  | 'historical'
-  | 'network'
-  | 'ecosystem'
-  | 'risk'
-  | 'providers'
-  | 'metrics'
-  | 'chains'
-  | 'market';
+type RedStoneDataType = 'price' | 'historical';
 
 const getRedStoneKey = (type: RedStoneDataType, params?: Record<string, unknown>): string[] => {
   const baseKey = ['redstone', type];
@@ -124,138 +107,6 @@ export function useRedStoneHistorical(options: UseRedStoneHistoricalOptions) {
   };
 }
 
-export function useRedStoneProviders(client: RedStoneClient, enabled = true) {
-  const queryKey = getRedStoneKey('providers');
-
-  const { data, error, isLoading, refetch } = useQuery<RedStoneProviderInfo[], Error>({
-    queryKey,
-    queryFn: () => client.getDataProviders(),
-    enabled,
-    staleTime: 300000,
-    gcTime: 600000,
-    refetchOnWindowFocus: false,
-    retry: shouldRetry,
-    retryDelay: getRetryDelay,
-  });
-
-  return {
-    providers: data ?? [],
-    error,
-    isLoading,
-    refetch,
-  };
-}
-
-export function useRedStoneMetrics(client: RedStoneClient, enabled = true) {
-  const queryKey = getRedStoneKey('metrics');
-
-  const { data, error, isLoading, refetch } = useQuery<RedStoneMetrics, Error>({
-    queryKey,
-    queryFn: () => client.getRedStoneMetrics(),
-    enabled,
-    staleTime: 300000,
-    gcTime: 600000,
-    refetchOnWindowFocus: false,
-    retry: shouldRetry,
-    retryDelay: getRetryDelay,
-  });
-
-  return {
-    metrics: data,
-    error,
-    isLoading,
-    refetch,
-  };
-}
-
-export function useRedStoneSupportedChains(client: RedStoneClient, enabled = true) {
-  const queryKey = getRedStoneKey('chains');
-
-  const { data, error, isLoading, refetch } = useQuery<RedStoneChainInfo[], Error>({
-    queryKey,
-    queryFn: () => client.getSupportedChains(),
-    enabled,
-    staleTime: 300000,
-    gcTime: 600000,
-    refetchOnWindowFocus: false,
-    retry: shouldRetry,
-    retryDelay: getRetryDelay,
-  });
-
-  return {
-    chains: data ?? [],
-    error,
-    isLoading,
-    refetch,
-  };
-}
-
-export function useRedStoneNetworkStats(client: RedStoneClient, enabled = true) {
-  const queryKey = getRedStoneKey('network');
-
-  const { data, error, isLoading, refetch } = useQuery<RedStoneNetworkStats, Error>({
-    queryKey,
-    queryFn: () => client.getNetworkStats(),
-    enabled,
-    staleTime: 300000,
-    gcTime: 600000,
-    refetchOnWindowFocus: false,
-    retry: shouldRetry,
-    retryDelay: getRetryDelay,
-  });
-
-  return {
-    networkStats: data,
-    error,
-    isLoading,
-    refetch,
-  };
-}
-
-export function useRedStoneEcosystem(client: RedStoneClient, enabled = true) {
-  const queryKey = getRedStoneKey('ecosystem');
-
-  const { data, error, isLoading, refetch } = useQuery<RedStoneEcosystemData, Error>({
-    queryKey,
-    queryFn: () => client.getEcosystemData(),
-    enabled,
-    staleTime: 300000,
-    gcTime: 600000,
-    refetchOnWindowFocus: false,
-    retry: shouldRetry,
-    retryDelay: getRetryDelay,
-  });
-
-  return {
-    ecosystem: data,
-    error,
-    isLoading,
-    refetch,
-  };
-}
-
-export function useRedStoneRiskMetrics(client: RedStoneClient, enabled = true) {
-  const queryKey = getRedStoneKey('risk');
-
-  const { data, error, isLoading, refetch } = useQuery<RedStoneRiskMetrics, Error>({
-    queryKey,
-    queryFn: () => client.getRiskMetrics(),
-    enabled,
-    staleTime: 300000,
-    gcTime: 600000,
-    refetchOnWindowFocus: false,
-    retry: shouldRetry,
-    retryDelay: getRetryDelay,
-  });
-
-  return {
-    riskMetrics: data,
-    error,
-    isLoading,
-    refetch,
-  };
-}
-
 interface UseRedStoneAllDataOptions {
   symbol: string;
   chain?: Blockchain;
@@ -294,80 +145,10 @@ export function useRedStoneAllData(options: UseRedStoneAllDataOptions) {
         retry: shouldRetry,
         retryDelay: getRetryDelay,
       },
-      {
-        queryKey: getRedStoneKey('network', { symbol, chain }),
-        queryFn: () => client.getNetworkStats(),
-        enabled,
-        staleTime: 300000,
-        gcTime: 600000,
-        refetchOnWindowFocus: false,
-        retry: shouldRetry,
-        retryDelay: getRetryDelay,
-      },
-      {
-        queryKey: getRedStoneKey('ecosystem', { symbol, chain }),
-        queryFn: () => client.getEcosystemData(),
-        enabled,
-        staleTime: 300000,
-        gcTime: 600000,
-        refetchOnWindowFocus: false,
-        retry: shouldRetry,
-        retryDelay: getRetryDelay,
-      },
-      {
-        queryKey: getRedStoneKey('risk', { symbol, chain }),
-        queryFn: () => client.getRiskMetrics(),
-        enabled,
-        staleTime: 300000,
-        gcTime: 600000,
-        refetchOnWindowFocus: false,
-        retry: shouldRetry,
-        retryDelay: getRetryDelay,
-      },
-      {
-        queryKey: getRedStoneKey('providers'),
-        queryFn: () => client.getDataProviders(),
-        enabled,
-        staleTime: 300000,
-        gcTime: 600000,
-        refetchOnWindowFocus: false,
-        retry: shouldRetry,
-        retryDelay: getRetryDelay,
-      },
-      {
-        queryKey: getRedStoneKey('metrics'),
-        queryFn: () => client.getRedStoneMetrics(),
-        enabled,
-        staleTime: 300000,
-        gcTime: 600000,
-        refetchOnWindowFocus: false,
-        retry: shouldRetry,
-        retryDelay: getRetryDelay,
-      },
-      {
-        queryKey: getRedStoneKey('market', { symbol }),
-        queryFn: () => client.getMarketData(symbol),
-        enabled,
-        staleTime: 60000,
-        gcTime: 300000,
-        refetchInterval: 60000,
-        refetchOnWindowFocus: false,
-        retry: shouldRetry,
-        retryDelay: getRetryDelay,
-      },
     ],
   });
 
-  const [
-    priceResult,
-    historicalResult,
-    networkResult,
-    ecosystemResult,
-    riskResult,
-    providersResult,
-    metricsResult,
-    marketResult,
-  ] = results;
+  const [priceResult, historicalResult] = results;
 
   const isLoading = results.some((r) => r.isLoading);
   const isFetching = results.some((r) => r.isFetching);
@@ -383,12 +164,6 @@ export function useRedStoneAllData(options: UseRedStoneAllDataOptions) {
     () => ({
       price: priceResult.data,
       historicalData: historicalResult.data ?? [],
-      networkStats: networkResult.data,
-      ecosystem: ecosystemResult.data,
-      riskMetrics: riskResult.data,
-      providers: providersResult.data ?? [],
-      metrics: metricsResult.data,
-      marketData: marketResult.data,
       isLoading,
       isFetching,
       isError,
@@ -399,12 +174,6 @@ export function useRedStoneAllData(options: UseRedStoneAllDataOptions) {
     [
       priceResult.data,
       historicalResult.data,
-      networkResult.data,
-      ecosystemResult.data,
-      riskResult.data,
-      providersResult.data,
-      metricsResult.data,
-      marketResult.data,
       isLoading,
       isFetching,
       isError,
@@ -414,12 +183,3 @@ export function useRedStoneAllData(options: UseRedStoneAllDataOptions) {
     ]
   );
 }
-
-export type {
-  RedStoneProviderInfo,
-  RedStoneMetrics,
-  RedStoneNetworkStats,
-  RedStoneEcosystemData,
-  RedStoneRiskMetrics,
-  RedStoneChainInfo,
-};

@@ -10,5 +10,4 @@ export { QualityScoreCard } from './QualityScoreCard';
 export { QueryResults } from './QueryResults';
 export { ControlPanel } from './ControlPanel';
 export { SimplePriceTable } from './SimplePriceTable';
-export { TabContentSwitcher, type TabType } from './TabContentSwitcher';
 export { OracleErrorPanel } from './OracleErrorPanel';

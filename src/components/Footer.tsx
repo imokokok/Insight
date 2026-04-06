@@ -94,19 +94,6 @@ export default function Footer() {
     { label: t('navbar.crossChain'), href: '/cross-chain' },
   ];
 
-  const oracleLinks = [
-    { label: t('navbar.chainlink'), href: '/chainlink' },
-    { label: t('navbar.bandProtocol'), href: '/band-protocol' },
-    { label: t('navbar.uma'), href: '/uma' },
-    { label: t('navbar.pythNetwork'), href: '/pyth-network' },
-    { label: t('navbar.api3'), href: '/api3' },
-    { label: t('navbar.redstone'), href: '/redstone' },
-    { label: t('navbar.dia'), href: '/dia' },
-    { label: t('navbar.tellor'), href: '/tellor' },
-    { label: t('navbar.chronicle'), href: '/chronicle' },
-    { label: t('navbar.winklink'), href: '/winklink' },
-  ];
-
   const resourceLinks = [
     { label: t('footer.documentation'), href: '/docs', icon: DocumentationIcon },
     { label: t('footer.github'), href: 'https://github.com', icon: GitHubIcon },
@@ -169,24 +156,6 @@ export default function Footer() {
                 </li>
               ))}
             </ul>
-          </div>
-
-          {/* Oracle Links */}
-          <div className="lg:col-span-3">
-            <h3 className="text-white font-semibold text-sm uppercase tracking-wider mb-4">
-              {t('footer.links.oracles')}
-            </h3>
-            <div className="grid grid-cols-2 gap-x-6 gap-y-3">
-              {oracleLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="text-slate-400 hover:text-white text-sm transition-colors duration-200"
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </div>
           </div>
 
           {/* Resources Links */}

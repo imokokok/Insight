@@ -18,7 +18,6 @@ import {
   ReferenceLine,
 } from 'recharts';
 
-import { AnomalyMarker } from '@/components/oracle/alerts/AnomalyMarker';
 import { type IndicatorDataPoint } from '@/hooks';
 import { useTranslations } from '@/i18n';
 import { chartColors, baseColors } from '@/lib/config/colors';
@@ -381,9 +380,7 @@ export const ChartCanvas = memo(function ChartCanvas({
             <Bar yAxisId="price" dataKey="high" shape={<CandlestickShape />} fill="transparent" />
           )}
 
-          {anomalyDetectionEnabled && anomalies.length > 0 && (
-            <AnomalyMarker anomalies={anomalies} yAxisId="price" />
-          )}
+
 
           {!showRSI && !showMACD && (
             <Brush

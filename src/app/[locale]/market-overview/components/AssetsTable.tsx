@@ -41,7 +41,6 @@ const oracleBrandColors: Record<string, string> = {
   redstone: chartColors.oracle.redstone,
   dia: chartColors.oracle.dia,
   tellor: chartColors.oracle.tellor,
-  chronicle: chartColors.oracle.chronicle,
   winklink: chartColors.oracle.winklink,
 };
 
@@ -63,7 +62,6 @@ function getOracleRoute(oracleName: string): string {
     redstone: '/redstone',
     dia: '/dia',
     tellor: '/tellor',
-    chronicle: '/chronicle',
     winklink: '/winklink',
   };
   return routeMap[normalizedName] || '#';

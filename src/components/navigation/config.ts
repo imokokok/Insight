@@ -68,73 +68,7 @@ export const navigationConfig: NavStructure = [
       },
     ],
   },
-  {
-    id: 'oracles',
-    label: 'navbar.oracleDetails',
-    icon: Database,
-    items: [
-      {
-        href: '/chainlink',
-        label: 'navbar.chainlink',
-        icon: Shield,
-        description: 'navbar.chainlinkDesc',
-      },
-      {
-        href: '/pyth-network',
-        label: 'navbar.pythNetwork',
-        icon: Zap,
-        description: 'navbar.pythNetworkDesc',
-      },
-      {
-        href: '/band-protocol',
-        label: 'navbar.bandProtocol',
-        icon: Layers,
-        description: 'navbar.bandProtocolDesc',
-      },
-      {
-        href: '/api3',
-        label: 'navbar.api3',
-        icon: Activity,
-        description: 'navbar.api3Desc',
-      },
-      {
-        href: '/redstone',
-        label: 'navbar.redstone',
-        icon: Flame,
-        description: 'navbar.redstoneDesc',
-      },
-      {
-        href: '/uma',
-        label: 'navbar.uma',
-        icon: Database,
-        description: 'navbar.umaDesc',
-      },
-      {
-        href: '/dia',
-        label: 'navbar.dia',
-        icon: Globe,
-        description: 'navbar.diaDesc',
-      },
-      {
-        href: '/tellor',
-        label: 'navbar.tellor',
-        icon: TrendingUp,
-        description: 'navbar.tellorDesc',
-      },
-      {
-        href: '/winklink',
-        label: 'navbar.winklink',
-        icon: Gamepad2,
-        description: 'navbar.winklinkDesc',
-      },
-      {
-        href: '/chronicle',
-        label: 'navbar.chronicle',
-        icon: Landmark,
-        description: 'navbar.chronicleDesc',
-      },
-    ],
-  },
+
   {
     href: '/docs',
     label: 'navbar.documentation',

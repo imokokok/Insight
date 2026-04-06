@@ -210,28 +210,7 @@ const routePrefetchMap: Record<string, RoutePrefetchConfig> = {
       },
     ],
   },
-  '/chronicle': {
-    route: '/chronicle',
-    priority: 'high',
-    prefetchQueries: [
-      {
-        queryKey: ['oracles', 'detail', 'chronicle'],
-        queryFn: async () => {
-          try {
-            const response = await apiClient.get('/api/oracles/chronicle');
-            return response.data;
-          } catch (error) {
-            throw new PriceFetchError('Failed to fetch chronicle data', {
-              provider: 'chronicle',
-              retryable: true,
-            });
-          }
-        },
-        staleTime: STALE_TIME_CONFIG.network,
-        gcTime: GC_TIME_CONFIG.network,
-      },
-    ],
-  },
+
   '/winklink': {
     route: '/winklink',
     priority: 'high',

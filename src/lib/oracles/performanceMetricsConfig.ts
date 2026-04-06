@@ -112,15 +112,6 @@ const DEFAULT_PROVIDER_CONFIG: PerformanceMetricsConfig = {
       decentralizationScore: 88,
       supportedChains: 5,
     },
-    chronicle: {
-      responseTime: 500,
-      updateFrequency: 3600,
-      accuracy: 99.7,
-      reliability: 99.9,
-      dataSources: 25,
-      decentralizationScore: 92,
-      supportedChains: 3,
-    },
     winklink: {
       responseTime: 600,
       updateFrequency: 1800,

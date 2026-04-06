@@ -4,15 +4,14 @@ import { useCallback, useMemo } from 'react';
 
 import { useQuery, useQueries } from '@tanstack/react-query';
 
-import type { NetworkStats } from '@/app/[locale]/chainlink/types';
-import { ChainlinkClient, type ChainlinkMarketData } from '@/lib/oracles/chainlink';
+import { ChainlinkClient } from '@/lib/oracles/chainlink';
 import { type Blockchain, type PriceData } from '@/types/oracle';
 
 import { useLastUpdated } from './useLastUpdated';
 
 const chainlinkClient = new ChainlinkClient({ useRealData: true });
 
-type ChainlinkDataType = 'price' | 'historical' | 'network' | 'market';
+type ChainlinkDataType = 'price' | 'historical';
 
 const getChainlinkKey = (type: ChainlinkDataType, params?: Record<string, unknown>): string[] => {
   const baseKey = ['chainlink', type];
@@ -87,28 +86,6 @@ interface UseChainlinkAllDataOptions {
   enabled?: boolean;
 }
 
-export function useChainlinkMarketData(symbol: string = 'LINK', enabled: boolean = true) {
-  const queryKey = getChainlinkKey('market', { symbol });
-
-  const { data, error, isLoading, refetch } = useQuery<ChainlinkMarketData | null, Error>({
-    queryKey,
-    queryFn: () => chainlinkClient.getMarketData(symbol),
-    enabled,
-    staleTime: 60000,
-    gcTime: 300000,
-    refetchInterval: 60000,
-    refetchOnWindowFocus: false,
-    retry: 3,
-  });
-
-  return {
-    marketData: data,
-    error,
-    isLoading,
-    refetch,
-  };
-}
-
 export function useChainlinkAllData(options: UseChainlinkAllDataOptions) {
   const { symbol, chain, enabled = true } = options;
   const { lastUpdated, updateLastUpdated } = useLastUpdated();
@@ -131,36 +108,17 @@ export function useChainlinkAllData(options: UseChainlinkAllDataOptions) {
       },
       {
         queryKey: getChainlinkKey('historical', { symbol, chain, period: 30 }),
-        queryFn: () => chainlinkClient.getHistoricalPricesFromCoinGecko(symbol, 30),
+        queryFn: () => chainlinkClient.getHistoricalPrices(symbol, chain, 30),
         enabled,
         staleTime: 300000,
         gcTime: 600000,
-        refetchOnWindowFocus: false,
-        retry: 3,
-      },
-      {
-        queryKey: getChainlinkKey('network', { symbol, chain }),
-        queryFn: () => chainlinkClient.getNetworkStats(),
-        enabled,
-        staleTime: 300000,
-        gcTime: 600000,
-        refetchOnWindowFocus: false,
-        retry: 3,
-      },
-      {
-        queryKey: getChainlinkKey('market', { symbol }),
-        queryFn: () => chainlinkClient.getMarketData(symbol),
-        enabled,
-        staleTime: 60000,
-        gcTime: 300000,
-        refetchInterval: 60000,
         refetchOnWindowFocus: false,
         retry: 3,
       },
     ],
   });
 
-  const [priceResult, historicalResult, networkResult, marketResult] = results;
+  const [priceResult, historicalResult] = results;
 
   const isLoading = results.some((r) => r.isLoading);
   const isError = results.some((r) => r.isError);
@@ -173,25 +131,9 @@ export function useChainlinkAllData(options: UseChainlinkAllDataOptions) {
   }, []);
 
   return useMemo(() => {
-    // Convert ChainlinkNetworkStats to NetworkStats
-    const chainlinkNetworkStats = networkResult.data;
-    const networkStats: NetworkStats | undefined = chainlinkNetworkStats
-      ? {
-          activeNodes: chainlinkNetworkStats.activeNodes,
-          dataFeeds: chainlinkNetworkStats.dataFeeds,
-          nodeUptime: chainlinkNetworkStats.nodeUptime,
-          avgResponseTime: chainlinkNetworkStats.avgResponseTime,
-          latency: chainlinkNetworkStats.latency,
-          updateFrequency: chainlinkNetworkStats.updateFrequency,
-          activeChains: chainlinkNetworkStats.activeChains,
-        }
-      : undefined;
-
     return {
       price: priceResult.data,
       historicalData: historicalResult.data ?? [],
-      networkStats,
-      marketData: marketResult.data,
       isLoading,
       isError,
       errors,
@@ -201,8 +143,6 @@ export function useChainlinkAllData(options: UseChainlinkAllDataOptions) {
   }, [
     priceResult.data,
     historicalResult.data,
-    networkResult.data,
-    marketResult.data,
     isLoading,
     isError,
     errors,

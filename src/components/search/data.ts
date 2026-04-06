@@ -42,7 +42,6 @@ const oracleIcons: Record<OracleProvider, LucideIcon> = {
   [OracleProvider.UMA]: Database,
   [OracleProvider.DIA]: Globe,
   [OracleProvider.TELLOR]: TrendingUp,
-  [OracleProvider.CHRONICLE]: Landmark,
   [OracleProvider.WINKLINK]: Gamepad2,
 };
 
@@ -56,18 +55,18 @@ const oracleDescriptions: Record<OracleProvider, string> = {
   [OracleProvider.UMA]: 'search.oracles.umaDesc',
   [OracleProvider.DIA]: 'search.oracles.diaDesc',
   [OracleProvider.TELLOR]: 'search.oracles.tellorDesc',
-  [OracleProvider.CHRONICLE]: 'search.oracles.chronicleDesc',
   [OracleProvider.WINKLINK]: 'search.oracles.winklinkDesc',
 };
 
 // Generate oracle search results
+// Note: Oracle detail pages have been removed, links now point to cross-oracle comparison
 export function getOracleSearchResults(locale: string): SearchResult[] {
   return ORACLE_PROVIDER_VALUES.map((provider) => ({
     id: `oracle-${provider}`,
     title: providerNames[provider],
     description: oracleDescriptions[provider],
     type: 'oracle' as SearchResultType,
-    href: `/${locale}/${provider.toLowerCase().replace('_', '-')}`,
+    href: `/${locale}/cross-oracle`,
     icon: oracleIcons[provider],
     keywords: [provider.toLowerCase(), providerNames[provider].toLowerCase(), 'oracle', '预言机'],
     priority: 10,
