@@ -12,7 +12,7 @@ const USE_REAL_DATA = FEATURE_FLAGS.useRealWinklinkData;
 
 export class WINkLinkClient extends BaseOracleClient {
   name = OracleProvider.WINKLINK;
-  supportedChains = [Blockchain.TRON, Blockchain.BNB_CHAIN];
+  supportedChains = [Blockchain.TRON];
 
   defaultUpdateIntervalMinutes = 60;
 
