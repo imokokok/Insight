@@ -57,7 +57,7 @@
     }
   },
   "blockchain": {
-    "ethereum": "以太坊",
+    "ethereum": "Ethereum",
     "arbitrum": "Arbitrum",
     "optimism": "Optimism",
     "polygon": "Polygon",

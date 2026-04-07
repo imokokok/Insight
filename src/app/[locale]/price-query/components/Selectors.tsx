@@ -49,60 +49,18 @@ export function Selectors({
   const [_showAdvanced, _setShowAdvanced] = useState(false);
 
   // 使用 useOracleSymbols Hook 获取预言机相关的币种和链信息
-  const { supportedSymbols, isSymbolSupported, getSupportedChainsForSymbol } = useOracleSymbols(
-    selectedOracle ? [selectedOracle] : []
-  );
+  const { supportedSymbols, isSymbolSupported, getSupportedChainsForSymbol, getSymbolsForChain } =
+    useOracleSymbols(selectedOracle ? [selectedOracle] : []);
 
-  // 币种选项生成逻辑：
-  // - 当选择了预言机时，只显示该预言机支持的币种
-  // - 当没有选择预言机时，显示所有币种
-  const symbolOptions: SelectorOption<string>[] = useMemo(() => {
-    // 如果没有选择预言机，显示所有币种
-    if (!selectedOracle) {
-      return symbols.slice(0, 12).map((symbol) => ({
-        value: symbol,
-        label: symbol,
-      }));
-    }
-
-    // 如果选择了预言机，只显示该预言机支持的币种
-    return supportedSymbols.slice(0, 12).map((symbol) => ({
-      value: symbol,
-      label: symbol,
-    }));
-  }, [selectedOracle, supportedSymbols]);
-
-  // 检查当前选中的币种是否被选中预言机支持
-  const isCurrentSymbolSupported = useMemo(() => {
-    if (!selectedOracle) return true;
-    return isSymbolSupported(selectedSymbol);
-  }, [selectedOracle, selectedSymbol, isSymbolSupported]);
-
-  const oracleOptions: SelectorOption<OracleProvider>[] =
-    getPriceOracleProvidersSortedByMarketCap().map((oracle) => ({
-      value: oracle,
-      label: t(`navbar.${oracleI18nKeys[oracle]}`),
-      color: oracleColors[oracle],
-      icon: (
-        <span
-          className="w-1.5 h-1.5 rounded-full"
-          style={{ backgroundColor: oracleColors[oracle] }}
-        />
-      ),
-    }));
-
-  // 链选项生成逻辑：根据选中的预言机和币种动态过滤
+  // 链选项生成逻辑
   const chainOptions: SelectorOption<Blockchain>[] = useMemo(() => {
     let availableChains: Blockchain[];
 
     if (!selectedOracle) {
       // 没有选择预言机时，显示所有链
       availableChains = [...BLOCKCHAIN_VALUES];
-    } else if (isCurrentSymbolSupported && selectedSymbol) {
-      // 如果币种被预言机支持，使用该币种在该预言机上支持的链
-      availableChains = getSupportedChainsForSymbol(selectedSymbol);
     } else {
-      // 否则使用选中预言机支持的所有链
+      // 使用选中预言机支持的所有链
       availableChains = BLOCKCHAIN_VALUES.filter((chain) =>
         supportedChainsBySelectedOracles.has(chain)
       );
@@ -119,14 +77,58 @@ export function Selectors({
         />
       ),
     }));
-  }, [
-    selectedOracle,
-    selectedSymbol,
-    isCurrentSymbolSupported,
-    getSupportedChainsForSymbol,
-    supportedChainsBySelectedOracles,
-    t,
-  ]);
+  }, [selectedOracle, supportedChainsBySelectedOracles, t]);
+
+  // 币种选项生成逻辑：
+  // - 当选择了预言机和链时，只显示该链上支持的币种
+  // - 当只选择了预言机时，显示该预言机支持的所有币种
+  // - 当没有选择预言机时，显示所有币种
+  const symbolOptions: SelectorOption<string>[] = useMemo(() => {
+    // 如果没有选择预言机，显示所有币种
+    if (!selectedOracle) {
+      return symbols.slice(0, 12).map((symbol) => ({
+        value: symbol,
+        label: symbol,
+      }));
+    }
+
+    // 如果选择了预言机和链，只显示该链支持的币种
+    if (selectedChain) {
+      const symbolsForChain = getSymbolsForChain(selectedChain);
+      return symbolsForChain.map((symbol) => ({
+        value: symbol,
+        label: symbol,
+      }));
+    }
+
+    // 如果只选择了预言机，显示该预言机支持的所有币种
+    return supportedSymbols.map((symbol) => ({
+      value: symbol,
+      label: symbol,
+    }));
+  }, [selectedOracle, selectedChain, supportedSymbols, getSymbolsForChain]);
+
+  // 检查当前选中的币种是否被当前链支持
+  const isCurrentSymbolSupported = useMemo(() => {
+    if (!selectedOracle) return true;
+    if (selectedChain) {
+      return isSymbolSupported(selectedSymbol, selectedChain);
+    }
+    return isSymbolSupported(selectedSymbol);
+  }, [selectedOracle, selectedChain, selectedSymbol, isSymbolSupported]);
+
+  const oracleOptions: SelectorOption<OracleProvider>[] =
+    getPriceOracleProvidersSortedByMarketCap().map((oracle) => ({
+      value: oracle,
+      label: t(`navbar.${oracleI18nKeys[oracle]}`),
+      color: oracleColors[oracle],
+      icon: (
+        <span
+          className="w-1.5 h-1.5 rounded-full"
+          style={{ backgroundColor: oracleColors[oracle] }}
+        />
+      ),
+    }));
 
   const timeRangeOptions: SelectorOption<number>[] = TIME_RANGES.map((range) => ({
     value: range.value,
@@ -168,18 +170,13 @@ export function Selectors({
           <DropdownSelect
             options={oracleOptions}
             value={selectedOracle}
-            onChange={(value) => setSelectedOracle(value as OracleProvider)}
+            onChange={(value) => {
+              setSelectedOracle(value as OracleProvider);
+              // 切换预言机时重置链和币种
+              setSelectedChain(null);
+              setSelectedSymbol('');
+            }}
             placeholder={t('priceQuery.selectors.selectOracle')}
-          />
-        </section>
-
-        <section className="py-3 border-t border-gray-100" aria-labelledby="symbol-label">
-          <SegmentedControl
-            options={symbolOptions}
-            value={selectedSymbol}
-            onChange={(value) => setSelectedSymbol(value as string)}
-            label={t('priceQuery.selectors.symbol')}
-            aria-label={t('priceQuery.selectors.symbolLabel')}
           />
         </section>
 
@@ -190,8 +187,25 @@ export function Selectors({
           <DropdownSelect
             options={chainOptions}
             value={selectedChain}
-            onChange={(value) => setSelectedChain(value as Blockchain)}
+            onChange={(value) => {
+              const newChain = value as Blockchain;
+              setSelectedChain(newChain);
+              // 切换链时，如果当前币种在新链上不支持，重置币种
+              if (newChain && selectedSymbol && !isSymbolSupported(selectedSymbol, newChain)) {
+                setSelectedSymbol('');
+              }
+            }}
             placeholder={t('priceQuery.selectors.selectBlockchain')}
+          />
+        </section>
+
+        <section className="py-3 border-t border-gray-100" aria-labelledby="symbol-label">
+          <SegmentedControl
+            options={symbolOptions}
+            value={selectedSymbol}
+            onChange={(value) => setSelectedSymbol(value as string)}
+            label={t('priceQuery.selectors.symbol')}
+            aria-label={t('priceQuery.selectors.symbolLabel')}
           />
         </section>
 
