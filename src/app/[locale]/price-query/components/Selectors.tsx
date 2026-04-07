@@ -135,7 +135,7 @@ export function Selectors({
 
   return (
     <div
-      className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
+      className="bg-white rounded-lg shadow-sm border border-gray-200"
       role="region"
       aria-label={t('priceQuery.selectors.panelLabel')}
     >
