@@ -31,6 +31,16 @@
     "refreshing": "Refreshing...",
     "refresh": "Refresh"
   },
+  "tokenPrices": {
+    "title": "Oracle Token Prices",
+    "offlineMode": "Offline Mode",
+    "updatedAt": "Updated at {time}",
+    "refresh": "Refresh Prices",
+    "noData": "No price data available",
+    "high24h": "24h High",
+    "low24h": "24h Low",
+    "volume": "Volume"
+  },
   "realtime": {
     "disconnected": "Disconnected",
     "highLatency": "High Latency",

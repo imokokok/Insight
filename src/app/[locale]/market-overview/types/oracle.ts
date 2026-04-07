@@ -199,3 +199,33 @@ export interface MarketInsights {
   /** 平均链数 */
   avgChainsPerOracle: number;
 }
+
+/**
+ * 预言机代币价格数据
+ */
+export interface OracleTokenPrice {
+  /** 预言机名称 */
+  oracleName: string;
+  /** 代币符号 */
+  symbol: string;
+  /** 代币名称 */
+  tokenName: string;
+  /** 当前价格 (USDT) */
+  currentPrice: number;
+  /** 24小时最高价 */
+  high24h: number;
+  /** 24小时最低价 */
+  low24h: number;
+  /** 24小时价格变化 */
+  priceChange24h: number;
+  /** 24小时价格变化百分比 */
+  priceChangePercentage24h: number;
+  /** 24小时交易量 */
+  volume24h: number;
+  /** Logo 路径 */
+  logoPath: string;
+  /** 主题颜色 */
+  themeColor: string;
+  /** 最后更新时间 */
+  lastUpdated: string;
+}

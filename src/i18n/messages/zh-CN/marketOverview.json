@@ -31,6 +31,16 @@
     "refreshing": "刷新中...",
     "refresh": "刷新"
   },
+  "tokenPrices": {
+    "title": "预言机代币价格",
+    "offlineMode": "离线模式",
+    "updatedAt": "更新于 {time}",
+    "refresh": "刷新价格",
+    "noData": "暂无价格数据",
+    "high24h": "24h高",
+    "low24h": "24h低",
+    "volume": "成交量"
+  },
   "realtime": {
     "disconnected": "已断开",
     "highLatency": "延迟高",
