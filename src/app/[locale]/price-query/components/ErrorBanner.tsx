@@ -75,28 +75,28 @@ function getErrorTypeInfo(
     case 'network':
       return {
         icon: <Wifi className="w-4 h-4" />,
-        label: t('priceQuery.errors.networkError'),
+        label: t('errors.networkError'),
         color: 'text-orange-600',
         bgColor: 'bg-orange-50',
       };
     case 'timeout':
       return {
         icon: <Clock className="w-4 h-4" />,
-        label: t('priceQuery.errors.timeoutError'),
+        label: t('errors.timeoutError'),
         color: 'text-amber-600',
         bgColor: 'bg-amber-50',
       };
     case 'data':
       return {
         icon: <Database className="w-4 h-4" />,
-        label: t('priceQuery.errors.dataError'),
+        label: t('errors.dataError'),
         color: 'text-red-600',
         bgColor: 'bg-red-50',
       };
     default:
       return {
         icon: <AlertCircle className="w-4 h-4" />,
-        label: t('priceQuery.errors.unknownError'),
+        label: t('errors.unknownError'),
         color: 'text-gray-600',
         bgColor: 'bg-gray-50',
       };
@@ -142,7 +142,7 @@ function ErrorItemRow({ error, onRetry, isRetrying }: ErrorItemRowProps) {
         className="ml-3 flex-shrink-0"
       >
         <RefreshCw className={`w-4 h-4 ${isRetrying ? 'animate-spin' : ''}`} />
-        <span className="ml-1.5">{t('priceQuery.errors.retry')}</span>
+        <span className="ml-1.5">{t('errors.retry')}</span>
       </Button>
     </div>
   );
@@ -189,19 +189,19 @@ export function ErrorBanner({ errors, onRetry, onRetryAll, onDismiss }: ErrorBan
         <div className="flex items-center gap-2">
           <AlertTriangle className="w-5 h-5 text-red-600" />
           <span className="font-semibold text-red-800">
-            {t('priceQuery.errors.title', { count: errors.length })}
+            {t('errors.title', { count: errors.length })}
           </span>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="secondary" size="sm" onClick={handleRetryAll}>
             <RefreshCw className="w-4 h-4" />
-            <span className="ml-1.5">{t('priceQuery.errors.retryAll')}</span>
+            <span className="ml-1.5">{t('errors.retryAll')}</span>
           </Button>
           {onDismiss && (
             <button
               onClick={onDismiss}
               className="p-1 hover:bg-red-200 rounded transition-colors"
-              aria-label={t('priceQuery.errors.dismiss')}
+              aria-label={t('errors.dismiss')}
             >
               <X className="w-4 h-4 text-red-600" />
             </button>
@@ -229,12 +229,12 @@ export function ErrorBanner({ errors, onRetry, onRetryAll, onDismiss }: ErrorBan
           {isExpanded ? (
             <>
               <ChevronUp className="w-4 h-4" />
-              <span>{t('priceQuery.errors.showLess')}</span>
+              <span>{t('errors.showLess')}</span>
             </>
           ) : (
             <>
               <ChevronDown className="w-4 h-4" />
-              <span>{t('priceQuery.errors.showMore', { count: errors.length - 3 })}</span>
+              <span>{t('errors.showMore', { count: errors.length - 3 })}</span>
             </>
           )}
         </button>
