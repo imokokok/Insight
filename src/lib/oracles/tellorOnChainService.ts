@@ -1,11 +1,15 @@
 import { encodeFunctionData as viemEncodeFunctionData } from 'viem';
 
+import { createLogger } from '@/lib/utils/logger';
+
 import {
   TELLOR_ORACLE_ABI,
   getTellorOracleAddress,
   getTellorPriceQuery,
   getTellorRPCConfig,
 } from './tellorDataSources';
+
+const logger = createLogger('TellorOnChainService');
 
 export interface TellorPriceData {
   symbol: string;
@@ -138,6 +142,8 @@ export class TellorOnChainService {
       throw new Error(`No RPC endpoints for chain ${chainId}`);
     }
 
+    logger.info(`RPC call to chain ${chainId}`, { method, endpointsCount: endpoints.length });
+
     const startIndex = this.currentEndpointIndex[chainId] || 0;
     let lastError: Error | null = null;
 
@@ -146,10 +152,13 @@ export class TellorOnChainService {
       const endpoint = endpoints[endpointIndex];
 
       if (this.endpointHealth[`${chainId}-${endpointIndex}`] === false) {
+        logger.warn(`Skipping unhealthy endpoint ${endpointIndex}: ${endpoint}`);
         continue;
       }
 
       try {
+        logger.info(`Trying RPC endpoint ${endpointIndex}: ${endpoint}`);
+
         const response = await fetch(endpoint, {
           method: 'POST',
           headers: {
@@ -164,27 +173,35 @@ export class TellorOnChainService {
         });
 
         if (!response.ok) {
-          throw new Error(`RPC call failed: ${response.status}`);
+          throw new Error(`RPC call failed: ${response.status} ${response.statusText}`);
         }
 
         const result: RPCResponse<T> = await response.json();
 
         if (result.error) {
-          throw new Error(`RPC error: ${result.error.message}`);
+          throw new Error(`RPC error: ${result.error.message} (code: ${result.error.code})`);
         }
 
         this.currentEndpointIndex[chainId] = endpointIndex;
         this.endpointHealth[`${chainId}-${endpointIndex}`] = true;
 
+        logger.info(`RPC call successful on endpoint ${endpointIndex}`);
+
         return result.result as T;
       } catch (error) {
         lastError = error instanceof Error ? error : new Error(String(error));
         this.endpointHealth[`${chainId}-${endpointIndex}`] = false;
-        console.warn(`RPC endpoint ${endpoint} failed, trying next:`, error);
+        logger.error(`RPC endpoint ${endpointIndex} failed: ${endpoint}`, lastError, {
+          chainId,
+          method,
+          endpointIndex,
+        });
       }
     }
 
-    throw lastError || new Error(`All RPC endpoints failed for chain ${chainId}`);
+    const errorMsg = `All RPC endpoints failed for chain ${chainId}. Last error: ${lastError?.message}`;
+    logger.error(errorMsg, lastError || new Error('Unknown error'), { chainId, method });
+    throw lastError || new Error(errorMsg);
   }
 
   private async ethCall(chainId: number, to: `0x${string}`, data: `0x${string}`): Promise<string> {
@@ -206,36 +223,59 @@ export class TellorOnChainService {
   async getPrice(symbol: string, chainId: number = 1): Promise<TellorPriceData> {
     const cacheKey = `price-${symbol}-${chainId}`;
     const cached = this.getCached<TellorPriceData>(cacheKey);
-    if (cached) return cached;
+    if (cached) {
+      logger.info(`Returning cached price for ${symbol} on chain ${chainId}`);
+      return cached;
+    }
 
     const oracleAddress = getTellorOracleAddress(chainId);
     if (!oracleAddress) {
-      throw new Error(`Tellor oracle not deployed on chain ${chainId}`);
+      const error = new Error(`Tellor oracle not deployed on chain ${chainId}`);
+      logger.error(`Oracle address not found`, error, { chainId, symbol });
+      throw error;
     }
 
     const priceQuery = getTellorPriceQuery(symbol);
     if (!priceQuery) {
-      throw new Error(`Price query not found for ${symbol}`);
+      const error = new Error(`Price query not found for ${symbol}`);
+      logger.error(`Price query not found`, error, {
+        symbol,
+        supportedSymbols: this.getSupportedSymbols(),
+      });
+      throw error;
     }
+
+    logger.info(`Fetching price for ${symbol} on chain ${chainId}`, {
+      symbol,
+      chainId,
+      oracleAddress,
+      queryId: priceQuery.queryId,
+    });
 
     try {
       // 调用 getCurrentValue 获取当前价格
-      const currentValueData = await this.ethCall(
-        chainId,
-        oracleAddress,
-        encodeGetCurrentValue(priceQuery.queryId)
-      );
+      const callData = encodeGetCurrentValue(priceQuery.queryId);
+      logger.info(`Making eth_call to oracle`, { oracleAddress, callData });
+
+      const currentValueData = await this.ethCall(chainId, oracleAddress, callData);
+
+      logger.info(`Received raw data from oracle`, { rawData: currentValueData });
 
       const decoded = decodeGetCurrentValue(currentValueData);
+      logger.info(`Decoded oracle response`, {
+        timestamp: decoded.timestamp.toString(),
+        value: decoded.value,
+      });
 
       if (decoded.timestamp === BigInt(0)) {
-        throw new Error(`No data available for ${symbol} on chain ${chainId}`);
+        throw new Error(`No data available for ${symbol} on chain ${chainId} - timestamp is 0`);
       }
 
       const price = decodePriceFromBytes(decoded.value);
+      logger.info(`Decoded price`, { price, rawValue: decoded.value });
 
       if (price === 0) {
-        throw new Error(`Invalid price data for ${symbol}`);
+        throw new Error(`Invalid price data for ${symbol} - decoded price is 0`);
       }
 
       const result: TellorPriceData = {
@@ -248,9 +288,15 @@ export class TellorOnChainService {
       };
 
       this.setCache(cacheKey, result);
+      logger.info(`Successfully fetched price for ${symbol}`, { result });
       return result;
     } catch (error) {
-      console.error(`[TellorOnChainService] Failed to fetch price for ${symbol}:`, error);
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      logger.error(
+        `Failed to fetch price for ${symbol} on chain ${chainId}: ${errorMsg}`,
+        error instanceof Error ? error : new Error(errorMsg),
+        { symbol, chainId, oracleAddress, queryId: priceQuery.queryId }
+      );
       throw error;
     }
   }

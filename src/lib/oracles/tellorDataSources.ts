@@ -12,64 +12,55 @@ export interface TellorRPCConfig {
   name: string;
 }
 
-// Tellor Oracle 合约地址 (Playground / Main)
-// 主网合约地址
+// Tellor Oracle 合约地址
+// 参考: https://github.com/tellor-io/tellor-contracts
+// 主网合约地址 - Tellor 360 Oracle
 export const TELLOR_ORACLE_ADDRESSES: Record<number, `0x${string}`> = {
-  // Ethereum Mainnet - Tellor Flex Oracle
-  1: '0x8cFc184c877154a8F9ffE0fe63561d8b39A16bf9',
+  // Ethereum Mainnet - Tellor Oracle
+  1: '0xD9157453E2668B2fc45b7A803D3FEF3642430cC0',
   // Arbitrum
-  42161: '0x8cFc184c877154a8F9ffE0fe63561d8b39A16bf9',
+  42161: '0xD9157453E2668B2fc45b7A803D3FEF3642430cC0',
   // Optimism
-  10: '0x8cFc184c877154a8F9ffE0fe63561d8b39A16bf9',
+  10: '0xD9157453E2668B2fc45b7A803D3FEF3642430cC0',
   // Polygon
-  137: '0x8cFc184c877154a8F9ffE0fe63561d8b39A16bf9',
+  137: '0xD9157453E2668B2fc45b7A803D3FEF3642430cC0',
   // Base
-  8453: '0x8cFc184c877154a8F9ffE0fe63561d8b39A16bf9',
+  8453: '0xD9157453E2668B2fc45b7A803D3FEF3642430cC0',
   // Avalanche
-  43114: '0x8cFc184c877154a8F9ffE0fe63561d8b39A16bf9',
+  43114: '0xD9157453E2668B2fc45b7A803D3FEF3642430cC0',
   // Sepolia Testnet (用于开发和测试)
   11155111: '0xC866DB9021fe81856fF6c5B3E3514BF9D1593D81',
 };
 
 // 支持的 Token 及其 Query ID
 // Query ID 是通过 keccak256(queryData) 计算得出的
+// 参考: https://github.com/tellor-io/dataSpecs/blob/main/types/SpotPrice.md
 export const TELLOR_PRICE_QUERIES: Record<
   string,
   { queryId: string; asset: string; currency: string }
 > = {
   BTC: {
-    queryId: '0x0000000000000000000000000000000000000000000000000000000000000001',
+    // SpotPrice(btc, usd) - keccak256(abi.encode("SpotPrice", abi.encode("btc", "usd")))
+    queryId: '0xa6f013ee236804827b77696d350e9f0ac3e879328f2a3021d473a0b778ad78ac',
     asset: 'btc',
     currency: 'usd',
   },
   ETH: {
-    queryId: '0x0000000000000000000000000000000000000000000000000000000000000002',
+    // SpotPrice(eth, usd)
+    queryId: '0x83a7f3d48786ac2667503a61e8c415438ed2922eb86a2906e4ee66d9bb2cb49a',
     asset: 'eth',
     currency: 'usd',
   },
   LINK: {
-    queryId: '0x0000000000000000000000000000000000000000000000000000000000000003',
+    // SpotPrice(link, usd)
+    queryId: '0x5c13cd9c97dbb98f2429c101a2a8150e6c7a0ddaff6124ee176a3a411067ded0',
     asset: 'link',
     currency: 'usd',
   },
   TRB: {
-    queryId: '0x0000000000000000000000000000000000000000000000000000000000000004',
+    // SpotPrice(trb, usd)
+    queryId: '0x5c13cd9c97dbb98f2429c101a2a8150e6c7a0ddaff6124ee176a3a411067ded0',
     asset: 'trb',
-    currency: 'usd',
-  },
-  USDC: {
-    queryId: '0x0000000000000000000000000000000000000000000000000000000000000005',
-    asset: 'usdc',
-    currency: 'usd',
-  },
-  USDT: {
-    queryId: '0x0000000000000000000000000000000000000000000000000000000000000006',
-    asset: 'usdt',
-    currency: 'usd',
-  },
-  DAI: {
-    queryId: '0x0000000000000000000000000000000000000000000000000000000000000007',
-    asset: 'dai',
     currency: 'usd',
   },
 };
@@ -79,8 +70,10 @@ export const TELLOR_RPC_CONFIG: Record<number, TellorRPCConfig> = {
   1: {
     endpoints: [
       ALCHEMY_RPC.ethereum,
+      'https://ethereum-rpc.publicnode.com',
+      'https://rpc.mevblocker.io',
+      'https://eth.drpc.org',
       'https://eth.llamarpc.com',
-      'https://rpc.ankr.com/eth',
     ].filter(Boolean),
     chainId: 1,
     name: 'Ethereum Mainnet',
