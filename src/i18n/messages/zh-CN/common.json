@@ -159,7 +159,7 @@
     "variance": "方差"
   },
   "chains": {
-    "ethereum": "以太坊",
+    "ethereum": "Ethereum",
     "arbitrum": "Arbitrum",
     "optimism": "Optimism",
     "polygon": "Polygon",
@@ -759,7 +759,7 @@
     "tvlAnalysis": {
       "title": "TVL 分析",
       "totalTvl": "总 TVL",
-      "ethereum": "以太坊",
+      "ethereum": "Ethereum",
       "l2Networks": "L2 网络",
       "altL1": "替代 L1",
       "filterByChain": "按链筛选"

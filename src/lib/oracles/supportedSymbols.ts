@@ -68,18 +68,30 @@ export const bandProtocolSymbols = [
   'DOT',
 ] as const;
 
-// API3 支持的币种
+// API3 支持的币种 - 基于实际测试，只包含能获取到真实价格的
 export const api3Symbols = [
-  'BTC',
   'ETH',
-  'LINK',
-  'API3',
+  'BTC',
+  'AVAX',
+  'BNB',
+  'ARB',
+  'OP',
+  'COMP',
+  'BAL',
   'USDC',
   'USDT',
   'DAI',
-  'MATIC',
-  'AVAX',
+  'SOL',
 ] as const;
+
+// API3 可用的链-交易对映射（基于实际测试结果）
+export const API3_AVAILABLE_PAIRS: Record<string, string[]> = {
+  ethereum: ['ETH', 'BTC', 'COMP', 'BAL', 'USDC'],
+  arbitrum: ['ETH', 'BTC', 'AVAX', 'ARB', 'COMP', 'USDC', 'USDT', 'DAI'],
+  polygon: ['ETH', 'BTC', 'AVAX', 'BNB', 'ARB', 'OP', 'USDC'],
+  base: ['ETH', 'BTC', 'BNB', 'SOL', 'USDC', 'USDT', 'DAI'],
+  optimism: ['ETH', 'USDC'],
+};
 
 // Tellor 支持的币种
 export const tellorSymbols = ['BTC', 'ETH', 'LINK', 'TRB', 'USDC', 'USDT', 'DAI'] as const;

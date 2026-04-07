@@ -1,7 +1,7 @@
 import { BaseOracleClient } from '@/lib/oracles/base';
 import type { OracleClientConfig } from '@/lib/oracles/base';
-import { api3Symbols } from '@/lib/oracles/supportedSymbols';
-import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
+import { api3Symbols, API3_AVAILABLE_PAIRS } from '@/lib/oracles/supportedSymbols';
+import { api3NetworkService } from '@/lib/services/oracle/api3NetworkService';
 import type { PriceData } from '@/types/oracle';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 
@@ -14,6 +14,7 @@ export class API3Client extends BaseOracleClient {
     Blockchain.AVALANCHE,
     Blockchain.BNB_CHAIN,
     Blockchain.BASE,
+    Blockchain.OPTIMISM,
   ];
 
   defaultUpdateIntervalMinutes = 1;
@@ -57,33 +58,46 @@ export class API3Client extends BaseOracleClient {
       throw this.createError('Symbol is required', 'INVALID_SYMBOL');
     }
 
-    try {
-      // 使用 Binance 市场数据服务获取真实价格
-      const marketData = await binanceMarketService.getTokenMarketData(symbol);
+    const targetChain = chain || Blockchain.ETHEREUM;
 
-      if (marketData) {
-        return {
-          provider: OracleProvider.API3,
-          symbol: marketData.symbol.toUpperCase(),
-          price: marketData.currentPrice,
-          timestamp: new Date(marketData.lastUpdated).getTime(),
-          decimals: 8,
-          confidence: 0.95,
-          change24h: marketData.priceChange24h,
-          change24hPercent: marketData.priceChangePercentage24h,
-          chain: chain || Blockchain.ETHEREUM,
-          source: 'binance-api',
-        };
+    try {
+      // 从API3预言机网络获取价格
+      const api3Data = await api3NetworkService.getPrice(symbol, targetChain);
+
+      if (!api3Data) {
+        throw this.createError(
+          `Price data not available for symbol: ${symbol} on ${targetChain}. The dAPI may not be activated or the symbol is not supported by API3.`,
+          'API3_PRICE_NOT_AVAILABLE'
+        );
       }
 
-      throw this.createError(
-        `Price data not available for symbol: ${symbol}`,
-        'API3_PRICE_NOT_AVAILABLE'
-      );
+      return {
+        provider: OracleProvider.API3,
+        symbol: symbol.toUpperCase(),
+        price: api3Data.price,
+        timestamp: api3Data.timestamp,
+        decimals: api3Data.decimals,
+        confidence: api3Data.confidence,
+        chain: targetChain,
+        source: api3Data.source,
+        dataSource: 'real',
+      };
     } catch (error) {
       console.error(`[API3Client] Failed to fetch price for ${symbol}:`, error);
+
+      // 如果是我们主动抛出的错误，直接抛出
+      if (
+        error &&
+        typeof error === 'object' &&
+        'code' in error &&
+        error.code === 'API3_PRICE_NOT_AVAILABLE'
+      ) {
+        throw error;
+      }
+
+      // 其他错误包装后抛出
       throw this.createError(
-        error instanceof Error ? error.message : 'Failed to fetch price',
+        error instanceof Error ? error.message : 'Failed to fetch price from API3 oracle network',
         'API3_PRICE_ERROR'
       );
     }
@@ -98,60 +112,103 @@ export class API3Client extends BaseOracleClient {
       throw this.createError('Symbol is required', 'INVALID_SYMBOL');
     }
 
-    try {
-      // 使用 Binance 市场数据服务获取真实历史价格
-      const days = Math.ceil(period / 24);
-      const historicalPrices = await binanceMarketService.getHistoricalPrices(symbol, days);
+    const targetChain = chain || Blockchain.ETHEREUM;
 
-      if (historicalPrices && historicalPrices.length > 0) {
-        return historicalPrices.map((point) => ({
-          provider: OracleProvider.API3,
-          symbol: symbol.toUpperCase(),
-          price: point.price,
-          timestamp: point.timestamp,
-          decimals: 8,
-          confidence: 0.95,
-          change24h: 0,
-          change24hPercent: 0,
-          chain: chain || Blockchain.ETHEREUM,
-          source: 'binance-api',
-        }));
+    try {
+      // 从API3网络服务获取历史价格
+      const historicalPrices = await api3NetworkService.getHistoricalPrices(
+        symbol,
+        targetChain,
+        period
+      );
+
+      if (!historicalPrices || historicalPrices.length === 0) {
+        throw this.createError(
+          `Historical price data not available for symbol: ${symbol} on ${targetChain}. The dAPI may not be activated or the symbol is not supported by API3.`,
+          'API3_HISTORICAL_PRICES_NOT_AVAILABLE'
+        );
       }
 
-      throw this.createError(
-        `Historical price data not available for symbol: ${symbol}`,
-        'API3_HISTORICAL_PRICES_NOT_AVAILABLE'
-      );
+      return historicalPrices.map((point) => ({
+        provider: OracleProvider.API3,
+        symbol: symbol.toUpperCase(),
+        price: point.price,
+        timestamp: point.timestamp,
+        decimals: 18,
+        confidence: 0.98,
+        change24h: 0,
+        change24hPercent: 0,
+        chain: targetChain,
+        source: point.source,
+        dataSource: 'real',
+      }));
     } catch (error) {
       console.error(`[API3Client] Failed to fetch historical prices for ${symbol}:`, error);
+
+      // 如果是我们主动抛出的错误，直接抛出
+      if (
+        error &&
+        typeof error === 'object' &&
+        'code' in error &&
+        error.code === 'API3_HISTORICAL_PRICES_NOT_AVAILABLE'
+      ) {
+        throw error;
+      }
+
+      // 其他错误包装后抛出
       throw this.createError(
-        error instanceof Error ? error.message : 'Failed to fetch historical prices',
+        error instanceof Error
+          ? error.message
+          : 'Failed to fetch historical prices from API3 oracle network',
         'API3_HISTORICAL_PRICES_ERROR'
       );
     }
   }
 
   getSupportedSymbols(): string[] {
-    return [...api3Symbols];
+    // 返回所有API3支持的币种（去重）
+    const allSymbols = new Set<string>();
+    Object.values(API3_AVAILABLE_PAIRS).forEach((symbols) => {
+      symbols.forEach((symbol) => allSymbols.add(symbol));
+    });
+    return Array.from(allSymbols);
+  }
+
+  getSupportedSymbolsForChain(chain: Blockchain): string[] {
+    const chainKey = chain.toLowerCase();
+    return API3_AVAILABLE_PAIRS[chainKey] || [];
   }
 
   isSymbolSupported(symbol: string, chain?: Blockchain): boolean {
-    const isSymbolInList = api3Symbols.includes(
-      symbol.toUpperCase() as (typeof api3Symbols)[number]
-    );
-    if (!isSymbolInList) {
-      return false;
-    }
+    const upperSymbol = symbol.toUpperCase();
+
     if (chain !== undefined) {
-      return this.supportedChains.includes(chain);
+      const chainKey = chain.toLowerCase();
+      const chainSymbols = API3_AVAILABLE_PAIRS[chainKey];
+      if (!chainSymbols) return false;
+      return chainSymbols.includes(upperSymbol);
     }
-    return true;
+
+    // 如果没有指定链，检查该币种是否在任何链上支持
+    return Object.values(API3_AVAILABLE_PAIRS).some((symbols) => symbols.includes(upperSymbol));
   }
 
   getSupportedChainsForSymbol(symbol: string): Blockchain[] {
-    if (!this.isSymbolSupported(symbol)) {
-      return [];
+    const upperSymbol = symbol.toUpperCase();
+    const supportedChains: Blockchain[] = [];
+
+    for (const [chain, symbols] of Object.entries(API3_AVAILABLE_PAIRS)) {
+      if (symbols.includes(upperSymbol)) {
+        // 将字符串链名转换为Blockchain枚举
+        const blockchain = this.supportedChains.find(
+          (c) => c.toLowerCase() === chain.toLowerCase()
+        );
+        if (blockchain) {
+          supportedChains.push(blockchain);
+        }
+      }
     }
-    return this.supportedChains;
+
+    return supportedChains;
   }
 }
