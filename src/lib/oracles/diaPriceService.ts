@@ -9,6 +9,30 @@ import type { DIAAssetQuotation, CacheEntry } from './diaTypes';
 
 const logger = createLogger('DIAPriceService');
 
+// DIA API 使用的区块链名称映射
+const DIA_BLOCKCHAIN_NAMES: Record<string, string> = {
+  BTC: 'Bitcoin',
+  ETH: 'Ethereum',
+  ETHEREUM: 'Ethereum',
+  ARBITRUM: 'Arbitrum',
+  POLYGON: 'Polygon',
+  AVALANCHE: 'Avalanche',
+  'BNB-CHAIN': 'BinanceSmartChain',
+  BASE: 'Base',
+  OPTIMISM: 'Optimism',
+  FANTOM: 'Fantom',
+  CRONOS: 'Cronos',
+  MOONBEAM: 'Moonbeam',
+  GNOSIS: 'Gnosis',
+  KAVA: 'Kava',
+};
+
+// 资产符号到 DIA 格式的映射
+const DIA_SYMBOL_MAPPING: Record<string, { blockchain: string; address: string }> = {
+  BTC: { blockchain: 'Bitcoin', address: '0x0000000000000000000000000000000000000000' },
+  ETH: { blockchain: 'Ethereum', address: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE' },
+};
+
 export class DIAPriceService {
   constructor(private cache: Map<string, CacheEntry<unknown>>) {}
 
@@ -44,33 +68,60 @@ export class DIAPriceService {
     try {
       const result = await withRetry(
         async () => {
-          let url: string;
           const upperSymbol = symbol.toUpperCase();
 
-          if (chain && DIA_ASSET_ADDRESSES[upperSymbol]?.[chain]) {
+          // 使用 assetQuotation 端点获取价格数据
+          let url: string;
+
+          // 检查是否有预定义的 DIA 映射
+          if (DIA_SYMBOL_MAPPING[upperSymbol]) {
+            const { blockchain, address } = DIA_SYMBOL_MAPPING[upperSymbol];
+            url = `${DIA_API_BASE_URL}/assetQuotation/${blockchain}/${address}`;
+          } else if (chain && DIA_ASSET_ADDRESSES[upperSymbol]?.[chain]) {
+            // 使用配置的合约地址
             const address = DIA_ASSET_ADDRESSES[upperSymbol][chain];
             const blockchainName = DIA_CHAIN_MAPPING[chain];
-            url = `${DIA_API_BASE_URL}/quotation/${blockchainName}/${address}`;
+            url = `${DIA_API_BASE_URL}/assetQuotation/${blockchainName}/${address}`;
           } else {
+            // 尝试直接使用符号查询（某些资产支持）
             url = `${DIA_API_BASE_URL}/quotation/${upperSymbol}`;
           }
 
-          const response = await fetch(url, {
-            headers: {
-              Accept: 'application/json',
-            },
-          });
+          logger.info('Fetching price from DIA', { symbol: upperSymbol, chain, url });
 
-          if (!response.ok) {
+          try {
+            const response = await fetch(url, {
+              headers: {
+                Accept: 'application/json',
+              },
+            });
+
+            logger.info('DIA API response', {
+              symbol: upperSymbol,
+              status: response.status,
+              statusText: response.statusText,
+            });
+
+            if (response.ok) {
+              const data: DIAAssetQuotation = await response.json();
+              logger.info('DIA API data received', { symbol: upperSymbol, price: data.Price });
+              return this.parseAssetQuotation(data, chain);
+            }
+
             if (response.status === 404) {
-              logger.warn('Asset not found in DIA', { symbol, chain });
+              logger.warn('Asset not found in DIA', { symbol, chain, url });
               return null;
             }
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-          }
 
-          const data: DIAAssetQuotation = await response.json();
-          return this.parseAssetQuotation(data, chain);
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          } catch (fetchError) {
+            logger.error(
+              'DIA fetch error',
+              fetchError instanceof Error ? fetchError : new Error(String(fetchError)),
+              { symbol, chain, url }
+            );
+            throw fetchError;
+          }
         },
         DEFAULT_RETRY_CONFIG,
         'getAssetPrice'
@@ -146,44 +197,73 @@ export class DIAPriceService {
 
     try {
       const upperSymbol = symbol.toUpperCase();
+
+      // DIA 历史数据端点格式: /historical/{blockchain}/{address}
       let url: string;
 
-      if (chain && DIA_ASSET_ADDRESSES[upperSymbol]?.[chain]) {
+      if (DIA_SYMBOL_MAPPING[upperSymbol]) {
+        const { blockchain, address } = DIA_SYMBOL_MAPPING[upperSymbol];
+        url = `${DIA_API_BASE_URL}/historical/${blockchain}/${address}?timeRange=${periodHours}h`;
+      } else if (chain && DIA_ASSET_ADDRESSES[upperSymbol]?.[chain]) {
         const address = DIA_ASSET_ADDRESSES[upperSymbol][chain];
         const blockchainName = DIA_CHAIN_MAPPING[chain];
         url = `${DIA_API_BASE_URL}/historical/${blockchainName}/${address}?timeRange=${periodHours}h`;
       } else {
-        url = `${DIA_API_BASE_URL}/historical/${upperSymbol}?timeRange=${periodHours}h`;
+        // 如果无法构建 URL，返回空数组
+        logger.warn('Cannot build historical URL for asset', { symbol, chain });
+        return [];
       }
 
-      const response = await fetch(url);
+      logger.info('Fetching historical prices from DIA', { symbol: upperSymbol, chain, url });
 
-      if (response.ok) {
-        const data = await response.json();
-        if (Array.isArray(data) && data.length > 0) {
-          const prices: PriceData[] = data.map((item: { Price: number; Time: string }) => ({
-            provider: OracleProvider.DIA,
-            symbol: upperSymbol,
-            price: item.Price,
-            timestamp: new Date(item.Time).getTime(),
-            decimals: 8,
-            confidence: 0.98,
-            chain,
-          }));
+      try {
+        const response = await fetch(url);
 
-          this.setCache(cacheKey, prices, CACHE_TTL.HISTORICAL);
-          return prices;
+        logger.info('DIA historical API response', {
+          symbol: upperSymbol,
+          status: response.status,
+          statusText: response.statusText,
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (Array.isArray(data) && data.length > 0) {
+            const prices: PriceData[] = data.map((item: { Price: number; Time: string }) => ({
+              provider: OracleProvider.DIA,
+              symbol: upperSymbol,
+              price: item.Price,
+              timestamp: new Date(item.Time).getTime(),
+              decimals: 8,
+              confidence: 0.98,
+              chain,
+            }));
+
+            this.setCache(cacheKey, prices, CACHE_TTL.HISTORICAL);
+            return prices;
+          }
         }
-      }
 
-      throw new Error('Historical data not available from DIA API');
+        logger.warn('Historical data not available from DIA API', {
+          symbol,
+          chain,
+          status: response.status,
+        });
+        return [];
+      } catch (fetchError) {
+        logger.error(
+          'DIA historical fetch error',
+          fetchError instanceof Error ? fetchError : new Error(String(fetchError)),
+          { symbol, chain, url }
+        );
+        return [];
+      }
     } catch (error) {
       logger.error(
         'Failed to fetch historical prices from DIA API',
         error instanceof Error ? error : new Error(String(error)),
         { symbol, chain, periodHours }
       );
-      throw error;
+      return [];
     }
   }
 

@@ -57,19 +57,24 @@ export class DIAClient extends BaseOracleClient {
         );
       }
 
+      console.log(`[DIA] Fetching price for ${upperSymbol} on ${chain || 'default'}`);
+
       const diaService = getDIADataService();
 
       const livePrice = await diaService.getAssetPrice(symbol, chain);
 
       if (livePrice) {
+        console.log(`[DIA] Successfully fetched price for ${upperSymbol}:`, livePrice.price);
         return livePrice;
       }
 
+      console.error(`[DIA] No price data available for ${upperSymbol}`);
       throw this.createError(
         `No price data available for ${symbol} from DIA. Real data source returned no results.`,
         'NO_DATA_AVAILABLE'
       );
     } catch (error) {
+      console.error(`[DIA] Error fetching price for ${symbol}:`, error);
       throw this.createError(
         error instanceof Error ? error.message : 'Failed to fetch price from DIA',
         'DIA_ERROR'
@@ -83,23 +88,28 @@ export class DIAClient extends BaseOracleClient {
     period: number = 24
   ): Promise<PriceData[]> {
     try {
+      console.log(
+        `[DIA] Fetching historical prices for ${symbol} on ${chain || 'default'}, period: ${period}`
+      );
+
       const diaService = getDIADataService();
 
       const liveHistoricalPrices = await diaService.getHistoricalPrices(symbol, chain, period);
 
+      // DIA API 可能不提供历史数据，返回空数组是正常情况
       if (liveHistoricalPrices && liveHistoricalPrices.length > 0) {
+        console.log(
+          `[DIA] Successfully fetched ${liveHistoricalPrices.length} historical prices for ${symbol}`
+        );
         return liveHistoricalPrices;
       }
 
-      throw this.createError(
-        `No historical price data available for ${symbol} from DIA. Real data source returned no results.`,
-        'NO_DATA_AVAILABLE'
-      );
+      console.log(`[DIA] No historical price data available for ${symbol}, returning empty array`);
+      return [];
     } catch (error) {
-      throw this.createError(
-        error instanceof Error ? error.message : 'Failed to fetch historical prices from DIA',
-        'DIA_HISTORICAL_ERROR'
-      );
+      console.error(`[DIA] Error fetching historical prices for ${symbol}:`, error);
+      // 返回空数组而不是抛出错误，因为 DIA 可能不提供历史数据
+      return [];
     }
   }
 
