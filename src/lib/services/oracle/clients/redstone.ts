@@ -3,7 +3,6 @@ import { BaseOracleClient } from '@/lib/oracles/base';
 import type { OracleClientConfig } from '@/lib/oracles/base';
 import { SPREAD_PERCENTAGES } from '@/lib/oracles/redstoneConstants';
 import { redstoneSymbols } from '@/lib/oracles/supportedSymbols';
-import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
 import {
   OracleProvider,
   Blockchain,
@@ -309,28 +308,13 @@ export class RedStoneClient extends BaseOracleClient {
 
   /**
    * Gets the current price for a given symbol from RedStone oracle.
-   * Uses real data from RedStone API, with Binance API as fallback.
-   * When querying RED token price, directly uses Binance API without trying RedStone API.
+   * Uses real data from RedStone API only. No fallback to other sources.
    * @param symbol - The trading symbol (e.g., 'BTC', 'ETH')
    * @param chain - Optional blockchain context for chain-specific pricing
    * @returns Promise resolving to PriceData with current price information
    * @throws OracleError if price fetching fails
    */
   async getPrice(symbol: string, chain?: Blockchain): Promise<PriceData> {
-    const upperSymbol = symbol.toUpperCase();
-
-    // 当查询自己预言机的代币 (RED) 时，直接使用 Binance API，不尝试 RedStone API
-    if (upperSymbol === 'RED') {
-      const binancePrice = await this.fetchPriceFromBinance(symbol, chain);
-      if (binancePrice) {
-        return binancePrice;
-      }
-      throw this.createError(
-        `No price data available for ${symbol} from Binance API`,
-        'FETCH_ERROR'
-      );
-    }
-
     try {
       const realPrice = await this.fetchRealPrice(symbol);
 
@@ -341,15 +325,9 @@ export class RedStoneClient extends BaseOracleClient {
         };
       }
 
-      // If RedStone API returns no data, try Binance API as fallback
-      const binancePrice = await this.fetchPriceFromBinance(symbol, chain);
-      if (binancePrice) {
-        return binancePrice;
-      }
-
-      // If no price data available from any source, throw error
+      // If RedStone API returns no data, throw error directly without fallback
       throw this.createError(
-        `No price data available for ${symbol} from RedStone or Binance API`,
+        `No price data available for ${symbol} from RedStone API`,
         'FETCH_ERROR'
       );
     } catch (error) {
@@ -364,46 +342,8 @@ export class RedStoneClient extends BaseOracleClient {
   }
 
   /**
-   * Fetches price data from Binance API as a fallback source.
-   * @param symbol - The trading symbol
-   * @param chain - Optional blockchain context
-   * @returns PriceData if successful, null otherwise
-   */
-  private async fetchPriceFromBinance(
-    symbol: string,
-    chain?: Blockchain
-  ): Promise<PriceData | null> {
-    try {
-      const marketData = await binanceMarketService.getTokenMarketData(symbol);
-
-      if (!marketData) {
-        return null;
-      }
-
-      const confidenceInterval = this.generateConfidenceInterval(marketData.currentPrice, symbol);
-
-      return {
-        provider: this.name,
-        symbol: symbol.toUpperCase(),
-        price: marketData.currentPrice,
-        timestamp: new Date(marketData.lastUpdated).getTime(),
-        decimals: 8,
-        confidence: 0.97,
-        confidenceInterval,
-        change24h: marketData.priceChange24h,
-        change24hPercent: marketData.priceChangePercentage24h,
-        chain,
-        source: 'binance',
-      };
-    } catch (error) {
-      console.warn(`[RedStone] Failed to fetch from Binance:`, error);
-      return null;
-    }
-  }
-
-  /**
    * Gets historical price data for a given symbol over a specified time period.
-   * Fetches real historical data from RedStone API when available, with Binance API as fallback.
+   * Fetches real historical data from RedStone API only. No fallback to other sources.
    * @param symbol - The trading symbol (e.g., 'BTC', 'ETH')
    * @param chain - Optional blockchain context
    * @param period - Time period in hours (default: 24)
@@ -430,73 +370,12 @@ export class RedStoneClient extends BaseOracleClient {
         return historicalData;
       }
 
-      // If RedStone API returns no data, try Binance API as fallback
-      const binanceData = await this.fetchHistoricalPricesFromBinance(symbol, chain, period);
-      if (binanceData.length > 0) {
-        this.setCache(cacheKey, binanceData, REDSTONE_CACHE_TTL.PRICE);
-        return binanceData;
-      }
-
-      // If no data available from any source, return empty array
+      // If no data available from RedStone API, return empty array
       console.warn(`[RedStone] No historical data available for ${symbol}`);
       return [];
     } catch (error) {
       console.warn(`[RedStone] Failed to fetch historical prices for ${symbol}:`, error);
-      // Try Binance API as fallback
-      try {
-        const binanceData = await this.fetchHistoricalPricesFromBinance(symbol, chain, period);
-        if (binanceData.length > 0) {
-          return binanceData;
-        }
-      } catch (binanceError) {
-        console.warn(
-          `[RedStone] Binance historical fallback also failed for ${symbol}:`,
-          binanceError
-        );
-      }
-      // Return empty array on error
-      return [];
-    }
-  }
-
-  /**
-   * Fetches historical price data from Binance API as a fallback source.
-   * @param symbol - The trading symbol
-   * @param chain - Optional blockchain context
-   * @param period - Time period in hours
-   * @returns Array of historical PriceData points
-   */
-  private async fetchHistoricalPricesFromBinance(
-    symbol: string,
-    chain?: Blockchain,
-    period: number = 24
-  ): Promise<PriceData[]> {
-    try {
-      const days = Math.ceil(period / 24);
-      const historicalPrices = await binanceMarketService.getHistoricalPrices(symbol, days);
-
-      if (!historicalPrices || historicalPrices.length === 0) {
-        return [];
-      }
-
-      return historicalPrices.map((point) => {
-        const confidenceInterval = this.generateConfidenceInterval(point.price, symbol);
-        return {
-          provider: this.name,
-          symbol: symbol.toUpperCase(),
-          price: point.price,
-          timestamp: point.timestamp,
-          decimals: 8,
-          confidence: 0.97,
-          confidenceInterval,
-          change24h: 0,
-          change24hPercent: 0,
-          chain,
-          source: 'binance',
-        };
-      });
-    } catch (error) {
-      console.warn(`[RedStone] Failed to fetch historical data from Binance:`, error);
+      // Return empty array on error without fallback
       return [];
     }
   }
@@ -569,57 +448,5 @@ export class RedStoneClient extends BaseOracleClient {
       return [];
     }
     return this.supportedChains;
-  }
-
-  /**
-   * Gets market data for a given symbol from Binance API.
-   * Used as a fallback when RedStone API doesn't support the token.
-   * @param symbol - The trading symbol (e.g., 'RED', 'ETH')
-   * @returns Promise resolving to market data or null if not available
-   */
-  async getMarketData(symbol: string = 'RED'): Promise<{
-    symbol: string;
-    name: string;
-    currentPrice: number;
-    marketCap: number;
-    marketCapRank: number;
-    totalVolume24h: number;
-    high24h: number;
-    low24h: number;
-    priceChange24h: number;
-    priceChangePercentage24h: number;
-    circulatingSupply: number;
-    totalSupply: number;
-    maxSupply?: number;
-    stakingApr?: number;
-  } | null> {
-    try {
-      const marketData = await binanceMarketService.getTokenMarketData(symbol);
-
-      if (!marketData) {
-        console.warn(`[RedStoneClient] No market data found for ${symbol}`);
-        return null;
-      }
-
-      return {
-        symbol: marketData.symbol,
-        name: marketData.name,
-        currentPrice: marketData.currentPrice,
-        marketCap: marketData.marketCap ?? 0,
-        marketCapRank: marketData.marketCapRank ?? 0,
-        totalVolume24h: marketData.totalVolume24h,
-        high24h: marketData.high24h,
-        low24h: marketData.low24h,
-        priceChange24h: marketData.priceChange24h,
-        priceChangePercentage24h: marketData.priceChangePercentage24h,
-        circulatingSupply: marketData.circulatingSupply ?? 0,
-        totalSupply: marketData.totalSupply ?? 0,
-        maxSupply: marketData.maxSupply ?? undefined,
-        stakingApr: 0,
-      };
-    } catch (error) {
-      console.error(`[RedStoneClient] Failed to fetch market data for ${symbol}:`, error);
-      return null;
-    }
   }
 }

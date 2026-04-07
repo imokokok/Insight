@@ -17,6 +17,10 @@ export const ALCHEMY_RPC = {
   solana: process.env.ALCHEMY_SOLANA_RPC || '',
   bnb: process.env.ALCHEMY_BNB_RPC || '',
   avalanche: process.env.ALCHEMY_AVALANCHE_RPC || '',
+  zksync: process.env.ALCHEMY_ZKSYNC_RPC || '',
+  scroll: process.env.ALCHEMY_SCROLL_RPC || '',
+  mantle: process.env.ALCHEMY_MANTLE_RPC || '',
+  linea: process.env.ALCHEMY_LINEA_RPC || '',
 };
 
 // TRON 配置
