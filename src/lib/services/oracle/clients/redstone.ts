@@ -3,6 +3,7 @@ import { BaseOracleClient } from '@/lib/oracles/base';
 import type { OracleClientConfig } from '@/lib/oracles/base';
 import { SPREAD_PERCENTAGES } from '@/lib/oracles/redstoneConstants';
 import { redstoneSymbols } from '@/lib/oracles/supportedSymbols';
+import { toMilliseconds } from '@/lib/utils/timestamp';
 import {
   OracleProvider,
   Blockchain,
@@ -16,16 +17,6 @@ const REDSTONE_CACHE_TTL = {
   PRICE: 10000,
 };
 
-/**
- * Converts a timestamp from seconds to milliseconds.
- * RedStone API returns timestamps in seconds, but JavaScript uses milliseconds.
- * @param timestampInSeconds - Timestamp in seconds
- * @returns Timestamp in milliseconds
- */
-function timestampSecondsToMillis(timestampInSeconds: number): number {
-  return timestampInSeconds * 1000;
-}
-
 interface CacheEntry<T> {
   data: T;
   /** Timestamp in milliseconds */
@@ -37,13 +28,13 @@ interface CacheEntry<T> {
 interface RedStonePriceResponse {
   symbol: string;
   value: number;
-  /** Timestamp in seconds (from RedStone API) */
+  /** Timestamp from RedStone API (could be in seconds or milliseconds) */
   timestamp: number;
   provider?: string;
   permawireTx?: string;
   source?: {
     value: number;
-    /** Timestamp in seconds */
+    /** Timestamp (could be in seconds or milliseconds) */
     timestamp: number;
   }[];
   change24h?: number;
@@ -282,14 +273,15 @@ export class RedStoneClient extends BaseOracleClient {
 
   /**
    * Parses a RedStone API price response into a standardized PriceData object.
-   * Converts timestamps from seconds to milliseconds and generates confidence intervals.
+   * Uses toMilliseconds to automatically detect and convert timestamps (seconds or milliseconds).
    * @param response - The raw response from RedStone API
    * @param symbol - The trading symbol
    * @returns Standardized PriceData object
    */
   private parsePriceResponse(response: RedStonePriceResponse, symbol: string): PriceData {
     const price = response.value;
-    const timestamp = timestampSecondsToMillis(response.timestamp);
+    // Use toMilliseconds to automatically detect timestamp format (seconds or milliseconds)
+    const timestamp = toMilliseconds(response.timestamp);
     const confidenceInterval = this.generateConfidenceInterval(price, symbol);
 
     return {
