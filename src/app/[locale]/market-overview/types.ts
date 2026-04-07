@@ -2,6 +2,8 @@ import type { RefreshInterval } from '@/lib/constants';
 import type { AlertHistory, AlertCheckResult } from '@/lib/realtime/priceAlerts';
 import type { WebSocketStatus, WebSocketMessage } from '@/lib/realtime/websocket';
 
+import type { OracleTokenPrice } from './types/oracle';
+
 export interface OracleMarketData {
   name: string;
   share: number;
@@ -505,4 +507,12 @@ export interface UseMarketOverviewDataReturn {
   requestNotificationPermission: () => Promise<boolean>;
   hasNotificationPermission: boolean;
   triggeredAlerts: AlertCheckResult[];
+
+  // 预言机代币价格数据
+  oracleTokenPrices: OracleTokenPrice[];
+  isLoadingTokenPrices: boolean;
+  isErrorTokenPrices: boolean;
+  tokenPricesError: Error | null;
+  lastTokenPricesUpdated: Date | null;
+  refetchTokenPrices: () => Promise<void>;
 }

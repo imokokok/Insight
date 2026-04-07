@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react';
 
+import { useOracleTokenPrices } from './hooks/useOracleTokenPrices';
 import {
   type MarketStats,
   type ChartType,
@@ -56,6 +57,16 @@ export function useMarketOverviewData(): UseMarketOverviewDataReturn {
     setTrendData,
     setLastUpdated,
   } = useDataFetching();
+
+  // 预言机代币价格数据
+  const {
+    prices: oracleTokenPrices,
+    isLoading: isLoadingTokenPrices,
+    isError: isErrorTokenPrices,
+    error: tokenPricesError,
+    lastUpdated: lastTokenPricesUpdated,
+    refetch: refetchTokenPrices,
+  } = useOracleTokenPrices(true, 30000);
 
   const marketStats = useMemo<MarketStats>(() => {
     const totalTVS = oracleData.reduce((sum, oracle) => sum + oracle.tvsValue, 0);
@@ -221,5 +232,13 @@ export function useMarketOverviewData(): UseMarketOverviewDataReturn {
     requestNotificationPermission,
     hasNotificationPermission,
     triggeredAlerts,
+
+    // 预言机代币价格数据
+    oracleTokenPrices,
+    isLoadingTokenPrices,
+    isErrorTokenPrices,
+    tokenPricesError,
+    lastTokenPricesUpdated,
+    refetchTokenPrices,
   };
 }

@@ -73,6 +73,12 @@ export function useMarketPage() {
     totalProtocols,
     wsStatus,
     wsReconnect,
+    // 预言机代币价格数据
+    oracleTokenPrices,
+    isLoadingTokenPrices,
+    isErrorTokenPrices,
+    lastTokenPricesUpdated,
+    refetchTokenPrices,
   } = data;
 
   const filter = useMarketFilter(oracleData, assets);
@@ -178,5 +184,12 @@ export function useMarketPage() {
 
     getChartTitle,
     locale,
+
+    // 预言机代币价格数据
+    oracleTokenPrices,
+    isLoadingTokenPrices,
+    isErrorTokenPrices,
+    lastTokenPricesUpdated,
+    refetchTokenPrices,
   };
 }

@@ -8,6 +8,7 @@ import ChartContainer from './components/ChartContainer';
 import MarketHeader from './components/MarketHeader';
 import MarketSidebar from './components/MarketSidebar';
 import MarketStats from './components/MarketStats';
+import OracleTokenPrices from './components/OracleTokenPrices';
 import { useMarketPage } from './useMarketPage';
 
 export default function MarketOverviewPage() {
@@ -63,6 +64,11 @@ export default function MarketOverviewPage() {
     getChartTitle,
     filter,
     filteredAssets,
+    oracleTokenPrices,
+    isLoadingTokenPrices,
+    isErrorTokenPrices,
+    lastTokenPricesUpdated,
+    refetchTokenPrices,
   } = useMarketPage();
 
   return (
@@ -92,6 +98,19 @@ export default function MarketOverviewPage() {
                 totalTVS={totalTVS}
                 totalChains={totalChains}
                 totalProtocols={totalProtocols}
+              />
+            </SectionErrorBoundary>
+          </div>
+
+          {/* 预言机代币价格展示 */}
+          <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-4 sm:p-6">
+            <SectionErrorBoundary componentName="OracleTokenPrices">
+              <OracleTokenPrices
+                prices={oracleTokenPrices}
+                isLoading={isLoadingTokenPrices}
+                isError={isErrorTokenPrices}
+                lastUpdated={lastTokenPricesUpdated}
+                onRefresh={refetchTokenPrices}
               />
             </SectionErrorBoundary>
           </div>
