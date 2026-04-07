@@ -1,7 +1,7 @@
 import { BaseOracleClient } from '@/lib/oracles/base';
 import type { OracleClientConfig } from '@/lib/oracles/base';
 import { getPythDataService } from '@/lib/oracles/pythDataService';
-import { pythSymbols } from '@/lib/oracles/supportedSymbols';
+import { pythSymbols, PYTH_AVAILABLE_PAIRS } from '@/lib/oracles/supportedSymbols';
 import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
 import { createLogger } from '@/lib/utils/logger';
 import { OracleProvider, Blockchain } from '@/types/oracle';
@@ -29,6 +29,7 @@ export class PythClient extends BaseOracleClient {
     Blockchain.BNB_CHAIN,
     Blockchain.APTOS,
     Blockchain.SUI,
+    Blockchain.BASE,
   ];
 
   defaultUpdateIntervalMinutes = 1;
@@ -185,23 +186,46 @@ export class PythClient extends BaseOracleClient {
     return [...pythSymbols];
   }
 
+  /**
+   * 获取指定链支持的所有币种
+   * @param chain - 区块链
+   * @returns 该链支持的币种列表
+   */
+  getSupportedSymbolsForChain(chain: Blockchain): string[] {
+    const chainKey = chain.toLowerCase();
+    return PYTH_AVAILABLE_PAIRS[chainKey] || [];
+  }
+
   isSymbolSupported(symbol: string, chain?: Blockchain): boolean {
-    const isSymbolInList = pythSymbols.includes(
-      symbol.toUpperCase() as (typeof pythSymbols)[number]
-    );
-    if (!isSymbolInList) {
-      return false;
-    }
+    const upperSymbol = symbol.toUpperCase();
+
     if (chain !== undefined) {
-      return this.supportedChains.includes(chain);
+      const chainKey = chain.toLowerCase();
+      const chainSymbols = PYTH_AVAILABLE_PAIRS[chainKey];
+      if (!chainSymbols) return false;
+      return chainSymbols.includes(upperSymbol);
     }
-    return true;
+
+    // 如果没有指定链，检查该币种是否在任何链上支持
+    return Object.values(PYTH_AVAILABLE_PAIRS).some((symbols) => symbols.includes(upperSymbol));
   }
 
   getSupportedChainsForSymbol(symbol: string): Blockchain[] {
-    if (!this.isSymbolSupported(symbol)) {
-      return [];
+    const upperSymbol = symbol.toUpperCase();
+    const supportedChains: Blockchain[] = [];
+
+    for (const [chain, symbols] of Object.entries(PYTH_AVAILABLE_PAIRS)) {
+      if (symbols.includes(upperSymbol)) {
+        // 将字符串链名转换为Blockchain枚举
+        const blockchain = this.supportedChains.find(
+          (c) => c.toLowerCase() === chain.toLowerCase()
+        );
+        if (blockchain) {
+          supportedChains.push(blockchain);
+        }
+      }
     }
-    return this.supportedChains;
+
+    return supportedChains;
   }
 }
