@@ -76,6 +76,60 @@ export interface UsePriceQueryDataReturn {
   };
 }
 
+// 通过 API 路由获取价格数据
+async function fetchPriceFromAPI(
+  provider: OracleProvider,
+  symbol: string,
+  chain?: Blockchain,
+  signal?: AbortSignal
+): Promise<PriceData> {
+  const params = new URLSearchParams();
+  params.set('symbol', symbol);
+  if (chain) params.set('chain', chain);
+
+  const response = await fetch(`/api/oracles/${provider}?${params.toString()}`, {
+    signal,
+    headers: {
+      Accept: 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+    throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+// 通过 API 路由获取历史价格数据
+async function fetchHistoricalPricesFromAPI(
+  provider: OracleProvider,
+  symbol: string,
+  chain: Blockchain,
+  period: number,
+  signal?: AbortSignal
+): Promise<PriceData[]> {
+  const params = new URLSearchParams();
+  params.set('symbol', symbol);
+  params.set('chain', chain);
+  params.set('period', period.toString());
+
+  const response = await fetch(`/api/oracles/${provider}?${params.toString()}`, {
+    signal,
+    headers: {
+      Accept: 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+    throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
 export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQueryDataReturn {
   const {
     selectedOracleRef,
@@ -185,13 +239,20 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
 
       setCurrentQueryTarget({ oracle: task.provider, chain: task.chain });
 
+      // 使用 API 路由获取数据
       const price = await withTimeout(
-        task.client.getPrice(currentSelectedSymbol, task.chain),
+        fetchPriceFromAPI(task.provider, currentSelectedSymbol, task.chain, abortController.signal),
         TIMEOUT_MS
       );
 
       const history = await withTimeout(
-        task.client.getHistoricalPrices(currentSelectedSymbol, task.chain, task.timeRange),
+        fetchHistoricalPricesFromAPI(
+          task.provider,
+          currentSelectedSymbol,
+          task.chain,
+          task.timeRange,
+          abortController.signal
+        ),
         TIMEOUT_MS
       );
 
@@ -256,11 +317,20 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
         } else {
           const task = allTasks[taskResults.indexOf(settledResult)];
           if (task) {
+            const errorReason = settledResult.reason;
+            const errorMessage =
+              errorReason instanceof Error ? errorReason.message : String(errorReason);
+            const errorStack = errorReason instanceof Error ? errorReason.stack : undefined;
+
             logger.error(
-              `Error fetching ${task.isCompare ? 'compare data' : ''} ${task.provider} on ${task.chain}`,
-              settledResult.reason instanceof Error
-                ? settledResult.reason
-                : new Error(String(settledResult.reason))
+              `Error fetching ${task.isCompare ? 'compare data' : ''} ${task.provider} on ${task.chain}: ${errorMessage}`,
+              errorReason instanceof Error ? errorReason : new Error(errorMessage),
+              {
+                provider: task.provider,
+                chain: task.chain,
+                symbol: currentSelectedSymbol,
+                errorStack,
+              }
             );
           }
         }
@@ -364,15 +434,16 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
 
   const retryDataSource = useCallback(
     async (provider: OracleProvider, chain: Blockchain) => {
-      const client = OracleClientFactory.getClient(provider);
       const currentSelectedSymbol = selectedSymbolRef.current;
       const currentSelectedTimeRange = selectedTimeRangeRef.current;
       const currentIsCompareMode = isCompareModeRef.current;
       const currentCompareTimeRange = compareTimeRangeRef.current;
 
       try {
-        const price = await client.getPrice(currentSelectedSymbol, chain);
-        const history = await client.getHistoricalPrices(
+        // 使用 API 路由获取数据
+        const price = await fetchPriceFromAPI(provider, currentSelectedSymbol, chain);
+        const history = await fetchHistoricalPricesFromAPI(
+          provider,
           currentSelectedSymbol,
           chain,
           currentSelectedTimeRange
@@ -394,7 +465,8 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
         setHistoricalData((prev) => ({ ...prev, [key]: history }));
 
         if (currentIsCompareMode) {
-          const compareHistory = await client.getHistoricalPrices(
+          const compareHistory = await fetchHistoricalPricesFromAPI(
+            provider,
             currentSelectedSymbol,
             chain,
             currentCompareTimeRange
