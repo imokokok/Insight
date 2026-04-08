@@ -165,17 +165,20 @@ export default function Navbar() {
                     >
                       <div className="w-7 h-7 bg-primary-600 flex items-center justify-center text-white text-xs font-medium overflow-hidden rounded">
                         {profile?.avatar_url ? (
-                          <Image
+                          <img
                             src={profile.avatar_url}
                             alt={profile?.display_name || 'User'}
-                            width={28}
-                            height={28}
                             className="w-full h-full object-cover"
+                            onError={(e) => {
+                              // 头像加载失败时隐藏图片，显示文字回退
+                              (e.target as HTMLImageElement).style.display = 'none';
+                            }}
                           />
-                        ) : (
-                          profile?.display_name?.[0]?.toUpperCase() ||
-                          user.email?.[0]?.toUpperCase() || <User className="w-3.5 h-3.5" />
-                        )}
+                        ) : null}
+                        <span className={profile?.avatar_url ? 'hidden' : ''}>
+                          {profile?.display_name?.[0]?.toUpperCase() ||
+                            user.email?.[0]?.toUpperCase() || <User className="w-3.5 h-3.5" />}
+                        </span>
                       </div>
                     </button>
 
