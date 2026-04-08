@@ -61,10 +61,22 @@ export class WINkLinkClient extends BaseOracleClient {
         if (realPrice) {
           return realPrice;
         }
+
+        // 如果启用了真实数据但获取失败，抛出明确错误
+        throw this.createError(
+          `Failed to fetch price from WINkLink contract for ${symbol}. ` +
+            `Please check: 1) TRON RPC connection, 2) Contract address validity, 3) Symbol support.`,
+          'NO_DATA_AVAILABLE',
+          { retryable: true }
+        );
       }
 
       return this.fetchPriceWithDatabase(symbol, chain);
     } catch (error) {
+      // 如果是我们已经格式化的错误，直接抛出
+      if (error && typeof error === 'object' && 'code' in error) {
+        throw error;
+      }
       throw this.createError(
         error instanceof Error ? error.message : 'Failed to fetch price from WINkLink',
         'WINKLINK_ERROR'
@@ -77,14 +89,9 @@ export class WINkLinkClient extends BaseOracleClient {
     chain?: Blockchain,
     period: number = 24
   ): Promise<PriceData[]> {
-    try {
-      return this.fetchHistoricalPricesWithDatabase(symbol, chain, period);
-    } catch (error) {
-      throw this.createError(
-        error instanceof Error ? error.message : 'Failed to fetch historical prices from WINkLink',
-        'WINKLINK_HISTORICAL_ERROR'
-      );
-    }
+    // WINkLink 合约不提供历史价格查询，返回空数组
+    // 如需历史数据，需要自行维护数据库记录
+    return [];
   }
 
   getSupportedSymbols(): string[] {
