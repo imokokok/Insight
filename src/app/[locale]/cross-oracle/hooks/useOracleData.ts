@@ -3,6 +3,8 @@
  * @description 负责价格数据获取、加载状态管理和自动刷新，集成性能指标计算
  */
 
+/* eslint-disable max-lines-per-function */
+
 import { useState, useEffect, useCallback, useRef } from 'react';
 
 import { OracleClientFactory, getHoursForTimeRange, extractBaseSymbol } from '@/lib/oracles';
@@ -551,16 +553,34 @@ export function useOracleData({
     isMountedRef.current = true;
     memoryManager.startPeriodicCleanup();
 
-    const depsChanged =
-      isInitialMountRef.current ||
-      prevDepsRef.current.selectedOracles.length !== selectedOracles.length ||
-      prevDepsRef.current.selectedOracles.some((o, i) => o !== selectedOracles[i]) ||
-      prevDepsRef.current.selectedSymbol !== selectedSymbol ||
-      prevDepsRef.current.timeRange !== timeRange;
+    // 使用更可靠的参数签名来检测变化
+    const currentSignature = JSON.stringify({
+      oracles: selectedOracles.slice().sort(), // 排序以确保顺序不影响比较
+      symbol: selectedSymbol,
+      timeRange: timeRange,
+    });
+    const prevSignature = JSON.stringify({
+      oracles: prevDepsRef.current.selectedOracles.slice().sort(),
+      symbol: prevDepsRef.current.selectedSymbol,
+      timeRange: prevDepsRef.current.timeRange,
+    });
+
+    const depsChanged = isInitialMountRef.current || currentSignature !== prevSignature;
 
     if (depsChanged) {
       prevDepsRef.current = { selectedOracles, selectedSymbol, timeRange };
       isInitialMountRef.current = false;
+      // 清理旧数据，避免显示过期数据
+      setPriceData([]);
+      setHistoricalData({});
+      setOracleDataError({
+        hasError: false,
+        isPartialSuccess: false,
+        partialSuccess: null,
+        errors: [],
+        globalError: null,
+      });
+      setError(null);
       fetchPriceData();
     }
 

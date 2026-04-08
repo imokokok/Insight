@@ -230,11 +230,52 @@ export function useCrossChainData(): UseCrossChainDataReturn {
     await fetchDataInternal();
   }, [fetchDataInternal]);
 
+  // 使用 ref 来跟踪之前的参数和初始加载状态
+  const prevParamsRef = useRef({
+    selectedProvider,
+    selectedSymbol,
+    selectedTimeRange,
+  });
+  const isInitialLoadRef = useRef(true);
+
   useEffect(() => {
-    fetchData();
+    // 检测参数是否真正发生变化或是初始加载
+    const isInitialLoad = isInitialLoadRef.current;
+    const paramsChanged =
+      prevParamsRef.current.selectedProvider !== selectedProvider ||
+      prevParamsRef.current.selectedSymbol !== selectedSymbol ||
+      prevParamsRef.current.selectedTimeRange !== selectedTimeRange;
+
+    if (isInitialLoad || paramsChanged) {
+      // 更新 ref
+      prevParamsRef.current = {
+        selectedProvider,
+        selectedSymbol,
+        selectedTimeRange,
+      };
+      isInitialLoadRef.current = false;
+
+      // 清理旧数据，避免显示过期数据
+      setCurrentPrices([]);
+      setHistoricalPrices({});
+      setLastUpdated(null);
+      setRefreshStatus('idle');
+
+      // 获取新数据
+      fetchData();
+    }
+
     return () => clearDataCache();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedProvider, selectedSymbol, selectedTimeRange]);
+  }, [
+    selectedProvider,
+    selectedSymbol,
+    selectedTimeRange,
+    fetchData,
+    setCurrentPrices,
+    setHistoricalPrices,
+    setLastUpdated,
+    setRefreshStatus,
+  ]);
 
   useEffect(() => {
     return () => {

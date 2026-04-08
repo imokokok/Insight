@@ -175,8 +175,8 @@ export class WINkLinkRealDataService {
   /**
    * 从 WINkLink Price Feed 合约获取真实价格
    */
-  async getPriceFromContract(symbol: string): Promise<PriceData | null> {
-    const cacheKey = `real-price:${symbol}`;
+  async getPriceFromContract(symbol: string, chain?: string): Promise<PriceData | null> {
+    const cacheKey = `real-price:${symbol}${chain ? `:${chain}` : ''}`;
     const cached = this.getFromCache<PriceData>(cacheKey);
     if (cached) {
       return cached;
