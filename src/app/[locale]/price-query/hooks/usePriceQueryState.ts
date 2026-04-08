@@ -121,7 +121,6 @@ export function usePriceQueryState(): UsePriceQueryStateReturn {
       api3: OracleProvider.API3,
       redstone: OracleProvider.REDSTONE,
       dia: OracleProvider.DIA,
-      tellor: OracleProvider.TELLOR,
       winklink: OracleProvider.WINKLINK,
     };
 

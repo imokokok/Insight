@@ -94,15 +94,6 @@ const DEFAULT_PROVIDER_CONFIG: PerformanceMetricsConfig = {
       decentralizationScore: 75,
       supportedChains: 12,
     },
-    tellor: {
-      responseTime: 1500,
-      updateFrequency: 7200,
-      accuracy: 98.4,
-      reliability: 99.0,
-      dataSources: 50,
-      decentralizationScore: 95,
-      supportedChains: 4,
-    },
     uma: {
       responseTime: 1200,
       updateFrequency: 7200,

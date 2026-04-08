@@ -65,26 +65,6 @@ export {
   type DIAEcosystemIntegration,
   type DIAExchange,
 } from './diaDataService';
-export { TellorClient } from '@/lib/services/oracle/clients/tellor';
-export {
-  TellorOnChainService,
-  tellorOnChainService,
-  type TellorPriceData,
-  type TellorReporterData,
-} from './tellorOnChainService';
-export {
-  TELLOR_ORACLE_ADDRESSES,
-  TELLOR_PRICE_QUERIES,
-  TELLOR_RPC_CONFIG,
-  TELLOR_ORACLE_ABI,
-  TELLOR_PLAYGROUND_API,
-  getTellorOracleAddress,
-  getTellorPriceQuery,
-  getTellorRPCConfig,
-  isPriceQuerySupported,
-  type TellorOracleConfig,
-  type TellorRPCConfig,
-} from './tellorDataSources';
 export { WINkLinkClient } from '@/lib/services/oracle/clients/winklink';
 export {
   PythHermesClient,

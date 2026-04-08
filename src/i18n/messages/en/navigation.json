@@ -30,8 +30,6 @@
     "redstoneDesc": "Modular oracle stack with EVM+ compatibility",
     "dia": "DIA",
     "diaDesc": "Transparent cross-chain oracle with crowd-sourced data validation",
-    "tellor": "Tellor",
-    "tellorDesc": "Decentralized crypto-native oracle for transparency and decentralization",
     "winklink": "WINkLink",
     "winklinkDesc": "TRON ecosystem oracle for gaming and DeFi",
     "favorites": "Favorites",

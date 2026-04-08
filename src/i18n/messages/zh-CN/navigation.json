@@ -30,8 +30,6 @@
     "redstoneDesc": "兼容 EVM+ 的模块化预言机堆栈",
     "dia": "DIA",
     "diaDesc": "具有众包数据验证的透明跨链预言机",
-    "tellor": "Tellor",
-    "tellorDesc": "专注透明度和去中心化的去中心化加密原生预言机",
     "winklink": "WINkLink",
     "winklinkDesc": "专注游戏和 DeFi 的 TRON 生态预言机",
     "favorites": "收藏",

@@ -83,14 +83,6 @@ export const ORACLE_TOKENS: OracleTokenConfig[] = [
     themeColor: '#6366f1',
   },
   {
-    provider: OracleProvider.TELLOR,
-    oracleName: 'Tellor',
-    symbol: 'TRB',
-    tokenName: 'Tellor',
-    logoPath: '/logos/oracles/tellor.svg',
-    themeColor: '#06b6d4',
-  },
-  {
     provider: OracleProvider.WINKLINK,
     oracleName: 'WINkLink',
     symbol: 'WIN',

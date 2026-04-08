@@ -13,9 +13,6 @@ export { useRedStonePrice, useRedStoneHistorical } from './redstone';
 // DIA
 export { useDIAPrice, useDIAHistorical } from './dia';
 
-// Tellor
-export { useTellorPrice, useTellorHistorical } from './tellor';
-
 // WINkLink
 export { useWINkLinkPrice, useWINkLinkHistoricalPrices } from './winklink';
 

@@ -8,7 +8,6 @@ const ORACLE_KEYS = [
   'uma',
   'redstone',
   'dia',
-  'tellor',
   'winklink',
 ] as const;
 

@@ -147,18 +147,6 @@ const routePrefetchConfigs: Record<string, RoutePrefetchConfig> = {
       },
     ],
   },
-  '/tellor': {
-    route: '/tellor',
-    priority: 'high',
-    targets: [
-      {
-        queryKey: ['oracles', 'detail', 'tellor'],
-        queryFn: () => apiClient.get('/api/oracles/tellor').then((r) => r.data),
-        type: 'network',
-        priority: 'high',
-      },
-    ],
-  },
 
   '/winklink': {
     route: '/winklink',

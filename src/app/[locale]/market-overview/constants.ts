@@ -13,7 +13,6 @@ export const ORACLE_COLORS = {
   uma: oracleColors[OracleProvider.UMA],
   redstone: oracleColors[OracleProvider.REDSTONE],
   dia: oracleColors[OracleProvider.DIA],
-  tellor: oracleColors[OracleProvider.TELLOR],
   winklink: oracleColors[OracleProvider.WINKLINK],
   others: chartColors.recharts.tick,
 } as const;
@@ -126,21 +125,6 @@ export const MOCK_ORACLE_DATA: OracleMarketData[] = [
     change30d: 11.3,
   },
   {
-    name: 'Tellor',
-    share: 2.2,
-    color: ORACLE_COLORS.tellor,
-    tvs: '$1.3B',
-    tvsValue: 1.3,
-    chains: 7,
-    protocols: 22,
-    avgLatency: 1800,
-    accuracy: 98.7,
-    updateFrequency: 5400,
-    change24h: -0.3,
-    change7d: 1.8,
-    change30d: 6.5,
-  },
-  {
     name: 'WINkLink',
     share: 1.2,
     color: ORACLE_COLORS.winklink,
@@ -165,7 +149,6 @@ export const CHAIN_SUPPORT_DATA: ChainSupportData[] = [
   { name: 'UMA', chains: 8, protocols: 45, color: ORACLE_COLORS.uma },
   { name: 'RedStone', chains: 6, protocols: 32, color: ORACLE_COLORS.redstone },
   { name: 'DIA', chains: 9, protocols: 28, color: ORACLE_COLORS.dia },
-  { name: 'Tellor', chains: 7, protocols: 22, color: ORACLE_COLORS.tellor },
   { name: 'WINkLink', chains: 3, protocols: 12, color: ORACLE_COLORS.winklink },
 ];
 

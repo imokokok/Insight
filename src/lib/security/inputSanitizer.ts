@@ -243,7 +243,6 @@ export function sanitizeProvider(provider: string): string {
     'pyth',
     'redstone',
     'dia',
-    'tellor',
     'winklink',
   ];
 

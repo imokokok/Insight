@@ -110,7 +110,6 @@ export const oracleNames: Record<OracleProvider, string> = {
   [OracleProvider.API3]: 'API3',
   [OracleProvider.REDSTONE]: 'RedStone',
   [OracleProvider.DIA]: 'DIA',
-  [OracleProvider.TELLOR]: 'Tellor',
   [OracleProvider.WINKLINK]: 'WINkLink',
 };
 
@@ -122,7 +121,6 @@ export const oracleColors: Record<OracleProvider, string> = {
   [OracleProvider.API3]: chartColors.oracle.api3,
   [OracleProvider.REDSTONE]: chartColors.oracle.redstone,
   [OracleProvider.DIA]: chartColors.oracle.dia,
-  [OracleProvider.TELLOR]: chartColors.oracle.tellor,
   [OracleProvider.WINKLINK]: chartColors.oracle.winklink,
 };
 
@@ -219,16 +217,6 @@ export const defaultPerformanceData: OraclePerformance[] = [
     accuracy: 99.3,
     decentralization: 75,
   },
-  {
-    provider: OracleProvider.TELLOR,
-    responseTime: 300,
-    updateFrequency: 7200, // 2小时（秒）- 按需
-    dataSources: 50,
-    supportedChains: 4,
-    reliability: 99.0,
-    accuracy: 98.8,
-    decentralization: 95, // PoW 机制，高度去中心化
-  },
 ];
 
 // 预言机特性分组
@@ -239,7 +227,6 @@ export const ORACLE_GROUPS = {
     OracleProvider.BAND_PROTOCOL,
     OracleProvider.API3,
     OracleProvider.DIA,
-    OracleProvider.TELLOR,
   ],
   ALL: [
     OracleProvider.CHAINLINK,
@@ -248,7 +235,6 @@ export const ORACLE_GROUPS = {
     OracleProvider.API3,
     OracleProvider.REDSTONE,
     OracleProvider.DIA,
-    OracleProvider.TELLOR,
   ],
 } as const;
 

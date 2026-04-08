@@ -21,6 +21,5 @@ export { PythClient } from './clients/pyth';
 export { API3Client } from './clients/api3';
 export { BandProtocolClient } from './clients/band';
 export { DIAClient } from './clients/dia';
-export { TellorClient } from './clients/tellor';
 export { RedStoneClient } from './clients/redstone';
 export { WINkLinkClient } from './clients/winklink';

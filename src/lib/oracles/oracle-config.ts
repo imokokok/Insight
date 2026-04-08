@@ -30,7 +30,6 @@ export const UPDATE_INTERVAL_MINUTES = {
   REDSTONE: 1,
   API3: 1,
   BAND: 5,
-  TELLOR: 30,
   UMA: 60,
   WINKLINK: 60,
 } as const;
@@ -55,7 +54,6 @@ export const ORACLE_CONFIDENCE_MAP: Record<string, number> = {
   redstone: DEFAULT_CONFIDENCE.MEDIUM,
   api3: DEFAULT_CONFIDENCE.MEDIUM,
   band: DEFAULT_CONFIDENCE.MEDIUM,
-  tellor: DEFAULT_CONFIDENCE.LOW,
   uma: DEFAULT_CONFIDENCE.MEDIUM,
   winklink: DEFAULT_CONFIDENCE.LOW,
 } as const;

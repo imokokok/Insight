@@ -12,7 +12,6 @@ import {
   API3Client,
   RedStoneClient,
   DIAClient,
-  TellorClient,
   WINkLinkClient,
   type BaseOracleClient,
 } from '@/lib/oracles';
@@ -528,50 +527,6 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       { id: 'risk', labelKey: 'dia.tabs.riskAssessment' },
     ],
   },
-  [OracleProvider.TELLOR]: {
-    provider: OracleProvider.TELLOR,
-    name: 'Tellor',
-    descriptionKey: 'oracles.descriptions.tellor',
-    symbol: 'TRB',
-    defaultChain: Blockchain.ETHEREUM,
-    supportedChains: [
-      Blockchain.ETHEREUM,
-      Blockchain.ARBITRUM,
-      Blockchain.OPTIMISM,
-      Blockchain.POLYGON,
-      Blockchain.BASE,
-      Blockchain.AVALANCHE,
-      Blockchain.BNB_CHAIN,
-      Blockchain.FANTOM,
-      Blockchain.MOONBEAM,
-      Blockchain.GNOSIS,
-    ],
-    client: new TellorClient(),
-    iconBgColor: `bg-[${chartColors.oracle.tellor}]`,
-    themeColor: '#06b6d4',
-    icon: <Image src="/logos/oracles/tellor.svg" alt="Tellor" width={48} height={48} />,
-    marketData: getDefaultMarketData('TRB', 'Tellor'),
-    networkData: getDefaultNetworkData(),
-    features: {
-      hasNodeAnalytics: false,
-      hasValidatorAnalytics: false,
-      hasPublisherAnalytics: false,
-      hasDisputeResolution: false,
-      hasPriceFeeds: true,
-      hasQuantifiableSecurity: false,
-      hasFirstPartyOracle: false,
-      hasCoreFeatures: true,
-    },
-    tabs: [
-      { id: 'market', labelKey: 'tellor.tabs.market' },
-      { id: 'network', labelKey: 'tellor.tabs.network' },
-      { id: 'reporters', labelKey: 'tellor.tabs.reporters' },
-      { id: 'disputes', labelKey: 'tellor.tabs.disputes' },
-      { id: 'staking', labelKey: 'tellor.tabs.staking' },
-      { id: 'ecosystem', labelKey: 'tellor.tabs.ecosystem' },
-      { id: 'risk', labelKey: 'tellor.tabs.riskAssessment' },
-    ],
-  },
   [OracleProvider.WINKLINK]: {
     provider: OracleProvider.WINKLINK,
     name: 'WINkLink',
@@ -654,7 +609,6 @@ export const PRICE_ORACLE_PROVIDERS: PriceOracleProvider[] = [
   OracleProvider.API3,
   OracleProvider.REDSTONE,
   OracleProvider.DIA,
-  OracleProvider.TELLOR,
   OracleProvider.WINKLINK,
 ];
 
@@ -691,8 +645,6 @@ export function createOracleClient(provider: OracleProvider): BaseOracleClient {
       return new RedStoneClient();
     case OracleProvider.DIA:
       return new DIAClient();
-    case OracleProvider.TELLOR:
-      return new TellorClient();
     case OracleProvider.WINKLINK:
       return new WINkLinkClient();
     default:

@@ -262,12 +262,6 @@ export const oracleColorBlindFriendly = {
     symbol: '◆',
     description: '棕色条纹菱形',
   },
-  tellor: {
-    color: '#e377c2',
-    pattern: 'dotted',
-    symbol: '★',
-    description: '粉色点状星形',
-  },
   winklink: {
     color: '#bcbd22',
     pattern: 'diagonal',

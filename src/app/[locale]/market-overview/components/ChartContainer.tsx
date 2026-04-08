@@ -159,8 +159,6 @@ export default function ChartContainer({
         uma: item.uma * (1 + (Math.random() - 0.5) * variance),
         redstone: item.redstone * (1 + (Math.random() - 0.5) * variance),
         dia: item.dia * (1 + (Math.random() - 0.5) * variance),
-        tellor: item.tellor * (1 + (Math.random() - 0.5) * variance),
-
         winklink: item.winklink * (1 + (Math.random() - 0.5) * variance),
       }));
       setTrendComparisonData(newComparisonData);
