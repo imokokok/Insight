@@ -14,7 +14,6 @@ const ORACLE_PROVIDER_VALUES = [
   'api3',
   'redstone',
   'dia',
-  'tellor',
   'winklink',
 ];
 

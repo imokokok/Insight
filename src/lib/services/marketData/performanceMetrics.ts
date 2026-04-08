@@ -249,7 +249,6 @@ class PerformanceMetricsCalculator {
       Switchboard: 300,
       DIA: 800,
       Flux: 1000,
-      Tellor: 1500,
     };
     return defaults[oracleName] || 600;
   }
@@ -265,7 +264,6 @@ class PerformanceMetricsCalculator {
       Switchboard: 99.1,
       DIA: 98.8,
       Flux: 98.6,
-      Tellor: 98.4,
     };
     return defaults[oracleName] || 98.0;
   }
@@ -281,7 +279,6 @@ class PerformanceMetricsCalculator {
       Switchboard: 300,
       DIA: 120,
       Flux: 600,
-      Tellor: 3600,
     };
     return defaults[oracleName] || 3600;
   }

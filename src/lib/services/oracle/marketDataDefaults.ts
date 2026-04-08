@@ -18,7 +18,6 @@ export interface TvsTrendDataPoint {
   uma: number;
   redstone: number;
   dia: number;
-  tellor: number;
   winklink: number;
 }
 
@@ -39,7 +38,6 @@ export const COLORS = {
   uma: chartColors.oracle.uma,
   redstone: chartColors.oracle.redstone,
   dia: chartColors.oracle.dia,
-  tellor: chartColors.oracle.tellor,
   winklink: chartColors.oracle.winklink,
 };
 

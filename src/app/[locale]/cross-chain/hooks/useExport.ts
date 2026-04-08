@@ -138,7 +138,6 @@ export function useExport(params: UseExportParams): UseExportReturn {
         [OracleProvider.API3]: 'API3',
         [OracleProvider.REDSTONE]: 'RedStone',
         [OracleProvider.DIA]: 'DIA',
-        [OracleProvider.TELLOR]: 'Tellor',
         [OracleProvider.WINKLINK]: 'WINkLink',
       };
 

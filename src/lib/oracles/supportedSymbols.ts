@@ -93,9 +93,6 @@ export const API3_AVAILABLE_PAIRS: Record<string, string[]> = {
   optimism: ['ETH', 'USDC'],
 };
 
-// Tellor 支持的币种
-export const tellorSymbols = ['BTC', 'ETH', 'LINK', 'TRB', 'USDC', 'USDT', 'DAI'] as const;
-
 // Pyth 支持的币种
 export const pythSymbols = [
   'BTC',
@@ -289,7 +286,6 @@ export const oracleSupportedSymbols = {
   dia: diaSymbols,
   bandProtocol: bandProtocolSymbols,
   api3: api3Symbols,
-  tellor: tellorSymbols,
   pyth: pythSymbols,
   winklink: winklinkSymbols,
 } as const;
@@ -301,7 +297,6 @@ export type UmaSymbol = (typeof umaSymbols)[number];
 export type DiaSymbol = (typeof diaSymbols)[number];
 export type BandProtocolSymbol = (typeof bandProtocolSymbols)[number];
 export type Api3Symbol = (typeof api3Symbols)[number];
-export type TellorSymbol = (typeof tellorSymbols)[number];
 export type PythSymbol = (typeof pythSymbols)[number];
 export type WinklinkSymbol = (typeof winklinkSymbols)[number];
 

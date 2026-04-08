@@ -14,7 +14,6 @@ function detectProtocolOracles(protocol: DefiLlamaProtocol): {
     RedStone: ['redstone'],
     Switchboard: ['switchboard'],
     DIA: ['dia'],
-    Tellor: ['tellor'],
   };
 
   const detectedOracles: string[] = [];
@@ -105,7 +104,6 @@ export async function fetchProtocolDetails(): Promise<ProtocolDetail[]> {
             'redstone',
             'switchboard',
             'dia',
-            'tellor',
           ].some((kw) => name.includes(kw)))
       );
     });

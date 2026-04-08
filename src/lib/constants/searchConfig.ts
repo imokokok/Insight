@@ -357,15 +357,6 @@ export const searchableItems: SearchableItem[] = [
     path: '/dia',
   },
   {
-    id: 'oracle-tellor',
-    type: 'oracle',
-    name: 'Tellor',
-    symbol: 'TRB',
-    aliases: ['tellor', 'trb'],
-    category: 'oracle',
-    path: '/tellor',
-  },
-  {
     id: 'oracle-winklink',
     type: 'oracle',
     name: 'WINkLink',

@@ -34,8 +34,7 @@ export const getOracleChartColors = (
       [OracleProvider.API3]: accessibleColors.chart.sequence[4],
       [OracleProvider.REDSTONE]: accessibleColors.chart.sequence[5],
       [OracleProvider.DIA]: accessibleColors.chart.sequence[6],
-      [OracleProvider.TELLOR]: accessibleColors.chart.sequence[7],
-      [OracleProvider.WINKLINK]: accessibleColors.chart.sequence[8],
+      [OracleProvider.WINKLINK]: accessibleColors.chart.sequence[7],
     } as Record<OracleProvider, string>;
   }
   return {
@@ -46,7 +45,6 @@ export const getOracleChartColors = (
     [OracleProvider.API3]: chartColors.oracle.api3,
     [OracleProvider.REDSTONE]: chartColors.oracle.redstone,
     [OracleProvider.DIA]: chartColors.oracle.dia,
-    [OracleProvider.TELLOR]: chartColors.oracle.tellor,
     [OracleProvider.WINKLINK]: chartColors.oracle.winklink,
   } as Record<OracleProvider, string>;
 };
@@ -64,7 +62,6 @@ export const getLineStrokeDasharray = (
     [OracleProvider.API3]: accessibleColors.linePatterns.longDash,
     [OracleProvider.REDSTONE]: '5 5',
     [OracleProvider.DIA]: '10 2',
-    [OracleProvider.TELLOR]: '15 3',
     [OracleProvider.WINKLINK]: '8 3 2 3',
   };
   return patternMap[oracle] || '0';

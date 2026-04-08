@@ -73,10 +73,6 @@ export interface TVSTrendData {
   dia: number;
   diaUpper: number;
   diaLower: number;
-  tellor: number;
-  tellorUpper: number;
-  tellorLower: number;
-
   winklink: number;
   winklinkUpper: number;
   winklinkLower: number;

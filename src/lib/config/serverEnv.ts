@@ -52,7 +52,6 @@ export const API3_CONFIG = {
 export const FEATURE_FLAGS = {
   useRealWinklinkData: process.env.USE_REAL_WINKLINK_DATA === 'true',
   useRealChainlinkData: process.env.USE_REAL_CHAINLINK_DATA === 'true',
-  useRealTellorData: process.env.USE_REAL_TELLOR_DATA === 'true',
   useRealUmaData: process.env.USE_REAL_UMA_DATA === 'true',
   useRealApi3Data: process.env.USE_REAL_API3_DATA === 'true',
 };
@@ -60,7 +59,6 @@ export const FEATURE_FLAGS = {
 // 缓存配置
 export const CACHE_CONFIG = {
   winklinkTtl: parseInt(process.env.WINKLINK_CACHE_TTL || '30000', 10),
-  tellorTtl: parseInt(process.env.TELLOR_CACHE_TTL || '60000', 10),
   umaTtl: parseInt(process.env.UMA_CACHE_TTL || '30000', 10),
   chainlinkPriceTtl: parseInt(process.env.CHAINLINK_PRICE_CACHE_TTL || '30000', 10),
   api3PriceTtl: parseInt(process.env.API3_PRICE_CACHE_TTL || '30000', 10),

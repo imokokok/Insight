@@ -346,7 +346,6 @@ export default function ChartRenderer({
       uma: chartColors.marketOverview.uma,
       redstone: chartColors.oracle.redstone,
       dia: chartColors.oracle.dia,
-      tellor: chartColors.oracle.tellor,
       winklink: chartColors.oracle.winklink,
     };
     const oracleNames: Record<string, string> = {
@@ -357,7 +356,6 @@ export default function ChartRenderer({
       uma: 'UMA',
       redstone: 'RedStone',
       dia: 'DIA',
-      tellor: 'Tellor',
       winklink: 'WINkLink',
     };
 

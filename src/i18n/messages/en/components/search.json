@@ -29,7 +29,6 @@
       "redstoneDesc": "Modular EVM+ compatible oracle stack",
       "umaDesc": "Optimistic oracle with customizable verification",
       "diaDesc": "Transparent crowd-sourced data validation oracle",
-      "tellorDesc": "Decentralized transparent oracle",
       "winklinkDesc": "TRON ecosystem oracle"
     },
     "blockchains": {

@@ -6,7 +6,6 @@ export const enum OracleProvider {
   API3 = 'api3',
   REDSTONE = 'redstone',
   DIA = 'dia',
-  TELLOR = 'tellor',
   WINKLINK = 'winklink',
 }
 
@@ -60,7 +59,6 @@ export const ORACLE_PROVIDER_VALUES: readonly OracleProvider[] = [
   OracleProvider.API3,
   OracleProvider.REDSTONE,
   OracleProvider.DIA,
-  OracleProvider.TELLOR,
   OracleProvider.WINKLINK,
 ] as const;
 

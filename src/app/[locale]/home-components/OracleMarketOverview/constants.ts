@@ -8,7 +8,6 @@ export const COLORS = {
   uma: chartColors.oracle.uma,
   redstone: chartColors.oracle.redstone,
   dia: chartColors.oracle.dia,
-  tellor: chartColors.oracle.tellor,
   winklink: chartColors.oracle.winklink,
   others: chartColors.oracle.redstone,
 };
@@ -21,7 +20,6 @@ export const oracleLineConfig = [
   { dataKey: 'uma', name: 'UMA', stroke: COLORS.uma },
   { dataKey: 'redstone', name: 'RedStone', stroke: COLORS.redstone },
   { dataKey: 'dia', name: 'DIA', stroke: COLORS.dia },
-  { dataKey: 'tellor', name: 'Tellor', stroke: COLORS.tellor },
   { dataKey: 'winklink', name: 'WINkLink', stroke: COLORS.winklink },
 ];
 
@@ -33,7 +31,6 @@ export const marketShareData = [
   { name: 'UMA', value: 4.3, color: COLORS.uma, tvs: '$2.5B', chains: 8 },
   { name: 'RedStone', value: 3.5, color: COLORS.redstone, tvs: '$2.1B', chains: 6 },
   { name: 'DIA', value: 2.8, color: COLORS.dia, tvs: '$1.6B', chains: 9 },
-  { name: 'Tellor', value: 2.2, color: COLORS.tellor, tvs: '$1.3B', chains: 7 },
   { name: 'WINkLink', value: 1.2, color: COLORS.winklink, tvs: '$0.7B', chains: 3 },
 ];
 
@@ -45,7 +42,6 @@ export const chainSupportData = [
   { name: 'UMA', chains: 8, symbols: 100, updateFreq: 'Optimistic', latency: '2h' },
   { name: 'RedStone', chains: 6, symbols: 1000, updateFreq: 'On-demand', latency: '10s' },
   { name: 'DIA', chains: 9, symbols: 500, updateFreq: 'On-demand', latency: '2-5s' },
-  { name: 'Tellor', chains: 7, symbols: 50, updateFreq: 'Dispute', latency: '15min' },
   { name: 'WINkLink', chains: 3, symbols: 20, updateFreq: 'On-demand', latency: '3-5s' },
 ];
 

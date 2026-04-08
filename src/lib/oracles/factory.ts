@@ -11,7 +11,6 @@ import { ChainlinkClient } from './chainlink';
 import { DIAClient } from './dia';
 import { PythClient } from './pythNetwork';
 import { RedStoneClient } from './redstone';
-import { TellorClient } from './tellor';
 import { UMAClient } from './uma';
 import { WINkLinkClient } from './winklink';
 
@@ -82,7 +81,6 @@ export class OracleClientFactory {
       OracleProvider.API3,
       OracleProvider.REDSTONE,
       OracleProvider.DIA,
-      OracleProvider.TELLOR,
       OracleProvider.WINKLINK,
     ];
 
@@ -188,7 +186,6 @@ export class OracleClientFactory {
       OracleProvider.API3,
       OracleProvider.REDSTONE,
       OracleProvider.DIA,
-      OracleProvider.TELLOR,
       OracleProvider.WINKLINK,
     ];
 
@@ -210,7 +207,6 @@ export class OracleClientFactory {
   private static createClient(provider: OracleProvider): BaseOracleClient {
     const useRealChainlinkData = FEATURE_FLAGS.useRealChainlinkData;
     const useRealUMData = FEATURE_FLAGS.useRealUmaData;
-    const useRealTellorData = FEATURE_FLAGS.useRealTellorData;
     const useRealAPI3Data = FEATURE_FLAGS.useRealApi3Data;
 
     switch (provider) {
@@ -228,8 +224,6 @@ export class OracleClientFactory {
         return new RedStoneClient(this.config);
       case OracleProvider.DIA:
         return new DIAClient(this.config);
-      case OracleProvider.TELLOR:
-        return new TellorClient({ ...this.config, useRealData: useRealTellorData });
       case OracleProvider.WINKLINK:
         return new WINkLinkClient(this.config);
       default:

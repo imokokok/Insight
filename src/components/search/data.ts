@@ -41,7 +41,6 @@ const oracleIcons: Record<OracleProvider, LucideIcon> = {
   [OracleProvider.REDSTONE]: Flame,
   [OracleProvider.UMA]: Database,
   [OracleProvider.DIA]: Globe,
-  [OracleProvider.TELLOR]: TrendingUp,
   [OracleProvider.WINKLINK]: Gamepad2,
 };
 
@@ -54,7 +53,6 @@ const oracleDescriptions: Record<OracleProvider, string> = {
   [OracleProvider.REDSTONE]: 'search.oracles.redstoneDesc',
   [OracleProvider.UMA]: 'search.oracles.umaDesc',
   [OracleProvider.DIA]: 'search.oracles.diaDesc',
-  [OracleProvider.TELLOR]: 'search.oracles.tellorDesc',
   [OracleProvider.WINKLINK]: 'search.oracles.winklinkDesc',
 };
 

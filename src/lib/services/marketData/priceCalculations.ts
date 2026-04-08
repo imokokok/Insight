@@ -47,7 +47,6 @@ export function generateTVSTrendData(
     uma: 2.5,
     redstone: 2.1,
     dia: 1.6,
-    tellor: 1.3,
     winklink: 0.7,
   };
 
@@ -70,8 +69,6 @@ export function generateTVSTrendData(
     const redstone =
       (baseValues.redstone || defaults.redstone) * (1 + (Math.random() - 0.5) * volatility);
     const dia = (baseValues.dia || defaults.dia) * (1 + (Math.random() - 0.5) * volatility);
-    const tellor =
-      (baseValues.tellor || defaults.tellor) * (1 + (Math.random() - 0.5) * volatility);
     const winklink =
       (baseValues.winklink || defaults.winklink) * (1 + (Math.random() - 0.5) * volatility);
 
@@ -99,14 +96,11 @@ export function generateTVSTrendData(
       dia: Number(dia.toFixed(2)),
       diaUpper: Number((dia * (1 + CONFIDENCE_INTERVAL)).toFixed(2)),
       diaLower: Number((dia * (1 - CONFIDENCE_INTERVAL)).toFixed(2)),
-      tellor: Number(tellor.toFixed(2)),
-      tellorUpper: Number((tellor * (1 + CONFIDENCE_INTERVAL)).toFixed(2)),
-      tellorLower: Number((tellor * (1 - CONFIDENCE_INTERVAL)).toFixed(2)),
       winklink: Number(winklink.toFixed(2)),
       winklinkUpper: Number((winklink * (1 + CONFIDENCE_INTERVAL)).toFixed(2)),
       winklinkLower: Number((winklink * (1 - CONFIDENCE_INTERVAL)).toFixed(2)),
       total: Number(
-        (chainlink + pyth + band + api3 + uma + redstone + dia + tellor + winklink).toFixed(2)
+        (chainlink + pyth + band + api3 + uma + redstone + dia + winklink).toFixed(2)
       ),
     });
   }

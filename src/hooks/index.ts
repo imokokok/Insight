@@ -19,5 +19,4 @@ export {
 export { useBandProtocolAllData, useBandPrice, useBandHistorical } from './oracles/band';
 export { useLastUpdated } from './oracles/useLastUpdated';
 export { useWINkLinkAllData } from './oracles/winklink';
-export { useTellorPrice, useTellorHistorical, useTellorAllData } from './oracles/tellor';
 export { useAPI3Price, useAPI3Historical } from './oracles/api3';

@@ -188,28 +188,6 @@ const routePrefetchMap: Record<string, RoutePrefetchConfig> = {
       },
     ],
   },
-  '/tellor': {
-    route: '/tellor',
-    priority: 'high',
-    prefetchQueries: [
-      {
-        queryKey: ['oracles', 'detail', 'tellor'],
-        queryFn: async () => {
-          try {
-            const response = await apiClient.get('/api/oracles/tellor');
-            return response.data;
-          } catch {
-            throw new PriceFetchError('Failed to fetch tellor data', {
-              provider: 'tellor',
-              retryable: true,
-            });
-          }
-        },
-        staleTime: STALE_TIME_CONFIG.network,
-        gcTime: GC_TIME_CONFIG.network,
-      },
-    ],
-  },
 
   '/winklink': {
     route: '/winklink',

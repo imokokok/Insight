@@ -226,7 +226,6 @@ export const chartColors = {
     switchboard: '#4ECDC4',
     dia: '#6366F1',
     flux: '#F38181',
-    tellor: '#AA96DA',
     winklink: '#FF4D4D',
   } as const,
 
@@ -241,7 +240,6 @@ export const chartColors = {
     switchboard: { color: '#0d9488', pattern: 'dashed' },
     dia: { color: '#059669', pattern: 'dotted' },
     flux: { color: '#ea580c', pattern: 'dashDot' },
-    tellor: { color: '#7c3aed', pattern: 'longDash' },
     winklink: { color: '#dc2626', pattern: 'dashed' },
   } as const,
 

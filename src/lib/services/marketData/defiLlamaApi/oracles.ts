@@ -23,7 +23,6 @@ function formatOracleName(name: string): string {
     switchboard: 'Switchboard',
     dia: 'DIA',
     flux: 'Flux',
-    tellor: 'Tellor',
   };
 
   const lowerName = name.toLowerCase();
@@ -41,7 +40,6 @@ function getOracleColor(name: string): string {
     Switchboard: chartColors.oracle.switchboard,
     DIA: chartColors.oracle.dia,
     Flux: chartColors.oracle.flux,
-    Tellor: chartColors.oracle.tellor,
   };
 
   return colorMap[name] || ORACLE_COLORS.others;
@@ -71,7 +69,6 @@ function estimateLatency(oracleName: string): number {
     Switchboard: 300,
     DIA: 800,
     Flux: 1000,
-    Tellor: 1500,
   };
 
   return latencyMap[oracleName] || 600;
@@ -88,7 +85,6 @@ function estimateAccuracy(oracleName: string): number {
     Switchboard: 99.1,
     DIA: 98.8,
     Flux: 98.6,
-    Tellor: 98.4,
   };
 
   return accuracyMap[oracleName] || 98.0;
@@ -105,7 +101,6 @@ function estimateUpdateFrequency(oracleName: string): number {
     Switchboard: 300,
     DIA: 120,
     Flux: 600,
-    Tellor: 3600,
   };
 
   return frequencyMap[oracleName] || 3600;
@@ -166,7 +161,6 @@ function identifyOracleName(protocolName: string): string | null {
   if (name.includes('switchboard')) return 'Switchboard';
   if (name.includes('dia')) return 'DIA';
   if (name.includes('flux')) return 'Flux';
-  if (name.includes('tellor')) return 'Tellor';
 
   return null;
 }
@@ -241,8 +235,6 @@ export async function fetchOraclesData(): Promise<OracleMarketData[]> {
             'redstone',
             'switchboard',
             'dia',
-            'tellor',
-
             'winklink',
           ].some((name) => p.name.toLowerCase().includes(name.toLowerCase()))
       );

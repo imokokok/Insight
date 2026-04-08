@@ -9,7 +9,6 @@ import {
   type UMAPriceData,
 } from '@/hooks';
 import { type BaseOracleClient } from '@/lib/oracles/base';
-import { TellorClient } from '@/lib/oracles/tellor';
 import { UMAClient } from '@/lib/oracles/uma';
 import {
   downsampleData,
@@ -93,7 +92,6 @@ interface UsePriceChartDataReturn {
   volumeRange: { min: number; max: number };
   priceChange: { value: number; percent: number };
   detectedAnomalies: AnomalyPoint[];
-  isTellorClient: boolean;
   isUMAClient: boolean;
   umaRealtimePrice: { confidence: number } | null;
   umaConnectionStatus: string;
@@ -137,7 +135,6 @@ export function usePriceChartData({
   const globalTimeRange = useGlobalTimeRange();
   const timeRange = globalTimeRange;
 
-  const isTellorClient = client instanceof TellorClient;
   const isUMAClient = client instanceof UMAClient;
 
   const chartState = useChartState();
@@ -265,44 +262,9 @@ export function usePriceChartData({
 
       setCurrentPrice(priceData.price);
 
-      if (isTellorClient) {
-        const tellorClient = client as TellorClient;
-        const periodHours = {
-          '1H': 1,
-          '24H': 24,
-          '7D': 24 * 7,
-          '30D': 24 * 30,
-          '90D': 24 * 90,
-          '1Y': 24 * 365,
-          ALL: 24 * 365,
-        }[timeRange];
-        const historicalPrices = await tellorClient.getHistoricalPrices(symbol, chain, periodHours);
-        if (historicalPrices.length > 0) {
-          const chartData: IndicatorDataPoint[] = historicalPrices.map((point) => ({
-            time: new Date(point.timestamp).toLocaleTimeString('zh-CN', {
-              hour: '2-digit',
-              minute: '2-digit',
-            }),
-            timestamp: point.timestamp,
-            price: point.price,
-            volume: 0,
-            open: point.price,
-            high: point.price,
-            low: point.price,
-            close: point.price,
-          }));
-          const downsampledData = applyDownsampling(chartData);
-          setRawData(downsampledData);
-        } else {
-          const historicalData = generateHistoricalData(priceData.price, timeRange);
-          const downsampledData = applyDownsampling(historicalData);
-          setRawData(downsampledData);
-        }
-      } else {
-        const historicalData = generateHistoricalData(priceData.price, timeRange);
-        const downsampledData = applyDownsampling(historicalData);
-        setRawData(downsampledData);
-      }
+      const historicalData = generateHistoricalData(priceData.price, timeRange);
+      const downsampledData = applyDownsampling(historicalData);
+      setRawData(downsampledData);
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') return;
 
@@ -327,7 +289,6 @@ export function usePriceChartData({
     symbol,
     timeRange,
     defaultPrice,
-    isTellorClient,
     abortControllerRef,
     setIsRefreshing,
     setChartOpacity,
@@ -491,7 +452,6 @@ export function usePriceChartData({
     volumeRange,
     priceChange,
     detectedAnomalies,
-    isTellorClient,
     isUMAClient,
     umaRealtimePrice,
     umaConnectionStatus,
