@@ -221,8 +221,16 @@ export function priceDataToRecord(
 
 // 兼容旧版 API 的导出
 export async function handleGetPrice(params: OracleQueryParams) {
-  const data = await fetchPriceFromOracle(params);
-  return createPriceResponse(data);
+  try {
+    const data = await fetchPriceFromOracle(params);
+    return createPriceResponse(data);
+  } catch (error) {
+    console.error(
+      `[handleGetPrice] Error fetching price for ${params.provider}/${params.symbol}:`,
+      error
+    );
+    return handleOracleError(error);
+  }
 }
 
 export async function handleGetHistoricalPrices(params: OracleQueryParams) {

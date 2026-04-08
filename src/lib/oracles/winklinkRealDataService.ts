@@ -183,29 +183,67 @@ export class WINkLinkRealDataService {
     }
 
     try {
-      const pairKey = symbol.toUpperCase().replace('/', '-');
+      // 标准化 symbol 格式: BTC -> BTC-USD, BTC/USD -> BTC-USD
+      const normalizedSymbol = symbol.toUpperCase().replace('/', '-');
+      // 如果 symbol 没有 -USD 后缀，添加它
+      const pairKey = normalizedSymbol.includes('-') ? normalizedSymbol : `${normalizedSymbol}-USD`;
       const contractAddress = WINKLINK_PRICE_FEEDS[pairKey];
 
       if (!contractAddress) {
-        logger.warn('No WINkLink price feed found for symbol', { symbol });
+        logger.warn('No WINkLink price feed found for symbol', {
+          symbol,
+          normalizedSymbol,
+          pairKey,
+          availablePairs: Object.keys(WINKLINK_PRICE_FEEDS),
+        });
         return null;
       }
 
-      // 调用 TRON RPC 获取价格
-      const [latestAnswer, decimals, latestTimestamp] = await Promise.all([
-        this.callContractMethod(contractAddress, 'latestAnswer'),
-        this.callContractMethod(contractAddress, 'decimals'),
-        this.callContractMethod(contractAddress, 'latestTimestamp'),
-      ]);
+      logger.info('Fetching price from WINkLink contract', { symbol, pairKey, contractAddress });
+
+      // 串行调用 TRON RPC 获取价格（避免并发请求问题）
+      const decimals = await this.callContractMethodWithRetry(contractAddress, 'decimals', 3);
+      await this.delay(100); // 短暂延迟避免请求过快
+
+      const latestAnswer = await this.callContractMethodWithRetry(
+        contractAddress,
+        'latestAnswer',
+        3
+      );
+      await this.delay(100);
+
+      const latestTimestamp = await this.callContractMethodWithRetry(
+        contractAddress,
+        'latestTimestamp',
+        3
+      );
+
+      logger.info('Raw contract data', { symbol, latestAnswer, decimals, latestTimestamp });
 
       if (!latestAnswer || !decimals) {
-        logger.warn('Invalid price data from WINkLink contract', { symbol });
+        logger.warn('Invalid price data from WINkLink contract', {
+          symbol,
+          latestAnswer,
+          decimals,
+        });
         return null;
       }
 
-      const decimalPlaces = parseInt(decimals, 16);
-      const priceValue = parseInt(latestAnswer, 16) / Math.pow(10, decimalPlaces);
-      const timestamp = latestTimestamp ? parseInt(latestTimestamp, 16) * 1000 : Date.now();
+      // 解析返回值 (hex string to int/bigint)
+      // TRON 返回的是 64 字符 hex (32 字节)，需要用 BigInt 解析
+      const parseHexToBigInt = (hex: string): bigint => {
+        const cleanHex = hex.startsWith('0x') ? hex.slice(2) : hex;
+        return BigInt('0x' + cleanHex);
+      };
+
+      const decimalPlaces = Number(parseHexToBigInt(decimals));
+      const priceRaw = parseHexToBigInt(latestAnswer);
+      const priceValue = Number(priceRaw) / Math.pow(10, decimalPlaces);
+      const timestamp = latestTimestamp
+        ? Number(parseHexToBigInt(latestTimestamp)) * 1000
+        : Date.now();
+
+      logger.info('Parsed price data', { symbol, priceValue, decimalPlaces, timestamp });
 
       const priceData: PriceData = {
         provider: OracleProvider.WINKLINK,
@@ -221,6 +259,7 @@ export class WINkLinkRealDataService {
       };
 
       this.setCache(cacheKey, priceData, 30000); // 30秒缓存
+      logger.info('Successfully fetched price from WINkLink', { symbol, price: priceValue });
       return priceData;
     } catch (error) {
       logger.error(
@@ -230,6 +269,39 @@ export class WINkLinkRealDataService {
       );
       return null;
     }
+  }
+
+  /**
+   * 延迟函数
+   */
+  private delay(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  /**
+   * 带重试的合约方法调用
+   */
+  private async callContractMethodWithRetry(
+    contractAddress: string,
+    method: string,
+    maxRetries: number = 3
+  ): Promise<string | null> {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      const result = await this.callContractMethod(contractAddress, method);
+
+      if (result !== null) {
+        return result;
+      }
+
+      if (attempt < maxRetries) {
+        logger.warn(`Retrying ${method} call (attempt ${attempt}/${maxRetries})`, {
+          contractAddress,
+        });
+        await this.delay(500 * attempt); // 指数退避
+      }
+    }
+
+    return null;
   }
 
   /**
@@ -255,47 +327,68 @@ export class WINkLinkRealDataService {
     method: string
   ): Promise<string | null> {
     try {
-      // 构建函数选择器
+      // 构建函数选择器 (4 字节 hex)
       const functionSelector = this.getFunctionSelector(method);
 
-      const response = await fetch(`${TRON_SOLIDITY_RPC}/triggerconstantcontract`, {
+      if (!functionSelector) {
+        logger.warn(`Unknown method: ${method}`);
+        return null;
+      }
+
+      // TRON API 端点: /wallet/triggerconstantcontract (不是 /walletsolidity/triggerconstantcontract)
+      const url = `${TRON_RPC_URL}/wallet/triggerconstantcontract`;
+      const body = {
+        owner_address: 'T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb',
+        contract_address: contractAddress,
+        function_selector: functionSelector,
+        parameter: '',
+        visible: true,
+      };
+
+      logger.debug(`Calling TRON contract`, { url, contractAddress, method, functionSelector });
+
+      const response = await fetch(url, {
         method: 'POST',
         headers: this.getHeaders(),
-        body: JSON.stringify({
-          owner_address: 'T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb', // 零地址
-          contract_address: contractAddress,
-          function_selector: functionSelector,
-          parameter: '',
-          visible: true,
-        }),
+        body: JSON.stringify(body),
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        const errorText = await response.text().catch(() => 'Unknown error');
+        throw new Error(`HTTP ${response.status}: ${response.statusText} - ${errorText}`);
       }
 
       const data = await response.json();
+      logger.debug(`TRON contract response`, { method, data });
 
-      if (data.result && data.result.result) {
-        // 解析返回值
+      // TRON API 返回格式: { result: { result: true }, constant_result: ['0x...'] }
+      if (data.result && data.result.result === true) {
         const hexValue = data.constant_result?.[0];
-        if (hexValue) {
+        if (hexValue && hexValue !== '0x') {
           return hexValue;
         }
+      }
+
+      // 如果 result 为 false，记录错误信息
+      if (data.result && data.result.message) {
+        const errorMessage = Buffer.from(data.result.message, 'hex').toString('utf8');
+        logger.warn(`TRON contract call failed`, { method, error: errorMessage });
       }
 
       return null;
     } catch (error) {
       logger.error(
         `Failed to call contract method ${method}`,
-        error instanceof Error ? error : new Error(String(error))
+        error instanceof Error ? error : new Error(String(error)),
+        { contractAddress }
       );
       return null;
     }
   }
 
   /**
-   * 获取函数选择器 (简化版)
+   * 获取函数选择器
+   * TRON API 使用函数签名字符串 (如 "latestAnswer()")
    */
   private getFunctionSelector(method: string): string {
     const selectors: Record<string, string> = {
