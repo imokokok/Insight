@@ -513,8 +513,15 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
       timeRange: selectedTimeRange,
     });
 
+    // 参数变化时，先清理旧数据，再获取新数据
     if (prevParamsRef.current !== paramsSignature) {
       prevParamsRef.current = paramsSignature;
+      // 清理旧数据，避免显示过期数据
+      setQueryResults([]);
+      setHistoricalData({});
+      setQueryErrors([]);
+      setValidationWarnings([]);
+      setDataAnomalies([]);
       fetchQueryData();
     }
   }, [

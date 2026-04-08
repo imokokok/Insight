@@ -171,10 +171,12 @@ export function Selectors({
             options={oracleOptions}
             value={selectedOracle}
             onChange={(value) => {
-              setSelectedOracle(value as OracleProvider);
+              const newOracle = value as OracleProvider;
+              setSelectedOracle(newOracle);
               // 切换预言机时重置链和币种
               setSelectedChain(null);
               setSelectedSymbol('');
+              // 注意：数据刷新由 usePriceQueryData 中的 useEffect 处理
             }}
             placeholder={t('priceQuery.selectors.selectOracle')}
           />
