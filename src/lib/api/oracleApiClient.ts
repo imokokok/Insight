@@ -42,9 +42,22 @@ export async function fetchPriceFromApi({
   });
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
+    const errorText = await response.text().catch(() => 'Unknown error');
+    let errorData = {};
+    try {
+      errorData = JSON.parse(errorText);
+    } catch {
+      // Not JSON, use text as is
+    }
+    console.error('[oracleApiClient] API error:', {
+      status: response.status,
+      statusText: response.statusText,
+      url: url.toString(),
+      errorData,
+      errorText,
+    });
     throw new Error(
-      errorData.message || `Failed to fetch price: ${response.status} ${response.statusText}`
+      (errorData as { message?: string }).message || `Failed to fetch price: ${response.status} ${response.statusText}`
     );
   }
 
@@ -86,9 +99,22 @@ export async function fetchHistoricalFromApi({
   });
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
+    const errorText = await response.text().catch(() => 'Unknown error');
+    let errorData = {};
+    try {
+      errorData = JSON.parse(errorText);
+    } catch {
+      // Not JSON, use text as is
+    }
+    console.error('[oracleApiClient] Historical API error:', {
+      status: response.status,
+      statusText: response.statusText,
+      url: url.toString(),
+      errorData,
+      errorText,
+    });
     throw new Error(
-      errorData.message ||
+      (errorData as { message?: string }).message ||
         `Failed to fetch historical prices: ${response.status} ${response.statusText}`
     );
   }
