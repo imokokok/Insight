@@ -132,7 +132,11 @@
       "confidenceAbs": "Confidence",
       "publishTime": "Published",
       "confidenceWidth": "Spread %",
-      "confidenceScore": "Confidence Score"
+      "confidenceScore": "Confidence Score",
+      "dapiName": "dAPI Name",
+      "proxyAddress": "Proxy",
+      "blockchain": "Blockchain",
+      "dataAge": "Data Age"
     },
     "export": {
       "header": "Price Query Export",

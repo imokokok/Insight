@@ -134,7 +134,12 @@
       "confidenceAbs": "置信区间",
       "publishTime": "发布时间",
       "confidenceWidth": "价差百分比",
-      "confidenceScore": "置信度"
+      "publisherCount": "发布者数量",
+      "confidenceScore": "置信度",
+      "dapiName": "dAPI 名称",
+      "proxyAddress": "Proxy 地址",
+      "blockchain": "区块链",
+      "dataAge": "数据年龄"
     },
     "export": {
       "header": "价格查询导出",

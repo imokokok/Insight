@@ -22,6 +22,7 @@ import {
   History,
   Settings,
   Shield,
+  Globe,
 } from 'lucide-react';
 
 import { ChartSkeleton, EmptyStateEnhanced, ProgressBar, SegmentedControl } from '@/components/ui';
@@ -299,6 +300,10 @@ export function QueryResults({
   const isPyth = currentResult?.provider === OracleProviderEnum.PYTH;
   const pythData = isPyth ? currentResult?.priceData : null;
 
+  // 判断是否为 API3 预言机
+  const isAPI3 = currentResult?.provider === OracleProviderEnum.API3;
+  const api3Data = isAPI3 ? currentResult?.priceData : null;
+
   return (
     <div className="space-y-4">
       {/* 错误提示横幅 */}
@@ -529,6 +534,95 @@ export function QueryResults({
                   </div>
                   <p className="text-lg font-bold text-gray-900 font-mono">
                     {pythData.confidence !== undefined ? `${pythData.confidence.toFixed(2)}%` : '-'}
+                  </p>
+                </div>
+              </>
+            ) : isAPI3 && api3Data ? (
+              <>
+                {/* API3 元数据 - dAPI 名称 */}
+                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+                  <div className="flex items-center gap-1.5 mb-1.5">
+                    <FileText className="w-3.5 h-3.5 text-emerald-500" />
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      {t('priceQuery.stats.dapiName') || 'dAPI Name'}
+                    </p>
+                  </div>
+                  <p className="text-lg font-bold text-gray-900 font-mono">
+                    {api3Data.dapiName || '-'}
+                  </p>
+                </div>
+
+                {/* API3 元数据 - Proxy 地址 */}
+                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+                  <div className="flex items-center gap-1.5 mb-1.5">
+                    <Hash className="w-3.5 h-3.5 text-blue-500" />
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      {t('priceQuery.stats.proxyAddress') || 'Proxy'}
+                    </p>
+                  </div>
+                  <p
+                    className="text-lg font-bold text-gray-900 font-mono truncate"
+                    title={api3Data.proxyAddress}
+                  >
+                    {api3Data.proxyAddress
+                      ? `${api3Data.proxyAddress.slice(0, 6)}...${api3Data.proxyAddress.slice(-4)}`
+                      : '-'}
+                  </p>
+                </div>
+
+                {/* API3 元数据 - 区块链 */}
+                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+                  <div className="flex items-center gap-1.5 mb-1.5">
+                    <Globe className="w-3.5 h-3.5 text-indigo-500" />
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      {t('priceQuery.stats.blockchain') || 'Blockchain'}
+                    </p>
+                  </div>
+                  <p className="text-lg font-bold text-gray-900">{api3Data.chain || '-'}</p>
+                </div>
+
+                {/* API3 元数据 - 数据精度 */}
+                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+                  <div className="flex items-center gap-1.5 mb-1.5">
+                    <Settings className="w-3.5 h-3.5 text-amber-500" />
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      {t('priceQuery.stats.decimals') || 'Decimals'}
+                    </p>
+                  </div>
+                  <p className="text-lg font-bold text-gray-900 font-mono">
+                    {api3Data.decimals ?? '-'}
+                  </p>
+                </div>
+
+                {/* API3 元数据 - 数据新鲜度 */}
+                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+                  <div className="flex items-center gap-1.5 mb-1.5">
+                    <Clock className="w-3.5 h-3.5 text-purple-500" />
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      {t('priceQuery.stats.dataAge') || 'Data Age'}
+                    </p>
+                  </div>
+                  <p className="text-lg font-bold text-gray-900">
+                    {api3Data.dataAge !== undefined
+                      ? api3Data.dataAge < 60000
+                        ? `${Math.round(api3Data.dataAge / 1000)}s`
+                        : `${Math.round(api3Data.dataAge / 60000)}m`
+                      : '-'}
+                  </p>
+                </div>
+
+                {/* API3 元数据 - 置信度 */}
+                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+                  <div className="flex items-center gap-1.5 mb-1.5">
+                    <Shield className="w-3.5 h-3.5 text-rose-500" />
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      {t('priceQuery.stats.confidenceScore') || 'Confidence'}
+                    </p>
+                  </div>
+                  <p className="text-lg font-bold text-gray-900 font-mono">
+                    {api3Data.confidence !== undefined
+                      ? `${(api3Data.confidence * 100).toFixed(0)}%`
+                      : '-'}
                   </p>
                 </div>
               </>

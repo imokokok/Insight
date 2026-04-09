@@ -34,6 +34,10 @@ export interface PriceData extends PriceDataBase {
   exponent?: number; // 价格指数
   conf?: number; // 置信区间绝对值
   publishTime?: number; // 发布时间
+  // API3 元数据
+  dapiName?: string; // dAPI 名称，如 "ETH/USD"
+  proxyAddress?: string; // dAPI Proxy 合约地址
+  dataAge?: number; // 数据年龄（毫秒）
 }
 
 export interface OracleSymbolSupport {

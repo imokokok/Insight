@@ -82,6 +82,9 @@ export class API3Client extends BaseOracleClient {
         chain: targetChain,
         source: api3Data.source,
         dataSource: 'real',
+        dapiName: api3Data.dapiName,
+        proxyAddress: api3Data.proxyAddress,
+        dataAge: api3Data.dataAge,
       };
     } catch (error) {
       console.error(`[API3Client] Failed to fetch price for ${symbol}:`, error);
