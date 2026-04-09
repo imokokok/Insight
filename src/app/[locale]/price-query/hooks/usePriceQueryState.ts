@@ -12,16 +12,16 @@ export interface TimeComparisonConfig {
     label: string;
     startDate: Date;
     endDate: Date;
-    range: '1h' | '24h' | '7d' | '30d' | '90d' | '1y' | 'custom';
+    range: '1h' | '6h' | '24h' | '7d' | 'custom';
   };
   comparisonPeriod: {
     id: string;
     label: string;
     startDate: Date;
     endDate: Date;
-    range: '1h' | '24h' | '7d' | '30d' | '90d' | '1y' | 'custom';
+    range: '1h' | '6h' | '24h' | '7d' | 'custom';
   };
-  comparisonType: 'previous' | 'custom' | 'year_over_year';
+  comparisonType: 'previous' | 'custom';
 }
 
 export interface UsePriceQueryStateReturn {
@@ -128,7 +128,6 @@ export function usePriceQueryState(): UsePriceQueryStateReturn {
       '6h': 6,
       '24h': 24,
       '7d': 168,
-      '30d': 720,
     };
 
     const defaultOracle = oracleMapping[preferences.defaultOracle] || OracleProvider.CHAINLINK;

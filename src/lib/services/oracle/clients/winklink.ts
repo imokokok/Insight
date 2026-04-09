@@ -89,9 +89,38 @@ export class WINkLinkClient extends BaseOracleClient {
     chain?: Blockchain,
     period: number = 24
   ): Promise<PriceData[]> {
-    // WINkLink 合约不提供历史价格查询，返回空数组
-    // 如需历史数据，需要自行维护数据库记录
-    return [];
+    try {
+      // 统一使用 Binance API 获取历史价格数据
+      const historicalPrices = await binanceMarketService.getHistoricalPricesByHours(symbol, period);
+
+      if (!historicalPrices || historicalPrices.length === 0) {
+        return [];
+      }
+
+      const targetChain = chain || Blockchain.TRON;
+      const basePrice = historicalPrices[0].price;
+
+      return historicalPrices.map((point, index) => {
+        const change24hPercent = index === 0 ? 0 : ((point.price - basePrice) / basePrice) * 100;
+        const change24h = index === 0 ? 0 : point.price - basePrice;
+
+        return {
+          provider: OracleProvider.WINKLINK,
+          chain: targetChain,
+          symbol: symbol.toUpperCase(),
+          price: point.price,
+          timestamp: point.timestamp,
+          decimals: 8,
+          confidence: 0.95,
+          change24h: Number(change24h.toFixed(4)),
+          change24hPercent: Number(change24hPercent.toFixed(2)),
+          source: 'binance-api',
+        };
+      });
+    } catch (error) {
+      console.error(`[WINkLink] Failed to fetch historical prices for ${symbol}:`, error);
+      return [];
+    }
   }
 
   getSupportedSymbols(): string[] {

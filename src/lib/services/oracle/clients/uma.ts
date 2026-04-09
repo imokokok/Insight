@@ -165,10 +165,44 @@ export class UMAClient extends BaseOracleClient {
       throw this.createError('Period must be greater than 0', 'HISTORICAL_PRICE_ERROR');
     }
 
-    throw this.createError(
-      'Historical prices are not available from UMA on-chain service. Please use a market data provider.',
-      'UMA_HISTORICAL_PRICES_NOT_AVAILABLE'
-    );
+    try {
+      // 统一使用 Binance API 获取历史价格数据
+      const historicalPrices = await binanceMarketService.getHistoricalPricesByHours(symbol, period);
+
+      if (!historicalPrices || historicalPrices.length === 0) {
+        throw this.createError(
+          `Historical price data not available for symbol: ${symbol}`,
+          'UMA_HISTORICAL_PRICES_NOT_AVAILABLE'
+        );
+      }
+
+      const targetChain = chain || Blockchain.ETHEREUM;
+      const basePrice = historicalPrices[0].price;
+
+      return historicalPrices.map((point, index) => {
+        const change24hPercent = index === 0 ? 0 : ((point.price - basePrice) / basePrice) * 100;
+        const change24h = index === 0 ? 0 : point.price - basePrice;
+
+        return {
+          provider: OracleProvider.UMA,
+          chain: targetChain,
+          symbol: symbol.toUpperCase(),
+          price: point.price,
+          timestamp: point.timestamp,
+          decimals: 8,
+          confidence: 0.95,
+          change24h: Number(change24h.toFixed(4)),
+          change24hPercent: Number(change24hPercent.toFixed(2)),
+          source: 'binance-api',
+        };
+      });
+    } catch (error) {
+      console.error(`[UMA] Failed to fetch historical prices for ${symbol}:`, error);
+      throw this.createError(
+        error instanceof Error ? error.message : 'Failed to fetch historical prices',
+        'UMA_HISTORICAL_PRICES_ERROR'
+      );
+    }
   }
 
   async getValidators(): Promise<ValidatorData[]> {

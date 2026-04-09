@@ -64,14 +64,13 @@ export const EXPORT_FIELDS = [
 
 /**
  * Time range options in hours
+ * 支持: 1小时、6小时、24小时、7天
  */
 export const TIME_RANGES = [
-  { value: 1, key: '1h' },
-  { value: 6, key: '6h' },
-  { value: 24, key: '24h' },
-  { value: 72, key: '3d' },
-  { value: 168, key: '7d' },
-  { value: 720, key: '30d' },
+  { value: 1, key: '1h', label: '1小时' },
+  { value: 6, key: '6h', label: '6小时' },
+  { value: 24, key: '24h', label: '24小时' },
+  { value: 168, key: '7d', label: '7天' },
 ] as const;
 
 /**

@@ -2,6 +2,7 @@ import { BaseOracleClient } from '@/lib/oracles/base';
 import type { OracleClientConfig } from '@/lib/oracles/base';
 import { api3Symbols, API3_AVAILABLE_PAIRS } from '@/lib/oracles/supportedSymbols';
 import { api3NetworkService } from '@/lib/services/oracle/api3NetworkService';
+import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
 import type { PriceData } from '@/types/oracle';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 
@@ -115,33 +116,36 @@ export class API3Client extends BaseOracleClient {
     const targetChain = chain || Blockchain.ETHEREUM;
 
     try {
-      // 从API3网络服务获取历史价格
-      const historicalPrices = await api3NetworkService.getHistoricalPrices(
-        symbol,
-        targetChain,
-        period
-      );
+      // 统一使用 Binance API 获取历史价格数据
+      const historicalPrices = await binanceMarketService.getHistoricalPricesByHours(symbol, period);
 
       if (!historicalPrices || historicalPrices.length === 0) {
         throw this.createError(
-          `Historical price data not available for symbol: ${symbol} on ${targetChain}. The dAPI may not be activated or the symbol is not supported by API3.`,
+          `Historical price data not available for symbol: ${symbol}. Please check if the symbol is supported.`,
           'API3_HISTORICAL_PRICES_NOT_AVAILABLE'
         );
       }
 
-      return historicalPrices.map((point) => ({
-        provider: OracleProvider.API3,
-        symbol: symbol.toUpperCase(),
-        price: point.price,
-        timestamp: point.timestamp,
-        decimals: 18,
-        confidence: 0.98,
-        change24h: 0,
-        change24hPercent: 0,
-        chain: targetChain,
-        source: point.source,
-        dataSource: 'real',
-      }));
+      const basePrice = historicalPrices[0].price;
+
+      return historicalPrices.map((point, index) => {
+        const change24hPercent = index === 0 ? 0 : ((point.price - basePrice) / basePrice) * 100;
+        const change24h = index === 0 ? 0 : point.price - basePrice;
+
+        return {
+          provider: OracleProvider.API3,
+          symbol: symbol.toUpperCase(),
+          price: point.price,
+          timestamp: point.timestamp,
+          decimals: 8,
+          confidence: 0.98,
+          change24h: Number(change24h.toFixed(4)),
+          change24hPercent: Number(change24hPercent.toFixed(2)),
+          chain: targetChain,
+          source: 'binance-api',
+          dataSource: 'real',
+        };
+      });
     } catch (error) {
       console.error(`[API3Client] Failed to fetch historical prices for ${symbol}:`, error);
 

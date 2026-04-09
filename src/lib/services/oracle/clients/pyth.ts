@@ -126,58 +126,46 @@ export class PythClient extends BaseOracleClient {
         throw this.createError('Symbol is required', 'INVALID_SYMBOL');
       }
 
-      const historicalPrices = await this.pythDataService.getHistoricalPrices(symbol, period, 60);
+      // 统一使用 Binance API 获取历史价格数据
+      const historicalPrices = await binanceMarketService.getHistoricalPricesByHours(symbol, period);
 
-      if (historicalPrices.length >= 12) {
-        logger.info(`Using Pyth real historical data for ${symbol}`, {
-          symbol,
-          points: historicalPrices.length,
-        });
-        return historicalPrices
-          .map((price) => ({
-            ...price,
-            chain,
-            source: 'pyth-hermes-api',
-          }))
-          .sort((a, b) => a.timestamp - b.timestamp);
+      if (!historicalPrices || historicalPrices.length === 0) {
+        logger.warn(`No historical data available for ${symbol}`, { symbol });
+        return [];
       }
 
-      logger.info(`Pyth historical data insufficient for ${symbol}, trying CoinGecko...`, {
+      logger.info(`Using Binance historical data for ${symbol}`, {
         symbol,
+        points: historicalPrices.length,
+        period,
       });
-      const { coinGeckoMarketService } =
-        await import('@/lib/services/marketData/coinGeckoMarketService');
-      const days = Math.ceil(period / 24);
-      const coinGeckoPrices = await coinGeckoMarketService.getHistoricalPrices(symbol, days);
 
-      if (coinGeckoPrices && coinGeckoPrices.length > 0) {
-        logger.info(`Using CoinGecko historical data for ${symbol}`, {
-          symbol,
-          points: coinGeckoPrices.length,
-        });
-        return coinGeckoPrices.map((point) => ({
+      const targetChain = chain || Blockchain.ETHEREUM;
+      const basePrice = historicalPrices[0].price;
+
+      return historicalPrices.map((point, index) => {
+        const change24hPercent = index === 0 ? 0 : ((point.price - basePrice) / basePrice) * 100;
+        const change24h = index === 0 ? 0 : point.price - basePrice;
+
+        return {
           provider: this.name,
-          chain: chain || Blockchain.ETHEREUM,
-          symbol,
+          chain: targetChain,
+          symbol: symbol.toUpperCase(),
           price: point.price,
           timestamp: point.timestamp,
           decimals: 8,
           confidence: 0.95,
-          change24h: 0,
-          change24hPercent: 0,
-          source: 'coingecko-api',
-        }));
-      }
-
-      logger.warn(`No historical data available for ${symbol}`, { symbol });
-      return [];
+          change24h: Number(change24h.toFixed(4)),
+          change24hPercent: Number(change24hPercent.toFixed(2)),
+          source: 'binance-api',
+        };
+      });
     } catch (error) {
       logger.error(
         `Failed to fetch historical prices for ${symbol}`,
         error instanceof Error ? error : new Error(String(error)),
         { symbol }
       );
-
       return [];
     }
   }
