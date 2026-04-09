@@ -364,13 +364,6 @@ export function QueryResults({
                 <span className="text-4xl sm:text-5xl font-bold text-gray-900 tracking-tight">
                   ${formatPrice(currentPriceValue)}
                 </span>
-                <span
-                  className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-sm font-semibold border ${changeBg} ${changeColor} ${changeBorder}`}
-                >
-                  <ChangeIcon className="w-3.5 h-3.5" />
-                  {isPositiveChange ? '+' : ''}
-                  {change24hValue.toFixed(2)}%
-                </span>
               </div>
             </div>
           </div>
