@@ -7,7 +7,8 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 
-import { OracleClientFactory, getHoursForTimeRange, extractBaseSymbol } from '@/lib/oracles';
+import { oracleApiClient } from '@/lib/api/oracleApiClient';
+import { getHoursForTimeRange, extractBaseSymbol } from '@/lib/oracles';
 import { memoryManager, type MemoryStats } from '@/lib/oracles/memoryManager';
 import {
   PerformanceMetricsCalculator,
@@ -250,19 +251,33 @@ export function useOracleData({
       const requestQueue = getRequestQueue();
 
       try {
-        const client = OracleClientFactory.getClient(oracle);
-
+        // 使用 API 路由获取数据，避免浏览器端 CORS 问题
         const [price, history] = await Promise.all([
-          requestQueue.add(() => client.getPrice(baseSymbol), {
-            priority: requestPriority,
-            timeout: requestTimeout,
-            abortSignal: signal,
-          }),
-          requestQueue.add(() => client.getHistoricalPrices(baseSymbol, undefined, hours), {
-            priority: requestPriority,
-            timeout: requestTimeout,
-            abortSignal: signal,
-          }),
+          requestQueue.add(
+            () =>
+              oracleApiClient.fetchPrice({
+                provider: oracle as OracleProvider,
+                symbol: baseSymbol,
+              }),
+            {
+              priority: requestPriority,
+              timeout: requestTimeout,
+              abortSignal: signal,
+            }
+          ),
+          requestQueue.add(
+            () =>
+              oracleApiClient.fetchHistorical({
+                provider: oracle as OracleProvider,
+                symbol: baseSymbol,
+                period: hours,
+              }),
+            {
+              priority: requestPriority,
+              timeout: requestTimeout,
+              abortSignal: signal,
+            }
+          ),
         ]);
 
         if (signal.aborted) {

@@ -225,8 +225,18 @@ export class ChainlinkOnChainService {
       this.setCache(cacheKey, result);
       return result;
     } catch (error) {
-      console.error(`[ChainlinkOnChainService] Failed to fetch price for ${symbol}:`, error);
-      throw error;
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const rpcConfig = getChainlinkRPCConfig(chainId);
+      const endpointStatus = this.getEndpointStatus(chainId);
+      console.error(`[ChainlinkOnChainService] Failed to fetch price for ${symbol}:`, {
+        error: errorMessage,
+        symbol,
+        chainId,
+        feedAddress: feed?.address,
+        availableEndpoints: rpcConfig?.endpoints?.length || 0,
+        endpointStatus,
+      });
+      throw new Error(`Failed to fetch price for ${symbol} on chain ${chainId}: ${errorMessage}`);
     }
   }
 

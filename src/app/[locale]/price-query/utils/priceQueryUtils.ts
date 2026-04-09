@@ -3,7 +3,7 @@
  * Shared utilities for price query functionality
  */
 
-import { getOracleClient } from '@/lib/oracles';
+import { getOracleClient, extractBaseSymbol } from '@/lib/oracles';
 import type { OracleProvider, Blockchain, PriceData } from '@/types/oracle';
 
 import { priceCache, createCacheKey, CACHE_CONFIG } from './cacheUtils';
@@ -32,7 +32,8 @@ export async function fetchPriceData(
 
   // Fetch from API
   const client = getOracleClient(provider);
-  const priceData = await client.getPrice(symbol, chain);
+  const baseSymbol = extractBaseSymbol(symbol);
+  const priceData = await client.getPrice(baseSymbol, chain);
 
   // Enhance with provider and chain info
   const result: PriceData = {
@@ -63,7 +64,8 @@ export async function fetchHistoricalPrices(
   timeRange: number
 ): Promise<PriceData[]> {
   const client = getOracleClient(provider);
-  return client.getHistoricalPrices(symbol, chain, timeRange);
+  const baseSymbol = extractBaseSymbol(symbol);
+  return client.getHistoricalPrices(baseSymbol, chain, timeRange);
 }
 
 /**

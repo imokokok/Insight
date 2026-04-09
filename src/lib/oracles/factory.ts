@@ -202,9 +202,9 @@ export class OracleClientFactory {
   }
 
   private static createClient(provider: OracleProvider): BaseOracleClient {
-    const useRealChainlinkData = FEATURE_FLAGS.useRealChainlinkData;
-    const useRealUMData = FEATURE_FLAGS.useRealUmaData;
-    const useRealAPI3Data = FEATURE_FLAGS.useRealApi3Data;
+    const useRealChainlinkData = FEATURE_FLAGS.useRealChainlinkData ?? true;
+    const useRealUMData = FEATURE_FLAGS.useRealUmaData ?? true;
+    const useRealAPI3Data = FEATURE_FLAGS.useRealApi3Data ?? true;
 
     switch (provider) {
       case OracleProvider.CHAINLINK:
