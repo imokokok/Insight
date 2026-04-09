@@ -40,6 +40,7 @@ import {
 } from '@/lib/oracles';
 import type { DIATokenOnChainData } from '@/lib/oracles/diaDataService';
 import type { WINkLinkTokenOnChainData } from '@/lib/oracles/winklinkRealDataService';
+import type { RedStoneTokenOnChainData } from '@/lib/services/oracle/clients/redstone';
 
 import { type QueryResult, type PriceData } from '../constants';
 import { type QueryError } from '../hooks/usePriceQuery';
@@ -152,6 +153,9 @@ interface QueryResultsProps {
   // WINkLink链上数据
   winklinkOnChainData?: WINkLinkTokenOnChainData | null;
   isWINkLinkDataLoading?: boolean;
+  // RedStone链上数据
+  redstoneOnChainData?: RedStoneTokenOnChainData | null;
+  isRedStoneDataLoading?: boolean;
 }
 
 /**
@@ -219,6 +223,8 @@ export function QueryResults({
   isDIADataLoading,
   winklinkOnChainData,
   isWINkLinkDataLoading,
+  redstoneOnChainData,
+  isRedStoneDataLoading,
 }: QueryResultsProps) {
   const t = useTranslations();
 
@@ -823,6 +829,92 @@ export function QueryResults({
                   </div>
                   <p className="text-lg font-bold text-gray-900 font-mono">
                     {winklinkOnChainData.nodeUptime.toFixed(2)}%
+                  </p>
+                </div>
+              </>
+            ) : redstoneOnChainData ? (
+              <>
+                {/* 价格精度 */}
+                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+                  <div className="flex items-center gap-1.5 mb-1.5">
+                    <Settings className="w-3.5 h-3.5 text-blue-500" />
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      价格精度
+                    </p>
+                  </div>
+                  <p className="text-lg font-bold text-gray-900 font-mono">
+                    {redstoneOnChainData.decimals} 位
+                  </p>
+                </div>
+
+                {/* 支持链数量 */}
+                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+                  <div className="flex items-center gap-1.5 mb-1.5">
+                    <Globe className="w-3.5 h-3.5 text-amber-500" />
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      支持链数
+                    </p>
+                  </div>
+                  <p className="text-lg font-bold text-gray-900 font-mono">
+                    {redstoneOnChainData.supportedChainsCount} 条
+                  </p>
+                </div>
+
+                {/* 买卖价差(Bid) */}
+                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+                  <div className="flex items-center gap-1.5 mb-1.5">
+                    <TrendingDown className="w-3.5 h-3.5 text-emerald-500" />
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      买入价(Bid)
+                    </p>
+                  </div>
+                  <p className="text-lg font-bold text-gray-900 font-mono">
+                    {redstoneOnChainData.bid ? `$${redstoneOnChainData.bid.toFixed(4)}` : '-'}
+                  </p>
+                </div>
+
+                {/* 买卖价差(Ask) */}
+                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+                  <div className="flex items-center gap-1.5 mb-1.5">
+                    <TrendingUp className="w-3.5 h-3.5 text-indigo-500" />
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      卖出价(Ask)
+                    </p>
+                  </div>
+                  <p className="text-lg font-bold text-gray-900 font-mono">
+                    {redstoneOnChainData.ask ? `$${redstoneOnChainData.ask.toFixed(4)}` : '-'}
+                  </p>
+                </div>
+
+                {/* 数据源提供商 */}
+                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+                  <div className="flex items-center gap-1.5 mb-1.5">
+                    <Database className="w-3.5 h-3.5 text-purple-500" />
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      数据源
+                    </p>
+                  </div>
+                  <p className="text-lg font-bold text-gray-900 font-mono">
+                    {redstoneOnChainData.provider
+                      ? redstoneOnChainData.provider.replace('redstone-', '').toUpperCase()
+                      : '-'}
+                  </p>
+                </div>
+
+                {/* 数据新鲜度 */}
+                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+                  <div className="flex items-center gap-1.5 mb-1.5">
+                    <Clock className="w-3.5 h-3.5 text-rose-500" />
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      数据年龄
+                    </p>
+                  </div>
+                  <p className="text-lg font-bold text-gray-900 font-mono">
+                    {redstoneOnChainData.dataAge !== null
+                      ? redstoneOnChainData.dataAge < 60
+                        ? `${redstoneOnChainData.dataAge}s`
+                        : `${Math.round(redstoneOnChainData.dataAge / 60)}m`
+                      : '-'}
                   </p>
                 </div>
               </>

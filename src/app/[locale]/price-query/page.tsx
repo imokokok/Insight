@@ -8,7 +8,12 @@
 import { useRef, useCallback } from 'react';
 
 import { LiveStatusBar } from '@/components/ui';
-import { useCommonShortcuts, useDIAOnChainData, useWINkLinkOnChainData } from '@/hooks';
+import {
+  useCommonShortcuts,
+  useDIAOnChainData,
+  useWINkLinkOnChainData,
+  useRedStoneOnChainData,
+} from '@/hooks';
 import { useTranslations } from '@/i18n';
 import { OracleProvider } from '@/lib/oracles';
 
@@ -85,6 +90,17 @@ export default function PriceQueryPage() {
   const { data: winklinkOnChainData, isLoading: isWINkLinkDataLoading } = useWINkLinkOnChainData({
     symbol: selectedSymbol,
     enabled: shouldFetchWINkLinkData && !!selectedSymbol && queryResults.length > 0,
+  });
+
+  // 获取RedStone链上数据（当选择RedStone预言机或没有特定预言机时）
+  const shouldFetchRedStoneData =
+    !selectedOracle ||
+    selectedOracle === OracleProvider.REDSTONE ||
+    queryResults.some((r) => r.provider === OracleProvider.REDSTONE);
+
+  const { data: redstoneOnChainData, isLoading: isRedStoneDataLoading } = useRedStoneOnChainData({
+    symbol: selectedSymbol,
+    enabled: shouldFetchRedStoneData && !!selectedSymbol && queryResults.length > 0,
   });
 
   // Debounced search focus handler
@@ -278,6 +294,8 @@ export default function PriceQueryPage() {
             isDIADataLoading={isDIADataLoading}
             winklinkOnChainData={winklinkOnChainData}
             isWINkLinkDataLoading={isWINkLinkDataLoading}
+            redstoneOnChainData={redstoneOnChainData}
+            isRedStoneDataLoading={isRedStoneDataLoading}
           />
         </main>
       </div>

@@ -9,6 +9,14 @@ export { usePythPrice, usePythHistorical } from './pyth';
 
 // RedStone
 export { useRedStonePrice, useRedStoneHistorical } from './redstone';
+export {
+  useRedStoneOnChainData,
+  formatChangeAmount,
+  formatSpread,
+  formatProvider,
+  type UseRedStoneOnChainDataOptions,
+  type UseRedStoneOnChainDataReturn,
+} from './useRedStoneOnChainData';
 
 // DIA
 export { useDIAPrice, useDIAHistorical } from './dia';
