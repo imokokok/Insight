@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react';
 
 import { useFavorites, type FavoriteConfig, mapConfigTypeFromDB } from '@/hooks';
+import { useTranslations } from '@/i18n';
 import type { ConfigType } from '@/lib/supabase/database.types';
 import type { UserFavorite } from '@/lib/supabase/queries';
 import { useUser } from '@/stores/authStore';
@@ -25,6 +26,7 @@ export function FavoritesManager({
   className = '',
 }: FavoritesManagerProps) {
   const user = useUser();
+  const t = useTranslations();
   const { favorites, isLoading, error } = useFavorites();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState<ConfigType | 'all'>('all');
@@ -86,20 +88,20 @@ export function FavoritesManager({
   };
 
   const typeFilters: Array<{ value: ConfigType | 'all'; label: string; count: number }> = [
-    { value: 'all', label: '全部', count: favorites.length },
+    { value: 'all', label: t('favorites.all'), count: favorites.length },
     {
       value: 'oracle_config',
-      label: '预言机配置',
+      label: t('favorites.oracleConfig'),
       count: favorites.filter((f) => mapConfigTypeFromDB(f.config_type) === 'oracle_config').length,
     },
     {
       value: 'symbol',
-      label: '交易对',
+      label: t('favorites.symbol'),
       count: favorites.filter((f) => mapConfigTypeFromDB(f.config_type) === 'symbol').length,
     },
     {
       value: 'chain_config',
-      label: '链配置',
+      label: t('favorites.chainConfig'),
       count: favorites.filter((f) => mapConfigTypeFromDB(f.config_type) === 'chain_config').length,
     },
   ];
@@ -119,7 +121,7 @@ export function FavoritesManager({
             d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
           />
         </svg>
-        <p className="text-sm text-gray-500">请登录后查看收藏</p>
+        <p className="text-sm text-gray-500">{t('favorites.loginRequired')}</p>
       </div>
     );
   }
@@ -139,7 +141,7 @@ export function FavoritesManager({
             d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
           />
         </svg>
-        <p className="text-sm text-danger-600">加载收藏失败</p>
+        <p className="text-sm text-danger-600">{t('favorites.loadError')}</p>
         <p className="text-xs text-danger-500 mt-1">{error.message}</p>
       </div>
     );
@@ -167,7 +169,7 @@ export function FavoritesManager({
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="搜索收藏..."
+                placeholder={t('favorites.searchPlaceholder')}
                 className="w-full pl-10 pr-4 py-2.5 border border-gray-200  text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               />
               {searchQuery && (
@@ -249,12 +251,14 @@ export function FavoritesManager({
             />
           </svg>
           <p className="text-base font-medium text-gray-600 mb-1">
-            {searchQuery || selectedType !== 'all' ? '没有找到匹配的收藏' : '暂无收藏'}
+            {searchQuery || selectedType !== 'all'
+              ? t('favorites.noResults')
+              : t('favorites.empty')}
           </p>
           <p className="text-sm text-gray-500">
             {searchQuery || selectedType !== 'all'
-              ? '尝试调整搜索条件或筛选器'
-              : '在各个页面添加收藏后，将在这里显示'}
+              ? t('favorites.noResultsDesc')
+              : t('favorites.emptyDesc')}
           </p>
         </div>
       ) : showGroupByType && selectedType === 'all' ? (
@@ -264,9 +268,9 @@ export function FavoritesManager({
             if (typeFavorites.length === 0) return null;
 
             const typeLabels: Record<ConfigType, string> = {
-              oracle_config: '预言机配置',
-              symbol: '交易对',
-              chain_config: '链配置',
+              oracle_config: t('favorites.oracleConfig'),
+              symbol: t('favorites.symbol'),
+              chain_config: t('favorites.chainConfig'),
             };
 
             return (

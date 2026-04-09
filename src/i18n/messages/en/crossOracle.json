@@ -435,6 +435,21 @@
       "1m": "1m",
       "5m": "5m"
     },
+    "failedOracles": "Failed Oracles",
+    "retry": "Retry",
+    "retrying": "Retrying...",
+    "partialSuccess": "{success}/{total} oracles loaded successfully",
+    "partialSuccessDesc": "Some oracles failed to respond. You can retry them individually or all at once.",
+    "retryAll": "Retry All Failed",
+    "errorTypes": {
+      "network": "Network Error",
+      "timeout": "Request Timeout",
+      "dataFormat": "Data Format Error",
+      "rateLimit": "Rate Limit",
+      "serverError": "Server Error",
+      "cors": "CORS Error",
+      "unknown": "Unknown Error"
+    },
     "filter": {
       "all": "All",
       "normal": "Normal",

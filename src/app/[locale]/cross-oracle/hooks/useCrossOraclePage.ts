@@ -32,7 +32,15 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
   const t = useTranslations();
   const user = useUser();
 
-  const { initialSymbol = 'BTC/USD', initialOracles = [OracleProvider.PYTH] } = options;
+  const {
+    initialSymbol = 'BTC/USD',
+    initialOracles = [
+      OracleProvider.PYTH,
+      OracleProvider.API3,
+      OracleProvider.REDSTONE,
+      OracleProvider.DIA,
+    ],
+  } = options;
 
   // ==========================================================================
   // 基础状态

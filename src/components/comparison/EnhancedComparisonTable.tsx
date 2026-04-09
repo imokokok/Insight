@@ -4,6 +4,7 @@ import React, { useMemo, useRef, useEffect, useState, useCallback } from 'react'
 
 import { ArrowUp, ArrowDown, Minus, AlertTriangle, CheckCircle2 } from 'lucide-react';
 
+import { useTranslations } from '@/i18n';
 import { semanticColors } from '@/lib/config/colors';
 import { cn } from '@/lib/utils';
 
@@ -207,6 +208,7 @@ function AnomalyIndicator({ status }: AnomalyIndicatorProps) {
 // Main Component
 // ============================================
 
+// eslint-disable-next-line max-lines-per-function
 export function EnhancedComparisonTable({
   data,
   benchmarkProvider,
@@ -217,6 +219,8 @@ export function EnhancedComparisonTable({
   className,
   'aria-label': ariaLabel,
 }: EnhancedComparisonTableProps) {
+  const t = useTranslations();
+
   // 表格容器和焦点管理
   const tableRef = useRef<HTMLTableElement>(null);
   const [focusedCell, setFocusedCell] = useState<{ row: number; col: number } | null>(null);
@@ -225,15 +229,15 @@ export function EnhancedComparisonTable({
   // 列配置
   const columns = useMemo(
     () => [
-      { key: 'status', label: '状态', sortable: false },
-      { key: 'provider', label: '数据源', sortable: true },
-      { key: 'name', label: '名称', sortable: true },
-      { key: 'price', label: '价格', sortable: true },
-      { key: 'deviation', label: '偏离值', sortable: true },
-      { key: 'confidence', label: '置信度', sortable: true },
-      { key: 'responseTime', label: '响应时间', sortable: true },
+      { key: 'status', label: t('table.status'), sortable: false },
+      { key: 'provider', label: t('table.provider'), sortable: true },
+      { key: 'name', label: t('table.name'), sortable: true },
+      { key: 'price', label: t('table.price'), sortable: true },
+      { key: 'deviation', label: t('table.deviation'), sortable: true },
+      { key: 'confidence', label: t('table.confidence'), sortable: true },
+      { key: 'responseTime', label: t('table.responseTime'), sortable: true },
     ],
-    []
+    [t]
   );
 
   // 计算统计数据
@@ -410,7 +414,7 @@ export function EnhancedComparisonTable({
             />
           </svg>
         </div>
-        <p className="text-gray-500 dark:text-gray-400 text-sm">暂无数据</p>
+        <p className="text-gray-500 dark:text-gray-400 text-sm">{t('table.noData')}</p>
       </div>
     );
   }
@@ -445,18 +449,18 @@ export function EnhancedComparisonTable({
           aria-label={`统计信息：共 ${data.length} 条数据，${stats.warningCount} 条警告，${stats.dangerCount} 条异常，平均偏离 ${stats.avgDeviation.toFixed(2)}%`}
         >
           <span className="text-gray-600 dark:text-gray-400">
-            共 <strong className="text-gray-900 dark:text-gray-100">{data.length}</strong> 条数据
+            {t('table.totalRecords', { count: data.length })}
           </span>
           {stats.warningCount > 0 && (
             <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400">
               <AlertTriangle className="w-3.5 h-3.5" aria-hidden="true" />
-              <strong>{stats.warningCount}</strong> 条警告
+              {t('table.warningCount', { count: stats.warningCount })}
             </span>
           )}
           {stats.dangerCount > 0 && (
             <span className="flex items-center gap-1 text-red-600 dark:text-red-400">
               <AlertTriangle className="w-3.5 h-3.5" aria-hidden="true" />
-              <strong>{stats.dangerCount}</strong> 条异常
+              {t('table.errorCount', { count: stats.dangerCount })}
             </span>
           )}
           <span className="text-gray-500 dark:text-gray-500 ml-auto">
@@ -477,7 +481,7 @@ export function EnhancedComparisonTable({
           ref={tableRef}
           className="w-full border-collapse"
           role="table"
-          aria-label={ariaLabel || '数据对比表'}
+          aria-label={ariaLabel || t('table.comparisonTable')}
         >
           <thead className="sticky top-0 z-10">
             <tr role="row">
@@ -558,7 +562,7 @@ export function EnhancedComparisonTable({
                     data-row={index}
                     data-col={0}
                     tabIndex={focusedCell?.row === index && focusedCell?.col === 0 ? 0 : -1}
-                    aria-label={`状态: ${anomalyStatus === 'normal' ? '正常' : anomalyStatus === 'warning' ? '警告' : '异常'}`}
+                    aria-label={t('table.statusAriaLabel', { status: t(`table.${anomalyStatus}`) })}
                   >
                     <div className="flex items-center justify-center">
                       <AnomalyIndicator status={anomalyStatus} />
@@ -572,7 +576,10 @@ export function EnhancedComparisonTable({
                     data-row={index}
                     data-col={1}
                     tabIndex={focusedCell?.row === index && focusedCell?.col === 1 ? 0 : -1}
-                    aria-label={`数据源: ${item.provider}${isBenchmark ? '（基准）' : ''}`}
+                    aria-label={t('table.providerAriaLabel', {
+                      provider: item.provider,
+                      isBenchmark: isBenchmark ? 'true' : 'false',
+                    })}
                   >
                     <div className="flex items-center gap-2">
                       {/* 颜色指示器 */}
@@ -586,7 +593,7 @@ export function EnhancedComparisonTable({
                       </span>
                       {isBenchmark && (
                         <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300">
-                          基准
+                          {t('table.benchmark')}
                         </span>
                       )}
                     </div>
@@ -599,7 +606,7 @@ export function EnhancedComparisonTable({
                     data-row={index}
                     data-col={2}
                     tabIndex={focusedCell?.row === index && focusedCell?.col === 2 ? 0 : -1}
-                    aria-label={`名称: ${item.name}`}
+                    aria-label={t('table.nameAriaLabel', { name: item.name })}
                   >
                     {item.name}
                   </td>
@@ -611,7 +618,7 @@ export function EnhancedComparisonTable({
                     data-row={index}
                     data-col={3}
                     tabIndex={focusedCell?.row === index && focusedCell?.col === 3 ? 0 : -1}
-                    aria-label={`价格: ${formatPrice(item.price)}`}
+                    aria-label={t('table.priceAriaLabel', { price: formatPrice(item.price) })}
                   >
                     {formatPrice(item.price)}
                   </td>
@@ -623,7 +630,15 @@ export function EnhancedComparisonTable({
                     data-row={index}
                     data-col={4}
                     tabIndex={focusedCell?.row === index && focusedCell?.col === 4 ? 0 : -1}
-                    aria-label={`偏离值: ${formatDeviation(item.deviation)}${Math.abs(item.deviation) >= deviationThreshold.danger ? '，异常' : Math.abs(item.deviation) >= deviationThreshold.warning ? '，警告' : ''}`}
+                    aria-label={t('table.deviationAriaLabel', {
+                      deviation: formatDeviation(item.deviation),
+                      status:
+                        Math.abs(item.deviation) >= deviationThreshold.danger
+                          ? 'error'
+                          : Math.abs(item.deviation) >= deviationThreshold.warning
+                            ? 'warning'
+                            : 'normal',
+                    })}
                   >
                     <div className="flex items-center justify-end gap-1">
                       <span>{formatDeviation(item.deviation)}</span>
@@ -643,7 +658,12 @@ export function EnhancedComparisonTable({
                     data-row={index}
                     data-col={5}
                     tabIndex={focusedCell?.row === index && focusedCell?.col === 5 ? 0 : -1}
-                    aria-label={`置信度: ${item.confidence !== undefined ? formatConfidence(item.confidence) : '无数据'}`}
+                    aria-label={t('table.confidenceAriaLabel', {
+                      confidence:
+                        item.confidence !== undefined
+                          ? formatConfidence(item.confidence)
+                          : t('table.noDataConfidence'),
+                    })}
                   >
                     {item.confidence !== undefined ? (
                       <div className="flex flex-col items-end gap-1">
@@ -657,7 +677,9 @@ export function EnhancedComparisonTable({
                           aria-valuenow={item.confidence}
                           aria-valuemin={0}
                           aria-valuemax={100}
-                          aria-label={`置信度进度: ${item.confidence.toFixed(1)}%`}
+                          aria-label={t('table.confidenceProgress', {
+                            value: item.confidence.toFixed(1),
+                          })}
                         >
                           <div
                             className={cn(
@@ -685,7 +707,12 @@ export function EnhancedComparisonTable({
                     data-row={index}
                     data-col={6}
                     tabIndex={focusedCell?.row === index && focusedCell?.col === 6 ? 0 : -1}
-                    aria-label={`响应时间: ${item.responseTime !== undefined ? formatResponseTime(item.responseTime) : '无数据'}`}
+                    aria-label={t('table.responseTimeAriaLabel', {
+                      time:
+                        item.responseTime !== undefined
+                          ? formatResponseTime(item.responseTime)
+                          : t('table.noDataConfidence'),
+                    })}
                   >
                     {item.responseTime !== undefined ? (
                       <span
@@ -715,27 +742,27 @@ export function EnhancedComparisonTable({
       <div
         className="flex flex-wrap items-center gap-4 px-4 py-2 bg-gray-50/50 dark:bg-gray-800/30 border-t border-gray-200 dark:border-gray-700 text-xs text-gray-500 dark:text-gray-400"
         role="group"
-        aria-label="图例说明"
+        aria-label={t('table.legend')}
       >
         <span className="flex items-center gap-1">
           <span className="w-2 h-2 rounded-full bg-emerald-500" aria-hidden="true" />
-          正偏离
+          {t('table.positiveDeviation')}
         </span>
         <span className="flex items-center gap-1">
           <span className="w-2 h-2 rounded-full bg-red-500" aria-hidden="true" />
-          负偏离
+          {t('table.negativeDeviation')}
         </span>
         <span className="flex items-center gap-1">
           <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" aria-hidden="true" />
-          正常
+          {t('table.normalStatus')}
         </span>
         <span className="flex items-center gap-1">
           <AlertTriangle className="w-3.5 h-3.5 text-amber-500" aria-hidden="true" />
-          警告 (≥{deviationThreshold.warning}%)
+          {t('table.warningThreshold', { threshold: deviationThreshold.warning })}
         </span>
         <span className="flex items-center gap-1">
           <AlertTriangle className="w-3.5 h-3.5 text-red-500" aria-hidden="true" />
-          异常 (≥{deviationThreshold.danger}%)
+          {t('table.errorThreshold', { threshold: deviationThreshold.danger })}
         </span>
       </div>
     </div>

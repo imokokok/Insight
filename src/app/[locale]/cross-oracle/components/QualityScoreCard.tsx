@@ -173,7 +173,7 @@ function CircularProgress({
 interface LinearProgressProps {
   /** 进度值 0-100 */
   value: number;
-  /** 颜色类名 */
+  /** 自定义颜色类名 */
   colorClass?: string;
   /** 高度 */
   height?: number;
@@ -181,6 +181,8 @@ interface LinearProgressProps {
   showValue?: boolean;
   /** 自定义类名 */
   className?: string;
+  /** 翻译函数 */
+  t?: (key: string) => string;
 }
 
 /**
@@ -192,6 +194,7 @@ function LinearProgress({
   height = 8,
   showValue = true,
   className,
+  t,
 }: LinearProgressProps) {
   const defaultColorClass = getScoreBgColor(value);
   const progressColor = colorClass || defaultColorClass;
@@ -199,7 +202,7 @@ function LinearProgress({
   return (
     <div className={cn('w-full', className)}>
       <div className="flex items-center justify-between mb-1.5">
-        <span className="text-xs text-gray-500">评分</span>
+        <span className="text-xs text-gray-500">{t?.('quality.score') || '评分'}</span>
         {showValue && (
           <span className={cn('text-xs font-semibold tabular-nums', getScoreColor(value))}>
             {Math.round(value)}%
@@ -228,12 +231,14 @@ interface DimensionCardProps {
   isPrimary?: boolean;
   /** 自定义类名 */
   className?: string;
+  /** 翻译函数 */
+  t?: (key: string) => string;
 }
 
 /**
  * 评分维度卡片
  */
-function DimensionCard({ dimension, score, isPrimary = false, className }: DimensionCardProps) {
+function DimensionCard({ dimension, score, isPrimary = false, className, t }: DimensionCardProps) {
   const config = DIMENSION_CONFIG[dimension];
   const Icon = config.icon;
   const level = getScoreLevel(score);
@@ -300,7 +305,9 @@ function DimensionCard({ dimension, score, isPrimary = false, className }: Dimen
       {isPrimary && (
         <div className="mt-3 pt-3 border-t border-gray-200/50">
           <div className="flex items-baseline justify-between">
-            <span className="text-xs text-gray-500">综合评分</span>
+            <span className="text-xs text-gray-500">
+              {t?.('quality.overallScore') || '综合评分'}
+            </span>
             <span className={cn('text-2xl font-bold tabular-nums', getScoreColor(score))}>
               {Math.round(score)}
               <span className="text-sm font-normal text-gray-400 ml-0.5">/100</span>
@@ -320,12 +327,14 @@ interface SuggestionsListProps {
   suggestions: string[];
   /** 自定义类名 */
   className?: string;
+  /** 翻译函数 */
+  t?: (key: string) => string;
 }
 
 /**
  * 改进建议列表
  */
-function SuggestionsList({ suggestions, className }: SuggestionsListProps) {
+function SuggestionsList({ suggestions, className, t }: SuggestionsListProps) {
   if (!suggestions || suggestions.length === 0) {
     return null;
   }
@@ -334,7 +343,9 @@ function SuggestionsList({ suggestions, className }: SuggestionsListProps) {
     <div className={cn('space-y-2', className)}>
       <div className="flex items-center gap-2 mb-3">
         <Lightbulb className="w-4 h-4 text-amber-500" />
-        <span className="text-sm font-medium text-gray-700">改进建议</span>
+        <span className="text-sm font-medium text-gray-700">
+          {t?.('quality.suggestions') || '改进建议'}
+        </span>
       </div>
       <div className="space-y-2">
         {suggestions.map((suggestion, index) => (
@@ -370,6 +381,8 @@ export interface QualityScoreCardProps {
   className?: string;
   /** 加载状态 */
   isLoading?: boolean;
+  /** 翻译函数 */
+  t?: (key: string) => string;
 }
 
 /**
@@ -427,11 +440,12 @@ function QualityScoreCardSkeleton({ variant = 'default' }: { variant?: 'default'
  */
 export function QualityScoreCard({
   score,
-  title = '数据质量评分',
+  title,
   showSuggestions = true,
   variant = 'default',
   className,
   isLoading = false,
+  t,
 }: QualityScoreCardProps) {
   if (isLoading) {
     return <QualityScoreCardSkeleton variant={variant} />;
@@ -445,7 +459,7 @@ export function QualityScoreCard({
       <CardHeader className="pb-3">
         <div className="flex items-center gap-2">
           <Shield className="w-5 h-5 text-primary-500" />
-          <CardTitle>{title}</CardTitle>
+          <CardTitle>{title || t?.('quality.title') || '数据质量评分'}</CardTitle>
         </div>
       </CardHeader>
 
