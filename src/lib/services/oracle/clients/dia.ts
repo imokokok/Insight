@@ -88,11 +88,9 @@ export class DIAClient extends BaseOracleClient {
     period: number = 24
   ): Promise<PriceData[]> {
     try {
-      // 统一使用 Binance API 获取历史价格数据
-      const historicalPrices = await binanceMarketService.getHistoricalPricesByHours(
-        symbol,
-        period
-      );
+      // 使用 DIA API 获取历史价格数据
+      const diaService = getDIADataService();
+      const historicalPrices = await diaService.getHistoricalPrices(symbol, chain, period);
 
       if (!historicalPrices || historicalPrices.length === 0) {
         console.log(
@@ -102,7 +100,7 @@ export class DIAClient extends BaseOracleClient {
       }
 
       console.log(
-        `[DIA] Successfully fetched ${historicalPrices.length} historical prices for ${symbol} from Binance`
+        `[DIA] Successfully fetched ${historicalPrices.length} historical prices for ${symbol} from DIA API`
       );
 
       const targetChain = chain || Blockchain.ETHEREUM;
@@ -119,10 +117,10 @@ export class DIAClient extends BaseOracleClient {
           price: point.price,
           timestamp: point.timestamp,
           decimals: 8,
-          confidence: 0.95,
+          confidence: point.confidence || 0.95,
           change24h: Number(change24h.toFixed(4)),
           change24hPercent: Number(change24hPercent.toFixed(2)),
-          source: 'binance-api',
+          source: point.source || 'dia-api',
         };
       });
     } catch (error) {

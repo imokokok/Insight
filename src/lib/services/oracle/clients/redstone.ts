@@ -336,7 +336,7 @@ export class RedStoneClient extends BaseOracleClient {
 
   /**
    * Gets historical price data for a given symbol over a specified time period.
-   * 统一使用 Binance API 获取历史价格数据
+   * 使用 RedStone API 获取历史价格数据
    * @param symbol - The trading symbol (e.g., 'BTC', 'ETH')
    * @param chain - Optional blockchain context
    * @param period - Time period in hours (default: 24)
@@ -355,11 +355,8 @@ export class RedStoneClient extends BaseOracleClient {
     }
 
     try {
-      // 统一使用 Binance API 获取历史价格数据
-      const historicalPrices = await binanceMarketService.getHistoricalPricesByHours(
-        symbol,
-        period
-      );
+      // 使用 RedStone API 获取历史价格数据
+      const historicalPrices = await this.fetchHistoricalPricesFromRedStone(symbol, period);
 
       if (!historicalPrices || historicalPrices.length === 0) {
         console.warn(`[RedStone] No historical data available for ${symbol}`);
@@ -383,7 +380,7 @@ export class RedStoneClient extends BaseOracleClient {
           confidence: 0.97,
           change24h: Number(change24h.toFixed(4)),
           change24hPercent: Number(change24hPercent.toFixed(2)),
-          source: 'binance-api',
+          source: 'redstone-api',
         };
       });
 
@@ -391,6 +388,49 @@ export class RedStoneClient extends BaseOracleClient {
       return priceData;
     } catch (error) {
       console.warn(`[RedStone] Failed to fetch historical prices for ${symbol}:`, error);
+      return [];
+    }
+  }
+
+  /**
+   * 从 RedStone API 获取历史价格数据
+   */
+  private async fetchHistoricalPricesFromRedStone(
+    symbol: string,
+    periodHours: number
+  ): Promise<Array<{ price: number; timestamp: number }>> {
+    try {
+      // 计算时间范围
+      const endTime = Date.now();
+      const startTime = endTime - periodHours * 60 * 60 * 1000;
+
+      // RedStone API 历史数据端点
+      const url = `${REDSTONE_API_BASE}/prices?symbol=${symbol.toUpperCase()}&provider=redstone-rapid&fromTimestamp=${startTime}&toTimestamp=${endTime}`;
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data: RedStonePriceResponse[] = await response.json();
+
+      if (!Array.isArray(data) || data.length === 0) {
+        return [];
+      }
+
+      // 转换数据格式
+      return data.map((item) => ({
+        price: item.value,
+        timestamp: toMilliseconds(item.timestamp),
+      }));
+    } catch (error) {
+      console.error(`[RedStone] Failed to fetch historical prices from API:`, error);
       return [];
     }
   }

@@ -73,15 +73,16 @@ export class DIAPriceService {
           // 使用 assetQuotation 端点获取价格数据
           let url: string;
 
-          // 检查是否有预定义的 DIA 映射
-          if (DIA_SYMBOL_MAPPING[upperSymbol]) {
-            const { blockchain, address } = DIA_SYMBOL_MAPPING[upperSymbol];
-            url = `${DIA_API_BASE_URL}/assetQuotation/${blockchain}/${address}`;
-          } else if (chain && DIA_ASSET_ADDRESSES[upperSymbol]?.[chain]) {
+          // 优先使用特定链的合约地址（如果提供了 chain 参数）
+          if (chain && DIA_ASSET_ADDRESSES[upperSymbol]?.[chain]) {
             // 使用配置的合约地址
             const address = DIA_ASSET_ADDRESSES[upperSymbol][chain];
             const blockchainName = DIA_CHAIN_MAPPING[chain];
             url = `${DIA_API_BASE_URL}/assetQuotation/${blockchainName}/${address}`;
+          } else if (DIA_SYMBOL_MAPPING[upperSymbol]) {
+            // 检查是否有预定义的 DIA 映射
+            const { blockchain, address } = DIA_SYMBOL_MAPPING[upperSymbol];
+            url = `${DIA_API_BASE_URL}/assetQuotation/${blockchain}/${address}`;
           } else {
             // 尝试直接使用符号查询（某些资产支持）
             url = `${DIA_API_BASE_URL}/quotation/${upperSymbol}`;
