@@ -30,7 +30,6 @@ function getCredibilityLevel(
   const highCredibility: OracleProvider[] = [OracleProvider.CHAINLINK, OracleProvider.PYTH];
   const mediumCredibility: OracleProvider[] = [
     OracleProvider.API3,
-    OracleProvider.BAND_PROTOCOL,
     OracleProvider.REDSTONE,
     OracleProvider.DIA,
   ];
@@ -52,7 +51,6 @@ function getProviderForChain(chain: Blockchain): OracleProvider {
     [Blockchain.BASE]: OracleProvider.CHAINLINK,
     [Blockchain.BNB_CHAIN]: OracleProvider.CHAINLINK,
     [Blockchain.TRON]: OracleProvider.WINKLINK,
-    [Blockchain.COSMOS]: OracleProvider.BAND_PROTOCOL,
     [Blockchain.NEAR]: OracleProvider.CHAINLINK,
   };
 

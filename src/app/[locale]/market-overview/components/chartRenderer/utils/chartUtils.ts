@@ -27,7 +27,6 @@ export function formatValue(value: number, decimals: number = 2): string {
 export function getChartColor(index: number): string {
   const colors = [
     chartColors.oracle.chainlink,
-    chartColors.oracle['band-protocol'],
     chartColors.oracle.uma,
     chartColors.oracle.pyth,
     chartColors.oracle.api3,

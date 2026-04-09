@@ -10,7 +10,6 @@ import {
 } from '@/lib/errors';
 import {
   ChainlinkClient,
-  BandProtocolClient,
   UMAClient,
   API3Client,
   PythClient,
@@ -54,7 +53,6 @@ type OracleClient = OracleClientInterface;
 
 const clients: Partial<Record<OracleProvider, OracleClient>> = {
   [OracleProvider.CHAINLINK]: new ChainlinkClient() as OracleClient,
-  [OracleProvider.BAND_PROTOCOL]: new BandProtocolClient() as OracleClient,
   [OracleProvider.UMA]: new UMAClient() as OracleClient,
   [OracleProvider.API3]: new API3Client() as OracleClient,
   [OracleProvider.PYTH]: new PythClient() as OracleClient,

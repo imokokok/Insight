@@ -1,114 +1,94 @@
-/**
- * 预言机代币常量定义
- */
-
 import { OracleProvider } from '@/types/oracle';
 
-/**
- * 预言机代币配置
- */
-export interface OracleTokenConfig {
-  /** 预言机提供商 */
-  provider: OracleProvider;
-  /** 预言机名称 */
-  oracleName: string;
-  /** 代币符号 */
+export interface OracleToken {
   symbol: string;
-  /** 代币名称 */
-  tokenName: string;
-  /** Logo 路径 */
-  logoPath: string;
-  /** 主题颜色 */
-  themeColor: string;
+  name: string;
+  provider: OracleProvider;
+  chainId: number;
+  contractAddress?: string;
+  logoUrl?: string;
+  decimals: number;
 }
 
-/**
- * 9个预言机代币配置列表
- */
-export const ORACLE_TOKENS: OracleTokenConfig[] = [
+export const ORACLE_TOKENS: OracleToken[] = [
   {
-    provider: OracleProvider.CHAINLINK,
-    oracleName: 'Chainlink',
     symbol: 'LINK',
-    tokenName: 'Chainlink',
-    logoPath: '/logos/oracles/chainlink.svg',
-    themeColor: '#375bd2',
+    name: 'Chainlink Token',
+    provider: OracleProvider.CHAINLINK,
+    chainId: 1,
+    contractAddress: '0x514910771AF9Ca656af840dff83E8264EcF986CA',
+    logoUrl: '/logos/oracles/chainlink.svg',
+    decimals: 18,
   },
   {
-    provider: OracleProvider.BAND_PROTOCOL,
-    oracleName: 'Band Protocol',
-    symbol: 'BAND',
-    tokenName: 'Band Protocol',
-    logoPath: '/logos/oracles/band.svg',
-    themeColor: '#7c3aed',
-  },
-  {
-    provider: OracleProvider.UMA,
-    oracleName: 'UMA',
-    symbol: 'UMA',
-    tokenName: 'UMA',
-    logoPath: '/logos/oracles/uma.svg',
-    themeColor: '#dc2626',
-  },
-  {
-    provider: OracleProvider.PYTH,
-    oracleName: 'Pyth',
     symbol: 'PYTH',
-    tokenName: 'Pyth Network',
-    logoPath: '/logos/oracles/pyth.svg',
-    themeColor: '#8b5cf6',
+    name: 'Pyth Network',
+    provider: OracleProvider.PYTH,
+    chainId: 1,
+    contractAddress: '0xE4D5c6aE46C3f6272C3e68E07E4aE6d6a3a3e0e3',
+    logoUrl: '/logos/oracles/pyth.svg',
+    decimals: 6,
   },
   {
-    provider: OracleProvider.API3,
-    oracleName: 'API3',
+    symbol: 'UMA',
+    name: 'UMA Voting Token',
+    provider: OracleProvider.UMA,
+    chainId: 1,
+    contractAddress: '0x04Fa0d235C4abf4BcF4787aF4CF447DE572eF828',
+    logoUrl: '/logos/oracles/uma.svg',
+    decimals: 18,
+  },
+  {
     symbol: 'API3',
-    tokenName: 'API3',
-    logoPath: '/logos/oracles/api3.svg',
-    themeColor: '#10b981',
+    name: 'API3 Token',
+    provider: OracleProvider.API3,
+    chainId: 1,
+    contractAddress: '0x0b38210ea11411557c13457D4dA7dC6ea731B88a',
+    logoUrl: '/logos/oracles/api3.svg',
+    decimals: 18,
   },
   {
+    symbol: 'REDSTONE',
+    name: 'RedStone Token',
     provider: OracleProvider.REDSTONE,
-    oracleName: 'RedStone',
-    symbol: 'RED',
-    tokenName: 'RedStone',
-    logoPath: '/logos/oracles/redstone.svg',
-    themeColor: '#ef4444',
+    chainId: 1,
+    logoUrl: '/logos/oracles/redstone.svg',
+    decimals: 18,
   },
   {
-    provider: OracleProvider.DIA,
-    oracleName: 'DIA',
     symbol: 'DIA',
-    tokenName: 'DIA',
-    logoPath: '/logos/oracles/dia.svg',
-    themeColor: '#6366f1',
+    name: 'DIA Token',
+    provider: OracleProvider.DIA,
+    chainId: 1,
+    contractAddress: '0x84cA8bc7997272c7CfB4D0Cd3D55cd942B3c9419',
+    logoUrl: '/logos/oracles/dia.svg',
+    decimals: 18,
   },
   {
-    provider: OracleProvider.WINKLINK,
-    oracleName: 'WINkLink',
     symbol: 'WIN',
-    tokenName: 'WINkLink',
-    logoPath: '/logos/oracles/winklink.svg',
-    themeColor: '#ec4899',
+    name: 'WIN Token',
+    provider: OracleProvider.WINKLINK,
+    chainId: 728126428,
+    contractAddress: 'TLa2f6VPqDgRE67v1736s7bJ8Ray5wYjU7',
+    logoUrl: '/logos/oracles/winklink.svg',
+    decimals: 6,
   },
 ];
 
-/**
- * 获取代币符号列表
- */
-export const ORACLE_TOKEN_SYMBOLS = ORACLE_TOKENS.map((token) => token.symbol);
+export const getOracleTokenBySymbol = (symbol: string): OracleToken | undefined => {
+  return ORACLE_TOKENS.find((token) => token.symbol.toLowerCase() === symbol.toLowerCase());
+};
 
-/**
- * 根据代币符号获取配置
- */
-export function getOracleTokenConfig(symbol: string): OracleTokenConfig | undefined {
-  return ORACLE_TOKENS.find((token) => token.symbol.toUpperCase() === symbol.toUpperCase());
-}
+export const getOracleTokensByProvider = (provider: OracleProvider): OracleToken[] => {
+  return ORACLE_TOKENS.filter((token) => token.provider === provider);
+};
 
-/**
- * 根据预言机提供商获取配置
- */
-export function getOracleTokenConfigByProvider(
-  provider: OracleProvider
-): OracleTokenConfig | undefined {
-  return ORACLE_TOKENS.find((token) => token.provider === provider);
-}
+export const getOracleTokenByProviderAndSymbol = (
+  provider: OracleProvider,
+  symbol: string
+): OracleToken | undefined => {
+  return ORACLE_TOKENS.find(
+    (token) =>
+      token.provider === provider && token.symbol.toLowerCase() === symbol.toLowerCase()
+  );
+};

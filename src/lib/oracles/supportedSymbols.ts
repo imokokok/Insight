@@ -51,23 +51,6 @@ export const umaSymbols = ['UMA'] as const;
 // DIA 支持的币种
 export const diaSymbols = ['BTC', 'ETH', 'USDC', 'USDT', 'LINK', 'UNI'] as const;
 
-// Band Protocol 支持的币种
-export const bandProtocolSymbols = [
-  'BTC',
-  'ETH',
-  'BAND',
-  'LINK',
-  'USDC',
-  'USDT',
-  'DAI',
-  'ATOM',
-  'OSMO',
-  'JUNO',
-  'AVAX',
-  'MATIC',
-  'DOT',
-] as const;
-
 // API3 支持的币种 - 基于实际测试，只包含能获取到真实价格的
 export const api3Symbols = [
   'ETH',
@@ -284,7 +267,6 @@ export const oracleSupportedSymbols = {
   redstone: redstoneSymbols,
   uma: umaSymbols,
   dia: diaSymbols,
-  bandProtocol: bandProtocolSymbols,
   api3: api3Symbols,
   pyth: pythSymbols,
   winklink: winklinkSymbols,
@@ -295,7 +277,6 @@ export type ChainlinkSymbol = (typeof chainlinkSymbols)[number];
 export type RedstoneSymbol = (typeof redstoneSymbols)[number];
 export type UmaSymbol = (typeof umaSymbols)[number];
 export type DiaSymbol = (typeof diaSymbols)[number];
-export type BandProtocolSymbol = (typeof bandProtocolSymbols)[number];
 export type Api3Symbol = (typeof api3Symbols)[number];
 export type PythSymbol = (typeof pythSymbols)[number];
 export type WinklinkSymbol = (typeof winklinkSymbols)[number];

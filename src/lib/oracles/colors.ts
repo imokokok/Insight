@@ -12,7 +12,6 @@ import { OracleProvider } from '@/types/oracle';
 export function getOracleColor(provider: OracleProvider): string {
   const colorMap: Record<OracleProvider, string> = {
     [OracleProvider.CHAINLINK]: chartColors.oracle.chainlink,
-    [OracleProvider.BAND_PROTOCOL]: chartColors.oracle['band-protocol'],
     [OracleProvider.UMA]: chartColors.oracle.uma,
     [OracleProvider.PYTH]: chartColors.oracle['pyth'],
     [OracleProvider.API3]: chartColors.oracle.api3,

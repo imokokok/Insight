@@ -16,7 +16,6 @@ export {
   useUMAValidators,
   useUMADisputes,
 } from './oracles/uma';
-export { useBandProtocolAllData, useBandPrice, useBandHistorical } from './oracles/band';
 export { useLastUpdated } from './oracles/useLastUpdated';
 export { useWINkLinkAllData } from './oracles/winklink';
 export { useAPI3Price, useAPI3Historical } from './oracles/api3';

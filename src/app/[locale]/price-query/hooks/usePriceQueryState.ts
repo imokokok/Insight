@@ -115,7 +115,6 @@ export function usePriceQueryState(): UsePriceQueryStateReturn {
 
     const oracleMapping: Record<string, OracleProvider> = {
       chainlink: OracleProvider.CHAINLINK,
-      'band-protocol': OracleProvider.BAND_PROTOCOL,
       uma: OracleProvider.UMA,
       pyth: OracleProvider.PYTH,
       api3: OracleProvider.API3,

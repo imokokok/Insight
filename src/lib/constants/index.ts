@@ -6,7 +6,6 @@ import { OracleProvider, Blockchain } from '@/lib/oracles';
 
 export const providerNames: Record<OracleProvider, string> = {
   [OracleProvider.CHAINLINK]: 'Chainlink',
-  [OracleProvider.BAND_PROTOCOL]: 'Band Protocol',
   [OracleProvider.UMA]: 'UMA',
   [OracleProvider.PYTH]: 'Pyth',
   [OracleProvider.API3]: 'API3',
@@ -18,7 +17,6 @@ export const providerNames: Record<OracleProvider, string> = {
 // i18n 键名映射，用于将 OracleProvider 映射到 navbar i18n 键
 export const oracleI18nKeys: Record<OracleProvider, string> = {
   [OracleProvider.CHAINLINK]: 'chainlink',
-  [OracleProvider.BAND_PROTOCOL]: 'bandProtocol',
   [OracleProvider.UMA]: 'uma',
   [OracleProvider.PYTH]: 'pythNetwork',
   [OracleProvider.API3]: 'api3',
@@ -109,7 +107,6 @@ export const chainColors: Record<Blockchain, string> = {
 
 export const oracleColors: Record<OracleProvider, string> = {
   [OracleProvider.CHAINLINK]: configChartColors.oracle.chainlink,
-  [OracleProvider.BAND_PROTOCOL]: configChartColors.oracle['band-protocol'],
   [OracleProvider.UMA]: configChartColors.oracle.uma,
   [OracleProvider.PYTH]: configChartColors.oracle['pyth'],
   [OracleProvider.API3]: configChartColors.oracle.api3,

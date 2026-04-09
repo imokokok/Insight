@@ -24,8 +24,8 @@ export function CrossOracleComparison() {
   const [selectedOracles, setSelectedOracles] = useState<OracleProvider[]>([
     OracleProvider.CHAINLINK,
     OracleProvider.PYTH,
-    OracleProvider.BAND_PROTOCOL,
     OracleProvider.API3,
+    OracleProvider.REDSTONE,
   ]);
 
   const [autoRefresh, setAutoRefresh] = useState(false);
@@ -98,9 +98,9 @@ export function CrossOracleComparison() {
     setSelectedOracles([
       OracleProvider.CHAINLINK,
       OracleProvider.PYTH,
-      OracleProvider.BAND_PROTOCOL,
       OracleProvider.API3,
       OracleProvider.REDSTONE,
+      OracleProvider.DIA,
     ]);
   };
 

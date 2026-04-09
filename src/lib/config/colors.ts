@@ -218,7 +218,6 @@ export const chartColors = {
   // 预言机品牌色 - 优化对比度和可区分性
   oracle: {
     chainlink: '#2563EB',
-    'band-protocol': '#059669',
     uma: '#D97706',
     pyth: '#7C3AED',
     api3: '#DB2777',
@@ -232,7 +231,6 @@ export const chartColors = {
   // 预言机颜色 - 色盲友好版本（使用形状+颜色双重编码）
   oracleAccessible: {
     chainlink: { color: '#1e40af', pattern: 'solid' },
-    'band-protocol': { color: '#065f46', pattern: 'dashed' },
     uma: { color: '#92400e', pattern: 'dotted' },
     pyth: { color: '#5b21b6', pattern: 'dashDot' },
     api3: { color: '#9d174d', pattern: 'longDash' },
@@ -305,7 +303,6 @@ export const chartColors = {
   marketOverview: {
     chainlink: '#375BD2',
     pyth: '#E6B800',
-    bandProtocol: '#516BEB',
     api3: '#7CE3CB',
     uma: '#FF4A8D',
     default: '#8884d8',
@@ -717,14 +714,12 @@ export const heatmapColors = {
   },
   oracle: {
     chainlink: '#375BD2',
-    bandProtocol: '#9B51E0',
     uma: '#FF6B6B',
     pythNetwork: '#EC4899',
     api3: '#10B981',
   },
   accessible: {
     chainlink: '#003f5c',
-    bandProtocol: '#2f4b7c',
     uma: '#665191',
     pythNetwork: '#a05195',
     api3: '#d45087',

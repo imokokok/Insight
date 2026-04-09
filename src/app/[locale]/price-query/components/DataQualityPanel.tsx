@@ -468,7 +468,6 @@ function FreshnessTrendChart({
   const oracleColors: Record<string, string> = {
     Chainlink: chartColors.oracle.chainlink,
     Pyth: chartColors.oracle.pyth,
-    Band: chartColors.oracle['band-protocol'],
     UMA: chartColors.oracle.uma,
     API3: chartColors.oracle.api3,
   };

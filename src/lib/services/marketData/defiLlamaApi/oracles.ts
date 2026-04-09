@@ -33,7 +33,6 @@ function getOracleColor(name: string): string {
   const colorMap: Record<string, string> = {
     Chainlink: ORACLE_COLORS.chainlink,
     'Pyth Network': ORACLE_COLORS.pyth,
-    'Band Protocol': ORACLE_COLORS.band,
     API3: ORACLE_COLORS.api3,
     UMA: ORACLE_COLORS.uma,
     RedStone: chartColors.oracle.redstone,

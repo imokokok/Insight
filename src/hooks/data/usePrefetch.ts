@@ -99,18 +99,6 @@ const routePrefetchConfigs: Record<string, RoutePrefetchConfig> = {
       },
     ],
   },
-  '/band-protocol': {
-    route: '/band-protocol',
-    priority: 'high',
-    targets: [
-      {
-        queryKey: ['oracles', 'detail', 'band-protocol'],
-        queryFn: () => apiClient.get('/api/oracles/band-protocol').then((r) => r.data),
-        type: 'network',
-        priority: 'high',
-      },
-    ],
-  },
   '/redstone': {
     route: '/redstone',
     priority: 'high',

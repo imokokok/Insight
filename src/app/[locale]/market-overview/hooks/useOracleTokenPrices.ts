@@ -8,9 +8,31 @@ import {
 } from '@/lib/services/marketData/binanceMarketService';
 import { createLogger } from '@/lib/utils/logger';
 
-import { ORACLE_TOKENS, type OracleTokenConfig } from '../constants/oracleTokens';
+import { ORACLE_TOKENS, type OracleToken } from '../constants/oracleTokens';
 
 import type { OracleTokenPrice } from '../types/oracle';
+
+// 预言机名称映射
+const ORACLE_NAME_MAP: Record<string, string> = {
+  'Chainlink': 'Chainlink',
+  'Pyth Network': 'Pyth Network',
+  'UMA Voting Token': 'UMA',
+  'API3 Token': 'API3',
+  'RedStone Token': 'RedStone',
+  'DIA Token': 'DIA',
+  'WIN Token': 'WINkLink',
+};
+
+// 主题颜色映射
+const THEME_COLOR_MAP: Record<string, string> = {
+  'LINK': '#375BD2',
+  'PYTH': '#E6B800',
+  'UMA': '#FF4A8D',
+  'API3': '#7CE3CB',
+  'REDSTONE': '#FF6B6B',
+  'DIA': '#6366F1',
+  'WIN': '#FF4D4D',
+};
 
 const logger = createLogger('useOracleTokenPrices');
 
@@ -42,10 +64,10 @@ export interface UseOracleTokenPricesReturn {
  */
 function convertToOracleTokenPrice(
   marketData: TokenMarketData,
-  config: OracleTokenConfig
+  config: OracleToken
 ): OracleTokenPrice {
   return {
-    oracleName: config.oracleName,
+    oracleName: ORACLE_NAME_MAP[config.name] || config.name,
     symbol: marketData.symbol,
     tokenName: marketData.name,
     currentPrice: marketData.currentPrice,
@@ -54,8 +76,8 @@ function convertToOracleTokenPrice(
     priceChange24h: marketData.priceChange24h,
     priceChangePercentage24h: marketData.priceChangePercentage24h,
     volume24h: marketData.totalVolume24h,
-    logoPath: config.logoPath,
-    themeColor: config.themeColor,
+    logoPath: config.logoUrl || '',
+    themeColor: THEME_COLOR_MAP[config.symbol] || '#888888',
     lastUpdated: marketData.lastUpdated,
   };
 }

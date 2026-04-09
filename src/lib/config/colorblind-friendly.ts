@@ -214,12 +214,6 @@ export const oracleColorBlindFriendly = {
     symbol: '●',
     description: '蓝色实心圆',
   },
-  'band-protocol': {
-    color: '#ddaa33',
-    pattern: 'striped',
-    symbol: '▲',
-    description: '黄色条纹三角形',
-  },
   uma: {
     color: '#bb5566',
     pattern: 'dotted',

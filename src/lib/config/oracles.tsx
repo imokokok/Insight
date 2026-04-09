@@ -6,7 +6,6 @@ import { type MarketDataConfig } from '@/components/oracle/panels/MarketDataPane
 import { chartColors } from '@/lib/config/colors';
 import {
   ChainlinkClient,
-  BandProtocolClient,
   UMAClient,
   PythClient,
   API3Client,
@@ -222,63 +221,6 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
         component: 'ChainlinkEcosystemView',
       },
       { id: 'risk', labelKey: 'chainlink.menu.riskAssessment', component: 'ChainlinkRiskView' },
-    ],
-  },
-  [OracleProvider.BAND_PROTOCOL]: {
-    provider: OracleProvider.BAND_PROTOCOL,
-    name: 'Band Protocol',
-    descriptionKey: 'oracles.descriptions.bandProtocol',
-    symbol: 'BAND',
-    defaultChain: Blockchain.COSMOS,
-    supportedChains: [
-      Blockchain.COSMOS,
-      Blockchain.OSMOSIS,
-      Blockchain.JUNO,
-      Blockchain.ETHEREUM,
-      Blockchain.POLYGON,
-      Blockchain.AVALANCHE,
-      Blockchain.FANTOM,
-      Blockchain.CRONOS,
-      Blockchain.INJECTIVE,
-      Blockchain.SEI,
-      Blockchain.KAVA,
-    ],
-    client: new BandProtocolClient({ useRealData: true }),
-    iconBgColor: 'bg-purple-600',
-    themeColor: '#7c3aed',
-    icon: <Image src="/logos/oracles/band.svg" alt="Band Protocol" width={48} height={48} />,
-    marketData: getDefaultMarketData('BAND', 'Band Protocol'),
-    networkData: {
-      ...getDefaultNetworkData(),
-      bandProtocolMetrics: {
-        activeValidators: 0,
-        totalValidators: 0,
-        stakedAmount: 0,
-        stakingRate: 0,
-        blockHeight: 0,
-        blockTime: 0,
-        inflationRate: 0,
-        communityPoolBalance: 0,
-        tokenSymbol: 'BAND',
-      },
-    },
-    features: {
-      hasNodeAnalytics: false,
-      hasValidatorAnalytics: true,
-      hasPublisherAnalytics: false,
-      hasDisputeResolution: false,
-      hasPriceFeeds: false,
-      hasQuantifiableSecurity: false,
-      hasFirstPartyOracle: false,
-      hasCoreFeatures: false,
-    },
-    tabs: [
-      { id: 'market', labelKey: 'bandProtocol.menu.marketData' },
-      { id: 'network', labelKey: 'bandProtocol.menu.networkHealth' },
-      { id: 'validators', labelKey: 'bandProtocol.menu.validators' },
-      { id: 'cross-chain', labelKey: 'bandProtocol.menu.crossChain' },
-      { id: 'data-feeds', labelKey: 'bandProtocol.menu.dataFeeds' },
-      { id: 'risk', labelKey: 'bandProtocol.menu.riskAssessment' },
     ],
   },
   [OracleProvider.UMA]: {
@@ -603,7 +545,6 @@ export type PriceOracleProvider = OracleProvider;
 
 export const PRICE_ORACLE_PROVIDERS: PriceOracleProvider[] = [
   OracleProvider.CHAINLINK,
-  OracleProvider.BAND_PROTOCOL,
   OracleProvider.UMA,
   OracleProvider.PYTH,
   OracleProvider.API3,
@@ -633,8 +574,6 @@ export function createOracleClient(provider: OracleProvider): BaseOracleClient {
   switch (provider) {
     case OracleProvider.CHAINLINK:
       return new ChainlinkClient({ useRealData: true });
-    case OracleProvider.BAND_PROTOCOL:
-      return new BandProtocolClient();
     case OracleProvider.UMA:
       return new UMAClient();
     case OracleProvider.PYTH:

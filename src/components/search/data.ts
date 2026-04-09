@@ -36,7 +36,6 @@ import type { LucideIcon } from 'lucide-react';
 const oracleIcons: Record<OracleProvider, LucideIcon> = {
   [OracleProvider.CHAINLINK]: Shield,
   [OracleProvider.PYTH]: Zap,
-  [OracleProvider.BAND_PROTOCOL]: Layers,
   [OracleProvider.API3]: Activity,
   [OracleProvider.REDSTONE]: Flame,
   [OracleProvider.UMA]: Database,
@@ -48,7 +47,6 @@ const oracleIcons: Record<OracleProvider, LucideIcon> = {
 const oracleDescriptions: Record<OracleProvider, string> = {
   [OracleProvider.CHAINLINK]: 'search.oracles.chainlinkDesc',
   [OracleProvider.PYTH]: 'search.oracles.pythDesc',
-  [OracleProvider.BAND_PROTOCOL]: 'search.oracles.bandDesc',
   [OracleProvider.API3]: 'search.oracles.api3Desc',
   [OracleProvider.REDSTONE]: 'search.oracles.redstoneDesc',
   [OracleProvider.UMA]: 'search.oracles.umaDesc',

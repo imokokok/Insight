@@ -21,7 +21,6 @@ export {
   type ChainlinkContracts,
   type ChainlinkRPCConfig,
 } from './chainlinkDataSources';
-export { BandProtocolClient } from '@/lib/services/oracle/clients/band';
 export { UMAClient } from '@/lib/services/oracle/clients/uma';
 export {
   UMAOnChainService,

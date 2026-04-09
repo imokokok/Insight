@@ -8,7 +8,6 @@ import { type OracleMarketData, type AssetData, type ChainSupportData } from './
 export const ORACLE_COLORS = {
   chainlink: oracleColors[OracleProvider.CHAINLINK],
   pyth: oracleColors[OracleProvider.PYTH],
-  band: oracleColors[OracleProvider.BAND_PROTOCOL],
   api3: oracleColors[OracleProvider.API3],
   uma: oracleColors[OracleProvider.UMA],
   redstone: oracleColors[OracleProvider.REDSTONE],
@@ -48,21 +47,6 @@ export const MOCK_ORACLE_DATA: OracleMarketData[] = [
     change24h: 5.8,
     change7d: 15.2,
     change30d: 45.6,
-  },
-  {
-    name: 'Band Protocol',
-    share: 8.7,
-    color: ORACLE_COLORS.band,
-    tvs: '$4.1B',
-    tvsValue: 4.1,
-    chains: 12,
-    protocols: 120,
-    avgLatency: 600,
-    accuracy: 99.2,
-    updateFrequency: 1800,
-    change24h: -1.2,
-    change7d: 3.4,
-    change30d: 8.9,
   },
   {
     name: 'API3',
@@ -144,7 +128,6 @@ export const MOCK_ORACLE_DATA: OracleMarketData[] = [
 export const CHAIN_SUPPORT_DATA: ChainSupportData[] = [
   { name: 'Chainlink', chains: 15, protocols: 450, color: ORACLE_COLORS.chainlink },
   { name: 'Pyth Network', chains: 20, protocols: 280, color: ORACLE_COLORS.pyth },
-  { name: 'Band Protocol', chains: 12, protocols: 120, color: ORACLE_COLORS.band },
   { name: 'API3', chains: 10, protocols: 85, color: ORACLE_COLORS.api3 },
   { name: 'UMA', chains: 8, protocols: 45, color: ORACLE_COLORS.uma },
   { name: 'RedStone', chains: 6, protocols: 32, color: ORACLE_COLORS.redstone },
@@ -233,43 +216,102 @@ export const MOCK_ASSETS: AssetData[] = [
   {
     symbol: 'OP',
     price: 2.45,
-    change24h: -2.1,
-    change7d: 1.8,
+    change24h: 1.2,
+    change7d: 6.8,
     volume24h: 180000000,
     marketCap: 2600000000,
-    primaryOracle: 'Band Protocol',
-    oracleCount: 3,
+    primaryOracle: 'Chainlink',
+    oracleCount: 4,
     priceSources: [],
   },
   {
     symbol: 'UNI',
-    price: 9.8,
-    change24h: 3.4,
-    change7d: 7.5,
-    volume24h: 220000000,
-    marketCap: 5900000000,
+    price: 7.8,
+    change24h: -2.1,
+    change7d: 1.5,
+    volume24h: 120000000,
+    marketCap: 4700000000,
     primaryOracle: 'Chainlink',
     oracleCount: 5,
     priceSources: [],
   },
-  {
-    symbol: 'AAVE',
-    price: 125.4,
-    change24h: -1.8,
-    change7d: 4.5,
-    volume24h: 150000000,
-    marketCap: 1900000000,
-    primaryOracle: 'API3',
-    oracleCount: 4,
-    priceSources: [],
-  },
 ];
 
-export { type RefreshInterval };
+// 刷新间隔选项（毫秒）
+export const REFRESH_INTERVALS: { label: string; value: RefreshInterval }[] = [
+  { label: 'off', value: 0 },
+  { label: '30s', value: 30000 },
+  { label: '1m', value: 60000 },
+  { label: '5m', value: 300000 },
+];
 
-export const REFRESH_OPTIONS = [
-  { value: 0, label: 'Off' },
-  { value: 30000, label: '30s' },
-  { value: 60000, label: '1m' },
-  { value: 300000, label: '5m' },
-] as const;
+// 默认刷新间隔
+export const DEFAULT_REFRESH_INTERVAL: RefreshInterval = 30000;
+
+// 价格精度配置
+export const PRICE_PRECISION: Record<string, number> = {
+  BTC: 2,
+  ETH: 2,
+  SOL: 2,
+  AVAX: 2,
+  LINK: 4,
+  MATIC: 4,
+  ARB: 4,
+  OP: 4,
+  UNI: 4,
+  default: 4,
+};
+
+// 市值格式化配置
+export const MARKET_CAP_FORMAT = {
+  trillion: 1e12,
+  billion: 1e9,
+  million: 1e6,
+};
+
+// 表格列配置
+export const ASSET_TABLE_COLUMNS = [
+  { key: 'symbol', label: 'asset', width: '15%' },
+  { key: 'price', label: 'price', width: '15%', align: 'right' as const },
+  { key: 'change24h', label: 'change24h', width: '12%', align: 'right' as const },
+  { key: 'change7d', label: 'change7d', width: '12%', align: 'right' as const },
+  { key: 'volume24h', label: 'volume24h', width: '18%', align: 'right' as const },
+  { key: 'marketCap', label: 'marketCap', width: '18%', align: 'right' as const },
+  { key: 'primaryOracle', label: 'primaryOracle', width: '10%', align: 'center' as const },
+];
+
+// 图表配置
+export const CHART_CONFIG = {
+  height: 400,
+  margin: { top: 20, right: 30, left: 20, bottom: 20 },
+  barSize: 40,
+  animationDuration: 1000,
+};
+
+// 价格变动阈值
+export const PRICE_CHANGE_THRESHOLDS = {
+  significant: 5, // 5%
+  moderate: 2, // 2%
+  small: 0.5, // 0.5%
+};
+
+// 缓存配置
+export const CACHE_CONFIG = {
+  marketData: 5 * 60 * 1000, // 5分钟
+  priceData: 30 * 1000, // 30秒
+  oracleData: 10 * 60 * 1000, // 10分钟
+};
+
+// WebSocket配置
+export const WEBSOCKET_CONFIG = {
+  reconnectInterval: 5000,
+  maxReconnectAttempts: 5,
+  pingInterval: 30000,
+};
+
+// 错误重试配置
+export const RETRY_CONFIG = {
+  maxRetries: 3,
+  retryDelay: 1000,
+  backoffMultiplier: 2,
+};
