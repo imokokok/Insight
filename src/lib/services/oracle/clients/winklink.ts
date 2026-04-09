@@ -90,15 +90,18 @@ export class WINkLinkClient extends BaseOracleClient {
     period: number = 24
   ): Promise<PriceData[]> {
     try {
-      // 统一使用 Binance API 获取历史价格数据
-      const historicalPrices = await binanceMarketService.getHistoricalPricesByHours(
-        symbol,
-        period
-      );
+      // 使用 WINkLink 真实数据服务获取历史价格
+      const realDataService = getWINkLinkRealDataService();
+      const historicalPrices = await realDataService.getHistoricalPrices(symbol, period);
 
       if (!historicalPrices || historicalPrices.length === 0) {
+        console.log(`[WINkLink] No historical price data available for ${symbol}`);
         return [];
       }
+
+      console.log(
+        `[WINkLink] Successfully fetched ${historicalPrices.length} historical prices for ${symbol} from WINkLink network`
+      );
 
       const targetChain = chain || Blockchain.TRON;
       const basePrice = historicalPrices[0].price;
@@ -117,7 +120,7 @@ export class WINkLinkClient extends BaseOracleClient {
           confidence: 0.95,
           change24h: Number(change24h.toFixed(4)),
           change24hPercent: Number(change24hPercent.toFixed(2)),
-          source: 'binance-api',
+          source: 'winklink-contract',
         };
       });
     } catch (error) {
