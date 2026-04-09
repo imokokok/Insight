@@ -1,14 +1,6 @@
 import { type TVSTrendData } from './types';
 
-const ORACLE_KEYS = [
-  'chainlink',
-  'pyth',
-  'api3',
-  'uma',
-  'redstone',
-  'dia',
-  'winklink',
-] as const;
+const ORACLE_KEYS = ['chainlink', 'pyth', 'api3', 'uma', 'redstone', 'dia', 'winklink'] as const;
 
 export type OracleKey = (typeof ORACLE_KEYS)[number];
 

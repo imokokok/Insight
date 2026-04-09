@@ -94,15 +94,9 @@ export async function fetchProtocolDetails(): Promise<ProtocolDetail[]> {
           category.includes('synthetics') ||
           category.includes('cdp') ||
           category.includes('yield') ||
-          [
-            'chainlink',
-            'pyth',
-            'api3',
-            'uma',
-            'redstone',
-            'switchboard',
-            'dia',
-          ].some((kw) => name.includes(kw)))
+          ['chainlink', 'pyth', 'api3', 'uma', 'redstone', 'switchboard', 'dia'].some((kw) =>
+            name.includes(kw)
+          ))
       );
     });
 

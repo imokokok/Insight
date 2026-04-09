@@ -550,9 +550,7 @@ export class MockWebSocketManager extends WebSocketManager {
 
     // TVS 数据生成器
     this.mockDataGenerators.set('tvs', () => ({
-      oracle: ['Chainlink', 'Pyth Network', 'API3', 'UMA'][
-        Math.floor(Math.random() * 4)
-      ],
+      oracle: ['Chainlink', 'Pyth Network', 'API3', 'UMA'][Math.floor(Math.random() * 4)],
       tvs: 1 + Math.random() * 10,
       change24h: (Math.random() - 0.5) * 5,
       timestamp: Date.now(),

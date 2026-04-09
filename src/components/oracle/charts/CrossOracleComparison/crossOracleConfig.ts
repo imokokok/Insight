@@ -210,11 +210,7 @@ export const defaultPerformanceData: OraclePerformance[] = [
 // 预言机特性分组
 export const ORACLE_GROUPS = {
   HIGH_FREQUENCY: [OracleProvider.PYTH, OracleProvider.REDSTONE],
-  STANDARD: [
-    OracleProvider.CHAINLINK,
-    OracleProvider.API3,
-    OracleProvider.DIA,
-  ],
+  STANDARD: [OracleProvider.CHAINLINK, OracleProvider.API3, OracleProvider.DIA],
   ALL: [
     OracleProvider.CHAINLINK,
     OracleProvider.PYTH,

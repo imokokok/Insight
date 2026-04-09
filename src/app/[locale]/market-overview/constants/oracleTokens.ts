@@ -88,7 +88,6 @@ export const getOracleTokenByProviderAndSymbol = (
   symbol: string
 ): OracleToken | undefined => {
   return ORACLE_TOKENS.find(
-    (token) =>
-      token.provider === provider && token.symbol.toLowerCase() === symbol.toLowerCase()
+    (token) => token.provider === provider && token.symbol.toLowerCase() === symbol.toLowerCase()
   );
 };

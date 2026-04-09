@@ -88,6 +88,15 @@ export class ChainlinkClient extends BaseOracleClient {
       confidence: 0.98,
       change24h: 0,
       change24hPercent: 0,
+      // Chainlink Feed 元数据
+      source: chainlinkData.description || `Chainlink:${chainlinkData.symbol}`,
+      // 扩展字段存储额外元数据
+      ...(chainlinkData.roundId !== undefined && {
+        roundId: chainlinkData.roundId.toString(),
+        answeredInRound: chainlinkData.answeredInRound.toString(),
+        version: chainlinkData.version?.toString(),
+        startedAt: chainlinkData.startedAt,
+      }),
     };
   }
 
@@ -127,7 +136,10 @@ export class ChainlinkClient extends BaseOracleClient {
       }
 
       // 使用 Binance API 获取历史价格数据
-      const historicalPrices = await binanceMarketService.getHistoricalPricesByHours(symbol, period);
+      const historicalPrices = await binanceMarketService.getHistoricalPricesByHours(
+        symbol,
+        period
+      );
 
       if (!historicalPrices || historicalPrices.length === 0) {
         logger.warn(`No historical data available for ${symbol}`, { symbol });
@@ -160,7 +172,9 @@ export class ChainlinkClient extends BaseOracleClient {
         };
       });
     } catch (error) {
-      logger.error(`Failed to fetch historical prices for ${symbol}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      logger.error(
+        `Failed to fetch historical prices for ${symbol}: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
       throw this.createError(
         error instanceof Error ? error.message : 'Failed to fetch historical prices from Chainlink',
         'CHAINLINK_HISTORICAL_ERROR'

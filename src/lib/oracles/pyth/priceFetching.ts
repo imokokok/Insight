@@ -54,7 +54,7 @@ export async function fetchLatestPrice(
           return null;
         }
 
-        return parsePythPrice(parsed.price, symbol);
+        return parsePythPrice(parsed.price, symbol, priceId);
       },
       DEFAULT_RETRY_CONFIG,
       'getLatestPrice'

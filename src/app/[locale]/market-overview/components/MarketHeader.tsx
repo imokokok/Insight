@@ -3,8 +3,8 @@
 import { BarChart3 } from 'lucide-react';
 
 import { useTranslations } from '@/i18n';
-
 import { type RefreshInterval } from '@/lib/constants';
+
 import { type OracleMarketData, type AssetData } from '../types';
 
 import RealtimeIndicator from './RealtimeIndicator';

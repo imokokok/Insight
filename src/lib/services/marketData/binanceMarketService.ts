@@ -630,7 +630,9 @@ export async function getHistoricalPricesByHours(
       volume: parseFloat(String(item[5])), // 成交量
     }));
 
-    logger.info(`Successfully fetched ${prices.length} historical price points for ${symbol} (${hours}h)`);
+    logger.info(
+      `Successfully fetched ${prices.length} historical price points for ${symbol} (${hours}h)`
+    );
     return prices;
   } catch (error) {
     logger.error(
