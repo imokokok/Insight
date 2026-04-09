@@ -8,7 +8,7 @@ import {
   type UseQueryResult,
 } from '@tanstack/react-query';
 
-import { getOracleClient } from '@/lib/oracles';
+import { getOracleClient, extractBaseSymbol } from '@/lib/oracles';
 import { STALE_TIME_CONFIG, GC_TIME_CONFIG } from '@/providers/ReactQueryProvider';
 import type { OracleProvider, Blockchain, PriceData } from '@/types/oracle';
 
@@ -61,7 +61,8 @@ export function usePriceData(options: UsePriceDataOptions): UsePriceDataReturn {
       }
 
       const client = getOracleClient(provider);
-      const priceData = await client.getPrice(symbol, chain);
+      const baseSymbol = extractBaseSymbol(symbol);
+      const priceData = await client.getPrice(baseSymbol, chain);
       const result = {
         ...priceData,
         provider,
@@ -145,7 +146,8 @@ export function useMultiPriceData(
           }
 
           const client = getOracleClient(query.provider);
-          const priceData = await client.getPrice(query.symbol, query.chain);
+          const baseSymbol = extractBaseSymbol(query.symbol);
+          const priceData = await client.getPrice(baseSymbol, query.chain);
           const result = {
             ...priceData,
             provider: query.provider,
