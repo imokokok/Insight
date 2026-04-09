@@ -361,7 +361,6 @@
     "notSupported": "不支持"
   },
   "oracleMetrics": {
-    "bandPrice": "BAND 价格",
     "marketCap": "市值",
     "activeValidators": "活跃验证者",
     "totalValidators": "共 {count} 个",

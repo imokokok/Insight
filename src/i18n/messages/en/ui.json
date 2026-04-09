@@ -361,7 +361,6 @@
     "notSupported": "Not Supported"
   },
   "oracleMetrics": {
-    "bandPrice": "BAND Price",
     "marketCap": "Market Cap",
     "activeValidators": "Active Validators",
     "totalValidators": "Total {count}",

@@ -8,7 +8,6 @@ function detectProtocolOracles(protocol: DefiLlamaProtocol): {
   const oracleKeywords: Record<string, string[]> = {
     Chainlink: ['chainlink'],
     'Pyth Network': ['pyth'],
-    'Band Protocol': ['band'],
     API3: ['api3'],
     UMA: ['uma', 'optimistic oracle'],
     RedStone: ['redstone'],
@@ -98,7 +97,6 @@ export async function fetchProtocolDetails(): Promise<ProtocolDetail[]> {
           [
             'chainlink',
             'pyth',
-            'band',
             'api3',
             'uma',
             'redstone',

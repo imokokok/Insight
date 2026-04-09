@@ -70,7 +70,6 @@ const SYMBOL_TO_DAPI: Record<string, string> = {
   OP: 'OP/USD',
   UNI: 'UNI/USD',
   AAVE: 'AAVE/USD',
-  BAND: 'BAND/USD',
   PYTH: 'PYTH/USD',
   UMA: 'UMA/USD',
   DIA: 'DIA/USD',

@@ -242,7 +242,6 @@ class PerformanceMetricsCalculator {
     const defaults: Record<string, number> = {
       Chainlink: 450,
       'Pyth Network': 120,
-      'Band Protocol': 600,
       API3: 900,
       UMA: 1200,
       RedStone: 200,
@@ -257,7 +256,6 @@ class PerformanceMetricsCalculator {
     const defaults: Record<string, number> = {
       Chainlink: 99.8,
       'Pyth Network': 99.5,
-      'Band Protocol': 99.2,
       API3: 98.9,
       UMA: 98.5,
       RedStone: 99.3,
@@ -272,7 +270,6 @@ class PerformanceMetricsCalculator {
     const defaults: Record<string, number> = {
       Chainlink: 3600,
       'Pyth Network': 400,
-      'Band Protocol': 1800,
       API3: 3600,
       UMA: 7200,
       RedStone: 60,

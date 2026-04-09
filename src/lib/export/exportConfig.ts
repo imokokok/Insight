@@ -249,14 +249,6 @@ export const DEFAULT_FIELD_GROUPS: FieldGroup[] = [
         selected: true,
       },
       {
-        key: 'band',
-        label: 'Band Protocol (B)',
-        labelZh: 'Band Protocol (B)',
-        dataType: 'number',
-        format: '0.00',
-        selected: true,
-      },
-      {
         key: 'api3',
         label: 'API3 (B)',
         labelZh: 'API3 (B)',

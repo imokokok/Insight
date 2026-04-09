@@ -154,7 +154,6 @@ export default function ChartContainer({
         ...item,
         chainlink: item.chainlink * (1 + (Math.random() - 0.5) * variance),
         pyth: item.pyth * (1 + (Math.random() - 0.5) * variance),
-        band: item.band * (1 + (Math.random() - 0.5) * variance),
         api3: item.api3 * (1 + (Math.random() - 0.5) * variance),
         uma: item.uma * (1 + (Math.random() - 0.5) * variance),
         redstone: item.redstone * (1 + (Math.random() - 0.5) * variance),

@@ -58,9 +58,6 @@ export interface TVSTrendData {
   pyth: number;
   pythUpper: number;
   pythLower: number;
-  band: number;
-  bandUpper: number;
-  bandLower: number;
   api3: number;
   api3Upper: number;
   api3Lower: number;

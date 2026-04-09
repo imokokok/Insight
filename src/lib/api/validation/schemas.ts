@@ -184,7 +184,7 @@ export const symbolSchema: FieldSchema = {
 };
 
 export const providerSchema: FieldSchema = createEnumSchema(
-  ['chainlink', 'band_protocol', 'uma', 'api3', 'pyth'] as const,
+  ['chainlink', 'uma', 'api3', 'pyth'] as const,
   true
 );
 

@@ -309,7 +309,7 @@ export async function calculateCorrelation(timeRange: string = '30D'): Promise<C
   try {
     logger.info('Calculating correlation matrix...');
 
-    const oracles = ['Chainlink', 'Pyth Network', 'Band Protocol', 'API3', 'UMA'];
+    const oracles = ['Chainlink', 'Pyth Network', 'API3', 'UMA'];
     const n = oracles.length;
 
     const matrix: number[][] = Array(n)
