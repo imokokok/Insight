@@ -254,7 +254,7 @@ function PriceTableComponent({
                         ? 'text-orange-600 bg-orange-100'
                         : 'text-yellow-600 bg-yellow-100'
                   }`}
-                  title={`价格异常：偏差 ${row.deviation?.toFixed(2)}%`}
+                  title={t('priceTable.anomalyTooltip')}
                 >
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
@@ -264,7 +264,7 @@ function PriceTableComponent({
                       d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
                     />
                   </svg>
-                  异常
+                  {t('priceTable.anomaly')}
                 </span>
               )}
             </div>
@@ -377,7 +377,7 @@ function PriceTableComponent({
               handleRowClick(row, row.originalIndex);
             }}
             className={`p-1 rounded hover:bg-gray-100 transition-colors ${bgClass}`}
-            title={isExpanded ? '收起详情' : '展开详情'}
+            title={isExpanded ? t('priceTable.collapseDetails') : t('priceTable.expandDetails')}
           >
             <svg
               className={`w-4 h-4 text-gray-500 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
@@ -412,15 +412,15 @@ function PriceTableComponent({
   const getAnomalyReason = (row: PriceTableRow): string => {
     const reasons: string[] = [];
     if (row.deviation && Math.abs(row.deviation) > 1) {
-      reasons.push('价格偏差过大');
+      reasons.push(t('priceTable.deviationTooLarge') || '价格偏差过大');
     }
     if (row.freshnessSeconds > 60) {
-      reasons.push('数据延迟');
+      reasons.push(t('priceTable.dataDelay') || '数据延迟');
     }
     if (row.isOutlier) {
-      reasons.push('统计异常值');
+      reasons.push(t('priceTable.outlier') || '统计异常值');
     }
-    return reasons.length > 0 ? reasons.join('、') : '未知原因';
+    return reasons.length > 0 ? reasons.join('、') : t('priceTable.unknownReason') || '未知原因';
   };
 
   // 简化后的展开行详情
@@ -432,7 +432,7 @@ function PriceTableComponent({
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm py-3 px-2">
         {/* 原始价格数据 */}
         <div className="bg-white p-3 rounded-lg border border-gray-100">
-          <span className="text-gray-500 block text-xs mb-1">原始价格</span>
+          <span className="text-gray-500 block text-xs mb-1">{t('priceTable.rawPrice')}</span>
           <span className="font-mono text-gray-900 text-lg">
             $
             {row.price.toLocaleString(undefined, {
@@ -444,7 +444,7 @@ function PriceTableComponent({
 
         {/* 与均价的差值 */}
         <div className="bg-white p-3 rounded-lg border border-gray-100">
-          <span className="text-gray-500 block text-xs mb-1">与均价差值</span>
+          <span className="text-gray-500 block text-xs mb-1">{t('priceTable.priceDiff')}</span>
           <div className="flex flex-col">
             <span
               className={`font-mono text-lg ${
@@ -464,7 +464,7 @@ function PriceTableComponent({
 
         {/* 数据延迟时间 */}
         <div className="bg-white p-3 rounded-lg border border-gray-100">
-          <span className="text-gray-500 block text-xs mb-1">数据延迟</span>
+          <span className="text-gray-500 block text-xs mb-1">{t('priceTable.dataDelay')}</span>
           <span
             className={`font-medium ${
               row.freshnessSeconds < 30
@@ -480,7 +480,7 @@ function PriceTableComponent({
 
         {/* 状态/异常原因 */}
         <div className="bg-white p-3 rounded-lg border border-gray-100">
-          <span className="text-gray-500 block text-xs mb-1">状态</span>
+          <span className="text-gray-500 block text-xs mb-1">{t('priceTable.status')}</span>
           {row.isAnomaly ? (
             <div>
               <span
@@ -500,9 +500,11 @@ function PriceTableComponent({
                     d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
                   />
                 </svg>
-                异常
+                {t('priceTable.anomaly')}
               </span>
-              <p className="text-xs text-gray-500 mt-1">可能原因: {getAnomalyReason(row)}</p>
+              <p className="text-xs text-gray-500 mt-1">
+                {t('priceTable.possibleReasons')}: {getAnomalyReason(row)}
+              </p>
             </div>
           ) : (
             <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded text-green-600 bg-green-100">
@@ -514,7 +516,7 @@ function PriceTableComponent({
                   d="M5 13l4 4L19 7"
                 />
               </svg>
-              正常
+              {t('priceTable.normal')}
             </span>
           )}
         </div>
@@ -564,7 +566,7 @@ function PriceTableComponent({
           </div>
           {row.isAnomaly && (
             <div className="pt-1 mt-1 border-t border-gray-100">
-              <span className="text-xs text-red-500">⚠️ 价格异常</span>
+              <span className="text-xs text-red-500">⚠️ {t('priceTable.priceAnomaly')}</span>
             </div>
           )}
         </div>

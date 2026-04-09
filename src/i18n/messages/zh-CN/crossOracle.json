@@ -440,6 +440,21 @@
       "1m": "1分钟",
       "5m": "5分钟"
     },
+    "failedOracles": "失败的预言机",
+    "retry": "重试",
+    "retrying": "重试中...",
+    "partialSuccess": "{success}/{total} 个预言机加载成功",
+    "partialSuccessDesc": "部分预言机响应失败。您可以单独重试或一次性全部重试。",
+    "retryAll": "重试所有失败项",
+    "errorTypes": {
+      "network": "网络错误",
+      "timeout": "请求超时",
+      "dataFormat": "数据格式错误",
+      "rateLimit": "请求频率限制",
+      "serverError": "服务器错误",
+      "cors": "跨域错误",
+      "unknown": "未知错误"
+    },
     "filter": {
       "button": "数据筛选",
       "allOracles": "全部预言机",

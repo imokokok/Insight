@@ -133,10 +133,11 @@ export function QualityAnalysisTab({
       {/* 质量评分卡片 */}
       <QualityScoreCard
         score={qualityScore}
-        title="数据质量综合评估"
+        title={t('quality.title')}
         showSuggestions={true}
         variant="default"
         isLoading={isLoading}
+        t={t}
       />
 
       {/* 详细分析网格 */}
@@ -146,15 +147,15 @@ export function QualityAnalysisTab({
           <CardHeader>
             <div className="flex items-center gap-2">
               <AlertTriangle className="w-5 h-5 text-amber-500" />
-              <CardTitle>价格异常检测</CardTitle>
+              <CardTitle>{t('quality.anomalyDetection')}</CardTitle>
             </div>
           </CardHeader>
           <CardContent>
             {anomalies.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-8 text-center">
                 <CheckCircle2 className="w-12 h-12 text-emerald-500 mb-3" />
-                <p className="text-gray-900 font-medium">未发现价格异常</p>
-                <p className="text-sm text-gray-500 mt-1">所有数据源价格均在正常范围内</p>
+                <p className="text-gray-900 font-medium">{t('quality.noAnomalies')}</p>
+                <p className="text-sm text-gray-500 mt-1">{t('quality.noAnomaliesDesc')}</p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -206,7 +207,7 @@ export function QualityAnalysisTab({
           <CardHeader>
             <div className="flex items-center gap-2">
               <Database className="w-5 h-5 text-primary-500" />
-              <CardTitle>数据质量详细分析</CardTitle>
+              <CardTitle>{t('quality.detailedAnalysis')}</CardTitle>
             </div>
           </CardHeader>
           <CardContent>
@@ -216,7 +217,9 @@ export function QualityAnalysisTab({
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <TrendingUp className="w-4 h-4 text-blue-500" />
-                    <span className="text-sm font-medium text-gray-700">数据一致性</span>
+                    <span className="text-sm font-medium text-gray-700">
+                      {t('quality.consistency')}
+                    </span>
                   </div>
                   <span
                     className={`text-lg font-bold ${getScoreLevelColor(qualityScore.consistency)}`}
@@ -240,7 +243,9 @@ export function QualityAnalysisTab({
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <Clock className="w-4 h-4 text-emerald-500" />
-                    <span className="text-sm font-medium text-gray-700">数据新鲜度</span>
+                    <span className="text-sm font-medium text-gray-700">
+                      {t('quality.freshness')}
+                    </span>
                   </div>
                   <span
                     className={`text-lg font-bold ${getScoreLevelColor(qualityScore.freshness)}`}
@@ -262,7 +267,9 @@ export function QualityAnalysisTab({
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <Database className="w-4 h-4 text-purple-500" />
-                    <span className="text-sm font-medium text-gray-700">数据完整性</span>
+                    <span className="text-sm font-medium text-gray-700">
+                      {t('quality.completeness')}
+                    </span>
                   </div>
                   <span
                     className={`text-lg font-bold ${getScoreLevelColor(qualityScore.completeness)}`}
@@ -286,7 +293,9 @@ export function QualityAnalysisTab({
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Shield className="w-5 h-5 text-amber-500" />
-                    <span className="text-base font-semibold text-gray-900">综合评分</span>
+                    <span className="text-base font-semibold text-gray-900">
+                      {t('quality.overallScore')}
+                    </span>
                   </div>
                   <span
                     className={`text-2xl font-bold ${getScoreLevelColor(qualityScore.overall)}`}
@@ -308,7 +317,7 @@ export function QualityAnalysisTab({
         <CardHeader>
           <div className="flex items-center gap-2">
             <Database className="w-5 h-5 text-primary-500" />
-            <CardTitle>数据源状态概览</CardTitle>
+            <CardTitle>{t('quality.dataSourceStatus')}</CardTitle>
           </div>
         </CardHeader>
         <CardContent>

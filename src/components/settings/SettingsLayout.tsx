@@ -5,6 +5,7 @@ import { type ReactNode } from 'react';
 import { Settings, User, Bell, Palette, Database } from 'lucide-react';
 
 import { Icon } from '@/components/ui';
+import { useTranslations } from '@/i18n';
 
 export type SettingsTab = 'profile' | 'preferences' | 'notifications' | 'data';
 
@@ -21,34 +22,36 @@ interface TabItem {
   description: string;
 }
 
-const tabs: TabItem[] = [
-  {
-    id: 'profile',
-    label: '个人资料',
-    icon: User,
-    description: '管理您的账户信息',
-  },
-  {
-    id: 'preferences',
-    label: '偏好设置',
-    icon: Palette,
-    description: '自定义应用设置',
-  },
-  {
-    id: 'notifications',
-    label: '通知设置',
-    icon: Bell,
-    description: '管理通知偏好',
-  },
-  {
-    id: 'data',
-    label: '数据管理',
-    icon: Database,
-    description: '导出和管理数据',
-  },
-];
-
 export function SettingsLayout({ children, activeTab, onTabChange }: SettingsLayoutProps) {
+  const t = useTranslations();
+
+  const tabs: TabItem[] = [
+    {
+      id: 'profile',
+      label: t('settings.profile'),
+      icon: User,
+      description: t('settings.profileDesc'),
+    },
+    {
+      id: 'preferences',
+      label: t('settings.preferences'),
+      icon: Palette,
+      description: t('settings.preferencesDesc'),
+    },
+    {
+      id: 'notifications',
+      label: t('settings.notifications'),
+      icon: Bell,
+      description: t('settings.notificationsDesc'),
+    },
+    {
+      id: 'data',
+      label: t('settings.data'),
+      icon: Database,
+      description: t('settings.dataDesc'),
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-insight">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -58,8 +61,8 @@ export function SettingsLayout({ children, activeTab, onTabChange }: SettingsLay
               <Settings className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-semibold text-gray-900">设置</h1>
-              <p className="text-sm text-gray-500 mt-0.5">管理您的账户和应用偏好</p>
+              <h1 className="text-2xl font-semibold text-gray-900">{t('settings.title')}</h1>
+              <p className="text-sm text-gray-500 mt-0.5">{t('settings.subtitle')}</p>
             </div>
           </div>
         </div>
