@@ -6,6 +6,12 @@ export * from './realtime';
 
 export { useChainlinkAllData } from './oracles/chainlink';
 export { useDIAPrice, useDIAHistorical, useDIAAllData } from './oracles/dia';
+export {
+  useDIAOnChainData,
+  formatLargeNumber,
+  formatSupply,
+  formatChangePercent,
+} from './oracles/useDIAOnChainData';
 export { usePythAllData } from './oracles/pyth';
 export { useRedStonePrice, useRedStoneHistorical, useRedStoneAllData } from './oracles/redstone';
 export {

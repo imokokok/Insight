@@ -12,6 +12,14 @@ export { useRedStonePrice, useRedStoneHistorical } from './redstone';
 
 // DIA
 export { useDIAPrice, useDIAHistorical } from './dia';
+export {
+  useDIAOnChainData,
+  formatLargeNumber,
+  formatSupply,
+  formatChangePercent,
+  type UseDIAOnChainDataOptions,
+  type UseDIAOnChainDataReturn,
+} from './useDIAOnChainData';
 
 // WINkLink
 export { useWINkLinkPrice, useWINkLinkHistoricalPrices } from './winklink';

@@ -8,8 +8,9 @@
 import { useRef, useCallback } from 'react';
 
 import { LiveStatusBar } from '@/components/ui';
-import { useCommonShortcuts } from '@/hooks';
+import { useCommonShortcuts, useDIAOnChainData } from '@/hooks';
 import { useTranslations } from '@/i18n';
+import { OracleProvider } from '@/lib/oracles';
 
 import { QueryHeader, QueryForm, QueryResults, ExportConfig } from './components';
 import { usePriceQuery } from './hooks/usePriceQuery';
@@ -62,6 +63,18 @@ export default function PriceQueryPage() {
     retryDataSource,
     retryAllErrors,
   } = priceQuery;
+
+  // 获取DIA链上数据（当选择DIA预言机或没有特定预言机时）
+  const shouldFetchDIAData =
+    !selectedOracle ||
+    selectedOracle === OracleProvider.DIA ||
+    queryResults.some((r) => r.provider === OracleProvider.DIA);
+
+  const { data: diaOnChainData, isLoading: isDIADataLoading } = useDIAOnChainData({
+    symbol: selectedSymbol,
+    chain: selectedChain || undefined,
+    enabled: shouldFetchDIAData && !!selectedSymbol && queryResults.length > 0,
+  });
 
   // Debounced search focus handler
   const debouncedSearchFocus = useCallback(() => {
@@ -250,6 +263,8 @@ export default function PriceQueryPage() {
             onRetryDataSource={retryDataSource}
             onRetryAllErrors={retryAllErrors}
             onClearErrors={clearErrors}
+            diaOnChainData={diaOnChainData}
+            isDIADataLoading={isDIADataLoading}
           />
         </main>
       </div>
