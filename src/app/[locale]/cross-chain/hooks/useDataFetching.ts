@@ -1,16 +1,17 @@
 /**
  * @fileoverview 数据获取 Hook
  * 提供跨链价格数据获取和缓存功能
+ * 通过 API 路由获取数据，避免前端直接调用 RPC 导致的 CORS 和并发问题
  */
 
 import { useCallback, useRef } from 'react';
 
 import { useToastMethods } from '@/components/ui/Toast';
+import { oracleApiClient } from '@/lib/api/oracleApiClient';
 import {
   type OracleProvider,
   type Blockchain,
   type PriceData,
-  type BaseOracleClient,
 } from '@/lib/oracles';
 import { createLogger } from '@/lib/utils/logger';
 
@@ -105,6 +106,38 @@ export interface FetchDataParams {
   setLoading: (loading: boolean) => void;
 }
 
+/**
+ * 通过 API 路由获取当前价格
+ */
+async function fetchPriceFromApi(
+  provider: OracleProvider,
+  symbol: string,
+  chain: Blockchain
+): Promise<PriceData> {
+  return oracleApiClient.fetchPrice({
+    provider,
+    symbol,
+    chain,
+  });
+}
+
+/**
+ * 通过 API 路由获取历史价格
+ */
+async function fetchHistoricalFromApi(
+  provider: OracleProvider,
+  symbol: string,
+  chain: Blockchain,
+  period: number
+): Promise<PriceData[]> {
+  return oracleApiClient.fetchHistorical({
+    provider,
+    symbol,
+    chain,
+    period,
+  });
+}
+
 export interface UseDataFetchingReturn {
   fetchData: (signal?: AbortSignal) => Promise<void>;
   clearCache: () => void;
@@ -113,7 +146,7 @@ export interface UseDataFetchingReturn {
 
 export function useDataFetching(
   provider: OracleProvider,
-  currentClient: BaseOracleClient,
+  _currentClient: unknown,
   supportedChains: Blockchain[],
   params: Omit<FetchDataParams, 'selectedProvider'>,
   validation: UseDataValidationReturn,
@@ -134,6 +167,15 @@ export function useDataFetching(
 
       params.setRefreshStatus('refreshing');
       params.setLoading(true);
+
+      console.log('[useDataFetching] Starting fetch:', {
+        provider,
+        symbol: params.selectedSymbol,
+        timeRange: params.selectedTimeRange,
+        supportedChains,
+        chainCount: supportedChains.length,
+      });
+
       try {
         const dataCache = getGlobalCache();
         const cacheKey = getCacheKey(provider, params.selectedSymbol, params.selectedTimeRange);
@@ -194,10 +236,16 @@ export function useDataFetching(
           return;
         }
 
+        // 使用 API 路由获取当前价格，避免前端直接调用 RPC
+        console.log('[useDataFetching] Fetching prices for chains:', supportedChains);
         const currentPromises = supportedChains.map((chain) =>
-          currentClient.getPrice(params.selectedSymbol, chain)
+          fetchPriceFromApi(provider, params.selectedSymbol, chain).catch((err) => {
+            console.error(`[useDataFetching] Failed to fetch price for ${chain}:`, err);
+            throw err;
+          })
         );
         const currentResults = await Promise.all(currentPromises);
+        console.log('[useDataFetching] Price results:', currentResults);
 
         if (currentSignal.aborted) return;
 
@@ -205,8 +253,9 @@ export function useDataFetching(
 
         params.setCurrentPrices(validatedCurrentResults);
 
+        // 使用 API 路由获取历史价格，避免前端直接调用 RPC
         const historicalPromises = supportedChains.map((chain) =>
-          currentClient.getHistoricalPrices(params.selectedSymbol, chain, params.selectedTimeRange)
+          fetchHistoricalFromApi(provider, params.selectedSymbol, chain, params.selectedTimeRange)
         );
         const historicalResults = await Promise.all(historicalPromises);
 
@@ -278,10 +327,26 @@ export function useDataFetching(
         if (currentSignal.aborted) return;
 
         const errorMessage = error instanceof Error ? error.message : String(error);
+        const errorStack = error instanceof Error ? error.stack : '';
         logger.error(
           'Error fetching data',
-          error instanceof Error ? error : new Error(String(error))
+          error instanceof Error ? error : new Error(String(error)),
+          {
+            message: errorMessage,
+            stack: errorStack,
+            provider,
+            symbol: params.selectedSymbol,
+            chains: supportedChains,
+          }
         );
+        console.error('[useDataFetching] Detailed error:', {
+          message: errorMessage,
+          stack: errorStack,
+          provider,
+          symbol: params.selectedSymbol,
+          chains: supportedChains,
+          error,
+        });
         params.setRefreshStatus('error');
         toast.error('数据获取失败', `无法获取价格数据: ${errorMessage}`);
       } finally {
@@ -290,7 +355,7 @@ export function useDataFetching(
         }
       }
     },
-    [currentClient, supportedChains, params, provider, validation, anomalyDetection, toast]
+    [supportedChains, params, provider, validation, anomalyDetection, toast]
   );
 
   return {
