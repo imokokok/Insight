@@ -377,7 +377,7 @@ export const ChartCanvas = memo(function ChartCanvas({
           )}
 
           {chartType === 'candlestick' && (
-            <Bar yAxisId="price" dataKey="high" shape={<CandlestickShape />} fill="transparent" />
+            <Bar yAxisId="price" dataKey="high" shape={CandlestickShape} fill="transparent" />
           )}
 
           {!showRSI && !showMACD && (

@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function */
 import { useMemo, useCallback } from 'react';
 
 import { useTranslations } from '@/i18n';

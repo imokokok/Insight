@@ -1,6 +1,8 @@
-import { renderHook, act, waitFor } from '@testing-library/react';
+import { type ReactNode } from 'react';
+
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ReactNode } from 'react';
+import { renderHook, act, waitFor } from '@testing-library/react';
+
 import { useHoverPrefetch, useHoverPrefetchHandlers } from '../ui/useHoverPrefetch';
 
 const createWrapper = () => {
@@ -99,9 +101,7 @@ describe('useHoverPrefetch', () => {
   it('should call onSuccess callback', async () => {
     const queryFn = jest.fn().mockResolvedValue({ data: 'test' });
     const onSuccess = jest.fn();
-    const { result } = renderHook(() =>
-      useHoverPrefetch({ delay: 0, onSuccess })
-    , {
+    const { result } = renderHook(() => useHoverPrefetch({ delay: 0, onSuccess }), {
       wrapper: createWrapper(),
     });
 
@@ -125,9 +125,7 @@ describe('useHoverPrefetch', () => {
     const error = new Error('Test error');
     const queryFn = jest.fn().mockRejectedValue(error);
     const onError = jest.fn();
-    const { result } = renderHook(() =>
-      useHoverPrefetch({ delay: 0, onError })
-    , {
+    const { result } = renderHook(() => useHoverPrefetch({ delay: 0, onError }), {
       wrapper: createWrapper(),
     });
 
@@ -159,14 +157,16 @@ describe('useHoverPrefetchHandlers', () => {
 
   it('should return mouse event handlers', () => {
     const queryFn = jest.fn().mockResolvedValue({ data: 'test' });
-    const { result } = renderHook(() =>
-      useHoverPrefetchHandlers({
-        queryKey: ['test'],
-        queryFn,
-      })
-    , {
-      wrapper: createWrapper(),
-    });
+    const { result } = renderHook(
+      () =>
+        useHoverPrefetchHandlers({
+          queryKey: ['test'],
+          queryFn,
+        }),
+      {
+        wrapper: createWrapper(),
+      }
+    );
 
     expect(result.current.onMouseEnter).toBeDefined();
     expect(result.current.onMouseLeave).toBeDefined();
@@ -175,17 +175,19 @@ describe('useHoverPrefetchHandlers', () => {
 
   it('should prefetch on mouse enter', async () => {
     const queryFn = jest.fn().mockResolvedValue({ data: 'test' });
-    const { result } = renderHook(() =>
-      useHoverPrefetchHandlers(
-        {
-          queryKey: ['test'],
-          queryFn,
-        },
-        { delay: 0 }
-      )
-    , {
-      wrapper: createWrapper(),
-    });
+    const { result } = renderHook(
+      () =>
+        useHoverPrefetchHandlers(
+          {
+            queryKey: ['test'],
+            queryFn,
+          },
+          { delay: 0 }
+        ),
+      {
+        wrapper: createWrapper(),
+      }
+    );
 
     act(() => {
       result.current.onMouseEnter();
@@ -202,17 +204,19 @@ describe('useHoverPrefetchHandlers', () => {
 
   it('should cancel prefetch on mouse leave', async () => {
     const queryFn = jest.fn().mockResolvedValue({ data: 'test' });
-    const { result } = renderHook(() =>
-      useHoverPrefetchHandlers(
-        {
-          queryKey: ['test'],
-          queryFn,
-        },
-        { delay: 100 }
-      )
-    , {
-      wrapper: createWrapper(),
-    });
+    const { result } = renderHook(
+      () =>
+        useHoverPrefetchHandlers(
+          {
+            queryKey: ['test'],
+            queryFn,
+          },
+          { delay: 100 }
+        ),
+      {
+        wrapper: createWrapper(),
+      }
+    );
 
     act(() => {
       result.current.onMouseEnter();

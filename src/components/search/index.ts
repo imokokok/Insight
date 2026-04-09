@@ -37,7 +37,7 @@ export type { GlobalSearchProps } from './GlobalSearch';
 export function GlobalSearch(props: { isOpen: boolean; onClose: () => void }): React.ReactElement {
   return React.createElement(
     ComponentErrorBoundary,
-    { children: null },
+    null,
     React.createElement(GlobalSearchComponent, props)
   );
 }

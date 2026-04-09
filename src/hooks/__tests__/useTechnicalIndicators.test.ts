@@ -1,9 +1,10 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
+
 import {
   useTechnicalIndicators,
   useBatchTechnicalIndicators,
-  IndicatorDataPoint,
-  IndicatorSettings,
+  type IndicatorDataPoint,
+  type IndicatorSettings,
 } from '../ui/useTechnicalIndicators';
 
 // Mock localStorage
@@ -133,3 +134,46 @@ describe('useTechnicalIndicators', () => {
       localStorageMock.getItem.mockReturnValue(JSON.stringify(savedSettings));
 
       const { result } = renderHook(() =>
+        useTechnicalIndicators({ isMobile: false, persistSettings: true })
+      );
+
+      expect(result.current.showMA7).toBe(false);
+      expect(result.current.showMA14).toBe(true);
+      expect(result.current.showRSI).toBe(true);
+    });
+  });
+
+  describe('Mobile mode', () => {
+    it('should initialize with mobile-optimized settings', () => {
+      const { result } = renderHook(() => useTechnicalIndicators({ isMobile: true }));
+
+      expect(result.current.showMA7).toBe(true);
+      expect(result.current.showMA14).toBe(false);
+      expect(result.current.showVolume).toBe(false);
+    });
+  });
+});
+
+describe('useBatchTechnicalIndicators', () => {
+  const mockDataSets = {
+    dataset1: [
+      { time: '10:00', timestamp: 1000, price: 100, volume: 1000 },
+      { time: '10:01', timestamp: 2000, price: 102, volume: 1200 },
+    ],
+    dataset2: [
+      { time: '10:00', timestamp: 1000, price: 200, volume: 2000 },
+      { time: '10:01', timestamp: 2000, price: 202, volume: 2200 },
+    ],
+  };
+
+  it('should process multiple datasets', () => {
+    const { result } = renderHook(() => useBatchTechnicalIndicators({ isMobile: false }));
+
+    const results = result.current.calculateBatchIndicators(mockDataSets);
+
+    expect(results.dataset1).toBeDefined();
+    expect(results.dataset2).toBeDefined();
+    expect(results.dataset1[0].ma7).toBe(100);
+    expect(results.dataset2[0].ma7).toBe(200);
+  });
+});

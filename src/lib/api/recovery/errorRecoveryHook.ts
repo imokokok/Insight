@@ -202,6 +202,10 @@ export function useErrorRecovery<T>(
   const cacheRef = useRef(cacheKey ? new LocalStorageCache<T>(cacheKey, cacheTTL) : null);
   const isMountedRef = useRef(true);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const attemptRecoveryRef = useRef<
+    | ((error: Error, originalOperation: () => Promise<T>, operationName?: string) => Promise<void>)
+    | null
+  >(null);
 
   // 清理函数
   useEffect(() => {
@@ -296,7 +300,9 @@ export function useErrorRecovery<T>(
         });
 
         // 尝试恢复
-        await attemptRecovery(err, operation, operationName);
+        if (attemptRecoveryRef.current) {
+          await attemptRecoveryRef.current(err, operation, operationName);
+        }
       }
     },
     [currentStrategy, onRecoverySuccess, safeSetState]
@@ -418,6 +424,9 @@ export function useErrorRecovery<T>(
       safeSetState,
     ]
   );
+
+  // 将 attemptRecovery 存储到 ref 中供 execute 使用
+  attemptRecoveryRef.current = attemptRecovery;
 
   // 手动重试
   const retry = useCallback(async () => {

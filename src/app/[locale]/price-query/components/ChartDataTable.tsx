@@ -48,6 +48,7 @@ export function ChartDataTable({ chartData, seriesNames, selectedTimeRange }: Ch
       });
       return row;
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chartData, seriesNames]);
 
   if (chartData.length === 0 || seriesNames.length === 0) {

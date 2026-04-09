@@ -47,10 +47,12 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
   const thresholdConfig = useCrossChainStore((state) => state.thresholdConfig);
   const setThresholdConfig = useCrossChainStore((state) => state.setThresholdConfig);
 
-  const providerOptions = getPriceOracleProvidersSortedByMarketCap().map((provider) => ({
-    value: provider,
-    label: providerNames[provider],
-  }));
+  const providerOptions = getPriceOracleProvidersSortedByMarketCap()
+    .filter((provider) => provider !== 'uma')
+    .map((provider) => ({
+      value: provider,
+      label: providerNames[provider],
+    }));
 
   const symbolOptions = symbols.map((symbol) => ({
     value: symbol,

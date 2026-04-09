@@ -1,6 +1,8 @@
-import { renderHook, act, waitFor } from '@testing-library/react';
+import { type ReactNode } from 'react';
+
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ReactNode } from 'react';
+import { renderHook, act, waitFor } from '@testing-library/react';
+
 import { useRoutePrefetch, usePrefetchMetrics, routePrefetchMap } from '../ui/useRoutePrefetch';
 
 const mockPush = jest.fn();
@@ -46,11 +48,12 @@ describe('useRoutePrefetch', () => {
   });
 
   it('should not prefetch when disabled', async () => {
-    const { result } = renderHook(() =>
-      useRoutePrefetch({ enabled: false, prefetchOnMount: false })
-    , {
-      wrapper: createWrapper(),
-    });
+    const { result } = renderHook(
+      () => useRoutePrefetch({ enabled: false, prefetchOnMount: false }),
+      {
+        wrapper: createWrapper(),
+      }
+    );
 
     const config = routePrefetchMap['/chainlink'];
     const queryFn = jest.fn().mockResolvedValue({ data: 'test' });
@@ -65,11 +68,12 @@ describe('useRoutePrefetch', () => {
   });
 
   it('should navigate with prefetch', async () => {
-    const { result } = renderHook(() =>
-      useRoutePrefetch({ enabled: true, prefetchOnMount: false })
-    , {
-      wrapper: createWrapper(),
-    });
+    const { result } = renderHook(
+      () => useRoutePrefetch({ enabled: true, prefetchOnMount: false }),
+      {
+        wrapper: createWrapper(),
+      }
+    );
 
     await act(async () => {
       await result.current.navigateWithPrefetch('/chainlink');
@@ -79,11 +83,12 @@ describe('useRoutePrefetch', () => {
   });
 
   it('should cancel pending prefetch', () => {
-    const { result } = renderHook(() =>
-      useRoutePrefetch({ enabled: true, prefetchOnMount: false })
-    , {
-      wrapper: createWrapper(),
-    });
+    const { result } = renderHook(
+      () => useRoutePrefetch({ enabled: true, prefetchOnMount: false }),
+      {
+        wrapper: createWrapper(),
+      }
+    );
 
     act(() => {
       result.current.prefetchRoute('/chainlink');

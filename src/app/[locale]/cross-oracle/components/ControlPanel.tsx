@@ -142,13 +142,15 @@ export function ControlPanel({
     [oracleCountMap]
   );
 
-  // Oracle options for multi-select
-  const oracleOptions = getPriceOracleProvidersSortedByMarketCap().map((oracle) => ({
-    value: oracle,
-    label: priceOracleNames[oracle],
-    icon: true,
-    color: oracleChartColors[oracle] || '#6B7280',
-  }));
+  // Oracle options for multi-select - 排除 UMA
+  const oracleOptions = getPriceOracleProvidersSortedByMarketCap()
+    .filter((oracle) => oracle !== 'uma')
+    .map((oracle) => ({
+      value: oracle,
+      label: priceOracleNames[oracle],
+      icon: true,
+      color: oracleChartColors[oracle] || '#6B7280',
+    }));
 
   // Time range options for segmented control
   const timeRangeOptions = timeRanges.map((range) => ({

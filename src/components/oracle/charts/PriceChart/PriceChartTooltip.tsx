@@ -106,7 +106,13 @@ export function MACDTooltip({ active, payload, label }: MACDTooltipProps) {
   );
 }
 
-export function CandlestickShape(props: any) {
+export function CandlestickShape(props: {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  payload?: { open: number; close: number; high: number; low: number };
+}) {
   const { x, y, width, height, payload } = props;
 
   if (!payload) {
