@@ -21,6 +21,26 @@ import type {
 
 const logger = createLogger('DIADataService');
 
+// 代币链上数据聚合接口
+interface DIATokenOnChainDataInternal {
+  symbol: string;
+  price: number;
+  change24hPercent: number;
+  // 供应量数据
+  circulatingSupply: number | null;
+  totalSupply: number | null;
+  maxSupply: number | null;
+  marketCap: number | null;
+  // 交易所数据
+  exchangeCount: number;
+  activeExchangeCount: number;
+  totalTradingPairs: number;
+  totalVolume24h: number;
+  // 数据新鲜度
+  lastUpdated: number;
+  dataSource: string;
+}
+
 export class DIADataService {
   private cache: Map<string, CacheEntry<unknown>> = new Map();
   private static instance: DIADataService | null = null;
@@ -93,6 +113,100 @@ export class DIADataService {
     return this.networkService.getEcosystemIntegrations();
   }
 
+  /**
+   * 获取代币的完整链上数据（供应量 + 交易所数据）
+   * 用于价格查询页面的统计卡片展示
+   */
+  async getTokenOnChainData(
+    symbol: string,
+    chain?: Blockchain
+  ): Promise<DIATokenOnChainDataInternal | null> {
+    const cacheKey = `onchain-data:${symbol.toUpperCase()}`;
+    const cached = this.getFromCache<DIATokenOnChainDataInternal>(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    try {
+      // 并行获取价格、供应量和交易所数据
+      const [priceData, supplyData, exchanges] = await Promise.all([
+        this.priceService.getAssetPrice(symbol, chain),
+        this.networkService.getSupply(symbol),
+        this.networkService.getExchanges(),
+      ]);
+
+      if (!priceData) {
+        logger.warn('No price data available for token', { symbol });
+        return null;
+      }
+
+      // 计算交易所统计数据
+      const activeExchanges = exchanges.filter((e) => e.ScraperActive);
+      const totalVolume24h = exchanges.reduce((sum, e) => sum + (e.Volume24h || 0), 0);
+      const totalPairs = exchanges.reduce((sum, e) => sum + (e.Pairs || 0), 0);
+
+      // 计算市值
+      const marketCap =
+        supplyData?.CirculatingSupply && priceData.price
+          ? supplyData.CirculatingSupply * priceData.price
+          : null;
+
+      const onChainData: DIATokenOnChainDataInternal = {
+        symbol: symbol.toUpperCase(),
+        price: priceData.price,
+        change24hPercent: priceData.change24hPercent || 0,
+        circulatingSupply: supplyData?.CirculatingSupply || null,
+        totalSupply: supplyData?.TotalSupply || null,
+        maxSupply: supplyData?.MaxSupply || null,
+        marketCap,
+        exchangeCount: exchanges.length,
+        activeExchangeCount: activeExchanges.length,
+        totalTradingPairs: totalPairs,
+        totalVolume24h,
+        lastUpdated: priceData.timestamp,
+        dataSource: priceData.source || 'DIA',
+      };
+
+      this.setCache(cacheKey, onChainData, 60000); // 1分钟缓存
+      logger.info('Successfully fetched token on-chain data', {
+        symbol,
+        price: onChainData.price,
+        marketCap: onChainData.marketCap,
+        exchangeCount: onChainData.exchangeCount,
+      });
+
+      return onChainData;
+    } catch (error) {
+      logger.error(
+        'Failed to get token on-chain data',
+        error instanceof Error ? error : new Error(String(error)),
+        { symbol }
+      );
+      return null;
+    }
+  }
+
+  private getFromCache<T>(key: string): T | null {
+    const entry = this.cache.get(key) as CacheEntry<T> | undefined;
+    if (!entry) return null;
+
+    const now = Date.now();
+    if (now - entry.timestamp > entry.ttl) {
+      this.cache.delete(key);
+      return null;
+    }
+
+    return entry.data;
+  }
+
+  private setCache<T>(key: string, data: T, ttl: number): void {
+    this.cache.set(key, {
+      data,
+      timestamp: Date.now(),
+      ttl,
+    });
+  }
+
   clearCache(): void {
     this.cache.clear();
     logger.info('Cache cleared');
@@ -128,3 +242,6 @@ export type {
   DIAEcosystemIntegration,
   RetryConfig,
 } from './diaTypes';
+
+// 重新导出链上数据接口
+export type DIATokenOnChainData = DIATokenOnChainDataInternal;

@@ -23,6 +23,12 @@ import {
   Settings,
   Shield,
   Globe,
+  Coins,
+  Activity,
+  Store,
+  TrendingDown,
+  Wallet,
+  Zap,
 } from 'lucide-react';
 
 import { ChartSkeleton, EmptyStateEnhanced, ProgressBar, SegmentedControl } from '@/components/ui';
@@ -32,6 +38,7 @@ import {
   type Blockchain,
   OracleProvider as OracleProviderEnum,
 } from '@/lib/oracles';
+import type { DIATokenOnChainData } from '@/lib/oracles/diaDataService';
 
 import { type QueryResult, type PriceData } from '../constants';
 import { type QueryError } from '../hooks/usePriceQuery';
@@ -138,6 +145,9 @@ interface QueryResultsProps {
   onRetryDataSource: (provider: OracleProvider, chain: Blockchain) => void;
   onRetryAllErrors: () => void;
   onClearErrors: () => void;
+  // DIA链上数据
+  diaOnChainData?: DIATokenOnChainData | null;
+  isDIADataLoading?: boolean;
 }
 
 /**
@@ -201,6 +211,8 @@ export function QueryResults({
   onRetryDataSource,
   onRetryAllErrors,
   onClearErrors,
+  diaOnChainData,
+  isDIADataLoading,
 }: QueryResultsProps) {
   const t = useTranslations();
 
@@ -622,6 +634,99 @@ export function QueryResults({
                   <p className="text-lg font-bold text-gray-900 font-mono">
                     {api3Data.confidence !== undefined
                       ? `${(api3Data.confidence * 100).toFixed(0)}%`
+                      : '-'}
+                  </p>
+                </div>
+              </>
+            ) : diaOnChainData ? (
+              <>
+                {/* 24h 价格变化 - 基于DIA数据 */}
+                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+                  <div className="flex items-center gap-1.5 mb-1.5">
+                    <Activity className="w-3.5 h-3.5 text-blue-500" />
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      24h 涨跌
+                    </p>
+                  </div>
+                  <p
+                    className={`text-lg font-bold font-mono ${
+                      diaOnChainData.change24hPercent >= 0 ? 'text-emerald-600' : 'text-red-600'
+                    }`}
+                  >
+                    {diaOnChainData.change24hPercent >= 0 ? '+' : ''}
+                    {diaOnChainData.change24hPercent.toFixed(2)}%
+                  </p>
+                </div>
+
+                {/* 流通供应量 */}
+                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+                  <div className="flex items-center gap-1.5 mb-1.5">
+                    <Coins className="w-3.5 h-3.5 text-amber-500" />
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      流通供应量
+                    </p>
+                  </div>
+                  <p className="text-lg font-bold text-gray-900 font-mono">
+                    {diaOnChainData.circulatingSupply
+                      ? `${(diaOnChainData.circulatingSupply / 1e6).toFixed(2)}M`
+                      : '-'}
+                  </p>
+                </div>
+
+                {/* 市值 */}
+                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+                  <div className="flex items-center gap-1.5 mb-1.5">
+                    <Wallet className="w-3.5 h-3.5 text-emerald-500" />
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      流通市值
+                    </p>
+                  </div>
+                  <p className="text-lg font-bold text-gray-900 font-mono">
+                    {diaOnChainData.marketCap ? formatLargeNumber(diaOnChainData.marketCap) : '-'}
+                  </p>
+                </div>
+
+                {/* 交易所数量 */}
+                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+                  <div className="flex items-center gap-1.5 mb-1.5">
+                    <Store className="w-3.5 h-3.5 text-indigo-500" />
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      交易所数量
+                    </p>
+                  </div>
+                  <p className="text-lg font-bold text-gray-900 font-mono">
+                    {diaOnChainData.activeExchangeCount > 0
+                      ? `${diaOnChainData.activeExchangeCount}/${diaOnChainData.exchangeCount}`
+                      : diaOnChainData.exchangeCount}
+                  </p>
+                </div>
+
+                {/* 交易对数量 */}
+                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+                  <div className="flex items-center gap-1.5 mb-1.5">
+                    <Zap className="w-3.5 h-3.5 text-purple-500" />
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      交易对数量
+                    </p>
+                  </div>
+                  <p className="text-lg font-bold text-gray-900 font-mono">
+                    {diaOnChainData.totalTradingPairs > 0
+                      ? diaOnChainData.totalTradingPairs.toLocaleString()
+                      : '-'}
+                  </p>
+                </div>
+
+                {/* 24h 交易量 */}
+                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+                  <div className="flex items-center gap-1.5 mb-1.5">
+                    <TrendingUp className="w-3.5 h-3.5 text-rose-500" />
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      24h 交易量
+                    </p>
+                  </div>
+                  <p className="text-lg font-bold text-gray-900 font-mono">
+                    {diaOnChainData.totalVolume24h > 0
+                      ? formatLargeNumber(diaOnChainData.totalVolume24h)
                       : '-'}
                   </p>
                 </div>
