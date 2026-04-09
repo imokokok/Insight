@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function */
 'use client';
 
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
@@ -194,7 +195,8 @@ export function useChartZoom(options: UseChartZoomOptions = {}): UseChartZoomRet
         y: Math.max(bounds.minY ?? -Infinity, Math.min(bounds.maxY ?? Infinity, y)),
       };
     },
-    [config.bounds]
+
+    [config]
   );
 
   // 添加到历史记录
@@ -668,11 +670,14 @@ export function useBrushZoom(options: UseBrushZoomOptions): UseBrushZoomReturn {
   const [endIndex, setEndIndex] = useState(defaultEndIndex);
 
   const prevDataLengthRef = useRef(dataLength);
-  if (prevDataLengthRef.current !== dataLength) {
-    prevDataLengthRef.current = dataLength;
-    setStartIndex(defaultStartIndex);
-    setEndIndex(defaultEndIndex);
-  }
+
+  useEffect(() => {
+    if (prevDataLengthRef.current !== dataLength) {
+      prevDataLengthRef.current = dataLength;
+      setStartIndex(defaultStartIndex);
+      setEndIndex(defaultEndIndex);
+    }
+  }, [dataLength, defaultStartIndex, defaultEndIndex]);
 
   const visibleDataCount = endIndex - startIndex + 1;
   const totalDataCount = dataLength;

@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function */
 import { type OracleMarketData } from '@/app/[locale]/market-overview/types';
 
 import {

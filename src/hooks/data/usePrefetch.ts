@@ -386,6 +386,7 @@ export function useSmartPrefetch(options: UseSmartPrefetchOptions = {}) {
   const queryClient = useQueryClient();
   const idleCallbackRef = useRef<number | null>(null);
   const prefetchQueue = useRef<PrefetchTarget[]>([]);
+  const processQueueRef = useRef<() => void>(() => {});
 
   const addToQueue = useCallback((target: PrefetchTarget) => {
     const exists = prefetchQueue.current.some(
@@ -404,7 +405,7 @@ export function useSmartPrefetch(options: UseSmartPrefetchOptions = {}) {
 
     const cachedData = queryClient.getQueryData(target.queryKey);
     if (cachedData !== undefined) {
-      processQueue();
+      processQueueRef.current?.();
       return;
     }
 
@@ -415,13 +416,17 @@ export function useSmartPrefetch(options: UseSmartPrefetchOptions = {}) {
       .then(() => {
         // 继续处理队列
         if (prefetchQueue.current.length > 0) {
-          idleCallbackRef.current = requestIdleCallback(processQueue, { timeout: idleTimeout });
+          idleCallbackRef.current = requestIdleCallback(processQueueRef.current!, {
+            timeout: idleTimeout,
+          });
         }
       })
       .catch((error) => {
         logger.error('Smart prefetch failed', error as Error, { queryKey: target.queryKey });
       });
   }, [queryClient, idleTimeout]);
+
+  processQueueRef.current = processQueue;
 
   const schedulePrefetch = useCallback(
     (target: PrefetchTarget) => {

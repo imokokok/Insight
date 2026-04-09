@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 
 import { UnifiedExport, type ExportField } from '@/components/export';
 
@@ -168,12 +168,18 @@ export default function UnifiedExportSection({
     [oracleData, assets]
   );
 
+  const [chartElement, setChartElement] = useState<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    setChartElement(chartContainerRef.current);
+  }, [chartContainerRef]);
+
   return (
     <UnifiedExport
       data={data}
       dataSource="market-overview"
       fields={fields}
-      chartElement={chartContainerRef.current}
+      chartElement={chartElement}
       stats={stats}
       disabled={loading || data.length === 0}
     />

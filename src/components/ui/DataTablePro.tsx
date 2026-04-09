@@ -89,7 +89,11 @@ export function DataTablePro<T extends Record<string, unknown>>({
   const handleToggleColumn = useCallback((key: string) => {
     setVisibleColumns((prev) => {
       const next = new Set(prev);
-      next.has(key) ? next.delete(key) : next.add(key);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
       return next;
     });
   }, []);

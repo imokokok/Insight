@@ -246,16 +246,18 @@ export function useTechnicalIndicators(
   const [settings, setSettings] = useState<IndicatorSettings>(() =>
     getInitialSettings(isMobile, persistSettings)
   );
-  const [isLoaded, setIsLoaded] = useState(true);
+  const [isLoaded, _setIsLoaded] = useState(true);
   const prevMobileRef = useRef(isMobile);
   const prevPersistRef = useRef(persistSettings);
 
-  if (prevMobileRef.current !== isMobile || prevPersistRef.current !== persistSettings) {
-    prevMobileRef.current = isMobile;
-    prevPersistRef.current = persistSettings;
-    const newSettings = getInitialSettings(isMobile, persistSettings);
-    setSettings(newSettings);
-  }
+  useEffect(() => {
+    if (prevMobileRef.current !== isMobile || prevPersistRef.current !== persistSettings) {
+      prevMobileRef.current = isMobile;
+      prevPersistRef.current = persistSettings;
+      const newSettings = getInitialSettings(isMobile, persistSettings);
+      setSettings(newSettings);
+    }
+  }, [isMobile, persistSettings]);
 
   const updateSettings = useCallback(
     (updates: Partial<IndicatorSettings>) => {

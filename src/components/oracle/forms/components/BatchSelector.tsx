@@ -9,7 +9,7 @@ export interface BatchSelectorProps {
     id: string;
     name: string;
     chartRef: React.RefObject<HTMLElement | HTMLDivElement | null>;
-    data: any[];
+    data: unknown[];
   }>;
   selectedCharts: Set<string>;
   selectedResolution: Resolution;
