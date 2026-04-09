@@ -183,3 +183,13 @@ export function useRedStoneAllData(options: UseRedStoneAllDataOptions) {
     ]
   );
 }
+
+// 导出RedStone链上数据hook和工具函数
+export {
+  useRedStoneOnChainData,
+  formatChangeAmount,
+  formatSpread,
+  formatProvider,
+  type UseRedStoneOnChainDataOptions,
+  type UseRedStoneOnChainDataReturn,
+} from './useRedStoneOnChainData';

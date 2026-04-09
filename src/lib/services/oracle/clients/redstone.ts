@@ -422,4 +422,66 @@ export class RedStoneClient extends BaseOracleClient {
     }
     return this.supportedChains;
   }
+
+  /**
+   * 获取代币的链上数据（与价格相关的RedStone数据）
+   */
+  async getTokenOnChainData(symbol: string): Promise<RedStoneTokenOnChainData | null> {
+    const cacheKey = `onchain-data:${symbol.toUpperCase()}`;
+    const cached = this.getFromCache<RedStoneTokenOnChainData>(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    try {
+      // 获取价格数据
+      const priceData = await this.fetchRealPrice(symbol);
+      if (!priceData) {
+        return null;
+      }
+
+      // 计算数据年龄（秒）
+      const now = Date.now();
+      const dataAge = priceData.timestamp ? Math.round((now - priceData.timestamp) / 1000) : null;
+
+      const onChainData: RedStoneTokenOnChainData = {
+        symbol: symbol.toUpperCase(),
+        price: priceData.price,
+        decimals: priceData.decimals || 8,
+        bid: priceData.confidenceInterval?.bid || null,
+        ask: priceData.confidenceInterval?.ask || null,
+        spreadPercentage: priceData.confidenceInterval?.widthPercentage || null,
+        supportedChainsCount: this.supportedChains.length,
+        updateIntervalMinutes: this.defaultUpdateIntervalMinutes,
+        provider: priceData.source || 'redstone-rapid',
+        dataAge,
+        lastUpdated: priceData.timestamp,
+      };
+
+      this.setCache(cacheKey, onChainData, 60000); // 1分钟缓存
+      return onChainData;
+    } catch (error) {
+      console.error(`[RedStone] Failed to get on-chain data for ${symbol}:`, error);
+      return null;
+    }
+  }
+}
+
+// RedStone代币链上数据接口
+export interface RedStoneTokenOnChainData {
+  symbol: string;
+  price: number;
+  // 价格和精度
+  decimals: number;
+  // 买卖价差
+  bid: number | null;
+  ask: number | null;
+  spreadPercentage: number | null;
+  // 网络统计
+  supportedChainsCount: number;
+  updateIntervalMinutes: number;
+  // 数据源
+  provider: string;
+  dataAge: number | null;
+  lastUpdated: number;
 }

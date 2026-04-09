@@ -13,7 +13,15 @@ export {
   formatChangePercent,
 } from './oracles/useDIAOnChainData';
 export { usePythAllData } from './oracles/pyth';
-export { useRedStonePrice, useRedStoneHistorical, useRedStoneAllData } from './oracles/redstone';
+export {
+  useRedStonePrice,
+  useRedStoneHistorical,
+  useRedStoneAllData,
+  useRedStoneOnChainData,
+  formatChangeAmount,
+  formatSpread,
+  formatProvider,
+} from './oracles/redstone';
 export {
   useUMAAllData,
   useUMAPrice,
