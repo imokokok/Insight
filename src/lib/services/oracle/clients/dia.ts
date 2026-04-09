@@ -88,27 +88,40 @@ export class DIAClient extends BaseOracleClient {
     period: number = 24
   ): Promise<PriceData[]> {
     try {
-      console.log(
-        `[DIA] Fetching historical prices for ${symbol} on ${chain || 'default'}, period: ${period}`
-      );
+      // 统一使用 Binance API 获取历史价格数据
+      const historicalPrices = await binanceMarketService.getHistoricalPricesByHours(symbol, period);
 
-      const diaService = getDIADataService();
-
-      const liveHistoricalPrices = await diaService.getHistoricalPrices(symbol, chain, period);
-
-      // DIA API 可能不提供历史数据，返回空数组是正常情况
-      if (liveHistoricalPrices && liveHistoricalPrices.length > 0) {
-        console.log(
-          `[DIA] Successfully fetched ${liveHistoricalPrices.length} historical prices for ${symbol}`
-        );
-        return liveHistoricalPrices;
+      if (!historicalPrices || historicalPrices.length === 0) {
+        console.log(`[DIA] No historical price data available for ${symbol}, returning empty array`);
+        return [];
       }
 
-      console.log(`[DIA] No historical price data available for ${symbol}, returning empty array`);
-      return [];
+      console.log(
+        `[DIA] Successfully fetched ${historicalPrices.length} historical prices for ${symbol} from Binance`
+      );
+
+      const targetChain = chain || Blockchain.ETHEREUM;
+      const basePrice = historicalPrices[0].price;
+
+      return historicalPrices.map((point, index) => {
+        const change24hPercent = index === 0 ? 0 : ((point.price - basePrice) / basePrice) * 100;
+        const change24h = index === 0 ? 0 : point.price - basePrice;
+
+        return {
+          provider: OracleProvider.DIA,
+          chain: targetChain,
+          symbol: symbol.toUpperCase(),
+          price: point.price,
+          timestamp: point.timestamp,
+          decimals: 8,
+          confidence: 0.95,
+          change24h: Number(change24h.toFixed(4)),
+          change24hPercent: Number(change24hPercent.toFixed(2)),
+          source: 'binance-api',
+        };
+      });
     } catch (error) {
       console.error(`[DIA] Error fetching historical prices for ${symbol}:`, error);
-      // 返回空数组而不是抛出错误，因为 DIA 可能不提供历史数据
       return [];
     }
   }

@@ -576,6 +576,71 @@ export async function getHistoricalPrices(
   }
 }
 
+/**
+ * 根据小时数获取历史价格数据
+ * 支持: 1小时、6小时、24小时、7天(168小时)
+ * @param symbol - 代币符号
+ * @param hours - 小时数
+ * @returns 历史价格数据点数组
+ */
+export async function getHistoricalPricesByHours(
+  symbol: string,
+  hours: number = 24
+): Promise<HistoricalPricePoint[]> {
+  try {
+    const binanceSymbol = BINANCE_SYMBOLS[symbol.toUpperCase()];
+    if (!binanceSymbol) {
+      logger.warn(`Unknown symbol: ${symbol}`);
+      return [];
+    }
+
+    logger.info(`Fetching historical prices for ${symbol} (${hours} hours)...`);
+
+    // 根据小时数选择合适的间隔和限制
+    let interval: string;
+    let limit: number;
+
+    if (hours <= 1) {
+      // 1小时: 使用1分钟间隔，获取60个点
+      interval = '1m';
+      limit = 60;
+    } else if (hours <= 6) {
+      // 6小时: 使用5分钟间隔，获取72个点
+      interval = '5m';
+      limit = Math.min(hours * 12, 72);
+    } else if (hours <= 24) {
+      // 24小时: 使用1小时间隔
+      interval = '1h';
+      limit = hours;
+    } else {
+      // 7天(168小时)及以上: 使用4小时间隔
+      interval = '4h';
+      limit = Math.min(Math.ceil(hours / 4), 168);
+    }
+
+    const response = await fetchWithRetry(
+      `${BINANCE_API_BASE}/klines?symbol=${binanceSymbol}&interval=${interval}&limit=${limit}`
+    );
+
+    const data = await response.json();
+
+    const prices: HistoricalPricePoint[] = data.map((item: (number | string)[]) => ({
+      timestamp: Number(item[0]), // 开盘时间
+      price: parseFloat(String(item[4])), // 收盘价
+      volume: parseFloat(String(item[5])), // 成交量
+    }));
+
+    logger.info(`Successfully fetched ${prices.length} historical price points for ${symbol} (${hours}h)`);
+    return prices;
+  } catch (error) {
+    logger.error(
+      `Failed to fetch historical prices for ${symbol} (${hours}h):`,
+      error instanceof Error ? error : new Error(String(error))
+    );
+    return [];
+  }
+}
+
 export async function getOHLCData(
   symbol: string,
   days: number = 30
@@ -639,5 +704,6 @@ export const binanceMarketService = {
   getTokenMarketData,
   getMultipleTokensMarketData,
   getHistoricalPrices,
+  getHistoricalPricesByHours,
   getOHLCData,
 };

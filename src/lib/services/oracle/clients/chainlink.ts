@@ -126,49 +126,30 @@ export class ChainlinkClient extends BaseOracleClient {
         throw this.createError('Symbol is required', 'INVALID_SYMBOL');
       }
 
-      const days = Math.ceil(period / 24);
-      const binancePrices = await this.getHistoricalPricesFromBinance(symbol, days);
-
-      if (binancePrices && binancePrices.length > 0) {
-        logger.info(`Using Binance historical data for ${symbol}`, {
-          symbol,
-          points: binancePrices.length,
-        });
-        return binancePrices;
-      }
-
-      logger.warn(`No historical data available for ${symbol}`, { symbol });
-      return [];
-    } catch (error) {
-      throw this.createError(
-        error instanceof Error ? error.message : 'Failed to fetch historical prices from Chainlink',
-        'CHAINLINK_HISTORICAL_ERROR'
-      );
-    }
-  }
-
-  private async getHistoricalPricesFromBinance(
-    symbol: string,
-    days: number = 30
-  ): Promise<PriceData[]> {
-    try {
-      const historicalPrices = await binanceMarketService.getHistoricalPrices(symbol, days);
+      // 使用 Binance API 获取历史价格数据
+      const historicalPrices = await binanceMarketService.getHistoricalPricesByHours(symbol, period);
 
       if (!historicalPrices || historicalPrices.length === 0) {
-        logger.warn(`No historical prices found for ${symbol}`, { symbol });
+        logger.warn(`No historical data available for ${symbol}`, { symbol });
         return [];
       }
 
-      const chain = Blockchain.ETHEREUM;
+      logger.info(`Using Binance historical data for ${symbol}`, {
+        symbol,
+        points: historicalPrices.length,
+        period,
+      });
+
+      const targetChain = chain || Blockchain.ETHEREUM;
+      const basePrice = historicalPrices[0].price;
 
       return historicalPrices.map((point, index) => {
-        const basePrice = historicalPrices[0].price;
         const change24hPercent = index === 0 ? 0 : ((point.price - basePrice) / basePrice) * 100;
         const change24h = index === 0 ? 0 : point.price - basePrice;
 
         return {
           provider: this.name,
-          chain,
+          chain: targetChain,
           symbol: symbol.toUpperCase(),
           price: point.price,
           timestamp: point.timestamp,
@@ -179,11 +160,11 @@ export class ChainlinkClient extends BaseOracleClient {
         };
       });
     } catch (error) {
-      logger.warn(`Failed to fetch historical prices from Binance for ${symbol}`, {
-        error,
-        symbol,
-      });
-      return [];
+      logger.error(`Failed to fetch historical prices for ${symbol}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw this.createError(
+        error instanceof Error ? error.message : 'Failed to fetch historical prices from Chainlink',
+        'CHAINLINK_HISTORICAL_ERROR'
+      );
     }
   }
 

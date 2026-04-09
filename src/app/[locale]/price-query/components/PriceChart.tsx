@@ -197,6 +197,9 @@ export function PriceChart({
           <h3 className="text-sm font-semibold text-gray-800">
             {t('priceQuery.charts.priceHistory')}
           </h3>
+          <span className="text-xs text-gray-400 ml-2">
+            (历史数据来源于 Binance API)
+          </span>
         </div>
         <button
           onClick={() => setShowDataTable(!showDataTable)}

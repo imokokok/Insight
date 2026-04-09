@@ -3,6 +3,7 @@ import { BaseOracleClient } from '@/lib/oracles/base';
 import type { OracleClientConfig } from '@/lib/oracles/base';
 import { SPREAD_PERCENTAGES } from '@/lib/oracles/redstoneConstants';
 import { redstoneSymbols } from '@/lib/oracles/supportedSymbols';
+import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
 import { toMilliseconds } from '@/lib/utils/timestamp';
 import {
   OracleProvider,
@@ -335,7 +336,7 @@ export class RedStoneClient extends BaseOracleClient {
 
   /**
    * Gets historical price data for a given symbol over a specified time period.
-   * Fetches real historical data from RedStone API only. No fallback to other sources.
+   * 统一使用 Binance API 获取历史价格数据
    * @param symbol - The trading symbol (e.g., 'BTC', 'ETH')
    * @param chain - Optional blockchain context
    * @param period - Time period in hours (default: 24)
@@ -354,63 +355,40 @@ export class RedStoneClient extends BaseOracleClient {
     }
 
     try {
-      // Try to fetch real historical data from RedStone API
-      const historicalData = await this.fetchHistoricalPricesFromAPI(symbol, period);
+      // 统一使用 Binance API 获取历史价格数据
+      const historicalPrices = await binanceMarketService.getHistoricalPricesByHours(symbol, period);
 
-      if (historicalData.length > 0) {
-        this.setCache(cacheKey, historicalData, REDSTONE_CACHE_TTL.PRICE);
-        return historicalData;
+      if (!historicalPrices || historicalPrices.length === 0) {
+        console.warn(`[RedStone] No historical data available for ${symbol}`);
+        return [];
       }
 
-      // If no data available from RedStone API, return empty array
-      console.warn(`[RedStone] No historical data available for ${symbol}`);
-      return [];
+      const targetChain = chain || Blockchain.ETHEREUM;
+      const basePrice = historicalPrices[0].price;
+
+      const priceData: PriceData[] = historicalPrices.map((point, index) => {
+        const change24hPercent = index === 0 ? 0 : ((point.price - basePrice) / basePrice) * 100;
+        const change24h = index === 0 ? 0 : point.price - basePrice;
+
+        return {
+          provider: this.name,
+          chain: targetChain,
+          symbol: symbol.toUpperCase(),
+          price: point.price,
+          timestamp: point.timestamp,
+          decimals: 8,
+          confidence: 0.97,
+          change24h: Number(change24h.toFixed(4)),
+          change24hPercent: Number(change24hPercent.toFixed(2)),
+          source: 'binance-api',
+        };
+      });
+
+      this.setCache(cacheKey, priceData, REDSTONE_CACHE_TTL.PRICE);
+      return priceData;
     } catch (error) {
       console.warn(`[RedStone] Failed to fetch historical prices for ${symbol}:`, error);
-      // Return empty array on error without fallback
       return [];
-    }
-  }
-
-  /**
-   * Fetches historical price data from RedStone API.
-   * @param symbol - The trading symbol
-   * @param period - Time period in hours
-   * @returns Array of historical PriceData points
-   * @throws Error if historical data is not available
-   */
-  private async fetchHistoricalPricesFromAPI(symbol: string, period: number): Promise<PriceData[]> {
-    const endTime = Math.floor(Date.now() / 1000);
-    const startTime = endTime - period * 3600;
-
-    try {
-      const response = await fetch(
-        `${REDSTONE_API_BASE}/prices?symbol=${symbol.toUpperCase()}&fromTimestamp=${startTime}&toTimestamp=${endTime}&interval=1h`,
-        {
-          method: 'GET',
-          headers: {
-            Accept: 'application/json',
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(
-          `RedStone historical API returned ${response.status}: ${response.statusText}`
-        );
-      }
-
-      const data: RedStonePriceResponse[] = await response.json();
-
-      if (!Array.isArray(data) || data.length === 0) {
-        throw new Error(`No historical price data available for ${symbol} from RedStone API`);
-      }
-
-      return data.map((priceData) => this.parsePriceResponse(priceData, symbol));
-    } catch (error) {
-      throw new Error(
-        `Failed to fetch historical prices from RedStone API: ${error instanceof Error ? error.message : 'Unknown error'}`
-      );
     }
   }
 
