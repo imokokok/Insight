@@ -299,10 +299,6 @@
   "chainComparison": {
     "title": "链对比"
   },
-  "bandCrossChainPriceConsistency": {
-    "title": "跨链价格一致性",
-    "subtitle": "Band Protocol 跨链价格监控"
-  },
   "snapshot": {
     "title": "快照",
     "savedCount": "已保存 {count} 个快照",
@@ -635,24 +631,6 @@
       "validatorActiveRate": "验证者活跃率",
       "stakingRate": "质押率",
       "blockTime": "区块时间"
-    },
-    "bandProtocolDashboard": {
-      "title": "Band Protocol 性能仪表盘",
-      "subtitle": "链上验证者与网络性能指标"
-    },
-    "bandProtocol": {
-      "title": "Band Protocol 网络指标",
-      "subtitle": "链上验证者与质押数据",
-      "activeValidators": "活跃验证者",
-      "activePercent": "活跃",
-      "stakedTokens": "质押代币总量",
-      "stakingRate": "质押率",
-      "blockHeight": "区块高度",
-      "blockTime": "区块时间",
-      "inflationRate": "通胀率",
-      "annualInflation": "年化通胀",
-      "communityPoolBalance": "社区池余额",
-      "communityPool": "社区资金池"
     },
     "dataFreshness": {
       "title": "数据新鲜度",
@@ -1158,7 +1136,6 @@
   "oracles": {
     "descriptions": {
       "chainlink": "行业领先的去中心化预言机网络，为智能合约提供安全可靠的链下数据连接",
-      "bandProtocol": "基于 Cosmos SDK 构建的跨链数据预言机平台，实现快速最终性和原生互操作性",
       "uma": "乐观预言机协议，通过争议解决机制构建无价的合成资产和金融合约",
       "pyth": "高频金融数据预言机，具有第一方交易所数据和亚秒级延迟",
       "api3": "第一方预言机网络，实现去中心化 API 连接",

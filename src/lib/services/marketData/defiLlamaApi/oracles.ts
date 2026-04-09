@@ -15,8 +15,6 @@ function formatOracleName(name: string): string {
     chainlink: 'Chainlink',
     pyth: 'Pyth Network',
     'pyth network': 'Pyth Network',
-    band: 'Band Protocol',
-    'band protocol': 'Band Protocol',
     api3: 'API3',
     uma: 'UMA',
     redstone: 'RedStone',
@@ -61,7 +59,6 @@ function estimateLatency(oracleName: string): number {
   const latencyMap: Record<string, number> = {
     Chainlink: 450,
     'Pyth Network': 120,
-    'Band Protocol': 600,
     API3: 900,
     UMA: 1200,
     RedStone: 200,
@@ -77,7 +74,6 @@ function estimateAccuracy(oracleName: string): number {
   const accuracyMap: Record<string, number> = {
     Chainlink: 99.8,
     'Pyth Network': 99.5,
-    'Band Protocol': 99.2,
     API3: 98.9,
     UMA: 98.5,
     RedStone: 99.3,
@@ -93,7 +89,6 @@ function estimateUpdateFrequency(oracleName: string): number {
   const frequencyMap: Record<string, number> = {
     Chainlink: 3600,
     'Pyth Network': 400,
-    'Band Protocol': 1800,
     API3: 3600,
     UMA: 7200,
     RedStone: 60,
@@ -153,7 +148,6 @@ function identifyOracleName(protocolName: string): string | null {
 
   if (name.includes('chainlink')) return 'Chainlink';
   if (name.includes('pyth')) return 'Pyth Network';
-  if (name.includes('band')) return 'Band Protocol';
   if (name.includes('api3')) return 'API3';
   if (name.includes('uma')) return 'UMA';
   if (name.includes('redstone')) return 'RedStone';
@@ -228,7 +222,6 @@ export async function fetchOraclesData(): Promise<OracleMarketData[]> {
           [
             'chainlink',
             'pyth',
-            'band',
             'api3',
             'uma',
             'redstone',

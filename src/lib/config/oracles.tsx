@@ -29,7 +29,6 @@ interface NetworkDataConfig {
   status: string;
   latency: number;
   stakingTokenSymbol: string;
-  bandProtocolMetrics?: unknown;
 }
 
 export interface OracleTab {

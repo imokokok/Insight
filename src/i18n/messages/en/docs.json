@@ -19,7 +19,7 @@
       "description": "Get started with the Insight platform and explore real-time price data from mainstream oracle protocols.",
       "overview": {
         "title": "Platform Overview",
-        "description": "Insight is a professional oracle data analytics platform supporting Chainlink, Pyth, API3, Band Protocol, UMA, DIA, RedStone, and WINkLink.",
+        "description": "Insight is a professional oracle data analytics platform supporting Chainlink, Pyth, API3, UMA, DIA, RedStone, and WINkLink.",
         "point1": "Support for 10+ mainstream oracle protocols",
         "point2": "Real-time price monitoring and comparison",
         "point3": "Cross-chain price consistency analysis"
@@ -148,7 +148,7 @@
         },
         "q2": {
           "question": "Which oracle protocols are supported?",
-          "answer": "Currently supports Chainlink, Pyth, API3, Band Protocol, UMA, DIA, RedStone, WINkLink, and other mainstream oracles."
+          "answer": "Currently supports Chainlink, Pyth, API3, UMA, DIA, RedStone, WINkLink, and other mainstream oracles."
         },
         "q3": {
           "question": "What is the data update frequency?",

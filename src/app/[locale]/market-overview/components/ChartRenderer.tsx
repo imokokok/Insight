@@ -350,7 +350,6 @@ export default function ChartRenderer({
     const oracleNames: Record<string, string> = {
       chainlink: 'Chainlink',
       pyth: 'Pyth Network',
-      band: 'Band Protocol',
       api3: 'API3',
       uma: 'UMA',
       redstone: 'RedStone',

@@ -7,7 +7,6 @@ export interface BasePrices {
   ETH: number;
   SOL: number;
   LINK: number;
-  BAND: number;
   API3: number;
   PYTH: number;
   UMA: number;
@@ -52,7 +51,6 @@ const DEFAULT_BASE_PRICES: BasePrices = {
   ETH: 2000,
   SOL: 80,
   LINK: 15,
-  BAND: 1.5,
   API3: 2.5,
   PYTH: 0.5,
   UMA: 3,

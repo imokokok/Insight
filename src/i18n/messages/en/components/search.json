@@ -24,7 +24,6 @@
     "oracles": {
       "chainlinkDesc": "Leading decentralized oracle network",
       "pythDesc": "Institutional-grade low-latency financial data",
-      "bandDesc": "Cross-chain data oracle for Cosmos ecosystem",
       "api3Desc": "First-party DAO-governed oracle",
       "redstoneDesc": "Modular EVM+ compatible oracle stack",
       "umaDesc": "Optimistic oracle with customizable verification",

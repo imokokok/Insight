@@ -24,7 +24,6 @@
     "oracles": {
       "chainlinkDesc": "领先的去中心化预言机网络",
       "pythDesc": "机构级低延迟金融数据",
-      "bandDesc": "Cosmos 生态系统跨链数据预言机",
       "api3Desc": "第一方 DAO 治理预言机",
       "redstoneDesc": "模块化 EVM+ 预言机堆栈",
       "umaDesc": "乐观预言机自定义数据验证",

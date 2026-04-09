@@ -299,10 +299,6 @@
   "chainComparison": {
     "title": "Chain Comparison"
   },
-  "bandCrossChainPriceConsistency": {
-    "title": "Cross-Chain Price Consistency",
-    "subtitle": "Band Protocol cross-chain price monitoring"
-  },
   "snapshot": {
     "title": "Snapshot",
     "savedCount": "{count} snapshots saved",
@@ -635,24 +631,6 @@
       "validatorActiveRate": "Validator Active Rate",
       "stakingRate": "Staking Rate",
       "blockTime": "Block Time"
-    },
-    "bandProtocolDashboard": {
-      "title": "Band Protocol Performance Dashboard",
-      "subtitle": "On-chain validators and network performance metrics"
-    },
-    "bandProtocol": {
-      "title": "Band Protocol Network Metrics",
-      "subtitle": "On-chain validator performance and staking analytics",
-      "activeValidators": "Active Validators",
-      "activePercent": "participation rate",
-      "stakedTokens": "Total Staked BAND",
-      "stakingRate": "Network Staking Ratio",
-      "blockHeight": "Current Block Height",
-      "blockTime": "Mean Block Time",
-      "inflationRate": "Annual Inflation Rate",
-      "annualInflation": "Yearly Inflation",
-      "communityPoolBalance": "Community Treasury Balance",
-      "communityPool": "Governance Treasury"
     },
     "dataFreshness": {
       "title": "Data Freshness",
@@ -1158,7 +1136,6 @@
   "oracles": {
     "descriptions": {
       "chainlink": "Industry-leading decentralized oracle network providing secure and reliable off-chain data connectivity for smart contracts",
-      "bandProtocol": "Cross-chain data oracle platform built on Cosmos SDK, enabling fast finality and native interoperability",
       "uma": "Optimistic oracle protocol building trustless synthetic assets and financial contracts through dispute resolution mechanisms",
       "pyth": "High-frequency financial data oracle with first-party exchange data and sub-second latency",
       "api3": "First-party oracle network enabling decentralized API connectivity",

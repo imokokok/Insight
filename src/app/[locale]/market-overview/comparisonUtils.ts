@@ -3,7 +3,6 @@ import { type TVSTrendData } from './types';
 const ORACLE_KEYS = [
   'chainlink',
   'pyth',
-  'band',
   'api3',
   'uma',
   'redstone',

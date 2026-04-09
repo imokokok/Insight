@@ -237,7 +237,6 @@ export function sanitizeSymbol(symbol: string): string {
 export function sanitizeProvider(provider: string): string {
   const validProviders = [
     'chainlink',
-    'band_protocol',
     'uma',
     'api3',
     'pyth',

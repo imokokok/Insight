@@ -42,7 +42,6 @@ export function generateTVSTrendData(
   const defaults: Record<string, number> = {
     chainlink: 42.1,
     pyth: 15.2,
-    band: 4.1,
     api3: 3.5,
     uma: 2.5,
     redstone: 2.1,
@@ -63,7 +62,6 @@ export function generateTVSTrendData(
     const chainlink =
       (baseValues.chainlink || defaults.chainlink) * (1 + (Math.random() - 0.48) * volatility);
     const pyth = (baseValues.pyth || defaults.pyth) * (1 + (Math.random() - 0.45) * volatility);
-    const band = (baseValues.band || defaults.band) * (1 + (Math.random() - 0.5) * volatility);
     const api3 = (baseValues.api3 || defaults.api3) * (1 + (Math.random() - 0.5) * volatility);
     const uma = (baseValues.uma || defaults.uma) * (1 + (Math.random() - 0.5) * volatility);
     const redstone =
@@ -81,9 +79,6 @@ export function generateTVSTrendData(
       pyth: Number(pyth.toFixed(2)),
       pythUpper: Number((pyth * (1 + CONFIDENCE_INTERVAL)).toFixed(2)),
       pythLower: Number((pyth * (1 - CONFIDENCE_INTERVAL)).toFixed(2)),
-      band: Number(band.toFixed(2)),
-      bandUpper: Number((band * (1 + CONFIDENCE_INTERVAL)).toFixed(2)),
-      bandLower: Number((band * (1 - CONFIDENCE_INTERVAL)).toFixed(2)),
       api3: Number(api3.toFixed(2)),
       api3Upper: Number((api3 * (1 + CONFIDENCE_INTERVAL)).toFixed(2)),
       api3Lower: Number((api3 * (1 - CONFIDENCE_INTERVAL)).toFixed(2)),
@@ -100,7 +95,7 @@ export function generateTVSTrendData(
       winklinkUpper: Number((winklink * (1 + CONFIDENCE_INTERVAL)).toFixed(2)),
       winklinkLower: Number((winklink * (1 - CONFIDENCE_INTERVAL)).toFixed(2)),
       total: Number(
-        (chainlink + pyth + band + api3 + uma + redstone + dia + winklink).toFixed(2)
+        (chainlink + pyth + api3 + uma + redstone + dia + winklink).toFixed(2)
       ),
     });
   }
@@ -347,7 +342,6 @@ function getDataRows(
         date: item.date,
         chainlink: item.chainlink,
         pyth: item.pyth,
-        band: item.band,
         api3: item.api3,
         uma: item.uma,
         total: item.total,
