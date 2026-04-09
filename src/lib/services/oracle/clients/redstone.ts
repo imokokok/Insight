@@ -356,7 +356,10 @@ export class RedStoneClient extends BaseOracleClient {
 
     try {
       // 统一使用 Binance API 获取历史价格数据
-      const historicalPrices = await binanceMarketService.getHistoricalPricesByHours(symbol, period);
+      const historicalPrices = await binanceMarketService.getHistoricalPricesByHours(
+        symbol,
+        period
+      );
 
       if (!historicalPrices || historicalPrices.length === 0) {
         console.warn(`[RedStone] No historical data available for ${symbol}`);

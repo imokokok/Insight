@@ -3,7 +3,11 @@ import type { PriceData, ConfidenceInterval } from '@/types/oracle';
 
 import type { PublisherData, PublisherStatus, ValidatorData, PythPriceRaw } from './types';
 
-export function parsePythPrice(pythPrice: PythPriceRaw, symbol: string): PriceData {
+export function parsePythPrice(
+  pythPrice: PythPriceRaw,
+  symbol: string,
+  priceId?: string
+): PriceData {
   const priceValue =
     typeof pythPrice.price === 'string' ? parseInt(pythPrice.price, 10) : pythPrice.price;
   const exponent = pythPrice.expo ?? -8;
@@ -14,17 +18,23 @@ export function parsePythPrice(pythPrice: PythPriceRaw, symbol: string): PriceDa
   const confidenceAbsolute = confidenceValue * Math.pow(10, exponent);
 
   const confidenceInterval = calculateConfidenceInterval(price, confidenceAbsolute);
+  const publishTime = pythPrice.publish_time ?? Date.now() / 1000;
 
   return {
     provider: OracleProvider.PYTH,
     symbol: symbol.toUpperCase(),
     price,
-    timestamp: (pythPrice.publish_time ?? Date.now() / 1000) * 1000,
+    timestamp: publishTime * 1000,
     decimals: Math.abs(exponent),
     confidence: calculateConfidenceScore(confidenceAbsolute, price),
     confidenceInterval,
     change24h: 0,
     change24hPercent: 0,
+    // Pyth 特有元数据
+    priceId,
+    exponent,
+    conf: confidenceAbsolute,
+    publishTime: publishTime * 1000,
   };
 }
 

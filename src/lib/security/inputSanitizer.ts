@@ -235,15 +235,7 @@ export function sanitizeSymbol(symbol: string): string {
 }
 
 export function sanitizeProvider(provider: string): string {
-  const validProviders = [
-    'chainlink',
-    'uma',
-    'api3',
-    'pyth',
-    'redstone',
-    'dia',
-    'winklink',
-  ];
+  const validProviders = ['chainlink', 'uma', 'api3', 'pyth', 'redstone', 'dia', 'winklink'];
 
   const sanitized = sanitizeString(provider, {
     maxLength: 30,

@@ -122,7 +122,19 @@
       "annualized": "年化",
       "compare": "对比",
       "collapse": "收起",
-      "expand": "查看更多"
+      "expand": "查看更多",
+      "roundId": "轮次 ID",
+      "answeredInRound": "回答轮次",
+      "decimals": "价格精度",
+      "version": "合约版本",
+      "roundStarted": "轮次开始",
+      "feedDescription": "Feed 描述",
+      "priceId": "Price Feed ID",
+      "exponent": "价格指数",
+      "confidenceAbs": "置信区间",
+      "publishTime": "发布时间",
+      "confidenceWidth": "价差百分比",
+      "confidenceScore": "置信度"
     },
     "export": {
       "header": "价格查询导出",

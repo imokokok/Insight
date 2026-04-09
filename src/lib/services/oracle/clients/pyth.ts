@@ -127,7 +127,10 @@ export class PythClient extends BaseOracleClient {
       }
 
       // 统一使用 Binance API 获取历史价格数据
-      const historicalPrices = await binanceMarketService.getHistoricalPricesByHours(symbol, period);
+      const historicalPrices = await binanceMarketService.getHistoricalPricesByHours(
+        symbol,
+        period
+      );
 
       if (!historicalPrices || historicalPrices.length === 0) {
         logger.warn(`No historical data available for ${symbol}`, { symbol });

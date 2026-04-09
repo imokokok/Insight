@@ -16,6 +16,10 @@ export interface ChainlinkPriceData {
   roundId: bigint;
   answeredInRound: bigint;
   chainId: number;
+  // Feed 元数据
+  description?: string;
+  version?: bigint;
+  startedAt?: number;
 }
 
 export interface ChainlinkTokenData {
@@ -192,24 +196,30 @@ export class ChainlinkOnChainService {
     }
 
     try {
-      const roundData = await this.ethCall(
-        chainId,
-        feed.address,
-        encodeAggregatorCall('latestRoundData')
-      );
+      // 并行获取价格和元数据
+      const [roundData, decimalsData, descriptionData, versionData] = await Promise.all([
+        this.ethCall(chainId, feed.address, encodeAggregatorCall('latestRoundData')),
+        this.ethCall(chainId, feed.address, encodeAggregatorCall('decimals')),
+        this.ethCall(chainId, feed.address, encodeAggregatorCall('description')),
+        this.ethCall(chainId, feed.address, encodeAggregatorCall('version')),
+      ]);
 
       const decoded = decodeLatestRoundData(roundData);
+      const decimals = decodeDecimals(decimalsData);
 
-      const price = Number(decoded.answer) / Math.pow(10, feed.decimals);
+      const price = Number(decoded.answer) / Math.pow(10, decimals);
 
       const result: ChainlinkPriceData = {
         symbol: feed.symbol,
         price,
-        decimals: feed.decimals,
+        decimals,
         timestamp: Number(decoded.updatedAt) * 1000,
         roundId: decoded.roundId,
         answeredInRound: decoded.answeredInRound,
         chainId,
+        description: this.decodeString(descriptionData),
+        version: decodeUint256(versionData),
+        startedAt: Number(decoded.startedAt) * 1000,
       };
 
       this.setCache(cacheKey, result);

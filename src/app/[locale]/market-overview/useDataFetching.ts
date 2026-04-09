@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 
 import { FEATURE_FLAGS } from '@/lib/config/serverEnv';
+import { type RefreshInterval } from '@/lib/constants';
 import {
   fetchOraclesData,
   fetchAssetsData,
@@ -19,7 +20,6 @@ import {
 import { createLogger } from '@/lib/utils/logger';
 
 import { MOCK_ORACLE_DATA, MOCK_ASSETS } from './constants';
-import { type RefreshInterval } from '@/lib/constants';
 import {
   type OracleMarketData,
   type AssetData,

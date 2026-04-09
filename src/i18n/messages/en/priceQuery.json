@@ -120,7 +120,19 @@
       "annualized": "Annualized",
       "compare": "Compare",
       "collapse": "Collapse",
-      "expand": "View More"
+      "expand": "View More",
+      "roundId": "Round ID",
+      "answeredInRound": "Answered In",
+      "decimals": "Decimals",
+      "version": "Version",
+      "roundStarted": "Round Started",
+      "feedDescription": "Feed",
+      "priceId": "Price Feed ID",
+      "exponent": "Exponent",
+      "confidenceAbs": "Confidence",
+      "publishTime": "Published",
+      "confidenceWidth": "Spread %",
+      "confidenceScore": "Confidence Score"
     },
     "export": {
       "header": "Price Query Export",

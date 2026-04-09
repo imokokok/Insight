@@ -89,10 +89,15 @@ export class DIAClient extends BaseOracleClient {
   ): Promise<PriceData[]> {
     try {
       // 统一使用 Binance API 获取历史价格数据
-      const historicalPrices = await binanceMarketService.getHistoricalPricesByHours(symbol, period);
+      const historicalPrices = await binanceMarketService.getHistoricalPricesByHours(
+        symbol,
+        period
+      );
 
       if (!historicalPrices || historicalPrices.length === 0) {
-        console.log(`[DIA] No historical price data available for ${symbol}, returning empty array`);
+        console.log(
+          `[DIA] No historical price data available for ${symbol}, returning empty array`
+        );
         return [];
       }
 

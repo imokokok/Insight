@@ -94,9 +94,7 @@ export function generateTVSTrendData(
       winklink: Number(winklink.toFixed(2)),
       winklinkUpper: Number((winklink * (1 + CONFIDENCE_INTERVAL)).toFixed(2)),
       winklinkLower: Number((winklink * (1 - CONFIDENCE_INTERVAL)).toFixed(2)),
-      total: Number(
-        (chainlink + pyth + api3 + uma + redstone + dia + winklink).toFixed(2)
-      ),
+      total: Number((chainlink + pyth + api3 + uma + redstone + dia + winklink).toFixed(2)),
     });
   }
 

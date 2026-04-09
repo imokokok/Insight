@@ -1,8 +1,8 @@
 import { BaseOracleClient } from '@/lib/oracles/base';
 import type { OracleClientConfig } from '@/lib/oracles/base';
 import { api3Symbols, API3_AVAILABLE_PAIRS } from '@/lib/oracles/supportedSymbols';
-import { api3NetworkService } from '@/lib/services/oracle/api3NetworkService';
 import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
+import { api3NetworkService } from '@/lib/services/oracle/api3NetworkService';
 import type { PriceData } from '@/types/oracle';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 
@@ -117,7 +117,10 @@ export class API3Client extends BaseOracleClient {
 
     try {
       // 统一使用 Binance API 获取历史价格数据
-      const historicalPrices = await binanceMarketService.getHistoricalPricesByHours(symbol, period);
+      const historicalPrices = await binanceMarketService.getHistoricalPricesByHours(
+        symbol,
+        period
+      );
 
       if (!historicalPrices || historicalPrices.length === 0) {
         throw this.createError(

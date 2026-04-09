@@ -14,7 +14,7 @@ import type { OracleTokenPrice } from '../types/oracle';
 
 // 预言机名称映射
 const ORACLE_NAME_MAP: Record<string, string> = {
-  'Chainlink': 'Chainlink',
+  Chainlink: 'Chainlink',
   'Pyth Network': 'Pyth Network',
   'UMA Voting Token': 'UMA',
   'API3 Token': 'API3',
@@ -25,13 +25,13 @@ const ORACLE_NAME_MAP: Record<string, string> = {
 
 // 主题颜色映射
 const THEME_COLOR_MAP: Record<string, string> = {
-  'LINK': '#375BD2',
-  'PYTH': '#E6B800',
-  'UMA': '#FF4A8D',
-  'API3': '#7CE3CB',
-  'REDSTONE': '#FF6B6B',
-  'DIA': '#6366F1',
-  'WIN': '#FF4D4D',
+  LINK: '#375BD2',
+  PYTH: '#E6B800',
+  UMA: '#FF4A8D',
+  API3: '#7CE3CB',
+  REDSTONE: '#FF6B6B',
+  DIA: '#6366F1',
+  WIN: '#FF4D4D',
 };
 
 const logger = createLogger('useOracleTokenPrices');

@@ -24,6 +24,16 @@ export interface PriceData extends PriceDataBase {
   change24hPercent?: number;
   confidenceInterval?: ConfidenceInterval;
   dataSource?: 'real' | 'mock' | 'api' | 'fallback';
+  // Chainlink Feed 元数据
+  roundId?: string;
+  answeredInRound?: string;
+  version?: string;
+  startedAt?: number;
+  // Pyth 元数据
+  priceId?: string; // Price Feed ID
+  exponent?: number; // 价格指数
+  conf?: number; // 置信区间绝对值
+  publishTime?: number; // 发布时间
 }
 
 export interface OracleSymbolSupport {
