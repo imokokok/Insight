@@ -298,6 +298,9 @@ export async function getAPI3Price(
   source: string;
   decimals: number;
   confidence: number;
+  dapiName: string;
+  proxyAddress: string;
+  dataAge: number;
 } | null> {
   try {
     const dapiName = SYMBOL_TO_DAPI[symbol.toUpperCase()];
@@ -331,12 +334,18 @@ export async function getAPI3Price(
 
     logger.info(`Successfully fetched ${symbol} price from API3: $${reading.value}`);
 
+    // 计算数据年龄
+    const dataAge = Date.now() - reading.timestamp;
+
     return {
       price: reading.value,
       timestamp: reading.timestamp,
       source: `api3-dapi-${chain}`,
       decimals: 18,
-      confidence: 0.98, // API3第一方预言机有较高的置信度
+      confidence: 0.98,
+      dapiName,
+      proxyAddress,
+      dataAge,
     };
   } catch (error) {
     logger.error(
