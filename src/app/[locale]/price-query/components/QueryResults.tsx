@@ -39,6 +39,7 @@ import {
   OracleProvider as OracleProviderEnum,
 } from '@/lib/oracles';
 import type { DIATokenOnChainData } from '@/lib/oracles/diaDataService';
+import type { WINkLinkTokenOnChainData } from '@/lib/oracles/winklinkRealDataService';
 
 import { type QueryResult, type PriceData } from '../constants';
 import { type QueryError } from '../hooks/usePriceQuery';
@@ -148,6 +149,9 @@ interface QueryResultsProps {
   // DIA链上数据
   diaOnChainData?: DIATokenOnChainData | null;
   isDIADataLoading?: boolean;
+  // WINkLink链上数据
+  winklinkOnChainData?: WINkLinkTokenOnChainData | null;
+  isWINkLinkDataLoading?: boolean;
 }
 
 /**
@@ -213,6 +217,8 @@ export function QueryResults({
   onClearErrors,
   diaOnChainData,
   isDIADataLoading,
+  winklinkOnChainData,
+  isWINkLinkDataLoading,
 }: QueryResultsProps) {
   const t = useTranslations();
 
@@ -728,6 +734,95 @@ export function QueryResults({
                     {diaOnChainData.totalVolume24h > 0
                       ? formatLargeNumber(diaOnChainData.totalVolume24h)
                       : '-'}
+                  </p>
+                </div>
+              </>
+            ) : winklinkOnChainData ? (
+              <>
+                {/* Feed合约地址 */}
+                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+                  <div className="flex items-center gap-1.5 mb-1.5">
+                    <Hash className="w-3.5 h-3.5 text-blue-500" />
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Feed合约
+                    </p>
+                  </div>
+                  <p
+                    className="text-lg font-bold text-gray-900 font-mono truncate"
+                    title={winklinkOnChainData.feedContractAddress || ''}
+                  >
+                    {winklinkOnChainData.feedContractAddress
+                      ? `${winklinkOnChainData.feedContractAddress.slice(0, 6)}...${winklinkOnChainData.feedContractAddress.slice(-4)}`
+                      : '-'}
+                  </p>
+                </div>
+
+                {/* 价格精度 */}
+                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+                  <div className="flex items-center gap-1.5 mb-1.5">
+                    <Settings className="w-3.5 h-3.5 text-amber-500" />
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      价格精度
+                    </p>
+                  </div>
+                  <p className="text-lg font-bold text-gray-900 font-mono">
+                    {winklinkOnChainData.decimals ?? '-'}
+                  </p>
+                </div>
+
+                {/* 数据喂价数量 */}
+                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+                  <div className="flex items-center gap-1.5 mb-1.5">
+                    <Database className="w-3.5 h-3.5 text-emerald-500" />
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      数据喂价
+                    </p>
+                  </div>
+                  <p className="text-lg font-bold text-gray-900 font-mono">
+                    {winklinkOnChainData.dataFeedsCount}
+                  </p>
+                </div>
+
+                {/* 节点响应时间 */}
+                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+                  <div className="flex items-center gap-1.5 mb-1.5">
+                    <Clock className="w-3.5 h-3.5 text-indigo-500" />
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      响应时间
+                    </p>
+                  </div>
+                  <p className="text-lg font-bold text-gray-900 font-mono">
+                    {winklinkOnChainData.avgResponseTime}ms
+                  </p>
+                </div>
+
+                {/* 价格更新时间 */}
+                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+                  <div className="flex items-center gap-1.5 mb-1.5">
+                    <Clock className="w-3.5 h-3.5 text-purple-500" />
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      数据年龄
+                    </p>
+                  </div>
+                  <p className="text-lg font-bold text-gray-900 font-mono">
+                    {winklinkOnChainData.priceUpdateTime !== null
+                      ? winklinkOnChainData.priceUpdateTime < 60
+                        ? `${winklinkOnChainData.priceUpdateTime}s`
+                        : `${Math.round(winklinkOnChainData.priceUpdateTime / 60)}m`
+                      : '-'}
+                  </p>
+                </div>
+
+                {/* 节点正常运行时间 */}
+                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+                  <div className="flex items-center gap-1.5 mb-1.5">
+                    <Shield className="w-3.5 h-3.5 text-rose-500" />
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      节点可用性
+                    </p>
+                  </div>
+                  <p className="text-lg font-bold text-gray-900 font-mono">
+                    {winklinkOnChainData.nodeUptime.toFixed(2)}%
                   </p>
                 </div>
               </>

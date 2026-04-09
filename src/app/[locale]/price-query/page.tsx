@@ -8,7 +8,7 @@
 import { useRef, useCallback } from 'react';
 
 import { LiveStatusBar } from '@/components/ui';
-import { useCommonShortcuts, useDIAOnChainData } from '@/hooks';
+import { useCommonShortcuts, useDIAOnChainData, useWINkLinkOnChainData } from '@/hooks';
 import { useTranslations } from '@/i18n';
 import { OracleProvider } from '@/lib/oracles';
 
@@ -74,6 +74,17 @@ export default function PriceQueryPage() {
     symbol: selectedSymbol,
     chain: selectedChain || undefined,
     enabled: shouldFetchDIAData && !!selectedSymbol && queryResults.length > 0,
+  });
+
+  // 获取WINkLink链上数据（当选择WINkLink预言机或没有特定预言机时）
+  const shouldFetchWINkLinkData =
+    !selectedOracle ||
+    selectedOracle === OracleProvider.WINKLINK ||
+    queryResults.some((r) => r.provider === OracleProvider.WINKLINK);
+
+  const { data: winklinkOnChainData, isLoading: isWINkLinkDataLoading } = useWINkLinkOnChainData({
+    symbol: selectedSymbol,
+    enabled: shouldFetchWINkLinkData && !!selectedSymbol && queryResults.length > 0,
   });
 
   // Debounced search focus handler
@@ -265,6 +276,8 @@ export default function PriceQueryPage() {
             onClearErrors={clearErrors}
             diaOnChainData={diaOnChainData}
             isDIADataLoading={isDIADataLoading}
+            winklinkOnChainData={winklinkOnChainData}
+            isWINkLinkDataLoading={isWINkLinkDataLoading}
           />
         </main>
       </div>

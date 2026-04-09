@@ -23,6 +23,14 @@ export {
 
 // WINkLink
 export { useWINkLinkPrice, useWINkLinkHistoricalPrices } from './winklink';
+export {
+  useWINkLinkOnChainData,
+  formatContractAddress,
+  formatTPS,
+  formatBlockHeight,
+  type UseWINkLinkOnChainDataOptions,
+  type UseWINkLinkOnChainDataReturn,
+} from './useWINkLinkOnChainData';
 
 // API3
 export { useAPI3Price, useAPI3Historical } from './api3/index';

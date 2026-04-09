@@ -24,4 +24,10 @@ export {
 } from './oracles/uma';
 export { useLastUpdated } from './oracles/useLastUpdated';
 export { useWINkLinkAllData } from './oracles/winklink';
+export {
+  useWINkLinkOnChainData,
+  formatContractAddress,
+  formatTPS,
+  formatBlockHeight,
+} from './oracles/useWINkLinkOnChainData';
 export { useAPI3Price, useAPI3Historical } from './oracles/api3';
