@@ -18,7 +18,8 @@ import {
 } from '@/lib/services/marketData';
 import { createLogger } from '@/lib/utils/logger';
 
-import { MOCK_ORACLE_DATA, MOCK_ASSETS, type RefreshInterval } from './constants';
+import { MOCK_ORACLE_DATA, MOCK_ASSETS } from './constants';
+import { type RefreshInterval } from '@/lib/constants';
 import {
   type OracleMarketData,
   type AssetData,

@@ -1,5 +1,4 @@
 import { type IndicatorDataPoint } from '@/hooks';
-import { type HistoricalPricePoint } from '@/lib/oracles/bandProtocol';
 import { createLogger } from '@/lib/utils/logger';
 
 import {
@@ -106,6 +105,18 @@ export function generateHistoricalData(
   }
 
   return dataPoints;
+}
+
+interface HistoricalPricePoint {
+  timestamp: number;
+  price: number;
+  volume: number;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  ma7?: number;
+  ma20?: number;
 }
 
 export function convertHistoricalPricePoints(

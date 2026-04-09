@@ -58,15 +58,6 @@ const DEFAULT_PROVIDER_CONFIG: PerformanceMetricsConfig = {
       decentralizationScore: 90,
       supportedChains: 10,
     },
-    'band-protocol': {
-      responseTime: 600,
-      updateFrequency: 1800,
-      accuracy: 99.2,
-      reliability: 99.5,
-      dataSources: 150,
-      decentralizationScore: 85,
-      supportedChains: 8,
-    },
     api3: {
       responseTime: 900,
       updateFrequency: 3600,

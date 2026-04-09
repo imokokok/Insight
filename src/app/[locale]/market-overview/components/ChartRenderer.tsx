@@ -341,7 +341,6 @@ export default function ChartRenderer({
     const oracleColors: Record<string, string> = {
       chainlink: chartColors.marketOverview.chainlink,
       pyth: chartColors.marketOverview.pyth,
-      band: chartColors.marketOverview.bandProtocol,
       api3: chartColors.marketOverview.api3,
       uma: chartColors.marketOverview.uma,
       redstone: chartColors.oracle.redstone,

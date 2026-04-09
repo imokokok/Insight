@@ -104,7 +104,6 @@ export interface PriceDeviationDetail {
 
 export const oracleNames: Record<OracleProvider, string> = {
   [OracleProvider.CHAINLINK]: 'Chainlink',
-  [OracleProvider.BAND_PROTOCOL]: 'Band Protocol',
   [OracleProvider.UMA]: 'UMA',
   [OracleProvider.PYTH]: 'Pyth',
   [OracleProvider.API3]: 'API3',
@@ -115,7 +114,6 @@ export const oracleNames: Record<OracleProvider, string> = {
 
 export const oracleColors: Record<OracleProvider, string> = {
   [OracleProvider.CHAINLINK]: chartColors.oracle.chainlink,
-  [OracleProvider.BAND_PROTOCOL]: chartColors.oracle['band-protocol'],
   [OracleProvider.UMA]: chartColors.oracle.uma,
   [OracleProvider.PYTH]: chartColors.oracle['pyth'],
   [OracleProvider.API3]: chartColors.oracle.api3,
@@ -178,16 +176,6 @@ export const defaultPerformanceData: OraclePerformance[] = [
     decentralization: 90,
   },
   {
-    provider: OracleProvider.BAND_PROTOCOL,
-    responseTime: 150,
-    updateFrequency: 1800, // 30分钟（秒）
-    dataSources: 150,
-    supportedChains: 8,
-    reliability: 99.5,
-    accuracy: 99.2,
-    decentralization: 85,
-  },
-  {
     provider: OracleProvider.API3,
     responseTime: 180,
     updateFrequency: 3600, // 1小时（秒）
@@ -224,14 +212,12 @@ export const ORACLE_GROUPS = {
   HIGH_FREQUENCY: [OracleProvider.PYTH, OracleProvider.REDSTONE],
   STANDARD: [
     OracleProvider.CHAINLINK,
-    OracleProvider.BAND_PROTOCOL,
     OracleProvider.API3,
     OracleProvider.DIA,
   ],
   ALL: [
     OracleProvider.CHAINLINK,
     OracleProvider.PYTH,
-    OracleProvider.BAND_PROTOCOL,
     OracleProvider.API3,
     OracleProvider.REDSTONE,
     OracleProvider.DIA,

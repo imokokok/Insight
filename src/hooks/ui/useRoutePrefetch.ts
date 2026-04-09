@@ -100,28 +100,7 @@ const routePrefetchMap: Record<string, RoutePrefetchConfig> = {
       },
     ],
   },
-  '/band-protocol': {
-    route: '/band-protocol',
-    priority: 'high',
-    prefetchQueries: [
-      {
-        queryKey: ['oracles', 'detail', 'band-protocol'],
-        queryFn: async () => {
-          try {
-            const response = await apiClient.get('/api/oracles/band-protocol');
-            return response.data;
-          } catch {
-            throw new PriceFetchError('Failed to fetch band-protocol data', {
-              provider: 'band-protocol',
-              retryable: true,
-            });
-          }
-        },
-        staleTime: STALE_TIME_CONFIG.network,
-        gcTime: GC_TIME_CONFIG.network,
-      },
-    ],
-  },
+
   '/redstone': {
     route: '/redstone',
     priority: 'high',

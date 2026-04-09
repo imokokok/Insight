@@ -8,7 +8,6 @@ import { type RiskLevel } from './risk';
 // Manual list of enum values since const enums are inlined at compile time
 const ORACLE_PROVIDER_VALUES = [
   'chainlink',
-  'band-protocol',
   'uma',
   'pyth',
   'api3',

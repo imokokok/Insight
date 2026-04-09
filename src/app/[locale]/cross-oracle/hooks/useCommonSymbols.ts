@@ -38,7 +38,6 @@ export interface UseCommonSymbolsResult {
  */
 const providerToSymbolKey: Record<OracleProvider, keyof typeof oracleSupportedSymbols> = {
   [OracleProvider.CHAINLINK]: 'chainlink',
-  [OracleProvider.BAND_PROTOCOL]: 'bandProtocol',
   [OracleProvider.UMA]: 'uma',
   [OracleProvider.PYTH]: 'pyth',
   [OracleProvider.API3]: 'api3',

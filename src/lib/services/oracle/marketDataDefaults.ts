@@ -13,7 +13,6 @@ export interface TvsTrendDataPoint {
   time: string;
   chainlink: number;
   pyth: number;
-  band: number;
   api3: number;
   uma: number;
   redstone: number;
@@ -33,7 +32,6 @@ export type TimeRangeKey = '1H' | '24H' | '7D' | '30D' | '90D' | '1Y' | 'ALL';
 export const COLORS = {
   chainlink: chartColors.oracle.chainlink,
   pyth: chartColors.oracle.pyth,
-  band: chartColors.oracle['band-protocol'],
   api3: chartColors.oracle.api3,
   uma: chartColors.oracle.uma,
   redstone: chartColors.oracle.redstone,

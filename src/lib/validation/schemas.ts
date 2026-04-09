@@ -2,7 +2,6 @@ import { z } from 'zod';
 
 const OracleProviderEnum = z.enum([
   'chainlink',
-  'band-protocol',
   'uma',
   'pyth',
   'api3',

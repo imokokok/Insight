@@ -8,7 +8,6 @@ export * from './oracle/snapshot';
 export * from './oracle/snapshotFunctions';
 export * from './oracle/api3';
 export * from './oracle/uma';
-export * from './oracle/band';
 export * from './api';
 export * from './auth';
 export * from './ui';

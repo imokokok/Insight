@@ -34,7 +34,6 @@ interface AssetsTableProps {
 // 预言机品牌色映射
 const oracleBrandColors: Record<string, string> = {
   chainlink: chartColors.oracle.chainlink,
-  'band-protocol': chartColors.oracle['band-protocol'],
   uma: chartColors.oracle.uma,
   pyth: chartColors.oracle.pyth,
   api3: chartColors.oracle.api3,
@@ -54,7 +53,6 @@ function getOracleRoute(oracleName: string): string {
   const normalizedName = oracleName.toLowerCase().replace(/\s+/g, '-');
   const routeMap: Record<string, string> = {
     chainlink: '/chainlink',
-    'band-protocol': '/band-protocol',
     uma: '/uma',
     pyth: '/pyth',
     api3: '/api3',

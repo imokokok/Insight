@@ -312,15 +312,6 @@ export const searchableItems: SearchableItem[] = [
     path: '/pyth',
   },
   {
-    id: 'oracle-band',
-    type: 'oracle',
-    name: 'Band Protocol',
-    symbol: 'BAND',
-    aliases: ['band', 'band protocol', '波段协议'],
-    category: 'oracle',
-    path: '/band-protocol',
-  },
-  {
     id: 'oracle-uma',
     type: 'oracle',
     name: 'UMA',

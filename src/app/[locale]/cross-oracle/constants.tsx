@@ -219,7 +219,6 @@ export const oracleNames = providerNames;
 
 export const priceOracleNames: Record<PriceOracleProvider, string> = {
   [OracleProvider.CHAINLINK]: 'Chainlink',
-  [OracleProvider.BAND_PROTOCOL]: 'Band Protocol',
   [OracleProvider.UMA]: 'UMA',
   [OracleProvider.PYTH]: 'Pyth',
   [OracleProvider.API3]: 'API3',

@@ -28,18 +28,16 @@ export const getOracleChartColors = (
   if (useAccessibleColors) {
     return {
       [OracleProvider.CHAINLINK]: accessibleColors.chart.sequence[0],
-      [OracleProvider.BAND_PROTOCOL]: accessibleColors.chart.sequence[1],
-      [OracleProvider.UMA]: accessibleColors.chart.sequence[2],
-      [OracleProvider.PYTH]: accessibleColors.chart.sequence[3],
-      [OracleProvider.API3]: accessibleColors.chart.sequence[4],
-      [OracleProvider.REDSTONE]: accessibleColors.chart.sequence[5],
-      [OracleProvider.DIA]: accessibleColors.chart.sequence[6],
-      [OracleProvider.WINKLINK]: accessibleColors.chart.sequence[7],
+      [OracleProvider.UMA]: accessibleColors.chart.sequence[1],
+      [OracleProvider.PYTH]: accessibleColors.chart.sequence[2],
+      [OracleProvider.API3]: accessibleColors.chart.sequence[3],
+      [OracleProvider.REDSTONE]: accessibleColors.chart.sequence[4],
+      [OracleProvider.DIA]: accessibleColors.chart.sequence[5],
+      [OracleProvider.WINKLINK]: accessibleColors.chart.sequence[6],
     } as Record<OracleProvider, string>;
   }
   return {
     [OracleProvider.CHAINLINK]: chartColors.oracle.chainlink,
-    [OracleProvider.BAND_PROTOCOL]: chartColors.oracle['band-protocol'],
     [OracleProvider.UMA]: chartColors.oracle.uma,
     [OracleProvider.PYTH]: chartColors.oracle.pyth,
     [OracleProvider.API3]: chartColors.oracle.api3,
@@ -56,7 +54,6 @@ export const getLineStrokeDasharray = (
   if (!useAccessibleColors) return '0';
   const patternMap: Record<OracleProvider, string> = {
     [OracleProvider.CHAINLINK]: accessibleColors.linePatterns.solid,
-    [OracleProvider.BAND_PROTOCOL]: accessibleColors.linePatterns.dashed,
     [OracleProvider.UMA]: accessibleColors.linePatterns.dotted,
     [OracleProvider.PYTH]: accessibleColors.linePatterns.dashDot,
     [OracleProvider.API3]: accessibleColors.linePatterns.longDash,

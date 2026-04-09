@@ -5,7 +5,6 @@ import { createLogger } from '@/lib/utils/logger';
 import { type Blockchain, OracleProvider } from '@/types/oracle';
 
 import { API3Client } from './api3';
-import { BandProtocolClient } from './bandProtocol';
 import { BaseOracleClient } from './base';
 import { ChainlinkClient } from './chainlink';
 import { DIAClient } from './dia';
@@ -75,7 +74,6 @@ export class OracleClientFactory {
 
     const providers = [
       OracleProvider.CHAINLINK,
-      OracleProvider.BAND_PROTOCOL,
       OracleProvider.UMA,
       OracleProvider.PYTH,
       OracleProvider.API3,
@@ -180,7 +178,6 @@ export class OracleClientFactory {
     const result: Partial<Record<OracleProvider, string[]>> = {};
     const providers = [
       OracleProvider.CHAINLINK,
-      OracleProvider.BAND_PROTOCOL,
       OracleProvider.UMA,
       OracleProvider.PYTH,
       OracleProvider.API3,
@@ -212,8 +209,6 @@ export class OracleClientFactory {
     switch (provider) {
       case OracleProvider.CHAINLINK:
         return new ChainlinkClient({ ...this.config, useRealData: useRealChainlinkData });
-      case OracleProvider.BAND_PROTOCOL:
-        return new BandProtocolClient(this.config);
       case OracleProvider.UMA:
         return new UMAClient({ ...this.config, useRealData: useRealUMData });
       case OracleProvider.PYTH:
