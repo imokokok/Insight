@@ -261,6 +261,7 @@
     "correlationMatrixDesc": "显示各链之间的价格相关性",
     "rollingCorrelationDesc": "显示滚动窗口内的价格相关性变化",
     "heatmapDesc": "显示各链之间的价格差异百分比",
+    "highPrecisionNotice": "最大偏差: {value} - 价格高度一致",
     "scroll": "滚轮",
     "zoom": "缩放",
     "pan": "平移",
