@@ -58,7 +58,10 @@ export function useOracleRetry({
   });
   const [retryingOracles, setRetryingOracles] = useState<OracleProvider[]>([]);
   const retryAttemptsRef = useRef<Map<OracleProvider, number>>(new Map());
-  const abortControllerRef = useRef<AbortController | null>(null);
+  // 使用 Map 存储每个 provider 的 AbortController，避免共享问题
+  const abortControllersRef = useRef<Map<OracleProvider, AbortController>>(new Map());
+  // 用于 retryAllFailed 的独立 AbortController
+  const batchAbortControllerRef = useRef<AbortController | null>(null);
 
   const isRetrying = retryingOracles.length > 0;
 
@@ -71,9 +74,16 @@ export function useOracleRetry({
   }, []);
 
   const cancelRetry = useCallback(() => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-      abortControllerRef.current = null;
+    // 取消所有单个重试
+    abortControllersRef.current.forEach((controller) => {
+      controller.abort();
+    });
+    abortControllersRef.current.clear();
+
+    // 取消批量重试
+    if (batchAbortControllerRef.current) {
+      batchAbortControllerRef.current.abort();
+      batchAbortControllerRef.current = null;
     }
     setRetryingOracles([]);
   }, []);
@@ -93,11 +103,16 @@ export function useOracleRetry({
 
       setRetryingOracles((prev) => [...prev, provider]);
 
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
+      // 取消该 provider 之前的重试请求
+      const existingController = abortControllersRef.current.get(provider);
+      if (existingController) {
+        existingController.abort();
       }
-      abortControllerRef.current = new AbortController();
-      const signal = abortControllerRef.current.signal;
+
+      // 创建新的 AbortController
+      const abortController = new AbortController();
+      abortControllersRef.current.set(provider, abortController);
+      const signal = abortController.signal;
 
       const hours = getHoursForTimeRange(timeRange) ?? 24;
       const baseSymbol = extractBaseSymbol(selectedSymbol);
@@ -147,6 +162,8 @@ export function useOracleRetry({
         };
         onErrorUpdate(provider, errorInfo);
       } finally {
+        // 清理该 provider 的 AbortController
+        abortControllersRef.current.delete(provider);
         setRetryingOracles((prev) => prev.filter((o) => o !== provider));
       }
     },
@@ -171,11 +188,12 @@ export function useOracleRetry({
 
       setRetryingOracles(failedOracles);
 
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
+      // 取消之前的批量重试
+      if (batchAbortControllerRef.current) {
+        batchAbortControllerRef.current.abort();
       }
-      abortControllerRef.current = new AbortController();
-      const signal = abortControllerRef.current.signal;
+      batchAbortControllerRef.current = new AbortController();
+      const signal = batchAbortControllerRef.current.signal;
 
       const hours = getHoursForTimeRange(timeRange) ?? 24;
       const baseSymbol = extractBaseSymbol(selectedSymbol);
@@ -223,6 +241,8 @@ export function useOracleRetry({
         }
       });
 
+      // 清理批量 AbortController
+      batchAbortControllerRef.current = null;
       setRetryingOracles([]);
     },
     [

@@ -6,10 +6,53 @@ const logger = createLogger('BinanceProxyAPI');
 
 const BINANCE_API_BASE = 'https://api.binance.com';
 
-/**
- * Binance API 代理路由
- * 解决浏览器 CORS 限制问题
- */
+const ALLOWED_PATHS = [
+  'api/v3/ticker/price',
+  'api/v3/ticker/24hr',
+  'api/v3/exchangeInfo',
+  'api/v3/depth',
+  'api/v3/trades',
+  'api/v3/avgPrice',
+  'api/v1/ping',
+  'api/v3/klines',
+  'api/v1/time',
+];
+
+const BLOCKED_PATTERNS = [
+  /\.\./,
+  /@/,
+  /\.\//,
+  /\.\.\//,
+  /%2e%2e/i,
+  /%40/i,
+  /localhost/i,
+  /127\.0\.0\.1/i,
+  /192\.168\./i,
+  /10\.\d+\.\d+\.\d+/i,
+  /172\.(1[6-9]|2[0-9]|3[0-1])\.\d+\.\d+/i,
+];
+
+function isPathAllowed(pathStr: string): boolean {
+  const normalizedPath = pathStr.toLowerCase().trim();
+
+  for (const pattern of BLOCKED_PATTERNS) {
+    if (pattern.test(normalizedPath)) {
+      return false;
+    }
+  }
+
+  for (const allowed of ALLOWED_PATHS) {
+    if (
+      normalizedPath === allowed.toLowerCase() ||
+      normalizedPath.startsWith(allowed.toLowerCase() + '?')
+    ) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ path: string[] }> }
@@ -17,12 +60,19 @@ export async function GET(
   try {
     const { path } = await params;
     const pathStr = path.join('/');
+
+    if (!isPathAllowed(pathStr)) {
+      logger.warn(`Blocked unauthorized proxy path: ${pathStr}`);
+      return NextResponse.json({ error: 'Path not allowed' }, { status: 403 });
+    }
+
     const { searchParams } = new URL(request.url);
 
-    // 构建目标 URL
     const targetUrl = new URL(`${BINANCE_API_BASE}/${pathStr}`);
     searchParams.forEach((value, key) => {
-      targetUrl.searchParams.append(key, value);
+      if (key && value && !key.includes('..') && !value.includes('..')) {
+        targetUrl.searchParams.append(key, value);
+      }
     });
 
     logger.info(`Proxying request to Binance: ${pathStr}`);

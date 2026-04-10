@@ -7,91 +7,62 @@ export const dynamic = 'force-dynamic';
 interface HealthCheckResult {
   status: 'healthy' | 'degraded' | 'unhealthy';
   timestamp: string;
-  version: string;
-  uptime: number;
   checks: {
-    database: {
-      status: 'ok' | 'error';
-      latency?: number;
-      error?: string;
-    };
-    memory: {
-      status: 'ok' | 'warning' | 'error';
-      used: number;
-      total: number;
-      percentage: number;
-    };
-    environment: {
-      status: 'ok' | 'error';
-      nodeEnv: string;
-      hasRequiredEnvVars: boolean;
-    };
+    database: 'ok' | 'error';
+    memory: 'ok' | 'warning' | 'error';
+    environment: 'ok' | 'error';
   };
 }
 
-async function checkDatabase(): Promise<HealthCheckResult['checks']['database']> {
+async function checkDatabase(): Promise<'ok' | 'error'> {
   try {
     const { getSupabaseClient } = await import('@/lib/supabase/client');
     const supabase = getSupabaseClient();
 
-    const start = Date.now();
     const { error } = await supabase.from('user_profiles').select('id').limit(1);
-    const latency = Date.now() - start;
 
     if (error) {
-      return { status: 'error', error: error.message };
+      return 'error';
     }
 
-    return { status: 'ok', latency };
-  } catch (error) {
-    return { status: 'error', error: error instanceof Error ? error.message : 'Unknown error' };
+    return 'ok';
+  } catch {
+    return 'error';
   }
 }
 
-function checkMemory(): HealthCheckResult['checks']['memory'] {
+function checkMemory(): 'ok' | 'warning' | 'error' {
   const memUsage = process.memoryUsage();
   const used = memUsage.heapUsed;
   const total = memUsage.heapTotal;
   const percentage = (used / total) * 100;
 
-  let status: 'ok' | 'warning' | 'error' = 'ok';
   if (percentage > 90) {
-    status = 'error';
+    return 'error';
   } else if (percentage > 75) {
-    status = 'warning';
+    return 'warning';
   }
 
-  return {
-    status,
-    used,
-    total,
-    percentage: Math.round(percentage * 100) / 100,
-  };
+  return 'ok';
 }
 
-function checkEnvironment(): HealthCheckResult['checks']['environment'] {
+function checkEnvironment(): 'ok' | 'error' {
   const requiredEnvVars = ['NEXT_PUBLIC_SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_ANON_KEY'];
 
   const hasRequiredEnvVars = requiredEnvVars.every((envVar) => process.env[envVar] !== undefined);
 
-  return {
-    status: hasRequiredEnvVars ? 'ok' : 'error',
-    nodeEnv: process.env.NODE_ENV || 'development',
-    hasRequiredEnvVars,
-  };
+  return hasRequiredEnvVars ? 'ok' : 'error';
 }
 
 export async function GET() {
-  const _startTime = Date.now();
-
   const [database, environment] = await Promise.all([checkDatabase(), checkEnvironment()]);
 
   const memory = checkMemory();
 
   const checks = { database, memory, environment };
 
-  const hasErrors = Object.values(checks).some((check) => check.status === 'error');
-  const hasWarnings = Object.values(checks).some((check) => check.status === 'warning');
+  const hasErrors = Object.values(checks).some((check) => check === 'error');
+  const hasWarnings = memory === 'warning';
 
   let status: HealthCheckResult['status'] = 'healthy';
   if (hasErrors) {
@@ -103,8 +74,6 @@ export async function GET() {
   const result: HealthCheckResult = {
     status,
     timestamp: new Date().toISOString(),
-    version: process.env.npm_package_version || '0.1.0',
-    uptime: process.uptime(),
     checks,
   };
 

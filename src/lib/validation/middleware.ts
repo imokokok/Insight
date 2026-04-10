@@ -7,6 +7,9 @@ import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('zod-validation-middleware');
 
+// 不应该有 body 的请求方法
+const METHODS_WITHOUT_BODY = ['GET', 'HEAD', 'OPTIONS'];
+
 export interface ZodValidationResult<T> {
   success: true;
   data: T;
@@ -24,6 +27,27 @@ export interface ZodValidationOptions {
   body?: ZodSchema;
   query?: ZodSchema;
   params?: ZodSchema;
+}
+
+// 统一的错误响应格式
+function createErrorResponse(
+  code: string,
+  message: string,
+  status: number,
+  details?: unknown
+): NextResponse {
+  return NextResponse.json(
+    {
+      success: false,
+      error: {
+        code,
+        message,
+        ...(details ? { details } : {}),
+      },
+      timestamp: Date.now(),
+    },
+    { status }
+  );
 }
 
 function formatZodError(error: ZodError): Array<{ field: string; message: string }> {
@@ -49,18 +73,7 @@ export function validateWithZod<T>(
     return {
       success: false,
       error: result.error,
-      response: NextResponse.json(
-        {
-          success: false,
-          error: {
-            code: 'VALIDATION_ERROR',
-            message: 'Validation failed',
-            details: { errors },
-          },
-          timestamp: Date.now(),
-        },
-        { status: 400 }
-      ),
+      response: createErrorResponse('VALIDATION_ERROR', 'Validation failed', 400, { errors }),
     };
   }
 
@@ -70,12 +83,41 @@ export function validateWithZod<T>(
   };
 }
 
+// 查询参数值类型转换
+function convertQueryValue(value: string): string | number | boolean {
+  // 尝试转换为数字
+  if (/^-?\d+$/.test(value)) {
+    return parseInt(value, 10);
+  }
+  if (/^-?\d+\.\d+$/.test(value)) {
+    return parseFloat(value);
+  }
+  // 尝试转换为布尔值
+  if (value === 'true') return true;
+  if (value === 'false') return false;
+  return value;
+}
+
 async function validateBody<T>(
   request: NextRequest,
   schema: ZodSchema<T>
 ): Promise<{ success: true; data: T } | { success: false; response: NextResponse }> {
+  // 检查请求方法
+  if (METHODS_WITHOUT_BODY.includes(request.method)) {
+    return {
+      success: false,
+      response: createErrorResponse(
+        'METHOD_NOT_ALLOWED',
+        `${request.method} requests cannot have a body`,
+        405
+      ),
+    };
+  }
+
   try {
-    const body = await request.json();
+    // 克隆请求以避免 body 只能读取一次的问题
+    const clonedRequest = request.clone();
+    const body = await clonedRequest.json();
     const result = validateWithZod(schema, body);
 
     if (!result.success) {
@@ -93,17 +135,7 @@ async function validateBody<T>(
     logger.debug('Failed to parse request body', { error });
     return {
       success: false,
-      response: NextResponse.json(
-        {
-          success: false,
-          error: {
-            code: 'BAD_REQUEST',
-            message: 'Invalid JSON in request body',
-          },
-          timestamp: Date.now(),
-        },
-        { status: 400 }
-      ),
+      response: createErrorResponse('BAD_REQUEST', 'Invalid JSON in request body', 400),
     };
   }
 }
@@ -119,12 +151,12 @@ function validateQuery<T>(
     const existing = queryData[key];
     if (existing !== undefined) {
       if (Array.isArray(existing)) {
-        existing.push(value);
+        existing.push(convertQueryValue(value));
       } else {
-        queryData[key] = [existing, value];
+        queryData[key] = [convertQueryValue(String(existing)), convertQueryValue(value)];
       }
     } else {
-      queryData[key] = value;
+      queryData[key] = convertQueryValue(value);
     }
   });
 

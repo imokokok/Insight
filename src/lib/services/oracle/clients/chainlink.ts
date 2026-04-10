@@ -12,6 +12,54 @@ import type { PriceData } from '@/types/oracle';
 
 const logger = createLogger('ChainlinkClient');
 
+// Chainlink 数据源质量配置
+const CHAINLINK_QUALITY_CONFIG = {
+  // 基于链的安全性和可靠性评分
+  chainReliability: {
+    [Blockchain.ETHEREUM]: 0.99,
+    [Blockchain.ARBITRUM]: 0.98,
+    [Blockchain.OPTIMISM]: 0.98,
+    [Blockchain.POLYGON]: 0.97,
+    [Blockchain.AVALANCHE]: 0.96,
+    [Blockchain.BNB_CHAIN]: 0.95,
+    [Blockchain.BASE]: 0.97,
+    [Blockchain.SOLANA]: 0.0, // 不支持
+    [Blockchain.FANTOM]: 0.94,
+    [Blockchain.CRONOS]: 0.93,
+    [Blockchain.JUNO]: 0.0,
+    [Blockchain.COSMOS]: 0.0,
+    [Blockchain.OSMOSIS]: 0.0,
+    [Blockchain.SCROLL]: 0.95,
+    [Blockchain.ZKSYNC]: 0.96,
+    [Blockchain.APTOS]: 0.0,
+    [Blockchain.SUI]: 0.0,
+    [Blockchain.GNOSIS]: 0.94,
+    [Blockchain.MANTLE]: 0.95,
+    [Blockchain.LINEA]: 0.95,
+    [Blockchain.CELESTIA]: 0.0,
+    [Blockchain.INJECTIVE]: 0.0,
+    [Blockchain.SEI]: 0.0,
+    [Blockchain.TRON]: 0.0,
+    [Blockchain.TON]: 0.0,
+    [Blockchain.NEAR]: 0.0,
+    [Blockchain.AURORA]: 0.93,
+    [Blockchain.CELO]: 0.94,
+    [Blockchain.STARKNET]: 0.0,
+    [Blockchain.BLAST]: 0.95,
+    [Blockchain.CARDANO]: 0.0,
+    [Blockchain.POLKADOT]: 0.0,
+    [Blockchain.KAVA]: 0.93,
+    [Blockchain.MOONBEAM]: 0.92,
+    [Blockchain.MOONRIVER]: 0.91,
+    [Blockchain.METIS]: 0.93,
+    [Blockchain.STARKEX]: 0.0,
+  } as Record<Blockchain, number>,
+  // 默认置信度
+  defaultConfidence: 0.98,
+  // 最小置信度
+  minConfidence: 0.9,
+};
+
 const BLOCKCHAIN_TO_CHAIN_ID: Record<Blockchain, number> = {
   [Blockchain.ETHEREUM]: 1,
   [Blockchain.ARBITRUM]: 42161,
@@ -77,7 +125,26 @@ export class ChainlinkClient extends BaseOracleClient {
     return BLOCKCHAIN_TO_CHAIN_ID[chain] || 1;
   }
 
+  private calculateConfidence(chain?: Blockchain): number {
+    const targetChain = chain || Blockchain.ETHEREUM;
+    const chainReliability =
+      CHAINLINK_QUALITY_CONFIG.chainReliability[targetChain] ||
+      CHAINLINK_QUALITY_CONFIG.defaultConfidence;
+
+    // 结合链的可靠性和数据源质量计算置信度
+    // Chainlink 作为行业标准的预言机，基础置信度较高
+    const baseConfidence = CHAINLINK_QUALITY_CONFIG.defaultConfidence;
+    const adjustedConfidence = Math.min(
+      baseConfidence,
+      Math.max(CHAINLINK_QUALITY_CONFIG.minConfidence, chainReliability * baseConfidence)
+    );
+
+    return Number(adjustedConfidence.toFixed(4));
+  }
+
   private convertToPriceData(chainlinkData: ChainlinkPriceData, chain?: Blockchain): PriceData {
+    const confidence = this.calculateConfidence(chain);
+
     return {
       provider: this.name,
       chain: chain || Blockchain.ETHEREUM,
@@ -85,7 +152,7 @@ export class ChainlinkClient extends BaseOracleClient {
       price: chainlinkData.price,
       timestamp: chainlinkData.timestamp,
       decimals: chainlinkData.decimals,
-      confidence: 0.98,
+      confidence,
       change24h: 0,
       change24hPercent: 0,
       // Chainlink Feed 元数据

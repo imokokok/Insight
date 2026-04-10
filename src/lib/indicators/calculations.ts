@@ -58,9 +58,16 @@ export function calculateEMA(data: number[], period: number): number[] {
   const multiplier = 2 / (period + 1);
 
   for (let i = 0; i < data.length; i++) {
-    if (i === 0) {
-      result.push(data[i]);
+    if (i < period - 1) {
+      // 前 period-1 个值使用 SMA（简单移动平均）
+      const sum = data.slice(0, i + 1).reduce((a, b) => a + b, 0);
+      result.push(sum / (i + 1));
+    } else if (i === period - 1) {
+      // 第 period 个值使用完整周期的 SMA 作为 EMA 的初始值
+      const sum = data.slice(0, period).reduce((a, b) => a + b, 0);
+      result.push(sum / period);
     } else {
+      // 后续使用标准 EMA 公式
       const ema = data[i] * multiplier + result[i - 1] * (1 - multiplier);
       result.push(ema);
     }
@@ -274,8 +281,9 @@ export function calculateBollingerBands(
       const slice = prices.slice(i - period + 1, i + 1);
       const mean = middle[i];
       const squaredDiffs = slice.map((p) => Math.pow(p - mean, 2));
-      // 使用样本标准差 (除以 period - 1) 而不是总体标准差
-      const variance = squaredDiffs.reduce((sum, d) => sum + d, 0) / (period - 1);
+      // 统一使用总体标准差 (除以 period) 以保持一致性
+      // 这是金融分析中布林带的标准做法
+      const variance = squaredDiffs.reduce((sum, d) => sum + d, 0) / period;
       const currentStdDev = Math.sqrt(variance);
 
       upper.push(mean + multiplier * currentStdDev);

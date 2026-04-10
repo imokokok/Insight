@@ -15,10 +15,23 @@ async function loadMessageFile(
     const loadedModule = await import(`./messages/${locale}/${path}.json`);
     return loadedModule.default;
   } catch (error) {
+    // 如果不是默认语言，尝试加载英文 fallback
+    if (locale !== 'en') {
+      try {
+        const fallbackModule = await import(`./messages/en/${path}.json`);
+        if (process.env.NODE_ENV === 'development') {
+          console.warn(`[i18n] Using English fallback for: ${locale}/${path}.json`);
+        }
+        return fallbackModule.default;
+      } catch {
+        // fallback 也失败，继续返回 null
+      }
+    }
+
     if (process.env.NODE_ENV === 'development') {
       console.warn(`[i18n] Failed to load messages: ${locale}/${path}.json`, error);
     }
-    return null;
+    return {};
   }
 }
 

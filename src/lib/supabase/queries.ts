@@ -2,9 +2,16 @@ import { type SupabaseClient } from '@supabase/supabase-js';
 
 import { createLogger } from '@/lib/utils/logger';
 import { normalizeTimestamp } from '@/lib/utils/timestamp';
+import { RequestQueue } from '@/lib/utils/requestQueue';
 import { type OracleProvider, type Blockchain } from '@/types/oracle';
 
 const logger = createLogger('supabase-queries');
+
+// 创建全局请求队列，限制并发数据库查询数量
+const queryQueue = new RequestQueue({
+  maxConcurrency: 5,
+  defaultTimeout: 30000,
+});
 
 export interface PriceRecord {
   id?: string;
@@ -196,115 +203,121 @@ export class DatabaseQueries {
   constructor(private client: SupabaseClient) {}
 
   async savePriceRecord(record: PriceRecordInsert): Promise<PriceRecord | null> {
-    const timestamp = new Date(normalizeTimestamp(record.timestamp)).toISOString();
+    return queryQueue.add(async () => {
+      const timestamp = new Date(normalizeTimestamp(record.timestamp)).toISOString();
 
-    // 计算 ttl 时间戳（默认 1 小时后）
-    const ttlInterval = record.ttl || '1h';
-    const ttl = this.calculateTtlTimestamp(ttlInterval);
+      // 计算 ttl 时间戳（默认 1 小时后）
+      const ttlInterval = record.ttl || '1h';
+      const ttl = this.calculateTtlTimestamp(ttlInterval);
 
-    const { data, error } = await this.client
-      .from('price_records')
-      .insert({
-        provider: record.provider,
-        symbol: record.symbol,
-        chain: record.chain || null,
-        price: record.price,
-        timestamp,
-        confidence: record.confidence || null,
-        source: record.source || null,
-        ttl,
-      })
-      .select()
-      .single();
+      const { data, error } = await this.client
+        .from('price_records')
+        .insert({
+          provider: record.provider,
+          symbol: record.symbol,
+          chain: record.chain || null,
+          price: record.price,
+          timestamp,
+          confidence: record.confidence || null,
+          source: record.source || null,
+          ttl,
+        })
+        .select()
+        .single();
 
-    if (error) {
-      logger.error(
-        'Failed to save price record',
-        error instanceof Error ? error : new Error(String(error))
-      );
-      return null;
-    }
+      if (error) {
+        logger.error(
+          'Failed to save price record',
+          error instanceof Error ? error : new Error(String(error))
+        );
+        return null;
+      }
 
-    return data;
+      return data;
+    });
   }
 
   async savePriceRecords(records: PriceRecordInsert[]): Promise<PriceRecord[] | null> {
     if (records.length === 0) return [];
 
-    const formattedRecords = records.map((record) => ({
-      provider: record.provider,
-      symbol: record.symbol,
-      chain: record.chain || null,
-      price: record.price,
-      timestamp: new Date(normalizeTimestamp(record.timestamp)).toISOString(),
-      confidence: record.confidence || null,
-      source: record.source || null,
-      ttl: this.calculateTtlTimestamp(record.ttl || '1h'),
-    }));
+    return queryQueue.add(async () => {
+      const formattedRecords = records.map((record) => ({
+        provider: record.provider,
+        symbol: record.symbol,
+        chain: record.chain || null,
+        price: record.price,
+        timestamp: new Date(normalizeTimestamp(record.timestamp)).toISOString(),
+        confidence: record.confidence || null,
+        source: record.source || null,
+        ttl: this.calculateTtlTimestamp(record.ttl || '1h'),
+      }));
 
-    const { data, error } = await this.client
-      .from('price_records')
-      .insert(formattedRecords)
-      .select();
+      const { data, error } = await this.client
+        .from('price_records')
+        .insert(formattedRecords)
+        .select();
 
-    if (error) {
-      logger.error(
-        'Failed to save price records',
-        error instanceof Error ? error : new Error(String(error))
-      );
-      return null;
-    }
+      if (error) {
+        logger.error(
+          'Failed to save price records',
+          error instanceof Error ? error : new Error(String(error))
+        );
+        return null;
+      }
 
-    return data;
+      return data;
+    });
   }
 
   async getPriceRecords(filters: PriceRecordsFilters): Promise<PriceRecord[] | null> {
-    let query = this.client
-      .from('price_records')
-      .select('*')
-      .order('timestamp', { ascending: false });
+    return queryQueue.add(async () => {
+      let query = this.client
+        .from('price_records')
+        .select('*')
+        .order('timestamp', { ascending: false });
 
-    if (filters.provider) {
-      query = query.eq('provider', filters.provider);
-    }
+      if (filters.provider) {
+        query = query.eq('provider', filters.provider);
+      }
 
-    if (filters.symbol) {
-      query = query.eq('symbol', filters.symbol);
-    }
+      if (filters.symbol) {
+        query = query.eq('symbol', filters.symbol);
+      }
 
-    if (filters.chain) {
-      query = query.eq('chain', filters.chain);
-    }
+      if (filters.chain) {
+        query = query.eq('chain', filters.chain);
+      }
 
-    if (filters.startTime) {
-      const startTimeStr = new Date(normalizeTimestamp(filters.startTime)).toISOString();
-      query = query.gte('timestamp', startTimeStr);
-    }
+      if (filters.startTime) {
+        const startTimeStr = new Date(normalizeTimestamp(filters.startTime)).toISOString();
+        query = query.gte('timestamp', startTimeStr);
+      }
 
-    if (filters.endTime) {
-      const endTimeStr = new Date(normalizeTimestamp(filters.endTime)).toISOString();
-      query = query.lte('timestamp', endTimeStr);
-    }
+      if (filters.endTime) {
+        const endTimeStr = new Date(normalizeTimestamp(filters.endTime)).toISOString();
+        query = query.lte('timestamp', endTimeStr);
+      }
 
-    if (filters.limit) {
-      query = query.limit(filters.limit);
-    }
+      if (filters.limit) {
+        query = query.limit(filters.limit);
+      }
 
-    if (filters.offset) {
-      query = query.range(filters.offset, filters.offset + (filters.limit || 100) - 1);
-    }
+      if (filters.offset) {
+        query = query.range(filters.offset, filters.offset + (filters.limit || 100) - 1);
+      }
 
-    const { data, error } = await query;
+      const { data, error } = await query;
 
-    if (error) {
-      logger.error(
-        'Failed to get price records',
-        error instanceof Error ? error : new Error(String(error))
-      );
-      return null;
-    }
+      if (error) {
+        logger.error(
+          'Failed to get price records',
+          error instanceof Error ? error : new Error(String(error))
+        );
+        return null;
+      }
 
-    return data;
+      return data;
+    });
   }
 
   async getLatestPrice(
@@ -312,29 +325,31 @@ export class DatabaseQueries {
     symbol: string,
     chain?: Blockchain | string | null
   ): Promise<PriceRecord | null> {
-    let query = this.client
-      .from('price_records')
-      .select('*')
-      .eq('provider', provider)
-      .eq('symbol', symbol)
-      .order('timestamp', { ascending: false })
-      .limit(1);
+    return queryQueue.add(async () => {
+      let query = this.client
+        .from('price_records')
+        .select('*')
+        .eq('provider', provider)
+        .eq('symbol', symbol)
+        .order('timestamp', { ascending: false })
+        .limit(1);
 
-    if (chain) {
-      query = query.eq('chain', chain);
-    }
+      if (chain) {
+        query = query.eq('chain', chain);
+      }
 
-    const { data, error } = await query.maybeSingle();
+      const { data, error } = await query.maybeSingle();
 
-    if (error) {
-      logger.error(
-        'Failed to get latest price',
-        error instanceof Error ? error : new Error(String(error))
-      );
-      return null;
-    }
+      if (error) {
+        logger.error(
+          'Failed to get latest price',
+          error instanceof Error ? error : new Error(String(error))
+        );
+        return null;
+      }
 
-    return data;
+      return data;
+    });
   }
 
   async deleteExpiredPriceRecords(): Promise<number> {

@@ -6,6 +6,8 @@ import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('api-alerts-events');
 
+const MAX_LIMIT = 100;
+
 export async function GET(request: NextRequest) {
   try {
     const userId = await getUserId(request);
@@ -14,8 +16,25 @@ export async function GET(request: NextRequest) {
     }
 
     const searchParams = request.nextUrl.searchParams;
-    const acknowledged = searchParams.get('acknowledged');
-    const limit = searchParams.get('limit');
+    const acknowledgedParam = searchParams.get('acknowledged');
+    const limitParam = searchParams.get('limit');
+
+    let acknowledged: boolean | undefined;
+    if (acknowledgedParam !== null) {
+      if (acknowledgedParam === 'true') {
+        acknowledged = true;
+      } else if (acknowledgedParam === 'false') {
+        acknowledged = false;
+      }
+    }
+
+    let limit: number | undefined;
+    if (limitParam !== null) {
+      const parsedLimit = parseInt(limitParam, 10);
+      if (!isNaN(parsedLimit) && parsedLimit > 0 && parsedLimit <= MAX_LIMIT) {
+        limit = parsedLimit;
+      }
+    }
 
     const queries = getServerQueries();
     let events = await queries.getAlertEvents(userId);
@@ -24,16 +43,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch alert events' }, { status: 500 });
     }
 
-    if (acknowledged !== null) {
-      const isAcknowledged = acknowledged === 'true';
-      events = events.filter((e) => e.acknowledged === isAcknowledged);
+    if (acknowledged !== undefined) {
+      events = events.filter((e) => e.acknowledged === acknowledged);
     }
 
-    if (limit) {
-      const limitNum = parseInt(limit, 10);
-      if (!isNaN(limitNum) && limitNum > 0) {
-        events = events.slice(0, limitNum);
-      }
+    if (limit !== undefined) {
+      events = events.slice(0, limit);
     }
 
     return NextResponse.json({

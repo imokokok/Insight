@@ -6,6 +6,33 @@ import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('api-auth-callback');
 
+const ALLOWED_REDIRECT_PATHS = [
+  '/',
+  '/dashboard',
+  '/settings',
+  '/profile',
+  '/alerts',
+  '/favorites',
+  '/snapshots',
+  '/price-query',
+  '/cross-chain',
+  '/cross-oracle',
+];
+
+function isValidRedirectPath(path: string): boolean {
+  if (!path || typeof path !== 'string') {
+    return false;
+  }
+
+  if (path.startsWith('//') || path.startsWith('http://') || path.startsWith('https://')) {
+    return false;
+  }
+
+  return ALLOWED_REDIRECT_PATHS.some(
+    (allowed) => path === allowed || path.startsWith(allowed + '/')
+  );
+}
+
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
@@ -87,7 +114,7 @@ export async function GET(request: NextRequest) {
       redirectPath = '/auth/reset-password';
     } else if (type === 'signup' || type === 'email_change') {
       redirectPath = '/auth/verify-email';
-    } else if (state) {
+    } else if (state && isValidRedirectPath(state)) {
       redirectPath = state;
     } else {
       redirectPath = '/';

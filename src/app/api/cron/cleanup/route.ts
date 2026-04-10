@@ -9,8 +9,19 @@ const CRON_SECRET = process.env.CRON_SECRET;
 
 export async function GET(request: NextRequest) {
   try {
+    if (!CRON_SECRET) {
+      logger.error('CRON_SECRET environment variable is not configured');
+      return NextResponse.json(
+        { error: 'Server misconfigured: CRON_SECRET not set' },
+        { status: 500 }
+      );
+    }
+
     const authHeader = request.headers.get('authorization');
-    if (CRON_SECRET && authHeader !== `Bearer ${CRON_SECRET}`) {
+    if (authHeader !== `Bearer ${CRON_SECRET}`) {
+      logger.warn('Unauthorized cron cleanup attempt', {
+        hasAuthHeader: !!authHeader,
+      });
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

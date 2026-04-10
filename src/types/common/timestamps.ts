@@ -30,6 +30,7 @@ export function formatTimestamp(timestamp: number): string {
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
+    timeZone: 'Asia/Shanghai', // 明确指定时区，避免 SSR 水合错误
   });
 }
 

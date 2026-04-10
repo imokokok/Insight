@@ -564,6 +564,10 @@ export function useOracleData({
     fetchSingleOracle,
   ]);
 
+  // 使用 ref 存储 fetchPriceData，避免依赖循环
+  const fetchPriceDataRef = useRef(fetchPriceData);
+  fetchPriceDataRef.current = fetchPriceData;
+
   useEffect(() => {
     isMountedRef.current = true;
     memoryManager.startPeriodicCleanup();
@@ -596,7 +600,8 @@ export function useOracleData({
         globalError: null,
       });
       setError(null);
-      fetchPriceData();
+      // 使用 ref 调用 fetchPriceData，避免依赖循环
+      fetchPriceDataRef.current();
     }
 
     return () => {
@@ -606,17 +611,20 @@ export function useOracleData({
       }
       memoryManager.stopPeriodicCleanup();
     };
-  }, [selectedOracles, selectedSymbol, timeRange, fetchPriceData]);
+    // 注意：不从依赖数组中包含 fetchPriceData，使用 ref 避免循环
+  }, [selectedOracles, selectedSymbol, timeRange]);
 
   useEffect(() => {
     if (refreshInterval === 0) return;
 
     const intervalId = setInterval(() => {
-      fetchPriceData();
+      // 使用 ref 调用 fetchPriceData，避免依赖循环
+      fetchPriceDataRef.current();
     }, refreshInterval);
 
     return () => clearInterval(intervalId);
-  }, [refreshInterval, fetchPriceData]);
+    // 注意：不从依赖数组中包含 fetchPriceData，使用 ref 避免循环
+  }, [refreshInterval]);
 
   useEffect(() => {
     return () => {
