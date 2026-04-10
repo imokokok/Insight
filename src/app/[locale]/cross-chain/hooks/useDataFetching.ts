@@ -4,7 +4,7 @@
  * 通过 API 路由获取数据，避免前端直接调用 RPC 导致的 CORS 和并发问题
  */
 
-import { useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
 import { useToastMethods } from '@/components/ui/Toast';
 import { oracleApiClient } from '@/lib/api/oracleApiClient';
@@ -43,7 +43,9 @@ const getGlobalCache = (): Map<string, CacheEntry> => {
 };
 
 const getCacheKey = (provider: OracleProvider, symbol: string, timeRange: number): string => {
-  return `${provider}-${symbol}-${timeRange}`;
+  // 使用 encodeURIComponent 防止特殊字符导致键冲突
+  // 使用 | 作为分隔符，减少与 symbol 中常见字符的冲突概率
+  return `${provider}|${encodeURIComponent(symbol)}|${timeRange}`;
 };
 
 const cleanupCache = () => {
@@ -151,6 +153,20 @@ export function useDataFetching(
   const toast = useToastMethods();
   const abortControllerRef = useRef<AbortController | null>(null);
   const refreshSuccessTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // 清理定时器，防止内存泄漏
+  useEffect(() => {
+    return () => {
+      if (refreshSuccessTimerRef.current) {
+        clearTimeout(refreshSuccessTimerRef.current);
+        refreshSuccessTimerRef.current = null;
+      }
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+        abortControllerRef.current = null;
+      }
+    };
+  }, []);
 
   const fetchData = useCallback(
     async (signal?: AbortSignal) => {
