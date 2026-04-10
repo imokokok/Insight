@@ -12,7 +12,7 @@ import { getOracleClient, extractBaseSymbol } from '@/lib/oracles';
 import { STALE_TIME_CONFIG, GC_TIME_CONFIG } from '@/providers/ReactQueryProvider';
 import type { OracleProvider, Blockchain, PriceData } from '@/types/oracle';
 
-import { CACHE_CONFIG, priceCache, createCacheKey } from '../utils/cacheUtils';
+import { CACHE_CONFIG, priceCache } from '../utils/cacheUtils';
 
 import { priceQueryKeys } from './queryKeys';
 
@@ -50,12 +50,12 @@ export function usePriceData(options: UsePriceDataOptions): UsePriceDataReturn {
   } = options;
 
   const queryClient = useQueryClient();
-  const cacheKey = createCacheKey('price', provider, chain, symbol);
 
   const queryResult = useQuery({
     queryKey: priceQueryKeys.price(provider, chain, symbol),
     queryFn: async (): Promise<PriceData> => {
-      const cachedData = priceCache.get(cacheKey) as PriceData | undefined;
+      const queryCacheKey = priceQueryKeys.price(provider, chain, symbol).join(':');
+      const cachedData = priceCache.get(queryCacheKey) as PriceData | undefined;
       if (cachedData) {
         return cachedData;
       }
@@ -69,7 +69,7 @@ export function usePriceData(options: UsePriceDataOptions): UsePriceDataReturn {
         chain,
       };
 
-      priceCache.set(cacheKey, result, CACHE_CONFIG.PRICE_TTL);
+      priceCache.set(queryCacheKey, result, CACHE_CONFIG.PRICE_TTL);
 
       return result;
     },
@@ -81,7 +81,8 @@ export function usePriceData(options: UsePriceDataOptions): UsePriceDataReturn {
   });
 
   const clearCache = () => {
-    priceCache.clear(cacheKey);
+    const queryCacheKey = priceQueryKeys.price(provider, chain, symbol).join(':');
+    priceCache.clear(queryCacheKey);
     queryClient.removeQueries({
       queryKey: priceQueryKeys.price(provider, chain, symbol),
     });
@@ -89,7 +90,9 @@ export function usePriceData(options: UsePriceDataOptions): UsePriceDataReturn {
 
   const cacheStats = {
     size: priceCache.getSize(),
-    remainingTTL: priceCache.getRemainingTTL(cacheKey),
+    remainingTTL: priceCache.getRemainingTTL(
+      priceQueryKeys.price(provider, chain, symbol).join(':')
+    ),
   };
 
   return {
@@ -98,7 +101,8 @@ export function usePriceData(options: UsePriceDataOptions): UsePriceDataReturn {
     isError: queryResult.isError,
     error: queryResult.error,
     refetch: async () => {
-      priceCache.clear(cacheKey);
+      const queryCacheKey = priceQueryKeys.price(provider, chain, symbol).join(':');
+      priceCache.clear(queryCacheKey);
       await queryResult.refetch();
     },
     isFetching: queryResult.isFetching,
@@ -135,12 +139,14 @@ export function useMultiPriceData(
 
   return useQueries({
     queries: queries.map((query): UseQueryOptions<PriceData, Error, PriceData> => {
-      const cacheKey = createCacheKey('price', query.provider, query.chain, query.symbol);
+      const queryCacheKey = priceQueryKeys
+        .price(query.provider, query.chain, query.symbol)
+        .join(':');
 
       return {
         queryKey: priceQueryKeys.price(query.provider, query.chain, query.symbol),
         queryFn: async (): Promise<PriceData> => {
-          const cachedData = priceCache.get(cacheKey) as PriceData | undefined;
+          const cachedData = priceCache.get(queryCacheKey) as PriceData | undefined;
           if (cachedData) {
             return cachedData;
           }
@@ -154,7 +160,7 @@ export function useMultiPriceData(
             chain: query.chain,
           };
 
-          priceCache.set(cacheKey, result, CACHE_CONFIG.PRICE_TTL);
+          priceCache.set(queryCacheKey, result, CACHE_CONFIG.PRICE_TTL);
 
           return result;
         },
