@@ -56,7 +56,6 @@ const defaultPreferences: UserPreferences = {
 
 const oracleOptions = [
   { value: 'chainlink', label: 'Chainlink' },
-  { value: 'uma', label: 'UMA' },
   { value: 'pyth', label: 'Pyth Network' },
   { value: 'api3', label: 'API3' },
   { value: 'redstone', label: 'Redstone' },

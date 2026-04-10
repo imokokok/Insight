@@ -37,6 +37,10 @@
         "analyze": {
           "title": "Analyze & Compare",
           "description": "Use the cross-oracle comparison feature to analyze price differences and trends between different oracles."
+        },
+        "alert": {
+          "title": "Set Price Alerts",
+          "description": "Register an account to set price alerts and receive notifications when prices reach thresholds"
         }
       },
       "cta": {

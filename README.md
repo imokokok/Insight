@@ -40,7 +40,9 @@ Insight is a professional oracle data analytics platform that provides comprehen
 ### Oracle Clients
 
 - Pyth Hermes Client (`@pythnetwork/hermes-client` 2.0.0)
-- Custom oracle clients for all supported providers
+- Pyth Price Service SDK (`@pythnetwork/price-service-sdk` 1.8.0)
+- API3 Contracts (`@api3/contracts` 27.0.0)
+- Custom oracle clients for all supported providers (Chainlink, Pyth, API3, RedStone, DIA, WINkLink)
 
 ## Prerequisites
 
@@ -122,6 +124,7 @@ NEXT_PUBLIC_ENABLE_PERFORMANCE_MONITORING=true
 | `npm run i18n:check`    | Check i18n translations             |
 | `npm run i18n:validate` | Validate i18n translations          |
 | `npm run naming:check`  | Check naming conventions            |
+| `npm run prepare`       | Prepare husky git hooks             |
 
 ## Project Structure
 
@@ -195,6 +198,12 @@ insight/
 │   ├── lib/                    # Core libraries
 │   │   ├── analytics/          # Analytics utilities
 │   │   ├── api/                # API utilities
+│   │   │   ├── client/         # API client with interceptors
+│   │   │   ├── middleware/     # API middleware (auth, rate limit, validation)
+│   │   │   ├── versioning/     # API versioning
+│   │   │   ├── validation/     # Validation schemas (Zod)
+│   │   │   ├── response/       # Response builders
+│   │   │   └── handler.ts      # Main API handler
 │   │   ├── config/             # Configuration files
 │   │   ├── constants/          # Application constants
 │   │   ├── di/                 # Dependency injection
@@ -204,12 +213,31 @@ insight/
 │   │   ├── indicators/         # Technical indicators
 │   │   ├── monitoring/         # Performance monitoring
 │   │   ├── oracles/            # Oracle client implementations
+│   │   │   ├── base.ts         # BaseOracleClient abstract class
+│   │   │   ├── factory.ts      # OracleClientFactory
+│   │   │   ├── chainlink.ts    # Chainlink client
+│   │   │   ├── pythNetwork.ts  # Pyth Network client
+│   │   │   ├── pythHermesClient.ts # Pyth Hermes API client
+│   │   │   ├── api3.ts         # API3 client
+│   │   │   ├── redstone.ts     # RedStone client
+│   │   │   ├── dia.ts          # DIA client
+│   │   │   ├── diaDataService.ts   # DIA data service
+│   │   │   ├── diaPriceService.ts  # DIA price service
+│   │   │   ├── diaNFTService.ts    # DIA NFT service
+│   │   │   ├── diaNetworkService.ts # DIA network service
+│   │   │   ├── winklink.ts     # WINkLink client
+│   │   │   └── constants/      # Oracle constants
 │   │   ├── queries/            # React Query keys
 │   │   ├── realtime/           # Real-time communication
 │   │   ├── services/           # External services
 │   │   ├── snapshots/          # Snapshot management
 │   │   ├── supabase/           # Supabase client and utilities
 │   │   └── utils/              # Utility functions
+│   ├── stores/                 # Zustand stores
+│   │   ├── authStore.ts        # Authentication state
+│   │   ├── uiStore.ts          # UI state
+│   │   ├── realtimeStore.ts    # Real-time data state
+│   │   └── crossChainStore.ts  # Cross-chain analysis state
 │   ├── types/                  # TypeScript type definitions
 │   │   ├── oracle/             # Oracle types
 │   │   ├── api/                # API types
@@ -235,11 +263,20 @@ insight/
 │       ├── cryptos/            # Cryptocurrency logos
 │       └── oracles/            # Oracle logos
 ├── scripts/                    # Utility scripts
+│   ├── generate-i18n-types.js  # i18n type generation
+│   ├── check-i18n.js           # i18n validation
+│   ├── check-naming-convention.js # Naming convention check
+│   ├── performance-test.ts     # Performance testing
+│   └── quick-perf.mjs          # Quick performance check
 ├── next.config.ts              # Next.js configuration
 ├── tailwind.config.ts          # Tailwind CSS configuration
 ├── tsconfig.json               # TypeScript configuration
 ├── jest.config.js              # Jest configuration
-└── eslint.config.mjs           # ESLint configuration
+├── eslint.config.mjs           # ESLint configuration
+├── .husky/                     # Husky git hooks
+└── .trae/rules/                # Trae IDE rules
+    ├── project_rules.md
+    └── ui-redesign-rules.md
 ```
 
 ## Supported Oracles
@@ -266,8 +303,9 @@ insight/
 
 ### DIA
 
-- **Supported Chains**: Ethereum, Arbitrum, Polygon, Avalanche, BNB Chain, Base, Fantom, Cronos, Moonbeam, Gnosis, Kava
-- **Features**: Open-source cross-chain oracle, NFT data feeds, transparent methodology
+- **Supported Chains**: Ethereum, Arbitrum, Polygon, Avalanche, BNB Chain, Base, Optimism, Fantom, Cronos, Moonbeam, Gnosis, Kava, Solana, Sui, Aptos, Injective, Sei, Cosmos, Osmosis, Juno, Celestia, Tron, TON, Near, Aurora, Celo, Starknet, Blast, Cardano, Polkadot, Mantle, Linea, Scroll, zkSync, Moonriver, Metis, StarkEx
+- **Features**: Open-source cross-chain oracle, NFT floor price data feeds, transparent methodology, comprehensive token on-chain data (supply, market cap, exchange volume)
+- **Data Services**: DIADataService with dedicated PriceService, NFTService, and NetworkService modules
 
 ### WINkLink
 

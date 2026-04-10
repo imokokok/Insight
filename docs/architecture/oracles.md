@@ -394,9 +394,25 @@ src/lib/oracles/
 
 ```
 src/lib/oracles/
-├── dia.ts              # 主客户端
-└── diaDataService.ts  # 数据服务
+├── dia.ts                  # 主客户端导出
+├── diaDataService.ts       # 数据服务主入口
+├── diaPriceService.ts      # 价格数据服务
+├── diaNFTService.ts        # NFT 地板价服务
+├── diaNetworkService.ts    # 网络统计服务
+├── diaTypes.ts             # 类型定义
+├── diaUtils.ts             # 工具函数和常量
+├── constants/
+│   ├── chainMapping.ts     # 区块链名称映射
+│   └── assetAddresses.ts   # 资产合约地址配置
 ```
+
+**DIA 服务架构特点：**
+
+1. **模块化设计**: 将功能拆分为独立的服务模块
+2. **单例模式**: DIADataService 使用单例模式确保全局唯一实例
+3. **缓存机制**: 每个服务内部实现内存缓存，支持 TTL
+4. **多链支持**: 支持 35+ 条区块链，通过 DIA_CHAIN_MAPPING 进行名称映射
+5. **资产地址配置**: 通过 DIA_ASSET_ADDRESSES 配置多链资产合约地址
 
 ## 数据流
 
