@@ -57,7 +57,8 @@ export async function fetchPriceFromApi({
       errorText,
     });
     throw new Error(
-      (errorData as { message?: string }).message || `Failed to fetch price: ${response.status} ${response.statusText}`
+      (errorData as { message?: string }).message ||
+        `Failed to fetch price: ${response.status} ${response.statusText}`
     );
   }
 

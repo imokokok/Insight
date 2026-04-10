@@ -1,13 +1,13 @@
 import {
-  type OracleMarketData,
-  type AssetData,
-  type AnomalyData,
-} from '@/app/[locale]/market-overview/types';
-import {
   detectPriceAnomalies,
   detectTrendBreak,
   detectVolatilityAnomalies,
 } from '@/lib/analytics/anomalyDetection';
+import {
+  type OracleMarketData,
+  type AssetData,
+  type AnomalyData,
+} from '@/lib/services/marketData/types';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('marketData:anomalyCalculations');

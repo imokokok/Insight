@@ -7,7 +7,6 @@ Insight is a professional oracle data analytics platform that provides comprehen
 - **Real-time Price Monitoring** - Live price feeds from multiple oracle providers with real-time updates
 - **Cross-Oracle Price Comparison** - Compare prices across different oracles for the same asset
 - **Cross-Chain Performance Analysis** - Analyze oracle performance across multiple blockchain networks
-- **Market Overview** - Track Total Value Secured (TVS) and market metrics
 - **Price Alerts & Notifications** - Configure custom price alerts with multiple trigger conditions
 - **User Favorites & Snapshots** - Save and share price snapshots and favorite configurations
 - **Data Export** - Export data in CSV, JSON, Excel, PDF, and PNG formats
@@ -140,7 +139,6 @@ insight/
 │   │   │   ├── favorites/      # User favorites page
 │   │   │   ├── home-components/# Homepage components
 │   │   │   ├── login/          # Login page
-│   │   │   ├── market-overview/# Market overview page
 │   │   │   ├── methodology/    # Methodology page
 │   │   │   ├── price-query/    # Price query page
 │   │   │   ├── pyth-network/   # Pyth oracle page

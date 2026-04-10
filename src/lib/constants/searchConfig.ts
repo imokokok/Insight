@@ -365,7 +365,7 @@ export const searchableItems: SearchableItem[] = [
     symbol: 'ETH',
     aliases: ['ethereum', 'eth', '以太坊', '以太'],
     category: 'layer1',
-    path: '/market-overview?chain=ethereum',
+    path: '/cross-chain?chain=ethereum',
   },
   {
     id: 'chain-solana',
@@ -374,7 +374,7 @@ export const searchableItems: SearchableItem[] = [
     symbol: 'SOL',
     aliases: ['solana', 'sol', '索拉纳'],
     category: 'layer1',
-    path: '/market-overview?chain=solana',
+    path: '/cross-chain?chain=solana',
   },
   {
     id: 'chain-arbitrum',
@@ -383,7 +383,7 @@ export const searchableItems: SearchableItem[] = [
     symbol: 'ARB',
     aliases: ['arbitrum', 'arb', '阿比特'],
     category: 'layer2',
-    path: '/market-overview?chain=arbitrum',
+    path: '/cross-chain?chain=arbitrum',
   },
   {
     id: 'chain-optimism',
@@ -392,7 +392,7 @@ export const searchableItems: SearchableItem[] = [
     symbol: 'OP',
     aliases: ['optimism', 'op', '乐观'],
     category: 'layer2',
-    path: '/market-overview?chain=optimism',
+    path: '/cross-chain?chain=optimism',
   },
   {
     id: 'chain-polygon',
@@ -401,7 +401,7 @@ export const searchableItems: SearchableItem[] = [
     symbol: 'MATIC',
     aliases: ['polygon', 'matic', '多边形'],
     category: 'layer1',
-    path: '/market-overview?chain=polygon',
+    path: '/cross-chain?chain=polygon',
   },
   {
     id: 'chain-avalanche',
@@ -410,7 +410,7 @@ export const searchableItems: SearchableItem[] = [
     symbol: 'AVAX',
     aliases: ['avalanche', 'avax', '雪崩'],
     category: 'layer1',
-    path: '/market-overview?chain=avalanche',
+    path: '/cross-chain?chain=avalanche',
   },
   {
     id: 'chain-base',
@@ -419,7 +419,7 @@ export const searchableItems: SearchableItem[] = [
     symbol: 'BASE',
     aliases: ['base', 'base chain', 'coinbase chain'],
     category: 'layer2',
-    path: '/market-overview?chain=base',
+    path: '/cross-chain?chain=base',
   },
   {
     id: 'chain-bnb',
@@ -428,7 +428,7 @@ export const searchableItems: SearchableItem[] = [
     symbol: 'BNB',
     aliases: ['bnb', 'bnb chain', 'bsc', 'binance smart chain', '币安链'],
     category: 'layer1',
-    path: '/market-overview?chain=bnb-chain',
+    path: '/cross-chain?chain=bnb-chain',
   },
   {
     id: 'chain-fantom',
@@ -437,7 +437,7 @@ export const searchableItems: SearchableItem[] = [
     symbol: 'FTM',
     aliases: ['fantom', 'ftm', '幻影'],
     category: 'layer1',
-    path: '/market-overview?chain=fantom',
+    path: '/cross-chain?chain=fantom',
   },
   {
     id: 'chain-cosmos',
@@ -446,7 +446,7 @@ export const searchableItems: SearchableItem[] = [
     symbol: 'ATOM',
     aliases: ['cosmos', 'atom', '宇宙', '阿童木'],
     category: 'layer1',
-    path: '/market-overview?chain=cosmos',
+    path: '/cross-chain?chain=cosmos',
   },
   {
     id: 'chain-near',
@@ -455,7 +455,7 @@ export const searchableItems: SearchableItem[] = [
     symbol: 'NEAR',
     aliases: ['near', 'near protocol', 'near协议'],
     category: 'layer1',
-    path: '/market-overview?chain=near',
+    path: '/cross-chain?chain=near',
   },
   {
     id: 'chain-aptos',
@@ -464,7 +464,7 @@ export const searchableItems: SearchableItem[] = [
     symbol: 'APT',
     aliases: ['aptos', 'apt', '阿普托斯'],
     category: 'layer1',
-    path: '/market-overview?chain=aptos',
+    path: '/cross-chain?chain=aptos',
   },
   {
     id: 'chain-sui',
@@ -473,7 +473,7 @@ export const searchableItems: SearchableItem[] = [
     symbol: 'SUI',
     aliases: ['sui', '水'],
     category: 'layer1',
-    path: '/market-overview?chain=sui',
+    path: '/cross-chain?chain=sui',
   },
 ];
 

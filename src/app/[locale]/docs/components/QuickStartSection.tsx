@@ -95,7 +95,7 @@ export default function QuickStartSection() {
           <ArrowRight className="w-4 h-4" />
         </Link>
         <Link
-          href="/market-overview"
+          href="/cross-oracle"
           className="inline-flex items-center gap-2 px-6 py-3 bg-white text-gray-700 font-medium border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
         >
           {t('docs.quickstart.cta.secondary')}

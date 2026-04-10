@@ -2,7 +2,6 @@
   "navbar": {
     "home": "Home",
     "documentation": "Documentation",
-    "marketOverview": "Market Overview",
     "priceQuery": "Price Query",
     "crossOracle": "Cross-Oracle Analysis",
     "crossChain": "Cross-Chain Comparison",
@@ -15,7 +14,6 @@
     "oracleDetails": "Oracle Details",
     "menu": "Menu",
     "openMenu": "Open menu",
-    "marketOverviewDesc": "Real-time market intelligence with comprehensive oracle TVL, market share, and protocol adoption metrics",
     "priceQueryDesc": "Instant price lookup across all major oracle networks with historical trend analysis",
     "crossOracleDesc": "Real-Time Multi-Oracle Price Comparison & Deviation Analytics",
     "crossChainDesc": "Cross-chain oracle performance benchmarking and reliability analytics",

@@ -65,8 +65,6 @@
     "pages": {
       "home": "首页",
       "homeDesc": "Insight 仪表板主页",
-      "marketOverview": "市场概览",
-      "marketOverviewDesc": "实时市场情报和指标",
       "priceQuery": "价格查询",
       "priceQueryDesc": "跨预言机网络价格查询",
       "crossOracle": "多预言机对比",
@@ -81,14 +79,10 @@
       "settingsDesc": "用户偏好设置"
     },
     "features": {
-      "realtimePrice": "实时价格",
-      "realtimePriceDesc": "实时价格数据流",
       "priceComparison": "价格对比",
       "priceComparisonDesc": "跨预言机价格比较",
       "priceAlerts": "价格提醒",
       "priceAlertsDesc": "自定义价格提醒通知",
-      "dataExport": "数据导出",
-      "dataExportDesc": "导出市场数据",
       "charts": "图表",
       "chartsDesc": "交互式价格图表"
     },

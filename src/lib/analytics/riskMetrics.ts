@@ -4,8 +4,8 @@
  * 提供市场集中度风险、多元化评分、波动率指数和相关性风险评估的计算功能
  */
 
-import { type OracleMarketData } from '@/app/[locale]/market-overview/types';
 import { semanticColors, chartColors } from '@/lib/config/colors';
+import { type OracleMarketData } from '@/lib/services/marketData/types';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('riskMetrics');

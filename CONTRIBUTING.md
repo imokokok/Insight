@@ -93,7 +93,6 @@ insight/
 │   │   │   ├── favorites/      # User favorites page
 │   │   │   ├── home/           # Homepage
 │   │   │   ├── login/          # Login page
-│   │   │   ├── market-overview/# Market overview page
 │   │   │   ├── price-query/    # Price query page
 │   │   │   ├── pyth/           # Pyth oracle page
 │   │   │   ├── redstone/       # RedStone oracle page

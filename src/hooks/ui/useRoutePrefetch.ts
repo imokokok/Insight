@@ -247,25 +247,6 @@ const routePrefetchMap: Record<string, RoutePrefetchConfig> = {
       },
     ],
   },
-  '/market-overview': {
-    route: '/market-overview',
-    priority: 'high',
-    prefetchQueries: [
-      {
-        queryKey: ['market', 'overview'],
-        queryFn: async () => {
-          try {
-            const response = await apiClient.get('/api/oracles');
-            return response.data;
-          } catch {
-            throw new PriceFetchError('Failed to fetch market overview', { retryable: true });
-          }
-        },
-        staleTime: STALE_TIME_CONFIG.network,
-        gcTime: GC_TIME_CONFIG.network,
-      },
-    ],
-  },
 };
 
 export function useRoutePrefetch(options: UseRoutePrefetchOptions = {}) {

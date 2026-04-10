@@ -8,11 +8,7 @@ import { useCallback, useRef } from 'react';
 
 import { useToastMethods } from '@/components/ui/Toast';
 import { oracleApiClient } from '@/lib/api/oracleApiClient';
-import {
-  type OracleProvider,
-  type Blockchain,
-  type PriceData,
-} from '@/lib/oracles';
+import { type OracleProvider, type Blockchain, type PriceData } from '@/lib/oracles';
 import { createLogger } from '@/lib/utils/logger';
 
 import { useAnomalyDetection, type UseAnomalyDetectionReturn } from './useAnomalyDetection';

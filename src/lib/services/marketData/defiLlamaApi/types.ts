@@ -9,7 +9,7 @@ import {
   type CorrelationData,
   type CorrelationPair,
   type RadarDataPoint,
-} from '@/app/[locale]/market-overview/types';
+} from '@/lib/services/marketData/types';
 
 export class MarketDataError extends Error {
   constructor(

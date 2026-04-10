@@ -42,7 +42,6 @@ export function generateFileName(
 ): string {
   const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
   const sourceMap: Record<ExportDataSource, string> = {
-    'market-overview': 'market-overview',
     'price-query': 'price-query',
     'cross-oracle': 'cross-oracle',
     'oracle-detail': 'oracle-detail',

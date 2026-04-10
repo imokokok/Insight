@@ -1,4 +1,9 @@
 import {
+  type ExportConfig,
+  type ExportDataType,
+  generateExportFileName,
+} from '@/lib/export/exportConfig';
+import {
   type OracleMarketData,
   type TVSTrendData,
   type AssetData,
@@ -10,12 +15,7 @@ import {
   type CorrelationData,
   type RiskMetrics,
   type AnomalyData,
-} from '@/app/[locale]/market-overview/types';
-import {
-  type ExportConfig,
-  type ExportDataType,
-  generateExportFileName,
-} from '@/lib/export/exportConfig';
+} from '@/lib/services/marketData/types';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('marketData:priceCalculations');

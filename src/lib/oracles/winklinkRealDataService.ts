@@ -446,7 +446,10 @@ export class WINkLinkRealDataService {
 
       return { price, timestamp: updatedAt };
     } catch (error) {
-      logger.error('Failed to parse round data', error instanceof Error ? error : new Error(String(error)));
+      logger.error(
+        'Failed to parse round data',
+        error instanceof Error ? error : new Error(String(error))
+      );
       return null;
     }
   }

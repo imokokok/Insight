@@ -365,9 +365,6 @@ src/app/
 │   ├── cross-oracle/               # 预言机对比
 │   │   └── page.tsx                # /[locale]/cross-oracle
 │   │
-│   ├── market-overview/            # 市场概览
-│   │   └── page.tsx                # /[locale]/market-overview
-│   │
 │   ├── price-query/                # 价格查询
 │   │   └── page.tsx                # /[locale]/price-query
 │   │
