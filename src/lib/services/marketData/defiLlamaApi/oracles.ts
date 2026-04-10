@@ -16,7 +16,6 @@ function formatOracleName(name: string): string {
     pyth: 'Pyth Network',
     'pyth network': 'Pyth Network',
     api3: 'API3',
-    uma: 'UMA',
     redstone: 'RedStone',
     switchboard: 'Switchboard',
     dia: 'DIA',
@@ -32,7 +31,6 @@ function getOracleColor(name: string): string {
     Chainlink: ORACLE_COLORS.chainlink,
     'Pyth Network': ORACLE_COLORS.pyth,
     API3: ORACLE_COLORS.api3,
-    UMA: ORACLE_COLORS.uma,
     RedStone: chartColors.oracle.redstone,
     Switchboard: chartColors.oracle.switchboard,
     DIA: chartColors.oracle.dia,
@@ -60,7 +58,6 @@ function estimateLatency(oracleName: string): number {
     Chainlink: 450,
     'Pyth Network': 120,
     API3: 900,
-    UMA: 1200,
     RedStone: 200,
     Switchboard: 300,
     DIA: 800,
@@ -75,7 +72,6 @@ function estimateAccuracy(oracleName: string): number {
     Chainlink: 99.8,
     'Pyth Network': 99.5,
     API3: 98.9,
-    UMA: 98.5,
     RedStone: 99.3,
     Switchboard: 99.1,
     DIA: 98.8,
@@ -90,7 +86,6 @@ function estimateUpdateFrequency(oracleName: string): number {
     Chainlink: 3600,
     'Pyth Network': 400,
     API3: 3600,
-    UMA: 7200,
     RedStone: 60,
     Switchboard: 300,
     DIA: 120,
@@ -149,7 +144,6 @@ function identifyOracleName(protocolName: string): string | null {
   if (name.includes('chainlink')) return 'Chainlink';
   if (name.includes('pyth')) return 'Pyth Network';
   if (name.includes('api3')) return 'API3';
-  if (name.includes('uma')) return 'UMA';
   if (name.includes('redstone')) return 'RedStone';
   if (name.includes('switchboard')) return 'Switchboard';
   if (name.includes('dia')) return 'DIA';
@@ -219,8 +213,8 @@ export async function fetchOraclesData(): Promise<OracleMarketData[]> {
       const oracleProtocols = protocols.filter(
         (p) =>
           p.category?.toLowerCase().includes('oracle') ||
-          ['chainlink', 'pyth', 'api3', 'uma', 'redstone', 'switchboard', 'dia', 'winklink'].some(
-            (name) => p.name.toLowerCase().includes(name.toLowerCase())
+          ['chainlink', 'pyth', 'api3', 'redstone', 'switchboard', 'dia', 'winklink'].some((name) =>
+            p.name.toLowerCase().includes(name.toLowerCase())
           )
       );
 

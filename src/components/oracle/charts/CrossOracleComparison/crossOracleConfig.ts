@@ -104,7 +104,6 @@ export interface PriceDeviationDetail {
 
 export const oracleNames: Record<OracleProvider, string> = {
   [OracleProvider.CHAINLINK]: 'Chainlink',
-  [OracleProvider.UMA]: 'UMA',
   [OracleProvider.PYTH]: 'Pyth',
   [OracleProvider.API3]: 'API3',
   [OracleProvider.REDSTONE]: 'RedStone',
@@ -114,7 +113,6 @@ export const oracleNames: Record<OracleProvider, string> = {
 
 export const oracleColors: Record<OracleProvider, string> = {
   [OracleProvider.CHAINLINK]: chartColors.oracle.chainlink,
-  [OracleProvider.UMA]: chartColors.oracle.uma,
   [OracleProvider.PYTH]: chartColors.oracle['pyth'],
   [OracleProvider.API3]: chartColors.oracle.api3,
   [OracleProvider.REDSTONE]: chartColors.oracle.redstone,

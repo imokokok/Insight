@@ -21,30 +21,6 @@ export {
   type ChainlinkContracts,
   type ChainlinkRPCConfig,
 } from './chainlinkDataSources';
-export { UMAClient } from '@/lib/services/oracle/clients/uma';
-export {
-  UMAOnChainService,
-  umaOnChainService,
-  type UMATokenData,
-  type UMAAssertionData,
-  type UMANetworkStats as UMAOnChainNetworkStats,
-} from './umaOnChainService';
-export {
-  UMA_CONTRACTS,
-  UMA_PRICE_FEEDS,
-  UMA_RPC_CONFIG,
-  OPTIMISTIC_ORACLE_V3_ABI,
-  UMA_TOKEN_ABI,
-  getUMAContract,
-  getOptimisticOracleV3Address,
-  getVotingTokenAddress,
-  getUMARPCConfig,
-  getSupportedUMAChainIds,
-  isUMASupportedOnChain,
-  type UMAContract,
-  type UMAPriceFeed,
-  type UMARPCConfig,
-} from './umaDataSources';
 export { PythClient } from '@/lib/services/oracle/clients/pyth';
 export { API3Client } from '@/lib/services/oracle/clients/api3';
 export { RedStoneClient } from '@/lib/services/oracle/clients/redstone';

@@ -142,14 +142,11 @@ The WebSocket protocol supports the following message types:
 
 The following channels are available for subscription:
 
-| Channel          | Description                               | Update Frequency |
-| ---------------- | ----------------------------------------- | ---------------- |
-| `prices`         | Real-time price updates for oracle assets | ~2s (mock)       |
-| `tvs`            | Total Value Secured updates by oracle     | ~2s (mock)       |
-| `marketStats`    | Market statistics updates                 | ~2s (mock)       |
-| `uma:prices`     | UMA-specific price updates                | ~2s (mock)       |
-| `uma:disputes`   | UMA dispute status updates                | ~2s (mock)       |
-| `uma:validators` | UMA validator activity updates            | ~2s (mock)       |
+| Channel       | Description                               | Update Frequency |
+| ------------- | ----------------------------------------- | ---------------- |
+| `prices`      | Real-time price updates for oracle assets | ~2s (mock)       |
+| `tvs`         | Total Value Secured updates by oracle     | ~2s (mock)       |
+| `marketStats` | Market statistics updates                 | ~2s (mock)       |
 
 ---
 
@@ -212,7 +209,7 @@ interface PriceData {
 
 ```typescript
 interface TVSData {
-  oracle: string; // Oracle name (e.g., 'Chainlink', 'Pyth Network', 'Band Protocol', 'API3', 'UMA')
+  oracle: string; // Oracle name (e.g., 'Chainlink', 'Pyth Network', 'API3', 'RedStone', 'DIA', 'WINkLink')
   tvs: number; // Total Value Secured in billions USD
   change24h: number; // 24-hour TVS change percentage
   timestamp: number; // Unix timestamp in milliseconds
@@ -253,86 +250,6 @@ interface MarketStats {
   "marketDominance": 48.5,
   "avgUpdateLatency": 250,
   "timestamp": 1699999999999
-}
-```
-
-### UMA Price Data (`uma:prices` channel)
-
-```typescript
-interface UMAPriceData {
-  symbol: string; // Asset symbol (e.g., 'BTC', 'ETH', 'UMA', 'USDC', 'DAI')
-  price: number; // Current price in USD
-  change24h: number; // 24-hour price change percentage
-  timestamp: number; // Unix timestamp in milliseconds
-  confidence: number; // Confidence level (0-1)
-  source: string; // Data source identifier
-}
-```
-
-**Example:**
-
-```json
-{
-  "symbol": "UMA",
-  "price": 5.25,
-  "change24h": -1.5,
-  "timestamp": 1699999999999,
-  "confidence": 0.98,
-  "source": "UMA Optimistic Oracle"
-}
-```
-
-### UMA Dispute Data (`uma:disputes` channel)
-
-```typescript
-interface UMADisputeData {
-  id: string; // Dispute identifier
-  timestamp: number; // Unix timestamp in milliseconds
-  status: 'active' | 'resolved' | 'rejected';
-  type: 'price' | 'state' | 'liquidation' | 'other';
-  reward: number; // Reward amount in tokens
-  resolutionTime?: number; // Resolution time in hours (if resolved)
-  transactionHash: string; // Transaction hash (0x-prefixed)
-}
-```
-
-**Example:**
-
-```json
-{
-  "id": "dispute-123",
-  "timestamp": 1699999999999,
-  "status": "resolved",
-  "type": "price",
-  "reward": 3500,
-  "resolutionTime": 24,
-  "transactionHash": "0x1234567890abcdef..."
-}
-```
-
-### UMA Validator Data (`uma:validators` channel)
-
-```typescript
-interface UMAValidatorData {
-  validatorId: string; // Validator identifier
-  timestamp: number; // Unix timestamp in milliseconds
-  responseTime: number; // Response time in milliseconds
-  successRate: number; // Success rate percentage (0-100)
-  staked: number; // Staked amount in tokens
-  earnings: number; // Total earnings in tokens
-}
-```
-
-**Example:**
-
-```json
-{
-  "validatorId": "validator-5",
-  "timestamp": 1699999999999,
-  "responseTime": 150,
-  "successRate": 98.5,
-  "staked": 350000,
-  "earnings": 5500
 }
 ```
 
@@ -549,7 +466,7 @@ function MultiChannelDashboard() {
 function DevelopmentMode() {
   const { status, lastMessage } = useWebSocket({
     useMock: true,
-    channels: ['prices', 'uma:disputes'],
+    channels: ['prices', 'tvs'],
   });
 
   return (

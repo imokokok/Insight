@@ -34,7 +34,6 @@ interface AssetsTableProps {
 // 预言机品牌色映射
 const oracleBrandColors: Record<string, string> = {
   chainlink: chartColors.oracle.chainlink,
-  uma: chartColors.oracle.uma,
   pyth: chartColors.oracle.pyth,
   api3: chartColors.oracle.api3,
   redstone: chartColors.oracle.redstone,

@@ -108,7 +108,7 @@ export function SettingsTab({
         </h3>
         <div className="flex flex-wrap gap-2 mb-3">
           {getOracleProvidersSortedByMarketCap()
-            .filter((provider) => ![OracleProvider.UMA, OracleProvider.WINKLINK].includes(provider))
+            .filter((provider) => provider !== OracleProvider.WINKLINK)
             .map((provider) => (
               <button
                 key={provider}

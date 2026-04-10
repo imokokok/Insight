@@ -2,7 +2,7 @@
 
 ## 概述
 
-本项目创建了一个统一的 Oracle 页面模板系统，旨在解决 10 个 oracle 页面（chainlink, pyth, api3, band-protocol, uma, redstone, dia, tellor, chronicle, winklink）结构高度相似但各自独立维护的问题。
+本项目创建了一个统一的 Oracle 页面模板系统，旨在解决 6 个 oracle 页面（chainlink, pyth, api3, redstone, dia, winklink）结构高度相似但各自独立维护的问题。
 
 ## 核心组件
 

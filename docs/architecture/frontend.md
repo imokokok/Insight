@@ -344,9 +344,6 @@ src/app/
 │   ├── chainlink/                   # Chainlink 预言机
 │   │   └── page.tsx                 # /[locale]/chainlink
 │   │
-│   ├── band-protocol/              # Band Protocol
-│   │   └── page.tsx                # /[locale]/band-protocol
-│   │
 │   ├── pyth/                       # Pyth Network
 │   │   └── page.tsx                # /[locale]/pyth
 │   │
@@ -359,14 +356,8 @@ src/app/
 │   ├── dia/                        # DIA
 │   │   └── page.tsx                # /[locale]/dia
 │   │
-│   ├── tellor/                     # Tellor
-│   │   └── page.tsx                # /[locale]/tellor
-│   │
-│   ├── chronicle/                   # Chronicle
-│   │   └── page.tsx                # /[locale]/chronicle
-│   │
-│   ├── uma/                        # UMA
-│   │   └── page.tsx                # /[locale]/uma
+│   ├── winklink/                   # WINkLink
+│   │   └── page.tsx                # /[locale]/winklink
 │   │
 │   ├── cross-chain/                # 跨链对比
 │   │   └── page.tsx                # /[locale]/cross-chain

@@ -36,11 +36,6 @@ export const THEGRAPH_CONFIG = {
   apiKey: process.env.THEGRAPH_API_KEY || '',
 };
 
-// UMA 配置
-export const UMA_CONFIG = {
-  subgraphApiKey: process.env.UMA_SUBGRAPH_API_KEY || '',
-};
-
 // API3 配置
 export const API3_CONFIG = {
   marketApiUrl: process.env.API3_MARKET_API_URL || 'https://market.api3.org/api/v1',
@@ -52,14 +47,12 @@ export const API3_CONFIG = {
 export const FEATURE_FLAGS = {
   useRealWinklinkData: process.env.USE_REAL_WINKLINK_DATA === 'true',
   useRealChainlinkData: process.env.USE_REAL_CHAINLINK_DATA === 'true',
-  useRealUmaData: process.env.USE_REAL_UMA_DATA === 'true',
   useRealApi3Data: process.env.USE_REAL_API3_DATA === 'true',
 };
 
 // 缓存配置
 export const CACHE_CONFIG = {
   winklinkTtl: parseInt(process.env.WINKLINK_CACHE_TTL || '30000', 10),
-  umaTtl: parseInt(process.env.UMA_CACHE_TTL || '30000', 10),
   chainlinkPriceTtl: parseInt(process.env.CHAINLINK_PRICE_CACHE_TTL || '30000', 10),
   api3PriceTtl: parseInt(process.env.API3_PRICE_CACHE_TTL || '30000', 10),
 };
@@ -127,13 +120,6 @@ export function getTronConfig() {
  */
 export function getTheGraphApiKey(): string {
   return THEGRAPH_CONFIG.apiKey;
-}
-
-/**
- * 获取 UMA Subgraph API Key
- */
-export function getUmaSubgraphApiKey(): string {
-  return UMA_CONFIG.subgraphApiKey;
 }
 
 /**

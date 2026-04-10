@@ -27,10 +27,11 @@ export function formatValue(value: number, decimals: number = 2): string {
 export function getChartColor(index: number): string {
   const colors = [
     chartColors.oracle.chainlink,
-    chartColors.oracle.uma,
     chartColors.oracle.pyth,
     chartColors.oracle.api3,
     chartColors.oracle.redstone,
+    chartColors.oracle.dia,
+    chartColors.oracle.winklink,
   ];
   return colors[index % colors.length];
 }

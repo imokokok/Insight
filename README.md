@@ -1,6 +1,6 @@
 # Insight - Oracle Data Analytics Platform
 
-Insight is a professional oracle data analytics platform that provides comprehensive analysis and comparison of mainstream oracle protocols including Chainlink, Band Protocol, UMA, Pyth, API3, RedStone, DIA, Tellor, Chronicle, and WINkLink.
+Insight is a professional oracle data analytics platform that provides comprehensive analysis and comparison of mainstream oracle protocols including Chainlink, Pyth, API3, RedStone, DIA, and WINkLink.
 
 ## Key Features
 
@@ -133,9 +133,7 @@ insight/
 │   │   ├── [locale]/           # Localized pages (next-intl)
 │   │   │   ├── alerts/         # Alerts management page
 │   │   │   ├── api3/           # API3 oracle page
-│   │   │   ├── band-protocol/  # Band Protocol oracle page
 │   │   │   ├── chainlink/      # Chainlink oracle page
-│   │   │   ├── chronicle/      # Chronicle oracle page
 │   │   │   ├── cross-chain/    # Cross-chain analysis page
 │   │   │   ├── cross-oracle/   # Cross-oracle comparison page
 │   │   │   ├── dia/            # DIA oracle page
@@ -150,8 +148,6 @@ insight/
 │   │   │   ├── register/       # Registration page
 │   │   │   ├── settings/       # User settings page
 │   │   │   ├── snapshot/       # Shared snapshots page
-│   │   │   ├── tellor/         # Tellor oracle page
-│   │   │   ├── uma/            # UMA oracle page
 │   │   │   └── winklink/       # WINkLink oracle page
 │   │   ├── api/                # API endpoints
 │   │   │   ├── alerts/         # Price alerts API
@@ -255,16 +251,6 @@ insight/
 - **Supported Chains**: Ethereum, Arbitrum, Optimism, Polygon, Avalanche, Base, BNB Chain, Fantom, Starknet, Blast, Moonbeam, Kava, Polkadot
 - **Features**: Node analytics, extensive data feeds, high reliability
 
-### Band Protocol
-
-- **Supported Chains**: Cosmos, Osmosis, Juno, Ethereum, Polygon, Avalanche, Fantom, Cronos, Injective, Sei, Kava
-- **Features**: Validator analytics, cross-chain data feeds
-
-### UMA
-
-- **Supported Chains**: Ethereum, Arbitrum, Optimism, Polygon, Base, BNB Chain, Avalanche, Fantom, Gnosis
-- **Features**: Optimistic oracle, dispute resolution, validator analytics
-
 ### Pyth
 
 - **Supported Chains**: Solana, Ethereum, Arbitrum, Polygon, Optimism, Avalanche, Base, Starknet, Blast, Sui, Aptos, Injective, Sei
@@ -284,16 +270,6 @@ insight/
 
 - **Supported Chains**: Ethereum, Arbitrum, Polygon, Avalanche, BNB Chain, Base, Fantom, Cronos, Moonbeam, Gnosis, Kava
 - **Features**: Open-source cross-chain oracle, NFT data feeds, transparent methodology
-
-### Tellor
-
-- **Supported Chains**: Ethereum, Arbitrum, Optimism, Polygon, Base, Avalanche, BNB Chain, Fantom, Moonbeam, Gnosis
-- **Features**: Stake-based reporting, dispute mechanism, mining rewards
-
-### Chronicle
-
-- **Supported Chains**: Ethereum, Arbitrum, Optimism, Polygon, Base, BNB Chain, Avalanche, Fantom, Gnosis
-- **Features**: MakerDAO native oracle, Scuttlebutt protocol, on-chain verification
 
 ### WINkLink
 
@@ -423,12 +399,8 @@ This project is private and proprietary.
 ## Acknowledgments
 
 - [Chainlink](https://chain.link/) - Decentralized oracle network
-- [Band Protocol](https://bandprotocol.com/) - Cross-chain data oracle
-- [UMA](https://umaproject.org/) - Optimistic oracle
 - [Pyth Network](https://pyth.network/) - High-frequency oracle
 - [API3](https://api3.org/) - First-party oracle solution
 - [RedStone](https://redstone.finance/) - Modular oracle
 - [DIA](https://www.diadata.org/) - Open-source oracle
-- [Tellor](https://tellor.io/) - Decentralized oracle
-- [Chronicle](https://chroniclelabs.org/) - MakerDAO oracle
 - [WINkLink](https://winklink.org/) - TRON ecosystem oracle

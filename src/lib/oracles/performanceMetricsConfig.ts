@@ -85,15 +85,6 @@ const DEFAULT_PROVIDER_CONFIG: PerformanceMetricsConfig = {
       decentralizationScore: 75,
       supportedChains: 12,
     },
-    uma: {
-      responseTime: 1200,
-      updateFrequency: 7200,
-      accuracy: 98.5,
-      reliability: 99.2,
-      dataSources: 30,
-      decentralizationScore: 88,
-      supportedChains: 5,
-    },
     winklink: {
       responseTime: 600,
       updateFrequency: 1800,

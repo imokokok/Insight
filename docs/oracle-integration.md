@@ -6,30 +6,26 @@ The Insight Oracle Data Analytics Platform integrates with multiple leading bloc
 
 ### Supported Providers
 
-| Provider      | Symbol    | Default Chain | Description                               |
-| ------------- | --------- | ------------- | ----------------------------------------- |
-| Chainlink     | LINK      | Ethereum      | Decentralized oracle network              |
-| Band Protocol | BAND      | Cosmos        | Cross-chain data oracle platform          |
-| UMA           | UMA       | Ethereum      | Optimistic oracle and dispute arbitration |
-| Pyth          | PYTH      | Solana        | Low-latency high-frequency price oracle   |
-| API3          | API3      | Ethereum      | First-party oracle infrastructure         |
-| RedStone      | REDSTONE  | Ethereum      | Modular oracle design                     |
-| DIA           | DIA       | Ethereum      | Open-source cross-chain oracle            |
-| Tellor        | TRB       | Ethereum      | Stake-based reporting oracle              |
-| Chronicle     | CHRONICLE | Ethereum      | MakerDAO native oracle                    |
-| WINkLink      | WINKLINK  | BNB Chain     | TRON ecosystem oracle                     |
+| Provider  | Symbol   | Default Chain | Description                             |
+| --------- | -------- | ------------- | --------------------------------------- |
+| Chainlink | LINK     | Ethereum      | Decentralized oracle network            |
+| Pyth      | PYTH     | Solana        | Low-latency high-frequency price oracle |
+| API3      | API3     | Ethereum      | First-party oracle infrastructure       |
+| RedStone  | REDSTONE | Ethereum      | Modular oracle design                   |
+| DIA       | DIA      | Ethereum      | Open-source cross-chain oracle          |
+| WINkLink  | WINKLINK | BNB Chain     | TRON ecosystem oracle                   |
 
 ### Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                    Oracle Client Layer                          │
-├─────────────┬─────────────┬─────────┬──────────┬───────────────┤
-│ Chainlink   │ Band        │ UMA     │ Pyth     │ API3          │
-│ Client      │ Protocol    │ Client  │ Client   │ Client        │
-└──────┬──────┴──────┬──────┴────┬────┴────┬─────┴───────┬───────┘
-       │             │           │         │             │
-       └─────────────┴───────────┴─────────┴─────────────┘
+├─────────────┬─────────┬─────────┬──────────┬──────────┬─────────┤
+│ Chainlink   │ Pyth    │ API3    │ RedStone │ DIA      │ WINkLink│
+│ Client      │ Client  │ Client  │ Client   │ Client   │ Client  │
+└──────┬──────┴────┬────┴────┬────┴─────┬────┴─────┬────┴────┬────┘
+       │           │         │          │          │         │
+       └───────────┴─────────┴──────────┴──────────┴─────────┘
                              │
                     ┌────────▼────────┐
                     │ BaseOracleClient│
@@ -146,204 +142,6 @@ const history = await client.getHistoricalPrices('LINK', Blockchain.ETHEREUM, 24
 | Circulating Supply | 608.1M  |
 | Total Supply       | 1B      |
 | Market Cap Rank    | #12     |
-
----
-
-## Band Protocol Integration
-
-**Provider:** `band-protocol`  
-**Symbol:** BAND  
-**Default Chain:** Cosmos
-
-### Supported Chains
-
-| Chain     | Chain ID    | Status |
-| --------- | ----------- | ------ |
-| Cosmos    | cosmoshub-4 | Active |
-| Osmosis   | osmosis-1   | Active |
-| Juno      | juno-1      | Active |
-| Ethereum  | 1           | Active |
-| Polygon   | 137         | Active |
-| Avalanche | 43114       | Active |
-| Fantom    | 250         | Active |
-| Cronos    | 25          | Active |
-| Injective | -           | Active |
-| Sei       | -           | Active |
-| Kava      | -           | Active |
-
-### Features
-
-- **Validator Analytics**: Comprehensive validator monitoring and performance tracking
-- **Cross-Chain Stats**: Multi-chain request statistics and latency metrics
-- **Technical Indicators**: Moving averages, standard deviations, and price bands
-
-### Implementation
-
-```typescript
-import { BandProtocolClient } from '@/lib/oracles';
-
-const client = new BandProtocolClient();
-
-const priceData = await client.getPrice('BAND', Blockchain.COSMOS);
-const marketData = await client.getBandMarketData();
-const validators = await client.getValidators(50);
-const networkStats = await client.getNetworkStats();
-const crossChainStats = await client.getCrossChainStats();
-```
-
-### Extended Types
-
-```typescript
-interface BandMarketData {
-  symbol: string;
-  price: number;
-  priceChange24h: number;
-  priceChangePercentage24h: number;
-  marketCap: number;
-  volume24h: number;
-  circulatingSupply: number;
-  totalSupply: number;
-  maxSupply: number;
-  stakingRatio: number;
-  stakingApr: number;
-  timestamp: number;
-}
-
-interface ValidatorInfo {
-  operatorAddress: string;
-  moniker: string;
-  tokens: number;
-  commissionRate: number;
-  uptime: number;
-  jailed: boolean;
-  rank: number;
-}
-
-interface BandNetworkStats {
-  activeValidators: number;
-  totalValidators: number;
-  bondedTokens: number;
-  totalSupply: number;
-  stakingRatio: number;
-  blockTime: number;
-  latestBlockHeight: number;
-  inflationRate: number;
-  communityPool: number;
-}
-```
-
-### Network Metrics
-
-| Metric            | Value    |
-| ----------------- | -------- |
-| Active Validators | 65-75    |
-| Total Validators  | 72-87    |
-| Bonded Tokens     | 85M BAND |
-| Staking Ratio     | ~51.5%   |
-| Block Time        | 2.8s     |
-| Inflation Rate    | 7-10%    |
-
----
-
-## UMA Integration
-
-**Provider:** `uma`  
-**Symbol:** UMA  
-**Default Chain:** Ethereum
-
-### Supported Chains
-
-| Chain     | Chain ID | Status |
-| --------- | -------- | ------ |
-| Ethereum  | 1        | Active |
-| Arbitrum  | 42161    | Active |
-| Optimism  | 10       | Active |
-| Polygon   | 137      | Active |
-| Base      | 8453     | Active |
-| BNB Chain | 56       | Active |
-| Avalanche | 43114    | Active |
-| Fantom    | 250      | Active |
-| Gnosis    | -        | Active |
-
-### Features
-
-- **Optimistic Oracle**: Trust-minimized data verification
-- **Dispute Resolution**: Comprehensive dispute tracking and voting analytics
-- **Validator Analytics**: Performance monitoring with earnings attribution
-- **Staking Rewards**: APR calculation based on validator type and dispute frequency
-
-### Implementation
-
-```typescript
-import { UMAClient } from '@/lib/oracles';
-
-const client = new UMAClient();
-
-const priceData = await client.getPrice('UMA', Blockchain.ETHEREUM);
-const validators = await client.getValidators();
-const disputes = await client.getDisputes();
-const networkStats = await client.getNetworkStats();
-const qualityScore = await client.getDataQualityScore();
-const stakingRewards = await client.calculateStakingRewards(10000, 'institution', 'medium');
-```
-
-### Dispute Types
-
-| Type        | Description                 | Color Code        |
-| ----------- | --------------------------- | ----------------- |
-| Price       | Price verification disputes | Blue (#3b82f6)    |
-| State       | State assertion disputes    | Emerald (#10b981) |
-| Liquidation | Liquidation verification    | Amber (#f59e0b)   |
-| Other       | General disputes            | Slate (#64748b)   |
-
-### Extended Types
-
-```typescript
-interface DisputeData {
-  id: string;
-  timestamp: number;
-  status: 'active' | 'resolved' | 'rejected';
-  type: DisputeType;
-  stakeAmount: number;
-  rewardAmount: number;
-  totalValue: number;
-  resolutionTime?: number;
-  transactionHash: string;
-}
-
-interface ValidatorData {
-  id: string;
-  name: string;
-  type: 'institution' | 'independent' | 'community';
-  region: string;
-  responseTime: number;
-  successRate: number;
-  reputation: number;
-  staked: number;
-  earnings: number;
-  address: string;
-}
-
-interface DataQualityScore {
-  overallScore: number;
-  networkHealth: { score: number; trend: 'up' | 'down' | 'stable' };
-  dataIntegrity: { score: number; trend: 'up' | 'down' | 'stable' };
-  responseTime: { score: number; trend: 'up' | 'down' | 'stable' };
-  validatorActivity: { score: number; trend: 'up' | 'down' | 'stable' };
-}
-```
-
-### Network Metrics
-
-| Metric               | Value   |
-| -------------------- | ------- |
-| Active Validators    | 850     |
-| Validator Uptime     | 99.5%   |
-| Total Staked         | 25M UMA |
-| Total Disputes       | 1,250   |
-| Dispute Success Rate | 78%     |
-| Avg Resolution Time  | 4.2h    |
-| Active Disputes      | 23      |
 
 ---
 
@@ -901,146 +699,6 @@ interface DIAMethodology {
 
 ---
 
-## Tellor Integration
-
-**Provider:** `tellor`  
-**Symbol:** TRB  
-**Default Chain:** Ethereum
-
-### Supported Chains
-
-| Chain     | Chain ID | Status |
-| --------- | -------- | ------ |
-| Ethereum  | 1        | Active |
-| Arbitrum  | 42161    | Active |
-| Optimism  | 10       | Active |
-| Polygon   | 137      | Active |
-| Base      | 8453     | Active |
-| Avalanche | 43114    | Active |
-| BNB Chain | 56       | Active |
-| Fantom    | 250      | Active |
-| Moonbeam  | -        | Active |
-| Gnosis    | -        | Active |
-
-### Features
-
-- **Stake-Based Reporting** - Reporters stake TRB to submit data
-- **Dispute Mechanism** - Community-driven dispute resolution
-- **Mining Rewards** - Incentivized data reporting
-- **Decentralized Governance** - Community-controlled upgrades
-
-### Implementation
-
-```typescript
-import { TellorClient } from '@/lib/oracles';
-
-const client = new TellorClient();
-
-const priceData = await client.getPrice('ETH', Blockchain.ETHEREUM);
-const stakeInfo = await client.getStakeInfo();
-const disputes = await client.getActiveDisputes();
-```
-
-### Extended Types
-
-```typescript
-interface StakeInfo {
-  totalStaked: number;
-  minimumStake: number;
-  reporterCount: number;
-  rewardRate: number;
-}
-
-interface DisputeInfo {
-  id: string;
-  disputedValue: number;
-  proposedValue: number;
-  status: 'active' | 'resolved';
-  stakeAmount: number;
-}
-```
-
-### Network Metrics
-
-| Metric           | Value   |
-| ---------------- | ------- |
-| Total Staked TRB | 2.5M    |
-| Active Reporters | 180     |
-| Dispute Success  | 92%     |
-| Avg Reward       | 2.5 TRB |
-| Block Reward     | 2.5 TRB |
-
----
-
-## Chronicle Integration
-
-**Provider:** `chronicle`  
-**Symbol:** CHRONICLE  
-**Default Chain:** Ethereum
-
-### Supported Chains
-
-| Chain     | Chain ID | Status |
-| --------- | -------- | ------ |
-| Ethereum  | 1        | Active |
-| Arbitrum  | 42161    | Active |
-| Optimism  | 10       | Active |
-| Polygon   | 137      | Active |
-| Base      | 8453     | Active |
-| BNB Chain | 56       | Active |
-| Avalanche | 43114    | Active |
-| Fantom    | 250      | Active |
-| Gnosis    | -        | Active |
-
-### Features
-
-- **MakerDAO Native** - Official oracle for MakerDAO ecosystem
-- **Scuttlebutt Protocol** - Peer-to-peer gossip protocol
-- **On-Chain Verification** - Cryptographic proof of data validity
-- **DAI Integration** - Native support for DAI stablecoin
-
-### Implementation
-
-```typescript
-import { ChronicleClient } from '@/lib/oracles';
-
-const client = new ChronicleClient();
-
-const priceData = await client.getPrice('ETH', Blockchain.ETHEREUM);
-const scuttlebuttInfo = await client.getScuttlebuttStats();
-const makerDAOStats = await client.getMakerDAOIntegration();
-```
-
-### Extended Types
-
-```typescript
-interface ScuttlebuttStats {
-  activeNodes: number;
-  gossipMessages: number;
-  networkLatency: number;
-  syncRate: number;
-}
-
-interface MakerDAOIntegration {
-  vaultsSecured: number;
-  totalDAIIssued: number;
-  collateralTypes: string[];
-  stabilityFee: number;
-}
-```
-
-### Network Metrics
-
-| Metric            | Value   |
-| ----------------- | ------- |
-| MakerDAO Vaults   | 15,000+ |
-| Total DAI Secured | $5.2B   |
-| Scuttlebutt Nodes | 45      |
-| Avg Sync Time     | 200ms   |
-| Uptime            | 99.99%  |
-
----
-
 ## WINkLink Integration
 
 **Provider:** `winklink`  
@@ -1107,25 +765,23 @@ interface TRONEcosystemStats {
 
 ## Oracle Comparison Table
 
-| Feature                  | Chainlink | Band Protocol | UMA   | Pyth  | API3  | RedStone | DIA    | Tellor | Chronicle | WINkLink |
-| ------------------------ | --------- | ------------- | ----- | ----- | ----- | -------- | ------ | ------ | --------- | -------- |
-| **Update Frequency**     | 60s       | 30s           | 120s  | 1s    | 10s   | 5s       | 60s    | 300s   | 60s       | 30s      |
-| **Avg Response Time**    | 245ms     | 150ms         | 300ms | 100ms | 180ms | 120ms    | 200ms  | 400ms  | 200ms     | 250ms    |
-| **Node Uptime**          | 99.9%     | 99.85%        | 99.7% | 99.9% | 99.7% | 99.8%    | 99.5%  | 99.6%  | 99.99%    | 99.7%    |
-| **Supported Chains**     | 13        | 11            | 9     | 12    | 13    | 16       | 11     | 10     | 9         | 3        |
-| **Data Feeds**           | 1,243     | 180           | 50    | 500   | 168   | 285      | 2,000+ | 100    | 45        | 80       |
-| **Node Analytics**       | ✅        | ❌            | ❌    | ❌    | ❌    | ❌       | ❌     | ❌     | ❌        | ❌       |
-| **Validator Analytics**  | ❌        | ✅            | ✅    | ❌    | ❌    | ❌       | ❌     | ❌     | ❌        | ❌       |
-| **Publisher Analytics**  | ❌        | ❌            | ❌    | ✅    | ❌    | ❌       | ❌     | ❌     | ❌        | ❌       |
-| **Dispute Resolution**   | ❌        | ❌            | ✅    | ❌    | ❌    | ❌       | ❌     | ✅     | ❌        | ❌       |
-| **First-Party Oracle**   | ❌        | ❌            | ❌    | ❌    | ✅    | ❌       | ❌     | ❌     | ❌        | ❌       |
-| **Confidence Intervals** | ❌        | ❌            | ❌    | ✅    | ❌    | ❌       | ❌     | ❌     | ❌        | ❌       |
-| **Cross-Chain Stats**    | ❌        | ✅            | ❌    | ❌    | ❌    | ✅       | ✅     | ❌     | ❌        | ❌       |
-| **Coverage Pools**       | ❌        | ❌            | ❌    | ❌    | ✅    | ❌       | ❌     | ❌     | ❌        | ❌       |
-| **Modular Design**       | ❌        | ❌            | ❌    | ❌    | ❌    | ✅       | ❌     | ❌     | ❌        | ❌       |
-| **NFT Data**             | ❌        | ❌            | ❌    | ❌    | ❌    | ❌       | ✅     | ❌     | ❌        | ❌       |
-| **Gaming Data**          | ❌        | ❌            | ❌    | ❌    | ❌    | ❌       | ❌     | ❌     | ❌        | ✅       |
-| **Open Source**          | ❌        | ❌            | ❌    | ❌    | ❌    | ❌       | ✅     | ✅     | ❌        | ❌       |
+| Feature                  | Chainlink | Pyth  | API3  | RedStone | DIA    | WINkLink |
+| ------------------------ | --------- | ----- | ----- | -------- | ------ | -------- |
+| **Update Frequency**     | 60s       | 1s    | 10s   | 5s       | 60s    | 30s      |
+| **Avg Response Time**    | 245ms     | 100ms | 180ms | 120ms    | 200ms  | 250ms    |
+| **Node Uptime**          | 99.9%     | 99.9% | 99.7% | 99.8%    | 99.5%  | 99.7%    |
+| **Supported Chains**     | 13        | 12    | 13    | 16       | 11     | 3        |
+| **Data Feeds**           | 1,243     | 500   | 168   | 285      | 2,000+ | 80       |
+| **Node Analytics**       | ✅        | ❌    | ❌    | ❌       | ❌     | ❌       |
+| **Publisher Analytics**  | ❌        | ✅    | ❌    | ❌       | ❌     | ❌       |
+| **First-Party Oracle**   | ❌        | ❌    | ✅    | ❌       | ❌     | ❌       |
+| **Confidence Intervals** | ❌        | ✅    | ❌    | ❌       | ❌     | ❌       |
+| **Cross-Chain Stats**    | ❌        | ❌    | ❌    | ✅       | ✅     | ❌       |
+| **Coverage Pools**       | ❌        | ❌    | ✅    | ❌       | ❌     | ❌       |
+| **Modular Design**       | ❌        | ❌    | ❌    | ✅       | ❌     | ❌       |
+| **NFT Data**             | ❌        | ❌    | ❌    | ❌       | ✅     | ❌       |
+| **Gaming Data**          | ❌        | ❌    | ❌    | ❌       | ❌     | ✅       |
+| **Open Source**          | ❌        | ❌    | ❌    | ❌       | ✅     | ❌       |
 
 ---
 
@@ -1143,21 +799,17 @@ interface OracleError {
 
 ### Error Codes
 
-| Code                  | Description                      |
-| --------------------- | -------------------------------- |
-| `CHAINLINK_ERROR`     | Chainlink price fetch failed     |
-| `BAND_PROTOCOL_ERROR` | Band Protocol price fetch failed |
-| `UMA_ERROR`           | UMA price fetch failed           |
-| `PYTH_ERROR`          | Pyth price fetch failed          |
-| `API3_ERROR`          | API3 price fetch failed          |
-| `REDSTONE_ERROR`      | RedStone price fetch failed      |
-| `DIA_ERROR`           | DIA price fetch failed           |
-| `TELLOR_ERROR`        | Tellor price fetch failed        |
-| `CHRONICLE_ERROR`     | Chronicle price fetch failed     |
-| `WINKLINK_ERROR`      | WINkLink price fetch failed      |
-| `*_HISTORICAL_ERROR`  | Historical data fetch failed     |
-| `NETWORK_STATS_ERROR` | Network statistics fetch failed  |
-| `VALIDATORS_ERROR`    | Validator data fetch failed      |
+| Code                  | Description                     |
+| --------------------- | ------------------------------- |
+| `CHAINLINK_ERROR`     | Chainlink price fetch failed    |
+| `PYTH_ERROR`          | Pyth price fetch failed         |
+| `API3_ERROR`          | API3 price fetch failed         |
+| `REDSTONE_ERROR`      | RedStone price fetch failed     |
+| `DIA_ERROR`           | DIA price fetch failed          |
+| `WINKLINK_ERROR`      | WINkLink price fetch failed     |
+| `*_HISTORICAL_ERROR`  | Historical data fetch failed    |
+| `NETWORK_STATS_ERROR` | Network statistics fetch failed |
+| `VALIDATORS_ERROR`    | Validator data fetch failed     |
 
 ---
 
@@ -1202,18 +854,11 @@ src/lib/oracles/
 ├── index.ts              # Public exports
 ├── base.ts               # BaseOracleClient abstract class
 ├── chainlink.ts          # Chainlink client implementation
-├── bandProtocol.ts       # Band Protocol client implementation
-├── uma/                  # UMA client implementation
-│   ├── client.ts
-│   ├── types.ts
-│   └── components.tsx
 ├── pythNetwork.ts        # Pyth client implementation
 ├── pythHermesClient.ts   # Pyth Hermes API client
 ├── api3.ts               # API3 client implementation
 ├── redstone.ts           # RedStone client implementation
 ├── dia.ts                # DIA client implementation
-├── tellor.ts             # Tellor client implementation
-├── chronicle.ts          # Chronicle client implementation
 ├── winklink.ts           # WINkLink client implementation
 ├── storage.ts            # Database storage layer
 ├── factory.ts            # Oracle client factory
@@ -1238,12 +883,8 @@ src/lib/config/             # Configuration
 ## References
 
 - [Chainlink Documentation](https://docs.chain.link/)
-- [Band Protocol Documentation](https://docs.bandchain.org/)
-- [UMA Documentation](https://docs.umaproject.org/)
 - [Pyth Network Documentation](https://docs.pyth.network/)
 - [API3 Documentation](https://docs.api3.org/)
 - [RedStone Documentation](https://docs.redstone.finance/)
 - [DIA Documentation](https://docs.diadata.org/)
-- [Tellor Documentation](https://docs.tellor.io/)
-- [Chronicle Documentation](https://docs.chroniclelabs.org/)
 - [WINkLink Documentation](https://doc.winklink.org/)

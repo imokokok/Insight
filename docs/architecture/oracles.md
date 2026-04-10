@@ -16,18 +16,14 @@ Insight 平台支持多种区块链预言机提供商，采用统一的抽象层
 
 ### 支持的预言机
 
-| 预言机        | 标识符          | 文件位置                          | 主要链                      | 特点           |
-| ------------- | --------------- | --------------------------------- | --------------------------- | -------------- |
-| Chainlink     | `chainlink`     | `src/lib/oracles/chainlink.ts`    | Ethereum, Arbitrum, Polygon | 市场领导者     |
-| Band Protocol | `band-protocol` | `src/lib/oracles/bandProtocol.ts` | Cosmos, Ethereum            | 跨链数据       |
-| Pyth Network  | `pyth`          | `src/lib/oracles/pythNetwork.ts`  | Solana, Ethereum            | 低延迟金融数据 |
-| API3          | `api3`          | `src/lib/oracles/api3.ts`         | Ethereum, Polygon           | 第一方预言机   |
-| UMA           | `uma`           | `src/lib/oracles/uma/` (完整模块) | Ethereum                    | 乐观预言机     |
-| RedStone      | `redstone`      | `src/lib/oracles/redstone.ts`     | Arbitrum, Ethereum          | 高效数据推送   |
-| DIA           | `dia`           | `src/lib/oracles/dia.ts`          | 多链                        | 透明数据源     |
-| Tellor        | `tellor`        | `src/lib/oracles/tellor.ts`       | Ethereum                    | 去中心化报告   |
-| Chronicle     | `chronicle`     | `src/lib/oracles/chronicle.ts`    | Ethereum                    | MakerDAO 生态  |
-| WINkLink      | `winklink`      | `src/lib/oracles/winklink.ts`     | Tron                        | 波场生态       |
+| 预言机       | 标识符      | 文件位置                         | 主要链                      | 特点           |
+| ------------ | ----------- | -------------------------------- | --------------------------- | -------------- |
+| Chainlink    | `chainlink` | `src/lib/oracles/chainlink.ts`   | Ethereum, Arbitrum, Polygon | 市场领导者     |
+| Pyth Network | `pyth`      | `src/lib/oracles/pythNetwork.ts` | Solana, Ethereum            | 低延迟金融数据 |
+| API3         | `api3`      | `src/lib/oracles/api3.ts`        | Ethereum, Polygon           | 第一方预言机   |
+| RedStone     | `redstone`  | `src/lib/oracles/redstone.ts`    | Arbitrum, Ethereum          | 高效数据推送   |
+| DIA          | `dia`       | `src/lib/oracles/dia.ts`         | 多链                        | 透明数据源     |
+| WINkLink     | `winklink`  | `src/lib/oracles/winklink.ts`    | Tron                        | 波场生态       |
 
 ## 架构图
 
@@ -50,14 +46,10 @@ graph TB
     subgraph Implementations["具体实现"]
         G[ChainlinkClient]
         H[PythClient]
-        I[BandProtocolClient]
-        J[API3Client]
-        K[UMAClient]
-        L[RedStoneClient]
-        M[DiAClient]
-        N[TellorClient]
-        O[ChronicleClient]
-        P[WINkLinkClient]
+        I[API3Client]
+        J[RedStoneClient]
+        K[DIAClient]
+        L[WINkLinkClient]
     end
 
     subgraph DataSources["数据源"]
@@ -77,10 +69,6 @@ graph TB
     E --> J
     E --> K
     E --> L
-    E --> M
-    E --> N
-    E --> O
-    E --> P
     G --> Q
     G --> R
     G --> S
@@ -128,13 +116,6 @@ classDiagram
         +getHistoricalPrices(symbol, chain, period): Promise~PriceData[]~
     }
 
-    class BandProtocolClient {
-        +name: OracleProvider.BAND
-        +supportedChains: Blockchain[]
-        +getPrice(symbol, chain): Promise~PriceData~
-        +getHistoricalPrices(symbol, chain, period): Promise~PriceData[]~
-    }
-
     class PythClient {
         +name: OracleProvider.PYTH
         +supportedChains: Blockchain[]
@@ -144,13 +125,6 @@ classDiagram
 
     class API3Client {
         +name: OracleProvider.API3
-        +supportedChains: Blockchain[]
-        +getPrice(symbol, chain): Promise~PriceData~
-        +getHistoricalPrices(symbol, chain, period): Promise~PriceData[]~
-    }
-
-    class UMAClient {
-        +name: OracleProvider.UMA
         +supportedChains: Blockchain[]
         +getPrice(symbol, chain): Promise~PriceData~
         +getHistoricalPrices(symbol, chain, period): Promise~PriceData[]~
@@ -170,20 +144,6 @@ classDiagram
         +getHistoricalPrices(symbol, chain, period): Promise~PriceData[]~
     }
 
-    class TellorClient {
-        +name: OracleProvider.TELLOR
-        +supportedChains: Blockchain[]
-        +getPrice(symbol, chain): Promise~PriceData~
-        +getHistoricalPrices(symbol, chain, period): Promise~PriceData[]~
-    }
-
-    class ChronicleClient {
-        +name: OracleProvider.CHRONICLE
-        +supportedChains: Blockchain[]
-        +getPrice(symbol, chain): Promise~PriceData~
-        +getHistoricalPrices(symbol, chain, period): Promise~PriceData[]~
-    }
-
     class WINkLinkClient {
         +name: OracleProvider.WINKLINK
         +supportedChains: Blockchain[]
@@ -193,14 +153,10 @@ classDiagram
 
     IOracleClient <|.. BaseOracleClient
     BaseOracleClient <|-- ChainlinkClient
-    BaseOracleClient <|-- BandProtocolClient
     BaseOracleClient <|-- PythClient
     BaseOracleClient <|-- API3Client
-    BaseOracleClient <|-- UMAClient
     BaseOracleClient <|-- RedStoneClient
     BaseOracleClient <|-- DIAClient
-    BaseOracleClient <|-- TellorClient
-    BaseOracleClient <|-- ChronicleClient
     BaseOracleClient <|-- WINkLinkClient
     OracleClientFactory ..> BaseOracleClient : creates
 ```
@@ -291,14 +247,10 @@ export class OracleClientFactory {
   static getAllClients(): Record<OracleProvider, BaseOracleClient> {
     const providers = [
       OracleProvider.CHAINLINK,
-      OracleProvider.BAND,
-      OracleProvider.UMA,
       OracleProvider.PYTH,
       OracleProvider.API3,
       OracleProvider.REDSTONE,
       OracleProvider.DIA,
-      OracleProvider.TELLOR,
-      OracleProvider.CHRONICLE,
       OracleProvider.WINKLINK,
     ];
 
@@ -314,10 +266,6 @@ export class OracleClientFactory {
     switch (provider) {
       case OracleProvider.CHAINLINK:
         return new ChainlinkClient(this.config);
-      case OracleProvider.BAND:
-        return new BandProtocolClient(this.config);
-      case OracleProvider.UMA:
-        return new UMAClient(this.config);
       case OracleProvider.PYTH:
         return new PythClient(this.config);
       case OracleProvider.API3:
@@ -326,10 +274,6 @@ export class OracleClientFactory {
         return new RedStoneClient(this.config);
       case OracleProvider.DIA:
         return new DIAClient(this.config);
-      case OracleProvider.TELLOR:
-        return new TellorClient(this.config);
-      case OracleProvider.CHRONICLE:
-        return new ChronicleClient(this.config);
       case OracleProvider.WINKLINK:
         return new WINkLinkClient(this.config);
       default:
@@ -409,61 +353,7 @@ export class ChainlinkClient extends BaseOracleClient {
 }
 ```
 
-### 5. UMA 客户端（完整模块）
-
-UMA 是一个独立模块，包含完整的预言机实现：
-
-```
-src/lib/oracles/uma/
-├── client.ts           # UMA 预言机客户端
-├── components.tsx      # React 组件
-├── crossChainTypes.ts  # 跨链类型定义
-├── dataRequestTypes.ts # 数据请求类型
-├── governanceTypes.ts  # 治理类型
-├── index.ts           # 导出入口
-├── mockDataConfig.ts   # Mock 数据配置
-└── types.ts           # 类型定义
-```
-
-```typescript
-// src/lib/oracles/uma/client.ts
-import { BaseOracleClient } from '../base';
-import { OracleProvider, Blockchain } from '@/types/oracle';
-import type { PriceData } from '@/types/oracle';
-
-export class UMAClient extends BaseOracleClient {
-  name = OracleProvider.UMA;
-  supportedChains = [Blockchain.ETHEREUM, Blockchain.ARBITRUM, Blockchain.POLYGON];
-
-  async getPrice(symbol: string, chain?: Blockchain): Promise<PriceData> {
-    return this.fetchPriceWithDatabase(symbol, chain, () => {
-      const basePrice = this.getBasePrice(symbol);
-      return this.generateMockPrice(symbol, basePrice, chain);
-    });
-  }
-
-  async getHistoricalPrices(
-    symbol: string,
-    chain?: Blockchain,
-    period: number = 24
-  ): Promise<PriceData[]> {
-    return this.fetchHistoricalPricesWithDatabase(symbol, chain, period, () => {
-      const basePrice = this.getBasePrice(symbol);
-      return this.generateMockHistoricalPrices(symbol, basePrice, chain, period);
-    });
-  }
-
-  private getBasePrice(symbol: string): number {
-    const prices: Record<string, number> = {
-      BTC: 45000,
-      ETH: 3000,
-    };
-    return prices[symbol] || 100;
-  }
-}
-```
-
-### 6. API3 客户端特性
+### 5. API3 客户端特性
 
 API3 客户端包含多个专门文件：
 
@@ -481,7 +371,7 @@ src/lib/oracles/
 └── api3WebSocket.ts           # WebSocket 支持
 ```
 
-### 7. Pyth Network 客户端特性
+### 6. Pyth Network 客户端特性
 
 ```
 src/lib/oracles/
@@ -492,7 +382,7 @@ src/lib/oracles/
 └── pythMockData.ts       # Mock 数据
 ```
 
-### 8. RedStone 客户端特性
+### 7. RedStone 客户端特性
 
 ```
 src/lib/oracles/
@@ -500,20 +390,7 @@ src/lib/oracles/
 ├── redstoneConstants.ts  # 常量定义
 ```
 
-### 9. Tellor 客户端特性
-
-Tellor 客户端包含多个专门文件：
-
-```
-src/lib/oracles/
-├── tellor.ts                  # 主客户端
-├── tellorClientSingleton.ts   # 单例模式
-├── tellorDataVerification.ts  # 数据验证
-├── tellorOnChainService.ts    # 链上服务
-└── tellorQueryUtils.ts        # 查询工具
-```
-
-### 10. DIA 客户端特性
+### 8. DIA 客户端特性
 
 ```
 src/lib/oracles/

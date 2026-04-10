@@ -468,8 +468,10 @@ function FreshnessTrendChart({
   const oracleColors: Record<string, string> = {
     Chainlink: chartColors.oracle.chainlink,
     Pyth: chartColors.oracle.pyth,
-    UMA: chartColors.oracle.uma,
     API3: chartColors.oracle.api3,
+    RedStone: chartColors.oracle.redstone,
+    DIA: chartColors.oracle.dia,
+    WINkLink: chartColors.oracle.winklink,
   };
 
   const getLevelLabel = (level: ScoreLevel) => {

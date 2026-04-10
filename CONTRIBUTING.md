@@ -86,7 +86,6 @@ insight/
 │   │   ├── [locale]/           # Internationalized pages (next-intl)
 │   │   │   ├── alerts/         # Alerts page
 │   │   │   ├── api3/           # API3 oracle page
-│   │   │   ├── band-protocol/  # Band Protocol oracle page
 │   │   │   ├── chainlink/      # Chainlink oracle page
 │   │   │   ├── cross-chain/    # Cross-chain analysis page
 │   │   │   ├── cross-oracle/   # Cross-oracle comparison page
@@ -101,9 +100,6 @@ insight/
 │   │   │   ├── register/       # Registration page
 │   │   │   ├── settings/        # User settings page
 │   │   │   ├── snapshot/       # Shared snapshots page
-│   │   │   ├── tellor/         # Tellor oracle page
-│   │   │   ├── chronicle/      # Chronicle oracle page
-│   │   │   ├── uma/            # UMA oracle page
 │   │   │   └── winklink/       # WINkLink oracle page
 │   │   ├── api/                # API endpoints
 │   │   │   ├── alerts/         # Price alerts API

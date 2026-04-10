@@ -1,6 +1,5 @@
 export const enum OracleProvider {
   CHAINLINK = 'chainlink',
-  UMA = 'uma',
   PYTH = 'pyth',
   API3 = 'api3',
   REDSTONE = 'redstone',
@@ -52,7 +51,6 @@ export const BINANCE = Blockchain.BNB_CHAIN;
 
 export const ORACLE_PROVIDER_VALUES: readonly OracleProvider[] = [
   OracleProvider.CHAINLINK,
-  OracleProvider.UMA,
   OracleProvider.PYTH,
   OracleProvider.API3,
   OracleProvider.REDSTONE,

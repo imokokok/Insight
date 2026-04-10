@@ -30,15 +30,6 @@ export const ORACLE_TOKENS: OracleToken[] = [
     decimals: 6,
   },
   {
-    symbol: 'UMA',
-    name: 'UMA Voting Token',
-    provider: OracleProvider.UMA,
-    chainId: 1,
-    contractAddress: '0x04Fa0d235C4abf4BcF4787aF4CF447DE572eF828',
-    logoUrl: '/logos/oracles/uma.svg',
-    decimals: 18,
-  },
-  {
     symbol: 'API3',
     name: 'API3 Token',
     provider: OracleProvider.API3,

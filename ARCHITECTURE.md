@@ -57,12 +57,13 @@ The Insight Oracle Data Analytics Platform is a modern web application built on 
 ┌─────────────────────────────────────────────────────────────────┐
 │                   Oracle Integration Layer                       │
 │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌────────┐│
-│  │Chainlink │ │   Pyth   │ │   Band   │ │   API3   │ │   UMA  ││
+│  │Chainlink │ │   Pyth   │ │   API3   │ │RedStone  │ │  DIA   ││
 │  │  Client  │ │  Client  │ │  Client  │ │  Client  │ │ Client ││
 │  └──────────┘ └──────────┘ └──────────┘ └──────────┘ └────────┘│
-│  ┌──────────────────────────────────────────────────────────┐   │
-│  │           Base Oracle Client (Abstract)                   │   │
-│  └──────────────────────────────────────────────────────────┘   │
+│  ┌──────────┐ ┌────────────────────────────────────────────────┐│
+│  │WINkLink  │ │         Base Oracle Client (Abstract)          ││
+│  │  Client  │ │                                                ││
+│  └──────────┘ └────────────────────────────────────────────────┘│
 └─────────────────────────────────────────────────────────────────┘
                               │
                               ▼
@@ -135,13 +136,10 @@ src/app/
 │   ├── chainlink/         # Chainlink oracle page
 │   ├── pyth/              # Pyth Network page
 │   ├── pyth-network/      # Pyth Network page (alt route)
-│   ├── band-protocol/     # Band Protocol page
 │   ├── api3/              # API3 page
-│   ├── uma/               # UMA oracle page
 │   ├── redstone/          # RedStone page
 │   ├── dia/               # DIA page
-│   ├── tellor/            # Tellor page
-│   ├── chronicle/         # Chronicle page
+│   ├── winklink/          # WINkLink page
 │   │
 │   ├── login/             # Login page
 │   ├── register/          # Registration page
@@ -255,11 +253,7 @@ src/components/
 │   ├── panels/             # Oracle-specific panels
 │   │   ├── ChainlinkDataFeedsPanel.tsx
 │   │   ├── PythRiskAssessmentPanel.tsx
-│   │   ├── UMAEcosystemPanel.tsx
 │   │   ├── API3RiskAssessmentPanel.tsx
-│   │   ├── BandValidatorsPanel.tsx
-│   │   ├── TellorDisputesPanel.tsx
-│   │   ├── ChronicleMakerDAOIntegrationPanel.tsx
 │   │   ├── DIANFTDataPanel.tsx
 │   │   ├── RedStoneDataStreamsPanel.tsx
 │   │   └── WINkLinkGamingDataPanel.tsx
@@ -622,14 +616,11 @@ interface PriceAlert {
 
 ### 5.4 Channel-Based Subscriptions
 
-| Channel          | Purpose                 | Data Type                             |
-| ---------------- | ----------------------- | ------------------------------------- |
-| `prices`         | Real-time price updates | Price data with symbol, price, change |
-| `tvs`            | Total Value Secured     | Oracle TVS with 24h change            |
-| `marketStats`    | Market statistics       | Total TVS, chains, protocols          |
-| `uma:prices`     | UMA-specific prices     | UMA oracle prices                     |
-| `uma:disputes`   | Dispute events          | Dispute status and details            |
-| `uma:validators` | Validator activity      | Validator metrics                     |
+| Channel       | Purpose                 | Data Type                             |
+| ------------- | ----------------------- | ------------------------------------- |
+| `prices`      | Real-time price updates | Price data with symbol, price, change |
+| `tvs`         | Total Value Secured     | Oracle TVS with 24h change            |
+| `marketStats` | Market statistics       | Total TVS, chains, protocols          |
 
 ---
 
@@ -933,27 +924,6 @@ export class PythClient extends BaseOracleClient {
 }
 ```
 
-#### Band Protocol Client
-
-```typescript
-export class BandProtocolClient extends BaseOracleClient {
-  name = OracleProvider.BAND_PROTOCOL;
-  supportedChains = [
-    Blockchain.COSMOS,
-    Blockchain.OSMOSIS,
-    Blockchain.JUNO,
-    Blockchain.ETHEREUM,
-    Blockchain.POLYGON,
-    Blockchain.AVALANCHE,
-    Blockchain.FANTOM,
-    Blockchain.CRONOS,
-    Blockchain.INJECTIVE,
-    Blockchain.SEI,
-    Blockchain.KAVA,
-  ];
-}
-```
-
 #### API3 Client
 
 ```typescript
@@ -977,34 +947,13 @@ export class API3Client extends BaseOracleClient {
 }
 ```
 
-#### UMA Client
-
-```typescript
-export class UMAClient extends BaseOracleClient {
-  name = OracleProvider.UMA;
-  supportedChains = [
-    Blockchain.ETHEREUM,
-    Blockchain.ARBITRUM,
-    Blockchain.OPTIMISM,
-    Blockchain.POLYGON,
-    Blockchain.BASE,
-    Blockchain.BNB_CHAIN,
-    Blockchain.AVALANCHE,
-    Blockchain.FANTOM,
-    Blockchain.GNOSIS,
-  ];
-}
-```
-
 ### 7.3 Additional Oracle Implementations
 
-| Client    | File                                    | Description                  |
-| --------- | --------------------------------------- | ---------------------------- |
-| RedStone  | `redstone.ts`                           | RedStone oracle data streams |
-| DIA       | `dia.ts`, `diaDataService.ts`           | DIA oracle data feeds        |
-| Tellor    | `tellor.ts`, `tellorClientSingleton.ts` | Tellor oracle data           |
-| Chronicle | `chronicle.ts`                          | Chronicle oracle             |
-| WINkLink  | `winklink.ts`                           | WINkLink oracle              |
+| Client   | File                          | Description                  |
+| -------- | ----------------------------- | ---------------------------- |
+| RedStone | `redstone.ts`                 | RedStone oracle data streams |
+| DIA      | `dia.ts`, `diaDataService.ts` | DIA oracle data feeds        |
+| WINkLink | `winklink.ts`                 | WINkLink oracle              |
 
 ### 7.4 Pyth Hermes Client Integration
 
@@ -1417,14 +1366,10 @@ src/i18n/messages/
 ├── ui.json              # UI component translations
 ├── oracles/             # Oracle-specific translations
 │   ├── chainlink.json
-│   ├── band.json
-│   ├── uma.json
 │   ├── pyth.json
 │   ├── api3.json
 │   ├── redstone.json
 │   ├── dia.json
-│   ├── tellor.json
-│   ├── chronicle.json
 │   └── winklink.json
 ├── components/          # Component translations
 └── features/            # Feature translations
