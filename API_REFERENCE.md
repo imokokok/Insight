@@ -59,28 +59,45 @@ Retrieve current price or historical prices from oracle providers.
 
 **Supported Chains:**
 
-| Chain     | Value       |
-| --------- | ----------- |
-| Ethereum  | `ethereum`  |
-| Arbitrum  | `arbitrum`  |
-| Optimism  | `optimism`  |
-| Polygon   | `polygon`   |
-| Solana    | `solana`    |
-| Avalanche | `avalanche` |
-| Fantom    | `fantom`    |
-| BNB Chain | `bnb-chain` |
-| Base      | `base`      |
-| Scroll    | `scroll`    |
-| zkSync    | `zksync`    |
-| Aptos     | `aptos`     |
-| Sui       | `sui`       |
-| Gnosis    | `gnosis`    |
-| Mantle    | `mantle`    |
-| Linea     | `linea`     |
-| Cosmos    | `cosmos`    |
-| Osmosis   | `osmosis`   |
-| Injective | `injective` |
-| Sei       | `sei`       |
+| Chain     | Value       | DIA Support | Pyth Support | API3 Support |
+| --------- | ----------- | ----------- | ------------ | ------------ |
+| Ethereum  | `ethereum`  | ✅          | ✅           | ✅           |
+| Arbitrum  | `arbitrum`  | ✅          | ✅           | ✅           |
+| Optimism  | `optimism`  | ✅          | ✅           | ✅           |
+| Polygon   | `polygon`   | ✅          | ✅           | ✅           |
+| Solana    | `solana`    | ✅          | ✅           | ❌           |
+| Avalanche | `avalanche` | ✅          | ✅           | ✅           |
+| Fantom    | `fantom`    | ✅          | ❌           | ✅           |
+| BNB Chain | `bnb-chain` | ✅          | ❌           | ✅           |
+| Base      | `base`      | ✅          | ✅           | ✅           |
+| Scroll    | `scroll`    | ✅          | ❌           | ✅           |
+| zkSync    | `zksync`    | ✅          | ❌           | ✅           |
+| Aptos     | `aptos`     | ✅          | ✅           | ❌           |
+| Sui       | `sui`       | ✅          | ✅           | ❌           |
+| Gnosis    | `gnosis`    | ✅          | ❌           | ✅           |
+| Mantle    | `mantle`    | ✅          | ❌           | ✅           |
+| Linea     | `linea`     | ✅          | ❌           | ✅           |
+| Cosmos    | `cosmos`    | ✅          | ❌           | ❌           |
+| Osmosis   | `osmosis`   | ✅          | ❌           | ❌           |
+| Injective | `injective` | ✅          | ✅           | ❌           |
+| Sei       | `sei`       | ✅          | ✅           | ❌           |
+| Cronos    | `cronos`    | ✅          | ❌           | ❌           |
+| Moonbeam  | `moonbeam`  | ✅          | ❌           | ✅           |
+| Kava      | `kava`      | ✅          | ❌           | ✅           |
+| Juno      | `juno`      | ✅          | ❌           | ❌           |
+| Celestia  | `celestia`  | ✅          | ❌           | ❌           |
+| Tron      | `tron`      | ✅          | ❌           | ❌           |
+| TON       | `ton`       | ✅          | ❌           | ❌           |
+| Near      | `near`      | ✅          | ❌           | ❌           |
+| Aurora    | `aurora`    | ✅          | ❌           | ❌           |
+| Celo      | `celo`      | ✅          | ❌           | ❌           |
+| Starknet  | `starknet`  | ✅          | ✅           | ❌           |
+| Blast     | `blast`     | ✅          | ✅           | ❌           |
+| Cardano   | `cardano`   | ✅          | ❌           | ❌           |
+| Polkadot  | `polkadot`  | ✅          | ❌           | ❌           |
+| Moonriver | `moonriver` | ✅          | ❌           | ❌           |
+| Metis     | `metis`     | ✅          | ❌           | ❌           |
+| StarkEx   | `starkex`   | ✅          | ❌           | ❌           |
 
 **Response (Current Price):**
 

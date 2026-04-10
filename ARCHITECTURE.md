@@ -947,11 +947,47 @@ export class API3Client extends BaseOracleClient {
 
 ### 7.3 Additional Oracle Implementations
 
-| Client   | File                          | Description                  |
-| -------- | ----------------------------- | ---------------------------- |
-| RedStone | `redstone.ts`                 | RedStone oracle data streams |
-| DIA      | `dia.ts`, `diaDataService.ts` | DIA oracle data feeds        |
-| WINkLink | `winklink.ts`                 | WINkLink oracle              |
+| Client   | File                                                                                            | Description                                  |
+| -------- | ----------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| RedStone | `redstone.ts`, `redstoneConstants.ts`                                                           | RedStone oracle data streams                 |
+| DIA      | `dia.ts`, `diaDataService.ts`, `diaPriceService.ts`, `diaNFTService.ts`, `diaNetworkService.ts` | DIA oracle with modular service architecture |
+| WINkLink | `winklink.ts`, `winklinkRealDataService.ts`                                                     | WINkLink oracle with real data support       |
+
+#### DIA Service Architecture
+
+DIA 预言机采用模块化服务架构：
+
+```typescript
+// DIADataService - 主服务入口
+class DIADataService {
+  private priceService: DIAPriceService; // 价格数据服务
+  private nftService: DIANFTService; // NFT 地板价服务
+  private networkService: DIANetworkService; // 网络统计服务
+
+  async getAssetPrice(symbol: string, chain?: Blockchain): Promise<PriceData | null>;
+  async getNFTFloorPrice(
+    collectionAddress: string,
+    chain: Blockchain
+  ): Promise<DIANFTQuotation | null>;
+  async getNetworkStats(): Promise<DIANetworkStatsData | null>;
+  async getTokenOnChainData(
+    symbol: string,
+    chain?: Blockchain
+  ): Promise<DIATokenOnChainData | null>;
+}
+```
+
+**支持的区块链映射** (DIA_CHAIN_MAPPING):
+
+- Ethereum, Arbitrum, Polygon, Avalanche, BNB Chain, Base, Optimism, Fantom, Cronos
+- Moonbeam, Gnosis, Kava, Solana, Sui, Aptos, Injective, Sei
+- Cosmos, Osmosis, Juno, Celestia, Tron, TON, Near, Aurora, Celo
+- Starknet, Blast, Cardano, Polkadot, Mantle, Linea, Scroll, zkSync
+- Moonriver, Metis, StarkEx
+
+**配置资产地址** (DIA_ASSET_ADDRESSES):
+
+- DIA, ETH, BTC, USDC, USDT, LINK 等多链合约地址配置
 
 ### 7.4 Pyth Hermes Client Integration
 
@@ -1322,27 +1358,37 @@ export function isOutlier(value: number, threshold: number): boolean;
 
 ## Technology Stack Summary
 
-| Category             | Technology              | Version        |
-| -------------------- | ----------------------- | -------------- |
-| Framework            | Next.js                 | 16.1.6         |
-| UI Library           | React                   | 19.2.3         |
-| Language             | TypeScript              | 5.x            |
-| Styling              | Tailwind CSS            | 4.x            |
-| Charts               | Recharts                | 3.8.0          |
-| State Management     | React Query             | 5.90.21        |
-| Client State         | Zustand                 | 5.0.11         |
-| Database             | Supabase PostgreSQL     | -              |
-| Auth                 | Supabase Auth           | 2.98.0         |
-| Real-time            | Supabase Realtime       | -              |
-| Oracle Clients       | Pyth Hermes Client      | 2.0.0          |
-| Animations           | Framer Motion           | 12.36.0        |
-| Icons                | Lucide React            | 0.577.0        |
-| PDF Export           | jsPDF                   | 4.2.0          |
-| Internationalization | next-intl               | 4.8.3          |
-| Monitoring           | Sentry                  | 10.43.0        |
-| Virtualization       | @tanstack/react-virtual | 3.13.21        |
-| HTTP Client          | Axios                   | 1.13.6         |
-| Testing              | Jest, Playwright        | 30.3.0, 1.58.2 |
+| Category             | Technology              | Version         |
+| -------------------- | ----------------------- | --------------- |
+| Framework            | Next.js                 | 16.1.6          |
+| UI Library           | React                   | 19.2.3          |
+| Language             | TypeScript              | 5.x             |
+| Styling              | Tailwind CSS            | 4.x             |
+| Charts               | Recharts                | 3.8.0           |
+| State Management     | React Query             | 5.90.21         |
+| Client State         | Zustand                 | 5.0.11          |
+| Database             | Supabase PostgreSQL     | -               |
+| Auth                 | Supabase Auth           | 2.98.0          |
+| Real-time            | Supabase Realtime       | -               |
+| Oracle Clients       | Pyth Hermes Client      | 2.0.0           |
+| Oracle Clients       | Pyth Price Service SDK  | 1.8.0           |
+| Oracle Clients       | API3 Contracts          | 27.0.0          |
+| Animations           | Framer Motion           | 12.36.0         |
+| Icons                | Lucide React            | 0.577.0         |
+| PDF Export           | jsPDF                   | 4.2.0           |
+| PDF Export           | jsPDF-AutoTable         | 5.0.7           |
+| Internationalization | next-intl               | 4.8.3           |
+| Monitoring           | Sentry                  | 10.43.0         |
+| Virtualization       | @tanstack/react-virtual | 3.13.21         |
+| HTTP Client          | Axios                   | 1.13.6          |
+| Testing              | Jest                    | 30.3.0          |
+| Testing              | Playwright              | 1.58.2          |
+| Testing              | Testing Library         | 10.4.1 / 16.3.2 |
+| Validation           | Zod                     | 4.3.6           |
+| Date Handling        | date-fns                | 4.1.0           |
+| Search               | Fuse.js                 | 7.1.0           |
+| Blockchain           | Viem                    | 2.47.6          |
+| Maps                 | react-simple-maps       | 3.0.0           |
 
 ---
 

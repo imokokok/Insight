@@ -446,6 +446,8 @@ enum Blockchain {
   POLKADOT = 'polkadot',
   KAVA = 'kava',
   MOONBEAM = 'moonbeam',
+  MOONRIVER = 'moonriver',
+  METIS = 'metis',
   STARKEX = 'starkex',
 }
 ```
@@ -455,14 +457,10 @@ enum Blockchain {
 ```typescript
 enum OracleProvider {
   CHAINLINK = 'chainlink',
-  BAND_PROTOCOL = 'band-protocol',
-  UMA = 'uma',
   PYTH = 'pyth',
   API3 = 'api3',
   REDSTONE = 'redstone',
   DIA = 'dia',
-  TELLOR = 'tellor',
-  CHRONICLE = 'chronicle',
   WINKLINK = 'winklink',
 }
 ```
@@ -642,49 +640,158 @@ interface ModularStats {
 | Avalanche | 43114    | Active |
 | BNB Chain | 56       | Active |
 | Base      | 8453     | Active |
+| Optimism  | 10       | Active |
 | Fantom    | 250      | Active |
 | Cronos    | 25       | Active |
 | Moonbeam  | -        | Active |
 | Gnosis    | -        | Active |
 | Kava      | -        | Active |
+| Solana    | -        | Active |
+| Sui       | -        | Active |
+| Aptos     | -        | Active |
+| Injective | -        | Active |
+| Sei       | -        | Active |
+| Cosmos    | -        | Active |
+| Osmosis   | -        | Active |
+| Juno      | -        | Active |
+| Celestia  | -        | Active |
+| Tron      | -        | Active |
+| TON       | -        | Active |
+| Near      | -        | Active |
+| Aurora    | -        | Active |
+| Celo      | -        | Active |
+| Starknet  | -        | Active |
+| Blast     | -        | Active |
+| Cardano   | -        | Active |
+| Polkadot  | -        | Active |
+| Mantle    | -        | Active |
+| Linea     | -        | Active |
+| Scroll    | -        | Active |
+| zkSync    | -        | Active |
+| Moonriver | -        | Active |
+| Metis     | -        | Active |
+| StarkEx   | -        | Active |
 
 ### Features
 
 - **Open-Source** - Fully transparent oracle infrastructure
-- **Cross-Chain** - Native multi-chain support
+- **Cross-Chain** - Native multi-chain support (35+ blockchains)
 - **NFT Data Feeds** - Specialized NFT floor price data
 - **Transparent Methodology** - Public data sourcing methods
+- **Comprehensive Token Data** - On-chain data including supply, market cap, exchange volume
 
 ### Implementation
 
 ```typescript
-import { DIAClient } from '@/lib/oracles';
+import { DIADataService, getDIADataService } from '@/lib/oracles/diaDataService';
+import { Blockchain } from '@/types/oracle';
 
-const client = new DIAClient();
+// 获取服务实例（单例模式）
+const diaService = getDIADataService();
 
-const priceData = await client.getPrice('BTC', Blockchain.ETHEREUM);
-const nftData = await client.getNFTFloorPrice('cryptopunks');
-const methodology = await client.getMethodology();
+// 获取资产价格
+const priceData = await diaService.getAssetPrice('BTC', Blockchain.ETHEREUM);
+
+// 获取历史价格
+const historicalData = await diaService.getHistoricalPrices('ETH', Blockchain.ETHEREUM, 24);
+
+// 获取 NFT 地板价
+const nftFloorPrice = await diaService.getNFTFloorPrice('0x...', Blockchain.ETHEREUM);
+
+// 获取代币完整链上数据
+const tokenData = await diaService.getTokenOnChainData('DIA', Blockchain.ETHEREUM);
+```
+
+### Service Architecture
+
+DIA 采用模块化服务架构：
+
+```
+src/lib/oracles/
+├── diaDataService.ts      # 主服务入口
+├── diaPriceService.ts     # 价格数据服务
+├── diaNFTService.ts       # NFT 地板价服务
+├── diaNetworkService.ts   # 网络统计服务
+├── diaTypes.ts            # 类型定义
+├── diaUtils.ts            # 工具函数
+└── constants/
+    ├── chainMapping.ts    # 区块链名称映射
+    └── assetAddresses.ts  # 资产合约地址
 ```
 
 ### Extended Types
 
 ```typescript
-interface NFTFloorPrice {
-  collection: string;
-  floorPrice: number;
-  currency: string;
-  lastUpdate: number;
-  volume24h: number;
-  source: string;
+// NFT 地板价数据
+interface DIANFTQuotation {
+  Symbol: string;
+  Address: string;
+  Blockchain: string;
+  Price: number;
+  PriceYesterday: number;
+  Time: string;
+  Source: string;
 }
 
-interface DIAMethodology {
-  dataSource: string;
-  updateFrequency: number;
-  validationMethod: string;
-  transparencyScore: number;
+// 代币供应量数据
+interface DIASupply {
+  Symbol: string;
+  CirculatingSupply: number;
+  TotalSupply: number;
+  MaxSupply: number | null;
+  Source: string;
+  Time: string;
 }
+
+// 交易所数据
+interface DIAExchange {
+  Name: string;
+  Centralized: boolean;
+  ScraperActive: boolean;
+  Volume24h: number;
+  Pairs: number;
+}
+
+// 代币完整链上数据
+interface DIATokenOnChainData {
+  symbol: string;
+  price: number;
+  change24hPercent: number;
+  circulatingSupply: number | null;
+  totalSupply: number | null;
+  maxSupply: number | null;
+  marketCap: number | null;
+  exchangeCount: number;
+  activeExchangeCount: number;
+  totalTradingPairs: number;
+  totalVolume24h: number;
+  lastUpdated: number;
+  dataSource: string;
+}
+```
+
+### Blockchain Name Mapping
+
+DIA 使用特定的区块链名称映射：
+
+```typescript
+const DIA_BLOCKCHAIN_NAMES: Record<string, string> = {
+  BTC: 'Bitcoin',
+  ETH: 'Ethereum',
+  ETHEREUM: 'Ethereum',
+  ARBITRUM: 'Arbitrum',
+  POLYGON: 'Polygon',
+  AVALANCHE: 'Avalanche',
+  'BNB-CHAIN': 'BinanceSmartChain',
+  BASE: 'Base',
+  OPTIMISM: 'Optimism',
+  FANTOM: 'Fantom',
+  CRONOS: 'Cronos',
+  MOONBEAM: 'Moonbeam',
+  GNOSIS: 'Gnosis',
+  KAVA: 'Kava',
+  // ... 更多链
+};
 ```
 
 ### Network Metrics
@@ -696,6 +803,7 @@ interface DIAMethodology {
 | Update Frequency   | 60s    |
 | Transparency Score | 98%    |
 | Open Source Repos  | 25+    |
+| Supported Chains   | 35+    |
 
 ---
 

@@ -312,15 +312,6 @@ export const searchableItems: SearchableItem[] = [
     path: '/pyth',
   },
   {
-    id: 'oracle-uma',
-    type: 'oracle',
-    name: 'UMA',
-    symbol: 'UMA',
-    aliases: ['uma', 'universal market access'],
-    category: 'oracle',
-    path: '/uma',
-  },
-  {
     id: 'oracle-api3',
     type: 'oracle',
     name: 'API3',
