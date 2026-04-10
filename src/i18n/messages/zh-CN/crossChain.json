@@ -34,6 +34,7 @@
     },
     "stabilityAnalysis": "稳定性与同步分析",
     "priceVolatility": "价格方差",
+    "absolutePriceDiff": "绝对价格差异",
     "stabilityRating": "价格稳定性指数",
     "baseChain": "基准链",
     "export": "导出",
