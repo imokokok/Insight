@@ -156,9 +156,13 @@ export interface WINkLinkTokenOnChainData {
 export class WINkLinkRealDataService {
   private cache: Map<string, CacheEntry<unknown>> = new Map();
   private static instance: WINkLinkRealDataService | null = null;
+  private readonly maxCacheSize = 1000;
+  private readonly defaultCacheTTL = 5 * 60 * 1000;
+  private cleanupInterval: NodeJS.Timeout | null = null;
 
   constructor() {
     logger.info('WINkLinkRealDataService initialized', { rpcUrl: TRON_RPC_URL });
+    this.startCleanupInterval();
   }
 
   static getInstance(): WINkLinkRealDataService {
@@ -166,6 +170,39 @@ export class WINkLinkRealDataService {
       WINkLinkRealDataService.instance = new WINkLinkRealDataService();
     }
     return WINkLinkRealDataService.instance;
+  }
+
+  private startCleanupInterval(): void {
+    this.cleanupInterval = setInterval(() => {
+      this.cleanupExpiredCache();
+    }, 60000);
+  }
+
+  private cleanupExpiredCache(): void {
+    const now = Date.now();
+    let cleaned = 0;
+    for (const [key, entry] of this.cache.entries()) {
+      if (now - entry.timestamp > entry.ttl) {
+        this.cache.delete(key);
+        cleaned++;
+      }
+    }
+    if (cleaned > 0) {
+      logger.debug(`Cleaned up ${cleaned} expired cache entries`, { remaining: this.cache.size });
+    }
+  }
+
+  private enforceCacheLimit(): void {
+    if (this.cache.size >= this.maxCacheSize) {
+      const entriesToDelete = Math.ceil(this.maxCacheSize * 0.2);
+      const entries = Array.from(this.cache.entries());
+      entries.sort((a, b) => a[1].timestamp - b[1].timestamp);
+
+      for (let i = 0; i < entriesToDelete && i < entries.length; i++) {
+        this.cache.delete(entries[i][0]);
+      }
+      logger.warn(`Cache limit reached, removed ${entriesToDelete} oldest entries`);
+    }
   }
 
   private getFromCache<T>(key: string): T | null {
@@ -182,11 +219,21 @@ export class WINkLinkRealDataService {
   }
 
   private setCache<T>(key: string, data: T, ttl: number): void {
+    this.enforceCacheLimit();
     this.cache.set(key, {
       data,
       timestamp: Date.now(),
-      ttl,
+      ttl: ttl || this.defaultCacheTTL,
     });
+  }
+
+  destroy(): void {
+    if (this.cleanupInterval) {
+      clearInterval(this.cleanupInterval);
+      this.cleanupInterval = null;
+    }
+    this.cache.clear();
+    logger.info('WINkLinkRealDataService destroyed');
   }
 
   /**

@@ -3,6 +3,7 @@ export interface ApiClientResponse<T> {
   meta?: {
     timestamp: number;
     source: string;
+    duration?: number;
   };
 }
 

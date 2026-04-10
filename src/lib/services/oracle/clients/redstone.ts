@@ -418,17 +418,53 @@ export class RedStoneClient extends BaseOracleClient {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
-      const data: RedStonePriceResponse[] = await response.json();
+      const rawData = await response.json();
 
-      if (!Array.isArray(data) || data.length === 0) {
+      // 验证数据格式
+      if (!Array.isArray(rawData)) {
+        console.warn(
+          `[RedStone] Unexpected response format for ${symbol}: expected array, got ${typeof rawData}`
+        );
         return [];
       }
 
-      // 转换数据格式
-      return data.map((item) => ({
-        price: item.value,
-        timestamp: toMilliseconds(item.timestamp),
-      }));
+      if (rawData.length === 0) {
+        return [];
+      }
+
+      // 验证并过滤有效数据点
+      const validData: Array<{ price: number; timestamp: number }> = [];
+      for (const item of rawData) {
+        if (!item || typeof item !== 'object') {
+          continue;
+        }
+
+        const value = item.value;
+        const timestamp = item.timestamp;
+
+        // 验证价格值
+        if (typeof value !== 'number' || isNaN(value) || value <= 0) {
+          console.warn(`[RedStone] Invalid price value for ${symbol}:`, value);
+          continue;
+        }
+
+        // 验证时间戳
+        if (typeof timestamp !== 'number' || isNaN(timestamp) || timestamp <= 0) {
+          console.warn(`[RedStone] Invalid timestamp for ${symbol}:`, timestamp);
+          continue;
+        }
+
+        validData.push({
+          price: value,
+          timestamp: toMilliseconds(timestamp),
+        });
+      }
+
+      if (validData.length === 0) {
+        console.warn(`[RedStone] No valid data points for ${symbol}`);
+      }
+
+      return validData;
     } catch (error) {
       console.error(`[RedStone] Failed to fetch historical prices from API:`, error);
       return [];

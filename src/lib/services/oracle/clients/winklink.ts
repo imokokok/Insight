@@ -4,8 +4,11 @@ import type { OracleClientConfig } from '@/lib/oracles/base';
 import { winklinkSymbols } from '@/lib/oracles/supportedSymbols';
 import { getWINkLinkRealDataService } from '@/lib/oracles/winklinkRealDataService';
 import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
+import { createLogger } from '@/lib/utils/logger';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
+
+const logger = createLogger('WINkLinkClient');
 
 // 是否使用真实数据
 const USE_REAL_DATA = FEATURE_FLAGS.useRealWinklinkData;
@@ -95,12 +98,12 @@ export class WINkLinkClient extends BaseOracleClient {
       const historicalPrices = await realDataService.getHistoricalPrices(symbol, period);
 
       if (!historicalPrices || historicalPrices.length === 0) {
-        console.log(`[WINkLink] No historical price data available for ${symbol}`);
+        logger.info(`No historical price data available for ${symbol}`);
         return [];
       }
 
-      console.log(
-        `[WINkLink] Successfully fetched ${historicalPrices.length} historical prices for ${symbol} from WINkLink network`
+      logger.info(
+        `Successfully fetched ${historicalPrices.length} historical prices for ${symbol} from WINkLink network`
       );
 
       const targetChain = chain || Blockchain.TRON;
@@ -124,7 +127,9 @@ export class WINkLinkClient extends BaseOracleClient {
         };
       });
     } catch (error) {
-      console.error(`[WINkLink] Failed to fetch historical prices for ${symbol}:`, error);
+      logger.error(
+        `Failed to fetch historical prices for ${symbol}: ${error instanceof Error ? error.message : String(error)}`
+      );
       return [];
     }
   }

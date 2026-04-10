@@ -10,6 +10,7 @@ import {
 } from '@/lib/errors';
 import { OracleClientFactory, ORACLE_CACHE_TTL } from '@/lib/oracles';
 import { type PriceRecord } from '@/lib/supabase/queries';
+import { createLogger } from '@/lib/utils/logger';
 import { normalizeTimestamp } from '@/lib/utils/timestamp';
 import {
   type OracleProvider,
@@ -17,6 +18,8 @@ import {
   type PriceData,
   ORACLE_PROVIDER_VALUES,
 } from '@/types/oracle';
+
+const logger = createLogger('OracleHandlers');
 
 // 使用统一的缓存配置
 export const PRICE_CACHE_TTL = ORACLE_CACHE_TTL.PRICE;
@@ -209,13 +212,13 @@ export function priceDataToRecord(
 // 兼容旧版 API 的导出
 export async function handleGetPrice(params: OracleQueryParams) {
   try {
-    console.log('[handleGetPrice] Fetching price:', {
+    logger.info('Fetching price', {
       provider: params.provider,
       symbol: params.symbol,
       chain: params.chain,
     });
     const data = await fetchPriceFromOracle(params);
-    console.log('[handleGetPrice] Price fetched successfully:', {
+    logger.info('Price fetched successfully', {
       provider: params.provider,
       symbol: params.symbol,
       chain: params.chain,
@@ -223,9 +226,8 @@ export async function handleGetPrice(params: OracleQueryParams) {
     });
     return createPriceResponse(data);
   } catch (error) {
-    console.error(
-      `[handleGetPrice] Error fetching price for ${params.provider}/${params.symbol}/${params.chain}:`,
-      error
+    logger.error(
+      `Error fetching price for ${params.provider}/${params.symbol}/${params.chain}: ${error instanceof Error ? error.message : String(error)}`
     );
     return handleOracleError(error);
   }
