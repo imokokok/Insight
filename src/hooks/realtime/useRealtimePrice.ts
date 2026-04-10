@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 
 import type { PriceUpdatePayload } from '@/lib/supabase/realtime';
 import { useConnectionStatus, useRealtimeActions } from '@/stores/realtimeStore';
@@ -38,6 +38,10 @@ export function useRealtimePrice(options: UseRealtimePriceOptions): UseRealtimeP
   const [priceData, setPriceData] = useState<RealtimePriceData | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [error, setError] = useState<Error | null>(null);
+
+  // 使用 ref 存储 onPriceUpdate 回调，避免依赖循环
+  const onPriceUpdateRef = useRef(onPriceUpdate);
+  onPriceUpdateRef.current = onPriceUpdate;
 
   const handlePriceUpdate = useCallback(
     (payload: PriceUpdatePayload) => {
@@ -77,15 +81,18 @@ export function useRealtimePrice(options: UseRealtimePriceOptions): UseRealtimeP
         setLastUpdate(new Date());
         setError(null);
 
-        if (onPriceUpdate) {
-          onPriceUpdate(data);
-        }
+        // 使用 ref 调用回调，避免依赖循环
+        onPriceUpdateRef.current?.(data);
       } catch (err) {
         setError(err instanceof Error ? err : new Error('Failed to process price update'));
       }
     },
-    [provider, symbol, chain, onPriceUpdate]
+    [provider, symbol, chain] // 移除 onPriceUpdate 依赖
   );
+
+  // 使用 ref 存储 handlePriceUpdate，避免 effect 重复执行
+  const handlePriceUpdateRef = useRef(handlePriceUpdate);
+  handlePriceUpdateRef.current = handlePriceUpdate;
 
   useEffect(() => {
     if (!enabled) {
@@ -97,12 +104,17 @@ export function useRealtimePrice(options: UseRealtimePriceOptions): UseRealtimeP
     if (symbol) filters.symbol = symbol;
     if (chain) filters.chain = chain;
 
-    const unsubscribe = subscribeToPriceUpdates(handlePriceUpdate, filters);
+    // 使用 ref 中的回调，避免依赖变化导致重复订阅
+    const unsubscribe = subscribeToPriceUpdates(
+      (payload) => handlePriceUpdateRef.current(payload),
+      filters
+    );
 
     return () => {
       unsubscribe();
     };
-  }, [enabled, provider, symbol, chain, handlePriceUpdate, subscribeToPriceUpdates]);
+    // 移除 handlePriceUpdate 和 subscribeToPriceUpdates 依赖
+  }, [enabled, provider, symbol, chain]);
 
   return {
     priceData,
@@ -114,19 +126,20 @@ export function useRealtimePrice(options: UseRealtimePriceOptions): UseRealtimeP
 
 export function useRealtimePrices(
   symbols: Array<{ provider?: OracleProvider; symbol: string; chain?: Blockchain }>,
-  options?: { enabled?: boolean }
+  options?: { enabled?: boolean; maxCacheSize?: number }
 ): {
   prices: Map<string, RealtimePriceData>;
   connectionStatus: 'connecting' | 'connected' | 'disconnected' | 'error';
   lastUpdate: Date | null;
 } {
-  const { enabled = true } = options || {};
+  const { enabled = true, maxCacheSize = 1000 } = options || {};
   const connectionStatus = useConnectionStatus();
   const { subscribeToPriceUpdates } = useRealtimeActions();
   const [prices, setPrices] = useState<Map<string, RealtimePriceData>>(new Map());
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
 
-  const handlePriceUpdate = useCallback((payload: PriceUpdatePayload) => {
+  // 使用 ref 存储 handlePriceUpdate，避免 effect 重复执行
+  const handlePriceUpdateRef = useRef((payload: PriceUpdatePayload) => {
     if (payload.eventType === 'DELETE') {
       return;
     }
@@ -150,10 +163,19 @@ export function useRealtimePrices(
     setPrices((prevPrices) => {
       const newPrices = new Map(prevPrices);
       newPrices.set(key, data);
+
+      // 限制 Map 大小，防止内存泄漏
+      if (newPrices.size > maxCacheSize) {
+        const firstKey = newPrices.keys().next().value;
+        if (firstKey !== undefined) {
+          newPrices.delete(firstKey);
+        }
+      }
+
       return newPrices;
     });
     setLastUpdate(new Date());
-  }, []);
+  });
 
   const symbolsKey = useMemo(() => {
     return symbols
@@ -167,12 +189,14 @@ export function useRealtimePrices(
       return;
     }
 
-    const unsubscribe = subscribeToPriceUpdates(handlePriceUpdate);
+    // 使用 ref 中的回调，避免依赖变化导致重复订阅
+    const unsubscribe = subscribeToPriceUpdates((payload) => handlePriceUpdateRef.current(payload));
 
     return () => {
       unsubscribe();
     };
-  }, [enabled, symbolsKey, handlePriceUpdate, subscribeToPriceUpdates]);
+    // 移除 handlePriceUpdate 和 subscribeToPriceUpdates 依赖
+  }, [enabled, symbolsKey]);
 
   return {
     prices,

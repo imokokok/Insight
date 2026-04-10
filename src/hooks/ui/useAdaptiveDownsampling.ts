@@ -74,6 +74,10 @@ export function useAdaptiveDownsampling(
     }));
   }, []);
 
+  // 使用 ref 存储 data，避免 effect 依赖 data 导致循环
+  const dataRef = useRef(data);
+  dataRef.current = data;
+
   useEffect(() => {
     if (!monitorPerformance) return;
 
@@ -81,9 +85,15 @@ export function useAdaptiveDownsampling(
     return () => {
       const endTime = performance.now();
       const renderTime = endTime - startTime;
+      // 使用 ref 获取当前 data 长度用于日志
+      const currentDataLength = dataRef.current.length;
+      logger.debug(
+        `Render time recorded: ${renderTime.toFixed(2)}ms for ${currentDataLength} points`
+      );
       updateRenderTime(renderTime);
     };
-  }, [data, monitorPerformance, updateRenderTime]);
+    // 移除 data 依赖，避免循环更新
+  }, [monitorPerformance, updateRenderTime]);
 
   const downsampledData = useMemo(() => {
     if (!enabled) {
@@ -191,33 +201,39 @@ export function useChartPerformanceMonitor() {
   const [performanceScore, setPerformanceScore] = useState<
     'excellent' | 'good' | 'acceptable' | 'poor'
   >('good');
-  const renderTimesRef = useRef<number[]>([]);
+  // 使用 state 而不是 ref，确保更新时触发重新渲染
+  const [renderTimes, setRenderTimes] = useState<number[]>([]);
 
   const recordRender = useCallback((renderTime: number) => {
-    renderTimesRef.current.push(renderTime);
-    if (renderTimesRef.current.length > 10) {
-      renderTimesRef.current.shift();
-    }
+    setRenderTimes((prev) => {
+      const newTimes = [...prev, renderTime];
+      if (newTimes.length > 10) {
+        newTimes.shift();
+      }
 
-    const avgRenderTime =
-      renderTimesRef.current.reduce((a, b) => a + b, 0) / renderTimesRef.current.length;
+      // 计算新的性能分数
+      const avgRenderTime = newTimes.reduce((a, b) => a + b, 0) / newTimes.length;
+      let newScore: 'excellent' | 'good' | 'acceptable' | 'poor';
+      if (avgRenderTime < 100) {
+        newScore = 'excellent';
+      } else if (avgRenderTime < 200) {
+        newScore = 'good';
+      } else if (avgRenderTime < 300) {
+        newScore = 'acceptable';
+      } else {
+        newScore = 'poor';
+      }
 
-    if (avgRenderTime < 100) {
-      setPerformanceScore('excellent');
-    } else if (avgRenderTime < 200) {
-      setPerformanceScore('good');
-    } else if (avgRenderTime < 300) {
-      setPerformanceScore('acceptable');
-    } else {
-      setPerformanceScore('poor');
-    }
+      // 使用函数式更新避免依赖 performanceScore
+      setPerformanceScore(newScore);
+
+      return newTimes;
+    });
   }, []);
 
   const getRecommendedDownsampling = useCallback(() => {
     const avgRenderTime =
-      renderTimesRef.current.length > 0
-        ? renderTimesRef.current.reduce((a, b) => a + b, 0) / renderTimesRef.current.length
-        : 0;
+      renderTimes.length > 0 ? renderTimes.reduce((a, b) => a + b, 0) / renderTimes.length : 0;
 
     if (avgRenderTime < 100) {
       return { targetPoints: 500, preserveTrends: true };
@@ -228,15 +244,13 @@ export function useChartPerformanceMonitor() {
     } else {
       return { targetPoints: 150, preserveTrends: false };
     }
-  }, []);
+  }, [renderTimes]);
 
   return {
     performanceScore,
     recordRender,
     getRecommendedDownsampling,
     averageRenderTime:
-      renderTimesRef.current.length > 0
-        ? renderTimesRef.current.reduce((a, b) => a + b, 0) / renderTimesRef.current.length
-        : 0,
+      renderTimes.length > 0 ? renderTimes.reduce((a, b) => a + b, 0) / renderTimes.length : 0,
   };
 }

@@ -212,9 +212,19 @@ function shouldRetry(error: Error, attempt: number, config: EnhancedRetryConfig)
 
   // 检查 HTTP 状态码 - 使用更精确的正则表达式
   // 匹配常见的 HTTP 状态码格式：如 "status: 500", "HTTP 500", "500 Internal Server Error"
-  const statusMatch = error.message.match(/(?:status[:=\s]+|HTTP\s+|\s)(\d{3})(?:\s|$|\b)/i);
+  // 注意：不使用单独的 \s 作为前缀，避免匹配任意三个数字
+  const statusMatch = error.message.match(/(?:status[:=\s]+|HTTP\s+)(\d{3})(?:\s|$|\b)/i);
   if (statusMatch) {
     const status = parseInt(statusMatch[1], 10);
+    if (status >= 100 && status < 600 && config.retryableStatuses.includes(status)) {
+      return true;
+    }
+  }
+
+  // 额外检查：匹配 "500 Internal Server Error" 这种格式（数字后跟大写字母）
+  const statusWordMatch = error.message.match(/\b(\d{3})\s+[A-Z][a-zA-Z\s]+/);
+  if (statusWordMatch) {
+    const status = parseInt(statusWordMatch[1], 10);
     if (status >= 100 && status < 600 && config.retryableStatuses.includes(status)) {
       return true;
     }

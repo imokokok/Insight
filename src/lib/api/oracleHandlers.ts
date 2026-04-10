@@ -101,6 +101,32 @@ export function validateSymbol(symbol: string): NextResponse | null {
       })
     );
   }
+
+  const trimmedSymbol = symbol.trim();
+  if (trimmedSymbol.length > 20) {
+    return errorToResponse(
+      new ValidationError('Invalid symbol: must be at most 20 characters', {
+        field: 'symbol',
+        value: symbol,
+        constraints: {
+          maxLength: 20,
+        },
+      })
+    );
+  }
+
+  if (!/^[A-Za-z0-9\-_./]+$/.test(trimmedSymbol)) {
+    return errorToResponse(
+      new ValidationError('Invalid symbol: contains invalid characters', {
+        field: 'symbol',
+        value: symbol,
+        constraints: {
+          pattern: 'alphanumeric, dash, underscore, dot, slash',
+        },
+      })
+    );
+  }
+
   return null;
 }
 
@@ -138,19 +164,44 @@ export async function fetchHistoricalFromOracle(params: OracleQueryParams): Prom
   return client.getHistoricalPrices(params.symbol, params.chain, params.period);
 }
 
+export interface BatchPriceResult {
+  success: boolean;
+  data?: PriceData;
+  error?: {
+    message: string;
+    code?: string;
+  };
+}
+
 export async function fetchBatchPrices(
   requests: BatchPriceRequest[]
-): Promise<Record<string, PriceData>> {
-  const results: Record<string, PriceData> = {};
+): Promise<Record<string, BatchPriceResult>> {
+  const results: Record<string, BatchPriceResult> = {};
 
   await Promise.all(
     requests.map(async (request) => {
+      const key = `${request.provider}:${request.symbol}:${request.chain || 'default'}`;
+
       try {
         const price = await fetchPriceFromOracle(request as OracleQueryParams);
-        const key = `${request.provider}:${request.symbol}:${request.chain || 'default'}`;
-        results[key] = price;
+        results[key] = {
+          success: true,
+          data: price,
+        };
       } catch (error) {
-        console.error(`Failed to fetch price for ${request.provider}:${request.symbol}:`, error);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        logger.error(
+          `Failed to fetch price for ${key}`,
+          error instanceof Error ? error : new Error(String(error))
+        );
+
+        results[key] = {
+          success: false,
+          error: {
+            message: errorMessage,
+            code: isAppError(error) ? error.code : undefined,
+          },
+        };
       }
     })
   );

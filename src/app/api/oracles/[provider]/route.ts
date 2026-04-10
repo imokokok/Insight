@@ -3,6 +3,7 @@ import { type NextRequest } from 'next/server';
 import {
   validateProvider,
   validatePeriod,
+  validateSymbol,
   handleGetPrice,
   handleGetHistoricalPrices,
   createUnexpectedErrorResponse,
@@ -35,6 +36,9 @@ export async function GET(
 
     const providerError = validateProvider(provider);
     if (providerError) return providerError;
+
+    const symbolError = validateSymbol(symbol);
+    if (symbolError) return symbolError;
 
     const periodNum = period ? parseInt(period, 10) : undefined;
     const periodError = validatePeriod(periodNum);

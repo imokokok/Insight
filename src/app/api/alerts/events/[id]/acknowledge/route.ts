@@ -1,14 +1,25 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
 import { getUserId } from '@/lib/api/utils';
+import { sanitizeUuid } from '@/lib/security';
 import { getServerQueries } from '@/lib/supabase/server';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('api-alerts-events-acknowledge');
 
+function validateEventId(id: string): string | null {
+  return sanitizeUuid(id) || null;
+}
+
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
+    const validatedId = validateEventId(id);
+
+    if (!validatedId) {
+      return NextResponse.json({ error: 'Invalid event ID' }, { status: 400 });
+    }
+
     const userId = await getUserId(request);
 
     if (!userId) {
@@ -22,7 +33,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       return NextResponse.json({ error: 'Failed to verify event ownership' }, { status: 500 });
     }
 
-    const event = events.find((e) => e.id === id);
+    const event = events.find((e) => e.id === validatedId);
     if (!event) {
       return NextResponse.json({ error: 'Event not found' }, { status: 404 });
     }
@@ -34,7 +45,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       });
     }
 
-    const acknowledgedEvent = await queries.acknowledgeAlertEvent(id);
+    const acknowledgedEvent = await queries.acknowledgeAlertEvent(validatedId);
 
     if (!acknowledgedEvent) {
       return NextResponse.json({ error: 'Failed to acknowledge event' }, { status: 500 });

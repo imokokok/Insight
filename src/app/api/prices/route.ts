@@ -1,5 +1,9 @@
 import { NextResponse } from 'next/server';
 
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('api-prices');
+
 const SUPPORTED_ASSETS = [
   'BTC',
   'ETH',
@@ -119,7 +123,10 @@ export async function GET() {
       timestamp: now,
     });
   } catch (error) {
-    console.error('[PricesAPI] Failed to fetch prices:', error);
+    logger.error(
+      'Failed to fetch prices',
+      error instanceof Error ? error : new Error(String(error))
+    );
 
     if (cache) {
       return NextResponse.json({

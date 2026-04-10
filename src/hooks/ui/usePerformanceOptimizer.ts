@@ -350,6 +350,8 @@ export function useNavigationOptimizer() {
 export function useLazyLoadOptimizer(options?: IntersectionObserverInit) {
   const observerRef = useRef<IntersectionObserver | null>(null);
   const [visibleElements, setVisibleElements] = useState<Set<string>>(new Set());
+  // 使用 Map 存储元素到 ID 的映射，避免依赖元素 id 属性
+  const elementIdMapRef = useRef<WeakMap<Element, string>>(new WeakMap());
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -357,9 +359,19 @@ export function useLazyLoadOptimizer(options?: IntersectionObserverInit) {
     observerRef.current = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          const id = entry.target.id;
+          // 从 WeakMap 获取元素 ID，而不是依赖元素 id 属性
+          const id = elementIdMapRef.current.get(entry.target);
+          if (!id) return;
+
           if (entry.isIntersecting) {
             setVisibleElements((prev) => new Set([...prev, id]));
+          } else {
+            // 元素不再可见时，从 visibleElements 中移除
+            setVisibleElements((prev) => {
+              const newSet = new Set(prev);
+              newSet.delete(id);
+              return newSet;
+            });
           }
         });
       },
@@ -370,18 +382,36 @@ export function useLazyLoadOptimizer(options?: IntersectionObserverInit) {
       }
     );
 
-    return () => observerRef.current?.disconnect();
+    return () => {
+      observerRef.current?.disconnect();
+      elementIdMapRef.current = new WeakMap();
+    };
   }, [options]);
 
-  const observe = useCallback((element: Element | null) => {
+  const observe = useCallback((element: Element | null, id?: string) => {
     if (element && observerRef.current) {
+      // 如果没有提供 id，使用元素 id 属性或生成唯一 id
+      const elementId = id || element.id || `lazy-${Math.random().toString(36).substr(2, 9)}`;
+      elementIdMapRef.current.set(element, elementId);
       observerRef.current.observe(element);
+      return elementId;
     }
+    return null;
   }, []);
 
   const unobserve = useCallback((element: Element | null) => {
     if (element && observerRef.current) {
       observerRef.current.unobserve(element);
+      elementIdMapRef.current.delete(element);
+      // 从 visibleElements 中移除
+      const id = elementIdMapRef.current.get(element);
+      if (id) {
+        setVisibleElements((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(id);
+          return newSet;
+        });
+      }
     }
   }, []);
 
@@ -393,6 +423,8 @@ export function useLazyLoadOptimizer(options?: IntersectionObserverInit) {
 // ============================================================================
 // Route-based Code Splitting
 // ============================================================================
+
+const MAX_ROUTE_METRICS = 50;
 
 export function useRouteOptimizer() {
   const pathname = usePathname();
@@ -406,7 +438,17 @@ export function useRouteOptimizer() {
   useEffect(() => {
     if (startTimeRef.current > 0) {
       const duration = performance.now() - startTimeRef.current;
-      setRouteMetrics((prev) => new Map([...prev, [pathname, duration]]));
+      setRouteMetrics((prev) => {
+        const newMap = new Map([...prev, [pathname, duration]]);
+        // 限制 Map 大小，防止内存泄漏
+        if (newMap.size > MAX_ROUTE_METRICS) {
+          const firstKey = newMap.keys().next().value;
+          if (firstKey !== undefined) {
+            newMap.delete(firstKey);
+          }
+        }
+        return newMap;
+      });
     }
   }, [pathname]);
 
@@ -450,13 +492,23 @@ export function useMemoryOptimizer() {
 
     const updateMemory = () => {
       const memoryInfo = (performance as Performance & { memory?: MemoryInfo }).memory;
-      if (memoryInfo) {
+      // 检查浏览器是否支持 performance.memory API（Chrome 特有）
+      if (!memoryInfo) {
+        // 浏览器不支持，设置 null 表示不可用
+        setMemory(null);
+        return;
+      }
+
+      try {
         setMemory({
           used: memoryInfo.usedJSHeapSize,
           total: memoryInfo.totalJSHeapSize,
           limit: memoryInfo.jsHeapSizeLimit,
           percentage: (memoryInfo.usedJSHeapSize / memoryInfo.jsHeapSizeLimit) * 100,
         });
+      } catch (error) {
+        // 处理可能的权限错误或 API 变更
+        setMemory(null);
       }
     };
 

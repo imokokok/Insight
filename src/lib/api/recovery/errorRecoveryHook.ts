@@ -308,6 +308,10 @@ export function useErrorRecovery<T>(
     [currentStrategy, onRecoverySuccess, safeSetState]
   );
 
+  // 使用 ref 存储最新的 state.data，避免闭包问题
+  const stateDataRef = useRef(state.data);
+  stateDataRef.current = state.data;
+
   // 尝试恢复
   const attemptRecovery = useCallback(
     async (error: Error, originalOperation: () => Promise<T>, operationName?: string) => {
@@ -348,9 +352,10 @@ export function useErrorRecovery<T>(
             }
 
             case 'graceful-degradation': {
-              // 尝试返回部分数据或默认值
-              if (state.data) {
-                recoveredData = state.data;
+              // 尝试返回部分数据或默认值 - 使用 ref 获取最新数据
+              const currentData = stateDataRef.current;
+              if (currentData) {
+                recoveredData = currentData;
                 recovered = true;
                 logger.info('Using stale data for graceful degradation', { operationName });
               }
@@ -417,8 +422,7 @@ export function useErrorRecovery<T>(
     [
       autoRecover,
       fallbackData,
-      state.data,
-      state.recoveryAttempts,
+      // 移除 state.data 和 state.recoveryAttempts，使用 ref 替代
       onDegraded,
       onRecoveryFailure,
       safeSetState,

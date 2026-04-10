@@ -205,7 +205,7 @@ export function detectPriceAnomalies(
       }
 
       anomalies.push({
-        id: `price-${asset}-${timestamps[index]}`,
+        id: `price-${asset}-${timestamps[index]}-${Date.now()}`,
         type,
         level,
         title: type === 'price_spike' ? 'price_spike_detected' : 'price_drop_detected',
@@ -294,7 +294,7 @@ export function detectTrendBreak(
         const strength = Math.min(Math.abs(trendSlope) * 100, 100);
 
         anomalies.push({
-          id: `trend-${changePoint}-${timestamps[changePoint]}`,
+          id: `trend-${changePoint}-${timestamps[changePoint]}-${Date.now()}`,
           type: 'trend_break',
           level: strength > 70 ? 'high' : strength > 40 ? 'medium' : 'low',
           title: 'trend_break_detected',
@@ -307,9 +307,10 @@ export function detectTrendBreak(
           acknowledged: false,
         });
 
-        // 重置累积和
-        posSum = 0;
-        negSum = 0;
+        // 使用衰减而不是重置，避免漏检连续的变化
+        // 衰减因子 0.5 允许检测到连续的趋势变化
+        posSum *= 0.5;
+        negSum *= 0.5;
       }
     }
 
@@ -407,7 +408,7 @@ export function detectVolatilityAnomalies(
       else level = 'low';
 
       anomalies.push({
-        id: `volatility-${timestamps[index]}`,
+        id: `volatility-${timestamps[index]}-${Date.now()}`,
         type: 'volatility_spike',
         level,
         title: 'volatility_spike_detected',
@@ -457,7 +458,7 @@ export function detectVolumeAnomalies(volumes: number[], timestamps: number[]): 
       else level = 'low';
 
       anomalies.push({
-        id: `volume-${timestamps[anomaly.index]}`,
+        id: `volume-${timestamps[anomaly.index]}-${Date.now()}`,
         type: 'volume_anomaly',
         level,
         title: anomaly.isUpper ? 'volume_spike_detected' : 'volume_drop_detected',

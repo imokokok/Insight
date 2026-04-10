@@ -29,7 +29,12 @@ function getAllComponentFiles(dir, files = []) {
 
     if (item.isDirectory()) {
       getAllComponentFiles(fullPath, files);
-    } else if (item.isFile() && /\.(tsx|jsx)$/.test(item.name) && item.name !== 'index.tsx' && item.name !== 'index.ts') {
+    } else if (
+      item.isFile() &&
+      /\.(tsx|jsx)$/.test(item.name) &&
+      item.name !== 'index.tsx' &&
+      item.name !== 'index.ts'
+    ) {
       files.push(fullPath);
     }
   }
@@ -72,10 +77,7 @@ function main() {
   console.log('🔍 全面扫描未使用的组件...\n');
 
   const allFiles = getAllFiles(srcDir);
-  const componentDirs = [
-    path.join(srcDir, 'components'),
-    path.join(srcDir, 'app/[locale]'),
-  ];
+  const componentDirs = [path.join(srcDir, 'components'), path.join(srcDir, 'app/[locale]')];
 
   const allComponentFiles = [];
   for (const dir of componentDirs) {

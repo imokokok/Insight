@@ -80,6 +80,15 @@ export function useWebSocket<T = unknown>(options: UseWebSocketOptions): UseWebS
     averageLatency: 0,
   });
 
+  // 使用 ref 存储回调函数，避免依赖变化导致 manager 重建
+  const callbacksRef = useRef({
+    onConnect,
+    onDisconnect,
+    onError,
+    onReconnect,
+  });
+  callbacksRef.current = { onConnect, onDisconnect, onError, onReconnect };
+
   // Create WebSocket manager
   useEffect(() => {
     const config: WebSocketConfig = {
@@ -89,19 +98,19 @@ export function useWebSocket<T = unknown>(options: UseWebSocketOptions): UseWebS
       heartbeatInterval,
       onConnect: () => {
         logger.debug('WebSocket connected');
-        onConnect?.();
+        callbacksRef.current.onConnect?.();
       },
       onDisconnect: () => {
         logger.debug('WebSocket disconnected');
-        onDisconnect?.();
+        callbacksRef.current.onDisconnect?.();
       },
       onError: (error) => {
         logger.error('WebSocket error', error);
-        onError?.(error);
+        callbacksRef.current.onError?.(error);
       },
       onReconnect: (attempt) => {
         logger.debug(`WebSocket reconnecting, attempt ${attempt}`);
-        onReconnect?.(attempt);
+        callbacksRef.current.onReconnect?.(attempt);
       },
     };
 
@@ -124,17 +133,8 @@ export function useWebSocket<T = unknown>(options: UseWebSocketOptions): UseWebS
         managerRef.current = null;
       }
     };
-  }, [
-    url,
-    autoConnect,
-    reconnectInterval,
-    maxReconnectAttempts,
-    heartbeatInterval,
-    onConnect,
-    onDisconnect,
-    onError,
-    onReconnect,
-  ]);
+    // 移除回调函数依赖，使用 ref 存储
+  }, [url, autoConnect, reconnectInterval, maxReconnectAttempts, heartbeatInterval]);
 
   // Subscribe to channels
   const channelsKey = useMemo(() => channels.join(','), [channels]);
@@ -224,31 +224,59 @@ export function usePriceWebSocket(options: UsePriceWebSocketOptions) {
   const { symbols, autoConnect = true, onPriceUpdate } = options;
   const [prices, setPrices] = useState<Map<string, PriceUpdate>>(new Map());
 
+  // 使用 ref 存储 symbols 和 onPriceUpdate，避免依赖变化
+  const symbolsRef = useRef(symbols);
+  symbolsRef.current = symbols;
+  const onPriceUpdateRef = useRef(onPriceUpdate);
+  onPriceUpdateRef.current = onPriceUpdate;
+
+  // 使用 useMemo 稳定 channels 数组
+  const symbolsKey = symbols.sort().join(',');
+  const channels = useMemo(
+    () => symbols.map((s) => `price:${s}`),
+    [symbolsKey]
+  );
+
   const ws = useWebSocket<PriceUpdate>({
     url: process.env.NEXT_PUBLIC_WS_URL || '',
-    channels: symbols.map((s) => `price:${s}`),
+    channels,
     autoConnect,
   });
+
+  // 使用 ref 存储 subscribe 函数
+  const subscribeRef = useRef(ws.subscribe);
+  subscribeRef.current = ws.subscribe;
 
   useEffect(() => {
     if (!ws.isConnected) return;
 
-    const unsubscribes = symbols.map((symbol) =>
-      ws.subscribe(`price:${symbol}`, (message) => {
+    // 使用 ref 获取最新的 symbols
+    const currentSymbols = symbolsRef.current;
+
+    const unsubscribes = currentSymbols.map((symbol) =>
+      subscribeRef.current(`price:${symbol}`, (message) => {
         const update = message.data;
         setPrices((prev) => {
           const next = new Map(prev);
           next.set(update.symbol, update);
+          // 限制 Map 大小
+          if (next.size > 1000) {
+            const firstKey = next.keys().next().value;
+            if (firstKey !== undefined) {
+              next.delete(firstKey);
+            }
+          }
           return next;
         });
-        onPriceUpdate?.(update);
+        onPriceUpdateRef.current?.(update);
       })
     );
 
     return () => {
       unsubscribes.forEach((unsubscribe) => unsubscribe());
     };
-  }, [ws.isConnected, symbols, ws.subscribe, onPriceUpdate]);
+    // 移除 symbols 和 onPriceUpdate 依赖，使用 ref 避免重复订阅
+  }, [ws.isConnected]);
 
   return {
     ...ws,

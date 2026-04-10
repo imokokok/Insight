@@ -77,7 +77,7 @@ let notFoundCount = 0;
 
 for (const file of filesToDelete) {
   const filePath = path.join(projectRoot, file);
-  
+
   if (fs.existsSync(filePath)) {
     fs.unlinkSync(filePath);
     console.log(`✅ 已删除: ${file}`);

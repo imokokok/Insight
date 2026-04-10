@@ -37,7 +37,7 @@ interface RequestQueueStats {
   failed: number;
 }
 
-class RequestQueue {
+export class RequestQueue {
   private queue: QueuedRequest[] = [];
   private running = 0;
   private completed = 0;
@@ -45,6 +45,8 @@ class RequestQueue {
   private maxConcurrency: number;
   private defaultTimeout: number;
   private requestIdCounter = 0;
+  // 跟踪正在运行的请求，用于超时处理
+  private runningRequests = new Map<string, QueuedRequest>();
 
   constructor(config: RequestQueueConfig = {}) {
     this.maxConcurrency = config.maxConcurrency ?? DEFAULT_MAX_CONCURRENCY;
@@ -146,6 +148,8 @@ class RequestQueue {
 
   private async executeRequest(request: QueuedRequest): Promise<void> {
     this.running++;
+    // 将请求添加到运行中的请求映射
+    this.runningRequests.set(request.id, request);
 
     const timeoutId = setTimeout(() => {
       this.handleTimeout(request);
@@ -163,6 +167,8 @@ class RequestQueue {
       const result = await request.execute();
 
       clearTimeout(timeoutId);
+      // 从运行中的请求映射中移除
+      this.runningRequests.delete(request.id);
       this.completed++;
       this.running--;
 
@@ -174,6 +180,8 @@ class RequestQueue {
       });
     } catch (error) {
       clearTimeout(timeoutId);
+      // 从运行中的请求映射中移除
+      this.runningRequests.delete(request.id);
       this.failed++;
       this.running--;
 
@@ -190,18 +198,38 @@ class RequestQueue {
   }
 
   private handleTimeout(request: QueuedRequest): void {
-    const index = this.queue.findIndex((r) => r.id === request.id);
-    if (index !== -1) {
-      this.queue.splice(index, 1);
+    // 首先检查请求是否还在队列中（未开始执行）
+    const queueIndex = this.queue.findIndex((r) => r.id === request.id);
+    if (queueIndex !== -1) {
+      this.queue.splice(queueIndex, 1);
       this.failed++;
 
       const error = new DOMException('Request timeout', 'TimeoutError');
       request.reject(error);
 
-      logger.warn('Request timed out', {
+      logger.warn('Request timed out in queue', {
         id: request.id,
         timeout: request.timeout,
       });
+      return;
+    }
+
+    // 检查请求是否正在运行
+    if (this.runningRequests.has(request.id)) {
+      this.runningRequests.delete(request.id);
+      this.failed++;
+      this.running--;
+
+      const error = new DOMException('Request timeout', 'TimeoutError');
+      request.reject(error);
+
+      logger.warn('Request timed out while running', {
+        id: request.id,
+        timeout: request.timeout,
+      });
+
+      // 触发队列处理下一个请求
+      this.processQueue();
     }
   }
 
@@ -250,4 +278,4 @@ export function resetGlobalQueue(): void {
   }
 }
 
-export type { RequestQueue, RequestQueueConfig, RequestQueueStats };
+export type { RequestQueueConfig, RequestQueueStats };

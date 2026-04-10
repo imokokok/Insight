@@ -364,8 +364,12 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
         }
       }
 
+      // 注意：collectedErrors 已经在 processQueryResults 中收集
+      // 这里直接设置错误状态，避免与上面的循环重复添加
       if (collectedErrors.length > 0) {
-        setQueryErrors((prev) => [...prev, ...collectedErrors]);
+        setQueryErrors(collectedErrors);
+      } else {
+        setQueryErrors([]);
       }
 
       if (!isMounted.current) return;

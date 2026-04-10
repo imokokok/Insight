@@ -3,52 +3,60 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import createMiddleware from 'next-intl/middleware';
 
-import { routing, getValidLocale } from '@/i18n/routing';
+import { routing } from '@/i18n/routing';
 import { generateCSRFToken, setCSRFCookie, CSRF_TOKEN_HEADER } from '@/lib/security/csrf';
+import { createLogger } from '@/lib/utils/logger';
 
-const protectedRoutes = ['/dashboard', '/settings', '/profile'];
+const logger = createLogger('middleware');
+
+const protectedRoutes = [
+  '/dashboard',
+  '/settings',
+  '/profile',
+  '/alerts',
+  '/favorites',
+  '/snapshots',
+];
 const authRoutes = ['/login', '/register', '/forgot-password', '/auth'];
 
 const intlMiddleware = createMiddleware(routing);
 
-const localePattern = new RegExp(`^/(${routing.locales.join('|')})(/|$)`);
 const localeReplacePattern = new RegExp(`^/(${routing.locales.join('|')})`);
 
 export async function middleware(request: NextRequest) {
-  const acceptLanguage = request.headers.get('accept-language');
-  const browserLocale = acceptLanguage?.split(',')[0]?.split('-')[0];
-
-  const targetLocale = getValidLocale(browserLocale);
-
   const pathname = request.nextUrl.pathname;
-  const hasLocalePrefix = localePattern.test(pathname);
 
-  if (!hasLocalePrefix) {
-    const url = request.nextUrl.clone();
-    url.pathname = `/${targetLocale}${pathname}`;
-    return NextResponse.redirect(url);
+  // 跳过 API 路由的重定向
+  if (pathname.startsWith('/api/')) {
+    return NextResponse.next();
   }
 
+  // 使用 next-intl 处理国际化（包括自动检测和重定向）
   const intlResponse = intlMiddleware(request);
 
   const cookiesToSet: Array<{ name: string; value: string; options?: Record<string, unknown> }> =
     [];
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookies) {
-          cookies.forEach(({ name, value }) => request.cookies.set(name, value));
-          cookies.forEach((cookie) => cookiesToSet.push(cookie));
-        },
+  // 检查环境变量
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseKey) {
+    logger.error('Missing Supabase environment variables');
+    return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
+  }
+
+  const supabase = createServerClient(supabaseUrl, supabaseKey, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll();
       },
-    }
-  );
+      setAll(cookies) {
+        cookies.forEach(({ name, value }) => request.cookies.set(name, value));
+        cookies.forEach((cookie) => cookiesToSet.push(cookie));
+      },
+    },
+  });
 
   const {
     data: { session },
@@ -76,31 +84,12 @@ export async function middleware(request: NextRequest) {
     intlResponse.cookies.set(name, value, options);
   });
 
-  intlResponse.headers.set('X-Frame-Options', 'DENY');
-  intlResponse.headers.set('X-Content-Type-Options', 'nosniff');
-  intlResponse.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-  intlResponse.headers.set(
-    'Permissions-Policy',
-    'camera=(), microphone=(), geolocation=(), payment=(), usb=(), magnetometer=(), gyroscope=()'
-  );
-  intlResponse.headers.set('X-DNS-Prefetch-Control', 'on');
-  intlResponse.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
-  intlResponse.headers.set(
-    'Content-Security-Policy',
-    "default-src 'self'; " +
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.vercel-scripts.com https://*.sentry.io; " +
-      "style-src 'self' 'unsafe-inline'; " +
-      "img-src 'self' data: https: blob:; " +
-      "font-src 'self'; " +
-      "connect-src 'self' https: wss: https://*.supabase.co https://*.sentry.io; " +
-      "frame-ancestors 'none'; " +
-      "base-uri 'self'; " +
-      "form-action 'self';"
-  );
-  intlResponse.headers.set('X-XSS-Protection', '1; mode=block');
-
-  const csrfToken = request.cookies.get('csrf-token')?.value || generateCSRFToken();
-  setCSRFCookie(intlResponse, csrfToken);
+  // 只在 cookie 不存在时才生成新的 CSRF token
+  let csrfToken = request.cookies.get('csrf-token')?.value;
+  if (!csrfToken) {
+    csrfToken = generateCSRFToken();
+    setCSRFCookie(intlResponse, csrfToken);
+  }
   intlResponse.headers.set(CSRF_TOKEN_HEADER, csrfToken);
 
   return intlResponse;

@@ -207,6 +207,8 @@ export const useCrossChainStore = create<CrossChainStore>()(
           sortColumn: state.sortColumn,
           sortDirection: state.sortDirection,
           hiddenLines: Array.from(state.hiddenLines),
+          // 将 Date 序列化为 ISO 字符串
+          lastUpdated: state.lastUpdated?.toISOString(),
         }),
         onRehydrateStorage: () => (state) => {
           if (state) {
@@ -215,6 +217,12 @@ export const useCrossChainStore = create<CrossChainStore>()(
               (state as { hiddenLines: Set<string> }).hiddenLines = new Set(hiddenLines);
             } else if (!(hiddenLines instanceof Set)) {
               (state as { hiddenLines: Set<string> }).hiddenLines = new Set();
+            }
+            // 反序列化 Date
+            if (state.lastUpdated) {
+              (state as { lastUpdated: Date | null }).lastUpdated = new Date(
+                String(state.lastUpdated)
+              );
             }
           }
         },

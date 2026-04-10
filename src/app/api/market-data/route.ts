@@ -9,19 +9,33 @@ import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('MarketDataAPI');
 
-// 缓存配置
 interface CacheEntry {
   data: unknown;
   timestamp: number;
 }
 
-const CACHE_DURATION = 60000; // 1分钟缓存
+const CACHE_DURATION = 60000;
 const cache: Map<string, CacheEntry> = new Map();
+
+const MAX_SYMBOL_LENGTH = 20;
+const MAX_SYMBOLS_BATCH = 50;
+const VALID_TYPES = ['market', 'historical', 'ohlc'] as const;
+const MAX_DAYS = 365;
+
+function validateSymbol(symbol: string): boolean {
+  if (!symbol || typeof symbol !== 'string') return false;
+  if (symbol.length > MAX_SYMBOL_LENGTH) return false;
+  if (!/^[A-Za-z0-9\-]+$/.test(symbol)) return false;
+  return true;
+}
+
+function sanitizeSymbol(symbol: string): string {
+  return symbol.trim().toUpperCase().slice(0, MAX_SYMBOL_LENGTH);
+}
 
 function getCachedData<T>(key: string): T | null {
   const entry = cache.get(key);
   if (entry && Date.now() - entry.timestamp < CACHE_DURATION) {
-    logger.info(`Cache hit for key: ${key}`);
     return entry.data as T;
   }
   return null;
@@ -31,25 +45,37 @@ function setCachedData(key: string, data: unknown): void {
   cache.set(key, { data, timestamp: Date.now() });
 }
 
-/**
- * 获取单个代币的市场数据
- * 优先 CoinGecko，失败时降级到 Binance
- */
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const symbol = searchParams.get('symbol');
-    const type = searchParams.get('type') || 'market'; // market, historical, ohlc
-    const days = parseInt(searchParams.get('days') || '30', 10);
+    const symbolRaw = searchParams.get('symbol');
+    const typeRaw = searchParams.get('type') || 'market';
+    const daysRaw = searchParams.get('days') || '30';
     const forceRefresh = searchParams.get('refresh') === 'true';
 
-    if (!symbol) {
+    if (!symbolRaw) {
       return NextResponse.json({ error: 'Symbol parameter is required' }, { status: 400 });
     }
 
-    const cacheKey = `${type}-${symbol}-${days}`;
+    if (!validateSymbol(symbolRaw)) {
+      return NextResponse.json({ error: 'Invalid symbol format' }, { status: 400 });
+    }
 
-    // 检查缓存
+    const symbol = sanitizeSymbol(symbolRaw);
+
+    if (!VALID_TYPES.includes(typeRaw as (typeof VALID_TYPES)[number])) {
+      return NextResponse.json({ error: 'Invalid type parameter' }, { status: 400 });
+    }
+
+    const type = typeRaw as (typeof VALID_TYPES)[number];
+
+    const daysNum = parseInt(daysRaw, 10);
+    if (isNaN(daysNum) || daysNum < 1 || daysNum > MAX_DAYS) {
+      return NextResponse.json({ error: 'Invalid days parameter' }, { status: 400 });
+    }
+
+    const cacheKey = `${type}-${symbol}-${daysNum}`;
+
     if (!forceRefresh) {
       const cached = getCachedData(cacheKey);
       if (cached) {
@@ -67,7 +93,6 @@ export async function GET(request: Request) {
 
     switch (type) {
       case 'market': {
-        logger.info(`Fetching market data for ${symbol} (priority: CoinGecko)`);
         const marketData = await coinGeckoMarketService.getTokenMarketData(symbol);
         if (marketData && marketData.marketCap !== null && marketData.marketCap > 0) {
           data = marketData;
@@ -80,40 +105,34 @@ export async function GET(request: Request) {
       }
 
       case 'historical': {
-        logger.info(`Fetching historical prices for ${symbol}, days: ${days}`);
-        const historicalData = await coinGeckoMarketService.getHistoricalPrices(symbol, days);
+        const historicalData = await coinGeckoMarketService.getHistoricalPrices(symbol, daysNum);
         if (historicalData && historicalData.length > 0) {
           data = historicalData;
           source = 'coingecko';
         } else {
-          data = await binanceMarketService.getHistoricalPrices(symbol, days);
+          data = await binanceMarketService.getHistoricalPrices(symbol, daysNum);
           source = 'binance';
         }
         break;
       }
 
       case 'ohlc': {
-        logger.info(`Fetching OHLC data for ${symbol}, days: ${days}`);
-        const ohlcData = await coinGeckoMarketService.getOHLCData(symbol, days);
+        const ohlcData = await coinGeckoMarketService.getOHLCData(symbol, daysNum);
         if (ohlcData && ohlcData.length > 0) {
           data = ohlcData;
           source = 'coingecko';
         } else {
-          data = await binanceMarketService.getOHLCData(symbol, days);
+          data = await binanceMarketService.getOHLCData(symbol, daysNum);
           source = 'binance';
         }
         break;
       }
-
-      default:
-        return NextResponse.json({ error: `Unknown type: ${type}` }, { status: 400 });
     }
 
     if (!data) {
-      return NextResponse.json({ error: `No data found for symbol: ${symbol}` }, { status: 404 });
+      return NextResponse.json({ error: 'No data found' }, { status: 404 });
     }
 
-    // 缓存数据
     setCachedData(cacheKey, data);
 
     return NextResponse.json({
@@ -128,40 +147,50 @@ export async function GET(request: Request) {
       'Market data API error:',
       error instanceof Error ? error : new Error(String(error))
     );
-    return NextResponse.json(
-      {
-        error: 'Failed to fetch market data',
-        message: error instanceof Error ? error.message : String(error),
-      },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch market data' }, { status: 500 });
   }
 }
 
-/**
- * 批量获取多个代币的市场数据
- */
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const { symbols, type = 'market' } = body;
+    let body: unknown;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    }
+
+    if (!body || typeof body !== 'object') {
+      return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+    }
+
+    const { symbols, type = 'market' } = body as Record<string, unknown>;
 
     if (!symbols || !Array.isArray(symbols) || symbols.length === 0) {
+      return NextResponse.json({ error: 'Symbols array is required' }, { status: 400 });
+    }
+
+    if (symbols.length > MAX_SYMBOLS_BATCH) {
       return NextResponse.json(
-        { error: 'Symbols array is required and must not be empty' },
+        { error: `Maximum ${MAX_SYMBOLS_BATCH} symbols allowed` },
         { status: 400 }
       );
     }
 
-    // 限制批量请求数量
-    if (symbols.length > 50) {
-      return NextResponse.json(
-        { error: 'Maximum 50 symbols allowed per batch request' },
-        { status: 400 }
-      );
+    if (!VALID_TYPES.includes(type as (typeof VALID_TYPES)[number])) {
+      return NextResponse.json({ error: 'Invalid type parameter' }, { status: 400 });
     }
 
-    logger.info(`Batch fetching ${type} data for ${symbols.length} symbols`);
+    const validSymbols: string[] = [];
+    for (const s of symbols) {
+      if (typeof s === 'string' && validateSymbol(s)) {
+        validSymbols.push(sanitizeSymbol(s));
+      }
+    }
+
+    if (validSymbols.length === 0) {
+      return NextResponse.json({ error: 'No valid symbols provided' }, { status: 400 });
+    }
 
     const results: Array<{
       symbol: string;
@@ -170,14 +199,11 @@ export async function POST(request: Request) {
       error?: string;
     }> = [];
 
-    // 对于批量市场数据，优先使用 CoinGecko 的批量端点
     if (type === 'market') {
       try {
-        // 先尝试 CoinGecko 批量接口
-        const batchData = await coinGeckoMarketService.getMultipleTokensMarketData(symbols);
+        const batchData = await coinGeckoMarketService.getMultipleTokensMarketData(validSymbols);
         const foundSymbols = new Set(batchData.map((d: TokenMarketData) => d.symbol.toUpperCase()));
 
-        // 处理成功获取的数据
         for (const data of batchData) {
           results.push({
             symbol: data.symbol,
@@ -186,8 +212,7 @@ export async function POST(request: Request) {
           });
         }
 
-        // 对于 CoinGecko 未返回的数据，使用 Binance 补充
-        const missingSymbols = symbols.filter((s) => !foundSymbols.has(s.toUpperCase()));
+        const missingSymbols = validSymbols.filter((s) => !foundSymbols.has(s));
         for (const symbol of missingSymbols) {
           try {
             const data = await binanceMarketService.getTokenMarketData(symbol);
@@ -196,19 +221,17 @@ export async function POST(request: Request) {
               data,
               source: data ? 'binance' : 'none',
             });
-          } catch (error) {
+          } catch {
             results.push({
               symbol,
               data: null,
               source: 'error',
-              error: error instanceof Error ? error.message : String(error),
+              error: 'Failed to fetch data',
             });
           }
         }
-      } catch (error) {
-        // CoinGecko 批量接口失败，逐个使用 Binance
-        logger.warn('CoinGecko batch failed, falling back to individual Binance requests');
-        for (const symbol of symbols) {
+      } catch {
+        for (const symbol of validSymbols) {
           try {
             const data = await binanceMarketService.getTokenMarketData(symbol);
             results.push({
@@ -216,19 +239,18 @@ export async function POST(request: Request) {
               data,
               source: data ? 'binance' : 'none',
             });
-          } catch (err) {
+          } catch {
             results.push({
               symbol,
               data: null,
               source: 'error',
-              error: err instanceof Error ? err.message : String(err),
+              error: 'Failed to fetch data',
             });
           }
         }
       }
     } else {
-      // 其他类型逐个获取
-      for (const symbol of symbols) {
+      for (const symbol of validSymbols) {
         try {
           let data: unknown;
           let source: string;
@@ -252,7 +274,7 @@ export async function POST(request: Request) {
               source = 'binance';
             }
           } else {
-            throw new Error(`Unknown type: ${type}`);
+            throw new Error('Unknown type');
           }
 
           results.push({
@@ -260,12 +282,12 @@ export async function POST(request: Request) {
             data,
             source,
           });
-        } catch (error) {
+        } catch {
           results.push({
             symbol,
             data: null,
             source: 'error',
-            error: error instanceof Error ? error.message : String(error),
+            error: 'Failed to fetch data',
           });
         }
       }
@@ -277,9 +299,9 @@ export async function POST(request: Request) {
       success: true,
       data: results,
       summary: {
-        total: symbols.length,
+        total: validSymbols.length,
         success: successCount,
-        failed: symbols.length - successCount,
+        failed: validSymbols.length - successCount,
       },
       timestamp: Date.now(),
     });
@@ -288,12 +310,6 @@ export async function POST(request: Request) {
       'Batch market data API error:',
       error instanceof Error ? error : new Error(String(error))
     );
-    return NextResponse.json(
-      {
-        error: 'Failed to fetch batch market data',
-        message: error instanceof Error ? error.message : String(error),
-      },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch batch market data' }, { status: 500 });
   }
 }

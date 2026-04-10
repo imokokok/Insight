@@ -82,45 +82,69 @@ export const useRealtimeStore = create<RealtimeStore>()(
       setActiveSubscriptions: (subscriptions) => set({ activeSubscriptions: subscriptions }),
 
       subscribeToPriceUpdates: (callback, filters) => {
+        // 使用 ref 存储 callback，避免闭包问题
+        const callbackRef = { current: callback };
+
         const unsubscribe = realtimeManager.subscribeToPriceUpdates((payload) => {
           set((state) => ({
             lastPriceUpdate: payload,
             priceUpdateCount: state.priceUpdateCount + 1,
           }));
-          callback?.(payload);
+          // 使用 ref 调用最新的 callback
+          callbackRef.current?.(payload);
         }, filters);
 
-        return unsubscribe;
+        // 返回增强的 unsubscribe 函数
+        return () => {
+          unsubscribe();
+          // 清理 callback 引用，帮助垃圾回收
+          callbackRef.current = undefined;
+        };
       },
 
       subscribeToAlertEvents: (userId, callback) => {
+        const callbackRef = { current: callback };
+
         const unsubscribe = realtimeManager.subscribeToAlertEvents(userId, (payload) => {
           set((state) => ({
             lastAlertEvent: payload,
             alertEventCount: state.alertEventCount + 1,
           }));
-          callback?.(payload);
+          callbackRef.current?.(payload);
         });
 
-        return unsubscribe;
+        return () => {
+          unsubscribe();
+          callbackRef.current = undefined;
+        };
       },
 
       subscribeToSnapshotChanges: (userId, callback) => {
+        const callbackRef = { current: callback };
+
         const unsubscribe = realtimeManager.subscribeToSnapshotChanges(userId, (payload) => {
           set({ lastSnapshotChange: payload });
-          callback?.(payload);
+          callbackRef.current?.(payload);
         });
 
-        return unsubscribe;
+        return () => {
+          unsubscribe();
+          callbackRef.current = undefined;
+        };
       },
 
       subscribeToFavoriteChanges: (userId, callback) => {
+        const callbackRef = { current: callback };
+
         const unsubscribe = realtimeManager.subscribeToFavoriteChanges(userId, (payload) => {
           set({ lastFavoriteChange: payload });
-          callback?.(payload);
+          callbackRef.current?.(payload);
         });
 
-        return unsubscribe;
+        return () => {
+          unsubscribe();
+          callbackRef.current = undefined;
+        };
       },
 
       reconnect: () => {

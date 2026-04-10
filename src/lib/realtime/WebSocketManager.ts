@@ -344,10 +344,11 @@ export class WebSocketManager {
     return Math.max(1000, baseDelay + jitter);
   }
 
-  private static globalReconnectCount = 0;
-  private static lastGlobalReconnectTime = 0;
-  private static readonly GLOBAL_RECONNECT_WINDOW = 60000; // 1分钟窗口
-  private static readonly MAX_GLOBAL_RECONNECTS = 10; // 每分钟最大全局重连数
+  // 使用实例级别的重连限制，避免静态属性在多标签页场景下的问题
+  private reconnectCount = 0;
+  private lastReconnectTime = 0;
+  private readonly RECONNECT_WINDOW = 60000; // 1分钟窗口
+  private readonly MAX_RECONNECTS_PER_WINDOW = 10; // 每分钟最大重连数
 
   private attemptReconnect(): void {
     if (this.reconnectAttempts >= this.config.maxReconnectAttempts) {
@@ -356,21 +357,21 @@ export class WebSocketManager {
       return;
     }
 
-    // 全局重连限制检查
+    // 实例级别的重连限制检查
     const now = Date.now();
-    if (now - WebSocketManager.lastGlobalReconnectTime > WebSocketManager.GLOBAL_RECONNECT_WINDOW) {
-      WebSocketManager.globalReconnectCount = 0;
-      WebSocketManager.lastGlobalReconnectTime = now;
+    if (now - this.lastReconnectTime > this.RECONNECT_WINDOW) {
+      this.reconnectCount = 0;
+      this.lastReconnectTime = now;
     }
 
-    if (WebSocketManager.globalReconnectCount >= WebSocketManager.MAX_GLOBAL_RECONNECTS) {
-      logger.warn('Global reconnect limit reached, delaying reconnection');
+    if (this.reconnectCount >= this.MAX_RECONNECTS_PER_WINDOW) {
+      logger.warn('Reconnect limit reached for this instance, delaying reconnection');
       const extraDelay = 5000 + Math.random() * 5000; // 5-10秒额外延迟
       setTimeout(() => this.attemptReconnect(), extraDelay);
       return;
     }
 
-    WebSocketManager.globalReconnectCount++;
+    this.reconnectCount++;
     this.reconnectAttempts++;
     this.stats.reconnectionCount++;
     this.setStatus('reconnecting');
@@ -380,7 +381,7 @@ export class WebSocketManager {
       : this.config.reconnectInterval;
 
     logger.info(
-      `Reconnecting in ${delay.toFixed(0)}ms... Attempt ${this.reconnectAttempts}/${this.config.maxReconnectAttempts} (global: ${WebSocketManager.globalReconnectCount}/${WebSocketManager.MAX_GLOBAL_RECONNECTS})`
+      `Reconnecting in ${delay.toFixed(0)}ms... Attempt ${this.reconnectAttempts}/${this.config.maxReconnectAttempts} (instance: ${this.reconnectCount}/${this.MAX_RECONNECTS_PER_WINDOW})`
     );
 
     this.config.onReconnect?.(this.reconnectAttempts);
