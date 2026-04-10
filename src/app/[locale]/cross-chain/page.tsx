@@ -29,13 +29,11 @@ import { BenchmarkComparisonSection } from './components/BenchmarkComparisonSect
 import { CointegrationAnalysis } from './components/CointegrationAnalysis';
 import { CollapsibleSection } from './components/CollapsibleSection';
 import { CompactStatsGrid } from './components/CompactStatsGrid';
-import { CorrelationMatrix } from './components/CorrelationMatrix';
 import { CrossChainFilters } from './components/CrossChainFilters';
 import { DataSourceSection } from './components/DataSourceSection';
 import { InteractivePriceChart } from './components/InteractivePriceChart';
 import { PriceComparisonTable } from './components/PriceComparisonTable';
 import { PriceSpreadHeatmap, HeatmapDetailView } from './components/PriceSpreadHeatmap';
-import { RollingCorrelationChart } from './components/RollingCorrelationChart';
 import { ProgressBar as CrossChainProgressBar, JumpIndicator } from './components/SmallComponents';
 import { StandardBoxPlot } from './components/StandardBoxPlot';
 import { TabNavigation, type TabId } from './components/TabNavigation';
@@ -386,19 +384,6 @@ export default function CrossChainPage() {
           </table>
         </div>
       </div>
-    </>
-  );
-
-  const renderCorrelationTab = () => (
-    <>
-      <div id="correlation">
-        <SectionErrorBoundary componentName="Correlation Matrix">
-          <CorrelationMatrix data={data} />
-        </SectionErrorBoundary>
-      </div>
-      <SectionErrorBoundary componentName="Rolling Correlation">
-        <RollingCorrelationChart data={data} />
-      </SectionErrorBoundary>
     </>
   );
 
@@ -798,7 +783,6 @@ export default function CrossChainPage() {
             ) : (
               <div className="mt-4">
                 {activeTab === 'overview' && renderOverviewTab()}
-                {activeTab === 'correlation' && renderCorrelationTab()}
                 {activeTab === 'advanced' && renderAdvancedTab()}
                 {activeTab === 'charts' && renderChartsTab()}
               </div>
