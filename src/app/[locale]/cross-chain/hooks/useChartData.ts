@@ -18,7 +18,6 @@ import {
   chainColors,
   calculatePercentile,
   calculateSMA,
-  calculateDynamicThreshold,
   detectPriceJumps,
   defaultThresholdConfig,
   detectOutliersIQR,
@@ -250,16 +249,10 @@ export function useChartData(params: UseChartDataParams): UseChartDataReturn {
       });
     }
 
+    // 优化：使用数学计算直接确定 bin 索引，时间复杂度从 O(n*m) 降到 O(n)
     validPrices.forEach((price) => {
-      for (let i = 0; i < bins.length; i++) {
-        if (
-          price >= bins[i].minPrice &&
-          (price < bins[i].maxPrice || (i === bins.length - 1 && price <= bins[i].maxPrice))
-        ) {
-          bins[i].count++;
-          break;
-        }
-      }
+      const binIndex = Math.min(Math.floor((price - min) / binWidth), numBins - 1);
+      bins[binIndex].count++;
     });
 
     return bins.map((bin) => ({
@@ -466,10 +459,15 @@ export function useChartData(params: UseChartDataParams): UseChartDataReturn {
           historicalPrices[chainY]?.map((p) => ({ timestamp: p.timestamp, price: p.price })) || [];
 
         if (chainX === chainY) {
-          matrix[chainX]![chainY] = 1;
+          // 使用安全赋值，确保对象已初始化
+          if (matrix[chainX]) {
+            matrix[chainX][chainY] = 1;
+          }
         } else {
           const correlation = calculatePearsonCorrelationByTimestamp(dataX, dataY);
-          matrix[chainX]![chainY] = isNaN(correlation) ? 0 : correlation;
+          if (matrix[chainX]) {
+            matrix[chainX][chainY] = isNaN(correlation) ? 0 : correlation;
+          }
         }
       });
     });
@@ -489,16 +487,21 @@ export function useChartData(params: UseChartDataParams): UseChartDataReturn {
           historicalPrices[chainY]?.map((p) => ({ timestamp: p.timestamp, price: p.price })) || [];
 
         if (chainX === chainY) {
-          matrix[chainX]![chainY] = {
-            correlation: 1,
-            pValue: 0,
-            sampleSize: dataX.length,
-            isSignificant: true,
-            significanceLevel: '***',
-          };
+          // 使用安全赋值，确保对象已初始化
+          if (matrix[chainX]) {
+            matrix[chainX][chainY] = {
+              correlation: 1,
+              pValue: 0,
+              sampleSize: dataX.length,
+              isSignificant: true,
+              significanceLevel: '***',
+            };
+          }
         } else {
           const result = calculatePearsonCorrelationWithSignificanceByTimestamp(dataX, dataY);
-          matrix[chainX]![chainY] = result;
+          if (matrix[chainX]) {
+            matrix[chainX][chainY] = result;
+          }
         }
       });
     });

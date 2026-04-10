@@ -23,6 +23,19 @@ interface ChainConfig {
   endpoint: string;
 }
 
+// 链状态判定阈值配置
+const CHAIN_STATUS_THRESHOLDS = {
+  // 在线状态：延迟 < 200ms 且偏差 < 0.5%
+  ONLINE: { maxLatency: 200, maxDeviation: 0.5 },
+  // 降级状态：延迟 < 500ms 且偏差 < 1%
+  DEGRADED: { maxLatency: 500, maxDeviation: 1.0 },
+  // 离线状态：其他情况
+  OFFLINE: { latency: 999 },
+} as const;
+
+// 请求超时配置
+const REQUEST_TIMEOUT_MS = 5000;
+
 const CHAIN_CONFIGS: ChainConfig[] = [
   { id: 'solana', name: 'Solana', endpoint: HERMES_API_URL },
   { id: 'ethereum', name: 'Ethereum', endpoint: HERMES_API_URL },
@@ -44,12 +57,17 @@ export async function fetchChainSpecificData(
     try {
       const chainStartTime = Date.now();
       const response = await fetch(`${chain.endpoint}/api/latest_price_updates?ids[]=${priceId}`, {
-        signal: AbortSignal.timeout(5000),
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
       });
 
       const latency = Date.now() - chainStartTime;
 
       if (!response.ok) {
+        logger.warn(`Chain ${chain.name} returned non-OK response`, {
+          chain: chain.id,
+          status: response.status,
+          statusText: response.statusText,
+        });
         results.push({
           chain: chain.id,
           price: basePrice,
@@ -73,10 +91,13 @@ export async function fetchChainSpecificData(
         const price = priceValue * Math.pow(10, exponent);
         const deviation = basePrice > 0 ? ((price - basePrice) / basePrice) * 100 : 0;
 
+        // 使用配置常量判断链状态
         const status: 'online' | 'degraded' | 'offline' =
-          latency < 200 && Math.abs(deviation) < 0.5
+          latency < CHAIN_STATUS_THRESHOLDS.ONLINE.maxLatency &&
+          Math.abs(deviation) < CHAIN_STATUS_THRESHOLDS.ONLINE.maxDeviation
             ? 'online'
-            : latency < 500 && Math.abs(deviation) < 1
+            : latency < CHAIN_STATUS_THRESHOLDS.DEGRADED.maxLatency &&
+                Math.abs(deviation) < CHAIN_STATUS_THRESHOLDS.DEGRADED.maxDeviation
               ? 'degraded'
               : 'offline';
 
@@ -89,6 +110,10 @@ export async function fetchChainSpecificData(
           lastUpdate: new Date((parsed.price.publish_time ?? Date.now() / 1000) * 1000),
         });
       } else {
+        logger.warn(`Chain ${chain.name} returned invalid price data format`, {
+          chain: chain.id,
+          parsed: parsed ? 'exists' : 'null',
+        });
         results.push({
           chain: chain.id,
           price: basePrice,
@@ -98,12 +123,21 @@ export async function fetchChainSpecificData(
           lastUpdate: new Date(),
         });
       }
-    } catch (_error) {
+    } catch (error) {
+      logger.error(
+        `Failed to fetch data from chain ${chain.name}`,
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          chain: chain.id,
+          priceId,
+          basePrice,
+        }
+      );
       results.push({
         chain: chain.id,
         price: basePrice,
         deviation: 0,
-        latency: 999,
+        latency: CHAIN_STATUS_THRESHOLDS.OFFLINE.latency,
         status: 'offline',
         lastUpdate: new Date(),
       });
