@@ -72,7 +72,6 @@ const credibilityConfig: Record<
 
 const providerDisplayNames: Record<OracleProvider, string> = {
   [OracleProvider.CHAINLINK]: 'Chainlink',
-  [OracleProvider.UMA]: 'UMA',
   [OracleProvider.PYTH]: 'Pyth Network',
   [OracleProvider.API3]: 'API3',
   [OracleProvider.REDSTONE]: 'RedStone',

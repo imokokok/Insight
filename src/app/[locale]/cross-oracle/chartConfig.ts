@@ -28,17 +28,15 @@ export const getOracleChartColors = (
   if (useAccessibleColors) {
     return {
       [OracleProvider.CHAINLINK]: accessibleColors.chart.sequence[0],
-      [OracleProvider.UMA]: accessibleColors.chart.sequence[1],
-      [OracleProvider.PYTH]: accessibleColors.chart.sequence[2],
-      [OracleProvider.API3]: accessibleColors.chart.sequence[3],
-      [OracleProvider.REDSTONE]: accessibleColors.chart.sequence[4],
-      [OracleProvider.DIA]: accessibleColors.chart.sequence[5],
-      [OracleProvider.WINKLINK]: accessibleColors.chart.sequence[6],
+      [OracleProvider.PYTH]: accessibleColors.chart.sequence[1],
+      [OracleProvider.API3]: accessibleColors.chart.sequence[2],
+      [OracleProvider.REDSTONE]: accessibleColors.chart.sequence[3],
+      [OracleProvider.DIA]: accessibleColors.chart.sequence[4],
+      [OracleProvider.WINKLINK]: accessibleColors.chart.sequence[5],
     } as Record<OracleProvider, string>;
   }
   return {
     [OracleProvider.CHAINLINK]: chartColors.oracle.chainlink,
-    [OracleProvider.UMA]: chartColors.oracle.uma,
     [OracleProvider.PYTH]: chartColors.oracle.pyth,
     [OracleProvider.API3]: chartColors.oracle.api3,
     [OracleProvider.REDSTONE]: chartColors.oracle.redstone,
@@ -54,7 +52,6 @@ export const getLineStrokeDasharray = (
   if (!useAccessibleColors) return '0';
   const patternMap: Record<OracleProvider, string> = {
     [OracleProvider.CHAINLINK]: accessibleColors.linePatterns.solid,
-    [OracleProvider.UMA]: accessibleColors.linePatterns.dotted,
     [OracleProvider.PYTH]: accessibleColors.linePatterns.dashDot,
     [OracleProvider.API3]: accessibleColors.linePatterns.longDash,
     [OracleProvider.REDSTONE]: '5 5',

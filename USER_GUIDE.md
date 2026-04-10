@@ -61,12 +61,12 @@ The platform features an intuitive navigation system:
 
 #### Main Navigation Menu
 
-| Menu               | Description                                                                                                     |
-| ------------------ | --------------------------------------------------------------------------------------------------------------- |
-| **Home**           | Dashboard with platform overview and key metrics                                                                |
-| **Market**         | Market Overview and Price Query tools                                                                           |
-| **Data Analysis**  | Cross-Oracle and Cross-Chain analysis tools                                                                     |
-| **Oracle Details** | Individual oracle pages (Chainlink, Band Protocol, Pyth, API3, UMA, RedStone, DIA, Tellor, Chronicle, WINkLink) |
+| Menu               | Description                                                              |
+| ------------------ | ------------------------------------------------------------------------ |
+| **Home**           | Dashboard with platform overview and key metrics                         |
+| **Market**         | Market Overview and Price Query tools                                    |
+| **Data Analysis**  | Cross-Oracle and Cross-Chain analysis tools                              |
+| **Oracle Details** | Individual oracle pages (Chainlink, Pyth, API3, RedStone, DIA, WINkLink) |
 
 #### User Menu (Logged In)
 
@@ -102,9 +102,10 @@ A scrolling ticker displaying real-time prices for major oracle tokens:
 
 - Chainlink (LINK)
 - Pyth Network (PYTH)
-- Band Protocol (BAND)
 - API3 (API3)
-- UMA (UMA)
+- RedStone (REDSTONE)
+- DIA (DIA)
+- WINkLink (WINKLINK)
 
 Each ticker shows:
 
@@ -264,10 +265,11 @@ Configure your query parameters:
 Select one or more oracle providers:
 
 - Chainlink
-- Band Protocol
 - Pyth Network
 - API3
-- UMA
+- RedStone
+- DIA
+- WINkLink
 
 Multi-select enabled - compare prices across multiple oracles simultaneously.
 
@@ -682,22 +684,6 @@ Each oracle has a dedicated page with specialized analytics.
 - **Risk**: Risk assessment metrics
 - **Ecosystem**: Integration overview
 
-### Band Protocol (`/[locale]/band-protocol`)
-
-#### Features
-
-- **Validator Analytics**: Validator performance metrics
-- **Geographic Distribution**: Validator location map
-- **Cross-Chain Consistency**: Price consistency across chains
-- **Chain Events**: Real-time blockchain events
-- **Staking Metrics**: Staking pool analysis
-
-#### Tabs
-
-- **Market**: Price and market data
-- **Network**: Validator network status
-- **Ecosystem**: Cross-chain integration
-
 ### Pyth Network (`/pyth-network`)
 
 #### Features
@@ -733,21 +719,6 @@ Each oracle has a dedicated page with specialized analytics.
 - **Network**: Airnode network status
 - **Risk**: Security assessment
 
-### UMA (`/uma`)
-
-#### Features
-
-- **Dispute Resolution**: Active disputes panel
-- **Voting Analytics**: Governance participation
-- **Validator Analytics**: Validator performance
-- **Data Quality Scores**: Quality assessment
-
-#### Tabs
-
-- **Market**: Price and market data
-- **Validators**: Validator network
-- **Disputes**: Dispute resolution panel
-
 ### RedStone (`/[locale]/redstone`)
 
 #### Features
@@ -779,38 +750,6 @@ Each oracle has a dedicated page with specialized analytics.
 - **Market**: Price and market data
 - **NFT Data**: NFT floor price tracking
 - **Methodology**: Data sourcing transparency
-
-### Tellor (`/[locale]/tellor`)
-
-#### Features
-
-- **Stake-Based Reporting**: Reporter staking information
-- **Dispute Mechanism**: Active and historical disputes
-- **Mining Rewards**: Reporter reward tracking
-- **Governance**: Community voting and proposals
-- **Network Statistics**: Reporter activity metrics
-
-#### Tabs
-
-- **Market**: Price and market data
-- **Mining**: Staking and rewards
-- **Disputes**: Dispute resolution panel
-
-### Chronicle (`/[locale]/chronicle`)
-
-#### Features
-
-- **MakerDAO Integration**: Vault and DAI statistics
-- **Scuttlebutt Protocol**: Peer-to-peer gossip metrics
-- **On-Chain Verification**: Cryptographic proof display
-- **Collateral Tracking**: Supported collateral types
-- **Stability Fee Metrics**: DAI stability parameters
-
-#### Tabs
-
-- **Market**: Price and market data
-- **MakerDAO**: MakerDAO ecosystem integration
-- **Network**: Scuttlebutt protocol status
 
 ### WINkLink (`/[locale]/winklink`)
 

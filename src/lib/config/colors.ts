@@ -218,7 +218,6 @@ export const chartColors = {
   // 预言机品牌色 - 优化对比度和可区分性
   oracle: {
     chainlink: '#2563EB',
-    uma: '#D97706',
     pyth: '#7C3AED',
     api3: '#DB2777',
     redstone: '#FF6B6B',
@@ -231,7 +230,6 @@ export const chartColors = {
   // 预言机颜色 - 色盲友好版本（使用形状+颜色双重编码）
   oracleAccessible: {
     chainlink: { color: '#1e40af', pattern: 'solid' },
-    uma: { color: '#92400e', pattern: 'dotted' },
     pyth: { color: '#5b21b6', pattern: 'dashDot' },
     api3: { color: '#9d174d', pattern: 'longDash' },
     redstone: { color: '#dc2626', pattern: 'solid' },
@@ -239,14 +237,6 @@ export const chartColors = {
     dia: { color: '#059669', pattern: 'dotted' },
     flux: { color: '#ea580c', pattern: 'dashDot' },
     winklink: { color: '#dc2626', pattern: 'dashed' },
-  } as const,
-
-  // UMA 请求类型颜色
-  umaRequestType: {
-    price: '#3b82f6',
-    state: '#10b981',
-    liquidation: '#f59e0b',
-    other: '#64748b',
   } as const,
 
   // 地区颜色
@@ -304,7 +294,6 @@ export const chartColors = {
     chainlink: '#375BD2',
     pyth: '#E6B800',
     api3: '#7CE3CB',
-    uma: '#FF4A8D',
     default: '#8884d8',
   },
 
@@ -714,13 +703,11 @@ export const heatmapColors = {
   },
   oracle: {
     chainlink: '#375BD2',
-    uma: '#FF6B6B',
     pythNetwork: '#EC4899',
     api3: '#10B981',
   },
   accessible: {
     chainlink: '#003f5c',
-    uma: '#665191',
     pythNetwork: '#a05195',
     api3: '#d45087',
   },

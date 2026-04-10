@@ -48,13 +48,14 @@ Retrieve current price or historical prices from oracle providers.
 
 **Supported Providers:**
 
-| Provider      | Value           | Description                  |
-| ------------- | --------------- | ---------------------------- |
-| Chainlink     | `chainlink`     | Decentralized oracle network |
-| Band Protocol | `band-protocol` | Cross-chain data oracle      |
-| UMA           | `uma`           | Optimistic oracle            |
-| Pyth          | `pyth`          | High-frequency data oracle   |
-| API3          | `api3`          | First-party oracle solution  |
+| Provider  | Value       | Description                  |
+| --------- | ----------- | ---------------------------- |
+| Chainlink | `chainlink` | Decentralized oracle network |
+| Pyth      | `pyth`      | High-frequency data oracle   |
+| API3      | `api3`      | First-party oracle solution  |
+| RedStone  | `redstone`  | Modular oracle solution      |
+| DIA       | `dia`       | Open-source oracle           |
+| WINkLink  | `winklink`  | TRON ecosystem oracle        |
 
 **Supported Chains:**
 
@@ -184,9 +185,9 @@ Batch request for multiple prices in a single API call.
       "chain": "ethereum"
     },
     {
-      "provider": "band-protocol",
+      "provider": "pyth",
       "symbol": "ETH/USD",
-      "chain": "polygon"
+      "chain": "solana"
     }
   ]
 }
@@ -220,14 +221,22 @@ Batch request for multiple prices in a single API call.
       },
       {
         "request": {
-          "provider": "band-protocol",
+          "provider": "pyth",
           "symbol": "ETH/USD",
-          "chain": "polygon"
+          "chain": "solana"
         },
-        "status": "rejected",
-        "data": null,
-        "source": null,
-        "error": "Failed to fetch price from band-protocol"
+        "status": "fulfilled",
+        "data": {
+          "provider": "pyth",
+          "symbol": "ETH/USD",
+          "chain": "solana",
+          "price": 3521.87,
+          "timestamp": 1710374400000,
+          "decimals": 8,
+          "confidence": 0.02
+        },
+        "source": "fresh",
+        "error": null
       }
     ]
   },

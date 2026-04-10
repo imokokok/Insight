@@ -1032,57 +1032,6 @@ describe('MockWebSocketManager', () => {
       expect(data).toHaveProperty('timestamp');
     });
 
-    it('测试 uma:prices 频道数据生成', () => {
-      const handler = jest.fn();
-      mockManager.subscribe('uma:prices', handler);
-      mockManager.connect();
-      jest.advanceTimersByTime(500);
-      jest.advanceTimersByTime(2000);
-
-      expect(handler).toHaveBeenCalled();
-      const data = handler.mock.calls[0][0].data;
-      expect(data).toHaveProperty('symbol');
-      expect(data).toHaveProperty('price');
-      expect(data).toHaveProperty('change24h');
-      expect(data).toHaveProperty('confidence');
-      expect(data).toHaveProperty('source');
-      expect(data).toHaveProperty('timestamp');
-    });
-
-    it('测试 uma:disputes 频道数据生成', () => {
-      const handler = jest.fn();
-      mockManager.subscribe('uma:disputes', handler);
-      mockManager.connect();
-      jest.advanceTimersByTime(500);
-      jest.advanceTimersByTime(2000);
-
-      expect(handler).toHaveBeenCalled();
-      const data = handler.mock.calls[0][0].data;
-      expect(data).toHaveProperty('id');
-      expect(data).toHaveProperty('timestamp');
-      expect(data).toHaveProperty('status');
-      expect(data).toHaveProperty('type');
-      expect(data).toHaveProperty('reward');
-      expect(data).toHaveProperty('transactionHash');
-    });
-
-    it('测试 uma:validators 频道数据生成', () => {
-      const handler = jest.fn();
-      mockManager.subscribe('uma:validators', handler);
-      mockManager.connect();
-      jest.advanceTimersByTime(500);
-      jest.advanceTimersByTime(2000);
-
-      expect(handler).toHaveBeenCalled();
-      const data = handler.mock.calls[0][0].data;
-      expect(data).toHaveProperty('validatorId');
-      expect(data).toHaveProperty('timestamp');
-      expect(data).toHaveProperty('responseTime');
-      expect(data).toHaveProperty('successRate');
-      expect(data).toHaveProperty('staked');
-      expect(data).toHaveProperty('earnings');
-    });
-
     it('测试未知频道不生成数据', () => {
       const handler = jest.fn();
       mockManager.subscribe('unknown', handler);

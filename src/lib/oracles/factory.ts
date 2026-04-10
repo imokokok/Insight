@@ -10,7 +10,6 @@ import { ChainlinkClient } from './chainlink';
 import { DIAClient } from './dia';
 import { PythClient } from './pythNetwork';
 import { RedStoneClient } from './redstone';
-import { UMAClient } from './uma';
 import { WINkLinkClient } from './winklink';
 
 import type { OracleClientConfig } from './base';
@@ -74,7 +73,6 @@ export class OracleClientFactory {
 
     const providers = [
       OracleProvider.CHAINLINK,
-      OracleProvider.UMA,
       OracleProvider.PYTH,
       OracleProvider.API3,
       OracleProvider.REDSTONE,
@@ -178,7 +176,6 @@ export class OracleClientFactory {
     const result: Partial<Record<OracleProvider, string[]>> = {};
     const providers = [
       OracleProvider.CHAINLINK,
-      OracleProvider.UMA,
       OracleProvider.PYTH,
       OracleProvider.API3,
       OracleProvider.REDSTONE,
@@ -203,14 +200,11 @@ export class OracleClientFactory {
 
   private static createClient(provider: OracleProvider): BaseOracleClient {
     const useRealChainlinkData = FEATURE_FLAGS.useRealChainlinkData ?? true;
-    const useRealUMData = FEATURE_FLAGS.useRealUmaData ?? true;
     const useRealAPI3Data = FEATURE_FLAGS.useRealApi3Data ?? true;
 
     switch (provider) {
       case OracleProvider.CHAINLINK:
         return new ChainlinkClient({ ...this.config, useRealData: useRealChainlinkData });
-      case OracleProvider.UMA:
-        return new UMAClient({ ...this.config, useRealData: useRealUMData });
       case OracleProvider.PYTH:
         return new PythClient(this.config);
       case OracleProvider.API3:

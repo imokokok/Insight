@@ -623,21 +623,6 @@ describe('riskMetrics', () => {
         change7d: 4.0,
         change30d: 8.0,
       },
-      {
-        name: 'UMA',
-        share: 5,
-        color: '#FF4F4F',
-        tvs: '$2B',
-        tvsValue: 2000000000,
-        chains: 3,
-        protocols: 50,
-        avgLatency: 200,
-        accuracy: 99.0,
-        updateFrequency: 3000,
-        change24h: 1.0,
-        change7d: 2.0,
-        change30d: 4.0,
-      },
     ];
 
     const createMockPriceHistory = (): number[] => {

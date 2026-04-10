@@ -43,9 +43,6 @@ export {
 // API3
 export { useAPI3Price, useAPI3Historical } from './api3/index';
 
-// UMA
-export { useUMAPrice, useUMAHistorical } from './uma';
-
 // Unified Oracle Page Hook removed - no longer needed
 
 // Performance Metrics Hook

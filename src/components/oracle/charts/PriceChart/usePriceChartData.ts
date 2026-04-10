@@ -2,14 +2,8 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 
-import {
-  useTechnicalIndicators,
-  type IndicatorDataPoint,
-  useUMARealtimePrice,
-  type UMAPriceData,
-} from '@/hooks';
+import { useTechnicalIndicators, type IndicatorDataPoint } from '@/hooks';
 import { type BaseOracleClient } from '@/lib/oracles/base';
-import { UMAClient } from '@/lib/oracles/uma';
 import {
   downsampleData,
   shouldDownsample,
@@ -92,9 +86,6 @@ interface UsePriceChartDataReturn {
   volumeRange: { min: number; max: number };
   priceChange: { value: number; percent: number };
   detectedAnomalies: AnomalyPoint[];
-  isUMAClient: boolean;
-  umaRealtimePrice: { confidence: number } | null;
-  umaConnectionStatus: string;
   showMA7: boolean;
   showMA14: boolean;
   showMA30: boolean;
@@ -117,7 +108,6 @@ interface UsePriceChartDataReturn {
   fetchData: () => Promise<void>;
   fetchComparisonData: () => Promise<void>;
   applyDownsampling: (data: DataPoint[]) => DataPoint[];
-  handlePriceUpdate: (priceData: UMAPriceData) => void;
   chartState: ReturnType<typeof useChartState>;
   calculateIndicatorsFn: (data: IndicatorDataPoint[]) => IndicatorDataPoint[];
 }
@@ -134,8 +124,6 @@ export function usePriceChartData({
 }: UsePriceChartDataProps): UsePriceChartDataReturn {
   const globalTimeRange = useGlobalTimeRange();
   const timeRange = globalTimeRange;
-
-  const isUMAClient = client instanceof UMAClient;
 
   const chartState = useChartState();
   const {
@@ -357,57 +345,6 @@ export function usePriceChartData({
     applyDownsampling,
   ]);
 
-  const handlePriceUpdate = useCallback(
-    (priceData: UMAPriceData) => {
-      const now = Date.now();
-      if (now - lastRealtimeUpdateRef.current < 1000) return;
-      lastRealtimeUpdateRef.current = now;
-
-      setCurrentPrice(priceData.price);
-
-      setRawData((prevData) => {
-        if (prevData.length === 0) return prevData;
-
-        const lastPoint = prevData[prevData.length - 1];
-        const newTimestamp = now;
-        const newTime = new Date(newTimestamp).toLocaleTimeString(undefined, {
-          hour: '2-digit',
-          minute: '2-digit',
-          second: '2-digit',
-        });
-
-        const newPrice = priceData.price;
-
-        const newPoint: IndicatorDataPoint = {
-          time: newTime,
-          timestamp: newTimestamp,
-          price: newPrice,
-          volume: lastPoint.volume * (0.9 + Math.random() * 0.2),
-          open: lastPoint.close || lastPoint.price,
-          high:
-            Math.max(lastPoint.close || lastPoint.price, newPrice) * (1 + Math.random() * 0.005),
-          low: Math.min(lastPoint.close || lastPoint.price, newPrice) * (1 - Math.random() * 0.005),
-          close: newPrice,
-        };
-
-        const maxDataPoints = 500;
-        const newData = [...prevData, newPoint];
-        if (newData.length > maxDataPoints) {
-          return newData.slice(newData.length - maxDataPoints);
-        }
-        return newData;
-      });
-    },
-    [lastRealtimeUpdateRef, setCurrentPrice, setRawData]
-  );
-
-  const { priceData: umaRealtimePrice, connectionStatus: umaConnectionStatus } =
-    useUMARealtimePrice({
-      symbol: isUMAClient ? symbol : undefined,
-      enabled: isUMAClient && enableRealtime,
-      onPriceUpdate: handlePriceUpdate,
-    });
-
   const priceRange = useMemo(
     () => calculatePriceRange(data, comparisonData, comparison.enabled),
     [data, comparisonData, comparison.enabled]
@@ -452,9 +389,6 @@ export function usePriceChartData({
     volumeRange,
     priceChange,
     detectedAnomalies,
-    isUMAClient,
-    umaRealtimePrice,
-    umaConnectionStatus,
     showMA7,
     showMA14,
     showMA30,
@@ -477,7 +411,6 @@ export function usePriceChartData({
     fetchData,
     fetchComparisonData,
     applyDownsampling,
-    handlePriceUpdate,
     chartState,
     calculateIndicatorsFn,
   };

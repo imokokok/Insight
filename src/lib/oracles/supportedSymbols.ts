@@ -45,9 +45,6 @@ export const redstoneSymbols = [
   'RED',
 ] as const;
 
-// UMA 支持的币种
-export const umaSymbols = ['UMA'] as const;
-
 // DIA 支持的币种
 export const diaSymbols = ['BTC', 'ETH', 'USDC', 'USDT', 'LINK', 'UNI'] as const;
 
@@ -265,7 +262,6 @@ export const winklinkSymbols = [
 export const oracleSupportedSymbols = {
   chainlink: chainlinkSymbols,
   redstone: redstoneSymbols,
-  uma: umaSymbols,
   dia: diaSymbols,
   api3: api3Symbols,
   pyth: pythSymbols,
@@ -275,7 +271,6 @@ export const oracleSupportedSymbols = {
 // 类型定义
 export type ChainlinkSymbol = (typeof chainlinkSymbols)[number];
 export type RedstoneSymbol = (typeof redstoneSymbols)[number];
-export type UmaSymbol = (typeof umaSymbols)[number];
 export type DiaSymbol = (typeof diaSymbols)[number];
 export type Api3Symbol = (typeof api3Symbols)[number];
 export type PythSymbol = (typeof pythSymbols)[number];

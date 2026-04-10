@@ -38,7 +38,6 @@ const oracleIcons: Record<OracleProvider, LucideIcon> = {
   [OracleProvider.PYTH]: Zap,
   [OracleProvider.API3]: Activity,
   [OracleProvider.REDSTONE]: Flame,
-  [OracleProvider.UMA]: Database,
   [OracleProvider.DIA]: Globe,
   [OracleProvider.WINKLINK]: Gamepad2,
 };
@@ -49,7 +48,6 @@ const oracleDescriptions: Record<OracleProvider, string> = {
   [OracleProvider.PYTH]: 'search.oracles.pythDesc',
   [OracleProvider.API3]: 'search.oracles.api3Desc',
   [OracleProvider.REDSTONE]: 'search.oracles.redstoneDesc',
-  [OracleProvider.UMA]: 'search.oracles.umaDesc',
   [OracleProvider.DIA]: 'search.oracles.diaDesc',
   [OracleProvider.WINKLINK]: 'search.oracles.winklinkDesc',
 };

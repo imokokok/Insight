@@ -246,9 +246,6 @@
   "priceDeviation": {
     "loading": "Loading..."
   },
-  "uma": {
-    "loading": "Loading..."
-  },
   "home": {
     "loading": "Loading..."
   },
@@ -1136,7 +1133,6 @@
   "oracles": {
     "descriptions": {
       "chainlink": "Industry-leading decentralized oracle network providing secure and reliable off-chain data connectivity for smart contracts",
-      "uma": "Optimistic oracle protocol building trustless synthetic assets and financial contracts through dispute resolution mechanisms",
       "pyth": "High-frequency financial data oracle with first-party exchange data and sub-second latency",
       "api3": "First-party oracle network enabling decentralized API connectivity",
       "redstone": "Modular oracle solution supporting efficient data streams and flexible integration options",

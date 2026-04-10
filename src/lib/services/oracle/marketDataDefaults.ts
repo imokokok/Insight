@@ -14,7 +14,6 @@ export interface TvsTrendDataPoint {
   chainlink: number;
   pyth: number;
   api3: number;
-  uma: number;
   redstone: number;
   dia: number;
   winklink: number;
@@ -33,7 +32,6 @@ export const COLORS = {
   chainlink: chartColors.oracle.chainlink,
   pyth: chartColors.oracle.pyth,
   api3: chartColors.oracle.api3,
-  uma: chartColors.oracle.uma,
   redstone: chartColors.oracle.redstone,
   dia: chartColors.oracle.dia,
   winklink: chartColors.oracle.winklink,

@@ -6,7 +6,6 @@ import { type MarketDataConfig } from '@/components/oracle/panels/MarketDataPane
 import { chartColors } from '@/lib/config/colors';
 import {
   ChainlinkClient,
-  UMAClient,
   PythClient,
   API3Client,
   RedStoneClient,
@@ -220,49 +219,6 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
         component: 'ChainlinkEcosystemView',
       },
       { id: 'risk', labelKey: 'chainlink.menu.riskAssessment', component: 'ChainlinkRiskView' },
-    ],
-  },
-  [OracleProvider.UMA]: {
-    provider: OracleProvider.UMA,
-    name: 'UMA',
-    descriptionKey: 'oracles.descriptions.uma',
-    symbol: 'UMA',
-    defaultChain: Blockchain.ETHEREUM,
-    supportedChains: [
-      Blockchain.ETHEREUM,
-      Blockchain.ARBITRUM,
-      Blockchain.OPTIMISM,
-      Blockchain.POLYGON,
-      Blockchain.BASE,
-      Blockchain.BNB_CHAIN,
-      Blockchain.AVALANCHE,
-      Blockchain.FANTOM,
-      Blockchain.GNOSIS,
-    ],
-    client: new UMAClient(),
-    iconBgColor: `bg-[${chartColors.marketOverview.uma}]`,
-    themeColor: '#dc2626',
-    icon: <Image src="/logos/oracles/uma.svg" alt="UMA" width={48} height={48} />,
-    marketData: getDefaultMarketData('UMA', 'UMA'),
-    networkData: getDefaultNetworkData(),
-    features: {
-      hasNodeAnalytics: false,
-      hasValidatorAnalytics: true,
-      hasPublisherAnalytics: false,
-      hasDisputeResolution: true,
-      hasPriceFeeds: false,
-      hasQuantifiableSecurity: false,
-      hasFirstPartyOracle: false,
-      hasCoreFeatures: false,
-    },
-    tabs: [
-      { id: 'market', labelKey: 'uma.menu.marketData' },
-      { id: 'network', labelKey: 'uma.menu.networkHealth' },
-      { id: 'disputes', labelKey: 'uma.menu.disputeResolution' },
-      { id: 'validators', labelKey: 'uma.menu.validatorAnalytics' },
-      { id: 'staking', labelKey: 'uma.menu.staking' },
-      { id: 'ecosystem', labelKey: 'uma.menu.ecosystem' },
-      { id: 'risk', labelKey: 'uma.menu.riskAssessment' },
     ],
   },
   [OracleProvider.PYTH]: {
@@ -544,7 +500,6 @@ export type PriceOracleProvider = OracleProvider;
 
 export const PRICE_ORACLE_PROVIDERS: PriceOracleProvider[] = [
   OracleProvider.CHAINLINK,
-  OracleProvider.UMA,
   OracleProvider.PYTH,
   OracleProvider.API3,
   OracleProvider.REDSTONE,
@@ -573,8 +528,6 @@ export function createOracleClient(provider: OracleProvider): BaseOracleClient {
   switch (provider) {
     case OracleProvider.CHAINLINK:
       return new ChainlinkClient({ useRealData: true });
-    case OracleProvider.UMA:
-      return new UMAClient();
     case OracleProvider.PYTH:
       return new PythClient();
     case OracleProvider.API3:

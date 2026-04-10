@@ -115,7 +115,6 @@ export function usePriceQueryState(): UsePriceQueryStateReturn {
 
     const oracleMapping: Record<string, OracleProvider> = {
       chainlink: OracleProvider.CHAINLINK,
-      uma: OracleProvider.UMA,
       pyth: OracleProvider.PYTH,
       api3: OracleProvider.API3,
       redstone: OracleProvider.REDSTONE,
@@ -130,11 +129,7 @@ export function usePriceQueryState(): UsePriceQueryStateReturn {
       '7d': 168,
     };
 
-    let defaultOracle = oracleMapping[preferences.defaultOracle] || OracleProvider.CHAINLINK;
-    // 如果默认预言机是 UMA，则回退到 Chainlink（UMA 不参与价格查询）
-    if (defaultOracle === OracleProvider.UMA) {
-      defaultOracle = OracleProvider.CHAINLINK;
-    }
+    const defaultOracle = oracleMapping[preferences.defaultOracle] || OracleProvider.CHAINLINK;
     const defaultTimeRange = timeRangeMapping[preferences.defaultTimeRange] || 24;
     const defaultSymbol = preferences.defaultSymbol.split('/')[0] || 'BTC';
 
@@ -163,8 +158,7 @@ export function usePriceQueryState(): UsePriceQueryStateReturn {
       setSelectedOracle((prev) => {
         const oracleFromUrl =
           config.oracles && config.oracles.length > 0 ? config.oracles[0] : prev;
-        // 如果 URL 参数中的预言机是 UMA，则回退到 Chainlink
-        return oracleFromUrl === OracleProvider.UMA ? OracleProvider.CHAINLINK : oracleFromUrl;
+        return oracleFromUrl;
       });
       setSelectedChain((prev) =>
         config.chains && config.chains.length > 0 ? config.chains[0] : prev

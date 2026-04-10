@@ -19,7 +19,7 @@
       "description": "开始使用 Insight 平台，探索主流预言机协议的实时价格数据。",
       "overview": {
         "title": "平台概览",
-        "description": "Insight 是一个专业的预言机数据分析平台，支持 Chainlink、Pyth、API3、UMA、DIA、RedStone、WINkLink 等主流预言机协议。",
+        "description": "Insight 是一个专业的预言机数据分析平台，支持 Chainlink、Pyth、API3、DIA、RedStone、WINkLink 等主流预言机协议。",
         "point1": "支持 10+ 主流预言机协议",
         "point2": "实时价格监控与对比",
         "point3": "跨链价格一致性分析"

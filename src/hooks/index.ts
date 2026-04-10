@@ -22,14 +22,6 @@ export {
   formatSpread,
   formatProvider,
 } from './oracles/redstone';
-export {
-  useUMAAllData,
-  useUMAPrice,
-  useUMAHistorical,
-  useUMANetworkStats,
-  useUMAValidators,
-  useUMADisputes,
-} from './oracles/uma';
 export { useLastUpdated } from './oracles/useLastUpdated';
 export { useWINkLinkAllData } from './oracles/winklink';
 export {
