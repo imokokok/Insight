@@ -34,6 +34,14 @@ interface PriceStats {
  * - 历史可靠性 (25%): 基于历史数据的可靠性评分
  * - 数据源可信度 (15%): 数据源数量和质量的综合评估
  * - 响应时间稳定性 (10%): 响应时间的稳定性评估
+ *
+ * 权重配置说明：
+ * 这些权重反映了各维度对整体数据质量的重要性。价格一致性权重最高(30%)，
+ * 因为价格准确性是预言机最核心的指标；更新频率和历史可靠性分别占20%和25%，
+ * 反映了实时性和稳定性的重要性；数据源可信度和响应时间稳定性占比较低(15%和10%)，
+ * 因为它们更多是辅助性指标。
+ *
+ * 如需调整权重，请确保所有权重之和等于 1.0
  */
 interface ConsistencyScoreDetail {
   priceConsistency: number;
@@ -51,13 +59,26 @@ interface ConsistencyScoreDetail {
   };
 }
 
+// 一致性评分权重配置
+// 注意：所有权重之和必须等于 1.0
 const SCORE_WEIGHTS = {
+  /** 价格一致性权重 (30%) - 价格准确性是最核心的指标 */
   priceConsistency: 0.3,
+  /** 更新频率一致性权重 (20%) - 反映数据实时性 */
   updateFrequencyConsistency: 0.2,
+  /** 历史可靠性权重 (25%) - 基于历史数据的稳定性 */
   historicalReliability: 0.25,
+  /** 数据源可信度权重 (15%) - 数据源数量和质量 */
   dataSourceTrustworthiness: 0.15,
+  /** 响应时间稳定性权重 (10%) - 系统响应性能 */
   responseTimeStability: 0.1,
 } as const;
+
+// 验证权重之和是否为 1.0
+const TOTAL_WEIGHT = Object.values(SCORE_WEIGHTS).reduce((a, b) => a + b, 0);
+if (Math.abs(TOTAL_WEIGHT - 1.0) > 0.001) {
+  console.warn(`[useComparisonStats] 权重配置错误: 权重之和为 ${TOTAL_WEIGHT}，应为 1.0`);
+}
 
 interface ExtendedStats {
   maxDeviation: number;

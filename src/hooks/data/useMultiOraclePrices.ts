@@ -7,9 +7,9 @@ import { createLogger } from '@/lib/utils/logger';
 import { Blockchain } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
 
-const logger = createLogger('useOraclePrices');
+const logger = createLogger('useMultiOraclePrices');
 
-export function useOraclePrices() {
+export function useMultiOraclePrices() {
   const [prices, setPrices] = useState<Record<string, PriceData>>({});
   const [loading, setLoading] = useState(true);
 

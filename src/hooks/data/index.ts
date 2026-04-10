@@ -9,7 +9,7 @@ export {
   useInvalidatePriceQueries,
 } from './usePrefetchQueries';
 export { usePriceData, useHistoricalPrices } from './useOracleClientData';
-export { useOraclePrices as useMultiOraclePrices } from './useMultiOraclePrices';
+export { useMultiOraclePrices } from './useMultiOraclePrices';
 export { usePriceHistory as usePriceHistoryAnalysis } from './usePriceHistoryAnalysis';
 export type {
   PriceHistoryPoint,
