@@ -8,24 +8,19 @@ import {
   errorToResponse,
   isAppError,
 } from '@/lib/errors';
-import {
-  ChainlinkClient,
-  API3Client,
-  PythClient,
-  DIAClient,
-  RedStoneClient,
-  WINkLinkClient,
-} from '@/lib/oracles';
+import { OracleClientFactory, ORACLE_CACHE_TTL } from '@/lib/oracles';
 import { type PriceRecord } from '@/lib/supabase/queries';
 import { normalizeTimestamp } from '@/lib/utils/timestamp';
 import {
-  OracleProvider,
+  type OracleProvider,
   type Blockchain,
   type PriceData,
   ORACLE_PROVIDER_VALUES,
 } from '@/types/oracle';
 
-export const PRICE_CACHE_TTL = 30 * 1000;
+// 使用统一的缓存配置
+export const PRICE_CACHE_TTL = ORACLE_CACHE_TTL.PRICE;
+export const HISTORY_CACHE_TTL = ORACLE_CACHE_TTL.HISTORICAL;
 export const HISTORY_STALE_THRESHOLD = 5 * 60 * 1000;
 
 export interface OracleQueryParams {
@@ -50,17 +45,13 @@ interface OracleClientInterface {
 
 type OracleClient = OracleClientInterface;
 
-const clients: Partial<Record<OracleProvider, OracleClient>> = {
-  [OracleProvider.CHAINLINK]: new ChainlinkClient() as OracleClient,
-  [OracleProvider.API3]: new API3Client() as OracleClient,
-  [OracleProvider.PYTH]: new PythClient() as OracleClient,
-  [OracleProvider.DIA]: new DIAClient() as OracleClient,
-  [OracleProvider.REDSTONE]: new RedStoneClient() as OracleClient,
-  [OracleProvider.WINKLINK]: new WINkLinkClient() as OracleClient,
-};
-
 export function getOracleClient(provider: OracleProvider): OracleClient | null {
-  return clients[provider] || null;
+  try {
+    const client = OracleClientFactory.getClient(provider);
+    return client as OracleClient;
+  } catch {
+    return null;
+  }
 }
 
 export function isValidProvider(provider: string): provider is OracleProvider {
@@ -173,8 +164,10 @@ export function createPriceResponse(data: PriceData): NextResponse {
 }
 
 export function createHistoryResponse(data: PriceData[]): NextResponse {
+  const maxAge = HISTORY_CACHE_TTL / 1000;
+  const staleWhileRevalidate = Math.floor(HISTORY_CACHE_TTL / 1000) * 2;
   return createCachedJsonResponse(data, {
-    header: 'public, s-maxage=300, stale-while-revalidate=600',
+    header: `public, s-maxage=${maxAge}, stale-while-revalidate=${staleWhileRevalidate}`,
   });
 }
 

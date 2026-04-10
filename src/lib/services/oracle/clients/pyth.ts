@@ -144,11 +144,23 @@ export class PythClient extends BaseOracleClient {
       });
 
       const targetChain = chain || Blockchain.ETHEREUM;
-      const basePrice = historicalPrices[0].price;
+
+      // 找到24小时前的数据点索引（如果数据点间隔是1小时，则24小时前是第24个点）
+      const getPrice24hAgo = (currentIndex: number): number => {
+        // 假设数据点间隔为 period / dataPoints 小时
+        const dataPoints = historicalPrices.length;
+        const hoursPerPoint = period / dataPoints;
+        const pointsFor24h = Math.floor(24 / hoursPerPoint);
+
+        const index24hAgo = Math.max(0, currentIndex - pointsFor24h);
+        return historicalPrices[index24hAgo]?.price ?? historicalPrices[0].price;
+      };
 
       return historicalPrices.map((point, index) => {
-        const change24hPercent = index === 0 ? 0 : ((point.price - basePrice) / basePrice) * 100;
-        const change24h = index === 0 ? 0 : point.price - basePrice;
+        const price24hAgo = getPrice24hAgo(index);
+        const change24hPercent =
+          index === 0 ? 0 : ((point.price - price24hAgo) / price24hAgo) * 100;
+        const change24h = index === 0 ? 0 : point.price - price24hAgo;
 
         return {
           provider: this.name,

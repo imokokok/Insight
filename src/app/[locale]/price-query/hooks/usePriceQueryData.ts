@@ -127,7 +127,35 @@ async function fetchHistoricalPricesFromAPI(
     throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
   }
 
-  return response.json();
+  const data = await response.json();
+
+  // 验证返回数据是否为数组
+  if (!Array.isArray(data)) {
+    throw new Error(`Invalid response format: expected array, got ${typeof data}`);
+  }
+
+  // 验证数组元素是否符合 PriceData 格式
+  const validatedData = data.filter((item, index) => {
+    if (!item || typeof item !== 'object') {
+      logger.warn(`Invalid historical data item at index ${index}: not an object`);
+      return false;
+    }
+    if (typeof item.price !== 'number' || isNaN(item.price)) {
+      logger.warn(`Invalid historical data item at index ${index}: invalid price`, { item });
+      return false;
+    }
+    if (!item.timestamp || typeof item.timestamp !== 'number') {
+      logger.warn(`Invalid historical data item at index ${index}: invalid timestamp`, { item });
+      return false;
+    }
+    return true;
+  });
+
+  if (validatedData.length === 0 && data.length > 0) {
+    throw new Error('All historical data items failed validation');
+  }
+
+  return validatedData;
 }
 
 export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQueryDataReturn {

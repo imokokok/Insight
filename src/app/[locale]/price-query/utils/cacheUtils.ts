@@ -1,5 +1,7 @@
 'use client';
 
+import { ORACLE_CACHE_TTL } from '@/lib/oracles';
+
 import type { QueryClient } from '@tanstack/react-query';
 
 export interface CacheEntry<T> {
@@ -17,9 +19,10 @@ export interface CacheStats {
   misses: number;
 }
 
+// 使用统一的缓存配置
 export const CACHE_CONFIG = {
-  PRICE_TTL: 30 * 1000,
-  HISTORICAL_TTL: 5 * 60 * 1000,
+  PRICE_TTL: ORACLE_CACHE_TTL.PRICE,
+  HISTORICAL_TTL: ORACLE_CACHE_TTL.HISTORICAL,
   MAX_ENTRIES: 100,
 } as const;
 

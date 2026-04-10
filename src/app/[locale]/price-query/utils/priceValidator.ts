@@ -20,7 +20,38 @@ const IQR_MULTIPLIER = 1.5;
 const DEFAULT_MAX_AGE_MS = 60 * 60 * 1000;
 const MAX_GAP_TOLERANCE_MS = 10 * 60 * 1000;
 
-export function validatePrice(price: number, previousPrice?: number): ValidationResult {
+// 各币种合理价格范围配置（用于检测异常价格）
+const SYMBOL_PRICE_RANGES: Record<string, { min: number; max: number }> = {
+  BTC: { min: 1000, max: 200000 },
+  ETH: { min: 100, max: 20000 },
+  SOL: { min: 1, max: 1000 },
+  PYTH: { min: 0.01, max: 10 },
+  USDC: { min: 0.9, max: 1.1 },
+  USDT: { min: 0.9, max: 1.1 },
+  DAI: { min: 0.9, max: 1.1 },
+  ARB: { min: 0.1, max: 50 },
+  OP: { min: 0.1, max: 50 },
+  MATIC: { min: 0.1, max: 10 },
+  AVAX: { min: 1, max: 500 },
+  BNB: { min: 10, max: 2000 },
+  LINK: { min: 1, max: 200 },
+  UNI: { min: 1, max: 100 },
+  AAVE: { min: 10, max: 1000 },
+  MKR: { min: 100, max: 10000 },
+  SNX: { min: 0.1, max: 50 },
+  COMP: { min: 10, max: 500 },
+  YFI: { min: 1000, max: 100000 },
+  CRV: { min: 0.01, max: 10 },
+};
+
+// 默认价格范围（当币种未配置时使用）
+const DEFAULT_PRICE_RANGE = { min: 0.0001, max: 1000000 };
+
+export function validatePrice(
+  price: number,
+  previousPrice?: number,
+  symbol?: string
+): ValidationResult {
   const result: ValidationResult = {
     isValid: true,
     warnings: [],
@@ -44,6 +75,25 @@ export function validatePrice(price: number, previousPrice?: number): Validation
     result.isValid = false;
     result.errors.push('价格不能为无穷大');
     return result;
+  }
+
+  // 检查价格是否在币种合理范围内
+  if (symbol) {
+    const upperSymbol = symbol.toUpperCase();
+    const range = SYMBOL_PRICE_RANGES[upperSymbol] ?? DEFAULT_PRICE_RANGE;
+
+    if (price < range.min || price > range.max) {
+      result.isValid = false;
+      result.errors.push(
+        `价格 ${price} 超出 ${upperSymbol} 的合理范围 [${range.min}, ${range.max}]`
+      );
+      result.anomalies.push({
+        type: price > range.max ? 'price_spike' : 'price_drop',
+        severity: 'high',
+        message: `价格 ${price} 超出 ${upperSymbol} 的合理范围 [${range.min}, ${range.max}]`,
+      });
+      return result;
+    }
   }
 
   if (previousPrice !== undefined && previousPrice > 0) {

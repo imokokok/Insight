@@ -57,7 +57,13 @@ export {
   type CrossChainResult,
 } from './pythDataService';
 export type { RetryConfig } from './pythConstants';
-export { BaseOracleClient, shouldUseDatabase, configureStorage, getStorageConfig } from './base';
+export {
+  BaseOracleClient,
+  shouldUseDatabase,
+  configureStorage,
+  getStorageConfig,
+  ORACLE_CACHE_TTL,
+} from './base';
 export type { OracleClientConfig, OracleStorageConfig } from './base';
 export type { IOracleClient, IOracleClientFactory } from './interfaces';
 export {
