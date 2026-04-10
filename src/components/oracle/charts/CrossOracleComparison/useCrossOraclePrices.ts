@@ -27,6 +27,20 @@ export const CROSS_ORACLE_GC_TIME = {
   comparison: 2 * 60 * 1000,
 } as const;
 
+/**
+ * 获取预言机的默认链
+ * 根据预言机类型选择最适合的链，而不是强制使用 Ethereum
+ */
+function getOracleDefaultChain(provider: OracleProvider): Blockchain {
+  const client = OracleClientFactory.getClient(provider);
+  // 优先使用客户端支持的第一个链
+  if (client.supportedChains.length > 0) {
+    return client.supportedChains[0];
+  }
+  // 回退到 Ethereum
+  return Blockchain.ETHEREUM;
+}
+
 interface UseCrossOraclePricesOptions {
   selectedSymbol: string;
   selectedOracles: OracleProvider[];
@@ -65,56 +79,53 @@ export function useCrossOraclePrices({
   const queryClient = useQueryClient();
 
   const getQueryKey = useCallback(
-    (provider: OracleProvider) => [
-      CROSS_ORACLE_QUERY_KEY,
-      'price',
-      provider,
-      selectedSymbol,
-      Blockchain.ETHEREUM,
-    ],
+    (provider: OracleProvider) => {
+      const chain = getOracleDefaultChain(provider);
+      return [CROSS_ORACLE_QUERY_KEY, 'price', provider, selectedSymbol, chain];
+    },
     [selectedSymbol]
   );
 
   const queries = useQueries({
-    queries: selectedOracles.map((provider) => ({
-      queryKey: getQueryKey(provider),
-      queryFn: async (): Promise<OraclePriceResult | null> => {
-        const client = OracleClientFactory.getClient(provider);
-        const requestStart = Date.now();
-        const baseSymbol = extractBaseSymbol(selectedSymbol);
-        const requestQueue = getRequestQueue();
-        try {
-          const price = await requestQueue.add(
-            () => client.getPrice(baseSymbol, Blockchain.ETHEREUM),
-            {
+    queries: selectedOracles.map((provider) => {
+      const chain = getOracleDefaultChain(provider);
+      return {
+        queryKey: getQueryKey(provider),
+        queryFn: async (): Promise<OraclePriceResult | null> => {
+          const client = OracleClientFactory.getClient(provider);
+          const requestStart = Date.now();
+          const baseSymbol = extractBaseSymbol(selectedSymbol);
+          const requestQueue = getRequestQueue();
+          try {
+            const price = await requestQueue.add(() => client.getPrice(baseSymbol, chain), {
               priority: requestPriority,
               timeout: requestTimeout,
-            }
-          );
-          const responseTime = Date.now() - requestStart;
-          return {
-            provider,
-            price: price.price,
-            timestamp: price.timestamp,
-            confidence: price.confidence,
-            responseTime,
-          };
-        } catch (error) {
-          logger.error(
-            `Error fetching price from ${provider}`,
-            error instanceof Error ? error : new Error(String(error))
-          );
-          return null;
-        }
-      },
-      enabled,
-      staleTime: CROSS_ORACLE_STALE_TIME.price,
-      gcTime: CROSS_ORACLE_GC_TIME.price,
-      refetchInterval,
-      refetchOnWindowFocus: false,
-      retry: 2,
-      retryDelay: 1000,
-    })),
+            });
+            const responseTime = Date.now() - requestStart;
+            return {
+              provider,
+              price: price.price,
+              timestamp: price.timestamp,
+              confidence: price.confidence,
+              responseTime,
+            };
+          } catch (error) {
+            logger.error(
+              `Error fetching price from ${provider} on ${chain}`,
+              error instanceof Error ? error : new Error(String(error))
+            );
+            return null;
+          }
+        },
+        enabled,
+        staleTime: CROSS_ORACLE_STALE_TIME.price,
+        gcTime: CROSS_ORACLE_GC_TIME.price,
+        refetchInterval,
+        refetchOnWindowFocus: false,
+        retry: 2,
+        retryDelay: 1000,
+      };
+    }),
     combine: (results) => {
       const validResults: OraclePriceResult[] = results
         .map((r) => r.data)
@@ -215,20 +226,18 @@ export function useCrossOracleHistory() {
     ) => {
       const baseSymbol = extractBaseSymbol(symbol);
       const requestQueue = getRequestQueue();
-      const prefetchPromises = providers.map((provider) =>
-        queryClient.prefetchQuery({
-          queryKey: [CROSS_ORACLE_QUERY_KEY, 'price', provider, symbol, Blockchain.ETHEREUM],
+      const prefetchPromises = providers.map((provider) => {
+        const chain = getOracleDefaultChain(provider);
+        return queryClient.prefetchQuery({
+          queryKey: [CROSS_ORACLE_QUERY_KEY, 'price', provider, symbol, chain],
           queryFn: async () => {
             const client = OracleClientFactory.getClient(provider);
             const requestStart = Date.now();
             try {
-              const price = await requestQueue.add(
-                () => client.getPrice(baseSymbol, Blockchain.ETHEREUM),
-                {
-                  priority: options?.priority ?? 'normal',
-                  timeout: options?.timeout,
-                }
-              );
+              const price = await requestQueue.add(() => client.getPrice(baseSymbol, chain), {
+                priority: options?.priority ?? 'normal',
+                timeout: options?.timeout,
+              });
               const responseTime = Date.now() - requestStart;
               return {
                 provider,
@@ -239,7 +248,7 @@ export function useCrossOracleHistory() {
               };
             } catch (error) {
               logger.error(
-                `Error prefetching price from ${provider}`,
+                `Error prefetching price from ${provider} on ${chain}`,
                 error instanceof Error ? error : new Error(String(error))
               );
               return null;
@@ -247,8 +256,8 @@ export function useCrossOracleHistory() {
           },
           staleTime: CROSS_ORACLE_STALE_TIME.price,
           gcTime: CROSS_ORACLE_GC_TIME.price,
-        })
-      );
+        });
+      });
       await Promise.allSettled(prefetchPromises);
     },
     [queryClient]

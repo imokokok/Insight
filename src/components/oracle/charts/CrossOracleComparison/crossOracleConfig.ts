@@ -1,5 +1,6 @@
 import { chartColors } from '@/lib/config/colors';
 import { OracleClientFactory } from '@/lib/oracles';
+import { type PriceHistoryPoint } from '@/lib/oracles/oracleDataUtils';
 import { type CalculatedPerformanceMetrics } from '@/lib/oracles/performanceMetricsCalculator';
 import { OracleProvider } from '@/types/oracle';
 
@@ -12,10 +13,8 @@ export interface SortConfig {
   direction: SortDirection;
 }
 
-export interface PriceHistoryPoint {
-  timestamp: number;
-  price: number;
-}
+// 从 oracleDataUtils.ts 重新导出 PriceHistoryPoint 类型，保持一致性
+export type { PriceHistoryPoint };
 
 export interface OraclePerformance {
   provider: OracleProvider;

@@ -11,6 +11,7 @@ import { useRef, useCallback, useMemo } from 'react';
 import { LiveStatusBar } from '@/components/ui';
 import { useCommonShortcuts } from '@/hooks';
 import { useTranslations } from '@/i18n';
+import { chartColors } from '@/lib/config/colors';
 
 import { ControlPanel } from './components/ControlPanel';
 import { QueryResults } from './components/QueryResults';
@@ -117,12 +118,14 @@ export default function CrossOraclePage() {
     [qualityScore]
   );
 
-  // 预言机颜色配置
+  // 预言机颜色配置 - 使用统一的颜色配置文件
   const oracleChartColors = useMemo(() => {
     const colors: Record<string, string> = {};
-    selectedOracles.forEach((oracle, index) => {
-      const colorPalette = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
-      colors[oracle] = colorPalette[index % colorPalette.length];
+    selectedOracles.forEach((oracle) => {
+      // 优先使用配置文件中的预言机品牌色
+      colors[oracle] =
+        chartColors.oracle[oracle as keyof typeof chartColors.oracle] ||
+        chartColors.sequence[selectedOracles.indexOf(oracle) % chartColors.sequence.length];
     });
     return colors;
   }, [selectedOracles]);
