@@ -26,8 +26,6 @@ import { useColorblindMode, useSetColorblindMode } from '@/stores/crossChainStor
 import { Blockchain } from '@/types/oracle';
 
 import { BenchmarkComparisonSection } from './components/BenchmarkComparisonSection';
-import { CointegrationAnalysis } from './components/CointegrationAnalysis';
-import { CollapsibleSection } from './components/CollapsibleSection';
 import { CompactStatsGrid } from './components/CompactStatsGrid';
 import { CrossChainFilters } from './components/CrossChainFilters';
 import { DataSourceSection } from './components/DataSourceSection';
@@ -37,7 +35,6 @@ import { PriceSpreadHeatmap, HeatmapDetailView } from './components/PriceSpreadH
 import { ProgressBar as CrossChainProgressBar, JumpIndicator } from './components/SmallComponents';
 import { StandardBoxPlot } from './components/StandardBoxPlot';
 import { TabNavigation, type TabId } from './components/TabNavigation';
-import { VolatilitySurface } from './components/VolatilitySurface';
 import { type ChainStats, type RefreshInterval } from './constants';
 import { useCrossChainData } from './useCrossChainData';
 import {
@@ -384,35 +381,6 @@ export default function CrossChainPage() {
           </table>
         </div>
       </div>
-    </>
-  );
-
-  // 渲染高级分析标签内容
-  const renderAdvancedTab = () => (
-    <>
-      <CollapsibleSection
-        title={t('crossChain.cointegrationAnalysis')}
-        description={t('crossChain.cointegrationDesc')}
-        defaultExpanded={false}
-        storageKey="cointegrationExpanded"
-      >
-        <div className="p-4">
-          <SectionErrorBoundary componentName="Cointegration Analysis">
-            <CointegrationAnalysis data={data} />
-          </SectionErrorBoundary>
-        </div>
-      </CollapsibleSection>
-
-      <CollapsibleSection
-        title={t('crossChain.volatilityAnalysis')}
-        description={t('crossChain.volatilityAnalysisDesc')}
-        defaultExpanded={false}
-        storageKey="volatilityExpanded"
-      >
-        <div className="p-4">
-          <VolatilitySurface data={data} />
-        </div>
-      </CollapsibleSection>
     </>
   );
 
@@ -783,7 +751,6 @@ export default function CrossChainPage() {
             ) : (
               <div className="mt-4">
                 {activeTab === 'overview' && renderOverviewTab()}
-                {activeTab === 'advanced' && renderAdvancedTab()}
                 {activeTab === 'charts' && renderChartsTab()}
               </div>
             )}
