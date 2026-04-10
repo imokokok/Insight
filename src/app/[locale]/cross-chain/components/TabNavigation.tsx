@@ -3,7 +3,7 @@
 import { useTranslations } from '@/i18n';
 import { baseColors } from '@/lib/config/colors';
 
-export type TabId = 'overview' | 'correlation' | 'advanced' | 'charts';
+export type TabId = 'overview' | 'advanced' | 'charts';
 
 interface Tab {
   id: TabId;
@@ -24,11 +24,6 @@ export function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
       id: 'overview',
       label: t('crossChain.tabOverview'),
       description: t('crossChain.tabOverviewDesc'),
-    },
-    {
-      id: 'correlation',
-      label: t('crossChain.tabCorrelation'),
-      description: t('crossChain.tabCorrelationDesc'),
     },
     {
       id: 'advanced',
