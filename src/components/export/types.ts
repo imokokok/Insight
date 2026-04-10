@@ -17,12 +17,7 @@ export type ExportStatus = 'idle' | 'preparing' | 'exporting' | 'completed' | 'e
 /**
  * 数据源类型
  */
-export type ExportDataSource =
-  | 'market-overview'
-  | 'price-query'
-  | 'cross-oracle'
-  | 'oracle-detail'
-  | 'custom';
+export type ExportDataSource = 'price-query' | 'cross-oracle' | 'oracle-detail' | 'custom';
 
 /**
  * 导出字段定义

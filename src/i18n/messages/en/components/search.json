@@ -65,8 +65,6 @@
     "pages": {
       "home": "Home",
       "homeDesc": "Insight dashboard homepage",
-      "marketOverview": "Market Overview",
-      "marketOverviewDesc": "Real-time market intelligence and metrics",
       "priceQuery": "Price Query",
       "priceQueryDesc": "Cross-oracle network price lookup",
       "crossOracle": "Cross-Oracle Analysis",
@@ -81,14 +79,10 @@
       "settingsDesc": "User preference settings"
     },
     "features": {
-      "realtimePrice": "Real-time Price",
-      "realtimePriceDesc": "Real-time price data streaming",
       "priceComparison": "Price Comparison",
       "priceComparisonDesc": "Cross-oracle price comparison",
       "priceAlerts": "Price Alerts",
       "priceAlertsDesc": "Custom price alert notifications",
-      "dataExport": "Data Export",
-      "dataExportDesc": "Export market data",
       "charts": "Charts",
       "chartsDesc": "Interactive price charts"
     },

@@ -2,7 +2,7 @@ import {
   type OracleMarketData,
   type AssetData,
   type TVSTrendData,
-} from '@/app/[locale]/market-overview/types';
+} from '@/lib/services/marketData/types';
 import { createLogger } from '@/lib/utils/logger';
 
 import { detectAnomalies } from './anomalyCalculations';

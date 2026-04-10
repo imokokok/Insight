@@ -1,4 +1,3 @@
-import { ORACLE_COLORS } from '@/app/[locale]/market-overview/constants';
 import { chartColors } from '@/lib/config/colors';
 import { performanceMetricsCalculator } from '@/lib/services/marketData/performanceMetrics';
 
@@ -28,16 +27,16 @@ function formatOracleName(name: string): string {
 
 function getOracleColor(name: string): string {
   const colorMap: Record<string, string> = {
-    Chainlink: ORACLE_COLORS.chainlink,
-    'Pyth Network': ORACLE_COLORS.pyth,
-    API3: ORACLE_COLORS.api3,
+    Chainlink: chartColors.ORACLE_COLORS.chainlink,
+    'Pyth Network': chartColors.ORACLE_COLORS.pyth,
+    API3: chartColors.ORACLE_COLORS.api3,
     RedStone: chartColors.oracle.redstone,
     Switchboard: chartColors.oracle.switchboard,
     DIA: chartColors.oracle.dia,
     Flux: chartColors.oracle.flux,
   };
 
-  return colorMap[name] || ORACLE_COLORS.others;
+  return colorMap[name] || chartColors.ORACLE_COLORS.others;
 }
 
 function formatTVS(value: number): string {

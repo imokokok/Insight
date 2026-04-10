@@ -1,9 +1,9 @@
-import { type OracleMarketData, type RiskMetrics } from '@/app/[locale]/market-overview/types';
 import {
   calculateRiskMetrics,
   calculateHHIFromOracles,
   calculateDiversificationScore,
 } from '@/lib/analytics/riskMetrics';
+import { type OracleMarketData, type RiskMetrics } from '@/lib/services/marketData/types';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('marketData:riskCalculations');

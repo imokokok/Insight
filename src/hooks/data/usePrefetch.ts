@@ -160,18 +160,6 @@ const routePrefetchConfigs: Record<string, RoutePrefetchConfig> = {
       },
     ],
   },
-  '/market-overview': {
-    route: '/market-overview',
-    priority: 'high',
-    targets: [
-      {
-        queryKey: ['market', 'overview'],
-        queryFn: () => apiClient.get('/api/oracles').then((r) => r.data),
-        type: 'stats',
-        priority: 'high',
-      },
-    ],
-  },
   '/price-query': {
     route: '/price-query',
     priority: 'high',

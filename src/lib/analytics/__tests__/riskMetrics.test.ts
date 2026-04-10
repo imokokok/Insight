@@ -1,5 +1,5 @@
 /* eslint-disable max-lines-per-function */
-import { type OracleMarketData } from '@/app/[locale]/market-overview/types';
+import { type OracleMarketData } from '@/lib/services/marketData/types';
 
 import {
   calculateHHI,

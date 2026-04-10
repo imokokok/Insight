@@ -2,7 +2,6 @@
   "navbar": {
     "home": "首页",
     "documentation": "文档",
-    "marketOverview": "市场概览",
     "priceQuery": "价格数据查询",
     "crossOracle": "多预言机对比",
     "crossChain": "跨链价格分析",
@@ -15,7 +14,6 @@
     "oracleDetails": "预言机详情",
     "menu": "菜单",
     "openMenu": "打开菜单",
-    "marketOverviewDesc": "实时市场情报，包含全面的预言机 TVL、市场份额和协议采用指标",
     "priceQueryDesc": "跨所有主流预言机网络的即时价格查询，支持历史趋势分析",
     "crossOracleDesc": "实时多预言机价格比较与偏差分析",
     "crossChainDesc": "跨链预言机性能基准测试和可靠性分析",

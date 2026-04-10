@@ -4,16 +4,15 @@
 
 1. [Getting Started](#getting-started)
 2. [Home Page Features](#home-page-features)
-3. [Market Overview](#market-overview)
-4. [Price Query](#price-query)
-5. [Cross-Oracle Comparison](#cross-oracle-comparison)
-6. [Cross-Chain Analysis](#cross-chain-analysis)
-7. [Oracle-Specific Pages](#oracle-specific-pages)
-8. [Alerts Management](#alerts-management)
-9. [Favorites](#favorites)
-10. [Snapshots](#snapshots)
-11. [User Settings](#user-settings)
-12. [Data Export](#data-export)
+3. [Price Query](#price-query)
+4. [Cross-Oracle Comparison](#cross-oracle-comparison)
+5. [Cross-Chain Analysis](#cross-chain-analysis)
+6. [Oracle-Specific Pages](#oracle-specific-pages)
+7. [Alerts Management](#alerts-management)
+8. [Favorites](#favorites)
+9. [Snapshots](#snapshots)
+10. [User Settings](#user-settings)
+11. [Data Export](#data-export)
 
 ---
 
@@ -64,7 +63,7 @@ The platform features an intuitive navigation system:
 | Menu               | Description                                                              |
 | ------------------ | ------------------------------------------------------------------------ |
 | **Home**           | Dashboard with platform overview and key metrics                         |
-| **Market**         | Market Overview and Price Query tools                                    |
+| **Market**         | Price Query tools                                                        |
 | **Data Analysis**  | Cross-Oracle and Cross-Chain analysis tools                              |
 | **Oracle Details** | Individual oracle pages (Chainlink, Pyth, API3, RedStone, DIA, WINkLink) |
 
@@ -132,15 +131,6 @@ Each metric card includes:
 - Percentage change indicator
 - Interactive hover effects
 
-### Oracle Market Overview
-
-A comprehensive market analysis section featuring:
-
-- **Market Share Distribution**: Pie chart showing oracle market share
-- **TVS Trend Analysis**: Line chart tracking Total Value Secured over time
-- **Chain Support Overview**: Bar chart of blockchain support by oracle
-- **Protocol List**: Detailed list of integrated protocols
-
 ### Arbitrage Heatmap
 
 A visual heatmap displaying price discrepancies across:
@@ -154,101 +144,6 @@ Color coding indicates:
 - **Green**: Lower prices (potential buy opportunities)
 - **Red**: Higher prices (potential sell opportunities)
 - **Intensity**: Magnitude of price difference
-
----
-
-## Market Overview
-
-Access the Market Overview page at `/market-overview` for in-depth market analysis.
-
-### Key Statistics Bar
-
-The top statistics bar displays:
-
-| Statistic | Description                         |
-| --------- | ----------------------------------- |
-| Total TVS | Total Value Secured with 24h change |
-| Chains    | Number of supported blockchains     |
-| Protocols | Number of integrated protocols      |
-| Dominance | Market dominance percentage         |
-| Latency   | Average update latency              |
-| Oracles   | Number of active oracle providers   |
-
-### Chart Types
-
-Switch between different visualization types:
-
-1. **Market Share**: Pie chart of oracle market distribution
-2. **TVS Trend**: Line chart showing value secured over time
-3. **Chain Support**: Bar chart of blockchain coverage
-4. **Chain Breakdown**: Detailed chain-level TVS distribution
-5. **Protocols**: List of integrated DeFi protocols
-6. **Asset Categories**: Asset type distribution
-7. **Oracle Comparison**: Multi-oracle comparison charts
-8. **Benchmark**: Industry benchmark comparisons
-9. **Correlation**: Oracle price correlation matrix
-
-### Time Range Selection
-
-Select analysis periods:
-
-- 24 Hours
-- 7 Days
-- 30 Days
-- 90 Days
-- 1 Year
-- All Time
-
-### Comparison Modes
-
-Enable trend comparison modes:
-
-- **YoY (Year-over-Year)**: Compare with same period last year
-- **MoM (Month-over-Month)**: Compare with previous month
-
-### Anomaly Detection
-
-The system automatically detects price anomalies:
-
-- Adjustable threshold slider (5% - 50%)
-- Visual markers on trend charts
-- Click anomaly markers for detailed information
-- Anomaly details include:
-  - Oracle name
-  - Date and time
-  - Current and previous values
-  - Change rate percentage
-
-### Confidence Intervals
-
-Toggle confidence interval bands on trend charts:
-
-- 95% confidence interval visualization
-- Upper and lower bounds displayed
-- Helps assess data reliability
-
-### Chart Linking
-
-Enable cross-chart interactions:
-
-- Click on correlation matrix cells to link charts
-- Linked oracle highlighting across visualizations
-- Clear linking with one click
-
-### Real-time Updates
-
-- **Connection Status Indicator**: Shows WebSocket connection state
-- **Auto-refresh Options**: Configure automatic data refresh intervals
-- **Manual Refresh**: Click refresh button for immediate updates
-- **Message Counter**: Track real-time data updates
-
-### Export Functionality
-
-Export market data in multiple formats:
-
-- **CSV**: Spreadsheet-compatible format
-- **JSON**: Structured data format
-- **Image**: PNG export of current chart view
 
 ---
 
@@ -1102,12 +997,6 @@ Select data categories:
 - Anomalies
 
 ### Export Locations
-
-#### Market Overview
-
-- Export button in header
-- Dropdown menu for format selection
-- Chart image export
 
 #### Price Query
 

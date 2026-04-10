@@ -297,6 +297,14 @@ export const chartColors = {
     default: '#8884d8',
   },
 
+  // 预言机颜色常量 (兼容旧代码)
+  ORACLE_COLORS: {
+    chainlink: '#375BD2',
+    pyth: '#E6B800',
+    api3: '#7CE3CB',
+    others: '#8884d8',
+  },
+
   // 饼图颜色
   pie: {
     default: '#8884d8',

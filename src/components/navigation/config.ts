@@ -36,12 +36,6 @@ export const navigationConfig: NavStructure = [
     icon: BarChart3,
     items: [
       {
-        href: '/market-overview',
-        label: 'navbar.marketOverview',
-        icon: BarChart3,
-        description: 'navbar.marketOverviewDesc',
-      },
-      {
         href: '/price-query',
         label: 'navbar.priceQuery',
         icon: Search,

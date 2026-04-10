@@ -88,7 +88,7 @@
 - `/chainlink`, `/pyth-network`, `/api3`
 - `/band-protocol`, `/redstone`, `/uma`
 - `/dia`, `/tellor`, `/chronicle`, `/winklink`
-- `/cross-oracle`, `/market-overview`, `/price-query`
+- `/cross-oracle`, `/price-query`
 
 #### 悬停预取 (`useHoverPrefetch`)
 

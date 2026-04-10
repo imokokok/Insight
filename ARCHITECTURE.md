@@ -124,7 +124,6 @@ src/app/
 ├── [locale]/               # Internationalized routes
 │   ├── layout.tsx         # Locale-specific layout
 │   │
-│   ├── market-overview/   # Market overview page
 │   ├── price-query/       # Price query page
 │   ├── cross-oracle/      # Cross-oracle comparison
 │   ├── cross-chain/       # Cross-chain analysis
@@ -191,17 +190,16 @@ export default function InteractiveComponent() {
 
 ### 2.3 Page Organization
 
-| Page            | Route              | Purpose                                               |
-| --------------- | ------------------ | ----------------------------------------------------- |
-| Home            | `/`                | Dashboard with market overview, price ticker, metrics |
-| Market Overview | `/market-overview` | Comprehensive market analytics                        |
-| Price Query     | `/price-query`     | Price lookup and historical data                      |
-| Cross-Oracle    | `/cross-oracle`    | Compare prices across oracles                         |
-| Cross-Chain     | `/cross-chain`     | Cross-chain price analysis                            |
-| Oracle Pages    | `/{oracle}`        | Provider-specific analytics                           |
-| Alerts          | `/alerts`          | Price alert management                                |
-| Favorites       | `/favorites`       | Saved configurations                                  |
-| Settings        | `/settings`        | User preferences                                      |
+| Page         | Route           | Purpose                                               |
+| ------------ | --------------- | ----------------------------------------------------- |
+| Home         | `/`             | Dashboard with market overview, price ticker, metrics |
+| Price Query  | `/price-query`  | Price lookup and historical data                      |
+| Cross-Oracle | `/cross-oracle` | Compare prices across oracles                         |
+| Cross-Chain  | `/cross-chain`  | Cross-chain price analysis                            |
+| Oracle Pages | `/{oracle}`     | Provider-specific analytics                           |
+| Alerts       | `/alerts`       | Price alert management                                |
+| Favorites    | `/favorites`    | Saved configurations                                  |
+| Settings     | `/settings`     | User preferences                                      |
 
 ### 2.4 Dynamic Imports for Performance
 
@@ -1357,7 +1355,6 @@ src/i18n/messages/
 ├── common.json           # General translations
 ├── home.json            # Homepage translations
 ├── navigation.json      # Navigation translations
-├── marketOverview.json  # Market overview translations
 ├── priceQuery.json      # Price query translations
 ├── crossOracle.json     # Cross-oracle translations
 ├── crossChain.json      # Cross-chain translations

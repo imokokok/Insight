@@ -150,16 +150,6 @@ export function getPageSearchResults(locale: string): SearchResult[] {
       priority: 10,
     },
     {
-      id: 'page-market-overview',
-      title: 'search.pages.marketOverview',
-      description: 'search.pages.marketOverviewDesc',
-      type: 'page',
-      href: `/${locale}/market-overview`,
-      icon: BarChart3,
-      keywords: ['market', 'overview', '市场概览', '市场'],
-      priority: 9,
-    },
-    {
       id: 'page-price-query',
       title: 'search.pages.priceQuery',
       description: 'search.pages.priceQueryDesc',
@@ -226,16 +216,6 @@ export function getPageSearchResults(locale: string): SearchResult[] {
 export function getFeatureSearchResults(locale: string): SearchResult[] {
   return [
     {
-      id: 'feature-realtime',
-      title: 'search.features.realtimePrice',
-      description: 'search.features.realtimePriceDesc',
-      type: 'feature',
-      href: `/${locale}/market-overview`,
-      icon: Zap,
-      keywords: ['realtime', 'price', '实时价格', '实时'],
-      priority: 8,
-    },
-    {
       id: 'feature-comparison',
       title: 'search.features.priceComparison',
       description: 'search.features.priceComparisonDesc',
@@ -254,16 +234,6 @@ export function getFeatureSearchResults(locale: string): SearchResult[] {
       icon: Bell,
       keywords: ['alert', 'notification', '提醒', '通知'],
       priority: 7,
-    },
-    {
-      id: 'feature-export',
-      title: 'search.features.dataExport',
-      description: 'search.features.dataExportDesc',
-      type: 'feature',
-      href: `/${locale}/market-overview`,
-      icon: FileText,
-      keywords: ['export', 'download', '导出', '下载'],
-      priority: 6,
     },
     {
       id: 'feature-charts',
