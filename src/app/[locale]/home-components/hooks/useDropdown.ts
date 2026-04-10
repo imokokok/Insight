@@ -21,7 +21,7 @@ interface SearchDropdownItem {
 
 export type DropdownItem = HistoryDropdownItem | PopularDropdownItem | SearchDropdownItem;
 
-const POPULAR_TOKENS = ['BTC', 'ETH', 'SOL', 'AVAX', 'NEAR', 'MATIC', 'ARB'];
+const POPULAR_TOKENS = ['BTC', 'ETH', 'BNB', 'AVAX', 'MATIC', 'USDT', 'USDC'];
 
 export function useDropdown(
   searchQuery: string,

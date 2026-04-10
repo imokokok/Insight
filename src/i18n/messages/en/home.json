@@ -27,8 +27,8 @@
       "oracle": "Oracle",
       "blockchain": "Blockchain",
       "stats": {
-        "oracles": "10+ Oracles",
-        "dataSources": "100+ Data Sources",
+        "oracles": "6 Oracles",
+        "dataSources": "900+ Data Sources",
         "realtime": "Real-time Updates"
       }
     },
