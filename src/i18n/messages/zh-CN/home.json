@@ -27,8 +27,8 @@
       "oracle": "预言机",
       "blockchain": "区块链",
       "stats": {
-        "oracles": "10+ 预言机",
-        "dataSources": "100+ 数据源",
+        "oracles": "6 预言机",
+        "dataSources": "900+ 数据源",
         "realtime": "实时更新"
       }
     },

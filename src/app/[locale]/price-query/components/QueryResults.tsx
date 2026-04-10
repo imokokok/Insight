@@ -274,7 +274,7 @@ export function QueryResults({
           </p>
           <div className="flex items-center justify-center">
             <SegmentedControl
-              options={['BTC', 'ETH', 'SOL', 'AVAX', 'LINK', 'UNI'].map((token) => ({
+              options={['BTC', 'ETH', 'BNB', 'AVAX', 'MATIC', 'USDT', 'USDC'].map((token) => ({
                 value: token,
                 label: token,
               }))}
