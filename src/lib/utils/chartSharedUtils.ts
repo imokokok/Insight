@@ -69,10 +69,30 @@ export const getDeviationColor = (deviationPercent: number): string => {
 
 export const getHeatmapColor = (value: number, min: number, max: number): string => {
   const range = max - min;
-  const normalized = range === 0 ? 0.5 : (value - min) / range;
+  const absValue = Math.abs(value);
 
-  if (normalized < 0.33) return chartColors.heatmap.low;
-  if (normalized < 0.66) return chartColors.heatmap.medium;
+  // 当所有值都为0或范围很小时，使用基于绝对阈值的着色
+  if (range === 0 || max < 0.01) {
+    // 基于绝对值判断颜色，使用更深的颜色确保可见性
+    if (absValue < 0.001) return '#22c55e'; // < 0.001%: 绿色
+    if (absValue < 0.003) return '#16a34a'; // < 0.003%: 深绿
+    if (absValue < 0.005) return '#65a30d'; // < 0.005%: 黄绿
+    if (absValue < 0.01) return '#84cc16'; // < 0.01%: 浅黄绿
+    if (absValue < 0.03) return '#eab308'; // < 0.03%: 黄色
+    if (absValue < 0.05) return '#f59e0b'; // < 0.05%: 橙黄
+    if (absValue < 0.1) return '#f97316'; // < 0.1%: 橙色
+    if (absValue < 0.3) return '#ea580c'; // < 0.3%: 深橙
+    return chartColors.heatmap.high; // >= 0.3%: 红色
+  }
+
+  // 正常归一化逻辑
+  const normalized = (value - min) / range;
+
+  // 使用更细致的渐变
+  if (normalized < 0.2) return chartColors.heatmap.low;
+  if (normalized < 0.4) return '#84cc16';
+  if (normalized < 0.6) return chartColors.heatmap.medium;
+  if (normalized < 0.8) return '#f97316';
   return chartColors.heatmap.high;
 };
 

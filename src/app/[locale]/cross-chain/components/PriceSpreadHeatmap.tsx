@@ -20,7 +20,6 @@ import { isBlockchain } from '@/lib/utils/chainUtils';
 import { useColorblindMode } from '@/stores/crossChainStore';
 
 import { getColorblindHeatmapColor, colorblindLegendConfig } from '../colorblindTheme';
-import { type HeatmapData } from '../constants';
 import { type useCrossChainData } from '../useCrossChainData';
 import { chainNames, chainColors, getHeatmapColor } from '../utils';
 
@@ -127,86 +126,21 @@ export function HeatmapDetailView({ data }: HeatmapDetailViewProps) {
   }, [historicalPrices, selectedTimeRange, getTimeRangeInMs]);
 
   const { heatmapData, maxHeatmapValue } = useMemo(() => {
+    // 直接使用原始热力图数据，确保数据一致性
     if (filteredChains.length < 2) {
       return { heatmapData: originalHeatmapData, maxHeatmapValue: originalMaxHeatmapValue };
     }
 
-    const data: HeatmapData[] = [];
-    let maxValue = 0;
+    // 过滤原始数据以匹配当前选中的链
+    const filteredData = originalHeatmapData.filter(
+      (d) => filteredChains.includes(d.xChain) && filteredChains.includes(d.yChain)
+    );
 
-    filteredChains.forEach((xChain) => {
-      filteredChains.forEach((yChain) => {
-        const xHistorical = filteredHistoricalPrices[xChain] || [];
-        const yHistorical = filteredHistoricalPrices[yChain] || [];
+    // 计算最大值
+    const maxValue = filteredData.length > 0 ? Math.max(...filteredData.map((d) => d.percent)) : 0;
 
-        let avgPercent = 0;
-        let avgDiff = 0;
-        let dataPointCount = 0;
-
-        const timestampMap = new Map<number, { xPrice: number; yPrice: number }>();
-
-        xHistorical.forEach((p) => {
-          if (!timestampMap.has(p.timestamp)) {
-            timestampMap.set(p.timestamp, { xPrice: p.price, yPrice: 0 });
-          } else {
-            timestampMap.get(p.timestamp)!.xPrice = p.price;
-          }
-        });
-
-        yHistorical.forEach((p) => {
-          if (timestampMap.has(p.timestamp)) {
-            timestampMap.get(p.timestamp)!.yPrice = p.price;
-          }
-        });
-
-        timestampMap.forEach(({ xPrice, yPrice }) => {
-          if (xPrice > 0 && yPrice > 0) {
-            const diff = Math.abs(xPrice - yPrice);
-            const percent = (diff / xPrice) * 100;
-            avgPercent += percent;
-            avgDiff += diff;
-            dataPointCount++;
-          }
-        });
-
-        let finalPercent = 0;
-        let finalDiff = 0;
-
-        if (dataPointCount > 0) {
-          finalPercent = avgPercent / dataPointCount;
-          finalDiff = avgDiff / dataPointCount;
-        } else {
-          const xCurrent = currentPrices.find((p) => p.chain === xChain)?.price || 0;
-          const yCurrent = currentPrices.find((p) => p.chain === yChain)?.price || 0;
-          if (xCurrent > 0 && yCurrent > 0) {
-            finalDiff = Math.abs(xCurrent - yCurrent);
-            finalPercent = (finalDiff / xCurrent) * 100;
-          }
-        }
-
-        data.push({
-          x: chainNames[xChain],
-          y: chainNames[yChain],
-          value: finalDiff,
-          percent: finalPercent,
-          xChain,
-          yChain,
-        });
-
-        if (finalPercent > maxValue) {
-          maxValue = finalPercent;
-        }
-      });
-    });
-
-    return { heatmapData: data, maxHeatmapValue: maxValue };
-  }, [
-    filteredHistoricalPrices,
-    filteredChains,
-    currentPrices,
-    originalHeatmapData,
-    originalMaxHeatmapValue,
-  ]);
+    return { heatmapData: filteredData, maxHeatmapValue: maxValue };
+  }, [filteredChains, originalHeatmapData, originalMaxHeatmapValue]);
 
   // handleExport must be defined after heatmapData is computed
   const handleExport = useCallback(() => {
@@ -418,7 +352,7 @@ export function HeatmapDetailView({ data }: HeatmapDetailViewProps) {
                               : baseColors.gray[900],
                         }}
                       >
-                        {percent.toFixed(1)}%
+                        {percent.toFixed(3)}%
                       </span>
                     )}
                   </div>
@@ -449,8 +383,8 @@ export function HeatmapDetailView({ data }: HeatmapDetailViewProps) {
         </div>
         <div className="flex justify-between mt-2 text-xs text-gray-400">
           <span>0%</span>
-          <span>{(maxHeatmapValue / 2).toFixed(1)}%</span>
-          <span>{maxHeatmapValue.toFixed(1)}%</span>
+          <span>{(maxHeatmapValue / 2).toFixed(3)}%</span>
+          <span>{maxHeatmapValue.toFixed(3)}%</span>
         </div>
       </div>
 
@@ -626,7 +560,7 @@ function HeatmapTooltip({
           <span className="text-gray-600">{t('crossChain.percentDifference')}</span>
           <span
             className={`font-mono font-medium ${
-              (cellData?.percent || 0) > 0.5 ? 'text-red-600' : 'text-emerald-600'
+              (cellData?.percent || 0) > 0.1 ? 'text-red-600' : 'text-emerald-600'
             }`}
           >
             {cellData?.percent.toFixed(2) || '-'}%
