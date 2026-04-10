@@ -34,6 +34,7 @@
     },
     "stabilityAnalysis": "Stability & Sync Analytics",
     "priceVolatility": "Price Variance",
+    "absolutePriceDiff": "Absolute Price Diff",
     "stabilityRating": "Stability Index",
     "baseChain": "Base Chain",
     "export": "Export",

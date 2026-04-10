@@ -49,8 +49,8 @@ export const getConsistencyRating = (stdDevPercent: number): string => {
 };
 
 export const getStabilityRating = (volatility: number): string => {
-  if (volatility < 0.1) return 'stable';
-  if (volatility < 0.3) return 'moderate';
+  if (volatility < 1) return 'stable';
+  if (volatility < 3) return 'moderate';
   return 'unstable';
 };
 
@@ -61,8 +61,8 @@ export const getIntegrityColor = (value: number): string => {
 };
 
 export const getVolatilityColor = (value: number): string => {
-  if (value < 0.1) return semanticColors.success.DEFAULT;
-  if (value <= 0.3) return semanticColors.warning.DEFAULT;
+  if (value < 1) return semanticColors.success.DEFAULT;
+  if (value <= 3) return semanticColors.warning.DEFAULT;
   return semanticColors.danger.DEFAULT;
 };
 

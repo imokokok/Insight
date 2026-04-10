@@ -47,7 +47,10 @@ export function ProgressBar({
     error: 'bg-danger-500',
   };
 
-  const barColor = color || defaultColors[variant];
+  // 检查 color 是否是 Tailwind 类名（以 bg- 开头）
+  const isTailwindClass = color?.startsWith('bg-');
+  const barColor = isTailwindClass ? color : defaultColors[variant];
+  const barStyle = !isTailwindClass && color ? { backgroundColor: color } : undefined;
 
   return (
     <div className={`w-full ${className}`}>
@@ -56,7 +59,7 @@ export function ProgressBar({
           className={`h-full rounded-full transition-all duration-300 ease-out ${
             animated ? 'progress-bar-animated' : ''
           } ${barColor}`}
-          style={{ width: `${percentage}%` }}
+          style={{ width: `${percentage}%`, ...barStyle }}
         />
       </div>
       {showPercentage && (

@@ -46,7 +46,6 @@ import {
   chainNames,
   chainColors,
   getIntegrityColor,
-  getVolatilityColor,
   getConsistencyRating,
   getStabilityRating,
   calculateChangePercent,
@@ -102,6 +101,7 @@ export default function CrossChainPage() {
     focusedChain,
     setFocusedChain,
     currentPrices,
+    priceDifferences,
     selectedProvider,
     selectedSymbol,
     visibleChains,
@@ -299,7 +299,7 @@ export default function CrossChainPage() {
                   className="px-3 py-2.5 text-xs font-medium"
                   style={{ color: baseColors.gray[500] }}
                 >
-                  {t('crossChain.priceVolatility')}
+                  {t('crossChain.absolutePriceDiff')}
                 </th>
                 <th
                   className="px-3 py-2.5 text-xs font-medium"
@@ -321,6 +321,9 @@ export default function CrossChainPage() {
                 const stabilityRating = getStabilityRating(volatility);
                 const integrity = dataIntegrity[chain] ?? 0;
                 const jumpCount = priceJumpFrequency[chain] ?? 0;
+                // 获取该链的绝对价格差异
+                const priceDiff = priceDifferences.find((p) => p.chain === chain);
+                const absoluteDiff = priceDiff?.diff ?? 0;
                 return (
                   <tr
                     key={chain}
@@ -343,15 +346,20 @@ export default function CrossChainPage() {
                       <CrossChainProgressBar
                         value={integrity}
                         color={getIntegrityColor(integrity)}
+                        showPercentage
+                        suffix="%"
                       />
                     </td>
                     <td className="px-3 py-2.5">
-                      <CrossChainProgressBar
-                        value={volatility}
-                        color={getVolatilityColor(volatility)}
-                        max={1}
-                        suffix="%"
-                      />
+                      <span
+                        className={`font-mono text-sm ${
+                          Math.abs(absoluteDiff) > 1
+                            ? 'font-semibold text-red-600'
+                            : 'text-gray-700'
+                        }`}
+                      >
+                        {absoluteDiff > 0 ? '+' : ''}${absoluteDiff.toFixed(4)}
+                      </span>
                     </td>
                     <td className="px-3 py-2.5">
                       <JumpIndicator count={jumpCount} />
