@@ -251,6 +251,7 @@
     "correlationMatrixDesc": "Shows price correlation between chains",
     "rollingCorrelationDesc": "Shows rolling correlation changes over time",
     "heatmapDesc": "Shows price spread percentage between chains",
+    "highPrecisionNotice": "Max deviation: {value} - Prices are highly consistent",
     "scroll": "Scroll",
     "zoom": "Zoom",
     "pan": "Pan",

@@ -60,3 +60,20 @@ export {
 export { validatePriceData, type ValidationResult } from './validation';
 
 export { detectAnomalousPrices, type AnomalousPricePoint } from './anomalyDetection';
+
+export {
+  formatPercent,
+  formatPriceDiff,
+  formatHeatmapCell,
+  formatLegendValue,
+  getPrecisionLevel,
+} from './formatUtils';
+
+export {
+  heatmapColorSchemes,
+  getProfessionalHeatmapColor,
+  getSmoothHeatmapColor,
+  getContrastColor,
+  getHeatmapCellStyle,
+  getLegendGradient,
+} from './heatmapColors';
