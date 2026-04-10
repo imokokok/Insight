@@ -12,31 +12,50 @@ export default function TechnicalDocsSection() {
   const docs = [
     {
       icon: <BookOpen className="w-6 h-6" />,
-      title: t('docs.technical.methodology.title'),
-      description: t('docs.technical.methodology.description'),
-      href: '/methodology',
-      tags: [t('docs.technical.methodology.tag1'), t('docs.technical.methodology.tag2')],
+      title: t('docs.technical.methodology.title') || '数据方法论',
+      description:
+        t('docs.technical.methodology.description') ||
+        '了解我们如何聚合、验证和计算价格数据的完整方法论',
+      href: '#methodology',
+      tags: [
+        t('docs.technical.methodology.tag1') || '价格聚合',
+        t('docs.technical.methodology.tag2') || '异常检测',
+      ],
     },
     {
       icon: <Server className="w-6 h-6" />,
-      title: t('docs.technical.api.title'),
-      description: t('docs.technical.api.description'),
-      href: '/api',
-      tags: [t('docs.technical.api.tag1'), t('docs.technical.api.tag2')],
+      title: t('docs.technical.api.title') || 'API 文档',
+      description:
+        t('docs.technical.api.description') ||
+        '查看完整的 API 接口文档，包括价格查询、历史数据等接口',
+      href: '#api',
+      tags: [
+        t('docs.technical.api.tag1') || 'REST API',
+        t('docs.technical.api.tag2') || 'WebSocket',
+      ],
     },
     {
       icon: <Layers className="w-6 h-6" />,
-      title: t('docs.technical.architecture.title'),
-      description: t('docs.technical.architecture.description'),
-      href: '#',
-      tags: [t('docs.technical.architecture.tag1'), t('docs.technical.architecture.tag2')],
+      title: t('docs.technical.architecture.title') || '系统架构',
+      description:
+        t('docs.technical.architecture.description') ||
+        '了解平台的技术架构设计，包括数据流、缓存策略等',
+      href: '#architecture',
+      tags: [
+        t('docs.technical.architecture.tag1') || '前端架构',
+        t('docs.technical.architecture.tag2') || '数据层',
+      ],
     },
     {
       icon: <Database className="w-6 h-6" />,
-      title: t('docs.technical.dataSources.title'),
-      description: t('docs.technical.dataSources.description'),
-      href: '#',
-      tags: [t('docs.technical.dataSources.tag1'), t('docs.technical.dataSources.tag2')],
+      title: t('docs.technical.dataSources.title') || '数据源',
+      description:
+        t('docs.technical.dataSources.description') || '查看支持的所有预言机和区块链网络列表',
+      href: '#datasources',
+      tags: [
+        t('docs.technical.dataSources.tag1') || '预言机',
+        t('docs.technical.dataSources.tag2') || '区块链',
+      ],
     },
   ];
 
@@ -47,9 +66,13 @@ export default function TechnicalDocsSection() {
           <div className="p-2 bg-green-100 rounded-lg">
             <Code className="w-5 h-5 text-green-600" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900">{t('docs.technical.title')}</h2>
+          <h2 className="text-2xl font-bold text-gray-900">
+            {t('docs.technical.title') || '技术文档'}
+          </h2>
         </div>
-        <p className="text-gray-600 leading-relaxed">{t('docs.technical.description')}</p>
+        <p className="text-gray-600 leading-relaxed">
+          {t('docs.technical.description') || '了解 Insight 平台的技术实现细节。'}
+        </p>
       </div>
 
       {/* Technical Docs Grid */}
@@ -83,7 +106,7 @@ export default function TechnicalDocsSection() {
                   href={doc.href}
                   className="inline-flex items-center gap-2 text-sm font-medium text-green-600 hover:text-green-700 transition-colors"
                 >
-                  {t('docs.technical.readMore')}
+                  {t('docs.technical.readMore') || '查看详情'}
                   <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>
@@ -97,26 +120,33 @@ export default function TechnicalDocsSection() {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Zap className="w-5 h-5 text-yellow-400" />
-            <h3 className="text-white font-semibold">{t('docs.technical.apiPreview.title')}</h3>
+            <h3 className="text-white font-semibold">
+              {t('docs.technical.apiPreview.title') || 'API 示例'}
+            </h3>
           </div>
-          <Link href="/api" className="text-sm text-blue-400 hover:text-blue-300 transition-colors">
-            {t('docs.technical.apiPreview.viewAll')}
+          <Link href="#api" className="text-sm text-blue-400 hover:text-blue-300 transition-colors">
+            {t('docs.technical.apiPreview.viewAll') || '查看全部'}
           </Link>
         </div>
 
         <div className="bg-gray-800 rounded-lg p-4 font-mono text-sm overflow-x-auto">
           <div className="flex items-center gap-2 mb-2">
-            <span className="text-green-400">{t('docs.technical.apiPreview.method')}</span>
-            <span className="text-blue-400">{t('docs.technical.apiPreview.endpoint')}</span>
+            <span className="text-green-400">{t('docs.technical.apiPreview.method') || 'GET'}</span>
+            <span className="text-blue-400">
+              {t('docs.technical.apiPreview.endpoint') || '/api/prices?symbol=ETH/USD'}
+            </span>
           </div>
-          <div className="text-gray-400 mb-2">{t('docs.technical.apiPreview.description')}</div>
+          <div className="text-gray-400 mb-2">
+            {t('docs.technical.apiPreview.description') || '获取指定交易对的实时价格数据'}
+          </div>
           <pre className="text-gray-300">
             {`{
   "symbol": "ETH/USD",
   "price": 3456.78,
   "timestamp": "2024-01-15T10:30:00Z",
   "source": "chainlink",
-  "confidence": 0.98
+  "confidence": 0.98,
+  "change24h": 2.45
 }`}
           </pre>
         </div>

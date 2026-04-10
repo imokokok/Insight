@@ -30,12 +30,13 @@ export default function DocsHero() {
 
           {/* Title */}
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">
-            {t('docs.hero.title')}
+            {t('docs.hero.title') || '文档中心'}
           </h1>
 
           {/* Subtitle */}
           <p className="text-lg sm:text-xl text-blue-100 mb-8 leading-relaxed">
-            {t('docs.hero.subtitle')}
+            {t('docs.hero.subtitle') ||
+              '了解如何使用 Insight 预言机数据平台进行实时价格监控、跨预言机对比和深度数据分析。'}
           </p>
 
           {/* Search Box */}
@@ -47,33 +48,33 @@ export default function DocsHero() {
               <input
                 type="text"
                 className="block w-full pl-11 pr-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-white placeholder-blue-200 focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-transparent transition-all"
-                placeholder={t('docs.hero.searchPlaceholder')}
+                placeholder={t('docs.hero.searchPlaceholder') || '搜索文档...'}
               />
             </div>
           </div>
 
           {/* Quick Links */}
           <div className="mt-8 flex flex-wrap items-center justify-center gap-4 text-sm">
-            <span className="text-blue-200">{t('docs.hero.quickLinks')}:</span>
+            <span className="text-blue-200">{t('docs.hero.quickLinks') || '快速链接'}:</span>
             <Link
               href="#quickstart"
               className="inline-flex items-center gap-1 text-white hover:text-blue-200 transition-colors"
             >
-              {t('docs.nav.quickstart')}
+              {t('docs.nav.quickstart') || '快速入门'}
               <ArrowRight className="w-3 h-3" />
             </Link>
             <Link
               href="#features"
               className="inline-flex items-center gap-1 text-white hover:text-blue-200 transition-colors"
             >
-              {t('docs.nav.features')}
+              {t('docs.nav.features') || '功能指南'}
               <ArrowRight className="w-3 h-3" />
             </Link>
             <Link
               href="#api"
               className="inline-flex items-center gap-1 text-white hover:text-blue-200 transition-colors"
             >
-              {t('docs.nav.api')}
+              {t('docs.nav.api') || 'API 参考'}
               <ArrowRight className="w-3 h-3" />
             </Link>
           </div>

@@ -20,7 +20,7 @@
       "overview": {
         "title": "平台概览",
         "description": "Insight 是一个专业的预言机数据分析平台，支持 Chainlink、Pyth、API3、DIA、RedStone、WINkLink 等主流预言机协议。",
-        "point1": "支持 10+ 主流预言机协议",
+        "point1": "支持 6 个主流预言机协议",
         "point2": "实时价格监控与对比",
         "point3": "跨链价格一致性分析"
       },
@@ -115,7 +115,7 @@
       },
       "dataSources": {
         "title": "数据源",
-        "description": "集成 10+ 主流预言机协议，覆盖以太坊、BSC、Polygon 等多条链。",
+        "description": "集成 6 个主流预言机协议，覆盖以太坊、BSC、Polygon 等多条链。",
         "tag1": "预言机协议",
         "tag2": "多链支持"
       },
@@ -148,7 +148,7 @@
         },
         "q2": {
           "question": "支持哪些预言机协议？",
-          "answer": "目前支持 Chainlink、Pyth、API3、UMA、DIA、RedStone、WINkLink 等主流预言机。"
+          "answer": "目前支持 Chainlink、Pyth、API3、RedStone、DIA、WINkLink 等主流预言机。"
         },
         "q3": {
           "question": "数据更新频率是多少？",
