@@ -722,10 +722,30 @@ if (!WS_URL) {
   logger.warn('NEXT_PUBLIC_WS_URL is not configured. Real-time features will be disabled.');
 }
 
+function validateWebSocketUrl(url: string | undefined): string | null {
+  if (!url || url.trim() === '') {
+    return null;
+  }
+
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== 'ws:' && parsed.protocol !== 'wss:') {
+      logger.error(`Invalid WebSocket URL protocol: ${parsed.protocol}. Expected ws: or wss:`);
+      return null;
+    }
+    return url;
+  } catch {
+    logger.error(`Invalid WebSocket URL: ${url}`);
+    return null;
+  }
+}
+
+const validatedWsUrl = validateWebSocketUrl(WS_URL);
+
 export const useWebSocket = createWebSocketHook({
-  url: WS_URL || '',
+  url: validatedWsUrl || 'wss://fallback.invalid',
   reconnectInterval: 3000,
-  maxReconnectAttempts: 5,
+  maxReconnectAttempts: validatedWsUrl ? 5 : 0,
   heartbeatInterval: 30000,
   heartbeatTimeout: 10000,
   useExponentialBackoff: true,
@@ -733,3 +753,7 @@ export const useWebSocket = createWebSocketHook({
   batchWindowMs: 100,
   throttleMs: 100,
 });
+
+export function isWebSocketEnabled(): boolean {
+  return validatedWsUrl !== null;
+}

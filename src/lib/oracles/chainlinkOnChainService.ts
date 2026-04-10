@@ -63,11 +63,18 @@ function encodeTokenCall(_functionName: 'totalSupply'): `0x${string}` {
 
 function decodeUint256(data: string): bigint {
   const cleanData = data.startsWith('0x') ? data.slice(2) : data;
-  if (!cleanData || cleanData === '0x') {
+  if (!cleanData || cleanData === '0x' || cleanData.length < 1) {
     return BigInt(0);
   }
-  return BigInt('0x' + cleanData);
+  try {
+    return BigInt('0x' + cleanData);
+  } catch {
+    console.error('Failed to decode uint256:', data);
+    return BigInt(0);
+  }
 }
+
+const LATEST_ROUND_DATA_LENGTH = 320;
 
 function decodeLatestRoundData(data: string): {
   roundId: bigint;
@@ -78,24 +85,57 @@ function decodeLatestRoundData(data: string): {
 } {
   const cleanData = data.startsWith('0x') ? data.slice(2) : data;
 
-  const roundId = BigInt('0x' + cleanData.slice(0, 64));
-  const answer = BigInt('0x' + cleanData.slice(64, 128));
-  const startedAt = BigInt('0x' + cleanData.slice(128, 192));
-  const updatedAt = BigInt('0x' + cleanData.slice(192, 256));
-  const answeredInRound = BigInt('0x' + cleanData.slice(256, 320));
+  if (!cleanData || cleanData.length < LATEST_ROUND_DATA_LENGTH) {
+    console.error(
+      `Invalid round data length: ${cleanData?.length || 0}, expected at least ${LATEST_ROUND_DATA_LENGTH}`
+    );
+    return {
+      roundId: BigInt(0),
+      answer: BigInt(0),
+      startedAt: BigInt(0),
+      updatedAt: BigInt(0),
+      answeredInRound: BigInt(0),
+    };
+  }
 
-  return {
-    roundId,
-    answer,
-    startedAt,
-    updatedAt,
-    answeredInRound,
-  };
+  try {
+    const roundId = BigInt('0x' + cleanData.slice(0, 64));
+    const answer = BigInt('0x' + cleanData.slice(64, 128));
+    const startedAt = BigInt('0x' + cleanData.slice(128, 192));
+    const updatedAt = BigInt('0x' + cleanData.slice(192, 256));
+    const answeredInRound = BigInt('0x' + cleanData.slice(256, 320));
+
+    return {
+      roundId,
+      answer,
+      startedAt,
+      updatedAt,
+      answeredInRound,
+    };
+  } catch (error) {
+    console.error('Failed to decode latest round data:', error);
+    return {
+      roundId: BigInt(0),
+      answer: BigInt(0),
+      startedAt: BigInt(0),
+      updatedAt: BigInt(0),
+      answeredInRound: BigInt(0),
+    };
+  }
 }
 
 function decodeDecimals(data: string): number {
   const cleanData = data.startsWith('0x') ? data.slice(2) : data;
-  return parseInt(cleanData, 16);
+  if (!cleanData || cleanData.length === 0) {
+    return 8;
+  }
+  try {
+    const parsed = parseInt(cleanData, 16);
+    return isNaN(parsed) ? 8 : parsed;
+  } catch {
+    console.error('Failed to decode decimals:', data);
+    return 8;
+  }
 }
 
 export class ChainlinkOnChainService {

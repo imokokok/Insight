@@ -3,8 +3,11 @@ import type { OracleClientConfig } from '@/lib/oracles/base';
 import { getDIADataService } from '@/lib/oracles/diaDataService';
 import { diaSymbols } from '@/lib/oracles/supportedSymbols';
 import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
+import { createLogger } from '@/lib/utils/logger';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
+
+const logger = createLogger('DIAClient');
 
 export class DIAClient extends BaseOracleClient {
   name = OracleProvider.DIA;
@@ -48,33 +51,33 @@ export class DIAClient extends BaseOracleClient {
             source: 'binance-api',
           };
         }
-        console.error(
-          '[DIA] Failed to fetch DIA token price from Binance API: no market data returned'
-        );
+        logger.error('Failed to fetch DIA token price from Binance API: no market data returned');
         throw this.createError(
           'Failed to fetch DIA token price from Binance API. Binance returned no market data.',
           'BINANCE_NO_DATA'
         );
       }
 
-      console.log(`[DIA] Fetching price for ${upperSymbol} on ${chain || 'default'}`);
+      logger.info(`Fetching price for ${upperSymbol}`, { chain: chain || 'default' });
 
       const diaService = getDIADataService();
 
       const livePrice = await diaService.getAssetPrice(symbol, chain);
 
       if (livePrice) {
-        console.log(`[DIA] Successfully fetched price for ${upperSymbol}:`, livePrice.price);
+        logger.info(`Successfully fetched price for ${upperSymbol}`, { price: livePrice.price });
         return livePrice;
       }
 
-      console.error(`[DIA] No price data available for ${upperSymbol}`);
+      logger.error(`No price data available for ${upperSymbol}`);
       throw this.createError(
         `No price data available for ${symbol} from DIA. Real data source returned no results.`,
         'NO_DATA_AVAILABLE'
       );
     } catch (error) {
-      console.error(`[DIA] Error fetching price for ${symbol}:`, error);
+      logger.error(
+        `Error fetching price for ${symbol}: ${error instanceof Error ? error.message : String(error)}`
+      );
       throw this.createError(
         error instanceof Error ? error.message : 'Failed to fetch price from DIA',
         'DIA_ERROR'
@@ -93,14 +96,12 @@ export class DIAClient extends BaseOracleClient {
       const historicalPrices = await diaService.getHistoricalPrices(symbol, chain, period);
 
       if (!historicalPrices || historicalPrices.length === 0) {
-        console.log(
-          `[DIA] No historical price data available for ${symbol}, returning empty array`
-        );
+        logger.info(`No historical price data available for ${symbol}, returning empty array`);
         return [];
       }
 
-      console.log(
-        `[DIA] Successfully fetched ${historicalPrices.length} historical prices for ${symbol} from DIA API`
+      logger.info(
+        `Successfully fetched ${historicalPrices.length} historical prices for ${symbol} from DIA API`
       );
 
       const targetChain = chain || Blockchain.ETHEREUM;
@@ -124,7 +125,9 @@ export class DIAClient extends BaseOracleClient {
         };
       });
     } catch (error) {
-      console.error(`[DIA] Error fetching historical prices for ${symbol}:`, error);
+      logger.error(
+        `Error fetching historical prices for ${symbol}: ${error instanceof Error ? error.message : String(error)}`
+      );
       return [];
     }
   }

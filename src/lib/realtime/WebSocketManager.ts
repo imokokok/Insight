@@ -338,9 +338,16 @@ export class WebSocketManager {
 
   private calculateBackoffDelay(attempt: number): number {
     const maxDelay = 30000;
-    const delay = Math.min(this.config.reconnectInterval * Math.pow(2, attempt), maxDelay);
-    return delay + Math.random() * 1000;
+    const baseDelay = Math.min(this.config.reconnectInterval * Math.pow(2, attempt), maxDelay);
+    // 添加抖动: ±20% 的随机变化，避免多个客户端同时重连
+    const jitter = baseDelay * 0.2 * (Math.random() - 0.5);
+    return Math.max(1000, baseDelay + jitter);
   }
+
+  private static globalReconnectCount = 0;
+  private static lastGlobalReconnectTime = 0;
+  private static readonly GLOBAL_RECONNECT_WINDOW = 60000; // 1分钟窗口
+  private static readonly MAX_GLOBAL_RECONNECTS = 10; // 每分钟最大全局重连数
 
   private attemptReconnect(): void {
     if (this.reconnectAttempts >= this.config.maxReconnectAttempts) {
@@ -349,6 +356,21 @@ export class WebSocketManager {
       return;
     }
 
+    // 全局重连限制检查
+    const now = Date.now();
+    if (now - WebSocketManager.lastGlobalReconnectTime > WebSocketManager.GLOBAL_RECONNECT_WINDOW) {
+      WebSocketManager.globalReconnectCount = 0;
+      WebSocketManager.lastGlobalReconnectTime = now;
+    }
+
+    if (WebSocketManager.globalReconnectCount >= WebSocketManager.MAX_GLOBAL_RECONNECTS) {
+      logger.warn('Global reconnect limit reached, delaying reconnection');
+      const extraDelay = 5000 + Math.random() * 5000; // 5-10秒额外延迟
+      setTimeout(() => this.attemptReconnect(), extraDelay);
+      return;
+    }
+
+    WebSocketManager.globalReconnectCount++;
     this.reconnectAttempts++;
     this.stats.reconnectionCount++;
     this.setStatus('reconnecting');
@@ -358,7 +380,7 @@ export class WebSocketManager {
       : this.config.reconnectInterval;
 
     logger.info(
-      `Reconnecting in ${delay}ms... Attempt ${this.reconnectAttempts}/${this.config.maxReconnectAttempts}`
+      `Reconnecting in ${delay.toFixed(0)}ms... Attempt ${this.reconnectAttempts}/${this.config.maxReconnectAttempts} (global: ${WebSocketManager.globalReconnectCount}/${WebSocketManager.MAX_GLOBAL_RECONNECTS})`
     );
 
     this.config.onReconnect?.(this.reconnectAttempts);

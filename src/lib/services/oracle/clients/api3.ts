@@ -3,8 +3,11 @@ import type { OracleClientConfig } from '@/lib/oracles/base';
 import { api3Symbols, API3_AVAILABLE_PAIRS } from '@/lib/oracles/supportedSymbols';
 import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
 import { api3NetworkService } from '@/lib/services/oracle/api3NetworkService';
+import { createLogger } from '@/lib/utils/logger';
 import type { PriceData } from '@/types/oracle';
 import { OracleProvider, Blockchain } from '@/types/oracle';
+
+const logger = createLogger('API3Client');
 
 export class API3Client extends BaseOracleClient {
   name = OracleProvider.API3;
@@ -49,7 +52,9 @@ export class API3Client extends BaseOracleClient {
       if (cacheKey) this.setCache(cacheKey, data);
       return data;
     } catch (error) {
-      console.warn('Data fetch failed:', error);
+      logger.warn('Data fetch failed', {
+        error: error instanceof Error ? error.message : String(error),
+      });
       throw error;
     }
   }
@@ -87,7 +92,9 @@ export class API3Client extends BaseOracleClient {
         dataAge: api3Data.dataAge,
       };
     } catch (error) {
-      console.error(`[API3Client] Failed to fetch price for ${symbol}:`, error);
+      logger.error(
+        `Failed to fetch price for ${symbol}: ${error instanceof Error ? error.message : String(error)}`
+      );
 
       // 如果是我们主动抛出的错误，直接抛出
       if (
@@ -153,7 +160,9 @@ export class API3Client extends BaseOracleClient {
         };
       });
     } catch (error) {
-      console.error(`[API3Client] Failed to fetch historical prices for ${symbol}:`, error);
+      logger.error(
+        `Failed to fetch historical prices for ${symbol}: ${error instanceof Error ? error.message : String(error)}`
+      );
 
       // 如果是我们主动抛出的错误，直接抛出
       if (

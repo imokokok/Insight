@@ -1,5 +1,17 @@
+import { createLogger } from '@/lib/utils/logger';
+
 import { ApiError } from './ApiError';
 import { type ApiClientResponse, type RequestConfig } from './types';
+
+const logger = createLogger('ApiClient');
+
+const DEFAULT_TIMEOUT = 30000;
+
+interface ApiClientOptions {
+  baseURL?: string;
+  defaultTimeout?: number;
+  defaultHeaders?: HeadersInit;
+}
 
 type RequestInterceptor = (config: RequestInit) => RequestInit;
 type ResponseInterceptor = (response: Response) => Response | Promise<Response>;
@@ -7,13 +19,16 @@ type ResponseInterceptor = (response: Response) => Response | Promise<Response>;
 class ApiClient {
   private baseURL: string;
   private defaultHeaders: HeadersInit;
+  private defaultTimeout: number;
   private requestInterceptors: RequestInterceptor[] = [];
   private responseInterceptors: ResponseInterceptor[] = [];
 
-  constructor(baseURL: string = '') {
-    this.baseURL = baseURL;
+  constructor(options: ApiClientOptions = {}) {
+    this.baseURL = options.baseURL || '';
+    this.defaultTimeout = options.defaultTimeout || DEFAULT_TIMEOUT;
     this.defaultHeaders = {
       'Content-Type': 'application/json',
+      ...options.defaultHeaders,
     };
   }
 
@@ -32,9 +47,11 @@ class ApiClient {
     config?: RequestConfig
   ): Promise<ApiClientResponse<T>> {
     const controller = new AbortController();
-    const timeoutId = config?.timeout
-      ? setTimeout(() => controller.abort(), config.timeout)
-      : undefined;
+    const timeout = config?.timeout ?? this.defaultTimeout;
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+      logger.warn(`Request timeout after ${timeout}ms`, { method, url });
+    }, timeout);
 
     let init: RequestInit = {
       method,
@@ -52,34 +69,51 @@ class ApiClient {
     }
 
     const fullUrl = this.baseURL + url;
-    let response = await fetch(fullUrl, init);
+    const startTime = Date.now();
 
-    if (timeoutId) {
+    try {
+      let response = await fetch(fullUrl, init);
+
+      for (const interceptor of this.responseInterceptors) {
+        response = await interceptor(response);
+      }
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: 'Unknown error' }));
+        throw new ApiError({
+          code: error.code || 'API_ERROR',
+          message: error.message || 'Request failed',
+          statusCode: response.status,
+          details: error.details,
+        });
+      }
+
+      const result = await response.json();
+      const duration = Date.now() - startTime;
+      logger.debug(`Request completed in ${duration}ms`, { method, url, status: response.status });
+
+      return {
+        data: result,
+        meta: {
+          timestamp: Date.now(),
+          source: 'api',
+          duration,
+        },
+      };
+    } catch (error) {
+      const duration = Date.now() - startTime;
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new ApiError({
+          code: 'TIMEOUT_ERROR',
+          message: `Request timeout after ${timeout}ms`,
+          statusCode: 408,
+          details: { method, url, timeout, duration },
+        });
+      }
+      throw error;
+    } finally {
       clearTimeout(timeoutId);
     }
-
-    for (const interceptor of this.responseInterceptors) {
-      response = await interceptor(response);
-    }
-
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: 'Unknown error' }));
-      throw new ApiError({
-        code: error.code || 'API_ERROR',
-        message: error.message || 'Request failed',
-        statusCode: response.status,
-        details: error.details,
-      });
-    }
-
-    const result = await response.json();
-    return {
-      data: result,
-      meta: {
-        timestamp: Date.now(),
-        source: 'api',
-      },
-    };
   }
 
   async get<T>(url: string, config?: RequestConfig): Promise<ApiClientResponse<T>> {
@@ -99,5 +133,6 @@ class ApiClient {
   }
 }
 
-export const apiClient = new ApiClient();
-export { ApiClient };
+export const apiClient = new ApiClient({ defaultTimeout: DEFAULT_TIMEOUT });
+export { ApiClient, DEFAULT_TIMEOUT };
+export type { ApiClientOptions };
