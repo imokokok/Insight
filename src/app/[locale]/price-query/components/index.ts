@@ -1,12 +1,10 @@
 export { Icons } from './Icons';
 export { CustomTooltip } from './CustomTooltip';
-export { StatItem } from './StatItem';
 export { Selectors } from './Selectors';
 export { PriceChart } from './PriceChart';
 export type { ChartDataPoint } from './PriceChart';
 export { ExportConfig } from './ExportConfig';
 export type { ExportConfigData, ExportFormat, ExportField } from './ExportConfig';
-export { DataQualityPanel } from './DataQualityPanel';
 export { DataSourceSection } from './DataSourceSection';
 export { default as UnifiedExportSection } from './UnifiedExportSection';
 export { QueryHeader } from './QueryHeader';

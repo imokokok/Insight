@@ -1,0 +1,1323 @@
+{
+  "arbitrageHeatmap": {
+    "searchPlaceholder": "搜索交易对..."
+  },
+  "multiSourceAggregation": "多源聚合",
+  "cryptographicVerification": "加密验证",
+  "anomalyDetection": "异常检测",
+  "decentralizedGovernance": "去中心化治理",
+  "continuousAuditing": "持续审计",
+  "incidentResponse": "事件响应",
+  "permanentStorage": "永久存储",
+  "multiProviderAggregation": "多提供商聚合",
+  "modularArchitecture": "模块化架构",
+  "realTimeMonitoring": "实时监控",
+  "publisherStaking": "发布者质押",
+  "confidenceIntervals": "置信区间",
+  "slashingConditions": "惩罚条件",
+  "multiNodeConsensus": "多节点共识",
+  "nodeStaking": "节点质押",
+  "crossChainRedundancy": "跨链冗余",
+  "securityAudit": "安全审计",
+  "tendermintConsensus": "Tendermint 共识",
+  "validatorSlashing": "验证者惩罚",
+  "ibcSecurity": "IBC 安全",
+  "continuousMonitoring": "持续监控",
+  "disputeResolution": {
+    "showOverallTrend": "显示整体趋势",
+    "groupByType": "按类型分组",
+    "filterByType": "按类型筛选",
+    "searchId": "搜索ID",
+    "enterDisputeId": "输入争议ID",
+    "clear": "清除",
+    "type": "类型",
+    "reward": "奖励",
+    "transaction": "交易",
+    "viewOnChain": "查看链上",
+    "showing": "显示第 {start} 到 {end} 条，共 {total} 条",
+    "firstPage": "首页",
+    "previousPage": "上一页",
+    "nextPage": "下一页",
+    "lastPage": "末页",
+    "jumpTo": "跳转到",
+    "page": "页"
+  },
+  "validatorPanel": {
+    "title": "验证节点",
+    "subtitle": "共 {count} 个验证节点",
+    "loading": "加载验证节点中...",
+    "filtered": "(已筛选)",
+    "totalStaked": "总质押量:",
+    "rank": "排名",
+    "stakeAmount": "质押金额",
+    "commissionRate": "佣金率",
+    "uptime": "在线率",
+    "statusLabel": "状态",
+    "all": "全部",
+    "status": {
+      "active": "活跃",
+      "jailed": "被监禁"
+    },
+    "quickFilter": "快速筛选",
+    "lowCommission": "低佣金",
+    "highStake": "高质押",
+    "highUptime": "高在线率",
+    "selectedForComparison": "已选择 {count} 个",
+    "clearSelection": "清除选择",
+    "region": {
+      "northAmerica": "北美",
+      "europe": "欧洲",
+      "asia": "亚洲",
+      "other": "其他"
+    }
+  },
+  "regions": {
+    "northAmerica": "北美",
+    "europe": "欧洲",
+    "asia": "亚洲",
+    "other": "其他"
+  },
+  "user": "用户",
+  "actions": {
+    "refresh": "刷新",
+    "export": "导出",
+    "cancel": "取消",
+    "save": "保存",
+    "delete": "删除",
+    "deleting": "删除中...",
+    "edit": "编辑",
+    "apply": "应用",
+    "retry": "重试",
+    "confirm": "确定",
+    "clear": "清除",
+    "close": "关闭",
+    "reset": "重置",
+    "zoomIn": "放大",
+    "zoomOut": "缩小",
+    "viewFullscreen": "全屏查看",
+    "search": "搜索",
+    "more": "更多"
+  },
+  "forms": {
+    "exportData": "导出数据",
+    "noDataToExport": "没有数据可导出"
+  },
+  "status": {
+    "loading": "加载中...",
+    "noData": "暂无数据",
+    "success": "成功",
+    "error": "错误",
+    "live": "实时",
+    "online": "在线",
+    "offline": "离线"
+  },
+  "consistency": {
+    "excellent": "最优",
+    "good": "正常",
+    "fair": "次优",
+    "poor": "临界"
+  },
+  "activity": {
+    "active": "正常运行",
+    "inactive": "服务中断",
+    "degraded": "性能降级"
+  },
+  "alert": {
+    "normal": "标准",
+    "warning": "注意",
+    "critical": "异常"
+  },
+  "time": {
+    "lastUpdated": "最后更新",
+    "justNow": "刚刚",
+    "secondsAgo": "{seconds}秒前",
+    "minutesAgo": "{minutes}分钟前",
+    "hoursAgo": "{hours}小时前",
+    "daysAgo": "{days}天前",
+    "inSeconds": "{seconds}秒后",
+    "inMinutes": "{minutes}分钟后",
+    "inHours": "{hours}小时后",
+    "inDays": "{days}天后",
+    "seconds": "秒",
+    "minutes": "分钟",
+    "hours": "小时",
+    "00:00": "00:00",
+    "06:00": "06:00",
+    "12:00": "12:00",
+    "18:00": "18:00",
+    "23:59": "23:59"
+  },
+  "timeAgo": {
+    "minutes": "{count}分钟前",
+    "hours": "{count}小时前",
+    "days": "{count}天前"
+  },
+  "price": {
+    "title": "价格"
+  },
+  "statistics": {
+    "deviation": "偏差",
+    "standardDeviation": "标准差",
+    "median": "中位数",
+    "average": "平均值",
+    "variance": "方差"
+  },
+  "chains": {
+    "ethereum": "Ethereum",
+    "arbitrum": "Arbitrum",
+    "optimism": "Optimism",
+    "polygon": "Polygon",
+    "base": "Base",
+    "avalanche": "Avalanche",
+    "starknet": "Starknet",
+    "blast": "Blast",
+    "cardano": "Cardano",
+    "polkadot": "Polkadot",
+    "kava": "Kava",
+    "moonbeam": "Moonbeam",
+    "starkex": "StarkEx"
+  },
+  "filters": {
+    "filter": "筛选",
+    "clearAll": "清除全部",
+    "currentFilters": "当前筛选",
+    "noFilters": "无筛选条件",
+    "filtersApplied": "已应用 {count} 个筛选",
+    "all": "全部"
+  },
+  "deviation": {
+    "all": "全部",
+    "excellent": "<0.1%",
+    "good": "0.1-0.5%",
+    "poor": ">0.5%"
+  },
+  "frequency": {
+    "daily": "每日",
+    "monthly": "每月",
+    "weekly": "每周",
+    "yearly": "每年"
+  },
+  "importance": {
+    "high": "高",
+    "medium": "中",
+    "low": "低"
+  },
+  "days": {
+    "0": "周日",
+    "1": "周一",
+    "2": "周二",
+    "3": "周三",
+    "4": "周四",
+    "5": "周五",
+    "6": "周六"
+  },
+  "locale": "zh-CN",
+  "favorite": "收藏",
+  "favorited": "已收藏",
+  "export": "导出",
+  "clear": "清除",
+  "marketDataPanel": {
+    "marketCap": "市值",
+    "volume24h": "24小时成交额",
+    "circulatingSupply": "流通供应量",
+    "ofTotalSupply": "占总供应量",
+    "fullyDilutedValuation": "完全稀释估值",
+    "atCurrentPrice": "按当前价格",
+    "marketCapRank": "市值排名",
+    "amongAllCryptocurrencies": "在所有加密货币中",
+    "supplyRatio": "供应比例",
+    "loading": "加载中...",
+    "lastUpdated": "最后更新",
+    "24hHigh": "24小时最高",
+    "24hLow": "24小时最低"
+  },
+  "confidenceScore": {
+    "title": "置信度评分",
+    "subtitle": "数据质量评估",
+    "loading": "加载中..."
+  },
+  "nodeReputation": {
+    "title": "节点声誉",
+    "loading": "加载中..."
+  },
+  "crossChainPanel": {
+    "loadingCrossChainData": "加载跨链数据中..."
+  },
+  "priceDeviation": {
+    "loading": "加载中..."
+  },
+  "home": {
+    "loading": "加载中..."
+  },
+  "common": {
+    "loading": "加载中...",
+    "noData": "暂无数据",
+    "home": "首页",
+    "refresh": "刷新",
+    "export": "导出",
+    "expand": "展开",
+    "collapse": "收起",
+    "retry": "重试",
+    "copy": "复制",
+    "copied": "已复制",
+    "copyFailed": "复制失败",
+    "clickForDetails": "点击查看详情",
+    "breadcrumb": {
+      "home": "首页"
+    },
+    "error": {
+      "loadingFailed": "加载失败"
+    },
+    "warning": {
+      "partialData": "部分数据加载失败",
+      "partialDataDescription": "以下数据源不可用: {items}。正在显示可用数据。"
+    },
+    "timeRange": {
+      "24h": "24小时"
+    },
+    "time": {
+      "00:00": "00:00",
+      "06:00": "06:00",
+      "12:00": "12:00",
+      "18:00": "18:00",
+      "23:59": "23:59"
+    }
+  },
+  "comparison": {
+    "title": "对比"
+  },
+  "indicators": {
+    "title": "指标"
+  },
+  "crossOracleComparison": {
+    "title": "跨预言机对比",
+    "subtitle": "多预言机价格对比分析"
+  },
+  "chainComparison": {
+    "title": "链对比"
+  },
+  "snapshot": {
+    "title": "快照",
+    "savedCount": "已保存 {count} 个快照",
+    "cloudLabel": "云同步",
+    "saveSnapshot": "保存快照"
+  },
+  "gasFeeComparison": {
+    "title": "Gas 费用对比"
+  },
+  "crossChainPriceConsistency": {
+    "title": "跨链价格一致性"
+  },
+  "confidenceInterval": {
+    "title": "置信区间",
+    "bid": "买入价",
+    "ask": "卖出价",
+    "spread": "价差",
+    "bidLabel": "买",
+    "askLabel": "卖",
+    "width": "宽度",
+    "threshold": "阈值"
+  },
+  "updateFrequency": {
+    "title": "更新频率"
+  },
+  "stakingMetrics": {
+    "title": "质押指标"
+  },
+  "publisherContribution": {
+    "title": "发布者贡献",
+    "subtitle": "数据发布者贡献度分析"
+  },
+  "coveragePool": {
+    "title": "覆盖池"
+  },
+  "confidenceAlert": {
+    "title": "置信度预警"
+  },
+  "volatilityAlert": {
+    "title": "波动率预警"
+  },
+  "requestTypeDistribution": {
+    "title": "请求类型分布",
+    "subtitle": "各类型请求占比"
+  },
+  "realtimeUpdate": {
+    "title": "实时更新"
+  },
+  "oraclePerformanceRanking": {
+    "title": "预言机性能排名",
+    "subtitle": "基于多维度指标的综合排名"
+  },
+  "latencyAnalysis": {
+    "title": "延迟分析",
+    "subtitle": "网络延迟性能评估"
+  },
+  "integratedProtocols": {
+    "title": "集成协议"
+  },
+  "dataSourceCoverage": {
+    "title": "数据源覆盖"
+  },
+  "dataQualityScoreCard": {
+    "title": "数据质量评分",
+    "subtitle": "综合数据质量评估"
+  },
+  "stakingDistribution": {
+    "title": "质押分布"
+  },
+  "requestTrend": {
+    "title": "请求趋势",
+    "loading": "加载中..."
+  },
+  "priceVolatility": {
+    "title": "价格波动率"
+  },
+  "priceDistribution": {
+    "title": "价格分布",
+    "legend": {
+      "title": "图例",
+      "box": "箱体",
+      "median": "中位数",
+      "whisker": "须线",
+      "outlier": "异常值"
+    },
+    "stats": {
+      "title": "统计信息",
+      "oracle": "预言机",
+      "median": "中位数",
+      "q1": "Q1",
+      "q3": "Q3",
+      "iqr": "IQR",
+      "outliers": "异常值"
+    }
+  },
+  "priceDeviationHeatmap": {
+    "title": "价格偏差热力图"
+  },
+  "priceCorrelation": {
+    "title": "价格相关性",
+    "legend": {
+      "title": "相关性图例",
+      "perfectNegative": "完全负相关",
+      "negative": "负相关",
+      "none": "无相关",
+      "positive": "正相关",
+      "perfectPositive": "完全正相关",
+      "lowCorrelation": "低相关",
+      "highCorrelation": "高相关"
+    },
+    "oracleCount": "预言机数量",
+    "highCorrelationPairs": "高相关性对",
+    "avgCorrelation": "平均相关性",
+    "maxCorrelation": "最大相关性",
+    "minCorrelation": "最小相关性",
+    "highCorrelationCount": "高相关性数量",
+    "correlationCoefficient": "相关系数",
+    "correlationLevel": "相关程度",
+    "correlationDirection": "相关方向",
+    "positiveCorrelation": "正相关",
+    "negativeCorrelation": "负相关",
+    "noCorrelation": "无相关",
+    "distribution": {
+      "title": "相关性分布",
+      "topPairs": "高相关性交易对"
+    },
+    "explanation": {
+      "title": "相关性说明",
+      "description": "价格相关性衡量不同预言机价格数据之间的线性关系，取值范围从-1到1。"
+    },
+    "level": {
+      "veryStrong": "极强",
+      "strong": "强",
+      "moderate": "中等",
+      "weak": "弱",
+      "veryWeak": "极弱"
+    }
+  },
+  "crossChainRisk": {
+    "title": "跨链风险"
+  },
+  "crossChainPriceComparison": {
+    "title": "{symbol} 跨链价格对比",
+    "priceDiff": "跨链价格差异: {percent}%",
+    "avgPrice": "平均价格",
+    "highestPrice": "最高价格",
+    "lowestPrice": "最低价格",
+    "allChains": "所有链",
+    "confidence": "置信度: {percent}%",
+    "high": "偏高",
+    "low": "偏低",
+    "normal": "正常",
+    "noData": "暂无跨链价格数据"
+  },
+  "concentrationRisk": {
+    "title": "集中度风险"
+  },
+  "cdfChart": {
+    "title": "累积分布函数",
+    "subtitle": "显示延迟值的累积概率分布"
+  },
+  "oracleCommon": {
+    "performanceGauge": {
+      "levels": {
+        "excellent": "优秀",
+        "good": "良好",
+        "warning": "警告",
+        "danger": "危险"
+      },
+      "timesPerMinute": "次/分",
+      "range": "范围: {value}"
+    },
+    "dataFreshness": {
+      "title": "数据新鲜度",
+      "refresh": "刷新",
+      "lastUpdated": "最后更新",
+      "stale": "已过期"
+    },
+    "riskScore": {
+      "levels": {
+        "low": "低风险",
+        "medium": "中风险",
+        "high": "高风险"
+      }
+    },
+    "mitigationMeasures": {
+      "title": "缓解措施",
+      "noMeasures": "暂无缓解措施",
+      "effectivenessLabel": "有效性",
+      "types": {
+        "technical": "技术",
+        "governance": "治理",
+        "operational": "运营"
+      },
+      "status": {
+        "active": "活跃",
+        "inactive": "非活跃"
+      },
+      "effectiveness": {
+        "high": "高",
+        "medium": "中",
+        "low": "低"
+      }
+    },
+    "securityTimeline": {
+      "title": "安全时间线",
+      "noEvents": "暂无安全事件",
+      "types": {
+        "upgrade": "升级",
+        "vulnerability": "漏洞",
+        "response": "响应",
+        "maintenance": "维护"
+      },
+      "status": {
+        "resolved": "已解决",
+        "monitoring": "监控中"
+      }
+    },
+    "stakingCalculator": {
+      "title": "质押计算器",
+      "stakeAmount": "质押金额",
+      "stakeAmountPlaceholder": "输入质押金额",
+      "validatorType": "验证者类型",
+      "validatorTypes": {
+        "institution": "机构",
+        "independent": "独立",
+        "community": "社区"
+      },
+      "disputeFrequency": "争议频率",
+      "disputeFrequencies": {
+        "low": "低",
+        "medium": "中",
+        "high": "高"
+      },
+      "estimatedRewards": "预估收益",
+      "daily": "每日",
+      "monthly": "每月",
+      "yearly": "每年",
+      "apr": "年化收益率",
+      "annual": "年化",
+      "rewardComparison": "收益对比",
+      "day": "日",
+      "monthPerDay": "月/日",
+      "yearPerDay": "年/日",
+      "disclaimer": "免责声明：预估收益仅供参考，实际收益可能因网络状况和验证者表现而有所不同。"
+    },
+    "oraclePageTemplate": {
+      "rank": "排名"
+    }
+  },
+  "realtimeNotifications": {
+    "connection": {
+      "title": "实时连接",
+      "message": "已成功连接到实时数据流"
+    },
+    "priceAlert": {
+      "title": "价格告警",
+      "message": "价格已达到 {price}"
+    }
+  },
+  "performanceIndicator": {
+    "title": "性能监控",
+    "panelLabel": "性能指标面板",
+    "debugOn": "调试: 开",
+    "debugOff": "调试: 关",
+    "metrics": {
+      "queryResponse": "查询响应",
+      "dataProcessing": "数据处理",
+      "dataValidation": "数据验证",
+      "cacheHitRate": "缓存命中率",
+      "cacheSize": "缓存大小"
+    },
+    "thresholds": "性能阈值参考",
+    "ratings": {
+      "good": "良好",
+      "needsImprovement": "需改进",
+      "poor": "较差",
+      "unknown": "未知",
+      "noData": "无数据"
+    },
+    "reference": "查询: <2s / <5s | 处理: <100ms / <500ms | 验证: <50ms / <200ms | 缓存: >70% / >30%"
+  },
+  "errorFallback": {
+    "title": "页面加载出错",
+    "description": "抱歉，加载此页面时遇到了问题。请尝试刷新页面或返回首页。",
+    "errorDetails": "错误详情 (仅开发模式可见):",
+    "componentStack": "组件堆栈",
+    "retry": "重试",
+    "goHome": "返回首页",
+    "contactSupport": "如果问题持续存在，请联系技术支持"
+  },
+  "mobileInteraction": {
+    "current": "当前"
+  },
+  "networkHealth": {
+    "status": {
+      "online": "在线",
+      "warning": "警告",
+      "offline": "离线"
+    },
+    "networkStatus": "网络状态",
+    "monitoring": "实时监控中",
+    "lastCheck": "最后检查",
+    "vsLastWeek": "较上周",
+    "activeNodes": "活跃节点数",
+    "nodeUptime": "节点在线率",
+    "avgResponseTime": "平均响应延迟",
+    "updateFrequency": "数据更新频率",
+    "every": "每",
+    "seconds": "秒",
+    "totalStaked": "网络质押总量",
+    "dataFeeds": "数据源数量",
+    "activityHeatmap": {
+      "title": "网络活动热力图",
+      "subtitle": "24小时数据请求分布",
+      "totalRequests": "总请求量",
+      "peakHour": "峰值时段",
+      "avgPerHour": "平均/小时",
+      "peakRequests": "峰值请求",
+      "requests": "请求",
+      "low": "低",
+      "high": "高"
+    },
+    "performanceDashboard": {
+      "title": "性能仪表盘",
+      "subtitle": "实时网络性能指标可视化",
+      "responseTime": "响应时间",
+      "uptime": "在线率",
+      "updateFreq": "更新频率",
+      "validatorActiveRate": "验证者活跃率",
+      "stakingRate": "质押率",
+      "blockTime": "区块时间"
+    },
+    "dataFreshness": {
+      "title": "数据新鲜度",
+      "subtitle": "实时数据同步状态",
+      "lastUpdated": "最后更新",
+      "dataLatency": "数据延迟",
+      "excellent": "优秀",
+      "good": "良好",
+      "slow": "缓慢",
+      "secondsAgo": "秒前",
+      "minutesAgo": "分钟前",
+      "hoursAgo": "小时前"
+    }
+  },
+  "crossChain": {
+    "autoRefreshOff": "关闭自动刷新",
+    "autoRefresh30s": "30秒",
+    "autoRefresh1m": "1分钟",
+    "autoRefresh5m": "5分钟",
+    "averagePrice": "平均价格",
+    "medianPrice": "中位数价格",
+    "highestPrice": "最高价格",
+    "priceRange": "价格区间",
+    "standardDeviation": "标准差",
+    "dataPoints": "数据点",
+    "iqr": "四分位距",
+    "skewness": "偏度",
+    "kurtosis": "峰度",
+    "confidenceInterval95": "95%置信区间",
+    "coefficientOfVariation": "变异系数",
+    "consistencyRating": "一致性评级",
+    "stabilityAnalysis": "稳定性分析",
+    "blockchain": "区块链",
+    "dataIntegrity": "数据完整性",
+    "priceVolatility": "价格波动率",
+    "priceJumpFrequency": "价格跳跃频率",
+    "stabilityRating": "稳定性评级",
+    "cointegrationAnalysis": "协整分析",
+    "cointegrationDesc": "分析不同链上价格之间的长期均衡关系",
+    "volatilityAnalysis": "波动性分析",
+    "volatilityAnalysisDesc": "分析价格波动的统计特征",
+    "priceDistributionAnalysis": "价格分布分析",
+    "priceDistributionHistogram": "价格分布直方图",
+    "frequency": "频率",
+    "medianLine": "中位数线",
+    "meanLine": "均值线",
+    "chainPriceBoxPlot": "链价格箱线图",
+    "title": "跨链分析",
+    "colorblindModeOn": "色盲模式已开启",
+    "switchToColorblindMode": "切换到色盲模式",
+    "colorblindFriendly": "色盲友好",
+    "export": "导出",
+    "autoRefresh": "自动刷新",
+    "refreshSuccess": "刷新成功",
+    "loadingData": "加载数据中...",
+    "tooltip": {
+      "averagePrice": "所有链上价格的平均值",
+      "medianPrice": "所有链上价格的中位数",
+      "highestPrice": "所有链中的最高价格",
+      "priceRange": "最高价格与最低价格的差值",
+      "standardDeviation": "价格波动的标准差",
+      "dataPoints": "数据点的数量",
+      "iqr": "第三四分位数与第一四分位数的差值",
+      "skewness": "价格分布的不对称性",
+      "kurtosis": "价格分布的尾部厚度",
+      "confidenceInterval95": "95%置信水平下的价格区间",
+      "coefficientOfVariation": "标准差与平均值的比值",
+      "consistencyRating": "基于标准差的一致性评级"
+    }
+  },
+  "crossOracle": {
+    "subtitle": "多预言机价格对比分析",
+    "favorites": {
+      "button": "收藏",
+      "quickAccess": "快速访问",
+      "viewAll": "查看全部"
+    },
+    "weighted": "加权",
+    "historyRange": "历史范围",
+    "low": "最低",
+    "ofAverage": "占平均值",
+    "variance": "方差",
+    "basedOnStdDev": "基于标准差"
+  },
+  "settings": {
+    "profile": {
+      "title": "个人资料",
+      "subtitle": "管理您的个人信息和账户设置",
+      "displayNameLabel": "显示名称",
+      "displayNamePlaceholder": "输入显示名称",
+      "emailLabel": "邮箱",
+      "emailNotEditable": "邮箱不可编辑",
+      "saveChanges": "保存更改",
+      "saveSuccess": "保存成功",
+      "saveError": "保存失败",
+      "passwordManagement": "密码管理",
+      "passwordManagementDesc": "更新您的密码以保护账户安全",
+      "changePassword": "修改密码",
+      "newPassword": "新密码",
+      "newPasswordPlaceholder": "输入新密码",
+      "passwordMinLength": "密码长度至少为8位",
+      "passwordMismatch": "两次输入的密码不一致",
+      "passwordUpdateSuccess": "密码更新成功",
+      "passwordUpdateError": "密码更新失败"
+    }
+  },
+  "ecosystem": {
+    "tvlAnalysis": {
+      "title": "TVL 分析",
+      "totalTvl": "总 TVL",
+      "ethereum": "Ethereum",
+      "l2Networks": "L2 网络",
+      "altL1": "替代 L1",
+      "filterByChain": "按链筛选"
+    },
+    "tvlTrend": "生态系统总锁定价值趋势",
+    "timeRange": {
+      "1M": "1个月",
+      "3M": "3个月",
+      "6M": "6个月",
+      "1Y": "1年"
+    },
+    "projectAnalysis": {
+      "projectsByChain": "按链分布项目",
+      "totalProjects": "总项目数",
+      "thisMonth": "本月"
+    },
+    "distributionByNetwork": "项目在支持网络中的分布",
+    "growth": {
+      "title": "生态增长",
+      "newProjects": "新增项目",
+      "integrations": "集成数",
+      "communityGrowth": "社区",
+      "protocolRevenue": "收入"
+    },
+    "keyIndicators": "关键性能指标"
+  },
+  "ccip": {
+    "dataUnavailable": "CCIP 数据暂时不可用",
+    "overview": "跨链活动概览",
+    "messages24h": "消息数 (24h)",
+    "valueTransferred": "转移价值",
+    "avgConfirmTime": "平均确认时间",
+    "activeChains": "活跃链数",
+    "supportedChains": "支持的链",
+    "chainName": "链",
+    "status": "状态",
+    "messaging": "消息传递",
+    "tokenTransfer": "代币转移",
+    "active": "活跃",
+    "comingSoon": "即将上线",
+    "recentTransactions": "最近跨链交易",
+    "transactionId": "ID",
+    "sourceChain": "来源链",
+    "destChain": "目标链",
+    "type": "类型",
+    "value": "价值",
+    "txStatus": "状态",
+    "rmnStatus": "风险管理网络 (RMN)",
+    "nodesOnline": "在线节点",
+    "securityScore": "安全评分",
+    "lastCheck": "最后检查",
+    "anomalies": "异常",
+    "noDataAvailable": "暂无 CCIP 数据",
+    "noDataDesc": "跨链数据暂时不可用，请稍后重试。",
+    "about": "关于 CCIP",
+    "feature1Title": "跨链消息传递",
+    "feature1Desc": "在不同链上的智能合约之间发送任意消息，保证交付。",
+    "feature2Title": "代币转移",
+    "feature2Desc": "使用锁定铸造或销毁铸造机制跨链转移代币。",
+    "feature3Title": "风险管理网络",
+    "feature3Desc": "独立网络监控跨链交易的异常和安全威胁。",
+    "feature4Title": "速率限制",
+    "feature4Desc": "内置速率限制机制防止网络拥堵和潜在攻击。",
+    "feature5Title": "多链支持",
+    "feature5Desc": "支持主流 EVM 链，包括以太坊、Arbitrum、Optimism、Polygon 等。"
+  },
+  "dataFeedsFilter": {
+    "all": "全部",
+    "crypto": "加密货币",
+    "forex": "外汇",
+    "commodities": "大宗商品",
+    "defi": "DeFi"
+  },
+  "dataFeeds": {
+    "name": "名称",
+    "category": "分类",
+    "frequency": "更新频率",
+    "threshold": "偏差阈值",
+    "status": "状态",
+    "requests": "请求数",
+    "reliability": "可靠性",
+    "dataUnavailable": "数据源暂时不可用",
+    "noFeedsFound": "未找到数据源",
+    "noFeedsDesc": "没有符合当前筛选条件的数据源，请尝试调整搜索条件。",
+    "total": "总计",
+    "active": "活跃",
+    "totalRequests": "总请求数",
+    "avgReliability": "平均可靠性",
+    "title": "数据源",
+    "about": "关于数据源",
+    "updateFrequency": "更新频率",
+    "frequencyDesc": "数据源根据偏差阈值和心跳间隔进行更新，确保价格准确性。",
+    "deviationThreshold": "偏差阈值",
+    "thresholdDesc": "触发新链上更新所需的最小价格变化。",
+    "reliabilityDesc": "过去30天成功更新的百分比，不包括计划维护。",
+    "decentralization": "去中心化",
+    "decentralizationDesc": "每个数据源由多个独立验证者保护。"
+  },
+  "dataStreams": {
+    "dataUnavailable": "数据流暂时不可用",
+    "title": "数据流",
+    "live": "运行中",
+    "paused": "已暂停",
+    "activeStreams": "活跃数据流",
+    "totalFeeds": "总数据源",
+    "updateFrequency": "更新频率",
+    "updatesPerMin": "次/分钟",
+    "avgLatency": "平均延迟",
+    "fromLastHour": "过去一小时",
+    "throughput": "吞吐量",
+    "msgsPerSec": "消息/秒",
+    "dataFeeds": "数据源",
+    "pair": "交易对",
+    "price": "价格",
+    "latency": "延迟",
+    "threshold": "阈值",
+    "subscribers": "订阅者",
+    "status": "状态",
+    "noFeeds": "无活跃数据流",
+    "performanceMetrics": "性能指标",
+    "bandwidth": "带宽",
+    "packetLoss": "丢包率",
+    "reconnects": "重连次数 (24h)",
+    "latencyPercentiles": "延迟百分位",
+    "latencyTrend": "延迟趋势",
+    "noLatencyData": "暂无延迟数据",
+    "latencyDistribution": "延迟分布",
+    "pushEvents": "推送事件日志",
+    "realtime": "实时更新",
+    "eventId": "事件 ID",
+    "feed": "数据源",
+    "change": "变化",
+    "trigger": "触发器",
+    "time": "时间",
+    "noEvents": "无最近推送事件",
+    "about": "关于数据流",
+    "realTimeDelivery": "实时交付",
+    "realTimeDeliveryDesc": "基于推送的价格更新直接交付到您的智能合约，延迟低于1秒。",
+    "lowLatency": "低延迟",
+    "lowLatencyDesc": "针对需要即时价格更新的高频交易和 DeFi 应用进行优化。",
+    "reliable": "可靠交付",
+    "reliableDesc": "保证消息交付，具有自动重试和故障转移机制。",
+    "customThresholds": "自定义阈值",
+    "customThresholdsDesc": "根据您的需求配置偏差阈值和心跳间隔。",
+    "heartbeat": "心跳更新",
+    "heartbeatDesc": "即使价格稳定也定期更新，确保数据新鲜度和合约健康。",
+    "autoFailover": "自动故障转移",
+    "autoFailoverDesc": "自动故障转移到备份节点，确保持续服务可用性。"
+  },
+  "dataTable": {
+    "sort": {
+      "asc": "升序",
+      "desc": "降序",
+      "unsorted": "未排序"
+    }
+  },
+  "functions": {
+    "success": "成功",
+    "failed": "失败",
+    "dataUnavailable": "Functions 数据暂时不可用",
+    "executionStats": "执行统计",
+    "totalCalls": "总调用数",
+    "successRate": "成功率",
+    "avgExecutionTime": "平均执行时间",
+    "supportedApis": "支持的 API",
+    "recentExecutions": "最近执行记录",
+    "requestId": "请求 ID",
+    "sourceHash": "源代码哈希",
+    "result": "执行结果",
+    "gasUsed": "Gas 使用",
+    "status": "状态",
+    "secretsManagement": "Secrets 管理",
+    "encrypted": "已加密",
+    "unencrypted": "未加密",
+    "expiresAt": "过期时间",
+    "useCaseDistribution": "使用场景分布",
+    "calls": "次调用",
+    "noDataAvailable": "暂无 Functions 数据",
+    "noDataDesc": "Functions 执行数据暂时不可用，请稍后重试。",
+    "features": "核心特性",
+    "feature1Title": "自定义 JavaScript",
+    "feature1Desc": "编写自定义 JavaScript 代码从任何 API 端点获取和处理数据。",
+    "feature2Title": "去中心化执行",
+    "feature2Desc": "Functions 由多个独立节点运营商执行，确保安全性和可靠性。",
+    "feature3Title": "Secrets 管理",
+    "feature3Desc": "使用阈值加密安全存储 API 密钥和凭据。",
+    "feature4Title": "低延迟",
+    "feature4Desc": "优化的执行管道确保时间敏感应用的快速响应。",
+    "feature5Title": "任意 API 支持",
+    "feature5Desc": "连接到任何 HTTP API，包括 Web2 服务，不受传统预言机限制。",
+    "feature6Title": "Gas 高效",
+    "feature6Desc": "通过链下计算和高效的结果验证最小化链上足迹。"
+  },
+  "services": {
+    "overview": "服务概览",
+    "service": "服务",
+    "requests": "请求数",
+    "uptime": "正常运行时间",
+    "usageDistribution": "使用分布",
+    "about": "关于服务",
+    "dataFeedsDesc": "用于 DeFi 应用的去中心化价格源",
+    "vrfDesc": "用于游戏和 NFT 的可验证随机数",
+    "automationDesc": "用于条件执行的智能合约自动化",
+    "ccipDesc": "跨链互操作协议",
+    "functionsDesc": "自定义链下计算"
+  },
+  "timeRange": {
+    "30d": "30 天",
+    "thisMonth": "本月"
+  },
+  "vrf": {
+    "fulfilled": "已完成",
+    "pending": "处理中",
+    "failed": "失败",
+    "dataUnavailable": "VRF 数据暂时不可用",
+    "requestStats": "请求统计",
+    "requests24h": "请求数 (24h)",
+    "successRate": "成功率",
+    "avgResponseTime": "平均响应时间",
+    "gasUsed": "Gas 使用",
+    "subscriptionOverview": "订阅概览",
+    "activeSubscriptions": "活跃订阅",
+    "totalFunded": "总资金",
+    "avgBalance": "平均余额",
+    "subscriptionId": "ID",
+    "owner": "所有者",
+    "balance": "余额",
+    "consumers": "消费者",
+    "contracts": "合约",
+    "recentRequests": "最近请求",
+    "requestId": "请求 ID",
+    "consumer": "消费者合约",
+    "randomWords": "随机数",
+    "status": "状态",
+    "useCaseDistribution": "使用场景分布",
+    "requests": "次请求",
+    "noDataAvailable": "暂无 VRF 数据",
+    "noDataDesc": "VRF 请求数据暂时不可用，请稍后重试。",
+    "v2_5Features": "VRF v2.5 特性",
+    "feature1Title": "原生支付",
+    "feature1Desc": "直接使用 LINK 代币支付 VRF 请求费用，无需包装或额外转换。",
+    "feature2Title": "批量请求",
+    "feature2Desc": "在单次链上交易中请求多个随机数，提高效率。",
+    "feature3Title": "自定义回调 Gas",
+    "feature3Desc": "配置回调函数的自定义 Gas 限制，优化成本并确保可靠执行。",
+    "feature4Title": "更快响应",
+    "feature4Desc": "优化的协调器合约，降低延迟，更快地交付随机数。",
+    "feature5Title": "链上验证",
+    "feature5Desc": "加密证明验证确保随机性无法被任何一方操纵。",
+    "feature6Title": "订阅模式",
+    "feature6Desc": "通过基于订阅的计费方式高效管理资金和消费者合约。"
+  },
+  "common": {
+    "totalValueLockedEcosystem": "生态系统总锁定价值",
+    "distributionProjectsNetworks": "项目在支持网络中的分布",
+    "keyPerformanceIndicators": "关键性能指标",
+    "refresh": "刷新",
+    "export": "导出",
+    "noData": "暂无数据",
+    "loading": "加载中...",
+    "expand": "展开",
+    "collapse": "收起",
+    "close": "关闭"
+  },
+  "crossChain": {
+    "filters": "筛选器",
+    "visibleChains": "可见链",
+    "stability": {
+      "excellent": "优秀",
+      "good": "良好",
+      "fair": "一般",
+      "poor": "较差"
+    }
+  },
+  "dataSources": {
+    "title": "数据源"
+  },
+  "comparison": {
+    "benchmark": {
+      "industryAverage": "行业平均",
+      "marketLeader": "市场领导者",
+      "gap": "差距"
+    },
+    "oracleComparison": {
+      "medianPrice": "中位数价格",
+      "oracle": "预言机",
+      "price": "价格"
+    }
+  },
+  "crossOracle": {
+    "timeRange": {
+      "1h": "1 小时",
+      "24h": "24 小时",
+      "7d": "7 天",
+      "30d": "30 天"
+    },
+    "filter": {
+      "filtersActive": "已启用筛选",
+      "clearAll": "清除全部"
+    },
+    "retrying": "重试中...",
+    "retry": "重试",
+    "partialSuccessDesc": "部分数据源不可用，正在显示可用数据。",
+    "retryAll": "全部重试",
+    "globalError": "全局错误",
+    "failedOracles": "失败的预言机",
+    "ofMedian": "占中位数",
+    "analysisTab": {
+      "movingAverage": "移动平均",
+      "dataQuality": "数据质量",
+      "performanceComparison": "性能对比",
+      "selectOracle": "选择预言机",
+      "allOracles": "所有预言机",
+      "selectOraclePlaceholder": "选择预言机...",
+      "summary": "摘要",
+      "responseTime": "响应时间",
+      "accuracy": "准确性",
+      "stability": "稳定性",
+      "advancedAnalysis": "高级分析"
+    },
+    "risk": {
+      "noData": "暂无风险数据",
+      "noDataDesc": "风险指标暂时不可用，请稍后重试。"
+    }
+  },
+  "export": {
+    "asset": "资产",
+    "oracle": "预言机",
+    "price": "价格",
+    "timestamp": "时间戳",
+    "deviation": "偏差",
+    "latency": "延迟",
+    "confidence": "置信度",
+    "updateFrequency": "更新频率"
+  },
+  "nft": {
+    "loading": "加载 NFT 数据中...",
+    "noData": "暂无 NFT 数据",
+    "totalCollections": "总收藏集",
+    "trendingCount": "热门",
+    "avgFloorPrice": "平均地板价",
+    "chainsSupported": "支持链数",
+    "collections": "收藏集",
+    "name": "名称",
+    "floorPrice": "地板价",
+    "change24h": "24h 变化",
+    "volume24h": "24h 交易量",
+    "chain": "链",
+    "noCollections": "未找到收藏集",
+    "byChain": "按链分布",
+    "noChainData": "暂无链数据",
+    "floorPriceHistory": "地板价历史"
+  },
+  "risk": {
+    "uptime": "正常运行时间",
+    "dataQuality": "数据质量",
+    "oracleDiversity": "预言机多样性",
+    "avgConfidence": "平均置信度",
+    "assessment": "风险评估",
+    "overallLevel": "整体风险等级",
+    "factors": "风险因素",
+    "verification": "验证",
+    "severity": {
+      "low": "低",
+      "medium": "中",
+      "high": "高",
+      "critical": "严重"
+    }
+  },
+  "timeframes": {
+    "1d": "1 天",
+    "7d": "7 天",
+    "30d": "30 天",
+    "90d": "90 天",
+    "1y": "1 年"
+  },
+  "chartTypes": {
+    "line": "折线图",
+    "area": "面积图",
+    "bar": "柱状图",
+    "candle": "K 线图"
+  },
+  "priceQuery": {
+    "errors": {
+      "networkError": "网络错误，请检查您的连接。",
+      "timeoutError": "请求超时，请重试。",
+      "dataError": "数据错误，请稍后重试。",
+      "unknownError": "发生未知错误，请重试。",
+      "retry": "重试"
+    }
+  },
+  "oracles": {
+    "descriptions": {
+      "chainlink": "行业领先的去中心化预言机网络，为智能合约提供安全可靠的链下数据连接",
+      "pyth": "高频金融数据预言机，具有第一方交易所数据和亚秒级延迟",
+      "api3": "第一方预言机网络，实现去中心化 API 连接",
+      "redstone": "模块化预言机解决方案，支持高效的数据流和灵活的集成选项",
+      "dia": "开源的跨链数据预言机平台，提供透明且可验证的金融数据馈送",
+      "winklink": "TRON 生态预言机，专注游戏和 DeFi"
+    }
+  },
+  "riskMetrics": {
+    "volatility": {
+      "insufficientData": "数据不足，无法计算波动率",
+      "description": "价格波动率为 {volatility}%"
+    },
+    "consistency": {
+      "good": "数据一致性良好",
+      "description": "数据一致性评分为 {value}，标准差为 {stdDev}%"
+    },
+    "sensitivity": {
+      "description": "异常检测敏感度设置为 {value}，当前检测到 {anomalyCount} 个异常"
+    },
+    "health": {
+      "noData": "系统健康度极低：无有效价格数据",
+      "description": "系统健康度为 {value}，基于 {sourceCount} 个数据源"
+    }
+  },
+  "anomalyDetection": {
+    "reasons": {
+      "severeDeviation": "价格严重偏离市场均值",
+      "highVolatility": "市场波动较大",
+      "dataSourceDifference": "数据源存在差异",
+      "severelyDelayed": "数据源延迟超过5分钟",
+      "delayed": "数据源延迟",
+      "lowConfidence": "数据源置信度较低",
+      "mediumConfidence": "数据源置信度一般",
+      "overThreshold": "价格偏差超过阈值",
+      "minorDeviation": "轻微价格偏差"
+    }
+  },
+  "errors": {
+    "suggestions": {
+      "default": "请稍后重试或联系支持团队",
+      "validationError": "请检查输入数据是否符合要求",
+      "authenticationError": "请重新登录或检查您的认证信息",
+      "authorizationError": "请确认您有权限执行此操作",
+      "notFound": "请确认请求的资源存在",
+      "rateLimitExceeded": "请稍后再试，或降低请求频率",
+      "internalError": "请稍后重试，如果问题持续存在请联系支持团队",
+      "priceFetchError": "请检查网络连接或稍后重试",
+      "oracleClientError": "预言机服务暂时不可用，请稍后重试",
+      "badRequest": "请检查请求参数是否正确",
+      "unauthorized": "请先登录后再执行此操作",
+      "forbidden": "您没有权限访问此资源",
+      "conflict": "请求与当前资源状态冲突，请刷新后重试",
+      "serviceUnavailable": "服务暂时不可用，请稍后重试",
+      "networkError": "网络连接异常，请检查网络设置",
+      "timeoutError": "请求超时，请稍后重试",
+      "unknownError": "发生未知错误，请稍后重试或联系支持"
+    }
+  },
+  "export": {
+    "resolution": {
+      "standard": "标准 (2x)",
+      "high": "高清 (4x)",
+      "ultra": "超清 (6x)"
+    },
+    "progress": {
+      "preparingCSV": "准备 CSV 数据...",
+      "preparingJSON": "准备 JSON 数据...",
+      "preparingChart": "准备图表截图...",
+      "preparingSVG": "准备 SVG 导出...",
+      "preparingPDF": "准备 PDF 导出...",
+      "preparingBatch": "准备批量导出...",
+      "processingData": "处理数据 {current}/{total}...",
+      "processingChart": "处理图表 {current}/{total}: {title}...",
+      "exportingChart": "导出图表 {current}/{total}: {name}...",
+      "cloningSVG": "克隆 SVG 元素...",
+      "serializingSVG": "序列化 SVG...",
+      "serializingData": "序列化数据...",
+      "renderingImage": "渲染图像...",
+      "generatingFile": "生成文件...",
+      "generatingPNG": "生成 PNG 文件...",
+      "generatingZIP": "生成 ZIP 文件...",
+      "savingPDF": "保存 PDF 文件...",
+      "completed": "导出完成",
+      "pdfCompleted": "PDF 导出完成",
+      "batchCompleted": "批量导出完成",
+      "allChartsCompleted": "所有图表导出完成",
+      "chartPrefix": "[{name}] {messageKey}"
+    },
+    "formats": {
+      "csvDescription": "逗号分隔值文件，适合数据分析",
+      "jsonDescription": "结构化数据格式，适合程序处理",
+      "excelDescription": "Excel 兼容格式，适合表格处理",
+      "pngDescription": "高清图片格式，适合分享和报告",
+      "svgDescription": "矢量图形格式，可无损缩放",
+      "pdfDescription": "PDF 文档格式，包含图表和摘要"
+    }
+  },
+  "favorites": {
+    "loginRequired": "请登录后查看收藏",
+    "loadError": "加载收藏失败",
+    "searchPlaceholder": "搜索收藏...",
+    "noResults": "没有找到匹配的收藏",
+    "noResultsDesc": "尝试调整搜索条件或筛选器",
+    "empty": "暂无收藏",
+    "emptyDesc": "在各个页面添加收藏后，将在这里显示",
+    "all": "全部",
+    "oracleConfig": "预言机配置",
+    "symbol": "交易对",
+    "chainConfig": "链配置"
+  },
+  "settings": {
+    "title": "设置",
+    "subtitle": "管理您的账户和应用偏好",
+    "profile": "个人资料",
+    "profileDesc": "管理您的账户信息",
+    "preferences": "偏好设置",
+    "preferencesDesc": "自定义应用设置",
+    "notifications": "通知设置",
+    "notificationsDesc": "管理通知偏好",
+    "data": "数据管理",
+    "dataDesc": "导出和管理数据"
+  },
+  "table": {
+    "noData": "暂无数据",
+    "noDataAriaLabel": "暂无数据",
+    "totalRecords": "共 {count} 条数据",
+    "warningCount": "{count} 条警告",
+    "errorCount": "{count} 条异常",
+    "status": "状态",
+    "statusAriaLabel": "状态: {status}",
+    "provider": "数据源",
+    "providerAriaLabel": "数据源: {provider}{isBenchmark, select, true {（基准）} other {}}",
+    "name": "名称",
+    "nameAriaLabel": "名称: {name}",
+    "price": "价格",
+    "priceAriaLabel": "价格: {price}",
+    "deviation": "偏离值",
+    "deviationAriaLabel": "偏离值: {deviation}{status, select, danger {，异常} warning {，警告} other {}}",
+    "confidence": "置信度",
+    "confidenceAriaLabel": "置信度: {confidence}",
+    "responseTime": "响应时间",
+    "responseTimeAriaLabel": "响应时间: {time}",
+    "normal": "正常",
+    "warning": "警告",
+    "error": "异常",
+    "benchmark": "基准",
+    "noDataConfidence": "无数据",
+    "legend": "图例说明",
+    "confidenceProgress": "置信度进度: {value}%",
+    "responseTimeAriaLabel": "响应时间: {time}",
+    "positiveDeviation": "正偏离",
+    "negativeDeviation": "负偏离",
+    "normalStatus": "正常",
+    "warningThreshold": "警告 (≥{threshold}%)",
+    "errorThreshold": "异常 (≥{threshold}%)",
+    "comparisonTable": "数据对比表"
+  },
+  "quality": {
+    "title": "数据质量综合评估",
+    "anomalyDetection": "价格异常检测",
+    "noAnomalies": "未发现价格异常",
+    "noAnomaliesDesc": "所有数据源价格均在正常范围内",
+    "detailedAnalysis": "数据质量详细分析",
+    "consistency": "数据一致性",
+    "freshness": "数据新鲜度",
+    "completeness": "数据完整性",
+    "overallScore": "综合评分",
+    "score": "评分",
+    "suggestions": "改进建议",
+    "dataSourceStatus": "数据源状态概览"
+  },
+  "priceTable": {
+    "rawPrice": "原始价格",
+    "priceDiff": "与均价差值",
+    "dataDelay": "数据延迟",
+    "status": "状态",
+    "outlier": "统计异常值",
+    "unknownReason": "未知原因",
+    "deviationTooLarge": "价格偏差过大",
+    "anomaly": "异常",
+    "normal": "正常",
+    "priceAnomaly": "价格异常",
+    "possibleReasons": "可能原因",
+    "collapseDetails": "收起详情",
+    "expandDetails": "展开详情",
+    "anomalyTooltip": "价格异常：偏差 {deviation}%"
+  }
+}

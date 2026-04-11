@@ -1,0 +1,74 @@
+{
+  "comparison": {
+    "title": "对比",
+    "previous": "上期",
+    "current": "本期",
+    "timeComparison": {
+      "currentPeriod": "当前周期",
+      "yoy": "同比",
+      "mom": "环比"
+    }
+  },
+  "comparisonPeriod": "对比周期",
+  "comparisonAvg": "对比平均值",
+  "enhancedStatCard": {
+    "confidence": "置信度"
+  },
+  "dataQuality": {
+    "score": "分",
+    "excellent": "优秀",
+    "good": "良好",
+    "poor": "需改进",
+    "assessment": "数据质量评估",
+    "excellentDescription": "数据质量优秀，可以放心使用",
+    "goodDescription": "数据质量良好，建议关注细节",
+    "poorDescription": "数据质量需要改进，请检查数据源",
+    "freshness": "新鲜度",
+    "completeness": "完整度",
+    "reliability": "可靠性",
+    "overall": "综合评分",
+    "freshnessDescription": "基于数据最后更新时间计算，反映数据的实时性",
+    "completenessDescription": "基于数据请求成功率计算，反映数据的完整性",
+    "reliabilityDescription": "基于历史准确率和响应成功率综合计算",
+    "lastUpdated": "最后更新",
+    "updateTime": "更新时间",
+    "successRequests": "成功请求",
+    "totalRequests": "总请求数",
+    "successRate": "成功率",
+    "historicalAccuracy": "历史准确率",
+    "responseSuccessRate": "响应成功率",
+    "scoringRules": "评分规则",
+    "weights": "权重"
+  },
+  "enhancedTable": {
+    "noData": "暂无数据",
+    "totalRecords": "共 {{count}} 条数据",
+    "warnings": "{{count}} 条警告",
+    "anomalies": "{{count}} 条异常",
+    "avgDeviation": "平均偏离",
+    "columns": {
+      "status": "状态",
+      "provider": "数据源",
+      "name": "名称",
+      "price": "价格",
+      "deviation": "偏离值",
+      "confidence": "置信度",
+      "responseTime": "响应时间"
+    },
+    "benchmark": "基准",
+    "legend": {
+      "positiveDeviation": "正偏离",
+      "negativeDeviation": "负偏离",
+      "normal": "正常",
+      "warning": "警告",
+      "danger": "异常"
+    }
+  },
+  "crossOracle": {
+    "subtitle": "跨预言机价格对比",
+    "realtimeComparison": "实时多源数据对比",
+    "oracles": "Oracles",
+    "quality": "Quality",
+    "updated": "Updated"
+  }
+}

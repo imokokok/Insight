@@ -1,0 +1,41 @@
+{
+  "dataTransparency": {
+    "title": "数据透明度",
+    "dataSources": "数据来源",
+    "providers": "预言机",
+    "chains": "区块链",
+    "dataPoints": "数据点",
+    "showMore": "显示更多 ({count})",
+    "showLess": "收起",
+    "noSources": "暂无数据来源",
+    "chain": "链",
+    "source": "来源",
+    "confidence": "可信度",
+    "viewProof": "查看验证证明",
+    "nextRefresh": "下次刷新",
+    "totalSources": "数据源总数",
+    "activeSources": "活跃数据源",
+    "avgCredibility": "平均可信度",
+    "sourceName": "数据源名称",
+    "type": "类型",
+    "credibility": {
+      "high": "高可信度",
+      "medium": "中等可信度",
+      "low": "低可信度",
+      "unverified": "未验证"
+    },
+    "status": "状态",
+    "verification": "验证方式",
+    "credibilityLevel": {
+      "high": "高可信度",
+      "medium": "中等可信度",
+      "low": "低可信度",
+      "unverified": "未验证"
+    },
+    "freshness": {
+      "fresh": "数据新鲜",
+      "stale": "数据稍旧",
+      "expired": "数据过期"
+    }
+  }
+}

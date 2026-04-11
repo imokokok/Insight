@@ -1,0 +1,74 @@
+{
+  "comparison": {
+    "title": "Comparison",
+    "previous": "Previous",
+    "current": "Current",
+    "timeComparison": {
+      "currentPeriod": "Current Period",
+      "yoy": "Year over Year",
+      "mom": "Month over Month"
+    }
+  },
+  "comparisonPeriod": "Comparison Period",
+  "comparisonAvg": "Comparison Average",
+  "enhancedStatCard": {
+    "confidence": "Confidence"
+  },
+  "dataQuality": {
+    "score": "pts",
+    "excellent": "Excellent",
+    "good": "Good",
+    "poor": "Needs Improvement",
+    "assessment": "Data Quality Assessment",
+    "excellentDescription": "Data quality is excellent, safe to use",
+    "goodDescription": "Data quality is good, pay attention to details",
+    "poorDescription": "Data quality needs improvement, please check data sources",
+    "freshness": "Freshness",
+    "completeness": "Completeness",
+    "reliability": "Reliability",
+    "overall": "Overall Score",
+    "freshnessDescription": "Calculated based on last update time, reflects data timeliness",
+    "completenessDescription": "Calculated based on request success rate, reflects data completeness",
+    "reliabilityDescription": "Comprehensively calculated based on historical accuracy and response success rate",
+    "lastUpdated": "Last Updated",
+    "updateTime": "Update Time",
+    "successRequests": "Success Requests",
+    "totalRequests": "Total Requests",
+    "successRate": "Success Rate",
+    "historicalAccuracy": "Historical Accuracy",
+    "responseSuccessRate": "Response Success Rate",
+    "scoringRules": "Scoring Rules",
+    "weights": "Weights"
+  },
+  "enhancedTable": {
+    "noData": "No Data",
+    "totalRecords": "{{count}} Records",
+    "warnings": "{{count}} Warnings",
+    "anomalies": "{{count}} Anomalies",
+    "avgDeviation": "Avg Deviation",
+    "columns": {
+      "status": "Status",
+      "provider": "Provider",
+      "name": "Name",
+      "price": "Price",
+      "deviation": "Deviation",
+      "confidence": "Confidence",
+      "responseTime": "Response Time"
+    },
+    "benchmark": "Benchmark",
+    "legend": {
+      "positiveDeviation": "Positive Deviation",
+      "negativeDeviation": "Negative Deviation",
+      "normal": "Normal",
+      "warning": "Warning",
+      "danger": "Danger"
+    }
+  },
+  "crossOracle": {
+    "subtitle": "Cross-Oracle Price Comparison",
+    "realtimeComparison": "Real-time Multi-source Data Comparison",
+    "oracles": "Oracles",
+    "quality": "Quality",
+    "updated": "Updated"
+  }
+}
