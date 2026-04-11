@@ -3,18 +3,11 @@
 import { useEffect, useCallback, useMemo, useState, useRef } from 'react';
 
 import { useFavorites, type FavoriteConfig } from '@/hooks';
-import {
-  type OracleProvider,
-  type Blockchain,
-  type PriceData,
-  OracleClientFactory,
-} from '@/lib/oracles';
+import { type OracleProvider, OracleClientFactory } from '@/lib/oracles';
 import { isBlockchain } from '@/lib/utils/chainUtils';
-import { createLogger } from '@/lib/utils/logger';
 import { useUser } from '@/stores/authStore';
 import { useCrossChainStore } from '@/stores/crossChainStore';
 
-import { type RefreshInterval } from './constants';
 import {
   useDataValidation,
   useAnomalyDetection,
@@ -26,8 +19,6 @@ import {
 } from './hooks';
 import { type UseCrossChainDataReturn } from './types';
 import { chainNames, calculateDynamicThreshold } from './utils';
-
-const logger = createLogger('useCrossChainData');
 
 export function useCrossChainData(): UseCrossChainDataReturn {
   const user = useUser();

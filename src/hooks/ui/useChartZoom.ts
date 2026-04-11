@@ -663,21 +663,23 @@ export function useBrushZoom(options: UseBrushZoomOptions): UseBrushZoomReturn {
     onRangeChange,
   } = options;
 
-  const defaultStartIndex = Math.max(0, Math.floor(dataLength * (1 - defaultRange)));
-  const defaultEndIndex = dataLength - 1;
-
-  const [startIndex, setStartIndex] = useState(defaultStartIndex);
-  const [endIndex, setEndIndex] = useState(defaultEndIndex);
+  const [startIndex, setStartIndex] = useState(() =>
+    Math.max(0, Math.floor(dataLength * (1 - defaultRange)))
+  );
+  const [endIndex, setEndIndex] = useState(() => dataLength - 1);
 
   const prevDataLengthRef = useRef(dataLength);
 
   useEffect(() => {
     if (prevDataLengthRef.current !== dataLength) {
       prevDataLengthRef.current = dataLength;
-      setStartIndex(defaultStartIndex);
-      setEndIndex(defaultEndIndex);
+      const newStartIndex = Math.max(0, Math.floor(dataLength * (1 - defaultRange)));
+      const newEndIndex = dataLength - 1;
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setStartIndex(newStartIndex);
+      setEndIndex(newEndIndex);
     }
-  }, [dataLength, defaultStartIndex, defaultEndIndex]);
+  }, [dataLength, defaultRange]);
 
   const visibleDataCount = endIndex - startIndex + 1;
   const totalDataCount = dataLength;
@@ -746,10 +748,12 @@ export function useBrushZoom(options: UseBrushZoomOptions): UseBrushZoomReturn {
   }, [startIndex, endIndex, setRange]);
 
   const reset = useCallback(() => {
-    setStartIndex(defaultStartIndex);
-    setEndIndex(defaultEndIndex);
-    onRangeChange?.(defaultStartIndex, defaultEndIndex);
-  }, [defaultStartIndex, defaultEndIndex, onRangeChange]);
+    const newStartIndex = Math.max(0, Math.floor(dataLength * (1 - defaultRange)));
+    const newEndIndex = dataLength - 1;
+    setStartIndex(newStartIndex);
+    setEndIndex(newEndIndex);
+    onRangeChange?.(newStartIndex, newEndIndex);
+  }, [dataLength, defaultRange, onRangeChange]);
 
   const handleBrushChange = useCallback(
     (range: { startIndex?: number; endIndex?: number }) => {

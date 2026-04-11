@@ -38,7 +38,7 @@ export function useRiskTrends(
       minRiskScore: 0,
       totalAnomalies: 0,
     };
-  }, [_timeRange, _baseRiskScore]);
+  }, []);
 }
 
 export function getRiskLevel(riskScore: number): 'low' | 'medium' | 'high' | 'critical' {

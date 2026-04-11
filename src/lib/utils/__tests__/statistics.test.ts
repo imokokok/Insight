@@ -87,13 +87,13 @@ describe('calculateCDF', () => {
       const result = calculateCDF([]);
 
       expect(result.points).toEqual([]);
-      expect(result.p50).toBe(0);
-      expect(result.p95).toBe(0);
-      expect(result.p99).toBe(0);
-      expect(result.min).toBe(0);
-      expect(result.max).toBe(0);
-      expect(result.mean).toBe(0);
-      expect(result.stdDev).toBe(0);
+      expect(result.p50).toBeNaN();
+      expect(result.p95).toBeNaN();
+      expect(result.p99).toBeNaN();
+      expect(result.min).toBeNaN();
+      expect(result.max).toBeNaN();
+      expect(result.mean).toBeNaN();
+      expect(result.stdDev).toBeNaN();
       expect(result.totalCount).toBe(0);
     });
 
@@ -199,10 +199,10 @@ describe('calculatePercentile', () => {
   });
 
   describe('边界条件', () => {
-    it('should return 0 for empty array', () => {
+    it('should return NaN for empty array', () => {
       const result = calculatePercentile([], 50);
 
-      expect(result).toBe(0);
+      expect(result).toBeNaN();
     });
 
     it('should return first element for percentile <= 0', () => {
@@ -294,13 +294,11 @@ describe('calculateQuantiles', () => {
     it('should handle empty array', () => {
       const result = calculateQuantiles([]);
 
-      expect(result).toEqual({
-        p50: 0,
-        p90: 0,
-        p95: 0,
-        p99: 0,
-        p999: 0,
-      });
+      expect(result.p50).toBeNaN();
+      expect(result.p90).toBeNaN();
+      expect(result.p95).toBeNaN();
+      expect(result.p99).toBeNaN();
+      expect(result.p999).toBeNaN();
     });
 
     it('should handle single element', () => {

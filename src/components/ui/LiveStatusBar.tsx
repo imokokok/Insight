@@ -115,10 +115,13 @@ function formatLastUpdate(date?: Date, t?: ReturnType<typeof useTranslations>): 
   return date.toLocaleDateString();
 }
 
-function getDataFreshnessLevel(lastUpdate?: Date, threshold: number = 30000): DataFreshnessLevel {
+function getDataFreshnessLevel(
+  lastUpdate?: Date,
+  threshold: number = 30000,
+  now: Date = new Date()
+): DataFreshnessLevel {
   if (!lastUpdate) return 'expired';
 
-  const now = new Date();
   const diff = now.getTime() - lastUpdate.getTime();
 
   if (diff < threshold) return 'fresh';
@@ -135,12 +138,15 @@ export function LiveStatusBar({
   freshnessThreshold = 30000,
 }: LiveStatusBarProps) {
   const t = useTranslations('ui');
-  const [currentTime, setCurrentTime] = useState<Date | null>(null);
-  const [isMounted, setIsMounted] = useState(false);
+  const [currentTime, setCurrentTime] = useState<Date | null>(() => {
+    if (typeof window !== 'undefined') {
+      return new Date();
+    }
+    return null;
+  });
+  const isMounted = typeof window !== 'undefined';
 
   useEffect(() => {
-    setIsMounted(true);
-    setCurrentTime(new Date());
     const timer = setInterval(() => {
       setCurrentTime(new Date());
     }, 1000);
@@ -155,7 +161,7 @@ export function LiveStatusBar({
       : 'disconnected';
 
   const freshnessLevel = useMemo(
-    () => getDataFreshnessLevel(lastUpdate, freshnessThreshold),
+    () => getDataFreshnessLevel(lastUpdate, freshnessThreshold, currentTime ?? undefined),
     [lastUpdate, freshnessThreshold, currentTime]
   );
 

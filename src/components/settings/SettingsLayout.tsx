@@ -2,9 +2,8 @@
 
 import { type ReactNode } from 'react';
 
-import { Settings, User, Bell, Palette, Database } from 'lucide-react';
+import { Settings, User, Bell, Database, Palette } from 'lucide-react';
 
-import { Icon } from '@/components/ui';
 import { useTranslations } from '@/i18n';
 
 export type SettingsTab = 'profile' | 'preferences' | 'notifications' | 'data';

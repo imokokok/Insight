@@ -1,6 +1,6 @@
 'use client';
 
-import { forwardRef, type SVGAttributes, ReactNode } from 'react';
+import { forwardRef, type SVGAttributes } from 'react';
 
 import * as LucideIcons from 'lucide-react';
 

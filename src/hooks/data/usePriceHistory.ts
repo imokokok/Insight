@@ -28,7 +28,7 @@ export function usePriceHistory(params: PriceHistoryParams) {
           `/api/oracles/history?${searchParams.toString()}`
         );
         return response.data.history || [];
-      } catch (error) {
+      } catch {
         throw new PriceFetchError('Failed to fetch price history', {
           symbol: params.symbol,
           provider: params.provider,

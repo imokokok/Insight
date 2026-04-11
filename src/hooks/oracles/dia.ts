@@ -116,7 +116,7 @@ export function useDIAAllData(options: UseDIAAllDataOptions): UseDIAAllDataRetur
 
   const refetchAll = useCallback(async () => {
     await Promise.all([priceQuery.refetch(), historicalQuery.refetch()]);
-  }, [priceQuery.refetch, historicalQuery.refetch]);
+  }, [priceQuery, historicalQuery]);
 
   return {
     price: priceQuery.price,

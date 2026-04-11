@@ -41,7 +41,10 @@ export function useRealtimePrice(options: UseRealtimePriceOptions): UseRealtimeP
 
   // 使用 ref 存储 onPriceUpdate 回调，避免依赖循环
   const onPriceUpdateRef = useRef(onPriceUpdate);
-  onPriceUpdateRef.current = onPriceUpdate;
+
+  useEffect(() => {
+    onPriceUpdateRef.current = onPriceUpdate;
+  }, [onPriceUpdate]);
 
   const handlePriceUpdate = useCallback(
     (payload: PriceUpdatePayload) => {
@@ -92,7 +95,10 @@ export function useRealtimePrice(options: UseRealtimePriceOptions): UseRealtimeP
 
   // 使用 ref 存储 handlePriceUpdate，避免 effect 重复执行
   const handlePriceUpdateRef = useRef(handlePriceUpdate);
-  handlePriceUpdateRef.current = handlePriceUpdate;
+
+  useEffect(() => {
+    handlePriceUpdateRef.current = handlePriceUpdate;
+  }, [handlePriceUpdate]);
 
   useEffect(() => {
     if (!enabled) {
@@ -113,8 +119,7 @@ export function useRealtimePrice(options: UseRealtimePriceOptions): UseRealtimeP
     return () => {
       unsubscribe();
     };
-    // 移除 handlePriceUpdate 和 subscribeToPriceUpdates 依赖
-  }, [enabled, provider, symbol, chain]);
+  }, [enabled, provider, symbol, chain, subscribeToPriceUpdates]);
 
   return {
     priceData,
@@ -195,8 +200,7 @@ export function useRealtimePrices(
     return () => {
       unsubscribe();
     };
-    // 移除 handlePriceUpdate 和 subscribeToPriceUpdates 依赖
-  }, [enabled, symbolsKey]);
+  }, [enabled, symbolsKey, symbols.length, subscribeToPriceUpdates]);
 
   return {
     prices,

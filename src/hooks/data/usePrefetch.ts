@@ -10,11 +10,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { apiClient } from '@/lib/api';
-import {
-  PREFETCH_CONFIG,
-  QUERY_CONFIG_BY_TYPE,
-  type QueryConfigType,
-} from '@/lib/config/queryConfig';
+import { PREFETCH_CONFIG, type QueryConfigType } from '@/lib/config/queryConfig';
 import { createPrefetchOptions } from '@/lib/queries/queryClient';
 import { createLogger } from '@/lib/utils/logger';
 
@@ -185,7 +181,7 @@ export function useRoutePrefetch(options: UsePrefetchOptions = {}) {
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const prefetchRoute = useCallback(
-    async (routePath: string, immediate = false) => {
+    async (routePath: string, _immediate = false) => {
       if (!enabled) return;
 
       const config = routePrefetchConfigs[routePath];
@@ -374,6 +370,7 @@ export function useSmartPrefetch(options: UseSmartPrefetchOptions = {}) {
   const queryClient = useQueryClient();
   const idleCallbackRef = useRef<number | null>(null);
   const prefetchQueue = useRef<PrefetchTarget[]>([]);
+  const [queueLength, setQueueLength] = useState(0);
   const processQueueRef = useRef<() => void>(() => {});
 
   const addToQueue = useCallback((target: PrefetchTarget) => {
@@ -382,6 +379,7 @@ export function useSmartPrefetch(options: UseSmartPrefetchOptions = {}) {
     );
     if (!exists) {
       prefetchQueue.current.push(target);
+      setQueueLength(prefetchQueue.current.length);
     }
   }, []);
 
@@ -391,9 +389,11 @@ export function useSmartPrefetch(options: UseSmartPrefetchOptions = {}) {
     const target = prefetchQueue.current.shift();
     if (!target) return;
 
+    setQueueLength(prefetchQueue.current.length);
+
     const cachedData = queryClient.getQueryData(target.queryKey);
     if (cachedData !== undefined) {
-      processQueueRef.current?.();
+      processQueueRef.current();
       return;
     }
 
@@ -402,9 +402,8 @@ export function useSmartPrefetch(options: UseSmartPrefetchOptions = {}) {
         createPrefetchOptions(target.queryKey, target.queryFn, target.type || 'static')
       )
       .then(() => {
-        // 继续处理队列
         if (prefetchQueue.current.length > 0) {
-          idleCallbackRef.current = requestIdleCallback(processQueueRef.current!, {
+          idleCallbackRef.current = requestIdleCallback(processQueueRef.current, {
             timeout: idleTimeout,
           });
         }
@@ -414,7 +413,9 @@ export function useSmartPrefetch(options: UseSmartPrefetchOptions = {}) {
       });
   }, [queryClient, idleTimeout]);
 
-  processQueueRef.current = processQueue;
+  useEffect(() => {
+    processQueueRef.current = processQueue;
+  }, [processQueue]);
 
   const schedulePrefetch = useCallback(
     (target: PrefetchTarget) => {
@@ -425,7 +426,6 @@ export function useSmartPrefetch(options: UseSmartPrefetchOptions = {}) {
       if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
         idleCallbackRef.current = requestIdleCallback(processQueue, { timeout: idleTimeout });
       } else {
-        // 降级方案
         setTimeout(processQueue, idleTimeout);
       }
     },
@@ -443,7 +443,7 @@ export function useSmartPrefetch(options: UseSmartPrefetchOptions = {}) {
   return {
     schedulePrefetch,
     addToQueue,
-    queueLength: prefetchQueue.current.length,
+    queueLength,
   };
 }
 
@@ -495,9 +495,10 @@ export function useVisibilityPrefetch() {
   }, []);
 
   useEffect(() => {
+    const currentTargetsRef = targetsRef.current;
     return () => {
       observerRef.current?.disconnect();
-      targetsRef.current.clear();
+      currentTargetsRef.clear();
     };
   }, []);
 

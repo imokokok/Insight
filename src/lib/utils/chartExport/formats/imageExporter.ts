@@ -7,7 +7,6 @@ import { exportColors } from '@/lib/config/colors';
 import { createLogger } from '@/lib/utils/logger';
 
 import { RESOLUTION_CONFIG } from '../types';
-import { sanitizeFilename, downloadBlob } from '../utils/exportHelpers';
 
 import type { Resolution, ExportProgressCallback } from '../types';
 

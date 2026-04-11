@@ -27,7 +27,6 @@ import {
 import { PythCache } from './pythCache';
 import { parsePythPrice } from './pythParser';
 import { PythWebSocket } from './pythWebSocket';
-import { isPythPriceRaw } from './types';
 
 import type {
   PublisherData,

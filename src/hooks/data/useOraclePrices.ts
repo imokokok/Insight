@@ -26,7 +26,7 @@ export function useOraclePrices(params: OraclePricesParams = {}) {
           `/api/oracles?${searchParams.toString()}`
         );
         return response.data.prices || [];
-      } catch (error) {
+      } catch {
         throw new PriceFetchError('Failed to fetch oracle prices', {
           provider: params.provider,
           symbols: params.symbols,

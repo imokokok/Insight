@@ -111,6 +111,8 @@ export function useComponentPerformance(componentName: string, enabled = true) {
     if (!enabled) return;
 
     mountTimeRef.current = performance.now();
+    const currentRenderCount = renderCountRef.current;
+    const currentUpdateCount = updateCountRef.current;
 
     return () => {
       const mountDuration = performance.now() - mountTimeRef.current;
@@ -118,9 +120,9 @@ export function useComponentPerformance(componentName: string, enabled = true) {
       if (isProduction && enableAnalytics) {
         track('component-performance', {
           component: componentName,
-          renderCount: renderCountRef.current,
+          renderCount: currentRenderCount,
           mountDuration: Math.round(mountDuration),
-          updateCount: updateCountRef.current,
+          updateCount: currentUpdateCount,
         });
       }
 

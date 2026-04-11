@@ -53,7 +53,6 @@ export function PriceChart({
   const t = useTranslations();
 
   const [showDataTable, setShowDataTable] = useState(false);
-  const chartContainerRef = useRef<HTMLDivElement>(null);
 
   // 获取系列名称
   const seriesNames = useMemo(() => {

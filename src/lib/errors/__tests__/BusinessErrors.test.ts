@@ -161,7 +161,7 @@ describe('NotImplementedError', () => {
   it('should create not implemented error', () => {
     const error = new NotImplementedError('Feature not implemented');
 
-    expect(error.message).toBe('Feature not implemented');
+    expect(error.message).toBe("Feature 'Feature not implemented' is not implemented yet");
     expect(error.name).toBe('NotImplementedError');
   });
 

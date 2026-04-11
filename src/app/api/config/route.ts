@@ -5,7 +5,7 @@ import { createLogger } from '@/lib/utils/logger';
 const logger = createLogger('ConfigAPI');
 
 // 敏感环境变量列表 - 这些不应该暴露给客户端
-const SENSITIVE_ENV_VARS = [
+const _SENSITIVE_ENV_VARS = [
   'ALCHEMY_ETHEREUM_RPC',
   'ALCHEMY_ARBITRUM_RPC',
   'ALCHEMY_POLYGON_RPC',

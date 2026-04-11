@@ -34,7 +34,7 @@ const customJestConfig = {
   coverageReporters: ['text', 'text-summary', 'lcov'],
   testPathIgnorePatterns: ['<rootDir>/node_modules/', '<rootDir>/.next/'],
   transformIgnorePatterns: [
-    'node_modules/(?!(.*\.mjs$|@vercel/analytics|@vercel/speed-insights|next-intl|use-intl|@pythnetwork|@tanstack/react-query))',
+    'node_modules/(?!(.*\\.mjs$|@vercel/analytics|@vercel/speed-insights|next-intl|use-intl|@pythnetwork|@tanstack/react-query|viem|@wagmi))',
   ],
   extensionsToTreatAsEsm: ['.ts', '.tsx'],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'mjs'],

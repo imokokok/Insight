@@ -44,7 +44,6 @@ export default function CrossOraclePage() {
 
     // 质量评分
     qualityScore,
-    qualityScoreData,
 
     // 性能指标
     performanceMetrics,

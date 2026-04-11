@@ -64,26 +64,36 @@ export function DropdownSelect<T = string>({
     };
   }, [isOpen]);
 
-  useEffect(() => {
-    if (isOpen) {
-      setSearchQuery('');
-      setHighlightedIndex(0);
-      if (searchable) {
-        setTimeout(() => searchInputRef.current?.focus(), 0);
+  const handleOpenChange = useCallback(
+    (open: boolean) => {
+      if (open) {
+        setSearchQuery('');
+        setHighlightedIndex(0);
+        if (searchable) {
+          setTimeout(() => searchInputRef.current?.focus(), 0);
+        }
       }
-    }
-  }, [isOpen, searchable]);
+      setIsOpen(open);
+    },
+    [searchable]
+  );
 
-  useEffect(() => {
+  const handleSearchQueryChange = useCallback((query: string) => {
+    setSearchQuery(query);
     setHighlightedIndex(0);
-  }, [searchQuery, selectedCategory]);
+  }, []);
+
+  const handleCategoryChange = useCallback((category: string) => {
+    setSelectedCategory(category);
+    setHighlightedIndex(0);
+  }, []);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (!isOpen) {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
-          setIsOpen(true);
+          handleOpenChange(true);
         }
         return;
       }
@@ -101,22 +111,22 @@ export function DropdownSelect<T = string>({
           e.preventDefault();
           if (filteredOptions[highlightedIndex]) {
             onChange(filteredOptions[highlightedIndex].value);
-            setIsOpen(false);
+            handleOpenChange(false);
           }
           break;
         case 'Escape':
           e.preventDefault();
-          setIsOpen(false);
+          handleOpenChange(false);
           break;
       }
     },
-    [isOpen, filteredOptions, highlightedIndex, onChange]
+    [isOpen, filteredOptions, highlightedIndex, onChange, handleOpenChange]
   );
 
   const handleSelect = (option: SelectorOption<T>) => {
     if (option.disabled) return;
     onChange(option.value);
-    setIsOpen(false);
+    handleOpenChange(false);
   };
 
   const defaultRenderValue = (option: SelectorOption<T> | undefined) => {
@@ -144,7 +154,7 @@ export function DropdownSelect<T = string>({
     <div className={`relative ${className}`} ref={dropdownRef}>
       <button
         type="button"
-        onClick={() => !disabled && setIsOpen(!isOpen)}
+        onClick={() => !disabled && handleOpenChange(!isOpen)}
         onKeyDown={handleKeyDown}
         disabled={disabled}
         className={`
@@ -181,7 +191,7 @@ export function DropdownSelect<T = string>({
                   ref={searchInputRef}
                   type="text"
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => handleSearchQueryChange(e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder={searchPlaceholder}
                   className="w-full pl-9 pr-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:bg-white focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all duration-200"
@@ -195,7 +205,7 @@ export function DropdownSelect<T = string>({
               {categories.map((cat) => (
                 <button
                   key={cat.value}
-                  onClick={() => setSelectedCategory(cat.value)}
+                  onClick={() => handleCategoryChange(cat.value)}
                   className={`flex-1 px-3 py-2.5 text-xs font-medium transition-all duration-200 border-b-2 ${
                     selectedCategory === cat.value
                       ? 'text-primary-600 border-primary-600 bg-white'

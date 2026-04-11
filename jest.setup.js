@@ -1,4 +1,9 @@
 import '@testing-library/jest-dom';
+import { TextEncoder, TextDecoder } from 'util';
+
+// Polyfill for TextEncoder/TextDecoder (needed for viem)
+global.TextEncoder = TextEncoder;
+global.TextDecoder = TextDecoder;
 
 // Polyfill for Next.js Request/Response
 class MockRequest {

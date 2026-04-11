@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 
 import { getAlignClass } from '../utils/formatting';
 
-import type { TableHeaderProps, ColumnDef, SortConfig } from '../types';
+import type { TableHeaderProps, SortConfig } from '../types';
 
 function renderSortIcon(columnKey: string, sortConfig: SortConfig[]) {
   const sort = sortConfig.find((s) => s.key === columnKey);

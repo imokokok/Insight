@@ -1,6 +1,6 @@
 import { BaseOracleClient } from '@/lib/oracles/base';
 import type { OracleClientConfig } from '@/lib/oracles/base';
-import { api3Symbols, API3_AVAILABLE_PAIRS } from '@/lib/oracles/supportedSymbols';
+import { API3_AVAILABLE_PAIRS } from '@/lib/oracles/supportedSymbols';
 import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
 import { api3NetworkService } from '@/lib/services/oracle/api3NetworkService';
 import { createLogger } from '@/lib/utils/logger';

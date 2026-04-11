@@ -1,13 +1,9 @@
 import {
   Shield,
   Zap,
-  Layers,
   Activity,
   Flame,
-  Database,
   Globe,
-  TrendingUp,
-  Landmark,
   Gamepad2,
   LayoutDashboard,
   BarChart3,
@@ -249,7 +245,7 @@ export function getFeatureSearchResults(locale: string): SearchResult[] {
 }
 
 // Documentation search results
-export function getDocumentationSearchResults(locale: string): SearchResult[] {
+export function getDocumentationSearchResults(_locale: string): SearchResult[] {
   return [
     {
       id: 'doc-api',

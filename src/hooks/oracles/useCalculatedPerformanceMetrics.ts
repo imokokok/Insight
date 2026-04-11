@@ -66,8 +66,6 @@ export function useCalculatedPerformanceMetrics({
     (result: OraclePriceResult) => {
       if (!enabled) return;
 
-      const key = `${result.provider}-${selectedSymbol}`;
-
       // 添加到本地历史记录
       if (!priceDataMapRef.current.has(result.provider)) {
         priceDataMapRef.current.set(result.provider, []);
@@ -122,8 +120,6 @@ export function useCalculatedPerformanceMetrics({
       if (!enabled || results.length === 0) return;
 
       results.forEach((result) => {
-        const key = `${result.provider}-${selectedSymbol}`;
-
         // 添加到本地历史记录
         if (!priceDataMapRef.current.has(result.provider)) {
           priceDataMapRef.current.set(result.provider, []);
@@ -258,7 +254,7 @@ export function useCalculatedPerformanceMetrics({
       totalDataPoints: calculatorStats.totalEntries,
       providerCount: calculatorStats.providerCount,
     };
-  }, [dataVersion]);
+  }, []);
 
   // 是否正在加载（初始时没有数据）
   const isLoading = useMemo(() => {

@@ -55,7 +55,7 @@ describe('useRoutePrefetch', () => {
       }
     );
 
-    const config = routePrefetchMap['/chainlink'];
+    const _config = routePrefetchMap['/chainlink'];
     const queryFn = jest.fn().mockResolvedValue({ data: 'test' });
 
     act(() => {

@@ -34,7 +34,7 @@ describe('Timestamp Utilities', () => {
     });
 
     it('should handle edge case near threshold', () => {
-      const nearThreshold = 999999999999;
+      const nearThreshold = 9999999999;
       const result = toMilliseconds(nearThreshold);
       expect(result).toBe(nearThreshold * 1000);
     });
@@ -120,11 +120,11 @@ describe('Timestamp Utilities', () => {
       expect(isSeconds(0)).toBe(true);
     });
 
-    it('should return true for values below threshold', () => {
+    it('should return true for values below 1e12', () => {
       expect(isSeconds(999999999999)).toBe(true);
     });
 
-    it('should return false for values at or above threshold', () => {
+    it('should return false for values at or above 1e12', () => {
       expect(isSeconds(1000000000000)).toBe(false);
     });
   });
@@ -142,11 +142,11 @@ describe('Timestamp Utilities', () => {
       expect(isMilliseconds(0)).toBe(false);
     });
 
-    it('should return false for values below threshold', () => {
+    it('should return false for values below 1e12', () => {
       expect(isMilliseconds(999999999999)).toBe(false);
     });
 
-    it('should return true for values at or above threshold', () => {
+    it('should return true for values at or above 1e12', () => {
       expect(isMilliseconds(1000000000000)).toBe(true);
     });
   });

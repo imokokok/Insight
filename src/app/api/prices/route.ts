@@ -4,7 +4,7 @@ import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('api-prices');
 
-const SUPPORTED_ASSETS = [
+const _SUPPORTED_ASSETS = [
   'BTC',
   'ETH',
   'SOL',

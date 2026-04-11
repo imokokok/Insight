@@ -6,7 +6,6 @@ const logger = createLogger('WINkLinkRealDataService');
 
 // TRON RPC 端点 - 使用硬编码的公共节点（确保客户端可用）
 const TRON_RPC_URL = 'https://api.trongrid.io';
-const TRON_SOLIDITY_RPC = 'https://api.trongrid.io/walletsolidity';
 // API Key 从环境变量获取，如果没有则使用空字符串（会有速率限制）
 const TRONGRID_API_KEY = process.env.TRONGRID_API_KEY || '';
 

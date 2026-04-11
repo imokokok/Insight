@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useCallback, useRef } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 
 import Fuse from 'fuse.js';
 
@@ -37,9 +37,6 @@ export function useGlobalSearch(options: UseGlobalSearchOptions = {}): UseGlobal
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-
-  // Create Fuse instance with all searchable items
-  const fuseRef = useRef<Fuse<SearchResult> | null>(null);
 
   // Use a single object for filter options to reduce useMemo dependencies
   const filterOptions = useMemo(
@@ -84,8 +81,7 @@ export function useGlobalSearch(options: UseGlobalSearchOptions = {}): UseGlobal
             return true;
         }
       });
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('Failed to load search data'));
+    } catch {
       return [];
     }
   }, [locale, filterOptions]);
@@ -110,14 +106,10 @@ export function useGlobalSearch(options: UseGlobalSearchOptions = {}): UseGlobal
       };
 
       return new Fuse(searchableItems, fuseOptions);
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('Failed to initialize search'));
+    } catch {
       return null;
     }
   }, [searchableItems, mergedOptions.threshold]);
-
-  // Update ref for use in search function
-  fuseRef.current = fuse;
 
   // Group results by type
   const groupResults = useCallback(
@@ -191,18 +183,17 @@ export function useGlobalSearch(options: UseGlobalSearchOptions = {}): UseGlobal
 
   // Get grouped results
   const results = useMemo(() => {
-    if (!searchQuery.trim() || !fuseRef.current) {
+    if (!searchQuery.trim() || !fuse) {
       return [];
     }
 
     try {
-      const fuseResults = fuseRef.current.search(searchQuery) as FuseResult[];
+      const fuseResults = fuse.search(searchQuery) as FuseResult[];
       return groupResults(fuseResults);
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('Search failed'));
+    } catch {
       return [];
     }
-  }, [searchQuery, groupResults]);
+  }, [searchQuery, groupResults, fuse]);
 
   return {
     results,

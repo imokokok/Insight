@@ -155,3 +155,11 @@ export function getTimeAgo(
   const diff = getTimeAgoDiff(input);
   return formatTimeAgo(diff, t);
 }
+
+export function isSeconds(timestamp: number): boolean {
+  return timestamp < 1e12;
+}
+
+export function isMilliseconds(timestamp: number): boolean {
+  return timestamp >= 1e12;
+}

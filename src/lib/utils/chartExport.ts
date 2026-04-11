@@ -10,7 +10,6 @@ import { exportToPNG, exportToSVG } from './chartExport/formats/imageExporter';
 import { exportToJSON } from './chartExport/formats/jsonExporter';
 import { exportToPDF } from './chartExport/formats/pdfExporter';
 import { exportToZIP } from './chartExport/formats/zipExporter';
-import { RESOLUTION_CONFIG } from './chartExport/types';
 import { sanitizeFilename, downloadBlob } from './chartExport/utils/exportHelpers';
 
 import type {
@@ -18,7 +17,6 @@ import type {
   ExportProgressCallback,
   ExportMetadata,
   ChartExportData,
-  Resolution,
 } from './chartExport/types';
 
 const logger = createLogger('chartExport');

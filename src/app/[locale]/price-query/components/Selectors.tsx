@@ -49,8 +49,12 @@ export function Selectors({
   const [_showAdvanced, _setShowAdvanced] = useState(false);
 
   // 使用 useOracleSymbols Hook 获取预言机相关的币种和链信息
-  const { supportedSymbols, isSymbolSupported, getSupportedChainsForSymbol, getSymbolsForChain } =
-    useOracleSymbols(selectedOracle ? [selectedOracle] : []);
+  const {
+    supportedSymbols,
+    isSymbolSupported,
+    getSupportedChainsForSymbol: _getSupportedChainsForSymbol,
+    getSymbolsForChain,
+  } = useOracleSymbols(selectedOracle ? [selectedOracle] : []);
 
   // 链选项生成逻辑
   const chainOptions: SelectorOption<Blockchain>[] = useMemo(() => {
@@ -109,7 +113,7 @@ export function Selectors({
   }, [selectedOracle, selectedChain, supportedSymbols, getSymbolsForChain]);
 
   // 检查当前选中的币种是否被当前链支持
-  const isCurrentSymbolSupported = useMemo(() => {
+  const _isCurrentSymbolSupported = useMemo(() => {
     if (!selectedOracle) return true;
     if (selectedChain) {
       return isSymbolSupported(selectedSymbol, selectedChain);

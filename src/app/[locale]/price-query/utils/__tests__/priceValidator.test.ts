@@ -202,7 +202,7 @@ describe('priceValidator', () => {
       it('should assign correct severity for stale data', () => {
         const maxAge = 30 * 60 * 1000;
 
-        const oneHourAgo = Date.now() - 60 * 60 * 1000;
+        const oneHourAgo = Date.now() - 1 * 60 * 60 * 1000;
         const result1 = validateTimestamp(oneHourAgo, maxAge);
         expect(result1.anomalies[0].severity).toBe('medium');
 
@@ -210,9 +210,13 @@ describe('priceValidator', () => {
         const result2 = validateTimestamp(twoHoursAgo, maxAge);
         expect(result2.anomalies[0].severity).toBe('high');
 
-        const threeHoursAgo = Date.now() - 3 * 60 * 60 * 1000;
-        const result3 = validateTimestamp(threeHoursAgo, maxAge);
+        const fourHoursAgo = Date.now() - 4 * 60 * 60 * 1000;
+        const result3 = validateTimestamp(fourHoursAgo, maxAge);
         expect(result3.anomalies[0].severity).toBe('high');
+
+        const sixHoursAgo = Date.now() - 6 * 60 * 60 * 1000;
+        const result4 = validateTimestamp(sixHoursAgo, maxAge);
+        expect(result4.anomalies[0].severity).toBe('high');
       });
 
       it('should respect custom maxAge parameter', () => {
@@ -439,7 +443,7 @@ describe('priceValidator', () => {
       });
 
       it('should not flag normal prices as anomalies', () => {
-        const prices = Array.from({ length: 50 }, (_, i) => 100 + Math.random() * 10);
+        const prices = Array.from({ length: 50 }, () => 100 + Math.random() * 10);
         const anomalies = detectAnomalies(prices);
 
         expect(anomalies.length).toBe(0);

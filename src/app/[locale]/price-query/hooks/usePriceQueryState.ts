@@ -149,6 +149,7 @@ export function usePriceQueryState(): UsePriceQueryStateReturn {
     if (!hasUrlParams) {
       // 等待 preferences 加载完成后再应用默认值
       if (!isPrefsLoading) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         applyPreferences();
       }
       // 无论 preferences 是否加载完成，都标记为已解析

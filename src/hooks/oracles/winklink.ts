@@ -113,23 +113,23 @@ export function useWINkLinkAllData({ symbol, chain, enabled = true }: UseWINkLin
   const refetchAll = useCallback(async () => {
     await Promise.all(results.map((r) => r.refetch()));
     updateLastUpdated();
-  }, [results]);
+  }, [results, updateLastUpdated]);
 
-  const createDataSourceState = <T>(
-    result: UseQueryResult<T, Error>,
-    key: string,
-    refetchFn: () => Promise<void>
-  ): DataSourceState<T> => ({
-    data: result.data ?? null,
-    isLoading: result.isLoading,
-    isError: result.isError,
-    error: result.error,
-    lastUpdated: dataLastUpdated[key],
-    refetch: refetchFn,
-  });
+  const dataStates = useMemo(() => {
+    const createDataSourceState = <T>(
+      result: UseQueryResult<T, Error>,
+      key: string,
+      refetchFn: () => Promise<void>
+    ): DataSourceState<T> => ({
+      data: result.data ?? null,
+      isLoading: result.isLoading,
+      isError: result.isError,
+      error: result.error,
+      lastUpdated: dataLastUpdated[key],
+      refetch: refetchFn,
+    });
 
-  const dataStates = useMemo(
-    () => ({
+    return {
       price: createDataSourceState(priceResult, 'price', async () => {
         await priceResult.refetch();
         updateDataLastUpdated('price');
@@ -138,9 +138,8 @@ export function useWINkLinkAllData({ symbol, chain, enabled = true }: UseWINkLin
         await historicalResult.refetch();
         updateDataLastUpdated('historical');
       }),
-    }),
-    [priceResult, historicalResult, dataLastUpdated, updateDataLastUpdated]
-  );
+    };
+  }, [priceResult, historicalResult, updateDataLastUpdated, dataLastUpdated]);
 
   return useMemo(
     () => ({

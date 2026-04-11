@@ -2,11 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import {
-  CROSS_ORACLE_GC_TIME,
-  CROSS_ORACLE_QUERY_KEY,
-  CROSS_ORACLE_STALE_TIME,
-} from '@/components/oracle/charts/CrossOracleComparison/useCrossOraclePrices';
 import { OracleClientFactory, extractBaseSymbol } from '@/lib/oracles';
 import { createLogger } from '@/lib/utils/logger';
 import { Blockchain, type OracleProvider, type PriceData } from '@/types/oracle';

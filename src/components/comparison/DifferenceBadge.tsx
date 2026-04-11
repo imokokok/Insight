@@ -1,9 +1,8 @@
 'use client';
 
 import { useTranslations } from '@/i18n';
-import { semanticColors } from '@/lib/config/colors';
 
-import { type DifferenceSeverity, DifferenceHighlight } from './types';
+import { type DifferenceSeverity } from './types';
 
 interface DifferenceBadgeProps {
   value: number;
@@ -38,7 +37,7 @@ export function DifferenceBadge({
   size = 'md',
   className = '',
 }: DifferenceBadgeProps) {
-  const t = useTranslations('comparison.difference');
+  const _t = useTranslations('comparison.difference');
 
   const getSeverity = (val: number): DifferenceSeverity => {
     const absVal = Math.abs(val);
@@ -135,7 +134,7 @@ export function DifferenceCell({
   highlight = true,
   className = '',
 }: DifferenceCellProps) {
-  const t = useTranslations('comparison.difference');
+  const _t = useTranslations('comparison.difference');
 
   const difference = primary - comparison;
   const percentChange = comparison !== 0 ? (difference / comparison) * 100 : 0;

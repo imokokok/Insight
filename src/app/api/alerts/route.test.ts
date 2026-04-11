@@ -21,6 +21,9 @@ jest.mock('@/lib/api/utils', () => ({
 jest.mock('@/lib/utils/logger', () => ({
   createLogger: jest.fn(() => ({
     error: jest.fn(),
+    warn: jest.fn(),
+    info: jest.fn(),
+    debug: jest.fn(),
   })),
 }));
 
@@ -118,7 +121,7 @@ describe('/api/alerts', () => {
       });
 
       const response = await POST(request);
-      const data = await response.json();
+      const _data = await response.json();
 
       expect(response.status).toBe(201);
       expect(data.alert).toEqual(createdAlert);

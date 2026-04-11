@@ -312,6 +312,10 @@ export function useErrorRecovery<T>(
   const stateDataRef = useRef(state.data);
   stateDataRef.current = state.data;
 
+  // 使用 ref 存储最新的 state.recoveryAttempts，避免闭包问题
+  const stateRecoveryAttemptsRef = useRef(state.recoveryAttempts);
+  stateRecoveryAttemptsRef.current = state.recoveryAttempts;
+
   // 尝试恢复
   const attemptRecovery = useCallback(
     async (error: Error, originalOperation: () => Promise<T>, operationName?: string) => {
@@ -415,7 +419,7 @@ export function useErrorRecovery<T>(
 
       captureException(error, {
         operationName,
-        recoveryAttempts: state.recoveryAttempts,
+        recoveryAttempts: stateRecoveryAttemptsRef.current,
         message: 'All recovery strategies failed',
       });
     },

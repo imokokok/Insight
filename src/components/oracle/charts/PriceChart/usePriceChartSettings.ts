@@ -17,16 +17,14 @@ const DEFAULT_CHART_SETTINGS: ChartSettings = {
 };
 
 export function useChartSettings() {
-  const [settings, setSettings] = useState<ChartSettings>(DEFAULT_CHART_SETTINGS);
-  const [isLoaded, setIsLoaded] = useState(false);
-
-  useEffect(() => {
+  const [settings, setSettings] = useState<ChartSettings>(() => {
     const saved = loadChartSettings(CHART_SETTINGS_STORAGE_KEY, null as ChartSettings | null);
     if (saved) {
-      setSettings((prev) => ({ ...prev, ...saved }));
+      return { ...DEFAULT_CHART_SETTINGS, ...saved };
     }
-    setIsLoaded(true);
-  }, []);
+    return DEFAULT_CHART_SETTINGS;
+  });
+  const [isLoaded, setIsLoaded] = useState(true);
 
   const updateSettings = useCallback((updates: Partial<ChartSettings>) => {
     setSettings((prev) => {

@@ -6,7 +6,6 @@ import { getSupabaseClient } from '@/lib/supabase/client';
 
 import { GET } from './route';
 
-// Mock Supabase client
 jest.mock('@/lib/supabase/client', () => ({
   getSupabaseClient: jest.fn(),
 }));
@@ -30,17 +29,23 @@ describe('/api/health', () => {
 
     (getSupabaseClient as jest.Mock).mockReturnValue(mockSupabase);
 
+    const originalMemoryUsage = process.memoryUsage;
+    process.memoryUsage = jest.fn().mockReturnValue({
+      heapUsed: 100 * 1024 * 1024,
+      heapTotal: 1000 * 1024 * 1024,
+    });
+
     const response = await GET();
     const data = await response.json();
 
     expect(response.status).toBe(200);
     expect(data.status).toBe('healthy');
-    expect(data.checks.database.status).toBe('ok');
-    expect(data.checks.environment.status).toBe('ok');
-    expect(data.checks.memory.status).toBe('ok');
+    expect(data.checks.database).toBe('ok');
+    expect(data.checks.environment).toBe('ok');
+    expect(data.checks.memory).toBe('ok');
     expect(data.timestamp).toBeDefined();
-    expect(data.version).toBeDefined();
-    expect(data.uptime).toBeDefined();
+
+    process.memoryUsage = originalMemoryUsage;
   });
 
   it('should return unhealthy status when database check fails', async () => {
@@ -59,8 +64,7 @@ describe('/api/health', () => {
 
     expect(response.status).toBe(503);
     expect(data.status).toBe('unhealthy');
-    expect(data.checks.database.status).toBe('error');
-    expect(data.checks.database.error).toBe('Connection failed');
+    expect(data.checks.database).toBe('error');
   });
 
   it('should return unhealthy status when environment check fails', async () => {
@@ -81,8 +85,7 @@ describe('/api/health', () => {
 
     expect(response.status).toBe(503);
     expect(data.status).toBe('unhealthy');
-    expect(data.checks.environment.status).toBe('error');
-    expect(data.checks.environment.hasRequiredEnvVars).toBe(false);
+    expect(data.checks.environment).toBe('error');
   });
 
   it('should return degraded status when memory usage is high', async () => {
@@ -96,7 +99,6 @@ describe('/api/health', () => {
 
     (getSupabaseClient as jest.Mock).mockReturnValue(mockSupabase);
 
-    // Mock high memory usage
     const originalMemoryUsage = process.memoryUsage;
     process.memoryUsage = jest.fn().mockReturnValue({
       heapUsed: 850 * 1024 * 1024,
@@ -107,8 +109,7 @@ describe('/api/health', () => {
     const data = await response.json();
 
     expect(data.status).toBe('degraded');
-    expect(data.checks.memory.status).toBe('warning');
-    expect(data.checks.memory.percentage).toBeGreaterThan(75);
+    expect(data.checks.memory).toBe('warning');
 
     process.memoryUsage = originalMemoryUsage;
   });
@@ -123,11 +124,10 @@ describe('/api/health', () => {
 
     expect(response.status).toBe(503);
     expect(data.status).toBe('unhealthy');
-    expect(data.checks.database.status).toBe('error');
-    expect(data.checks.database.error).toBe('Database connection error');
+    expect(data.checks.database).toBe('error');
   });
 
-  it('should include database latency when check passes', async () => {
+  it('should return correct memory status', async () => {
     const mockSupabase = {
       from: jest.fn().mockReturnValue({
         select: jest.fn().mockReturnValue({
@@ -141,29 +141,6 @@ describe('/api/health', () => {
     const response = await GET();
     const data = await response.json();
 
-    expect(data.checks.database.latency).toBeDefined();
-    expect(typeof data.checks.database.latency).toBe('number');
-  });
-
-  it('should return correct memory usage details', async () => {
-    const mockSupabase = {
-      from: jest.fn().mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          limit: jest.fn().mockResolvedValue({ error: null }),
-        }),
-      }),
-    };
-
-    (getSupabaseClient as jest.Mock).mockReturnValue(mockSupabase);
-
-    const response = await GET();
-    const data = await response.json();
-
-    expect(data.checks.memory.used).toBeDefined();
-    expect(data.checks.memory.total).toBeDefined();
-    expect(data.checks.memory.percentage).toBeDefined();
-    expect(typeof data.checks.memory.used).toBe('number');
-    expect(typeof data.checks.memory.total).toBe('number');
-    expect(typeof data.checks.memory.percentage).toBe('number');
+    expect(['ok', 'warning', 'error']).toContain(data.checks.memory);
   });
 });

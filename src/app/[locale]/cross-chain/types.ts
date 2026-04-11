@@ -2,13 +2,14 @@
  * @fileoverview 跨链数据类型定义
  */
 
-import { type FavoriteConfig } from '@/hooks';
+import { type FavoriteConfig, type useFavorites } from '@/hooks';
 import {
   type OracleProvider,
   type Blockchain,
   type PriceData,
   type BaseOracleClient,
 } from '@/lib/oracles';
+import type { useUser } from '@/stores/authStore';
 
 import { type RefreshInterval } from './constants';
 import {
@@ -114,8 +115,8 @@ export interface UseCrossChainDataReturn {
   handleSort: (column: string) => void;
   exportToCSV: () => boolean;
   exportToJSON: () => boolean;
-  user: ReturnType<typeof import('@/stores/authStore').useUser>;
-  chainFavorites: ReturnType<typeof import('@/hooks').useFavorites>['favorites'];
+  user: ReturnType<typeof useUser>;
+  chainFavorites: ReturnType<typeof useFavorites>['favorites'];
   currentFavoriteConfig: FavoriteConfig;
   showFavoritesDropdown: boolean;
   setShowFavoritesDropdown: (show: boolean) => void;
