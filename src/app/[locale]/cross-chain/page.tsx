@@ -32,7 +32,7 @@ import { DataSourceSection } from './components/DataSourceSection';
 import { InteractivePriceChart } from './components/InteractivePriceChart';
 import { PriceComparisonTable } from './components/PriceComparisonTable';
 import { PriceSpreadHeatmap, HeatmapDetailView } from './components/PriceSpreadHeatmap';
-import { ProgressBar as CrossChainProgressBar, JumpIndicator } from './components/SmallComponents';
+// SmallComponents removed - using alternative UI components
 import { StandardBoxPlot } from './components/StandardBoxPlot';
 import { TabNavigation, type TabId } from './components/TabNavigation';
 import { type ChainStats, type RefreshInterval } from './constants';
@@ -338,12 +338,16 @@ export default function CrossChainPage() {
                       </div>
                     </td>
                     <td className="px-3 py-2.5">
-                      <CrossChainProgressBar
-                        value={integrity}
-                        color={getIntegrityColor(integrity)}
-                        showPercentage
-                        suffix="%"
-                      />
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div
+                          className="h-2 rounded-full transition-all duration-300"
+                          style={{
+                            width: `${integrity}%`,
+                            backgroundColor: getIntegrityColor(integrity),
+                          }}
+                        />
+                      </div>
+                      <span className="text-xs text-gray-500 mt-1">{integrity.toFixed(1)}%</span>
                     </td>
                     <td className="px-3 py-2.5">
                       <span
@@ -357,7 +361,13 @@ export default function CrossChainPage() {
                       </span>
                     </td>
                     <td className="px-3 py-2.5">
-                      <JumpIndicator count={jumpCount} />
+                      {jumpCount > 0 ? (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+                          {jumpCount} 次
+                        </span>
+                      ) : (
+                        <span className="text-gray-400 text-sm">-</span>
+                      )}
                     </td>
                     <td className="px-3 py-2.5 text-right">
                       <span

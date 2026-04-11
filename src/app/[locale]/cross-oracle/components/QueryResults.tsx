@@ -9,7 +9,7 @@ import { memo } from 'react';
 
 import { Database } from 'lucide-react';
 
-import { EmptyStateEnhanced, ProgressBar } from '@/components/ui';
+import { EmptyStateEnhanced } from '@/components/ui';
 import { useTranslations } from '@/i18n';
 import type { CalculatedPerformanceMetrics } from '@/lib/oracles/performanceMetricsCalculator';
 import type { OracleProvider, PriceData } from '@/types/oracle';
@@ -119,13 +119,12 @@ function LoadingState({
           {queryProgress.completed} / {queryProgress.total}
         </span>
       </div>
-      <ProgressBar
-        progress={queryProgress.completed}
-        total={queryProgress.total}
-        showPercentage={true}
-        size="md"
-        variant="default"
-      />
+      <div className="w-full bg-gray-200 rounded-full h-2">
+        <div
+          className="h-2 rounded-full transition-all duration-300 bg-primary-600"
+          style={{ width: `${(queryProgress.completed / queryProgress.total) * 100}%` }}
+        />
+      </div>
       <p className="text-xs text-gray-500 mt-2">
         {t('crossOracle.querying') || 'Querying'}{' '}
         {currentQueryTarget.oracle && t(`navbar.${currentQueryTarget.oracle.toLowerCase()}`)}

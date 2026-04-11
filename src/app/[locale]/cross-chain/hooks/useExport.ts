@@ -5,7 +5,7 @@
 
 import { useCallback } from 'react';
 
-import { useToastMethods } from '@/components/ui/Toast';
+// Toast component removed - using alternative notification method
 import { OracleProvider, type Blockchain, type PriceData } from '@/lib/oracles';
 import { createLogger } from '@/lib/utils/logger';
 
@@ -41,7 +41,12 @@ export interface UseExportReturn {
 }
 
 export function useExport(params: UseExportParams): UseExportReturn {
-  const toast = useToastMethods();
+  // Toast functionality removed - using console instead
+  const toast = {
+    success: (title: string, message: string) => console.log(`[Success] ${title}: ${message}`),
+    error: (title: string, message: string) => console.error(`[Error] ${title}: ${message}`),
+    warning: (title: string, message: string) => console.warn(`[Warning] ${title}: ${message}`),
+  };
 
   const exportToCSV = useCallback((): boolean => {
     if (params.priceDifferences.length === 0 && Object.keys(params.historicalPrices).length === 0) {

@@ -3,7 +3,4 @@
  * @description 专业数据质量分析相关组件
  */
 
-export { QualityMetricsHeader } from './QualityMetricsHeader';
-export { OracleQualityTable } from './OracleQualityTable';
-export { QualityTrendChart } from './QualityTrendChart';
-export { QualityAnomaliesPanel } from './QualityAnomaliesPanel';
+// 所有质量相关组件已被清理

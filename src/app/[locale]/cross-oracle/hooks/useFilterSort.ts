@@ -44,17 +44,17 @@ export function useFilterSort({
   avgPrice,
   standardDeviation,
   t,
-  initialSortColumn = null,
+  initialSortColumn,
   initialSortDirection = 'asc',
   initialDeviationFilter = 'all',
   initialOracleFilter = 'all',
-  initialTimeRange = '24H',
+  initialTimeRange = '24h',
 }: UseFilterSortParams): UseFilterSortReturn {
   // ============================================================================
   // 状态管理
   // ============================================================================
 
-  const [sortColumn, setSortColumn] = useState<SortColumn>(initialSortColumn);
+  const [sortColumn, setSortColumn] = useState<SortColumn | undefined>(initialSortColumn);
   const [sortDirection, setSortDirection] = useState<SortDirection>(initialSortDirection);
   const [deviationFilter, setDeviationFilter] = useState<DeviationFilter>(initialDeviationFilter);
   const [oracleFilter, setOracleFilter] = useState<OracleProvider | 'all'>(initialOracleFilter);
@@ -122,14 +122,14 @@ export function useFilterSort({
       if (deviationPercent === null) return false;
 
       switch (deviationFilter) {
-        case 'excellent':
+        case 'normal':
           return deviationPercent < DEVIATION_FILTER_THRESHOLDS.EXCELLENT;
-        case 'good':
+        case 'warning':
           return (
             deviationPercent >= DEVIATION_FILTER_THRESHOLDS.EXCELLENT &&
             deviationPercent < DEVIATION_FILTER_THRESHOLDS.GOOD
           );
-        case 'poor':
+        case 'critical':
           return deviationPercent >= DEVIATION_FILTER_THRESHOLDS.POOR;
         default:
           return true;
@@ -165,7 +165,7 @@ export function useFilterSort({
     let count = 0;
     if (deviationFilter !== 'all') count++;
     if (oracleFilter !== 'all') count++;
-    if (timeRange !== '24H') count++;
+    if (timeRange !== '24h') count++;
     return count;
   }, [deviationFilter, oracleFilter, timeRange]);
 
@@ -215,8 +215,8 @@ export function useFilterSort({
   const handleClearFilters = useCallback(() => {
     setDeviationFilter('all');
     setOracleFilter('all');
-    setTimeRange('24H');
-    setSortColumn(null);
+    setTimeRange('24h');
+    setSortColumn(undefined);
     setSortDirection('asc');
   }, []);
 
@@ -229,9 +229,9 @@ export function useFilterSort({
 
     if (deviationFilter !== 'all') {
       const label =
-        deviationFilter === 'excellent'
+        deviationFilter === 'normal'
           ? '<0.1%'
-          : deviationFilter === 'good'
+          : deviationFilter === 'warning'
             ? '0.1-0.5%'
             : '>0.5%';
       summary.push(`${t('crossOracle.filterSummary.deviation')}: ${label}`);
@@ -241,7 +241,7 @@ export function useFilterSort({
       summary.push(`${t('crossOracle.filterSummary.oracle')}: ${oracleNames[oracleFilter]}`);
     }
 
-    if (timeRange !== '24H') {
+    if (timeRange !== '24h') {
       summary.push(`${t('crossOracle.filterSummary.time')}: ${timeRange}`);
     }
 

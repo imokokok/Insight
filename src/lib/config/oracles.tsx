@@ -2,7 +2,7 @@ import { type ReactNode } from 'react';
 
 import Image from 'next/image';
 
-import { type MarketDataConfig } from '@/components/oracle/panels/MarketDataPanel';
+// MarketDataPanel component removed
 import { chartColors } from '@/lib/config/colors';
 import {
   ChainlinkClient,
@@ -15,6 +15,24 @@ import {
 } from '@/lib/oracles';
 import { getTokenMarketData } from '@/lib/services/marketData/binanceMarketService';
 import { OracleProvider, Blockchain } from '@/types/oracle';
+
+// MarketDataConfig type definition (previously imported from MarketDataPanel)
+interface MarketDataConfig {
+  symbol: string;
+  tokenName: string;
+  tokenSymbol: string;
+  marketCap: number;
+  volume24h: number;
+  circulatingSupply: number;
+  totalSupply: number;
+  fullyDilutedValuation: number;
+  marketCapRank: number;
+  high24h: number;
+  low24h: number;
+  change24h: number;
+  change24hValue: number;
+  stakingApr: number;
+}
 
 // Network data configuration type
 interface NetworkDataConfig {

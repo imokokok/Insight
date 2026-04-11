@@ -4,10 +4,23 @@ import { getHoursForTimeRange, extractBaseSymbol } from '@/lib/oracles';
 import { createLogger } from '@/lib/utils/logger';
 import type { OracleProvider, PriceData } from '@/types/oracle';
 
-import type { TimeRange, PriceOracleProvider } from '../constants';
+import type { TimeRange } from '../constants';
 import type { OracleErrorInfo, OracleDataError, RetryConfig } from '../types';
 
 const logger = createLogger('useOracleRetry');
+
+// Helper function to convert TimeRange to TimeRangeValue
+function timeRangeToValue(range: TimeRange): '1H' | '24H' | '7D' | '30D' | '90D' | '1Y' {
+  const map: Record<TimeRange, '1H' | '24H' | '7D' | '30D' | '90D' | '1Y'> = {
+    '1h': '1H',
+    '24h': '24H',
+    '7d': '7D',
+    '30d': '30D',
+    '90d': '90D',
+    '1y': '1Y',
+  };
+  return map[range];
+}
 
 const DEFAULT_RETRY_CONFIG: RetryConfig = {
   maxRetries: 3,
@@ -16,12 +29,12 @@ const DEFAULT_RETRY_CONFIG: RetryConfig = {
 };
 
 interface UseOracleRetryOptions {
-  selectedOracles: PriceOracleProvider[];
+  selectedOracles: OracleProvider[];
   selectedSymbol: string;
   timeRange: TimeRange;
   initialRetryConfig?: Partial<RetryConfig>;
   fetchSingleOracle: (
-    oracle: PriceOracleProvider,
+    oracle: OracleProvider,
     baseSymbol: string,
     hours: number,
     signal: AbortSignal
@@ -90,7 +103,7 @@ export function useOracleRetry({
 
   const retryOracle = useCallback(
     async (provider: OracleProvider) => {
-      if (!selectedOracles.includes(provider as PriceOracleProvider)) {
+      if (!selectedOracles.includes(provider)) {
         logger.warn(`Oracle ${provider} is not in selected oracles`);
         return;
       }
@@ -114,7 +127,7 @@ export function useOracleRetry({
       abortControllersRef.current.set(provider, abortController);
       const signal = abortController.signal;
 
-      const hours = getHoursForTimeRange(timeRange) ?? 24;
+      const hours = getHoursForTimeRange(timeRangeToValue(timeRange)) ?? 24;
       const baseSymbol = extractBaseSymbol(selectedSymbol);
 
       try {
@@ -129,12 +142,7 @@ export function useOracleRetry({
           return;
         }
 
-        const result = await fetchSingleOracle(
-          provider as PriceOracleProvider,
-          baseSymbol,
-          hours,
-          signal
-        );
+        const result = await fetchSingleOracle(provider, baseSymbol, hours, signal);
 
         if (result && !signal.aborted) {
           onPriceDataUpdate(provider, result);
@@ -195,7 +203,7 @@ export function useOracleRetry({
       batchAbortControllerRef.current = new AbortController();
       const signal = batchAbortControllerRef.current.signal;
 
-      const hours = getHoursForTimeRange(timeRange) ?? 24;
+      const hours = getHoursForTimeRange(timeRangeToValue(timeRange)) ?? 24;
       const baseSymbol = extractBaseSymbol(selectedSymbol);
 
       const results = await Promise.allSettled(
@@ -211,7 +219,7 @@ export function useOracleRetry({
 
           if (signal.aborted) return null;
 
-          return fetchSingleOracle(provider as PriceOracleProvider, baseSymbol, hours, signal);
+          return fetchSingleOracle(provider, baseSymbol, hours, signal);
         })
       );
 

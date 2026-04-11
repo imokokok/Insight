@@ -19,7 +19,7 @@ import { createLogger } from '@/lib/utils/logger';
 import { getRequestQueue, type RequestPriority } from '@/lib/utils/requestQueue';
 import { type OracleProvider, type PriceData } from '@/types/oracle';
 
-import { type TimeRange, type RefreshInterval, type PriceOracleProvider } from '../constants';
+import { type TimeRange, type RefreshInterval } from '../constants';
 
 import { useOracleRetry } from './useOracleRetry';
 
@@ -31,6 +31,19 @@ import type {
   PartialSuccessState,
   RetryConfig,
 } from '../types';
+
+// Helper function to convert TimeRange to TimeRangeValue
+function timeRangeToValue(range: TimeRange): '1H' | '24H' | '7D' | '30D' | '90D' | '1Y' {
+  const map: Record<TimeRange, '1H' | '24H' | '7D' | '30D' | '90D' | '1Y'> = {
+    '1h': '1H',
+    '24h': '24H',
+    '7d': '7D',
+    '30d': '30D',
+    '90d': '90D',
+    '1y': '1Y',
+  };
+  return map[range];
+}
 
 const logger = createLogger('useOracleData');
 
@@ -136,7 +149,7 @@ function createOracleErrorInfo(provider: OracleProvider, error: unknown): Oracle
 }
 
 interface UseOracleDataOptions {
-  selectedOracles: PriceOracleProvider[];
+  selectedOracles: OracleProvider[];
   selectedSymbol: string;
   timeRange: TimeRange;
   initialRefreshInterval?: RefreshInterval;
@@ -150,7 +163,7 @@ export function useOracleData({
   selectedOracles,
   selectedSymbol,
   timeRange,
-  initialRefreshInterval = 0,
+  initialRefreshInterval = 'off',
   enablePerformanceMetrics = true,
   initialRetryConfig,
   requestTimeout,
@@ -186,13 +199,13 @@ export function useOracleData({
   const abortControllerRef = useRef<AbortController | null>(null);
   const isMountedRef = useRef(true);
   const prevDepsRef = useRef<{
-    selectedOracles: PriceOracleProvider[];
+    selectedOracles: OracleProvider[];
     selectedSymbol: string;
     timeRange: TimeRange;
   }>({
     selectedOracles: [],
     selectedSymbol: '',
-    timeRange: '24H',
+    timeRange: '24h',
   });
   const isInitialMountRef = useRef(true);
 
@@ -242,7 +255,7 @@ export function useOracleData({
 
   const fetchSingleOracle = useCallback(
     async (
-      oracle: PriceOracleProvider,
+      oracle: OracleProvider,
       baseSymbol: string,
       hours: number,
       signal: AbortSignal
@@ -470,7 +483,7 @@ export function useOracleData({
     const prices: PriceData[] = [];
     const histories: Partial<Record<OracleProvider, PriceData[]>> = {};
     const errors: OracleErrorInfo[] = [];
-    const hours = getHoursForTimeRange(timeRange) ?? 24;
+    const hours = getHoursForTimeRange(timeRangeToValue(timeRange)) ?? 24;
     const baseSymbol = extractBaseSymbol(selectedSymbol);
     let completedCount = 0;
 
@@ -615,12 +628,25 @@ export function useOracleData({
   }, [selectedOracles, selectedSymbol, timeRange]);
 
   useEffect(() => {
-    if (refreshInterval === 0) return;
+    if (refreshInterval === 'off') return;
+
+    const intervalMs =
+      refreshInterval === '10s'
+        ? 10000
+        : refreshInterval === '30s'
+          ? 30000
+          : refreshInterval === '1m'
+            ? 60000
+            : refreshInterval === '5m'
+              ? 300000
+              : 0;
+
+    if (intervalMs === 0) return;
 
     const intervalId = setInterval(() => {
       // 使用 ref 调用 fetchPriceData，避免依赖循环
       fetchPriceDataRef.current();
-    }, refreshInterval);
+    }, intervalMs);
 
     return () => clearInterval(intervalId);
     // 注意：不从依赖数组中包含 fetchPriceData，使用 ref 避免循环

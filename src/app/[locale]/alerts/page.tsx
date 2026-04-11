@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { AlertConfig } from '@/components/alerts/AlertConfig';
 import { AlertHistory } from '@/components/alerts/AlertHistory';
 import { AlertList } from '@/components/alerts/AlertList';
-import { AlertNotificationContainer } from '@/components/alerts/AlertNotification';
+// AlertNotification component removed - using alternative UI
 import { useAlerts, useAlertEvents, useAlertEventsRealtime } from '@/hooks';
 import { useTranslations } from '@/i18n';
 import { useUser, useAuthLoading } from '@/stores/authStore';
@@ -82,11 +82,7 @@ export default function AlertsPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 rounded-lg">
-      <AlertNotificationContainer
-        events={unacknowledgedEvents as never}
-        onDismiss={handleDismissNotification}
-        onViewDetails={handleViewDetails}
-      />
+      {/* AlertNotification component removed */}
 
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">{t('alerts.page.title')}</h1>

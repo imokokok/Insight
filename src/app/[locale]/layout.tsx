@@ -11,7 +11,7 @@ import Footer from '@/components/Footer';
 import Navbar from '@/components/Navbar';
 import { PerformanceMetricsCollector } from '@/components/PerformanceMetricsCollector';
 import { ConnectionStatusIndicator } from '@/components/realtime/ConnectionStatus';
-import { ToastProvider } from '@/components/ui';
+// ToastProvider removed
 import { routing } from '@/i18n/routing';
 import { ReactQueryProvider } from '@/providers/ReactQueryProvider';
 
@@ -50,23 +50,21 @@ export default async function LocaleLayout({
       <body className="antialiased min-h-screen flex flex-col">
         <NextIntlClientProvider messages={messages}>
           <ReactQueryProvider>
-            <ToastProvider>
-              <ErrorBoundary>
-                <AppInitializer>
-                  <PerformanceMetricsCollector />
-                  <Navbar />
-                  <main className="flex-1" style={{ backgroundColor: 'var(--background)' }}>
-                    {children}
-                  </main>
-                  <Footer />
-                  <ConnectionStatusIndicator
-                    showLabel={false}
-                    showReconnectButton={true}
-                    className="fixed bottom-4 right-4 z-50"
-                  />
-                </AppInitializer>
-              </ErrorBoundary>
-            </ToastProvider>
+            <ErrorBoundary>
+              <AppInitializer>
+                <PerformanceMetricsCollector />
+                <Navbar />
+                <main className="flex-1" style={{ backgroundColor: 'var(--background)' }}>
+                  {children}
+                </main>
+                <Footer />
+                <ConnectionStatusIndicator
+                  showLabel={false}
+                  showReconnectButton={true}
+                  className="fixed bottom-4 right-4 z-50"
+                />
+              </AppInitializer>
+            </ErrorBoundary>
           </ReactQueryProvider>
         </NextIntlClientProvider>
         <Analytics />

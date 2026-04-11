@@ -508,7 +508,6 @@ export function useChartData(params: UseChartDataParams): UseChartDataReturn {
 
     return matrix;
   }, [historicalPrices, filteredChains]);
-
   const priceJumpFrequency = useMemo(() => {
     const frequency: Partial<Record<Blockchain, number>> = {};
 
@@ -544,7 +543,6 @@ export function useChartData(params: UseChartDataParams): UseChartDataReturn {
 
     return frequency;
   }, [historicalPrices, filteredChains]);
-
   const priceChangePercent = useMemo(() => {
     const result: Partial<Record<Blockchain, number>> = {};
     filteredChains.forEach((chain) => {

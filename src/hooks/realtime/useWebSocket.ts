@@ -232,10 +232,7 @@ export function usePriceWebSocket(options: UsePriceWebSocketOptions) {
 
   // 使用 useMemo 稳定 channels 数组
   const symbolsKey = symbols.sort().join(',');
-  const channels = useMemo(
-    () => symbols.map((s) => `price:${s}`),
-    [symbolsKey]
-  );
+  const channels = useMemo(() => symbols.map((s) => `price:${s}`), [symbolsKey]);
 
   const ws = useWebSocket<PriceUpdate>({
     url: process.env.NEXT_PUBLIC_WS_URL || '',

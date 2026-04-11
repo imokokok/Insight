@@ -36,7 +36,7 @@ export type TabId = 'priceComparison' | 'qualityAnalysis' | 'oracleProfiles';
 // 基础类型定义
 // ============================================================================
 
-export type RefreshInterval = 0 | 30000 | 60000 | 300000;
+export type RefreshInterval = 'off' | '10s' | '30s' | '1m' | '5m';
 
 // 跨预言机对比数据（用于导出）
 export interface CrossOracleData {
@@ -407,7 +407,7 @@ export interface UseChartConfigReturn extends ChartConfigResult {
 }
 
 export interface UseFilterSortReturn extends FilterSortResult {
-  sortColumn: SortColumn;
+  sortColumn: SortColumn | undefined;
   sortDirection: SortDirection;
   deviationFilter: DeviationFilter;
   setDeviationFilter: (filter: DeviationFilter) => void;

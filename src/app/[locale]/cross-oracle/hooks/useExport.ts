@@ -39,12 +39,38 @@ export function useExport({
   stats,
 }: UseExportParams): UseExportReturn {
   const handleExportCSV = useCallback(() => {
-    exportToCSV(priceData, oracleNames, avgPrice, validPrices);
-  }, [priceData, avgPrice, validPrices]);
+    const exportData = {
+      symbol: selectedSymbol,
+      timestamp: new Date().toISOString(),
+      oracles: priceData.map((data) => {
+        const deviation = avgPrice > 0 ? ((data.price - avgPrice) / avgPrice) * 100 : 0;
+        return {
+          name: oracleNames[data.provider] || String(data.provider),
+          price: data.price,
+          deviation,
+          timestamp: data.timestamp,
+        };
+      }),
+    };
+    exportToCSV(exportData);
+  }, [priceData, avgPrice, selectedSymbol]);
 
   const handleExportJSON = useCallback(() => {
-    exportToJSON(priceData, oracleNames, avgPrice, validPrices);
-  }, [priceData, avgPrice, validPrices]);
+    const exportData = {
+      symbol: selectedSymbol,
+      timestamp: new Date().toISOString(),
+      oracles: priceData.map((data) => {
+        const deviation = avgPrice > 0 ? ((data.price - avgPrice) / avgPrice) * 100 : 0;
+        return {
+          name: oracleNames[data.provider] || String(data.provider),
+          price: data.price,
+          deviation,
+          timestamp: data.timestamp,
+        };
+      }),
+    };
+    exportToJSON(exportData);
+  }, [priceData, avgPrice, selectedSymbol]);
 
   const handleSaveSnapshot = useCallback((): OracleSnapshot | null => {
     if (!stats || priceData.length === 0) {
