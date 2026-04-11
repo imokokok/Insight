@@ -186,7 +186,7 @@ function PriceTableComponent({
         deviation: deviationPercent,
         source: data.source || '-',
         freshness: freshness.text,
-        freshnessSeconds: freshness.seconds,
+        freshnessSeconds: freshness.seconds ?? 0,
         timestamp: data.timestamp,
         zScore,
         isOutlier: outlier,

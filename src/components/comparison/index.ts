@@ -6,12 +6,6 @@
 // 类型定义
 export * from './types';
 
-// 时间段对比组件
-export { TimeRangeSelector } from './TimeRangeSelector';
-
-// 基准对比组件
-export { BenchmarkComparison } from './BenchmarkComparison';
-
 // 差异高亮组件
 export { DifferenceBadge, DifferenceCell, ComparisonRow } from './DifferenceBadge';
 

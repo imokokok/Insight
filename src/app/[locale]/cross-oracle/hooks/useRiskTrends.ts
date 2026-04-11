@@ -25,7 +25,7 @@ export interface RiskTrendsResult {
 }
 
 export function useRiskTrends(
-  _timeRange: TimeRange = '24H',
+  _timeRange: TimeRange = '24h',
   _baseRiskScore: number = 30
 ): RiskTrendsResult {
   return useMemo(() => {

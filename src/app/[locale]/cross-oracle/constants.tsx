@@ -1,223 +1,66 @@
-'use client';
+/**
+ * @fileoverview 跨预言机对比页面常量定义
+ */
 
-import React from 'react';
-
-import { semanticColors, baseColors, chainColors } from '@/lib/config/colors';
-import { type PriceOracleProvider } from '@/lib/config/oracles';
-import { providerNames, type RefreshInterval } from '@/lib/constants';
-import { getDeviationColor } from '@/lib/utils/chartSharedUtils';
-import {
-  calculateWeightedAverage as calcWeightedAverage,
-  calculateVariance,
-  calculateStandardDeviationFromVariance,
-  calculateStdDev,
-} from '@/lib/utils/statistics';
 import { OracleProvider } from '@/types/oracle';
 
-import {
-  ANOMALY_THRESHOLD,
-  DATA_DELAY_THRESHOLD,
-  DATA_DELAY_WARNING_THRESHOLD,
-  DATA_DELAY_DANGER_THRESHOLD,
-  DEVIATION_FILTER_THRESHOLDS,
-  CONSISTENCY_RATING_THRESHOLDS,
-  FRESHNESS_THRESHOLDS,
-} from './thresholds';
+// ============================================================================
+// 时间范围
+// ============================================================================
 
-export type { PriceOracleProvider };
+export type TimeRange = '1h' | '24h' | '7d' | '30d' | '90d' | '1y';
 
-export interface SymbolConfig {
-  symbol: string;
-  name: string;
-  category: 'layer1' | 'defi' | 'stablecoin';
-  iconColor: string;
-  /** 市值排名，数字越小排名越高 */
-  marketCapRank: number;
-}
-
-// 交易对按市值排名排序（基于加密货币市值，数字越小排名越高）
-export const tradingPairs: SymbolConfig[] = [
-  // Layer 1 - 按市值排序
-  {
-    symbol: 'BTC/USD',
-    name: 'Bitcoin',
-    category: 'layer1',
-    iconColor: '#F7931A',
-    marketCapRank: 1,
-  },
-  {
-    symbol: 'ETH/USD',
-    name: 'Ethereum',
-    category: 'layer1',
-    iconColor: chainColors.ethereum,
-    marketCapRank: 2,
-  },
-  {
-    symbol: 'SOL/USD',
-    name: 'Solana',
-    category: 'layer1',
-    iconColor: chainColors.solana,
-    marketCapRank: 3,
-  },
-  {
-    symbol: 'AVAX/USD',
-    name: 'Avalanche',
-    category: 'layer1',
-    iconColor: chainColors.avalanche,
-    marketCapRank: 4,
-  },
-  {
-    symbol: 'DOT/USD',
-    name: 'Polkadot',
-    category: 'layer1',
-    iconColor: '#E6007A',
-    marketCapRank: 5,
-  },
-  {
-    symbol: 'ADA/USD',
-    name: 'Cardano',
-    category: 'layer1',
-    iconColor: '#0033AD',
-    marketCapRank: 6,
-  },
-  {
-    symbol: 'MATIC/USD',
-    name: 'Polygon',
-    category: 'layer1',
-    iconColor: '#8247E5',
-    marketCapRank: 7,
-  },
-  {
-    symbol: 'ARB/USD',
-    name: 'Arbitrum',
-    category: 'layer1',
-    iconColor: '#28A0F0',
-    marketCapRank: 8,
-  },
-  {
-    symbol: 'NEAR/USD',
-    name: 'NEAR Protocol',
-    category: 'layer1',
-    iconColor: '#00C08B',
-    marketCapRank: 9,
-  },
-  {
-    symbol: 'OP/USD',
-    name: 'Optimism',
-    category: 'layer1',
-    iconColor: '#FF0420',
-    marketCapRank: 10,
-  },
-  {
-    symbol: 'ATOM/USD',
-    name: 'Cosmos',
-    category: 'layer1',
-    iconColor: '#2E3148',
-    marketCapRank: 11,
-  },
-  {
-    symbol: 'FTM/USD',
-    name: 'Fantom',
-    category: 'layer1',
-    iconColor: '#1969FF',
-    marketCapRank: 12,
-  },
-  // DeFi - 按市值排序
-  {
-    symbol: 'LINK/USD',
-    name: 'Chainlink',
-    category: 'defi',
-    iconColor: '#2A5ADA',
-    marketCapRank: 13,
-  },
-  { symbol: 'UNI/USD', name: 'Uniswap', category: 'defi', iconColor: '#FF007A', marketCapRank: 14 },
-  { symbol: 'AAVE/USD', name: 'Aave', category: 'defi', iconColor: '#B6509E', marketCapRank: 15 },
-  { symbol: 'MKR/USD', name: 'Maker', category: 'defi', iconColor: '#1AAB9B', marketCapRank: 16 },
-  {
-    symbol: 'LDO/USD',
-    name: 'Lido DAO',
-    category: 'defi',
-    iconColor: '#F69988',
-    marketCapRank: 17,
-  },
-  { symbol: 'CRV/USD', name: 'Curve', category: 'defi', iconColor: '#FF5A00', marketCapRank: 18 },
-  {
-    symbol: 'SNX/USD',
-    name: 'Synthetix',
-    category: 'defi',
-    iconColor: '#0B0816',
-    marketCapRank: 19,
-  },
-  { symbol: 'YFI/USD', name: 'Yearn', category: 'defi', iconColor: '#006AE3', marketCapRank: 20 },
-  {
-    symbol: 'SUSHI/USD',
-    name: 'SushiSwap',
-    category: 'defi',
-    iconColor: '#FA52A0',
-    marketCapRank: 21,
-  },
-  { symbol: 'GMX/USD', name: 'GMX', category: 'defi', iconColor: '#2D42FC', marketCapRank: 22 },
-  { symbol: 'DYDX/USD', name: 'dYdX', category: 'defi', iconColor: '#6966FF', marketCapRank: 23 },
-  {
-    symbol: 'COMP/USD',
-    name: 'Compound',
-    category: 'defi',
-    iconColor: '#00D395',
-    marketCapRank: 24,
-  },
-  {
-    symbol: 'BAL/USD',
-    name: 'Balancer',
-    category: 'defi',
-    iconColor: '#1E8E3E',
-    marketCapRank: 25,
-  },
-  {
-    symbol: 'FXS/USD',
-    name: 'Frax Share',
-    category: 'defi',
-    iconColor: '#000000',
-    marketCapRank: 26,
-  },
-  { symbol: '1INCH/USD', name: '1inch', category: 'defi', iconColor: '#1B314F', marketCapRank: 27 },
-  {
-    symbol: 'RPL/USD',
-    name: 'Rocket Pool',
-    category: 'defi',
-    iconColor: '#FFD700',
-    marketCapRank: 28,
-  },
-  // Stablecoins - 按市值排序
-  {
-    symbol: 'USDT/USD',
-    name: 'Tether',
-    category: 'stablecoin',
-    iconColor: '#26A17B',
-    marketCapRank: 29,
-  },
-  {
-    symbol: 'USDC/USD',
-    name: 'USD Coin',
-    category: 'stablecoin',
-    iconColor: '#2775CA',
-    marketCapRank: 30,
-  },
-  {
-    symbol: 'DAI/USD',
-    name: 'DAI',
-    category: 'stablecoin',
-    iconColor: '#F5AC37',
-    marketCapRank: 31,
-  },
+export const timeRanges: { value: TimeRange; label: string }[] = [
+  { value: '1h', label: '1小时' },
+  { value: '24h', label: '24小时' },
+  { value: '7d', label: '7天' },
+  { value: '30d', label: '30天' },
+  { value: '90d', label: '90天' },
+  { value: '1y', label: '1年' },
 ];
 
-export const symbols = tradingPairs.map((pair) => pair.symbol);
+// ============================================================================
+// 交易对
+// ============================================================================
 
-export { type RefreshInterval };
+export const tradingPairs = [
+  'BTC/USD',
+  'ETH/USD',
+  'LINK/USD',
+  'UNI/USD',
+  'AAVE/USD',
+  'SNX/USD',
+  'CRV/USD',
+  'MKR/USD',
+  'COMP/USD',
+  'YFI/USD',
+  'BAL/USD',
+  'SUSHI/USD',
+  '1INCH/USD',
+  'LDO/USD',
+  'FXS/USD',
+  'DYDX/USD',
+  'GMX/USD',
+  'ARB/USD',
+  'OP/USD',
+  'MATIC/USD',
+  'AVAX/USD',
+  'FTM/USD',
+  'NEAR/USD',
+  'ATOM/USD',
+  'DOT/USD',
+  'SOL/USD',
+  'ADA/USD',
+];
 
-export const oracleNames = providerNames;
+export const symbols = tradingPairs;
 
-export const priceOracleNames: Record<PriceOracleProvider, string> = {
+// ============================================================================
+// 预言机提供商 - 使用统一的 OracleProvider enum
+// ============================================================================
+
+// 兼容旧代码的导出 - 使用 OracleProvider enum
+export const oracleNames: Record<OracleProvider, string> = {
   [OracleProvider.CHAINLINK]: 'Chainlink',
   [OracleProvider.PYTH]: 'Pyth',
   [OracleProvider.API3]: 'API3',
@@ -226,541 +69,234 @@ export const priceOracleNames: Record<PriceOracleProvider, string> = {
   [OracleProvider.WINKLINK]: 'WINkLink',
 };
 
-export type SortColumn = 'price' | 'timestamp' | null;
-export type SortDirection = 'asc' | 'desc';
-export type TimeRange = '1H' | '24H' | '7D' | '30D' | '90D' | '1Y' | 'ALL';
-export type DeviationFilter = 'all' | 'excellent' | 'good' | 'poor';
+export const priceOracleNames = oracleNames;
 
-export const getDeviationColorClass = (deviationPercent: number | null): string => {
-  if (deviationPercent === null) return `text-[${baseColors.gray[400]}]`;
-  const color = getDeviationColor(deviationPercent);
-  if (color === semanticColors.success.DEFAULT)
-    return `text-[${semanticColors.success.dark}] bg-[${semanticColors.success.light}]`;
-  if (color === semanticColors.warning.DEFAULT)
-    return `text-[${semanticColors.warning.dark}] bg-[${semanticColors.warning.light}]`;
-  if (color === semanticColors.danger.DEFAULT)
-    return `text-[${semanticColors.danger.dark}] bg-[${semanticColors.danger.light}]`;
-  return `text-[${semanticColors.warning.dark}] bg-[${semanticColors.warning.light}]`;
+// 扩展的预言机名称（包含额外的预言机）
+export const extendedOracleNames: Record<string, string> = {
+  ...oracleNames,
+  chronicle: 'Chronicle',
+  tellor: 'Tellor',
+  band: 'Band Protocol',
+  uma: 'UMA',
 };
 
-export const getDeviationBgClass = (deviationPercent: number | null): string => {
-  if (deviationPercent === null) return '';
-  const absDeviation = Math.abs(deviationPercent);
-  if (absDeviation < DEVIATION_FILTER_THRESHOLDS.EXCELLENT)
-    return `bg-[${semanticColors.success.DEFAULT}]`;
-  if (absDeviation < DEVIATION_FILTER_THRESHOLDS.GOOD)
-    return `bg-[${semanticColors.warning.DEFAULT}]`;
-  if (absDeviation < ANOMALY_THRESHOLD) return `bg-[${semanticColors.warning.dark}]`;
-  return `bg-[${semanticColors.danger.DEFAULT}]`;
+export const oracleColors: Record<string, string> = {
+  [OracleProvider.CHAINLINK]: '#375bd2',
+  [OracleProvider.PYTH]: '#e6c5ff',
+  [OracleProvider.API3]: '#7ce3cb',
+  [OracleProvider.REDSTONE]: '#ff6b6b',
+  [OracleProvider.DIA]: '#c9f31d',
+  [OracleProvider.WINKLINK]: '#f0b90b',
+  chronicle: '#f6c344',
+  tellor: '#20fe9b',
+  band: '#516ff2',
+  uma: '#ff4a4a',
 };
 
-export const getFreshnessInfo = (
-  timestamp: number,
-  t?: (key: string, params?: Record<string, string | number>) => string
-): { text: string; colorClass: string; seconds: number } => {
-  const now = Date.now();
-  const seconds = Math.floor((now - timestamp) / 1000);
-
-  let text: string;
-  let colorClass: string;
-
-  if (seconds < FRESHNESS_THRESHOLDS.FRESH) {
-    text =
-      seconds <= 1
-        ? t
-          ? t('crossOracle.freshnessOptions.justNow')
-          : 'Just now'
-        : t
-          ? t('crossOracle.freshnessOptions.secondsAgo', { seconds })
-          : `${seconds}s ago`;
-    colorClass = `text-[${semanticColors.success.dark}]`;
-  } else if (seconds < FRESHNESS_THRESHOLDS.NORMAL) {
-    text = t ? t('crossOracle.freshnessOptions.secondsAgo', { seconds }) : `${seconds}s ago`;
-    colorClass = `text-[${semanticColors.warning.dark}]`;
-  } else if (seconds < 3600) {
-    const minutes = Math.floor(seconds / 60);
-    text = t ? t('crossOracle.freshnessOptions.minutesAgo', { minutes }) : `${minutes}m ago`;
-    colorClass = `text-[${semanticColors.danger.dark}]`;
-  } else {
-    const hours = Math.floor(seconds / 3600);
-    text = t ? t('crossOracle.freshnessOptions.hoursAgo', { hours }) : `${hours}h ago`;
-    colorClass = `text-[${semanticColors.danger.dark}]`;
-  }
-
-  return { text, colorClass, seconds };
-};
-
-export const getFreshnessDotColor = (seconds: number): string => {
-  if (seconds < FRESHNESS_THRESHOLDS.FRESH) return `bg-[${semanticColors.success.DEFAULT}]`;
-  if (seconds < FRESHNESS_THRESHOLDS.NORMAL) return `bg-[${semanticColors.warning.DEFAULT}]`;
-  return `bg-[${semanticColors.danger.DEFAULT}]`;
-};
-
-export const calculateWeightedAverage = (
-  prices: { price: number; confidence?: number | null | undefined }[]
-): number => {
-  return calcWeightedAverage(prices.map((p) => ({ value: p.price, weight: p.confidence })));
-};
-
-export { calculateVariance };
-
-export const calculateStandardDeviation = calculateStandardDeviationFromVariance;
-
-export const calculateStandardDeviationFromValues = calculateStdDev;
-
-export const getConsistencyRating = (stdDevPercent: number): string => {
-  if (stdDevPercent < CONSISTENCY_RATING_THRESHOLDS.EXCELLENT) return 'excellent';
-  if (stdDevPercent < CONSISTENCY_RATING_THRESHOLDS.GOOD) return 'good';
-  if (stdDevPercent < CONSISTENCY_RATING_THRESHOLDS.FAIR) return 'fair';
-  return 'poor';
-};
-
-export type HealthColorType = 'price' | 'deviation' | 'range';
-export type HealthIndicator = 'success' | 'warning' | 'danger' | 'neutral';
-
-export interface HealthColor {
-  bg: string;
-  text: string;
-  border: string;
-  indicator: HealthIndicator;
-}
-
-export const getHealthColor = (
-  type: HealthColorType,
-  value: number,
-  avgValue?: number
-): HealthColor => {
-  if (type === 'deviation') {
-    if (value < 0.1)
-      return {
-        bg: `bg-[${semanticColors.success.light}]`,
-        text: `text-[${semanticColors.success.text}]`,
-        border: `border-[${baseColors.primary[200]}]`,
-        indicator: 'success',
-      };
-    if (value < 0.3)
-      return {
-        bg: `bg-[${baseColors.primary[50]}]`,
-        text: `text-[${baseColors.primary[700]}]`,
-        border: `border-[${baseColors.primary[200]}]`,
-        indicator: 'success',
-      };
-    if (value < 0.5)
-      return {
-        bg: `bg-[${semanticColors.warning.light}]`,
-        text: `text-[${semanticColors.warning.text}]`,
-        border: `border-[${semanticColors.warning.light}]`,
-        indicator: 'warning',
-      };
-    return {
-      bg: `bg-[${semanticColors.danger.light}]`,
-      text: `text-[${semanticColors.danger.text}]`,
-      border: `border-[${semanticColors.danger.light}]`,
-      indicator: 'danger',
-    };
-  }
-  if (type === 'range' && avgValue) {
-    const rangePercent = (value / avgValue) * 100;
-    if (rangePercent < 0.5)
-      return {
-        bg: `bg-[${semanticColors.success.light}]`,
-        text: `text-[${semanticColors.success.text}]`,
-        border: `border-[${baseColors.primary[200]}]`,
-        indicator: 'success',
-      };
-    if (rangePercent < 1)
-      return {
-        bg: `bg-[${baseColors.primary[50]}]`,
-        text: `text-[${baseColors.primary[700]}]`,
-        border: `border-[${baseColors.primary[200]}]`,
-        indicator: 'success',
-      };
-    if (rangePercent < 2)
-      return {
-        bg: `bg-[${semanticColors.warning.light}]`,
-        text: `text-[${semanticColors.warning.text}]`,
-        border: `border-[${semanticColors.warning.light}]`,
-        indicator: 'warning',
-      };
-    return {
-      bg: `bg-[${semanticColors.danger.light}]`,
-      text: `text-[${semanticColors.danger.text}]`,
-      border: `border-[${semanticColors.danger.light}]`,
-      indicator: 'danger',
-    };
-  }
-  return {
-    bg: `bg-[${baseColors.gray[50]}]`,
-    text: `text-[${baseColors.gray[700]}]`,
-    border: `border-[${baseColors.gray[200]}]`,
-    indicator: 'neutral',
-  };
-};
-
-export const getTrendIcon = (changePercent: number | null) => {
-  if (changePercent === null) return null;
-  const isPositive = changePercent >= 0;
-  return (
-    <span
-      className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-medium"
-      style={{
-        backgroundColor: isPositive ? semanticColors.success.light : semanticColors.danger.light,
-        color: isPositive ? semanticColors.success.text : semanticColors.danger.text,
-      }}
-    >
-      {isPositive ? (
-        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-        </svg>
-      ) : (
-        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
-      )}
-      {Math.abs(changePercent).toFixed(2)}%
-    </span>
-  );
-};
-
-export const calculateZScore = (price: number, mean: number, stdDev: number): number | null => {
-  if (stdDev === 0) return null;
-  return (price - mean) / stdDev;
-};
-
-export const isOutlier = (zScore: number | null): boolean => {
-  if (zScore === null) return false;
-  return Math.abs(zScore) > 2;
-};
-
-export const calculateSMA = (prices: number[], period: number): number[] => {
-  const sma: number[] = [];
-  for (let i = 0; i < prices.length; i++) {
-    if (i < period - 1) {
-      sma.push(NaN);
-    } else {
-      const sum = prices.slice(i - period + 1, i + 1).reduce((a, b) => a + b, 0);
-      sma.push(sum / period);
-    }
-  }
-  return sma;
-};
-
-export const calculateEMA = (prices: number[], period: number): number[] => {
-  const ema: number[] = [];
-  const multiplier = 2 / (period + 1);
-
-  for (let i = 0; i < prices.length; i++) {
-    if (i < period - 1) {
-      ema.push(NaN);
-    } else if (i === period - 1) {
-      const sum = prices.slice(0, period).reduce((a, b) => a + b, 0);
-      ema.push(sum / period);
-    } else {
-      const currentEMA = (prices[i] - ema[i - 1]) * multiplier + ema[i - 1];
-      ema.push(currentEMA);
-    }
-  }
-  return ema;
-};
-
-export const calculateRSI = (prices: number[], period: number = 14): number[] => {
-  const rsi: number[] = [];
-  const gains: number[] = [];
-  const losses: number[] = [];
-
-  for (let i = 1; i < prices.length; i++) {
-    const change = prices[i] - prices[i - 1];
-    gains.push(change > 0 ? change : 0);
-    losses.push(change < 0 ? Math.abs(change) : 0);
-  }
-
-  for (let i = 0; i < prices.length; i++) {
-    if (i < period) {
-      rsi.push(NaN);
-    } else {
-      const avgGain = gains.slice(i - period, i).reduce((a, b) => a + b, 0) / period;
-      const avgLoss = losses.slice(i - period, i).reduce((a, b) => a + b, 0) / period;
-
-      if (avgLoss === 0) {
-        rsi.push(100);
-      } else {
-        const rs = avgGain / avgLoss;
-        rsi.push(100 - 100 / (1 + rs));
-      }
-    }
-  }
-  return rsi;
-};
-
-export const calculateATR = (
-  highs: number[],
-  lows: number[],
-  closes: number[],
-  period: number = 14
-): number[] => {
-  const tr: number[] = [];
-  const atr: number[] = [];
-
-  for (let i = 0; i < highs.length; i++) {
-    if (i === 0) {
-      tr.push(highs[i] - lows[i]);
-    } else {
-      const tr1 = highs[i] - lows[i];
-      const tr2 = Math.abs(highs[i] - closes[i - 1]);
-      const tr3 = Math.abs(lows[i] - closes[i - 1]);
-      tr.push(Math.max(tr1, tr2, tr3));
-    }
-
-    if (i < period - 1) {
-      atr.push(NaN);
-    } else if (i === period - 1) {
-      const sum = tr.slice(0, period).reduce((a, b) => a + b, 0);
-      atr.push(sum / period);
-    } else {
-      const previousATR = atr[i - 1];
-      const currentATR = (previousATR * (period - 1) + tr[i]) / period;
-      atr.push(currentATR);
-    }
-  }
-  return atr;
-};
-
-export const calculateBollingerBands = (
-  prices: number[],
-  period: number = 20,
-  multiplier: number = 2
-): { middle: number[]; upper: number[]; lower: number[] } => {
-  const middle = calculateSMA(prices, period);
-  const upper: number[] = [];
-  const lower: number[] = [];
-
-  for (let i = 0; i < prices.length; i++) {
-    if (i < period - 1) {
-      upper.push(NaN);
-      lower.push(NaN);
-    } else {
-      const slice = prices.slice(i - period + 1, i + 1);
-      const mean = slice.reduce((a, b) => a + b, 0) / period;
-      const squaredDiffs = slice.map((p) => Math.pow(p - mean, 2));
-      const variance = squaredDiffs.reduce((a, b) => a + b, 0) / period;
-      const stdDev = Math.sqrt(variance);
-
-      upper.push(middle[i] + stdDev * multiplier);
-      lower.push(middle[i] - stdDev * multiplier);
-    }
-  }
-
-  return { middle, upper, lower };
-};
-
-export const calculatePearsonCorrelation = (x: number[], y: number[]): number => {
-  if (x.length !== y.length || x.length === 0) return 0;
-
-  const n = x.length;
-  const sumX = x.reduce((a, b) => a + b, 0);
-  const sumY = y.reduce((a, b) => a + b, 0);
-  const sumXY = x.reduce((sum, xi, i) => sum + xi * y[i], 0);
-  const sumX2 = x.reduce((sum, xi) => sum + xi * xi, 0);
-  const sumY2 = y.reduce((sum, yi) => sum + yi * yi, 0);
-
-  const numerator = n * sumXY - sumX * sumY;
-  const denominator = Math.sqrt((n * sumX2 - sumX * sumX) * (n * sumY2 - sumY * sumY));
-
-  return denominator === 0 ? 0 : numerator / denominator;
-};
-
-export interface ExportRow {
-  oracle: string;
-  provider: string;
-  symbol: string;
-  price: number;
-  deviationPercent: number | null;
-  confidence: number | null;
-  source: string;
-  timestamp: string;
-}
-
-export const exportToCSV = (
-  priceData: {
-    provider: OracleProvider;
-    price: number;
-    confidence?: number | null | undefined;
-    source?: string;
-    timestamp: number;
-  }[],
-  oracleNamesMap: Record<OracleProvider, string>,
-  avgPrice: number,
-  validPrices: number[],
-  t?: (key: string) => string | string[]
-) => {
-  const headers = t
-    ? (t('crossOracle.export.csvHeaders') as string[])
-    : ['Oracle', 'Price', 'Deviation (%)', 'Confidence', 'Source', 'Timestamp'];
-  const rows = priceData.map((data) => {
-    let deviationPercent: number | null = null;
-    if (validPrices.length > 1 && avgPrice > 0 && data.price > 0) {
-      deviationPercent = ((data.price - avgPrice) / avgPrice) * 100;
-    }
-    return [
-      oracleNamesMap[data.provider],
-      data.price.toLocaleString(undefined, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      }),
-      deviationPercent !== null ? deviationPercent.toFixed(2) : '',
-      data.confidence ? `${(data.confidence * 100).toFixed(1)}%` : '',
-      data.source || '',
-      new Date(data.timestamp).toLocaleString(),
-    ];
-  });
-
-  const csvContent = [headers.join(','), ...rows.map((row) => row.join(','))].join('\n');
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.setAttribute('href', url);
-  const filenamePrefix = t ? (t('crossOracle.export.filename') as string) : 'oracle-prices';
-  link.setAttribute(
-    'download',
-    `${filenamePrefix}-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.csv`
-  );
-  link.style.visibility = 'hidden';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-};
-
-export const exportToJSON = (
-  priceData: {
-    provider: OracleProvider;
-    price: number;
-    confidence?: number | null | undefined;
-    source?: string;
-    timestamp: number;
-    symbol?: string;
-  }[],
-  oracleNamesMap: Record<OracleProvider, string>,
-  avgPrice: number,
-  validPrices: number[],
-  t?: (key: string) => string | Record<string, string>
-) => {
-  const fieldNames = t ? (t('crossOracle.export.jsonFields') as Record<string, string>) : null;
-  const exportData = priceData.map((data) => {
-    let deviationPercent: number | null = null;
-    if (validPrices.length > 1 && avgPrice > 0 && data.price > 0) {
-      deviationPercent = ((data.price - avgPrice) / avgPrice) * 100;
-    }
-    return {
-      [fieldNames?.oracle || 'oracle']: oracleNamesMap[data.provider],
-      [fieldNames?.provider || 'provider']: data.provider,
-      [fieldNames?.symbol || 'symbol']: data.symbol,
-      [fieldNames?.price || 'price']: data.price,
-      [fieldNames?.deviationPercent || 'deviationPercent']: deviationPercent,
-      [fieldNames?.confidence || 'confidence']: data.confidence,
-      [fieldNames?.source || 'source']: data.source,
-      [fieldNames?.timestamp || 'timestamp']: new Date(data.timestamp).toISOString(),
-    };
-  });
-
-  const jsonContent = JSON.stringify(exportData, null, 2);
-  const blob = new Blob([jsonContent], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.setAttribute('href', url);
-  const filenamePrefix = t ? (t('crossOracle.export.filename') as string) : 'oracle-prices';
-  link.setAttribute(
-    'download',
-    `${filenamePrefix}-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.json`
-  );
-  link.style.visibility = 'hidden';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-};
-
-export const getRefreshOptions = (
-  t?: (key: string) => string
-): { value: RefreshInterval; label: string }[] => [
-  { value: 0, label: t ? t('crossOracle.refreshOptions.off') : 'Off' },
-  { value: 30000, label: t ? t('crossOracle.refreshOptions.30s') : '30s' },
-  { value: 60000, label: t ? t('crossOracle.refreshOptions.1m') : '1m' },
-  { value: 300000, label: t ? t('crossOracle.refreshOptions.5m') : '5m' },
+export const defaultSelectedOracles: OracleProvider[] = [
+  OracleProvider.CHAINLINK,
+  OracleProvider.PYTH,
+  OracleProvider.API3,
+  OracleProvider.REDSTONE,
 ];
 
-export const timeRanges: TimeRange[] = ['1H', '24H', '7D', '30D', '90D', '1Y', 'ALL'];
-
 // ============================================================================
-// 风险预警阈值常量（从 thresholds.ts 重新导出）
+// 刷新间隔
 // ============================================================================
 
-export {
-  ANOMALY_THRESHOLD,
-  DATA_DELAY_THRESHOLD,
-  DATA_DELAY_WARNING_THRESHOLD,
-  DATA_DELAY_DANGER_THRESHOLD,
+export type RefreshInterval = 'off' | '10s' | '30s' | '1m' | '5m';
+
+export const refreshIntervals: { value: RefreshInterval; label: string }[] = [
+  { value: 'off', label: '关闭' },
+  { value: '10s', label: '10秒' },
+  { value: '30s', label: '30秒' },
+  { value: '1m', label: '1分钟' },
+  { value: '5m', label: '5分钟' },
+];
+
+// ============================================================================
+// 阈值配置
+// ============================================================================
+
+export const qualityThresholds = {
+  excellent: 95,
+  good: 85,
+  fair: 70,
+  poor: 50,
 };
 
-export interface HistoryMinMax {
-  avgPrice: { min: number; max: number };
-  weightedAvgPrice: { min: number; max: number };
-  maxPrice: { min: number; max: number };
-  minPrice: { min: number; max: number };
-  priceRange: { min: number; max: number };
-  standardDeviationPercent: { min: number; max: number };
-  variance: { min: number; max: number };
+export const deviationThresholds = {
+  critical: 5,
+  warning: 2,
+  info: 1,
+};
+
+export const ANOMALY_THRESHOLD = 2; // Z-score threshold for outliers
+
+// ============================================================================
+// 风险等级
+// ============================================================================
+
+export type RiskLevel = 'low' | 'medium' | 'high' | 'critical';
+
+export const riskLevels: Record<RiskLevel, { label: string; color: string }> = {
+  low: { label: '低风险', color: '#22c55e' },
+  medium: { label: '中风险', color: '#f59e0b' },
+  high: { label: '高风险', color: '#ef4444' },
+  critical: { label: '严重', color: '#7f1d1d' },
+};
+
+// ============================================================================
+// 图表配置
+// ============================================================================
+
+export const chartConfig = {
+  height: 400,
+  margin: { top: 20, right: 30, left: 20, bottom: 30 },
+  colors: oracleColors,
+};
+
+// ============================================================================
+// 缓存配置
+// ============================================================================
+
+export const cacheConfig = {
+  staleTime: 5 * 60 * 1000, // 5分钟
+  gcTime: 10 * 60 * 1000, // 10分钟
+};
+
+// ============================================================================
+// API 配置
+// ============================================================================
+
+export const apiConfig = {
+  timeout: 30000,
+  retries: 3,
+  retryDelay: 1000,
+};
+
+// ============================================================================
+// 工具函数
+// ============================================================================
+
+/**
+ * 计算Z-score（标准分数）
+ */
+export function calculateZScore(value: number, mean: number, stdDev: number): number {
+  if (stdDev === 0) return 0;
+  return (value - mean) / stdDev;
 }
 
-export const initialHistoryMinMax: HistoryMinMax = {
-  avgPrice: { min: Infinity, max: -Infinity },
-  weightedAvgPrice: { min: Infinity, max: -Infinity },
-  maxPrice: { min: Infinity, max: -Infinity },
-  minPrice: { min: Infinity, max: -Infinity },
-  priceRange: { min: Infinity, max: -Infinity },
-  standardDeviationPercent: { min: Infinity, max: -Infinity },
-  variance: { min: Infinity, max: -Infinity },
-};
+/**
+ * 判断是否为异常值
+ */
+export function isOutlier(zScore: number, threshold: number = ANOMALY_THRESHOLD): boolean {
+  return Math.abs(zScore) > threshold;
+}
 
-export const updateHistoryMinMax = (
-  setHistoryMinMax: React.Dispatch<React.SetStateAction<HistoryMinMax>>,
-  currentStats: {
-    avgPrice: number;
-    weightedAvgPrice: number;
-    maxPrice: number;
-    minPrice: number;
-    priceRange: number;
-    standardDeviationPercent: number;
-    variance: number;
-  } | null
-) => {
-  if (!currentStats) return;
-  setHistoryMinMax((prev) => ({
-    avgPrice: {
-      min: Math.min(prev.avgPrice.min, currentStats.avgPrice),
-      max: Math.max(prev.avgPrice.max, currentStats.avgPrice),
+/**
+ * 获取偏差背景色类名
+ */
+export function getDeviationBgClass(deviation: number): string {
+  const absDeviation = Math.abs(deviation);
+  if (absDeviation >= deviationThresholds.critical) {
+    return 'bg-red-100 text-red-800';
+  }
+  if (absDeviation >= deviationThresholds.warning) {
+    return 'bg-yellow-100 text-yellow-800';
+  }
+  if (absDeviation >= deviationThresholds.info) {
+    return 'bg-blue-100 text-blue-800';
+  }
+  return 'bg-green-100 text-green-800';
+}
+
+/**
+ * 获取数据新鲜度信息
+ */
+export function getFreshnessInfo(timestamp: number): {
+  text: string;
+  color: string;
+  seconds?: number;
+} {
+  const age = Date.now() - timestamp;
+  const seconds = Math.floor(age / 1000);
+  const minutes = Math.floor(age / 60000);
+
+  if (minutes < 1) {
+    return { text: '刚刚', color: '#22c55e', seconds };
+  }
+  if (minutes < 5) {
+    return { text: `${minutes}分钟前`, color: '#22c55e', seconds };
+  }
+  if (minutes < 30) {
+    return { text: `${minutes}分钟前`, color: '#f59e0b', seconds };
+  }
+  if (minutes < 60) {
+    return { text: `${minutes}分钟前`, color: '#ef4444', seconds };
+  }
+  return { text: `${Math.floor(minutes / 60)}小时前`, color: '#7f1d1d', seconds };
+}
+
+/**
+ * 获取新鲜度圆点颜色
+ */
+export function getFreshnessDotColor(timestamp: number): string {
+  const age = Date.now() - timestamp;
+  const minutes = Math.floor(age / 60000);
+
+  if (minutes < 1) return '#22c55e';
+  if (minutes < 5) return '#22c55e';
+  if (minutes < 30) return '#f59e0b';
+  if (minutes < 60) return '#ef4444';
+  return '#7f1d1d';
+}
+
+// ============================================================================
+// 排序和筛选类型
+// ============================================================================
+
+export type SortColumn = 'oracle' | 'price' | 'deviation' | 'timestamp' | 'confidence';
+export type SortDirection = 'asc' | 'desc';
+export type DeviationFilter = 'all' | 'normal' | 'warning' | 'critical';
+
+// ============================================================================
+// 导出功能
+// ============================================================================
+
+export interface ExportData {
+  symbol: string;
+  timestamp: string;
+  oracles: {
+    name: string;
+    price: number;
+    deviation: number;
+    timestamp: number;
+  }[];
+}
+
+export function exportToCSV(data: ExportData): string {
+  const headers = ['Symbol', 'Timestamp', 'Oracle', 'Price', 'Deviation (%)', 'Oracle Timestamp'];
+  const rows = data.oracles.map((oracle) => [
+    data.symbol,
+    data.timestamp,
+    oracle.name,
+    oracle.price.toFixed(8),
+    oracle.deviation.toFixed(4),
+    new Date(oracle.timestamp).toISOString(),
+  ]);
+
+  return [headers.join(','), ...rows.map((row) => row.join(','))].join('\n');
+}
+
+export function exportToJSON(data: ExportData): string {
+  return JSON.stringify(
+    {
+      symbol: data.symbol,
+      timestamp: data.timestamp,
+      oracles: data.oracles,
     },
-    weightedAvgPrice: {
-      min: Math.min(prev.weightedAvgPrice.min, currentStats.weightedAvgPrice),
-      max: Math.max(prev.weightedAvgPrice.max, currentStats.weightedAvgPrice),
-    },
-    maxPrice: {
-      min: Math.min(prev.maxPrice.min, currentStats.maxPrice),
-      max: Math.max(prev.maxPrice.max, currentStats.maxPrice),
-    },
-    minPrice: {
-      min: Math.min(prev.minPrice.min, currentStats.minPrice),
-      max: Math.max(prev.minPrice.max, currentStats.minPrice),
-    },
-    priceRange: {
-      min: Math.min(prev.priceRange.min, currentStats.priceRange),
-      max: Math.max(prev.priceRange.max, currentStats.priceRange),
-    },
-    standardDeviationPercent: {
-      min: Math.min(prev.standardDeviationPercent.min, currentStats.standardDeviationPercent),
-      max: Math.max(prev.standardDeviationPercent.max, currentStats.standardDeviationPercent),
-    },
-    variance: {
-      min: Math.min(prev.variance.min, currentStats.variance),
-      max: Math.max(prev.variance.max, currentStats.variance),
-    },
-  }));
-};
+    null,
+    2
+  );
+}

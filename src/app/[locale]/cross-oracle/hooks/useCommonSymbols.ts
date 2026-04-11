@@ -107,10 +107,10 @@ export function useCommonSymbols(selectedOracles: OracleProvider[]): UseCommonSy
       oracleCountMap[symbol] = supportingOracles.length;
     });
 
-    // 按市值排名排序（从 tradingPairs 中获取市值排名）
+    // 按 tradingPairs 中的顺序排序（靠前的市值更高）
     const getMarketCapRank = (symbol: string): number => {
-      const pair = tradingPairs.find((p) => p.symbol === symbol);
-      return pair?.marketCapRank ?? Number.MAX_SAFE_INTEGER;
+      const index = tradingPairs.findIndex((p) => p === symbol);
+      return index === -1 ? Number.MAX_SAFE_INTEGER : index;
     };
 
     commonSymbols.sort((a, b) => getMarketCapRank(a) - getMarketCapRank(b));

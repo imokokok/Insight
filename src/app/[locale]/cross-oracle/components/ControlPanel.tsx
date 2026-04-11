@@ -21,14 +21,9 @@ import {
 
 import { SegmentedControl, DropdownSelect } from '@/components/ui';
 import { getPriceOracleProvidersSortedByMarketCap, getOracleConfig } from '@/lib/config/oracles';
+import { type OracleProvider } from '@/types/oracle';
 
-import {
-  timeRanges,
-  tradingPairs,
-  type PriceOracleProvider,
-  priceOracleNames,
-  type TimeRange,
-} from '../constants';
+import { timeRanges, tradingPairs, oracleNames, type TimeRange } from '../constants';
 import { useCommonSymbols } from '../hooks/useCommonSymbols';
 
 import type { OracleFeature } from '../types/index';
@@ -40,9 +35,9 @@ interface ControlPanelProps {
   symbols: string[];
 
   // Oracle selection
-  selectedOracles: PriceOracleProvider[];
-  onOracleToggle: (oracle: PriceOracleProvider) => void;
-  oracleChartColors: Record<PriceOracleProvider, string>;
+  selectedOracles: OracleProvider[];
+  onOracleToggle: (oracle: OracleProvider) => void;
+  oracleChartColors: Record<string, string>;
 
   // Time range
   timeRange: TimeRange;
@@ -59,7 +54,7 @@ interface ControlPanelProps {
 }
 
 // 获取预言机特性信息
-const getOracleFeatureInfo = (provider: PriceOracleProvider): OracleFeature => {
+const getOracleFeatureInfo = (provider: OracleProvider): OracleFeature => {
   const config = getOracleConfig(provider);
   const features: string[] = [];
 
@@ -96,7 +91,7 @@ export function ControlPanel({
   t,
 }: ControlPanelProps) {
   const [isMobileExpanded, setIsMobileExpanded] = useState(false);
-  const [hoveredOracle, setHoveredOracle] = useState<PriceOracleProvider | null>(null);
+  const [hoveredOracle, setHoveredOracle] = useState<OracleProvider | null>(null);
 
   // 使用 useCommonSymbols hook 获取共同支持的币种
   const { commonSymbols, oracleCountMap } = useCommonSymbols(selectedOracles);
@@ -111,27 +106,23 @@ export function ControlPanel({
   }, [selectedOracles, commonSymbols, selectedSymbol, onSymbolChange]);
 
   // Symbol options for dropdown - 使用共同支持的币种
-  const symbolOptions = commonSymbols.map((symbol) => {
-    const pair = tradingPairs.find((p) => p.symbol === symbol);
-    return {
-      value: symbol,
-      label: symbol,
-      icon: true,
-      color: pair?.iconColor || '#6B7280',
-    };
-  });
+  const symbolOptions = commonSymbols.map((symbol) => ({
+    value: symbol,
+    label: symbol,
+    icon: true,
+    color: '#6B7280',
+  }));
 
   // 自定义渲染选项，显示预言机数量
   const renderSymbolOption = useCallback(
     (option: { value: string; label: string; icon?: boolean; color?: string }) => {
       const oracleCount = oracleCountMap[option.value] || 0;
-      const pair = tradingPairs.find((p) => p.symbol === option.value);
       return (
         <div className="flex items-center justify-between w-full">
           <div className="flex items-center gap-2">
             <span
               className="w-1.5 h-1.5 rounded-full"
-              style={{ backgroundColor: pair?.iconColor || '#6B7280' }}
+              style={{ backgroundColor: option.color || '#6B7280' }}
             />
             <span>{option.label}</span>
           </div>
@@ -145,24 +136,24 @@ export function ControlPanel({
   // Oracle options for multi-select
   const oracleOptions = getPriceOracleProvidersSortedByMarketCap().map((oracle) => ({
     value: oracle,
-    label: priceOracleNames[oracle],
+    label: oracleNames[oracle] || String(oracle),
     icon: true,
     color: oracleChartColors[oracle] || '#6B7280',
   }));
 
   // Time range options for segmented control
   const timeRangeOptions = timeRanges.map((range) => ({
-    value: range,
-    label: t(`crossOracle.timeRange.${range}`) || range,
+    value: range.value,
+    label: t(`crossOracle.timeRange.${range.value}`) || range.label,
   }));
 
   // Handle oracle toggle - 支持单个预言机切换
-  const handleOracleToggle = (oracle: PriceOracleProvider) => {
+  const handleOracleToggle = (oracle: OracleProvider) => {
     onOracleToggle(oracle);
   };
 
   // Handle oracle change - 支持批量选择/取消选择
-  const handleOracleChange = (oracles: PriceOracleProvider[]) => {
+  const handleOracleChange = (oracles: OracleProvider[]) => {
     // 如果新数组比当前数组长，说明是添加
     if (oracles.length > selectedOracles.length) {
       const added = oracles.find((o) => !selectedOracles.includes(o));
@@ -286,7 +277,7 @@ export function ControlPanel({
                   if (selectedOracles.length === allValues.length) {
                     handleOracleChange([]);
                   } else {
-                    handleOracleChange(allValues as PriceOracleProvider[]);
+                    handleOracleChange(allValues as OracleProvider[]);
                   }
                 }}
                 className="text-[10px] px-2 py-1 text-gray-600 bg-white hover:bg-gray-50 transition-all duration-200 rounded-md border border-gray-200 active:scale-[0.98]"
@@ -301,14 +292,14 @@ export function ControlPanel({
           {/* 预言机选择按钮网格 */}
           <div className="flex flex-wrap gap-1.5 p-1 bg-gray-100/80 rounded-lg relative">
             {oracleOptions.map((option) => {
-              const selected = selectedOracles.includes(option.value as PriceOracleProvider);
-              const featureInfo = getOracleFeatureInfo(option.value as PriceOracleProvider);
+              const selected = selectedOracles.includes(option.value as OracleProvider);
+              const featureInfo = getOracleFeatureInfo(option.value as OracleProvider);
 
               return (
                 <div key={String(option.value)} className="relative">
                   <button
-                    onClick={() => handleOracleToggle(option.value as PriceOracleProvider)}
-                    onMouseEnter={() => setHoveredOracle(option.value as PriceOracleProvider)}
+                    onClick={() => handleOracleToggle(option.value as OracleProvider)}
+                    onMouseEnter={() => setHoveredOracle(option.value as OracleProvider)}
                     onMouseLeave={() => setHoveredOracle(null)}
                     className={`relative inline-flex items-center gap-1.5 font-medium transition-all duration-200 ease-out rounded-md px-2.5 py-1.5 text-xs ${
                       selected

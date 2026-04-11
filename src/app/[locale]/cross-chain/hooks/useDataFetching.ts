@@ -6,7 +6,7 @@
 
 import { useCallback, useEffect, useRef } from 'react';
 
-import { useToastMethods } from '@/components/ui/Toast';
+// Toast component removed - using alternative notification method
 import { oracleApiClient } from '@/lib/api/oracleApiClient';
 import { type OracleProvider, type Blockchain, type PriceData } from '@/lib/oracles';
 import { createLogger } from '@/lib/utils/logger';
@@ -150,7 +150,12 @@ export function useDataFetching(
   validation: UseDataValidationReturn,
   anomalyDetection: UseAnomalyDetectionReturn
 ): UseDataFetchingReturn {
-  const toast = useToastMethods();
+  // Toast functionality removed - using console instead
+  const toast = {
+    success: (title: string, message: string) => console.log(`[Success] ${title}: ${message}`),
+    error: (title: string, message: string) => console.error(`[Error] ${title}: ${message}`),
+    warning: (title: string, message: string) => console.warn(`[Warning] ${title}: ${message}`),
+  };
   const abortControllerRef = useRef<AbortController | null>(null);
   const refreshSuccessTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 

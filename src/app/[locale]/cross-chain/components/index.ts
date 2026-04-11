@@ -4,7 +4,6 @@ export { CompactStatsGrid } from './CompactStatsGrid';
 export { PriceComparisonTable } from './PriceComparisonTable';
 export { InteractivePriceChart } from './InteractivePriceChart';
 export { PriceSpreadHeatmap } from './PriceSpreadHeatmap';
-export { ResidualDiagnostics } from './ResidualDiagnostics';
 export { StandardBoxPlot } from './StandardBoxPlot';
 export { DataSourceSection } from './DataSourceSection';
 export { BenchmarkComparisonSection } from './BenchmarkComparisonSection';

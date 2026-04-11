@@ -11,7 +11,7 @@ import { useUser } from '@/stores/authStore';
 import type { PriceData, SnapshotStats } from '@/types/oracle';
 import { OracleProvider } from '@/types/oracle';
 
-import { type TimeRange, symbols, type PriceOracleProvider } from '../constants';
+import { type TimeRange, symbols } from '../constants';
 
 import { useChartConfig } from './useChartConfig';
 import { useDataQualityScore } from './useDataQualityScore';
@@ -47,11 +47,9 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
   // ==========================================================================
   // 基础状态
   // ==========================================================================
-  const [selectedOracles, setSelectedOracles] = useState<PriceOracleProvider[]>(
-    initialOracles as PriceOracleProvider[]
-  );
+  const [selectedOracles, setSelectedOracles] = useState<OracleProvider[]>(initialOracles);
   const [selectedSymbol, setSelectedSymbol] = useState<string>(initialSymbol);
-  const [timeRange, setTimeRange] = useState<TimeRange>('24H');
+  const [timeRange, setTimeRange] = useState<TimeRange>('24h');
   const [activeTab, setActiveTab] = useState<TabId>('priceComparison');
 
   // UI 状态
@@ -185,7 +183,7 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
     setActiveTab(tab);
   }, []);
 
-  const toggleOracle = useCallback((oracle: PriceOracleProvider) => {
+  const toggleOracle = useCallback((oracle: OracleProvider) => {
     setSelectedOracles((prev) =>
       prev.includes(oracle) ? prev.filter((o) => o !== oracle) : [...prev, oracle]
     );
@@ -206,7 +204,7 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
   const handleApplyFavorite = useCallback(
     (config: { selectedOracles?: string[]; symbol?: string }) => {
       if (config.selectedOracles) {
-        setSelectedOracles(config.selectedOracles as PriceOracleProvider[]);
+        setSelectedOracles(config.selectedOracles as OracleProvider[]);
       }
       if (config.symbol) {
         setSelectedSymbol(config.symbol);
@@ -229,7 +227,7 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
   }, []);
 
   const getLineStrokeDasharray = useCallback(
-    (oracle: PriceOracleProvider): string => {
+    (oracle: OracleProvider): string => {
       const index = selectedOracles.indexOf(oracle);
       if (index === -1) return '0';
       // 为不同的预言机使用不同的虚线样式
@@ -330,26 +328,10 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
   }, [historicalData, selectedOracles]);
 
   // ==========================================================================
-  // 预言机特性数据（用于 OracleProfilesTab）
-  // ==========================================================================
-  const oracleFeatures = useMemo(() => {
-    return selectedOracles.map((oracle) => ({
-      provider: oracle,
-      name: oracle,
-      symbolCount: 100,
-      avgLatency: 1500,
-      updateFrequency: 'Real-time',
-      features: ['high-frequency', 'cross-chain', 'first-party'],
-      descriptionKey: `oracles.descriptions.${oracle.toLowerCase()}`,
-    }));
-  }, [selectedOracles]);
-
-  // ==========================================================================
   // 返回值
   // ==========================================================================
   return {
     // 基础状态
-    t,
     selectedOracles,
     setSelectedOracles,
     selectedSymbol,
@@ -357,6 +339,7 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
     timeRange,
     setTimeRange,
     activeTab,
+    setActiveTab,
 
     // UI 状态
     expandedRow,
@@ -376,13 +359,11 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
 
     // 图表状态
     zoomLevel,
+    setZoomLevel,
 
     // 性能分析状态
     selectedPerformanceOracle,
     setSelectedPerformanceOracle,
-
-    // 历史统计
-    lastStats,
 
     // Refs
     filterPanelRef,
@@ -396,46 +377,34 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
     lastUpdated,
 
     // 统计数据
-    ...priceStats,
+    priceStats,
+    lastStats,
+
+    // 异常检测
+    anomalyDetection,
+
+    // 数据质量
+    qualityScore,
+    qualityScoreData,
 
     // 图表配置
-    ...chartConfig,
+    chartConfig,
 
     // 筛选排序
-    ...filterSort,
+    filterSort,
 
-    // 导出
-    ...exportHandlers,
+    // 导出功能
+    exportHandlers,
 
-    // 收藏
-    user,
+    // 收藏功能
     oracleFavorites,
     currentFavoriteConfig,
 
-    // 质量分数
-    qualityScoreData,
-    qualityScore,
-
-    // 异常检测
-    anomalies: anomalyDetection.anomalies,
-    anomalyCount: anomalyDetection.count,
-    highRiskCount: anomalyDetection.highRiskCount,
-    mediumRiskCount: anomalyDetection.mediumRiskCount,
-    lowRiskCount: anomalyDetection.lowRiskCount,
-    maxDeviation: anomalyDetection.maxDeviation,
-
-    // 技术指标
-    maData: technicalIndicators.maData,
-    qualityTrendData: technicalIndicators.qualityTrendData,
-
-    // 预言机特性
-    oracleFeatures,
-
-    // 性能指标（新增）
+    // 性能指标
     performanceMetrics,
     isCalculatingMetrics,
 
-    // 错误处理（新增）
+    // 错误和重试
     oracleDataError,
     retryConfig,
     setRetryConfig,
@@ -456,13 +425,18 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
     getConsistencyRating,
     getLineStrokeDasharray,
     getOracleLatencyData,
-    fetchPriceData,
 
-    // 兼容属性
+    // 技术指标
+    technicalIndicators,
+
+    // 用户
+    user,
+
+    // 翻译
+    t,
+
+    // 符号列表
     symbols,
-    scrollToOutlier: () => {},
-    onQuery: fetchPriceData,
-    onSymbolChange: setSelectedSymbol,
   };
 }
 

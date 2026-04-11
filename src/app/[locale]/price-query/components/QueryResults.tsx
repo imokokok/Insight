@@ -31,7 +31,7 @@ import {
   Zap,
 } from 'lucide-react';
 
-import { ChartSkeleton, EmptyStateEnhanced, ProgressBar, SegmentedControl } from '@/components/ui';
+import { ChartSkeleton, EmptyStateEnhanced, SegmentedControl } from '@/components/ui';
 import { useTranslations } from '@/i18n';
 import {
   type OracleProvider,
@@ -239,13 +239,12 @@ export function QueryResults({
               {queryProgress.completed} / {queryProgress.total}
             </span>
           </div>
-          <ProgressBar
-            progress={queryProgress.completed}
-            total={queryProgress.total}
-            showPercentage={true}
-            size="md"
-            variant="default"
-          />
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div
+              className="h-2 rounded-full transition-all duration-300 bg-primary-600"
+              style={{ width: `${(queryProgress.completed / queryProgress.total) * 100}%` }}
+            />
+          </div>
           <p className="text-xs text-gray-500 mt-2">
             {t('priceQuery.querying')}{' '}
             {currentQueryTarget.oracle && t(`navbar.${currentQueryTarget.oracle.toLowerCase()}`)}{' '}

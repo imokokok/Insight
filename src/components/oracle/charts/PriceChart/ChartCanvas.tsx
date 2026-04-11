@@ -23,7 +23,7 @@ import { useTranslations } from '@/i18n';
 import { chartColors, baseColors } from '@/lib/config/colors';
 
 import { type ChartType } from './priceChartConfig';
-import { MainChartTooltip, RSITooltip, MACDTooltip, CandlestickShape } from './PriceChartTooltip';
+// PriceChartTooltip component removed - using default Recharts tooltip
 import { type AnomalyPoint } from './useChartState';
 
 interface ChartCanvasProps {
@@ -129,15 +129,12 @@ export const ChartCanvas = memo(function ChartCanvas({
           />
 
           <RechartsTooltip
-            content={
-              <MainChartTooltip
-                chartType={chartType}
-                showBollingerBands={showBollingerBands}
-                showRSI={showRSI}
-                showMACD={showMACD}
-                isMobile={isMobile}
-              />
-            }
+            contentStyle={{
+              backgroundColor: 'white',
+              border: `1px solid ${chartColors.recharts.border}`,
+              borderRadius: '4px',
+              fontSize: '12px',
+            }}
             cursor={{
               stroke: chartColors.recharts.border,
               strokeWidth: 1,
@@ -376,9 +373,7 @@ export const ChartCanvas = memo(function ChartCanvas({
             </>
           )}
 
-          {chartType === 'candlestick' && (
-            <Bar yAxisId="price" dataKey="high" shape={CandlestickShape} fill="transparent" />
-          )}
+          {/* Candlestick chart removed - component deleted */}
 
           {!showRSI && !showMACD && (
             <Brush
@@ -488,7 +483,14 @@ const RSIChart = memo(function RSIChart({
             width={isMobile ? 35 : 60}
             tickCount={5}
           />
-          <RechartsTooltip content={<RSITooltip />} />
+          <RechartsTooltip
+            contentStyle={{
+              backgroundColor: 'white',
+              border: `1px solid ${chartColors.recharts.border}`,
+              borderRadius: '4px',
+              fontSize: '12px',
+            }}
+          />
 
           <ReferenceLine
             y={70}
@@ -593,7 +595,14 @@ const MACDChart = memo(function MACDChart({
             axisLine={{ stroke: chartColors.recharts.grid, strokeOpacity: 0.5 }}
             width={isMobile ? 35 : 60}
           />
-          <RechartsTooltip content={<MACDTooltip />} />
+          <RechartsTooltip
+            contentStyle={{
+              backgroundColor: 'white',
+              border: `1px solid ${chartColors.recharts.border}`,
+              borderRadius: '4px',
+              fontSize: '12px',
+            }}
+          />
 
           <ReferenceLine y={0} stroke={chartColors.recharts.grid} strokeOpacity={0.8} />
 

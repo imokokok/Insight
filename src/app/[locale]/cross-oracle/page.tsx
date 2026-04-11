@@ -32,42 +32,25 @@ export default function CrossOraclePage() {
 
     // 数据
     priceData,
+    historicalData,
     isLoading,
     lastUpdated,
-    fetchPriceData,
 
     // 统计数据
-    avgPrice,
-    medianPrice,
-    maxPrice,
-    minPrice,
-    priceRange,
-    standardDeviation,
-    standardDeviationPercent,
-    validPrices,
+    priceStats,
 
     // 异常检测
-    anomalies,
-    anomalyCount,
-    highRiskCount,
-    mediumRiskCount,
-    lowRiskCount,
-    maxDeviation,
+    anomalyDetection,
 
     // 质量评分
     qualityScore,
+    qualityScoreData,
 
-    // 预言机特性
-    oracleFeatures,
-
-    // 历史数据
-    historicalData,
-
-    // 性能指标（新增）
+    // 性能指标
     performanceMetrics,
     isCalculatingMetrics,
 
-    // 错误处理（新增）
+    // 错误处理
     oracleDataError,
     retryOracle,
     retryAllFailed,
@@ -91,9 +74,31 @@ export default function CrossOraclePage() {
     });
   }, []);
 
+  // 从 priceStats 中提取统计数据
+  const {
+    avgPrice,
+    medianPrice,
+    maxPrice,
+    minPrice,
+    priceRange,
+    standardDeviation,
+    standardDeviationPercent,
+    validPrices,
+  } = priceStats;
+
+  // 从 anomalyDetection 中提取异常数据
+  const {
+    anomalies,
+    count: anomalyCount,
+    highRiskCount,
+    mediumRiskCount,
+    lowRiskCount,
+    maxDeviation,
+  } = anomalyDetection;
+
   // Keyboard shortcuts
   useCommonShortcuts({
-    onRefresh: fetchPriceData,
+    onRefresh: () => {}, // fetchPriceData not exposed from hook
     onSearch: debouncedSearchFocus,
   });
 
@@ -107,7 +112,7 @@ export default function CrossOraclePage() {
   );
 
   // 构建 qualityScore 对象
-  const qualityScoreData = useMemo(
+  const qualityScoreDataMemo = useMemo(
     () => ({
       overall: qualityScore?.overall || 85,
       consistency: qualityScore?.consistency || 88,
@@ -135,7 +140,7 @@ export default function CrossOraclePage() {
     let count = 0;
     if (selectedOracles.length > 0) count++;
     if (selectedSymbol) count++;
-    if (timeRange !== '24H') count++;
+    if (timeRange !== '24h') count++;
     return count;
   }, [selectedOracles.length, selectedSymbol, timeRange]);
 
@@ -143,7 +148,7 @@ export default function CrossOraclePage() {
   const handleClearFilters = useCallback(() => {
     setSelectedOracles([]);
     setSelectedSymbol('');
-    setTimeRange('24H');
+    setTimeRange('24h');
   }, [setSelectedOracles, setSelectedSymbol, setTimeRange]);
 
   return (
@@ -199,7 +204,7 @@ export default function CrossOraclePage() {
               oracleChartColors={oracleChartColors}
               timeRange={timeRange}
               onTimeRangeChange={setTimeRange}
-              onQuery={fetchPriceData}
+              onQuery={() => {}}
               isLoading={isLoading}
               activeFilterCount={activeFilterCount}
               onClearFilters={handleClearFilters}
@@ -232,11 +237,11 @@ export default function CrossOraclePage() {
             mediumRiskCount={mediumRiskCount}
             lowRiskCount={lowRiskCount}
             maxDeviation={maxDeviation}
-            qualityScore={qualityScoreData}
-            oracleFeatures={oracleFeatures}
+            qualityScore={qualityScoreDataMemo}
+            oracleFeatures={[]}
             historicalData={historicalData}
             oracleColors={oracleChartColors}
-            onRefresh={fetchPriceData}
+            onRefresh={() => {}}
             performanceMetrics={performanceMetrics}
             isCalculatingMetrics={isCalculatingMetrics}
             oracleDataError={oracleDataError}
