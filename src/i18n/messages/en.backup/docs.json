@@ -1,0 +1,171 @@
+{
+  "docs": {
+    "hero": {
+      "title": "Documentation Center",
+      "subtitle": "Learn how to use the Insight Oracle Data Platform for real-time price monitoring, cross-oracle comparison, and in-depth data analysis.",
+      "searchPlaceholder": "Search documentation...",
+      "quickLinks": "Quick Links"
+    },
+    "nav": {
+      "title": "Documentation",
+      "quickstart": "Quick Start",
+      "features": "Features",
+      "technical": "Technical Docs",
+      "developer": "Developer Resources",
+      "api": "API Reference"
+    },
+    "quickstart": {
+      "title": "Quick Start",
+      "description": "Get started with the Insight platform and explore real-time price data from mainstream oracle protocols.",
+      "overview": {
+        "title": "Platform Overview",
+        "description": "Insight is a professional oracle data analytics platform supporting Chainlink, Pyth, API3, DIA, RedStone, and WINkLink.",
+        "point1": "Support for 6 mainstream oracle protocols",
+        "point2": "Real-time price monitoring and comparison",
+        "point3": "Cross-chain price consistency analysis"
+      },
+      "steps": {
+        "title": "Getting Started",
+        "register": {
+          "title": "Create Account",
+          "description": "Register to access personalized features like favorites, alerts, and data export. Supports email registration and OAuth (Google, GitHub) login."
+        },
+        "search": {
+          "title": "Query Prices",
+          "description": "Enter a trading pair (e.g., ETH/USD) on the price query page to view real-time price data from multiple oracles."
+        },
+        "analyze": {
+          "title": "Analyze & Compare",
+          "description": "Use the cross-oracle comparison feature to analyze price differences and trends between different oracles."
+        },
+        "alert": {
+          "title": "Set Price Alerts",
+          "description": "Register an account to set price alerts and receive notifications when prices reach thresholds"
+        }
+      },
+      "cta": {
+        "primary": "Start Price Query",
+        "secondary": "View Market Overview"
+      }
+    },
+    "features": {
+      "title": "Core Features",
+      "description": "Insight platform provides the following core features to help you comprehensively understand oracle data.",
+      "learnMore": "Go to Feature Page",
+      "priceQuery": {
+        "title": "Price Query",
+        "description": "Query real-time prices for any trading pair across multiple oracles, with historical data viewing and technical indicator analysis.",
+        "highlight1": "Multi-oracle price comparison",
+        "highlight2": "Historical price trend charts",
+        "highlight3": "Technical indicators: RSI, MACD, Bollinger Bands"
+      },
+      "crossOracle": {
+        "title": "Cross-Oracle Comparison",
+        "description": "Compare price differences for the same trading pair across different oracles to assess oracle reliability.",
+        "highlight1": "Side-by-side price comparison table",
+        "highlight2": "Price deviation statistical analysis",
+        "highlight3": "Oracle reliability scoring"
+      },
+      "crossChain": {
+        "title": "Cross-Chain Analysis",
+        "description": "Analyze price consistency of the same asset across different blockchains to discover arbitrage opportunities.",
+        "highlight1": "Multi-chain price heatmap",
+        "highlight2": "Price deviation monitoring",
+        "highlight3": "Correlation analysis"
+      },
+      "alerts": {
+        "title": "Price Alerts",
+        "description": "Set custom price alerts and receive notifications through multiple channels when prices reach thresholds.",
+        "highlight1": "Support for multiple trigger conditions",
+        "highlight2": "Email and in-app notifications",
+        "highlight3": "Alert history records"
+      },
+      "info": {
+        "realtime": {
+          "title": "Real-time Data",
+          "description": "WebSocket real-time price updates"
+        },
+        "accurate": {
+          "title": "Data Export",
+          "description": "Support CSV, JSON, PDF, PNG formats"
+        },
+        "comprehensive": {
+          "title": "Favorites & Snapshots",
+          "description": "Save configurations and share snapshots"
+        }
+      }
+    },
+    "technical": {
+      "title": "Technical Documentation",
+      "description": "Learn about the technical implementation details of the Insight platform.",
+      "readMore": "View Details",
+      "methodology": {
+        "title": "Data Methodology",
+        "description": "Learn about price aggregation algorithms, risk assessment models, and data quality metric calculations.",
+        "tag1": "Price Aggregation",
+        "tag2": "Risk Models"
+      },
+      "api": {
+        "title": "API Interface",
+        "description": "Get oracle data via REST API and WebSocket to integrate into your applications.",
+        "tag1": "REST API",
+        "tag2": "WebSocket"
+      },
+      "architecture": {
+        "title": "System Architecture",
+        "description": "Built with Next.js 16 + React 19, using Supabase for data storage and authentication.",
+        "tag1": "Next.js 16",
+        "tag2": "Supabase"
+      },
+      "dataSources": {
+        "title": "Data Sources",
+        "description": "Integrate 6 mainstream oracle protocols, covering Ethereum, BSC, Polygon, and other chains.",
+        "tag1": "Oracle Protocols",
+        "tag2": "Multi-chain Support"
+      },
+      "apiPreview": {
+        "title": "API Example",
+        "description": "Get Chainlink ETH/USD price data",
+        "viewAll": "View All APIs",
+        "endpoint": "/api/oracles/chainlink",
+        "method": "GET"
+      }
+    },
+    "developer": {
+      "title": "Developer Resources",
+      "description": "Integration guides and technical support for developers.",
+      "learnMore": "Learn More",
+      "integration": {
+        "title": "Integration Guide",
+        "description": "Learn how to integrate Insight data into your DeFi applications or data analysis tools."
+      },
+      "examples": {
+        "title": "Code Examples",
+        "description": "View example code for calling Insight API using JavaScript/TypeScript."
+      },
+      "faq": {
+        "title": "FAQ",
+        "description": "Frequently asked questions for developers.",
+        "q1": {
+          "question": "How to get an API key?",
+          "answer": "After logging in, you can generate and manage API keys in the Data Management panel on the Settings page."
+        },
+        "q2": {
+          "question": "Which oracle protocols are supported?",
+          "answer": "Currently supports Chainlink, Pyth, API3, RedStone, DIA, WINkLink, and other mainstream oracles."
+        },
+        "q3": {
+          "question": "What is the data update frequency?",
+          "answer": "Price data is pushed in real-time via WebSocket. The specific update frequency depends on each oracle protocol's update mechanism."
+        }
+      },
+      "codeExample": {
+        "title": "Code Example",
+        "comment": "Fetch Chainlink price data",
+        "consoleLog": "console.log(data.price);"
+      },
+      "copy": "Copy",
+      "copied": "Copied!"
+    }
+  }
+}

@@ -1,0 +1,106 @@
+{
+  "search": {
+    "title": "搜索",
+    "placeholder": "搜索预言机、交易对、区块链、页面...",
+    "noResults": "未找到结果",
+    "noResultsDesc": "未找到与 \"{query}\" 相关的结果，请尝试其他关键词",
+    "initialTitle": "开始搜索",
+    "initialDesc": "输入关键词搜索预言机、交易对、区块链、页面和功能",
+    "inputLabel": "搜索输入",
+    "resultsLabel": "搜索结果",
+    "clearButton": "清除搜索",
+    "error": "搜索错误",
+    "errorDesc": "搜索时发生错误，请重试。",
+    "retry": "重试",
+    "resultsCount": "找到 {count} 个结果",
+    "groups": {
+      "oracles": "预言机",
+      "pairs": "交易对",
+      "blockchains": "区块链",
+      "pages": "页面",
+      "features": "功能",
+      "documentation": "文档"
+    },
+    "oracles": {
+      "chainlinkDesc": "领先的去中心化预言机网络",
+      "pythDesc": "机构级低延迟金融数据",
+      "api3Desc": "第一方 DAO 治理预言机",
+      "redstoneDesc": "模块化 EVM+ 预言机堆栈",
+      "diaDesc": "透明众包数据验证预言机",
+      "winklinkDesc": "TRON 生态系统预言机"
+    },
+    "blockchains": {
+      "ethereumDesc": "以太坊区块链生态系统",
+      "arbitrumDesc": "Arbitrum Layer 2 扩容解决方案",
+      "optimismDesc": "Optimism Layer 2 扩容解决方案",
+      "polygonDesc": "Polygon PoS 侧链",
+      "solanaDesc": "Solana 高性能区块链",
+      "avalancheDesc": "Avalanche 子网平台",
+      "fantomDesc": "Fantom Opera 链",
+      "cronosDesc": "Cronos EVM 链",
+      "junoDesc": "Juno Cosmos SDK 链",
+      "cosmosDesc": "Cosmos Hub 区块链",
+      "osmosisDesc": "Osmosis DEX 链",
+      "bnbchainDesc": "BNB Chain 生态系统",
+      "baseDesc": "Base Layer 2 by Coinbase",
+      "scrollDesc": "Scroll zkEVM Layer 2",
+      "zksyncDesc": "zkSync Era Layer 2",
+      "aptosDesc": "Aptos Move 语言区块链",
+      "suiDesc": "Sui Move 语言区块链",
+      "gnosisDesc": "Gnosis Chain",
+      "mantleDesc": "Mantle Layer 2",
+      "lineaDesc": "Linea zkEVM by Consensys",
+      "celestiaDesc": "Celestia 模块化区块链",
+      "injectiveDesc": "Injective DeFi 链",
+      "seiDesc": "Sei 交易优化链",
+      "tronDesc": "TRON 生态系统",
+      "tonDesc": "The Open Network",
+      "nearDesc": "NEAR Protocol",
+      "auroraDesc": "Aurora NEAR 上的 EVM",
+      "celoDesc": "Celo 移动优先区块链"
+    },
+    "pairs": {
+      "priceFeed": "价格数据喂价"
+    },
+    "pages": {
+      "home": "首页",
+      "homeDesc": "Insight 仪表板主页",
+      "priceQuery": "价格查询",
+      "priceQueryDesc": "跨预言机网络价格查询",
+      "crossOracle": "多预言机对比",
+      "crossOracleDesc": "多预言机价格比较分析",
+      "crossChain": "跨链分析",
+      "crossChainDesc": "跨链价格分析和基准测试",
+      "favorites": "收藏",
+      "favoritesDesc": "管理您的收藏资产",
+      "alerts": "提醒",
+      "alertsDesc": "价格提醒和通知",
+      "settings": "设置",
+      "settingsDesc": "用户偏好设置"
+    },
+    "features": {
+      "priceComparison": "价格对比",
+      "priceComparisonDesc": "跨预言机价格比较",
+      "priceAlerts": "价格提醒",
+      "priceAlertsDesc": "自定义价格提醒通知",
+      "charts": "图表",
+      "chartsDesc": "交互式价格图表"
+    },
+    "docs": {
+      "apiReference": "API 文档",
+      "apiReferenceDesc": "API 参考文档"
+    },
+    "shortcuts": {
+      "navigate": "导航",
+      "select": "选择",
+      "close": "关闭",
+      "arrowKeys": "方向键",
+      "enterKey": "回车键",
+      "escapeKey": "Esc 键"
+    },
+    "footer": {
+      "navigate": "导航",
+      "select": "选择"
+    }
+  }
+}

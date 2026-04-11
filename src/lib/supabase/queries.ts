@@ -1,8 +1,8 @@
 import { type SupabaseClient } from '@supabase/supabase-js';
 
 import { createLogger } from '@/lib/utils/logger';
-import { normalizeTimestamp } from '@/lib/utils/timestamp';
 import { RequestQueue } from '@/lib/utils/requestQueue';
+import { normalizeTimestamp } from '@/lib/utils/timestamp';
 import { type OracleProvider, type Blockchain } from '@/types/oracle';
 
 const logger = createLogger('supabase-queries');

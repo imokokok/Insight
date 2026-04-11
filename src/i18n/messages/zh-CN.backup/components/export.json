@@ -1,0 +1,26 @@
+{
+  "export": "导出",
+  "exporting": "导出中...",
+  "selectFormat": "选择格式",
+  "exportConfig": "导出配置",
+  "selectFields": "选择字段",
+  "selectAll": "全选",
+  "deselectAll": "取消全选",
+  "includeMetadata": "包含元数据",
+  "includeChart": "包含图表",
+  "includeStats": "包含统计信息",
+  "dataPreview": "数据预览",
+  "recordCount": "记录数",
+  "selectedFields": "已选字段",
+  "cancel": "取消",
+  "history": {
+    "title": "导出历史",
+    "all": "全部",
+    "completed": "已完成",
+    "failed": "失败",
+    "noHistory": "暂无导出历史",
+    "reDownload": "重新下载",
+    "delete": "删除",
+    "clearAll": "清空历史"
+  }
+}
