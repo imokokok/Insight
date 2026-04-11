@@ -298,4 +298,54 @@ export abstract class BaseOracleClient {
       this.config.useDatabase ?? true
     );
   }
+
+  protected generateMockPrice(
+    symbol: string,
+    basePrice: number,
+    chain?: Blockchain,
+    timestamp?: number
+  ): PriceData {
+    const variance = basePrice * 0.001;
+    const price = basePrice + (Math.random() - 0.5) * 2 * variance;
+
+    return {
+      provider: this.name,
+      symbol,
+      price,
+      timestamp: timestamp ?? Date.now(),
+      decimals: 8,
+      confidence: 0.95 + Math.random() * 0.05,
+      chain,
+    };
+  }
+
+  protected generateMockHistoricalPrices(
+    symbol: string,
+    basePrice: number,
+    chain?: Blockchain,
+    period: number = 24
+  ): PriceData[] {
+    const prices: PriceData[] = [];
+    const now = Date.now();
+    const intervalMs = 60 * 60 * 1000;
+
+    for (let i = period; i >= 0; i--) {
+      const timestamp = now - i * intervalMs;
+      const variance = basePrice * 0.02;
+      const randomFactor = (Math.random() - 0.5) * 2;
+      const price = basePrice + randomFactor * variance;
+
+      prices.push({
+        provider: this.name,
+        symbol,
+        price,
+        timestamp,
+        decimals: 8,
+        confidence: 0.9 + Math.random() * 0.1,
+        chain,
+      });
+    }
+
+    return prices;
+  }
 }

@@ -38,9 +38,29 @@
 - [x] 测试执行时间合理
 
 ### 测试覆盖率提升
-
 - [x] 运行 `npm run test:coverage` 生成报告
-- [ ] 总体覆盖率 > 80%（当前：10.42%，提升 0.26%）
+- [ ] 修复所有失败的测试（43个）
+  - [ ] WebSocket 测试超时问题已修复
+  - [ ] Enhanced Retry 测试断言已修复
+  - [ ] API alerts 路由测试已修复
+  - [ ] API oracles 路由测试已修复
+  - [ ] Oracle base 测试方法已修复
+- [x] 为 stores 添加测试
+- [x] 为 components 添加测试
+- [x] 为 oracle 组件添加测试
+- [x] 为工具函数添加测试
+- [x] 为 Hooks 添加测试
+- [x] 为 settings 组件添加测试
+- [x] 为 navigation 组件添加测试
+- [x] 为 favorites 组件添加测试
+- [x] 为 API 路由添加测试
+- [x] 为 app/[locale] 页面组件添加测试
+- [x] 为 cross-oracle 组件添加测试
+- [x] 为 components/charts 添加测试
+- [x] 为 components/alerts 添加测试
+- [x] 为 components/export 添加测试
+- [x] 为 API 路由添加更多测试
+- [ ] 总体覆盖率 > 80%（当前：26.17%）
 - [ ] 核心模块覆盖率 > 90%
 - [x] 新代码覆盖率 = 100%（修复了 35 个测试）
 - [x] 覆盖率报告已上传

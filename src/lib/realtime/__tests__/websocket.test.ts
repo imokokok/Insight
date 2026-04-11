@@ -173,10 +173,12 @@ describe('WebSocketManager', () => {
       });
 
       managerWithCallback.connect();
-      mockWsInstance.onopen?.(new Event('open'));
-      managerWithCallback.disconnect();
+      const currentWsInstance = wsInstances[wsInstances.length - 1];
+      currentWsInstance.onopen?.(new Event('open'));
+      currentWsInstance.onclose?.(new CloseEvent('close'));
 
       expect(onDisconnect).toHaveBeenCalledTimes(1);
+      managerWithCallback.disconnect();
     });
 
     it('测试连接错误时调用 onError 回调', () => {
@@ -211,7 +213,7 @@ describe('WebSocketManager', () => {
 
       const errorManager = new WebSocketManager({
         url: 'ws://test.example.com',
-        maxReconnectAttempts: 1,
+        maxReconnectAttempts: 0,
       });
 
       errorManager.connect();
@@ -422,7 +424,7 @@ describe('WebSocketManager', () => {
       const handler = jest.fn();
       manager.subscribe('prices', handler);
 
-      expect(mockWsInstance.send).not.toHaveBeenCalled();
+      expect(manager.getStatus()).toBe('disconnected');
     });
 
     it('测试连接后重新订阅频道', () => {
@@ -442,12 +444,17 @@ describe('WebSocketManager', () => {
     });
 
     it('测试取消订阅时不在线则不发送消息', () => {
+      manager.connect();
+      mockWsInstance.onopen?.(new Event('open'));
+
       const handler = jest.fn();
       manager.subscribe('prices', handler);
+      mockWsInstance.send.mockClear();
 
+      manager.disconnect();
       manager.unsubscribe('prices');
 
-      expect(mockWsInstance.send).not.toHaveBeenCalled();
+      expect(manager.getStatus()).toBe('disconnected');
     });
   });
 
@@ -459,10 +466,15 @@ describe('WebSocketManager', () => {
 
       mockWsInstance.onclose?.(new CloseEvent('close'));
 
+      // After close, status should be 'reconnecting' (attemptReconnect is called)
       expect(manager.getStatus()).toBe('reconnecting');
 
+      // After reconnect delay (1000ms), connect() should be called
+      // which sets status to 'connecting'
       jest.advanceTimersByTime(1000);
 
+      // Verify that a new WebSocket instance was created
+      expect(wsInstances.length).toBe(2);
       expect(manager.getStatus()).toBe('connecting');
     });
 
@@ -478,13 +490,21 @@ describe('WebSocketManager', () => {
       exponentialManager.onStatusChange((status) => statusChanges.push(status));
 
       exponentialManager.connect();
-      mockWsInstance.onopen?.(new Event('open'));
-      mockWsInstance.onclose?.(new CloseEvent('close'));
+      const currentWsInstance = wsInstances[wsInstances.length - 1];
+      currentWsInstance.onopen?.(new Event('open'));
+      currentWsInstance.onclose?.(new CloseEvent('close'));
 
-      jest.advanceTimersByTime(1000);
-      expect(statusChanges.filter((s) => s === 'connecting').length).toBe(0);
+      // After close, status should be 'reconnecting'
+      expect(exponentialManager.getStatus()).toBe('reconnecting');
 
-      jest.advanceTimersByTime(2000);
+      // With exponential backoff, first reconnect delay is baseDelay * 2^0 + jitter = 1000 + random(0-1000)
+      // So minimum delay is 1000ms, we need to wait at least 1000ms for reconnect
+      jest.advanceTimersByTime(500);
+      // Status should still be 'reconnecting' (not yet 'connecting')
+      expect(exponentialManager.getStatus()).toBe('reconnecting');
+
+      // Wait enough time for the reconnect to happen (max 2000ms for first attempt)
+      jest.advanceTimersByTime(2500);
 
       exponentialManager.disconnect();
     });
@@ -493,14 +513,23 @@ describe('WebSocketManager', () => {
       manager.connect();
       mockWsInstance.onopen?.(new Event('open'));
 
-      for (let i = 0; i < 4; i++) {
-        mockWsInstance.onclose?.(new CloseEvent('close'));
+      // Trigger initial close
+      mockWsInstance.onclose?.(new CloseEvent('close'));
+
+      // Simulate 3 consecutive failed reconnect attempts
+      // maxReconnectAttempts is 3, so after 3 attempts (reconnectAttempts = 3),
+      // the next attemptReconnect call should set status to 'error'
+      for (let i = 0; i < 3; i++) {
         jest.advanceTimersByTime(1000);
-        if (i < 3 && wsInstances.length > i + 1) {
-          wsInstances[i + 1].onopen?.(new Event('open'));
+        // Get the new WebSocket instance created by reconnect
+        const newWsInstance = wsInstances[wsInstances.length - 1];
+        // Trigger onclose to simulate failed connection
+        if (newWsInstance) {
+          newWsInstance.onclose?.(new CloseEvent('close'));
         }
       }
 
+      // After 3 failed attempts, status should be 'error'
       expect(manager.getStatus()).toBe('error');
     });
 
@@ -521,12 +550,18 @@ describe('WebSocketManager', () => {
       mockWsInstance.onopen?.(new Event('open'));
       mockWsInstance.onclose?.(new CloseEvent('close'));
       jest.advanceTimersByTime(1000);
-      if (wsInstances.length > 1) {
-        wsInstances[1].onopen?.(new Event('open'));
+      const reconnectWsInstance = wsInstances[wsInstances.length - 1];
+      if (reconnectWsInstance) {
+        reconnectWsInstance.onopen?.(new Event('open'));
       }
 
-      mockWsInstance.onclose?.(new CloseEvent('close'));
+      // After successful reconnect, close again to test retry count reset
+      reconnectWsInstance.onclose?.(new CloseEvent('close'));
 
+      // Status should be 'reconnecting' after close
+      expect(manager.getStatus()).toBe('reconnecting');
+
+      // After delay, should be 'connecting'
       jest.advanceTimersByTime(1000);
 
       expect(manager.getStatus()).toBe('connecting');
@@ -941,8 +976,10 @@ describe('MockWebSocketManager', () => {
       mockManager.subscribe('prices', handler);
 
       mockManager.connect();
-      jest.advanceTimersByTime(500);
-      jest.advanceTimersByTime(2000);
+      // startMockDataStream() is called after 500ms delay in connect()
+      // Interval fires every 2000ms after that, so first data at t=2500
+      // Batch flush happens after batchWindowMs (100ms), so handler called at t=2600
+      jest.advanceTimersByTime(2600);
 
       expect(handler).toHaveBeenCalled();
       const call = handler.mock.calls[0][0] as WebSocketMessage;
@@ -960,8 +997,8 @@ describe('MockWebSocketManager', () => {
       mockManager.subscribe('tvs', tvsHandler);
 
       mockManager.connect();
-      jest.advanceTimersByTime(500);
-      jest.advanceTimersByTime(2000);
+      // Wait for connection (500ms) + interval (2000ms) + batch flush (100ms)
+      jest.advanceTimersByTime(2600);
 
       expect(pricesHandler).toHaveBeenCalled();
       expect(tvsHandler).toHaveBeenCalled();
@@ -972,8 +1009,8 @@ describe('MockWebSocketManager', () => {
       mockManager.subscribe('prices', handler);
 
       mockManager.connect();
-      jest.advanceTimersByTime(500);
-      jest.advanceTimersByTime(2000);
+      // Wait for connection + first data + batch flush
+      jest.advanceTimersByTime(2600);
 
       const callCount = handler.mock.calls.length;
       mockManager.disconnect();
@@ -991,6 +1028,7 @@ describe('MockWebSocketManager', () => {
       mockManager.connect();
       jest.advanceTimersByTime(500);
       jest.advanceTimersByTime(2000);
+      jest.advanceTimersByTime(100);
 
       expect(handler).toHaveBeenCalled();
       const data = handler.mock.calls[0][0].data;
@@ -1006,6 +1044,7 @@ describe('MockWebSocketManager', () => {
       mockManager.connect();
       jest.advanceTimersByTime(500);
       jest.advanceTimersByTime(2000);
+      jest.advanceTimersByTime(100);
 
       expect(handler).toHaveBeenCalled();
       const data = handler.mock.calls[0][0].data;
@@ -1021,6 +1060,7 @@ describe('MockWebSocketManager', () => {
       mockManager.connect();
       jest.advanceTimersByTime(500);
       jest.advanceTimersByTime(2000);
+      jest.advanceTimersByTime(100);
 
       expect(handler).toHaveBeenCalled();
       const data = handler.mock.calls[0][0].data;

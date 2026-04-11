@@ -42,10 +42,14 @@ export function validateObject(
     let value = data[field];
 
     if (value === undefined || value === null) {
-      if (fieldSchema.required) {
+      if (fieldSchema.transform) {
+        value = fieldSchema.transform(value);
+      } else if (fieldSchema.required) {
         errors.push({ field, message: `${field} is required` });
+        continue;
+      } else {
+        continue;
       }
-      continue;
     }
 
     if (fieldSchema.transform) {

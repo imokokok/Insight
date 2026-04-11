@@ -34,7 +34,8 @@ describe('Enhanced Retry System', () => {
         strategy: 'fixed',
       });
 
-      const operation = jest.fn().mockRejectedValue(new Error('Persistent error'));
+      const networkError = new Error('Network error: ECONNREFUSED');
+      const operation = jest.fn().mockRejectedValue(networkError);
 
       const result = await manager.execute(operation, 'test-operation');
 

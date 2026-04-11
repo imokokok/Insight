@@ -78,16 +78,35 @@
   - [x] 运行 `npm run test:coverage`
   - [x] 分析覆盖率报告
   - [x] 识别低覆盖率模块
-- [x] 添加单元测试
-  - [x] 为核心业务逻辑添加测试
-  - [x] 为工具函数添加测试
+- [x] 修复失败的测试（43个测试失败）
+  - [x] 修复 WebSocket 测试超时问题（3个）
+  - [x] 修复 Enhanced Retry 测试断言问题（1个）
+  - [x] 修复 API alerts 路由测试问题（6个）
+  - [x] 修复 API oracles 路由测试问题（9个）
+  - [x] 修复 Oracle base 测试方法缺失问题（10个）
+- [ ] 添加单元测试 - 优先级模块
+  - [x] 为 stores 添加测试（uiStore, realtimeStore, crossChainStore, authStore）
+  - [x] 为 components 添加测试（Navbar, Footer, LanguageSwitcher）
+  - [x] 为 oracle 组件添加测试（AlertConfig, AnomalyAlert, PriceChart）
+  - [x] 为工具函数添加测试（lib/utils）
   - [x] 为 Hooks 添加测试
-- [ ] 添加集成测试
-  - [ ] 测试关键业务流程
-  - [ ] 测试 API 路由
-  - [ ] 测试组件交互
+  - [x] 为 settings 组件添加测试
+  - [x] 为 navigation 组件添加测试
+  - [x] 为 favorites 组件添加测试
+- [ ] 添加更多模块测试（第二阶段）
+  - [x] 为 app/[locale] 页面组件添加测试
+  - [x] 为 lib/services/marketData 添加测试
+  - [x] 为 lib/supabase 添加更多测试
+  - [x] 为 components/charts 添加测试
+  - [x] 为 components/oracle 更多组件添加测试
+- [x] 添加更多模块测试（第三阶段）
+  - [x] 为 middleware.ts 添加测试
+  - [x] 为更多 oracle 页面添加测试
+  - [x] 为 components/alerts 添加测试
+  - [x] 为 components/export 添加测试
+  - [x] 为 API 路由添加更多测试
 - [ ] 达到覆盖率目标
-  - [ ] 总体覆盖率 > 80%
+  - [ ] 总体覆盖率 > 80%（当前：10.42%）
   - [ ] 核心模块覆盖率 > 90%
   - [ ] 新代码覆盖率 = 100%
 

@@ -82,11 +82,11 @@ describe('useTechnicalIndicators', () => {
 
       const dataWithIndicators = result.current.calculateIndicators(mockData);
 
-      // MA7 for first 6 points should be the price itself
+      // MA7 for first 6 points should be the price itself (i < period - 1)
       expect(dataWithIndicators[0].ma7).toBe(100);
-      expect(dataWithIndicators[6].ma7).toBe(100);
 
-      // MA7 for 7th point should be average of first 7 prices
+      // MA7 for 7th point (index 6) should be average of first 7 prices
+      // prices: [100, 102, 101, 103, 105, 104, 106]
       const expectedMA7 = (100 + 102 + 101 + 103 + 105 + 104 + 106) / 7;
       expect(dataWithIndicators[6].ma7).toBeCloseTo(expectedMA7, 2);
     });

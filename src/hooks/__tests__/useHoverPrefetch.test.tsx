@@ -125,24 +125,40 @@ describe('useHoverPrefetch', () => {
     const error = new Error('Test error');
     const queryFn = jest.fn().mockRejectedValue(error);
     const onError = jest.fn();
+    
+    // Create a new QueryClient for each test to avoid cache issues
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: {
+          retry: false,
+        },
+      },
+    });
+    
+    const wrapper = function Wrapper({ children }: { children: ReactNode }) {
+      return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+    };
+
     const { result } = renderHook(() => useHoverPrefetch({ delay: 0, onError }), {
-      wrapper: createWrapper(),
+      wrapper,
     });
 
-    act(() => {
+    await act(async () => {
       result.current.prefetch({
-        queryKey: ['test'],
+        queryKey: ['test-error-unique'],
         queryFn,
       });
+      // Advance timers to trigger setTimeout callback
+      await jest.advanceTimersByTimeAsync(10);
     });
 
-    act(() => {
-      jest.runAllTimers();
-    });
-
-    await waitFor(() => {
-      expect(onError).toHaveBeenCalledWith(error);
-    });
+    // Wait for the async operation inside setTimeout to complete
+    await waitFor(
+      () => {
+        expect(onError).toHaveBeenCalledWith(error);
+      },
+      { timeout: 3000 }
+    );
   });
 });
 

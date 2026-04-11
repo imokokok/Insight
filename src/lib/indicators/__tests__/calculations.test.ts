@@ -73,6 +73,52 @@ describe('Technical Indicators Calculations', () => {
       expect(result[3]).toBeCloseTo(3.5);
       expect(result[4]).toBeCloseTo(4.5);
     });
+
+    it('should handle single element array', () => {
+      const result = calculateSMA([100], 5);
+      expect(result).toEqual([100]);
+    });
+
+    it('should handle negative values', () => {
+      const data = [-10, -20, -30, -40, -50];
+      const result = calculateSMA(data, 3);
+
+      expect(result[0]).toBe(-10);
+      expect(result[1]).toBe(-20);
+      expect(result[2]).toBe(-20);
+    });
+
+    it('should handle very large numbers', () => {
+      const data = [1e10, 2e10, 3e10, 4e10, 5e10];
+      const result = calculateSMA(data, 3);
+
+      expect(result[2]).toBe(2e10);
+      expect(result[3]).toBe(3e10);
+      expect(result[4]).toBe(4e10);
+    });
+
+    it('should handle very small numbers', () => {
+      const data = [1e-10, 2e-10, 3e-10, 4e-10, 5e-10];
+      const result = calculateSMA(data, 3);
+
+      expect(result[2]).toBeCloseTo(2e-10);
+      expect(result[3]).toBeCloseTo(3e-10);
+    });
+
+    it('should handle zero values', () => {
+      const data = [0, 0, 0, 0, 0];
+      const result = calculateSMA(data, 3);
+
+      expect(result).toEqual([0, 0, 0, 0, 0]);
+    });
+
+    it('should handle mixed zero and non-zero values', () => {
+      const data = [0, 10, 0, 20, 0];
+      const result = calculateSMA(data, 3);
+
+      expect(result[2]).toBeCloseTo(10 / 3);
+      expect(result[3]).toBeCloseTo(10);
+    });
   });
 
   describe('calculateSMAWithNull', () => {
@@ -158,6 +204,44 @@ describe('Technical Indicators Calculations', () => {
       expect(result[4]).toBeGreaterThan(10);
       expect(result[4]).toBeLessThan(100);
     });
+
+    it('should throw error when period is 0', () => {
+      const data = [10, 20, 30];
+      expect(() => calculateEMA(data, 0)).toThrow('Period must be a positive number');
+    });
+
+    it('should throw error when period is negative', () => {
+      const data = [10, 20, 30];
+      expect(() => calculateEMA(data, -5)).toThrow('Period must be a positive number');
+    });
+
+    it('should handle single element array', () => {
+      const result = calculateEMA([100], 5);
+      expect(result).toEqual([100]);
+    });
+
+    it('should handle very large period compared to data length', () => {
+      const data = [10, 20, 30];
+      const result = calculateEMA(data, 100);
+
+      expect(result.length).toBe(3);
+      expect(result[0]).toBe(10);
+    });
+
+    it('should handle negative values', () => {
+      const data = [-10, -20, -30, -40, -50];
+      const result = calculateEMA(data, 3);
+
+      expect(result.length).toBe(5);
+      expect(result[0]).toBe(-10);
+    });
+
+    it('should handle mixed positive and negative values', () => {
+      const data = [-10, 10, -10, 10, -10];
+      const result = calculateEMA(data, 3);
+
+      expect(result.length).toBe(5);
+    });
   });
 
   describe('calculateEMAWithNull', () => {
@@ -242,6 +326,57 @@ describe('Technical Indicators Calculations', () => {
 
       expect(result[14]).toBeGreaterThan(40);
       expect(result[14]).toBeLessThan(70);
+    });
+
+    it('should handle empty array', () => {
+      const result = calculateRSI([]);
+      expect(result).toEqual([]);
+    });
+
+    it('should handle single element array', () => {
+      const result = calculateRSI([100], 14);
+      expect(result).toEqual([50]);
+    });
+
+    it('should handle array shorter than period', () => {
+      const prices = [100, 101, 102, 103, 104];
+      const result = calculateRSI(prices, 14);
+
+      expect(result.length).toBe(5);
+      result.forEach((value) => {
+        expect(value).toBe(50);
+      });
+    });
+
+    it('should handle constant prices', () => {
+      const prices = Array(20).fill(100);
+      const result = calculateRSI(prices, 14);
+
+      expect(result[14]).toBe(100);
+    });
+
+    it('should handle alternating gains and losses', () => {
+      const prices = [100];
+      for (let i = 0; i < 20; i++) {
+        prices.push(prices[prices.length - 1] + (i % 2 === 0 ? 10 : -10));
+      }
+      const result = calculateRSI(prices, 14);
+
+      expect(result.length).toBe(prices.length);
+      result.forEach((value) => {
+        expect(value).toBeGreaterThanOrEqual(0);
+        expect(value).toBeLessThanOrEqual(100);
+      });
+    });
+
+    it('should handle custom period', () => {
+      const prices = Array(20).fill(0).map((_, i) => 100 + i);
+      const result = calculateRSI(prices, 7);
+
+      expect(result.length).toBe(20);
+      for (let i = 0; i < 7; i++) {
+        expect(result[i]).toBe(50);
+      }
     });
   });
 
@@ -361,6 +496,43 @@ describe('Technical Indicators Calculations', () => {
 
       const lastMacd = result.macd[result.macd.length - 1];
       expect(lastMacd).toBeGreaterThan(0);
+    });
+
+    it('should handle single price', () => {
+      const result = calculateMACD([100]);
+
+      expect(result.macd.length).toBe(1);
+      expect(result.signal.length).toBe(1);
+      expect(result.histogram.length).toBe(1);
+    });
+
+    it('should handle prices shorter than slow period', () => {
+      const prices = [100, 101, 102, 103, 104];
+      const result = calculateMACD(prices, 12, 26, 9);
+
+      expect(result.macd.length).toBe(5);
+    });
+
+    it('should handle negative prices', () => {
+      const prices = Array.from({ length: 35 }, (_, i) => -100 - i);
+      const result = calculateMACD(prices);
+
+      expect(result.macd.length).toBe(35);
+    });
+
+    it('should handle custom periods', () => {
+      const prices = Array.from({ length: 30 }, (_, i) => 100 + i);
+      const result = calculateMACD(prices, 5, 10, 3);
+
+      expect(result.macd.length).toBe(30);
+    });
+
+    it('should produce negative MACD in downtrend', () => {
+      const prices = Array.from({ length: 50 }, (_, i) => 200 - i * 2);
+      const result = calculateMACD(prices);
+
+      const lastMacd = result.macd[result.macd.length - 1];
+      expect(lastMacd).toBeLessThan(0);
     });
   });
 
@@ -507,6 +679,48 @@ describe('Technical Indicators Calculations', () => {
       expect(result.upper).toEqual([]);
       expect(result.middle).toEqual([]);
       expect(result.lower).toEqual([]);
+    });
+
+    it('should handle single price', () => {
+      const result = calculateBollingerBands([100], 20, 2);
+
+      expect(result.upper).toEqual([100]);
+      expect(result.middle).toEqual([100]);
+      expect(result.lower).toEqual([100]);
+    });
+
+    it('should handle custom multiplier', () => {
+      const prices = Array.from({ length: 25 }, (_, i) => 100 + i);
+      const result1 = calculateBollingerBands(prices, 20, 1);
+      const result2 = calculateBollingerBands(prices, 20, 3);
+
+      expect(result2.upper[24] - result2.middle[24]).toBeGreaterThan(
+        result1.upper[24] - result1.middle[24]
+      );
+    });
+
+    it('should handle constant prices', () => {
+      const prices = Array(25).fill(100);
+      const result = calculateBollingerBands(prices, 20, 2);
+
+      expect(result.stdDev[24]).toBe(0);
+      expect(result.upper[24]).toBe(result.lower[24]);
+    });
+
+    it('should handle negative prices', () => {
+      const prices = Array.from({ length: 25 }, (_, i) => -100 - i);
+      const result = calculateBollingerBands(prices, 20, 2);
+
+      expect(result.upper.length).toBe(25);
+      expect(result.lower.length).toBe(25);
+    });
+
+    it('should handle period of 1', () => {
+      const prices = [10, 20, 30, 40, 50];
+      const result = calculateBollingerBands(prices, 1, 2);
+
+      expect(result.upper.length).toBe(5);
+      expect(result.stdDev[0]).toBe(0);
     });
   });
 
@@ -724,6 +938,38 @@ describe('Technical Indicators Calculations', () => {
       expect(result.tr).toEqual([]);
       expect(result.atr).toEqual([]);
     });
+
+    it('should handle single data point', () => {
+      const prices: OHLCVDataPoint[] = [{ price: 100, high: 105, low: 95 }];
+      const result = calculateATR(prices, 14);
+
+      expect(result.tr.length).toBe(1);
+      expect(result.atr[0]).toBeNaN();
+    });
+
+    it('should handle data without high/low', () => {
+      const prices: OHLCVDataPoint[] = Array.from({ length: 15 }, (_, i) => ({
+        price: 100 + i,
+      }));
+      const result = calculateATR(prices, 14);
+
+      expect(result.tr.length).toBe(15);
+    });
+
+    it('should handle custom period', () => {
+      const prices: OHLCVDataPoint[] = Array.from({ length: 15 }, (_, i) => ({
+        price: 100 + i,
+        high: 105 + i,
+        low: 95 + i,
+        close: 100 + i,
+      }));
+      const result = calculateATR(prices, 7);
+
+      expect(result.tr.length).toBe(15);
+      for (let i = 0; i < 6; i++) {
+        expect(result.atr[i]).toBeNaN();
+      }
+    });
   });
 
   describe('calculateRollingStdDev', () => {
@@ -814,6 +1060,35 @@ describe('Technical Indicators Calculations', () => {
 
       expect(result.length).toBe(prices.length);
     });
+
+    it('should handle single element array', () => {
+      const result = calculateVolatility([100], 20);
+      expect(result).toEqual([null]);
+    });
+
+    it('should handle constant prices', () => {
+      const prices = Array(25).fill(100);
+      const result = calculateVolatility(prices, 20);
+
+      expect(result[20]).toBe(0);
+    });
+
+    it('should handle prices with zero values', () => {
+      const prices = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100, 101, 102];
+      const result = calculateVolatility(prices, 20);
+
+      expect(result.length).toBe(23);
+    });
+
+    it('should handle custom period', () => {
+      const prices = Array.from({ length: 15 }, (_, i) => 100 + i);
+      const result = calculateVolatility(prices, 10);
+
+      expect(result.length).toBe(15);
+      for (let i = 0; i < 10; i++) {
+        expect(result[i]).toBeNull();
+      }
+    });
   });
 
   describe('calculateROC', () => {
@@ -867,6 +1142,46 @@ describe('Technical Indicators Calculations', () => {
 
       expect(result[2]).toBe(0);
       expect(result[3]).toBe(0);
+    });
+
+    it('should handle single element array', () => {
+      const result = calculateROC([100], 10);
+      expect(result).toEqual([null]);
+    });
+
+    it('should handle large price changes', () => {
+      const prices = [100, 200, 400, 800];
+      const result = calculateROC(prices, 1);
+
+      expect(result[1]).toBeCloseTo(100);
+      expect(result[2]).toBeCloseTo(100);
+      expect(result[3]).toBeCloseTo(100);
+    });
+
+    it('should handle custom period', () => {
+      const prices = [100, 110, 120, 130, 140];
+      const result = calculateROC(prices, 4);
+
+      expect(result.length).toBe(5);
+      for (let i = 0; i < 4; i++) {
+        expect(result[i]).toBeNull();
+      }
+    });
+
+    it('should handle prices starting from zero', () => {
+      const prices = [0, 10, 20, 30];
+      const result = calculateROC(prices, 2);
+
+      expect(result[2]).toBe(Infinity);
+    });
+
+    it('should handle prices with zero in the middle', () => {
+      const prices = [100, 50, 0, 50, 100];
+      const result = calculateROC(prices, 2);
+
+      expect(result[2]).toBe(-100);
+      expect(result[3]).toBe(0);
+      expect(result[4]).toBe(Infinity);
     });
   });
 

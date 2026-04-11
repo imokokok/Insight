@@ -226,9 +226,8 @@ export function pattern(regex: RegExp, message?: string): ValidatorFn {
 }
 
 export function isEmail(value: unknown, field = 'value'): ValidatorResult {
-  // 使用更严格的正则表达式
   const emailRegex =
-    /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+    /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
   if (typeof value !== 'string' || !emailRegex.test(value)) {
     return {
       valid: false,
