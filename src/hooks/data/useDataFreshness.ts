@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 
 export type DataFreshnessStatus = 'fresh' | 'stale' | 'expired';
 
@@ -23,11 +23,13 @@ export function useDataFreshness(
     shouldRefresh: true,
   });
 
+  const lastUpdatedTime = useMemo(() => lastUpdated?.getTime() ?? null, [lastUpdated]);
+
   useEffect(() => {
     const calculateFreshness = () => {
       const now = Date.now();
 
-      if (!lastUpdated) {
+      if (lastUpdatedTime === null) {
         setResult({
           status: 'expired',
           ageInMinutes: 0,
@@ -37,7 +39,7 @@ export function useDataFreshness(
         return;
       }
 
-      const ageInMinutes = (now - lastUpdated.getTime()) / 60000;
+      const ageInMinutes = (now - lastUpdatedTime) / 60000;
 
       if (ageInMinutes < maxFreshTime) {
         setResult({
@@ -67,7 +69,7 @@ export function useDataFreshness(
 
     const interval = setInterval(calculateFreshness, 60000);
     return () => clearInterval(interval);
-  }, [lastUpdated, maxFreshTime, maxStaleTime]);
+  }, [lastUpdatedTime, maxFreshTime, maxStaleTime]);
 
   return result;
 }

@@ -3,6 +3,10 @@ import { type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { renderHook, act, waitFor } from '@testing-library/react';
 
+import { apiClient } from '@/lib/api';
+import { queries } from '@/lib/supabase/client';
+import { useUser } from '@/stores/authStore';
+
 import {
   useAlerts,
   useCreateAlert,
@@ -19,14 +23,6 @@ jest.mock('@/stores/authStore', () => ({
 }));
 
 jest.mock('@/lib/supabase/client', () => ({
-  supabase: {
-    channel: jest.fn(() => ({
-      on: jest.fn(() => ({
-        subscribe: jest.fn(),
-      })),
-      removeChannel: jest.fn(),
-    })),
-  },
   queries: {
     getAlerts: jest.fn(),
     createAlert: jest.fn(),
@@ -42,24 +38,6 @@ jest.mock('@/lib/api', () => ({
     post: jest.fn(),
   },
 }));
-
-import { useUser } from '@/stores/authStore';
-import { queries } from '@/lib/supabase/client';
-import { apiClient } from '@/lib/api';
-
-const createWrapper = () => {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: {
-        retry: false,
-      },
-    },
-  });
-
-  return function Wrapper({ children }: { children: ReactNode }) {
-    return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
-  };
-};
 
 const mockUser = {
   id: 'test-user-id',
@@ -87,16 +65,33 @@ const mockAlertEvent = {
   acknowledged_at: null,
 };
 
+function createTestWrapper() {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+        gcTime: 0,
+        staleTime: 0,
+      },
+    },
+  });
+
+  return function TestWrapper({ children }: { children: ReactNode }) {
+    return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+  };
+}
+
 describe('useAlerts', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    (useUser as jest.Mock).mockReturnValue(mockUser);
   });
 
   it('should return empty array when user is not logged in', async () => {
     (useUser as jest.Mock).mockReturnValue(null);
 
     const { result } = renderHook(() => useAlerts(), {
-      wrapper: createWrapper(),
+      wrapper: createTestWrapper(),
     });
 
     await waitFor(() => {
@@ -107,11 +102,10 @@ describe('useAlerts', () => {
   });
 
   it('should fetch alerts for logged in user', async () => {
-    (useUser as jest.Mock).mockReturnValue(mockUser);
     (queries.getAlerts as jest.Mock).mockResolvedValue([mockAlert]);
 
     const { result } = renderHook(() => useAlerts(), {
-      wrapper: createWrapper(),
+      wrapper: createTestWrapper(),
     });
 
     await waitFor(() => {
@@ -123,11 +117,10 @@ describe('useAlerts', () => {
   });
 
   it('should handle fetch error', async () => {
-    (useUser as jest.Mock).mockReturnValue(mockUser);
     (queries.getAlerts as jest.Mock).mockRejectedValue(new Error('Fetch error'));
 
     const { result } = renderHook(() => useAlerts(), {
-      wrapper: createWrapper(),
+      wrapper: createTestWrapper(),
     });
 
     await waitFor(() => {
@@ -138,11 +131,10 @@ describe('useAlerts', () => {
   });
 
   it('should refetch alerts', async () => {
-    (useUser as jest.Mock).mockReturnValue(mockUser);
     (queries.getAlerts as jest.Mock).mockResolvedValue([mockAlert]);
 
     const { result } = renderHook(() => useAlerts(), {
-      wrapper: createWrapper(),
+      wrapper: createTestWrapper(),
     });
 
     await waitFor(() => {
@@ -160,13 +152,14 @@ describe('useAlerts', () => {
 describe('useCreateAlert', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    (useUser as jest.Mock).mockReturnValue(mockUser);
   });
 
   it('should return error when user is not logged in', async () => {
     (useUser as jest.Mock).mockReturnValue(null);
 
     const { result } = renderHook(() => useCreateAlert(), {
-      wrapper: createWrapper(),
+      wrapper: createTestWrapper(),
     });
 
     let response: { alert: unknown; error: Error | null };
@@ -184,11 +177,10 @@ describe('useCreateAlert', () => {
   });
 
   it('should create alert successfully', async () => {
-    (useUser as jest.Mock).mockReturnValue(mockUser);
     (queries.createAlert as jest.Mock).mockResolvedValue(mockAlert);
 
     const { result } = renderHook(() => useCreateAlert(), {
-      wrapper: createWrapper(),
+      wrapper: createTestWrapper(),
     });
 
     let response: { alert: typeof mockAlert | null; error: Error | null };
@@ -206,11 +198,10 @@ describe('useCreateAlert', () => {
   });
 
   it('should handle create error', async () => {
-    (useUser as jest.Mock).mockReturnValue(mockUser);
     (queries.createAlert as jest.Mock).mockResolvedValue(null);
 
     const { result } = renderHook(() => useCreateAlert(), {
-      wrapper: createWrapper(),
+      wrapper: createTestWrapper(),
     });
 
     let response: { alert: unknown; error: Error | null };
@@ -228,19 +219,21 @@ describe('useCreateAlert', () => {
   });
 
   it('should track isCreating state', async () => {
-    (useUser as jest.Mock).mockReturnValue(mockUser);
-    (queries.createAlert as jest.Mock).mockImplementation(
-      () => new Promise((resolve) => setTimeout(() => resolve(mockAlert), 100))
-    );
+    let resolveCreate: (value: typeof mockAlert) => void;
+    const createPromise = new Promise<typeof mockAlert>((resolve) => {
+      resolveCreate = resolve;
+    });
+    (queries.createAlert as jest.Mock).mockReturnValue(createPromise);
 
     const { result } = renderHook(() => useCreateAlert(), {
-      wrapper: createWrapper(),
+      wrapper: createTestWrapper(),
     });
 
     expect(result.current.isCreating).toBe(false);
 
-    const createPromise = act(async () => {
-      await result.current.createAlert({
+    let alertPromise: Promise<{ alert: typeof mockAlert | null; error: Error | null }>;
+    act(() => {
+      alertPromise = result.current.createAlert({
         name: 'BTC Alert',
         symbol: 'BTC/USD',
         condition_type: 'above',
@@ -252,7 +245,10 @@ describe('useCreateAlert', () => {
       expect(result.current.isCreating).toBe(true);
     });
 
-    await createPromise;
+    resolveCreate!(mockAlert);
+    await act(async () => {
+      await alertPromise!;
+    });
 
     expect(result.current.isCreating).toBe(false);
   });
@@ -261,15 +257,15 @@ describe('useCreateAlert', () => {
 describe('useUpdateAlert', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    (useUser as jest.Mock).mockReturnValue(mockUser);
   });
 
   it('should update alert successfully', async () => {
-    (useUser as jest.Mock).mockReturnValue(mockUser);
     const updatedAlert = { ...mockAlert, target_value: 55000 };
     (queries.updateAlert as jest.Mock).mockResolvedValue(updatedAlert);
 
     const { result } = renderHook(() => useUpdateAlert(), {
-      wrapper: createWrapper(),
+      wrapper: createTestWrapper(),
     });
 
     let response: { alert: typeof mockAlert | null; error: Error | null };
@@ -284,11 +280,10 @@ describe('useUpdateAlert', () => {
   });
 
   it('should handle update error', async () => {
-    (useUser as jest.Mock).mockReturnValue(mockUser);
     (queries.updateAlert as jest.Mock).mockResolvedValue(null);
 
     const { result } = renderHook(() => useUpdateAlert(), {
-      wrapper: createWrapper(),
+      wrapper: createTestWrapper(),
     });
 
     let response: { alert: unknown; error: Error | null };
@@ -306,14 +301,14 @@ describe('useUpdateAlert', () => {
 describe('useDeleteAlert', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    (useUser as jest.Mock).mockReturnValue(mockUser);
   });
 
   it('should delete alert successfully', async () => {
-    (useUser as jest.Mock).mockReturnValue(mockUser);
     (queries.deleteAlert as jest.Mock).mockResolvedValue(true);
 
     const { result } = renderHook(() => useDeleteAlert(), {
-      wrapper: createWrapper(),
+      wrapper: createTestWrapper(),
     });
 
     let response: { success: boolean; error: Error | null };
@@ -326,11 +321,10 @@ describe('useDeleteAlert', () => {
   });
 
   it('should handle delete error', async () => {
-    (useUser as jest.Mock).mockReturnValue(mockUser);
     (queries.deleteAlert as jest.Mock).mockResolvedValue(false);
 
     const { result } = renderHook(() => useDeleteAlert(), {
-      wrapper: createWrapper(),
+      wrapper: createTestWrapper(),
     });
 
     let response: { success: boolean; error: Error | null };
@@ -346,14 +340,14 @@ describe('useDeleteAlert', () => {
 describe('useAlertEvents', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    (useUser as jest.Mock).mockReturnValue(mockUser);
   });
 
   it('should fetch alert events', async () => {
-    (useUser as jest.Mock).mockReturnValue(mockUser);
     (queries.getAlertEvents as jest.Mock).mockResolvedValue([mockAlertEvent]);
 
     const { result } = renderHook(() => useAlertEvents(), {
-      wrapper: createWrapper(),
+      wrapper: createTestWrapper(),
     });
 
     await waitFor(() => {
@@ -367,15 +361,15 @@ describe('useAlertEvents', () => {
 describe('useAcknowledgeAlert', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    (useUser as jest.Mock).mockReturnValue(mockUser);
   });
 
   it('should acknowledge alert event', async () => {
-    (useUser as jest.Mock).mockReturnValue(mockUser);
     const acknowledgedEvent = { ...mockAlertEvent, acknowledged_at: new Date().toISOString() };
     (queries.acknowledgeAlertEvent as jest.Mock).mockResolvedValue(acknowledgedEvent);
 
     const { result } = renderHook(() => useAcknowledgeAlert(), {
-      wrapper: createWrapper(),
+      wrapper: createTestWrapper(),
     });
 
     let response: { event: typeof mockAlertEvent | null; error: Error | null };
@@ -387,11 +381,10 @@ describe('useAcknowledgeAlert', () => {
   });
 
   it('should handle acknowledge error', async () => {
-    (useUser as jest.Mock).mockReturnValue(mockUser);
     (queries.acknowledgeAlertEvent as jest.Mock).mockResolvedValue(null);
 
     const { result } = renderHook(() => useAcknowledgeAlert(), {
-      wrapper: createWrapper(),
+      wrapper: createTestWrapper(),
     });
 
     let response: { event: unknown; error: Error | null };
@@ -406,10 +399,10 @@ describe('useAcknowledgeAlert', () => {
 describe('useBatchAlerts', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    (useUser as jest.Mock).mockReturnValue(mockUser);
   });
 
   it('should perform batch operation', async () => {
-    (useUser as jest.Mock).mockReturnValue(mockUser);
     (apiClient.post as jest.Mock).mockResolvedValue({
       data: {
         processed: 3,
@@ -421,7 +414,7 @@ describe('useBatchAlerts', () => {
     });
 
     const { result } = renderHook(() => useBatchAlerts(), {
-      wrapper: createWrapper(),
+      wrapper: createTestWrapper(),
     });
 
     let response: { result: { succeeded: number } | null; error: Error | null };
@@ -433,10 +426,8 @@ describe('useBatchAlerts', () => {
   });
 
   it('should return error for empty alert ids', async () => {
-    (useUser as jest.Mock).mockReturnValue(mockUser);
-
     const { result } = renderHook(() => useBatchAlerts(), {
-      wrapper: createWrapper(),
+      wrapper: createTestWrapper(),
     });
 
     let response: { result: unknown; error: Error | null };
@@ -449,35 +440,58 @@ describe('useBatchAlerts', () => {
   });
 
   it('should track isProcessing state', async () => {
-    (useUser as jest.Mock).mockReturnValue(mockUser);
-    (apiClient.post as jest.Mock).mockImplementation(
-      () =>
-        new Promise((resolve) =>
-          setTimeout(
-            () =>
-              resolve({
-                data: { processed: 1, succeeded: 1, failed: 0, successIds: ['1'], failedIds: [] },
-              }),
-            100
-          )
-        )
-    );
+    let resolveBatch: (value: {
+      data: {
+        processed: number;
+        succeeded: number;
+        failed: number;
+        successIds: string[];
+        failedIds: string[];
+      };
+    }) => void;
+    const batchPromise = new Promise<{
+      data: {
+        processed: number;
+        succeeded: number;
+        failed: number;
+        successIds: string[];
+        failedIds: string[];
+      };
+    }>((resolve) => {
+      resolveBatch = resolve;
+    });
+    (apiClient.post as jest.Mock).mockReturnValue(batchPromise);
 
     const { result } = renderHook(() => useBatchAlerts(), {
-      wrapper: createWrapper(),
+      wrapper: createTestWrapper(),
     });
 
     expect(result.current.isProcessing).toBe(false);
 
-    const promise = act(async () => {
-      await result.current.batchOperation('enable', ['1']);
+    let operationPromise: Promise<{
+      result: {
+        processed: number;
+        succeeded: number;
+        failed: number;
+        successIds: string[];
+        failedIds: string[];
+      } | null;
+      error: Error | null;
+    }>;
+    act(() => {
+      operationPromise = result.current.batchOperation('enable', ['1']);
     });
 
     await waitFor(() => {
       expect(result.current.isProcessing).toBe(true);
     });
 
-    await promise;
+    resolveBatch!({
+      data: { processed: 1, succeeded: 1, failed: 0, successIds: ['1'], failedIds: [] },
+    });
+    await act(async () => {
+      await operationPromise!;
+    });
 
     expect(result.current.isProcessing).toBe(false);
   });

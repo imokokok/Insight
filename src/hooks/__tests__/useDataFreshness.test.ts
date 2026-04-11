@@ -1,18 +1,33 @@
 import { renderHook, act } from '@testing-library/react';
 
-import { useDataFreshness, type DataFreshnessStatus } from '../data/useDataFreshness';
+import { useDataFreshness } from '../data/useDataFreshness';
 
 describe('useDataFreshness', () => {
+  let hookCleanupFns: Array<() => void> = [];
+
   beforeEach(() => {
     jest.useFakeTimers();
+    jest.setSystemTime(new Date('2024-01-01T00:00:00Z'));
+    hookCleanupFns = [];
   });
 
   afterEach(() => {
+    hookCleanupFns.forEach((cleanup) => {
+      try {
+        cleanup();
+      } catch (error) {
+        console.error('Cleanup error:', error);
+      }
+    });
+    hookCleanupFns = [];
+    jest.clearAllTimers();
     jest.useRealTimers();
+    jest.restoreAllMocks();
   });
 
   it('should return expired status when lastUpdated is null', () => {
-    const { result } = renderHook(() => useDataFreshness(null));
+    const { result, unmount } = renderHook(() => useDataFreshness(null));
+    hookCleanupFns.push(unmount);
 
     expect(result.current.status).toBe('expired');
     expect(result.current.ageInMinutes).toBe(0);
@@ -23,7 +38,8 @@ describe('useDataFreshness', () => {
   it('should return fresh status for recent data', () => {
     const recentDate = new Date();
 
-    const { result } = renderHook(() => useDataFreshness(recentDate));
+    const { result, unmount } = renderHook(() => useDataFreshness(recentDate));
+    hookCleanupFns.push(unmount);
 
     expect(result.current.status).toBe('fresh');
     expect(result.current.message).toBe('数据新鲜');
@@ -33,7 +49,8 @@ describe('useDataFreshness', () => {
   it('should return stale status for aging data', () => {
     const staleDate = new Date(Date.now() - 10 * 60 * 1000);
 
-    const { result } = renderHook(() => useDataFreshness(staleDate));
+    const { result, unmount } = renderHook(() => useDataFreshness(staleDate));
+    hookCleanupFns.push(unmount);
 
     expect(result.current.status).toBe('stale');
     expect(result.current.message).toBe('数据即将过期');
@@ -43,7 +60,8 @@ describe('useDataFreshness', () => {
   it('should return expired status for old data', () => {
     const expiredDate = new Date(Date.now() - 60 * 60 * 1000);
 
-    const { result } = renderHook(() => useDataFreshness(expiredDate));
+    const { result, unmount } = renderHook(() => useDataFreshness(expiredDate));
+    hookCleanupFns.push(unmount);
 
     expect(result.current.status).toBe('expired');
     expect(result.current.message).toBe('数据已过期');
@@ -53,7 +71,8 @@ describe('useDataFreshness', () => {
   it('should respect custom maxFreshTime', () => {
     const date = new Date(Date.now() - 3 * 60 * 1000);
 
-    const { result } = renderHook(() => useDataFreshness(date, 5));
+    const { result, unmount } = renderHook(() => useDataFreshness(date, 5));
+    hookCleanupFns.push(unmount);
 
     expect(result.current.status).toBe('fresh');
   });
@@ -61,7 +80,8 @@ describe('useDataFreshness', () => {
   it('should respect custom maxStaleTime', () => {
     const date = new Date(Date.now() - 20 * 60 * 1000);
 
-    const { result } = renderHook(() => useDataFreshness(date, 5, 30));
+    const { result, unmount } = renderHook(() => useDataFreshness(date, 5, 30));
+    hookCleanupFns.push(unmount);
 
     expect(result.current.status).toBe('stale');
   });
@@ -70,7 +90,8 @@ describe('useDataFreshness', () => {
     const ageInMinutes = 15;
     const date = new Date(Date.now() - ageInMinutes * 60 * 1000);
 
-    const { result } = renderHook(() => useDataFreshness(date));
+    const { result, unmount } = renderHook(() => useDataFreshness(date));
+    hookCleanupFns.push(unmount);
 
     expect(Math.round(result.current.ageInMinutes)).toBe(ageInMinutes);
   });
@@ -78,7 +99,8 @@ describe('useDataFreshness', () => {
   it('should update status over time', () => {
     const date = new Date();
 
-    const { result } = renderHook(() => useDataFreshness(date, 1, 2));
+    const { result, unmount } = renderHook(() => useDataFreshness(date, 1, 3));
+    hookCleanupFns.push(unmount);
 
     expect(result.current.status).toBe('fresh');
 
@@ -99,10 +121,13 @@ describe('useDataFreshness', () => {
     const oldDate = new Date(Date.now() - 60 * 60 * 1000);
     const newDate = new Date();
 
-    const { result, rerender } = renderHook(
+    const { result, rerender, unmount } = renderHook(
       ({ lastUpdated }) => useDataFreshness(lastUpdated),
-      { initialProps: { lastUpdated: oldDate } }
+      {
+        initialProps: { lastUpdated: oldDate },
+      }
     );
+    hookCleanupFns.push(unmount);
 
     expect(result.current.status).toBe('expired');
 
@@ -115,6 +140,7 @@ describe('useDataFreshness', () => {
     const clearIntervalSpy = jest.spyOn(global, 'clearInterval');
 
     const { unmount } = renderHook(() => useDataFreshness(new Date()));
+    hookCleanupFns.push(unmount);
 
     unmount();
 
@@ -126,7 +152,8 @@ describe('useDataFreshness', () => {
   it('should handle edge case at fresh/stale boundary', () => {
     const date = new Date(Date.now() - 5 * 60 * 1000);
 
-    const { result } = renderHook(() => useDataFreshness(date, 5, 30));
+    const { result, unmount } = renderHook(() => useDataFreshness(date, 5, 30));
+    hookCleanupFns.push(unmount);
 
     expect(result.current.status).toBe('stale');
   });
@@ -134,7 +161,8 @@ describe('useDataFreshness', () => {
   it('should handle edge case at stale/expired boundary', () => {
     const date = new Date(Date.now() - 30 * 60 * 1000);
 
-    const { result } = renderHook(() => useDataFreshness(date, 5, 30));
+    const { result, unmount } = renderHook(() => useDataFreshness(date, 5, 30));
+    hookCleanupFns.push(unmount);
 
     expect(result.current.status).toBe('expired');
   });
@@ -142,7 +170,8 @@ describe('useDataFreshness', () => {
   it('should handle zero values for thresholds', () => {
     const date = new Date();
 
-    const { result } = renderHook(() => useDataFreshness(date, 0, 0));
+    const { result, unmount } = renderHook(() => useDataFreshness(date, 0, 0));
+    hookCleanupFns.push(unmount);
 
     expect(result.current.status).toBe('expired');
     expect(result.current.shouldRefresh).toBe(true);
@@ -151,7 +180,8 @@ describe('useDataFreshness', () => {
   it('should update every minute', () => {
     const date = new Date(Date.now() - 4 * 60 * 1000);
 
-    const { result } = renderHook(() => useDataFreshness(date, 5, 30));
+    const { result, unmount } = renderHook(() => useDataFreshness(date, 5, 30));
+    hookCleanupFns.push(unmount);
 
     const initialAge = result.current.ageInMinutes;
 

@@ -1,5 +1,6 @@
-import { parseQueryParams, buildQueryParams, updateUrlParams } from '../urlParams';
 import { Blockchain, OracleProvider } from '@/types/oracle';
+
+import { parseQueryParams, buildQueryParams, updateUrlParams } from '../urlParams';
 
 describe('urlParams', () => {
   describe('parseQueryParams', () => {
@@ -252,7 +253,9 @@ describe('urlParams', () => {
 
   describe('updateUrlParams', () => {
     it('should call history.replaceState with correct URL', () => {
-      const mockReplaceState = jest.spyOn(window.history, 'replaceState').mockImplementation(() => {});
+      const mockReplaceState = jest
+        .spyOn(window.history, 'replaceState')
+        .mockImplementation(() => {});
 
       const config = {
         oracles: [OracleProvider.CHAINLINK] as OracleProvider[],
@@ -271,7 +274,9 @@ describe('urlParams', () => {
     });
 
     it('should handle empty config', () => {
-      const mockReplaceState = jest.spyOn(window.history, 'replaceState').mockImplementation(() => {});
+      const mockReplaceState = jest
+        .spyOn(window.history, 'replaceState')
+        .mockImplementation(() => {});
 
       const config = {
         oracles: [] as OracleProvider[],

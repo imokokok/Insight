@@ -1,4 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react';
+
 import { MobileDrawer } from '../MobileDrawer';
 import { type NavStructure, type NavGroup } from '../types';
 
@@ -6,7 +7,7 @@ jest.mock('@/i18n', () => ({
   useTranslations: () => (key: string) => key,
 }));
 
-jest.mock('./config', () => ({
+jest.mock('../config', () => ({
   oracleColors: {
     chainlink: '#375BD2',
     pyth: '#EC1C79',
@@ -59,7 +60,7 @@ describe('MobileDrawer', () => {
         currentPath="/"
       />
     );
-    
+
     expect(screen.queryByText('navbar.menu')).not.toBeInTheDocument();
   });
 
@@ -72,7 +73,7 @@ describe('MobileDrawer', () => {
         currentPath="/"
       />
     );
-    
+
     expect(screen.getByText('navbar.menu')).toBeInTheDocument();
   });
 
@@ -85,7 +86,7 @@ describe('MobileDrawer', () => {
         currentPath="/"
       />
     );
-    
+
     const closeButton = screen.getByRole('button', { name: /actions.close/i });
     expect(closeButton).toBeInTheDocument();
   });
@@ -99,10 +100,10 @@ describe('MobileDrawer', () => {
         currentPath="/"
       />
     );
-    
+
     const closeButton = screen.getByRole('button', { name: /actions.close/i });
     fireEvent.click(closeButton);
-    
+
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 
@@ -115,10 +116,10 @@ describe('MobileDrawer', () => {
         currentPath="/"
       />
     );
-    
+
     const backdrop = document.querySelector('.bg-black\\/30');
     fireEvent.click(backdrop!);
-    
+
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 
@@ -131,7 +132,7 @@ describe('MobileDrawer', () => {
         currentPath="/"
       />
     );
-    
+
     expect(screen.getByText('nav.oracles')).toBeInTheDocument();
   });
 
@@ -144,10 +145,10 @@ describe('MobileDrawer', () => {
         currentPath="/"
       />
     );
-    
+
     const groupButton = screen.getByRole('button', { name: /nav.oracles/i });
     fireEvent.click(groupButton);
-    
+
     expect(screen.getByText('nav.chainlink')).toBeInTheDocument();
     expect(screen.getByText('nav.pyth')).toBeInTheDocument();
   });
@@ -161,11 +162,11 @@ describe('MobileDrawer', () => {
         currentPath="/"
       />
     );
-    
+
     const groupButton = screen.getByRole('button', { name: /nav.oracles/i });
     fireEvent.click(groupButton);
     expect(screen.getByText('nav.chainlink')).toBeInTheDocument();
-    
+
     fireEvent.click(groupButton);
     expect(screen.queryByText('nav.chainlink')).not.toBeInTheDocument();
   });
@@ -179,10 +180,10 @@ describe('MobileDrawer', () => {
         currentPath="/chainlink"
       />
     );
-    
+
     const groupButton = screen.getByRole('button', { name: /nav.oracles/i });
     fireEvent.click(groupButton);
-    
+
     const chainlinkItem = screen.getByRole('link', { name: /nav.chainlink/i });
     expect(chainlinkItem).toHaveClass('bg-primary-50');
   });
@@ -196,7 +197,7 @@ describe('MobileDrawer', () => {
         currentPath="/chainlink"
       />
     );
-    
+
     const groupButton = screen.getByRole('button', { name: /nav.oracles/i });
     expect(groupButton).toHaveClass('bg-primary-50');
   });
@@ -210,7 +211,7 @@ describe('MobileDrawer', () => {
         currentPath="/"
       />
     );
-    
+
     expect(screen.getByText('nav.home')).toBeInTheDocument();
   });
 
@@ -223,10 +224,10 @@ describe('MobileDrawer', () => {
         currentPath="/"
       />
     );
-    
+
     const homeLink = screen.getByRole('link', { name: /nav.home/i });
     fireEvent.click(homeLink);
-    
+
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 
@@ -239,7 +240,7 @@ describe('MobileDrawer', () => {
         currentPath="/"
       />
     );
-    
+
     const logo = screen.getByAltText('Insight Logo');
     expect(logo).toBeInTheDocument();
   });

@@ -17,9 +17,7 @@ const mockPerformanceWithObserver = () => {
     observe: jest.fn(),
     disconnect: jest.fn(),
   };
-  (window as { PerformanceObserver?: jest.Mock }).PerformanceObserver = jest.fn(
-    () => mockObserver
-  );
+  (window as { PerformanceObserver?: jest.Mock }).PerformanceObserver = jest.fn(() => mockObserver);
   return mockObserver;
 };
 
@@ -29,6 +27,7 @@ describe('useWebVitalsOptimizer', () => {
     Object.defineProperty(global, 'performance', {
       value: {
         ...originalPerformance,
+        now: jest.fn().mockReturnValue(Date.now()),
         getEntriesByType: jest.fn().mockReturnValue([]),
       },
       writable: true,
@@ -105,6 +104,7 @@ describe('useResourceOptimizer', () => {
     Object.defineProperty(global, 'performance', {
       value: {
         ...originalPerformance,
+        now: jest.fn().mockReturnValue(Date.now()),
         getEntriesByType: jest.fn().mockReturnValue(mockResources),
       },
       writable: true,
@@ -171,6 +171,7 @@ describe('useNavigationOptimizer', () => {
     Object.defineProperty(global, 'performance', {
       value: {
         ...originalPerformance,
+        now: jest.fn().mockReturnValue(Date.now()),
         getEntriesByType: jest.fn().mockReturnValue([mockNavigation]),
       },
       writable: true,
@@ -225,12 +226,10 @@ describe('useLazyLoadOptimizer', () => {
       disconnect: jest.fn(),
     };
 
-    (window as { IntersectionObserver?: jest.Mock }).IntersectionObserver = jest.fn(
-      (callback) => {
-        observerCallback = callback;
-        return mockObserver;
-      }
-    );
+    (window as { IntersectionObserver?: jest.Mock }).IntersectionObserver = jest.fn((callback) => {
+      observerCallback = callback;
+      return mockObserver;
+    });
   });
 
   afterEach(() => {
@@ -336,6 +335,7 @@ describe('useMemoryOptimizer', () => {
     Object.defineProperty(global, 'performance', {
       value: {
         ...originalPerformance,
+        now: jest.fn().mockReturnValue(Date.now()),
         memory: {
           usedJSHeapSize: 40000000,
           totalJSHeapSize: 60000000,
@@ -428,6 +428,7 @@ describe('usePerformanceOptimizer', () => {
     Object.defineProperty(global, 'performance', {
       value: {
         ...originalPerformance,
+        now: jest.fn().mockReturnValue(Date.now()),
         getEntriesByType: jest.fn().mockReturnValue([]),
       },
       writable: true,

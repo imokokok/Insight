@@ -20,15 +20,18 @@ jest.mock('@/lib/utils/logger', () => ({
   }),
 }));
 
-const createMockQuery = () => ({
-  select: jest.fn().mockReturnThis(),
-  insert: jest.fn().mockReturnThis(),
-  update: jest.fn().mockReturnThis(),
-  delete: jest.fn().mockReturnThis(),
-  eq: jest.fn().mockReturnThis(),
-  order: jest.fn().mockReturnThis(),
-  single: jest.fn(),
-});
+const createMockQuery = () => {
+  const query: Record<string, jest.Mock> = {
+    select: jest.fn().mockReturnThis(),
+    insert: jest.fn().mockReturnThis(),
+    update: jest.fn().mockReturnThis(),
+    delete: jest.fn().mockReturnThis(),
+    eq: jest.fn().mockReturnThis(),
+    order: jest.fn().mockReturnThis(),
+    single: jest.fn(),
+  };
+  return query;
+};
 
 jest.mock('@/lib/supabase/client', () => ({
   supabase: {

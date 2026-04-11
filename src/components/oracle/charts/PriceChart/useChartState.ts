@@ -4,7 +4,7 @@ import { useState, useCallback, useRef } from 'react';
 
 import { type IndicatorDataPoint } from '@/hooks';
 
-import { type TimeRange, type DataGranularity, type ComparisonPeriod } from './priceChartConfig';
+import { type DataGranularity, type ComparisonPeriod } from './priceChartConfig';
 
 export interface ChartState {
   chartType: 'line' | 'candlestick';
@@ -62,7 +62,7 @@ export function useChartState() {
   const [isTransitioning, setIsTransitioning] = useState(false);
 
   const abortControllerRef = useRef<AbortController | null>(null);
-  const lastRealtimeUpdateRef = useRef<number>(Date.now());
+  const lastRealtimeUpdateRef = useRef<number>(0);
 
   const handleBrushChange = useCallback(
     (

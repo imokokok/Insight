@@ -1,7 +1,8 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 
-import { CrossOracleComparison } from '../index';
 import { OracleProvider } from '@/types/oracle';
+
+import { CrossOracleComparison } from '../index';
 
 const mockLocalStorage = (() => {
   let store: Record<string, string> = {};
@@ -139,10 +140,7 @@ jest.mock('../SettingsTab', () => ({
       <button onClick={() => onSymbolChange('ETH')} data-testid="change-symbol">
         Change Symbol
       </button>
-      <button
-        onClick={() => onToggleOracle(OracleProvider.DIA)}
-        data-testid="toggle-oracle"
-      >
+      <button onClick={() => onToggleOracle(OracleProvider.DIA)} data-testid="toggle-oracle">
         Toggle Oracle
       </button>
     </div>

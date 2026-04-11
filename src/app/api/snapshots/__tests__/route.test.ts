@@ -1,5 +1,6 @@
-import { GET, POST } from '../route';
 import { NextResponse } from 'next/server';
+
+import { GET, POST } from '../route';
 
 jest.mock('next/server', () => ({
   NextResponse: {
@@ -45,20 +46,20 @@ describe('/api/snapshots', () => {
   describe('GET', () => {
     it('should return 401 when user is not authenticated', async () => {
       mockGetUserId.mockResolvedValue(null);
-      
+
       const request = new Request('http://localhost/api/snapshots');
       const response = await GET(request);
-      
+
       expect(response.status).toBe(401);
       expect(response.data.error).toBe('Unauthorized');
     });
 
     it('should return snapshots for authenticated user', async () => {
       mockGetUserId.mockResolvedValue('user-1');
-      
+
       const request = new Request('http://localhost/api/snapshots');
       const response = await GET(request);
-      
+
       expect(response.status).toBe(200);
       expect(response.data).toHaveProperty('snapshots');
       expect(response.data).toHaveProperty('count');
@@ -68,13 +69,13 @@ describe('/api/snapshots', () => {
   describe('POST', () => {
     it('should return 401 when user is not authenticated', async () => {
       mockGetUserId.mockResolvedValue(null);
-      
+
       const request = new Request('http://localhost/api/snapshots', {
         method: 'POST',
         body: JSON.stringify({}),
       });
       const response = await POST(request);
-      
+
       expect(response.status).toBe(401);
       expect(response.data.error).toBe('Unauthorized');
     });
@@ -83,13 +84,13 @@ describe('/api/snapshots', () => {
       mockGetUserId.mockResolvedValue('user-1');
       const { validateAndSanitize } = require('@/lib/security/validation');
       validateAndSanitize.mockReturnValue(null);
-      
+
       const request = new Request('http://localhost/api/snapshots', {
         method: 'POST',
         body: JSON.stringify({}),
       });
       const response = await POST(request);
-      
+
       expect(response.status).toBe(400);
       expect(response.data).toHaveProperty('error');
     });
@@ -104,7 +105,7 @@ describe('/api/snapshots', () => {
         price_data: {},
         stats: {},
       });
-      
+
       const request = new Request('http://localhost/api/snapshots', {
         method: 'POST',
         body: JSON.stringify({
@@ -116,7 +117,7 @@ describe('/api/snapshots', () => {
         }),
       });
       const response = await POST(request);
-      
+
       expect(response.status).toBe(201);
       expect(response.data).toHaveProperty('snapshot');
       expect(response.data.message).toBe('Snapshot created successfully');

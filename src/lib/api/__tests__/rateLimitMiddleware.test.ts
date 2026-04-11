@@ -9,8 +9,6 @@ import {
   moderateRateLimit,
   lenientRateLimit,
   apiRateLimit,
-  type RateLimitMiddlewareOptions,
-  type RateLimitMiddlewareResult,
 } from '../middleware/rateLimitMiddleware';
 
 jest.mock('@/lib/utils/logger', () => ({
@@ -22,11 +20,13 @@ jest.mock('@/lib/utils/logger', () => ({
   })),
 }));
 
-function createMockRequest(options: {
-  method?: string;
-  url?: string;
-  headers?: Record<string, string>;
-} = {}): NextRequest {
+function createMockRequest(
+  options: {
+    method?: string;
+    url?: string;
+    headers?: Record<string, string>;
+  } = {}
+): NextRequest {
   const { method = 'GET', url = 'http://localhost/api/test', headers = {} } = options;
 
   return {
@@ -124,9 +124,9 @@ describe('rateLimitMiddleware', () => {
     });
 
     it('should use custom handler for rate limit exceeded', async () => {
-      const customHandler = jest.fn().mockReturnValue(
-        NextResponse.json({ custom: 'error' }, { status: 429 })
-      );
+      const customHandler = jest
+        .fn()
+        .mockReturnValue(NextResponse.json({ custom: 'error' }, { status: 429 }));
       const middleware = createRateLimitMiddleware({
         maxRequests: 1,
         handler: customHandler,

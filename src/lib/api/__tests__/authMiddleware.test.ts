@@ -1,4 +1,4 @@
-import { type NextRequest, NextResponse } from 'next/server';
+import { type NextRequest } from 'next/server';
 
 import {
   createAuthMiddleware,
@@ -7,8 +7,6 @@ import {
   optionalAuth,
   requireRoles,
   getUserId,
-  type AuthMiddlewareOptions,
-  type AuthContext,
 } from '../middleware/authMiddleware';
 
 jest.mock('@/lib/utils/logger', () => ({
@@ -24,11 +22,13 @@ jest.mock('@supabase/supabase-js', () => ({
   createClient: jest.fn(),
 }));
 
-function createMockRequest(options: {
-  method?: string;
-  url?: string;
-  headers?: Record<string, string>;
-} = {}): NextRequest {
+function createMockRequest(
+  options: {
+    method?: string;
+    url?: string;
+    headers?: Record<string, string>;
+  } = {}
+): NextRequest {
   const { method = 'GET', url = 'http://localhost/api/test', headers = {} } = options;
 
   return {

@@ -6,7 +6,11 @@ import HeroContent from '../HeroContent';
 
 jest.mock('next/link', () => ({
   __esModule: true,
-  default: ({ href, children, className }: {
+  default: ({
+    href,
+    children,
+    className,
+  }: {
     href: string;
     children: ReactNode;
     className?: string;

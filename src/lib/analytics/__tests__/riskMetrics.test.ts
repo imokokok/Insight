@@ -1098,7 +1098,14 @@ describe('riskMetrics', () => {
           configurable: true,
         });
 
-        const result = calculateRiskMetrics(oracleData as any, [100, 101, 102], [[1, 0.5], [0.5, 1]]);
+        const result = calculateRiskMetrics(
+          oracleData as any,
+          [100, 101, 102],
+          [
+            [1, 0.5],
+            [0.5, 1],
+          ]
+        );
         expect(result.hhi.value).toBe(0);
         expect(result.hhi.description).toBe('calculation_error');
         expect(result.volatility.index).toBe(0);

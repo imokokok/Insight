@@ -18,10 +18,9 @@ describe('useDebounce', () => {
   });
 
   it('should debounce value changes', () => {
-    const { result, rerender } = renderHook(
-      ({ value, delay }) => useDebounce(value, delay),
-      { initialProps: { value: 'initial', delay: 500 } }
-    );
+    const { result, rerender } = renderHook(({ value, delay }) => useDebounce(value, delay), {
+      initialProps: { value: 'initial', delay: 500 },
+    });
 
     expect(result.current).toBe('initial');
 
@@ -37,10 +36,9 @@ describe('useDebounce', () => {
   });
 
   it('should cancel previous timer on new value', () => {
-    const { result, rerender } = renderHook(
-      ({ value, delay }) => useDebounce(value, delay),
-      { initialProps: { value: 'initial', delay: 500 } }
-    );
+    const { result, rerender } = renderHook(({ value, delay }) => useDebounce(value, delay), {
+      initialProps: { value: 'initial', delay: 500 },
+    });
 
     rerender({ value: 'first', delay: 500 });
 
@@ -64,10 +62,9 @@ describe('useDebounce', () => {
   });
 
   it('should handle delay changes', () => {
-    const { result, rerender } = renderHook(
-      ({ value, delay }) => useDebounce(value, delay),
-      { initialProps: { value: 'initial', delay: 500 } }
-    );
+    const { result, rerender } = renderHook(({ value, delay }) => useDebounce(value, delay), {
+      initialProps: { value: 'initial', delay: 500 },
+    });
 
     rerender({ value: 'changed', delay: 100 });
 
@@ -79,10 +76,9 @@ describe('useDebounce', () => {
   });
 
   it('should work with number values', () => {
-    const { result, rerender } = renderHook(
-      ({ value }) => useDebounce(value, 300),
-      { initialProps: { value: 0 } }
-    );
+    const { result, rerender } = renderHook(({ value }) => useDebounce(value, 300), {
+      initialProps: { value: 0 },
+    });
 
     rerender({ value: 42 });
 
@@ -97,10 +93,9 @@ describe('useDebounce', () => {
     const initialObject = { name: 'initial' };
     const changedObject = { name: 'changed' };
 
-    const { result, rerender } = renderHook(
-      ({ value }) => useDebounce(value, 300),
-      { initialProps: { value: initialObject } }
-    );
+    const { result, rerender } = renderHook(({ value }) => useDebounce(value, 300), {
+      initialProps: { value: initialObject },
+    });
 
     rerender({ value: changedObject });
 
@@ -115,10 +110,9 @@ describe('useDebounce', () => {
     const initialArray = [1, 2, 3];
     const changedArray = [4, 5, 6];
 
-    const { result, rerender } = renderHook(
-      ({ value }) => useDebounce(value, 300),
-      { initialProps: { value: initialArray } }
-    );
+    const { result, rerender } = renderHook(({ value }) => useDebounce(value, 300), {
+      initialProps: { value: initialArray },
+    });
 
     rerender({ value: changedArray });
 
@@ -130,10 +124,9 @@ describe('useDebounce', () => {
   });
 
   it('should handle zero delay', () => {
-    const { result, rerender } = renderHook(
-      ({ value }) => useDebounce(value, 0),
-      { initialProps: { value: 'initial' } }
-    );
+    const { result, rerender } = renderHook(({ value }) => useDebounce(value, 0), {
+      initialProps: { value: 'initial' },
+    });
 
     rerender({ value: 'changed' });
 
@@ -147,10 +140,9 @@ describe('useDebounce', () => {
   it('should cleanup timer on unmount', () => {
     const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
 
-    const { unmount, rerender } = renderHook(
-      ({ value }) => useDebounce(value, 500),
-      { initialProps: { value: 'initial' } }
-    );
+    const { unmount, rerender } = renderHook(({ value }) => useDebounce(value, 500), {
+      initialProps: { value: 'initial' },
+    });
 
     rerender({ value: 'changed' });
 

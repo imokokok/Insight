@@ -1,4 +1,4 @@
-import { type NextRequest, NextResponse } from 'next/server';
+import { type NextRequest } from 'next/server';
 
 import {
   createValidationMiddleware,
@@ -7,8 +7,6 @@ import {
   validateParams,
   validate,
   validateField,
-  type ValidationMiddlewareOptions,
-  type ValidationMiddlewareResult,
 } from '../middleware/validationMiddleware';
 
 jest.mock('@/lib/utils/logger', () => ({
@@ -26,12 +24,14 @@ jest.mock('../validation', () => ({
 
 const { validateObject } = require('../validation');
 
-function createMockRequest(options: {
-  method?: string;
-  url?: string;
-  headers?: Record<string, string>;
-  body?: unknown;
-} = {}): NextRequest {
+function createMockRequest(
+  options: {
+    method?: string;
+    url?: string;
+    headers?: Record<string, string>;
+    body?: unknown;
+  } = {}
+): NextRequest {
   const { method = 'POST', url = 'http://localhost/api/test', headers = {}, body } = options;
 
   return {

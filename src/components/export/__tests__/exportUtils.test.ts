@@ -12,7 +12,7 @@ describe('exportUtils', () => {
     it('should generate unique IDs', () => {
       const id1 = generateId();
       const id2 = generateId();
-      
+
       expect(id1).not.toBe(id2);
       expect(id1).toMatch(/^export-/);
     });
@@ -21,27 +21,32 @@ describe('exportUtils', () => {
   describe('generateFileName', () => {
     it('should generate filename with timestamp', () => {
       const fileName = generateFileName('price-query', 'csv');
-      
+
       expect(fileName).toMatch(/^price-query-/);
       expect(fileName).toMatch(/\.csv$/);
     });
 
     it('should generate excel filename with xlsx extension', () => {
       const fileName = generateFileName('cross-oracle', 'excel');
-      
+
       expect(fileName).toMatch(/\.xlsx$/);
     });
 
     it('should use custom name when provided', () => {
       const fileName = generateFileName('custom', 'json', 'my-export');
-      
+
       expect(fileName).toMatch(/^my-export-/);
       expect(fileName).toMatch(/\.json$/);
     });
 
     it('should handle all data sources', () => {
-      const sources: ExportDataSource[] = ['price-query', 'cross-oracle', 'oracle-detail', 'custom'];
-      
+      const sources: ExportDataSource[] = [
+        'price-query',
+        'cross-oracle',
+        'oracle-detail',
+        'custom',
+      ];
+
       sources.forEach((source) => {
         const fileName = generateFileName(source, 'csv');
         expect(fileName).toMatch(/\.csv$/);
@@ -50,7 +55,7 @@ describe('exportUtils', () => {
 
     it('should handle all formats', () => {
       const formats: ExportFormat[] = ['csv', 'json', 'excel', 'pdf'];
-      
+
       formats.forEach((format) => {
         const fileName = generateFileName('price-query', format);
         if (format === 'excel') {
@@ -116,7 +121,7 @@ describe('exportUtils', () => {
 
     it('should filter selected fields', () => {
       const selected = getSelectedFields(mockFields);
-      
+
       expect(selected).toHaveLength(2);
       expect(selected[0].key).toBe('symbol');
       expect(selected[1].key).toBe('timestamp');
@@ -126,7 +131,7 @@ describe('exportUtils', () => {
       const fields: ExportField[] = [
         { key: 'symbol', label: 'Symbol', labelZh: '符号', selected: false },
       ];
-      
+
       expect(getSelectedFields(fields)).toHaveLength(0);
     });
 
@@ -135,7 +140,7 @@ describe('exportUtils', () => {
         { key: 'symbol', label: 'Symbol', labelZh: '符号', selected: true },
         { key: 'price', label: 'Price', labelZh: '价格', selected: true },
       ];
-      
+
       expect(getSelectedFields(fields)).toHaveLength(2);
     });
   });

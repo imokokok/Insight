@@ -1,6 +1,8 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import { PriceTable } from '../PriceTable';
+
 import { type OracleProvider, type PriceData } from '@/types/oracle';
+
+import { PriceTable } from '../PriceTable';
 
 jest.mock('@/components/ui', () => ({
   DataTablePro: ({ data, columns }: any) => (
@@ -16,15 +18,15 @@ jest.mock('@/components/ui', () => ({
   ),
 }));
 
-jest.mock('../constants', () => ({
+jest.mock('../../constants', () => ({
   oracleNames: {
     chainlink: 'Chainlink',
     pyth: 'Pyth',
   },
-  getDeviationBgClass: (deviation: number) => deviation > 5 ? 'bg-red-100' : 'bg-green-100',
-  getFreshnessInfo: (seconds: number) => ({ label: 'Fresh', color: 'green' }),
+  getDeviationBgClass: (deviation: number) => (deviation > 5 ? 'bg-red-100' : 'bg-green-100'),
+  getFreshnessInfo: (seconds: number) => ({ label: 'Fresh', color: 'green', text: 'Fresh', seconds }),
   getFreshnessDotColor: (seconds: number) => 'green',
-  calculateZScore: (price: number, avg: number, std: number) => (price - avg) / std,
+  calculateZScore: (price: number, avg: number, std: number) => std > 0 ? (price - avg) / std : 0,
   isOutlier: (zScore: number) => Math.abs(zScore) > 2,
   ANOMALY_THRESHOLD: 0.05,
 }));
@@ -75,26 +77,26 @@ describe('PriceTable', () => {
 
   it('should render price table', () => {
     render(<PriceTable {...mockProps} />);
-    
+
     expect(screen.getByTestId('data-table-pro')).toBeInTheDocument();
   });
 
   it('should render loading state', () => {
     render(<PriceTable {...mockProps} isLoading={true} />);
-    
+
     expect(screen.getByText(/loading/i)).toBeInTheDocument();
   });
 
   it('should render empty state when no data', () => {
     render(<PriceTable {...mockProps} priceData={[]} filteredPriceData={[]} />);
-    
+
     expect(screen.getByText(/no data/i)).toBeInTheDocument();
   });
 
   it('should call onSort when sort is triggered', () => {
     const onSort = jest.fn();
     render(<PriceTable {...mockProps} onSort={onSort} />);
-    
+
     const table = screen.getByTestId('data-table-pro');
     expect(table).toBeInTheDocument();
   });
@@ -102,7 +104,7 @@ describe('PriceTable', () => {
   it('should call onExpandRow when row is expanded', () => {
     const onExpandRow = jest.fn();
     render(<PriceTable {...mockProps} onExpandRow={onExpandRow} />);
-    
+
     const table = screen.getByTestId('data-table-pro');
     expect(table).toBeInTheDocument();
   });
@@ -110,7 +112,7 @@ describe('PriceTable', () => {
   it('should call onSetHoveredRow when row is hovered', () => {
     const onSetHoveredRow = jest.fn();
     render(<PriceTable {...mockProps} onSetHoveredRow={onSetHoveredRow} />);
-    
+
     const table = screen.getByTestId('data-table-pro');
     expect(table).toBeInTheDocument();
   });
@@ -118,14 +120,14 @@ describe('PriceTable', () => {
   it('should call onHoverOracle when oracle is hovered', () => {
     const onHoverOracle = jest.fn();
     render(<PriceTable {...mockProps} onHoverOracle={onHoverOracle} />);
-    
+
     const table = screen.getByTestId('data-table-pro');
     expect(table).toBeInTheDocument();
   });
 
   it('should display correct number of rows', () => {
     render(<PriceTable {...mockProps} />);
-    
+
     const rows = screen.getAllByTestId(/row-/);
     expect(rows).toHaveLength(2);
   });

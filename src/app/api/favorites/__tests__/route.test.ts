@@ -1,8 +1,8 @@
 import { type NextRequest } from 'next/server';
 
-import { GET, POST } from '../route';
-
 import type { UserFavorite } from '@/lib/supabase/queries';
+
+import { GET, POST } from '../route';
 
 const mockGetUserId = jest.fn();
 const mockGetServerQueries = jest.fn();
@@ -128,7 +128,9 @@ describe('/api/favorites', () => {
       mockGetUserId.mockResolvedValue('user-123');
       mockQueries.getFavoritesByType.mockResolvedValue([mockFavorites[0]]);
 
-      const request = createMockRequest({ url: 'http://localhost/api/favorites?config_type=oracle_config' });
+      const request = createMockRequest({
+        url: 'http://localhost/api/favorites?config_type=oracle_config',
+      });
       const response = await GET(request);
       const data = await response.json();
 
@@ -142,7 +144,9 @@ describe('/api/favorites', () => {
       mockGetUserId.mockResolvedValue('user-123');
       mockQueries.getFavorites.mockResolvedValue(mockFavorites);
 
-      const request = createMockRequest({ url: 'http://localhost/api/favorites?config_type=invalid_type' });
+      const request = createMockRequest({
+        url: 'http://localhost/api/favorites?config_type=invalid_type',
+      });
       const response = await GET(request);
       const data = await response.json();
 

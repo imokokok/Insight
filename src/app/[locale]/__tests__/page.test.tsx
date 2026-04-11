@@ -74,9 +74,7 @@ describe('HomePage', () => {
 
       expect(metadata.title).toBe('Insight - 预言机数据平台');
       expect(metadata.description).toContain('全面分析和比较');
-      expect(metadata.keywords).toEqual(
-        expect.arrayContaining(['预言机', 'oracle', 'chainlink'])
-      );
+      expect(metadata.keywords).toEqual(expect.arrayContaining(['预言机', 'oracle', 'chainlink']));
       expect(metadata.openGraph?.title).toBe('Insight - 预言机数据平台');
       expect(metadata.openGraph?.locale).toBe('zh_CN');
     });

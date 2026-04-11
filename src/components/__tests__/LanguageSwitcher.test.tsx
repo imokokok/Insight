@@ -99,9 +99,9 @@ describe('LanguageSwitcher', () => {
       const button = screen.getByRole('button', { name: /english/i });
       fireEvent.click(button);
 
-      const allEnglishButtons = screen.getAllByRole('button').filter(
-        (btn) => btn.textContent?.includes('English')
-      );
+      const allEnglishButtons = screen
+        .getAllByRole('button')
+        .filter((btn) => btn.textContent?.includes('English'));
       expect(allEnglishButtons.length).toBeGreaterThan(0);
       expect(screen.getByText('中文')).toBeInTheDocument();
     });
@@ -161,9 +161,9 @@ describe('LanguageSwitcher', () => {
       const button = screen.getByRole('button', { name: /english/i });
       fireEvent.click(button);
 
-      const englishOption = screen.getAllByRole('button').find(
-        (btn) => btn.textContent === 'English' && btn.classList.contains('bg-primary-50')
-      );
+      const englishOption = screen
+        .getAllByRole('button')
+        .find((btn) => btn.textContent === 'English' && btn.classList.contains('bg-primary-50'));
       expect(englishOption).toBeDefined();
     });
 
@@ -173,9 +173,7 @@ describe('LanguageSwitcher', () => {
       const button = screen.getByRole('button', { name: /english/i });
       fireEvent.click(button);
 
-      const chineseOption = screen.getAllByRole('button').find(
-        (btn) => btn.textContent === '中文'
-      );
+      const chineseOption = screen.getAllByRole('button').find((btn) => btn.textContent === '中文');
       expect(chineseOption?.classList.contains('bg-primary-50')).toBe(false);
     });
   });

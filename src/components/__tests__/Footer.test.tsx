@@ -7,19 +7,26 @@ import Footer from '../Footer';
 
 jest.mock('next/image', () => ({
   __esModule: true,
-  default: ({ src, alt, width, height }: {
+  default: ({
+    src,
+    alt,
+    width,
+    height,
+  }: {
     src: string;
     alt: string;
     width: number;
     height: number;
-  }) => (
-    <img src={src} alt={alt} width={width} height={height} />
-  ),
+  }) => <img src={src} alt={alt} width={width} height={height} />,
 }));
 
 jest.mock('next/link', () => ({
   __esModule: true,
-  default: ({ href, children, className }: {
+  default: ({
+    href,
+    children,
+    className,
+  }: {
     href: string;
     children: ReactNode;
     className?: string;
@@ -224,9 +231,9 @@ describe('Footer', () => {
     it('外部链接应该有正确的安全属性', () => {
       renderFooter();
 
-      const externalLinks = screen.getAllByRole('link').filter(
-        (link) => link.getAttribute('href')?.startsWith('http')
-      );
+      const externalLinks = screen
+        .getAllByRole('link')
+        .filter((link) => link.getAttribute('href')?.startsWith('http'));
 
       externalLinks.forEach((link) => {
         expect(link).toHaveAttribute('target', '_blank');

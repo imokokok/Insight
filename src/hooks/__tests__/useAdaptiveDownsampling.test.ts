@@ -1,9 +1,6 @@
 import { renderHook, act } from '@testing-library/react';
 
-import {
-  useAdaptiveDownsampling,
-  useChartPerformanceMonitor,
-} from '../ui/useAdaptiveDownsampling';
+import { useAdaptiveDownsampling, useChartPerformanceMonitor } from '../ui/useAdaptiveDownsampling';
 
 jest.mock('@/lib/utils/downsampling', () => ({
   adaptiveDownsample: jest.fn((data) => data.slice(0, Math.floor(data.length / 2))),
@@ -26,9 +23,7 @@ describe('useAdaptiveDownsampling', () => {
   it('should return original data when disabled', () => {
     const data = generateTestData(1000);
 
-    const { result } = renderHook(() =>
-      useAdaptiveDownsampling(data, { enabled: false })
-    );
+    const { result } = renderHook(() => useAdaptiveDownsampling(data, { enabled: false }));
 
     expect(result.current.downsampledData).toEqual(data);
   });
@@ -36,9 +31,7 @@ describe('useAdaptiveDownsampling', () => {
   it('should return original data when below threshold', () => {
     const data = generateTestData(100);
 
-    const { result } = renderHook(() =>
-      useAdaptiveDownsampling(data, { threshold: 500 })
-    );
+    const { result } = renderHook(() => useAdaptiveDownsampling(data, { threshold: 500 }));
 
     expect(result.current.downsampledData).toEqual(data);
   });
@@ -69,9 +62,7 @@ describe('useAdaptiveDownsampling', () => {
   it('should return null metrics when no downsampling', () => {
     const data = generateTestData(100);
 
-    const { result } = renderHook(() =>
-      useAdaptiveDownsampling(data, { threshold: 500 })
-    );
+    const { result } = renderHook(() => useAdaptiveDownsampling(data, { threshold: 500 }));
 
     expect(result.current.metrics).toBeNull();
   });
@@ -79,9 +70,7 @@ describe('useAdaptiveDownsampling', () => {
   it('should track state', () => {
     const data = generateTestData(1000);
 
-    const { result } = renderHook(() =>
-      useAdaptiveDownsampling(data, { threshold: 500 })
-    );
+    const { result } = renderHook(() => useAdaptiveDownsampling(data, { threshold: 500 }));
 
     expect(result.current.state).toBeDefined();
     expect(typeof result.current.state.isProcessing).toBe('boolean');
@@ -92,9 +81,7 @@ describe('useAdaptiveDownsampling', () => {
   it('should force downsample with custom config', () => {
     const data = generateTestData(1000);
 
-    const { result } = renderHook(() =>
-      useAdaptiveDownsampling(data, { threshold: 500 })
-    );
+    const { result } = renderHook(() => useAdaptiveDownsampling(data, { threshold: 500 }));
 
     const customData = generateTestData(800);
     let downsampled: typeof customData = [];
@@ -109,9 +96,7 @@ describe('useAdaptiveDownsampling', () => {
   it('should not force downsample when below threshold', () => {
     const data = generateTestData(1000);
 
-    const { result } = renderHook(() =>
-      useAdaptiveDownsampling(data, { threshold: 500 })
-    );
+    const { result } = renderHook(() => useAdaptiveDownsampling(data, { threshold: 500 }));
 
     const smallData = generateTestData(100);
     let downsampled: typeof smallData = [];

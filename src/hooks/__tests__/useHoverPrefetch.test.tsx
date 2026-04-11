@@ -125,7 +125,7 @@ describe('useHoverPrefetch', () => {
     const error = new Error('Test error');
     const queryFn = jest.fn().mockRejectedValue(error);
     const onError = jest.fn();
-    
+
     // Create a new QueryClient for each test to avoid cache issues
     const queryClient = new QueryClient({
       defaultOptions: {
@@ -134,7 +134,7 @@ describe('useHoverPrefetch', () => {
         },
       },
     });
-    
+
     const wrapper = function Wrapper({ children }: { children: ReactNode }) {
       return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
     };

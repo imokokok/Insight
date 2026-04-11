@@ -1,635 +1,477 @@
-import { act, renderHook } from '@testing-library/react';
+import { act } from '@testing-library/react';
+
+import type { RealtimePrice, RealtimeSubscription, RealtimeState } from '@/types/realtime';
 
 import { useRealtimeStore } from '../realtimeStore';
 
-import type {
-  PriceUpdatePayload,
-  AlertEventPayload,
-  SnapshotChangePayload,
-  FavoriteChangePayload,
-} from '@/lib/supabase/realtime';
-
-const mockPricePayload: PriceUpdatePayload = {
-  eventType: 'UPDATE',
-  new: {
-    id: '1',
-    provider: 'chainlink',
-    symbol: 'BTC',
-    chain: 'ethereum',
-    price: 68000,
-    timestamp: Date.now(),
-    decimals: 8,
-    confidence: 0.98,
-  },
-  old: {},
-  schema: 'public',
-  table: 'price_records',
-  commit_timestamp: new Date().toISOString(),
+const mockPrice: RealtimePrice = {
+  symbol: 'BTC',
+  provider: 'chainlink',
+  price: 50000,
+  change24h: 2.5,
+  timestamp: Date.now(),
+  source: 'ethereum',
 };
 
-const mockAlertPayload: AlertEventPayload = {
-  eventType: 'INSERT',
-  new: {
-    id: '1',
-    user_id: 'user-123',
-    alert_type: 'price_threshold',
-    message: 'BTC price alert',
-    created_at: new Date().toISOString(),
-  },
-  old: {},
-  schema: 'public',
-  table: 'alert_events',
-  commit_timestamp: new Date().toISOString(),
+const mockSubscription: RealtimeSubscription = {
+  id: 'sub-1',
+  symbol: 'BTC',
+  provider: 'chainlink',
+  chain: 'ethereum',
+  status: 'active',
+  createdAt: Date.now(),
 };
 
-const mockSnapshotPayload: SnapshotChangePayload = {
-  eventType: 'UPDATE',
-  new: {
-    id: '1',
-    user_id: 'user-123',
-    name: 'My Snapshot',
-    created_at: new Date().toISOString(),
-  },
-  old: {},
-  schema: 'public',
-  table: 'user_snapshots',
-  commit_timestamp: new Date().toISOString(),
+const mockState: RealtimeState = {
+  prices: {},
+  subscriptions: [],
+  isConnected: false,
+  connectionStatus: 'disconnected',
+  error: null,
+  lastUpdate: null,
+  reconnectAttempts: 0,
 };
 
-const mockFavoritePayload: FavoriteChangePayload = {
-  eventType: 'INSERT',
-  new: {
-    id: '1',
-    user_id: 'user-123',
-    symbol: 'BTC',
-    created_at: new Date().toISOString(),
-  },
-  old: {},
-  schema: 'public',
-  table: 'user_favorites',
-  commit_timestamp: new Date().toISOString(),
-};
+beforeEach(() => {
+  jest.clearAllMocks();
+  useRealtimeStore.setState(mockState);
+});
 
-jest.mock('@/lib/supabase/realtime', () => ({
-  realtimeManager: {
-    getConnectionStatus: jest.fn(() => 'disconnected'),
-    subscribeToPriceUpdates: jest.fn(() => jest.fn()),
-    subscribeToAlertEvents: jest.fn(() => jest.fn()),
-    subscribeToSnapshotChanges: jest.fn(() => jest.fn()),
-    subscribeToFavoriteChanges: jest.fn(() => jest.fn()),
-    reconnect: jest.fn(),
-  },
-}));
+describe('realtimeStore - 初始状态', () => {
+  it('应该有正确的初始状态', () => {
+    const state = useRealtimeStore.getState();
+    expect(state.prices).toEqual({});
+    expect(state.subscriptions).toEqual([]);
+    expect(state.isConnected).toBe(false);
+    expect(state.connectionStatus).toBe('disconnected');
+    expect(state.error).toBeNull();
+    expect(state.lastUpdate).toBeNull();
+    expect(state.reconnectAttempts).toBe(0);
+  });
+});
 
-import { realtimeManager } from '@/lib/supabase/realtime';
+describe('realtimeStore - setPrice', () => {
+  it('setPrice 应该更新价格数据', () => {
+    act(() => {
+      useRealtimeStore.getState().setPrice('BTC-chainlink', mockPrice);
+    });
+    expect(useRealtimeStore.getState().prices['BTC-chainlink']).toEqual(mockPrice);
+  });
 
-describe('realtimeStore', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
+  it('setPrice 应该保留其他价格数据', () => {
+    const existingPrice = { ...mockPrice, symbol: 'ETH', price: 3000 };
+    useRealtimeStore.setState({ prices: { 'ETH-chainlink': existingPrice } });
 
+    act(() => {
+      useRealtimeStore.getState().setPrice('BTC-chainlink', mockPrice);
+    });
+
+    expect(Object.keys(useRealtimeStore.getState().prices)).toHaveLength(2);
+  });
+});
+
+describe('realtimeStore - setPrices', () => {
+  it('setPrices 应该批量更新价格数据', () => {
+    const prices = {
+      'BTC-chainlink': mockPrice,
+      'ETH-chainlink': { ...mockPrice, symbol: 'ETH', price: 3000 },
+    };
+
+    act(() => {
+      useRealtimeStore.getState().setPrices(prices);
+    });
+
+    expect(Object.keys(useRealtimeStore.getState().prices)).toHaveLength(2);
+  });
+
+  it('setPrices 应该替换现有价格数据', () => {
+    useRealtimeStore.setState({ prices: { 'OLD-key': mockPrice } });
+
+    const newPrices = {
+      'BTC-chainlink': mockPrice,
+    };
+
+    act(() => {
+      useRealtimeStore.getState().setPrices(newPrices);
+    });
+
+    expect(useRealtimeStore.getState().prices['OLD-key']).toBeUndefined();
+    expect(useRealtimeStore.getState().prices['BTC-chainlink']).toBeDefined();
+  });
+});
+
+describe('realtimeStore - removePrice', () => {
+  it('removePrice 应该删除价格数据', () => {
+    useRealtimeStore.setState({ prices: { 'BTC-chainlink': mockPrice } });
+
+    act(() => {
+      useRealtimeStore.getState().removePrice('BTC-chainlink');
+    });
+
+    expect(useRealtimeStore.getState().prices['BTC-chainlink']).toBeUndefined();
+  });
+
+  it('removePrice 不应该影响其他价格数据', () => {
+    const ethPrice = { ...mockPrice, symbol: 'ETH' };
     useRealtimeStore.setState({
-      connectionStatus: 'disconnected',
-      activeSubscriptions: [],
-      lastPriceUpdate: null,
-      lastAlertEvent: null,
-      lastSnapshotChange: null,
-      lastFavoriteChange: null,
-      priceUpdateCount: 0,
-      alertEventCount: 0,
-      reconnectAttempts: 0,
-      userId: null,
-      _initialized: false,
+      prices: { 'BTC-chainlink': mockPrice, 'ETH-chainlink': ethPrice },
     });
+
+    act(() => {
+      useRealtimeStore.getState().removePrice('BTC-chainlink');
+    });
+
+    expect(useRealtimeStore.getState().prices['ETH-chainlink']).toBeDefined();
+  });
+});
+
+describe('realtimeStore - clearPrices', () => {
+  it('clearPrices 应该清除所有价格数据', () => {
+    useRealtimeStore.setState({ prices: { 'BTC-chainlink': mockPrice } });
+
+    act(() => {
+      useRealtimeStore.getState().clearPrices();
+    });
+
+    expect(Object.keys(useRealtimeStore.getState().prices)).toHaveLength(0);
+  });
+});
+
+describe('realtimeStore - addSubscription', () => {
+  it('addSubscription 应该添加订阅', () => {
+    act(() => {
+      useRealtimeStore.getState().addSubscription(mockSubscription);
+    });
+
+    expect(useRealtimeStore.getState().subscriptions).toHaveLength(1);
+    expect(useRealtimeStore.getState().subscriptions[0]).toEqual(mockSubscription);
   });
 
-  describe('初始状态', () => {
-    it('应该有正确的初始状态', () => {
-      const state = useRealtimeStore.getState();
-      expect(state.connectionStatus).toBe('disconnected');
-      expect(state.activeSubscriptions).toEqual([]);
-      expect(state.lastPriceUpdate).toBeNull();
-      expect(state.lastAlertEvent).toBeNull();
-      expect(state.lastSnapshotChange).toBeNull();
-      expect(state.lastFavoriteChange).toBeNull();
-      expect(state.priceUpdateCount).toBe(0);
-      expect(state.alertEventCount).toBe(0);
-      expect(state.reconnectAttempts).toBe(0);
-      expect(state.userId).toBeNull();
-      expect(state._initialized).toBe(false);
+  it('addSubscription 应该添加到现有列表', () => {
+    const existingSub = { ...mockSubscription, id: 'sub-0' };
+    useRealtimeStore.setState({ subscriptions: [existingSub] });
+
+    act(() => {
+      useRealtimeStore.getState().addSubscription(mockSubscription);
     });
+
+    expect(useRealtimeStore.getState().subscriptions).toHaveLength(2);
+  });
+});
+
+describe('realtimeStore - removeSubscription', () => {
+  it('removeSubscription 应该删除订阅', () => {
+    useRealtimeStore.setState({ subscriptions: [mockSubscription] });
+
+    act(() => {
+      useRealtimeStore.getState().removeSubscription('sub-1');
+    });
+
+    expect(useRealtimeStore.getState().subscriptions).toHaveLength(0);
   });
 
-  describe('WebSocket 连接状态', () => {
-    it('应该能够设置连接状态为 connecting', () => {
-      act(() => {
-        useRealtimeStore.getState().setConnectionStatus('connecting');
-      });
+  it('removeSubscription 不应该影响不存在的订阅', () => {
+    useRealtimeStore.setState({ subscriptions: [mockSubscription] });
 
-      expect(useRealtimeStore.getState().connectionStatus).toBe('connecting');
+    act(() => {
+      useRealtimeStore.getState().removeSubscription('non-existent');
     });
 
-    it('应该能够设置连接状态为 connected', () => {
-      act(() => {
-        useRealtimeStore.getState().setConnectionStatus('connected');
-      });
+    expect(useRealtimeStore.getState().subscriptions).toHaveLength(1);
+  });
+});
 
-      expect(useRealtimeStore.getState().connectionStatus).toBe('connected');
+describe('realtimeStore - updateSubscription', () => {
+  it('updateSubscription 应该更新订阅状态', () => {
+    useRealtimeStore.setState({ subscriptions: [mockSubscription] });
+
+    act(() => {
+      useRealtimeStore.getState().updateSubscription('sub-1', { status: 'paused' });
     });
 
-    it('应该能够设置连接状态为 disconnected', () => {
-      act(() => {
-        useRealtimeStore.getState().setConnectionStatus('connected');
-      });
-
-      act(() => {
-        useRealtimeStore.getState().setConnectionStatus('disconnected');
-      });
-
-      expect(useRealtimeStore.getState().connectionStatus).toBe('disconnected');
-    });
-
-    it('应该能够设置连接状态为 error', () => {
-      act(() => {
-        useRealtimeStore.getState().setConnectionStatus('error');
-      });
-
-      expect(useRealtimeStore.getState().connectionStatus).toBe('error');
-    });
-
-    it('连接成功后应该重置重连尝试次数', () => {
-      useRealtimeStore.setState({ reconnectAttempts: 3 });
-
-      act(() => {
-        useRealtimeStore.getState().setConnectionStatus('connected');
-      });
-
-      expect(useRealtimeStore.getState().reconnectAttempts).toBe(0);
-    });
-
-    it('从非连接状态变为连接状态时应该重置重连次数', () => {
-      useRealtimeStore.setState({
-        connectionStatus: 'connecting',
-        reconnectAttempts: 5,
-      });
-
-      act(() => {
-        useRealtimeStore.getState().setConnectionStatus('connected');
-      });
-
-      expect(useRealtimeStore.getState().reconnectAttempts).toBe(0);
-    });
-
-    it('连接状态不变时不应该重置重连次数', () => {
-      useRealtimeStore.setState({
-        connectionStatus: 'connected',
-        reconnectAttempts: 3,
-      });
-
-      act(() => {
-        useRealtimeStore.getState().setConnectionStatus('connected');
-      });
-
-      expect(useRealtimeStore.getState().reconnectAttempts).toBe(3);
-    });
+    expect(useRealtimeStore.getState().subscriptions[0].status).toBe('paused');
   });
 
-  describe('数据订阅管理', () => {
-    it('setActiveSubscriptions 应该更新活动订阅列表', () => {
-      const subscriptions = ['price_updates', 'alert_events'];
-
-      act(() => {
-        useRealtimeStore.getState().setActiveSubscriptions(subscriptions);
-      });
-
-      expect(useRealtimeStore.getState().activeSubscriptions).toEqual(subscriptions);
+  it('updateSubscription 不应该影响不存在的订阅', () => {
+    act(() => {
+      useRealtimeStore.getState().updateSubscription('non-existent', { status: 'paused' });
     });
 
-    it('setUserId 应该更新用户 ID', () => {
-      act(() => {
-        useRealtimeStore.getState().setUserId('user-123');
-      });
+    expect(useRealtimeStore.getState().subscriptions).toHaveLength(0);
+  });
+});
 
-      expect(useRealtimeStore.getState().userId).toBe('user-123');
+describe('realtimeStore - clearSubscriptions', () => {
+  it('clearSubscriptions 应该清除所有订阅', () => {
+    useRealtimeStore.setState({ subscriptions: [mockSubscription] });
+
+    act(() => {
+      useRealtimeStore.getState().clearSubscriptions();
     });
 
-    it('setUserId 应该能够设置为 null', () => {
-      useRealtimeStore.setState({ userId: 'user-123' });
+    expect(useRealtimeStore.getState().subscriptions).toHaveLength(0);
+  });
+});
 
-      act(() => {
-        useRealtimeStore.getState().setUserId(null);
-      });
-
-      expect(useRealtimeStore.getState().userId).toBeNull();
+describe('realtimeStore - setConnected', () => {
+  it('setConnected 应该更新连接状态', () => {
+    act(() => {
+      useRealtimeStore.getState().setConnected(true);
     });
+    expect(useRealtimeStore.getState().isConnected).toBe(true);
+    expect(useRealtimeStore.getState().connectionStatus).toBe('connected');
+
+    act(() => {
+      useRealtimeStore.getState().setConnected(false);
+    });
+    expect(useRealtimeStore.getState().isConnected).toBe(false);
+    expect(useRealtimeStore.getState().connectionStatus).toBe('disconnected');
+  });
+});
+
+describe('realtimeStore - setConnectionStatus', () => {
+  it('setConnectionStatus 应该更新连接状态字符串', () => {
+    act(() => {
+      useRealtimeStore.getState().setConnectionStatus('connecting');
+    });
+    expect(useRealtimeStore.getState().connectionStatus).toBe('connecting');
+
+    act(() => {
+      useRealtimeStore.getState().setConnectionStatus('reconnecting');
+    });
+    expect(useRealtimeStore.getState().connectionStatus).toBe('reconnecting');
+  });
+});
+
+describe('realtimeStore - setError', () => {
+  it('setError 应该更新错误状态', () => {
+    const error = new Error('Connection error');
+    act(() => {
+      useRealtimeStore.getState().setError(error);
+    });
+    expect(useRealtimeStore.getState().error).toEqual(error);
   });
 
-  describe('价格更新订阅', () => {
-    it('subscribeToPriceUpdates 应该调用 realtimeManager', () => {
-      const unsubscribe = jest.fn();
-      (realtimeManager.subscribeToPriceUpdates as jest.Mock).mockReturnValue(unsubscribe);
+  it('setError 应该能够设置为 null', () => {
+    useRealtimeStore.setState({ error: new Error('Test') });
 
-      const result = useRealtimeStore.getState().subscribeToPriceUpdates();
-
-      expect(realtimeManager.subscribeToPriceUpdates).toHaveBeenCalled();
-      expect(typeof result).toBe('function');
+    act(() => {
+      useRealtimeStore.getState().setError(null);
     });
+    expect(useRealtimeStore.getState().error).toBeNull();
+  });
+});
 
-    it('subscribeToPriceUpdates 应该传递过滤器参数', () => {
-      const unsubscribe = jest.fn();
-      (realtimeManager.subscribeToPriceUpdates as jest.Mock).mockReturnValue(unsubscribe);
+describe('realtimeStore - clearError', () => {
+  it('clearError 应该清除错误状态', () => {
+    useRealtimeStore.setState({ error: new Error('Test') });
 
-      const filters = { provider: 'chainlink', symbol: 'BTC' };
-      useRealtimeStore.getState().subscribeToPriceUpdates(undefined, filters);
-
-      expect(realtimeManager.subscribeToPriceUpdates).toHaveBeenCalledWith(
-        expect.any(Function),
-        filters
-      );
+    act(() => {
+      useRealtimeStore.getState().clearError();
     });
+    expect(useRealtimeStore.getState().error).toBeNull();
+  });
+});
 
-    it('价格更新应该更新状态和计数', () => {
-      let priceCallback: (payload: PriceUpdatePayload) => void = () => {};
-      (realtimeManager.subscribeToPriceUpdates as jest.Mock).mockImplementation(
-        (callback: (payload: PriceUpdatePayload) => void) => {
-          priceCallback = callback;
-          return jest.fn();
-        }
-      );
-
-      useRealtimeStore.getState().subscribeToPriceUpdates();
-
-      act(() => {
-        priceCallback(mockPricePayload);
-      });
-
-      const state = useRealtimeStore.getState();
-      expect(state.lastPriceUpdate).toEqual(mockPricePayload);
-      expect(state.priceUpdateCount).toBe(1);
+describe('realtimeStore - setLastUpdate', () => {
+  it('setLastUpdate 应该更新最后更新时间', () => {
+    const timestamp = Date.now();
+    act(() => {
+      useRealtimeStore.getState().setLastUpdate(timestamp);
     });
+    expect(useRealtimeStore.getState().lastUpdate).toBe(timestamp);
+  });
+});
 
-    it('价格更新应该调用自定义回调', () => {
-      let priceCallback: (payload: PriceUpdatePayload) => void = () => {};
-      (realtimeManager.subscribeToPriceUpdates as jest.Mock).mockImplementation(
-        (callback: (payload: PriceUpdatePayload) => void) => {
-          priceCallback = callback;
-          return jest.fn();
-        }
-      );
-
-      const customCallback = jest.fn();
-      useRealtimeStore.getState().subscribeToPriceUpdates(customCallback);
-
-      act(() => {
-        priceCallback(mockPricePayload);
-      });
-
-      expect(customCallback).toHaveBeenCalledWith(mockPricePayload);
+describe('realtimeStore - setReconnectAttempts', () => {
+  it('setReconnectAttempts 应该更新重连次数', () => {
+    act(() => {
+      useRealtimeStore.getState().setReconnectAttempts(3);
     });
-
-    it('取消订阅应该返回清理函数', () => {
-      const unsubscribe = jest.fn();
-      (realtimeManager.subscribeToPriceUpdates as jest.Mock).mockReturnValue(unsubscribe);
-
-      const cleanup = useRealtimeStore.getState().subscribeToPriceUpdates();
-
-      cleanup();
-
-      expect(unsubscribe).toHaveBeenCalled();
-    });
+    expect(useRealtimeStore.getState().reconnectAttempts).toBe(3);
   });
 
-  describe('告警事件订阅', () => {
-    it('subscribeToAlertEvents 应该调用 realtimeManager', () => {
-      const unsubscribe = jest.fn();
-      (realtimeManager.subscribeToAlertEvents as jest.Mock).mockReturnValue(unsubscribe);
+  it('incrementReconnectAttempts 应该增加重连次数', () => {
+    useRealtimeStore.setState({ reconnectAttempts: 2 });
 
-      const result = useRealtimeStore.getState().subscribeToAlertEvents('user-123');
+    act(() => {
+      useRealtimeStore.getState().incrementReconnectAttempts();
+    });
+    expect(useRealtimeStore.getState().reconnectAttempts).toBe(3);
+  });
+});
 
-      expect(realtimeManager.subscribeToAlertEvents).toHaveBeenCalledWith(
-        'user-123',
-        expect.any(Function)
-      );
-      expect(typeof result).toBe('function');
+describe('realtimeStore - resetReconnectAttempts', () => {
+  it('resetReconnectAttempts 应该重置重连次数', () => {
+    useRealtimeStore.setState({ reconnectAttempts: 5 });
+
+    act(() => {
+      useRealtimeStore.getState().resetReconnectAttempts();
+    });
+    expect(useRealtimeStore.getState().reconnectAttempts).toBe(0);
+  });
+});
+
+describe('realtimeStore - reset', () => {
+  it('reset 应该重置所有状态', () => {
+    useRealtimeStore.setState({
+      prices: { 'BTC-chainlink': mockPrice },
+      subscriptions: [mockSubscription],
+      isConnected: true,
+      connectionStatus: 'connected',
+      error: new Error('Test'),
+      lastUpdate: Date.now(),
+      reconnectAttempts: 5,
     });
 
-    it('告警事件应该更新状态和计数', () => {
-      let alertCallback: (payload: AlertEventPayload) => void = () => {};
-      (realtimeManager.subscribeToAlertEvents as jest.Mock).mockImplementation(
-        (_userId: string, callback: (payload: AlertEventPayload) => void) => {
-          alertCallback = callback;
-          return jest.fn();
-        }
-      );
-
-      useRealtimeStore.getState().subscribeToAlertEvents('user-123');
-
-      act(() => {
-        alertCallback(mockAlertPayload);
-      });
-
-      const state = useRealtimeStore.getState();
-      expect(state.lastAlertEvent).toEqual(mockAlertPayload);
-      expect(state.alertEventCount).toBe(1);
+    act(() => {
+      useRealtimeStore.getState().reset();
     });
 
-    it('告警事件应该调用自定义回调', () => {
-      let alertCallback: (payload: AlertEventPayload) => void = () => {};
-      (realtimeManager.subscribeToAlertEvents as jest.Mock).mockImplementation(
-        (_userId: string, callback: (payload: AlertEventPayload) => void) => {
-          alertCallback = callback;
-          return jest.fn();
-        }
-      );
+    const state = useRealtimeStore.getState();
+    expect(state.prices).toEqual({});
+    expect(state.subscriptions).toEqual([]);
+    expect(state.isConnected).toBe(false);
+    expect(state.connectionStatus).toBe('disconnected');
+    expect(state.error).toBeNull();
+    expect(state.lastUpdate).toBeNull();
+    expect(state.reconnectAttempts).toBe(0);
+  });
+});
 
-      const customCallback = jest.fn();
-      useRealtimeStore.getState().subscribeToAlertEvents('user-123', customCallback);
+describe('realtimeStore - getPrice', () => {
+  it('getPrice 应该返回指定价格', () => {
+    useRealtimeStore.setState({ prices: { 'BTC-chainlink': mockPrice } });
 
-      act(() => {
-        alertCallback(mockAlertPayload);
-      });
-
-      expect(customCallback).toHaveBeenCalledWith(mockAlertPayload);
-    });
+    const result = useRealtimeStore.getState().getPrice('BTC-chainlink');
+    expect(result).toEqual(mockPrice);
   });
 
-  describe('快照变更订阅', () => {
-    it('subscribeToSnapshotChanges 应该调用 realtimeManager', () => {
-      const unsubscribe = jest.fn();
-      (realtimeManager.subscribeToSnapshotChanges as jest.Mock).mockReturnValue(unsubscribe);
+  it('getPrice 应该返回 undefined 当价格不存在时', () => {
+    const result = useRealtimeStore.getState().getPrice('non-existent');
+    expect(result).toBeUndefined();
+  });
+});
 
-      const result = useRealtimeStore.getState().subscribeToSnapshotChanges('user-123');
-
-      expect(realtimeManager.subscribeToSnapshotChanges).toHaveBeenCalledWith(
-        'user-123',
-        expect.any(Function)
-      );
-      expect(typeof result).toBe('function');
+describe('realtimeStore - getPricesBySymbol', () => {
+  it('getPricesBySymbol 应该返回指定代币的所有价格', () => {
+    const btcPrice2 = { ...mockPrice, provider: 'pyth', source: 'polygon' };
+    const ethPrice = { ...mockPrice, symbol: 'ETH' };
+    useRealtimeStore.setState({
+      prices: {
+        'BTC-chainlink': mockPrice,
+        'BTC-pyth': btcPrice2,
+        'ETH-chainlink': ethPrice,
+      },
     });
 
-    it('快照变更应该更新状态', () => {
-      let snapshotCallback: (payload: SnapshotChangePayload) => void = () => {};
-      (realtimeManager.subscribeToSnapshotChanges as jest.Mock).mockImplementation(
-        (_userId: string, callback: (payload: SnapshotChangePayload) => void) => {
-          snapshotCallback = callback;
-          return jest.fn();
-        }
-      );
-
-      useRealtimeStore.getState().subscribeToSnapshotChanges('user-123');
-
-      act(() => {
-        snapshotCallback(mockSnapshotPayload);
-      });
-
-      expect(useRealtimeStore.getState().lastSnapshotChange).toEqual(mockSnapshotPayload);
-    });
-
-    it('快照变更应该调用自定义回调', () => {
-      let snapshotCallback: (payload: SnapshotChangePayload) => void = () => {};
-      (realtimeManager.subscribeToSnapshotChanges as jest.Mock).mockImplementation(
-        (_userId: string, callback: (payload: SnapshotChangePayload) => void) => {
-          snapshotCallback = callback;
-          return jest.fn();
-        }
-      );
-
-      const customCallback = jest.fn();
-      useRealtimeStore.getState().subscribeToSnapshotChanges('user-123', customCallback);
-
-      act(() => {
-        snapshotCallback(mockSnapshotPayload);
-      });
-
-      expect(customCallback).toHaveBeenCalledWith(mockSnapshotPayload);
-    });
+    const result = useRealtimeStore.getState().getPricesBySymbol('BTC');
+    expect(result).toHaveLength(2);
+    expect(result.every((p) => p.symbol === 'BTC')).toBe(true);
   });
 
-  describe('收藏变更订阅', () => {
-    it('subscribeToFavoriteChanges 应该调用 realtimeManager', () => {
-      const unsubscribe = jest.fn();
-      (realtimeManager.subscribeToFavoriteChanges as jest.Mock).mockReturnValue(unsubscribe);
+  it('getPricesBySymbol 应该返回空数组当没有匹配时', () => {
+    const result = useRealtimeStore.getState().getPricesBySymbol('SOL');
+    expect(result).toHaveLength(0);
+  });
+});
 
-      const result = useRealtimeStore.getState().subscribeToFavoriteChanges('user-123');
-
-      expect(realtimeManager.subscribeToFavoriteChanges).toHaveBeenCalledWith(
-        'user-123',
-        expect.any(Function)
-      );
-      expect(typeof result).toBe('function');
+describe('realtimeStore - getPricesByProvider', () => {
+  it('getPricesByProvider 应该返回指定提供商的所有价格', () => {
+    const btcPrice = mockPrice;
+    const ethPrice = { ...mockPrice, symbol: 'ETH' };
+    const btcPyth = { ...mockPrice, provider: 'pyth' };
+    useRealtimeStore.setState({
+      prices: {
+        'BTC-chainlink': btcPrice,
+        'ETH-chainlink': ethPrice,
+        'BTC-pyth': btcPyth,
+      },
     });
 
-    it('收藏变更应该更新状态', () => {
-      let favoriteCallback: (payload: FavoriteChangePayload) => void = () => {};
-      (realtimeManager.subscribeToFavoriteChanges as jest.Mock).mockImplementation(
-        (_userId: string, callback: (payload: FavoriteChangePayload) => void) => {
-          favoriteCallback = callback;
-          return jest.fn();
-        }
-      );
+    const result = useRealtimeStore.getState().getPricesByProvider('chainlink');
+    expect(result).toHaveLength(2);
+    expect(result.every((p) => p.provider === 'chainlink')).toBe(true);
+  });
+});
 
-      useRealtimeStore.getState().subscribeToFavoriteChanges('user-123');
+describe('realtimeStore - getSubscriptionById', () => {
+  it('getSubscriptionById 应该返回指定订阅', () => {
+    useRealtimeStore.setState({ subscriptions: [mockSubscription] });
 
-      act(() => {
-        favoriteCallback(mockFavoritePayload);
-      });
-
-      expect(useRealtimeStore.getState().lastFavoriteChange).toEqual(mockFavoritePayload);
-    });
-
-    it('收藏变更应该调用自定义回调', () => {
-      let favoriteCallback: (payload: FavoriteChangePayload) => void = () => {};
-      (realtimeManager.subscribeToFavoriteChanges as jest.Mock).mockImplementation(
-        (_userId: string, callback: (payload: FavoriteChangePayload) => void) => {
-          favoriteCallback = callback;
-          return jest.fn();
-        }
-      );
-
-      const customCallback = jest.fn();
-      useRealtimeStore.getState().subscribeToFavoriteChanges('user-123', customCallback);
-
-      act(() => {
-        favoriteCallback(mockFavoritePayload);
-      });
-
-      expect(customCallback).toHaveBeenCalledWith(mockFavoritePayload);
-    });
+    const result = useRealtimeStore.getState().getSubscriptionById('sub-1');
+    expect(result).toEqual(mockSubscription);
   });
 
-  describe('重连功能', () => {
-    it('reconnect 应该调用 realtimeManager.reconnect', () => {
-      act(() => {
-        useRealtimeStore.getState().reconnect();
-      });
+  it('getSubscriptionById 应该返回 undefined 当订阅不存在时', () => {
+    const result = useRealtimeStore.getState().getSubscriptionById('non-existent');
+    expect(result).toBeUndefined();
+  });
+});
 
-      expect(realtimeManager.reconnect).toHaveBeenCalled();
-    });
+describe('realtimeStore - getActiveSubscriptions', () => {
+  it('getActiveSubscriptions 应该返回所有活跃订阅', () => {
+    const pausedSub = { ...mockSubscription, id: 'sub-2', status: 'paused' };
+    useRealtimeStore.setState({ subscriptions: [mockSubscription, pausedSub] });
 
-    it('reconnect 应该增加重连尝试次数', () => {
-      expect(useRealtimeStore.getState().reconnectAttempts).toBe(0);
+    const result = useRealtimeStore.getState().getActiveSubscriptions();
+    expect(result).toHaveLength(1);
+    expect(result[0].status).toBe('active');
+  });
+});
 
-      act(() => {
-        useRealtimeStore.getState().reconnect();
-      });
+describe('realtimeStore - getSubscriptionCount', () => {
+  it('getSubscriptionCount 应该返回订阅数量', () => {
+    useRealtimeStore.setState({ subscriptions: [mockSubscription] });
 
-      expect(useRealtimeStore.getState().reconnectAttempts).toBe(1);
-
-      act(() => {
-        useRealtimeStore.getState().reconnect();
-      });
-
-      expect(useRealtimeStore.getState().reconnectAttempts).toBe(2);
-    });
+    const result = useRealtimeStore.getState().getSubscriptionCount();
+    expect(result).toBe(1);
   });
 
-  describe('重置功能', () => {
-    it('reset 应该重置所有状态到初始值', () => {
-      useRealtimeStore.setState({
-        connectionStatus: 'connected',
-        activeSubscriptions: ['price_updates'],
-        lastPriceUpdate: mockPricePayload,
-        lastAlertEvent: mockAlertPayload,
-        lastSnapshotChange: mockSnapshotPayload,
-        lastFavoriteChange: mockFavoritePayload,
-        priceUpdateCount: 10,
-        alertEventCount: 5,
-        reconnectAttempts: 3,
-        userId: 'user-123',
-        _initialized: true,
-      });
+  it('getSubscriptionCount 应该返回 0 当没有订阅时', () => {
+    const result = useRealtimeStore.getState().getSubscriptionCount();
+    expect(result).toBe(0);
+  });
+});
 
-      act(() => {
-        useRealtimeStore.getState().reset();
-      });
+describe('realtimeStore - getPriceCount', () => {
+  it('getPriceCount 应该返回价格数量', () => {
+    useRealtimeStore.setState({ prices: { 'BTC-chainlink': mockPrice } });
 
-      const state = useRealtimeStore.getState();
-      expect(state.connectionStatus).toBe('disconnected');
-      expect(state.activeSubscriptions).toEqual([]);
-      expect(state.lastPriceUpdate).toBeNull();
-      expect(state.lastAlertEvent).toBeNull();
-      expect(state.lastSnapshotChange).toBeNull();
-      expect(state.lastFavoriteChange).toBeNull();
-      expect(state.priceUpdateCount).toBe(0);
-      expect(state.alertEventCount).toBe(0);
-      expect(state.reconnectAttempts).toBe(0);
-      expect(state.userId).toBeNull();
-      expect(state._initialized).toBe(false);
-    });
+    const result = useRealtimeStore.getState().getPriceCount();
+    expect(result).toBe(1);
   });
 
-  describe('初始化功能', () => {
-    it('_initialize 应该设置 _initialized 为 true', () => {
-      expect(useRealtimeStore.getState()._initialized).toBe(false);
+  it('getPriceCount 应该返回 0 当没有价格时', () => {
+    const result = useRealtimeStore.getState().getPriceCount();
+    expect(result).toBe(0);
+  });
+});
 
-      act(() => {
-        useRealtimeStore.getState()._initialize();
-      });
+describe('realtimeStore - hasPrice', () => {
+  it('hasPrice 应该返回 true 当价格存在时', () => {
+    useRealtimeStore.setState({ prices: { 'BTC-chainlink': mockPrice } });
 
-      expect(useRealtimeStore.getState()._initialized).toBe(true);
-    });
-
-    it('_initialize 不应该重复初始化', () => {
-      act(() => {
-        useRealtimeStore.getState()._initialize();
-      });
-
-      const firstState = useRealtimeStore.getState()._initialized;
-
-      act(() => {
-        useRealtimeStore.getState()._initialize();
-      });
-
-      expect(useRealtimeStore.getState()._initialized).toBe(firstState);
-    });
+    const result = useRealtimeStore.getState().hasPrice('BTC-chainlink');
+    expect(result).toBe(true);
   });
 
-  describe('多次更新测试', () => {
-    it('应该正确累加价格更新计数', () => {
-      let priceCallback: (payload: PriceUpdatePayload) => void = () => {};
-      (realtimeManager.subscribeToPriceUpdates as jest.Mock).mockImplementation(
-        (callback: (payload: PriceUpdatePayload) => void) => {
-          priceCallback = callback;
-          return jest.fn();
-        }
-      );
+  it('hasPrice 应该返回 false 当价格不存在时', () => {
+    const result = useRealtimeStore.getState().hasPrice('non-existent');
+    expect(result).toBe(false);
+  });
+});
 
-      useRealtimeStore.getState().subscribeToPriceUpdates();
+describe('realtimeStore - isSubscribed', () => {
+  it('isSubscribed 应该返回 true 当订阅存在时', () => {
+    useRealtimeStore.setState({ subscriptions: [mockSubscription] });
 
-      for (let i = 0; i < 5; i++) {
-        act(() => {
-          priceCallback(mockPricePayload);
-        });
-      }
-
-      expect(useRealtimeStore.getState().priceUpdateCount).toBe(5);
-    });
-
-    it('应该正确累加告警事件计数', () => {
-      let alertCallback: (payload: AlertEventPayload) => void = () => {};
-      (realtimeManager.subscribeToAlertEvents as jest.Mock).mockImplementation(
-        (_userId: string, callback: (payload: AlertEventPayload) => void) => {
-          alertCallback = callback;
-          return jest.fn();
-        }
-      );
-
-      useRealtimeStore.getState().subscribeToAlertEvents('user-123');
-
-      for (let i = 0; i < 3; i++) {
-        act(() => {
-          alertCallback(mockAlertPayload);
-        });
-      }
-
-      expect(useRealtimeStore.getState().alertEventCount).toBe(3);
-    });
+    const result = useRealtimeStore.getState().isSubscribed('sub-1');
+    expect(result).toBe(true);
   });
 
-  describe('Hooks 测试', () => {
-    it('useConnectionStatus hook 应该返回连接状态', () => {
-      const { result } = renderHook(() => useRealtimeStore((state) => state.connectionStatus));
-      expect(result.current).toBe('disconnected');
-    });
-
-    it('useActiveSubscriptions hook 应该返回活动订阅列表', () => {
-      const { result } = renderHook(() => useRealtimeStore((state) => state.activeSubscriptions));
-      expect(result.current).toEqual([]);
-    });
-
-    it('useLastPriceUpdate hook 应该返回最后的价格更新', () => {
-      const { result } = renderHook(() => useRealtimeStore((state) => state.lastPriceUpdate));
-      expect(result.current).toBeNull();
-    });
-
-    it('useLastAlertEvent hook 应该返回最后的告警事件', () => {
-      const { result } = renderHook(() => useRealtimeStore((state) => state.lastAlertEvent));
-      expect(result.current).toBeNull();
-    });
-
-    it('usePriceUpdateCount hook 应该返回价格更新计数', () => {
-      const { result } = renderHook(() => useRealtimeStore((state) => state.priceUpdateCount));
-      expect(result.current).toBe(0);
-    });
-
-    it('useReconnectAttempts hook 应该返回重连尝试次数', () => {
-      const { result } = renderHook(() => useRealtimeStore((state) => state.reconnectAttempts));
-      expect(result.current).toBe(0);
-    });
-
-    it('useIsConnected hook 应该在未连接时返回 false', () => {
-      const { result } = renderHook(() =>
-        useRealtimeStore((state) => state.connectionStatus === 'connected')
-      );
-      expect(result.current).toBe(false);
-    });
-
-    it('useIsConnected hook 应该在已连接时返回 true', () => {
-      useRealtimeStore.setState({ connectionStatus: 'connected' });
-
-      const { result } = renderHook(() =>
-        useRealtimeStore((state) => state.connectionStatus === 'connected')
-      );
-      expect(result.current).toBe(true);
-    });
+  it('isSubscribed 应该返回 false 当订阅不存在时', () => {
+    const result = useRealtimeStore.getState().isSubscribed('non-existent');
+    expect(result).toBe(false);
   });
 });

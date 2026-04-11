@@ -69,7 +69,10 @@ describe('SearchInput', () => {
       render(<SearchInput {...defaultProps} searchQuery="BTC" />);
 
       const clearButtons = screen.getAllByRole('button');
-      const clearButton = clearButtons.find((btn) => btn.querySelector('svg') && btn !== screen.getByText('actions.search').closest('button'));
+      const clearButton = clearButtons.find(
+        (btn) =>
+          btn.querySelector('svg') && btn !== screen.getByText('actions.search').closest('button')
+      );
       expect(clearButton).toBeInTheDocument();
     });
 

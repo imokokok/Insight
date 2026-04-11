@@ -6,9 +6,6 @@ import {
   logResponse,
   defaultLoggingMiddleware,
   verboseLoggingMiddleware,
-  type LoggingMiddlewareOptions,
-  type RequestLog,
-  type ResponseLog,
 } from '../middleware/loggingMiddleware';
 
 jest.mock('@/lib/utils/logger', () => ({
@@ -20,12 +17,14 @@ jest.mock('@/lib/utils/logger', () => ({
   })),
 }));
 
-function createMockRequest(options: {
-  method?: string;
-  url?: string;
-  headers?: Record<string, string>;
-  body?: unknown;
-} = {}): NextRequest {
+function createMockRequest(
+  options: {
+    method?: string;
+    url?: string;
+    headers?: Record<string, string>;
+    body?: unknown;
+  } = {}
+): NextRequest {
   const { method = 'GET', url = 'http://localhost/api/test?foo=bar', headers = {}, body } = options;
 
   const mockRequest = {

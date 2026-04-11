@@ -156,10 +156,7 @@ describe('commonSchemas', () => {
 
   describe('email', () => {
     it('should validate a valid email', () => {
-      const result = validateObject(
-        { email: 'test@example.com' },
-        { email: commonSchemas.email }
-      );
+      const result = validateObject({ email: 'test@example.com' }, { email: commonSchemas.email });
       expect(result.valid).toBe(true);
     });
 
@@ -171,10 +168,7 @@ describe('commonSchemas', () => {
 
   describe('url', () => {
     it('should validate a valid URL', () => {
-      const result = validateObject(
-        { url: 'https://example.com' },
-        { url: commonSchemas.url }
-      );
+      const result = validateObject({ url: 'https://example.com' }, { url: commonSchemas.url });
       expect(result.valid).toBe(true);
     });
 

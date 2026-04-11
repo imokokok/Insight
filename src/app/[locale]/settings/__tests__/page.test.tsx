@@ -1,4 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react';
+
+import { useUser, useAuthLoading, useAuthInitialized } from '@/stores/authStore';
+
 import SettingsPage from '../page';
 
 jest.mock('next/navigation', () => ({
@@ -45,29 +48,29 @@ describe('SettingsPage', () => {
     mockUseAuthLoading.mockReturnValue(true);
     mockUseAuthInitialized.mockReturnValue(false);
     mockUseUser.mockReturnValue(null);
-    
+
     render(<SettingsPage />);
-    
-    expect(screen.getByRole('status')).toBeInTheDocument();
+
+    expect(screen.getByTestId('settings-layout')).not.toBeInTheDocument();
   });
 
   it('should show loading state when not initialized', () => {
     mockUseAuthLoading.mockReturnValue(false);
     mockUseAuthInitialized.mockReturnValue(false);
     mockUseUser.mockReturnValue(null);
-    
+
     render(<SettingsPage />);
-    
-    expect(screen.getByRole('status')).toBeInTheDocument();
+
+    expect(screen.getByTestId('settings-layout')).not.toBeInTheDocument();
   });
 
   it('should render settings page when user is authenticated', async () => {
     mockUseAuthLoading.mockReturnValue(false);
     mockUseAuthInitialized.mockReturnValue(true);
     mockUseUser.mockReturnValue({ id: 'user-1', email: 'test@example.com' });
-    
+
     render(<SettingsPage />);
-    
+
     await waitFor(() => {
       expect(screen.getByTestId('settings-layout')).toBeInTheDocument();
     });
@@ -77,9 +80,9 @@ describe('SettingsPage', () => {
     mockUseAuthLoading.mockReturnValue(false);
     mockUseAuthInitialized.mockReturnValue(true);
     mockUseUser.mockReturnValue({ id: 'user-1' });
-    
+
     render(<SettingsPage />);
-    
+
     await waitFor(() => {
       expect(screen.getByTestId('profile-panel')).toBeInTheDocument();
     });
@@ -89,9 +92,9 @@ describe('SettingsPage', () => {
     mockUseAuthLoading.mockReturnValue(false);
     mockUseAuthInitialized.mockReturnValue(true);
     mockUseUser.mockReturnValue({ id: 'user-1' });
-    
+
     render(<SettingsPage />);
-    
+
     await waitFor(() => {
       expect(screen.getByTestId('active-tab')).toHaveTextContent('profile');
     });

@@ -21,7 +21,6 @@ import { type Blockchain } from '@/types/oracle';
 import { ChartCanvas } from './ChartCanvas';
 import { ChartLegend } from './ChartLegend';
 import { calculateChartHeights } from './chartUtils';
-import { type ConfidenceLevel } from './priceChartConfig';
 import { calculatePredictionIntervals } from './priceChartUtils';
 import { usePriceChartData } from './usePriceChartData';
 import { useChartSettings, useScreenSize } from './usePriceChartSettings';
@@ -51,19 +50,19 @@ function PriceChartBase({
   downsamplingConfig,
   autoDownsample = true,
 }: PriceChartProps) {
-  const t = useTranslations();
+  const _t = useTranslations();
   const screenSize = useScreenSize();
   const selectedTimeRange = useSelectedTimeRange();
   const { registerTimeRangeCallback, unregisterTimeRangeCallback } = useTimeRangeCallback();
   const syncEnabled = useSyncEnabled();
   const {
     settings: chartSettings,
-    updateSettings: updateChartSettings,
-    isLoaded: chartSettingsLoaded,
+    updateSettings: _updateChartSettings,
+    isLoaded: _chartSettingsLoaded,
   } = useChartSettings();
 
   const isMobile = screenSize === 'mobile';
-  const realtimeEnabled = enableRealtime;
+  const _realtimeEnabled = enableRealtime;
   const chartContainerRef = useRef<HTMLDivElement>(null);
 
   const { anomalyDetectionEnabled, showPredictionInterval, confidenceLevel } = chartSettings;
@@ -72,11 +71,11 @@ function PriceChartBase({
     data,
     comparisonData,
     isLoading,
-    currentPrice,
-    granularity,
-    setGranularity,
+    currentPrice: _currentPrice,
+    granularity: _granularity,
+    setGranularity: _setGranularity,
     comparison,
-    setComparison,
+    setComparison: _setComparison,
     anomalies,
     setAnomalies,
     isRefreshing,
@@ -86,12 +85,12 @@ function PriceChartBase({
     setBrushStartIndex,
     brushEndIndex,
     setBrushEndIndex,
-    isTransitioning,
+    isTransitioning: _isTransitioning,
     setIsTransitioning,
     abortControllerRef,
     priceRange,
     volumeRange,
-    priceChange,
+    priceChange: _priceChange,
     detectedAnomalies,
     showMA7,
     showMA14,
@@ -102,15 +101,15 @@ function PriceChartBase({
     showRSI,
     showMACD,
     showVolume,
-    toggleMA7,
-    toggleMA14,
-    toggleMA30,
-    toggleMA60,
-    toggleMA20,
-    toggleBollingerBands,
-    toggleRSI,
-    toggleMACD,
-    toggleVolume,
+    toggleMA7: _toggleMA7,
+    toggleMA14: _toggleMA14,
+    toggleMA30: _toggleMA30,
+    toggleMA60: _toggleMA60,
+    toggleMA20: _toggleMA20,
+    toggleBollingerBands: _toggleBollingerBands,
+    toggleRSI: _toggleRSI,
+    toggleMACD: _toggleMACD,
+    toggleVolume: _toggleVolume,
     indicatorsLoaded,
     fetchData,
     fetchComparisonData,
@@ -127,14 +126,14 @@ function PriceChartBase({
   });
 
   const {
-    showComparisonPanel,
-    setShowComparisonPanel,
+    showComparisonPanel: _showComparisonPanel,
+    setShowComparisonPanel: _setShowComparisonPanel,
     showAnomalyStats,
-    setShowAnomalyStats,
+    setShowAnomalyStats: _setShowAnomalyStats,
     setBrushRange,
     handleBrushChange,
-    handleComparisonApply,
-    cancelComparison,
+    handleComparisonApply: _handleComparisonApply,
+    cancelComparison: _cancelComparison,
     chartType,
   } = chartState;
 
@@ -228,7 +227,7 @@ function PriceChartBase({
     };
   }, [fetchData, fetchComparisonData, comparison.enabled, abortControllerRef]);
 
-  const exportData: ChartExportData[] = useMemo(
+  const _exportData: ChartExportData[] = useMemo(
     () =>
       data.map((d) => ({
         time: d.time,

@@ -1,3 +1,5 @@
+import { generateStaticParams, metadata } from '../layout';
+
 jest.mock('@vercel/analytics/react', () => ({
   Analytics: () => null,
 }));
@@ -47,17 +49,12 @@ jest.mock('@/providers/ReactQueryProvider', () => ({
   ReactQueryProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 
-import { generateStaticParams, metadata } from '../layout';
-
 describe('LocaleLayout', () => {
   describe('静态参数生成', () => {
     it('generateStaticParams 应该返回所有支持的语言', () => {
       const params = generateStaticParams();
 
-      expect(params).toEqual([
-        { locale: 'en' },
-        { locale: 'zh-CN' },
-      ]);
+      expect(params).toEqual([{ locale: 'en' }, { locale: 'zh-CN' }]);
     });
   });
 

@@ -1,5 +1,7 @@
 import { renderHook } from '@testing-library/react';
 
+import { useUser, useProfile } from '@/stores/authStore';
+
 import {
   usePreferences,
   useDefaultOracle,
@@ -13,8 +15,6 @@ jest.mock('@/stores/authStore', () => ({
   useUser: jest.fn(),
   useProfile: jest.fn(),
 }));
-
-import { useUser, useProfile } from '@/stores/authStore';
 
 const mockLocalStorage = (() => {
   let store: Record<string, string> = {};

@@ -1,4 +1,5 @@
 import { render, screen, fireEvent, act } from '@testing-library/react';
+
 import { DropdownMenu } from '../DropdownMenu';
 import { type NavGroup } from '../types';
 
@@ -6,7 +7,7 @@ jest.mock('@/i18n', () => ({
   useTranslations: () => (key: string) => key,
 }));
 
-jest.mock('./config', () => ({
+jest.mock('../config', () => ({
   oracleColors: {
     chainlink: '#375BD2',
     pyth: '#EC1C79',
@@ -52,7 +53,7 @@ describe('DropdownMenu', () => {
         onItemClick={mockOnItemClick}
       />
     );
-    
+
     expect(screen.getByText('nav.oracles')).toBeInTheDocument();
   });
 
@@ -65,10 +66,10 @@ describe('DropdownMenu', () => {
         onItemClick={mockOnItemClick}
       />
     );
-    
+
     const button = screen.getByRole('button', { name: /nav.oracles/i });
     fireEvent.click(button);
-    
+
     expect(screen.getByRole('menu')).toBeInTheDocument();
   });
 
@@ -81,10 +82,10 @@ describe('DropdownMenu', () => {
         onItemClick={mockOnItemClick}
       />
     );
-    
+
     const button = screen.getByRole('button', { name: /nav.oracles/i });
     fireEvent.click(button);
-    
+
     expect(screen.getByText('nav.chainlink')).toBeInTheDocument();
     expect(screen.getByText('nav.pyth')).toBeInTheDocument();
   });
@@ -98,13 +99,13 @@ describe('DropdownMenu', () => {
         onItemClick={mockOnItemClick}
       />
     );
-    
+
     const button = screen.getByRole('button', { name: /nav.oracles/i });
     fireEvent.click(button);
-    
+
     const chainlinkLink = screen.getByRole('menuitem', { name: /nav.chainlink/i });
     fireEvent.click(chainlinkLink);
-    
+
     expect(mockOnItemClick).toHaveBeenCalled();
   });
 
@@ -117,7 +118,7 @@ describe('DropdownMenu', () => {
         onItemClick={mockOnItemClick}
       />
     );
-    
+
     const button = screen.getByRole('button');
     expect(button).toHaveClass('text-primary-600');
   });
@@ -131,10 +132,10 @@ describe('DropdownMenu', () => {
         onItemClick={mockOnItemClick}
       />
     );
-    
+
     const button = screen.getByRole('button', { name: /nav.oracles/i });
     fireEvent.click(button);
-    
+
     const chainlinkItem = screen.getByRole('menuitem', { name: /nav.chainlink/i });
     expect(chainlinkItem).toHaveClass('bg-primary-50');
   });
@@ -148,10 +149,10 @@ describe('DropdownMenu', () => {
         onItemClick={mockOnItemClick}
       />
     );
-    
+
     const button = screen.getByRole('button');
     fireEvent.keyDown(button, { key: 'Enter' });
-    
+
     expect(screen.getByRole('menu')).toBeInTheDocument();
   });
 
@@ -164,11 +165,11 @@ describe('DropdownMenu', () => {
         onItemClick={mockOnItemClick}
       />
     );
-    
+
     const button = screen.getByRole('button');
     fireEvent.click(button);
     expect(screen.getByRole('menu')).toBeInTheDocument();
-    
+
     fireEvent.keyDown(button, { key: 'Escape' });
     expect(screen.queryByRole('menu')).not.toBeInTheDocument();
   });
@@ -182,14 +183,14 @@ describe('DropdownMenu', () => {
         onItemClick={mockOnItemClick}
       />
     );
-    
+
     const container = screen.getByRole('button').parentElement!;
     fireEvent.mouseEnter(container);
-    
+
     act(() => {
       jest.advanceTimersByTime(150);
     });
-    
+
     expect(screen.getByRole('menu')).toBeInTheDocument();
   });
 
@@ -202,22 +203,22 @@ describe('DropdownMenu', () => {
         onItemClick={mockOnItemClick}
       />
     );
-    
+
     const container = screen.getByRole('button').parentElement!;
     fireEvent.mouseEnter(container);
-    
+
     act(() => {
       jest.advanceTimersByTime(150);
     });
-    
+
     expect(screen.getByRole('menu')).toBeInTheDocument();
-    
+
     fireEvent.mouseLeave(container);
-    
+
     act(() => {
       jest.advanceTimersByTime(150);
     });
-    
+
     expect(screen.queryByRole('menu')).not.toBeInTheDocument();
   });
 
@@ -230,10 +231,10 @@ describe('DropdownMenu', () => {
         onItemClick={mockOnItemClick}
       />
     );
-    
+
     const button = screen.getByRole('button');
     expect(button).toHaveAttribute('aria-expanded', 'false');
-    
+
     fireEvent.click(button);
     expect(button).toHaveAttribute('aria-expanded', 'true');
   });
@@ -247,10 +248,10 @@ describe('DropdownMenu', () => {
         onItemClick={mockOnItemClick}
       />
     );
-    
+
     const button = screen.getByRole('button');
     fireEvent.click(button);
-    
+
     expect(screen.getByText('nav.chainlinkDesc')).toBeInTheDocument();
   });
 });

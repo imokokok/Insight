@@ -1,4 +1,7 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
+
+import { useUser, useAuthLoading } from '@/stores/authStore';
+
 import AlertsPage from '../page';
 
 jest.mock('next/navigation', () => ({
@@ -56,27 +59,27 @@ describe('AlertsPage', () => {
   it('should show loading state when auth is loading', () => {
     mockUseAuthLoading.mockReturnValue(true);
     mockUseUser.mockReturnValue(null);
-    
+
     render(<AlertsPage />);
-    
-    expect(screen.getByRole('status')).toBeInTheDocument();
+
+    expect(screen.getByText(/loading/i)).toBeInTheDocument();
   });
 
   it('should show login required when user is not authenticated', () => {
     mockUseAuthLoading.mockReturnValue(false);
     mockUseUser.mockReturnValue(null);
-    
+
     render(<AlertsPage />);
-    
+
     expect(screen.getByText('alerts.page.loginRequired')).toBeInTheDocument();
   });
 
   it('should render alerts page when user is authenticated', () => {
     mockUseAuthLoading.mockReturnValue(false);
     mockUseUser.mockReturnValue({ id: 'user-1', email: 'test@example.com' });
-    
+
     render(<AlertsPage />);
-    
+
     expect(screen.getByText('alerts.page.title')).toBeInTheDocument();
     expect(screen.getByTestId('alert-config')).toBeInTheDocument();
     expect(screen.getByTestId('alert-list')).toBeInTheDocument();
@@ -86,27 +89,27 @@ describe('AlertsPage', () => {
   it('should render page subtitle', () => {
     mockUseAuthLoading.mockReturnValue(false);
     mockUseUser.mockReturnValue({ id: 'user-1' });
-    
+
     render(<AlertsPage />);
-    
+
     expect(screen.getByText('alerts.page.subtitle')).toBeInTheDocument();
   });
 
   it('should render instructions section', () => {
     mockUseAuthLoading.mockReturnValue(false);
     mockUseUser.mockReturnValue({ id: 'user-1' });
-    
+
     render(<AlertsPage />);
-    
+
     expect(screen.getByText('alerts.page.instructions.title')).toBeInTheDocument();
   });
 
   it('should render login link when not authenticated', () => {
     mockUseAuthLoading.mockReturnValue(false);
     mockUseUser.mockReturnValue(null);
-    
+
     render(<AlertsPage />);
-    
+
     const loginLink = screen.getByRole('link', { name: 'alerts.page.goToLogin' });
     expect(loginLink).toHaveAttribute('href', '/login');
   });

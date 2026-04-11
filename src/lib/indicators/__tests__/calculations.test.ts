@@ -370,7 +370,9 @@ describe('Technical Indicators Calculations', () => {
     });
 
     it('should handle custom period', () => {
-      const prices = Array(20).fill(0).map((_, i) => 100 + i);
+      const prices = Array(20)
+        .fill(0)
+        .map((_, i) => 100 + i);
       const result = calculateRSI(prices, 7);
 
       expect(result.length).toBe(20);

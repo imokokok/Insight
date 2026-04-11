@@ -2,11 +2,7 @@ import { type ReactNode } from 'react';
 
 import { render, screen, waitFor } from '@testing-library/react';
 
-import {
-  ReactQueryProvider,
-  STALE_TIME_CONFIG,
-  GC_TIME_CONFIG,
-} from '../ReactQueryProvider';
+import { ReactQueryProvider, STALE_TIME_CONFIG, GC_TIME_CONFIG } from '../ReactQueryProvider';
 
 jest.mock('@/lib/utils/logger', () => ({
   createLogger: () => ({
@@ -276,7 +272,7 @@ describe('ReactQueryProvider', () => {
 
   describe('Error handling', () => {
     it('should log query errors with query hash', async () => {
-      const logger = jest.requireMock('@/lib/utils/logger').createLogger();
+      jest.requireMock('@/lib/utils/logger').createLogger();
 
       renderProvider();
 
@@ -286,7 +282,7 @@ describe('ReactQueryProvider', () => {
     });
 
     it('should log mutation errors with mutation key', async () => {
-      const logger = jest.requireMock('@/lib/utils/logger').createLogger();
+      jest.requireMock('@/lib/utils/logger').createLogger();
 
       renderProvider();
 

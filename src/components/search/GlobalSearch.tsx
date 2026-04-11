@@ -229,7 +229,7 @@ function InitialState() {
 // Main GlobalSearch component
 function GlobalSearchComponent({ isOpen, onClose }: GlobalSearchProps) {
   const router = useRouter();
-  const locale = useLocale();
+  const _locale = useLocale();
   const t = useTranslations();
   const inputRef = useRef<HTMLInputElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);

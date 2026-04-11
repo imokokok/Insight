@@ -1,4 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react';
+
 import { RiskAlertBanner } from '../RiskAlertBanner';
 
 jest.mock('@/lib/utils/logger', () => ({
@@ -41,13 +42,13 @@ describe('RiskAlertBanner', () => {
 
   it('should render alert banner', () => {
     render(<RiskAlertBanner {...mockProps} />);
-    
+
     expect(screen.getByText(/high price deviation/i)).toBeInTheDocument();
   });
 
   it('should render multiple alerts', () => {
     render(<RiskAlertBanner {...mockProps} />);
-    
+
     expect(screen.getByText(/high price deviation/i)).toBeInTheDocument();
     expect(screen.getByText(/data is stale/i)).toBeInTheDocument();
   });
@@ -55,17 +56,17 @@ describe('RiskAlertBanner', () => {
   it('should call onDismiss when dismiss button is clicked', () => {
     const onDismiss = jest.fn();
     render(<RiskAlertBanner {...mockProps} onDismiss={onDismiss} />);
-    
+
     const dismissButtons = screen.getAllByRole('button', { name: /dismiss/i });
     fireEvent.click(dismissButtons[0]);
-    
+
     expect(onDismiss).toHaveBeenCalledWith('alert-1');
   });
 
   it('should call onAlertClick when alert is clicked', () => {
     const onAlertClick = jest.fn();
     render(<RiskAlertBanner {...mockProps} onAlertClick={onAlertClick} />);
-    
+
     const alert = screen.getByText(/high price deviation/i).closest('div');
     if (alert) {
       fireEvent.click(alert);
@@ -74,20 +75,20 @@ describe('RiskAlertBanner', () => {
 
   it('should not render when no alerts', () => {
     const { container } = render(<RiskAlertBanner {...mockProps} alerts={[]} />);
-    
+
     expect(container.firstChild).toBeNull();
   });
 
   it('should show correct severity colors', () => {
     render(<RiskAlertBanner {...mockProps} />);
-    
+
     const highAlert = screen.getByText(/high price deviation/i).closest('div');
     expect(highAlert).toHaveClass('bg-danger-50');
   });
 
   it('should render alert count badge', () => {
     render(<RiskAlertBanner {...mockProps} />);
-    
+
     expect(screen.getByText('2')).toBeInTheDocument();
   });
 });

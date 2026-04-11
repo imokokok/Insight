@@ -17,6 +17,11 @@ jest.mock('@/lib/utils/logger', () => ({
 describe('performanceMetrics', () => {
   beforeEach(() => {
     performanceMetricsCalculator.clearOldData(0);
+    const stats = performanceMetricsCalculator.getStats();
+    if (stats.priceDataPoints > 0 || stats.referenceDataPoints > 0) {
+      (performanceMetricsCalculator as unknown as { priceHistory: Map<string, unknown[]> }).priceHistory.clear();
+      (performanceMetricsCalculator as unknown as { referencePrices: Map<string, unknown[]> }).referencePrices.clear();
+    }
   });
 
   describe('PerformanceMetricsCalculator', () => {

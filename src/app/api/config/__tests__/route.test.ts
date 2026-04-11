@@ -1,5 +1,6 @@
-import { GET, getServerConfig } from '../route';
 import { NextResponse } from 'next/server';
+
+import { GET, getServerConfig } from '../route';
 
 jest.mock('next/server', () => ({
   NextResponse: {
@@ -22,7 +23,7 @@ describe('/api/config', () => {
 
   it('should return public config successfully', async () => {
     const response = await GET();
-    
+
     expect(response.status).toBe(200);
     expect(response.data).toHaveProperty('success', true);
     expect(response.data).toHaveProperty('config');
@@ -30,7 +31,7 @@ describe('/api/config', () => {
 
   it('should return features config', async () => {
     const response = await GET();
-    
+
     expect(response.data.config).toHaveProperty('features');
     expect(response.data.config.features).toHaveProperty('useRealWinklinkData');
     expect(response.data.config.features).toHaveProperty('useRealChainlinkData');
@@ -38,7 +39,7 @@ describe('/api/config', () => {
 
   it('should return cache config', async () => {
     const response = await GET();
-    
+
     expect(response.data.config).toHaveProperty('cache');
     expect(response.data.config.cache).toHaveProperty('winklinkTtl');
     expect(response.data.config.cache).toHaveProperty('umaTtl');
@@ -46,7 +47,7 @@ describe('/api/config', () => {
 
   it('should return api3 config', async () => {
     const response = await GET();
-    
+
     expect(response.data.config).toHaveProperty('api3');
     expect(response.data.config.api3).toHaveProperty('marketApiUrl');
     expect(response.data.config.api3).toHaveProperty('daoApiUrl');
@@ -54,14 +55,14 @@ describe('/api/config', () => {
 
   it('should return tron public config', async () => {
     const response = await GET();
-    
+
     expect(response.data.config).toHaveProperty('tron');
     expect(response.data.config.tron).toHaveProperty('rpcUrl');
   });
 
   it('should not expose sensitive config', async () => {
     const response = await GET();
-    
+
     expect(response.data.config).not.toHaveProperty('alchemy');
     expect(response.data.config).not.toHaveProperty('thegraph');
   });
@@ -70,7 +71,7 @@ describe('/api/config', () => {
 describe('getServerConfig', () => {
   it('should return server config with alchemy endpoints', () => {
     const config = getServerConfig();
-    
+
     expect(config).toHaveProperty('alchemy');
     expect(config.alchemy).toHaveProperty('ethereum');
     expect(config.alchemy).toHaveProperty('arbitrum');
@@ -78,14 +79,14 @@ describe('getServerConfig', () => {
 
   it('should return server config with features', () => {
     const config = getServerConfig();
-    
+
     expect(config).toHaveProperty('features');
     expect(config.features).toHaveProperty('useRealWinklinkData');
   });
 
   it('should return server config with cache settings', () => {
     const config = getServerConfig();
-    
+
     expect(config).toHaveProperty('cache');
     expect(config.cache).toHaveProperty('winklinkTtl');
   });

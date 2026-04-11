@@ -1,3 +1,5 @@
+import { type NextRequest } from 'next/server';
+
 import {
   createErrorResponse,
   withCacheHeaders,
@@ -6,7 +8,6 @@ import {
   ErrorCodes,
   CacheConfig,
 } from '../utils';
-import { type NextRequest } from 'next/server';
 
 jest.mock('@supabase/supabase-js', () => ({
   createClient: jest.fn(),
@@ -32,9 +33,7 @@ describe('CacheConfig', () => {
     });
 
     it('should generate correct header', () => {
-      expect(CacheConfig.PRICE.header).toBe(
-        'public, s-maxage=30, stale-while-revalidate=60'
-      );
+      expect(CacheConfig.PRICE.header).toBe('public, s-maxage=30, stale-while-revalidate=60');
     });
   });
 
@@ -45,9 +44,7 @@ describe('CacheConfig', () => {
     });
 
     it('should generate correct header', () => {
-      expect(CacheConfig.HISTORY.header).toBe(
-        'public, s-maxage=300, stale-while-revalidate=600'
-      );
+      expect(CacheConfig.HISTORY.header).toBe('public, s-maxage=300, stale-while-revalidate=600');
     });
   });
 });
@@ -190,10 +187,7 @@ describe('handleApiError', () => {
 });
 
 describe('getUserId', () => {
-  let mockCreateClient: jest.Mock;
-
   beforeEach(() => {
-    mockCreateClient = require('@supabase/supabase-js').createClient;
     jest.clearAllMocks();
   });
 
