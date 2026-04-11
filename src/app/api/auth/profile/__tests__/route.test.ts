@@ -46,7 +46,9 @@ const mockProfile: UserProfile = {
   updated_at: '2024-01-01T00:00:00Z',
 };
 
-const createMockRequest = (options: { body?: unknown; headers?: Record<string, string> } = {}): NextRequest => {
+const createMockRequest = (
+  options: { body?: unknown; headers?: Record<string, string> } = {}
+): NextRequest => {
   return {
     headers: new Headers(options.headers || {}),
     json: async () => options.body,

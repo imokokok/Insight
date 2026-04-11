@@ -3,14 +3,11 @@ import { type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { renderHook, act, waitFor } from '@testing-library/react';
 
-import { useConnectionStatus, useRealtimeActions } from '@/stores/realtimeStore';
-import { useUser } from '@/stores/authStore';
 import type { AlertEventPayload } from '@/lib/supabase/realtime';
+import { useUser } from '@/stores/authStore';
+import { useConnectionStatus, useRealtimeActions } from '@/stores/realtimeStore';
 
-import {
-  useRealtimeAlerts,
-  useAlertNotifications,
-} from '../data/useRealtimeAlerts';
+import { useRealtimeAlerts, useAlertNotifications } from '../data/useRealtimeAlerts';
 
 jest.mock('@/stores/realtimeStore', () => ({
   useConnectionStatus: jest.fn(),
@@ -79,10 +76,7 @@ describe('useRealtimeAlerts', () => {
       wrapper: createTestWrapper(),
     });
 
-    expect(mockSubscribeToAlertEvents).toHaveBeenCalledWith(
-      mockUser.id,
-      expect.any(Function)
-    );
+    expect(mockSubscribeToAlertEvents).toHaveBeenCalledWith(mockUser.id, expect.any(Function));
   });
 
   it('should not subscribe when disabled', () => {

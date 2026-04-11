@@ -139,10 +139,9 @@ describe('useChainlink Hooks', () => {
     it('should fetch historical data successfully', async () => {
       mockClient.getHistoricalPrices.mockResolvedValue(mockHistoricalData);
 
-      const { result } = renderHook(
-        () => useChainlinkHistorical({ symbol: 'BTC', period: 30 }),
-        { wrapper: createTestWrapper() }
-      );
+      const { result } = renderHook(() => useChainlinkHistorical({ symbol: 'BTC', period: 30 }), {
+        wrapper: createTestWrapper(),
+      });
 
       await waitFor(
         () => {

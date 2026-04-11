@@ -515,9 +515,7 @@ describe('WebSocketManager', () => {
         manager.subscribe('prices', handler);
 
         const binaryData = new ArrayBuffer(10);
-        mockWsInstance.onmessage?.(
-          new MessageEvent('message', { data: binaryData })
-        );
+        mockWsInstance.onmessage?.(new MessageEvent('message', { data: binaryData }));
 
         expect(handler).not.toHaveBeenCalled();
       });
@@ -538,9 +536,7 @@ describe('WebSocketManager', () => {
           timestamp: Date.now(),
         });
 
-        mockWsInstance.onmessage?.(
-          new MessageEvent('message', { data: validJson })
-        );
+        mockWsInstance.onmessage?.(new MessageEvent('message', { data: validJson }));
         jest.advanceTimersByTime(100);
 
         expect(handler).toHaveBeenCalled();
@@ -569,9 +565,7 @@ describe('WebSocketManager', () => {
 
         const incompleteMessage = JSON.stringify({ type: 'update' });
 
-        mockWsInstance.onmessage?.(
-          new MessageEvent('message', { data: incompleteMessage })
-        );
+        mockWsInstance.onmessage?.(new MessageEvent('message', { data: incompleteMessage }));
         jest.advanceTimersByTime(100);
 
         expect(handler).not.toHaveBeenCalled();
@@ -689,9 +683,7 @@ describe('WebSocketManager', () => {
         const handler = jest.fn();
         manager.subscribe('prices', handler);
 
-        const lastCall = mockWsInstance.send.mock.calls[
-          mockWsInstance.send.mock.calls.length - 1
-        ];
+        const lastCall = mockWsInstance.send.mock.calls[mockWsInstance.send.mock.calls.length - 1];
         const message = JSON.parse(lastCall[0] as string);
 
         expect(message).toHaveProperty('type', 'subscribe');

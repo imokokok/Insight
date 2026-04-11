@@ -1,7 +1,16 @@
 import { container, SERVICE_TOKENS } from '@/lib/di';
 import { OracleClientError, ValidationError } from '@/lib/errors';
 import { BaseOracleClient } from '@/lib/oracles/base';
-import { OracleProvider, Blockchain, type PriceData } from '@/types/oracle';
+import { type OracleProvider, Blockchain, type PriceData } from '@/types/oracle';
+
+import {
+  OracleClientFactory,
+  getOracleClient,
+  getAllOracleClients,
+  getOracleClientFromDI,
+  registerMockOracleFactory,
+  unregisterMockOracleFactory,
+} from '../factory';
 
 import type { IOracleClient, IOracleClientFactory } from '../interfaces';
 
@@ -92,7 +101,11 @@ class MockOracleClient extends BaseOracleClient {
     return this.generateMockPrice(symbol, 100, chain);
   }
 
-  async getHistoricalPrices(symbol: string, chain?: Blockchain, period?: number): Promise<PriceData[]> {
+  async getHistoricalPrices(
+    symbol: string,
+    chain?: Blockchain,
+    period?: number
+  ): Promise<PriceData[]> {
     return this.generateMockHistoricalPrices(symbol, 100, chain, period);
   }
 }
@@ -138,8 +151,6 @@ class MockOracleClientFactory implements IOracleClientFactory {
     return this._clearInstancesCalled;
   }
 }
-
-import { OracleClientFactory, getOracleClient, getAllOracleClients, getOracleClientFromDI, registerMockOracleFactory, unregisterMockOracleFactory } from '../factory';
 
 describe('OracleClientFactory', () => {
   beforeEach(() => {
@@ -335,7 +346,9 @@ describe('OracleClientFactory', () => {
   describe('Error Handling Tests', () => {
     describe('Request unsupported oracle provider', () => {
       it('should throw ValidationError for unknown provider', () => {
-        expect(() => OracleClientFactory.getClient('unknown_provider' as OracleProvider)).toThrow(ValidationError);
+        expect(() => OracleClientFactory.getClient('unknown_provider' as OracleProvider)).toThrow(
+          ValidationError
+        );
       });
 
       it('should include provider name in error message', () => {
@@ -448,7 +461,14 @@ describe('OracleClientFactory', () => {
 
     describe('Concurrent requests for different clients', () => {
       it('should handle concurrent requests for different providers', async () => {
-        const providers: OracleProvider[] = ['chainlink', 'pyth', 'api3', 'redstone', 'dia', 'winklink'];
+        const providers: OracleProvider[] = [
+          'chainlink',
+          'pyth',
+          'api3',
+          'redstone',
+          'dia',
+          'winklink',
+        ];
         const promises = providers.map((provider) =>
           Promise.resolve(OracleClientFactory.getClient(provider))
         );
@@ -477,12 +497,13 @@ describe('OracleClientFactory', () => {
       it('should maintain singleton across concurrent access', async () => {
         const promises = Array(20)
           .fill(null)
-          .map(() =>
-            new Promise<BaseOracleClient>((resolve) => {
-              setTimeout(() => {
-                resolve(OracleClientFactory.getClient('chainlink'));
-              }, Math.random() * 50);
-            })
+          .map(
+            () =>
+              new Promise<BaseOracleClient>((resolve) => {
+                setTimeout(() => {
+                  resolve(OracleClientFactory.getClient('chainlink'));
+                }, Math.random() * 50);
+              })
           );
 
         const results = await Promise.all(promises);
@@ -572,7 +593,14 @@ describe('OracleClientFactory', () => {
       });
 
       it('should maintain separate instances for all providers', () => {
-        const providers: OracleProvider[] = ['chainlink', 'pyth', 'api3', 'redstone', 'dia', 'winklink'];
+        const providers: OracleProvider[] = [
+          'chainlink',
+          'pyth',
+          'api3',
+          'redstone',
+          'dia',
+          'winklink',
+        ];
         const clients = providers.map((p) => OracleClientFactory.getClient(p));
 
         for (let i = 0; i < clients.length; i++) {
@@ -677,7 +705,14 @@ describe('OracleClientFactory', () => {
         OracleClientFactory.clearInstances();
         OracleClientFactory.configure({ useDatabase: false, validateData: false });
 
-        const providers: OracleProvider[] = ['chainlink', 'pyth', 'api3', 'redstone', 'dia', 'winklink'];
+        const providers: OracleProvider[] = [
+          'chainlink',
+          'pyth',
+          'api3',
+          'redstone',
+          'dia',
+          'winklink',
+        ];
         providers.forEach((provider) => {
           const client = OracleClientFactory.getClient(provider);
           expect(client).toBeDefined();
@@ -892,7 +927,14 @@ describe('OracleClientFactory', () => {
       });
 
       it('should return symbols for all providers', () => {
-        const providers: OracleProvider[] = ['chainlink', 'pyth', 'api3', 'redstone', 'dia', 'winklink'];
+        const providers: OracleProvider[] = [
+          'chainlink',
+          'pyth',
+          'api3',
+          'redstone',
+          'dia',
+          'winklink',
+        ];
 
         providers.forEach((provider) => {
           const symbols = OracleClientFactory.getSupportedSymbols(provider);

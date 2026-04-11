@@ -82,10 +82,9 @@ describe('usePriceHistory', () => {
       data: { history: mockHistoryData },
     });
 
-    const { result } = renderHook(
-      () => usePriceHistory({ symbol: 'BTC', provider: 'chainlink' }),
-      { wrapper: createTestWrapper() }
-    );
+    const { result } = renderHook(() => usePriceHistory({ symbol: 'BTC', provider: 'chainlink' }), {
+      wrapper: createTestWrapper(),
+    });
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
@@ -99,10 +98,9 @@ describe('usePriceHistory', () => {
       data: { history: mockHistoryData },
     });
 
-    const { result } = renderHook(
-      () => usePriceHistory({ symbol: 'BTC', chain: 'ethereum' }),
-      { wrapper: createTestWrapper() }
-    );
+    const { result } = renderHook(() => usePriceHistory({ symbol: 'BTC', chain: 'ethereum' }), {
+      wrapper: createTestWrapper(),
+    });
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
@@ -116,10 +114,9 @@ describe('usePriceHistory', () => {
       data: { history: mockHistoryData },
     });
 
-    const { result } = renderHook(
-      () => usePriceHistory({ symbol: 'BTC', period: 30 }),
-      { wrapper: createTestWrapper() }
-    );
+    const { result } = renderHook(() => usePriceHistory({ symbol: 'BTC', period: 30 }), {
+      wrapper: createTestWrapper(),
+    });
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);

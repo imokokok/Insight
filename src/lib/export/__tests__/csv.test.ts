@@ -1,7 +1,10 @@
 import { exportToCSV } from '@/lib/utils/chartExport/formats/csvExporter';
+import type {
+  ChartExportData,
+  ExportMetadata,
+  ExportProgress,
+} from '@/lib/utils/chartExport/types';
 import * as exportHelpers from '@/lib/utils/chartExport/utils/exportHelpers';
-
-import type { ChartExportData, ExportMetadata, ExportProgress } from '@/lib/utils/chartExport/types';
 
 jest.mock('@/lib/utils/logger', () => ({
   createLogger: jest.fn(() => ({
@@ -24,7 +27,9 @@ describe('CSV Export', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     downloadBlobSpy = jest.spyOn(exportHelpers, 'downloadBlob').mockImplementation(() => {});
-    sanitizeFilenameSpy = jest.spyOn(exportHelpers, 'sanitizeFilename').mockImplementation((name) => name);
+    sanitizeFilenameSpy = jest
+      .spyOn(exportHelpers, 'sanitizeFilename')
+      .mockImplementation((name) => name);
   });
 
   afterEach(() => {
@@ -62,7 +67,9 @@ describe('CSV Export', () => {
 
       const [blob] = downloadBlobSpy.mock.calls[0];
       const content = await blob.text();
-      const lines = content.split('\n').filter((line: string) => line.trim() && !line.startsWith('#'));
+      const lines = content
+        .split('\n')
+        .filter((line: string) => line.trim() && !line.startsWith('#'));
 
       expect(lines.length).toBe(mockData.length + 1);
     });
@@ -125,9 +132,7 @@ describe('CSV Export', () => {
     });
 
     it('should escape double quotes correctly', async () => {
-      const dataWithEscapes: ChartExportData[] = [
-        { text: 'He said ""hello""' },
-      ];
+      const dataWithEscapes: ChartExportData[] = [{ text: 'He said ""hello""' }];
 
       await exportToCSV(dataWithEscapes, 'test-export');
 
@@ -181,7 +186,9 @@ describe('CSV Export', () => {
 
       const [blob] = downloadBlobSpy.mock.calls[0];
       const content = await blob.text();
-      const lines = content.split('\n').filter((line: string) => line.trim() && !line.startsWith('#'));
+      const lines = content
+        .split('\n')
+        .filter((line: string) => line.trim() && !line.startsWith('#'));
 
       expect(lines.length).toBe(largeData.length + 1);
     });
@@ -262,9 +269,7 @@ describe('CSV Export', () => {
 
   describe('Header row generation', () => {
     it('should generate headers from data keys', async () => {
-      const data: ChartExportData[] = [
-        { firstName: 'John', lastName: 'Doe', age: 30 },
-      ];
+      const data: ChartExportData[] = [{ firstName: 'John', lastName: 'Doe', age: 30 }];
 
       await exportToCSV(data, 'header-test');
 
@@ -277,9 +282,7 @@ describe('CSV Export', () => {
     });
 
     it('should preserve header order from first data row', async () => {
-      const data: ChartExportData[] = [
-        { z: 'last', a: 'first', m: 'middle' },
-      ];
+      const data: ChartExportData[] = [{ z: 'last', a: 'first', m: 'middle' }];
 
       await exportToCSV(data, 'order-test');
 
@@ -292,9 +295,7 @@ describe('CSV Export', () => {
     });
 
     it('should handle numeric keys', async () => {
-      const data: ChartExportData[] = [
-        { '1': 'one', '2': 'two', '3': 'three' },
-      ];
+      const data: ChartExportData[] = [{ '1': 'one', '2': 'two', '3': 'three' }];
 
       await exportToCSV(data, 'numeric-keys-test');
 
@@ -305,9 +306,7 @@ describe('CSV Export', () => {
     });
 
     it('should handle empty string keys', async () => {
-      const data: ChartExportData[] = [
-        { '': 'empty key', valid: 'valid key' },
-      ];
+      const data: ChartExportData[] = [{ '': 'empty key', valid: 'valid key' }];
 
       await exportToCSV(data, 'empty-key-test');
 
@@ -350,9 +349,7 @@ describe('CSV Export', () => {
     });
 
     it('should handle very small numbers', async () => {
-      const smallNumberData: ChartExportData[] = [
-        { small: 0.0000001, verySmall: 1e-10 },
-      ];
+      const smallNumberData: ChartExportData[] = [{ small: 0.0000001, verySmall: 1e-10 }];
 
       await exportToCSV(smallNumberData, 'small-number-test');
 
@@ -378,9 +375,7 @@ describe('CSV Export', () => {
     });
 
     it('should handle boolean values', async () => {
-      const booleanData: ChartExportData[] = [
-        { active: true, inactive: false },
-      ];
+      const booleanData: ChartExportData[] = [{ active: true, inactive: false }];
 
       await exportToCSV(booleanData, 'boolean-test');
 
@@ -546,7 +541,9 @@ describe('CSV Export', () => {
     });
 
     it('should throw error for undefined data', async () => {
-      await expect(exportToCSV(undefined as unknown as ChartExportData[], 'test')).rejects.toThrow();
+      await expect(
+        exportToCSV(undefined as unknown as ChartExportData[], 'test')
+      ).rejects.toThrow();
     });
 
     it('should handle malformed data gracefully', async () => {

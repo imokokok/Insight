@@ -1,7 +1,3 @@
-import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
-import { PythClient } from '@/lib/services/oracle/clients/pyth';
-import { OracleProvider, Blockchain } from '@/types/oracle';
-import type { PriceData } from '@/types/oracle';
 import {
   parsePythPrice,
   calculateConfidenceInterval,
@@ -10,6 +6,10 @@ import {
   parsePublisherStatus,
 } from '@/lib/oracles/pyth/pythParser';
 import type { PythPriceRaw, PublisherData } from '@/lib/oracles/pyth/types';
+import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
+import { PythClient } from '@/lib/services/oracle/clients/pyth';
+import { OracleProvider, Blockchain } from '@/types/oracle';
+import type { PriceData } from '@/types/oracle';
 
 const mockGetLatestPrice = jest.fn();
 const mockGetMultiplePrices = jest.fn();
@@ -943,10 +943,7 @@ describe('Publisher Data Tests', () => {
 
       const publishers = parsePublishers(rawData);
 
-      const totalSubmissions = publishers.reduce(
-        (sum, p) => sum + p.submissionCount,
-        0
-      );
+      const totalSubmissions = publishers.reduce((sum, p) => sum + p.submissionCount, 0);
 
       expect(totalSubmissions).toBe(3000);
     });
@@ -994,7 +991,7 @@ describe('Publisher Data Tests', () => {
         {
           id: 'pub3',
           publisher_key: 'key3',
-          reliability: 0.70,
+          reliability: 0.7,
           status: 'degraded',
         },
       ];
@@ -1003,7 +1000,7 @@ describe('Publisher Data Tests', () => {
 
       expect(publishers[0].reliabilityScore).toBe(0.99);
       expect(publishers[1].reliabilityScore).toBe(0.85);
-      expect(publishers[2].reliabilityScore).toBe(0.70);
+      expect(publishers[2].reliabilityScore).toBe(0.7);
     });
 
     it('should use accuracy as fallback for reliability', () => {
@@ -1202,7 +1199,8 @@ describe('Price Accuracy Tests', () => {
       const oraclePrice = 68000;
       const marketPrice = 0;
 
-      const deviation = marketPrice === 0 ? Infinity : Math.abs(oraclePrice - marketPrice) / marketPrice;
+      const deviation =
+        marketPrice === 0 ? Infinity : Math.abs(oraclePrice - marketPrice) / marketPrice;
 
       expect(deviation).toBe(Infinity);
     });
@@ -1312,11 +1310,7 @@ describe('Price Accuracy Tests', () => {
 
     it('should detect infrequent price updates', () => {
       const now = Date.now();
-      const timestamps = [
-        now - 600000,
-        now - 300000,
-        now,
-      ];
+      const timestamps = [now - 600000, now - 300000, now];
 
       const intervals = [];
       for (let i = 1; i < timestamps.length; i++) {
@@ -1440,16 +1434,14 @@ describe('Error Handling Tests', () => {
     });
 
     it('should handle rate limit with retry', async () => {
-      mockGetLatestPrice
-        .mockRejectedValueOnce(new Error('Rate limit'))
-        .mockResolvedValueOnce({
-          provider: OracleProvider.PYTH,
-          symbol: 'BTC',
-          price: 68000,
-          timestamp: Date.now(),
-          decimals: 8,
-          confidence: 98,
-        });
+      mockGetLatestPrice.mockRejectedValueOnce(new Error('Rate limit')).mockResolvedValueOnce({
+        provider: OracleProvider.PYTH,
+        symbol: 'BTC',
+        price: 68000,
+        timestamp: Date.now(),
+        decimals: 8,
+        confidence: 98,
+      });
 
       await expect(client.getPrice('BTC')).rejects.toMatchObject({
         code: 'PYTH_ERROR',

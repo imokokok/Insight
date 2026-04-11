@@ -138,10 +138,9 @@ describe('useDIAHistorical', () => {
   it('should fetch historical data successfully', async () => {
     mockClient.getHistoricalPrices.mockResolvedValue(mockHistoricalData);
 
-    const { result } = renderHook(
-      () => useDIAHistorical({ symbol: 'BTC', period: 7 }),
-      { wrapper: createTestWrapper() }
-    );
+    const { result } = renderHook(() => useDIAHistorical({ symbol: 'BTC', period: 7 }), {
+      wrapper: createTestWrapper(),
+    });
 
     expect(result.current.isLoading).toBe(true);
 

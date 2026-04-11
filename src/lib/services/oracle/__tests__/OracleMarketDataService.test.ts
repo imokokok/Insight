@@ -1,4 +1,8 @@
-function calculateMarketShareStats(data: { tvs: string; chains: number; protocols?: number; value?: number }[]): {
+import type { MarketShareDataItem } from '../marketDataDefaults';
+
+function calculateMarketShareStats(
+  data: { tvs: string; chains: number; protocols?: number; value?: number }[]
+): {
   totalTVS: string;
   totalChains: number;
   totalProtocols: number;
@@ -22,8 +26,6 @@ function calculateMarketShareStats(data: { tvs: string; chains: number; protocol
     oracleCount: data.length,
   };
 }
-
-import type { MarketShareDataItem } from '../marketDataDefaults';
 
 jest.mock('@/lib/utils/logger', () => ({
   createLogger: () => ({

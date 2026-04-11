@@ -64,10 +64,9 @@ describe('useWINkLinkPrice', () => {
   it('should fetch price data successfully', async () => {
     mockClient.getPrice.mockResolvedValue(mockPriceData);
 
-    const { result } = renderHook(
-      () => useWINkLinkPrice('BTC', Blockchain.ETHEREUM),
-      { wrapper: createTestWrapper() }
-    );
+    const { result } = renderHook(() => useWINkLinkPrice('BTC', Blockchain.ETHEREUM), {
+      wrapper: createTestWrapper(),
+    });
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);

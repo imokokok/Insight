@@ -164,7 +164,9 @@ describe('RSI (Relative Strength Index)', () => {
       });
 
       it('should handle array with period + 1 elements', () => {
-        const prices = [100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115];
+        const prices = [
+          100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115,
+        ];
         const result = calculateRSI(prices, 14);
 
         expect(result.length).toBe(16);

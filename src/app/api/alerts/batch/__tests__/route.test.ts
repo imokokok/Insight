@@ -66,7 +66,9 @@ const mockAlerts: PriceAlert[] = [
   },
 ];
 
-const createMockRequest = (options: { body?: unknown; headers?: Record<string, string> } = {}): NextRequest => {
+const createMockRequest = (
+  options: { body?: unknown; headers?: Record<string, string> } = {}
+): NextRequest => {
   return {
     headers: new Headers(options.headers || {}),
     json: async () => options.body,

@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { renderHook, act, waitFor } from '@testing-library/react';
 
 import { OracleClientFactory } from '@/lib/oracles';
-import { type PriceData, Blockchain, OracleProvider } from '@/types/oracle';
+import { type PriceData, Blockchain, type OracleProvider } from '@/types/oracle';
 
 import { useCrossOracleWithMetrics } from '../oracles/useCrossOracleWithMetrics';
 
@@ -53,13 +53,11 @@ describe('useCrossOracleWithMetrics', () => {
       getPrice: jest.fn(),
     };
 
-    (OracleClientFactory.getClient as jest.Mock).mockImplementation(
-      (provider: OracleProvider) => {
-        if (provider === 'chainlink') return mockChainlinkClient;
-        if (provider === 'pyth') return mockPythClient;
-        return { getPrice: jest.fn() };
-      }
-    );
+    (OracleClientFactory.getClient as jest.Mock).mockImplementation((provider: OracleProvider) => {
+      if (provider === 'chainlink') return mockChainlinkClient;
+      if (provider === 'pyth') return mockPythClient;
+      return { getPrice: jest.fn() };
+    });
   });
 
   afterEach(() => {

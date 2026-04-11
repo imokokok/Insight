@@ -1,10 +1,7 @@
 import { PriceFetchError, OracleClientError } from '@/lib/errors';
 import { type Blockchain, type PriceData, type OracleProvider } from '@/types/oracle';
 
-import {
-  fetchPriceWithDatabase,
-  fetchHistoricalPricesWithDatabase,
-} from '../databaseOperations';
+import { fetchPriceWithDatabase, fetchHistoricalPricesWithDatabase } from '../databaseOperations';
 
 jest.mock('@/lib/utils/logger', () => ({
   createLogger: () => ({
@@ -54,18 +51,9 @@ describe('databaseOperations', () => {
         const mockPriceData = createMockPriceData();
         mockGetPriceFromDatabase.mockResolvedValueOnce(mockPriceData);
 
-        const result = await fetchPriceWithDatabase(
-          mockProvider,
-          mockSymbol,
-          mockChain,
-          true
-        );
+        const result = await fetchPriceWithDatabase(mockProvider, mockSymbol, mockChain, true);
 
-        expect(mockGetPriceFromDatabase).toHaveBeenCalledWith(
-          mockProvider,
-          mockSymbol,
-          mockChain
-        );
+        expect(mockGetPriceFromDatabase).toHaveBeenCalledWith(mockProvider, mockSymbol, mockChain);
         expect(result).toEqual(mockPriceData);
       });
 
@@ -127,18 +115,8 @@ describe('databaseOperations', () => {
           .mockResolvedValueOnce(mockPriceData)
           .mockResolvedValueOnce(mockPriceData);
 
-        const result1 = await fetchPriceWithDatabase(
-          mockProvider,
-          mockSymbol,
-          mockChain,
-          true
-        );
-        const result2 = await fetchPriceWithDatabase(
-          mockProvider,
-          mockSymbol,
-          mockChain,
-          true
-        );
+        const result1 = await fetchPriceWithDatabase(mockProvider, mockSymbol, mockChain, true);
+        const result2 = await fetchPriceWithDatabase(mockProvider, mockSymbol, mockChain, true);
 
         expect(result1).toEqual(mockPriceData);
         expect(result2).toEqual(mockPriceData);
@@ -146,12 +124,8 @@ describe('databaseOperations', () => {
       });
 
       it('should handle multiple sequential historical price fetches', async () => {
-        const mockPriceDataArray1 = [
-          createMockPriceData({ timestamp: Date.now() - 3600000 }),
-        ];
-        const mockPriceDataArray2 = [
-          createMockPriceData({ timestamp: Date.now() - 7200000 }),
-        ];
+        const mockPriceDataArray1 = [createMockPriceData({ timestamp: Date.now() - 3600000 })];
+        const mockPriceDataArray2 = [createMockPriceData({ timestamp: Date.now() - 7200000 })];
 
         mockGetHistoricalPricesFromDatabase
           .mockResolvedValueOnce(mockPriceDataArray1)
@@ -294,13 +268,7 @@ describe('databaseOperations', () => {
         mockGetHistoricalPricesFromDatabase.mockRejectedValueOnce(timeoutError);
 
         try {
-          await fetchHistoricalPricesWithDatabase(
-            mockProvider,
-            mockSymbol,
-            mockChain,
-            24,
-            true
-          );
+          await fetchHistoricalPricesWithDatabase(mockProvider, mockSymbol, mockChain, 24, true);
           fail('Should have thrown an error');
         } catch (error) {
           expect(error).toBeInstanceOf(PriceFetchError);
@@ -330,13 +298,7 @@ describe('databaseOperations', () => {
         mockGetHistoricalPricesFromDatabase.mockRejectedValueOnce(busyError);
 
         try {
-          await fetchHistoricalPricesWithDatabase(
-            mockProvider,
-            mockSymbol,
-            mockChain,
-            24,
-            true
-          );
+          await fetchHistoricalPricesWithDatabase(mockProvider, mockSymbol, mockChain, 24, true);
           fail('Should have thrown an error');
         } catch (error) {
           expect(error).toBeInstanceOf(PriceFetchError);
@@ -422,12 +384,7 @@ describe('databaseOperations', () => {
         mockGetPriceFromDatabase.mockReset();
         mockGetPriceFromDatabase.mockResolvedValueOnce(validPriceData);
 
-        const result = await fetchPriceWithDatabase(
-          mockProvider,
-          mockSymbol,
-          mockChain,
-          true
-        );
+        const result = await fetchPriceWithDatabase(mockProvider, mockSymbol, mockChain, true);
 
         expect(result).toEqual(validPriceData);
         expect(result.price).toBe(50000.12345678);
@@ -480,12 +437,7 @@ describe('databaseOperations', () => {
         mockGetPriceFromDatabase.mockReset();
         mockGetPriceFromDatabase.mockResolvedValueOnce(priceData);
 
-        const result = await fetchPriceWithDatabase(
-          mockProvider,
-          mockSymbol,
-          mockChain,
-          true
-        );
+        const result = await fetchPriceWithDatabase(mockProvider, mockSymbol, mockChain, true);
 
         expect(typeof result.price).toBe('number');
         expect(result.price).toBe(12345.6789);
@@ -496,12 +448,7 @@ describe('databaseOperations', () => {
         const priceData = createMockPriceData({ timestamp });
         mockGetPriceFromDatabase.mockResolvedValueOnce(priceData);
 
-        const result = await fetchPriceWithDatabase(
-          mockProvider,
-          mockSymbol,
-          mockChain,
-          true
-        );
+        const result = await fetchPriceWithDatabase(mockProvider, mockSymbol, mockChain, true);
 
         expect(typeof result.timestamp).toBe('number');
         expect(result.timestamp).toBe(timestamp);
@@ -516,18 +463,8 @@ describe('databaseOperations', () => {
           .mockResolvedValueOnce(priceDataWithConfidence)
           .mockResolvedValueOnce(priceDataWithoutConfidence);
 
-        const result1 = await fetchPriceWithDatabase(
-          mockProvider,
-          mockSymbol,
-          mockChain,
-          true
-        );
-        const result2 = await fetchPriceWithDatabase(
-          mockProvider,
-          mockSymbol,
-          mockChain,
-          true
-        );
+        const result1 = await fetchPriceWithDatabase(mockProvider, mockSymbol, mockChain, true);
+        const result2 = await fetchPriceWithDatabase(mockProvider, mockSymbol, mockChain, true);
 
         expect(result1.confidence).toBe(0.95);
         expect(result2.confidence).toBeUndefined();
@@ -561,12 +498,7 @@ describe('databaseOperations', () => {
         mockGetPriceFromDatabase.mockReset();
         mockGetPriceFromDatabase.mockResolvedValueOnce(priceData);
 
-        const result = await fetchPriceWithDatabase(
-          mockProvider,
-          mockSymbol,
-          undefined,
-          true
-        );
+        const result = await fetchPriceWithDatabase(mockProvider, mockSymbol, undefined, true);
 
         expect(result.chain).toBeUndefined();
       });
@@ -576,12 +508,7 @@ describe('databaseOperations', () => {
         mockGetPriceFromDatabase.mockReset();
         mockGetPriceFromDatabase.mockResolvedValueOnce(priceData);
 
-        const result = await fetchPriceWithDatabase(
-          mockProvider,
-          mockSymbol,
-          mockChain,
-          true
-        );
+        const result = await fetchPriceWithDatabase(mockProvider, mockSymbol, mockChain, true);
 
         expect(result.confidence).toBeNull();
       });
@@ -591,12 +518,7 @@ describe('databaseOperations', () => {
         mockGetPriceFromDatabase.mockReset();
         mockGetPriceFromDatabase.mockResolvedValueOnce(priceData);
 
-        const result = await fetchPriceWithDatabase(
-          mockProvider,
-          mockSymbol,
-          mockChain,
-          true
-        );
+        const result = await fetchPriceWithDatabase(mockProvider, mockSymbol, mockChain, true);
 
         expect(result.source).toBeNull();
       });
@@ -644,9 +566,7 @@ describe('databaseOperations', () => {
         const btcData = createMockPriceData({ symbol: 'BTC' });
         const ethData = createMockPriceData({ symbol: 'ETH' });
 
-        mockGetPriceFromDatabase
-          .mockResolvedValueOnce(btcData)
-          .mockResolvedValueOnce(ethData);
+        mockGetPriceFromDatabase.mockResolvedValueOnce(btcData).mockResolvedValueOnce(ethData);
 
         const [btc, eth] = await Promise.all([
           fetchPriceWithDatabase(mockProvider, 'BTC', mockChain, true),
@@ -672,12 +592,7 @@ describe('databaseOperations', () => {
         const mockPriceData = createMockPriceData();
         mockGetPriceFromDatabase.mockResolvedValueOnce(mockPriceData);
 
-        const result = await fetchPriceWithDatabase(
-          mockProvider,
-          mockSymbol,
-          mockChain,
-          true
-        );
+        const result = await fetchPriceWithDatabase(mockProvider, mockSymbol, mockChain, true);
         expect(result).toEqual(mockPriceData);
       });
     });
@@ -726,12 +641,7 @@ describe('databaseOperations', () => {
           expect(error).toBeInstanceOf(PriceFetchError);
         }
 
-        const result = await fetchPriceWithDatabase(
-          mockProvider,
-          mockSymbol,
-          mockChain,
-          true
-        );
+        const result = await fetchPriceWithDatabase(mockProvider, mockSymbol, mockChain, true);
         expect(result).toEqual(mockPriceData);
       });
     });
@@ -757,13 +667,7 @@ describe('databaseOperations', () => {
         mockGetHistoricalPricesFromDatabase.mockResolvedValueOnce(mockHistoricalData);
 
         const startTime = Date.now();
-        await fetchHistoricalPricesWithDatabase(
-          mockProvider,
-          mockSymbol,
-          mockChain,
-          24,
-          true
-        );
+        await fetchHistoricalPricesWithDatabase(mockProvider, mockSymbol, mockChain, 24, true);
         const endTime = Date.now();
 
         expect(endTime - startTime).toBeLessThan(1000);
@@ -779,9 +683,7 @@ describe('databaseOperations', () => {
 
         const startTime = Date.now();
         await Promise.all(
-          symbols.map((symbol) =>
-            fetchPriceWithDatabase(mockProvider, symbol, mockChain, true)
-          )
+          symbols.map((symbol) => fetchPriceWithDatabase(mockProvider, symbol, mockChain, true))
         );
         const endTime = Date.now();
 
@@ -817,24 +719,14 @@ describe('databaseOperations', () => {
 
         await fetchPriceWithDatabase(mockProvider, mockSymbol, mockChain, true);
 
-        expect(mockGetPriceFromDatabase).toHaveBeenCalledWith(
-          mockProvider,
-          mockSymbol,
-          mockChain
-        );
+        expect(mockGetPriceFromDatabase).toHaveBeenCalledWith(mockProvider, mockSymbol, mockChain);
       });
 
       it('should query historical data with time range', async () => {
         const mockHistoricalData = [createMockPriceData()];
         mockGetHistoricalPricesFromDatabase.mockResolvedValueOnce(mockHistoricalData);
 
-        await fetchHistoricalPricesWithDatabase(
-          mockProvider,
-          mockSymbol,
-          mockChain,
-          24,
-          true
-        );
+        await fetchHistoricalPricesWithDatabase(mockProvider, mockSymbol, mockChain, 24, true);
 
         expect(mockGetHistoricalPricesFromDatabase).toHaveBeenCalledWith(
           mockProvider,
@@ -850,12 +742,7 @@ describe('databaseOperations', () => {
         const mockPriceData = createMockPriceData();
         mockGetPriceFromDatabase.mockResolvedValueOnce(mockPriceData);
 
-        const result = await fetchPriceWithDatabase(
-          mockProvider,
-          mockSymbol,
-          mockChain,
-          true
-        );
+        const result = await fetchPriceWithDatabase(mockProvider, mockSymbol, mockChain, true);
 
         expect(mockGetPriceFromDatabase).toHaveBeenCalledTimes(1);
         expect(result).toEqual(mockPriceData);
@@ -886,9 +773,7 @@ describe('databaseOperations', () => {
         mockGetPriceFromDatabase.mockResolvedValue(mockPriceData);
 
         await Promise.all(
-          symbols.map((symbol) =>
-            fetchPriceWithDatabase(mockProvider, symbol, mockChain, true)
-          )
+          symbols.map((symbol) => fetchPriceWithDatabase(mockProvider, symbol, mockChain, true))
         );
 
         expect(mockGetPriceFromDatabase).toHaveBeenCalledTimes(3);
@@ -898,13 +783,7 @@ describe('databaseOperations', () => {
         const mockHistoricalData = [createMockPriceData()];
         mockGetHistoricalPricesFromDatabase.mockResolvedValueOnce(mockHistoricalData);
 
-        await fetchHistoricalPricesWithDatabase(
-          mockProvider,
-          mockSymbol,
-          mockChain,
-          24,
-          true
-        );
+        await fetchHistoricalPricesWithDatabase(mockProvider, mockSymbol, mockChain, 24, true);
 
         expect(mockGetHistoricalPricesFromDatabase).toHaveBeenCalledTimes(1);
       });
@@ -921,18 +800,8 @@ describe('databaseOperations', () => {
           .mockResolvedValueOnce(oldPriceData)
           .mockResolvedValueOnce(newPriceData);
 
-        const result1 = await fetchPriceWithDatabase(
-          mockProvider,
-          mockSymbol,
-          mockChain,
-          true
-        );
-        const result2 = await fetchPriceWithDatabase(
-          mockProvider,
-          mockSymbol,
-          mockChain,
-          true
-        );
+        const result1 = await fetchPriceWithDatabase(mockProvider, mockSymbol, mockChain, true);
+        const result2 = await fetchPriceWithDatabase(mockProvider, mockSymbol, mockChain, true);
 
         expect(result1.price).toBe(50000);
         expect(result2.price).toBe(51000);
@@ -941,9 +810,7 @@ describe('databaseOperations', () => {
 
     describe('Cache refresh on stale data', () => {
       it('should refresh stale historical data', async () => {
-        const staleData = [
-          createMockPriceData({ timestamp: Date.now() - 86400000 }),
-        ];
+        const staleData = [createMockPriceData({ timestamp: Date.now() - 86400000 })];
         const freshData = [createMockPriceData({ timestamp: Date.now() })];
 
         mockGetHistoricalPricesFromDatabase
@@ -1053,12 +920,7 @@ describe('databaseOperations', () => {
         });
         mockGetPriceFromDatabase.mockResolvedValueOnce(largePriceData);
 
-        const result = await fetchPriceWithDatabase(
-          mockProvider,
-          mockSymbol,
-          mockChain,
-          true
-        );
+        const result = await fetchPriceWithDatabase(mockProvider, mockSymbol, mockChain, true);
 
         expect(result.price).toBe(Number.MAX_SAFE_INTEGER);
       });
@@ -1070,12 +932,7 @@ describe('databaseOperations', () => {
         const mockPriceData = createMockPriceData({ symbol: unicodeSymbol });
         mockGetPriceFromDatabase.mockResolvedValueOnce(mockPriceData);
 
-        const result = await fetchPriceWithDatabase(
-          mockProvider,
-          unicodeSymbol,
-          mockChain,
-          true
-        );
+        const result = await fetchPriceWithDatabase(mockProvider, unicodeSymbol, mockChain, true);
 
         expect(result.symbol).toBe(unicodeSymbol);
       });
@@ -1088,12 +945,7 @@ describe('databaseOperations', () => {
         });
         mockGetPriceFromDatabase.mockResolvedValueOnce(mockPriceData);
 
-        const result = await fetchPriceWithDatabase(
-          mockProvider,
-          emojiSymbol,
-          mockChain,
-          true
-        );
+        const result = await fetchPriceWithDatabase(mockProvider, emojiSymbol, mockChain, true);
 
         expect(result.symbol).toBe(emojiSymbol);
         expect(result.source).toBe('test 🎉');
@@ -1106,12 +958,7 @@ describe('databaseOperations', () => {
         const mockPriceData = createMockPriceData({ symbol: specialSymbol });
         mockGetPriceFromDatabase.mockResolvedValueOnce(mockPriceData);
 
-        const result = await fetchPriceWithDatabase(
-          mockProvider,
-          specialSymbol,
-          mockChain,
-          true
-        );
+        const result = await fetchPriceWithDatabase(mockProvider, specialSymbol, mockChain, true);
 
         expect(result.symbol).toBe(specialSymbol);
       });
@@ -1136,12 +983,7 @@ describe('databaseOperations', () => {
         const mockPriceData = createMockPriceData({ provider: specialProvider });
         mockGetPriceFromDatabase.mockResolvedValueOnce(mockPriceData);
 
-        const result = await fetchPriceWithDatabase(
-          specialProvider,
-          mockSymbol,
-          mockChain,
-          true
-        );
+        const result = await fetchPriceWithDatabase(specialProvider, mockSymbol, mockChain, true);
 
         expect(result.provider).toBe(specialProvider);
       });
@@ -1153,12 +995,7 @@ describe('databaseOperations', () => {
         const mockPriceData = createMockPriceData({ symbol: maliciousSymbol });
         mockGetPriceFromDatabase.mockResolvedValueOnce(mockPriceData);
 
-        const result = await fetchPriceWithDatabase(
-          mockProvider,
-          maliciousSymbol,
-          mockChain,
-          true
-        );
+        const result = await fetchPriceWithDatabase(mockProvider, maliciousSymbol, mockChain, true);
 
         expect(result.symbol).toBe(maliciousSymbol);
         expect(mockGetPriceFromDatabase).toHaveBeenCalledWith(
@@ -1173,12 +1010,7 @@ describe('databaseOperations', () => {
         const mockPriceData = createMockPriceData({ provider: maliciousProvider });
         mockGetPriceFromDatabase.mockResolvedValueOnce(mockPriceData);
 
-        const result = await fetchPriceWithDatabase(
-          maliciousProvider,
-          mockSymbol,
-          mockChain,
-          true
-        );
+        const result = await fetchPriceWithDatabase(maliciousProvider, mockSymbol, mockChain, true);
 
         expect(result.provider).toBe(maliciousProvider);
       });
@@ -1204,12 +1036,7 @@ describe('databaseOperations', () => {
         const minPriceData = createMockPriceData({ price: 0 });
         mockGetPriceFromDatabase.mockResolvedValueOnce(minPriceData);
 
-        const result = await fetchPriceWithDatabase(
-          mockProvider,
-          mockSymbol,
-          mockChain,
-          true
-        );
+        const result = await fetchPriceWithDatabase(mockProvider, mockSymbol, mockChain, true);
 
         expect(result.price).toBe(0);
       });
@@ -1218,12 +1045,7 @@ describe('databaseOperations', () => {
         const negativePriceData = createMockPriceData({ price: -100 });
         mockGetPriceFromDatabase.mockResolvedValueOnce(negativePriceData);
 
-        const result = await fetchPriceWithDatabase(
-          mockProvider,
-          mockSymbol,
-          mockChain,
-          true
-        );
+        const result = await fetchPriceWithDatabase(mockProvider, mockSymbol, mockChain, true);
 
         expect(result.price).toBe(-100);
       });
@@ -1232,12 +1054,7 @@ describe('databaseOperations', () => {
         const smallPriceData = createMockPriceData({ price: 0.00000001 });
         mockGetPriceFromDatabase.mockResolvedValueOnce(smallPriceData);
 
-        const result = await fetchPriceWithDatabase(
-          mockProvider,
-          mockSymbol,
-          mockChain,
-          true
-        );
+        const result = await fetchPriceWithDatabase(mockProvider, mockSymbol, mockChain, true);
 
         expect(result.price).toBe(0.00000001);
       });
@@ -1250,18 +1067,8 @@ describe('databaseOperations', () => {
           .mockResolvedValueOnce(minConfidenceData)
           .mockResolvedValueOnce(maxConfidenceData);
 
-        const result1 = await fetchPriceWithDatabase(
-          mockProvider,
-          mockSymbol,
-          mockChain,
-          true
-        );
-        const result2 = await fetchPriceWithDatabase(
-          mockProvider,
-          mockSymbol,
-          mockChain,
-          true
-        );
+        const result1 = await fetchPriceWithDatabase(mockProvider, mockSymbol, mockChain, true);
+        const result2 = await fetchPriceWithDatabase(mockProvider, mockSymbol, mockChain, true);
 
         expect(result1.confidence).toBe(0);
         expect(result2.confidence).toBe(1);
@@ -1272,12 +1079,7 @@ describe('databaseOperations', () => {
         const oldPriceData = createMockPriceData({ timestamp: oldTimestamp });
         mockGetPriceFromDatabase.mockResolvedValueOnce(oldPriceData);
 
-        const result = await fetchPriceWithDatabase(
-          mockProvider,
-          mockSymbol,
-          mockChain,
-          true
-        );
+        const result = await fetchPriceWithDatabase(mockProvider, mockSymbol, mockChain, true);
 
         expect(result.timestamp).toBe(oldTimestamp);
       });
@@ -1287,12 +1089,7 @@ describe('databaseOperations', () => {
         const futurePriceData = createMockPriceData({ timestamp: futureTimestamp });
         mockGetPriceFromDatabase.mockResolvedValueOnce(futurePriceData);
 
-        const result = await fetchPriceWithDatabase(
-          mockProvider,
-          mockSymbol,
-          mockChain,
-          true
-        );
+        const result = await fetchPriceWithDatabase(mockProvider, mockSymbol, mockChain, true);
 
         expect(result.timestamp).toBe(futureTimestamp);
       });
@@ -1349,12 +1146,7 @@ describe('databaseOperations', () => {
         const mockPriceData = createMockPriceData({ provider: 'chainlink' });
         mockGetPriceFromDatabase.mockResolvedValueOnce(mockPriceData);
 
-        const result = await fetchPriceWithDatabase(
-          'chainlink',
-          mockSymbol,
-          mockChain,
-          true
-        );
+        const result = await fetchPriceWithDatabase('chainlink', mockSymbol, mockChain, true);
 
         expect(result.provider).toBe('chainlink');
       });
@@ -1381,12 +1173,7 @@ describe('databaseOperations', () => {
         const mockPriceData = createMockPriceData({ provider: 'redstone' });
         mockGetPriceFromDatabase.mockResolvedValueOnce(mockPriceData);
 
-        const result = await fetchPriceWithDatabase(
-          'redstone',
-          mockSymbol,
-          mockChain,
-          true
-        );
+        const result = await fetchPriceWithDatabase('redstone', mockSymbol, mockChain, true);
 
         expect(result.provider).toBe('redstone');
       });
@@ -1404,12 +1191,7 @@ describe('databaseOperations', () => {
         const mockPriceData = createMockPriceData({ provider: 'winklink' });
         mockGetPriceFromDatabase.mockResolvedValueOnce(mockPriceData);
 
-        const result = await fetchPriceWithDatabase(
-          'winklink',
-          mockSymbol,
-          mockChain,
-          true
-        );
+        const result = await fetchPriceWithDatabase('winklink', mockSymbol, mockChain, true);
 
         expect(result.provider).toBe('winklink');
       });
@@ -1420,12 +1202,7 @@ describe('databaseOperations', () => {
         const mockPriceData = createMockPriceData({ chain: 'ethereum' });
         mockGetPriceFromDatabase.mockResolvedValueOnce(mockPriceData);
 
-        const result = await fetchPriceWithDatabase(
-          mockProvider,
-          mockSymbol,
-          'ethereum',
-          true
-        );
+        const result = await fetchPriceWithDatabase(mockProvider, mockSymbol, 'ethereum', true);
 
         expect(result.chain).toBe('ethereum');
       });
@@ -1434,12 +1211,7 @@ describe('databaseOperations', () => {
         const mockPriceData = createMockPriceData({ chain: 'polygon' });
         mockGetPriceFromDatabase.mockResolvedValueOnce(mockPriceData);
 
-        const result = await fetchPriceWithDatabase(
-          mockProvider,
-          mockSymbol,
-          'polygon',
-          true
-        );
+        const result = await fetchPriceWithDatabase(mockProvider, mockSymbol, 'polygon', true);
 
         expect(result.chain).toBe('polygon');
       });
@@ -1448,12 +1220,7 @@ describe('databaseOperations', () => {
         const mockPriceData = createMockPriceData({ chain: 'arbitrum' });
         mockGetPriceFromDatabase.mockResolvedValueOnce(mockPriceData);
 
-        const result = await fetchPriceWithDatabase(
-          mockProvider,
-          mockSymbol,
-          'arbitrum',
-          true
-        );
+        const result = await fetchPriceWithDatabase(mockProvider, mockSymbol, 'arbitrum', true);
 
         expect(result.chain).toBe('arbitrum');
       });
@@ -1462,12 +1229,7 @@ describe('databaseOperations', () => {
         const mockPriceData = createMockPriceData({ chain: 'optimism' });
         mockGetPriceFromDatabase.mockResolvedValueOnce(mockPriceData);
 
-        const result = await fetchPriceWithDatabase(
-          mockProvider,
-          mockSymbol,
-          'optimism',
-          true
-        );
+        const result = await fetchPriceWithDatabase(mockProvider, mockSymbol, 'optimism', true);
 
         expect(result.chain).toBe('optimism');
       });
@@ -1476,12 +1238,7 @@ describe('databaseOperations', () => {
         const mockPriceData = createMockPriceData({ chain: 'bsc' });
         mockGetPriceFromDatabase.mockResolvedValueOnce(mockPriceData);
 
-        const result = await fetchPriceWithDatabase(
-          mockProvider,
-          mockSymbol,
-          'bsc',
-          true
-        );
+        const result = await fetchPriceWithDatabase(mockProvider, mockSymbol, 'bsc', true);
 
         expect(result.chain).toBe('bsc');
       });
@@ -1490,12 +1247,7 @@ describe('databaseOperations', () => {
         const mockPriceData = createMockPriceData({ chain: undefined });
         mockGetPriceFromDatabase.mockResolvedValueOnce(mockPriceData);
 
-        const result = await fetchPriceWithDatabase(
-          mockProvider,
-          mockSymbol,
-          undefined,
-          true
-        );
+        const result = await fetchPriceWithDatabase(mockProvider, mockSymbol, undefined, true);
 
         expect(result.chain).toBeUndefined();
       });
@@ -1506,13 +1258,7 @@ describe('databaseOperations', () => {
         const mockHistoricalData = [createMockPriceData()];
         mockGetHistoricalPricesFromDatabase.mockResolvedValueOnce(mockHistoricalData);
 
-        await fetchHistoricalPricesWithDatabase(
-          mockProvider,
-          mockSymbol,
-          mockChain,
-          1,
-          true
-        );
+        await fetchHistoricalPricesWithDatabase(mockProvider, mockSymbol, mockChain, 1, true);
 
         expect(mockGetHistoricalPricesFromDatabase).toHaveBeenCalledWith(
           mockProvider,
@@ -1526,13 +1272,7 @@ describe('databaseOperations', () => {
         const mockHistoricalData = [createMockPriceData()];
         mockGetHistoricalPricesFromDatabase.mockResolvedValueOnce(mockHistoricalData);
 
-        await fetchHistoricalPricesWithDatabase(
-          mockProvider,
-          mockSymbol,
-          mockChain,
-          24,
-          true
-        );
+        await fetchHistoricalPricesWithDatabase(mockProvider, mockSymbol, mockChain, 24, true);
 
         expect(mockGetHistoricalPricesFromDatabase).toHaveBeenCalledWith(
           mockProvider,
@@ -1546,13 +1286,7 @@ describe('databaseOperations', () => {
         const mockHistoricalData = [createMockPriceData()];
         mockGetHistoricalPricesFromDatabase.mockResolvedValueOnce(mockHistoricalData);
 
-        await fetchHistoricalPricesWithDatabase(
-          mockProvider,
-          mockSymbol,
-          mockChain,
-          168,
-          true
-        );
+        await fetchHistoricalPricesWithDatabase(mockProvider, mockSymbol, mockChain, 168, true);
 
         expect(mockGetHistoricalPricesFromDatabase).toHaveBeenCalledWith(
           mockProvider,
@@ -1566,13 +1300,7 @@ describe('databaseOperations', () => {
         const mockHistoricalData = [createMockPriceData()];
         mockGetHistoricalPricesFromDatabase.mockResolvedValueOnce(mockHistoricalData);
 
-        await fetchHistoricalPricesWithDatabase(
-          mockProvider,
-          mockSymbol,
-          mockChain,
-          0,
-          true
-        );
+        await fetchHistoricalPricesWithDatabase(mockProvider, mockSymbol, mockChain, 0, true);
 
         expect(mockGetHistoricalPricesFromDatabase).toHaveBeenCalledWith(
           mockProvider,

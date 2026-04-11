@@ -1,5 +1,6 @@
 import { OracleProvider, Blockchain } from '@/types/oracle';
 
+import { OracleClientFactory } from '../factory';
 import {
   getHoursForTimeRange,
   fetchOraclePrice,
@@ -24,8 +25,6 @@ jest.mock('../factory', () => ({
     getClient: jest.fn(),
   },
 }));
-
-import { OracleClientFactory } from '../factory';
 
 describe('oracleDataUtils', () => {
   describe('getHoursForTimeRange', () => {
@@ -180,7 +179,10 @@ describe('oracleDataUtils', () => {
 
     it('should track response time', async () => {
       mockClient.getPrice.mockImplementation(
-        () => new Promise((resolve) => setTimeout(() => resolve({ price: 100, timestamp: Date.now() }), 50))
+        () =>
+          new Promise((resolve) =>
+            setTimeout(() => resolve({ price: 100, timestamp: Date.now() }), 50)
+          )
       );
 
       const result = await fetchOraclePrice({

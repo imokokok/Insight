@@ -835,15 +835,17 @@ describe('ChainlinkClient', () => {
         const symbols = ['ETH', 'BTC', 'LINK'];
         const mockPrices: Record<string, number> = { ETH: 3500, BTC: 68000, LINK: 15 };
 
-        (chainlinkOnChainService.getPrice as jest.Mock).mockImplementation(async (symbol: string) => ({
-          symbol,
-          price: mockPrices[symbol],
-          timestamp: Date.now(),
-          decimals: 8,
-          roundId: BigInt(12345),
-          answeredInRound: BigInt(12345),
-          chainId: 1,
-        }));
+        (chainlinkOnChainService.getPrice as jest.Mock).mockImplementation(
+          async (symbol: string) => ({
+            symbol,
+            price: mockPrices[symbol],
+            timestamp: Date.now(),
+            decimals: 8,
+            roundId: BigInt(12345),
+            answeredInRound: BigInt(12345),
+            chainId: 1,
+          })
+        );
 
         const promises = symbols.map((symbol) => client.getPrice(symbol));
         const results = await Promise.all(promises);
@@ -856,20 +858,22 @@ describe('ChainlinkClient', () => {
       });
 
       it('should handle mixed success and failure in concurrent requests', async () => {
-        (chainlinkOnChainService.getPrice as jest.Mock).mockImplementation(async (symbol: string) => {
-          if (symbol === 'FAIL') {
-            throw new Error('Failed to fetch price');
+        (chainlinkOnChainService.getPrice as jest.Mock).mockImplementation(
+          async (symbol: string) => {
+            if (symbol === 'FAIL') {
+              throw new Error('Failed to fetch price');
+            }
+            return {
+              symbol,
+              price: 1000,
+              timestamp: Date.now(),
+              decimals: 8,
+              roundId: BigInt(12345),
+              answeredInRound: BigInt(12345),
+              chainId: 1,
+            };
           }
-          return {
-            symbol,
-            price: 1000,
-            timestamp: Date.now(),
-            decimals: 8,
-            roundId: BigInt(12345),
-            answeredInRound: BigInt(12345),
-            chainId: 1,
-          };
-        });
+        );
 
         const promises = ['ETH', 'FAIL', 'BTC'].map((symbol) =>
           client.getPrice(symbol).catch((e) => ({ error: e, symbol }))
@@ -885,7 +889,7 @@ describe('ChainlinkClient', () => {
 
     describe('Race condition handling', () => {
       it('should handle race conditions in price updates', async () => {
-        let resolveOrder: string[] = [];
+        const resolveOrder: string[] = [];
 
         (chainlinkOnChainService.getPrice as jest.Mock).mockImplementation(
           (symbol: string) =>
@@ -994,7 +998,10 @@ describe('ChainlinkClient', () => {
   });
 
   describe('Database Integration Tests', () => {
-    const { fetchPriceWithDatabase, fetchHistoricalPricesWithDatabase } = require('@/lib/oracles/base/databaseOperations');
+    const {
+      fetchPriceWithDatabase,
+      fetchHistoricalPricesWithDatabase,
+    } = require('@/lib/oracles/base/databaseOperations');
 
     describe('Successful database save and retrieval', () => {
       it('should fetch price from database successfully', async () => {
@@ -1021,14 +1028,28 @@ describe('ChainlinkClient', () => {
 
       it('should fetch historical prices from database successfully', async () => {
         const mockHistoricalData = [
-          { provider: OracleProvider.CHAINLINK, symbol: 'ETH', price: 3400, timestamp: Date.now() - 3600000 },
-          { provider: OracleProvider.CHAINLINK, symbol: 'ETH', price: 3450, timestamp: Date.now() - 1800000 },
+          {
+            provider: OracleProvider.CHAINLINK,
+            symbol: 'ETH',
+            price: 3400,
+            timestamp: Date.now() - 3600000,
+          },
+          {
+            provider: OracleProvider.CHAINLINK,
+            symbol: 'ETH',
+            price: 3450,
+            timestamp: Date.now() - 1800000,
+          },
           { provider: OracleProvider.CHAINLINK, symbol: 'ETH', price: 3500, timestamp: Date.now() },
         ];
 
         (fetchHistoricalPricesWithDatabase as jest.Mock).mockResolvedValue(mockHistoricalData);
 
-        const result = await client.fetchHistoricalPricesWithDatabase('ETH', Blockchain.ETHEREUM, 24);
+        const result = await client.fetchHistoricalPricesWithDatabase(
+          'ETH',
+          Blockchain.ETHEREUM,
+          24
+        );
 
         expect(fetchHistoricalPricesWithDatabase).toHaveBeenCalledWith(
           OracleProvider.CHAINLINK,
@@ -1045,21 +1066,27 @@ describe('ChainlinkClient', () => {
       it('should handle database connection failure gracefully', async () => {
         (fetchPriceWithDatabase as jest.Mock).mockRejectedValue(new Error('Connection refused'));
 
-        await expect(client.fetchPriceWithDatabase('ETH', Blockchain.ETHEREUM)).rejects.toThrow('Connection refused');
+        await expect(client.fetchPriceWithDatabase('ETH', Blockchain.ETHEREUM)).rejects.toThrow(
+          'Connection refused'
+        );
       });
 
       it('should handle database timeout', async () => {
         (fetchPriceWithDatabase as jest.Mock).mockRejectedValue(new Error('Query timeout'));
 
-        await expect(client.fetchPriceWithDatabase('ETH', Blockchain.ETHEREUM)).rejects.toThrow('Query timeout');
+        await expect(client.fetchPriceWithDatabase('ETH', Blockchain.ETHEREUM)).rejects.toThrow(
+          'Query timeout'
+        );
       });
 
       it('should handle database unavailable error', async () => {
-        (fetchHistoricalPricesWithDatabase as jest.Mock).mockRejectedValue(new Error('Database unavailable'));
-
-        await expect(client.fetchHistoricalPricesWithDatabase('ETH', Blockchain.ETHEREUM, 24)).rejects.toThrow(
-          'Database unavailable'
+        (fetchHistoricalPricesWithDatabase as jest.Mock).mockRejectedValue(
+          new Error('Database unavailable')
         );
+
+        await expect(
+          client.fetchHistoricalPricesWithDatabase('ETH', Blockchain.ETHEREUM, 24)
+        ).rejects.toThrow('Database unavailable');
       });
     });
 

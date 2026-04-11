@@ -6,7 +6,7 @@ import { renderHook, act, waitFor } from '@testing-library/react';
 import { API3Client } from '@/lib/oracles/api3';
 import { type PriceData, Blockchain } from '@/types/oracle';
 
-import { useAPI3HistoricalPrices, TimeRange } from '../api3/useAPI3HistoricalPrices';
+import { useAPI3HistoricalPrices, type TimeRange } from '../api3/useAPI3HistoricalPrices';
 
 jest.mock('@/lib/oracles/api3', () => ({
   API3Client: jest.fn(),
@@ -157,20 +157,22 @@ describe('useAPI3HistoricalPrices', () => {
     ['7d', 168],
     ['30d', 720],
     ['90d', 2160],
-  ] as [TimeRange, number][])('should map timeRange %s to period %d', async (timeRange, expectedPeriod) => {
-    mockClient.getHistoricalPrices.mockResolvedValue(mockHistoricalData);
+  ] as [TimeRange, number][])(
+    'should map timeRange %s to period %d',
+    async (timeRange, expectedPeriod) => {
+      mockClient.getHistoricalPrices.mockResolvedValue(mockHistoricalData);
 
-    const { result } = renderHook(
-      () => useAPI3HistoricalPrices({ symbol: 'BTC', timeRange }),
-      { wrapper: createTestWrapper() }
-    );
+      const { result } = renderHook(() => useAPI3HistoricalPrices({ symbol: 'BTC', timeRange }), {
+        wrapper: createTestWrapper(),
+      });
 
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
-    });
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
 
-    expect(mockClient.getHistoricalPrices).toHaveBeenCalledWith('BTC', undefined, expectedPeriod);
-  });
+      expect(mockClient.getHistoricalPrices).toHaveBeenCalledWith('BTC', undefined, expectedPeriod);
+    }
+  );
 
   it('should pass chain parameter to client', async () => {
     mockClient.getHistoricalPrices.mockResolvedValue(mockHistoricalData);
