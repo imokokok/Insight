@@ -138,10 +138,9 @@ describe('usePythHistorical', () => {
   it('should fetch historical data successfully', async () => {
     mockClient.getHistoricalPrices.mockResolvedValue(mockHistoricalData);
 
-    const { result } = renderHook(
-      () => usePythHistorical({ symbol: 'BTC', period: 30 }),
-      { wrapper: createTestWrapper() }
-    );
+    const { result } = renderHook(() => usePythHistorical({ symbol: 'BTC', period: 30 }), {
+      wrapper: createTestWrapper(),
+    });
 
     expect(result.current.isLoading).toBe(true);
 

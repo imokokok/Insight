@@ -102,9 +102,7 @@ describe('OracleCache', () => {
       const data = { price: 100 };
       cache.set('test-key', data, 10000);
 
-      const readPromises = Array.from({ length: 10 }, () =>
-        Promise.resolve(cache.get('test-key'))
-      );
+      const readPromises = Array.from({ length: 10 }, () => Promise.resolve(cache.get('test-key')));
 
       const results = await Promise.all(readPromises);
 

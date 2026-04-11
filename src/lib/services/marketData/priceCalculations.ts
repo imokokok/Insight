@@ -166,7 +166,7 @@ function exportToCSV(config: ExportConfig, data: ExportDataOptions): string {
     if (selectedFields.length === 0) return;
 
     lines.push(`# ${group.label}`);
-    lines.push(selectedFields.map((f) => f.key).join(','));
+    lines.push(selectedFields.map((f) => f.label).join(','));
 
     const rows = getDataRows(dataType, data, selectedFields);
     rows.forEach((row) => {

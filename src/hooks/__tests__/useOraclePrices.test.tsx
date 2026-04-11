@@ -89,10 +89,9 @@ describe('useOraclePrices', () => {
       data: { prices: mockPriceData },
     });
 
-    const { result } = renderHook(
-      () => useOraclePrices({ symbols: ['BTC', 'ETH'] }),
-      { wrapper: createTestWrapper() }
-    );
+    const { result } = renderHook(() => useOraclePrices({ symbols: ['BTC', 'ETH'] }), {
+      wrapper: createTestWrapper(),
+    });
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);

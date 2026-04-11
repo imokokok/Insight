@@ -33,10 +33,7 @@ describe('calculations', () => {
     });
 
     it('should handle all publishers without totalSubmissions', () => {
-      const publishers: PublisherData[] = [
-        {} as PublisherData,
-        {} as PublisherData,
-      ];
+      const publishers: PublisherData[] = [{} as PublisherData, {} as PublisherData];
 
       const result = calculateTotalSubmissions(publishers);
 
@@ -96,10 +93,7 @@ describe('calculations', () => {
     });
 
     it('should handle all publishers without averageLatency', () => {
-      const publishers: PublisherData[] = [
-        {} as PublisherData,
-        {} as PublisherData,
-      ];
+      const publishers: PublisherData[] = [{} as PublisherData, {} as PublisherData];
 
       const result = calculateAverageLatency(publishers);
 
@@ -118,9 +112,7 @@ describe('calculations', () => {
     });
 
     it('should handle single publisher', () => {
-      const publishers: PublisherData[] = [
-        { averageLatency: 150 } as PublisherData,
-      ];
+      const publishers: PublisherData[] = [{ averageLatency: 150 } as PublisherData];
 
       const result = calculateAverageLatency(publishers);
 

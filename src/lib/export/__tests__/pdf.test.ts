@@ -1,13 +1,12 @@
 import { exportToPDF as exportToPDFFromUtils } from '@/components/export/exportUtils';
+import type { ExportConfig, ExportField, ExportDataSource } from '@/components/export/types';
 import { exportToPDF as exportToPDFFromChartExport } from '@/lib/utils/chartExport/formats/pdfExporter';
-import { blobToBase64 } from '@/lib/utils/chartExport/utils/exportHelpers';
-
 import type {
-  ExportConfig,
-  ExportField,
-  ExportDataSource,
-} from '@/components/export/types';
-import type { PDFExportOptions, ChartExportData, ExportProgress } from '@/lib/utils/chartExport/types';
+  PDFExportOptions,
+  ChartExportData,
+  ExportProgress,
+} from '@/lib/utils/chartExport/types';
+import { blobToBase64 } from '@/lib/utils/chartExport/utils/exportHelpers';
 
 jest.mock('@/lib/utils/logger', () => ({
   createLogger: jest.fn(() => ({
@@ -86,7 +85,13 @@ describe('PDF Export', () => {
   const mockFields: ExportField[] = [
     { key: 'symbol', label: 'Symbol', labelZh: '代码', dataType: 'string', selected: true },
     { key: 'price', label: 'Price', labelZh: '价格', dataType: 'number', selected: true },
-    { key: 'change24h', label: '24h Change', labelZh: '24小时变化', dataType: 'number', selected: true },
+    {
+      key: 'change24h',
+      label: '24h Change',
+      labelZh: '24小时变化',
+      dataType: 'number',
+      selected: true,
+    },
     { key: 'timestamp', label: 'Timestamp', labelZh: '时间戳', dataType: 'date', selected: true },
   ];
 
@@ -209,9 +214,7 @@ describe('PDF Export', () => {
     });
 
     it('should format number cells correctly', async () => {
-      const numberData = [
-        { symbol: 'BTC', price: 45000.123456, change24h: 2.56789 },
-      ];
+      const numberData = [{ symbol: 'BTC', price: 45000.123456, change24h: 2.56789 }];
 
       const result = await exportToPDFFromUtils(
         numberData,

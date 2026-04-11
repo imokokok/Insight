@@ -1233,18 +1233,16 @@ describe('Batch Operations Tests - 批量操作测试', () => {
     });
 
     it('应该在部分数据源失败时继续处理', async () => {
-      mockFetch
-        .mockRejectedValueOnce(new Error('dAPI fetch failed'))
-        .mockResolvedValueOnce({
-          ok: true,
-          json: async () => [
-            createMockAirnodeData({
-              name: 'Test Node',
-              uptime: 94,
-              responseTime: 1200,
-            }),
-          ],
-        });
+      mockFetch.mockRejectedValueOnce(new Error('dAPI fetch failed')).mockResolvedValueOnce({
+        ok: true,
+        json: async () => [
+          createMockAirnodeData({
+            name: 'Test Node',
+            uptime: 94,
+            responseTime: 1200,
+          }),
+        ],
+      });
 
       const alerts = await getActiveAlerts();
 
@@ -1663,9 +1661,7 @@ describe('Mute Period Tests - 静默期测试', () => {
       const alert = createMockAlert({ severity: 'critical' });
       const muteConfig = { bypassForCritical: true };
 
-      const shouldSuppress = !(
-        muteConfig.bypassForCritical && alert.severity === 'critical'
-      );
+      const shouldSuppress = !(muteConfig.bypassForCritical && alert.severity === 'critical');
 
       expect(shouldSuppress).toBe(false);
     });
@@ -1713,9 +1709,7 @@ describe('Alert Template Tests - 告警模板测试', () => {
         type: template.type,
         severity: template.severity,
         title: template.titleTemplate.replace('{symbol}', 'BTC/USD'),
-        message: template.messageTemplate
-          .replace('{symbol}', 'BTC/USD')
-          .replace('{value}', '2.5'),
+        message: template.messageTemplate.replace('{symbol}', 'BTC/USD').replace('{value}', '2.5'),
       });
 
       expect(alert.type).toBe('price_deviation');

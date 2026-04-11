@@ -254,10 +254,7 @@ describe('useAPI3Analytics', () => {
     it('should return empty array for small datasets', () => {
       const { result } = renderHook(() => useAPI3Analytics());
 
-      const predictions = result.current.predictTrend(
-        [{ timestamp: 1000, value: 100 }],
-        3
-      );
+      const predictions = result.current.predictTrend([{ timestamp: 1000, value: 100 }], 3);
 
       expect(predictions).toEqual([]);
     });
@@ -374,9 +371,7 @@ describe('useAPI3Analytics', () => {
     it('should return stable for small datasets', () => {
       const { result } = renderHook(() => useAPI3Analytics());
 
-      const trend = result.current.calculateTrendDirection([
-        { timestamp: 1000, value: 100 },
-      ]);
+      const trend = result.current.calculateTrendDirection([{ timestamp: 1000, value: 100 }]);
 
       expect(trend).toBe('stable');
     });
@@ -394,9 +389,7 @@ describe('useAPI3Analytics', () => {
     it('should return 0 for small datasets', () => {
       const { result } = renderHook(() => useAPI3Analytics());
 
-      const volatility = result.current.calculateVolatility([
-        { timestamp: 1000, value: 100 },
-      ]);
+      const volatility = result.current.calculateVolatility([{ timestamp: 1000, value: 100 }]);
 
       expect(volatility).toBe(0);
     });

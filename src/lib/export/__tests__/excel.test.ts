@@ -36,7 +36,13 @@ describe('Excel Export', () => {
   const mockFields: ExportField[] = [
     { key: 'symbol', label: 'Symbol', labelZh: '代码', dataType: 'string', selected: true },
     { key: 'price', label: 'Price', labelZh: '价格', dataType: 'number', selected: true },
-    { key: 'change24h', label: '24h Change', labelZh: '24小时变化', dataType: 'number', selected: true },
+    {
+      key: 'change24h',
+      label: '24h Change',
+      labelZh: '24小时变化',
+      dataType: 'number',
+      selected: true,
+    },
     { key: 'timestamp', label: 'Timestamp', labelZh: '时间戳', dataType: 'date', selected: true },
     { key: 'active', label: 'Active', labelZh: '活跃', dataType: 'boolean', selected: true },
   ];
@@ -204,7 +210,9 @@ describe('Excel Export', () => {
 
       expect(result).toBeDefined();
       expect(result.fileName).toBeDefined();
-      expect(result.mimeType).toBe('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      expect(result.mimeType).toBe(
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      );
     });
 
     it('should include all selected fields', () => {
@@ -292,7 +300,13 @@ describe('Excel Export', () => {
 
       const pctFields: ExportField[] = [
         { key: 'name', label: 'Name', labelZh: '名称', dataType: 'string', selected: true },
-        { key: 'percentage', label: 'Percentage', labelZh: '百分比', dataType: 'number', selected: true },
+        {
+          key: 'percentage',
+          label: 'Percentage',
+          labelZh: '百分比',
+          dataType: 'number',
+          selected: true,
+        },
       ];
 
       const pctConfig: ExportConfig = {
@@ -544,9 +558,7 @@ describe('Excel Export', () => {
     });
 
     it('should handle arrays in data', () => {
-      const arrayData = [
-        { symbol: 'BTC', tags: ['crypto', 'bitcoin', 'store-of-value'] },
-      ];
+      const arrayData = [{ symbol: 'BTC', tags: ['crypto', 'bitcoin', 'store-of-value'] }];
 
       const arrayFields: ExportField[] = [
         { key: 'symbol', label: 'Symbol', labelZh: '代码', dataType: 'string', selected: true },
@@ -615,11 +627,7 @@ function generateExcelStyles(): Record<string, unknown> {
   };
 }
 
-function createWorksheet(
-  data: unknown[],
-  fields: ExportField[],
-  locale: string
-): string {
+function createWorksheet(data: unknown[], fields: ExportField[], locale: string): string {
   if (data.length === 0) return '';
 
   const headers = fields.map((f) => (locale === 'zh-CN' ? f.labelZh : f.label));

@@ -118,10 +118,9 @@ describe('useAPI3Price', () => {
   it('should use custom refreshInterval', async () => {
     mockClient.getPrice.mockResolvedValue(mockPriceData);
 
-    const { result } = renderHook(
-      () => useAPI3Price({ symbol: 'BTC', refreshInterval: 5000 }),
-      { wrapper: createTestWrapper() }
-    );
+    const { result } = renderHook(() => useAPI3Price({ symbol: 'BTC', refreshInterval: 5000 }), {
+      wrapper: createTestWrapper(),
+    });
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);

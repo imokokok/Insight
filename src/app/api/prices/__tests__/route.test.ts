@@ -71,12 +71,15 @@ describe('/api/prices', () => {
     expect(response.data.prices.USDT).toBe(1.0);
   });
 
-  it('should handle errors gracefully', async () => {
+  it('should return cached prices on fetch error', async () => {
+    await GET();
+
     mockFetch.mockRejectedValueOnce(new Error('Network error'));
 
     const response = await GET();
 
-    expect(response.status).toBe(500);
-    expect(response.data).toHaveProperty('error');
+    expect(response.status).toBe(200);
+    expect(response.data).toHaveProperty('prices');
+    expect(response.data.cached).toBe(true);
   });
 });

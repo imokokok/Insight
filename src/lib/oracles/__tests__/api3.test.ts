@@ -451,8 +451,14 @@ describe('API3Client', () => {
         mockAirnodeService.makeRequest.mockResolvedValue(mockAirnodeResponse);
 
         const requests = [
-          mockAirnodeService.makeRequest({ endpoint: 'https://airnode1.example.com', params: { symbol: 'ETH' } }),
-          mockAirnodeService.makeRequest({ endpoint: 'https://airnode2.example.com', params: { symbol: 'ETH' } }),
+          mockAirnodeService.makeRequest({
+            endpoint: 'https://airnode1.example.com',
+            params: { symbol: 'ETH' },
+          }),
+          mockAirnodeService.makeRequest({
+            endpoint: 'https://airnode2.example.com',
+            params: { symbol: 'ETH' },
+          }),
         ];
 
         const responses = await Promise.all(requests);
@@ -534,7 +540,8 @@ describe('API3Client', () => {
     describe('Airnode timeout handling', () => {
       it('should handle request timeout gracefully', async () => {
         mockAirnodeService.makeRequest.mockImplementation(
-          () => new Promise((_, reject) => setTimeout(() => reject(new Error('Request timeout')), 50))
+          () =>
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Request timeout')), 50))
         );
 
         await expect(
@@ -572,7 +579,10 @@ describe('API3Client', () => {
           .mockResolvedValueOnce(mockAirnodeResponse);
 
         try {
-          await mockAirnodeService.makeRequest({ endpoint: 'https://airnode1.example.com', params: { symbol: 'ETH' } });
+          await mockAirnodeService.makeRequest({
+            endpoint: 'https://airnode1.example.com',
+            params: { symbol: 'ETH' },
+          });
         } catch {
           const response = await mockAirnodeService.makeRequest({
             endpoint: 'https://airnode2.example.com',
@@ -584,14 +594,21 @@ describe('API3Client', () => {
 
       it('should try all available Airnodes before failing', async () => {
         mockAirnodeService.makeRequest.mockRejectedValue(new Error('All Airnodes failed'));
-        mockAirnodeService.getAvailableAirnodes.mockResolvedValue(['airnode1', 'airnode2', 'airnode3']);
+        mockAirnodeService.getAvailableAirnodes.mockResolvedValue([
+          'airnode1',
+          'airnode2',
+          'airnode3',
+        ]);
 
         const airnodes = await mockAirnodeService.getAvailableAirnodes();
         const results = [];
 
         for (const airnode of airnodes) {
           try {
-            const response = await mockAirnodeService.makeRequest({ endpoint: airnode, params: { symbol: 'ETH' } });
+            const response = await mockAirnodeService.makeRequest({
+              endpoint: airnode,
+              params: { symbol: 'ETH' },
+            });
             results.push(response);
           } catch {
             continue;
@@ -613,7 +630,10 @@ describe('API3Client', () => {
 
         for (const airnode of airnodes) {
           try {
-            const response = await mockAirnodeService.makeRequest({ endpoint: airnode, params: { symbol: 'ETH' } });
+            const response = await mockAirnodeService.makeRequest({
+              endpoint: airnode,
+              params: { symbol: 'ETH' },
+            });
             results.push(response);
             break;
           } catch {
@@ -1391,7 +1411,9 @@ describe('API3Client', () => {
       it('should throw error for invalid dAPI ID format', async () => {
         mockDapiService.getData.mockRejectedValue(new Error('Invalid dAPI ID format'));
 
-        await expect(mockDapiService.getData('invalid-dapi-id')).rejects.toThrow('Invalid dAPI ID format');
+        await expect(mockDapiService.getData('invalid-dapi-id')).rejects.toThrow(
+          'Invalid dAPI ID format'
+        );
       });
 
       it('should handle non-existent dAPI ID', async () => {
@@ -1408,7 +1430,9 @@ describe('API3Client', () => {
           message: 'dAPI ID must follow format: dapi-{symbol}-{currency}-{chain}',
         });
 
-        await expect(mockDapiService.subscribe({ dapiName: 'INVALID', chain: Blockchain.ETHEREUM })).rejects.toMatchObject({
+        await expect(
+          mockDapiService.subscribe({ dapiName: 'INVALID', chain: Blockchain.ETHEREUM })
+        ).rejects.toMatchObject({
           code: 'INVALID_DAPI_ID',
         });
       });

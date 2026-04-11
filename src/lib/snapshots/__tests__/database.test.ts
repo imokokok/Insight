@@ -27,8 +27,13 @@ const createMockQuery = () => {
     update: jest.fn().mockReturnThis(),
     delete: jest.fn().mockReturnThis(),
     eq: jest.fn().mockReturnThis(),
+    gte: jest.fn().mockReturnThis(),
+    lte: jest.fn().mockReturnThis(),
     order: jest.fn().mockReturnThis(),
+    limit: jest.fn().mockReturnThis(),
+    range: jest.fn().mockReturnThis(),
     single: jest.fn(),
+    maybeSingle: jest.fn(),
   };
   return query;
 };
@@ -132,7 +137,7 @@ describe('snapshot database operations', () => {
     it('should get all snapshots for a user', async () => {
       const mockData = [createMockSnapshot(), createMockSnapshot({ id: 'snapshot-2' })];
       const mockQuery = createMockQuery();
-      mockQuery.select.mockResolvedValueOnce({ data: mockData, error: null });
+      mockQuery.order.mockResolvedValueOnce({ data: mockData, error: null });
       mockSupabase.from.mockReturnValue(mockQuery);
 
       const result = await getSnapshotsFromDatabase('user-id');
@@ -144,7 +149,7 @@ describe('snapshot database operations', () => {
 
     it('should return empty array on error', async () => {
       const mockQuery = createMockQuery();
-      mockQuery.select.mockResolvedValueOnce({
+      mockQuery.order.mockResolvedValueOnce({
         data: null,
         error: { message: 'Database error' },
       });
@@ -298,7 +303,7 @@ describe('snapshot database operations', () => {
   describe('deleteSnapshotFromDatabase', () => {
     it('should delete a snapshot and return true', async () => {
       const mockQuery = createMockQuery();
-      mockQuery.delete.mockResolvedValueOnce({ error: null });
+      mockQuery.eq.mockResolvedValueOnce({ error: null });
       mockSupabase.from.mockReturnValue(mockQuery);
 
       const result = await deleteSnapshotFromDatabase('snapshot-id');
@@ -309,7 +314,7 @@ describe('snapshot database operations', () => {
 
     it('should return false on error', async () => {
       const mockQuery = createMockQuery();
-      mockQuery.delete.mockResolvedValueOnce({ error: { message: 'Database error' } });
+      mockQuery.eq.mockResolvedValueOnce({ error: { message: 'Database error' } });
       mockSupabase.from.mockReturnValue(mockQuery);
 
       const result = await deleteSnapshotFromDatabase('snapshot-id');
@@ -348,7 +353,7 @@ describe('snapshot database operations', () => {
   describe('unshareSnapshot', () => {
     it('should unshare a snapshot and return true', async () => {
       const mockQuery = createMockQuery();
-      mockQuery.update.mockResolvedValueOnce({ error: null });
+      mockQuery.eq.mockResolvedValueOnce({ error: null });
       mockSupabase.from.mockReturnValue(mockQuery);
 
       const result = await unshareSnapshot('snapshot-id');
@@ -359,7 +364,7 @@ describe('snapshot database operations', () => {
 
     it('should return false on error', async () => {
       const mockQuery = createMockQuery();
-      mockQuery.update.mockResolvedValueOnce({ error: { message: 'Database error' } });
+      mockQuery.eq.mockResolvedValueOnce({ error: { message: 'Database error' } });
       mockSupabase.from.mockReturnValue(mockQuery);
 
       const result = await unshareSnapshot('snapshot-id');

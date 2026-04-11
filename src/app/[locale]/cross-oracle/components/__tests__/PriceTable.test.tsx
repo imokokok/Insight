@@ -24,9 +24,14 @@ jest.mock('../../constants', () => ({
     pyth: 'Pyth',
   },
   getDeviationBgClass: (deviation: number) => (deviation > 5 ? 'bg-red-100' : 'bg-green-100'),
-  getFreshnessInfo: (seconds: number) => ({ label: 'Fresh', color: 'green', text: 'Fresh', seconds }),
+  getFreshnessInfo: (seconds: number) => ({
+    label: 'Fresh',
+    color: 'green',
+    text: 'Fresh',
+    seconds,
+  }),
   getFreshnessDotColor: (seconds: number) => 'green',
-  calculateZScore: (price: number, avg: number, std: number) => std > 0 ? (price - avg) / std : 0,
+  calculateZScore: (price: number, avg: number, std: number) => (std > 0 ? (price - avg) / std : 0),
   isOutlier: (zScore: number) => Math.abs(zScore) > 2,
   ANOMALY_THRESHOLD: 0.05,
 }));

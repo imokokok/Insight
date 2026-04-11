@@ -490,7 +490,11 @@ describe('/api/alerts', () => {
 
         expect(response.status).toBe(200);
         expect(mockQueries.getAlerts).toHaveBeenCalledWith('123e4567-e89b-12d3-a456-426614174000');
-        expect(data.alerts.every((a: { user_id: string }) => a.user_id === '123e4567-e89b-12d3-a456-426614174000')).toBe(true);
+        expect(
+          data.alerts.every(
+            (a: { user_id: string }) => a.user_id === '123e4567-e89b-12d3-a456-426614174000'
+          )
+        ).toBe(true);
       });
     });
 
@@ -617,7 +621,11 @@ describe('/api/alerts', () => {
         const data = await response.json();
 
         expect(response.status).toBe(200);
-        expect(data.alerts.every((a: { user_id: string }) => a.user_id === '123e4567-e89b-12d3-a456-426614174000')).toBe(true);
+        expect(
+          data.alerts.every(
+            (a: { user_id: string }) => a.user_id === '123e4567-e89b-12d3-a456-426614174000'
+          )
+        ).toBe(true);
       });
 
       it('should not allow creating alert for another user', async () => {
@@ -1164,7 +1172,9 @@ describe('/api/alerts', () => {
 
       it('should not expose internal error details in production', async () => {
         process.env.NODE_ENV = 'production';
-        (getUserId as jest.Mock).mockRejectedValue(new Error('Database connection failed at line 123'));
+        (getUserId as jest.Mock).mockRejectedValue(
+          new Error('Database connection failed at line 123')
+        );
 
         const request = createMockRequest('http://localhost:3000/api/alerts');
         const response = await GET(request);

@@ -47,9 +47,15 @@ type MockQuery = {
   single: jest.Mock;
   maybeSingle: jest.Mock;
   upsert: jest.Mock;
+  _resolveWith: (value: unknown) => void;
 };
 
 const createMockQuery = (): MockQuery => {
+  let resolvePromise: (value: unknown) => void;
+  const promise = new Promise((resolve) => {
+    resolvePromise = resolve;
+  });
+
   const query: MockQuery = {
     select: jest.fn().mockReturnThis(),
     insert: jest.fn().mockReturnThis(),
@@ -64,7 +70,15 @@ const createMockQuery = (): MockQuery => {
     single: jest.fn(),
     maybeSingle: jest.fn(),
     upsert: jest.fn().mockReturnThis(),
+    _resolveWith: (value: unknown) => resolvePromise(value),
   };
+
+  Object.assign(query, {
+    then: promise.then.bind(promise),
+    catch: promise.catch.bind(promise),
+    finally: promise.finally.bind(promise),
+  });
+
   return query;
 };
 
@@ -211,7 +225,7 @@ describe('getPriceRecords', () => {
       },
     ];
 
-    mockQuery.select.mockResolvedValueOnce({ data: mockData, error: null });
+    mockQuery._resolveWith({ data: mockData, error: null });
 
     const filters: PriceRecordsFilters = {
       provider: 'chainlink',
@@ -230,7 +244,7 @@ describe('getPriceRecords', () => {
   });
 
   it('should return null on error', async () => {
-    mockQuery.select.mockResolvedValueOnce({
+    mockQuery._resolveWith({
       data: null,
       error: { message: 'Database error' },
     });
@@ -402,7 +416,7 @@ describe('Snapshot operations - getSnapshots', () => {
       },
     ];
 
-    mockQuery.select.mockResolvedValueOnce({ data: mockData, error: null });
+    mockQuery.order.mockResolvedValueOnce({ data: mockData, error: null });
 
     const result = await queries.getSnapshots('user-id');
 
@@ -411,7 +425,7 @@ describe('Snapshot operations - getSnapshots', () => {
   });
 
   it('should return null on error', async () => {
-    mockQuery.select.mockResolvedValueOnce({
+    mockQuery.order.mockResolvedValueOnce({
       data: null,
       error: { message: 'Database error' },
     });
@@ -534,7 +548,7 @@ describe('Snapshot operations - updateSnapshot', () => {
 
 describe('Snapshot operations - deleteSnapshot', () => {
   it('should delete a snapshot and return true', async () => {
-    mockQuery.delete.mockResolvedValueOnce({ error: null });
+    mockQuery.eq.mockResolvedValueOnce({ error: null });
 
     const result = await queries.deleteSnapshot('snapshot-id');
 
@@ -543,7 +557,7 @@ describe('Snapshot operations - deleteSnapshot', () => {
   });
 
   it('should return false on error', async () => {
-    mockQuery.delete.mockResolvedValueOnce({ error: { message: 'Database error' } });
+    mockQuery.eq.mockResolvedValueOnce({ error: { message: 'Database error' } });
 
     const result = await queries.deleteSnapshot('snapshot-id');
 
@@ -605,7 +619,7 @@ describe('Favorite operations - getFavorites', () => {
       },
     ];
 
-    mockQuery.select.mockResolvedValueOnce({ data: mockData, error: null });
+    mockQuery.order.mockResolvedValueOnce({ data: mockData, error: null });
 
     const result = await queries.getFavorites('user-id');
 
@@ -626,7 +640,7 @@ describe('Favorite operations - getFavoritesByType', () => {
       },
     ];
 
-    mockQuery.select.mockResolvedValueOnce({ data: mockData, error: null });
+    mockQuery.order.mockResolvedValueOnce({ data: mockData, error: null });
 
     const result = await queries.getFavoritesByType('user-id', 'oracle_config');
 
@@ -658,7 +672,7 @@ describe('Favorite operations - updateFavorite', () => {
 
 describe('Favorite operations - deleteFavorite', () => {
   it('should delete a favorite and return true', async () => {
-    mockQuery.delete.mockResolvedValueOnce({ error: null });
+    mockQuery.eq.mockResolvedValueOnce({ error: null });
 
     const result = await queries.deleteFavorite('favorite-id');
 
@@ -667,7 +681,7 @@ describe('Favorite operations - deleteFavorite', () => {
   });
 
   it('should return false on error', async () => {
-    mockQuery.delete.mockResolvedValueOnce({ error: { message: 'Database error' } });
+    mockQuery.eq.mockResolvedValueOnce({ error: { message: 'Database error' } });
 
     const result = await queries.deleteFavorite('favorite-id');
 
@@ -677,7 +691,7 @@ describe('Favorite operations - deleteFavorite', () => {
 
 describe('Favorite operations - deleteAllFavorites', () => {
   it('should delete all favorites for a user', async () => {
-    mockQuery.delete.mockResolvedValueOnce({ error: null });
+    mockQuery.eq.mockResolvedValueOnce({ error: null });
 
     const result = await queries.deleteAllFavorites('user-id');
 
@@ -755,7 +769,7 @@ describe('Alert operations - getAlerts', () => {
       },
     ];
 
-    mockQuery.select.mockResolvedValueOnce({ data: mockData, error: null });
+    mockQuery.order.mockResolvedValueOnce({ data: mockData, error: null });
 
     const result = await queries.getAlerts('user-id');
 
@@ -783,7 +797,7 @@ describe('Alert operations - getActiveAlerts', () => {
       },
     ];
 
-    mockQuery.select.mockResolvedValueOnce({ data: mockData, error: null });
+    mockQuery.eq.mockResolvedValueOnce({ data: mockData, error: null });
 
     const result = await queries.getActiveAlerts();
 
@@ -820,7 +834,7 @@ describe('Alert operations - updateAlert', () => {
 
 describe('Alert operations - deleteAlert', () => {
   it('should delete an alert and return true', async () => {
-    mockQuery.delete.mockResolvedValueOnce({ error: null });
+    mockQuery.eq.mockResolvedValueOnce({ error: null });
 
     const result = await queries.deleteAlert('alert-id');
 
@@ -831,7 +845,7 @@ describe('Alert operations - deleteAlert', () => {
 
 describe('Alert operations - deleteAllAlerts', () => {
   it('should delete all alerts for a user', async () => {
-    mockQuery.delete.mockResolvedValueOnce({ error: null });
+    mockQuery.eq.mockResolvedValueOnce({ error: null });
 
     const result = await queries.deleteAllAlerts('user-id');
 
@@ -854,7 +868,7 @@ describe('Alert operations - triggerAlert', () => {
     };
 
     mockQuery.single.mockResolvedValueOnce({ data: mockEvent, error: null });
-    mockQuery.update.mockResolvedValueOnce({ error: null });
+    mockQuery.eq.mockResolvedValueOnce({ error: null });
 
     const eventData: Omit<AlertEventInsert, 'alert_id' | 'user_id'> = {
       price: 61000,
@@ -901,7 +915,7 @@ describe('Alert operations - getAlertEvents', () => {
       },
     ];
 
-    mockQuery.select.mockResolvedValueOnce({ data: mockData, error: null });
+    mockQuery.order.mockResolvedValueOnce({ data: mockData, error: null });
 
     const result = await queries.getAlertEvents('user-id');
 
@@ -1029,7 +1043,7 @@ describe('User Profile operations - upsertUserProfile', () => {
 
 describe('deleteAllSnapshots', () => {
   it('should delete all snapshots for a user', async () => {
-    mockQuery.delete.mockResolvedValueOnce({ error: null });
+    mockQuery.eq.mockResolvedValueOnce({ error: null });
 
     const result = await queries.deleteAllSnapshots('user-id');
 
@@ -1038,7 +1052,7 @@ describe('deleteAllSnapshots', () => {
   });
 
   it('should return false on error', async () => {
-    mockQuery.delete.mockResolvedValueOnce({ error: { message: 'Database error' } });
+    mockQuery.eq.mockResolvedValueOnce({ error: { message: 'Database error' } });
 
     const result = await queries.deleteAllSnapshots('user-id');
 

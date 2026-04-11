@@ -1,9 +1,6 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
 
-import {
-  getAPI3WebSocketService,
-  type API3PriceData,
-} from '@/lib/services/api3WebSocket';
+import { getAPI3WebSocketService, type API3PriceData } from '@/lib/services/api3WebSocket';
 
 import { useAPI3Price, type API3ConnectionStatus } from '../api3/useAPI3WebSocket';
 
