@@ -1,14 +1,10 @@
-import {
-  exportChart,
-  exportMultipleCharts,
-  getSupportedExportFormats,
-} from '../chartExport';
+import { exportChart, exportMultipleCharts, getSupportedExportFormats } from '../chartExport';
 import { exportToCSV } from '../chartExport/formats/csvExporter';
 import { exportToPNG, exportToSVG } from '../chartExport/formats/imageExporter';
 import { exportToJSON } from '../chartExport/formats/jsonExporter';
 import { exportToPDF } from '../chartExport/formats/pdfExporter';
 
-import type { ChartExportData, ExportProgress } from '../chartExport/types';
+import type { ChartExportData } from '../chartExport/types';
 
 jest.mock('../chartExport/formats/csvExporter');
 jest.mock('../chartExport/formats/imageExporter');
@@ -135,9 +131,9 @@ describe('chartExport', () => {
       });
 
       it('should throw error when chartRef is null for PNG export', async () => {
-        await expect(
-          exportChart(null, mockData, { format: 'png' })
-        ).rejects.toThrow('Chart element reference is required for PNG export');
+        await expect(exportChart(null, mockData, { format: 'png' })).rejects.toThrow(
+          'Chart element reference is required for PNG export'
+        );
       });
 
       it('should pass chart title and data source to PNG export', async () => {
@@ -195,9 +191,9 @@ describe('chartExport', () => {
       });
 
       it('should throw error when chartRef is null for SVG export', async () => {
-        await expect(
-          exportChart(null, mockData, { format: 'svg' })
-        ).rejects.toThrow('Chart element reference is required for SVG export');
+        await expect(exportChart(null, mockData, { format: 'svg' })).rejects.toThrow(
+          'Chart element reference is required for SVG export'
+        );
       });
     });
 
@@ -251,9 +247,9 @@ describe('chartExport', () => {
       it('should propagate export errors', async () => {
         mockExportToCSV.mockRejectedValue(new Error('Export failed'));
 
-        await expect(
-          exportChart(null, mockData, { format: 'csv' })
-        ).rejects.toThrow('Export failed');
+        await expect(exportChart(null, mockData, { format: 'csv' })).rejects.toThrow(
+          'Export failed'
+        );
       });
     });
 
@@ -313,9 +309,7 @@ describe('chartExport', () => {
     });
 
     it('should report completion after all charts exported', async () => {
-      const charts = [
-        { chartRef: mockChartRef, data: mockData, name: 'chart1' },
-      ];
+      const charts = [{ chartRef: mockChartRef, data: mockData, name: 'chart1' }];
       const onProgress = jest.fn();
 
       await exportMultipleCharts(charts, { format: 'csv' }, onProgress);

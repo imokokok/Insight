@@ -1,718 +1,576 @@
-import { act, renderHook } from '@testing-library/react';
+import { act } from '@testing-library/react';
 
-import {
-  useUIStore,
-  type BrushRange,
-  type SelectedTimeRange,
-  type CustomDateRange,
-} from '../uiStore';
+import type { Notification, UIState, Theme, SidebarState } from '@/types/ui';
 
-const localStorageMock = (() => {
-  let store: Record<string, string> = {};
-  return {
-    getItem: jest.fn((key: string) => store[key] || null),
-    setItem: jest.fn((key: string, value: string) => {
-      store[key] = value;
-    }),
-    removeItem: jest.fn((key: string) => {
-      delete store[key];
-    }),
-    clear: jest.fn(() => {
-      store = {};
-    }),
-  };
-})();
+import { useUIStore } from '../uiStore';
 
-Object.defineProperty(window, 'localStorage', {
-  value: localStorageMock,
+const mockNotification: Notification = {
+  id: 'notif-1',
+  type: 'info',
+  title: 'Test Notification',
+  message: 'This is a test notification',
+  timestamp: Date.now(),
+  read: false,
+};
+
+const mockState: UIState = {
+  theme: 'dark',
+  sidebar: {
+    isOpen: true,
+    collapsed: false,
+    activeItem: null,
+  },
+  notifications: [],
+  isLoading: {},
+  modals: {},
+  toasts: [],
+  searchQuery: '',
+  filters: {},
+  sortConfig: null,
+  pagination: {
+    page: 1,
+    pageSize: 10,
+    total: 0,
+  },
+};
+
+beforeEach(() => {
+  jest.clearAllMocks();
+  useUIStore.setState(mockState);
 });
 
-describe('uiStore', () => {
-  beforeEach(() => {
-    localStorageMock.clear();
+describe('uiStore - 初始状态', () => {
+  it('应该有正确的初始状态', () => {
+    const state = useUIStore.getState();
+    expect(state.theme).toBe('dark');
+    expect(state.sidebar.isOpen).toBe(true);
+    expect(state.sidebar.collapsed).toBe(false);
+    expect(state.notifications).toEqual([]);
+    expect(state.isLoading).toEqual({});
+    expect(state.modals).toEqual({});
+    expect(state.toasts).toEqual([]);
+    expect(state.searchQuery).toBe('');
+    expect(state.filters).toEqual({});
+    expect(state.sortConfig).toBeNull();
+    expect(state.pagination.page).toBe(1);
+  });
+});
+
+describe('uiStore - setTheme', () => {
+  it('setTheme 应该更新主题', () => {
+    act(() => {
+      useUIStore.getState().setTheme('light');
+    });
+    expect(useUIStore.getState().theme).toBe('light');
+  });
+
+  it('setTheme 应该支持所有主题类型', () => {
+    const themes: Theme[] = ['light', 'dark', 'system'];
+
+    themes.forEach((theme) => {
+      act(() => {
+        useUIStore.getState().setTheme(theme);
+      });
+      expect(useUIStore.getState().theme).toBe(theme);
+    });
+  });
+});
+
+describe('uiStore - toggleTheme', () => {
+  it('toggleTheme 应该在 light 和 dark 之间切换', () => {
+    useUIStore.setState({ theme: 'dark' });
+
+    act(() => {
+      useUIStore.getState().toggleTheme();
+    });
+    expect(useUIStore.getState().theme).toBe('light');
+
+    act(() => {
+      useUIStore.getState().toggleTheme();
+    });
+    expect(useUIStore.getState().theme).toBe('dark');
+  });
+});
+
+describe('uiStore - toggleSidebar', () => {
+  it('toggleSidebar 应该切换侧边栏状态', () => {
+    act(() => {
+      useUIStore.getState().toggleSidebar();
+    });
+    expect(useUIStore.getState().sidebar.isOpen).toBe(false);
+
+    act(() => {
+      useUIStore.getState().toggleSidebar();
+    });
+    expect(useUIStore.getState().sidebar.isOpen).toBe(true);
+  });
+});
+
+describe('uiStore - setSidebarOpen', () => {
+  it('setSidebarOpen 应该设置侧边栏打开状态', () => {
+    act(() => {
+      useUIStore.getState().setSidebarOpen(false);
+    });
+    expect(useUIStore.getState().sidebar.isOpen).toBe(false);
+
+    act(() => {
+      useUIStore.getState().setSidebarOpen(true);
+    });
+    expect(useUIStore.getState().sidebar.isOpen).toBe(true);
+  });
+});
+
+describe('uiStore - toggleSidebarCollapsed', () => {
+  it('toggleSidebarCollapsed 应该切换侧边栏折叠状态', () => {
+    act(() => {
+      useUIStore.getState().toggleSidebarCollapsed();
+    });
+    expect(useUIStore.getState().sidebar.collapsed).toBe(true);
+
+    act(() => {
+      useUIStore.getState().toggleSidebarCollapsed();
+    });
+    expect(useUIStore.getState().sidebar.collapsed).toBe(false);
+  });
+});
+
+describe('uiStore - setSidebarActiveItem', () => {
+  it('setSidebarActiveItem 应该设置活动菜单项', () => {
+    act(() => {
+      useUIStore.getState().setSidebarActiveItem('dashboard');
+    });
+    expect(useUIStore.getState().sidebar.activeItem).toBe('dashboard');
+  });
+
+  it('setSidebarActiveItem 应该能够设置为 null', () => {
+    act(() => {
+      useUIStore.getState().setSidebarActiveItem('dashboard');
+    });
+    expect(useUIStore.getState().sidebar.activeItem).not.toBeNull();
+
+    act(() => {
+      useUIStore.getState().setSidebarActiveItem(null);
+    });
+    expect(useUIStore.getState().sidebar.activeItem).toBeNull();
+  });
+});
+
+describe('uiStore - setSidebar', () => {
+  it('setSidebar 应该更新整个侧边栏状态', () => {
+    const newSidebar: SidebarState = {
+      isOpen: false,
+      collapsed: true,
+      activeItem: 'settings',
+    };
+
+    act(() => {
+      useUIStore.getState().setSidebar(newSidebar);
+    });
+
+    const sidebar = useUIStore.getState().sidebar;
+    expect(sidebar.isOpen).toBe(false);
+    expect(sidebar.collapsed).toBe(true);
+    expect(sidebar.activeItem).toBe('settings');
+  });
+});
+
+describe('uiStore - addNotification', () => {
+  it('addNotification 应该添加通知', () => {
+    act(() => {
+      useUIStore.getState().addNotification(mockNotification);
+    });
+
+    expect(useUIStore.getState().notifications).toHaveLength(1);
+    expect(useUIStore.getState().notifications[0]).toEqual(mockNotification);
+  });
+
+  it('addNotification 应该添加到列表开头', () => {
+    const existingNotif = { ...mockNotification, id: 'notif-0' };
+    useUIStore.setState({ notifications: [existingNotif] });
+
+    act(() => {
+      useUIStore.getState().addNotification(mockNotification);
+    });
+
+    expect(useUIStore.getState().notifications[0].id).toBe('notif-1');
+  });
+});
+
+describe('uiStore - removeNotification', () => {
+  it('removeNotification 应该删除通知', () => {
+    useUIStore.setState({ notifications: [mockNotification] });
+
+    act(() => {
+      useUIStore.getState().removeNotification('notif-1');
+    });
+
+    expect(useUIStore.getState().notifications).toHaveLength(0);
+  });
+
+  it('removeNotification 不应该影响不存在的通知', () => {
+    useUIStore.setState({ notifications: [mockNotification] });
+
+    act(() => {
+      useUIStore.getState().removeNotification('non-existent');
+    });
+
+    expect(useUIStore.getState().notifications).toHaveLength(1);
+  });
+});
+
+describe('uiStore - markNotificationAsRead', () => {
+  it('markNotificationAsRead 应该标记通知为已读', () => {
+    useUIStore.setState({ notifications: [mockNotification] });
+
+    act(() => {
+      useUIStore.getState().markNotificationAsRead('notif-1');
+    });
+
+    expect(useUIStore.getState().notifications[0].read).toBe(true);
+  });
+});
+
+describe('uiStore - markAllNotificationsAsRead', () => {
+  it('markAllNotificationsAsRead 应该标记所有通知为已读', () => {
+    const notif2 = { ...mockNotification, id: 'notif-2' };
+    useUIStore.setState({ notifications: [mockNotification, notif2] });
+
+    act(() => {
+      useUIStore.getState().markAllNotificationsAsRead();
+    });
+
+    useUIStore.getState().notifications.forEach((n) => {
+      expect(n.read).toBe(true);
+    });
+  });
+});
+
+describe('uiStore - clearNotifications', () => {
+  it('clearNotifications 应该清除所有通知', () => {
+    useUIStore.setState({ notifications: [mockNotification] });
+
+    act(() => {
+      useUIStore.getState().clearNotifications();
+    });
+
+    expect(useUIStore.getState().notifications).toHaveLength(0);
+  });
+});
+
+describe('uiStore - setLoading', () => {
+  it('setLoading 应该设置加载状态', () => {
+    act(() => {
+      useUIStore.getState().setLoading('fetchData', true);
+    });
+
+    expect(useUIStore.getState().isLoading['fetchData']).toBe(true);
+  });
+
+  it('setLoading 应该能够设置为 false', () => {
+    useUIStore.setState({ isLoading: { fetchData: true } });
+
+    act(() => {
+      useUIStore.getState().setLoading('fetchData', false);
+    });
+
+    expect(useUIStore.getState().isLoading['fetchData']).toBe(false);
+  });
+});
+
+describe('uiStore - clearLoading', () => {
+  it('clearLoading 应该清除指定加载状态', () => {
+    useUIStore.setState({ isLoading: { fetchData: true, otherData: true } });
+
+    act(() => {
+      useUIStore.getState().clearLoading('fetchData');
+    });
+
+    expect(useUIStore.getState().isLoading['fetchData']).toBeUndefined();
+    expect(useUIStore.getState().isLoading['otherData']).toBe(true);
+  });
+});
+
+describe('uiStore - openModal', () => {
+  it('openModal 应该打开模态框', () => {
+    act(() => {
+      useUIStore.getState().openModal('settings', { tab: 'general' });
+    });
+
+    expect(useUIStore.getState().modals['settings']).toEqual({
+      isOpen: true,
+      data: { tab: 'general' },
+    });
+  });
+});
+
+describe('uiStore - closeModal', () => {
+  it('closeModal 应该关闭模态框', () => {
+    useUIStore.setState({ modals: { settings: { isOpen: true, data: {} } } });
+
+    act(() => {
+      useUIStore.getState().closeModal('settings');
+    });
+
+    expect(useUIStore.getState().modals['settings']).toBeUndefined();
+  });
+});
+
+describe('uiStore - isModalOpen', () => {
+  it('isModalOpen 应该返回模态框状态', () => {
+    useUIStore.setState({ modals: { settings: { isOpen: true, data: {} } } });
+
+    expect(useUIStore.getState().isModalOpen('settings')).toBe(true);
+    expect(useUIStore.getState().isModalOpen('non-existent')).toBe(false);
+  });
+});
+
+describe('uiStore - addToast', () => {
+  it('addToast 应该添加 toast 消息', () => {
+    act(() => {
+      useUIStore.getState().addToast({
+        id: 'toast-1',
+        type: 'success',
+        message: 'Operation successful',
+      });
+    });
+
+    expect(useUIStore.getState().toasts).toHaveLength(1);
+  });
+});
+
+describe('uiStore - removeToast', () => {
+  it('removeToast 应该删除 toast 消息', () => {
     useUIStore.setState({
-      sidebar: {
-        isOpen: true,
-        isCollapsed: false,
-        activeItem: null,
-      },
-      modal: {
-        isOpen: false,
-        modalId: null,
-        modalData: null,
-      },
-      notifications: [],
-      theme: 'system',
-      isMobile: false,
-      globalTimeRange: '24H',
-      syncEnabled: true,
-      customDateRange: null,
-      brushRange: null,
-      selectedHour: null,
-      selectedTimeRange: null,
-      _timeRangeCallbacks: new Set(),
+      toasts: [{ id: 'toast-1', type: 'success', message: 'Test' }],
     });
+
+    act(() => {
+      useUIStore.getState().removeToast('toast-1');
+    });
+
+    expect(useUIStore.getState().toasts).toHaveLength(0);
+  });
+});
+
+describe('uiStore - clearToasts', () => {
+  it('clearToasts 应该清除所有 toast 消息', () => {
+    useUIStore.setState({
+      toasts: [
+        { id: 'toast-1', type: 'success', message: 'Test 1' },
+        { id: 'toast-2', type: 'error', message: 'Test 2' },
+      ],
+    });
+
+    act(() => {
+      useUIStore.getState().clearToasts();
+    });
+
+    expect(useUIStore.getState().toasts).toHaveLength(0);
+  });
+});
+
+describe('uiStore - setSearchQuery', () => {
+  it('setSearchQuery 应该更新搜索查询', () => {
+    act(() => {
+      useUIStore.getState().setSearchQuery('BTC');
+    });
+
+    expect(useUIStore.getState().searchQuery).toBe('BTC');
   });
 
-  describe('主题切换功能', () => {
-    it('应该有默认主题 "system"', () => {
-      const state = useUIStore.getState();
-      expect(state.theme).toBe('system');
+  it('setSearchQuery 应该能够设置为空字符串', () => {
+    act(() => {
+      useUIStore.getState().setSearchQuery('BTC');
     });
 
-    it('应该能够设置主题为 "light"', () => {
-      const { setTheme } = useUIStore.getState();
-      act(() => {
-        setTheme('light');
-      });
-      expect(useUIStore.getState().theme).toBe('light');
+    act(() => {
+      useUIStore.getState().setSearchQuery('');
     });
 
-    it('应该能够设置主题为 "dark"', () => {
-      const { setTheme } = useUIStore.getState();
-      act(() => {
-        setTheme('dark');
-      });
-      expect(useUIStore.getState().theme).toBe('dark');
+    expect(useUIStore.getState().searchQuery).toBe('');
+  });
+});
+
+describe('uiStore - setFilter', () => {
+  it('setFilter 应该设置过滤器', () => {
+    act(() => {
+      useUIStore.getState().setFilter('status', 'active');
     });
 
-    it('应该能够设置主题为 "system"', () => {
-      const { setTheme } = useUIStore.getState();
-      act(() => {
-        setTheme('dark');
-      });
-      act(() => {
-        setTheme('system');
-      });
-      expect(useUIStore.getState().theme).toBe('system');
+    expect(useUIStore.getState().filters['status']).toBe('active');
+  });
+});
+
+describe('uiStore - removeFilter', () => {
+  it('removeFilter 应该删除过滤器', () => {
+    useUIStore.setState({ filters: { status: 'active', chain: 'ethereum' } });
+
+    act(() => {
+      useUIStore.getState().removeFilter('status');
     });
+
+    expect(useUIStore.getState().filters['status']).toBeUndefined();
+    expect(useUIStore.getState().filters['chain']).toBe('ethereum');
+  });
+});
+
+describe('uiStore - clearFilters', () => {
+  it('clearFilters 应该清除所有过滤器', () => {
+    useUIStore.setState({ filters: { status: 'active', chain: 'ethereum' } });
+
+    act(() => {
+      useUIStore.getState().clearFilters();
+    });
+
+    expect(Object.keys(useUIStore.getState().filters)).toHaveLength(0);
+  });
+});
+
+describe('uiStore - setSortConfig', () => {
+  it('setSortConfig 应该设置排序配置', () => {
+    act(() => {
+      useUIStore.getState().setSortConfig({ key: 'price', direction: 'desc' });
+    });
+
+    const sortConfig = useUIStore.getState().sortConfig;
+    expect(sortConfig?.key).toBe('price');
+    expect(sortConfig?.direction).toBe('desc');
   });
 
-  describe('侧边栏状态管理', () => {
-    it('应该有默认的侧边栏状态', () => {
-      const state = useUIStore.getState();
-      expect(state.sidebar.isOpen).toBe(true);
-      expect(state.sidebar.isCollapsed).toBe(false);
-      expect(state.sidebar.activeItem).toBeNull();
+  it('setSortConfig 应该能够设置为 null', () => {
+    useUIStore.setState({ sortConfig: { key: 'price', direction: 'asc' } });
+
+    act(() => {
+      useUIStore.getState().setSortConfig(null);
     });
 
-    it('应该能够打开侧边栏', () => {
-      const { closeSidebar, openSidebar } = useUIStore.getState();
-      act(() => {
-        closeSidebar();
-      });
-      expect(useUIStore.getState().sidebar.isOpen).toBe(false);
+    expect(useUIStore.getState().sortConfig).toBeNull();
+  });
+});
 
-      act(() => {
-        openSidebar();
-      });
-      expect(useUIStore.getState().sidebar.isOpen).toBe(true);
+describe('uiStore - setPage', () => {
+  it('setPage 应该设置当前页码', () => {
+    act(() => {
+      useUIStore.getState().setPage(2);
     });
 
-    it('应该能够关闭侧边栏', () => {
-      const { closeSidebar } = useUIStore.getState();
-      act(() => {
-        closeSidebar();
-      });
-      expect(useUIStore.getState().sidebar.isOpen).toBe(false);
+    expect(useUIStore.getState().pagination.page).toBe(2);
+  });
+});
+
+describe('uiStore - setPageSize', () => {
+  it('setPageSize 应该设置每页数量', () => {
+    act(() => {
+      useUIStore.getState().setPageSize(20);
     });
 
-    it('应该能够切换侧边栏状态', () => {
-      const { toggleSidebar } = useUIStore.getState();
-      act(() => {
-        toggleSidebar();
-      });
-      expect(useUIStore.getState().sidebar.isOpen).toBe(false);
+    expect(useUIStore.getState().pagination.pageSize).toBe(20);
+  });
+});
 
-      act(() => {
-        toggleSidebar();
-      });
-      expect(useUIStore.getState().sidebar.isOpen).toBe(true);
+describe('uiStore - setTotal', () => {
+  it('setTotal 应该设置总数', () => {
+    act(() => {
+      useUIStore.getState().setTotal(100);
     });
 
-    it('应该能够切换侧边栏折叠状态', () => {
-      const { toggleSidebarCollapse } = useUIStore.getState();
-      act(() => {
-        toggleSidebarCollapse();
-      });
-      expect(useUIStore.getState().sidebar.isCollapsed).toBe(true);
+    expect(useUIStore.getState().pagination.total).toBe(100);
+  });
+});
 
-      act(() => {
-        toggleSidebarCollapse();
-      });
-      expect(useUIStore.getState().sidebar.isCollapsed).toBe(false);
+describe('uiStore - setPagination', () => {
+  it('setPagination 应该更新分页配置', () => {
+    act(() => {
+      useUIStore.getState().setPagination({ page: 3, pageSize: 25, total: 200 });
     });
 
-    it('应该能够设置活动的侧边栏项目', () => {
-      const { setActiveSidebarItem } = useUIStore.getState();
-      act(() => {
-        setActiveSidebarItem('dashboard');
-      });
-      expect(useUIStore.getState().sidebar.activeItem).toBe('dashboard');
+    const pagination = useUIStore.getState().pagination;
+    expect(pagination.page).toBe(3);
+    expect(pagination.pageSize).toBe(25);
+    expect(pagination.total).toBe(200);
+  });
+});
 
-      act(() => {
-        setActiveSidebarItem(null);
-      });
-      expect(useUIStore.getState().sidebar.activeItem).toBeNull();
+describe('uiStore - resetPagination', () => {
+  it('resetPagination 应该重置分页配置', () => {
+    useUIStore.setState({
+      pagination: { page: 5, pageSize: 50, total: 500 },
     });
+
+    act(() => {
+      useUIStore.getState().resetPagination();
+    });
+
+    const pagination = useUIStore.getState().pagination;
+    expect(pagination.page).toBe(1);
+    expect(pagination.pageSize).toBe(10);
+    expect(pagination.total).toBe(0);
+  });
+});
+
+describe('uiStore - getUnreadNotificationCount', () => {
+  it('getUnreadNotificationCount 应该返回未读通知数量', () => {
+    const notif2 = { ...mockNotification, id: 'notif-2', read: true };
+    const notif3 = { ...mockNotification, id: 'notif-3' };
+    useUIStore.setState({ notifications: [mockNotification, notif2, notif3] });
+
+    const count = useUIStore.getState().getUnreadNotificationCount();
+    expect(count).toBe(2);
   });
 
-  describe('移动端菜单状态', () => {
-    it('应该有默认的移动端状态', () => {
-      const state = useUIStore.getState();
-      expect(state.isMobile).toBe(false);
-    });
+  it('getUnreadNotificationCount 应该返回 0 当没有未读通知时', () => {
+    const readNotif = { ...mockNotification, read: true };
+    useUIStore.setState({ notifications: [readNotif] });
 
-    it('应该能够设置移动端状态', () => {
-      const { setIsMobile } = useUIStore.getState();
-      act(() => {
-        setIsMobile(true);
-      });
-      expect(useUIStore.getState().isMobile).toBe(true);
+    const count = useUIStore.getState().getUnreadNotificationCount();
+    expect(count).toBe(0);
+  });
+});
 
-      act(() => {
-        setIsMobile(false);
-      });
-      expect(useUIStore.getState().isMobile).toBe(false);
-    });
+describe('uiStore - isLoadingAny', () => {
+  it('isLoadingAny 应该返回 true 当有任何加载中', () => {
+    useUIStore.setState({ isLoading: { fetchData: true } });
+
+    expect(useUIStore.getState().isLoadingAny()).toBe(true);
   });
 
-  describe('模态框状态管理', () => {
-    it('应该有默认的模态框状态', () => {
-      const state = useUIStore.getState();
-      expect(state.modal.isOpen).toBe(false);
-      expect(state.modal.modalId).toBeNull();
-      expect(state.modal.modalData).toBeNull();
-    });
+  it('isLoadingAny 应该返回 false 当没有加载中', () => {
+    useUIStore.setState({ isLoading: {} });
 
-    it('应该能够打开模态框', () => {
-      const { openModal } = useUIStore.getState();
-      act(() => {
-        openModal('test-modal', { foo: 'bar' });
-      });
-      const state = useUIStore.getState();
-      expect(state.modal.isOpen).toBe(true);
-      expect(state.modal.modalId).toBe('test-modal');
-      expect(state.modal.modalData).toEqual({ foo: 'bar' });
-    });
-
-    it('应该能够打开模态框不带数据', () => {
-      const { openModal } = useUIStore.getState();
-      act(() => {
-        openModal('simple-modal');
-      });
-      const state = useUIStore.getState();
-      expect(state.modal.isOpen).toBe(true);
-      expect(state.modal.modalId).toBe('simple-modal');
-      expect(state.modal.modalData).toBeNull();
-    });
-
-    it('应该能够关闭模态框', () => {
-      const { openModal, closeModal } = useUIStore.getState();
-      act(() => {
-        openModal('test-modal', { foo: 'bar' });
-      });
-      expect(useUIStore.getState().modal.isOpen).toBe(true);
-
-      act(() => {
-        closeModal();
-      });
-      const state = useUIStore.getState();
-      expect(state.modal.isOpen).toBe(false);
-      expect(state.modal.modalId).toBeNull();
-      expect(state.modal.modalData).toBeNull();
-    });
+    expect(useUIStore.getState().isLoadingAny()).toBe(false);
   });
+});
 
-  describe('通知管理', () => {
-    it('应该有默认的空通知列表', () => {
-      const state = useUIStore.getState();
-      expect(state.notifications).toEqual([]);
+describe('uiStore - reset', () => {
+  it('reset 应该重置所有状态', () => {
+    useUIStore.setState({
+      theme: 'light',
+      sidebar: { isOpen: false, collapsed: true, activeItem: 'test' },
+      notifications: [mockNotification],
+      isLoading: { test: true },
+      modals: { settings: { isOpen: true, data: {} } },
+      toasts: [{ id: '1', type: 'success', message: 'test' }],
+      searchQuery: 'test',
+      filters: { status: 'active' },
+      sortConfig: { key: 'price', direction: 'desc' },
+      pagination: { page: 5, pageSize: 50, total: 500 },
     });
 
-    it('应该能够添加通知', () => {
-      const { addNotification } = useUIStore.getState();
-      act(() => {
-        addNotification({
-          type: 'info',
-          title: 'Test Notification',
-          message: 'This is a test',
-        });
-      });
-      const state = useUIStore.getState();
-      expect(state.notifications).toHaveLength(1);
-      expect(state.notifications[0].type).toBe('info');
-      expect(state.notifications[0].title).toBe('Test Notification');
-      expect(state.notifications[0].message).toBe('This is a test');
-      expect(state.notifications[0].id).toBeDefined();
-      expect(state.notifications[0].createdAt).toBeInstanceOf(Date);
+    act(() => {
+      useUIStore.getState().reset();
     });
 
-    it('应该能够添加不同类型的通知', () => {
-      const { addNotification } = useUIStore.getState();
-      const types: Array<'info' | 'success' | 'warning' | 'error'> = [
-        'info',
-        'success',
-        'warning',
-        'error',
-      ];
-
-      types.forEach((type) => {
-        act(() => {
-          addNotification({
-            type,
-            title: `${type} notification`,
-          });
-        });
-      });
-
-      const state = useUIStore.getState();
-      expect(state.notifications).toHaveLength(4);
-      state.notifications.forEach((n, i) => {
-        expect(n.type).toBe(types[i]);
-      });
-    });
-
-    it('应该能够移除通知', () => {
-      const { addNotification, removeNotification } = useUIStore.getState();
-      act(() => {
-        addNotification({
-          type: 'info',
-          title: 'Test',
-        });
-      });
-      const notificationId = useUIStore.getState().notifications[0].id;
-
-      act(() => {
-        removeNotification(notificationId);
-      });
-      expect(useUIStore.getState().notifications).toHaveLength(0);
-    });
-
-    it('应该能够清除所有通知', () => {
-      const { addNotification, clearNotifications } = useUIStore.getState();
-      act(() => {
-        addNotification({ type: 'info', title: 'Test 1' });
-        addNotification({ type: 'success', title: 'Test 2' });
-        addNotification({ type: 'warning', title: 'Test 3' });
-      });
-      expect(useUIStore.getState().notifications).toHaveLength(3);
-
-      act(() => {
-        clearNotifications();
-      });
-      expect(useUIStore.getState().notifications).toHaveLength(0);
-    });
-
-    it('通知应该在指定时间后自动移除', () => {
-      jest.useFakeTimers();
-      const { addNotification } = useUIStore.getState();
-
-      act(() => {
-        addNotification({
-          type: 'info',
-          title: 'Auto remove',
-          duration: 1000,
-        });
-      });
-      expect(useUIStore.getState().notifications).toHaveLength(1);
-
-      act(() => {
-        jest.advanceTimersByTime(1000);
-      });
-      expect(useUIStore.getState().notifications).toHaveLength(0);
-
-      jest.useRealTimers();
-    });
-
-    it('duration 为 0 的通知不应该自动移除', () => {
-      jest.useFakeTimers();
-      const { addNotification } = useUIStore.getState();
-
-      act(() => {
-        addNotification({
-          type: 'info',
-          title: 'Persistent',
-          duration: 0,
-        });
-      });
-      expect(useUIStore.getState().notifications).toHaveLength(1);
-
-      act(() => {
-        jest.advanceTimersByTime(10000);
-      });
-      expect(useUIStore.getState().notifications).toHaveLength(1);
-
-      jest.useRealTimers();
-    });
-  });
-
-  describe('时间范围管理', () => {
-    it('应该有默认的时间范围', () => {
-      const state = useUIStore.getState();
-      expect(state.globalTimeRange).toBe('24H');
-      expect(state.syncEnabled).toBe(true);
-      expect(state.customDateRange).toBeNull();
-      expect(state.brushRange).toBeNull();
-      expect(state.selectedHour).toBeNull();
-      expect(state.selectedTimeRange).toBeNull();
-    });
-
-    it('应该能够设置全局时间范围', () => {
-      const { setGlobalTimeRange } = useUIStore.getState();
-      act(() => {
-        setGlobalTimeRange('7D');
-      });
-      expect(useUIStore.getState().globalTimeRange).toBe('7D');
-    });
-
-    it('设置全局时间范围应该清除自定义日期范围和刷选范围', () => {
-      const { setCustomDateRange, setBrushRange, setGlobalTimeRange } =
-        useUIStore.getState();
-
-      act(() => {
-        setCustomDateRange({
-          startDate: new Date('2024-01-01'),
-          endDate: new Date('2024-01-31'),
-        });
-        setBrushRange({
-          startIndex: 0,
-          endIndex: 10,
-          startTime: 1000,
-          endTime: 2000,
-        });
-      });
-
-      act(() => {
-        setGlobalTimeRange('30D');
-      });
-
-      const state = useUIStore.getState();
-      expect(state.globalTimeRange).toBe('30D');
-      expect(state.customDateRange).toBeNull();
-      expect(state.brushRange).toBeNull();
-    });
-
-    it('应该能够设置同步状态', () => {
-      const { setSyncEnabled } = useUIStore.getState();
-      act(() => {
-        setSyncEnabled(false);
-      });
-      expect(useUIStore.getState().syncEnabled).toBe(false);
-
-      act(() => {
-        setSyncEnabled(true);
-      });
-      expect(useUIStore.getState().syncEnabled).toBe(true);
-    });
-
-    it('应该能够设置自定义日期范围', () => {
-      const { setCustomDateRange } = useUIStore.getState();
-      const customRange: CustomDateRange = {
-        startDate: new Date('2024-01-01'),
-        endDate: new Date('2024-01-31'),
-      };
-
-      act(() => {
-        setCustomDateRange(customRange);
-      });
-
-      const state = useUIStore.getState();
-      expect(state.customDateRange).toEqual(customRange);
-      expect(state.globalTimeRange).toBe('ALL');
-    });
-
-    it('清除自定义日期范围应该重置时间范围为默认值', () => {
-      const { setCustomDateRange } = useUIStore.getState();
-
-      act(() => {
-        setCustomDateRange({
-          startDate: new Date('2024-01-01'),
-          endDate: new Date('2024-01-31'),
-        });
-      });
-
-      act(() => {
-        setCustomDateRange(null);
-      });
-
-      const state = useUIStore.getState();
-      expect(state.customDateRange).toBeNull();
-      expect(state.globalTimeRange).toBe('24H');
-    });
-
-    it('应该能够设置刷选范围', () => {
-      const { setBrushRange } = useUIStore.getState();
-      const brushRange: BrushRange = {
-        startIndex: 0,
-        endIndex: 100,
-        startTime: 1000000,
-        endTime: 2000000,
-      };
-
-      act(() => {
-        setBrushRange(brushRange);
-      });
-
-      expect(useUIStore.getState().brushRange).toEqual(brushRange);
-    });
-
-    it('应该能够设置选中的小时', () => {
-      const { setSelectedHour } = useUIStore.getState();
-      act(() => {
-        setSelectedHour(12);
-      });
-      expect(useUIStore.getState().selectedHour).toBe(12);
-    });
-
-    it('应该能够设置选中的时间范围', () => {
-      const { setSelectedTimeRange } = useUIStore.getState();
-      const timeRange: SelectedTimeRange = {
-        startTime: 1000000,
-        endTime: 2000000,
-        startHour: 0,
-        endHour: 24,
-        label: '1D',
-      };
-
-      act(() => {
-        setSelectedTimeRange(timeRange);
-      });
-
-      expect(useUIStore.getState().selectedTimeRange).toEqual(timeRange);
-    });
-  });
-
-  describe('时间范围回调', () => {
-    it('应该能够注册时间范围回调', () => {
-      const { registerTimeRangeCallback, setSelectedTimeRange } = useUIStore.getState();
-      const callback = jest.fn();
-
-      act(() => {
-        registerTimeRangeCallback(callback);
-      });
-
-      const timeRange: SelectedTimeRange = {
-        startTime: 1000000,
-        endTime: 2000000,
-        startHour: 0,
-        endHour: 24,
-        label: '1D',
-      };
-
-      act(() => {
-        setSelectedTimeRange(timeRange);
-      });
-
-      expect(callback).toHaveBeenCalledWith(timeRange);
-    });
-
-    it('应该能够取消注册时间范围回调', () => {
-      const { registerTimeRangeCallback, unregisterTimeRangeCallback, setSelectedTimeRange } =
-        useUIStore.getState();
-      const callback = jest.fn();
-
-      act(() => {
-        registerTimeRangeCallback(callback);
-      });
-
-      act(() => {
-        unregisterTimeRangeCallback(callback);
-      });
-
-      const timeRange: SelectedTimeRange = {
-        startTime: 1000000,
-        endTime: 2000000,
-        startHour: 0,
-        endHour: 24,
-        label: '1D',
-      };
-
-      act(() => {
-        setSelectedTimeRange(timeRange);
-      });
-
-      expect(callback).not.toHaveBeenCalled();
-    });
-
-    it('回调抛出错误时应该不影响其他回调', () => {
-      const { registerTimeRangeCallback, setSelectedTimeRange } = useUIStore.getState();
-      const errorCallback = jest.fn(() => {
-        throw new Error('Test error');
-      });
-      const normalCallback = jest.fn();
-
-      act(() => {
-        registerTimeRangeCallback(errorCallback);
-        registerTimeRangeCallback(normalCallback);
-      });
-
-      const timeRange: SelectedTimeRange = {
-        startTime: 1000000,
-        endTime: 2000000,
-        startHour: 0,
-        endHour: 24,
-        label: '1D',
-      };
-
-      act(() => {
-        setSelectedTimeRange(timeRange);
-      });
-
-      expect(errorCallback).toHaveBeenCalled();
-      expect(normalCallback).toHaveBeenCalled();
-    });
-  });
-
-  describe('同步控制', () => {
-    it('toggleSync 应该切换同步状态', () => {
-      const { setSyncEnabled } = useUIStore.getState();
-      expect(useUIStore.getState().syncEnabled).toBe(true);
-
-      act(() => {
-        setSyncEnabled(false);
-      });
-      expect(useUIStore.getState().syncEnabled).toBe(false);
-
-      act(() => {
-        setSyncEnabled(true);
-      });
-      expect(useUIStore.getState().syncEnabled).toBe(true);
-    });
-
-    it('enableSync 应该启用同步', () => {
-      const { setSyncEnabled } = useUIStore.getState();
-
-      act(() => {
-        setSyncEnabled(false);
-      });
-      expect(useUIStore.getState().syncEnabled).toBe(false);
-
-      act(() => {
-        setSyncEnabled(true);
-      });
-      expect(useUIStore.getState().syncEnabled).toBe(true);
-    });
-
-    it('disableSync 应该禁用同步', () => {
-      const { setSyncEnabled } = useUIStore.getState();
-
-      act(() => {
-        setSyncEnabled(false);
-      });
-      expect(useUIStore.getState().syncEnabled).toBe(false);
-    });
-  });
-
-  describe('用户偏好设置持久化', () => {
-    it('应该持久化主题设置', () => {
-      const { setTheme } = useUIStore.getState();
-      act(() => {
-        setTheme('dark');
-      });
-
-      const persistedData = localStorageMock.getItem('ui-store');
-      if (persistedData) {
-        const parsed = JSON.parse(persistedData);
-        expect(parsed.state.theme).toBe('dark');
-      }
-    });
-
-    it('应该持久化侧边栏折叠状态', () => {
-      const { toggleSidebarCollapse } = useUIStore.getState();
-      act(() => {
-        toggleSidebarCollapse();
-      });
-
-      const persistedData = localStorageMock.getItem('ui-store');
-      if (persistedData) {
-        const parsed = JSON.parse(persistedData);
-        expect(parsed.state.sidebar.isCollapsed).toBe(true);
-      }
-    });
-
-    it('应该持久化全局时间范围', () => {
-      const { setGlobalTimeRange } = useUIStore.getState();
-      act(() => {
-        setGlobalTimeRange('30D');
-      });
-
-      const persistedData = localStorageMock.getItem('ui-store');
-      if (persistedData) {
-        const parsed = JSON.parse(persistedData);
-        expect(parsed.state.globalTimeRange).toBe('30D');
-      }
-    });
-
-    it('应该持久化同步状态', () => {
-      const { setSyncEnabled } = useUIStore.getState();
-      act(() => {
-        setSyncEnabled(false);
-      });
-
-      const persistedData = localStorageMock.getItem('ui-store');
-      if (persistedData) {
-        const parsed = JSON.parse(persistedData);
-        expect(parsed.state.syncEnabled).toBe(false);
-      }
-    });
-
-    it('应该持久化自定义日期范围', () => {
-      const { setCustomDateRange } = useUIStore.getState();
-      const customRange: CustomDateRange = {
-        startDate: new Date('2024-01-01'),
-        endDate: new Date('2024-01-31'),
-      };
-
-      act(() => {
-        setCustomDateRange(customRange);
-      });
-
-      const persistedData = localStorageMock.getItem('ui-store');
-      if (persistedData) {
-        const parsed = JSON.parse(persistedData);
-        expect(parsed.state.customDateRange).toBeDefined();
-        expect(parsed.state.customDateRange.startDate).toBe(customRange.startDate.toISOString());
-        expect(parsed.state.customDateRange.endDate).toBe(customRange.endDate.toISOString());
-      }
-    });
-  });
-
-  describe('Hooks 测试', () => {
-    it('useSidebar hook 应该返回侧边栏状态', () => {
-      const { result } = renderHook(() => useUIStore((state) => state.sidebar));
-      expect(result.current.isOpen).toBe(true);
-      expect(result.current.isCollapsed).toBe(false);
-    });
-
-    it('useModal hook 应该返回模态框状态', () => {
-      const { result } = renderHook(() => useUIStore((state) => state.modal));
-      expect(result.current.isOpen).toBe(false);
-    });
-
-    it('useNotifications hook 应该返回通知列表', () => {
-      const { result } = renderHook(() => useUIStore((state) => state.notifications));
-      expect(result.current).toEqual([]);
-    });
-
-    it('useTheme hook 应该返回当前主题', () => {
-      const { result } = renderHook(() => useUIStore((state) => state.theme));
-      expect(result.current).toBe('system');
-    });
-
-    it('useIsMobile hook 应该返回移动端状态', () => {
-      const { result } = renderHook(() => useUIStore((state) => state.isMobile));
-      expect(result.current).toBe(false);
-    });
-
-    it('useGlobalTimeRange hook 应该返回全局时间范围', () => {
-      const { result } = renderHook(() => useUIStore((state) => state.globalTimeRange));
-      expect(result.current).toBe('24H');
-    });
-
-    it('useSyncEnabled hook 应该返回同步状态', () => {
-      const { result } = renderHook(() => useUIStore((state) => state.syncEnabled));
-      expect(result.current).toBe(true);
-    });
+    const state = useUIStore.getState();
+    expect(state.theme).toBe('dark');
+    expect(state.sidebar.isOpen).toBe(true);
+    expect(state.sidebar.collapsed).toBe(false);
+    expect(state.notifications).toHaveLength(0);
+    expect(Object.keys(state.isLoading)).toHaveLength(0);
+    expect(Object.keys(state.modals)).toHaveLength(0);
+    expect(state.toasts).toHaveLength(0);
+    expect(state.searchQuery).toBe('');
+    expect(Object.keys(state.filters)).toHaveLength(0);
+    expect(state.sortConfig).toBeNull();
+    expect(state.pagination.page).toBe(1);
   });
 });

@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 
 import { useTranslations } from '@/i18n';
-import { OracleProvider } from '@/types/oracle';
+import { OracleProvider } from '@/types/oracle/enums';
 
 import { ChartsTab } from './ChartsTab';
 import { type OracleGroup, ORACLE_GROUPS } from './crossOracleConfig';

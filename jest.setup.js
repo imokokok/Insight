@@ -68,7 +68,8 @@ class MockNextResponse {
 }
 
 MockNextResponse.json = (body, init) => new MockNextResponse(JSON.stringify(body), init);
-MockNextResponse.redirect = (url) => new MockNextResponse(null, { status: 302, headers: { Location: url } });
+MockNextResponse.redirect = (url) =>
+  new MockNextResponse(null, { status: 302, headers: { Location: url } });
 MockNextResponse.next = () => new MockNextResponse(null, { status: 200 });
 
 jest.mock('next/server', () => ({

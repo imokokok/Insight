@@ -24,7 +24,7 @@ export function useChartSettings() {
     }
     return DEFAULT_CHART_SETTINGS;
   });
-  const [isLoaded, setIsLoaded] = useState(true);
+  const [isLoaded] = useState(true);
 
   const updateSettings = useCallback((updates: Partial<ChartSettings>) => {
     setSettings((prev) => {

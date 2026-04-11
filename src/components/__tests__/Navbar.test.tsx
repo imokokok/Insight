@@ -25,7 +25,14 @@ jest.mock('next/navigation', () => ({
 
 jest.mock('next/image', () => ({
   __esModule: true,
-  default: ({ src, alt, width, height, priority, className }: {
+  default: ({
+    src,
+    alt,
+    width,
+    height,
+    priority,
+    className,
+  }: {
     src: string;
     alt: string;
     width: number;
@@ -46,7 +53,13 @@ jest.mock('next/image', () => ({
 
 jest.mock('next/link', () => ({
   __esModule: true,
-  default: ({ href, children, className, onClick, title }: {
+  default: ({
+    href,
+    children,
+    className,
+    onClick,
+    title,
+  }: {
     href: string;
     children: ReactNode;
     className?: string;

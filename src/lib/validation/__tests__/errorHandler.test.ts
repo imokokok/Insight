@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
-import { ZodError, z } from 'zod';
+
+import { ZodError } from 'zod';
+
+import { ErrorCode } from '@/types/api/error';
 
 import {
   createErrorResponse,
@@ -14,7 +17,6 @@ import {
   createRateLimitErrorResponse,
 } from '../errorHandler';
 import { ZodValidationError } from '../errors';
-import { ErrorCode } from '@/types/api/error';
 
 jest.mock('@/lib/utils/logger', () => ({
   createLogger: () => ({
@@ -83,14 +85,15 @@ describe('createErrorResponse', () => {
 });
 
 describe('handleValidationError', () => {
-  const testSchema = z.object({
-    name: z.string().min(1),
-    age: z.number().positive(),
-  });
-
   it('should handle ZodError', () => {
     const zodError = new ZodError([
-      { code: 'invalid_type', expected: 'string', received: 'number', path: ['name'], message: 'Expected string' },
+      {
+        code: 'invalid_type',
+        expected: 'string',
+        received: 'number',
+        path: ['name'],
+        message: 'Expected string',
+      },
     ]);
 
     const response = handleValidationError(zodError);
@@ -113,7 +116,13 @@ describe('handleValidationError', () => {
 
   it('should include context in log message', () => {
     const zodError = new ZodError([
-      { code: 'invalid_type', expected: 'string', received: 'number', path: ['name'], message: 'Expected string' },
+      {
+        code: 'invalid_type',
+        expected: 'string',
+        received: 'number',
+        path: ['name'],
+        message: 'Expected string',
+      },
     ]);
 
     const response = handleValidationError(zodError, 'user-registration');
@@ -194,7 +203,13 @@ describe('handleUnknownError', () => {
 describe('handleError', () => {
   it('should handle ZodValidationError', () => {
     const zodError = new ZodError([
-      { code: 'invalid_type', expected: 'string', received: 'number', path: ['name'], message: 'Expected string' },
+      {
+        code: 'invalid_type',
+        expected: 'string',
+        received: 'number',
+        path: ['name'],
+        message: 'Expected string',
+      },
     ]);
     const validationError = ZodValidationError.fromZodError(zodError);
 

@@ -31,7 +31,15 @@ describe('useDropdown', () => {
 
       expect(result.current.isDropdownOpen).toBe(false);
       expect(result.current.highlightedIndex).toBe(-1);
-      expect(result.current.POPULAR_TOKENS).toEqual(['BTC', 'ETH', 'BNB', 'AVAX', 'MATIC', 'USDT', 'USDC']);
+      expect(result.current.POPULAR_TOKENS).toEqual([
+        'BTC',
+        'ETH',
+        'BNB',
+        'AVAX',
+        'MATIC',
+        'USDT',
+        'USDC',
+      ]);
     });
   });
 
@@ -59,7 +67,12 @@ describe('useDropdown', () => {
 
     it('下拉菜单项目应该限制在10个以内', () => {
       const manyResults = Array.from({ length: 15 }, (_, i) => ({
-        item: { type: 'token', symbol: `TOKEN${i}`, name: `Token ${i}`, path: `/price-query?symbol=TOKEN${i}` },
+        item: {
+          type: 'token',
+          symbol: `TOKEN${i}`,
+          name: `Token ${i}`,
+          path: `/price-query?symbol=TOKEN${i}`,
+        },
         matches: [],
         score: 1 - i * 0.01,
       }));
@@ -116,7 +129,10 @@ describe('useDropdown', () => {
         result.current.setIsDropdownOpen(true);
       });
 
-      const mockEvent = { key: 'ArrowDown', preventDefault: jest.fn() } as unknown as React.KeyboardEvent;
+      const mockEvent = {
+        key: 'ArrowDown',
+        preventDefault: jest.fn(),
+      } as unknown as React.KeyboardEvent;
       const mockOnSelect = jest.fn();
 
       act(() => {
@@ -134,7 +150,10 @@ describe('useDropdown', () => {
         result.current.setHighlightedIndex(2);
       });
 
-      const mockEvent = { key: 'ArrowUp', preventDefault: jest.fn() } as unknown as React.KeyboardEvent;
+      const mockEvent = {
+        key: 'ArrowUp',
+        preventDefault: jest.fn(),
+      } as unknown as React.KeyboardEvent;
       const mockOnSelect = jest.fn();
 
       act(() => {
@@ -151,7 +170,10 @@ describe('useDropdown', () => {
         result.current.setIsDropdownOpen(true);
       });
 
-      const mockEvent = { key: 'Escape', preventDefault: jest.fn() } as unknown as React.KeyboardEvent;
+      const mockEvent = {
+        key: 'Escape',
+        preventDefault: jest.fn(),
+      } as unknown as React.KeyboardEvent;
       const mockOnSelect = jest.fn();
 
       act(() => {
@@ -168,7 +190,10 @@ describe('useDropdown', () => {
         result.current.setIsDropdownOpen(true);
       });
 
-      const mockEvent = { key: 'Enter', preventDefault: jest.fn() } as unknown as React.KeyboardEvent;
+      const mockEvent = {
+        key: 'Enter',
+        preventDefault: jest.fn(),
+      } as unknown as React.KeyboardEvent;
       const mockOnSelect = jest.fn();
 
       act(() => {
@@ -181,7 +206,10 @@ describe('useDropdown', () => {
     it('当下拉菜单关闭时，按下箭头键应该打开它', () => {
       const { result } = renderHook(() => useDropdown('', [], mockSearchHistory));
 
-      const mockEvent = { key: 'ArrowDown', preventDefault: jest.fn() } as unknown as React.KeyboardEvent;
+      const mockEvent = {
+        key: 'ArrowDown',
+        preventDefault: jest.fn(),
+      } as unknown as React.KeyboardEvent;
       const mockOnSelect = jest.fn();
 
       act(() => {
@@ -207,7 +235,10 @@ describe('useDropdown', () => {
         result.current.setHighlightedIndex(maxIndex);
       });
 
-      const mockEvent = { key: 'ArrowDown', preventDefault: jest.fn() } as unknown as React.KeyboardEvent;
+      const mockEvent = {
+        key: 'ArrowDown',
+        preventDefault: jest.fn(),
+      } as unknown as React.KeyboardEvent;
       const mockOnSelect = jest.fn();
 
       act(() => {
@@ -225,7 +256,10 @@ describe('useDropdown', () => {
         result.current.setHighlightedIndex(0);
       });
 
-      const mockEvent = { key: 'ArrowUp', preventDefault: jest.fn() } as unknown as React.KeyboardEvent;
+      const mockEvent = {
+        key: 'ArrowUp',
+        preventDefault: jest.fn(),
+      } as unknown as React.KeyboardEvent;
       const mockOnSelect = jest.fn();
 
       act(() => {

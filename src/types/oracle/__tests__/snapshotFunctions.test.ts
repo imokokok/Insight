@@ -435,7 +435,7 @@ describe('snapshotFunctions', () => {
       const snapshotData2 = createMockSnapshot({ symbol: 'ETH/USD' });
 
       const saved1 = saveSnapshot(snapshotData1);
-      const saved2 = saveSnapshot(snapshotData2);
+      saveSnapshot(snapshotData2);
 
       expect(getSnapshots().length).toBe(2);
 

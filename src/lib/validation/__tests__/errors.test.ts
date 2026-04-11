@@ -6,7 +6,13 @@ describe('ZodValidationError', () => {
   describe('constructor', () => {
     it('should create error with message and zodError', () => {
       const zodError = new ZodError([
-        { code: 'invalid_type', expected: 'string', received: 'number', path: ['name'], message: 'Expected string' },
+        {
+          code: 'invalid_type',
+          expected: 'string',
+          received: 'number',
+          path: ['name'],
+          message: 'Expected string',
+        },
       ]);
 
       const error = new ZodValidationError('Validation failed', zodError);
@@ -40,7 +46,13 @@ describe('ZodValidationError', () => {
   describe('fromZodError', () => {
     it('should create ZodValidationError from single issue', () => {
       const zodError = new ZodError([
-        { code: 'invalid_type', expected: 'string', received: 'number', path: ['name'], message: 'Expected string' },
+        {
+          code: 'invalid_type',
+          expected: 'string',
+          received: 'number',
+          path: ['name'],
+          message: 'Expected string',
+        },
       ]);
 
       const error = ZodValidationError.fromZodError(zodError);
@@ -51,7 +63,13 @@ describe('ZodValidationError', () => {
 
     it('should create ZodValidationError from multiple issues', () => {
       const zodError = new ZodError([
-        { code: 'invalid_type', expected: 'string', received: 'number', path: ['name'], message: 'Expected string' },
+        {
+          code: 'invalid_type',
+          expected: 'string',
+          received: 'number',
+          path: ['name'],
+          message: 'Expected string',
+        },
         { code: 'too_small', minimum: 1, path: ['email'], message: 'Required' },
       ]);
 
@@ -67,7 +85,13 @@ describe('ZodValidationError', () => {
 
     it('should handle nested path', () => {
       const zodError = new ZodError([
-        { code: 'invalid_type', expected: 'string', received: 'number', path: ['user', 'profile', 'name'], message: 'Invalid' },
+        {
+          code: 'invalid_type',
+          expected: 'string',
+          received: 'number',
+          path: ['user', 'profile', 'name'],
+          message: 'Invalid',
+        },
       ]);
 
       const error = ZodValidationError.fromZodError(zodError);
@@ -77,7 +101,13 @@ describe('ZodValidationError', () => {
 
     it('should handle root level path', () => {
       const zodError = new ZodError([
-        { code: 'invalid_type', expected: 'string', received: 'number', path: [], message: 'Invalid root' },
+        {
+          code: 'invalid_type',
+          expected: 'string',
+          received: 'number',
+          path: [],
+          message: 'Invalid root',
+        },
       ]);
 
       const error = ZodValidationError.fromZodError(zodError);
@@ -89,7 +119,13 @@ describe('ZodValidationError', () => {
   describe('toResponse', () => {
     it('should return formatted error response', () => {
       const zodError = new ZodError([
-        { code: 'invalid_type', expected: 'string', received: 'number', path: ['name'], message: 'Expected string' },
+        {
+          code: 'invalid_type',
+          expected: 'string',
+          received: 'number',
+          path: ['name'],
+          message: 'Expected string',
+        },
       ]);
 
       const error = ZodValidationError.fromZodError(zodError);
@@ -123,7 +159,13 @@ describe('ZodValidationError', () => {
 describe('handleZodError', () => {
   it('should throw ZodValidationError', () => {
     const zodError = new ZodError([
-      { code: 'invalid_type', expected: 'string', received: 'number', path: ['name'], message: 'Expected string' },
+      {
+        code: 'invalid_type',
+        expected: 'string',
+        received: 'number',
+        path: ['name'],
+        message: 'Expected string',
+      },
     ]);
 
     expect(() => handleZodError(zodError)).toThrow(ZodValidationError);
@@ -131,7 +173,13 @@ describe('handleZodError', () => {
 
   it('should preserve error details in thrown error', () => {
     const zodError = new ZodError([
-      { code: 'invalid_type', expected: 'string', received: 'number', path: ['name'], message: 'Expected string' },
+      {
+        code: 'invalid_type',
+        expected: 'string',
+        received: 'number',
+        path: ['name'],
+        message: 'Expected string',
+      },
     ]);
 
     try {

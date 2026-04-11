@@ -1,5 +1,3 @@
-import { type ReactNode } from 'react';
-
 import { render, screen } from '@testing-library/react';
 
 import { PriceChart } from '../index';
@@ -29,7 +27,12 @@ jest.mock('@/components/ui', () => ({
     showToolbar?: boolean;
     variant?: string;
   }) => (
-    <div data-testid="chart-skeleton" data-height={height} data-toolbar={showToolbar} data-variant={variant}>
+    <div
+      data-testid="chart-skeleton"
+      data-height={height}
+      data-toolbar={showToolbar}
+      data-variant={variant}
+    >
       Loading Chart...
     </div>
   ),
@@ -138,7 +141,7 @@ jest.mock('../ChartLegend', () => ({
 }));
 
 jest.mock('../chartUtils', () => ({
-  calculateChartHeights: (height: number, showToolbar: boolean) => ({
+  calculateChartHeights: (height: number, _showToolbar: boolean) => ({
     priceChartHeight: height - 100,
     volumeChartHeight: 80,
     rsiChartHeight: 60,

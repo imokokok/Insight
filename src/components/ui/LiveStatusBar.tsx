@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 
-import { Wifi, WifiOff, Clock, Zap, RefreshCw, Activity } from 'lucide-react';
+import { Wifi, WifiOff, Clock, RefreshCw, Activity } from 'lucide-react';
 
 import { useTranslations } from '@/i18n';
 import { semanticColors } from '@/lib/config/colors';
@@ -181,7 +181,6 @@ export function LiveStatusBar({
         <span className="font-mono">{formatUTCTime(displayTime)}</span>
       </div>
       <div className="flex items-center gap-2">
-        <Zap className="w-3 h-3 text-gray-400" />
         <span>
           {t('metrics.responseTime')}: {formatLatency(latency)}
         </span>
@@ -202,7 +201,6 @@ export function LiveStatusBar({
         <span className="font-mono">--:--:-- UTC</span>
       </div>
       <div className="flex items-center gap-2">
-        <Zap className="w-3 h-3 text-gray-400" />
         <span>延迟: {formatLatency(latency)}</span>
       </div>
       <div className="flex items-center gap-2">

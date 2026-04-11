@@ -1,4 +1,5 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+
 import { AlertConfig } from '../AlertConfig';
 
 jest.mock('@/hooks', () => ({
@@ -32,7 +33,11 @@ jest.mock('@/components/ui', () => ({
   SegmentedControl: ({ options, value, onChange }: any) => (
     <div data-testid="segmented-control">
       {options.map((opt: any) => (
-        <button key={opt.value} onClick={() => onChange(opt.value)} data-active={value === opt.value}>
+        <button
+          key={opt.value}
+          onClick={() => onChange(opt.value)}
+          data-active={value === opt.value}
+        >
           {opt.label}
         </button>
       ))}
@@ -57,74 +62,80 @@ describe('AlertConfig', () => {
 
   it('should render alert config form', () => {
     render(<AlertConfig onAlertCreated={mockOnAlertCreated} />);
-    
-    expect(screen.getByText(/create alert/i)).toBeInTheDocument();
+
+    expect(screen.getByText('alerts.create.title')).toBeInTheDocument();
   });
 
-  it('should render symbol selector', () => {
+  it('should render dropdown selectors', () => {
     render(<AlertConfig onAlertCreated={mockOnAlertCreated} />);
-    
-    expect(screen.getByTestId('dropdown-select')).toBeInTheDocument();
+
+    const dropdowns = screen.getAllByTestId('dropdown-select');
+    expect(dropdowns.length).toBeGreaterThanOrEqual(2);
   });
 
   it('should render condition type selector', () => {
     render(<AlertConfig onAlertCreated={mockOnAlertCreated} />);
-    
+
     expect(screen.getByTestId('segmented-control')).toBeInTheDocument();
   });
 
   it('should render target value input', () => {
     render(<AlertConfig onAlertCreated={mockOnAlertCreated} />);
-    
-    const targetInput = screen.getByPlaceholderText(/target value/i);
+
+    const targetInput = screen.getByPlaceholderText('alerts.placeholder.targetPrice');
     expect(targetInput).toBeInTheDocument();
   });
 
   it('should render create button', () => {
     render(<AlertConfig onAlertCreated={mockOnAlertCreated} />);
-    
-    const createButton = screen.getByRole('button', { name: /create/i });
+
+    const createButton = screen.getByRole('button', { name: 'alerts.create.submit' });
     expect(createButton).toBeInTheDocument();
   });
 
   it('should allow entering alert name', () => {
     render(<AlertConfig onAlertCreated={mockOnAlertCreated} />);
-    
-    const nameInput = screen.getByPlaceholderText(/alert name/i);
+
+    const nameInput = screen.getByPlaceholderText('alerts.create.namePlaceholder');
     fireEvent.change(nameInput, { target: { value: 'Test Alert' } });
-    
+
     expect(nameInput).toHaveValue('Test Alert');
   });
 
   it('should allow entering target value', () => {
     render(<AlertConfig onAlertCreated={mockOnAlertCreated} />);
-    
-    const targetInput = screen.getByPlaceholderText(/target value/i);
+
+    const targetInput = screen.getByPlaceholderText('alerts.placeholder.targetPrice');
     fireEvent.change(targetInput, { target: { value: '50000' } });
-    
-    expect(targetInput).toHaveValue('50000');
+
+    expect(targetInput).toHaveValue(50000);
   });
 
   it('should show error when required fields are missing', async () => {
     render(<AlertConfig onAlertCreated={mockOnAlertCreated} />);
-    
-    const createButton = screen.getByRole('button', { name: /create/i });
+
+    const createButton = screen.getByRole('button', { name: 'alerts.create.submit' });
     fireEvent.click(createButton);
-    
+
     await waitFor(() => {
-      expect(screen.getByText(/required/i)).toBeInTheDocument();
+      expect(screen.getByText('alerts.error.invalidTargetValue')).toBeInTheDocument();
     });
   });
 
-  it('should render mute period settings', () => {
+  it('should render mute period settings', async () => {
     render(<AlertConfig onAlertCreated={mockOnAlertCreated} />);
-    
-    expect(screen.getByTestId('mute-period')).toBeInTheDocument();
+
+    const muteSettingsButton = screen.getByText('alerts.mute.settings');
+    fireEvent.click(muteSettingsButton);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('mute-period')).toBeInTheDocument();
+    });
   });
 
   it('should render alert templates', () => {
     render(<AlertConfig onAlertCreated={mockOnAlertCreated} />);
-    
+
     expect(screen.getByTestId('alert-templates')).toBeInTheDocument();
   });
 });

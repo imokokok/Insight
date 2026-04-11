@@ -324,7 +324,9 @@ describe('useBrushZoom', () => {
   it('should calculate visible data count', () => {
     const { result } = renderHook(() => useBrushZoom({ dataLength: 100, defaultRange: 0.5 }));
 
-    expect(result.current.visibleDataCount).toBe(result.current.endIndex - result.current.startIndex + 1);
+    expect(result.current.visibleDataCount).toBe(
+      result.current.endIndex - result.current.startIndex + 1
+    );
   });
 
   it('should zoom in', () => {
@@ -376,9 +378,7 @@ describe('useBrushZoom', () => {
   });
 
   it('should reset to default range', () => {
-    const { result } = renderHook(() =>
-      useBrushZoom({ dataLength: 100, defaultRange: 0.3 })
-    );
+    const { result } = renderHook(() => useBrushZoom({ dataLength: 100, defaultRange: 0.3 }));
 
     act(() => {
       result.current.zoomIn();
@@ -415,9 +415,7 @@ describe('useBrushZoom', () => {
   });
 
   it('should respect minVisiblePoints', () => {
-    const { result } = renderHook(() =>
-      useBrushZoom({ dataLength: 100, minVisiblePoints: 20 })
-    );
+    const { result } = renderHook(() => useBrushZoom({ dataLength: 100, minVisiblePoints: 20 }));
 
     act(() => {
       result.current.zoomIn();
@@ -441,9 +439,7 @@ describe('useBrushZoom', () => {
 
   it('should call onRangeChange callback', () => {
     const onRangeChange = jest.fn();
-    const { result } = renderHook(() =>
-      useBrushZoom({ dataLength: 100, onRangeChange })
-    );
+    const { result } = renderHook(() => useBrushZoom({ dataLength: 100, onRangeChange }));
 
     act(() => {
       result.current.setRange(20, 50);

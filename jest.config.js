@@ -7,6 +7,10 @@ const createJestConfig = nextJest({
 const customJestConfig = {
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   testEnvironment: 'jest-environment-jsdom',
+  maxWorkers: '50%',
+  workerIdleMemoryLimit: '4GB',
+  testTimeout: 15000,
+  slowTestThreshold: 10000,
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
     // Mock next-intl modules

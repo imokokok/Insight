@@ -6,7 +6,10 @@ import { render, screen } from '@testing-library/react';
 import PriceQueryPage from '../page';
 
 jest.mock('../components', () => ({
-  QueryHeader: ({ loading, queryResultsLength }: {
+  QueryHeader: ({
+    loading,
+    queryResultsLength,
+  }: {
     loading: boolean;
     queryResultsLength: number;
   }) => (
@@ -14,20 +17,14 @@ jest.mock('../components', () => ({
       QueryHeader
     </div>
   ),
-  QueryForm: ({ isLoading, onQuery }: {
-    isLoading: boolean;
-    onQuery: () => void;
-  }) => (
+  QueryForm: ({ isLoading, onQuery }: { isLoading: boolean; onQuery: () => void }) => (
     <div data-testid="query-form" data-loading={isLoading}>
       <button onClick={onQuery} data-testid="query-button">
         Query
       </button>
     </div>
   ),
-  QueryResults: ({ queryResults, isLoading }: {
-    queryResults: unknown[];
-    isLoading: boolean;
-  }) => (
+  QueryResults: ({ queryResults, isLoading }: { queryResults: unknown[]; isLoading: boolean }) => (
     <div data-testid="query-results" data-loading={isLoading} data-count={queryResults.length}>
       QueryResults
     </div>
@@ -98,10 +95,7 @@ jest.mock('@/hooks', () => ({
 }));
 
 jest.mock('@/components/ui', () => ({
-  LiveStatusBar: ({ isConnected, latency }: {
-    isConnected: boolean;
-    latency?: number;
-  }) => (
+  LiveStatusBar: ({ isConnected, latency }: { isConnected: boolean; latency?: number }) => (
     <div data-testid="live-status" data-connected={isConnected} data-latency={latency}>
       LiveStatusBar
     </div>
@@ -163,7 +157,8 @@ describe('PriceQueryPage', () => {
     it('应该有正确的容器样式', () => {
       renderPriceQueryPage();
 
-      const container = screen.getByTestId('query-header').closest('div')?.parentElement?.parentElement;
+      const container = screen.getByTestId('query-header').closest('div')
+        ?.parentElement?.parentElement;
       expect(container).toHaveClass('max-w-[1600px]');
       expect(container).toHaveClass('mx-auto');
     });

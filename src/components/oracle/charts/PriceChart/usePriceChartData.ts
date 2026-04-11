@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useEffect, useCallback, useMemo } from 'react';
 
 import { useTechnicalIndicators, type IndicatorDataPoint } from '@/hooks';
 import { type BaseOracleClient } from '@/lib/oracles/base';
@@ -21,12 +21,8 @@ import {
   calculatePriceChange,
   detectAnomalies,
 } from './chartUtils';
-import { type DataGranularity, type TimeRange } from './priceChartConfig';
-import {
-  generateHistoricalData,
-  convertHistoricalPricePoints,
-  generateDataWithGranularity,
-} from './priceChartUtils';
+import { type DataGranularity } from './priceChartConfig';
+import { generateHistoricalData, generateDataWithGranularity } from './priceChartUtils';
 import { useChartState, type AnomalyPoint } from './useChartState';
 
 const logger = createLogger('usePriceChartData');
@@ -117,7 +113,7 @@ export function usePriceChartData({
   symbol,
   chain,
   defaultPrice,
-  enableRealtime = true,
+  enableRealtime: _enableRealtime = true,
   downsamplingConfig,
   autoDownsample = true,
   isMobile,

@@ -5,7 +5,6 @@ import {
   defaultErrorMiddleware,
   developmentErrorMiddleware,
   withErrorHandling,
-  type ErrorMiddlewareOptions,
 } from '../middleware/errorMiddleware';
 
 jest.mock('@/lib/utils/logger', () => ({
@@ -45,9 +44,7 @@ describe('errorMiddleware', () => {
       };
 
       isAppError.mockReturnValue(true);
-      errorToResponse.mockReturnValue(
-        NextResponse.json({ error: appError }, { status: 400 })
-      );
+      errorToResponse.mockReturnValue(NextResponse.json({ error: appError }, { status: 400 }));
 
       const middleware = createErrorMiddleware();
       const result = await middleware(appError);
@@ -65,9 +62,7 @@ describe('errorMiddleware', () => {
       };
 
       isAppError.mockReturnValue(true);
-      errorToResponse.mockReturnValue(
-        NextResponse.json({ error: appError }, { status: 400 })
-      );
+      errorToResponse.mockReturnValue(NextResponse.json({ error: appError }, { status: 400 }));
 
       const middleware = createErrorMiddleware();
       const result = await middleware(appError, 'req-123');

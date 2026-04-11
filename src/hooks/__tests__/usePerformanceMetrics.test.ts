@@ -92,9 +92,7 @@ describe('usePerformanceTracker', () => {
 
 describe('useComponentPerformance', () => {
   it('should track render count', () => {
-    const { result, rerender } = renderHook(() =>
-      useComponentPerformance('TestComponent')
-    );
+    const { result, rerender } = renderHook(() => useComponentPerformance('TestComponent'));
 
     const initialCount = result.current.renderCount;
 
@@ -104,9 +102,7 @@ describe('useComponentPerformance', () => {
   });
 
   it('should not track when disabled', () => {
-    const { result, rerender } = renderHook(() =>
-      useComponentPerformance('TestComponent', false)
-    );
+    const { result, rerender } = renderHook(() => useComponentPerformance('TestComponent', false));
 
     expect(result.current.metrics).toBeNull();
 
@@ -245,12 +241,10 @@ describe('useLongTaskMonitor', () => {
       disconnect: jest.fn(),
     };
 
-    (window as { PerformanceObserver?: jest.Mock }).PerformanceObserver = jest.fn(
-      (callback) => {
-        observerCallback = callback;
-        return mockObserver;
-      }
-    );
+    (window as { PerformanceObserver?: jest.Mock }).PerformanceObserver = jest.fn((callback) => {
+      observerCallback = callback;
+      return mockObserver;
+    });
   });
 
   afterEach(() => {

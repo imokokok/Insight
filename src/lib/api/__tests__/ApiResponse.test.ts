@@ -181,7 +181,7 @@ describe('ApiResponseHandler', () => {
       const data = [{ id: 1 }, { id: 2 }];
       const response = ApiResponseHandler.paginated(data, 1, 10, 25);
 
-      const body = (await response.json()) as ApiPaginatedResponse<typeof data[0]>;
+      const body = (await response.json()) as ApiPaginatedResponse<(typeof data)[0]>;
       expect(body.success).toBe(true);
       expect(body.pagination.total).toBe(25);
     });
@@ -332,9 +332,7 @@ describe('CacheConfig', () => {
     });
 
     it('should generate correct header', () => {
-      expect(CacheConfig.PRICE.header).toBe(
-        'public, s-maxage=30, stale-while-revalidate=60'
-      );
+      expect(CacheConfig.PRICE.header).toBe('public, s-maxage=30, stale-while-revalidate=60');
     });
   });
 
@@ -345,9 +343,7 @@ describe('CacheConfig', () => {
     });
 
     it('should generate correct header', () => {
-      expect(CacheConfig.HISTORY.header).toBe(
-        'public, s-maxage=300, stale-while-revalidate=600'
-      );
+      expect(CacheConfig.HISTORY.header).toBe('public, s-maxage=300, stale-while-revalidate=600');
     });
   });
 
@@ -358,9 +354,7 @@ describe('CacheConfig', () => {
     });
 
     it('should generate correct header', () => {
-      expect(CacheConfig.SHORT.header).toBe(
-        'public, s-maxage=10, stale-while-revalidate=30'
-      );
+      expect(CacheConfig.SHORT.header).toBe('public, s-maxage=10, stale-while-revalidate=30');
     });
   });
 

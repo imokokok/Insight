@@ -1,12 +1,12 @@
 import { z } from 'zod';
 
+import { ZodValidationError } from '../errors';
 import {
   validateOracleData,
   safeValidateOracleData,
   isValidOracleData,
   logValidationWarning,
 } from '../oracleValidation';
-import { ZodValidationError } from '../errors';
 
 describe('validateOracleData', () => {
   const priceSchema = z.object({
@@ -269,9 +269,7 @@ describe('isValidOracleData', () => {
 describe('logValidationWarning', () => {
   it('should not throw when called', () => {
     expect(() =>
-      logValidationWarning('chainlink', 'BTC', [
-        { field: 'price', message: 'Price is stale' },
-      ])
+      logValidationWarning('chainlink', 'BTC', [{ field: 'price', message: 'Price is stale' }])
     ).not.toThrow();
   });
 

@@ -1,9 +1,6 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 
-import {
-  InteractivePriceChart,
-  type ChartDataPoint,
-} from '../index';
+import { InteractivePriceChart, type ChartDataPoint } from '../index';
 
 jest.mock('@/i18n', () => ({
   useTranslations: () => (key: string) => key,
@@ -67,9 +64,7 @@ describe('InteractivePriceChart', () => {
 
     it('应该渲染指定高度', () => {
       const data = createMockData();
-      const { container } = render(
-        <InteractivePriceChart data={data} symbol="BTC" height={400} />
-      );
+      const { container } = render(<InteractivePriceChart data={data} symbol="BTC" height={400} />);
 
       const chartContainer = container.querySelector('.recharts-responsive-container');
       expect(chartContainer).toBeInTheDocument();
@@ -129,13 +124,7 @@ describe('InteractivePriceChart', () => {
         price: d.price + 5,
       }));
 
-      render(
-        <InteractivePriceChart
-          data={data}
-          symbol="BTC"
-          comparisonData={comparisonData}
-        />
-      );
+      render(<InteractivePriceChart data={data} symbol="BTC" comparisonData={comparisonData} />);
 
       expect(screen.getByText('legend.comparison')).toBeInTheDocument();
     });

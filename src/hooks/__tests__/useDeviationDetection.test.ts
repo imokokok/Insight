@@ -60,17 +60,13 @@ describe('useDeviationDetection', () => {
 
   describe('custom thresholds', () => {
     it('should use custom warning threshold', () => {
-      const { result } = renderHook(() =>
-        useDeviationDetection(3, { warning: 5, danger: 10 })
-      );
+      const { result } = renderHook(() => useDeviationDetection(3, { warning: 5, danger: 10 }));
 
       expect(result.current.level).toBe('none');
     });
 
     it('should use custom danger threshold', () => {
-      const { result } = renderHook(() =>
-        useDeviationDetection(8, { warning: 5, danger: 10 })
-      );
+      const { result } = renderHook(() => useDeviationDetection(8, { warning: 5, danger: 10 }));
 
       expect(result.current.level).toBe('warning');
     });
@@ -131,17 +127,13 @@ describe('useDeviationDetection', () => {
 
   describe('value type', () => {
     it('should handle percentage type', () => {
-      const { result } = renderHook(() =>
-        useDeviationDetection(1.5, {}, 'percentage')
-      );
+      const { result } = renderHook(() => useDeviationDetection(1.5, {}, 'percentage'));
 
       expect(result.current.level).toBe('warning');
     });
 
     it('should handle absolute type', () => {
-      const { result } = renderHook(() =>
-        useDeviationDetection(1.5, {}, 'absolute')
-      );
+      const { result } = renderHook(() => useDeviationDetection(1.5, {}, 'absolute'));
 
       expect(result.current.level).toBe('warning');
     });
@@ -179,10 +171,9 @@ describe('useDeviationDetection', () => {
     });
 
     it('should update when value changes', () => {
-      const { result, rerender } = renderHook(
-        ({ value }) => useDeviationDetection(value),
-        { initialProps: { value: 0.5 } }
-      );
+      const { result, rerender } = renderHook(({ value }) => useDeviationDetection(value), {
+        initialProps: { value: 0.5 },
+      });
 
       expect(result.current.level).toBe('none');
 
@@ -221,9 +212,7 @@ describe('useBatchDeviationDetection', () => {
 
   describe('multiple values', () => {
     it('should process multiple values', () => {
-      const { result } = renderHook(() =>
-        useBatchDeviationDetection([0.5, 1.5, 2.5])
-      );
+      const { result } = renderHook(() => useBatchDeviationDetection([0.5, 1.5, 2.5]));
 
       expect(result.current.results).toHaveLength(3);
       expect(result.current.results[0].level).toBe('none');
@@ -232,18 +221,14 @@ describe('useBatchDeviationDetection', () => {
     });
 
     it('should detect warning in batch', () => {
-      const { result } = renderHook(() =>
-        useBatchDeviationDetection([0.5, 1.5])
-      );
+      const { result } = renderHook(() => useBatchDeviationDetection([0.5, 1.5]));
 
       expect(result.current.hasWarning).toBe(true);
       expect(result.current.hasDanger).toBe(false);
     });
 
     it('should detect danger in batch', () => {
-      const { result } = renderHook(() =>
-        useBatchDeviationDetection([0.5, 2.5])
-      );
+      const { result } = renderHook(() => useBatchDeviationDetection([0.5, 2.5]));
 
       expect(result.current.hasWarning).toBe(false);
       expect(result.current.hasDanger).toBe(true);
@@ -252,25 +237,19 @@ describe('useBatchDeviationDetection', () => {
 
   describe('max deviation', () => {
     it('should calculate max deviation', () => {
-      const { result } = renderHook(() =>
-        useBatchDeviationDetection([1, 3, -5, 2])
-      );
+      const { result } = renderHook(() => useBatchDeviationDetection([1, 3, -5, 2]));
 
       expect(result.current.maxDeviation).toBe(5);
     });
 
     it('should determine max level', () => {
-      const { result } = renderHook(() =>
-        useBatchDeviationDetection([0.5, 1.5, 2.5])
-      );
+      const { result } = renderHook(() => useBatchDeviationDetection([0.5, 1.5, 2.5]));
 
       expect(result.current.maxLevel).toBe('danger');
     });
 
     it('should prioritize danger over warning', () => {
-      const { result } = renderHook(() =>
-        useBatchDeviationDetection([1.5, 2.5])
-      );
+      const { result } = renderHook(() => useBatchDeviationDetection([1.5, 2.5]));
 
       expect(result.current.maxLevel).toBe('danger');
     });
@@ -289,9 +268,7 @@ describe('useBatchDeviationDetection', () => {
 
   describe('negative values', () => {
     it('should handle negative values in batch', () => {
-      const { result } = renderHook(() =>
-        useBatchDeviationDetection([-1.5, -2.5])
-      );
+      const { result } = renderHook(() => useBatchDeviationDetection([-1.5, -2.5]));
 
       expect(result.current.hasWarning).toBe(true);
       expect(result.current.hasDanger).toBe(true);
@@ -300,9 +277,7 @@ describe('useBatchDeviationDetection', () => {
 
   describe('memoization', () => {
     it('should return stable result for same inputs', () => {
-      const { result, rerender } = renderHook(() =>
-        useBatchDeviationDetection([1, 2, 3])
-      );
+      const { result, rerender } = renderHook(() => useBatchDeviationDetection([1, 2, 3]));
 
       const firstResult = result.current;
 
@@ -314,10 +289,9 @@ describe('useBatchDeviationDetection', () => {
     });
 
     it('should update when values change', () => {
-      const { result, rerender } = renderHook(
-        ({ values }) => useBatchDeviationDetection(values),
-        { initialProps: { values: [0.5, 1] } }
-      );
+      const { result, rerender } = renderHook(({ values }) => useBatchDeviationDetection(values), {
+        initialProps: { values: [0.5, 1] },
+      });
 
       expect(result.current.hasWarning).toBe(false);
 

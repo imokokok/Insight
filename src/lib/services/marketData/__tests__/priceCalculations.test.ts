@@ -104,19 +104,21 @@ const createMockTrendData = () => [
   },
 ];
 
-const createMockExportConfig = (overrides?: Partial<{
-  name: string;
-  format: 'csv' | 'json' | 'excel';
-  timeRange: string;
-  dataTypes: string[];
-  includeMetadata: boolean;
-  fileName: string;
-  fieldGroups: Array<{
-    key: string;
-    label: string;
-    fields: Array<{ key: string; label: string; selected: boolean; dataType: string }>;
-  }>;
-}>) => ({
+const createMockExportConfig = (
+  overrides?: Partial<{
+    name: string;
+    format: 'csv' | 'json' | 'excel';
+    timeRange: string;
+    dataTypes: string[];
+    includeMetadata: boolean;
+    fileName: string;
+    fieldGroups: Array<{
+      key: string;
+      label: string;
+      fields: Array<{ key: string; label: string; selected: boolean; dataType: string }>;
+    }>;
+  }>
+) => ({
   name: 'Test Export',
   format: 'json' as const,
   timeRange: '24h',
@@ -369,9 +371,7 @@ describe('priceCalculations', () => {
           {
             key: 'riskMetrics',
             label: 'Risk Metrics',
-            fields: [
-              { key: 'hhi.value', label: 'HHI', selected: true, dataType: 'number' },
-            ],
+            fields: [{ key: 'hhi.value', label: 'HHI', selected: true, dataType: 'number' }],
           },
         ],
       });

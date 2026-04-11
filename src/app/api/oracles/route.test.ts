@@ -24,7 +24,10 @@ jest.mock('@/lib/utils/logger', () => ({
   })),
 }));
 
-function createMockRequest(url: string, options?: { method?: string; body?: unknown }): NextRequest {
+function createMockRequest(
+  url: string,
+  options?: { method?: string; body?: unknown }
+): NextRequest {
   const urlObj = new URL(url);
   const request = {
     url,
@@ -107,9 +110,7 @@ describe('/api/oracles', () => {
     });
 
     it('should return validation error for missing parameters', async () => {
-      const request = createMockRequest(
-        'http://localhost:3000/api/oracles?provider=chainlink'
-      );
+      const request = createMockRequest('http://localhost:3000/api/oracles?provider=chainlink');
 
       const response = await GET(request);
 

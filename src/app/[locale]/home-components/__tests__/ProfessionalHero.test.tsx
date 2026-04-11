@@ -23,7 +23,10 @@ jest.mock('next/navigation', () => ({
 
 jest.mock('../HeroBackground', () => ({
   __esModule: true,
-  default: ({ enableParticles, enableDataFlow }: {
+  default: ({
+    enableParticles,
+    enableDataFlow,
+  }: {
     enableParticles: boolean;
     enableDataFlow: boolean;
   }) => (
@@ -42,7 +45,10 @@ jest.mock('../HeroContent', () => ({
 
 jest.mock('../PopularTokens', () => ({
   __esModule: true,
-  default: ({ tokens, onTokenClick }: {
+  default: ({
+    tokens,
+    onTokenClick,
+  }: {
     tokens: string[];
     onTokenClick: (token: string) => void;
   }) => (
@@ -58,7 +64,11 @@ jest.mock('../PopularTokens', () => ({
 
 jest.mock('../SearchInput', () => ({
   __esModule: true,
-  default: ({ searchQuery, onSearchQueryChange, onSearch }: {
+  default: ({
+    searchQuery,
+    onSearchQueryChange,
+    onSearch,
+  }: {
     searchQuery: string;
     onSearchQueryChange: (query: string) => void;
     onSearch: (item: string) => void;

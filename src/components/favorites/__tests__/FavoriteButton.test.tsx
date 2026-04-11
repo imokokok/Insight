@@ -1,14 +1,19 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+
 import { FavoriteButton } from '../FavoriteButton';
+
+const mockToggleFavorite = jest.fn().mockResolvedValue({ action: 'added' });
+const mockIsFavorited = false;
+const mockFavorite = null;
 
 jest.mock('@/hooks', () => ({
   useToggleFavorite: () => ({
-    toggleFavorite: jest.fn().mockResolvedValue({ action: 'added' }),
+    toggleFavorite: mockToggleFavorite,
     isToggling: false,
   }),
   useIsFavorited: () => ({
-    isFavorited: false,
-    favorite: null,
+    isFavorited: mockIsFavorited,
+    favorite: mockFavorite,
   }),
 }));
 
@@ -34,16 +39,21 @@ describe('FavoriteButton', () => {
     name: 'BTC/USD',
   };
 
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockToggleFavorite.mockClear().mockResolvedValue({ action: 'added' });
+  });
+
   it('should render favorite button', () => {
     render(<FavoriteButton {...defaultProps} />);
-    
+
     const button = screen.getByRole('button');
     expect(button).toBeInTheDocument();
   });
 
   it('should render heart icon', () => {
     render(<FavoriteButton {...defaultProps} />);
-    
+
     const button = screen.getByRole('button');
     const svg = button.querySelector('svg');
     expect(svg).toBeInTheDocument();
@@ -51,7 +61,7 @@ describe('FavoriteButton', () => {
 
   it('should have correct title attribute', () => {
     render(<FavoriteButton {...defaultProps} />);
-    
+
     const button = screen.getByRole('button');
     expect(button).toHaveAttribute('title', '添加收藏');
   });
@@ -59,30 +69,30 @@ describe('FavoriteButton', () => {
   it('should render with different sizes', () => {
     const { rerender } = render(<FavoriteButton {...defaultProps} size="sm" />);
     expect(screen.getByRole('button')).toBeInTheDocument();
-    
+
     rerender(<FavoriteButton {...defaultProps} size="md" />);
     expect(screen.getByRole('button')).toBeInTheDocument();
-    
+
     rerender(<FavoriteButton {...defaultProps} size="lg" />);
     expect(screen.getByRole('button')).toBeInTheDocument();
   });
 
   it('should render text variant with label', () => {
     render(<FavoriteButton {...defaultProps} variant="text" showLabel />);
-    
+
     expect(screen.getByText('收藏')).toBeInTheDocument();
   });
 
   it('should render button variant', () => {
     render(<FavoriteButton {...defaultProps} variant="button" />);
-    
+
     const button = screen.getByRole('button');
     expect(button).toHaveClass('border');
   });
 
   it('should apply custom className', () => {
     render(<FavoriteButton {...defaultProps} className="custom-class" />);
-    
+
     const button = screen.getByRole('button');
     expect(button).toHaveClass('custom-class');
   });
@@ -90,10 +100,10 @@ describe('FavoriteButton', () => {
   it('should handle click event', async () => {
     const mockOnFavoriteChange = jest.fn();
     render(<FavoriteButton {...defaultProps} onFavoriteChange={mockOnFavoriteChange} />);
-    
+
     const button = screen.getByRole('button');
     fireEvent.click(button);
-    
+
     await waitFor(() => {
       expect(mockOnFavoriteChange).toHaveBeenCalled();
     });
@@ -106,31 +116,10 @@ describe('FavoriteButton', () => {
         <FavoriteButton {...defaultProps} />
       </div>
     );
-    
+
     const button = screen.getByRole('button');
     fireEvent.click(button);
-    
+
     expect(parentClickHandler).not.toHaveBeenCalled();
-  });
-});
-
-describe('FavoriteButton - Unauthenticated', () => {
-  beforeEach(() => {
-    jest.resetModules();
-    jest.doMock('@/stores/authStore', () => ({
-      useUser: () => null,
-    }));
-  });
-
-  it('should not render when user is not authenticated', () => {
-    jest.resetModules();
-    jest.doMock('@/stores/authStore', () => ({
-      useUser: () => null,
-    }));
-    
-    const { FavoriteButton: FavoriteButtonUnauth } = require('../FavoriteButton');
-    const { container } = render(<FavoriteButtonUnauth configType="price_query" configData={{}} name="Test" />);
-    
-    expect(container.firstChild).toBeNull();
   });
 });

@@ -157,18 +157,14 @@ describe('useAlertWebSocket', () => {
   });
 
   it('should initialize with empty alerts array', () => {
-    const { result } = renderHook(() =>
-      useAlertWebSocket({ autoConnect: false })
-    );
+    const { result } = renderHook(() => useAlertWebSocket({ autoConnect: false }));
 
     expect(result.current.alerts).toEqual([]);
     expect(result.current.unreadCount).toBe(0);
   });
 
   it('should provide markAsRead method', () => {
-    const { result } = renderHook(() =>
-      useAlertWebSocket({ autoConnect: false })
-    );
+    const { result } = renderHook(() => useAlertWebSocket({ autoConnect: false }));
 
     expect(typeof result.current.markAsRead).toBe('function');
 
@@ -180,9 +176,7 @@ describe('useAlertWebSocket', () => {
   });
 
   it('should provide clearAlerts method', () => {
-    const { result } = renderHook(() =>
-      useAlertWebSocket({ autoConnect: false })
-    );
+    const { result } = renderHook(() => useAlertWebSocket({ autoConnect: false }));
 
     expect(typeof result.current.clearAlerts).toBe('function');
 
@@ -195,9 +189,7 @@ describe('useAlertWebSocket', () => {
   });
 
   it('should inherit base WebSocket properties', () => {
-    const { result } = renderHook(() =>
-      useAlertWebSocket({ autoConnect: false })
-    );
+    const { result } = renderHook(() => useAlertWebSocket({ autoConnect: false }));
 
     expect(result.current.status).toBeDefined();
     expect(result.current.connect).toBeDefined();
@@ -211,17 +203,13 @@ describe('useNetworkStatsWebSocket', () => {
   });
 
   it('should initialize with null stats', () => {
-    const { result } = renderHook(() =>
-      useNetworkStatsWebSocket({ autoConnect: false })
-    );
+    const { result } = renderHook(() => useNetworkStatsWebSocket({ autoConnect: false }));
 
     expect(result.current.networkStats).toBeNull();
   });
 
   it('should inherit base WebSocket properties', () => {
-    const { result } = renderHook(() =>
-      useNetworkStatsWebSocket({ autoConnect: false })
-    );
+    const { result } = renderHook(() => useNetworkStatsWebSocket({ autoConnect: false }));
 
     expect(result.current.status).toBeDefined();
     expect(result.current.connect).toBeDefined();

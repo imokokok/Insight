@@ -1,4 +1,5 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+
 import { UnifiedExport } from '../UnifiedExport';
 
 jest.mock('framer-motion', () => ({
@@ -64,39 +65,39 @@ describe('UnifiedExport', () => {
 
   it('should render export button', () => {
     render(<UnifiedExport {...mockProps} />);
-    
+
     expect(screen.getByRole('button', { name: /export/i })).toBeInTheDocument();
   });
 
   it('should open dropdown when clicked', () => {
     render(<UnifiedExport {...mockProps} />);
-    
+
     const exportButton = screen.getByRole('button', { name: /export/i });
     fireEvent.click(exportButton);
-    
+
     expect(screen.getByText('CSV')).toBeInTheDocument();
     expect(screen.getByText('JSON')).toBeInTheDocument();
   });
 
   it('should be disabled when disabled prop is true', () => {
     render(<UnifiedExport {...mockProps} disabled={true} />);
-    
+
     const exportButton = screen.getByRole('button', { name: /export/i });
     expect(exportButton).toBeDisabled();
   });
 
   it('should apply custom className', () => {
     const { container } = render(<UnifiedExport {...mockProps} className="custom-class" />);
-    
+
     expect(container.firstChild).toHaveClass('custom-class');
   });
 
   it('should render format options', () => {
     render(<UnifiedExport {...mockProps} />);
-    
+
     const exportButton = screen.getByRole('button', { name: /export/i });
     fireEvent.click(exportButton);
-    
+
     expect(screen.getByText('CSV')).toBeInTheDocument();
     expect(screen.getByText('JSON')).toBeInTheDocument();
     expect(screen.getByText('Excel')).toBeInTheDocument();
@@ -106,23 +107,23 @@ describe('UnifiedExport', () => {
   it('should call onExportStart when export starts', async () => {
     const onExportStart = jest.fn();
     render(<UnifiedExport {...mockProps} onExportStart={onExportStart} />);
-    
+
     const exportButton = screen.getByRole('button', { name: /export/i });
     fireEvent.click(exportButton);
-    
+
     const csvOption = screen.getByText('CSV');
     fireEvent.click(csvOption);
   });
 
   it('should show history panel when history button is clicked', () => {
     render(<UnifiedExport {...mockProps} />);
-    
+
     const exportButton = screen.getByRole('button', { name: /export/i });
     fireEvent.click(exportButton);
-    
+
     const historyButton = screen.getByRole('button', { name: /history/i });
     fireEvent.click(historyButton);
-    
+
     expect(screen.getByTestId('export-history-panel')).toBeInTheDocument();
   });
 });

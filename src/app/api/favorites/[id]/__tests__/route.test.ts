@@ -1,8 +1,8 @@
 import { type NextRequest } from 'next/server';
 
-import { GET, PUT, DELETE } from '../route';
-
 import type { UserFavorite } from '@/lib/supabase/queries';
+
+import { GET, PUT, DELETE } from '../route';
 
 const mockGetUserId = jest.fn();
 const mockGetServerQueries = jest.fn();

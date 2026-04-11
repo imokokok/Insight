@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react';
+import { renderHook } from '@testing-library/react';
 
 import {
   useKeyboardShortcuts,
@@ -18,9 +18,7 @@ describe('useKeyboardShortcuts', () => {
 
   it('should register shortcuts on mount', () => {
     const handler = jest.fn();
-    const shortcuts: KeyboardShortcut[] = [
-      { key: 'a', handler, description: 'Test shortcut' },
-    ];
+    const shortcuts: KeyboardShortcut[] = [{ key: 'a', handler, description: 'Test shortcut' }];
 
     renderHook(() => useKeyboardShortcuts(shortcuts));
 
@@ -30,9 +28,7 @@ describe('useKeyboardShortcuts', () => {
 
   it('should unregister shortcuts on unmount', () => {
     const handler = jest.fn();
-    const shortcuts: KeyboardShortcut[] = [
-      { key: 'b', handler, description: 'Test shortcut' },
-    ];
+    const shortcuts: KeyboardShortcut[] = [{ key: 'b', handler, description: 'Test shortcut' }];
 
     const { unmount } = renderHook(() => useKeyboardShortcuts(shortcuts));
 
@@ -103,9 +99,7 @@ describe('useKeyboardShortcuts', () => {
 
   it('should prevent default when configured', () => {
     const handler = jest.fn();
-    const shortcuts: KeyboardShortcut[] = [
-      { key: 'r', handler, preventDefault: true },
-    ];
+    const shortcuts: KeyboardShortcut[] = [{ key: 'r', handler, preventDefault: true }];
 
     renderHook(() => useKeyboardShortcuts(shortcuts));
 
