@@ -1,0 +1,90 @@
+{
+  "methodology": {
+    "title": "Data Methodology",
+    "subtitle": "Understanding our data collection and processing methods",
+    "overview": {
+      "title": "Overview",
+      "description": "Our platform aggregates price data from multiple oracle networks to provide comprehensive and reliable price information for cryptocurrency markets."
+    },
+    "dataSources": {
+      "title": "Data Sources",
+      "description": "We collect real-time price data from the following oracle networks:",
+      "sources": {
+        "chainlink": "Chainlink - Decentralized oracle network providing tamper-proof data",
+        "pyth": "Pyth Network - High-frequency financial data from first-party sources",
+        "api3": "API3 - First-party oracle solutions with data provider signatures",
+        "chronicle": "Chronicle - Oracle protocol by MakerDAO",
+        "dia": "DIA - Open-source oracle platform",
+        "redstone": "RedStone - Data ecosystem for DeFi",
+        "tellor": "Tellor - Decentralized oracle for any data"
+      }
+    },
+    "priceCalculation": {
+      "title": "Price Calculation Methodology",
+      "description": "Our price calculation follows these principles:",
+      "principles": {
+        "realTime": {
+          "title": "Real-time Updates",
+          "description": "Prices are updated in real-time as new data becomes available from oracle networks"
+        },
+        "aggregation": {
+          "title": "Price Aggregation",
+          "description": "When multiple sources provide prices for the same asset, we calculate a weighted average based on source reliability and liquidity"
+        },
+        "outlierDetection": {
+          "title": "Outlier Detection",
+          "description": "We implement statistical methods to detect and filter out anomalous price data"
+        },
+        "timestamp": {
+          "title": "Timestamp Verification",
+          "description": "All price data includes timestamps to ensure data freshness and relevance"
+        }
+      }
+    },
+    "dataQuality": {
+      "title": "Data Quality Standards",
+      "description": "We maintain high data quality through:",
+      "standards": {
+        "freshness": {
+          "title": "Data Freshness",
+          "description": "We monitor and display the age of price data to ensure relevance"
+        },
+        "consistency": {
+          "title": "Cross-source Consistency",
+          "description": "We compare prices across multiple sources to identify discrepancies"
+        },
+        "reliability": {
+          "title": "Source Reliability",
+          "description": "Each oracle source is evaluated based on historical accuracy and uptime"
+        },
+        "transparency": {
+          "title": "Transparency",
+          "description": "All data sources and calculation methods are openly documented"
+        }
+      }
+    },
+    "updateFrequency": {
+      "title": "Update Frequency",
+      "description": "Price data is updated at different intervals depending on the oracle network:",
+      "intervals": {
+        "realTime": "Real-time updates (sub-second latency)",
+        "frequent": "Frequent updates (every few seconds)",
+        "periodic": "Periodic updates (every minute or longer)"
+      }
+    },
+    "limitations": {
+      "title": "Limitations and Disclaimers",
+      "description": "Please be aware of the following limitations:",
+      "items": {
+        "latency": "Price data may have slight latency due to network conditions",
+        "accuracy": "While we strive for accuracy, prices may differ from other sources",
+        "availability": "Data availability depends on oracle network uptime",
+        "notFinancialAdvice": "Price data is for informational purposes only and should not be considered financial advice"
+      }
+    },
+    "methodologyUpdates": {
+      "title": "Methodology Updates",
+      "description": "We continuously improve our data methodology. Major updates are documented and communicated to users."
+    }
+  }
+}
