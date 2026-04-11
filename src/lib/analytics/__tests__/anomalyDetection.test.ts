@@ -1020,4 +1020,72 @@ describe('anomalyDetection', () => {
       expect(anomaly.level).toBe('high');
     });
   });
+
+  describe('Error Handling Coverage', () => {
+    const createTimestamps = (count: number): number[] => {
+      const now = Date.now();
+      return Array.from({ length: count }, (_, i) => now + i * 60000);
+    };
+
+    describe('detectPriceAnomalies error handling', () => {
+      it('should return empty array for insufficient data', () => {
+        const prices = [100, 101, 102, 103, 104];
+        const timestamps = createTimestamps(5);
+        const result = detectPriceAnomalies(prices, timestamps, 'BTC');
+        expect(result).toEqual([]);
+      });
+    });
+
+    describe('detectTrendBreak error handling', () => {
+      it('should return default result for insufficient data', () => {
+        const data = [100, 101, 102, 103, 104, 105, 106, 107, 108, 109];
+        const timestamps = createTimestamps(10);
+        const result = detectTrendBreak(data, timestamps, 2);
+        expect(result.trend.direction).toBe('flat');
+        expect(result.trend.strength).toBe(0);
+        expect(result.trend.confidence).toBe(0);
+        expect(result.anomalies).toEqual([]);
+      });
+    });
+
+    describe('detectVolatilityAnomalies error handling', () => {
+      it('should return empty array for insufficient data', () => {
+        const prices = [100, 101, 102, 103, 104];
+        const timestamps = createTimestamps(5);
+        const result = detectVolatilityAnomalies(prices, timestamps, 20);
+        expect(result).toEqual([]);
+      });
+    });
+
+    describe('detectVolumeAnomalies error handling', () => {
+      it('should return empty array for insufficient data', () => {
+        const volumes = [1000, 1000, 1000, 1000, 1000];
+        const timestamps = createTimestamps(5);
+        const result = detectVolumeAnomalies(volumes, timestamps);
+        expect(result).toEqual([]);
+      });
+    });
+
+    describe('detectAllAnomalies error handling', () => {
+      it('should return empty array for insufficient data', () => {
+        const prices = [100, 101, 102];
+        const timestamps = createTimestamps(3);
+        const result = detectAllAnomalies({
+          prices,
+          timestamps,
+          asset: 'BTC',
+        });
+        expect(result).toEqual([]);
+      });
+
+      it('should handle empty arrays gracefully', () => {
+        const result = detectAllAnomalies({
+          prices: [],
+          timestamps: [],
+          asset: 'BTC',
+        });
+        expect(result).toEqual([]);
+      });
+    });
+  });
 });

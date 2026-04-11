@@ -57,7 +57,7 @@ export function useHoverPrefetch<T = unknown>(options: HoverPrefetchOptions = {}
         const startTime = performance.now();
 
         try {
-          await queryClient.prefetchQuery({
+          await queryClient.fetchQuery({
             queryKey: config.queryKey,
             queryFn: config.queryFn,
             staleTime: config.staleTime,

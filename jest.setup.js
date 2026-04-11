@@ -50,6 +50,27 @@ if (typeof global.Response === 'undefined') {
 }
 
 // Mock NextRequest/NextResponse
+class MockNextResponse {
+  constructor(body, init) {
+    this.body = body;
+    this.status = init?.status || 200;
+    this.ok = this.status >= 200 && this.status < 300;
+    this.headers = new Map(Object.entries(init?.headers || {}));
+  }
+
+  json() {
+    return Promise.resolve(typeof this.body === 'string' ? JSON.parse(this.body) : this.body);
+  }
+
+  text() {
+    return Promise.resolve(typeof this.body === 'string' ? this.body : JSON.stringify(this.body));
+  }
+}
+
+MockNextResponse.json = (body, init) => new MockNextResponse(JSON.stringify(body), init);
+MockNextResponse.redirect = (url) => new MockNextResponse(null, { status: 302, headers: { Location: url } });
+MockNextResponse.next = () => new MockNextResponse(null, { status: 200 });
+
 jest.mock('next/server', () => ({
   NextRequest: class NextRequest extends MockRequest {
     constructor(input, init) {
@@ -57,11 +78,7 @@ jest.mock('next/server', () => ({
       this.nextUrl = new URL(typeof input === 'string' ? input : input.url);
     }
   },
-  NextResponse: {
-    json: (body, init) => new MockResponse(JSON.stringify(body), init),
-    redirect: (url) => new MockResponse(null, { status: 302, headers: { Location: url } }),
-    next: () => new MockResponse(null, { status: 200 }),
-  },
+  NextResponse: MockNextResponse,
 }));
 
 // Mock @vercel/analytics

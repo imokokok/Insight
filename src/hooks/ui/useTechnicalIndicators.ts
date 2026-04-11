@@ -434,6 +434,36 @@ export function useBatchTechnicalIndicators(options: BatchIndicatorOptions = {})
     [chunkSize, onProgress]
   );
 
+  const calculateBatchIndicators = useCallback(
+    <T extends Record<string, IndicatorDataPoint[]>>(
+      dataSets: T,
+      settings?: IndicatorSettings
+    ): { [K in keyof T]: IndicatorDataPoint[] } => {
+      const defaultSettings: IndicatorSettings = {
+        showMA7: true,
+        showMA14: false,
+        showMA30: false,
+        showMA60: false,
+        showMA20: false,
+        showBollingerBands: false,
+        showRSI: false,
+        showMACD: false,
+        showVolume: true,
+        bollingerBands: { period: 20, multiplier: 2 },
+        rsi: { period: 14, overbought: 70, oversold: 30 },
+        macd: { fastPeriod: 12, slowPeriod: 26, signalPeriod: 9 },
+        ...settings,
+      };
+
+      const result = {} as { [K in keyof T]: IndicatorDataPoint[] };
+      for (const key in dataSets) {
+        result[key] = calculateAllIndicators(dataSets[key], defaultSettings);
+      }
+      return result;
+    },
+    []
+  );
+
   const abort = useCallback(() => {
     abortControllerRef.current?.abort();
     setIsCalculating(false);
@@ -445,7 +475,7 @@ export function useBatchTechnicalIndicators(options: BatchIndicatorOptions = {})
     };
   }, [abort]);
 
-  return { calculateBatch, isCalculating, progress, abort };
+  return { calculateBatch, calculateBatchIndicators, isCalculating, progress, abort };
 }
 
 export default useTechnicalIndicators;

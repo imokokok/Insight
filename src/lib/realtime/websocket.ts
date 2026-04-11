@@ -261,6 +261,7 @@ export default class WebSocketManager {
 
       this.ws.onclose = () => {
         logger.warn('WebSocket closed');
+        this.ws = null;
         this.setStatus('disconnected');
         this.stopHeartbeat();
         this.flushAllBatches();
@@ -516,7 +517,6 @@ export class MockWebSocketManager extends WebSocketManager {
   connect(): void {
     this.setStatus('connecting');
 
-    // 模拟连接延迟
     setTimeout(() => {
       this.setStatus('connected');
       this.startMockDataStream();
@@ -587,7 +587,7 @@ export class MockWebSocketManager extends WebSocketManager {
           this.addToBatch(mockMessage);
         }
       });
-    }, 60000);
+    }, 2000);
   }
 
   private stopMockDataStream(): void {

@@ -150,7 +150,7 @@ export function validateTimestamp(timestamp: number, maxAge?: number): Validatio
     result.warnings.push(`数据已过期，距今 ${ageMinutes} 分钟`);
     result.anomalies.push({
       type: 'stale_data',
-      severity: age > maxAgeMs * 3 ? 'high' : age > maxAgeMs * 2 ? 'medium' : 'low',
+      severity: age >= maxAgeMs * 3 ? 'high' : age >= maxAgeMs * 2 ? 'medium' : 'low',
       message: `数据距今已 ${ageMinutes} 分钟，超过最大有效期 ${Math.floor(maxAgeMs / 60000)} 分钟`,
     });
   }

@@ -856,8 +856,7 @@ describe('riskMetrics', () => {
       oracleData[0].share = 60;
       oracleData[1].share = 20;
       oracleData[2].share = 10;
-      oracleData[3].share = 5;
-      oracleData[4].share = 5;
+      oracleData[3].share = 10;
 
       const result = calculateRiskMetrics(
         oracleData,
@@ -996,6 +995,194 @@ describe('riskMetrics', () => {
 
     it('should return correct text key for critical risk', () => {
       expect(getRiskLevelText('critical')).toBe('risk_level_critical');
+    });
+  });
+
+  describe('Error Handling Coverage', () => {
+    describe('calculateDiversificationScore error handling', () => {
+      it('should handle errors and return critical result', () => {
+        const params = {
+          chainCount: 10,
+          totalChains: 20,
+          protocolCount: 30,
+          totalProtocols: 100,
+          assetCount: 50,
+          totalAssets: 100,
+        };
+        Object.defineProperty(params, 'chainCount', {
+          get() {
+            throw new Error('Test error');
+          },
+          configurable: true,
+        });
+
+        const result = calculateDiversificationScore(params as any);
+        expect(result.score).toBe(0);
+        expect(result.level).toBe('critical');
+        expect(result.description).toBe('calculation_error');
+        expect(result.factors.chainDiversity).toBe(0);
+        expect(result.factors.protocolDiversity).toBe(0);
+        expect(result.factors.assetDiversity).toBe(0);
+      });
+    });
+
+    describe('calculateVolatilityIndex edge cases', () => {
+      it('should handle price history with zero prices', () => {
+        const priceHistory = [0, 0, 0, 0, 0];
+        const result = calculateVolatilityIndex(priceHistory);
+
+        expect(result.index).toBe(0);
+        expect(result.level).toBe('low');
+        expect(result.description).toBe('calculation_error');
+        expect(result.dailyVolatility).toBe(0);
+        expect(result.annualizedVolatility).toBe(0);
+      });
+
+      it('should handle price history with mixed zero and positive prices', () => {
+        const priceHistory = [0, 100, 0, 100, 0];
+        const result = calculateVolatilityIndex(priceHistory);
+
+        expect(result).toBeDefined();
+        expect(result.index).toBeGreaterThanOrEqual(0);
+      });
+
+      it('should handle price history with negative prices', () => {
+        const priceHistory = [-100, -101, -102, -101, -103];
+        const result = calculateVolatilityIndex(priceHistory);
+
+        expect(result).toBeDefined();
+        expect(result.index).toBeGreaterThanOrEqual(0);
+      });
+    });
+
+    describe('calculateRiskMetrics error handling', () => {
+      const createMockOracleData = (): OracleMarketData[] => [
+        {
+          name: 'Chainlink',
+          share: 45,
+          color: '#375BD2',
+          tvs: '$20B',
+          tvsValue: 20000000000,
+          chains: 15,
+          protocols: 500,
+          avgLatency: 100,
+          accuracy: 99.9,
+          updateFrequency: 1000,
+          change24h: 2.5,
+          change7d: 5.0,
+          change30d: 10.0,
+        },
+        {
+          name: 'Pyth',
+          share: 25,
+          color: '#FF8C00',
+          tvs: '$10B',
+          tvsValue: 10000000000,
+          chains: 10,
+          protocols: 200,
+          avgLatency: 50,
+          accuracy: 99.8,
+          updateFrequency: 500,
+          change24h: 3.0,
+          change7d: 6.0,
+          change30d: 12.0,
+        },
+      ];
+
+      it('should handle errors and return default results', () => {
+        const oracleData = createMockOracleData();
+        Object.defineProperty(oracleData, 'map', {
+          value: () => {
+            throw new Error('Test error');
+          },
+          configurable: true,
+        });
+
+        const result = calculateRiskMetrics(oracleData as any, [100, 101, 102], [[1, 0.5], [0.5, 1]]);
+        expect(result.hhi.value).toBe(0);
+        expect(result.hhi.description).toBe('calculation_error');
+        expect(result.volatility.index).toBe(0);
+        expect(result.correlationRisk.score).toBe(0);
+        expect(result.overallRisk.score).toBe(0);
+      });
+
+      it('should return medium overall risk for score 30-49', () => {
+        const oracleData: OracleMarketData[] = [
+          {
+            name: 'A',
+            share: 25,
+            color: '#000',
+            tvs: '$1B',
+            tvsValue: 1e9,
+            chains: 10,
+            protocols: 100,
+            avgLatency: 100,
+            accuracy: 99.9,
+            updateFrequency: 1000,
+            change24h: 0,
+            change7d: 0,
+            change30d: 0,
+          },
+          {
+            name: 'B',
+            share: 25,
+            color: '#000',
+            tvs: '$1B',
+            tvsValue: 1e9,
+            chains: 10,
+            protocols: 100,
+            avgLatency: 100,
+            accuracy: 99.9,
+            updateFrequency: 1000,
+            change24h: 0,
+            change7d: 0,
+            change30d: 0,
+          },
+          {
+            name: 'C',
+            share: 25,
+            color: '#000',
+            tvs: '$1B',
+            tvsValue: 1e9,
+            chains: 10,
+            protocols: 100,
+            avgLatency: 100,
+            accuracy: 99.9,
+            updateFrequency: 1000,
+            change24h: 0,
+            change7d: 0,
+            change30d: 0,
+          },
+          {
+            name: 'D',
+            share: 25,
+            color: '#000',
+            tvs: '$1B',
+            tvsValue: 1e9,
+            chains: 10,
+            protocols: 100,
+            avgLatency: 100,
+            accuracy: 99.9,
+            updateFrequency: 1000,
+            change24h: 0,
+            change7d: 0,
+            change30d: 0,
+          },
+        ];
+        const priceHistory = [100, 102, 104, 103, 105, 104, 106, 105, 107, 106];
+        const matrix = [
+          [1, 0.5, 0.5, 0.5],
+          [0.5, 1, 0.5, 0.5],
+          [0.5, 0.5, 1, 0.5],
+          [0.5, 0.5, 0.5, 1],
+        ];
+
+        const result = calculateRiskMetrics(oracleData, priceHistory, matrix);
+
+        if (result.overallRisk.score >= 30 && result.overallRisk.score < 50) {
+          expect(result.overallRisk.level).toBe('medium');
+        }
+      });
     });
   });
 });

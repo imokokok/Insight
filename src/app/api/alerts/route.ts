@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
       return validation.response;
     }
 
-    const sanitizedData = sanitizeObject(validation.data!);
+    const sanitizedData = sanitizeObject(validation.data!.body!);
 
     const { name, symbol, chain, condition_type, target_value, provider, is_active } =
       sanitizedData as {

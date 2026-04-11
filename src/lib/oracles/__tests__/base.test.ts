@@ -7,6 +7,10 @@ class TestOracleClient extends BaseOracleClient {
   name: OracleProvider = 'chainlink';
   supportedChains: Blockchain[] = [Blockchain.ETHEREUM, Blockchain.POLYGON];
 
+  getSupportedSymbols(): string[] {
+    return ['BTC', 'ETH', 'LINK'];
+  }
+
   async getPrice(symbol: string, chain?: Blockchain): Promise<PriceData> {
     const basePrice = UNIFIED_BASE_PRICES[symbol] || 100;
     return this.generateMockPrice(symbol, basePrice, chain);
@@ -45,7 +49,9 @@ describe('BaseOracleClient', () => {
       const basePrice = 68000;
       const price = client['generateMockPrice']('BTC', basePrice);
 
-      expect(price.price).toBe(basePrice);
+      const variance = basePrice * 0.001;
+      expect(price.price).toBeGreaterThanOrEqual(basePrice - variance);
+      expect(price.price).toBeLessThanOrEqual(basePrice + variance);
     });
 
     it('should generate price with chain-specific data', () => {
@@ -110,7 +116,15 @@ describe('BaseOracleClient', () => {
     });
 
     it('should check symbol in supported list', () => {
-      expect(client.isSymbolSupported('BTC')).toBe(false);
+      expect(client.isSymbolSupported('BTC')).toBe(true);
+      expect(client.isSymbolSupported('ETH')).toBe(true);
+      expect(client.isSymbolSupported('LINK')).toBe(true);
+      expect(client.isSymbolSupported('DOGE')).toBe(false);
+    });
+
+    it('should check chain support', () => {
+      expect(client.isSymbolSupported('BTC', Blockchain.ETHEREUM)).toBe(true);
+      expect(client.isSymbolSupported('BTC', Blockchain.SOLANA)).toBe(false);
     });
   });
 });

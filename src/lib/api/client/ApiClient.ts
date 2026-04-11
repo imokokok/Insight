@@ -79,12 +79,17 @@ class ApiClient {
       }
 
       if (!response.ok) {
-        const error = await response.json().catch(() => ({ message: 'Unknown error' }));
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch {
+          errorData = { message: 'Unknown error' };
+        }
         throw new ApiError({
-          code: error.code || 'API_ERROR',
-          message: error.message || 'Request failed',
+          code: errorData.code || 'API_ERROR',
+          message: errorData.message || 'Request failed',
           statusCode: response.status,
-          details: error.details,
+          details: errorData.details,
         });
       }
 
@@ -134,5 +139,5 @@ class ApiClient {
 }
 
 export const apiClient = new ApiClient({ defaultTimeout: DEFAULT_TIMEOUT });
-export { ApiClient, DEFAULT_TIMEOUT };
+export { ApiClient, ApiError, DEFAULT_TIMEOUT };
 export type { ApiClientOptions };
