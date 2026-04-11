@@ -1,0 +1,90 @@
+{
+  "methodology": {
+    "title": "数据方法论",
+    "subtitle": "了解我们的数据收集和处理方法",
+    "overview": {
+      "title": "概述",
+      "description": "我们的平台从多个预言机网络聚合价格数据，为加密货币市场提供全面可靠的价格信息。"
+    },
+    "dataSources": {
+      "title": "数据来源",
+      "description": "我们从以下预言机网络收集实时价格数据：",
+      "sources": {
+        "chainlink": "Chainlink - 提供防篡改数据的去中心化预言机网络",
+        "pyth": "Pyth Network - 来自第一方数据源的高频金融数据",
+        "api3": "API3 - 带有数据提供者签名的第一方预言机解决方案",
+        "chronicle": "Chronicle - MakerDAO 的预言机协议",
+        "dia": "DIA - 开源预言机平台",
+        "redstone": "RedStone - DeFi 数据生态系统",
+        "tellor": "Tellor - 适用于任何数据的去中心化预言机"
+      }
+    },
+    "priceCalculation": {
+      "title": "价格计算方法",
+      "description": "我们的价格计算遵循以下原则：",
+      "principles": {
+        "realTime": {
+          "title": "实时更新",
+          "description": "当预言机网络提供新数据时，价格会实时更新"
+        },
+        "aggregation": {
+          "title": "价格聚合",
+          "description": "当多个来源提供同一资产的价格时，我们根据来源可靠性和流动性计算加权平均值"
+        },
+        "outlierDetection": {
+          "title": "异常值检测",
+          "description": "我们实施统计方法来检测和过滤异常价格数据"
+        },
+        "timestamp": {
+          "title": "时间戳验证",
+          "description": "所有价格数据都包含时间戳，以确保数据的新鲜度和相关性"
+        }
+      }
+    },
+    "dataQuality": {
+      "title": "数据质量标准",
+      "description": "我们通过以下方式保持高数据质量：",
+      "standards": {
+        "freshness": {
+          "title": "数据新鲜度",
+          "description": "我们监控并显示价格数据的年龄以确保相关性"
+        },
+        "consistency": {
+          "title": "跨来源一致性",
+          "description": "我们比较多个来源的价格以识别差异"
+        },
+        "reliability": {
+          "title": "来源可靠性",
+          "description": "每个预言机来源根据历史准确性和正常运行时间进行评估"
+        },
+        "transparency": {
+          "title": "透明度",
+          "description": "所有数据来源和计算方法都公开记录"
+        }
+      }
+    },
+    "updateFrequency": {
+      "title": "更新频率",
+      "description": "价格数据根据预言机网络以不同的间隔更新：",
+      "intervals": {
+        "realTime": "实时更新（亚秒级延迟）",
+        "frequent": "频繁更新（每隔几秒）",
+        "periodic": "定期更新（每分钟或更长）"
+      }
+    },
+    "limitations": {
+      "title": "限制和免责声明",
+      "description": "请注意以下限制：",
+      "items": {
+        "latency": "由于网络条件，价格数据可能有轻微延迟",
+        "accuracy": "虽然我们力求准确，但价格可能与其他来源有所不同",
+        "availability": "数据可用性取决于预言机网络的正常运行时间",
+        "notFinancialAdvice": "价格数据仅供参考，不应视为财务建议"
+      }
+    },
+    "methodologyUpdates": {
+      "title": "方法论更新",
+      "description": "我们持续改进数据方法论。重大更新会记录并传达给用户。"
+    }
+  }
+}
