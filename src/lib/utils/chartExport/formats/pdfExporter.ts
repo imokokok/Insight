@@ -3,21 +3,19 @@
  * @description 处理PDF格式的图表导出
  */
 
-import { exportColors } from '@/lib/config/colors';
 import { createLogger } from '@/lib/utils/logger';
 
 import { blobToBase64 } from '../utils/exportHelpers';
 
 import { exportToPNG } from './imageExporter';
 
-import type { PDFExportOptions, ExportProgressCallback, ExportMetadata } from '../types';
+import type { PDFExportOptions, ExportProgressCallback } from '../types';
+import type { jsPDF } from 'jspdf';
 
 const logger = createLogger('pdfExporter');
 
-let jsPDFModule: typeof import('jspdf').jsPDF | null = null;
-let jsPDFAutoTable:
-  | ((doc: import('jspdf').jsPDF, options: Record<string, unknown>) => void)
-  | null = null;
+let jsPDFModule: typeof jsPDF | null = null;
+let jsPDFAutoTable: ((doc: jsPDF, options: Record<string, unknown>) => void) | null = null;
 
 async function getJsPDF() {
   if (!jsPDFModule) {

@@ -1,120 +1,24 @@
 'use client';
 
-/**
- * @fileoverview 查询结果展示组件
- * @description 展示价格查询的结果，包括统计、图表和详情 - 统一大卡片布局
- */
+import { Database, BarChart3, Clock } from 'lucide-react';
 
-import { useState } from 'react';
-
-import Image from 'next/image';
-
-import {
-  TrendingUp,
-  BarChart3,
-  Clock,
-  Database,
-  ArrowUpIcon,
-  ArrowDownIcon,
-  Hash,
-  FileText,
-  Layers,
-  History,
-  Settings,
-  Shield,
-  Globe,
-  Coins,
-  Activity,
-  Store,
-  TrendingDown,
-  Wallet,
-  Zap,
-} from 'lucide-react';
-
-import { ChartSkeleton, EmptyStateEnhanced, SegmentedControl } from '@/components/ui';
 import { useTranslations } from '@/i18n';
-import {
-  type OracleProvider,
-  type Blockchain,
-  OracleProvider as OracleProviderEnum,
-} from '@/lib/oracles';
+import type { OracleProvider, Blockchain } from '@/lib/oracles';
 import type { DIATokenOnChainData } from '@/lib/oracles/diaDataService';
 import type { WINkLinkTokenOnChainData } from '@/lib/oracles/winklinkRealDataService';
 import type { RedStoneTokenOnChainData } from '@/lib/services/oracle/clients/redstone';
 
 import { type QueryResult, type PriceData } from '../constants';
+import { useConsistencyRating } from '../hooks/useConsistencyRating';
 import { type QueryError } from '../hooks/usePriceQuery';
+import { formatPrice } from '../utils/queryResultsUtils';
+
+import { QueryResultsEmpty } from './QueryResultsEmpty';
+import { QueryResultsLoading } from './QueryResultsLoading';
+import { StatsCardsSelector } from './stats';
+import { TokenIcon } from './TokenIcon';
 
 import { PriceChart, DataSourceSection, UnifiedExportSection, ErrorBanner } from './index';
-
-// 加密货币到logo文件的映射
-const cryptoLogoMap: Record<string, string> = {
-  BTC: '/logos/cryptos/btc.svg',
-  ETH: '/logos/cryptos/eth.svg',
-  SOL: '/logos/cryptos/sol.svg',
-  AVAX: '/logos/cryptos/avax.svg',
-  NEAR: '/logos/cryptos/near.svg',
-  MATIC: '/logos/cryptos/matic.svg',
-  ARB: '/logos/cryptos/arb.svg',
-  OP: '/logos/cryptos/op.svg',
-  DOT: '/logos/cryptos/dot.svg',
-  ADA: '/logos/cryptos/ada.svg',
-  ATOM: '/logos/cryptos/atom.svg',
-  FTM: '/logos/cryptos/ftm.svg',
-  LINK: '/logos/cryptos/link.svg',
-  UNI: '/logos/cryptos/uni.svg',
-  AAVE: '/logos/cryptos/aave.svg',
-  MKR: '/logos/cryptos/mkr.svg',
-  SNX: '/logos/cryptos/snx.svg',
-  COMP: '/logos/cryptos/comp.svg',
-  YFI: '/logos/cryptos/yfi.svg',
-  CRV: '/logos/cryptos/crv.svg',
-  LDO: '/logos/cryptos/ldo.svg',
-  SUSHI: '/logos/cryptos/sushi.svg',
-  '1INCH': '/logos/cryptos/1inch.svg',
-  BAL: '/logos/cryptos/bal.svg',
-  FXS: '/logos/cryptos/fxs.svg',
-  RPL: '/logos/cryptos/rpl.svg',
-  GMX: '/logos/cryptos/gmx.svg',
-  DYDX: '/logos/cryptos/dydx.svg',
-  USDC: '/logos/cryptos/usdc.svg',
-  USDT: '/logos/cryptos/usdt.svg',
-  DAI: '/logos/cryptos/dai.svg',
-};
-
-// 加密货币图标组件
-const TokenIcon: React.FC<{ symbol: string; className?: string }> = ({
-  symbol,
-  className = 'w-14 h-14',
-}) => {
-  const [hasError, setHasError] = useState(false);
-
-  // 获取logo路径
-  const logoPath = cryptoLogoMap[symbol];
-
-  // 如果有logo路径且未加载失败，显示官方logo
-  if (logoPath && !hasError) {
-    return (
-      <Image
-        src={logoPath}
-        alt={`${symbol} logo`}
-        width={56}
-        height={56}
-        className={`rounded-full ${className}`}
-        onError={() => setHasError(true)}
-      />
-    );
-  }
-
-  // 回退到渐变色文字占位符
-  return (
-    <div
-      className={`rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-xl shadow-lg ${className}`}
-    >
-      {symbol.slice(0, 2)}
-    </div>
-  );
-};
 
 interface ChartDataPoint {
   timestamp: number;
@@ -147,54 +51,14 @@ interface QueryResultsProps {
   onRetryDataSource: (provider: OracleProvider, chain: Blockchain) => void;
   onRetryAllErrors: () => void;
   onClearErrors: () => void;
-  // DIA链上数据
   diaOnChainData?: DIATokenOnChainData | null;
   isDIADataLoading?: boolean;
-  // WINkLink链上数据
   winklinkOnChainData?: WINkLinkTokenOnChainData | null;
   isWINkLinkDataLoading?: boolean;
-  // RedStone链上数据
   redstoneOnChainData?: RedStoneTokenOnChainData | null;
   isRedStoneDataLoading?: boolean;
 }
 
-/**
- * 格式化价格显示
- */
-function formatPrice(price: number): string {
-  if (price <= 0) return '-';
-  return price.toLocaleString(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-}
-
-/**
- * 格式化大数字（如市值、交易量）
- */
-function formatLargeNumber(num: number): string {
-  if (num >= 1e12) {
-    return `$${(num / 1e12).toFixed(2)}T`;
-  }
-  if (num >= 1e9) {
-    return `$${(num / 1e9).toFixed(2)}B`;
-  }
-  if (num >= 1e6) {
-    return `$${(num / 1e6).toFixed(2)}M`;
-  }
-  if (num >= 1e3) {
-    return `$${(num / 1e3).toFixed(2)}K`;
-  }
-  return `$${num.toFixed(2)}`;
-}
-
-/**
- * 查询结果展示组件
- *
- * @param props - 组件属性
- * @returns 查询结果 JSX 元素
- */
-// eslint-disable-next-line max-lines-per-function, complexity
 export function QueryResults({
   isLoading,
   queryResults,
@@ -220,116 +84,32 @@ export function QueryResults({
   onRetryAllErrors,
   onClearErrors,
   diaOnChainData,
-  isDIADataLoading,
+  isDIADataLoading: _isDIADataLoading,
   winklinkOnChainData,
-  isWINkLinkDataLoading,
+  isWINkLinkDataLoading: _isWINkLinkDataLoading,
   redstoneOnChainData,
-  isRedStoneDataLoading,
+  isRedStoneDataLoading: _isRedStoneDataLoading,
 }: QueryResultsProps) {
   const t = useTranslations();
+  const consistencyRating = useConsistencyRating(standardDeviationPercent);
 
-  // 加载状态
   if (isLoading) {
     return (
-      <div className="space-y-6">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-gray-900">{t('priceQuery.loadingData')}</h3>
-            <span className="text-xs text-gray-500">
-              {queryProgress.completed} / {queryProgress.total}
-            </span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div
-              className="h-2 rounded-full transition-all duration-300 bg-primary-600"
-              style={{ width: `${(queryProgress.completed / queryProgress.total) * 100}%` }}
-            />
-          </div>
-          <p className="text-xs text-gray-500 mt-2">
-            {t('priceQuery.querying')}{' '}
-            {currentQueryTarget.oracle && t(`navbar.${currentQueryTarget.oracle.toLowerCase()}`)}{' '}
-            {currentQueryTarget.chain && t(`blockchain.${currentQueryTarget.chain.toLowerCase()}`)}
-          </p>
-        </div>
-        <ChartSkeleton height={300} variant="price" showToolbar={true} />
-      </div>
+      <QueryResultsLoading queryProgress={queryProgress} currentQueryTarget={currentQueryTarget} />
     );
   }
 
-  // 空状态
   if (queryResults.length === 0) {
-    return (
-      <EmptyStateEnhanced
-        type="search"
-        title={t('priceQuery.noResults.title', { symbol: selectedSymbol })}
-        description={t('priceQuery.noResults.description')}
-        size="lg"
-        variant="page"
-      >
-        <div className="mt-8 pt-6 border-t border-gray-100 w-full max-w-md">
-          <p className="text-xs text-gray-400 mb-4 flex items-center justify-center gap-1">
-            <TrendingUp className="w-3 h-3" aria-hidden="true" />
-            {t('priceQuery.noResults.popularTokens')}
-          </p>
-          <div className="flex items-center justify-center">
-            <SegmentedControl
-              options={['BTC', 'ETH', 'BNB', 'AVAX', 'MATIC', 'USDT', 'USDC'].map((token) => ({
-                value: token,
-                label: token,
-              }))}
-              value={selectedSymbol}
-              onChange={(value) => setSelectedSymbol(value as string)}
-              size="sm"
-            />
-          </div>
-        </div>
-      </EmptyStateEnhanced>
-    );
+    return <QueryResultsEmpty selectedSymbol={selectedSymbol} onSymbolChange={setSelectedSymbol} />;
   }
 
-  // 获取当前价格数据
   const currentResult = queryResults[0];
   const currentPrice = currentResult?.priceData;
   const currentPriceValue = currentPrice?.price || avgPrice;
-  const change24hValue = currentPrice?.change24hPercent ?? avgChange24hPercent ?? 0;
   const volume24hValue = 0;
-
-  // 计算价格趋势
-  const isPositiveChange = change24hValue >= 0;
-  const changeColor = isPositiveChange ? 'text-emerald-600' : 'text-red-600';
-  const changeBg = isPositiveChange ? 'bg-emerald-50' : 'bg-red-50';
-  const changeBorder = isPositiveChange ? 'border-emerald-200' : 'border-red-200';
-  const ChangeIcon = isPositiveChange ? ArrowUpIcon : ArrowDownIcon;
-
-  // 获取一致性评级
-  const getConsistencyRating = (stdDevPercent: number): { label: string; color: string } => {
-    if (stdDevPercent < 0.1)
-      return { label: t('priceQuery.stats.consistency.excellent'), color: 'text-emerald-600' };
-    if (stdDevPercent < 0.3)
-      return { label: t('priceQuery.stats.consistency.good'), color: 'text-blue-600' };
-    if (stdDevPercent < 0.5)
-      return { label: t('priceQuery.stats.consistency.fair'), color: 'text-amber-600' };
-    return { label: t('priceQuery.stats.consistency.poor'), color: 'text-red-600' };
-  };
-
-  const consistencyRating =
-    standardDeviationPercent > 0 ? getConsistencyRating(standardDeviationPercent) : null;
-
-  // 判断是否为 Chainlink 预言机
-  const isChainlink = currentResult?.provider === OracleProviderEnum.CHAINLINK;
-  const chainlinkData = isChainlink ? currentResult?.priceData : null;
-
-  // 判断是否为 Pyth 预言机
-  const isPyth = currentResult?.provider === OracleProviderEnum.PYTH;
-  const pythData = isPyth ? currentResult?.priceData : null;
-
-  // 判断是否为 API3 预言机
-  const isAPI3 = currentResult?.provider === OracleProviderEnum.API3;
-  const api3Data = isAPI3 ? currentResult?.priceData : null;
 
   return (
     <div className="space-y-4">
-      {/* 错误提示横幅 */}
       {queryErrors.length > 0 && (
         <ErrorBanner
           errors={queryErrors}
@@ -339,12 +119,9 @@ export function QueryResults({
         />
       )}
 
-      {/* 统一大卡片 - 价格信息展示 */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-        {/* 头部区域：代币符号和当前价格 */}
         <div className="px-6 py-6 border-b border-gray-100">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            {/* 左侧：代币信息 */}
             <div className="flex items-center gap-4">
               <TokenIcon symbol={selectedSymbol} />
               <div>
@@ -356,7 +133,6 @@ export function QueryResults({
               </div>
             </div>
 
-            {/* 右侧：当前价格 */}
             <div className="text-left sm:text-right">
               <p className="text-sm text-gray-500 mb-1">{t('priceQuery.currentPrice')}</p>
               <div className="flex items-baseline gap-3 sm:justify-end">
@@ -368,618 +144,23 @@ export function QueryResults({
           </div>
         </div>
 
-        {/* 统计区域：关键指标 */}
         <div className="px-6 py-5 border-b border-gray-100 bg-gray-50/50">
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {isChainlink && chainlinkData ? (
-              <>
-                {/* Chainlink Feed 元数据 - 轮次 ID */}
-                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <Hash className="w-3.5 h-3.5 text-blue-500" />
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('priceQuery.stats.roundId') || 'Round ID'}
-                    </p>
-                  </div>
-                  <p
-                    className="text-lg font-bold text-gray-900 font-mono truncate"
-                    title={chainlinkData.roundId}
-                  >
-                    {chainlinkData.roundId ? `#${chainlinkData.roundId.slice(-6)}` : '-'}
-                  </p>
-                </div>
-
-                {/* Chainlink Feed 元数据 - 回答轮次 */}
-                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <Layers className="w-3.5 h-3.5 text-indigo-500" />
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('priceQuery.stats.answeredInRound') || 'Answered In'}
-                    </p>
-                  </div>
-                  <p
-                    className="text-lg font-bold text-gray-900 font-mono truncate"
-                    title={chainlinkData.answeredInRound}
-                  >
-                    {chainlinkData.answeredInRound
-                      ? `#${chainlinkData.answeredInRound.slice(-6)}`
-                      : '-'}
-                  </p>
-                </div>
-
-                {/* Chainlink Feed 元数据 - 精度 */}
-                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <Settings className="w-3.5 h-3.5 text-amber-500" />
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('priceQuery.stats.decimals') || 'Decimals'}
-                    </p>
-                  </div>
-                  <p className="text-lg font-bold text-gray-900 font-mono">
-                    {chainlinkData.decimals ?? '-'}
-                  </p>
-                </div>
-
-                {/* Chainlink Feed 元数据 - 版本 */}
-                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <FileText className="w-3.5 h-3.5 text-emerald-500" />
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('priceQuery.stats.version') || 'Version'}
-                    </p>
-                  </div>
-                  <p className="text-lg font-bold text-gray-900 font-mono">
-                    {chainlinkData.version ?? '-'}
-                  </p>
-                </div>
-
-                {/* Chainlink Feed 元数据 - 轮次开始时间 */}
-                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <History className="w-3.5 h-3.5 text-purple-500" />
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('priceQuery.stats.roundStarted') || 'Round Started'}
-                    </p>
-                  </div>
-                  <p className="text-sm font-bold text-gray-900">
-                    {chainlinkData.startedAt
-                      ? new Date(chainlinkData.startedAt).toLocaleTimeString()
-                      : '-'}
-                  </p>
-                </div>
-
-                {/* Chainlink Feed 元数据 - 数据源描述 */}
-                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <Shield className="w-3.5 h-3.5 text-rose-500" />
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('priceQuery.stats.feedDescription') || 'Feed'}
-                    </p>
-                  </div>
-                  <p
-                    className="text-sm font-bold text-gray-900 truncate"
-                    title={chainlinkData.source}
-                  >
-                    {chainlinkData.source || '-'}
-                  </p>
-                </div>
-              </>
-            ) : isPyth && pythData ? (
-              <>
-                {/* Pyth 元数据 - Price Feed ID */}
-                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <Hash className="w-3.5 h-3.5 text-purple-500" />
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('priceQuery.stats.priceId') || 'Price Feed ID'}
-                    </p>
-                  </div>
-                  <p
-                    className="text-lg font-bold text-gray-900 font-mono truncate"
-                    title={pythData.priceId}
-                  >
-                    {pythData.priceId
-                      ? `${pythData.priceId.slice(0, 6)}...${pythData.priceId.slice(-4)}`
-                      : '-'}
-                  </p>
-                </div>
-
-                {/* Pyth 元数据 - 价格指数 */}
-                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <Settings className="w-3.5 h-3.5 text-blue-500" />
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('priceQuery.stats.exponent') || 'Exponent'}
-                    </p>
-                  </div>
-                  <p className="text-lg font-bold text-gray-900 font-mono">
-                    {pythData.exponent !== undefined ? `10^${pythData.exponent}` : '-'}
-                  </p>
-                </div>
-
-                {/* Pyth 元数据 - 置信区间绝对值 */}
-                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <BarChart3 className="w-3.5 h-3.5 text-emerald-500" />
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('priceQuery.stats.confidenceAbs') || 'Confidence'}
-                    </p>
-                  </div>
-                  <p className="text-lg font-bold text-gray-900 font-mono">
-                    {pythData.conf !== undefined ? `$${pythData.conf.toFixed(4)}` : '-'}
-                  </p>
-                </div>
-
-                {/* Pyth 元数据 - 发布时间 */}
-                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <Clock className="w-3.5 h-3.5 text-amber-500" />
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('priceQuery.stats.publishTime') || 'Published'}
-                    </p>
-                  </div>
-                  <p className="text-sm font-bold text-gray-900">
-                    {pythData.publishTime
-                      ? new Date(pythData.publishTime).toLocaleTimeString()
-                      : '-'}
-                  </p>
-                </div>
-
-                {/* Pyth 元数据 - 置信区间宽度 */}
-                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <BarChart3 className="w-3.5 h-3.5 text-indigo-500" />
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('priceQuery.stats.confidenceWidth') || 'Spread %'}
-                    </p>
-                  </div>
-                  <p className="text-lg font-bold text-gray-900 font-mono">
-                    {pythData.confidenceInterval?.widthPercentage !== undefined
-                      ? `${pythData.confidenceInterval.widthPercentage.toFixed(4)}%`
-                      : '-'}
-                  </p>
-                </div>
-
-                {/* Pyth 元数据 - 置信度分数 */}
-                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <Shield className="w-3.5 h-3.5 text-rose-500" />
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('priceQuery.stats.confidenceScore') || 'Confidence Score'}
-                    </p>
-                  </div>
-                  <p className="text-lg font-bold text-gray-900 font-mono">
-                    {pythData.confidence !== undefined ? `${pythData.confidence.toFixed(2)}%` : '-'}
-                  </p>
-                </div>
-              </>
-            ) : isAPI3 && api3Data ? (
-              <>
-                {/* API3 元数据 - dAPI 名称 */}
-                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <FileText className="w-3.5 h-3.5 text-emerald-500" />
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('priceQuery.stats.dapiName') || 'dAPI Name'}
-                    </p>
-                  </div>
-                  <p className="text-lg font-bold text-gray-900 font-mono">
-                    {api3Data.dapiName || '-'}
-                  </p>
-                </div>
-
-                {/* API3 元数据 - Proxy 地址 */}
-                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <Hash className="w-3.5 h-3.5 text-blue-500" />
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('priceQuery.stats.proxyAddress') || 'Proxy'}
-                    </p>
-                  </div>
-                  <p
-                    className="text-lg font-bold text-gray-900 font-mono truncate"
-                    title={api3Data.proxyAddress}
-                  >
-                    {api3Data.proxyAddress
-                      ? `${api3Data.proxyAddress.slice(0, 6)}...${api3Data.proxyAddress.slice(-4)}`
-                      : '-'}
-                  </p>
-                </div>
-
-                {/* API3 元数据 - 区块链 */}
-                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <Globe className="w-3.5 h-3.5 text-indigo-500" />
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('priceQuery.stats.blockchain') || 'Blockchain'}
-                    </p>
-                  </div>
-                  <p className="text-lg font-bold text-gray-900">{api3Data.chain || '-'}</p>
-                </div>
-
-                {/* API3 元数据 - 数据精度 */}
-                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <Settings className="w-3.5 h-3.5 text-amber-500" />
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('priceQuery.stats.decimals') || 'Decimals'}
-                    </p>
-                  </div>
-                  <p className="text-lg font-bold text-gray-900 font-mono">
-                    {api3Data.decimals ?? '-'}
-                  </p>
-                </div>
-
-                {/* API3 元数据 - 数据新鲜度 */}
-                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <Clock className="w-3.5 h-3.5 text-purple-500" />
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('priceQuery.stats.dataAge') || 'Data Age'}
-                    </p>
-                  </div>
-                  <p className="text-lg font-bold text-gray-900">
-                    {api3Data.dataAge !== undefined
-                      ? api3Data.dataAge < 60000
-                        ? `${Math.round(api3Data.dataAge / 1000)}s`
-                        : `${Math.round(api3Data.dataAge / 60000)}m`
-                      : '-'}
-                  </p>
-                </div>
-
-                {/* API3 元数据 - 置信度 */}
-                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <Shield className="w-3.5 h-3.5 text-rose-500" />
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('priceQuery.stats.confidenceScore') || 'Confidence'}
-                    </p>
-                  </div>
-                  <p className="text-lg font-bold text-gray-900 font-mono">
-                    {api3Data.confidence !== undefined
-                      ? `${(api3Data.confidence * 100).toFixed(0)}%`
-                      : '-'}
-                  </p>
-                </div>
-              </>
-            ) : diaOnChainData ? (
-              <>
-                {/* 24h 价格变化 - 基于DIA数据 */}
-                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <Activity className="w-3.5 h-3.5 text-blue-500" />
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      24h 涨跌
-                    </p>
-                  </div>
-                  <p
-                    className={`text-lg font-bold font-mono ${
-                      diaOnChainData.change24hPercent >= 0 ? 'text-emerald-600' : 'text-red-600'
-                    }`}
-                  >
-                    {diaOnChainData.change24hPercent >= 0 ? '+' : ''}
-                    {diaOnChainData.change24hPercent.toFixed(2)}%
-                  </p>
-                </div>
-
-                {/* 流通供应量 */}
-                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <Coins className="w-3.5 h-3.5 text-amber-500" />
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      流通供应量
-                    </p>
-                  </div>
-                  <p className="text-lg font-bold text-gray-900 font-mono">
-                    {diaOnChainData.circulatingSupply
-                      ? `${(diaOnChainData.circulatingSupply / 1e6).toFixed(2)}M`
-                      : '-'}
-                  </p>
-                </div>
-
-                {/* 市值 */}
-                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <Wallet className="w-3.5 h-3.5 text-emerald-500" />
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      流通市值
-                    </p>
-                  </div>
-                  <p className="text-lg font-bold text-gray-900 font-mono">
-                    {diaOnChainData.marketCap ? formatLargeNumber(diaOnChainData.marketCap) : '-'}
-                  </p>
-                </div>
-
-                {/* 交易所数量 */}
-                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <Store className="w-3.5 h-3.5 text-indigo-500" />
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      交易所数量
-                    </p>
-                  </div>
-                  <p className="text-lg font-bold text-gray-900 font-mono">
-                    {diaOnChainData.activeExchangeCount > 0
-                      ? `${diaOnChainData.activeExchangeCount}/${diaOnChainData.exchangeCount}`
-                      : diaOnChainData.exchangeCount}
-                  </p>
-                </div>
-
-                {/* 交易对数量 */}
-                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <Zap className="w-3.5 h-3.5 text-purple-500" />
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      交易对数量
-                    </p>
-                  </div>
-                  <p className="text-lg font-bold text-gray-900 font-mono">
-                    {diaOnChainData.totalTradingPairs > 0
-                      ? diaOnChainData.totalTradingPairs.toLocaleString()
-                      : '-'}
-                  </p>
-                </div>
-
-                {/* 24h 交易量 */}
-                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <TrendingUp className="w-3.5 h-3.5 text-rose-500" />
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      24h 交易量
-                    </p>
-                  </div>
-                  <p className="text-lg font-bold text-gray-900 font-mono">
-                    {diaOnChainData.totalVolume24h > 0
-                      ? formatLargeNumber(diaOnChainData.totalVolume24h)
-                      : '-'}
-                  </p>
-                </div>
-              </>
-            ) : winklinkOnChainData ? (
-              <>
-                {/* Feed合约地址 */}
-                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <Hash className="w-3.5 h-3.5 text-blue-500" />
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Feed合约
-                    </p>
-                  </div>
-                  <p
-                    className="text-lg font-bold text-gray-900 font-mono truncate"
-                    title={winklinkOnChainData.feedContractAddress || ''}
-                  >
-                    {winklinkOnChainData.feedContractAddress
-                      ? `${winklinkOnChainData.feedContractAddress.slice(0, 6)}...${winklinkOnChainData.feedContractAddress.slice(-4)}`
-                      : '-'}
-                  </p>
-                </div>
-
-                {/* 价格精度 */}
-                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <Settings className="w-3.5 h-3.5 text-amber-500" />
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      价格精度
-                    </p>
-                  </div>
-                  <p className="text-lg font-bold text-gray-900 font-mono">
-                    {winklinkOnChainData.decimals ?? '-'}
-                  </p>
-                </div>
-
-                {/* 数据喂价数量 */}
-                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <Database className="w-3.5 h-3.5 text-emerald-500" />
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      数据喂价
-                    </p>
-                  </div>
-                  <p className="text-lg font-bold text-gray-900 font-mono">
-                    {winklinkOnChainData.dataFeedsCount}
-                  </p>
-                </div>
-
-                {/* 节点响应时间 */}
-                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <Clock className="w-3.5 h-3.5 text-indigo-500" />
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      响应时间
-                    </p>
-                  </div>
-                  <p className="text-lg font-bold text-gray-900 font-mono">
-                    {winklinkOnChainData.avgResponseTime}ms
-                  </p>
-                </div>
-
-                {/* 价格更新时间 */}
-                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <Clock className="w-3.5 h-3.5 text-purple-500" />
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      数据年龄
-                    </p>
-                  </div>
-                  <p className="text-lg font-bold text-gray-900 font-mono">
-                    {winklinkOnChainData.priceUpdateTime !== null
-                      ? winklinkOnChainData.priceUpdateTime < 60
-                        ? `${winklinkOnChainData.priceUpdateTime}s`
-                        : `${Math.round(winklinkOnChainData.priceUpdateTime / 60)}m`
-                      : '-'}
-                  </p>
-                </div>
-
-                {/* 节点正常运行时间 */}
-                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <Shield className="w-3.5 h-3.5 text-rose-500" />
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      节点可用性
-                    </p>
-                  </div>
-                  <p className="text-lg font-bold text-gray-900 font-mono">
-                    {winklinkOnChainData.nodeUptime.toFixed(2)}%
-                  </p>
-                </div>
-              </>
-            ) : redstoneOnChainData ? (
-              <>
-                {/* 价格精度 */}
-                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <Settings className="w-3.5 h-3.5 text-blue-500" />
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      价格精度
-                    </p>
-                  </div>
-                  <p className="text-lg font-bold text-gray-900 font-mono">
-                    {redstoneOnChainData.decimals} 位
-                  </p>
-                </div>
-
-                {/* 支持链数量 */}
-                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <Globe className="w-3.5 h-3.5 text-amber-500" />
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      支持链数
-                    </p>
-                  </div>
-                  <p className="text-lg font-bold text-gray-900 font-mono">
-                    {redstoneOnChainData.supportedChainsCount} 条
-                  </p>
-                </div>
-
-                {/* 买卖价差(Bid) */}
-                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <TrendingDown className="w-3.5 h-3.5 text-emerald-500" />
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      买入价(Bid)
-                    </p>
-                  </div>
-                  <p className="text-lg font-bold text-gray-900 font-mono">
-                    {redstoneOnChainData.bid ? `$${redstoneOnChainData.bid.toFixed(4)}` : '-'}
-                  </p>
-                </div>
-
-                {/* 买卖价差(Ask) */}
-                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <TrendingUp className="w-3.5 h-3.5 text-indigo-500" />
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      卖出价(Ask)
-                    </p>
-                  </div>
-                  <p className="text-lg font-bold text-gray-900 font-mono">
-                    {redstoneOnChainData.ask ? `$${redstoneOnChainData.ask.toFixed(4)}` : '-'}
-                  </p>
-                </div>
-
-                {/* 数据源提供商 */}
-                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <Database className="w-3.5 h-3.5 text-purple-500" />
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      数据源
-                    </p>
-                  </div>
-                  <p className="text-lg font-bold text-gray-900 font-mono">
-                    {redstoneOnChainData.provider
-                      ? redstoneOnChainData.provider.replace('redstone-', '').toUpperCase()
-                      : '-'}
-                  </p>
-                </div>
-
-                {/* 数据新鲜度 */}
-                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <Clock className="w-3.5 h-3.5 text-rose-500" />
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      数据年龄
-                    </p>
-                  </div>
-                  <p className="text-lg font-bold text-gray-900 font-mono">
-                    {redstoneOnChainData.dataAge !== null
-                      ? redstoneOnChainData.dataAge < 60
-                        ? `${redstoneOnChainData.dataAge}s`
-                        : `${Math.round(redstoneOnChainData.dataAge / 60)}m`
-                      : '-'}
-                  </p>
-                </div>
-              </>
-            ) : (
-              <>
-                {/* 24h 最高 */}
-                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1.5">
-                    {t('priceQuery.stats.maxPrice')}
-                  </p>
-                  <p className="text-lg font-bold text-gray-900 font-mono">
-                    ${formatPrice(maxPrice)}
-                  </p>
-                </div>
-
-                {/* 24h 最低 */}
-                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1.5">
-                    {t('priceQuery.stats.minPrice')}
-                  </p>
-                  <p className="text-lg font-bold text-gray-900 font-mono">
-                    ${formatPrice(minPrice)}
-                  </p>
-                </div>
-
-                {/* 平均价格 */}
-                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1.5">
-                    {t('priceQuery.stats.avgPrice')}
-                  </p>
-                  <p className="text-lg font-bold text-gray-900 font-mono">
-                    ${formatPrice(avgPrice)}
-                  </p>
-                </div>
-
-                {/* 价格区间 */}
-                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1.5">
-                    {t('priceQuery.stats.priceRange')}
-                  </p>
-                  <p className="text-lg font-bold text-gray-900 font-mono">
-                    ${formatPrice(priceRange)}
-                  </p>
-                </div>
-
-                {/* 24h 交易量 */}
-                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1.5">
-                    {t('priceQuery.volume24h')}
-                  </p>
-                  <p className="text-lg font-bold text-gray-900 font-mono">
-                    {formatLargeNumber(volume24hValue)}
-                  </p>
-                </div>
-
-                {/* 一致性评级 */}
-                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1.5">
-                    {t('priceQuery.stats.consistencyRating')}
-                  </p>
-                  <p
-                    className={`text-lg font-bold ${
-                      standardDeviationPercent > 0 ? consistencyRating?.color : 'text-gray-900'
-                    }`}
-                  >
-                    {standardDeviationPercent > 0 ? consistencyRating?.label : '-'}
-                  </p>
-                </div>
-              </>
-            )}
+            <StatsCardsSelector
+              currentResult={currentResult}
+              diaOnChainData={diaOnChainData}
+              winklinkOnChainData={winklinkOnChainData}
+              redstoneOnChainData={redstoneOnChainData}
+              maxPrice={maxPrice}
+              minPrice={minPrice}
+              avgPrice={avgPrice}
+              priceRange={priceRange}
+              volume24h={volume24hValue}
+              consistencyRating={consistencyRating}
+              standardDeviationPercent={standardDeviationPercent}
+            />
           </div>
 
-          {/* 次要统计指标 */}
           <div className="mt-4 flex flex-wrap items-center gap-4 text-sm">
             <div className="flex items-center gap-1.5 text-gray-500">
               <BarChart3 className="w-4 h-4" />
@@ -1009,7 +190,6 @@ export function QueryResults({
           </div>
         </div>
 
-        {/* 图表区域 */}
         <div ref={chartContainerRef} className="p-6">
           <div className="flex items-center gap-2 mb-4">
             <div className="w-1 h-5 bg-gradient-to-b from-blue-500 to-indigo-500 rounded-full"></div>
@@ -1029,7 +209,6 @@ export function QueryResults({
         </div>
       </div>
 
-      {/* 数据源和导出区域 - 卡片外部 */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-1">
         <DataSourceSection
           results={queryResults}

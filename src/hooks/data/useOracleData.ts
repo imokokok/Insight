@@ -30,7 +30,7 @@ export function useOracleData(params: OracleDataParams = {}) {
       try {
         const response = await apiClient.get<OracleData | OracleData[]>(url);
         return response.data;
-      } catch (error) {
+      } catch {
         throw new PriceFetchError('Failed to fetch oracle data', {
           provider: params.provider,
           retryable: true,

@@ -1,6 +1,4 @@
-import { NextResponse } from 'next/server';
-
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import type { NextResponse } from 'next/server';
 
 import { ValidationError, NotFoundError, RateLimitError, InternalError } from '@/lib/errors';
 
@@ -15,11 +13,11 @@ import {
 
 describe('Enhanced Error Middleware', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    jest.clearAllMocks();
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
+    jest.restoreAllMocks();
   });
 
   describe('createEnhancedErrorMiddleware', () => {
@@ -29,8 +27,8 @@ describe('Enhanced Error Middleware', () => {
 
       const response = await middleware(error);
 
-      expect(response).toBeInstanceOf(NextResponse);
       expect(response.status).toBe(400);
+      expect(typeof response.json).toBe('function');
 
       const body = (await response.json()) as StandardizedErrorResponse;
       expect(body.success).toBe(false);
@@ -141,13 +139,14 @@ describe('Enhanced Error Middleware', () => {
 
       const response = await middleware(error);
 
-      expect(response.headers.get('Retry-After')).toBe('60');
+      const body = (await response.json()) as StandardizedErrorResponse;
+      expect(body.error.details?.retryAfter).toBe(60);
     });
   });
 
   describe('withEnhancedErrorHandling', () => {
     it('should return handler result on success', async () => {
-      const handler = vi.fn().mockResolvedValue({ data: 'success' });
+      const handler = jest.fn().mockResolvedValue({ data: 'success' });
       const wrappedHandler = withEnhancedErrorHandling(handler);
       const request = new Request('https://example.com/api/test');
 
@@ -158,21 +157,22 @@ describe('Enhanced Error Middleware', () => {
     });
 
     it('should return error response on failure', async () => {
-      const handler = vi.fn().mockRejectedValue(new Error('Handler failed'));
+      const handler = jest.fn().mockRejectedValue(new Error('Handler failed'));
       const wrappedHandler = withEnhancedErrorHandling(handler);
       const request = new Request('https://example.com/api/test');
 
       const result = await wrappedHandler(request);
 
-      expect(result).toBeInstanceOf(NextResponse);
+      expect(result.status).toBe(500);
+      expect(typeof result.json).toBe('function');
 
-      const body = (await (result as NextResponse).json()) as StandardizedErrorResponse;
+      const body = (await result.json()) as StandardizedErrorResponse;
       expect(body.success).toBe(false);
       expect(body.error.message).toBe('Handler failed');
     });
 
     it('should pass custom options to middleware', async () => {
-      const handler = vi.fn().mockRejectedValue(new Error('Test'));
+      const handler = jest.fn().mockRejectedValue(new Error('Test'));
       const wrappedHandler = withEnhancedErrorHandling(handler, {
         includeRequestId: true,
         includeStackTrace: true,

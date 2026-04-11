@@ -76,7 +76,10 @@ export function useAdaptiveDownsampling(
 
   // 使用 ref 存储 data，避免 effect 依赖 data 导致循环
   const dataRef = useRef(data);
-  dataRef.current = data;
+
+  useEffect(() => {
+    dataRef.current = data;
+  }, [data]);
 
   useEffect(() => {
     if (!monitorPerformance) return;
@@ -109,7 +112,33 @@ export function useAdaptiveDownsampling(
       return data;
     }
 
-    setState((prev) => ({ ...prev, isProcessing: true }));
+    const effectiveRenderTime = renderTime ?? state.averageRenderTime;
+
+    const result = adaptiveDownsample(data, {
+      renderTime: effectiveRenderTime,
+      targetRenderTime,
+      minPoints,
+      maxPoints,
+    });
+
+    return result;
+  }, [
+    data,
+    enabled,
+    threshold,
+    renderTime,
+    targetRenderTime,
+    minPoints,
+    maxPoints,
+    state.averageRenderTime,
+  ]);
+
+  // 使用 useEffect 处理副作用（日志记录和状态更新）
+  useEffect(() => {
+    if (!enabled || data.length === 0) return;
+
+    const dataLength = data.length;
+    if (!shouldDownsample(dataLength, threshold)) return;
 
     const startTime = performance.now();
 
@@ -134,10 +163,6 @@ export function useAdaptiveDownsampling(
       efficiency: metrics.efficiency,
       averageRenderTime: `${state.averageRenderTime.toFixed(2)}ms`,
     });
-
-    setState((prev) => ({ ...prev, isProcessing: false }));
-
-    return result;
   }, [
     data,
     enabled,
@@ -147,6 +172,7 @@ export function useAdaptiveDownsampling(
     minPoints,
     maxPoints,
     state.averageRenderTime,
+    downsampledData,
   ]);
 
   const metrics = useMemo(() => {

@@ -78,14 +78,16 @@ export function NotificationPanel() {
   });
   const [isSaving, setIsSaving] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
-  const [browserPermission, setBrowserPermission] = useState<NotificationPermission>('default');
+  const [browserPermission, setBrowserPermission] = useState<NotificationPermission>(() => {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      return Notification.permission;
+    }
+    return 'default';
+  });
 
   const successTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && 'Notification' in window) {
-      setBrowserPermission(Notification.permission);
-    }
     return () => {
       if (successTimerRef.current) {
         clearTimeout(successTimerRef.current);

@@ -107,7 +107,7 @@ export function useChartData(
       });
     });
     return result;
-  }, [historicalData, selectedOracles, avgPrice, getChartData]);
+  }, [selectedOracles, getChartData]);
 
   const boxPlotData = useMemo((): OraclePriceData[] => {
     return selectedOracles.map((oracle) => ({

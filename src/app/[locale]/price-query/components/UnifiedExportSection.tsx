@@ -6,10 +6,8 @@
  * 使用 UnifiedExport 组件替换原有的导出功能
  */
 
-import { useRef } from 'react';
-
 import { UnifiedExport, type ExportField } from '@/components/export';
-import { useTranslations, useLocale } from '@/i18n';
+import { useLocale } from '@/i18n';
 
 import { type QueryResult } from '../constants';
 
@@ -38,9 +36,7 @@ export default function UnifiedExportSection({
   standardDeviation,
   standardDeviationPercent,
 }: UnifiedExportSectionProps) {
-  const t = useTranslations('priceQuery');
   const locale = useLocale();
-  const isZh = locale === 'zh-CN';
 
   // 定义导出字段
   const exportFields: ExportField[] = [
@@ -102,7 +98,7 @@ export default function UnifiedExportSection({
       data={queryResults}
       dataSource="price-query"
       fields={exportFields}
-      chartElement={chartContainerRef.current}
+      chartElement={chartContainerRef?.current ?? null}
       stats={stats}
       disabled={loading || queryResults.length === 0}
     />

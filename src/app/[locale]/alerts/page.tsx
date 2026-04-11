@@ -24,20 +24,6 @@ export default function AlertsPage() {
     refetchAlerts();
   }, [refetchAlerts]);
 
-  const handleDismissNotification = useCallback(
-    (_eventId: string) => {
-      refetchEvents();
-    },
-    [refetchEvents]
-  );
-
-  const handleViewDetails = useCallback(() => {
-    const element = document.getElementById('alert-history');
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, []);
-
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center rounded-lg">
@@ -77,8 +63,6 @@ export default function AlertsPage() {
       </div>
     );
   }
-
-  const unacknowledgedEvents = events.filter((e) => !e.acknowledged);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 rounded-lg">

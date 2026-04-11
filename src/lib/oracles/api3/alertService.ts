@@ -381,7 +381,7 @@ export async function getAlertThresholds(): Promise<AlertThreshold[]> {
  * @param alertId - The ID of the alert to acknowledge
  */
 export async function acknowledgeAlert(alertId: string): Promise<void> {
-  console.log(`Alert ${alertId} acknowledged`);
+  console.warn(`Alert ${alertId} acknowledged`);
   // In a real implementation, this would update a database
 }
 
@@ -390,7 +390,7 @@ export async function acknowledgeAlert(alertId: string): Promise<void> {
  * @param alertId - The ID of the alert to resolve
  */
 export async function resolveAlert(alertId: string): Promise<void> {
-  console.log(`Alert ${alertId} resolved`);
+  console.warn(`Alert ${alertId} resolved`);
   // In a real implementation, this would update a database
 }
 
@@ -403,6 +403,6 @@ export async function updateAlertThreshold(
   type: AlertThreshold['type'],
   threshold: number
 ): Promise<void> {
-  console.log(`Updated threshold for ${type} to ${threshold}`);
+  console.warn(`Updated threshold for ${type} to ${threshold}`);
   // In a real implementation, this would update a database
 }

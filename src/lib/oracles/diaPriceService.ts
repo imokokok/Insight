@@ -9,25 +9,6 @@ import type { DIAAssetQuotation, CacheEntry } from './diaTypes';
 
 const logger = createLogger('DIAPriceService');
 
-// DIA API 使用的区块链名称映射
-const DIA_BLOCKCHAIN_NAMES: Record<string, string> = {
-  BTC: 'Bitcoin',
-  ETH: 'Ethereum',
-  ETHEREUM: 'Ethereum',
-  ARBITRUM: 'Arbitrum',
-  POLYGON: 'Polygon',
-  AVALANCHE: 'Avalanche',
-  'BNB-CHAIN': 'BinanceSmartChain',
-  BASE: 'Base',
-  OPTIMISM: 'Optimism',
-  FANTOM: 'Fantom',
-  CRONOS: 'Cronos',
-  MOONBEAM: 'Moonbeam',
-  GNOSIS: 'Gnosis',
-  KAVA: 'Kava',
-};
-
-// 资产符号到 DIA 格式的映射
 const DIA_SYMBOL_MAPPING: Record<string, { blockchain: string; address: string }> = {
   BTC: { blockchain: 'Bitcoin', address: '0x0000000000000000000000000000000000000000' },
   ETH: { blockchain: 'Ethereum', address: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE' },

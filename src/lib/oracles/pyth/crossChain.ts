@@ -13,7 +13,7 @@ import { parsePythPrice } from './pythParser';
 import { withRetry } from './retry';
 import { isPythPriceRaw } from './types';
 
-import type { CrossChainPriceData, CrossChainResult, PythPriceRaw } from './types';
+import type { CrossChainPriceData, CrossChainResult } from './types';
 
 const logger = createLogger('PythCrossChain');
 

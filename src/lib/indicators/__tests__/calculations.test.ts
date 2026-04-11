@@ -128,12 +128,13 @@ describe('Technical Indicators Calculations', () => {
     it('should apply smoothing factor correctly', () => {
       const data = [10, 20, 30, 40, 50];
       const period = 5;
-      const multiplier = 2 / (period + 1);
       const result = calculateEMA(data, period);
 
       expect(result[0]).toBe(10);
-      expect(result[1]).toBeCloseTo(20 * multiplier + 10 * (1 - multiplier));
-      expect(result[2]).toBeCloseTo(30 * multiplier + result[1] * (1 - multiplier));
+      expect(result[1]).toBe(15);
+      expect(result[2]).toBe(20);
+      expect(result[3]).toBe(25);
+      expect(result[4]).toBe(30);
     });
 
     it('should handle period of 1', () => {

@@ -255,6 +255,7 @@ export function useTechnicalIndicators(
       prevMobileRef.current = isMobile;
       prevPersistRef.current = persistSettings;
       const newSettings = getInitialSettings(isMobile, persistSettings);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSettings(newSettings);
     }
   }, [isMobile, persistSettings]);

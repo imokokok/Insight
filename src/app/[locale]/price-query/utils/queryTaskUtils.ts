@@ -1,5 +1,6 @@
 'use client';
 
+import type { OracleClientFactory } from '@/lib/oracles';
 import type { Blockchain, OracleProvider, PriceData } from '@/types/oracle';
 
 import type { QueryResult } from '../constants';
@@ -7,7 +8,7 @@ import type { QueryResult } from '../constants';
 export interface QueryTask {
   provider: OracleProvider;
   chain: Blockchain;
-  client: ReturnType<typeof import('@/lib/oracles').OracleClientFactory.getClient>;
+  client: ReturnType<typeof OracleClientFactory.getClient>;
   timeRange: number;
   isCompare: boolean;
 }
@@ -88,14 +89,14 @@ export function buildQueryTasks(
   selectedTimeRange: number,
   isCompareMode: boolean,
   compareTimeRange: number,
-  OracleClientFactory: typeof import('@/lib/oracles').OracleClientFactory
+  oracleClientFactory: typeof OracleClientFactory
 ): { primaryTasks: QueryTask[]; compareTasks: QueryTask[]; totalQueries: number } {
   const primaryTasks: QueryTask[] = [];
   const compareTasks: QueryTask[] = [];
   let totalQueries = 0;
 
   if (selectedOracle && selectedChain) {
-    const client = OracleClientFactory.getClient(selectedOracle);
+    const client = oracleClientFactory.getClient(selectedOracle);
     const supportedChains = client.supportedChains;
 
     if (supportedChains.includes(selectedChain)) {

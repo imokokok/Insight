@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 
 import { symbols } from '@/lib/constants';
 import { OracleClientFactory } from '@/lib/oracles/factory';
-import { oracleSupportedSymbols, API3_AVAILABLE_PAIRS } from '@/lib/oracles/supportedSymbols';
+import { oracleSupportedSymbols } from '@/lib/oracles/supportedSymbols';
 import { type Blockchain, type OracleProvider } from '@/types/oracle';
 
 export interface UseOracleSymbolsReturn {

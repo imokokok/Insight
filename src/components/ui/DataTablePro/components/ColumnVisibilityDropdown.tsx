@@ -7,7 +7,7 @@ import { Settings2, Check } from 'lucide-react';
 import { useTranslations } from '@/i18n';
 import { cn } from '@/lib/utils';
 
-import type { ColumnVisibilityDropdownProps, ColumnDef } from '../types';
+import type { ColumnVisibilityDropdownProps } from '../types';
 
 export function ColumnVisibilityDropdown<T extends Record<string, unknown>>({
   columns,

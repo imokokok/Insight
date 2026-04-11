@@ -8,7 +8,30 @@ export * from './logger';
 export * from './lttb';
 export * from './oracle-helpers';
 export * from './requestQueue';
-export * from './riskUtils';
+export {
+  calculateRiskScore,
+  getRiskColor,
+  calculateVolatility,
+  calculateSharpeRatio,
+  calculateMaxDrawdown,
+  calculateVaR,
+  calculateCVaR,
+  calculateBeta,
+  calculateCorrelation,
+  calculatePortfolioRisk,
+  formatRiskMetrics,
+  isDataStale,
+  getScoreColor,
+  getScoreBg,
+  getScoreBarColor,
+  getEventTypeColor,
+  getRiskLevel,
+  getRiskLevelColor,
+  getRiskStatusColor,
+  getMeasureStatusColor,
+  formatLatency,
+  calculateOverallScore,
+} from './riskUtils';
 export * from './searchHistory';
 export * from './statistics';
 export * from './timestamp';

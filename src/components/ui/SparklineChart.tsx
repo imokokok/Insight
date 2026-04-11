@@ -38,17 +38,14 @@ export function SparklineChart({
   animate = true,
   className,
 }: SparklineChartProps) {
-  const [isVisible, setIsVisible] = useState(false);
+  const [isVisible, setIsVisible] = useState(!animate);
 
-  // 触发动画
   useEffect(() => {
-    if (animate) {
-      const timer = setTimeout(() => setIsVisible(true), 50);
-      return () => clearTimeout(timer);
-    } else {
-      setIsVisible(true);
-    }
-  }, [animate, data]);
+    if (!animate) return;
+
+    const timer = setTimeout(() => setIsVisible(true), 50);
+    return () => clearTimeout(timer);
+  }, [animate]);
 
   // 计算趋势方向
   const trend = useMemo(() => {

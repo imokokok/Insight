@@ -4,15 +4,15 @@
  * 通过 API 路由获取数据，避免前端直接调用 RPC 导致的 CORS 和并发问题
  */
 
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 
 // Toast component removed - using alternative notification method
 import { oracleApiClient } from '@/lib/api/oracleApiClient';
 import { type OracleProvider, type Blockchain, type PriceData } from '@/lib/oracles';
 import { createLogger } from '@/lib/utils/logger';
 
-import { useAnomalyDetection, type UseAnomalyDetectionReturn } from './useAnomalyDetection';
-import { useDataValidation, type UseDataValidationReturn } from './useDataValidation';
+import type { UseAnomalyDetectionReturn } from './useAnomalyDetection';
+import type { UseDataValidationReturn } from './useDataValidation';
 
 const isClient = typeof window !== 'undefined';
 const logger = createLogger('useDataFetching');
@@ -150,12 +150,14 @@ export function useDataFetching(
   validation: UseDataValidationReturn,
   anomalyDetection: UseAnomalyDetectionReturn
 ): UseDataFetchingReturn {
-  // Toast functionality removed - using console instead
-  const toast = {
-    success: (title: string, message: string) => console.log(`[Success] ${title}: ${message}`),
-    error: (title: string, message: string) => console.error(`[Error] ${title}: ${message}`),
-    warning: (title: string, message: string) => console.warn(`[Warning] ${title}: ${message}`),
-  };
+  const toast = useMemo(
+    () => ({
+      success: (title: string, message: string) => console.warn(`[Success] ${title}: ${message}`),
+      error: (title: string, message: string) => console.error(`[Error] ${title}: ${message}`),
+      warning: (title: string, message: string) => console.warn(`[Warning] ${title}: ${message}`),
+    }),
+    []
+  );
   const abortControllerRef = useRef<AbortController | null>(null);
   const refreshSuccessTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -185,7 +187,7 @@ export function useDataFetching(
       params.setRefreshStatus('refreshing');
       params.setLoading(true);
 
-      console.log('[useDataFetching] Starting fetch:', {
+      console.warn('[useDataFetching] Starting fetch:', {
         provider,
         symbol: params.selectedSymbol,
         timeRange: params.selectedTimeRange,
@@ -254,7 +256,7 @@ export function useDataFetching(
         }
 
         // 使用 API 路由获取当前价格，避免前端直接调用 RPC
-        console.log('[useDataFetching] Fetching prices for chains:', supportedChains);
+        console.warn('[useDataFetching] Fetching prices for chains:', supportedChains);
         const currentPromises = supportedChains.map((chain) =>
           fetchPriceFromApi(provider, params.selectedSymbol, chain).catch((err) => {
             console.error(`[useDataFetching] Failed to fetch price for ${chain}:`, err);
@@ -262,7 +264,7 @@ export function useDataFetching(
           })
         );
         const currentResults = await Promise.all(currentPromises);
-        console.log('[useDataFetching] Price results:', currentResults);
+        console.warn('[useDataFetching] Price results:', currentResults);
 
         if (currentSignal.aborted) return;
 

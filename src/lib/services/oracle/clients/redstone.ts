@@ -3,7 +3,6 @@ import { BaseOracleClient } from '@/lib/oracles/base';
 import type { OracleClientConfig } from '@/lib/oracles/base';
 import { SPREAD_PERCENTAGES } from '@/lib/oracles/redstoneConstants';
 import { redstoneSymbols } from '@/lib/oracles/supportedSymbols';
-import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
 import { toMilliseconds } from '@/lib/utils/timestamp';
 import {
   OracleProvider,

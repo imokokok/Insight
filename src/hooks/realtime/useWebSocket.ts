@@ -87,7 +87,10 @@ export function useWebSocket<T = unknown>(options: UseWebSocketOptions): UseWebS
     onError,
     onReconnect,
   });
-  callbacksRef.current = { onConnect, onDisconnect, onError, onReconnect };
+
+  useEffect(() => {
+    callbacksRef.current = { onConnect, onDisconnect, onError, onReconnect };
+  }, [onConnect, onDisconnect, onError, onReconnect]);
 
   // Create WebSocket manager
   useEffect(() => {
@@ -226,13 +229,18 @@ export function usePriceWebSocket(options: UsePriceWebSocketOptions) {
 
   // 使用 ref 存储 symbols 和 onPriceUpdate，避免依赖变化
   const symbolsRef = useRef(symbols);
-  symbolsRef.current = symbols;
   const onPriceUpdateRef = useRef(onPriceUpdate);
-  onPriceUpdateRef.current = onPriceUpdate;
+
+  useEffect(() => {
+    symbolsRef.current = symbols;
+  }, [symbols]);
+
+  useEffect(() => {
+    onPriceUpdateRef.current = onPriceUpdate;
+  }, [onPriceUpdate]);
 
   // 使用 useMemo 稳定 channels 数组
-  const symbolsKey = symbols.sort().join(',');
-  const channels = useMemo(() => symbols.map((s) => `price:${s}`), [symbolsKey]);
+  const channels = useMemo(() => symbols.map((s) => `price:${s}`), [symbols]);
 
   const ws = useWebSocket<PriceUpdate>({
     url: process.env.NEXT_PUBLIC_WS_URL || '',
@@ -242,7 +250,10 @@ export function usePriceWebSocket(options: UsePriceWebSocketOptions) {
 
   // 使用 ref 存储 subscribe 函数
   const subscribeRef = useRef(ws.subscribe);
-  subscribeRef.current = ws.subscribe;
+
+  useEffect(() => {
+    subscribeRef.current = ws.subscribe;
+  }, [ws.subscribe]);
 
   useEffect(() => {
     if (!ws.isConnected) return;
@@ -304,6 +315,18 @@ export function useAlertWebSocket(options: UseAlertWebSocketOptions = {}) {
   const [alerts, setAlerts] = useState<AlertUpdate[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
 
+  // 使用 ref 存储回调函数，避免依赖变化导致重复订阅
+  const onAlertRef = useRef(onAlert);
+  const filterRef = useRef(filter);
+
+  useEffect(() => {
+    onAlertRef.current = onAlert;
+  }, [onAlert]);
+
+  useEffect(() => {
+    filterRef.current = filter;
+  }, [filter]);
+
   const ws = useWebSocket<AlertUpdate>({
     url: process.env.NEXT_PUBLIC_WS_URL || '',
     channels: ['alerts'],
@@ -316,17 +339,17 @@ export function useAlertWebSocket(options: UseAlertWebSocketOptions = {}) {
     const unsubscribe = ws.subscribe('alerts', (message) => {
       const alert = message.data;
 
-      if (filter && !filter(alert)) return;
+      if (filterRef.current && !filterRef.current(alert)) return;
 
       setAlerts((prev) => [alert, ...prev].slice(0, 100));
       setUnreadCount((prev) => prev + 1);
-      onAlert?.(alert);
+      onAlertRef.current?.(alert);
     });
 
     return () => {
       unsubscribe();
     };
-  }, [ws.isConnected, ws.subscribe, filter, onAlert]);
+  }, [ws]);
 
   const markAsRead = useCallback(() => {
     setUnreadCount(0);
@@ -366,6 +389,13 @@ export function useNetworkStatsWebSocket(options: UseNetworkStatsWebSocketOption
   const { autoConnect = true, onStatsUpdate } = options;
   const [stats, setStats] = useState<NetworkStatsUpdate | null>(null);
 
+  // 使用 ref 存储回调函数，避免依赖变化导致重复订阅
+  const onStatsUpdateRef = useRef(onStatsUpdate);
+
+  useEffect(() => {
+    onStatsUpdateRef.current = onStatsUpdate;
+  }, [onStatsUpdate]);
+
   const ws = useWebSocket<NetworkStatsUpdate>({
     url: process.env.NEXT_PUBLIC_WS_URL || '',
     channels: ['network:stats'],
@@ -378,13 +408,13 @@ export function useNetworkStatsWebSocket(options: UseNetworkStatsWebSocketOption
     const unsubscribe = ws.subscribe('network:stats', (message) => {
       const update = message.data;
       setStats(update);
-      onStatsUpdate?.(update);
+      onStatsUpdateRef.current?.(update);
     });
 
     return () => {
       unsubscribe();
     };
-  }, [ws.isConnected, ws.subscribe, onStatsUpdate]);
+  }, [ws]);
 
   return {
     ...ws,

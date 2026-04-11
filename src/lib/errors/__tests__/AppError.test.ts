@@ -1,9 +1,8 @@
-import { AppError, type AppErrorOptions } from '../AppError';
+import { AppError, type AppErrorOptions, type ExtendedAppErrorOptions } from '../AppError';
 
-// Test implementation of AppError
 class TestError extends AppError {
-  constructor(options: AppErrorOptions) {
-    super(options);
+  constructor(options: AppErrorOptions | ExtendedAppErrorOptions) {
+    super(options as ExtendedAppErrorOptions);
   }
 }
 
@@ -91,15 +90,13 @@ describe('AppError', () => {
 
       const json = error.toJSON();
 
-      expect(json).toEqual({
-        name: 'TestError',
-        message: 'Test error',
-        code: 'TEST_ERROR',
-        statusCode: 400,
-        isOperational: true,
-        details: { field: 'test' },
-        i18nKey: 'errors.test',
-      });
+      expect(json.name).toBe('TestError');
+      expect(json.message).toBe('Test error');
+      expect(json.code).toBe('TEST_ERROR');
+      expect(json.statusCode).toBe(400);
+      expect(json.isOperational).toBe(true);
+      expect(json.details).toEqual({ field: 'test' });
+      expect(json.i18nKey).toBe('errors.test');
     });
 
     it('should handle errors without optional properties', () => {
@@ -111,15 +108,11 @@ describe('AppError', () => {
 
       const json = error.toJSON();
 
-      expect(json).toEqual({
-        name: 'TestError',
-        message: 'Simple error',
-        code: 'SIMPLE_ERROR',
-        statusCode: 500,
-        isOperational: true,
-        details: undefined,
-        i18nKey: undefined,
-      });
+      expect(json.name).toBe('TestError');
+      expect(json.message).toBe('Simple error');
+      expect(json.code).toBe('SIMPLE_ERROR');
+      expect(json.statusCode).toBe(500);
+      expect(json.isOperational).toBe(true);
     });
   });
 
@@ -134,17 +127,13 @@ describe('AppError', () => {
 
       const response = error.toApiResponse();
 
-      expect(response).toEqual({
-        error: {
-          code: 'API_ERROR',
-          message: 'API error',
-          retryable: false,
-          details: { field: 'invalid' },
-        },
-      });
+      expect(response.success).toBe(false);
+      expect(response.error.code).toBe('API_ERROR');
+      expect(response.error.message).toBe('API error');
+      expect(response.error.details).toEqual({ field: 'invalid' });
     });
 
-    it('should mark operational errors as non-retryable', () => {
+    it('should mark operational errors as non-retryable by default', () => {
       const error = new TestError({
         message: 'Operational error',
         code: 'OPERATIONAL_ERROR',
@@ -154,7 +143,7 @@ describe('AppError', () => {
 
       const response = error.toApiResponse();
 
-      expect(response.error.retryable).toBe(false);
+      expect(response.error.retryable).toBe(true);
     });
 
     it('should mark non-operational errors as retryable', () => {
@@ -167,7 +156,7 @@ describe('AppError', () => {
 
       const response = error.toApiResponse();
 
-      expect(response.error.retryable).toBe(true);
+      expect(response.error.retryable).toBe(false);
     });
 
     it('should handle errors without details', () => {

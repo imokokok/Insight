@@ -1,9 +1,8 @@
 'use client';
 
-import { useMemo, useCallback, useEffect, useRef, useState } from 'react';
+import { useMemo, useCallback, useRef, useState } from 'react';
 
 import { useFavorites, type FavoriteConfig } from '@/hooks';
-import { useTranslations } from '@/i18n';
 import type { PriceData, OracleProvider, Blockchain } from '@/lib/oracles';
 import { useUser } from '@/stores/authStore';
 
@@ -104,7 +103,6 @@ export interface UsePriceQueryReturn {
 export type { TimeComparisonConfig, ChartDataPoint, QueryError };
 
 export function usePriceQuery(): UsePriceQueryReturn {
-  const t = useTranslations();
   const user = useUser();
   const { favorites: symbolFavorites } = useFavorites({ configType: 'symbol' });
 
@@ -289,7 +287,7 @@ export function usePriceQuery(): UsePriceQueryReturn {
       }
       setShowFavoritesDropdown(false);
     },
-    [state.setSelectedSymbol, state.setSelectedOracle, state.setSelectedChain]
+    [state]
   );
 
   return {

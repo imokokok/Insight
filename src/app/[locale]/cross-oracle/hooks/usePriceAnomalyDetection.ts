@@ -105,6 +105,7 @@ export function usePriceAnomalyDetection(
   currentTime?: number
 ): AnomalyDetectionResult {
   return useMemo(() => {
+    // eslint-disable-next-line react-hooks/purity
     const now = currentTime ?? Date.now();
     if (!priceData.length || avgPrice <= 0) {
       return {

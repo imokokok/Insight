@@ -3,7 +3,7 @@
  * 提供数据导出功能
  */
 
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 
 // Toast component removed - using alternative notification method
 import { OracleProvider, type Blockchain, type PriceData } from '@/lib/oracles';
@@ -41,12 +41,14 @@ export interface UseExportReturn {
 }
 
 export function useExport(params: UseExportParams): UseExportReturn {
-  // Toast functionality removed - using console instead
-  const toast = {
-    success: (title: string, message: string) => console.log(`[Success] ${title}: ${message}`),
-    error: (title: string, message: string) => console.error(`[Error] ${title}: ${message}`),
-    warning: (title: string, message: string) => console.warn(`[Warning] ${title}: ${message}`),
-  };
+  const toast = useMemo(
+    () => ({
+      success: (title: string, message: string) => console.warn(`[Success] ${title}: ${message}`),
+      error: (title: string, message: string) => console.error(`[Error] ${title}: ${message}`),
+      warning: (title: string, message: string) => console.warn(`[Warning] ${title}: ${message}`),
+    }),
+    []
+  );
 
   const exportToCSV = useCallback((): boolean => {
     if (params.priceDifferences.length === 0 && Object.keys(params.historicalPrices).length === 0) {

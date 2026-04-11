@@ -37,8 +37,11 @@ export function useAPI3Price(options: UseAPI3PriceOptions): UseAPI3PriceReturn {
   const serviceRef = useRef(getAPI3WebSocketService());
   const lastUpdateTimeRef = useRef(0);
   const throttleTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const onPriceUpdateRef = useRef(onPriceUpdate);
 
-  const handlePriceUpdateRef = useRef<(data: API3PriceData) => void>(() => {});
+  useEffect(() => {
+    onPriceUpdateRef.current = onPriceUpdate;
+  }, [onPriceUpdate]);
 
   const handlePriceUpdate = useCallback(
     (data: API3PriceData) => {
@@ -51,7 +54,10 @@ export function useAPI3Price(options: UseAPI3PriceOptions): UseAPI3PriceReturn {
           }
           throttleTimerRef.current = setTimeout(
             () => {
-              handlePriceUpdateRef.current?.(data);
+              setPriceData(data);
+              setLastUpdate(new Date());
+              setError(null);
+              onPriceUpdateRef.current?.(data);
             },
             updateInterval - (now - lastUpdateTimeRef.current)
           );
@@ -63,12 +69,10 @@ export function useAPI3Price(options: UseAPI3PriceOptions): UseAPI3PriceReturn {
       setPriceData(data);
       setLastUpdate(new Date());
       setError(null);
-      onPriceUpdate?.(data);
+      onPriceUpdateRef.current?.(data);
     },
-    [updateInterval, onPriceUpdate]
+    [updateInterval]
   );
-
-  handlePriceUpdateRef.current = handlePriceUpdate;
 
   const reconnect = useCallback(() => {
     serviceRef.current.reconnect();

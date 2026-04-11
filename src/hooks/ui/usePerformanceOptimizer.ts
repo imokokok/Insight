@@ -506,8 +506,7 @@ export function useMemoryOptimizer() {
           limit: memoryInfo.jsHeapSizeLimit,
           percentage: (memoryInfo.usedJSHeapSize / memoryInfo.jsHeapSizeLimit) * 100,
         });
-      } catch (error) {
-        // 处理可能的权限错误或 API 变更
+      } catch {
         setMemory(null);
       }
     };

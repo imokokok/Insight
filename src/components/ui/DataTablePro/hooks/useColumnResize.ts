@@ -69,7 +69,7 @@ export function useColumnResize<T>(
 
 export function useScrollPosition(
   scrollPositionKey: string | undefined,
-  scrollRef: RefObject<HTMLDivElement | null>
+  _scrollRef: RefObject<HTMLDivElement | null>
 ) {
   const getSavedScrollPosition = useCallback((): number => {
     if (!scrollPositionKey || typeof window === 'undefined') return 0;

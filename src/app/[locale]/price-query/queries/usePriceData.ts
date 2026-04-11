@@ -9,7 +9,7 @@ import {
 } from '@tanstack/react-query';
 
 import { getOracleClient, extractBaseSymbol } from '@/lib/oracles';
-import { STALE_TIME_CONFIG, GC_TIME_CONFIG } from '@/providers/ReactQueryProvider';
+import { GC_TIME_CONFIG } from '@/providers/ReactQueryProvider';
 import type { OracleProvider, Blockchain, PriceData } from '@/types/oracle';
 
 import { CACHE_CONFIG, priceCache } from '../utils/cacheUtils';

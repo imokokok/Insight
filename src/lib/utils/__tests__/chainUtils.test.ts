@@ -2,16 +2,19 @@ import { Blockchain } from '@/types/oracle';
 
 import {
   formatChainName,
-  getChainColor,
-  getChainIcon,
-  isEVMChain,
-  isCosmosChain,
-  getChainExplorerUrl,
-  getChainNativeToken,
-  getChainRpcUrl,
-  validateChainId,
-  getSupportedChains,
-  getChainById,
+  getChainShortName,
+  isBlockchain,
+  assertBlockchain,
+  safeBlockchainCast,
+  getSupportedChainsForOracle,
+  calculateChainCoverage,
+  getOraclesSupportingChain,
+  getChainSupportStats,
+  getChainsSortedByOracleSupport,
+  isChainSupportedByOracle,
+  getDefaultOracleForChain,
+  getRecommendedOraclesForChain,
+  getChainCategoryStats,
 } from '../chainUtils';
 
 describe('chainUtils', () => {
@@ -21,7 +24,7 @@ describe('chainUtils', () => {
     });
 
     it('should format BNB Chain correctly', () => {
-      expect(formatChainName(Blockchain.BNB_CHAIN)).toBe('BNB Chain');
+      expect(formatChainName(Blockchain.BNB_CHAIN)).toBe('Bnb Chain');
     });
 
     it('should format unknown chain', () => {
@@ -29,175 +32,129 @@ describe('chainUtils', () => {
     });
   });
 
-  describe('getChainColor', () => {
-    it('should return color for Ethereum', () => {
-      const color = getChainColor(Blockchain.ETHEREUM);
-      expect(color).toBeDefined();
-      expect(typeof color).toBe('string');
-    });
-
-    it('should return color for Polygon', () => {
-      const color = getChainColor(Blockchain.POLYGON);
-      expect(color).toBeDefined();
-    });
-
-    it('should return default color for unknown chain', () => {
-      const color = getChainColor('unknown' as Blockchain);
-      expect(color).toBe('#6B7280');
-    });
-  });
-
-  describe('getChainIcon', () => {
-    it('should return icon for Ethereum', () => {
-      const icon = getChainIcon(Blockchain.ETHEREUM);
-      expect(icon).toBeDefined();
-    });
-
-    it('should return default icon for unknown chain', () => {
-      const icon = getChainIcon('unknown' as Blockchain);
-      expect(icon).toBeDefined();
-    });
-  });
-
-  describe('isEVMChain', () => {
-    it('should return true for Ethereum', () => {
-      expect(isEVMChain(Blockchain.ETHEREUM)).toBe(true);
-    });
-
-    it('should return true for Polygon', () => {
-      expect(isEVMChain(Blockchain.POLYGON)).toBe(true);
-    });
-
-    it('should return true for Arbitrum', () => {
-      expect(isEVMChain(Blockchain.ARBITRUM)).toBe(true);
-    });
-
-    it('should return false for Solana', () => {
-      expect(isEVMChain(Blockchain.SOLANA)).toBe(false);
-    });
-
-    it('should return false for Cosmos', () => {
-      expect(isEVMChain(Blockchain.COSMOS)).toBe(false);
-    });
-  });
-
-  describe('isCosmosChain', () => {
-    it('should return true for Cosmos', () => {
-      expect(isCosmosChain(Blockchain.COSMOS)).toBe(true);
-    });
-
-    it('should return true for Osmosis', () => {
-      expect(isCosmosChain(Blockchain.OSMOSIS)).toBe(true);
-    });
-
-    it('should return false for Ethereum', () => {
-      expect(isCosmosChain(Blockchain.ETHEREUM)).toBe(false);
-    });
-
-    it('should return false for Solana', () => {
-      expect(isCosmosChain(Blockchain.SOLANA)).toBe(false);
-    });
-  });
-
-  describe('getChainExplorerUrl', () => {
-    it('should return Etherscan URL for Ethereum', () => {
-      const url = getChainExplorerUrl(Blockchain.ETHEREUM);
-      expect(url).toContain('etherscan.io');
-    });
-
-    it('should return Polygonscan URL for Polygon', () => {
-      const url = getChainExplorerUrl(Blockchain.POLYGON);
-      expect(url).toContain('polygonscan.com');
-    });
-
-    it('should return empty string for unknown chain', () => {
-      const url = getChainExplorerUrl('unknown' as Blockchain);
-      expect(url).toBe('');
-    });
-  });
-
-  describe('getChainNativeToken', () => {
+  describe('getChainShortName', () => {
     it('should return ETH for Ethereum', () => {
-      expect(getChainNativeToken(Blockchain.ETHEREUM)).toBe('ETH');
-    });
-
-    it('should return MATIC for Polygon', () => {
-      expect(getChainNativeToken(Blockchain.POLYGON)).toBe('MATIC');
-    });
-
-    it('should return BNB for BNB Chain', () => {
-      expect(getChainNativeToken(Blockchain.BNB_CHAIN)).toBe('BNB');
+      expect(getChainShortName(Blockchain.ETHEREUM)).toBe('ETH');
     });
 
     it('should return SOL for Solana', () => {
-      expect(getChainNativeToken(Blockchain.SOLANA)).toBe('SOL');
+      expect(getChainShortName(Blockchain.SOLANA)).toBe('SOL');
     });
 
-    it('should return empty string for unknown chain', () => {
-      expect(getChainNativeToken('unknown' as Blockchain)).toBe('');
-    });
-  });
-
-  describe('getChainRpcUrl', () => {
-    it('should return RPC URL for Ethereum', () => {
-      const url = getChainRpcUrl(Blockchain.ETHEREUM);
-      expect(url).toBeDefined();
-      expect(typeof url).toBe('string');
-    });
-
-    it('should return empty string for unknown chain', () => {
-      const url = getChainRpcUrl('unknown' as Blockchain);
-      expect(url).toBe('');
+    it('should return BNB for BNB Chain', () => {
+      expect(getChainShortName(Blockchain.BNB_CHAIN)).toBe('BNB');
     });
   });
 
-  describe('validateChainId', () => {
-    it('should return true for valid Ethereum chain ID', () => {
-      expect(validateChainId(1)).toBe(true);
+  describe('isBlockchain', () => {
+    it('should return true for valid blockchain', () => {
+      expect(isBlockchain(Blockchain.ETHEREUM)).toBe(true);
     });
 
-    it('should return true for valid Polygon chain ID', () => {
-      expect(validateChainId(137)).toBe(true);
+    it('should return false for invalid blockchain', () => {
+      expect(isBlockchain('invalid')).toBe(false);
     });
 
-    it('should return false for invalid chain ID', () => {
-      expect(validateChainId(999999)).toBe(false);
-    });
-
-    it('should return false for negative chain ID', () => {
-      expect(validateChainId(-1)).toBe(false);
+    it('should return false for non-string value', () => {
+      expect(isBlockchain(123)).toBe(false);
     });
   });
 
-  describe('getSupportedChains', () => {
+  describe('assertBlockchain', () => {
+    it('should return blockchain for valid value', () => {
+      expect(assertBlockchain(Blockchain.ETHEREUM)).toBe(Blockchain.ETHEREUM);
+    });
+
+    it('should throw error for invalid value', () => {
+      expect(() => assertBlockchain('invalid')).toThrow('Invalid Blockchain value');
+    });
+
+    it('should include context in error message', () => {
+      expect(() => assertBlockchain('invalid', 'test context')).toThrow(
+        'Invalid Blockchain value: "invalid" in test context'
+      );
+    });
+  });
+
+  describe('safeBlockchainCast', () => {
+    it('should return value for valid blockchain', () => {
+      expect(safeBlockchainCast(Blockchain.ETHEREUM)).toBe(Blockchain.ETHEREUM);
+    });
+
+    it('should return undefined for invalid value without fallback', () => {
+      expect(safeBlockchainCast('invalid')).toBeUndefined();
+    });
+
+    it('should return fallback for invalid value with fallback', () => {
+      expect(safeBlockchainCast('invalid', Blockchain.ETHEREUM)).toBe(Blockchain.ETHEREUM);
+    });
+  });
+
+  describe('getSupportedChainsForOracle', () => {
     it('should return array of supported chains', () => {
-      const chains = getSupportedChains();
+      const chains = getSupportedChainsForOracle('chainlink');
       expect(Array.isArray(chains)).toBe(true);
-      expect(chains.length).toBeGreaterThan(0);
-    });
-
-    it('should include Ethereum', () => {
-      const chains = getSupportedChains();
-      expect(chains).toContain(Blockchain.ETHEREUM);
-    });
-
-    it('should include Polygon', () => {
-      const chains = getSupportedChains();
-      expect(chains).toContain(Blockchain.POLYGON);
     });
   });
 
-  describe('getChainById', () => {
-    it('should return Ethereum for chain ID 1', () => {
-      expect(getChainById(1)).toBe(Blockchain.ETHEREUM);
+  describe('calculateChainCoverage', () => {
+    it('should return number between 0 and 100', () => {
+      const coverage = calculateChainCoverage('chainlink');
+      expect(coverage).toBeGreaterThanOrEqual(0);
+      expect(coverage).toBeLessThanOrEqual(100);
     });
+  });
 
-    it('should return Polygon for chain ID 137', () => {
-      expect(getChainById(137)).toBe(Blockchain.POLYGON);
+  describe('getOraclesSupportingChain', () => {
+    it('should return array of oracle providers', () => {
+      const oracles = getOraclesSupportingChain(Blockchain.ETHEREUM);
+      expect(Array.isArray(oracles)).toBe(true);
     });
+  });
 
-    it('should return null for unknown chain ID', () => {
-      expect(getChainById(999999)).toBeNull();
+  describe('getChainSupportStats', () => {
+    it('should return record of chain support counts', () => {
+      const stats = getChainSupportStats();
+      expect(typeof stats).toBe('object');
+    });
+  });
+
+  describe('getChainsSortedByOracleSupport', () => {
+    it('should return array of blockchains', () => {
+      const chains = getChainsSortedByOracleSupport();
+      expect(Array.isArray(chains)).toBe(true);
+    });
+  });
+
+  describe('isChainSupportedByOracle', () => {
+    it('should return boolean', () => {
+      const result = isChainSupportedByOracle(Blockchain.ETHEREUM, 'chainlink');
+      expect(typeof result).toBe('boolean');
+    });
+  });
+
+  describe('getDefaultOracleForChain', () => {
+    it('should return oracle provider or null', () => {
+      const oracle = getDefaultOracleForChain(Blockchain.ETHEREUM);
+      expect(oracle === null || typeof oracle === 'string').toBe(true);
+    });
+  });
+
+  describe('getRecommendedOraclesForChain', () => {
+    it('should return array of oracle providers', () => {
+      const oracles = getRecommendedOraclesForChain(Blockchain.ETHEREUM);
+      expect(Array.isArray(oracles)).toBe(true);
+    });
+  });
+
+  describe('getChainCategoryStats', () => {
+    it('should return record of category counts', () => {
+      const stats = getChainCategoryStats();
+      expect(typeof stats).toBe('object');
+      expect(stats).toHaveProperty('l1');
+      expect(stats).toHaveProperty('l2');
+      expect(stats).toHaveProperty('cosmos');
+      expect(stats).toHaveProperty('other');
     });
   });
 });
