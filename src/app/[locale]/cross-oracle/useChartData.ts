@@ -24,6 +24,7 @@ export function useChartData(
   validPrices: number[],
   avgPrice: number
 ): ChartDataResult {
+  const _avgPrice = avgPrice;
   const oracleChartColors: Record<OracleProvider, string> = useMemo(() => {
     return getOracleChartColors(useAccessibleColors);
   }, [useAccessibleColors]);

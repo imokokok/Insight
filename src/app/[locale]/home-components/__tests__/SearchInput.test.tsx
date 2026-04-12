@@ -1,6 +1,4 @@
-import { type ReactNode } from 'react';
-
-import { render, screen, fireEvent, createEvent } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 
 import SearchInput from '../SearchInput';
 

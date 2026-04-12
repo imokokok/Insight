@@ -7,7 +7,7 @@ import {
   chainColors,
   type RefreshInterval,
 } from '@/lib/constants';
-import { type Blockchain, type OracleProvider } from '@/lib/oracles';
+import { type Blockchain } from '@/lib/oracles';
 
 export {
   TIME_RANGES,
@@ -34,6 +34,8 @@ interface PriceDifference {
   diff: number;
   diffPercent: number;
 }
+
+export type { PriceDifference };
 
 export interface ChainStats {
   label: string;

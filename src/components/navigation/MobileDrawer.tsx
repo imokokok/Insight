@@ -21,7 +21,6 @@ interface MobileDrawerProps {
 
 export function MobileDrawer({ isOpen, onClose, navStructure, currentPath }: MobileDrawerProps) {
   const t = useTranslations();
-  const tUi = useTranslations('ui');
   const [expandedGroups, setExpandedGroups] = useState<string[]>([]);
 
   const toggleGroup = (groupId: string) => {

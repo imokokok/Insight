@@ -24,7 +24,6 @@ export function useChartSettings() {
     }
     return DEFAULT_CHART_SETTINGS;
   });
-  const [isLoaded] = useState(true);
 
   const updateSettings = useCallback((updates: Partial<ChartSettings>) => {
     setSettings((prev) => {
@@ -34,7 +33,7 @@ export function useChartSettings() {
     });
   }, []);
 
-  return { settings, updateSettings, isLoaded };
+  return { settings, updateSettings };
 }
 
 export function useScreenSize(): ScreenSize {

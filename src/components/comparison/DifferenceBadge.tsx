@@ -197,8 +197,6 @@ export function ComparisonRow({
   invertColors = false,
   className = '',
 }: ComparisonRowProps) {
-  const t = useTranslations('comparison');
-
   const primaryNum = typeof primary === 'string' ? parseFloat(primary) : primary;
   const comparisonNum = typeof comparison === 'string' ? parseFloat(comparison) : comparison;
 

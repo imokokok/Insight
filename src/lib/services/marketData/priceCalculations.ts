@@ -115,7 +115,7 @@ interface ExportDataOptions {
   anomalies?: AnomalyData[];
 }
 
-function exportWithConfig(
+export function exportWithConfig(
   config: ExportConfig,
   data: ExportDataOptions
 ): { content: string | Blob; fileName: string; mimeType: string } {
@@ -430,7 +430,7 @@ function escapeXml(str: string): string {
     .replace(/'/g, '&apos;');
 }
 
-function downloadExport(content: string | Blob, fileName: string, mimeType: string): void {
+export function downloadExport(content: string | Blob, fileName: string, mimeType: string): void {
   const blob = content instanceof Blob ? content : new Blob([content], { type: mimeType });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');

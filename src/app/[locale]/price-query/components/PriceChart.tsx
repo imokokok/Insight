@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useRef } from 'react';
+import { useMemo, useState } from 'react';
 
 import { TrendingUp, Table } from 'lucide-react';
 import {

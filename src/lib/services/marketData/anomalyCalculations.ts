@@ -12,8 +12,8 @@ import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('marketData:anomalyCalculations');
 
-async function detectAnomalies(
-  oracleData: OracleMarketData[],
+export async function detectAnomalies(
+  _oracleData: OracleMarketData[],
   assetData: AssetData[]
 ): Promise<AnomalyData[]> {
   try {

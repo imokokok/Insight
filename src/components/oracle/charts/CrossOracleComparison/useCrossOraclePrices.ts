@@ -76,7 +76,8 @@ export function useCrossOraclePrices({
   requestTimeout,
   requestPriority = 'normal',
 }: UseCrossOraclePricesOptions): UseCrossOraclePricesReturn {
-  const queryClient = useQueryClient();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const _queryClient = useQueryClient();
 
   const getQueryKey = useCallback(
     (provider: OracleProvider) => {

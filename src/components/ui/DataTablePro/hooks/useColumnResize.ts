@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type RefObject } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import type { ColumnDef } from '../types';
 
@@ -67,10 +67,7 @@ export function useColumnResize<T>(
   };
 }
 
-export function useScrollPosition(
-  scrollPositionKey: string | undefined,
-  _scrollRef: RefObject<HTMLDivElement | null>
-) {
+export function useScrollPosition(scrollPositionKey: string | undefined) {
   const getSavedScrollPosition = useCallback((): number => {
     if (!scrollPositionKey || typeof window === 'undefined') return 0;
     try {

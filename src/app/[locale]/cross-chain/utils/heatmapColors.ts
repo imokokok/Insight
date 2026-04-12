@@ -205,10 +205,10 @@ export function getHeatmapCellStyle(
 
 /**
  * 获取图例渐变样式
- * @param maxValue - 最大值
+ * @param _maxValue - 最大值
  * @returns CSS 渐变字符串
  */
-export function getLegendGradient(maxValue: number): string {
+export function getLegendGradient(_maxValue: number): string {
   // 从绿色到红色的渐变
   return 'linear-gradient(to right, #10b981, #84cc16, #eab308, #f97316, #ef4444, #dc2626)';
 }

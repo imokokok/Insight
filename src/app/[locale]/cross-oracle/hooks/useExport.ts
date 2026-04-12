@@ -33,7 +33,7 @@ export interface UseExportReturn {
 export function useExport({
   priceData,
   avgPrice,
-  validPrices,
+  validPrices: _validPrices,
   selectedSymbol,
   selectedOracles,
   stats,

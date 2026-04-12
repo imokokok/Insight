@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from 'react';
 
-import { useTranslations } from '@/i18n';
 import { OracleProvider } from '@/types/oracle/enums';
 
 import { ChartsTab } from './ChartsTab';
@@ -16,7 +15,6 @@ import { useCrossOraclePrices } from './useCrossOraclePrices';
 import { useSorting } from './useSorting';
 
 export function CrossOracleComparison() {
-  const t = useTranslations();
   const chartRef = useRef<HTMLDivElement>(null);
   const [activeSubTab, setActiveSubTab] = useState<SubTab>('overview');
 
