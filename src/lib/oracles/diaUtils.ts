@@ -4,7 +4,7 @@ import type { RetryConfig } from './diaTypes';
 
 const logger = createLogger('DIADataService');
 
-export const DIA_API_BASE_URL = 'https://api.diadata.org/v1';
+export const DIA_API_BASE_URL = process.env.DIA_API_URL || 'https://api.diadata.org/v1';
 
 export const CACHE_TTL = {
   PRICE: 30000,

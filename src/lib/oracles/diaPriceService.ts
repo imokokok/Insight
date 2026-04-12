@@ -14,8 +14,61 @@ const DIA_SYMBOL_MAPPING: Record<string, { blockchain: string; address: string }
   ETH: { blockchain: 'Ethereum', address: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE' },
 };
 
+const MAX_CACHE_SIZE = 1000;
+const REQUEST_TIMEOUT = 10000;
+const CLEANUP_INTERVAL = 60000;
+
 export class DIAPriceService {
-  constructor(private cache: Map<string, CacheEntry<unknown>>) {}
+  private cleanupTimer: NodeJS.Timeout | null = null;
+  private requestTimeout: number;
+
+  constructor(
+    private cache: Map<string, CacheEntry<unknown>>,
+    options?: { maxCacheSize?: number; requestTimeout?: number }
+  ) {
+    this.requestTimeout = options?.requestTimeout ?? REQUEST_TIMEOUT;
+    this.startCleanupTimer();
+  }
+
+  private startCleanupTimer(): void {
+    if (typeof window === 'undefined' && !this.cleanupTimer) {
+      this.cleanupTimer = setInterval(() => this.cleanupCache(), CLEANUP_INTERVAL);
+    }
+  }
+
+  private cleanupCache(): void {
+    const now = Date.now();
+    let cleaned = 0;
+
+    for (const [key, entry] of this.cache.entries()) {
+      if (now - entry.timestamp > entry.ttl) {
+        this.cache.delete(key);
+        cleaned++;
+      }
+    }
+
+    if (this.cache.size > MAX_CACHE_SIZE) {
+      const entries = Array.from(this.cache.entries()).sort(
+        (a, b) => a[1].timestamp - b[1].timestamp
+      );
+      const toDelete = entries.slice(0, this.cache.size - MAX_CACHE_SIZE);
+      for (const [key] of toDelete) {
+        this.cache.delete(key);
+        cleaned++;
+      }
+    }
+
+    if (cleaned > 0) {
+      logger.debug(`Cache cleanup completed, removed ${cleaned} entries`);
+    }
+  }
+
+  destroy(): void {
+    if (this.cleanupTimer) {
+      clearInterval(this.cleanupTimer);
+      this.cleanupTimer = null;
+    }
+  }
 
   private getFromCache<T>(key: string): T | null {
     const entry = this.cache.get(key) as CacheEntry<T> | undefined;
@@ -31,11 +84,37 @@ export class DIAPriceService {
   }
 
   private setCache<T>(key: string, data: T, ttl: number): void {
+    if (this.cache.size >= MAX_CACHE_SIZE) {
+      this.cleanupCache();
+    }
+
     this.cache.set(key, {
       data,
       timestamp: Date.now(),
       ttl,
     });
+  }
+
+  private async fetchWithTimeout(url: string): Promise<Response> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), this.requestTimeout);
+
+    try {
+      const response = await fetch(url, {
+        headers: {
+          Accept: 'application/json',
+        },
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+      return response;
+    } catch (error) {
+      clearTimeout(timeoutId);
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new Error('Request timeout');
+      }
+      throw error;
+    }
   }
 
   async getAssetPrice(symbol: string, chain?: Blockchain): Promise<PriceData | null> {
@@ -51,32 +130,23 @@ export class DIAPriceService {
         async () => {
           const upperSymbol = symbol.toUpperCase();
 
-          // 使用 assetQuotation 端点获取价格数据
           let url: string;
 
-          // 优先使用特定链的合约地址（如果提供了 chain 参数）
           if (chain && DIA_ASSET_ADDRESSES[upperSymbol]?.[chain]) {
-            // 使用配置的合约地址
             const address = DIA_ASSET_ADDRESSES[upperSymbol][chain];
             const blockchainName = DIA_CHAIN_MAPPING[chain];
             url = `${DIA_API_BASE_URL}/assetQuotation/${blockchainName}/${address}`;
           } else if (DIA_SYMBOL_MAPPING[upperSymbol]) {
-            // 检查是否有预定义的 DIA 映射
             const { blockchain, address } = DIA_SYMBOL_MAPPING[upperSymbol];
             url = `${DIA_API_BASE_URL}/assetQuotation/${blockchain}/${address}`;
           } else {
-            // 尝试直接使用符号查询（某些资产支持）
             url = `${DIA_API_BASE_URL}/quotation/${upperSymbol}`;
           }
 
           logger.info('Fetching price from DIA', { symbol: upperSymbol, chain, url });
 
           try {
-            const response = await fetch(url, {
-              headers: {
-                Accept: 'application/json',
-              },
-            });
+            const response = await this.fetchWithTimeout(url);
 
             logger.info('DIA API response', {
               symbol: upperSymbol,
@@ -135,7 +205,7 @@ export class DIAPriceService {
       const result = await withRetry(
         async () => {
           const url = `${DIA_API_BASE_URL}/quotation/${symbol.toUpperCase()}`;
-          const response = await fetch(url);
+          const response = await this.fetchWithTimeout(url);
 
           if (!response.ok) {
             if (response.status === 404) {
@@ -180,7 +250,6 @@ export class DIAPriceService {
     try {
       const upperSymbol = symbol.toUpperCase();
 
-      // DIA 历史数据端点格式: /historical/{blockchain}/{address}
       let url: string;
 
       if (DIA_SYMBOL_MAPPING[upperSymbol]) {
@@ -191,7 +260,6 @@ export class DIAPriceService {
         const blockchainName = DIA_CHAIN_MAPPING[chain];
         url = `${DIA_API_BASE_URL}/historical/${blockchainName}/${address}?timeRange=${periodHours}h`;
       } else {
-        // 如果无法构建 URL，返回空数组
         logger.warn('Cannot build historical URL for asset', { symbol, chain });
         return [];
       }
@@ -199,7 +267,7 @@ export class DIAPriceService {
       logger.info('Fetching historical prices from DIA', { symbol: upperSymbol, chain, url });
 
       try {
-        const response = await fetch(url);
+        const response = await this.fetchWithTimeout(url);
 
         logger.info('DIA historical API response', {
           symbol: upperSymbol,
