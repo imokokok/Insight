@@ -10,6 +10,7 @@ import {
   fetchWithTimeout,
 } from './diaUtils';
 
+import type { CacheEntry } from './base';
 import type {
   DIASupply,
   DIADigitalAsset,
@@ -17,7 +18,6 @@ import type {
   DIANetworkStatsData,
   DIAStakingData,
   DIAEcosystemIntegration,
-  CacheEntry,
 } from './diaTypes';
 
 const logger = createLogger('DIANetworkService');

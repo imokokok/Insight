@@ -1,3 +1,4 @@
+import { withOracleRetry, ORACLE_RETRY_PRESETS } from '@/lib/oracles/utils/retry';
 import { createLogger } from '@/lib/utils/logger';
 
 import { MarketDataError } from './types';
@@ -6,11 +7,6 @@ const logger = createLogger('marketData:defiLlamaApi');
 
 export const DEFILLAMA_API_BASE = 'https://api.llama.fi';
 export const REQUEST_TIMEOUT = 10000;
-export const MAX_RETRIES = 3;
-export const RETRY_DELAY = 1000;
-
-export const delay = (ms: number): Promise<void> =>
-  new Promise((resolve) => setTimeout(resolve, ms));
 
 export async function fetchWithTimeout(
   url: string,
@@ -36,15 +32,9 @@ export async function fetchWithTimeout(
   }
 }
 
-export async function fetchWithRetry(
-  url: string,
-  options: RequestInit = {},
-  retries: number = MAX_RETRIES
-): Promise<Response> {
-  let lastError: Error | undefined;
-
-  for (let i = 0; i < retries; i++) {
-    try {
+export async function fetchWithRetry(url: string, options: RequestInit = {}): Promise<Response> {
+  return withOracleRetry(
+    async () => {
       const response = await fetchWithTimeout(url, options);
 
       if (!response.ok) {
@@ -63,23 +53,9 @@ export async function fetchWithRetry(
       }
 
       return response;
-    } catch (error) {
-      lastError = error instanceof Error ? error : new Error(String(error));
-
-      if (i === retries - 1) {
-        break;
-      }
-
-      logger.warn(`Fetch attempt ${i + 1} failed, retrying in ${RETRY_DELAY}ms...`);
-      await delay(RETRY_DELAY * (i + 1));
-    }
-  }
-
-  throw new MarketDataError(
-    `Failed after ${retries} retries: ${lastError?.message}`,
-    'RETRY_EXHAUSTED',
-    undefined,
-    lastError
+    },
+    'defiLlamaFetch',
+    ORACLE_RETRY_PRESETS.standard
   );
 }
 

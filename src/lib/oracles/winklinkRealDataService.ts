@@ -2,6 +2,10 @@ import { createLogger } from '@/lib/utils/logger';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
 
+import { withOracleRetry, ORACLE_RETRY_PRESETS } from './utils/retry';
+
+import type { CacheEntry } from './base';
+
 const logger = createLogger('WINkLinkRealDataService');
 
 // TRON RPC 端点 - 使用硬编码的公共节点（确保客户端可用）
@@ -126,12 +130,6 @@ interface RiskMetrics {
   nodeConcentrationRisk?: number;
   uptimeRisk?: number;
   lastUpdate: number;
-}
-
-interface CacheEntry<T> {
-  data: T;
-  timestamp: number;
-  ttl: number;
 }
 
 // WINkLink代币链上数据接口
@@ -399,13 +397,6 @@ export class WINkLinkRealDataService {
   }
 
   /**
-   * 延迟函数
-   */
-  private delay(ms: number): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-  }
-
-  /**
    * 带超时的 fetch 请求
    */
   private async fetchWithTimeout(
@@ -432,24 +423,23 @@ export class WINkLinkRealDataService {
   private async callContractMethodWithRetry(
     contractAddress: string,
     method: string,
-    maxRetries: number = 3
+    _maxRetries: number = 3
   ): Promise<string | null> {
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      const result = await this.callContractMethod(contractAddress, method);
-
-      if (result !== null) {
-        return result;
-      }
-
-      if (attempt < maxRetries) {
-        logger.warn(`Retrying ${method} call (attempt ${attempt}/${maxRetries})`, {
-          contractAddress,
-        });
-        await this.delay(500 * attempt); // 指数退避
-      }
+    try {
+      return await withOracleRetry(
+        async () => {
+          const result = await this.callContractMethod(contractAddress, method);
+          if (result === null) {
+            throw new Error(`Contract method ${method} returned null`);
+          }
+          return result;
+        },
+        `callContractMethod:${method}`,
+        ORACLE_RETRY_PRESETS.standard
+      );
+    } catch {
+      return null;
     }
-
-    return null;
   }
 
   /**

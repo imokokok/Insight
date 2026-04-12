@@ -11,7 +11,8 @@ import {
   fetchWithTimeout,
 } from './diaUtils';
 
-import type { DIAAssetQuotation, CacheEntry } from './diaTypes';
+import type { CacheEntry } from './base';
+import type { DIAAssetQuotation } from './diaTypes';
 
 const logger = createLogger('DIAPriceService');
 

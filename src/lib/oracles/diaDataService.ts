@@ -7,8 +7,8 @@ import { DIANFTService } from './diaNFTService';
 import { DIAPriceService } from './diaPriceService';
 import { DIA_API_BASE_URL } from './diaUtils';
 
+import type { CacheEntry } from './base';
 import type {
-  CacheEntry,
   DIANFTQuotation,
   DIASupply,
   DIADigitalAsset,

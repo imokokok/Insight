@@ -1,6 +1,6 @@
 import { RedStoneApiError, type RedStoneErrorCode } from '@/lib/errors';
 import { BaseOracleClient } from '@/lib/oracles/base';
-import type { OracleClientConfig } from '@/lib/oracles/base';
+import type { OracleClientConfig, CacheEntry } from '@/lib/oracles/base';
 import { SPREAD_PERCENTAGES, REDSTONE_API_BASE } from '@/lib/oracles/redstoneConstants';
 import { redstoneSymbols } from '@/lib/oracles/supportedSymbols';
 import { withOracleRetry, ORACLE_RETRY_PRESETS } from '@/lib/oracles/utils/retry';
@@ -20,14 +20,6 @@ const logger = createLogger('RedStoneClient');
 const REDSTONE_CACHE_TTL = {
   PRICE: 10000,
 };
-
-interface CacheEntry<T> {
-  data: T;
-  /** Timestamp in milliseconds */
-  timestamp: number;
-  /** Time-to-live in milliseconds */
-  ttl: number;
-}
 
 interface RedStonePriceResponse {
   symbol: string;

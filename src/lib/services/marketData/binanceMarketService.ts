@@ -1,3 +1,4 @@
+import { withOracleRetry, ORACLE_RETRY_PRESETS } from '@/lib/oracles/utils/retry';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('BinanceMarketService');
@@ -33,10 +34,6 @@ export interface HistoricalPricePoint {
 
 const BINANCE_API_BASE = 'https://api.binance.com/api/v3';
 const REQUEST_TIMEOUT = 15000;
-const MAX_RETRIES = 3;
-const RETRY_DELAY = 1000;
-
-const delay = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
 
 function isValidNumber(value: unknown): value is number {
   return typeof value === 'number' && !isNaN(value) && isFinite(value);
@@ -98,42 +95,20 @@ async function fetchWithTimeout(
   }
 }
 
-async function fetchWithRetry(
-  url: string,
-  options: RequestInit = {},
-  retries: number = MAX_RETRIES
-): Promise<Response> {
-  let lastError: Error | undefined;
-
-  for (let i = 0; i < retries; i++) {
-    try {
+async function fetchWithRetry(url: string, options: RequestInit = {}): Promise<Response> {
+  return withOracleRetry(
+    async () => {
       const response = await fetchWithTimeout(url, options);
 
       if (!response.ok) {
-        if (response.status === 429) {
-          const retryAfter = response.headers.get('Retry-After');
-          const waitTime = retryAfter ? parseInt(retryAfter) * 1000 : RETRY_DELAY * (i + 1) * 2;
-          logger.warn(`Rate limited, waiting ${waitTime}ms...`);
-          await delay(waitTime);
-          continue;
-        }
         throw new Error(`HTTP error: ${response.status} ${response.statusText}`);
       }
 
       return response;
-    } catch (error) {
-      lastError = error instanceof Error ? error : new Error(String(error));
-
-      if (i === retries - 1) {
-        break;
-      }
-
-      logger.warn(`Fetch attempt ${i + 1} failed, retrying in ${RETRY_DELAY}ms...`);
-      await delay(RETRY_DELAY * (i + 1));
-    }
-  }
-
-  throw new Error(`Failed after ${retries} retries: ${lastError?.message}`);
+    },
+    'binanceFetch',
+    ORACLE_RETRY_PRESETS.standard
+  );
 }
 
 // Binance 交易对映射

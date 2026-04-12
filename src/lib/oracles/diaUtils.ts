@@ -1,5 +1,7 @@
 import { createLogger } from '@/lib/utils/logger';
 
+import { withOracleRetry, ORACLE_RETRY_PRESETS } from './utils/retry';
+
 import type { RetryConfig } from './diaTypes';
 
 const logger = createLogger('DIADataService');
@@ -24,35 +26,19 @@ export const DEFAULT_RETRY_CONFIG: RetryConfig = {
   backoffMultiplier: 2,
 };
 
-export function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
 export async function withRetry<T>(
   operation: () => Promise<T>,
   config: RetryConfig = DEFAULT_RETRY_CONFIG,
   operationName: string = 'operation'
 ): Promise<T> {
-  let lastError: Error | undefined;
-  let delay = config.baseDelay;
+  const oracleConfig = {
+    maxAttempts: config.maxAttempts,
+    baseDelay: config.baseDelay,
+    maxDelay: config.maxDelay,
+    backoffMultiplier: config.backoffMultiplier,
+  };
 
-  for (let attempt = 1; attempt <= config.maxAttempts; attempt++) {
-    try {
-      return await operation();
-    } catch (error) {
-      lastError = error instanceof Error ? error : new Error(String(error));
-      logger.warn(`${operationName} failed (attempt ${attempt}/${config.maxAttempts})`, {
-        error: lastError.message,
-      });
-
-      if (attempt < config.maxAttempts) {
-        await sleep(delay);
-        delay = Math.min(delay * config.backoffMultiplier, config.maxDelay);
-      }
-    }
-  }
-
-  throw lastError || new Error(`${operationName} failed after ${config.maxAttempts} attempts`);
+  return withOracleRetry(operation, operationName, oracleConfig);
 }
 
 export interface FetchWithTimeoutOptions extends RequestInit {

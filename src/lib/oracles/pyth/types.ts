@@ -2,12 +2,6 @@ import type { RetryConfig } from '../pythConstants';
 
 export type { RetryConfig };
 
-export interface CacheEntry<T> {
-  data: T;
-  timestamp: number;
-  ttl: number;
-}
-
 export type WebSocketConnectionStatus = 'connecting' | 'connected' | 'disconnected';
 
 export interface WebSocketConnectionState {
