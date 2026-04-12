@@ -1,10 +1,13 @@
 import { computeCommunalApi3ReaderProxyV1Address } from '@api3/contracts';
+import { encodeFunctionData as viemEncodeFunctionData } from 'viem';
 
 import { ALCHEMY_RPC } from '@/lib/config/serverEnv';
 import { createLogger } from '@/lib/utils/logger';
 import { Blockchain } from '@/types/oracle';
 
 const logger = createLogger('API3NetworkService');
+
+const RPC_TIMEOUT_MS = 10000;
 
 // API3 dAPI Proxy 合约 ABI (简化版，只包含read函数)
 const DAPI_PROXY_ABI = [
@@ -146,10 +149,11 @@ interface PriceReading {
 /**
  * 编码函数调用数据
  */
-function encodeFunctionData(_functionName: string, _abi: typeof DAPI_PROXY_ABI): `0x${string}` {
-  // read() 的函数签名是 read() -> (int224, uint32)
-  // 函数选择器是 0x57de26a4
-  return '0x57de26a4';
+function encodeFunctionData(functionName: 'read', abi: typeof DAPI_PROXY_ABI): `0x${string}` {
+  return viemEncodeFunctionData({
+    abi,
+    functionName,
+  });
 }
 
 /**
@@ -184,7 +188,7 @@ function decodeUint32(data: string): number {
 }
 
 /**
- * 执行RPC调用
+ * 执行RPC调用（带超时控制）
  */
 async function rpcCall(chainId: number, method: string, params: unknown[]): Promise<unknown> {
   const endpoints = RPC_ENDPOINTS[chainId];
@@ -195,6 +199,9 @@ async function rpcCall(chainId: number, method: string, params: unknown[]): Prom
   let lastError: Error | null = null;
 
   for (const endpoint of endpoints) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), RPC_TIMEOUT_MS);
+
     try {
       const response = await fetch(endpoint, {
         method: 'POST',
@@ -207,7 +214,10 @@ async function rpcCall(chainId: number, method: string, params: unknown[]): Prom
           method,
           params,
         }),
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         throw new Error(`RPC error: ${response.status}`);
@@ -221,7 +231,14 @@ async function rpcCall(chainId: number, method: string, params: unknown[]): Prom
 
       return result.result;
     } catch (error) {
-      lastError = error instanceof Error ? error : new Error(String(error));
+      clearTimeout(timeoutId);
+
+      if (error instanceof Error && error.name === 'AbortError') {
+        lastError = new Error(`RPC request timed out after ${RPC_TIMEOUT_MS}ms`);
+      } else {
+        lastError = error instanceof Error ? error : new Error(String(error));
+      }
+
       logger.warn(`RPC endpoint ${endpoint} failed:`, lastError);
     }
   }

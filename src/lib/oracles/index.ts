@@ -42,12 +42,6 @@ export {
 } from './diaDataService';
 export { WINkLinkClient } from '@/lib/services/oracle/clients/winklink';
 export {
-  PythHermesClient,
-  getPythHermesClient,
-  resetPythHermesClient,
-  type PythPriceUpdate,
-} from './pythHermesClient';
-export {
   PythDataService,
   getPythDataService,
   resetPythDataService,

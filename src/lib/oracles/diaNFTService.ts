@@ -3,11 +3,19 @@ import { Blockchain } from '@/types/oracle';
 
 import { DIA_CHAIN_MAPPING } from './constants/chainMapping';
 import { NFT_COLLECTIONS } from './constants/nftCollections';
-import { DIA_API_BASE_URL, CACHE_TTL, DEFAULT_RETRY_CONFIG, withRetry } from './diaUtils';
+import {
+  DIA_API_BASE_URL,
+  CACHE_TTL,
+  DEFAULT_RETRY_CONFIG,
+  withRetry,
+  fetchWithTimeout,
+} from './diaUtils';
 
 import type { DIANFTQuotation, DIANFTCollection, DIANFTData, CacheEntry } from './diaTypes';
 
 const logger = createLogger('DIANFTService');
+
+const REQUEST_TIMEOUT = 10000;
 
 export class DIANFTService {
   constructor(private cache: Map<string, CacheEntry<unknown>>) {}
@@ -48,16 +56,7 @@ export class DIANFTService {
         async () => {
           const blockchainName = DIA_CHAIN_MAPPING[chain];
           const url = `${DIA_API_BASE_URL}/NFTQuotation/${blockchainName}/${collectionAddress}`;
-          const response = await fetch(url);
-
-          if (!response.ok) {
-            if (response.status === 404) {
-              return null;
-            }
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-          }
-
-          return await response.json();
+          return fetchWithTimeout<DIANFTQuotation | null>(url, { timeout: REQUEST_TIMEOUT });
         },
         DEFAULT_RETRY_CONFIG,
         'getNFTFloorPrice'
@@ -86,35 +85,42 @@ export class DIANFTService {
     }
 
     try {
+      const results = await Promise.allSettled(
+        NFT_COLLECTIONS.map(async (nft) => {
+          const nftData = await this.getNFTFloorPrice(nft.address, nft.chain);
+          return { nft, nftData };
+        })
+      );
+
       const collections: DIANFTCollection[] = [];
 
-      for (const nft of NFT_COLLECTIONS) {
-        try {
-          const nftData = await this.getNFTFloorPrice(nft.address, nft.chain);
-          if (nftData) {
-            const floorPriceChange24h =
-              nftData.FloorPriceYesterday > 0
-                ? ((nftData.FloorPrice - nftData.FloorPriceYesterday) /
-                    nftData.FloorPriceYesterday) *
-                  100
-                : 0;
-
-            collections.push({
-              id: `dia-nft-${nft.symbol.toLowerCase()}`,
-              name: nft.name,
-              symbol: nft.symbol,
-              floorPrice: nftData.FloorPrice,
-              floorPriceChange24h: Number(floorPriceChange24h.toFixed(2)),
-              volume24h: nftData.VolumeYesterday || 0,
-              totalSupply: 10000,
-              chain: nft.chain,
-              updateFrequency: 300,
-              confidence: 0.95,
-            });
-          }
-        } catch (e) {
-          logger.warn(`Failed to fetch NFT data for ${nft.name}`, { error: e });
+      for (const result of results) {
+        if (result.status !== 'fulfilled') {
+          logger.warn('Failed to fetch NFT data', { reason: result.reason });
+          continue;
         }
+
+        const { nft, nftData } = result.value;
+        if (!nftData) continue;
+
+        const floorPriceChange24h =
+          nftData.FloorPriceYesterday > 0
+            ? ((nftData.FloorPrice - nftData.FloorPriceYesterday) / nftData.FloorPriceYesterday) *
+              100
+            : 0;
+
+        collections.push({
+          id: `dia-nft-${nft.symbol.toLowerCase()}`,
+          name: nft.name,
+          symbol: nft.symbol,
+          floorPrice: nftData.FloorPrice,
+          floorPriceChange24h: Number(floorPriceChange24h.toFixed(2)),
+          volume24h: nftData.VolumeYesterday || 0,
+          totalSupply: 10000,
+          chain: nft.chain,
+          updateFrequency: 300,
+          confidence: 0.95,
+        });
       }
 
       if (collections.length === 0) {
@@ -133,15 +139,15 @@ export class DIANFTService {
         [Blockchain.ARBITRUM]: 0,
       };
 
-      const result: DIANFTData = {
+      const nftData: DIANFTData = {
         collections,
         totalCollections: collections.length,
         byChain,
         trending: collections.slice(0, 3),
       };
 
-      this.setCache(cacheKey, result, CACHE_TTL.NFT);
-      return result;
+      this.setCache(cacheKey, nftData, CACHE_TTL.NFT);
+      return nftData;
     } catch (error) {
       logger.error(
         'Failed to get NFT data from DIA API',

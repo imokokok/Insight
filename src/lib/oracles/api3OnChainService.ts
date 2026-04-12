@@ -4,6 +4,8 @@ import { ALCHEMY_RPC } from '@/lib/config/serverEnv';
 
 import { getAPI3Contract } from './api3DataSources';
 
+const RPC_TIMEOUT_MS = 10000;
+
 export interface TokenData {
   totalSupply: bigint;
   circulatingSupply: bigint;
@@ -215,6 +217,9 @@ export class API3OnChainService {
         continue;
       }
 
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), RPC_TIMEOUT_MS);
+
       try {
         const response = await fetch(endpoint, {
           method: 'POST',
@@ -227,7 +232,10 @@ export class API3OnChainService {
             method,
             params,
           }),
+          signal: controller.signal,
         });
+
+        clearTimeout(timeoutId);
 
         if (!response.ok) {
           throw new Error(`RPC call failed: ${response.status}`);
@@ -244,9 +252,16 @@ export class API3OnChainService {
 
         return result.result as T;
       } catch (error) {
-        lastError = error instanceof Error ? error : new Error(String(error));
+        clearTimeout(timeoutId);
+
+        if (error instanceof Error && error.name === 'AbortError') {
+          lastError = new Error(`RPC request timed out after ${RPC_TIMEOUT_MS}ms`);
+        } else {
+          lastError = error instanceof Error ? error : new Error(String(error));
+        }
+
         this.endpointHealth[`${chainId}-${endpointIndex}`] = false;
-        console.warn(`RPC endpoint ${endpoint} failed, trying next:`, error);
+        console.warn(`RPC endpoint ${endpoint} failed, trying next:`, lastError);
       }
     }
 

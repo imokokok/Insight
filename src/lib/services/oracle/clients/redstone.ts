@@ -1,7 +1,7 @@
 import { RedStoneApiError, type RedStoneErrorCode } from '@/lib/errors';
 import { BaseOracleClient } from '@/lib/oracles/base';
 import type { OracleClientConfig } from '@/lib/oracles/base';
-import { SPREAD_PERCENTAGES } from '@/lib/oracles/redstoneConstants';
+import { SPREAD_PERCENTAGES, REDSTONE_API_BASE } from '@/lib/oracles/redstoneConstants';
 import { redstoneSymbols } from '@/lib/oracles/supportedSymbols';
 import { withOracleRetry, ORACLE_RETRY_PRESETS } from '@/lib/oracles/utils/retry';
 import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
@@ -17,7 +17,6 @@ import {
 
 const logger = createLogger('RedStoneClient');
 
-const REDSTONE_API_BASE = 'https://api.redstone.finance';
 const REDSTONE_CACHE_TTL = {
   PRICE: 10000,
 };

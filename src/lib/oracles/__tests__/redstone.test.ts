@@ -1,8 +1,7 @@
 import { RedStoneApiError } from '@/lib/errors';
+import { REDSTONE_API_BASE } from '@/lib/oracles/redstoneConstants';
 import { RedStoneClient } from '@/lib/services/oracle/clients/redstone';
 import { OracleProvider, Blockchain } from '@/types/oracle';
-
-const REDSTONE_API_BASE = 'https://api.redstone.finance';
 
 global.fetch = jest.fn();
 
@@ -58,6 +57,7 @@ const createMockHistoricalResponse = (symbol: string, basePrice: number, points:
   return data;
 };
 
+/* eslint-disable max-lines-per-function */
 describe('RedStoneClient', () => {
   let client: RedStoneClient;
 
