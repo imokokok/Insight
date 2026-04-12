@@ -240,7 +240,11 @@
     "deviation": "偏离值",
     "freshness": "新鲜度",
     "confidence": "置信度",
-    "lastUpdated": "最后更新"
+    "lastUpdated": "最后更新",
+    "latency": "延迟",
+    "latencyTooltip": "基于历史数据的预估延迟",
+    "dataSources": "数据源",
+    "dataSourcesTooltip": "基于官方文档的预估数据源数量"
   },
   "settings": {
     "profile": {

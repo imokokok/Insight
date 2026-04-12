@@ -209,6 +209,7 @@
     "features": "Features",
     "frequency": "Frequency",
     "latency": "Latency",
+    "latencyTooltip": "Estimated latency based on historical data",
     "featureComparison": "Feature Comparison",
     "featureComparisonDesc": "Compare features and capabilities of each oracle",
     "hoverForDetails": "Hover for Details",
@@ -454,7 +455,8 @@
       "all": "All",
       "normal": "Normal",
       "warning": "Warning",
-      "error": "Error"
+      "error": "Error",
+      "filtersActive": "filters active"
     },
     "filterSummary": {
       "deviation": "Deviation",
@@ -717,6 +719,7 @@
     "avgResponseTime": "Avg Response Time",
     "highDeviation": "High Deviation",
     "dataSources": "Data Sources",
+    "dataSourcesTooltip": "Estimated data sources based on official documentation",
     "supportedChains": "Supported Chains",
     "radar": {
       "responseTime": "Response Time",

@@ -217,6 +217,7 @@
     "features": "特性",
     "frequency": "频率",
     "latency": "延迟",
+    "latencyTooltip": "基于历史数据的预估延迟",
     "featureComparison": "特性对比",
     "featureComparisonDesc": "对比各预言机的特性和能力",
     "hoverForDetails": "悬停查看详情",
@@ -735,6 +736,7 @@
     "avgResponseTime": "平均响应时间",
     "highDeviation": "高偏差",
     "dataSources": "数据源",
+    "dataSourcesTooltip": "基于官方文档的预估数据源数量",
     "supportedChains": "支持的链",
     "radar": {
       "responseTime": "响应时间",

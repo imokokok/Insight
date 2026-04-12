@@ -16,6 +16,12 @@
         "title": "确认删除",
         "message": "确定要删除收藏 \"{name}\" 吗？此操作无法撤销。"
       }
+    },
+    "button": {
+      "add": "收藏",
+      "added": "已收藏",
+      "addTitle": "添加收藏",
+      "removeTitle": "取消收藏"
     }
   }
 }
