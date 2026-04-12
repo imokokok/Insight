@@ -1,12 +1,13 @@
 /**
  * @fileoverview 风险趋势数据 Hook
  * @description 提供风险趋势数据的类型定义和辅助函数
- * 注意：模拟数据已禁用，需要从真实 API 获取数据
+ * 基于真实的异常检测数据计算风险趋势
  */
 
 import { useMemo } from 'react';
 
 import type { TimeRange } from '../constants';
+import type { PriceAnomaly } from './usePriceAnomalyDetection';
 
 export interface RiskTrendPoint {
   timestamp: number;
@@ -25,20 +26,55 @@ export interface RiskTrendsResult {
 }
 
 export function useRiskTrends(
-  _timeRange: TimeRange = '24h',
-  _baseRiskScore: number = 30
+  timeRange: TimeRange = '24h',
+  anomalies: PriceAnomaly[] = []
 ): RiskTrendsResult {
   return useMemo(() => {
-    console.warn('useRiskTrends: Mock data is disabled. Please provide real risk data from API.');
+    // 基于真实的异常数据计算风险趋势
+    const now = Date.now();
+    const hours =
+      timeRange === '1h' ? 1 : timeRange === '24h' ? 24 : timeRange === '7d' ? 168 : 720;
+    const data: RiskTrendPoint[] = [];
+
+    // 按小时聚合异常数据
+    for (let i = hours; i >= 0; i--) {
+      const hourStart = now - (i + 1) * 3600000;
+      const hourEnd = now - i * 3600000;
+
+      const hourAnomalies = anomalies.filter(
+        (a) => a.timestamp >= hourStart && a.timestamp < hourEnd
+      );
+      const anomalyCount = hourAnomalies.length;
+
+      // 计算风险分数：基于异常数量和严重程度
+      const riskScore = Math.min(
+        100,
+        anomalyCount * 15 +
+          hourAnomalies.filter((a) => a.severity === 'high').length * 30 +
+          hourAnomalies.filter((a) => a.severity === 'medium').length * 15
+      );
+
+      data.push({
+        timestamp: hourEnd,
+        riskScore,
+        anomalyCount,
+        event: anomalyCount > 0 ? `${anomalyCount} 个异常 detected` : undefined,
+      });
+    }
+
+    const totalAnomalies = anomalies.length;
+    const riskScores = data.map((d) => d.riskScore);
+
     return {
-      data: [],
-      count: 0,
-      avgRiskScore: 0,
-      maxRiskScore: 0,
-      minRiskScore: 0,
-      totalAnomalies: 0,
+      data,
+      count: data.length,
+      avgRiskScore:
+        riskScores.length > 0 ? riskScores.reduce((a, b) => a + b, 0) / riskScores.length : 0,
+      maxRiskScore: riskScores.length > 0 ? Math.max(...riskScores) : 0,
+      minRiskScore: riskScores.length > 0 ? Math.min(...riskScores) : 0,
+      totalAnomalies,
     };
-  }, []);
+  }, [timeRange, anomalies]);
 }
 
 export function getRiskLevel(riskScore: number): 'low' | 'medium' | 'high' | 'critical' {
