@@ -7,14 +7,8 @@ import {
   assertBlockchain,
   safeBlockchainCast,
   getSupportedChainsForOracle,
-  calculateChainCoverage,
   getOraclesSupportingChain,
-  getChainSupportStats,
-  getChainsSortedByOracleSupport,
   isChainSupportedByOracle,
-  getDefaultOracleForChain,
-  getRecommendedOraclesForChain,
-  getChainCategoryStats,
 } from '../chainUtils';
 
 describe('chainUtils', () => {
@@ -97,14 +91,6 @@ describe('chainUtils', () => {
     });
   });
 
-  describe('calculateChainCoverage', () => {
-    it('should return number between 0 and 100', () => {
-      const coverage = calculateChainCoverage('chainlink');
-      expect(coverage).toBeGreaterThanOrEqual(0);
-      expect(coverage).toBeLessThanOrEqual(100);
-    });
-  });
-
   describe('getOraclesSupportingChain', () => {
     it('should return array of oracle providers', () => {
       const oracles = getOraclesSupportingChain(Blockchain.ETHEREUM);
@@ -112,49 +98,10 @@ describe('chainUtils', () => {
     });
   });
 
-  describe('getChainSupportStats', () => {
-    it('should return record of chain support counts', () => {
-      const stats = getChainSupportStats();
-      expect(typeof stats).toBe('object');
-    });
-  });
-
-  describe('getChainsSortedByOracleSupport', () => {
-    it('should return array of blockchains', () => {
-      const chains = getChainsSortedByOracleSupport();
-      expect(Array.isArray(chains)).toBe(true);
-    });
-  });
-
   describe('isChainSupportedByOracle', () => {
     it('should return boolean', () => {
       const result = isChainSupportedByOracle(Blockchain.ETHEREUM, 'chainlink');
       expect(typeof result).toBe('boolean');
-    });
-  });
-
-  describe('getDefaultOracleForChain', () => {
-    it('should return oracle provider or null', () => {
-      const oracle = getDefaultOracleForChain(Blockchain.ETHEREUM);
-      expect(oracle === null || typeof oracle === 'string').toBe(true);
-    });
-  });
-
-  describe('getRecommendedOraclesForChain', () => {
-    it('should return array of oracle providers', () => {
-      const oracles = getRecommendedOraclesForChain(Blockchain.ETHEREUM);
-      expect(Array.isArray(oracles)).toBe(true);
-    });
-  });
-
-  describe('getChainCategoryStats', () => {
-    it('should return record of category counts', () => {
-      const stats = getChainCategoryStats();
-      expect(typeof stats).toBe('object');
-      expect(stats).toHaveProperty('l1');
-      expect(stats).toHaveProperty('l2');
-      expect(stats).toHaveProperty('cosmos');
-      expect(stats).toHaveProperty('other');
     });
   });
 });

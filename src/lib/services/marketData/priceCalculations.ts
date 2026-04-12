@@ -101,7 +101,7 @@ export function generateTVSTrendData(
   return data;
 }
 
-export interface ExportDataOptions {
+interface ExportDataOptions {
   oracleData: OracleMarketData[];
   assets: AssetData[];
   trendData: TVSTrendData[];
@@ -115,7 +115,7 @@ export interface ExportDataOptions {
   anomalies?: AnomalyData[];
 }
 
-export function exportWithConfig(
+function exportWithConfig(
   config: ExportConfig,
   data: ExportDataOptions
 ): { content: string | Blob; fileName: string; mimeType: string } {
@@ -430,7 +430,7 @@ function escapeXml(str: string): string {
     .replace(/'/g, '&apos;');
 }
 
-export function downloadExport(content: string | Blob, fileName: string, mimeType: string): void {
+function downloadExport(content: string | Blob, fileName: string, mimeType: string): void {
   const blob = content instanceof Blob ? content : new Blob([content], { type: mimeType });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');

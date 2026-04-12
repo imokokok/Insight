@@ -1,8 +1,3 @@
-export interface TimestampFields {
-  createdAt: number;
-  updatedAt: number;
-}
-
 export interface TimeRangeValue {
   start: number;
   end: number;
@@ -15,13 +10,6 @@ export interface TimeRange {
   custom?: TimeRangeValue;
 }
 
-export type DurationUnit = 'ms' | 's' | 'm' | 'h' | 'd' | 'w' | 'M' | 'y';
-
-export interface Duration {
-  value: number;
-  unit: DurationUnit;
-}
-
 export function formatTimestamp(timestamp: number): string {
   return new Date(timestamp).toLocaleString('zh-CN', {
     year: 'numeric',
@@ -30,7 +18,7 @@ export function formatTimestamp(timestamp: number): string {
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
-    timeZone: 'Asia/Shanghai', // 明确指定时区，避免 SSR 水合错误
+    timeZone: 'Asia/Shanghai',
   });
 }
 
