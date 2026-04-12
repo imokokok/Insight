@@ -341,71 +341,63 @@ src/app/
 │   ├── page.tsx                     # 首页 /
 │   ├── layout.tsx                   # 国际化布局
 │   │
-│   ├── chainlink/                   # Chainlink 预言机
-│   │   └── page.tsx                 # /[locale]/chainlink
+│   ├── price-query/                 # 价格查询
+│   │   └── page.tsx                 # /[locale]/price-query
 │   │
-│   ├── pyth/                       # Pyth Network
-│   │   └── page.tsx                # /[locale]/pyth
+│   ├── cross-oracle/                # 预言机对比
+│   │   └── page.tsx                 # /[locale]/cross-oracle
 │   │
-│   ├── api3/                       # API3
-│   │   └── page.tsx                # /[locale]/api3
+│   ├── cross-chain/                 # 跨链对比
+│   │   └── page.tsx                 # /[locale]/cross-chain
 │   │
-│   ├── redstone/                   # RedStone
-│   │   └── page.tsx                # /[locale]/redstone
+│   ├── pyth-network/                # Pyth Network
+│   │   └── page.tsx                 # /[locale]/pyth-network
 │   │
-│   ├── dia/                        # DIA
-│   │   └── page.tsx                # /[locale]/dia
+│   ├── alerts/                      # 警报
+│   │   └── page.tsx                 # /[locale]/alerts
 │   │
-│   ├── winklink/                   # WINkLink
-│   │   └── page.tsx                # /[locale]/winklink
+│   ├── favorites/                   # 收藏
+│   │   └── page.tsx                 # /[locale]/favorites
 │   │
-│   ├── cross-chain/                # 跨链对比
-│   │   └── page.tsx                # /[locale]/cross-chain
+│   ├── settings/                    # 设置
+│   │   └── page.tsx                 # /[locale]/settings
 │   │
-│   ├── cross-oracle/               # 预言机对比
-│   │   └── page.tsx                # /[locale]/cross-oracle
+│   ├── docs/                        # 文档
+│   │   └── page.tsx                 # /[locale]/docs
 │   │
-│   ├── price-query/                # 价格查询
-│   │   └── page.tsx                # /[locale]/price-query
+│   ├── login/                       # 登录
+│   │   └── page.tsx                 # /[locale]/login
 │   │
-│   ├── alerts/                     # 警报
-│   │   └── page.tsx                # /[locale]/alerts
+│   ├── register/                    # 注册
+│   │   └── page.tsx                 # /[locale]/register
 │   │
-│   ├── favorites/                  # 收藏
-│   │   └── page.tsx                # /[locale]/favorites
-│   │
-│   ├── settings/                   # 设置
-│   │   └── page.tsx                # /[locale]/settings
-│   │
-│   ├── login/                      # 登录
-│   │   └── page.tsx                # /[locale]/login
-│   │
-│   ├── register/                   # 注册
-│   │   └── page.tsx                # /[locale]/register
-│   │
-│   ├── methodology/                # 方法论
-│   │   └── page.tsx                # /[locale]/methodology
-│   │
-│   ├── snapshot/                   # 快照
-│   │   └── [id]/
-│   │       └── page.tsx            # /[locale]/snapshot/[id]
-│   │
-│   └── auth/                       # 认证相关
+│   └── auth/                        # 认证相关
 │       ├── forgot-password/
-│       │   └── page.tsx           # /[locale]/auth/forgot-password
+│       │   └── page.tsx             # /[locale]/auth/forgot-password
 │       ├── resend-verification/
-│       │   └── page.tsx           # /[locale]/auth/resend-verification
+│       │   └── page.tsx             # /[locale]/auth/resend-verification
 │       ├── reset-password/
-│       │   └── page.tsx           # /[locale]/auth/reset-password
+│       │   └── page.tsx             # /[locale]/auth/reset-password
 │       └── verify-email/
-│           └── page.tsx           # /[locale]/auth/verify-email
+│           └── page.tsx             # /[locale]/auth/verify-email
 │
-├── api/                            # API 路由
-│   └── ...
+├── api/                             # API 路由
+│   ├── oracles/                     # 预言机数据
+│   ├── alerts/                      # 警报管理
+│   ├── favorites/                   # 收藏管理
+│   ├── snapshots/                   # 快照管理
+│   ├── auth/                        # 认证
+│   ├── health/                      # 健康检查
+│   ├── config/                      # 配置
+│   ├── market-data/                 # 市场数据
+│   ├── prices/                      # 价格数据
+│   ├── binance/                     # Binance 代理
+│   ├── defillama/                   # DeFi Llama 代理
+│   └── cron/                        # 定时任务
 │
-├── error.tsx                       # 全局错误页面
-├── not-found.tsx                  # 404 页面
-└── layout.tsx                     # 根布局
+├── error.tsx                        # 全局错误页面
+├── not-found.tsx                    # 404 页面
+└── layout.tsx                       # 根布局
 ```
 
 ### 动态路由

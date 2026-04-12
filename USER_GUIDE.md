@@ -557,29 +557,18 @@ Enhanced accessibility:
 
 ## Oracle-Specific Pages
 
-Each oracle has a dedicated page with specialized analytics.
+Oracle-specific analytics are accessible through the Price Query page by selecting specific oracle providers.
 
-### Chainlink (`/chainlink`)
+### Accessing Oracle Data
 
-#### Features
-
-- **Node Analytics**: Decentralized node network analysis
-- **Market Data**: LINK token market information
-- **Network Health**: Node uptime and performance
-- **Price Charts**: Historical price visualization
-- **Technical Indicators**: RSI, MACD, Bollinger Bands
-- **Gas Fee Trends**: Transaction cost analysis
-- **Latency Distribution**: Response time analysis
-- **Data Source Credibility**: Source reliability scores
-
-#### Tabs
-
-- **Market**: Price and market data
-- **Network**: Network health and performance
-- **Risk**: Risk assessment metrics
-- **Ecosystem**: Integration overview
+1. Navigate to `/[locale]/price-query`
+2. Select the desired oracle provider from the selector
+3. Choose the trading pair and blockchain
+4. View oracle-specific statistics and charts
 
 ### Pyth Network (`/pyth-network`)
+
+Dedicated page for Pyth Network with:
 
 #### Features
 
@@ -591,76 +580,32 @@ Each oracle has a dedicated page with specialized analytics.
 - **Confidence Alerts**: Threshold-based alerts
 - **Data Quality Scores**: Quality metrics panel
 
-#### Tabs
+### Supported Oracle Providers
 
-- **Market**: Price and publisher data
-- **Network**: Network performance
-- **Ecosystem**: Publisher ecosystem
+All oracle providers can be accessed through the Price Query page:
 
-### API3 (`/api3`)
+| Provider  | Description                  | Key Features                                  |
+| --------- | ---------------------------- | --------------------------------------------- |
+| Chainlink | Decentralized oracle network | Node analytics, extensive data feeds          |
+| Pyth      | High-frequency data oracle   | Publisher analytics, confidence intervals     |
+| API3      | First-party oracle solution  | Airnode deployments, quantifiable security    |
+| RedStone  | Modular oracle solution      | Data streams, cross-chain support             |
+| DIA       | Open-source oracle           | NFT floor price data, transparent methodology |
+| WINkLink  | TRON ecosystem oracle        | Gaming data feeds, entertainment focus        |
 
-#### Features
+### Oracle Statistics
 
-- **First-Party Oracle**: Direct data source integration
-- **Airnode Deployment**: Airnode status panel
-- **Quantifiable Security**: Security metrics
-- **DAPI Coverage**: Data API coverage analysis
-- **Staking Data**: Staking pool information
-- **Quality Metrics**: Data quality indicators
+Each oracle provides the following statistics:
 
-#### Tabs
-
-- **Market**: Price and market data
-- **Network**: Airnode network status
-- **Risk**: Security assessment
-
-### RedStone (`/[locale]/redstone`)
-
-#### Features
-
-- **Modular Oracle Design**: Flexible data delivery mechanisms
-- **Data Streams**: Real-time streaming data feeds
-- **Stream Analytics**: Stream performance metrics
-- **Cross-Chain Support**: Multi-chain data availability
-- **Cost Efficiency Metrics**: Gas usage optimization
-
-#### Tabs
-
-- **Market**: Price and market data
-- **Streams**: Data stream analytics
-- **Network**: Network performance
-
-### DIA (`/dia`)
-
-#### Features
-
-- **Open-Source Infrastructure**: Transparent oracle architecture
-- **NFT Data Feeds**: Floor price data for NFT collections
-- **Cross-Chain Data**: Native multi-chain support
-- **Methodology Transparency**: Public data sourcing methods
-- **Data Source Tracking**: Source credibility scores
-
-#### Tabs
-
-- **Market**: Price and market data
-- **NFT Data**: NFT floor price tracking
-- **Methodology**: Data sourcing transparency
-
-### WINkLink (`/[locale]/winklink`)
-
-#### Features
-
-- **TRON Ecosystem**: TRON network integration
-- **Gaming Data Feeds**: Gaming platform statistics
-- **Entertainment Data**: Media and entertainment feeds
-- **Cross-Platform**: Multi-platform oracle services
-- **Transaction Metrics**: TRON transaction statistics
-
-#### Tabs
-
-- **Market**: Price and market data
-- **Gaming**: Gaming platform analytics
-- **TRON**: TRON ecosystem metrics
+| Statistic          | Description                        |
+| ------------------ | ---------------------------------- |
+| Average Price      | Mean price across selected sources |
+| Maximum Price      | Highest reported price             |
+| Minimum Price      | Lowest reported price              |
+| Price Range        | Difference between max and min     |
+| Standard Deviation | Price volatility measure           |
+| Confidence Score   | Data reliability rating            |
+| Last Updated       | Timestamp of last update           |
 
 ---
 
