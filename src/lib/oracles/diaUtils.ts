@@ -54,3 +54,46 @@ export async function withRetry<T>(
 
   throw lastError || new Error(`${operationName} failed after ${config.maxAttempts} attempts`);
 }
+
+export interface FetchWithTimeoutOptions extends RequestInit {
+  timeout?: number;
+}
+
+export async function fetchWithTimeout<T = unknown>(
+  url: string,
+  options: FetchWithTimeoutOptions = {}
+): Promise<T> {
+  const { timeout = 10000, ...fetchOptions } = options;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+  try {
+    const response = await fetch(url, {
+      ...fetchOptions,
+      headers: {
+        Accept: 'application/json',
+        ...fetchOptions.headers,
+      },
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        return null as T;
+      }
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    clearTimeout(timeoutId);
+
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error(`Request timeout after ${timeout}ms: ${url}`);
+    }
+
+    throw error;
+  }
+}

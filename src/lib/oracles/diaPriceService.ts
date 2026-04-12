@@ -3,7 +3,13 @@ import { OracleProvider, type Blockchain, type PriceData } from '@/types/oracle'
 
 import { DIA_ASSET_ADDRESSES } from './constants/assetAddresses';
 import { DIA_CHAIN_MAPPING } from './constants/chainMapping';
-import { DIA_API_BASE_URL, CACHE_TTL, DEFAULT_RETRY_CONFIG, withRetry } from './diaUtils';
+import {
+  DIA_API_BASE_URL,
+  CACHE_TTL,
+  DEFAULT_RETRY_CONFIG,
+  withRetry,
+  fetchWithTimeout,
+} from './diaUtils';
 
 import type { DIAAssetQuotation, CacheEntry } from './diaTypes';
 
@@ -95,28 +101,6 @@ export class DIAPriceService {
     });
   }
 
-  private async fetchWithTimeout(url: string): Promise<Response> {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), this.requestTimeout);
-
-    try {
-      const response = await fetch(url, {
-        headers: {
-          Accept: 'application/json',
-        },
-        signal: controller.signal,
-      });
-      clearTimeout(timeoutId);
-      return response;
-    } catch (error) {
-      clearTimeout(timeoutId);
-      if (error instanceof Error && error.name === 'AbortError') {
-        throw new Error('Request timeout');
-      }
-      throw error;
-    }
-  }
-
   async getAssetPrice(symbol: string, chain?: Blockchain): Promise<PriceData | null> {
     const cacheKey = `price:${symbol}:${chain || 'default'}`;
     const cached = this.getFromCache<PriceData>(cacheKey);
@@ -146,26 +130,17 @@ export class DIAPriceService {
           logger.info('Fetching price from DIA', { symbol: upperSymbol, chain, url });
 
           try {
-            const response = await this.fetchWithTimeout(url);
-
-            logger.info('DIA API response', {
-              symbol: upperSymbol,
-              status: response.status,
-              statusText: response.statusText,
+            const data = await fetchWithTimeout<DIAAssetQuotation | null>(url, {
+              timeout: this.requestTimeout,
             });
 
-            if (response.ok) {
-              const data: DIAAssetQuotation = await response.json();
-              logger.info('DIA API data received', { symbol: upperSymbol, price: data.Price });
-              return this.parseAssetQuotation(data, chain);
-            }
-
-            if (response.status === 404) {
+            if (!data) {
               logger.warn('Asset not found in DIA', { symbol, chain, url });
               return null;
             }
 
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            logger.info('DIA API data received', { symbol: upperSymbol, price: data.Price });
+            return this.parseAssetQuotation(data, chain);
           } catch (fetchError) {
             logger.error(
               'DIA fetch error',
@@ -205,16 +180,13 @@ export class DIAPriceService {
       const result = await withRetry(
         async () => {
           const url = `${DIA_API_BASE_URL}/quotation/${symbol.toUpperCase()}`;
-          const response = await this.fetchWithTimeout(url);
+          const data = await fetchWithTimeout<{
+            Symbol: string;
+            Price: number;
+            Time: string;
+          } | null>(url, { timeout: this.requestTimeout });
 
-          if (!response.ok) {
-            if (response.status === 404) {
-              return null;
-            }
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-          }
-
-          const data = await response.json();
+          if (!data) return null;
           return this.parseForexQuotation(data);
         },
         DEFAULT_RETRY_CONFIG,
@@ -267,37 +239,26 @@ export class DIAPriceService {
       logger.info('Fetching historical prices from DIA', { symbol: upperSymbol, chain, url });
 
       try {
-        const response = await this.fetchWithTimeout(url);
-
-        logger.info('DIA historical API response', {
-          symbol: upperSymbol,
-          status: response.status,
-          statusText: response.statusText,
+        const data = await fetchWithTimeout<Array<{ Price: number; Time: string }> | null>(url, {
+          timeout: this.requestTimeout,
         });
 
-        if (response.ok) {
-          const data = await response.json();
-          if (Array.isArray(data) && data.length > 0) {
-            const prices: PriceData[] = data.map((item: { Price: number; Time: string }) => ({
-              provider: OracleProvider.DIA,
-              symbol: upperSymbol,
-              price: item.Price,
-              timestamp: new Date(item.Time).getTime(),
-              decimals: 8,
-              confidence: 0.98,
-              chain,
-            }));
+        if (Array.isArray(data) && data.length > 0) {
+          const prices: PriceData[] = data.map((item) => ({
+            provider: OracleProvider.DIA,
+            symbol: upperSymbol,
+            price: item.Price,
+            timestamp: new Date(item.Time).getTime(),
+            decimals: 8,
+            confidence: 0.98,
+            chain,
+          }));
 
-            this.setCache(cacheKey, prices, CACHE_TTL.HISTORICAL);
-            return prices;
-          }
+          this.setCache(cacheKey, prices, CACHE_TTL.HISTORICAL);
+          return prices;
         }
 
-        logger.warn('Historical data not available from DIA API', {
-          symbol,
-          chain,
-          status: response.status,
-        });
+        logger.warn('Historical data not available from DIA API', { symbol, chain });
         return [];
       } catch (fetchError) {
         logger.error(

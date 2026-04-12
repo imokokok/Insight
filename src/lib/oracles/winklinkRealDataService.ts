@@ -236,6 +236,25 @@ export class WINkLinkRealDataService {
   }
 
   /**
+   * 解析十六进制字符串为 BigInt（带验证）
+   */
+  private parseHexToBigInt(hex: string | null | undefined): bigint | null {
+    if (!hex || typeof hex !== 'string') return null;
+
+    const cleanHex = hex.startsWith('0x') ? hex.slice(2) : hex;
+    if (!/^[0-9a-fA-F]*$/.test(cleanHex)) {
+      logger.warn('Invalid hex string', { hex });
+      return null;
+    }
+
+    try {
+      return BigInt('0x' + cleanHex);
+    } catch {
+      return null;
+    }
+  }
+
+  /**
    * 从 WINkLink Price Feed 合约获取真实价格
    */
   async getPriceFromContract(symbol: string, chain?: string): Promise<PriceData | null> {
@@ -246,9 +265,7 @@ export class WINkLinkRealDataService {
     }
 
     try {
-      // 标准化 symbol 格式: BTC -> BTC-USD, BTC/USD -> BTC-USD
       const normalizedSymbol = symbol.toUpperCase().replace('/', '-');
-      // 如果 symbol 没有 -USD 后缀，添加它
       const pairKey = normalizedSymbol.includes('-') ? normalizedSymbol : `${normalizedSymbol}-USD`;
       const contractAddress = WINKLINK_PRICE_FEEDS[pairKey];
 
@@ -264,22 +281,15 @@ export class WINkLinkRealDataService {
 
       logger.info('Fetching price from WINkLink contract', { symbol, pairKey, contractAddress });
 
-      // 串行调用 TRON RPC 获取价格（避免并发请求问题）
-      const decimals = await this.callContractMethodWithRetry(contractAddress, 'decimals', 3);
-      await this.delay(100); // 短暂延迟避免请求过快
+      const [decimalsResult, answerResult, timestampResult] = await Promise.allSettled([
+        this.callContractMethodWithRetry(contractAddress, 'decimals', 3),
+        this.callContractMethodWithRetry(contractAddress, 'latestAnswer', 3),
+        this.callContractMethodWithRetry(contractAddress, 'latestTimestamp', 3),
+      ]);
 
-      const latestAnswer = await this.callContractMethodWithRetry(
-        contractAddress,
-        'latestAnswer',
-        3
-      );
-      await this.delay(100);
-
-      const latestTimestamp = await this.callContractMethodWithRetry(
-        contractAddress,
-        'latestTimestamp',
-        3
-      );
+      const decimals = decimalsResult.status === 'fulfilled' ? decimalsResult.value : null;
+      const latestAnswer = answerResult.status === 'fulfilled' ? answerResult.value : null;
+      const latestTimestamp = timestampResult.status === 'fulfilled' ? timestampResult.value : null;
 
       logger.info('Raw contract data', { symbol, latestAnswer, decimals, latestTimestamp });
 
@@ -292,28 +302,31 @@ export class WINkLinkRealDataService {
         return null;
       }
 
-      // 解析返回值 (hex string to int/bigint)
-      // TRON 返回的是 64 字符 hex (32 字节)，需要用 BigInt 解析
-      const parseHexToBigInt = (hex: string): bigint => {
-        const cleanHex = hex.startsWith('0x') ? hex.slice(2) : hex;
-        return BigInt('0x' + cleanHex);
-      };
+      const decimalPlaces = this.parseHexToBigInt(decimals);
+      const priceRaw = this.parseHexToBigInt(latestAnswer);
+      const timestampRaw = this.parseHexToBigInt(latestTimestamp);
 
-      const decimalPlaces = Number(parseHexToBigInt(decimals));
-      const priceRaw = parseHexToBigInt(latestAnswer);
-      const priceValue = Number(priceRaw) / Math.pow(10, decimalPlaces);
-      const timestamp = latestTimestamp
-        ? Number(parseHexToBigInt(latestTimestamp)) * 1000
-        : Date.now();
+      if (!decimalPlaces || !priceRaw) {
+        logger.warn('Failed to parse price data', { symbol, decimals, latestAnswer });
+        return null;
+      }
 
-      logger.info('Parsed price data', { symbol, priceValue, decimalPlaces, timestamp });
+      const priceValue = Number(priceRaw) / Math.pow(10, Number(decimalPlaces));
+      const timestamp = timestampRaw ? Number(timestampRaw) * 1000 : Date.now();
+
+      logger.info('Parsed price data', {
+        symbol,
+        priceValue,
+        decimalPlaces: Number(decimalPlaces),
+        timestamp,
+      });
 
       const priceData: PriceData = {
         provider: OracleProvider.WINKLINK,
         symbol: symbol.toUpperCase(),
         price: priceValue,
         timestamp: timestamp || Date.now(),
-        decimals: decimalPlaces,
+        decimals: Number(decimalPlaces),
         confidence: 0.98,
         change24h: 0,
         change24hPercent: 0,
@@ -321,7 +334,7 @@ export class WINkLinkRealDataService {
         source: `WINkLink:${contractAddress}`,
       };
 
-      this.setCache(cacheKey, priceData, 30000); // 30秒缓存
+      this.setCache(cacheKey, priceData, 30000);
       logger.info('Successfully fetched price from WINkLink', { symbol, price: priceValue });
       return priceData;
     } catch (error) {
@@ -393,6 +406,27 @@ export class WINkLinkRealDataService {
   }
 
   /**
+   * 带超时的 fetch 请求
+   */
+  private async fetchWithTimeout(
+    url: string,
+    options: RequestInit,
+    timeoutMs: number = 15000
+  ): Promise<Response> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+      return await fetch(url, {
+        ...options,
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  }
+
+  /**
    * 带重试的合约方法调用
    */
   private async callContractMethodWithRetry(
@@ -461,11 +495,15 @@ export class WINkLinkRealDataService {
 
       logger.debug(`Calling TRON contract`, { url, contractAddress, method, functionSelector });
 
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: this.getHeaders(),
-        body: JSON.stringify(body),
-      });
+      const response = await this.fetchWithTimeout(
+        url,
+        {
+          method: 'POST',
+          headers: this.getHeaders(),
+          body: JSON.stringify(body),
+        },
+        15000
+      );
 
       if (!response.ok) {
         const errorText = await response.text().catch(() => 'Unknown error');
@@ -526,43 +564,38 @@ export class WINkLinkRealDataService {
     }
 
     try {
-      // 获取最新区块
-      const blockResponse = await fetch(`${TRON_RPC_URL}/wallet/getnowblock`, {
-        method: 'POST',
-        headers: this.getHeaders(),
-      });
+      const [blockResponse, statsResponse, accountResponse] = await Promise.allSettled([
+        this.fetchWithTimeout(`${TRON_RPC_URL}/wallet/getnowblock`, {
+          method: 'POST',
+          headers: this.getHeaders(),
+        }),
+        this.fetchWithTimeout(`${TRON_RPC_URL}/wallet/getnodeinfo`, {
+          method: 'POST',
+          headers: this.getHeaders(),
+        }),
+        this.fetchWithTimeout(`${TRON_RPC_URL}/wallet/getaccountcount`, {
+          method: 'POST',
+          headers: this.getHeaders(),
+        }),
+      ]);
 
-      if (!blockResponse.ok) {
-        throw new Error('Failed to get latest block');
+      let blockHeight = 0;
+      if (blockResponse.status === 'fulfilled' && blockResponse.value.ok) {
+        const blockData = await blockResponse.value.json();
+        blockHeight = blockData.block_header?.raw_data?.number || 0;
       }
-
-      const blockData = await blockResponse.json();
-      const blockHeight = blockData.block_header?.raw_data?.number || 0;
-
-      // 获取网络统计
-      const statsResponse = await fetch(`${TRON_RPC_URL}/wallet/getnodeinfo`, {
-        method: 'POST',
-        headers: this.getHeaders(),
-      });
 
       let tps = 0;
       let totalTransactions = 0;
-
-      if (statsResponse.ok) {
-        const statsData = await statsResponse.json();
+      if (statsResponse.status === 'fulfilled' && statsResponse.value.ok) {
+        const statsData = await statsResponse.value.json();
         tps = statsData.currentTPS || 0;
         totalTransactions = statsData.totalTransactionCount || 0;
       }
 
-      // 获取账户总数
-      const accountResponse = await fetch(`${TRON_RPC_URL}/wallet/getaccountcount`, {
-        method: 'POST',
-        headers: this.getHeaders(),
-      });
-
       let totalAccounts = 0;
-      if (accountResponse.ok) {
-        const accountData = await accountResponse.json();
+      if (accountResponse.status === 'fulfilled' && accountResponse.value.ok) {
+        const accountData = await accountResponse.value.json();
         totalAccounts = accountData.count || 0;
       }
 
@@ -570,11 +603,11 @@ export class WINkLinkRealDataService {
         totalTransactions,
         tps,
         blockHeight,
-        blockTime: 3, // TRON 平均出块时间
+        blockTime: 3,
         totalAccounts,
       };
 
-      this.setCache(cacheKey, stats, 60000); // 1分钟缓存
+      this.setCache(cacheKey, stats, 60000);
       return stats;
     } catch (error) {
       logger.error(

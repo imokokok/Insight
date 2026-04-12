@@ -2,7 +2,13 @@ import { ALCHEMY_RPC } from '@/lib/config/serverEnv';
 import { createLogger } from '@/lib/utils/logger';
 import { Blockchain } from '@/types/oracle';
 
-import { DIA_API_BASE_URL, CACHE_TTL, DEFAULT_RETRY_CONFIG, withRetry } from './diaUtils';
+import {
+  DIA_API_BASE_URL,
+  CACHE_TTL,
+  DEFAULT_RETRY_CONFIG,
+  withRetry,
+  fetchWithTimeout,
+} from './diaUtils';
 
 import type {
   DIASupply,
@@ -22,6 +28,8 @@ const ALCHEMY_RPC_URLS: Partial<Record<Blockchain, string>> = {
   [Blockchain.POLYGON]: ALCHEMY_RPC.polygon,
   [Blockchain.BASE]: ALCHEMY_RPC.base,
 };
+
+const REQUEST_TIMEOUT = 10000;
 
 export class DIANetworkService {
   constructor(private cache: Map<string, CacheEntry<unknown>>) {}
@@ -58,16 +66,7 @@ export class DIANetworkService {
       const result = await withRetry(
         async () => {
           const url = `${DIA_API_BASE_URL}/supply/${symbol.toUpperCase()}`;
-          const response = await fetch(url);
-
-          if (!response.ok) {
-            if (response.status === 404) {
-              return null;
-            }
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-          }
-
-          return await response.json();
+          return fetchWithTimeout<DIASupply | null>(url, { timeout: REQUEST_TIMEOUT });
         },
         DEFAULT_RETRY_CONFIG,
         'getSupply'
@@ -99,20 +98,17 @@ export class DIANetworkService {
       const result = await withRetry(
         async () => {
           const url = `${DIA_API_BASE_URL}/exchanges`;
-          const response = await fetch(url);
-
-          if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-          }
-
-          return await response.json();
+          return fetchWithTimeout<DIAExchange[]>(url, { timeout: REQUEST_TIMEOUT });
         },
         DEFAULT_RETRY_CONFIG,
         'getExchanges'
       );
 
-      this.setCache(cacheKey, result, CACHE_TTL.DIGITAL_ASSETS);
-      return result;
+      if (result) {
+        this.setCache(cacheKey, result, CACHE_TTL.DIGITAL_ASSETS);
+      }
+
+      return result || [];
     } catch (error) {
       logger.error(
         'Failed to get exchanges',
@@ -135,14 +131,15 @@ export class DIANetworkService {
     }
 
     try {
-      const exchanges = await this.getExchanges();
+      const [exchanges, diaSupply] = await Promise.all([
+        this.getExchanges(),
+        this.getSupply('DIA'),
+      ]);
 
       if (exchanges.length === 0) {
         logger.warn('[DIA] No exchanges data available from API');
         return null;
       }
-
-      const diaSupply = await this.getSupply('DIA');
 
       const activeExchanges = exchanges.filter((e) => e.ScraperActive).length;
       const totalPairs = exchanges.reduce((sum, e) => sum + e.Pairs, 0);
@@ -342,10 +339,8 @@ export class DIANetworkService {
         },
       ];
 
-      const integrations: DIAEcosystemIntegration[] = [];
-
-      for (const protocol of protocols) {
-        try {
+      const results = await Promise.allSettled(
+        protocols.map(async (protocol) => {
           const response = await fetch(`https://api.llama.fi/tvl/${protocol.slug}`, {
             headers: { Accept: 'application/json' },
           });
@@ -356,30 +351,41 @@ export class DIANetworkService {
             tvl = typeof tvlData === 'number' ? tvlData : 0;
           }
 
-          if (tvl === 0) {
-            logger.warn(`[DIA] No TVL data available for ${protocol.name}`);
-            continue;
-          }
+          return { protocol, tvl };
+        })
+      );
 
-          integrations.push({
-            protocolId: `dia-eco-${protocol.slug}`,
-            name: protocol.name,
-            category: protocol.category,
-            chain: protocol.chain,
-            tvl,
-            integrationDepth:
-              protocol.name === 'Aave' ||
-              protocol.name === 'Uniswap' ||
-              protocol.name === 'Compound' ||
-              protocol.name === 'Curve Finance'
-                ? 'full'
-                : 'partial',
-            dataFeedsUsed: ['ETH/USD', 'BTC/USD', 'Multiple Assets'],
-            website: protocol.website,
-          });
-        } catch (e) {
-          logger.warn(`Failed to fetch TVL for ${protocol.name}`, { error: e });
+      const integrations: DIAEcosystemIntegration[] = [];
+
+      for (const result of results) {
+        if (result.status !== 'fulfilled') {
+          logger.warn('Failed to fetch TVL', { reason: result.reason });
+          continue;
         }
+
+        const { protocol, tvl } = result.value;
+
+        if (tvl === 0) {
+          logger.warn(`[DIA] No TVL data available for ${protocol.name}`);
+          continue;
+        }
+
+        integrations.push({
+          protocolId: `dia-eco-${protocol.slug}`,
+          name: protocol.name,
+          category: protocol.category,
+          chain: protocol.chain,
+          tvl,
+          integrationDepth:
+            protocol.name === 'Aave' ||
+            protocol.name === 'Uniswap' ||
+            protocol.name === 'Compound' ||
+            protocol.name === 'Curve Finance'
+              ? 'full'
+              : 'partial',
+          dataFeedsUsed: ['ETH/USD', 'BTC/USD', 'Multiple Assets'],
+          website: protocol.website,
+        });
       }
 
       if (integrations.length === 0) {

@@ -1,5 +1,7 @@
 import { encodeFunctionData as viemEncodeFunctionData } from 'viem';
 
+import { createLogger } from '@/lib/utils/logger';
+
 import {
   CHAINLINK_AGGREGATOR_ABI,
   CHAINLINK_TOKEN_ABI,
@@ -7,6 +9,8 @@ import {
   getChainlinkContracts,
   getChainlinkRPCConfig,
 } from './chainlinkDataSources';
+
+const logger = createLogger('ChainlinkOnChainService');
 
 export interface ChainlinkPriceData {
   symbol: string;
@@ -69,7 +73,7 @@ function decodeUint256(data: string): bigint {
   try {
     return BigInt('0x' + cleanData);
   } catch {
-    console.error('Failed to decode uint256:', data);
+    logger.error('Failed to decode uint256', undefined, { data });
     return BigInt(0);
   }
 }
@@ -86,9 +90,10 @@ function decodeLatestRoundData(data: string): {
   const cleanData = data.startsWith('0x') ? data.slice(2) : data;
 
   if (!cleanData || cleanData.length < LATEST_ROUND_DATA_LENGTH) {
-    console.error(
-      `Invalid round data length: ${cleanData?.length || 0}, expected at least ${LATEST_ROUND_DATA_LENGTH}`
-    );
+    logger.error('Invalid round data length', undefined, {
+      actualLength: cleanData?.length || 0,
+      expectedLength: LATEST_ROUND_DATA_LENGTH,
+    });
     return {
       roundId: BigInt(0),
       answer: BigInt(0),
@@ -113,7 +118,7 @@ function decodeLatestRoundData(data: string): {
       answeredInRound,
     };
   } catch (error) {
-    console.error('Failed to decode latest round data:', error);
+    logger.error('Failed to decode latest round data', error instanceof Error ? error : undefined);
     return {
       roundId: BigInt(0),
       answer: BigInt(0),
@@ -133,7 +138,7 @@ function decodeDecimals(data: string): number {
     const parsed = parseInt(cleanData, 16);
     return isNaN(parsed) ? 8 : parsed;
   } catch {
-    console.error('Failed to decode decimals:', data);
+    logger.error('Failed to decode decimals', undefined, { data });
     return 8;
   }
 }
@@ -144,6 +149,26 @@ export class ChainlinkOnChainService {
   private cacheTTL = 30000;
   private endpointHealth: Record<string, boolean> = {};
   private currentEndpointIndex: Record<number, number> = {};
+  private requestTimeout = 10000;
+  private endpointFailureTime: Record<string, number> = {};
+  private endpointRecoveryTime = 60000;
+
+  private isEndpointHealthy(chainId: number, index: number): boolean {
+    const key = `${chainId}-${index}`;
+    const health = this.endpointHealth[key];
+
+    if (health === false) {
+      const lastFail = this.endpointFailureTime[key];
+      if (lastFail && Date.now() - lastFail > this.endpointRecoveryTime) {
+        this.endpointHealth[key] = true;
+        delete this.endpointFailureTime[key];
+        logger.debug(`Endpoint ${key} recovered`, { chainId, index });
+        return true;
+      }
+      return false;
+    }
+    return true;
+  }
 
   private async rpcCallWithFallback<T>(
     chainId: number,
@@ -167,9 +192,12 @@ export class ChainlinkOnChainService {
       const endpointIndex = (startIndex + i) % endpoints.length;
       const endpoint = endpoints[endpointIndex];
 
-      if (this.endpointHealth[`${chainId}-${endpointIndex}`] === false) {
+      if (!this.isEndpointHealthy(chainId, endpointIndex)) {
         continue;
       }
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), this.requestTimeout);
 
       try {
         const response = await fetch(endpoint, {
@@ -183,7 +211,10 @@ export class ChainlinkOnChainService {
             method,
             params,
           }),
+          signal: controller.signal,
         });
+
+        clearTimeout(timeoutId);
 
         if (!response.ok) {
           throw new Error(`RPC call failed: ${response.status}`);
@@ -197,12 +228,29 @@ export class ChainlinkOnChainService {
 
         this.currentEndpointIndex[chainId] = endpointIndex;
         this.endpointHealth[`${chainId}-${endpointIndex}`] = true;
+        delete this.endpointFailureTime[`${chainId}-${endpointIndex}`];
 
         return result.result as T;
       } catch (error) {
+        clearTimeout(timeoutId);
         lastError = error instanceof Error ? error : new Error(String(error));
-        this.endpointHealth[`${chainId}-${endpointIndex}`] = false;
-        console.warn(`RPC endpoint ${endpoint} failed, trying next:`, error);
+        const key = `${chainId}-${endpointIndex}`;
+        this.endpointHealth[key] = false;
+        this.endpointFailureTime[key] = Date.now();
+
+        if (error instanceof Error && error.name === 'AbortError') {
+          logger.warn(`RPC endpoint ${endpoint} timed out after ${this.requestTimeout}ms`, {
+            chainId,
+            endpoint,
+            method,
+          });
+        } else {
+          logger.warn(`RPC endpoint ${endpoint} failed, trying next`, {
+            chainId,
+            endpoint,
+            error: lastError.message,
+          });
+        }
       }
     }
 
@@ -268,14 +316,18 @@ export class ChainlinkOnChainService {
       const errorMessage = error instanceof Error ? error.message : String(error);
       const rpcConfig = getChainlinkRPCConfig(chainId);
       const endpointStatus = this.getEndpointStatus(chainId);
-      console.error(`[ChainlinkOnChainService] Failed to fetch price for ${symbol}:`, {
-        error: errorMessage,
-        symbol,
-        chainId,
-        feedAddress: feed?.address,
-        availableEndpoints: rpcConfig?.endpoints?.length || 0,
-        endpointStatus,
-      });
+      logger.error(
+        `Failed to fetch price for ${symbol}`,
+        error instanceof Error ? error : undefined,
+        {
+          errorMessage,
+          symbol,
+          chainId,
+          feedAddress: feed?.address,
+          availableEndpoints: rpcConfig?.endpoints?.length || 0,
+          endpointStatus,
+        }
+      );
       throw new Error(`Failed to fetch price for ${symbol} on chain ${chainId}: ${errorMessage}`);
     }
   }
@@ -283,7 +335,9 @@ export class ChainlinkOnChainService {
   async getPrices(symbols: string[], chainId: number = 1): Promise<ChainlinkPriceData[]> {
     const promises = symbols.map((symbol) =>
       this.getPrice(symbol, chainId).catch((error) => {
-        console.warn(`Failed to fetch price for ${symbol}:`, error);
+        logger.warn(`Failed to fetch price for ${symbol}`, {
+          error: error instanceof Error ? error.message : String(error),
+        });
         return null;
       })
     );
@@ -319,7 +373,7 @@ export class ChainlinkOnChainService {
       this.setCache(cacheKey, result);
       return result;
     } catch (error) {
-      console.error('[ChainlinkOnChainService] Failed to fetch token data:', error);
+      logger.error('Failed to fetch token data', error instanceof Error ? error : undefined);
       throw error;
     }
   }
@@ -350,7 +404,10 @@ export class ChainlinkOnChainService {
         version: decodeUint256(versionData),
       };
     } catch (error) {
-      console.error(`[ChainlinkOnChainService] Failed to fetch metadata for ${symbol}:`, error);
+      logger.error(
+        `Failed to fetch metadata for ${symbol}`,
+        error instanceof Error ? error : undefined
+      );
       throw error;
     }
   }

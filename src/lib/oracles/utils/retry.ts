@@ -60,7 +60,10 @@ export async function withOracleRetry<T>(
       operationName,
       totalDuration: result.totalDuration,
     });
-    throw result.error || new Error(`${operationName} failed after ${result.attempts} attempts`);
+    if (result.error instanceof Error) {
+      throw result.error;
+    }
+    throw new Error(`${operationName} failed after ${result.attempts} attempts`);
   }
 
   logger.debug(`Oracle operation succeeded`, {

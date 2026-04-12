@@ -1,3 +1,5 @@
+export const REDSTONE_API_BASE = 'https://api.redstone.finance';
+
 export interface RedStoneChainInfo {
   chain: string;
   latency: number;
