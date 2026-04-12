@@ -1,47 +1,47 @@
-# 状态管理架构
+# State Management Architecture
 
-> Insight 平台的状态管理策略与最佳实践
+> State management strategy and best practices for the Insight platform
 
-## 目录
+## Table of Contents
 
-- [概述](#概述)
-- [状态分层](#状态分层)
+- [Overview](#overview)
+- [State Layering](#state-layering)
 - [React Query](#react-query)
 - [Zustand Store](#zustand-store)
-- [最佳实践](#最佳实践)
+- [Best Practices](#best-practices)
 
-## 概述
+## Overview
 
-Insight 采用分层状态管理策略：
+Insight adopts a layered state management strategy:
 
-- **服务端状态**：React Query - 处理服务器数据缓存和同步
-- **客户端状态**：Zustand - 管理 UI 状态和全局应用状态
-- **本地状态**：React useState/useReducer - 组件级状态
+- **Server State**: React Query - Handles server data caching and synchronization
+- **Client State**: Zustand - Manages UI state and global application state
+- **Local State**: React useState/useReducer - Component-level state
 
 ```mermaid
 graph TB
-    subgraph StateManagement["状态管理架构"]
-        subgraph ServerState["服务端状态 - React Query"]
-            A[价格数据]
-            B[历史数据]
-            C[用户数据]
+    subgraph StateManagement["State Management Architecture"]
+        subgraph ServerState["Server State - React Query"]
+            A[Price Data]
+            B[Historical Data]
+            C[User Data]
         end
 
-        subgraph ClientState["客户端状态 - Zustand"]
-            D[authStore - 认证状态]
-            E[uiStore - UI 状态]
-            F[realtimeStore - 实时数据状态]
-            G[crossChainStore - 跨链状态]
+        subgraph ClientState["Client State - Zustand"]
+            D[authStore - Auth State]
+            E[uiStore - UI State]
+            F[realtimeStore - Realtime Data State]
+            G[crossChainStore - Cross-chain State]
         end
 
-        subgraph LocalState["本地状态 - React Hooks"]
-            H[表单输入]
-            I[组件展开状态]
-            J[临时数据]
+        subgraph LocalState["Local State - React Hooks"]
+            H[Form Inputs]
+            I[Component Expansion State]
+            J[Temporary Data]
         end
     end
 
-    A --> K[组件渲染]
+    A --> K[Component Render]
     B --> K
     D --> K
     E --> K
@@ -52,18 +52,18 @@ graph TB
 
 ## Zustand Stores
 
-Insight 包含以下四个 Zustand Store：
+Insight includes the following four Zustand Stores:
 
-| Store           | 文件位置                        | 用途             |
-| --------------- | ------------------------------- | ---------------- |
-| authStore       | `src/stores/authStore.ts`       | 用户认证状态管理 |
-| uiStore         | `src/stores/uiStore.ts`         | UI 状态管理      |
-| realtimeStore   | `src/stores/realtimeStore.ts`   | 实时数据状态管理 |
-| crossChainStore | `src/stores/crossChainStore.ts` | 跨链数据状态管理 |
+| Store           | File Location                   | Purpose                              |
+| --------------- | ------------------------------- | ------------------------------------ |
+| authStore       | `src/stores/authStore.ts`       | User authentication state management |
+| uiStore         | `src/stores/uiStore.ts`         | UI state management                  |
+| realtimeStore   | `src/stores/realtimeStore.ts`   | Realtime data state management       |
+| crossChainStore | `src/stores/crossChainStore.ts` | Cross-chain data state management    |
 
 ## authStore
 
-认证状态管理，处理用户登录、注册、OAuth 认证等。
+Authentication state management, handling user login, registration, OAuth authentication, etc.
 
 ```typescript
 // src/stores/authStore.ts
@@ -99,7 +99,7 @@ interface AuthActions {
 }
 ```
 
-**导出的 Hooks：**
+**Exported Hooks:**
 
 ```typescript
 export const useUser = () => useAuthStore((state) => state.user);
@@ -149,7 +149,7 @@ export const useAuthActions = () => {
 
 ## uiStore
 
-UI 状态管理，处理侧边栏、模态框、Toast 通知、主题等。
+UI state management, handling sidebar, modals, toast notifications, themes, etc.
 
 ```typescript
 // src/stores/uiStore.ts
@@ -180,16 +180,16 @@ interface UIActions {
 }
 ```
 
-**主要功能：**
+**Main Features:**
 
-- **Sidebar 管理**：`toggleSidebar`、`setSidebarCollapsed`
-- **Modal 管理**：`openModal`、`closeModal`
-- **Toast 通知**：`addToast`、`removeToast`（自动 5 秒后移除）
-- **主题切换**：`setTheme`
+- **Sidebar Management**: `toggleSidebar`, `setSidebarCollapsed`
+- **Modal Management**: `openModal`, `closeModal`
+- **Toast Notifications**: `addToast`, `removeToast` (auto-removed after 5 seconds)
+- **Theme Switching**: `setTheme`
 
 ## realtimeStore
 
-实时数据状态管理，处理 Supabase Realtime 连接和订阅。
+Realtime data state management, handling Supabase Realtime connections and subscriptions.
 
 ```typescript
 // src/stores/realtimeStore.ts
@@ -233,7 +233,7 @@ interface RealtimeActions {
 }
 ```
 
-**导出的 Hooks：**
+**Exported Hooks:**
 
 ```typescript
 export const useConnectionStatus = () => useRealtimeStore((state) => state.connectionStatus);
@@ -264,16 +264,16 @@ export const useRealtimeActions = () =>
   );
 ```
 
-**支持的实时订阅：**
+**Supported Realtime Subscriptions:**
 
-- `subscribeToPriceUpdates` - 价格更新
-- `subscribeToAlertEvents` - 警报事件
-- `subscribeToSnapshotChanges` - 快照变化
-- `subscribeToFavoriteChanges` - 收藏变化
+- `subscribeToPriceUpdates` - Price updates
+- `subscribeToAlertEvents` - Alert events
+- `subscribeToSnapshotChanges` - Snapshot changes
+- `subscribeToFavoriteChanges` - Favorite changes
 
 ## crossChainStore
 
-跨链数据状态管理，处理预言机、符号、链、时间范围等状态。
+Cross-chain data state management, handling oracle, symbol, chain, time range and other states.
 
 ```typescript
 // src/stores/crossChainStore.ts
@@ -405,7 +405,7 @@ const initialState: SelectorState & UIState & DataState & ConfigState = {
 };
 ```
 
-**使用 Immer 中间件和持久化：**
+**Using Immer Middleware and Persistence:**
 
 ```typescript
 export const useCrossChainStore = create<CrossChainStore>()(
@@ -487,7 +487,7 @@ export const useCrossChainStore = create<CrossChainStore>()(
 );
 ```
 
-## 选择器模式
+## Selector Pattern
 
 ```typescript
 // src/stores/selectors.ts
@@ -509,18 +509,18 @@ export const useCrossChainActions = () =>
   }));
 ```
 
-## 状态分层
+## State Layering
 
-### 分层策略
+### Layering Strategy
 
-| 层级           | 工具        | 用途                     | 持久化       |
-| -------------- | ----------- | ------------------------ | ------------ |
-| 服务端状态     | React Query | API 数据、缓存、同步     | 自动缓存     |
-| 全局客户端状态 | Zustand     | 用户偏好、主题、全局设置 | localStorage |
-| 局部客户端状态 | Zustand     | 页面级状态、临时数据     | 内存         |
-| 组件状态       | useState    | 表单、UI 交互            | 无           |
+| Layer               | Tool        | Purpose                                  | Persistence  |
+| ------------------- | ----------- | ---------------------------------------- | ------------ |
+| Server State        | React Query | API data, caching, synchronization       | Auto cache   |
+| Global Client State | Zustand     | User preferences, theme, global settings | localStorage |
+| Local Client State  | Zustand     | Page-level state, temporary data         | Memory       |
+| Component State     | useState    | Forms, UI interactions                   | None         |
 
-### 状态流
+### State Flow
 
 ```mermaid
 sequenceDiagram
@@ -546,7 +546,7 @@ sequenceDiagram
 
 ## React Query
 
-### Query Keys 管理
+### Query Keys Management
 
 ```typescript
 // src/lib/queries/queryKeys.ts
@@ -615,12 +615,12 @@ export function usePriceHistory(
 }
 ```
 
-## 最佳实践
+## Best Practices
 
-### 1. 状态分离原则
+### 1. State Separation Principle
 
 ```typescript
-// ❌ 不好的做法：混合服务端和客户端状态
+// ❌ Bad practice: Mixing server and client state
 function BadComponent() {
   const [prices, setPrices] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -634,21 +634,21 @@ function BadComponent() {
   }, []);
 }
 
-// ✅ 好的做法：使用 React Query 处理服务端状态
+// ✅ Good practice: Use React Query for server state
 function GoodComponent() {
   const { data: prices, isLoading } = useOraclePrices();
 }
 ```
 
-### 2. 使用 Immer 进行不可变更新
+### 2. Use Immer for Immutable Updates
 
 ```typescript
-// ✅ 使用 Immer 进行不可变更新
+// ✅ Use Immer for immutable updates
 set((state) => {
   state.nested.object.value = newValue;
 });
 
-// ❌ 避免手动展开
+// ❌ Avoid manual spreading
 set((state) => ({
   ...state,
   nested: {
@@ -661,17 +661,17 @@ set((state) => ({
 }));
 ```
 
-### 3. 使用细粒度订阅
+### 3. Use Fine-grained Subscriptions
 
 ```typescript
-// ✅ 只订阅需要的字段
+// ✅ Only subscribe to needed fields
 const price = useCrossChainStore((state) => state.price);
 
-// ❌ 避免订阅整个 Store
+// ❌ Avoid subscribing to entire Store
 const state = useCrossChainStore();
 ```
 
-### 4. 乐观更新模式
+### 4. Optimistic Update Pattern
 
 ```typescript
 const useUpdatePreference = () => {
@@ -695,7 +695,7 @@ const useUpdatePreference = () => {
 };
 ```
 
-## 调试工具
+## Debugging Tools
 
 ### Zustand DevTools
 
@@ -721,11 +721,11 @@ export function ReactQueryProvider({ children }: { children: React.ReactNode }) 
 }
 ```
 
-## 性能优化
+## Performance Optimization
 
-### 1. 查询去重
+### 1. Query Deduplication
 
-React Query 自动去重相同 Query Key 的请求。
+React Query automatically deduplicates requests with the same Query Key.
 
 ```typescript
 function ComponentA() {
@@ -734,12 +734,12 @@ function ComponentA() {
 }
 
 function ComponentB() {
-  const { data } = useOraclePrice('chainlink', 'BTC'); // 不会触发新请求
+  const { data } = useOraclePrice('chainlink', 'BTC'); // Won't trigger new request
   return <div>{data?.price}</div>;
 }
 ```
 
-### 2. 使用 useShallow 优化选择器
+### 2. Use useShallow for Selector Optimization
 
 ```typescript
 export const useRealtimeActions = () =>
@@ -752,10 +752,10 @@ export const useRealtimeActions = () =>
   );
 ```
 
-## 总结
+## Summary
 
-- **服务端状态**：使用 React Query，享受缓存、重试、去重等特性
-- **客户端状态**：使用 Zustand，简单、轻量、TypeScript 友好
-- **状态分离**：清晰区分服务端和客户端状态，避免混合
-- **四个核心 Store**：authStore、uiStore、realtimeStore、crossChainStore
-- **性能优化**：使用细粒度订阅、选择器和 Immer 不可变更新
+- **Server State**: Use React Query for caching, retries, deduplication features
+- **Client State**: Use Zustand for simplicity, lightweight, TypeScript-friendly
+- **State Separation**: Clearly distinguish between server and client state, avoid mixing
+- **Four Core Stores**: authStore, uiStore, realtimeStore, crossChainStore
+- **Performance Optimization**: Use fine-grained subscriptions, selectors, and Immer immutable updates

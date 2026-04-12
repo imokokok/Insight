@@ -1,56 +1,56 @@
-# Insight 性能监控指南
+# Insight Performance Monitoring Guide
 
-> 本指南介绍如何使用 Insight 平台的性能监控工具和 API。
+> This guide introduces how to use the performance monitoring tools and APIs of the Insight platform.
 
-## 目录
+## Table of Contents
 
-1. [概述](#概述)
-2. [Web Vitals 监控](#web-vitals-监控)
-3. [性能 Hooks](#性能-hooks)
-4. [性能监控组件](#性能监控组件)
-5. [实时监控](#实时监控)
-6. [性能报告](#性能报告)
-7. [告警配置](#告警配置)
-
----
-
-## 概述
-
-Insight 平台提供全面的性能监控解决方案，包括：
-
-- **Web Vitals 监控**: 自动收集 Core Web Vitals 指标 (LCP, INP, CLS, FCP, TTFB)
-- **自定义性能追踪**: 追踪业务关键操作的性能
-- **资源监控**: 监控网络请求和资源加载
-- **内存监控**: 追踪 JavaScript 堆内存使用
-- **实时监控面板**: 可视化展示性能指标
-- **集成监控服务**: 支持 Vercel Analytics、Speed Insights 和 Sentry
+1. [Overview](#overview)
+2. [Web Vitals Monitoring](#web-vitals-monitoring)
+3. [Performance Hooks](#performance-hooks)
+4. [Performance Monitoring Components](#performance-monitoring-components)
+5. [Real-time Monitoring](#real-time-monitoring)
+6. [Performance Reports](#performance-reports)
+7. [Alert Configuration](#alert-configuration)
 
 ---
 
-## Web Vitals 监控
+## Overview
 
-### 1. 自动收集
+Insight platform provides a comprehensive performance monitoring solution, including:
 
-项目已自动集成 Web Vitals 收集，通过 `src/lib/monitoring/webVitals.ts` 实现：
+- **Web Vitals Monitoring**: Automatic collection of Core Web Vitals metrics (LCP, INP, CLS, FCP, TTFB)
+- **Custom Performance Tracking**: Track performance of business-critical operations
+- **Resource Monitoring**: Monitor network requests and resource loading
+- **Memory Monitoring**: Track JavaScript heap memory usage
+- **Real-time Monitoring Dashboard**: Visualize performance metrics
+- **Integrated Monitoring Services**: Support for Vercel Analytics, Speed Insights, and Sentry
+
+---
+
+## Web Vitals Monitoring
+
+### 1. Automatic Collection
+
+The project has integrated automatic Web Vitals collection through `src/lib/monitoring/webVitals.ts`:
 
 ```typescript
 import { initWebVitals, onMetric, reportCustomMetric } from '@/lib/monitoring/webVitals';
 
-// 初始化 Web Vitals 监控
+// Initialize Web Vitals monitoring
 initWebVitals();
 
-// 订阅指标
+// Subscribe to metrics
 const unsubscribe = onMetric((metric) => {
   console.log(`${metric.name}: ${metric.value}ms (${metric.rating})`);
 });
 
-// 上报自定义指标
+// Report custom metric
 reportCustomMetric('custom-metric', 150);
 ```
 
-### 2. 指标阈值
+### 2. Metric Thresholds
 
-项目定义了精确的性能阈值：
+The project defines precise performance thresholds:
 
 ```typescript
 export const PERFORMANCE_THRESHOLDS = {
@@ -62,23 +62,23 @@ export const PERFORMANCE_THRESHOLDS = {
 };
 ```
 
-### 3. 指标阈值表
+### 3. Metric Threshold Table
 
-| 指标 | 良好    | 需改进  | 差      |
-| ---- | ------- | ------- | ------- |
-| LCP  | ≤ 2.5s  | ≤ 4.0s  | > 4.0s  |
-| INP  | ≤ 200ms | ≤ 500ms | > 500ms |
-| CLS  | ≤ 0.1   | ≤ 0.25  | > 0.25  |
-| FCP  | ≤ 1.8s  | ≤ 3.0s  | > 3.0s  |
-| TTFB | ≤ 800ms | ≤ 1.8s  | > 1.8s  |
+| Metric | Good    | Needs Improvement | Poor    |
+| ------ | ------- | ----------------- | ------- |
+| LCP    | ≤ 2.5s  | ≤ 4.0s            | > 4.0s  |
+| INP    | ≤ 200ms | ≤ 500ms           | > 500ms |
+| CLS    | ≤ 0.1   | ≤ 0.25            | > 0.25  |
+| FCP    | ≤ 1.8s  | ≤ 3.0s            | > 3.0s  |
+| TTFB   | ≤ 800ms | ≤ 1.8s            | > 1.8s  |
 
 ---
 
-## 性能 Hooks
+## Performance Hooks
 
 ### 1. usePerformanceTracker
 
-追踪特定操作的性能：
+Track performance of specific operations:
 
 ```typescript
 import { usePerformanceTracker } from '@/hooks';
@@ -87,7 +87,7 @@ function PriceFetcher() {
   const tracker = usePerformanceTracker('fetch-price-history');
 
   const fetchData = async () => {
-    // 方式 1: 手动追踪
+    // Method 1: Manual tracking
     tracker.start();
     try {
       const data = await fetchPriceHistory(symbol);
@@ -96,7 +96,7 @@ function PriceFetcher() {
       tracker.end({ symbol, chain });
     }
 
-    // 方式 2: 使用 measureAsync
+    // Method 2: Using measureAsync
     return tracker.measureAsync(
       () => fetchPriceHistory(symbol),
       { symbol, chain }
@@ -109,7 +109,7 @@ function PriceFetcher() {
 
 ### 2. useComponentPerformance
 
-监控组件渲染性能：
+Monitor component rendering performance:
 
 ```typescript
 import { useComponentPerformance } from '@/hooks';
@@ -124,7 +124,7 @@ function HeavyChart({ data }) {
   }, [metrics]);
 
   const handleDataUpdate = () => {
-    markUpdate(); // 标记数据更新
+    markUpdate(); // Mark data update
     updateChartData();
   };
 
@@ -134,7 +134,7 @@ function HeavyChart({ data }) {
 
 ### 3. useResourceOptimizer
 
-监控资源加载：
+Monitor resource loading:
 
 ```typescript
 import { useResourceOptimizer } from '@/hooks';
@@ -160,7 +160,7 @@ function ResourceMonitor() {
 
 ### 4. useMemoryOptimizer
 
-监控内存使用：
+Monitor memory usage:
 
 ```typescript
 import { useMemoryOptimizer } from '@/hooks';
@@ -170,9 +170,9 @@ function MemoryMonitor() {
 
   useEffect(() => {
     if (isCritical) {
-      // 清理缓存
+      // Clear cache
       clearOldCache();
-      // 通知用户
+      // Notify user
       showWarning('Memory usage is critical');
     }
   }, [isCritical]);
@@ -192,7 +192,7 @@ function MemoryMonitor() {
 
 ### 5. useNavigationOptimizer
 
-分析页面导航性能：
+Analyze page navigation performance:
 
 ```typescript
 import { useNavigationOptimizer } from '@/hooks';
@@ -223,11 +223,11 @@ function NavigationMonitor() {
 
 ---
 
-## 性能监控组件
+## Performance Monitoring Components
 
 ### 1. PerformanceMonitor
 
-可视化性能监控面板：
+Visual performance monitoring panel:
 
 ```typescript
 import { PerformanceMonitor } from '@/components/performance';
@@ -235,7 +235,7 @@ import { PerformanceMonitor } from '@/components/performance';
 function App() {
   return (
     <>
-      {/* 开发环境显示 */}
+      {/* Show in development environment */}
       {process.env.NODE_ENV === 'development' && (
         <PerformanceMonitor
           enabled={true}
@@ -243,7 +243,7 @@ function App() {
           showDetails={true}
           onPerformanceIssue={(issue) => {
             console.error('Performance Issue:', issue);
-            // 发送到监控服务
+            // Send to monitoring service
             sendToMonitoring(issue);
           }}
         />
@@ -256,7 +256,7 @@ function App() {
 
 ### 2. PerformanceBadge
 
-简洁的性能状态指示器：
+Compact performance status indicator:
 
 ```typescript
 import { PerformanceBadge } from '@/components/performance';
@@ -273,7 +273,7 @@ function Header() {
 
 ### 3. PerformanceReportButton
 
-导出性能报告：
+Export performance report:
 
 ```typescript
 import { PerformanceReportButton } from '@/components/performance';
@@ -290,9 +290,9 @@ function Settings() {
 
 ---
 
-## 实时监控
+## Real-time Monitoring
 
-### 1. 实时性能面板
+### 1. Real-time Performance Panel
 
 ```typescript
 import { usePerformanceOptimizer } from '@/hooks';
@@ -341,13 +341,13 @@ function RealTimePerformancePanel() {
 }
 ```
 
-### 2. 长任务监控
+### 2. Long Task Monitoring
 
 ```typescript
 import { useLongTaskMonitor } from '@/hooks';
 
 function LongTaskWatcher() {
-  const longTasks = useLongTaskMonitor(50); // 50ms 阈值
+  const longTasks = useLongTaskMonitor(50); // 50ms threshold
 
   useEffect(() => {
     if (longTasks.length > 0) {
@@ -371,9 +371,9 @@ function LongTaskWatcher() {
 
 ---
 
-## 性能报告
+## Performance Reports
 
-### 1. 生成报告
+### 1. Generate Report
 
 ```typescript
 import { usePerformanceReport } from '@/hooks';
@@ -384,7 +384,7 @@ function ReportGenerator() {
   const handleExport = () => {
     const newReport = generateReport();
 
-    // 下载报告
+    // Download report
     const blob = new Blob([JSON.stringify(newReport, null, 2)], {
       type: 'application/json'
     });
@@ -410,7 +410,7 @@ function ReportGenerator() {
 }
 ```
 
-### 2. 报告结构
+### 2. Report Structure
 
 ```typescript
 interface PerformanceReport {
@@ -453,9 +453,9 @@ interface PerformanceReport {
 
 ---
 
-## 告警配置
+## Alert Configuration
 
-### 1. 基础告警
+### 1. Basic Alerts
 
 ```typescript
 import { usePerformanceOptimizer } from '@/hooks';
@@ -503,9 +503,9 @@ function PerformanceAlerts() {
 }
 ```
 
-### 2. 集成 Sentry
+### 2. Sentry Integration
 
-项目已集成 @sentry/nextjs，可自动上报性能数据：
+The project has integrated @sentry/nextjs for automatic performance data reporting:
 
 ```typescript
 import * as Sentry from '@sentry/nextjs';
@@ -515,7 +515,7 @@ function SentryIntegration() {
   const { webVitals, getReport } = usePerformanceOptimizer();
 
   useEffect(() => {
-    // 上报性能指标到 Sentry
+    // Report performance metrics to Sentry
     if (webVitals.metrics.lcp && webVitals.metrics.lcp > 4000) {
       Sentry.captureMessage('LCP exceeds threshold', {
         level: 'warning',
@@ -531,7 +531,7 @@ function SentryIntegration() {
 }
 ```
 
-### 3. 自定义监控服务
+### 3. Custom Monitoring Service
 
 ```typescript
 import { usePerformanceOptimizer } from '@/hooks';
@@ -543,13 +543,13 @@ function CustomMonitoring() {
     const interval = setInterval(() => {
       const report = performance.getReport();
 
-      // 发送到自定义监控服务
+      // Send to custom monitoring service
       fetch('/api/monitoring/performance', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(report),
       });
-    }, 30000); // 每 30 秒上报一次
+    }, 30000); // Report every 30 seconds
 
     return () => clearInterval(interval);
   }, [performance]);
@@ -560,16 +560,16 @@ function CustomMonitoring() {
 
 ---
 
-## 集成监控服务
+## Integrated Monitoring Services
 
 ### Vercel Analytics
 
-项目已集成 @vercel/analytics，自动追踪页面访问和转化：
+The project has integrated @vercel/analytics for automatic page view and conversion tracking:
 
 ```typescript
 import { track } from '@vercel/analytics';
 
-// 追踪自定义事件
+// Track custom events
 track('web-vital', {
   name: 'LCP',
   value: 1500,
@@ -579,33 +579,33 @@ track('web-vital', {
 
 ### Vercel Speed Insights
 
-项目已集成 @vercel/speed-insights，自动收集性能数据。
+The project has integrated @vercel/speed-insights for automatic performance data collection.
 
 ### Sentry
 
-项目已集成 @sentry/nextjs，支持错误追踪和性能监控：
+The project has integrated @sentry/nextjs for error tracking and performance monitoring:
 
 ```typescript
 import * as Sentry from '@sentry/nextjs';
 
-// 上报自定义指标
+// Report custom metrics
 Sentry.metrics.distribution('custom-metric', 150);
 ```
 
 ---
 
-## 最佳实践
+## Best Practices
 
-### 1. 监控范围
+### 1. Monitoring Scope
 
-- **开发环境**: 启用所有监控，便于调试
-- **测试环境**: 启用性能监控，收集基准数据
-- **生产环境**: 启用轻量级监控，避免性能开销
+- **Development Environment**: Enable all monitoring for debugging
+- **Test Environment**: Enable performance monitoring to collect baseline data
+- **Production Environment**: Enable lightweight monitoring to avoid performance overhead
 
-### 2. 采样策略
+### 2. Sampling Strategy
 
 ```typescript
-// 生产环境采样 10%
+// Sample 10% in production
 const shouldMonitor = Math.random() < 0.1;
 
 function App() {
@@ -618,9 +618,9 @@ function App() {
 }
 ```
 
-### 3. 性能预算
+### 3. Performance Budget
 
-项目配置的 performanceBudget 如下：
+The project's configured performanceBudget:
 
 ```typescript
 const PERFORMANCE_BUDGET = {
@@ -644,16 +644,16 @@ const PERFORMANCE_BUDGET = {
 };
 ```
 
-### 4. 用户感知
+### 4. User Perception
 
 ```typescript
-// 只在性能问题影响用户体验时显示警告
+// Only show warning when performance issues affect user experience
 function UserFacingPerformanceAlert() {
   const { webVitals } = usePerformanceOptimizer();
   const [showAlert, setShowAlert] = useState(false);
 
   useEffect(() => {
-    // 只在 LCP > 4s 时显示用户警告
+    // Only show user warning when LCP > 4s
     if (webVitals.metrics.lcp && webVitals.metrics.lcp > 4000) {
       setShowAlert(true);
     }
@@ -671,15 +671,15 @@ function UserFacingPerformanceAlert() {
 
 ---
 
-## 总结
+## Summary
 
-Insight 平台提供全面的性能监控能力：
+Insight platform provides comprehensive performance monitoring capabilities:
 
-1. **自动监控**: Web Vitals 自动收集 (LCP, INP, CLS, FCP, TTFB)
-2. **自定义追踪**: 灵活的性能追踪 API
-3. **实时监控**: 可视化监控面板
-4. **告警机制**: 可配置的告警规则
-5. **报告导出**: 详细的性能报告
-6. **第三方集成**: Vercel Analytics、Speed Insights、Sentry
+1. **Automatic Monitoring**: Web Vitals automatic collection (LCP, INP, CLS, FCP, TTFB)
+2. **Custom Tracking**: Flexible performance tracking API
+3. **Real-time Monitoring**: Visual monitoring dashboard
+4. **Alert Mechanism**: Configurable alert rules
+5. **Report Export**: Detailed performance reports
+6. **Third-party Integration**: Vercel Analytics, Speed Insights, Sentry
 
-通过合理使用这些工具，可以持续优化应用性能，提升用户体验。
+By using these tools appropriately, you can continuously optimize application performance and improve user experience.

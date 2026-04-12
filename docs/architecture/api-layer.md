@@ -1,30 +1,30 @@
-# API 层架构
+# API Layer Architecture
 
-> Insight 平台的后端 API 设计与实现
+> Backend API design and implementation for the Insight platform
 
-## 目录
+## Table of Contents
 
-- [概述](#概述)
-- [路由结构](#路由结构)
-- [中间件设计](#中间件设计)
-- [错误处理](#错误处理)
-- [验证逻辑](#验证逻辑)
-- [响应处理](#响应处理)
+- [Overview](#overview)
+- [Route Structure](#route-structure)
+- [Middleware Design](#middleware-design)
+- [Error Handling](#error-handling)
+- [Validation Logic](#validation-logic)
+- [Response Handling](#response-handling)
 
-## 概述
+## Overview
 
-Insight 的 API 层基于 Next.js App Router 的 Route Handlers 构建，采用分层架构设计：
+Insight's API layer is built on Next.js App Router Route Handlers, adopting a layered architecture design:
 
 ```mermaid
 graph TB
-    subgraph API["API 层架构"]
+    subgraph API["API Layer Architecture"]
         A[Route Handler] --> B[Middleware]
         B --> C[Validation]
         C --> D[Business Logic]
         D --> E[Response Formatter]
     end
 
-    subgraph ErrorHandling["错误处理"]
+    subgraph ErrorHandling["Error Handling"]
         F[AppError]
         G[ErrorMiddleware]
         H[ErrorResponse]
@@ -35,49 +35,49 @@ graph TB
     G --> E
 ```
 
-### 设计原则
+### Design Principles
 
-1. **单一职责**：每个路由只处理一个资源
-2. **统一响应格式**：所有 API 返回统一的响应结构
-3. **完整错误处理**：分层错误处理和日志记录
-4. **输入验证**：所有输入都经过严格验证
-5. **缓存策略**：合理的 HTTP 缓存头设置
+1. **Single Responsibility**: Each route handles only one resource
+2. **Unified Response Format**: All APIs return a unified response structure
+3. **Complete Error Handling**: Layered error handling and logging
+4. **Input Validation**: All inputs are strictly validated
+5. **Caching Strategy**: Reasonable HTTP cache header settings
 
-## 目录结构
+## Directory Structure
 
 ```
 src/lib/api/
-├── client/                 # API 客户端
-│   ├── ApiClient.ts       # API 客户端实现
-│   ├── ApiError.ts        # API 错误类
-│   ├── index.ts           # 导出入口
-│   └── types.ts           # 类型定义
-├── middleware/            # 中间件
-│   ├── authMiddleware.ts       # 认证中间件
-│   ├── errorMiddleware.ts      # 错误处理中间件
-│   ├── rateLimitMiddleware.ts  # 限流中间件
-│   ├── validationMiddleware.ts # 验证中间件
-│   ├── loggingMiddleware.ts   # 日志中间件
-│   └── index.ts               # 导出入口
-├── versioning/            # API 版本控制
-│   ├── constants.ts       # 版本常量
-│   ├── middleware.ts      # 版本中间件
-│   └── index.ts           # 导出入口
-├── response/               # 响应格式化
-│   ├── ApiResponse.ts     # 响应构建器
-│   └── index.ts           # 导出入口
-├── validation/            # 验证逻辑
-│   ├── schemas.ts         # Zod 验证模式
-│   ├── validators.ts      # 自定义验证器
-│   └── index.ts           # 导出入口
-├── handler.ts            # 路由处理函数
-├── oracleHandlers.ts     # 预言机相关处理
-└── utils.ts              # 工具函数
+├── client/                 # API client
+│   ├── ApiClient.ts       # API client implementation
+│   ├── ApiError.ts        # API error class
+│   ├── index.ts           # Export entry
+│   └── types.ts           # Type definitions
+├── middleware/            # Middleware
+│   ├── authMiddleware.ts       # Authentication middleware
+│   ├── errorMiddleware.ts      # Error handling middleware
+│   ├── rateLimitMiddleware.ts  # Rate limiting middleware
+│   ├── validationMiddleware.ts # Validation middleware
+│   ├── loggingMiddleware.ts   # Logging middleware
+│   └── index.ts               # Export entry
+├── versioning/            # API versioning
+│   ├── constants.ts       # Version constants
+│   ├── middleware.ts      # Version middleware
+│   └── index.ts           # Export entry
+├── response/               # Response formatting
+│   ├── ApiResponse.ts     # Response builder
+│   └── index.ts           # Export entry
+├── validation/            # Validation logic
+│   ├── schemas.ts         # Zod validation schemas
+│   ├── validators.ts      # Custom validators
+│   └── index.ts           # Export entry
+├── handler.ts            # Route handler function
+├── oracleHandlers.ts     # Oracle-related handlers
+└── utils.ts              # Utility functions
 ```
 
-## 路由结构
+## Route Structure
 
-### 目录组织
+### Directory Organization
 
 ```
 src/app/api/
@@ -102,19 +102,19 @@ src/app/api/
     └── route.ts              # GET /api/health
 ```
 
-## 中间件设计
+## Middleware Design
 
-### 中间件概览
+### Middleware Overview
 
-| 中间件               | 文件位置                                         | 功能               |
-| -------------------- | ------------------------------------------------ | ------------------ |
-| authMiddleware       | `src/lib/api/middleware/authMiddleware.ts`       | JWT 认证、角色验证 |
-| errorMiddleware      | `src/lib/api/middleware/errorMiddleware.ts`      | 统一错误处理       |
-| rateLimitMiddleware  | `src/lib/api/middleware/rateLimitMiddleware.ts`  | 请求限流           |
-| validationMiddleware | `src/lib/api/middleware/validationMiddleware.ts` | 输入验证           |
-| loggingMiddleware    | `src/lib/api/middleware/loggingMiddleware.ts`    | 请求日志           |
+| Middleware           | File Location                                    | Function                              |
+| -------------------- | ------------------------------------------------ | ------------------------------------- |
+| authMiddleware       | `src/lib/api/middleware/authMiddleware.ts`       | JWT authentication, role verification |
+| errorMiddleware      | `src/lib/api/middleware/errorMiddleware.ts`      | Unified error handling                |
+| rateLimitMiddleware  | `src/lib/api/middleware/rateLimitMiddleware.ts`  | Request rate limiting                 |
+| validationMiddleware | `src/lib/api/middleware/validationMiddleware.ts` | Input validation                      |
+| loggingMiddleware    | `src/lib/api/middleware/loggingMiddleware.ts`    | Request logging                       |
 
-### 中间件导出
+### Middleware Exports
 
 ```typescript
 // src/lib/api/middleware/index.ts
@@ -146,7 +146,7 @@ export {
 export { createRateLimitMiddleware, type RateLimitMiddlewareOptions } from './rateLimitMiddleware';
 ```
 
-### 1. 认证中间件 (authMiddleware)
+### 1. Authentication Middleware (authMiddleware)
 
 ```typescript
 // src/lib/api/middleware/authMiddleware.ts
@@ -219,15 +219,15 @@ export async function getUserId(request: NextRequest): Promise<string | null> {
 }
 ```
 
-**核心功能：**
+**Core Functions:**
 
-- `extractAuthContext` - 从请求头提取认证信息
-- `createAuthMiddleware` - 创建认证中间件
-- `requireAuth` - 必须认证
-- `optionalAuth` - 可选认证
-- `requireRoles` - 角色验证
+- `extractAuthContext` - Extract authentication info from request headers
+- `createAuthMiddleware` - Create authentication middleware
+- `requireAuth` - Require authentication
+- `optionalAuth` - Optional authentication
+- `requireRoles` - Role verification
 
-### 2. 错误处理中间件 (errorMiddleware)
+### 2. Error Handling Middleware (errorMiddleware)
 
 ```typescript
 // src/lib/api/middleware/errorMiddleware.ts
@@ -302,14 +302,14 @@ export const developmentErrorMiddleware = createErrorMiddleware({
 });
 ```
 
-**核心功能：**
+**Core Functions:**
 
-- 自动错误分类（AppError、SyntaxError、NetworkError）
-- 错误日志记录
-- 错误响应格式化
-- 请求 ID 追踪
+- Automatic error classification (AppError, SyntaxError, NetworkError)
+- Error logging
+- Error response formatting
+- Request ID tracking
 
-### 3. 限流中间件 (rateLimitMiddleware)
+### 3. Rate Limiting Middleware (rateLimitMiddleware)
 
 ```typescript
 // src/lib/api/middleware/rateLimitMiddleware.ts
@@ -357,7 +357,7 @@ export function createRateLimitMiddleware(options: RateLimitMiddlewareOptions = 
   };
 }
 
-// 预设限流配置
+// Preset rate limit configurations
 export const strictRateLimit = createRateLimitMiddleware({
   windowMs: 60000,
   maxRequests: 20,
@@ -379,14 +379,14 @@ export const apiRateLimit = createRateLimitMiddleware({
 });
 ```
 
-**核心功能：**
+**Core Functions:**
 
-- 基于内存的限流存储
-- 自定义 keyGenerator（默认基于 IP 和路径）
-- 预设限流配置（strict、moderate、lenient、api）
-- 限流响应头（Retry-After、X-RateLimit-\*）
+- In-memory rate limit storage
+- Custom keyGenerator (default based on IP and path)
+- Preset rate limit configurations (strict, moderate, lenient, api)
+- Rate limit response headers (Retry-After, X-RateLimit-\*)
 
-### 4. 验证中间件 (validationMiddleware)
+### 4. Validation Middleware (validationMiddleware)
 
 ```typescript
 // src/lib/api/middleware/validationMiddleware.ts
@@ -441,7 +441,7 @@ export function validate(schema: z.Schema) {
 }
 ```
 
-### 5. 日志中间件 (loggingMiddleware)
+### 5. Logging Middleware (loggingMiddleware)
 
 ```typescript
 // src/lib/api/middleware/loggingMiddleware.ts
@@ -503,15 +503,15 @@ export function createLoggingMiddleware(options: LoggingMiddlewareOptions = {}) 
 }
 ```
 
-### 中间件组合使用
+### Middleware Composition
 
 ```typescript
-// 组合多个中间件
+// Compose multiple middleware
 export const GET = withErrorHandler(
   withLogging(
     withRateLimit(
       withAuth(async (request, { user }) => {
-        // 处理逻辑
+        // Handler logic
       }),
       { limit: 100, window: 60 }
     )
@@ -519,7 +519,7 @@ export const GET = withErrorHandler(
 );
 ```
 
-## API 版本控制
+## API Versioning
 
 ```typescript
 // src/lib/api/versioning/middleware.ts
@@ -529,9 +529,9 @@ export function withVersionHeaders(response: NextResponse, version: string): Nex
 }
 ```
 
-## 错误处理
+## Error Handling
 
-### 错误类层次结构
+### Error Class Hierarchy
 
 ```typescript
 // src/lib/errors/index.ts
@@ -610,7 +610,7 @@ export class DatabaseError extends AppError {
 }
 ```
 
-## 响应处理
+## Response Handling
 
 ### ApiResponseBuilder
 
@@ -695,10 +695,10 @@ export function createPaginatedResponse<T>(
 }
 ```
 
-### 响应示例
+### Response Examples
 
 ```typescript
-// 成功响应（200 OK）
+// Success response (200 OK)
 {
   "data": {
     "provider": "chainlink",
@@ -711,7 +711,7 @@ export function createPaginatedResponse<T>(
   }
 }
 
-// 错误响应（400 Bad Request）
+// Error response (400 Bad Request)
 {
   "error": {
     "code": "VALIDATION_ERROR",
@@ -723,7 +723,7 @@ export function createPaginatedResponse<T>(
   }
 }
 
-// 分页响应（200 OK）
+// Paginated response (200 OK)
 {
   "data": {
     "items": [...],
@@ -742,132 +742,132 @@ export function createPaginatedResponse<T>(
 }
 ```
 
-## 最佳实践
+## Best Practices
 
-### 1. 路由设计
+### 1. Route Design
 
 ```typescript
-// ✅ 使用 RESTful 命名
-GET    /api/oracles              # 获取所有预言机
-GET    /api/oracles/chainlink    # 获取 Chainlink 数据
-POST   /api/alerts               # 创建警报
-DELETE /api/alerts/123           # 删除特定警报
+// ✅ Use RESTful naming
+GET    /api/oracles              # Get all oracles
+GET    /api/oracles/chainlink    # Get Chainlink data
+POST   /api/alerts               # Create alert
+DELETE /api/alerts/123           # Delete specific alert
 
-// ❌ 避免使用动词
-/getOracles                    # 不推荐
-/createAlert                   # 不推荐
+// ❌ Avoid using verbs
+/getOracles                    # Not recommended
+/createAlert                   # Not recommended
 ```
 
-### 2. 状态码使用
+### 2. Status Code Usage
 
-| 状态码                    | 用途         |
-| ------------------------- | ------------ |
-| 200 OK                    | 成功         |
-| 201 Created               | 创建成功     |
-| 204 No Content            | 删除成功     |
-| 400 Bad Request           | 请求参数错误 |
-| 401 Unauthorized          | 未认证       |
-| 403 Forbidden             | 无权限       |
-| 404 Not Found             | 资源不存在   |
-| 429 Too Many Requests     | 速率限制     |
-| 500 Internal Server Error | 服务器错误   |
+| Status Code               | Usage                   |
+| ------------------------- | ----------------------- |
+| 200 OK                    | Success                 |
+| 201 Created               | Created successfully    |
+| 204 No Content            | Deleted successfully    |
+| 400 Bad Request           | Request parameter error |
+| 401 Unauthorized          | Not authenticated       |
+| 403 Forbidden             | No permission           |
+| 404 Not Found             | Resource not found      |
+| 429 Too Many Requests     | Rate limited            |
+| 500 Internal Server Error | Server error            |
 
-### 3. 缓存策略
+### 3. Caching Strategy
 
 ```typescript
-// 静态数据 - 长时间缓存
+// Static data - long cache
 return createCachedJsonResponse(data, {
   maxAge: 3600,
   staleWhileRevalidate: 86400,
 });
 
-// 动态数据 - 短时间缓存
+// Dynamic data - short cache
 return createCachedJsonResponse(data, {
   maxAge: 30,
   staleWhileRevalidate: 60,
 });
 ```
 
-### 4. 安全性
+### 4. Security
 
 ```typescript
-// ✅ 始终验证输入
+// ✅ Always validate input
 const validation = validatePriceQuery({ symbol, chain });
 if (!validation.valid) {
   return createErrorResponse('VALIDATION_ERROR', validation.errors.join(', '), 400);
 }
 
-// ✅ 使用参数化查询
+// ✅ Use parameterized queries
 const { data, error } = await supabase
   .from('prices')
   .select('*')
-  .eq('symbol', symbol) // 参数化
+  .eq('symbol', symbol) // Parameterized
   .single();
 ```
 
-## 客户端 API 调用约定
+## Client API Usage Conventions
 
-### apiClient 使用指南
+### apiClient Usage Guide
 
-客户端代码应统一使用 `apiClient` 进行 API 调用，而不是直接使用 `fetch` 或 `axios`。
+Client code should use `apiClient` uniformly for API calls instead of directly using `fetch` or `axios`.
 
-#### 基本用法
+#### Basic Usage
 
 ```typescript
 import { apiClient } from '@/lib/api';
 
-// GET 请求
+// GET request
 const response = await apiClient.get<OracleData>('/api/oracles/chainlink');
 const data = response.data;
 
-// POST 请求
+// POST request
 const createResponse = await apiClient.post<Alert>('/api/alerts', {
   symbol: 'BTC',
   condition_type: 'above',
   target_value: 50000,
 });
 
-// PUT 请求
+// PUT request
 const updateResponse = await apiClient.put<Alert>('/api/alerts/123', {
   target_value: 55000,
 });
 
-// DELETE 请求
+// DELETE request
 await apiClient.delete('/api/alerts/123');
 ```
 
-#### 配置选项
+#### Configuration Options
 
 ```typescript
 import { apiClient } from '@/lib/api';
 
-// 带缓存配置
+// With cache configuration
 const response = await apiClient.get<PricesResponse>('/api/prices', {
   cache: 'no-store',
 });
 
-// 带超时配置
+// With timeout configuration
 const response = await apiClient.get<OracleData>('/api/oracles/chainlink', {
   timeout: 5000,
 });
 
-// 带自定义请求头
+// With custom headers
 const response = await apiClient.get<UserData>('/api/user', {
   headers: {
     'X-Custom-Header': 'value',
   },
 });
 
-// 带中止信号
+// With abort signal
 const controller = new AbortController();
 const response = await apiClient.get<OracleData>('/api/oracles/chainlink', {
   signal: controller.signal,
 });
-// 取消请求
+// Cancel request
 controller.abort();
 ```
 
-#### 在 React Query 中使用
+#### Using with React Query
 
 ```typescript
 import { useQuery } from '@tanstack/react-query';
@@ -885,7 +885,7 @@ export function useOracleData(provider: string) {
 }
 ```
 
-#### 错误处理
+#### Error Handling
 
 ```typescript
 import { apiClient, ApiError } from '@/lib/api';
@@ -903,18 +903,18 @@ try {
 }
 ```
 
-### 何时使用 apiClient vs 直接 fetch
+### When to Use apiClient vs Direct fetch
 
-| 场景                        | 推荐方式                | 原因                   |
-| --------------------------- | ----------------------- | ---------------------- |
-| 客户端组件调用内部 API      | `apiClient`             | 统一错误处理、类型安全 |
-| 客户端 Hooks 调用内部 API   | `apiClient`             | 统一错误处理、类型安全 |
-| 服务端 API 路由调用外部 API | 直接 `fetch`            | 服务端不需要客户端封装 |
-| 服务端服务调用外部 API      | 直接 `fetch` 或 `axios` | 服务端场景特殊需求     |
+| Scenario                              | Recommended Approach      | Reason                              |
+| ------------------------------------- | ------------------------- | ----------------------------------- |
+| Client component calling internal API | `apiClient`               | Unified error handling, type safety |
+| Client hooks calling internal API     | `apiClient`               | Unified error handling, type safety |
+| Server API route calling external API | Direct `fetch`            | Server doesn't need client wrapper  |
+| Server service calling external API   | Direct `fetch` or `axios` | Server-specific requirements        |
 
-### 迁移示例
+### Migration Example
 
-#### 迁移前（直接使用 fetch）
+#### Before Migration (using fetch directly)
 
 ```typescript
 export function useOracleData(params: OracleDataParams = {}) {
@@ -935,7 +935,7 @@ export function useOracleData(params: OracleDataParams = {}) {
 }
 ```
 
-#### 迁移后（使用 apiClient）
+#### After Migration (using apiClient)
 
 ```typescript
 import { apiClient } from '@/lib/api';
@@ -959,10 +959,10 @@ export function useOracleData(params: OracleDataParams = {}) {
 }
 ```
 
-### apiClient 特性
+### apiClient Features
 
-1. **统一错误处理**：自动将 HTTP 错误转换为 `ApiError`
-2. **类型安全**：支持泛型类型参数
-3. **请求/响应拦截器**：支持自定义拦截器
-4. **配置支持**：支持 `cache`、`timeout`、`signal` 等配置
-5. **元数据返回**：响应包含 `timestamp` 和 `source` 元数据
+1. **Unified Error Handling**: Automatically converts HTTP errors to `ApiError`
+2. **Type Safety**: Supports generic type parameters
+3. **Request/Response Interceptors**: Supports custom interceptors
+4. **Configuration Support**: Supports `cache`, `timeout`, `signal`, etc.
+5. **Metadata Return**: Response includes `timestamp` and `source` metadata

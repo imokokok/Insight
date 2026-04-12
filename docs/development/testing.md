@@ -1,38 +1,38 @@
-# 测试指南
+# Testing Guide
 
-> Insight 项目的测试策略与实践
+> Testing strategy and practices for the Insight project
 
-## 目录
+## Table of Contents
 
-- [测试策略](#测试策略)
-- [单元测试](#单元测试)
-- [集成测试](#集成测试)
-- [E2E 测试](#e2e-测试)
-- [最佳实践](#最佳实践)
+- [Testing Strategy](#testing-strategy)
+- [Unit Tests](#unit-tests)
+- [Integration Tests](#integration-tests)
+- [E2E Tests](#e2e-tests)
+- [Best Practices](#best-practices)
 
-## 测试策略
+## Testing Strategy
 
-### 测试金字塔
+### Testing Pyramid
 
 ```
     /\
-   /  \  E2E 测试 (少量)
+   /  \  E2E Tests (Few)
   /----\
- /      \  集成测试 (中等)
+ /      \  Integration Tests (Moderate)
 /--------\
-/          \  单元测试 (大量)
+/          \  Unit Tests (Many)
 ------------
 ```
 
-### 测试分层
+### Testing Layers
 
-| 层级     | 比例 | 工具                         | 关注点            |
-| -------- | ---- | ---------------------------- | ----------------- |
-| 单元测试 | 70%  | Jest + React Testing Library | 函数、组件、Hooks |
-| 集成测试 | 20%  | Jest + MSW                   | API、数据流       |
-| E2E 测试 | 10%  | Playwright                   | 用户流程          |
+| Layer             | Ratio | Tools                        | Focus                        |
+| ----------------- | ----- | ---------------------------- | ---------------------------- |
+| Unit Tests        | 70%   | Jest + React Testing Library | Functions, Components, Hooks |
+| Integration Tests | 20%   | Jest + MSW                   | API, Data Flow               |
+| E2E Tests         | 10%   | Playwright                   | User Flows                   |
 
-### 测试目录结构
+### Test Directory Structure
 
 ```
 src/
@@ -58,9 +58,9 @@ src/
                 └── route.test.ts
 ```
 
-## 单元测试
+## Unit Tests
 
-### 测试配置
+### Test Configuration
 
 ```typescript
 // jest.config.js
@@ -84,7 +84,7 @@ module.exports = {
 };
 ```
 
-### 工具函数测试
+### Utility Function Tests
 
 ```typescript
 // src/lib/utils/__tests__/formatPrice.test.ts
@@ -127,7 +127,7 @@ describe('formatPercentage', () => {
 });
 ```
 
-### 预言机客户端测试
+### Oracle Client Tests
 
 ```typescript
 // src/lib/oracles/__tests__/chainlink.test.ts
@@ -144,7 +144,7 @@ describe('ChainlinkClient', () => {
     });
   });
 
-  describe('基本属性', () => {
+  describe('Basic Properties', () => {
     it('should have correct name', () => {
       expect(client.name).toBe(OracleProvider.CHAINLINK);
     });
@@ -213,7 +213,7 @@ describe('ChainlinkClient', () => {
     });
   });
 
-  describe('错误处理', () => {
+  describe('Error Handling', () => {
     it('should handle unsupported symbols gracefully', async () => {
       const price = await client.getPrice('UNKNOWN');
 
@@ -224,7 +224,7 @@ describe('ChainlinkClient', () => {
 });
 ```
 
-### Hooks 测试
+### Hooks Tests
 
 ```typescript
 // src/hooks/__tests__/usePriceData.test.ts
@@ -233,7 +233,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { usePriceData } from '../usePriceData';
 import { OracleProvider } from '@/types/oracle';
 
-// Mock 预言机工厂
+// Mock oracle factory
 jest.mock('@/lib/oracles/factory', () => ({
   OracleClientFactory: {
     getClient: jest.fn(() => ({
@@ -270,11 +270,11 @@ describe('usePriceData', () => {
       { wrapper: createWrapper() }
     );
 
-    // 初始状态
+    // Initial state
     expect(result.current.isLoading).toBe(true);
     expect(result.current.data).toBeUndefined();
 
-    // 等待数据加载
+    // Wait for data to load
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
     });
@@ -285,7 +285,7 @@ describe('usePriceData', () => {
   });
 
   it('should handle error state', async () => {
-    // Mock 错误
+    // Mock error
     jest.mocked(OracleClientFactory.getClient).mockImplementation(() => {
       throw new Error('Network error');
     });
@@ -304,7 +304,7 @@ describe('usePriceData', () => {
 });
 ```
 
-### 组件测试
+### Component Tests
 
 ```typescript
 // src/components/oracle/__tests__/PriceCard.test.tsx
@@ -358,9 +358,9 @@ describe('PriceCard', () => {
 });
 ```
 
-## 集成测试
+## Integration Tests
 
-### API 路由测试
+### API Route Tests
 
 ```typescript
 // src/app/api/oracles/__tests__/route.test.ts
@@ -467,9 +467,9 @@ afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
 ```
 
-## E2E 测试
+## E2E Tests
 
-### Playwright 配置
+### Playwright Configuration
 
 ```typescript
 // playwright.config.ts
@@ -516,7 +516,7 @@ export default defineConfig({
 });
 ```
 
-### E2E 测试用例
+### E2E Test Cases
 
 ```typescript
 // e2e/chainlink.spec.ts
@@ -546,7 +546,7 @@ test.describe('Chainlink Page', () => {
   });
 
   test('should be responsive', async ({ page }) => {
-    // 移动端测试
+    // Mobile test
     await page.setViewportSize({ width: 375, height: 667 });
     await expect(page.locator('nav')).toBeVisible();
   });
@@ -559,14 +559,14 @@ test.describe('Cross Oracle Comparison', () => {
   test('should compare multiple oracles', async ({ page }) => {
     await page.goto('/en/cross-oracle');
 
-    // 选择预言机
+    // Select oracles
     await page.getByLabel('Chainlink').check();
     await page.getByLabel('Pyth').check();
 
-    // 选择资产
+    // Select asset
     await page.getByRole('button', { name: 'BTC' }).click();
 
-    // 验证对比表格
+    // Verify comparison table
     await expect(page.getByText('Chainlink')).toBeVisible();
     await expect(page.getByText('Pyth')).toBeVisible();
   });
@@ -584,12 +584,12 @@ test.describe('Cross Oracle Comparison', () => {
 });
 ```
 
-## 最佳实践
+## Best Practices
 
-### 1. 测试命名
+### 1. Test Naming
 
 ```typescript
-// ✅ 描述性的测试名称
+// ✅ Descriptive test names
 describe('usePriceData', () => {
   it('should fetch price data successfully', async () => {
     // ...
@@ -604,15 +604,15 @@ describe('usePriceData', () => {
   });
 });
 
-// ❌ 避免模糊的命名
+// ❌ Avoid vague naming
 it('works', () => {});
 it('test 1', () => {});
 ```
 
-### 2. 测试结构
+### 2. Test Structure
 
 ```typescript
-// ✅ AAA 模式 (Arrange, Act, Assert)
+// ✅ AAA Pattern (Arrange, Act, Assert)
 describe('PriceCard', () => {
   it('displays price correctly', () => {
     // Arrange
@@ -626,7 +626,7 @@ describe('PriceCard', () => {
   });
 });
 
-// ✅ 使用 beforeEach 减少重复
+// ✅ Use beforeEach to reduce repetition
 describe('OracleClient', () => {
   let client: OracleClient;
 
@@ -635,19 +635,19 @@ describe('OracleClient', () => {
   });
 
   it('test 1', () => {
-    // 使用 client
+    // Use client
   });
 
   it('test 2', () => {
-    // 使用 client
+    // Use client
   });
 });
 ```
 
-### 3. 测试数据
+### 3. Test Data
 
 ```typescript
-// ✅ 使用工厂函数创建测试数据
+// ✅ Use factory functions to create test data
 function createMockPrice(overrides?: Partial<PriceData>): PriceData {
   return {
     symbol: 'BTC',
@@ -658,50 +658,50 @@ function createMockPrice(overrides?: Partial<PriceData>): PriceData {
   };
 }
 
-// 使用
+// Usage
 const price = createMockPrice({ symbol: 'ETH', price: 3000 });
 
-// ✅ 避免硬编码
-// ❌ 不推荐
+// ✅ Avoid hardcoding
+// ❌ Not recommended
 expect(result).toBe(50000);
 
-// ✅ 推荐
+// ✅ Recommended
 const expectedPrice = mockPrice.price;
 expect(result).toBe(expectedPrice);
 ```
 
-### 4. 异步测试
+### 4. Async Tests
 
 ```typescript
-// ✅ 使用 waitFor 等待异步操作
+// ✅ Use waitFor for async operations
 await waitFor(() => {
   expect(result.current.data).toBeDefined();
 });
 
-// ✅ 使用 findBy 查询异步元素
+// ✅ Use findBy for async elements
 const element = await screen.findByText('Loaded');
 
-// ✅ 测试 loading 状态
+// ✅ Test loading state
 expect(screen.getByText('Loading...')).toBeInTheDocument();
 ```
 
-### 5. Mock 策略
+### 5. Mock Strategy
 
 ```typescript
-// ✅ 选择性 Mock
+// ✅ Selective mocking
 jest.mock('@/lib/oracles/factory', () => ({
   OracleClientFactory: {
     getClient: jest.fn(),
   },
 }));
 
-// ✅ 使用 spy 而不是完全 Mock
+// ✅ Use spy instead of full mock
 const spy = jest.spyOn(console, 'error').mockImplementation();
 
-// 测试后恢复
+// Restore after test
 spy.mockRestore();
 
-// ✅ Mock 模块的特定部分
+// ✅ Mock specific parts of a module
 jest.mock('next/navigation', () => ({
   useRouter: () => ({
     push: jest.fn(),
@@ -710,27 +710,27 @@ jest.mock('next/navigation', () => ({
 }));
 ```
 
-### 6. 覆盖率
+### 6. Coverage
 
 ```bash
-# 运行测试并生成覆盖率报告
+# Run tests and generate coverage report
 npm run test:coverage
 
-# 查看覆盖率报告
+# View coverage report
 open coverage/lcov-report/index.html
 ```
 
-覆盖率目标：
+Coverage Targets:
 
-- 语句覆盖率：≥ 80%
-- 分支覆盖率：≥ 80%
-- 函数覆盖率：≥ 80%
-- 行覆盖率：≥ 80%
+- Statement Coverage: ≥ 80%
+- Branch Coverage: ≥ 80%
+- Function Coverage: ≥ 80%
+- Line Coverage: ≥ 80%
 
-### 7. 测试工具
+### 7. Test Utilities
 
 ```typescript
-// 自定义渲染函数
+// Custom render function
 // src/test-utils.tsx
 import { render as rtlRender } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -748,70 +748,70 @@ function render(ui: React.ReactElement, options = {}) {
   );
 }
 
-// 导出测试工具
+// Export test utilities
 export * from '@testing-library/react';
 export { render };
 
-// 使用
+// Usage
 import { render, screen } from '@/test-utils';
 ```
 
-## 运行测试
+## Running Tests
 
 ```bash
-# 运行所有测试
+# Run all tests
 npm test
 
-# 运行特定文件
+# Run specific file
 npm test -- PriceCard.test.tsx
 
-# 运行特定模式
+# Run specific pattern
 npm test -- --testNamePattern="should fetch"
 
-# 监视模式
+# Watch mode
 npm test -- --watch
 
-# 生成覆盖率报告
+# Generate coverage report
 npm run test:coverage
 
-# 运行 E2E 测试
+# Run E2E tests
 npm run test:e2e
 
-# 运行特定 E2E 测试
+# Run specific E2E test
 npm run test:e2e -- chainlink.spec.ts
 ```
 
-## 调试技巧
+## Debugging Tips
 
-### 使用 debugger
+### Using debugger
 
 ```typescript
 it('should debug', async () => {
   const result = await fetchData();
-  debugger; // 会在这里暂停
+  debugger; // Will pause here
   expect(result).toBeDefined();
 });
 ```
 
-### 打印 DOM
+### Printing DOM
 
 ```typescript
 import { screen } from '@testing-library/react';
 
-// 打印整个 DOM
+// Print entire DOM
 screen.debug();
 
-// 打印特定元素
+// Print specific element
 screen.debug(screen.getByText('BTC'));
 ```
 
-### 测试日志
+### Test Logs
 
 ```typescript
-// 查看 console.log
+// View console.log
 const consoleSpy = jest.spyOn(console, 'log');
 
-// 执行操作
+// Execute operation
 
 expect(consoleSpy).toHaveBeenCalledWith('expected message');
 ```

@@ -209,50 +209,50 @@ insight/
 - **No `any` Types**: Avoid using `any` type. Use `unknown` or proper type definitions
 - **Explicit Return Types**: Consider adding explicit return types for complex functions
 - **Interface vs Type**: Use `interface` for object shapes, `type` for unions/intersections
-- **Import Order**: 遵循导入顺序 - React/Next.js → 第三方库 → 内部模块 → 类型定义
+- **Import Order**: Follow import order - React/Next.js → Third-party libraries → Internal modules → Type definitions
 
-### 代码质量检查流程
+### Code Quality Check Process
 
-在提交代码前，必须运行以下检查：
+Before submitting code, run the following checks:
 
 ```bash
-# 1. 运行 ESLint 检查
+# 1. Run ESLint check
 npm run lint
 
-# 2. 运行类型检查
+# 2. Run type check
 npm run typecheck
 
-# 3. 运行所有测试
+# 3. Run all tests
 npm run test
 
-# 4. 运行完整验证（包含以上所有）
+# 4. Run full validation (includes all above)
 npm run validate
 ```
 
-### 命名规范检查
+### Naming Convention Check
 
 ```bash
-# 检查文件和目录命名规范
+# Check file and directory naming conventions
 npm run naming:check
 ```
 
-命名规范要求：
+Naming convention requirements:
 
-- **组件文件**: PascalCase (如 `PriceChart.tsx`)
-- **工具文件**: camelCase (如 `formatDate.ts`)
-- **类型文件**: PascalCase (如 `OracleTypes.ts`)
-- **常量**: SCREAMING_SNAKE_CASE
-- **测试文件**: 与被测试文件同名 + `.test.ts`
+- **Component files**: PascalCase (e.g., `PriceChart.tsx`)
+- **Utility files**: camelCase (e.g., `formatDate.ts`)
+- **Type files**: PascalCase (e.g., `OracleTypes.ts`)
+- **Constants**: SCREAMING_SNAKE_CASE
+- **Test files**: Same name as tested file + `.test.ts`
 
-### 代码提交前检查清单
+### Pre-commit Checklist
 
-- [ ] 代码通过 ESLint 检查（无错误）
-- [ ] 代码通过 TypeScript 类型检查
-- [ ] 所有测试通过
-- [ ] 新增功能包含测试
-- [ ] 命名规范符合项目要求
-- [ ] 无未使用的导入或变量
-- [ ] 无 `console.log` 调试语句
+- [ ] Code passes ESLint check (no errors)
+- [ ] Code passes TypeScript type check
+- [ ] All tests pass
+- [ ] New features include tests
+- [ ] Naming conventions follow project requirements
+- [ ] No unused imports or variables
+- [ ] No `console.log` debug statements
 
 ### ESLint Configuration
 

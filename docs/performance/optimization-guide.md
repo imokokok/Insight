@@ -1,41 +1,41 @@
-# Insight 性能优化指南
+# Insight Performance Optimization Guide
 
-> 本指南涵盖 Insight 区块链预言机数据分析平台的性能优化最佳实践。
+> This guide covers performance optimization best practices for the Insight blockchain oracle data analytics platform.
 
-## 目录
+## Table of Contents
 
-1. [概述](#概述)
-2. [代码分割](#代码分割)
-3. [动态导入](#动态导入)
-4. [图片优化](#图片优化)
-5. [虚拟列表](#虚拟列表)
-6. [性能监控](#性能监控)
-7. [最佳实践](#最佳实践)
-
----
-
-## 概述
-
-Insight 项目采用多种性能优化策略来确保流畅的用户体验：
-
-- **代码分割**: 按需加载组件，减少初始包体积
-- **动态导入**: 延迟加载非关键组件
-- **图片优化**: 使用 Next.js Image 组件和懒加载
-- **虚拟列表**: 高效渲染大量数据
-- **性能监控**: 实时监控 Web Vitals 和性能指标
+1. [Overview](#overview)
+2. [Code Splitting](#code-splitting)
+3. [Dynamic Imports](#dynamic-imports)
+4. [Image Optimization](#image-optimization)
+5. [Virtual Lists](#virtual-lists)
+6. [Performance Monitoring](#performance-monitoring)
+7. [Best Practices](#best-practices)
 
 ---
 
-## 代码分割
+## Overview
 
-### 1. 页面级别代码分割
+The Insight project employs multiple performance optimization strategies to ensure a smooth user experience:
 
-使用 `DynamicPageComponents` 实现页面级别的懒加载：
+- **Code Splitting**: Load components on demand to reduce initial bundle size
+- **Dynamic Imports**: Lazy load non-critical components
+- **Image Optimization**: Use Next.js Image component and lazy loading
+- **Virtual Lists**: Efficiently render large amounts of data
+- **Performance Monitoring**: Real-time monitoring of Web Vitals and performance metrics
+
+---
+
+## Code Splitting
+
+### 1. Page-level Code Splitting
+
+Use `DynamicPageComponents` for page-level lazy loading:
 
 ```typescript
 import { DynamicCrossOraclePage } from '@/components/performance';
 
-// 在路由配置中使用
+// Use in route configuration
 const routes = [
   {
     path: '/cross-oracle',
@@ -44,9 +44,9 @@ const routes = [
 ];
 ```
 
-### 2. 组件级别代码分割
+### 2. Component-level Code Splitting
 
-使用 `createDynamicComponent` 创建动态组件：
+Use `createDynamicComponent` to create dynamic components:
 
 ```typescript
 import { createDynamicComponent } from '@/components/performance';
@@ -60,18 +60,18 @@ const HeavyChart = createDynamicComponent(
   }
 );
 
-// 使用组件
+// Use component
 function Dashboard() {
   return <HeavyChart data={data} />;
 }
 
-// 预加载
+// Preload
 HeavyChart.preload();
 ```
 
-### 3. 预加载策略
+### 3. Preloading Strategies
 
-#### 基于悬停的预加载
+#### Hover-based Preloading
 
 ```typescript
 import { preloadOnHover } from '@/components/performance';
@@ -85,12 +85,12 @@ function NavigationLink({ to, component }) {
 }
 ```
 
-#### 基于空闲时间的预加载
+#### Idle-time Preloading
 
 ```typescript
 import { preloadWhenIdle } from '@/components/performance';
 
-// 在应用初始化时
+// During application initialization
 useEffect(() => {
   preloadWhenIdle([DynamicCrossOraclePage, DynamicMarketOverviewPage]);
 }, []);
@@ -98,11 +98,11 @@ useEffect(() => {
 
 ---
 
-## 动态导入
+## Dynamic Imports
 
-### 1. 图表组件动态导入
+### 1. Chart Component Dynamic Imports
 
-项目已内置大量动态图表组件：
+The project has built-in dynamic chart components:
 
 ```typescript
 import {
@@ -113,7 +113,7 @@ import {
   preloadChart,
 } from '@/components/oracle/charts';
 
-// 使用动态图表
+// Use dynamic charts
 function PriceAnalysis() {
   return (
     <div>
@@ -123,11 +123,11 @@ function PriceAnalysis() {
   );
 }
 
-// 预加载特定图表
+// Preload specific chart
 preloadChart('PriceChart');
 ```
 
-### 2. 条件动态导入
+### 2. Conditional Dynamic Imports
 
 ```typescript
 const AdvancedAnalytics = dynamic(
@@ -149,15 +149,15 @@ function Dashboard({ showAdvanced }) {
 
 ---
 
-## 图片优化
+## Image Optimization
 
-### 1. 使用 OptimizedImage 组件
+### 1. Using OptimizedImage Component
 
 ```typescript
 import { OptimizedImage } from '@/components/ui';
-// 注意：LazyImage 和 ResponsiveImage 是计划中的功能，尚未实现
+// Note: LazyImage and ResponsiveImage are planned features, not yet implemented
 
-// 基础用法
+// Basic usage
 <OptimizedImage
   src="/logos/btc.svg"
   alt="Bitcoin"
@@ -166,7 +166,7 @@ import { OptimizedImage } from '@/components/ui';
   priority
 />
 
-// 懒加载
+// Lazy loading
 <LazyImage
   src="/charts/large-chart.png"
   alt="Price Chart"
@@ -174,7 +174,7 @@ import { OptimizedImage } from '@/components/ui';
   rootMargin="100px"
 />
 
-// 响应式图片
+// Responsive image
 <ResponsiveImage
   src="/hero/banner.jpg"
   alt="Hero Banner"
@@ -186,10 +186,10 @@ import { OptimizedImage } from '@/components/ui';
 />
 ```
 
-### 2. 图片格式优化
+### 2. Image Format Optimization
 
 ```typescript
-// 使用 WebP 格式
+// Use WebP format
 <OptimizedImage
   src="/images/chart.png"
   alt="Chart"
@@ -197,7 +197,7 @@ import { OptimizedImage } from '@/components/ui';
   quality={85}
 />
 
-// 使用 AVIF 格式（更好的压缩）
+// Use AVIF format (better compression)
 <OptimizedImage
   src="/images/photo.jpg"
   alt="Photo"
@@ -205,7 +205,7 @@ import { OptimizedImage } from '@/components/ui';
 />
 ```
 
-### 3. 背景图片优化
+### 3. Background Image Optimization
 
 ```typescript
 import { BackgroundImage } from '@/components/performance';
@@ -223,9 +223,9 @@ import { BackgroundImage } from '@/components/performance';
 
 ---
 
-## 虚拟列表
+## Virtual Lists
 
-### 1. 基础虚拟列表
+### 1. Basic Virtual List
 
 ```typescript
 import { VirtualList } from '@/components/performance';
@@ -245,7 +245,7 @@ function LargeDataTable({ items }) {
 }
 ```
 
-### 2. 虚拟网格
+### 2. Virtual Grid
 
 ```typescript
 import { VirtualGrid } from '@/components/performance';
@@ -264,7 +264,7 @@ function AssetGrid({ assets }) {
 }
 ```
 
-### 3. 无限滚动
+### 3. Infinite Scroll
 
 ```typescript
 import { VirtualList } from '@/components/performance';
@@ -295,9 +295,9 @@ function InfinitePriceList() {
 
 ---
 
-## 性能监控
+## Performance Monitoring
 
-### 1. 使用 PerformanceMonitor 组件
+### 1. Using PerformanceMonitor Component
 
 ```typescript
 import { PerformanceMonitor } from '@/components/performance';
@@ -319,7 +319,7 @@ function App() {
 }
 ```
 
-### 2. 使用性能 Hooks
+### 2. Using Performance Hooks
 
 ```typescript
 import {
@@ -335,7 +335,7 @@ function Dashboard() {
 
   useEffect(() => {
     if (performance.health === 'poor') {
-      // 触发性能优化
+      // Trigger performance optimization
       optimizePerformance();
     }
   }, [performance.health]);
@@ -350,7 +350,7 @@ function Dashboard() {
 }
 ```
 
-### 3. 性能追踪
+### 3. Performance Tracking
 
 ```typescript
 import { usePerformanceTracker } from '@/hooks';
@@ -368,7 +368,7 @@ function DataFetcher() {
     }
   };
 
-  // 或使用 measureAsync
+  // Or use measureAsync
   const fetchDataSimple = () => {
     return tracker.measureAsync(
       () => fetchPrices(),
@@ -382,39 +382,39 @@ function DataFetcher() {
 
 ---
 
-## 最佳实践
+## Best Practices
 
-### 1. 组件优化
+### 1. Component Optimization
 
 ```typescript
-// ✅ 使用 React.memo 避免不必要的重渲染
+// ✅ Use React.memo to avoid unnecessary re-renders
 const PriceCard = memo(function PriceCard({ price }) {
   return <div>{price}</div>;
 });
 
-// ✅ 使用 useMemo 缓存计算结果
+// ✅ Use useMemo to cache computed results
 const sortedPrices = useMemo(() => {
   return [...prices].sort((a, b) => b.price - a.price);
 }, [prices]);
 
-// ✅ 使用 useCallback 缓存回调函数
+// ✅ Use useCallback to cache callback functions
 const handleClick = useCallback(() => {
   onSelect(price);
 }, [onSelect, price]);
 ```
 
-### 2. 数据获取优化
+### 2. Data Fetching Optimization
 
 ```typescript
-// ✅ 使用 React Query 的 staleTime 和 gcTime
+// ✅ Use React Query's staleTime and gcTime
 const { data } = useQuery({
   queryKey: ['prices', symbol],
   queryFn: () => fetchPrice(symbol),
-  staleTime: 30 * 1000, // 30 秒
-  gcTime: 5 * 60 * 1000, // 5 分钟
+  staleTime: 30 * 1000, // 30 seconds
+  gcTime: 5 * 60 * 1000, // 5 minutes
 });
 
-// ✅ 使用 prefetchQuery 预取数据
+// ✅ Use prefetchQuery for data prefetching
 const queryClient = useQueryClient();
 
 const handleHover = (symbol: string) => {
@@ -425,55 +425,55 @@ const handleHover = (symbol: string) => {
 };
 ```
 
-### 3. 渲染优化
+### 3. Rendering Optimization
 
 ```typescript
-// ✅ 使用虚拟列表处理大量数据
+// ✅ Use virtual lists for large datasets
 <VirtualList
   items={largeDataset}
   renderItem={renderItem}
   estimateSize={50}
 />
 
-// ✅ 使用 Intersection Observer 实现懒加载
+// ✅ Use Intersection Observer for lazy loading
 const { observe, isVisible } = useLazyLoadOptimizer();
 
 useEffect(() => {
   observe(containerRef.current);
 }, [observe]);
 
-// ✅ 避免在渲染中创建新对象
-// ❌ 错误
+// ✅ Avoid creating new objects in render
+// ❌ Wrong
 <div style={{ color: 'red' }} />
 
-// ✅ 正确
+// ✅ Correct
 const style = useMemo(() => ({ color: 'red' }), []);
 <div style={style} />
 ```
 
-### 4. 内存优化
+### 4. Memory Optimization
 
 ```typescript
-// ✅ 及时清理事件监听器
+// ✅ Clean up event listeners in time
 useEffect(() => {
   const handler = () => {};
   window.addEventListener('resize', handler);
   return () => window.removeEventListener('resize', handler);
 }, []);
 
-// ✅ 使用 AbortController 取消请求
+// ✅ Use AbortController to cancel requests
 useEffect(() => {
   const controller = new AbortController();
   fetchData({ signal: controller.signal });
   return () => controller.abort();
 }, []);
 
-// ✅ 监控内存使用
+// ✅ Monitor memory usage
 const memory = useMemoryOptimizer();
 
 useEffect(() => {
   if (memory.isCritical) {
-    // 清理缓存
+    // Clear cache
     clearCache();
   }
 }, [memory.isCritical]);
@@ -481,64 +481,64 @@ useEffect(() => {
 
 ---
 
-## 性能预算
+## Performance Budget
 
-### Web Vitals 指标
+### Web Vitals Metrics
 
-| 指标 | 目标    | 警告阈值 | 说明                      |
-| ---- | ------- | -------- | ------------------------- |
-| LCP  | < 2.5s  | 4.0s     | Largest Contentful Paint  |
-| INP  | < 200ms | 500ms    | Interaction to Next Paint |
-| CLS  | < 0.1   | 0.25     | Cumulative Layout Shift   |
-| FCP  | < 1.8s  | 3.0s     | First Contentful Paint    |
-| TTFB | < 800ms | 1.8s     | Time to First Byte        |
+| Metric | Target  | Warning Threshold | Description               |
+| ------ | ------- | ----------------- | ------------------------- |
+| LCP    | < 2.5s  | 4.0s              | Largest Contentful Paint  |
+| INP    | < 200ms | 500ms             | Interaction to Next Paint |
+| CLS    | < 0.1   | 0.25              | Cumulative Layout Shift   |
+| FCP    | < 1.8s  | 3.0s              | First Contentful Paint    |
+| TTFB   | < 800ms | 1.8s              | Time to First Byte        |
 
-### JavaScript 包大小
+### JavaScript Bundle Size
 
-| 类型    | 目标    | 警告阈值 |
-| ------- | ------- | -------- |
-| 首屏 JS | < 300KB | 500KB    |
-| CSS     | < 100KB | 150KB    |
-| 图片    | < 500KB | 1MB      |
+| Type     | Target  | Warning Threshold |
+| -------- | ------- | ----------------- |
+| First JS | < 300KB | 500KB             |
+| CSS      | < 100KB | 150KB             |
+| Images   | < 500KB | 1MB               |
 
-### 资源限制
+### Resource Limits
 
-| 类型       | 最大数量 |
-| ---------- | -------- |
-| 总资源数   | 50       |
-| 第三方脚本 | 10       |
-| 字体文件   | 5        |
+| Type                | Maximum Count |
+| ------------------- | ------------- |
+| Total Resources     | 50            |
+| Third-party Scripts | 10            |
+| Font Files          | 5             |
 
 ---
 
-## 调试工具
+## Debugging Tools
 
 ### 1. Chrome DevTools
 
-- **Performance**: 分析运行时性能
-- **Lighthouse**: 生成性能报告
-- **Network**: 监控资源加载
-- **Memory**: 分析内存使用
+- **Performance**: Analyze runtime performance
+- **Lighthouse**: Generate performance reports
+- **Network**: Monitor resource loading
+- **Memory**: Analyze memory usage
 
 ### 2. React DevTools
 
-- **Profiler**: 分析组件渲染性能
-- **Components**: 检查组件树
+- **Profiler**: Analyze component rendering performance
+- **Components**: Inspect component tree
 
 ### 3. Web Vitals Extension
 
-安装 Chrome 扩展实时监控 Core Web Vitals。
+Install Chrome extension for real-time Core Web Vitals monitoring.
 
 ---
 
-## 总结
+## Summary
 
-通过遵循以上最佳实践，可以显著提升 Insight 平台的性能：
+By following the best practices above, you can significantly improve the performance of the Insight platform:
 
-1. **代码分割**: 减少初始加载时间
-2. **动态导入**: 按需加载组件
-3. **图片优化**: 减少图片加载时间
-4. **虚拟列表**: 高效处理大量数据
-5. **性能监控**: 持续跟踪和优化
+1. **Code Splitting**: Reduce initial load time
+2. **Dynamic Imports**: Load components on demand
+3. **Image Optimization**: Reduce image loading time
+4. **Virtual Lists**: Efficiently handle large amounts of data
+5. **Performance Monitoring**: Continuously track and optimize
 
-记住，性能优化是一个持续的过程，需要定期监控和调整。
+Remember, performance optimization is an ongoing process that requires regular monitoring and adjustment.
