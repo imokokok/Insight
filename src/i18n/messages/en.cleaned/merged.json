@@ -226,7 +226,11 @@
     "deviation": "Deviation",
     "freshness": "Freshness",
     "confidence": "Confidence",
-    "lastUpdated": "Last Updated"
+    "lastUpdated": "Last Updated",
+    "latency": "Latency",
+    "latencyTooltip": "Estimated latency based on historical data",
+    "dataSources": "Data Sources",
+    "dataSourcesTooltip": "Estimated data sources based on official documentation"
   },
   "settings": {
     "profile": {

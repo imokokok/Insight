@@ -32,6 +32,18 @@ jest.mock('@/lib/utils/logger', () => ({
   }),
 }));
 
+jest.mock('next-intl', () => ({
+  useTranslations: () => (key: string) => {
+    const translations: Record<string, string> = {
+      add: '收藏',
+      added: '已收藏',
+      addTitle: '添加收藏',
+      removeTitle: '取消收藏',
+    };
+    return translations[key] || key;
+  },
+}));
+
 describe('FavoriteButton', () => {
   const defaultProps = {
     configType: 'price_query' as const,

@@ -16,6 +16,12 @@
         "title": "Confirm Delete",
         "message": "Are you sure you want to delete \"{name}\"? This action cannot be undone."
       }
+    },
+    "button": {
+      "add": "Favorite",
+      "added": "Favorited",
+      "addTitle": "Add to Favorites",
+      "removeTitle": "Remove from Favorites"
     }
   }
 }
