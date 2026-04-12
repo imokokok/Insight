@@ -92,7 +92,7 @@ function generateFallbackSecret(): string {
     throw new Error('SECURITY_SECRET must be set in production environment');
   }
   logger.warn('Using fallback security secret - DO NOT USE IN PRODUCTION');
-  return 'fallback-secret-do-not-use-in-production-' + Date.now();
+  return 'dev-fallback-secret-fixed-for-development-only-32chars';
 }
 
 export const env: EnvConfig = {
