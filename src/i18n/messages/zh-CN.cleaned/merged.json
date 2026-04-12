@@ -26,9 +26,6 @@
   "time": {
     "justNow": "刚刚"
   },
-  "price": {
-    "title": "价格"
-  },
   "export": "导出",
   "home": {
     "hero": {
@@ -58,9 +55,6 @@
       }
     }
   },
-  "indicators": {
-    "title": "指标"
-  },
   "crossOracleComparison": {
     "consistencyScore": "一致性评分",
     "quickCompare": "快速对比",
@@ -80,40 +74,13 @@
     "accuracyFactor": "准确度因子",
     "accuracyFactorDesc": "价格准确度评分"
   },
-  "crossChainPriceComparison": {
-    "avgPrice": "平均价格",
-    "highestPrice": "最高价格",
-    "lowestPrice": "最低价格",
-    "allChains": "所有链",
-    "high": "偏高",
-    "low": "偏低",
-    "normal": "正常",
-    "noData": "暂无跨链价格数据"
-  },
   "oracleCommon": {
     "oraclePageTemplate": {
       "rank": "排名"
     }
   },
   "networkHealth": {
-    "status": {
-      "online": "在线",
-      "warning": "警告",
-      "offline": "离线"
-    },
-    "networkStatus": "网络状态",
-    "monitoring": "实时监控中",
-    "lastCheck": "最后检查",
-    "vsLastWeek": "较上周",
-    "dataFreshness": {
-      "title": "数据新鲜度",
-      "subtitle": "实时数据同步状态",
-      "lastUpdated": "最后更新",
-      "dataLatency": "数据延迟",
-      "excellent": "优秀",
-      "good": "良好",
-      "slow": "缓慢"
-    }
+    "vsLastWeek": "较上周"
   },
   "crossChain": {
     "title": "跨链价格趋同分析",
@@ -190,7 +157,6 @@
     },
     "dataIntegrity": "数据完整性",
     "priceJumpFrequency": "价格跳动频率",
-    "priceJumps": "价格跳动",
     "detailComparison": "详细对比",
     "priceTrendComparison": "价格趋势对比",
     "anomalyPoint": "异常点",
@@ -216,20 +182,6 @@
     "refreshSuccess": "刷新成功",
     "filters": "筛选器",
     "filter": "筛选",
-    "residualDiagnostics": "残差诊断",
-    "autocorrelationFunction": "自相关函数 (ACF)",
-    "autocorrelationCoefficient": "自相关系数",
-    "residualDistribution": "残差分布",
-    "empiricalDensity": "经验密度",
-    "normalDensity": "正态密度",
-    "empiricalDistribution": "经验分布",
-    "normalDistribution": "正态分布",
-    "diagnosticExplanation": "诊断说明",
-    "acfExplanation": "ACF图: 若自相关系数超出置信区间（红色虚线），表明残差存在自相关。Ljung-Box检验p值 < 0.05 表示拒绝原假设，残差存在显著自相关。",
-    "distributionExplanation": "分布图: 比较残差的经验分布与正态分布。若两者差异较大，可能违反协整检验的正态性假设。",
-    "currentStatus": "当前状态",
-    "residualsHaveAutocorrelation": "残差存在自相关，模型可能需要改进。",
-    "residualsNoAutocorrelation": "残差无明显自相关，模型拟合良好。",
     "anomalyDetectionConfig": "异常检测阈值配置",
     "thresholdType": "阈值类型",
     "fixedThreshold": "固定阈值",
@@ -543,7 +495,6 @@
     "expandDetails": "展开详情",
     "anomalyTooltip": "价格异常：偏差 {deviation}%"
   },
-  "comparisonPeriod": "对比周期",
   "dataQuality": {
     "secondsSuffix": "秒"
   },
@@ -630,14 +581,6 @@
       "acknowledge": "确认",
       "acknowledging": "确认中...",
       "totalRecords": "共 {total} 条记录，显示 {shown} 条"
-    },
-    "notification": {
-      "title": "价格告警触发",
-      "triggerPrice": "触发价格:",
-      "time": "时间:",
-      "acknowledge": "确认",
-      "acknowledging": "确认中...",
-      "viewDetails": "查看详情"
     },
     "templates": {
       "title": "快速模板",
