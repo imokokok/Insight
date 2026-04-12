@@ -491,13 +491,13 @@
       "oraclePrices": "Oracle Prices"
     },
     "timeRange": {
-      "1H": "1 Hour",
-      "24H": "24 Hours",
-      "7D": "7 Days",
-      "30D": "30 Days",
-      "90D": "90 Days",
-      "1Y": "1 Year",
-      "ALL": "All Time"
+      "1h": "1 Hour",
+      "24h": "24 Hours",
+      "7d": "7 Days",
+      "30d": "30 Days",
+      "90d": "90 Days",
+      "1y": "1 Year",
+      "all": "All Time"
     },
     "chart": {
       "fullscreen": "Fullscreen View",
