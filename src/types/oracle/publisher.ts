@@ -21,16 +21,3 @@ export interface PublisherStats {
   averageDeviation: number;
   trend: 'improving' | 'stable' | 'declining';
 }
-
-export interface GenericValidator {
-  id: string;
-  name: string;
-  reliabilityScore: number;
-  latency: number;
-  status: PublisherStatus;
-  staked: number;
-  region?: string;
-  uptime?: number;
-  commission?: number;
-  totalResponses?: number;
-}

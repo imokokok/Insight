@@ -5,7 +5,6 @@ import {
 } from '@/lib/services/marketData/types';
 import { createLogger } from '@/lib/utils/logger';
 
-import { detectAnomalies } from './anomalyCalculations';
 import {
   binanceMarketService,
   type TokenMarketData,
@@ -32,12 +31,7 @@ import {
   type ReferencePricePoint,
   type OraclePerformanceMetrics,
 } from './performanceMetrics';
-import {
-  generateTVSTrendData,
-  exportWithConfig,
-  downloadExport,
-  type ExportDataOptions,
-} from './priceCalculations';
+import { generateTVSTrendData } from './priceCalculations';
 import { fetchRiskMetrics, fetchHHI, fetchDiversificationScore } from './riskCalculations';
 
 const logger = createLogger('marketData');
@@ -100,13 +94,9 @@ export {
   MarketDataError,
 };
 
-export { generateTVSTrendData, exportWithConfig, downloadExport };
-
-export type { ExportDataOptions };
+export { generateTVSTrendData };
 
 export { fetchRiskMetrics, fetchHHI, fetchDiversificationScore };
-
-export { detectAnomalies };
 
 export {
   performanceMetricsCalculator,

@@ -29,16 +29,3 @@ export interface PaginatedRequest extends PaginationParams {
   search?: string;
   filters?: Record<string, unknown>;
 }
-
-export interface CursorPaginationParams {
-  cursor?: string;
-  limit?: number;
-  direction?: 'forward' | 'backward';
-}
-
-export interface CursorPaginatedResponse<T> {
-  items: T[];
-  nextCursor?: string;
-  previousCursor?: string;
-  hasMore: boolean;
-}

@@ -14,23 +14,9 @@ export {
   calculateVolatility,
   calculateSharpeRatio,
   calculateMaxDrawdown,
-  calculateVaR,
-  calculateCVaR,
-  calculateBeta,
   calculateCorrelation,
-  calculatePortfolioRisk,
-  formatRiskMetrics,
-  isDataStale,
-  getScoreColor,
-  getScoreBg,
-  getScoreBarColor,
-  getEventTypeColor,
   getRiskLevel,
   getRiskLevelColor,
-  getRiskStatusColor,
-  getMeasureStatusColor,
-  formatLatency,
-  calculateOverallScore,
 } from './riskUtils';
 export * from './searchHistory';
 export * from './statistics';

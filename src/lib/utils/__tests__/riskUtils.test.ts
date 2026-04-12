@@ -5,12 +5,7 @@ import {
   calculateVolatility,
   calculateSharpeRatio,
   calculateMaxDrawdown,
-  calculateVaR,
-  calculateCVaR,
-  calculateBeta,
   calculateCorrelation,
-  calculatePortfolioRisk,
-  formatRiskMetrics,
 } from '../riskUtils';
 
 describe('riskUtils', () => {
@@ -88,7 +83,6 @@ describe('riskUtils', () => {
     });
 
     it('should return gray for unknown risk', () => {
-      // @ts-expect-error - Testing invalid risk level
       expect(getRiskColor('unknown')).toBe('#6B7280');
     });
   });
@@ -164,73 +158,6 @@ describe('riskUtils', () => {
     });
   });
 
-  describe('calculateVaR', () => {
-    it('should calculate Value at Risk', () => {
-      const returns = [0.01, -0.02, 0.015, -0.01, 0.005, -0.03, 0.02];
-      const confidence = 0.95;
-      const var_ = calculateVaR(returns, confidence);
-
-      expect(typeof var_).toBe('number');
-    });
-
-    it('should use default confidence level', () => {
-      const returns = [0.01, -0.02, 0.015];
-      const var_ = calculateVaR(returns);
-
-      expect(typeof var_).toBe('number');
-    });
-
-    it('should handle empty array', () => {
-      const var_ = calculateVaR([]);
-
-      expect(var_).toBe(0);
-    });
-  });
-
-  describe('calculateCVaR', () => {
-    it('should calculate Conditional Value at Risk', () => {
-      const returns = [0.01, -0.02, 0.015, -0.01, 0.005, -0.03, 0.02];
-      const confidence = 0.95;
-      const cvar = calculateCVaR(returns, confidence);
-
-      expect(typeof cvar).toBe('number');
-    });
-
-    it('should be more conservative than VaR', () => {
-      const returns = [0.01, -0.02, 0.015, -0.01, 0.005, -0.03, 0.02];
-      const var_ = calculateVaR(returns);
-      const cvar = calculateCVaR(returns);
-
-      expect(Math.abs(cvar)).toBeGreaterThanOrEqual(Math.abs(var_));
-    });
-  });
-
-  describe('calculateBeta', () => {
-    it('should calculate beta against market', () => {
-      const assetReturns = [0.01, 0.02, -0.01, 0.015, 0.005];
-      const marketReturns = [0.005, 0.01, -0.005, 0.01, 0.002];
-      const beta = calculateBeta(assetReturns, marketReturns);
-
-      expect(typeof beta).toBe('number');
-    });
-
-    it('should return 0 for zero market variance', () => {
-      const assetReturns = [0.01, 0.02, 0.015];
-      const marketReturns = [0.01, 0.01, 0.01];
-      const beta = calculateBeta(assetReturns, marketReturns);
-
-      expect(beta).toBe(0);
-    });
-
-    it('should handle mismatched array lengths', () => {
-      const assetReturns = [0.01, 0.02];
-      const marketReturns = [0.005, 0.01, 0.015];
-      const beta = calculateBeta(assetReturns, marketReturns);
-
-      expect(typeof beta).toBe('number');
-    });
-  });
-
   describe('calculateCorrelation', () => {
     it('should calculate correlation between two assets', () => {
       const returns1 = [0.01, 0.02, -0.01, 0.015, 0.005];
@@ -254,83 +181,6 @@ describe('riskUtils', () => {
       const correlation = calculateCorrelation(returns1, returns2);
 
       expect(correlation).toBe(0);
-    });
-  });
-
-  describe('calculatePortfolioRisk', () => {
-    it('should calculate portfolio risk', () => {
-      const assets = [
-        { weight: 0.5, volatility: 0.2, returns: [0.01, 0.02, -0.01] },
-        { weight: 0.5, volatility: 0.15, returns: [0.005, 0.015, -0.005] },
-      ];
-      const portfolioRisk = calculatePortfolioRisk(assets);
-
-      expect(portfolioRisk).toHaveProperty('totalRisk');
-      expect(portfolioRisk).toHaveProperty('diversificationBenefit');
-      expect(portfolioRisk).toHaveProperty('weightedVolatility');
-    });
-
-    it('should calculate diversification benefit', () => {
-      const assets = [
-        { weight: 0.5, volatility: 0.2, returns: [0.01, 0.02, -0.01] },
-        { weight: 0.5, volatility: 0.15, returns: [0.005, 0.015, -0.005] },
-      ];
-      const portfolioRisk = calculatePortfolioRisk(assets);
-
-      expect(portfolioRisk.diversificationBenefit).toBeGreaterThanOrEqual(0);
-    });
-
-    it('should handle single asset portfolio', () => {
-      const assets = [{ weight: 1, volatility: 0.2, returns: [0.01, 0.02, -0.01] }];
-      const portfolioRisk = calculatePortfolioRisk(assets);
-
-      expect(portfolioRisk.totalRisk).toBeGreaterThan(0);
-      expect(portfolioRisk.diversificationBenefit).toBe(0);
-    });
-  });
-
-  describe('formatRiskMetrics', () => {
-    it('should format risk metrics for display', () => {
-      const metrics = {
-        volatility: 0.25,
-        sharpeRatio: 1.5,
-        maxDrawdown: 0.15,
-        var95: 0.05,
-      };
-      const formatted = formatRiskMetrics(metrics);
-
-      expect(formatted).toHaveProperty('volatility');
-      expect(formatted).toHaveProperty('sharpeRatio');
-      expect(formatted).toHaveProperty('maxDrawdown');
-      expect(formatted).toHaveProperty('var95');
-    });
-
-    it('should format volatility as percentage', () => {
-      const metrics = { volatility: 0.25 };
-      const formatted = formatRiskMetrics(metrics);
-
-      expect(formatted.volatility).toBe('25.00%');
-    });
-
-    it('should format max drawdown as percentage', () => {
-      const metrics = { maxDrawdown: 0.15 };
-      const formatted = formatRiskMetrics(metrics);
-
-      expect(formatted.maxDrawdown).toBe('15.00%');
-    });
-
-    it('should format VaR as percentage', () => {
-      const metrics = { var95: 0.05 };
-      const formatted = formatRiskMetrics(metrics);
-
-      expect(formatted.var95).toBe('5.00%');
-    });
-
-    it('should format Sharpe ratio with 2 decimals', () => {
-      const metrics = { sharpeRatio: 1.567 };
-      const formatted = formatRiskMetrics(metrics);
-
-      expect(formatted.sharpeRatio).toBe('1.57');
     });
   });
 });

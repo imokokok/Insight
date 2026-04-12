@@ -40,54 +40,6 @@ export function getSupportedChainsForOracle(provider: OracleProvider): Blockchai
 }
 
 /**
- * Calculates chain coverage percentage for an oracle provider
- * @param provider - The oracle provider
- * @param totalChains - Optional array of total chains to calculate against
- * @returns Coverage percentage (0-100)
- */
-export function calculateChainCoverage(
-  provider: OracleProvider,
-  totalChains?: readonly Blockchain[]
-): number {
-  const config = oracleConfigs[provider];
-  const supportedChains = config?.supportedChains || [];
-  const total = totalChains || BLOCKCHAIN_VALUES;
-  return (supportedChains.length / total.length) * 100;
-}
-
-/**
- * Gets chains commonly supported by two oracle providers
- * @param provider1 - First oracle provider
- * @param provider2 - Second oracle provider
- * @returns Array of common supported blockchains
- */
-export function getCommonChainsBetweenOracles(
-  provider1: OracleProvider,
-  provider2: OracleProvider
-): Blockchain[] {
-  const chains1 = getSupportedChainsForOracle(provider1);
-  const chains2 = getSupportedChainsForOracle(provider2);
-  return chains1.filter((chain) => chains2.includes(chain));
-}
-
-/**
- * Gets chains commonly supported by multiple oracle providers
- * @param providers - Array of oracle providers
- * @returns Array of common supported blockchains
- */
-export function getCommonChainsForOracles(providers: OracleProvider[]): Blockchain[] {
-  if (providers.length === 0) return [];
-  if (providers.length === 1) return getSupportedChainsForOracle(providers[0]);
-
-  let commonChains = getSupportedChainsForOracle(providers[0]);
-  for (let i = 1; i < providers.length; i++) {
-    const chains = getSupportedChainsForOracle(providers[i]);
-    commonChains = commonChains.filter((chain) => chains.includes(chain));
-  }
-  return commonChains;
-}
-
-/**
  * Gets all oracle providers that support a specific chain
  * @param chain - The blockchain to check
  * @returns Array of supporting oracle providers
@@ -100,56 +52,6 @@ export function getOraclesSupportingChain(chain: Blockchain): OracleProvider[] {
 }
 
 /**
- * Gets statistics on chain support across all oracles
- * @returns Record mapping each blockchain to number of supporting oracles
- */
-export function getChainSupportStats(): Record<Blockchain, number> {
-  const stats: Record<Blockchain, number> = {} as Record<Blockchain, number>;
-
-  BLOCKCHAIN_VALUES.forEach((chain) => {
-    stats[chain] = getOraclesSupportingChain(chain).length;
-  });
-
-  return stats;
-}
-
-/**
- * Gets chains sorted by number of supporting oracles (descending)
- * @returns Array of blockchains sorted by oracle support count
- */
-export function getChainsSortedByOracleSupport(): Blockchain[] {
-  const stats = getChainSupportStats();
-  return BLOCKCHAIN_VALUES.slice().sort((a, b) => stats[b] - stats[a]);
-}
-
-/**
- * Gets heatmap data for chain coverage across all oracle providers
- * @returns Object containing providers, chains, and coverage matrix
- */
-export function getChainCoverageHeatmapData(): {
-  providers: OracleProvider[];
-  chains: Blockchain[];
-  coverage: Record<OracleProvider, Record<Blockchain, boolean>>;
-} {
-  const providers = [...ORACLE_PROVIDER_VALUES];
-  const chains = [...BLOCKCHAIN_VALUES];
-  const coverage: Record<OracleProvider, Record<Blockchain, boolean>> = {} as Record<
-    OracleProvider,
-    Record<Blockchain, boolean>
-  >;
-
-  providers.forEach((provider) => {
-    const config = oracleConfigs[provider];
-    coverage[provider] = {} as Record<Blockchain, boolean>;
-    chains.forEach((chain) => {
-      coverage[provider][chain] = config?.supportedChains.includes(chain) || false;
-    });
-  });
-
-  return { providers, chains, coverage };
-}
-
-/**
  * Checks if a chain is supported by a specific oracle provider
  * @param chain - The blockchain to check
  * @param provider - The oracle provider
@@ -158,45 +60,6 @@ export function getChainCoverageHeatmapData(): {
 export function isChainSupportedByOracle(chain: Blockchain, provider: OracleProvider): boolean {
   const config = oracleConfigs[provider];
   return config?.supportedChains.includes(chain) || false;
-}
-
-/**
- * Gets the default oracle provider for a chain (first supporting provider)
- * @param chain - The blockchain
- * @returns Default oracle provider or null if none supports the chain
- */
-export function getDefaultOracleForChain(chain: Blockchain): OracleProvider | null {
-  const oracles = getOraclesSupportingChain(chain);
-  return oracles.length > 0 ? oracles[0] : null;
-}
-
-/**
- * Gets recommended oracle providers for a chain
- * @param chain - The blockchain
- * @returns Array of recommended oracle providers
- */
-export function getRecommendedOraclesForChain(chain: Blockchain): OracleProvider[] {
-  return getOraclesSupportingChain(chain);
-}
-
-/**
- * Gets chain category statistics
- * @returns Record mapping category names to chain counts
- */
-export function getChainCategoryStats(): Record<string, number> {
-  const stats: Record<string, number> = {
-    l1: 0,
-    l2: 0,
-    cosmos: 0,
-    other: 0,
-  };
-
-  BLOCKCHAIN_VALUES.forEach((chain) => {
-    const category = getChainCategory(chain);
-    stats[category] = (stats[category] || 0) + 1;
-  });
-
-  return stats;
 }
 
 /**
