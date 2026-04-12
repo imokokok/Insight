@@ -130,19 +130,12 @@ src/app/
 │   ├── favorites/         # User favorites page
 │   ├── alerts/            # Alerts management page
 │   ├── settings/          # User settings page
-│   ├── methodology/       # Methodology page
+│   ├── docs/              # Documentation page
 │   │
-│   ├── chainlink/         # Chainlink oracle page
-│   ├── pyth/              # Pyth Network page
-│   ├── pyth-network/      # Pyth Network page (alt route)
-│   ├── api3/              # API3 page
-│   ├── redstone/          # RedStone page
-│   ├── dia/               # DIA page
-│   ├── winklink/          # WINkLink page
+│   ├── pyth-network/      # Pyth Network page
 │   │
 │   ├── login/             # Login page
 │   ├── register/          # Registration page
-│   ├── snapshot/[id]/    # Shared snapshot view
 │   └── auth/              # Auth related pages
 │       ├── forgot-password/
 │       ├── reset-password/
@@ -150,7 +143,18 @@ src/app/
 │       └── verify-email/
 │
 └── api/                   # API Routes (non-localized)
-    └── ...
+    ├── oracles/           # Oracle data endpoints
+    ├── alerts/            # Alert management
+    ├── favorites/         # User favorites
+    ├── snapshots/         # Price snapshots
+    ├── auth/              # Authentication
+    ├── health/            # Health check
+    ├── config/            # Configuration
+    ├── market-data/       # Market data
+    ├── prices/            # Price data
+    ├── binance/           # Binance proxy
+    ├── defillama/         # DeFi Llama proxy
+    └── cron/              # Scheduled tasks
 ```
 
 ### 2.2 React 19 with Server and Client Components
@@ -235,36 +239,18 @@ const ArbitrageHeatmap = dynamic(
 src/components/
 ├── oracle/                 # Oracle-specific components
 │   ├── charts/             # Oracle chart components
-│   │   ├── PriceChart/
-│   │   ├── DynamicPriceChart.tsx
-│   │   ├── PriceVolatilityChart.tsx
-│   │   ├── ConfidenceIntervalChart.tsx
-│   │   ├── KPIDashboard.tsx
-│   │   └── ...
-│   ├── common/             # Common oracle components
-│   │   ├── OraclePageTemplate.tsx
-│   │   ├── DashboardCard.tsx
-│   │   ├── DataQualityScoreCard.tsx
-│   │   ├── ConfidenceScore.tsx
-│   │   ├── RiskScoreCard.tsx
-│   │   └── ...
+│   │   ├── PriceChart/     # Main price chart
+│   │   ├── InteractivePriceChart/
+│   │   ├── CrossOracleComparison/
+│   │   └── EnhancedTooltip/
+│   ├── data-display/       # Data display components
 │   ├── panels/             # Oracle-specific panels
-│   │   ├── ChainlinkDataFeedsPanel.tsx
-│   │   ├── PythRiskAssessmentPanel.tsx
-│   │   ├── API3RiskAssessmentPanel.tsx
-│   │   ├── DIANFTDataPanel.tsx
-│   │   ├── RedStoneDataStreamsPanel.tsx
-│   │   └── WINkLinkGamingDataPanel.tsx
-│   ├── forms/              # Form components
-│   └── indicators/         # Technical indicators
-│       ├── BollingerBands.tsx
-│       ├── RSIIndicator.tsx
-│       ├── MACDIndicator.tsx
-│       ├── ATRIndicator.tsx
-│       └── index.ts
+│   │   └── MetricCard.tsx
+│   └── shared/             # Shared oracle components
+│       └── LoadingState.tsx
 │
 ├── charts/                 # Chart components
-│   ├── LazyCharts.tsx
+│   ├── ChartToolbar.tsx
 │   └── index.ts
 │
 ├── navigation/             # Navigation components
@@ -278,7 +264,9 @@ src/components/
 │   ├── AlertConfig.tsx
 │   ├── AlertHistory.tsx
 │   ├── AlertList.tsx
-│   ├── AlertNotification.tsx
+│   ├── AlertBatchOperations.tsx
+│   ├── AlertMutePeriod.tsx
+│   ├── AlertTemplates.tsx
 │   └── index.ts
 │
 ├── favorites/              # Favorites components
@@ -288,32 +276,33 @@ src/components/
 │   └── index.ts
 │
 ├── comparison/             # Comparison components
-│   ├── OracleComparisonView.tsx
-│   ├── TimeComparisonChart.tsx
+│   ├── DifferenceBadge.tsx
+│   ├── EnhancedComparisonTable.tsx
+│   ├── types.ts
 │   └── index.ts
 │
 ├── export/                 # Export components
 │   ├── UnifiedExport.tsx
 │   ├── ExportHistoryPanel.tsx
+│   ├── exportUtils.ts
+│   ├── types.ts
 │   └── index.ts
 │
 ├── data-transparency/      # Data transparency components
 │   ├── DataSourceIndicator.tsx
+│   ├── DataSourceList.tsx
 │   ├── DataUpdateTime.tsx
 │   └── index.ts
 │
 ├── accessibility/          # Accessibility components
-│   ├── AccessibilitySettings.tsx
-│   ├── KeyboardNavigation.tsx
-│   └── index.ts
-│
-├── mobile/                 # Mobile components
-│   ├── BottomNavigation.tsx
-│   ├── MobilePriceChart.tsx
-│   └── index.ts
+│   └── accessibility.css
 │
 ├── search/                 # Search components
 │   ├── GlobalSearch.tsx
+│   ├── SearchButton.tsx
+│   ├── data.ts
+│   ├── types.ts
+│   ├── useGlobalSearch.ts
 │   └── index.ts
 │
 ├── settings/               # Settings components
@@ -326,7 +315,17 @@ src/components/
 │
 ├── realtime/               # Real-time components
 │   ├── ConnectionStatus.tsx
-│   ├── RealtimeNotifications.tsx
+│   └── index.ts
+│
+├── shortcuts/              # Keyboard shortcuts
+│   ├── ShortcutContext.tsx
+│   ├── ShortcutHelpPanel.tsx
+│   ├── ShortcutInitializer.tsx
+│   └── index.ts
+│
+├── error-boundary/         # Error boundary components
+│   ├── ErrorBoundary.tsx
+│   ├── OracleErrorBoundary.tsx
 │   └── index.ts
 │
 ├── ui/                     # Reusable UI components
@@ -334,13 +333,18 @@ src/components/
 │   ├── Card.tsx
 │   ├── ChartSkeleton.tsx
 │   ├── EmptyState.tsx
-│   ├── Toast.tsx
-│   └── index.ts
+│   ├── EmptyStateEnhanced.tsx
+│   ├── Icon.tsx
+│   ├── LiveStatusBar.tsx
+│   ├── Skeleton.tsx
+│   ├── SparklineChart.tsx
+│   ├── Tooltip.tsx
+│   ├── DataTablePro.tsx
+│   ├── DataTablePro/       # Advanced data table
+│   └── selectors/          # Selector components
 │
 ├── Navbar.tsx
 ├── Footer.tsx
-├── ErrorBoundaries.tsx
-├── GaugeChart.tsx
 ├── LanguageSwitcher.tsx
 └── AppInitializer.tsx
 ```

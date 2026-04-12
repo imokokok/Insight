@@ -134,40 +134,43 @@ insight/
 │   ├── app/                    # Next.js App Router pages and API routes
 │   │   ├── [locale]/           # Localized pages (next-intl)
 │   │   │   ├── alerts/         # Alerts management page
-│   │   │   ├── api3/           # API3 oracle page
-│   │   │   ├── chainlink/      # Chainlink oracle page
+│   │   │   ├── auth/           # Authentication pages
+│   │   │   │   ├── forgot-password/
+│   │   │   │   ├── resend-verification/
+│   │   │   │   ├── reset-password/
+│   │   │   │   └── verify-email/
 │   │   │   ├── cross-chain/    # Cross-chain analysis page
 │   │   │   ├── cross-oracle/   # Cross-oracle comparison page
-│   │   │   ├── dia/            # DIA oracle page
+│   │   │   ├── docs/           # Documentation page
 │   │   │   ├── favorites/      # User favorites page
 │   │   │   ├── home-components/# Homepage components
 │   │   │   ├── login/          # Login page
-│   │   │   ├── methodology/    # Methodology page
 │   │   │   ├── price-query/    # Price query page
 │   │   │   ├── pyth-network/   # Pyth oracle page
-│   │   │   ├── redstone/       # RedStone oracle page
 │   │   │   ├── register/       # Registration page
-│   │   │   ├── settings/       # User settings page
-│   │   │   ├── snapshot/       # Shared snapshots page
-│   │   │   └── winklink/       # WINkLink oracle page
+│   │   │   └── settings/       # User settings page
 │   │   ├── api/                # API endpoints
 │   │   │   ├── alerts/         # Price alerts API
 │   │   │   │   ├── batch/      # Batch alert operations
 │   │   │   │   ├── events/     # Alert events API
 │   │   │   │   └── [id]/       # Individual alert endpoints
 │   │   │   ├── auth/           # Authentication callbacks
+│   │   │   ├── binance/        # Binance market data proxy
+│   │   │   ├── config/         # Configuration API
+│   │   │   ├── cron/           # Scheduled tasks
+│   │   │   ├── defillama/      # DeFi Llama proxy
 │   │   │   ├── favorites/      # User favorites API
+│   │   │   ├── health/         # Health check endpoint
+│   │   │   ├── market-data/    # Market data API
 │   │   │   ├── oracles/        # Oracle data API
 │   │   │   │   └── [provider]/ # Provider-specific endpoints
-│   │   │   ├── snapshots/      # User snapshots API
-│   │   │   │   └── [id]/       # Individual snapshot endpoints
-│   │   │   ├── cron/           # Scheduled tasks
-│   │   │   └── health/         # Health check endpoint
+│   │   │   ├── prices/         # Prices API
+│   │   │   └── snapshots/      # User snapshots API
+│   │   │       └── [id]/       # Individual snapshot endpoints
 │   │   ├── error.tsx           # Error boundary
 │   │   ├── global-error.tsx    # Global error handler
 │   │   ├── layout.tsx          # Root layout
 │   │   ├── not-found.tsx       # 404 page
-│   │   ├── page.tsx            # Home page
 │   │   ├── globals.css         # Global styles
 │   │   └── favicon.ico         # Favicon
 │   ├── components/             # React components
@@ -176,68 +179,107 @@ insight/
 │   │   ├── charts/             # Chart components
 │   │   ├── comparison/         # Comparison components
 │   │   ├── data-transparency/  # Data transparency components
+│   │   ├── error-boundary/     # Error boundary components
 │   │   ├── export/             # Export components
 │   │   ├── favorites/          # Favorite components
 │   │   ├── layout/             # Layout components
-│   │   ├── mobile/             # Mobile components
 │   │   ├── navigation/         # Navigation components
 │   │   ├── oracle/             # Oracle-specific components
 │   │   │   ├── charts/         # Oracle chart components
-│   │   │   ├── common/         # Common oracle components
-│   │   │   ├── forms/          # Form components
-│   │   │   └── indicators/     # Technical indicators
+│   │   │   │   ├── CrossOracleComparison/
+│   │   │   │   ├── EnhancedTooltip/
+│   │   │   │   ├── InteractivePriceChart/
+│   │   │   │   └── PriceChart/
+│   │   │   ├── data-display/   # Data display components
+│   │   │   ├── panels/         # Panel components
+│   │   │   └── shared/         # Shared oracle components
+│   │   ├── realtime/           # Real-time components
 │   │   ├── search/             # Search components
 │   │   ├── settings/           # Settings components
+│   │   ├── shortcuts/          # Keyboard shortcuts
 │   │   ├── ui/                 # Reusable UI components
+│   │   │   ├── DataTablePro/   # Advanced data table
+│   │   │   └── selectors/      # Selector components
 │   │   ├── AppInitializer.tsx  # App initializer
-│   │   ├── ErrorBoundaries.tsx # Error boundaries
 │   │   ├── Footer.tsx          # Footer component
-│   │   ├── GaugeChart.tsx      # Gauge chart
 │   │   ├── LanguageSwitcher.tsx# Language switcher
-│   │   └── Navbar.tsx          # Navigation bar
+│   │   ├── Navbar.tsx          # Navigation bar
+│   │   └── PerformanceMetricsCollector.tsx
+│   ├── hooks/                  # Custom React hooks
+│   │   ├── api3/               # API3 hooks
+│   │   ├── data/               # Data fetching hooks
+│   │   ├── oracles/            # Oracle-specific hooks
+│   │   ├── realtime/           # Real-time hooks
+│   │   ├── ui/                 # UI hooks
+│   │   └── utils/              # Utility hooks
 │   ├── lib/                    # Core libraries
 │   │   ├── analytics/          # Analytics utilities
 │   │   ├── api/                # API utilities
 │   │   │   ├── client/         # API client with interceptors
 │   │   │   ├── middleware/     # API middleware (auth, rate limit, validation)
-│   │   │   ├── versioning/     # API versioning
-│   │   │   ├── validation/     # Validation schemas (Zod)
+│   │   │   ├── recovery/       # Error recovery
 │   │   │   ├── response/       # Response builders
-│   │   │   └── handler.ts      # Main API handler
+│   │   │   ├── retry/          # Retry logic
+│   │   │   ├── types/          # API types
+│   │   │   ├── validation/     # Validation schemas (Zod)
+│   │   │   └── versioning/     # API versioning
 │   │   ├── config/             # Configuration files
 │   │   ├── constants/          # Application constants
 │   │   ├── di/                 # Dependency injection
 │   │   ├── errors/             # Error handling
 │   │   ├── export/             # Data export utilities
-│   │   ├── hooks/              # Custom React hooks
+│   │   ├── i18n/               # i18n provider
 │   │   ├── indicators/         # Technical indicators
+│   │   ├── logger/             # Logging utilities
 │   │   ├── monitoring/         # Performance monitoring
 │   │   ├── oracles/            # Oracle client implementations
-│   │   │   ├── base.ts         # BaseOracleClient abstract class
-│   │   │   ├── factory.ts      # OracleClientFactory
-│   │   │   ├── chainlink.ts    # Chainlink client
-│   │   │   ├── pythNetwork.ts  # Pyth Network client
-│   │   │   ├── pythHermesClient.ts # Pyth Hermes API client
+│   │   │   ├── api3/           # API3 client and services
+│   │   │   ├── base/           # Base oracle client
+│   │   │   ├── constants/      # Oracle constants
+│   │   │   ├── pyth/           # Pyth client and services
 │   │   │   ├── api3.ts         # API3 client
-│   │   │   ├── redstone.ts     # RedStone client
+│   │   │   ├── base.ts         # BaseOracleClient abstract class
+│   │   │   ├── chainlink.ts    # Chainlink client
+│   │   │   ├── colors.ts       # Oracle colors
 │   │   │   ├── dia.ts          # DIA client
-│   │   │   ├── diaDataService.ts   # DIA data service
-│   │   │   ├── diaPriceService.ts  # DIA price service
-│   │   │   ├── diaNFTService.ts    # DIA NFT service
-│   │   │   ├── diaNetworkService.ts # DIA network service
-│   │   │   ├── winklink.ts     # WINkLink client
-│   │   │   └── constants/      # Oracle constants
-│   │   ├── queries/            # React Query keys
+│   │   │   ├── diaDataService.ts
+│   │   │   ├── diaNFTService.ts
+│   │   │   ├── diaNetworkService.ts
+│   │   │   ├── diaPriceService.ts
+│   │   │   ├── factory.ts      # OracleClientFactory
+│   │   │   ├── interfaces.ts   # Oracle interfaces
+│   │   │   ├── memoryManager.ts
+│   │   │   ├── oracle-config.ts
+│   │   │   ├── oracleDataUtils.ts
+│   │   │   ├── performanceMetricsCalculator.ts
+│   │   │   ├── pythConstants.ts
+│   │   │   ├── pythDataService.ts
+│   │   │   ├── pythHermesClient.ts
+│   │   │   ├── pythNetwork.ts
+│   │   │   ├── pythPublishersData.ts
+│   │   │   ├── redstone.ts     # RedStone client
+│   │   │   ├── redstoneConstants.ts
+│   │   │   ├── storage.ts
+│   │   │   ├── supportedSymbols.ts
+│   │   │   └── winklink.ts     # WINkLink client
+│   │   ├── queries/            # React Query keys and client
 │   │   ├── realtime/           # Real-time communication
+│   │   ├── security/           # Security utilities
 │   │   ├── services/           # External services
+│   │   │   ├── marketData/     # Market data services
+│   │   │   │   └── defiLlamaApi/
+│   │   │   └── oracle/         # Oracle services
 │   │   ├── snapshots/          # Snapshot management
 │   │   ├── supabase/           # Supabase client and utilities
-│   │   └── utils/              # Utility functions
+│   │   ├── utils/              # Utility functions
+│   │   │   └── chartExport/    # Chart export utilities
+│   │   └── validation/         # Validation utilities
 │   ├── stores/                 # Zustand stores
 │   │   ├── authStore.ts        # Authentication state
-│   │   ├── uiStore.ts          # UI state
+│   │   ├── crossChainStore.ts  # Cross-chain analysis state
 │   │   ├── realtimeStore.ts    # Real-time data state
-│   │   └── crossChainStore.ts  # Cross-chain analysis state
+│   │   ├── selectors.ts        # Store selectors
+│   │   └── uiStore.ts          # UI state
 │   ├── types/                  # TypeScript type definitions
 │   │   ├── oracle/             # Oracle types
 │   │   ├── api/                # API types
@@ -246,18 +288,25 @@ insight/
 │   │   └── common/             # Common types
 │   ├── i18n/                   # Internationalization
 │   │   ├── messages/           # Translation messages
+│   │   │   ├── en/             # English translations
+│   │   │   │   ├── components/
+│   │   │   │   └── features/
+│   │   │   ├── zh-CN/          # Chinese translations
+│   │   │   │   ├── components/
+│   │   │   │   └── features/
 │   │   │   ├── common.json
 │   │   │   ├── home.json
-│   │   │   ├── navigation.json
-│   │   │   ├── oracles/        # Oracle-specific translations
-│   │   │   └── components/     # Component translations
+│   │   │   └── navigation.json
 │   │   ├── config.ts
-│   │   └── i18n.ts
-│   └── providers/              # React providers
-│       └── ReactQueryProvider.tsx
-├── supabase/
-│   └── migrations/             # Database migrations
-│       └── 001_initial_schema.sql
+│   │   ├── generated-types.ts
+│   │   ├── request.ts
+│   │   ├── routing.ts
+│   │   └── types.ts
+│   └── __mocks__/              # Test mocks
+├── e2e/                        # E2E tests
+│   ├── home.spec.ts
+│   ├── oracle-data.spec.ts
+│   └── price-query.spec.ts
 ├── public/                     # Static assets
 │   └── logos/                  # Logo assets
 │       ├── cryptos/            # Cryptocurrency logos
@@ -265,13 +314,13 @@ insight/
 ├── scripts/                    # Utility scripts
 │   ├── generate-i18n-types.js  # i18n type generation
 │   ├── check-i18n.js           # i18n validation
-│   ├── check-naming-convention.js # Naming convention check
+│   ├── check-naming-convention.js
 │   ├── performance-test.ts     # Performance testing
 │   └── quick-perf.mjs          # Quick performance check
 ├── next.config.ts              # Next.js configuration
-├── tailwind.config.ts          # Tailwind CSS configuration
 ├── tsconfig.json               # TypeScript configuration
 ├── jest.config.js              # Jest configuration
+├── playwright.config.ts        # Playwright configuration
 ├── eslint.config.mjs           # ESLint configuration
 ├── .husky/                     # Husky git hooks
 └── .trae/rules/                # Trae IDE rules

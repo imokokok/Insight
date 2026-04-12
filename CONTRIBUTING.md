@@ -85,81 +85,119 @@ insight/
 │   ├── app/                    # Next.js App Router pages and API routes
 │   │   ├── [locale]/           # Internationalized pages (next-intl)
 │   │   │   ├── alerts/         # Alerts page
-│   │   │   ├── api3/           # API3 oracle page
-│   │   │   ├── chainlink/      # Chainlink oracle page
+│   │   │   ├── auth/           # Authentication pages
+│   │   │   │   ├── forgot-password/
+│   │   │   │   ├── reset-password/
+│   │   │   │   ├── resend-verification/
+│   │   │   │   └── verify-email/
 │   │   │   ├── cross-chain/    # Cross-chain analysis page
 │   │   │   ├── cross-oracle/   # Cross-oracle comparison page
-│   │   │   ├── dia/            # DIA oracle page
+│   │   │   ├── docs/           # Documentation page
 │   │   │   ├── favorites/      # User favorites page
-│   │   │   ├── home/           # Homepage
+│   │   │   ├── home-components/# Homepage components
 │   │   │   ├── login/          # Login page
 │   │   │   ├── price-query/    # Price query page
-│   │   │   ├── pyth/           # Pyth oracle page
-│   │   │   ├── redstone/       # RedStone oracle page
+│   │   │   ├── pyth-network/   # Pyth oracle page
 │   │   │   ├── register/       # Registration page
-│   │   │   ├── settings/        # User settings page
-│   │   │   ├── snapshot/       # Shared snapshots page
-│   │   │   └── winklink/       # WINkLink oracle page
+│   │   │   └── settings/       # User settings page
 │   │   ├── api/                # API endpoints
 │   │   │   ├── alerts/         # Price alerts API
 │   │   │   ├── auth/           # Authentication callbacks
+│   │   │   ├── binance/        # Binance proxy
+│   │   │   ├── config/         # Configuration API
+│   │   │   ├── cron/           # Scheduled tasks
+│   │   │   ├── defillama/      # DeFi Llama proxy
 │   │   │   ├── favorites/      # User favorites API
+│   │   │   ├── health/         # Health check API
+│   │   │   ├── market-data/    # Market data API
 │   │   │   ├── oracles/        # Oracle data API
-│   │   │   ├── snapshots/      # User snapshots API
-│   │   │   └── health/         # Health check API
+│   │   │   ├── prices/         # Prices API
+│   │   │   └── snapshots/      # User snapshots API
 │   │   └── layout.tsx          # Root layout
 │   ├── components/             # React components
+│   │   ├── accessibility/      # Accessibility components
 │   │   ├── alerts/             # Alert components
 │   │   ├── charts/             # Chart components
+│   │   ├── comparison/         # Comparison components
+│   │   ├── data-transparency/  # Data transparency components
+│   │   ├── error-boundary/     # Error boundary components
 │   │   ├── export/             # Export components
-│   │   ├── favorites/           # Favorite components
+│   │   ├── favorites/          # Favorite components
+│   │   ├── layout/             # Layout components
 │   │   ├── navigation/         # Navigation components
 │   │   ├── oracle/             # Oracle-specific components
-│   │   ├── ui/                 # Reusable UI components
-│   │   └── ...
-│   ├── contexts/               # React contexts
-│   │   └── TimeRangeContext.tsx# Time range selection context
+│   │   │   ├── charts/         # Oracle chart components
+│   │   │   ├── data-display/   # Data display components
+│   │   │   ├── panels/         # Panel components
+│   │   │   └── shared/         # Shared oracle components
+│   │   ├── realtime/           # Real-time components
+│   │   ├── search/             # Search components
+│   │   ├── settings/           # Settings components
+│   │   ├── shortcuts/          # Keyboard shortcuts
+│   │   └── ui/                 # Reusable UI components
 │   ├── hooks/                  # Custom React hooks
-│   │   └── ...
+│   │   ├── api3/               # API3 hooks
+│   │   ├── data/               # Data fetching hooks
+│   │   ├── oracles/            # Oracle-specific hooks
+│   │   ├── realtime/           # Real-time hooks
+│   │   ├── ui/                 # UI hooks
+│   │   └── utils/              # Utility hooks
 │   ├── i18n/                   # Internationalization
-│   │   ├── en.json             # English translations
-│   │   └── zh-CN.json          # Chinese translations
+│   │   ├── messages/           # Translation messages
+│   │   │   ├── en/             # English translations
+│   │   │   └── zh-CN/          # Chinese translations
+│   │   ├── config.ts
+│   │   ├── generated-types.ts
+│   │   ├── request.ts
+│   │   ├── routing.ts
+│   │   └── types.ts
 │   ├── lib/                    # Core libraries
-│   │   ├── alerts/             # Alert detection logic
 │   │   ├── analytics/          # Analytics utilities
 │   │   ├── api/                # API utilities (client, middleware, versioning, validation, response)
 │   │   ├── config/             # Configuration files
+│   │   ├── constants/          # Application constants
+│   │   ├── di/                 # Dependency injection
 │   │   ├── errors/             # Error handling (AppError, BusinessErrors)
+│   │   ├── export/             # Data export utilities
+│   │   ├── i18n/               # i18n provider
+│   │   ├── indicators/         # Technical indicators
+│   │   ├── logger/             # Logging utilities
 │   │   ├── monitoring/         # Performance monitoring (webVitals)
-│   │   ├── oracles/            # Oracle client implementations (10+ oracles)
+│   │   ├── oracles/            # Oracle client implementations
+│   │   │   ├── api3/           # API3 client and services
+│   │   │   ├── base/           # Base oracle client
+│   │   │   ├── constants/      # Oracle constants
+│   │   │   ├── pyth/           # Pyth client and services
+│   │   │   ├── api3.ts         # API3 client
 │   │   │   ├── base.ts         # BaseOracleClient abstract class
 │   │   │   ├── chainlink.ts    # Chainlink client
+│   │   │   ├── dia.ts          # DIA client
 │   │   │   ├── factory.ts      # Oracle factory
-│   │   │   ├── pythNetwork.ts  # Pyth client
-│   │   │   ├── api3.ts         # API3 client
-│   │   │   └── ...
+│   │   │   ├── redstone.ts     # RedStone client
+│   │   │   └── winklink.ts     # WINkLink client
+│   │   ├── queries/            # React Query keys and client
 │   │   ├── realtime/           # Real-time communication (WebSocket)
+│   │   ├── security/           # Security utilities
 │   │   ├── services/           # External services (marketData, oracle)
 │   │   ├── snapshots/          # Snapshot management
 │   │   ├── supabase/           # Supabase client and utilities
-│   │   ├── types/              # TypeScript type definitions
-│   │   └── utils/              # Utility functions
-│   ├── providers/              # React providers
-│   │   └── ReactQueryProvider.tsx
-│   └── stores/                 # Zustand stores
-│       ├── authStore.ts        # Authentication state
-│       ├── uiStore.ts          # UI state
-│       ├── realtimeStore.ts     # Real-time state
-│       └── crossChainStore.ts   # Cross-chain data state
-├── supabase/
-│   └── migrations/             # Database migrations
-│       └── 001_initial_schema.sql
+│   │   ├── utils/              # Utility functions
+│   │   └── validation/         # Validation utilities
+│   ├── stores/                 # Zustand stores
+│   │   ├── authStore.ts        # Authentication state
+│   │   ├── crossChainStore.ts  # Cross-chain data state
+│   │   ├── realtimeStore.ts    # Real-time state
+│   │   ├── selectors.ts        # Store selectors
+│   │   └── uiStore.ts          # UI state
+│   └── types/                  # TypeScript type definitions
+├── e2e/                        # E2E tests
 ├── public/                     # Static assets
 ├── scripts/                    # Utility scripts
 ├── next.config.ts              # Next.js configuration
 ├── tsconfig.json               # TypeScript configuration
 ├── eslint.config.mjs           # ESLint configuration
 ├── jest.config.js              # Jest configuration
+├── playwright.config.ts        # Playwright configuration
 └── .prettierrc                 # Prettier configuration
 ```
 
