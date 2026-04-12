@@ -107,7 +107,7 @@ export class ChainlinkClient extends BaseOracleClient {
     Blockchain.ARBITRUM,
     Blockchain.OPTIMISM,
     Blockchain.POLYGON,
-    // Blockchain.AVALANCHE, // 暂时移除：ETH/USD Price Feed 地址配置错误
+    Blockchain.AVALANCHE,
     Blockchain.BNB_CHAIN,
     Blockchain.BASE,
   ];

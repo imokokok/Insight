@@ -50,7 +50,7 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
       category: 'crypto',
     },
     43114: {
-      address: '0x0A77230d17318075983913bC2145DB16C7366156',
+      address: '0x976b3d034e162d8bd72d6b9c989d545b839003b0',
       name: 'ETH / USD',
       symbol: 'ETH',
       decimals: 8,
