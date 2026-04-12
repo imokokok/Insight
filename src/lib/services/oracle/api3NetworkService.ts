@@ -358,39 +358,41 @@ export async function getAPI3Price(
 
 /**
  * 获取历史价格数据
- * 注意：API3 dAPI不直接提供历史数据，需要通过其他方式获取
- * 这里返回当前价格作为单点数据
+ * 注意：API3 dAPI不直接提供历史数据，使用 Binance API 获取历史数据
  */
 export async function getAPI3HistoricalPrices(
   symbol: string,
-  chain: Blockchain = Blockchain.ETHEREUM,
+  _chain: Blockchain = Blockchain.ETHEREUM,
   period: number = 24
 ): Promise<Array<{ price: number; timestamp: number; source: string }>> {
-  // API3 dAPI 是点查式的，不直接提供历史数据
-  // 返回当前价格作为单点数据
-  const current = await getAPI3Price(symbol, chain);
+  try {
+    const { binanceMarketService } = await import('@/lib/services/marketData/binanceMarketService');
 
-  if (!current) {
+    const historicalPrices = await binanceMarketService.getHistoricalPricesByHours(symbol, period);
+
+    if (!historicalPrices || historicalPrices.length === 0) {
+      logger.warn(`No historical data available for ${symbol} from Binance`);
+      return [];
+    }
+
+    logger.info(`Using Binance historical data for API3 ${symbol}`, {
+      symbol,
+      points: historicalPrices.length,
+      period,
+    });
+
+    return historicalPrices.map((point) => ({
+      price: point.price,
+      timestamp: point.timestamp,
+      source: `binance-api-for-api3`,
+    }));
+  } catch (error) {
+    logger.error(
+      `Failed to fetch historical prices for ${symbol}`,
+      error instanceof Error ? error : new Error(String(error))
+    );
     return [];
   }
-
-  // 生成模拟的历史数据点（基于当前价格）
-  const points: Array<{ price: number; timestamp: number; source: string }> = [];
-  const now = Date.now();
-  const interval = (period * 3600 * 1000) / 24; // 将时间段分成24个点
-
-  for (let i = 0; i < 24; i++) {
-    const timestamp = now - (23 - i) * interval;
-    // 添加一些随机波动（±2%）
-    const randomFactor = 0.98 + Math.random() * 0.04;
-    points.push({
-      price: current.price * randomFactor,
-      timestamp,
-      source: `api3-dapi-${chain}-interpolated`,
-    });
-  }
-
-  return points;
 }
 
 /**
