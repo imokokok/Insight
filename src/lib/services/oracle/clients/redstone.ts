@@ -4,6 +4,7 @@ import type { OracleClientConfig } from '@/lib/oracles/base';
 import { SPREAD_PERCENTAGES } from '@/lib/oracles/redstoneConstants';
 import { redstoneSymbols } from '@/lib/oracles/supportedSymbols';
 import { withOracleRetry, ORACLE_RETRY_PRESETS } from '@/lib/oracles/utils/retry';
+import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
 import { createLogger } from '@/lib/utils/logger';
 import { toMilliseconds } from '@/lib/utils/timestamp';
 import {
@@ -303,7 +304,7 @@ export class RedStoneClient extends BaseOracleClient {
 
   /**
    * Gets historical price data for a given symbol over a specified time period.
-   * 使用 RedStone API 获取历史价格数据
+   * 使用 Binance API 获取历史价格数据（与其他预言机保持一致）
    * @param symbol - The trading symbol (e.g., 'BTC', 'ETH')
    * @param chain - Optional blockchain context
    * @param period - Time period in hours (default: 24)
@@ -315,25 +316,28 @@ export class RedStoneClient extends BaseOracleClient {
     chain?: Blockchain,
     period: number = 24
   ): Promise<PriceData[]> {
-    const cacheKey = `historical:${symbol}:${period}`;
-    const cached = this.getFromCache<PriceData[]>(cacheKey);
-    if (cached) {
-      return cached;
-    }
-
     try {
-      // 使用 RedStone API 获取历史价格数据
-      const historicalPrices = await this.fetchHistoricalPricesFromRedStone(symbol, period);
+      // 统一使用 Binance API 获取历史价格数据
+      const historicalPrices = await binanceMarketService.getHistoricalPricesByHours(
+        symbol,
+        period
+      );
 
       if (!historicalPrices || historicalPrices.length === 0) {
-        logger.warn(`No historical data available for ${symbol}`);
+        logger.warn(`No historical data available for ${symbol}`, { symbol });
         return [];
       }
+
+      logger.info(`Using Binance historical data for ${symbol}`, {
+        symbol,
+        points: historicalPrices.length,
+        period,
+      });
 
       const targetChain = chain || Blockchain.ETHEREUM;
       const basePrice = historicalPrices[0].price;
 
-      const priceData: PriceData[] = historicalPrices.map((point, index) => {
+      return historicalPrices.map((point, index) => {
         const change24hPercent = index === 0 ? 0 : ((point.price - basePrice) / basePrice) * 100;
         const change24h = index === 0 ? 0 : point.price - basePrice;
 
@@ -347,16 +351,13 @@ export class RedStoneClient extends BaseOracleClient {
           confidence: 0.97,
           change24h: Number(change24h.toFixed(4)),
           change24hPercent: Number(change24hPercent.toFixed(2)),
-          source: 'redstone-api',
+          source: 'binance-api',
         };
       });
-
-      this.setCache(cacheKey, priceData, REDSTONE_CACHE_TTL.PRICE);
-      return priceData;
     } catch (error) {
-      logger.warn(`Failed to fetch historical prices for ${symbol}`, {
-        error: error instanceof Error ? error.message : String(error),
-      });
+      logger.error(
+        `Failed to fetch historical prices for ${symbol}: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
       return [];
     }
   }
