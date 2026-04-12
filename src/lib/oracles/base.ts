@@ -31,7 +31,7 @@ export const ORACLE_CACHE_TTL = {
 
 export type OracleCacheTTLKey = keyof typeof ORACLE_CACHE_TTL;
 
-interface CacheEntry<T> {
+export interface CacheEntry<T> {
   data: T;
   timestamp: number;
   ttl: number;

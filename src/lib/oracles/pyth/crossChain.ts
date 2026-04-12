@@ -2,15 +2,10 @@ import { type HermesClient } from '@pythnetwork/hermes-client';
 
 import { createLogger } from '@/lib/utils/logger';
 
-import {
-  PYTH_PRICE_FEED_IDS,
-  HERMES_API_URL,
-  normalizeSymbol,
-  DEFAULT_RETRY_CONFIG,
-} from '../pythConstants';
+import { PYTH_PRICE_FEED_IDS, HERMES_API_URL, normalizeSymbol } from '../pythConstants';
+import { withOracleRetry, ORACLE_RETRY_PRESETS } from '../utils/retry';
 
 import { parsePythPrice } from './pythParser';
-import { withRetry } from './retry';
 import { isPythPriceRaw } from './types';
 
 import type { CrossChainPriceData, CrossChainResult } from './types';
@@ -151,7 +146,7 @@ export async function getCrossChainPrices(
   hermesClient: HermesClient,
   symbol: string
 ): Promise<CrossChainResult> {
-  const result = await withRetry(
+  const result = await withOracleRetry(
     async () => {
       const pythSymbol = normalizeSymbol(symbol);
       const priceId = PYTH_PRICE_FEED_IDS[pythSymbol];
@@ -183,8 +178,8 @@ export async function getCrossChainPrices(
         timestamp,
       };
     },
-    DEFAULT_RETRY_CONFIG,
-    'getCrossChainPrices'
+    'getCrossChainPrices',
+    ORACLE_RETRY_PRESETS.standard
   );
 
   return result;

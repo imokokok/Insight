@@ -1,4 +1,4 @@
-import type { CacheEntry } from './types';
+import type { CacheEntry } from '../base';
 
 export class PythCache {
   private cache: Map<string, CacheEntry<unknown>> = new Map();

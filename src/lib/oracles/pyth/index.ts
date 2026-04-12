@@ -18,7 +18,6 @@ export {
 } from './pythParser';
 
 export {
-  type CacheEntry,
   type WebSocketConnectionStatus,
   type WebSocketConnectionState,
   type ConnectionStateListener,
@@ -32,3 +31,5 @@ export {
   type PythServicePriceFeed,
   type PythServiceNetworkStats,
 } from './types';
+
+export type { CacheEntry } from '../base';

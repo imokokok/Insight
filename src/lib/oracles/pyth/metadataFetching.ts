@@ -1,11 +1,11 @@
 import { createLogger } from '@/lib/utils/logger';
 
-import { PYTH_PRICE_FEED_IDS, CACHE_TTL, DEFAULT_RETRY_CONFIG } from '../pythConstants';
+import { PYTH_PRICE_FEED_IDS, CACHE_TTL } from '../pythConstants';
 import { PYTH_PUBLISHERS, PYTH_PUBLISHER_STATS } from '../pythPublishersData';
+import { withOracleRetry, ORACLE_RETRY_PRESETS } from '../utils/retry';
 
 import { calculateTotalSubmissions, calculateAverageLatency } from './calculations';
 import { type PythCache } from './pythCache';
-import { withRetry } from './retry';
 
 import type {
   PublisherData,
@@ -55,7 +55,7 @@ export async function fetchPriceFeeds(cache: PythCache): Promise<PythServicePric
   }
 
   try {
-    const result = await withRetry(
+    const result = await withOracleRetry(
       async () => {
         const feeds: PythServicePriceFeed[] = [];
 
@@ -71,8 +71,8 @@ export async function fetchPriceFeeds(cache: PythCache): Promise<PythServicePric
 
         return feeds;
       },
-      DEFAULT_RETRY_CONFIG,
-      'getPriceFeeds'
+      'getPriceFeeds',
+      ORACLE_RETRY_PRESETS.standard
     );
 
     cache.set(cacheKey, result, CACHE_TTL.FEEDS);
@@ -95,7 +95,7 @@ export async function fetchNetworkStats(cache: PythCache): Promise<PythServiceNe
   }
 
   try {
-    const result = await withRetry(
+    const result = await withOracleRetry(
       async () => {
         const [publishers, feeds] = await Promise.all([
           fetchPublishers(cache),
@@ -114,8 +114,8 @@ export async function fetchNetworkStats(cache: PythCache): Promise<PythServiceNe
           lastUpdated: Date.now(),
         };
       },
-      DEFAULT_RETRY_CONFIG,
-      'getNetworkStats'
+      'getNetworkStats',
+      ORACLE_RETRY_PRESETS.standard
     );
 
     cache.set(cacheKey, result, CACHE_TTL.STATS);

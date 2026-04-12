@@ -3,16 +3,11 @@ import { type HermesClient } from '@pythnetwork/hermes-client';
 import { createLogger } from '@/lib/utils/logger';
 import type { PriceData } from '@/types/oracle';
 
-import {
-  PYTH_PRICE_FEED_IDS,
-  CACHE_TTL,
-  normalizeSymbol,
-  DEFAULT_RETRY_CONFIG,
-} from '../pythConstants';
+import { PYTH_PRICE_FEED_IDS, CACHE_TTL, normalizeSymbol } from '../pythConstants';
+import { withOracleRetry, ORACLE_RETRY_PRESETS } from '../utils/retry';
 
 import { type PythCache } from './pythCache';
 import { parsePythPrice } from './pythParser';
-import { withRetry, sleep } from './retry';
 import { isPythPriceRaw } from './types';
 
 const logger = createLogger('PythPriceFetching');
@@ -30,7 +25,7 @@ export async function fetchLatestPrice(
   }
 
   try {
-    const result = await withRetry(
+    const result = await withOracleRetry(
       async () => {
         const pythSymbol = normalizeSymbol(symbol);
         const priceId = PYTH_PRICE_FEED_IDS[pythSymbol];
@@ -56,8 +51,8 @@ export async function fetchLatestPrice(
 
         return parsePythPrice(parsed.price, symbol, priceId);
       },
-      DEFAULT_RETRY_CONFIG,
-      'getLatestPrice'
+      'getLatestPrice',
+      ORACLE_RETRY_PRESETS.standard
     );
 
     if (result) {
@@ -98,10 +93,10 @@ export async function fetchMultiplePrices(
   }
 
   try {
-    const priceUpdates = await withRetry(
+    const priceUpdates = await withOracleRetry(
       () => hermesClient.getLatestPriceUpdates(priceIds),
-      DEFAULT_RETRY_CONFIG,
-      'getMultiplePrices'
+      'getMultiplePrices',
+      ORACLE_RETRY_PRESETS.standard
     );
 
     if (priceUpdates.parsed) {
@@ -140,7 +135,7 @@ export async function fetchPriceAtTimestamp(
       return null;
     }
 
-    const result = await withRetry(
+    const result = await withOracleRetry(
       async () => {
         const priceUpdates = await hermesClient.getPriceUpdatesAtTimestamp(
           Math.floor(timestamp / 1000),
@@ -158,8 +153,8 @@ export async function fetchPriceAtTimestamp(
 
         return parsePythPrice(parsed.price, symbol);
       },
-      DEFAULT_RETRY_CONFIG,
-      'getPriceAtTimestamp'
+      'getPriceAtTimestamp',
+      ORACLE_RETRY_PRESETS.standard
     );
 
     return result;
@@ -202,7 +197,7 @@ export async function fetchHistoricalPrices(
 
     logger.info(`Fetching historical prices for ${symbol} (${hours}h, ${dataPoints} points)`);
 
-    const result = await withRetry(
+    const result = await withOracleRetry(
       async () => {
         const allPrices: PriceData[] = [];
         const timestamps: number[] = [];
@@ -247,7 +242,7 @@ export async function fetchHistoricalPrices(
           });
 
           if (i + batchSize < timestamps.length) {
-            await sleep(100);
+            await new Promise((resolve) => setTimeout(resolve, 100));
           }
         }
 
@@ -270,8 +265,8 @@ export async function fetchHistoricalPrices(
         logger.info(`Fetched ${uniquePrices.length} unique historical price points for ${symbol}`);
         return uniquePrices;
       },
-      DEFAULT_RETRY_CONFIG,
-      'getHistoricalPrices'
+      'getHistoricalPrices',
+      ORACLE_RETRY_PRESETS.standard
     );
 
     if (result.length > 0) {

@@ -11,7 +11,8 @@ import {
   fetchWithTimeout,
 } from './diaUtils';
 
-import type { DIANFTQuotation, DIANFTCollection, DIANFTData, CacheEntry } from './diaTypes';
+import type { CacheEntry } from './base';
+import type { DIANFTQuotation, DIANFTCollection, DIANFTData } from './diaTypes';
 
 const logger = createLogger('DIANFTService');
 
