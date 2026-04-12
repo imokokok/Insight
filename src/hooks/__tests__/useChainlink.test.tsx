@@ -21,13 +21,15 @@ const mockHistoricalData: PriceData[] = [
   { ...mockPriceData, price: 68000, timestamp: Date.now() - 10800000 },
 ];
 
-const mockClient = {
-  getPrice: jest.fn(),
-  getHistoricalPrices: jest.fn(),
-};
+const mockGetPrice = jest.fn();
+const mockGetHistoricalPrices = jest.fn();
 
+// Mock the ChainlinkClient class
 jest.mock('@/lib/oracles/chainlink', () => ({
-  ChainlinkClient: jest.fn().mockImplementation(() => mockClient),
+  ChainlinkClient: jest.fn().mockImplementation(() => ({
+    getPrice: mockGetPrice,
+    getHistoricalPrices: mockGetHistoricalPrices,
+  })),
 }));
 
 function createTestWrapper() {
@@ -37,6 +39,7 @@ function createTestWrapper() {
         retry: false,
         gcTime: 0,
         staleTime: 0,
+        refetchOnWindowFocus: false,
       },
     },
   });
@@ -52,21 +55,21 @@ describe('useChainlink Hooks', () => {
   let useChainlinkAllData: typeof import('../oracles/chainlink').useChainlinkAllData;
 
   beforeAll(async () => {
-    const module = await import('../oracles/chainlink');
-    useChainlinkPrice = module.useChainlinkPrice;
-    useChainlinkHistorical = module.useChainlinkHistorical;
-    useChainlinkAllData = module.useChainlinkAllData;
+    const chainlinkModule = await import('../oracles/chainlink');
+    useChainlinkPrice = chainlinkModule.useChainlinkPrice;
+    useChainlinkHistorical = chainlinkModule.useChainlinkHistorical;
+    useChainlinkAllData = chainlinkModule.useChainlinkAllData;
   });
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockClient.getPrice.mockReset();
-    mockClient.getHistoricalPrices.mockReset();
+    mockGetPrice.mockReset();
+    mockGetHistoricalPrices.mockReset();
   });
 
   describe('useChainlinkPrice', () => {
     it('should fetch price data successfully', async () => {
-      mockClient.getPrice.mockResolvedValue(mockPriceData);
+      mockGetPrice.mockResolvedValue(mockPriceData);
 
       const { result } = renderHook(
         () => useChainlinkPrice({ symbol: 'BTC', chain: Blockchain.ETHEREUM }),
@@ -85,7 +88,7 @@ describe('useChainlink Hooks', () => {
     });
 
     it('should handle fetch error', async () => {
-      mockClient.getPrice.mockRejectedValue(new Error('Network error'));
+      mockGetPrice.mockRejectedValue(new Error('Network error'));
 
       const { result } = renderHook(() => useChainlinkPrice({ symbol: 'BTC' }), {
         wrapper: createTestWrapper(),
@@ -102,7 +105,7 @@ describe('useChainlink Hooks', () => {
     });
 
     it('should not fetch when disabled', async () => {
-      mockClient.getPrice.mockResolvedValue(mockPriceData);
+      mockGetPrice.mockResolvedValue(mockPriceData);
 
       renderHook(() => useChainlinkPrice({ symbol: 'BTC', enabled: false }), {
         wrapper: createTestWrapper(),
@@ -110,11 +113,11 @@ describe('useChainlink Hooks', () => {
 
       await new Promise((resolve) => setTimeout(resolve, 100));
 
-      expect(mockClient.getPrice).not.toHaveBeenCalled();
+      expect(mockGetPrice).not.toHaveBeenCalled();
     });
 
     it('should refetch data', async () => {
-      mockClient.getPrice.mockResolvedValue(mockPriceData);
+      mockGetPrice.mockResolvedValue(mockPriceData);
 
       const { result } = renderHook(() => useChainlinkPrice({ symbol: 'BTC' }), {
         wrapper: createTestWrapper(),
@@ -131,13 +134,13 @@ describe('useChainlink Hooks', () => {
         await result.current.refetch();
       });
 
-      expect(mockClient.getPrice).toHaveBeenCalled();
+      expect(mockGetPrice).toHaveBeenCalled();
     });
   });
 
   describe('useChainlinkHistorical', () => {
     it('should fetch historical data successfully', async () => {
-      mockClient.getHistoricalPrices.mockResolvedValue(mockHistoricalData);
+      mockGetHistoricalPrices.mockResolvedValue(mockHistoricalData);
 
       const { result } = renderHook(() => useChainlinkHistorical({ symbol: 'BTC', period: 30 }), {
         wrapper: createTestWrapper(),
@@ -155,7 +158,7 @@ describe('useChainlink Hooks', () => {
     });
 
     it('should return empty array when no data', async () => {
-      mockClient.getHistoricalPrices.mockResolvedValue([]);
+      mockGetHistoricalPrices.mockResolvedValue([]);
 
       const { result } = renderHook(() => useChainlinkHistorical({ symbol: 'BTC' }), {
         wrapper: createTestWrapper(),
@@ -172,7 +175,7 @@ describe('useChainlink Hooks', () => {
     });
 
     it('should handle fetch error', async () => {
-      mockClient.getHistoricalPrices.mockRejectedValue(new Error('API error'));
+      mockGetHistoricalPrices.mockRejectedValue(new Error('API error'));
 
       const { result } = renderHook(() => useChainlinkHistorical({ symbol: 'BTC' }), {
         wrapper: createTestWrapper(),
@@ -191,8 +194,8 @@ describe('useChainlink Hooks', () => {
 
   describe('useChainlinkAllData', () => {
     it('should fetch both price and historical data', async () => {
-      mockClient.getPrice.mockResolvedValue(mockPriceData);
-      mockClient.getHistoricalPrices.mockResolvedValue(mockHistoricalData);
+      mockGetPrice.mockResolvedValue(mockPriceData);
+      mockGetHistoricalPrices.mockResolvedValue(mockHistoricalData);
 
       const { result } = renderHook(() => useChainlinkAllData({ symbol: 'BTC' }), {
         wrapper: createTestWrapper(),
@@ -212,8 +215,8 @@ describe('useChainlink Hooks', () => {
     });
 
     it('should handle partial errors', async () => {
-      mockClient.getPrice.mockResolvedValue(mockPriceData);
-      mockClient.getHistoricalPrices.mockRejectedValue(new Error('Historical error'));
+      mockGetPrice.mockResolvedValue(mockPriceData);
+      mockGetHistoricalPrices.mockRejectedValue(new Error('Historical error'));
 
       const { result } = renderHook(() => useChainlinkAllData({ symbol: 'BTC' }), {
         wrapper: createTestWrapper(),
@@ -232,8 +235,8 @@ describe('useChainlink Hooks', () => {
     });
 
     it('should not fetch when disabled', async () => {
-      mockClient.getPrice.mockResolvedValue(mockPriceData);
-      mockClient.getHistoricalPrices.mockResolvedValue(mockHistoricalData);
+      mockGetPrice.mockResolvedValue(mockPriceData);
+      mockGetHistoricalPrices.mockResolvedValue(mockHistoricalData);
 
       renderHook(() => useChainlinkAllData({ symbol: 'BTC', enabled: false }), {
         wrapper: createTestWrapper(),
@@ -241,8 +244,8 @@ describe('useChainlink Hooks', () => {
 
       await new Promise((resolve) => setTimeout(resolve, 100));
 
-      expect(mockClient.getPrice).not.toHaveBeenCalled();
-      expect(mockClient.getHistoricalPrices).not.toHaveBeenCalled();
+      expect(mockGetPrice).not.toHaveBeenCalled();
+      expect(mockGetHistoricalPrices).not.toHaveBeenCalled();
     });
   });
 });

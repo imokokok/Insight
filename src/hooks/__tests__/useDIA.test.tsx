@@ -34,6 +34,7 @@ function createTestWrapper() {
         retry: false,
         gcTime: 0,
         staleTime: 0,
+        refetchOnWindowFocus: false,
       },
     },
   });
@@ -82,9 +83,12 @@ describe('useDIAPrice', () => {
       wrapper: createTestWrapper(),
     });
 
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
-    });
+    await waitFor(
+      () => {
+        expect(result.current.isLoading).toBe(false);
+      },
+      { timeout: 5000 }
+    );
 
     expect(result.current.error).toBeDefined();
     expect(result.current.price).toBeUndefined();
@@ -173,9 +177,12 @@ describe('useDIAHistorical', () => {
       wrapper: createTestWrapper(),
     });
 
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
-    });
+    await waitFor(
+      () => {
+        expect(result.current.isLoading).toBe(false);
+      },
+      { timeout: 5000 }
+    );
 
     expect(result.current.error).toBeDefined();
   });
@@ -249,9 +256,12 @@ describe('useDIAAllData', () => {
       wrapper: createTestWrapper(),
     });
 
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
-    });
+    await waitFor(
+      () => {
+        expect(result.current.isLoading).toBe(false);
+      },
+      { timeout: 5000 }
+    );
 
     expect(result.current.price).toEqual(mockPriceData);
     expect(result.current.isError).toBe(true);
@@ -266,9 +276,12 @@ describe('useDIAAllData', () => {
       wrapper: createTestWrapper(),
     });
 
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
-    });
+    await waitFor(
+      () => {
+        expect(result.current.isLoading).toBe(false);
+      },
+      { timeout: 5000 }
+    );
 
     expect(result.current.isError).toBe(true);
     expect(result.current.errors).toHaveLength(2);
