@@ -13,8 +13,19 @@ const SPREAD_PERCENTAGES: Record<string, number> = {
   BTC: 0.02,
   ETH: 0.03,
   SOL: 0.05,
+  AVAX: 0.05,
+  LINK: 0.04,
+  MATIC: 0.06,
+  BNB: 0.04,
+  ARB: 0.06,
+  OP: 0.06,
   PYTH: 0.1,
+  DOT: 0.07,
+  UNI: 0.05,
+  ATOM: 0.07,
   USDC: 0.01,
+  USDT: 0.01,
+  DAI: 0.01,
 };
 
 export class PythClient extends BaseOracleClient {

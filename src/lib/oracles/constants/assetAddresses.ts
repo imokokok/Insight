@@ -35,7 +35,7 @@ export const DIA_ASSET_ADDRESSES: Record<string, Partial<Record<Blockchain, stri
   },
   LINK: {
     [Blockchain.ETHEREUM]: '0x514910771AF9Ca656af840dff83E8264EcF986CA',
-    [Blockchain.ARBITRUM]: '0xf97f4df25173781c2f0c0b8c1e9c0e8c0c0c0c0c',
+    [Blockchain.ARBITRUM]: '0xf97f4df75117a78c1A5a0DBb814Af92458539FB4',
     [Blockchain.OPTIMISM]: '0x350a791Bfc2C21F9Ed5d10980Dad2e2638ffa7f6',
     [Blockchain.POLYGON]: '0x53E0bca35eC356BD5ddDFebbD1Fc0fD03FaBad39',
     [Blockchain.AVALANCHE]: '0x5947BB275c521040051D82396192181b413227A3',

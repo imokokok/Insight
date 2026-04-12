@@ -3,6 +3,8 @@ import { BaseOracleClient } from '@/lib/oracles/base';
 import type { OracleClientConfig } from '@/lib/oracles/base';
 import { SPREAD_PERCENTAGES } from '@/lib/oracles/redstoneConstants';
 import { redstoneSymbols } from '@/lib/oracles/supportedSymbols';
+import { withOracleRetry, ORACLE_RETRY_PRESETS } from '@/lib/oracles/utils/retry';
+import { createLogger } from '@/lib/utils/logger';
 import { toMilliseconds } from '@/lib/utils/timestamp';
 import {
   OracleProvider,
@@ -11,6 +13,8 @@ import {
   type PriceData,
   type ConfidenceInterval,
 } from '@/types/oracle';
+
+const logger = createLogger('RedStoneClient');
 
 const REDSTONE_API_BASE = 'https://api.redstone.finance';
 const REDSTONE_CACHE_TTL = {
@@ -39,39 +43,6 @@ interface RedStonePriceResponse {
   }[];
   change24h?: number;
   change24hPercent?: number;
-}
-
-async function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-interface RetryOptions {
-  maxAttempts?: number;
-  baseDelay?: number;
-  operationName?: string;
-  onRetry?: (attempt: number, error: Error) => void;
-}
-
-async function withRetry<T>(operation: () => Promise<T>, options: RetryOptions = {}): Promise<T> {
-  const { maxAttempts = 3, baseDelay = 1000, operationName = 'operation', onRetry } = options;
-  let lastError: Error | undefined;
-  let delay = baseDelay;
-
-  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    try {
-      return await operation();
-    } catch (error) {
-      lastError = error instanceof Error ? error : new Error(String(error));
-
-      if (attempt < maxAttempts) {
-        onRetry?.(attempt, lastError);
-        await sleep(delay);
-        delay = Math.min(delay * 2, 10000);
-      }
-    }
-  }
-
-  throw lastError || new Error(`${operationName} failed after ${maxAttempts} attempts`);
 }
 
 export class RedStoneClient extends BaseOracleClient {
@@ -181,7 +152,7 @@ export class RedStoneClient extends BaseOracleClient {
     let attemptCount = 0;
 
     try {
-      const result = await withRetry(
+      const result = await withOracleRetry(
         async () => {
           attemptCount++;
           try {
@@ -233,11 +204,8 @@ export class RedStoneClient extends BaseOracleClient {
             );
           }
         },
-        {
-          maxAttempts: 3,
-          baseDelay: 1000,
-          operationName: 'fetchRealPrice',
-        }
+        'fetchRealPrice',
+        ORACLE_RETRY_PRESETS.standard
       );
 
       if (result) {
@@ -358,7 +326,7 @@ export class RedStoneClient extends BaseOracleClient {
       const historicalPrices = await this.fetchHistoricalPricesFromRedStone(symbol, period);
 
       if (!historicalPrices || historicalPrices.length === 0) {
-        console.warn(`[RedStone] No historical data available for ${symbol}`);
+        logger.warn(`No historical data available for ${symbol}`);
         return [];
       }
 
@@ -386,7 +354,9 @@ export class RedStoneClient extends BaseOracleClient {
       this.setCache(cacheKey, priceData, REDSTONE_CACHE_TTL.PRICE);
       return priceData;
     } catch (error) {
-      console.warn(`[RedStone] Failed to fetch historical prices for ${symbol}:`, error);
+      logger.warn(`Failed to fetch historical prices for ${symbol}`, {
+        error: error instanceof Error ? error.message : String(error),
+      });
       return [];
     }
   }
@@ -421,8 +391,8 @@ export class RedStoneClient extends BaseOracleClient {
 
       // 验证数据格式
       if (!Array.isArray(rawData)) {
-        console.warn(
-          `[RedStone] Unexpected response format for ${symbol}: expected array, got ${typeof rawData}`
+        logger.warn(
+          `Unexpected response format for ${symbol}: expected array, got ${typeof rawData}`
         );
         return [];
       }
@@ -443,13 +413,12 @@ export class RedStoneClient extends BaseOracleClient {
 
         // 验证价格值
         if (typeof value !== 'number' || isNaN(value) || value <= 0) {
-          console.warn(`[RedStone] Invalid price value for ${symbol}:`, value);
+          logger.warn(`Invalid price value for ${symbol}`, { value });
           continue;
         }
 
-        // 验证时间戳
         if (typeof timestamp !== 'number' || isNaN(timestamp) || timestamp <= 0) {
-          console.warn(`[RedStone] Invalid timestamp for ${symbol}:`, timestamp);
+          logger.warn(`Invalid timestamp for ${symbol}`, { timestamp });
           continue;
         }
 
@@ -460,12 +429,15 @@ export class RedStoneClient extends BaseOracleClient {
       }
 
       if (validData.length === 0) {
-        console.warn(`[RedStone] No valid data points for ${symbol}`);
+        logger.warn(`No valid data points for ${symbol}`);
       }
 
       return validData;
     } catch (error) {
-      console.error(`[RedStone] Failed to fetch historical prices from API:`, error);
+      logger.error(
+        `Failed to fetch historical prices from API`,
+        error instanceof Error ? error : new Error(String(error))
+      );
       return [];
     }
   }
@@ -536,7 +508,10 @@ export class RedStoneClient extends BaseOracleClient {
       this.setCache(cacheKey, onChainData, 60000); // 1分钟缓存
       return onChainData;
     } catch (error) {
-      console.error(`[RedStone] Failed to get on-chain data for ${symbol}:`, error);
+      logger.error(
+        `Failed to get on-chain data for ${symbol}`,
+        error instanceof Error ? error : new Error(String(error))
+      );
       return null;
     }
   }
