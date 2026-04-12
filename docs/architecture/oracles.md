@@ -1,49 +1,49 @@
-# 预言机系统架构
+# Oracle System Architecture
 
-> Insight 平台的多预言机集成架构设计
+> Multi-oracle integration architecture design for the Insight platform
 
-## 目录
+## Table of Contents
 
-- [系统概览](#系统概览)
-- [架构图](#架构图)
-- [核心组件](#核心组件)
-- [数据流](#数据流)
-- [扩展指南](#扩展指南)
+- [System Overview](#system-overview)
+- [Architecture Diagram](#architecture-diagram)
+- [Core Components](#core-components)
+- [Data Flow](#data-flow)
+- [Extension Guide](#extension-guide)
 
-## 系统概览
+## System Overview
 
-Insight 平台支持多种区块链预言机提供商，采用统一的抽象层设计，使得不同预言机的集成变得简单且一致。
+The Insight platform supports multiple blockchain oracle providers, adopting a unified abstraction layer design that makes integration of different oracles simple and consistent.
 
-### 支持的预言机
+### Supported Oracles
 
-| 预言机       | 标识符      | 文件位置                         | 主要链                      | 特点           |
-| ------------ | ----------- | -------------------------------- | --------------------------- | -------------- |
-| Chainlink    | `chainlink` | `src/lib/oracles/chainlink.ts`   | Ethereum, Arbitrum, Polygon | 市场领导者     |
-| Pyth Network | `pyth`      | `src/lib/oracles/pythNetwork.ts` | Solana, Ethereum            | 低延迟金融数据 |
-| API3         | `api3`      | `src/lib/oracles/api3.ts`        | Ethereum, Polygon           | 第一方预言机   |
-| RedStone     | `redstone`  | `src/lib/oracles/redstone.ts`    | Arbitrum, Ethereum          | 高效数据推送   |
-| DIA          | `dia`       | `src/lib/oracles/dia.ts`         | 多链                        | 透明数据源     |
-| WINkLink     | `winklink`  | `src/lib/oracles/winklink.ts`    | Tron                        | 波场生态       |
+| Oracle       | Identifier  | File Location                    | Primary Chains              | Features                   |
+| ------------ | ----------- | -------------------------------- | --------------------------- | -------------------------- |
+| Chainlink    | `chainlink` | `src/lib/oracles/chainlink.ts`   | Ethereum, Arbitrum, Polygon | Market Leader              |
+| Pyth Network | `pyth`      | `src/lib/oracles/pythNetwork.ts` | Solana, Ethereum            | Low-latency Financial Data |
+| API3         | `api3`      | `src/lib/oracles/api3.ts`        | Ethereum, Polygon           | First-party Oracle         |
+| RedStone     | `redstone`  | `src/lib/oracles/redstone.ts`    | Arbitrum, Ethereum          | Efficient Data Push        |
+| DIA          | `dia`       | `src/lib/oracles/dia.ts`         | Multi-chain                 | Transparent Data Source    |
+| WINkLink     | `winklink`  | `src/lib/oracles/winklink.ts`    | Tron                        | TRON Ecosystem             |
 
-## 架构图
+## Architecture Diagram
 
-### 整体架构
+### Overall Architecture
 
 ```mermaid
 graph TB
-    subgraph Application["应用层"]
+    subgraph Application["Application Layer"]
         A[React Components]
         B[Hooks]
         C[API Routes]
     end
 
-    subgraph OracleLayer["预言机抽象层"]
+    subgraph OracleLayer["Oracle Abstraction Layer"]
         D[OracleClientFactory]
         E[BaseOracleClient]
         F[IOracleClient Interface]
     end
 
-    subgraph Implementations["具体实现"]
+    subgraph Implementations["Concrete Implementations"]
         G[ChainlinkClient]
         H[PythClient]
         I[API3Client]
@@ -52,7 +52,7 @@ graph TB
         L[WINkLinkClient]
     end
 
-    subgraph DataSources["数据源"]
+    subgraph DataSources["Data Sources"]
         Q[Supabase DB]
         R[External APIs]
         S[Mock Data]
@@ -74,7 +74,7 @@ graph TB
     G --> S
 ```
 
-### 类层次结构
+### Class Hierarchy
 
 ```mermaid
 classDiagram
@@ -161,11 +161,11 @@ classDiagram
     OracleClientFactory ..> BaseOracleClient : creates
 ```
 
-## 核心组件
+## Core Components
 
-### 1. BaseOracleClient (抽象基类)
+### 1. BaseOracleClient (Abstract Base Class)
 
-`BaseOracleClient` 是所有预言机客户端的抽象基类，定义了统一的接口和通用功能。
+`BaseOracleClient` is the abstract base class for all oracle clients, defining unified interfaces and common functionality.
 
 ```typescript
 // src/lib/oracles/base.ts
@@ -199,7 +199,7 @@ export abstract class BaseOracleClient {
     chain?: Blockchain,
     timestamp?: number
   ): PriceData {
-    // 实现细节...
+    // Implementation details...
   }
 
   protected async fetchPriceWithDatabase(
@@ -207,22 +207,22 @@ export abstract class BaseOracleClient {
     chain: Blockchain | undefined,
     mockGenerator: () => PriceData
   ): Promise<PriceData> {
-    // 先查数据库，再生成 Mock
-    // 实现细节...
+    // Query database first, then generate mock
+    // Implementation details...
   }
 }
 ```
 
-**关键特性：**
+**Key Features:**
 
-- **抽象方法**：`getPrice` 和 `getHistoricalPrices` 必须由子类实现
-- **Mock 数据生成**：提供基于随机游走模型的价格数据生成
-- **数据库集成**：自动缓存和读取数据库中的价格数据
-- **链特定波动率**：不同区块链有不同的价格波动率配置
+- **Abstract Methods**: `getPrice` and `getHistoricalPrices` must be implemented by subclasses
+- **Mock Data Generation**: Provides price data generation based on random walk model
+- **Database Integration**: Automatically caches and reads price data from database
+- **Chain-Specific Volatility**: Different blockchains have different price volatility configurations
 
-### 2. OracleClientFactory (工厂模式)
+### 2. OracleClientFactory (Factory Pattern)
 
-工厂模式用于创建和管理预言机客户端实例，支持依赖注入和单例模式。
+The factory pattern is used to create and manage oracle client instances, supporting dependency injection and singleton pattern.
 
 ```typescript
 // src/lib/oracles/factory.ts
@@ -283,13 +283,13 @@ export class OracleClientFactory {
 }
 ```
 
-**设计优势：**
+**Design Advantages:**
 
-- **单例管理**：每个预言机只有一个实例，节省资源
-- **延迟初始化**：首次使用时才创建实例
-- **统一配置**：所有客户端共享配置
+- **Singleton Management**: Each oracle has only one instance, saving resources
+- **Lazy Initialization**: Instances are created only when first used
+- **Unified Configuration**: All clients share configuration
 
-### 3. 接口定义
+### 3. Interface Definitions
 
 ```typescript
 // src/lib/oracles/interfaces.ts
@@ -308,7 +308,7 @@ export interface IOracleClientFactory {
 }
 ```
 
-### 4. ChainlinkClient 实现
+### 4. ChainlinkClient Implementation
 
 ```typescript
 // src/lib/oracles/chainlink.ts
@@ -353,70 +353,70 @@ export class ChainlinkClient extends BaseOracleClient {
 }
 ```
 
-### 5. API3 客户端特性
+### 5. API3 Client Features
 
-API3 客户端包含多个专门文件：
-
-```
-src/lib/oracles/
-├── api3.ts                    # 主客户端
-├── api3AlertDetection.ts      # 警报检测
-├── api3DataAggregator.ts     # 数据聚合
-├── api3DataSources.ts         # 数据源管理
-├── api3IncrementalUpdate.ts   # 增量更新
-├── api3MockDataAnnotations.ts # Mock 数据注解
-├── api3OfflineStorage.ts      # 离线存储
-├── api3OnChainService.ts      # 链上服务
-├── api3RequestManager.ts      # 请求管理
-└── api3WebSocket.ts           # WebSocket 支持
-```
-
-### 6. Pyth Network 客户端特性
+API3 client includes multiple specialized files:
 
 ```
 src/lib/oracles/
-├── pythNetwork.ts        # 主客户端
-├── pythConstants.ts      # 常量定义
-├── pythDataService.ts    # 数据服务
-├── pythHermesClient.ts   # Hermes 客户端
-└── pythMockData.ts       # Mock 数据
+├── api3.ts                    # Main client
+├── api3AlertDetection.ts      # Alert detection
+├── api3DataAggregator.ts     # Data aggregation
+├── api3DataSources.ts         # Data source management
+├── api3IncrementalUpdate.ts   # Incremental updates
+├── api3MockDataAnnotations.ts # Mock data annotations
+├── api3OfflineStorage.ts      # Offline storage
+├── api3OnChainService.ts      # On-chain service
+├── api3RequestManager.ts      # Request management
+└── api3WebSocket.ts           # WebSocket support
 ```
 
-### 7. RedStone 客户端特性
-
-```
-src/lib/oracles/
-├── redstone.ts           # 主客户端
-├── redstoneConstants.ts  # 常量定义
-```
-
-### 8. DIA 客户端特性
+### 6. Pyth Network Client Features
 
 ```
 src/lib/oracles/
-├── dia.ts                  # 主客户端导出
-├── diaDataService.ts       # 数据服务主入口
-├── diaPriceService.ts      # 价格数据服务
-├── diaNFTService.ts        # NFT 地板价服务
-├── diaNetworkService.ts    # 网络统计服务
-├── diaTypes.ts             # 类型定义
-├── diaUtils.ts             # 工具函数和常量
+├── pythNetwork.ts        # Main client
+├── pythConstants.ts      # Constant definitions
+├── pythDataService.ts    # Data service
+├── pythHermesClient.ts   # Hermes client
+└── pythMockData.ts       # Mock data
+```
+
+### 7. RedStone Client Features
+
+```
+src/lib/oracles/
+├── redstone.ts           # Main client
+├── redstoneConstants.ts  # Constant definitions
+```
+
+### 8. DIA Client Features
+
+```
+src/lib/oracles/
+├── dia.ts                  # Main client export
+├── diaDataService.ts       # Data service main entry
+├── diaPriceService.ts      # Price data service
+├── diaNFTService.ts        # NFT floor price service
+├── diaNetworkService.ts    # Network statistics service
+├── diaTypes.ts             # Type definitions
+├── diaUtils.ts             # Utility functions and constants
 ├── constants/
-│   ├── chainMapping.ts     # 区块链名称映射
-│   └── assetAddresses.ts   # 资产合约地址配置
+│   ├── chainMapping.ts     # Blockchain name mapping
+│   └── assetAddresses.ts   # Asset contract address configuration
 ```
 
-**DIA 服务架构特点：**
+**DIA Service Architecture Features:**
 
-1. **模块化设计**: 将功能拆分为独立的服务模块
-2. **单例模式**: DIADataService 使用单例模式确保全局唯一实例
-3. **缓存机制**: 每个服务内部实现内存缓存，支持 TTL
-4. **多链支持**: 支持 35+ 条区块链，通过 DIA_CHAIN_MAPPING 进行名称映射
-5. **资产地址配置**: 通过 DIA_ASSET_ADDRESSES 配置多链资产合约地址
+1. **Modular Design**: Functionality split into independent service modules
+2. **Singleton Pattern**: DIADataService uses singleton pattern to ensure global unique instance
+3. **Caching Mechanism**: Each service implements internal memory caching with TTL support
+4. **Multi-chain Support**: Supports 35+ blockchains with name mapping via DIA_CHAIN_MAPPING
+5. **Asset Address Configuration**: Multi-chain asset contract addresses configured via DIA_ASSET_ADDRESSES
 
-## 数据流
+## Data Flow
 
-### 价格数据获取流程
+### Price Data Retrieval Flow
 
 ```mermaid
 sequenceDiagram
@@ -427,25 +427,25 @@ sequenceDiagram
     participant Oracle as ChainlinkClient
     participant DB as Supabase
 
-    Client->>Hook: 请求价格数据
+    Client->>Hook: Request price data
     Hook->>API: GET /api/oracles/chainlink?symbol=BTC
     API->>Factory: getClient(CHAINLINK)
-    Factory-->>API: ChainlinkClient 实例
+    Factory-->>API: ChainlinkClient instance
     API->>Oracle: getPrice("BTC", "ethereum")
-    Oracle->>DB: 查询缓存价格
-    alt 缓存命中
-        DB-->>Oracle: 返回缓存数据
+    Oracle->>DB: Query cached price
+    alt Cache hit
+        DB-->>Oracle: Return cached data
         Oracle-->>API: PriceData
-    else 缓存未命中
-        Oracle->>Oracle: 生成 Mock 数据
-        Oracle->>DB: 保存到数据库
+    else Cache miss
+        Oracle->>Oracle: Generate mock data
+        Oracle->>DB: Save to database
         Oracle-->>API: PriceData
     end
-    API-->>Hook: JSON 响应
-    Hook-->>Client: 返回数据
+    API-->>Hook: JSON response
+    Hook-->>Client: Return data
 ```
 
-### 数据存储策略
+### Data Storage Strategy
 
 ```typescript
 // src/lib/oracles/storage.ts
@@ -486,11 +486,11 @@ export async function savePriceToDatabase(price: PriceData): Promise<void> {
 }
 ```
 
-## 扩展指南
+## Extension Guide
 
-### 添加新的预言机支持
+### Adding New Oracle Support
 
-#### 步骤 1：创建客户端类
+#### Step 1: Create Client Class
 
 ```typescript
 // src/lib/oracles/newOracle.ts
@@ -530,7 +530,7 @@ export class NewOracleClient extends BaseOracleClient {
 }
 ```
 
-#### 步骤 2：更新工厂
+#### Step 2: Update Factory
 
 ```typescript
 // src/lib/oracles/factory.ts
@@ -540,12 +540,12 @@ private static createClient(provider: OracleProvider): BaseOracleClient {
   switch (provider) {
     case OracleProvider.NEW_ORACLE:
       return new NewOracleClient(this.config);
-    // ... 现有 case
+    // ... existing cases
   }
 }
 ```
 
-#### 步骤 3：更新枚举和类型
+#### Step 3: Update Enums and Types
 
 ```typescript
 // src/types/oracle.ts
@@ -554,7 +554,7 @@ export const enum OracleProvider {
 }
 ```
 
-#### 步骤 4：添加颜色配置
+#### Step 4: Add Color Configuration
 
 ```typescript
 // src/lib/oracles/colors.ts
@@ -569,7 +569,7 @@ export const ORACLE_COLORS: Record<OracleProvider, OracleColorScheme> = {
 };
 ```
 
-#### 步骤 5：创建页面组件
+#### Step 5: Create Page Component
 
 ```typescript
 // src/app/[locale]/new-oracle/page.tsx
@@ -587,16 +587,16 @@ export default function NewOraclePage() {
 }
 ```
 
-### 最佳实践
+### Best Practices
 
-1. **始终继承 BaseOracleClient**：确保接口一致性
-2. **使用数据库缓存**：通过 `fetchPriceWithDatabase` 方法
-3. **定义基础价格**：为常用资产提供合理的基准价格
-4. **支持多链**：明确定义 `supportedChains`
-5. **添加测试**：为新客户端编写单元测试
-6. **文档化**：更新相关文档和类型定义
+1. **Always Extend BaseOracleClient**: Ensures interface consistency
+2. **Use Database Caching**: Through `fetchPriceWithDatabase` method
+3. **Define Base Prices**: Provide reasonable benchmark prices for common assets
+4. **Support Multi-chain**: Clearly define `supportedChains`
+5. **Add Tests**: Write unit tests for new clients
+6. **Documentation**: Update relevant documentation and type definitions
 
-### 测试预言机
+### Testing Oracles
 
 ```typescript
 // src/lib/oracles/__tests__/newOracle.test.ts
@@ -635,18 +635,18 @@ describe('NewOracleClient', () => {
 });
 ```
 
-## 性能优化
+## Performance Optimization
 
-### 1. 连接池
+### 1. Connection Pooling
 
-工厂模式确保每个预言机只有一个实例，避免重复创建连接。
+The factory pattern ensures each oracle has only one instance, avoiding duplicate connection creation.
 
-### 2. 数据缓存
+### 2. Data Caching
 
-- **数据库缓存**：自动缓存价格数据到 Supabase
-- **React Query 缓存**：前端数据缓存和重新验证
+- **Database Caching**: Automatically caches price data to Supabase
+- **React Query Caching**: Frontend data caching and revalidation
 
-### 3. 批量获取
+### 3. Batch Retrieval
 
 ```typescript
 async function getMultiplePrices(
@@ -665,9 +665,9 @@ async function getMultiplePrices(
 }
 ```
 
-## 故障处理
+## Error Handling
 
-### 错误类型
+### Error Types
 
 ```typescript
 // src/lib/errors/index.ts
@@ -693,7 +693,7 @@ export class PriceFetchError extends AppError {
 }
 ```
 
-### 重试策略
+### Retry Strategy
 
 ```typescript
 const queryClient = new QueryClient({

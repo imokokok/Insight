@@ -959,14 +959,14 @@ export class API3Client extends BaseOracleClient {
 
 #### DIA Service Architecture
 
-DIA 预言机采用模块化服务架构：
+DIA oracle adopts a modular service architecture:
 
 ```typescript
-// DIADataService - 主服务入口
+// DIADataService - Main service entry point
 class DIADataService {
-  private priceService: DIAPriceService; // 价格数据服务
-  private nftService: DIANFTService; // NFT 地板价服务
-  private networkService: DIANetworkService; // 网络统计服务
+  private priceService: DIAPriceService; // Price data service
+  private nftService: DIANFTService; // NFT floor price service
+  private networkService: DIANetworkService; // Network statistics service
 
   async getAssetPrice(symbol: string, chain?: Blockchain): Promise<PriceData | null>;
   async getNFTFloorPrice(
@@ -981,7 +981,7 @@ class DIADataService {
 }
 ```
 
-**支持的区块链映射** (DIA_CHAIN_MAPPING):
+**Supported Blockchain Mapping** (DIA_CHAIN_MAPPING):
 
 - Ethereum, Arbitrum, Polygon, Avalanche, BNB Chain, Base, Optimism, Fantom, Cronos
 - Moonbeam, Gnosis, Kava, Solana, Sui, Aptos, Injective, Sei
@@ -989,9 +989,9 @@ class DIADataService {
 - Starknet, Blast, Cardano, Polkadot, Mantle, Linea, Scroll, zkSync
 - Moonriver, Metis, StarkEx
 
-**配置资产地址** (DIA_ASSET_ADDRESSES):
+**Configured Asset Addresses** (DIA_ASSET_ADDRESSES):
 
-- DIA, ETH, BTC, USDC, USDT, LINK 等多链合约地址配置
+- DIA, ETH, BTC, USDC, USDT, LINK and other multi-chain contract address configurations
 
 ### 7.4 Pyth Hermes Client Integration
 

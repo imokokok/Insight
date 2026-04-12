@@ -1,29 +1,29 @@
-# 前端架构
+# Frontend Architecture
 
-> Insight 平台的前端组件与页面架构
+> Frontend component and page architecture for the Insight platform
 
-## 目录
+## Table of Contents
 
-- [概述](#概述)
-- [组件架构](#组件架构)
-- [页面结构](#页面结构)
-- [路由设计](#路由设计)
-- [性能优化](#性能优化)
+- [Overview](#overview)
+- [Component Architecture](#component-architecture)
+- [Page Structure](#page-structure)
+- [Routing Design](#routing-design)
+- [Performance Optimization](#performance-optimization)
 
-## 概述
+## Overview
 
-Insight 前端基于 Next.js 16 App Router 构建，采用 Server Components 优先的架构设计：
+The Insight frontend is built on Next.js 16 App Router, adopting a Server Components-first architecture design:
 
 ```mermaid
 graph TB
-    subgraph Frontend["前端架构"]
+    subgraph Frontend["Frontend Architecture"]
         A[Server Components] --> B[Client Components]
         B --> C[Hooks]
         C --> D[Services]
         D --> E[API Layer]
     end
 
-    subgraph Components["组件分层"]
+    subgraph Components["Component Layers"]
         F[Page Components]
         G[Feature Components]
         H[UI Components]
@@ -36,39 +36,39 @@ graph TB
     H --> I
 ```
 
-### 设计原则
+### Design Principles
 
-1. **Server Components 优先**：默认使用 Server Components，减少客户端 JS
-2. **渐进式增强**：核心功能无需 JavaScript，交互功能逐步增强
-3. **组件复用**：建立清晰的组件层次，最大化代码复用
-4. **性能优先**：代码分割、懒加载、虚拟化等优化手段
+1. **Server Components First**: Use Server Components by default to reduce client-side JS
+2. **Progressive Enhancement**: Core functionality works without JavaScript, interactive features are progressively enhanced
+3. **Component Reuse**: Establish clear component hierarchy to maximize code reuse
+4. **Performance First**: Code splitting, lazy loading, virtualization, and other optimization techniques
 
-## 组件架构
+## Component Architecture
 
-### 组件分层
+### Component Layers
 
 ```
 src/components/
-├── oracle/              # 预言机领域组件
-│   ├── charts/         # 图表组件
-│   ├── panels/         # 面板组件
-│   ├── forms/          # 表单组件
-│   └── shared/         # 共享组件
-├── comparison/         # 对比功能组件
-├── alerts/            # 警报组件
-├── charts/            # 通用图表
-├── ui/                # 基础 UI 组件
-└── layout/            # 布局组件
+├── oracle/              # Oracle domain components
+│   ├── charts/         # Chart components
+│   ├── panels/         # Panel components
+│   ├── forms/          # Form components
+│   └── shared/         # Shared components
+├── comparison/         # Comparison feature components
+├── alerts/            # Alert components
+├── charts/            # General charts
+├── ui/                # Base UI components
+└── layout/            # Layout components
 ```
 
-### 组件分类
+### Component Categories
 
-| 层级    | 用途       | 示例                               | 依赖                   |
-| ------- | ---------- | ---------------------------------- | ---------------------- |
-| Page    | 页面级组件 | `ChainlinkPage`, `CrossOraclePage` | 可使用所有下层组件     |
-| Feature | 功能组件   | `PriceChart`, `AlertConfig`        | 使用 UI 和 Shared 组件 |
-| UI      | 基础 UI    | `Button`, `Card`, `Input`          | 仅使用 Shared 组件     |
-| Shared  | 共享工具   | `LoadingState`, `ErrorFallback`    | 无依赖                 |
+| Layer   | Purpose               | Examples                           | Dependencies                  |
+| ------- | --------------------- | ---------------------------------- | ----------------------------- |
+| Page    | Page-level components | `ChainlinkPage`, `CrossOraclePage` | Can use all lower layers      |
+| Feature | Feature components    | `PriceChart`, `AlertConfig`        | Uses UI and Shared components |
+| UI      | Base UI               | `Button`, `Card`, `Input`          | Only uses Shared components   |
+| Shared  | Shared utilities      | `LoadingState`, `ErrorFallback`    | No dependencies               |
 
 ### Server Components
 
@@ -165,7 +165,7 @@ export function PriceChart({ provider, symbol, chain }: PriceChartProps) {
 }
 ```
 
-### 复合组件模式
+### Compound Component Pattern
 
 ```typescript
 // components/oracle/panels/MarketDataPanel.tsx
@@ -219,9 +219,9 @@ export function MarketDataStats() {
 }
 ```
 
-## 页面结构
+## Page Structure
 
-### 页面模板
+### Page Template
 
 ```typescript
 // components/oracle/shared/OraclePageTemplate.tsx
@@ -267,7 +267,7 @@ export function OraclePageTemplate({
 }
 ```
 
-### 具体页面实现
+### Page Implementation
 
 ```typescript
 // src/app/[locale]/chainlink/page.tsx
@@ -297,7 +297,7 @@ export default function ChainlinkPage() {
 }
 ```
 
-### 布局组件
+### Layout Components
 
 ```typescript
 // src/app/[locale]/layout.tsx
@@ -329,49 +329,49 @@ export default async function LocaleLayout({
 }
 ```
 
-## 路由设计
+## Routing Design
 
-### 路由结构
+### Route Structure
 
-所有页面都使用 `[locale]/` 路由模式实现国际化：
+All pages use the `[locale]/` route pattern for internationalization:
 
 ```
 src/app/
-├── [locale]/                         # 国际化路由组
-│   ├── page.tsx                     # 首页 /
-│   ├── layout.tsx                   # 国际化布局
+├── [locale]/                         # Internationalized route group
+│   ├── page.tsx                     # Home page /
+│   ├── layout.tsx                   # Locale layout
 │   │
-│   ├── price-query/                 # 价格查询
+│   ├── price-query/                 # Price query
 │   │   └── page.tsx                 # /[locale]/price-query
 │   │
-│   ├── cross-oracle/                # 预言机对比
+│   ├── cross-oracle/                # Oracle comparison
 │   │   └── page.tsx                 # /[locale]/cross-oracle
 │   │
-│   ├── cross-chain/                 # 跨链对比
+│   ├── cross-chain/                 # Cross-chain comparison
 │   │   └── page.tsx                 # /[locale]/cross-chain
 │   │
 │   ├── pyth-network/                # Pyth Network
 │   │   └── page.tsx                 # /[locale]/pyth-network
 │   │
-│   ├── alerts/                      # 警报
+│   ├── alerts/                      # Alerts
 │   │   └── page.tsx                 # /[locale]/alerts
 │   │
-│   ├── favorites/                   # 收藏
+│   ├── favorites/                   # Favorites
 │   │   └── page.tsx                 # /[locale]/favorites
 │   │
-│   ├── settings/                    # 设置
+│   ├── settings/                    # Settings
 │   │   └── page.tsx                 # /[locale]/settings
 │   │
-│   ├── docs/                        # 文档
+│   ├── docs/                        # Documentation
 │   │   └── page.tsx                 # /[locale]/docs
 │   │
-│   ├── login/                       # 登录
+│   ├── login/                       # Login
 │   │   └── page.tsx                 # /[locale]/login
 │   │
-│   ├── register/                    # 注册
+│   ├── register/                    # Register
 │   │   └── page.tsx                 # /[locale]/register
 │   │
-│   └── auth/                        # 认证相关
+│   └── auth/                        # Authentication related
 │       ├── forgot-password/
 │       │   └── page.tsx             # /[locale]/auth/forgot-password
 │       ├── resend-verification/
@@ -381,26 +381,26 @@ src/app/
 │       └── verify-email/
 │           └── page.tsx             # /[locale]/auth/verify-email
 │
-├── api/                             # API 路由
-│   ├── oracles/                     # 预言机数据
-│   ├── alerts/                      # 警报管理
-│   ├── favorites/                   # 收藏管理
-│   ├── snapshots/                   # 快照管理
-│   ├── auth/                        # 认证
-│   ├── health/                      # 健康检查
-│   ├── config/                      # 配置
-│   ├── market-data/                 # 市场数据
-│   ├── prices/                      # 价格数据
-│   ├── binance/                     # Binance 代理
-│   ├── defillama/                   # DeFi Llama 代理
-│   └── cron/                        # 定时任务
+├── api/                             # API routes
+│   ├── oracles/                     # Oracle data
+│   ├── alerts/                      # Alert management
+│   ├── favorites/                   # Favorite management
+│   ├── snapshots/                   # Snapshot management
+│   ├── auth/                        # Authentication
+│   ├── health/                      # Health check
+│   ├── config/                      # Configuration
+│   ├── market-data/                 # Market data
+│   ├── prices/                      # Price data
+│   ├── binance/                     # Binance proxy
+│   ├── defillama/                   # DeFi Llama proxy
+│   └── cron/                        # Scheduled tasks
 │
-├── error.tsx                        # 全局错误页面
-├── not-found.tsx                    # 404 页面
-└── layout.tsx                       # 根布局
+├── error.tsx                        # Global error page
+├── not-found.tsx                    # 404 page
+└── layout.tsx                       # Root layout
 ```
 
-### 动态路由
+### Dynamic Routes
 
 ```typescript
 // src/app/[locale]/snapshot/[id]/page.tsx
@@ -445,9 +445,9 @@ export async function generateMetadata({ params }: SnapshotPageProps) {
 }
 ```
 
-## 性能优化
+## Performance Optimization
 
-### 代码分割
+### Code Splitting
 
 ```typescript
 import dynamic from 'next/dynamic';
@@ -478,7 +478,7 @@ function Dashboard() {
 }
 ```
 
-### 数据预取
+### Data Prefetching
 
 ```typescript
 import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
@@ -500,7 +500,7 @@ export default async function OraclePage() {
 }
 ```
 
-### 组件级优化
+### Component-Level Optimization
 
 ```typescript
 import { memo, useMemo, useCallback } from 'react';
@@ -539,9 +539,9 @@ export const PriceList = memo(function PriceList({
 });
 ```
 
-## 最佳实践
+## Best Practices
 
-### 1. 组件设计
+### 1. Component Design
 
 ```typescript
 function PriceCard({ price }: { price: PriceData }) {
@@ -563,7 +563,7 @@ function Card({ children, className }: CardProps) {
 }
 ```
 
-### 2. 状态管理
+### 2. State Management
 
 ```typescript
 function Parent() {
@@ -588,7 +588,7 @@ function App() {
 }
 ```
 
-### 3. 错误处理
+### 3. Error Handling
 
 ```typescript
 function Chart({ data }: { data?: ChartData[] }) {
@@ -600,7 +600,7 @@ function Chart({ data }: { data?: ChartData[] }) {
 }
 ```
 
-### 4. 样式管理
+### 4. Style Management
 
 ```typescript
 function Button({
@@ -626,22 +626,22 @@ function Button({
 }
 ```
 
-## 开发工具
+## Development Tools
 
 ### React Developer Tools
 
-- 组件树检查
-- Props 和 State 查看
-- 性能分析
+- Component tree inspection
+- Props and State viewing
+- Performance analysis
 
-### Next.js 分析
+### Next.js Analysis
 
 ```bash
 ANALYZE=true npm run build
 next build --profile
 ```
 
-### 性能监控
+### Performance Monitoring
 
 ```typescript
 export function reportWebVitals(metric: NextWebVitalsMetric) {
