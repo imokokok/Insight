@@ -31,16 +31,6 @@ export const DATA_DELAY_WARNING_THRESHOLD = 60000;
 /** 数据延迟危险阈值（毫秒）- 5分钟，超过此值数据可能不可靠 */
 export const DATA_DELAY_DANGER_THRESHOLD = 300000;
 
-/** 数据延迟阈值配置 */
-export const DATA_DELAY_THRESHOLDS = {
-  /** 正常：延迟 < 30秒 */
-  NORMAL: DATA_DELAY_THRESHOLD,
-  /** 警告：30秒 <= 延迟 < 60秒 */
-  WARNING: DATA_DELAY_WARNING_THRESHOLD,
-  /** 危险：延迟 >= 5分钟 */
-  DANGER: DATA_DELAY_DANGER_THRESHOLD,
-} as const;
-
 // ============================================================================
 // 偏差筛选阈值
 // ============================================================================
@@ -54,27 +44,6 @@ export const DEVIATION_FILTER_THRESHOLDS = {
   /** 较差：偏差 >= 0.5% */
   POOR: 0.5,
 } as const;
-
-// ============================================================================
-// 一致性评级阈值
-// ============================================================================
-
-/** 一致性评级阈值（标准差百分比） */
-export const CONSISTENCY_RATING_THRESHOLDS = {
-  /** 优秀：标准差 < 0.1% */
-  EXCELLENT: 0.1,
-  /** 良好：0.1% <= 标准差 < 0.3% */
-  GOOD: 0.3,
-  /** 一般：0.3% <= 标准差 < 0.5% */
-  FAIR: 0.5,
-} as const;
-
-// ============================================================================
-// Z-Score 异常值检测阈值
-// ============================================================================
-
-/** Z-Score 异常值阈值 - 超过此值视为异常值 */
-export const ZSCORE_OUTLIER_THRESHOLD = 2;
 
 // ============================================================================
 // 数据新鲜度阈值（秒）
@@ -103,14 +72,3 @@ export const CONFIDENCE_THRESHOLDS = {
   /** 中等置信度：0.5 <= 置信度 < 0.8 */
   MEDIUM: 0.8,
 } as const;
-
-// ============================================================================
-// 类型导出
-// ============================================================================
-
-export type SeverityThreshold = typeof SEVERITY_THRESHOLDS;
-export type DataDelayThreshold = typeof DATA_DELAY_THRESHOLDS;
-export type DeviationFilterThreshold = typeof DEVIATION_FILTER_THRESHOLDS;
-export type ConsistencyRatingThreshold = typeof CONSISTENCY_RATING_THRESHOLDS;
-export type FreshnessThreshold = typeof FRESHNESS_THRESHOLDS;
-export type ConfidenceThreshold = typeof CONFIDENCE_THRESHOLDS;

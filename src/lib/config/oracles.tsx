@@ -514,18 +514,7 @@ export function getOracleProvidersSortedByMarketCap(): OracleProvider[] {
     .map((config) => config.provider);
 }
 
-export type PriceOracleProvider = OracleProvider;
-
-export const PRICE_ORACLE_PROVIDERS: PriceOracleProvider[] = [
-  OracleProvider.CHAINLINK,
-  OracleProvider.PYTH,
-  OracleProvider.API3,
-  OracleProvider.REDSTONE,
-  OracleProvider.DIA,
-  OracleProvider.WINKLINK,
-];
-
-export function getPriceOracleProvidersSortedByMarketCap(): PriceOracleProvider[] {
+export function getPriceOracleProvidersSortedByMarketCap(): OracleProvider[] {
   return getOracleProvidersSortedByMarketCap();
 }
 
@@ -539,24 +528,4 @@ export function getOracleViews(provider: OracleProvider): OracleViewConfig[] {
       component: `${provider.charAt(0).toUpperCase() + provider.slice(1).replace(/-/g, '')}View`,
     }))
   );
-}
-
-// Client-side only: Create oracle client instance dynamically
-export function createOracleClient(provider: OracleProvider): BaseOracleClient {
-  switch (provider) {
-    case OracleProvider.CHAINLINK:
-      return new ChainlinkClient({ useRealData: true });
-    case OracleProvider.PYTH:
-      return new PythClient();
-    case OracleProvider.API3:
-      return new API3Client();
-    case OracleProvider.REDSTONE:
-      return new RedStoneClient();
-    case OracleProvider.DIA:
-      return new DIAClient();
-    case OracleProvider.WINKLINK:
-      return new WINkLinkClient();
-    default:
-      throw new Error(`Unknown oracle provider: ${provider}`);
-  }
 }

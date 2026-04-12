@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils';
 // Types
 // ============================================
 
-export interface ComparisonDataItem {
+interface ComparisonDataItem {
   provider: string;
   name: string;
   price: number;
@@ -22,12 +22,12 @@ export interface ComparisonDataItem {
   color: string;
 }
 
-export interface DeviationThreshold {
+interface DeviationThreshold {
   warning: number;
   danger: number;
 }
 
-export interface EnhancedComparisonTableProps {
+interface EnhancedComparisonTableProps {
   data: ComparisonDataItem[];
   benchmarkProvider?: string;
   sortColumn?: string;

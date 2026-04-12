@@ -32,14 +32,14 @@ import { ConfidenceBar } from './price-comparison/ConfidenceBar';
 // 类型定义
 // ============================================================================
 
-export interface PriceAnomaly {
+interface PriceAnomaly {
   provider: OracleProvider;
   deviationPercent: number;
   severity: 'low' | 'medium' | 'high';
   timestamp: number;
 }
 
-export interface SimplePriceTableProps {
+interface SimplePriceTableProps {
   priceData: PriceData[];
   anomalies?: PriceAnomaly[];
   medianPrice: number;

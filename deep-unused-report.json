@@ -1,0 +1,1523 @@
+{
+  "components": [
+    {
+      "name": "ShortcutCategoryState",
+      "file": "src/components/shortcuts/ShortcutContext.tsx"
+    },
+    {
+      "name": "MemoizedCompactStatCard",
+      "file": "src/components/ui/CompactStatCard.tsx"
+    },
+    {
+      "name": "DataFreshnessLevel",
+      "file": "src/components/ui/LiveStatusBar.tsx"
+    },
+    {
+      "name": "OracleViewConfig",
+      "file": "src/lib/config/oracles.tsx"
+    }
+  ],
+  "hooks": [],
+  "types": [
+    {
+      "name": "IntlProvider",
+      "file": "src/__mocks__/use-intl.ts"
+    },
+    {
+      "name": "DATA_DELAY_THRESHOLDS",
+      "file": "src/app/[locale]/cross-oracle/thresholds.ts"
+    },
+    {
+      "name": "CONSISTENCY_RATING_THRESHOLDS",
+      "file": "src/app/[locale]/cross-oracle/thresholds.ts"
+    },
+    {
+      "name": "ZSCORE_OUTLIER_THRESHOLD",
+      "file": "src/app/[locale]/cross-oracle/thresholds.ts"
+    },
+    {
+      "name": "SeverityThreshold",
+      "file": "src/app/[locale]/cross-oracle/thresholds.ts"
+    },
+    {
+      "name": "DataDelayThreshold",
+      "file": "src/app/[locale]/cross-oracle/thresholds.ts"
+    },
+    {
+      "name": "DeviationFilterThreshold",
+      "file": "src/app/[locale]/cross-oracle/thresholds.ts"
+    },
+    {
+      "name": "ConsistencyRatingThreshold",
+      "file": "src/app/[locale]/cross-oracle/thresholds.ts"
+    },
+    {
+      "name": "FreshnessThreshold",
+      "file": "src/app/[locale]/cross-oracle/thresholds.ts"
+    },
+    {
+      "name": "ConfidenceThreshold",
+      "file": "src/app/[locale]/cross-oracle/thresholds.ts"
+    },
+    {
+      "name": "CUSTOM_THRESHOLDS",
+      "file": "src/app/[locale]/price-query/utils/performanceMonitoring.ts"
+    },
+    {
+      "name": "MAX_VISIBLE_SYMBOLS",
+      "file": "src/app/[locale]/price-query/utils/priceQueryConstants.ts"
+    },
+    {
+      "name": "DEFAULT_PRICE_STALE_TIME",
+      "file": "src/app/[locale]/price-query/utils/priceQueryConstants.ts"
+    },
+    {
+      "name": "DEFAULT_PRICE_GC_TIME",
+      "file": "src/app/[locale]/price-query/utils/priceQueryConstants.ts"
+    },
+    {
+      "name": "DEFAULT_RETRY_COUNT",
+      "file": "src/app/[locale]/price-query/utils/priceQueryConstants.ts"
+    },
+    {
+      "name": "CHART_COLORS",
+      "file": "src/app/[locale]/price-query/utils/priceQueryConstants.ts"
+    },
+    {
+      "name": "EXPORT_FIELDS",
+      "file": "src/app/[locale]/price-query/utils/priceQueryConstants.ts"
+    },
+    {
+      "name": "ExportFieldKey",
+      "file": "src/app/[locale]/price-query/utils/priceQueryConstants.ts"
+    },
+    {
+      "name": "QueryResultWithHistory",
+      "file": "src/app/[locale]/price-query/utils/priceQueryConstants.ts"
+    },
+    {
+      "name": "OracleComparisonItem",
+      "file": "src/components/comparison/types.ts"
+    },
+    {
+      "name": "BenchmarkConfig",
+      "file": "src/components/comparison/types.ts"
+    },
+    {
+      "name": "ComparisonMode",
+      "file": "src/components/comparison/types.ts"
+    },
+    {
+      "name": "NavItemProps",
+      "file": "src/components/navigation/types.ts"
+    },
+    {
+      "name": "TimeWindow",
+      "file": "src/components/oracle/charts/CrossOracleComparison/crossOracleConfig.ts"
+    },
+    {
+      "name": "CROSS_ORACLE_QUERY_KEY",
+      "file": "src/components/oracle/charts/CrossOracleComparison/useCrossOraclePrices.ts"
+    },
+    {
+      "name": "TIME_RANGE_OPTIONS",
+      "file": "src/components/oracle/charts/PriceChart/priceChartConfig.ts"
+    },
+    {
+      "name": "ChartState",
+      "file": "src/components/oracle/charts/PriceChart/useChartState.ts"
+    },
+    {
+      "name": "IntlMessages",
+      "file": "src/i18n/generated-types.ts"
+    },
+    {
+      "name": "TranslationKey",
+      "file": "src/i18n/generated-types.ts"
+    },
+    {
+      "name": "PRICE_CACHE_TTL",
+      "file": "src/lib/api/oracleHandlers.ts"
+    },
+    {
+      "name": "HISTORY_CACHE_TTL",
+      "file": "src/lib/api/oracleHandlers.ts"
+    },
+    {
+      "name": "HISTORY_STALE_THRESHOLD",
+      "file": "src/lib/api/oracleHandlers.ts"
+    },
+    {
+      "name": "BatchPriceResult",
+      "file": "src/lib/api/oracleHandlers.ts"
+    },
+    {
+      "name": "API3CacheConfigType",
+      "file": "src/lib/config/cacheConfig.ts"
+    },
+    {
+      "name": "ColorScale",
+      "file": "src/lib/config/colors.ts"
+    },
+    {
+      "name": "SemanticColor",
+      "file": "src/lib/config/colors.ts"
+    },
+    {
+      "name": "ShadowColor",
+      "file": "src/lib/config/colors.ts"
+    },
+    {
+      "name": "RISK_BENCHMARKS",
+      "file": "src/lib/config/riskBenchmarks.ts"
+    },
+    {
+      "name": "BENCHMARK_LAST_UPDATED",
+      "file": "src/lib/config/riskBenchmarks.ts"
+    },
+    {
+      "name": "BENCHMARK_UPDATE_FREQUENCY",
+      "file": "src/lib/config/riskBenchmarks.ts"
+    },
+    {
+      "name": "DEFAULT_FIELD_GROUPS",
+      "file": "src/lib/export/exportConfig.ts"
+    },
+    {
+      "name": "RSIResult",
+      "file": "src/lib/indicators/types.ts"
+    },
+    {
+      "name": "NullableArray",
+      "file": "src/lib/indicators/types.ts"
+    },
+    {
+      "name": "API3_CHAIN_IDS",
+      "file": "src/lib/oracles/api3DataSources.ts"
+    },
+    {
+      "name": "API3_CHAIN_NAMES",
+      "file": "src/lib/oracles/api3DataSources.ts"
+    },
+    {
+      "name": "API3_DATA_STRATEGIES",
+      "file": "src/lib/oracles/api3DataStrategy.ts"
+    },
+    {
+      "name": "API3OnChainService",
+      "file": "src/lib/oracles/api3OnChainService.ts"
+    },
+    {
+      "name": "REQUEST_PRIORITIES",
+      "file": "src/lib/oracles/api3RequestManager.ts"
+    },
+    {
+      "name": "OracleCacheTTLKey",
+      "file": "src/lib/oracles/base.ts"
+    },
+    {
+      "name": "OracleErrorCodeType",
+      "file": "src/lib/oracles/base.ts"
+    },
+    {
+      "name": "ChainlinkNetworkStats",
+      "file": "src/lib/oracles/chainlinkOnChainService.ts"
+    },
+    {
+      "name": "API_BASE_URLS",
+      "file": "src/lib/oracles/oracle-config.ts"
+    },
+    {
+      "name": "UPDATE_INTERVAL_MINUTES",
+      "file": "src/lib/oracles/oracle-config.ts"
+    },
+    {
+      "name": "DEFAULT_SPREAD_PERCENTAGE",
+      "file": "src/lib/oracles/oracle-config.ts"
+    },
+    {
+      "name": "ORACLE_CONFIDENCE_MAP",
+      "file": "src/lib/oracles/oracle-config.ts"
+    },
+    {
+      "name": "TimeoutLevel",
+      "file": "src/lib/oracles/oracle-config.ts"
+    },
+    {
+      "name": "PYTHNET_RPC_URL",
+      "file": "src/lib/oracles/pythConstants.ts"
+    },
+    {
+      "name": "REDSTONE_SUPPORTED_CHAINS",
+      "file": "src/lib/oracles/redstoneConstants.ts"
+    },
+    {
+      "name": "REDSTONE_DEFAULT_RISK_METRICS",
+      "file": "src/lib/oracles/redstoneConstants.ts"
+    },
+    {
+      "name": "ChainlinkSymbol",
+      "file": "src/lib/oracles/supportedSymbols.ts"
+    },
+    {
+      "name": "RedstoneSymbol",
+      "file": "src/lib/oracles/supportedSymbols.ts"
+    },
+    {
+      "name": "DiaSymbol",
+      "file": "src/lib/oracles/supportedSymbols.ts"
+    },
+    {
+      "name": "Api3Symbol",
+      "file": "src/lib/oracles/supportedSymbols.ts"
+    },
+    {
+      "name": "PythSymbol",
+      "file": "src/lib/oracles/supportedSymbols.ts"
+    },
+    {
+      "name": "WinklinkSymbol",
+      "file": "src/lib/oracles/supportedSymbols.ts"
+    },
+    {
+      "name": "OracleName",
+      "file": "src/lib/oracles/supportedSymbols.ts"
+    },
+    {
+      "name": "SanitizedStringSchema",
+      "file": "src/lib/security/validation.ts"
+    },
+    {
+      "name": "SafeDescriptionSchema",
+      "file": "src/lib/security/validation.ts"
+    },
+    {
+      "name": "SafeUuidSchema",
+      "file": "src/lib/security/validation.ts"
+    },
+    {
+      "name": "SafeEmailSchema",
+      "file": "src/lib/security/validation.ts"
+    },
+    {
+      "name": "SafeUrlSchema",
+      "file": "src/lib/security/validation.ts"
+    },
+    {
+      "name": "SafeJsonSchema",
+      "file": "src/lib/security/validation.ts"
+    },
+    {
+      "name": "SafePriceSchema",
+      "file": "src/lib/security/validation.ts"
+    },
+    {
+      "name": "SafePercentageSchema",
+      "file": "src/lib/security/validation.ts"
+    },
+    {
+      "name": "SafePaginationSchema",
+      "file": "src/lib/security/validation.ts"
+    },
+    {
+      "name": "SafeSearchQuerySchema",
+      "file": "src/lib/security/validation.ts"
+    },
+    {
+      "name": "SafeTimestampSchema",
+      "file": "src/lib/security/validation.ts"
+    },
+    {
+      "name": "UpdateFavoriteRequestSchema",
+      "file": "src/lib/security/validation.ts"
+    },
+    {
+      "name": "UpdateSnapshotRequestSchema",
+      "file": "src/lib/security/validation.ts"
+    },
+    {
+      "name": "PriceQuerySchema",
+      "file": "src/lib/security/validation.ts"
+    },
+    {
+      "name": "HistoricalPriceQuerySchema",
+      "file": "src/lib/security/validation.ts"
+    },
+    {
+      "name": "UpdateAlertRequestType",
+      "file": "src/lib/security/validation.ts"
+    },
+    {
+      "name": "CreateFavoriteRequestType",
+      "file": "src/lib/security/validation.ts"
+    },
+    {
+      "name": "UpdateFavoriteRequestType",
+      "file": "src/lib/security/validation.ts"
+    },
+    {
+      "name": "CreateSnapshotRequestType",
+      "file": "src/lib/security/validation.ts"
+    },
+    {
+      "name": "UpdateSnapshotRequestType",
+      "file": "src/lib/security/validation.ts"
+    },
+    {
+      "name": "BatchOperationType",
+      "file": "src/lib/security/validation.ts"
+    },
+    {
+      "name": "PriceQueryType",
+      "file": "src/lib/security/validation.ts"
+    },
+    {
+      "name": "HistoricalPriceQueryType",
+      "file": "src/lib/security/validation.ts"
+    },
+    {
+      "name": "API3_WEBSOCKET_CONFIG",
+      "file": "src/lib/services/api3WebSocket.ts"
+    },
+    {
+      "name": "API3SubscribeOptions",
+      "file": "src/lib/services/api3WebSocket.ts"
+    },
+    {
+      "name": "MarketStats",
+      "file": "src/lib/services/marketData/types.ts"
+    },
+    {
+      "name": "ChainSupportData",
+      "file": "src/lib/services/marketData/types.ts"
+    },
+    {
+      "name": "ViewType",
+      "file": "src/lib/services/marketData/types.ts"
+    },
+    {
+      "name": "DEFAULT_MARKET_SHARE_DATA",
+      "file": "src/lib/services/oracle/marketDataDefaults.ts"
+    },
+    {
+      "name": "DEFAULT_CHAIN_SUPPORT_DATA",
+      "file": "src/lib/services/oracle/marketDataDefaults.ts"
+    },
+    {
+      "name": "TVS_TREND_DATA_BY_RANGE",
+      "file": "src/lib/services/oracle/marketDataDefaults.ts"
+    },
+    {
+      "name": "InsertTables",
+      "file": "src/lib/supabase/database.types.ts"
+    },
+    {
+      "name": "UpdateTables",
+      "file": "src/lib/supabase/database.types.ts"
+    },
+    {
+      "name": "ActiveAlertWithPrice",
+      "file": "src/lib/supabase/database.types.ts"
+    },
+    {
+      "name": "SnapshotPriceData",
+      "file": "src/lib/supabase/database.types.ts"
+    },
+    {
+      "name": "OracleConfigFavorite",
+      "file": "src/lib/supabase/database.types.ts"
+    },
+    {
+      "name": "SymbolFavorite",
+      "file": "src/lib/supabase/database.types.ts"
+    },
+    {
+      "name": "ChainConfigFavorite",
+      "file": "src/lib/supabase/database.types.ts"
+    },
+    {
+      "name": "DEFAULT_MAX_CONCURRENCY",
+      "file": "src/lib/utils/requestQueue.ts"
+    },
+    {
+      "name": "WeightedData",
+      "file": "src/lib/utils/statistics.ts"
+    },
+    {
+      "name": "ValidationErrorDetail",
+      "file": "src/lib/validation/errorHandler.ts"
+    },
+    {
+      "name": "ZodValidationResult",
+      "file": "src/lib/validation/middleware.ts"
+    },
+    {
+      "name": "ZodValidationErrorResult",
+      "file": "src/lib/validation/middleware.ts"
+    },
+    {
+      "name": "PriceDataBaseSchema",
+      "file": "src/lib/validation/schemas.ts"
+    },
+    {
+      "name": "PriceDataPointSchema",
+      "file": "src/lib/validation/schemas.ts"
+    },
+    {
+      "name": "PriceDataForTechnicalAnalysisSchema",
+      "file": "src/lib/validation/schemas.ts"
+    },
+    {
+      "name": "PriceDataForChartSchema",
+      "file": "src/lib/validation/schemas.ts"
+    },
+    {
+      "name": "PriceDataExtendedSchema",
+      "file": "src/lib/validation/schemas.ts"
+    },
+    {
+      "name": "PriceDeviationSchema",
+      "file": "src/lib/validation/schemas.ts"
+    },
+    {
+      "name": "PriceDataForAlertSchema",
+      "file": "src/lib/validation/schemas.ts"
+    },
+    {
+      "name": "OracleResponseSchema",
+      "file": "src/lib/validation/schemas.ts"
+    },
+    {
+      "name": "OracleListResponseSchema",
+      "file": "src/lib/validation/schemas.ts"
+    },
+    {
+      "name": "AlertResponseSchema",
+      "file": "src/lib/validation/schemas.ts"
+    },
+    {
+      "name": "BatchPriceRequestItemSchema",
+      "file": "src/lib/validation/schemas.ts"
+    },
+    {
+      "name": "BatchPriceResponseSchema",
+      "file": "src/lib/validation/schemas.ts"
+    },
+    {
+      "name": "DataQualityMetricsSchema",
+      "file": "src/lib/validation/schemas.ts"
+    },
+    {
+      "name": "ApiResponseSchema",
+      "file": "src/lib/validation/schemas.ts"
+    },
+    {
+      "name": "PaginationParamsSchema",
+      "file": "src/lib/validation/schemas.ts"
+    },
+    {
+      "name": "FavoriteResponseSchema",
+      "file": "src/lib/validation/schemas.ts"
+    },
+    {
+      "name": "FavoriteListResponseSchema",
+      "file": "src/lib/validation/schemas.ts"
+    },
+    {
+      "name": "HealthCheckResponseSchema",
+      "file": "src/lib/validation/schemas.ts"
+    },
+    {
+      "name": "PriceDataType",
+      "file": "src/lib/validation/schemas.ts"
+    },
+    {
+      "name": "OracleResponseType",
+      "file": "src/lib/validation/schemas.ts"
+    },
+    {
+      "name": "AlertResponseType",
+      "file": "src/lib/validation/schemas.ts"
+    },
+    {
+      "name": "DataQualityMetricsType",
+      "file": "src/lib/validation/schemas.ts"
+    },
+    {
+      "name": "BaseApiRequest",
+      "file": "src/types/api/requests.ts"
+    },
+    {
+      "name": "HistoricalPriceRequest",
+      "file": "src/types/api/requests.ts"
+    },
+    {
+      "name": "AlertConfigRequest",
+      "file": "src/types/api/requests.ts"
+    },
+    {
+      "name": "PaginationState",
+      "file": "src/types/common/pagination.ts"
+    },
+    {
+      "name": "FilterOption",
+      "file": "src/types/common/pagination.ts"
+    },
+    {
+      "name": "PaginatedRequest",
+      "file": "src/types/common/pagination.ts"
+    },
+    {
+      "name": "CursorPaginationParams",
+      "file": "src/types/common/pagination.ts"
+    },
+    {
+      "name": "CursorPaginatedResponse",
+      "file": "src/types/common/pagination.ts"
+    },
+    {
+      "name": "TimestampFields",
+      "file": "src/types/common/timestamps.ts"
+    },
+    {
+      "name": "StakerReward",
+      "file": "src/types/oracle/api3.ts"
+    },
+    {
+      "name": "OEVNetworkStats",
+      "file": "src/types/oracle/api3.ts"
+    },
+    {
+      "name": "ConfidenceIntervalData",
+      "file": "src/types/oracle/constants.ts"
+    },
+    {
+      "name": "FilterState",
+      "file": "src/types/oracle/constants.ts"
+    },
+    {
+      "name": "DataQualityMetrics",
+      "file": "src/types/oracle/oracle.ts"
+    },
+    {
+      "name": "OracleHealth",
+      "file": "src/types/oracle/oracle.ts"
+    },
+    {
+      "name": "OracleMetadata",
+      "file": "src/types/oracle/oracle.ts"
+    },
+    {
+      "name": "OracleSymbolSupport",
+      "file": "src/types/oracle/price.ts"
+    },
+    {
+      "name": "PriceDataForTechnicalAnalysis",
+      "file": "src/types/oracle/price.ts"
+    },
+    {
+      "name": "PriceDataExtended",
+      "file": "src/types/oracle/price.ts"
+    },
+    {
+      "name": "GenericValidator",
+      "file": "src/types/oracle/publisher.ts"
+    },
+    {
+      "name": "RiskHeatmapData",
+      "file": "src/types/risk.ts"
+    },
+    {
+      "name": "RiskIndicator",
+      "file": "src/types/risk.ts"
+    },
+    {
+      "name": "StoreAuthActions",
+      "file": "src/types/store/auth.ts"
+    },
+    {
+      "name": "StoreAuthStore",
+      "file": "src/types/store/auth.ts"
+    },
+    {
+      "name": "CrossChainActions",
+      "file": "src/types/store/crossChain.ts"
+    },
+    {
+      "name": "StoreUIActions",
+      "file": "src/types/store/ui.ts"
+    },
+    {
+      "name": "StoreUIStore",
+      "file": "src/types/store/ui.ts"
+    },
+    {
+      "name": "BadgeProps",
+      "file": "src/types/ui/components.ts"
+    },
+    {
+      "name": "StatCardProps",
+      "file": "src/types/ui/components.ts"
+    },
+    {
+      "name": "StatGridItemProps",
+      "file": "src/types/ui/components.ts"
+    },
+    {
+      "name": "StatGridProps",
+      "file": "src/types/ui/components.ts"
+    },
+    {
+      "name": "FlatStatItemProps",
+      "file": "src/types/ui/components.ts"
+    },
+    {
+      "name": "FlatSectionProps",
+      "file": "src/types/ui/components.ts"
+    },
+    {
+      "name": "MetricCardProps",
+      "file": "src/types/ui/components.ts"
+    },
+    {
+      "name": "DashboardCardProps",
+      "file": "src/types/ui/components.ts"
+    },
+    {
+      "name": "InputProps",
+      "file": "src/types/ui/components.ts"
+    },
+    {
+      "name": "TextareaProps",
+      "file": "src/types/ui/components.ts"
+    },
+    {
+      "name": "ErrorDisplayProps",
+      "file": "src/types/ui/components.ts"
+    },
+    {
+      "name": "ErrorFallbackProps",
+      "file": "src/types/ui/components.ts"
+    },
+    {
+      "name": "ToastProps",
+      "file": "src/types/ui/components.ts"
+    },
+    {
+      "name": "PriceChangeProps",
+      "file": "src/types/ui/components.ts"
+    },
+    {
+      "name": "DataFreshnessProps",
+      "file": "src/types/ui/components.ts"
+    },
+    {
+      "name": "SparklineChartProps",
+      "file": "src/types/ui/components.ts"
+    },
+    {
+      "name": "FormLabelProps",
+      "file": "src/types/ui/components.ts"
+    },
+    {
+      "name": "FormErrorProps",
+      "file": "src/types/ui/components.ts"
+    },
+    {
+      "name": "CheckboxProps",
+      "file": "src/types/ui/components.ts"
+    },
+    {
+      "name": "RadioProps",
+      "file": "src/types/ui/components.ts"
+    },
+    {
+      "name": "DataTableProps",
+      "file": "src/types/ui/components.ts"
+    },
+    {
+      "name": "TutorialProps",
+      "file": "src/types/ui/components.ts"
+    },
+    {
+      "name": "AvatarUploaderProps",
+      "file": "src/types/ui/components.ts"
+    },
+    {
+      "name": "EnhancedStatCardProps",
+      "file": "src/types/ui/components.ts"
+    },
+    {
+      "name": "CustomLabelProps",
+      "file": "src/types/ui/recharts.ts"
+    },
+    {
+      "name": "CustomDotProps",
+      "file": "src/types/ui/recharts.ts"
+    },
+    {
+      "name": "ChartMargin",
+      "file": "src/types/ui/recharts.ts"
+    },
+    {
+      "name": "LegendClickEventHandler",
+      "file": "src/types/ui/recharts.ts"
+    },
+    {
+      "name": "LegendMouseEventHandler",
+      "file": "src/types/ui/recharts.ts"
+    },
+    {
+      "name": "ThemeColor",
+      "file": "src/types/ui/theme.ts"
+    },
+    {
+      "name": "ColorVariant",
+      "file": "src/types/ui/theme.ts"
+    },
+    {
+      "name": "ColorIntensity",
+      "file": "src/types/ui/theme.ts"
+    },
+    {
+      "name": "StatusColor",
+      "file": "src/types/ui/theme.ts"
+    },
+    {
+      "name": "SpacingSize",
+      "file": "src/types/ui/theme.ts"
+    },
+    {
+      "name": "LineHeight",
+      "file": "src/types/ui/theme.ts"
+    },
+    {
+      "name": "TransitionDuration",
+      "file": "src/types/ui/theme.ts"
+    },
+    {
+      "name": "EasingFunction",
+      "file": "src/types/ui/theme.ts"
+    },
+    {
+      "name": "ZIndexLevel",
+      "file": "src/types/ui/theme.ts"
+    },
+    {
+      "name": "ThemeContextValue",
+      "file": "src/types/ui/theme.ts"
+    },
+    {
+      "name": "ButtonThemeConfig",
+      "file": "src/types/ui/theme.ts"
+    },
+    {
+      "name": "CardThemeConfig",
+      "file": "src/types/ui/theme.ts"
+    },
+    {
+      "name": "InputThemeConfig",
+      "file": "src/types/ui/theme.ts"
+    },
+    {
+      "name": "BackgroundColor",
+      "file": "src/types/ui/theme.ts"
+    },
+    {
+      "name": "TextColor",
+      "file": "src/types/ui/theme.ts"
+    },
+    {
+      "name": "BorderColor",
+      "file": "src/types/ui/theme.ts"
+    },
+    {
+      "name": "DeepPartial",
+      "file": "src/types/utils.ts"
+    },
+    {
+      "name": "Prettify",
+      "file": "src/types/utils.ts"
+    },
+    {
+      "name": "Mutable",
+      "file": "src/types/utils.ts"
+    },
+    {
+      "name": "ExtractOptional",
+      "file": "src/types/utils.ts"
+    },
+    {
+      "name": "ExtractRequired",
+      "file": "src/types/utils.ts"
+    }
+  ],
+  "utils": [
+    {
+      "name": "createNavigation",
+      "file": "src/__mocks__/next-intl-routing.ts"
+    },
+    {
+      "name": "nextIntlRouting",
+      "file": "src/__mocks__/next-intl-routing.ts"
+    },
+    {
+      "name": "getTranslations",
+      "file": "src/__mocks__/next-intl-server.ts"
+    },
+    {
+      "name": "getLocale",
+      "file": "src/__mocks__/next-intl-server.ts"
+    },
+    {
+      "name": "getTimeZone",
+      "file": "src/__mocks__/next-intl-server.ts"
+    },
+    {
+      "name": "getNow",
+      "file": "src/__mocks__/next-intl-server.ts"
+    },
+    {
+      "name": "getFormatter",
+      "file": "src/__mocks__/next-intl-server.ts"
+    },
+    {
+      "name": "nextIntlServer",
+      "file": "src/__mocks__/next-intl-server.ts"
+    },
+    {
+      "name": "nextIntl",
+      "file": "src/__mocks__/next-intl.ts"
+    },
+    {
+      "name": "invalidatePriceCache",
+      "file": "src/app/[locale]/price-query/utils/cacheUtils.ts"
+    },
+    {
+      "name": "invalidateHistoricalCache",
+      "file": "src/app/[locale]/price-query/utils/cacheUtils.ts"
+    },
+    {
+      "name": "invalidateAllPriceQueryCache",
+      "file": "src/app/[locale]/price-query/utils/cacheUtils.ts"
+    },
+    {
+      "name": "prefetchPriceData",
+      "file": "src/app/[locale]/price-query/utils/cacheUtils.ts"
+    },
+    {
+      "name": "prefetchHistoricalData",
+      "file": "src/app/[locale]/price-query/utils/cacheUtils.ts"
+    },
+    {
+      "name": "performanceMonitor",
+      "file": "src/app/[locale]/price-query/utils/performanceMonitoring.ts"
+    },
+    {
+      "name": "getMetricRatingDisplay",
+      "file": "src/app/[locale]/price-query/utils/performanceMonitoring.ts"
+    },
+    {
+      "name": "getWebVitalRatingDisplay",
+      "file": "src/app/[locale]/price-query/utils/performanceMonitoring.ts"
+    },
+    {
+      "name": "clearPriceCache",
+      "file": "src/app/[locale]/price-query/utils/priceQueryUtils.ts"
+    },
+    {
+      "name": "calculatePriceStats",
+      "file": "src/app/[locale]/price-query/utils/priceQueryUtils.ts"
+    },
+    {
+      "name": "calculateAvgChange24h",
+      "file": "src/app/[locale]/price-query/utils/priceQueryUtils.ts"
+    },
+    {
+      "name": "createTimeoutPromise",
+      "file": "src/app/[locale]/price-query/utils/priceQueryUtils.ts"
+    },
+    {
+      "name": "calculateConfidenceIntervals",
+      "file": "src/app/[locale]/price-query/utils/technicalIndicators.ts"
+    },
+    {
+      "name": "convertCalculatedMetricsToPerformance",
+      "file": "src/components/oracle/charts/CrossOracleComparison/crossOracleConfig.ts"
+    },
+    {
+      "name": "mergePerformanceData",
+      "file": "src/components/oracle/charts/CrossOracleComparison/crossOracleConfig.ts"
+    },
+    {
+      "name": "getTimeRangeConfig",
+      "file": "src/components/oracle/charts/PriceChart/priceChartConfig.ts"
+    },
+    {
+      "name": "getGranularityConfig",
+      "file": "src/components/oracle/charts/PriceChart/priceChartConfig.ts"
+    },
+    {
+      "name": "convertHistoricalPricePoints",
+      "file": "src/components/oracle/charts/PriceChart/priceChartUtils.ts"
+    },
+    {
+      "name": "getRequestConfig",
+      "file": "src/i18n/request.ts"
+    },
+    {
+      "name": "createTestQueryClient",
+      "file": "src/lib/__tests__/utils/test-utils.tsx"
+    },
+    {
+      "name": "renderWithQueryClient",
+      "file": "src/lib/__tests__/utils/test-utils.tsx"
+    },
+    {
+      "name": "wait",
+      "file": "src/lib/__tests__/utils/test-utils.tsx"
+    },
+    {
+      "name": "generateRandomHex",
+      "file": "src/lib/__tests__/utils/test-utils.tsx"
+    },
+    {
+      "name": "generateRandomAddress",
+      "file": "src/lib/__tests__/utils/test-utils.tsx"
+    },
+    {
+      "name": "mockFetchResponse",
+      "file": "src/lib/__tests__/utils/test-utils.tsx"
+    },
+    {
+      "name": "mockFetchError",
+      "file": "src/lib/__tests__/utils/test-utils.tsx"
+    },
+    {
+      "name": "restoreFetch",
+      "file": "src/lib/__tests__/utils/test-utils.tsx"
+    },
+    {
+      "name": "calculateCoefficientOfVariation",
+      "file": "src/lib/__tests__/utils/test-utils.tsx"
+    },
+    {
+      "name": "isSortedAscending",
+      "file": "src/lib/__tests__/utils/test-utils.tsx"
+    },
+    {
+      "name": "isSortedDescending",
+      "file": "src/lib/__tests__/utils/test-utils.tsx"
+    },
+    {
+      "name": "createMockOracleClient",
+      "file": "src/lib/__tests__/utils/test-utils.tsx"
+    },
+    {
+      "name": "createMockHistoricalPriceData",
+      "file": "src/lib/__tests__/utils/test-utils.tsx"
+    },
+    {
+      "name": "isValidProvider",
+      "file": "src/lib/api/oracleHandlers.ts"
+    },
+    {
+      "name": "validateRequiredParams",
+      "file": "src/lib/api/oracleHandlers.ts"
+    },
+    {
+      "name": "createPriceResponse",
+      "file": "src/lib/api/oracleHandlers.ts"
+    },
+    {
+      "name": "createHistoryResponse",
+      "file": "src/lib/api/oracleHandlers.ts"
+    },
+    {
+      "name": "handleOracleError",
+      "file": "src/lib/api/oracleHandlers.ts"
+    },
+    {
+      "name": "priceRecordToPriceData",
+      "file": "src/lib/api/oracleHandlers.ts"
+    },
+    {
+      "name": "createVersionMiddleware",
+      "file": "src/lib/api/versioning/middleware.ts"
+    },
+    {
+      "name": "addVersionHeaders",
+      "file": "src/lib/api/versioning/middleware.ts"
+    },
+    {
+      "name": "rechartsTheme",
+      "file": "src/lib/chartColors.ts"
+    },
+    {
+      "name": "getChartColor",
+      "file": "src/lib/chartColors.ts"
+    },
+    {
+      "name": "getChartGradient",
+      "file": "src/lib/chartColors.ts"
+    },
+    {
+      "name": "createDefaultExportConfig",
+      "file": "src/lib/export/exportConfig.ts"
+    },
+    {
+      "name": "createExportConfig",
+      "file": "src/lib/export/exportConfig.ts"
+    },
+    {
+      "name": "getFieldGroupLabel",
+      "file": "src/lib/export/exportConfig.ts"
+    },
+    {
+      "name": "toggleFieldSelection",
+      "file": "src/lib/export/exportConfig.ts"
+    },
+    {
+      "name": "setFieldGroupSelection",
+      "file": "src/lib/export/exportConfig.ts"
+    },
+    {
+      "name": "validateExportConfig",
+      "file": "src/lib/export/exportConfig.ts"
+    },
+    {
+      "name": "loadExportConfigsFromStorage",
+      "file": "src/lib/export/exportConfig.ts"
+    },
+    {
+      "name": "saveExportConfigsToStorage",
+      "file": "src/lib/export/exportConfig.ts"
+    },
+    {
+      "name": "getTimeRangeHours",
+      "file": "src/lib/export/exportConfig.ts"
+    },
+    {
+      "name": "getTimeRangeLabel",
+      "file": "src/lib/export/exportConfig.ts"
+    },
+    {
+      "name": "getFormatLabel",
+      "file": "src/lib/export/exportConfig.ts"
+    },
+    {
+      "name": "getDataTypeLabel",
+      "file": "src/lib/export/exportConfig.ts"
+    },
+    {
+      "name": "getAPI3BaseUrl",
+      "file": "src/lib/oracles/api3DataSources.ts"
+    },
+    {
+      "name": "isMockDataEnabled",
+      "file": "src/lib/oracles/api3DataSources.ts"
+    },
+    {
+      "name": "getAPI3Config",
+      "file": "src/lib/oracles/api3DataSources.ts"
+    },
+    {
+      "name": "getDataStrategy",
+      "file": "src/lib/oracles/api3DataStrategy.ts"
+    },
+    {
+      "name": "shouldUseOnChain",
+      "file": "src/lib/oracles/api3DataStrategy.ts"
+    },
+    {
+      "name": "shouldUseAPI",
+      "file": "src/lib/oracles/api3DataStrategy.ts"
+    },
+    {
+      "name": "createDataSourceInfo",
+      "file": "src/lib/oracles/api3DataStrategy.ts"
+    },
+    {
+      "name": "api3RequestManager",
+      "file": "src/lib/oracles/api3RequestManager.ts"
+    },
+    {
+      "name": "withPriority",
+      "file": "src/lib/oracles/api3RequestManager.ts"
+    },
+    {
+      "name": "setPerformanceMetricsConfig",
+      "file": "src/lib/oracles/performanceMetricsConfig.ts"
+    },
+    {
+      "name": "resetPerformanceMetricsConfig",
+      "file": "src/lib/oracles/performanceMetricsConfig.ts"
+    },
+    {
+      "name": "updateProviderDefaults",
+      "file": "src/lib/oracles/performanceMetricsConfig.ts"
+    },
+    {
+      "name": "getFallbackNetworkStats",
+      "file": "src/lib/oracles/pyth/metadataFetching.ts"
+    },
+    {
+      "name": "chainlinkSymbols",
+      "file": "src/lib/oracles/supportedSymbols.ts"
+    },
+    {
+      "name": "api3Symbols",
+      "file": "src/lib/oracles/supportedSymbols.ts"
+    },
+    {
+      "name": "createOptimizedQueryClient",
+      "file": "src/lib/queries/queryClient.ts"
+    },
+    {
+      "name": "mergeQueryConfig",
+      "file": "src/lib/queries/queryClient.ts"
+    },
+    {
+      "name": "queryClientUtils",
+      "file": "src/lib/queries/queryClient.ts"
+    },
+    {
+      "name": "getGlobalQueryClient",
+      "file": "src/lib/queries/queryClient.ts"
+    },
+    {
+      "name": "resetGlobalQueryClient",
+      "file": "src/lib/queries/queryClient.ts"
+    },
+    {
+      "name": "networkKeys",
+      "file": "src/lib/queries/queryKeys.ts"
+    },
+    {
+      "name": "favoritesKeys",
+      "file": "src/lib/queries/queryKeys.ts"
+    },
+    {
+      "name": "alertsKeys",
+      "file": "src/lib/queries/queryKeys.ts"
+    },
+    {
+      "name": "api3Keys",
+      "file": "src/lib/queries/queryKeys.ts"
+    },
+    {
+      "name": "webSocketConnectionPool",
+      "file": "src/lib/realtime/WebSocketManager.ts"
+    },
+    {
+      "name": "isWebSocketEnabled",
+      "file": "src/lib/realtime/websocket.ts"
+    },
+    {
+      "name": "getCSRFTokenFromCookie",
+      "file": "src/lib/security/csrf.ts"
+    },
+    {
+      "name": "getCSRFTokenFromHeader",
+      "file": "src/lib/security/csrf.ts"
+    },
+    {
+      "name": "isPathExcluded",
+      "file": "src/lib/security/csrf.ts"
+    },
+    {
+      "name": "validateCSRFToken",
+      "file": "src/lib/security/csrf.ts"
+    },
+    {
+      "name": "createCSRFMiddleware",
+      "file": "src/lib/security/csrf.ts"
+    },
+    {
+      "name": "withCSRFProtection",
+      "file": "src/lib/security/csrf.ts"
+    },
+    {
+      "name": "createCSRFTokenResponse",
+      "file": "src/lib/security/csrf.ts"
+    },
+    {
+      "name": "createSafeEnumSchema",
+      "file": "src/lib/security/validation.ts"
+    },
+    {
+      "name": "resetAPI3WebSocketService",
+      "file": "src/lib/services/api3WebSocket.ts"
+    },
+    {
+      "name": "formatAPI3PriceData",
+      "file": "src/lib/services/api3WebSocket.ts"
+    },
+    {
+      "name": "calculatePriceChangePercent",
+      "file": "src/lib/services/api3WebSocket.ts"
+    },
+    {
+      "name": "getAPI3SupportedSymbols",
+      "file": "src/lib/services/oracle/api3NetworkService.ts"
+    },
+    {
+      "name": "isAPI3SymbolSupported",
+      "file": "src/lib/services/oracle/api3NetworkService.ts"
+    },
+    {
+      "name": "getAPI3SupportedChains",
+      "file": "src/lib/services/oracle/api3NetworkService.ts"
+    },
+    {
+      "name": "getQueries",
+      "file": "src/lib/supabase/client.ts"
+    },
+    {
+      "name": "createServerQueries",
+      "file": "src/lib/supabase/server.ts"
+    },
+    {
+      "name": "getCommonChainsBetweenOracles",
+      "file": "src/lib/utils/chainUtils.ts"
+    },
+    {
+      "name": "getCommonChainsForOracles",
+      "file": "src/lib/utils/chainUtils.ts"
+    },
+    {
+      "name": "getChainCoverageHeatmapData",
+      "file": "src/lib/utils/chainUtils.ts"
+    },
+    {
+      "name": "getDateTimeLocale",
+      "file": "src/lib/utils/dateFormat.ts"
+    },
+    {
+      "name": "formatDateServer",
+      "file": "src/lib/utils/dateFormat.ts"
+    },
+    {
+      "name": "formatTimeServer",
+      "file": "src/lib/utils/dateFormat.ts"
+    },
+    {
+      "name": "formatDateTimeServer",
+      "file": "src/lib/utils/dateFormat.ts"
+    },
+    {
+      "name": "formatCompactCurrency",
+      "file": "src/lib/utils/format.ts"
+    },
+    {
+      "name": "calculateOptimalThreshold",
+      "file": "src/lib/utils/lttb.ts"
+    },
+    {
+      "name": "downsampleHistoricalData",
+      "file": "src/lib/utils/lttb.ts"
+    },
+    {
+      "name": "formatTVL",
+      "file": "src/lib/utils/oracle-helpers.ts"
+    },
+    {
+      "name": "getChainLabel",
+      "file": "src/lib/utils/oracle-helpers.ts"
+    },
+    {
+      "name": "getChainBadgeColor",
+      "file": "src/lib/utils/oracle-helpers.ts"
+    },
+    {
+      "name": "formatPriceChange",
+      "file": "src/lib/utils/oracle-helpers.ts"
+    },
+    {
+      "name": "createRequestQueue",
+      "file": "src/lib/utils/requestQueue.ts"
+    },
+    {
+      "name": "resetGlobalQueue",
+      "file": "src/lib/utils/requestQueue.ts"
+    },
+    {
+      "name": "handleAppError",
+      "file": "src/lib/validation/errorHandler.ts"
+    },
+    {
+      "name": "validateWithZod",
+      "file": "src/lib/validation/middleware.ts"
+    },
+    {
+      "name": "createZodValidationMiddleware",
+      "file": "src/lib/validation/middleware.ts"
+    },
+    {
+      "name": "validateParamsSchema",
+      "file": "src/lib/validation/middleware.ts"
+    },
+    {
+      "name": "safeValidate",
+      "file": "src/lib/validation/middleware.ts"
+    },
+    {
+      "name": "assertValid",
+      "file": "src/lib/validation/middleware.ts"
+    }
+  ],
+  "constants": [
+    {
+      "name": "priceOracleNames",
+      "file": "src/app/[locale]/cross-oracle/constants.tsx"
+    },
+    {
+      "name": "extendedOracleNames",
+      "file": "src/app/[locale]/cross-oracle/constants.tsx"
+    },
+    {
+      "name": "defaultSelectedOracles",
+      "file": "src/app/[locale]/cross-oracle/constants.tsx"
+    },
+    {
+      "name": "refreshIntervals",
+      "file": "src/app/[locale]/cross-oracle/constants.tsx"
+    },
+    {
+      "name": "qualityThresholds",
+      "file": "src/app/[locale]/cross-oracle/constants.tsx"
+    },
+    {
+      "name": "deviationThresholds",
+      "file": "src/app/[locale]/cross-oracle/constants.tsx"
+    },
+    {
+      "name": "riskLevels",
+      "file": "src/app/[locale]/cross-oracle/constants.tsx"
+    },
+    {
+      "name": "apiConfig",
+      "file": "src/app/[locale]/cross-oracle/constants.tsx"
+    },
+    {
+      "name": "oracleLineConfig",
+      "file": "src/app/[locale]/home-components/OracleMarketOverview/constants.ts"
+    },
+    {
+      "name": "marketShareData",
+      "file": "src/app/[locale]/home-components/OracleMarketOverview/constants.ts"
+    },
+    {
+      "name": "chainSupportData",
+      "file": "src/app/[locale]/home-components/OracleMarketOverview/constants.ts"
+    },
+    {
+      "name": "getVersionInfo",
+      "file": "src/lib/api/versioning/constants.ts"
+    },
+    {
+      "name": "isVersionSupported",
+      "file": "src/lib/api/versioning/constants.ts"
+    },
+    {
+      "name": "updateBasePrices",
+      "file": "src/lib/config/basePrices.ts"
+    },
+    {
+      "name": "resetBasePrices",
+      "file": "src/lib/config/basePrices.ts"
+    },
+    {
+      "name": "financeColors",
+      "file": "src/lib/config/colors.ts"
+    },
+    {
+      "name": "shadowColors",
+      "file": "src/lib/config/colors.ts"
+    },
+    {
+      "name": "wcagColors",
+      "file": "src/lib/config/colors.ts"
+    },
+    {
+      "name": "chartColorSchemes",
+      "file": "src/lib/config/colors.ts"
+    },
+    {
+      "name": "uiColors",
+      "file": "src/lib/config/colors.ts"
+    },
+    {
+      "name": "animationColors",
+      "file": "src/lib/config/colors.ts"
+    },
+    {
+      "name": "tailwindClasses",
+      "file": "src/lib/config/colors.ts"
+    },
+    {
+      "name": "getChartSequenceColor",
+      "file": "src/lib/config/colors.ts"
+    },
+    {
+      "name": "getContrastTextColor",
+      "file": "src/lib/config/colors.ts"
+    },
+    {
+      "name": "isFeatureEnabled",
+      "file": "src/lib/config/env.ts"
+    },
+    {
+      "name": "getSupabaseConfig",
+      "file": "src/lib/config/env.ts"
+    },
+    {
+      "name": "getAppConfig",
+      "file": "src/lib/config/env.ts"
+    },
+    {
+      "name": "getWebSocketConfig",
+      "file": "src/lib/config/env.ts"
+    },
+    {
+      "name": "getSecurityConfig",
+      "file": "src/lib/config/env.ts"
+    },
+    {
+      "name": "validateEnvironment",
+      "file": "src/lib/config/env.ts"
+    },
+    {
+      "name": "getAllOracleConfigs",
+      "file": "src/lib/config/oracles.tsx"
+    },
+    {
+      "name": "getAllOracleConfigsSortedByMarketCap",
+      "file": "src/lib/config/oracles.tsx"
+    },
+    {
+      "name": "getOracleViews",
+      "file": "src/lib/config/oracles.tsx"
+    },
+    {
+      "name": "validateServerEnv",
+      "file": "src/lib/config/serverEnv.ts"
+    },
+    {
+      "name": "getAlchemyRpcUrl",
+      "file": "src/lib/config/serverEnv.ts"
+    },
+    {
+      "name": "getTronConfig",
+      "file": "src/lib/config/serverEnv.ts"
+    },
+    {
+      "name": "getTheGraphApiKey",
+      "file": "src/lib/config/serverEnv.ts"
+    },
+    {
+      "name": "ensureServerEnvValidated",
+      "file": "src/lib/config/serverEnv.ts"
+    }
+  ]
+}

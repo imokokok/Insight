@@ -26,9 +26,6 @@
   "time": {
     "justNow": "Just now"
   },
-  "price": {
-    "title": "Price"
-  },
   "export": "Export",
   "home": {
     "hero": {
@@ -58,9 +55,6 @@
       }
     }
   },
-  "indicators": {
-    "title": "Indicators"
-  },
   "crossOracleComparison": {
     "consistencyScore": "Consistency Score",
     "quickCompare": "Quick Compare",
@@ -76,40 +70,13 @@
       "reliability": "Reliability"
     }
   },
-  "crossChainPriceComparison": {
-    "avgPrice": "Average Price",
-    "highestPrice": "Highest Price",
-    "lowestPrice": "Lowest Price",
-    "allChains": "All Chains",
-    "high": "High",
-    "low": "Low",
-    "normal": "Normal",
-    "noData": "No cross-chain price data available"
-  },
   "oracleCommon": {
     "oraclePageTemplate": {
       "rank": "Rank"
     }
   },
   "networkHealth": {
-    "status": {
-      "online": "Online",
-      "warning": "Warning",
-      "offline": "Offline"
-    },
-    "networkStatus": "Network Status",
-    "monitoring": "Real-time monitoring",
-    "lastCheck": "Last check",
-    "vsLastWeek": "vs last week",
-    "dataFreshness": {
-      "title": "Data Freshness",
-      "subtitle": "Real-time data sync status",
-      "lastUpdated": "Last Updated",
-      "dataLatency": "Data Latency",
-      "excellent": "Excellent",
-      "good": "Good",
-      "slow": "Slow"
-    }
+    "vsLastWeek": "vs last week"
   },
   "crossChain": {
     "title": "Cross-Chain Price Convergence Analysis",
@@ -177,7 +144,6 @@
     },
     "dataIntegrity": "Data Integrity",
     "priceJumpFrequency": "Price Jump Frequency",
-    "priceJumps": "Price Jumps",
     "detailComparison": "Detail Comparison",
     "priceTrendComparison": "Price Trend Comparison",
     "anomalyPoint": "Anomaly Point",
@@ -202,20 +168,6 @@
     "recommended": "Recommended",
     "refreshSuccess": "Refreshed",
     "filter": "Filter",
-    "residualDiagnostics": "Residual Diagnostics",
-    "autocorrelationFunction": "Autocorrelation Function (ACF)",
-    "autocorrelationCoefficient": "Autocorrelation Coefficient",
-    "residualDistribution": "Residual Distribution",
-    "empiricalDensity": "Empirical Density",
-    "normalDensity": "Normal Density",
-    "empiricalDistribution": "Empirical Distribution",
-    "normalDistribution": "Normal Distribution",
-    "diagnosticExplanation": "Diagnostic Explanation",
-    "acfExplanation": "ACF Chart: If autocorrelation coefficients exceed confidence intervals (red dashed line), residuals show autocorrelation. Ljung-Box test p-value < 0.05 indicates significant autocorrelation.",
-    "distributionExplanation": "Distribution: Compare empirical distribution with normal distribution. Large differences may violate normality assumptions.",
-    "currentStatus": "Current Status",
-    "residualsHaveAutocorrelation": "Residuals show autocorrelation, model may need improvement.",
-    "residualsNoAutocorrelation": "Residuals show no significant autocorrelation, model fits well.",
     "anomalyDetectionConfig": "Anomaly Detection Threshold Configuration",
     "thresholdType": "Threshold Type",
     "fixedThreshold": "Fixed Threshold",
@@ -526,7 +478,6 @@
     "expandDetails": "Expand Details",
     "anomalyTooltip": "Price Anomaly: Deviation {deviation}%"
   },
-  "comparisonPeriod": "Comparison Period",
   "alerts": {
     "page": {
       "title": "Price Alerts",
@@ -610,14 +561,6 @@
       "acknowledge": "Acknowledge",
       "acknowledging": "Acknowledging...",
       "totalRecords": "Total {total} records, showing {shown}"
-    },
-    "notification": {
-      "title": "Price Alert Triggered",
-      "triggerPrice": "Trigger Price:",
-      "time": "Time:",
-      "acknowledge": "Acknowledge",
-      "acknowledging": "Acknowledging...",
-      "viewDetails": "View Details"
     },
     "templates": {
       "title": "Quick Templates",
