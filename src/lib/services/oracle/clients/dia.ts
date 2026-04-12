@@ -91,18 +91,22 @@ export class DIAClient extends BaseOracleClient {
     period: number = 24
   ): Promise<PriceData[]> {
     try {
-      // 使用 DIA API 获取历史价格数据
-      const diaService = getDIADataService();
-      const historicalPrices = await diaService.getHistoricalPrices(symbol, chain, period);
+      // 统一使用 Binance API 获取历史价格数据（与其他预言机保持一致）
+      const historicalPrices = await binanceMarketService.getHistoricalPricesByHours(
+        symbol,
+        period
+      );
 
       if (!historicalPrices || historicalPrices.length === 0) {
-        logger.info(`No historical price data available for ${symbol}, returning empty array`);
+        logger.warn(`No historical data available for ${symbol}`, { symbol });
         return [];
       }
 
-      logger.info(
-        `Successfully fetched ${historicalPrices.length} historical prices for ${symbol} from DIA API`
-      );
+      logger.info(`Using Binance historical data for ${symbol}`, {
+        symbol,
+        points: historicalPrices.length,
+        period,
+      });
 
       const targetChain = chain || Blockchain.ETHEREUM;
       const basePrice = historicalPrices[0].price;
@@ -118,15 +122,15 @@ export class DIAClient extends BaseOracleClient {
           price: point.price,
           timestamp: point.timestamp,
           decimals: 8,
-          confidence: point.confidence || 0.95,
+          confidence: 0.95,
           change24h: Number(change24h.toFixed(4)),
           change24hPercent: Number(change24hPercent.toFixed(2)),
-          source: point.source || 'dia-api',
+          source: 'binance-api',
         };
       });
     } catch (error) {
       logger.error(
-        `Error fetching historical prices for ${symbol}: ${error instanceof Error ? error.message : String(error)}`
+        `Failed to fetch historical prices for ${symbol}: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
       return [];
     }

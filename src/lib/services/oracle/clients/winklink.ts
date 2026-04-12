@@ -1,4 +1,3 @@
-import { FEATURE_FLAGS } from '@/lib/config/serverEnv';
 import { BaseOracleClient } from '@/lib/oracles/base';
 import type { OracleClientConfig } from '@/lib/oracles/base';
 import { winklinkSymbols } from '@/lib/oracles/supportedSymbols';
@@ -10,9 +9,6 @@ import type { PriceData } from '@/types/oracle';
 
 const logger = createLogger('WINkLinkClient');
 
-// 是否使用真实数据
-const USE_REAL_DATA = FEATURE_FLAGS.useRealWinklinkData;
-
 export class WINkLinkClient extends BaseOracleClient {
   name = OracleProvider.WINKLINK;
   supportedChains = [Blockchain.TRON];
@@ -21,11 +17,6 @@ export class WINkLinkClient extends BaseOracleClient {
 
   constructor(config?: OracleClientConfig) {
     super(config);
-  }
-
-  private getBaseSymbol(symbol: string): string {
-    // 提取基础 symbol，例如 "WIN/USD" -> "WIN"
-    return symbol.toUpperCase().split('/')[0];
   }
 
   /**
@@ -54,27 +45,30 @@ export class WINkLinkClient extends BaseOracleClient {
             source: 'binance-api',
           };
         }
-      }
 
-      // 如果启用真实数据，尝试从 WINkLink 合约获取
-      if (USE_REAL_DATA) {
-        const realDataService = getWINkLinkRealDataService();
-        const realPrice = await realDataService.getPriceFromContract(symbol);
-
-        if (realPrice) {
-          return realPrice;
-        }
-
-        // 如果启用了真实数据但获取失败，抛出明确错误
+        // WIN 代币必须从 Binance 获取实时数据，不允许降级
         throw this.createError(
-          `Failed to fetch price from WINkLink contract for ${symbol}. ` +
-            `Please check: 1) TRON RPC connection, 2) Contract address validity, 3) Symbol support.`,
+          `Failed to fetch WIN token price from Binance API. Real-time data is required.`,
           'NO_DATA_AVAILABLE',
           { retryable: true }
         );
       }
 
-      return this.fetchPriceWithDatabase(symbol, chain);
+      // 必须从 WINkLink 合约获取实时数据，不允许降级到数据库
+      const realDataService = getWINkLinkRealDataService();
+      const realPrice = await realDataService.getPriceFromContract(symbol);
+
+      if (realPrice) {
+        return realPrice;
+      }
+
+      // 无法获取实时数据时直接报错，不允许使用旧数据
+      throw this.createError(
+        `Failed to fetch price from WINkLink contract for ${symbol}. ` +
+          `Real-time data is required. Please check: 1) TRON RPC connection, 2) Contract address validity, 3) Symbol support.`,
+        'NO_DATA_AVAILABLE',
+        { retryable: true }
+      );
     } catch (error) {
       // 如果是我们已经格式化的错误，直接抛出
       if (error && typeof error === 'object' && 'code' in error) {
@@ -93,18 +87,22 @@ export class WINkLinkClient extends BaseOracleClient {
     period: number = 24
   ): Promise<PriceData[]> {
     try {
-      // 使用 WINkLink 真实数据服务获取历史价格
-      const realDataService = getWINkLinkRealDataService();
-      const historicalPrices = await realDataService.getHistoricalPrices(symbol, period);
+      // 统一使用 Binance API 获取历史价格数据（与其他预言机保持一致）
+      const historicalPrices = await binanceMarketService.getHistoricalPricesByHours(
+        symbol,
+        period
+      );
 
       if (!historicalPrices || historicalPrices.length === 0) {
-        logger.info(`No historical price data available for ${symbol}`);
+        logger.warn(`No historical data available for ${symbol}`, { symbol });
         return [];
       }
 
-      logger.info(
-        `Successfully fetched ${historicalPrices.length} historical prices for ${symbol} from WINkLink network`
-      );
+      logger.info(`Using Binance historical data for ${symbol}`, {
+        symbol,
+        points: historicalPrices.length,
+        period,
+      });
 
       const targetChain = chain || Blockchain.TRON;
       const basePrice = historicalPrices[0].price;
@@ -123,12 +121,12 @@ export class WINkLinkClient extends BaseOracleClient {
           confidence: 0.95,
           change24h: Number(change24h.toFixed(4)),
           change24hPercent: Number(change24hPercent.toFixed(2)),
-          source: 'winklink-contract',
+          source: 'binance-api',
         };
       });
     } catch (error) {
       logger.error(
-        `Failed to fetch historical prices for ${symbol}: ${error instanceof Error ? error.message : String(error)}`
+        `Failed to fetch historical prices for ${symbol}: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
       return [];
     }
