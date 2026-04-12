@@ -5,7 +5,6 @@ import React, { useMemo, useRef, useEffect, useState, useCallback } from 'react'
 import { ArrowUp, ArrowDown, Minus, AlertTriangle, CheckCircle2 } from 'lucide-react';
 
 import { useTranslations } from '@/i18n';
-import { semanticColors } from '@/lib/config/colors';
 import { cn } from '@/lib/utils';
 
 // ============================================

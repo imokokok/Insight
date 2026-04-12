@@ -82,7 +82,7 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
     isLoading,
     error,
     lastUpdated,
-    fetchPriceData,
+    fetchPriceData: _fetchPriceData,
     performanceMetrics,
     isCalculatingMetrics,
     oracleDataError,

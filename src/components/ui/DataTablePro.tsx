@@ -66,10 +66,7 @@ export function DataTablePro<T extends Record<string, unknown>>({
     columns,
     {}
   );
-  const { getSavedScrollPosition, saveScrollPosition } = useScrollPosition(
-    scrollPositionKey,
-    scrollRef
-  );
+  const { getSavedScrollPosition, saveScrollPosition } = useScrollPosition(scrollPositionKey);
 
   useEffect(() => setDensity(initialDensity), [initialDensity]);
 

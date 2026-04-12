@@ -5,13 +5,7 @@ import { useTranslations } from '@/i18n';
 import { getOracleProvidersSortedByMarketCap } from '@/lib/config/oracles';
 import { OracleProvider } from '@/types/oracle';
 
-import {
-  symbols,
-  oracleNames,
-  oracleColors,
-  type OracleGroup,
-  ORACLE_GROUPS,
-} from './crossOracleConfig';
+import { symbols, oracleNames, oracleColors, type OracleGroup } from './crossOracleConfig';
 
 interface DeviationAlert {
   provider: OracleProvider;
@@ -69,8 +63,8 @@ export function SettingsTab({
   refreshInterval,
   selectedGroup,
   lastUpdated,
-  exportData,
-  chartRef,
+  exportData: _exportData,
+  chartRef: _chartRef,
   onSymbolChange,
   onToggleOracle,
   onDeviationThresholdChange,

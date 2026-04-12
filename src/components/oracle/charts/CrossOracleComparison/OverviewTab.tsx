@@ -12,7 +12,7 @@ import {
 } from 'recharts';
 
 import { useTranslations } from '@/i18n';
-import { baseColors, chartColors } from '@/lib/config/colors';
+import { baseColors } from '@/lib/config/colors';
 import { type OracleProvider } from '@/types/oracle';
 
 import { oracleNames, oracleColors, type PriceComparisonData } from './crossOracleConfig';

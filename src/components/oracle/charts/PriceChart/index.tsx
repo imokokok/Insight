@@ -55,11 +55,7 @@ function PriceChartBase({
   const selectedTimeRange = useSelectedTimeRange();
   const { registerTimeRangeCallback, unregisterTimeRangeCallback } = useTimeRangeCallback();
   const syncEnabled = useSyncEnabled();
-  const {
-    settings: chartSettings,
-    updateSettings: _updateChartSettings,
-    isLoaded: _chartSettingsLoaded,
-  } = useChartSettings();
+  const { settings: chartSettings, updateSettings: _updateChartSettings } = useChartSettings();
 
   const isMobile = screenSize === 'mobile';
   const _realtimeEnabled = enableRealtime;

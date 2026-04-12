@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 
 import { OracleProvider } from '@/types/oracle';
 
@@ -80,8 +80,8 @@ jest.mock('../useComparisonStats', () => ({
     deviationAlerts: [],
     consistencyScore: 95,
     exportData: [],
-    getConsistencyLabel: (score: number) => 'High',
-    getConsistencyColor: (score: number) => 'text-green-600',
+    getConsistencyLabel: (_score: number) => 'High',
+    getConsistencyColor: (_score: number) => 'text-green-600',
   }),
 }));
 

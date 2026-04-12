@@ -7,7 +7,6 @@
  */
 
 import { UnifiedExport, type ExportField } from '@/components/export';
-import { useLocale } from '@/i18n';
 
 import { type QueryResult } from '../constants';
 
@@ -36,8 +35,6 @@ export default function UnifiedExportSection({
   standardDeviation,
   standardDeviationPercent,
 }: UnifiedExportSectionProps) {
-  const locale = useLocale();
-
   // 定义导出字段
   const exportFields: ExportField[] = [
     { key: 'provider', label: 'Oracle', labelZh: '预言机', dataType: 'string', selected: true },

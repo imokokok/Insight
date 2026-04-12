@@ -7,7 +7,7 @@ import HomePage, { generateMetadata } from '../page';
 
 jest.mock('next/dynamic', () => ({
   __esModule: true,
-  default: (importFn: () => Promise<unknown>, options?: { loading?: () => ReactNode }) => {
+  default: (_importFn: () => Promise<unknown>, _options?: { loading?: () => ReactNode }) => {
     const MockComponent = () => <div data-testid="professional-hero">ProfessionalHero</div>;
     MockComponent.displayName = 'DynamicComponent';
     return MockComponent;

@@ -23,7 +23,7 @@ import { SegmentedControl, DropdownSelect } from '@/components/ui';
 import { getPriceOracleProvidersSortedByMarketCap, getOracleConfig } from '@/lib/config/oracles';
 import { type OracleProvider } from '@/types/oracle';
 
-import { timeRanges, tradingPairs, oracleNames, type TimeRange } from '../constants';
+import { timeRanges, oracleNames, type TimeRange } from '../constants';
 import { useCommonSymbols } from '../hooks/useCommonSymbols';
 
 import type { OracleFeature } from '../types/index';

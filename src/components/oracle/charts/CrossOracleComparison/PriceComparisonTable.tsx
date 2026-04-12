@@ -1,5 +1,4 @@
 import { useTranslations } from '@/i18n';
-import { OracleProvider } from '@/types/oracle';
 
 import {
   type PriceComparisonData,

@@ -69,7 +69,7 @@ export function QueryResults({
   priceRange,
   standardDeviation,
   standardDeviationPercent,
-  avgChange24hPercent,
+  avgChange24hPercent: _avgChange24hPercent,
   chartData,
   queryDuration,
   queryProgress,

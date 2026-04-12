@@ -4,7 +4,6 @@ import {
   Search,
   GitCompare,
   Link2,
-  Zap,
   Settings,
   Heart,
   Bell,

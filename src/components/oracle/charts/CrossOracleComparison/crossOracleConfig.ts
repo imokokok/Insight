@@ -1,5 +1,4 @@
 import { chartColors } from '@/lib/config/colors';
-import { OracleClientFactory } from '@/lib/oracles';
 import { type PriceHistoryPoint } from '@/lib/oracles/oracleDataUtils';
 import { type CalculatedPerformanceMetrics } from '@/lib/oracles/performanceMetricsCalculator';
 import { OracleProvider } from '@/types/oracle';

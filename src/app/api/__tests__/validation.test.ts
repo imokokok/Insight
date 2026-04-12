@@ -1,4 +1,4 @@
-import { type NextRequest, NextResponse } from 'next/server';
+import { type NextRequest } from 'next/server';
 
 import {
   createValidationMiddleware,
@@ -8,11 +8,7 @@ import {
   validate,
   validateField,
 } from '@/lib/api/middleware/validationMiddleware';
-import {
-  validateObject,
-  type ObjectSchema,
-  type ValidationResult,
-} from '@/lib/api/validation/schemas';
+import { validateObject, type ObjectSchema } from '@/lib/api/validation/schemas';
 import {
   isString,
   isNumber,
@@ -26,12 +22,8 @@ import {
   max,
   pattern,
   oneOf,
-  required,
-  isBoolean,
   isArray,
   isObject,
-  isPositive,
-  isNonNegative,
   chain,
   optional,
 } from '@/lib/api/validation/validators';

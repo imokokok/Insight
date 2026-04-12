@@ -1,10 +1,6 @@
-import { createLogger } from '@/lib/utils/logger';
-
-import { withOracleRetry, ORACLE_RETRY_PRESETS } from './utils/retry';
+import { withOracleRetry } from './utils/retry';
 
 import type { RetryConfig } from './diaTypes';
-
-const logger = createLogger('DIADataService');
 
 export const DIA_API_BASE_URL = process.env.DIA_API_URL || 'https://api.diadata.org/v1';
 

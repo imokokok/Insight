@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 
 import { type OracleProvider, type PriceData } from '@/types/oracle';
 
@@ -24,13 +24,13 @@ jest.mock('../../constants', () => ({
     pyth: 'Pyth',
   },
   getDeviationBgClass: (deviation: number) => (deviation > 5 ? 'bg-red-100' : 'bg-green-100'),
-  getFreshnessInfo: (seconds: number) => ({
+  getFreshnessInfo: (_seconds: number) => ({
     label: 'Fresh',
     color: 'green',
     text: 'Fresh',
-    seconds,
+    seconds: _seconds,
   }),
-  getFreshnessDotColor: (seconds: number) => 'green',
+  getFreshnessDotColor: (_seconds: number) => 'green',
   calculateZScore: (price: number, avg: number, std: number) => (std > 0 ? (price - avg) / std : 0),
   isOutlier: (zScore: number) => Math.abs(zScore) > 2,
   ANOMALY_THRESHOLD: 0.05,

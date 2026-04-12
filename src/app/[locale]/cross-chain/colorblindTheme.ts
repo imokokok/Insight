@@ -3,7 +3,7 @@
  * 使用蓝-黄配色替代传统的绿-红配色，适合红绿色盲用户
  */
 
-import { baseColors, accessibleColors } from '@/lib/config/colors';
+import { accessibleColors } from '@/lib/config/colors';
 
 /**
  * 获取色盲友好模式的热力图颜色

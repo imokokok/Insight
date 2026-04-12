@@ -83,8 +83,8 @@ export function ChartsTab({
   lineChartData,
   priceStats,
   selectedOracles,
-  priceHistory,
-  priceData,
+  priceHistory: _priceHistory,
+  priceData: _priceData,
   performanceData = defaultPerformanceData,
 }: ChartsTabProps) {
   const t = useTranslations();

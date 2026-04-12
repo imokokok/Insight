@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+
 
 import { GET, getServerConfig } from '../route';
 
