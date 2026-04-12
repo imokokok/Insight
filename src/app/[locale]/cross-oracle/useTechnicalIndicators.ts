@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 
+import { getProviderDefaults } from '@/lib/oracles/performanceMetricsConfig';
 import { type OracleProvider, type PriceData } from '@/types/oracle';
 
 import type {
@@ -28,15 +29,18 @@ export function useTechnicalIndicators(
   }, [historicalData, selectedOracles]);
 
   const gasFeeData = useMemo(() => {
-    return selectedOracles.map((oracle, index) => ({
-      oracle,
-      chain: 'Ethereum',
-      // Deterministic mock values based on index
-      updateCost: 45000 + ((index * 123) % 20000),
-      updateFrequency: 300 + ((index * 456) % 600),
-      avgGasPrice: 20 + ((index * 789) % 30),
-      lastUpdate: BASE_TIMESTAMP - ((index * 111) % 3600000),
-    }));
+    return selectedOracles.map((oracle, index) => {
+      const providerDefaults = getProviderDefaults(oracle);
+      return {
+        oracle,
+        chain: 'Ethereum',
+        // 使用配置中的真实更新频率
+        updateCost: 45000 + ((index * 123) % 20000), // Gas 费用需要链上数据，暂用估算值
+        updateFrequency: providerDefaults.updateFrequency,
+        avgGasPrice: 20 + ((index * 789) % 30), // Gas 价格需要链上数据，暂用估算值
+        lastUpdate: BASE_TIMESTAMP - ((index * 111) % 3600000),
+      };
+    });
   }, [selectedOracles]);
 
   const atrData = useMemo(() => {
@@ -70,6 +74,7 @@ export function useTechnicalIndicators(
     return selectedOracles.map((oracle) => {
       const history = historicalData[oracle] || [];
       const data: QualityTrendDataPoint[] = [];
+      const providerDefaults = getProviderDefaults(oracle);
 
       for (let i = 0; i < history.length; i++) {
         const point = history[i];
@@ -84,13 +89,13 @@ export function useTechnicalIndicators(
 
         data.push({
           timestamp: point.timestamp,
-          // Deterministic mock values based on index
-          updateLatency: ((i * 73) % 500) + 100,
+          // 使用配置中的真实响应时间
+          updateLatency: providerDefaults.responseTime,
           deviationFromMedian: Math.abs((point.price - median) / median),
           isOutlier: Math.abs((point.price - median) / median) > 0.005,
-          // Deterministic mock values based on index
-          isStale: (i * 31) % 100 > 95,
-          heartbeatCompliance: 0.95 + ((i * 17) % 100) * 0.0005,
+          // 基于数据新鲜度计算
+          isStale: Date.now() - point.timestamp > 60000, // 超过1分钟视为陈旧
+          heartbeatCompliance: providerDefaults.reliability / 100,
         });
       }
 

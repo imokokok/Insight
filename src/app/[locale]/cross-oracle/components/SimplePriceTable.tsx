@@ -17,9 +17,11 @@ import {
   Database,
   Wifi,
   ArrowUpDown,
+  HelpCircle,
 } from 'lucide-react';
 
 import { chartColors } from '@/lib/config/colors';
+import { getProviderDefaults } from '@/lib/oracles/performanceMetricsConfig';
 import { type OracleProvider, type PriceData } from '@/types/oracle';
 
 import { oracleNames, ANOMALY_THRESHOLD } from '../constants';
@@ -209,13 +211,26 @@ function SimplePriceTableComponent({
       if (absDeviation >= 1) status = 'error';
       else if (absDeviation >= 0.5) status = 'warning';
 
-      // 模拟额外字段（实际应从API获取）
-      /* eslint-disable react-hooks/purity */
-      const confidence = data.confidence || Math.floor(70 + Math.random() * 25);
-      const latency = Math.floor(100 + Math.random() * 500);
-      const dataSources = Math.floor(3 + Math.random() * 8);
-      const updateTime = data.timestamp || Date.now() - Math.floor(Math.random() * 300000);
-      /* eslint-enable react-hooks/purity */
+      // 处理置信度 - 统一转换为 0-100 格式
+      const confidence = (() => {
+        if (data.confidence === undefined || data.confidence === null) {
+          // 使用配置的可靠性作为 fallback，而非随机数
+          const providerDefaults = getProviderDefaults(data.provider);
+          return Math.round(providerDefaults.reliability);
+        }
+        // 统一转换为 0-100 格式（如果是 0-1 的小数则乘以 100）
+        if (data.confidence <= 1) {
+          return Math.round(data.confidence * 100);
+        }
+        return Math.min(100, Math.max(0, data.confidence));
+      })();
+
+      // 从配置中获取真实的延迟和数据源数量
+      const providerDefaults = getProviderDefaults(data.provider);
+      const latency = providerDefaults.responseTime;
+      const dataSources = providerDefaults.dataSources;
+      // 使用数据时间戳或当前时间，不使用随机偏移
+      const updateTime = data.timestamp || Date.now();
 
       return {
         provider: data.provider,
@@ -367,10 +382,14 @@ function SimplePriceTableComponent({
               <th
                 className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                 onClick={() => handleSort('latency')}
+                title={
+                  t('crossOracle.latencyTooltip') || 'Estimated latency based on historical data'
+                }
               >
                 <div className="flex items-center justify-center gap-1">
                   <Wifi className="w-3 h-3" />
                   {t('crossOracle.latency') || 'Latency'}
+                  <HelpCircle className="w-3 h-3 text-gray-400" />
                   <SortIcon
                     column="latency"
                     sortColumn={sortColumn}
@@ -380,10 +399,17 @@ function SimplePriceTableComponent({
               </th>
 
               {/* 数据源 */}
-              <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              <th
+                className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider"
+                title={
+                  t('crossOracle.dataSourcesTooltip') ||
+                  'Estimated data sources based on official documentation'
+                }
+              >
                 <div className="flex items-center justify-center gap-1">
                   <Database className="w-3 h-3" />
                   {t('crossOracle.dataSources.title') || 'Sources'}
+                  <HelpCircle className="w-3 h-3 text-gray-400" />
                 </div>
               </th>
 
@@ -478,6 +504,10 @@ function SimplePriceTableComponent({
                           ? 'text-yellow-600'
                           : 'text-orange-600'
                     }`}
+                    title={
+                      t('crossOracle.latencyTooltip') ||
+                      'Estimated latency based on historical data'
+                    }
                   >
                     {formatLatency(row.latency)}
                   </span>
@@ -485,7 +515,15 @@ function SimplePriceTableComponent({
 
                 {/* 数据源数量 */}
                 <td className="px-4 py-3 whitespace-nowrap text-center">
-                  <span className="text-xs text-gray-600">{row.dataSources}</span>
+                  <span
+                    className="text-xs text-gray-600"
+                    title={
+                      t('crossOracle.dataSourcesTooltip') ||
+                      'Estimated data sources based on official documentation'
+                    }
+                  >
+                    {row.dataSources}
+                  </span>
                 </td>
 
                 {/* 更新时间 */}

@@ -1,8 +1,9 @@
 'use client';
 
 /**
- * @fileoverview 市场深度模拟图组件
- * @description 基于多预言机价格模拟买卖盘深度
+ * @fileoverview 预言机共识深度图组件
+ * @description 基于多预言机价格分布展示共识强度（非真实市场深度）
+ * 价格点附近预言机越多，表示该价格点的共识越强
  */
 
 import { memo, useMemo } from 'react';
