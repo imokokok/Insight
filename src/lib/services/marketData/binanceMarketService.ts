@@ -120,7 +120,7 @@ const BINANCE_SYMBOLS: Record<string, string> = {
   REDSTONE: 'REDUSDT',
   WIN: 'WINUSDT',
   USDC: 'USDCUSDT',
-  USDT: 'USDT',
+  USDT: 'USDTUSDC',
   DAI: 'DAIUSDT',
   MATIC: 'MATICUSDT',
   AVAX: 'AVAXUSDT',
@@ -239,6 +239,53 @@ const BINANCE_SYMBOLS: Record<string, string> = {
   VAI: 'VAIUSDT',
   UST: 'USTUSDT',
   USDP: 'USDPUSDT',
+  STETH: 'STETHUSDT',
+  WBTC: 'WBTCUSDT',
+  WETH: 'ETHUSDT',
+  RETH: 'RETHUSDT',
+  CBETH: 'CBETHUSDT',
+  WSTETH: 'WSTETHUSDT',
+  FRXETH: 'FRXETHUSDT',
+  WEETH: 'WEETHUSDT',
+  EZETH: 'EZETHUSDT',
+  INJ: 'INJUSDT',
+  SUI: 'SUIUSDT',
+  SEI: 'SEIUSDT',
+  APT: 'APTUSDT',
+  NEAR: 'NEARUSDT',
+  FXS: 'FXSUSDT',
+  RPL: 'RPLUSDT',
+  ENS: 'ENSUSDT',
+  BLUR: 'BLURUSDT',
+  APE: 'APEUSDT',
+  AXS: 'AXSUSDT',
+  GALA: 'GALAUSDT',
+  IMX: 'IMXUSDT',
+  RNDR: 'RNDRUSDT',
+  RUNE: 'RUNEUSDT',
+  CAKE: 'CAKEUSDT',
+  FRAX: 'FRAXUSDT',
+  LUSD: 'LUSDUSDT',
+  BUSD: 'BUSDUSDT',
+  PEPE: 'PEPEUSDT',
+  BONK: 'BONKUSDT',
+  WIF: 'WIFUSDT',
+  MEME: 'MEMEUSDT',
+  TIA: 'TIAUSDT',
+  TON: 'TONUSDT',
+  MNT: 'MNTUSDT',
+  CVX: 'CVXUSDT',
+  GMX: 'GMXUSDT',
+  DYDX: 'DYDXUSDT',
+  LDO: 'LDOUSDT',
+  '1INCH': '1INCHUSDT',
+  FIL: 'FILUSDT',
+  JST: 'JSTUSDT',
+  SUN: 'SUNUSDT',
+  BTT: 'BTTUSDT',
+  NFT: 'NFTUSDT',
+  USDD: 'USDDUSDT',
+  USDJ: 'USDDUSDT',
 };
 
 // 代币名称映射
@@ -373,7 +420,43 @@ const TOKEN_NAMES: Record<string, string> = {
 
 export async function getTokenMarketData(symbol: string): Promise<TokenMarketData | null> {
   try {
-    const binanceSymbol = BINANCE_SYMBOLS[symbol.toUpperCase()];
+    const upperSymbol = symbol.toUpperCase();
+
+    const stablecoins = [
+      'USDT',
+      'USDC',
+      'DAI',
+      'FRAX',
+      'TUSD',
+      'BUSD',
+      'LUSD',
+      'USDD',
+      'USDJ',
+      'USDP',
+    ];
+    if (stablecoins.includes(upperSymbol)) {
+      return {
+        symbol: upperSymbol,
+        name: TOKEN_NAMES[upperSymbol] || upperSymbol,
+        currentPrice: 1.0,
+        marketCap: 0,
+        marketCapRank: 0,
+        totalVolume24h: 0,
+        high24h: 1.0,
+        low24h: 1.0,
+        priceChange24h: 0,
+        priceChangePercentage24h: 0,
+        circulatingSupply: 0,
+        totalSupply: 0,
+        ath: 1.0,
+        athChangePercentage: 0,
+        atl: 1.0,
+        atlChangePercentage: 0,
+        lastUpdated: new Date().toISOString(),
+      };
+    }
+
+    const binanceSymbol = BINANCE_SYMBOLS[upperSymbol];
     if (!binanceSymbol) {
       logger.warn(`Unknown symbol: ${symbol}`);
       return null;
@@ -567,7 +650,32 @@ export async function getHistoricalPricesByHours(
   hours: number = 24
 ): Promise<HistoricalPricePoint[]> {
   try {
-    const binanceSymbol = BINANCE_SYMBOLS[symbol.toUpperCase()];
+    const upperSymbol = symbol.toUpperCase();
+
+    const stablecoins = [
+      'USDT',
+      'USDC',
+      'DAI',
+      'FRAX',
+      'TUSD',
+      'BUSD',
+      'LUSD',
+      'USDD',
+      'USDJ',
+      'USDP',
+    ];
+    if (stablecoins.includes(upperSymbol)) {
+      const now = Date.now();
+      const points = Math.min(hours, 168);
+      const intervalMs = (hours * 60 * 60 * 1000) / points;
+      return Array.from({ length: points }, (_, i) => ({
+        timestamp: now - (points - 1 - i) * intervalMs,
+        price: 1.0,
+        volume: 0,
+      }));
+    }
+
+    const binanceSymbol = BINANCE_SYMBOLS[upperSymbol];
     if (!binanceSymbol) {
       logger.warn(`Unknown symbol: ${symbol}`);
       return [];

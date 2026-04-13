@@ -181,8 +181,15 @@ export function PriceChart({
   // 空状态
   if (enhancedChartData.length === 0) {
     return (
-      <div className="h-[300px]">
-        <ChartSkeleton height={300} variant="price" />
+      <div className="h-[300px] flex flex-col items-center justify-center text-gray-400">
+        <TrendingUp className="w-8 h-8 mb-2 opacity-50" />
+        <p className="text-sm">
+          {t('priceQuery.noHistoricalData') || 'No historical data available for this trading pair'}
+        </p>
+        <p className="text-xs mt-1 text-gray-500">
+          {t('priceQuery.noHistoricalDataHint') ||
+            'Historical data source may not support this token'}
+        </p>
       </div>
     );
   }

@@ -2,7 +2,6 @@
 // Ethereum 主网支持的交易对（21个）
 // Arbitrum 支持的交易对（43个，包含 Ethereum 的 21 个 + 22 个额外交易对）
 export const chainlinkSymbols = [
-  // Ethereum Mainnet + Arbitrum (21个)
   'BTC',
   'ETH',
   'LINK',
@@ -24,7 +23,6 @@ export const chainlinkSymbols = [
   'FRAX',
   'WBTC',
   'STETH',
-  // Arbitrum Only (22个)
   'SHIB',
   'UNI',
   'NEAR',
@@ -51,6 +49,85 @@ export const chainlinkSymbols = [
   'CAKE',
   'BONK',
 ] as const;
+
+export const CHAINLINK_AVAILABLE_PAIRS: Record<string, string[]> = {
+  ethereum: [
+    'BTC',
+    'ETH',
+    'LINK',
+    'BNB',
+    'SOL',
+    'DOGE',
+    'MATIC',
+    'AVAX',
+    'USDT',
+    'USDC',
+    'DAI',
+    'AAVE',
+    'MKR',
+    'COMP',
+    'APE',
+    'LDO',
+    'YFI',
+    '1INCH',
+    'FRAX',
+    'WBTC',
+    'STETH',
+  ],
+  arbitrum: [
+    'BTC',
+    'ETH',
+    'LINK',
+    'BNB',
+    'SOL',
+    'DOGE',
+    'MATIC',
+    'AVAX',
+    'USDT',
+    'USDC',
+    'DAI',
+    'AAVE',
+    'MKR',
+    'COMP',
+    'APE',
+    'LDO',
+    'YFI',
+    '1INCH',
+    'FRAX',
+    'WBTC',
+    'STETH',
+    'SHIB',
+    'UNI',
+    'NEAR',
+    'APT',
+    'ARB',
+    'OP',
+    'SNX',
+    'CRV',
+    'SUSHI',
+    'GMX',
+    'GRT',
+    'AXS',
+    'INJ',
+    'SUI',
+    'SEI',
+    'TIA',
+    'TON',
+    'PEPE',
+    'WIF',
+    'LUSD',
+    'MNT',
+    'RPL',
+    'CVX',
+    'CAKE',
+    'BONK',
+  ],
+  polygon: ['BTC', 'ETH', 'LINK', 'MATIC', 'USDT', 'USDC', 'DAI'],
+  base: ['BTC', 'ETH', 'LINK', 'USDT', 'USDC', 'DAI'],
+  avalanche: ['BTC', 'ETH', 'LINK', 'AVAX', 'USDT', 'USDC', 'DAI'],
+  'bnb-chain': ['BTC', 'ETH', 'LINK', 'BNB', 'USDT', 'USDC', 'DAI'],
+  optimism: ['BTC', 'ETH', 'LINK', 'OP', 'USDT', 'USDC', 'DAI'],
+};
 
 // RedStone 支持的币种（基于官方文档，支持942种代币）
 // RedStone 专注于 LST、LRT、yield-bearing assets
@@ -217,23 +294,16 @@ export const diaSymbols = [
 
 // API3 支持的币种（基于官方文档和实际测试）
 export const api3Symbols = [
-  // Major Cryptocurrencies
   'BTC',
   'ETH',
   'BNB',
-  'SOL',
   'AVAX',
   'MATIC',
   'LINK',
-  'ATOM',
-  'DOT',
   'UNI',
   'ARB',
   'OP',
   'FTM',
-  'NEAR',
-  'APT',
-  // DeFi Tokens
   'AAVE',
   'SNX',
   'CRV',
@@ -246,23 +316,15 @@ export const api3Symbols = [
   'LDO',
   'GMX',
   'DYDX',
-  'FXS',
-  // Stablecoins
   'USDC',
   'USDT',
   'DAI',
   'FRAX',
-  'BUSD',
-  'TUSD',
-  // Wrapped Assets
   'WBTC',
   'WETH',
   'STETH',
   'RETH',
   'CBETH',
-  // Layer 2 Tokens
-  'MNT',
-  'BLAST',
 ] as const;
 
 // API3 可用的链-交易对映射（基于实际测试结果和官方文档）
@@ -378,7 +440,6 @@ export const API3_AVAILABLE_PAIRS: Record<string, string[]> = {
 // Pyth 支持的币种（基于官方文档，支持400+价格源）
 // Pyth 覆盖加密货币、外汇、大宗商品、股票、ETF
 export const pythSymbols = [
-  // Major Cryptocurrencies
   'BTC',
   'ETH',
   'SOL',
@@ -405,12 +466,9 @@ export const pythSymbols = [
   'INJ',
   'SUI',
   'SEI',
-  'FTM',
-  // DeFi Tokens
   'AAVE',
   'SNX',
   'CRV',
-  'MKR',
   'COMP',
   'YFI',
   'SUSHI',
@@ -419,7 +477,6 @@ export const pythSymbols = [
   'LDO',
   'GMX',
   'DYDX',
-  'FXS',
   'RPL',
   'ENS',
   'GRT',
@@ -430,31 +487,35 @@ export const pythSymbols = [
   'AXS',
   'GALA',
   'IMX',
-  'RNDR',
   'THETA',
   'KAVA',
   'RUNE',
   'CAKE',
-  // Stablecoins
+  'CVX',
+  'SHIB',
   'USDC',
   'USDT',
   'DAI',
   'FRAX',
-  'BUSD',
+  'LUSD',
   'TUSD',
-  // Wrapped Assets
   'WBTC',
   'WETH',
   'STETH',
   'RETH',
   'CBETH',
-  // Pyth Native
+  'WSTETH',
+  'FRXETH',
+  'WEETH',
+  'EZETH',
   'PYTH',
-  // Others
   'PEPE',
   'BONK',
   'WIF',
   'MEME',
+  'TIA',
+  'TON',
+  'MNT',
 ] as const;
 
 // Pyth 可用的链-交易对映射
@@ -477,32 +538,32 @@ export const PYTH_AVAILABLE_PAIRS: Record<string, string[]> = {
   blast: [...pythSymbols],
 };
 
-// WINkLink 支持的币种（主要支持TRON生态系统）
+// WINkLink 支持的币种（主要支持TRON生态系统，仅包含有真实合约地址的交易对）
 export const winklinkSymbols = [
-  // Major Cryptocurrencies
   'BTC',
   'ETH',
   'TRX',
-  'BNB',
-  'SOL',
-  'MATIC',
   'LTC',
-  // TRON Ecosystem
   'WIN',
   'BTT',
   'JST',
   'SUN',
   'USDD',
   'NFT',
-  'APENFT',
-  // Stablecoins
   'USDT',
   'USDC',
-  'DAI',
-  // Others
-  'HT',
-  'OKB',
+  'TUSD',
+  'USDJ',
+  'WBTC',
 ] as const;
+
+export const WINKLINK_SYMBOL_ALIASES: Record<string, string> = {
+  APENFT: 'NFT',
+};
+
+export const WINKLINK_AVAILABLE_PAIRS: Record<string, string[]> = {
+  tron: [...winklinkSymbols],
+};
 
 // 统一映射对象
 export const oracleSupportedSymbols = {

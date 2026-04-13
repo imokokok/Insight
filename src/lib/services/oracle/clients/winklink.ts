@@ -1,6 +1,10 @@
 import { BaseOracleClient } from '@/lib/oracles/base';
 import type { OracleClientConfig } from '@/lib/oracles/base';
-import { winklinkSymbols } from '@/lib/oracles/supportedSymbols';
+import {
+  winklinkSymbols,
+  WINKLINK_SYMBOL_ALIASES,
+  WINKLINK_AVAILABLE_PAIRS,
+} from '@/lib/oracles/supportedSymbols';
 import { getWINkLinkRealDataService } from '@/lib/oracles/winklinkRealDataService';
 import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
 import { createLogger } from '@/lib/utils/logger';
@@ -27,9 +31,9 @@ export class WINkLinkClient extends BaseOracleClient {
   async getPrice(symbol: string, chain?: Blockchain): Promise<PriceData> {
     try {
       const upperSymbol = symbol.toUpperCase();
+      const resolvedSymbol = WINKLINK_SYMBOL_ALIASES[upperSymbol] || upperSymbol;
 
-      // 当查询自己预言机的代币 (WIN) 时，直接使用 Binance API
-      if (upperSymbol === 'WIN') {
+      if (resolvedSymbol === 'WIN') {
         const marketData = await binanceMarketService.getTokenMarketData(symbol);
         if (marketData) {
           return {
@@ -56,7 +60,7 @@ export class WINkLinkClient extends BaseOracleClient {
 
       // 必须从 WINkLink 合约获取实时数据，不允许降级到数据库
       const realDataService = getWINkLinkRealDataService();
-      const realPrice = await realDataService.getPriceFromContract(symbol);
+      const realPrice = await realDataService.getPriceFromContract(resolvedSymbol);
 
       if (realPrice) {
         return realPrice;
@@ -137,14 +141,18 @@ export class WINkLinkClient extends BaseOracleClient {
   }
 
   isSymbolSupported(symbol: string, chain?: Blockchain): boolean {
+    const upperSymbol = symbol.toUpperCase();
+    const resolvedSymbol = WINKLINK_SYMBOL_ALIASES[upperSymbol] || upperSymbol;
     const isSymbolInList = winklinkSymbols.includes(
-      symbol.toUpperCase() as (typeof winklinkSymbols)[number]
+      resolvedSymbol as (typeof winklinkSymbols)[number]
     );
     if (!isSymbolInList) {
       return false;
     }
     if (chain !== undefined) {
-      return this.supportedChains.includes(chain);
+      const chainKey = chain.toLowerCase();
+      const chainSymbols = WINKLINK_AVAILABLE_PAIRS[chainKey];
+      return chainSymbols ? chainSymbols.includes(resolvedSymbol) : false;
     }
     return true;
   }

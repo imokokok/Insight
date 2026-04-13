@@ -145,6 +145,13 @@ export class ChainlinkClient extends BaseOracleClient {
   private convertToPriceData(chainlinkData: ChainlinkPriceData, chain?: Blockchain): PriceData {
     const confidence = this.calculateConfidence(chain);
 
+    if (!chainlinkData.price || chainlinkData.price <= 0) {
+      throw this.createError(
+        `Invalid price (0 or negative) for ${chainlinkData.symbol} on ${chain || 'unknown chain'}`,
+        'REAL_DATA_NOT_AVAILABLE'
+      );
+    }
+
     return {
       provider: this.name,
       chain: chain || Blockchain.ETHEREUM,
@@ -177,6 +184,12 @@ export class ChainlinkClient extends BaseOracleClient {
 
       if (this.useRealData && this.isPriceFeedSupported(symbol, chain)) {
         const realData = await chainlinkOnChainService.getPrice(symbol, chainId);
+        if (!realData) {
+          throw this.createError(
+            `Invalid price data from Chainlink for ${symbol} on ${chain}. The price feed may be stale or return zero.`,
+            'REAL_DATA_NOT_AVAILABLE'
+          );
+        }
         return this.convertToPriceData(realData, chain);
       }
 
