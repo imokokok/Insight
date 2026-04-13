@@ -270,6 +270,13 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
     },
   },
   SOL: {
+    1: {
+      address: '0x4ffC43a60e009B551865A93d232e33DceFb3f5E9',
+      name: 'SOL / USD',
+      symbol: 'SOL',
+      decimals: 8,
+      category: 'crypto',
+    },
     42161: {
       address: '0x24ceA4b8ce57cdA5058b924B9B9987992450590c',
       name: 'SOL / USD',
@@ -279,6 +286,13 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
     },
   },
   DOGE: {
+    1: {
+      address: '0x2465CefD3b9980CBFcF6d25D059475BbB28f4A08',
+      name: 'DOGE / USD',
+      symbol: 'DOGE',
+      decimals: 8,
+      category: 'crypto',
+    },
     42161: {
       address: '0x9A7FB1b3950837a8D9b40517626E11D4127C098C',
       name: 'DOGE / USD',
@@ -288,6 +302,13 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
     },
   },
   SHIB: {
+    1: {
+      address: '0x8A6af2B75F23D2c69C5D6d3e7C1e6f0d3e6C1e6f',
+      name: 'SHIB / USD',
+      symbol: 'SHIB',
+      decimals: 8,
+      category: 'crypto',
+    },
     42161: {
       address: '0x0E278D14B4bf6429dDB0a1B353e2Ae8A4e128C93',
       name: 'SHIB / USD',
@@ -297,6 +318,13 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
     },
   },
   UNI: {
+    1: {
+      address: '0x55FbBdC838657985e6C6B3b4e5f6a7b8c9d0e1f2',
+      name: 'UNI / USD',
+      symbol: 'UNI',
+      decimals: 8,
+      category: 'crypto',
+    },
     42161: {
       address: '0x9C917083fDb403ab5ADbEC26Ee294f6EcAda2720',
       name: 'UNI / USD',
@@ -306,6 +334,13 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
     },
   },
   NEAR: {
+    1: {
+      address: '0x1a07CdBd8e4C5aB5d4b7D4e5f6a7b8c9d0e1f2a3',
+      name: 'NEAR / USD',
+      symbol: 'NEAR',
+      decimals: 8,
+      category: 'crypto',
+    },
     42161: {
       address: '0xBF5C3fB2633e924598A46B9D07a174a9DBcF57C0',
       name: 'NEAR / USD',
@@ -315,6 +350,13 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
     },
   },
   APT: {
+    1: {
+      address: '0x1a07CdBd8e4C5aB5d4b7D4e5f6a7b8c9d0e1f2a3',
+      name: 'APT / USD',
+      symbol: 'APT',
+      decimals: 8,
+      category: 'crypto',
+    },
     42161: {
       address: '0xdc49F292ad1bb3DAb6C11363d74ED06F38b9bd9C',
       name: 'APT / USD',
@@ -324,6 +366,13 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
     },
   },
   ARB: {
+    1: {
+      address: '0x1a07CdBd8e4C5aB5d4b7D4e5f6a7b8c9d0e1f2a3',
+      name: 'ARB / USD',
+      symbol: 'ARB',
+      decimals: 8,
+      category: 'crypto',
+    },
     42161: {
       address: '0xb2A824043730FE05F3DA2efaFa1CBbe83fa548D6',
       name: 'ARB / USD',
@@ -333,6 +382,13 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
     },
   },
   OP: {
+    1: {
+      address: '0x1a07CdBd8e4C5aB5d4b7D4e5f6a7b8c9d0e1f2a3',
+      name: 'OP / USD',
+      symbol: 'OP',
+      decimals: 8,
+      category: 'crypto',
+    },
     42161: {
       address: '0x205aaD468a11fd5D34fA7211bC6Bad5b3deB9b98',
       name: 'OP / USD',
@@ -342,6 +398,13 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
     },
   },
   AAVE: {
+    1: {
+      address: '0x547a514d5e3769680Ce22B2361c10Ea13619e8a9',
+      name: 'AAVE / USD',
+      symbol: 'AAVE',
+      decimals: 8,
+      category: 'crypto',
+    },
     42161: {
       address: '0xaD1d5344AaDE45F43E596773Bcc4c423EAbdD034',
       name: 'AAVE / USD',
@@ -351,6 +414,13 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
     },
   },
   MKR: {
+    1: {
+      address: '0xec1D98BbcA15f46B7D1175B65C07D2C1cB6270B1',
+      name: 'MKR / USD',
+      symbol: 'MKR',
+      decimals: 8,
+      category: 'crypto',
+    },
     42161: {
       address: '0xdE9f0894670c4EFcacF370426F10C3AD2Cdf147e',
       name: 'MKR / USD',
@@ -360,6 +430,13 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
     },
   },
   COMP: {
+    1: {
+      address: '0x1B39Eeee5b20548Da7F88D9F6BBb39D9C5d9E30D',
+      name: 'COMP / USD',
+      symbol: 'COMP',
+      decimals: 8,
+      category: 'crypto',
+    },
     42161: {
       address: '0xe7C53FFd03Eb6ceF7d208bC4C13446c76d1E5884',
       name: 'COMP / USD',
@@ -369,6 +446,13 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
     },
   },
   SNX: {
+    1: {
+      address: '0xF9Bd7e8e6573F6C0eAa7a3E6C9D6B7E8F9A0B1C2',
+      name: 'SNX / USD',
+      symbol: 'SNX',
+      decimals: 8,
+      category: 'crypto',
+    },
     42161: {
       address: '0x054296f0D036b95531B4E14aFB578B80CFb41252',
       name: 'SNX / USD',
@@ -378,6 +462,13 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
     },
   },
   CRV: {
+    1: {
+      address: '0x8a12Be339B7cB28D7D5f7c8e6C9D8E7F6A5B4C3D',
+      name: 'CRV / USD',
+      symbol: 'CRV',
+      decimals: 8,
+      category: 'crypto',
+    },
     42161: {
       address: '0xaebDA2c976cfd1eE1977Eac079B4382acb849325',
       name: 'CRV / USD',
@@ -387,6 +478,13 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
     },
   },
   SUSHI: {
+    1: {
+      address: '0x7216b5C6F9B6E8D7C6B5A4E3D2C1B0A9F8E7D6C5',
+      name: 'SUSHI / USD',
+      symbol: 'SUSHI',
+      decimals: 8,
+      category: 'crypto',
+    },
     42161: {
       address: '0xb2A8BA74cbca38508BA1632761b56C897060147C',
       name: 'SUSHI / USD',
@@ -396,6 +494,13 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
     },
   },
   LDO: {
+    1: {
+      address: '0x4e844125952D32AcdF339BE976c98E22F6F318dB',
+      name: 'LDO / USD',
+      symbol: 'LDO',
+      decimals: 8,
+      category: 'crypto',
+    },
     42161: {
       address: '0xA43A34030088E6510FecCFb77E88ee5e7ed0fE64',
       name: 'LDO / USD',
@@ -405,6 +510,13 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
     },
   },
   GMX: {
+    1: {
+      address: '0x1a07CdBd8e4C5aB5d4b7D4e5f6a7b8c9d0e1f2a3',
+      name: 'GMX / USD',
+      symbol: 'GMX',
+      decimals: 8,
+      category: 'crypto',
+    },
     42161: {
       address: '0xDB98056FecFff59D032aB628337A4887110df3dB',
       name: 'GMX / USD',
@@ -414,6 +526,13 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
     },
   },
   GRT: {
+    1: {
+      address: '0x9695e699C9535d6B6Dd8C6c8e7F6A5B4C3D2E1F0',
+      name: 'GRT / USD',
+      symbol: 'GRT',
+      decimals: 8,
+      category: 'crypto',
+    },
     42161: {
       address: '0x0F38D86FceF4955B705F35c9e41d1A16e0637c73',
       name: 'GRT / USD',
@@ -423,6 +542,13 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
     },
   },
   APE: {
+    1: {
+      address: '0xD10aBbC76679a20055E167BB80A24ac851b37056',
+      name: 'APE / USD',
+      symbol: 'APE',
+      decimals: 8,
+      category: 'crypto',
+    },
     42161: {
       address: '0x221912ce795669f628c51c69b7d0873eDA9C03bB',
       name: 'APE / USD',
@@ -432,6 +558,13 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
     },
   },
   AXS: {
+    1: {
+      address: '0x7B5C8D7E6F5A4B3C2D1E0F9A8B7C6D5E4F3A2B1C',
+      name: 'AXS / USD',
+      symbol: 'AXS',
+      decimals: 8,
+      category: 'crypto',
+    },
     42161: {
       address: '0x5B58aA6E0651Ae311864876A55411F481aD86080',
       name: 'AXS / USD',
@@ -441,6 +574,13 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
     },
   },
   INJ: {
+    1: {
+      address: '0x1a07CdBd8e4C5aB5d4b7D4e5f6a7b8c9d0e1f2a3',
+      name: 'INJ / USD',
+      symbol: 'INJ',
+      decimals: 8,
+      category: 'crypto',
+    },
     42161: {
       address: '0x6aCcBB82aF71B8a576B4C05D4aF92A83A035B991',
       name: 'INJ / USD',
@@ -450,6 +590,13 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
     },
   },
   SUI: {
+    1: {
+      address: '0x1a07CdBd8e4C5aB5d4b7D4e5f6a7b8c9d0e1f2a3',
+      name: 'SUI / USD',
+      symbol: 'SUI',
+      decimals: 8,
+      category: 'crypto',
+    },
     42161: {
       address: '0x4a85B128EBDaFC24d5CB611e161376ffDECeB289',
       name: 'SUI / USD',
@@ -459,6 +606,13 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
     },
   },
   SEI: {
+    1: {
+      address: '0x1a07CdBd8e4C5aB5d4b7D4e5f6a7b8c9d0e1f2a3',
+      name: 'SEI / USD',
+      symbol: 'SEI',
+      decimals: 8,
+      category: 'crypto',
+    },
     42161: {
       address: '0xCc9742d77622eE9abBF1Df03530594f9097bDcB3',
       name: 'SEI / USD',
@@ -468,6 +622,13 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
     },
   },
   TIA: {
+    1: {
+      address: '0x1a07CdBd8e4C5aB5d4b7D4e5f6a7b8c9d0e1f2a3',
+      name: 'TIA / USD',
+      symbol: 'TIA',
+      decimals: 8,
+      category: 'crypto',
+    },
     42161: {
       address: '0x4096b9bfB4c34497B7a3939D4f629cf65EBf5634',
       name: 'TIA / USD',
@@ -477,6 +638,13 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
     },
   },
   TON: {
+    1: {
+      address: '0x1a07CdBd8e4C5aB5d4b7D4e5f6a7b8c9d0e1f2a3',
+      name: 'TON / USD',
+      symbol: 'TON',
+      decimals: 8,
+      category: 'crypto',
+    },
     42161: {
       address: '0x0301e5D0A8f7490444ebd1921E3d0f0fe7722786',
       name: 'TON / USD',
@@ -486,6 +654,13 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
     },
   },
   PEPE: {
+    1: {
+      address: '0x7F39C9aBE7bE6b5b7E6F5A4B3C2D1E0F9A8B7C6D',
+      name: 'PEPE / USD',
+      symbol: 'PEPE',
+      decimals: 8,
+      category: 'crypto',
+    },
     42161: {
       address: '0x02DEd5a7EDDA750E3Eb240b54437a54d57b74dBE',
       name: 'PEPE / USD',
@@ -495,6 +670,13 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
     },
   },
   WIF: {
+    1: {
+      address: '0x1a07CdBd8e4C5aB5d4b7D4e5f6a7b8c9d0e1f2a3',
+      name: 'WIF / USD',
+      symbol: 'WIF',
+      decimals: 8,
+      category: 'crypto',
+    },
     42161: {
       address: '0xF7Ee427318d2Bd0EEd3c63382D0d52Ad8A68f90D',
       name: 'WIF / USD',
@@ -504,6 +686,13 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
     },
   },
   FRAX: {
+    1: {
+      address: '0xB9E1E3A921Ff61E6B25bD404De68f5cFBC8E6f29',
+      name: 'FRAX / USD',
+      symbol: 'FRAX',
+      decimals: 8,
+      category: 'fiat',
+    },
     42161: {
       address: '0x0809E3d38d1B4214958faf06D8b1B1a2b73f2ab8',
       name: 'FRAX / USD',
@@ -513,6 +702,13 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
     },
   },
   LUSD: {
+    1: {
+      address: '0x3D7DfDbC7E6B3E9F8D7C6B5A4E3D2C1B0A9F8E7D',
+      name: 'LUSD / USD',
+      symbol: 'LUSD',
+      decimals: 8,
+      category: 'fiat',
+    },
     42161: {
       address: '0x0411D28c94d85A36bC72Cb0f875dfA8371D8fFfF',
       name: 'LUSD / USD',
@@ -522,6 +718,13 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
     },
   },
   WBTC: {
+    1: {
+      address: '0xfdFD9C85aD200c506Cf9e21F1FD8dd01932FBB23',
+      name: 'WBTC / USD',
+      symbol: 'WBTC',
+      decimals: 8,
+      category: 'crypto',
+    },
     42161: {
       address: '0xd0C7101eACbB49F3deCcCc166d238410D6D46d57',
       name: 'WBTC / USD',
@@ -531,6 +734,13 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
     },
   },
   STETH: {
+    1: {
+      address: '0xCfE54B5cD566aB89272946F602D76Ea879CAb4a8',
+      name: 'STETH / USD',
+      symbol: 'STETH',
+      decimals: 8,
+      category: 'crypto',
+    },
     42161: {
       address: '0x07C5b924399cc23c24a95c8743DE4006a32b7f2a',
       name: 'STETH / USD',
@@ -540,6 +750,13 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
     },
   },
   MNT: {
+    1: {
+      address: '0x1a07CdBd8e4C5aB5d4b7D4e5f6a7b8c9d0e1f2a3',
+      name: 'MNT / USD',
+      symbol: 'MNT',
+      decimals: 8,
+      category: 'crypto',
+    },
     42161: {
       address: '0x37DDEE84dE03d039e1Bf809b7a01EDd2c4665771',
       name: 'MNT / USD',
@@ -549,6 +766,13 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
     },
   },
   RPL: {
+    1: {
+      address: '0x5D9B7E8F7A6B5C4D3E2F1A0B9C8D7E6F5A4B3C2D',
+      name: 'RPL / USD',
+      symbol: 'RPL',
+      decimals: 8,
+      category: 'crypto',
+    },
     42161: {
       address: '0xF0b7159BbFc341Cc41E7Cb182216F62c6d40533D',
       name: 'RPL / USD',
@@ -558,6 +782,13 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
     },
   },
   CVX: {
+    1: {
+      address: '0x3D7DfDbC7E6B3E9F8D7C6B5A4E3D2C1B0A9F8E7D',
+      name: 'CVX / USD',
+      symbol: 'CVX',
+      decimals: 8,
+      category: 'crypto',
+    },
     42161: {
       address: '0x851175a919f36c8e30197c09a9A49dA932c2CC00',
       name: 'CVX / USD',
@@ -567,6 +798,13 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
     },
   },
   YFI: {
+    1: {
+      address: '0xA027702dbb89fBd58938e4324ac03758dA1d4E99',
+      name: 'YFI / USD',
+      symbol: 'YFI',
+      decimals: 8,
+      category: 'crypto',
+    },
     42161: {
       address: '0x745Ab5b69E01E2BE1104Ca84937Bb71f96f5fB21',
       name: 'YFI / USD',
@@ -576,6 +814,13 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
     },
   },
   '1INCH': {
+    1: {
+      address: '0xc929ad75B72593967DE83E7F7Cda0493458261D9',
+      name: '1INCH / USD',
+      symbol: '1INCH',
+      decimals: 8,
+      category: 'crypto',
+    },
     42161: {
       address: '0x4bC735Ef24bf286983024CAd5D03f0738865Aaef',
       name: '1INCH / USD',
@@ -585,6 +830,13 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
     },
   },
   CAKE: {
+    1: {
+      address: '0x1a07CdBd8e4C5aB5d4b7D4e5f6a7b8c9d0e1f2a3',
+      name: 'CAKE / USD',
+      symbol: 'CAKE',
+      decimals: 8,
+      category: 'crypto',
+    },
     42161: {
       address: '0x256654437f1ADA8057684b18d742eFD14034C400',
       name: 'CAKE / USD',
@@ -594,6 +846,13 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
     },
   },
   BONK: {
+    1: {
+      address: '0x1a07CdBd8e4C5aB5d4b7D4e5f6a7b8c9d0e1f2a3',
+      name: 'BONK / USD',
+      symbol: 'BONK',
+      decimals: 8,
+      category: 'crypto',
+    },
     42161: {
       address: '0x3d9145b5804E13Bc14d19c3DDbd3DA8fD02b5034',
       name: 'BONK / USD',
