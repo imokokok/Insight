@@ -5,7 +5,7 @@ import {
   parsePublishers,
   parsePublisherStatus,
 } from '@/lib/oracles/pyth/pythParser';
-import type { PythPriceRaw, PublisherData } from '@/lib/oracles/pyth/types';
+import type { PythPriceRaw } from '@/lib/oracles/pyth/types';
 import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
 import { PythClient } from '@/lib/services/oracle/clients/pyth';
 import { OracleProvider, Blockchain } from '@/types/oracle';

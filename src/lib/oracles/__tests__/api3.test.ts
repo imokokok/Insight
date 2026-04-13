@@ -3,7 +3,6 @@ import { api3NetworkService } from '@/lib/services/oracle/api3NetworkService';
 import { API3Client } from '@/lib/services/oracle/clients/api3';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 import type {
-  AirnodeNetworkStats,
   DataSourceInfo,
   DAPICoverage,
   FirstPartyOracleData,

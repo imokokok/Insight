@@ -9,7 +9,7 @@ import {
   parseValidators,
 } from '../pythParser';
 
-import type { PythPriceRaw, PublisherData, ValidatorData } from '../types';
+import type { PythPriceRaw } from '../types';
 
 jest.mock('@/lib/utils/logger', () => ({
   createLogger: () => ({

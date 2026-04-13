@@ -1,5 +1,3 @@
-
-
 import { GET, getServerConfig } from '../route';
 
 jest.mock('next/server', () => ({

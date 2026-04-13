@@ -416,7 +416,6 @@ describe('Moving Averages', () => {
       it('should correctly calculate EMA with known values', () => {
         const data = [22.27, 22.19, 22.08, 22.17, 22.18, 22.13, 22.23, 22.43, 22.24, 22.29];
         const result = calculateEMA(data, 10);
-        const multiplier = 2 / (10 + 1);
 
         const expectedFirst = data.slice(0, 10).reduce((a, b) => a + b, 0) / 10;
         expect(result[9]).toBeCloseTo(expectedFirst, 2);

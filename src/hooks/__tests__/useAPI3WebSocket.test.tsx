@@ -1,4 +1,4 @@
-import { renderHook, act, waitFor } from '@testing-library/react';
+import { renderHook, act } from '@testing-library/react';
 
 import { getAPI3WebSocketService, type API3PriceData } from '@/lib/services/api3WebSocket';
 

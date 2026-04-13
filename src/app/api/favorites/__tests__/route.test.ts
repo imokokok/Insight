@@ -116,7 +116,7 @@ describe('/api/favorites', () => {
 
       const request = createMockRequest();
       const response = await GET(request);
-      const data = await response.json();
+      const _data = await response.json();
 
       expect(response.status).toBe(200);
       expect(data.favorites).toEqual(mockFavorites);
@@ -148,7 +148,7 @@ describe('/api/favorites', () => {
         url: 'http://localhost/api/favorites?config_type=invalid_type',
       });
       const response = await GET(request);
-      const data = await response.json();
+      const _data = await response.json();
 
       expect(response.status).toBe(200);
       expect(mockQueries.getFavorites).toHaveBeenCalledWith('user-123');

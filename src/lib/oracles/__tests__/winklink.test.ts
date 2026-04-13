@@ -2,7 +2,6 @@ import { getWINkLinkRealDataService } from '@/lib/oracles/winklinkRealDataServic
 import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
 import { WINkLinkClient } from '@/lib/services/oracle/clients/winklink';
 import { OracleProvider, Blockchain } from '@/types/oracle';
-import type { PriceData } from '@/types/oracle';
 
 jest.mock('@/lib/oracles/winklinkRealDataService');
 jest.mock('@/lib/services/marketData/binanceMarketService');

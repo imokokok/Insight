@@ -69,17 +69,6 @@ export const oracleNames: Record<OracleProvider, string> = {
   [OracleProvider.WINKLINK]: 'WINkLink',
 };
 
-export const priceOracleNames = oracleNames;
-
-// 扩展的预言机名称（包含额外的预言机）
-export const extendedOracleNames: Record<string, string> = {
-  ...oracleNames,
-  chronicle: 'Chronicle',
-  tellor: 'Tellor',
-  band: 'Band Protocol',
-  uma: 'UMA',
-};
-
 export const oracleColors: Record<string, string> = {
   [OracleProvider.CHAINLINK]: '#375bd2',
   [OracleProvider.PYTH]: '#e6c5ff',
@@ -93,37 +82,15 @@ export const oracleColors: Record<string, string> = {
   uma: '#ff4a4a',
 };
 
-export const defaultSelectedOracles: OracleProvider[] = [
-  OracleProvider.CHAINLINK,
-  OracleProvider.PYTH,
-  OracleProvider.API3,
-  OracleProvider.REDSTONE,
-];
-
 // ============================================================================
 // 刷新间隔
 // ============================================================================
 
 export type RefreshInterval = 'off' | '10s' | '30s' | '1m' | '5m';
 
-export const refreshIntervals: { value: RefreshInterval; label: string }[] = [
-  { value: 'off', label: '关闭' },
-  { value: '10s', label: '10秒' },
-  { value: '30s', label: '30秒' },
-  { value: '1m', label: '1分钟' },
-  { value: '5m', label: '5分钟' },
-];
-
 // ============================================================================
 // 阈值配置
 // ============================================================================
-
-export const qualityThresholds = {
-  excellent: 95,
-  good: 85,
-  fair: 70,
-  poor: 50,
-};
 
 export const deviationThresholds = {
   critical: 5,
@@ -132,19 +99,6 @@ export const deviationThresholds = {
 };
 
 export const ANOMALY_THRESHOLD = 2; // Z-score threshold for outliers
-
-// ============================================================================
-// 风险等级
-// ============================================================================
-
-export type RiskLevel = 'low' | 'medium' | 'high' | 'critical';
-
-export const riskLevels: Record<RiskLevel, { label: string; color: string }> = {
-  low: { label: '低风险', color: '#22c55e' },
-  medium: { label: '中风险', color: '#f59e0b' },
-  high: { label: '高风险', color: '#ef4444' },
-  critical: { label: '严重', color: '#7f1d1d' },
-};
 
 // ============================================================================
 // 图表配置
@@ -163,16 +117,6 @@ export const chartConfig = {
 export const cacheConfig = {
   staleTime: 5 * 60 * 1000, // 5分钟
   gcTime: 10 * 60 * 1000, // 10分钟
-};
-
-// ============================================================================
-// API 配置
-// ============================================================================
-
-export const apiConfig = {
-  timeout: 30000,
-  retries: 3,
-  retryDelay: 1000,
 };
 
 // ============================================================================

@@ -5,9 +5,6 @@
  */
 
 import { isChineseLocale } from '@/i18n/routing';
-import { createLogger } from '@/lib/utils/logger';
-
-const logger = createLogger('ExportConfig');
 
 /**
  * 导出格式类型
@@ -614,49 +611,6 @@ export function getFieldLabel(field: ExportField, locale: string = 'en'): string
 }
 
 /**
- * 获取字段组标签
- */
-export function getFieldGroupLabel(group: FieldGroup, locale: string = 'en'): string {
-  return isChineseLocale(locale) ? group.labelZh : group.label;
-}
-
-/**
- * 切换字段选择状态
- */
-export function toggleFieldSelection(
-  fieldGroups: FieldGroup[],
-  groupKey: ExportDataType,
-  fieldKey: string
-): FieldGroup[] {
-  return fieldGroups.map((group) => {
-    if (group.key !== groupKey) return group;
-    return {
-      ...group,
-      fields: group.fields.map((field) =>
-        field.key === fieldKey ? { ...field, selected: !field.selected } : field
-      ),
-    };
-  });
-}
-
-/**
- * 设置字段组全选/全不选
- */
-export function setFieldGroupSelection(
-  fieldGroups: FieldGroup[],
-  groupKey: ExportDataType,
-  selected: boolean
-): FieldGroup[] {
-  return fieldGroups.map((group) => {
-    if (group.key !== groupKey) return group;
-    return {
-      ...group,
-      fields: group.fields.map((field) => ({ ...field, selected })),
-    };
-  });
-}
-
-/**
  * 获取已选字段
  */
 export function getSelectedFields(
@@ -665,45 +619,6 @@ export function getSelectedFields(
 ): ExportField[] {
   const group = fieldGroups.find((g) => g.key === groupKey);
   return group?.fields.filter((f) => f.selected) || [];
-}
-
-/**
- * 验证导出配置
- */
-export function validateExportConfig(config: ExportConfig): { valid: boolean; errors: string[] } {
-  const errors: string[] = [];
-
-  if (!config.name || config.name.trim() === '') {
-    errors.push('Configuration name is required');
-  }
-
-  if (!config.format || !['csv', 'json', 'excel'].includes(config.format)) {
-    errors.push('Invalid export format');
-  }
-
-  if (!config.timeRange) {
-    errors.push('Time range is required');
-  }
-
-  if (
-    config.timeRange === 'custom' &&
-    (!config.customDateRange?.startDate || !config.customDateRange?.endDate)
-  ) {
-    errors.push('Custom date range requires both start and end dates');
-  }
-
-  if (!config.dataTypes || config.dataTypes.length === 0) {
-    errors.push('At least one data type must be selected');
-  }
-
-  const hasSelectedFields = config.fieldGroups.some((group) =>
-    group.fields.some((field) => field.selected)
-  );
-  if (!hasSelectedFields) {
-    errors.push('At least one field must be selected');
-  }
-
-  return { valid: errors.length === 0, errors };
 }
 
 /**
@@ -718,107 +633,4 @@ export function generateExportFileName(config: ExportConfig): string {
   const dataTypes = config.dataTypes.length > 2 ? 'multi' : config.dataTypes.join('-');
   const extension = config.format === 'excel' ? 'xlsx' : config.format;
   return `oracle-export-${dataTypes}-${timestamp}.${extension}`;
-}
-
-/**
- * 从 localStorage 加载导出配置
- */
-export function loadExportConfigsFromStorage(): ExportConfig[] {
-  if (typeof window === 'undefined') return [];
-
-  try {
-    const stored = localStorage.getItem('oracle_export_configs');
-    if (stored) {
-      return JSON.parse(stored);
-    }
-  } catch (error) {
-    logger.error(
-      'Failed to load export configs from storage',
-      error instanceof Error ? error : new Error(String(error))
-    );
-  }
-  return [];
-}
-
-/**
- * 保存导出配置到 localStorage
- */
-export function saveExportConfigsToStorage(configs: ExportConfig[]): void {
-  if (typeof window === 'undefined') return;
-
-  try {
-    localStorage.setItem('oracle_export_configs', JSON.stringify(configs));
-  } catch (error) {
-    logger.error(
-      'Failed to save export configs to storage',
-      error instanceof Error ? error : new Error(String(error))
-    );
-  }
-}
-
-/**
- * 获取时间范围的小时数
- */
-export function getTimeRangeHours(timeRange: ExportTimeRange): number {
-  const hoursMap: Record<ExportTimeRange, number> = {
-    '1H': 1,
-    '24H': 24,
-    '7D': 168,
-    '30D': 720,
-    '90D': 2160,
-    '1Y': 8760,
-    ALL: 0,
-    custom: 720,
-  };
-  return hoursMap[timeRange] || 720;
-}
-
-/**
- * 获取时间范围标签
- */
-export function getTimeRangeLabel(timeRange: ExportTimeRange, locale: string = 'en'): string {
-  const labels: Record<ExportTimeRange, { en: string; zh: string }> = {
-    '1H': { en: '1 Hour', zh: '1小时' },
-    '24H': { en: '24 Hours', zh: '24小时' },
-    '7D': { en: '7 Days', zh: '7天' },
-    '30D': { en: '30 Days', zh: '30天' },
-    '90D': { en: '90 Days', zh: '90天' },
-    '1Y': { en: '1 Year', zh: '1年' },
-    ALL: { en: 'All Time', zh: '全部' },
-    custom: { en: 'Custom Range', zh: '自定义范围' },
-  };
-  return isChineseLocale(locale) ? labels[timeRange].zh : labels[timeRange].en;
-}
-
-/**
- * 获取格式标签
- */
-export function getFormatLabel(format: ExportFormat, locale: string = 'en'): string {
-  const labels: Record<ExportFormat, { en: string; zh: string }> = {
-    csv: { en: 'CSV', zh: 'CSV' },
-    json: { en: 'JSON', zh: 'JSON' },
-    excel: { en: 'Excel', zh: 'Excel' },
-  };
-  return isChineseLocale(locale) ? labels[format].zh : labels[format].en;
-}
-
-/**
- * 获取数据类型标签
- */
-export function getDataTypeLabel(dataType: ExportDataType, locale: string = 'en'): string {
-  const labels: Record<ExportDataType, { en: string; zh: string }> = {
-    oracleMarket: { en: 'Oracle Market', zh: '预言机市场' },
-    assets: { en: 'Assets', zh: '资产' },
-    trendData: { en: 'Trend Data', zh: '趋势数据' },
-    chainBreakdown: { en: 'Chain Breakdown', zh: '链分布' },
-    protocolDetails: { en: 'Protocol Details', zh: '协议详情' },
-    assetCategories: { en: 'Asset Categories', zh: '资产类别' },
-    comparisonData: { en: 'Comparison Data', zh: '对比数据' },
-    benchmarkData: { en: 'Benchmark Data', zh: '基准数据' },
-    correlationData: { en: 'Correlation Data', zh: '相关性数据' },
-    riskMetrics: { en: 'Risk Metrics', zh: '风险指标' },
-    anomalies: { en: 'Anomalies', zh: '异常数据' },
-    all: { en: 'All Data', zh: '全部数据' },
-  };
-  return isChineseLocale(locale) ? labels[dataType].zh : labels[dataType].en;
 }

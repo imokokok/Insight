@@ -270,14 +270,14 @@ describe('ATR (Average True Range)', () => {
       });
 
       it('should have higher ATR with larger price ranges', () => {
-        const smallRangePrices: OHLCVDataPoint[] = Array.from({ length: 20 }, (_, i) => ({
+        const smallRangePrices: OHLCVDataPoint[] = Array.from({ length: 20 }, () => ({
           price: 100,
           high: 101,
           low: 99,
           close: 100,
         }));
 
-        const largeRangePrices: OHLCVDataPoint[] = Array.from({ length: 20 }, (_, i) => ({
+        const largeRangePrices: OHLCVDataPoint[] = Array.from({ length: 20 }, () => ({
           price: 100,
           high: 110,
           low: 90,
@@ -372,7 +372,7 @@ describe('ATR (Average True Range)', () => {
       });
 
       it('should handle data with only price', () => {
-        const prices: OHLCVDataPoint[] = Array.from({ length: 15 }, (_, i) => ({
+        const prices: OHLCVDataPoint[] = Array.from({ length: 15 }, () => ({
           price: 100,
         }));
         const result = calculateATR(prices, 14);
