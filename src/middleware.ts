@@ -9,14 +9,7 @@ import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('middleware');
 
-const protectedRoutes = [
-  '/dashboard',
-  '/settings',
-  '/profile',
-  '/alerts',
-  '/favorites',
-  '/snapshots',
-];
+const protectedRoutes = ['/settings', '/alerts', '/favorites'];
 const authRoutes = ['/login', '/register', '/forgot-password', '/auth'];
 
 const intlMiddleware = createMiddleware(routing);
