@@ -268,9 +268,23 @@ async function readDAPIPrice(proxyAddress: string, chainId: number): Promise<Pri
     const rawValue = decodeInt224(result);
     const timestamp = decodeUint32(result);
 
-    // API3价格通常有18位小数
     const decimals = 18;
-    const value = Number(rawValue) / Math.pow(10, decimals);
+    const isNegative = rawValue < BigInt(0);
+    const absValue = isNegative ? -rawValue : rawValue;
+    const rawStr = absValue.toString();
+    let value: number;
+    if (rawStr.length > decimals) {
+      const intPart = rawStr.slice(0, rawStr.length - decimals) || '0';
+      const decPart = rawStr.slice(rawStr.length - decimals);
+      value = parseFloat(`${intPart}.${decPart}`);
+    } else {
+      const paddedDec = rawStr.padStart(decimals, '0');
+      value = parseFloat(`0.${paddedDec}`);
+    }
+
+    if (isNegative) {
+      value = -value;
+    }
 
     return {
       value,

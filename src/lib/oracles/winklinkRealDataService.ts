@@ -22,7 +22,6 @@ const WINKLINK_PRICE_FEEDS: Record<string, string> = {
   'BTT-USD': 'TBAAW545oJ6iTxqzezGvagrSUzCpz1S8eR',
   'JST-USD': 'TE5rKoDzKmpVAQp1sn7x6V8biivR3d5r47',
   'SUN-USD': 'TRMgzSPsuWEcVpd5hv19XtLeCk8Z799sZa',
-  'HTX-USD': 'TBD',
   'LTC-USD': 'TGxGL85kN3W5sGdBiobgWabWFcMEtoqRJJ',
   'NFT-USD': 'TEC8b2oL6sAQFMiea73tTgjtTLwyV1GuZU',
   'TUSD-USD': 'TBc3yBP8xcyQ1E3hDTUhRxToMrgekLH2kh',
@@ -197,7 +196,18 @@ export class WINkLinkRealDataService {
         return null;
       }
 
-      const priceValue = Number(priceRaw) / Math.pow(10, Number(decimalPlaces));
+      const decPlaces = Number(decimalPlaces);
+      const rawStr = priceRaw.toString();
+      let priceValue: number;
+      if (rawStr.length > decPlaces) {
+        const intPart = rawStr.slice(0, rawStr.length - decPlaces) || '0';
+        const decPart = rawStr.slice(rawStr.length - decPlaces);
+        priceValue = parseFloat(`${intPart}.${decPart}`);
+      } else {
+        const paddedDec = rawStr.padStart(decPlaces, '0');
+        priceValue = parseFloat(`0.${paddedDec}`);
+      }
+
       const timestamp = timestampRaw ? Number(timestampRaw) * 1000 : Date.now();
 
       logger.info('Parsed price data', {
@@ -206,6 +216,15 @@ export class WINkLinkRealDataService {
         decimalPlaces: Number(decimalPlaces),
         timestamp,
       });
+
+      if (priceValue <= 0) {
+        logger.warn('Invalid price value from WINkLink contract', {
+          symbol,
+          priceValue,
+          decimalPlaces: decPlaces,
+        });
+        return null;
+      }
 
       const priceData: PriceData = {
         provider: OracleProvider.WINKLINK,

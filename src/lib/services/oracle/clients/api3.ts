@@ -77,6 +77,13 @@ export class API3Client extends BaseOracleClient {
         );
       }
 
+      if (!api3Data.price || api3Data.price <= 0) {
+        throw this.createError(
+          `Invalid price (0) for symbol: ${symbol} on ${targetChain}. The dAPI may not be activated or the proxy address is incorrect.`,
+          'API3_PRICE_NOT_AVAILABLE'
+        );
+      }
+
       return {
         provider: OracleProvider.API3,
         symbol: symbol.toUpperCase(),

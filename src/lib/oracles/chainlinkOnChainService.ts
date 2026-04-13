@@ -274,7 +274,7 @@ export class ChainlinkOnChainService {
     this.cache.set(key, { data, timestamp: Date.now() });
   }
 
-  async getPrice(symbol: string, chainId: number = 1): Promise<ChainlinkPriceData> {
+  async getPrice(symbol: string, chainId: number = 1): Promise<ChainlinkPriceData | null> {
     const cacheKey = `price-${symbol}-${chainId}`;
     const cached = this.getCached<ChainlinkPriceData>(cacheKey);
     if (cached) return cached;
@@ -296,7 +296,26 @@ export class ChainlinkOnChainService {
       const decoded = decodeLatestRoundData(roundData);
       const decimals = decodeDecimals(decimalsData);
 
-      const price = Number(decoded.answer) / Math.pow(10, decimals);
+      const rawStr = decoded.answer.toString();
+      let price: number;
+      if (rawStr.length > decimals) {
+        const intPart = rawStr.slice(0, rawStr.length - decimals) || '0';
+        const decPart = rawStr.slice(rawStr.length - decimals);
+        price = parseFloat(`${intPart}.${decPart}`);
+      } else {
+        const paddedDec = rawStr.padStart(decimals, '0');
+        price = parseFloat(`0.${paddedDec}`);
+      }
+
+      if (price <= 0) {
+        logger.warn('Invalid price from Chainlink contract', {
+          symbol: feed.symbol,
+          price,
+          rawAnswer: decoded.answer.toString(),
+          decimals,
+        });
+        return null;
+      }
 
       const result: ChainlinkPriceData = {
         symbol: feed.symbol,

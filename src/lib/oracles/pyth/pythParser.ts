@@ -9,12 +9,12 @@ export function parsePythPrice(
   priceId?: string
 ): PriceData {
   const priceValue =
-    typeof pythPrice.price === 'string' ? parseInt(pythPrice.price, 10) : pythPrice.price;
+    typeof pythPrice.price === 'string' ? Number(pythPrice.price) : pythPrice.price;
   const exponent = pythPrice.expo ?? -8;
   const price = priceValue * Math.pow(10, exponent);
 
   const confidenceValue =
-    typeof pythPrice.conf === 'string' ? parseInt(pythPrice.conf, 10) : (pythPrice.conf ?? 0);
+    typeof pythPrice.conf === 'string' ? Number(pythPrice.conf) : (pythPrice.conf ?? 0);
   const confidenceAbsolute = confidenceValue * Math.pow(10, exponent);
 
   const confidenceInterval = calculateConfidenceInterval(price, confidenceAbsolute);

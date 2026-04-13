@@ -116,14 +116,17 @@ export class DIAPriceService {
           const upperSymbol = symbol.toUpperCase();
 
           let url: string;
+          let fallbackUrl: string | null = null;
 
           if (chain && DIA_ASSET_ADDRESSES[upperSymbol]?.[chain]) {
             const address = DIA_ASSET_ADDRESSES[upperSymbol][chain];
             const blockchainName = DIA_CHAIN_MAPPING[chain];
             url = `${DIA_API_BASE_URL}/assetQuotation/${blockchainName}/${address}`;
+            fallbackUrl = `${DIA_API_BASE_URL}/quotation/${upperSymbol}`;
           } else if (DIA_SYMBOL_MAPPING[upperSymbol]) {
             const { blockchain, address } = DIA_SYMBOL_MAPPING[upperSymbol];
             url = `${DIA_API_BASE_URL}/assetQuotation/${blockchain}/${address}`;
+            fallbackUrl = `${DIA_API_BASE_URL}/quotation/${upperSymbol}`;
           } else {
             url = `${DIA_API_BASE_URL}/quotation/${upperSymbol}`;
           }
@@ -136,6 +139,24 @@ export class DIAPriceService {
             });
 
             if (!data) {
+              if (fallbackUrl) {
+                logger.info('Primary DIA URL failed, trying fallback', {
+                  symbol: upperSymbol,
+                  fallbackUrl,
+                });
+                const fallbackData = await fetchWithTimeout<DIAAssetQuotation | null>(fallbackUrl, {
+                  timeout: this.requestTimeout,
+                });
+                if (!fallbackData) {
+                  logger.warn('Asset not found in DIA (fallback)', { symbol, chain, fallbackUrl });
+                  return null;
+                }
+                logger.info('DIA API data received (fallback)', {
+                  symbol: upperSymbol,
+                  price: fallbackData.Price,
+                });
+                return this.parseAssetQuotation(fallbackData, chain);
+              }
               logger.warn('Asset not found in DIA', { symbol, chain, url });
               return null;
             }
@@ -143,6 +164,30 @@ export class DIAPriceService {
             logger.info('DIA API data received', { symbol: upperSymbol, price: data.Price });
             return this.parseAssetQuotation(data, chain);
           } catch (fetchError) {
+            if (fallbackUrl) {
+              try {
+                logger.info('Primary DIA URL error, trying fallback', {
+                  symbol: upperSymbol,
+                  fallbackUrl,
+                });
+                const fallbackData = await fetchWithTimeout<DIAAssetQuotation | null>(fallbackUrl, {
+                  timeout: this.requestTimeout,
+                });
+                if (fallbackData) {
+                  logger.info('DIA API data received (fallback after error)', {
+                    symbol: upperSymbol,
+                    price: fallbackData.Price,
+                  });
+                  return this.parseAssetQuotation(fallbackData, chain);
+                }
+              } catch (fallbackError) {
+                logger.error(
+                  'DIA fallback fetch error',
+                  fallbackError instanceof Error ? fallbackError : new Error(String(fallbackError)),
+                  { symbol, chain, fallbackUrl }
+                );
+              }
+            }
             logger.error(
               'DIA fetch error',
               fetchError instanceof Error ? fetchError : new Error(String(fetchError)),
