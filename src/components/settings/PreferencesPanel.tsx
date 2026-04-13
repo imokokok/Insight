@@ -15,6 +15,7 @@ import {
 
 import { DropdownSelect, SegmentedControl } from '@/components/ui';
 import { useTranslations } from '@/i18n';
+import { getAllSupportedSymbols } from '@/lib/oracles/supportedSymbols';
 import { updateUserProfile } from '@/lib/supabase/auth';
 import { useUser, useProfile, useAuthInitialized } from '@/stores/authStore';
 
@@ -63,39 +64,12 @@ const oracleOptions = [
   { value: 'winklink', label: 'WINkLink' },
 ];
 
-const symbolOptions = [
-  { value: 'BTC/USD', label: 'BTC/USD' },
-  { value: 'ETH/USD', label: 'ETH/USD' },
-  { value: 'SOL/USD', label: 'SOL/USD' },
-  { value: 'AVAX/USD', label: 'AVAX/USD' },
-  { value: 'NEAR/USD', label: 'NEAR/USD' },
-  { value: 'MATIC/USD', label: 'MATIC/USD' },
-  { value: 'ARB/USD', label: 'ARB/USD' },
-  { value: 'OP/USD', label: 'OP/USD' },
-  { value: 'DOT/USD', label: 'DOT/USD' },
-  { value: 'ADA/USD', label: 'ADA/USD' },
-  { value: 'ATOM/USD', label: 'ATOM/USD' },
-  { value: 'FTM/USD', label: 'FTM/USD' },
-  { value: 'LINK/USD', label: 'LINK/USD' },
-  { value: 'UNI/USD', label: 'UNI/USD' },
-  { value: 'AAVE/USD', label: 'AAVE/USD' },
-  { value: 'MKR/USD', label: 'MKR/USD' },
-  { value: 'SNX/USD', label: 'SNX/USD' },
-  { value: 'COMP/USD', label: 'COMP/USD' },
-  { value: 'YFI/USD', label: 'YFI/USD' },
-  { value: 'CRV/USD', label: 'CRV/USD' },
-  { value: 'LDO/USD', label: 'LDO/USD' },
-  { value: 'SUSHI/USD', label: 'SUSHI/USD' },
-  { value: '1INCH/USD', label: '1INCH/USD' },
-  { value: 'BAL/USD', label: 'BAL/USD' },
-  { value: 'FXS/USD', label: 'FXS/USD' },
-  { value: 'RPL/USD', label: 'RPL/USD' },
-  { value: 'GMX/USD', label: 'GMX/USD' },
-  { value: 'DYDX/USD', label: 'DYDX/USD' },
-  { value: 'USDC/USD', label: 'USDC/USD' },
-  { value: 'USDT/USD', label: 'USDT/USD' },
-  { value: 'DAI/USD', label: 'DAI/USD' },
-];
+// 从统一的符号列表生成交易对选项
+const allSymbols = getAllSupportedSymbols();
+const symbolOptions = allSymbols.map((symbol) => ({
+  value: `${symbol}/USD`,
+  label: `${symbol}/USD`,
+}));
 
 const timeRangeOptionKeys = [
   { value: '1h', key: 'settings.preferences.timeRange.hour1' },

@@ -1,12 +1,9 @@
+/* eslint-disable max-lines-per-function */
 import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
 import { api3NetworkService } from '@/lib/services/oracle/api3NetworkService';
 import { API3Client } from '@/lib/services/oracle/clients/api3';
 import { OracleProvider, Blockchain } from '@/types/oracle';
-import type {
-  DataSourceInfo,
-  DAPICoverage,
-  FirstPartyOracleData,
-} from '@/types/oracle/api3';
+import type { DataSourceInfo, DAPICoverage, FirstPartyOracleData } from '@/types/oracle/api3';
 
 jest.mock('@/lib/services/oracle/api3NetworkService');
 jest.mock('@/lib/services/marketData/binanceMarketService');
