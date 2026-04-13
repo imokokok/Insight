@@ -2,6 +2,7 @@
  * @fileoverview 跨预言机对比页面常量定义
  */
 
+import { getAllSupportedSymbols } from '@/lib/oracles/supportedSymbols';
 import { OracleProvider } from '@/types/oracle';
 
 // ============================================================================
@@ -20,38 +21,12 @@ export const timeRanges: { value: TimeRange; label: string }[] = [
 ];
 
 // ============================================================================
-// 交易对
+// 交易对 - 从统一的符号列表生成
 // ============================================================================
 
-export const tradingPairs = [
-  'BTC/USD',
-  'ETH/USD',
-  'LINK/USD',
-  'UNI/USD',
-  'AAVE/USD',
-  'SNX/USD',
-  'CRV/USD',
-  'MKR/USD',
-  'COMP/USD',
-  'YFI/USD',
-  'BAL/USD',
-  'SUSHI/USD',
-  '1INCH/USD',
-  'LDO/USD',
-  'FXS/USD',
-  'DYDX/USD',
-  'GMX/USD',
-  'ARB/USD',
-  'OP/USD',
-  'MATIC/USD',
-  'AVAX/USD',
-  'FTM/USD',
-  'NEAR/USD',
-  'ATOM/USD',
-  'DOT/USD',
-  'SOL/USD',
-  'ADA/USD',
-];
+// 获取所有支持的交易对并转换为 BTC/USD 格式
+const allSymbols = getAllSupportedSymbols();
+export const tradingPairs = allSymbols.map((symbol) => `${symbol}/USD`);
 
 export const symbols = tradingPairs;
 
