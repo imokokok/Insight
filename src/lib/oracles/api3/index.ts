@@ -12,7 +12,3 @@ export type {
   StakingData,
   FirstPartyOracleData,
 } from './types';
-
-export { getActiveAlerts, getAlertHistory, getAlertThresholds } from './alertService';
-
-export { getCoveragePoolEvents, getCoveragePoolClaims } from './coveragePoolService';

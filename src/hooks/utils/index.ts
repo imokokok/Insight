@@ -9,8 +9,6 @@ export {
   useAutoRefreshInterval,
 } from './usePreferences';
 export type { UserPreferences } from './usePreferences';
-export { useRefresh, useExport, useLocalStorage } from './useUtils';
-export type { ExportOptions, ExportFormat, DataType, ExportScope, Resolution } from './useUtils';
 export {
   useService,
   useOracleClient,
