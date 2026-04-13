@@ -60,7 +60,7 @@ const API3_TOKEN_ABI = [
 
 const API3_POOL_ABI = [
   {
-    name: 'totalStaked',
+    name: 'totalStake',
     type: 'function',
     stateMutability: 'view',
     inputs: [],
@@ -156,7 +156,7 @@ function encodeTokenCall(
 
 function encodePoolCall(
   functionName:
-    | 'totalStaked'
+    | 'totalStake'
     | 'stakerCount'
     | 'getStakerDetails'
     | 'unstakeAmount'
@@ -296,12 +296,8 @@ export class API3OnChainService {
       };
       const poolAddress = contracts.api3Pool;
 
-      const totalStakedData = await this.ethCall(
-        chainId,
-        poolAddress,
-        encodePoolCall('totalStaked')
-      );
-      const totalStaked = decodeUint256(totalStakedData);
+      const totalStakeData = await this.ethCall(chainId, poolAddress, encodePoolCall('totalStake'));
+      const totalStaked = decodeUint256(totalStakeData);
 
       const stakerCountData = await this.ethCall(
         chainId,
@@ -324,7 +320,9 @@ export class API3OnChainService {
       return result;
     } catch (error) {
       console.error('[API3OnChainService] Failed to fetch staking data:', error);
-      return this.getFallbackStakingData();
+      throw new Error(
+        `Failed to fetch API3 staking data from chain. Please check RPC connection and contract availability. Error: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
 
@@ -337,12 +335,8 @@ export class API3OnChainService {
       const contracts = getAPI3Contract('mainnet') as { api3Pool: `0x${string}` };
       const poolAddress = contracts.api3Pool;
 
-      const totalStakedData = await this.ethCall(
-        chainId,
-        poolAddress,
-        encodePoolCall('totalStaked')
-      );
-      const totalValueLocked = decodeUint256(totalStakedData);
+      const totalStakeData = await this.ethCall(chainId, poolAddress, encodePoolCall('totalStake'));
+      const totalValueLocked = decodeUint256(totalStakeData);
 
       const stakerCountData = await this.ethCall(
         chainId,
@@ -363,7 +357,9 @@ export class API3OnChainService {
       return result;
     } catch (error) {
       console.error('[API3OnChainService] Failed to fetch coverage pool data:', error);
-      return this.getFallbackCoverageData();
+      throw new Error(
+        `Failed to fetch API3 coverage pool data from chain. Please check RPC connection and contract availability. Error: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
 
@@ -408,7 +404,9 @@ export class API3OnChainService {
       return result;
     } catch (error) {
       console.error('[API3OnChainService] Failed to fetch token data:', error);
-      return this.getFallbackTokenData();
+      throw new Error(
+        `Failed to fetch API3 token data from chain. Please check RPC connection and contract availability. Error: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
 
@@ -416,36 +414,6 @@ export class API3OnChainService {
     const yearlyRewards = BigInt(25000000);
     const apr = (Number(yearlyRewards) / Number(totalStaked)) * 100;
     return Math.min(Math.max(apr, 0), 100);
-  }
-
-  private getFallbackStakingData(): OnChainStakingData {
-    return {
-      totalStaked: BigInt('25000000000000000000000000'),
-      stakerCount: 3240,
-      apr: 12.5,
-      unstakingAmount: BigInt(0),
-      unstakingCount: 0,
-    };
-  }
-
-  private getFallbackCoverageData(): OnChainCoverageData {
-    return {
-      totalValueLocked: BigInt('8500000000000000000000000'),
-      collateralizationRatio: 156.8,
-      stakerCount: 3240,
-      pendingClaims: 3,
-      processedClaims: 47,
-    };
-  }
-
-  private getFallbackTokenData(): TokenData {
-    return {
-      totalSupply: BigInt('100000000000000000000000000'),
-      circulatingSupply: BigInt('85000000000000000000000000'),
-      totalStaked: BigInt('25000000000000000000000000'),
-      stakingRatio: 0.294,
-      holders: 12500,
-    };
   }
 
   async getBlockNumber(chainId: number = 1): Promise<number> {

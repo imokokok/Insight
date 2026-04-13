@@ -2,6 +2,10 @@ import { supabase } from './client';
 
 import type { User, Session, AuthError, Provider } from '@supabase/supabase-js';
 
+const AVATAR_BUCKET = 'avatars';
+const MAX_AVATAR_SIZE = 2 * 1024 * 1024;
+const ALLOWED_AVATAR_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+
 export interface AuthResponse {
   user: User | null;
   session: Session | null;
@@ -169,6 +173,118 @@ export async function getUserProfile(
     profile: data as UserProfile | null,
     error: error as Error | null,
   };
+}
+
+export interface AvatarUploadResult {
+  url: string | null;
+  error: Error | null;
+}
+
+export async function uploadAvatar(userId: string, file: File): Promise<AvatarUploadResult> {
+  try {
+    if (!ALLOWED_AVATAR_TYPES.includes(file.type)) {
+      return {
+        url: null,
+        error: new Error(`Invalid file type. Allowed types: ${ALLOWED_AVATAR_TYPES.join(', ')}`),
+      };
+    }
+
+    if (file.size > MAX_AVATAR_SIZE) {
+      return {
+        url: null,
+        error: new Error(
+          `File size exceeds maximum allowed size of ${MAX_AVATAR_SIZE / 1024 / 1024}MB`
+        ),
+      };
+    }
+
+    const fileExt = file.name.split('.').pop()?.toLowerCase() || 'png';
+    const fileName = `${userId}/avatar.${fileExt}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from(AVATAR_BUCKET)
+      .upload(fileName, file, {
+        upsert: true,
+        contentType: file.type,
+      });
+
+    if (uploadError) {
+      return {
+        url: null,
+        error: new Error(`Failed to upload avatar: ${uploadError.message}`),
+      };
+    }
+
+    const { data: urlData } = supabase.storage.from(AVATAR_BUCKET).getPublicUrl(fileName);
+
+    const avatarUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+
+    const { error: updateError } = await supabase
+      .from('user_profiles')
+      .update({
+        avatar_url: avatarUrl,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', userId);
+
+    if (updateError) {
+      return {
+        url: null,
+        error: new Error(`Failed to update profile with avatar: ${updateError.message}`),
+      };
+    }
+
+    return {
+      url: avatarUrl,
+      error: null,
+    };
+  } catch (error) {
+    return {
+      url: null,
+      error: error instanceof Error ? error : new Error('Unknown error during avatar upload'),
+    };
+  }
+}
+
+export async function deleteAvatar(userId: string): Promise<{ error: Error | null }> {
+  try {
+    const { data: files, error: listError } = await supabase.storage
+      .from(AVATAR_BUCKET)
+      .list(userId);
+
+    if (listError) {
+      return { error: new Error(`Failed to list avatar files: ${listError.message}`) };
+    }
+
+    if (files && files.length > 0) {
+      const filesToDelete = files.map((file) => `${userId}/${file.name}`);
+      const { error: deleteError } = await supabase.storage
+        .from(AVATAR_BUCKET)
+        .remove(filesToDelete);
+
+      if (deleteError) {
+        return { error: new Error(`Failed to delete avatar files: ${deleteError.message}`) };
+      }
+    }
+
+    const { error: updateError } = await supabase
+      .from('user_profiles')
+      .update({
+        avatar_url: null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', userId);
+
+    if (updateError) {
+      return { error: new Error(`Failed to update profile: ${updateError.message}`) };
+    }
+
+    return { error: null };
+  } catch (error) {
+    return {
+      error: error instanceof Error ? error : new Error('Unknown error during avatar deletion'),
+    };
+  }
 }
 
 export async function updateUserProfile(

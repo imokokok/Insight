@@ -88,18 +88,18 @@ export const API3_DATA_SOURCES: API3DataSourceConfig = {
   contracts: {
     mainnet: {
       api3Token: '0x0b38210ea11411557c13457D4dA7dC6ea731B88a',
-      api3Pool: '0x6dd6eC8DDc404Bbf2B09CAc9Bb4bEfA247F8E8E9',
+      api3Pool: '0x6dd655f10d4b9E242aE186D9050B68F725c76d76',
       accessControlRegistry: '0x3Ee97c5FbA0C4a8Cf827F6E59c88e89A3bAB8E2f',
       api3ServerV1: '0x3dEC2E4EeB8D0C50B7a8E7cFf7a2B2d5b8F7D1A9',
       dapiProxy: '0x0A7CA0E12d08228E8aF6b5B5E5E5E5E5E5E5E5E5',
     },
     arbitrum: {
       api3Token: '0x0b38210ea11411557c13457D4dA7dC6ea731B88a',
-      api3Pool: '0x6dd6eC8DDc404Bbf2B09CAc9Bb4bEfA247F8E8E9',
+      api3Pool: '0x6dd655f10d4b9E242aE186D9050B68F725c76d76',
     },
     polygon: {
       api3Token: '0x0b38210ea11411557c13457D4dA7dC6ea731B88a',
-      api3Pool: '0x6dd6eC8DDc404Bbf2B09CAc9Bb4bEfA247F8E8E9',
+      api3Pool: '0x6dd655f10d4b9E242aE186D9050B68F725c76d76',
     },
     base: {
       api3Token: '0x0b38210ea11411557c13457D4dA7dC6ea731B88a',
