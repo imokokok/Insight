@@ -63,7 +63,7 @@ function Toggle({
 }
 
 export function NotificationPanel() {
-  const t = useTranslations();
+  const t = useTranslations('settingsPage');
   const [settings, setSettings] = useState<NotificationSettings>(() => {
     if (typeof window === 'undefined') return defaultSettings;
     const saved = localStorage.getItem(STORAGE_KEY);

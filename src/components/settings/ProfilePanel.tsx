@@ -131,7 +131,7 @@ const AvatarUploader = ({
 };
 
 export function ProfilePanel() {
-  const t = useTranslations();
+  const t = useTranslations('settingsPage');
   const user = useUser();
   const profile = useProfile();
   const { refreshProfile } = useAuthActions();
