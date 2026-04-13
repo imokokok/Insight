@@ -49,16 +49,19 @@ graph TB
 
 ```
 src/components/
-├── oracle/              # Oracle domain components
-│   ├── charts/         # Chart components
-│   ├── panels/         # Panel components
-│   ├── forms/          # Form components
-│   └── shared/         # Shared components
-├── comparison/         # Comparison feature components
 ├── alerts/            # Alert components
 ├── charts/            # General charts
+├── data-transparency/ # Data transparency components
+├── error-boundary/    # Error boundary components
+├── export/            # Export components
+├── favorites/         # Favorites components
+├── navigation/        # Navigation components
+├── realtime/          # Real-time components
+├── search/            # Search components
+├── settings/          # Settings components
+├── shortcuts/         # Keyboard shortcuts
 ├── ui/                # Base UI components
-└── layout/            # Layout components
+└── accessibility/     # Accessibility components
 ```
 
 ### Component Categories
@@ -350,9 +353,6 @@ src/app/
 │   ├── cross-chain/                 # Cross-chain comparison
 │   │   └── page.tsx                 # /[locale]/cross-chain
 │   │
-│   ├── pyth-network/                # Pyth Network
-│   │   └── page.tsx                 # /[locale]/pyth-network
-│   │
 │   ├── alerts/                      # Alerts
 │   │   └── page.tsx                 # /[locale]/alerts
 │   │
@@ -385,15 +385,9 @@ src/app/
 │   ├── oracles/                     # Oracle data
 │   ├── alerts/                      # Alert management
 │   ├── favorites/                   # Favorite management
-│   ├── snapshots/                   # Snapshot management
 │   ├── auth/                        # Authentication
 │   ├── health/                      # Health check
-│   ├── config/                      # Configuration
-│   ├── market-data/                 # Market data
-│   ├── prices/                      # Price data
-│   ├── binance/                     # Binance proxy
-│   ├── defillama/                   # DeFi Llama proxy
-│   └── cron/                        # Scheduled tasks
+│   └── prices/                      # Price data
 │
 ├── error.tsx                        # Global error page
 ├── not-found.tsx                    # 404 page

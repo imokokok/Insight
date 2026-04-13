@@ -146,7 +146,6 @@ insight/
 │   │   │   ├── home-components/# Homepage components
 │   │   │   ├── login/          # Login page
 │   │   │   ├── price-query/    # Price query page
-│   │   │   ├── pyth-network/   # Pyth oracle page
 │   │   │   ├── register/       # Registration page
 │   │   │   └── settings/       # User settings page
 │   │   ├── api/                # API endpoints
@@ -155,18 +154,11 @@ insight/
 │   │   │   │   ├── events/     # Alert events API
 │   │   │   │   └── [id]/       # Individual alert endpoints
 │   │   │   ├── auth/           # Authentication callbacks
-│   │   │   ├── binance/        # Binance market data proxy
-│   │   │   ├── config/         # Configuration API
-│   │   │   ├── cron/           # Scheduled tasks
-│   │   │   ├── defillama/      # DeFi Llama proxy
 │   │   │   ├── favorites/      # User favorites API
 │   │   │   ├── health/         # Health check endpoint
-│   │   │   ├── market-data/    # Market data API
 │   │   │   ├── oracles/        # Oracle data API
 │   │   │   │   └── [provider]/ # Provider-specific endpoints
-│   │   │   ├── prices/         # Prices API
-│   │   │   └── snapshots/      # User snapshots API
-│   │   │       └── [id]/       # Individual snapshot endpoints
+│   │   │   └── prices/         # Prices API
 │   │   ├── error.tsx           # Error boundary
 │   │   ├── global-error.tsx    # Global error handler
 │   │   ├── layout.tsx          # Root layout
@@ -177,22 +169,11 @@ insight/
 │   │   ├── accessibility/      # Accessibility components
 │   │   ├── alerts/             # Alert components
 │   │   ├── charts/             # Chart components
-│   │   ├── comparison/         # Comparison components
 │   │   ├── data-transparency/  # Data transparency components
 │   │   ├── error-boundary/     # Error boundary components
 │   │   ├── export/             # Export components
 │   │   ├── favorites/          # Favorite components
-│   │   ├── layout/             # Layout components
 │   │   ├── navigation/         # Navigation components
-│   │   ├── oracle/             # Oracle-specific components
-│   │   │   ├── charts/         # Oracle chart components
-│   │   │   │   ├── CrossOracleComparison/
-│   │   │   │   ├── EnhancedTooltip/
-│   │   │   │   ├── InteractivePriceChart/
-│   │   │   │   └── PriceChart/
-│   │   │   ├── data-display/   # Data display components
-│   │   │   ├── panels/         # Panel components
-│   │   │   └── shared/         # Shared oracle components
 │   │   ├── realtime/           # Real-time components
 │   │   ├── search/             # Search components
 │   │   ├── settings/           # Settings components
@@ -206,10 +187,8 @@ insight/
 │   │   ├── Navbar.tsx          # Navigation bar
 │   │   └── PerformanceMetricsCollector.tsx
 │   ├── hooks/                  # Custom React hooks
-│   │   ├── api3/               # API3 hooks
 │   │   ├── data/               # Data fetching hooks
 │   │   ├── oracles/            # Oracle-specific hooks
-│   │   ├── realtime/           # Real-time hooks
 │   │   ├── ui/                 # UI hooks
 │   │   └── utils/              # Utility hooks
 │   ├── lib/                    # Core libraries
@@ -399,14 +378,6 @@ All tables have Row Level Security (RLS) enabled for data protection.
 - `GET /api/favorites/[id]` - Get specific favorite
 - `DELETE /api/favorites/[id]` - Delete favorite
 
-### Snapshots
-
-- `GET /api/snapshots` - List user snapshots
-- `POST /api/snapshots` - Create snapshot
-- `GET /api/snapshots/[id]` - Get specific snapshot
-- `DELETE /api/snapshots/[id]` - Delete snapshot
-- `POST /api/snapshots/[id]/share` - Share snapshot
-
 ### Oracles
 
 - `GET /api/oracles` - List all oracle providers
@@ -417,7 +388,6 @@ All tables have Row Level Security (RLS) enabled for data protection.
 ### System
 
 - `GET /api/health` - Health check
-- `GET /api/cron/cleanup` - Cleanup expired records
 
 ## Code Quality
 
