@@ -10,9 +10,8 @@
 6. [Oracle-Specific Pages](#oracle-specific-pages)
 7. [Alerts Management](#alerts-management)
 8. [Favorites](#favorites)
-9. [Snapshots](#snapshots)
-10. [User Settings](#user-settings)
-11. [Data Export](#data-export)
+9. [User Settings](#user-settings)
+10. [Data Export](#data-export)
 
 ---
 
@@ -566,20 +565,6 @@ Oracle-specific analytics are accessible through the Price Query page by selecti
 3. Choose the trading pair and blockchain
 4. View oracle-specific statistics and charts
 
-### Pyth Network (`/pyth-network`)
-
-Dedicated page for Pyth Network with:
-
-#### Features
-
-- **Publisher Analytics**: Data publisher performance
-- **Publisher Contribution**: Publisher reliability scores
-- **Price Stream**: Real-time price streaming
-- **Update Frequency Heatmap**: Hourly activity visualization
-- **Confidence Intervals**: Price confidence bands
-- **Confidence Alerts**: Threshold-based alerts
-- **Data Quality Scores**: Quality metrics panel
-
 ### Supported Oracle Providers
 
 All oracle providers can be accessed through the Price Query page:
@@ -765,67 +750,6 @@ Access favorites from:
 - Navigation dropdown menu
 - Favorites page
 - Quick access buttons on relevant pages
-
----
-
-## Snapshots
-
-Capture and compare price data states.
-
-### Creating Snapshots
-
-#### From Cross-Oracle Page
-
-1. Configure your analysis view
-2. Click "Save Snapshot" button
-3. Snapshot captures:
-   - Current prices
-   - Selected oracles
-   - Statistics
-   - Timestamp
-
-### Snapshot Manager
-
-#### Features
-
-- View all saved snapshots
-- Snapshot metadata display:
-  - Symbol
-  - Timestamp
-  - Oracle count
-  - Average price
-  - Deviation
-
-#### Actions
-
-- **Select**: Choose for comparison
-- **Share**: Generate public link
-- **Copy Link**: Copy share URL
-- **Delete**: Remove snapshot
-
-### Comparing Snapshots
-
-1. Select a snapshot from the list
-2. View comparison panel showing:
-   - Current vs. snapshot statistics
-   - Price differences
-   - Percentage changes
-   - Visual comparison charts
-
-### Sharing Snapshots
-
-1. Click share icon on snapshot
-2. Toggle sharing on
-3. Copy the generated URL
-4. Share URL provides read-only view
-
-### Cloud Sync
-
-For logged-in users:
-
-- Snapshots sync to cloud
-- Access from any device
-- Migration from local storage available
 
 ---
 

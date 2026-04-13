@@ -132,8 +132,6 @@ src/app/
 │   ├── settings/          # User settings page
 │   ├── docs/              # Documentation page
 │   │
-│   ├── pyth-network/      # Pyth Network page
-│   │
 │   ├── login/             # Login page
 │   ├── register/          # Registration page
 │   └── auth/              # Auth related pages
@@ -146,15 +144,9 @@ src/app/
     ├── oracles/           # Oracle data endpoints
     ├── alerts/            # Alert management
     ├── favorites/         # User favorites
-    ├── snapshots/         # Price snapshots
     ├── auth/              # Authentication
     ├── health/            # Health check
-    ├── config/            # Configuration
-    ├── market-data/       # Market data
-    ├── prices/            # Price data
-    ├── binance/           # Binance proxy
-    ├── defillama/         # DeFi Llama proxy
-    └── cron/              # Scheduled tasks
+    └── prices/            # Price data
 ```
 
 ### 2.2 React 19 with Server and Client Components
@@ -237,18 +229,6 @@ const ArbitrageHeatmap = dynamic(
 
 ```
 src/components/
-├── oracle/                 # Oracle-specific components
-│   ├── charts/             # Oracle chart components
-│   │   ├── PriceChart/     # Main price chart
-│   │   ├── InteractivePriceChart/
-│   │   ├── CrossOracleComparison/
-│   │   └── EnhancedTooltip/
-│   ├── data-display/       # Data display components
-│   ├── panels/             # Oracle-specific panels
-│   │   └── MetricCard.tsx
-│   └── shared/             # Shared oracle components
-│       └── LoadingState.tsx
-│
 ├── charts/                 # Chart components
 │   ├── ChartToolbar.tsx
 │   └── index.ts
@@ -273,12 +253,6 @@ src/components/
 │   ├── FavoriteButton.tsx
 │   ├── FavoriteCard.tsx
 │   ├── FavoritesManager.tsx
-│   └── index.ts
-│
-├── comparison/             # Comparison components
-│   ├── DifferenceBadge.tsx
-│   ├── EnhancedComparisonTable.tsx
-│   ├── types.ts
 │   └── index.ts
 │
 ├── export/                 # Export components
@@ -337,7 +311,6 @@ src/components/
 │   ├── Icon.tsx
 │   ├── LiveStatusBar.tsx
 │   ├── Skeleton.tsx
-│   ├── SparklineChart.tsx
 │   ├── Tooltip.tsx
 │   ├── DataTablePro.tsx
 │   ├── DataTablePro/       # Advanced data table

@@ -97,49 +97,33 @@ insight/
 │   │   │   ├── home-components/# Homepage components
 │   │   │   ├── login/          # Login page
 │   │   │   ├── price-query/    # Price query page
-│   │   │   ├── pyth-network/   # Pyth oracle page
 │   │   │   ├── register/       # Registration page
 │   │   │   └── settings/       # User settings page
 │   │   ├── api/                # API endpoints
 │   │   │   ├── alerts/         # Price alerts API
 │   │   │   ├── auth/           # Authentication callbacks
-│   │   │   ├── binance/        # Binance proxy
-│   │   │   ├── config/         # Configuration API
-│   │   │   ├── cron/           # Scheduled tasks
-│   │   │   ├── defillama/      # DeFi Llama proxy
 │   │   │   ├── favorites/      # User favorites API
 │   │   │   ├── health/         # Health check API
-│   │   │   ├── market-data/    # Market data API
 │   │   │   ├── oracles/        # Oracle data API
-│   │   │   ├── prices/         # Prices API
-│   │   │   └── snapshots/      # User snapshots API
+│   │   │   └── prices/         # Prices API
 │   │   └── layout.tsx          # Root layout
 │   ├── components/             # React components
 │   │   ├── accessibility/      # Accessibility components
 │   │   ├── alerts/             # Alert components
 │   │   ├── charts/             # Chart components
-│   │   ├── comparison/         # Comparison components
 │   │   ├── data-transparency/  # Data transparency components
 │   │   ├── error-boundary/     # Error boundary components
 │   │   ├── export/             # Export components
 │   │   ├── favorites/          # Favorite components
-│   │   ├── layout/             # Layout components
 │   │   ├── navigation/         # Navigation components
-│   │   ├── oracle/             # Oracle-specific components
-│   │   │   ├── charts/         # Oracle chart components
-│   │   │   ├── data-display/   # Data display components
-│   │   │   ├── panels/         # Panel components
-│   │   │   └── shared/         # Shared oracle components
 │   │   ├── realtime/           # Real-time components
 │   │   ├── search/             # Search components
 │   │   ├── settings/           # Settings components
 │   │   ├── shortcuts/          # Keyboard shortcuts
 │   │   └── ui/                 # Reusable UI components
 │   ├── hooks/                  # Custom React hooks
-│   │   ├── api3/               # API3 hooks
 │   │   ├── data/               # Data fetching hooks
 │   │   ├── oracles/            # Oracle-specific hooks
-│   │   ├── realtime/           # Real-time hooks
 │   │   ├── ui/                 # UI hooks
 │   │   └── utils/              # Utility hooks
 │   ├── i18n/                   # Internationalization
