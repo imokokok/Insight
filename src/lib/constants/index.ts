@@ -119,54 +119,87 @@ export const symbols = [
   'ETH', // 2. Ethereum
   'BNB', // 3. BNB
   'SOL', // 4. Solana
-  'DOGE', // 5. Dogecoin
-  'MATIC', // 6. Polygon
-  'AVAX', // 7. Avalanche
-  'LINK', // 8. Chainlink
-  'SHIB', // 9. Shiba Inu
-  'UNI', // 10. Uniswap
-  'NEAR', // 11. NEAR Protocol
-  'ARB', // 12. Arbitrum
-  'OP', // 13. Optimism
-  'APT', // 14. Aptos
-  'INJ', // 15. Injective
-  'SUI', // 16. Sui
-  'SEI', // 17. Sei
-  'TIA', // 18. Celestia
-  'TON', // 19. Toncoin
+  'XRP', // 5. Ripple
+  'ADA', // 6. Cardano
+  'DOGE', // 7. Dogecoin
+  'TRX', // 8. TRON
+  'DOT', // 9. Polkadot
+  'MATIC', // 10. Polygon
+  'LTC', // 11. Litecoin
+  'SHIB', // 12. Shiba Inu
+  'AVAX', // 13. Avalanche
+  'LINK', // 14. Chainlink
+  'ATOM', // 15. Cosmos
+  'UNI', // 16. Uniswap
+  'XLM', // 17. Stellar
+  'ETC', // 18. Ethereum Classic
+  'BCH', // 19. Bitcoin Cash
+  'FIL', // 20. Filecoin
+  'NEAR', // 21. NEAR Protocol
+  'APT', // 22. Aptos
+  'ARB', // 23. Arbitrum
+  'OP', // 24. Optimism
+  'INJ', // 25. Injective
+  'SUI', // 26. Sui
+  'SEI', // 27. Sei
+  'TIA', // 28. Celestia
+  'TON', // 29. Toncoin
+  'FTM', // 30. Fantom
   // Stablecoins - 按市值排序
-  'USDT', // 20. Tether
-  'USDC', // 21. USD Coin
-  'DAI', // 22. DAI
-  'FRAX', // 23. Frax
-  'LUSD', // 24. Liquity USD
+  'USDT', // 31. Tether
+  'USDC', // 32. USD Coin
+  'DAI', // 33. DAI
+  'FRAX', // 34. Frax
+  'LUSD', // 35. Liquity USD
+  'BUSD', // 36. Binance USD
+  'TUSD', // 37. TrueUSD
   // DeFi - 按市值排序
-  'AAVE', // 25. Aave
-  'MKR', // 26. Maker
-  'COMP', // 27. Compound
-  'SNX', // 28. Synthetix
-  'CRV', // 29. Curve
-  'SUSHI', // 30. SushiSwap
-  'LDO', // 31. Lido DAO
-  'GMX', // 32. GMX
-  'GRT', // 33. The Graph
-  'APE', // 34. ApeCoin
-  'AXS', // 35. Axie Infinity
+  'AAVE', // 38. Aave
+  'MKR', // 39. Maker
+  'COMP', // 40. Compound
+  'SNX', // 41. Synthetix
+  'CRV', // 42. Curve
+  'SUSHI', // 43. SushiSwap
+  'LDO', // 44. Lido DAO
+  'GMX', // 45. GMX
+  'DYDX', // 46. dYdX
+  'GRT', // 47. The Graph
+  'APE', // 48. ApeCoin
+  'SAND', // 49. The Sandbox
+  'MANA', // 50. Decentraland
+  'AXS', // 51. Axie Infinity
+  'GALA', // 52. Gala
+  'IMX', // 53. Immutable X
+  'RNDR', // 54. Render
+  'THETA', // 55. Theta Network
+  'KAVA', // 56. Kava
+  'RUNE', // 57. THORChain
+  'CAKE', // 58. PancakeSwap
+  'ENS', // 59. Ethereum Name Service
+  'BLUR', // 60. Blur
   // Wrapped Assets
-  'WBTC', // 36. Wrapped Bitcoin
-  'STETH', // 37. Lido Staked Ether
+  'WBTC', // 61. Wrapped Bitcoin
+  'WETH', // 62. Wrapped Ether
+  'STETH', // 63. Lido Staked Ether
+  'RETH', // 64. Rocket Pool ETH
+  'CBETH', // 65. Coinbase Wrapped Staked ETH
   // Layer 2 Tokens
-  'MNT', // 38. Mantle
+  'MNT', // 66. Mantle
+  'BLAST', // 67. Blast
   // DeFi & Others
-  'RPL', // 39. Rocket Pool
-  'CVX', // 40. Convex Finance
-  'YFI', // 41. Yearn
-  '1INCH', // 42. 1inch
-  'CAKE', // 43. PancakeSwap
+  'RPL', // 68. Rocket Pool
+  'CVX', // 69. Convex Finance
+  'YFI', // 70. Yearn
+  '1INCH', // 71. 1inch
+  'BAL', // 72. Balancer
+  'FXS', // 73. Frax Share
+  // Oracle Tokens
+  'PYTH', // 74. Pyth Network
   // Meme Tokens
-  'PEPE', // 44. Pepe
-  'WIF', // 45. dogwifhat
-  'BONK', // 46. Bonk
+  'PEPE', // 75. Pepe
+  'WIF', // 76. dogwifhat
+  'BONK', // 77. Bonk
+  'MEME', // 78. Meme
 ];
 
 export const TIME_RANGES = [
