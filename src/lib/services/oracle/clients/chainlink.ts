@@ -274,4 +274,15 @@ export class ChainlinkClient extends BaseOracleClient {
 
     return chains;
   }
+
+  /**
+   * 获取指定链支持的所有币种
+   * @param chain - 区块链
+   * @returns 该链支持的币种列表
+   */
+  getSupportedSymbolsForChain(chain: Blockchain): string[] {
+    const chainId = this.getChainId(chain);
+    const allSymbols = this.getSupportedSymbols();
+    return allSymbols.filter((symbol) => isPriceFeedSupported(symbol, chainId));
+  }
 }

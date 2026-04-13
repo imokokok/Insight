@@ -8,6 +8,7 @@ import {
   getChainlinkPriceFeed,
   getChainlinkContracts,
   getChainlinkRPCConfig,
+  getSupportedSymbols,
 } from './chainlinkDataSources';
 
 const logger = createLogger('ChainlinkOnChainService');
@@ -427,7 +428,7 @@ export class ChainlinkOnChainService {
   }
 
   getSupportedSymbols(): string[] {
-    return ['ETH', 'BTC', 'LINK', 'USDC', 'USDT', 'DAI', 'MATIC', 'AVAX', 'BNB'];
+    return getSupportedSymbols();
   }
 
   getSupportedChainIds(symbol: string): number[] {

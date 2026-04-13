@@ -119,36 +119,54 @@ export const symbols = [
   'ETH', // 2. Ethereum
   'BNB', // 3. BNB
   'SOL', // 4. Solana
-  'ADA', // 5. Cardano
-  'AVAX', // 6. Avalanche
-  'DOT', // 7. Polkadot
-  'MATIC', // 8. Polygon
-  'NEAR', // 9. NEAR Protocol
-  'ARB', // 10. Arbitrum
-  'OP', // 11. Optimism
-  'ATOM', // 12. Cosmos
-  'FTM', // 13. Fantom
+  'DOGE', // 5. Dogecoin
+  'MATIC', // 6. Polygon
+  'AVAX', // 7. Avalanche
+  'LINK', // 8. Chainlink
+  'SHIB', // 9. Shiba Inu
+  'UNI', // 10. Uniswap
+  'NEAR', // 11. NEAR Protocol
+  'ARB', // 12. Arbitrum
+  'OP', // 13. Optimism
+  'APT', // 14. Aptos
+  'INJ', // 15. Injective
+  'SUI', // 16. Sui
+  'SEI', // 17. Sei
+  'TIA', // 18. Celestia
+  'TON', // 19. Toncoin
   // Stablecoins - 按市值排序
-  'USDT', // 14. Tether
-  'USDC', // 15. USD Coin
-  'DAI', // 16. DAI
+  'USDT', // 20. Tether
+  'USDC', // 21. USD Coin
+  'DAI', // 22. DAI
+  'FRAX', // 23. Frax
+  'LUSD', // 24. Liquity USD
   // DeFi - 按市值排序
-  'LINK', // 17. Chainlink
-  'UNI', // 18. Uniswap
-  'AAVE', // 19. Aave
-  'MKR', // 20. Maker
-  'LDO', // 21. Lido DAO
-  'CRV', // 22. Curve
-  'SNX', // 23. Synthetix
-  'YFI', // 24. Yearn
-  'SUSHI', // 25. SushiSwap
-  'GMX', // 26. GMX
-  'DYDX', // 27. dYdX
-  'COMP', // 28. Compound
-  'BAL', // 29. Balancer
-  'FXS', // 30. Frax Share
-  '1INCH', // 31. 1inch
-  'RPL', // 32. Rocket Pool
+  'AAVE', // 25. Aave
+  'MKR', // 26. Maker
+  'COMP', // 27. Compound
+  'SNX', // 28. Synthetix
+  'CRV', // 29. Curve
+  'SUSHI', // 30. SushiSwap
+  'LDO', // 31. Lido DAO
+  'GMX', // 32. GMX
+  'GRT', // 33. The Graph
+  'APE', // 34. ApeCoin
+  'AXS', // 35. Axie Infinity
+  // Wrapped Assets
+  'WBTC', // 36. Wrapped Bitcoin
+  'STETH', // 37. Lido Staked Ether
+  // Layer 2 Tokens
+  'MNT', // 38. Mantle
+  // DeFi & Others
+  'RPL', // 39. Rocket Pool
+  'CVX', // 40. Convex Finance
+  'YFI', // 41. Yearn
+  '1INCH', // 42. 1inch
+  'CAKE', // 43. PancakeSwap
+  // Meme Tokens
+  'PEPE', // 44. Pepe
+  'WIF', // 45. dogwifhat
+  'BONK', // 46. Bonk
 ];
 
 export const TIME_RANGES = [

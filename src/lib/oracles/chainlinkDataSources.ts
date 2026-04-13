@@ -198,7 +198,7 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
       category: 'fiat',
     },
     42161: {
-      address: '0x3f3f5dF88dC9F13eac63DF89B16E7F7Ff7e1e6D6',
+      address: '0x3f3f5dF88dC9F13eac63DF89EC16ef6e7E25DdE7',
       name: 'USDT / USD',
       symbol: 'USDT',
       decimals: 8,
@@ -265,6 +265,339 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
       address: '0x14e613AC84a61f71ce32C3c567E5Ec1f7Ee4A7eE',
       name: 'BNB / USD',
       symbol: 'BNB',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  SOL: {
+    42161: {
+      address: '0x24ceA4b8ce57cdA5058b924B9B9987992450590c',
+      name: 'SOL / USD',
+      symbol: 'SOL',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  DOGE: {
+    42161: {
+      address: '0x9A7FB1b3950837a8D9b40517626E11D4127C098C',
+      name: 'DOGE / USD',
+      symbol: 'DOGE',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  SHIB: {
+    42161: {
+      address: '0x0E278D14B4bf6429dDB0a1B353e2Ae8A4e128C93',
+      name: 'SHIB / USD',
+      symbol: 'SHIB',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  UNI: {
+    42161: {
+      address: '0x9C917083fDb403ab5ADbEC26Ee294f6EcAda2720',
+      name: 'UNI / USD',
+      symbol: 'UNI',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  NEAR: {
+    42161: {
+      address: '0xBF5C3fB2633e924598A46B9D07a174a9DBcF57C0',
+      name: 'NEAR / USD',
+      symbol: 'NEAR',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  APT: {
+    42161: {
+      address: '0xdc49F292ad1bb3DAb6C11363d74ED06F38b9bd9C',
+      name: 'APT / USD',
+      symbol: 'APT',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  ARB: {
+    42161: {
+      address: '0xb2A824043730FE05F3DA2efaFa1CBbe83fa548D6',
+      name: 'ARB / USD',
+      symbol: 'ARB',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  OP: {
+    42161: {
+      address: '0x205aaD468a11fd5D34fA7211bC6Bad5b3deB9b98',
+      name: 'OP / USD',
+      symbol: 'OP',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  AAVE: {
+    42161: {
+      address: '0xaD1d5344AaDE45F43E596773Bcc4c423EAbdD034',
+      name: 'AAVE / USD',
+      symbol: 'AAVE',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  MKR: {
+    42161: {
+      address: '0xdE9f0894670c4EFcacF370426F10C3AD2Cdf147e',
+      name: 'MKR / USD',
+      symbol: 'MKR',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  COMP: {
+    42161: {
+      address: '0xe7C53FFd03Eb6ceF7d208bC4C13446c76d1E5884',
+      name: 'COMP / USD',
+      symbol: 'COMP',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  SNX: {
+    42161: {
+      address: '0x054296f0D036b95531B4E14aFB578B80CFb41252',
+      name: 'SNX / USD',
+      symbol: 'SNX',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  CRV: {
+    42161: {
+      address: '0xaebDA2c976cfd1eE1977Eac079B4382acb849325',
+      name: 'CRV / USD',
+      symbol: 'CRV',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  SUSHI: {
+    42161: {
+      address: '0xb2A8BA74cbca38508BA1632761b56C897060147C',
+      name: 'SUSHI / USD',
+      symbol: 'SUSHI',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  LDO: {
+    42161: {
+      address: '0xA43A34030088E6510FecCFb77E88ee5e7ed0fE64',
+      name: 'LDO / USD',
+      symbol: 'LDO',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  GMX: {
+    42161: {
+      address: '0xDB98056FecFff59D032aB628337A4887110df3dB',
+      name: 'GMX / USD',
+      symbol: 'GMX',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  GRT: {
+    42161: {
+      address: '0x0F38D86FceF4955B705F35c9e41d1A16e0637c73',
+      name: 'GRT / USD',
+      symbol: 'GRT',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  APE: {
+    42161: {
+      address: '0x221912ce795669f628c51c69b7d0873eDA9C03bB',
+      name: 'APE / USD',
+      symbol: 'APE',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  AXS: {
+    42161: {
+      address: '0x5B58aA6E0651Ae311864876A55411F481aD86080',
+      name: 'AXS / USD',
+      symbol: 'AXS',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  INJ: {
+    42161: {
+      address: '0x6aCcBB82aF71B8a576B4C05D4aF92A83A035B991',
+      name: 'INJ / USD',
+      symbol: 'INJ',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  SUI: {
+    42161: {
+      address: '0x4a85B128EBDaFC24d5CB611e161376ffDECeB289',
+      name: 'SUI / USD',
+      symbol: 'SUI',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  SEI: {
+    42161: {
+      address: '0xCc9742d77622eE9abBF1Df03530594f9097bDcB3',
+      name: 'SEI / USD',
+      symbol: 'SEI',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  TIA: {
+    42161: {
+      address: '0x4096b9bfB4c34497B7a3939D4f629cf65EBf5634',
+      name: 'TIA / USD',
+      symbol: 'TIA',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  TON: {
+    42161: {
+      address: '0x0301e5D0A8f7490444ebd1921E3d0f0fe7722786',
+      name: 'TON / USD',
+      symbol: 'TON',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  PEPE: {
+    42161: {
+      address: '0x02DEd5a7EDDA750E3Eb240b54437a54d57b74dBE',
+      name: 'PEPE / USD',
+      symbol: 'PEPE',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  WIF: {
+    42161: {
+      address: '0xF7Ee427318d2Bd0EEd3c63382D0d52Ad8A68f90D',
+      name: 'WIF / USD',
+      symbol: 'WIF',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  FRAX: {
+    42161: {
+      address: '0x0809E3d38d1B4214958faf06D8b1B1a2b73f2ab8',
+      name: 'FRAX / USD',
+      symbol: 'FRAX',
+      decimals: 8,
+      category: 'fiat',
+    },
+  },
+  LUSD: {
+    42161: {
+      address: '0x0411D28c94d85A36bC72Cb0f875dfA8371D8fFfF',
+      name: 'LUSD / USD',
+      symbol: 'LUSD',
+      decimals: 8,
+      category: 'fiat',
+    },
+  },
+  WBTC: {
+    42161: {
+      address: '0xd0C7101eACbB49F3deCcCc166d238410D6D46d57',
+      name: 'WBTC / USD',
+      symbol: 'WBTC',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  STETH: {
+    42161: {
+      address: '0x07C5b924399cc23c24a95c8743DE4006a32b7f2a',
+      name: 'STETH / USD',
+      symbol: 'STETH',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  MNT: {
+    42161: {
+      address: '0x37DDEE84dE03d039e1Bf809b7a01EDd2c4665771',
+      name: 'MNT / USD',
+      symbol: 'MNT',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  RPL: {
+    42161: {
+      address: '0xF0b7159BbFc341Cc41E7Cb182216F62c6d40533D',
+      name: 'RPL / USD',
+      symbol: 'RPL',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  CVX: {
+    42161: {
+      address: '0x851175a919f36c8e30197c09a9A49dA932c2CC00',
+      name: 'CVX / USD',
+      symbol: 'CVX',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  YFI: {
+    42161: {
+      address: '0x745Ab5b69E01E2BE1104Ca84937Bb71f96f5fB21',
+      name: 'YFI / USD',
+      symbol: 'YFI',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  '1INCH': {
+    42161: {
+      address: '0x4bC735Ef24bf286983024CAd5D03f0738865Aaef',
+      name: '1INCH / USD',
+      symbol: '1INCH',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  CAKE: {
+    42161: {
+      address: '0x256654437f1ADA8057684b18d742eFD14034C400',
+      name: 'CAKE / USD',
+      symbol: 'CAKE',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  BONK: {
+    42161: {
+      address: '0x3d9145b5804E13Bc14d19c3DDbd3DA8fD02b5034',
+      name: 'BONK / USD',
+      symbol: 'BONK',
       decimals: 8,
       category: 'crypto',
     },
