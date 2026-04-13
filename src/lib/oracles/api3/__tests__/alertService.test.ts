@@ -2269,7 +2269,7 @@ describe('Edge Cases Tests - 边界情况测试', () => {
         return true;
       };
 
-      const result = processAlert('alert-1');
+      const _result = processAlert('alert-1');
       expect(visited.size).toBeLessThanOrEqual(2);
     });
   });

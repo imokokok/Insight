@@ -1,7 +1,7 @@
 import { type ReactNode } from 'react';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { renderHook, act, waitFor } from '@testing-library/react';
+import { renderHook, act } from '@testing-library/react';
 
 import type { AlertEventPayload } from '@/lib/supabase/realtime';
 import { useUser } from '@/stores/authStore';

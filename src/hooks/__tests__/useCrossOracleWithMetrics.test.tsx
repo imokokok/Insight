@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { renderHook, act, waitFor } from '@testing-library/react';
 
 import { OracleClientFactory } from '@/lib/oracles';
-import { type PriceData, Blockchain, type OracleProvider } from '@/types/oracle';
+import { type PriceData, type OracleProvider } from '@/types/oracle';
 
 import { useCrossOracleWithMetrics } from '../oracles/useCrossOracleWithMetrics';
 

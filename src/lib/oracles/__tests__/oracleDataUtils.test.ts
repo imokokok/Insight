@@ -9,8 +9,6 @@ import {
   extractBaseSymbol,
 } from '../oracleDataUtils';
 
-import type { IOracleClient } from '../interfaces';
-
 jest.mock('@/lib/utils/logger', () => ({
   createLogger: () => ({
     info: jest.fn(),

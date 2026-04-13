@@ -134,7 +134,7 @@ describe('/api/auth/profile', () => {
 
       const request = createMockRequest({ body: { display_name: 'Updated Name' } });
       const response = await PUT(request);
-      const data = await response.json();
+      const _data = await response.json();
 
       expect(response.status).toBe(200);
       expect(data.profile.display_name).toBe('Updated Name');
@@ -209,7 +209,7 @@ describe('/api/auth/profile', () => {
         },
       });
       const response = await PUT(request);
-      const data = await response.json();
+      const _data = await response.json();
 
       expect(response.status).toBe(200);
     });

@@ -2,8 +2,6 @@
 
 import { ORACLE_CACHE_TTL } from '@/lib/oracles';
 
-import type { QueryClient } from '@tanstack/react-query';
-
 export interface CacheEntry<T> {
   data: T;
   timestamp: number;
@@ -171,60 +169,6 @@ export const historicalCache = new PriceQueryCache<unknown>(
 
 export function createCacheKey(...parts: (string | number)[]): string {
   return parts.filter(Boolean).join(':');
-}
-
-export function invalidatePriceCache(queryClient: QueryClient, pattern?: string): void {
-  if (pattern) {
-    queryClient.invalidateQueries({
-      queryKey: ['price-query', 'prices', pattern],
-    });
-  } else {
-    queryClient.invalidateQueries({
-      queryKey: ['price-query', 'prices'],
-    });
-  }
-}
-
-export function invalidateHistoricalCache(queryClient: QueryClient, pattern?: string): void {
-  if (pattern) {
-    queryClient.invalidateQueries({
-      queryKey: ['price-query', 'historical', pattern],
-    });
-  } else {
-    queryClient.invalidateQueries({
-      queryKey: ['price-query', 'historical'],
-    });
-  }
-}
-
-export function invalidateAllPriceQueryCache(queryClient: QueryClient): void {
-  queryClient.invalidateQueries({
-    queryKey: ['price-query'],
-  });
-}
-
-export function prefetchPriceData(
-  queryClient: QueryClient,
-  queryFn: () => Promise<unknown>,
-  queryKey: unknown[]
-): Promise<void> {
-  return queryClient.prefetchQuery({
-    queryKey,
-    queryFn,
-    staleTime: CACHE_CONFIG.PRICE_TTL,
-  });
-}
-
-export function prefetchHistoricalData(
-  queryClient: QueryClient,
-  queryFn: () => Promise<unknown>,
-  queryKey: unknown[]
-): Promise<void> {
-  return queryClient.prefetchQuery({
-    queryKey,
-    queryFn,
-    staleTime: CACHE_CONFIG.HISTORICAL_TTL,
-  });
 }
 
 export function getCacheAge(timestamp: number): number {
