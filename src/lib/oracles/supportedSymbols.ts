@@ -1,58 +1,54 @@
 // Chainlink 支持的币种（基于官方文档，按市值和流行度排序）
-// Chainlink 在以太坊上支持数百个交易对，这里列出主流币种
+// Ethereum 主网支持的交易对（21个）
+// Arbitrum 支持的交易对（43个，包含 Ethereum 的 21 个 + 22 个额外交易对）
 export const chainlinkSymbols = [
-  // Major Cryptocurrencies
+  // Ethereum Mainnet + Arbitrum (21个)
   'BTC',
   'ETH',
+  'LINK',
   'BNB',
   'SOL',
   'DOGE',
   'MATIC',
   'AVAX',
-  'LINK',
+  'USDT',
+  'USDC',
+  'DAI',
+  'AAVE',
+  'MKR',
+  'COMP',
+  'APE',
+  'LDO',
+  'YFI',
+  '1INCH',
+  'FRAX',
+  'WBTC',
+  'STETH',
+  // Arbitrum Only (22个)
   'SHIB',
   'UNI',
   'NEAR',
   'APT',
   'ARB',
   'OP',
-  // DeFi Tokens
-  'AAVE',
-  'MKR',
-  'COMP',
   'SNX',
   'CRV',
   'SUSHI',
-  'LDO',
   'GMX',
   'GRT',
-  'APE',
   'AXS',
   'INJ',
   'SUI',
   'SEI',
   'TIA',
   'TON',
-  // Stablecoins
-  'USDT',
-  'USDC',
-  'DAI',
-  'FRAX',
-  'LUSD',
-  // Wrapped Assets
-  'WBTC',
-  'STETH',
-  // Layer 2 Tokens
-  'MNT',
-  // DeFi & Others
-  'RPL',
-  'CVX',
-  'YFI',
-  '1INCH',
-  'CAKE',
-  // Meme Tokens
   'PEPE',
   'WIF',
+  'LUSD',
+  'MNT',
+  'RPL',
+  'CVX',
+  'CAKE',
   'BONK',
 ] as const;
 
