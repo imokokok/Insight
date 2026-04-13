@@ -19,7 +19,7 @@ import { queries, supabase } from '@/lib/supabase/client';
 import { useUser, useAuthActions } from '@/stores/authStore';
 
 export function DataManagementPanel() {
-  const t = useTranslations();
+  const t = useTranslations('settingsPage');
   const user = useUser();
   const { signOut } = useAuthActions();
   const [isExporting, setIsExporting] = useState(false);

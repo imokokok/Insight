@@ -127,7 +127,7 @@ const autoRefreshOptionKeys = [
 ];
 
 export function PreferencesPanel() {
-  const t = useTranslations();
+  const t = useTranslations('settingsPage');
   const user = useUser();
   const profile = useProfile();
   const authInitialized = useAuthInitialized();

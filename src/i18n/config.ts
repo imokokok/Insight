@@ -33,7 +33,7 @@ export const messageFilesConfig: MessageFileConfig[] = [
   { name: 'export', directory: 'components', namespace: 'export' },
   { name: 'favorites', directory: 'components' },
   { name: 'search', directory: 'components' },
-  { name: 'settings', directory: 'features' },
+  { name: 'settings', directory: 'features', namespace: 'settingsPage' },
   { name: 'auth', directory: 'features' },
   { name: 'methodology', directory: 'features' },
   { name: 'docs' },
