@@ -1,14 +1,5 @@
-// Shared utilities
 export { useLastUpdated } from './useLastUpdated';
 
-// Chainlink
-export { useChainlinkPrice, useChainlinkHistorical } from './chainlink';
-
-// Pyth
-export { usePythPrice, usePythHistorical } from './pyth';
-
-// RedStone
-export { useRedStonePrice, useRedStoneHistorical } from './redstone';
 export {
   useRedStoneOnChainData,
   formatChangeAmount,
@@ -18,8 +9,6 @@ export {
   type UseRedStoneOnChainDataReturn,
 } from './useRedStoneOnChainData';
 
-// DIA
-export { useDIAPrice, useDIAHistorical } from './dia';
 export {
   useDIAOnChainData,
   formatLargeNumber,
@@ -29,8 +18,6 @@ export {
   type UseDIAOnChainDataReturn,
 } from './useDIAOnChainData';
 
-// WINkLink
-export { useWINkLinkPrice, useWINkLinkHistoricalPrices } from './winklink';
 export {
   useWINkLinkOnChainData,
   formatContractAddress,
@@ -39,21 +26,3 @@ export {
   type UseWINkLinkOnChainDataOptions,
   type UseWINkLinkOnChainDataReturn,
 } from './useWINkLinkOnChainData';
-
-// API3
-export { useAPI3Price, useAPI3Historical } from './api3/index';
-
-// Unified Oracle Page Hook removed - no longer needed
-
-// Performance Metrics Hook
-export {
-  useCalculatedPerformanceMetrics,
-  type OraclePriceResult,
-} from './useCalculatedPerformanceMetrics';
-
-// Cross Oracle with Metrics Hook
-export {
-  useCrossOracleWithMetrics,
-  type UseCrossOracleWithMetricsOptions,
-  type UseCrossOracleWithMetricsReturn,
-} from './useCrossOracleWithMetrics';
