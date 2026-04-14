@@ -4,6 +4,7 @@ import {
   validateProvider,
   validatePeriod,
   validateSymbol,
+  validateChain,
   handleGetPrice,
   handleGetHistoricalPrices,
   createUnexpectedErrorResponse,
@@ -45,6 +46,11 @@ export async function GET(
     if (periodError) return periodError;
 
     const chainValue = chain ? (chain as Blockchain) : undefined;
+
+    if (chain) {
+      const chainError = validateChain(chain);
+      if (chainError) return chainError;
+    }
 
     if (periodNum) {
       return handleGetHistoricalPrices({

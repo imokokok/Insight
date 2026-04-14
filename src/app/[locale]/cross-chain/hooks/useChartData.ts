@@ -128,11 +128,15 @@ export function useChartData(params: UseChartDataParams): UseChartDataReturn {
       return validPrices.reduce((a, b) => a + b, 0) / period;
     };
 
+    const chainPriceMaps: Partial<Record<Blockchain, Map<number, PriceData>>> = {};
+    filteredChains.forEach((chain) => {
+      chainPriceMaps[chain] = new Map(historicalPrices[chain]?.map((p) => [p.timestamp, p]) || []);
+    });
+
     const chainPriceArrays: Partial<Record<Blockchain, (number | undefined)[]>> = {};
     filteredChains.forEach((chain) => {
       chainPriceArrays[chain] = sortedTimestamps.map((timestamp) => {
-        const price = historicalPrices[chain]?.find((p) => p.timestamp === timestamp);
-        return price?.price;
+        return chainPriceMaps[chain]?.get(timestamp)?.price;
       });
     });
 
@@ -142,9 +146,9 @@ export function useChartData(params: UseChartDataParams): UseChartDataReturn {
         time: new Date(timestamp).toLocaleString([], getTimeFormat()),
       };
       filteredChains.forEach((chain) => {
-        const price = historicalPrices[chain]?.find((p) => p.timestamp === timestamp);
-        if (price) {
-          dataPoint[chain] = price.price;
+        const priceData = chainPriceMaps[chain]?.get(timestamp);
+        if (priceData) {
+          dataPoint[chain] = priceData.price;
           const prices = chainPriceArrays[chain] || [];
           const ma7 = calculateMA(prices, 7, index);
           const ma20 = calculateMA(prices, 20, index);
@@ -312,10 +316,8 @@ export function useChartData(params: UseChartDataParams): UseChartDataReturn {
       const sorted = [...prices].sort((a, b) => a - b);
       const n = sorted.length;
 
-      const q1Index = Math.floor(n * 0.25);
-      const q3Index = Math.floor(n * 0.75);
-      const q1 = sorted[q1Index];
-      const q3 = sorted[q3Index];
+      const q1 = calculatePercentile(sorted, 25);
+      const q3 = calculatePercentile(sorted, 75);
       const iqr = q3 - q1;
       const lowerBound = q1 - 1.5 * iqr;
       const upperBound = q3 + 1.5 * iqr;

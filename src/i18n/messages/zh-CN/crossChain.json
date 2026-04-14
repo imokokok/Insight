@@ -108,6 +108,7 @@
     },
     "dataIntegrity": "数据完整性",
     "priceJumpFrequency": "价格跳动频率",
+    "jumpCount": "{count} 次",
     "priceJumps": "价格跳动",
     "detailComparison": "详细对比",
     "priceTrendComparison": "价格趋势对比",

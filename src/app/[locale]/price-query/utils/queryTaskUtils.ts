@@ -2,7 +2,7 @@
 
 import type { OracleClientFactory } from '@/lib/oracles';
 import type { BaseOracleClient } from '@/lib/oracles/base';
-import type { Blockchain, OracleProvider, PriceData } from '@/types/oracle';
+import { type Blockchain, OracleProvider, type PriceData } from '@/types/oracle';
 
 import type { QueryResult } from '../constants';
 
@@ -41,37 +41,21 @@ export async function limitConcurrency<T, R>(
   maxConcurrent: number
 ): Promise<PromiseSettledResult<R>[]> {
   const results: PromiseSettledResult<R>[] = new Array(items.length);
-  const executing: Promise<void>[] = [];
+  let nextIndex = 0;
 
-  for (let i = 0; i < items.length; i++) {
-    const item = items[i];
-    const index = i;
-
-    // 创建执行promise，但不立即启动
-    const executePromise = async (): Promise<void> => {
+  async function runWorker(): Promise<void> {
+    while (nextIndex < items.length) {
+      const index = nextIndex++;
       try {
-        const result = await handler(item);
-        results[index] = { status: 'fulfilled', value: result };
+        results[index] = { status: 'fulfilled', value: await handler(items[index]) };
       } catch (reason) {
         results[index] = { status: 'rejected', reason };
       }
-    };
-
-    // 启动执行
-    const promise = executePromise();
-
-    const wrapped = promise.then(() => {
-      const idx = executing.indexOf(wrapped);
-      if (idx > -1) executing.splice(idx, 1);
-    });
-    executing.push(wrapped);
-
-    if (executing.length >= maxConcurrent) {
-      await Promise.race(executing);
     }
   }
 
-  await Promise.all(executing);
+  const workers = Array.from({ length: Math.min(maxConcurrent, items.length) }, () => runWorker());
+  await Promise.all(workers);
   return results;
 }
 
@@ -96,16 +80,32 @@ export function buildQueryTasks(
   const compareTasks: QueryTask[] = [];
   let totalQueries = 0;
 
-  if (selectedOracle && selectedChain) {
-    const client = oracleClientFactory.getClient(selectedOracle);
-    const supportedChains = client.supportedChains;
+  const allProviders = selectedOracle ? [selectedOracle] : Object.values(OracleProvider);
 
-    if (supportedChains.includes(selectedChain)) {
-      totalQueries = 1;
+  for (const provider of allProviders) {
+    let client: BaseOracleClient;
+    try {
+      client = oracleClientFactory.getClient(provider);
+    } catch {
+      continue;
+    }
+
+    if (!client.isSymbolSupported(selectedSymbol)) {
+      continue;
+    }
+
+    const chains = selectedChain ? [selectedChain] : client.supportedChains;
+
+    for (const chain of chains) {
+      if (!client.supportedChains.includes(chain)) {
+        continue;
+      }
+
+      totalQueries++;
 
       primaryTasks.push({
-        provider: selectedOracle,
-        chain: selectedChain,
+        provider,
+        chain,
         client,
         timeRange: selectedTimeRange,
         isCompare: false,
@@ -113,8 +113,8 @@ export function buildQueryTasks(
 
       if (isCompareMode) {
         compareTasks.push({
-          provider: selectedOracle,
-          chain: selectedChain,
+          provider,
+          chain,
           client,
           timeRange: compareTimeRange,
           isCompare: true,

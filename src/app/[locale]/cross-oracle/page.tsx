@@ -43,11 +43,11 @@ export default function CrossOraclePage() {
     anomalyDetection,
 
     // 质量评分
-    qualityScore,
+    qualityScore: _qualityScore,
 
     // 性能指标
-    performanceMetrics,
-    isCalculatingMetrics,
+    performanceMetrics: _performanceMetrics,
+    isCalculatingMetrics: _isCalculatingMetrics,
 
     // 错误处理
     oracleDataError,
@@ -88,11 +88,11 @@ export default function CrossOraclePage() {
   // 从 anomalyDetection 中提取异常数据
   const {
     anomalies,
-    count: anomalyCount,
-    highRiskCount,
-    mediumRiskCount,
-    lowRiskCount,
-    maxDeviation,
+    count: _anomalyCount,
+    highRiskCount: _highRiskCount,
+    mediumRiskCount: _mediumRiskCount,
+    lowRiskCount: _lowRiskCount,
+    maxDeviation: _maxDeviation,
   } = anomalyDetection;
 
   // Keyboard shortcuts
@@ -108,18 +108,6 @@ export default function CrossOraclePage() {
       chain: null,
     }),
     [selectedOracles]
-  );
-
-  // 构建 qualityScore 对象
-  const qualityScoreDataMemo = useMemo(
-    () => ({
-      overall: qualityScore?.overall || 85,
-      consistency: qualityScore?.consistency || 88,
-      freshness: qualityScore?.freshness || 92,
-      completeness: qualityScore?.completeness || 75,
-      suggestions: qualityScore?.suggestions || [],
-    }),
-    [qualityScore]
   );
 
   // 预言机颜色配置 - 使用统一的颜色配置文件
@@ -218,7 +206,6 @@ export default function CrossOraclePage() {
             priceData={priceData}
             selectedOracles={selectedOracles}
             selectedSymbol={selectedSymbol}
-            timeRange={timeRange}
             isLoading={isLoading}
             queryProgress={queryProgress}
             currentQueryTarget={currentQueryTarget}
@@ -231,18 +218,9 @@ export default function CrossOraclePage() {
             standardDeviationPercent={standardDeviationPercent}
             validPrices={validPrices}
             anomalies={anomalies}
-            anomalyCount={anomalyCount}
-            highRiskCount={highRiskCount}
-            mediumRiskCount={mediumRiskCount}
-            lowRiskCount={lowRiskCount}
-            maxDeviation={maxDeviation}
-            qualityScore={qualityScoreDataMemo}
-            oracleFeatures={[]}
             historicalData={historicalData}
             oracleColors={oracleChartColors}
             onRefresh={() => {}}
-            performanceMetrics={performanceMetrics}
-            isCalculatingMetrics={isCalculatingMetrics}
             oracleDataError={oracleDataError}
             retryOracle={retryOracle}
             retryAllFailed={retryAllFailed}

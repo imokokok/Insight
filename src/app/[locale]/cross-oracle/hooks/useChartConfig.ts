@@ -191,17 +191,15 @@ export function useChartConfig({
 
   // 生成性能数据
   const performanceData = useMemo(() => {
-    return selectedOracles.map((oracle, index) => {
+    const metricsMap = new Map(performanceMetrics.map((m) => [m.provider, m]));
+
+    return selectedOracles.map((oracle) => {
       const history = historicalData[oracle] || [];
       const prices = history.map((h) => h.price);
+      const metric = metricsMap.get(oracle);
 
-      // 计算响应时间（模拟）
-      const responseTime = 150 + index * 50;
-
-      // 计算准确率（基于数据完整性）- 使用确定性值
-      const accuracy = prices.length > 0 ? Math.min(95 + ((index * 7) % 5), 99.9) : 0;
-
-      // 计算稳定性（基于价格波动）
+      const responseTime = metric?.responseTime ?? 0;
+      const accuracy = metric?.accuracy ?? (prices.length > 0 ? 95 : 0);
       const stability =
         prices.length > 1 ? Math.max(80, 100 - (calculateStdDev(prices) / avgPrice) * 100) : 0;
 
@@ -214,7 +212,7 @@ export function useChartConfig({
         color: oracleChartColors[oracle],
       };
     });
-  }, [selectedOracles, historicalData, oracleChartColors, avgPrice]);
+  }, [selectedOracles, historicalData, oracleChartColors, avgPrice, performanceMetrics]);
 
   // 计算历史极值
   const historyMinMax = useMemo((): HistoryMinMax => {
@@ -227,16 +225,72 @@ export function useChartConfig({
     const currentMin = Math.min(...validPrices);
     const currentRange = currentMax - currentMin;
 
+    let histAvgMin = currentAvg;
+    let histAvgMax = currentAvg;
+    const histWavgMin = Infinity;
+    const histWavgMax = -Infinity;
+    let histMaxMin = currentMax;
+    let histMaxMax = currentMax;
+    let histMinMax = currentMin;
+    let histMinMax2 = currentMin;
+    let histRangeMin = currentRange;
+    let histRangeMax = currentRange;
+    let histStdDevPctMin = Infinity;
+    let histStdDevPctMax = -Infinity;
+    let histVarMin = Infinity;
+    let histVarMax = -Infinity;
+
+    selectedOracles.forEach((oracle) => {
+      const history = historicalData[oracle] || [];
+      if (history.length === 0) return;
+
+      const prices = history.map((h) => h.price).filter((p) => p > 0);
+      if (prices.length === 0) return;
+
+      const avg = prices.reduce((a, b) => a + b, 0) / prices.length;
+      histAvgMin = Math.min(histAvgMin, avg);
+      histAvgMax = Math.max(histAvgMax, avg);
+
+      const max = Math.max(...prices);
+      const min = Math.min(...prices);
+      histMaxMin = Math.min(histMaxMin, max);
+      histMaxMax = Math.max(histMaxMax, max);
+      histMinMax = Math.min(histMinMax, min);
+      histMinMax2 = Math.max(histMinMax2, min);
+
+      const range = max - min;
+      histRangeMin = Math.min(histRangeMin, range);
+      histRangeMax = Math.max(histRangeMax, range);
+
+      const variance = prices.reduce((sum, p) => sum + Math.pow(p - avg, 2), 0) / prices.length;
+      histVarMin = Math.min(histVarMin, variance);
+      histVarMax = Math.max(histVarMax, variance);
+
+      const stdDev = Math.sqrt(variance);
+      const stdDevPct = avg > 0 ? (stdDev / avg) * 100 : 0;
+      histStdDevPctMin = Math.min(histStdDevPctMin, stdDevPct);
+      histStdDevPctMax = Math.max(histStdDevPctMax, stdDevPct);
+    });
+
     return {
-      avgPrice: { min: currentAvg, max: currentAvg },
-      maxPrice: { min: currentMax, max: currentMax },
-      minPrice: { min: currentMin, max: currentMin },
-      priceRange: { min: currentRange, max: currentRange },
-      weightedAvgPrice: { min: Infinity, max: -Infinity },
-      standardDeviationPercent: { min: Infinity, max: -Infinity },
-      variance: { min: Infinity, max: -Infinity },
+      avgPrice: { min: histAvgMin, max: histAvgMax },
+      weightedAvgPrice: {
+        min: histWavgMin === Infinity ? currentAvg : histWavgMin,
+        max: histWavgMax === -Infinity ? currentAvg : histWavgMax,
+      },
+      maxPrice: { min: histMaxMin, max: histMaxMax },
+      minPrice: { min: histMinMax, max: histMinMax2 },
+      priceRange: { min: histRangeMin, max: histRangeMax },
+      standardDeviationPercent: {
+        min: histStdDevPctMin === Infinity ? 0 : histStdDevPctMin,
+        max: histStdDevPctMax === -Infinity ? 0 : histStdDevPctMax,
+      },
+      variance: {
+        min: histVarMin === Infinity ? 0 : histVarMin,
+        max: histVarMax === -Infinity ? 0 : histVarMax,
+      },
     };
-  }, [validPrices]);
+  }, [validPrices, historicalData, selectedOracles]);
 
   return {
     oracleChartColors,

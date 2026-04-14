@@ -187,6 +187,13 @@ export function useStatistics(params: UseStatisticsParams): UseStatisticsReturn 
     const basePrices = historicalPrices[baseChain] || [];
     if (basePrices.length === 0) return delays;
 
+    const chainTimestampMaps: Partial<Record<Blockchain, Map<number, PriceData>>> = {};
+    filteredChains.forEach((chain) => {
+      chainTimestampMaps[chain] = new Map(
+        (historicalPrices[chain] || []).map((p) => [p.timestamp, p])
+      );
+    });
+
     filteredChains.forEach((chain) => {
       if (chain === baseChain) {
         delays[chain] = { avgDelay: 0, maxDelay: 0 };
@@ -196,24 +203,32 @@ export function useStatistics(params: UseStatisticsParams): UseStatisticsReturn 
       const chainPrices = historicalPrices[chain] || [];
       if (chainPrices.length === 0) return;
 
+      const chainTimestamps = chainPrices.map((p) => p.timestamp).sort((a, b) => a - b);
+
       const matchedDelays: number[] = [];
       basePrices.forEach((basePrice) => {
-        let closestChainPrice: PriceData | null = null;
-        let minDiff = Infinity;
+        const baseTimestamp = basePrice.timestamp;
 
-        chainPrices.forEach((chainPrice) => {
-          const diff = Math.abs(chainPrice.timestamp - basePrice.timestamp);
+        let lo = 0;
+        let hi = chainTimestamps.length - 1;
+        let closestTs = chainTimestamps[0];
+        let minDiff = Math.abs(closestTs - baseTimestamp);
+
+        while (lo <= hi) {
+          const mid = Math.floor((lo + hi) / 2);
+          const diff = Math.abs(chainTimestamps[mid] - baseTimestamp);
           if (diff < minDiff) {
             minDiff = diff;
-            closestChainPrice = chainPrice;
+            closestTs = chainTimestamps[mid];
           }
-        });
-
-        if (closestChainPrice) {
-          matchedDelays.push(
-            Math.abs((closestChainPrice as PriceData).timestamp - basePrice.timestamp) / 1000
-          );
+          if (chainTimestamps[mid] < baseTimestamp) {
+            lo = mid + 1;
+          } else {
+            hi = mid - 1;
+          }
         }
+
+        matchedDelays.push(Math.abs(closestTs - baseTimestamp) / 1000);
       });
 
       if (matchedDelays.length > 0) {

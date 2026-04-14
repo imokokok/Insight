@@ -157,7 +157,6 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
   const exportHandlers = useExport({
     priceData,
     avgPrice: priceStats.avgPrice,
-    validPrices: priceStats.validPrices,
     selectedSymbol,
     selectedOracles,
     stats: priceStats.currentStats,
@@ -274,30 +273,6 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
   }, []);
 
   // ==========================================================================
-  // 质量分数数据（兼容旧格式）
-  // ==========================================================================
-  const qualityScoreData = useMemo(() => {
-    const lastUpdatedTime = lastUpdated?.getTime() ?? 0;
-    const freshnessScore = lastUpdatedTime > 0 ? 100 : 0;
-
-    return {
-      freshness: {
-        lastUpdated: lastUpdated || new Date(),
-        freshnessScore,
-      },
-      completeness: {
-        successCount: priceData.length,
-        totalCount: selectedOracles.length,
-      },
-      reliability: {
-        historicalAccuracy: 98.5,
-        responseSuccessRate:
-          selectedOracles.length > 0 ? (priceData.length / selectedOracles.length) * 100 : 0,
-      },
-    };
-  }, [priceData.length, selectedOracles.length, lastUpdated]);
-
-  // ==========================================================================
   // 技术指标数据（简化版）
   // ==========================================================================
   const technicalIndicators = useMemo(() => {
@@ -385,7 +360,6 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
 
     // 数据质量
     qualityScore,
-    qualityScoreData,
 
     // 图表配置
     chartConfig,

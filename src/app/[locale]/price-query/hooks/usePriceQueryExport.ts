@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useCallback } from 'react';
 
 import { useTranslations } from '@/i18n';
 import { type OracleProvider, type Blockchain } from '@/lib/oracles';
@@ -16,8 +16,6 @@ export interface UsePriceQueryExportParams {
 }
 
 export interface UsePriceQueryExportReturn {
-  showExportConfig: boolean;
-  setShowExportConfig: (show: boolean) => void;
   generateFilename: (extension: string) => string;
   handleExportCSV: () => void;
   handleExportJSON: () => void;
@@ -26,8 +24,6 @@ export interface UsePriceQueryExportReturn {
 export function usePriceQueryExport(params: UsePriceQueryExportParams): UsePriceQueryExportReturn {
   const { queryResults, selectedSymbol, selectedOracles, selectedChains } = params;
   const t = useTranslations();
-
-  const [showExportConfig, setShowExportConfig] = useState(false);
 
   const generateFilename = useCallback(
     (extension: string): string => {
@@ -105,8 +101,6 @@ export function usePriceQueryExport(params: UsePriceQueryExportParams): UsePrice
   }, [queryResults, selectedSymbol, selectedOracles, selectedChains, generateFilename]);
 
   return {
-    showExportConfig,
-    setShowExportConfig,
     generateFilename,
     handleExportCSV,
     handleExportJSON,

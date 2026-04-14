@@ -146,14 +146,17 @@ export function useCrossChainData(): UseCrossChainDataReturn {
     medianPrice: statistics.medianPrice,
   });
 
-  const sortedPriceDifferences = useMemo(() => {
+  const dynamicThreshold = useMemo(() => {
     const thresholdConfig = useCrossChainConfigStore.getState().thresholdConfig;
     const allHistoricalPrices: number[] = [];
     filteredChains.forEach((chain) => {
       const prices = historicalPrices[chain]?.map((p) => p.price) || [];
       allHistoricalPrices.push(...prices);
     });
-    const dynamicThreshold = calculateDynamicThreshold(allHistoricalPrices, thresholdConfig);
+    return calculateDynamicThreshold(allHistoricalPrices, thresholdConfig);
+  }, [historicalPrices, filteredChains]);
+
+  const sortedPriceDifferences = useMemo(() => {
     let filtered = [...chartDataResult.priceDifferences];
 
     if (tableFilter === 'abnormal') {
@@ -193,22 +196,14 @@ export function useCrossChainData(): UseCrossChainDataReturn {
     sortDirection,
     selectedBaseChain,
     tableFilter,
-    historicalPrices,
-    filteredChains,
+    dynamicThreshold,
   ]);
 
   const chainsWithHighDeviation = useMemo(() => {
-    const thresholdConfig = useCrossChainConfigStore.getState().thresholdConfig;
-    const allHistoricalPrices: number[] = [];
-    filteredChains.forEach((chain) => {
-      const prices = historicalPrices[chain]?.map((p) => p.price) || [];
-      allHistoricalPrices.push(...prices);
-    });
-    const dynamicThreshold = calculateDynamicThreshold(allHistoricalPrices, thresholdConfig);
     return chartDataResult.priceDifferences.filter(
       (item) => Math.abs(item.diffPercent) > dynamicThreshold
     );
-  }, [chartDataResult.priceDifferences, historicalPrices, filteredChains]);
+  }, [chartDataResult.priceDifferences, dynamicThreshold]);
 
   const exportHook = useExport({
     selectedProvider,
@@ -277,8 +272,9 @@ export function useCrossChainData(): UseCrossChainDataReturn {
   ]);
 
   useEffect(() => {
+    const timerRef = refreshSuccessTimerRef;
     return () => {
-      if (refreshSuccessTimerRef.current) clearTimeout(refreshSuccessTimerRef.current);
+      if (timerRef.current) clearTimeout(timerRef.current);
     };
   }, []);
 

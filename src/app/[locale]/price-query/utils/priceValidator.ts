@@ -5,6 +5,7 @@ export interface AnomalyInfo {
   type: 'price_spike' | 'price_drop' | 'stale_data' | 'future_timestamp' | 'gap_in_data';
   severity: 'low' | 'medium' | 'high';
   message: string;
+  code: string;
   dataPoint?: PriceData;
 }
 
@@ -60,19 +61,19 @@ export function validatePrice(
 
   if (typeof price !== 'number' || isNaN(price)) {
     result.isValid = false;
-    result.errors.push('价格必须是有效数字');
+    result.errors.push('PRICE_INVALID_NUMBER');
     return result;
   }
 
   if (price <= 0) {
     result.isValid = false;
-    result.errors.push('价格必须为正数');
+    result.errors.push('PRICE_MUST_BE_POSITIVE');
     return result;
   }
 
   if (!isFinite(price)) {
     result.isValid = false;
-    result.errors.push('价格不能为无穷大');
+    result.errors.push('PRICE_MUST_BE_FINITE');
     return result;
   }
 
@@ -83,13 +84,12 @@ export function validatePrice(
 
     if (price < range.min || price > range.max) {
       result.isValid = false;
-      result.errors.push(
-        `价格 ${price} 超出 ${upperSymbol} 的合理范围 [${range.min}, ${range.max}]`
-      );
+      result.errors.push(`PRICE_OUT_OF_RANGE:${upperSymbol}:${price}:${range.min}:${range.max}`);
       result.anomalies.push({
         type: price > range.max ? 'price_spike' : 'price_drop',
         severity: 'high',
-        message: `价格 ${price} 超出 ${upperSymbol} 的合理范围 [${range.min}, ${range.max}]`,
+        message: `Price ${price} is out of ${upperSymbol} valid range [${range.min}, ${range.max}]`,
+        code: price > range.max ? 'PRICE_SPIKE' : 'PRICE_DROP',
       });
       return result;
     }
@@ -105,10 +105,11 @@ export function validatePrice(
       result.anomalies.push({
         type: anomalyType,
         severity,
-        message: `价格在短时间内变化 ${changePercent.toFixed(2)}%，超过阈值 ${PRICE_CHANGE_THRESHOLD_PERCENT}%`,
+        message: `Price changed ${changePercent.toFixed(2)}% in short time, exceeding threshold ${PRICE_CHANGE_THRESHOLD_PERCENT}%`,
+        code: anomalyType === 'price_spike' ? 'PRICE_SPIKE' : 'PRICE_DROP',
       });
 
-      result.warnings.push(`检测到异常价格变化: ${changePercent.toFixed(2)}%`);
+      result.warnings.push(`PRICE_CHANGE_DETECTED:${changePercent.toFixed(2)}%`);
     }
   }
 
@@ -125,7 +126,7 @@ export function validateTimestamp(timestamp: number, maxAge?: number): PriceVali
 
   if (typeof timestamp !== 'number' || isNaN(timestamp)) {
     result.isValid = false;
-    result.errors.push('时间戳必须是有效数字');
+    result.errors.push('TIMESTAMP_INVALID_NUMBER');
     return result;
   }
 
@@ -134,11 +135,12 @@ export function validateTimestamp(timestamp: number, maxAge?: number): PriceVali
 
   if (timestamp > now) {
     result.isValid = false;
-    result.errors.push('时间戳不能在未来');
+    result.errors.push('TIMESTAMP_IN_FUTURE');
     result.anomalies.push({
       type: 'future_timestamp',
       severity: 'high',
-      message: `时间戳 ${new Date(timestamp).toISOString()} 在当前时间之后`,
+      message: `Timestamp ${new Date(timestamp).toISOString()} is in the future`,
+      code: 'FUTURE_TIMESTAMP',
     });
     return result;
   }
@@ -146,11 +148,12 @@ export function validateTimestamp(timestamp: number, maxAge?: number): PriceVali
   const age = now - timestamp;
   if (age > maxAgeMs) {
     const ageMinutes = Math.floor(age / 60000);
-    result.warnings.push(`数据已过期，距今 ${ageMinutes} 分钟`);
+    result.warnings.push(`STALE_DATA:${ageMinutes}min`);
     result.anomalies.push({
       type: 'stale_data',
       severity: age >= maxAgeMs * 3 ? 'high' : age >= maxAgeMs * 2 ? 'medium' : 'low',
-      message: `数据距今已 ${ageMinutes} 分钟，超过最大有效期 ${Math.floor(maxAgeMs / 60000)} 分钟`,
+      message: `Data is ${ageMinutes} minutes old, exceeding max age of ${Math.floor(maxAgeMs / 60000)} minutes`,
+      code: 'STALE_DATA',
     });
   }
 
@@ -167,12 +170,12 @@ export function validateTimeSeries(data: PriceData[]): PriceValidationResult {
 
   if (!Array.isArray(data)) {
     result.isValid = false;
-    result.errors.push('数据必须是数组');
+    result.errors.push('TIMESERIES_MUST_BE_ARRAY');
     return result;
   }
 
   if (data.length === 0) {
-    result.warnings.push('时间序列数据为空');
+    result.warnings.push('TIMESERIES_EMPTY');
     return result;
   }
 
@@ -213,10 +216,11 @@ export function validateTimeSeries(data: PriceData[]): PriceValidationResult {
             : gap > MAX_GAP_TOLERANCE_MS * 3
               ? 'medium'
               : 'low',
-        message: `时间序列存在 ${gapMinutes} 分钟的数据间隙`,
+        message: `Time series gap of ${gapMinutes} minutes detected`,
+        code: 'GAP_IN_DATA',
         dataPoint: sortedData[i],
       });
-      result.warnings.push(`检测到数据间隙: ${gapMinutes} 分钟`);
+      result.warnings.push(`GAP_IN_DATA:${gapMinutes}min`);
     }
 
     const priceValidation = validatePrice(sortedData[i].price, sortedData[i - 1].price);

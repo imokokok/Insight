@@ -59,17 +59,8 @@ export const useCrossChainDataStore = create<CrossChainDataStore>()(
       }),
       {
         name: 'cross-chain-data-store',
-        storage: createJSONStorage(() => localStorage),
-        partialize: (state) => ({
-          lastUpdated: state.lastUpdated?.toISOString(),
-        }),
-        onRehydrateStorage: () => (state) => {
-          if (state && state.lastUpdated) {
-            (state as { lastUpdated: Date | null }).lastUpdated = new Date(
-              String(state.lastUpdated)
-            );
-          }
-        },
+        storage: createJSONStorage(() => sessionStorage),
+        partialize: (_state) => ({}),
       }
     ),
     { name: 'CrossChainDataStore' }

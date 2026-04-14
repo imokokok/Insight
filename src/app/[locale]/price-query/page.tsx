@@ -27,46 +27,46 @@ export default function PriceQueryPage() {
   const priceQuery = usePriceQuery();
 
   const {
-    selectedOracle,
-    setSelectedOracle,
-    selectedChain,
-    setSelectedChain,
-    selectedSymbol,
-    setSelectedSymbol,
-    selectedTimeRange,
-    setSelectedTimeRange,
-    queryResults,
-    historicalData,
-    isLoading,
-    queryDuration,
-    queryProgress,
-    currentQueryTarget,
-    showExportConfig,
-    setShowExportConfig,
-    chartContainerRef,
-    chartData,
-    validPrices,
-    avgPrice,
-    avgChange24hPercent,
-    maxPrice,
-    minPrice,
-    priceRange,
-    standardDeviation,
-    standardDeviationPercent,
-    supportedChainsBySelectedOracles,
-    fetchQueryData,
-    handleExportCSV,
-    handleExportJSON,
+    state: {
+      selectedOracle,
+      setSelectedOracle,
+      selectedChain,
+      setSelectedChain,
+      selectedSymbol,
+      setSelectedSymbol,
+      selectedTimeRange,
+      setSelectedTimeRange,
+      showExportConfig,
+      setShowExportConfig,
+      showFavoritesDropdown,
+      setShowFavoritesDropdown,
+    },
+    data: { queryResults, historicalData, chartData, supportedChainsBySelectedOracles },
+    stats: {
+      validPrices,
+      avgPrice,
+      avgChange24hPercent,
+      maxPrice,
+      minPrice,
+      priceRange,
+      standardDeviation,
+      standardDeviationPercent,
+    },
+    query: {
+      isLoading,
+      queryDuration,
+      queryProgress,
+      currentQueryTarget,
+      queryErrors,
+      clearErrors,
+      retryDataSource,
+      retryAllErrors,
+      fetchQueryData,
+    },
+    actions: { handleExportCSV, handleExportJSON, handleApplyFavorite },
+    refs: { chartContainerRef, favoritesDropdownRef },
     symbolFavorites,
     currentFavoriteConfig,
-    showFavoritesDropdown,
-    setShowFavoritesDropdown,
-    favoritesDropdownRef,
-    handleApplyFavorite,
-    queryErrors,
-    clearErrors,
-    retryDataSource,
-    retryAllErrors,
   } = priceQuery;
 
   // 获取DIA链上数据（当选择DIA预言机或没有特定预言机时）
@@ -238,7 +238,9 @@ export default function PriceQueryPage() {
           latency={queryDuration ?? undefined}
           lastUpdate={
             queryResults.length > 0
-              ? new Date(Math.max(...queryResults.map((r) => r.priceData?.timestamp || 0)))
+              ? new Date(
+                  queryResults.reduce((max, r) => Math.max(max, r.priceData?.timestamp || 0), 0)
+                )
               : undefined
           }
         />

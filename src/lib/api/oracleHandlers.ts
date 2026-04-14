@@ -17,6 +17,7 @@ import {
   type Blockchain,
   type PriceData,
   ORACLE_PROVIDER_VALUES,
+  BLOCKCHAIN_VALUES,
 } from '@/types/oracle';
 
 const logger = createLogger('OracleHandlers');
@@ -141,6 +142,24 @@ export function validatePeriod(period: number | undefined): NextResponse | null 
           max: 365,
         },
       })
+    );
+  }
+  return null;
+}
+
+export function validateChain(chain: string): NextResponse | null {
+  if (!BLOCKCHAIN_VALUES.includes(chain as Blockchain)) {
+    return errorToResponse(
+      new ValidationError(
+        `Invalid chain: ${chain}. Valid chains: ${BLOCKCHAIN_VALUES.join(', ')}`,
+        {
+          field: 'chain',
+          value: chain,
+          constraints: {
+            allowedValues: BLOCKCHAIN_VALUES.join(', '),
+          },
+        }
+      )
     );
   }
   return null;
@@ -285,8 +304,27 @@ export async function handleGetPrice(params: OracleQueryParams) {
 }
 
 export async function handleGetHistoricalPrices(params: OracleQueryParams) {
-  const data = await fetchHistoricalFromOracle(params);
-  return createHistoryResponse(data);
+  try {
+    logger.info('Fetching historical prices', {
+      provider: params.provider,
+      symbol: params.symbol,
+      chain: params.chain,
+      period: params.period,
+    });
+    const data = await fetchHistoricalFromOracle(params);
+    logger.info('Historical prices fetched successfully', {
+      provider: params.provider,
+      symbol: params.symbol,
+      chain: params.chain,
+      dataPoints: data.length,
+    });
+    return createHistoryResponse(data);
+  } catch (error) {
+    logger.error(
+      `Error fetching historical prices for ${params.provider}/${params.symbol}/${params.chain}: ${error instanceof Error ? error.message : String(error)}`
+    );
+    return handleOracleError(error);
+  }
 }
 
 export async function handleBatchPrices(requests: BatchPriceRequest[]) {

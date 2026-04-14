@@ -8,7 +8,7 @@ interface UIState {
   showMA: boolean;
   maPeriod: number;
   chartKey: number;
-  hiddenLines: Set<string>;
+  hiddenLines: string[];
   focusedChain: Blockchain | null;
   tableFilter: 'all' | 'abnormal' | 'normal';
   hoveredCell: { xChain: Blockchain; yChain: Blockchain; x: number; y: number } | null;
@@ -23,7 +23,7 @@ interface CrossChainUIStore extends UIState {
   setShowMA: (show: boolean) => void;
   setMaPeriod: (period: number) => void;
   setChartKey: (key: number) => void;
-  setHiddenLines: (lines: Set<string>) => void;
+  setHiddenLines: (lines: string[]) => void;
   setFocusedChain: (chain: Blockchain | null) => void;
   setTableFilter: (filter: 'all' | 'abnormal' | 'normal') => void;
   setHoveredCell: (
@@ -43,7 +43,7 @@ const initialState: UIState = {
   showMA: false,
   maPeriod: 7,
   chartKey: 0,
-  hiddenLines: new Set(),
+  hiddenLines: [],
   focusedChain: null,
   tableFilter: 'all',
   hoveredCell: null,
@@ -99,18 +99,8 @@ export const useCrossChainUIStore = create<CrossChainUIStore>()(
           tableFilter: state.tableFilter,
           sortColumn: state.sortColumn,
           sortDirection: state.sortDirection,
-          hiddenLines: Array.from(state.hiddenLines),
+          hiddenLines: state.hiddenLines,
         }),
-        onRehydrateStorage: () => (state) => {
-          if (state) {
-            const hiddenLines = state.hiddenLines as unknown;
-            if (Array.isArray(hiddenLines)) {
-              (state as { hiddenLines: Set<string> }).hiddenLines = new Set(hiddenLines);
-            } else if (!(hiddenLines instanceof Set)) {
-              (state as { hiddenLines: Set<string> }).hiddenLines = new Set();
-            }
-          }
-        },
       }
     ),
     { name: 'CrossChainUIStore' }

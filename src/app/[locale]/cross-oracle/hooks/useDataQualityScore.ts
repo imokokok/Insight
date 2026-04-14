@@ -277,15 +277,16 @@ export function useDataQualityScore(params: {
   lastUpdated?: number;
   successCount?: number;
   totalCount?: number;
+  currentTime?: number;
 }): {
   score: DataQualityScoreType;
   isGood: boolean;
   level: 'excellent' | 'good' | 'fair' | 'poor';
 } {
-  const { prices = [], lastUpdated, successCount = 0, totalCount = 0 } = params;
+  const { prices = [], lastUpdated, successCount = 0, totalCount = 0, currentTime } = params;
 
   const score = useMemo<DataQualityScoreType>(() => {
-    const now = Date.now();
+    const now = currentTime ?? 0;
     const validPrices = prices.filter((p) => p > 0);
     let consistency = 100;
     if (validPrices.length >= 2) {
@@ -315,7 +316,7 @@ export function useDataQualityScore(params: {
       overall,
       suggestions: [],
     };
-  }, [prices, lastUpdated, successCount, totalCount]);
+  }, [prices, lastUpdated, successCount, totalCount, currentTime]);
 
   return {
     score,

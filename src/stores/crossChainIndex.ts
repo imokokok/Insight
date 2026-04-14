@@ -44,5 +44,3 @@ export {
   useColorblindMode,
   useSetColorblindMode,
 } from './crossChainConfigStore';
-
-export { useCrossChainCoordinator } from './crossChainCoordinator';

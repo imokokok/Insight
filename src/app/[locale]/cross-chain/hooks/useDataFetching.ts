@@ -1,12 +1,5 @@
-/**
- * @fileoverview 数据获取 Hook
- * 提供跨链价格数据获取和缓存功能
- * 通过 API 路由获取数据，避免前端直接调用 RPC 导致的 CORS 和并发问题
- */
+import { useCallback, useEffect, useRef } from 'react';
 
-import { useCallback, useEffect, useMemo, useRef } from 'react';
-
-// Toast component removed - using alternative notification method
 import { oracleApiClient } from '@/lib/api/oracleApiClient';
 import { type OracleProvider, type Blockchain, type PriceData } from '@/lib/oracles';
 import { createLogger } from '@/lib/utils/logger';
@@ -32,8 +25,6 @@ const getGlobalCache = (): Map<string, CacheEntry> => {
 };
 
 const getCacheKey = (provider: OracleProvider, symbol: string, timeRange: number): string => {
-  // 使用 encodeURIComponent 防止特殊字符导致键冲突
-  // 使用 | 作为分隔符，减少与 symbol 中常见字符的冲突概率
   return `${provider}|${encodeURIComponent(symbol)}|${timeRange}`;
 };
 
@@ -66,7 +57,7 @@ export const clearCacheForProvider = (provider: OracleProvider) => {
   const dataCache = getGlobalCache();
   const keysToDelete: string[] = [];
   dataCache.forEach((_, key) => {
-    if (key.startsWith(`${provider}-`)) {
+    if (key.startsWith(`${provider}|`)) {
       keysToDelete.push(key);
     }
   });
@@ -93,9 +84,45 @@ export interface FetchDataParams {
   setLoading: (loading: boolean) => void;
 }
 
-/**
- * 通过 API 路由获取当前价格
- */
+interface PriceStats {
+  avgPrice: number;
+  maxPrice: number;
+  minPrice: number;
+  priceRange: number;
+  standardDeviationPercent: number;
+}
+
+function calculatePriceStats(prices: PriceData[]): PriceStats {
+  const validPrices = prices.map((d) => d.price).filter((p) => p > 0);
+  if (validPrices.length === 0) {
+    return { avgPrice: 0, maxPrice: 0, minPrice: 0, priceRange: 0, standardDeviationPercent: 0 };
+  }
+  const avgPrice = validPrices.reduce((a, b) => a + b, 0) / validPrices.length;
+  const maxPrice = Math.max(...validPrices);
+  const minPrice = Math.min(...validPrices);
+  const priceRange = maxPrice - minPrice;
+  const variance =
+    validPrices.length > 1
+      ? validPrices.reduce((sum, price) => sum + Math.pow(price - avgPrice, 2), 0) /
+        validPrices.length
+      : 0;
+  const stdDev = Math.sqrt(variance);
+  const standardDeviationPercent = avgPrice > 0 ? (stdDev / avgPrice) * 100 : 0;
+
+  return { avgPrice, maxPrice, minPrice, priceRange, standardDeviationPercent };
+}
+
+function findChainWithMostData(
+  supportedChains: Blockchain[],
+  historicalPrices: Partial<Record<Blockchain, PriceData[]>>
+): Blockchain {
+  return supportedChains.reduce((best, chain) => {
+    const bestLen = historicalPrices[best]?.length || 0;
+    const chainLen = historicalPrices[chain]?.length || 0;
+    return chainLen > bestLen ? chain : best;
+  }, supportedChains[0]);
+}
+
 async function fetchPriceFromApi(
   provider: OracleProvider,
   symbol: string,
@@ -108,9 +135,6 @@ async function fetchPriceFromApi(
   });
 }
 
-/**
- * 通过 API 路由获取历史价格
- */
 async function fetchHistoricalFromApi(
   provider: OracleProvider,
   symbol: string,
@@ -138,18 +162,15 @@ export function useDataFetching(
   validation: UseDataValidationReturn,
   anomalyDetection: UseAnomalyDetectionReturn
 ): UseDataFetchingReturn {
-  const toast = useMemo(
-    () => ({
-      success: (title: string, message: string) => console.info(`[Success] ${title}: ${message}`),
-      error: (title: string, message: string) => console.error(`[Error] ${title}: ${message}`),
-      warning: (title: string, message: string) => console.warn(`[Warning] ${title}: ${message}`),
-    }),
-    []
-  );
   const abortControllerRef = useRef<AbortController | null>(null);
   const refreshSuccessTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const paramsRef = useRef(params);
+  paramsRef.current = params;
+  const validationRef = useRef(validation);
+  validationRef.current = validation;
+  const anomalyDetectionRef = useRef(anomalyDetection);
+  anomalyDetectionRef.current = anomalyDetection;
 
-  // 清理定时器，防止内存泄漏
   useEffect(() => {
     return () => {
       if (refreshSuccessTimerRef.current) {
@@ -171,98 +192,85 @@ export function useDataFetching(
       const abortController = new AbortController();
       abortControllerRef.current = abortController;
       const currentSignal = signal || abortController.signal;
+      const currentParams = paramsRef.current;
+      const currentValidation = validationRef.current;
+      const currentAnomalyDetection = anomalyDetectionRef.current;
 
-      params.setRefreshStatus('refreshing');
-      params.setLoading(true);
+      currentParams.setRefreshStatus('refreshing');
+      currentParams.setLoading(true);
 
-      console.warn('[useDataFetching] Starting fetch:', {
+      logger.debug('Starting fetch', {
         provider,
-        symbol: params.selectedSymbol,
-        timeRange: params.selectedTimeRange,
-        supportedChains,
+        symbol: currentParams.selectedSymbol,
+        timeRange: currentParams.selectedTimeRange,
         chainCount: supportedChains.length,
       });
 
       try {
         const dataCache = getGlobalCache();
-        const cacheKey = getCacheKey(provider, params.selectedSymbol, params.selectedTimeRange);
+        const cacheKey = getCacheKey(
+          provider,
+          currentParams.selectedSymbol,
+          currentParams.selectedTimeRange
+        );
         const cachedEntry = dataCache.get(cacheKey);
         const now = Date.now();
 
         if (cachedEntry && now - cachedEntry.timestamp < CACHE_EXPIRATION_MS) {
           if (currentSignal.aborted) return;
 
-          params.setCurrentPrices(cachedEntry.currentPrices);
-          params.setHistoricalPrices(cachedEntry.historicalPrices);
+          currentParams.setCurrentPrices(cachedEntry.currentPrices);
+          currentParams.setHistoricalPrices(cachedEntry.historicalPrices);
 
-          const validPrices = cachedEntry.currentPrices.map((d) => d.price).filter((p) => p > 0);
-          const newAvgPrice =
-            validPrices.length > 0
-              ? validPrices.reduce((a, b) => a + b, 0) / validPrices.length
-              : 0;
-          const newMaxPrice = validPrices.length > 0 ? Math.max(...validPrices) : 0;
-          const newMinPrice = validPrices.length > 0 ? Math.min(...validPrices) : 0;
-          const newPriceRange = newMaxPrice - newMinPrice;
-          const variance =
-            validPrices.length > 1
-              ? validPrices.reduce((sum, price) => sum + Math.pow(price - newAvgPrice, 2), 0) /
-                validPrices.length
-              : 0;
-          const stdDev = Math.sqrt(variance);
-          const newStdDevPercent = newAvgPrice > 0 ? (stdDev / newAvgPrice) * 100 : 0;
-
-          params.setPrevStats({
-            avgPrice: newAvgPrice,
-            maxPrice: newMaxPrice,
-            minPrice: newMinPrice,
-            priceRange: newPriceRange,
-            standardDeviationPercent: newStdDevPercent,
-          });
+          const stats = calculatePriceStats(cachedEntry.currentPrices);
+          currentParams.setPrevStats(stats);
 
           if (supportedChains.length > 0) {
-            const chainWithMostData = supportedChains.reduce((best, chain) => {
-              const bestLen = cachedEntry.historicalPrices[best]?.length || 0;
-              const chainLen = cachedEntry.historicalPrices[chain]?.length || 0;
-              return chainLen > bestLen ? chain : best;
-            }, supportedChains[0]);
-            params.setRecommendedBaseChain(chainWithMostData);
+            currentParams.setRecommendedBaseChain(
+              findChainWithMostData(supportedChains, cachedEntry.historicalPrices)
+            );
           }
 
-          params.setLastUpdated(new Date());
-          params.setRefreshStatus('success');
-          params.setShowRefreshSuccess(true);
+          currentParams.setLastUpdated(new Date());
+          currentParams.setRefreshStatus('success');
+          currentParams.setShowRefreshSuccess(true);
           if (refreshSuccessTimerRef.current) {
             clearTimeout(refreshSuccessTimerRef.current);
           }
           refreshSuccessTimerRef.current = setTimeout(() => {
             if (!abortControllerRef.current?.signal.aborted) {
-              params.setShowRefreshSuccess(false);
+              paramsRef.current.setShowRefreshSuccess(false);
             }
           }, 2000);
-          params.setLoading(false);
+          currentParams.setLoading(false);
           return;
         }
 
-        // 使用 API 路由获取当前价格，避免前端直接调用 RPC
-        console.warn('[useDataFetching] Fetching prices for chains:', supportedChains);
+        logger.debug('Fetching prices for chains', { chainCount: supportedChains.length });
         const currentPromises = supportedChains.map((chain) =>
-          fetchPriceFromApi(provider, params.selectedSymbol, chain).catch((err) => {
-            console.error(`[useDataFetching] Failed to fetch price for ${chain}:`, err);
+          fetchPriceFromApi(provider, currentParams.selectedSymbol, chain).catch((err) => {
+            logger.error(
+              `Failed to fetch price for ${chain}`,
+              err instanceof Error ? err : new Error(String(err))
+            );
             throw err;
           })
         );
         const currentResults = await Promise.all(currentPromises);
-        console.warn('[useDataFetching] Price results:', currentResults);
 
         if (currentSignal.aborted) return;
 
-        const validatedCurrentResults = validation.validateCurrentPrices(currentResults);
+        const validatedCurrentResults = currentValidation.validateCurrentPrices(currentResults);
 
-        params.setCurrentPrices(validatedCurrentResults);
+        currentParams.setCurrentPrices(validatedCurrentResults);
 
-        // 使用 API 路由获取历史价格，避免前端直接调用 RPC
         const historicalPromises = supportedChains.map((chain) =>
-          fetchHistoricalFromApi(provider, params.selectedSymbol, chain, params.selectedTimeRange)
+          fetchHistoricalFromApi(
+            provider,
+            currentParams.selectedSymbol,
+            chain,
+            currentParams.selectedTimeRange
+          )
         );
         const historicalResults = await Promise.all(historicalPromises);
 
@@ -272,13 +280,13 @@ export function useDataFetching(
 
         supportedChains.forEach((chain, index) => {
           const rawPrices = historicalResults[index] || [];
-          const validatedPrices = validation.validateHistoricalPrices(rawPrices, chain);
+          const validatedPrices = currentValidation.validateHistoricalPrices(rawPrices, chain);
           historicalMap[chain] = validatedPrices;
         });
 
-        params.setHistoricalPrices(historicalMap);
+        currentParams.setHistoricalPrices(historicalMap);
 
-        anomalyDetection.detectAnomalies(validatedCurrentResults, supportedChains);
+        currentAnomalyDetection.detectAnomalies(validatedCurrentResults, supportedChains);
 
         cleanupCache();
 
@@ -288,81 +296,48 @@ export function useDataFetching(
           timestamp: now,
         });
 
-        const validPrices = validatedCurrentResults.map((d) => d.price).filter((p) => p > 0);
-        const newAvgPrice =
-          validPrices.length > 0 ? validPrices.reduce((a, b) => a + b, 0) / validPrices.length : 0;
-        const newMaxPrice = validPrices.length > 0 ? Math.max(...validPrices) : 0;
-        const newMinPrice = validPrices.length > 0 ? Math.min(...validPrices) : 0;
-        const newPriceRange = newMaxPrice - newMinPrice;
-        const variance =
-          validPrices.length > 1
-            ? validPrices.reduce((sum, price) => sum + Math.pow(price - newAvgPrice, 2), 0) /
-              validPrices.length
-            : 0;
-        const stdDev = Math.sqrt(variance);
-        const newStdDevPercent = newAvgPrice > 0 ? (stdDev / newAvgPrice) * 100 : 0;
-
-        params.setPrevStats({
-          avgPrice: newAvgPrice,
-          maxPrice: newMaxPrice,
-          minPrice: newMinPrice,
-          priceRange: newPriceRange,
-          standardDeviationPercent: newStdDevPercent,
-        });
+        const stats = calculatePriceStats(validatedCurrentResults);
+        currentParams.setPrevStats(stats);
 
         if (supportedChains.length > 0) {
-          const chainWithMostData = supportedChains.reduce((best, chain) => {
-            const bestLen = historicalMap[best]?.length || 0;
-            const chainLen = historicalMap[chain]?.length || 0;
-            return chainLen > bestLen ? chain : best;
-          }, supportedChains[0]);
-          params.setRecommendedBaseChain(chainWithMostData);
+          currentParams.setRecommendedBaseChain(
+            findChainWithMostData(supportedChains, historicalMap)
+          );
         }
 
-        params.setLastUpdated(new Date());
-        params.setRefreshStatus('success');
-        params.setShowRefreshSuccess(true);
+        currentParams.setLastUpdated(new Date());
+        currentParams.setRefreshStatus('success');
+        currentParams.setShowRefreshSuccess(true);
         if (refreshSuccessTimerRef.current) {
           clearTimeout(refreshSuccessTimerRef.current);
         }
         refreshSuccessTimerRef.current = setTimeout(() => {
           if (!abortControllerRef.current?.signal.aborted) {
-            params.setShowRefreshSuccess(false);
+            paramsRef.current.setShowRefreshSuccess(false);
           }
         }, 2000);
       } catch (error) {
         if (currentSignal.aborted) return;
 
         const errorMessage = error instanceof Error ? error.message : String(error);
-        const errorStack = error instanceof Error ? error.stack : '';
         logger.error(
           'Error fetching data',
           error instanceof Error ? error : new Error(String(error)),
           {
             message: errorMessage,
-            stack: errorStack,
             provider,
-            symbol: params.selectedSymbol,
+            symbol: currentParams.selectedSymbol,
             chains: supportedChains,
           }
         );
-        console.error('[useDataFetching] Detailed error:', {
-          message: errorMessage,
-          stack: errorStack,
-          provider,
-          symbol: params.selectedSymbol,
-          chains: supportedChains,
-          error,
-        });
-        params.setRefreshStatus('error');
-        toast.error('数据获取失败', `无法获取价格数据: ${errorMessage}`);
+        currentParams.setRefreshStatus('error');
       } finally {
         if (!abortControllerRef.current?.signal.aborted) {
-          params.setLoading(false);
+          paramsRef.current.setLoading(false);
         }
       }
     },
-    [supportedChains, params, provider, validation, anomalyDetection, toast]
+    [supportedChains, provider]
   );
 
   return {

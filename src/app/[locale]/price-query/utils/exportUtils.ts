@@ -15,6 +15,13 @@ import { formatPrice } from './queryResultsUtils';
 
 const logger = createLogger('ExportUtils');
 
+function escapeCSVField(value: string): string {
+  if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+    return `"${value.replace(/"/g, '""')}"`;
+  }
+  return value;
+}
+
 interface StatsData {
   avgPrice: number;
   maxPrice: number;
@@ -90,16 +97,16 @@ export function exportToCSV(
   filteredResults.forEach((result) => {
     const row: string[] = [];
     if (enabledFields.find((f) => f.key === 'oracle')) {
-      row.push(providerNames[result.provider]);
+      row.push(escapeCSVField(providerNames[result.provider]));
     }
     if (enabledFields.find((f) => f.key === 'blockchain')) {
-      row.push(chainNames[result.chain]);
+      row.push(escapeCSVField(chainNames[result.chain]));
     }
     if (enabledFields.find((f) => f.key === 'price')) {
       row.push(formatPrice(result.priceData.price));
     }
     if (enabledFields.find((f) => f.key === 'timestamp')) {
-      row.push(new Date(result.priceData.timestamp).toLocaleString());
+      row.push(escapeCSVField(new Date(result.priceData.timestamp).toLocaleString()));
     }
     if (enabledFields.find((f) => f.key === 'change24h')) {
       row.push(
@@ -112,7 +119,7 @@ export function exportToCSV(
       row.push(result.priceData.confidence?.toString() ?? '-');
     }
     if (enabledFields.find((f) => f.key === 'source')) {
-      row.push(result.priceData.source ?? '');
+      row.push(escapeCSVField(result.priceData.source ?? ''));
     }
     csvLines.push(row.join(','));
   });

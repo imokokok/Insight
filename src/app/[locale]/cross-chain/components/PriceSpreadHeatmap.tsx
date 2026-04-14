@@ -194,7 +194,12 @@ export function HeatmapDetailView({ data }: HeatmapDetailViewProps) {
   // 根据色盲模式获取热力图颜色
   const getHeatmapColorFn = colorblindMode ? getColorblindHeatmapColor : getHeatmapColor;
 
-  // 单元格尺寸
+  const heatmapMap = useMemo(() => {
+    const map = new Map<string, (typeof heatmapData)[number]>();
+    heatmapData.forEach((d) => map.set(`${d.xChain}|${d.yChain}`, d));
+    return map;
+  }, [heatmapData]);
+
   const CELL_SIZE = 48;
   const HEADER_SIZE = 80;
 
@@ -286,7 +291,7 @@ export function HeatmapDetailView({ data }: HeatmapDetailViewProps) {
 
               {/* 单元格 */}
               {filteredChains.map((yChain) => {
-                const cell = heatmapData.find((d) => d.xChain === xChain && d.yChain === yChain);
+                const cell = heatmapMap.get(`${xChain}|${yChain}`);
                 const percent = cell?.percent || 0;
                 const isDiagonal = xChain === yChain;
                 const isHovered =

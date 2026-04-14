@@ -18,7 +18,6 @@ import { exportToCSV, exportToJSON, oracleNames } from '../constants';
 export interface UseExportParams {
   priceData: PriceData[];
   avgPrice: number;
-  validPrices: number[];
   selectedSymbol: string;
   selectedOracles: OracleProvider[];
   stats: SnapshotStats | null;
@@ -33,7 +32,6 @@ export interface UseExportReturn {
 export function useExport({
   priceData,
   avgPrice,
-  validPrices: _validPrices,
   selectedSymbol,
   selectedOracles,
   stats,

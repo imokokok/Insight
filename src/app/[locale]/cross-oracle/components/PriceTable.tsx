@@ -13,7 +13,7 @@ import {
   getFreshnessDotColor,
   calculateZScore,
   isOutlier,
-  ANOMALY_THRESHOLD,
+  ANOMALY_ZSCORE_THRESHOLD,
 } from '../constants';
 
 interface PriceTableProps {
@@ -167,7 +167,7 @@ function PriceTableComponent({
 
       // 检测是否为异常价格
       const isAnomaly =
-        deviationPercent !== null && Math.abs(deviationPercent) >= ANOMALY_THRESHOLD;
+        deviationPercent !== null && Math.abs(deviationPercent) >= ANOMALY_ZSCORE_THRESHOLD;
       // 确定异常严重程度
       let anomalySeverity: 'low' | 'medium' | 'high' | null = null;
       if (isAnomaly && deviationPercent !== null) {
@@ -186,7 +186,7 @@ function PriceTableComponent({
         price: data.price,
         deviation: deviationPercent,
         source: data.source || '-',
-        freshness: freshness.text,
+        freshness: freshness.textKey,
         freshnessSeconds: freshness.seconds ?? 0,
         timestamp: data.timestamp,
         zScore,

@@ -5,6 +5,8 @@
 
 import { type Blockchain, type PriceData } from '@/lib/oracles';
 
+import { calculatePercentile } from './statisticsUtils';
+
 export interface AnomalousPricePoint {
   chain: Blockchain;
   price: number;
@@ -26,12 +28,9 @@ export function detectAnomalousPrices(
   if (validPrices.length < 4) return anomalies;
 
   const sorted = [...validPrices].sort((a, b) => a - b);
-  const n = sorted.length;
 
-  const q1Index = Math.floor(n * 0.25);
-  const q3Index = Math.floor(n * 0.75);
-  const q1 = sorted[q1Index];
-  const q3 = sorted[q3Index];
+  const q1 = calculatePercentile(sorted, 25);
+  const q3 = calculatePercentile(sorted, 75);
   const iqr = q3 - q1;
 
   const lowerBound = q1 - 1.5 * iqr;
