@@ -19,7 +19,7 @@ import { createLogger } from '@/lib/utils/logger';
 import { getRequestQueue, type RequestPriority } from '@/lib/utils/requestQueue';
 import { type OracleProvider, type PriceData } from '@/types/oracle';
 
-import { type TimeRange, type RefreshInterval } from '../constants';
+import { type TimeRange, type RefreshInterval, timeRangeToValue } from '../constants';
 
 import { useOracleRetry } from './useOracleRetry';
 
@@ -31,19 +31,6 @@ import type {
   PartialSuccessState,
   RetryConfig,
 } from '../types';
-
-// Helper function to convert TimeRange to TimeRangeValue
-function timeRangeToValue(range: TimeRange): '1H' | '24H' | '7D' | '30D' | '90D' | '1Y' {
-  const map: Record<TimeRange, '1H' | '24H' | '7D' | '30D' | '90D' | '1Y'> = {
-    '1h': '1H',
-    '24h': '24H',
-    '7d': '7D',
-    '30d': '30D',
-    '90d': '90D',
-    '1y': '1Y',
-  };
-  return map[range];
-}
 
 const logger = createLogger('useOracleData');
 
@@ -485,7 +472,6 @@ export function useOracleData({
     const errors: OracleErrorInfo[] = [];
     const hours = getHoursForTimeRange(timeRangeToValue(timeRange)) ?? 24;
     const baseSymbol = extractBaseSymbol(selectedSymbol);
-    let completedCount = 0;
 
     try {
       const fetchPromises = selectedOracles.map(async (oracle) => {
@@ -501,8 +487,10 @@ export function useOracleData({
           }
         } finally {
           if (isMountedRef.current) {
-            completedCount++;
-            setQueryProgress({ completed: completedCount, total: selectedOracles.length });
+            setQueryProgress((prev) => ({
+              completed: prev.completed + 1,
+              total: selectedOracles.length,
+            }));
           }
         }
       });
@@ -585,19 +573,10 @@ export function useOracleData({
     isMountedRef.current = true;
     memoryManager.startPeriodicCleanup();
 
-    // 使用更可靠的参数签名来检测变化
-    const currentSignature = JSON.stringify({
-      oracles: selectedOracles.slice().sort(), // 排序以确保顺序不影响比较
-      symbol: selectedSymbol,
-      timeRange: timeRange,
-    });
-    const prevSignature = JSON.stringify({
-      oracles: prevDepsRef.current.selectedOracles.slice().sort(),
-      symbol: prevDepsRef.current.selectedSymbol,
-      timeRange: prevDepsRef.current.timeRange,
-    });
+    const currentKey = `${selectedOracles.slice().sort().join(',')}_${selectedSymbol}_${timeRange}`;
+    const prevKey = `${prevDepsRef.current.selectedOracles.slice().sort().join(',')}_${prevDepsRef.current.selectedSymbol}_${prevDepsRef.current.timeRange}`;
 
-    const depsChanged = isInitialMountRef.current || currentSignature !== prevSignature;
+    const depsChanged = isInitialMountRef.current || currentKey !== prevKey;
 
     if (depsChanged) {
       prevDepsRef.current = { selectedOracles, selectedSymbol, timeRange };
@@ -653,9 +632,11 @@ export function useOracleData({
   }, [refreshInterval]);
 
   useEffect(() => {
+    const priceHistoryMap = priceHistoryMapRef.current;
+    const metricsCalculator = metricsCalculatorRef.current;
     return () => {
-      priceHistoryMapRef.current.clear();
-      metricsCalculatorRef.current.clearAllData();
+      priceHistoryMap.clear();
+      metricsCalculator.clearAllData();
     };
   }, []);
 

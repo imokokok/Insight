@@ -86,8 +86,8 @@ function generateAnomalyRecommendations(anomalies: PriceAnomaly[]): RiskRecommen
   if (highRiskAnomalies.length > 0) {
     recommendations.push({
       id: generateId(),
-      title: '检测到高风险价格异常',
-      description: `发现 ${highRiskAnomalies.length} 个高风险价格异常，偏差超过 3%。建议立即检查相关预言机数据源。`,
+      title: 'riskRecommendations.highRiskAnomaly.title',
+      description: 'riskRecommendations.highRiskAnomaly.description',
       priority: 'critical',
       category: 'anomaly',
       relatedOracles: highRiskAnomalies.map((a) => a.provider),
@@ -102,8 +102,8 @@ function generateAnomalyRecommendations(anomalies: PriceAnomaly[]): RiskRecommen
   if (mediumRiskAnomalies.length > 0) {
     recommendations.push({
       id: generateId(),
-      title: '价格偏差警告',
-      description: `检测到 ${mediumRiskAnomalies.length} 个中等风险的价格偏差（1-3%）。建议监控这些数据源的表现。`,
+      title: 'riskRecommendations.mediumRiskAnomaly.title',
+      description: 'riskRecommendations.mediumRiskAnomaly.description',
       priority: 'high',
       category: 'anomaly',
       relatedOracles: mediumRiskAnomalies.map((a) => a.provider),
@@ -117,8 +117,8 @@ function generateAnomalyRecommendations(anomalies: PriceAnomaly[]): RiskRecommen
   if (anomalies.length >= 3) {
     recommendations.push({
       id: generateId(),
-      title: '多个数据源出现异常',
-      description: `共有 ${anomalies.length} 个数据源报告异常。这可能表明市场波动剧烈或存在系统性问题。`,
+      title: 'riskRecommendations.multipleAnomalies.title',
+      description: 'riskRecommendations.multipleAnomalies.description',
       priority: 'high',
       category: 'reliability',
       relatedOracles: anomalies.map((a) => a.provider),
@@ -147,8 +147,8 @@ function generateLatencyRecommendations(anomalies: PriceAnomaly[]): RiskRecommen
   if (staleDataAnomalies.length > 0) {
     recommendations.push({
       id: generateId(),
-      title: '数据源更新延迟',
-      description: `${staleDataAnomalies.length} 个预言机数据更新延迟超过 5 分钟。这可能影响价格准确性。`,
+      title: 'riskRecommendations.dataLatency.title',
+      description: 'riskRecommendations.dataLatency.description',
       priority: staleDataAnomalies.length > 2 ? 'high' : 'medium',
       category: 'latency',
       relatedOracles: staleDataAnomalies.map((a) => a.provider),
@@ -180,8 +180,8 @@ function generateConsistencyRecommendations(
   if (completeness < 80) {
     recommendations.push({
       id: generateId(),
-      title: '数据完整性不足',
-      description: `当前数据完整性为 ${completeness.toFixed(1)}%，低于 80% 阈值。部分预言机可能无法提供有效数据。`,
+      title: 'riskRecommendations.dataCompleteness.title',
+      description: 'riskRecommendations.dataCompleteness.description',
       priority: 'high',
       category: 'consistency',
       relatedOracles: [],
@@ -197,8 +197,8 @@ function generateConsistencyRecommendations(
     if (maxDeviation > 5) {
       recommendations.push({
         id: generateId(),
-        title: '价格离散度过高',
-        description: `检测到最高 ${maxDeviation.toFixed(2)}% 的价格偏差。各预言机之间的价格一致性较差。`,
+        title: 'riskRecommendations.highDispersion.title',
+        description: 'riskRecommendations.highDispersion.description',
         priority: 'critical',
         category: 'consistency',
         relatedOracles: anomalies.map((a) => a.provider),
@@ -226,8 +226,8 @@ function generateOptimizationRecommendations(anomalies: PriceAnomaly[]): RiskRec
     if (uniqueProviders.size === 1) {
       recommendations.push({
         id: generateId(),
-        title: '建议增加数据源多样性',
-        description: '当前依赖单一数据源，建议增加更多预言机以提高系统鲁棒性和数据可靠性。',
+        title: 'riskRecommendations.diversifySources.title',
+        description: 'riskRecommendations.diversifySources.description',
         priority: 'medium',
         category: 'optimization',
         relatedOracles: [],
@@ -243,8 +243,8 @@ function generateOptimizationRecommendations(anomalies: PriceAnomaly[]): RiskRec
   if (lowSeverityCount > 5) {
     recommendations.push({
       id: generateId(),
-      title: '异常检测阈值优化',
-      description: `检测到 ${lowSeverityCount} 个低严重度异常，建议调整异常检测阈值以减少误报。`,
+      title: 'riskRecommendations.thresholdOptimization.title',
+      description: 'riskRecommendations.thresholdOptimization.description',
       priority: 'low',
       category: 'optimization',
       relatedOracles: [],
@@ -257,8 +257,8 @@ function generateOptimizationRecommendations(anomalies: PriceAnomaly[]): RiskRec
   // 定期审查建议
   recommendations.push({
     id: generateId(),
-    title: '定期审查数据源性能',
-    description: '建议每周审查一次各预言机的性能指标，包括准确性、延迟和可用性。',
+    title: 'riskRecommendations.regularReview.title',
+    description: 'riskRecommendations.regularReview.description',
     priority: 'low',
     category: 'optimization',
     relatedOracles: [],

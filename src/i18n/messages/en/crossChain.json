@@ -99,6 +99,7 @@
     },
     "dataIntegrity": "Data Integrity",
     "priceJumpFrequency": "Price Jump Frequency",
+    "jumpCount": "{count} times",
     "priceJumps": "Price Jumps",
     "detailComparison": "Detail Comparison",
     "priceTrendComparison": "Price Trend Comparison",

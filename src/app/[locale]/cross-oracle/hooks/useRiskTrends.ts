@@ -27,11 +27,11 @@ export interface RiskTrendsResult {
 
 export function useRiskTrends(
   timeRange: TimeRange = '24h',
-  anomalies: PriceAnomaly[] = []
+  anomalies: PriceAnomaly[] = [],
+  currentTime?: number
 ): RiskTrendsResult {
   return useMemo(() => {
-    // 基于真实的异常数据计算风险趋势
-    const now = Date.now();
+    const now = currentTime ?? 0;
     const hours =
       timeRange === '1h' ? 1 : timeRange === '24h' ? 24 : timeRange === '7d' ? 168 : 720;
     const data: RiskTrendPoint[] = [];
@@ -74,7 +74,7 @@ export function useRiskTrends(
       minRiskScore: riskScores.length > 0 ? Math.min(...riskScores) : 0,
       totalAnomalies,
     };
-  }, [timeRange, anomalies]);
+  }, [timeRange, anomalies, currentTime]);
 }
 
 export function getRiskLevel(riskScore: number): 'low' | 'medium' | 'high' | 'critical' {

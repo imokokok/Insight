@@ -4,11 +4,6 @@ import { useTranslations } from '@/i18n';
 import { baseColors, semanticColors } from '@/lib/config/colors';
 import { Blockchain } from '@/types/oracle';
 
-import { BenchmarkComparisonSection } from './BenchmarkComparisonSection';
-import { CompactStatsGrid } from './CompactStatsGrid';
-import { DataSourceSection } from './DataSourceSection';
-import { HeatmapDetailView } from './PriceSpreadHeatmap';
-import { PriceComparisonTable } from './PriceComparisonTable';
 import { type ChainStats } from '../constants';
 import { type useCrossChainData } from '../useCrossChainData';
 import {
@@ -20,6 +15,12 @@ import {
   calculateChangePercent,
   formatPrice,
 } from '../utils';
+
+import { BenchmarkComparisonSection } from './BenchmarkComparisonSection';
+import { CompactStatsGrid } from './CompactStatsGrid';
+import { DataSourceSection } from './DataSourceSection';
+import { PriceComparisonTable } from './PriceComparisonTable';
+import { HeatmapDetailView } from './PriceSpreadHeatmap';
 
 interface OverviewTabProps {
   data: ReturnType<typeof useCrossChainData>;
@@ -274,7 +275,7 @@ export function OverviewTab({ data }: OverviewTabProps) {
                     <td className="px-3 py-2.5">
                       {jumpCount > 0 ? (
                         <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
-                          {jumpCount} 次
+                          {t('crossChain.jumpCount', { count: jumpCount })}
                         </span>
                       ) : (
                         <span className="text-gray-400 text-sm">-</span>

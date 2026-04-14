@@ -1,11 +1,18 @@
 import { PriceFetchError, OracleClientError } from '@/lib/errors';
+import { getDefaultFactory } from '@/lib/oracles/factory';
 import { type Blockchain, type PriceData, type OracleProvider } from '@/types/oracle';
 
 import {
   shouldUseDatabase,
   getPriceFromDatabase,
   getHistoricalPricesFromDatabase,
+  savePriceToDatabase,
+  savePricesToDatabase,
 } from '../utils/storage';
+
+function getOracleClient(provider: OracleProvider) {
+  return getDefaultFactory().getClient(provider);
+}
 
 export async function fetchPriceWithDatabase(
   provider: OracleProvider,
@@ -21,15 +28,10 @@ export async function fetchPriceWithDatabase(
       }
     }
 
-    throw new PriceFetchError(
-      `No price data available for ${symbol} from ${provider}. Please ensure real data sources are configured.`,
-      {
-        provider,
-        symbol,
-        chain,
-        retryable: true,
-      }
-    );
+    const client = getOracleClient(provider);
+    const livePrice = await client.getPrice(symbol, chain);
+    savePriceToDatabase(livePrice).catch(() => {});
+    return livePrice;
   } catch (error) {
     if (error instanceof PriceFetchError || error instanceof OracleClientError) {
       throw error;
@@ -63,16 +65,12 @@ export async function fetchHistoricalPricesWithDatabase(
       }
     }
 
-    throw new PriceFetchError(
-      `No historical price data available for ${symbol} from ${provider}. Please ensure real data sources are configured.`,
-      {
-        provider,
-        symbol,
-        chain,
-        timestamp: Date.now(),
-        retryable: true,
-      }
-    );
+    const client = getOracleClient(provider);
+    const livePrices = await client.getHistoricalPrices(symbol, chain, period);
+    if (livePrices && livePrices.length > 0) {
+      savePricesToDatabase(livePrices).catch(() => {});
+    }
+    return livePrices;
   } catch (error) {
     if (error instanceof PriceFetchError || error instanceof OracleClientError) {
       throw error;

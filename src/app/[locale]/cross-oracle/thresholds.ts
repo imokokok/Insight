@@ -8,7 +8,7 @@
 // ============================================================================
 
 /** 价格异常偏差阈值（1%）- 超过此值视为异常 */
-export const ANOMALY_THRESHOLD = 1.0;
+export const ANOMALY_DEVIATION_THRESHOLD = 1.0;
 
 /** 异常严重程度阈值（百分比） */
 export const SEVERITY_THRESHOLDS = {

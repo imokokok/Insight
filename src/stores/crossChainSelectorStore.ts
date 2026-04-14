@@ -27,17 +27,10 @@ const initialState: SelectorState = {
 export const useCrossChainSelectorStore = create<CrossChainSelectorStore>()(
   devtools(
     persist(
-      (set, get) => ({
+      (set, _get) => ({
         ...initialState,
 
-        setSelectedProvider: (provider) => {
-          const state = get();
-          if (state.selectedProvider !== provider) {
-            set({ selectedProvider: provider });
-          } else {
-            set({ selectedProvider: provider });
-          }
-        },
+        setSelectedProvider: (provider) => set({ selectedProvider: provider }),
         setSelectedSymbol: (symbol) => set({ selectedSymbol: symbol }),
         setSelectedTimeRange: (range) => set({ selectedTimeRange: range }),
         setSelectedBaseChain: (chain) => set({ selectedBaseChain: chain }),

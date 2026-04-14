@@ -23,6 +23,8 @@ import {
 } from '../price-comparison';
 import { SimplePriceTable } from '../SimplePriceTable';
 
+import type { PriceAnomaly } from '../../hooks/usePriceAnomalyDetection';
+
 // ============================================================================
 // 类型定义
 // ============================================================================
@@ -39,12 +41,7 @@ interface SimplePriceComparisonTabProps {
   standardDeviationPercent: number;
   avgPrice: number;
   validPrices: number[];
-  anomalies: Array<{
-    provider: OracleProvider;
-    deviationPercent: number;
-    severity: 'low' | 'medium' | 'high';
-    timestamp: number;
-  }>;
+  anomalies: PriceAnomaly[];
   historicalData?: Partial<Record<OracleProvider, Array<{ timestamp: number; price: number }>>>;
   oracleColors: Record<OracleProvider, string>;
   t: (key: string, params?: Record<string, string | number>) => string;
@@ -85,7 +82,9 @@ function SimplePriceComparisonTabComponent({
 }: SimplePriceComparisonTabProps) {
   const [baseAsset, quoteAsset] = selectedSymbol.split('/');
   const [activeChartTab, setActiveChartTab] = useState<ChartTabType>('distribution');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'normal' | 'warning' | 'critical'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'normal' | 'warning' | 'critical'>(
+    'all'
+  );
 
   // 计算统计数据
   const stats = useMemo(() => {
@@ -118,7 +117,7 @@ function SimplePriceComparisonTabComponent({
       case 'trend':
         return (
           <MultiOracleTrendChart
-            historicalData={(historicalData || {}) as never}
+            historicalData={historicalData || {}}
             oracleColors={oracleColors}
             t={t}
           />

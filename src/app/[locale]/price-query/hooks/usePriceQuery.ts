@@ -16,88 +16,98 @@ import { usePriceQueryState, type TimeComparisonConfig } from './usePriceQuerySt
 import type { AnomalyInfo } from '../utils/priceValidator';
 
 export interface UsePriceQueryReturn {
-  selectedOracle: OracleProvider | null;
-  setSelectedOracle: (oracle: OracleProvider | null) => void;
-  selectedChain: Blockchain | null;
-  setSelectedChain: (chain: Blockchain | null) => void;
-  selectedSymbol: string;
-  setSelectedSymbol: (symbol: string) => void;
-  selectedTimeRange: number;
-  setSelectedTimeRange: (timeRange: number) => void;
-  queryResults: QueryResult[];
-  historicalData: Partial<Record<string, PriceData[]>>;
-  isLoading: boolean;
-  filterText: string;
-  setFilterText: (text: string) => void;
-  sortField: 'oracle' | 'blockchain' | 'price' | 'timestamp';
-  sortDirection: 'asc' | 'desc';
-  hiddenSeries: Set<string>;
-  setHiddenSeries: (series: Set<string>) => void;
-  queryDuration: number | null;
-  queryProgress: { completed: number; total: number };
-  currentQueryTarget: { oracle: OracleProvider | null; chain: Blockchain | null };
-  queryErrors: QueryError[];
-  clearErrors: () => void;
-  retryDataSource: (provider: OracleProvider, chain: Blockchain) => Promise<void>;
-  retryAllErrors: () => Promise<void>;
-
-  selectedRow: string | null;
-  setSelectedRow: (row: string | null) => void;
-  isCompareMode: boolean;
-  setIsCompareMode: (mode: boolean) => void;
-  compareTimeRange: number;
-  setCompareTimeRange: (timeRange: number) => void;
-  compareHistoricalData: Partial<Record<string, PriceData[]>>;
-  compareQueryResults: QueryResult[];
-  showBaseline: boolean;
-  setShowBaseline: (show: boolean) => void;
-  showExportConfig: boolean;
-  setShowExportConfig: (show: boolean) => void;
-  chartContainerRef: React.RefObject<HTMLDivElement | null>;
-  timeComparisonConfig: TimeComparisonConfig;
-  setTimeComparisonConfig: (config: TimeComparisonConfig) => void;
-  urlParamsParsed: boolean;
-  primaryDataFetchTime: Date | null;
-  compareDataFetchTime: Date | null;
-  validationWarnings: string[];
-  dataAnomalies: AnomalyInfo[];
-  hasDataQualityIssues: boolean;
+  state: {
+    selectedOracle: OracleProvider | null;
+    setSelectedOracle: (oracle: OracleProvider | null) => void;
+    selectedChain: Blockchain | null;
+    setSelectedChain: (chain: Blockchain | null) => void;
+    selectedSymbol: string;
+    setSelectedSymbol: (symbol: string) => void;
+    selectedTimeRange: number;
+    setSelectedTimeRange: (timeRange: number) => void;
+    filterText: string;
+    setFilterText: (text: string) => void;
+    sortField: 'oracle' | 'blockchain' | 'price' | 'timestamp';
+    sortDirection: 'asc' | 'desc';
+    hiddenSeries: Set<string>;
+    setHiddenSeries: (series: Set<string>) => void;
+    selectedRow: string | null;
+    setSelectedRow: (row: string | null) => void;
+    isCompareMode: boolean;
+    setIsCompareMode: (mode: boolean) => void;
+    compareTimeRange: number;
+    setCompareTimeRange: (timeRange: number) => void;
+    showBaseline: boolean;
+    setShowBaseline: (show: boolean) => void;
+    showExportConfig: boolean;
+    setShowExportConfig: (show: boolean) => void;
+    timeComparisonConfig: TimeComparisonConfig;
+    setTimeComparisonConfig: (config: TimeComparisonConfig) => void;
+    urlParamsParsed: boolean;
+    showFavoritesDropdown: boolean;
+    setShowFavoritesDropdown: (show: boolean) => void;
+  };
+  data: {
+    queryResults: QueryResult[];
+    historicalData: Partial<Record<string, PriceData[]>>;
+    compareHistoricalData: Partial<Record<string, PriceData[]>>;
+    compareQueryResults: QueryResult[];
+    primaryDataFetchTime: Date | null;
+    compareDataFetchTime: Date | null;
+    chartData: ChartDataPoint[];
+    compareChartData: ChartDataPoint[];
+    sortedQueryResults: QueryResult[];
+    filteredQueryResults: QueryResult[];
+    supportedChainsBySelectedOracles: Set<Blockchain>;
+  };
+  stats: {
+    validPrices: number[];
+    avgPrice: number;
+    avgChange24hPercent: number | undefined;
+    maxPrice: number;
+    minPrice: number;
+    priceRange: number;
+    compareValidPrices: number[];
+    compareAvgPrice: number;
+    compareAvgChange24hPercent: number | undefined;
+    compareMaxPrice: number;
+    compareMinPrice: number;
+    comparePriceRange: number;
+    variance: number;
+    standardDeviation: number;
+    standardDeviationPercent: number;
+  };
+  query: {
+    isLoading: boolean;
+    queryDuration: number | null;
+    queryProgress: { completed: number; total: number };
+    currentQueryTarget: { oracle: OracleProvider | null; chain: Blockchain | null };
+    queryErrors: QueryError[];
+    clearErrors: () => void;
+    retryDataSource: (provider: OracleProvider, chain: Blockchain) => Promise<void>;
+    retryAllErrors: () => Promise<void>;
+    fetchQueryData: () => Promise<void>;
+  };
+  validation: {
+    validationWarnings: string[];
+    dataAnomalies: AnomalyInfo[];
+    hasDataQualityIssues: boolean;
+  };
+  actions: {
+    toggleSeries: (seriesName: string) => void;
+    handleSort: (field: 'oracle' | 'blockchain' | 'price' | 'timestamp') => void;
+    generateFilename: (extension: string) => string;
+    handleExportCSV: () => void;
+    handleExportJSON: () => void;
+    handleApplyFavorite: (config: FavoriteConfig) => void;
+  };
+  refs: {
+    chartContainerRef: React.RefObject<HTMLDivElement | null>;
+    favoritesDropdownRef: React.RefObject<HTMLDivElement | null>;
+  };
   user: ReturnType<typeof useUser>;
   symbolFavorites: ReturnType<typeof useFavorites>['favorites'];
   currentFavoriteConfig: FavoriteConfig;
-  showFavoritesDropdown: boolean;
-  setShowFavoritesDropdown: (show: boolean) => void;
-  favoritesDropdownRef: React.RefObject<HTMLDivElement | null>;
-  handleApplyFavorite: (config: FavoriteConfig) => void;
-
-  chartData: ChartDataPoint[];
-  compareChartData: ChartDataPoint[];
-  sortedQueryResults: QueryResult[];
-  filteredQueryResults: QueryResult[];
-  validPrices: number[];
-  avgPrice: number;
-  avgChange24hPercent: number | undefined;
-  maxPrice: number;
-  minPrice: number;
-  priceRange: number;
-  compareValidPrices: number[];
-  compareAvgPrice: number;
-  compareAvgChange24hPercent: number | undefined;
-  compareMaxPrice: number;
-  compareMinPrice: number;
-  comparePriceRange: number;
-  variance: number;
-  standardDeviation: number;
-  standardDeviationPercent: number;
-  supportedChainsBySelectedOracles: Set<Blockchain>;
-
-  toggleSeries: (seriesName: string) => void;
-  handleSort: (field: 'oracle' | 'blockchain' | 'price' | 'timestamp') => void;
-  fetchQueryData: () => Promise<void>;
-
-  generateFilename: (extension: string) => string;
-  handleExportCSV: () => void;
-  handleExportJSON: () => void;
 }
 
 export type { TimeComparisonConfig, ChartDataPoint, QueryError };
@@ -167,13 +177,13 @@ export function usePriceQuery(): UsePriceQueryReturn {
     const avgPrice =
       validPrices.length > 0 ? validPrices.reduce((a, b) => a + b, 0) / validPrices.length : 0;
 
+    const validChanges = data.queryResults.filter(
+      (r) => r.priceData?.change24hPercent !== undefined
+    );
     const avgChange24hPercent =
-      data.queryResults.length > 0
-        ? data.queryResults.reduce((sum, r) => {
-            const change = r.priceData?.change24hPercent;
-            return change !== undefined ? sum + change : sum;
-          }, 0) /
-          data.queryResults.filter((r) => r.priceData?.change24hPercent !== undefined).length
+      validChanges.length > 0
+        ? validChanges.reduce((sum, r) => sum + r.priceData!.change24hPercent!, 0) /
+          validChanges.length
         : undefined;
 
     const maxPrice = validPrices.length > 0 ? Math.max(...validPrices) : 0;
@@ -197,13 +207,13 @@ export function usePriceQuery(): UsePriceQueryReturn {
         ? compareValidPrices.reduce((a, b) => a + b, 0) / compareValidPrices.length
         : 0;
 
+    const compareValidChanges = data.compareQueryResults.filter(
+      (r) => r.priceData?.change24hPercent !== undefined
+    );
     const compareAvgChange24hPercent =
-      data.compareQueryResults.length > 0
-        ? data.compareQueryResults.reduce((sum, r) => {
-            const change = r.priceData?.change24hPercent;
-            return change !== undefined ? sum + change : sum;
-          }, 0) /
-          data.compareQueryResults.filter((r) => r.priceData?.change24hPercent !== undefined).length
+      compareValidChanges.length > 0
+        ? compareValidChanges.reduce((sum, r) => sum + r.priceData!.change24hPercent!, 0) /
+          compareValidChanges.length
         : undefined;
 
     const compareMaxPrice = compareValidPrices.length > 0 ? Math.max(...compareValidPrices) : 0;
@@ -291,87 +301,81 @@ export function usePriceQuery(): UsePriceQueryReturn {
   );
 
   return {
-    selectedOracle: state.selectedOracle,
-    setSelectedOracle: state.setSelectedOracle,
-    selectedChain: state.selectedChain,
-    setSelectedChain: state.setSelectedChain,
-    selectedSymbol: state.selectedSymbol,
-    setSelectedSymbol: state.setSelectedSymbol,
-    selectedTimeRange: state.selectedTimeRange,
-    setSelectedTimeRange: state.setSelectedTimeRange,
-    queryResults: data.queryResults,
-    historicalData: data.historicalData,
-    isLoading: data.isLoading,
-    filterText: state.filterText,
-    setFilterText: state.setFilterText,
-    sortField: state.sortField,
-    sortDirection: state.sortDirection,
-    hiddenSeries: state.hiddenSeries,
-    setHiddenSeries: state.setHiddenSeries,
-    queryDuration: data.queryDuration,
-    queryProgress: data.queryProgress,
-    currentQueryTarget: data.currentQueryTarget,
-    queryErrors: data.queryErrors,
-    clearErrors: data.clearErrors,
-    retryDataSource: data.retryDataSource,
-    retryAllErrors: data.retryAllErrors,
-
-    selectedRow: state.selectedRow,
-    setSelectedRow: state.setSelectedRow,
-    isCompareMode: state.isCompareMode,
-    setIsCompareMode: state.setIsCompareMode,
-    compareTimeRange: state.compareTimeRange,
-    setCompareTimeRange: state.setCompareTimeRange,
-    compareHistoricalData: data.compareHistoricalData,
-    compareQueryResults: data.compareQueryResults,
-    showBaseline: state.showBaseline,
-    setShowBaseline: state.setShowBaseline,
-    showExportConfig,
-    setShowExportConfig,
-    chartContainerRef,
-    timeComparisonConfig: state.timeComparisonConfig,
-    setTimeComparisonConfig: state.setTimeComparisonConfig,
-    urlParamsParsed: state.urlParamsParsed,
-    primaryDataFetchTime: data.primaryDataFetchTime,
-    compareDataFetchTime: data.compareDataFetchTime,
-    validationWarnings: data.validationWarnings,
-    dataAnomalies: data.dataAnomalies,
-    hasDataQualityIssues: data.hasDataQualityIssues,
+    state: {
+      selectedOracle: state.selectedOracle,
+      setSelectedOracle: state.setSelectedOracle,
+      selectedChain: state.selectedChain,
+      setSelectedChain: state.setSelectedChain,
+      selectedSymbol: state.selectedSymbol,
+      setSelectedSymbol: state.setSelectedSymbol,
+      selectedTimeRange: state.selectedTimeRange,
+      setSelectedTimeRange: state.setSelectedTimeRange,
+      filterText: state.filterText,
+      setFilterText: state.setFilterText,
+      sortField: state.sortField,
+      sortDirection: state.sortDirection,
+      hiddenSeries: state.hiddenSeries,
+      setHiddenSeries: state.setHiddenSeries,
+      selectedRow: state.selectedRow,
+      setSelectedRow: state.setSelectedRow,
+      isCompareMode: state.isCompareMode,
+      setIsCompareMode: state.setIsCompareMode,
+      compareTimeRange: state.compareTimeRange,
+      setCompareTimeRange: state.setCompareTimeRange,
+      showBaseline: state.showBaseline,
+      setShowBaseline: state.setShowBaseline,
+      showExportConfig,
+      setShowExportConfig,
+      timeComparisonConfig: state.timeComparisonConfig,
+      setTimeComparisonConfig: state.setTimeComparisonConfig,
+      urlParamsParsed: state.urlParamsParsed,
+      showFavoritesDropdown,
+      setShowFavoritesDropdown,
+    },
+    data: {
+      queryResults: data.queryResults,
+      historicalData: data.historicalData,
+      compareHistoricalData: data.compareHistoricalData,
+      compareQueryResults: data.compareQueryResults,
+      primaryDataFetchTime: data.primaryDataFetchTime,
+      compareDataFetchTime: data.compareDataFetchTime,
+      chartData: chart.chartData,
+      compareChartData: chart.compareChartData,
+      sortedQueryResults,
+      filteredQueryResults,
+      supportedChainsBySelectedOracles: data.supportedChainsBySelectedOracles,
+    },
+    stats,
+    query: {
+      isLoading: data.isLoading,
+      queryDuration: data.queryDuration,
+      queryProgress: data.queryProgress,
+      currentQueryTarget: data.currentQueryTarget,
+      queryErrors: data.queryErrors,
+      clearErrors: data.clearErrors,
+      retryDataSource: data.retryDataSource,
+      retryAllErrors: data.retryAllErrors,
+      fetchQueryData: data.fetchQueryData,
+    },
+    validation: {
+      validationWarnings: data.validationWarnings,
+      dataAnomalies: data.dataAnomalies,
+      hasDataQualityIssues: data.hasDataQualityIssues,
+    },
+    actions: {
+      toggleSeries: state.toggleSeries,
+      handleSort: state.handleSort,
+      generateFilename,
+      handleExportCSV,
+      handleExportJSON,
+      handleApplyFavorite,
+    },
+    refs: {
+      chartContainerRef,
+      favoritesDropdownRef,
+    },
     user,
     symbolFavorites,
     currentFavoriteConfig,
-    showFavoritesDropdown,
-    setShowFavoritesDropdown,
-    favoritesDropdownRef,
-    handleApplyFavorite,
-
-    chartData: chart.chartData,
-    compareChartData: chart.compareChartData,
-    sortedQueryResults,
-    filteredQueryResults,
-    validPrices: stats.validPrices,
-    avgPrice: stats.avgPrice,
-    avgChange24hPercent: stats.avgChange24hPercent,
-    maxPrice: stats.maxPrice,
-    minPrice: stats.minPrice,
-    priceRange: stats.priceRange,
-    compareValidPrices: stats.compareValidPrices,
-    compareAvgPrice: stats.compareAvgPrice,
-    compareAvgChange24hPercent: stats.compareAvgChange24hPercent,
-    compareMaxPrice: stats.compareMaxPrice,
-    compareMinPrice: stats.compareMinPrice,
-    comparePriceRange: stats.comparePriceRange,
-    variance: stats.variance,
-    standardDeviation: stats.standardDeviation,
-    standardDeviationPercent: stats.standardDeviationPercent,
-    supportedChainsBySelectedOracles: data.supportedChainsBySelectedOracles,
-
-    toggleSeries: state.toggleSeries,
-    handleSort: state.handleSort,
-    fetchQueryData: data.fetchQueryData,
-
-    generateFilename,
-    handleExportCSV,
-    handleExportJSON,
   };
 }

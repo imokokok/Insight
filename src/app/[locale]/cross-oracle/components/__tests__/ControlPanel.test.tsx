@@ -5,9 +5,17 @@ import { type OracleProvider } from '@/types/oracle';
 import { ControlPanel } from '../ControlPanel';
 
 jest.mock('@/components/ui', () => ({
-  SegmentedControl: ({ options, value, onChange }: any) => (
+  SegmentedControl: ({
+    options,
+    value,
+    onChange,
+  }: {
+    options: Array<{ value: string; label: string }>;
+    value: string;
+    onChange: (v: string) => void;
+  }) => (
     <div data-testid="segmented-control">
-      {options.map((opt: any) => (
+      {options.map((opt) => (
         <button
           key={opt.value}
           onClick={() => onChange(opt.value)}
@@ -18,9 +26,17 @@ jest.mock('@/components/ui', () => ({
       ))}
     </div>
   ),
-  DropdownSelect: ({ value, onChange, options }: any) => (
+  DropdownSelect: ({
+    value,
+    onChange,
+    options,
+  }: {
+    value: string;
+    onChange: (v: string) => void;
+    options: Array<{ value: string; label: string }>;
+  }) => (
     <select data-testid="dropdown-select" value={value} onChange={(e) => onChange(e.target.value)}>
-      {options.map((opt: any) => (
+      {options.map((opt) => (
         <option key={opt.value} value={opt.value}>
           {opt.label}
         </option>

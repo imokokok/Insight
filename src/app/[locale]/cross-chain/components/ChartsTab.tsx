@@ -14,11 +14,12 @@ import {
 import { SectionErrorBoundary } from '@/components/error-boundary';
 import { useTranslations } from '@/i18n';
 import { baseColors, semanticColors, chartColors } from '@/lib/config/colors';
-import { Blockchain } from '@/types/oracle';
+import { type Blockchain } from '@/types/oracle';
+
+import { type useCrossChainData } from '../useCrossChainData';
 
 import { InteractivePriceChart } from './InteractivePriceChart';
 import { StandardBoxPlot } from './StandardBoxPlot';
-import { type useCrossChainData } from '../useCrossChainData';
 
 interface ChartsTabProps {
   data: ReturnType<typeof useCrossChainData>;
@@ -48,23 +49,21 @@ export function ChartsTab({ data }: ChartsTabProps) {
   const handleLegendClick = (e: unknown) => {
     const dataKey = (e as { dataKey?: string | number })?.dataKey;
     if (typeof dataKey === 'string') {
-      const newSet = new Set(hiddenLines);
-      if (newSet.has(dataKey)) newSet.delete(dataKey);
-      else newSet.add(dataKey);
-      setHiddenLines(newSet);
+      if (hiddenLines.includes(dataKey)) {
+        setHiddenLines(hiddenLines.filter((l) => l !== dataKey));
+      } else {
+        setHiddenLines([...hiddenLines, dataKey]);
+      }
     }
   };
 
   const handleLegendDoubleClick = (chain: Blockchain) => {
     if (focusedChain === chain) {
       setFocusedChain(null);
-      setHiddenLines(new Set());
+      setHiddenLines([]);
     } else {
       setFocusedChain(chain);
-      const newHidden = new Set<string>();
-      filteredChains.forEach((c) => {
-        if (c !== chain) newHidden.add(c);
-      });
+      const newHidden = filteredChains.filter((c) => c !== chain);
       setHiddenLines(newHidden);
     }
   };

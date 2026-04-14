@@ -37,7 +37,7 @@ interface InteractivePriceChartProps {
   chartData: ChartDataPoint[];
   chartDataWithMA: ChartDataPoint[];
   filteredChains: Blockchain[];
-  hiddenLines: Set<string>;
+  hiddenLines: string[];
   scatterData: Array<
     Partial<ChartDataPoint> & {
       outlierChain: Blockchain;
@@ -762,7 +762,7 @@ export function InteractivePriceChart({
                 stroke={chainColors[chain]}
                 strokeWidth={2}
                 dot={false}
-                hide={hiddenLines.has(chain)}
+                hide={hiddenLines.includes(chain)}
               />
             ))}
 

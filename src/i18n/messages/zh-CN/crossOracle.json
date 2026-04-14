@@ -837,6 +837,49 @@
       "positive": "正向",
       "negative": "负向",
       "neutral": "中性"
+    },
+    "freshness": {
+      "justNow": "刚刚",
+      "minutesAgo": "{minutes}分钟前",
+      "hoursAgo": "{hours}小时前"
+    },
+    "riskRecommendations": {
+      "highRiskAnomaly": {
+        "title": "检测到高风险价格异常",
+        "description": "发现高风险价格异常，偏差超过 3%。建议立即检查相关预言机数据源。"
+      },
+      "mediumRiskAnomaly": {
+        "title": "价格偏差警告",
+        "description": "检测到中等风险的价格偏差（1-3%）。建议监控这些数据源的表现。"
+      },
+      "multipleAnomalies": {
+        "title": "多个数据源出现异常",
+        "description": "多个数据源报告异常。这可能表明市场波动剧烈或存在系统性问题。"
+      },
+      "dataLatency": {
+        "title": "数据源更新延迟",
+        "description": "部分预言机数据更新延迟超过 5 分钟。这可能影响价格准确性。"
+      },
+      "dataCompleteness": {
+        "title": "数据完整性不足",
+        "description": "当前数据完整性低于 80% 阈值。部分预言机可能无法提供有效数据。"
+      },
+      "highDispersion": {
+        "title": "价格离散度过高",
+        "description": "检测到较高的价格偏差。各预言机之间的价格一致性较差。"
+      },
+      "diversifySources": {
+        "title": "建议增加数据源多样性",
+        "description": "当前依赖单一数据源，建议增加更多预言机以提高系统鲁棒性和数据可靠性。"
+      },
+      "thresholdOptimization": {
+        "title": "异常检测阈值优化",
+        "description": "检测到多个低严重度异常，建议调整异常检测阈值以减少误报。"
+      },
+      "regularReview": {
+        "title": "定期审查数据源性能",
+        "description": "建议每周审查一次各预言机的性能指标，包括准确性、延迟和可用性。"
+      }
     }
   }
 }

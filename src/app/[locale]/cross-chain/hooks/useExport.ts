@@ -1,11 +1,5 @@
-/**
- * @fileoverview 导出功能 Hook
- * 提供数据导出功能
- */
+import { useCallback, useEffect, useRef } from 'react';
 
-import { useCallback, useMemo } from 'react';
-
-// Toast component removed - using alternative notification method
 import { OracleProvider, type Blockchain, type PriceData } from '@/lib/oracles';
 import { createLogger } from '@/lib/utils/logger';
 
@@ -40,29 +34,41 @@ export interface UseExportReturn {
   exportToJSON: () => boolean;
 }
 
+function downloadBlob(content: string, type: string, filename: string): void {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.setAttribute('href', url);
+  link.setAttribute('download', filename);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
 export function useExport(params: UseExportParams): UseExportReturn {
-  const toast = useMemo(
-    () => ({
-      success: (title: string, message: string) => console.info(`[Success] ${title}: ${message}`),
-      error: (title: string, message: string) => console.error(`[Error] ${title}: ${message}`),
-      warning: (title: string, message: string) => console.warn(`[Warning] ${title}: ${message}`),
-    }),
-    []
-  );
+  const paramsRef = useRef(params);
+  useEffect(() => {
+    paramsRef.current = params;
+  });
 
   const exportToCSV = useCallback((): boolean => {
-    if (params.priceDifferences.length === 0 && Object.keys(params.historicalPrices).length === 0) {
-      toast.warning('No Data', 'No data available to export');
+    const currentParams = paramsRef.current;
+    if (
+      currentParams.priceDifferences.length === 0 &&
+      Object.keys(currentParams.historicalPrices).length === 0
+    ) {
       return false;
     }
 
     try {
       const csvLines: string[] = [];
 
-      csvLines.push('=== Current Prices ===');
+      csvLines.push('# Current Prices');
       csvLines.push(['Blockchain', 'Price', 'Difference', 'PercentDifference'].join(','));
 
-      params.priceDifferences.forEach((item) => {
+      currentParams.priceDifferences.forEach((item) => {
         const row = [
           chainNames[item.chain],
           item.price.toLocaleString(undefined, {
@@ -76,27 +82,36 @@ export function useExport(params: UseExportParams): UseExportReturn {
       });
 
       csvLines.push('');
-      csvLines.push('=== Historical Prices ===');
+      csvLines.push('# Historical Prices');
 
       const allTimestamps = new Set<number>();
-      params.filteredChains.forEach((chain) => {
-        params.historicalPrices[chain]?.forEach((price) => allTimestamps.add(price.timestamp));
+      currentParams.filteredChains.forEach((chain) => {
+        currentParams.historicalPrices[chain]?.forEach((price) =>
+          allTimestamps.add(price.timestamp)
+        );
       });
       const sortedTimestamps = Array.from(allTimestamps).sort((a, b) => a - b);
 
       const historicalHeaders = [
         'timestamp',
-        ...params.filteredChains.map((chain) => chainNames[chain]),
+        ...currentParams.filteredChains.map((chain) => chainNames[chain]),
       ];
       csvLines.push(historicalHeaders.join(','));
 
+      const timestampPriceMaps: Partial<Record<Blockchain, Map<number, number>>> = {};
+      currentParams.filteredChains.forEach((chain) => {
+        timestampPriceMaps[chain] = new Map(
+          (currentParams.historicalPrices[chain] || []).map((p) => [p.timestamp, p.price])
+        );
+      });
+
       sortedTimestamps.forEach((timestamp) => {
         const row: string[] = [new Date(timestamp).toLocaleString()];
-        params.filteredChains.forEach((chain) => {
-          const price = params.historicalPrices[chain]?.find((p) => p.timestamp === timestamp);
+        currentParams.filteredChains.forEach((chain) => {
+          const price = timestampPriceMaps[chain]?.get(timestamp);
           row.push(
-            price
-              ? price.price.toLocaleString(undefined, {
+            price !== undefined
+              ? price.toLocaleString(undefined, {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 4,
                 })
@@ -107,32 +122,25 @@ export function useExport(params: UseExportParams): UseExportReturn {
       });
 
       const csvContent = csvLines.join('\n');
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.setAttribute('href', url);
-      link.setAttribute(
-        'download',
-        `cross-chain-${params.selectedSymbol}-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.csv`
+      downloadBlob(
+        csvContent,
+        'text/csv;charset=utf-8;',
+        `cross-chain-${currentParams.selectedSymbol}-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.csv`
       );
-      link.style.visibility = 'hidden';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
 
-      toast.success('Export Successful', 'CSV file has been downloaded');
       return true;
     } catch (error) {
       logger.error('Failed to export CSV:', error as Error);
-      toast.error('Export Failed', 'Failed to export CSV file. Please try again.');
       return false;
     }
-  }, [params, toast]);
+  }, []);
 
   const exportToJSON = useCallback((): boolean => {
-    if (params.priceDifferences.length === 0 && Object.keys(params.historicalPrices).length === 0) {
-      toast.warning('No Data', 'No data available to export');
+    const currentParams = paramsRef.current;
+    if (
+      currentParams.priceDifferences.length === 0 &&
+      Object.keys(currentParams.historicalPrices).length === 0
+    ) {
       return false;
     }
 
@@ -155,60 +163,52 @@ export function useExport(params: UseExportParams): UseExportReturn {
 
       const exportData = {
         metadata: {
-          symbol: params.selectedSymbol,
-          oracleProvider: providerNames[params.selectedProvider],
+          symbol: currentParams.selectedSymbol,
+          oracleProvider: providerNames[currentParams.selectedProvider],
           exportTimestamp: new Date().toISOString(),
-          baseChain: params.selectedBaseChain ? chainNames[params.selectedBaseChain] : null,
+          baseChain: currentParams.selectedBaseChain
+            ? chainNames[currentParams.selectedBaseChain]
+            : null,
         },
-        currentPrices: params.priceDifferences.map((item) => ({
+        currentPrices: currentParams.priceDifferences.map((item) => ({
           blockchain: chainNames[item.chain],
           price: item.price,
           difference: item.diff,
           percentDifference: item.diffPercent,
         })),
-        historicalPrices: params.filteredChains.map((chain) => ({
+        historicalPrices: currentParams.filteredChains.map((chain) => ({
           blockchain: chainNames[chain],
           prices:
-            params.historicalPrices[chain]?.map((price) => ({
+            currentParams.historicalPrices[chain]?.map((price) => ({
               price: price.price,
               timestamp: new Date(price.timestamp).toISOString(),
               source: price.source,
             })) || [],
         })),
         summary: {
-          averagePrice: params.avgPrice,
-          highestPrice: params.maxPrice,
-          lowestPrice: params.minPrice,
-          priceRange: params.priceRange,
-          standardDeviationPercent: params.standardDeviationPercent,
-          consistencyRating: getConsistencyRating(params.standardDeviationPercent),
-          dataPoints: params.totalDataPoints,
+          averagePrice: currentParams.avgPrice,
+          highestPrice: currentParams.maxPrice,
+          lowestPrice: currentParams.minPrice,
+          priceRange: currentParams.priceRange,
+          standardDeviationPercent: currentParams.standardDeviationPercent,
+          consistencyRating: getConsistencyRating(currentParams.standardDeviationPercent),
+          dataPoints: currentParams.totalDataPoints,
         },
       };
 
       const jsonContent = JSON.stringify(exportData, null, 2);
-      const blob = new Blob([jsonContent], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.setAttribute('href', url);
-      link.setAttribute(
-        'download',
-        `cross-chain-${params.selectedSymbol}-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.json`
+      downloadBlob(
+        jsonContent,
+        'application/json',
+        `cross-chain-${currentParams.selectedSymbol}-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.json`
       );
-      link.style.visibility = 'hidden';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
 
-      toast.success('Export Successful', 'JSON file has been downloaded');
       return true;
     } catch (error) {
       logger.error('Failed to export JSON:', error as Error);
-      toast.error('Export Failed', 'Failed to export JSON file. Please try again.');
       return false;
     }
-  }, [params, toast]);
+  }, []);
 
   return {
     exportToCSV,

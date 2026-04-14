@@ -24,20 +24,11 @@ import { chartColors } from '@/lib/config/colors';
 import { getProviderDefaults } from '@/lib/oracles/utils/performanceMetricsConfig';
 import { type OracleProvider, type PriceData } from '@/types/oracle';
 
-import { oracleNames, ANOMALY_THRESHOLD } from '../constants';
+import { oracleNames, ANOMALY_ZSCORE_THRESHOLD } from '../constants';
 
 import { ConfidenceBar } from './price-comparison/ConfidenceBar';
 
-// ============================================================================
-// 类型定义
-// ============================================================================
-
-interface PriceAnomaly {
-  provider: OracleProvider;
-  deviationPercent: number;
-  severity: 'low' | 'medium' | 'high';
-  timestamp: number;
-}
+import type { PriceAnomaly } from '../hooks/usePriceAnomalyDetection';
 
 interface SimplePriceTableProps {
   priceData: PriceData[];
@@ -205,7 +196,7 @@ function SimplePriceTableComponent({
 
       // 检查是否为异常
       const anomaly = anomalies.find((a) => a.provider === data.provider);
-      const isAnomaly = anomaly !== undefined || absDeviation >= ANOMALY_THRESHOLD;
+      const isAnomaly = anomaly !== undefined || absDeviation >= ANOMALY_ZSCORE_THRESHOLD;
       const severity =
         anomaly?.severity ||
         (absDeviation >= 3
@@ -240,7 +231,7 @@ function SimplePriceTableComponent({
       const latency = providerDefaults.responseTime;
       const dataSources = providerDefaults.dataSources;
       // 使用数据时间戳或当前时间，不使用随机偏移
-      const updateTime = data.timestamp || Date.now();
+      const updateTime = data.timestamp || 0;
 
       return {
         provider: data.provider,

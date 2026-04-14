@@ -4,23 +4,11 @@ import { getHoursForTimeRange, extractBaseSymbol } from '@/lib/oracles';
 import { createLogger } from '@/lib/utils/logger';
 import type { OracleProvider, PriceData } from '@/types/oracle';
 
-import type { TimeRange } from '../constants';
+import { type TimeRange, timeRangeToValue } from '../constants';
+
 import type { OracleErrorInfo, OracleDataError, RetryConfig } from '../types';
 
 const logger = createLogger('useOracleRetry');
-
-// Helper function to convert TimeRange to TimeRangeValue
-function timeRangeToValue(range: TimeRange): '1H' | '24H' | '7D' | '30D' | '90D' | '1Y' {
-  const map: Record<TimeRange, '1H' | '24H' | '7D' | '30D' | '90D' | '1Y'> = {
-    '1h': '1H',
-    '24h': '24H',
-    '7d': '7D',
-    '30d': '30D',
-    '90d': '90D',
-    '1y': '1Y',
-  };
-  return map[range];
-}
 
 const DEFAULT_RETRY_CONFIG: RetryConfig = {
   maxRetries: 3,

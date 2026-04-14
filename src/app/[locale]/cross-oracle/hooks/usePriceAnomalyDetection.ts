@@ -8,7 +8,7 @@ import { useMemo } from 'react';
 import { type PriceData, type OracleProvider } from '@/types/oracle';
 
 import {
-  ANOMALY_THRESHOLD,
+  ANOMALY_DEVIATION_THRESHOLD,
   SEVERITY_THRESHOLDS,
   FRESHNESS_THRESHOLDS,
   CONFIDENCE_THRESHOLDS,
@@ -70,7 +70,7 @@ function analyzeReason(
     reasonKeys.push('anomalyDetection.reasons.severeDeviation');
   } else if (absDeviation > SEVERITY_THRESHOLDS.HIGH) {
     reasonKeys.push('anomalyDetection.reasons.highVolatility');
-  } else if (absDeviation > ANOMALY_THRESHOLD) {
+  } else if (absDeviation > ANOMALY_DEVIATION_THRESHOLD) {
     reasonKeys.push('anomalyDetection.reasons.dataSourceDifference');
   }
 
@@ -89,7 +89,7 @@ function analyzeReason(
   }
 
   if (reasonKeys.length === 0) {
-    if (absDeviation >= ANOMALY_THRESHOLD) {
+    if (absDeviation >= ANOMALY_DEVIATION_THRESHOLD) {
       reasonKeys.push('anomalyDetection.reasons.overThreshold');
     } else {
       reasonKeys.push('anomalyDetection.reasons.minorDeviation');
@@ -127,7 +127,7 @@ export function usePriceAnomalyDetection(
 
       const deviationPercent = ((data.price - avgPrice) / avgPrice) * 100;
 
-      if (Math.abs(deviationPercent) >= ANOMALY_THRESHOLD) {
+      if (Math.abs(deviationPercent) >= ANOMALY_DEVIATION_THRESHOLD) {
         const freshnessSeconds = Math.floor((now - data.timestamp) / 1000);
         const severity = getSeverity(deviationPercent);
         const reasonKeys = analyzeReason(deviationPercent, freshnessSeconds, data.confidence);

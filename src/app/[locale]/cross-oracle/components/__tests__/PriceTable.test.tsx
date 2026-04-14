@@ -5,11 +5,17 @@ import { type OracleProvider, type PriceData } from '@/types/oracle';
 import { PriceTable } from '../PriceTable';
 
 jest.mock('@/components/ui', () => ({
-  DataTablePro: ({ data, columns }: any) => (
+  DataTablePro: ({
+    data,
+    columns,
+  }: {
+    data: Array<Record<string, unknown>>;
+    columns: Array<{ accessorKey: string }>;
+  }) => (
     <div data-testid="data-table-pro">
-      {data.map((row: any, index: number) => (
+      {data.map((row, index) => (
         <div key={index} data-testid={`row-${index}`}>
-          {columns.map((col: any) => (
+          {columns.map((col) => (
             <span key={col.accessorKey}>{String(row[col.accessorKey])}</span>
           ))}
         </div>
@@ -25,15 +31,15 @@ jest.mock('../../constants', () => ({
   },
   getDeviationBgClass: (deviation: number) => (deviation > 5 ? 'bg-red-100' : 'bg-green-100'),
   getFreshnessInfo: (_seconds: number) => ({
-    label: 'Fresh',
+    textKey: 'crossOracle.freshness.justNow',
+    textParams: {},
     color: 'green',
-    text: 'Fresh',
     seconds: _seconds,
   }),
   getFreshnessDotColor: (_seconds: number) => 'green',
   calculateZScore: (price: number, avg: number, std: number) => (std > 0 ? (price - avg) / std : 0),
   isOutlier: (zScore: number) => Math.abs(zScore) > 2,
-  ANOMALY_THRESHOLD: 0.05,
+  ANOMALY_ZSCORE_THRESHOLD: 0.05,
 }));
 
 const mockPriceData: PriceData[] = [

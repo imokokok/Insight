@@ -27,7 +27,7 @@ interface TrendDataPoint {
 }
 
 interface MultiOracleTrendChartProps {
-  historicalData: Record<OracleProvider, Array<{ timestamp: number; price: number }>>;
+  historicalData: Partial<Record<OracleProvider, Array<{ timestamp: number; price: number }>>>;
   oracleColors: Record<OracleProvider, string>;
   t: (key: string, params?: Record<string, string | number>) => string;
 }

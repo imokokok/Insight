@@ -21,6 +21,20 @@ export interface FetchHistoricalParams extends FetchPriceParams {
 /**
  * 从 API 路由获取价格数据
  */
+const REQUEST_TIMEOUT_MS = 15_000;
+
+function createAbortControllerWithTimeout(signal?: AbortSignal): AbortController {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  if (signal) {
+    signal.addEventListener('abort', () => {
+      clearTimeout(timeoutId);
+      controller.abort();
+    });
+  }
+  return controller;
+}
+
 export async function fetchPriceFromApi({
   provider,
   symbol,
@@ -34,11 +48,14 @@ export async function fetchPriceFromApi({
 
   logger.info(`Fetching price from API: ${url.toString()}`);
 
+  const controller = createAbortControllerWithTimeout();
+
   const response = await fetch(url.toString(), {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
     },
+    signal: controller.signal,
   });
 
   if (!response.ok) {
@@ -92,11 +109,14 @@ export async function fetchHistoricalFromApi({
 
   logger.info(`Fetching historical prices from API: ${url.toString()}`);
 
+  const controller = createAbortControllerWithTimeout();
+
   const response = await fetch(url.toString(), {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
     },
+    signal: controller.signal,
   });
 
   if (!response.ok) {

@@ -63,20 +63,20 @@ export interface UsePriceQueryStateReturn {
 export function usePriceQueryState(): UsePriceQueryStateReturn {
   const { preferences } = usePreferences();
 
-  const [selectedOracle, setSelectedOracle] = useState<OracleProvider | null>(
+  const [selectedOracle, _setSelectedOracle] = useState<OracleProvider | null>(
     OracleProvider.CHAINLINK
   );
-  const [selectedChain, setSelectedChain] = useState<Blockchain | null>(Blockchain.ETHEREUM);
-  const [selectedSymbol, setSelectedSymbol] = useState<string>('BTC');
-  const [selectedTimeRange, setSelectedTimeRange] = useState<number>(24);
+  const [selectedChain, _setSelectedChain] = useState<Blockchain | null>(Blockchain.ETHEREUM);
+  const [selectedSymbol, _setSelectedSymbol] = useState<string>('BTC');
+  const [selectedTimeRange, _setSelectedTimeRange] = useState<number>(24);
   const [filterText, setFilterText] = useState<string>('');
   const [sortField, setSortField] = useState<'oracle' | 'blockchain' | 'price' | 'timestamp'>(
     'oracle'
   );
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [hiddenSeries, setHiddenSeries] = useState<Set<string>>(new Set());
-  const [isCompareMode, setIsCompareMode] = useState<boolean>(false);
-  const [compareTimeRange, setCompareTimeRange] = useState<number>(24);
+  const [isCompareMode, _setIsCompareMode] = useState<boolean>(false);
+  const [compareTimeRange, _setCompareTimeRange] = useState<number>(24);
   const [showBaseline, setShowBaseline] = useState<boolean>(false);
   const [selectedRow, setSelectedRow] = useState<string | null>(null);
   const [urlParamsParsed, setUrlParamsParsed] = useState(false);
@@ -103,12 +103,42 @@ export function usePriceQueryState(): UsePriceQueryStateReturn {
     };
   });
 
-  const selectedOracleRef = useRef<OracleProvider | null>(selectedOracle);
-  const selectedChainRef = useRef<Blockchain | null>(selectedChain);
-  const selectedSymbolRef = useRef<string>(selectedSymbol);
-  const selectedTimeRangeRef = useRef<number>(selectedTimeRange);
-  const isCompareModeRef = useRef<boolean>(isCompareMode);
-  const compareTimeRangeRef = useRef<number>(compareTimeRange);
+  const selectedOracleRef = useRef<OracleProvider | null>(OracleProvider.CHAINLINK);
+  const selectedChainRef = useRef<Blockchain | null>(Blockchain.ETHEREUM);
+  const selectedSymbolRef = useRef<string>('BTC');
+  const selectedTimeRangeRef = useRef<number>(24);
+  const isCompareModeRef = useRef<boolean>(false);
+  const compareTimeRangeRef = useRef<number>(24);
+
+  const setSelectedOracle = useCallback((oracle: OracleProvider | null) => {
+    selectedOracleRef.current = oracle;
+    _setSelectedOracle(oracle);
+  }, []);
+
+  const setSelectedChain = useCallback((chain: Blockchain | null) => {
+    selectedChainRef.current = chain;
+    _setSelectedChain(chain);
+  }, []);
+
+  const setSelectedSymbol = useCallback((symbol: string) => {
+    selectedSymbolRef.current = symbol;
+    _setSelectedSymbol(symbol);
+  }, []);
+
+  const setSelectedTimeRange = useCallback((timeRange: number) => {
+    selectedTimeRangeRef.current = timeRange;
+    _setSelectedTimeRange(timeRange);
+  }, []);
+
+  const setIsCompareMode = useCallback((mode: boolean) => {
+    isCompareModeRef.current = mode;
+    _setIsCompareMode(mode);
+  }, []);
+
+  const setCompareTimeRange = useCallback((timeRange: number) => {
+    compareTimeRangeRef.current = timeRange;
+    _setCompareTimeRange(timeRange);
+  }, []);
 
   const applyPreferences = useCallback(() => {
     const oracleMapping: Record<string, OracleProvider> = {
@@ -131,10 +161,14 @@ export function usePriceQueryState(): UsePriceQueryStateReturn {
     const defaultTimeRange = timeRangeMapping[preferences.defaultTimeRange] || 24;
     const defaultSymbol = preferences.defaultSymbol.split('/')[0] || 'BTC';
 
+    selectedOracleRef.current = defaultOracle;
+    selectedChainRef.current = Blockchain.ETHEREUM;
+    selectedSymbolRef.current = defaultSymbol;
+    selectedTimeRangeRef.current = defaultTimeRange;
     setSelectedOracle(defaultOracle);
     setSelectedSymbol(defaultSymbol);
     setSelectedTimeRange(defaultTimeRange);
-  }, [preferences]);
+  }, [preferences, setSelectedOracle, setSelectedSymbol, setSelectedTimeRange]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -145,37 +179,61 @@ export function usePriceQueryState(): UsePriceQueryStateReturn {
       config.oracles?.length || config.chains?.length || config.symbol || config.timeRange;
 
     if (!hasUrlParams) {
-      applyPreferences();
+      const oracleMapping: Record<string, OracleProvider> = {
+        chainlink: OracleProvider.CHAINLINK,
+        pyth: OracleProvider.PYTH,
+        api3: OracleProvider.API3,
+        redstone: OracleProvider.REDSTONE,
+        dia: OracleProvider.DIA,
+        winklink: OracleProvider.WINKLINK,
+      };
+
+      const timeRangeMapping: Record<string, number> = {
+        '1h': 1,
+        '6h': 6,
+        '24h': 24,
+        '7d': 168,
+      };
+
+      const defaultOracle = oracleMapping[preferences.defaultOracle] || OracleProvider.CHAINLINK;
+      const defaultTimeRange = timeRangeMapping[preferences.defaultTimeRange] || 24;
+      const defaultSymbol = preferences.defaultSymbol.split('/')[0] || 'BTC';
+
+      selectedOracleRef.current = defaultOracle;
+      selectedChainRef.current = Blockchain.ETHEREUM;
+      selectedSymbolRef.current = defaultSymbol;
+      selectedTimeRangeRef.current = defaultTimeRange;
+      setSelectedOracle(defaultOracle);
+      setSelectedSymbol(defaultSymbol);
+      setSelectedTimeRange(defaultTimeRange);
       setUrlParamsParsed(true);
     } else {
-      setSelectedOracle((prev) => {
-        const oracleFromUrl =
-          config.oracles && config.oracles.length > 0 ? config.oracles[0] : prev;
-        return oracleFromUrl;
-      });
-      setSelectedChain((prev) =>
-        config.chains && config.chains.length > 0 ? config.chains[0] : prev
-      );
-      setSelectedSymbol((prev) => (config.symbol ? config.symbol : prev));
-      setSelectedTimeRange((prev) => (config.timeRange ? config.timeRange : prev));
+      const oracleFromUrl =
+        config.oracles && config.oracles.length > 0 ? config.oracles[0] : selectedOracleRef.current;
+      const chainFromUrl =
+        config.chains && config.chains.length > 0 ? config.chains[0] : selectedChainRef.current;
+      const symbolFromUrl = config.symbol || selectedSymbolRef.current;
+      const timeRangeFromUrl = config.timeRange || selectedTimeRangeRef.current;
+
+      selectedOracleRef.current = oracleFromUrl;
+      selectedChainRef.current = chainFromUrl;
+      selectedSymbolRef.current = symbolFromUrl;
+      selectedTimeRangeRef.current = timeRangeFromUrl;
+
+      setSelectedOracle(oracleFromUrl);
+      setSelectedChain(chainFromUrl);
+      setSelectedSymbol(symbolFromUrl);
+      setSelectedTimeRange(timeRangeFromUrl);
       setUrlParamsParsed(true);
     }
-  }, [applyPreferences]);
-
-  useEffect(() => {
-    selectedOracleRef.current = selectedOracle;
-    selectedChainRef.current = selectedChain;
-    selectedSymbolRef.current = selectedSymbol;
-    selectedTimeRangeRef.current = selectedTimeRange;
-    isCompareModeRef.current = isCompareMode;
-    compareTimeRangeRef.current = compareTimeRange;
   }, [
-    selectedOracle,
-    selectedChain,
-    selectedSymbol,
-    selectedTimeRange,
-    isCompareMode,
-    compareTimeRange,
+    preferences.defaultOracle,
+    preferences.defaultTimeRange,
+    preferences.defaultSymbol,
+    setSelectedChain,
+    setSelectedOracle,
+    setSelectedSymbol,
+    setSelectedTimeRange,
   ]);
 
   useEffect(() => {

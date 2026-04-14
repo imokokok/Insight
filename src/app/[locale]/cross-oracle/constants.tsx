@@ -11,6 +11,20 @@ import { OracleProvider } from '@/types/oracle';
 
 export type TimeRange = '1h' | '24h' | '7d' | '30d' | '90d' | '1y';
 
+export type TimeRangeValue = '1H' | '24H' | '7D' | '30D' | '90D' | '1Y';
+
+export function timeRangeToValue(range: TimeRange): TimeRangeValue {
+  const map: Record<TimeRange, TimeRangeValue> = {
+    '1h': '1H',
+    '24h': '24H',
+    '7d': '7D',
+    '30d': '30D',
+    '90d': '90D',
+    '1y': '1Y',
+  };
+  return map[range];
+}
+
 export const timeRanges: { value: TimeRange; label: string }[] = [
   { value: '1h', label: '1小时' },
   { value: '24h', label: '24小时' },
@@ -51,10 +65,6 @@ export const oracleColors: Record<string, string> = {
   [OracleProvider.REDSTONE]: '#ff6b6b',
   [OracleProvider.DIA]: '#c9f31d',
   [OracleProvider.WINKLINK]: '#f0b90b',
-  chronicle: '#f6c344',
-  tellor: '#20fe9b',
-  band: '#516ff2',
-  uma: '#ff4a4a',
 };
 
 // ============================================================================
@@ -73,7 +83,7 @@ export const deviationThresholds = {
   info: 1,
 };
 
-export const ANOMALY_THRESHOLD = 2; // Z-score threshold for outliers
+export const ANOMALY_ZSCORE_THRESHOLD = 2;
 
 // ============================================================================
 // 图表配置
@@ -109,7 +119,7 @@ export function calculateZScore(value: number, mean: number, stdDev: number): nu
 /**
  * 判断是否为异常值
  */
-export function isOutlier(zScore: number, threshold: number = ANOMALY_THRESHOLD): boolean {
+export function isOutlier(zScore: number, threshold: number = ANOMALY_ZSCORE_THRESHOLD): boolean {
   return Math.abs(zScore) > threshold;
 }
 
@@ -134,7 +144,8 @@ export function getDeviationBgClass(deviation: number): string {
  * 获取数据新鲜度信息
  */
 export function getFreshnessInfo(timestamp: number): {
-  text: string;
+  textKey: string;
+  textParams: Record<string, number>;
   color: string;
   seconds?: number;
 } {
@@ -143,18 +154,38 @@ export function getFreshnessInfo(timestamp: number): {
   const minutes = Math.floor(age / 60000);
 
   if (minutes < 1) {
-    return { text: '刚刚', color: '#22c55e', seconds };
+    return { textKey: 'crossOracle.freshness.justNow', textParams: {}, color: '#22c55e', seconds };
   }
   if (minutes < 5) {
-    return { text: `${minutes}分钟前`, color: '#22c55e', seconds };
+    return {
+      textKey: 'crossOracle.freshness.minutesAgo',
+      textParams: { minutes },
+      color: '#22c55e',
+      seconds,
+    };
   }
   if (minutes < 30) {
-    return { text: `${minutes}分钟前`, color: '#f59e0b', seconds };
+    return {
+      textKey: 'crossOracle.freshness.minutesAgo',
+      textParams: { minutes },
+      color: '#f59e0b',
+      seconds,
+    };
   }
   if (minutes < 60) {
-    return { text: `${minutes}分钟前`, color: '#ef4444', seconds };
+    return {
+      textKey: 'crossOracle.freshness.minutesAgo',
+      textParams: { minutes },
+      color: '#ef4444',
+      seconds,
+    };
   }
-  return { text: `${Math.floor(minutes / 60)}小时前`, color: '#7f1d1d', seconds };
+  return {
+    textKey: 'crossOracle.freshness.hoursAgo',
+    textParams: { hours: Math.floor(minutes / 60) },
+    color: '#7f1d1d',
+    seconds,
+  };
 }
 
 /**

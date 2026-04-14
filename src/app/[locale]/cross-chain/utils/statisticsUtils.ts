@@ -85,7 +85,7 @@ export const calculateStandardDeviationFromValues = (prices: number[]): number =
 export const calculateVariance = (prices: number[], mean: number): number => {
   if (prices.length < 2) return 0;
   const sumSquaredDiff = prices.reduce((sum, price) => sum + Math.pow(price - mean, 2), 0);
-  return sumSquaredDiff / prices.length;
+  return sumSquaredDiff / (prices.length - 1);
 };
 
 export const calculatePercentile = (sortedPrices: number[], percentile: number): number => {

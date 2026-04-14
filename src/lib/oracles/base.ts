@@ -33,50 +33,46 @@ export const MAX_CACHE_SIZE = 1000;
 
 export type OracleCacheTTLKey = keyof typeof ORACLE_CACHE_TTL;
 
-export interface CacheEntry<T> {
+export interface OracleCacheEntry<T> {
   data: T;
   timestamp: number;
   ttl: number;
 }
 
+/** @deprecated Use OracleCacheEntry instead */
+export type CacheEntry<T> = OracleCacheEntry<T>;
+
 export class OracleCache {
-  private cache: Map<string, CacheEntry<unknown>> = new Map();
-  private accessOrder: string[] = [];
+  private cache: Map<string, OracleCacheEntry<unknown>> = new Map();
   private cleanupInterval: ReturnType<typeof setInterval> | null = null;
   private readonly CLEANUP_INTERVAL_MS = 60000;
 
   get<T>(key: string): T | null {
-    const entry = this.cache.get(key) as CacheEntry<T> | undefined;
+    const entry = this.cache.get(key) as OracleCacheEntry<T> | undefined;
     if (!entry) return null;
 
     const now = Date.now();
     if (now - entry.timestamp > entry.ttl) {
       this.cache.delete(key);
-      this.removeFromAccessOrder(key);
       return null;
     }
 
-    this.removeFromAccessOrder(key);
-    this.accessOrder.push(key);
+    this.cache.delete(key);
+    this.cache.set(key, entry);
     return entry.data;
   }
 
   set<T>(key: string, data: T, ttl: number): void {
     if (this.cache.has(key)) {
       this.cache.delete(key);
-      this.removeFromAccessOrder(key);
     }
 
     while (this.cache.size >= MAX_CACHE_SIZE) {
-      const oldestKey = this.findOldestExpiredEntry();
-      if (oldestKey) {
+      const oldestKey = this.cache.keys().next().value;
+      if (oldestKey !== undefined) {
         this.cache.delete(oldestKey);
-        this.removeFromAccessOrder(oldestKey);
       } else {
-        const firstKey = this.accessOrder.shift();
-        if (firstKey) {
-          this.cache.delete(firstKey);
-        }
+        break;
       }
     }
 
@@ -85,17 +81,14 @@ export class OracleCache {
       timestamp: Date.now(),
       ttl,
     });
-    this.accessOrder.push(key);
   }
 
   delete(key: string): boolean {
-    this.removeFromAccessOrder(key);
     return this.cache.delete(key);
   }
 
   clear(): void {
     this.cache.clear();
-    this.accessOrder = [];
     this.stopCleanupInterval();
   }
 
@@ -106,7 +99,6 @@ export class OracleCache {
     const now = Date.now();
     if (now - entry.timestamp > entry.ttl) {
       this.cache.delete(key);
-      this.removeFromAccessOrder(key);
       return false;
     }
 
@@ -149,33 +141,10 @@ export class OracleCache {
 
     for (const key of keysToDelete) {
       this.cache.delete(key);
-      this.removeFromAccessOrder(key);
       cleaned++;
     }
 
     return cleaned;
-  }
-
-  private removeFromAccessOrder(key: string): void {
-    const index = this.accessOrder.indexOf(key);
-    if (index !== -1) {
-      this.accessOrder.splice(index, 1);
-    }
-  }
-
-  private findOldestExpiredEntry(): string | null {
-    const now = Date.now();
-    let oldestKey: string | null = null;
-    let oldestTimestamp = Infinity;
-
-    for (const [key, entry] of this.cache.entries()) {
-      if (now - entry.timestamp > entry.ttl && entry.timestamp < oldestTimestamp) {
-        oldestTimestamp = entry.timestamp;
-        oldestKey = key;
-      }
-    }
-
-    return oldestKey;
   }
 }
 

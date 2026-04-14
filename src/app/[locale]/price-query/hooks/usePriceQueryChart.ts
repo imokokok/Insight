@@ -45,8 +45,15 @@ export function usePriceQueryChart(params: UsePriceQueryChartParams): UsePriceQu
     if (Object.keys(historicalData).length === 0) return [];
 
     const timestamps = new Set<number>();
-    Object.values(historicalData).forEach((history) => {
-      history?.forEach((price) => timestamps.add(price.timestamp));
+    const historyMaps: Record<string, Map<number, number>> = {};
+
+    Object.entries(historicalData).forEach(([key, history]) => {
+      const map = new Map<number, number>();
+      history?.forEach((price) => {
+        timestamps.add(price.timestamp);
+        map.set(price.timestamp, price.price);
+      });
+      historyMaps[key] = map;
     });
     const sortedTimestamps = Array.from(timestamps).sort((a, b) => a - b);
 
@@ -70,13 +77,13 @@ export function usePriceQueryChart(params: UsePriceQueryChartParams): UsePriceQu
 
       queryResults.forEach(({ provider, chain }) => {
         const key = `${provider}-${chain}`;
-        const history = historicalData[key];
-        const price = history?.find((p) => p.timestamp === timestamp);
+        const map = historyMaps[key];
+        const price = map?.get(timestamp);
         const label = `${providerNames[provider]} (${chainNames[chain]})`;
 
-        if (price) {
-          lastValidValues[label] = price.price;
-          dataPoint[label] = price.price;
+        if (price !== undefined) {
+          lastValidValues[label] = price;
+          dataPoint[label] = price;
         } else if (lastValidValues[label] !== undefined) {
           dataPoint[label] = lastValidValues[label];
         }
@@ -90,8 +97,15 @@ export function usePriceQueryChart(params: UsePriceQueryChartParams): UsePriceQu
     if (!isCompareMode || Object.keys(compareHistoricalData).length === 0) return [];
 
     const timestamps = new Set<number>();
-    Object.values(compareHistoricalData).forEach((history) => {
-      history?.forEach((price) => timestamps.add(price.timestamp));
+    const compareHistoryMaps: Record<string, Map<number, number>> = {};
+
+    Object.entries(compareHistoricalData).forEach(([key, history]) => {
+      const map = new Map<number, number>();
+      history?.forEach((price) => {
+        timestamps.add(price.timestamp);
+        map.set(price.timestamp, price.price);
+      });
+      compareHistoryMaps[key] = map;
     });
     const sortedTimestamps = Array.from(timestamps).sort((a, b) => a - b);
 
@@ -113,11 +127,11 @@ export function usePriceQueryChart(params: UsePriceQueryChartParams): UsePriceQu
 
       compareQueryResults.forEach(({ provider, chain }) => {
         const key = `${provider}-${chain}`;
-        const history = compareHistoricalData[key];
-        const price = history?.find((p) => p.timestamp === timestamp);
-        if (price) {
+        const map = compareHistoryMaps[key];
+        const price = map?.get(timestamp);
+        if (price !== undefined) {
           const label = `${providerNames[provider]} (${chainNames[chain]})`;
-          dataPoint[label] = price.price;
+          dataPoint[label] = price;
         }
       });
 

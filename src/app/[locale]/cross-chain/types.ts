@@ -35,8 +35,8 @@ export interface UseCrossChainDataReturn {
   setMaPeriod: (period: number) => void;
   chartKey: number;
   setChartKey: (key: number) => void;
-  hiddenLines: Set<string>;
-  setHiddenLines: (lines: Set<string>) => void;
+  hiddenLines: string[];
+  setHiddenLines: (lines: string[]) => void;
   focusedChain: Blockchain | null;
   setFocusedChain: (chain: Blockchain | null) => void;
   tableFilter: 'all' | 'abnormal' | 'normal';

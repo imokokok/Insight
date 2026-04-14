@@ -1,8 +1,8 @@
-import { useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
 
 import { symbols } from '@/lib/constants';
-import { getDefaultFactory } from '@/lib/oracles/factory';
 import { oracleSupportedSymbols } from '@/lib/oracles/constants/supportedSymbols';
+import { getDefaultFactory } from '@/lib/oracles/factory';
 import { type Blockchain, type OracleProvider } from '@/types/oracle';
 
 export interface UseOracleSymbolsReturn {
@@ -80,8 +80,8 @@ export function useOracleSymbols(selectedOracles: OracleProvider[]): UseOracleSy
       .sort((a, b) => a.symbol.localeCompare(b.symbol));
   }, [selectedOracles]);
 
-  const isSymbolSupportedByAllOracles = useMemo(() => {
-    return (symbol: string): boolean => {
+  const isSymbolSupportedByAllOracles = useCallback(
+    (symbol: string): boolean => {
       if (selectedOracles.length === 0) {
         return false;
       }
@@ -90,16 +90,16 @@ export function useOracleSymbols(selectedOracles: OracleProvider[]): UseOracleSy
           oracleSupportedSymbols[oracle as keyof typeof oracleSupportedSymbols] || [];
         return oracleSyms.includes(symbol as never);
       });
-    };
-  }, [selectedOracles]);
+    },
+    [selectedOracles]
+  );
 
-  const isSymbolSupported = useMemo(() => {
-    return (symbol: string, chain?: Blockchain): boolean => {
+  const isSymbolSupported = useCallback(
+    (symbol: string, chain?: Blockchain): boolean => {
       if (selectedOracles.length === 0) {
         return true;
       }
 
-      // 单选模式下，检查币种是否被选中的预言机支持
       const isSupportedByOracle = selectedOracles.some((oracle) => {
         const oracleSyms =
           oracleSupportedSymbols[oracle as keyof typeof oracleSupportedSymbols] || [];
@@ -108,7 +108,6 @@ export function useOracleSymbols(selectedOracles: OracleProvider[]): UseOracleSy
 
       if (!isSupportedByOracle) return false;
 
-      // 如果指定了链，检查该币种是否在该链上支持
       if (chain !== undefined) {
         return selectedOracles.some((oracle) => {
           try {
@@ -121,11 +120,12 @@ export function useOracleSymbols(selectedOracles: OracleProvider[]): UseOracleSy
       }
 
       return true;
-    };
-  }, [selectedOracles]);
+    },
+    [selectedOracles]
+  );
 
-  const getSupportedChainsForSymbol = useMemo(() => {
-    return (symbol: string): Blockchain[] => {
+  const getSupportedChainsForSymbol = useCallback(
+    (symbol: string): Blockchain[] => {
       if (selectedOracles.length === 0) {
         return [];
       }
@@ -138,17 +138,16 @@ export function useOracleSymbols(selectedOracles: OracleProvider[]): UseOracleSy
           if (client.isSymbolSupported(symbol)) {
             client.supportedChains.forEach((chain) => chainsSet.add(chain));
           }
-        } catch {
-          // 如果客户端获取失败，跳过该预言机
-        }
+        } catch {}
       });
 
       return Array.from(chainsSet);
-    };
-  }, [selectedOracles]);
+    },
+    [selectedOracles]
+  );
 
-  const getChainsForSymbolOnOracle = useMemo(() => {
-    return (symbol: string, oracle: OracleProvider): Blockchain[] => {
+  const getChainsForSymbolOnOracle = useCallback(
+    (symbol: string, oracle: OracleProvider): Blockchain[] => {
       try {
         const client = getDefaultFactory().getClient(oracle);
         if (!client.isSymbolSupported(symbol)) {
@@ -158,11 +157,12 @@ export function useOracleSymbols(selectedOracles: OracleProvider[]): UseOracleSy
       } catch {
         return [];
       }
-    };
-  }, []);
+    },
+    []
+  );
 
-  const getUnsupportedOraclesForSymbol = useMemo(() => {
-    return (symbol: string): OracleProvider[] => {
+  const getUnsupportedOraclesForSymbol = useCallback(
+    (symbol: string): OracleProvider[] => {
       if (selectedOracles.length === 0) {
         return [];
       }
@@ -171,12 +171,12 @@ export function useOracleSymbols(selectedOracles: OracleProvider[]): UseOracleSy
           oracleSupportedSymbols[oracle as keyof typeof oracleSupportedSymbols] || [];
         return !oracleSyms.includes(symbol as never);
       });
-    };
-  }, [selectedOracles]);
+    },
+    [selectedOracles]
+  );
 
-  // 新增：获取指定链支持的所有币种
-  const getSymbolsForChain = useMemo(() => {
-    return (chain: Blockchain): string[] => {
+  const getSymbolsForChain = useCallback(
+    (chain: Blockchain): string[] => {
       if (selectedOracles.length === 0) {
         return [];
       }
@@ -192,7 +192,6 @@ export function useOracleSymbols(selectedOracles: OracleProvider[]): UseOracleSy
             ).getSupportedSymbolsForChain(chain);
             chainSymbols.forEach((symbol) => symbolsSet.add(symbol));
           } else {
-            // 回退：检查每个币种是否在该链上支持
             const allSymbols = client.getSupportedSymbols();
             allSymbols.forEach((symbol) => {
               if (client.isSymbolSupported(symbol, chain)) {
@@ -200,12 +199,9 @@ export function useOracleSymbols(selectedOracles: OracleProvider[]): UseOracleSy
               }
             });
           }
-        } catch {
-          // 如果客户端获取失败，跳过该预言机
-        }
+        } catch {}
       });
 
-      // 按照全局 symbols 数组的顺序排序
       const result = Array.from(symbolsSet);
       const symbolOrder = new Map(symbols.map((s, i) => [s, i]));
       return result.sort((a, b) => {
@@ -213,8 +209,9 @@ export function useOracleSymbols(selectedOracles: OracleProvider[]): UseOracleSy
         const orderB = symbolOrder.get(b) ?? Infinity;
         return orderA - orderB;
       });
-    };
-  }, [selectedOracles]);
+    },
+    [selectedOracles]
+  );
 
   return {
     supportedSymbols,

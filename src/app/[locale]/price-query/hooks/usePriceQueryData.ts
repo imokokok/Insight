@@ -76,46 +76,12 @@ export interface UsePriceQueryDataReturn {
   };
 }
 
-// 通过 API 路由获取价格数据
-async function fetchPriceFromAPI(
-  provider: OracleProvider,
-  symbol: string,
-  chain?: Blockchain,
-  signal?: AbortSignal
-): Promise<PriceData> {
-  const params = new URLSearchParams();
-  params.set('symbol', symbol);
-  if (chain) params.set('chain', chain);
-
-  const response = await fetch(`/api/oracles/${provider}?${params.toString()}`, {
-    signal,
-    headers: {
-      Accept: 'application/json',
-    },
-  });
-
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
-    throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
-  }
-
-  return response.json();
-}
-
-// 通过 API 路由获取历史价格数据
-async function fetchHistoricalPricesFromAPI(
-  provider: OracleProvider,
-  symbol: string,
-  chain: Blockchain,
-  period: number,
-  signal?: AbortSignal
-): Promise<PriceData[]> {
-  const params = new URLSearchParams();
-  params.set('symbol', symbol);
-  params.set('chain', chain);
-  params.set('period', period.toString());
-
-  const response = await fetch(`/api/oracles/${provider}?${params.toString()}`, {
+async function fetchFromAPI<T>(
+  url: string,
+  signal?: AbortSignal,
+  validateResponse?: (data: unknown) => T
+): Promise<T> {
+  const response = await fetch(url, {
     signal,
     headers: {
       Accept: 'application/json',
@@ -128,14 +94,28 @@ async function fetchHistoricalPricesFromAPI(
   }
 
   const data = await response.json();
+  return validateResponse ? validateResponse(data) : data;
+}
 
-  // 验证返回数据是否为数组
+function validatePriceData(data: unknown): PriceData {
+  if (!data || typeof data !== 'object') {
+    throw new Error('Invalid response format: expected object');
+  }
+  const d = data as Record<string, unknown>;
+  if (typeof d.price !== 'number' || isNaN(d.price)) {
+    throw new Error('Invalid price data: missing or invalid price');
+  }
+  if (!d.timestamp || typeof d.timestamp !== 'number') {
+    throw new Error('Invalid price data: missing or invalid timestamp');
+  }
+  return data as PriceData;
+}
+
+function validateHistoricalData(data: unknown): PriceData[] {
   if (!Array.isArray(data)) {
     throw new Error(`Invalid response format: expected array, got ${typeof data}`);
   }
-
-  // 验证数组元素是否符合 PriceData 格式
-  const validatedData = data.filter((item, index) => {
+  const validated = data.filter((item, index) => {
     if (!item || typeof item !== 'object') {
       logger.warn(`Invalid historical data item at index ${index}: not an object`);
       return false;
@@ -150,13 +130,87 @@ async function fetchHistoricalPricesFromAPI(
     }
     return true;
   });
-
-  if (validatedData.length === 0 && data.length > 0) {
+  if (validated.length === 0 && data.length > 0) {
     throw new Error('All historical data items failed validation');
   }
-
-  return validatedData;
+  return validated;
 }
+
+async function fetchPriceFromAPI(
+  provider: OracleProvider,
+  symbol: string,
+  chain?: Blockchain,
+  signal?: AbortSignal
+): Promise<PriceData> {
+  const params = new URLSearchParams();
+  params.set('symbol', symbol);
+  if (chain) params.set('chain', chain);
+
+  return fetchFromAPI(`/api/oracles/${provider}?${params.toString()}`, signal, validatePriceData);
+}
+
+async function fetchHistoricalPricesFromAPI(
+  provider: OracleProvider,
+  symbol: string,
+  chain: Blockchain,
+  period: number,
+  signal?: AbortSignal
+): Promise<PriceData[]> {
+  const params = new URLSearchParams();
+  params.set('symbol', symbol);
+  params.set('chain', chain);
+  params.set('period', period.toString());
+
+  return fetchFromAPI(
+    `/api/oracles/${provider}?${params.toString()}`,
+    signal,
+    validateHistoricalData
+  );
+}
+
+interface QueryState {
+  queryResults: QueryResult[];
+  historicalData: Partial<Record<string, PriceData[]>>;
+  isLoading: boolean;
+  queryStartTime: number | null;
+  queryDuration: number | null;
+  queryProgress: { completed: number; total: number };
+  currentQueryTarget: { oracle: OracleProvider | null; chain: Blockchain | null };
+  queryErrors: QueryError[];
+  compareHistoricalData: Partial<Record<string, PriceData[]>>;
+  compareQueryResults: QueryResult[];
+  primaryDataFetchTime: Date | null;
+  compareDataFetchTime: Date | null;
+  validationWarnings: string[];
+  dataAnomalies: AnomalyInfo[];
+  performanceMetrics: {
+    queryResponseTime: number | null;
+    dataProcessingTime: number | null;
+    validationTime: number | null;
+  };
+}
+
+const INITIAL_QUERY_STATE: QueryState = {
+  queryResults: [],
+  historicalData: {},
+  isLoading: false,
+  queryStartTime: null,
+  queryDuration: null,
+  queryProgress: { completed: 0, total: 0 },
+  currentQueryTarget: { oracle: null, chain: null },
+  queryErrors: [],
+  compareHistoricalData: {},
+  compareQueryResults: [],
+  primaryDataFetchTime: null,
+  compareDataFetchTime: null,
+  validationWarnings: [],
+  dataAnomalies: [],
+  performanceMetrics: {
+    queryResponseTime: null,
+    dataProcessingTime: null,
+    validationTime: null,
+  },
+};
 
 export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQueryDataReturn {
   const {
@@ -173,37 +227,7 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
     selectedTimeRange,
   } = params;
 
-  const [queryResults, setQueryResults] = useState<QueryResult[]>([]);
-  const [historicalData, setHistoricalData] = useState<Partial<Record<string, PriceData[]>>>({});
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [_queryStartTime, setQueryStartTime] = useState<number | null>(null);
-  const [queryDuration, setQueryDuration] = useState<number | null>(null);
-  const [queryProgress, setQueryProgress] = useState<{ completed: number; total: number }>({
-    completed: 0,
-    total: 0,
-  });
-  const [currentQueryTarget, setCurrentQueryTarget] = useState<{
-    oracle: OracleProvider | null;
-    chain: Blockchain | null;
-  }>({ oracle: null, chain: null });
-  const [queryErrors, setQueryErrors] = useState<QueryError[]>([]);
-  const [compareHistoricalData, setCompareHistoricalData] = useState<
-    Partial<Record<string, PriceData[]>>
-  >({});
-  const [compareQueryResults, setCompareQueryResults] = useState<QueryResult[]>([]);
-  const [primaryDataFetchTime, setPrimaryDataFetchTime] = useState<Date | null>(null);
-  const [compareDataFetchTime, setCompareDataFetchTime] = useState<Date | null>(null);
-  const [validationWarnings, setValidationWarnings] = useState<string[]>([]);
-  const [dataAnomalies, setDataAnomalies] = useState<AnomalyInfo[]>([]);
-  const [performanceMetrics, setPerformanceMetrics] = useState<{
-    queryResponseTime: number | null;
-    dataProcessingTime: number | null;
-    validationTime: number | null;
-  }>({
-    queryResponseTime: null,
-    dataProcessingTime: null,
-    validationTime: null,
-  });
+  const [state, setState] = useState<QueryState>(INITIAL_QUERY_STATE);
 
   const isMounted = useRef(true);
   const prevParamsRef = useRef<string>('');
@@ -233,12 +257,15 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
     const abortController = new AbortController();
     abortControllerRef.current = abortController;
 
-    setIsLoading(true);
     const startTime = Date.now();
-    setQueryStartTime(startTime);
-    setQueryDuration(null);
-    setQueryProgress({ completed: 0, total: 0 });
-    setCurrentQueryTarget({ oracle: null, chain: null });
+    setState((prev) => ({
+      ...prev,
+      isLoading: true,
+      queryStartTime: startTime,
+      queryDuration: null,
+      queryProgress: { completed: 0, total: 0 },
+      currentQueryTarget: { oracle: null, chain: null },
+    }));
 
     startQueryMeasure();
 
@@ -256,7 +283,7 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
     );
 
     const actualTotalQueries = currentIsCompareMode ? totalQueries * 2 : totalQueries;
-    setQueryProgress({ completed: 0, total: actualTotalQueries });
+    setState((prev) => ({ ...prev, queryProgress: { completed: 0, total: actualTotalQueries } }));
 
     const allTasks = [...primaryTasks, ...compareTasks];
 
@@ -265,9 +292,11 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
         throw new Error('Component unmounted');
       }
 
-      setCurrentQueryTarget({ oracle: task.provider, chain: task.chain });
+      setState((prev) => ({
+        ...prev,
+        currentQueryTarget: { oracle: task.provider, chain: task.chain },
+      }));
 
-      // 使用 API 路由获取数据
       const price = await withTimeout(
         fetchPriceFromAPI(task.provider, currentSelectedSymbol, task.chain, abortController.signal),
         TIMEOUT_MS
@@ -307,7 +336,10 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
           } finally {
             completedQueries++;
             if (isMounted.current) {
-              setQueryProgress({ completed: completedQueries, total: actualTotalQueries });
+              setState((prev) => ({
+                ...prev,
+                queryProgress: { completed: completedQueries, total: actualTotalQueries },
+              }));
             }
           }
         },
@@ -367,18 +399,21 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
       // 注意：collectedErrors 已经在 processQueryResults 中收集
       // 这里直接设置错误状态，避免与上面的循环重复添加
       if (collectedErrors.length > 0) {
-        setQueryErrors(collectedErrors);
+        setState((prev) => ({ ...prev, queryErrors: collectedErrors }));
       } else {
-        setQueryErrors([]);
+        setState((prev) => ({ ...prev, queryErrors: [] }));
       }
 
       if (!isMounted.current) return;
 
       startDataProcessingMeasure();
 
-      setQueryResults(results);
-      setHistoricalData(histories);
-      setPrimaryDataFetchTime(new Date());
+      setState((prev) => ({
+        ...prev,
+        queryResults: results,
+        historicalData: histories,
+        primaryDataFetchTime: new Date(),
+      }));
 
       startValidationMeasure();
 
@@ -409,8 +444,11 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
         anomaliesCount: allAnomalies.length,
       });
 
-      setValidationWarnings(allWarnings);
-      setDataAnomalies(allAnomalies);
+      setState((prev) => ({
+        ...prev,
+        validationWarnings: allWarnings,
+        dataAnomalies: allAnomalies,
+      }));
 
       dataProcessingDuration = endDataProcessingMeasure({
         resultsCount: results.length,
@@ -418,12 +456,18 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
       });
 
       if (currentIsCompareMode) {
-        setCompareQueryResults(compareResults);
-        setCompareHistoricalData(compareHistories);
-        setCompareDataFetchTime(new Date());
+        setState((prev) => ({
+          ...prev,
+          compareQueryResults: compareResults,
+          compareHistoricalData: compareHistories,
+          compareDataFetchTime: new Date(),
+        }));
       } else {
-        setCompareQueryResults([]);
-        setCompareHistoricalData({});
+        setState((prev) => ({
+          ...prev,
+          compareQueryResults: [],
+          compareHistoricalData: {},
+        }));
       }
     } catch (error) {
       logger.error(
@@ -437,15 +481,17 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
           chainsCount: currentSelectedChain ? 1 : 0,
         });
 
-        setIsLoading(false);
-        setQueryDuration(Date.now() - startTime);
-        setCurrentQueryTarget({ oracle: null, chain: null });
-
-        setPerformanceMetrics((prev) => ({
+        setState((prev) => ({
           ...prev,
-          queryResponseTime,
-          dataProcessingTime: dataProcessingDuration ?? prev.dataProcessingTime,
-          validationTime: validationDuration ?? prev.validationTime,
+          isLoading: false,
+          queryDuration: Date.now() - startTime,
+          currentQueryTarget: { oracle: null, chain: null },
+          performanceMetrics: {
+            queryResponseTime,
+            dataProcessingTime:
+              dataProcessingDuration ?? prev.performanceMetrics.dataProcessingTime,
+            validationTime: validationDuration ?? prev.performanceMetrics.validationTime,
+          },
         }));
       }
     }
@@ -484,17 +530,21 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
         const key = `${provider}-${chain}`;
         const result: QueryResult = { provider, chain, priceData: price };
 
-        setQueryResults((prev) => {
-          const existing = prev.findIndex((r) => r.provider === provider && r.chain === chain);
-          if (existing >= 0) {
-            const updated = [...prev];
-            updated[existing] = result;
-            return updated;
-          }
-          return [...prev, result];
+        setState((prev) => {
+          const existing = prev.queryResults.findIndex(
+            (r) => r.provider === provider && r.chain === chain
+          );
+          const updatedResults =
+            existing >= 0
+              ? prev.queryResults.map((r, i) => (i === existing ? result : r))
+              : [...prev.queryResults, result];
+          return { ...prev, queryResults: updatedResults };
         });
 
-        setHistoricalData((prev) => ({ ...prev, [key]: history }));
+        setState((prev) => ({
+          ...prev,
+          historicalData: { ...prev.historicalData, [key]: history },
+        }));
 
         if (currentIsCompareMode) {
           const compareHistory = await fetchHistoricalPricesFromAPI(
@@ -503,17 +553,25 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
             chain,
             currentCompareTimeRange
           );
-          setCompareHistoricalData((prev) => ({ ...prev, [key]: compareHistory }));
+          setState((prev) => ({
+            ...prev,
+            compareHistoricalData: { ...prev.compareHistoricalData, [key]: compareHistory },
+          }));
         }
 
-        setQueryErrors((prev) =>
-          prev.filter((e) => !(e.provider === provider && e.chain === chain))
-        );
+        setState((prev) => ({
+          ...prev,
+          queryErrors: prev.queryErrors.filter(
+            (e) => !(e.provider === provider && e.chain === chain)
+          ),
+        }));
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
-        setQueryErrors((prev) => {
-          const filtered = prev.filter((e) => !(e.provider === provider && e.chain === chain));
-          return [...filtered, { provider, chain, error: errorMessage }];
+        setState((prev) => {
+          const filtered = prev.queryErrors.filter(
+            (e) => !(e.provider === provider && e.chain === chain)
+          );
+          return { ...prev, queryErrors: [...filtered, { provider, chain, error: errorMessage }] };
         });
         logger.error(
           `Error retrying ${provider} on ${chain}`,
@@ -525,14 +583,13 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
   );
 
   const retryAllErrors = useCallback(async () => {
-    const errorsToRetry = [...queryErrors];
-    for (const error of errorsToRetry) {
-      await retryDataSource(error.provider, error.chain);
-    }
-  }, [queryErrors, retryDataSource]);
+    await Promise.allSettled(
+      state.queryErrors.map((error) => retryDataSource(error.provider, error.chain))
+    );
+  }, [state.queryErrors, retryDataSource]);
 
   const clearErrors = useCallback(() => {
-    setQueryErrors([]);
+    setState((prev) => ({ ...prev, queryErrors: [] }));
   }, []);
 
   useEffect(() => {
@@ -548,12 +605,14 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
     // 参数变化时，先清理旧数据，再获取新数据
     if (prevParamsRef.current !== paramsSignature) {
       prevParamsRef.current = paramsSignature;
-      // 清理旧数据，避免显示过期数据
-      setQueryResults([]);
-      setHistoricalData({});
-      setQueryErrors([]);
-      setValidationWarnings([]);
-      setDataAnomalies([]);
+      setState((prev) => ({
+        ...prev,
+        queryResults: [],
+        historicalData: {},
+        queryErrors: [],
+        validationWarnings: [],
+        dataAnomalies: [],
+      }));
       fetchQueryData();
     }
   }, [
@@ -583,25 +642,25 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
   }, [selectedOracle]);
 
   return {
-    queryResults,
-    historicalData,
-    isLoading,
-    queryDuration,
-    queryProgress,
-    currentQueryTarget,
-    queryErrors,
+    queryResults: state.queryResults,
+    historicalData: state.historicalData,
+    isLoading: state.isLoading,
+    queryDuration: state.queryDuration,
+    queryProgress: state.queryProgress,
+    currentQueryTarget: state.currentQueryTarget,
+    queryErrors: state.queryErrors,
     clearErrors,
     retryDataSource,
     retryAllErrors,
     fetchQueryData,
-    compareHistoricalData,
-    compareQueryResults,
-    primaryDataFetchTime,
-    compareDataFetchTime,
-    validationWarnings,
-    dataAnomalies,
-    hasDataQualityIssues: validationWarnings.length > 0 || dataAnomalies.length > 0,
+    compareHistoricalData: state.compareHistoricalData,
+    compareQueryResults: state.compareQueryResults,
+    primaryDataFetchTime: state.primaryDataFetchTime,
+    compareDataFetchTime: state.compareDataFetchTime,
+    validationWarnings: state.validationWarnings,
+    dataAnomalies: state.dataAnomalies,
+    hasDataQualityIssues: state.validationWarnings.length > 0 || state.dataAnomalies.length > 0,
     supportedChainsBySelectedOracles,
-    performanceMetrics,
+    performanceMetrics: state.performanceMetrics,
   };
 }

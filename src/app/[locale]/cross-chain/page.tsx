@@ -2,9 +2,9 @@
 
 import { useState } from 'react';
 
+import { SectionErrorBoundary } from '@/components/error-boundary';
 import { SegmentedControl } from '@/components/ui';
 import { useTranslations } from '@/i18n';
-import { SectionErrorBoundary } from '@/components/error-boundary';
 
 import { ChartsTab } from './components/ChartsTab';
 import { CrossChainFilters } from './components/CrossChainFilters';
@@ -20,13 +20,7 @@ export default function CrossChainPage() {
   const data = useCrossChainData();
   const [activeTab, setActiveTab] = useState<TabId>('overview');
 
-  const {
-    loading,
-    lastUpdated,
-    fetchData,
-    refreshInterval,
-    setRefreshInterval,
-  } = data;
+  const { loading, lastUpdated, fetchData: _fetchData, refreshInterval, setRefreshInterval } = data;
 
   const refreshOptions = [
     { value: 0, label: t('crossChain.autoRefreshOff') },
