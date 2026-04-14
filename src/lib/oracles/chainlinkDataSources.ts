@@ -268,6 +268,13 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
       decimals: 8,
       category: 'crypto',
     },
+    42161: {
+      address: '0x1B329402Cb1825C6F30A0d92aB9E2862BE47333f',
+      name: 'BNB / USD',
+      symbol: 'BNB',
+      decimals: 8,
+      category: 'crypto',
+    },
   },
   SOL: {
     1: {
