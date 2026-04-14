@@ -7,9 +7,27 @@ export function formatPrice(price: number): string {
       maximumFractionDigits: 2,
     });
   }
+  if (absPrice >= 1) {
+    return price.toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 4,
+    });
+  }
+  if (absPrice >= 0.0001) {
+    return price.toLocaleString(undefined, {
+      minimumFractionDigits: 4,
+      maximumFractionDigits: 6,
+    });
+  }
+  if (absPrice >= 0.000001) {
+    return price.toLocaleString(undefined, {
+      minimumFractionDigits: 6,
+      maximumFractionDigits: 8,
+    });
+  }
   return price.toLocaleString(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 6,
+    minimumFractionDigits: 8,
+    maximumFractionDigits: 12,
   });
 }
 
