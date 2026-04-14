@@ -671,67 +671,84 @@ export const CHAINLINK_CONTRACTS: Record<number, ChainlinkContracts> = {
   },
 };
 
+// 构建 RPC 端点列表，优先使用 Alchemy，其次使用可靠的公共节点
+function buildEndpoints(
+  alchemyUrl: string,
+  publicEndpoints: string[],
+  preferAlchemy: boolean = true
+): string[] {
+  const hasAlchemy = alchemyUrl && alchemyUrl.length > 0;
+
+  if (preferAlchemy && hasAlchemy) {
+    // Alchemy 优先模式：Alchemy 放第一位，然后是公共节点
+    return [alchemyUrl, ...publicEndpoints];
+  } else if (hasAlchemy) {
+    // 公共节点优先模式（备用）
+    return [...publicEndpoints, alchemyUrl];
+  } else {
+    // 没有 Alchemy，只使用公共节点
+    return publicEndpoints;
+  }
+}
+
 export const CHAINLINK_RPC_CONFIG: Record<number, ChainlinkRPCConfig> = {
   1: {
-    endpoints: [
-      ALCHEMY_RPC.ethereum,
-      'https://eth.llamarpc.com',
+    endpoints: buildEndpoints(ALCHEMY_RPC.ethereum, [
       'https://ethereum.publicnode.com',
-    ].filter(Boolean),
+      'https://eth.llamarpc.com',
+    ]),
     chainId: 1,
     name: 'Ethereum Mainnet',
   },
   42161: {
-    endpoints: [
-      ALCHEMY_RPC.arbitrum,
+    endpoints: buildEndpoints(ALCHEMY_RPC.arbitrum, [
       'https://arb1.arbitrum.io/rpc',
       'https://arbitrum.publicnode.com',
-    ].filter(Boolean),
+    ]),
     chainId: 42161,
     name: 'Arbitrum One',
   },
   137: {
-    endpoints: [
-      ALCHEMY_RPC.polygon,
-      'https://polygon-rpc.com',
+    endpoints: buildEndpoints(ALCHEMY_RPC.polygon, [
       'https://polygon.publicnode.com',
-    ].filter(Boolean),
+      'https://polygon-rpc.com',
+    ]),
     chainId: 137,
     name: 'Polygon',
   },
   8453: {
-    endpoints: [ALCHEMY_RPC.base, 'https://mainnet.base.org', 'https://base.publicnode.com'].filter(
-      Boolean
-    ),
+    endpoints: buildEndpoints(ALCHEMY_RPC.base, [
+      'https://mainnet.base.org',
+      'https://base.publicnode.com',
+    ]),
     chainId: 8453,
     name: 'Base',
   },
   43114: {
-    endpoints: [
-      ALCHEMY_RPC.avalanche,
+    endpoints: buildEndpoints(ALCHEMY_RPC.avalanche, [
       'https://api.avax.network/ext/bc/C/rpc',
       'https://avalanche.publicnode.com',
       'https://rpc.ankr.com/avalanche',
-    ].filter(Boolean),
+    ]),
     chainId: 43114,
     name: 'Avalanche C-Chain',
   },
   56: {
-    endpoints: [
-      ALCHEMY_RPC.bnb,
+    endpoints: buildEndpoints(ALCHEMY_RPC.bnb, [
       'https://bsc-dataseed.binance.org',
       'https://bsc.publicnode.com',
       'https://rpc.ankr.com/bsc',
-    ].filter(Boolean),
+    ]),
     chainId: 56,
     name: 'BNB Chain',
   },
   10: {
+    // Optimism: Alchemy 可能未启用，优先使用官方 RPC
     endpoints: [
-      ALCHEMY_RPC.optimism,
       'https://mainnet.optimism.io',
       'https://optimism.publicnode.com',
-    ].filter(Boolean),
+      ...(ALCHEMY_RPC.optimism ? [ALCHEMY_RPC.optimism] : []),
+    ],
     chainId: 10,
     name: 'Optimism',
   },
