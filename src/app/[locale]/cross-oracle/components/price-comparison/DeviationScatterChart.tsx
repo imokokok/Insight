@@ -87,7 +87,11 @@ function DeviationScatterChartComponent({
 
   const formatPrice = (value: number) => {
     if (value >= 1000) return `$${(value / 1000).toFixed(1)}K`;
-    return `$${value.toFixed(2)}`;
+    const absValue = Math.abs(value);
+    if (absValue >= 1) {
+      return `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}`;
+    }
+    return `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })}`;
   };
 
   return (

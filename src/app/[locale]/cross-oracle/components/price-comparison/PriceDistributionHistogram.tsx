@@ -70,8 +70,15 @@ function PriceDistributionHistogramComponent({
 
       const hasAnomaly = itemsInBucket.some((d) => anomalyProviders.has(d.provider));
 
+      const formatBucketPrice = (p: number): string => {
+        const absP = Math.abs(p);
+        if (absP >= 1000) return (p / 1000).toFixed(1) + 'K';
+        if (absP >= 1) return p.toFixed(4);
+        return p.toFixed(6);
+      };
+
       buckets.push({
-        range: `${bucketMin.toFixed(2)}-${bucketMax.toFixed(2)}`,
+        range: `${formatBucketPrice(bucketMin)}-${formatBucketPrice(bucketMax)}`,
         count: itemsInBucket.length,
         midPrice,
         isAnomaly: hasAnomaly,
@@ -83,7 +90,11 @@ function PriceDistributionHistogramComponent({
 
   const formatPrice = (value: number) => {
     if (value >= 1000) return `$${(value / 1000).toFixed(1)}K`;
-    return `$${value.toFixed(2)}`;
+    const absValue = Math.abs(value);
+    if (absValue >= 1) {
+      return `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}`;
+    }
+    return `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })}`;
   };
 
   return (

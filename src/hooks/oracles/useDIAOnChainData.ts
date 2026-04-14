@@ -82,7 +82,11 @@ export function formatLargeNumber(num: number | null | undefined): string {
   if (num >= 1e3) {
     return `$${(num / 1e3).toFixed(2)}K`;
   }
-  return `$${num.toFixed(2)}`;
+  const absNum = Math.abs(num);
+  if (absNum >= 1) {
+    return `$${num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}`;
+  }
+  return `$${num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })}`;
 }
 
 /**

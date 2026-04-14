@@ -682,7 +682,12 @@ function SelectedCellDetail({ data }: { data: ReturnType<typeof useCrossChainDat
                 <XAxis dataKey="time" stroke={chartColors.recharts.axis} tick={{ fontSize: 10 }} />
                 <YAxis
                   domain={['auto', 'auto']}
-                  tickFormatter={(v) => `$${Number(v).toFixed(2)}`}
+                  tickFormatter={(v) => {
+                    const absV = Math.abs(Number(v));
+                    if (absV >= 1000) return `$${(Number(v) / 1000).toFixed(1)}K`;
+                    if (absV >= 1) return `$${Number(v).toFixed(4)}`;
+                    return `$${Number(v).toFixed(6)}`;
+                  }}
                   stroke={chartColors.recharts.axis}
                   tick={{ fontSize: 10 }}
                   width={60}

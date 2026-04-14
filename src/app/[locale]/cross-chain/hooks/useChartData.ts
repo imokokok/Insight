@@ -82,6 +82,7 @@ export interface UseChartDataReturn {
   stdDevBinRange: { lower: number; upper: number } | null;
 }
 
+// eslint-disable-next-line max-lines-per-function
 export function useChartData(params: UseChartDataParams): UseChartDataReturn {
   const {
     currentPrices,
@@ -239,7 +240,15 @@ export function useChartData(params: UseChartDataParams): UseChartDataReturn {
     for (let i = 0; i < numBins; i++) {
       const binMin = min + i * binWidth;
       const binMax = min + (i + 1) * binWidth;
-      const rangeLabel = `$${binMin.toFixed(2)}-$${binMax.toFixed(2)}`;
+
+      const formatBinPrice = (p: number): string => {
+        const absP = Math.abs(p);
+        if (absP >= 1000) return (p / 1000).toFixed(1) + 'K';
+        if (absP >= 1) return p.toFixed(4);
+        return p.toFixed(6);
+      };
+      const rangeLabel = `$${formatBinPrice(binMin)}-$${formatBinPrice(binMax)}`;
+
       bins.push({
         range: rangeLabel,
         count: 0,

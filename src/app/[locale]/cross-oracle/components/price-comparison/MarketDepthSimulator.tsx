@@ -57,11 +57,17 @@ function MarketDepthSimulatorComponent({ priceData, medianPrice, t }: MarketDept
       const bidDepth = price <= medianPrice ? baseDepth : 0;
       const askDepth = price >= medianPrice ? baseDepth : 0;
 
+      const formatPriceLabel = (p: number): string => {
+        const absP = Math.abs(p);
+        if (absP >= 1000) return `$${(p / 1000).toFixed(1)}K`;
+        if (absP >= 1) return `$${p.toFixed(4)}`;
+        return `$${p.toFixed(6)}`;
+      };
       data.push({
         price,
         bidDepth,
         askDepth,
-        label: `$${price.toFixed(2)}`,
+        label: formatPriceLabel(price),
       });
     }
 
@@ -79,7 +85,11 @@ function MarketDepthSimulatorComponent({ priceData, medianPrice, t }: MarketDept
 
   const formatPrice = (value: number) => {
     if (value >= 1000) return `$${(value / 1000).toFixed(1)}K`;
-    return `$${value.toFixed(2)}`;
+    const absValue = Math.abs(value);
+    if (absValue >= 1) {
+      return `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}`;
+    }
+    return `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })}`;
   };
 
   return (

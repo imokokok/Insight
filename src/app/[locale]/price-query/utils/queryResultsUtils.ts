@@ -1,8 +1,15 @@
 export function formatPrice(price: number): string {
   if (price <= 0) return '-';
+  const absPrice = Math.abs(price);
+  if (absPrice >= 1000) {
+    return price.toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  }
   return price.toLocaleString(undefined, {
     minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
+    maximumFractionDigits: 6,
   });
 }
 
