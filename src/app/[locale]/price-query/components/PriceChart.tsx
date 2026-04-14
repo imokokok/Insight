@@ -15,7 +15,6 @@ import {
   Brush,
 } from 'recharts';
 
-import { ChartSkeleton } from '@/components/ui';
 import { useTranslations } from '@/i18n';
 import { chainNames } from '@/lib/constants';
 import { formatPrice } from '@/lib/utils/chartSharedUtils';
