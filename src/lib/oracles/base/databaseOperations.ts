@@ -1,5 +1,4 @@
 import { PriceFetchError, OracleClientError } from '@/lib/errors';
-import { getDefaultFactory } from '@/lib/oracles/factory';
 import { type Blockchain, type PriceData, type OracleProvider } from '@/types/oracle';
 
 import {
@@ -10,7 +9,9 @@ import {
   savePricesToDatabase,
 } from '../utils/storage';
 
-function getOracleClient(provider: OracleProvider) {
+// 延迟导入 factory 以避免循环依赖
+async function getOracleClient(provider: OracleProvider) {
+  const { getDefaultFactory } = await import('@/lib/oracles/factory');
   return getDefaultFactory().getClient(provider);
 }
 
@@ -28,7 +29,7 @@ export async function fetchPriceWithDatabase(
       }
     }
 
-    const client = getOracleClient(provider);
+    const client = await getOracleClient(provider);
     const livePrice = await client.getPrice(symbol, chain);
     savePriceToDatabase(livePrice).catch(() => {});
     return livePrice;
@@ -65,7 +66,7 @@ export async function fetchHistoricalPricesWithDatabase(
       }
     }
 
-    const client = getOracleClient(provider);
+    const client = await getOracleClient(provider);
     const livePrices = await client.getHistoricalPrices(symbol, chain, period);
     if (livePrices && livePrices.length > 0) {
       savePricesToDatabase(livePrices).catch(() => {});

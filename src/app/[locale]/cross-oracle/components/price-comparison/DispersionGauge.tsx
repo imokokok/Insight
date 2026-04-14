@@ -9,6 +9,8 @@ import { memo } from 'react';
 
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 
+import { chartColors } from '@/lib/config/colors';
+
 interface DispersionGaugeProps {
   cv: number; // 变异系数 (Coefficient of Variation) 百分比
   size?: number;
@@ -25,27 +27,27 @@ function getDispersionInterpretation(cv: number): {
   if (cv < 0.1) {
     return {
       label: '高度一致',
-      color: '#10B981',
+      color: chartColors.recharts.success,
       description: '各预言机价格高度一致，市场共识强',
     };
   }
   if (cv < 0.5) {
     return {
       label: '基本一致',
-      color: '#3B82F6',
+      color: chartColors.recharts.primary,
       description: '价格偏差在可接受范围内',
     };
   }
   if (cv < 1.0) {
     return {
       label: '存在分歧',
-      color: '#F59E0B',
+      color: chartColors.recharts.warning,
       description: '部分预言机价格存在偏差，建议关注',
     };
   }
   return {
     label: '严重分歧',
-    color: '#EF4444',
+    color: chartColors.recharts.danger,
     description: '价格离散度高，存在潜在风险',
   };
 }
@@ -80,7 +82,7 @@ function DispersionGaugeComponent({ cv, size = 120 }: DispersionGaugeProps) {
               stroke="none"
             >
               <Cell fill={interpretation.color} />
-              <Cell fill="#E5E7EB" />
+              <Cell fill={chartColors.recharts.grid} />
             </Pie>
           </PieChart>
         </ResponsiveContainer>

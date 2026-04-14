@@ -25,6 +25,7 @@ export interface ChartToolbarProps {
   chartTypes?: ChartType[];
   selectedType?: string;
   onTypeChange?: (type: string) => void;
+  disabledChartTypes?: ChartType[];
   indicators?: string[];
   onAddIndicator?: (indicator: string) => void;
   onExport?: () => void;
@@ -55,6 +56,7 @@ export function ChartToolbar({
   chartTypes,
   selectedType = 'line',
   onTypeChange,
+  disabledChartTypes = [],
   indicators = defaultIndicators,
   onAddIndicator,
   onExport,
@@ -155,17 +157,22 @@ export function ChartToolbar({
             {chartTypes.map((type) => {
               const config = chartTypeConfig[type];
               const Icon = config.icon;
+              const isDisabled = disabledChartTypes.includes(type);
               return (
                 <button
                   key={type}
-                  onClick={() => handleTypeChange(type)}
+                  onClick={() => !isDisabled && handleTypeChange(type)}
                   className={cn(
                     'flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-md transition-all duration-200',
-                    selectedType === type
-                      ? 'bg-white text-gray-900 shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    isDisabled
+                      ? 'opacity-50 cursor-not-allowed'
+                      : selectedType === type
+                        ? 'bg-white text-gray-900 shadow-sm'
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                   )}
-                  title={config.label}
+                  title={
+                    isDisabled ? `${config.label} (unavailable with multiple series)` : config.label
+                  }
                 >
                   <Icon className="w-3.5 h-3.5" />
                   <span className="hidden md:inline">{config.label}</span>
@@ -181,17 +188,22 @@ export function ChartToolbar({
             {chartTypes.map((type) => {
               const config = chartTypeConfig[type];
               const Icon = config.icon;
+              const isDisabled = disabledChartTypes.includes(type);
               return (
                 <button
                   key={type}
-                  onClick={() => handleTypeChange(type)}
+                  onClick={() => !isDisabled && handleTypeChange(type)}
                   className={cn(
                     'flex items-center justify-center w-7 h-7 rounded-md transition-all duration-200',
-                    selectedType === type
-                      ? 'bg-white text-gray-900 shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    isDisabled
+                      ? 'opacity-50 cursor-not-allowed'
+                      : selectedType === type
+                        ? 'bg-white text-gray-900 shadow-sm'
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                   )}
-                  title={config.label}
+                  title={
+                    isDisabled ? `${config.label} (unavailable with multiple series)` : config.label
+                  }
                 >
                   <Icon className="w-3.5 h-3.5" />
                 </button>

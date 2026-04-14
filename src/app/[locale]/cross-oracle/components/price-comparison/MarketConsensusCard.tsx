@@ -9,6 +9,8 @@ import { memo } from 'react';
 
 import { TrendingUp, TrendingDown, Activity } from 'lucide-react';
 
+import { PriceFlash } from '@/components/ui/PriceFlash';
+
 import { PriceRangeBar } from './PriceRangeBar';
 
 interface MarketConsensusCardProps {
@@ -50,16 +52,25 @@ function MarketConsensusCardComponent({
     <div className="bg-white rounded-xl border border-gray-200 p-5">
       <div className="flex items-start justify-between mb-4">
         <div>
-          <div className="flex items-center gap-2 mb-1">
+          <div className="group relative flex items-center gap-2 mb-1">
             <Activity className="w-4 h-4 text-blue-500" />
             <span className="text-sm font-medium text-gray-500">
               {t('crossOracle.marketConsensus')}
             </span>
+            <div
+              className="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 text-xs text-white bg-gray-900 rounded-md shadow-lg whitespace-nowrap pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+              role="tooltip"
+            >
+              所有预言机报价的中位数，代表市场共识价格
+              <span className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 w-2 h-2 bg-gray-900 border-4 border-gray-900 border-l-transparent border-r-transparent border-b-transparent" />
+            </div>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-bold text-gray-900 tracking-tight">
-              {formatPrice(medianPrice)}
-            </span>
+            <PriceFlash value={medianPrice} previousValue={previousMedian}>
+              <span className="text-3xl font-bold text-gray-900 tracking-tight">
+                {formatPrice(medianPrice)}
+              </span>
+            </PriceFlash>
             <span className="text-sm text-gray-400">
               {baseAsset}/{quoteAsset}
             </span>
@@ -92,8 +103,15 @@ function MarketConsensusCardComponent({
         <span>
           {t('crossOracle.priceRange')}: {formatPrice(minPrice)} - {formatPrice(maxPrice)}
         </span>
-        <span>
+        <span className="group relative">
           {t('crossOracle.spread')}: {(((maxPrice - minPrice) / medianPrice) * 100).toFixed(2)}%
+          <div
+            className="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 text-xs text-white bg-gray-900 rounded-md shadow-lg whitespace-nowrap pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+            role="tooltip"
+          >
+            预言机报价的一致程度，越高表示各预言机报价越接近
+            <span className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 w-2 h-2 bg-gray-900 border-4 border-gray-900 border-l-transparent border-r-transparent border-b-transparent" />
+          </div>
         </span>
       </div>
     </div>

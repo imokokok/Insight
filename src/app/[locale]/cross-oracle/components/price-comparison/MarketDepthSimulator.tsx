@@ -19,6 +19,7 @@ import {
   CartesianGrid,
 } from 'recharts';
 
+import { chartColors } from '@/lib/config/colors';
 import type { PriceData } from '@/types/oracle';
 
 interface MarketDepthSimulatorProps {
@@ -100,11 +101,17 @@ function MarketDepthSimulatorComponent({ priceData, medianPrice, t }: MarketDept
         </h4>
         <div className="flex items-center gap-4 text-xs">
           <div className="flex items-center gap-1">
-            <div className="w-3 h-3 bg-emerald-500 rounded" />
+            <div
+              className="w-3 h-3 rounded"
+              style={{ backgroundColor: chartColors.recharts.success }}
+            />
             <span className="text-gray-500">{t('crossOracle.bid')}</span>
           </div>
           <div className="flex items-center gap-1">
-            <div className="w-3 h-3 bg-red-500 rounded" />
+            <div
+              className="w-3 h-3 rounded"
+              style={{ backgroundColor: chartColors.recharts.danger }}
+            />
             <span className="text-gray-500">{t('crossOracle.ask')}</span>
           </div>
         </div>
@@ -129,18 +136,18 @@ function MarketDepthSimulatorComponent({ priceData, medianPrice, t }: MarketDept
       <div className="h-56">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={depthData} margin={{ top: 10, right: 30, left: 10, bottom: 20 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+            <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} />
             <XAxis
               dataKey="price"
               tickFormatter={formatPrice}
-              tick={{ fontSize: 11, fill: '#6b7280' }}
+              tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
               tickLine={false}
-              axisLine={{ stroke: '#e5e7eb' }}
+              axisLine={{ stroke: chartColors.recharts.grid }}
             />
             <YAxis
-              tick={{ fontSize: 11, fill: '#6b7280' }}
+              tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
               tickLine={false}
-              axisLine={{ stroke: '#e5e7eb' }}
+              axisLine={{ stroke: chartColors.recharts.grid }}
             />
             <Tooltip
               formatter={(value, name) => [
@@ -149,21 +156,21 @@ function MarketDepthSimulatorComponent({ priceData, medianPrice, t }: MarketDept
               ]}
               labelFormatter={(label) => `${t('crossOracle.price')}: ${label}`}
               contentStyle={{
-                backgroundColor: 'white',
-                border: '1px solid #e5e7eb',
+                backgroundColor: chartColors.recharts.white,
+                border: `1px solid ${chartColors.recharts.border}`,
                 borderRadius: '8px',
                 fontSize: '12px',
               }}
             />
             <ReferenceLine
               x={medianPrice}
-              stroke="#374151"
+              stroke={chartColors.recharts.tickDark}
               strokeDasharray="4 4"
               strokeWidth={2}
               label={{
                 value: t('crossOracle.median'),
                 position: 'top',
-                fill: '#374151',
+                fill: chartColors.recharts.tickDark,
                 fontSize: 11,
               }}
             />
@@ -171,16 +178,16 @@ function MarketDepthSimulatorComponent({ priceData, medianPrice, t }: MarketDept
               type="monotone"
               dataKey="bidDepth"
               stackId="1"
-              stroke="#10B981"
-              fill="#10B981"
+              stroke={chartColors.recharts.success}
+              fill={chartColors.recharts.success}
               fillOpacity={0.3}
             />
             <Area
               type="monotone"
               dataKey="askDepth"
               stackId="2"
-              stroke="#EF4444"
-              fill="#EF4444"
+              stroke={chartColors.recharts.danger}
+              fill={chartColors.recharts.danger}
               fillOpacity={0.3}
             />
           </AreaChart>

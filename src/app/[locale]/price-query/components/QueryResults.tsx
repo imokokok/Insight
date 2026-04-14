@@ -1,12 +1,15 @@
 'use client';
 
+import { useRef } from 'react';
+
 import { Database, BarChart3, Clock } from 'lucide-react';
 
+import { PriceFlash } from '@/components/ui/PriceFlash';
 import { useTranslations } from '@/i18n';
 import type { OracleProvider, Blockchain } from '@/lib/oracles';
+import type { RedStoneTokenOnChainData } from '@/lib/oracles/clients/redstone';
 import type { DIATokenOnChainData } from '@/lib/oracles/services/diaDataService';
 import type { WINkLinkTokenOnChainData } from '@/lib/oracles/services/winklinkRealDataService';
-import type { RedStoneTokenOnChainData } from '@/lib/oracles/clients/redstone';
 
 import { type QueryResult, type PriceData } from '../constants';
 import { useConsistencyRating } from '../hooks/useConsistencyRating';
@@ -92,6 +95,7 @@ export function QueryResults({
 }: QueryResultsProps) {
   const t = useTranslations();
   const consistencyRating = useConsistencyRating(standardDeviationPercent);
+  const prevPriceRef = useRef<number | undefined>(undefined);
 
   if (isLoading) {
     return (
@@ -106,6 +110,10 @@ export function QueryResults({
   const currentResult = queryResults[0];
   const currentPrice = currentResult?.priceData;
   const currentPriceValue = currentPrice?.price || avgPrice;
+  const previousPriceValue = prevPriceRef.current;
+  if (currentPriceValue !== prevPriceRef.current) {
+    prevPriceRef.current = currentPriceValue;
+  }
   const volume24hValue = 0;
 
   return (
@@ -136,9 +144,11 @@ export function QueryResults({
             <div className="text-left sm:text-right">
               <p className="text-sm text-gray-500 mb-1">{t('priceQuery.currentPrice')}</p>
               <div className="flex items-baseline gap-3 sm:justify-end">
-                <span className="text-4xl sm:text-5xl font-bold text-gray-900 tracking-tight">
-                  ${formatPrice(currentPriceValue)}
-                </span>
+                <PriceFlash value={currentPriceValue} previousValue={previousPriceValue}>
+                  <span className="text-4xl sm:text-5xl font-bold text-gray-900 tracking-tight">
+                    ${formatPrice(currentPriceValue)}
+                  </span>
+                </PriceFlash>
               </div>
             </div>
           </div>

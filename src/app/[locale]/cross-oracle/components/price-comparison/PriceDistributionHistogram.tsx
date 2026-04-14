@@ -19,6 +19,7 @@ import {
   Cell,
 } from 'recharts';
 
+import { chartColors } from '@/lib/config/colors';
 import type { OracleProvider, PriceData } from '@/types/oracle';
 
 interface PriceDistributionHistogramProps {
@@ -105,11 +106,17 @@ function PriceDistributionHistogramComponent({
         </h4>
         <div className="flex items-center gap-4 text-xs">
           <div className="flex items-center gap-1">
-            <div className="w-3 h-3 bg-blue-500 rounded" />
+            <div
+              className="w-3 h-3 rounded"
+              style={{ backgroundColor: chartColors.recharts.primary }}
+            />
             <span className="text-gray-500">{t('crossOracle.normal')}</span>
           </div>
           <div className="flex items-center gap-1">
-            <div className="w-3 h-3 bg-red-500 rounded" />
+            <div
+              className="w-3 h-3 rounded"
+              style={{ backgroundColor: chartColors.recharts.danger }}
+            />
             <span className="text-gray-500">{t('crossOracle.anomaly')}</span>
           </div>
         </div>
@@ -118,48 +125,58 @@ function PriceDistributionHistogramComponent({
       <div className="h-64">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={histogramData} margin={{ top: 30, right: 30, left: 0, bottom: 20 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke={chartColors.recharts.grid}
+              vertical={false}
+            />
             <XAxis
               dataKey="midPrice"
               tickFormatter={formatPrice}
-              tick={{ fontSize: 11, fill: '#6b7280' }}
+              tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
               tickLine={false}
-              axisLine={{ stroke: '#e5e7eb' }}
+              axisLine={{ stroke: chartColors.recharts.grid }}
             />
             <YAxis
-              tick={{ fontSize: 11, fill: '#6b7280' }}
+              tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
               tickLine={false}
-              axisLine={{ stroke: '#e5e7eb' }}
+              axisLine={{ stroke: chartColors.recharts.grid }}
               allowDecimals={false}
             />
             <Tooltip
+              cursor={{ stroke: chartColors.recharts.axis, strokeDasharray: '3 3' }}
               formatter={(value, _name, props) => [
                 `${value} ${t('crossOracle.oracles')}`,
                 (props as { payload: HistogramData }).payload.range,
               ]}
               contentStyle={{
-                backgroundColor: 'white',
-                border: '1px solid #e5e7eb',
+                backgroundColor: chartColors.recharts.white,
+                border: `1px solid ${chartColors.recharts.border}`,
                 borderRadius: '8px',
                 fontSize: '12px',
               }}
             />
             <ReferenceLine
               x={medianPrice}
-              stroke="#374151"
+              stroke={chartColors.recharts.tickDark}
               strokeDasharray="4 4"
               strokeWidth={2}
               label={{
                 value: t('crossOracle.median'),
                 position: 'insideTop',
-                fill: '#374151',
+                fill: chartColors.recharts.tickDark,
                 fontSize: 11,
                 dy: -20,
               }}
             />
             <Bar dataKey="count" radius={[4, 4, 0, 0]}>
               {histogramData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.isAnomaly ? '#EF4444' : '#3B82F6'} />
+                <Cell
+                  key={`cell-${index}`}
+                  fill={
+                    entry.isAnomaly ? chartColors.recharts.danger : chartColors.recharts.primary
+                  }
+                />
               ))}
             </Bar>
           </BarChart>

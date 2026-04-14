@@ -250,6 +250,12 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
     const currentIsCompareMode = isCompareModeRef.current;
     const currentCompareTimeRange = compareTimeRangeRef.current;
 
+    // 如果币种为空，不执行查询
+    if (!currentSelectedSymbol) {
+      logger.debug('Skipping query: no symbol selected');
+      return;
+    }
+
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }

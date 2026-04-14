@@ -177,10 +177,9 @@ export function Selectors({
             onChange={(value) => {
               const newOracle = value as OracleProvider;
               setSelectedOracle(newOracle);
-              // 切换预言机时重置链和币种
+              // 切换预言机时重置链
               setSelectedChain(null);
-              setSelectedSymbol('');
-              // 注意：数据刷新由 usePriceQueryData 中的 useEffect 处理
+              // 币种由 usePriceQueryData 中的 useEffect 自动处理查询
             }}
             placeholder={t('priceQuery.selectors.selectOracle')}
           />
@@ -196,9 +195,12 @@ export function Selectors({
             onChange={(value) => {
               const newChain = value as Blockchain;
               setSelectedChain(newChain);
-              // 切换链时，如果当前币种在新链上不支持，重置币种
+              // 切换链时，如果当前币种在新链上不支持，选择该链的第一个支持的币种
               if (newChain && selectedSymbol && !isSymbolSupported(selectedSymbol, newChain)) {
-                setSelectedSymbol('');
+                const symbolsForNewChain = getSymbolsForChain(newChain);
+                if (symbolsForNewChain.length > 0) {
+                  setSelectedSymbol(symbolsForNewChain[0]);
+                }
               }
             }}
             placeholder={t('priceQuery.selectors.selectBlockchain')}
