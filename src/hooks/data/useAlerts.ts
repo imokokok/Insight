@@ -298,40 +298,9 @@ export function useAcknowledgeAlert(): UseAcknowledgeAlertReturn {
   return { acknowledge, isAcknowledging };
 }
 
-export function useActiveAlertsRealtime() {
-  const user = useUser();
-  const { alerts, refetch } = useAlerts();
-
-  useEffect(() => {
-    if (!user?.id) return;
-
-    const channel = supabase
-      .channel(`alerts:${user.id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'price_alerts',
-          filter: `user_id=eq.${user.id}`,
-        },
-        () => {
-          refetch();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user?.id, refetch]);
-
-  return { alerts };
-}
-
 export function useAlertEventsRealtime() {
   const user = useUser();
-  const { events, refetch } = useAlertEvents();
+  const { refetch } = useAlertEvents();
 
   useEffect(() => {
     if (!user?.id) return;
@@ -356,8 +325,6 @@ export function useAlertEventsRealtime() {
       supabase.removeChannel(channel);
     };
   }, [user?.id, refetch]);
-
-  return { events };
 }
 
 export function useBatchAlerts(): UseBatchAlertsReturn {
