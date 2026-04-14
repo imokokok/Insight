@@ -20,6 +20,7 @@ import {
   Cell,
 } from 'recharts';
 
+import { chartColors } from '@/lib/config/colors';
 import type { OracleProvider, PriceData } from '@/types/oracle';
 
 import { oracleNames } from '../../constants';
@@ -75,13 +76,13 @@ function DeviationScatterChartComponent({
   const getColor = (severity: 'low' | 'medium' | 'high' | null): string => {
     switch (severity) {
       case 'high':
-        return '#EF4444';
+        return chartColors.recharts.danger;
       case 'medium':
-        return '#F59E0B';
+        return chartColors.recharts.warning;
       case 'low':
-        return '#EAB308';
+        return chartColors.recharts.warning;
       default:
-        return '#10B981';
+        return chartColors.recharts.success;
     }
   };
 
@@ -102,19 +103,31 @@ function DeviationScatterChartComponent({
         </h4>
         <div className="flex items-center gap-3 text-xs">
           <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded-full bg-emerald-500" />
+            <div
+              className="w-3 h-3 rounded-full"
+              style={{ backgroundColor: chartColors.recharts.success }}
+            />
             <span className="text-gray-500">{t('crossOracle.normal')}</span>
           </div>
           <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded-full bg-yellow-500" />
+            <div
+              className="w-3 h-3 rounded-full"
+              style={{ backgroundColor: chartColors.recharts.warning }}
+            />
             <span className="text-gray-500">{t('crossOracle.lowRisk')}</span>
           </div>
           <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded-full bg-orange-500" />
+            <div
+              className="w-3 h-3 rounded-full"
+              style={{ backgroundColor: chartColors.recharts.warning }}
+            />
             <span className="text-gray-500">{t('crossOracle.mediumRisk')}</span>
           </div>
           <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded-full bg-red-500" />
+            <div
+              className="w-3 h-3 rounded-full"
+              style={{ backgroundColor: chartColors.recharts.danger }}
+            />
             <span className="text-gray-500">{t('crossOracle.highRisk')}</span>
           </div>
         </div>
@@ -123,15 +136,15 @@ function DeviationScatterChartComponent({
       <div className="h-64">
         <ResponsiveContainer width="100%" height="100%">
           <ScatterChart margin={{ top: 20, right: 30, left: 10, bottom: 20 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+            <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} />
             <XAxis
               type="number"
               dataKey="x"
               name="Price"
               tickFormatter={formatPrice}
-              tick={{ fontSize: 11, fill: '#6b7280' }}
+              tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
               tickLine={false}
-              axisLine={{ stroke: '#e5e7eb' }}
+              axisLine={{ stroke: chartColors.recharts.grid }}
               domain={['auto', 'auto']}
             />
             <YAxis
@@ -139,9 +152,9 @@ function DeviationScatterChartComponent({
               dataKey="y"
               name="Deviation"
               tickFormatter={(value) => `${value.toFixed(2)}%`}
-              tick={{ fontSize: 11, fill: '#6b7280' }}
+              tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
               tickLine={false}
-              axisLine={{ stroke: '#e5e7eb' }}
+              axisLine={{ stroke: chartColors.recharts.grid }}
             />
             <ZAxis type="number" dataKey="z" range={[50, 400]} />
             <Tooltip
@@ -168,7 +181,12 @@ function DeviationScatterChartComponent({
                 return null;
               }}
             />
-            <ReferenceLine y={0} stroke="#374151" strokeDasharray="4 4" strokeWidth={2} />
+            <ReferenceLine
+              y={0}
+              stroke={chartColors.recharts.tickDark}
+              strokeDasharray="4 4"
+              strokeWidth={2}
+            />
             <Scatter data={scatterData}>
               {scatterData.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={getColor(entry.severity)} />

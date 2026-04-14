@@ -25,6 +25,43 @@ import { isBlockchain } from '@/lib/utils/chainUtils';
 import { type ChartDataPoint } from '../constants';
 import { chainNames, chainColors } from '../utils';
 
+interface CursorPoint {
+  x: number;
+  y: number;
+}
+
+interface CrosshairCursorProps {
+  points: CursorPoint[];
+  height: number;
+}
+
+const CrosshairCursor = ({ points, height }: CrosshairCursorProps) => {
+  if (!points?.length) return null;
+  const { x, y } = points[0];
+  return (
+    <g>
+      <line
+        x1={x}
+        y1={0}
+        x2={x}
+        y2={height}
+        stroke={chartColors.recharts.axis}
+        strokeDasharray="3 3"
+        strokeWidth={1}
+      />
+      <line
+        x1={0}
+        y1={y}
+        x2={x}
+        y2={y}
+        stroke={chartColors.recharts.axis}
+        strokeDasharray="3 3"
+        strokeWidth={1}
+      />
+    </g>
+  );
+};
+
 interface ReferenceLineConfig {
   id: string;
   y: number;
@@ -77,8 +114,17 @@ function CustomTooltip({ active, payload, label, filteredChains }: CustomTooltip
   );
 
   return (
-    <div className="bg-white border border-gray-200 p-3 rounded-lg shadow-lg min-w-[240px]">
-      <p className="text-gray-600 text-xs mb-2 font-medium border-b border-gray-100 pb-2">
+    <div
+      className="border p-3 rounded-lg shadow-lg min-w-[240px]"
+      style={{
+        backgroundColor: chartColors.recharts.white,
+        borderColor: chartColors.recharts.border,
+      }}
+    >
+      <p
+        className="text-xs mb-2 font-medium border-b pb-2"
+        style={{ color: chartColors.recharts.tick, borderColor: chartColors.recharts.border }}
+      >
         {label}
       </p>
       {priceData.map((entry) => {
@@ -87,13 +133,22 @@ function CustomTooltip({ active, payload, label, filteredChains }: CustomTooltip
         return (
           <div
             key={String(entry.dataKey)}
-            className="mb-1.5 pb-1.5 border-b border-gray-100 last:border-0 last:mb-0 last:pb-0"
+            className="mb-1.5 pb-1.5 border-b last:border-0 last:mb-0 last:pb-0"
+            style={{ borderColor: chartColors.recharts.border }}
           >
             <div className="flex items-center gap-2 mb-0.5">
               <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entry.color }} />
-              <span className="text-sm font-medium text-gray-900">{chainName}</span>
+              <span
+                className="text-sm font-medium"
+                style={{ color: chartColors.recharts.tickDark }}
+              >
+                {chainName}
+              </span>
             </div>
-            <div className="text-sm text-gray-700 pl-4.5 font-mono">
+            <div
+              className="text-sm pl-4.5 font-mono"
+              style={{ color: chartColors.recharts.tickDark }}
+            >
               ${Number(entry.value).toFixed(4)}
             </div>
           </div>
@@ -731,16 +786,23 @@ export function InteractivePriceChart({
         </div>
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={visibleData} margin={{ top: 10, right: 30, left: 10, bottom: 10 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-            <XAxis dataKey="time" stroke="#9ca3af" tick={{ fill: '#6b7280', fontSize: 11 }} />
+            <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} />
+            <XAxis
+              dataKey="time"
+              stroke={chartColors.recharts.axis}
+              tick={{ fill: chartColors.recharts.tick, fontSize: 11 }}
+            />
             <YAxis
               domain={priceDomain}
               tickFormatter={(v) => `$${Number(v).toLocaleString()}`}
               width={70}
-              stroke="#9ca3af"
-              tick={{ fill: '#6b7280', fontSize: 11 }}
+              stroke={chartColors.recharts.axis}
+              tick={{ fill: chartColors.recharts.tick, fontSize: 11 }}
             />
-            <RechartsTooltip content={renderTooltip} />
+            <RechartsTooltip
+              content={renderTooltip}
+              cursor={{ stroke: chartColors.recharts.axis, strokeDasharray: '3 3' }}
+            />
             <Legend
               onClick={(data: unknown) => {
                 const legendData = data as {

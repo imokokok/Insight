@@ -7,6 +7,7 @@
 
 import { useTranslations, useLocale } from '@/i18n';
 import { isChineseLocale } from '@/i18n/routing';
+import { chartColors } from '@/lib/config/colors';
 import { formatPrice } from '@/lib/utils/chartSharedUtils';
 
 import { Icons } from './Icons';
@@ -97,11 +98,24 @@ export function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
   };
 
   return (
-    <div className="bg-white border border-gray-200 shadow-lg rounded-lg p-3 min-w-[220px]">
+    <div
+      className="border shadow-lg rounded-lg p-3 min-w-[220px]"
+      style={{
+        backgroundColor: chartColors.recharts.white,
+        borderColor: chartColors.recharts.border,
+      }}
+    >
       {/* 时间标题 */}
-      <div className="flex items-center gap-1.5 mb-2 pb-2 border-b border-gray-100">
-        <Icons.clock className="w-3.5 h-3.5 text-gray-400" />
-        <span className="text-xs text-gray-500">{formatDateTime(label)}</span>
+      <div
+        className="flex items-center gap-1.5 mb-2 pb-2 border-b"
+        style={{ borderColor: chartColors.recharts.border }}
+      >
+        <span style={{ color: chartColors.recharts.tick }}>
+          <Icons.clock className="w-3.5 h-3.5" />
+        </span>
+        <span className="text-xs" style={{ color: chartColors.recharts.tick }}>
+          {formatDateTime(label)}
+        </span>
       </div>
 
       {/* 数据项列表 */}
@@ -133,13 +147,27 @@ export function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
                   className="w-2.5 h-2.5 rounded-full flex-shrink-0"
                   style={{ backgroundColor: color }}
                 />
-                <span className="text-xs font-medium text-gray-700">{provider}</span>
-                {chainName && <span className="text-xs text-gray-400">({chainName})</span>}
+                <span
+                  className="text-xs font-medium"
+                  style={{ color: chartColors.recharts.tickDark }}
+                >
+                  {provider}
+                </span>
+                {chainName && (
+                  <span className="text-xs" style={{ color: chartColors.recharts.tick }}>
+                    ({chainName})
+                  </span>
+                )}
               </div>
 
               {/* 价格和涨跌幅行 */}
               <div className="flex items-baseline justify-between gap-3 pl-4.5">
-                <span className="text-lg font-bold text-gray-900">{formatPrice(value)}</span>
+                <span
+                  className="text-lg font-bold"
+                  style={{ color: chartColors.recharts.tickDark }}
+                >
+                  {formatPrice(value)}
+                </span>
                 {changePercent !== null && (
                   <div
                     className={`flex items-center gap-0.5 text-xs font-medium ${
@@ -156,7 +184,7 @@ export function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
               {/* 偏差信息行 */}
               {deviationPercent !== null && (
                 <div className="flex items-center justify-between pl-4.5">
-                  <span className="text-xs text-gray-400">
+                  <span className="text-xs" style={{ color: chartColors.recharts.tick }}>
                     {t('priceQuery.chart.tooltip.deviationFromAvg')}
                   </span>
                   <span
@@ -174,7 +202,12 @@ export function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
               )}
 
               {/* 分割线（如果不是最后一项） */}
-              {index < payload.length - 1 && <div className="border-t border-gray-100 mt-2 pt-2" />}
+              {index < payload.length - 1 && (
+                <div
+                  className="border-t mt-2 pt-2"
+                  style={{ borderColor: chartColors.recharts.border }}
+                />
+              )}
             </div>
           );
         })}

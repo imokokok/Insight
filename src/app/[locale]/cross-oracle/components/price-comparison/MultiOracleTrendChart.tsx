@@ -17,9 +17,47 @@ import {
   CartesianGrid,
 } from 'recharts';
 
+import { chartColors } from '@/lib/config/colors';
 import type { OracleProvider } from '@/types/oracle';
 
 import { oracleNames } from '../../constants';
+
+interface CursorPoint {
+  x: number;
+  y: number;
+}
+
+interface CrosshairCursorProps {
+  points: CursorPoint[];
+  height: number;
+}
+
+const CrosshairCursor = ({ points, height }: CrosshairCursorProps) => {
+  if (!points?.length) return null;
+  const { x, y } = points[0];
+  return (
+    <g>
+      <line
+        x1={x}
+        y1={0}
+        x2={x}
+        y2={height}
+        stroke={chartColors.recharts.axis}
+        strokeDasharray="3 3"
+        strokeWidth={1}
+      />
+      <line
+        x1={0}
+        y1={y}
+        x2={x}
+        y2={y}
+        stroke={chartColors.recharts.axis}
+        strokeDasharray="3 3"
+        strokeWidth={1}
+      />
+    </g>
+  );
+};
 
 interface TrendDataPoint {
   timestamp: number;
@@ -120,7 +158,9 @@ function MultiOracleTrendChartComponent({
             <div
               className="w-2 h-2 rounded-full"
               style={{
-                backgroundColor: hiddenOracles.has(oracle) ? '#9CA3AF' : oracleColors[oracle],
+                backgroundColor: hiddenOracles.has(oracle)
+                  ? chartColors.recharts.axis
+                  : oracleColors[oracle],
               }}
             />
             {oracleNames[oracle] || oracle}
@@ -131,30 +171,31 @@ function MultiOracleTrendChartComponent({
       <div className="h-64">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={chartData} margin={{ top: 10, right: 30, left: 10, bottom: 20 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+            <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} />
             <XAxis
               dataKey="timestamp"
               tickFormatter={formatTime}
-              tick={{ fontSize: 11, fill: '#6b7280' }}
+              tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
               tickLine={false}
-              axisLine={{ stroke: '#e5e7eb' }}
+              axisLine={{ stroke: chartColors.recharts.grid }}
             />
             <YAxis
               tickFormatter={formatPrice}
-              tick={{ fontSize: 11, fill: '#6b7280' }}
+              tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
               tickLine={false}
-              axisLine={{ stroke: '#e5e7eb' }}
+              axisLine={{ stroke: chartColors.recharts.grid }}
               domain={['auto', 'auto']}
             />
             <Tooltip
+              cursor={{ stroke: chartColors.recharts.axis, strokeDasharray: '3 3' }}
               formatter={(value, name) => [
                 formatPrice(value as number),
                 oracleNames[name as OracleProvider] || name,
               ]}
               labelFormatter={(label) => formatTime(label as number)}
               contentStyle={{
-                backgroundColor: 'white',
-                border: '1px solid #e5e7eb',
+                backgroundColor: chartColors.recharts.white,
+                border: `1px solid ${chartColors.recharts.border}`,
                 borderRadius: '8px',
                 fontSize: '12px',
               }}
@@ -169,7 +210,7 @@ function MultiOracleTrendChartComponent({
                     stroke={oracleColors[oracle]}
                     strokeWidth={2}
                     dot={false}
-                    activeDot={{ r: 4, strokeWidth: 2, stroke: '#fff' }}
+                    activeDot={{ r: 4, strokeWidth: 2, stroke: chartColors.recharts.white }}
                     connectNulls
                   />
                 )

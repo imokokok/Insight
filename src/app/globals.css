@@ -1050,6 +1050,16 @@ body {
   }
 }
 
+.price-flash-up {
+  background-color: #d1fae5;
+  transition: background-color 0.3s ease-out;
+}
+
+.price-flash-down {
+  background-color: #fee2e2;
+  transition: background-color 0.3s ease-out;
+}
+
 /* ============================================
    Chart Transition Animations
    ============================================ */
