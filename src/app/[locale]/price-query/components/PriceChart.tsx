@@ -197,13 +197,7 @@ export function PriceChart({
   return (
     <div>
       {/* 工具栏 */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <TrendingUp className="w-4 h-4 text-gray-500" aria-hidden="true" />
-          <h3 className="text-sm font-semibold text-gray-800">
-            {t('priceQuery.charts.priceHistory')}
-          </h3>
-        </div>
+      <div className="flex items-center justify-end mb-4">
         <button
           onClick={() => setShowDataTable(!showDataTable)}
           className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
