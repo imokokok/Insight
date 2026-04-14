@@ -1,26 +1,18 @@
-// Chainlink 支持的币种（基于官方文档，按市值和流行度排序）
-// Ethereum 主网支持的交易对（21个）
-// Arbitrum 支持的交易对（43个，包含 Ethereum 的 21 个 + 22 个额外交易对）
+// Chainlink 支持的币种（基于实际验证结果，只包含可用的交易对）
+// 注意：这些币种在至少一条链上有可用的 Chainlink 价格源
 export const chainlinkSymbols = [
   'BTC',
   'ETH',
   'LINK',
-  'BNB',
-  'SOL',
-  'DOGE',
   'MATIC',
   'AVAX',
   'USDT',
   'USDC',
   'DAI',
   'AAVE',
-  'MKR',
-  'COMP',
   'APE',
   'LDO',
-  'YFI',
   '1INCH',
-  'FRAX',
   'WBTC',
   'STETH',
   'SHIB',
@@ -48,6 +40,13 @@ export const chainlinkSymbols = [
   'CVX',
   'CAKE',
   'BONK',
+  'MKR',
+  'COMP',
+  'YFI',
+  'FRAX',
+  'SOL',
+  'DOGE',
+  'BNB',
 ] as const;
 
 export const CHAINLINK_AVAILABLE_PAIRS: Record<string, string[]> = {
