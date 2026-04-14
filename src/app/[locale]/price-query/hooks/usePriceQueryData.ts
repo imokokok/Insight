@@ -6,7 +6,7 @@ import {
   type OracleProvider,
   type Blockchain,
   type PriceData,
-  OracleClientFactory,
+  getDefaultFactory,
 } from '@/lib/oracles';
 import { performanceMetricsCalculator } from '@/lib/services/marketData';
 import { createLogger } from '@/lib/utils/logger';
@@ -252,7 +252,7 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
       currentSelectedTimeRange,
       currentIsCompareMode,
       currentCompareTimeRange,
-      OracleClientFactory
+      getDefaultFactory()
     );
 
     const actualTotalQueries = currentIsCompareMode ? totalQueries * 2 : totalQueries;
@@ -577,7 +577,7 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
   const supportedChainsBySelectedOracles = useMemo(() => {
     if (!selectedOracle) return new Set<Blockchain>();
     const supported = new Set<Blockchain>();
-    const client = OracleClientFactory.getClient(selectedOracle);
+    const client = getDefaultFactory().getClient(selectedOracle);
     client.supportedChains.forEach((chain) => supported.add(chain));
     return supported;
   }, [selectedOracle]);

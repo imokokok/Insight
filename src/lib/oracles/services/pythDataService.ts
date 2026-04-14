@@ -23,4 +23,4 @@ export {
   type PythServicePriceFeed,
   type PublisherData,
   type ValidatorData,
-} from './pyth/index';
+} from '../pyth/index';

@@ -160,7 +160,7 @@
     "provider": "Provider",
     "statusNormal": "Normal",
     "statusWarning": "Warning",
-    "statusError": "Error",
+    "statusCritical": "Critical",
     "anomaliesDetected": "anomalies",
     "normal": "Normal",
     "anomaly": "Anomaly",
@@ -456,6 +456,7 @@
       "normal": "Normal",
       "warning": "Warning",
       "error": "Error",
+      "critical": "Critical",
       "filtersActive": "filters active"
     },
     "filterSummary": {

@@ -1,13 +1,12 @@
 import { OracleProvider, Blockchain } from '@/types/oracle';
 
-import { OracleClientFactory } from '../factory';
 import {
   getHoursForTimeRange,
   fetchOraclePrice,
   fetchMultipleOraclePrices,
   createPriceHistoryManager,
   extractBaseSymbol,
-} from '../oracleDataUtils';
+} from '../utils/oracleDataUtils';
 
 jest.mock('@/lib/utils/logger', () => ({
   createLogger: () => ({
@@ -18,11 +17,16 @@ jest.mock('@/lib/utils/logger', () => ({
   }),
 }));
 
-jest.mock('../factory', () => ({
-  OracleClientFactory: {
-    getClient: jest.fn(),
-  },
-}));
+const mockGetClient = jest.fn();
+jest.mock('../factory', () => {
+  const actual = jest.requireActual('../factory');
+  return {
+    ...actual,
+    getDefaultFactory: () => ({
+      getClient: mockGetClient,
+    }),
+  };
+});
 
 describe('oracleDataUtils', () => {
   describe('getHoursForTimeRange', () => {
@@ -86,7 +90,7 @@ describe('oracleDataUtils', () => {
 
     beforeEach(() => {
       jest.clearAllMocks();
-      (OracleClientFactory.getClient as jest.Mock).mockReturnValue(mockClient);
+      mockGetClient.mockReturnValue(mockClient);
     });
 
     it('should fetch price successfully', async () => {
@@ -200,7 +204,7 @@ describe('oracleDataUtils', () => {
 
     beforeEach(() => {
       jest.clearAllMocks();
-      (OracleClientFactory.getClient as jest.Mock).mockReturnValue(mockClient);
+      mockGetClient.mockReturnValue(mockClient);
     });
 
     it('should fetch prices from multiple providers', async () => {

@@ -1,10 +1,10 @@
-export { ChainlinkClient } from '@/lib/services/oracle/clients/chainlink';
+export { ChainlinkClient } from './clients/chainlink';
 export {
   ChainlinkOnChainService,
   chainlinkOnChainService,
   type ChainlinkPriceData,
   type ChainlinkTokenData,
-} from './chainlinkOnChainService';
+} from './services/chainlinkOnChainService';
 export {
   CHAINLINK_PRICE_FEEDS,
   CHAINLINK_CONTRACTS,
@@ -20,11 +20,11 @@ export {
   type ChainlinkPriceFeed,
   type ChainlinkContracts,
   type ChainlinkRPCConfig,
-} from './chainlinkDataSources';
-export { PythClient } from '@/lib/services/oracle/clients/pyth';
-export { API3Client } from '@/lib/services/oracle/clients/api3';
-export { RedStoneClient } from '@/lib/services/oracle/clients/redstone';
-export { DIAClient } from '@/lib/services/oracle/clients/dia';
+} from './services/chainlinkDataSources';
+export { PythClient } from './clients/PythClient';
+export { API3Client } from './clients/api3';
+export { RedStoneClient } from './clients/redstone';
+export { DIAClient } from './clients/dia';
 export {
   DIADataService,
   getDIADataService,
@@ -39,8 +39,8 @@ export {
   type DIANFTData,
   type DIAEcosystemIntegration,
   type DIAExchange,
-} from './diaDataService';
-export { WINkLinkClient } from '@/lib/services/oracle/clients/winklink';
+} from './services/diaDataService';
+export { WINkLinkClient } from './clients/winklink';
 export {
   PythDataService,
   getPythDataService,
@@ -49,8 +49,9 @@ export {
   type ValidatorData,
   type CrossChainPriceData,
   type CrossChainResult,
-} from './pythDataService';
-export type { RetryConfig } from './pythConstants';
+} from './services/pythDataService';
+export type { RetryConfig } from './constants/pythConstants';
+export { OracleRepository } from './OracleRepository';
 export {
   BaseOracleClient,
   shouldUseDatabase,
@@ -67,14 +68,14 @@ export {
   getHistoricalPricesFromDatabase,
   savePriceWithFallback,
   saveHistoricalPricesWithFallback,
-} from './storage';
+} from './utils/storage';
 export {
   OracleClientFactory,
+  getDefaultFactory,
   getOracleClient,
   getAllOracleClients,
-  getOracleClientFromDI,
-  registerMockOracleFactory,
-  unregisterMockOracleFactory,
+  setMockOracleFactory,
+  clearMockOracleFactory,
 } from './factory';
 export * from '@/types/oracle';
 export { getOracleColor } from './colors';
@@ -86,7 +87,7 @@ export {
   type CalculatedPerformanceMetrics,
   type PriceHistoryEntry,
   type MetricsCalculationConfig,
-} from './performanceMetricsCalculator';
+} from './utils/performanceMetricsCalculator';
 
 // Oracle Data Utilities
 export {
@@ -103,4 +104,4 @@ export {
   type FetchMultipleOraclePricesResult,
   type PriceHistoryPoint,
   type PriceHistoryManager,
-} from './oracleDataUtils';
+} from './utils/oracleDataUtils';

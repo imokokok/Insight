@@ -1,15 +1,14 @@
-import { container, SERVICE_TOKENS } from '@/lib/di';
 import { OracleClientError, ValidationError } from '@/lib/errors';
 import { BaseOracleClient } from '@/lib/oracles/base';
 import { type OracleProvider, Blockchain, type PriceData } from '@/types/oracle';
 
 import {
   OracleClientFactory,
+  getDefaultFactory,
   getOracleClient,
   getAllOracleClients,
-  getOracleClientFromDI,
-  registerMockOracleFactory,
-  unregisterMockOracleFactory,
+  setMockOracleFactory,
+  clearMockOracleFactory,
 } from '../factory';
 
 import type { IOracleClient, IOracleClientFactory } from '../interfaces';
@@ -23,55 +22,53 @@ jest.mock('@/lib/utils/logger', () => ({
   }),
 }));
 
-jest.mock('@/lib/config/serverEnv', () => ({
-  ALCHEMY_RPC: {
-    ethereum: '',
-    arbitrum: '',
-    polygon: '',
-    base: '',
-    optimism: '',
-    solana: '',
-    bnb: '',
-    avalanche: '',
-    zksync: '',
-    scroll: '',
-    mantle: '',
-    linea: '',
-  },
-  TRON_CONFIG: {
-    rpcUrl: 'https://api.trongrid.io',
-    solidityRpc: 'https://api.trongrid.io/walletsolidity',
-    fullnodeRpc: 'https://api.trongrid.io/wallet',
-    apiKey: '',
-  },
-  THEGRAPH_CONFIG: {
-    apiKey: '',
-  },
-  API3_CONFIG: {
-    marketApiUrl: 'https://market.api3.org/api/v1',
-    daoApiUrl: 'https://api.api3.org',
-    wsUrl: 'wss://ws.api3.org',
+jest.mock('@/lib/config/env', () => ({
+  env: {
+    supabase: {
+      url: '',
+      anonKey: '',
+    },
+    app: {
+      url: 'http://localhost:3000',
+      environment: 'test',
+      isDevelopment: false,
+      isProduction: false,
+      isTest: true,
+    },
+    features: {
+      enableRealtime: false,
+      enableAnalytics: false,
+      enablePerformanceMonitoring: false,
+      enableCSRFProtection: false,
+      enableRateLimiting: false,
+      useRealChainlinkData: true,
+      useRealApi3Data: true,
+      useRealWinklinkData: false,
+    },
+    websocket: {
+      url: undefined,
+    },
+    security: {
+      csrfSecret: '',
+      jwtSecret: '',
+      sessionTimeout: 3600,
+      maxRequestSize: 1048576,
+      allowedOrigins: [],
+    },
   },
   FEATURE_FLAGS: {
+    enableRealtime: false,
+    enableAnalytics: false,
+    enablePerformanceMonitoring: false,
+    enableCSRFProtection: false,
+    enableRateLimiting: false,
     useRealChainlinkData: true,
     useRealApi3Data: true,
     useRealWinklinkData: false,
   },
-  CACHE_CONFIG: {
-    winklinkTtl: 30000,
-    chainlinkPriceTtl: 30000,
-    api3PriceTtl: 30000,
-  },
-  SUPABASE_SERVER_CONFIG: {
-    url: '',
-    anonKey: '',
-    serviceRoleKey: '',
-  },
-  SECURITY_CONFIG: {
-    csrfSecret: '',
-    jwtSecret: '',
-    cronSecret: '',
-  },
+  isFeatureEnabled: jest.fn(),
+  envSchema: {},
+  lenientEnvSchema: {},
 }));
 
 jest.mock('@/lib/oracles/base/databaseOperations', () => ({
@@ -153,80 +150,75 @@ class MockOracleClientFactory implements IOracleClientFactory {
 }
 
 describe('OracleClientFactory', () => {
+  let factory: OracleClientFactory;
+
   beforeEach(() => {
     jest.clearAllMocks();
-    OracleClientFactory.clearInstances();
-    try {
-      container.unregister(SERVICE_TOKENS.ORACLE_CLIENT_FACTORY);
-    } catch {
-      // Token might not be registered
-    }
+    factory = getDefaultFactory();
+    factory.clearInstances();
+    factory.clearMockFactory();
   });
 
   afterEach(() => {
-    try {
-      container.unregister(SERVICE_TOKENS.ORACLE_CLIENT_FACTORY);
-    } catch {
-      // Token might not be registered
-    }
-    OracleClientFactory.clearInstances();
+    factory.clearMockFactory();
+    factory.clearInstances();
   });
 
-  describe('Dependency Injection Tests', () => {
-    describe('Register and resolve client from DI container', () => {
-      it('should resolve client from DI when factory is registered', () => {
+  describe('Mock Factory Tests', () => {
+    describe('Set mock factory for client creation', () => {
+      it('should resolve client from mock factory when set', () => {
         const mockClient = new MockOracleClient();
         const mockFactory = new MockOracleClientFactory({
           chainlink: mockClient,
         } as Record<OracleProvider, IOracleClient>);
 
-        OracleClientFactory.registerMockFactory(mockFactory);
-        const result = OracleClientFactory.getClient('chainlink');
+        factory.setMockFactory(mockFactory);
+        const result = factory.getClient('chainlink');
 
         expect(result).toBe(mockClient);
       });
 
-      it('should return DI client instance when available', () => {
+      it('should return mock client instance when available', () => {
         const mockClient = new MockOracleClient(['BTC', 'ETH', 'SOL']);
         const mockFactory = new MockOracleClientFactory({
           pyth: mockClient,
         } as Record<OracleProvider, IOracleClient>);
 
-        OracleClientFactory.registerMockFactory(mockFactory);
-        const result = OracleClientFactory.getClient('pyth');
+        factory.setMockFactory(mockFactory);
+        const result = factory.getClient('pyth');
 
         expect(result.getSupportedSymbols()).toEqual(['BTC', 'ETH', 'SOL']);
       });
 
-      it('should check DI container before creating new instance', () => {
+      it('should check mock factory before creating new instance', () => {
         const mockClient = new MockOracleClient();
         const mockFactory = new MockOracleClientFactory({
           api3: mockClient,
         } as Record<OracleProvider, IOracleClient>);
 
-        OracleClientFactory.registerMockFactory(mockFactory);
-        const result = OracleClientFactory.getClient('api3');
+        factory.setMockFactory(mockFactory);
+        const result = factory.getClient('api3');
 
         expect(result).toBeInstanceOf(MockOracleClient);
       });
     });
 
-    describe('Override default client with DI client', () => {
-      it('should override default client with DI registered client', () => {
-        const defaultClient = OracleClientFactory.getClient('chainlink');
+    describe('Override default client with mock factory', () => {
+      it('should override default client with mock factory client', () => {
+        const defaultClient = factory.getClient('chainlink');
         const mockClient = new MockOracleClient(['OVERRIDE']);
         const mockFactory = new MockOracleClientFactory({
           chainlink: mockClient,
         } as Record<OracleProvider, IOracleClient>);
 
-        OracleClientFactory.registerMockFactory(mockFactory);
-        const overriddenClient = OracleClientFactory.getClient('chainlink');
+        factory.setMockFactory(mockFactory);
+        const overriddenClient = factory.getClient('chainlink');
 
         expect(overriddenClient).not.toBe(defaultClient);
         expect(overriddenClient.getSupportedSymbols()).toEqual(['OVERRIDE']);
       });
 
-      it('should use DI client for all providers after registration', () => {
+      it('should use mock factory for all providers after setting', () => {
         const mockChainlinkClient = new MockOracleClient(['CL1', 'CL2']);
         const mockPythClient = new MockOracleClient(['PYTH1', 'PYTH2']);
         const mockFactory = new MockOracleClientFactory({
@@ -234,54 +226,41 @@ describe('OracleClientFactory', () => {
           pyth: mockPythClient,
         } as Record<OracleProvider, IOracleClient>);
 
-        OracleClientFactory.registerMockFactory(mockFactory);
+        factory.setMockFactory(mockFactory);
 
-        const chainlinkResult = OracleClientFactory.getClient('chainlink');
-        const pythResult = OracleClientFactory.getClient('pyth');
+        const chainlinkResult = factory.getClient('chainlink');
+        const pythResult = factory.getClient('pyth');
 
         expect(chainlinkResult.getSupportedSymbols()).toEqual(['CL1', 'CL2']);
         expect(pythResult.getSupportedSymbols()).toEqual(['PYTH1', 'PYTH2']);
       });
     });
 
-    describe('Clear DI registration', () => {
-      it('should clear DI registration and fall back to default', () => {
+    describe('Clear mock factory', () => {
+      it('should clear mock factory and fall back to default', () => {
         const mockClient = new MockOracleClient(['MOCK']);
         const mockFactory = new MockOracleClientFactory({
           chainlink: mockClient,
         } as Record<OracleProvider, IOracleClient>);
 
-        OracleClientFactory.registerMockFactory(mockFactory);
-        expect(OracleClientFactory.isUsingDI()).toBe(true);
+        factory.setMockFactory(mockFactory);
 
-        OracleClientFactory.unregisterMockFactory();
-        expect(OracleClientFactory.isUsingDI()).toBe(false);
+        factory.clearMockFactory();
 
-        const client = OracleClientFactory.getClient('chainlink');
+        const client = factory.getClient('chainlink');
         expect(client.getSupportedSymbols()).not.toEqual(['MOCK']);
-      });
-
-      it('should properly unregister factory from container', () => {
-        const mockFactory = new MockOracleClientFactory();
-        OracleClientFactory.registerMockFactory(mockFactory);
-
-        expect(container.has(SERVICE_TOKENS.ORACLE_CLIENT_FACTORY)).toBe(true);
-
-        OracleClientFactory.unregisterMockFactory();
-
-        expect(container.has(SERVICE_TOKENS.ORACLE_CLIENT_FACTORY)).toBe(false);
       });
     });
 
-    describe('Multiple DI registrations', () => {
-      it('should handle multiple DI registrations', () => {
+    describe('Multiple mock factory changes', () => {
+      it('should handle multiple mock factory changes', () => {
         const firstMockClient = new MockOracleClient(['FIRST']);
         const firstFactory = new MockOracleClientFactory({
           chainlink: firstMockClient,
         } as Record<OracleProvider, IOracleClient>);
 
-        OracleClientFactory.registerMockFactory(firstFactory);
-        const firstResult = OracleClientFactory.getClient('chainlink');
+        factory.setMockFactory(firstFactory);
+        const firstResult = factory.getClient('chainlink');
         expect(firstResult.getSupportedSymbols()).toEqual(['FIRST']);
 
         const secondMockClient = new MockOracleClient(['SECOND']);
@@ -289,56 +268,24 @@ describe('OracleClientFactory', () => {
           chainlink: secondMockClient,
         } as Record<OracleProvider, IOracleClient>);
 
-        OracleClientFactory.registerMockFactory(secondFactory);
-        const secondResult = OracleClientFactory.getClient('chainlink');
+        factory.setMockFactory(secondFactory);
+        const secondResult = factory.getClient('chainlink');
         expect(secondResult.getSupportedSymbols()).toEqual(['SECOND']);
       });
 
-      it('should handle DI registration after default client creation', () => {
-        const defaultClient = OracleClientFactory.getClient('chainlink');
+      it('should handle mock factory after default client creation', () => {
+        const defaultClient = factory.getClient('chainlink');
         expect(defaultClient).toBeDefined();
 
-        const mockClient = new MockOracleClient(['DI_OVERRIDE']);
+        const mockClient = new MockOracleClient(['MOCK_OVERRIDE']);
         const mockFactory = new MockOracleClientFactory({
           chainlink: mockClient,
         } as Record<OracleProvider, IOracleClient>);
 
-        OracleClientFactory.registerMockFactory(mockFactory);
-        const diClient = OracleClientFactory.getClient('chainlink');
+        factory.setMockFactory(mockFactory);
+        const diClient = factory.getClient('chainlink');
 
-        expect(diClient.getSupportedSymbols()).toEqual(['DI_OVERRIDE']);
-      });
-    });
-
-    describe('getClientFromDI', () => {
-      it('should return client from DI when available', () => {
-        const mockClient = new MockOracleClient();
-        const mockFactory = new MockOracleClientFactory({
-          redstone: mockClient,
-        } as Record<OracleProvider, IOracleClient>);
-
-        OracleClientFactory.registerMockFactory(mockFactory);
-        const result = OracleClientFactory.getClientFromDI('redstone');
-
-        expect(result).toBe(mockClient);
-      });
-
-      it('should return null when DI not registered', () => {
-        const result = OracleClientFactory.getClientFromDI('chainlink');
-        expect(result).toBeNull();
-      });
-
-      it('should return null after DI is unregistered', () => {
-        const mockClient = new MockOracleClient();
-        const mockFactory = new MockOracleClientFactory({
-          dia: mockClient,
-        } as Record<OracleProvider, IOracleClient>);
-
-        OracleClientFactory.registerMockFactory(mockFactory);
-        expect(OracleClientFactory.getClientFromDI('dia')).toBe(mockClient);
-
-        OracleClientFactory.unregisterMockFactory();
-        expect(OracleClientFactory.getClientFromDI('dia')).toBeNull();
+        expect(diClient.getSupportedSymbols()).toEqual(['MOCK_OVERRIDE']);
       });
     });
   });
@@ -346,14 +293,14 @@ describe('OracleClientFactory', () => {
   describe('Error Handling Tests', () => {
     describe('Request unsupported oracle provider', () => {
       it('should throw ValidationError for unknown provider', () => {
-        expect(() => OracleClientFactory.getClient('unknown_provider' as OracleProvider)).toThrow(
+        expect(() => factory.getClient('unknown_provider' as OracleProvider)).toThrow(
           ValidationError
         );
       });
 
       it('should include provider name in error message', () => {
         try {
-          OracleClientFactory.getClient('invalid' as OracleProvider);
+          factory.getClient('invalid' as OracleProvider);
         } catch (error) {
           expect(error).toBeInstanceOf(ValidationError);
           expect((error as ValidationError).message).toContain('Unknown oracle provider');
@@ -363,20 +310,20 @@ describe('OracleClientFactory', () => {
 
     describe('Invalid provider identifier', () => {
       it('should throw error for empty string provider', () => {
-        expect(() => OracleClientFactory.getClient('' as OracleProvider)).toThrow();
+        expect(() => factory.getClient('' as OracleProvider)).toThrow();
       });
 
       it('should throw error for null-like provider', () => {
-        expect(() => OracleClientFactory.getClient(null as unknown as OracleProvider)).toThrow();
+        expect(() => factory.getClient(null as unknown as OracleProvider)).toThrow();
       });
 
       it('should throw error for numeric provider', () => {
-        expect(() => OracleClientFactory.getClient(123 as unknown as OracleProvider)).toThrow();
+        expect(() => factory.getClient(123 as unknown as OracleProvider)).toThrow();
       });
     });
 
     describe('Client creation failure', () => {
-      it('should throw OracleClientError when DI factory throws', () => {
+      it('should throw OracleClientError when mock factory throws', () => {
         const mockFactory = {
           getClient: jest.fn().mockImplementation(() => {
             throw new Error('Factory error');
@@ -386,12 +333,12 @@ describe('OracleClientFactory', () => {
           clearInstances: jest.fn(),
         } as unknown as IOracleClientFactory;
 
-        OracleClientFactory.registerMockFactory(mockFactory);
+        factory.setMockFactory(mockFactory);
 
-        expect(() => OracleClientFactory.getClient('chainlink')).toThrow();
+        expect(() => factory.getClient('chainlink')).toThrow();
       });
 
-      it('should handle DI client not being BaseOracleClient instance', () => {
+      it('should handle mock client not being BaseOracleClient instance', () => {
         const nonBaseClient = {
           name: 'chainlink',
           supportedChains: [Blockchain.ETHEREUM],
@@ -407,8 +354,8 @@ describe('OracleClientFactory', () => {
           clearInstances: jest.fn(),
         } as unknown as IOracleClientFactory;
 
-        OracleClientFactory.registerMockFactory(mockFactory);
-        const client = OracleClientFactory.getClient('chainlink');
+        factory.setMockFactory(mockFactory);
+        const client = factory.getClient('chainlink');
 
         expect(client).toBeInstanceOf(BaseOracleClient);
       });
@@ -420,7 +367,7 @@ describe('OracleClientFactory', () => {
         const mockLogger = createLogger('OracleClientFactory');
 
         try {
-          OracleClientFactory.getClient('unknown' as OracleProvider);
+          factory.getClient('unknown' as OracleProvider);
         } catch {
           // Expected to throw
         }
@@ -436,7 +383,7 @@ describe('OracleClientFactory', () => {
       it('should return same instance for concurrent requests', async () => {
         const promises = Array(10)
           .fill(null)
-          .map(() => Promise.resolve(OracleClientFactory.getClient('chainlink')));
+          .map(() => Promise.resolve(factory.getClient('chainlink')));
 
         const results = await Promise.all(promises);
         const firstClient = results[0];
@@ -450,7 +397,7 @@ describe('OracleClientFactory', () => {
         const startTime = Date.now();
         const promises = Array(50)
           .fill(null)
-          .map(() => Promise.resolve(OracleClientFactory.getClient('pyth')));
+          .map(() => Promise.resolve(factory.getClient('pyth')));
 
         await Promise.all(promises);
         const endTime = Date.now();
@@ -469,9 +416,7 @@ describe('OracleClientFactory', () => {
           'dia',
           'winklink',
         ];
-        const promises = providers.map((provider) =>
-          Promise.resolve(OracleClientFactory.getClient(provider))
-        );
+        const promises = providers.map((provider) => Promise.resolve(factory.getClient(provider)));
 
         const results = await Promise.all(promises);
 
@@ -482,9 +427,9 @@ describe('OracleClientFactory', () => {
 
       it('should create different instances for different providers concurrently', async () => {
         const [chainlinkClient, pythClient, api3Client] = await Promise.all([
-          Promise.resolve(OracleClientFactory.getClient('chainlink')),
-          Promise.resolve(OracleClientFactory.getClient('pyth')),
-          Promise.resolve(OracleClientFactory.getClient('api3')),
+          Promise.resolve(factory.getClient('chainlink')),
+          Promise.resolve(factory.getClient('pyth')),
+          Promise.resolve(factory.getClient('api3')),
         ]);
 
         expect(chainlinkClient).not.toBe(pythClient);
@@ -501,7 +446,7 @@ describe('OracleClientFactory', () => {
             () =>
               new Promise<BaseOracleClient>((resolve) => {
                 setTimeout(() => {
-                  resolve(OracleClientFactory.getClient('chainlink'));
+                  resolve(factory.getClient('chainlink'));
                 }, Math.random() * 50);
               })
           );
@@ -515,13 +460,13 @@ describe('OracleClientFactory', () => {
       it('should handle rapid sequential and concurrent access', async () => {
         const sequentialResults: BaseOracleClient[] = [];
         for (let i = 0; i < 5; i++) {
-          sequentialResults.push(OracleClientFactory.getClient('chainlink'));
+          sequentialResults.push(factory.getClient('chainlink'));
         }
 
         const concurrentResults = await Promise.all(
           Array(5)
             .fill(null)
-            .map(() => Promise.resolve(OracleClientFactory.getClient('chainlink')))
+            .map(() => Promise.resolve(factory.getClient('chainlink')))
         );
 
         const allResults = [...sequentialResults, ...concurrentResults];
@@ -533,15 +478,15 @@ describe('OracleClientFactory', () => {
 
     describe('Race condition handling', () => {
       it('should handle race condition during instance creation', async () => {
-        OracleClientFactory.clearInstances();
+        factory.clearInstances();
 
         const delayedCreation = new Promise<BaseOracleClient>((resolve) => {
           setTimeout(() => {
-            resolve(OracleClientFactory.getClient('chainlink'));
+            resolve(factory.getClient('chainlink'));
           }, 100);
         });
 
-        const immediateCreation = Promise.resolve(OracleClientFactory.getClient('chainlink'));
+        const immediateCreation = Promise.resolve(factory.getClient('chainlink'));
 
         const [delayed, immediate] = await Promise.all([delayedCreation, immediateCreation]);
 
@@ -549,12 +494,12 @@ describe('OracleClientFactory', () => {
       });
 
       it('should handle concurrent clearInstances and getClient', async () => {
-        const getClientPromise = Promise.resolve(OracleClientFactory.getClient('chainlink'));
-        const clearPromise = Promise.resolve(OracleClientFactory.clearInstances());
+        const getClientPromise = Promise.resolve(factory.getClient('chainlink'));
+        const clearPromise = Promise.resolve(factory.clearInstances());
 
         await Promise.all([getClientPromise, clearPromise]);
 
-        const client = OracleClientFactory.getClient('chainlink');
+        const client = factory.getClient('chainlink');
         expect(client).toBeDefined();
       });
     });
@@ -563,19 +508,19 @@ describe('OracleClientFactory', () => {
   describe('Singleton Pattern Tests', () => {
     describe('Same instance returned for multiple calls', () => {
       it('should return same instance for multiple getClient calls', () => {
-        const client1 = OracleClientFactory.getClient('chainlink');
-        const client2 = OracleClientFactory.getClient('chainlink');
-        const client3 = OracleClientFactory.getClient('chainlink');
+        const client1 = factory.getClient('chainlink');
+        const client2 = factory.getClient('chainlink');
+        const client3 = factory.getClient('chainlink');
 
         expect(client1).toBe(client2);
         expect(client2).toBe(client3);
       });
 
       it('should return same instance after multiple operations', () => {
-        const client1 = OracleClientFactory.getClient('pyth');
-        OracleClientFactory.hasClient('pyth');
-        OracleClientFactory.getSupportedSymbols('pyth');
-        const client2 = OracleClientFactory.getClient('pyth');
+        const client1 = factory.getClient('pyth');
+        factory.hasClient('pyth');
+        factory.getSupportedSymbols('pyth');
+        const client2 = factory.getClient('pyth');
 
         expect(client1).toBe(client2);
       });
@@ -583,9 +528,9 @@ describe('OracleClientFactory', () => {
 
     describe('Different instances for different providers', () => {
       it('should return different instances for different providers', () => {
-        const chainlinkClient = OracleClientFactory.getClient('chainlink');
-        const pythClient = OracleClientFactory.getClient('pyth');
-        const api3Client = OracleClientFactory.getClient('api3');
+        const chainlinkClient = factory.getClient('chainlink');
+        const pythClient = factory.getClient('pyth');
+        const api3Client = factory.getClient('api3');
 
         expect(chainlinkClient).not.toBe(pythClient);
         expect(chainlinkClient).not.toBe(api3Client);
@@ -601,7 +546,7 @@ describe('OracleClientFactory', () => {
           'dia',
           'winklink',
         ];
-        const clients = providers.map((p) => OracleClientFactory.getClient(p));
+        const clients = providers.map((p) => factory.getClient(p));
 
         for (let i = 0; i < clients.length; i++) {
           for (let j = i + 1; j < clients.length; j++) {
@@ -613,33 +558,33 @@ describe('OracleClientFactory', () => {
 
     describe('Clear instances and recreate', () => {
       it('should create new instance after clearInstances', () => {
-        const client1 = OracleClientFactory.getClient('chainlink');
-        OracleClientFactory.clearInstances();
-        const client2 = OracleClientFactory.getClient('chainlink');
+        const client1 = factory.getClient('chainlink');
+        factory.clearInstances();
+        const client2 = factory.getClient('chainlink');
 
         expect(client1).not.toBe(client2);
       });
 
       it('should clear all provider instances', () => {
-        OracleClientFactory.getClient('chainlink');
-        OracleClientFactory.getClient('pyth');
-        OracleClientFactory.getClient('api3');
+        factory.getClient('chainlink');
+        factory.getClient('pyth');
+        factory.getClient('api3');
 
-        expect(OracleClientFactory.hasClient('chainlink')).toBe(true);
-        expect(OracleClientFactory.hasClient('pyth')).toBe(true);
-        expect(OracleClientFactory.hasClient('api3')).toBe(true);
+        expect(factory.hasClient('chainlink')).toBe(true);
+        expect(factory.hasClient('pyth')).toBe(true);
+        expect(factory.hasClient('api3')).toBe(true);
 
-        OracleClientFactory.clearInstances();
+        factory.clearInstances();
 
-        expect(OracleClientFactory.hasClient('chainlink')).toBe(false);
-        expect(OracleClientFactory.hasClient('pyth')).toBe(false);
-        expect(OracleClientFactory.hasClient('api3')).toBe(false);
+        expect(factory.hasClient('chainlink')).toBe(false);
+        expect(factory.hasClient('pyth')).toBe(false);
+        expect(factory.hasClient('api3')).toBe(false);
       });
 
       it('should recreate instances after clear', () => {
-        const client1 = OracleClientFactory.getClient('redstone');
-        OracleClientFactory.clearInstances();
-        const client2 = OracleClientFactory.getClient('redstone');
+        const client1 = factory.getClient('redstone');
+        factory.clearInstances();
+        const client2 = factory.getClient('redstone');
 
         expect(client1).not.toBe(client2);
         expect(client2).toBeDefined();
@@ -648,20 +593,20 @@ describe('OracleClientFactory', () => {
 
     describe('Instance persistence', () => {
       it('should persist instance across multiple operations', () => {
-        const client = OracleClientFactory.getClient('dia');
+        const client = factory.getClient('dia');
 
-        OracleClientFactory.getSupportedSymbols('dia');
-        OracleClientFactory.isSymbolSupported('dia', 'BTC');
-        OracleClientFactory.getSupportedChainsForSymbol('dia', 'BTC');
+        factory.getSupportedSymbols('dia');
+        factory.isSymbolSupported('dia', 'BTC');
+        factory.getSupportedChainsForSymbol('dia', 'BTC');
 
-        const sameClient = OracleClientFactory.getClient('dia');
+        const sameClient = factory.getClient('dia');
         expect(client).toBe(sameClient);
       });
 
       it('should persist instance after getAllClients call', () => {
-        const client = OracleClientFactory.getClient('winklink');
-        OracleClientFactory.getAllClients();
-        const sameClient = OracleClientFactory.getClient('winklink');
+        const client = factory.getClient('winklink');
+        factory.getAllClients();
+        const sameClient = factory.getClient('winklink');
 
         expect(client).toBe(sameClient);
       });
@@ -672,38 +617,37 @@ describe('OracleClientFactory', () => {
     describe('Configure factory with custom settings', () => {
       it('should accept custom configuration', () => {
         expect(() => {
-          OracleClientFactory.configure({ useDatabase: false });
+          factory.configure({ useDatabase: false });
         }).not.toThrow();
       });
 
       it('should merge custom config with defaults', () => {
-        OracleClientFactory.configure({ useDatabase: false });
-        OracleClientFactory.configure({ validateData: true });
+        factory.configure({ useDatabase: false });
+        factory.configure({ validateData: true });
 
-        // Configuration should be merged
-        expect(() => OracleClientFactory.getClient('chainlink')).not.toThrow();
+        expect(() => factory.getClient('chainlink')).not.toThrow();
       });
 
       it('should handle partial configuration updates', () => {
-        OracleClientFactory.configure({ useDatabase: true });
-        OracleClientFactory.configure({ useDatabase: false, validateData: false });
+        factory.configure({ useDatabase: true });
+        factory.configure({ useDatabase: false, validateData: false });
 
-        expect(() => OracleClientFactory.getClient('pyth')).not.toThrow();
+        expect(() => factory.getClient('pyth')).not.toThrow();
       });
     });
 
     describe('Configuration propagation to clients', () => {
       it('should propagate useDatabase config to new clients', () => {
-        OracleClientFactory.clearInstances();
-        OracleClientFactory.configure({ useDatabase: false });
+        factory.clearInstances();
+        factory.configure({ useDatabase: false });
 
-        const client = OracleClientFactory.getClient('chainlink');
+        const client = factory.getClient('chainlink');
         expect(client).toBeDefined();
       });
 
       it('should apply configuration to all provider types', () => {
-        OracleClientFactory.clearInstances();
-        OracleClientFactory.configure({ useDatabase: false, validateData: false });
+        factory.clearInstances();
+        factory.configure({ useDatabase: false, validateData: false });
 
         const providers: OracleProvider[] = [
           'chainlink',
@@ -714,7 +658,7 @@ describe('OracleClientFactory', () => {
           'winklink',
         ];
         providers.forEach((provider) => {
-          const client = OracleClientFactory.getClient(provider);
+          const client = factory.getClient(provider);
           expect(client).toBeDefined();
         });
       });
@@ -723,45 +667,46 @@ describe('OracleClientFactory', () => {
     describe('Configuration validation', () => {
       it('should handle invalid config values gracefully', () => {
         expect(() => {
-          OracleClientFactory.configure({ useDatabase: 'invalid' as unknown as boolean });
+          factory.configure({ useDatabase: 'invalid' as unknown as boolean });
         }).not.toThrow();
       });
 
       it('should handle empty configuration object', () => {
         expect(() => {
-          OracleClientFactory.configure({});
+          factory.configure({});
         }).not.toThrow();
       });
 
       it('should handle undefined config values', () => {
         expect(() => {
-          OracleClientFactory.configure({ useDatabase: undefined });
+          factory.configure({ useDatabase: undefined });
         }).not.toThrow();
       });
     });
 
     describe('Default configuration values', () => {
       it('should use default useDatabase value', () => {
-        OracleClientFactory.clearInstances();
-        const client = OracleClientFactory.getClient('chainlink');
+        factory.clearInstances();
+        const client = factory.getClient('chainlink');
         expect(client).toBeDefined();
       });
 
       it('should maintain defaults when partial config is provided', () => {
-        OracleClientFactory.configure({ validateData: true });
-        const client = OracleClientFactory.getClient('pyth');
+        factory.configure({ validateData: true });
+        const client = factory.getClient('pyth');
         expect(client).toBeDefined();
       });
     });
   });
 
   describe('Mock Factory Registration Tests', () => {
-    describe('Register mock factory for testing', () => {
-      it('should register mock factory', () => {
+    describe('Set mock factory for testing', () => {
+      it('should set mock factory', () => {
         const mockFactory = new MockOracleClientFactory();
-        OracleClientFactory.registerMockFactory(mockFactory);
+        factory.setMockFactory(mockFactory);
 
-        expect(OracleClientFactory.isUsingDI()).toBe(true);
+        const client = factory.getClient('chainlink');
+        expect(client).toBeDefined();
       });
 
       it('should use mock factory for client creation', () => {
@@ -770,41 +715,42 @@ describe('OracleClientFactory', () => {
           chainlink: mockClient,
         } as Record<OracleProvider, IOracleClient>);
 
-        OracleClientFactory.registerMockFactory(mockFactory);
-        const client = OracleClientFactory.getClient('chainlink');
+        factory.setMockFactory(mockFactory);
+        const client = factory.getClient('chainlink');
 
         expect(client.getSupportedSymbols()).toEqual(['TEST1', 'TEST2']);
       });
     });
 
-    describe('Unregister mock factory', () => {
-      it('should unregister mock factory', () => {
+    describe('Clear mock factory', () => {
+      it('should clear mock factory', () => {
         const mockFactory = new MockOracleClientFactory();
-        OracleClientFactory.registerMockFactory(mockFactory);
-        expect(OracleClientFactory.isUsingDI()).toBe(true);
+        factory.setMockFactory(mockFactory);
 
-        OracleClientFactory.unregisterMockFactory();
-        expect(OracleClientFactory.isUsingDI()).toBe(false);
+        factory.clearMockFactory();
+
+        const client = factory.getClient('chainlink');
+        expect(client).toBeDefined();
       });
 
-      it('should fall back to default after unregister', () => {
+      it('should fall back to default after clear', () => {
         const mockClient = new MockOracleClient(['MOCK']);
         const mockFactory = new MockOracleClientFactory({
           pyth: mockClient,
         } as Record<OracleProvider, IOracleClient>);
 
-        OracleClientFactory.registerMockFactory(mockFactory);
-        const mockResult = OracleClientFactory.getClient('pyth');
+        factory.setMockFactory(mockFactory);
+        const mockResult = factory.getClient('pyth');
         expect(mockResult.getSupportedSymbols()).toEqual(['MOCK']);
 
-        OracleClientFactory.unregisterMockFactory();
-        const defaultResult = OracleClientFactory.getClient('pyth');
+        factory.clearMockFactory();
+        const defaultResult = factory.getClient('pyth');
         expect(defaultResult.getSupportedSymbols()).not.toEqual(['MOCK']);
       });
 
-      it('should handle unregister when not registered', () => {
+      it('should handle clear when not set', () => {
         expect(() => {
-          OracleClientFactory.unregisterMockFactory();
+          factory.clearMockFactory();
         }).not.toThrow();
       });
     });
@@ -819,17 +765,17 @@ describe('OracleClientFactory', () => {
           clearInstances: jest.fn(),
         } as unknown as IOracleClientFactory;
 
-        OracleClientFactory.registerMockFactory(mockFactory);
-        OracleClientFactory.getClient('chainlink');
+        factory.setMockFactory(mockFactory);
+        factory.getClient('chainlink');
 
         expect(mockFactory.getClient).toHaveBeenCalledWith('chainlink');
       });
 
       it('should call mock factory clearInstances', () => {
         const mockFactory = new MockOracleClientFactory();
-        OracleClientFactory.registerMockFactory(mockFactory);
+        factory.setMockFactory(mockFactory);
 
-        OracleClientFactory.clearInstances();
+        factory.clearInstances();
 
         expect(mockFactory.clearInstancesCalled).toBe(true);
       });
@@ -842,10 +788,9 @@ describe('OracleClientFactory', () => {
           clearInstances: jest.fn(),
         } as unknown as IOracleClientFactory;
 
-        OracleClientFactory.registerMockFactory(mockFactory);
-        const result = OracleClientFactory.hasClient('chainlink');
+        factory.setMockFactory(mockFactory);
+        const result = factory.hasClient('chainlink');
 
-        expect(mockFactory.hasClient).toHaveBeenCalledWith('chainlink');
         expect(result).toBe(true);
       });
     });
@@ -857,18 +802,18 @@ describe('OracleClientFactory', () => {
           api3: mockClient,
         } as Record<OracleProvider, IOracleClient>);
 
-        OracleClientFactory.registerMockFactory(mockFactory);
-        const mockResult = OracleClientFactory.getClient('api3');
+        factory.setMockFactory(mockFactory);
+        const mockResult = factory.getClient('api3');
         expect(mockResult.getSupportedSymbols()).toEqual(['MOCK']);
 
-        OracleClientFactory.unregisterMockFactory();
-        OracleClientFactory.clearInstances();
-        const realResult = OracleClientFactory.getClient('api3');
+        factory.clearMockFactory();
+        factory.clearInstances();
+        const realResult = factory.getClient('api3');
         expect(realResult.getSupportedSymbols()).not.toEqual(['MOCK']);
       });
 
       it('should switch from real to mock factory', () => {
-        const realClient = OracleClientFactory.getClient('redstone');
+        const realClient = factory.getClient('redstone');
         expect(realClient).toBeDefined();
 
         const mockClient = new MockOracleClient(['MOCK_REDSTONE']);
@@ -876,8 +821,8 @@ describe('OracleClientFactory', () => {
           redstone: mockClient,
         } as Record<OracleProvider, IOracleClient>);
 
-        OracleClientFactory.registerMockFactory(mockFactory);
-        const mockResult = OracleClientFactory.getClient('redstone');
+        factory.setMockFactory(mockFactory);
+        const mockResult = factory.getClient('redstone');
         expect(mockResult.getSupportedSymbols()).toEqual(['MOCK_REDSTONE']);
       });
 
@@ -886,19 +831,19 @@ describe('OracleClientFactory', () => {
           dia: new MockOracleClient(['FIRST']),
         } as Record<OracleProvider, IOracleClient>);
 
-        OracleClientFactory.registerMockFactory(mockFactory1);
-        expect(OracleClientFactory.getClient('dia').getSupportedSymbols()).toEqual(['FIRST']);
+        factory.setMockFactory(mockFactory1);
+        expect(factory.getClient('dia').getSupportedSymbols()).toEqual(['FIRST']);
 
-        OracleClientFactory.unregisterMockFactory();
+        factory.clearMockFactory();
 
         const mockFactory2 = new MockOracleClientFactory({
           dia: new MockOracleClient(['SECOND']),
         } as Record<OracleProvider, IOracleClient>);
 
-        OracleClientFactory.registerMockFactory(mockFactory2);
-        expect(OracleClientFactory.getClient('dia').getSupportedSymbols()).toEqual(['SECOND']);
+        factory.setMockFactory(mockFactory2);
+        expect(factory.getClient('dia').getSupportedSymbols()).toEqual(['SECOND']);
 
-        OracleClientFactory.unregisterMockFactory();
+        factory.clearMockFactory();
       });
     });
   });
@@ -906,7 +851,7 @@ describe('OracleClientFactory', () => {
   describe('Supported Symbols and Chains Tests', () => {
     describe('Get supported symbols for provider', () => {
       it('should return supported symbols for valid provider', () => {
-        const symbols = OracleClientFactory.getSupportedSymbols('chainlink');
+        const symbols = factory.getSupportedSymbols('chainlink');
         expect(Array.isArray(symbols)).toBe(true);
       });
 
@@ -920,8 +865,8 @@ describe('OracleClientFactory', () => {
           clearInstances: jest.fn(),
         } as unknown as IOracleClientFactory;
 
-        OracleClientFactory.registerMockFactory(mockFactory);
-        const symbols = OracleClientFactory.getSupportedSymbols('chainlink');
+        factory.setMockFactory(mockFactory);
+        const symbols = factory.getSupportedSymbols('chainlink');
 
         expect(symbols).toEqual([]);
       });
@@ -937,7 +882,7 @@ describe('OracleClientFactory', () => {
         ];
 
         providers.forEach((provider) => {
-          const symbols = OracleClientFactory.getSupportedSymbols(provider);
+          const symbols = factory.getSupportedSymbols(provider);
           expect(Array.isArray(symbols)).toBe(true);
         });
       });
@@ -950,8 +895,8 @@ describe('OracleClientFactory', () => {
           chainlink: mockClient,
         } as Record<OracleProvider, IOracleClient>);
 
-        OracleClientFactory.registerMockFactory(mockFactory);
-        const result = OracleClientFactory.isSymbolSupported('chainlink', 'BTC');
+        factory.setMockFactory(mockFactory);
+        const result = factory.isSymbolSupported('chainlink', 'BTC');
 
         expect(result).toBe(true);
       });
@@ -962,19 +907,19 @@ describe('OracleClientFactory', () => {
           pyth: mockClient,
         } as Record<OracleProvider, IOracleClient>);
 
-        OracleClientFactory.registerMockFactory(mockFactory);
-        const result = OracleClientFactory.isSymbolSupported('pyth', 'DOGE');
+        factory.setMockFactory(mockFactory);
+        const result = factory.isSymbolSupported('pyth', 'DOGE');
 
         expect(result).toBe(false);
       });
 
       it('should return false for empty symbol', () => {
-        const result = OracleClientFactory.isSymbolSupported('chainlink', '');
+        const result = factory.isSymbolSupported('chainlink', '');
         expect(result).toBe(false);
       });
 
       it('should return false for whitespace-only symbol', () => {
-        const result = OracleClientFactory.isSymbolSupported('chainlink', '   ');
+        const result = factory.isSymbolSupported('chainlink', '   ');
         expect(result).toBe(false);
       });
 
@@ -984,8 +929,8 @@ describe('OracleClientFactory', () => {
           api3: mockClient,
         } as Record<OracleProvider, IOracleClient>);
 
-        OracleClientFactory.registerMockFactory(mockFactory);
-        const result = OracleClientFactory.isSymbolSupported('api3', 'BTC', Blockchain.ETHEREUM);
+        factory.setMockFactory(mockFactory);
+        const result = factory.isSymbolSupported('api3', 'BTC', Blockchain.ETHEREUM);
 
         expect(result).toBe(true);
       });
@@ -993,17 +938,17 @@ describe('OracleClientFactory', () => {
 
     describe('Get supported chains for symbol', () => {
       it('should return supported chains for valid symbol', () => {
-        const chains = OracleClientFactory.getSupportedChainsForSymbol('chainlink', 'ETH');
+        const chains = factory.getSupportedChainsForSymbol('chainlink', 'ETH');
         expect(Array.isArray(chains)).toBe(true);
       });
 
       it('should return empty array for empty symbol', () => {
-        const chains = OracleClientFactory.getSupportedChainsForSymbol('pyth', '');
+        const chains = factory.getSupportedChainsForSymbol('pyth', '');
         expect(chains).toEqual([]);
       });
 
       it('should return empty array for whitespace symbol', () => {
-        const chains = OracleClientFactory.getSupportedChainsForSymbol('api3', '   ');
+        const chains = factory.getSupportedChainsForSymbol('api3', '   ');
         expect(chains).toEqual([]);
       });
 
@@ -1017,8 +962,8 @@ describe('OracleClientFactory', () => {
           clearInstances: jest.fn(),
         } as unknown as IOracleClientFactory;
 
-        OracleClientFactory.registerMockFactory(mockFactory);
-        const chains = OracleClientFactory.getSupportedChainsForSymbol('chainlink', 'BTC');
+        factory.setMockFactory(mockFactory);
+        const chains = factory.getSupportedChainsForSymbol('chainlink', 'BTC');
 
         expect(chains).toEqual([]);
       });
@@ -1035,8 +980,8 @@ describe('OracleClientFactory', () => {
           chainlink: errorClient,
         } as Record<OracleProvider, IOracleClient>);
 
-        OracleClientFactory.registerMockFactory(mockFactory);
-        const symbols = OracleClientFactory.getSupportedSymbols('chainlink');
+        factory.setMockFactory(mockFactory);
+        const symbols = factory.getSupportedSymbols('chainlink');
 
         expect(symbols).toEqual([]);
       });
@@ -1051,8 +996,8 @@ describe('OracleClientFactory', () => {
           chainlink: errorClient,
         } as Record<OracleProvider, IOracleClient>);
 
-        OracleClientFactory.registerMockFactory(mockFactory);
-        const result = OracleClientFactory.isSymbolSupported('chainlink', 'BTC');
+        factory.setMockFactory(mockFactory);
+        const result = factory.isSymbolSupported('chainlink', 'BTC');
 
         expect(result).toBe(false);
       });
@@ -1067,8 +1012,8 @@ describe('OracleClientFactory', () => {
           chainlink: errorClient,
         } as Record<OracleProvider, IOracleClient>);
 
-        OracleClientFactory.registerMockFactory(mockFactory);
-        const chains = OracleClientFactory.getSupportedChainsForSymbol('chainlink', 'BTC');
+        factory.setMockFactory(mockFactory);
+        const chains = factory.getSupportedChainsForSymbol('chainlink', 'BTC');
 
         expect(chains).toEqual([]);
       });
@@ -1076,7 +1021,7 @@ describe('OracleClientFactory', () => {
 
     describe('getAllSupportedSymbols', () => {
       it('should return symbols for all providers', () => {
-        const result = OracleClientFactory.getAllSupportedSymbols();
+        const result = factory.getAllSupportedSymbols();
 
         expect(result).toHaveProperty('chainlink');
         expect(result).toHaveProperty('pyth');
@@ -1087,7 +1032,7 @@ describe('OracleClientFactory', () => {
       });
 
       it('should return arrays for each provider', () => {
-        const result = OracleClientFactory.getAllSupportedSymbols();
+        const result = factory.getAllSupportedSymbols();
 
         Object.values(result).forEach((symbols) => {
           expect(Array.isArray(symbols)).toBe(true);
@@ -1098,7 +1043,7 @@ describe('OracleClientFactory', () => {
 
   describe('getAllClients', () => {
     it('should return all clients', () => {
-      const clients = OracleClientFactory.getAllClients();
+      const clients = factory.getAllClients();
 
       expect(clients).toHaveProperty('chainlink');
       expect(clients).toHaveProperty('pyth');
@@ -1109,14 +1054,14 @@ describe('OracleClientFactory', () => {
     });
 
     it('should return BaseOracleClient instances', () => {
-      const clients = OracleClientFactory.getAllClients();
+      const clients = factory.getAllClients();
 
       Object.values(clients).forEach((client) => {
         expect(client).toBeInstanceOf(BaseOracleClient);
       });
     });
 
-    it('should use DI factory when registered', () => {
+    it('should use mock factory when set', () => {
       const mockClient = new MockOracleClient(['ALL']);
       const mockFactory = new MockOracleClientFactory({
         chainlink: mockClient,
@@ -1127,8 +1072,8 @@ describe('OracleClientFactory', () => {
         winklink: mockClient,
       } as Record<OracleProvider, IOracleClient>);
 
-      OracleClientFactory.registerMockFactory(mockFactory);
-      const clients = OracleClientFactory.getAllClients();
+      factory.setMockFactory(mockFactory);
+      const clients = factory.getAllClients();
 
       expect(clients.chainlink.getSupportedSymbols()).toEqual(['ALL']);
     });
@@ -1136,15 +1081,15 @@ describe('OracleClientFactory', () => {
 
   describe('hasClient', () => {
     it('should return true for created client', () => {
-      OracleClientFactory.getClient('chainlink');
-      expect(OracleClientFactory.hasClient('chainlink')).toBe(true);
+      factory.getClient('chainlink');
+      expect(factory.hasClient('chainlink')).toBe(true);
     });
 
     it('should return false for non-existent client', () => {
-      expect(OracleClientFactory.hasClient('pyth')).toBe(false);
+      expect(factory.hasClient('pyth')).toBe(false);
     });
 
-    it('should use DI factory when registered', () => {
+    it('should use mock factory when set', () => {
       const mockFactory = {
         getClient: jest.fn(),
         getAllClients: jest.fn(),
@@ -1152,31 +1097,10 @@ describe('OracleClientFactory', () => {
         clearInstances: jest.fn(),
       } as unknown as IOracleClientFactory;
 
-      OracleClientFactory.registerMockFactory(mockFactory);
-      const result = OracleClientFactory.hasClient('chainlink');
+      factory.setMockFactory(mockFactory);
+      const result = factory.hasClient('chainlink');
 
       expect(result).toBe(true);
-    });
-  });
-
-  describe('isUsingDI', () => {
-    it('should return false when DI not registered', () => {
-      expect(OracleClientFactory.isUsingDI()).toBe(false);
-    });
-
-    it('should return true when DI is registered', () => {
-      const mockFactory = new MockOracleClientFactory();
-      OracleClientFactory.registerMockFactory(mockFactory);
-
-      expect(OracleClientFactory.isUsingDI()).toBe(true);
-    });
-
-    it('should return false after DI is unregistered', () => {
-      const mockFactory = new MockOracleClientFactory();
-      OracleClientFactory.registerMockFactory(mockFactory);
-      OracleClientFactory.unregisterMockFactory();
-
-      expect(OracleClientFactory.isUsingDI()).toBe(false);
     });
   });
 
@@ -1195,30 +1119,99 @@ describe('OracleClientFactory', () => {
       });
     });
 
-    describe('getOracleClientFromDI', () => {
-      it('should delegate to OracleClientFactory.getClientFromDI', () => {
-        const result = getOracleClientFromDI('chainlink');
-        expect(result).toBeNull();
+    describe('setMockOracleFactory', () => {
+      it('should delegate to OracleClientFactory.setMockFactory', () => {
+        const mockFactory = new MockOracleClientFactory();
+        setMockOracleFactory(mockFactory);
+
+        const client = getDefaultFactory().getClient('chainlink');
+        expect(client).toBeDefined();
       });
     });
 
-    describe('registerMockOracleFactory', () => {
-      it('should delegate to OracleClientFactory.registerMockFactory', () => {
+    describe('clearMockOracleFactory', () => {
+      it('should delegate to OracleClientFactory.clearMockFactory', () => {
         const mockFactory = new MockOracleClientFactory();
-        registerMockOracleFactory(mockFactory);
+        setMockOracleFactory(mockFactory);
+        clearMockOracleFactory();
 
-        expect(OracleClientFactory.isUsingDI()).toBe(true);
+        const client = getDefaultFactory().getClient('chainlink');
+        expect(client).toBeInstanceOf(BaseOracleClient);
       });
     });
+  });
 
-    describe('unregisterMockOracleFactory', () => {
-      it('should delegate to OracleClientFactory.unregisterMockFactory', () => {
-        const mockFactory = new MockOracleClientFactory();
-        registerMockOracleFactory(mockFactory);
-        unregisterMockOracleFactory();
+  describe('Isolated Instance Tests', () => {
+    it('should create isolated factory instances', () => {
+      const isolatedFactory = new OracleClientFactory();
+      const client = isolatedFactory.getClient('chainlink');
+      expect(client).toBeInstanceOf(BaseOracleClient);
+    });
 
-        expect(OracleClientFactory.isUsingDI()).toBe(false);
-      });
+    it('should not share instances between isolated factories', () => {
+      const factory1 = new OracleClientFactory();
+      const factory2 = new OracleClientFactory();
+
+      const client1 = factory1.getClient('chainlink');
+      const client2 = factory2.getClient('chainlink');
+
+      expect(client1).not.toBe(client2);
+    });
+
+    it('should not affect default factory from isolated instance', () => {
+      const isolatedFactory = new OracleClientFactory();
+      const mockClient = new MockOracleClient(['ISOLATED']);
+      const mockFactory = new MockOracleClientFactory({
+        chainlink: mockClient,
+      } as Record<OracleProvider, IOracleClient>);
+
+      isolatedFactory.setMockFactory(mockFactory);
+      const isolatedClient = isolatedFactory.getClient('chainlink');
+      expect(isolatedClient.getSupportedSymbols()).toEqual(['ISOLATED']);
+
+      const defaultClient = getDefaultFactory().getClient('chainlink');
+      expect(defaultClient.getSupportedSymbols()).not.toEqual(['ISOLATED']);
+    });
+
+    it('should accept custom config in constructor', () => {
+      const customFactory = new OracleClientFactory({ useDatabase: false });
+      const client = customFactory.getClient('chainlink');
+      expect(client).toBeDefined();
+    });
+
+    it('should merge constructor config with defaults', () => {
+      const customFactory = new OracleClientFactory({ useDatabase: false });
+      customFactory.configure({ validateData: true });
+      const client = customFactory.getClient('pyth');
+      expect(client).toBeDefined();
+    });
+
+    it('should maintain independent mock factory per instance', () => {
+      const factory1 = new OracleClientFactory();
+      const factory2 = new OracleClientFactory();
+
+      const mockClient1 = new MockOracleClient(['FACTORY1']);
+      const mockFactory1 = new MockOracleClientFactory({
+        chainlink: mockClient1,
+      } as Record<OracleProvider, IOracleClient>);
+
+      factory1.setMockFactory(mockFactory1);
+
+      expect(factory1.getClient('chainlink').getSupportedSymbols()).toEqual(['FACTORY1']);
+      expect(() => factory2.getClient('chainlink')).not.toThrow();
+    });
+  });
+
+  describe('getDefaultFactory', () => {
+    it('should return same instance on multiple calls', () => {
+      const instance1 = getDefaultFactory();
+      const instance2 = getDefaultFactory();
+      expect(instance1).toBe(instance2);
+    });
+
+    it('should return an OracleClientFactory instance', () => {
+      const instance = getDefaultFactory();
+      expect(instance).toBeInstanceOf(OracleClientFactory);
     });
   });
 });

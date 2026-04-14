@@ -126,14 +126,64 @@ describe('useDeviationDetection', () => {
   });
 
   describe('value type', () => {
-    it('should handle percentage type', () => {
+    it('should handle percentage type - compare deviation percentage directly', () => {
       const { result } = renderHook(() => useDeviationDetection(1.5, {}, 'percentage'));
 
       expect(result.current.level).toBe('warning');
     });
 
-    it('should handle absolute type', () => {
+    it('should handle absolute type without referencePrice - treat value as absolute', () => {
       const { result } = renderHook(() => useDeviationDetection(1.5, {}, 'absolute'));
+
+      expect(result.current.level).toBe('warning');
+    });
+
+    it('should handle absolute type with referencePrice - convert percentage to absolute', () => {
+      const { result } = renderHook(() =>
+        useDeviationDetection(1.5, {}, 'absolute', 100)
+      );
+
+      expect(result.current.level).toBe('warning');
+    });
+
+    it('should convert percentage to absolute using referencePrice', () => {
+      // 1.5% of 1000 = $15 absolute deviation
+      // With default thresholds (warning: 1, danger: 2), $15 > $2 → danger
+      const { result } = renderHook(() =>
+        useDeviationDetection(1.5, {}, 'absolute', 1000)
+      );
+
+      expect(result.current.level).toBe('danger');
+    });
+
+    it('should show difference between percentage and absolute types', () => {
+      // Same value (0.05%), same thresholds
+      // Percentage: 0.05 > 1? No → none
+      const { result: percentResult } = renderHook(() =>
+        useDeviationDetection(0.05, { warning: 1, danger: 2 }, 'percentage')
+      );
+      expect(percentResult.current.level).toBe('none');
+
+      // Absolute: 0.015% of 10000 = $1.5 absolute deviation
+      // $1.5 > $1 (warning) but $1.5 <= $2 (not danger) → warning
+      const { result: absoluteResult } = renderHook(() =>
+        useDeviationDetection(0.015, { warning: 1, danger: 2 }, 'absolute', 10000)
+      );
+      expect(absoluteResult.current.level).toBe('warning');
+    });
+
+    it('should handle absolute type with zero referencePrice', () => {
+      const { result } = renderHook(() =>
+        useDeviationDetection(1.5, {}, 'absolute', 0)
+      );
+
+      expect(result.current.level).toBe('warning');
+    });
+
+    it('should handle absolute type with negative referencePrice', () => {
+      const { result } = renderHook(() =>
+        useDeviationDetection(1.5, {}, 'absolute', -100)
+      );
 
       expect(result.current.level).toBe('warning');
     });
@@ -272,6 +322,35 @@ describe('useBatchDeviationDetection', () => {
 
       expect(result.current.hasWarning).toBe(true);
       expect(result.current.hasDanger).toBe(true);
+    });
+  });
+
+  describe('absolute type with referencePrice', () => {
+    it('should convert percentage to absolute for batch values', () => {
+      // [0.5%, 1.5%, 2.5%] with referencePrice=100
+      // Absolute: [$0.5, $1.5, $2.5]
+      // Thresholds: warning=1, danger=2
+      const { result } = renderHook(() =>
+        useBatchDeviationDetection([0.5, 1.5, 2.5], {}, 'absolute', 100)
+      );
+
+      expect(result.current.results[0].level).toBe('none');
+      expect(result.current.results[1].level).toBe('warning');
+      expect(result.current.results[2].level).toBe('danger');
+    });
+
+    it('should show different results for percentage vs absolute with same values', () => {
+      // [1.5%] as percentage: 1.5 > 1 (warning) → warning
+      const { result: percentResult } = renderHook(() =>
+        useBatchDeviationDetection([1.5], { warning: 1, danger: 2 }, 'percentage')
+      );
+      expect(percentResult.current.results[0].level).toBe('warning');
+
+      // [1.5%] as absolute with referencePrice=1000: 1.5/100*1000 = $15 > $2 → danger
+      const { result: absoluteResult } = renderHook(() =>
+        useBatchDeviationDetection([1.5], { warning: 1, danger: 2 }, 'absolute', 1000)
+      );
+      expect(absoluteResult.current.results[0].level).toBe('danger');
     });
   });
 

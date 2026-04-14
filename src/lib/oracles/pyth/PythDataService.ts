@@ -9,7 +9,7 @@ import {
   CACHE_TTL,
   normalizeSymbol,
   getSymbolFromPriceId,
-} from '../pythConstants';
+} from '../constants/pythConstants';
 
 import { getCrossChainPrices } from './crossChain';
 import {

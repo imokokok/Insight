@@ -1,18 +1,18 @@
 import { createLogger } from '@/lib/utils/logger';
 import { OracleProvider, type Blockchain, type PriceData } from '@/types/oracle';
 
-import { DIA_ASSET_ADDRESSES } from './constants/assetAddresses';
-import { DIA_CHAIN_MAPPING } from './constants/chainMapping';
+import { DIA_ASSET_ADDRESSES } from '../constants/assetAddresses';
+import { DIA_CHAIN_MAPPING } from '../constants/chainMapping';
 import {
   DIA_API_BASE_URL,
   CACHE_TTL,
   DEFAULT_RETRY_CONFIG,
   withRetry,
   fetchWithTimeout,
-} from './diaUtils';
+} from '../diaUtils';
 
-import type { CacheEntry } from './base';
-import type { DIAAssetQuotation } from './diaTypes';
+import type { CacheEntry } from '../base';
+import type { DIAAssetQuotation } from '../diaTypes';
 
 const logger = createLogger('DIAPriceService');
 

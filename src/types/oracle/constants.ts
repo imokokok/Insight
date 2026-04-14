@@ -1,6 +1,6 @@
 import type { Blockchain } from './enums';
 
-export const enum TimeRange {
+export enum TimeRange {
   '1H' = 3600,
   '6H' = 21600,
   '24H' = 86400,
@@ -8,14 +8,14 @@ export const enum TimeRange {
   '30D' = 2592000,
 }
 
-export const enum DataStatus {
+export enum DataStatus {
   NORMAL = 'normal',
   WARNING = 'warning',
   CRITICAL = 'critical',
   STALE = 'stale',
 }
 
-export const enum TrendDirection {
+export enum TrendDirection {
   IMPROVING = 'improving',
   STABLE = 'stable',
   DECLINING = 'declining',
@@ -42,8 +42,9 @@ export interface FilterState {
   status?: DataStatus;
 }
 
-export interface ValidationResult {
+export interface ValidationResult<T = unknown> {
   isValid: boolean;
+  data?: T;
   errors: string[];
   warnings?: string[];
 }

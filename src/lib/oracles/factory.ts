@@ -1,39 +1,50 @@
-import { FEATURE_FLAGS } from '@/lib/config/serverEnv';
-import { container, SERVICE_TOKENS } from '@/lib/di';
+import { FEATURE_FLAGS } from '@/lib/config/env';
 import { OracleClientError, ValidationError } from '@/lib/errors';
 import { createLogger } from '@/lib/utils/logger';
 import { type Blockchain, OracleProvider } from '@/types/oracle';
 
-import { API3Client } from './api3';
 import { BaseOracleClient } from './base';
-import { ChainlinkClient } from './chainlink';
-import { DIAClient } from './dia';
-import { PythClient } from './pythNetwork';
-import { RedStoneClient } from './redstone';
-import { WINkLinkClient } from './winklink';
+import { API3Client } from './clients/api3';
+import { ChainlinkClient } from './clients/chainlink';
+import { DIAClient } from './clients/dia';
+import { PythClient } from './clients/PythClient';
+import { RedStoneClient } from './clients/redstone';
+import { WINkLinkClient } from './clients/winklink';
 
 import type { OracleClientConfig } from './base';
-import type { IOracleClient, IOracleClientFactory } from './interfaces';
+import type { IOracleClientFactory } from './interfaces';
 
 const logger = createLogger('OracleClientFactory');
 
-export class OracleClientFactory {
-  private static instances: Map<OracleProvider, BaseOracleClient> = new Map();
-  private static config: OracleClientConfig = {
-    useDatabase: true,
-  };
+const DEFAULT_CONFIG: OracleClientConfig = {
+  useDatabase: true,
+};
 
-  static configure(config: Partial<OracleClientConfig>): void {
+export class OracleClientFactory {
+  private instances: Map<OracleProvider, BaseOracleClient> = new Map();
+  private mockFactory: IOracleClientFactory | null = null;
+  private config: OracleClientConfig;
+
+  constructor(config?: Partial<OracleClientConfig>) {
+    this.config = { ...DEFAULT_CONFIG, ...config };
+  }
+
+  configure(config: Partial<OracleClientConfig>): void {
     this.config = { ...this.config, ...config };
     logger.info('Oracle client factory configured', { config: this.config });
   }
 
-  static getClient(provider: OracleProvider): BaseOracleClient {
-    if (container.has(SERVICE_TOKENS.ORACLE_CLIENT_FACTORY)) {
-      const factory = container.resolve<IOracleClientFactory>(SERVICE_TOKENS.ORACLE_CLIENT_FACTORY);
-      const client = factory.getClient(provider);
-      if (client instanceof BaseOracleClient) {
-        return client;
+  getClient(provider: OracleProvider): BaseOracleClient {
+    if (this.mockFactory) {
+      try {
+        const client = this.mockFactory.getClient(provider);
+        if (client instanceof BaseOracleClient) {
+          return client;
+        }
+      } catch (error) {
+        if (!(error instanceof OracleClientError)) {
+          throw error;
+        }
       }
     }
 
@@ -50,27 +61,7 @@ export class OracleClientFactory {
     return client;
   }
 
-  static getClientFromDI(provider: OracleProvider): IOracleClient | null {
-    if (container.has(SERVICE_TOKENS.ORACLE_CLIENT_FACTORY)) {
-      const factory = container.resolve<IOracleClientFactory>(SERVICE_TOKENS.ORACLE_CLIENT_FACTORY);
-      return factory.getClient(provider);
-    }
-    return null;
-  }
-
-  static getAllClients(): Record<OracleProvider, BaseOracleClient> {
-    if (container.has(SERVICE_TOKENS.ORACLE_CLIENT_FACTORY)) {
-      const factory = container.resolve<IOracleClientFactory>(SERVICE_TOKENS.ORACLE_CLIENT_FACTORY);
-      const clients = factory.getAllClients();
-      const result: Partial<Record<OracleProvider, BaseOracleClient>> = {};
-      for (const [key, client] of Object.entries(clients)) {
-        if (client instanceof BaseOracleClient) {
-          result[key as OracleProvider] = client;
-        }
-      }
-      return result as Record<OracleProvider, BaseOracleClient>;
-    }
-
+  getAllClients(): Record<OracleProvider, BaseOracleClient> {
     const providers = [
       OracleProvider.CHAINLINK,
       OracleProvider.PYTH,
@@ -88,42 +79,33 @@ export class OracleClientFactory {
     return clients as Record<OracleProvider, BaseOracleClient>;
   }
 
-  static clearInstances(): void {
-    if (container.has(SERVICE_TOKENS.ORACLE_CLIENT_FACTORY)) {
-      const factory = container.resolve<IOracleClientFactory>(SERVICE_TOKENS.ORACLE_CLIENT_FACTORY);
-      factory.clearInstances();
+  clearInstances(): void {
+    if (this.mockFactory) {
+      this.mockFactory.clearInstances();
+      return;
     }
     this.instances.clear();
     logger.info('Cleared all oracle client instances');
   }
 
-  static hasClient(provider: OracleProvider): boolean {
-    if (container.has(SERVICE_TOKENS.ORACLE_CLIENT_FACTORY)) {
-      const factory = container.resolve<IOracleClientFactory>(SERVICE_TOKENS.ORACLE_CLIENT_FACTORY);
-      return factory.hasClient(provider);
+  hasClient(provider: OracleProvider): boolean {
+    if (this.mockFactory) {
+      return this.mockFactory.hasClient(provider);
     }
     return this.instances.has(provider);
   }
 
-  static registerMockFactory(mockFactory: IOracleClientFactory): void {
-    container.register<IOracleClientFactory>(
-      SERVICE_TOKENS.ORACLE_CLIENT_FACTORY,
-      () => mockFactory,
-      true
-    );
-    logger.info('Mock oracle client factory registered');
+  setMockFactory(factory: IOracleClientFactory): void {
+    this.mockFactory = factory;
+    logger.info('Mock oracle client factory set');
   }
 
-  static unregisterMockFactory(): void {
-    container.unregister(SERVICE_TOKENS.ORACLE_CLIENT_FACTORY);
-    logger.info('Mock oracle client factory unregistered');
+  clearMockFactory(): void {
+    this.mockFactory = null;
+    logger.info('Mock oracle client factory cleared');
   }
 
-  static isUsingDI(): boolean {
-    return container.has(SERVICE_TOKENS.ORACLE_CLIENT_FACTORY);
-  }
-
-  static getSupportedSymbols(provider: OracleProvider): string[] {
+  getSupportedSymbols(provider: OracleProvider): string[] {
     try {
       const client = this.getClient(provider);
       return client.getSupportedSymbols();
@@ -136,7 +118,7 @@ export class OracleClientFactory {
     }
   }
 
-  static isSymbolSupported(provider: OracleProvider, symbol: string, chain?: Blockchain): boolean {
+  isSymbolSupported(provider: OracleProvider, symbol: string, chain?: Blockchain): boolean {
     if (!symbol || symbol.trim() === '') {
       return false;
     }
@@ -154,7 +136,7 @@ export class OracleClientFactory {
     }
   }
 
-  static getSupportedChainsForSymbol(provider: OracleProvider, symbol: string): Blockchain[] {
+  getSupportedChainsForSymbol(provider: OracleProvider, symbol: string): Blockchain[] {
     if (!symbol || symbol.trim() === '') {
       return [];
     }
@@ -172,7 +154,7 @@ export class OracleClientFactory {
     }
   }
 
-  static getAllSupportedSymbols(): Record<OracleProvider, string[]> {
+  getAllSupportedSymbols(): Record<OracleProvider, string[]> {
     const result: Partial<Record<OracleProvider, string[]>> = {};
     const providers = [
       OracleProvider.CHAINLINK,
@@ -198,7 +180,7 @@ export class OracleClientFactory {
     return result as Record<OracleProvider, string[]>;
   }
 
-  private static createClient(provider: OracleProvider): BaseOracleClient {
+  private createClient(provider: OracleProvider): BaseOracleClient {
     const useRealChainlinkData = FEATURE_FLAGS.useRealChainlinkData;
     const useRealAPI3Data = FEATURE_FLAGS.useRealApi3Data;
 
@@ -223,22 +205,27 @@ export class OracleClientFactory {
   }
 }
 
+let defaultInstance: OracleClientFactory | null = null;
+
+export function getDefaultFactory(): OracleClientFactory {
+  if (!defaultInstance) {
+    defaultInstance = new OracleClientFactory();
+  }
+  return defaultInstance;
+}
+
 export function getOracleClient(provider: OracleProvider): BaseOracleClient {
-  return OracleClientFactory.getClient(provider);
+  return getDefaultFactory().getClient(provider);
 }
 
 export function getAllOracleClients(): Record<OracleProvider, BaseOracleClient> {
-  return OracleClientFactory.getAllClients();
+  return getDefaultFactory().getAllClients();
 }
 
-export function getOracleClientFromDI(provider: OracleProvider): IOracleClient | null {
-  return OracleClientFactory.getClientFromDI(provider);
+export function setMockOracleFactory(mockFactory: IOracleClientFactory): void {
+  getDefaultFactory().setMockFactory(mockFactory);
 }
 
-export function registerMockOracleFactory(mockFactory: IOracleClientFactory): void {
-  OracleClientFactory.registerMockFactory(mockFactory);
-}
-
-export function unregisterMockOracleFactory(): void {
-  OracleClientFactory.unregisterMockFactory();
+export function clearMockOracleFactory(): void {
+  getDefaultFactory().clearMockFactory();
 }

@@ -1,6 +1,6 @@
 import { Activity, Coins, Wallet, Store, Zap, TrendingUp } from 'lucide-react';
 
-import type { DIATokenOnChainData } from '@/lib/oracles/diaDataService';
+import type { DIATokenOnChainData } from '@/lib/oracles/services/diaDataService';
 
 import { formatLargeNumber } from '../../utils/queryResultsUtils';
 

@@ -184,7 +184,6 @@ export function useToggleFavorite() {
 }
 
 export function useIsFavorited(configType: ConfigType, configData: FavoriteConfig) {
-  const _user = useUser();
   const { favorites } = useFavorites({ configType });
 
   const isFavorited =

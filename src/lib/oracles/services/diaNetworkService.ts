@@ -8,9 +8,9 @@ import {
   DEFAULT_RETRY_CONFIG,
   withRetry,
   fetchWithTimeout,
-} from './diaUtils';
+} from '../diaUtils';
 
-import type { CacheEntry } from './base';
+import type { CacheEntry } from '../base';
 import type {
   DIASupply,
   DIADigitalAsset,
@@ -18,7 +18,7 @@ import type {
   DIANetworkStatsData,
   DIAStakingData,
   DIAEcosystemIntegration,
-} from './diaTypes';
+} from '../diaTypes';
 
 const logger = createLogger('DIANetworkService');
 

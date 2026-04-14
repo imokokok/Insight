@@ -1,12 +1,12 @@
 /* eslint-disable max-lines-per-function */
-import { getDIADataService } from '@/lib/oracles/diaDataService';
-import { diaSymbols } from '@/lib/oracles/supportedSymbols';
+import { DIAClient } from '@/lib/oracles/clients/dia';
+import { diaSymbols } from '@/lib/oracles/constants/supportedSymbols';
+import { getDIADataService } from '@/lib/oracles/services/diaDataService';
 import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
-import { DIAClient } from '@/lib/services/oracle/clients/dia';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
 
-jest.mock('@/lib/oracles/diaDataService');
+jest.mock('@/lib/oracles/services/diaDataService');
 jest.mock('@/lib/services/marketData/binanceMarketService');
 jest.mock('@/lib/utils/logger', () => ({
   createLogger: () => ({

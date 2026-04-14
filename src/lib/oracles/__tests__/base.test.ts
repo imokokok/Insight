@@ -1,5 +1,5 @@
 import { UNIFIED_BASE_PRICES } from '@/lib/config/basePrices';
-import { type PriceData, type OracleProvider, Blockchain } from '@/types/oracle';
+import { type PriceData, type OracleProvider, Blockchain, OracleError } from '@/types/oracle';
 
 import { BaseOracleClient, OracleErrorCodes } from '../base';
 
@@ -11,7 +11,11 @@ class TestOracleClient extends BaseOracleClient {
     return ['BTC', 'ETH', 'LINK'];
   }
 
-  async getPrice(symbol: string, chain?: Blockchain): Promise<PriceData> {
+  async getPrice(
+    symbol: string,
+    chain?: Blockchain,
+    _options?: { signal?: AbortSignal }
+  ): Promise<PriceData> {
     const basePrice = UNIFIED_BASE_PRICES[symbol] || 100;
     return {
       provider: this.name,
@@ -28,7 +32,8 @@ class TestOracleClient extends BaseOracleClient {
   async getHistoricalPrices(
     symbol: string,
     chain?: Blockchain,
-    period?: number
+    period?: number,
+    _options?: { signal?: AbortSignal }
   ): Promise<PriceData[]> {
     const basePrice = UNIFIED_BASE_PRICES[symbol] || 100;
     const count = period || 24;
@@ -86,6 +91,13 @@ describe('BaseOracleClient', () => {
 
       expect(error.details).toEqual(details);
     });
+
+    it('should be instanceof OracleError', () => {
+      const error = client['createError']('Test error');
+
+      expect(error).toBeInstanceOf(OracleError);
+      expect(error).toBeInstanceOf(Error);
+    });
   });
 
   describe('createUnsupportedSymbolError', () => {
@@ -100,7 +112,7 @@ describe('BaseOracleClient', () => {
     it('should include chain in error message when provided', () => {
       const error = client['createUnsupportedSymbolError']('DOGE', Blockchain.SOLANA);
 
-      expect(error.message).toContain('SOLANA');
+      expect(error.message).toContain('solana');
       expect(error.details?.chain).toBe(Blockchain.SOLANA);
     });
   });

@@ -6,7 +6,7 @@
 import { useMemo } from 'react';
 
 import { tradingPairs } from '@/app/[locale]/cross-oracle/constants';
-import { oracleSupportedSymbols } from '@/lib/oracles/supportedSymbols';
+import { oracleSupportedSymbols } from '@/lib/oracles/constants/supportedSymbols';
 import { OracleProvider } from '@/types/oracle';
 
 /**

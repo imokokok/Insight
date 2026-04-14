@@ -15,7 +15,7 @@ import {
 
 import { DropdownSelect, SegmentedControl } from '@/components/ui';
 import { useTranslations } from '@/i18n';
-import { getAllSupportedSymbols } from '@/lib/oracles/supportedSymbols';
+import { getAllSupportedSymbols } from '@/lib/oracles/constants/supportedSymbols';
 import { updateUserProfile } from '@/lib/supabase/auth';
 import { useUser, useProfile, useAuthInitialized } from '@/stores/authStore';
 

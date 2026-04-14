@@ -57,7 +57,8 @@ export {
   type VolatilityConePoint,
 } from './volatilityUtils';
 
-export { validatePriceData, type ValidationResult } from './validation';
+export { validatePriceData } from './validation';
+export type { ValidationResult } from '@/types/oracle/constants';
 
 export { detectAnomalousPrices, type AnomalousPricePoint } from './anomalyDetection';
 

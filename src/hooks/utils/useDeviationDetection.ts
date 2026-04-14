@@ -64,7 +64,8 @@ export const DEFAULT_DEVIATION_THRESHOLD: DeviationThreshold = {
 export function useDeviationDetection(
   value: number,
   threshold: Partial<DeviationThreshold> = {},
-  type: DeviationType = 'percentage'
+  type: DeviationType = 'percentage',
+  referencePrice?: number
 ): DeviationDetectionResult {
   const mergedThreshold = useMemo(
     () => ({
@@ -74,20 +75,21 @@ export function useDeviationDetection(
     [threshold]
   );
 
-  // 计算绝对值用于比较
   const absoluteValue = Math.abs(value);
 
-  // 根据类型转换阈值
-  const warningThreshold =
-    type === 'percentage' ? mergedThreshold.warning : mergedThreshold.warning;
-  const dangerThreshold = type === 'percentage' ? mergedThreshold.danger : mergedThreshold.danger;
+  const comparisonValue =
+    type === 'percentage'
+      ? absoluteValue
+      : referencePrice && referencePrice > 0
+        ? (absoluteValue / 100) * referencePrice
+        : absoluteValue;
 
   return useMemo(() => {
     let level: DeviationLevel = 'none';
 
-    if (absoluteValue > dangerThreshold) {
+    if (comparisonValue > mergedThreshold.danger) {
       level = 'danger';
-    } else if (absoluteValue > warningThreshold) {
+    } else if (comparisonValue > mergedThreshold.warning) {
       level = 'warning';
     }
 
@@ -133,7 +135,7 @@ export function useDeviationDetection(
       textClass: config.text,
       pulseClass: config.pulse,
     };
-  }, [absoluteValue, warningThreshold, dangerThreshold]);
+  }, [comparisonValue, mergedThreshold.warning, mergedThreshold.danger]);
 }
 
 /**
@@ -146,18 +148,23 @@ export function useDeviationDetection(
 function calculateDeviationResult(
   value: number,
   threshold: DeviationThreshold,
-  type: DeviationType
+  type: DeviationType,
+  referencePrice?: number
 ): DeviationDetectionResult {
   const absoluteValue = Math.abs(value);
 
-  const warningThreshold = type === 'percentage' ? threshold.warning : threshold.warning;
-  const dangerThreshold = type === 'percentage' ? threshold.danger : threshold.danger;
+  const comparisonValue =
+    type === 'percentage'
+      ? absoluteValue
+      : referencePrice && referencePrice > 0
+        ? (absoluteValue / 100) * referencePrice
+        : absoluteValue;
 
   let level: DeviationLevel = 'none';
 
-  if (absoluteValue > dangerThreshold) {
+  if (comparisonValue > threshold.danger) {
     level = 'danger';
-  } else if (absoluteValue > warningThreshold) {
+  } else if (comparisonValue > threshold.warning) {
     level = 'warning';
   }
 
@@ -214,7 +221,8 @@ function calculateDeviationResult(
 export function useBatchDeviationDetection(
   values: number[],
   threshold: Partial<DeviationThreshold> = {},
-  type: DeviationType = 'percentage'
+  type: DeviationType = 'percentage',
+  referencePrice?: number
 ): {
   results: DeviationDetectionResult[];
   hasWarning: boolean;
@@ -231,7 +239,9 @@ export function useBatchDeviationDetection(
   );
 
   return useMemo(() => {
-    const results = values.map((value) => calculateDeviationResult(value, mergedThreshold, type));
+    const results = values.map((value) =>
+      calculateDeviationResult(value, mergedThreshold, type, referencePrice)
+    );
     const hasWarning = results.some((r) => r.isWarning);
     const hasDanger = results.some((r) => r.isDanger);
     const maxDeviation = Math.max(...values.map(Math.abs), 0);
@@ -250,7 +260,7 @@ export function useBatchDeviationDetection(
       maxDeviation,
       maxLevel,
     };
-  }, [values, mergedThreshold, type]);
+  }, [values, mergedThreshold, type, referencePrice]);
 }
 
 export default useDeviationDetection;

@@ -41,7 +41,7 @@ export function createValidationMiddleware(options: ValidationMiddlewareOptions)
         const body = await request.json();
         const result = validateObject(body, options.body);
 
-        if (!result.valid) {
+        if (!result.isValid) {
           logger.debug('Body validation failed', { errors: result.errors });
           return {
             success: false,
@@ -87,7 +87,7 @@ export function createValidationMiddleware(options: ValidationMiddlewareOptions)
 
       const result = validateObject(queryData, options.query);
 
-      if (!result.valid) {
+      if (!result.isValid) {
         logger.debug('Query validation failed', { errors: result.errors });
         return {
           success: false,
@@ -107,7 +107,7 @@ export function createValidationMiddleware(options: ValidationMiddlewareOptions)
     if (options.params && params) {
       const result = validateObject(params, options.params);
 
-      if (!result.valid) {
+      if (!result.isValid) {
         logger.debug('Params validation failed', { errors: result.errors });
         return {
           success: false,

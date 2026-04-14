@@ -85,7 +85,7 @@ function SimplePriceComparisonTabComponent({
 }: SimplePriceComparisonTabProps) {
   const [baseAsset, quoteAsset] = selectedSymbol.split('/');
   const [activeChartTab, setActiveChartTab] = useState<ChartTabType>('distribution');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'normal' | 'warning' | 'error'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'normal' | 'warning' | 'critical'>('all');
 
   // 计算统计数据
   const stats = useMemo(() => {
@@ -198,7 +198,7 @@ function SimplePriceComparisonTabComponent({
               <option value="all">{t('crossOracle.filter.all')}</option>
               <option value="normal">{t('crossOracle.filter.normal')}</option>
               <option value="warning">{t('crossOracle.filter.warning')}</option>
-              <option value="error">{t('crossOracle.filter.error')}</option>
+              <option value="critical">{t('crossOracle.filter.critical')}</option>
             </select>
           </div>
         </div>

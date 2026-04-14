@@ -1,7 +1,7 @@
 import { BaseOracleClient } from '@/lib/oracles/base';
 import type { OracleClientConfig } from '@/lib/oracles/base';
-import { getDIADataService } from '@/lib/oracles/diaDataService';
-import { diaSymbols } from '@/lib/oracles/supportedSymbols';
+import { getDIADataService } from '@/lib/oracles/services/diaDataService';
+import { diaSymbols } from '@/lib/oracles/constants/supportedSymbols';
 import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
 import { createLogger } from '@/lib/utils/logger';
 import { OracleProvider, Blockchain } from '@/types/oracle';
@@ -31,7 +31,7 @@ export class DIAClient extends BaseOracleClient {
    * 当查询 DIA 代币价格时，直接使用 Binance API
    * 其他代币使用 DIA 数据服务
    */
-  async getPrice(symbol: string, chain?: Blockchain): Promise<PriceData> {
+  async getPrice(symbol: string, chain?: Blockchain, _options?: { signal?: AbortSignal }): Promise<PriceData> {
     try {
       const upperSymbol = symbol.toUpperCase();
 
@@ -88,7 +88,8 @@ export class DIAClient extends BaseOracleClient {
   async getHistoricalPrices(
     symbol: string,
     chain?: Blockchain,
-    period: number = 24
+    period: number = 24,
+    _options?: { signal?: AbortSignal }
   ): Promise<PriceData[]> {
     try {
       // 统一使用 Binance API 获取历史价格数据（与其他预言机保持一致）

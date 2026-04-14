@@ -1,4 +1,8 @@
-import { normalizeSymbol, getPriceIdForSymbol, getSymbolFromPriceId } from '../../pythConstants';
+import {
+  normalizeSymbol,
+  getPriceIdForSymbol,
+  getSymbolFromPriceId,
+} from '../../constants/pythConstants';
 
 describe('pythConstants', () => {
   describe('normalizeSymbol', () => {

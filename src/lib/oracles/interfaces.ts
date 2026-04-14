@@ -3,8 +3,17 @@ import { type OracleProvider, type Blockchain, type PriceData } from '@/types/or
 export interface IOracleClient {
   readonly name: OracleProvider;
   readonly supportedChains: Blockchain[];
-  getPrice(symbol: string, chain?: Blockchain): Promise<PriceData>;
-  getHistoricalPrices(symbol: string, chain?: Blockchain, period?: number): Promise<PriceData[]>;
+  getPrice(
+    symbol: string,
+    chain?: Blockchain,
+    options?: { signal?: AbortSignal }
+  ): Promise<PriceData>;
+  getHistoricalPrices(
+    symbol: string,
+    chain?: Blockchain,
+    period?: number,
+    options?: { signal?: AbortSignal }
+  ): Promise<PriceData[]>;
 }
 
 export interface IOracleClientFactory {

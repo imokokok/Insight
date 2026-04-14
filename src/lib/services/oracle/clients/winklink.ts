@@ -4,8 +4,8 @@ import {
   winklinkSymbols,
   WINKLINK_SYMBOL_ALIASES,
   WINKLINK_AVAILABLE_PAIRS,
-} from '@/lib/oracles/supportedSymbols';
-import { getWINkLinkRealDataService } from '@/lib/oracles/winklinkRealDataService';
+} from '@/lib/oracles/constants/supportedSymbols';
+import { getWINkLinkRealDataService } from '@/lib/oracles/services/winklinkRealDataService';
 import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
 import { createLogger } from '@/lib/utils/logger';
 import { OracleProvider, Blockchain } from '@/types/oracle';
@@ -28,7 +28,7 @@ export class WINkLinkClient extends BaseOracleClient {
    * 当查询 WIN 代币价格时，直接使用 Binance API，不尝试调用 WINkLink 合约
    * 其他代币按照现有逻辑执行
    */
-  async getPrice(symbol: string, chain?: Blockchain): Promise<PriceData> {
+  async getPrice(symbol: string, chain?: Blockchain, _options?: { signal?: AbortSignal }): Promise<PriceData> {
     try {
       const upperSymbol = symbol.toUpperCase();
       const resolvedSymbol = WINKLINK_SYMBOL_ALIASES[upperSymbol] || upperSymbol;
@@ -88,7 +88,8 @@ export class WINkLinkClient extends BaseOracleClient {
   async getHistoricalPrices(
     symbol: string,
     chain?: Blockchain,
-    period: number = 24
+    period: number = 24,
+    _options?: { signal?: AbortSignal }
   ): Promise<PriceData[]> {
     try {
       // 统一使用 Binance API 获取历史价格数据（与其他预言机保持一致）

@@ -58,10 +58,10 @@ describe('guards', () => {
 
   describe('isDataStatus', () => {
     it('应该对有效的 DataStatus 返回 true', () => {
-      expect(isDataStatus('fresh')).toBe(true);
+      expect(isDataStatus('normal')).toBe(true);
+      expect(isDataStatus('warning')).toBe(true);
+      expect(isDataStatus('critical')).toBe(true);
       expect(isDataStatus('stale')).toBe(true);
-      expect(isDataStatus('error')).toBe(true);
-      expect(isDataStatus('loading')).toBe(true);
     });
 
     it('应该对无效的 DataStatus 返回 false', () => {

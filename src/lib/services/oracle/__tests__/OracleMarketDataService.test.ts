@@ -1,4 +1,4 @@
-import type { MarketShareDataItem } from '../marketDataDefaults';
+import type { MarketShareDataItem } from '@/lib/oracles/services/marketDataDefaults';
 
 function calculateMarketShareStats(
   data: { tvs: string; chains: number; protocols?: number; value?: number }[]

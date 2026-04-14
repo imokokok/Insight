@@ -4,7 +4,7 @@ import { useMemo, useCallback } from 'react';
 
 import { useQuery } from '@tanstack/react-query';
 
-import { getDIADataService, type DIATokenOnChainData } from '@/lib/oracles/diaDataService';
+import { getDIADataService, type DIATokenOnChainData } from '@/lib/oracles/services/diaDataService';
 import type { Blockchain } from '@/types/oracle';
 
 export interface UseDIAOnChainDataOptions {

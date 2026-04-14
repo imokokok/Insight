@@ -9,13 +9,13 @@ import {
 import {
   validateQuerySchema,
   validateBodySchema,
-  type BatchPriceRequestType,
 } from '@/lib/validation';
 import {
   PriceQueryRequestSchema,
   BatchPriceRequestSchema,
   HistoricalPriceRequestSchema,
-} from '@/lib/validation/schemas';
+  type BatchPriceRequestType,
+} from '@/lib/security/validation';
 import { type OracleProvider, type Blockchain } from '@/types/oracle';
 
 export const GET = createApiHandler(

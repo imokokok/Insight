@@ -11,7 +11,7 @@ import { Database } from 'lucide-react';
 
 import { EmptyStateEnhanced } from '@/components/ui';
 import { useTranslations } from '@/i18n';
-import type { CalculatedPerformanceMetrics } from '@/lib/oracles/performanceMetricsCalculator';
+import type { CalculatedPerformanceMetrics } from '@/lib/oracles/utils/performanceMetricsCalculator';
 import type { OracleProvider, PriceData } from '@/types/oracle';
 
 import { OracleErrorPanel } from './OracleErrorPanel';

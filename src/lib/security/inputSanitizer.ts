@@ -1,7 +1,7 @@
 import DOMPurify from 'dompurify';
 
 import { createLogger } from '@/lib/utils/logger';
-import { ORACLE_PROVIDER_VALUES } from '@/types/oracle/enums';
+import { ORACLE_PROVIDER_VALUES, BLOCKCHAIN_VALUES } from '@/types/oracle/enums';
 import type { OracleProvider } from '@/types/oracle/enums';
 
 const logger = createLogger('input-sanitizer');
@@ -264,20 +264,10 @@ export function sanitizeProvider(provider: string): string {
 }
 
 export function sanitizeChain(chain: string): string {
-  const validChains = [
-    'ethereum',
-    'polygon',
-    'arbitrum',
-    'optimism',
-    'bsc',
-    'avalanche',
-    'base',
-    'fantom',
-    'gnosis',
-  ];
+  const validChains = BLOCKCHAIN_VALUES as readonly string[];
 
   const sanitized = sanitizeString(chain, {
-    maxLength: 20,
+    maxLength: 30,
     allowHtml: false,
     trim: true,
     lowercase: true,

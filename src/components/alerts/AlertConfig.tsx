@@ -296,6 +296,8 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
             </label>
             <button
               type="button"
+              role="switch"
+              aria-checked={isActive}
               onClick={() => setIsActive(!isActive)}
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                 isActive ? 'bg-primary-600' : 'bg-gray-200'

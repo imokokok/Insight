@@ -168,7 +168,7 @@
     "provider": "提供商",
     "statusNormal": "正常",
     "statusWarning": "警告",
-    "statusError": "异常",
+    "statusCritical": "严重",
     "anomaliesDetected": "个异常",
     "normal": "正常",
     "anomaly": "异常",
@@ -471,7 +471,8 @@
       "filtersActive": "个筛选已启用",
       "normal": "正常",
       "warning": "警告",
-      "error": "异常"
+      "error": "异常",
+      "critical": "严重"
     },
     "filterSummary": {
       "deviation": "偏差",

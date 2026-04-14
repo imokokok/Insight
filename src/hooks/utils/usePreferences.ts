@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 
 import { useUser, useProfile } from '@/stores/authStore';
 
@@ -63,7 +63,6 @@ function getLocalPreferences(): Partial<UserPreferences> {
 export function usePreferences() {
   const user = useUser();
   const profile = useProfile();
-  const [isLoading] = useState(false);
 
   const preferences = useMemo(() => {
     const localPrefs = getLocalPreferences();
@@ -109,37 +108,35 @@ export function usePreferences() {
 
   return {
     preferences,
-    isLoading,
     savePreferencesToLocal,
     defaultPreferences,
   };
 }
 
 export function useDefaultOracle() {
-  const { preferences, isLoading } = usePreferences();
-  return { defaultOracle: preferences.defaultOracle, isLoading };
+  const { preferences } = usePreferences();
+  return { defaultOracle: preferences.defaultOracle };
 }
 
 export function useDefaultSymbol() {
-  const { preferences, isLoading } = usePreferences();
-  return { defaultSymbol: preferences.defaultSymbol, isLoading };
+  const { preferences } = usePreferences();
+  return { defaultSymbol: preferences.defaultSymbol };
 }
 
 export function useDefaultTimeRange() {
-  const { preferences, isLoading } = usePreferences();
-  return { defaultTimeRange: preferences.defaultTimeRange, isLoading };
+  const { preferences } = usePreferences();
+  return { defaultTimeRange: preferences.defaultTimeRange };
 }
 
 export function useDefaultCurrency() {
-  const { preferences, isLoading } = usePreferences();
-  return { defaultCurrency: preferences.defaultCurrency, isLoading };
+  const { preferences } = usePreferences();
+  return { defaultCurrency: preferences.defaultCurrency };
 }
 
 export function useAutoRefreshInterval() {
-  const { preferences, isLoading } = usePreferences();
+  const { preferences } = usePreferences();
   return {
     autoRefreshInterval: preferences.autoRefreshInterval,
-    isLoading,
     refreshIntervalMs: preferences.autoRefreshInterval * 1000,
   };
 }

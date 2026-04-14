@@ -43,7 +43,7 @@ export interface UseExportReturn {
 export function useExport(params: UseExportParams): UseExportReturn {
   const toast = useMemo(
     () => ({
-      success: (title: string, message: string) => console.warn(`[Success] ${title}: ${message}`),
+      success: (title: string, message: string) => console.info(`[Success] ${title}: ${message}`),
       error: (title: string, message: string) => console.error(`[Error] ${title}: ${message}`),
       warning: (title: string, message: string) => console.warn(`[Warning] ${title}: ${message}`),
     }),

@@ -147,15 +147,6 @@ describe('usePreferences', () => {
     expect(result.current.preferences.defaultOracle).toBe('chainlink');
   });
 
-  it('should return isLoading state', () => {
-    (useUser as jest.Mock).mockReturnValue(null);
-    (useProfile as jest.Mock).mockReturnValue(null);
-
-    const { result } = renderHook(() => usePreferences());
-
-    expect(result.current.isLoading).toBe(false);
-  });
-
   it('should return defaultPreferences', () => {
     (useUser as jest.Mock).mockReturnValue(null);
     (useProfile as jest.Mock).mockReturnValue(null);

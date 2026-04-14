@@ -1,8 +1,8 @@
 import { RedStoneApiError, type RedStoneErrorCode } from '@/lib/errors';
 import { BaseOracleClient } from '@/lib/oracles/base';
 import type { OracleClientConfig, CacheEntry } from '@/lib/oracles/base';
-import { SPREAD_PERCENTAGES, REDSTONE_API_BASE } from '@/lib/oracles/redstoneConstants';
-import { redstoneSymbols } from '@/lib/oracles/supportedSymbols';
+import { SPREAD_PERCENTAGES, REDSTONE_API_BASE } from '@/lib/oracles/constants/redstoneConstants';
+import { redstoneSymbols } from '@/lib/oracles/constants/supportedSymbols';
 import { withOracleRetry, ORACLE_RETRY_PRESETS } from '@/lib/oracles/utils/retry';
 import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
 import { createLogger } from '@/lib/utils/logger';
@@ -134,7 +134,7 @@ export class RedStoneClient extends BaseOracleClient {
    * @returns PriceData if successful, null if no data available
    * @throws RedStoneApiError if the API request fails after all retries
    */
-  private async fetchRealPrice(symbol: string): Promise<PriceData | null> {
+  private async fetchRealPrice(symbol: string, signal?: AbortSignal): Promise<PriceData | null> {
     const cacheKey = `price:${symbol}`;
     const cached = this.getFromCache<PriceData>(cacheKey);
     if (cached) {
@@ -155,6 +155,7 @@ export class RedStoneClient extends BaseOracleClient {
                 headers: {
                   Accept: 'application/json',
                 },
+                signal,
               }
             );
 
@@ -266,9 +267,9 @@ export class RedStoneClient extends BaseOracleClient {
    * @returns Promise resolving to PriceData with current price information
    * @throws OracleError if price fetching fails
    */
-  async getPrice(symbol: string, chain?: Blockchain): Promise<PriceData> {
+  async getPrice(symbol: string, chain?: Blockchain, options?: { signal?: AbortSignal }): Promise<PriceData> {
     try {
-      const realPrice = await this.fetchRealPrice(symbol);
+      const realPrice = await this.fetchRealPrice(symbol, options?.signal);
 
       if (realPrice) {
         return {
@@ -305,7 +306,8 @@ export class RedStoneClient extends BaseOracleClient {
   async getHistoricalPrices(
     symbol: string,
     chain?: Blockchain,
-    period: number = 24
+    period: number = 24,
+    _options?: { signal?: AbortSignal }
   ): Promise<PriceData[]> {
     try {
       // 统一使用 Binance API 获取历史价格数据
@@ -358,14 +360,13 @@ export class RedStoneClient extends BaseOracleClient {
    */
   private async fetchHistoricalPricesFromRedStone(
     symbol: string,
-    periodHours: number
+    periodHours: number,
+    signal?: AbortSignal
   ): Promise<Array<{ price: number; timestamp: number }>> {
     try {
-      // 计算时间范围
       const endTime = Date.now();
       const startTime = endTime - periodHours * 60 * 60 * 1000;
 
-      // RedStone API 历史数据端点
       const url = `${REDSTONE_API_BASE}/prices?symbol=${symbol.toUpperCase()}&provider=redstone-rapid&fromTimestamp=${startTime}&toTimestamp=${endTime}`;
 
       const response = await fetch(url, {
@@ -373,6 +374,7 @@ export class RedStoneClient extends BaseOracleClient {
         headers: {
           Accept: 'application/json',
         },
+        signal,
       });
 
       if (!response.ok) {

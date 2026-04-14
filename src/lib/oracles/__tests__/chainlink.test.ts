@@ -1,10 +1,10 @@
-import { chainlinkOnChainService } from '@/lib/oracles/chainlinkOnChainService';
+import { ChainlinkClient } from '@/lib/oracles/clients/chainlink';
+import { chainlinkOnChainService } from '@/lib/oracles/services/chainlinkOnChainService';
 import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
-import { ChainlinkClient } from '@/lib/services/oracle/clients/chainlink';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 
-jest.mock('@/lib/oracles/chainlinkOnChainService');
-jest.mock('@/lib/oracles/chainlinkDataSources', () => ({
+jest.mock('@/lib/oracles/services/chainlinkOnChainService');
+jest.mock('@/lib/oracles/services/chainlinkDataSources', () => ({
   isPriceFeedSupported: jest.fn((symbol: string, chainId: number) => {
     const supportedFeeds: Record<string, number[]> = {
       ETH: [1, 42161, 137, 8453],

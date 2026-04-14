@@ -7,7 +7,7 @@ import { useQuery } from '@tanstack/react-query';
 import {
   getWINkLinkRealDataService,
   type WINkLinkTokenOnChainData,
-} from '@/lib/oracles/winklinkRealDataService';
+} from '@/lib/oracles/services/winklinkRealDataService';
 
 export interface UseWINkLinkOnChainDataOptions {
   symbol: string;

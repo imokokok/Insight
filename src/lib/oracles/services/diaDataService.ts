@@ -2,12 +2,13 @@ import { createLogger } from '@/lib/utils/logger';
 import { Blockchain } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
 
+import { DIA_API_BASE_URL } from '../diaUtils';
+
 import { DIANetworkService } from './diaNetworkService';
 import { DIANFTService } from './diaNFTService';
 import { DIAPriceService } from './diaPriceService';
-import { DIA_API_BASE_URL } from './diaUtils';
 
-import type { CacheEntry } from './base';
+import type { CacheEntry } from '../base';
 import type {
   DIANFTQuotation,
   DIASupply,
@@ -17,7 +18,7 @@ import type {
   DIAStakingData,
   DIANFTData,
   DIAEcosystemIntegration,
-} from './diaTypes';
+} from '../diaTypes';
 
 const logger = createLogger('DIADataService');
 
@@ -241,7 +242,7 @@ export type {
   DIANFTData,
   DIAEcosystemIntegration,
   RetryConfig,
-} from './diaTypes';
+} from '../diaTypes';
 
 // 重新导出链上数据接口
 export type DIATokenOnChainData = DIATokenOnChainDataInternal;

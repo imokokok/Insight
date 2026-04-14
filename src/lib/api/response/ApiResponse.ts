@@ -1,5 +1,18 @@
 import { NextResponse } from 'next/server';
 
+export interface ApiError {
+  code: string;
+  message: string;
+  retryable: boolean;
+  details?: Record<string, unknown>;
+  i18nKey?: string;
+  documentationUrl?: string;
+  requestId?: string;
+  timestamp?: number;
+  stackTrace?: string;
+  suggestedAction?: string;
+}
+
 export interface ApiSuccessResponse<T = unknown> {
   success: true;
   data: T;
@@ -12,16 +25,12 @@ export interface ApiSuccessResponse<T = unknown> {
 
 export interface ApiErrorResponse {
   success: false;
-  error: {
-    code: string;
-    message: string;
-    retryable: boolean;
-    details?: Record<string, unknown>;
-    i18nKey?: string;
-  };
+  error: ApiError;
   meta?: {
     timestamp: number;
     requestId?: string;
+    path?: string;
+    method?: string;
   };
 }
 
@@ -32,6 +41,11 @@ export interface PaginationMeta {
   limit: number;
   total: number;
   totalPages: number;
+}
+
+export interface PaginatedResponse<T = unknown> {
+  data: T[];
+  pagination: PaginationMeta;
 }
 
 export interface ApiPaginatedResponse<T = unknown> extends ApiSuccessResponse<T[]> {

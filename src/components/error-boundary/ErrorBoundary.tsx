@@ -4,6 +4,8 @@ import React, { Component, type ReactNode, type ErrorInfo } from 'react';
 
 import Link from 'next/link';
 
+import { useTranslations } from '@/i18n';
+
 import {
   isAppError,
   type AppError,
@@ -299,6 +301,7 @@ function DefaultErrorFallback({
   showDetails = process.env.NODE_ENV === 'development',
   themeColor,
 }: DefaultErrorFallbackProps) {
+  const t = useTranslations();
   const config = getErrorConfig(error, level, themeColor);
   const isDev = showDetails;
 
@@ -385,7 +388,7 @@ function DefaultErrorFallback({
           `}
         >
           <span>🔄</span>
-          {level === 'global' || level === 'page' ? 'Try Again' : 'Retry'}
+          {level === 'global' || level === 'page' ? t('errorBoundary.tryAgain') : t('errorBoundary.retry')}
         </button>
 
         {level === 'global' && (
@@ -394,7 +397,7 @@ function DefaultErrorFallback({
             className="inline-flex items-center gap-2 px-6 py-3 border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors rounded-md"
           >
             <span>🏠</span>
-            Back to Home
+            {t('errorBoundary.backToHome')}
           </Link>
         )}
       </div>

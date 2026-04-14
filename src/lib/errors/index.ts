@@ -76,6 +76,9 @@ export {
   OracleClientError,
   type OracleErrorDetails,
 
+  // 通用 Oracle 错误类 (支持 instanceof 检查)
+  OracleError,
+
   // 价格获取错误
   PriceFetchError,
   type PriceFetchErrorDetails,

@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 
 import { createClient } from '@supabase/supabase-js';
 
+import { strictRateLimit } from '@/lib/api/middleware/rateLimitMiddleware';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('api-auth-callback');
@@ -34,6 +35,11 @@ function isValidRedirectPath(path: string): boolean {
 }
 
 export async function GET(request: NextRequest) {
+  const rateLimitResult = await strictRateLimit(request);
+  if (!rateLimitResult.success) {
+    return rateLimitResult.response;
+  }
+
   try {
     const searchParams = request.nextUrl.searchParams;
     const code = searchParams.get('code');

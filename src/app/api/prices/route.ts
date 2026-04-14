@@ -5,22 +5,6 @@ import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('api-prices');
 
-const _SUPPORTED_ASSETS = [
-  'BTC',
-  'ETH',
-  'SOL',
-  'AVAX',
-  'BNB',
-  'MATIC',
-  'ARB',
-  'OP',
-  'UNI',
-  'AAVE',
-  'LINK',
-  'USDC',
-  'DAI',
-];
-
 const BINANCE_SYMBOLS: Record<string, string> = {
   BTC: 'BTCUSDT',
   ETH: 'ETHUSDT',

@@ -1,11 +1,11 @@
 /* eslint-disable max-lines-per-function */
+import { API3Client } from '@/lib/oracles/clients/api3';
+import { api3NetworkService } from '@/lib/oracles/services/api3NetworkService';
 import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
-import { api3NetworkService } from '@/lib/services/oracle/api3NetworkService';
-import { API3Client } from '@/lib/services/oracle/clients/api3';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 import type { DataSourceInfo, DAPICoverage, FirstPartyOracleData } from '@/types/oracle/api3';
 
-jest.mock('@/lib/services/oracle/api3NetworkService');
+jest.mock('@/lib/oracles/services/api3NetworkService');
 jest.mock('@/lib/services/marketData/binanceMarketService');
 jest.mock('@/lib/utils/logger', () => ({
   createLogger: () => ({

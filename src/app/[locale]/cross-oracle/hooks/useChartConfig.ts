@@ -6,7 +6,7 @@
 import { useCallback, useMemo } from 'react';
 
 import { chartColors } from '@/lib/config/colors';
-import type { CalculatedPerformanceMetrics } from '@/lib/oracles/performanceMetricsCalculator';
+import type { CalculatedPerformanceMetrics } from '@/lib/oracles/utils/performanceMetricsCalculator';
 import { type OracleProvider, type PriceData } from '@/types/oracle';
 
 import { oracleNames, type TimeRange } from '../constants';

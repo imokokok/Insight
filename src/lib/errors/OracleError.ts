@@ -1,5 +1,7 @@
 import { AppError, type AppErrorDetails, ErrorCodes, HttpStatusCodes } from './AppError';
 
+export { OracleError } from '@/types/oracle';
+
 /**
  * Oracle错误详情基础接口
  */

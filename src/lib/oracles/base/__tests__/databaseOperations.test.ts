@@ -16,7 +16,7 @@ const mockShouldUseDatabase = jest.fn();
 const mockGetPriceFromDatabase = jest.fn();
 const mockGetHistoricalPricesFromDatabase = jest.fn();
 
-jest.mock('../../storage', () => ({
+jest.mock('../../utils/storage', () => ({
   shouldUseDatabase: () => mockShouldUseDatabase(),
   getPriceFromDatabase: (...args: unknown[]) => mockGetPriceFromDatabase(...args),
   getHistoricalPricesFromDatabase: (...args: unknown[]) =>

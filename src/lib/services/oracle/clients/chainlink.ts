@@ -1,10 +1,10 @@
 import { BaseOracleClient } from '@/lib/oracles/base';
 import type { OracleClientConfig } from '@/lib/oracles/base';
-import { isPriceFeedSupported } from '@/lib/oracles/chainlinkDataSources';
+import { isPriceFeedSupported } from '@/lib/oracles/services/chainlinkDataSources';
 import {
   chainlinkOnChainService,
   type ChainlinkPriceData,
-} from '@/lib/oracles/chainlinkOnChainService';
+} from '@/lib/oracles/services/chainlinkOnChainService';
 import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
 import { createLogger } from '@/lib/utils/logger';
 import { OracleProvider, Blockchain } from '@/types/oracle';
@@ -174,7 +174,7 @@ export class ChainlinkClient extends BaseOracleClient {
     };
   }
 
-  async getPrice(symbol: string, chain?: Blockchain): Promise<PriceData> {
+  async getPrice(symbol: string, chain?: Blockchain, _options?: { signal?: AbortSignal }): Promise<PriceData> {
     try {
       if (!symbol) {
         throw this.createError('Symbol is required', 'INVALID_SYMBOL');
@@ -208,7 +208,8 @@ export class ChainlinkClient extends BaseOracleClient {
   async getHistoricalPrices(
     symbol: string,
     chain?: Blockchain,
-    period: number = 24
+    period: number = 24,
+    _options?: { signal?: AbortSignal }
   ): Promise<PriceData[]> {
     try {
       if (!symbol) {

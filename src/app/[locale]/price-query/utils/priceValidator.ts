@@ -1,17 +1,16 @@
 import type { PriceData } from '@/lib/oracles';
-
-export interface ValidationResult {
-  isValid: boolean;
-  warnings: string[];
-  errors: string[];
-  anomalies: AnomalyInfo[];
-}
+import type { ValidationResult } from '@/types/oracle/constants';
 
 export interface AnomalyInfo {
   type: 'price_spike' | 'price_drop' | 'stale_data' | 'future_timestamp' | 'gap_in_data';
   severity: 'low' | 'medium' | 'high';
   message: string;
   dataPoint?: PriceData;
+}
+
+export interface PriceValidationResult extends ValidationResult {
+  warnings: string[];
+  anomalies: AnomalyInfo[];
 }
 
 const PRICE_CHANGE_THRESHOLD_PERCENT = 50;
@@ -51,8 +50,8 @@ export function validatePrice(
   price: number,
   previousPrice?: number,
   symbol?: string
-): ValidationResult {
-  const result: ValidationResult = {
+): PriceValidationResult {
+  const result: PriceValidationResult = {
     isValid: true,
     warnings: [],
     errors: [],
@@ -116,8 +115,8 @@ export function validatePrice(
   return result;
 }
 
-export function validateTimestamp(timestamp: number, maxAge?: number): ValidationResult {
-  const result: ValidationResult = {
+export function validateTimestamp(timestamp: number, maxAge?: number): PriceValidationResult {
+  const result: PriceValidationResult = {
     isValid: true,
     warnings: [],
     errors: [],
@@ -158,8 +157,8 @@ export function validateTimestamp(timestamp: number, maxAge?: number): Validatio
   return result;
 }
 
-export function validateTimeSeries(data: PriceData[]): ValidationResult {
-  const result: ValidationResult = {
+export function validateTimeSeries(data: PriceData[]): PriceValidationResult {
+  const result: PriceValidationResult = {
     isValid: true,
     warnings: [],
     errors: [],

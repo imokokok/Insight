@@ -906,7 +906,7 @@ describe('API Validation Tests', () => {
 
       const result = validateObject(data, schema);
 
-      expect(result.valid).toBe(true);
+      expect(result.isValid).toBe(true);
       expect(result.data).toEqual(data);
     });
 
@@ -918,9 +918,9 @@ describe('API Validation Tests', () => {
 
       const result = validateObject(data, schema);
 
-      expect(result.valid).toBe(false);
+      expect(result.isValid).toBe(false);
       expect(result.errors).toBeDefined();
-      expect(result.errors!.length).toBeGreaterThan(0);
+      expect(result.errors.length).toBeGreaterThan(0);
     });
 
     it('should handle empty schema', () => {
@@ -929,7 +929,7 @@ describe('API Validation Tests', () => {
 
       const result = validateObject(data, schema);
 
-      expect(result.valid).toBe(true);
+      expect(result.isValid).toBe(true);
     });
 
     it('should handle empty data', () => {
@@ -940,7 +940,7 @@ describe('API Validation Tests', () => {
 
       const result = validateObject(data, schema);
 
-      expect(result.valid).toBe(true);
+      expect(result.isValid).toBe(true);
     });
   });
 });

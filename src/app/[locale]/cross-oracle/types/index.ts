@@ -6,8 +6,8 @@
 import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 
 import type { FavoriteConfig } from '@/hooks/data';
-import type { MemoryStats } from '@/lib/oracles/memoryManager';
-import type { CalculatedPerformanceMetrics } from '@/lib/oracles/performanceMetricsCalculator';
+import type { MemoryStats } from '@/lib/oracles/utils/memoryManager';
+import type { CalculatedPerformanceMetrics } from '@/lib/oracles/utils/performanceMetricsCalculator';
 import type { UserFavorite } from '@/lib/supabase/queries';
 import {
   type OracleProvider,

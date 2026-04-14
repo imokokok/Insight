@@ -1,8 +1,8 @@
 import { BaseOracleClient } from '@/lib/oracles/base';
 import type { OracleClientConfig } from '@/lib/oracles/base';
-import { API3_AVAILABLE_PAIRS } from '@/lib/oracles/supportedSymbols';
+import { API3_AVAILABLE_PAIRS } from '@/lib/oracles/constants/supportedSymbols';
 import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
-import { api3NetworkService } from '@/lib/services/oracle/api3NetworkService';
+import { api3NetworkService } from '@/lib/oracles/services/api3NetworkService';
 import { createLogger } from '@/lib/utils/logger';
 import type { PriceData } from '@/types/oracle';
 import { OracleProvider, Blockchain } from '@/types/oracle';
@@ -59,7 +59,7 @@ export class API3Client extends BaseOracleClient {
     }
   }
 
-  async getPrice(symbol: string, chain?: Blockchain): Promise<PriceData> {
+  async getPrice(symbol: string, chain?: Blockchain, _options?: { signal?: AbortSignal }): Promise<PriceData> {
     if (!symbol) {
       throw this.createError('Symbol is required', 'INVALID_SYMBOL');
     }
@@ -124,7 +124,8 @@ export class API3Client extends BaseOracleClient {
   async getHistoricalPrices(
     symbol: string,
     chain?: Blockchain,
-    period: number = 24
+    period: number = 24,
+    _options?: { signal?: AbortSignal }
   ): Promise<PriceData[]> {
     if (!symbol) {
       throw this.createError('Symbol is required', 'INVALID_SYMBOL');

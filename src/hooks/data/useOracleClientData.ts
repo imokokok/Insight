@@ -58,7 +58,7 @@ export function usePriceData(
 
     try {
       setError(null);
-      const priceData = await clientRef.current.getPrice(symbol, chain);
+      const priceData = await clientRef.current.getPrice(symbol, chain, { signal: abortController.signal });
 
       if (abortController.signal.aborted || !isMountedRef.current) return;
 
@@ -154,7 +154,7 @@ export function useHistoricalPrices(
 
     try {
       setError(null);
-      const historicalPrices = await clientRef.current.getHistoricalPrices(symbol, chain, period);
+      const historicalPrices = await clientRef.current.getHistoricalPrices(symbol, chain, period, { signal: abortController.signal });
 
       if (abortController.signal.aborted || !isMountedRef.current) return;
 

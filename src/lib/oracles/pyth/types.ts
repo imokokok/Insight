@@ -1,4 +1,4 @@
-import type { RetryConfig } from '../pythConstants';
+import type { RetryConfig } from '../constants/pythConstants';
 
 export type { RetryConfig };
 

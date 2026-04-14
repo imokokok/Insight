@@ -8,7 +8,8 @@ import { useCallback } from 'react';
 import { type Blockchain, type PriceData } from '@/lib/oracles';
 import { createLogger } from '@/lib/utils/logger';
 
-import { validatePriceData, type ValidationResult } from '../utils/validation';
+import { validatePriceData } from '../utils/validation';
+import type { ValidationResult } from '@/types/oracle/constants';
 
 const logger = createLogger('useDataValidation');
 
