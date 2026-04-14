@@ -180,7 +180,7 @@ export default function CrossChainPage() {
       label: t('crossChain.confidenceInterval95'),
       value:
         confidenceInterval95.lower > 0
-          ? `$${confidenceInterval95.lower.toFixed(2)} - $${confidenceInterval95.upper.toFixed(2)}`
+          ? `${formatPrice(confidenceInterval95.lower)} - ${formatPrice(confidenceInterval95.upper)}`
           : '-',
       trend: null,
       tooltip: t('crossChain.tooltip.confidenceInterval95'),
