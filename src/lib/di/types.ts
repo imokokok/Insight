@@ -1,3 +1,5 @@
+import { type Token } from './tokens';
+
 export type ServiceFactory<T = unknown> = () => T;
 
 export interface ServiceDescriptor<T = unknown> {
@@ -7,8 +9,8 @@ export interface ServiceDescriptor<T = unknown> {
 }
 
 export interface ContainerInterface {
-  register<T>(token: string, factory: ServiceFactory<T>, singleton?: boolean): void;
-  resolve<T>(token: string): T;
-  has(token: string): boolean;
+  register<T>(token: Token<T>, factory: ServiceFactory<T>, singleton?: boolean): void;
+  resolve<T>(token: Token<T>): T;
+  has(token: Token<unknown>): boolean;
   clear(): void;
 }

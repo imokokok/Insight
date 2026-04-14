@@ -6,7 +6,10 @@ import { useFavorites, type FavoriteConfig } from '@/hooks';
 import { type OracleProvider, OracleClientFactory } from '@/lib/oracles';
 import { isBlockchain } from '@/lib/utils/chainUtils';
 import { useUser } from '@/stores/authStore';
-import { useCrossChainStore } from '@/stores/crossChainStore';
+import { useCrossChainConfigStore } from '@/stores/crossChainConfigStore';
+import { useCrossChainDataStore } from '@/stores/crossChainDataStore';
+import { useCrossChainSelectorStore } from '@/stores/crossChainSelectorStore';
+import { useCrossChainUIStore } from '@/stores/crossChainUIStore';
 
 import {
   useDataValidation,
@@ -32,6 +35,13 @@ export function useCrossChainData(): UseCrossChainDataReturn {
     selectedSymbol,
     selectedTimeRange,
     selectedBaseChain,
+    setSelectedProvider,
+    setSelectedSymbol,
+    setSelectedTimeRange,
+    setSelectedBaseChain,
+  } = useCrossChainSelectorStore();
+
+  const {
     visibleChains,
     showMA,
     maPeriod,
@@ -42,21 +52,8 @@ export function useCrossChainData(): UseCrossChainDataReturn {
     hoveredCell,
     selectedCell,
     tooltipPosition,
-    refreshInterval,
-    lastUpdated,
-    currentPrices,
-    historicalPrices,
-    loading,
-    refreshStatus,
-    showRefreshSuccess,
-    recommendedBaseChain,
-    prevStats,
     sortColumn,
     sortDirection,
-    setSelectedProvider,
-    setSelectedSymbol,
-    setSelectedTimeRange,
-    setSelectedBaseChain,
     setVisibleChains,
     setShowMA,
     setMaPeriod,
@@ -67,7 +64,21 @@ export function useCrossChainData(): UseCrossChainDataReturn {
     setHoveredCell,
     setSelectedCell,
     setTooltipPosition,
-    setRefreshInterval,
+    setSortColumn,
+    setSortDirection,
+    toggleChain,
+    handleSort,
+  } = useCrossChainUIStore();
+
+  const {
+    currentPrices,
+    historicalPrices,
+    loading,
+    refreshStatus,
+    showRefreshSuccess,
+    lastUpdated,
+    recommendedBaseChain,
+    prevStats,
     setCurrentPrices,
     setHistoricalPrices,
     setLoading,
@@ -76,11 +87,9 @@ export function useCrossChainData(): UseCrossChainDataReturn {
     setLastUpdated,
     setPrevStats,
     setRecommendedBaseChain,
-    setSortColumn,
-    setSortDirection,
-    toggleChain,
-    handleSort,
-  } = useCrossChainStore();
+  } = useCrossChainDataStore();
+
+  const { refreshInterval, setRefreshInterval } = useCrossChainConfigStore();
 
   const dataValidation = useDataValidation();
   const anomalyDetection = useAnomalyDetection();
@@ -139,7 +148,7 @@ export function useCrossChainData(): UseCrossChainDataReturn {
   });
 
   const sortedPriceDifferences = useMemo(() => {
-    const thresholdConfig = useCrossChainStore.getState().thresholdConfig;
+    const thresholdConfig = useCrossChainConfigStore.getState().thresholdConfig;
     const allHistoricalPrices: number[] = [];
     filteredChains.forEach((chain) => {
       const prices = historicalPrices[chain]?.map((p) => p.price) || [];
@@ -190,7 +199,7 @@ export function useCrossChainData(): UseCrossChainDataReturn {
   ]);
 
   const chainsWithHighDeviation = useMemo(() => {
-    const thresholdConfig = useCrossChainStore.getState().thresholdConfig;
+    const thresholdConfig = useCrossChainConfigStore.getState().thresholdConfig;
     const allHistoricalPrices: number[] = [];
     filteredChains.forEach((chain) => {
       const prices = historicalPrices[chain]?.map((p) => p.price) || [];

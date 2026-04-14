@@ -199,8 +199,8 @@ export class OracleClientFactory {
   }
 
   private static createClient(provider: OracleProvider): BaseOracleClient {
-    const useRealChainlinkData = FEATURE_FLAGS.useRealChainlinkData ?? true;
-    const useRealAPI3Data = FEATURE_FLAGS.useRealApi3Data ?? true;
+    const useRealChainlinkData = FEATURE_FLAGS.useRealChainlinkData;
+    const useRealAPI3Data = FEATURE_FLAGS.useRealApi3Data;
 
     switch (provider) {
       case OracleProvider.CHAINLINK:

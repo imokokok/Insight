@@ -1,14 +1,25 @@
+import DOMPurify from 'dompurify';
+
 import { createLogger } from '@/lib/utils/logger';
+import { ORACLE_PROVIDER_VALUES } from '@/types/oracle/enums';
+import type { OracleProvider } from '@/types/oracle/enums';
 
 const logger = createLogger('input-sanitizer');
 
-// Simple HTML sanitization for input sanitizer
 function sanitizeHtmlBasic(input: string): string {
-  return input
-    .replace(/<script[^>]*>.*?<\/script>/gi, '')
-    .replace(/<script[^>]*\/>/gi, '')
-    .replace(/javascript:/gi, '')
-    .replace(/on\w+\s*=/gi, '')
+  if (typeof input !== 'string') {
+    return '';
+  }
+
+  const cleaned = DOMPurify.sanitize(input, {
+    ALLOWED_TAGS: [],
+    ALLOWED_ATTR: [],
+    ALLOW_DATA_ATTR: false,
+    ADD_TAGS: [],
+    ADD_ATTR: [],
+  });
+
+  return cleaned
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
@@ -16,7 +27,6 @@ function sanitizeHtmlBasic(input: string): string {
     .replace(/\//g, '&#x2F;');
 }
 
-// Simple XSS detection for input sanitizer
 function detectXss(input: string): boolean {
   if (typeof input !== 'string') {
     return false;
@@ -30,6 +40,12 @@ function detectXss(input: string): boolean {
     /<object/i,
     /<embed/i,
     /<form/i,
+    /<svg[^>]*onload=/i,
+    /<img[^>]*src=/i,
+    /data:text\/html/i,
+    /<svg[^>]*>/i,
+    /<math[^>]*>/i,
+    /<style[^>]*>/i,
   ];
   return xssPatterns.some((pattern) => pattern.test(input));
 }
@@ -53,12 +69,12 @@ const DEFAULT_OPTIONS: SanitizationOptions = {
 };
 
 const SQL_INJECTION_PATTERNS = [
-  /(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|EXECUTE|UNION|TRUNCATE)\b)/gi,
-  /(\b(OR|AND)\b\s+\d+\s*=\s*\d+)/gi,
+  /\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|EXECUTE|UNION|TRUNCATE)\b/gi,
+  /\b(OR|AND)\b\s+\d+\s*=\s*\d+/gi,
   /(--|#|\/\*|\*\/)/g,
-  /(\bWAITFOR\b\s+\bDELAY\b)/gi,
-  /(\bBENCHMARK\b\s*\()/gi,
-  /(\bSLEEP\b\s*\()/gi,
+  /\bWAITFOR\b\s+\bDELAY\b/gi,
+  /\bBENCHMARK\b\s*\(/gi,
+  /\bSLEEP\b\s*\(/gi,
 ];
 
 const NULL_BYTES_PATTERN = /\x00/g;
@@ -235,7 +251,7 @@ export function sanitizeSymbol(symbol: string): string {
 }
 
 export function sanitizeProvider(provider: string): string {
-  const validProviders = ['chainlink', 'uma', 'api3', 'pyth', 'redstone', 'dia', 'winklink'];
+  const validProviders = ORACLE_PROVIDER_VALUES;
 
   const sanitized = sanitizeString(provider, {
     maxLength: 30,
@@ -244,7 +260,7 @@ export function sanitizeProvider(provider: string): string {
     lowercase: true,
   });
 
-  return validProviders.includes(sanitized) ? sanitized : '';
+  return validProviders.includes(sanitized as OracleProvider) ? sanitized : '';
 }
 
 export function sanitizeChain(chain: string): string {
@@ -292,3 +308,5 @@ export function sanitizeUuid(uuid: string): string {
   const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   return uuidPattern.test(sanitized) ? sanitized : '';
 }
+
+export { detectXss };

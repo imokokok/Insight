@@ -17,7 +17,7 @@ import { useTranslations } from '@/i18n';
 import { baseColors, semanticColors, chartColors } from '@/lib/config/colors';
 import { type Blockchain, type PriceData } from '@/lib/oracles';
 import { isBlockchain } from '@/lib/utils/chainUtils';
-import { useColorblindMode } from '@/stores/crossChainStore';
+import { useColorblindMode } from '@/stores/crossChainConfigStore';
 
 import { getColorblindHeatmapColor, colorblindLegendConfig } from '../colorblindTheme';
 import { type useCrossChainData } from '../useCrossChainData';

@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 
 import { apiClient } from '@/lib/api';
 import { supabase, queries, type PriceAlert, type AlertEvent } from '@/lib/supabase/client';
@@ -37,23 +37,51 @@ export interface UseAlertsReturn {
 }
 
 export interface UseCreateAlertReturn {
-  createAlert: (
-    input: CreateAlertInput
-  ) => Promise<{ alert: PriceAlert | null; error: Error | null }>;
-  isCreating: boolean;
+  createAlert: (input: CreateAlertInput) => Promise<PriceAlert | null>;
+  mutate: (
+    input: CreateAlertInput,
+    options?: {
+      onSuccess?: (data: PriceAlert) => void;
+      onError?: (error: Error) => void;
+      onSettled?: () => void;
+    }
+  ) => void;
+  mutateAsync: (input: CreateAlertInput) => Promise<PriceAlert | null>;
+  isPending: boolean;
+  error: Error | null;
+  data: PriceAlert | undefined;
+  reset: () => void;
 }
 
 export interface UseUpdateAlertReturn {
-  updateAlert: (
+  updateAlert: (id: string, input: UpdateAlertInput) => Promise<PriceAlert | null>;
+  mutate: (
     id: string,
-    input: UpdateAlertInput
-  ) => Promise<{ alert: PriceAlert | null; error: Error | null }>;
-  isUpdating: boolean;
+    input: UpdateAlertInput,
+    options?: {
+      onSuccess?: (data: PriceAlert) => void;
+      onError?: (error: Error) => void;
+      onSettled?: () => void;
+    }
+  ) => void;
+  mutateAsync: (id: string, input: UpdateAlertInput) => Promise<PriceAlert | null>;
+  isPending: boolean;
+  error: Error | null;
+  data: PriceAlert | undefined;
+  reset: () => void;
 }
 
 export interface UseDeleteAlertReturn {
-  deleteAlert: (id: string) => Promise<{ success: boolean; error: Error | null }>;
-  isDeleting: boolean;
+  deleteAlert: (id: string) => Promise<boolean>;
+  mutate: (
+    id: string,
+    options?: { onSuccess?: () => void; onError?: (error: Error) => void; onSettled?: () => void }
+  ) => void;
+  mutateAsync: (id: string) => Promise<boolean>;
+  isPending: boolean;
+  error: Error | null;
+  data: boolean | undefined;
+  reset: () => void;
 }
 
 export interface UseAlertEventsReturn {
@@ -125,116 +153,164 @@ export function useAlerts(): UseAlertsReturn {
 
 export function useCreateAlert(): UseCreateAlertReturn {
   const user = useUser();
-  const [isCreating, setIsCreating] = useState(false);
   const queryClient = useQueryClient();
 
-  const createAlert = useCallback(
-    async (input: CreateAlertInput) => {
+  const mutation = useMutation({
+    mutationFn: async (input: CreateAlertInput) => {
       if (!user?.id) {
-        return { alert: null, error: new Error(alertErrorKeys.userNotLoggedIn) };
+        throw new Error(alertErrorKeys.userNotLoggedIn);
       }
 
-      setIsCreating(true);
-      try {
-        const alert = await queries.createAlert(user.id, {
-          name: input.name,
-          symbol: input.symbol,
-          provider: (input.provider as string | null | undefined) ?? null,
-          chain: (input.chain as string | null | undefined) ?? null,
-          condition_type: input.condition_type,
-          target_value: input.target_value,
-          is_active: input.is_active ?? true,
-        });
+      const alert = await queries.createAlert(user.id, {
+        name: input.name,
+        symbol: input.symbol,
+        provider: (input.provider as string | null | undefined) ?? null,
+        chain: (input.chain as string | null | undefined) ?? null,
+        condition_type: input.condition_type,
+        target_value: input.target_value,
+        is_active: input.is_active ?? true,
+      });
 
-        if (!alert) {
-          return { alert: null, error: new Error(alertErrorKeys.createFailed) };
-        }
+      if (!alert) {
+        throw new Error(alertErrorKeys.createFailed);
+      }
 
-        await queryClient.invalidateQueries({ queryKey: [ALERTS_KEY, user.id] });
-
-        return { alert: alert as PriceAlert, error: null };
-      } catch (err) {
-        return { alert: null, error: err as Error };
-      } finally {
-        setIsCreating(false);
+      return alert as PriceAlert;
+    },
+    onSuccess: () => {
+      if (user?.id) {
+        queryClient.invalidateQueries({ queryKey: [ALERTS_KEY, user.id] });
       }
     },
-    [user?.id, queryClient]
-  );
+  });
 
-  return { createAlert, isCreating };
+  const createAlert = async (input: CreateAlertInput) => {
+    try {
+      const alert = await mutation.mutateAsync(input);
+      return alert;
+    } catch (err) {
+      throw err;
+    }
+  };
+
+  return {
+    createAlert,
+    mutate: mutation.mutate,
+    mutateAsync: mutation.mutateAsync,
+    isPending: mutation.isPending,
+    error: mutation.error,
+    data: mutation.data,
+    reset: mutation.reset,
+  };
 }
 
 export function useUpdateAlert(): UseUpdateAlertReturn {
   const user = useUser();
-  const [isUpdating, setIsUpdating] = useState(false);
   const queryClient = useQueryClient();
 
-  const updateAlert = useCallback(
-    async (id: string, input: UpdateAlertInput) => {
+  const mutation = useMutation({
+    mutationFn: async ({ id, input }: { id: string; input: UpdateAlertInput }) => {
       if (!user?.id) {
-        return { alert: null, error: new Error(alertErrorKeys.userNotLoggedIn) };
+        throw new Error(alertErrorKeys.userNotLoggedIn);
       }
 
-      setIsUpdating(true);
-      try {
-        const alert = await queries.updateAlert(id, {
-          ...input,
-          provider: (input.provider as string | null | undefined) ?? null,
-          chain: (input.chain as string | null | undefined) ?? null,
-        });
+      const alert = await queries.updateAlert(id, {
+        ...input,
+        provider: (input.provider as string | null | undefined) ?? null,
+        chain: (input.chain as string | null | undefined) ?? null,
+      });
 
-        if (!alert) {
-          return { alert: null, error: new Error(alertErrorKeys.updateFailed) };
-        }
+      if (!alert) {
+        throw new Error(alertErrorKeys.updateFailed);
+      }
 
-        await queryClient.invalidateQueries({ queryKey: [ALERTS_KEY, user.id] });
-
-        return { alert: alert as PriceAlert, error: null };
-      } catch (err) {
-        return { alert: null, error: err as Error };
-      } finally {
-        setIsUpdating(false);
+      return alert as PriceAlert;
+    },
+    onSuccess: () => {
+      if (user?.id) {
+        queryClient.invalidateQueries({ queryKey: [ALERTS_KEY, user.id] });
       }
     },
-    [user?.id, queryClient]
-  );
+  });
 
-  return { updateAlert, isUpdating };
+  const updateAlert = async (id: string, input: UpdateAlertInput) => {
+    try {
+      const alert = await mutation.mutateAsync({ id, input });
+      return alert;
+    } catch (err) {
+      throw err;
+    }
+  };
+
+  return {
+    updateAlert,
+    mutate: (
+      id: string,
+      input: UpdateAlertInput,
+      options?: {
+        onSuccess?: (data: PriceAlert) => void;
+        onError?: (error: Error) => void;
+        onSettled?: () => void;
+      }
+    ) => {
+      mutation.mutate({ id, input }, options);
+    },
+    mutateAsync: (id: string, input: UpdateAlertInput) => mutation.mutateAsync({ id, input }),
+    isPending: mutation.isPending,
+    error: mutation.error,
+    data: mutation.data,
+    reset: mutation.reset,
+  };
 }
 
 export function useDeleteAlert(): UseDeleteAlertReturn {
   const user = useUser();
-  const [isDeleting, setIsDeleting] = useState(false);
   const queryClient = useQueryClient();
 
-  const deleteAlert = useCallback(
-    async (id: string) => {
+  const mutation = useMutation({
+    mutationFn: async (id: string) => {
       if (!user?.id) {
-        return { success: false, error: new Error(alertErrorKeys.userNotLoggedIn) };
+        throw new Error(alertErrorKeys.userNotLoggedIn);
       }
 
-      setIsDeleting(true);
-      try {
-        const success = await queries.deleteAlert(id);
+      const success = await queries.deleteAlert(id);
 
-        if (!success) {
-          return { success: false, error: new Error(alertErrorKeys.deleteFailed) };
-        }
+      if (!success) {
+        throw new Error(alertErrorKeys.deleteFailed);
+      }
 
-        await queryClient.invalidateQueries({ queryKey: [ALERTS_KEY, user.id] });
-
-        return { success: true, error: null };
-      } catch (err) {
-        return { success: false, error: err as Error };
-      } finally {
-        setIsDeleting(false);
+      return true;
+    },
+    onSuccess: () => {
+      if (user?.id) {
+        queryClient.invalidateQueries({ queryKey: [ALERTS_KEY, user.id] });
       }
     },
-    [user?.id, queryClient]
-  );
+  });
 
-  return { deleteAlert, isDeleting };
+  const deleteAlert = async (id: string) => {
+    try {
+      await mutation.mutateAsync(id);
+      return true;
+    } catch (err) {
+      throw err;
+    }
+  };
+
+  return {
+    deleteAlert,
+    mutate: (
+      id: string,
+      options?: { onSuccess?: () => void; onError?: (error: Error) => void; onSettled?: () => void }
+    ) => {
+      mutation.mutate(id, options);
+    },
+    mutateAsync: (id: string) => mutation.mutateAsync(id),
+    isPending: mutation.isPending,
+    error: mutation.error,
+    data: mutation.data,
+    reset: mutation.reset,
+  };
 }
 
 export function useAlertEvents(): UseAlertEventsReturn {

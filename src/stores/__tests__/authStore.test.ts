@@ -655,3 +655,49 @@ describe('authStore - Hooks 测试', () => {
     expect(result.current).toBe(true);
   });
 });
+
+describe('authStore - 持久化配置', () => {
+  it('profile 为 null 时不应该报错', () => {
+    useAuthStore.setState({ profile: null });
+
+    const state = useAuthStore.getState();
+    expect(state.profile).toBeNull();
+  });
+
+  it('profile 应该可以被设置和获取', () => {
+    const profileWithDates = {
+      ...mockProfile,
+      created_at: new Date('2024-01-01T00:00:00Z'),
+      updated_at: new Date('2024-01-01T00:00:00Z'),
+    };
+
+    useAuthStore.setState({ profile: profileWithDates });
+
+    const state = useAuthStore.getState();
+    expect(state.profile).toEqual(profileWithDates);
+    expect(state.profile?.created_at).toBeInstanceOf(Date);
+    expect(state.profile?.updated_at).toBeInstanceOf(Date);
+  });
+
+  it('session 不应该通过 setSession 持久化（由 Supabase cookie 管理）', () => {
+    useAuthStore.setState({
+      session: mockSession,
+      profile: mockProfile,
+    });
+
+    const state = useAuthStore.getState();
+    expect(state.session).toEqual(mockSession);
+    expect(state.profile).toEqual(mockProfile);
+  });
+
+  it('user 不应该被持久化（从 session 派生）', () => {
+    useAuthStore.setState({
+      user: mockUser,
+      session: mockSession,
+      profile: mockProfile,
+    });
+
+    const state = useAuthStore.getState();
+    expect(state.user).toEqual(mockUser);
+  });
+});
