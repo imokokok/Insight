@@ -516,37 +516,38 @@ export const DIA_AVAILABLE_PAIRS: Record<string, string[]> = {
 // API3 支持的币种（基于实际检测结果 - 2026-04-14）
 // 只包含可以正确获取数据的币种
 export const api3Symbols = [
-  'BTC',
-  'ETH',
-  'BNB',
-  'AVAX',
   'ARB',
-  'COMP',
+  'AVAX',
   'BAL',
+  'BNB',
+  'BTC',
+  'COMP',
+  'DAI',
+  'ETH',
+  'SOL',
   'USDC',
   'USDT',
-  'DAI',
   'WBTC',
 ] as const;
 
 // API3 可用的链-交易对映射（基于实际检测结果 - 2026-04-14）
 // 只包含可以正确获取数据的交易对
 export const API3_AVAILABLE_PAIRS: Record<string, string[]> = {
-  // Ethereum: 5/23 成功
-  ethereum: ['ETH', 'BTC', 'COMP', 'BAL', 'USDC'],
-  // Arbitrum: 7/17 成功
-  arbitrum: ['ETH', 'BTC', 'ARB', 'USDC', 'USDT', 'DAI', 'WBTC'],
-  // Polygon: 4/14 成功
-  polygon: ['ETH', 'BTC', 'USDC', 'WBTC'],
-  // Base: 6/11 成功
-  base: ['ETH', 'BTC', 'USDC', 'USDT', 'DAI', 'WBTC'],
-  // Optimism: 3/12 成功
+  // Ethereum: 5个可用
+  ethereum: ['BAL', 'BTC', 'COMP', 'ETH', 'USDC'],
+  // Arbitrum: 9个可用
+  arbitrum: ['ARB', 'AVAX', 'BTC', 'COMP', 'DAI', 'ETH', 'USDC', 'USDT', 'WBTC'],
+  // Polygon: 7个可用
+  polygon: ['ARB', 'AVAX', 'BNB', 'BTC', 'ETH', 'USDC', 'WBTC'],
+  // Base: 8个可用
+  base: ['BNB', 'BTC', 'DAI', 'ETH', 'SOL', 'USDC', 'USDT', 'WBTC'],
+  // Optimism: 3个可用
   optimism: ['ETH', 'USDC', 'WBTC'],
-  // Avalanche: 3/12 成功
-  avalanche: ['ETH', 'AVAX', 'USDT'],
-  // BNB Chain: 6/11 成功
-  bnbchain: ['ETH', 'BTC', 'BNB', 'USDC', 'USDT', 'WBTC'],
-  // Fantom: 0/14 成功 - API3 未在 Fantom 部署 dAPI，已移除
+  // Avalanche: 3个可用
+  avalanche: ['AVAX', 'ETH', 'USDT'],
+  // BNB Chain: 6个可用
+  bnbchain: ['BNB', 'BTC', 'ETH', 'USDC', 'USDT', 'WBTC'],
+  // Fantom: 0个成功 - API3 未在 Fantom 部署 dAPI，已移除
 };
 
 // Pyth 支持的币种（基于官方文档，支持400+价格源）
