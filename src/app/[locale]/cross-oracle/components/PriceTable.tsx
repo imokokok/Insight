@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useCallback, useEffect, memo } from 'react';
 
+import { formatPrice } from '@/app/[locale]/price-query/utils/queryResultsUtils';
 import { DataTablePro, type ColumnDef, type SortConfig } from '@/components/ui';
 import { type OracleProvider, type PriceData } from '@/types/oracle';
 
@@ -295,11 +296,7 @@ function PriceTableComponent({
                   : 'text-gray-900'
               }`}
             >
-              $
-              {price.toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
+              ${formatPrice(price)}
             </span>
           );
         },
@@ -433,13 +430,7 @@ function PriceTableComponent({
         {/* 原始价格数据 */}
         <div className="bg-white p-3 rounded-lg border border-gray-100">
           <span className="text-gray-500 block text-xs mb-1">{t('priceTable.rawPrice')}</span>
-          <span className="font-mono text-gray-900 text-lg">
-            $
-            {row.price.toLocaleString(undefined, {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 6,
-            })}
-          </span>
+          <span className="font-mono text-gray-900 text-lg">${formatPrice(row.price)}</span>
         </div>
 
         {/* 与均价的差值 */}
@@ -536,13 +527,7 @@ function PriceTableComponent({
         <div className="space-y-1.5 text-sm">
           <div className="flex justify-between">
             <span className="text-gray-500">{t('crossOracle.price')}</span>
-            <span className="font-mono text-gray-900">
-              $
-              {row.price.toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
-            </span>
+            <span className="font-mono text-gray-900">${formatPrice(row.price)}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-500">{t('crossOracle.deviation')}</span>

@@ -6,6 +6,7 @@ import { useTranslations } from '@/i18n';
 import { type OracleProvider, type Blockchain } from '@/lib/oracles';
 
 import { type QueryResult, providerNames, chainNames } from '../constants';
+import { formatPrice } from '../utils/queryResultsUtils';
 
 export interface UsePriceQueryExportParams {
   queryResults: QueryResult[];
@@ -53,10 +54,7 @@ export function usePriceQueryExport(params: UsePriceQueryExportParams): UsePrice
       const row = [
         providerNames[result.provider],
         chainNames[result.chain],
-        result.priceData.price.toLocaleString(undefined, {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 4,
-        }),
+        formatPrice(result.priceData.price),
         new Date(result.priceData.timestamp).toLocaleString(),
         result.priceData.source || '',
       ];

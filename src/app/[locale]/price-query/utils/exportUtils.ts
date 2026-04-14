@@ -11,6 +11,8 @@ import { createLogger } from '@/lib/utils/logger';
 import { type ExportConfigData } from '../components/ExportConfig';
 import { type QueryResult, providerNames, chainNames } from '../constants';
 
+import { formatPrice } from './queryResultsUtils';
+
 const logger = createLogger('ExportUtils');
 
 interface StatsData {
@@ -94,12 +96,7 @@ export function exportToCSV(
       row.push(chainNames[result.chain]);
     }
     if (enabledFields.find((f) => f.key === 'price')) {
-      row.push(
-        result.priceData.price.toLocaleString(undefined, {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 4,
-        })
-      );
+      row.push(formatPrice(result.priceData.price));
     }
     if (enabledFields.find((f) => f.key === 'timestamp')) {
       row.push(new Date(result.priceData.timestamp).toLocaleString());
@@ -304,22 +301,10 @@ export async function exportToPDF(
     doc.setTextColor(secondaryColor);
 
     const statsData = [
-      [
-        translations.avgPriceLabel,
-        `$${stats.avgPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-      ],
-      [
-        translations.maxPriceLabel,
-        `$${stats.maxPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-      ],
-      [
-        translations.minPriceLabel,
-        `$${stats.minPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-      ],
-      [
-        translations.priceRangeLabel,
-        `$${stats.priceRange.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-      ],
+      [translations.avgPriceLabel, `$${formatPrice(stats.avgPrice)}`],
+      [translations.maxPriceLabel, `$${formatPrice(stats.maxPrice)}`],
+      [translations.minPriceLabel, `$${formatPrice(stats.minPrice)}`],
+      [translations.priceRangeLabel, `$${formatPrice(stats.priceRange)}`],
       [translations.stdDevLabel, `${stats.standardDeviationPercent.toFixed(4)}%`],
       [translations.dataPointsLabel, stats.dataPoints.toString()],
     ];
@@ -402,12 +387,7 @@ export async function exportToPDF(
       row.push(chainNames[result.chain]);
     }
     if (enabledFields.find((f) => f.key === 'price')) {
-      row.push(
-        `$${result.priceData.price.toLocaleString(undefined, {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 4,
-        })}`
-      );
+      row.push(`$${formatPrice(result.priceData.price)}`);
     }
     if (enabledFields.find((f) => f.key === 'timestamp')) {
       row.push(new Date(result.priceData.timestamp).toLocaleString());

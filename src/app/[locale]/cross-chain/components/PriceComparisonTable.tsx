@@ -1,5 +1,6 @@
 'use client';
 
+import { formatPrice } from '@/app/[locale]/price-query/utils/queryResultsUtils';
 import { DataTablePro, type ColumnDef, type ConditionalFormattingRule } from '@/components/ui';
 import { useTranslations } from '@/i18n';
 import { type Blockchain } from '@/lib/oracles';
@@ -112,15 +113,7 @@ export function PriceComparisonTable({ data }: PriceComparisonTableProps) {
       sortable: true,
       formatter: (value: unknown) => {
         const price = value as number;
-        return (
-          <span className="font-mono text-sm text-gray-900">
-            $
-            {price.toLocaleString(undefined, {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 4,
-            })}
-          </span>
-        );
+        return <span className="font-mono text-sm text-gray-900">${formatPrice(price)}</span>;
       },
     },
     {
