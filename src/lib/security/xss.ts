@@ -1,3 +1,5 @@
+import DOMPurify from 'dompurify';
+
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('xss-protection');
@@ -46,6 +48,25 @@ const HTML_ENTITY_MAP: Record<string, string> = {
   '=': '&#x3D;',
 };
 
+export const XSS_PATTERNS = {
+  SCRIPT_OPEN: /<script[^>]*>/i,
+  SCRIPT_CLOSE: /<\/script>/i,
+  SCRIPT_SELF_CLOSING: /<script[^>]*\/>/i,
+  JAVASCRIPT_PROTOCOL: /javascript:/i,
+  ON_EVENT_HANDLER: /on\w+\s*=/i,
+  IFRAME: /<iframe/i,
+  OBJECT: /<object/i,
+  EMBED: /<embed/i,
+  FORM: /<form/i,
+  SVG_ONLOAD: /<svg[^>]*onload=/i,
+  IMG_SRC: /<img[^>]*src=/i,
+  DATA_URL_HTML: /data:text\/html/i,
+  SVG_TAG: /<svg[^>]*>/i,
+  MATH_TAG: /<math[^>]*>/i,
+  STYLE_TAG: /<style[^>]*>/i,
+  EXPRESSION: /expression\s*\(/i,
+} as const;
+
 export function encodeHtmlEntities(input: string): string {
   return input.replace(/[&<>"'`=\/]/g, (char) => HTML_ENTITY_MAP[char] || char);
 }
@@ -80,6 +101,11 @@ export function sanitizeHtml(input: string, options: XSSProtectionOptions = {}):
       const allowedPattern = new RegExp(`<(?!/?(?:${opts.allowedTags.join('|')})\\b)[^>]*>`, 'gi');
       sanitized = sanitized.replace(allowedPattern, '');
     } else {
+      sanitized = DOMPurify.sanitize(sanitized, {
+        ALLOWED_TAGS: [],
+        ALLOWED_ATTR: [],
+        ALLOW_DATA_ATTR: false,
+      });
       sanitized = stripHtmlTags(sanitized);
     }
   }
@@ -143,16 +169,18 @@ export function detectXss(input: string): boolean {
   }
 
   const xssPatterns = [
-    /<script[^>]*>.*?<\/script>/i,
-    /<script[^>]*\/>/i,
-    /javascript:/i,
-    /on\w+\s*=/i,
-    /<iframe/i,
-    /<object/i,
-    /<embed/i,
-    /<form/i,
-    /data:text\/html/i,
-    /expression\s*\(/i,
+    XSS_PATTERNS.SCRIPT_OPEN,
+    XSS_PATTERNS.SCRIPT_SELF_CLOSING,
+    XSS_PATTERNS.JAVASCRIPT_PROTOCOL,
+    XSS_PATTERNS.ON_EVENT_HANDLER,
+    XSS_PATTERNS.IFRAME,
+    XSS_PATTERNS.OBJECT,
+    XSS_PATTERNS.EMBED,
+    XSS_PATTERNS.FORM,
+    XSS_PATTERNS.SVG_ONLOAD,
+    XSS_PATTERNS.IMG_SRC,
+    XSS_PATTERNS.DATA_URL_HTML,
+    XSS_PATTERNS.EXPRESSION,
   ];
 
   return xssPatterns.some((pattern) => pattern.test(input));
@@ -238,3 +266,5 @@ export function sanitizeObject<T extends Record<string, unknown>>(
 
   return sanitized;
 }
+
+export { detectXss as xssDetect };

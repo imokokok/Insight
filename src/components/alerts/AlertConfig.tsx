@@ -36,7 +36,7 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
   const [showMuteSettings, setShowMuteSettings] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const { createAlert, isCreating } = useCreateAlert();
+  const { createAlert, isPending: isCreating } = useCreateAlert();
 
   const symbolOptions: SelectorOption<string>[] = useMemo(
     () => symbols.map((s) => ({ value: s, label: s })),
@@ -137,18 +137,16 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
         is_active: isActive,
       };
 
-      const { alert, error: createError } = await createAlert(input);
-
-      if (createError) {
-        setError(createError.message);
-        return;
-      }
-
-      if (alert) {
-        setTargetValue('');
-        setAlertName('');
-        setError(null);
-        onAlertCreated?.();
+      try {
+        const alert = await createAlert(input);
+        if (alert) {
+          setTargetValue('');
+          setAlertName('');
+          setError(null);
+          onAlertCreated?.();
+        }
+      } catch (err) {
+        setError((err as Error).message);
       }
     },
     [

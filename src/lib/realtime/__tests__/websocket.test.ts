@@ -4,6 +4,7 @@ import WebSocketManager, {
   type WebSocketStatus,
   type WebSocketMessage,
   calculateBackoffDelay,
+  createWebSocketHook,
 } from '../websocket';
 
 interface MockWebSocketInstance {
@@ -1911,5 +1912,86 @@ describe('MockWebSocketManager', () => {
         throttleCount: 0,
       });
     });
+  });
+});
+
+describe('createWebSocketHook Callback Stabilization', () => {
+  let originalWebSocket: typeof WebSocket;
+  let mockWsInstance: MockWebSocketInstance;
+  let wsInstances: MockWebSocketInstance[];
+
+  beforeEach(() => {
+    jest.useFakeTimers();
+    wsInstances = [];
+
+    originalWebSocket = global.WebSocket;
+
+    const MockWebSocket = class {
+      static CONNECTING = 0;
+      static OPEN = 1;
+      static CLOSING = 2;
+      static CLOSED = 3;
+
+      readyState = MockWebSocket.OPEN;
+      onopen: ((event: Event) => void) | null = null;
+      onclose: ((event: CloseEvent) => void) | null = null;
+      onmessage: ((event: MessageEvent) => void) | null = null;
+      onerror: ((event: Event) => void) | null = null;
+      send = jest.fn();
+      close = jest.fn(() => {
+        this.readyState = MockWebSocket.CLOSED;
+      });
+
+      constructor(public url: string) {
+        mockWsInstance = this as unknown as MockWebSocketInstance;
+        wsInstances.push(mockWsInstance);
+      }
+    };
+
+    global.WebSocket = MockWebSocket as unknown as typeof WebSocket;
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+    global.WebSocket = originalWebSocket;
+  });
+
+  it('should not recreate manager when callback references change', () => {
+    const hook = createWebSocketHook({ url: 'ws://test.example.com' });
+
+    let renderCount = 0;
+
+    const TestComponent: React.FC<{ onConnect?: () => void }> = ({ onConnect }) => {
+      hook({ autoConnect: false, onConnect });
+      renderCount++;
+
+      return null;
+    };
+
+    const onConnect1 = jest.fn();
+    const onConnect2 = jest.fn();
+
+    TestComponent({ onConnect: onConnect1 });
+    TestComponent({ onConnect: onConnect2 });
+
+    expect(renderCount).toBe(2);
+  });
+
+  it('should preserve callback refs across re-renders without reconnecting', () => {
+    const hook = createWebSocketHook({ url: 'ws://test.example.com' });
+
+    const onConnect1 = jest.fn();
+    const onConnect2 = jest.fn();
+
+    hook({ autoConnect: true, onConnect: onConnect1 });
+    const wsInstance1 = wsInstances[wsInstances.length - 1];
+
+    hook({ autoConnect: true, onConnect: onConnect2 });
+
+    wsInstance1.onopen?.(new Event('open'));
+
+    expect(wsInstances.length).toBe(1);
+    expect(onConnect1).toHaveBeenCalledTimes(1);
+    expect(onConnect2).toHaveBeenCalledTimes(1);
   });
 });

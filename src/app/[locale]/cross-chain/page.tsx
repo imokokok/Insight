@@ -22,7 +22,7 @@ import { LiveStatusBar, SegmentedControl } from '@/components/ui';
 import type { FavoriteConfig } from '@/hooks';
 import { useTranslations } from '@/i18n';
 import { baseColors, semanticColors, chartColors } from '@/lib/config/colors';
-import { useColorblindMode, useSetColorblindMode } from '@/stores/crossChainStore';
+import { useColorblindMode, useSetColorblindMode } from '@/stores/crossChainConfigStore';
 import { Blockchain } from '@/types/oracle';
 
 import { BenchmarkComparisonSection } from './components/BenchmarkComparisonSection';

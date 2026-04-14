@@ -37,8 +37,8 @@ export function AlertList({ alerts, isLoading, onRefresh }: AlertListProps) {
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [selectedAlerts, setSelectedAlerts] = useState<string[]>([]);
 
-  const { updateAlert, isUpdating } = useUpdateAlert();
-  const { deleteAlert, isDeleting } = useDeleteAlert();
+  const { updateAlert, isPending: isUpdating } = useUpdateAlert();
+  const { deleteAlert, isPending: isDeleting } = useDeleteAlert();
   const { batchOperation, isProcessing: isBatchProcessing } = useBatchAlerts();
 
   const parentRef = useRef<HTMLDivElement>(null);

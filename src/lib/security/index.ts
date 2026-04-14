@@ -10,6 +10,7 @@ export {
   sanitizeChain,
   sanitizeEmail,
   sanitizeUuid,
+  detectXss,
   type SanitizationOptions,
 } from './inputSanitizer';
 export * from './csrf';
@@ -28,7 +29,8 @@ export {
   sanitizeForCss,
   createXSSProtectionHeaders,
   applyXSSProtectionHeaders,
+  detectXss as xssDetect,
+  XSS_PATTERNS,
   type XSSProtectionOptions,
-  detectXss,
 } from './xss';
 export * from './validation';

@@ -10,7 +10,7 @@ import { chainColors as configChainColors } from '@/lib/config/colors';
 import { getPriceOracleProvidersSortedByMarketCap } from '@/lib/config/oracles';
 import { type OracleProvider, Blockchain } from '@/lib/oracles';
 import { isBlockchain } from '@/lib/utils/chainUtils';
-import { useCrossChainStore } from '@/stores/crossChainStore';
+import { useCrossChainConfigStore } from '@/stores/crossChainConfigStore';
 
 import { TIME_RANGES, providerNames, chainNames, symbols } from '../constants';
 import { type useCrossChainData } from '../useCrossChainData';
@@ -44,8 +44,8 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
     recommendedBaseChain,
   } = data;
 
-  const thresholdConfig = useCrossChainStore((state) => state.thresholdConfig);
-  const setThresholdConfig = useCrossChainStore((state) => state.setThresholdConfig);
+  const thresholdConfig = useCrossChainConfigStore((state) => state.thresholdConfig);
+  const setThresholdConfig = useCrossChainConfigStore((state) => state.setThresholdConfig);
 
   const providerOptions = getPriceOracleProvidersSortedByMarketCap().map((provider) => ({
     value: provider,

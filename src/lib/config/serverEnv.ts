@@ -1,5 +1,7 @@
 import { createLogger } from '@/lib/utils/logger';
 
+import { FEATURE_FLAGS } from './featureFlags';
+
 const logger = createLogger('ServerEnv');
 
 /**
@@ -43,12 +45,8 @@ export const API3_CONFIG = {
   wsUrl: process.env.API3_WS_URL || 'wss://ws.api3.org',
 };
 
-// 功能开关
-export const FEATURE_FLAGS = {
-  useRealWinklinkData: process.env.USE_REAL_WINKLINK_DATA === 'true',
-  useRealChainlinkData: process.env.USE_REAL_CHAINLINK_DATA === 'true',
-  useRealApi3Data: process.env.USE_REAL_API3_DATA === 'true',
-};
+// 功能开关 - 从 featureFlags 重新导出以保持向后兼容
+export { FEATURE_FLAGS } from './featureFlags';
 
 // 缓存配置
 export const CACHE_CONFIG = {

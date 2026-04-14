@@ -603,6 +603,11 @@ export interface UseWebSocketOptions {
   channels?: string[];
   autoConnect?: boolean;
   useMock?: boolean;
+  onMessage?: <T = unknown>(message: WebSocketMessage<T>) => void;
+  onStatusChange?: StatusHandler;
+  onConnect?: () => void;
+  onDisconnect?: () => void;
+  onError?: (error: Error) => void;
   onPerformanceMetrics?: (metrics: PerformanceMetrics) => void;
 }
 
@@ -613,10 +618,22 @@ export function createWebSocketHook(defaultConfig: WebSocketConfig) {
       channels = [],
       autoConnect = true,
       useMock = false,
+      onMessage,
+      onStatusChange,
+      onConnect,
+      onDisconnect,
+      onError,
       onPerformanceMetrics,
     } = options;
 
     const managerRef = useRef<WebSocketManager | null>(null);
+    const onPerformanceMetricsRef = useRef(onPerformanceMetrics);
+    const onMessageRef = useRef(onMessage);
+    const onStatusChangeRef = useRef(onStatusChange);
+    const onConnectRef = useRef(onConnect);
+    const onDisconnectRef = useRef(onDisconnect);
+    const onErrorRef = useRef(onError);
+
     const [status, setStatus] = useState<WebSocketStatus>('disconnected');
     const [lastMessage, setLastMessage] = useState<WebSocketMessage<T> | null>(null);
     const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
@@ -630,18 +647,52 @@ export function createWebSocketHook(defaultConfig: WebSocketConfig) {
     });
 
     useEffect(() => {
+      onPerformanceMetricsRef.current = onPerformanceMetrics;
+    }, [onPerformanceMetrics]);
+
+    useEffect(() => {
+      onMessageRef.current = onMessage;
+    }, [onMessage]);
+
+    useEffect(() => {
+      onStatusChangeRef.current = onStatusChange;
+    }, [onStatusChange]);
+
+    useEffect(() => {
+      onConnectRef.current = onConnect;
+    }, [onConnect]);
+
+    useEffect(() => {
+      onDisconnectRef.current = onDisconnect;
+    }, [onDisconnect]);
+
+    useEffect(() => {
+      onErrorRef.current = onError;
+    }, [onError]);
+
+    useEffect(() => {
       const ManagerClass = useMock ? MockWebSocketManager : WebSocketManager;
       managerRef.current = new ManagerClass({
         ...defaultConfig,
         url,
         onPerformanceMetrics: (metrics) => {
           setPerformanceMetrics(metrics);
-          onPerformanceMetrics?.(metrics);
+          onPerformanceMetricsRef.current?.(metrics);
+        },
+        onConnect: () => {
+          onConnectRef.current?.();
+        },
+        onDisconnect: () => {
+          onDisconnectRef.current?.();
+        },
+        onError: (error) => {
+          onErrorRef.current?.(error);
         },
       });
 
       const unsubscribeStatus = managerRef.current.onStatusChange((newStatus) => {
         setStatus(newStatus);
+        onStatusChangeRef.current?.(newStatus);
       });
 
       if (autoConnect) {
@@ -652,7 +703,7 @@ export function createWebSocketHook(defaultConfig: WebSocketConfig) {
         unsubscribeStatus();
         managerRef.current?.disconnect();
       };
-    }, [url, autoConnect, useMock, onPerformanceMetrics]);
+    }, [url, autoConnect, useMock]);
 
     const channelsKey = useMemo(() => channels.join(','), [channels]);
 
@@ -665,6 +716,7 @@ export function createWebSocketHook(defaultConfig: WebSocketConfig) {
         const unsubscribe = managerRef.current!.subscribe<T>(channel, (message) => {
           setLastMessage(message);
           setLastUpdated(new Date());
+          onMessageRef.current?.(message);
         });
         unsubscribes.push(unsubscribe);
       });

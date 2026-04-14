@@ -1,4 +1,5 @@
-import { OracleCache } from '../base';
+/* eslint-disable max-lines-per-function */
+import { OracleCache, MAX_CACHE_SIZE } from '../base';
 
 describe('OracleCache', () => {
   let cache: OracleCache;
@@ -9,6 +10,7 @@ describe('OracleCache', () => {
   });
 
   afterEach(() => {
+    cache.stopCleanupInterval();
     jest.useRealTimers();
   });
 
@@ -546,12 +548,16 @@ describe('OracleCache', () => {
     });
 
     it('should handle circular reference objects', () => {
-      const circular: any = { name: 'circular' };
+      interface CircularRef {
+        name: string;
+        self?: CircularRef;
+      }
+      const circular: CircularRef = { name: 'circular' };
       circular.self = circular;
 
       cache.set('circular', circular, 1000);
 
-      const result = cache.get<typeof circular>('circular');
+      const result = cache.get<CircularRef>('circular');
       expect(result).toBeDefined();
       expect(result!.name).toBe('circular');
     });
@@ -741,6 +747,137 @@ describe('OracleCache', () => {
 
       expect(cache.size()).toBe(0);
       expect(endTime - startTime).toBeLessThan(10);
+    });
+  });
+
+  describe('MAX_CACHE_SIZE Tests', () => {
+    it('should export MAX_CACHE_SIZE constant', () => {
+      expect(MAX_CACHE_SIZE).toBe(1000);
+    });
+
+    it('should respect cache size limit', () => {
+      jest.useFakeTimers();
+
+      for (let i = 0; i < MAX_CACHE_SIZE + 100; i++) {
+        cache.set(`key-${i}`, { data: i }, 10000);
+      }
+
+      expect(cache.size()).toBeLessThanOrEqual(MAX_CACHE_SIZE);
+
+      jest.useRealTimers();
+    });
+
+    it('should evict oldest expired entries first when cache is full', () => {
+      jest.useFakeTimers();
+
+      cache.set('expired1', { data: 'expired1' }, 100);
+      cache.set('expired2', { data: 'expired2' }, 100);
+      cache.set('valid1', { data: 'valid1' }, 10000);
+      cache.set('valid2', { data: 'valid2' }, 10000);
+
+      jest.advanceTimersByTime(150);
+
+      for (let i = 0; i < MAX_CACHE_SIZE - 2; i++) {
+        cache.set(`fill-${i}`, { data: i }, 10000);
+      }
+
+      expect(cache.get('expired1')).toBeNull();
+      expect(cache.get('expired2')).toBeNull();
+      expect(cache.get('valid1')).toEqual({ data: 'valid1' });
+      expect(cache.get('valid2')).toEqual({ data: 'valid2' });
+
+      jest.useRealTimers();
+    });
+
+    it('should evict oldest non-expired entry when no expired entries exist', () => {
+      for (let i = 0; i < 10; i++) {
+        cache.set(`key-${i}`, { data: i }, 10000);
+      }
+
+      const initialSize = cache.size();
+      expect(initialSize).toBe(10);
+
+      for (let i = 10; i < MAX_CACHE_SIZE + 1; i++) {
+        cache.set(`new-${i}`, { data: i }, 10000);
+      }
+
+      expect(cache.size()).toBeLessThanOrEqual(MAX_CACHE_SIZE);
+
+      const evictedKeys: string[] = [];
+      for (let i = 0; i < 10; i++) {
+        const result = cache.get(`key-${i}`);
+        if (result === null) {
+          evictedKeys.push(`key-${i}`);
+        }
+      }
+
+      expect(evictedKeys.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('Periodic Cleanup Tests', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('should start cleanup interval', () => {
+      cache.startCleanupInterval();
+      expect(cache['cleanupInterval']).not.toBeNull();
+    });
+
+    it('should not start multiple cleanup intervals', () => {
+      cache.startCleanupInterval();
+      const firstInterval = cache['cleanupInterval'];
+      cache.startCleanupInterval();
+      expect(cache['cleanupInterval']).toBe(firstInterval);
+    });
+
+    it('should stop cleanup interval', () => {
+      cache.startCleanupInterval();
+      cache.stopCleanupInterval();
+      expect(cache['cleanupInterval']).toBeNull();
+    });
+
+    it('should cleanup expired entries on interval', () => {
+      cache.set('expired', { data: 1 }, 1000);
+      cache.set('valid', { data: 2 }, 60000);
+
+      cache.startCleanupInterval();
+
+      jest.advanceTimersByTime(1500);
+
+      expect(cache.get('expired')).toBeNull();
+      expect(cache.get('valid')).toEqual({ data: 2 });
+
+      cache.stopCleanupInterval();
+    });
+
+    it('should call cleanup every 60 seconds', () => {
+      const cleanupSpy = jest.spyOn(cache, 'cleanup');
+
+      cache.startCleanupInterval();
+
+      jest.advanceTimersByTime(60000);
+      expect(cleanupSpy).toHaveBeenCalledTimes(1);
+
+      jest.advanceTimersByTime(60000);
+      expect(cleanupSpy).toHaveBeenCalledTimes(2);
+
+      cache.stopCleanupInterval();
+      cleanupSpy.mockRestore();
+    });
+
+    it('should stop interval on clear', () => {
+      cache.startCleanupInterval();
+      expect(cache['cleanupInterval']).not.toBeNull();
+
+      cache.clear();
+
+      expect(cache['cleanupInterval']).toBeNull();
     });
   });
 });

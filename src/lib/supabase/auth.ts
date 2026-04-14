@@ -36,8 +36,8 @@ export interface UserProfile {
     push_notifications?: boolean;
     alert_frequency?: 'immediate' | 'hourly' | 'daily';
   };
-  created_at?: string;
-  updated_at?: string;
+  created_at?: string | Date;
+  updated_at?: string | Date;
 }
 
 export async function signUp(
