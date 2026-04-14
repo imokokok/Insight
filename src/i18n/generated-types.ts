@@ -2,5485 +2,5220 @@
 // DO NOT EDIT MANUALLY - changes will be overwritten
 
 export type IntlMessages = {
-  common: {
-    arbitrageHeatmap: {
-      searchPlaceholder: string;
-    };
-    multiSourceAggregation: string;
-    cryptographicVerification: string;
-    anomalyDetection: {
-      reasons: {
-        severeDeviation: string;
-        highVolatility: string;
-        dataSourceDifference: string;
-        severelyDelayed: string;
-        delayed: string;
-        lowConfidence: string;
-        mediumConfidence: string;
-        overThreshold: string;
-        minorDeviation: string;
+    'common': {
+      'arbitrageHeatmap': {
+        'searchPlaceholder': string;
       };
-    };
-    decentralizedGovernance: string;
-    continuousAuditing: string;
-    incidentResponse: string;
-    permanentStorage: string;
-    multiProviderAggregation: string;
-    modularArchitecture: string;
-    realTimeMonitoring: string;
-    publisherStaking: string;
-    confidenceIntervals: string;
-    slashingConditions: string;
-    multiNodeConsensus: string;
-    nodeStaking: string;
-    crossChainRedundancy: string;
-    securityAudit: string;
-    tendermintConsensus: string;
-    validatorSlashing: string;
-    ibcSecurity: string;
-    continuousMonitoring: string;
-    disputeResolution: {
-      showOverallTrend: string;
-      groupByType: string;
-      filterByType: string;
-      searchId: string;
-      enterDisputeId: string;
-      clear: string;
-      type: string;
-      reward: string;
-      transaction: string;
-      viewOnChain: string;
-      showing: string;
-      firstPage: string;
-      previousPage: string;
-      nextPage: string;
-      lastPage: string;
-      jumpTo: string;
-      page: string;
-    };
-    validatorPanel: {
-      title: string;
-      subtitle: string;
-      loading: string;
-      filtered: string;
-      totalStaked: string;
-      rank: string;
-      stakeAmount: string;
-      commissionRate: string;
-      uptime: string;
-      statusLabel: string;
-      all: string;
-      status: {
-        active: string;
-        jailed: string;
-      };
-      quickFilter: string;
-      lowCommission: string;
-      highStake: string;
-      highUptime: string;
-      selectedForComparison: string;
-      clearSelection: string;
-      region: {
-        northAmerica: string;
-        europe: string;
-        asia: string;
-        other: string;
-      };
-    };
-    regions: {
-      northAmerica: string;
-      europe: string;
-      asia: string;
-      other: string;
-    };
-    user: string;
-    actions: {
-      refresh: string;
-      export: string;
-      cancel: string;
-      save: string;
-      delete: string;
-      deleting: string;
-      edit: string;
-      apply: string;
-      retry: string;
-      confirm: string;
-      clear: string;
-      close: string;
-      reset: string;
-      zoomIn: string;
-      zoomOut: string;
-      viewFullscreen: string;
-      search: string;
-      more: string;
-    };
-    forms: {
-      exportData: string;
-      noDataToExport: string;
-    };
-    status: {
-      loading: string;
-      noData: string;
-      success: string;
-      error: string;
-      live: string;
-      online: string;
-      offline: string;
-    };
-    consistency: {
-      excellent: string;
-      good: string;
-      fair: string;
-      poor: string;
-    };
-    activity: {
-      active: string;
-      inactive: string;
-      degraded: string;
-    };
-    alert: {
-      normal: string;
-      warning: string;
-      critical: string;
-    };
-    time: {
-      lastUpdated: string;
-      justNow: string;
-      secondsAgo: string;
-      minutesAgo: string;
-      hoursAgo: string;
-      daysAgo: string;
-      inSeconds: string;
-      inMinutes: string;
-      inHours: string;
-      inDays: string;
-      seconds: string;
-      minutes: string;
-      hours: string;
-      '00:00': string;
-      '06:00': string;
-      '12:00': string;
-      '18:00': string;
-      '23:59': string;
-    };
-    timeAgo: {
-      minutes: string;
-      hours: string;
-      days: string;
-    };
-    price: {
-      title: string;
-    };
-    statistics: {
-      deviation: string;
-      standardDeviation: string;
-      median: string;
-      average: string;
-      variance: string;
-    };
-    chains: {
-      ethereum: string;
-      arbitrum: string;
-      optimism: string;
-      polygon: string;
-      base: string;
-      avalanche: string;
-      starknet: string;
-      blast: string;
-      cardano: string;
-      polkadot: string;
-      kava: string;
-      moonbeam: string;
-      starkex: string;
-    };
-    filters: {
-      filter: string;
-      clearAll: string;
-      currentFilters: string;
-      noFilters: string;
-      filtersApplied: string;
-      all: string;
-    };
-    deviation: {
-      all: string;
-      excellent: string;
-      good: string;
-      poor: string;
-    };
-    frequency: {
-      daily: string;
-      monthly: string;
-      weekly: string;
-      yearly: string;
-    };
-    importance: {
-      high: string;
-      medium: string;
-      low: string;
-    };
-    days: {
-      '0': string;
-      '1': string;
-      '2': string;
-      '3': string;
-      '4': string;
-      '5': string;
-      '6': string;
-    };
-    locale: string;
-    favorite: string;
-    favorited: string;
-    export: {
-      resolution: {
-        standard: string;
-        high: string;
-        ultra: string;
-      };
-      progress: {
-        preparingCSV: string;
-        preparingJSON: string;
-        preparingChart: string;
-        preparingSVG: string;
-        preparingPDF: string;
-        preparingBatch: string;
-        processingData: string;
-        processingChart: string;
-        exportingChart: string;
-        cloningSVG: string;
-        serializingSVG: string;
-        serializingData: string;
-        renderingImage: string;
-        generatingFile: string;
-        generatingPNG: string;
-        generatingZIP: string;
-        savingPDF: string;
-        completed: string;
-        pdfCompleted: string;
-        batchCompleted: string;
-        allChartsCompleted: string;
-        chartPrefix: string;
-      };
-      formats: {
-        csvDescription: string;
-        jsonDescription: string;
-        excelDescription: string;
-        pngDescription: string;
-        svgDescription: string;
-        pdfDescription: string;
-      };
-    };
-    clear: string;
-    marketDataPanel: {
-      marketCap: string;
-      volume24h: string;
-      circulatingSupply: string;
-      ofTotalSupply: string;
-      fullyDilutedValuation: string;
-      atCurrentPrice: string;
-      marketCapRank: string;
-      amongAllCryptocurrencies: string;
-      supplyRatio: string;
-      loading: string;
-      lastUpdated: string;
-      '24hHigh': string;
-      '24hLow': string;
-    };
-    confidenceScore: {
-      title: string;
-      subtitle: string;
-      loading: string;
-    };
-    nodeReputation: {
-      title: string;
-      loading: string;
-    };
-    crossChainPanel: {
-      loadingCrossChainData: string;
-    };
-    priceDeviation: {
-      loading: string;
-    };
-    uma: {
-      loading: string;
-    };
-    home: {
-      loading: string;
-    };
-    common: {
-      totalValueLockedEcosystem: string;
-      distributionProjectsNetworks: string;
-      keyPerformanceIndicators: string;
-      refresh: string;
-      export: string;
-      noData: string;
-      loading: string;
-      expand: string;
-      collapse: string;
-      close: string;
-    };
-    comparison: {
-      benchmark: {
-        industryAverage: string;
-        marketLeader: string;
-        gap: string;
-      };
-      oracleComparison: {
-        medianPrice: string;
-        oracle: string;
-        price: string;
-      };
-    };
-    indicators: {
-      title: string;
-    };
-    crossOracleComparison: {
-      title: string;
-      subtitle: string;
-    };
-    chainComparison: {
-      title: string;
-    };
-    snapshot: {
-      title: string;
-      savedCount: string;
-      cloudLabel: string;
-      saveSnapshot: string;
-    };
-    gasFeeComparison: {
-      title: string;
-    };
-    crossChainPriceConsistency: {
-      title: string;
-    };
-    confidenceInterval: {
-      title: string;
-      bid: string;
-      ask: string;
-      spread: string;
-      bidLabel: string;
-      askLabel: string;
-      width: string;
-      threshold: string;
-    };
-    updateFrequency: {
-      title: string;
-    };
-    stakingMetrics: {
-      title: string;
-    };
-    publisherContribution: {
-      title: string;
-      subtitle: string;
-    };
-    coveragePool: {
-      title: string;
-    };
-    confidenceAlert: {
-      title: string;
-    };
-    volatilityAlert: {
-      title: string;
-    };
-    requestTypeDistribution: {
-      title: string;
-      subtitle: string;
-    };
-    realtimeUpdate: {
-      title: string;
-    };
-    oraclePerformanceRanking: {
-      title: string;
-      subtitle: string;
-    };
-    latencyAnalysis: {
-      title: string;
-      subtitle: string;
-    };
-    integratedProtocols: {
-      title: string;
-    };
-    dataSourceCoverage: {
-      title: string;
-    };
-    dataQualityScoreCard: {
-      title: string;
-      subtitle: string;
-    };
-    stakingDistribution: {
-      title: string;
-    };
-    requestTrend: {
-      title: string;
-      loading: string;
-    };
-    priceVolatility: {
-      title: string;
-    };
-    priceDistribution: {
-      title: string;
-      legend: {
-        title: string;
-        box: string;
-        median: string;
-        whisker: string;
-        outlier: string;
-      };
-      stats: {
-        title: string;
-        oracle: string;
-        median: string;
-        q1: string;
-        q3: string;
-        iqr: string;
-        outliers: string;
-      };
-    };
-    priceDeviationHeatmap: {
-      title: string;
-    };
-    priceCorrelation: {
-      title: string;
-      legend: {
-        title: string;
-        perfectNegative: string;
-        negative: string;
-        none: string;
-        positive: string;
-        perfectPositive: string;
-        lowCorrelation: string;
-        highCorrelation: string;
-      };
-      oracleCount: string;
-      highCorrelationPairs: string;
-      avgCorrelation: string;
-      maxCorrelation: string;
-      minCorrelation: string;
-      highCorrelationCount: string;
-      correlationCoefficient: string;
-      correlationLevel: string;
-      correlationDirection: string;
-      positiveCorrelation: string;
-      negativeCorrelation: string;
-      noCorrelation: string;
-      distribution: {
-        title: string;
-        topPairs: string;
-      };
-      explanation: {
-        title: string;
-        description: string;
-      };
-      level: {
-        veryStrong: string;
-        strong: string;
-        moderate: string;
-        weak: string;
-        veryWeak: string;
-      };
-    };
-    crossChainRisk: {
-      title: string;
-    };
-    crossChainPriceComparison: {
-      title: string;
-      priceDiff: string;
-      avgPrice: string;
-      highestPrice: string;
-      lowestPrice: string;
-      allChains: string;
-      confidence: string;
-      high: string;
-      low: string;
-      normal: string;
-      noData: string;
-    };
-    concentrationRisk: {
-      title: string;
-    };
-    cdfChart: {
-      title: string;
-      subtitle: string;
-    };
-    oracleCommon: {
-      performanceGauge: {
-        levels: {
-          excellent: string;
-          good: string;
-          warning: string;
-          danger: string;
-        };
-        timesPerMinute: string;
-        range: string;
-      };
-      dataFreshness: {
-        title: string;
-        refresh: string;
-        lastUpdated: string;
-        stale: string;
-      };
-      riskScore: {
-        levels: {
-          low: string;
-          medium: string;
-          high: string;
+      'multiSourceAggregation': string;
+      'cryptographicVerification': string;
+      'anomalyDetection': {
+        'reasons': {
+          'severeDeviation': string;
+          'highVolatility': string;
+          'dataSourceDifference': string;
+          'severelyDelayed': string;
+          'delayed': string;
+          'lowConfidence': string;
+          'mediumConfidence': string;
+          'overThreshold': string;
+          'minorDeviation': string;
         };
       };
-      mitigationMeasures: {
-        title: string;
-        noMeasures: string;
-        effectivenessLabel: string;
-        types: {
-          technical: string;
-          governance: string;
-          operational: string;
+      'decentralizedGovernance': string;
+      'continuousAuditing': string;
+      'incidentResponse': string;
+      'permanentStorage': string;
+      'multiProviderAggregation': string;
+      'modularArchitecture': string;
+      'realTimeMonitoring': string;
+      'publisherStaking': string;
+      'confidenceIntervals': string;
+      'slashingConditions': string;
+      'multiNodeConsensus': string;
+      'nodeStaking': string;
+      'crossChainRedundancy': string;
+      'securityAudit': string;
+      'tendermintConsensus': string;
+      'validatorSlashing': string;
+      'ibcSecurity': string;
+      'continuousMonitoring': string;
+      'disputeResolution': {
+        'showOverallTrend': string;
+        'groupByType': string;
+        'filterByType': string;
+        'searchId': string;
+        'enterDisputeId': string;
+        'clear': string;
+        'type': string;
+        'reward': string;
+        'transaction': string;
+        'viewOnChain': string;
+        'showing': string;
+        'firstPage': string;
+        'previousPage': string;
+        'nextPage': string;
+        'lastPage': string;
+        'jumpTo': string;
+        'page': string;
+      };
+      'validatorPanel': {
+        'title': string;
+        'subtitle': string;
+        'loading': string;
+        'filtered': string;
+        'totalStaked': string;
+        'rank': string;
+        'stakeAmount': string;
+        'commissionRate': string;
+        'uptime': string;
+        'statusLabel': string;
+        'all': string;
+        'status': {
+          'active': string;
+          'jailed': string;
         };
-        status: {
-          active: string;
-          inactive: string;
-        };
-        effectiveness: {
-          high: string;
-          medium: string;
-          low: string;
-        };
-      };
-      securityTimeline: {
-        title: string;
-        noEvents: string;
-        types: {
-          upgrade: string;
-          vulnerability: string;
-          response: string;
-          maintenance: string;
-        };
-        status: {
-          resolved: string;
-          monitoring: string;
+        'quickFilter': string;
+        'lowCommission': string;
+        'highStake': string;
+        'highUptime': string;
+        'selectedForComparison': string;
+        'clearSelection': string;
+        'region': {
+          'northAmerica': string;
+          'europe': string;
+          'asia': string;
+          'other': string;
         };
       };
-      stakingCalculator: {
-        title: string;
-        stakeAmount: string;
-        stakeAmountPlaceholder: string;
-        validatorType: string;
-        validatorTypes: {
-          institution: string;
-          independent: string;
-          community: string;
+      'regions': {
+        'northAmerica': string;
+        'europe': string;
+        'asia': string;
+        'other': string;
+      };
+      'user': string;
+      'actions': {
+        'refresh': string;
+        'export': string;
+        'cancel': string;
+        'save': string;
+        'delete': string;
+        'deleting': string;
+        'edit': string;
+        'apply': string;
+        'retry': string;
+        'confirm': string;
+        'clear': string;
+        'close': string;
+        'reset': string;
+        'zoomIn': string;
+        'zoomOut': string;
+        'viewFullscreen': string;
+        'search': string;
+        'more': string;
+      };
+      'forms': {
+        'exportData': string;
+        'noDataToExport': string;
+      };
+      'status': {
+        'loading': string;
+        'noData': string;
+        'success': string;
+        'error': string;
+        'live': string;
+        'online': string;
+        'offline': string;
+      };
+      'consistency': {
+        'excellent': string;
+        'good': string;
+        'fair': string;
+        'poor': string;
+      };
+      'activity': {
+        'active': string;
+        'inactive': string;
+        'degraded': string;
+      };
+      'alert': {
+        'normal': string;
+        'warning': string;
+        'critical': string;
+      };
+      'time': {
+        'lastUpdated': string;
+        'justNow': string;
+        'secondsAgo': string;
+        'minutesAgo': string;
+        'hoursAgo': string;
+        'daysAgo': string;
+        'inSeconds': string;
+        'inMinutes': string;
+        'inHours': string;
+        'inDays': string;
+        'seconds': string;
+        'minutes': string;
+        'hours': string;
+        '00:00': string;
+        '06:00': string;
+        '12:00': string;
+        '18:00': string;
+        '23:59': string;
+      };
+      'timeAgo': {
+        'minutes': string;
+        'hours': string;
+        'days': string;
+      };
+      'price': {
+        'title': string;
+      };
+      'statistics': {
+        'deviation': string;
+        'standardDeviation': string;
+        'median': string;
+        'average': string;
+        'variance': string;
+      };
+      'chains': {
+        'ethereum': string;
+        'arbitrum': string;
+        'optimism': string;
+        'polygon': string;
+        'base': string;
+        'avalanche': string;
+        'starknet': string;
+        'blast': string;
+        'cardano': string;
+        'polkadot': string;
+        'kava': string;
+        'moonbeam': string;
+        'starkex': string;
+      };
+      'filters': {
+        'filter': string;
+        'clearAll': string;
+        'currentFilters': string;
+        'noFilters': string;
+        'filtersApplied': string;
+        'all': string;
+      };
+      'deviation': {
+        'all': string;
+        'excellent': string;
+        'good': string;
+        'poor': string;
+      };
+      'frequency': {
+        'daily': string;
+        'monthly': string;
+        'weekly': string;
+        'yearly': string;
+      };
+      'importance': {
+        'high': string;
+        'medium': string;
+        'low': string;
+      };
+      'days': {
+        '0': string;
+        '1': string;
+        '2': string;
+        '3': string;
+        '4': string;
+        '5': string;
+        '6': string;
+      };
+      'locale': string;
+      'favorite': string;
+      'favorited': string;
+      'export': {
+        'resolution': {
+          'standard': string;
+          'high': string;
+          'ultra': string;
         };
-        disputeFrequency: string;
-        disputeFrequencies: {
-          low: string;
-          medium: string;
-          high: string;
+        'progress': {
+          'preparingCSV': string;
+          'preparingJSON': string;
+          'preparingChart': string;
+          'preparingSVG': string;
+          'preparingPDF': string;
+          'preparingBatch': string;
+          'processingData': string;
+          'processingChart': string;
+          'exportingChart': string;
+          'cloningSVG': string;
+          'serializingSVG': string;
+          'serializingData': string;
+          'renderingImage': string;
+          'generatingFile': string;
+          'generatingPNG': string;
+          'generatingZIP': string;
+          'savingPDF': string;
+          'completed': string;
+          'pdfCompleted': string;
+          'batchCompleted': string;
+          'allChartsCompleted': string;
+          'chartPrefix': string;
         };
-        estimatedRewards: string;
-        daily: string;
-        monthly: string;
-        yearly: string;
-        apr: string;
-        annual: string;
-        rewardComparison: string;
-        day: string;
-        monthPerDay: string;
-        yearPerDay: string;
-        disclaimer: string;
+        'formats': {
+          'csvDescription': string;
+          'jsonDescription': string;
+          'excelDescription': string;
+          'pngDescription': string;
+          'svgDescription': string;
+          'pdfDescription': string;
+        };
       };
-      oraclePageTemplate: {
-        rank: string;
+      'clear': string;
+      'marketDataPanel': {
+        'marketCap': string;
+        'volume24h': string;
+        'circulatingSupply': string;
+        'ofTotalSupply': string;
+        'fullyDilutedValuation': string;
+        'atCurrentPrice': string;
+        'marketCapRank': string;
+        'amongAllCryptocurrencies': string;
+        'supplyRatio': string;
+        'loading': string;
+        'lastUpdated': string;
+        '24hHigh': string;
+        '24hLow': string;
       };
-    };
-    realtimeNotifications: {
-      connection: {
-        title: string;
-        message: string;
+      'confidenceScore': {
+        'title': string;
+        'subtitle': string;
+        'loading': string;
       };
-      priceAlert: {
-        title: string;
-        message: string;
+      'nodeReputation': {
+        'title': string;
+        'loading': string;
       };
-    };
-    performanceIndicator: {
-      title: string;
-      panelLabel: string;
-      debugOn: string;
-      debugOff: string;
-      metrics: {
-        queryResponse: string;
-        dataProcessing: string;
-        dataValidation: string;
-        cacheHitRate: string;
-        cacheSize: string;
+      'crossChainPanel': {
+        'loadingCrossChainData': string;
       };
-      thresholds: string;
-      ratings: {
-        good: string;
-        needsImprovement: string;
-        poor: string;
-        unknown: string;
-        noData: string;
+      'priceDeviation': {
+        'loading': string;
       };
-      reference: string;
-    };
-    errorFallback: {
-      title: string;
-      description: string;
-      errorDetails: string;
-      componentStack: string;
-      retry: string;
-      goHome: string;
-      contactSupport: string;
-    };
-    mobileInteraction: {
-      current: string;
-    };
-    networkHealth: {
-      status: {
-        online: string;
-        warning: string;
-        offline: string;
+      'home': {
+        'loading': string;
       };
-      networkStatus: string;
-      monitoring: string;
-      lastCheck: string;
-      vsLastWeek: string;
-      activeNodes: string;
-      nodeUptime: string;
-      avgResponseTime: string;
-      updateFrequency: string;
-      every: string;
-      seconds: string;
-      totalStaked: string;
-      dataFeeds: string;
-      activityHeatmap: {
-        title: string;
-        subtitle: string;
-        totalRequests: string;
-        peakHour: string;
-        avgPerHour: string;
-        peakRequests: string;
-        requests: string;
-        low: string;
-        high: string;
+      'common': {
+        'totalValueLockedEcosystem': string;
+        'distributionProjectsNetworks': string;
+        'keyPerformanceIndicators': string;
+        'refresh': string;
+        'export': string;
+        'noData': string;
+        'loading': string;
+        'expand': string;
+        'collapse': string;
+        'close': string;
       };
-      performanceDashboard: {
-        title: string;
-        subtitle: string;
-        responseTime: string;
-        uptime: string;
-        updateFreq: string;
-        validatorActiveRate: string;
-        stakingRate: string;
-        blockTime: string;
+      'comparison': {
+        'benchmark': {
+          'industryAverage': string;
+          'marketLeader': string;
+          'gap': string;
+        };
+        'oracleComparison': {
+          'medianPrice': string;
+          'oracle': string;
+          'price': string;
+        };
       };
-      dataFreshness: {
-        title: string;
-        subtitle: string;
-        lastUpdated: string;
-        dataLatency: string;
-        excellent: string;
-        good: string;
-        slow: string;
-        secondsAgo: string;
-        minutesAgo: string;
-        hoursAgo: string;
+      'indicators': {
+        'title': string;
       };
-    };
-    crossChain: {
-      filters: string;
-      visibleChains: string;
-      stability: {
-        excellent: string;
-        good: string;
-        fair: string;
-        poor: string;
+      'crossOracleComparison': {
+        'title': string;
+        'subtitle': string;
       };
-    };
-    crossOracle: {
-      timeRange: {
-        '1h': string;
-        '24h': string;
-        '7d': string;
+      'chainComparison': {
+        'title': string;
+      };
+      'snapshot': {
+        'title': string;
+        'savedCount': string;
+        'cloudLabel': string;
+        'saveSnapshot': string;
+      };
+      'gasFeeComparison': {
+        'title': string;
+      };
+      'crossChainPriceConsistency': {
+        'title': string;
+      };
+      'confidenceInterval': {
+        'title': string;
+        'bid': string;
+        'ask': string;
+        'spread': string;
+        'bidLabel': string;
+        'askLabel': string;
+        'width': string;
+        'threshold': string;
+      };
+      'updateFrequency': {
+        'title': string;
+      };
+      'stakingMetrics': {
+        'title': string;
+      };
+      'publisherContribution': {
+        'title': string;
+        'subtitle': string;
+      };
+      'coveragePool': {
+        'title': string;
+      };
+      'confidenceAlert': {
+        'title': string;
+      };
+      'volatilityAlert': {
+        'title': string;
+      };
+      'requestTypeDistribution': {
+        'title': string;
+        'subtitle': string;
+      };
+      'realtimeUpdate': {
+        'title': string;
+      };
+      'oraclePerformanceRanking': {
+        'title': string;
+        'subtitle': string;
+      };
+      'latencyAnalysis': {
+        'title': string;
+        'subtitle': string;
+      };
+      'integratedProtocols': {
+        'title': string;
+      };
+      'dataSourceCoverage': {
+        'title': string;
+      };
+      'dataQualityScoreCard': {
+        'title': string;
+        'subtitle': string;
+      };
+      'stakingDistribution': {
+        'title': string;
+      };
+      'requestTrend': {
+        'title': string;
+        'loading': string;
+      };
+      'priceVolatility': {
+        'title': string;
+      };
+      'priceDistribution': {
+        'title': string;
+        'legend': {
+          'title': string;
+          'box': string;
+          'median': string;
+          'whisker': string;
+          'outlier': string;
+        };
+        'stats': {
+          'title': string;
+          'oracle': string;
+          'median': string;
+          'q1': string;
+          'q3': string;
+          'iqr': string;
+          'outliers': string;
+        };
+      };
+      'priceDeviationHeatmap': {
+        'title': string;
+      };
+      'priceCorrelation': {
+        'title': string;
+        'legend': {
+          'title': string;
+          'perfectNegative': string;
+          'negative': string;
+          'none': string;
+          'positive': string;
+          'perfectPositive': string;
+          'lowCorrelation': string;
+          'highCorrelation': string;
+        };
+        'oracleCount': string;
+        'highCorrelationPairs': string;
+        'avgCorrelation': string;
+        'maxCorrelation': string;
+        'minCorrelation': string;
+        'highCorrelationCount': string;
+        'correlationCoefficient': string;
+        'correlationLevel': string;
+        'correlationDirection': string;
+        'positiveCorrelation': string;
+        'negativeCorrelation': string;
+        'noCorrelation': string;
+        'distribution': {
+          'title': string;
+          'topPairs': string;
+        };
+        'explanation': {
+          'title': string;
+          'description': string;
+        };
+        'level': {
+          'veryStrong': string;
+          'strong': string;
+          'moderate': string;
+          'weak': string;
+          'veryWeak': string;
+        };
+      };
+      'crossChainRisk': {
+        'title': string;
+      };
+      'crossChainPriceComparison': {
+        'title': string;
+        'priceDiff': string;
+        'avgPrice': string;
+        'highestPrice': string;
+        'lowestPrice': string;
+        'allChains': string;
+        'confidence': string;
+        'high': string;
+        'low': string;
+        'normal': string;
+        'noData': string;
+      };
+      'concentrationRisk': {
+        'title': string;
+      };
+      'cdfChart': {
+        'title': string;
+        'subtitle': string;
+      };
+      'oracleCommon': {
+        'performanceGauge': {
+          'levels': {
+            'excellent': string;
+            'good': string;
+            'warning': string;
+            'danger': string;
+          };
+          'timesPerMinute': string;
+          'range': string;
+        };
+        'dataFreshness': {
+          'title': string;
+          'refresh': string;
+          'lastUpdated': string;
+          'stale': string;
+        };
+        'riskScore': {
+          'levels': {
+            'low': string;
+            'medium': string;
+            'high': string;
+          };
+        };
+        'mitigationMeasures': {
+          'title': string;
+          'noMeasures': string;
+          'effectivenessLabel': string;
+          'types': {
+            'technical': string;
+            'governance': string;
+            'operational': string;
+          };
+          'status': {
+            'active': string;
+            'inactive': string;
+          };
+          'effectiveness': {
+            'high': string;
+            'medium': string;
+            'low': string;
+          };
+        };
+        'securityTimeline': {
+          'title': string;
+          'noEvents': string;
+          'types': {
+            'upgrade': string;
+            'vulnerability': string;
+            'response': string;
+            'maintenance': string;
+          };
+          'status': {
+            'resolved': string;
+            'monitoring': string;
+          };
+        };
+        'stakingCalculator': {
+          'title': string;
+          'stakeAmount': string;
+          'stakeAmountPlaceholder': string;
+          'validatorType': string;
+          'validatorTypes': {
+            'institution': string;
+            'independent': string;
+            'community': string;
+          };
+          'disputeFrequency': string;
+          'disputeFrequencies': {
+            'low': string;
+            'medium': string;
+            'high': string;
+          };
+          'estimatedRewards': string;
+          'daily': string;
+          'monthly': string;
+          'yearly': string;
+          'apr': string;
+          'annual': string;
+          'rewardComparison': string;
+          'day': string;
+          'monthPerDay': string;
+          'yearPerDay': string;
+          'disclaimer': string;
+        };
+        'oraclePageTemplate': {
+          'rank': string;
+        };
+      };
+      'realtimeNotifications': {
+        'connection': {
+          'title': string;
+          'message': string;
+        };
+        'priceAlert': {
+          'title': string;
+          'message': string;
+        };
+      };
+      'performanceIndicator': {
+        'title': string;
+        'panelLabel': string;
+        'debugOn': string;
+        'debugOff': string;
+        'metrics': {
+          'queryResponse': string;
+          'dataProcessing': string;
+          'dataValidation': string;
+          'cacheHitRate': string;
+          'cacheSize': string;
+        };
+        'thresholds': string;
+        'ratings': {
+          'good': string;
+          'needsImprovement': string;
+          'poor': string;
+          'unknown': string;
+          'noData': string;
+        };
+        'reference': string;
+      };
+      'errorFallback': {
+        'title': string;
+        'description': string;
+        'errorDetails': string;
+        'componentStack': string;
+        'retry': string;
+        'goHome': string;
+        'contactSupport': string;
+      };
+      'mobileInteraction': {
+        'current': string;
+      };
+      'networkHealth': {
+        'status': {
+          'online': string;
+          'warning': string;
+          'offline': string;
+        };
+        'networkStatus': string;
+        'monitoring': string;
+        'lastCheck': string;
+        'vsLastWeek': string;
+        'activeNodes': string;
+        'nodeUptime': string;
+        'avgResponseTime': string;
+        'updateFrequency': string;
+        'every': string;
+        'seconds': string;
+        'totalStaked': string;
+        'dataFeeds': string;
+        'activityHeatmap': {
+          'title': string;
+          'subtitle': string;
+          'totalRequests': string;
+          'peakHour': string;
+          'avgPerHour': string;
+          'peakRequests': string;
+          'requests': string;
+          'low': string;
+          'high': string;
+        };
+        'performanceDashboard': {
+          'title': string;
+          'subtitle': string;
+          'responseTime': string;
+          'uptime': string;
+          'updateFreq': string;
+          'validatorActiveRate': string;
+          'stakingRate': string;
+          'blockTime': string;
+        };
+        'dataFreshness': {
+          'title': string;
+          'subtitle': string;
+          'lastUpdated': string;
+          'dataLatency': string;
+          'excellent': string;
+          'good': string;
+          'slow': string;
+          'secondsAgo': string;
+          'minutesAgo': string;
+          'hoursAgo': string;
+        };
+      };
+      'crossChain': {
+        'filters': string;
+        'visibleChains': string;
+        'stability': {
+          'excellent': string;
+          'good': string;
+          'fair': string;
+          'poor': string;
+        };
+      };
+      'crossOracle': {
+        'timeRange': {
+          '1h': string;
+          '24h': string;
+          '7d': string;
+          '30d': string;
+        };
+        'filter': {
+          'filtersActive': string;
+          'clearAll': string;
+        };
+        'retrying': string;
+        'retry': string;
+        'partialSuccessDesc': string;
+        'retryAll': string;
+        'globalError': string;
+        'failedOracles': string;
+        'ofMedian': string;
+        'analysisTab': {
+          'movingAverage': string;
+          'dataQuality': string;
+          'performanceComparison': string;
+          'selectOracle': string;
+          'allOracles': string;
+          'selectOraclePlaceholder': string;
+          'summary': string;
+          'responseTime': string;
+          'accuracy': string;
+          'stability': string;
+          'advancedAnalysis': string;
+        };
+        'risk': {
+          'noData': string;
+          'noDataDesc': string;
+        };
+      };
+      'settings': {
+        'title': string;
+        'subtitle': string;
+        'profile': string;
+        'profileDesc': string;
+        'preferences': string;
+        'preferencesDesc': string;
+        'notifications': string;
+        'notificationsDesc': string;
+        'data': string;
+        'dataDesc': string;
+      };
+      'ecosystem': {
+        'tvlAnalysis': {
+          'title': string;
+          'totalTvl': string;
+          'ethereum': string;
+          'l2Networks': string;
+          'altL1': string;
+          'filterByChain': string;
+        };
+        'tvlTrend': string;
+        'timeRange': {
+          '1M': string;
+          '3M': string;
+          '6M': string;
+          '1Y': string;
+        };
+        'projectAnalysis': {
+          'projectsByChain': string;
+          'totalProjects': string;
+          'thisMonth': string;
+        };
+        'distributionByNetwork': string;
+        'growth': {
+          'title': string;
+          'newProjects': string;
+          'integrations': string;
+          'communityGrowth': string;
+          'protocolRevenue': string;
+        };
+        'keyIndicators': string;
+      };
+      'ccip': {
+        'dataUnavailable': string;
+        'overview': string;
+        'messages24h': string;
+        'valueTransferred': string;
+        'avgConfirmTime': string;
+        'activeChains': string;
+        'supportedChains': string;
+        'chainName': string;
+        'status': string;
+        'messaging': string;
+        'tokenTransfer': string;
+        'active': string;
+        'comingSoon': string;
+        'recentTransactions': string;
+        'transactionId': string;
+        'sourceChain': string;
+        'destChain': string;
+        'type': string;
+        'value': string;
+        'txStatus': string;
+        'rmnStatus': string;
+        'nodesOnline': string;
+        'securityScore': string;
+        'lastCheck': string;
+        'anomalies': string;
+        'noDataAvailable': string;
+        'noDataDesc': string;
+        'about': string;
+        'feature1Title': string;
+        'feature1Desc': string;
+        'feature2Title': string;
+        'feature2Desc': string;
+        'feature3Title': string;
+        'feature3Desc': string;
+        'feature4Title': string;
+        'feature4Desc': string;
+        'feature5Title': string;
+        'feature5Desc': string;
+      };
+      'dataFeedsFilter': {
+        'all': string;
+        'crypto': string;
+        'forex': string;
+        'commodities': string;
+        'defi': string;
+      };
+      'dataFeeds': {
+        'name': string;
+        'category': string;
+        'frequency': string;
+        'threshold': string;
+        'status': string;
+        'requests': string;
+        'reliability': string;
+        'dataUnavailable': string;
+        'noFeedsFound': string;
+        'noFeedsDesc': string;
+        'total': string;
+        'active': string;
+        'totalRequests': string;
+        'avgReliability': string;
+        'title': string;
+        'about': string;
+        'updateFrequency': string;
+        'frequencyDesc': string;
+        'deviationThreshold': string;
+        'thresholdDesc': string;
+        'reliabilityDesc': string;
+        'decentralization': string;
+        'decentralizationDesc': string;
+      };
+      'dataStreams': {
+        'dataUnavailable': string;
+        'title': string;
+        'live': string;
+        'paused': string;
+        'activeStreams': string;
+        'totalFeeds': string;
+        'updateFrequency': string;
+        'updatesPerMin': string;
+        'avgLatency': string;
+        'fromLastHour': string;
+        'throughput': string;
+        'msgsPerSec': string;
+        'dataFeeds': string;
+        'pair': string;
+        'price': string;
+        'latency': string;
+        'threshold': string;
+        'subscribers': string;
+        'status': string;
+        'noFeeds': string;
+        'performanceMetrics': string;
+        'bandwidth': string;
+        'packetLoss': string;
+        'reconnects': string;
+        'latencyPercentiles': string;
+        'latencyTrend': string;
+        'noLatencyData': string;
+        'latencyDistribution': string;
+        'pushEvents': string;
+        'realtime': string;
+        'eventId': string;
+        'feed': string;
+        'change': string;
+        'trigger': string;
+        'time': string;
+        'noEvents': string;
+        'about': string;
+        'realTimeDelivery': string;
+        'realTimeDeliveryDesc': string;
+        'lowLatency': string;
+        'lowLatencyDesc': string;
+        'reliable': string;
+        'reliableDesc': string;
+        'customThresholds': string;
+        'customThresholdsDesc': string;
+        'heartbeat': string;
+        'heartbeatDesc': string;
+        'autoFailover': string;
+        'autoFailoverDesc': string;
+      };
+      'dataTable': {
+        'sort': {
+          'asc': string;
+          'desc': string;
+          'unsorted': string;
+        };
+      };
+      'functions': {
+        'success': string;
+        'failed': string;
+        'dataUnavailable': string;
+        'executionStats': string;
+        'totalCalls': string;
+        'successRate': string;
+        'avgExecutionTime': string;
+        'supportedApis': string;
+        'recentExecutions': string;
+        'requestId': string;
+        'sourceHash': string;
+        'result': string;
+        'gasUsed': string;
+        'status': string;
+        'secretsManagement': string;
+        'encrypted': string;
+        'unencrypted': string;
+        'expiresAt': string;
+        'useCaseDistribution': string;
+        'calls': string;
+        'noDataAvailable': string;
+        'noDataDesc': string;
+        'features': string;
+        'feature1Title': string;
+        'feature1Desc': string;
+        'feature2Title': string;
+        'feature2Desc': string;
+        'feature3Title': string;
+        'feature3Desc': string;
+        'feature4Title': string;
+        'feature4Desc': string;
+        'feature5Title': string;
+        'feature5Desc': string;
+        'feature6Title': string;
+        'feature6Desc': string;
+      };
+      'services': {
+        'overview': string;
+        'service': string;
+        'requests': string;
+        'uptime': string;
+        'usageDistribution': string;
+        'about': string;
+        'dataFeedsDesc': string;
+        'vrfDesc': string;
+        'automationDesc': string;
+        'ccipDesc': string;
+        'functionsDesc': string;
+      };
+      'timeRange': {
         '30d': string;
-      };
-      filter: {
-        filtersActive: string;
-        clearAll: string;
-      };
-      retrying: string;
-      retry: string;
-      partialSuccessDesc: string;
-      retryAll: string;
-      globalError: string;
-      failedOracles: string;
-      ofMedian: string;
-      analysisTab: {
-        movingAverage: string;
-        dataQuality: string;
-        performanceComparison: string;
-        selectOracle: string;
-        allOracles: string;
-        selectOraclePlaceholder: string;
-        summary: string;
-        responseTime: string;
-        accuracy: string;
-        stability: string;
-        advancedAnalysis: string;
-      };
-      risk: {
-        noData: string;
-        noDataDesc: string;
-      };
-    };
-    settings: {
-      profile: {
-        title: string;
-        subtitle: string;
-        displayNameLabel: string;
-        displayNamePlaceholder: string;
-        emailLabel: string;
-        emailNotEditable: string;
-        saveChanges: string;
-        saveSuccess: string;
-        saveError: string;
-        passwordManagement: string;
-        passwordManagementDesc: string;
-        changePassword: string;
-        newPassword: string;
-        newPasswordPlaceholder: string;
-        passwordMinLength: string;
-        passwordMismatch: string;
-        passwordUpdateSuccess: string;
-        passwordUpdateError: string;
-      };
-    };
-    ecosystem: {
-      tvlAnalysis: {
-        title: string;
-        totalTvl: string;
-        ethereum: string;
-        l2Networks: string;
-        altL1: string;
-        filterByChain: string;
-      };
-      tvlTrend: string;
-      timeRange: {
-        '1M': string;
-        '3M': string;
-        '6M': string;
-        '1Y': string;
-      };
-      projectAnalysis: {
-        projectsByChain: string;
-        totalProjects: string;
-        thisMonth: string;
-      };
-      distributionByNetwork: string;
-      growth: {
-        title: string;
-        newProjects: string;
-        integrations: string;
-        communityGrowth: string;
-        protocolRevenue: string;
-      };
-      keyIndicators: string;
-    };
-    ccip: {
-      dataUnavailable: string;
-      overview: string;
-      messages24h: string;
-      valueTransferred: string;
-      avgConfirmTime: string;
-      activeChains: string;
-      supportedChains: string;
-      chainName: string;
-      status: string;
-      messaging: string;
-      tokenTransfer: string;
-      active: string;
-      comingSoon: string;
-      recentTransactions: string;
-      transactionId: string;
-      sourceChain: string;
-      destChain: string;
-      type: string;
-      value: string;
-      txStatus: string;
-      rmnStatus: string;
-      nodesOnline: string;
-      securityScore: string;
-      lastCheck: string;
-      anomalies: string;
-      noDataAvailable: string;
-      noDataDesc: string;
-      about: string;
-      feature1Title: string;
-      feature1Desc: string;
-      feature2Title: string;
-      feature2Desc: string;
-      feature3Title: string;
-      feature3Desc: string;
-      feature4Title: string;
-      feature4Desc: string;
-      feature5Title: string;
-      feature5Desc: string;
-    };
-    dataFeedsFilter: {
-      all: string;
-      crypto: string;
-      forex: string;
-      commodities: string;
-      defi: string;
-    };
-    dataFeeds: {
-      name: string;
-      category: string;
-      frequency: string;
-      threshold: string;
-      status: string;
-      requests: string;
-      reliability: string;
-      dataUnavailable: string;
-      noFeedsFound: string;
-      noFeedsDesc: string;
-      total: string;
-      active: string;
-      totalRequests: string;
-      avgReliability: string;
-      title: string;
-      about: string;
-      updateFrequency: string;
-      frequencyDesc: string;
-      deviationThreshold: string;
-      thresholdDesc: string;
-      reliabilityDesc: string;
-      decentralization: string;
-      decentralizationDesc: string;
-    };
-    dataStreams: {
-      dataUnavailable: string;
-      title: string;
-      live: string;
-      paused: string;
-      activeStreams: string;
-      totalFeeds: string;
-      updateFrequency: string;
-      updatesPerMin: string;
-      avgLatency: string;
-      fromLastHour: string;
-      throughput: string;
-      msgsPerSec: string;
-      dataFeeds: string;
-      pair: string;
-      price: string;
-      latency: string;
-      threshold: string;
-      subscribers: string;
-      status: string;
-      noFeeds: string;
-      performanceMetrics: string;
-      bandwidth: string;
-      packetLoss: string;
-      reconnects: string;
-      latencyPercentiles: string;
-      latencyTrend: string;
-      noLatencyData: string;
-      latencyDistribution: string;
-      pushEvents: string;
-      realtime: string;
-      eventId: string;
-      feed: string;
-      change: string;
-      trigger: string;
-      time: string;
-      noEvents: string;
-      about: string;
-      realTimeDelivery: string;
-      realTimeDeliveryDesc: string;
-      lowLatency: string;
-      lowLatencyDesc: string;
-      reliable: string;
-      reliableDesc: string;
-      customThresholds: string;
-      customThresholdsDesc: string;
-      heartbeat: string;
-      heartbeatDesc: string;
-      autoFailover: string;
-      autoFailoverDesc: string;
-    };
-    dataTable: {
-      sort: {
-        asc: string;
-        desc: string;
-        unsorted: string;
-      };
-    };
-    functions: {
-      success: string;
-      failed: string;
-      dataUnavailable: string;
-      executionStats: string;
-      totalCalls: string;
-      successRate: string;
-      avgExecutionTime: string;
-      supportedApis: string;
-      recentExecutions: string;
-      requestId: string;
-      sourceHash: string;
-      result: string;
-      gasUsed: string;
-      status: string;
-      secretsManagement: string;
-      encrypted: string;
-      unencrypted: string;
-      expiresAt: string;
-      useCaseDistribution: string;
-      calls: string;
-      noDataAvailable: string;
-      noDataDesc: string;
-      features: string;
-      feature1Title: string;
-      feature1Desc: string;
-      feature2Title: string;
-      feature2Desc: string;
-      feature3Title: string;
-      feature3Desc: string;
-      feature4Title: string;
-      feature4Desc: string;
-      feature5Title: string;
-      feature5Desc: string;
-      feature6Title: string;
-      feature6Desc: string;
-    };
-    services: {
-      overview: string;
-      service: string;
-      requests: string;
-      uptime: string;
-      usageDistribution: string;
-      about: string;
-      dataFeedsDesc: string;
-      vrfDesc: string;
-      automationDesc: string;
-      ccipDesc: string;
-      functionsDesc: string;
-    };
-    timeRange: {
-      '30d': string;
-      thisMonth: string;
-    };
-    vrf: {
-      fulfilled: string;
-      pending: string;
-      failed: string;
-      dataUnavailable: string;
-      requestStats: string;
-      requests24h: string;
-      successRate: string;
-      avgResponseTime: string;
-      gasUsed: string;
-      subscriptionOverview: string;
-      activeSubscriptions: string;
-      totalFunded: string;
-      avgBalance: string;
-      subscriptionId: string;
-      owner: string;
-      balance: string;
-      consumers: string;
-      contracts: string;
-      recentRequests: string;
-      requestId: string;
-      consumer: string;
-      randomWords: string;
-      status: string;
-      useCaseDistribution: string;
-      requests: string;
-      noDataAvailable: string;
-      noDataDesc: string;
-      v2_5Features: string;
-      feature1Title: string;
-      feature1Desc: string;
-      feature2Title: string;
-      feature2Desc: string;
-      feature3Title: string;
-      feature3Desc: string;
-      feature4Title: string;
-      feature4Desc: string;
-      feature5Title: string;
-      feature5Desc: string;
-      feature6Title: string;
-      feature6Desc: string;
-    };
-    dataSources: {
-      title: string;
-    };
-    nft: {
-      loading: string;
-      noData: string;
-      totalCollections: string;
-      trendingCount: string;
-      avgFloorPrice: string;
-      chainsSupported: string;
-      collections: string;
-      name: string;
-      floorPrice: string;
-      change24h: string;
-      volume24h: string;
-      chain: string;
-      noCollections: string;
-      byChain: string;
-      noChainData: string;
-      floorPriceHistory: string;
-    };
-    risk: {
-      uptime: string;
-      dataQuality: string;
-      oracleDiversity: string;
-      avgConfidence: string;
-      assessment: string;
-      overallLevel: string;
-      factors: string;
-      verification: string;
-      severity: {
-        low: string;
-        medium: string;
-        high: string;
-        critical: string;
-      };
-    };
-    timeframes: {
-      '1d': string;
-      '7d': string;
-      '30d': string;
-      '90d': string;
-      '1y': string;
-    };
-    chartTypes: {
-      line: string;
-      area: string;
-      bar: string;
-      candle: string;
-    };
-    priceQuery: {
-      errors: {
-        networkError: string;
-        timeoutError: string;
-        dataError: string;
-        unknownError: string;
-        retry: string;
-      };
-    };
-    oracles: {
-      descriptions: {
-        chainlink: string;
-        uma: string;
-        pyth: string;
-        api3: string;
-        redstone: string;
-        dia: string;
-        winklink: string;
-      };
-    };
-    riskMetrics: {
-      volatility: {
-        insufficientData: string;
-        description: string;
-      };
-      consistency: {
-        good: string;
-        description: string;
-      };
-      sensitivity: {
-        description: string;
-      };
-      health: {
-        noData: string;
-        description: string;
-      };
-    };
-    errors: {
-      suggestions: {
-        default: string;
-        validationError: string;
-        authenticationError: string;
-        authorizationError: string;
-        notFound: string;
-        rateLimitExceeded: string;
-        internalError: string;
-        priceFetchError: string;
-        oracleClientError: string;
-        badRequest: string;
-        unauthorized: string;
-        forbidden: string;
-        conflict: string;
-        serviceUnavailable: string;
-        networkError: string;
-        timeoutError: string;
-        unknownError: string;
-      };
-    };
-  };
-  comparison: {
-    comparison: {
-      title: string;
-      previous: string;
-      current: string;
-      timeComparison: {
-        currentPeriod: string;
-        yoy: string;
-        mom: string;
-      };
-    };
-    comparisonPeriod: string;
-    comparisonAvg: string;
-    enhancedStatCard: {
-      confidence: string;
-    };
-    dataQuality: {
-      score: string;
-      excellent: string;
-      good: string;
-      poor: string;
-      assessment: string;
-      excellentDescription: string;
-      goodDescription: string;
-      poorDescription: string;
-      freshness: string;
-      completeness: string;
-      reliability: string;
-      overall: string;
-      freshnessDescription: string;
-      completenessDescription: string;
-      reliabilityDescription: string;
-      lastUpdated: string;
-      updateTime: string;
-      successRequests: string;
-      totalRequests: string;
-      successRate: string;
-      historicalAccuracy: string;
-      responseSuccessRate: string;
-      scoringRules: string;
-      weights: string;
-    };
-    enhancedTable: {
-      noData: string;
-      totalRecords: string;
-      warnings: string;
-      anomalies: string;
-      avgDeviation: string;
-      columns: {
-        status: string;
-        provider: string;
-        name: string;
-        price: string;
-        deviation: string;
-        confidence: string;
-        responseTime: string;
-      };
-      benchmark: string;
-      legend: {
-        positiveDeviation: string;
-        negativeDeviation: string;
-        normal: string;
-        warning: string;
-        danger: string;
-      };
-    };
-    crossOracle: {
-      subtitle: string;
-      realtimeComparison: string;
-      oracles: string;
-      quality: string;
-      updated: string;
-    };
-  };
-  components: {
-    alerts: {
-      alerts: {
-        page: {
-          title: string;
-          subtitle: string;
-          loginRequired: string;
-          loginRequiredDesc: string;
-          goToLogin: string;
-          instructions: {
-            title: string;
-            items: {
-              '0': string;
-              '1': string;
-              '2': string;
-              '3': string;
-            };
-          };
-        };
-        create: {
-          title: string;
-          nameLabel: string;
-          nameOptional: string;
-          namePlaceholder: string;
-          symbolLabel: string;
-          providerLabel: string;
-          providerOptional: string;
-          allProviders: string;
-          chainLabel: string;
-          chainOptional: string;
-          allChains: string;
-          selectProviderFirst: string;
-          conditionLabel: string;
-          targetValueLabel: string;
-          enableAlert: string;
-          submitting: string;
-          submit: string;
-          customConfig: string;
-        };
-        condition: {
-          above: string;
-          aboveDesc: string;
-          below: string;
-          belowDesc: string;
-          changePercent: string;
-          changePercentDesc: string;
-        };
-        placeholder: {
-          targetPrice: string;
-          percentage: string;
-          targetValue: string;
-        };
-        error: {
-          invalidTargetValue: string;
-        };
-        list: {
-          title: string;
-          empty: string;
-          emptyHint: string;
-          statusActive: string;
-          statusTriggered: string;
-          statusDisabled: string;
-          lastTriggered: string;
-          enable: string;
-          disable: string;
-          confirm: string;
-        };
-        history: {
-          title: string;
-          empty: string;
-          status: string;
-          all: string;
-          unacknowledged: string;
-          acknowledged: string;
-          sort: string;
-          newest: string;
-          oldest: string;
-          unacknowledgedCount: string;
-          pending: string;
-          triggerPrice: string;
-          time: string;
-          acknowledgeTime: string;
-          acknowledge: string;
-          acknowledging: string;
-          totalRecords: string;
-        };
-        notification: {
-          title: string;
-          triggerPrice: string;
-          time: string;
-          acknowledge: string;
-          acknowledging: string;
-          viewDetails: string;
-        };
-        conditionMet: {
-          above: string;
-          below: string;
-          changePercent: string;
-          changePercentSimple: string;
-          default: string;
-        };
-        templates: {
-          title: string;
-          categories: {
-            all: string;
-            price: string;
-            volatility: string;
-            data: string;
-          };
-          showMore: string;
-          showLess: string;
-          priceBreakout: {
-            name: string;
-            description: string;
-          };
-          priceDrop: {
-            name: string;
-            description: string;
-          };
-          volatilitySpike: {
-            name: string;
-            description: string;
-          };
-          deviationAlert: {
-            name: string;
-            description: string;
-          };
-          dataDelay: {
-            name: string;
-            description: string;
-          };
-        };
-        batch: {
-          selectAll: string;
-          selectedCount: string;
-          enable: string;
-          disable: string;
-          delete: string;
-          clearSelection: string;
-          deleteConfirm: string;
-        };
-        mute: {
-          title: string;
-          description: string;
-          settings: string;
-          enabledHint: string;
-          disabledHint: string;
-          enabled: string;
-          disabled: string;
-          durationLabel: string;
-          startTime: string;
-          endTime: string;
-          recurring: string;
-          daysOfWeek: string;
-          notice: string;
-          duration: {
-            '15': string;
-            '30': string;
-            '60': string;
-            '120': string;
-            '240': string;
-            '480': string;
-            '1440': string;
-            '-1': string;
-          };
-        };
-      };
-      anomalyAlert: {
-        realtimeAlerts: string;
-        historyTitle: string;
-        configTitle: string;
-        notificationTitle: string;
-        totalAnomalies: string;
-        highSeverity: string;
-        mediumSeverity: string;
-        lowSeverity: string;
-        priceSpikeCount: string;
-        priceDeviationCount: string;
-        dataDelayCount: string;
-        priceDropCount: string;
-        enableNotifications: string;
-        notificationsEnabled: string;
-        config: string;
-        history: string;
-        autoRefresh: string;
-        refresh: string;
-        clearAll: string;
-        allTypes: string;
-        allSeverities: string;
-        allStatus: string;
-        unacknowledged: string;
-        acknowledged: string;
-        noAnomalies: string;
-        acknowledge: string;
-        resolve: string;
-        clear: string;
-        lastCheck: string;
-        currentValue: string;
-        expectedValue: string;
-        deviation: string;
-        delay: string;
-        last24Hours: string;
-        last7Days: string;
-        avgResolutionTime: string;
-        typeDistribution: string;
-        severityDistribution: string;
-        priceSpikeThreshold: string;
-        priceDropThreshold: string;
-        priceDeviationThreshold: string;
-        dataDelayThreshold: string;
-        checkInterval: string;
-        type_price_spike: string;
-        type_price_deviation: string;
-        type_data_delay: string;
-        type_price_drop: string;
-        severity_high: string;
-        severity_medium: string;
-        severity_low: string;
-      };
-      confidenceAlert: {
-        title: string;
-        autoRefresh: string;
-        refresh: string;
-        currentWidth: string;
-        criticalAlerts: string;
-        warningAlerts: string;
-        unacknowledged: string;
-        criticalRule: string;
-        warningRule: string;
-        threshold: string;
-        current: string;
-        exceeded: string;
-        normal: string;
-        alertList: string;
-        clearAll: string;
-        noAlerts: string;
-        noAlertsDesc: string;
-        acknowledge: string;
-        dismiss: string;
-        currentWidthLabel: string;
-        previousWidthLabel: string;
-        expansionPercentLabel: string;
-        durationLabel: string;
-        thresholdLabel: string;
-        alertStats: string;
-        suddenExpansion: string;
-        sustainedHigh: string;
-        lastCheck: string;
-      };
-      volatilityAlert: {
-        title: string;
-        currentVolatility: string;
-        threshold: string;
-        exceedsThreshold: string;
-        historicalEvents: string;
-        volatility: string;
-        riskLevel: {
-          low: string;
-          medium: string;
-          high: string;
-        };
-        duration: {
-          '1hour': string;
-          '2hours': string;
-          '4hours': string;
-        };
-        impact: {
-          priceCorrection2: string;
-          priceCorrection3: string;
-          priceFluctuation5: string;
-        };
-      };
-    };
-    charts: {
-      chartToolbar: {
-        chartType: {
-          line: string;
-          area: string;
-          candle: string;
-        };
-        indicators: string;
-        export: string;
-        resetZoom: string;
-      };
-      charts: {
-        latency: {
-          title: string;
-          pythNotSupported: string;
-          fetchError: string;
-          anomaly: string;
-          refresh: string;
-          latency: string;
-          fixedThreshold: string;
-          dynamicThreshold: string;
-          baselineMA20: string;
-          stdDev: string;
-          status: string;
-          abnormal: string;
-          normal: string;
-          exceedsDynamicThreshold: string;
-          avgLatency: string;
-          minLatency: string;
-          maxLatency: string;
-          anomalyCount: string;
-          ma20Description: string;
-          volatility: string;
-          thresholdAdjustments: string;
-          times: string;
-          updateFrequency: string;
-          p50: string;
-          p50Description: string;
-          p90Description: string;
-          p99Description: string;
-          predictionControl: string;
-          showPrediction: string;
-          smaPeriod: string;
-          points: string;
-          smaDescription: string;
-          predictionPeriod: string;
-          predictionDescription: string;
-          mae: string;
-          rmse: string;
-          mape: string;
-          predictionNote: string;
-          actualLatency: string;
-          smaPrediction: string;
-          histogramTitle: string;
-          latencyRange: string;
-          frequency: string;
-          latencyRangeLabel: string;
-          anomalyDetected: string;
-          dynamicThresholdTitle: string;
-          formula: string;
-          formulaDesc: string;
-          baselineDesc: string;
-          stdDevLabel: string;
-          stdDevDesc: string;
-          adjustmentFreq: string;
-          adjustmentDesc: string;
-          aboutTitle: string;
-          aboutDesc: string;
-          anomalyDesc: string;
-        };
-        trend: {
-          title: string;
-          subtitle: string;
-          timeRange: string;
-          timeRange1h: string;
-          timeRange6h: string;
-          timeRange24h: string;
-          timeRange7d: string;
-          latency: string;
-          status: string;
-          abnormal: string;
-          normal: string;
-          noData: string;
-          avgLatency: string;
-          trend: string;
-          anomalies: string;
-          chartTitle: string;
-          chartDesc: string;
-          threshold: string;
-          avg: string;
-          latencyLine: string;
-          anomalyPoint: string;
-          anomalyArea: string;
-          anomalyAlert: string;
-          anomalyDesc: string;
-        };
-        bollinger: {
-          price: string;
-          upperBand: string;
-          middleBand: string;
-          lowerBand: string;
-          lowerBandArea: string;
-          bandwidth: string;
-          bollingerArea: string;
-          currentBandwidth: string;
-          position: string;
-          touchesUpper: string;
-          touchesLower: string;
-          times: string;
-          squeeze: string;
-          expansion: string;
-          bandwidthIndicator: string;
-          insufficientData: string;
-          middleBandSMA: string;
-        };
-        atr: {
-          priceRange: string;
-          noData: string;
-          currentATR: string;
-          avgATR: string;
-          maxATR: string;
-          minATR: string;
-          highVolatility: string;
-          lowVolatility: string;
-          average: string;
-        };
-        movingAverage: {
-          title: string;
-          noData: string;
-          oracle: string;
-          ma: string;
-          showEMA: string;
-          bollingerBands: string;
-          currentPrice: string;
-          trend: string;
-          bullish: string;
-          bearish: string;
-          neutral: string;
-          bbPosition: string;
-          rollingStdDev: string;
-          priceAndMA: string;
-          bbUpper: string;
-          bbLower: string;
-          bbMiddle: string;
-          price: string;
-          rollingStdDevTitle: string;
-        };
-        multiValidator: {
-          title: string;
-          days7: string;
-          days30: string;
-          days90: string;
-          uptime: string;
-          staked: string;
-          commission: string;
-          validator: string;
-          avgUptime: string;
-          latestStaked: string;
-          commissionRate: string;
-          trend: string;
-          metric: string;
-        };
-        latencyDistribution: {
-          histogram: string;
-          trend: string;
-        };
-        dataSourceTrend: {
-          title: string;
-          newSources: string;
-          cumulativeSources: string;
-          yearlyNew: string;
-          sources: string;
-          monthlyAvg: string;
-          monthOverMonth: string;
-          vsLastMonth: string;
-          currentTotal: string;
-          months: {
-            jan: string;
-            feb: string;
-            mar: string;
-            apr: string;
-            may: string;
-            jun: string;
-            jul: string;
-            aug: string;
-            sep: string;
-            oct: string;
-            nov: string;
-            dec: string;
-          };
-        };
-        dataQuality: {
-          title: string;
-          accuracy: string;
-          availability: string;
-          consistency: string;
-          responseSpeed: string;
-          heartbeatCompliance: string;
-          baseQuality: string;
-          latency: string;
-          deviation: string;
-          outlier: string;
-          stale: string;
-          timeRange: string;
-          selectOracle: string;
-          '1hour': string;
-          '6hours': string;
-          '24hours': string;
-          '7days': string;
-          showRadarChart: string;
-          showRanking: string;
-          qualityScoreTrend: string;
-          excellent: string;
-          good: string;
-          pass: string;
-          fail: string;
-          qualityScore: string;
-          avgQualityScore: string;
-          range: string;
-          trend: string;
-          improving: string;
-          declining: string;
-          stable: string;
-          avgLatency: string;
-          outlierRate: string;
-          staleRate: string;
-          heartbeatComplianceShort: string;
-          qualityRanking: string;
-          rank: string;
-          oracle: string;
-          overallScore: string;
-          multiDimensionComparison: string;
-          dimensionDescription: string;
-          accuracyDesc: string;
-          availabilityDesc: string;
-          consistencyDesc: string;
-          responseSpeedDesc: string;
-          heartbeatComplianceDesc: string;
-          baseQualityDesc: string;
-          updateLatencyComparison: string;
-          priceDeviationFromMedian: string;
-          heartbeatComplianceRate: string;
-          target: string;
-          complianceRate: string;
-          qualityScoreDescription: string;
-          qualityScoreDescTitle: string;
-          updateLatency: string;
-          updateLatencyDesc: string;
-          priceDeviation: string;
-          priceDeviationDesc: string;
-          outlierDetection: string;
-          outlierDetectionDesc: string;
-          dataStale: string;
-          dataStaleDesc: string;
-          heartbeatComplianceDescLong: string;
-        };
-        priceDeviationHistory: {
-          title: string;
-          baseline: string;
-          baselineAverage: string;
-          baselineMedian: string;
-          baselineChainlink: string;
-          timeRange: string;
-          allData: string;
-          time: string;
-          warningThreshold: string;
-          criticalThreshold: string;
-          statsPanel: string;
-          avgDeviation: string;
-          maxDeviation: string;
-          maxDeviationTime: string;
-          stdDeviation: string;
-          trend: string;
-          trendIncreasing: string;
-          trendDecreasing: string;
-          trendStable: string;
-          deviationDistribution: string;
-          overallStats: string;
-          baselineType: string;
-          dataPoints: string;
-          oracleCount: string;
-          warningCount: string;
-        };
-        confidenceInterval: {
-          title: string;
-          confidenceLevel: string;
-          upperBound: string;
-          lowerBound: string;
-          actualPrice: string;
-          predictedPrice: string;
-          intervalWidth: string;
-          withinInterval: string;
-          outsideInterval: string;
-          coverageRate: string;
-          avgWidth: string;
-          minWidth: string;
-          maxWidth: string;
-          predictionAccuracy: string;
-          selectConfidence: string;
-          percent: string;
-          showActual: string;
-          showPrediction: string;
-          showBounds: string;
-          noData: string;
-          refreshData: string;
-          levels: {
-            high: string;
-            medium: string;
-            fairlyLow: string;
-            low: string;
-          };
-          score: string;
-          historicalTrend: string;
-          timePoint: string;
-          confidence: string;
-          average: string;
-          currentPrice: string;
-          width: string;
-          spread: string;
-          priceDistribution: string;
-          aboutPyth: {
-            title: string;
-            description: string;
-          };
-        };
-      };
-      priceVolatility: {
-        title: string;
-        timeScale: {
-          short: string;
-          mid: string;
-          long: string;
-        };
-        level: {
-          extremelyLow: string;
-          low: string;
-          medium: string;
-          high: string;
-          extremelyHigh: string;
-        };
-        tooltip: {
-          cv: string;
-          stdDev: string;
-          avgPrice: string;
-          priceRange: string;
-          volatilityLevel: string;
-        };
-        shortTermVolatility: string;
-        midTermVolatility: string;
-        longTermVolatility: string;
-        totalVolatility: string;
-        windowSize: string;
-        avgCV: string;
-        minVolatility: string;
-        maxVolatility: string;
-        oracleCount: string;
-        volatilityComparison: string;
-        rollingVolatilityTrend: string;
-        volatilityDecomposition: string;
-        shortTermProportion: string;
-        midTermProportion: string;
-        longTermProportion: string;
-        table: {
-          oracle: string;
-          cv: string;
-          stdDev: string;
-          avgPrice: string;
-          priceRange: string;
-          volatilityLevel: string;
-        };
-        explanation: {
-          title: string;
-          stdDevDesc: string;
-          cvDesc: string;
-          cvInterpretation: string;
-          rollingWindowDesc: string;
-          multiScaleDesc: string;
-          decompositionDesc: string;
-        };
-      };
-      oracle: {
-        chart: {
-          granularity: {
-            minute: string;
-            hour: string;
-            day: string;
-          };
-          timeRange: {
-            '1h': string;
-            '24h': string;
-            '7d': string;
-            '30d': string;
-            '90d': string;
-            '1y': string;
-            all: string;
-          };
-        };
-      };
-      priceChart: {
-        status: {
-          realtime: string;
-          connecting: string;
-          reconnecting: string;
-          disconnected: string;
-        };
-        confidence: string;
-        granularity: string;
-        indicators: string;
-        bollingerBands: string;
-        ma7: string;
-        ma14: string;
-        ma30: string;
-        rsi: string;
-        macd: string;
-        volume: string;
-        timeComparison: string;
-        timePeriod1: string;
-        timePeriod2: string;
-        to: string;
-        startComparison: string;
-        cancelComparison: string;
-        rsiPeriod: string;
-        macdPeriod: string;
-        price: string;
-        comparisonPrice: string;
-        signal: string;
-        anomalyPoints: string;
-        moreOptions: string;
-        more: string;
-        advancedFeatures: string;
-        timeComparisonDescription: string;
-        anomalyDetection: string;
-        anomalyDetectionDescription: string;
-        viewStats: string;
-        viewAnomalyStats: string;
-        predictionInterval: string;
-        predictionIntervalDescription: string;
-        confidenceSelection: string;
-        export: {
-          title: string;
-          exportChart: string;
-          exporting: string;
-          exportComplete: string;
-          exportFailed: string;
-          settings: string;
-          settingsDescription: string;
-          range: string;
-          currentView: string;
-          allData: string;
-          dateRange: string;
-          filenameTemplate: string;
-          filenameTemplateHint: string;
-          customFilename: string;
-          includeMetadata: string;
-          includeWatermark: string;
-          cancel: string;
-          confirmExport: string;
-          batchExport: string;
-          batchExportDescription: string;
-          resolution: string;
-          selectResolution: string;
-          selectCharts: string;
-          selected: string;
-          preview: string;
-          previewDescription: string;
-          filename: string;
-          dataRange: string;
-          recordCount: string;
-          close: string;
-        };
-      };
-      panels: {
-        validatorAnalytics: {
-          institutionValidator: string;
-          independentValidator: string;
-          communityValidator: string;
-          searchValidator: string;
-          institution: string;
-          independent: string;
-          community: string;
-          lastUpdated: string;
-          refreshing: string;
-          refreshData: string;
-          itemsPerPage: string;
-          items: string;
-          prevPage: string;
-          nextPage: string;
-          secondsAgo: string;
-          minutesAgo: string;
-          hoursAgo: string;
-          totalRecords: string;
-        };
-        disputeVoting: {
-          support: string;
-          against: string;
-          abstain: string;
-          supportRate: string;
-          totalVotingPower: string;
-          quorum: string;
-          quorumReached: string;
-          threshold: string;
-          statusPassed: string;
-          statusQuorumReached: string;
-          statusInProgress: string;
-          all: string;
-          position: string;
-          sort: string;
-          votingPower: string;
-          time: string;
-          reputation: string;
-          validators: string;
-          validator: string;
-          percentage: string;
-          noVotesFound: string;
-          voteDistribution: string;
-          validatorVotes: string;
-        };
-        diaRiskAssessment: {
-          decentralizationMetricDesc: string;
-          securityMetricDesc: string;
-          stabilityMetricDesc: string;
-          dataQualityMetricDesc: string;
-          eventDIAUpgradeTitle: string;
-          eventDIAUpgradeDesc: string;
-          eventAnomalyResponseTitle: string;
-          eventAnomalyResponseDesc: string;
-          eventBridgeMaintenanceTitle: string;
-          eventBridgeMaintenanceDesc: string;
-          eventDashboardReleaseTitle: string;
-          eventDashboardReleaseDesc: string;
-        };
-        anomalyStats: {
-          low: string;
-          medium: string;
-          high: string;
-          criticalSeverity: string;
-          spike: string;
-          drop: string;
-          stale: string;
-          outlier: string;
-          all: string;
-          recentAnomalies: string;
-          noAnomalies: string;
-          price: string;
-          expected: string;
-          deviation: string;
-          source: string;
-          severityDistribution: string;
-          typeBreakdown: string;
-          totalAnomalies: string;
-          criticalAnomalies: string;
-          highSeverity: string;
-          avgDeviation: string;
-        };
-      };
-    };
-    export: {
-      export: string;
-      exporting: string;
-      selectFormat: string;
-      exportConfig: string;
-      selectFields: string;
-      selectAll: string;
-      deselectAll: string;
-      includeMetadata: string;
-      includeChart: string;
-      includeStats: string;
-      dataPreview: string;
-      recordCount: string;
-      selectedFields: string;
-      cancel: string;
-      history: {
-        title: string;
-        all: string;
-        completed: string;
-        failed: string;
-        noHistory: string;
-        reDownload: string;
-        delete: string;
-        clearAll: string;
-      };
-    };
-    favorites: {
-      favorites: {
-        page: {
-          title: string;
-          subtitle: string;
-        };
-        card: {
-          symbol: string;
-          chain: string;
-          type: {
-            oracleConfig: string;
-            symbol: string;
-            chainConfig: string;
-          };
-          deleteConfirm: {
-            title: string;
-            message: string;
-          };
-        };
-      };
-    };
-    search: {
-      search: {
-        title: string;
-        placeholder: string;
-        noResults: string;
-        noResultsDesc: string;
-        initialTitle: string;
-        initialDesc: string;
-        inputLabel: string;
-        resultsLabel: string;
-        clearButton: string;
-        error: string;
-        errorDesc: string;
-        retry: string;
-        resultsCount: string;
-        groups: {
-          oracles: string;
-          pairs: string;
-          blockchains: string;
-          pages: string;
-          features: string;
-          documentation: string;
-        };
-        oracles: {
-          chainlinkDesc: string;
-          pythDesc: string;
-          api3Desc: string;
-          redstoneDesc: string;
-          umaDesc: string;
-          diaDesc: string;
-          winklinkDesc: string;
-        };
-        blockchains: {
-          ethereumDesc: string;
-          arbitrumDesc: string;
-          optimismDesc: string;
-          polygonDesc: string;
-          solanaDesc: string;
-          avalancheDesc: string;
-          fantomDesc: string;
-          cronosDesc: string;
-          junoDesc: string;
-          cosmosDesc: string;
-          osmosisDesc: string;
-          bnbchainDesc: string;
-          baseDesc: string;
-          scrollDesc: string;
-          zksyncDesc: string;
-          aptosDesc: string;
-          suiDesc: string;
-          gnosisDesc: string;
-          mantleDesc: string;
-          lineaDesc: string;
-          celestiaDesc: string;
-          injectiveDesc: string;
-          seiDesc: string;
-          tronDesc: string;
-          tonDesc: string;
-          nearDesc: string;
-          auroraDesc: string;
-          celoDesc: string;
-        };
-        pairs: {
-          priceFeed: string;
-        };
-        pages: {
-          home: string;
-          homeDesc: string;
-          marketOverview: string;
-          marketOverviewDesc: string;
-          priceQuery: string;
-          priceQueryDesc: string;
-          crossOracle: string;
-          crossOracleDesc: string;
-          crossChain: string;
-          crossChainDesc: string;
-          favorites: string;
-          favoritesDesc: string;
-          alerts: string;
-          alertsDesc: string;
-          settings: string;
-          settingsDesc: string;
-        };
-        features: {
-          realtimePrice: string;
-          realtimePriceDesc: string;
-          priceComparison: string;
-          priceComparisonDesc: string;
-          priceAlerts: string;
-          priceAlertsDesc: string;
-          dataExport: string;
-          dataExportDesc: string;
-          charts: string;
-          chartsDesc: string;
-        };
-        docs: {
-          apiReference: string;
-          apiReferenceDesc: string;
-        };
-        shortcuts: {
-          navigate: string;
-          select: string;
-          close: string;
-          arrowKeys: string;
-          enterKey: string;
-          escapeKey: string;
-        };
-        footer: {
-          navigate: string;
-          select: string;
-        };
-      };
-    };
-  };
-  crossChain: {
-    crossChain: {
-      title: string;
-      oracleProvider: string;
-      symbol: string;
-      timeRange: string;
-      refresh: string;
-      loading: string;
-      loadingData: string;
-      priceComparisonTable: string;
-      blockchain: string;
-      price: string;
-      differenceVs: string;
-      percentDifference: string;
-      trend: string;
-      priceChart: string;
-      averagePrice: string;
-      highestPrice: string;
-      priceRange: string;
-      standardDeviation: string;
-      coefficientOfVariation: string;
-      consistencyRating: string;
-      consistency: {
-        excellent: string;
-        good: string;
-        fair: string;
-        poor: string;
-      };
-      stability: {
-        stable: string;
-        unstable: string;
-        highlyUnstable: string;
-        moderate: string;
-      };
-      stabilityAnalysis: string;
-      priceVolatility: string;
-      stabilityRating: string;
-      baseChain: string;
-      export: string;
-      priceSpreadHeatmap: string;
-      priceDifference: string;
-      smallSpread: string;
-      mediumSpread: string;
-      largeSpread: string;
-      outlier: string;
-      autoRefresh: string;
-      autoRefreshOff: string;
-      autoRefresh30s: string;
-      autoRefresh1m: string;
-      autoRefresh5m: string;
-      lastUpdated: string;
-      statistics: string;
-      chartError: string;
-      chartRenderError: string;
-      memoryError: string;
-      viewDetails: string;
-      errorInfo: string;
-      errorStack: string;
-      componentStack: string;
-      errorBoundaryTip: string;
-      viewAll: string;
-      collapse: string;
-      dataPoints: string;
-      deviationAlert: string;
-      median: string;
-      iqr: string;
-      maPeriod: string;
-      showMA: string;
-      resetChart: string;
-      technicalIndicators: string;
-      frequency: string;
-      meanLine: string;
-      medianLine: string;
-      medianPrice: string;
-      skewness: string;
-      kurtosis: string;
-      confidenceInterval95: string;
-      keyMetrics: string;
-      advancedMetrics: string;
-      detail: string;
-      zScore: string;
-      noData: string;
-      lowestPrice: string;
-      dataIntegrityScore: string;
-      tooltip: {
-        averagePrice: string;
-        medianPrice: string;
-        highestPrice: string;
-        priceRange: string;
-        iqr: string;
-        standardDeviation: string;
-        skewness: string;
-        kurtosis: string;
-        confidenceInterval95: string;
-        coefficientOfVariation: string;
-        consistencyRating: string;
-        dataPoints: string;
-      };
-      dataIntegrity: string;
-      priceJumpFrequency: string;
-      priceJumps: string;
-      detailComparison: string;
-      priceTrendComparison: string;
-      anomalyPoint: string;
-      priceDistributionAnalysis: string;
-      priceDistributionHistogram: string;
-      chainPriceBoxPlot: string;
-      boxPlot: {
-        outliers: string;
-        max: string;
-        q3: string;
-        median: string;
-        q1: string;
-        min: string;
-        iqr: string;
-        legend: {
-          box: string;
-          median: string;
-          whisker: string;
-          outlier: string;
-        };
-      };
-      minValue: string;
-      maxValue: string;
-      chainCorrelationAnalysis: string;
-      negativeCorrelation: string;
-      positiveCorrelation: string;
-      recommended: string;
-      refreshSuccess: string;
-      filter: string;
-      filterAll: string;
-      filterAbnormal: string;
-      filterNormal: string;
-      residualDiagnostics: string;
-      autocorrelationFunction: string;
-      autocorrelationCoefficient: string;
-      residualDistribution: string;
-      empiricalDensity: string;
-      normalDensity: string;
-      empiricalDistribution: string;
-      normalDistribution: string;
-      diagnosticExplanation: string;
-      acfExplanation: string;
-      distributionExplanation: string;
-      currentStatus: string;
-      residualsHaveAutocorrelation: string;
-      residualsNoAutocorrelation: string;
-      rollingCorrelationChart: string;
-      windowSize: string;
-      dataPoint: string;
-      strongCorrelation: string;
-      weakCorrelation: string;
-      timeSeries: string;
-      correlationCoefficient: string;
-      sampleSize: string;
-      sampleSizeRange: string;
-      lowSampleSizeWarning: string;
-      pearsonCorrelationDesc: string;
-      significanceMarkers: string;
-      dotSizeIndicatesStrength: string;
-      rollingVolatility: string;
-      annualizedVolatility: string;
-      lowVolatility: string;
-      mediumVolatility: string;
-      highVolatility: string;
-      volatilityCorrelationMatrix: string;
-      selectChain: string;
-      volatilityConeAnalysis: string;
-      volatilityConeDesc: string;
-      p90: string;
-      p75: string;
-      mean: string;
-      p25: string;
-      p10: string;
-      p75p25: string;
-      p90p10: string;
-      anomalyDetectionConfig: string;
-      thresholdType: string;
-      fixedThreshold: string;
-      dynamicVolatility: string;
-      atrIndicator: string;
-      fixedThresholdPercent: string;
-      volatilityMultiplier: string;
-      calculationPeriod: string;
-      fixedThresholdDesc: string;
-      dynamicThresholdDesc: string;
-      atrThresholdDesc: string;
-      tabOverview: string;
-      tabOverviewDesc: string;
-      tabCorrelation: string;
-      tabCorrelationDesc: string;
-      tabAdvanced: string;
-      tabAdvancedDesc: string;
-      tabCharts: string;
-      tabChartsDesc: string;
-      expand: string;
-      significance: string;
-      dataPointLabel: string;
-      cointegrationAnalysis: string;
-      cointegrationDesc: string;
-      volatilityAnalysis: string;
-      volatilityAnalysisDesc: string;
-      noCointegrationDetected: string;
-      needMoreData: string;
-      hedgeRatio: string;
-      halfLife: string;
-      periods: string;
-      adfStatistic: string;
-      criticalValue: string;
-      currentZScore: string;
-      stdDev: string;
-      plus2Sigma: string;
-      minus2Sigma: string;
-      spreadSeries: string;
-      spread: string;
-      longSpread: string;
-      shortSpread: string;
-      neutral: string;
-      tradingAdvice: string;
-      analysisReference: string;
-      longSpreadAdvice: string;
-      shortSpreadAdvice: string;
-      neutralAdvice: string;
-      riskWarning: string;
-      riskNotInvestmentAdvice: string;
-      riskForReferenceOnly: string;
-      riskOwnResponsibility: string;
-      riskMarketWarning: string;
-      colorblindFriendly: string;
-      lowDiff: string;
-      highDiff: string;
-      negativeCorr: string;
-      positiveCorr: string;
-      colorblindModeOn: string;
-      switchToColorblindMode: string;
-      absoluteDiff: string;
-      historicalPercentile: string;
-      higherThanPercent: string;
-      pinnedComparison: string;
-      heatmapLegend: string;
-      heatmapHint: string;
-      zoomIn: string;
-      zoomOut: string;
-      resetZoom: string;
-      panLeft: string;
-      panRight: string;
-      clearAll: string;
-      referenceLines: string;
-      shortcuts: string;
-      correlationMatrix: string;
-      correlationMatrixDesc: string;
-      rollingCorrelationDesc: string;
-      heatmapDesc: string;
-      scroll: string;
-      zoom: string;
-      pan: string;
-      reset: string;
-      dragSelect: string;
-      zoomToArea: string;
-      currentPrice: string;
-      customLine: string;
-      correlationStrength: string;
-      weakToStrong: string;
-      dataSources: {
-        title: string;
-      };
-      benchmark: {
-        title: string;
-        average: string;
-        median: string;
-        highestPrice: string;
-        chain: string;
-        price: string;
-        diffFromAvg: string;
-        rank: string;
-      };
-    };
-    crossChainPanel: {
-      timeRange24h: string;
-      timeRange7d: string;
-      timeRange30d: string;
-      vsLastWeek: string;
-      requests: string;
-      chainId: string;
-      avgGasCost: string;
-      supportedTokens: string;
-      dailyAvgRequests: string;
-      monthlyAvgRequests: string;
-      loadingCrossChainData: string;
-      retry: string;
-      fetchCrossChainDataFailed: string;
-      crossChainRequestStats: string;
-      totalRequests24h: string;
-      totalRequests7d: string;
-      totalRequests30d: string;
-      chainRequestDistribution: string;
-      totalRequests: string;
-      clickBarForDetails: string;
-      chainOverview: string;
-      gas: string;
-      tokens: string;
-      requestsLabel: string;
-    };
-    crossChainPriceConsistency: {
-      title: string;
-      warningTitle: string;
-      warningDesc: string;
-      basePrice: string;
-      maxDeviation: string;
-      avgLatency: string;
-      deviationStatus: {
-        good: string;
-        slight: string;
-        large: string;
-      };
-      latencyStatus: {
-        timely: string;
-        normal: string;
-        high: string;
-      };
-      chainComparison: string;
-      chain: string;
-      price: string;
-      deviation: string;
-      deviationVisualization: string;
-      latency: string;
-      status: {
-        label: string;
-        normal: string;
-        warning: string;
-        critical: string;
-      };
-      baseline: string;
-      deviationBarChart: string;
-      belowBaseline: string;
-      baselineLine: string;
-      aboveBaseline: string;
-      latencyDistribution: string;
-      deviationThreshold: string;
-      deviationThresholdGood: string;
-      deviationThresholdWarning: string;
-      deviationThresholdCritical: string;
-      pythMechanismTitle: string;
-      pythMechanism1: string;
-      pythMechanism2: string;
-      pythMechanism3: string;
-      pythMechanism4: string;
-    };
-    priceDeviationHeatmap: {
-      title: string;
-      timePoints: string;
-      oracles: string;
-      avgDeviation: string;
-      maxDeviation: string;
-      minDeviation: string;
-      anomalyDataPoints: string;
-      time: string;
-      price: string;
-      deviation: string;
-      legend: string;
-      deviationDistribution: string;
-      oracleDeviationRanking: string;
-      highDeviationDetected: string;
-      anomalyWarning: string;
-      range: {
-        extremelyLow: string;
-        low: string;
-        lower: string;
-        medium: string;
-        higher: string;
-        high: string;
-        veryHigh: string;
-        extremelyHigh: string;
-        anomaly: string;
-      };
-    };
-  };
-  crossOracle: {
-    crossOracle: {
-      title: string;
-      subtitle: string;
-      loadingData: string;
-      querying: string;
-      results: string;
-      total: string;
-      detectedAt: string;
-      noDataTitle: string;
-      noDataDescription: string;
-      selectOraclesHint: string;
-      oracleCard: {
-        viewDetails: string;
-        updateFrequency: string;
-        supportedChains: string;
-        chains: string;
-        dataSources: string;
-        dataSourcesUnit: string;
-        lastUpdated: string;
-        tvs: string;
-        marketShare: string;
-        healthStatus: {
-          healthy: string;
-          warning: string;
-          critical: string;
-        };
-        updateFrequencies: {
-          heartbeat1h: string;
-          realtime: string;
-          heartbeat5m: string;
-          heartbeat24h: string;
-          onDemand: string;
-          heartbeat1hSimple: string;
-        };
-        lastUpdatedTimes: {
-          justNow: string;
-          '1minAgo': string;
-          '2minAgo': string;
-          '3minAgo': string;
-          '5minAgo': string;
-          '10minAgo': string;
-        };
-        ariaLabel: {
-          oracleInfo: string;
-          healthStatus: string;
-        };
-      };
-      realtimeComparison: string;
-      refresh: string;
-      lastUpdated: string;
-      currentPriceComparison: string;
-      priceTrend: string;
-      oracle: string;
-      price: string;
-      confidence: string;
-      live: string;
-      liveBadge: string;
-      crossOraclePriceComparison: string;
-      oracleCount: string;
-      oracles: string;
-      quality: {
-        overallScore: string;
-        basedOn: string;
-        dimensions: string;
-        consistency: string;
-        consistencyDesc: string;
-        freshness: string;
-        justUpdated: string;
-        minutesAgo: string;
-        completeness: string;
-        completenessDesc: string;
-        dataSourceStatus: string;
-        suggestions: string;
-        excellent: string;
-        good: string;
-        fair: string;
-        poor: string;
-        professionalAnalysis: string;
-        cv: string;
-        cvTooltip: string;
-        sem: string;
-        semTooltip: string;
-        ci: string;
-        ciTooltip: string;
-        sampleSize: string;
-        sampleSizeTooltip: string;
-        medianPrice: string;
-        medianTooltip: string;
-        stdDev: string;
-        trendTitle: string;
-        last10Minutes: string;
-        cvThreshold: string;
-        noData: string;
-        dataNote: string;
-        table: {
-          oracle: string;
-          price: string;
-          deviation: string;
-          zScore: string;
-          latency: string;
-          confidence: string;
-          outlierLegend: string;
-          highLatencyLegend: string;
-          clickToSort: string;
-        };
-        anomaliesDetected: string;
-        outliers: string;
-        delayed: string;
-        priceOutliers: string;
-        highLatency: string;
-        severeOutlier: string;
-        moderateOutlier: string;
-        lightOutlier: string;
-        confidence: string;
-        updateDelayed: string;
-      };
-      dataQuality: string;
-      comparisonResults: string;
-      realTime: string;
-      priceComparisonDesc: string;
-      riskAlertDesc: string;
-      dataQualityDesc: string;
-      oracleFeatures: {
-        title: string;
-        symbolCount: string;
-        avgLatency: string;
-        features: string;
-        highFrequency: string;
-        crossChain: string;
-        firstParty: string;
-        disputeResolution: string;
-      };
-      oracleFeaturesDesc: string;
-      averagePrice: string;
-      highestPrice: string;
-      priceRange: string;
-      deviation: string;
-      standardDeviation: string;
-      variance: string;
-      avg: string;
-      range: string;
-      stdDev: string;
-      consistencyRating: string;
-      consistency: {
-        excellent: string;
-        good: string;
-        fair: string;
-        poor: string;
-      };
-      basedOnStdDev: string;
-      historyRange: string;
-      ofAverage: string;
-      weighted: string;
-      low: string;
-      outlier: string;
-      trend: string;
-      loading: string;
-      updated: string;
-      provider: string;
-      statusNormal: string;
-      statusWarning: string;
-      statusError: string;
-      anomaliesDetected: string;
-      normal: string;
-      anomaly: string;
-      median: string;
-      bid: string;
-      ask: string;
-      bestBid: string;
-      bestAsk: string;
-      spread: string;
-      bidDepth: string;
-      askDepth: string;
-      lowRisk: string;
-      mediumRisk: string;
-      highRisk: string;
-      noData: string;
-      tryAdjustingFilters: string;
-      sortBy: string;
-      showAll: string;
-      hideOutliers: string;
-      significantDeviation: string;
-      withinNormalRange: string;
-      diffFromAvg: string;
-      pricePosition: string;
-      rankAmongOracles: string;
-      closeDetails: string;
-      swipeToExpand: string;
-      highest: string;
-      lowest: string;
-      riskLevelLegend: string;
-      deviationLegend: string;
-      basedOnDeviation: string;
-      time: {
-        lastUpdated: string;
-        secondsAgo: string;
-        minutesAgo: string;
-        hoursAgo: string;
-        daysAgo: string;
-      };
-      selectOraclesTitle: string;
-      selectOracles: string;
-      source: string;
-      high: string;
-      symbols: string;
-      avgLatency: string;
-      updateFrequency: string;
-      features: string;
-      frequency: string;
-      latency: string;
-      featureComparison: string;
-      featureComparisonDesc: string;
-      hoverForDetails: string;
-      featureLegend: string;
-      totalOracles: string;
-      maxSymbols: string;
-      bestLatency: string;
-      highFreqCount: string;
-      metrics: {
-        accuracy: string;
-        decentralization: string;
-        volatility: string;
-        volatilityDesc: string;
-        consistency: string;
-        consistencyDesc: string;
-        sensitivity: string;
-        sensitivityDesc: string;
-        health: string;
-        healthDesc: string;
-        vsLastPeriod: string;
-      };
-      stats: {
-        highestPrice: string;
-        lowestPrice: string;
-        maxPriceDifference: string;
-        deviationFromAverage: string;
-        avgResponseTime: string;
-      };
-      selectTradingPair: string;
-      priceDeviationThreshold: string;
-      priceDeviationAlert: string;
-      differenceAnalysisPanel: string;
-      priceDifferenceVisualization: string;
-      aboveAverage: string;
-      belowAverage: string;
-      zeroLineAverage: string;
-      multiOraclePriceComparison: string;
-      priceHistory: string;
-      average: string;
-      priceComparisonDetails: string;
-      priceTrendComparison: string;
-      performanceComparison: string;
-      comprehensivePerformanceRadar: string;
-      enableAutoRefresh: string;
-      dataQualityScoreCard: {
-        dimensions: {
-          reliability: string;
-        };
-        metrics: {
-          updateFrequency: string;
-        };
-      };
-      latencyDistribution: {
-        title: string;
-        subtitle: string;
-        p50: string;
-        avgLatency: string;
-        minLatency: string;
-        maxLatency: string;
-        stdDev: string;
-        samples: string;
-        tooltip: {
-          p50Desc: string;
-          p95Desc: string;
-          p99Desc: string;
-        };
-      };
-      oraclePerformanceRanking: {
-        rank: string;
-        title: string;
-        subtitle: string;
-        weightInfo: string;
-        unchanged: string;
-        overallScore: string;
-        dimensionLabels: {
-          responseTime: string;
-          accuracy: string;
-          stability: string;
-          dataSources: string;
-          supportedChains: string;
-        };
-        dimensionDescriptions: {
-          title: string;
-          responseTime: {
-            title: string;
-            weight: string;
-            description: string;
-          };
-          accuracy: {
-            title: string;
-            weight: string;
-            description: string;
-          };
-          stability: {
-            title: string;
-            weight: string;
-            description: string;
-          };
-          dataSources: {
-            title: string;
-            weight: string;
-            description: string;
-          };
-          supportedChains: {
-            title: string;
-            weight: string;
-            description: string;
-          };
-        };
-      };
-      tabPriceComparison: string;
-      tabQualityAnalysis: string;
-      tabOracleProfiles: string;
-      tabs: {
-        priceComparison: string;
-        dataQuality: string;
-        riskAlert: string;
-      };
-      riskAlert: string;
-      risk: {
-        high: string;
-        medium: string;
-        low: string;
-        unknown: string;
-        normal: string;
-        level: string;
-        trendTitle: string;
-        currentScore: string;
-        avgScore: string;
-        alertTitle: string;
-        maxDeviation: string;
-        distribution: string;
-        anomalyList: string;
-        anomalyDetails: string;
-        viewDetails: string;
-        suggestions: string;
-        suggestion1: string;
-        suggestion2: string;
-        suggestion3: string;
-        allClear: string;
-        allClearDesc: string;
-        recommendations: {
-          criticalTitle: string;
-          criticalDesc: string;
-          checkDataSource: string;
-          disableOracleTitle: string;
-          disableOracleDesc: string;
-          viewOracleList: string;
-          monitorMarketTitle: string;
-          monitorMarketDesc: string;
-          viewMarketData: string;
-          highDeviationTitle: string;
-          highDeviationDesc: string;
-          confirmMarket: string;
-          significantDeviationTitle: string;
-          significantDeviationDesc: string;
-          checkNetwork: string;
-          dataDelayTitle: string;
-          dataDelayDesc: string;
-          allClearTitle: string;
-          allClearDesc: string;
-          maintainMonitoringTitle: string;
-          maintainMonitoringDesc: string;
-          documentTitle: string;
-          documentDesc: string;
-          noRecommendations: string;
-          noRecommendationsDesc: string;
-          title: string;
-          subtitle: string;
-          exportReport: string;
-        };
-        monitoring: string;
-        keyMetrics: string;
-        systemMetrics: string;
-        数据正常: string;
-        高风险: string;
-        中风险: string;
-        低风险: string;
-        dataConsistent: string;
-        requiresAttention: string;
-        anomalyCount: string;
-        riskScore: string;
-        maxScore: string;
-        totalAnomalies: string;
-        eventMarker: string;
-        reason: string;
-        time: string;
-        anomalies: string;
-        noAnomalies: string;
-        noAnomaliesDesc: string;
-        detailInfo: string;
-        dataFreshness: string;
-        detectedAt: string;
-        freshness: string;
-        status: string;
-        analysis: string;
-        investigate: string;
-        event: string;
-        heatmapTitle: string;
-        legend: string;
-        heatmapDesc: string;
-      };
-      medianPrice: string;
-      deviationRate: string;
-      priceComparison: string;
-      dataNote: string;
-      priceComparisonNote: string;
-      symbolSelector: {
-        noCommonSymbols: string;
-        adjustOracleSelection: string;
-        supportedBy: string;
-        selectOracleFirst: string;
-      };
-      freshness: string;
-      freshnessOptions: {
-        justNow: string;
-        secondsAgo: string;
-        minutesAgo: string;
-        hoursAgo: string;
-      };
-      refreshOptions: {
-        off: string;
-        '30s': string;
-        '1m': string;
-        '5m': string;
-      };
-      filter: {
-        all: string;
-        normal: string;
-        warning: string;
-        error: string;
-      };
-      filterSummary: {
-        deviation: string;
-        oracle: string;
-        time: string;
-      };
-      pairSelector: {
-        loading: string;
-        searchPlaceholder: string;
-        noResults: string;
-        keyboardHint: string;
-        totalCount: string;
-        categoryAll: string;
-        categoryLayer1: string;
-        categoryDeFi: string;
-        categoryStablecoin: string;
-      };
-      priceTable: {
-        highest: string;
-        lowest: string;
-        status: string;
-        crossOracle: {
-          status: string;
-        };
-        outlier: string;
-        normal: string;
-        deviationRate: string;
-        updateTime: string;
-      };
-      status: string;
-      chartTooltip: {
-        avgPrice: string;
-        stdDev: string;
-        oraclePrices: string;
-      };
-      timeRange: {
-        '1H': string;
-        '24H': string;
-        '7D': string;
-        '30D': string;
-        '90D': string;
-        '1Y': string;
-        ALL: string;
-      };
-      chart: {
-        fullscreen: string;
-        zoomOut: string;
-        zoomIn: string;
-        resetZoom: string;
-        reset: string;
-        avgPriceLine: string;
-      };
-      chartLegend: {
-        avgPriceLine: string;
-        dataPoint: string;
-        stdDev1: string;
-        stdDev2: string;
-        pinchZoom: string;
-      };
-      outliers: {
-        detected: string;
-        count: string;
-        outlierOracles: string;
-        andMore: string;
-        avgDeviation: string;
-        viewDetails: string;
-      };
-      accessibility: {
-        standardColors: string;
-        colorBlindMode: string;
-        standardMode: string;
-        colorBlindModeShort: string;
-      };
-      favorites: {
-        button: string;
-        quickAccess: string;
-        viewAll: string;
-      };
-      noDataAvailable: string;
-      marketConsensus: string;
-      priceDispersion: string;
-      stdError: string;
-      sampleSize: string;
-      updateTime: string;
-      visualization: string;
-      anomaliesCount: string;
-      showingResults: string;
-      charts: {
-        distribution: string;
-        scatter: string;
-        trend: string;
-        depth: string;
-        distributionTitle: string;
-        scatterTitle: string;
-        trendTitle: string;
-        depthTitle: string;
-        scatterHint: string;
-        depthHint: string;
-      };
-      dataSources: {
-        title: string;
-      };
-      comparison: {
-        summary: string;
-        avgPrice: string;
-        priceRange: string;
-        consistency: string;
-        oracleCount: string;
-      };
-      benchmark: {
-        title: string;
-      };
-      comparisonSettings: string;
-      priceComparisonTable: string;
-      deviationAnalysis: {
-        count: string;
-        percentage: string;
-        maxPositive: string;
-        maxNegative: string;
-        meanAbsolute: string;
-        outliers: string;
-        histogramTitle: string;
-        distribution: string;
-        mean: string;
-        stdDev: string;
-        timeSeriesTitle: string;
-        zScoreThreshold: string;
-        outliersTitle: string;
-        totalOutliers: string;
-        noOutliers: string;
-        oracle: string;
-        price: string;
-        deviation: string;
-        zScore: string;
-        action: string;
-        view: string;
-        outlierDetail: string;
-        avgPrice: string;
-        timestamp: string;
-        severeOutlier: string;
-        moderateOutlier: string;
-      };
-      selectGroup: string;
-      subTabs: {
-        overview: string;
-        charts: string;
-        data: string;
-        settings: string;
-      };
-      selectedOracles: string;
-      more: string;
-      action: string;
-      actions: string;
-      autoRefresh: string;
-      groups: {
-        all: string;
-        highFrequency: string;
-        standard: string;
-      };
-      updateFrequencyComparison: string;
-      highFrequency: string;
-      standardFrequency: string;
-      export: {
-        asset: string;
-        oracle: string;
-        price: string;
-        timestamp: string;
-        deviation: string;
-        latency: string;
-        confidence: string;
-        updateFrequency: string;
-        source: string;
-        csvHeaders: string;
-        jsonFields: {
-          oracle: string;
-          provider: string;
-          symbol: string;
-          price: string;
-          deviationPercent: string;
-          confidence: string;
-          source: string;
-          timestamp: string;
-        };
-        filename: string;
-      };
-    };
-    oraclePerformanceRanking: {
-      rank: string;
-      title: string;
-      subtitle: string;
-      weightInfo: string;
-      unchanged: string;
-      overallScore: string;
-      dimensionLabels: {
-        responseTime: string;
-        accuracy: string;
-        stability: string;
-        dataSources: string;
-        supportedChains: string;
-      };
-      dimensionDescriptions: {
-        title: string;
-        responseTime: {
-          title: string;
-          weight: string;
-          description: string;
-        };
-        accuracy: {
-          title: string;
-          weight: string;
-          description: string;
-        };
-        stability: {
-          title: string;
-          weight: string;
-          description: string;
-        };
-        dataSources: {
-          title: string;
-          weight: string;
-          description: string;
-        };
-        supportedChains: {
-          title: string;
-          weight: string;
-          description: string;
-        };
-      };
-    };
-    controlPanel: {
-      title: string;
-      titleShort: string;
-      collapse: string;
-      expand: string;
-      symbol: string;
-      selectSymbol: string;
-      searchSymbol: string;
-      oracles: string;
-      selectAll: string;
-      deselectAll: string;
-      timeRange: string;
-      deviationFilter: string;
-      selectDeviation: string;
-      advancedOptions: string;
-      accessibleColors: string;
-      loading: string;
-      query: string;
-      selectOracleHint: string;
-      oraclesSelected: string;
-      noCommonSymbols: string;
-      adjustOracleSelection: string;
-      selectOracleFirst: string;
-    };
-    crossOracleComparison: {
-      title: string;
-      subtitle: string;
-      consistencyScore: string;
-      quickCompare: string;
-      deviation: string;
-      avgResponseTime: string;
-      highDeviation: string;
-      dataSources: string;
-      supportedChains: string;
-      radar: {
-        responseTime: string;
-        updateFrequency: string;
-        dataSources: string;
-        supportedChains: string;
-        reliability: string;
-      };
-    };
-    comparison: {
-      timeComparison: {
-        currentPeriod: string;
-        yoy: string;
-        mom: string;
-      };
-    };
-  };
-  dataQuality: {
-    dataQuality: {
-      freshness: string;
-      completeness: string;
-      reliability: string;
-      overallScore: string;
-      score: string;
-      qualityAssessment: string;
-      qualityExcellent: string;
-      qualityGood: string;
-      qualityPoor: string;
-      lastUpdated: string;
-      updatedAt: string;
-      success: string;
-      successRate: string;
-      historicalAccuracy: string;
-      responseSuccessRate: string;
-      weight: string;
-      weightDescription: string;
-      secondsAgo: string;
-      minutesAgo: string;
-      hoursAgo: string;
-      daysAgo: string;
-      total: string;
-      scoringRules: string;
-      reliabilityDesc: string;
-      freshnessTrendDesc: string;
-      completenessScore: string;
-      completenessDesc: string;
-      avgScore: string;
-      dataSources: string;
-      excellentRate: string;
-      dataPoints: string;
-      continuity: string;
-      missing: string;
-      latencyDistribution: string;
-      latencyDistributionDesc: string;
-      excellent: string;
-      good: string;
-      warning: string;
-      critical: string;
-      latencyRange: string;
-      percentage: string;
-      sampleCount: string;
-      level: string;
-      freshnessTrend: string;
-      fresh: string;
-      stale: string;
-      delayed: string;
-      dataQualityAnalysis: string;
-      oracleDataQualityMetrics: string;
-      refreshData: string;
-      priceDeviationMonitor: string;
-      comparisonWithOracles: string;
-      basePrice: string;
-      avgDeviation: string;
-      maxDeviation: string;
-      deviationDistribution: string;
-      deviationPercentByOracle: string;
-      price: string;
-      deviation: string;
-      normal: string;
-      warningRange: string;
-      criticalRange: string;
-      latencyDistributionAnalysis: string;
-      responseLatencyHistogram: string;
-      avgValue: string;
-      minValue: string;
-      maxValue: string;
-      stdDev: string;
-      dataSourceReliability: string;
-      availabilityAndUpdateStatus: string;
-      avgAvailability: string;
-      avgUpdateFrequency: string;
-      recentUpdate: string;
-      updateFrequency: string;
-      lastUpdate: string;
-      compositeQualityScore: string;
-      comprehensiveDataAssessment: string;
-      totalScore: string;
-      priceAccuracy: string;
-      latencyPerformance: string;
-    };
-    dataQualityScoreCard: {
-      title: string;
-      subtitle: string;
-      overallScore: string;
-      networkHealth: string;
-      dataIntegrity: string;
-      responseTime: string;
-      validatorActivity: string;
-      improving: string;
-      declining: string;
-      stable: string;
-    };
-  };
-  dataTransparency: {
-    dataTransparency: {
-      title: string;
-      dataSources: string;
-      providers: string;
-      chains: string;
-      dataPoints: string;
-      showMore: string;
-      showLess: string;
-      noSources: string;
-      chain: string;
-      source: string;
-      confidence: string;
-      viewProof: string;
-      nextRefresh: string;
-      totalSources: string;
-      activeSources: string;
-      avgCredibility: string;
-      sourceName: string;
-      type: string;
-      credibility: {
-        high: string;
-        medium: string;
-        low: string;
-        unverified: string;
-      };
-      status: string;
-      verification: string;
-      credibilityLevel: {
-        high: string;
-        medium: string;
-        low: string;
-        unverified: string;
-      };
-      freshness: {
-        fresh: string;
-        stale: string;
-        expired: string;
-      };
-    };
-  };
-  docs: {
-    docs: {
-      hero: {
-        title: string;
-        subtitle: string;
-        searchPlaceholder: string;
-        quickLinks: string;
-      };
-      nav: {
-        title: string;
-        quickstart: string;
-        features: string;
-        technical: string;
-        developer: string;
-        api: string;
-      };
-      quickstart: {
-        title: string;
-        description: string;
-        overview: {
-          title: string;
-          description: string;
-          point1: string;
-          point2: string;
-          point3: string;
-        };
-        steps: {
-          title: string;
-          register: {
-            title: string;
-            description: string;
-          };
-          search: {
-            title: string;
-            description: string;
-          };
-          analyze: {
-            title: string;
-            description: string;
-          };
-        };
-        cta: {
-          primary: string;
-          secondary: string;
-        };
-      };
-      features: {
-        title: string;
-        description: string;
-        learnMore: string;
-        priceQuery: {
-          title: string;
-          description: string;
-          highlight1: string;
-          highlight2: string;
-          highlight3: string;
-        };
-        crossOracle: {
-          title: string;
-          description: string;
-          highlight1: string;
-          highlight2: string;
-          highlight3: string;
-        };
-        crossChain: {
-          title: string;
-          description: string;
-          highlight1: string;
-          highlight2: string;
-          highlight3: string;
-        };
-        alerts: {
-          title: string;
-          description: string;
-          highlight1: string;
-          highlight2: string;
-          highlight3: string;
-        };
-        info: {
-          realtime: {
-            title: string;
-            description: string;
-          };
-          accurate: {
-            title: string;
-            description: string;
-          };
-          comprehensive: {
-            title: string;
-            description: string;
-          };
-        };
-      };
-      technical: {
-        title: string;
-        description: string;
-        readMore: string;
-        methodology: {
-          title: string;
-          description: string;
-          tag1: string;
-          tag2: string;
-        };
-        api: {
-          title: string;
-          description: string;
-          tag1: string;
-          tag2: string;
-        };
-        architecture: {
-          title: string;
-          description: string;
-          tag1: string;
-          tag2: string;
-        };
-        dataSources: {
-          title: string;
-          description: string;
-          tag1: string;
-          tag2: string;
-        };
-        apiPreview: {
-          title: string;
-          description: string;
-          viewAll: string;
-          endpoint: string;
-          method: string;
-        };
-      };
-      developer: {
-        title: string;
-        description: string;
-        learnMore: string;
-        integration: {
-          title: string;
-          description: string;
-        };
-        examples: {
-          title: string;
-          description: string;
-        };
-        faq: {
-          title: string;
-          description: string;
-          q1: {
-            question: string;
-            answer: string;
-          };
-          q2: {
-            question: string;
-            answer: string;
-          };
-          q3: {
-            question: string;
-            answer: string;
-          };
-        };
-        codeExample: {
-          title: string;
-          comment: string;
-          consoleLog: string;
-        };
-        copy: string;
-        copied: string;
-      };
-    };
-  };
-  features: {
-    auth: {
-      auth: {
-        login: {
-          title: string;
-          subtitle: string;
-          emailLabel: string;
-          emailPlaceholder: string;
-          passwordLabel: string;
-          passwordPlaceholder: string;
-          rememberMe: string;
-          forgotPassword: string;
-          submit: string;
-          loggingIn: string;
-          noAccount: string;
-          registerNow: string;
-          orContinueWith: string;
-          error: {
-            emailNotConfirmed: string;
-            invalidCredentials: string;
-            resendConfirmation: string;
-          };
-        };
-        register: {
-          title: string;
-          subtitle: string;
-          displayNameLabel: string;
-          displayNameOptional: string;
-          displayNamePlaceholder: string;
-          emailLabel: string;
-          emailPlaceholder: string;
-          passwordLabel: string;
-          passwordPlaceholder: string;
-          confirmPasswordLabel: string;
-          confirmPasswordPlaceholder: string;
-          termsAgreementPrefix: string;
-          termsAgreementMiddle: string;
-          terms: string;
-          privacy: string;
-          submitting: string;
-          submit: string;
-          hasAccount: string;
-          loginNow: string;
-          success: {
-            title: string;
-            emailSent: string;
-            goToLogin: string;
-            useOtherEmail: string;
-            nextSteps: string;
-            checkInbox: string;
-            clickLink: string;
-            goBackLogin: string;
-          };
-          error: {
-            emailRequired: string;
-            passwordRequired: string;
-            passwordMinLength: string;
-            passwordMismatch: string;
-          };
-        };
-        verifyEmail: {
-          verifying: string;
-          success: {
-            title: string;
-            description: string;
-            goToLogin: string;
-          };
-          error: {
-            title: string;
-            accessDenied: string;
-            expiredToken: string;
-            invalidToken: string;
-            default: string;
-            resendVerification: string;
-            registerAgain: string;
-          };
-        };
-        resendVerification: {
-          title: string;
-          subtitle: string;
-          emailLabel: string;
-          emailPlaceholder: string;
-          submit: string;
-          sending: string;
-          backToLogin: string;
-          success: {
-            title: string;
-            description: string;
-            goToLogin: string;
-            sendAgain: string;
-          };
-          error: {
-            default: string;
-          };
-        };
-        forgotPassword: {
-          title: string;
-          subtitle: string;
-          emailLabel: string;
-          emailPlaceholder: string;
-          submit: string;
-          sending: string;
-          backToLogin: string;
-          success: {
-            title: string;
-            description: string;
-            goToLogin: string;
-            sendAgain: string;
-          };
-          error: {
-            default: string;
-          };
-        };
-        resetPassword: {
-          title: string;
-          subtitle: string;
-          passwordLabel: string;
-          passwordPlaceholder: string;
-          confirmPasswordLabel: string;
-          confirmPasswordPlaceholder: string;
-          submit: string;
-          resetting: string;
-          validating: string;
-          success: {
-            title: string;
-            description: string;
-            goToLogin: string;
-          };
-          invalidLink: {
-            title: string;
-            description: string;
-            requestNew: string;
-          };
-          error: {
-            passwordRequired: string;
-            passwordMinLength: string;
-            passwordMismatch: string;
-            default: string;
-          };
-        };
-      };
-    };
-    settings: {
-      settings: {
-        profile: {
-          title: string;
-          subtitle: string;
-          avatarLabel: string;
-          avatarHint: string;
-          displayNameLabel: string;
-          displayNamePlaceholder: string;
-          emailLabel: string;
-          emailNotEditable: string;
-          saveChanges: string;
-          saveSuccess: string;
-          saveError: string;
-          invalidImageType: string;
-          imageSizeExceeded: string;
-          uploadError: string;
-          avatarUpdateError: string;
-          avatarUpdateSuccess: string;
-          uploadFailed: string;
-          passwordManagement: string;
-          passwordManagementDesc: string;
-          changePassword: string;
-          newPassword: string;
-          newPasswordPlaceholder: string;
-          confirmNewPassword: string;
-          confirmNewPasswordPlaceholder: string;
-          updatePassword: string;
-          passwordMinLength: string;
-          passwordMismatch: string;
-          passwordUpdateSuccess: string;
-          passwordUpdateError: string;
-          cancel: string;
-          avatar: {
-            label: string;
-            hint: string;
-            clickOrDrag: string;
-            dropHere: string;
-            delete: string;
-            cropTitle: string;
-            zoomIn: string;
-            zoomOut: string;
-            rotate: string;
-            apply: string;
-            uploading: string;
-            uploadSuccess: string;
-            uploadFailed: string;
-            deleteSuccess: string;
-            deleteFailed: string;
-            invalidType: string;
-            sizeExceeded: string;
-          };
-        };
-        notifications: {
-          title: string;
-          subtitle: string;
-          emailNotifications: string;
-          emailNotificationsDesc: string;
-          browserNotifications: string;
-          browserNotificationsDesc: string;
-          browserPermissionDenied: string;
-          permissionDeniedHint: string;
-          authorize: string;
-          alertNotifications: string;
-          alertNotificationsDesc: string;
-          alertTriggerNotification: string;
-          alertTriggerNotificationDesc: string;
-          priceChangeNotification: string;
-          priceChangeNotificationDesc: string;
-          enablePriceChangeNotification: string;
-          enablePriceChangeNotificationDesc: string;
-          changeThreshold: string;
-          changeThresholdHint: string;
-          saveSettings: string;
-          saveSuccess: string;
-        };
-        preferences: {
-          title: string;
-          subtitle: string;
-          defaultOracle: string;
-          defaultOracleHint: string;
-          defaultSymbol: string;
-          defaultSymbolHint: string;
-          defaultTimeRange: string;
-          defaultTimeRangeHint: string;
-          language: string;
-          languageHint: string;
-          defaultCurrency: string;
-          defaultCurrencyHint: string;
-          selectCurrency: string;
-          autoRefreshInterval: string;
-          autoRefreshIntervalHint: string;
-          selectRefreshInterval: string;
-          refreshInterval: {
-            off: string;
-            sec10: string;
-            sec30: string;
-            min1: string;
-            min5: string;
-          };
-          saveSettings: string;
-          saveSuccess: string;
-          timeRange: {
-            hour1: string;
-            hour6: string;
-            day1: string;
-            day7: string;
-            day30: string;
-          };
-          languages: {
-            zhCN: string;
-            en: string;
-          };
-        };
-        data: {
-          title: string;
-          subtitle: string;
-          exportUserData: string;
-          exportUserDataDesc: string;
-          exportPriceHistory: string;
-          exportPriceHistoryDesc: string;
-          exportSnapshots: string;
-          exportSnapshotsDesc: string;
-          clearData: string;
-          clearDataDesc: string;
-          clearDataWarning: string;
-          clearLocalData: string;
-          clearLocalDataConfirm: string;
-          clearLocalDataSuccess: string;
-          clearLocalDataError: string;
-          exportSuccess: string;
-          priceHistoryExportSuccess: string;
-          snapshotsExportSuccess: string;
-          exportError: string;
-          dangerZone: string;
-          dangerZoneDesc: string;
-          deleteAccountWarning: string;
-          deleteAccount: string;
-          deleteAccountConfirm: string;
-          deleteAccountConfirmHint: string;
-          deleteAccountConfirmPlaceholder: string;
-          confirmDeleteAccount: string;
-          deleteAccountError: string;
-          cancel: string;
-          export: string;
-          note: string;
-        };
-      };
-    };
-  };
-  home: {
-    home: {
-      hero: {
-        badge: string;
-        title: {
-          part1: string;
-          part2: string;
-        };
-        description: string;
-        ctaPrimary: string;
-        ctaSecondary: string;
-        metrics: {
-          totalValueSecured: string;
-          activeOracles: string;
-          supportedPairs: string;
-        };
-        liveData: string;
-        searchPlaceholder: string;
-        recentSearch: string;
-        clear: string;
-        popular: string;
-        keyboardHint: string;
-        escClose: string;
-        deleteRecord: string;
-        noResults: string;
-        token: string;
-        oracle: string;
-        blockchain: string;
-        stats: {
-          oracles: string;
-          dataSources: string;
-          realtime: string;
-        };
-      };
-      features: {
-        sectionBadge: string;
-        sectionTitle: string;
-        sectionDescription: string;
-        liveData: string;
-        learnMore: string;
-        priceQuery: {
-          title: string;
-          description: string;
-          stats: string;
-        };
-        crossOracle: {
-          title: string;
-          description: string;
-          stats: string;
-        };
-        crossChain: {
-          title: string;
-          description: string;
-          stats: string;
-        };
-        history: {
-          title: string;
-          description: string;
-          stats: string;
-        };
-      };
-      loading: string;
-      oracleCard: {
-        updateFrequency: string;
-        supportedChains: string;
-        dataSources: string;
-        lastUpdated: string;
-        healthStatus: {
-          healthy: string;
-          warning: string;
-          critical: string;
-        };
-        chains: string;
-        sources: string;
-        marketShare: string;
-        tvs: string;
-      };
-      liveMetrics: {
-        title: string;
-        updateInterval: string;
-        metrics: {
-          tvs: string;
-          oracles: string;
-          pairs: string;
-          api: string;
-          accuracy: string;
-          response: string;
-        };
-      };
-      trustMetrics: {
-        metrics: {
-          networks: {
-            label: string;
-            subLabel: string;
-          };
-          partners: {
-            label: string;
-            subLabel: string;
-          };
-          apiCalls: {
-            label: string;
-            subLabel: string;
-          };
-          uptime: {
-            label: string;
-            subLabel: string;
-          };
-        };
-      };
-      cta: {
-        badge: string;
-        title: string;
-        description: string;
-        button: string;
-      };
-      bentoMetrics: {
-        sectionBadge: string;
-        sectionTitle: string;
-        sectionDescription: string;
-        liveIndicator: string;
-        livePriceMonitor: string;
-        updatedAt: string;
-        metrics: {
-          tvs: {
-            title: string;
-            description: string;
-            alert: string;
-          };
-          oracles: {
-            title: string;
-            description: string;
-            alert: string;
-          };
-          sources: {
-            title: string;
-            description: string;
-            alert: string;
-          };
-          updates: {
-            title: string;
-            description: string;
-            alert: string;
-          };
-          latency: {
-            title: string;
-            description: string;
-            alert: string;
-          };
-          accuracy: {
-            title: string;
-            description: string;
-            alert: string;
-          };
-        };
-        bottomStats: {
-          networks: string;
-          partners: string;
-          apiCalls: string;
-          uptime: string;
-        };
-      };
-      crossChainMonitor: {
-        title: string;
-        description: string;
-        tradingPair: string;
-        categories: {
-          all: string;
-          layer1: string;
-          defi: string;
-          stablecoin: string;
-        };
-        searchPlaceholder: string;
-        noResults: string;
-        keyboardHint: string;
-        totalCount: string;
-        stats: {
-          averagePrice: string;
-          maxDeviation: string;
-          chainsMonitored: string;
-          consistencyRate: string;
-        };
-        legend: {
-          highConsistency: string;
-          mediumConsistency: string;
-          lowConsistency: string;
-        };
-      };
-    };
-  };
-  marketOverview: {
-    pageTitle: string;
-    pageDescription: string;
-    stats: {
-      totalTVS: string;
-      totalChains: string;
-      totalProtocols: string;
-      marketDominance: string;
-      avgLatency: string;
-      oracleCount: string;
-    };
-    emptyState: {
-      noChartData: string;
-      noTableData: string;
-      noStatsData: string;
-      chartTitle: string;
-      tableTitle: string;
-      statsTitle: string;
-      refresh: string;
-    };
-    refresh: {
-      manual: string;
-      '30s': string;
-      '1m': string;
-      '5m': string;
-      '15m': string;
-      never: string;
-      lastUpdated: string;
-      nextRefresh: string;
-      clickToRefresh: string;
-      refreshing: string;
-      refresh: string;
-    };
-    tokenPrices: {
-      title: string;
-      offlineMode: string;
-      updatedAt: string;
-      refresh: string;
-      noData: string;
-      high24h: string;
-      low24h: string;
-      volume: string;
-    };
-    realtime: {
-      disconnected: string;
-      highLatency: string;
-      live: string;
-      reconnect: string;
-    };
-    ui: {
-      chart: {
-        chart: string;
-        table: string;
-        marketShare: string;
-        tvsTrend: string;
-        chainSupport: string;
-        chainBreakdown: string;
-        protocols: string;
-        assetCategories: string;
-        oracleComparison: string;
-        benchmark: string;
-        correlation: string;
-        yoyComparison: string;
-        momComparison: string;
-        toggleConfidence: string;
-        reset: string;
-        export: string;
-      };
-      filter: {
-        more: string;
-      };
-    };
-    chartTypes: {
-      line: string;
-      area: string;
-    };
-    chart: {
-      current: string;
-      yoy: string;
-      mom: string;
-      change: string;
-      showTop5: string;
-      showAll: string;
-      chains: string;
-      protocols: string;
-      share: string;
-      oracle: string;
-      marketShare: string;
-      change24h: string;
-      totalTVS: string;
-      oracles: string;
-      fastestGrowing: string;
-      shareChange: string;
-      marketConcentration: string;
-      more: string;
-    };
-    anomaly: {
-      critical: string;
-      high: string;
-      medium: string;
-      low: string;
-      priceSpike: string;
-      priceDrop: string;
-      volatilitySpike: string;
-      trendBreak: string;
-      volumeAnomaly: string;
-      correlationBreak: string;
-      minutesAgo: string;
-      hoursAgo: string;
-      loading: string;
-      noAlerts: string;
-      allNormal: string;
-      active: string;
-      currentValue: string;
-      expectedValue: string;
-      anomalyId: string;
-      duration: string;
-      minutes: string;
-      ongoing: string;
-      affectedOracle: string;
-    };
-    anomalyModal: {
-      title: string;
-      subtitle: string;
-      total: string;
-      critical: string;
-      high: string;
-      medium: string;
-      low: string;
-      filters: string;
-      allLevels: string;
-      allTypes: string;
-      priceSpike: string;
-      priceDrop: string;
-      volatilitySpike: string;
-      trendBreak: string;
-      sortByTime: string;
-      sortByLevel: string;
-      sortByAsset: string;
-      acknowledgeAll: string;
-      loading: string;
-      noAnomalies: string;
-      allNormal: string;
-      currentValue: string;
-      expectedValue: string;
-      duration: string;
-      acknowledge: string;
-      anomalyId: string;
-      detectionTime: string;
-      deviation: string;
-      confidence: string;
-      affectedOracle: string;
-      showing: string;
-      close: string;
-      minutesAgo: string;
-      hoursAgo: string;
-      minutes: string;
-      hours: string;
-      hoursMinutes: string;
-      ongoing: string;
-    };
-    priceAlert: {
-      activeAlerts: string;
-      addAlert: string;
-      asset: string;
-      assetPlaceholder: string;
-      alertType: string;
-      priceAbove: string;
-      priceBelow: string;
-      percentChange: string;
-      targetPrice: string;
-      changePercent: string;
-      note: string;
-      optional: string;
-      notePlaceholder: string;
-      update: string;
-      create: string;
-      cancel: string;
-      loading: string;
-      noAlerts: string;
-      addAlertHint: string;
-      above: string;
-      below: string;
-      change: string;
-      triggered: string;
-      createdAt: string;
-      alertNote: string;
-    };
-    risk: {
-      loading: string;
-      noData: string;
-      overallRiskLevel: string;
-      lowRisk: string;
-      mediumRisk: string;
-      highRisk: string;
-      criticalRisk: string;
-      riskScore: string;
-      trend: string;
-      riskDistribution: string;
-      totalAssets: string;
-      keyMetrics: string;
-      volatilityIndex: string;
-      maxDrawdown: string;
-      sharpeRatio: string;
-      var95: string;
-      recentAlerts: string;
-      lastUpdated: string;
-    };
-    sidebar: {
-      overview: string;
-      alerts: string;
-      risk: string;
-      marketStats: string;
-      totalTVS: string;
-      totalChains: string;
-      totalProtocols: string;
-      oracleCount: string;
-      supported: string;
-      integrated: string;
-      active: string;
-      marketDominance: string;
-      volatility24h: string;
-      dominanceChange24h: string;
-      noData: string;
-      didYouKnow: string;
-      marketInfoTip: string;
-      marketInsights: string;
-      marketConcentration: string;
-      top4Share: string;
-      concentrationLevel: string;
-      highConcentration: string;
-      mediumConcentration: string;
-      lowConcentration: string;
-      top4Oracles: string;
-      topGainers: string;
-      topChainSupporters: string;
-      chains: string;
-      avgChainsPerOracle: string;
-    };
-    chainBreakdown: {
-      loading: string;
-      noData: string;
-      tvs: string;
-      share: string;
-      protocols: string;
-      oracles: string;
-      totalChains: string;
-      totalTVS: string;
-      avgProtocols: string;
-      avgTVS: string;
-      perChain: string;
-      concentration: string;
-      top4Share: string;
-      topGainers24h: string;
-      topLosers24h: string;
-      viewTVS: string;
-      viewShare: string;
-      viewProtocols: string;
-      viewTrend: string;
-      viewDistribution: string;
-      chain: string;
-      chains: string;
-      topOracle: string;
-      oracleShare: string;
-    };
-    assetCategory: {
-      loading: string;
-      noData: string;
-      category: string;
-      tvs: string;
-      share: string;
-      assets: string;
-      protocols: string;
-      topAssets: string;
-      stablecoins: string;
-      layer1: string;
-      layer2: string;
-      defi: string;
-      nft: string;
-      gaming: string;
-      other: string;
-    };
-    protocolList: {
-      loading: string;
-      noData: string;
-      protocol: string;
-      category: string;
-      tvs: string;
-      chain: string;
-      oracle: string;
-      change24h: string;
-      searchPlaceholder: string;
-      allCategories: string;
-      allChains: string;
-      allOracles: string;
-      sortByTVS: string;
-      sortByChange: string;
-      topProtocols: string;
-      showing: string;
-    };
-    oracleComparison: {
-      loading: string;
-      noData: string;
-      oracle: string;
-      tvs: string;
-      share: string;
-      chains: string;
-      protocols: string;
-      latency: string;
-      updateFrequency: string;
-      decentralization: string;
-      security: string;
-      cost: string;
-      compare: string;
-      selectOracles: string;
-      maxOracles: string;
-      metrics: {
-        tvs: string;
-        chains: string;
-        protocols: string;
-        latency: string;
-        frequency: string;
-        decentralization: string;
-        security: string;
-      };
-    };
-    benchmark: {
-      loading: string;
-      noData: string;
-      selectBenchmark: string;
-      compareTo: string;
-      performance: string;
-      volatility: string;
-      sharpeRatio: string;
-      maxDrawdown: string;
-      correlation: string;
-      alpha: string;
-      beta: string;
-      timeframes: {
+        'thisMonth': string;
+      };
+      'vrf': {
+        'fulfilled': string;
+        'pending': string;
+        'failed': string;
+        'dataUnavailable': string;
+        'requestStats': string;
+        'requests24h': string;
+        'successRate': string;
+        'avgResponseTime': string;
+        'gasUsed': string;
+        'subscriptionOverview': string;
+        'activeSubscriptions': string;
+        'totalFunded': string;
+        'avgBalance': string;
+        'subscriptionId': string;
+        'owner': string;
+        'balance': string;
+        'consumers': string;
+        'contracts': string;
+        'recentRequests': string;
+        'requestId': string;
+        'consumer': string;
+        'randomWords': string;
+        'status': string;
+        'useCaseDistribution': string;
+        'requests': string;
+        'noDataAvailable': string;
+        'noDataDesc': string;
+        'v2_5Features': string;
+        'feature1Title': string;
+        'feature1Desc': string;
+        'feature2Title': string;
+        'feature2Desc': string;
+        'feature3Title': string;
+        'feature3Desc': string;
+        'feature4Title': string;
+        'feature4Desc': string;
+        'feature5Title': string;
+        'feature5Desc': string;
+        'feature6Title': string;
+        'feature6Desc': string;
+      };
+      'dataSources': {
+        'title': string;
+      };
+      'nft': {
+        'loading': string;
+        'noData': string;
+        'totalCollections': string;
+        'trendingCount': string;
+        'avgFloorPrice': string;
+        'chainsSupported': string;
+        'collections': string;
+        'name': string;
+        'floorPrice': string;
+        'change24h': string;
+        'volume24h': string;
+        'chain': string;
+        'noCollections': string;
+        'byChain': string;
+        'noChainData': string;
+        'floorPriceHistory': string;
+      };
+      'risk': {
+        'uptime': string;
+        'dataQuality': string;
+        'oracleDiversity': string;
+        'avgConfidence': string;
+        'assessment': string;
+        'overallLevel': string;
+        'factors': string;
+        'verification': string;
+        'severity': {
+          'low': string;
+          'medium': string;
+          'high': string;
+          'critical': string;
+        };
+      };
+      'timeframes': {
         '1d': string;
         '7d': string;
         '30d': string;
         '90d': string;
         '1y': string;
       };
-    };
-    correlation: {
-      loading: string;
-      noData: string;
-      title: string;
-      subtitle: string;
-      positiveCorrelation: string;
-      negativeCorrelation: string;
-      noCorrelation: string;
-      strong: string;
-      moderate: string;
-      weak: string;
-      timeframe: string;
-      method: string;
-      pearson: string;
-      spearman: string;
-    };
-    asset: string;
-    price: string;
-    change24h: string;
-    change7d: string;
-    volume24h: string;
-    primaryOracle: string;
-    topAssets: string;
-    assetsCount: string;
-    viewOracleDetails: string;
-    filter: {
-      filteredFrom: string;
-      searchPlaceholder: string;
-      allOracles: string;
-      all: string;
-      allChanges: string;
-      highChange: string;
-      mediumChange: string;
-      lowChange: string;
-      clear: string;
-      activeFilters: string;
-      search: string;
-      change: string;
-    };
-    oracle: string;
-    chartHint: string;
-    common: {
-      confidenceInterval: {
-        threshold: string;
+      'chartTypes': {
+        'line': string;
+        'area': string;
+        'bar': string;
+        'candle': string;
+      };
+      'priceQuery': {
+        'errors': {
+          'networkError': string;
+          'timeoutError': string;
+          'dataError': string;
+          'unknownError': string;
+          'retry': string;
+        };
+      };
+      'oracles': {
+        'descriptions': {
+          'chainlink': string;
+          'pyth': string;
+          'api3': string;
+          'redstone': string;
+          'dia': string;
+          'winklink': string;
+        };
+      };
+      'riskMetrics': {
+        'volatility': {
+          'insufficientData': string;
+          'description': string;
+        };
+        'consistency': {
+          'good': string;
+          'description': string;
+        };
+        'sensitivity': {
+          'description': string;
+        };
+        'health': {
+          'noData': string;
+          'description': string;
+        };
+      };
+      'errors': {
+        'suggestions': {
+          'default': string;
+          'validationError': string;
+          'authenticationError': string;
+          'authorizationError': string;
+          'notFound': string;
+          'rateLimitExceeded': string;
+          'internalError': string;
+          'priceFetchError': string;
+          'oracleClientError': string;
+          'badRequest': string;
+          'unauthorized': string;
+          'forbidden': string;
+          'conflict': string;
+          'serviceUnavailable': string;
+          'networkError': string;
+          'timeoutError': string;
+          'unknownError': string;
+        };
+      };
+      'favorites': {
+        'loginRequired': string;
+        'loadError': string;
+        'searchPlaceholder': string;
+        'noResults': string;
+        'noResultsDesc': string;
+        'empty': string;
+        'emptyDesc': string;
+        'all': string;
+        'oracleConfig': string;
+        'symbol': string;
+        'chainConfig': string;
+      };
+      'table': {
+        'noData': string;
+        'noDataAriaLabel': string;
+        'totalRecords': string;
+        'warningCount': string;
+        'errorCount': string;
+        'status': string;
+        'statusAriaLabel': string;
+        'provider': string;
+        'providerAriaLabel': string;
+        'name': string;
+        'nameAriaLabel': string;
+        'price': string;
+        'priceAriaLabel': string;
+        'deviation': string;
+        'deviationAriaLabel': string;
+        'confidence': string;
+        'confidenceAriaLabel': string;
+        'responseTime': string;
+        'responseTimeAriaLabel': string;
+        'normal': string;
+        'warning': string;
+        'error': string;
+        'benchmark': string;
+        'noDataConfidence': string;
+        'legend': string;
+        'confidenceProgress': string;
+        'positiveDeviation': string;
+        'negativeDeviation': string;
+        'normalStatus': string;
+        'warningThreshold': string;
+        'errorThreshold': string;
+        'comparisonTable': string;
+      };
+      'quality': {
+        'title': string;
+        'anomalyDetection': string;
+        'noAnomalies': string;
+        'noAnomaliesDesc': string;
+        'detailedAnalysis': string;
+        'consistency': string;
+        'freshness': string;
+        'completeness': string;
+        'overallScore': string;
+        'score': string;
+        'suggestions': string;
+        'dataSourceStatus': string;
+      };
+      'priceTable': {
+        'rawPrice': string;
+        'priceDiff': string;
+        'dataDelay': string;
+        'status': string;
+        'outlier': string;
+        'unknownReason': string;
+        'deviationTooLarge': string;
+        'anomaly': string;
+        'normal': string;
+        'priceAnomaly': string;
+        'possibleReasons': string;
+        'collapseDetails': string;
+        'expandDetails': string;
+        'anomalyTooltip': string;
       };
     };
-    exportConfig: {
-      metrics: {
-        tvs: string;
-        tvl: string;
-        volume: string;
-        fees: string;
-        revenue: string;
-        users: string;
+    'comparison': {
+      'comparison': {
+        'title': string;
+        'previous': string;
+        'current': string;
+        'timeComparison': {
+          'currentPeriod': string;
+          'yoy': string;
+          'mom': string;
+        };
       };
-      exportFormat: string;
-      timeRange: string;
-      timeRanges: {
+      'comparisonPeriod': string;
+      'comparisonAvg': string;
+      'enhancedStatCard': {
+        'confidence': string;
+      };
+      'dataQuality': {
+        'score': string;
+        'excellent': string;
+        'good': string;
+        'poor': string;
+        'assessment': string;
+        'excellentDescription': string;
+        'goodDescription': string;
+        'poorDescription': string;
+        'freshness': string;
+        'completeness': string;
+        'reliability': string;
+        'overall': string;
+        'freshnessDescription': string;
+        'completenessDescription': string;
+        'reliabilityDescription': string;
+        'lastUpdated': string;
+        'updateTime': string;
+        'successRequests': string;
+        'totalRequests': string;
+        'successRate': string;
+        'historicalAccuracy': string;
+        'responseSuccessRate': string;
+        'scoringRules': string;
+        'weights': string;
+      };
+      'enhancedTable': {
+        'noData': string;
+        'totalRecords': string;
+        'warnings': string;
+        'anomalies': string;
+        'avgDeviation': string;
+        'columns': {
+          'status': string;
+          'provider': string;
+          'name': string;
+          'price': string;
+          'deviation': string;
+          'confidence': string;
+          'responseTime': string;
+        };
+        'benchmark': string;
+        'legend': {
+          'positiveDeviation': string;
+          'negativeDeviation': string;
+          'normal': string;
+          'warning': string;
+          'danger': string;
+        };
+      };
+      'crossOracle': {
+        'subtitle': string;
+        'realtimeComparison': string;
+        'oracles': string;
+        'quality': string;
+        'updated': string;
+      };
+    };
+    'components': {
+      'alerts': {
+        'alerts': {
+          'page': {
+            'title': string;
+            'subtitle': string;
+            'loginRequired': string;
+            'loginRequiredDesc': string;
+            'goToLogin': string;
+            'instructions': {
+              'title': string;
+              'items': {
+                '0': string;
+                '1': string;
+                '2': string;
+                '3': string;
+              };
+            };
+          };
+          'create': {
+            'title': string;
+            'nameLabel': string;
+            'nameOptional': string;
+            'namePlaceholder': string;
+            'symbolLabel': string;
+            'providerLabel': string;
+            'providerOptional': string;
+            'allProviders': string;
+            'chainLabel': string;
+            'chainOptional': string;
+            'allChains': string;
+            'selectProviderFirst': string;
+            'conditionLabel': string;
+            'targetValueLabel': string;
+            'enableAlert': string;
+            'submitting': string;
+            'submit': string;
+            'customConfig': string;
+          };
+          'condition': {
+            'above': string;
+            'aboveDesc': string;
+            'below': string;
+            'belowDesc': string;
+            'changePercent': string;
+            'changePercentDesc': string;
+          };
+          'placeholder': {
+            'targetPrice': string;
+            'percentage': string;
+            'targetValue': string;
+          };
+          'error': {
+            'invalidTargetValue': string;
+          };
+          'list': {
+            'title': string;
+            'empty': string;
+            'emptyHint': string;
+            'statusActive': string;
+            'statusTriggered': string;
+            'statusDisabled': string;
+            'lastTriggered': string;
+            'enable': string;
+            'disable': string;
+            'confirm': string;
+          };
+          'history': {
+            'title': string;
+            'empty': string;
+            'status': string;
+            'all': string;
+            'unacknowledged': string;
+            'acknowledged': string;
+            'sort': string;
+            'newest': string;
+            'oldest': string;
+            'unacknowledgedCount': string;
+            'pending': string;
+            'triggerPrice': string;
+            'time': string;
+            'acknowledgeTime': string;
+            'acknowledge': string;
+            'acknowledging': string;
+            'totalRecords': string;
+          };
+          'notification': {
+            'title': string;
+            'triggerPrice': string;
+            'time': string;
+            'acknowledge': string;
+            'acknowledging': string;
+            'viewDetails': string;
+          };
+          'conditionMet': {
+            'above': string;
+            'below': string;
+            'changePercent': string;
+            'changePercentSimple': string;
+            'default': string;
+          };
+          'templates': {
+            'title': string;
+            'categories': {
+              'all': string;
+              'price': string;
+              'volatility': string;
+              'data': string;
+            };
+            'showMore': string;
+            'showLess': string;
+            'priceBreakout': {
+              'name': string;
+              'description': string;
+            };
+            'priceDrop': {
+              'name': string;
+              'description': string;
+            };
+            'volatilitySpike': {
+              'name': string;
+              'description': string;
+            };
+            'deviationAlert': {
+              'name': string;
+              'description': string;
+            };
+            'dataDelay': {
+              'name': string;
+              'description': string;
+            };
+          };
+          'batch': {
+            'selectAll': string;
+            'selectedCount': string;
+            'enable': string;
+            'disable': string;
+            'delete': string;
+            'clearSelection': string;
+            'deleteConfirm': string;
+          };
+          'mute': {
+            'title': string;
+            'description': string;
+            'settings': string;
+            'enabledHint': string;
+            'disabledHint': string;
+            'enabled': string;
+            'disabled': string;
+            'durationLabel': string;
+            'startTime': string;
+            'endTime': string;
+            'recurring': string;
+            'daysOfWeek': string;
+            'notice': string;
+            'duration': {
+              '15': string;
+              '30': string;
+              '60': string;
+              '120': string;
+              '240': string;
+              '480': string;
+              '1440': string;
+              '-1': string;
+            };
+          };
+        };
+        'anomalyAlert': {
+          'realtimeAlerts': string;
+          'historyTitle': string;
+          'configTitle': string;
+          'notificationTitle': string;
+          'totalAnomalies': string;
+          'highSeverity': string;
+          'mediumSeverity': string;
+          'lowSeverity': string;
+          'priceSpikeCount': string;
+          'priceDeviationCount': string;
+          'dataDelayCount': string;
+          'priceDropCount': string;
+          'enableNotifications': string;
+          'notificationsEnabled': string;
+          'config': string;
+          'history': string;
+          'autoRefresh': string;
+          'refresh': string;
+          'clearAll': string;
+          'allTypes': string;
+          'allSeverities': string;
+          'allStatus': string;
+          'unacknowledged': string;
+          'acknowledged': string;
+          'noAnomalies': string;
+          'acknowledge': string;
+          'resolve': string;
+          'clear': string;
+          'lastCheck': string;
+          'currentValue': string;
+          'expectedValue': string;
+          'deviation': string;
+          'delay': string;
+          'last24Hours': string;
+          'last7Days': string;
+          'avgResolutionTime': string;
+          'typeDistribution': string;
+          'severityDistribution': string;
+          'priceSpikeThreshold': string;
+          'priceDropThreshold': string;
+          'priceDeviationThreshold': string;
+          'dataDelayThreshold': string;
+          'checkInterval': string;
+          'type_price_spike': string;
+          'type_price_deviation': string;
+          'type_data_delay': string;
+          'type_price_drop': string;
+          'severity_high': string;
+          'severity_medium': string;
+          'severity_low': string;
+        };
+        'confidenceAlert': {
+          'title': string;
+          'autoRefresh': string;
+          'refresh': string;
+          'currentWidth': string;
+          'criticalAlerts': string;
+          'warningAlerts': string;
+          'unacknowledged': string;
+          'criticalRule': string;
+          'warningRule': string;
+          'threshold': string;
+          'current': string;
+          'exceeded': string;
+          'normal': string;
+          'alertList': string;
+          'clearAll': string;
+          'noAlerts': string;
+          'noAlertsDesc': string;
+          'acknowledge': string;
+          'dismiss': string;
+          'currentWidthLabel': string;
+          'previousWidthLabel': string;
+          'expansionPercentLabel': string;
+          'durationLabel': string;
+          'thresholdLabel': string;
+          'alertStats': string;
+          'suddenExpansion': string;
+          'sustainedHigh': string;
+          'lastCheck': string;
+        };
+        'volatilityAlert': {
+          'title': string;
+          'currentVolatility': string;
+          'threshold': string;
+          'exceedsThreshold': string;
+          'historicalEvents': string;
+          'volatility': string;
+          'riskLevel': {
+            'low': string;
+            'medium': string;
+            'high': string;
+          };
+          'duration': {
+            '1hour': string;
+            '2hours': string;
+            '4hours': string;
+          };
+          'impact': {
+            'priceCorrection2': string;
+            'priceCorrection3': string;
+            'priceFluctuation5': string;
+          };
+        };
+      };
+      'charts': {
+        'chartToolbar': {
+          'chartType': {
+            'line': string;
+            'area': string;
+            'candle': string;
+          };
+          'indicators': string;
+          'export': string;
+          'resetZoom': string;
+        };
+        'charts': {
+          'latency': {
+            'title': string;
+            'pythNotSupported': string;
+            'fetchError': string;
+            'anomaly': string;
+            'refresh': string;
+            'latency': string;
+            'fixedThreshold': string;
+            'dynamicThreshold': string;
+            'baselineMA20': string;
+            'stdDev': string;
+            'status': string;
+            'abnormal': string;
+            'normal': string;
+            'exceedsDynamicThreshold': string;
+            'avgLatency': string;
+            'minLatency': string;
+            'maxLatency': string;
+            'anomalyCount': string;
+            'ma20Description': string;
+            'volatility': string;
+            'thresholdAdjustments': string;
+            'times': string;
+            'updateFrequency': string;
+            'p50': string;
+            'p50Description': string;
+            'p90Description': string;
+            'p99Description': string;
+            'predictionControl': string;
+            'showPrediction': string;
+            'smaPeriod': string;
+            'points': string;
+            'smaDescription': string;
+            'predictionPeriod': string;
+            'predictionDescription': string;
+            'mae': string;
+            'rmse': string;
+            'mape': string;
+            'predictionNote': string;
+            'actualLatency': string;
+            'smaPrediction': string;
+            'histogramTitle': string;
+            'latencyRange': string;
+            'frequency': string;
+            'latencyRangeLabel': string;
+            'anomalyDetected': string;
+            'dynamicThresholdTitle': string;
+            'formula': string;
+            'formulaDesc': string;
+            'baselineDesc': string;
+            'stdDevLabel': string;
+            'stdDevDesc': string;
+            'adjustmentFreq': string;
+            'adjustmentDesc': string;
+            'aboutTitle': string;
+            'aboutDesc': string;
+            'anomalyDesc': string;
+          };
+          'trend': {
+            'title': string;
+            'subtitle': string;
+            'timeRange': string;
+            'timeRange1h': string;
+            'timeRange6h': string;
+            'timeRange24h': string;
+            'timeRange7d': string;
+            'latency': string;
+            'status': string;
+            'abnormal': string;
+            'normal': string;
+            'noData': string;
+            'avgLatency': string;
+            'trend': string;
+            'anomalies': string;
+            'chartTitle': string;
+            'chartDesc': string;
+            'threshold': string;
+            'avg': string;
+            'latencyLine': string;
+            'anomalyPoint': string;
+            'anomalyArea': string;
+            'anomalyAlert': string;
+            'anomalyDesc': string;
+          };
+          'bollinger': {
+            'price': string;
+            'upperBand': string;
+            'middleBand': string;
+            'lowerBand': string;
+            'lowerBandArea': string;
+            'bandwidth': string;
+            'bollingerArea': string;
+            'currentBandwidth': string;
+            'position': string;
+            'touchesUpper': string;
+            'touchesLower': string;
+            'times': string;
+            'squeeze': string;
+            'expansion': string;
+            'bandwidthIndicator': string;
+            'insufficientData': string;
+            'middleBandSMA': string;
+          };
+          'atr': {
+            'priceRange': string;
+            'noData': string;
+            'currentATR': string;
+            'avgATR': string;
+            'maxATR': string;
+            'minATR': string;
+            'highVolatility': string;
+            'lowVolatility': string;
+            'average': string;
+          };
+          'movingAverage': {
+            'title': string;
+            'noData': string;
+            'oracle': string;
+            'ma': string;
+            'showEMA': string;
+            'bollingerBands': string;
+            'currentPrice': string;
+            'trend': string;
+            'bullish': string;
+            'bearish': string;
+            'neutral': string;
+            'bbPosition': string;
+            'rollingStdDev': string;
+            'priceAndMA': string;
+            'bbUpper': string;
+            'bbLower': string;
+            'bbMiddle': string;
+            'price': string;
+            'rollingStdDevTitle': string;
+          };
+          'multiValidator': {
+            'title': string;
+            'days7': string;
+            'days30': string;
+            'days90': string;
+            'uptime': string;
+            'staked': string;
+            'commission': string;
+            'validator': string;
+            'avgUptime': string;
+            'latestStaked': string;
+            'commissionRate': string;
+            'trend': string;
+            'metric': string;
+          };
+          'latencyDistribution': {
+            'histogram': string;
+            'trend': string;
+          };
+          'dataSourceTrend': {
+            'title': string;
+            'newSources': string;
+            'cumulativeSources': string;
+            'yearlyNew': string;
+            'sources': string;
+            'monthlyAvg': string;
+            'monthOverMonth': string;
+            'vsLastMonth': string;
+            'currentTotal': string;
+            'months': {
+              'jan': string;
+              'feb': string;
+              'mar': string;
+              'apr': string;
+              'may': string;
+              'jun': string;
+              'jul': string;
+              'aug': string;
+              'sep': string;
+              'oct': string;
+              'nov': string;
+              'dec': string;
+            };
+          };
+          'dataQuality': {
+            'title': string;
+            'accuracy': string;
+            'availability': string;
+            'consistency': string;
+            'responseSpeed': string;
+            'heartbeatCompliance': string;
+            'baseQuality': string;
+            'latency': string;
+            'deviation': string;
+            'outlier': string;
+            'stale': string;
+            'timeRange': string;
+            'selectOracle': string;
+            '1hour': string;
+            '6hours': string;
+            '24hours': string;
+            '7days': string;
+            'showRadarChart': string;
+            'showRanking': string;
+            'qualityScoreTrend': string;
+            'excellent': string;
+            'good': string;
+            'pass': string;
+            'fail': string;
+            'qualityScore': string;
+            'avgQualityScore': string;
+            'range': string;
+            'trend': string;
+            'improving': string;
+            'declining': string;
+            'stable': string;
+            'avgLatency': string;
+            'outlierRate': string;
+            'staleRate': string;
+            'heartbeatComplianceShort': string;
+            'qualityRanking': string;
+            'rank': string;
+            'oracle': string;
+            'overallScore': string;
+            'multiDimensionComparison': string;
+            'dimensionDescription': string;
+            'accuracyDesc': string;
+            'availabilityDesc': string;
+            'consistencyDesc': string;
+            'responseSpeedDesc': string;
+            'heartbeatComplianceDesc': string;
+            'baseQualityDesc': string;
+            'updateLatencyComparison': string;
+            'priceDeviationFromMedian': string;
+            'heartbeatComplianceRate': string;
+            'target': string;
+            'complianceRate': string;
+            'qualityScoreDescription': string;
+            'qualityScoreDescTitle': string;
+            'updateLatency': string;
+            'updateLatencyDesc': string;
+            'priceDeviation': string;
+            'priceDeviationDesc': string;
+            'outlierDetection': string;
+            'outlierDetectionDesc': string;
+            'dataStale': string;
+            'dataStaleDesc': string;
+            'heartbeatComplianceDescLong': string;
+          };
+          'priceDeviationHistory': {
+            'title': string;
+            'baseline': string;
+            'baselineAverage': string;
+            'baselineMedian': string;
+            'baselineChainlink': string;
+            'timeRange': string;
+            'allData': string;
+            'time': string;
+            'warningThreshold': string;
+            'criticalThreshold': string;
+            'statsPanel': string;
+            'avgDeviation': string;
+            'maxDeviation': string;
+            'maxDeviationTime': string;
+            'stdDeviation': string;
+            'trend': string;
+            'trendIncreasing': string;
+            'trendDecreasing': string;
+            'trendStable': string;
+            'deviationDistribution': string;
+            'overallStats': string;
+            'baselineType': string;
+            'dataPoints': string;
+            'oracleCount': string;
+            'warningCount': string;
+          };
+          'confidenceInterval': {
+            'title': string;
+            'confidenceLevel': string;
+            'upperBound': string;
+            'lowerBound': string;
+            'actualPrice': string;
+            'predictedPrice': string;
+            'intervalWidth': string;
+            'withinInterval': string;
+            'outsideInterval': string;
+            'coverageRate': string;
+            'avgWidth': string;
+            'minWidth': string;
+            'maxWidth': string;
+            'predictionAccuracy': string;
+            'selectConfidence': string;
+            'percent': string;
+            'showActual': string;
+            'showPrediction': string;
+            'showBounds': string;
+            'noData': string;
+            'refreshData': string;
+            'levels': {
+              'high': string;
+              'medium': string;
+              'fairlyLow': string;
+              'low': string;
+            };
+            'score': string;
+            'historicalTrend': string;
+            'timePoint': string;
+            'confidence': string;
+            'average': string;
+            'currentPrice': string;
+            'width': string;
+            'spread': string;
+            'priceDistribution': string;
+            'aboutPyth': {
+              'title': string;
+              'description': string;
+            };
+          };
+        };
+        'priceVolatility': {
+          'title': string;
+          'timeScale': {
+            'short': string;
+            'mid': string;
+            'long': string;
+          };
+          'level': {
+            'extremelyLow': string;
+            'low': string;
+            'medium': string;
+            'high': string;
+            'extremelyHigh': string;
+          };
+          'tooltip': {
+            'cv': string;
+            'stdDev': string;
+            'avgPrice': string;
+            'priceRange': string;
+            'volatilityLevel': string;
+          };
+          'shortTermVolatility': string;
+          'midTermVolatility': string;
+          'longTermVolatility': string;
+          'totalVolatility': string;
+          'windowSize': string;
+          'avgCV': string;
+          'minVolatility': string;
+          'maxVolatility': string;
+          'oracleCount': string;
+          'volatilityComparison': string;
+          'rollingVolatilityTrend': string;
+          'volatilityDecomposition': string;
+          'shortTermProportion': string;
+          'midTermProportion': string;
+          'longTermProportion': string;
+          'table': {
+            'oracle': string;
+            'cv': string;
+            'stdDev': string;
+            'avgPrice': string;
+            'priceRange': string;
+            'volatilityLevel': string;
+          };
+          'explanation': {
+            'title': string;
+            'stdDevDesc': string;
+            'cvDesc': string;
+            'cvInterpretation': string;
+            'rollingWindowDesc': string;
+            'multiScaleDesc': string;
+            'decompositionDesc': string;
+          };
+        };
+        'oracle': {
+          'chart': {
+            'granularity': {
+              'minute': string;
+              'hour': string;
+              'day': string;
+            };
+            'timeRange': {
+              '1h': string;
+              '24h': string;
+              '7d': string;
+              '30d': string;
+              '90d': string;
+              '1y': string;
+              'all': string;
+            };
+          };
+        };
+        'priceChart': {
+          'status': {
+            'realtime': string;
+            'connecting': string;
+            'reconnecting': string;
+            'disconnected': string;
+          };
+          'confidence': string;
+          'granularity': string;
+          'indicators': string;
+          'bollingerBands': string;
+          'ma7': string;
+          'ma14': string;
+          'ma30': string;
+          'rsi': string;
+          'macd': string;
+          'volume': string;
+          'timeComparison': string;
+          'timePeriod1': string;
+          'timePeriod2': string;
+          'to': string;
+          'startComparison': string;
+          'cancelComparison': string;
+          'rsiPeriod': string;
+          'macdPeriod': string;
+          'price': string;
+          'comparisonPrice': string;
+          'signal': string;
+          'anomalyPoints': string;
+          'moreOptions': string;
+          'more': string;
+          'advancedFeatures': string;
+          'timeComparisonDescription': string;
+          'anomalyDetection': string;
+          'anomalyDetectionDescription': string;
+          'viewStats': string;
+          'viewAnomalyStats': string;
+          'predictionInterval': string;
+          'predictionIntervalDescription': string;
+          'confidenceSelection': string;
+          'export': {
+            'title': string;
+            'exportChart': string;
+            'exporting': string;
+            'exportComplete': string;
+            'exportFailed': string;
+            'settings': string;
+            'settingsDescription': string;
+            'range': string;
+            'currentView': string;
+            'allData': string;
+            'dateRange': string;
+            'filenameTemplate': string;
+            'filenameTemplateHint': string;
+            'customFilename': string;
+            'includeMetadata': string;
+            'includeWatermark': string;
+            'cancel': string;
+            'confirmExport': string;
+            'batchExport': string;
+            'batchExportDescription': string;
+            'resolution': string;
+            'selectResolution': string;
+            'selectCharts': string;
+            'selected': string;
+            'preview': string;
+            'previewDescription': string;
+            'filename': string;
+            'dataRange': string;
+            'recordCount': string;
+            'close': string;
+          };
+        };
+        'panels': {
+          'validatorAnalytics': {
+            'institutionValidator': string;
+            'independentValidator': string;
+            'communityValidator': string;
+            'searchValidator': string;
+            'institution': string;
+            'independent': string;
+            'community': string;
+            'lastUpdated': string;
+            'refreshing': string;
+            'refreshData': string;
+            'itemsPerPage': string;
+            'items': string;
+            'prevPage': string;
+            'nextPage': string;
+            'secondsAgo': string;
+            'minutesAgo': string;
+            'hoursAgo': string;
+            'totalRecords': string;
+          };
+          'disputeVoting': {
+            'support': string;
+            'against': string;
+            'abstain': string;
+            'supportRate': string;
+            'totalVotingPower': string;
+            'quorum': string;
+            'quorumReached': string;
+            'threshold': string;
+            'statusPassed': string;
+            'statusQuorumReached': string;
+            'statusInProgress': string;
+            'all': string;
+            'position': string;
+            'sort': string;
+            'votingPower': string;
+            'time': string;
+            'reputation': string;
+            'validators': string;
+            'validator': string;
+            'percentage': string;
+            'noVotesFound': string;
+            'voteDistribution': string;
+            'validatorVotes': string;
+          };
+          'diaRiskAssessment': {
+            'decentralizationMetricDesc': string;
+            'securityMetricDesc': string;
+            'stabilityMetricDesc': string;
+            'dataQualityMetricDesc': string;
+            'eventDIAUpgradeTitle': string;
+            'eventDIAUpgradeDesc': string;
+            'eventAnomalyResponseTitle': string;
+            'eventAnomalyResponseDesc': string;
+            'eventBridgeMaintenanceTitle': string;
+            'eventBridgeMaintenanceDesc': string;
+            'eventDashboardReleaseTitle': string;
+            'eventDashboardReleaseDesc': string;
+          };
+          'anomalyStats': {
+            'low': string;
+            'medium': string;
+            'high': string;
+            'criticalSeverity': string;
+            'spike': string;
+            'drop': string;
+            'stale': string;
+            'outlier': string;
+            'all': string;
+            'recentAnomalies': string;
+            'noAnomalies': string;
+            'price': string;
+            'expected': string;
+            'deviation': string;
+            'source': string;
+            'severityDistribution': string;
+            'typeBreakdown': string;
+            'totalAnomalies': string;
+            'criticalAnomalies': string;
+            'highSeverity': string;
+            'avgDeviation': string;
+          };
+        };
+      };
+      'export': {
+        'export': string;
+        'exporting': string;
+        'selectFormat': string;
+        'exportConfig': string;
+        'selectFields': string;
+        'selectAll': string;
+        'deselectAll': string;
+        'includeMetadata': string;
+        'includeChart': string;
+        'includeStats': string;
+        'dataPreview': string;
+        'recordCount': string;
+        'selectedFields': string;
+        'cancel': string;
+        'history': {
+          'title': string;
+          'all': string;
+          'completed': string;
+          'failed': string;
+          'noHistory': string;
+          'reDownload': string;
+          'delete': string;
+          'clearAll': string;
+        };
+      };
+      'favorites': {
+        'favorites': {
+          'page': {
+            'title': string;
+            'subtitle': string;
+          };
+          'card': {
+            'symbol': string;
+            'chain': string;
+            'type': {
+              'oracleConfig': string;
+              'symbol': string;
+              'chainConfig': string;
+            };
+            'deleteConfirm': {
+              'title': string;
+              'message': string;
+            };
+          };
+          'button': {
+            'add': string;
+            'added': string;
+            'addTitle': string;
+            'removeTitle': string;
+          };
+        };
+      };
+      'search': {
+        'search': {
+          'title': string;
+          'placeholder': string;
+          'noResults': string;
+          'noResultsDesc': string;
+          'initialTitle': string;
+          'initialDesc': string;
+          'inputLabel': string;
+          'resultsLabel': string;
+          'clearButton': string;
+          'error': string;
+          'errorDesc': string;
+          'retry': string;
+          'resultsCount': string;
+          'groups': {
+            'oracles': string;
+            'pairs': string;
+            'blockchains': string;
+            'pages': string;
+            'features': string;
+            'documentation': string;
+          };
+          'oracles': {
+            'chainlinkDesc': string;
+            'pythDesc': string;
+            'api3Desc': string;
+            'redstoneDesc': string;
+            'diaDesc': string;
+            'winklinkDesc': string;
+          };
+          'blockchains': {
+            'ethereumDesc': string;
+            'arbitrumDesc': string;
+            'optimismDesc': string;
+            'polygonDesc': string;
+            'solanaDesc': string;
+            'avalancheDesc': string;
+            'fantomDesc': string;
+            'cronosDesc': string;
+            'junoDesc': string;
+            'cosmosDesc': string;
+            'osmosisDesc': string;
+            'bnbchainDesc': string;
+            'baseDesc': string;
+            'scrollDesc': string;
+            'zksyncDesc': string;
+            'aptosDesc': string;
+            'suiDesc': string;
+            'gnosisDesc': string;
+            'mantleDesc': string;
+            'lineaDesc': string;
+            'celestiaDesc': string;
+            'injectiveDesc': string;
+            'seiDesc': string;
+            'tronDesc': string;
+            'tonDesc': string;
+            'nearDesc': string;
+            'auroraDesc': string;
+            'celoDesc': string;
+          };
+          'pairs': {
+            'priceFeed': string;
+          };
+          'pages': {
+            'home': string;
+            'homeDesc': string;
+            'priceQuery': string;
+            'priceQueryDesc': string;
+            'crossOracle': string;
+            'crossOracleDesc': string;
+            'crossChain': string;
+            'crossChainDesc': string;
+            'favorites': string;
+            'favoritesDesc': string;
+            'alerts': string;
+            'alertsDesc': string;
+            'settings': string;
+            'settingsDesc': string;
+          };
+          'features': {
+            'priceComparison': string;
+            'priceComparisonDesc': string;
+            'priceAlerts': string;
+            'priceAlertsDesc': string;
+            'charts': string;
+            'chartsDesc': string;
+          };
+          'docs': {
+            'apiReference': string;
+            'apiReferenceDesc': string;
+          };
+          'shortcuts': {
+            'navigate': string;
+            'select': string;
+            'close': string;
+            'arrowKeys': string;
+            'enterKey': string;
+            'escapeKey': string;
+          };
+          'footer': {
+            'navigate': string;
+            'select': string;
+          };
+        };
+      };
+    };
+    'crossChain': {
+      'crossChain': {
+        'title': string;
+        'oracleProvider': string;
+        'symbol': string;
+        'timeRange': string;
+        'refresh': string;
+        'loading': string;
+        'loadingData': string;
+        'priceComparisonTable': string;
+        'blockchain': string;
+        'price': string;
+        'differenceVs': string;
+        'percentDifference': string;
+        'trend': string;
+        'priceChart': string;
+        'averagePrice': string;
+        'highestPrice': string;
+        'priceRange': string;
+        'standardDeviation': string;
+        'coefficientOfVariation': string;
+        'consistencyRating': string;
+        'consistency': {
+          'excellent': string;
+          'good': string;
+          'fair': string;
+          'poor': string;
+        };
+        'stability': {
+          'stable': string;
+          'unstable': string;
+          'highlyUnstable': string;
+          'moderate': string;
+        };
+        'stabilityAnalysis': string;
+        'priceVolatility': string;
+        'absolutePriceDiff': string;
+        'stabilityRating': string;
+        'baseChain': string;
+        'export': string;
+        'priceSpreadHeatmap': string;
+        'priceDifference': string;
+        'smallSpread': string;
+        'mediumSpread': string;
+        'largeSpread': string;
+        'outlier': string;
+        'autoRefresh': string;
+        'autoRefreshOff': string;
+        'autoRefresh30s': string;
+        'autoRefresh1m': string;
+        'autoRefresh5m': string;
+        'lastUpdated': string;
+        'statistics': string;
+        'chartError': string;
+        'chartRenderError': string;
+        'memoryError': string;
+        'viewDetails': string;
+        'errorInfo': string;
+        'errorStack': string;
+        'componentStack': string;
+        'errorBoundaryTip': string;
+        'viewAll': string;
+        'collapse': string;
+        'dataPoints': string;
+        'deviationAlert': string;
+        'median': string;
+        'iqr': string;
+        'maPeriod': string;
+        'showMA': string;
+        'resetChart': string;
+        'technicalIndicators': string;
+        'frequency': string;
+        'meanLine': string;
+        'medianLine': string;
+        'medianPrice': string;
+        'skewness': string;
+        'kurtosis': string;
+        'confidenceInterval95': string;
+        'keyMetrics': string;
+        'advancedMetrics': string;
+        'detail': string;
+        'zScore': string;
+        'noData': string;
+        'lowestPrice': string;
+        'dataIntegrityScore': string;
+        'tooltip': {
+          'averagePrice': string;
+          'medianPrice': string;
+          'highestPrice': string;
+          'priceRange': string;
+          'iqr': string;
+          'standardDeviation': string;
+          'skewness': string;
+          'kurtosis': string;
+          'confidenceInterval95': string;
+          'coefficientOfVariation': string;
+          'consistencyRating': string;
+          'dataPoints': string;
+        };
+        'dataIntegrity': string;
+        'priceJumpFrequency': string;
+        'priceJumps': string;
+        'detailComparison': string;
+        'priceTrendComparison': string;
+        'anomalyPoint': string;
+        'priceDistributionAnalysis': string;
+        'priceDistributionHistogram': string;
+        'chainPriceBoxPlot': string;
+        'boxPlot': {
+          'outliers': string;
+          'max': string;
+          'q3': string;
+          'median': string;
+          'q1': string;
+          'min': string;
+          'iqr': string;
+          'legend': {
+            'box': string;
+            'median': string;
+            'whisker': string;
+            'outlier': string;
+          };
+        };
+        'minValue': string;
+        'maxValue': string;
+        'chainCorrelationAnalysis': string;
+        'negativeCorrelation': string;
+        'positiveCorrelation': string;
+        'recommended': string;
+        'refreshSuccess': string;
+        'filter': string;
+        'filters': string;
+        'filterAll': string;
+        'filterAbnormal': string;
+        'filterNormal': string;
+        'residualDiagnostics': string;
+        'autocorrelationFunction': string;
+        'autocorrelationCoefficient': string;
+        'residualDistribution': string;
+        'empiricalDensity': string;
+        'normalDensity': string;
+        'empiricalDistribution': string;
+        'normalDistribution': string;
+        'diagnosticExplanation': string;
+        'acfExplanation': string;
+        'distributionExplanation': string;
+        'currentStatus': string;
+        'residualsHaveAutocorrelation': string;
+        'residualsNoAutocorrelation': string;
+        'rollingCorrelationChart': string;
+        'windowSize': string;
+        'dataPoint': string;
+        'strongCorrelation': string;
+        'weakCorrelation': string;
+        'timeSeries': string;
+        'correlationCoefficient': string;
+        'sampleSize': string;
+        'sampleSizeRange': string;
+        'lowSampleSizeWarning': string;
+        'pearsonCorrelationDesc': string;
+        'significanceMarkers': string;
+        'dotSizeIndicatesStrength': string;
+        'rollingVolatility': string;
+        'annualizedVolatility': string;
+        'lowVolatility': string;
+        'mediumVolatility': string;
+        'highVolatility': string;
+        'volatilityCorrelationMatrix': string;
+        'selectChain': string;
+        'visibleChains': string;
+        'volatilityConeAnalysis': string;
+        'volatilityConeDesc': string;
+        'p90': string;
+        'p75': string;
+        'mean': string;
+        'p25': string;
+        'p10': string;
+        'p75p25': string;
+        'p90p10': string;
+        'anomalyDetectionConfig': string;
+        'thresholdType': string;
+        'fixedThreshold': string;
+        'dynamicVolatility': string;
+        'atrIndicator': string;
+        'fixedThresholdPercent': string;
+        'volatilityMultiplier': string;
+        'calculationPeriod': string;
+        'fixedThresholdDesc': string;
+        'dynamicThresholdDesc': string;
+        'atrThresholdDesc': string;
+        'tabOverview': string;
+        'tabOverviewDesc': string;
+        'tabCorrelation': string;
+        'tabCorrelationDesc': string;
+        'tabAdvanced': string;
+        'tabAdvancedDesc': string;
+        'tabCharts': string;
+        'tabChartsDesc': string;
+        'expand': string;
+        'significance': string;
+        'dataPointLabel': string;
+        'cointegrationAnalysis': string;
+        'cointegrationDesc': string;
+        'volatilityAnalysis': string;
+        'volatilityAnalysisDesc': string;
+        'noCointegrationDetected': string;
+        'needMoreData': string;
+        'hedgeRatio': string;
+        'halfLife': string;
+        'periods': string;
+        'adfStatistic': string;
+        'criticalValue': string;
+        'currentZScore': string;
+        'stdDev': string;
+        'plus2Sigma': string;
+        'minus2Sigma': string;
+        'spreadSeries': string;
+        'spread': string;
+        'longSpread': string;
+        'shortSpread': string;
+        'neutral': string;
+        'tradingAdvice': string;
+        'analysisReference': string;
+        'longSpreadAdvice': string;
+        'shortSpreadAdvice': string;
+        'neutralAdvice': string;
+        'riskWarning': string;
+        'riskNotInvestmentAdvice': string;
+        'riskForReferenceOnly': string;
+        'riskOwnResponsibility': string;
+        'riskMarketWarning': string;
+        'colorblindFriendly': string;
+        'lowDiff': string;
+        'highDiff': string;
+        'negativeCorr': string;
+        'positiveCorr': string;
+        'colorblindModeOn': string;
+        'switchToColorblindMode': string;
+        'absoluteDiff': string;
+        'historicalPercentile': string;
+        'higherThanPercent': string;
+        'pinnedComparison': string;
+        'heatmapLegend': string;
+        'heatmapHint': string;
+        'zoomIn': string;
+        'zoomOut': string;
+        'resetZoom': string;
+        'panLeft': string;
+        'panRight': string;
+        'clearAll': string;
+        'referenceLines': string;
+        'shortcuts': string;
+        'correlationMatrix': string;
+        'correlationMatrixDesc': string;
+        'rollingCorrelationDesc': string;
+        'heatmapDesc': string;
+        'highPrecisionNotice': string;
+        'scroll': string;
+        'zoom': string;
+        'pan': string;
+        'reset': string;
+        'dragSelect': string;
+        'zoomToArea': string;
+        'currentPrice': string;
+        'customLine': string;
+        'correlationStrength': string;
+        'weakToStrong': string;
+        'dataSources': {
+          'title': string;
+        };
+        'benchmark': {
+          'title': string;
+          'average': string;
+          'median': string;
+          'highestPrice': string;
+          'chain': string;
+          'price': string;
+          'diffFromAvg': string;
+          'rank': string;
+        };
+      };
+      'crossChainPanel': {
+        'timeRange24h': string;
+        'timeRange7d': string;
+        'timeRange30d': string;
+        'vsLastWeek': string;
+        'requests': string;
+        'chainId': string;
+        'avgGasCost': string;
+        'supportedTokens': string;
+        'dailyAvgRequests': string;
+        'monthlyAvgRequests': string;
+        'loadingCrossChainData': string;
+        'retry': string;
+        'fetchCrossChainDataFailed': string;
+        'crossChainRequestStats': string;
+        'totalRequests24h': string;
+        'totalRequests7d': string;
+        'totalRequests30d': string;
+        'chainRequestDistribution': string;
+        'totalRequests': string;
+        'clickBarForDetails': string;
+        'chainOverview': string;
+        'gas': string;
+        'tokens': string;
+        'requestsLabel': string;
+      };
+      'crossChainPriceConsistency': {
+        'title': string;
+        'warningTitle': string;
+        'warningDesc': string;
+        'basePrice': string;
+        'maxDeviation': string;
+        'avgLatency': string;
+        'deviationStatus': {
+          'good': string;
+          'slight': string;
+          'large': string;
+        };
+        'latencyStatus': {
+          'timely': string;
+          'normal': string;
+          'high': string;
+        };
+        'chainComparison': string;
+        'chain': string;
+        'price': string;
+        'deviation': string;
+        'deviationVisualization': string;
+        'latency': string;
+        'status': {
+          'label': string;
+          'normal': string;
+          'warning': string;
+          'critical': string;
+        };
+        'baseline': string;
+        'deviationBarChart': string;
+        'belowBaseline': string;
+        'baselineLine': string;
+        'aboveBaseline': string;
+        'latencyDistribution': string;
+        'deviationThreshold': string;
+        'deviationThresholdGood': string;
+        'deviationThresholdWarning': string;
+        'deviationThresholdCritical': string;
+        'pythMechanismTitle': string;
+        'pythMechanism1': string;
+        'pythMechanism2': string;
+        'pythMechanism3': string;
+        'pythMechanism4': string;
+      };
+      'priceDeviationHeatmap': {
+        'title': string;
+        'timePoints': string;
+        'oracles': string;
+        'avgDeviation': string;
+        'maxDeviation': string;
+        'minDeviation': string;
+        'anomalyDataPoints': string;
+        'time': string;
+        'price': string;
+        'deviation': string;
+        'legend': string;
+        'deviationDistribution': string;
+        'oracleDeviationRanking': string;
+        'highDeviationDetected': string;
+        'anomalyWarning': string;
+        'range': {
+          'extremelyLow': string;
+          'low': string;
+          'lower': string;
+          'medium': string;
+          'higher': string;
+          'high': string;
+          'veryHigh': string;
+          'extremelyHigh': string;
+          'anomaly': string;
+        };
+      };
+    };
+    'crossOracle': {
+      'crossOracle': {
+        'title': string;
+        'subtitle': string;
+        'loadingData': string;
+        'querying': string;
+        'results': string;
+        'total': string;
+        'detectedAt': string;
+        'noDataTitle': string;
+        'noDataDescription': string;
+        'selectOraclesHint': string;
+        'oracleCard': {
+          'viewDetails': string;
+          'updateFrequency': string;
+          'supportedChains': string;
+          'chains': string;
+          'dataSources': string;
+          'dataSourcesUnit': string;
+          'lastUpdated': string;
+          'tvs': string;
+          'marketShare': string;
+          'healthStatus': {
+            'healthy': string;
+            'warning': string;
+            'critical': string;
+          };
+          'updateFrequencies': {
+            'heartbeat1h': string;
+            'realtime': string;
+            'heartbeat5m': string;
+            'heartbeat24h': string;
+            'onDemand': string;
+            'heartbeat1hSimple': string;
+          };
+          'lastUpdatedTimes': {
+            'justNow': string;
+            '1minAgo': string;
+            '2minAgo': string;
+            '3minAgo': string;
+            '5minAgo': string;
+            '10minAgo': string;
+          };
+          'ariaLabel': {
+            'oracleInfo': string;
+            'healthStatus': string;
+          };
+        };
+        'realtimeComparison': string;
+        'refresh': string;
+        'lastUpdated': string;
+        'currentPriceComparison': string;
+        'priceTrend': string;
+        'oracle': string;
+        'price': string;
+        'confidence': string;
+        'live': string;
+        'liveBadge': string;
+        'crossOraclePriceComparison': string;
+        'oracleCount': string;
+        'oracles': string;
+        'quality': {
+          'overallScore': string;
+          'basedOn': string;
+          'dimensions': string;
+          'consistency': string;
+          'consistencyDesc': string;
+          'freshness': string;
+          'justUpdated': string;
+          'minutesAgo': string;
+          'completeness': string;
+          'completenessDesc': string;
+          'dataSourceStatus': string;
+          'suggestions': string;
+          'excellent': string;
+          'good': string;
+          'fair': string;
+          'poor': string;
+          'professionalAnalysis': string;
+          'cv': string;
+          'cvTooltip': string;
+          'sem': string;
+          'semTooltip': string;
+          'ci': string;
+          'ciTooltip': string;
+          'sampleSize': string;
+          'sampleSizeTooltip': string;
+          'medianPrice': string;
+          'medianTooltip': string;
+          'stdDev': string;
+          'trendTitle': string;
+          'last10Minutes': string;
+          'cvThreshold': string;
+          'noData': string;
+          'dataNote': string;
+          'table': {
+            'oracle': string;
+            'price': string;
+            'deviation': string;
+            'zScore': string;
+            'latency': string;
+            'confidence': string;
+            'outlierLegend': string;
+            'highLatencyLegend': string;
+            'clickToSort': string;
+          };
+          'anomaliesDetected': string;
+          'outliers': string;
+          'delayed': string;
+          'priceOutliers': string;
+          'highLatency': string;
+          'severeOutlier': string;
+          'moderateOutlier': string;
+          'lightOutlier': string;
+          'confidence': string;
+          'updateDelayed': string;
+        };
+        'dataQuality': string;
+        'comparisonResults': string;
+        'realTime': string;
+        'priceComparisonDesc': string;
+        'riskAlertDesc': string;
+        'dataQualityDesc': string;
+        'oracleFeatures': {
+          'title': string;
+          'symbolCount': string;
+          'avgLatency': string;
+          'features': string;
+          'highFrequency': string;
+          'crossChain': string;
+          'firstParty': string;
+          'disputeResolution': string;
+        };
+        'oracleFeaturesDesc': string;
+        'averagePrice': string;
+        'highestPrice': string;
+        'priceRange': string;
+        'deviation': string;
+        'standardDeviation': string;
+        'variance': string;
+        'avg': string;
+        'range': string;
+        'stdDev': string;
+        'consistencyRating': string;
+        'consistency': {
+          'excellent': string;
+          'good': string;
+          'fair': string;
+          'poor': string;
+        };
+        'basedOnStdDev': string;
+        'historyRange': string;
+        'ofAverage': string;
+        'weighted': string;
+        'low': string;
+        'outlier': string;
+        'trend': string;
+        'loading': string;
+        'updated': string;
+        'provider': string;
+        'statusNormal': string;
+        'statusWarning': string;
+        'statusCritical': string;
+        'anomaliesDetected': string;
+        'normal': string;
+        'anomaly': string;
+        'median': string;
+        'bid': string;
+        'ask': string;
+        'bestBid': string;
+        'bestAsk': string;
+        'spread': string;
+        'bidDepth': string;
+        'askDepth': string;
+        'lowRisk': string;
+        'mediumRisk': string;
+        'highRisk': string;
+        'noData': string;
+        'tryAdjustingFilters': string;
+        'sortBy': string;
+        'showAll': string;
+        'hideOutliers': string;
+        'significantDeviation': string;
+        'withinNormalRange': string;
+        'diffFromAvg': string;
+        'pricePosition': string;
+        'rankAmongOracles': string;
+        'closeDetails': string;
+        'swipeToExpand': string;
+        'highest': string;
+        'lowest': string;
+        'riskLevelLegend': string;
+        'deviationLegend': string;
+        'basedOnDeviation': string;
+        'time': {
+          'lastUpdated': string;
+          'secondsAgo': string;
+          'minutesAgo': string;
+          'hoursAgo': string;
+          'daysAgo': string;
+        };
+        'selectOraclesTitle': string;
+        'selectOracles': string;
+        'source': string;
+        'high': string;
+        'symbols': string;
+        'avgLatency': string;
+        'updateFrequency': string;
+        'features': string;
+        'frequency': string;
+        'latency': string;
+        'latencyTooltip': string;
+        'featureComparison': string;
+        'featureComparisonDesc': string;
+        'hoverForDetails': string;
+        'featureLegend': string;
+        'totalOracles': string;
+        'maxSymbols': string;
+        'bestLatency': string;
+        'highFreqCount': string;
+        'metrics': {
+          'accuracy': string;
+          'decentralization': string;
+          'volatility': string;
+          'volatilityDesc': string;
+          'consistency': string;
+          'consistencyDesc': string;
+          'sensitivity': string;
+          'sensitivityDesc': string;
+          'health': string;
+          'healthDesc': string;
+          'vsLastPeriod': string;
+        };
+        'stats': {
+          'highestPrice': string;
+          'lowestPrice': string;
+          'maxPriceDifference': string;
+          'deviationFromAverage': string;
+          'avgResponseTime': string;
+        };
+        'selectTradingPair': string;
+        'priceDeviationThreshold': string;
+        'priceDeviationAlert': string;
+        'differenceAnalysisPanel': string;
+        'priceDifferenceVisualization': string;
+        'aboveAverage': string;
+        'belowAverage': string;
+        'zeroLineAverage': string;
+        'multiOraclePriceComparison': string;
+        'priceHistory': string;
+        'average': string;
+        'priceComparisonDetails': string;
+        'priceTrendComparison': string;
+        'performanceComparison': string;
+        'comprehensivePerformanceRadar': string;
+        'enableAutoRefresh': string;
+        'dataQualityScoreCard': {
+          'dimensions': {
+            'reliability': string;
+          };
+          'metrics': {
+            'updateFrequency': string;
+          };
+        };
+        'latencyDistribution': {
+          'title': string;
+          'subtitle': string;
+          'p50': string;
+          'avgLatency': string;
+          'minLatency': string;
+          'maxLatency': string;
+          'stdDev': string;
+          'samples': string;
+          'tooltip': {
+            'p50Desc': string;
+            'p95Desc': string;
+            'p99Desc': string;
+          };
+        };
+        'oraclePerformanceRanking': {
+          'rank': string;
+          'title': string;
+          'subtitle': string;
+          'weightInfo': string;
+          'unchanged': string;
+          'overallScore': string;
+          'dimensionLabels': {
+            'responseTime': string;
+            'accuracy': string;
+            'stability': string;
+            'dataSources': string;
+            'supportedChains': string;
+          };
+          'dimensionDescriptions': {
+            'title': string;
+            'responseTime': {
+              'title': string;
+              'weight': string;
+              'description': string;
+            };
+            'accuracy': {
+              'title': string;
+              'weight': string;
+              'description': string;
+            };
+            'stability': {
+              'title': string;
+              'weight': string;
+              'description': string;
+            };
+            'dataSources': {
+              'title': string;
+              'weight': string;
+              'description': string;
+            };
+            'supportedChains': {
+              'title': string;
+              'weight': string;
+              'description': string;
+            };
+          };
+        };
+        'tabPriceComparison': string;
+        'tabQualityAnalysis': string;
+        'tabOracleProfiles': string;
+        'tabs': {
+          'priceComparison': string;
+          'dataQuality': string;
+          'riskAlert': string;
+        };
+        'riskAlert': string;
+        'risk': {
+          'high': string;
+          'medium': string;
+          'low': string;
+          'unknown': string;
+          'normal': string;
+          'level': string;
+          'trendTitle': string;
+          'currentScore': string;
+          'avgScore': string;
+          'alertTitle': string;
+          'maxDeviation': string;
+          'distribution': string;
+          'anomalyList': string;
+          'anomalyDetails': string;
+          'viewDetails': string;
+          'suggestions': string;
+          'suggestion1': string;
+          'suggestion2': string;
+          'suggestion3': string;
+          'allClear': string;
+          'allClearDesc': string;
+          'recommendations': {
+            'criticalTitle': string;
+            'criticalDesc': string;
+            'checkDataSource': string;
+            'disableOracleTitle': string;
+            'disableOracleDesc': string;
+            'viewOracleList': string;
+            'monitorMarketTitle': string;
+            'monitorMarketDesc': string;
+            'viewMarketData': string;
+            'highDeviationTitle': string;
+            'highDeviationDesc': string;
+            'confirmMarket': string;
+            'significantDeviationTitle': string;
+            'significantDeviationDesc': string;
+            'checkNetwork': string;
+            'dataDelayTitle': string;
+            'dataDelayDesc': string;
+            'allClearTitle': string;
+            'allClearDesc': string;
+            'maintainMonitoringTitle': string;
+            'maintainMonitoringDesc': string;
+            'documentTitle': string;
+            'documentDesc': string;
+            'noRecommendations': string;
+            'noRecommendationsDesc': string;
+            'title': string;
+            'subtitle': string;
+            'exportReport': string;
+          };
+          'monitoring': string;
+          'keyMetrics': string;
+          'systemMetrics': string;
+          '数据正常': string;
+          '高风险': string;
+          '中风险': string;
+          '低风险': string;
+          'dataConsistent': string;
+          'requiresAttention': string;
+          'anomalyCount': string;
+          'riskScore': string;
+          'maxScore': string;
+          'totalAnomalies': string;
+          'eventMarker': string;
+          'reason': string;
+          'time': string;
+          'anomalies': string;
+          'noAnomalies': string;
+          'noAnomaliesDesc': string;
+          'detailInfo': string;
+          'dataFreshness': string;
+          'detectedAt': string;
+          'freshness': string;
+          'status': string;
+          'analysis': string;
+          'investigate': string;
+          'event': string;
+          'heatmapTitle': string;
+          'legend': string;
+          'heatmapDesc': string;
+        };
+        'medianPrice': string;
+        'deviationRate': string;
+        'priceComparison': string;
+        'dataNote': string;
+        'priceComparisonNote': string;
+        'symbolSelector': {
+          'noCommonSymbols': string;
+          'adjustOracleSelection': string;
+          'supportedBy': string;
+          'selectOracleFirst': string;
+        };
+        'freshness': string;
+        'freshnessOptions': {
+          'justNow': string;
+          'secondsAgo': string;
+          'minutesAgo': string;
+          'hoursAgo': string;
+        };
+        'refreshOptions': {
+          'off': string;
+          '30s': string;
+          '1m': string;
+          '5m': string;
+        };
+        'failedOracles': string;
+        'retry': string;
+        'retrying': string;
+        'partialSuccess': string;
+        'partialSuccessDesc': string;
+        'retryAll': string;
+        'errorTypes': {
+          'network': string;
+          'timeout': string;
+          'dataFormat': string;
+          'rateLimit': string;
+          'serverError': string;
+          'cors': string;
+          'unknown': string;
+        };
+        'filter': {
+          'all': string;
+          'normal': string;
+          'warning': string;
+          'error': string;
+          'critical': string;
+          'filtersActive': string;
+        };
+        'filterSummary': {
+          'deviation': string;
+          'oracle': string;
+          'time': string;
+        };
+        'pairSelector': {
+          'loading': string;
+          'searchPlaceholder': string;
+          'noResults': string;
+          'keyboardHint': string;
+          'totalCount': string;
+          'categoryAll': string;
+          'categoryLayer1': string;
+          'categoryDeFi': string;
+          'categoryStablecoin': string;
+        };
+        'priceTable': {
+          'highest': string;
+          'lowest': string;
+          'status': string;
+          'crossOracle': {
+            'status': string;
+          };
+          'outlier': string;
+          'normal': string;
+          'deviationRate': string;
+          'updateTime': string;
+        };
+        'status': string;
+        'chartTooltip': {
+          'avgPrice': string;
+          'stdDev': string;
+          'oraclePrices': string;
+        };
+        'timeRange': {
+          '1h': string;
+          '24h': string;
+          '7d': string;
+          '30d': string;
+          '90d': string;
+          '1y': string;
+          'all': string;
+        };
+        'chart': {
+          'fullscreen': string;
+          'zoomOut': string;
+          'zoomIn': string;
+          'resetZoom': string;
+          'reset': string;
+          'avgPriceLine': string;
+        };
+        'chartLegend': {
+          'avgPriceLine': string;
+          'dataPoint': string;
+          'stdDev1': string;
+          'stdDev2': string;
+          'pinchZoom': string;
+        };
+        'outliers': {
+          'detected': string;
+          'count': string;
+          'outlierOracles': string;
+          'andMore': string;
+          'avgDeviation': string;
+          'viewDetails': string;
+        };
+        'accessibility': {
+          'standardColors': string;
+          'colorBlindMode': string;
+          'standardMode': string;
+          'colorBlindModeShort': string;
+        };
+        'favorites': {
+          'button': string;
+          'quickAccess': string;
+          'viewAll': string;
+        };
+        'noDataAvailable': string;
+        'marketConsensus': string;
+        'priceDispersion': string;
+        'stdError': string;
+        'sampleSize': string;
+        'updateTime': string;
+        'visualization': string;
+        'anomaliesCount': string;
+        'showingResults': string;
+        'charts': {
+          'distribution': string;
+          'scatter': string;
+          'trend': string;
+          'depth': string;
+          'distributionTitle': string;
+          'scatterTitle': string;
+          'trendTitle': string;
+          'depthTitle': string;
+          'scatterHint': string;
+          'depthHint': string;
+        };
+        'dataSources': {
+          'title': string;
+        };
+        'comparison': {
+          'summary': string;
+          'avgPrice': string;
+          'priceRange': string;
+          'consistency': string;
+          'oracleCount': string;
+        };
+        'benchmark': {
+          'title': string;
+        };
+        'comparisonSettings': string;
+        'priceComparisonTable': string;
+        'deviationAnalysis': {
+          'count': string;
+          'percentage': string;
+          'maxPositive': string;
+          'maxNegative': string;
+          'meanAbsolute': string;
+          'outliers': string;
+          'histogramTitle': string;
+          'distribution': string;
+          'mean': string;
+          'stdDev': string;
+          'timeSeriesTitle': string;
+          'zScoreThreshold': string;
+          'outliersTitle': string;
+          'totalOutliers': string;
+          'noOutliers': string;
+          'oracle': string;
+          'price': string;
+          'deviation': string;
+          'zScore': string;
+          'action': string;
+          'view': string;
+          'outlierDetail': string;
+          'avgPrice': string;
+          'timestamp': string;
+          'severeOutlier': string;
+          'moderateOutlier': string;
+        };
+        'selectGroup': string;
+        'subTabs': {
+          'overview': string;
+          'charts': string;
+          'data': string;
+          'settings': string;
+        };
+        'selectedOracles': string;
+        'more': string;
+        'action': string;
+        'actions': string;
+        'autoRefresh': string;
+        'groups': {
+          'all': string;
+          'highFrequency': string;
+          'standard': string;
+        };
+        'updateFrequencyComparison': string;
+        'highFrequency': string;
+        'standardFrequency': string;
+        'export': {
+          'asset': string;
+          'oracle': string;
+          'price': string;
+          'timestamp': string;
+          'deviation': string;
+          'latency': string;
+          'confidence': string;
+          'updateFrequency': string;
+          'source': string;
+          'csvHeaders': string;
+          'jsonFields': {
+            'oracle': string;
+            'provider': string;
+            'symbol': string;
+            'price': string;
+            'deviationPercent': string;
+            'confidence': string;
+            'source': string;
+            'timestamp': string;
+          };
+          'filename': string;
+        };
+      };
+      'oraclePerformanceRanking': {
+        'rank': string;
+        'title': string;
+        'subtitle': string;
+        'weightInfo': string;
+        'unchanged': string;
+        'overallScore': string;
+        'dimensionLabels': {
+          'responseTime': string;
+          'accuracy': string;
+          'stability': string;
+          'dataSources': string;
+          'supportedChains': string;
+        };
+        'dimensionDescriptions': {
+          'title': string;
+          'responseTime': {
+            'title': string;
+            'weight': string;
+            'description': string;
+          };
+          'accuracy': {
+            'title': string;
+            'weight': string;
+            'description': string;
+          };
+          'stability': {
+            'title': string;
+            'weight': string;
+            'description': string;
+          };
+          'dataSources': {
+            'title': string;
+            'weight': string;
+            'description': string;
+          };
+          'supportedChains': {
+            'title': string;
+            'weight': string;
+            'description': string;
+          };
+        };
+      };
+      'controlPanel': {
+        'title': string;
+        'titleShort': string;
+        'collapse': string;
+        'expand': string;
+        'symbol': string;
+        'selectSymbol': string;
+        'searchSymbol': string;
+        'oracles': string;
+        'selectAll': string;
+        'deselectAll': string;
+        'timeRange': string;
+        'deviationFilter': string;
+        'selectDeviation': string;
+        'advancedOptions': string;
+        'accessibleColors': string;
+        'loading': string;
+        'query': string;
+        'selectOracleHint': string;
+        'oraclesSelected': string;
+        'noCommonSymbols': string;
+        'adjustOracleSelection': string;
+        'selectOracleFirst': string;
+      };
+      'crossOracleComparison': {
+        'title': string;
+        'subtitle': string;
+        'consistencyScore': string;
+        'quickCompare': string;
+        'deviation': string;
+        'avgResponseTime': string;
+        'highDeviation': string;
+        'dataSources': string;
+        'dataSourcesTooltip': string;
+        'supportedChains': string;
+        'radar': {
+          'responseTime': string;
+          'updateFrequency': string;
+          'dataSources': string;
+          'supportedChains': string;
+          'reliability': string;
+        };
+      };
+      'comparison': {
+        'timeComparison': {
+          'currentPeriod': string;
+          'yoy': string;
+          'mom': string;
+        };
+      };
+    };
+    'dataQuality': {
+      'dataQuality': {
+        'freshness': string;
+        'completeness': string;
+        'reliability': string;
+        'overallScore': string;
+        'score': string;
+        'qualityAssessment': string;
+        'qualityExcellent': string;
+        'qualityGood': string;
+        'qualityPoor': string;
+        'lastUpdated': string;
+        'updatedAt': string;
+        'success': string;
+        'successRate': string;
+        'historicalAccuracy': string;
+        'responseSuccessRate': string;
+        'weight': string;
+        'weightDescription': string;
+        'secondsAgo': string;
+        'minutesAgo': string;
+        'hoursAgo': string;
+        'daysAgo': string;
+        'total': string;
+        'scoringRules': string;
+        'reliabilityDesc': string;
+        'freshnessTrendDesc': string;
+        'completenessScore': string;
+        'completenessDesc': string;
+        'avgScore': string;
+        'dataSources': string;
+        'excellentRate': string;
+        'dataPoints': string;
+        'continuity': string;
+        'missing': string;
+        'latencyDistribution': string;
+        'latencyDistributionDesc': string;
+        'excellent': string;
+        'good': string;
+        'warning': string;
+        'critical': string;
+        'latencyRange': string;
+        'percentage': string;
+        'sampleCount': string;
+        'level': string;
+        'freshnessTrend': string;
+        'fresh': string;
+        'stale': string;
+        'delayed': string;
+        'dataQualityAnalysis': string;
+        'oracleDataQualityMetrics': string;
+        'refreshData': string;
+        'priceDeviationMonitor': string;
+        'comparisonWithOracles': string;
+        'basePrice': string;
+        'avgDeviation': string;
+        'maxDeviation': string;
+        'deviationDistribution': string;
+        'deviationPercentByOracle': string;
+        'price': string;
+        'deviation': string;
+        'normal': string;
+        'warningRange': string;
+        'criticalRange': string;
+        'latencyDistributionAnalysis': string;
+        'responseLatencyHistogram': string;
+        'avgValue': string;
+        'minValue': string;
+        'maxValue': string;
+        'stdDev': string;
+        'dataSourceReliability': string;
+        'availabilityAndUpdateStatus': string;
+        'avgAvailability': string;
+        'avgUpdateFrequency': string;
+        'recentUpdate': string;
+        'updateFrequency': string;
+        'lastUpdate': string;
+        'compositeQualityScore': string;
+        'comprehensiveDataAssessment': string;
+        'totalScore': string;
+        'priceAccuracy': string;
+        'latencyPerformance': string;
+      };
+      'dataQualityScoreCard': {
+        'title': string;
+        'subtitle': string;
+        'overallScore': string;
+        'networkHealth': string;
+        'dataIntegrity': string;
+        'responseTime': string;
+        'validatorActivity': string;
+        'improving': string;
+        'declining': string;
+        'stable': string;
+      };
+    };
+    'dataTransparency': {
+      'dataTransparency': {
+        'title': string;
+        'dataSources': string;
+        'providers': string;
+        'chains': string;
+        'dataPoints': string;
+        'showMore': string;
+        'showLess': string;
+        'noSources': string;
+        'chain': string;
+        'source': string;
+        'confidence': string;
+        'viewProof': string;
+        'nextRefresh': string;
+        'totalSources': string;
+        'activeSources': string;
+        'avgCredibility': string;
+        'sourceName': string;
+        'type': string;
+        'credibility': {
+          'high': string;
+          'medium': string;
+          'low': string;
+          'unverified': string;
+        };
+        'status': string;
+        'verification': string;
+        'credibilityLevel': {
+          'high': string;
+          'medium': string;
+          'low': string;
+          'unverified': string;
+        };
+        'freshness': {
+          'fresh': string;
+          'stale': string;
+          'expired': string;
+        };
+      };
+    };
+    'docs': {
+      'docs': {
+        'hero': {
+          'title': string;
+          'subtitle': string;
+          'searchPlaceholder': string;
+          'quickLinks': string;
+        };
+        'nav': {
+          'title': string;
+          'quickstart': string;
+          'features': string;
+          'technical': string;
+          'developer': string;
+          'api': string;
+        };
+        'quickstart': {
+          'title': string;
+          'description': string;
+          'overview': {
+            'title': string;
+            'description': string;
+            'point1': string;
+            'point2': string;
+            'point3': string;
+          };
+          'steps': {
+            'title': string;
+            'register': {
+              'title': string;
+              'description': string;
+            };
+            'search': {
+              'title': string;
+              'description': string;
+            };
+            'analyze': {
+              'title': string;
+              'description': string;
+            };
+            'alert': {
+              'title': string;
+              'description': string;
+            };
+          };
+          'cta': {
+            'primary': string;
+            'secondary': string;
+          };
+        };
+        'features': {
+          'title': string;
+          'description': string;
+          'learnMore': string;
+          'priceQuery': {
+            'title': string;
+            'description': string;
+            'highlight1': string;
+            'highlight2': string;
+            'highlight3': string;
+          };
+          'crossOracle': {
+            'title': string;
+            'description': string;
+            'highlight1': string;
+            'highlight2': string;
+            'highlight3': string;
+          };
+          'crossChain': {
+            'title': string;
+            'description': string;
+            'highlight1': string;
+            'highlight2': string;
+            'highlight3': string;
+          };
+          'alerts': {
+            'title': string;
+            'description': string;
+            'highlight1': string;
+            'highlight2': string;
+            'highlight3': string;
+          };
+          'info': {
+            'realtime': {
+              'title': string;
+              'description': string;
+            };
+            'accurate': {
+              'title': string;
+              'description': string;
+            };
+            'comprehensive': {
+              'title': string;
+              'description': string;
+            };
+          };
+        };
+        'technical': {
+          'title': string;
+          'description': string;
+          'readMore': string;
+          'methodology': {
+            'title': string;
+            'description': string;
+            'tag1': string;
+            'tag2': string;
+          };
+          'api': {
+            'title': string;
+            'description': string;
+            'tag1': string;
+            'tag2': string;
+          };
+          'architecture': {
+            'title': string;
+            'description': string;
+            'tag1': string;
+            'tag2': string;
+          };
+          'dataSources': {
+            'title': string;
+            'description': string;
+            'tag1': string;
+            'tag2': string;
+          };
+          'apiPreview': {
+            'title': string;
+            'description': string;
+            'viewAll': string;
+            'endpoint': string;
+            'method': string;
+          };
+        };
+        'developer': {
+          'title': string;
+          'description': string;
+          'learnMore': string;
+          'integration': {
+            'title': string;
+            'description': string;
+          };
+          'examples': {
+            'title': string;
+            'description': string;
+          };
+          'faq': {
+            'title': string;
+            'description': string;
+            'q1': {
+              'question': string;
+              'answer': string;
+            };
+            'q2': {
+              'question': string;
+              'answer': string;
+            };
+            'q3': {
+              'question': string;
+              'answer': string;
+            };
+          };
+          'codeExample': {
+            'title': string;
+            'comment': string;
+            'consoleLog': string;
+          };
+          'copy': string;
+          'copied': string;
+        };
+      };
+    };
+    'features': {
+      'auth': {
+        'auth': {
+          'login': {
+            'title': string;
+            'subtitle': string;
+            'emailLabel': string;
+            'emailPlaceholder': string;
+            'passwordLabel': string;
+            'passwordPlaceholder': string;
+            'rememberMe': string;
+            'forgotPassword': string;
+            'submit': string;
+            'loggingIn': string;
+            'noAccount': string;
+            'registerNow': string;
+            'orContinueWith': string;
+            'error': {
+              'emailNotConfirmed': string;
+              'invalidCredentials': string;
+              'resendConfirmation': string;
+            };
+          };
+          'register': {
+            'title': string;
+            'subtitle': string;
+            'displayNameLabel': string;
+            'displayNameOptional': string;
+            'displayNamePlaceholder': string;
+            'emailLabel': string;
+            'emailPlaceholder': string;
+            'passwordLabel': string;
+            'passwordPlaceholder': string;
+            'confirmPasswordLabel': string;
+            'confirmPasswordPlaceholder': string;
+            'termsAgreementPrefix': string;
+            'termsAgreementMiddle': string;
+            'terms': string;
+            'privacy': string;
+            'submitting': string;
+            'submit': string;
+            'hasAccount': string;
+            'loginNow': string;
+            'success': {
+              'title': string;
+              'emailSent': string;
+              'goToLogin': string;
+              'useOtherEmail': string;
+              'nextSteps': string;
+              'checkInbox': string;
+              'clickLink': string;
+              'goBackLogin': string;
+            };
+            'error': {
+              'emailRequired': string;
+              'passwordRequired': string;
+              'passwordMinLength': string;
+              'passwordMismatch': string;
+            };
+          };
+          'verifyEmail': {
+            'verifying': string;
+            'success': {
+              'title': string;
+              'description': string;
+              'goToLogin': string;
+            };
+            'error': {
+              'title': string;
+              'accessDenied': string;
+              'expiredToken': string;
+              'invalidToken': string;
+              'default': string;
+              'resendVerification': string;
+              'registerAgain': string;
+            };
+          };
+          'resendVerification': {
+            'title': string;
+            'subtitle': string;
+            'emailLabel': string;
+            'emailPlaceholder': string;
+            'submit': string;
+            'sending': string;
+            'backToLogin': string;
+            'success': {
+              'title': string;
+              'description': string;
+              'goToLogin': string;
+              'sendAgain': string;
+            };
+            'error': {
+              'default': string;
+            };
+          };
+          'forgotPassword': {
+            'title': string;
+            'subtitle': string;
+            'emailLabel': string;
+            'emailPlaceholder': string;
+            'submit': string;
+            'sending': string;
+            'backToLogin': string;
+            'success': {
+              'title': string;
+              'description': string;
+              'goToLogin': string;
+              'sendAgain': string;
+            };
+            'error': {
+              'default': string;
+            };
+          };
+          'resetPassword': {
+            'title': string;
+            'subtitle': string;
+            'passwordLabel': string;
+            'passwordPlaceholder': string;
+            'confirmPasswordLabel': string;
+            'confirmPasswordPlaceholder': string;
+            'submit': string;
+            'resetting': string;
+            'validating': string;
+            'success': {
+              'title': string;
+              'description': string;
+              'goToLogin': string;
+            };
+            'invalidLink': {
+              'title': string;
+              'description': string;
+              'requestNew': string;
+            };
+            'error': {
+              'passwordRequired': string;
+              'passwordMinLength': string;
+              'passwordMismatch': string;
+              'default': string;
+            };
+          };
+        };
+      };
+      'methodology': {
+        'methodology': {
+          'title': string;
+          'subtitle': string;
+          'overview': {
+            'title': string;
+            'description': string;
+          };
+          'dataSources': {
+            'title': string;
+            'description': string;
+            'sources': {
+              'chainlink': string;
+              'pyth': string;
+              'api3': string;
+              'chronicle': string;
+              'dia': string;
+              'redstone': string;
+              'tellor': string;
+            };
+          };
+          'priceCalculation': {
+            'title': string;
+            'description': string;
+            'principles': {
+              'realTime': {
+                'title': string;
+                'description': string;
+              };
+              'aggregation': {
+                'title': string;
+                'description': string;
+              };
+              'outlierDetection': {
+                'title': string;
+                'description': string;
+              };
+              'timestamp': {
+                'title': string;
+                'description': string;
+              };
+            };
+          };
+          'dataQuality': {
+            'title': string;
+            'description': string;
+            'standards': {
+              'freshness': {
+                'title': string;
+                'description': string;
+              };
+              'consistency': {
+                'title': string;
+                'description': string;
+              };
+              'reliability': {
+                'title': string;
+                'description': string;
+              };
+              'transparency': {
+                'title': string;
+                'description': string;
+              };
+            };
+          };
+          'updateFrequency': {
+            'title': string;
+            'description': string;
+            'intervals': {
+              'realTime': string;
+              'frequent': string;
+              'periodic': string;
+            };
+          };
+          'limitations': {
+            'title': string;
+            'description': string;
+            'items': {
+              'latency': string;
+              'accuracy': string;
+              'availability': string;
+              'notFinancialAdvice': string;
+            };
+          };
+          'methodologyUpdates': {
+            'title': string;
+            'description': string;
+          };
+        };
+      };
+      'settings': {
+        'settings': {
+          'profile': {
+            'title': string;
+            'subtitle': string;
+            'avatarLabel': string;
+            'avatarHint': string;
+            'displayNameLabel': string;
+            'displayNamePlaceholder': string;
+            'emailLabel': string;
+            'emailNotEditable': string;
+            'saveChanges': string;
+            'saveSuccess': string;
+            'saveError': string;
+            'invalidImageType': string;
+            'imageSizeExceeded': string;
+            'uploadError': string;
+            'avatarUpdateError': string;
+            'avatarUpdateSuccess': string;
+            'uploadFailed': string;
+            'passwordManagement': string;
+            'passwordManagementDesc': string;
+            'changePassword': string;
+            'newPassword': string;
+            'newPasswordPlaceholder': string;
+            'confirmNewPassword': string;
+            'confirmNewPasswordPlaceholder': string;
+            'updatePassword': string;
+            'passwordMinLength': string;
+            'passwordMismatch': string;
+            'passwordUpdateSuccess': string;
+            'passwordUpdateError': string;
+            'cancel': string;
+            'avatar': {
+              'label': string;
+              'hint': string;
+              'clickOrDrag': string;
+              'dropHere': string;
+              'delete': string;
+              'cropTitle': string;
+              'zoomIn': string;
+              'zoomOut': string;
+              'rotate': string;
+              'apply': string;
+              'uploading': string;
+              'uploadSuccess': string;
+              'uploadFailed': string;
+              'deleteSuccess': string;
+              'deleteFailed': string;
+              'invalidType': string;
+              'sizeExceeded': string;
+            };
+          };
+          'notifications': {
+            'title': string;
+            'subtitle': string;
+            'emailNotifications': string;
+            'emailNotificationsDesc': string;
+            'browserNotifications': string;
+            'browserNotificationsDesc': string;
+            'browserPermissionDenied': string;
+            'permissionDeniedHint': string;
+            'authorize': string;
+            'alertNotifications': string;
+            'alertNotificationsDesc': string;
+            'alertTriggerNotification': string;
+            'alertTriggerNotificationDesc': string;
+            'priceChangeNotification': string;
+            'priceChangeNotificationDesc': string;
+            'enablePriceChangeNotification': string;
+            'enablePriceChangeNotificationDesc': string;
+            'changeThreshold': string;
+            'changeThresholdHint': string;
+            'saveSettings': string;
+            'saveSuccess': string;
+          };
+          'preferences': {
+            'title': string;
+            'subtitle': string;
+            'defaultOracle': string;
+            'defaultOracleHint': string;
+            'defaultSymbol': string;
+            'defaultSymbolHint': string;
+            'defaultTimeRange': string;
+            'defaultTimeRangeHint': string;
+            'language': string;
+            'languageHint': string;
+            'defaultCurrency': string;
+            'defaultCurrencyHint': string;
+            'selectCurrency': string;
+            'autoRefreshInterval': string;
+            'autoRefreshIntervalHint': string;
+            'selectRefreshInterval': string;
+            'refreshInterval': {
+              'off': string;
+              'sec10': string;
+              'sec30': string;
+              'min1': string;
+              'min5': string;
+            };
+            'saveSettings': string;
+            'saveSuccess': string;
+            'timeRange': {
+              'hour1': string;
+              'hour6': string;
+              'day1': string;
+              'day7': string;
+              'day30': string;
+            };
+            'languages': {
+              'zhCN': string;
+              'en': string;
+            };
+          };
+          'data': {
+            'title': string;
+            'subtitle': string;
+            'exportUserData': string;
+            'exportUserDataDesc': string;
+            'exportPriceHistory': string;
+            'exportPriceHistoryDesc': string;
+            'exportSnapshots': string;
+            'exportSnapshotsDesc': string;
+            'clearData': string;
+            'clearDataDesc': string;
+            'clearDataWarning': string;
+            'clearLocalData': string;
+            'clearLocalDataConfirm': string;
+            'clearLocalDataSuccess': string;
+            'clearLocalDataError': string;
+            'exportSuccess': string;
+            'priceHistoryExportSuccess': string;
+            'snapshotsExportSuccess': string;
+            'exportError': string;
+            'dangerZone': string;
+            'dangerZoneDesc': string;
+            'deleteAccountWarning': string;
+            'deleteAccount': string;
+            'deleteAccountConfirm': string;
+            'deleteAccountConfirmHint': string;
+            'deleteAccountConfirmPlaceholder': string;
+            'confirmDeleteAccount': string;
+            'deleteAccountError': string;
+            'cancel': string;
+            'export': string;
+            'note': string;
+          };
+        };
+      };
+    };
+    'home': {
+      'home': {
+        'hero': {
+          'badge': string;
+          'title': {
+            'part1': string;
+            'part2': string;
+          };
+          'description': string;
+          'ctaPrimary': string;
+          'ctaSecondary': string;
+          'metrics': {
+            'totalValueSecured': string;
+            'activeOracles': string;
+            'supportedPairs': string;
+          };
+          'liveData': string;
+          'searchPlaceholder': string;
+          'recentSearch': string;
+          'clear': string;
+          'popular': string;
+          'keyboardHint': string;
+          'escClose': string;
+          'deleteRecord': string;
+          'noResults': string;
+          'token': string;
+          'oracle': string;
+          'blockchain': string;
+          'stats': {
+            'oracles': string;
+            'dataSources': string;
+            'realtime': string;
+          };
+        };
+        'features': {
+          'sectionBadge': string;
+          'sectionTitle': string;
+          'sectionDescription': string;
+          'liveData': string;
+          'learnMore': string;
+          'priceQuery': {
+            'title': string;
+            'description': string;
+            'stats': string;
+          };
+          'crossOracle': {
+            'title': string;
+            'description': string;
+            'stats': string;
+          };
+          'crossChain': {
+            'title': string;
+            'description': string;
+            'stats': string;
+          };
+          'history': {
+            'title': string;
+            'description': string;
+            'stats': string;
+          };
+        };
+        'loading': string;
+        'oracleCard': {
+          'updateFrequency': string;
+          'supportedChains': string;
+          'dataSources': string;
+          'lastUpdated': string;
+          'healthStatus': {
+            'healthy': string;
+            'warning': string;
+            'critical': string;
+          };
+          'chains': string;
+          'sources': string;
+          'marketShare': string;
+          'tvs': string;
+        };
+        'liveMetrics': {
+          'title': string;
+          'updateInterval': string;
+          'metrics': {
+            'tvs': string;
+            'oracles': string;
+            'pairs': string;
+            'api': string;
+            'accuracy': string;
+            'response': string;
+          };
+        };
+        'trustMetrics': {
+          'metrics': {
+            'networks': {
+              'label': string;
+              'subLabel': string;
+            };
+            'partners': {
+              'label': string;
+              'subLabel': string;
+            };
+            'apiCalls': {
+              'label': string;
+              'subLabel': string;
+            };
+            'uptime': {
+              'label': string;
+              'subLabel': string;
+            };
+          };
+        };
+        'cta': {
+          'badge': string;
+          'title': string;
+          'description': string;
+          'button': string;
+        };
+        'bentoMetrics': {
+          'sectionBadge': string;
+          'sectionTitle': string;
+          'sectionDescription': string;
+          'liveIndicator': string;
+          'livePriceMonitor': string;
+          'updatedAt': string;
+          'metrics': {
+            'tvs': {
+              'title': string;
+              'description': string;
+              'alert': string;
+            };
+            'oracles': {
+              'title': string;
+              'description': string;
+              'alert': string;
+            };
+            'sources': {
+              'title': string;
+              'description': string;
+              'alert': string;
+            };
+            'updates': {
+              'title': string;
+              'description': string;
+              'alert': string;
+            };
+            'latency': {
+              'title': string;
+              'description': string;
+              'alert': string;
+            };
+            'accuracy': {
+              'title': string;
+              'description': string;
+              'alert': string;
+            };
+          };
+          'bottomStats': {
+            'networks': string;
+            'partners': string;
+            'apiCalls': string;
+            'uptime': string;
+          };
+        };
+        'crossChainMonitor': {
+          'title': string;
+          'description': string;
+          'tradingPair': string;
+          'categories': {
+            'all': string;
+            'layer1': string;
+            'defi': string;
+            'stablecoin': string;
+          };
+          'searchPlaceholder': string;
+          'noResults': string;
+          'keyboardHint': string;
+          'totalCount': string;
+          'stats': {
+            'averagePrice': string;
+            'maxDeviation': string;
+            'chainsMonitored': string;
+            'consistencyRate': string;
+          };
+          'legend': {
+            'highConsistency': string;
+            'mediumConsistency': string;
+            'lowConsistency': string;
+          };
+        };
+      };
+    };
+    'navigation': {
+      'navbar': {
+        'home': string;
+        'documentation': string;
+        'priceQuery': string;
+        'crossOracle': string;
+        'crossChain': string;
+        'chainlink': string;
+        'pyth': string;
+        'pythNetwork': string;
+        'api3': string;
+        'market': string;
+        'dataAnalysis': string;
+        'oracleDetails': string;
+        'menu': string;
+        'openMenu': string;
+        'priceQueryDesc': string;
+        'crossOracleDesc': string;
+        'crossChainDesc': string;
+        'chainlinkDesc': string;
+        'pythNetworkDesc': string;
+        'api3Desc': string;
+        'redstone': string;
+        'redstoneDesc': string;
+        'dia': string;
+        'diaDesc': string;
+        'winklink': string;
+        'winklinkDesc': string;
+        'favorites': string;
+        'alerts': string;
+        'settings': string;
+        'login': string;
+        'register': string;
+        'signOut': string;
+      };
+      'footer': {
+        'copyright': string;
+        'documentation': string;
+        'github': string;
+        'contact': string;
+        'api': string;
+        'privacy': string;
+        'terms': string;
+        'description': string;
+        'links': {
+          'platform': string;
+          'resources': string;
+          'oracles': string;
+        };
+      };
+      'blockchain': {
+        'ethereum': string;
+        'arbitrum': string;
+        'optimism': string;
+        'polygon': string;
+        'solana': string;
+        'avalanche': string;
+        'fantom': string;
+        'cronos': string;
+        'juno': string;
+        'cosmos': string;
+        'osmosis': string;
+        'bnb-chain': string;
+        'base': string;
+        'scroll': string;
+        'zksync': string;
+        'aptos': string;
+        'sui': string;
+        'gnosis': string;
+        'mantle': string;
+        'linea': string;
+        'celestia': string;
+        'injective': string;
+        'sei': string;
+        'tron': string;
+        'ton': string;
+        'near': string;
+        'aurora': string;
+        'celo': string;
+      };
+    };
+    'priceQuery': {
+      'filter': string;
+      'clear': string;
+      'clearFilter': string;
+      'priceQuery': {
+        'title': string;
+        'description': string;
+        'loading': string;
+        'loadingData': string;
+        'query': string;
+        'querying': string;
+        'noResults': {
+          'title': string;
+          'description': string;
+          'suggestion': string;
+          'popularTokens': string;
+        };
+        'results': {
+          'title': string;
+          'count': string;
+          'empty': string;
+          'filterPlaceholder': string;
+          'oracle': string;
+          'blockchain': string;
+          'price': string;
+          'deviation': string;
+          'timestamp': string;
+          'dataSource': string;
+          'noMatchingData': string;
+          'showing': string;
+          'tableLabel': string;
+          'sortAscending': string;
+          'sortDescending': string;
+          'resultsCount': string;
+          'showFilters': string;
+          'hideFilters': string;
+          'filterLabel': string;
+          'table': {
+            'oracle': string;
+            'blockchain': string;
+            'price': string;
+            'timestamp': string;
+            'change24h': string;
+            'freshness': string;
+            'confidence': string;
+            'dataSource': string;
+          };
+          'dataSources': {
+            'real': string;
+            'mock': string;
+            'api': string;
+            'fallback': string;
+          };
+          'oracleFeatures': {
+            'chainlink': string;
+            'pyth': string;
+            'api3': string;
+            'redstone': string;
+            'dia': string;
+            'winklink': string;
+          };
+          'qualityScore': {
+            'excellent': string;
+            'good': string;
+            'warning': string;
+            'critical': string;
+          };
+        };
+        'subtitle': string;
+        'filter': {
+          'placeholder': string;
+          'results': string;
+          'noResults': string;
+        };
+        'pagination': {
+          'perPage': string;
+          'items': string;
+          'total': string;
+          'prevPage': string;
+          'nextPage': string;
+        };
+        'selectors': {
+          'symbol': string;
+          'oracle': string;
+          'blockchain': string;
+          'timeRange': string;
+          'selectAll': string;
+          'deselectAll': string;
+          'advancedOptions': string;
+          'compareMode': string;
+          'showBaseline': string;
+          'compareTime': string;
+          'panelLabel': string;
+          'symbolLabel': string;
+          'oracleLabel': string;
+          'blockchainLabel': string;
+          'timeRangeLabel': string;
+          'compareTimeLabel': string;
+          'compareModeDesc': string;
+          'baselineDesc': string;
+          'symbolNotSupported': string;
+          'singleOracleNotSupport': string;
+          'multipleOraclesNotSupport': string;
+          'selectOracle': string;
+          'selectBlockchain': string;
+        };
+        'stats': {
+          'avgPrice': string;
+          'maxPrice': string;
+          'minPrice': string;
+          'priceRange': string;
+          'standardDeviation': string;
+          'dataPoints': string;
+          'consistencyRating': string;
+          'absoluteValue': string;
+          'queryDuration': string;
+          'change24h': string;
+          'volatility': string;
+          'annualized': string;
+          'compare': string;
+          'collapse': string;
+          'expand': string;
+          'roundId': string;
+          'answeredInRound': string;
+          'decimals': string;
+          'version': string;
+          'roundStarted': string;
+          'feedDescription': string;
+          'priceId': string;
+          'exponent': string;
+          'confidenceAbs': string;
+          'publishTime': string;
+          'confidenceWidth': string;
+          'confidenceScore': string;
+          'dapiName': string;
+          'proxyAddress': string;
+          'blockchain': string;
+          'dataAge': string;
+        };
+        'export': {
+          'header': string;
+          'oracle': string;
+          'blockchain': string;
+          'price': string;
+          'timestamp': string;
+          'source': string;
+          'change24h': string;
+          'confidence': string;
+          'csv': string;
+          'json': string;
+          'advanced': string;
+        };
+        'history': {
+          'title': string;
+          'empty': string;
+        };
+        'oracles': string;
+        'chains': string;
+        'comparison': {
+          'title': string;
+        };
+        'currentPrice': string;
+        'volume24h': string;
+        'dataSources': {
+          'title': string;
+        };
+        'autoRefresh': {
+          'title': string;
+          'off': string;
+          '30s': string;
+          '1m': string;
+          '5m': string;
+          'refreshing': string;
+          'countdown': string;
+        };
+        'lastUpdated': string;
+        'progress': string;
+        'error': {
+          'fetchFailed': string;
+          'retry': string;
+          'retrying': string;
+          'lastSuccessfulFetch': string;
+          'noSuccessfulFetch': string;
+        };
+        'chart': {
+          'title': string;
+          'exportImage': string;
+          'indicators': string;
+          'bollingerBands': string;
+          'confidenceInterval': string;
+          'annotations': string;
+          'anomalyMarkers': string;
+          'priceSpikes': string;
+          'valueLabels': string;
+          'baseline': string;
+          'compareSuffix': string;
+          'priceHigh': string;
+          'priceLow': string;
+          'realtime': string;
+          'realtimeUpdate': string;
+          'realtimePrice': string;
+          'lastUpdate': string;
+          'connectionStatus': {
+            'connected': string;
+            'connecting': string;
+            'reconnecting': string;
+            'disconnected': string;
+            'error': string;
+          };
+          'stats': {
+            'high24h': string;
+            'low24h': string;
+            'volume24h': string;
+          };
+          'tooltip': {
+            'open': string;
+            'high': string;
+            'low': string;
+            'close': string;
+            'price': string;
+            'ma7': string;
+            'ma14': string;
+            'ma30': string;
+            'bollingerBands': string;
+            'upperBand': string;
+            'middleBand': string;
+            'lowerBand': string;
+            'predictionUpper': string;
+            'predictionLower': string;
+            'volume': string;
+            'rsi': string;
+            'macd': string;
+            'macdValue': string;
+            'signal': string;
+            'histogram': string;
+            'deviationFromAvg': string;
+          };
+          'zoomIn': string;
+          'zoomOut': string;
+          'reset': string;
+          'granularity': {
+            'label': string;
+            'minute': string;
+            'hour': string;
+            'day': string;
+          };
+          'timeRange': string;
+          'timeComparison': {
+            'title': string;
+            'period1': string;
+            'period2': string;
+            'to': string;
+          };
+          'realtimeStatus': {
+            'live': string;
+            'connecting': string;
+            'reconnecting': string;
+            'disconnected': string;
+          };
+          'priceHistory': string;
+          'current': string;
+          'comparison': string;
+          'show': string;
+          'hide': string;
+          'avgPrice': string;
+          'dataPoints': string;
+        };
+        'charts': {
+          'priceHistory': string;
+          'current': string;
+          'comparison': string;
+          'show': string;
+          'hide': string;
+          'avgPrice': string;
+          'dataPoints': string;
+          'timeRange': string;
+          'chartAriaLabel': string;
+          'currentDataPoint': string;
+          'navigateLeft': string;
+          'navigateRight': string;
+          'tableView': string;
+          'showDataTable': string;
+          'hideDataTable': string;
+          'dataTable': string;
+          'dataTableAriaLabel': string;
+          'time': string;
+        };
+        'consistency': {
+          'excellent': string;
+          'good': string;
+          'fair': string;
+          'poor': string;
+        };
+        'timeRanges': {
+          'timeRange1Hour': string;
+          'timeRange6Hours': string;
+          'timeRange24Hours': string;
+          'timeRange7Days': string;
+        };
+        'quickLinks': {
+          'title': string;
+          'chainlink': string;
+          'crossChain': string;
+          'crossChainDesc': string;
+          'crossOracle': string;
+          'crossOracleDesc': string;
+          'chainlinkDesc': string;
+        };
+        'scrollHint': string;
+        'config': {
+          'save': string;
+          'load': string;
+          'name': string;
+          'saved': string;
+          'loaded': string;
+          'deleted': string;
+          'empty': string;
+          'placeholder': string;
+        };
+        'alert': {
+          'title': string;
+          'setAlert': string;
+          'priceThreshold': string;
+          'differenceThreshold': string;
+          'enabled': string;
+          'disabled': string;
+          'triggered': string;
+        };
+        'favorites': {
+          'title': string;
+          'empty': string;
+        };
+      };
+      'priceDeviation': {
+        'selectSymbol': string;
+        'selectChain': string;
+        'autoRefresh': string;
+        'refresh': string;
+        'loading': string;
+        'chainlinkPrice': string;
+        'referencePrice': string;
+        'avgDeviation': string;
+        'avgDeviationDesc': string;
+        'maxDeviation': string;
+        'maxDeviationDesc': string;
+        'deviationDuration': string;
+        'deviationDurationDesc': string;
+        'currentComparison': string;
+        'provider': string;
+        'price': string;
+        'deviation': string;
+        'deviationPercent': string;
+        'status': string;
+        'status_normal': string;
+        'status_warning': string;
+        'status_critical': string;
+        'lastUpdated': string;
+        'deviationBarChart': string;
+        'priceTrendChart': string;
+        'deviationTrendChart': string;
+        'warningThreshold': string;
+        'criticalThreshold': string;
+      };
+      'exportConfig': {
+        'title': string;
+        'format': string;
+        'fields': string;
+        'selectAll': string;
+        'deselectAll': string;
+        'timeRange': string;
+        'startTime': string;
+        'endTime': string;
+        'pdfOptions': string;
+        'includeChart': string;
+        'includeStats': string;
+        'preview': string;
+        'symbol': string;
+        'oracleCount': string;
+        'chainCount': string;
+        'timeRangeLabel': string;
+        'estimatedRecords': string;
+        'records': string;
+        'fieldCount': string;
+        'estimatedSize': string;
+        'export': string;
+      };
+      'errors': {
+        'title': string;
+        'retryAll': string;
+        'dismiss': string;
+        'showLess': string;
+        'showMore': string;
+        'networkError': string;
+        'timeoutError': string;
+        'dataError': string;
+        'unknownError': string;
+        'retry': string;
+      };
+      'priceChart': {
+        'status': {
+          'realtime': string;
+          'connecting': string;
+          'reconnecting': string;
+          'disconnected': string;
+        };
+        'confidence': string;
+        'granularity': string;
+        'indicators': string;
+        'bollingerBands': string;
+        'ma7': string;
+        'ma14': string;
+        'ma30': string;
+        'rsi': string;
+        'macd': string;
+        'volume': string;
+        'timeComparison': string;
+        'timePeriod1': string;
+        'timePeriod2': string;
+        'to': string;
+        'startComparison': string;
+        'cancelComparison': string;
+        'rsiPeriod': string;
+        'macdPeriod': string;
+        'price': string;
+        'comparisonPrice': string;
+        'signal': string;
+        'anomalyPoints': string;
+        'moreOptions': string;
+        'more': string;
+        'advancedFeatures': string;
+        'timeComparisonDescription': string;
+        'anomalyDetection': string;
+        'anomalyDetectionDescription': string;
+        'viewStats': string;
+        'viewAnomalyStats': string;
+        'predictionInterval': string;
+        'predictionIntervalDescription': string;
+        'confidenceSelection': string;
+        'export': {
+          'title': string;
+          'exportChart': string;
+          'exporting': string;
+          'exportComplete': string;
+          'exportFailed': string;
+          'settings': string;
+          'settingsDescription': string;
+          'range': string;
+          'currentView': string;
+          'allData': string;
+          'dateRange': string;
+          'filenameTemplate': string;
+          'filenameTemplateHint': string;
+          'csvTitle': string;
+          'symbol': string;
+          'exportTime': string;
+          'reportTitle': string;
+          'queryParams': string;
+          'statsSummary': string;
+          'avgPriceLabel': string;
+          'maxPriceLabel': string;
+          'minPriceLabel': string;
+          'priceRangeLabel': string;
+          'stdDevLabel': string;
+          'dataPointsLabel': string;
+          'change24hLabel': string;
+          'priceDataTitle': string;
+          'indicator': string;
+          'value': string;
+          'customFilename': string;
+          'includeMetadata': string;
+          'includeWatermark': string;
+          'cancel': string;
+          'confirmExport': string;
+          'batchExport': string;
+          'batchExportDescription': string;
+          'resolution': string;
+          'selectResolution': string;
+          'selectCharts': string;
+          'selected': string;
+          'preview': string;
+          'previewDescription': string;
+          'filename': string;
+          'dataRange': string;
+          'recordCount': string;
+          'close': string;
+        };
+      };
+    };
+    'ui': {
+      'emptyState': {
+        'search': {
+          'title': string;
+          'description': string;
+        };
+        'data': {
+          'title': string;
+          'description': string;
+        };
+        'error': {
+          'title': string;
+          'description': string;
+        };
+        'filter': {
+          'title': string;
+          'description': string;
+        };
+        'default': {
+          'title': string;
+          'description': string;
+        };
+        'folder': {
+          'title': string;
+          'description': string;
+        };
+        'offline': {
+          'title': string;
+          'description': string;
+        };
+        'empty': {
+          'title': string;
+          'description': string;
+        };
+        'new': {
+          'title': string;
+          'description': string;
+        };
+        'custom': {
+          'title': string;
+          'description': string;
+        };
+        'viewExample': string;
+        'quickStart': string;
+        'tryExampleData': string;
+        'createNew': string;
+        'refresh': string;
+        'retry': string;
+        'retrying': string;
+        'contactSupport': string;
+        'errorDetails': string;
+        'noResultsFor': string;
+      };
+      'loading': {
+        'loadingData': string;
+        'fetchingData': string;
+        'cancel': string;
+        'elapsedTime': string;
+        'estimatedTime': string;
+        'completed': string;
+        'failed': string;
+        'total': string;
+        'progress': string;
+      };
+      'error': {
+        'boundary': {
+          'somethingWrong': string;
+          'tryAgain': string;
+          'global': {
+            'title': string;
+            'description': string;
+          };
+          'section': {
+            'title': string;
+            'description': string;
+          };
+          'refreshPage': string;
+        };
+      };
+      'tutorial': {
+        'welcomeTitle': string;
+        'welcomeDescription': string;
+        'startTutorial': string;
+        'skip': string;
+        'skipForNow': string;
+        'dontShowAgain': string;
+        'close': string;
+        'next': string;
+        'previous': string;
+        'complete': string;
+        'finish': string;
+        'steps': {
+          'welcome': {
+            'title': string;
+            'description': string;
+          };
+          'explore': {
+            'title': string;
+            'description': string;
+          };
+          'analyze': {
+            'title': string;
+            'description': string;
+          };
+          'customize': {
+            'title': string;
+            'description': string;
+          };
+        };
+        'interactive': string;
+        'goToStep': string;
+        'completionTitle': string;
+        'completionDescription': string;
+        'startUsing': string;
+        'viewSummary': string;
+      };
+      'dataTable': {
+        'noData': string;
+        'loading': string;
+        'sort': {
+          'asc': string;
+          'desc': string;
+          'unsorted': string;
+        };
+        'density': {
+          'compact': string;
+          'normal': string;
+          'comfortable': string;
+        };
+        'columnSettings': string;
+        'selectAll': string;
+        'deselectAll': string;
+        'fixed': string;
+        'totalRecords': string;
+        'sorted': string;
+      };
+      'liveStatus': {
+        'connected': string;
+        'disconnected': string;
+        'reconnecting': string;
+        'dataFresh': string;
+        'dataStale': string;
+        'dataExpired': string;
+      };
+      'quickActions': {
+        'priceAlert': string;
+        'addMonitor': string;
+        'apiDocs': string;
+        'switchNetwork': string;
+      };
+      'health': {
+        'low': string;
+        'medium': string;
+        'high': string;
+        'healthScore': string;
+      };
+      'time': {
+        'justNow': string;
+        'secondsAgo': string;
+        'minutesAgo': string;
+        'hoursAgo': string;
+        'daysAgo': string;
+      };
+      'activity': {
+        'latest': string;
+        'priceUpdate': string;
+        'newNode': string;
+        'dataFeed': string;
+        'system': string;
+      };
+      'metrics': {
+        'price': string;
+        'marketCap': string;
+        'activeValidators': string;
+        'dataFeeds': string;
+        'stakingRatio': string;
+        'stakingAPY': string;
+        'supportedChains': string;
+        'avgBlockTime': string;
+        'crossChainBridge': string;
+        'apiCalls': string;
+        'responseTime': string;
+        'uptime': string;
+        'networkHealth': string;
+        'totalValidators': string;
+        'trend24h': string;
+        'before24h': string;
+        'now': string;
+        'gas': string;
+        'response': string;
+        'online': string;
+        'support': string;
+        'chains': string;
+      };
+      'timeRange': {
+        '1h': string;
+        '24h': string;
         '7d': string;
         '30d': string;
         '90d': string;
         '1y': string;
-        all: string;
+        'all': string;
       };
-      includeMetrics: string;
-      includeMetadata: string;
-      includeCharts: string;
-      exportData: string;
-    };
-    export: {
-      exporting: string;
-    };
-  };
-  navigation: {
-    navbar: {
-      home: string;
-      documentation: string;
-      marketOverview: string;
-      priceQuery: string;
-      crossOracle: string;
-      crossChain: string;
-      chainlink: string;
-      uma: string;
-      pyth: string;
-      pythNetwork: string;
-      api3: string;
-      market: string;
-      dataAnalysis: string;
-      oracleDetails: string;
-      menu: string;
-      openMenu: string;
-      marketOverviewDesc: string;
-      priceQueryDesc: string;
-      crossOracleDesc: string;
-      crossChainDesc: string;
-      chainlinkDesc: string;
-      pythNetworkDesc: string;
-      api3Desc: string;
-      umaDesc: string;
-      redstone: string;
-      redstoneDesc: string;
-      dia: string;
-      diaDesc: string;
-      winklink: string;
-      winklinkDesc: string;
-      favorites: string;
-      alerts: string;
-      settings: string;
-      login: string;
-      register: string;
-      signOut: string;
-    };
-    footer: {
-      copyright: string;
-      documentation: string;
-      github: string;
-      contact: string;
-      api: string;
-      privacy: string;
-      terms: string;
-      description: string;
-      links: {
-        platform: string;
-        resources: string;
-        oracles: string;
+      'chart': {
+        'marketShare': string;
+        'tvsTrend': string;
+        'chainSupport': string;
+        'chainBreakdown': string;
+        'protocols': string;
+        'assetCategories': string;
+        'oracleComparison': string;
+        'benchmark': string;
+        'correlation': string;
+        'reset': string;
+        'export': string;
+        'clearLink': string;
+        'yoyComparison': string;
+        'momComparison': string;
+        'toggleConfidence': string;
+        'line': string;
+        'area': string;
+        'chart': string;
+        'table': string;
+        'candle': string;
+        'zoomIn': string;
+        'zoomOut': string;
+        'exitFullscreen': string;
+        'enterFullscreen': string;
+        'fullscreen': string;
+        'exit': string;
+        'enableSync': string;
+        'disableSync': string;
+        'syncOn': string;
+        'syncOff': string;
       };
-    };
-    blockchain: {
-      ethereum: string;
-      arbitrum: string;
-      optimism: string;
-      polygon: string;
-      solana: string;
-      avalanche: string;
-      fantom: string;
-      cronos: string;
-      juno: string;
-      cosmos: string;
-      osmosis: string;
-      'bnb-chain': string;
-      base: string;
-      scroll: string;
-      zksync: string;
-      aptos: string;
-      sui: string;
-      gnosis: string;
-      mantle: string;
-      linea: string;
-      celestia: string;
-      injective: string;
-      sei: string;
-      tron: string;
-      ton: string;
-      near: string;
-      aurora: string;
-      celo: string;
-    };
-  };
-  priceQuery: {
-    filter: string;
-    clear: string;
-    clearFilter: string;
-    priceQuery: {
-      title: string;
-      description: string;
-      loading: string;
-      loadingData: string;
-      query: string;
-      querying: string;
-      noResults: {
-        title: string;
-        description: string;
-        suggestion: string;
-        popularTokens: string;
+      'table': {
+        'status': string;
+        'dataSource': string;
+        'name': string;
+        'price': string;
+        'deviation': string;
+        'confidence': string;
+        'responseTime': string;
+        'normal': string;
+        'warning': string;
+        'critical': string;
+        'benchmark': string;
       };
-      results: {
-        title: string;
-        count: string;
-        empty: string;
-        filterPlaceholder: string;
-        oracle: string;
-        blockchain: string;
-        price: string;
-        deviation: string;
-        timestamp: string;
-        dataSource: string;
-        noMatchingData: string;
-        showing: string;
-        tableLabel: string;
-        sortAscending: string;
-        sortDescending: string;
-        resultsCount: string;
-        showFilters: string;
-        hideFilters: string;
-        filterLabel: string;
-        table: {
-          oracle: string;
-          blockchain: string;
-          price: string;
-          timestamp: string;
-          change24h: string;
-          freshness: string;
-          confidence: string;
-          dataSource: string;
+      'dataFeedsFilter': {
+        'all': string;
+        'crypto': string;
+        'forex': string;
+        'commodities': string;
+        'defi': string;
+      };
+      'performance': {
+        'title': string;
+        'clickForDetails': string;
+        'health': {
+          'excellent': string;
+          'good': string;
+          'fair': string;
+          'poor': string;
         };
-        dataSources: {
-          real: string;
-          mock: string;
-          api: string;
-          fallback: string;
-        };
-        oracleFeatures: {
-          chainlink: string;
-          uma: string;
-          pyth: string;
-          api3: string;
-          redstone: string;
-          dia: string;
-          winklink: string;
-        };
-        qualityScore: {
-          excellent: string;
-          good: string;
-          warning: string;
-          critical: string;
-        };
+        'webVitals': string;
+        'memory': string;
+        'heapUsage': string;
+        'percentageOfLimit': string;
+        'resources': string;
+        'totalResources': string;
+        'slowResources': string;
+        'totalSize': string;
+        'navigation': string;
+        'totalTime': string;
+        'bottleneck': string;
+        'suggestions': string;
       };
-      subtitle: string;
-      filter: {
-        placeholder: string;
-        results: string;
-        noResults: string;
+      'search': {
+        'popular': string;
+        'token': string;
+        'oracle': string;
+        'blockchain': string;
+        'recentSearch': string;
+        'clear': string;
+        'deleteRecord': string;
+        'keyboardHint': string;
+        'escClose': string;
       };
-      pagination: {
-        perPage: string;
-        items: string;
-        total: string;
-        prevPage: string;
-        nextPage: string;
+      'livePrice': {
+        'title': string;
       };
-      selectors: {
-        symbol: string;
-        oracle: string;
-        blockchain: string;
-        timeRange: string;
-        selectAll: string;
-        deselectAll: string;
-        advancedOptions: string;
-        compareMode: string;
-        showBaseline: string;
-        compareTime: string;
-        panelLabel: string;
-        symbolLabel: string;
-        oracleLabel: string;
-        blockchainLabel: string;
-        timeRangeLabel: string;
-        compareTimeLabel: string;
-        compareModeDesc: string;
-        baselineDesc: string;
-        symbolNotSupported: string;
-        singleOracleNotSupport: string;
-        multipleOraclesNotSupport: string;
-        selectOracle: string;
-        selectBlockchain: string;
+      'comparison': {
+        'anomaly': string;
       };
-      stats: {
-        avgPrice: string;
-        maxPrice: string;
-        minPrice: string;
-        priceRange: string;
-        standardDeviation: string;
-        dataPoints: string;
-        consistencyRating: string;
-        absoluteValue: string;
-        queryDuration: string;
-        change24h: string;
-        volatility: string;
-        annualized: string;
-        compare: string;
-        collapse: string;
-        expand: string;
+      'crossOracle': {
+        'outlier': string;
+        'highest': string;
+        'lowest': string;
+        'normal': string;
+        'noData': string;
+        'tryAdjustingFilters': string;
+        'sortBy': string;
+        'price': string;
+        'deviation': string;
+        'freshness': string;
+        'showAll': string;
+        'hideOutliers': string;
+        'source': string;
+        'confidence': string;
+        'significantDeviation': string;
+        'withinNormalRange': string;
+        'lastUpdated': string;
+        'diffFromAvg': string;
+        'avg': string;
+        'pricePosition': string;
+        'rankAmongOracles': string;
+        'closeDetails': string;
+        'swipeToExpand': string;
       };
-      export: {
-        header: string;
-        oracle: string;
-        blockchain: string;
-        price: string;
-        timestamp: string;
-        source: string;
-        change24h: string;
-        confidence: string;
-        csv: string;
-        json: string;
-        advanced: string;
+      'chainCoverageHeatmap': {
+        'title': string;
+        'description': string;
+        'coverage': string;
+        'chainCoverage': string;
+        'supported': string;
+        'notSupported': string;
       };
-      history: {
-        title: string;
-        empty: string;
+      'oracleMetrics': {
+        'marketCap': string;
+        'activeValidators': string;
+        'totalValidators': string;
+        'dataFeeds': string;
+        'stakingRatio': string;
+        'stakingAPY': string;
+        'supportedChains': string;
+        'avgBlockTime': string;
+        'crossChainBridge': string;
+        'apiCalls': string;
+        'linkPrice': string;
+        'tvs': string;
+        'pythPrice': string;
+        'diaPrice': string;
+        'api3Price': string;
+        'airnodeCount': string;
+        'redPrice': string;
+        'winPrice': string;
+        'gamingDataFeeds': string;
+        'stakingAmount': string;
+        'nodeCount': string;
+        'responseTime': string;
+        'networkUptime': string;
+        'subtitle24h': string;
+        'subtitleFDV': string;
+        'multiChain': string;
+        'avgResponse': string;
+        'successRate': string;
+        'dataUpdate': string;
+        'networkLatency': string;
+        'subtitle30d': string;
+        'subtitleThisMonth': string;
       };
-      oracles: string;
-      chains: string;
-      comparison: {
-        title: string;
+      'keyboardShortcuts': {
+        '1': string;
+        '2': string;
+        '3': string;
+        'title': string;
+        'press': string;
+        'forHelp': string;
+        't': string;
+        'r': string;
+        'e': string;
+        'question': string;
       };
-      currentPrice: string;
-      volume24h: string;
-      dataSources: {
-        title: string;
+      'freshness': {
+        'fresh': string;
+        'freshShort': string;
+        'stale': string;
+        'staleShort': string;
+        'expired': string;
+        'expiredShort': string;
+        'title': string;
+        'lastUpdate': string;
+        'age': string;
+        'nextRefresh': string;
+        'connection': string;
+        'refresh': string;
       };
-      autoRefresh: {
-        title: string;
-        off: string;
-        '30s': string;
-        '1m': string;
-        '5m': string;
-        refreshing: string;
-        countdown: string;
+      'connection': {
+        'connected': string;
+        'connecting': string;
+        'reconnecting': string;
+        'disconnected': string;
+        'error': string;
       };
-      lastUpdated: string;
-      progress: string;
-      error: {
-        fetchFailed: string;
-        retry: string;
-        retrying: string;
-        lastSuccessfulFetch: string;
-        noSuccessfulFetch: string;
-      };
-      chart: {
-        title: string;
-        exportImage: string;
-        indicators: string;
-        bollingerBands: string;
-        confidenceInterval: string;
-        annotations: string;
-        anomalyMarkers: string;
-        priceSpikes: string;
-        valueLabels: string;
-        baseline: string;
-        compareSuffix: string;
-        priceHigh: string;
-        priceLow: string;
-        realtime: string;
-        realtimeUpdate: string;
-        realtimePrice: string;
-        lastUpdate: string;
-        connectionStatus: {
-          connected: string;
-          connecting: string;
-          reconnecting: string;
-          disconnected: string;
-          error: string;
-        };
-        stats: {
-          high24h: string;
-          low24h: string;
-          volume24h: string;
-        };
-        tooltip: {
-          open: string;
-          high: string;
-          low: string;
-          close: string;
-          price: string;
-          ma7: string;
-          ma14: string;
-          ma30: string;
-          bollingerBands: string;
-          upperBand: string;
-          middleBand: string;
-          lowerBand: string;
-          predictionUpper: string;
-          predictionLower: string;
-          volume: string;
-          rsi: string;
-          macd: string;
-          macdValue: string;
-          signal: string;
-          histogram: string;
-          deviationFromAvg: string;
-        };
-        zoomIn: string;
-        zoomOut: string;
-        reset: string;
-        granularity: {
-          label: string;
-          minute: string;
-          hour: string;
-          day: string;
-        };
-        timeRange: string;
-        timeComparison: {
-          title: string;
-          period1: string;
-          period2: string;
-          to: string;
-        };
-        realtimeStatus: {
-          live: string;
-          connecting: string;
-          reconnecting: string;
-          disconnected: string;
-        };
-        priceHistory: string;
-        current: string;
-        comparison: string;
-        show: string;
-        hide: string;
-        avgPrice: string;
-        dataPoints: string;
-      };
-      charts: {
-        priceHistory: string;
-        current: string;
-        comparison: string;
-        show: string;
-        hide: string;
-        avgPrice: string;
-        dataPoints: string;
-        timeRange: string;
-        chartAriaLabel: string;
-        currentDataPoint: string;
-        navigateLeft: string;
-        navigateRight: string;
-        tableView: string;
-        showDataTable: string;
-        hideDataTable: string;
-        dataTable: string;
-        dataTableAriaLabel: string;
-        time: string;
-      };
-      consistency: {
-        excellent: string;
-        good: string;
-        fair: string;
-        poor: string;
-      };
-      timeRanges: {
-        timeRange1Hour: string;
-        timeRange6Hours: string;
-        timeRange24Hours: string;
-        timeRange7Days: string;
-      };
-      quickLinks: {
-        title: string;
-        chainlink: string;
-        crossChain: string;
-        crossChainDesc: string;
-        crossOracle: string;
-        crossOracleDesc: string;
-        chainlinkDesc: string;
-      };
-      scrollHint: string;
-      config: {
-        save: string;
-        load: string;
-        name: string;
-        saved: string;
-        loaded: string;
-        deleted: string;
-        empty: string;
-        placeholder: string;
-      };
-      alert: {
-        title: string;
-        setAlert: string;
-        priceThreshold: string;
-        differenceThreshold: string;
-        enabled: string;
-        disabled: string;
-        triggered: string;
-      };
-      favorites: {
-        title: string;
-        empty: string;
-      };
-    };
-    priceDeviation: {
-      selectSymbol: string;
-      selectChain: string;
-      autoRefresh: string;
-      refresh: string;
-      loading: string;
-      chainlinkPrice: string;
-      referencePrice: string;
-      avgDeviation: string;
-      avgDeviationDesc: string;
-      maxDeviation: string;
-      maxDeviationDesc: string;
-      deviationDuration: string;
-      deviationDurationDesc: string;
-      currentComparison: string;
-      provider: string;
-      price: string;
-      deviation: string;
-      deviationPercent: string;
-      status: string;
-      status_normal: string;
-      status_warning: string;
-      status_critical: string;
-      lastUpdated: string;
-      deviationBarChart: string;
-      priceTrendChart: string;
-      deviationTrendChart: string;
-      warningThreshold: string;
-      criticalThreshold: string;
-    };
-    exportConfig: {
-      title: string;
-      format: string;
-      fields: string;
-      selectAll: string;
-      deselectAll: string;
-      timeRange: string;
-      startTime: string;
-      endTime: string;
-      pdfOptions: string;
-      includeChart: string;
-      includeStats: string;
-      preview: string;
-      symbol: string;
-      oracleCount: string;
-      chainCount: string;
-      timeRangeLabel: string;
-      estimatedRecords: string;
-      records: string;
-      fieldCount: string;
-      estimatedSize: string;
-      export: string;
-    };
-    errors: {
-      title: string;
-      retryAll: string;
-      dismiss: string;
-      showLess: string;
-      showMore: string;
-      networkError: string;
-      timeoutError: string;
-      dataError: string;
-      unknownError: string;
-      retry: string;
-    };
-    priceChart: {
-      status: {
-        realtime: string;
-        connecting: string;
-        reconnecting: string;
-        disconnected: string;
-      };
-      confidence: string;
-      granularity: string;
-      indicators: string;
-      bollingerBands: string;
-      ma7: string;
-      ma14: string;
-      ma30: string;
-      rsi: string;
-      macd: string;
-      volume: string;
-      timeComparison: string;
-      timePeriod1: string;
-      timePeriod2: string;
-      to: string;
-      startComparison: string;
-      cancelComparison: string;
-      rsiPeriod: string;
-      macdPeriod: string;
-      price: string;
-      comparisonPrice: string;
-      signal: string;
-      anomalyPoints: string;
-      moreOptions: string;
-      more: string;
-      advancedFeatures: string;
-      timeComparisonDescription: string;
-      anomalyDetection: string;
-      anomalyDetectionDescription: string;
-      viewStats: string;
-      viewAnomalyStats: string;
-      predictionInterval: string;
-      predictionIntervalDescription: string;
-      confidenceSelection: string;
-      export: {
-        title: string;
-        exportChart: string;
-        exporting: string;
-        exportComplete: string;
-        exportFailed: string;
-        settings: string;
-        settingsDescription: string;
-        range: string;
-        currentView: string;
-        allData: string;
-        dateRange: string;
-        filenameTemplate: string;
-        filenameTemplateHint: string;
-        csvTitle: string;
-        symbol: string;
-        exportTime: string;
-        reportTitle: string;
-        queryParams: string;
-        statsSummary: string;
-        avgPriceLabel: string;
-        maxPriceLabel: string;
-        minPriceLabel: string;
-        priceRangeLabel: string;
-        stdDevLabel: string;
-        dataPointsLabel: string;
-        change24hLabel: string;
-        priceDataTitle: string;
-        indicator: string;
-        value: string;
-        customFilename: string;
-        includeMetadata: string;
-        includeWatermark: string;
-        cancel: string;
-        confirmExport: string;
-        batchExport: string;
-        batchExportDescription: string;
-        resolution: string;
-        selectResolution: string;
-        selectCharts: string;
-        selected: string;
-        preview: string;
-        previewDescription: string;
-        filename: string;
-        dataRange: string;
-        recordCount: string;
-        close: string;
+      'common': {
+        'comingSoon': string;
       };
     };
   };
-  ui: {
-    emptyState: {
-      search: {
-        title: string;
-        description: string;
-      };
-      data: {
-        title: string;
-        description: string;
-      };
-      error: {
-        title: string;
-        description: string;
-      };
-      filter: {
-        title: string;
-        description: string;
-      };
-      default: {
-        title: string;
-        description: string;
-      };
-      folder: {
-        title: string;
-        description: string;
-      };
-      offline: {
-        title: string;
-        description: string;
-      };
-      empty: {
-        title: string;
-        description: string;
-      };
-      new: {
-        title: string;
-        description: string;
-      };
-      custom: {
-        title: string;
-        description: string;
-      };
-      viewExample: string;
-      quickStart: string;
-      tryExampleData: string;
-      createNew: string;
-      refresh: string;
-      retry: string;
-      retrying: string;
-      contactSupport: string;
-      errorDetails: string;
-      noResultsFor: string;
-    };
-    loading: {
-      loadingData: string;
-      fetchingData: string;
-      cancel: string;
-      elapsedTime: string;
-      estimatedTime: string;
-      completed: string;
-      failed: string;
-      total: string;
-      progress: string;
-    };
-    error: {
-      boundary: {
-        somethingWrong: string;
-        tryAgain: string;
-        global: {
-          title: string;
-          description: string;
-        };
-        section: {
-          title: string;
-          description: string;
-        };
-        refreshPage: string;
-      };
-    };
-    tutorial: {
-      welcomeTitle: string;
-      welcomeDescription: string;
-      startTutorial: string;
-      skip: string;
-      skipForNow: string;
-      dontShowAgain: string;
-      close: string;
-      next: string;
-      previous: string;
-      complete: string;
-      finish: string;
-      steps: {
-        welcome: {
-          title: string;
-          description: string;
-        };
-        explore: {
-          title: string;
-          description: string;
-        };
-        analyze: {
-          title: string;
-          description: string;
-        };
-        customize: {
-          title: string;
-          description: string;
-        };
-      };
-      interactive: string;
-      goToStep: string;
-      completionTitle: string;
-      completionDescription: string;
-      startUsing: string;
-      viewSummary: string;
-    };
-    dataTable: {
-      noData: string;
-      loading: string;
-      sort: {
-        asc: string;
-        desc: string;
-        unsorted: string;
-      };
-      density: {
-        compact: string;
-        normal: string;
-        comfortable: string;
-      };
-      columnSettings: string;
-      selectAll: string;
-      deselectAll: string;
-      fixed: string;
-      totalRecords: string;
-      sorted: string;
-    };
-    liveStatus: {
-      connected: string;
-      disconnected: string;
-      reconnecting: string;
-      dataFresh: string;
-      dataStale: string;
-      dataExpired: string;
-    };
-    quickActions: {
-      priceAlert: string;
-      addMonitor: string;
-      apiDocs: string;
-      switchNetwork: string;
-    };
-    health: {
-      low: string;
-      medium: string;
-      high: string;
-      healthScore: string;
-    };
-    time: {
-      justNow: string;
-      secondsAgo: string;
-      minutesAgo: string;
-      hoursAgo: string;
-      daysAgo: string;
-    };
-    activity: {
-      latest: string;
-      priceUpdate: string;
-      newNode: string;
-      dataFeed: string;
-      system: string;
-    };
-    metrics: {
-      price: string;
-      marketCap: string;
-      activeValidators: string;
-      dataFeeds: string;
-      stakingRatio: string;
-      stakingAPY: string;
-      supportedChains: string;
-      avgBlockTime: string;
-      crossChainBridge: string;
-      apiCalls: string;
-      responseTime: string;
-      uptime: string;
-      networkHealth: string;
-      totalValidators: string;
-      trend24h: string;
-      before24h: string;
-      now: string;
-      gas: string;
-      response: string;
-      online: string;
-      support: string;
-      chains: string;
-    };
-    timeRange: {
-      '1h': string;
-      '24h': string;
-      '7d': string;
-      '30d': string;
-      '90d': string;
-      '1y': string;
-      all: string;
-    };
-    chart: {
-      marketShare: string;
-      tvsTrend: string;
-      chainSupport: string;
-      chainBreakdown: string;
-      protocols: string;
-      assetCategories: string;
-      oracleComparison: string;
-      benchmark: string;
-      correlation: string;
-      reset: string;
-      export: string;
-      clearLink: string;
-      yoyComparison: string;
-      momComparison: string;
-      toggleConfidence: string;
-      line: string;
-      area: string;
-      chart: string;
-      table: string;
-      candle: string;
-      zoomIn: string;
-      zoomOut: string;
-      exitFullscreen: string;
-      enterFullscreen: string;
-      fullscreen: string;
-      exit: string;
-      enableSync: string;
-      disableSync: string;
-      syncOn: string;
-      syncOff: string;
-    };
-    table: {
-      status: string;
-      dataSource: string;
-      name: string;
-      price: string;
-      deviation: string;
-      confidence: string;
-      responseTime: string;
-      normal: string;
-      warning: string;
-      critical: string;
-      benchmark: string;
-    };
-    dataFeedsFilter: {
-      all: string;
-      crypto: string;
-      forex: string;
-      commodities: string;
-      defi: string;
-    };
-    performance: {
-      title: string;
-      clickForDetails: string;
-      health: {
-        excellent: string;
-        good: string;
-        fair: string;
-        poor: string;
-      };
-      webVitals: string;
-      memory: string;
-      heapUsage: string;
-      percentageOfLimit: string;
-      resources: string;
-      totalResources: string;
-      slowResources: string;
-      totalSize: string;
-      navigation: string;
-      totalTime: string;
-      bottleneck: string;
-      suggestions: string;
-    };
-    search: {
-      popular: string;
-      token: string;
-      oracle: string;
-      blockchain: string;
-      recentSearch: string;
-      clear: string;
-      deleteRecord: string;
-      keyboardHint: string;
-      escClose: string;
-    };
-    livePrice: {
-      title: string;
-    };
-    comparison: {
-      anomaly: string;
-    };
-    crossOracle: {
-      outlier: string;
-      highest: string;
-      lowest: string;
-      normal: string;
-      noData: string;
-      tryAdjustingFilters: string;
-      sortBy: string;
-      price: string;
-      deviation: string;
-      freshness: string;
-      showAll: string;
-      hideOutliers: string;
-      source: string;
-      confidence: string;
-      significantDeviation: string;
-      withinNormalRange: string;
-      lastUpdated: string;
-      diffFromAvg: string;
-      avg: string;
-      pricePosition: string;
-      rankAmongOracles: string;
-      closeDetails: string;
-      swipeToExpand: string;
-    };
-    marketOverview: {
-      title: string;
-      oracleMarketAnalysis: string;
-      analysisDescription: string;
-      simulatedData: string;
-      simulatedBadge: string;
-      disclaimer: string;
-      dataSource: string;
-      totalTVS: string;
-      totalChains: string;
-      crossChain: string;
-      protocols: string;
-      integrations: string;
-      dominance: string;
-      chainlinkShare: string;
-      marketShareDistribution: string;
-      tvsTrendAnalysis: string;
-      chainSupportOverview: string;
-      marketShare: string;
-      tvsTrend: string;
-      chainSupport: string;
-      chart: string;
-      table: string;
-      clearSelection: string;
-      hoverForDetails: string;
-      selectedTimeRange: string;
-      dataUpdated: string;
-      oracleRankings: string;
-      tvsShare: string;
-      totalMarketShare: string;
-      oraclesCovered: string;
-      oracle: string;
-      chains: string;
-      time: string;
-    };
-    chainCoverageHeatmap: {
-      title: string;
-      description: string;
-      coverage: string;
-      chainCoverage: string;
-      supported: string;
-      notSupported: string;
-    };
-    oracleMetrics: {
-      marketCap: string;
-      activeValidators: string;
-      totalValidators: string;
-      dataFeeds: string;
-      stakingRatio: string;
-      stakingAPY: string;
-      supportedChains: string;
-      avgBlockTime: string;
-      crossChainBridge: string;
-      apiCalls: string;
-      linkPrice: string;
-      tvs: string;
-      pythPrice: string;
-      umaPrice: string;
-      diaPrice: string;
-      api3Price: string;
-      airnodeCount: string;
-      redPrice: string;
-      winPrice: string;
-      gamingDataFeeds: string;
-      stakingAmount: string;
-      nodeCount: string;
-      responseTime: string;
-      networkUptime: string;
-      subtitle24h: string;
-      subtitleFDV: string;
-      multiChain: string;
-      avgResponse: string;
-      successRate: string;
-      dataUpdate: string;
-      networkLatency: string;
-      subtitle30d: string;
-      subtitleThisMonth: string;
-    };
-    keyboardShortcuts: {
-      '1': string;
-      '2': string;
-      '3': string;
-      title: string;
-      press: string;
-      forHelp: string;
-      t: string;
-      r: string;
-      e: string;
-      question: string;
-    };
-    freshness: {
-      fresh: string;
-      freshShort: string;
-      stale: string;
-      staleShort: string;
-      expired: string;
-      expiredShort: string;
-      title: string;
-      lastUpdate: string;
-      age: string;
-      nextRefresh: string;
-      connection: string;
-      refresh: string;
-    };
-    connection: {
-      connected: string;
-      connecting: string;
-      reconnecting: string;
-      disconnected: string;
-      error: string;
-    };
-    common: {
-      comingSoon: string;
-    };
-  };
-};
 
-export type TranslationKey =
+export type TranslationKey = 
   | 'actions'
   | 'actions.apply'
   | 'actions.cancel'
@@ -5656,30 +5391,6 @@ export type TranslationKey =
   | 'alerts.templates.volatilitySpike'
   | 'alerts.templates.volatilitySpike.description'
   | 'alerts.templates.volatilitySpike.name'
-  | 'anomaly'
-  | 'anomaly.active'
-  | 'anomaly.affectedOracle'
-  | 'anomaly.allNormal'
-  | 'anomaly.anomalyId'
-  | 'anomaly.correlationBreak'
-  | 'anomaly.critical'
-  | 'anomaly.currentValue'
-  | 'anomaly.duration'
-  | 'anomaly.expectedValue'
-  | 'anomaly.high'
-  | 'anomaly.hoursAgo'
-  | 'anomaly.loading'
-  | 'anomaly.low'
-  | 'anomaly.medium'
-  | 'anomaly.minutes'
-  | 'anomaly.minutesAgo'
-  | 'anomaly.noAlerts'
-  | 'anomaly.ongoing'
-  | 'anomaly.priceDrop'
-  | 'anomaly.priceSpike'
-  | 'anomaly.trendBreak'
-  | 'anomaly.volatilitySpike'
-  | 'anomaly.volumeAnomaly'
   | 'anomalyAlert'
   | 'anomalyAlert.acknowledge'
   | 'anomalyAlert.acknowledged'
@@ -5742,65 +5453,8 @@ export type TranslationKey =
   | 'anomalyDetection.reasons.overThreshold'
   | 'anomalyDetection.reasons.severeDeviation'
   | 'anomalyDetection.reasons.severelyDelayed'
-  | 'anomalyModal'
-  | 'anomalyModal.acknowledge'
-  | 'anomalyModal.acknowledgeAll'
-  | 'anomalyModal.affectedOracle'
-  | 'anomalyModal.allLevels'
-  | 'anomalyModal.allNormal'
-  | 'anomalyModal.allTypes'
-  | 'anomalyModal.anomalyId'
-  | 'anomalyModal.close'
-  | 'anomalyModal.confidence'
-  | 'anomalyModal.critical'
-  | 'anomalyModal.currentValue'
-  | 'anomalyModal.detectionTime'
-  | 'anomalyModal.deviation'
-  | 'anomalyModal.duration'
-  | 'anomalyModal.expectedValue'
-  | 'anomalyModal.filters'
-  | 'anomalyModal.high'
-  | 'anomalyModal.hours'
-  | 'anomalyModal.hoursAgo'
-  | 'anomalyModal.hoursMinutes'
-  | 'anomalyModal.loading'
-  | 'anomalyModal.low'
-  | 'anomalyModal.medium'
-  | 'anomalyModal.minutes'
-  | 'anomalyModal.minutesAgo'
-  | 'anomalyModal.noAnomalies'
-  | 'anomalyModal.ongoing'
-  | 'anomalyModal.priceDrop'
-  | 'anomalyModal.priceSpike'
-  | 'anomalyModal.showing'
-  | 'anomalyModal.sortByAsset'
-  | 'anomalyModal.sortByLevel'
-  | 'anomalyModal.sortByTime'
-  | 'anomalyModal.subtitle'
-  | 'anomalyModal.title'
-  | 'anomalyModal.total'
-  | 'anomalyModal.trendBreak'
-  | 'anomalyModal.volatilitySpike'
   | 'arbitrageHeatmap'
   | 'arbitrageHeatmap.searchPlaceholder'
-  | 'asset'
-  | 'assetCategory'
-  | 'assetCategory.assets'
-  | 'assetCategory.category'
-  | 'assetCategory.defi'
-  | 'assetCategory.gaming'
-  | 'assetCategory.layer1'
-  | 'assetCategory.layer2'
-  | 'assetCategory.loading'
-  | 'assetCategory.nft'
-  | 'assetCategory.noData'
-  | 'assetCategory.other'
-  | 'assetCategory.protocols'
-  | 'assetCategory.share'
-  | 'assetCategory.stablecoins'
-  | 'assetCategory.topAssets'
-  | 'assetCategory.tvs'
-  | 'assetsCount'
   | 'auth'
   | 'auth.forgotPassword'
   | 'auth.forgotPassword.backToLogin'
@@ -5921,24 +5575,6 @@ export type TranslationKey =
   | 'auth.verifyEmail.success.goToLogin'
   | 'auth.verifyEmail.success.title'
   | 'auth.verifyEmail.verifying'
-  | 'benchmark'
-  | 'benchmark.alpha'
-  | 'benchmark.beta'
-  | 'benchmark.compareTo'
-  | 'benchmark.correlation'
-  | 'benchmark.loading'
-  | 'benchmark.maxDrawdown'
-  | 'benchmark.noData'
-  | 'benchmark.performance'
-  | 'benchmark.selectBenchmark'
-  | 'benchmark.sharpeRatio'
-  | 'benchmark.timeframes'
-  | 'benchmark.timeframes.1d'
-  | 'benchmark.timeframes.1y'
-  | 'benchmark.timeframes.30d'
-  | 'benchmark.timeframes.7d'
-  | 'benchmark.timeframes.90d'
-  | 'benchmark.volatility'
   | 'blockchain'
   | 'blockchain.aptos'
   | 'blockchain.arbitrum'
@@ -6011,31 +5647,6 @@ export type TranslationKey =
   | 'cdfChart'
   | 'cdfChart.subtitle'
   | 'cdfChart.title'
-  | 'chainBreakdown'
-  | 'chainBreakdown.avgProtocols'
-  | 'chainBreakdown.avgTVS'
-  | 'chainBreakdown.chain'
-  | 'chainBreakdown.chains'
-  | 'chainBreakdown.concentration'
-  | 'chainBreakdown.loading'
-  | 'chainBreakdown.noData'
-  | 'chainBreakdown.oracleShare'
-  | 'chainBreakdown.oracles'
-  | 'chainBreakdown.perChain'
-  | 'chainBreakdown.protocols'
-  | 'chainBreakdown.share'
-  | 'chainBreakdown.top4Share'
-  | 'chainBreakdown.topGainers24h'
-  | 'chainBreakdown.topLosers24h'
-  | 'chainBreakdown.topOracle'
-  | 'chainBreakdown.totalChains'
-  | 'chainBreakdown.totalTVS'
-  | 'chainBreakdown.tvs'
-  | 'chainBreakdown.viewDistribution'
-  | 'chainBreakdown.viewProtocols'
-  | 'chainBreakdown.viewShare'
-  | 'chainBreakdown.viewTVS'
-  | 'chainBreakdown.viewTrend'
   | 'chainComparison'
   | 'chainComparison.title'
   | 'chainCoverageHeatmap'
@@ -6059,8 +5670,6 @@ export type TranslationKey =
   | 'chains.polygon'
   | 'chains.starkex'
   | 'chains.starknet'
-  | 'change24h'
-  | 'change7d'
   | 'chart'
   | 'chart.area'
   | 'chart.assetCategories'
@@ -6068,47 +5677,30 @@ export type TranslationKey =
   | 'chart.candle'
   | 'chart.chainBreakdown'
   | 'chart.chainSupport'
-  | 'chart.chains'
-  | 'chart.change'
-  | 'chart.change24h'
   | 'chart.chart'
   | 'chart.clearLink'
   | 'chart.correlation'
-  | 'chart.current'
   | 'chart.disableSync'
   | 'chart.enableSync'
   | 'chart.enterFullscreen'
   | 'chart.exit'
   | 'chart.exitFullscreen'
   | 'chart.export'
-  | 'chart.fastestGrowing'
   | 'chart.fullscreen'
   | 'chart.line'
-  | 'chart.marketConcentration'
   | 'chart.marketShare'
-  | 'chart.mom'
   | 'chart.momComparison'
-  | 'chart.more'
-  | 'chart.oracle'
   | 'chart.oracleComparison'
-  | 'chart.oracles'
   | 'chart.protocols'
   | 'chart.reset'
-  | 'chart.share'
-  | 'chart.shareChange'
-  | 'chart.showAll'
-  | 'chart.showTop5'
   | 'chart.syncOff'
   | 'chart.syncOn'
   | 'chart.table'
   | 'chart.toggleConfidence'
-  | 'chart.totalTVS'
   | 'chart.tvsTrend'
-  | 'chart.yoy'
   | 'chart.yoyComparison'
   | 'chart.zoomIn'
   | 'chart.zoomOut'
-  | 'chartHint'
   | 'chartToolbar'
   | 'chartToolbar.chartType'
   | 'chartToolbar.chartType.area'
@@ -6428,8 +6020,6 @@ export type TranslationKey =
   | 'common.close'
   | 'common.collapse'
   | 'common.comingSoon'
-  | 'common.confidenceInterval'
-  | 'common.confidenceInterval.threshold'
   | 'common.distributionProjectsNetworks'
   | 'common.expand'
   | 'common.export'
@@ -6538,25 +6128,11 @@ export type TranslationKey =
   | 'controlPanel.timeRange'
   | 'controlPanel.title'
   | 'controlPanel.titleShort'
-  | 'correlation'
-  | 'correlation.loading'
-  | 'correlation.method'
-  | 'correlation.moderate'
-  | 'correlation.negativeCorrelation'
-  | 'correlation.noCorrelation'
-  | 'correlation.noData'
-  | 'correlation.pearson'
-  | 'correlation.positiveCorrelation'
-  | 'correlation.spearman'
-  | 'correlation.strong'
-  | 'correlation.subtitle'
-  | 'correlation.timeframe'
-  | 'correlation.title'
-  | 'correlation.weak'
   | 'coveragePool'
   | 'coveragePool.title'
   | 'crossChain'
   | 'crossChain.absoluteDiff'
+  | 'crossChain.absolutePriceDiff'
   | 'crossChain.acfExplanation'
   | 'crossChain.adfStatistic'
   | 'crossChain.advancedMetrics'
@@ -6666,6 +6242,7 @@ export type TranslationKey =
   | 'crossChain.heatmapLegend'
   | 'crossChain.hedgeRatio'
   | 'crossChain.highDiff'
+  | 'crossChain.highPrecisionNotice'
   | 'crossChain.highVolatility'
   | 'crossChain.higherThanPercent'
   | 'crossChain.highestPrice'
@@ -7042,6 +6619,14 @@ export type TranslationKey =
   | 'crossOracle.diffFromAvg'
   | 'crossOracle.differenceAnalysisPanel'
   | 'crossOracle.enableAutoRefresh'
+  | 'crossOracle.errorTypes'
+  | 'crossOracle.errorTypes.cors'
+  | 'crossOracle.errorTypes.dataFormat'
+  | 'crossOracle.errorTypes.network'
+  | 'crossOracle.errorTypes.rateLimit'
+  | 'crossOracle.errorTypes.serverError'
+  | 'crossOracle.errorTypes.timeout'
+  | 'crossOracle.errorTypes.unknown'
   | 'crossOracle.export'
   | 'crossOracle.export.asset'
   | 'crossOracle.export.confidence'
@@ -7075,6 +6660,7 @@ export type TranslationKey =
   | 'crossOracle.filter'
   | 'crossOracle.filter.all'
   | 'crossOracle.filter.clearAll'
+  | 'crossOracle.filter.critical'
   | 'crossOracle.filter.error'
   | 'crossOracle.filter.filtersActive'
   | 'crossOracle.filter.normal'
@@ -7119,6 +6705,7 @@ export type TranslationKey =
   | 'crossOracle.latencyDistribution.tooltip.p50Desc'
   | 'crossOracle.latencyDistribution.tooltip.p95Desc'
   | 'crossOracle.latencyDistribution.tooltip.p99Desc'
+  | 'crossOracle.latencyTooltip'
   | 'crossOracle.live'
   | 'crossOracle.liveBadge'
   | 'crossOracle.loading'
@@ -7249,6 +6836,7 @@ export type TranslationKey =
   | 'crossOracle.pairSelector.noResults'
   | 'crossOracle.pairSelector.searchPlaceholder'
   | 'crossOracle.pairSelector.totalCount'
+  | 'crossOracle.partialSuccess'
   | 'crossOracle.partialSuccessDesc'
   | 'crossOracle.performanceComparison'
   | 'crossOracle.price'
@@ -7454,7 +7042,7 @@ export type TranslationKey =
   | 'crossOracle.stats.lowestPrice'
   | 'crossOracle.stats.maxPriceDifference'
   | 'crossOracle.status'
-  | 'crossOracle.statusError'
+  | 'crossOracle.statusCritical'
   | 'crossOracle.statusNormal'
   | 'crossOracle.statusWarning'
   | 'crossOracle.stdDev'
@@ -7486,17 +7074,13 @@ export type TranslationKey =
   | 'crossOracle.time.minutesAgo'
   | 'crossOracle.time.secondsAgo'
   | 'crossOracle.timeRange'
-  | 'crossOracle.timeRange.1H'
-  | 'crossOracle.timeRange.1Y'
   | 'crossOracle.timeRange.1h'
-  | 'crossOracle.timeRange.24H'
+  | 'crossOracle.timeRange.1y'
   | 'crossOracle.timeRange.24h'
-  | 'crossOracle.timeRange.30D'
   | 'crossOracle.timeRange.30d'
-  | 'crossOracle.timeRange.7D'
   | 'crossOracle.timeRange.7d'
-  | 'crossOracle.timeRange.90D'
-  | 'crossOracle.timeRange.ALL'
+  | 'crossOracle.timeRange.90d'
+  | 'crossOracle.timeRange.all'
   | 'crossOracle.title'
   | 'crossOracle.total'
   | 'crossOracle.totalOracles'
@@ -7515,6 +7099,7 @@ export type TranslationKey =
   | 'crossOracleComparison.avgResponseTime'
   | 'crossOracleComparison.consistencyScore'
   | 'crossOracleComparison.dataSources'
+  | 'crossOracleComparison.dataSourcesTooltip'
   | 'crossOracleComparison.deviation'
   | 'crossOracleComparison.highDeviation'
   | 'crossOracleComparison.quickCompare'
@@ -7894,6 +7479,9 @@ export type TranslationKey =
   | 'docs.quickstart.overview.point3'
   | 'docs.quickstart.overview.title'
   | 'docs.quickstart.steps'
+  | 'docs.quickstart.steps.alert'
+  | 'docs.quickstart.steps.alert.description'
+  | 'docs.quickstart.steps.alert.title'
   | 'docs.quickstart.steps.analyze'
   | 'docs.quickstart.steps.analyze.description'
   | 'docs.quickstart.steps.analyze.title'
@@ -7962,7 +7550,6 @@ export type TranslationKey =
   | 'ecosystem.tvlAnalysis.totalTvl'
   | 'ecosystem.tvlTrend'
   | 'emptyState'
-  | 'emptyState.chartTitle'
   | 'emptyState.contactSupport'
   | 'emptyState.createNew'
   | 'emptyState.custom'
@@ -7990,10 +7577,7 @@ export type TranslationKey =
   | 'emptyState.new'
   | 'emptyState.new.description'
   | 'emptyState.new.title'
-  | 'emptyState.noChartData'
   | 'emptyState.noResultsFor'
-  | 'emptyState.noStatsData'
-  | 'emptyState.noTableData'
   | 'emptyState.offline'
   | 'emptyState.offline.description'
   | 'emptyState.offline.title'
@@ -8004,8 +7588,6 @@ export type TranslationKey =
   | 'emptyState.search'
   | 'emptyState.search.description'
   | 'emptyState.search.title'
-  | 'emptyState.statsTitle'
-  | 'emptyState.tableTitle'
   | 'emptyState.tryExampleData'
   | 'emptyState.viewExample'
   | 'enhancedStatCard'
@@ -8080,7 +7662,6 @@ export type TranslationKey =
   | 'errors.title'
   | 'errors.unknownError'
   | 'export'
-  | 'export.exporting'
   | 'export.formats'
   | 'export.formats.csvDescription'
   | 'export.formats.excelDescription'
@@ -8122,23 +7703,11 @@ export type TranslationKey =
   | 'exportConfig.estimatedRecords'
   | 'exportConfig.estimatedSize'
   | 'exportConfig.export'
-  | 'exportConfig.exportData'
-  | 'exportConfig.exportFormat'
   | 'exportConfig.fieldCount'
   | 'exportConfig.fields'
   | 'exportConfig.format'
   | 'exportConfig.includeChart'
-  | 'exportConfig.includeCharts'
-  | 'exportConfig.includeMetadata'
-  | 'exportConfig.includeMetrics'
   | 'exportConfig.includeStats'
-  | 'exportConfig.metrics'
-  | 'exportConfig.metrics.fees'
-  | 'exportConfig.metrics.revenue'
-  | 'exportConfig.metrics.tvl'
-  | 'exportConfig.metrics.tvs'
-  | 'exportConfig.metrics.users'
-  | 'exportConfig.metrics.volume'
   | 'exportConfig.oracleCount'
   | 'exportConfig.pdfOptions'
   | 'exportConfig.preview'
@@ -8148,17 +7717,17 @@ export type TranslationKey =
   | 'exportConfig.symbol'
   | 'exportConfig.timeRange'
   | 'exportConfig.timeRangeLabel'
-  | 'exportConfig.timeRanges'
-  | 'exportConfig.timeRanges.1y'
-  | 'exportConfig.timeRanges.30d'
-  | 'exportConfig.timeRanges.7d'
-  | 'exportConfig.timeRanges.90d'
-  | 'exportConfig.timeRanges.all'
   | 'exportConfig.title'
   | 'exporting'
   | 'favorite'
   | 'favorited'
   | 'favorites'
+  | 'favorites.all'
+  | 'favorites.button'
+  | 'favorites.button.add'
+  | 'favorites.button.addTitle'
+  | 'favorites.button.added'
+  | 'favorites.button.removeTitle'
   | 'favorites.card'
   | 'favorites.card.chain'
   | 'favorites.card.deleteConfirm'
@@ -8169,22 +7738,20 @@ export type TranslationKey =
   | 'favorites.card.type.chainConfig'
   | 'favorites.card.type.oracleConfig'
   | 'favorites.card.type.symbol'
+  | 'favorites.chainConfig'
+  | 'favorites.empty'
+  | 'favorites.emptyDesc'
+  | 'favorites.loadError'
+  | 'favorites.loginRequired'
+  | 'favorites.noResults'
+  | 'favorites.noResultsDesc'
+  | 'favorites.oracleConfig'
   | 'favorites.page'
   | 'favorites.page.subtitle'
   | 'favorites.page.title'
+  | 'favorites.searchPlaceholder'
+  | 'favorites.symbol'
   | 'filter'
-  | 'filter.activeFilters'
-  | 'filter.all'
-  | 'filter.allChanges'
-  | 'filter.allOracles'
-  | 'filter.change'
-  | 'filter.clear'
-  | 'filter.filteredFrom'
-  | 'filter.highChange'
-  | 'filter.lowChange'
-  | 'filter.mediumChange'
-  | 'filter.search'
-  | 'filter.searchPlaceholder'
   | 'filters'
   | 'filters.all'
   | 'filters.clearAll'
@@ -8492,40 +8059,73 @@ export type TranslationKey =
   | 'marketDataPanel.ofTotalSupply'
   | 'marketDataPanel.supplyRatio'
   | 'marketDataPanel.volume24h'
-  | 'marketOverview'
-  | 'marketOverview.analysisDescription'
-  | 'marketOverview.chainSupport'
-  | 'marketOverview.chainSupportOverview'
-  | 'marketOverview.chainlinkShare'
-  | 'marketOverview.chains'
-  | 'marketOverview.chart'
-  | 'marketOverview.clearSelection'
-  | 'marketOverview.crossChain'
-  | 'marketOverview.dataSource'
-  | 'marketOverview.dataUpdated'
-  | 'marketOverview.disclaimer'
-  | 'marketOverview.dominance'
-  | 'marketOverview.hoverForDetails'
-  | 'marketOverview.integrations'
-  | 'marketOverview.marketShare'
-  | 'marketOverview.marketShareDistribution'
-  | 'marketOverview.oracle'
-  | 'marketOverview.oracleMarketAnalysis'
-  | 'marketOverview.oracleRankings'
-  | 'marketOverview.oraclesCovered'
-  | 'marketOverview.protocols'
-  | 'marketOverview.selectedTimeRange'
-  | 'marketOverview.simulatedBadge'
-  | 'marketOverview.simulatedData'
-  | 'marketOverview.table'
-  | 'marketOverview.time'
-  | 'marketOverview.title'
-  | 'marketOverview.totalChains'
-  | 'marketOverview.totalMarketShare'
-  | 'marketOverview.totalTVS'
-  | 'marketOverview.tvsShare'
-  | 'marketOverview.tvsTrend'
-  | 'marketOverview.tvsTrendAnalysis'
+  | 'methodology'
+  | 'methodology.dataQuality'
+  | 'methodology.dataQuality.description'
+  | 'methodology.dataQuality.standards'
+  | 'methodology.dataQuality.standards.consistency'
+  | 'methodology.dataQuality.standards.consistency.description'
+  | 'methodology.dataQuality.standards.consistency.title'
+  | 'methodology.dataQuality.standards.freshness'
+  | 'methodology.dataQuality.standards.freshness.description'
+  | 'methodology.dataQuality.standards.freshness.title'
+  | 'methodology.dataQuality.standards.reliability'
+  | 'methodology.dataQuality.standards.reliability.description'
+  | 'methodology.dataQuality.standards.reliability.title'
+  | 'methodology.dataQuality.standards.transparency'
+  | 'methodology.dataQuality.standards.transparency.description'
+  | 'methodology.dataQuality.standards.transparency.title'
+  | 'methodology.dataQuality.title'
+  | 'methodology.dataSources'
+  | 'methodology.dataSources.description'
+  | 'methodology.dataSources.sources'
+  | 'methodology.dataSources.sources.api3'
+  | 'methodology.dataSources.sources.chainlink'
+  | 'methodology.dataSources.sources.chronicle'
+  | 'methodology.dataSources.sources.dia'
+  | 'methodology.dataSources.sources.pyth'
+  | 'methodology.dataSources.sources.redstone'
+  | 'methodology.dataSources.sources.tellor'
+  | 'methodology.dataSources.title'
+  | 'methodology.limitations'
+  | 'methodology.limitations.description'
+  | 'methodology.limitations.items'
+  | 'methodology.limitations.items.accuracy'
+  | 'methodology.limitations.items.availability'
+  | 'methodology.limitations.items.latency'
+  | 'methodology.limitations.items.notFinancialAdvice'
+  | 'methodology.limitations.title'
+  | 'methodology.methodologyUpdates'
+  | 'methodology.methodologyUpdates.description'
+  | 'methodology.methodologyUpdates.title'
+  | 'methodology.overview'
+  | 'methodology.overview.description'
+  | 'methodology.overview.title'
+  | 'methodology.priceCalculation'
+  | 'methodology.priceCalculation.description'
+  | 'methodology.priceCalculation.principles'
+  | 'methodology.priceCalculation.principles.aggregation'
+  | 'methodology.priceCalculation.principles.aggregation.description'
+  | 'methodology.priceCalculation.principles.aggregation.title'
+  | 'methodology.priceCalculation.principles.outlierDetection'
+  | 'methodology.priceCalculation.principles.outlierDetection.description'
+  | 'methodology.priceCalculation.principles.outlierDetection.title'
+  | 'methodology.priceCalculation.principles.realTime'
+  | 'methodology.priceCalculation.principles.realTime.description'
+  | 'methodology.priceCalculation.principles.realTime.title'
+  | 'methodology.priceCalculation.principles.timestamp'
+  | 'methodology.priceCalculation.principles.timestamp.description'
+  | 'methodology.priceCalculation.principles.timestamp.title'
+  | 'methodology.priceCalculation.title'
+  | 'methodology.subtitle'
+  | 'methodology.title'
+  | 'methodology.updateFrequency'
+  | 'methodology.updateFrequency.description'
+  | 'methodology.updateFrequency.intervals'
+  | 'methodology.updateFrequency.intervals.frequent'
+  | 'methodology.updateFrequency.intervals.periodic'
+  | 'methodology.updateFrequency.intervals.realTime'
+  | 'methodology.updateFrequency.title'
   | 'metrics'
   | 'metrics.activeValidators'
   | 'metrics.apiCalls'
@@ -8573,8 +8173,6 @@ export type TranslationKey =
   | 'navbar.home'
   | 'navbar.login'
   | 'navbar.market'
-  | 'navbar.marketOverview'
-  | 'navbar.marketOverviewDesc'
   | 'navbar.menu'
   | 'navbar.openMenu'
   | 'navbar.oracleDetails'
@@ -8588,8 +8186,6 @@ export type TranslationKey =
   | 'navbar.register'
   | 'navbar.settings'
   | 'navbar.signOut'
-  | 'navbar.uma'
-  | 'navbar.umaDesc'
   | 'navbar.winklink'
   | 'navbar.winklinkDesc'
   | 'networkHealth'
@@ -8746,30 +8342,6 @@ export type TranslationKey =
   | 'oracleCommon.stakingCalculator.validatorTypes.institution'
   | 'oracleCommon.stakingCalculator.yearPerDay'
   | 'oracleCommon.stakingCalculator.yearly'
-  | 'oracleComparison'
-  | 'oracleComparison.chains'
-  | 'oracleComparison.compare'
-  | 'oracleComparison.cost'
-  | 'oracleComparison.decentralization'
-  | 'oracleComparison.latency'
-  | 'oracleComparison.loading'
-  | 'oracleComparison.maxOracles'
-  | 'oracleComparison.metrics'
-  | 'oracleComparison.metrics.chains'
-  | 'oracleComparison.metrics.decentralization'
-  | 'oracleComparison.metrics.frequency'
-  | 'oracleComparison.metrics.latency'
-  | 'oracleComparison.metrics.protocols'
-  | 'oracleComparison.metrics.security'
-  | 'oracleComparison.metrics.tvs'
-  | 'oracleComparison.noData'
-  | 'oracleComparison.oracle'
-  | 'oracleComparison.protocols'
-  | 'oracleComparison.security'
-  | 'oracleComparison.selectOracles'
-  | 'oracleComparison.share'
-  | 'oracleComparison.tvs'
-  | 'oracleComparison.updateFrequency'
   | 'oracleMetrics'
   | 'oracleMetrics.activeValidators'
   | 'oracleMetrics.airnodeCount'
@@ -8802,7 +8374,6 @@ export type TranslationKey =
   | 'oracleMetrics.supportedChains'
   | 'oracleMetrics.totalValidators'
   | 'oracleMetrics.tvs'
-  | 'oracleMetrics.umaPrice'
   | 'oracleMetrics.winPrice'
   | 'oraclePerformanceRanking'
   | 'oraclePerformanceRanking.dimensionDescriptions'
@@ -8846,10 +8417,7 @@ export type TranslationKey =
   | 'oracles.descriptions.dia'
   | 'oracles.descriptions.pyth'
   | 'oracles.descriptions.redstone'
-  | 'oracles.descriptions.uma'
   | 'oracles.descriptions.winklink'
-  | 'pageDescription'
-  | 'pageTitle'
   | 'panels'
   | 'panels.anomalyStats'
   | 'panels.anomalyStats.all'
@@ -8971,32 +8539,6 @@ export type TranslationKey =
   | 'permanentStorage'
   | 'price'
   | 'price.title'
-  | 'priceAlert'
-  | 'priceAlert.above'
-  | 'priceAlert.activeAlerts'
-  | 'priceAlert.addAlert'
-  | 'priceAlert.addAlertHint'
-  | 'priceAlert.alertNote'
-  | 'priceAlert.alertType'
-  | 'priceAlert.asset'
-  | 'priceAlert.assetPlaceholder'
-  | 'priceAlert.below'
-  | 'priceAlert.cancel'
-  | 'priceAlert.change'
-  | 'priceAlert.changePercent'
-  | 'priceAlert.create'
-  | 'priceAlert.createdAt'
-  | 'priceAlert.loading'
-  | 'priceAlert.noAlerts'
-  | 'priceAlert.note'
-  | 'priceAlert.notePlaceholder'
-  | 'priceAlert.optional'
-  | 'priceAlert.percentChange'
-  | 'priceAlert.priceAbove'
-  | 'priceAlert.priceBelow'
-  | 'priceAlert.targetPrice'
-  | 'priceAlert.triggered'
-  | 'priceAlert.update'
   | 'priceChart'
   | 'priceChart.advancedFeatures'
   | 'priceChart.anomalyDetection'
@@ -9404,7 +8946,6 @@ export type TranslationKey =
   | 'priceQuery.results.oracleFeatures.dia'
   | 'priceQuery.results.oracleFeatures.pyth'
   | 'priceQuery.results.oracleFeatures.redstone'
-  | 'priceQuery.results.oracleFeatures.uma'
   | 'priceQuery.results.oracleFeatures.winklink'
   | 'priceQuery.results.price'
   | 'priceQuery.results.qualityScore'
@@ -9457,18 +8998,34 @@ export type TranslationKey =
   | 'priceQuery.stats'
   | 'priceQuery.stats.absoluteValue'
   | 'priceQuery.stats.annualized'
+  | 'priceQuery.stats.answeredInRound'
   | 'priceQuery.stats.avgPrice'
+  | 'priceQuery.stats.blockchain'
   | 'priceQuery.stats.change24h'
   | 'priceQuery.stats.collapse'
   | 'priceQuery.stats.compare'
+  | 'priceQuery.stats.confidenceAbs'
+  | 'priceQuery.stats.confidenceScore'
+  | 'priceQuery.stats.confidenceWidth'
   | 'priceQuery.stats.consistencyRating'
+  | 'priceQuery.stats.dapiName'
+  | 'priceQuery.stats.dataAge'
   | 'priceQuery.stats.dataPoints'
+  | 'priceQuery.stats.decimals'
   | 'priceQuery.stats.expand'
+  | 'priceQuery.stats.exponent'
+  | 'priceQuery.stats.feedDescription'
   | 'priceQuery.stats.maxPrice'
   | 'priceQuery.stats.minPrice'
+  | 'priceQuery.stats.priceId'
   | 'priceQuery.stats.priceRange'
+  | 'priceQuery.stats.proxyAddress'
+  | 'priceQuery.stats.publishTime'
   | 'priceQuery.stats.queryDuration'
+  | 'priceQuery.stats.roundId'
+  | 'priceQuery.stats.roundStarted'
   | 'priceQuery.stats.standardDeviation'
+  | 'priceQuery.stats.version'
   | 'priceQuery.stats.volatility'
   | 'priceQuery.subtitle'
   | 'priceQuery.timeRanges'
@@ -9478,6 +9035,21 @@ export type TranslationKey =
   | 'priceQuery.timeRanges.timeRange7Days'
   | 'priceQuery.title'
   | 'priceQuery.volume24h'
+  | 'priceTable'
+  | 'priceTable.anomaly'
+  | 'priceTable.anomalyTooltip'
+  | 'priceTable.collapseDetails'
+  | 'priceTable.dataDelay'
+  | 'priceTable.deviationTooLarge'
+  | 'priceTable.expandDetails'
+  | 'priceTable.normal'
+  | 'priceTable.outlier'
+  | 'priceTable.possibleReasons'
+  | 'priceTable.priceAnomaly'
+  | 'priceTable.priceDiff'
+  | 'priceTable.rawPrice'
+  | 'priceTable.status'
+  | 'priceTable.unknownReason'
   | 'priceVolatility'
   | 'priceVolatility.avgCV'
   | 'priceVolatility.explanation'
@@ -9526,39 +9098,29 @@ export type TranslationKey =
   | 'priceVolatility.volatilityComparison'
   | 'priceVolatility.volatilityDecomposition'
   | 'priceVolatility.windowSize'
-  | 'primaryOracle'
-  | 'protocolList'
-  | 'protocolList.allCategories'
-  | 'protocolList.allChains'
-  | 'protocolList.allOracles'
-  | 'protocolList.category'
-  | 'protocolList.chain'
-  | 'protocolList.change24h'
-  | 'protocolList.loading'
-  | 'protocolList.noData'
-  | 'protocolList.oracle'
-  | 'protocolList.protocol'
-  | 'protocolList.searchPlaceholder'
-  | 'protocolList.showing'
-  | 'protocolList.sortByChange'
-  | 'protocolList.sortByTVS'
-  | 'protocolList.topProtocols'
-  | 'protocolList.tvs'
   | 'publisherContribution'
   | 'publisherContribution.subtitle'
   | 'publisherContribution.title'
   | 'publisherStaking'
+  | 'quality'
+  | 'quality.anomalyDetection'
+  | 'quality.completeness'
+  | 'quality.consistency'
+  | 'quality.dataSourceStatus'
+  | 'quality.detailedAnalysis'
+  | 'quality.freshness'
+  | 'quality.noAnomalies'
+  | 'quality.noAnomaliesDesc'
+  | 'quality.overallScore'
+  | 'quality.score'
+  | 'quality.suggestions'
+  | 'quality.title'
   | 'quickActions'
   | 'quickActions.addMonitor'
   | 'quickActions.apiDocs'
   | 'quickActions.priceAlert'
   | 'quickActions.switchNetwork'
   | 'realTimeMonitoring'
-  | 'realtime'
-  | 'realtime.disconnected'
-  | 'realtime.highLatency'
-  | 'realtime.live'
-  | 'realtime.reconnect'
   | 'realtimeNotifications'
   | 'realtimeNotifications.connection'
   | 'realtimeNotifications.connection.message'
@@ -9569,18 +9131,6 @@ export type TranslationKey =
   | 'realtimeUpdate'
   | 'realtimeUpdate.title'
   | 'recordCount'
-  | 'refresh'
-  | 'refresh.15m'
-  | 'refresh.1m'
-  | 'refresh.30s'
-  | 'refresh.5m'
-  | 'refresh.clickToRefresh'
-  | 'refresh.lastUpdated'
-  | 'refresh.manual'
-  | 'refresh.never'
-  | 'refresh.nextRefresh'
-  | 'refresh.refresh'
-  | 'refresh.refreshing'
   | 'regions'
   | 'regions.asia'
   | 'regions.europe'
@@ -9595,35 +9145,17 @@ export type TranslationKey =
   | 'risk'
   | 'risk.assessment'
   | 'risk.avgConfidence'
-  | 'risk.criticalRisk'
   | 'risk.dataQuality'
   | 'risk.factors'
-  | 'risk.highRisk'
-  | 'risk.keyMetrics'
-  | 'risk.lastUpdated'
-  | 'risk.loading'
-  | 'risk.lowRisk'
-  | 'risk.maxDrawdown'
-  | 'risk.mediumRisk'
-  | 'risk.noData'
   | 'risk.oracleDiversity'
   | 'risk.overallLevel'
-  | 'risk.overallRiskLevel'
-  | 'risk.recentAlerts'
-  | 'risk.riskDistribution'
-  | 'risk.riskScore'
   | 'risk.severity'
   | 'risk.severity.critical'
   | 'risk.severity.high'
   | 'risk.severity.low'
   | 'risk.severity.medium'
-  | 'risk.sharpeRatio'
-  | 'risk.totalAssets'
-  | 'risk.trend'
   | 'risk.uptime'
-  | 'risk.var95'
   | 'risk.verification'
-  | 'risk.volatilityIndex'
   | 'riskMetrics'
   | 'riskMetrics.consistency'
   | 'riskMetrics.consistency.description'
@@ -9679,14 +9211,10 @@ export type TranslationKey =
   | 'search.features'
   | 'search.features.charts'
   | 'search.features.chartsDesc'
-  | 'search.features.dataExport'
-  | 'search.features.dataExportDesc'
   | 'search.features.priceAlerts'
   | 'search.features.priceAlertsDesc'
   | 'search.features.priceComparison'
   | 'search.features.priceComparisonDesc'
-  | 'search.features.realtimePrice'
-  | 'search.features.realtimePriceDesc'
   | 'search.footer'
   | 'search.footer.navigate'
   | 'search.footer.select'
@@ -9710,7 +9238,6 @@ export type TranslationKey =
   | 'search.oracles.diaDesc'
   | 'search.oracles.pythDesc'
   | 'search.oracles.redstoneDesc'
-  | 'search.oracles.umaDesc'
   | 'search.oracles.winklinkDesc'
   | 'search.pages'
   | 'search.pages.alerts'
@@ -9723,8 +9250,6 @@ export type TranslationKey =
   | 'search.pages.favoritesDesc'
   | 'search.pages.home'
   | 'search.pages.homeDesc'
-  | 'search.pages.marketOverview'
-  | 'search.pages.marketOverviewDesc'
   | 'search.pages.priceQuery'
   | 'search.pages.priceQueryDesc'
   | 'search.pages.settings'
@@ -9796,6 +9321,7 @@ export type TranslationKey =
   | 'settings.data.snapshotsExportSuccess'
   | 'settings.data.subtitle'
   | 'settings.data.title'
+  | 'settings.dataDesc'
   | 'settings.notifications'
   | 'settings.notifications.alertNotifications'
   | 'settings.notifications.alertNotificationsDesc'
@@ -9818,6 +9344,7 @@ export type TranslationKey =
   | 'settings.notifications.saveSuccess'
   | 'settings.notifications.subtitle'
   | 'settings.notifications.title'
+  | 'settings.notificationsDesc'
   | 'settings.preferences'
   | 'settings.preferences.autoRefreshInterval'
   | 'settings.preferences.autoRefreshIntervalHint'
@@ -9852,6 +9379,7 @@ export type TranslationKey =
   | 'settings.preferences.timeRange.hour1'
   | 'settings.preferences.timeRange.hour6'
   | 'settings.preferences.title'
+  | 'settings.preferencesDesc'
   | 'settings.profile'
   | 'settings.profile.avatar'
   | 'settings.profile.avatar.apply'
@@ -9901,36 +9429,9 @@ export type TranslationKey =
   | 'settings.profile.updatePassword'
   | 'settings.profile.uploadError'
   | 'settings.profile.uploadFailed'
-  | 'sidebar'
-  | 'sidebar.active'
-  | 'sidebar.alerts'
-  | 'sidebar.avgChainsPerOracle'
-  | 'sidebar.chains'
-  | 'sidebar.concentrationLevel'
-  | 'sidebar.didYouKnow'
-  | 'sidebar.dominanceChange24h'
-  | 'sidebar.highConcentration'
-  | 'sidebar.integrated'
-  | 'sidebar.lowConcentration'
-  | 'sidebar.marketConcentration'
-  | 'sidebar.marketDominance'
-  | 'sidebar.marketInfoTip'
-  | 'sidebar.marketInsights'
-  | 'sidebar.marketStats'
-  | 'sidebar.mediumConcentration'
-  | 'sidebar.noData'
-  | 'sidebar.oracleCount'
-  | 'sidebar.overview'
-  | 'sidebar.risk'
-  | 'sidebar.supported'
-  | 'sidebar.top4Oracles'
-  | 'sidebar.top4Share'
-  | 'sidebar.topChainSupporters'
-  | 'sidebar.topGainers'
-  | 'sidebar.totalChains'
-  | 'sidebar.totalProtocols'
-  | 'sidebar.totalTVS'
-  | 'sidebar.volatility24h'
+  | 'settings.profileDesc'
+  | 'settings.subtitle'
+  | 'settings.title'
   | 'slashingConditions'
   | 'snapshot'
   | 'snapshot.cloudLabel'
@@ -9947,13 +9448,6 @@ export type TranslationKey =
   | 'statistics.median'
   | 'statistics.standardDeviation'
   | 'statistics.variance'
-  | 'stats'
-  | 'stats.avgLatency'
-  | 'stats.marketDominance'
-  | 'stats.oracleCount'
-  | 'stats.totalChains'
-  | 'stats.totalProtocols'
-  | 'stats.totalTVS'
   | 'status'
   | 'status.error'
   | 'status.live'
@@ -9964,16 +9458,39 @@ export type TranslationKey =
   | 'status.success'
   | 'table'
   | 'table.benchmark'
+  | 'table.comparisonTable'
   | 'table.confidence'
+  | 'table.confidenceAriaLabel'
+  | 'table.confidenceProgress'
   | 'table.critical'
   | 'table.dataSource'
   | 'table.deviation'
+  | 'table.deviationAriaLabel'
+  | 'table.error'
+  | 'table.errorCount'
+  | 'table.errorThreshold'
+  | 'table.legend'
   | 'table.name'
+  | 'table.nameAriaLabel'
+  | 'table.negativeDeviation'
+  | 'table.noData'
+  | 'table.noDataAriaLabel'
+  | 'table.noDataConfidence'
   | 'table.normal'
+  | 'table.normalStatus'
+  | 'table.positiveDeviation'
   | 'table.price'
+  | 'table.priceAriaLabel'
+  | 'table.provider'
+  | 'table.providerAriaLabel'
   | 'table.responseTime'
+  | 'table.responseTimeAriaLabel'
   | 'table.status'
+  | 'table.statusAriaLabel'
+  | 'table.totalRecords'
   | 'table.warning'
+  | 'table.warningCount'
+  | 'table.warningThreshold'
   | 'tendermintConsensus'
   | 'time'
   | 'time.00:00'
@@ -10013,16 +9530,6 @@ export type TranslationKey =
   | 'timeframes.30d'
   | 'timeframes.7d'
   | 'timeframes.90d'
-  | 'tokenPrices'
-  | 'tokenPrices.high24h'
-  | 'tokenPrices.low24h'
-  | 'tokenPrices.noData'
-  | 'tokenPrices.offlineMode'
-  | 'tokenPrices.refresh'
-  | 'tokenPrices.title'
-  | 'tokenPrices.updatedAt'
-  | 'tokenPrices.volume'
-  | 'topAssets'
   | 'tutorial'
   | 'tutorial.close'
   | 'tutorial.complete'
@@ -10054,28 +9561,6 @@ export type TranslationKey =
   | 'tutorial.viewSummary'
   | 'tutorial.welcomeDescription'
   | 'tutorial.welcomeTitle'
-  | 'ui'
-  | 'ui.chart'
-  | 'ui.chart.assetCategories'
-  | 'ui.chart.benchmark'
-  | 'ui.chart.chainBreakdown'
-  | 'ui.chart.chainSupport'
-  | 'ui.chart.chart'
-  | 'ui.chart.correlation'
-  | 'ui.chart.export'
-  | 'ui.chart.marketShare'
-  | 'ui.chart.momComparison'
-  | 'ui.chart.oracleComparison'
-  | 'ui.chart.protocols'
-  | 'ui.chart.reset'
-  | 'ui.chart.table'
-  | 'ui.chart.toggleConfidence'
-  | 'ui.chart.tvsTrend'
-  | 'ui.chart.yoyComparison'
-  | 'ui.filter'
-  | 'ui.filter.more'
-  | 'uma'
-  | 'uma.loading'
   | 'updateFrequency'
   | 'updateFrequency.title'
   | 'user'
@@ -10106,7 +9591,6 @@ export type TranslationKey =
   | 'validatorPanel.totalStaked'
   | 'validatorPanel.uptime'
   | 'validatorSlashing'
-  | 'viewOracleDetails'
   | 'volatilityAlert'
   | 'volatilityAlert.currentVolatility'
   | 'volatilityAlert.duration'
@@ -10126,7 +9610,6 @@ export type TranslationKey =
   | 'volatilityAlert.threshold'
   | 'volatilityAlert.title'
   | 'volatilityAlert.volatility'
-  | 'volume24h'
   | 'vrf'
   | 'vrf.activeSubscriptions'
   | 'vrf.avgBalance'

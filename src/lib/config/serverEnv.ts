@@ -1,6 +1,6 @@
 import { createLogger } from '@/lib/utils/logger';
 
-import { FEATURE_FLAGS } from './featureFlags';
+import { FEATURE_FLAGS as _FEATURE_FLAGS } from './env';
 
 const logger = createLogger('ServerEnv');
 
@@ -46,7 +46,7 @@ export const API3_CONFIG = {
 };
 
 // 功能开关 - 从 featureFlags 重新导出以保持向后兼容
-export { FEATURE_FLAGS } from './featureFlags';
+export { FEATURE_FLAGS } from './env';
 
 // 缓存配置
 export const CACHE_CONFIG = {

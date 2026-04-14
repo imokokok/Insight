@@ -4,13 +4,9 @@
  */
 
 import { type Blockchain } from '@/lib/oracles';
+import type { ValidationResult } from '@/types/oracle/constants';
 
 const BITCOIN_GENESIS_TIMESTAMP = new Date('2009-01-03').getTime();
-
-export interface ValidationResult {
-  isValid: boolean;
-  errors: string[];
-}
 
 export function validatePriceData(
   price: number,

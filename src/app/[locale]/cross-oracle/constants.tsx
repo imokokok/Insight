@@ -2,7 +2,7 @@
  * @fileoverview 跨预言机对比页面常量定义
  */
 
-import { getAllSupportedSymbols } from '@/lib/oracles/supportedSymbols';
+import { getAllSupportedSymbols } from '@/lib/oracles/constants/supportedSymbols';
 import { OracleProvider } from '@/types/oracle';
 
 // ============================================================================

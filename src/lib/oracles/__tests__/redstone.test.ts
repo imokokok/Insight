@@ -1,6 +1,6 @@
 import { RedStoneApiError } from '@/lib/errors';
-import { REDSTONE_API_BASE } from '@/lib/oracles/redstoneConstants';
-import { RedStoneClient } from '@/lib/services/oracle/clients/redstone';
+import { RedStoneClient } from '@/lib/oracles/clients/redstone';
+import { REDSTONE_API_BASE } from '@/lib/oracles/constants/redstoneConstants';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 
 global.fetch = jest.fn();

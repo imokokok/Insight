@@ -1,6 +1,6 @@
 import { Hash, Settings, Database, Clock, Shield } from 'lucide-react';
 
-import type { WINkLinkTokenOnChainData } from '@/lib/oracles/winklinkRealDataService';
+import type { WINkLinkTokenOnChainData } from '@/lib/oracles/services/winklinkRealDataService';
 
 interface WINkLinkStatsProps {
   data: WINkLinkTokenOnChainData;

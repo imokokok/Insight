@@ -264,4 +264,45 @@ describe('useDebouncedCallback', () => {
 
     clearTimeoutSpy.mockRestore();
   });
+
+  it('should cancel previous timeout when stored function reference is called multiple times', () => {
+    const callback = jest.fn();
+    const { result } = renderHook(() => useDebouncedCallback(callback, 500));
+
+    const storedFn = result.current;
+
+    storedFn('first');
+    act(() => {
+      jest.advanceTimersByTime(200);
+    });
+
+    storedFn('second');
+    act(() => {
+      jest.advanceTimersByTime(500);
+    });
+
+    expect(callback).toHaveBeenCalledTimes(1);
+    expect(callback).toHaveBeenCalledWith('second');
+  });
+
+  it('should use latest callback when callback changes', () => {
+    const firstCallback = jest.fn();
+    const secondCallback = jest.fn();
+
+    const { result, rerender } = renderHook(
+      ({ cb, delay }) => useDebouncedCallback(cb, delay),
+      { initialProps: { cb: firstCallback, delay: 500 } }
+    );
+
+    rerender({ cb: secondCallback, delay: 500 });
+
+    result.current('test');
+
+    act(() => {
+      jest.advanceTimersByTime(500);
+    });
+
+    expect(firstCallback).not.toHaveBeenCalled();
+    expect(secondCallback).toHaveBeenCalledWith('test');
+  });
 });

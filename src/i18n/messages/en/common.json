@@ -587,6 +587,11 @@
     "goHome": "Go Home",
     "contactSupport": "If the problem persists, please contact technical support"
   },
+  "errorBoundary": {
+    "tryAgain": "Try Again",
+    "retry": "Retry",
+    "backToHome": "Back to Home"
+  },
   "mobileInteraction": {
     "current": "Current"
   },

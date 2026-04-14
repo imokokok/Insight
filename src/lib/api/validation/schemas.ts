@@ -14,6 +14,8 @@ import {
   pattern,
   oneOf,
 } from './validators';
+import type { ValidationResult } from '@/types/oracle/constants';
+import { ORACLE_PROVIDER_VALUES, BLOCKCHAIN_VALUES } from '@/types/oracle/enums';
 
 export interface FieldSchema {
   validators: ValidatorFn[];
@@ -25,18 +27,12 @@ export interface ObjectSchema {
   [key: string]: FieldSchema;
 }
 
-export interface ValidationResult {
-  valid: boolean;
-  data?: Record<string, unknown>;
-  errors?: Array<{ field: string; message: string }>;
-}
-
 export function validateObject(
   data: Record<string, unknown>,
   schema: ObjectSchema
-): ValidationResult {
+): ValidationResult<Record<string, unknown>> {
   const result: Record<string, unknown> = {};
-  const errors: Array<{ field: string; message: string }> = [];
+  const errors: string[] = [];
 
   for (const [field, fieldSchema] of Object.entries(schema)) {
     let value = data[field];
@@ -45,7 +41,7 @@ export function validateObject(
       if (fieldSchema.transform) {
         value = fieldSchema.transform(value);
       } else if (fieldSchema.required) {
-        errors.push({ field, message: `${field} is required` });
+        errors.push(`${field} is required`);
         continue;
       } else {
         continue;
@@ -59,7 +55,7 @@ export function validateObject(
     for (const validator of fieldSchema.validators) {
       const validationResult = validator(value, field);
       if (!validationResult.valid) {
-        errors.push({ field, message: validationResult.error.message });
+        errors.push(`${field}: ${validationResult.error.message}`);
         break;
       }
       value = validationResult.value;
@@ -69,10 +65,10 @@ export function validateObject(
   }
 
   if (errors.length > 0) {
-    return { valid: false, errors };
+    return { isValid: false, errors };
   }
 
-  return { valid: true, data: result };
+  return { isValid: true, data: result, errors: [] };
 }
 
 export const commonSchemas = {
@@ -188,12 +184,12 @@ export const symbolSchema: FieldSchema = {
 };
 
 export const providerSchema: FieldSchema = createEnumSchema(
-  ['chainlink', 'uma', 'api3', 'pyth'] as const,
+  ORACLE_PROVIDER_VALUES as readonly string[],
   true
 );
 
 export const chainSchema: FieldSchema = createEnumSchema(
-  ['ethereum', 'polygon', 'arbitrum', 'optimism', 'bsc', 'avalanche', 'base'] as const,
+  BLOCKCHAIN_VALUES as readonly string[],
   false
 );
 

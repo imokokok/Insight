@@ -19,7 +19,7 @@ export function useDataFreshness(
   const [result, setResult] = useState<UseDataFreshnessReturn>({
     status: 'expired',
     ageInMinutes: 0,
-    message: '数据未加载',
+    message: 'Data not loaded',
     shouldRefresh: true,
   });
 
@@ -33,7 +33,7 @@ export function useDataFreshness(
         setResult({
           status: 'expired',
           ageInMinutes: 0,
-          message: '数据未加载',
+          message: 'Data not loaded',
           shouldRefresh: true,
         });
         return;
@@ -45,21 +45,21 @@ export function useDataFreshness(
         setResult({
           status: 'fresh',
           ageInMinutes,
-          message: '数据新鲜',
+          message: 'Data is fresh',
           shouldRefresh: false,
         });
       } else if (ageInMinutes < maxStaleTime) {
         setResult({
           status: 'stale',
           ageInMinutes,
-          message: '数据即将过期',
+          message: 'Data is about to expire',
           shouldRefresh: false,
         });
       } else {
         setResult({
           status: 'expired',
           ageInMinutes,
-          message: '数据已过期',
+          message: 'Data has expired',
           shouldRefresh: true,
         });
       }

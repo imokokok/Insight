@@ -1,10 +1,10 @@
+import { PriceDataSchema } from '@/lib/security/validation';
 import { validateOracleData, safeValidateOracleData } from '@/lib/validation/oracleValidation';
-import { PriceDataSchema } from '@/lib/validation/schemas';
 import {
   type OracleProvider,
   type Blockchain,
   type PriceData,
-  type OracleError,
+  OracleError,
   type OracleErrorCode,
 } from '@/types/oracle';
 
@@ -12,9 +12,9 @@ import {
   fetchPriceWithDatabase,
   fetchHistoricalPricesWithDatabase,
 } from './base/databaseOperations';
-import { shouldUseDatabase, configureStorage, getStorageConfig } from './storage';
+import { shouldUseDatabase, configureStorage, getStorageConfig } from './utils/storage';
 
-import type { OracleStorageConfig } from './storage';
+import type { OracleStorageConfig } from './utils/storage';
 
 export { shouldUseDatabase, configureStorage, getStorageConfig };
 export type { OracleStorageConfig };
@@ -208,11 +208,16 @@ const DEFAULT_CLIENT_CONFIG: OracleClientConfig = {
 export abstract class BaseOracleClient {
   abstract name: OracleProvider;
   abstract supportedChains: Blockchain[];
-  abstract getPrice(symbol: string, chain?: Blockchain): Promise<PriceData>;
+  abstract getPrice(
+    symbol: string,
+    chain?: Blockchain,
+    options?: { signal?: AbortSignal }
+  ): Promise<PriceData>;
   abstract getHistoricalPrices(
     symbol: string,
     chain?: Blockchain,
-    period?: number
+    period?: number,
+    options?: { signal?: AbortSignal }
   ): Promise<PriceData[]>;
   abstract getSupportedSymbols(): string[];
 
@@ -262,14 +267,7 @@ export abstract class BaseOracleClient {
       details?: Record<string, unknown>;
     }
   ): OracleError {
-    return {
-      message,
-      provider: this.name,
-      code,
-      timestamp: Date.now(),
-      retryable: options?.retryable ?? false,
-      details: options?.details,
-    };
+    return new OracleError(message, this.name, code, options);
   }
 
   protected createUnsupportedSymbolError(symbol: string, chain?: Blockchain): OracleError {
@@ -354,10 +352,12 @@ export abstract class BaseOracleClient {
     );
   }
 
+  /** @deprecated Use OracleRepository.fetchPrice() instead */
   async fetchPriceWithDatabase(symbol: string, chain: Blockchain | undefined): Promise<PriceData> {
     return fetchPriceWithDatabase(this.name, symbol, chain, this.config.useDatabase ?? true);
   }
 
+  /** @deprecated Use OracleRepository.fetchHistoricalPrices() instead */
   async fetchHistoricalPricesWithDatabase(
     symbol: string,
     chain: Blockchain | undefined,

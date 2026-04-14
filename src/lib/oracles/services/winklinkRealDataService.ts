@@ -2,9 +2,9 @@ import { createLogger } from '@/lib/utils/logger';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
 
-import { withOracleRetry, ORACLE_RETRY_PRESETS } from './utils/retry';
+import { withOracleRetry, ORACLE_RETRY_PRESETS } from '../utils/retry';
 
-import type { CacheEntry } from './base';
+import type { CacheEntry } from '../base';
 
 const logger = createLogger('WINkLinkRealDataService');
 

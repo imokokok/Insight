@@ -3,7 +3,7 @@
 import { useEffect, useCallback, useMemo, useState, useRef } from 'react';
 
 import { useFavorites, type FavoriteConfig } from '@/hooks';
-import { type OracleProvider, OracleClientFactory } from '@/lib/oracles';
+import { type OracleProvider, getDefaultFactory } from '@/lib/oracles';
 import { isBlockchain } from '@/lib/utils/chainUtils';
 import { useUser } from '@/stores/authStore';
 import { useCrossChainConfigStore } from '@/stores/crossChainConfigStore';
@@ -93,7 +93,7 @@ export function useCrossChainData(): UseCrossChainDataReturn {
 
   const dataValidation = useDataValidation();
   const anomalyDetection = useAnomalyDetection();
-  const currentClient = OracleClientFactory.getClient(selectedProvider);
+  const currentClient = getDefaultFactory().getClient(selectedProvider);
   const supportedChains = currentClient.supportedChains;
 
   const {
@@ -102,7 +102,6 @@ export function useCrossChainData(): UseCrossChainDataReturn {
     clearCacheForProvider,
   } = useDataFetching(
     selectedProvider,
-    currentClient,
     supportedChains,
     {
       selectedSymbol,

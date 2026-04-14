@@ -3,7 +3,7 @@ import { type HermesClient } from '@pythnetwork/hermes-client';
 import { createLogger } from '@/lib/utils/logger';
 import type { PriceData } from '@/types/oracle';
 
-import { PYTH_PRICE_FEED_IDS, CACHE_TTL, normalizeSymbol } from '../pythConstants';
+import { PYTH_PRICE_FEED_IDS, CACHE_TTL, normalizeSymbol } from '../constants/pythConstants';
 import { withOracleRetry, ORACLE_RETRY_PRESETS } from '../utils/retry';
 
 import { type PythCache } from './pythCache';

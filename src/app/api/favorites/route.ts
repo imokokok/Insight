@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
 import { getUserId } from '@/lib/api/utils';
+import { moderateRateLimit } from '@/lib/api/middleware/rateLimitMiddleware';
 import { sanitizeObject, sanitizeString } from '@/lib/security';
 import { CreateFavoriteRequestSchema, validateAndSanitize } from '@/lib/security/validation';
 import { type ConfigType } from '@/lib/supabase/database.types';
@@ -10,6 +11,11 @@ import { createLogger } from '@/lib/utils/logger';
 const logger = createLogger('api-favorites');
 
 export async function GET(request: NextRequest) {
+  const rateLimitResult = await moderateRateLimit(request);
+  if (!rateLimitResult.success) {
+    return rateLimitResult.response;
+  }
+
   try {
     const userId = await getUserId(request);
     if (!userId) {
@@ -55,6 +61,11 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const rateLimitResult = await moderateRateLimit(request);
+  if (!rateLimitResult.success) {
+    return rateLimitResult.response;
+  }
+
   try {
     const userId = await getUserId(request);
     if (!userId) {

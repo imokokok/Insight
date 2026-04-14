@@ -4,9 +4,9 @@ import { Database, BarChart3, Clock } from 'lucide-react';
 
 import { useTranslations } from '@/i18n';
 import type { OracleProvider, Blockchain } from '@/lib/oracles';
-import type { DIATokenOnChainData } from '@/lib/oracles/diaDataService';
-import type { WINkLinkTokenOnChainData } from '@/lib/oracles/winklinkRealDataService';
-import type { RedStoneTokenOnChainData } from '@/lib/services/oracle/clients/redstone';
+import type { DIATokenOnChainData } from '@/lib/oracles/services/diaDataService';
+import type { WINkLinkTokenOnChainData } from '@/lib/oracles/services/winklinkRealDataService';
+import type { RedStoneTokenOnChainData } from '@/lib/oracles/clients/redstone';
 
 import { type QueryResult, type PriceData } from '../constants';
 import { useConsistencyRating } from '../hooks/useConsistencyRating';

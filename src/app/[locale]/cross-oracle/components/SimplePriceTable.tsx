@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 
 import { chartColors } from '@/lib/config/colors';
-import { getProviderDefaults } from '@/lib/oracles/performanceMetricsConfig';
+import { getProviderDefaults } from '@/lib/oracles/utils/performanceMetricsConfig';
 import { type OracleProvider, type PriceData } from '@/types/oracle';
 
 import { oracleNames, ANOMALY_THRESHOLD } from '../constants';
@@ -45,7 +45,7 @@ interface SimplePriceTableProps {
   medianPrice: number;
   isLoading?: boolean;
   validPrices?: number[];
-  statusFilter?: 'all' | 'normal' | 'warning' | 'error';
+  statusFilter?: 'all' | 'normal' | 'warning' | 'critical';
   t: (key: string, params?: Record<string, string | number>) => string;
 }
 
@@ -57,7 +57,7 @@ interface TableRow {
   price: number;
   deviation: number;
   deviationPercent: number;
-  status: 'normal' | 'warning' | 'error';
+  status: 'normal' | 'warning' | 'critical';
   isAnomaly: boolean;
   severity: 'low' | 'medium' | 'high' | null;
   confidence: number;
@@ -217,8 +217,8 @@ function SimplePriceTableComponent({
               : null);
 
       // 确定状态
-      let status: 'normal' | 'warning' | 'error' = 'normal';
-      if (absDeviation >= 1) status = 'error';
+      let status: 'normal' | 'warning' | 'critical' = 'normal';
+      if (absDeviation >= 1) status = 'critical';
       else if (absDeviation >= 0.5) status = 'warning';
 
       // 处理置信度 - 统一转换为 0-100 格式
@@ -558,7 +558,7 @@ function SimplePriceTableComponent({
                         ? t('crossOracle.statusNormal') || 'Normal'
                         : row.status === 'warning'
                           ? t('crossOracle.statusWarning') || 'Warning'
-                          : t('crossOracle.statusError') || 'Error'}
+                          : t('crossOracle.statusCritical') || 'Critical'}
                     </span>
                   </div>
                 </td>

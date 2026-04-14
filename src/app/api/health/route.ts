@@ -1,8 +1,17 @@
-import { NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 
 import { withVersionHeaders } from '@/lib/api/versioning';
 
 export const dynamic = 'force-dynamic';
+
+function isLocalRequest(request: NextRequest): boolean {
+  if (process.env.NODE_ENV !== 'production') {
+    return true;
+  }
+  const forwarded = request.headers.get('x-forwarded-for');
+  const ip = forwarded?.split(',')[0]?.trim() || request.headers.get('x-real-ip') || '';
+  return ip === '127.0.0.1' || ip === '::1' || ip === 'localhost';
+}
 
 interface HealthCheckResult {
   status: 'healthy' | 'degraded' | 'unhealthy';
@@ -54,7 +63,11 @@ function checkEnvironment(): 'ok' | 'error' {
   return hasRequiredEnvVars ? 'ok' : 'error';
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  if (!isLocalRequest(request)) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
+
   const [database, environment] = await Promise.all([checkDatabase(), checkEnvironment()]);
 
   const memory = checkMemory();

@@ -103,7 +103,13 @@ export const SafeSearchQuerySchema = z
 export const SafeConfigTypeSchema = z.enum(['oracle_config', 'symbol', 'chain_config']);
 
 export const SafeBatchRequestSchema = z
-  .array(z.any())
+  .array(
+    z.object({
+      provider: SafeProviderSchema,
+      symbol: SafeSymbolSchema,
+      chain: SafeChainSchema.optional(),
+    })
+  )
   .min(1, 'At least one request required')
   .max(50, 'Maximum 50 requests allowed');
 
@@ -183,10 +189,15 @@ export const UpdateAlertRequestSchema = CreateAlertRequestSchema.partial();
 export const CreateFavoriteRequestSchema = z.object({
   name: SafeNameSchema,
   config_type: SafeConfigTypeSchema,
-  config_data: z.record(z.string(), z.any()).refine((val) => {
-    const size = JSON.stringify(val).length;
-    return size <= 10000;
-  }, 'Config data too large'),
+  config_data: z
+    .record(
+      z.string(),
+      z.union([z.string(), z.number(), z.boolean(), z.null()])
+    )
+    .refine((val) => {
+      const size = JSON.stringify(val).length;
+      return size <= 10000;
+    }, 'Config data too large'),
 });
 
 export const UpdateFavoriteRequestSchema = CreateFavoriteRequestSchema.partial();
@@ -195,8 +206,14 @@ export const CreateSnapshotRequestSchema = z.object({
   name: SafeNameSchema.optional(),
   symbol: SafeSymbolSchema,
   selected_oracles: z.array(SafeProviderSchema).min(1).max(10),
-  price_data: z.record(z.string(), z.any()),
-  stats: z.record(z.string(), z.any()),
+  price_data: z.record(
+    z.string(),
+    z.union([z.string(), z.number(), z.boolean(), z.null()])
+  ),
+  stats: z.record(
+    z.string(),
+    z.union([z.string(), z.number(), z.boolean(), z.null()])
+  ),
   is_public: SafeBooleanSchema.optional().default(false),
 });
 
@@ -225,6 +242,89 @@ export const BatchPriceRequestSchema = z.object({
   requests: SafeBatchRequestSchema,
 });
 
+export const PriceDataBaseSchema = z.object({
+  symbol: z.string().min(1, 'Symbol is required'),
+  price: z.number().positive('Price must be positive'),
+  timestamp: z.number().int().positive('Timestamp must be a positive integer'),
+});
+
+export const PriceDataSchema = PriceDataBaseSchema.extend({
+  provider: SafeProviderSchema,
+  chain: SafeChainSchema.optional(),
+  decimals: z.number().int().nonnegative().optional(),
+  confidence: z.number().min(0).max(1).optional(),
+  source: z.string().optional(),
+  change: z.number().optional(),
+  change24h: z.number().optional(),
+  change24hPercent: z.number().optional(),
+});
+
+export const OracleResponseSchema = z.object({
+  success: z.boolean(),
+  data: PriceDataSchema.optional(),
+  error: z
+    .object({
+      message: z.string(),
+      code: z.string().optional(),
+      provider: SafeProviderSchema.optional(),
+    })
+    .optional(),
+  timestamp: z.number().int().positive(),
+});
+
+export const AlertListResponseSchema = z.object({
+  alerts: z.array(
+    z.object({
+      id: z.string().uuid(),
+      user_id: z.string().uuid(),
+      name: z.string().min(1),
+      symbol: z.string().min(1),
+      chain: SafeChainSchema.nullable().optional(),
+      condition_type: SafeAlertConditionSchema,
+      target_value: z.number(),
+      provider: SafeProviderSchema.nullable().optional(),
+      is_active: z.boolean(),
+      created_at: z.string().datetime(),
+      updated_at: z.string().datetime().optional(),
+      last_triggered_at: z.string().datetime().nullable().optional(),
+    })
+  ),
+  count: z.number().int().nonnegative(),
+});
+
+export const PriceQueryRequestSchema = z.object({
+  symbol: SafeSymbolSchema,
+  chain: SafeChainSchema.optional(),
+  provider: SafeProviderSchema.optional(),
+});
+
+export const HistoricalPriceRequestSchema = z.object({
+  provider: SafeProviderSchema,
+  symbol: SafeSymbolSchema,
+  chain: SafeChainSchema.optional(),
+  period: z.number().int().min(1).max(365).optional().default(24),
+});
+
+export const PaginationParamsSchema = z.object({
+  page: z.number().int().positive().optional().default(1),
+  limit: z.number().int().positive().max(100).optional().default(20),
+  search: z.string().optional(),
+});
+
+export const HealthCheckResponseSchema = z.object({
+  status: z.enum(['healthy', 'degraded', 'unhealthy']),
+  timestamp: z.number().int().positive(),
+  version: z.string(),
+  uptime: z.number().nonnegative(),
+  checks: z
+    .object({
+      database: z.enum(['ok', 'error']).optional(),
+      cache: z.enum(['ok', 'error']).optional(),
+      oracles: z.record(z.string(), z.enum(['ok', 'error'])).optional(),
+    })
+    .optional(),
+});
+
 export type CreateAlertRequestType = z.infer<typeof CreateAlertRequestSchema>;
 export type UpdateAlertRequestType = z.infer<typeof UpdateAlertRequestSchema>;
 export type CreateFavoriteRequestType = z.infer<typeof CreateFavoriteRequestSchema>;
@@ -235,3 +335,5 @@ export type BatchOperationType = z.infer<typeof BatchOperationSchema>;
 export type PriceQueryType = z.infer<typeof PriceQuerySchema>;
 export type HistoricalPriceQueryType = z.infer<typeof HistoricalPriceQuerySchema>;
 export type BatchPriceRequestType = z.infer<typeof BatchPriceRequestSchema>;
+export type PriceDataType = z.infer<typeof PriceDataSchema>;
+export type OracleResponseType = z.infer<typeof OracleResponseSchema>;

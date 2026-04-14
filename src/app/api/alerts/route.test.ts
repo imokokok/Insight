@@ -169,7 +169,7 @@ describe('/api/alerts', () => {
       });
 
       const response = await POST(request);
-      const _data = await response.json();
+      const data = await response.json();
 
       expect(response.status).toBe(201);
       expect(data.alert).toEqual(createdAlert);

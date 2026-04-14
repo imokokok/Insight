@@ -161,6 +161,8 @@ export default function Navbar() {
                   <div className="relative ml-1">
                     <button
                       onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                      aria-expanded={isUserMenuOpen}
+                      aria-haspopup="menu"
                       className="flex items-center gap-1.5 p-1 hover:bg-gray-50 rounded-md transition-colors"
                     >
                       <div className="w-7 h-7 bg-primary-600 flex items-center justify-center text-white text-xs font-medium overflow-hidden rounded">

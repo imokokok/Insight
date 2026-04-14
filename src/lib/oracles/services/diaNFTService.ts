@@ -1,18 +1,18 @@
 import { createLogger } from '@/lib/utils/logger';
 import { Blockchain } from '@/types/oracle';
 
-import { DIA_CHAIN_MAPPING } from './constants/chainMapping';
-import { NFT_COLLECTIONS } from './constants/nftCollections';
+import { DIA_CHAIN_MAPPING } from '../constants/chainMapping';
+import { NFT_COLLECTIONS } from '../constants/nftCollections';
 import {
   DIA_API_BASE_URL,
   CACHE_TTL,
   DEFAULT_RETRY_CONFIG,
   withRetry,
   fetchWithTimeout,
-} from './diaUtils';
+} from '../diaUtils';
 
-import type { CacheEntry } from './base';
-import type { DIANFTQuotation, DIANFTCollection, DIANFTData } from './diaTypes';
+import type { CacheEntry } from '../base';
+import type { DIANFTQuotation, DIANFTCollection, DIANFTData } from '../diaTypes';
 
 const logger = createLogger('DIANFTService');
 

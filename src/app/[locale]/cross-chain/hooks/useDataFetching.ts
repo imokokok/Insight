@@ -14,7 +14,6 @@ import { createLogger } from '@/lib/utils/logger';
 import type { UseAnomalyDetectionReturn } from './useAnomalyDetection';
 import type { UseDataValidationReturn } from './useDataValidation';
 
-const isClient = typeof window !== 'undefined';
 const logger = createLogger('useDataFetching');
 
 const CACHE_EXPIRATION_MS = 5 * 60 * 1000;
@@ -26,20 +25,10 @@ interface CacheEntry {
   timestamp: number;
 }
 
+const moduleCache = new Map<string, CacheEntry>();
+
 const getGlobalCache = (): Map<string, CacheEntry> => {
-  if (!isClient) {
-    return new Map();
-  }
-  if (
-    !(window as unknown as { __crossChainDataCache?: Map<string, CacheEntry> })
-      .__crossChainDataCache
-  ) {
-    (
-      window as unknown as { __crossChainDataCache?: Map<string, CacheEntry> }
-    ).__crossChainDataCache = new Map();
-  }
-  return (window as unknown as { __crossChainDataCache: Map<string, CacheEntry> })
-    .__crossChainDataCache;
+  return moduleCache;
 };
 
 const getCacheKey = (provider: OracleProvider, symbol: string, timeRange: number): string => {
@@ -144,7 +133,6 @@ export interface UseDataFetchingReturn {
 
 export function useDataFetching(
   provider: OracleProvider,
-  _currentClient: unknown,
   supportedChains: Blockchain[],
   params: Omit<FetchDataParams, 'selectedProvider'>,
   validation: UseDataValidationReturn,
@@ -152,7 +140,7 @@ export function useDataFetching(
 ): UseDataFetchingReturn {
   const toast = useMemo(
     () => ({
-      success: (title: string, message: string) => console.warn(`[Success] ${title}: ${message}`),
+      success: (title: string, message: string) => console.info(`[Success] ${title}: ${message}`),
       error: (title: string, message: string) => console.error(`[Error] ${title}: ${message}`),
       warning: (title: string, message: string) => console.warn(`[Warning] ${title}: ${message}`),
     }),

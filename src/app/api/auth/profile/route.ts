@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
 import { getUserId } from '@/lib/api/utils';
+import { moderateRateLimit } from '@/lib/api/middleware/rateLimitMiddleware';
 import { sanitizeObject, sanitizeString } from '@/lib/security';
 import { type UserProfileUpdate } from '@/lib/supabase/queries';
 import { getServerQueries } from '@/lib/supabase/server';
@@ -70,6 +71,11 @@ function validatePreferences(preferences: unknown): Record<string, unknown> | un
 }
 
 export async function GET(request: NextRequest) {
+  const rateLimitResult = await moderateRateLimit(request);
+  if (!rateLimitResult.success) {
+    return rateLimitResult.response;
+  }
+
   try {
     const userId = await getUserId(request);
     if (!userId) {
@@ -104,6 +110,11 @@ export async function GET(request: NextRequest) {
 }
 
 export async function PUT(request: NextRequest) {
+  const rateLimitResult = await moderateRateLimit(request);
+  if (!rateLimitResult.success) {
+    return rateLimitResult.response;
+  }
+
   try {
     const userId = await getUserId(request);
     if (!userId) {

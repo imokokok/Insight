@@ -1,8 +1,8 @@
 import type { OracleProvider, PriceData, Blockchain } from '@/types/oracle';
 
-import { OracleClientFactory } from './factory';
+import { getDefaultFactory } from '../factory';
 
-import type { IOracleClient } from './interfaces';
+import type { IOracleClient } from '../interfaces';
 
 export type TimeRangeValue = '1H' | '24H' | '7D' | '30D' | '90D' | '1Y' | 'ALL';
 
@@ -57,7 +57,7 @@ export async function fetchOraclePrice(
   const requestStart = Date.now();
 
   try {
-    const client: IOracleClient = OracleClientFactory.getClient(provider);
+    const client: IOracleClient = getDefaultFactory().getClient(provider);
 
     const baseSymbol = symbol.split('/')[0];
 

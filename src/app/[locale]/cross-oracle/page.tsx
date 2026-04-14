@@ -75,6 +75,7 @@ export default function CrossOraclePage() {
 
   // 从 priceStats 中提取统计数据
   const {
+    validPrices,
     avgPrice,
     medianPrice,
     maxPrice,
@@ -82,7 +83,6 @@ export default function CrossOraclePage() {
     priceRange,
     standardDeviation,
     standardDeviationPercent,
-    validPrices: _validPrices,
   } = priceStats;
 
   // 从 anomalyDetection 中提取异常数据
@@ -229,7 +229,7 @@ export default function CrossOraclePage() {
             priceRange={priceRange}
             standardDeviation={standardDeviation}
             standardDeviationPercent={standardDeviationPercent}
-            validPrices={_validPrices}
+            validPrices={validPrices}
             anomalies={anomalies}
             anomalyCount={anomalyCount}
             highRiskCount={highRiskCount}

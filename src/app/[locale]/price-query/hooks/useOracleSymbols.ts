@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 
 import { symbols } from '@/lib/constants';
-import { OracleClientFactory } from '@/lib/oracles/factory';
-import { oracleSupportedSymbols } from '@/lib/oracles/supportedSymbols';
+import { getDefaultFactory } from '@/lib/oracles/factory';
+import { oracleSupportedSymbols } from '@/lib/oracles/constants/supportedSymbols';
 import { type Blockchain, type OracleProvider } from '@/types/oracle';
 
 export interface UseOracleSymbolsReturn {
@@ -112,7 +112,7 @@ export function useOracleSymbols(selectedOracles: OracleProvider[]): UseOracleSy
       if (chain !== undefined) {
         return selectedOracles.some((oracle) => {
           try {
-            const client = OracleClientFactory.getClient(oracle);
+            const client = getDefaultFactory().getClient(oracle);
             return client.isSymbolSupported(symbol, chain);
           } catch {
             return false;
@@ -134,7 +134,7 @@ export function useOracleSymbols(selectedOracles: OracleProvider[]): UseOracleSy
 
       selectedOracles.forEach((oracle) => {
         try {
-          const client = OracleClientFactory.getClient(oracle);
+          const client = getDefaultFactory().getClient(oracle);
           if (client.isSymbolSupported(symbol)) {
             client.supportedChains.forEach((chain) => chainsSet.add(chain));
           }
@@ -150,7 +150,7 @@ export function useOracleSymbols(selectedOracles: OracleProvider[]): UseOracleSy
   const getChainsForSymbolOnOracle = useMemo(() => {
     return (symbol: string, oracle: OracleProvider): Blockchain[] => {
       try {
-        const client = OracleClientFactory.getClient(oracle);
+        const client = getDefaultFactory().getClient(oracle);
         if (!client.isSymbolSupported(symbol)) {
           return [];
         }
@@ -185,8 +185,7 @@ export function useOracleSymbols(selectedOracles: OracleProvider[]): UseOracleSy
 
       selectedOracles.forEach((oracle) => {
         try {
-          const client = OracleClientFactory.getClient(oracle);
-          // 使用客户端的 getSupportedSymbolsForChain 方法（如果存在）
+          const client = getDefaultFactory().getClient(oracle);
           if ('getSupportedSymbolsForChain' in client) {
             const chainSymbols = (
               client as { getSupportedSymbolsForChain: (chain: Blockchain) => string[] }

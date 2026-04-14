@@ -1,53 +1,14 @@
 import { type ApiResponse, type ApiError, type PaginatedResponse } from './api/responses';
-import { type DataStatus, type TrendDirection } from './oracle/constants';
-import { type OracleProvider, type Blockchain } from './oracle/enums';
+import { DataStatus, TrendDirection } from './oracle/constants';
+import { OracleProvider, Blockchain } from './oracle/enums';
 import { type PriceData } from './oracle/price';
 import { type PublisherStatus } from './oracle/publisher';
 import { type RiskLevel } from './risk';
 
-// Manual list of enum values since const enums are inlined at compile time
-const ORACLE_PROVIDER_VALUES = ['chainlink', 'uma', 'pyth', 'api3', 'redstone', 'dia', 'winklink'];
-
-const BLOCKCHAIN_VALUES = [
-  'ethereum',
-  'arbitrum',
-  'optimism',
-  'polygon',
-  'solana',
-  'avalanche',
-  'fantom',
-  'cronos',
-  'juno',
-  'cosmos',
-  'osmosis',
-  'bnb-chain',
-  'base',
-  'scroll',
-  'zksync',
-  'aptos',
-  'sui',
-  'gnosis',
-  'mantle',
-  'linea',
-  'celestia',
-  'injective',
-  'sei',
-  'tron',
-  'ton',
-  'near',
-  'aurora',
-  'celo',
-  'starknet',
-  'blast',
-  'cardano',
-  'polkadot',
-  'kava',
-  'moonbeam',
-  'starkex',
-];
-
-const DATA_STATUS_VALUES = ['fresh', 'stale', 'error', 'loading'];
-const TREND_DIRECTION_VALUES = ['up', 'down', 'stable'];
+const ORACLE_PROVIDER_VALUES = Object.values(OracleProvider) as string[];
+const BLOCKCHAIN_VALUES = Object.values(Blockchain) as string[];
+const DATA_STATUS_VALUES = Object.values(DataStatus) as string[];
+const TREND_DIRECTION_VALUES = Object.values(TrendDirection) as string[];
 
 export function isOracleProvider(value: unknown): value is OracleProvider {
   return typeof value === 'string' && ORACLE_PROVIDER_VALUES.includes(value);

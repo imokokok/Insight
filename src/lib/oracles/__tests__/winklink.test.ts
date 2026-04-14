@@ -1,11 +1,11 @@
-import { getWINkLinkRealDataService } from '@/lib/oracles/winklinkRealDataService';
+import { WINkLinkClient } from '@/lib/oracles/clients/winklink';
+import { getWINkLinkRealDataService } from '@/lib/oracles/services/winklinkRealDataService';
 import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
-import { WINkLinkClient } from '@/lib/services/oracle/clients/winklink';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 
-jest.mock('@/lib/oracles/winklinkRealDataService');
+jest.mock('@/lib/oracles/services/winklinkRealDataService');
 jest.mock('@/lib/services/marketData/binanceMarketService');
-jest.mock('@/lib/config/serverEnv', () => ({
+jest.mock('@/lib/config/env', () => ({
   FEATURE_FLAGS: {
     useRealWinklinkData: false,
     useRealChainlinkData: false,

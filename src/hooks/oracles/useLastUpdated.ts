@@ -14,6 +14,5 @@ export function useLastUpdated() {
   return {
     lastUpdated,
     updateLastUpdated,
-    setLastUpdated,
   };
 }

@@ -61,7 +61,7 @@ export interface UsePriceQueryStateReturn {
 }
 
 export function usePriceQueryState(): UsePriceQueryStateReturn {
-  const { preferences, isLoading: isPrefsLoading } = usePreferences();
+  const { preferences } = usePreferences();
 
   const [selectedOracle, setSelectedOracle] = useState<OracleProvider | null>(
     OracleProvider.CHAINLINK
@@ -111,8 +111,6 @@ export function usePriceQueryState(): UsePriceQueryStateReturn {
   const compareTimeRangeRef = useRef<number>(compareTimeRange);
 
   const applyPreferences = useCallback(() => {
-    if (isPrefsLoading) return;
-
     const oracleMapping: Record<string, OracleProvider> = {
       chainlink: OracleProvider.CHAINLINK,
       pyth: OracleProvider.PYTH,
@@ -136,7 +134,7 @@ export function usePriceQueryState(): UsePriceQueryStateReturn {
     setSelectedOracle(defaultOracle);
     setSelectedSymbol(defaultSymbol);
     setSelectedTimeRange(defaultTimeRange);
-  }, [preferences, isPrefsLoading]);
+  }, [preferences]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -147,13 +145,7 @@ export function usePriceQueryState(): UsePriceQueryStateReturn {
       config.oracles?.length || config.chains?.length || config.symbol || config.timeRange;
 
     if (!hasUrlParams) {
-      // 等待 preferences 加载完成后再应用默认值
-      if (!isPrefsLoading) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        applyPreferences();
-      }
-      // 无论 preferences 是否加载完成，都标记为已解析
-      // 这样可以确保数据获取不会被阻塞
+      applyPreferences();
       setUrlParamsParsed(true);
     } else {
       setSelectedOracle((prev) => {
@@ -168,7 +160,7 @@ export function usePriceQueryState(): UsePriceQueryStateReturn {
       setSelectedTimeRange((prev) => (config.timeRange ? config.timeRange : prev));
       setUrlParamsParsed(true);
     }
-  }, [applyPreferences, isPrefsLoading]);
+  }, [applyPreferences]);
 
   useEffect(() => {
     selectedOracleRef.current = selectedOracle;

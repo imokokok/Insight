@@ -8,7 +8,7 @@ import {
   errorToResponse,
   isAppError,
 } from '@/lib/errors';
-import { OracleClientFactory, ORACLE_CACHE_TTL } from '@/lib/oracles';
+import { getDefaultFactory, ORACLE_CACHE_TTL } from '@/lib/oracles';
 import { type PriceRecord } from '@/lib/supabase/queries';
 import { createLogger } from '@/lib/utils/logger';
 import { normalizeTimestamp } from '@/lib/utils/timestamp';
@@ -50,7 +50,7 @@ type OracleClient = OracleClientInterface;
 
 export function getOracleClient(provider: OracleProvider): OracleClient | null {
   try {
-    const client = OracleClientFactory.getClient(provider);
+    const client = getDefaultFactory().getClient(provider);
     return client as OracleClient;
   } catch {
     return null;

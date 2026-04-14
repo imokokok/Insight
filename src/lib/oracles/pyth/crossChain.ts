@@ -2,7 +2,7 @@ import { type HermesClient } from '@pythnetwork/hermes-client';
 
 import { createLogger } from '@/lib/utils/logger';
 
-import { PYTH_PRICE_FEED_IDS, HERMES_API_URL, normalizeSymbol } from '../pythConstants';
+import { PYTH_PRICE_FEED_IDS, HERMES_API_URL, normalizeSymbol } from '../constants/pythConstants';
 import { withOracleRetry, ORACLE_RETRY_PRESETS } from '../utils/retry';
 
 import { parsePythPrice } from './pythParser';

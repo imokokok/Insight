@@ -1,6 +1,6 @@
 import { createLogger } from '@/lib/utils/logger';
 
-import { HERMES_WS_URL } from '../pythConstants';
+import { HERMES_WS_URL } from '../constants/pythConstants';
 
 import { isPythPriceRaw } from './types';
 

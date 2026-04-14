@@ -5,7 +5,7 @@ import {
   shouldUseDatabase,
   getPriceFromDatabase,
   getHistoricalPricesFromDatabase,
-} from '../storage';
+} from '../utils/storage';
 
 export async function fetchPriceWithDatabase(
   provider: OracleProvider,

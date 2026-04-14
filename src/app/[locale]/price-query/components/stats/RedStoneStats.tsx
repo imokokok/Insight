@@ -1,6 +1,6 @@
 import { Settings, Globe, TrendingDown, TrendingUp, Database, Clock } from 'lucide-react';
 
-import type { RedStoneTokenOnChainData } from '@/lib/services/oracle/clients/redstone';
+import type { RedStoneTokenOnChainData } from '@/lib/oracles/clients/redstone';
 
 interface RedStoneStatsProps {
   data: RedStoneTokenOnChainData;

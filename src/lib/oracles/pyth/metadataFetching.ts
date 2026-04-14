@@ -1,7 +1,7 @@
 import { createLogger } from '@/lib/utils/logger';
 
-import { PYTH_PRICE_FEED_IDS, CACHE_TTL } from '../pythConstants';
-import { PYTH_PUBLISHERS, PYTH_PUBLISHER_STATS } from '../pythPublishersData';
+import { PYTH_PRICE_FEED_IDS, CACHE_TTL } from '../constants/pythConstants';
+import { PYTH_PUBLISHERS, PYTH_PUBLISHER_STATS } from '../constants/pythPublishersData';
 import { withOracleRetry, ORACLE_RETRY_PRESETS } from '../utils/retry';
 
 import { calculateTotalSubmissions, calculateAverageLatency } from './calculations';

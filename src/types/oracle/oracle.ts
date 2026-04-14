@@ -1,3 +1,4 @@
+import { AppError, type AppErrorDetails, HttpStatusCodes } from '@/lib/errors/AppError';
 import { type DataStatus } from './constants';
 import { type OracleProvider, type Blockchain } from './enums';
 
@@ -64,13 +65,32 @@ export type OracleErrorCode =
   | 'NETWORK_STATS_ERROR'
   | 'RISK_METRICS_ERROR';
 
-export interface OracleError {
-  message: string;
-  provider: OracleProvider;
-  code?: OracleErrorCode;
-  timestamp?: number;
-  retryable?: boolean;
-  details?: Record<string, unknown>;
+export class OracleError extends AppError {
+  public readonly provider: OracleProvider;
+
+  constructor(
+    message: string,
+    provider: OracleProvider,
+    code?: OracleErrorCode,
+    options?: {
+      retryable?: boolean;
+      details?: Record<string, unknown>;
+      cause?: Error;
+    }
+  ) {
+    super({
+      message,
+      code: code ?? 'ORACLE_ERROR',
+      statusCode: HttpStatusCodes.BAD_GATEWAY,
+      category: 'external_service',
+      severity: 'medium',
+      isOperational: true,
+      retryable: options?.retryable ?? false,
+      details: options?.details as AppErrorDetails,
+      cause: options?.cause,
+    });
+    this.provider = provider;
+  }
 }
 
 export interface DataQualityMetrics {

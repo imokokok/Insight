@@ -1,4 +1,4 @@
-export const enum OracleProvider {
+export enum OracleProvider {
   CHAINLINK = 'chainlink',
   PYTH = 'pyth',
   API3 = 'api3',
@@ -7,7 +7,7 @@ export const enum OracleProvider {
   WINKLINK = 'winklink',
 }
 
-export const enum Blockchain {
+export enum Blockchain {
   ETHEREUM = 'ethereum',
   ARBITRUM = 'arbitrum',
   OPTIMISM = 'optimism',
@@ -49,51 +49,6 @@ export const enum Blockchain {
 
 export const BINANCE = Blockchain.BNB_CHAIN;
 
-export const ORACLE_PROVIDER_VALUES: readonly OracleProvider[] = [
-  OracleProvider.CHAINLINK,
-  OracleProvider.PYTH,
-  OracleProvider.API3,
-  OracleProvider.REDSTONE,
-  OracleProvider.DIA,
-  OracleProvider.WINKLINK,
-] as const;
+export const ORACLE_PROVIDER_VALUES: readonly OracleProvider[] = Object.values(OracleProvider);
 
-export const BLOCKCHAIN_VALUES: readonly Blockchain[] = [
-  Blockchain.ETHEREUM,
-  Blockchain.ARBITRUM,
-  Blockchain.OPTIMISM,
-  Blockchain.POLYGON,
-  Blockchain.SOLANA,
-  Blockchain.AVALANCHE,
-  Blockchain.FANTOM,
-  Blockchain.CRONOS,
-  Blockchain.JUNO,
-  Blockchain.COSMOS,
-  Blockchain.OSMOSIS,
-  Blockchain.BNB_CHAIN,
-  Blockchain.BASE,
-  Blockchain.SCROLL,
-  Blockchain.ZKSYNC,
-  Blockchain.APTOS,
-  Blockchain.SUI,
-  Blockchain.GNOSIS,
-  Blockchain.MANTLE,
-  Blockchain.LINEA,
-  Blockchain.CELESTIA,
-  Blockchain.INJECTIVE,
-  Blockchain.SEI,
-  Blockchain.TRON,
-  Blockchain.TON,
-  Blockchain.NEAR,
-  Blockchain.AURORA,
-  Blockchain.CELO,
-  Blockchain.STARKNET,
-  Blockchain.BLAST,
-  Blockchain.CARDANO,
-  Blockchain.POLKADOT,
-  Blockchain.KAVA,
-  Blockchain.MOONBEAM,
-  Blockchain.MOONRIVER,
-  Blockchain.METIS,
-  Blockchain.STARKEX,
-] as const;
+export const BLOCKCHAIN_VALUES: readonly Blockchain[] = Object.values(Blockchain);

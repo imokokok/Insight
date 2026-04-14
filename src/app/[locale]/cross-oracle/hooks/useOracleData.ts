@@ -9,12 +9,12 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 
 import { oracleApiClient } from '@/lib/api/oracleApiClient';
 import { getHoursForTimeRange, extractBaseSymbol } from '@/lib/oracles';
-import { memoryManager, type MemoryStats } from '@/lib/oracles/memoryManager';
+import { memoryManager, type MemoryStats } from '@/lib/oracles/utils/memoryManager';
 import {
   PerformanceMetricsCalculator,
   type CalculatedPerformanceMetrics,
-} from '@/lib/oracles/performanceMetricsCalculator';
-import { getPerformanceMetricsConfig } from '@/lib/oracles/performanceMetricsConfig';
+} from '@/lib/oracles/utils/performanceMetricsCalculator';
+import { getPerformanceMetricsConfig } from '@/lib/oracles/utils/performanceMetricsConfig';
 import { createLogger } from '@/lib/utils/logger';
 import { getRequestQueue, type RequestPriority } from '@/lib/utils/requestQueue';
 import { type OracleProvider, type PriceData } from '@/types/oracle';
