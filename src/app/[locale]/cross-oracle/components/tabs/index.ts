@@ -1,1 +1,0 @@
-export { SimplePriceComparisonTab } from './SimplePriceComparisonTab';

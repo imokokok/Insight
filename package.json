@@ -96,7 +96,6 @@
     "@tanstack/react-virtual": "^3.13.21",
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
-    "axios": "^1.13.6",
     "clsx": "^2.1.1",
     "framer-motion": "^12.36.0",
     "fuse.js": "^7.1.0",
