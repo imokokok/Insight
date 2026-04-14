@@ -66,29 +66,3 @@ export function useRedStoneOnChainData(
     refetch,
   };
 }
-
-/**
- * 格式化涨跌金额显示
- */
-export function formatChangeAmount(change: number | null | undefined): string {
-  if (change === null || change === undefined || isNaN(change)) return '-';
-  const sign = change >= 0 ? '+' : '';
-  return `${sign}$${change.toFixed(2)}`;
-}
-
-/**
- * 格式化买卖价差显示
- */
-export function formatSpread(price: number | null | undefined): string {
-  if (price === null || price === undefined || isNaN(price)) return '-';
-  return `$${price.toFixed(4)}`;
-}
-
-/**
- * 格式化数据源提供商显示
- */
-export function formatProvider(provider: string | null | undefined): string {
-  if (!provider) return '-';
-  // 简化提供商名称
-  return provider.replace('redstone-', '').toUpperCase();
-}

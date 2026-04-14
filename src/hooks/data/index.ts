@@ -7,7 +7,6 @@ export {
   useDeleteAlert,
   useAlertEvents,
   useAcknowledgeAlert,
-  useActiveAlertsRealtime,
   useAlertEventsRealtime,
   useBatchAlerts,
 } from './useAlerts';

@@ -9,16 +9,6 @@ export {
   useAutoRefreshInterval,
 } from './usePreferences';
 export type { UserPreferences } from './usePreferences';
-export {
-  useService,
-  useOracleClient,
-  useOracleClientFactory,
-  useAlertService,
-  useFavoriteService,
-  useSnapshotService,
-  useDependencyInjection,
-  useDependencyInjection as useDI,
-} from './useDependencyInjection';
 export { useDeviationDetection, useBatchDeviationDetection } from './useDeviationDetection';
 export type {
   DeviationLevel,
