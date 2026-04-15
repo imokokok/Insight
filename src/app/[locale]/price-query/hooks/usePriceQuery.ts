@@ -4,6 +4,7 @@ import { useMemo, useCallback, useRef, useState } from 'react';
 
 import { useFavorites, type FavoriteConfig } from '@/hooks';
 import type { PriceData, OracleProvider, Blockchain } from '@/lib/oracles';
+import { safeMax, safeMin } from '@/lib/utils';
 import { useUser } from '@/stores/authStore';
 
 import { type QueryResult } from '../constants';
@@ -186,8 +187,8 @@ export function usePriceQuery(): UsePriceQueryReturn {
           validChanges.length
         : undefined;
 
-    const maxPrice = validPrices.length > 0 ? Math.max(...validPrices) : 0;
-    const minPrice = validPrices.length > 0 ? Math.min(...validPrices) : 0;
+    const maxPrice = safeMax(validPrices);
+    const minPrice = safeMin(validPrices);
     const priceRange = maxPrice - minPrice;
 
     const variance =
@@ -216,8 +217,8 @@ export function usePriceQuery(): UsePriceQueryReturn {
           compareValidChanges.length
         : undefined;
 
-    const compareMaxPrice = compareValidPrices.length > 0 ? Math.max(...compareValidPrices) : 0;
-    const compareMinPrice = compareValidPrices.length > 0 ? Math.min(...compareValidPrices) : 0;
+    const compareMaxPrice = safeMax(compareValidPrices);
+    const compareMinPrice = safeMin(compareValidPrices);
     const comparePriceRange = compareMaxPrice - compareMinPrice;
 
     return {

@@ -39,9 +39,7 @@ export function validateObject(
     let value = data[field];
 
     if (value === undefined || value === null) {
-      if (fieldSchema.transform) {
-        value = fieldSchema.transform(value);
-      } else if (fieldSchema.required) {
+      if (fieldSchema.required) {
         errors.push(`${field} is required`);
         continue;
       } else {

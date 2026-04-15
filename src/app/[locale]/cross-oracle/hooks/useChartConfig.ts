@@ -7,6 +7,7 @@ import { useCallback, useMemo } from 'react';
 
 import { chartColors } from '@/lib/config/colors';
 import type { CalculatedPerformanceMetrics } from '@/lib/oracles/utils/performanceMetricsCalculator';
+import { safeMax, safeMin } from '@/lib/utils/statistics';
 import { type OracleProvider, type PriceData } from '@/types/oracle';
 
 import { oracleNames, type TimeRange } from '../constants';
@@ -221,8 +222,8 @@ export function useChartConfig({
     }
 
     const currentAvg = validPrices.reduce((a, b) => a + b, 0) / validPrices.length;
-    const currentMax = Math.max(...validPrices);
-    const currentMin = Math.min(...validPrices);
+    const currentMax = safeMax(validPrices);
+    const currentMin = safeMin(validPrices);
     const currentRange = currentMax - currentMin;
 
     let histAvgMin = currentAvg;
@@ -251,8 +252,8 @@ export function useChartConfig({
       histAvgMin = Math.min(histAvgMin, avg);
       histAvgMax = Math.max(histAvgMax, avg);
 
-      const max = Math.max(...prices);
-      const min = Math.min(...prices);
+      const max = safeMax(prices);
+      const min = safeMin(prices);
       histMaxMin = Math.min(histMaxMin, max);
       histMaxMax = Math.max(histMaxMax, max);
       histMinMax = Math.min(histMinMax, min);

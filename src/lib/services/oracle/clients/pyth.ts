@@ -175,7 +175,7 @@ export class PythClient extends BaseOracleClient {
       return historicalPrices.map((point, index) => {
         const price24hAgo = getPrice24hAgo(index);
         const change24hPercent =
-          index === 0 ? 0 : ((point.price - price24hAgo) / price24hAgo) * 100;
+          index === 0 || price24hAgo === 0 ? 0 : ((point.price - price24hAgo) / price24hAgo) * 100;
         const change24h = index === 0 ? 0 : point.price - price24hAgo;
 
         return {

@@ -6,6 +6,7 @@
 import { useMemo } from 'react';
 
 import { type Blockchain, type PriceData } from '@/lib/oracles';
+import { safeMax, safeMin } from '@/lib/utils/statistics';
 
 import {
   type HeatmapData,
@@ -221,15 +222,15 @@ export function useChartData(params: UseChartDataParams): UseChartDataReturn {
 
   const maxHeatmapValue = useMemo(() => {
     if (heatmapData.length === 0) return 1;
-    return Math.max(...heatmapData.map((d) => d.percent));
+    return safeMax(heatmapData.map((d) => d.percent));
   }, [heatmapData]);
 
   const priceDistributionData = useMemo(() => {
     if (validPrices.length === 0) return [];
 
     const numBins = Math.min(10, Math.max(5, validPrices.length));
-    const min = Math.min(...validPrices);
-    const max = Math.max(...validPrices);
+    const min = safeMin(validPrices);
+    const max = safeMax(validPrices);
     const range = max - min;
     const binWidth = range > 0 ? range / numBins : 1;
 
@@ -329,11 +330,11 @@ export function useChartData(params: UseChartDataParams): UseChartDataReturn {
         chain,
         chainName: chainNames[chain],
         color: chainColors[chain],
-        min: nonOutliers.length > 0 ? Math.min(...nonOutliers) : lowerBound,
+        min: nonOutliers.length > 0 ? safeMin(nonOutliers) : lowerBound,
         q1,
         median: sorted[Math.floor(n / 2)],
         q3,
-        max: nonOutliers.length > 0 ? Math.max(...nonOutliers) : upperBound,
+        max: nonOutliers.length > 0 ? safeMax(nonOutliers) : upperBound,
         outliers,
         iqr,
         lowerWhisker: lowerBound,

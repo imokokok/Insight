@@ -273,7 +273,7 @@ export function useDeleteAlert(): UseDeleteAlertReturn {
         throw new Error(alertErrorKeys.userNotLoggedIn);
       }
 
-      const success = await queries.deleteAlert(id);
+      const success = await queries.deleteAlert(id, user.id);
 
       if (!success) {
         throw new Error(alertErrorKeys.deleteFailed);

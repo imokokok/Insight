@@ -193,7 +193,7 @@ export interface IAlertService {
   getAlerts(userId: string): Promise<PriceAlert[] | null>;
   createAlert(userId: string, alert: Omit<PriceAlertInsert, 'user_id'>): Promise<PriceAlert | null>;
   updateAlert(id: string, data: Partial<PriceAlertInsert>): Promise<PriceAlert | null>;
-  deleteAlert(id: string): Promise<boolean>;
+  deleteAlert(id: string, userId: string): Promise<boolean>;
   getAlertEvents(userId: string): Promise<AlertEvent[] | null>;
   acknowledgeAlertEvent(eventId: string): Promise<AlertEvent | null>;
   getActiveAlerts(): Promise<PriceAlert[] | null>;
@@ -210,7 +210,7 @@ export interface IFavoriteService {
     favorite: Omit<UserFavoriteInsert, 'user_id'>
   ): Promise<UserFavorite | null>;
   updateFavorite(id: string, data: Partial<UserFavoriteInsert>): Promise<UserFavorite | null>;
-  deleteFavorite(id: string): Promise<boolean>;
+  deleteFavorite(id: string, userId: string): Promise<boolean>;
 }
 
 export interface ISnapshotService {
@@ -653,8 +653,12 @@ export class DatabaseQueries {
     return updated;
   }
 
-  async deleteFavorite(id: string): Promise<boolean> {
-    const { error } = await this.client.from('user_favorites').delete().eq('id', id);
+  async deleteFavorite(id: string, userId: string): Promise<boolean> {
+    const { error } = await this.client
+      .from('user_favorites')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', userId);
 
     if (error) {
       logger.error(
@@ -805,8 +809,12 @@ export class DatabaseQueries {
     return updated;
   }
 
-  async deleteAlert(id: string): Promise<boolean> {
-    const { error } = await this.client.from('price_alerts').delete().eq('id', id);
+  async deleteAlert(id: string, userId: string): Promise<boolean> {
+    const { error } = await this.client
+      .from('price_alerts')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', userId);
 
     if (error) {
       logger.error(

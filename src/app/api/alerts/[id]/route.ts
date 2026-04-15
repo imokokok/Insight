@@ -218,7 +218,7 @@ export async function DELETE(
     }
 
     const queries = getServerQueries();
-    const success = await queries.deleteAlert(validatedId);
+    const success = await queries.deleteAlert(validatedId, userId);
 
     if (!success) {
       return NextResponse.json({ error: 'Failed to delete alert' }, { status: 500 });

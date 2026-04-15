@@ -282,7 +282,7 @@ export function oneOf<T extends readonly unknown[]>(options: T): ValidatorFn {
 }
 
 export function isPositive(value: unknown, field = 'value'): ValidatorResult {
-  if (typeof value !== 'number' || value <= 0) {
+  if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) {
     return {
       valid: false,
       error: new ValidationError(`${field} must be a positive number`, { field, value }),
@@ -292,7 +292,7 @@ export function isPositive(value: unknown, field = 'value'): ValidatorResult {
 }
 
 export function isNonNegative(value: unknown, field = 'value'): ValidatorResult {
-  if (typeof value !== 'number' || value < 0) {
+  if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) {
     return {
       valid: false,
       error: new ValidationError(`${field} must be a non-negative number`, { field, value }),

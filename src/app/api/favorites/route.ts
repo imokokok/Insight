@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const configTypeRaw = searchParams.get('config_type');
     const configType = configTypeRaw
-      ? (sanitizeString(configTypeRaw, { maxLength: 50 }) as ConfigType | null)
+      ? (sanitizeString(configTypeRaw, { maxLength: 50 }) as unknown as ConfigType | null)
       : null;
 
     const validConfigTypes: ConfigType[] = ['oracle_config', 'symbol', 'chain_config'];

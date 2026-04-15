@@ -241,7 +241,8 @@ export class ChainlinkClient extends BaseOracleClient {
       const basePrice = historicalPrices[0].price;
 
       return historicalPrices.map((point, index) => {
-        const change24hPercent = index === 0 ? 0 : ((point.price - basePrice) / basePrice) * 100;
+        const change24hPercent =
+          index === 0 || basePrice === 0 ? 0 : ((point.price - basePrice) / basePrice) * 100;
         const change24h = index === 0 ? 0 : point.price - basePrice;
 
         return {

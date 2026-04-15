@@ -82,7 +82,7 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
     isLoading,
     error,
     lastUpdated,
-    fetchPriceData: _fetchPriceData,
+    fetchPriceData,
     performanceMetrics,
     isCalculatingMetrics,
     oracleDataError,
@@ -214,7 +214,7 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
   );
 
   const calculateChangePercent = useCallback((current: number, previous: number): number | null => {
-    if (previous === 0 || current === 0) return null;
+    if (previous === 0) return null;
     return ((current - previous) / previous) * 100;
   }, []);
 
@@ -350,6 +350,7 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
     isLoading,
     error,
     lastUpdated,
+    fetchPriceData,
 
     // 统计数据
     priceStats,

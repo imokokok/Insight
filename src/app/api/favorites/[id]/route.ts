@@ -8,7 +8,7 @@ import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('api-favorites-id');
 
-const VALID_CONFIG_TYPES = ['price_query', 'cross_chain', 'cross_oracle'] as const;
+const VALID_CONFIG_TYPES = ['oracle_config', 'symbol', 'chain_config'] as const;
 const MAX_NAME_LENGTH = 100;
 const MAX_CONFIG_DATA_SIZE = 20000;
 
@@ -188,7 +188,7 @@ export async function DELETE(
     }
 
     const queries = getServerQueries();
-    const success = await queries.deleteFavorite(validatedId);
+    const success = await queries.deleteFavorite(validatedId, userId);
 
     if (!success) {
       return NextResponse.json({ error: 'Failed to delete favorite' }, { status: 500 });

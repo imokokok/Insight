@@ -146,15 +146,16 @@ export function useCrossChainData(): UseCrossChainDataReturn {
     medianPrice: statistics.medianPrice,
   });
 
+  const thresholdConfig = useCrossChainConfigStore((s) => s.thresholdConfig);
+
   const dynamicThreshold = useMemo(() => {
-    const thresholdConfig = useCrossChainConfigStore.getState().thresholdConfig;
     const allHistoricalPrices: number[] = [];
     filteredChains.forEach((chain) => {
       const prices = historicalPrices[chain]?.map((p) => p.price) || [];
       allHistoricalPrices.push(...prices);
     });
     return calculateDynamicThreshold(allHistoricalPrices, thresholdConfig);
-  }, [historicalPrices, filteredChains]);
+  }, [historicalPrices, filteredChains, thresholdConfig]);
 
   const sortedPriceDifferences = useMemo(() => {
     let filtered = [...chartDataResult.priceDifferences];

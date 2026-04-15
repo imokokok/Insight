@@ -146,7 +146,9 @@ export const SafePeriodSchema = z
   .refine((val) => !isNaN(val) && val >= 1 && val <= 365, 'Period must be between 1 and 365 days');
 
 export function createSafeEnumSchema<T extends [string, ...string[]]>(values: T) {
-  return z.enum(values).transform((val) => sanitizeString(val, { maxLength: 50 }).toLowerCase());
+  return z
+    .enum(values)
+    .transform((val) => sanitizeString(val, { maxLength: 50 })?.toLowerCase() ?? val.toLowerCase());
 }
 
 export function validateAndSanitize<T>(schema: z.ZodSchema<T>, data: unknown): T | null {

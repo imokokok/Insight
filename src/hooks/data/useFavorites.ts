@@ -117,7 +117,7 @@ export function useRemoveFavorite() {
 
       setIsRemoving(true);
       try {
-        const success = await queries.deleteFavorite(favoriteId);
+        const success = await queries.deleteFavorite(favoriteId, user.id);
 
         if (success) {
           await queryClient.invalidateQueries({ queryKey: ['favorites', user.id] });

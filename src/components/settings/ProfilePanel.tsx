@@ -7,7 +7,7 @@ import Image from 'next/image';
 import { User, Mail, Save, Key, Loader2, CheckCircle, Upload, Trash2 } from 'lucide-react';
 
 import { useTranslations } from '@/i18n';
-import { updateUserProfile, uploadAvatar, deleteAvatar } from '@/lib/supabase/auth';
+import { updateUserProfile, uploadAvatar, deleteAvatar, updatePassword } from '@/lib/supabase/auth';
 import { useUser, useProfile, useAuthActions } from '@/stores/authStore';
 
 const AvatarUploader = ({
@@ -186,6 +186,8 @@ export function ProfilePanel() {
   };
 
   const handleChangePassword = async () => {
+    if (!user) return;
+
     if (newPassword.length < 6) {
       setError(t('settings.profile.passwordMinLength'));
       return;
@@ -200,9 +202,7 @@ export function ProfilePanel() {
     setError(null);
 
     try {
-      const { error: updateError } = await updateUserProfile(user?.id || '', {
-        display_name: displayName,
-      });
+      const { error: updateError } = await updatePassword(newPassword);
 
       if (updateError) {
         setError(updateError.message);

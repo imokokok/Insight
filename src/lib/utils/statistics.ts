@@ -7,6 +7,16 @@ export interface WeightedData {
   weight?: number | null;
 }
 
+export function safeMax(values: number[]): number {
+  if (values.length === 0) return -Infinity;
+  return values.reduce((max, v) => (v > max ? v : max), -Infinity);
+}
+
+export function safeMin(values: number[]): number {
+  if (values.length === 0) return Infinity;
+  return values.reduce((min, v) => (v < min ? v : min), Infinity);
+}
+
 export function calculateMean(values: number[]): number {
   if (values.length === 0) return 0;
   return values.reduce((sum, v) => sum + v, 0) / values.length;
@@ -227,8 +237,8 @@ export function calculateHistogram(
 ): { range: string; min: number; max: number; count: number; percentage: number }[] {
   if (data.length === 0) return [];
 
-  const min = Math.min(...data);
-  const max = Math.max(...data);
+  const min = safeMin(data);
+  const max = safeMax(data);
   const range = max - min;
 
   if (range === 0) {

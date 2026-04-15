@@ -7,7 +7,7 @@ import { ApiResponseBuilder } from '../response';
 const logger = createLogger('auth-middleware');
 
 export interface AuthContext {
-  userId: string;
+  userId: string | null;
   email?: string;
   role?: string;
 }
@@ -30,16 +30,16 @@ export async function extractAuthContext(request: NextRequest): Promise<AuthCont
   const token = authHeader.slice(7);
 
   const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  if (!supabaseUrl || !supabaseServiceKey) {
+  if (!supabaseUrl || !supabaseAnonKey) {
     logger.warn('Supabase configuration missing');
     return null;
   }
 
   try {
     const { createClient } = await import('@supabase/supabase-js');
-    const client = createClient(supabaseUrl, supabaseServiceKey, {
+    const client = createClient(supabaseUrl, supabaseAnonKey, {
       auth: {
         autoRefreshToken: false,
         persistSession: false,

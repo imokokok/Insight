@@ -42,7 +42,7 @@ interface AuthActions {
   signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
   signInWithOAuth: (provider: Provider) => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<{ error: AuthError | null }>;
-  resetPassword: (email: string) => Promise<{ error: AuthError | null }>;
+  resetPassword: (email: string, locale?: string) => Promise<{ error: AuthError | null }>;
   refreshProfile: () => Promise<void>;
   setUser: (user: User | null) => void;
   setSession: (session: Session | null) => void;
@@ -94,8 +94,9 @@ export const useAuthStore = create<AuthStore>()(
         initialize: async () => {
           if (get().initialized) return;
 
+          set({ loading: true, error: null });
+
           try {
-            set({ loading: true, error: null });
             const { session: currentSession } = await getSession();
             const currentUser = currentSession?.user ?? null;
 
@@ -238,10 +239,10 @@ export const useAuthStore = create<AuthStore>()(
           return { error: null };
         },
 
-        resetPassword: async (email: string) => {
+        resetPassword: async (email: string, locale?: string) => {
           set({ loading: true, error: null });
 
-          const { error: resetError } = await authResetPassword(email);
+          const { error: resetError } = await authResetPassword(email, locale);
 
           if (resetError) {
             set({ error: resetError, loading: false });

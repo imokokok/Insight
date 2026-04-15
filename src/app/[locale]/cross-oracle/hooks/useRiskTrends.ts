@@ -6,6 +6,8 @@
 
 import { useMemo } from 'react';
 
+import { safeMax, safeMin } from '@/lib/utils/statistics';
+
 import type { TimeRange } from '../constants';
 import type { PriceAnomaly } from './usePriceAnomalyDetection';
 
@@ -31,7 +33,7 @@ export function useRiskTrends(
   currentTime?: number
 ): RiskTrendsResult {
   return useMemo(() => {
-    const now = currentTime ?? 0;
+    const now = currentTime ?? Date.now();
     const hours =
       timeRange === '1h' ? 1 : timeRange === '24h' ? 24 : timeRange === '7d' ? 168 : 720;
     const data: RiskTrendPoint[] = [];
@@ -70,8 +72,8 @@ export function useRiskTrends(
       count: data.length,
       avgRiskScore:
         riskScores.length > 0 ? riskScores.reduce((a, b) => a + b, 0) / riskScores.length : 0,
-      maxRiskScore: riskScores.length > 0 ? Math.max(...riskScores) : 0,
-      minRiskScore: riskScores.length > 0 ? Math.min(...riskScores) : 0,
+      maxRiskScore: riskScores.length > 0 ? safeMax(riskScores) : 0,
+      minRiskScore: riskScores.length > 0 ? safeMin(riskScores) : 0,
       totalAnomalies,
     };
   }, [timeRange, anomalies, currentTime]);

@@ -32,9 +32,10 @@ function getMinLogLevel(): LogLevel {
   return env === 'production' ? 'error' : 'debug';
 }
 
+const cachedMinLogLevel: LogLevel = getMinLogLevel();
+
 function shouldLog(level: LogLevel): boolean {
-  const minLevel = getMinLogLevel();
-  return LOG_LEVELS[level] >= LOG_LEVELS[minLevel];
+  return LOG_LEVELS[level] >= LOG_LEVELS[cachedMinLogLevel];
 }
 
 function formatTimestamp(): string {

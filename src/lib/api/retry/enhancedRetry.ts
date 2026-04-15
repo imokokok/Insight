@@ -87,6 +87,7 @@ class CircuitBreaker {
   private lastFailureTime?: number;
   private readonly threshold: number;
   private readonly resetTime: number;
+  private halfOpenInProgress = false;
 
   constructor(threshold: number, resetTime: number) {
     this.threshold = threshold;
@@ -108,6 +109,10 @@ class CircuitBreaker {
     }
 
     // HALF_OPEN 状态：只允许一次试验
+    if (this.halfOpenInProgress) {
+      return false;
+    }
+    this.halfOpenInProgress = true;
     return true;
   }
 
@@ -115,15 +120,16 @@ class CircuitBreaker {
     this.failureCount = 0;
     this.lastFailureTime = undefined;
     this.state = CircuitBreakerState.CLOSED;
+    this.halfOpenInProgress = false;
   }
 
   recordFailure(): void {
     this.failureCount++;
     this.lastFailureTime = Date.now();
 
-    // 在 HALF_OPEN 状态下，任何失败都应立即回到 OPEN 状态
     if (this.state === CircuitBreakerState.HALF_OPEN || this.failureCount >= this.threshold) {
       this.state = CircuitBreakerState.OPEN;
+      this.halfOpenInProgress = false;
     }
   }
 

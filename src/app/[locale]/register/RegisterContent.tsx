@@ -42,7 +42,7 @@ export default function RegisterContent() {
     if (user && !isSuccess) {
       router.push(`/${locale}`);
     }
-  }, [user, router, isSuccess]);
+  }, [user, router, isSuccess, locale]);
 
   const validateForm = () => {
     if (!email.trim()) {

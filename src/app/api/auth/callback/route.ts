@@ -116,14 +116,15 @@ export async function GET(request: NextRequest) {
     }
 
     let redirectPath: string;
+    const userLocale = request.cookies.get('next-locale')?.value || 'en';
     if (type === 'recovery') {
-      redirectPath = '/auth/reset-password';
+      redirectPath = `/${userLocale}/auth/reset-password`;
     } else if (type === 'signup' || type === 'email_change') {
-      redirectPath = '/auth/verify-email';
+      redirectPath = `/${userLocale}/auth/verify-email`;
     } else if (state && isValidRedirectPath(state)) {
       redirectPath = state;
     } else {
-      redirectPath = '/';
+      redirectPath = `/${userLocale}`;
     }
 
     const response = NextResponse.redirect(new URL(redirectPath, request.url));

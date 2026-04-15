@@ -48,6 +48,8 @@ export default function CrossOracleContent() {
     toggleOracle,
 
     symbols,
+
+    fetchPriceData,
   } = useCrossOraclePage();
 
   const debouncedSearchFocus = useCallback(() => {
@@ -77,7 +79,7 @@ export default function CrossOracleContent() {
   } = anomalyDetection;
 
   useCommonShortcuts({
-    onRefresh: () => {},
+    onRefresh: fetchPriceData,
     onSearch: debouncedSearchFocus,
   });
 
@@ -161,7 +163,7 @@ export default function CrossOracleContent() {
               oracleChartColors={oracleChartColors}
               timeRange={timeRange}
               onTimeRangeChange={setTimeRange}
-              onQuery={() => {}}
+              onQuery={fetchPriceData}
               isLoading={isLoading}
               activeFilterCount={activeFilterCount}
               onClearFilters={handleClearFilters}
@@ -189,7 +191,7 @@ export default function CrossOracleContent() {
             anomalies={anomalies}
             historicalData={historicalData}
             oracleColors={oracleChartColors}
-            onRefresh={() => {}}
+            onRefresh={fetchPriceData}
             oracleDataError={oracleDataError}
             retryOracle={retryOracle}
             retryAllFailed={retryAllFailed}

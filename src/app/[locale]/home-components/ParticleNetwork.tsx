@@ -48,10 +48,26 @@ function usePerformanceDegradation(): PerformanceDegradation {
       const deviceMemory = navigator.deviceMemory;
       const isLowMemory = deviceMemory && deviceMemory < 4;
 
-      let fps = 60;
+      if (prefersReducedMotion) {
+        setDegradation({
+          shouldDegrade: true,
+          reason: 'prefers-reduced-motion',
+          reducedParticleCount: 0,
+        });
+        return;
+      }
+
+      if (isLowMemory) {
+        setDegradation({
+          shouldDegrade: true,
+          reason: 'low-memory',
+          reducedParticleCount: Math.floor(defaultProps.particleCount * 0.3),
+        });
+        return;
+      }
+
       let frameCount = 0;
-      const lastTime = performance.now();
-      let fpsCheckComplete = false;
+      let lastTime = performance.now();
 
       const measureFPS = () => {
         frameCount++;
@@ -59,24 +75,11 @@ function usePerformanceDegradation(): PerformanceDegradation {
         const elapsed = currentTime - lastTime;
 
         if (elapsed >= 1000) {
-          fps = Math.round((frameCount * 1000) / elapsed);
-          fpsCheckComplete = true;
+          const fps = Math.round((frameCount * 1000) / elapsed);
+          frameCount = 0;
+          lastTime = currentTime;
 
-          const isLowFPS = fps < 30;
-
-          if (prefersReducedMotion) {
-            setDegradation({
-              shouldDegrade: true,
-              reason: 'prefers-reduced-motion',
-              reducedParticleCount: 0,
-            });
-          } else if (isLowMemory) {
-            setDegradation({
-              shouldDegrade: true,
-              reason: 'low-memory',
-              reducedParticleCount: Math.floor(defaultProps.particleCount * 0.3),
-            });
-          } else if (isLowFPS) {
+          if (fps < 30) {
             setDegradation({
               shouldDegrade: true,
               reason: 'low-fps',
@@ -89,16 +92,12 @@ function usePerformanceDegradation(): PerformanceDegradation {
               reducedParticleCount: defaultProps.particleCount,
             });
           }
-        } else if (!fpsCheckComplete) {
-          requestAnimationFrame(measureFPS);
         }
+
+        requestAnimationFrame(measureFPS);
       };
 
-      if (prefersReducedMotion || isLowMemory) {
-        measureFPS();
-      } else {
-        measureFPS();
-      }
+      measureFPS();
     };
 
     if (typeof window !== 'undefined') {

@@ -120,9 +120,7 @@ export function downsampleData(data: DataPoint[], config: DownsamplingConfig = {
       } else {
         result.push({ ...midPoint });
       }
-    }
-
-    if (finalConfig.preserveTrends) {
+    } else if (finalConfig.preserveTrends) {
       const trendPoints = bucket.filter((_, idx) => idx % Math.ceil(bucket.length / 3) === 0);
       trendPoints.forEach((p) => result.push({ ...p }));
     }
@@ -233,7 +231,8 @@ export function getDownsamplingMetrics(
   processingTimeMs: number;
   efficiency: 'excellent' | 'good' | 'acceptable' | 'poor';
 } {
-  const compressionRatio = (1 - downsampledLength / originalLength) * 100;
+  const compressionRatio =
+    originalLength === 0 ? 0 : (1 - downsampledLength / originalLength) * 100;
   const pointsRemoved = originalLength - downsampledLength;
 
   let efficiency: 'excellent' | 'good' | 'acceptable' | 'poor';

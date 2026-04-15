@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 
 import dynamic from 'next/dynamic';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
 import type { SettingsTab } from '@/components/settings';
 import { useLocale } from '@/i18n';
@@ -39,7 +39,6 @@ export default function SettingsContent() {
   const loading = useAuthLoading();
   const initialized = useAuthInitialized();
   const router = useRouter();
-  const _pathname = usePathname();
   const locale = useLocale();
   const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
   const [mounted, setMounted] = useState(false);
