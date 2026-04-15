@@ -21,6 +21,7 @@ import { useTranslations } from '@/i18n';
 import { chartColors, semanticColors } from '@/lib/config/colors';
 import { type Blockchain } from '@/lib/oracles';
 import { isBlockchain } from '@/lib/utils/chainUtils';
+import { downloadBlob } from '@/lib/utils/download';
 
 import { type ChartDataPoint } from '../constants';
 import { chainNames, chainColors } from '../utils';
@@ -276,18 +277,10 @@ export function InteractivePriceChart({
 
       const csvContent = csvLines.join('\n');
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.setAttribute('href', url);
-      link.setAttribute(
-        'download',
+      downloadBlob(
+        blob,
         `price-chart-${selectedTimeRange}-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.csv`
       );
-      link.style.visibility = 'hidden';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Failed to export price chart data:', error);
     }
@@ -324,7 +317,7 @@ export function InteractivePriceChart({
   // Zoom controls
   const handleZoomIn = useCallback(() => {
     setViewState((prev) => {
-      const totalPoints = chartData.length;
+      const totalPoints = timeFilteredData.length;
       const currentRange = prev.endIndex - prev.startIndex;
       const newRange = Math.max(10, Math.floor(currentRange * 0.7));
       const center = Math.floor((prev.startIndex + prev.endIndex) / 2);
@@ -332,11 +325,11 @@ export function InteractivePriceChart({
       const newEnd = Math.min(totalPoints - 1, newStart + newRange);
       return { startIndex: newStart, endIndex: newEnd };
     });
-  }, [chartData.length]);
+  }, [timeFilteredData.length]);
 
   const handleZoomOut = useCallback(() => {
     setViewState((prev) => {
-      const totalPoints = chartData.length;
+      const totalPoints = timeFilteredData.length;
       const currentRange = prev.endIndex - prev.startIndex;
       const newRange = Math.min(totalPoints - 1, Math.floor(currentRange * 1.4));
       const center = Math.floor((prev.startIndex + prev.endIndex) / 2);
@@ -344,14 +337,14 @@ export function InteractivePriceChart({
       const newEnd = Math.min(totalPoints - 1, newStart + newRange);
       return { startIndex: newStart, endIndex: newEnd };
     });
-  }, [chartData.length]);
+  }, [timeFilteredData.length]);
 
   const handleResetZoom = useCallback(() => {
     setViewState({
       startIndex: 0,
-      endIndex: Math.max(0, chartData.length - 1),
+      endIndex: Math.max(0, timeFilteredData.length - 1),
     });
-  }, [chartData.length]);
+  }, [timeFilteredData.length]);
 
   // Pan controls
   const handlePanLeft = useCallback(() => {
@@ -359,20 +352,20 @@ export function InteractivePriceChart({
       const currentRange = prev.endIndex - prev.startIndex;
       const shift = Math.max(1, Math.floor(currentRange * 0.2));
       const newStart = Math.max(0, prev.startIndex - shift);
-      const newEnd = Math.min(chartData.length - 1, newStart + currentRange);
+      const newEnd = Math.min(timeFilteredData.length - 1, newStart + currentRange);
       return { startIndex: newStart, endIndex: newEnd };
     });
-  }, [chartData.length]);
+  }, [timeFilteredData.length]);
 
   const handlePanRight = useCallback(() => {
     setViewState((prev) => {
       const currentRange = prev.endIndex - prev.startIndex;
       const shift = Math.max(1, Math.floor(currentRange * 0.2));
-      const newEnd = Math.min(chartData.length - 1, prev.endIndex + shift);
+      const newEnd = Math.min(timeFilteredData.length - 1, prev.endIndex + shift);
       const newStart = Math.max(0, newEnd - currentRange);
       return { startIndex: newStart, endIndex: newEnd };
     });
-  }, [chartData.length]);
+  }, [timeFilteredData.length]);
 
   // Box selection for zoom
   const handleMouseDown = useCallback((e: React.MouseEvent) => {

@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
 import { moderateRateLimit } from '@/lib/api/middleware/rateLimitMiddleware';
+import { ApiResponseBuilder } from '@/lib/api/response';
 import { getUserId } from '@/lib/api/utils';
 import { sanitizeObject } from '@/lib/security';
 import { CreateAlertRequestSchema, AlertListResponseSchema } from '@/lib/security/validation';
@@ -20,14 +21,14 @@ export async function GET(request: NextRequest) {
   try {
     const userId = await getUserId(request);
     if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return ApiResponseBuilder.unauthorized();
     }
 
     const queries = getServerQueries();
     const alerts = await queries.getAlerts(userId);
 
     if (!alerts) {
-      return NextResponse.json({ error: 'Failed to fetch alerts' }, { status: 500 });
+      return ApiResponseBuilder.serverError('Failed to fetch alerts');
     }
 
     const response = {
@@ -38,7 +39,7 @@ export async function GET(request: NextRequest) {
     const validatedResponse = AlertListResponseSchema.safeParse(response);
     if (!validatedResponse.success) {
       logger.error('Alert response validation failed', validatedResponse.error);
-      return NextResponse.json({ error: 'Invalid response format' }, { status: 500 });
+      return ApiResponseBuilder.serverError('Invalid response format');
     }
 
     return NextResponse.json(validatedResponse.data);
@@ -47,7 +48,7 @@ export async function GET(request: NextRequest) {
       'Error fetching alerts',
       error instanceof Error ? error : new Error(String(error))
     );
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return ApiResponseBuilder.serverError();
   }
 }
 
@@ -60,7 +61,7 @@ export async function POST(request: NextRequest) {
   try {
     const userId = await getUserId(request);
     if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return ApiResponseBuilder.unauthorized();
     }
 
     const validation = await validateBodySchema(CreateAlertRequestSchema)(request);
@@ -94,7 +95,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (!alert) {
-      return NextResponse.json({ error: 'Failed to create alert' }, { status: 500 });
+      return ApiResponseBuilder.serverError('Failed to create alert');
     }
 
     return NextResponse.json(
@@ -106,6 +107,6 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     logger.error('Error creating alert', error instanceof Error ? error : new Error(String(error)));
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return ApiResponseBuilder.serverError();
   }
 }

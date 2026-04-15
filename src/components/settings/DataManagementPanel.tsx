@@ -16,6 +16,7 @@ import {
 
 import { useTranslations } from '@/i18n';
 import { queries, supabase } from '@/lib/supabase/client';
+import { downloadBlob } from '@/lib/utils/download';
 import { useUser, useAuthActions } from '@/stores/authStore';
 
 export function DataManagementPanel() {
@@ -75,14 +76,7 @@ export function DataManagementPanel() {
       };
 
       const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `user-data-${new Date().toISOString().split('T')[0]}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      downloadBlob(blob, `user-data-${new Date().toISOString().split('T')[0]}.json`);
 
       showSuccess(t('settings.data.exportSuccess'));
     } catch (_err) {
@@ -115,14 +109,7 @@ export function DataManagementPanel() {
       };
 
       const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `price-history-${new Date().toISOString().split('T')[0]}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      downloadBlob(blob, `price-history-${new Date().toISOString().split('T')[0]}.json`);
 
       showSuccess(t('settings.data.priceHistoryExportSuccess'));
     } catch (_err) {
@@ -148,14 +135,7 @@ export function DataManagementPanel() {
       };
 
       const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `snapshots-${new Date().toISOString().split('T')[0]}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      downloadBlob(blob, `snapshots-${new Date().toISOString().split('T')[0]}.json`);
 
       showSuccess(t('settings.data.snapshotsExportSuccess'));
     } catch (_err) {

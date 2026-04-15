@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 import Image from 'next/image';
 
@@ -30,6 +30,17 @@ const AvatarUploader = ({
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      onError('File size must be less than 2MB');
+      return;
+    }
+
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    if (!allowedTypes.includes(file.type)) {
+      onError('Invalid file type');
+      return;
+    }
 
     setIsUploading(true);
     setImgError(false);
@@ -144,6 +155,13 @@ export function ProfilePanel() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isChangingPassword, setIsChangingPassword] = useState(false);
+
+  useEffect(() => {
+    if (profile) {
+      setDisplayName(profile.display_name || '');
+      setAvatarUrl(profile.avatar_url || '');
+    }
+  }, [profile]);
 
   const handleSaveProfile = async () => {
     if (!user) return;

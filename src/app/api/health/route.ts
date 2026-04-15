@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
+import { ApiResponseBuilder } from '@/lib/api/response';
 import { withVersionHeaders } from '@/lib/api/versioning';
 
 export const dynamic = 'force-dynamic';
@@ -65,7 +66,7 @@ function checkEnvironment(): 'ok' | 'error' {
 
 export async function GET(request: NextRequest) {
   if (!isLocalRequest(request)) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    return ApiResponseBuilder.forbidden();
   }
 
   const [database, environment] = await Promise.all([checkDatabase(), checkEnvironment()]);

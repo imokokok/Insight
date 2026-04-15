@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef } from 'react';
 
 import { OracleProvider, type Blockchain, type PriceData } from '@/lib/oracles';
+import { downloadBlob } from '@/lib/utils/download';
+import { escapeCSVField } from '@/lib/utils/export';
 import { createLogger } from '@/lib/utils/logger';
 
 import { chainNames } from '../utils';
@@ -34,19 +36,6 @@ export interface UseExportReturn {
   exportToJSON: () => boolean;
 }
 
-function downloadBlob(content: string, type: string, filename: string): void {
-  const blob = new Blob([content], { type });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.setAttribute('href', url);
-  link.setAttribute('download', filename);
-  link.style.visibility = 'hidden';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
-}
-
 export function useExport(params: UseExportParams): UseExportReturn {
   const paramsRef = useRef(params);
   useEffect(() => {
@@ -66,17 +55,21 @@ export function useExport(params: UseExportParams): UseExportReturn {
       const csvLines: string[] = [];
 
       csvLines.push('# Current Prices');
-      csvLines.push(['Blockchain', 'Price', 'Difference', 'PercentDifference'].join(','));
+      csvLines.push(
+        ['Blockchain', 'Price', 'Difference', 'PercentDifference'].map(escapeCSVField).join(',')
+      );
 
       currentParams.priceDifferences.forEach((item) => {
         const row = [
-          chainNames[item.chain],
-          item.price.toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 4,
-          }),
-          item.diff.toFixed(4),
-          item.diffPercent.toFixed(4) + '%',
+          escapeCSVField(chainNames[item.chain]),
+          escapeCSVField(
+            item.price.toLocaleString(undefined, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 4,
+            })
+          ),
+          escapeCSVField(item.diff.toFixed(4)),
+          escapeCSVField(item.diffPercent.toFixed(4) + '%'),
         ];
         csvLines.push(row.join(','));
       });
@@ -96,7 +89,7 @@ export function useExport(params: UseExportParams): UseExportReturn {
         'timestamp',
         ...currentParams.filteredChains.map((chain) => chainNames[chain]),
       ];
-      csvLines.push(historicalHeaders.join(','));
+      csvLines.push(historicalHeaders.map(escapeCSVField).join(','));
 
       const timestampPriceMaps: Partial<Record<Blockchain, Map<number, number>>> = {};
       currentParams.filteredChains.forEach((chain) => {
@@ -106,15 +99,17 @@ export function useExport(params: UseExportParams): UseExportReturn {
       });
 
       sortedTimestamps.forEach((timestamp) => {
-        const row: string[] = [new Date(timestamp).toLocaleString()];
+        const row: string[] = [escapeCSVField(new Date(timestamp).toLocaleString())];
         currentParams.filteredChains.forEach((chain) => {
           const price = timestampPriceMaps[chain]?.get(timestamp);
           row.push(
             price !== undefined
-              ? price.toLocaleString(undefined, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 4,
-                })
+              ? escapeCSVField(
+                  price.toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 4,
+                  })
+                )
               : ''
           );
         });
@@ -122,9 +117,9 @@ export function useExport(params: UseExportParams): UseExportReturn {
       });
 
       const csvContent = csvLines.join('\n');
+      const csvBlob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       downloadBlob(
-        csvContent,
-        'text/csv;charset=utf-8;',
+        csvBlob,
         `cross-chain-${currentParams.selectedSymbol}-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.csv`
       );
 
@@ -197,9 +192,9 @@ export function useExport(params: UseExportParams): UseExportReturn {
       };
 
       const jsonContent = JSON.stringify(exportData, null, 2);
+      const jsonBlob = new Blob([jsonContent], { type: 'application/json' });
       downloadBlob(
-        jsonContent,
-        'application/json',
+        jsonBlob,
         `cross-chain-${currentParams.selectedSymbol}-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.json`
       );
 

@@ -9,6 +9,7 @@ import { memo, useState, useMemo } from 'react';
 
 import { TrendingUp, Filter } from 'lucide-react';
 
+import { formatPrice } from '@/lib/utils/format';
 import type { OracleProvider, PriceData } from '@/types/oracle';
 
 import {
@@ -45,18 +46,6 @@ interface SimplePriceComparisonTabProps {
   historicalData?: Partial<Record<OracleProvider, Array<{ timestamp: number; price: number }>>>;
   oracleColors: Record<OracleProvider, string>;
   t: (key: string, params?: Record<string, string | number>) => string;
-}
-
-// ============================================================================
-// 辅助函数
-// ============================================================================
-
-function _formatPrice(value: number): string {
-  if (value <= 0) return '-';
-  if (value >= 1000) {
-    return `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  }
-  return `$${value.toLocaleString(undefined, { minimumFractionDigits: 4, maximumFractionDigits: 6 })}`;
 }
 
 // ============================================================================

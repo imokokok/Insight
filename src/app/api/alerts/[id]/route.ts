@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
 import { moderateRateLimit } from '@/lib/api/middleware/rateLimitMiddleware';
+import { ApiResponseBuilder } from '@/lib/api/response';
 import { getUserId } from '@/lib/api/utils';
 import { sanitizeObject, sanitizeString, sanitizeUuid } from '@/lib/security';
 import { getServerQueries } from '@/lib/supabase/server';
@@ -110,25 +111,25 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const validatedId = validateAlertId(id);
 
     if (!validatedId) {
-      return NextResponse.json({ error: 'Invalid alert ID' }, { status: 400 });
+      return ApiResponseBuilder.badRequest('Invalid alert ID');
     }
 
     const userId = await getUserId(request);
 
     if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return ApiResponseBuilder.unauthorized();
     }
 
     const alert = await getAlertById(validatedId, userId);
 
     if (!alert) {
-      return NextResponse.json({ error: 'Alert not found' }, { status: 404 });
+      return ApiResponseBuilder.notFound('Alert not found');
     }
 
     return NextResponse.json({ alert });
   } catch (error) {
     logger.error('Error fetching alert', error instanceof Error ? error : new Error(String(error)));
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return ApiResponseBuilder.serverError();
   }
 }
 
@@ -143,39 +144,39 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const validatedId = validateAlertId(id);
 
     if (!validatedId) {
-      return NextResponse.json({ error: 'Invalid alert ID' }, { status: 400 });
+      return ApiResponseBuilder.badRequest('Invalid alert ID');
     }
 
     const userId = await getUserId(request);
 
     if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return ApiResponseBuilder.unauthorized();
     }
 
     const existingAlert = await getAlertById(validatedId, userId);
 
     if (!existingAlert) {
-      return NextResponse.json({ error: 'Alert not found' }, { status: 404 });
+      return ApiResponseBuilder.notFound('Alert not found');
     }
 
     let body: unknown;
     try {
       body = await request.json();
     } catch {
-      return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+      return ApiResponseBuilder.badRequest('Invalid JSON body');
     }
 
     const updateData = validateAlertUpdate(body);
 
     if (!updateData || Object.keys(updateData).length === 0) {
-      return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 });
+      return ApiResponseBuilder.badRequest('No valid fields to update');
     }
 
     const queries = getServerQueries();
     const updatedAlert = await queries.updateAlert(validatedId, updateData);
 
     if (!updatedAlert) {
-      return NextResponse.json({ error: 'Failed to update alert' }, { status: 500 });
+      return ApiResponseBuilder.serverError('Failed to update alert');
     }
 
     return NextResponse.json({
@@ -184,7 +185,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     });
   } catch (error) {
     logger.error('Error updating alert', error instanceof Error ? error : new Error(String(error)));
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return ApiResponseBuilder.serverError();
   }
 }
 
@@ -202,26 +203,26 @@ export async function DELETE(
     const validatedId = validateAlertId(id);
 
     if (!validatedId) {
-      return NextResponse.json({ error: 'Invalid alert ID' }, { status: 400 });
+      return ApiResponseBuilder.badRequest('Invalid alert ID');
     }
 
     const userId = await getUserId(request);
 
     if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return ApiResponseBuilder.unauthorized();
     }
 
     const existingAlert = await getAlertById(validatedId, userId);
 
     if (!existingAlert) {
-      return NextResponse.json({ error: 'Alert not found' }, { status: 404 });
+      return ApiResponseBuilder.notFound('Alert not found');
     }
 
     const queries = getServerQueries();
     const success = await queries.deleteAlert(validatedId, userId);
 
     if (!success) {
-      return NextResponse.json({ error: 'Failed to delete alert' }, { status: 500 });
+      return ApiResponseBuilder.serverError('Failed to delete alert');
     }
 
     return NextResponse.json({
@@ -229,6 +230,6 @@ export async function DELETE(
     });
   } catch (error) {
     logger.error('Error deleting alert', error instanceof Error ? error : new Error(String(error)));
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return ApiResponseBuilder.serverError();
   }
 }

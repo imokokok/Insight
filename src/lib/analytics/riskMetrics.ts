@@ -6,6 +6,7 @@
 
 import { semanticColors, chartColors } from '@/lib/config/colors';
 import { type OracleMarketData } from '@/lib/services/marketData/types';
+import { safeMax } from '@/lib/utils';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('riskMetrics');
@@ -426,7 +427,7 @@ export function calculateRiskMetrics(
     const hhi = calculateHHIFromOracles(oracleData);
 
     // 计算多元化评分
-    const totalChains = Math.max(...oracleData.map((o) => o.chains));
+    const totalChains = safeMax(oracleData.map((o) => o.chains));
     const totalProtocols = oracleData.reduce((sum, o) => sum + o.protocols, 0);
     const diversification = calculateDiversificationScore({
       chainCount: oracleData.reduce((sum, o) => sum + o.chains, 0),

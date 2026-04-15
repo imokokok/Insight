@@ -5,8 +5,9 @@ import { useState, Suspense, useEffect } from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 
-import { Lock, Eye, EyeOff, Loader2, CheckCircle, XCircle } from 'lucide-react';
+import { Lock, Loader2, CheckCircle, XCircle } from 'lucide-react';
 
+import { PasswordInput } from '@/components/ui/PasswordInput';
 import { useTranslations, useLocale } from '@/i18n';
 import { supabase } from '@/lib/supabase/client';
 
@@ -18,8 +19,6 @@ function ResetPasswordForm() {
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -163,7 +162,10 @@ function ResetPasswordForm() {
           </div>
 
           {error && (
-            <div className="mb-6 p-4 bg-danger-50 border border-danger-200 rounded-lg">
+            <div
+              id="reset-password-error"
+              className="mb-6 p-4 bg-danger-50 border border-danger-200 rounded-lg"
+            >
               <p className="text-sm text-danger-600">{error}</p>
             </div>
           )}
@@ -173,31 +175,16 @@ function ResetPasswordForm() {
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
                 {t('auth.resetPassword.passwordLabel')}
               </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  placeholder={t('auth.resetPassword.passwordPlaceholder')}
-                  className="w-full pl-12 pr-12 py-3 border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-primary-600 transition-colors rounded-md"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-4 flex items-center"
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600 transition-colors" />
-                  ) : (
-                    <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600 transition-colors" />
-                  )}
-                </button>
-              </div>
+              <PasswordInput
+                id="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                placeholder={t('auth.resetPassword.passwordPlaceholder')}
+                aria-invalid={!!error}
+                aria-describedby={error ? 'reset-password-error' : undefined}
+                className="w-full pl-12 pr-12 py-3 border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-primary-600 transition-colors rounded-md"
+              />
             </div>
 
             <div>
@@ -207,31 +194,16 @@ function ResetPasswordForm() {
               >
                 {t('auth.resetPassword.confirmPasswordLabel')}
               </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  id="confirmPassword"
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                  placeholder={t('auth.resetPassword.confirmPasswordPlaceholder')}
-                  className="w-full pl-12 pr-12 py-3 border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-primary-600 transition-colors rounded-md"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute inset-y-0 right-0 pr-4 flex items-center"
-                >
-                  {showConfirmPassword ? (
-                    <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600 transition-colors" />
-                  ) : (
-                    <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600 transition-colors" />
-                  )}
-                </button>
-              </div>
+              <PasswordInput
+                id="confirmPassword"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                placeholder={t('auth.resetPassword.confirmPasswordPlaceholder')}
+                aria-invalid={!!error}
+                aria-describedby={error ? 'reset-password-error' : undefined}
+                className="w-full pl-12 pr-12 py-3 border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-primary-600 transition-colors rounded-md"
+              />
             </div>
 
             <button

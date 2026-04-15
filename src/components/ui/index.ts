@@ -47,6 +47,12 @@ export { EmptyStateEnhanced } from './EmptyStateEnhanced';
 export { CompactStatCard } from './CompactStatCard';
 export type { CompactStatCardProps } from './CompactStatCard';
 
+export { StatCard } from './StatCard';
+export type { StatCardProps } from './StatCard';
+
+export { PasswordInput } from './PasswordInput';
+export type { PasswordInputProps } from './PasswordInput';
+
 export { SegmentedControl, DropdownSelect } from './selectors';
 export type { SelectorOption, SegmentedControlProps, DropdownSelectProps } from './selectors';
 

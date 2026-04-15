@@ -167,9 +167,11 @@ export default function ParticleNetwork({
         for (let j = i + 1; j < particles.length; j++) {
           const dx = particles[i].x - particles[j].x;
           const dy = particles[i].y - particles[j].y;
-          const distance = Math.sqrt(dx * dx + dy * dy);
+          const distSq = dx * dx + dy * dy;
+          const connectionDistSq = connectionDistance * connectionDistance;
 
-          if (distance < connectionDistance) {
+          if (distSq < connectionDistSq) {
+            const distance = Math.sqrt(distSq);
             const opacity = 1 - distance / connectionDistance;
             ctx.beginPath();
             ctx.moveTo(particles[i].x, particles[i].y);
@@ -197,10 +199,14 @@ export default function ParticleNetwork({
       animationRef.current = requestAnimationFrame(animate);
     };
 
+    let resizeTimeout: NodeJS.Timeout;
     const handleResize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      initParticles(canvas.width, canvas.height);
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        initParticles(canvas.width, canvas.height);
+      }, 200);
     };
 
     handleResize();

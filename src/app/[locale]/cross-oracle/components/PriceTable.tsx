@@ -4,6 +4,7 @@ import { useMemo, useState, useCallback, useEffect, memo } from 'react';
 
 import { formatPrice } from '@/app/[locale]/price-query/utils/queryResultsUtils';
 import { DataTablePro, type ColumnDef, type SortConfig } from '@/components/ui';
+import { safeMax, safeMin } from '@/lib/utils';
 import { type OracleProvider, type PriceData } from '@/types/oracle';
 
 import {
@@ -149,8 +150,8 @@ function PriceTableComponent({
     }
   }, [hoveredRowIndex, onSetHoveredRow]);
 
-  const maxPrice = validPrices.length > 0 ? Math.max(...validPrices) : 0;
-  const minPrice = validPrices.length > 0 ? Math.min(...validPrices) : 0;
+  const maxPrice = safeMax(validPrices);
+  const minPrice = safeMin(validPrices);
 
   // Transform data for DataTablePro
   const tableData: PriceTableRow[] = useMemo(() => {
@@ -166,15 +167,14 @@ function PriceTableComponent({
       const isLowest = data.price === minPrice && maxPrice !== minPrice;
 
       // 检测是否为异常价格
-      const isAnomaly =
-        deviationPercent !== null && Math.abs(deviationPercent) >= ANOMALY_ZSCORE_THRESHOLD;
+      const isAnomaly = zScore !== null && Math.abs(zScore) >= ANOMALY_ZSCORE_THRESHOLD;
       // 确定异常严重程度
       let anomalySeverity: 'low' | 'medium' | 'high' | null = null;
-      if (isAnomaly && deviationPercent !== null) {
-        const absDeviation = Math.abs(deviationPercent);
-        if (absDeviation > 3) {
+      if (isAnomaly && zScore !== null) {
+        const absZScore = Math.abs(zScore);
+        if (absZScore > 3) {
           anomalySeverity = 'high';
-        } else if (absDeviation >= 1) {
+        } else if (absZScore >= 2.5) {
           anomalySeverity = 'medium';
         } else {
           anomalySeverity = 'low';

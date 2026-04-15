@@ -2,6 +2,8 @@
 
 import { useMemo } from 'react';
 
+import { safeMax } from '@/lib/utils';
+
 /**
  * 偏离级别类型
  */
@@ -244,7 +246,7 @@ export function useBatchDeviationDetection(
     );
     const hasWarning = results.some((r) => r.isWarning);
     const hasDanger = results.some((r) => r.isDanger);
-    const maxDeviation = Math.max(...values.map(Math.abs), 0);
+    const maxDeviation = safeMax(values.map(Math.abs), 0);
 
     let maxLevel: DeviationLevel = 'none';
     if (hasDanger) {

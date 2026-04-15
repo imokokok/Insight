@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
 import { strictRateLimit } from '@/lib/api/middleware/rateLimitMiddleware';
+import { ApiResponseBuilder } from '@/lib/api/response';
 import { getUserId } from '@/lib/api/utils';
 import { sanitizeUuid } from '@/lib/security';
 import { getServerQueries } from '@/lib/supabase/server';
@@ -23,20 +24,20 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const validatedId = validateEventId(id);
 
     if (!validatedId) {
-      return NextResponse.json({ error: 'Invalid event ID' }, { status: 400 });
+      return ApiResponseBuilder.badRequest('Invalid event ID');
     }
 
     const userId = await getUserId(request);
 
     if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return ApiResponseBuilder.unauthorized();
     }
 
     const queries = getServerQueries();
     const event = await queries.getAlertEventById(validatedId, userId);
 
     if (!event) {
-      return NextResponse.json({ error: 'Event not found' }, { status: 404 });
+      return ApiResponseBuilder.notFound('Event not found');
     }
 
     if (event.acknowledged) {
@@ -49,7 +50,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const acknowledgedEvent = await queries.acknowledgeAlertEvent(validatedId);
 
     if (!acknowledgedEvent) {
-      return NextResponse.json({ error: 'Failed to acknowledge event' }, { status: 500 });
+      return ApiResponseBuilder.serverError('Failed to acknowledge event');
     }
 
     return NextResponse.json({
@@ -61,6 +62,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       'Error acknowledging event',
       error instanceof Error ? error : new Error(String(error))
     );
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return ApiResponseBuilder.serverError();
   }
 }

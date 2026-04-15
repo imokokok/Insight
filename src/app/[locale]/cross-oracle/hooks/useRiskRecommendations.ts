@@ -5,6 +5,7 @@
 
 import { useMemo } from 'react';
 
+import { safeMax } from '@/lib/utils';
 import type { OracleProvider } from '@/types/oracle';
 
 import type { PriceAnomaly } from './usePriceAnomalyDetection';
@@ -193,7 +194,7 @@ function generateConsistencyRecommendations(
 
   // 价格离散度检查
   if (anomalies.length > 0) {
-    const maxDeviation = Math.max(...anomalies.map((a) => Math.abs(a.deviationPercent)));
+    const maxDeviation = safeMax(anomalies.map((a) => Math.abs(a.deviationPercent)));
     if (maxDeviation > 5) {
       recommendations.push({
         id: generateId(),

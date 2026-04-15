@@ -22,6 +22,17 @@ export interface UseFavoritesOptions {
   configType?: ConfigType;
 }
 
+function deepEqual(a: unknown, b: unknown): boolean {
+  if (a === b) return true;
+  if (typeof a !== 'object' || typeof b !== 'object' || a === null || b === null) return false;
+  const keysA = Object.keys(a as Record<string, unknown>);
+  const keysB = Object.keys(b as Record<string, unknown>);
+  if (keysA.length !== keysB.length) return false;
+  return keysA.every((key) =>
+    deepEqual((a as Record<string, unknown>)[key], (b as Record<string, unknown>)[key])
+  );
+}
+
 export function useFavorites(options: UseFavoritesOptions = {}) {
   const user = useUser();
   const { configType } = options;
@@ -158,13 +169,13 @@ export function useToggleFavorite() {
       setIsToggling(true);
       try {
         const existingFavorite = favorites?.find(
-          (f) =>
-            f.config_type === mapConfigType(configType) &&
-            JSON.stringify(f.config_data) === JSON.stringify(configData)
+          (f) => f.config_type === mapConfigType(configType) && deepEqual(f.config_data, configData)
         );
 
         if (existingFavorite) {
-          await removeFavorite(existingFavorite.id!, configType);
+          if (!existingFavorite.id)
+            return { action: 'removed' as const, favorite: existingFavorite };
+          await removeFavorite(existingFavorite.id, configType);
           return { action: 'removed' as const, favorite: existingFavorite };
         } else {
           const newFavorite = await addFavorite(name, configType, configData);
@@ -186,12 +197,9 @@ export function useToggleFavorite() {
 export function useIsFavorited(configType: ConfigType, configData: FavoriteConfig) {
   const { favorites } = useFavorites({ configType });
 
-  const isFavorited =
-    favorites?.some((f) => JSON.stringify(f.config_data) === JSON.stringify(configData)) ?? false;
+  const isFavorited = favorites?.some((f) => deepEqual(f.config_data, configData)) ?? false;
 
-  const matchingFavorite = favorites?.find(
-    (f) => JSON.stringify(f.config_data) === JSON.stringify(configData)
-  );
+  const matchingFavorite = favorites?.find((f) => deepEqual(f.config_data, configData));
 
   return {
     isFavorited,
@@ -219,8 +227,9 @@ export function useUpdateFavorite() {
       setIsUpdating(true);
       try {
         const updateData: { name?: string; config_data?: Record<string, unknown> } = {};
-        if (data.name) updateData.name = data.name;
-        if (data.configData) updateData.config_data = data.configData as Record<string, unknown>;
+        if (data.name !== undefined) updateData.name = data.name;
+        if (data.configData !== undefined)
+          updateData.config_data = data.configData as Record<string, unknown>;
 
         const favorite = await queries.updateFavorite(favoriteId, updateData);
 

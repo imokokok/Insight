@@ -91,7 +91,10 @@ function ForgotPasswordForm() {
           </div>
 
           {error && (
-            <div className="mb-6 p-4 bg-danger-50 border border-danger-200 rounded-lg">
+            <div
+              id="forgot-password-error"
+              className="mb-6 p-4 bg-danger-50 border border-danger-200 rounded-lg"
+            >
               <p className="text-sm text-danger-600">{error}</p>
             </div>
           )}
@@ -112,6 +115,8 @@ function ForgotPasswordForm() {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   placeholder={t('auth.forgotPassword.emailPlaceholder')}
+                  aria-invalid={!!error}
+                  aria-describedby={error ? 'forgot-password-error' : undefined}
                   className="w-full pl-12 pr-4 py-3 border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-primary-600 transition-colors rounded-md"
                 />
               </div>

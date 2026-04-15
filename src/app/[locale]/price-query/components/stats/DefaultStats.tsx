@@ -1,5 +1,5 @@
+import { StatCard } from '@/components/ui/StatCard';
 import { useTranslations } from '@/i18n';
-import { cn } from '@/lib/utils';
 import { getStatRating } from '@/lib/utils/stat-rating';
 
 import { formatPrice, formatLargeNumber } from '../../utils/queryResultsUtils';
@@ -15,60 +15,6 @@ interface DefaultStatsProps {
     color: string;
   } | null;
   standardDeviationPercent: number;
-}
-
-function StatCard({
-  title,
-  value,
-  description,
-  rating,
-}: {
-  title: string;
-  value: React.ReactNode;
-  description?: string;
-  rating?: { label: string; color: string; bgColor: string } | null;
-}) {
-  return (
-    <div
-      className={cn(
-        'relative bg-white rounded-xl p-4 border border-gray-100 shadow-sm',
-        description && 'group'
-      )}
-    >
-      <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1.5">{title}</p>
-      <div className="flex items-baseline gap-2 flex-wrap">
-        <p className="text-lg font-bold text-gray-900 font-mono">{value}</p>
-        {rating && (
-          <span
-            className="inline-flex items-center text-xs font-medium px-1.5 py-0.5 rounded"
-            style={{ color: rating.color, backgroundColor: rating.bgColor }}
-          >
-            {rating.label}
-          </span>
-        )}
-      </div>
-      {description && (
-        <div
-          className={cn(
-            'absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2',
-            'px-3 py-2 text-xs text-white bg-gray-900 rounded-md shadow-lg',
-            'whitespace-nowrap pointer-events-none',
-            'opacity-0 group-hover:opacity-100 transition-opacity duration-200'
-          )}
-          role="tooltip"
-        >
-          {description}
-          <span
-            className={cn(
-              'absolute top-full left-1/2 -translate-x-1/2 -mt-1',
-              'w-2 h-2 bg-gray-900 border-4 border-gray-900',
-              'border-l-transparent border-r-transparent border-b-transparent'
-            )}
-          />
-        </div>
-      )}
-    </div>
-  );
 }
 
 export function DefaultStats({

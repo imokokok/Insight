@@ -1,3 +1,5 @@
+import { safeMax, safeMin } from '@/lib/utils';
+
 import { logger } from './client';
 import { fetchOraclesData } from './oracles';
 import {
@@ -15,13 +17,13 @@ function calculateComparisonMetrics(oracleData: OracleMarketData[]): ComparisonD
     return [];
   }
 
-  const maxTvs = Math.max(...oracleData.map((o) => o.tvsValue));
-  const maxChains = Math.max(...oracleData.map((o) => o.chains));
-  const maxProtocols = Math.max(...oracleData.map((o) => o.protocols));
-  const minLatency = Math.min(...oracleData.map((o) => o.avgLatency));
-  const maxAccuracy = Math.max(...oracleData.map((o) => o.accuracy));
-  const minUpdateFreq = Math.min(...oracleData.map((o) => o.updateFrequency));
-  const maxShare = Math.max(...oracleData.map((o) => o.share));
+  const maxTvs = safeMax(oracleData.map((o) => o.tvsValue));
+  const maxChains = safeMax(oracleData.map((o) => o.chains));
+  const maxProtocols = safeMax(oracleData.map((o) => o.protocols));
+  const minLatency = safeMin(oracleData.map((o) => o.avgLatency));
+  const maxAccuracy = safeMax(oracleData.map((o) => o.accuracy));
+  const minUpdateFreq = safeMin(oracleData.map((o) => o.updateFrequency));
+  const maxShare = safeMax(oracleData.map((o) => o.share));
 
   const normalize = (value: number, max: number, inverse = false): number => {
     if (max === 0) return 0;
@@ -256,7 +258,7 @@ export async function fetchBenchmarkData(): Promise<BenchmarkData[]> {
       const average = values.reduce((a, b) => a + b, 0) / values.length;
       const sorted = [...values].sort((a, b) => a - b);
       const median = sorted[Math.floor(sorted.length / 2)];
-      const best = Math.max(...values);
+      const best = safeMax(values);
 
       const metric = comparisonData[0].metrics[metricKey];
 

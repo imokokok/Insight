@@ -5,9 +5,10 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 
-import { Mail, Lock, Eye, EyeOff, LogIn, AlertCircle, MailWarning } from 'lucide-react';
+import { Mail, LogIn, AlertCircle, MailWarning } from 'lucide-react';
 
 import { Button } from '@/components/ui';
+import { PasswordInput } from '@/components/ui/PasswordInput';
 import { useTranslations, useLocale } from '@/i18n';
 import { useUser, useAuthLoading, useAuthError, useAuthActions } from '@/stores/authStore';
 
@@ -27,7 +28,6 @@ export default function LoginContent() {
   const t = useTranslations();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorInfo, setErrorInfo] = useState<ErrorInfo | null>(null);
 
@@ -107,7 +107,10 @@ export default function LoginContent() {
           </div>
 
           {displayError && (
-            <div className="mb-6 p-4 bg-danger-50 border border-danger-200 rounded-lg">
+            <div
+              id="login-error"
+              className="mb-6 p-4 bg-danger-50 border border-danger-200 rounded-lg"
+            >
               <div className="flex items-start gap-3">
                 {errorInfo?.type === 'email_not_confirmed' ? (
                   <MailWarning className="w-5 h-5 text-danger-600 flex-shrink-0 mt-0.5" />
@@ -145,6 +148,8 @@ export default function LoginContent() {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   placeholder={t('auth.login.emailPlaceholder')}
+                  aria-invalid={!!displayError}
+                  aria-describedby={displayError ? 'login-error' : undefined}
                   className="w-full pl-12 pr-4 py-3 border border-gray-300 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors rounded-md"
                 />
               </div>
@@ -154,31 +159,15 @@ export default function LoginContent() {
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
                 {t('auth.login.passwordLabel')}
               </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  placeholder={t('auth.login.passwordPlaceholder')}
-                  className="w-full pl-12 pr-12 py-3 border border-gray-300 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors rounded-md"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-4 flex items-center"
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600 transition-colors" />
-                  ) : (
-                    <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600 transition-colors" />
-                  )}
-                </button>
-              </div>
+              <PasswordInput
+                id="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                placeholder={t('auth.login.passwordPlaceholder')}
+                aria-invalid={!!displayError}
+                aria-describedby={displayError ? 'login-error' : undefined}
+              />
             </div>
 
             <div className="flex items-center justify-between">

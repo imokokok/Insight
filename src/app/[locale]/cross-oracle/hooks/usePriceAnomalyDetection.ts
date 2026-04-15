@@ -5,6 +5,7 @@
 
 import { useMemo } from 'react';
 
+import { safeMax } from '@/lib/utils';
 import { type PriceData, type OracleProvider } from '@/types/oracle';
 
 import {
@@ -151,7 +152,7 @@ export function usePriceAnomalyDetection(
     const lowRiskCount = anomalies.filter((a) => a.severity === 'low').length;
 
     const maxDeviation =
-      anomalies.length > 0 ? Math.max(...anomalies.map((a) => Math.abs(a.deviationPercent))) : 0;
+      anomalies.length > 0 ? safeMax(anomalies.map((a) => Math.abs(a.deviationPercent))) : 0;
 
     const anomalyOracleNames = anomalies.map((a) => a.provider);
 

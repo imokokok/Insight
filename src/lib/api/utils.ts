@@ -2,8 +2,6 @@ import { type NextRequest, NextResponse } from 'next/server';
 
 import { createClient } from '@supabase/supabase-js';
 
-import { createLogger } from '@/lib/utils/logger';
-
 import {
   ApiResponseBuilder,
   CacheConfig as NewCacheConfig,
@@ -12,23 +10,6 @@ import {
   type ApiErrorResponse,
   type ApiSuccessResponse,
 } from './response';
-
-const logger = createLogger('api-utils');
-
-export interface ApiErrorResponseLegacy {
-  error: {
-    code: string;
-    message: string;
-    retryable: boolean;
-  };
-}
-
-export interface ApiErrorOptions {
-  code: string;
-  message: string;
-  retryable: boolean;
-  statusCode: number;
-}
 
 export const ErrorCodes = {
   MISSING_PARAMS: 'MISSING_PARAMS',
@@ -39,42 +20,6 @@ export const ErrorCodes = {
   BATCH_REQUEST_FAILED: 'BATCH_REQUEST_FAILED',
   INTERNAL_ERROR: 'INTERNAL_ERROR',
 } as const;
-
-export const CacheConfig = {
-  PRICE: {
-    maxAge: 30,
-    staleWhileRevalidate: 60,
-    get header() {
-      return `public, s-maxage=${this.maxAge}, stale-while-revalidate=${this.staleWhileRevalidate}`;
-    },
-  },
-  HISTORY: {
-    maxAge: 300,
-    staleWhileRevalidate: 600,
-    get header() {
-      return `public, s-maxage=${this.maxAge}, stale-while-revalidate=${this.staleWhileRevalidate}`;
-    },
-  },
-} as const;
-
-export function createErrorResponse(
-  options: ApiErrorOptions
-): NextResponse<ApiErrorResponseLegacy> {
-  const { code, message, retryable, statusCode } = options;
-
-  logger.error(`API Error - Code: ${code}, Message: ${message}, Retryable: ${retryable}`);
-
-  return NextResponse.json(
-    {
-      error: {
-        code,
-        message,
-        retryable,
-      },
-    },
-    { status: statusCode }
-  );
-}
 
 export function withCacheHeaders<T>(
   response: NextResponse<T>,
@@ -91,31 +36,6 @@ export function createCachedJsonResponse<T>(
   const response = NextResponse.json(data);
   response.headers.set('Cache-Control', cacheConfig.header);
   return response;
-}
-
-export function handleApiError(
-  error: unknown,
-  context: {
-    provider?: string;
-    symbol?: string;
-    operation: string;
-  }
-): NextResponse<ApiErrorResponseLegacy> {
-  const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-
-  const isNetworkError =
-    error instanceof Error &&
-    (error.message.includes('fetch') ||
-      error.message.includes('network') ||
-      error.message.includes('timeout') ||
-      error.message.includes('ECONNREFUSED'));
-
-  return createErrorResponse({
-    code: ErrorCodes.ORACLE_FETCH_FAILED,
-    message: `Failed to ${context.operation}: ${errorMessage}`,
-    retryable: isNetworkError,
-    statusCode: 500,
-  });
 }
 
 export async function getUserId(request: NextRequest): Promise<string | null> {

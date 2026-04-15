@@ -93,6 +93,43 @@ export class ApiResponseBuilder {
     };
   }
 
+  static unauthorized(message = 'Unauthorized', options?: { i18nKey?: string }): NextResponse {
+    return NextResponse.json(ApiResponseBuilder.error('UNAUTHORIZED', message, options), {
+      status: 401,
+    });
+  }
+
+  static forbidden(message = 'Forbidden', options?: { i18nKey?: string }): NextResponse {
+    return NextResponse.json(ApiResponseBuilder.error('FORBIDDEN', message, options), {
+      status: 403,
+    });
+  }
+
+  static notFound(message = 'Not found', options?: { i18nKey?: string }): NextResponse {
+    return NextResponse.json(ApiResponseBuilder.error('NOT_FOUND', message, options), {
+      status: 404,
+    });
+  }
+
+  static badRequest(
+    message: string,
+    options?: { i18nKey?: string; details?: Record<string, unknown> }
+  ): NextResponse {
+    return NextResponse.json(ApiResponseBuilder.error('BAD_REQUEST', message, options), {
+      status: 400,
+    });
+  }
+
+  static serverError(
+    message = 'Internal server error',
+    options?: { i18nKey?: string }
+  ): NextResponse {
+    return NextResponse.json(
+      ApiResponseBuilder.error('INTERNAL_ERROR', message, { ...options, retryable: true }),
+      { status: 500 }
+    );
+  }
+
   static paginated<T>(
     data: T[],
     page: number,

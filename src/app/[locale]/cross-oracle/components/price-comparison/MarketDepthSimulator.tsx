@@ -20,6 +20,8 @@ import {
 } from 'recharts';
 
 import { chartColors } from '@/lib/config/colors';
+import { safeMax, safeMin } from '@/lib/utils';
+import { formatPrice } from '@/lib/utils/format';
 import type { PriceData } from '@/types/oracle';
 
 interface MarketDepthSimulatorProps {
@@ -78,20 +80,11 @@ function MarketDepthSimulatorComponent({ priceData, medianPrice, t }: MarketDept
   // 计算最佳买卖价格
   const { bestBid, bestAsk, spread } = useMemo(() => {
     const prices = priceData.map((d) => d.price);
-    const bid = Math.max(...prices.filter((p) => p <= medianPrice));
-    const ask = Math.min(...prices.filter((p) => p >= medianPrice));
+    const bid = safeMax(prices.filter((p) => p <= medianPrice));
+    const ask = safeMin(prices.filter((p) => p >= medianPrice));
     const spreadPercent = ((ask - bid) / medianPrice) * 100;
     return { bestBid: bid, bestAsk: ask, spread: spreadPercent };
   }, [priceData, medianPrice]);
-
-  const formatPrice = (value: number) => {
-    if (value >= 1000) return `$${(value / 1000).toFixed(1)}K`;
-    const absValue = Math.abs(value);
-    if (absValue >= 1) {
-      return `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}`;
-    }
-    return `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })}`;
-  };
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-5">

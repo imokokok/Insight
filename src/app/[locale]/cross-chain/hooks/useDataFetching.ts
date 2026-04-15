@@ -19,10 +19,14 @@ interface CacheEntry {
   timestamp: number;
 }
 
-const moduleCache = new Map<string, CacheEntry>();
+const moduleCache: Map<string, CacheEntry> | null =
+  typeof window !== 'undefined' ? new Map<string, CacheEntry>() : null;
 
 const getGlobalCache = (): Map<string, CacheEntry> => {
-  return moduleCache;
+  if (typeof window === 'undefined') {
+    return new Map();
+  }
+  return moduleCache!;
 };
 
 const getCacheKey = (provider: OracleProvider, symbol: string, timeRange: number): string => {
@@ -105,7 +109,7 @@ function calculatePriceStats(prices: PriceData[]): PriceStats {
   const variance =
     validPrices.length > 1
       ? validPrices.reduce((sum, price) => sum + Math.pow(price - avgPrice, 2), 0) /
-        validPrices.length
+        (validPrices.length - 1)
       : 0;
   const stdDev = Math.sqrt(variance);
   const standardDeviationPercent = avgPrice > 0 ? (stdDev / avgPrice) * 100 : 0;

@@ -10,7 +10,7 @@ import {
   handleGetHistoricalPrices,
   createUnexpectedErrorResponse,
 } from '@/lib/api/oracleHandlers';
-import { createErrorResponse, ErrorCodes } from '@/lib/api/utils';
+import { ApiResponseBuilder } from '@/lib/api/response';
 import { createLogger } from '@/lib/utils/logger';
 import { type Blockchain, type OracleProvider } from '@/types/oracle';
 
@@ -33,12 +33,7 @@ export async function GET(
     const period = searchParams.get('period');
 
     if (!symbol) {
-      return createErrorResponse({
-        code: ErrorCodes.MISSING_PARAMS,
-        message: 'Missing required parameter: symbol',
-        retryable: false,
-        statusCode: 400,
-      });
+      return ApiResponseBuilder.badRequest('Missing required parameter: symbol');
     }
 
     const providerError = validateProvider(provider);

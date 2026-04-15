@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 
 import { useRouter } from 'next/navigation';
 
@@ -18,7 +18,10 @@ export function useSearch() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchHistory, setSearchHistory] = useState<SearchHistoryItem[]>(() => getSearchHistory());
 
-  const searchResults = searchQuery.trim() ? searchAll(searchQuery) : [];
+  const searchResults = useMemo(
+    () => (searchQuery.trim() ? searchAll(searchQuery) : []),
+    [searchQuery]
+  );
 
   const handleSearch = useCallback(
     (searchItem: string | SearchResult) => {
@@ -29,7 +32,7 @@ export function useSearch() {
         const normalizedSymbol = searchItem.trim().toUpperCase();
         if (!normalizedSymbol) return;
         symbolToSave = normalizedSymbol;
-        path = `/${locale}/price-query?symbol=${normalizedSymbol}`;
+        path = `/${locale}/price-query?symbol=${encodeURIComponent(normalizedSymbol)}`;
       } else {
         const result = searchItem as SearchResult;
         path = `/${locale}${result.item.path}`;

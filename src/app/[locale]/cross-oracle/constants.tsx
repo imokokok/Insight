@@ -3,6 +3,7 @@
  */
 
 import { getAllSupportedSymbols } from '@/lib/oracles/constants/supportedSymbols';
+import { escapeCSVField } from '@/lib/utils/export';
 import { OracleProvider } from '@/types/oracle';
 
 // ============================================================================
@@ -228,15 +229,15 @@ export interface ExportData {
 export function exportToCSV(data: ExportData): string {
   const headers = ['Symbol', 'Timestamp', 'Oracle', 'Price', 'Deviation (%)', 'Oracle Timestamp'];
   const rows = data.oracles.map((oracle) => [
-    data.symbol,
-    data.timestamp,
-    oracle.name,
-    oracle.price.toFixed(8),
-    oracle.deviation.toFixed(4),
-    new Date(oracle.timestamp).toISOString(),
+    escapeCSVField(data.symbol),
+    escapeCSVField(data.timestamp),
+    escapeCSVField(oracle.name),
+    escapeCSVField(oracle.price.toFixed(8)),
+    escapeCSVField(oracle.deviation.toFixed(4)),
+    escapeCSVField(new Date(oracle.timestamp).toISOString()),
   ]);
 
-  return [headers.join(','), ...rows.map((row) => row.join(','))].join('\n');
+  return [headers.map(escapeCSVField).join(','), ...rows.map((row) => row.join(','))].join('\n');
 }
 
 export function exportToJSON(data: ExportData): string {
