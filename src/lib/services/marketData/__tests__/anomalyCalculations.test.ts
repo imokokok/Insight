@@ -1,5 +1,7 @@
 import { detectAnomalies } from '../anomalyCalculations';
 
+import type { AssetData } from '../types';
+
 jest.mock('@/lib/utils/logger', () => ({
   createLogger: () => ({
     info: jest.fn(),
@@ -106,26 +108,61 @@ const createMockAssetData = () => [
   },
 ];
 
+const createMockPricesMap = () => {
+  const now = Date.now();
+  const btcPrices = Array.from({ length: 101 }, (_, i) => 50000 + Math.sin(i / 10) * 500);
+  const btcTimestamps = Array.from({ length: 101 }, (_, i) => now - (100 - i) * 3600000);
+  const ethPrices = Array.from({ length: 101 }, (_, i) => 3000 + Math.sin(i / 10) * 30);
+  const ethTimestamps = Array.from({ length: 101 }, (_, i) => now - (100 - i) * 3600000);
+
+  return new Map<string, { prices: number[]; timestamps: number[] }>([
+    ['BTC', { prices: btcPrices, timestamps: btcTimestamps }],
+    ['ETH', { prices: ethPrices, timestamps: ethTimestamps }],
+  ]);
+};
+
 describe('anomalyCalculations', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   describe('detectAnomalies', () => {
-    it('should detect anomalies from oracle and asset data', async () => {
+    it('should detect anomalies from oracle and asset data with prices map', async () => {
+      const oracleData = createMockOracleData();
+      const assetData = createMockAssetData();
+      const pricesMap = createMockPricesMap();
+
+      const result = await detectAnomalies(oracleData, assetData, pricesMap);
+
+      expect(result).toBeInstanceOf(Array);
+      expect(result!.length).toBeGreaterThan(0);
+    });
+
+    it('should return null when no prices map is provided', async () => {
       const oracleData = createMockOracleData();
       const assetData = createMockAssetData();
 
       const result = await detectAnomalies(oracleData, assetData);
 
-      expect(result).toBeInstanceOf(Array);
-      expect(result.length).toBeGreaterThan(0);
+      expect(result).toBeNull();
     });
 
-    it('should return empty array on error', async () => {
-      const result = await detectAnomalies(null as any, null as any);
+    it('should return null when prices map is empty', async () => {
+      const oracleData = createMockOracleData();
+      const assetData = createMockAssetData();
 
-      expect(result).toEqual([]);
+      const result = await detectAnomalies(oracleData, assetData, new Map());
+
+      expect(result).toBeNull();
+    });
+
+    it('should return null on error', async () => {
+      const result = await detectAnomalies(
+        null as unknown as PriceData[],
+        null as unknown as PriceData[]
+      );
+
+      expect(result).toBeNull();
     });
 
     it('should limit anomalies to 20', async () => {
@@ -152,10 +189,11 @@ describe('anomalyCalculations', () => {
 
       const oracleData = createMockOracleData();
       const assetData = createMockAssetData();
+      const pricesMap = createMockPricesMap();
 
-      const result = await detectAnomalies(oracleData, assetData);
+      const result = await detectAnomalies(oracleData, assetData, pricesMap);
 
-      expect(result.length).toBeLessThanOrEqual(20);
+      expect(result!.length).toBeLessThanOrEqual(20);
     });
 
     it('should sort anomalies by timestamp descending', async () => {
@@ -196,42 +234,48 @@ describe('anomalyCalculations', () => {
 
       const oracleData = createMockOracleData();
       const assetData = createMockAssetData();
+      const pricesMap = createMockPricesMap();
 
-      const result = await detectAnomalies(oracleData, assetData);
+      const result = await detectAnomalies(oracleData, assetData, pricesMap);
 
-      if (result.length >= 2) {
+      if (result && result.length >= 2) {
         expect(result[0].timestamp).toBeGreaterThanOrEqual(result[1].timestamp);
       }
     });
 
-    it('should call all detection methods for each asset', async () => {
+    it('should call all detection methods for each asset with price data', async () => {
       const { detectPriceAnomalies, detectTrendBreak, detectVolatilityAnomalies } =
         jest.requireMock('@/lib/analytics/anomalyDetection');
 
       const oracleData = createMockOracleData();
       const assetData = createMockAssetData();
+      const pricesMap = createMockPricesMap();
 
-      await detectAnomalies(oracleData, assetData);
+      await detectAnomalies(oracleData, assetData, pricesMap);
 
       expect(detectPriceAnomalies).toHaveBeenCalled();
       expect(detectTrendBreak).toHaveBeenCalled();
       expect(detectVolatilityAnomalies).toHaveBeenCalled();
     });
 
-    it('should handle empty asset data', async () => {
+    it('should skip assets without price data in the map', async () => {
       const oracleData = createMockOracleData();
-      const assetData: any[] = [];
+      const assetData = createMockAssetData();
+      const pricesMap = new Map<string, { prices: number[]; timestamps: number[] }>([
+        ['BTC', { prices: [50000, 50100, 50200], timestamps: [1, 2, 3] }],
+      ]);
 
-      const result = await detectAnomalies(oracleData, assetData);
+      const result = await detectAnomalies(oracleData, assetData, pricesMap);
 
       expect(result).toBeInstanceOf(Array);
     });
 
-    it('should handle empty oracle data', async () => {
-      const oracleData: any[] = [];
-      const assetData = createMockAssetData();
+    it('should handle empty asset data', async () => {
+      const oracleData = createMockOracleData();
+      const assetData: AssetData[] = [];
+      const pricesMap = createMockPricesMap();
 
-      const result = await detectAnomalies(oracleData, assetData);
+      const result = await detectAnomalies(oracleData, assetData, pricesMap);
 
       expect(result).toBeInstanceOf(Array);
     });

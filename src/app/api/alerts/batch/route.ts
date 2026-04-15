@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
 import { strictRateLimit } from '@/lib/api/middleware/rateLimitMiddleware';
+import { ApiResponseBuilder } from '@/lib/api/response';
 import { getUserId } from '@/lib/api/utils';
 import { sanitizeObject } from '@/lib/security';
 import { BatchOperationSchema, validateAndSanitize } from '@/lib/security/validation';
@@ -18,22 +19,21 @@ export async function POST(request: NextRequest) {
   try {
     const userId = await getUserId(request);
     if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return ApiResponseBuilder.unauthorized();
     }
 
     let body;
     try {
       body = await request.json();
     } catch {
-      return NextResponse.json({ error: 'Invalid JSON in request body' }, { status: 400 });
+      return ApiResponseBuilder.badRequest('Invalid JSON in request body');
     }
 
     const validatedData = validateAndSanitize(BatchOperationSchema, body);
 
     if (!validatedData) {
-      return NextResponse.json(
-        { error: 'Invalid request data. Check action and alertIds fields.' },
-        { status: 400 }
+      return ApiResponseBuilder.badRequest(
+        'Invalid request data. Check action and alertIds fields.'
       );
     }
 
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
 
     const userAlerts = await queries.getAlerts(userId);
     if (!userAlerts) {
-      return NextResponse.json({ error: 'Failed to fetch user alerts' }, { status: 500 });
+      return ApiResponseBuilder.serverError('Failed to fetch user alerts');
     }
 
     const userAlertIds = new Set(userAlerts.map((a) => a.id));
@@ -110,6 +110,6 @@ export async function POST(request: NextRequest) {
       'Error processing batch operation',
       error instanceof Error ? error : new Error(String(error))
     );
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return ApiResponseBuilder.serverError();
   }
 }

@@ -2,6 +2,7 @@
 
 import { UnifiedExport, type ExportField } from '@/components/export';
 import { useTranslations } from '@/i18n';
+import { safeMax } from '@/lib/utils';
 
 import { type CrossOracleData } from '../types/index';
 
@@ -96,7 +97,7 @@ export default function UnifiedExportSection({
         : '0',
     maxDeviation:
       crossOracleData.length > 0
-        ? Math.max(...crossOracleData.map((d) => Math.abs(d.deviation || 0))).toFixed(4)
+        ? safeMax(crossOracleData.map((d) => Math.abs(d.deviation || 0))).toFixed(4)
         : '0',
   };
 

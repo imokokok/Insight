@@ -1,59 +1,10 @@
 import { Hash, Settings, Database, Clock, Shield } from 'lucide-react';
 
+import { StatCard } from '@/components/ui/StatCard';
 import type { WINkLinkTokenOnChainData } from '@/lib/oracles/services/winklinkRealDataService';
-import { cn } from '@/lib/utils';
 
 interface WINkLinkStatsProps {
   data: WINkLinkTokenOnChainData;
-}
-
-function StatCard({
-  icon: Icon,
-  iconColor,
-  title,
-  value,
-  description,
-}: {
-  icon: React.ElementType;
-  iconColor: string;
-  title: string;
-  value: React.ReactNode;
-  description?: string;
-}) {
-  return (
-    <div
-      className={cn(
-        'relative bg-white rounded-xl p-4 border border-gray-100 shadow-sm',
-        description && 'group'
-      )}
-    >
-      <div className="flex items-center gap-1.5 mb-1.5">
-        <Icon className={`w-3.5 h-3.5 ${iconColor}`} />
-        <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">{title}</p>
-      </div>
-      <p className="text-lg font-bold text-gray-900 font-mono">{value}</p>
-      {description && (
-        <div
-          className={cn(
-            'absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2',
-            'px-3 py-2 text-xs text-white bg-gray-900 rounded-md shadow-lg',
-            'whitespace-nowrap pointer-events-none',
-            'opacity-0 group-hover:opacity-100 transition-opacity duration-200'
-          )}
-          role="tooltip"
-        >
-          {description}
-          <span
-            className={cn(
-              'absolute top-full left-1/2 -translate-x-1/2 -mt-1',
-              'w-2 h-2 bg-gray-900 border-4 border-gray-900',
-              'border-l-transparent border-r-transparent border-b-transparent'
-            )}
-          />
-        </div>
-      )}
-    </div>
-  );
 }
 
 export function WINkLinkStats({ data }: WINkLinkStatsProps) {

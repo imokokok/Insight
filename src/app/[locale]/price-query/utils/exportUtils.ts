@@ -6,6 +6,8 @@ import autoTable from 'jspdf-autotable';
 
 import { exportColors } from '@/lib/config/colors';
 import { type OracleProvider, type Blockchain } from '@/lib/oracles';
+import { downloadBlob } from '@/lib/utils/download';
+import { escapeCSVField } from '@/lib/utils/export';
 import { createLogger } from '@/lib/utils/logger';
 
 import { type ExportConfigData } from '../components/ExportConfig';
@@ -14,13 +16,6 @@ import { type QueryResult, providerNames, chainNames } from '../constants';
 import { formatPrice } from './queryResultsUtils';
 
 const logger = createLogger('ExportUtils');
-
-function escapeCSVField(value: string): string {
-  if (value.includes(',') || value.includes('"') || value.includes('\n')) {
-    return `"${value.replace(/"/g, '""')}"`;
-  }
-  return value;
-}
 
 interface StatsData {
   avgPrice: number;
@@ -126,14 +121,7 @@ export function exportToCSV(
 
   const csvContent = csvLines.join('\n');
   const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.setAttribute('href', url);
-  link.setAttribute('download', generateFilename(selectedSymbol, 'csv'));
-  link.style.visibility = 'hidden';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+  downloadBlob(blob, generateFilename(selectedSymbol, 'csv'));
 }
 
 export function exportToJSON(
@@ -183,14 +171,7 @@ export function exportToJSON(
 
   const jsonContent = JSON.stringify(exportData, null, 2);
   const blob = new Blob([jsonContent], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.setAttribute('href', url);
-  link.setAttribute('download', generateFilename(selectedSymbol, 'json'));
-  link.style.visibility = 'hidden';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+  downloadBlob(blob, generateFilename(selectedSymbol, 'json'));
 }
 
 export interface PDFTranslations extends ExportTranslations {

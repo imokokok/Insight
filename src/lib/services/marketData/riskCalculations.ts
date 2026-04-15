@@ -4,39 +4,104 @@ import {
   calculateDiversificationScore,
 } from '@/lib/analytics/riskMetrics';
 import { type OracleMarketData, type RiskMetrics } from '@/lib/services/marketData/types';
+import { safeMax } from '@/lib/utils';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('marketData:riskCalculations');
 
-export async function fetchRiskMetrics(oracleData: OracleMarketData[]): Promise<RiskMetrics> {
+function calculatePearsonCorrelation(x: number[], y: number[]): number {
+  const n = Math.min(x.length, y.length);
+  if (n < 2) return 0;
+
+  const meanX = x.slice(0, n).reduce((a, b) => a + b, 0) / n;
+  const meanY = y.slice(0, n).reduce((a, b) => a + b, 0) / n;
+
+  let sumXY = 0,
+    sumX2 = 0,
+    sumY2 = 0;
+  for (let i = 0; i < n; i++) {
+    const dx = x[i] - meanX;
+    const dy = y[i] - meanY;
+    sumXY += dx * dy;
+    sumX2 += dx * dx;
+    sumY2 += dy * dy;
+  }
+
+  const denominator = Math.sqrt(sumX2 * sumY2);
+  if (denominator === 0) return 0;
+  return sumXY / denominator;
+}
+
+function buildCorrelationMatrix(priceHistories: Map<string, number[]>): {
+  matrix: number[][];
+  names: string[];
+} {
+  const names = Array.from(priceHistories.keys());
+  const n = names.length;
+  const matrix: number[][] = Array(n)
+    .fill(null)
+    .map(() => Array(n).fill(0));
+
+  for (let i = 0; i < n; i++) {
+    matrix[i][i] = 1;
+  }
+
+  for (let i = 0; i < n; i++) {
+    for (let j = i + 1; j < n; j++) {
+      const x = priceHistories.get(names[i]) ?? [];
+      const y = priceHistories.get(names[j]) ?? [];
+      const correlation = calculatePearsonCorrelation(x, y);
+      matrix[i][j] = correlation;
+      matrix[j][i] = correlation;
+    }
+  }
+
+  return { matrix, names };
+}
+
+export async function fetchRiskMetrics(
+  oracleData: OracleMarketData[],
+  priceHistory?: number[],
+  priceHistories?: Map<string, number[]>
+): Promise<RiskMetrics | null> {
   try {
     logger.info('Fetching risk metrics...');
 
-    const priceHistory: number[] = [];
-    let basePrice = 100;
-    for (let i = 0; i < 100; i++) {
-      basePrice = basePrice * (1 + (Math.random() - 0.48) * 0.02);
-      priceHistory.push(basePrice);
+    if (!priceHistory || priceHistory.length < 2) {
+      logger.warn('Insufficient price history data for risk metrics calculation');
+      return null;
     }
 
-    const n = oracleData.length;
-    const correlationMatrix: number[][] = Array(n)
-      .fill(null)
-      .map(() => Array(n).fill(0));
-
-    for (let i = 0; i < n; i++) {
-      correlationMatrix[i][i] = 1;
+    const correlationInput = priceHistories ?? new Map<string, number[]>();
+    if (correlationInput.size === 0) {
+      oracleData.forEach((oracle, index) => {
+        correlationInput.set(oracle.name, priceHistory);
+      });
     }
 
-    for (let i = 0; i < n; i++) {
-      for (let j = i + 1; j < n; j++) {
-        const correlation = 0.5 + Math.random() * 0.4;
-        correlationMatrix[i][j] = correlation;
-        correlationMatrix[j][i] = correlation;
-      }
-    }
+    const { matrix: correlationMatrix, names: oracleNames } =
+      buildCorrelationMatrix(correlationInput);
 
-    const riskMetrics = calculateRiskMetrics(oracleData, priceHistory, correlationMatrix);
+    const oracleDataForCalc =
+      oracleData.length > 0
+        ? oracleData
+        : oracleNames.map((name) => ({
+            name,
+            share: 100 / oracleNames.length,
+            color: '#888888',
+            tvs: '$0',
+            tvsValue: 0,
+            chains: 1,
+            protocols: 1,
+            avgLatency: 0,
+            accuracy: 0,
+            updateFrequency: 0,
+            change24h: 0,
+            change7d: 0,
+            change30d: 0,
+          }));
+
+    const riskMetrics = calculateRiskMetrics(oracleDataForCalc, priceHistory, correlationMatrix);
 
     logger.info('Risk metrics calculated successfully');
     return riskMetrics;
@@ -45,44 +110,7 @@ export async function fetchRiskMetrics(oracleData: OracleMarketData[]): Promise<
       'Failed to fetch risk metrics',
       error instanceof Error ? error : new Error(String(error))
     );
-
-    return {
-      hhi: {
-        value: 2500,
-        level: 'medium',
-        description: 'market_concentration_medium',
-        concentrationRatio: 65,
-      },
-      diversification: {
-        score: 60,
-        level: 'medium',
-        description: 'diversification_moderate',
-        factors: {
-          chainDiversity: 55,
-          protocolDiversity: 65,
-          assetDiversity: 60,
-        },
-      },
-      volatility: {
-        index: 35,
-        level: 'medium',
-        description: 'volatility_moderate',
-        annualizedVolatility: 0.35,
-        dailyVolatility: 0.018,
-      },
-      correlationRisk: {
-        score: 50,
-        level: 'medium',
-        description: 'correlation_risk_moderate',
-        avgCorrelation: 0.65,
-        highCorrelationPairs: [],
-      },
-      overallRisk: {
-        score: 45,
-        level: 'medium',
-        timestamp: Date.now(),
-      },
-    };
+    return null;
   }
 }
 
@@ -112,7 +140,7 @@ export async function fetchDiversificationScore(oracleData: OracleMarketData[]) 
       throw new Error('Oracle data is empty');
     }
 
-    const totalChains = Math.max(...oracleData.map((o) => o.chains));
+    const totalChains = safeMax(oracleData.map((o) => o.chains));
     const totalProtocols = oracleData.reduce((sum, o) => sum + o.protocols, 0);
 
     return calculateDiversificationScore({

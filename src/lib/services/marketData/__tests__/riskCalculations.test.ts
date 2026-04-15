@@ -98,16 +98,20 @@ const createMockOracleData = () => [
   },
 ];
 
+const createMockPriceHistory = () =>
+  Array.from({ length: 100 }, (_, i) => 100 + i * 0.5 + Math.sin(i / 10) * 5);
+
 describe('riskCalculations', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   describe('fetchRiskMetrics', () => {
-    it('should calculate risk metrics from oracle data', async () => {
+    it('should calculate risk metrics from oracle data with price history', async () => {
       const oracleData = createMockOracleData();
+      const priceHistory = createMockPriceHistory();
 
-      const result = await fetchRiskMetrics(oracleData);
+      const result = await fetchRiskMetrics(oracleData, priceHistory);
 
       expect(result).toHaveProperty('hhi');
       expect(result).toHaveProperty('diversification');
@@ -116,65 +120,99 @@ describe('riskCalculations', () => {
       expect(result).toHaveProperty('overallRisk');
     });
 
-    it('should return default metrics on error', async () => {
+    it('should return null when no price history is provided', async () => {
+      const oracleData = createMockOracleData();
+
+      const result = await fetchRiskMetrics(oracleData);
+
+      expect(result).toBeNull();
+    });
+
+    it('should return null when price history has fewer than 2 data points', async () => {
+      const oracleData = createMockOracleData();
+
+      const result = await fetchRiskMetrics(oracleData, [100]);
+
+      expect(result).toBeNull();
+    });
+
+    it('should return null on error', async () => {
       const { calculateRiskMetrics } = jest.requireMock('@/lib/analytics/riskMetrics');
       calculateRiskMetrics.mockImplementationOnce(() => {
         throw new Error('Test error');
       });
 
-      const result = await fetchRiskMetrics([]);
+      const priceHistory = createMockPriceHistory();
+      const result = await fetchRiskMetrics([], priceHistory);
 
-      expect(result.hhi.value).toBe(2500);
-      expect(result.diversification.score).toBe(60);
-      expect(result.volatility.index).toBe(35);
+      expect(result).toBeNull();
     });
 
     it('should calculate HHI correctly', async () => {
       const oracleData = createMockOracleData();
+      const priceHistory = createMockPriceHistory();
 
-      const result = await fetchRiskMetrics(oracleData);
+      const result = await fetchRiskMetrics(oracleData, priceHistory);
 
-      expect(result.hhi.value).toBe(2500);
-      expect(result.hhi.level).toBe('high');
+      expect(result!.hhi.value).toBe(2500);
+      expect(result!.hhi.level).toBe('high');
     });
 
     it('should calculate diversification score', async () => {
       const oracleData = createMockOracleData();
+      const priceHistory = createMockPriceHistory();
 
-      const result = await fetchRiskMetrics(oracleData);
+      const result = await fetchRiskMetrics(oracleData, priceHistory);
 
-      expect(result.diversification.score).toBe(60);
-      expect(result.diversification.factors).toHaveProperty('chainDiversity');
-      expect(result.diversification.factors).toHaveProperty('protocolDiversity');
-      expect(result.diversification.factors).toHaveProperty('assetDiversity');
+      expect(result!.diversification.score).toBe(60);
+      expect(result!.diversification.factors).toHaveProperty('chainDiversity');
+      expect(result!.diversification.factors).toHaveProperty('protocolDiversity');
+      expect(result!.diversification.factors).toHaveProperty('assetDiversity');
     });
 
     it('should calculate volatility index', async () => {
       const oracleData = createMockOracleData();
+      const priceHistory = createMockPriceHistory();
 
-      const result = await fetchRiskMetrics(oracleData);
+      const result = await fetchRiskMetrics(oracleData, priceHistory);
 
-      expect(result.volatility.index).toBe(35);
-      expect(result.volatility).toHaveProperty('annualizedVolatility');
-      expect(result.volatility).toHaveProperty('dailyVolatility');
+      expect(result!.volatility.index).toBe(35);
+      expect(result!.volatility).toHaveProperty('annualizedVolatility');
+      expect(result!.volatility).toHaveProperty('dailyVolatility');
     });
 
     it('should calculate correlation risk', async () => {
       const oracleData = createMockOracleData();
+      const priceHistory = createMockPriceHistory();
 
-      const result = await fetchRiskMetrics(oracleData);
+      const result = await fetchRiskMetrics(oracleData, priceHistory);
 
-      expect(result.correlationRisk.score).toBe(50);
-      expect(result.correlationRisk).toHaveProperty('avgCorrelation');
+      expect(result!.correlationRisk.score).toBe(50);
+      expect(result!.correlationRisk).toHaveProperty('avgCorrelation');
     });
 
     it('should calculate overall risk', async () => {
       const oracleData = createMockOracleData();
+      const priceHistory = createMockPriceHistory();
 
-      const result = await fetchRiskMetrics(oracleData);
+      const result = await fetchRiskMetrics(oracleData, priceHistory);
 
-      expect(result.overallRisk.score).toBe(45);
-      expect(result.overallRisk).toHaveProperty('timestamp');
+      expect(result!.overallRisk.score).toBe(45);
+      expect(result!.overallRisk).toHaveProperty('timestamp');
+    });
+
+    it('should use priceHistories map for correlation matrix when provided', async () => {
+      const oracleData = createMockOracleData();
+      const priceHistory = createMockPriceHistory();
+      const priceHistories = new Map<string, number[]>([
+        ['Chainlink', priceHistory],
+        ['Pyth Network', priceHistory.map((p) => p * 0.5)],
+      ]);
+
+      const result = await fetchRiskMetrics(oracleData, priceHistory, priceHistories);
+
+      expect(result).not.toBeNull();
+      expect(result).toHaveProperty('correlationRisk');
     });
   });
 

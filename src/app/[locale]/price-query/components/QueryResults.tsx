@@ -10,6 +10,7 @@ import type { OracleProvider, Blockchain } from '@/lib/oracles';
 import type { RedStoneTokenOnChainData } from '@/lib/oracles/clients/redstone';
 import type { DIATokenOnChainData } from '@/lib/oracles/services/diaDataService';
 import type { WINkLinkTokenOnChainData } from '@/lib/oracles/services/winklinkRealDataService';
+import { safeMax } from '@/lib/utils';
 
 import { type QueryResult, type PriceData } from '../constants';
 import { useConsistencyRating } from '../hooks/useConsistencyRating';
@@ -224,7 +225,7 @@ export function QueryResults({
           results={queryResults}
           lastUpdated={
             queryResults.length > 0
-              ? new Date(Math.max(...queryResults.map((r) => r.priceData.timestamp)))
+              ? new Date(safeMax(queryResults.map((r) => r.priceData.timestamp)))
               : null
           }
           onRefresh={onRefresh}

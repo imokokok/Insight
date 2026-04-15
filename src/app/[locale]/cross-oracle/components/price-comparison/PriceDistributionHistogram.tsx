@@ -20,6 +20,8 @@ import {
 } from 'recharts';
 
 import { chartColors } from '@/lib/config/colors';
+import { safeMax, safeMin } from '@/lib/utils';
+import { formatPrice } from '@/lib/utils/format';
 import type { OracleProvider, PriceData } from '@/types/oracle';
 
 interface PriceDistributionHistogramProps {
@@ -47,8 +49,8 @@ function PriceDistributionHistogramComponent({
     if (priceData.length === 0) return [];
 
     const prices = priceData.map((d) => d.price);
-    const minPrice = Math.min(...prices);
-    const maxPrice = Math.max(...prices);
+    const minPrice = safeMin(prices);
+    const maxPrice = safeMax(prices);
     const range = maxPrice - minPrice;
 
     // 动态确定桶数量
@@ -88,15 +90,6 @@ function PriceDistributionHistogramComponent({
 
     return buckets;
   }, [priceData, anomalies]);
-
-  const formatPrice = (value: number) => {
-    if (value >= 1000) return `$${(value / 1000).toFixed(1)}K`;
-    const absValue = Math.abs(value);
-    if (absValue >= 1) {
-      return `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}`;
-    }
-    return `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })}`;
-  };
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-5">

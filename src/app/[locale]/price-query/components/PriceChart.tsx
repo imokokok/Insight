@@ -25,6 +25,7 @@ import { ChartToolbar, type ChartType, type TimeRange } from '@/components/chart
 import { useTranslations } from '@/i18n';
 import { chartColors } from '@/lib/config/colors';
 import { chainNames } from '@/lib/constants';
+import { safeMax, safeMin } from '@/lib/utils';
 import { formatPrice } from '@/lib/utils/chartSharedUtils';
 
 import { type QueryResult } from '../constants';
@@ -104,6 +105,70 @@ const timeRangeToHours = (range: string): number => {
 };
 
 const TIME_RANGES: TimeRange[] = ['1H', '24H', '7D', '30D', '1Y', 'ALL'];
+
+interface AxisMap {
+  scale: (v: number) => number;
+  bandSize?: number;
+}
+
+interface OhlcDataItem {
+  timestamp: number;
+  open: number;
+  close: number;
+  high: number;
+  low: number;
+  isUp: boolean;
+}
+
+const CandlestickRenderer = ({
+  xAxisMap,
+  yAxisMap,
+  ohlcData,
+}: {
+  xAxisMap: Record<string, AxisMap>;
+  yAxisMap: Record<string, AxisMap>;
+  ohlcData: OhlcDataItem[];
+}) => {
+  if (!xAxisMap || !yAxisMap || ohlcData.length === 0) return null;
+
+  const xAxis = Object.values(xAxisMap)[0];
+  const yAxis = Object.values(yAxisMap)[0];
+  if (!xAxis?.scale || !yAxis?.scale) return null;
+
+  const xScale = xAxis.scale;
+  const yScale = yAxis.scale;
+  const bandSize =
+    xAxis.bandSize ||
+    (ohlcData.length > 1
+      ? Math.abs(xScale(ohlcData[1].timestamp) - xScale(ohlcData[0].timestamp))
+      : 10);
+
+  return ohlcData.map((item, index) => {
+    const x = xScale(item.timestamp);
+    const yHigh = yScale(item.high);
+    const yLow = yScale(item.low);
+    const yOpen = yScale(item.open);
+    const yClose = yScale(item.close);
+    const isUp = item.close >= item.open;
+    const color = isUp ? chartColors.recharts.success : chartColors.recharts.danger;
+    const barWidth = Math.max(3, bandSize * 0.6);
+
+    return (
+      <g key={index}>
+        <line x1={x} y1={yHigh} x2={x} y2={yLow} stroke={color} strokeWidth={1} />
+        <rect
+          x={x - barWidth / 2}
+          y={Math.min(yOpen, yClose)}
+          width={barWidth}
+          height={Math.max(Math.abs(yOpen - yClose), 1)}
+          fill={isUp ? color : color}
+          stroke={color}
+          strokeWidth={1}
+        />
+      </g>
+    );
+  });
+};
 
 export function PriceChart({
   chartData,
@@ -228,8 +293,8 @@ export function PriceChart({
         time: new Date(timestamp).toLocaleString(),
         open: values[0],
         close: values[values.length - 1],
-        high: Math.max(...values),
-        low: Math.min(...values),
+        high: safeMax(values),
+        low: safeMin(values),
         isUp: values[values.length - 1] >= values[0],
       }))
       .sort((a, b) => a.timestamp - b.timestamp);
@@ -376,59 +441,6 @@ export function PriceChart({
     </AreaChart>
   );
 
-  interface AxisMap {
-    scale: (v: number) => number;
-    bandSize?: number;
-  }
-
-  const CandlestickRenderer = ({
-    xAxisMap,
-    yAxisMap,
-  }: {
-    xAxisMap: Record<string, AxisMap>;
-    yAxisMap: Record<string, AxisMap>;
-  }) => {
-    if (!xAxisMap || !yAxisMap || ohlcData.length === 0) return null;
-
-    const xAxis = Object.values(xAxisMap)[0];
-    const yAxis = Object.values(yAxisMap)[0];
-    if (!xAxis?.scale || !yAxis?.scale) return null;
-
-    const xScale = xAxis.scale;
-    const yScale = yAxis.scale;
-    const bandSize =
-      xAxis.bandSize ||
-      (ohlcData.length > 1
-        ? Math.abs(xScale(ohlcData[1].timestamp) - xScale(ohlcData[0].timestamp))
-        : 10);
-
-    return ohlcData.map((item, index) => {
-      const x = xScale(item.timestamp);
-      const yHigh = yScale(item.high);
-      const yLow = yScale(item.low);
-      const yOpen = yScale(item.open);
-      const yClose = yScale(item.close);
-      const isUp = item.close >= item.open;
-      const color = isUp ? chartColors.recharts.success : chartColors.recharts.danger;
-      const barWidth = Math.max(3, bandSize * 0.6);
-
-      return (
-        <g key={index}>
-          <line x1={x} y1={yHigh} x2={x} y2={yLow} stroke={color} strokeWidth={1} />
-          <rect
-            x={x - barWidth / 2}
-            y={Math.min(yOpen, yClose)}
-            width={barWidth}
-            height={Math.max(Math.abs(yOpen - yClose), 1)}
-            fill={isUp ? color : color}
-            stroke={color}
-            strokeWidth={1}
-          />
-        </g>
-      );
-    });
-  };
-
   const renderCandlestickChart = () => {
     if (ohlcData.length === 0) return renderLineChart();
 
@@ -467,7 +479,15 @@ export function PriceChart({
             <Cell key={index} fill="transparent" stroke="transparent" />
           ))}
         </Bar>
-        <Customized component={CandlestickRenderer as React.FC<unknown>} />
+        <Customized
+          component={(props: Record<string, unknown>) => (
+            <CandlestickRenderer
+              xAxisMap={props.xAxisMap as Record<string, AxisMap>}
+              yAxisMap={props.yAxisMap as Record<string, AxisMap>}
+              ohlcData={ohlcData}
+            />
+          )}
+        />
         <Brush
           dataKey="time"
           height={40}

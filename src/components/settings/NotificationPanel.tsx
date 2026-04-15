@@ -78,6 +78,7 @@ export function NotificationPanel() {
   });
   const [isSaving, setIsSaving] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [browserPermission, setBrowserPermission] = useState<NotificationPermission>(() => {
     if (typeof window !== 'undefined' && 'Notification' in window) {
       return Notification.permission;
@@ -109,17 +110,22 @@ export function NotificationPanel() {
   const handleSave = async () => {
     setIsSaving(true);
 
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
 
-    setIsSaving(false);
-    setSuccess(t('settings.notifications.saveSuccess'));
+      setSuccess(t('settings.notifications.saveSuccess'));
 
-    if (successTimerRef.current) {
-      clearTimeout(successTimerRef.current);
+      if (successTimerRef.current) {
+        clearTimeout(successTimerRef.current);
+      }
+      successTimerRef.current = setTimeout(() => setSuccess(null), 3000);
+    } catch {
+      setError(t('settings.notifications.saveError'));
+    } finally {
+      setIsSaving(false);
     }
-    successTimerRef.current = setTimeout(() => setSuccess(null), 3000);
   };
 
   const updateSetting = <K extends keyof NotificationSettings>(
@@ -145,6 +151,12 @@ export function NotificationPanel() {
             <div className="p-3 bg-success-50 border border-green-200 rounded-lg text-success-700 text-sm flex items-center gap-2">
               <CheckCircle className="w-4 h-4" />
               {success}
+            </div>
+          )}
+
+          {error && (
+            <div className="p-3 bg-danger-50 border border-danger-200 rounded-lg text-danger-700 text-sm">
+              {error}
             </div>
           )}
 

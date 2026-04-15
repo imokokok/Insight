@@ -10,6 +10,7 @@ import { memo } from 'react';
 import { TrendingUp, TrendingDown, Activity } from 'lucide-react';
 
 import { PriceFlash } from '@/components/ui/PriceFlash';
+import { formatPrice } from '@/lib/utils/format';
 
 import { PriceRangeBar } from './PriceRangeBar';
 
@@ -20,17 +21,6 @@ interface MarketConsensusCardProps {
   previousMedian?: number;
   symbol: string;
   t: (key: string, params?: Record<string, string | number>) => string;
-}
-
-function formatPrice(value: number): string {
-  if (value <= 0) return '-';
-  if (value >= 1000000) {
-    return `$${(value / 1000000).toFixed(2)}M`;
-  }
-  if (value >= 1000) {
-    return `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  }
-  return `$${value.toLocaleString(undefined, { minimumFractionDigits: 4, maximumFractionDigits: 6 })}`;
 }
 
 function MarketConsensusCardComponent({
@@ -104,7 +94,10 @@ function MarketConsensusCardComponent({
           {t('crossOracle.priceRange')}: {formatPrice(minPrice)} - {formatPrice(maxPrice)}
         </span>
         <span className="group relative">
-          {t('crossOracle.spread')}: {(((maxPrice - minPrice) / medianPrice) * 100).toFixed(2)}%
+          {t('crossOracle.spread')}:{' '}
+          {medianPrice !== 0
+            ? (((maxPrice - minPrice) / medianPrice) * 100).toFixed(2) + '%'
+            : 'N/A'}
           <div
             className="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 text-xs text-white bg-gray-900 rounded-md shadow-lg whitespace-nowrap pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200"
             role="tooltip"

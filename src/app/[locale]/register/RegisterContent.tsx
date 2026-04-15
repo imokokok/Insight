@@ -5,18 +5,9 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
-import {
-  Mail,
-  Lock,
-  Eye,
-  EyeOff,
-  User,
-  UserPlus,
-  Loader2,
-  CheckCircle,
-  AlertCircle,
-} from 'lucide-react';
+import { Mail, User, UserPlus, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 
+import { PasswordInput } from '@/components/ui/PasswordInput';
 import { useTranslations, useLocale } from '@/i18n';
 import { useUser, useAuthLoading, useAuthError, useAuthActions } from '@/stores/authStore';
 
@@ -32,8 +23,6 @@ export default function RegisterContent() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -153,7 +142,10 @@ export default function RegisterContent() {
           </div>
 
           {displayError && (
-            <div className="mb-6 p-4 bg-danger-50 border border-danger-200 rounded-lg">
+            <div
+              id="register-error"
+              className="mb-6 p-4 bg-danger-50 border border-danger-200 rounded-lg"
+            >
               <div className="flex items-start gap-3">
                 <AlertCircle className="w-5 h-5 text-danger-600 flex-shrink-0 mt-0.5" />
                 <p className="text-sm text-danger-600">{displayError}</p>
@@ -177,6 +169,8 @@ export default function RegisterContent() {
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
                   placeholder={t('auth.register.displayNamePlaceholder')}
+                  aria-invalid={!!displayError}
+                  aria-describedby={displayError ? 'register-error' : undefined}
                   className="w-full pl-12 pr-4 py-3 border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900 transition-colors rounded-md"
                 />
               </div>
@@ -197,6 +191,8 @@ export default function RegisterContent() {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   placeholder={t('auth.register.emailPlaceholder')}
+                  aria-invalid={!!displayError}
+                  aria-describedby={displayError ? 'register-error' : undefined}
                   className="w-full pl-12 pr-4 py-3 border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900 transition-colors rounded-md"
                 />
               </div>
@@ -206,31 +202,16 @@ export default function RegisterContent() {
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
                 {t('auth.register.passwordLabel')}
               </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  placeholder={t('auth.register.passwordPlaceholder')}
-                  className="w-full pl-12 pr-12 py-3 border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900 transition-colors rounded-md"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-4 flex items-center"
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600 transition-colors" />
-                  ) : (
-                    <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600 transition-colors" />
-                  )}
-                </button>
-              </div>
+              <PasswordInput
+                id="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                placeholder={t('auth.register.passwordPlaceholder')}
+                aria-invalid={!!displayError}
+                aria-describedby={displayError ? 'register-error' : undefined}
+                className="w-full pl-12 pr-12 py-3 border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900 transition-colors rounded-md"
+              />
             </div>
 
             <div>
@@ -240,31 +221,16 @@ export default function RegisterContent() {
               >
                 {t('auth.register.confirmPasswordLabel')}
               </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  id="confirmPassword"
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                  placeholder={t('auth.register.confirmPasswordPlaceholder')}
-                  className="w-full pl-12 pr-12 py-3 border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900 transition-colors rounded-md"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute inset-y-0 right-0 pr-4 flex items-center"
-                >
-                  {showConfirmPassword ? (
-                    <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600 transition-colors" />
-                  ) : (
-                    <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600 transition-colors" />
-                  )}
-                </button>
-              </div>
+              <PasswordInput
+                id="confirmPassword"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                placeholder={t('auth.register.confirmPasswordPlaceholder')}
+                aria-invalid={!!displayError}
+                aria-describedby={displayError ? 'register-error' : undefined}
+                className="w-full pl-12 pr-12 py-3 border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900 transition-colors rounded-md"
+              />
             </div>
 
             <div className="flex items-start">

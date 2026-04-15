@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
 import { moderateRateLimit } from '@/lib/api/middleware/rateLimitMiddleware';
+import { ApiResponseBuilder } from '@/lib/api/response';
 import { getUserId } from '@/lib/api/utils';
 import { sanitizeObject, sanitizeString, sanitizeUuid } from '@/lib/security';
 import { getServerQueries } from '@/lib/supabase/server';
@@ -74,19 +75,19 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const validatedId = validateFavoriteId(id);
 
     if (!validatedId) {
-      return NextResponse.json({ error: 'Invalid favorite ID' }, { status: 400 });
+      return ApiResponseBuilder.badRequest('Invalid favorite ID');
     }
 
     const userId = await getUserId(request);
 
     if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return ApiResponseBuilder.unauthorized();
     }
 
     const favorite = await getFavoriteById(validatedId, userId);
 
     if (!favorite) {
-      return NextResponse.json({ error: 'Favorite not found' }, { status: 404 });
+      return ApiResponseBuilder.notFound('Favorite not found');
     }
 
     return NextResponse.json({ favorite });
@@ -95,7 +96,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       'Error fetching favorite',
       error instanceof Error ? error : new Error(String(error))
     );
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return ApiResponseBuilder.serverError();
   }
 }
 
@@ -110,39 +111,39 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const validatedId = validateFavoriteId(id);
 
     if (!validatedId) {
-      return NextResponse.json({ error: 'Invalid favorite ID' }, { status: 400 });
+      return ApiResponseBuilder.badRequest('Invalid favorite ID');
     }
 
     const userId = await getUserId(request);
 
     if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return ApiResponseBuilder.unauthorized();
     }
 
     const existingFavorite = await getFavoriteById(validatedId, userId);
 
     if (!existingFavorite) {
-      return NextResponse.json({ error: 'Favorite not found' }, { status: 404 });
+      return ApiResponseBuilder.notFound('Favorite not found');
     }
 
     let body: unknown;
     try {
       body = await request.json();
     } catch {
-      return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+      return ApiResponseBuilder.badRequest('Invalid JSON body');
     }
 
     const updateData = validateFavoriteUpdate(body);
 
     if (!updateData || Object.keys(updateData).length === 0) {
-      return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 });
+      return ApiResponseBuilder.badRequest('No valid fields to update');
     }
 
     const queries = getServerQueries();
     const updatedFavorite = await queries.updateFavorite(validatedId, updateData);
 
     if (!updatedFavorite) {
-      return NextResponse.json({ error: 'Failed to update favorite' }, { status: 500 });
+      return ApiResponseBuilder.serverError('Failed to update favorite');
     }
 
     return NextResponse.json({
@@ -154,7 +155,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       'Error updating favorite',
       error instanceof Error ? error : new Error(String(error))
     );
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return ApiResponseBuilder.serverError();
   }
 }
 
@@ -172,26 +173,26 @@ export async function DELETE(
     const validatedId = validateFavoriteId(id);
 
     if (!validatedId) {
-      return NextResponse.json({ error: 'Invalid favorite ID' }, { status: 400 });
+      return ApiResponseBuilder.badRequest('Invalid favorite ID');
     }
 
     const userId = await getUserId(request);
 
     if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return ApiResponseBuilder.unauthorized();
     }
 
     const existingFavorite = await getFavoriteById(validatedId, userId);
 
     if (!existingFavorite) {
-      return NextResponse.json({ error: 'Favorite not found' }, { status: 404 });
+      return ApiResponseBuilder.notFound('Favorite not found');
     }
 
     const queries = getServerQueries();
     const success = await queries.deleteFavorite(validatedId, userId);
 
     if (!success) {
-      return NextResponse.json({ error: 'Failed to delete favorite' }, { status: 500 });
+      return ApiResponseBuilder.serverError('Failed to delete favorite');
     }
 
     return NextResponse.json({
@@ -202,6 +203,6 @@ export async function DELETE(
       'Error deleting favorite',
       error instanceof Error ? error : new Error(String(error))
     );
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return ApiResponseBuilder.serverError();
   }
 }

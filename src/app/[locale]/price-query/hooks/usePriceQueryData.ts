@@ -476,6 +476,18 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
         }));
       }
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      setState((prev) => ({
+        ...prev,
+        queryErrors: [
+          ...prev.queryErrors,
+          {
+            provider: currentSelectedOracle as OracleProvider,
+            chain: currentSelectedChain as Blockchain,
+            error: errorMessage,
+          },
+        ],
+      }));
       logger.error(
         'Error fetching query data',
         error instanceof Error ? error : new Error(String(error))
@@ -525,12 +537,18 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
 
       try {
         // 使用 API 路由获取数据
-        const price = await fetchPriceFromAPI(provider, currentSelectedSymbol, chain);
+        const price = await fetchPriceFromAPI(
+          provider,
+          currentSelectedSymbol,
+          chain,
+          abortControllerRef.current?.signal
+        );
         const history = await fetchHistoricalPricesFromAPI(
           provider,
           currentSelectedSymbol,
           chain,
-          currentSelectedTimeRange
+          currentSelectedTimeRange,
+          abortControllerRef.current?.signal
         );
 
         const key = `${provider}-${chain}`;
@@ -557,7 +575,8 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
             provider,
             currentSelectedSymbol,
             chain,
-            currentCompareTimeRange
+            currentCompareTimeRange,
+            abortControllerRef.current?.signal
           );
           setState((prev) => ({
             ...prev,

@@ -22,6 +22,7 @@ import {
 
 import { chartColors } from '@/lib/config/colors';
 import { getProviderDefaults } from '@/lib/oracles/utils/performanceMetricsConfig';
+import { formatPrice } from '@/lib/utils/format';
 import { type OracleProvider, type PriceData } from '@/types/oracle';
 
 import { oracleNames, ANOMALY_ZSCORE_THRESHOLD } from '../constants';
@@ -60,27 +61,6 @@ interface TableRow {
 // ============================================================================
 // 辅助函数
 // ============================================================================
-
-/**
- * 格式化价格显示
- */
-const formatPrice = (price: number): string => {
-  if (price === 0) return '-';
-  const absPrice = Math.abs(price);
-  if (absPrice >= 1000) {
-    return `$${price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  }
-  if (absPrice >= 1) {
-    return `$${price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}`;
-  }
-  if (absPrice >= 0.0001) {
-    return `$${price.toLocaleString(undefined, { minimumFractionDigits: 4, maximumFractionDigits: 6 })}`;
-  }
-  if (absPrice >= 0.000001) {
-    return `$${price.toLocaleString(undefined, { minimumFractionDigits: 6, maximumFractionDigits: 8 })}`;
-  }
-  return `$${price.toLocaleString(undefined, { minimumFractionDigits: 8, maximumFractionDigits: 12 })}`;
-};
 
 /**
  * 格式化偏差率

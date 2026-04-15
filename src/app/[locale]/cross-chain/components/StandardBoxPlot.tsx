@@ -15,6 +15,7 @@ import {
 
 import { useTranslations } from '@/i18n';
 import { chartColors, semanticColors, baseColors } from '@/lib/config/colors';
+import { safeMax, safeMin } from '@/lib/utils';
 
 import { type BoxPlotData } from '../constants';
 
@@ -251,8 +252,8 @@ export function StandardBoxPlot({ data, className = '' }: StandardBoxPlotProps) 
 
     // Calculate Y domain
     const allValues = data.flatMap((d) => [d.min, d.max, ...d.outliers]);
-    const minValue = Math.min(...allValues);
-    const maxValue = Math.max(...allValues);
+    const minValue = safeMin(allValues);
+    const maxValue = safeMax(allValues);
     const padding = (maxValue - minValue) * 0.1 || 1;
 
     return {

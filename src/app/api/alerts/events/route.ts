@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
 import { moderateRateLimit } from '@/lib/api/middleware/rateLimitMiddleware';
+import { ApiResponseBuilder } from '@/lib/api/response';
 import { getUserId } from '@/lib/api/utils';
 import { getServerQueries } from '@/lib/supabase/server';
 import { createLogger } from '@/lib/utils/logger';
@@ -18,7 +19,7 @@ export async function GET(request: NextRequest) {
   try {
     const userId = await getUserId(request);
     if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return ApiResponseBuilder.unauthorized();
     }
 
     const searchParams = request.nextUrl.searchParams;
@@ -46,7 +47,7 @@ export async function GET(request: NextRequest) {
     let events = await queries.getAlertEvents(userId);
 
     if (!events) {
-      return NextResponse.json({ error: 'Failed to fetch alert events' }, { status: 500 });
+      return ApiResponseBuilder.serverError('Failed to fetch alert events');
     }
 
     if (acknowledged !== undefined) {
@@ -66,6 +67,6 @@ export async function GET(request: NextRequest) {
       'Error fetching alert events',
       error instanceof Error ? error : new Error(String(error))
     );
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return ApiResponseBuilder.serverError();
   }
 }

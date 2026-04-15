@@ -6,6 +6,12 @@
 import { createLogger } from '@/lib/utils/logger';
 import { type OracleProvider, type Blockchain, type PriceData } from '@/types/oracle';
 
+import {
+  validatePriceData,
+  validatePriceDataArray,
+  OracleDataValidationError,
+} from './validation/oracleDataValidation';
+
 const logger = createLogger('OracleApiClient');
 
 export interface FetchPriceParams {
@@ -88,19 +94,36 @@ export async function fetchPriceFromApi({
         errorData,
         errorText,
       });
+      const errorMessage =
+        errorData && typeof errorData === 'object' && 'message' in errorData
+          ? String((errorData as { message: unknown }).message)
+          : 'Unknown error';
       throw new Error(
-        (errorData as { message?: string }).message ||
-          `Failed to fetch price: ${response.status} ${response.statusText}`
+        errorMessage || `Failed to fetch price: ${response.status} ${response.statusText}`
       );
     }
 
     const data = await response.json();
 
     if (data.error) {
-      throw new Error(data.error.message || 'Unknown error from API');
+      const errMsg =
+        data.error && typeof data.error === 'object' && 'message' in data.error
+          ? String((data.error as { message: unknown }).message)
+          : 'Unknown error from API';
+      throw new Error(errMsg);
     }
 
-    return data as PriceData;
+    try {
+      return validatePriceData(data);
+    } catch (validationError) {
+      if (validationError instanceof OracleDataValidationError) {
+        logger.error('[oracleApiClient] Price data validation failed:', undefined, {
+          missingFields: validationError.missingFields,
+          rawData: validationError.rawData,
+        });
+      }
+      throw validationError;
+    }
   } finally {
     cleanup();
   }
@@ -150,8 +173,12 @@ export async function fetchHistoricalFromApi({
         errorData,
         errorText,
       });
+      const errorMessage =
+        errorData && typeof errorData === 'object' && 'message' in errorData
+          ? String((errorData as { message: unknown }).message)
+          : 'Unknown error';
       throw new Error(
-        (errorData as { message?: string }).message ||
+        errorMessage ||
           `Failed to fetch historical prices: ${response.status} ${response.statusText}`
       );
     }
@@ -159,10 +186,24 @@ export async function fetchHistoricalFromApi({
     const data = await response.json();
 
     if (data.error) {
-      throw new Error(data.error.message || 'Unknown error from API');
+      const errMsg =
+        data.error && typeof data.error === 'object' && 'message' in data.error
+          ? String((data.error as { message: unknown }).message)
+          : 'Unknown error from API';
+      throw new Error(errMsg);
     }
 
-    return data as PriceData[];
+    try {
+      return validatePriceDataArray(data);
+    } catch (validationError) {
+      if (validationError instanceof OracleDataValidationError) {
+        logger.error('[oracleApiClient] Historical price data validation failed:', undefined, {
+          missingFields: validationError.missingFields,
+          rawData: validationError.rawData,
+        });
+      }
+      throw validationError;
+    }
   } finally {
     cleanup();
   }

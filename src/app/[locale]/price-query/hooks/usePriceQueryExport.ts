@@ -4,6 +4,7 @@ import { useCallback } from 'react';
 
 import { useTranslations } from '@/i18n';
 import { type OracleProvider, type Blockchain } from '@/lib/oracles';
+import { downloadBlob } from '@/lib/utils/download';
 
 import { type QueryResult, providerNames, chainNames } from '../constants';
 import { formatPrice } from '../utils/queryResultsUtils';
@@ -60,15 +61,7 @@ export function usePriceQueryExport(params: UsePriceQueryExportParams): UsePrice
 
     const csvContent = csvLines.join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', generateFilename('csv'));
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    downloadBlob(blob, generateFilename('csv'));
   }, [queryResults, generateFilename, t]);
 
   const handleExportJSON = useCallback(() => {
@@ -90,15 +83,7 @@ export function usePriceQueryExport(params: UsePriceQueryExportParams): UsePrice
 
     const jsonContent = JSON.stringify(exportData, null, 2);
     const blob = new Blob([jsonContent], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', generateFilename('json'));
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    downloadBlob(blob, generateFilename('json'));
   }, [queryResults, selectedSymbol, selectedOracles, selectedChains, generateFilename]);
 
   return {

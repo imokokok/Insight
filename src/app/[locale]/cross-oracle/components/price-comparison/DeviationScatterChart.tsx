@@ -21,6 +21,7 @@ import {
 } from 'recharts';
 
 import { chartColors } from '@/lib/config/colors';
+import { formatPrice } from '@/lib/utils/format';
 import type { OracleProvider, PriceData } from '@/types/oracle';
 
 import { oracleNames } from '../../constants';
@@ -84,15 +85,6 @@ function DeviationScatterChartComponent({
       default:
         return chartColors.recharts.success;
     }
-  };
-
-  const formatPrice = (value: number) => {
-    if (value >= 1000) return `$${(value / 1000).toFixed(1)}K`;
-    const absValue = Math.abs(value);
-    if (absValue >= 1) {
-      return `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}`;
-    }
-    return `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })}`;
   };
 
   return (

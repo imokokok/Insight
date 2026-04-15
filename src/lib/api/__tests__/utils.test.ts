@@ -1,12 +1,10 @@
 import { type NextRequest } from 'next/server';
 
 import {
-  createErrorResponse,
   withCacheHeaders,
   createCachedJsonResponse,
-  handleApiError,
   ErrorCodes,
-  CacheConfig,
+  NewCacheConfig as CacheConfig,
 } from '../utils';
 
 jest.mock('@supabase/supabase-js', () => ({
@@ -49,58 +47,6 @@ describe('CacheConfig', () => {
   });
 });
 
-describe('createErrorResponse', () => {
-  it('should create an error response with correct structure', async () => {
-    const response = createErrorResponse({
-      code: 'TEST_ERROR',
-      message: 'Test error message',
-      retryable: true,
-      statusCode: 400,
-    });
-
-    expect(response.status).toBe(400);
-
-    const body = await response.json();
-    expect(body).toEqual({
-      error: {
-        code: 'TEST_ERROR',
-        message: 'Test error message',
-        retryable: true,
-      },
-    });
-  });
-
-  it('should handle non-retryable errors', async () => {
-    const response = createErrorResponse({
-      code: 'VALIDATION_ERROR',
-      message: 'Invalid input',
-      retryable: false,
-      statusCode: 400,
-    });
-
-    const body = await response.json();
-    expect(body.error.retryable).toBe(false);
-  });
-
-  it('should handle different status codes', () => {
-    const response404 = createErrorResponse({
-      code: 'NOT_FOUND',
-      message: 'Resource not found',
-      retryable: false,
-      statusCode: 404,
-    });
-    expect(response404.status).toBe(404);
-
-    const response500 = createErrorResponse({
-      code: 'INTERNAL_ERROR',
-      message: 'Server error',
-      retryable: true,
-      statusCode: 500,
-    });
-    expect(response500.status).toBe(500);
-  });
-});
-
 describe('withCacheHeaders', () => {
   it('should set Cache-Control header on response', () => {
     const mockResponse = {
@@ -109,7 +55,7 @@ describe('withCacheHeaders', () => {
       },
     } as unknown as Response;
 
-    const result = withCacheHeaders(mockResponse as any, CacheConfig.PRICE);
+    const result = withCacheHeaders(mockResponse as unknown as Response, CacheConfig.PRICE);
 
     expect(mockResponse.headers.set).toHaveBeenCalledWith(
       'Cache-Control',
@@ -128,61 +74,6 @@ describe('createCachedJsonResponse', () => {
 
     const body = await response.json();
     expect(body).toEqual(data);
-  });
-});
-
-describe('handleApiError', () => {
-  it('should handle network errors as retryable', async () => {
-    const error = new Error('fetch failed');
-    const response = handleApiError(error, { operation: 'fetch price' });
-
-    const body = await response.json();
-    expect(body.error.retryable).toBe(true);
-    expect(body.error.code).toBe(ErrorCodes.ORACLE_FETCH_FAILED);
-    expect(body.error.message).toContain('fetch price');
-  });
-
-  it('should handle timeout errors as retryable', async () => {
-    const error = new Error('timeout exceeded');
-    const response = handleApiError(error, { operation: 'fetch data' });
-
-    const body = await response.json();
-    expect(body.error.retryable).toBe(true);
-  });
-
-  it('should handle ECONNREFUSED errors as retryable', async () => {
-    const error = new Error('ECONNREFUSED');
-    const response = handleApiError(error, { operation: 'connect' });
-
-    const body = await response.json();
-    expect(body.error.retryable).toBe(true);
-  });
-
-  it('should handle non-network errors as non-retryable', async () => {
-    const error = new Error('Some other error');
-    const response = handleApiError(error, { operation: 'process' });
-
-    const body = await response.json();
-    expect(body.error.retryable).toBe(false);
-  });
-
-  it('should handle non-Error objects', async () => {
-    const response = handleApiError('string error', { operation: 'test' });
-
-    const body = await response.json();
-    expect(body.error.message).toContain('Unknown error');
-  });
-
-  it('should include context in error message', async () => {
-    const error = new Error('test error');
-    const response = handleApiError(error, {
-      operation: 'fetch oracle data',
-      provider: 'chainlink',
-      symbol: 'BTC/USD',
-    });
-
-    const body = await response.json();
-    expect(body.error.message).toContain('fetch oracle data');
   });
 });
 

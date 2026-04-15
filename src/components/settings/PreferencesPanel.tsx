@@ -110,6 +110,7 @@ export function PreferencesPanel() {
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [success, setSuccess] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const successTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -215,6 +216,7 @@ export function PreferencesPanel() {
       successTimerRef.current = setTimeout(() => setSuccess(null), 3000);
     } catch (error) {
       console.error('Failed to save preferences:', error);
+      setError(t('settings.preferences.saveError'));
     } finally {
       setIsSaving(false);
     }
@@ -246,6 +248,12 @@ export function PreferencesPanel() {
                 <div className="p-3 bg-success-50 border border-green-200 rounded-lg text-success-700 text-sm flex items-center gap-2">
                   <CheckCircle className="w-4 h-4" />
                   {success}
+                </div>
+              )}
+
+              {error && (
+                <div className="p-3 bg-danger-50 border border-danger-200 rounded-lg text-danger-700 text-sm">
+                  {error}
                 </div>
               )}
 

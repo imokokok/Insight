@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
 import { moderateRateLimit } from '@/lib/api/middleware/rateLimitMiddleware';
+import { ApiResponseBuilder } from '@/lib/api/response';
 import { getUserId } from '@/lib/api/utils';
 import { sanitizeObject, sanitizeString } from '@/lib/security';
 import { type UserProfileUpdate } from '@/lib/supabase/queries';
@@ -79,7 +80,7 @@ export async function GET(request: NextRequest) {
   try {
     const userId = await getUserId(request);
     if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return ApiResponseBuilder.unauthorized();
     }
 
     const queries = getServerQueries();
@@ -105,7 +106,7 @@ export async function GET(request: NextRequest) {
       'Error fetching profile',
       error instanceof Error ? error : new Error(String(error))
     );
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return ApiResponseBuilder.serverError();
   }
 }
 
@@ -118,14 +119,14 @@ export async function PUT(request: NextRequest) {
   try {
     const userId = await getUserId(request);
     if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return ApiResponseBuilder.unauthorized();
     }
 
     let body: Record<string, unknown>;
     try {
       body = await request.json();
     } catch {
-      return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+      return ApiResponseBuilder.badRequest('Invalid JSON body');
     }
 
     const sanitizedBody = sanitizeObject(body);
@@ -139,7 +140,7 @@ export async function PUT(request: NextRequest) {
           maxLength: MAX_DISPLAY_NAME_LENGTH,
         });
       } else {
-        return NextResponse.json({ error: 'Invalid display_name format' }, { status: 400 });
+        return ApiResponseBuilder.badRequest('Invalid display_name format');
       }
     }
 
@@ -151,14 +152,14 @@ export async function PUT(request: NextRequest) {
     }
 
     if (Object.keys(updateData).length === 0) {
-      return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 });
+      return ApiResponseBuilder.badRequest('No valid fields to update');
     }
 
     const queries = getServerQueries();
     const updatedProfile = await queries.upsertUserProfile(userId, updateData);
 
     if (!updatedProfile) {
-      return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 });
+      return ApiResponseBuilder.serverError('Failed to update profile');
     }
 
     return NextResponse.json({
@@ -170,6 +171,6 @@ export async function PUT(request: NextRequest) {
       'Error updating profile',
       error instanceof Error ? error : new Error(String(error))
     );
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return ApiResponseBuilder.serverError();
   }
 }

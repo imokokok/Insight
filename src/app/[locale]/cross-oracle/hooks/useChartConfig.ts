@@ -39,10 +39,22 @@ const initialHistoryMinMax: HistoryMinMax = {
   variance: { min: Infinity, max: -Infinity },
 };
 
+function timeRangeToHours(range: TimeRange): number {
+  const map: Record<TimeRange, number> = {
+    '1h': 1,
+    '24h': 24,
+    '7d': 7 * 24,
+    '30d': 30 * 24,
+    '90d': 90 * 24,
+    '1y': 365 * 24,
+  };
+  return map[range];
+}
+
 export function useChartConfig({
   historicalData,
   selectedOracles,
-  timeRange: _timeRange,
+  timeRange,
   useAccessibleColors,
   validPrices,
   avgPrice,
@@ -72,11 +84,11 @@ export function useChartConfig({
 
   // 生成图表数据
   const getChartData = useCallback((): ChartDataPoint[] => {
+    const cutoff = Date.now() - timeRangeToHours(timeRange) * 3600 * 1000;
     const dataMap = new Map<number, ChartDataPoint>();
 
-    // 收集所有时间点
     selectedOracles.forEach((oracle) => {
-      const history = historicalData[oracle] || [];
+      const history = (historicalData[oracle] || []).filter((item) => item.timestamp >= cutoff);
       history.forEach((item) => {
         if (!dataMap.has(item.timestamp)) {
           dataMap.set(item.timestamp, {
@@ -122,14 +134,13 @@ export function useChartConfig({
 
       return point;
     });
-  }, [historicalData, selectedOracles]);
-
-  // 生成热力图数据
+  }, [historicalData, selectedOracles, timeRange]);
   const heatmapData = useMemo(() => {
+    const cutoff = Date.now() - timeRangeToHours(timeRange) * 3600 * 1000;
     const data: PriceDeviationDataPoint[] = [];
 
     selectedOracles.forEach((oracle) => {
-      const history = historicalData[oracle] || [];
+      const history = (historicalData[oracle] || []).filter((item) => item.timestamp >= cutoff);
       history.forEach((item) => {
         const deviation = avgPrice > 0 ? ((item.price - avgPrice) / avgPrice) * 100 : 0;
         data.push({
@@ -142,20 +153,17 @@ export function useChartConfig({
     });
 
     return data;
-  }, [historicalData, selectedOracles, avgPrice]);
-
-  // 生成箱线图数据
+  }, [historicalData, selectedOracles, avgPrice, timeRange]);
   const boxPlotData = useMemo(() => {
+    const cutoff = Date.now() - timeRangeToHours(timeRange) * 3600 * 1000;
     return selectedOracles.map((oracle) => {
-      const history = historicalData[oracle] || [];
+      const history = (historicalData[oracle] || []).filter((item) => item.timestamp >= cutoff);
       return {
         oracleId: oracleNames[oracle],
         prices: history.map((h) => h.price),
       };
     });
-  }, [historicalData, selectedOracles]);
-
-  // 生成波动率数据
+  }, [historicalData, selectedOracles, timeRange]);
   const volatilityData = useMemo(() => {
     return selectedOracles.map((oracle) => {
       const history = historicalData[oracle] || [];
@@ -228,8 +236,8 @@ export function useChartConfig({
 
     let histAvgMin = currentAvg;
     let histAvgMax = currentAvg;
-    const histWavgMin = Infinity;
-    const histWavgMax = -Infinity;
+    let histWavgMin = Infinity;
+    let histWavgMax = -Infinity;
     let histMaxMin = currentMax;
     let histMaxMax = currentMax;
     let histMinMax = currentMin;
@@ -251,6 +259,20 @@ export function useChartConfig({
       const avg = prices.reduce((a, b) => a + b, 0) / prices.length;
       histAvgMin = Math.min(histAvgMin, avg);
       histAvgMax = Math.max(histAvgMax, avg);
+
+      const wavgData = history.filter((h) => h.price > 0);
+      if (wavgData.length > 0) {
+        let sumWeighted = 0;
+        let sumWeights = 0;
+        wavgData.forEach((h) => {
+          const weight = h.confidence ?? 1;
+          sumWeighted += h.price * weight;
+          sumWeights += weight;
+        });
+        const wavg = sumWeights > 0 ? sumWeighted / sumWeights : avg;
+        histWavgMin = Math.min(histWavgMin, wavg);
+        histWavgMax = Math.max(histWavgMax, wavg);
+      }
 
       const max = safeMax(prices);
       const min = safeMin(prices);

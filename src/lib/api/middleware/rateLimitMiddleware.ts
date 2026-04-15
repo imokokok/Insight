@@ -4,64 +4,9 @@ import { createLogger } from '@/lib/utils/logger';
 
 import { ApiResponseBuilder } from '../response';
 
+import { rateLimitStore } from './rateLimitStore';
+
 const logger = createLogger('rate-limit-middleware');
-
-interface RateLimitEntry {
-  count: number;
-  resetTime: number;
-  lastAccessTime: number;
-}
-
-const rateLimitStore = new Map<string, RateLimitEntry>();
-const MAX_STORE_SIZE = 10000;
-const CLEANUP_INTERVAL = 60000;
-
-let cleanupTimer: NodeJS.Timeout | null = null;
-let isCleanupScheduled = false;
-
-function scheduleCleanup(): void {
-  if (isCleanupScheduled) return;
-  isCleanupScheduled = true;
-
-  cleanupTimer = setInterval(() => {
-    const now = Date.now();
-    let cleanedCount = 0;
-
-    for (const [key, entry] of rateLimitStore.entries()) {
-      if (entry.resetTime < now) {
-        rateLimitStore.delete(key);
-        cleanedCount++;
-      }
-    }
-
-    if (cleanedCount > 0) {
-      logger.debug(`Cleaned up ${cleanedCount} expired rate limit entries`);
-    }
-  }, CLEANUP_INTERVAL);
-}
-
-function ensureCleanupScheduled(): void {
-  if (!isCleanupScheduled) {
-    scheduleCleanup();
-  }
-}
-
-function cleanupOldestEntries(count: number): void {
-  const entries = Array.from(rateLimitStore.entries());
-  entries.sort((a, b) => a[1].lastAccessTime - b[1].lastAccessTime);
-
-  for (let i = 0; i < Math.min(count, entries.length); i++) {
-    rateLimitStore.delete(entries[i][0]);
-  }
-}
-
-export function stopRateLimitCleanup(): void {
-  if (cleanupTimer) {
-    clearInterval(cleanupTimer);
-    cleanupTimer = null;
-    isCleanupScheduled = false;
-  }
-}
 
 export interface RateLimitMiddlewareOptions {
   windowMs?: number;
@@ -86,34 +31,18 @@ export function createRateLimitMiddleware(options: RateLimitMiddlewareOptions = 
   } = options;
 
   return async (request: NextRequest): Promise<RateLimitMiddlewareResult> => {
-    ensureCleanupScheduled();
-
     const key = keyGenerator(request);
-    const now = Date.now();
-    const resetTime = now + windowMs;
 
-    // 检查存储大小限制，如果超过则清理最旧的条目
-    if (rateLimitStore.size >= MAX_STORE_SIZE) {
-      cleanupOldestEntries(Math.floor(MAX_STORE_SIZE * 0.1)); // 清理 10% 的条目
-      logger.warn('Rate limit store reached max size, cleaned up oldest entries');
-    }
+    const result = await rateLimitStore.increment(key, windowMs);
 
-    const entry = rateLimitStore.get(key);
-
-    if (!entry || entry.resetTime < now) {
-      rateLimitStore.set(key, { count: 1, resetTime, lastAccessTime: now });
-      return { success: true, remaining: maxRequests - 1, resetTime };
-    }
-
-    if (entry.count >= maxRequests) {
-      const retryAfter = Math.ceil((entry.resetTime - now) / 1000);
-      logger.warn('Rate limit exceeded', { key, count: entry.count, maxRequests });
+    if (result.count >= maxRequests) {
+      const now = Date.now();
+      const retryAfter = Math.ceil((result.resetTime - now) / 1000);
+      logger.warn('Rate limit exceeded', { key, count: result.count, maxRequests });
       return { success: false, response: handler(request, retryAfter, maxRequests) };
     }
 
-    entry.count++;
-    entry.lastAccessTime = now;
-    return { success: true, remaining: maxRequests - entry.count, resetTime };
+    return { success: true, remaining: maxRequests - result.count, resetTime: result.resetTime };
   };
 }
 
@@ -192,5 +121,9 @@ export const apiRateLimit = createRateLimitMiddleware({
 });
 
 export function clearRateLimitStore(): void {
-  rateLimitStore.clear();
+  rateLimitStore.clear?.();
+}
+
+export function stopRateLimitCleanup(): void {
+  rateLimitStore.stopCleanup?.();
 }

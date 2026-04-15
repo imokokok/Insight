@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 
 import type { SearchResult } from '@/lib/constants/searchConfig';
 import type { SearchHistoryItem } from '@/lib/utils/searchHistory';
@@ -33,7 +33,7 @@ export function useDropdown(
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const dropdownItems: DropdownItem[] = (() => {
+  const dropdownItems: DropdownItem[] = useMemo(() => {
     const items: DropdownItem[] = [];
 
     if (!searchQuery.trim() && searchHistory.length > 0) {
@@ -59,7 +59,7 @@ export function useDropdown(
     });
 
     return items.slice(0, 10);
-  })();
+  }, [searchQuery, searchResults, searchHistory]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

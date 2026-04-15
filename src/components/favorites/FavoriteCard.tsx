@@ -45,9 +45,10 @@ export function FavoriteCard({ favorite, onApply, onEdit, onDelete }: FavoriteCa
   };
 
   const handleDelete = async () => {
-    const success = await removeFavorite(favorite.id!, configType);
+    if (!favorite.id) return;
+    const success = await removeFavorite(favorite.id, configType);
     if (success) {
-      onDelete?.(favorite.id!);
+      onDelete?.(favorite.id);
     }
   };
 

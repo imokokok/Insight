@@ -7,22 +7,13 @@
 
 import { memo } from 'react';
 
+import { formatPrice } from '@/lib/utils/format';
+
 interface PriceRangeBarProps {
   minPrice: number;
   maxPrice: number;
   medianPrice: number;
   currentPrice?: number;
-}
-
-function formatPrice(value: number): string {
-  if (value >= 1000) {
-    return `$${(value / 1000).toFixed(1)}K`;
-  }
-  const absValue = Math.abs(value);
-  if (absValue >= 1) {
-    return `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}`;
-  }
-  return `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })}`;
 }
 
 function PriceRangeBarComponent({

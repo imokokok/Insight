@@ -14,25 +14,26 @@ const logger = createLogger('marketData:anomalyCalculations');
 
 export async function detectAnomalies(
   _oracleData: OracleMarketData[],
-  assetData: AssetData[]
-): Promise<AnomalyData[]> {
+  assetData: AssetData[],
+  pricesMap?: Map<string, { prices: number[]; timestamps: number[] }>
+): Promise<AnomalyData[] | null> {
   try {
     logger.info('Detecting market anomalies...');
+
+    if (!pricesMap || pricesMap.size === 0) {
+      logger.warn('No price data provided for anomaly detection');
+      return null;
+    }
 
     const allAnomalies: AnomalyData[] = [];
 
     assetData.forEach((asset) => {
-      const prices: number[] = [];
-      const timestamps: number[] = [];
-      let basePrice = asset.price;
-      const now = Date.now();
-
-      for (let i = 100; i >= 0; i--) {
-        const timestamp = now - i * 3600000;
-        basePrice = basePrice * (1 + (Math.random() - 0.48 + asset.change24h / 2400) * 0.02);
-        prices.push(basePrice);
-        timestamps.push(timestamp);
+      const assetPriceData = pricesMap.get(asset.symbol);
+      if (!assetPriceData || assetPriceData.prices.length === 0) {
+        return;
       }
+
+      const { prices, timestamps } = assetPriceData;
 
       const priceAnomalies = detectPriceAnomalies(prices, timestamps, asset.symbol);
       allAnomalies.push(...priceAnomalies);
@@ -55,6 +56,6 @@ export async function detectAnomalies(
       'Failed to detect anomalies',
       error instanceof Error ? error : new Error(String(error))
     );
-    return [];
+    return null;
   }
 }

@@ -1,379 +1,132 @@
 'use client';
 
-import { useEffect, useCallback, useMemo, useState, useRef } from 'react';
+import { useMemo } from 'react';
 
-import { useFavorites, type FavoriteConfig } from '@/hooks';
-import { type OracleProvider, getDefaultFactory } from '@/lib/oracles';
-import { isBlockchain } from '@/lib/utils/chainUtils';
-import { useUser } from '@/stores/authStore';
 import { useCrossChainConfigStore } from '@/stores/crossChainConfigStore';
-import { useCrossChainDataStore } from '@/stores/crossChainDataStore';
 import { useCrossChainSelectorStore } from '@/stores/crossChainSelectorStore';
 import { useCrossChainUIStore } from '@/stores/crossChainUIStore';
 
-import {
-  useDataValidation,
-  useAnomalyDetection,
-  useDataFetching,
-  useStatistics,
-  useChartData,
-  useExport,
-  clearCache as clearDataCache,
-} from './hooks';
+import { useCrossChainChart } from './hooks/useCrossChainChart';
+import { useCrossChainDataState } from './hooks/useCrossChainDataState';
+import { useCrossChainExport } from './hooks/useCrossChainExport';
+import { useCrossChainSelector } from './hooks/useCrossChainSelector';
+import { useCrossChainStatistics } from './hooks/useCrossChainStatistics';
+import { useCrossChainTable } from './hooks/useCrossChainTable';
+import { useCrossChainUI } from './hooks/useCrossChainUI';
 import { type UseCrossChainDataReturn } from './types';
-import { chainNames, calculateDynamicThreshold } from './utils';
 
 export function useCrossChainData(): UseCrossChainDataReturn {
-  const user = useUser();
-  const { favorites: chainFavorites } = useFavorites({ configType: 'chain_config' });
-  const [showFavoritesDropdown, setShowFavoritesDropdown] = useState(false);
-  const favoritesDropdownRef = useRef<HTMLDivElement>(null);
-  const refreshSuccessTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const {
-    selectedProvider,
-    selectedSymbol,
-    selectedTimeRange,
-    selectedBaseChain,
-    setSelectedProvider,
-    setSelectedSymbol,
-    setSelectedTimeRange,
-    setSelectedBaseChain,
-  } = useCrossChainSelectorStore();
-
-  const {
-    visibleChains,
-    showMA,
-    maPeriod,
-    chartKey,
-    hiddenLines,
-    focusedChain,
-    tableFilter,
-    hoveredCell,
-    selectedCell,
-    tooltipPosition,
-    sortColumn,
-    sortDirection,
-    setVisibleChains,
-    setShowMA,
-    setMaPeriod,
-    setChartKey,
-    setHiddenLines,
-    setFocusedChain,
-    setTableFilter,
-    setHoveredCell,
-    setSelectedCell,
-    setTooltipPosition,
-    setSortColumn,
-    setSortDirection,
-    toggleChain,
-    handleSort,
-  } = useCrossChainUIStore();
-
-  const {
-    currentPrices,
-    historicalPrices,
-    loading,
-    refreshStatus,
-    showRefreshSuccess,
-    lastUpdated,
-    recommendedBaseChain,
-    prevStats,
-    setCurrentPrices,
-    setHistoricalPrices,
-    setLoading,
-    setRefreshStatus,
-    setShowRefreshSuccess,
-    setLastUpdated,
-    setPrevStats,
-    setRecommendedBaseChain,
-  } = useCrossChainDataStore();
-
-  const { refreshInterval, setRefreshInterval } = useCrossChainConfigStore();
-
-  const dataValidation = useDataValidation();
-  const anomalyDetection = useAnomalyDetection();
-  const currentClient = getDefaultFactory().getClient(selectedProvider);
-  const supportedChains = currentClient.supportedChains;
-
-  const {
-    fetchData: fetchDataInternal,
-    clearCache,
-    clearCacheForProvider,
-  } = useDataFetching(
-    selectedProvider,
-    supportedChains,
-    {
-      selectedSymbol,
-      selectedTimeRange,
-      setCurrentPrices,
-      setHistoricalPrices,
-      setPrevStats,
-      setRecommendedBaseChain,
-      setLastUpdated,
-      setRefreshStatus,
-      setShowRefreshSuccess,
-      setLoading,
-    },
-    dataValidation,
-    anomalyDetection
-  );
+  const selector = useCrossChainSelector();
+  const ui = useCrossChainUI();
+  const dataState = useCrossChainDataState();
 
   const filteredChains = useMemo(
-    () => supportedChains.filter((chain) => visibleChains.includes(chain)),
-    [supportedChains, visibleChains]
+    () => dataState.supportedChains.filter((chain) => ui.visibleChains.includes(chain)),
+    [dataState.supportedChains, ui.visibleChains]
   );
 
-  const statistics = useStatistics({
-    currentPrices,
-    historicalPrices,
+  const statistics = useCrossChainStatistics({
+    currentPrices: dataState.currentPrices,
+    historicalPrices: dataState.historicalPrices,
     filteredChains,
-    selectedTimeRange,
-    currentClient,
-  });
-
-  const chartDataResult = useChartData({
-    currentPrices,
-    historicalPrices,
-    filteredChains,
-    selectedBaseChain,
-    selectedTimeRange,
-    showMA,
-    maPeriod,
-    validPrices: statistics.validPrices,
-    avgPrice: statistics.avgPrice,
-    standardDeviation: statistics.standardDeviation,
-    medianPrice: statistics.medianPrice,
+    selectedTimeRange: selector.selectedTimeRange,
+    currentClient: dataState.currentClient,
   });
 
   const thresholdConfig = useCrossChainConfigStore((s) => s.thresholdConfig);
 
-  const dynamicThreshold = useMemo(() => {
-    const allHistoricalPrices: number[] = [];
-    filteredChains.forEach((chain) => {
-      const prices = historicalPrices[chain]?.map((p) => p.price) || [];
-      allHistoricalPrices.push(...prices);
-    });
-    return calculateDynamicThreshold(allHistoricalPrices, thresholdConfig);
-  }, [historicalPrices, filteredChains, thresholdConfig]);
+  const chart = useCrossChainChart({
+    currentPrices: dataState.currentPrices,
+    historicalPrices: dataState.historicalPrices,
+    filteredChains,
+    selectedBaseChain: selector.selectedBaseChain,
+    selectedTimeRange: selector.selectedTimeRange,
+    showMA: ui.showMA,
+    maPeriod: ui.maPeriod,
+    validPrices: statistics.validPrices,
+    avgPrice: statistics.avgPrice,
+    standardDeviation: statistics.standardDeviation,
+    medianPrice: statistics.medianPrice,
+    thresholdConfig,
+  });
 
-  const sortedPriceDifferences = useMemo(() => {
-    let filtered = [...chartDataResult.priceDifferences];
+  const table = useCrossChainTable({
+    priceDifferences: chart.priceDifferences,
+    historicalPrices: dataState.historicalPrices,
+    filteredChains,
+    selectedBaseChain: selector.selectedBaseChain,
+    thresholdConfig,
+  });
 
-    if (tableFilter === 'abnormal') {
-      filtered = filtered.filter((item) => Math.abs(item.diffPercent) > dynamicThreshold);
-    } else if (tableFilter === 'normal') {
-      filtered = filtered.filter((item) => Math.abs(item.diffPercent) <= dynamicThreshold);
-    }
-
-    const baseChainItem = filtered.find((item) => item.chain === selectedBaseChain);
-    const otherItems = filtered.filter((item) => item.chain !== selectedBaseChain);
-
-    otherItems.sort((a, b) => {
-      let comparison = 0;
-      switch (sortColumn) {
-        case 'chain':
-          comparison = chainNames[a.chain].localeCompare(chainNames[b.chain]);
-          break;
-        case 'price':
-          comparison = a.price - b.price;
-          break;
-        case 'diff':
-          comparison = a.diff - b.diff;
-          break;
-        case 'diffPercent':
-          comparison = a.diffPercent - b.diffPercent;
-          break;
-        default:
-          comparison = 0;
-      }
-      return sortDirection === 'asc' ? comparison : -comparison;
-    });
-
-    return baseChainItem ? [baseChainItem, ...otherItems] : otherItems;
-  }, [
-    chartDataResult.priceDifferences,
-    sortColumn,
-    sortDirection,
-    selectedBaseChain,
-    tableFilter,
-    dynamicThreshold,
-  ]);
-
-  const chainsWithHighDeviation = useMemo(() => {
-    return chartDataResult.priceDifferences.filter(
-      (item) => Math.abs(item.diffPercent) > dynamicThreshold
-    );
-  }, [chartDataResult.priceDifferences, dynamicThreshold]);
-
-  const exportHook = useExport({
-    selectedProvider,
-    selectedSymbol,
-    selectedBaseChain,
-    priceDifferences: chartDataResult.priceDifferences,
-    historicalPrices,
+  const exportHook = useCrossChainExport({
+    selectedProvider: selector.selectedProvider,
+    selectedSymbol: selector.selectedSymbol,
+    selectedBaseChain: selector.selectedBaseChain,
+    priceDifferences: chart.priceDifferences,
+    historicalPrices: dataState.historicalPrices,
     filteredChains,
     avgPrice: statistics.avgPrice,
     maxPrice: statistics.maxPrice,
     minPrice: statistics.minPrice,
     priceRange: statistics.priceRange,
     standardDeviationPercent: statistics.standardDeviationPercent,
-    totalDataPoints: chartDataResult.totalDataPoints,
+    totalDataPoints: chart.totalDataPoints,
+    visibleChains: ui.visibleChains,
+    clearCache: dataState.clearCache,
+    clearCacheForProvider: dataState.clearCacheForProvider,
   });
-
-  const fetchData = useCallback(async () => {
-    await fetchDataInternal();
-  }, [fetchDataInternal]);
-
-  // 使用 ref 来跟踪之前的参数和初始加载状态
-  const prevParamsRef = useRef({
-    selectedProvider,
-    selectedSymbol,
-    selectedTimeRange,
-  });
-  const isInitialLoadRef = useRef(true);
-
-  useEffect(() => {
-    // 检测参数是否真正发生变化或是初始加载
-    const isInitialLoad = isInitialLoadRef.current;
-    const paramsChanged =
-      prevParamsRef.current.selectedProvider !== selectedProvider ||
-      prevParamsRef.current.selectedSymbol !== selectedSymbol ||
-      prevParamsRef.current.selectedTimeRange !== selectedTimeRange;
-
-    if (isInitialLoad || paramsChanged) {
-      // 更新 ref
-      prevParamsRef.current = {
-        selectedProvider,
-        selectedSymbol,
-        selectedTimeRange,
-      };
-      isInitialLoadRef.current = false;
-
-      // 清理旧数据，避免显示过期数据
-      setCurrentPrices([]);
-      setHistoricalPrices({});
-      setLastUpdated(null);
-      setRefreshStatus('idle');
-
-      // 获取新数据
-      fetchData();
-    }
-
-    return () => clearDataCache();
-  }, [
-    selectedProvider,
-    selectedSymbol,
-    selectedTimeRange,
-    fetchData,
-    setCurrentPrices,
-    setHistoricalPrices,
-    setLastUpdated,
-    setRefreshStatus,
-  ]);
-
-  useEffect(() => {
-    const timerRef = refreshSuccessTimerRef;
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (refreshInterval === 0) return;
-    const intervalId = setInterval(() => fetchData(), refreshInterval);
-    return () => clearInterval(intervalId);
-  }, [refreshInterval, fetchData]);
-
-  useEffect(() => {
-    if (supportedChains.length > 0 && visibleChains.length === 0) {
-      setVisibleChains([...supportedChains]);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [supportedChains, visibleChains.length]);
-
-  useEffect(() => {
-    if (supportedChains.length > 0 && !selectedBaseChain) {
-      setSelectedBaseChain(recommendedBaseChain || supportedChains[0]);
-    }
-    if (
-      supportedChains.length > 0 &&
-      selectedBaseChain &&
-      !supportedChains.includes(selectedBaseChain)
-    ) {
-      setSelectedBaseChain(recommendedBaseChain || supportedChains[0]);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [supportedChains, selectedBaseChain, recommendedBaseChain]);
-
-  const currentFavoriteConfig: FavoriteConfig = useMemo(
-    () => ({
-      chain: selectedProvider,
-      symbol: selectedSymbol,
-      chains: visibleChains.map((c) => c as string),
-    }),
-    [selectedProvider, selectedSymbol, visibleChains]
-  );
-
-  const handleApplyFavorite = useCallback((config: FavoriteConfig) => {
-    if (config.chain) setSelectedProvider(config.chain as OracleProvider);
-    if (config.symbol) setSelectedSymbol(config.symbol);
-    if (config.chains) setVisibleChains(config.chains.filter(isBlockchain));
-    setShowFavoritesDropdown(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   return {
-    selectedProvider,
-    setSelectedProvider,
-    selectedSymbol,
-    setSelectedSymbol,
-    selectedTimeRange,
-    setSelectedTimeRange,
-    selectedBaseChain,
-    setSelectedBaseChain,
-    visibleChains,
-    setVisibleChains,
-    showMA,
-    setShowMA,
-    maPeriod,
-    setMaPeriod,
-    chartKey,
-    setChartKey,
-    hiddenLines,
-    setHiddenLines,
-    focusedChain,
-    setFocusedChain,
-    tableFilter,
-    setTableFilter,
-    hoveredCell,
-    setHoveredCell,
-    selectedCell,
-    setSelectedCell,
-    tooltipPosition,
-    setTooltipPosition,
-    refreshInterval,
-    setRefreshInterval,
-    lastUpdated,
-    currentPrices,
-    historicalPrices,
-    loading,
-    refreshStatus,
-    showRefreshSuccess,
-    recommendedBaseChain,
-    supportedChains,
-    currentClient,
-    fetchData,
-    filteredChains,
-    priceDifferences: chartDataResult.priceDifferences,
-    sortedPriceDifferences,
-    chartData: chartDataResult.chartData,
-    chartDataWithMA: chartDataResult.chartDataWithMA,
-    heatmapData: chartDataResult.heatmapData,
-    maxHeatmapValue: chartDataResult.maxHeatmapValue,
-    priceDistributionData: chartDataResult.priceDistributionData,
-    boxPlotData: chartDataResult.boxPlotData,
-    totalDataPoints: chartDataResult.totalDataPoints,
+    selectedProvider: selector.selectedProvider,
+    setSelectedProvider: selector.setSelectedProvider,
+    selectedSymbol: selector.selectedSymbol,
+    setSelectedSymbol: selector.setSelectedSymbol,
+    selectedTimeRange: selector.selectedTimeRange,
+    setSelectedTimeRange: selector.setSelectedTimeRange,
+    selectedBaseChain: selector.selectedBaseChain,
+    setSelectedBaseChain: selector.setSelectedBaseChain,
+    visibleChains: ui.visibleChains,
+    setVisibleChains: ui.setVisibleChains,
+    showMA: ui.showMA,
+    setShowMA: ui.setShowMA,
+    maPeriod: ui.maPeriod,
+    setMaPeriod: ui.setMaPeriod,
+    chartKey: ui.chartKey,
+    setChartKey: ui.setChartKey,
+    hiddenLines: ui.hiddenLines,
+    setHiddenLines: ui.setHiddenLines,
+    focusedChain: ui.focusedChain,
+    setFocusedChain: ui.setFocusedChain,
+    tableFilter: ui.tableFilter,
+    setTableFilter: ui.setTableFilter,
+    hoveredCell: ui.hoveredCell,
+    setHoveredCell: ui.setHoveredCell,
+    selectedCell: ui.selectedCell,
+    setSelectedCell: ui.setSelectedCell,
+    tooltipPosition: ui.tooltipPosition,
+    setTooltipPosition: ui.setTooltipPosition,
+    refreshInterval: selector.refreshInterval,
+    setRefreshInterval: selector.setRefreshInterval,
+    lastUpdated: dataState.lastUpdated,
+    currentPrices: dataState.currentPrices,
+    historicalPrices: dataState.historicalPrices,
+    loading: dataState.loading,
+    refreshStatus: dataState.refreshStatus,
+    showRefreshSuccess: dataState.showRefreshSuccess,
+    recommendedBaseChain: dataState.recommendedBaseChain,
+    supportedChains: dataState.supportedChains,
+    currentClient: dataState.currentClient,
+    fetchData: dataState.fetchData,
+    filteredChains: table.filteredChains,
+    priceDifferences: chart.priceDifferences,
+    sortedPriceDifferences: table.sortedPriceDifferences,
+    chartData: chart.chartData,
+    chartDataWithMA: chart.chartDataWithMA,
+    heatmapData: chart.heatmapData,
+    maxHeatmapValue: chart.maxHeatmapValue,
+    priceDistributionData: chart.priceDistributionData,
+    boxPlotData: chart.boxPlotData,
+    totalDataPoints: chart.totalDataPoints,
     validPrices: statistics.validPrices,
     avgPrice: statistics.avgPrice,
     maxPrice: statistics.maxPrice,
@@ -388,39 +141,39 @@ export function useCrossChainData(): UseCrossChainDataReturn {
     skewness: statistics.skewness,
     kurtosis: statistics.kurtosis,
     confidenceInterval95: statistics.confidenceInterval95,
-    iqrOutliers: chartDataResult.iqrOutliers,
-    stdDevHistoricalOutliers: chartDataResult.stdDevHistoricalOutliers,
-    scatterData: chartDataResult.scatterData,
-    correlationMatrix: chartDataResult.correlationMatrix,
-    correlationMatrixWithSignificance: chartDataResult.correlationMatrixWithSignificance,
+    iqrOutliers: chart.iqrOutliers,
+    stdDevHistoricalOutliers: chart.stdDevHistoricalOutliers,
+    scatterData: chart.scatterData,
+    correlationMatrix: chart.correlationMatrix,
+    correlationMatrixWithSignificance: chart.correlationMatrixWithSignificance,
     chainVolatility: statistics.chainVolatility,
     updateDelays: statistics.updateDelays,
     dataIntegrity: statistics.dataIntegrity,
     actualUpdateIntervals: statistics.actualUpdateIntervals,
-    priceJumpFrequency: chartDataResult.priceJumpFrequency,
-    priceChangePercent: chartDataResult.priceChangePercent,
-    meanBinIndex: chartDataResult.meanBinIndex,
-    medianBinIndex: chartDataResult.medianBinIndex,
-    stdDevBinRange: chartDataResult.stdDevBinRange,
-    chainsWithHighDeviation,
-    prevStats,
-    sortColumn,
-    setSortColumn,
-    sortDirection,
-    setSortDirection,
-    toggleChain,
-    handleSort,
+    priceJumpFrequency: chart.priceJumpFrequency,
+    priceChangePercent: chart.priceChangePercent,
+    meanBinIndex: chart.meanBinIndex,
+    medianBinIndex: chart.medianBinIndex,
+    stdDevBinRange: chart.stdDevBinRange,
+    chainsWithHighDeviation: table.chainsWithHighDeviation,
+    prevStats: dataState.prevStats,
+    sortColumn: ui.sortColumn,
+    setSortColumn: ui.setSortColumn,
+    sortDirection: ui.sortDirection,
+    setSortDirection: ui.setSortDirection,
+    toggleChain: table.toggleChain,
+    handleSort: table.handleSort,
     exportToCSV: exportHook.exportToCSV,
     exportToJSON: exportHook.exportToJSON,
-    user,
-    chainFavorites,
-    currentFavoriteConfig,
-    showFavoritesDropdown,
-    setShowFavoritesDropdown,
-    favoritesDropdownRef,
-    handleApplyFavorite,
-    clearCache,
-    clearCacheForProvider,
+    user: exportHook.user,
+    chainFavorites: exportHook.chainFavorites,
+    currentFavoriteConfig: exportHook.currentFavoriteConfig,
+    showFavoritesDropdown: exportHook.showFavoritesDropdown,
+    setShowFavoritesDropdown: exportHook.setShowFavoritesDropdown,
+    favoritesDropdownRef: exportHook.favoritesDropdownRef,
+    handleApplyFavorite: exportHook.handleApplyFavorite,
+    clearCache: exportHook.clearCache,
+    clearCacheForProvider: exportHook.clearCacheForProvider,
   };
 }
 

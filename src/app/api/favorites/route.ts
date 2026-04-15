@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
 import { moderateRateLimit } from '@/lib/api/middleware/rateLimitMiddleware';
+import { ApiResponseBuilder } from '@/lib/api/response';
 import { getUserId } from '@/lib/api/utils';
 import { sanitizeObject, sanitizeString } from '@/lib/security';
 import { CreateFavoriteRequestSchema, validateAndSanitize } from '@/lib/security/validation';
@@ -19,7 +20,7 @@ export async function GET(request: NextRequest) {
   try {
     const userId = await getUserId(request);
     if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return ApiResponseBuilder.unauthorized();
     }
 
     const searchParams = request.nextUrl.searchParams;
@@ -44,7 +45,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (!favorites) {
-      return NextResponse.json({ error: 'Failed to fetch favorites' }, { status: 500 });
+      return ApiResponseBuilder.serverError('Failed to fetch favorites');
     }
 
     return NextResponse.json({
@@ -56,7 +57,7 @@ export async function GET(request: NextRequest) {
       'Error fetching favorites',
       error instanceof Error ? error : new Error(String(error))
     );
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return ApiResponseBuilder.serverError();
   }
 }
 
@@ -69,22 +70,21 @@ export async function POST(request: NextRequest) {
   try {
     const userId = await getUserId(request);
     if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return ApiResponseBuilder.unauthorized();
     }
 
     let body;
     try {
       body = await request.json();
     } catch {
-      return NextResponse.json({ error: 'Invalid JSON in request body' }, { status: 400 });
+      return ApiResponseBuilder.badRequest('Invalid JSON in request body');
     }
 
     const validatedData = validateAndSanitize(CreateFavoriteRequestSchema, body);
 
     if (!validatedData) {
-      return NextResponse.json(
-        { error: 'Invalid request data. Check name, config_type, and config_data fields.' },
-        { status: 400 }
+      return ApiResponseBuilder.badRequest(
+        'Invalid request data. Check name, config_type, and config_data fields.'
       );
     }
 
@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (!favorite) {
-      return NextResponse.json({ error: 'Failed to add favorite' }, { status: 500 });
+      return ApiResponseBuilder.serverError('Failed to add favorite');
     }
 
     return NextResponse.json(
@@ -114,6 +114,6 @@ export async function POST(request: NextRequest) {
       'Error adding favorite',
       error instanceof Error ? error : new Error(String(error))
     );
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return ApiResponseBuilder.serverError();
   }
 }

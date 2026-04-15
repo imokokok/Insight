@@ -3,6 +3,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
 import { strictRateLimit } from '@/lib/api/middleware/rateLimitMiddleware';
+import { ApiResponseBuilder } from '@/lib/api/response';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('api-auth-delete-account');
@@ -18,7 +19,7 @@ export async function POST(request: NextRequest) {
     const refreshToken = request.cookies.get('sb-refresh-token')?.value;
 
     if (!accessToken) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return ApiResponseBuilder.unauthorized();
     }
 
     const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -26,7 +27,7 @@ export async function POST(request: NextRequest) {
 
     if (!supabaseUrl || !supabaseServiceKey) {
       logger.error('Missing Supabase configuration');
-      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
+      return ApiResponseBuilder.serverError('Server configuration error');
     }
 
     const supabaseUser = createClient(supabaseUrl, accessToken, {
@@ -38,7 +39,7 @@ export async function POST(request: NextRequest) {
     } = await supabaseUser.auth.getUser(accessToken);
 
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return ApiResponseBuilder.unauthorized();
     }
 
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
@@ -81,7 +82,7 @@ export async function POST(request: NextRequest) {
 
     if (deleteError) {
       logger.error('Failed to delete user account', deleteError as Error);
-      return NextResponse.json({ error: 'Failed to delete account' }, { status: 500 });
+      return ApiResponseBuilder.serverError('Failed to delete account');
     }
 
     const response = NextResponse.json({ success: true });
@@ -95,6 +96,6 @@ export async function POST(request: NextRequest) {
       'Error in delete account',
       error instanceof Error ? error : new Error(String(error))
     );
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return ApiResponseBuilder.serverError();
   }
 }

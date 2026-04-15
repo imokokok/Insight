@@ -16,7 +16,10 @@ import { ChartToolbar, type TimeRange } from '@/components/charts/ChartToolbar';
 import { useTranslations } from '@/i18n';
 import { baseColors, semanticColors, chartColors } from '@/lib/config/colors';
 import { type Blockchain, type PriceData } from '@/lib/oracles';
+import { safeMax } from '@/lib/utils';
 import { isBlockchain } from '@/lib/utils/chainUtils';
+import { downloadBlob } from '@/lib/utils/download';
+import { escapeCSVField } from '@/lib/utils/export';
 import { useColorblindMode } from '@/stores/crossChainConfigStore';
 
 import { getColorblindHeatmapColor, colorblindLegendConfig } from '../colorblindTheme';
@@ -137,7 +140,7 @@ export function HeatmapDetailView({ data }: HeatmapDetailViewProps) {
     );
 
     // 计算最大值
-    const maxValue = filteredData.length > 0 ? Math.max(...filteredData.map((d) => d.percent)) : 0;
+    const maxValue = safeMax(filteredData.map((d) => d.percent));
 
     return { heatmapData: filteredData, maxHeatmapValue: maxValue };
   }, [filteredChains, originalHeatmapData, originalMaxHeatmapValue]);
@@ -156,36 +159,32 @@ export function HeatmapDetailView({ data }: HeatmapDetailViewProps) {
       const csvLines: string[] = [];
 
       csvLines.push('=== Price Spread Heatmap Data ===');
-      csvLines.push(`Export Timestamp,${new Date().toISOString()}`);
-      csvLines.push(`Time Range,${selectedTimeRange}`);
-      csvLines.push(`Data Start Time,${startTime}`);
-      csvLines.push(`Data End Time,${endTime}`);
+      csvLines.push(`Export Timestamp,${escapeCSVField(new Date().toISOString())}`);
+      csvLines.push(`Time Range,${escapeCSVField(selectedTimeRange)}`);
+      csvLines.push(`Data Start Time,${escapeCSVField(startTime)}`);
+      csvLines.push(`Data End Time,${escapeCSVField(endTime)}`);
       csvLines.push(`Chain Count,${filteredChains.length}`);
-      csvLines.push(`Max Heatmap Value,${maxHeatmapValue.toFixed(4)}%`);
+      csvLines.push(`Max Heatmap Value,${escapeCSVField(maxHeatmapValue.toFixed(4) + '%')}`);
       csvLines.push('');
 
-      csvLines.push('Chain X,Chain Y,Price Difference,Percent Difference (%)');
+      csvLines.push(
+        ['Chain X', 'Chain Y', 'Price Difference', 'Percent Difference (%)']
+          .map(escapeCSVField)
+          .join(',')
+      );
 
       heatmapData.forEach((cell) => {
         csvLines.push(
-          `${chainNames[cell.xChain]},${chainNames[cell.yChain]},${cell.value.toFixed(6)},${cell.percent.toFixed(4)}`
+          `${escapeCSVField(chainNames[cell.xChain])},${escapeCSVField(chainNames[cell.yChain])},${escapeCSVField(cell.value.toFixed(6))},${escapeCSVField(cell.percent.toFixed(4))}`
         );
       });
 
       const csvContent = csvLines.join('\n');
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.setAttribute('href', url);
-      link.setAttribute(
-        'download',
+      downloadBlob(
+        blob,
         `price-spread-heatmap-${selectedTimeRange}-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.csv`
       );
-      link.style.visibility = 'hidden';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Failed to export heatmap data:', error);
     }

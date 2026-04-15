@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
 import { apiRateLimit, withRateLimitHeaders } from '@/lib/api/middleware/rateLimitMiddleware';
+import { ApiResponseBuilder } from '@/lib/api/response';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('api-prices');
@@ -178,6 +179,6 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({ error: 'Failed to fetch prices' }, { status: 500 });
+    return ApiResponseBuilder.serverError('Failed to fetch prices');
   }
 }

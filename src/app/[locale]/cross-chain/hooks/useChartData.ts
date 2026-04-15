@@ -27,6 +27,7 @@ import {
   calculatePearsonCorrelationWithSignificanceByTimestamp,
   type CorrelationResult,
   type TimestampedPrice,
+  type ThresholdConfig,
 } from '../utils';
 
 export interface UseChartDataParams {
@@ -41,6 +42,7 @@ export interface UseChartDataParams {
   avgPrice: number;
   standardDeviation: number;
   medianPrice: number;
+  thresholdConfig?: ThresholdConfig;
 }
 
 export interface UseChartDataReturn {
@@ -97,7 +99,10 @@ export function useChartData(params: UseChartDataParams): UseChartDataReturn {
     avgPrice,
     standardDeviation,
     medianPrice,
+    thresholdConfig: thresholdConfigParam,
   } = params;
+
+  const thresholdConfig = thresholdConfigParam ?? defaultThresholdConfig;
 
   const chartData = useMemo(() => {
     if (Object.keys(historicalPrices).length === 0) return [];
@@ -263,11 +268,14 @@ export function useChartData(params: UseChartDataParams): UseChartDataReturn {
       });
     }
 
-    // 优化：使用数学计算直接确定 bin 索引，时间复杂度从 O(n*m) 降到 O(n)
-    validPrices.forEach((price) => {
-      const binIndex = Math.min(Math.floor((price - min) / binWidth), numBins - 1);
-      bins[binIndex].count++;
-    });
+    if (binWidth === 0) {
+      bins[0].count = validPrices.length;
+    } else {
+      validPrices.forEach((price) => {
+        const binIndex = Math.min(Math.floor((price - min) / binWidth), numBins - 1);
+        bins[binIndex].count++;
+      });
+    }
 
     return bins.map((bin) => ({
       range: bin.range,
@@ -343,7 +351,7 @@ export function useChartData(params: UseChartDataParams): UseChartDataReturn {
     });
 
     return result;
-  }, [historicalPrices, filteredChains]);
+  }, [historicalPrices, filteredChains, thresholdConfig]);
 
   const totalDataPoints = useMemo(() => {
     let count = 0;
@@ -354,8 +362,6 @@ export function useChartData(params: UseChartDataParams): UseChartDataReturn {
   }, [historicalPrices, filteredChains]);
 
   const iqrOutliers = useMemo((): IqrOutliers => {
-    const thresholdConfig = { outlierDetectionMethod: 'iqr', outlierThreshold: 1.5 };
-
     if (validPrices.length < 4) {
       return { outliers: [], q1: 0, q3: 0, iqr: 0, lowerBound: 0, upperBound: 0 };
     }
@@ -396,10 +402,9 @@ export function useChartData(params: UseChartDataParams): UseChartDataReturn {
     });
 
     return { outliers, q1, q3, iqr, lowerBound, upperBound };
-  }, [validPrices, currentPrices, filteredChains]);
+  }, [validPrices, currentPrices, filteredChains, thresholdConfig]);
 
   const stdDevHistoricalOutliers = useMemo(() => {
-    const thresholdConfig = { outlierDetectionMethod: 'zscore', outlierThreshold: 3 };
     const result: { timestamp: number; chain: Blockchain; price: number; deviation: number }[] = [];
 
     filteredChains.forEach((chain) => {
