@@ -1,4 +1,5 @@
 import { AppError, type AppErrorDetails, HttpStatusCodes } from '@/lib/errors/AppError';
+
 import { type DataStatus } from './constants';
 import { type OracleProvider, type Blockchain } from './enums';
 

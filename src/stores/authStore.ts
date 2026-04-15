@@ -15,8 +15,11 @@ import {
   getUserProfile,
 } from '@/lib/supabase/auth';
 import type { UserProfile } from '@/lib/supabase/auth';
+import { createLogger } from '@/lib/utils/logger';
 
 import type { User, Session, AuthError, Provider, Subscription } from '@supabase/supabase-js';
+
+const logger = createLogger('authStore');
 
 interface AuthState {
   user: User | null;
@@ -55,11 +58,22 @@ const fetchUserProfile = async (userId: string, session: Session | null) => {
   const { profile: userProfile, error: profileError } = await getUserProfile(userId);
   if (profileError) {
     if (profileError.message.includes('No rows found')) {
-      const { profile: newProfile } = await createUserProfile(userId, {
+      const { profile: newProfile, error: createError } = await createUserProfile(userId, {
         display_name: session?.user?.user_metadata?.display_name,
       });
+      if (createError) {
+        logger.error(
+          'Failed to create user profile',
+          createError instanceof Error ? createError : new Error(String(createError))
+        );
+        return null;
+      }
       return newProfile;
     }
+    logger.error(
+      'Failed to fetch user profile',
+      profileError instanceof Error ? profileError : new Error(String(profileError))
+    );
     return null;
   }
   return userProfile;
@@ -78,6 +92,8 @@ export const useAuthStore = create<AuthStore>()(
         subscription: null,
 
         initialize: async () => {
+          if (get().initialized) return;
+
           try {
             set({ loading: true, error: null });
             const { session: currentSession } = await getSession();
@@ -99,16 +115,23 @@ export const useAuthStore = create<AuthStore>()(
             }
 
             const subscription = onAuthStateChange(async (event, newSession) => {
-              set({
-                session: newSession,
-                user: newSession?.user ?? null,
-              });
+              try {
+                set({
+                  session: newSession,
+                  user: newSession?.user ?? null,
+                });
 
-              if (event === 'SIGNED_IN' && newSession?.user) {
-                const profile = await fetchUserProfile(newSession.user.id, newSession);
-                set({ profile });
-              } else if (event === 'SIGNED_OUT') {
-                set({ profile: null });
+                if (event === 'SIGNED_IN' && newSession?.user) {
+                  const profile = await fetchUserProfile(newSession.user.id, newSession);
+                  set({ profile });
+                } else if (event === 'SIGNED_OUT') {
+                  set({ profile: null });
+                }
+              } catch (err) {
+                logger.error(
+                  'Auth state change handler error',
+                  err instanceof Error ? err : new Error(String(err))
+                );
               }
             });
 
@@ -232,8 +255,15 @@ export const useAuthStore = create<AuthStore>()(
         refreshProfile: async () => {
           const { user, session } = get();
           if (user) {
-            const profile = await fetchUserProfile(user.id, session);
-            set({ profile });
+            try {
+              const profile = await fetchUserProfile(user.id, session);
+              set({ profile });
+            } catch (err) {
+              logger.error(
+                'Failed to refresh profile',
+                err instanceof Error ? err : new Error(String(err))
+              );
+            }
           }
         },
 

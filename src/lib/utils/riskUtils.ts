@@ -62,7 +62,7 @@ export function calculateMaxDrawdown(prices: number[]): number {
     if (price > peak) {
       peak = price;
     }
-    const drawdown = (peak - price) / peak;
+    const drawdown = peak !== 0 ? (peak - price) / peak : 0;
     maxDrawdown = Math.max(maxDrawdown, drawdown);
   }
 

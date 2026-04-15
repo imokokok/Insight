@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
+import { moderateRateLimit } from '@/lib/api/middleware/rateLimitMiddleware';
 import { getUserId } from '@/lib/api/utils';
 import { sanitizeObject, sanitizeString, sanitizeUuid } from '@/lib/security';
 import { getServerQueries } from '@/lib/supabase/server';
@@ -95,12 +96,15 @@ function validateAlertUpdate(body: unknown): Record<string, unknown> | null {
 
 async function getAlertById(id: string, userId: string) {
   const queries = getServerQueries();
-  const alerts = await queries.getAlerts(userId);
-  if (!alerts) return null;
-  return alerts.find((a) => a.id === id) || null;
+  return queries.getAlertById(id, userId);
 }
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const rateLimitResult = await moderateRateLimit(request);
+  if (!rateLimitResult.success) {
+    return rateLimitResult.response;
+  }
+
   try {
     const { id } = await params;
     const validatedId = validateAlertId(id);
@@ -129,6 +133,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 }
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const rateLimitResult = await moderateRateLimit(request);
+  if (!rateLimitResult.success) {
+    return rateLimitResult.response;
+  }
+
   try {
     const { id } = await params;
     const validatedId = validateAlertId(id);
@@ -183,6 +192,11 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const rateLimitResult = await moderateRateLimit(request);
+  if (!rateLimitResult.success) {
+    return rateLimitResult.response;
+  }
+
   try {
     const { id } = await params;
     const validatedId = validateAlertId(id);

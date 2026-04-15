@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
+import { strictRateLimit } from '@/lib/api/middleware/rateLimitMiddleware';
 import { getUserId } from '@/lib/api/utils';
 import { sanitizeUuid } from '@/lib/security';
 import { getServerQueries } from '@/lib/supabase/server';
@@ -12,6 +13,11 @@ function validateEventId(id: string): string | null {
 }
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const rateLimitResult = await strictRateLimit(request);
+  if (!rateLimitResult.success) {
+    return rateLimitResult.response;
+  }
+
   try {
     const { id } = await params;
     const validatedId = validateEventId(id);
@@ -27,13 +33,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     }
 
     const queries = getServerQueries();
-    const events = await queries.getAlertEvents(userId);
+    const event = await queries.getAlertEventById(validatedId, userId);
 
-    if (!events) {
-      return NextResponse.json({ error: 'Failed to verify event ownership' }, { status: 500 });
-    }
-
-    const event = events.find((e) => e.id === validatedId);
     if (!event) {
       return NextResponse.json({ error: 'Event not found' }, { status: 404 });
     }

@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
+import { useShallow } from 'zustand/react/shallow';
 
 interface Notification {
   id: string;
@@ -21,6 +22,8 @@ const generateId = (): string => {
   return `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 };
 
+const timeoutMap = new Map<string, ReturnType<typeof setTimeout>>();
+
 export const useNotificationStore = create<NotificationState>()(
   devtools(
     (set) => ({
@@ -38,18 +41,29 @@ export const useNotificationStore = create<NotificationState>()(
 
         if (notification.duration !== 0) {
           const duration = notification.duration || 5000;
-          setTimeout(() => {
+          const timeoutId = setTimeout(() => {
             useNotificationStore.getState().removeNotification(newNotification.id);
           }, duration);
+          timeoutMap.set(newNotification.id, timeoutId);
         }
       },
 
-      removeNotification: (id) =>
+      removeNotification: (id) => {
+        const existingTimeout = timeoutMap.get(id);
+        if (existingTimeout) {
+          clearTimeout(existingTimeout);
+          timeoutMap.delete(id);
+        }
         set((state) => ({
           notifications: state.notifications.filter((n) => n.id !== id),
-        })),
+        }));
+      },
 
-      clearNotifications: () => set({ notifications: [] }),
+      clearNotifications: () => {
+        timeoutMap.forEach((timeoutId) => clearTimeout(timeoutId));
+        timeoutMap.clear();
+        set({ notifications: [] });
+      },
     }),
     { name: 'NotificationStore' }
   )
@@ -57,8 +71,10 @@ export const useNotificationStore = create<NotificationState>()(
 
 export const useNotifications = () => useNotificationStore((state) => state.notifications);
 export const useNotificationActions = () =>
-  useNotificationStore((state) => ({
-    addNotification: state.addNotification,
-    removeNotification: state.removeNotification,
-    clearNotifications: state.clearNotifications,
-  }));
+  useNotificationStore(
+    useShallow((state) => ({
+      addNotification: state.addNotification,
+      removeNotification: state.removeNotification,
+      clearNotifications: state.clearNotifications,
+    }))
+  );

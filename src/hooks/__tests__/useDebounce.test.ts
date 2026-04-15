@@ -289,10 +289,9 @@ describe('useDebouncedCallback', () => {
     const firstCallback = jest.fn();
     const secondCallback = jest.fn();
 
-    const { result, rerender } = renderHook(
-      ({ cb, delay }) => useDebouncedCallback(cb, delay),
-      { initialProps: { cb: firstCallback, delay: 500 } }
-    );
+    const { result, rerender } = renderHook(({ cb, delay }) => useDebouncedCallback(cb, delay), {
+      initialProps: { cb: firstCallback, delay: 500 },
+    });
 
     rerender({ cb: secondCallback, delay: 500 });
 

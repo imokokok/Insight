@@ -124,7 +124,11 @@ function defaultKeyGenerator(request: NextRequest): string {
   return `${ip}:${path}`;
 }
 
-function defaultRateLimitHandler(request: NextRequest, retryAfter: number): NextResponse {
+function defaultRateLimitHandler(
+  request: NextRequest,
+  retryAfter: number,
+  limit: number = 100
+): NextResponse {
   const response = NextResponse.json(
     ApiResponseBuilder.error('RATE_LIMIT_EXCEEDED', 'Too many requests, please try again later', {
       retryable: true,
@@ -135,7 +139,7 @@ function defaultRateLimitHandler(request: NextRequest, retryAfter: number): Next
   );
 
   response.headers.set('Retry-After', String(retryAfter));
-  response.headers.set('X-RateLimit-Limit', '100');
+  response.headers.set('X-RateLimit-Limit', String(limit));
   response.headers.set('X-RateLimit-Remaining', '0');
   response.headers.set('X-RateLimit-Reset', String(Math.floor(Date.now() / 1000) + retryAfter));
 

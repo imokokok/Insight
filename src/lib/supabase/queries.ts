@@ -570,6 +570,27 @@ export class DatabaseQueries {
     return data;
   }
 
+  async getFavoriteById(id: string, userId: string): Promise<UserFavorite | null> {
+    const { data, error } = await this.client
+      .from('user_favorites')
+      .select('*')
+      .eq('id', id)
+      .eq('user_id', userId)
+      .single();
+
+    if (error) {
+      if (error.code !== 'PGRST116') {
+        logger.error(
+          'Failed to get favorite by id',
+          error instanceof Error ? error : new Error(String(error))
+        );
+      }
+      return null;
+    }
+
+    return data;
+  }
+
   async getFavorites(userId: string): Promise<UserFavorite[] | null> {
     const { data, error } = await this.client
       .from('user_favorites')
@@ -709,6 +730,27 @@ export class DatabaseQueries {
     return data;
   }
 
+  async getAlertById(id: string, userId: string): Promise<PriceAlert | null> {
+    const { data, error } = await this.client
+      .from('price_alerts')
+      .select('*')
+      .eq('id', id)
+      .eq('user_id', userId)
+      .single();
+
+    if (error) {
+      if (error.code !== 'PGRST116') {
+        logger.error(
+          'Failed to get alert by id',
+          error instanceof Error ? error : new Error(String(error))
+        );
+      }
+      return null;
+    }
+
+    return data;
+  }
+
   async getAlerts(userId: string): Promise<PriceAlert[] | null> {
     const { data, error } = await this.client
       .from('price_alerts')
@@ -809,6 +851,27 @@ export class DatabaseQueries {
     }
 
     return event;
+  }
+
+  async getAlertEventById(id: string, userId: string): Promise<AlertEvent | null> {
+    const { data, error } = await this.client
+      .from('alert_events')
+      .select('*')
+      .eq('id', id)
+      .eq('user_id', userId)
+      .single();
+
+    if (error) {
+      if (error.code !== 'PGRST116') {
+        logger.error(
+          'Failed to get alert event by id',
+          error instanceof Error ? error : new Error(String(error))
+        );
+      }
+      return null;
+    }
+
+    return data;
   }
 
   async getAlertEvents(userId: string): Promise<AlertEvent[] | null> {

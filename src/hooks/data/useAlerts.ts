@@ -377,6 +377,9 @@ export function useAcknowledgeAlert(): UseAcknowledgeAlertReturn {
 export function useAlertEventsRealtime() {
   const user = useUser();
   const { refetch } = useAlertEvents();
+  const stableRefetch = useCallback(async () => {
+    await refetch();
+  }, [refetch]);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -392,7 +395,7 @@ export function useAlertEventsRealtime() {
           filter: `user_id=eq.${user.id}`,
         },
         () => {
-          refetch();
+          stableRefetch();
         }
       )
       .subscribe();
@@ -400,7 +403,7 @@ export function useAlertEventsRealtime() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user?.id, refetch]);
+  }, [user?.id, stableRefetch]);
 }
 
 export function useBatchAlerts(): UseBatchAlertsReturn {

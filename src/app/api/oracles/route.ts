@@ -7,15 +7,12 @@ import {
   handleBatchPrices,
 } from '@/lib/api/oracleHandlers';
 import {
-  validateQuerySchema,
-  validateBodySchema,
-} from '@/lib/validation';
-import {
   PriceQueryRequestSchema,
   BatchPriceRequestSchema,
   HistoricalPriceRequestSchema,
   type BatchPriceRequestType,
 } from '@/lib/security/validation';
+import { validateQuerySchema, validateBodySchema } from '@/lib/validation';
 import { type OracleProvider, type Blockchain } from '@/types/oracle';
 
 export const GET = createApiHandler(

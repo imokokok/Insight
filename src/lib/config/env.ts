@@ -88,14 +88,8 @@ const lenientEnvSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string().optional().default(''),
   NEXT_PUBLIC_APP_URL: z.string().optional().default('http://localhost:3000'),
   NEXT_PUBLIC_WS_URL: z.string().optional().default(''),
-  CSRF_SECRET: z
-    .string()
-    .optional()
-    .default('dev-fallback-secret-fixed-for-development-only-32chars'),
-  JWT_SECRET: z
-    .string()
-    .optional()
-    .default('dev-fallback-secret-fixed-for-development-only-32chars'),
+  CSRF_SECRET: z.string().optional().default(''),
+  JWT_SECRET: z.string().optional().default(''),
   NEXT_PUBLIC_ENABLE_REALTIME: envBoolean,
   NEXT_PUBLIC_ENABLE_ANALYTICS: envBoolean,
   NEXT_PUBLIC_ENABLE_PERFORMANCE_MONITORING: envBoolean,

@@ -1,9 +1,9 @@
 'use client';
 
 import { OracleProvider as OracleProviderEnum } from '@/lib/oracles';
+import type { RedStoneTokenOnChainData } from '@/lib/oracles/clients/redstone';
 import type { DIATokenOnChainData } from '@/lib/oracles/services/diaDataService';
 import type { WINkLinkTokenOnChainData } from '@/lib/oracles/services/winklinkRealDataService';
-import type { RedStoneTokenOnChainData } from '@/lib/oracles/clients/redstone';
 
 import {
   ChainlinkStats,

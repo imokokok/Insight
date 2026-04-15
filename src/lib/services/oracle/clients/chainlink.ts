@@ -174,7 +174,11 @@ export class ChainlinkClient extends BaseOracleClient {
     };
   }
 
-  async getPrice(symbol: string, chain?: Blockchain, _options?: { signal?: AbortSignal }): Promise<PriceData> {
+  async getPrice(
+    symbol: string,
+    chain?: Blockchain,
+    _options?: { signal?: AbortSignal }
+  ): Promise<PriceData> {
     try {
       if (!symbol) {
         throw this.createError('Symbol is required', 'INVALID_SYMBOL');

@@ -11,7 +11,6 @@ import Footer from '@/components/Footer';
 import Navbar from '@/components/Navbar';
 import { PerformanceMetricsCollector } from '@/components/PerformanceMetricsCollector';
 import { ConnectionStatusIndicator } from '@/components/realtime/ConnectionStatus';
-// ToastProvider removed
 import { routing } from '@/i18n/routing';
 import { ReactQueryProvider } from '@/providers/ReactQueryProvider';
 
@@ -20,13 +19,15 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Insight',
   description: 'Professional oracle analytics platform',
+  other: {
+    'dns-prefetch': 'https://fonts.googleapis.com',
+  },
 };
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
 }
 
-// 排除需要动态渲染的路由
 export const dynamicParams = true;
 
 export default async function LocaleLayout({

@@ -190,10 +190,7 @@ export const CreateFavoriteRequestSchema = z.object({
   name: SafeNameSchema,
   config_type: SafeConfigTypeSchema,
   config_data: z
-    .record(
-      z.string(),
-      z.union([z.string(), z.number(), z.boolean(), z.null()])
-    )
+    .record(z.string(), z.union([z.string(), z.number(), z.boolean(), z.null()]))
     .refine((val) => {
       const size = JSON.stringify(val).length;
       return size <= 10000;
@@ -206,14 +203,8 @@ export const CreateSnapshotRequestSchema = z.object({
   name: SafeNameSchema.optional(),
   symbol: SafeSymbolSchema,
   selected_oracles: z.array(SafeProviderSchema).min(1).max(10),
-  price_data: z.record(
-    z.string(),
-    z.union([z.string(), z.number(), z.boolean(), z.null()])
-  ),
-  stats: z.record(
-    z.string(),
-    z.union([z.string(), z.number(), z.boolean(), z.null()])
-  ),
+  price_data: z.record(z.string(), z.union([z.string(), z.number(), z.boolean(), z.null()])),
+  stats: z.record(z.string(), z.union([z.string(), z.number(), z.boolean(), z.null()])),
   is_public: SafeBooleanSchema.optional().default(false),
 });
 

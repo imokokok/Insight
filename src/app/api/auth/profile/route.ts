@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
-import { getUserId } from '@/lib/api/utils';
 import { moderateRateLimit } from '@/lib/api/middleware/rateLimitMiddleware';
+import { getUserId } from '@/lib/api/utils';
 import { sanitizeObject, sanitizeString } from '@/lib/security';
 import { type UserProfileUpdate } from '@/lib/supabase/queries';
 import { getServerQueries } from '@/lib/supabase/server';

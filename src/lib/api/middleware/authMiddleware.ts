@@ -59,7 +59,7 @@ export async function extractAuthContext(request: NextRequest): Promise<AuthCont
     return {
       userId: user.id,
       email: user.email,
-      role: user.user_metadata?.role,
+      role: user.app_metadata?.role,
     };
   } catch (error) {
     logger.error(

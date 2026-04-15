@@ -46,7 +46,7 @@ export function setCSRFCookie(
   const opts = { ...DEFAULT_OPTIONS, ...options };
 
   response.cookies.set(opts.cookieName!, token, {
-    httpOnly: true,
+    httpOnly: false,
     secure: opts.secure,
     sameSite: opts.sameSite,
     path: '/',
