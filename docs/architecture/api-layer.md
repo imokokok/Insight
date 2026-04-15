@@ -84,20 +84,31 @@ src/app/api/
 ├── oracles/
 │   ├── [provider]/
 │   │   └── route.ts          # GET /api/oracles/[provider]
-│   └── route.ts              # GET /api/oracles
+│   └── route.ts              # GET/POST /api/oracles
 ├── alerts/
 │   ├── [id]/
 │   │   └── route.ts          # GET/PUT/DELETE /api/alerts/[id]
 │   ├── events/
+│   │   ├── [id]/
+│   │   │   └── acknowledge/
+│   │   │       └── route.ts  # POST /api/alerts/events/[id]/acknowledge
 │   │   └── route.ts          # GET /api/alerts/events
+│   ├── batch/
+│   │   └── route.ts          # POST /api/alerts/batch
 │   └── route.ts              # GET/POST /api/alerts
 ├── favorites/
+│   ├── [id]/
+│   │   └── route.ts          # GET/PUT/DELETE /api/favorites/[id]
 │   └── route.ts              # GET/POST/DELETE /api/favorites
 ├── auth/
-│   └── callback/
-│       └── route.ts          # GET /api/auth/callback
-├── snapshots/
-│   └── route.ts              # GET/POST /api/snapshots
+│   ├── callback/
+│   │   └── route.ts          # GET /api/auth/callback
+│   ├── delete-account/
+│   │   └── route.ts          # POST /api/auth/delete-account
+│   └── profile/
+│       └── route.ts          # GET/PUT /api/auth/profile
+├── prices/
+│   └── route.ts              # GET /api/prices
 └── health/
     └── route.ts              # GET /api/health
 ```

@@ -3,6 +3,7 @@
 import { forwardRef, type ReactNode } from 'react';
 
 import { Inbox } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 import { cn } from '@/lib/utils';
 
@@ -19,8 +20,8 @@ export interface EmptyStateProps {
 export const EmptyState = forwardRef<HTMLDivElement, EmptyStateProps>(
   (
     {
-      title = '暂无数据',
-      description = '当前没有可显示的内容',
+      title,
+      description,
       icon,
       action,
       secondaryAction,
@@ -29,6 +30,10 @@ export const EmptyState = forwardRef<HTMLDivElement, EmptyStateProps>(
     },
     ref
   ) => {
+    const t = useTranslations();
+    const resolvedTitle = title ?? t('crossOracle.ui.emptyStateTitle');
+    const resolvedDescription = description ?? t('crossOracle.ui.emptyStateDescription');
+
     return (
       <div
         ref={ref}
@@ -47,10 +52,10 @@ export const EmptyState = forwardRef<HTMLDivElement, EmptyStateProps>(
           {icon || <Inbox className={cn('text-gray-400', compact ? 'w-6 h-6' : 'w-8 h-8')} />}
         </div>
         <h3 className={cn('font-semibold text-gray-900 mb-1', compact ? 'text-base' : 'text-lg')}>
-          {title}
+          {resolvedTitle}
         </h3>
         <p className={cn('text-gray-500 max-w-sm', compact ? 'text-sm' : 'text-base')}>
-          {description}
+          {resolvedDescription}
         </p>
         {(action || secondaryAction) && (
           <div className={cn('flex items-center gap-3', compact ? 'mt-4' : 'mt-6')}>

@@ -20,7 +20,7 @@ export default function CrossChainContent() {
   const data = useCrossChainData();
   const [activeTab, setActiveTab] = useState<TabId>('overview');
 
-  const { loading, lastUpdated, fetchData: _fetchData, refreshInterval, setRefreshInterval } = data;
+  const { loading, lastUpdated, refreshInterval, setRefreshInterval } = data;
 
   const refreshOptions = [
     { value: 0, label: t('crossChain.autoRefreshOff') },

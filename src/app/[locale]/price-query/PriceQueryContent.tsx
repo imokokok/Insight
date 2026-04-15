@@ -5,15 +5,13 @@ import { useRef, useCallback } from 'react';
 import { LiveStatusBar } from '@/components/ui';
 import {
   useCommonShortcuts,
-  useDIAOnChainData,
-  useWINkLinkOnChainData,
-  useRedStoneOnChainData,
-  useSupraOnChainData,
+  useOnChainDataByProvider,
 } from '@/hooks';
 import { useTranslations } from '@/i18n';
 import { OracleProvider } from '@/lib/oracles';
 
 import { QueryHeader, QueryForm, QueryResults, ExportConfig } from './components';
+import { type QueryState, type StatsState, type ChartConfig, type ErrorState, type OnChainData } from './constants';
 import { usePriceQuery } from './hooks/usePriceQuery';
 import { exportToCSV, exportToJSON, exportToPDF } from './utils/exportUtils';
 
@@ -70,7 +68,8 @@ export default function PriceQueryContent() {
     selectedOracle === OracleProvider.DIA ||
     queryResults.some((r) => r.provider === OracleProvider.DIA);
 
-  const { data: diaOnChainData, isLoading: isDIADataLoading } = useDIAOnChainData({
+  const { data: diaOnChainData, isLoading: isDIADataLoading } = useOnChainDataByProvider({
+    provider: OracleProvider.DIA,
     symbol: selectedSymbol,
     chain: selectedChain || undefined,
     enabled: shouldFetchDIAData && !!selectedSymbol && queryResults.length > 0,
@@ -81,7 +80,8 @@ export default function PriceQueryContent() {
     selectedOracle === OracleProvider.WINKLINK ||
     queryResults.some((r) => r.provider === OracleProvider.WINKLINK);
 
-  const { data: winklinkOnChainData, isLoading: isWINkLinkDataLoading } = useWINkLinkOnChainData({
+  const { data: winklinkOnChainData, isLoading: isWINkLinkDataLoading } = useOnChainDataByProvider({
+    provider: OracleProvider.WINKLINK,
     symbol: selectedSymbol,
     enabled: shouldFetchWINkLinkData && !!selectedSymbol && queryResults.length > 0,
   });
@@ -91,7 +91,8 @@ export default function PriceQueryContent() {
     selectedOracle === OracleProvider.REDSTONE ||
     queryResults.some((r) => r.provider === OracleProvider.REDSTONE);
 
-  const { data: redstoneOnChainData, isLoading: isRedStoneDataLoading } = useRedStoneOnChainData({
+  const { data: redstoneOnChainData, isLoading: isRedStoneDataLoading } = useOnChainDataByProvider({
+    provider: OracleProvider.REDSTONE,
     symbol: selectedSymbol,
     enabled: shouldFetchRedStoneData && !!selectedSymbol && queryResults.length > 0,
   });
@@ -101,7 +102,8 @@ export default function PriceQueryContent() {
     selectedOracle === OracleProvider.SUPRA ||
     queryResults.some((r) => r.provider === OracleProvider.SUPRA);
 
-  const { data: supraOnChainData, isLoading: isSupraDataLoading } = useSupraOnChainData({
+  const { data: supraOnChainData, isLoading: isSupraDataLoading } = useOnChainDataByProvider({
+    provider: OracleProvider.SUPRA,
     symbol: selectedSymbol,
     enabled: shouldFetchSupraData && !!selectedSymbol && queryResults.length > 0,
   });
@@ -263,38 +265,48 @@ export default function PriceQueryContent() {
 
         <main className="flex-1 min-w-0">
           <QueryResults
-            queryResults={queryResults}
-            historicalData={historicalData}
-            isLoading={isLoading}
-            queryDuration={queryDuration}
-            queryProgress={queryProgress}
-            currentQueryTarget={currentQueryTarget}
-            selectedTimeRange={selectedTimeRange}
+            queryState={{
+              queryResults,
+              historicalData,
+              isLoading,
+              queryDuration,
+              queryProgress,
+              currentQueryTarget,
+            } satisfies QueryState}
+            stats={{
+              validPrices,
+              avgPrice,
+              avgChange24hPercent,
+              maxPrice,
+              minPrice,
+              priceRange,
+              standardDeviation,
+              standardDeviationPercent,
+            } satisfies StatsState}
+            chartConfig={{
+              chartData,
+              chartContainerRef,
+              selectedTimeRange,
+            } satisfies ChartConfig}
+            errorState={{
+              queryErrors,
+              onRetryDataSource: retryDataSource,
+              onRetryAllErrors: retryAllErrors,
+              onClearErrors: clearErrors,
+            } satisfies ErrorState}
+            onChainData={{
+              diaOnChainData,
+              isDIADataLoading,
+              winklinkOnChainData,
+              isWINkLinkDataLoading,
+              redstoneOnChainData,
+              isRedStoneDataLoading,
+              supraOnChainData,
+              isSupraDataLoading,
+            } satisfies OnChainData}
             selectedSymbol={selectedSymbol}
             setSelectedSymbol={setSelectedSymbol}
             onRefresh={fetchQueryData}
-            chartContainerRef={chartContainerRef}
-            chartData={chartData}
-            validPrices={validPrices}
-            avgPrice={avgPrice}
-            avgChange24hPercent={avgChange24hPercent}
-            maxPrice={maxPrice}
-            minPrice={minPrice}
-            priceRange={priceRange}
-            standardDeviation={standardDeviation}
-            standardDeviationPercent={standardDeviationPercent}
-            queryErrors={queryErrors}
-            onRetryDataSource={retryDataSource}
-            onRetryAllErrors={retryAllErrors}
-            onClearErrors={clearErrors}
-            diaOnChainData={diaOnChainData}
-            isDIADataLoading={isDIADataLoading}
-            winklinkOnChainData={winklinkOnChainData}
-            isWINkLinkDataLoading={isWINkLinkDataLoading}
-            redstoneOnChainData={redstoneOnChainData}
-            isRedStoneDataLoading={isRedStoneDataLoading}
-            supraOnChainData={supraOnChainData}
-            isSupraDataLoading={isSupraDataLoading}
           />
         </main>
       </div>

@@ -1,3 +1,5 @@
+import { memo } from 'react';
+
 import { cn } from '@/lib/utils';
 
 export interface StatCardProps {
@@ -9,7 +11,7 @@ export interface StatCardProps {
   rating?: { label: string; color: string; bgColor: string } | null;
 }
 
-export function StatCard({
+export const StatCard = memo(function StatCard({
   icon: Icon,
   iconColor,
   title,
@@ -66,4 +68,4 @@ export function StatCard({
       )}
     </div>
   );
-}
+});

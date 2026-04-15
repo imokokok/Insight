@@ -1,5 +1,5 @@
 /**
- * @fileoverview Tests for useOracleData hook
+ * @fileoverview Tests for useOracleClientData hooks
  */
 
 import { renderHook, act, waitFor } from '@testing-library/react';

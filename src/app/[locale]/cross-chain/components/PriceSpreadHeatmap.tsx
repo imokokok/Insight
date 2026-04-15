@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useCallback } from 'react';
+import { memo, useMemo, useState, useCallback } from 'react';
 
 import {
   LineChart,
@@ -30,7 +30,7 @@ interface PriceSpreadHeatmapProps {
   data: ReturnType<typeof useCrossChainData>;
 }
 
-export function PriceSpreadHeatmap({ data }: PriceSpreadHeatmapProps) {
+export const PriceSpreadHeatmap = memo(function PriceSpreadHeatmap({ data }: PriceSpreadHeatmapProps) {
   const t = useTranslations();
   const { chainsWithHighDeviation } = data;
 
@@ -67,7 +67,7 @@ export function PriceSpreadHeatmap({ data }: PriceSpreadHeatmapProps) {
   }
 
   return null;
-}
+});
 
 interface HeatmapDetailViewProps {
   data: ReturnType<typeof useCrossChainData>;

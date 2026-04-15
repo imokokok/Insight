@@ -32,11 +32,6 @@ export default function CrossOracleContent() {
 
     anomalyDetection,
 
-    qualityScore: _qualityScore,
-
-    performanceMetrics: _performanceMetrics,
-    isCalculatingMetrics: _isCalculatingMetrics,
-
     oracleDataError,
     retryOracle,
     retryAllFailed,
@@ -71,11 +66,6 @@ export default function CrossOracleContent() {
 
   const {
     anomalies,
-    count: _anomalyCount,
-    highRiskCount: _highRiskCount,
-    mediumRiskCount: _mediumRiskCount,
-    lowRiskCount: _lowRiskCount,
-    maxDeviation: _maxDeviation,
   } = anomalyDetection;
 
   useCommonShortcuts({
@@ -119,26 +109,25 @@ export default function CrossOracleContent() {
     <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 min-h-screen">
       <div aria-live="polite" className="sr-only">
         {isLoading
-          ? t('crossOracle.loadingData') || 'Loading data'
-          : `${priceData.length} ${t('crossOracle.results') || 'results'}`}
+          ? t('crossOracle.loadingData')
+          : `${priceData.length} ${t('crossOracle.results')}`}
       </div>
 
       <div className="flex flex-col gap-3 mb-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">
-              {t('crossOracle.title') || 'Cross-Oracle Comparison'}
+              {t('crossOracle.title')}
             </h1>
             <p className="text-sm text-gray-500 mt-1">
-              {t('crossOracle.subtitle') ||
-                'Compare prices across multiple oracles, detect anomalies, and assess data quality'}
+              {t('crossOracle.subtitle')}
             </p>
           </div>
 
           <div className="flex items-center gap-2">
             {lastUpdated && (
               <span className="text-xs text-gray-500">
-                {t('crossOracle.lastUpdated') || 'Last updated'}: {lastUpdated.toLocaleTimeString()}
+                {t('crossOracle.lastUpdated')}: {lastUpdated.toLocaleTimeString()}
               </span>
             )}
           </div>

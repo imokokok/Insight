@@ -140,7 +140,8 @@
     "reconnecting": "Reconnecting",
     "dataFresh": "Data Fresh",
     "dataStale": "Data Stale",
-    "dataExpired": "Data Expired"
+    "dataExpired": "Data Expired",
+    "latency": "Latency"
   },
   "quickActions": {
     "priceAlert": "Price Alert",

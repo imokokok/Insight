@@ -1,64 +1,53 @@
 'use client';
 
-/**
- * @fileoverview 离散度仪表盘组件
- * @description 使用环形图展示价格离散度指数 (变异系数 CV)
- */
-
 import { memo } from 'react';
+import { useTranslations } from 'next-intl';
 
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 
 import { chartColors } from '@/lib/config/colors';
 
 interface DispersionGaugeProps {
-  cv: number; // 变异系数 (Coefficient of Variation) 百分比
+  cv: number;
   size?: number;
 }
 
-/**
- * 获取离散度解读
- */
-function getDispersionInterpretation(cv: number): {
-  label: string;
-  color: string;
-  description: string;
-} {
+function getDispersionInterpretation(cv: number, t: ReturnType<typeof useTranslations>) {
   if (cv < 0.1) {
     return {
-      label: '高度一致',
+      label: t('crossOracle.dispersion.highlyConsistent'),
       color: chartColors.recharts.success,
-      description: '各预言机价格高度一致，市场共识强',
+      description: t('crossOracle.dispersion.highlyConsistentDesc'),
     };
   }
   if (cv < 0.5) {
     return {
-      label: '基本一致',
+      label: t('crossOracle.dispersion.basicallyConsistent'),
       color: chartColors.recharts.primary,
-      description: '价格偏差在可接受范围内',
+      description: t('crossOracle.dispersion.basicallyConsistentDesc'),
     };
   }
   if (cv < 1.0) {
     return {
-      label: '存在分歧',
+      label: t('crossOracle.dispersion.someDivergence'),
       color: chartColors.recharts.warning,
-      description: '部分预言机价格存在偏差，建议关注',
+      description: t('crossOracle.dispersion.someDivergenceDesc'),
     };
   }
   return {
-    label: '严重分歧',
+    label: t('crossOracle.dispersion.severeDivergence'),
     color: chartColors.recharts.danger,
-    description: '价格离散度高，存在潜在风险',
+    description: t('crossOracle.dispersion.severeDivergenceDesc'),
   };
 }
 
 function DispersionGaugeComponent({ cv, size = 120 }: DispersionGaugeProps) {
-  const interpretation = getDispersionInterpretation(cv);
-  const maxCV = 2.0; // 最大显示2%
+  const t = useTranslations();
+  const interpretation = getDispersionInterpretation(cv, t);
+  const maxCV = 2.0;
   const normalizedCV = Math.min(cv, maxCV);
   const percentage = (normalizedCV / maxCV) * 100;
 
-  // 仪表盘数据
   const data = [
     { name: 'dispersion', value: percentage },
     { name: 'empty', value: 100 - percentage },
@@ -86,7 +75,6 @@ function DispersionGaugeComponent({ cv, size = 120 }: DispersionGaugeProps) {
             </Pie>
           </PieChart>
         </ResponsiveContainer>
-        {/* 中心文字 */}
         <div
           className="flex flex-col items-center justify-center"
           style={{
@@ -105,7 +93,7 @@ function DispersionGaugeComponent({ cv, size = 120 }: DispersionGaugeProps) {
           <span className="font-medium text-gray-900">{interpretation.label}</span>
         </div>
         <p className="text-xs text-gray-500">{interpretation.description}</p>
-        <div className="mt-2 text-xs text-gray-400">变异系数 = 标准差 / 平均值</div>
+        <div className="mt-2 text-xs text-gray-400">{t('crossOracle.dispersion.cvFormula')}</div>
       </div>
     </div>
   );

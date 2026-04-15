@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { type SegmentedControlProps, type SelectorOption } from './types';
 
 const sizeClasses = {
@@ -19,9 +21,12 @@ export function SegmentedControl<T = string>({
   className = '',
   label,
   showSelectAll = false,
-  selectAllLabel = '全选',
-  deselectAllLabel = '取消全选',
+  selectAllLabel,
+  deselectAllLabel,
 }: SegmentedControlProps<T>) {
+  const t = useTranslations();
+  const resolvedSelectAllLabel = selectAllLabel ?? t('crossOracle.ui.selectAllLabel');
+  const resolvedDeselectAllLabel = deselectAllLabel ?? t('crossOracle.ui.deselectAllLabel');
   const isSelected = (option: SelectorOption<T>): boolean => {
     if (multiple && Array.isArray(value)) {
       return value.some((v) => v === option.value);
@@ -72,7 +77,7 @@ export function SegmentedControl<T = string>({
               disabled={disabled}
               className="text-[10px] px-2 py-1 text-gray-600 bg-white hover:bg-gray-50 transition-all duration-200 rounded-md border border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
             >
-              {allSelected ? deselectAllLabel : selectAllLabel}
+              {allSelected ? resolvedDeselectAllLabel : resolvedSelectAllLabel}
             </button>
           )}
         </div>

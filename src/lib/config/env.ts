@@ -6,9 +6,12 @@ const logger = createLogger('EnvConfig');
 
 type Environment = 'development' | 'production' | 'test';
 
-interface SupabaseConfig {
+interface ClientSupabaseConfig {
   url: string;
   anonKey: string;
+}
+
+interface ServerSupabaseConfig extends ClientSupabaseConfig {
   serviceRoleKey?: string;
 }
 
@@ -20,12 +23,15 @@ interface AppConfig {
   isTest: boolean;
 }
 
-interface FeatureFlags {
+interface ClientFeatureFlags {
   enableRealtime: boolean;
   enableAnalytics: boolean;
   enablePerformanceMonitoring: boolean;
   enableCSRFProtection: boolean;
   enableRateLimiting: boolean;
+}
+
+interface ServerFeatureFlags extends ClientFeatureFlags {
   useRealChainlinkData: boolean;
   useRealApi3Data: boolean;
   useRealWinklinkData: boolean;
@@ -44,11 +50,16 @@ interface SecurityConfig {
   allowedOrigins: string[];
 }
 
-interface EnvConfig {
-  supabase: SupabaseConfig;
+interface ClientEnvConfig {
+  supabase: ClientSupabaseConfig;
   app: AppConfig;
-  features: FeatureFlags;
+  features: ClientFeatureFlags;
   websocket: WebSocketConfig;
+}
+
+interface ServerEnvConfig extends ClientEnvConfig {
+  supabase: ServerSupabaseConfig;
+  features: ServerFeatureFlags;
   security: SecurityConfig;
 }
 
@@ -62,7 +73,31 @@ const envBoolean = z
   .transform((v) => v === 'true' || v === '1')
   .default(false);
 
-const envSchema = z.object({
+const clientEnvSchema = z.object({
+  NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
+  NEXT_PUBLIC_APP_URL: z.string().url().optional().default('http://localhost:3000'),
+  NEXT_PUBLIC_WS_URL: z.string().optional(),
+  NEXT_PUBLIC_ENABLE_REALTIME: envBoolean,
+  NEXT_PUBLIC_ENABLE_ANALYTICS: envBoolean,
+  NEXT_PUBLIC_ENABLE_PERFORMANCE_MONITORING: envBoolean,
+  NEXT_PUBLIC_ENABLE_CSRF: envBoolean,
+  NEXT_PUBLIC_ENABLE_RATE_LIMITING: envBoolean,
+});
+
+const lenientClientEnvSchema = z.object({
+  NEXT_PUBLIC_SUPABASE_URL: z.string().optional().default(''),
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().optional().default(''),
+  NEXT_PUBLIC_APP_URL: z.string().optional().default('http://localhost:3000'),
+  NEXT_PUBLIC_WS_URL: z.string().optional().default(''),
+  NEXT_PUBLIC_ENABLE_REALTIME: envBoolean,
+  NEXT_PUBLIC_ENABLE_ANALYTICS: envBoolean,
+  NEXT_PUBLIC_ENABLE_PERFORMANCE_MONITORING: envBoolean,
+  NEXT_PUBLIC_ENABLE_CSRF: envBoolean,
+  NEXT_PUBLIC_ENABLE_RATE_LIMITING: envBoolean,
+});
+
+const serverEnvSchema = z.object({
   NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
@@ -84,7 +119,7 @@ const envSchema = z.object({
   ALLOWED_ORIGINS: z.string().optional().default(''),
 });
 
-const lenientEnvSchema = z.object({
+const lenientServerEnvSchema = z.object({
   NEXT_PUBLIC_SUPABASE_URL: z.string().optional().default(''),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().optional().default(''),
   SUPABASE_SERVICE_ROLE_KEY: z.string().optional().default(''),
@@ -106,43 +141,30 @@ const lenientEnvSchema = z.object({
   ALLOWED_ORIGINS: z.string().optional().default(''),
 });
 
-interface ParsedEnv {
-  NEXT_PUBLIC_SUPABASE_URL: string;
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: string;
-  SUPABASE_SERVICE_ROLE_KEY: string;
-  NEXT_PUBLIC_APP_URL: string;
-  NEXT_PUBLIC_WS_URL: string;
-  CSRF_SECRET: string;
-  JWT_SECRET: string;
-  NEXT_PUBLIC_ENABLE_REALTIME: boolean;
-  NEXT_PUBLIC_ENABLE_ANALYTICS: boolean;
-  NEXT_PUBLIC_ENABLE_PERFORMANCE_MONITORING: boolean;
-  NEXT_PUBLIC_ENABLE_CSRF: boolean;
-  NEXT_PUBLIC_ENABLE_RATE_LIMITING: boolean;
-  USE_REAL_CHAINLINK_DATA: boolean;
-  USE_REAL_API3_DATA: boolean;
-  USE_REAL_WINKLINK_DATA: boolean;
-  USE_REAL_SUPRA_DATA: boolean;
-  SESSION_TIMEOUT: number;
-  MAX_REQUEST_SIZE: number;
-  ALLOWED_ORIGINS: string;
-}
+type ClientEnv = z.infer<typeof clientEnvSchema>;
+type ServerEnv = z.infer<typeof serverEnvSchema>;
 
-function getRawEnv() {
+function getRawClientEnv() {
   return {
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
     NEXT_PUBLIC_WS_URL: process.env.NEXT_PUBLIC_WS_URL,
-    CSRF_SECRET: process.env.CSRF_SECRET,
-    JWT_SECRET: process.env.JWT_SECRET,
     NEXT_PUBLIC_ENABLE_REALTIME: process.env.NEXT_PUBLIC_ENABLE_REALTIME,
     NEXT_PUBLIC_ENABLE_ANALYTICS: process.env.NEXT_PUBLIC_ENABLE_ANALYTICS,
     NEXT_PUBLIC_ENABLE_PERFORMANCE_MONITORING:
       process.env.NEXT_PUBLIC_ENABLE_PERFORMANCE_MONITORING,
     NEXT_PUBLIC_ENABLE_CSRF: process.env.NEXT_PUBLIC_ENABLE_CSRF,
     NEXT_PUBLIC_ENABLE_RATE_LIMITING: process.env.NEXT_PUBLIC_ENABLE_RATE_LIMITING,
+  };
+}
+
+function getRawServerEnv() {
+  return {
+    ...getRawClientEnv(),
+    SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+    CSRF_SECRET: process.env.CSRF_SECRET,
+    JWT_SECRET: process.env.JWT_SECRET,
     USE_REAL_CHAINLINK_DATA: process.env.USE_REAL_CHAINLINK_DATA,
     USE_REAL_API3_DATA: process.env.USE_REAL_API3_DATA,
     USE_REAL_WINKLINK_DATA: process.env.USE_REAL_WINKLINK_DATA,
@@ -153,15 +175,28 @@ function getRawEnv() {
   };
 }
 
-function parseEnv(): ParsedEnv {
-  const isClient = typeof window !== 'undefined';
-  const raw = getRawEnv();
+function parseClientEnv(): ClientEnv {
+  const raw = getRawClientEnv();
+  const result = clientEnvSchema.safeParse(raw);
 
-  if (isClient) {
-    return lenientEnvSchema.parse(raw) as ParsedEnv;
+  if (result.success) {
+    return result.data;
   }
 
-  const result = envSchema.safeParse(raw);
+  const allErrors = result.error.issues.map((issue) => `${issue.path.join('.')}: ${issue.message}`);
+
+  if (getEnvironment() === 'production') {
+    throw new Error(`Client environment validation failed:\n${allErrors.join('\n')}`);
+  }
+
+  logger.warn('Client environment validation warnings:', { errors: allErrors });
+
+  return lenientClientEnvSchema.parse(raw);
+}
+
+function parseServerEnv(): ServerEnv {
+  const raw = getRawServerEnv();
+  const result = serverEnvSchema.safeParse(raw);
 
   if (result.success) {
     const data = result.data;
@@ -196,7 +231,7 @@ function parseEnv(): ParsedEnv {
 
   logger.warn('Environment validation warnings:', { errors: allErrors });
 
-  return lenientEnvSchema.parse(raw) as ParsedEnv;
+  return lenientServerEnvSchema.parse(raw);
 }
 
 function getAllowedOrigins(originsStr: string): string[] {
@@ -206,52 +241,115 @@ function getAllowedOrigins(originsStr: string): string[] {
   return originsStr.split(',').map((origin) => origin.trim());
 }
 
-const parsedEnv = parseEnv();
-
-export const env: EnvConfig = {
-  supabase: {
-    url: parsedEnv.NEXT_PUBLIC_SUPABASE_URL,
-    anonKey: parsedEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    serviceRoleKey: parsedEnv.SUPABASE_SERVICE_ROLE_KEY || undefined,
-  },
-  app: {
-    url: parsedEnv.NEXT_PUBLIC_APP_URL,
-    environment: getEnvironment(),
-    isDevelopment: getEnvironment() === 'development',
-    isProduction: getEnvironment() === 'production',
-    isTest: getEnvironment() === 'test',
-  },
-  features: {
-    enableRealtime: parsedEnv.NEXT_PUBLIC_ENABLE_REALTIME,
-    enableAnalytics: parsedEnv.NEXT_PUBLIC_ENABLE_ANALYTICS,
-    enablePerformanceMonitoring: parsedEnv.NEXT_PUBLIC_ENABLE_PERFORMANCE_MONITORING,
-    enableCSRFProtection: parsedEnv.NEXT_PUBLIC_ENABLE_CSRF,
-    enableRateLimiting: parsedEnv.NEXT_PUBLIC_ENABLE_RATE_LIMITING,
-    useRealChainlinkData: parsedEnv.USE_REAL_CHAINLINK_DATA,
-    useRealApi3Data: parsedEnv.USE_REAL_API3_DATA,
-    useRealWinklinkData: parsedEnv.USE_REAL_WINKLINK_DATA,
-    useRealSupraData: parsedEnv.USE_REAL_SUPRA_DATA,
-  },
-  websocket: {
-    url: parsedEnv.NEXT_PUBLIC_WS_URL || undefined,
-  },
-  security: {
-    csrfSecret: parsedEnv.CSRF_SECRET,
-    jwtSecret: parsedEnv.JWT_SECRET,
-    sessionTimeout: parsedEnv.SESSION_TIMEOUT,
-    maxRequestSize: parsedEnv.MAX_REQUEST_SIZE,
-    allowedOrigins: getAllowedOrigins(parsedEnv.ALLOWED_ORIGINS),
-  },
-};
-
-export const FEATURE_FLAGS: FeatureFlags = env.features;
-
-export function isFeatureEnabled(feature: keyof FeatureFlags): boolean {
-  return env.features[feature];
+function buildClientEnvConfig(parsed: ClientEnv): ClientEnvConfig {
+  return {
+    supabase: {
+      url: parsed.NEXT_PUBLIC_SUPABASE_URL,
+      anonKey: parsed.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    },
+    app: {
+      url: parsed.NEXT_PUBLIC_APP_URL,
+      environment: getEnvironment(),
+      isDevelopment: getEnvironment() === 'development',
+      isProduction: getEnvironment() === 'production',
+      isTest: getEnvironment() === 'test',
+    },
+    features: {
+      enableRealtime: parsed.NEXT_PUBLIC_ENABLE_REALTIME,
+      enableAnalytics: parsed.NEXT_PUBLIC_ENABLE_ANALYTICS,
+      enablePerformanceMonitoring: parsed.NEXT_PUBLIC_ENABLE_PERFORMANCE_MONITORING,
+      enableCSRFProtection: parsed.NEXT_PUBLIC_ENABLE_CSRF,
+      enableRateLimiting: parsed.NEXT_PUBLIC_ENABLE_RATE_LIMITING,
+    },
+    websocket: {
+      url: parsed.NEXT_PUBLIC_WS_URL || undefined,
+    },
+  };
 }
 
-export function getSupabaseConfig(): SupabaseConfig {
-  return env.supabase;
+function buildServerEnvConfig(parsed: ServerEnv): ServerEnvConfig {
+  return {
+    supabase: {
+      url: parsed.NEXT_PUBLIC_SUPABASE_URL,
+      anonKey: parsed.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      serviceRoleKey: parsed.SUPABASE_SERVICE_ROLE_KEY || undefined,
+    },
+    app: {
+      url: parsed.NEXT_PUBLIC_APP_URL,
+      environment: getEnvironment(),
+      isDevelopment: getEnvironment() === 'development',
+      isProduction: getEnvironment() === 'production',
+      isTest: getEnvironment() === 'test',
+    },
+    features: {
+      enableRealtime: parsed.NEXT_PUBLIC_ENABLE_REALTIME,
+      enableAnalytics: parsed.NEXT_PUBLIC_ENABLE_ANALYTICS,
+      enablePerformanceMonitoring: parsed.NEXT_PUBLIC_ENABLE_PERFORMANCE_MONITORING,
+      enableCSRFProtection: parsed.NEXT_PUBLIC_ENABLE_CSRF,
+      enableRateLimiting: parsed.NEXT_PUBLIC_ENABLE_RATE_LIMITING,
+      useRealChainlinkData: parsed.USE_REAL_CHAINLINK_DATA,
+      useRealApi3Data: parsed.USE_REAL_API3_DATA,
+      useRealWinklinkData: parsed.USE_REAL_WINKLINK_DATA,
+      useRealSupraData: parsed.USE_REAL_SUPRA_DATA,
+    },
+    websocket: {
+      url: parsed.NEXT_PUBLIC_WS_URL || undefined,
+    },
+    security: {
+      csrfSecret: parsed.CSRF_SECRET,
+      jwtSecret: parsed.JWT_SECRET,
+      sessionTimeout: parsed.SESSION_TIMEOUT,
+      maxRequestSize: parsed.MAX_REQUEST_SIZE,
+      allowedOrigins: getAllowedOrigins(parsed.ALLOWED_ORIGINS),
+    },
+  };
+}
+
+const _isClient = typeof window !== 'undefined';
+
+const _clientParsedEnv = _isClient ? parseClientEnv() : null;
+const _serverParsedEnv = !_isClient ? parseServerEnv() : null;
+
+const _clientEnvConfig = _clientParsedEnv ? buildClientEnvConfig(_clientParsedEnv) : null;
+const _serverEnvConfig = _serverParsedEnv ? buildServerEnvConfig(_serverParsedEnv) : null;
+
+export function getEnv(): ClientEnvConfig | ServerEnvConfig {
+  if (_isClient) {
+    return _clientEnvConfig!;
+  }
+  return _serverEnvConfig!;
+}
+
+export const env: ClientEnvConfig | ServerEnvConfig = getEnv();
+
+export const FEATURE_FLAGS: ServerFeatureFlags = _serverEnvConfig
+  ? _serverEnvConfig.features
+  : {
+      enableRealtime: _clientParsedEnv?.NEXT_PUBLIC_ENABLE_REALTIME ?? false,
+      enableAnalytics: _clientParsedEnv?.NEXT_PUBLIC_ENABLE_ANALYTICS ?? false,
+      enablePerformanceMonitoring:
+        _clientParsedEnv?.NEXT_PUBLIC_ENABLE_PERFORMANCE_MONITORING ?? false,
+      enableCSRFProtection: _clientParsedEnv?.NEXT_PUBLIC_ENABLE_CSRF ?? false,
+      enableRateLimiting: _clientParsedEnv?.NEXT_PUBLIC_ENABLE_RATE_LIMITING ?? false,
+      useRealChainlinkData: false,
+      useRealApi3Data: false,
+      useRealWinklinkData: false,
+      useRealSupraData: false,
+    };
+
+export function isFeatureEnabled(feature: keyof ServerFeatureFlags): boolean {
+  return FEATURE_FLAGS[feature];
+}
+
+export function getSupabaseConfig(): ServerSupabaseConfig {
+  if (_serverEnvConfig) {
+    return _serverEnvConfig.supabase;
+  }
+  return {
+    url: _clientParsedEnv?.NEXT_PUBLIC_SUPABASE_URL ?? '',
+    anonKey: _clientParsedEnv?.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
+    serviceRoleKey: undefined,
+  };
 }
 
 export function getAppConfig(): AppConfig {
@@ -263,18 +361,25 @@ export function getWebSocketConfig(): WebSocketConfig {
 }
 
 export function getSecurityConfig(): SecurityConfig {
-  return env.security;
+  if (_serverEnvConfig) {
+    return _serverEnvConfig.security;
+  }
+  return {
+    csrfSecret: '',
+    jwtSecret: '',
+    sessionTimeout: 3600,
+    maxRequestSize: 1048576,
+    allowedOrigins: [],
+  };
 }
 
 export function validateEnvironment(): { valid: boolean; errors: string[] } {
-  const isClient = typeof window !== 'undefined';
-  const raw = getRawEnv();
-
-  if (isClient) {
+  if (_isClient) {
     return { valid: true, errors: [] };
   }
 
-  const result = envSchema.safeParse(raw);
+  const raw = getRawServerEnv();
+  const result = serverEnvSchema.safeParse(raw);
 
   if (result.success) {
     return { valid: true, errors: [] };
@@ -289,14 +394,25 @@ export function validateEnvironment(): { valid: boolean; errors: string[] } {
   return { valid: false, errors };
 }
 
-export { envSchema, lenientEnvSchema };
+export { clientEnvSchema, lenientClientEnvSchema, serverEnvSchema, lenientServerEnvSchema };
 
 export type {
-  EnvConfig,
-  SupabaseConfig,
+  ClientEnv,
+  ServerEnv,
+  ClientEnvConfig,
+  ServerEnvConfig,
+  ClientSupabaseConfig,
+  ServerSupabaseConfig,
   AppConfig,
-  FeatureFlags,
-  Environment,
+  ClientFeatureFlags,
+  ServerFeatureFlags,
   WebSocketConfig,
   SecurityConfig,
+  Environment,
 };
+
+type SupabaseConfig = ServerSupabaseConfig;
+type FeatureFlags = ServerFeatureFlags;
+type EnvConfig = ServerEnvConfig;
+
+export type { EnvConfig, SupabaseConfig, FeatureFlags };

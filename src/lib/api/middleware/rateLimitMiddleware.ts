@@ -62,6 +62,19 @@ function defaultKeyGenerator(request: NextRequest): string {
     ip = 'unknown';
   }
 
+  if (ip === 'unknown') {
+    const authHeader = request.headers.get('authorization');
+    if (authHeader) {
+      let hash = 0;
+      for (let i = 0; i < authHeader.length; i++) {
+        const char = authHeader.charCodeAt(i);
+        hash = (hash << 5) - hash + char;
+        hash |= 0;
+      }
+      ip = `token:${Math.abs(hash).toString(36)}`;
+    }
+  }
+
   const path = request.nextUrl.pathname;
   return `${ip}:${path}`;
 }

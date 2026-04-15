@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 
@@ -133,7 +133,7 @@ export function useAlerts(): UseAlertsReturn {
     queryFn: async () => {
       if (!userId) return [];
       const result = await queries.getAlerts(userId);
-      return (result as PriceAlert[]) ?? [];
+      return result ?? [];
     },
     enabled: !!userId,
     staleTime: 5 * 60 * 1000,
@@ -175,7 +175,7 @@ export function useCreateAlert(): UseCreateAlertReturn {
         throw new Error(alertErrorKeys.createFailed);
       }
 
-      return alert as PriceAlert;
+      return alert;
     },
     onSuccess: () => {
       if (user?.id) {
@@ -224,7 +224,7 @@ export function useUpdateAlert(): UseUpdateAlertReturn {
         throw new Error(alertErrorKeys.updateFailed);
       }
 
-      return alert as PriceAlert;
+      return alert;
     },
     onSuccess: () => {
       if (user?.id) {
@@ -322,7 +322,7 @@ export function useAlertEvents(): UseAlertEventsReturn {
     queryFn: async () => {
       if (!userId) return [];
       const result = await queries.getAlertEvents(userId);
-      return (result as AlertEvent[]) ?? [];
+      return result ?? [];
     },
     enabled: !!userId,
     staleTime: 5 * 60 * 1000,
@@ -342,36 +342,42 @@ export function useAlertEvents(): UseAlertEventsReturn {
 
 export function useAcknowledgeAlert(): UseAcknowledgeAlertReturn {
   const user = useUser();
-  const [isAcknowledging, setIsAcknowledging] = useState(false);
   const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: async (eventId: string) => {
+      if (!user?.id) {
+        throw new Error(alertErrorKeys.userNotLoggedIn);
+      }
+
+      const event = await queries.acknowledgeAlertEvent(eventId);
+
+      if (!event) {
+        throw new Error(alertErrorKeys.acknowledgeFailed);
+      }
+
+      return event;
+    },
+    onSuccess: () => {
+      if (user?.id) {
+        queryClient.invalidateQueries({ queryKey: [ALERT_EVENTS_KEY, user.id] });
+      }
+    },
+  });
 
   const acknowledge = useCallback(
     async (eventId: string) => {
-      if (!user?.id) {
-        return { event: null, error: new Error(alertErrorKeys.userNotLoggedIn) };
-      }
-
-      setIsAcknowledging(true);
       try {
-        const event = await queries.acknowledgeAlertEvent(eventId);
-
-        if (!event) {
-          return { event: null, error: new Error(alertErrorKeys.acknowledgeFailed) };
-        }
-
-        await queryClient.invalidateQueries({ queryKey: [ALERT_EVENTS_KEY, user.id] });
-
-        return { event: event as AlertEvent, error: null };
+        const event = await mutation.mutateAsync(eventId);
+        return { event, error: null };
       } catch (err) {
         return { event: null, error: err as Error };
-      } finally {
-        setIsAcknowledging(false);
       }
     },
-    [user?.id, queryClient]
+    [mutation]
   );
 
-  return { acknowledge, isAcknowledging };
+  return { acknowledge, isAcknowledging: mutation.isPending };
 }
 
 export function useAlertEventsRealtime() {
@@ -408,37 +414,49 @@ export function useAlertEventsRealtime() {
 
 export function useBatchAlerts(): UseBatchAlertsReturn {
   const user = useUser();
-  const [isProcessing, setIsProcessing] = useState(false);
   const queryClient = useQueryClient();
 
-  const batchOperation = useCallback(
-    async (action: 'enable' | 'disable' | 'delete', alertIds: string[]) => {
+  const mutation = useMutation({
+    mutationFn: async ({
+      action,
+      alertIds,
+    }: {
+      action: 'enable' | 'disable' | 'delete';
+      alertIds: string[];
+    }) => {
       if (!user?.id) {
-        return { result: null, error: new Error(alertErrorKeys.userNotLoggedIn) };
+        throw new Error(alertErrorKeys.userNotLoggedIn);
       }
 
       if (alertIds.length === 0) {
-        return { result: null, error: new Error('No alerts selected') };
+        throw new Error('No alerts selected');
       }
 
-      setIsProcessing(true);
-      try {
-        const response = await apiClient.post<BatchOperationResult>('/api/alerts/batch', {
-          action,
-          alertIds,
-        });
+      const response = await apiClient.post<BatchOperationResult>('/api/alerts/batch', {
+        action,
+        alertIds,
+      });
 
-        await queryClient.invalidateQueries({ queryKey: [ALERTS_KEY, user.id] });
-
-        return { result: response.data, error: null };
-      } catch (err) {
-        return { result: null, error: err as Error };
-      } finally {
-        setIsProcessing(false);
+      return response.data;
+    },
+    onSuccess: () => {
+      if (user?.id) {
+        queryClient.invalidateQueries({ queryKey: [ALERTS_KEY, user.id] });
       }
     },
-    [user?.id, queryClient]
+  });
+
+  const batchOperation = useCallback(
+    async (action: 'enable' | 'disable' | 'delete', alertIds: string[]) => {
+      try {
+        const result = await mutation.mutateAsync({ action, alertIds });
+        return { result, error: null };
+      } catch (err) {
+        return { result: null, error: err as Error };
+      }
+    },
+    [mutation]
   );
 
-  return { batchOperation, isProcessing };
+  return { batchOperation, isProcessing: mutation.isPending };
 }

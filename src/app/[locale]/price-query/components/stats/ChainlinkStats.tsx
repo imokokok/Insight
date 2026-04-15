@@ -27,44 +27,44 @@ export function ChainlinkStats({
       <StatCard
         icon={Hash}
         iconColor="text-blue-500"
-        title={t('priceQuery.stats.roundId') || 'Round ID'}
+        title={t('priceQuery.stats.roundId')}
         value={roundId ? `#${roundId.slice(-6)}` : '-'}
-        description="当前价格更新轮次的唯一标识符"
+        description={t('priceQuery.stats.roundIdDesc')}
       />
       <StatCard
         icon={Layers}
         iconColor="text-indigo-500"
-        title={t('priceQuery.stats.answeredInRound') || 'Answered In'}
+        title={t('priceQuery.stats.answeredInRound')}
         value={answeredInRound ? `#${answeredInRound.slice(-6)}` : '-'}
-        description="提交该轮答案的聚合轮次ID"
+        description={t('priceQuery.stats.answeredInRoundDesc')}
       />
       <StatCard
         icon={Settings}
         iconColor="text-amber-500"
-        title={t('priceQuery.stats.decimals') || 'Decimals'}
+        title={t('priceQuery.stats.decimals')}
         value={decimals ?? '-'}
-        description="价格数据的小数位数，用于确定精度"
+        description={t('priceQuery.stats.decimalsDesc')}
       />
       <StatCard
         icon={FileText}
         iconColor="text-emerald-500"
-        title={t('priceQuery.stats.version') || 'Version'}
+        title={t('priceQuery.stats.version')}
         value={version ?? '-'}
-        description="预言机合约的版本号"
+        description={t('priceQuery.stats.versionDesc')}
       />
       <StatCard
         icon={History}
         iconColor="text-purple-500"
-        title={t('priceQuery.stats.roundStarted') || 'Round Started'}
+        title={t('priceQuery.stats.roundStarted')}
         value={startedAt ? new Date(startedAt).toLocaleTimeString() : '-'}
-        description="当前轮次开始的时间"
+        description={t('priceQuery.stats.roundStartedDesc')}
       />
       <StatCard
         icon={Shield}
         iconColor="text-rose-500"
-        title={t('priceQuery.stats.feedDescription') || 'Feed'}
+        title={t('priceQuery.stats.feedDescription')}
         value={source || '-'}
-        description="数据源的描述信息，标识价格来源"
+        description={t('priceQuery.stats.feedDescriptionDesc')}
       />
     </>
   );

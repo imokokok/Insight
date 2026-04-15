@@ -1,6 +1,6 @@
 # Insight - Oracle Data Analytics Platform
 
-Insight is a professional oracle data analytics platform that provides comprehensive analysis and comparison of mainstream oracle protocols including Chainlink, Pyth, API3, RedStone, DIA, and WINkLink.
+Insight is a professional oracle data analytics platform that provides comprehensive analysis and comparison of mainstream oracle protocols including Chainlink, Pyth, API3, RedStone, DIA, WINkLink, and Supra.
 
 ## Key Features
 
@@ -42,7 +42,8 @@ Insight is a professional oracle data analytics platform that provides comprehen
 - Pyth Hermes Client (`@pythnetwork/hermes-client` 2.0.0)
 - Pyth Price Service SDK (`@pythnetwork/price-service-sdk` 1.8.0)
 - API3 Contracts (`@api3/contracts` 27.0.0)
-- Custom oracle clients for all supported providers (Chainlink, Pyth, API3, RedStone, DIA, WINkLink)
+- Custom oracle clients for all supported providers (Chainlink, Pyth, API3, RedStone, DIA, WINkLink, Supra)
+- Supra Oracle SDK (`supra-oracle-sdk` 1.0.4)
 
 ## Prerequisites
 
@@ -65,38 +66,12 @@ Insight is a professional oracle data analytics platform that provides comprehen
    npm install
    ```
 
-3. Set up environment variables (see Environment Variables section below)
+3. Set up environment variables (see `src/lib/config/env.ts` and `src/lib/config/serverEnv.ts` for reference)
 
 4. Run the development server:
    ```bash
    npm run dev
    ```
-
-## Environment Variables
-
-Create a `.env.local` file in the root directory with the following variables:
-
-| Variable                                    | Description                                    | Required |
-| ------------------------------------------- | ---------------------------------------------- | -------- |
-| `NEXT_PUBLIC_SUPABASE_URL`                  | Supabase project URL                           | Yes      |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY`             | Supabase anonymous key                         | Yes      |
-| `NEXT_PUBLIC_APP_URL`                       | Application base URL                           | No       |
-| `NEXT_PUBLIC_WS_URL`                        | WebSocket server URL                           | No       |
-| `NEXT_PUBLIC_ENABLE_REALTIME`               | Enable real-time features (default: true)      | No       |
-| `NEXT_PUBLIC_ENABLE_ANALYTICS`              | Enable Vercel Analytics                        | No       |
-| `NEXT_PUBLIC_ENABLE_PERFORMANCE_MONITORING` | Enable performance monitoring (Speed Insights) | No       |
-
-Example `.env.local`:
-
-```env
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-NEXT_PUBLIC_WS_URL=ws://localhost:3001
-NEXT_PUBLIC_ENABLE_REALTIME=true
-NEXT_PUBLIC_ENABLE_ANALYTICS=true
-NEXT_PUBLIC_ENABLE_PERFORMANCE_MONITORING=true
-```
 
 ## Available Scripts
 
@@ -204,12 +179,10 @@ insight/
 │   │   │   └── versioning/     # API versioning
 │   │   ├── config/             # Configuration files
 │   │   ├── constants/          # Application constants
-│   │   ├── di/                 # Dependency injection
 │   │   ├── errors/             # Error handling
 │   │   ├── export/             # Data export utilities
 │   │   ├── i18n/               # i18n provider
 │   │   ├── indicators/         # Technical indicators
-│   │   ├── logger/             # Logging utilities
 │   │   ├── monitoring/         # Performance monitoring
 │   │   ├── oracles/            # Oracle client implementations
 │   │   │   ├── api3/           # API3 client and services
@@ -239,6 +212,7 @@ insight/
 │   │   │   ├── redstone.ts     # RedStone client
 │   │   │   ├── redstoneConstants.ts
 │   │   │   ├── storage.ts
+│   │   │   ├── supra.ts         # Supra client
 │   │   │   ├── supportedSymbols.ts
 │   │   │   └── winklink.ts     # WINkLink client
 │   │   ├── queries/            # React Query keys and client
@@ -246,7 +220,13 @@ insight/
 │   │   ├── security/           # Security utilities
 │   │   ├── services/           # External services
 │   │   │   ├── marketData/     # Market data services
-│   │   │   │   └── defiLlamaApi/
+│   │   │   │   ├── binanceMarketService.ts  # Binance market data
+│   │   │   │   ├── coinGeckoMarketService.ts # CoinGecko market data
+│   │   │   │   ├── anomalyCalculations.ts   # Anomaly detection
+│   │   │   │   ├── performanceMetrics.ts    # Performance metrics
+│   │   │   │   ├── priceCalculations.ts     # Price calculations
+│   │   │   │   ├── riskCalculations.ts      # Risk calculations
+│   │   │   │   └── defiLlamaApi/            # DeFi Llama API
 │   │   │   └── oracle/         # Oracle services
 │   │   ├── snapshots/          # Snapshot management
 │   │   ├── supabase/           # Supabase client and utilities
@@ -255,16 +235,20 @@ insight/
 │   │   └── validation/         # Validation utilities
 │   ├── stores/                 # Zustand stores
 │   │   ├── authStore.ts        # Authentication state
-│   │   ├── crossChainStore.ts  # Cross-chain analysis state
+│   │   ├── crossChainConfigStore.ts  # Cross-chain config state
+│   │   ├── crossChainDataStore.ts    # Cross-chain data state
+│   │   ├── crossChainSelectorStore.ts # Cross-chain selector state
+│   │   ├── crossChainUIStore.ts      # Cross-chain UI state
+│   │   ├── notificationStore.ts      # Notification state
 │   │   ├── realtimeStore.ts    # Real-time data state
-│   │   ├── selectors.ts        # Store selectors
+│   │   ├── timeRangeStore.ts   # Time range state
 │   │   └── uiStore.ts          # UI state
 │   ├── types/                  # TypeScript type definitions
 │   │   ├── oracle/             # Oracle types
 │   │   ├── api/                # API types
 │   │   ├── ui/                 # UI types
-│   │   ├── auth/               # Auth types
-│   │   └── common/             # Common types
+│   │   ├── risk.ts             # Risk types
+│   │   ├── guards.ts           # Type guards
 │   ├── i18n/                   # Internationalization
 │   │   ├── messages/           # Translation messages
 │   │   │   ├── en/             # English translations
@@ -273,19 +257,14 @@ insight/
 │   │   │   ├── zh-CN/          # Chinese translations
 │   │   │   │   ├── components/
 │   │   │   │   └── features/
-│   │   │   ├── common.json
-│   │   │   ├── home.json
-│   │   │   └── navigation.json
+│   │   │   ├── en.cleaned/     # Cleaned English translations
+│   │   │   └── zh-CN.cleaned/  # Cleaned Chinese translations
 │   │   ├── config.ts
 │   │   ├── generated-types.ts
 │   │   ├── request.ts
 │   │   ├── routing.ts
 │   │   └── types.ts
 │   └── __mocks__/              # Test mocks
-├── e2e/                        # E2E tests
-│   ├── home.spec.ts
-│   ├── oracle-data.spec.ts
-│   └── price-query.spec.ts
 ├── public/                     # Static assets
 │   └── logos/                  # Logo assets
 │       ├── cryptos/            # Cryptocurrency logos
@@ -340,6 +319,11 @@ insight/
 - **Supported Chains**: BNB Chain, TRON, Ethereum
 - **Features**: TRON ecosystem integration, gaming data feeds, entertainment focus
 
+### Supra
+
+- **Supported Chains**: Ethereum
+- **Features**: High-performance oracle with verifiable randomness, cross-chain data feeds, Supra Oracle SDK integration
+
 ## Database Schema
 
 The application uses Supabase (PostgreSQL) with the following main tables:
@@ -359,6 +343,8 @@ All tables have Row Level Security (RLS) enabled for data protection.
 
 - `GET /api/auth/callback` - OAuth callback handler
 - `GET /api/auth/profile` - Get user profile
+- `PUT /api/auth/profile` - Update user profile
+- `POST /api/auth/delete-account` - Delete user account
 
 ### Alerts
 
@@ -376,14 +362,14 @@ All tables have Row Level Security (RLS) enabled for data protection.
 - `GET /api/favorites` - List user favorites
 - `POST /api/favorites` - Create favorite
 - `GET /api/favorites/[id]` - Get specific favorite
+- `PUT /api/favorites/[id]` - Update favorite
 - `DELETE /api/favorites/[id]` - Delete favorite
 
 ### Oracles
 
 - `GET /api/oracles` - List all oracle providers
-- `POST /api/oracles` - Create oracle configuration
+- `POST /api/oracles` - Batch price query
 - `GET /api/oracles/[provider]` - Get specific oracle data
-- `PUT /api/oracles/[provider]` - Update oracle configuration
 
 ### System
 
@@ -459,3 +445,4 @@ This project is private and proprietary.
 - [RedStone](https://redstone.finance/) - Modular oracle
 - [DIA](https://www.diadata.org/) - Open-source oracle
 - [WINkLink](https://winklink.org/) - TRON ecosystem oracle
+- [Supra](https://supra.com/) - High-performance oracle with verifiable randomness

@@ -140,7 +140,8 @@
     "reconnecting": "重连中",
     "dataFresh": "数据新鲜",
     "dataStale": "数据稍旧",
-    "dataExpired": "数据过期"
+    "dataExpired": "数据过期",
+    "latency": "延迟"
   },
   "quickActions": {
     "priceAlert": "价格提醒",

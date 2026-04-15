@@ -24,6 +24,7 @@ The Insight platform supports multiple blockchain oracle providers, adopting a u
 | RedStone     | `redstone`  | `src/lib/oracles/redstone.ts`    | Arbitrum, Ethereum          | Efficient Data Push        |
 | DIA          | `dia`       | `src/lib/oracles/dia.ts`         | Multi-chain                 | Transparent Data Source    |
 | WINkLink     | `winklink`  | `src/lib/oracles/winklink.ts`    | Tron                        | TRON Ecosystem             |
+| Supra        | `supra`     | `src/lib/oracles/clients/supra.ts` | Ethereum                 | Verifiable Randomness      |
 
 ## Architecture Diagram
 
@@ -50,6 +51,7 @@ graph TB
         J[RedStoneClient]
         K[DIAClient]
         L[WINkLinkClient]
+        M[SupraClient]
     end
 
     subgraph DataSources["Data Sources"]
@@ -69,6 +71,7 @@ graph TB
     E --> J
     E --> K
     E --> L
+    E --> M
     G --> Q
     G --> R
     G --> S
@@ -151,6 +154,13 @@ classDiagram
         +getHistoricalPrices(symbol, chain, period): Promise~PriceData[]~
     }
 
+    class SupraClient {
+        +name: OracleProvider.SUPRA
+        +supportedChains: Blockchain[]
+        +getPrice(symbol, chain): Promise~PriceData~
+        +getHistoricalPrices(symbol, chain, period): Promise~PriceData[]~
+    }
+
     IOracleClient <|.. BaseOracleClient
     BaseOracleClient <|-- ChainlinkClient
     BaseOracleClient <|-- PythClient
@@ -158,6 +168,7 @@ classDiagram
     BaseOracleClient <|-- RedStoneClient
     BaseOracleClient <|-- DIAClient
     BaseOracleClient <|-- WINkLinkClient
+    BaseOracleClient <|-- SupraClient
     OracleClientFactory ..> BaseOracleClient : creates
 ```
 
@@ -252,6 +263,7 @@ export class OracleClientFactory {
       OracleProvider.REDSTONE,
       OracleProvider.DIA,
       OracleProvider.WINKLINK,
+      OracleProvider.SUPRA,
     ];
 
     const clients: Partial<Record<OracleProvider, BaseOracleClient>> = {};
@@ -276,6 +288,8 @@ export class OracleClientFactory {
         return new DIAClient(this.config);
       case OracleProvider.WINKLINK:
         return new WINkLinkClient(this.config);
+      case OracleProvider.SUPRA:
+        return new SupraClient(this.config);
       default:
         throw new ValidationError(`Unknown oracle provider: ${provider}`);
     }
@@ -569,22 +583,31 @@ export const ORACLE_COLORS: Record<OracleProvider, OracleColorScheme> = {
 };
 ```
 
-#### Step 5: Create Page Component
+#### Step 5: Add Oracle Configuration
 
 ```typescript
-// src/app/[locale]/new-oracle/page.tsx
-import { OraclePageTemplate } from '@/components/oracle/shared';
-import { OracleProvider } from '@/types/oracle';
+// src/lib/config/oracles.tsx
+// Add the new oracle provider configuration including:
+// - Supported chains
+// - Icon and theme colors
+// - Market data defaults
+// - Network data configuration
+// - Feature flags
+// - Tab and view configuration
+```
 
-export default function NewOraclePage() {
-  return (
-    <OraclePageTemplate
-      provider={OracleProvider.NEW_ORACLE}
-      title="New Oracle"
-      description="Description of the new oracle"
-    />
-  );
-}
+#### Step 6: Add Price Query Page Stats Component
+
+```typescript
+// src/app/[locale]/price-query/components/stats/NewOracleStats.tsx
+// Create stats component for the new oracle provider
+```
+
+#### Step 7: Add i18n Translations
+
+```typescript
+// src/i18n/messages/en/ and src/i18n/messages/zh-CN/
+// Add translation files for the new oracle provider
 ```
 
 ### Best Practices

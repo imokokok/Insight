@@ -52,7 +52,7 @@ Use `createDynamicComponent` to create dynamic components:
 import { createDynamicComponent } from '@/components/performance';
 
 const HeavyChart = createDynamicComponent(
-  () => import('@/components/oracle/charts/HeavyChart'),
+  () => import('@/components/charts/HeavyChart'),
   {
     ssr: false,
     loading: <ChartSkeleton />,
@@ -111,7 +111,7 @@ import {
   DynamicCrossChainTrendChart,
   DynamicLatencyTrendChart,
   preloadChart,
-} from '@/components/oracle/charts';
+} from '@/components/charts';
 
 // Use dynamic charts
 function PriceAnalysis() {

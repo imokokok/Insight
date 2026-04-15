@@ -54,6 +54,7 @@ Retrieve current price or historical prices from oracle providers.
 | RedStone  | `redstone`  | Modular oracle solution      |
 | DIA       | `dia`       | Open-source oracle           |
 | WINkLink  | `winklink`  | TRON ecosystem oracle        |
+| Supra     | `supra`     | High-performance oracle with verifiable randomness |
 
 **Supported Chains:**
 

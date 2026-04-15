@@ -300,66 +300,17 @@ CREATE POLICY "Users can update own alert events"
 
 ## Environment Variable Security
 
-### Required Variables
+Environment variables are validated at startup via `src/lib/config/env.ts` and `src/lib/config/serverEnv.ts`. Refer to those files for the complete list of required and optional variables.
 
-| Variable                        | Description            | Exposure             |
-| ------------------------------- | ---------------------- | -------------------- |
-| `NEXT_PUBLIC_SUPABASE_URL`      | Supabase project URL   | Public (client-safe) |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anonymous key | Public (client-safe) |
+### Security Principles
 
-### Sensitive Variables (Server-Only)
-
-| Variable                    | Description                     | Exposure        |
-| --------------------------- | ------------------------------- | --------------- |
-| `SUPABASE_SERVICE_ROLE_KEY` | Service role key (bypasses RLS) | **Server-only** |
-| `SUPABASE_URL`              | Server-side Supabase URL        | Server-only     |
-
-### Public Variables (Client-Safe)
-
-| Variable                                    | Description                   | Default |
-| ------------------------------------------- | ----------------------------- | ------- |
-| `NEXT_PUBLIC_APP_URL`                       | Application base URL          | -       |
-| `NEXT_PUBLIC_WS_URL`                        | WebSocket server URL          | -       |
-| `NEXT_PUBLIC_ENABLE_REALTIME`               | Enable real-time features     | `true`  |
-| `NEXT_PUBLIC_ENABLE_ANALYTICS`              | Enable Vercel Analytics       | `false` |
-| `NEXT_PUBLIC_ENABLE_PERFORMANCE_MONITORING` | Enable performance monitoring | `false` |
-
-### Configuration Validation
-
-```typescript
-function validateEnvVar(name: string, value: string | undefined): string {
-  if (!value) {
-    if (process.env.NODE_ENV === 'production') {
-      throw new Error(`Missing required environment variable: ${name}`);
-    }
-    console.warn(`Missing environment variable: ${name}, using fallback`);
-    return '';
-  }
-  return value;
-}
-```
-
-### Production vs Development
-
-**Production Requirements:**
-
-- All required variables must be set
-- `NEXT_PUBLIC_SUPABASE_URL` must use HTTPS
-- `SUPABASE_SERVICE_ROLE_KEY` must be securely stored
-- Cookie secure flag is enforced
-
-**Development Considerations:**
-
-- Missing variables trigger warnings, not errors
-- Fallback values may be used for local development
-- HTTP allowed for local development
+- Variables prefixed with `NEXT_PUBLIC_` are exposed to the client; all others are server-only
+- The service role key (`SUPABASE_SERVICE_ROLE_KEY`) bypasses RLS and must never be exposed to the client
+- All sensitive variables must be stored securely and never committed to version control
 
 ### Never Commit Secrets
 
-**Best Practices:**
-
 - Use `.env.local` for local development (gitignored)
-- Use `.env.example` as a template (committed)
 - Store production secrets in secure vault (Vercel, AWS Secrets Manager, etc.)
 - Rotate keys periodically
 - Never log or expose the service role key
@@ -409,8 +360,8 @@ export async function getUserId(request: NextRequest): Promise<string | null> {
 
 - `/api/alerts/*` - User alerts management
 - `/api/favorites/*` - User favorites management
-- `/api/snapshots/*` - User snapshots management
 - `/api/auth/profile` - User profile operations
+- `/api/auth/delete-account` - Account deletion
 
 ### Rate Limiting Considerations
 

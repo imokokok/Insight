@@ -7,7 +7,7 @@ import type { AlertEventPayload } from '@/lib/supabase/realtime';
 import { useUser } from '@/stores/authStore';
 import { useConnectionStatus, useRealtimeActions } from '@/stores/realtimeStore';
 
-import { useRealtimeAlerts, useAlertNotifications } from '../data/useRealtimeAlerts';
+import { useRealtimeAlerts, useAlertNotifications, type RealtimeAlertNotification } from '../data/useRealtimeAlerts';
 
 jest.mock('@/stores/realtimeStore', () => ({
   useConnectionStatus: jest.fn(),
@@ -265,7 +265,7 @@ describe('useAlertNotifications', () => {
       { id: '3', acknowledged: false },
     ];
 
-    const { result } = renderHook(() => useAlertNotifications(alerts as any));
+    const { result } = renderHook(() => useAlertNotifications(alerts as unknown as RealtimeAlertNotification[]));
 
     expect(result.current.unreadCount).toBe(2);
     expect(result.current.hasUnreadAlerts).toBe(true);

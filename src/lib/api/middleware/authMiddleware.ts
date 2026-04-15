@@ -1,10 +1,36 @@
 import { type NextRequest, NextResponse } from 'next/server';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 import { createLogger } from '@/lib/utils/logger';
 
 import { ApiResponseBuilder } from '../response';
 
 const logger = createLogger('auth-middleware');
+
+let supabaseClientPromise: Promise<SupabaseClient | null> | null = null;
+
+const getSupabaseClient = async () => {
+  if (supabaseClientPromise) return supabaseClientPromise;
+
+  supabaseClientPromise = (async () => {
+    const { createClient } = await import('@supabase/supabase-js');
+    const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+      return null;
+    }
+
+    return createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    });
+  })();
+
+  return supabaseClientPromise;
+};
 
 export interface AuthContext {
   userId: string | null;
@@ -29,22 +55,13 @@ export async function extractAuthContext(request: NextRequest): Promise<AuthCont
 
   const token = authHeader.slice(7);
 
-  const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!supabaseUrl || !supabaseAnonKey) {
-    logger.warn('Supabase configuration missing');
-    return null;
-  }
-
   try {
-    const { createClient } = await import('@supabase/supabase-js');
-    const client = createClient(supabaseUrl, supabaseAnonKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
-    });
+    const client = await getSupabaseClient();
+
+    if (!client) {
+      logger.warn('Supabase configuration missing');
+      return null;
+    }
 
     const {
       data: { user },

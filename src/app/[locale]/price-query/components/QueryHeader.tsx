@@ -119,7 +119,7 @@ export function QueryHeader({
             title={t('priceQuery.export.csv')}
           >
             <FileSpreadsheet className="w-4 h-4" />
-            <span className="hidden sm:inline">CSV</span>
+            <span className="hidden sm:inline">{t('crossOracle.exportFormats.csv')}</span>
           </button>
           <button
             onClick={onExportJSON}
@@ -128,7 +128,7 @@ export function QueryHeader({
             title={t('priceQuery.export.json')}
           >
             <FileJson className="w-4 h-4" />
-            <span className="hidden sm:inline">JSON</span>
+            <span className="hidden sm:inline">{t('crossOracle.exportFormats.json')}</span>
           </button>
           <button
             onClick={onOpenExportConfig}

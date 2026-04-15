@@ -151,6 +151,15 @@
       "endTime": "End Time",
       "recurring": "Recurring Schedule",
       "daysOfWeek": "Days of Week",
+      "daysOfWeek": {
+        "sun": "Sun",
+        "mon": "Mon",
+        "tue": "Tue",
+        "wed": "Wed",
+        "thu": "Thu",
+        "fri": "Fri",
+        "sat": "Sat"
+      },
       "notice": "During mute period, alerts will still be triggered but notifications will be suppressed",
       "duration": {
         "15": "15 minutes",

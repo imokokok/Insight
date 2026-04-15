@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState } from 'react';
 
 import { TrendingUp, Table } from 'lucide-react';
 import {
@@ -32,43 +32,6 @@ import { type QueryResult } from '../constants';
 
 import { ChartDataTable } from './ChartDataTable';
 import { CustomTooltip } from './CustomTooltip';
-
-interface CursorPoint {
-  x: number;
-  y: number;
-}
-
-interface CrosshairCursorProps {
-  points: CursorPoint[];
-  height: number;
-}
-
-const CrosshairCursor = ({ points, height }: CrosshairCursorProps) => {
-  if (!points?.length) return null;
-  const { x, y } = points[0];
-  return (
-    <g>
-      <line
-        x1={x}
-        y1={0}
-        x2={x}
-        y2={height}
-        stroke={chartColors.recharts.axis}
-        strokeDasharray="3 3"
-        strokeWidth={1}
-      />
-      <line
-        x1={0}
-        y1={y}
-        x2={x}
-        y2={y}
-        stroke={chartColors.recharts.axis}
-        strokeDasharray="3 3"
-        strokeWidth={1}
-      />
-    </g>
-  );
-};
 
 export interface ChartDataPoint {
   timestamp: number;
@@ -328,20 +291,15 @@ export function PriceChart({
     return seriesNames.length > 1 ? ['candle'] : [];
   }, [seriesNames]);
 
-  const effectiveChartType = disabledChartTypes.includes(chartType)
-    ? ('line' as ChartType)
-    : chartType;
-
   if (enhancedChartData.length === 0) {
     return (
       <div className="h-[300px] flex flex-col items-center justify-center text-gray-400">
         <TrendingUp className="w-8 h-8 mb-2 opacity-50" />
         <p className="text-sm">
-          {t('priceQuery.noHistoricalData') || 'No historical data available for this trading pair'}
+          {t('priceQuery.noHistoricalData')}
         </p>
         <p className="text-xs mt-1 text-gray-500">
-          {t('priceQuery.noHistoricalDataHint') ||
-            'Historical data source may not support this token'}
+          {t('priceQuery.noHistoricalDataHint')}
         </p>
       </div>
     );

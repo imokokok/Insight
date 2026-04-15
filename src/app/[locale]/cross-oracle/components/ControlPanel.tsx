@@ -144,7 +144,7 @@ export function ControlPanel({
   // Time range options for segmented control
   const timeRangeOptions = timeRanges.map((range) => ({
     value: range.value,
-    label: t(`crossOracle.timeRange.${range.value}`) || range.label,
+    label: t(range.labelKey) || range.labelKey,
   }));
 
   // Handle oracle toggle - 支持单个预言机切换

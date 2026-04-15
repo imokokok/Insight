@@ -209,7 +209,7 @@ interface PriceData {
 
 ```typescript
 interface TVSData {
-  oracle: string; // Oracle name (e.g., 'Chainlink', 'Pyth Network', 'API3', 'RedStone', 'DIA', 'WINkLink')
+  oracle: string; // Oracle name (e.g., 'Chainlink', 'Pyth Network', 'API3', 'RedStone', 'DIA', 'WINkLink', 'Supra')
   tvs: number; // Total Value Secured in billions USD
   change24h: number; // 24-hour TVS change percentage
   timestamp: number; // Unix timestamp in milliseconds

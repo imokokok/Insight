@@ -238,9 +238,9 @@ describe('useCreateAlert', () => {
 
     expect(result.current.isPending).toBe(false);
 
-    let alertPromise: Promise<typeof mockAlert | null>;
+    let _alertPromise: Promise<typeof mockAlert | null>;
     act(() => {
-      alertPromise = result.current.createAlert({
+      _alertPromise = result.current.createAlert({
         name: 'BTC Alert',
         symbol: 'BTC/USD',
         condition_type: 'above',
@@ -378,9 +378,9 @@ describe('useUpdateAlert', () => {
 
     expect(result.current.isPending).toBe(false);
 
-    let updatePromiseResult: Promise<typeof mockAlert | null>;
+    let _updatePromiseResult: Promise<typeof mockAlert | null>;
     act(() => {
-      updatePromiseResult = result.current.updateAlert('alert-1', {
+      _updatePromiseResult = result.current.updateAlert({
         target_value: 55000,
       });
     });
@@ -473,9 +473,9 @@ describe('useDeleteAlert', () => {
 
     expect(result.current.isPending).toBe(false);
 
-    let deletePromiseResult: Promise<boolean>;
+    let _deletePromiseResult: Promise<boolean>;
     act(() => {
-      deletePromiseResult = result.current.deleteAlert('alert-1');
+      _deletePromiseResult = result.current.deleteAlert('alert-1');
     });
 
     await waitFor(() => {
@@ -590,6 +590,34 @@ describe('useAcknowledgeAlert', () => {
 
     expect(response!.error?.message).toBe(alertErrorKeys.acknowledgeFailed);
   });
+
+  it('should track isAcknowledging state', async () => {
+    let resolveAcknowledge: (value: typeof mockAlertEvent) => void;
+    const acknowledgePromise = new Promise<typeof mockAlertEvent>((resolve) => {
+      resolveAcknowledge = resolve;
+    });
+    (queries.acknowledgeAlertEvent as jest.Mock).mockReturnValue(acknowledgePromise);
+
+    const { result } = renderHook(() => useAcknowledgeAlert(), {
+      wrapper: createTestWrapper(),
+    });
+
+    expect(result.current.isAcknowledging).toBe(false);
+
+    act(() => {
+      result.current.acknowledge('event-1');
+    });
+
+    await waitFor(() => {
+      expect(result.current.isAcknowledging).toBe(true);
+    });
+
+    resolveAcknowledge!({ ...mockAlertEvent, acknowledged_at: new Date().toISOString() });
+
+    await waitFor(() => {
+      expect(result.current.isAcknowledging).toBe(false);
+    });
+  });
 });
 
 describe('useBatchAlerts', () => {
@@ -664,18 +692,8 @@ describe('useBatchAlerts', () => {
 
     expect(result.current.isProcessing).toBe(false);
 
-    let operationPromise: Promise<{
-      result: {
-        processed: number;
-        succeeded: number;
-        failed: number;
-        successIds: string[];
-        failedIds: string[];
-      } | null;
-      error: Error | null;
-    }>;
     act(() => {
-      operationPromise = result.current.batchOperation('enable', ['1']);
+      result.current.batchOperation('enable', ['1']);
     });
 
     await waitFor(() => {
@@ -685,10 +703,9 @@ describe('useBatchAlerts', () => {
     resolveBatch!({
       data: { processed: 1, succeeded: 1, failed: 0, successIds: ['1'], failedIds: [] },
     });
-    await act(async () => {
-      await operationPromise!;
-    });
 
-    expect(result.current.isProcessing).toBe(false);
+    await waitFor(() => {
+      expect(result.current.isProcessing).toBe(false);
+    });
   });
 });

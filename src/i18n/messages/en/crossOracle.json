@@ -536,6 +536,108 @@
       "quickAccess": "Quick Access Favorites",
       "viewAll": "View All Favorites"
     },
+    "dispersion": {
+      "highlyConsistent": "Highly Consistent",
+      "highlyConsistentDesc": "Oracle prices are highly consistent, strong market consensus",
+      "basicallyConsistent": "Basically Consistent",
+      "basicallyConsistentDesc": "Price deviation is within acceptable range",
+      "someDivergence": "Some Divergence",
+      "someDivergenceDesc": "Some oracle prices have deviation, recommend monitoring",
+      "severeDivergence": "Severe Divergence",
+      "severeDivergenceDesc": "High price dispersion, potential risk exists",
+      "cvFormula": "CV = Standard Deviation / Mean"
+    },
+    "confidenceLevel": {
+      "veryHigh": "Very High",
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low",
+      "veryLow": "Very Low"
+    },
+    "riskAlert": {
+      "highRiskAlert": "High Risk Alert",
+      "mediumRiskAlert": "Medium Risk Alert",
+      "lowRiskAlert": "Low Risk Notice",
+      "normal": "Normal",
+      "detectedAnomalies": "Detected {count} price anomalies",
+      "withHighRisk": ", {count} high risk",
+      "maxDeviation": ", max deviation {percent}%",
+      "viewDetails": "View Details",
+      "remainingAnomalies": "{count} more anomalies...",
+      "riskDistribution": "Risk Distribution:",
+      "highRisk": "High Risk {count}",
+      "mediumRisk": "Medium Risk {count}",
+      "lowRisk": "Low Risk {count}",
+      "severityHigh": "High",
+      "severityMedium": "Medium",
+      "severityLow": "Low",
+      "severityUnknown": "Unknown",
+      "deviation": "Deviation"
+    },
+    "priceRange": {
+      "min": "Min",
+      "median": "Median",
+      "max": "Max",
+      "medianLabel": "Median: {price}",
+      "currentLabel": "Current: {price}"
+    },
+    "priceTable": {
+      "deviationTooLarge": "Price Deviation Too Large",
+      "dataDelay": "Data Delay",
+      "statisticalOutlier": "Statistical Outlier",
+      "unknownReason": "Unknown Reason"
+    },
+    "timeRanges": {
+      "1h": "1 Hour",
+      "24h": "24 Hours",
+      "7d": "7 Days",
+      "30d": "30 Days",
+      "90d": "90 Days",
+      "1y": "1 Year"
+    },
+    "oracleFeatures": {
+      "supportedAssets": "Supported Assets",
+      "avgLatency": "Avg Latency",
+      "features": "Features"
+    },
+    "chartToolbar": {
+      "unavailableWithMultipleSeries": "(unavailable with multiple series)",
+      "indicator": "Indicator",
+      "addIndicator": "Add Indicator",
+      "export": "Export",
+      "settings": "Settings"
+    },
+    "globalError": {
+      "title": "Something went wrong",
+      "description": "We apologize for the inconvenience. A critical error has occurred.",
+      "errorId": "Error ID:",
+      "tryAgain": "Try Again",
+      "backToHome": "Back to Home"
+    },
+    "notFound": {
+      "title": "Page Not Found",
+      "description": "The page you are looking for does not exist or has been moved. Please check the URL or navigate back to the homepage.",
+      "backToHome": "Back to Home",
+      "goBack": "Go Back"
+    },
+    "ui": {
+      "emptyStateTitle": "No data",
+      "emptyStateDescription": "There is no content to display at the moment",
+      "hidePassword": "Hide password",
+      "showPassword": "Show password",
+      "latency": "Latency",
+      "selectPlaceholder": "Select...",
+      "searchPlaceholder": "Search...",
+      "noOptionsMessage": "No matching options",
+      "keyboardHint": "Use ↑↓ to navigate, Enter to select",
+      "totalCount": "{count} total",
+      "selectAllLabel": "Select All",
+      "deselectAllLabel": "Deselect All"
+    },
+    "exportFormats": {
+      "csv": "CSV",
+      "json": "JSON"
+    },
     "noDataAvailable": "No Data Available",
     "marketConsensus": "Market Consensus Price",
     "priceDispersion": "Price Dispersion Index",

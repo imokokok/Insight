@@ -76,36 +76,22 @@ src/components/
 ### Server Components
 
 ```typescript
-// src/app/[locale]/chainlink/page.tsx
-import { OracleClientFactory } from '@/lib/oracles/factory';
-import { OracleProvider } from '@/types/oracle';
-import { ChainlinkHero } from './components/ChainlinkHero';
-import { MarketDataPanel } from '@/components/oracle/panels';
+// src/app/[locale]/price-query/page.tsx
+import { PriceQueryContent } from './PriceQueryContent';
 
-export default async function ChainlinkPage({
+export default async function PriceQueryPage({
   params: { locale },
 }: {
   params: { locale: string };
 }) {
-  const client = OracleClientFactory.getClient(OracleProvider.CHAINLINK);
-  const initialData = await client.getPrice('BTC');
-
-  return (
-    <div className="space-y-8">
-      <ChainlinkHero />
-      <MarketDataPanel
-        provider={OracleProvider.CHAINLINK}
-        initialData={initialData}
-      />
-    </div>
-  );
+  return <PriceQueryContent />;
 }
 ```
 
 ### Client Components
 
 ```typescript
-// components/oracle/charts/PriceChart.tsx
+// src/app/[locale]/price-query/components/PriceChart.tsx
 'use client';
 
 import { useState, useCallback } from 'react';
@@ -117,7 +103,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
-import { usePriceHistory } from '@/hooks/queries';
+import { usePriceHistory } from '@/hooks/data/useOracleData';
 import { Card } from '@/components/ui/Card';
 
 interface PriceChartProps {
@@ -130,25 +116,12 @@ export function PriceChart({ provider, symbol, chain }: PriceChartProps) {
   const [timeRange, setTimeRange] = useState<TimeRange>('24H');
   const { data, isLoading } = usePriceHistory(provider, symbol, chain);
 
-  const handleTimeRangeChange = useCallback((range: TimeRange) => {
-    setTimeRange(range);
-  }, []);
-
   if (isLoading) {
     return <ChartSkeleton />;
   }
 
   return (
     <Card>
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold">
-          {symbol} Price History
-        </h3>
-        <TimeRangeSelector
-          value={timeRange}
-          onChange={handleTimeRangeChange}
-        />
-      </div>
       <ResponsiveContainer width="100%" height={300}>
         <LineChart data={data}>
           <XAxis dataKey="timestamp" tickFormatter={formatDate} />
@@ -171,52 +144,38 @@ export function PriceChart({ provider, symbol, chain }: PriceChartProps) {
 ### Compound Component Pattern
 
 ```typescript
-// components/oracle/panels/MarketDataPanel.tsx
+// src/app/[locale]/cross-oracle/components/PriceTable.tsx
 import { createContext, useContext } from 'react';
 
-interface MarketDataContextValue {
-  provider: OracleProvider;
+interface PriceComparisonContextValue {
+  providers: OracleProvider[];
   symbol: string;
-  data: PriceData;
+  prices: PriceData[];
 }
 
-const MarketDataContext = createContext<MarketDataContextValue | null>(null);
+const PriceComparisonContext = createContext<PriceComparisonContextValue | null>(null);
 
-export function MarketDataPanel({
-  provider,
+export function PriceTable({
+  providers,
   symbol,
   children,
-}: MarketDataPanelProps) {
-  const { data } = useOraclePrice(provider, symbol);
+}: PriceTableProps) {
+  const { data: prices } = useOraclePrices(providers, symbol);
 
   return (
-    <MarketDataContext.Provider value={{ provider, symbol, data }}>
+    <PriceComparisonContext.Provider value={{ providers, symbol, prices }}>
       <div className="rounded-lg border border-gray-200 bg-white p-6">
         {children}
       </div>
-    </MarketDataContext.Provider>
+    </PriceComparisonContext.Provider>
   );
 }
 
-export function MarketDataHeader() {
-  const { symbol, data } = useContext(MarketDataContext)!;
-
+export function PriceTableHeader() {
+  const { providers, symbol } = useContext(PriceComparisonContext)!;
   return (
     <div className="flex items-center justify-between">
-      <h2 className="text-2xl font-bold">{symbol}</h2>
-      <PriceDisplay price={data.price} change={data.change24hPercent} />
-    </div>
-  );
-}
-
-export function MarketDataStats() {
-  const { data } = useContext(MarketDataContext)!;
-
-  return (
-    <div className="grid grid-cols-3 gap-4 mt-4">
-      <Stat label="24h High" value={data.high24h} />
-      <Stat label="24h Low" value={data.low24h} />
-      <Stat label="Volume" value={data.volume24h} />
+      <h2 className="text-2xl font-bold">{symbol} Price Comparison</h2>
     </div>
   );
 }
@@ -224,47 +183,43 @@ export function MarketDataStats() {
 
 ## Page Structure
 
-### Page Template
+### Page Content Components
+
+Each page uses a dedicated Content component that encapsulates the page logic:
 
 ```typescript
-// components/oracle/shared/OraclePageTemplate.tsx
-interface OraclePageTemplateProps {
-  provider: OracleProvider;
-  title: string;
-  description: string;
-  children?: React.ReactNode;
-}
+// src/app/[locale]/price-query/PriceQueryContent.tsx
+'use client';
 
-export function OraclePageTemplate({
-  provider,
-  title,
-  description,
-  children,
-}: OraclePageTemplateProps) {
+import { usePriceQuery } from './hooks/usePriceQuery';
+import { QueryHeader } from './components/QueryHeader';
+import { QueryForm } from './components/QueryForm';
+import { QueryResults } from './components/QueryResults';
+import { StatsCardsSelector } from './components/stats/StatsCardsSelector';
+
+export function PriceQueryContent() {
+  const {
+    selectedProvider,
+    selectedSymbol,
+    priceData,
+    isLoading,
+    // ... more state
+  } = usePriceQuery();
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <section className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="flex items-center gap-4">
-            <OracleLogo provider={provider} size="lg" />
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">{title}</h1>
-              <p className="mt-2 text-lg text-gray-600">{description}</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <aside className="lg:col-span-1">
-            <OracleSidebar provider={provider} />
-          </aside>
-          <div className="lg:col-span-2 space-y-6">
-            {children}
-          </div>
-        </div>
-      </main>
+    <div className="space-y-6">
+      <QueryHeader />
+      <QueryForm />
+      {isLoading ? (
+        <QueryResultsLoading />
+      ) : priceData ? (
+        <>
+          <StatsCardsSelector provider={selectedProvider} data={priceData} />
+          <QueryResults data={priceData} />
+        </>
+      ) : (
+        <QueryResultsEmpty />
+      )}
     </div>
   );
 }
@@ -273,30 +228,16 @@ export function OraclePageTemplate({
 ### Page Implementation
 
 ```typescript
-// src/app/[locale]/chainlink/page.tsx
-import { OraclePageTemplate } from '@/components/oracle/shared';
-import { MarketDataPanel } from '@/components/oracle/panels';
-import { PriceChart } from '@/components/oracle/charts';
-import { NetworkHealthPanel } from '@/components/oracle/panels';
-import { OracleProvider } from '@/types/oracle';
+// src/app/[locale]/price-query/page.tsx
+import { PriceQueryContent } from './PriceQueryContent';
 
 export const metadata = {
-  title: 'Chainlink | Insight Oracle Analytics',
-  description: 'Real-time Chainlink price feeds and network analytics',
+  title: 'Price Query | Insight Oracle Analytics',
+  description: 'Real-time oracle price feeds and analytics',
 };
 
-export default function ChainlinkPage() {
-  return (
-    <OraclePageTemplate
-      provider={OracleProvider.CHAINLINK}
-      title="Chainlink"
-      description="Decentralized oracle network providing reliable price feeds"
-    >
-      <MarketDataPanel provider={OracleProvider.CHAINLINK} symbol="BTC" />
-      <PriceChart provider={OracleProvider.CHAINLINK} symbol="BTC" />
-      <NetworkHealthPanel provider={OracleProvider.CHAINLINK} />
-    </OraclePageTemplate>
-  );
+export default function PriceQueryPage() {
+  return <PriceQueryContent />;
 }
 ```
 

@@ -552,6 +552,108 @@
       "viewAll": "查看全部收藏"
     },
     "noDataAvailable": "暂无可用数据",
+    "dispersion": {
+      "highlyConsistent": "高度一致",
+      "highlyConsistentDesc": "各预言机价格高度一致，市场共识强",
+      "basicallyConsistent": "基本一致",
+      "basicallyConsistentDesc": "价格偏差在可接受范围内",
+      "someDivergence": "存在分歧",
+      "someDivergenceDesc": "部分预言机价格存在偏差，建议关注",
+      "severeDivergence": "严重分歧",
+      "severeDivergenceDesc": "价格离散度高，存在潜在风险",
+      "cvFormula": "变异系数 = 标准差 / 平均值"
+    },
+    "confidenceLevel": {
+      "veryHigh": "极高",
+      "high": "高",
+      "medium": "中等",
+      "low": "低",
+      "veryLow": "极低"
+    },
+    "riskAlert": {
+      "highRiskAlert": "高风险预警",
+      "mediumRiskAlert": "中风险预警",
+      "lowRiskAlert": "低风险提示",
+      "normal": "正常",
+      "detectedAnomalies": "检测到 {count} 个价格异常",
+      "withHighRisk": "，其中 {count} 个高风险",
+      "maxDeviation": "，最大偏差 {percent}%",
+      "viewDetails": "查看详情",
+      "remainingAnomalies": "还有 {count} 个异常...",
+      "riskDistribution": "风险分布：",
+      "highRisk": "高风险 {count}",
+      "mediumRisk": "中风险 {count}",
+      "lowRisk": "低风险 {count}",
+      "severityHigh": "高",
+      "severityMedium": "中",
+      "severityLow": "低",
+      "severityUnknown": "未知",
+      "deviation": "偏差"
+    },
+    "priceRange": {
+      "min": "最小",
+      "median": "中位数",
+      "max": "最大",
+      "medianLabel": "中位数: {price}",
+      "currentLabel": "当前: {price}"
+    },
+    "priceTable": {
+      "deviationTooLarge": "价格偏差过大",
+      "dataDelay": "数据延迟",
+      "statisticalOutlier": "统计异常值",
+      "unknownReason": "未知原因"
+    },
+    "timeRanges": {
+      "1h": "1小时",
+      "24h": "24小时",
+      "7d": "7天",
+      "30d": "30天",
+      "90d": "90天",
+      "1y": "1年"
+    },
+    "oracleFeatures": {
+      "supportedAssets": "支持币种",
+      "avgLatency": "平均延迟",
+      "features": "特性"
+    },
+    "chartToolbar": {
+      "unavailableWithMultipleSeries": "(多系列时不可用)",
+      "indicator": "指标",
+      "addIndicator": "添加指标",
+      "export": "导出",
+      "settings": "设置"
+    },
+    "globalError": {
+      "title": "出现错误",
+      "description": "很抱歉，发生了严重错误。",
+      "errorId": "错误 ID:",
+      "tryAgain": "重试",
+      "backToHome": "返回首页"
+    },
+    "notFound": {
+      "title": "页面未找到",
+      "description": "您访问的页面不存在或已被移动。请检查 URL 或返回首页。",
+      "backToHome": "返回首页",
+      "goBack": "返回"
+    },
+    "ui": {
+      "emptyStateTitle": "暂无数据",
+      "emptyStateDescription": "当前没有可显示的内容",
+      "hidePassword": "隐藏密码",
+      "showPassword": "显示密码",
+      "latency": "延迟",
+      "selectPlaceholder": "请选择...",
+      "searchPlaceholder": "搜索...",
+      "noOptionsMessage": "无匹配选项",
+      "keyboardHint": "使用 ↑↓ 导航，Enter 选择",
+      "totalCount": "共 {count} 个",
+      "selectAllLabel": "全选",
+      "deselectAllLabel": "取消全选"
+    },
+    "exportFormats": {
+      "csv": "CSV",
+      "json": "JSON"
+    },
     "marketConsensus": "市场共识价格",
     "priceDispersion": "价格离散度指数",
     "stdError": "标准误差",

@@ -192,7 +192,7 @@ export function AlertMutePeriod({ config, onChange }: AlertMutePeriodProps) {
                               : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
                           }`}
                         >
-                          {t(`common.days.${day.value}`) || day.label}
+                          {t(`alerts.mute.daysOfWeek.${['sun','mon','tue','wed','thu','fri','sat'][day.value]}`) || day.label}
                         </button>
                       );
                     })}
@@ -275,7 +275,7 @@ export function formatMutePeriod(config: MutePeriodConfig, t: (key: string) => s
     const timeRange = `${config.startTime} - ${config.endTime}`;
     if (config.recurring && config.daysOfWeek && config.daysOfWeek.length > 0) {
       const days = config.daysOfWeek
-        .map((d) => t(`common.days.${d}`) || DAYS_OF_WEEK[d].label)
+        .map((d) => t(`alerts.mute.daysOfWeek.${['sun','mon','tue','wed','thu','fri','sat'][d]}`) || DAYS_OF_WEEK[d].label)
         .join(', ');
       return `${timeRange} (${days})`;
     }

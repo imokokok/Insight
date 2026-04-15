@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 
 import { ChevronDown, Search, Check } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 import { type DropdownSelectProps, type SelectorOption } from './types';
 
@@ -10,17 +11,21 @@ export function DropdownSelect<T = string>({
   options,
   value,
   onChange,
-  placeholder = '请选择...',
+  placeholder,
   disabled = false,
   searchable = false,
-  searchPlaceholder = '搜索...',
+  searchPlaceholder,
   categories,
   defaultCategory,
   className = '',
   renderValue,
   renderOption,
-  noOptionsMessage = '无匹配选项',
+  noOptionsMessage,
 }: DropdownSelectProps<T>) {
+  const t = useTranslations();
+  const resolvedPlaceholder = placeholder ?? t('crossOracle.ui.selectPlaceholder');
+  const resolvedSearchPlaceholder = searchPlaceholder ?? t('crossOracle.ui.searchPlaceholder');
+  const resolvedNoOptionsMessage = noOptionsMessage ?? t('crossOracle.ui.noOptionsMessage');
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | undefined>(defaultCategory);
@@ -130,7 +135,7 @@ export function DropdownSelect<T = string>({
   };
 
   const defaultRenderValue = (option: SelectorOption<T> | undefined) => {
-    if (!option) return <span className="text-gray-400">{placeholder}</span>;
+    if (!option) return <span className="text-gray-400">{resolvedPlaceholder}</span>;
     return (
       <div className="flex items-center gap-2">
         {option.icon && (
@@ -193,7 +198,7 @@ export function DropdownSelect<T = string>({
                   value={searchQuery}
                   onChange={(e) => handleSearchQueryChange(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  placeholder={searchPlaceholder}
+                  placeholder={resolvedSearchPlaceholder}
                   className="w-full pl-9 pr-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:bg-white focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all duration-200"
                 />
               </div>
@@ -220,7 +225,7 @@ export function DropdownSelect<T = string>({
 
           <div className="max-h-64 overflow-y-auto py-1">
             {filteredOptions.length === 0 ? (
-              <div className="px-3 py-4 text-sm text-center text-gray-500">{noOptionsMessage}</div>
+              <div className="px-3 py-4 text-sm text-center text-gray-500">{resolvedNoOptionsMessage}</div>
             ) : (
               filteredOptions.map((option, index) => {
                 const isSelected = option.value === value;
@@ -252,8 +257,8 @@ export function DropdownSelect<T = string>({
           </div>
 
           <div className="px-3 py-2 text-xs flex justify-between border-t border-gray-100 text-gray-400 bg-gray-50/50">
-            <span>使用 ↑↓ 导航，Enter 选择</span>
-            <span>共 {filteredOptions.length} 个</span>
+            <span>{t('crossOracle.ui.keyboardHint')}</span>
+            <span>{t('crossOracle.ui.totalCount', { count: filteredOptions.length })}</span>
           </div>
         </div>
       )}

@@ -41,19 +41,9 @@ jest.mock('@/lib/config/env', () => ({
       enablePerformanceMonitoring: false,
       enableCSRFProtection: false,
       enableRateLimiting: false,
-      useRealChainlinkData: true,
-      useRealApi3Data: true,
-      useRealWinklinkData: false,
     },
     websocket: {
       url: undefined,
-    },
-    security: {
-      csrfSecret: '',
-      jwtSecret: '',
-      sessionTimeout: 3600,
-      maxRequestSize: 1048576,
-      allowedOrigins: [],
     },
   },
   FEATURE_FLAGS: {
@@ -67,8 +57,11 @@ jest.mock('@/lib/config/env', () => ({
     useRealWinklinkData: false,
   },
   isFeatureEnabled: jest.fn(),
-  envSchema: {},
-  lenientEnvSchema: {},
+  getEnv: jest.fn(),
+  clientEnvSchema: {},
+  lenientClientEnvSchema: {},
+  serverEnvSchema: {},
+  lenientServerEnvSchema: {},
 }));
 
 jest.mock('@/lib/oracles/base/databaseOperations', () => ({

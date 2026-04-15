@@ -1,3 +1,5 @@
+import { type ZodSchema } from 'zod';
+
 export interface ApiClientResponse<T> {
   data: T;
   meta?: {
@@ -29,4 +31,5 @@ export interface RequestConfig {
   timeout?: number;
   signal?: AbortSignal;
   cache?: RequestCache;
+  responseSchema?: ZodSchema;
 }

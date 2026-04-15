@@ -27,35 +27,35 @@ export function API3Stats({
       <StatCard
         icon={FileText}
         iconColor="text-emerald-500"
-        title={t('priceQuery.stats.dapiName') || 'dAPI Name'}
+        title={t('priceQuery.stats.dapiName')}
         value={dapiName || '-'}
-        description="API3 去中心化 API 的名称标识"
+        description={t('priceQuery.stats.dapiNameDesc')}
       />
       <StatCard
         icon={Hash}
         iconColor="text-blue-500"
-        title={t('priceQuery.stats.proxyAddress') || 'Proxy'}
+        title={t('priceQuery.stats.proxyAddress')}
         value={proxyAddress ? `${proxyAddress.slice(0, 6)}...${proxyAddress.slice(-4)}` : '-'}
-        description="链上代理合约地址，用于读取价格数据"
+        description={t('priceQuery.stats.proxyAddressDesc')}
       />
       <StatCard
         icon={Globe}
         iconColor="text-indigo-500"
-        title={t('priceQuery.stats.blockchain') || 'Blockchain'}
+        title={t('priceQuery.stats.blockchain')}
         value={chain || '-'}
-        description="部署该数据源的区块链网络"
+        description={t('priceQuery.stats.blockchainDesc')}
       />
       <StatCard
         icon={Settings}
         iconColor="text-amber-500"
-        title={t('priceQuery.stats.decimals') || 'Decimals'}
+        title={t('priceQuery.stats.decimals')}
         value={decimals ?? '-'}
-        description="价格数据的小数位数，用于确定精度"
+        description={t('priceQuery.stats.decimalsDesc')}
       />
       <StatCard
         icon={Clock}
         iconColor="text-purple-500"
-        title={t('priceQuery.stats.dataAge') || 'Data Age'}
+        title={t('priceQuery.stats.dataAge')}
         value={
           dataAge !== undefined
             ? dataAge < 60000
@@ -63,14 +63,14 @@ export function API3Stats({
               : `${Math.round(dataAge / 60000)}m`
             : '-'
         }
-        description="距离上次价格更新的时间间隔"
+        description={t('priceQuery.stats.dataAgeDesc')}
       />
       <StatCard
         icon={Shield}
         iconColor="text-rose-500"
-        title={t('priceQuery.stats.confidenceScore') || 'Confidence'}
+        title={t('priceQuery.stats.confidenceScore')}
         value={confidence !== undefined ? `${(confidence * 100).toFixed(0)}%` : '-'}
-        description="价格数据的置信度评分，越高表示数据越可靠"
+        description={t('priceQuery.stats.confidenceScoreDesc')}
       />
     </>
   );

@@ -1016,7 +1016,7 @@ describe('riskMetrics', () => {
           configurable: true,
         });
 
-        const result = calculateDiversificationScore(params as any);
+        const result = calculateDiversificationScore(params as unknown as Parameters<typeof calculateDiversificationScore>[0]);
         expect(result.score).toBe(0);
         expect(result.level).toBe('critical');
         expect(result.description).toBe('calculation_error');
@@ -1099,7 +1099,7 @@ describe('riskMetrics', () => {
         });
 
         const result = calculateRiskMetrics(
-          oracleData as any,
+          oracleData as unknown as OracleMarketData[],
           [100, 101, 102],
           [
             [1, 0.5],

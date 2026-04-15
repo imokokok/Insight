@@ -6,16 +6,10 @@ import { Database, BarChart3, Clock } from 'lucide-react';
 
 import { PriceFlash } from '@/components/ui/PriceFlash';
 import { useTranslations } from '@/i18n';
-import type { OracleProvider, Blockchain } from '@/lib/oracles';
-import type { RedStoneTokenOnChainData } from '@/lib/oracles/clients/redstone';
-import type { SupraTokenOnChainData } from '@/lib/oracles/clients/supra';
-import type { DIATokenOnChainData } from '@/lib/oracles/services/diaDataService';
-import type { WINkLinkTokenOnChainData } from '@/lib/oracles/services/winklinkRealDataService';
 import { safeMax } from '@/lib/utils';
 
-import { type QueryResult, type PriceData } from '../constants';
+import { type QueryState, type StatsState, type ChartConfig, type ErrorState, type OnChainData } from '../constants';
 import { useConsistencyRating } from '../hooks/useConsistencyRating';
-import { type QueryError } from '../hooks/usePriceQuery';
 import { formatPrice } from '../utils/queryResultsUtils';
 
 import { QueryResultsEmpty } from './QueryResultsEmpty';
@@ -25,80 +19,66 @@ import { TokenIcon } from './TokenIcon';
 
 import { PriceChart, DataSourceSection, UnifiedExportSection, ErrorBanner } from './index';
 
-interface ChartDataPoint {
-  timestamp: number;
-  time: string;
-  [key: string]: number | string;
-}
-
 interface QueryResultsProps {
-  isLoading: boolean;
-  queryResults: QueryResult[];
-  historicalData: Partial<Record<string, PriceData[]>>;
-  avgPrice: number;
-  maxPrice: number;
-  minPrice: number;
-  priceRange: number;
-  standardDeviation: number;
-  standardDeviationPercent: number;
-  avgChange24hPercent?: number;
-  validPrices: number[];
-  chartData: ChartDataPoint[];
-  queryDuration: number | null;
-  queryProgress: { completed: number; total: number };
-  currentQueryTarget: { oracle: OracleProvider | null; chain: Blockchain | null };
-  selectedTimeRange: number;
+  queryState: QueryState;
+  stats: StatsState;
+  chartConfig: ChartConfig;
+  errorState: ErrorState;
+  onChainData: OnChainData;
   selectedSymbol: string;
   setSelectedSymbol: (symbol: string) => void;
   onRefresh: () => void;
-  chartContainerRef: React.RefObject<HTMLDivElement | null>;
-  queryErrors: QueryError[];
-  onRetryDataSource: (provider: OracleProvider, chain: Blockchain) => void;
-  onRetryAllErrors: () => void;
-  onClearErrors: () => void;
-  diaOnChainData?: DIATokenOnChainData | null;
-  isDIADataLoading?: boolean;
-  winklinkOnChainData?: WINkLinkTokenOnChainData | null;
-  isWINkLinkDataLoading?: boolean;
-  redstoneOnChainData?: RedStoneTokenOnChainData | null;
-  isRedStoneDataLoading?: boolean;
-  supraOnChainData?: SupraTokenOnChainData | null;
-  isSupraDataLoading?: boolean;
 }
 
 export function QueryResults({
-  isLoading,
-  queryResults,
-  historicalData: _historicalData,
-  avgPrice,
-  maxPrice,
-  minPrice,
-  priceRange,
-  standardDeviation,
-  standardDeviationPercent,
-  avgChange24hPercent: _avgChange24hPercent,
-  chartData,
-  queryDuration,
-  queryProgress,
-  currentQueryTarget,
-  selectedTimeRange,
+  queryState,
+  stats,
+  chartConfig,
+  errorState,
+  onChainData,
   selectedSymbol,
   setSelectedSymbol,
   onRefresh,
-  chartContainerRef,
-  queryErrors,
-  onRetryDataSource,
-  onRetryAllErrors,
-  onClearErrors,
-  diaOnChainData,
-  isDIADataLoading: _isDIADataLoading,
-  winklinkOnChainData,
-  isWINkLinkDataLoading: _isWINkLinkDataLoading,
-  redstoneOnChainData,
-  isRedStoneDataLoading: _isRedStoneDataLoading,
-  supraOnChainData,
-  isSupraDataLoading: _isSupraDataLoading,
 }: QueryResultsProps) {
+  const {
+    queryResults,
+    historicalData: _historicalData,
+    isLoading,
+    queryDuration,
+    queryProgress,
+    currentQueryTarget,
+  } = queryState;
+  const {
+    validPrices: _validPrices,
+    avgPrice,
+    avgChange24hPercent: _avgChange24hPercent,
+    maxPrice,
+    minPrice,
+    priceRange,
+    standardDeviation,
+    standardDeviationPercent,
+  } = stats;
+  const {
+    chartData,
+    chartContainerRef,
+    selectedTimeRange,
+  } = chartConfig;
+  const {
+    queryErrors,
+    onRetryDataSource,
+    onRetryAllErrors,
+    onClearErrors,
+  } = errorState;
+  const {
+    diaOnChainData,
+    isDIADataLoading: _isDIADataLoading,
+    winklinkOnChainData,
+    isWINkLinkDataLoading: _isWINkLinkDataLoading,
+    redstoneOnChainData,
+    isRedStoneDataLoading: _isRedStoneDataLoading,
+    supraOnChainData,
+    isSupraDataLoading: _isSupraDataLoading,
+  } = onChainData;
   const t = useTranslations();
   const consistencyRating = useConsistencyRating(standardDeviationPercent);
   const prevPriceRef = useRef<number | undefined>(undefined);
@@ -116,7 +96,9 @@ export function QueryResults({
   const currentResult = queryResults[0];
   const currentPrice = currentResult?.priceData;
   const currentPriceValue = currentPrice?.price || avgPrice;
+  // eslint-disable-next-line react-hooks/refs
   const previousPriceValue = prevPriceRef.current;
+  // eslint-disable-next-line react-hooks/refs
   if (currentPriceValue !== prevPriceRef.current) {
     prevPriceRef.current = currentPriceValue;
   }
@@ -213,7 +195,7 @@ export function QueryResults({
             <h3 className="text-sm font-semibold text-gray-800">
               {t('priceQuery.charts.priceHistory')}
             </h3>
-            <span className="text-xs text-gray-400 ml-2">(历史数据来源于 Binance API)</span>
+            <span className="text-xs text-gray-400 ml-2">{t('priceQuery.stats.historicalDataSource')}</span>
           </div>
           <div className="bg-gray-50/50 rounded-xl border border-gray-100 p-4">
             <PriceChart

@@ -56,6 +56,30 @@ export const DEFAULT_DEVIATION_THRESHOLD: DeviationThreshold = {
   danger: 2,
 };
 
+const COLOR_CONFIG = {
+  none: {
+    color: 'text-gray-600',
+    bg: 'bg-gray-50',
+    border: 'border-gray-200',
+    text: 'text-gray-700',
+    pulse: '',
+  },
+  warning: {
+    color: 'text-amber-500',
+    bg: 'bg-amber-50 dark:bg-amber-950/30',
+    border: 'border-amber-200 dark:border-amber-800',
+    text: 'text-amber-700 dark:text-amber-400',
+    pulse: 'animate-pulse-warning',
+  },
+  danger: {
+    color: 'text-red-500',
+    bg: 'bg-red-50 dark:bg-red-950/30',
+    border: 'border-red-200 dark:border-red-800',
+    text: 'text-red-700 dark:text-red-400',
+    pulse: 'animate-pulse-danger',
+  },
+};
+
 /**
  * 偏离检测 Hook
  * @param value 偏离值（百分比或绝对值）
@@ -99,32 +123,7 @@ export function useDeviationDetection(
     const isDanger = level === 'danger';
     const isDeviated = isWarning || isDanger;
 
-    // 颜色配置
-    const colorConfig = {
-      none: {
-        color: 'text-gray-600',
-        bg: 'bg-gray-50',
-        border: 'border-gray-200',
-        text: 'text-gray-700',
-        pulse: '',
-      },
-      warning: {
-        color: 'text-amber-500',
-        bg: 'bg-amber-50 dark:bg-amber-950/30',
-        border: 'border-amber-200 dark:border-amber-800',
-        text: 'text-amber-700 dark:text-amber-400',
-        pulse: 'animate-pulse-warning',
-      },
-      danger: {
-        color: 'text-red-500',
-        bg: 'bg-red-50 dark:bg-red-950/30',
-        border: 'border-red-200 dark:border-red-800',
-        text: 'text-red-700 dark:text-red-400',
-        pulse: 'animate-pulse-danger',
-      },
-    };
-
-    const config = colorConfig[level];
+    const config = COLOR_CONFIG[level];
 
     return {
       level,
@@ -174,31 +173,7 @@ function calculateDeviationResult(
   const isDanger = level === 'danger';
   const isDeviated = isWarning || isDanger;
 
-  const colorConfig = {
-    none: {
-      color: 'text-gray-600',
-      bg: 'bg-gray-50',
-      border: 'border-gray-200',
-      text: 'text-gray-700',
-      pulse: '',
-    },
-    warning: {
-      color: 'text-amber-500',
-      bg: 'bg-amber-50 dark:bg-amber-950/30',
-      border: 'border-amber-200 dark:border-amber-800',
-      text: 'text-amber-700 dark:text-amber-400',
-      pulse: 'animate-pulse-warning',
-    },
-    danger: {
-      color: 'text-red-500',
-      bg: 'bg-red-50 dark:bg-red-950/30',
-      border: 'border-red-200 dark:border-red-800',
-      text: 'text-red-700 dark:text-red-400',
-      pulse: 'animate-pulse-danger',
-    },
-  };
-
-  const config = colorConfig[level];
+  const config = COLOR_CONFIG[level];
 
   return {
     level,
