@@ -451,11 +451,8 @@ export class ChainlinkOnChainService {
   }
 
   getSupportedChainIds(symbol: string): number[] {
-    const feed = getChainlinkPriceFeed(symbol, 1);
-    if (!feed) return [];
-
     const chainIds: number[] = [];
-    const supportedChains = [1, 42161, 137, 8453, 43114, 56];
+    const supportedChains = [1, 42161, 137, 8453, 43114, 56, 10, 250];
 
     for (const chainId of supportedChains) {
       if (getChainlinkPriceFeed(symbol, chainId)) {

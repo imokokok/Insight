@@ -464,9 +464,10 @@ export async function getTokenMarketData(symbol: string): Promise<TokenMarketDat
 
     logger.info(`Fetching market data for ${symbol} (${binanceSymbol})...`);
 
-    const tickerResponse = await fetchWithRetry(
-      `${BINANCE_API_BASE}/ticker/24hr?symbol=${binanceSymbol}`
-    );
+    const [tickerResponse, priceResponse] = await Promise.all([
+      fetchWithRetry(`${BINANCE_API_BASE}/ticker/24hr?symbol=${binanceSymbol}`),
+      fetchWithRetry(`${BINANCE_API_BASE}/ticker/price?symbol=${binanceSymbol}`),
+    ]);
 
     const tickerData = await tickerResponse.json();
 
@@ -474,10 +475,6 @@ export async function getTokenMarketData(symbol: string): Promise<TokenMarketDat
       logger.error(`Invalid ticker data received for ${symbol}`);
       return null;
     }
-
-    const priceResponse = await fetchWithRetry(
-      `${BINANCE_API_BASE}/ticker/price?symbol=${binanceSymbol}`
-    );
 
     const priceData = await priceResponse.json();
 

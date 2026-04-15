@@ -1,6 +1,6 @@
 import { RedStoneApiError, type RedStoneErrorCode } from '@/lib/errors';
 import { BaseOracleClient } from '@/lib/oracles/base';
-import type { OracleClientConfig, CacheEntry } from '@/lib/oracles/base';
+import type { OracleClientConfig, OracleCacheEntry } from '@/lib/oracles/base';
 import { SPREAD_PERCENTAGES, REDSTONE_API_BASE } from '@/lib/oracles/constants/redstoneConstants';
 import { redstoneSymbols } from '@/lib/oracles/constants/supportedSymbols';
 import { withOracleRetry, ORACLE_RETRY_PRESETS } from '@/lib/oracles/utils/retry';
@@ -55,14 +55,14 @@ export class RedStoneClient extends BaseOracleClient {
   ];
 
   defaultUpdateIntervalMinutes = 10;
-  private cache: Map<string, CacheEntry<unknown>> = new Map();
+  private cache: Map<string, OracleCacheEntry<unknown>> = new Map();
 
   constructor(config?: OracleClientConfig) {
     super(config);
   }
 
   private getFromCache<T>(key: string): T | null {
-    const entry = this.cache.get(key) as CacheEntry<T> | undefined;
+    const entry = this.cache.get(key) as OracleCacheEntry<T> | undefined;
     if (!entry) return null;
 
     const now = Date.now();
@@ -314,7 +314,6 @@ export class RedStoneClient extends BaseOracleClient {
     _options?: { signal?: AbortSignal }
   ): Promise<PriceData[]> {
     try {
-      // 统一使用 Binance API 获取历史价格数据
       const historicalPrices = await binanceMarketService.getHistoricalPricesByHours(
         symbol,
         period
@@ -332,11 +331,12 @@ export class RedStoneClient extends BaseOracleClient {
       });
 
       const targetChain = chain || Blockchain.ETHEREUM;
-      const basePrice = historicalPrices[0].price;
+      const latestPrice = historicalPrices[historicalPrices.length - 1].price;
 
-      return historicalPrices.map((point, index) => {
-        const change24hPercent = index === 0 ? 0 : ((point.price - basePrice) / basePrice) * 100;
-        const change24h = index === 0 ? 0 : point.price - basePrice;
+      return historicalPrices.map((point) => {
+        const change24h = latestPrice - point.price;
+        const change24hPercent =
+          point.price > 0 ? ((latestPrice - point.price) / point.price) * 100 : 0;
 
         return {
           provider: this.name,
@@ -354,87 +354,6 @@ export class RedStoneClient extends BaseOracleClient {
     } catch (error) {
       logger.error(
         `Failed to fetch historical prices for ${symbol}: ${error instanceof Error ? error.message : 'Unknown error'}`
-      );
-      return [];
-    }
-  }
-
-  /**
-   * 从 RedStone API 获取历史价格数据
-   */
-  private async fetchHistoricalPricesFromRedStone(
-    symbol: string,
-    periodHours: number,
-    signal?: AbortSignal
-  ): Promise<Array<{ price: number; timestamp: number }>> {
-    try {
-      const endTime = Date.now();
-      const startTime = endTime - periodHours * 60 * 60 * 1000;
-
-      const url = `${REDSTONE_API_BASE}/prices?symbol=${symbol.toUpperCase()}&provider=redstone-rapid&fromTimestamp=${startTime}&toTimestamp=${endTime}`;
-
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          Accept: 'application/json',
-        },
-        signal,
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const rawData = await response.json();
-
-      // 验证数据格式
-      if (!Array.isArray(rawData)) {
-        logger.warn(
-          `Unexpected response format for ${symbol}: expected array, got ${typeof rawData}`
-        );
-        return [];
-      }
-
-      if (rawData.length === 0) {
-        return [];
-      }
-
-      // 验证并过滤有效数据点
-      const validData: Array<{ price: number; timestamp: number }> = [];
-      for (const item of rawData) {
-        if (!item || typeof item !== 'object') {
-          continue;
-        }
-
-        const value = item.value;
-        const timestamp = item.timestamp;
-
-        // 验证价格值
-        if (typeof value !== 'number' || isNaN(value) || value <= 0) {
-          logger.warn(`Invalid price value for ${symbol}`, { value });
-          continue;
-        }
-
-        if (typeof timestamp !== 'number' || isNaN(timestamp) || timestamp <= 0) {
-          logger.warn(`Invalid timestamp for ${symbol}`, { timestamp });
-          continue;
-        }
-
-        validData.push({
-          price: value,
-          timestamp: toMilliseconds(timestamp),
-        });
-      }
-
-      if (validData.length === 0) {
-        logger.warn(`No valid data points for ${symbol}`);
-      }
-
-      return validData;
-    } catch (error) {
-      logger.error(
-        `Failed to fetch historical prices from API`,
-        error instanceof Error ? error : new Error(String(error))
       );
       return [];
     }

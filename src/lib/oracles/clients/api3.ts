@@ -5,7 +5,7 @@ import { api3NetworkService } from '@/lib/oracles/services/api3NetworkService';
 import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
 import { createLogger } from '@/lib/utils/logger';
 import type { PriceData } from '@/types/oracle';
-import { OracleProvider, Blockchain } from '@/types/oracle';
+import { OracleProvider, Blockchain, OracleError } from '@/types/oracle';
 
 const logger = createLogger('API3Client');
 
@@ -24,9 +24,11 @@ export class API3Client extends BaseOracleClient {
   defaultUpdateIntervalMinutes = 1;
   private dataCache: Map<string, { data: unknown; timestamp: number }> = new Map();
   private cacheTTL = 60000;
+  private useRealData: boolean;
 
-  constructor(config?: OracleClientConfig) {
+  constructor(config?: OracleClientConfig & { useRealData?: boolean }) {
     super(config);
+    this.useRealData = config?.useRealData ?? true;
   }
 
   private getCached<T>(key: string): T | null {
@@ -71,7 +73,6 @@ export class API3Client extends BaseOracleClient {
     const targetChain = chain || Blockchain.ETHEREUM;
 
     try {
-      // 从API3预言机网络获取价格
       const api3Data = await api3NetworkService.getPrice(symbol, targetChain);
 
       if (!api3Data) {
@@ -103,21 +104,10 @@ export class API3Client extends BaseOracleClient {
         dataAge: api3Data.dataAge,
       };
     } catch (error) {
+      if (error instanceof OracleError) throw error;
       logger.error(
         `Failed to fetch price for ${symbol}: ${error instanceof Error ? error.message : String(error)}`
       );
-
-      // 如果是我们主动抛出的错误，直接抛出
-      if (
-        error &&
-        typeof error === 'object' &&
-        'code' in error &&
-        error.code === 'API3_PRICE_NOT_AVAILABLE'
-      ) {
-        throw error;
-      }
-
-      // 其他错误包装后抛出
       throw this.createError(
         error instanceof Error ? error.message : 'Failed to fetch price from API3 oracle network',
         'API3_PRICE_ERROR'
@@ -138,7 +128,6 @@ export class API3Client extends BaseOracleClient {
     const targetChain = chain || Blockchain.ETHEREUM;
 
     try {
-      // 统一使用 Binance API 获取历史价格数据
       const historicalPrices = await binanceMarketService.getHistoricalPricesByHours(
         symbol,
         period
@@ -151,11 +140,12 @@ export class API3Client extends BaseOracleClient {
         );
       }
 
-      const basePrice = historicalPrices[0].price;
+      const latestPrice = historicalPrices[historicalPrices.length - 1].price;
 
-      return historicalPrices.map((point, index) => {
-        const change24hPercent = index === 0 ? 0 : ((point.price - basePrice) / basePrice) * 100;
-        const change24h = index === 0 ? 0 : point.price - basePrice;
+      return historicalPrices.map((point) => {
+        const change24h = latestPrice - point.price;
+        const change24hPercent =
+          point.price > 0 ? ((latestPrice - point.price) / point.price) * 100 : 0;
 
         return {
           provider: OracleProvider.API3,
@@ -172,21 +162,10 @@ export class API3Client extends BaseOracleClient {
         };
       });
     } catch (error) {
+      if (error instanceof OracleError) throw error;
       logger.error(
         `Failed to fetch historical prices for ${symbol}: ${error instanceof Error ? error.message : String(error)}`
       );
-
-      // 如果是我们主动抛出的错误，直接抛出
-      if (
-        error &&
-        typeof error === 'object' &&
-        'code' in error &&
-        error.code === 'API3_HISTORICAL_PRICES_NOT_AVAILABLE'
-      ) {
-        throw error;
-      }
-
-      // 其他错误包装后抛出
       throw this.createError(
         error instanceof Error
           ? error.message

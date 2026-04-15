@@ -4,7 +4,7 @@ import { diaSymbols } from '@/lib/oracles/constants/supportedSymbols';
 import { getDIADataService } from '@/lib/oracles/services/diaDataService';
 import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
 import { createLogger } from '@/lib/utils/logger';
-import { OracleProvider, Blockchain } from '@/types/oracle';
+import { OracleProvider, Blockchain, OracleError } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
 
 const logger = createLogger('DIAClient');
@@ -36,10 +36,10 @@ export class DIAClient extends BaseOracleClient {
     chain?: Blockchain,
     _options?: { signal?: AbortSignal }
   ): Promise<PriceData> {
-    try {
-      const upperSymbol = symbol.toUpperCase();
+    const upperSymbol = symbol.toUpperCase();
 
-      if (upperSymbol === 'DIA') {
+    if (upperSymbol === 'DIA') {
+      try {
         const marketData = await binanceMarketService.getTokenMarketData(symbol);
         if (marketData) {
           return {
@@ -55,13 +55,20 @@ export class DIAClient extends BaseOracleClient {
             source: 'binance-api',
           };
         }
-        logger.error('Failed to fetch DIA token price from Binance API: no market data returned');
         throw this.createError(
           'Failed to fetch DIA token price from Binance API. Binance returned no market data.',
           'BINANCE_NO_DATA'
         );
+      } catch (error) {
+        if (error instanceof OracleError) throw error;
+        throw this.createError(
+          error instanceof Error ? error.message : 'Failed to fetch DIA token price',
+          'DIA_ERROR'
+        );
       }
+    }
 
+    try {
       logger.info(`Fetching price for ${upperSymbol}`, { chain: chain || 'default' });
 
       const diaService = getDIADataService();
@@ -79,6 +86,7 @@ export class DIAClient extends BaseOracleClient {
         'NO_DATA_AVAILABLE'
       );
     } catch (error) {
+      if (error instanceof OracleError) throw error;
       logger.error(
         `Error fetching price for ${symbol}: ${error instanceof Error ? error.message : String(error)}`
       );
@@ -96,7 +104,6 @@ export class DIAClient extends BaseOracleClient {
     _options?: { signal?: AbortSignal }
   ): Promise<PriceData[]> {
     try {
-      // 统一使用 Binance API 获取历史价格数据（与其他预言机保持一致）
       const historicalPrices = await binanceMarketService.getHistoricalPricesByHours(
         symbol,
         period
@@ -114,11 +121,12 @@ export class DIAClient extends BaseOracleClient {
       });
 
       const targetChain = chain || Blockchain.ETHEREUM;
-      const basePrice = historicalPrices[0].price;
+      const latestPrice = historicalPrices[historicalPrices.length - 1].price;
 
-      return historicalPrices.map((point, index) => {
-        const change24hPercent = index === 0 ? 0 : ((point.price - basePrice) / basePrice) * 100;
-        const change24h = index === 0 ? 0 : point.price - basePrice;
+      return historicalPrices.map((point) => {
+        const change24h = latestPrice - point.price;
+        const change24hPercent =
+          point.price > 0 ? ((latestPrice - point.price) / point.price) * 100 : 0;
 
         return {
           provider: OracleProvider.DIA,

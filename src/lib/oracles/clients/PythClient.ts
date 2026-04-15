@@ -4,7 +4,7 @@ import { pythSymbols, PYTH_AVAILABLE_PAIRS } from '@/lib/oracles/constants/suppo
 import { getPythDataService } from '@/lib/oracles/services/pythDataService';
 import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
 import { createLogger } from '@/lib/utils/logger';
-import { OracleProvider, Blockchain } from '@/types/oracle';
+import { OracleProvider, Blockchain, OracleError } from '@/types/oracle';
 import type { PriceData, ConfidenceInterval } from '@/types/oracle';
 
 const logger = createLogger('PythClient');
@@ -81,15 +81,14 @@ export class PythClient extends BaseOracleClient {
     chain?: Blockchain,
     _options?: { signal?: AbortSignal }
   ): Promise<PriceData> {
-    try {
-      if (!symbol) {
-        throw this.createError('Symbol is required', 'INVALID_SYMBOL');
-      }
+    if (!symbol) {
+      throw this.createError('Symbol is required', 'INVALID_SYMBOL');
+    }
 
-      const upperSymbol = symbol.toUpperCase();
+    const upperSymbol = symbol.toUpperCase();
 
-      // 当查询自己预言机的代币 (PYTH) 时，直接使用 Binance API
-      if (upperSymbol === 'PYTH') {
+    if (upperSymbol === 'PYTH') {
+      try {
         const marketData = await binanceMarketService.getTokenMarketData(symbol);
         if (marketData) {
           return {
@@ -105,8 +104,16 @@ export class PythClient extends BaseOracleClient {
             source: 'binance-api',
           };
         }
+      } catch (error) {
+        if (error instanceof OracleError) throw error;
+        throw this.createError(
+          error instanceof Error ? error.message : 'Failed to fetch PYTH price from Binance',
+          'PYTH_ERROR'
+        );
       }
+    }
 
+    try {
       const realPrice = await this.pythDataService.getLatestPrice(symbol);
       if (realPrice) {
         if (!realPrice.confidenceInterval) {
@@ -124,6 +131,7 @@ export class PythClient extends BaseOracleClient {
         'NO_DATA_AVAILABLE'
       );
     } catch (error) {
+      if (error instanceof OracleError) throw error;
       throw this.createError(
         error instanceof Error ? error.message : 'Failed to fetch price from Pyth',
         'PYTH_ERROR'
@@ -137,12 +145,11 @@ export class PythClient extends BaseOracleClient {
     period: number = 24,
     _options?: { signal?: AbortSignal }
   ): Promise<PriceData[]> {
-    try {
-      if (!symbol) {
-        throw this.createError('Symbol is required', 'INVALID_SYMBOL');
-      }
+    if (!symbol) {
+      throw this.createError('Symbol is required', 'INVALID_SYMBOL');
+    }
 
-      // 统一使用 Binance API 获取历史价格数据
+    try {
       const historicalPrices = await binanceMarketService.getHistoricalPricesByHours(
         symbol,
         period
@@ -160,23 +167,12 @@ export class PythClient extends BaseOracleClient {
       });
 
       const targetChain = chain || Blockchain.ETHEREUM;
+      const latestPrice = historicalPrices[historicalPrices.length - 1].price;
 
-      // 找到24小时前的数据点索引（如果数据点间隔是1小时，则24小时前是第24个点）
-      const getPrice24hAgo = (currentIndex: number): number => {
-        // 假设数据点间隔为 period / dataPoints 小时
-        const dataPoints = historicalPrices.length;
-        const hoursPerPoint = period / dataPoints;
-        const pointsFor24h = Math.floor(24 / hoursPerPoint);
-
-        const index24hAgo = Math.max(0, currentIndex - pointsFor24h);
-        return historicalPrices[index24hAgo]?.price ?? historicalPrices[0].price;
-      };
-
-      return historicalPrices.map((point, index) => {
-        const price24hAgo = getPrice24hAgo(index);
+      return historicalPrices.map((point) => {
+        const change24h = latestPrice - point.price;
         const change24hPercent =
-          index === 0 ? 0 : ((point.price - price24hAgo) / price24hAgo) * 100;
-        const change24h = index === 0 ? 0 : point.price - price24hAgo;
+          point.price > 0 ? ((latestPrice - point.price) / point.price) * 100 : 0;
 
         return {
           provider: this.name,

@@ -7,7 +7,7 @@ import {
 } from '@/lib/oracles/services/chainlinkOnChainService';
 import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
 import { createLogger } from '@/lib/utils/logger';
-import { OracleProvider, Blockchain } from '@/types/oracle';
+import { OracleProvider, Blockchain, OracleError } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
 
 const logger = createLogger('ChainlinkClient');
@@ -122,7 +122,15 @@ export class ChainlinkClient extends BaseOracleClient {
 
   private getChainId(chain?: Blockchain): number {
     if (!chain) return 1;
-    return BLOCKCHAIN_TO_CHAIN_ID[chain] || 1;
+    const chainId = BLOCKCHAIN_TO_CHAIN_ID[chain];
+    if (!chainId || chainId === 0) {
+      throw this.createError(
+        `Chain '${chain}' is not supported by Chainlink`,
+        'SYMBOL_NOT_SUPPORTED',
+        { retryable: false, details: { chain, supportedChains: this.supportedChains } }
+      );
+    }
+    return chainId;
   }
 
   private calculateConfidence(chain?: Blockchain): number {
@@ -179,14 +187,14 @@ export class ChainlinkClient extends BaseOracleClient {
     chain?: Blockchain,
     _options?: { signal?: AbortSignal }
   ): Promise<PriceData> {
-    try {
-      if (!symbol) {
-        throw this.createError('Symbol is required', 'INVALID_SYMBOL');
-      }
+    if (!symbol) {
+      throw this.createError('Symbol is required', 'INVALID_SYMBOL');
+    }
 
-      const chainId = this.getChainId(chain);
+    const chainId = this.getChainId(chain);
 
-      if (this.useRealData && this.isPriceFeedSupported(symbol, chain)) {
+    if (this.useRealData && this.isPriceFeedSupported(symbol, chain)) {
+      try {
         const realData = await chainlinkOnChainService.getPrice(symbol, chainId);
         if (!realData) {
           throw this.createError(
@@ -195,18 +203,19 @@ export class ChainlinkClient extends BaseOracleClient {
           );
         }
         return this.convertToPriceData(realData, chain);
+      } catch (error) {
+        if (error instanceof OracleError) throw error;
+        throw this.createError(
+          error instanceof Error ? error.message : 'Failed to fetch price from Chainlink',
+          'CHAINLINK_ERROR'
+        );
       }
-
-      throw this.createError(
-        `No price data available for ${symbol}. Real data is not enabled or price feed is not supported on this chain.`,
-        'REAL_DATA_NOT_AVAILABLE'
-      );
-    } catch (error) {
-      throw this.createError(
-        error instanceof Error ? error.message : 'Failed to fetch price from Chainlink',
-        'CHAINLINK_ERROR'
-      );
     }
+
+    throw this.createError(
+      `No price data available for ${symbol}. Real data is not enabled or price feed is not supported on this chain.`,
+      'REAL_DATA_NOT_AVAILABLE'
+    );
   }
 
   async getHistoricalPrices(
@@ -215,12 +224,11 @@ export class ChainlinkClient extends BaseOracleClient {
     period: number = 24,
     _options?: { signal?: AbortSignal }
   ): Promise<PriceData[]> {
-    try {
-      if (!symbol) {
-        throw this.createError('Symbol is required', 'INVALID_SYMBOL');
-      }
+    if (!symbol) {
+      throw this.createError('Symbol is required', 'INVALID_SYMBOL');
+    }
 
-      // 使用 Binance API 获取历史价格数据
+    try {
       const historicalPrices = await binanceMarketService.getHistoricalPricesByHours(
         symbol,
         period
@@ -238,11 +246,12 @@ export class ChainlinkClient extends BaseOracleClient {
       });
 
       const targetChain = chain || Blockchain.ETHEREUM;
-      const basePrice = historicalPrices[0].price;
+      const latestPrice = historicalPrices[historicalPrices.length - 1].price;
 
-      return historicalPrices.map((point, index) => {
-        const change24hPercent = index === 0 ? 0 : ((point.price - basePrice) / basePrice) * 100;
-        const change24h = index === 0 ? 0 : point.price - basePrice;
+      return historicalPrices.map((point) => {
+        const change24h = latestPrice - point.price;
+        const change24hPercent =
+          point.price > 0 ? ((latestPrice - point.price) / point.price) * 100 : 0;
 
         return {
           provider: this.name,
@@ -257,6 +266,7 @@ export class ChainlinkClient extends BaseOracleClient {
         };
       });
     } catch (error) {
+      if (error instanceof OracleError) throw error;
       logger.error(
         `Failed to fetch historical prices for ${symbol}: ${error instanceof Error ? error.message : 'Unknown error'}`
       );

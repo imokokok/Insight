@@ -121,6 +121,62 @@ const SYMBOL_TO_DAPI: Record<string, string> = {
   WETH: 'WETH/USD',
 };
 
+const DAPI_DECIMALS: Record<string, number> = {
+  'ETH/USD': 18,
+  'BTC/USD': 18,
+  'BNB/USD': 18,
+  'SOL/USD': 18,
+  'ARB/USD': 18,
+  'COMP/USD': 18,
+  'BAL/USD': 18,
+  'USDC/USD': 18,
+  'USDT/USD': 18,
+  'DAI/USD': 18,
+  'WBTC/USD': 18,
+  'AVAX/USD': 18,
+  'LINK/USD': 18,
+  'API3/USD': 18,
+  'MATIC/USD': 18,
+  'OP/USD': 18,
+  'UNI/USD': 18,
+  'AAVE/USD': 18,
+  'PYTH/USD': 18,
+  'DOGE/USD': 18,
+  'XRP/USD': 18,
+  'ADA/USD': 18,
+  'DOT/USD': 18,
+  'LTC/USD': 18,
+  'BCH/USD': 18,
+  'ETC/USD': 18,
+  'XLM/USD': 18,
+  'ATOM/USD': 18,
+  'SHIB/USD': 18,
+  'FTM/USD': 18,
+  'GRT/USD': 18,
+  'SUSHI/USD': 18,
+  'MKR/USD': 18,
+  'YFI/USD': 18,
+  'CRV/USD': 18,
+  'SNX/USD': 18,
+  'THETA/USD': 18,
+  'KAVA/USD': 18,
+  'PEPE/USD': 18,
+  'BONK/USD': 18,
+  'WIF/USD': 18,
+  'INJ/USD': 18,
+  'SUI/USD': 18,
+  'SEI/USD': 18,
+  'TIA/USD': 18,
+  'TON/USD': 18,
+  'FRAX/USD': 18,
+  'LUSD/USD': 18,
+  'WETH/USD': 18,
+};
+
+function getDecimalsForDapi(dapiName: string): number {
+  return DAPI_DECIMALS[dapiName] ?? 18;
+}
+
 interface PriceReading {
   value: number;
   timestamp: number;
@@ -230,7 +286,11 @@ async function rpcCall(chainId: number, method: string, params: unknown[]): Prom
 /**
  * 从dAPI Proxy合约读取价格
  */
-async function readDAPIPrice(proxyAddress: string, chainId: number): Promise<PriceReading | null> {
+async function readDAPIPrice(
+  proxyAddress: string,
+  chainId: number,
+  dapiName: string
+): Promise<PriceReading | null> {
   try {
     const data = encodeFunctionData('read', DAPI_PROXY_ABI);
 
@@ -249,7 +309,7 @@ async function readDAPIPrice(proxyAddress: string, chainId: number): Promise<Pri
     const rawValue = decodeInt224(result);
     const timestamp = decodeUint32(result);
 
-    const decimals = 18;
+    const decimals = getDecimalsForDapi(dapiName);
     const isNegative = rawValue < BigInt(0);
     const absValue = isNegative ? -rawValue : rawValue;
     const rawStr = absValue.toString();
@@ -338,7 +398,7 @@ export async function getAPI3Price(
     logger.info(`Computed proxy address for ${dapiName} on ${chain}: ${proxyAddress}`);
 
     // 读取价格
-    const reading = await readDAPIPrice(proxyAddress, chainId);
+    const reading = await readDAPIPrice(proxyAddress, chainId, dapiName);
 
     if (!reading) {
       return null;
@@ -353,7 +413,7 @@ export async function getAPI3Price(
       price: reading.value,
       timestamp: reading.timestamp,
       source: `api3-dapi-${chain}`,
-      decimals: 18,
+      decimals: getDecimalsForDapi(dapiName),
       confidence: 0.98,
       dapiName,
       proxyAddress,
