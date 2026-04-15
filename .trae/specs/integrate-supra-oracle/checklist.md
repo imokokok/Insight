@@ -1,0 +1,34 @@
+- [ ] OracleProvider 枚举中包含 SUPRA = 'supra'
+- [ ] OracleErrorCode 类型中包含 SUPRA_ERROR 和 SUPRA_HISTORICAL_ERROR
+- [ ] supraConstants.ts 文件存在且包含 API URL、交易对映射等常量
+- [ ] supportedSymbols.ts 中包含 supraSymbols 数组和 oracleSupportedSymbols.supra 映射
+- [ ] supraDataService.ts 文件存在且能通过 Supra REST API 获取最新价格和历史 OHLC 数据
+- [ ] SupraClient 继承 BaseOracleClient，实现 getPrice、getHistoricalPrices、getSupportedSymbols 方法
+- [ ] OracleClientFactory 的 createClient 方法支持 SUPRA case
+- [ ] OracleClientFactory 的 getAllClients 和 getAllSupportedSymbols 包含 SUPRA
+- [ ] src/lib/oracles/index.ts 导出 SupraClient 和 SupraDataService
+- [ ] chartColors.oracle 包含 supra: '#14B8A6'
+- [ ] chartColors.oracleAccessible 包含 supra 色盲友好色
+- [ ] getOracleColor 函数支持 OracleProvider.SUPRA
+- [ ] oracleConfigs 中包含完整的 [OracleProvider.SUPRA] 配置
+- [ ] providerNames、oracleI18nKeys、oracleColors 中包含 Supra 映射
+- [ ] env.ts 中包含 USE_REAL_SUPRA_DATA 环境变量和 useRealSupraData feature flag
+- [ ] performanceMetricsConfig.defaults 中包含 supra 性能默认值
+- [ ] DeFiLlama oracles.ts 中包含 Supra 的名称、颜色、延迟、准确度、更新频率映射
+- [ ] priceCalculations.ts 的 generateTVSTrendData 中包含 supra TVS 数据
+- [ ] SupraStats.tsx 组件存在且展示 Supra 特有统计信息
+- [ ] stats/index.ts 导出 SupraStats
+- [ ] StatsCardsSelector.tsx 包含 Supra 分支渲染逻辑
+- [ ] useSupraOnChainData hook 存在且使用 React Query 获取数据
+- [ ] search/data.ts 中包含 Supra 的图标和描述映射
+- [ ] cross-oracle/constants.tsx 中包含 Supra 的 oracleNames 和 oracleColors
+- [ ] en/navigation.json 中包含 supra 和 supraDesc
+- [ ] zh-CN/navigation.json 中包含 supra 和 supraDesc
+- [ ] en/components/search.json 中包含 supraDesc
+- [ ] zh-CN/components/search.json 中包含 supraDesc
+- [ ] public/logos/oracles/supra.svg 文件存在
+- [ ] supra.test.ts 测试文件存在且测试通过
+- [ ] Supra 返回的 BTC/ETH 价格与市场真实价格偏差 < 1%
+- [ ] 跨预言机对比页面能正确展示 Supra 数据并参与偏差计算
+- [ ] TypeScript 编译无错误（npm run typecheck 通过）
+- [ ] ESLint 检查无新增错误（npm run lint 通过）
