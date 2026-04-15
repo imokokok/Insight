@@ -47,6 +47,7 @@ export function generateTVSTrendData(
     redstone: 2.1,
     dia: 1.6,
     winklink: 0.7,
+    supra: 1.2,
   };
 
   for (let i = points; i >= 0; i--) {
@@ -69,6 +70,7 @@ export function generateTVSTrendData(
     const dia = (baseValues.dia || defaults.dia) * (1 + (Math.random() - 0.5) * volatility);
     const winklink =
       (baseValues.winklink || defaults.winklink) * (1 + (Math.random() - 0.5) * volatility);
+    const supra = (baseValues.supra || defaults.supra) * (1 + (Math.random() - 0.5) * volatility);
 
     data.push({
       timestamp,
@@ -94,7 +96,10 @@ export function generateTVSTrendData(
       winklink: Number(winklink.toFixed(2)),
       winklinkUpper: Number((winklink * (1 + CONFIDENCE_INTERVAL)).toFixed(2)),
       winklinkLower: Number((winklink * (1 - CONFIDENCE_INTERVAL)).toFixed(2)),
-      total: Number((chainlink + pyth + api3 + uma + redstone + dia + winklink).toFixed(2)),
+      supra: Number(supra.toFixed(2)),
+      supraUpper: Number((supra * (1 + CONFIDENCE_INTERVAL)).toFixed(2)),
+      supraLower: Number((supra * (1 - CONFIDENCE_INTERVAL)).toFixed(2)),
+      total: Number((chainlink + pyth + api3 + uma + redstone + dia + winklink + supra).toFixed(2)),
     });
   }
 

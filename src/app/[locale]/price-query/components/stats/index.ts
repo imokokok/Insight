@@ -4,5 +4,6 @@ export { API3Stats } from './API3Stats';
 export { DIAStats } from './DIAStats';
 export { WINkLinkStats } from './WINkLinkStats';
 export { RedStoneStats } from './RedStoneStats';
+export { SupraStats } from './SupraStats';
 export { DefaultStats } from './DefaultStats';
 export { StatsCardsSelector } from './StatsCardsSelector';

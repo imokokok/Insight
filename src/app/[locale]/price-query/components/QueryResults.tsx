@@ -8,6 +8,7 @@ import { PriceFlash } from '@/components/ui/PriceFlash';
 import { useTranslations } from '@/i18n';
 import type { OracleProvider, Blockchain } from '@/lib/oracles';
 import type { RedStoneTokenOnChainData } from '@/lib/oracles/clients/redstone';
+import type { SupraTokenOnChainData } from '@/lib/oracles/clients/supra';
 import type { DIATokenOnChainData } from '@/lib/oracles/services/diaDataService';
 import type { WINkLinkTokenOnChainData } from '@/lib/oracles/services/winklinkRealDataService';
 import { safeMax } from '@/lib/utils';
@@ -61,6 +62,8 @@ interface QueryResultsProps {
   isWINkLinkDataLoading?: boolean;
   redstoneOnChainData?: RedStoneTokenOnChainData | null;
   isRedStoneDataLoading?: boolean;
+  supraOnChainData?: SupraTokenOnChainData | null;
+  isSupraDataLoading?: boolean;
 }
 
 export function QueryResults({
@@ -93,6 +96,8 @@ export function QueryResults({
   isWINkLinkDataLoading: _isWINkLinkDataLoading,
   redstoneOnChainData,
   isRedStoneDataLoading: _isRedStoneDataLoading,
+  supraOnChainData,
+  isSupraDataLoading: _isSupraDataLoading,
 }: QueryResultsProps) {
   const t = useTranslations();
   const consistencyRating = useConsistencyRating(standardDeviationPercent);
@@ -162,6 +167,7 @@ export function QueryResults({
               diaOnChainData={diaOnChainData}
               winklinkOnChainData={winklinkOnChainData}
               redstoneOnChainData={redstoneOnChainData}
+              supraOnChainData={supraOnChainData}
               maxPrice={maxPrice}
               minPrice={minPrice}
               avgPrice={avgPrice}

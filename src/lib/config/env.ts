@@ -29,6 +29,7 @@ interface FeatureFlags {
   useRealChainlinkData: boolean;
   useRealApi3Data: boolean;
   useRealWinklinkData: boolean;
+  useRealSupraData: boolean;
 }
 
 interface WebSocketConfig {
@@ -77,6 +78,7 @@ const envSchema = z.object({
   USE_REAL_CHAINLINK_DATA: envBoolean.default(true),
   USE_REAL_API3_DATA: envBoolean.default(true),
   USE_REAL_WINKLINK_DATA: envBoolean.default(true),
+  USE_REAL_SUPRA_DATA: envBoolean.default(true),
   SESSION_TIMEOUT: z.coerce.number().optional().default(3600),
   MAX_REQUEST_SIZE: z.coerce.number().optional().default(1048576),
   ALLOWED_ORIGINS: z.string().optional().default(''),
@@ -98,6 +100,7 @@ const lenientEnvSchema = z.object({
   USE_REAL_CHAINLINK_DATA: envBoolean.default(true),
   USE_REAL_API3_DATA: envBoolean.default(true),
   USE_REAL_WINKLINK_DATA: envBoolean.default(true),
+  USE_REAL_SUPRA_DATA: envBoolean.default(true),
   SESSION_TIMEOUT: z.coerce.number().optional().default(3600),
   MAX_REQUEST_SIZE: z.coerce.number().optional().default(1048576),
   ALLOWED_ORIGINS: z.string().optional().default(''),
@@ -119,6 +122,7 @@ interface ParsedEnv {
   USE_REAL_CHAINLINK_DATA: boolean;
   USE_REAL_API3_DATA: boolean;
   USE_REAL_WINKLINK_DATA: boolean;
+  USE_REAL_SUPRA_DATA: boolean;
   SESSION_TIMEOUT: number;
   MAX_REQUEST_SIZE: number;
   ALLOWED_ORIGINS: string;
@@ -142,6 +146,7 @@ function getRawEnv() {
     USE_REAL_CHAINLINK_DATA: process.env.USE_REAL_CHAINLINK_DATA,
     USE_REAL_API3_DATA: process.env.USE_REAL_API3_DATA,
     USE_REAL_WINKLINK_DATA: process.env.USE_REAL_WINKLINK_DATA,
+    USE_REAL_SUPRA_DATA: process.env.USE_REAL_SUPRA_DATA,
     SESSION_TIMEOUT: process.env.SESSION_TIMEOUT,
     MAX_REQUEST_SIZE: process.env.MAX_REQUEST_SIZE,
     ALLOWED_ORIGINS: process.env.ALLOWED_ORIGINS,
@@ -176,6 +181,7 @@ function parseEnv(): ParsedEnv {
       USE_REAL_CHAINLINK_DATA: data.USE_REAL_CHAINLINK_DATA,
       USE_REAL_API3_DATA: data.USE_REAL_API3_DATA,
       USE_REAL_WINKLINK_DATA: data.USE_REAL_WINKLINK_DATA,
+      USE_REAL_SUPRA_DATA: data.USE_REAL_SUPRA_DATA,
       SESSION_TIMEOUT: data.SESSION_TIMEOUT,
       MAX_REQUEST_SIZE: data.MAX_REQUEST_SIZE,
       ALLOWED_ORIGINS: data.ALLOWED_ORIGINS,
@@ -224,6 +230,7 @@ export const env: EnvConfig = {
     useRealChainlinkData: parsedEnv.USE_REAL_CHAINLINK_DATA,
     useRealApi3Data: parsedEnv.USE_REAL_API3_DATA,
     useRealWinklinkData: parsedEnv.USE_REAL_WINKLINK_DATA,
+    useRealSupraData: parsedEnv.USE_REAL_SUPRA_DATA,
   },
   websocket: {
     url: parsedEnv.NEXT_PUBLIC_WS_URL || undefined,

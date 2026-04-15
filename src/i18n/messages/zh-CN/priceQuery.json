@@ -2,6 +2,10 @@
   "filter": "筛选",
   "clear": "清除",
   "clearFilter": "清除筛选",
+  "meta": {
+    "title": "价格查询 - Insight",
+    "description": "查询实时预言机价格"
+  },
   "priceQuery": {
     "title": "价格查询",
     "description": "查询多个预言机和区块链的实时价格数据",

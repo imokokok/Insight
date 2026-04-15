@@ -110,6 +110,7 @@
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "recharts": "^3.8.0",
+    "supra-oracle-sdk": "^1.0.4",
     "tailwind-merge": "^3.5.0",
     "viem": "^2.47.6",
     "web-vitals": "^5.1.0",

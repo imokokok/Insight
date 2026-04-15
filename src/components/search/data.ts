@@ -5,6 +5,7 @@ import {
   Flame,
   Globe,
   Gamepad2,
+  Hexagon,
   LayoutDashboard,
   BarChart3,
   Search,
@@ -36,6 +37,7 @@ const oracleIcons: Record<OracleProvider, LucideIcon> = {
   [OracleProvider.REDSTONE]: Flame,
   [OracleProvider.DIA]: Globe,
   [OracleProvider.WINKLINK]: Gamepad2,
+  [OracleProvider.SUPRA]: Hexagon,
 };
 
 // Oracle descriptions mapping
@@ -46,6 +48,7 @@ const oracleDescriptions: Record<OracleProvider, string> = {
   [OracleProvider.REDSTONE]: 'search.oracles.redstoneDesc',
   [OracleProvider.DIA]: 'search.oracles.diaDesc',
   [OracleProvider.WINKLINK]: 'search.oracles.winklinkDesc',
+  [OracleProvider.SUPRA]: 'search.oracles.supraDesc',
 };
 
 // Generate oracle search results

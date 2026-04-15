@@ -225,6 +225,7 @@ export const chartColors = {
     dia: '#6366F1',
     flux: '#F38181',
     winklink: '#FF4D4D',
+    supra: '#14B8A6',
   } as const,
 
   // 预言机颜色 - 色盲友好版本（使用形状+颜色双重编码）
@@ -237,6 +238,7 @@ export const chartColors = {
     dia: { color: '#059669', pattern: 'dotted' },
     flux: { color: '#ea580c', pattern: 'dashDot' },
     winklink: { color: '#dc2626', pattern: 'dashed' },
+    supra: { color: '#0d9488', pattern: 'dotted' },
   } as const,
 
   // 地区颜色
@@ -294,6 +296,7 @@ export const chartColors = {
     chainlink: '#375BD2',
     pyth: '#E6B800',
     api3: '#7CE3CB',
+    supra: '#14B8A6',
     default: '#8884d8',
   },
 
@@ -302,6 +305,7 @@ export const chartColors = {
     chainlink: '#375BD2',
     pyth: '#E6B800',
     api3: '#7CE3CB',
+    supra: '#14B8A6',
     others: '#8884d8',
   },
 

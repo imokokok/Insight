@@ -679,6 +679,100 @@ export const WINKLINK_AVAILABLE_PAIRS: Record<string, string[]> = {
 };
 
 // 统一映射对象
+export const supraSymbols = [
+  'BTC',
+  'ETH',
+  'BNB',
+  'SOL',
+  'XRP',
+  'ADA',
+  'DOGE',
+  'TRX',
+  'DOT',
+  'MATIC',
+  'LTC',
+  'SHIB',
+  'AVAX',
+  'LINK',
+  'ATOM',
+  'UNI',
+  'XLM',
+  'ETC',
+  'BCH',
+  'FIL',
+  'NEAR',
+  'APT',
+  'ARB',
+  'OP',
+  'INJ',
+  'SUI',
+  'SEI',
+  'TIA',
+  'TON',
+  'FTM',
+  'USDT',
+  'USDC',
+  'DAI',
+  'AAVE',
+  'MKR',
+  'COMP',
+  'SNX',
+  'CRV',
+  'SUSHI',
+  'LDO',
+  'GMX',
+  'DYDX',
+  'GRT',
+  'APE',
+  'SAND',
+  'MANA',
+  'AXS',
+  'GALA',
+  'IMX',
+  'RNDR',
+  'THETA',
+  'KAVA',
+  'RUNE',
+  'CAKE',
+  'ENS',
+  'BLUR',
+  'WBTC',
+  'WETH',
+  'STETH',
+  'RETH',
+  'CBETH',
+  'MNT',
+  'RPL',
+  'CVX',
+  'YFI',
+  'BAL',
+  'FXS',
+  'PYTH',
+  'PEPE',
+  'WIF',
+  'BONK',
+  'MEME',
+  'SUPRA',
+] as const;
+
+export const SUPRA_AVAILABLE_PAIRS: Record<string, string[]> = {
+  ethereum: [...supraSymbols],
+  arbitrum: [...supraSymbols],
+  optimism: [...supraSymbols],
+  polygon: [...supraSymbols],
+  solana: [...supraSymbols],
+  avalanche: [...supraSymbols],
+  'bnb-chain': [...supraSymbols],
+  aptos: [...supraSymbols],
+  sui: [...supraSymbols],
+  base: [...supraSymbols],
+  scroll: [...supraSymbols],
+  zksync: [...supraSymbols],
+  linea: [...supraSymbols],
+  mantle: [...supraSymbols],
+  blast: [...supraSymbols],
+};
+
 export const oracleSupportedSymbols = {
   chainlink: chainlinkSymbols,
   redstone: redstoneSymbols,
@@ -686,6 +780,7 @@ export const oracleSupportedSymbols = {
   api3: api3Symbols,
   pyth: pythSymbols,
   winklink: winklinkSymbols,
+  supra: supraSymbols,
 } as const;
 
 // 类型定义
@@ -695,6 +790,7 @@ export type DiaSymbol = (typeof diaSymbols)[number];
 export type Api3Symbol = (typeof api3Symbols)[number];
 export type PythSymbol = (typeof pythSymbols)[number];
 export type WinklinkSymbol = (typeof winklinkSymbols)[number];
+export type SupraSymbol = (typeof supraSymbols)[number];
 
 export type OracleName = keyof typeof oracleSupportedSymbols;
 

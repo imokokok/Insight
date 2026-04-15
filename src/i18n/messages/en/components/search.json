@@ -27,7 +27,8 @@
       "api3Desc": "First-party DAO-governed oracle",
       "redstoneDesc": "Modular EVM+ compatible oracle stack",
       "diaDesc": "Transparent crowd-sourced data validation oracle",
-      "winklinkDesc": "TRON ecosystem oracle"
+      "winklinkDesc": "TRON ecosystem oracle",
+      "supraDesc": "DORA consensus oracle with native cross-chain capabilities"
     },
     "blockchains": {
       "ethereumDesc": "Ethereum blockchain ecosystem",

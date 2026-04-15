@@ -57,6 +57,7 @@ export const oracleNames: Record<OracleProvider, string> = {
   [OracleProvider.REDSTONE]: 'RedStone',
   [OracleProvider.DIA]: 'DIA',
   [OracleProvider.WINKLINK]: 'WINkLink',
+  [OracleProvider.SUPRA]: 'Supra',
 };
 
 export const oracleColors: Record<string, string> = {
@@ -66,6 +67,7 @@ export const oracleColors: Record<string, string> = {
   [OracleProvider.REDSTONE]: '#ff6b6b',
   [OracleProvider.DIA]: '#c9f31d',
   [OracleProvider.WINKLINK]: '#f0b90b',
+  [OracleProvider.SUPRA]: '#14B8A6',
 };
 
 // ============================================================================

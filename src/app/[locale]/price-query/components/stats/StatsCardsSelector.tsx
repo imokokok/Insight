@@ -2,6 +2,7 @@
 
 import { OracleProvider as OracleProviderEnum } from '@/lib/oracles';
 import type { RedStoneTokenOnChainData } from '@/lib/oracles/clients/redstone';
+import type { SupraTokenOnChainData } from '@/lib/oracles/clients/supra';
 import type { DIATokenOnChainData } from '@/lib/oracles/services/diaDataService';
 import type { WINkLinkTokenOnChainData } from '@/lib/oracles/services/winklinkRealDataService';
 
@@ -12,6 +13,7 @@ import {
   DIAStats,
   WINkLinkStats,
   RedStoneStats,
+  SupraStats,
   DefaultStats,
 } from './index';
 
@@ -22,6 +24,7 @@ interface StatsCardsSelectorProps {
   diaOnChainData?: DIATokenOnChainData | null;
   winklinkOnChainData?: WINkLinkTokenOnChainData | null;
   redstoneOnChainData?: RedStoneTokenOnChainData | null;
+  supraOnChainData?: SupraTokenOnChainData | null;
   maxPrice: number;
   minPrice: number;
   avgPrice: number;
@@ -39,6 +42,7 @@ export function StatsCardsSelector({
   diaOnChainData,
   winklinkOnChainData,
   redstoneOnChainData,
+  supraOnChainData,
   maxPrice,
   minPrice,
   avgPrice,
@@ -105,6 +109,10 @@ export function StatsCardsSelector({
 
   if (redstoneOnChainData) {
     return <RedStoneStats data={redstoneOnChainData} />;
+  }
+
+  if (supraOnChainData) {
+    return <SupraStats data={supraOnChainData} />;
   }
 
   return (

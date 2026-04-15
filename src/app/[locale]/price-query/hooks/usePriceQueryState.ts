@@ -148,6 +148,7 @@ export function usePriceQueryState(): UsePriceQueryStateReturn {
       redstone: OracleProvider.REDSTONE,
       dia: OracleProvider.DIA,
       winklink: OracleProvider.WINKLINK,
+      supra: OracleProvider.SUPRA,
     };
 
     const timeRangeMapping: Record<string, number> = {
@@ -186,6 +187,7 @@ export function usePriceQueryState(): UsePriceQueryStateReturn {
         redstone: OracleProvider.REDSTONE,
         dia: OracleProvider.DIA,
         winklink: OracleProvider.WINKLINK,
+        supra: OracleProvider.SUPRA,
       };
 
       const timeRangeMapping: Record<string, number> = {
