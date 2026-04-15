@@ -107,7 +107,7 @@ export function createApiHandler<T = unknown>(
       if (authMiddleware) {
         const authResult = await authMiddleware(request);
         if (!authResult.success) {
-          logResponse(apiContext.requestId, 401, startTime);
+          logResponse(apiContext.requestId, authResult.response.status, startTime);
           return authResult.response;
         }
         apiContext.auth = authResult.context;

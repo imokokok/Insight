@@ -149,7 +149,7 @@ export class RedStoneClient extends BaseOracleClient {
           attemptCount++;
           try {
             const response = await fetch(
-              `${REDSTONE_API_BASE}/prices?symbol=${symbol.toUpperCase()}&provider=redstone-rapid`,
+              `${REDSTONE_API_BASE}/prices?symbol=${encodeURIComponent(symbol.toUpperCase())}&provider=redstone-rapid`,
               {
                 method: 'GET',
                 headers: {
@@ -335,7 +335,8 @@ export class RedStoneClient extends BaseOracleClient {
       const basePrice = historicalPrices[0].price;
 
       return historicalPrices.map((point, index) => {
-        const change24hPercent = index === 0 ? 0 : ((point.price - basePrice) / basePrice) * 100;
+        const change24hPercent =
+          index === 0 || basePrice === 0 ? 0 : ((point.price - basePrice) / basePrice) * 100;
         const change24h = index === 0 ? 0 : point.price - basePrice;
 
         return {
@@ -371,7 +372,7 @@ export class RedStoneClient extends BaseOracleClient {
       const endTime = Date.now();
       const startTime = endTime - periodHours * 60 * 60 * 1000;
 
-      const url = `${REDSTONE_API_BASE}/prices?symbol=${symbol.toUpperCase()}&provider=redstone-rapid&fromTimestamp=${startTime}&toTimestamp=${endTime}`;
+      const url = `${REDSTONE_API_BASE}/prices?symbol=${encodeURIComponent(symbol.toUpperCase())}&provider=redstone-rapid&fromTimestamp=${startTime}&toTimestamp=${endTime}`;
 
       const response = await fetch(url, {
         method: 'GET',

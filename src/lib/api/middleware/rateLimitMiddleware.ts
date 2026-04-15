@@ -108,7 +108,7 @@ export function createRateLimitMiddleware(options: RateLimitMiddlewareOptions = 
     if (entry.count >= maxRequests) {
       const retryAfter = Math.ceil((entry.resetTime - now) / 1000);
       logger.warn('Rate limit exceeded', { key, count: entry.count, maxRequests });
-      return { success: false, response: handler(request, retryAfter) };
+      return { success: false, response: handler(request, retryAfter, maxRequests) };
     }
 
     entry.count++;
@@ -118,8 +118,21 @@ export function createRateLimitMiddleware(options: RateLimitMiddlewareOptions = 
 }
 
 function defaultKeyGenerator(request: NextRequest): string {
+  const vercelIp = request.headers.get('x-vercel-forwarded-for');
+  const realIp = request.headers.get('x-real-ip');
   const forwarded = request.headers.get('x-forwarded-for');
-  const ip = forwarded ? forwarded.split(',')[0].trim() : 'unknown';
+
+  let ip: string;
+  if (vercelIp) {
+    ip = vercelIp.split(',').pop()?.trim() || 'unknown';
+  } else if (realIp) {
+    ip = realIp.trim();
+  } else if (forwarded) {
+    ip = forwarded.split(',').pop()?.trim() || 'unknown';
+  } else {
+    ip = 'unknown';
+  }
+
   const path = request.nextUrl.pathname;
   return `${ip}:${path}`;
 }

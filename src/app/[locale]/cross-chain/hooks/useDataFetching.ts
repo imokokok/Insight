@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import { oracleApiClient } from '@/lib/api/oracleApiClient';
 import { type OracleProvider, type Blockchain, type PriceData } from '@/lib/oracles';
 import { createLogger } from '@/lib/utils/logger';
+import { safeMax, safeMin } from '@/lib/utils/statistics';
 
 import type { UseAnomalyDetectionReturn } from './useAnomalyDetection';
 import type { UseDataValidationReturn } from './useDataValidation';
@@ -98,8 +99,8 @@ function calculatePriceStats(prices: PriceData[]): PriceStats {
     return { avgPrice: 0, maxPrice: 0, minPrice: 0, priceRange: 0, standardDeviationPercent: 0 };
   }
   const avgPrice = validPrices.reduce((a, b) => a + b, 0) / validPrices.length;
-  const maxPrice = Math.max(...validPrices);
-  const minPrice = Math.min(...validPrices);
+  const maxPrice = safeMax(validPrices);
+  const minPrice = safeMin(validPrices);
   const priceRange = maxPrice - minPrice;
   const variance =
     validPrices.length > 1
@@ -253,14 +254,18 @@ export function useDataFetching(
               `Failed to fetch price for ${chain}`,
               err instanceof Error ? err : new Error(String(err))
             );
-            throw err;
+            return null;
           })
         );
         const currentResults = await Promise.all(currentPromises);
 
         if (currentSignal.aborted) return;
 
-        const validatedCurrentResults = currentValidation.validateCurrentPrices(currentResults);
+        const validCurrentResults = currentResults.filter(
+          (r): r is NonNullable<typeof r> => r !== null
+        );
+        const validatedCurrentResults =
+          currentValidation.validateCurrentPrices(validCurrentResults);
 
         currentParams.setCurrentPrices(validatedCurrentResults);
 
@@ -270,7 +275,13 @@ export function useDataFetching(
             currentParams.selectedSymbol,
             chain,
             currentParams.selectedTimeRange
-          )
+          ).catch((err) => {
+            logger.error(
+              `Failed to fetch historical prices for ${chain}`,
+              err instanceof Error ? err : new Error(String(err))
+            );
+            return [];
+          })
         );
         const historicalResults = await Promise.all(historicalPromises);
 

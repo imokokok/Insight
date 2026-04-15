@@ -82,6 +82,7 @@ export default class WebSocketManager {
   protected statusHandlers: Set<StatusHandler> = new Set();
   protected subscribedChannels: Set<string> = new Set();
   protected messageQueue: string[] = [];
+  protected readonly MAX_QUEUE_SIZE = 1000;
 
   protected batchedUpdates: Map<string, BatchedUpdate> = new Map();
   protected batchTimer: NodeJS.Timeout | null = null;
@@ -354,9 +355,12 @@ export default class WebSocketManager {
     if (this.status === 'connected' && this.ws?.readyState === WebSocket.OPEN) {
       this.ws.send(messageStr);
     } else {
-      // 将消息加入队列
-      this.messageQueue.push(messageStr);
-      logger.warn('WebSocket not connected, message queued');
+      if (this.messageQueue.length < this.MAX_QUEUE_SIZE) {
+        this.messageQueue.push(messageStr);
+        logger.warn('WebSocket not connected, message queued');
+      } else {
+        logger.warn('WebSocket message queue full, dropping message');
+      }
     }
   }
 

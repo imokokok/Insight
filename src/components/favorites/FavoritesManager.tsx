@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 
-import { useFavorites, type FavoriteConfig, mapConfigTypeFromDB } from '@/hooks';
+import { useFavorites, useRemoveFavorite, type FavoriteConfig, mapConfigTypeFromDB } from '@/hooks';
 import { useTranslations } from '@/i18n';
 import type { ConfigType } from '@/lib/supabase/database.types';
 import type { UserFavorite } from '@/lib/supabase/queries';
@@ -28,6 +28,7 @@ export function FavoritesManager({
   const user = useUser();
   const t = useTranslations();
   const { favorites, isLoading, error } = useFavorites();
+  const { removeFavorite } = useRemoveFavorite();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState<ConfigType | 'all'>('all');
   const [_editingFavorite, setEditingFavorite] = useState<UserFavorite | null>(null);
@@ -83,7 +84,11 @@ export function FavoritesManager({
     setEditingFavorite(favorite);
   };
 
-  const handleDelete = (_favoriteId: string) => {
+  const handleDelete = async (favoriteId: string) => {
+    const favorite = favorites.find((f) => f.id === favoriteId);
+    if (favorite) {
+      await removeFavorite(favoriteId, mapConfigTypeFromDB(favorite.config_type));
+    }
     setEditingFavorite(null);
   };
 

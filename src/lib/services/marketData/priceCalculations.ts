@@ -238,7 +238,7 @@ function exportToExcel(config: ExportConfig, data: ExportDataOptions): Blob {
   workbook.push('  <Styles>');
   workbook.push('    <Style ss:ID="header">');
   workbook.push('      <Font ss:Bold="1"/>');
-  workbook.push('      <Interior ss:Color={baseColors.gray[400]} ss:Pattern="Solid"/>');
+  workbook.push('      <Interior ss:Color="#9CA3AF" ss:Pattern="Solid"/>');
   workbook.push('    </Style>');
   workbook.push('  </Styles>');
 
@@ -296,7 +296,7 @@ function exportToExcel(config: ExportConfig, data: ExportDataOptions): Blob {
   workbook.push('</Workbook>');
 
   return new Blob([workbook.join('\n')], {
-    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    type: 'application/vnd.ms-excel',
   });
 }
 
@@ -431,6 +431,10 @@ function escapeXml(str: string): string {
 }
 
 export function downloadExport(content: string | Blob, fileName: string, mimeType: string): void {
+  if (typeof window === 'undefined') {
+    logger.warn('downloadExport called in SSR environment, skipping');
+    return;
+  }
   const blob = content instanceof Blob ? content : new Blob([content], { type: mimeType });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');

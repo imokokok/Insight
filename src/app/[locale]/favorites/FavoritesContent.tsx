@@ -21,7 +21,7 @@ export default function FavoritesContent() {
     if (!loading && !user) {
       router.push(`/${locale}/login?redirect=/${locale}/favorites`);
     }
-  }, [user, loading, router]);
+  }, [user, loading, router, locale]);
 
   const handleApply = (config: FavoriteConfig, configType: ConfigType) => {
     switch (configType) {

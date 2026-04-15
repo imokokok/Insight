@@ -8,6 +8,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
 
 import { useTranslations, useLocale } from '@/i18n';
+import { supabase } from '@/lib/supabase/client';
 import { useUser } from '@/stores/authStore';
 
 function VerifyEmailForm() {
@@ -23,6 +24,7 @@ function VerifyEmailForm() {
   const errorParam = searchParams.get('error');
   const errorCode = searchParams.get('error_code');
   const emailParam = searchParams.get('email');
+  const codeParam = searchParams.get('code');
 
   const getErrorMessage = useCallback(
     (error: string, _code: string | null): string => {
@@ -46,17 +48,32 @@ function VerifyEmailForm() {
       return;
     }
 
-    const timer = requestAnimationFrame(() => {
-      if (errorParam) {
-        setStatus('error');
-        setErrorMessage(getErrorMessage(errorParam, errorCode));
-      } else {
-        setStatus('success');
-      }
-    });
+    if (errorParam) {
+      setStatus('error');
+      setErrorMessage(getErrorMessage(errorParam, errorCode));
+      return;
+    }
 
-    return () => cancelAnimationFrame(timer);
-  }, [errorParam, errorCode, emailParam, user, router, getErrorMessage]);
+    if (codeParam) {
+      supabase.auth
+        .exchangeCodeForSession(codeParam)
+        .then(({ error: exchangeError }) => {
+          if (exchangeError) {
+            setStatus('error');
+            setErrorMessage(getErrorMessage('invalid_token', null));
+          } else {
+            setStatus('success');
+          }
+        })
+        .catch(() => {
+          setStatus('error');
+          setErrorMessage(getErrorMessage('default', null));
+        });
+    } else {
+      setStatus('error');
+      setErrorMessage(getErrorMessage('missing_code', null));
+    }
+  }, [errorParam, errorCode, emailParam, codeParam, user, router, locale, getErrorMessage]);
 
   if (status === 'loading') {
     return (

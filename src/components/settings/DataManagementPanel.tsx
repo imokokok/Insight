@@ -93,6 +93,8 @@ export function DataManagementPanel() {
   };
 
   const exportPriceHistory = async () => {
+    if (!user) return;
+
     setIsExporting(true);
     setError(null);
 
@@ -100,6 +102,7 @@ export function DataManagementPanel() {
       const { data, error: queryError } = await supabase
         .from('price_records')
         .select('*')
+        .eq('user_id', user.id)
         .order('timestamp', { ascending: false })
         .limit(10000);
 
@@ -171,7 +174,14 @@ export function DataManagementPanel() {
     setError(null);
 
     try {
-      localStorage.clear();
+      const keysToRemove: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (key.startsWith('insight-') || key.startsWith('auth-store'))) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach((key) => localStorage.removeItem(key));
       sessionStorage.clear();
 
       if ('caches' in window) {
@@ -194,14 +204,14 @@ export function DataManagementPanel() {
     setError(null);
 
     try {
-      await queries.deleteAllFavorites(user.id);
-      await queries.deleteAllAlerts(user.id);
-      await queries.deleteAllSnapshots(user.id);
+      const res = await fetch('/api/auth/delete-account', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
 
-      const { error: deleteError } = await supabase.auth.admin.deleteUser(user.id);
-
-      if (deleteError) {
-        setError(t('settings.data.deleteAccountError'));
+      if (!res.ok) {
+        const result = await res.json().catch(() => ({ error: 'Unknown error' }));
+        setError(result.error || t('settings.data.deleteAccountError'));
         return;
       }
 

@@ -52,7 +52,8 @@ export async function fetchPriceFromApi({
   provider,
   symbol,
   chain,
-}: FetchPriceParams): Promise<PriceData> {
+  signal: externalSignal,
+}: FetchPriceParams & { signal?: AbortSignal }): Promise<PriceData> {
   const url = new URL(`/api/oracles/${provider}`, getBaseUrl());
   url.searchParams.set('symbol', symbol);
   if (chain) {
@@ -61,7 +62,7 @@ export async function fetchPriceFromApi({
 
   logger.info(`Fetching price from API: ${url.toString()}`);
 
-  const { controller, cleanup } = createAbortControllerWithTimeout();
+  const { controller, cleanup } = createAbortControllerWithTimeout(externalSignal);
 
   try {
     const response = await fetch(url.toString(), {

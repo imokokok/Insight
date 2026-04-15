@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
     } else if (action === 'delete') {
       for (const alertId of validAlertIds) {
         try {
-          const success = await queries.deleteAlert(alertId);
+          const success = await queries.deleteAlert(alertId, userId);
           if (success) {
             results.success.push(alertId);
           } else {

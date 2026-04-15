@@ -69,6 +69,18 @@ export const SECURITY_CONFIG = {
   cronSecret: process.env.CRON_SECRET || '',
 };
 
+if (process.env.NODE_ENV === 'production') {
+  if (!SECURITY_CONFIG.csrfSecret) {
+    console.error('FATAL: CSRF_SECRET is not set in production');
+  }
+  if (!SECURITY_CONFIG.jwtSecret) {
+    console.error('FATAL: JWT_SECRET is not set in production');
+  }
+  if (!SECURITY_CONFIG.cronSecret) {
+    console.error('FATAL: CRON_SECRET is not set in production');
+  }
+}
+
 /**
  * 验证服务端环境变量
  */

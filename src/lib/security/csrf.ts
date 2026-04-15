@@ -4,6 +4,17 @@ import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('csrf-protection');
 
+function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) {
+    return false;
+  }
+  let result = 0;
+  for (let i = 0; i < a.length; i++) {
+    result |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return result === 0;
+}
+
 const CSRF_TOKEN_HEADER = 'X-CSRF-Token';
 const CSRF_TOKEN_COOKIE = 'csrf-token';
 
@@ -115,7 +126,7 @@ export function validateCSRFToken(
     };
   }
 
-  if (cookieToken !== headerToken) {
+  if (!timingSafeEqual(cookieToken, headerToken)) {
     logger.warn('CSRF token mismatch', { path, method });
     return {
       valid: false,

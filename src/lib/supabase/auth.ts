@@ -1,6 +1,6 @@
 import { supabase } from './client';
 
-import type { User, Session, AuthError, Provider } from '@supabase/supabase-js';
+import type { User, Session, AuthError, Provider, AuthChangeEvent } from '@supabase/supabase-js';
 
 const AVATAR_BUCKET = 'avatars';
 const MAX_AVATAR_SIZE = 2 * 1024 * 1024;
@@ -10,6 +10,10 @@ export interface AuthResponse {
   user: User | null;
   session: Session | null;
   error: AuthError | null;
+}
+
+export interface SignUpResponse extends AuthResponse {
+  profileError: Error | null;
 }
 
 export interface UserProfile {
@@ -44,7 +48,7 @@ export async function signUp(
   email: string,
   password: string,
   displayName?: string
-): Promise<AuthResponse> {
+): Promise<SignUpResponse> {
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
@@ -55,16 +59,20 @@ export async function signUp(
     },
   });
 
+  let profileError: Error | null = null;
+
   if (data.user && !error) {
-    await createUserProfile(data.user.id, {
+    const { error: createProfileError } = await createUserProfile(data.user.id, {
       display_name: displayName,
     });
+    profileError = createProfileError;
   }
 
   return {
     user: data.user,
     session: data.session,
     error,
+    profileError,
   };
 }
 
@@ -97,9 +105,13 @@ export async function signOut(): Promise<{ error: AuthError | null }> {
   return { error };
 }
 
-export async function resetPassword(email: string): Promise<{ error: AuthError | null }> {
+export async function resetPassword(
+  email: string,
+  locale?: string
+): Promise<{ error: AuthError | null }> {
+  const currentLocale = locale || 'en';
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${window.location.origin}/auth/reset-password`,
+    redirectTo: `${window.location.origin}/${currentLocale}/auth/reset-password`,
   });
 
   return { error };
@@ -133,7 +145,9 @@ export async function getUser(): Promise<{ user: User | null; error: AuthError |
   };
 }
 
-export function onAuthStateChange(callback: (event: string, session: Session | null) => void) {
+export function onAuthStateChange(
+  callback: (event: AuthChangeEvent, session: Session | null) => void
+) {
   const { data } = supabase.auth.onAuthStateChange((event, session) => {
     callback(event, session);
   });

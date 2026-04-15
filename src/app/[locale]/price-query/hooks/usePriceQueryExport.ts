@@ -47,12 +47,13 @@ export function usePriceQueryExport(params: UsePriceQueryExportParams): UsePrice
     csvLines.push(headers.join(','));
 
     queryResults.forEach((result) => {
+      const priceData = result.priceData;
       const row = [
         providerNames[result.provider],
         chainNames[result.chain],
-        formatPrice(result.priceData.price),
-        new Date(result.priceData.timestamp).toLocaleString(),
-        result.priceData.source || '',
+        priceData ? formatPrice(priceData.price) : 'N/A',
+        priceData ? new Date(priceData.timestamp).toLocaleString() : 'N/A',
+        priceData?.source || '',
       ];
       csvLines.push(row.join(','));
     });
@@ -81,9 +82,9 @@ export function usePriceQueryExport(params: UsePriceQueryExportParams): UsePrice
       results: queryResults.map((result) => ({
         oracle: providerNames[result.provider],
         blockchain: chainNames[result.chain],
-        price: result.priceData.price,
-        timestamp: new Date(result.priceData.timestamp).toISOString(),
-        source: result.priceData.source,
+        price: result.priceData?.price ?? null,
+        timestamp: result.priceData ? new Date(result.priceData.timestamp).toISOString() : null,
+        source: result.priceData?.source ?? null,
       })),
     };
 

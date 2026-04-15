@@ -26,7 +26,7 @@ function ForgotPasswordForm() {
     setIsLoading(true);
     setError(null);
 
-    const { error: resetError } = await resetPassword(email);
+    const { error: resetError } = await resetPassword(email, locale);
 
     if (resetError) {
       setError(resetError.message);

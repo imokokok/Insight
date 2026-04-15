@@ -6,6 +6,7 @@
 import { useMemo } from 'react';
 
 import { type Blockchain, type PriceData, type BaseOracleClient } from '@/lib/oracles';
+import { safeMax, safeMin } from '@/lib/utils/statistics';
 
 import {
   calculateVariance,
@@ -64,11 +65,11 @@ export function useStatistics(params: UseStatisticsParams): UseStatisticsReturn 
   }, [validPrices]);
 
   const maxPrice = useMemo(() => {
-    return validPrices.length > 0 ? Math.max(...validPrices) : 0;
+    return safeMax(validPrices);
   }, [validPrices]);
 
   const minPrice = useMemo(() => {
-    return validPrices.length > 0 ? Math.min(...validPrices) : 0;
+    return safeMin(validPrices);
   }, [validPrices]);
 
   const priceRange = useMemo(() => {
@@ -233,7 +234,7 @@ export function useStatistics(params: UseStatisticsParams): UseStatisticsReturn 
 
       if (matchedDelays.length > 0) {
         const avgDelay = matchedDelays.reduce((a, b) => a + b, 0) / matchedDelays.length;
-        const maxDelay = Math.max(...matchedDelays);
+        const maxDelay = safeMax(matchedDelays);
         delays[chain] = { avgDelay, maxDelay };
       }
     });

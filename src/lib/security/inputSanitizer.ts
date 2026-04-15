@@ -1,25 +1,53 @@
-import DOMPurify from 'dompurify';
-
 import { createLogger } from '@/lib/utils/logger';
 import { ORACLE_PROVIDER_VALUES, BLOCKCHAIN_VALUES } from '@/types/oracle/enums';
 import type { OracleProvider } from '@/types/oracle/enums';
 
 const logger = createLogger('input-sanitizer');
 
+let dompurifyInstance: ReturnType<(typeof import('dompurify'))['default']> | null = null;
+let dompurifyInitAttempted = false;
+
+function getDOMPurifySync(): ReturnType<(typeof import('dompurify'))['default']> | null {
+  if (dompurifyInstance) return dompurifyInstance;
+  if (dompurifyInitAttempted) return null;
+  dompurifyInitAttempted = true;
+  try {
+    if (typeof window !== 'undefined') {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const DOMPurify = require('dompurify');
+      dompurifyInstance = DOMPurify;
+      return dompurifyInstance;
+    }
+  } catch {
+    logger.warn('DOMPurify not available, using fallback sanitizer');
+  }
+  return null;
+}
+
 function sanitizeHtmlBasic(input: string): string {
   if (typeof input !== 'string') {
     return '';
   }
 
-  const cleaned = DOMPurify.sanitize(input, {
-    ALLOWED_TAGS: [],
-    ALLOWED_ATTR: [],
-    ALLOW_DATA_ATTR: false,
-    ADD_TAGS: [],
-    ADD_ATTR: [],
-  });
+  const DOMPurify = getDOMPurifySync();
+  if (DOMPurify) {
+    const cleaned = DOMPurify.sanitize(input, {
+      ALLOWED_TAGS: [],
+      ALLOWED_ATTR: [],
+      ALLOW_DATA_ATTR: false,
+      ADD_TAGS: [],
+      ADD_ATTR: [],
+    });
+    return cleaned
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#x27;')
+      .replace(/\//g, '&#x2F;');
+  }
 
-  return cleaned
+  return input
+    .replace(/<[^>]*>/g, '')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')

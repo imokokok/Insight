@@ -6,6 +6,7 @@
 import { createLogger } from '@/lib/utils/logger';
 
 import { exportToCSV } from './chartExport/formats/csvExporter';
+import { exportToExcel } from './chartExport/formats/excelExporter';
 import { exportToPNG, exportToSVG } from './chartExport/formats/imageExporter';
 import { exportToJSON } from './chartExport/formats/jsonExporter';
 import { exportToPDF } from './chartExport/formats/pdfExporter';
@@ -74,9 +75,12 @@ export async function exportChart(
         await exportToJSON(data, filename, metadata, onProgress);
         break;
 
-      case 'excel':
-        await exportToCSV(data, filename, metadata, onProgress);
+      case 'excel': {
+        const excelBlob = exportToExcel(data, filename, metadata, onProgress);
+        const sanitizedFilename = sanitizeFilename(filename);
+        downloadBlob(excelBlob, `${sanitizedFilename}.xls`);
         break;
+      }
 
       case 'png':
         if (!chartRef) {

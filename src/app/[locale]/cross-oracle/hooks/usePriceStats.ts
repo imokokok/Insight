@@ -6,6 +6,8 @@
 import { useMemo } from 'react';
 
 import {
+  safeMax,
+  safeMin,
   calculateMedian,
   calculateVariance,
   calculateWeightedAverage,
@@ -34,12 +36,12 @@ export function usePriceStats(priceData: PriceData[]): PriceStatsResult {
   );
 
   const maxPrice = useMemo(
-    () => (validPrices.length > 0 ? Math.max(...validPrices) : 0),
+    () => (validPrices.length > 0 ? safeMax(validPrices) : 0),
     [validPrices]
   );
 
   const minPrice = useMemo(
-    () => (validPrices.length > 0 ? Math.min(...validPrices) : 0),
+    () => (validPrices.length > 0 ? safeMin(validPrices) : 0),
     [validPrices]
   );
 

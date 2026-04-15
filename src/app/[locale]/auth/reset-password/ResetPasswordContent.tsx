@@ -27,12 +27,16 @@ function ResetPasswordForm() {
 
   useEffect(() => {
     const checkSession = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (session) {
-        setIsValidSession(true);
-      } else {
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        if (session) {
+          setIsValidSession(true);
+        } else {
+          setIsValidSession(false);
+        }
+      } catch {
         setIsValidSession(false);
       }
     };

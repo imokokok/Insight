@@ -1,8 +1,26 @@
-import DOMPurify from 'dompurify';
-
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('xss-protection');
+
+let dompurifyInstance: ReturnType<(typeof import('dompurify'))['default']> | null = null;
+let dompurifyInitAttempted = false;
+
+function getDOMPurifySync(): ReturnType<(typeof import('dompurify'))['default']> | null {
+  if (dompurifyInstance) return dompurifyInstance;
+  if (dompurifyInitAttempted) return null;
+  dompurifyInitAttempted = true;
+  try {
+    if (typeof window !== 'undefined') {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const DOMPurify = require('dompurify');
+      dompurifyInstance = DOMPurify;
+      return dompurifyInstance;
+    }
+  } catch {
+    logger.warn('DOMPurify not available, using fallback sanitizer');
+  }
+  return null;
+}
 
 export interface XSSProtectionOptions {
   stripTags?: boolean;
@@ -101,11 +119,14 @@ export function sanitizeHtml(input: string, options: XSSProtectionOptions = {}):
       const allowedPattern = new RegExp(`<(?!/?(?:${opts.allowedTags.join('|')})\\b)[^>]*>`, 'gi');
       sanitized = sanitized.replace(allowedPattern, '');
     } else {
-      sanitized = DOMPurify.sanitize(sanitized, {
-        ALLOWED_TAGS: [],
-        ALLOWED_ATTR: [],
-        ALLOW_DATA_ATTR: false,
-      });
+      const DOMPurify = getDOMPurifySync();
+      if (DOMPurify) {
+        sanitized = DOMPurify.sanitize(sanitized, {
+          ALLOWED_TAGS: [],
+          ALLOWED_ATTR: [],
+          ALLOW_DATA_ATTR: false,
+        });
+      }
       sanitized = stripHtmlTags(sanitized);
     }
   }

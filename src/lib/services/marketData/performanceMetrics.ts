@@ -149,6 +149,7 @@ class PerformanceMetricsCalculator {
         const timeDiff = Math.abs(closestRef.timestamp - oraclePoint.timestamp);
         if (timeDiff > 60000) continue;
 
+        if (closestRef.price === 0) continue;
         const deviation = Math.abs(oraclePoint.price - closestRef.price) / closestRef.price;
         totalDeviation += deviation;
         validComparisons++;
@@ -356,7 +357,7 @@ export function calculateMetricsFromPriceData(
     });
 
     const timeDiff = Math.abs(closestRef.timestamp - oraclePoint.timestamp);
-    if (timeDiff <= 60000) {
+    if (timeDiff <= 60000 && closestRef.price !== 0) {
       const deviation = Math.abs(oraclePoint.price - closestRef.price) / closestRef.price;
       totalDeviation += deviation;
       validComparisons++;

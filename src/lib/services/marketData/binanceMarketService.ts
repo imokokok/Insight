@@ -465,8 +465,10 @@ export async function getTokenMarketData(symbol: string): Promise<TokenMarketDat
     logger.info(`Fetching market data for ${symbol} (${binanceSymbol})...`);
 
     const [tickerResponse, priceResponse] = await Promise.all([
-      fetchWithRetry(`${BINANCE_API_BASE}/ticker/24hr?symbol=${binanceSymbol}`),
-      fetchWithRetry(`${BINANCE_API_BASE}/ticker/price?symbol=${binanceSymbol}`),
+      fetchWithRetry(`${BINANCE_API_BASE}/ticker/24hr?symbol=${encodeURIComponent(binanceSymbol)}`),
+      fetchWithRetry(
+        `${BINANCE_API_BASE}/ticker/price?symbol=${encodeURIComponent(binanceSymbol)}`
+      ),
     ]);
 
     const tickerData = await tickerResponse.json();
@@ -548,16 +550,13 @@ export async function getMultipleTokensMarketData(symbols: string[]): Promise<To
 
     logger.info(`Fetching market data for multiple tokens: ${binanceSymbols.join(', ')}`);
 
-    // Binance 没有批量查询接口，需要逐个查询
-    const results: TokenMarketData[] = [];
-    for (const symbol of symbols) {
-      const data = await getTokenMarketData(symbol);
-      if (data) {
-        results.push(data);
-      }
-    }
-
-    return results;
+    const results = await Promise.allSettled(symbols.map((symbol) => getTokenMarketData(symbol)));
+    return results
+      .filter(
+        (r): r is PromiseFulfilledResult<TokenMarketData> =>
+          r.status === 'fulfilled' && r.value !== null
+      )
+      .map((r) => r.value);
   } catch (error) {
     logger.error(
       'Failed to fetch multiple tokens market data:',
