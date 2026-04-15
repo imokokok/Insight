@@ -145,6 +145,9 @@ export interface TVSTrendData {
   pyth: number;
   api3: number;
   redstone: number;
+  supra: number;
+  supraUpper: number;
+  supraLower: number;
   [key: string]: string | number;
 }
 

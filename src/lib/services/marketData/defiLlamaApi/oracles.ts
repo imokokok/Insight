@@ -19,6 +19,7 @@ function formatOracleName(name: string): string {
     switchboard: 'Switchboard',
     dia: 'DIA',
     flux: 'Flux',
+    supra: 'Supra',
   };
 
   const lowerName = name.toLowerCase();
@@ -34,6 +35,7 @@ function getOracleColor(name: string): string {
     Switchboard: chartColors.oracle.switchboard,
     DIA: chartColors.oracle.dia,
     Flux: chartColors.oracle.flux,
+    Supra: chartColors.oracle.supra,
   };
 
   return colorMap[name] || chartColors.ORACLE_COLORS.others;
@@ -61,6 +63,7 @@ function estimateLatency(oracleName: string): number {
     Switchboard: 300,
     DIA: 800,
     Flux: 1000,
+    Supra: 300,
   };
 
   return latencyMap[oracleName] || 600;
@@ -75,6 +78,7 @@ function estimateAccuracy(oracleName: string): number {
     Switchboard: 99.1,
     DIA: 98.8,
     Flux: 98.6,
+    Supra: 99.2,
   };
 
   return accuracyMap[oracleName] || 98.0;
@@ -89,6 +93,7 @@ function estimateUpdateFrequency(oracleName: string): number {
     Switchboard: 300,
     DIA: 120,
     Flux: 600,
+    Supra: 60,
   };
 
   return frequencyMap[oracleName] || 3600;
@@ -147,6 +152,7 @@ function identifyOracleName(protocolName: string): string | null {
   if (name.includes('switchboard')) return 'Switchboard';
   if (name.includes('dia')) return 'DIA';
   if (name.includes('flux')) return 'Flux';
+  if (name.includes('supra')) return 'Supra';
 
   return null;
 }
@@ -212,8 +218,8 @@ export async function fetchOraclesData(): Promise<OracleMarketData[]> {
       const oracleProtocols = protocols.filter(
         (p) =>
           p.category?.toLowerCase().includes('oracle') ||
-          ['chainlink', 'pyth', 'api3', 'redstone', 'switchboard', 'dia', 'winklink'].some((name) =>
-            p.name.toLowerCase().includes(name.toLowerCase())
+          ['chainlink', 'pyth', 'api3', 'redstone', 'switchboard', 'dia', 'winklink', 'supra'].some(
+            (name) => p.name.toLowerCase().includes(name.toLowerCase())
           )
       );
 

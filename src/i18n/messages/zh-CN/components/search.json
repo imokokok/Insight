@@ -27,7 +27,8 @@
       "api3Desc": "第一方 DAO 治理预言机",
       "redstoneDesc": "模块化 EVM+ 预言机堆栈",
       "diaDesc": "透明众包数据验证预言机",
-      "winklinkDesc": "TRON 生态系统预言机"
+      "winklinkDesc": "TRON 生态系统预言机",
+      "supraDesc": "采用 DORA 共识机制的原生跨链预言机"
     },
     "blockchains": {
       "ethereumDesc": "以太坊区块链生态系统",

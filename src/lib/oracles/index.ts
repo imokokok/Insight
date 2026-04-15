@@ -41,6 +41,14 @@ export {
   type DIAExchange,
 } from './services/diaDataService';
 export { WINkLinkClient } from './clients/winklink';
+export { SupraClient } from './clients/supra';
+export {
+  SupraDataService,
+  getSupraDataService,
+  resetSupraDataService,
+  type SupraLatestPriceData,
+  type SupraOHLCDataPoint,
+} from './services/supraDataService';
 export {
   PythDataService,
   getPythDataService,

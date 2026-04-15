@@ -286,6 +286,7 @@ const BINANCE_SYMBOLS: Record<string, string> = {
   NFT: 'NFTUSDT',
   USDD: 'USDDUSDT',
   USDJ: 'USDDUSDT',
+  SUPRA: 'SUPRAUSDT',
 };
 
 // 代币名称映射

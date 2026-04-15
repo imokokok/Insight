@@ -94,6 +94,15 @@ const DEFAULT_PROVIDER_CONFIG: PerformanceMetricsConfig = {
       decentralizationScore: 70,
       supportedChains: 1,
     },
+    supra: {
+      responseTime: 300,
+      updateFrequency: 60,
+      accuracy: 99.2,
+      reliability: 99.7,
+      dataSources: 100,
+      decentralizationScore: 88,
+      supportedChains: 30,
+    },
   },
   fallbackDefaults: {
     responseTime: 600,

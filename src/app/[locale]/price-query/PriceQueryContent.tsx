@@ -8,6 +8,7 @@ import {
   useDIAOnChainData,
   useWINkLinkOnChainData,
   useRedStoneOnChainData,
+  useSupraOnChainData,
 } from '@/hooks';
 import { useTranslations } from '@/i18n';
 import { OracleProvider } from '@/lib/oracles';
@@ -93,6 +94,16 @@ export default function PriceQueryContent() {
   const { data: redstoneOnChainData, isLoading: isRedStoneDataLoading } = useRedStoneOnChainData({
     symbol: selectedSymbol,
     enabled: shouldFetchRedStoneData && !!selectedSymbol && queryResults.length > 0,
+  });
+
+  const shouldFetchSupraData =
+    !selectedOracle ||
+    selectedOracle === OracleProvider.SUPRA ||
+    queryResults.some((r) => r.provider === OracleProvider.SUPRA);
+
+  const { data: supraOnChainData, isLoading: isSupraDataLoading } = useSupraOnChainData({
+    symbol: selectedSymbol,
+    enabled: shouldFetchSupraData && !!selectedSymbol && queryResults.length > 0,
   });
 
   const debouncedSearchFocus = useCallback(() => {
@@ -282,6 +293,8 @@ export default function PriceQueryContent() {
             isWINkLinkDataLoading={isWINkLinkDataLoading}
             redstoneOnChainData={redstoneOnChainData}
             isRedStoneDataLoading={isRedStoneDataLoading}
+            supraOnChainData={supraOnChainData}
+            isSupraDataLoading={isSupraDataLoading}
           />
         </main>
       </div>

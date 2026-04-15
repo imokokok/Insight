@@ -9,6 +9,7 @@ import { ChainlinkClient } from './clients/chainlink';
 import { DIAClient } from './clients/dia';
 import { PythClient } from './clients/PythClient';
 import { RedStoneClient } from './clients/redstone';
+import { SupraClient } from './clients/supra';
 import { WINkLinkClient } from './clients/winklink';
 
 import type { OracleClientConfig } from './base';
@@ -69,6 +70,7 @@ export class OracleClientFactory {
       OracleProvider.REDSTONE,
       OracleProvider.DIA,
       OracleProvider.WINKLINK,
+      OracleProvider.SUPRA,
     ];
 
     const clients: Partial<Record<OracleProvider, BaseOracleClient>> = {};
@@ -163,6 +165,7 @@ export class OracleClientFactory {
       OracleProvider.REDSTONE,
       OracleProvider.DIA,
       OracleProvider.WINKLINK,
+      OracleProvider.SUPRA,
     ];
 
     for (const provider of providers) {
@@ -197,6 +200,8 @@ export class OracleClientFactory {
         return new DIAClient(this.config);
       case OracleProvider.WINKLINK:
         return new WINkLinkClient(this.config);
+      case OracleProvider.SUPRA:
+        return new SupraClient(this.config);
       default:
         throw new ValidationError(`Unknown oracle provider: ${provider}`, {
           value: provider,

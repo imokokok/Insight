@@ -147,6 +147,7 @@ export function useExport(params: UseExportParams): UseExportReturn {
         [OracleProvider.REDSTONE]: 'RedStone',
         [OracleProvider.DIA]: 'DIA',
         [OracleProvider.WINKLINK]: 'WINkLink',
+        [OracleProvider.SUPRA]: 'Supra',
       };
 
       const getConsistencyRating = (stdDevPercent: number): string => {

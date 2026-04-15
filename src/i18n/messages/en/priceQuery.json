@@ -2,6 +2,10 @@
   "filter": "Filter",
   "clear": "Clear",
   "clearFilter": "Clear Filter",
+  "meta": {
+    "title": "Price Query - Insight",
+    "description": "Query real-time oracle prices"
+  },
   "priceQuery": {
     "title": "Price Query",
     "description": "Query real-time price data across multiple oracles and blockchains",

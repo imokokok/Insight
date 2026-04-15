@@ -77,6 +77,7 @@ const providerDisplayNames: Record<OracleProvider, string> = {
   [OracleProvider.REDSTONE]: 'RedStone',
   [OracleProvider.DIA]: 'DIA',
   [OracleProvider.WINKLINK]: 'WINkLink',
+  [OracleProvider.SUPRA]: 'Supra',
 };
 
 const sizeConfig = {

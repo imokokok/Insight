@@ -17,6 +17,7 @@ export function getOracleColor(provider: OracleProvider): string {
     [OracleProvider.REDSTONE]: chartColors.oracle.redstone,
     [OracleProvider.DIA]: chartColors.oracle.dia,
     [OracleProvider.WINKLINK]: chartColors.oracle.winklink,
+    [OracleProvider.SUPRA]: chartColors.oracle.supra,
   };
   return colorMap[provider] || chartColors.sequence[0];
 }
