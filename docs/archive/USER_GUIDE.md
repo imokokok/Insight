@@ -64,7 +64,7 @@ The platform features an intuitive navigation system:
 | **Home**           | Dashboard with platform overview and key metrics                         |
 | **Market**         | Price Query tools                                                        |
 | **Data Analysis**  | Cross-Oracle and Cross-Chain analysis tools                              |
-| **Oracle Details** | Individual oracle pages (Chainlink, Pyth, API3, RedStone, DIA, WINkLink) |
+| **Oracle Details** | Individual oracle pages (Chainlink, Pyth, API3, RedStone, DIA, WINkLink, Supra) |
 
 #### User Menu (Logged In)
 
@@ -104,6 +104,7 @@ A scrolling ticker displaying real-time prices for major oracle tokens:
 - RedStone (REDSTONE)
 - DIA (DIA)
 - WINkLink (WINKLINK)
+- Supra (SUPRA)
 
 Each ticker shows:
 
@@ -164,6 +165,7 @@ Select one or more oracle providers:
 - RedStone
 - DIA
 - WINkLink
+- Supra
 
 Multi-select enabled - compare prices across multiple oracles simultaneously.
 
@@ -577,6 +579,7 @@ All oracle providers can be accessed through the Price Query page:
 | RedStone  | Modular oracle solution      | Data streams, cross-chain support             |
 | DIA       | Open-source oracle           | NFT floor price data, transparent methodology |
 | WINkLink  | TRON ecosystem oracle        | Gaming data feeds, entertainment focus        |
+| Supra     | High-performance oracle      | Verifiable randomness, cross-chain data feeds |
 
 ### Oracle Statistics
 

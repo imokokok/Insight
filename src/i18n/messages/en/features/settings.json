@@ -81,6 +81,8 @@
       "defaultOracleHint": "Default oracle to display when opening oracle page",
       "defaultSymbol": "Default Trading Pair",
       "defaultSymbolHint": "Default trading pair for price queries",
+      "searchSymbol": "Search trading pair...",
+      "selectSymbol": "Select trading pair",
       "defaultTimeRange": "Default Time Range",
       "defaultTimeRangeHint": "Default time range for chart display",
       "language": "Language",

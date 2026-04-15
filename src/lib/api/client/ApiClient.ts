@@ -13,7 +13,7 @@ interface ApiClientOptions {
   defaultHeaders?: HeadersInit;
 }
 
-type RequestInterceptor = (config: RequestInit) => RequestInit;
+type RequestInterceptor = (config: RequestInit) => RequestInit | Promise<RequestInit>;
 type ResponseInterceptor = (response: Response) => Response | Promise<Response>;
 
 class ApiClient {
@@ -61,18 +61,18 @@ class ApiClient {
     };
 
     for (const interceptor of this.requestInterceptors) {
-      init = interceptor(init);
+      init = await interceptor(init);
     }
 
     if (data) {
       try {
         init.body = JSON.stringify(data);
-      } catch {
+      } catch (err) {
         throw new ApiError({
           code: 'SERIALIZATION_ERROR',
           message: 'Failed to serialize request data',
           statusCode: 400,
-        });
+        }, err instanceof Error ? err : undefined);
       }
     }
 
@@ -111,6 +111,20 @@ class ApiClient {
           statusCode: response.status,
         });
       }
+
+      if (config?.responseSchema) {
+        const parsed = config.responseSchema.safeParse(result);
+        if (!parsed.success) {
+          throw new ApiError({
+            code: 'VALIDATION_ERROR',
+            message: 'Response validation failed',
+            statusCode: response.status,
+            details: { errors: parsed.error.issues },
+          });
+        }
+        result = parsed.data;
+      }
+
       const duration = Date.now() - startTime;
       logger.debug(`Request completed in ${duration}ms`, { method, url, status: response.status });
 

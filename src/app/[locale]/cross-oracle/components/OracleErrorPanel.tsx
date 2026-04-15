@@ -127,8 +127,8 @@ const OracleErrorItem = memo(function OracleErrorItem({
             >
               <RefreshCw className={`w-3 h-3 mr-1 ${isRetrying ? 'animate-spin' : ''}`} />
               {isRetrying
-                ? t('crossOracle.retrying') || 'Retrying...'
-                : t('crossOracle.retry') || 'Retry'}
+                ? t('crossOracle.retrying')
+                : t('crossOracle.retry')}
             </Button>
           )}
           <span className="text-xs text-gray-400">
@@ -167,11 +167,10 @@ const PartialSuccessBanner = memo(function PartialSuccessBanner({
               success: successCount,
               failed: failedCount,
               total: totalCount,
-            }) || `${successCount}/${totalCount} oracles loaded successfully`}
+            })}
           </p>
           <p className="text-sm text-amber-600">
-            {t('crossOracle.partialSuccessDesc') ||
-              'Some oracles failed to respond. You can retry them individually or all at once.'}
+            {t('crossOracle.partialSuccessDesc')}
           </p>
         </div>
       </div>
@@ -184,7 +183,7 @@ const PartialSuccessBanner = memo(function PartialSuccessBanner({
           className="border-amber-300 text-amber-700 hover:bg-amber-100"
         >
           <RefreshCw className={`w-4 h-4 mr-2 ${isRetrying ? 'animate-spin' : ''}`} />
-          {t('crossOracle.retryAll') || 'Retry All Failed'}
+          {t('crossOracle.retryAll')}
         </Button>
       )}
     </div>
@@ -210,7 +209,7 @@ const GlobalErrorBanner = memo(function GlobalErrorBanner({
         <AlertCircle className="w-5 h-5 text-red-600" />
         <div>
           <p className="font-medium text-red-800">
-            {t('crossOracle.globalError') || 'Failed to fetch data'}
+            {t('crossOracle.globalError')}
           </p>
           <p className="text-sm text-red-600">{message}</p>
         </div>
@@ -224,7 +223,7 @@ const GlobalErrorBanner = memo(function GlobalErrorBanner({
           className="border-red-300 text-red-700 hover:bg-red-100"
         >
           <RefreshCw className={`w-4 h-4 mr-2 ${isRetrying ? 'animate-spin' : ''}`} />
-          {t('crossOracle.retry') || 'Retry'}
+          {t('crossOracle.retry')}
         </Button>
       )}
     </div>
@@ -282,7 +281,7 @@ export const OracleErrorPanel = memo(function OracleErrorPanel({
         <div className="space-y-2">
           <h4 className="text-sm font-medium text-gray-700 flex items-center gap-2">
             <AlertCircle className="w-4 h-4" />
-            {t('crossOracle.failedOracles') || 'Failed Oracles'}
+            {t('crossOracle.failedOracles')}
           </h4>
           <div className="grid gap-2">
             {errors.map((error, index) => (

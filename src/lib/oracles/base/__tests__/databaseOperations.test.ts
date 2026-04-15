@@ -423,7 +423,7 @@ describe('databaseOperations', () => {
       });
 
       it('should handle undefined data from database', async () => {
-        mockGetPriceFromDatabase.mockResolvedValueOnce(undefined as any);
+        mockGetPriceFromDatabase.mockResolvedValueOnce(undefined as unknown as PriceData);
 
         await expect(
           fetchPriceWithDatabase(mockProvider, mockSymbol, mockChain, true)
@@ -504,7 +504,7 @@ describe('databaseOperations', () => {
       });
 
       it('should handle NULL confidence value', async () => {
-        const priceData = createMockPriceData({ confidence: null as any });
+        const priceData = createMockPriceData({ confidence: null as unknown as number });
         mockGetPriceFromDatabase.mockReset();
         mockGetPriceFromDatabase.mockResolvedValueOnce(priceData);
 
@@ -514,7 +514,7 @@ describe('databaseOperations', () => {
       });
 
       it('should handle NULL source value', async () => {
-        const priceData = createMockPriceData({ source: null as any });
+        const priceData = createMockPriceData({ source: null as unknown as string });
         mockGetPriceFromDatabase.mockReset();
         mockGetPriceFromDatabase.mockResolvedValueOnce(priceData);
 
@@ -965,13 +965,13 @@ describe('databaseOperations', () => {
 
       it('should handle chains with special characters', async () => {
         const specialChain = "ethereum'; DROP TABLE prices; --";
-        const mockPriceData = createMockPriceData({ chain: specialChain as any });
+        const mockPriceData = createMockPriceData({ chain: specialChain as unknown as Blockchain });
         mockGetPriceFromDatabase.mockResolvedValueOnce(mockPriceData);
 
         const result = await fetchPriceWithDatabase(
           mockProvider,
           mockSymbol,
-          specialChain as any,
+          specialChain as unknown as Blockchain,
           true
         );
 
@@ -1017,13 +1017,15 @@ describe('databaseOperations', () => {
 
       it('should safely handle SQL injection attempt in chain', async () => {
         const maliciousChain = "ethereum'; DELETE FROM prices WHERE '1'='1";
-        const mockPriceData = createMockPriceData({ chain: maliciousChain as any });
+        const mockPriceData = createMockPriceData({
+          chain: maliciousChain as unknown as Blockchain,
+        });
         mockGetPriceFromDatabase.mockResolvedValueOnce(mockPriceData);
 
         const result = await fetchPriceWithDatabase(
           mockProvider,
           mockSymbol,
-          maliciousChain as any,
+          maliciousChain as unknown as Blockchain,
           true
         );
 

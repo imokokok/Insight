@@ -5,8 +5,8 @@ export class ApiError extends Error {
   public readonly statusCode: number;
   public readonly details?: Record<string, unknown>;
 
-  constructor({ code, message, statusCode, details }: ApiErrorBody) {
-    super(message);
+  constructor({ code, message, statusCode, details }: ApiErrorBody, cause?: Error) {
+    super(message, { cause });
     this.name = 'ApiError';
     this.code = code;
     this.statusCode = statusCode;

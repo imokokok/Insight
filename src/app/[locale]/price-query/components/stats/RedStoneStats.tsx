@@ -1,4 +1,5 @@
 import { Settings, Globe, TrendingDown, TrendingUp, Database, Clock } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 import { StatCard } from '@/components/ui/StatCard';
 import type { RedStoneTokenOnChainData } from '@/lib/oracles/clients/redstone';
@@ -9,6 +10,7 @@ interface RedStoneStatsProps {
 }
 
 export function RedStoneStats({ data }: RedStoneStatsProps) {
+  const t = useTranslations('priceQuery.stats');
   const dataAgeRating = data.dataAge !== null ? getStatRating('latency', data.dataAge) : null;
 
   return (
@@ -16,42 +18,42 @@ export function RedStoneStats({ data }: RedStoneStatsProps) {
       <StatCard
         icon={Settings}
         iconColor="text-blue-500"
-        title="价格精度"
-        value={`${data.decimals} 位`}
-        description="价格数据的小数位数，用于确定精度"
+        title={t('pricePrecision')}
+        value={t('precisionDigits', { count: data.decimals })}
+        description={t('pricePrecisionDesc')}
       />
       <StatCard
         icon={Globe}
         iconColor="text-amber-500"
-        title="支持链数"
-        value={`${data.supportedChainsCount} 条`}
-        description="RedStone 支持的区块链网络数量"
+        title={t('supportedChains')}
+        value={t('supportedChainsValue', { count: data.supportedChainsCount })}
+        description={t('supportedChainsDesc', { oracle: 'RedStone' })}
       />
       <StatCard
         icon={TrendingDown}
         iconColor="text-emerald-500"
-        title="买入价"
+        title={t('bidPrice')}
         value={data.bid ? `$${data.bid.toFixed(4)}` : '-'}
-        description="RedStone 报出的买入价格"
+        description={t('bidPriceDesc')}
       />
       <StatCard
         icon={TrendingUp}
         iconColor="text-indigo-500"
-        title="卖出价"
+        title={t('askPrice')}
         value={data.ask ? `$${data.ask.toFixed(4)}` : '-'}
-        description="RedStone 报出的卖出价格"
+        description={t('askPriceDesc')}
       />
       <StatCard
         icon={Database}
         iconColor="text-purple-500"
-        title="数据源"
+        title={t('dataSource')}
         value={data.provider ? data.provider.replace('redstone-', '').toUpperCase() : '-'}
-        description="RedStone 数据提供商标识"
+        description={t('redstoneDataSourceDesc')}
       />
       <StatCard
         icon={Clock}
         iconColor="text-rose-500"
-        title="数据年龄"
+        title={t('dataAge')}
         value={
           data.dataAge !== null
             ? data.dataAge < 60
@@ -59,7 +61,7 @@ export function RedStoneStats({ data }: RedStoneStatsProps) {
               : `${Math.round(data.dataAge / 60)}m`
             : '-'
         }
-        description="距离上次价格更新的时间间隔"
+        description={t('dataAgeDesc')}
         rating={dataAgeRating}
       />
     </>

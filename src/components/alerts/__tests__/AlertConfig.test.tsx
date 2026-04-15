@@ -20,19 +20,21 @@ jest.mock('@/lib/constants', () => ({
   oracleColors: { chainlink: '#375BD2', pyth: '#EC1C79' },
 }));
 
+import type { DropdownSelectProps, SegmentedControlProps, SelectorOption } from '@/components/ui';
+
 jest.mock('@/components/ui', () => ({
-  DropdownSelect: ({ options, value, onChange }: any) => (
+  DropdownSelect: ({ options, value, onChange }: DropdownSelectProps) => (
     <select data-testid="dropdown-select" value={value} onChange={(e) => onChange(e.target.value)}>
-      {options.map((opt: any) => (
+      {options.map((opt: SelectorOption) => (
         <option key={opt.value} value={opt.value}>
           {opt.label}
         </option>
       ))}
     </select>
   ),
-  SegmentedControl: ({ options, value, onChange }: any) => (
+  SegmentedControl: ({ options, value, onChange }: SegmentedControlProps) => (
     <div data-testid="segmented-control">
-      {options.map((opt: any) => (
+      {options.map((opt: SelectorOption) => (
         <button
           key={opt.value}
           onClick={() => onChange(opt.value)}

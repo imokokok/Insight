@@ -151,6 +151,15 @@
       "endTime": "结束时间",
       "recurring": "重复计划",
       "daysOfWeek": "星期",
+      "daysOfWeek": {
+        "sun": "周日",
+        "mon": "周一",
+        "tue": "周二",
+        "wed": "周三",
+        "thu": "周四",
+        "fri": "周五",
+        "sat": "周六"
+      },
       "notice": "在静默期内，告警仍会触发，但通知将被抑制",
       "duration": {
         "15": "15 分钟",

@@ -82,7 +82,6 @@ export const useRealtimeStore = create<RealtimeStore>()(
       setActiveSubscriptions: (subscriptions) => set({ activeSubscriptions: subscriptions }),
 
       subscribeToPriceUpdates: (callback, filters) => {
-        // 使用 ref 存储 callback，避免闭包问题
         const callbackRef = { current: callback };
 
         const unsubscribe = realtimeManager.subscribeToPriceUpdates((payload) => {
@@ -90,16 +89,17 @@ export const useRealtimeStore = create<RealtimeStore>()(
             lastPriceUpdate: payload,
             priceUpdateCount: state.priceUpdateCount + 1,
           }));
-          // 使用 ref 调用最新的 callback
           callbackRef.current?.(payload);
         }, filters);
 
-        // 返回增强的 unsubscribe 函数
-        return () => {
+        const result = () => {
           unsubscribe();
-          // 清理 callback 引用，帮助垃圾回收
           callbackRef.current = undefined;
         };
+        result.updateCallback = (cb: typeof callback) => {
+          callbackRef.current = cb;
+        };
+        return result;
       },
 
       subscribeToAlertEvents: (userId, callback) => {
@@ -113,10 +113,14 @@ export const useRealtimeStore = create<RealtimeStore>()(
           callbackRef.current?.(payload);
         });
 
-        return () => {
+        const result = () => {
           unsubscribe();
           callbackRef.current = undefined;
         };
+        result.updateCallback = (cb: typeof callback) => {
+          callbackRef.current = cb;
+        };
+        return result;
       },
 
       subscribeToSnapshotChanges: (userId, callback) => {
@@ -127,10 +131,14 @@ export const useRealtimeStore = create<RealtimeStore>()(
           callbackRef.current?.(payload);
         });
 
-        return () => {
+        const result = () => {
           unsubscribe();
           callbackRef.current = undefined;
         };
+        result.updateCallback = (cb: typeof callback) => {
+          callbackRef.current = cb;
+        };
+        return result;
       },
 
       subscribeToFavoriteChanges: (userId, callback) => {
@@ -141,10 +149,14 @@ export const useRealtimeStore = create<RealtimeStore>()(
           callbackRef.current?.(payload);
         });
 
-        return () => {
+        const result = () => {
           unsubscribe();
           callbackRef.current = undefined;
         };
+        result.updateCallback = (cb: typeof callback) => {
+          callbackRef.current = cb;
+        };
+        return result;
       },
 
       reconnect: () => {

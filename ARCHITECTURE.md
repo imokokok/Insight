@@ -60,10 +60,10 @@ The Insight Oracle Data Analytics Platform is a modern web application built on 
 │  │Chainlink │ │   Pyth   │ │   API3   │ │RedStone  │ │  DIA   ││
 │  │  Client  │ │  Client  │ │  Client  │ │  Client  │ │ Client ││
 │  └──────────┘ └──────────┘ └──────────┘ └──────────┘ └────────┘│
-│  ┌──────────┐ ┌────────────────────────────────────────────────┐│
-│  │WINkLink  │ │         Base Oracle Client (Abstract)          ││
-│  │  Client  │ │                                                ││
-│  └──────────┘ └────────────────────────────────────────────────┘│
+│  ┌──────────┐ ┌──────────┐ ┌────────────────────────────────────┐│
+│  │WINkLink  │ │  Supra   │ │         Base Oracle Client         ││
+│  │  Client  │ │  Client  │ │           (Abstract)               ││
+│  └──────────┘ └──────────┘ └────────────────────────────────────┘│
 └─────────────────────────────────────────────────────────────────┘
                               │
                               ▼
@@ -388,9 +388,19 @@ The application uses a hybrid state management approach:
 │  │  - Real-time subscriptions                           │    │
 │  └─────────────────────────────────────────────────────┘    │
 │  ┌─────────────────────────────────────────────────────┐    │
-│  │                  crossChainStore                     │    │
-│  │  - Cross-chain analysis state                        │    │
-│  │  - Chart configurations                              │    │
+│  │           Cross-Chain Stores (4 stores)              │    │
+│  │  - crossChainConfigStore: Configuration state        │    │
+│  │  - crossChainDataStore: Data state                   │    │
+│  │  - crossChainSelectorStore: Selector state           │    │
+│  │  - crossChainUIStore: UI state                       │    │
+│  └─────────────────────────────────────────────────────┘    │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │           notificationStore                          │    │
+│  │  - Notification state management                     │    │
+│  └─────────────────────────────────────────────────────┘    │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │           timeRangeStore                             │    │
+│  │  - Time range selection state                        │    │
 │  └─────────────────────────────────────────────────────┘    │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -469,12 +479,12 @@ interface RealtimeStore {
 }
 ```
 
-#### crossChainStore
+#### crossChainConfigStore
 
-Manages cross-chain analysis state:
+Manages cross-chain configuration state:
 
 ```typescript
-interface CrossChainStore {
+interface CrossChainConfigStore {
   selectedProvider: OracleProvider;
   selectedSymbol: string;
   selectedTimeRange: number;
@@ -482,16 +492,6 @@ interface CrossChainStore {
   visibleChains: Blockchain[];
   showMA: boolean;
   maPeriod: number;
-  chartKey: number;
-  hiddenLines: Set<string>;
-  focusedChain: Blockchain | null;
-  tableFilter: 'all' | 'abnormal' | 'normal';
-  currentPrices: PriceData[];
-  historicalPrices: Partial<Record<Blockchain, PriceData[]>>;
-  loading: boolean;
-  refreshStatus: 'idle' | 'refreshing' | 'success' | 'error';
-  refreshInterval: RefreshInterval;
-  thresholdConfig: ThresholdConfig;
   colorblindMode: boolean;
   setSelectedProvider: (provider: OracleProvider) => void;
   toggleChain: (chain: Blockchain) => void;
@@ -499,12 +499,38 @@ interface CrossChainStore {
 }
 ```
 
-#### selectors
+#### crossChainDataStore
 
-Pre-built selectors for optimized state access:
+Manages cross-chain data state:
 
 ```typescript
-export * from './selectors';
+interface CrossChainDataStore {
+  currentPrices: PriceData[];
+  historicalPrices: Partial<Record<Blockchain, PriceData[]>>;
+  loading: boolean;
+  refreshStatus: 'idle' | 'refreshing' | 'success' | 'error';
+  // ... more actions
+}
+```
+
+#### crossChainSelectorStore
+
+Manages cross-chain selector state.
+
+#### crossChainUIStore
+
+Manages cross-chain UI state:
+
+```typescript
+interface CrossChainUIStore {
+  chartKey: number;
+  hiddenLines: Set<string>;
+  focusedChain: Blockchain | null;
+  tableFilter: 'all' | 'abnormal' | 'normal';
+  refreshInterval: RefreshInterval;
+  thresholdConfig: ThresholdConfig;
+  // ... more actions
+}
 ```
 
 ---
@@ -929,6 +955,7 @@ export class API3Client extends BaseOracleClient {
 | RedStone | `redstone.ts`, `redstoneConstants.ts`                                                           | RedStone oracle data streams                 |
 | DIA      | `dia.ts`, `diaDataService.ts`, `diaPriceService.ts`, `diaNFTService.ts`, `diaNetworkService.ts` | DIA oracle with modular service architecture |
 | WINkLink | `winklink.ts`, `winklinkRealDataService.ts`                                                     | WINkLink oracle with real data support       |
+| Supra    | `supra.ts`, `supraDataService.ts`                                                               | Supra oracle with SDK integration            |
 
 #### DIA Service Architecture
 
@@ -1283,15 +1310,26 @@ export class InternalError extends AppError {
 ```
 src/lib/services/
 ├── marketData/
-│   ├── anomalyCalculations.ts  # Anomaly detection algorithms
-│   ├── defiLlamaApi.ts         # DeFi Llama API integration
-│   ├── priceCalculations.ts    # Price computation utilities
-│   ├── riskCalculations.ts     # Risk metrics calculations
+│   ├── binanceMarketService.ts      # Binance market data
+│   ├── coinGeckoMarketService.ts    # CoinGecko market data
+│   ├── anomalyCalculations.ts       # Anomaly detection algorithms
+│   ├── performanceMetrics.ts        # Performance metrics calculations
+│   ├── priceCalculations.ts         # Price computation utilities
+│   ├── riskCalculations.ts          # Risk metrics calculations
+│   ├── types.ts                     # Market data types
+│   ├── defiLlamaApi/                # DeFi Llama API integration
+│   │   ├── client.ts
+│   │   ├── assets.ts
+│   │   ├── chains.ts
+│   │   ├── comparison.ts
+│   │   ├── oracles.ts
+│   │   ├── protocols.ts
+│   │   ├── types.ts
+│   │   └── index.ts
 │   └── index.ts
 ├── oracle/
-│   ├── OracleMarketDataService.ts  # Oracle market data service
+│   ├── OracleMarketDataService.ts   # Oracle market data service
 │   └── index.ts
-└── api3WebSocket.ts            # API3 WebSocket service
 ```
 
 ### 12.2 Market Data Service
@@ -1350,12 +1388,16 @@ export function isOutlier(value: number, threshold: number): boolean;
 | Oracle Clients       | Pyth Hermes Client      | 2.0.0           |
 | Oracle Clients       | Pyth Price Service SDK  | 1.8.0           |
 | Oracle Clients       | API3 Contracts          | 27.0.0          |
+| Oracle Clients       | Supra Oracle SDK        | 1.0.4           |
 | Animations           | Framer Motion           | 12.36.0         |
 | Icons                | Lucide React            | 0.577.0         |
 | PDF Export           | jsPDF                   | 4.2.0           |
 | PDF Export           | jsPDF-AutoTable         | 5.0.7           |
 | Internationalization | next-intl               | 4.8.3           |
 | Monitoring           | Sentry                  | 10.43.0         |
+| Security             | DOMPurify               | 3.4.0           |
+| Performance          | web-vitals              | 5.1.0           |
+| Archive              | JSZip                   | 3.10.1          |
 | Virtualization       | @tanstack/react-virtual | 3.13.21         |
 | HTTP Client          | Axios                   | 1.13.6          |
 | Testing              | Jest                    | 30.3.0          |
@@ -1391,25 +1433,9 @@ src/i18n/messages/
 │   ├── redstone.json
 │   ├── dia.json
 │   └── winklink.json
+│   └── supra.json
 ├── components/          # Component translations
 └── features/            # Feature translations
-```
-
----
-
-## Environment Variables
-
-```bash
-# Supabase
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
-
-# WebSocket (optional)
-NEXT_PUBLIC_WS_URL=your_websocket_url
-
-# Analytics (optional)
-NEXT_PUBLIC_VERCEL_ANALYTICS_ID=your_analytics_id
 ```
 
 ---

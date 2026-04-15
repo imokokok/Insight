@@ -1,11 +1,7 @@
 'use client';
 
-/**
- * @fileoverview 置信度可视化条组件
- * @description 以颜色条形式展示置信度分数 (0-100)
- */
-
 import { memo } from 'react';
+import { useTranslations } from 'next-intl';
 
 interface ConfidenceBarProps {
   confidence: number;
@@ -13,9 +9,6 @@ interface ConfidenceBarProps {
   size?: 'sm' | 'md' | 'lg';
 }
 
-/**
- * 获取置信度颜色
- */
 function getConfidenceColor(confidence: number): string {
   if (confidence >= 90) return 'bg-emerald-500';
   if (confidence >= 75) return 'bg-blue-500';
@@ -24,20 +17,14 @@ function getConfidenceColor(confidence: number): string {
   return 'bg-red-500';
 }
 
-/**
- * 获取置信度等级文本
- */
-function getConfidenceLabel(confidence: number): string {
-  if (confidence >= 90) return '极高';
-  if (confidence >= 75) return '高';
-  if (confidence >= 60) return '中等';
-  if (confidence >= 40) return '低';
-  return '极低';
+function getConfidenceLabel(confidence: number, t: ReturnType<typeof useTranslations>): string {
+  if (confidence >= 90) return t('crossOracle.confidenceLevel.veryHigh');
+  if (confidence >= 75) return t('crossOracle.confidenceLevel.high');
+  if (confidence >= 60) return t('crossOracle.confidenceLevel.medium');
+  if (confidence >= 40) return t('crossOracle.confidenceLevel.low');
+  return t('crossOracle.confidenceLevel.veryLow');
 }
 
-/**
- * 获取尺寸类名
- */
 function getSizeClasses(size: 'sm' | 'md' | 'lg'): { bar: string; text: string } {
   switch (size) {
     case 'sm':
@@ -50,6 +37,7 @@ function getSizeClasses(size: 'sm' | 'md' | 'lg'): { bar: string; text: string }
 }
 
 function ConfidenceBarComponent({ confidence, showLabel = true, size = 'md' }: ConfidenceBarProps) {
+  const t = useTranslations();
   const normalizedConfidence = Math.max(0, Math.min(100, confidence));
   const colorClass = getConfidenceColor(normalizedConfidence);
   const sizeClasses = getSizeClasses(size);
@@ -65,7 +53,7 @@ function ConfidenceBarComponent({ confidence, showLabel = true, size = 'md' }: C
       {showLabel && (
         <div className={`flex justify-between mt-1 ${sizeClasses.text}`}>
           <span className="text-gray-500">{normalizedConfidence.toFixed(0)}%</span>
-          <span className="text-gray-400">{getConfidenceLabel(normalizedConfidence)}</span>
+          <span className="text-gray-400">{getConfidenceLabel(normalizedConfidence, t)}</span>
         </div>
       )}
     </div>

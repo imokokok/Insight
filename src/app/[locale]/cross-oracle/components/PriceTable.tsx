@@ -409,15 +409,15 @@ function PriceTableComponent({
   const getAnomalyReason = (row: PriceTableRow): string => {
     const reasons: string[] = [];
     if (row.deviation && Math.abs(row.deviation) > 1) {
-      reasons.push(t('priceTable.deviationTooLarge') || '价格偏差过大');
+      reasons.push(t('priceTable.deviationTooLarge'));
     }
     if (row.freshnessSeconds > 60) {
-      reasons.push(t('priceTable.dataDelay') || '数据延迟');
+      reasons.push(t('priceTable.dataDelay'));
     }
     if (row.isOutlier) {
-      reasons.push(t('priceTable.outlier') || '统计异常值');
+      reasons.push(t('priceTable.outlier'));
     }
-    return reasons.length > 0 ? reasons.join('、') : t('priceTable.unknownReason') || '未知原因';
+    return reasons.length > 0 ? reasons.join('、') : t('priceTable.unknownReason');
   };
 
   // 简化后的展开行详情

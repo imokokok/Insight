@@ -53,6 +53,19 @@ const cleanupCache = () => {
   }
 };
 
+let cleanupIntervalId: ReturnType<typeof setInterval> | null = null;
+
+const startPeriodicCleanup = () => {
+  if (cleanupIntervalId !== null) return;
+  cleanupIntervalId = setInterval(() => {
+    cleanupCache();
+  }, 60000);
+};
+
+if (typeof window !== 'undefined') {
+  startPeriodicCleanup();
+}
+
 export const clearCache = () => {
   const dataCache = getGlobalCache();
   dataCache.clear();

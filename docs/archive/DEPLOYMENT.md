@@ -46,51 +46,7 @@ npm --version   # npm 10.x or higher recommended
 
 ## Environment Variables Configuration
 
-The application uses environment variables for configuration. Create a `.env.local` file locally or configure them in your deployment platform.
-
-### Required Environment Variables
-
-| Variable                        | Description                   | Example                           |
-| ------------------------------- | ----------------------------- | --------------------------------- |
-| `NEXT_PUBLIC_SUPABASE_URL`      | Your Supabase project URL     | `https://xxxxx.supabase.co`       |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anonymous/public key | `eyJhbGciOiJIUzI1NiIsInR5cCI6...` |
-
-### Optional Environment Variables
-
-| Variable                                    | Description                                 | Default | Example                       |
-| ------------------------------------------- | ------------------------------------------- | ------- | ----------------------------- |
-| `NEXT_PUBLIC_APP_URL`                       | Application base URL                        | -       | `https://insight.example.com` |
-| `NEXT_PUBLIC_WS_URL`                        | WebSocket server URL for real-time features | -       | `wss://ws.example.com`        |
-| `NEXT_PUBLIC_ENABLE_REALTIME`               | Enable real-time features                   | `true`  | `true` / `false`              |
-| `NEXT_PUBLIC_ENABLE_ANALYTICS`              | Enable Vercel Analytics                     | `false` | `true` / `false`              |
-| `NEXT_PUBLIC_ENABLE_PERFORMANCE_MONITORING` | Enable performance monitoring               | `false` | `true` / `false`              |
-
-### Server-Side Only Variables (for API routes)
-
-| Variable                    | Description                                        | Required For           |
-| --------------------------- | -------------------------------------------------- | ---------------------- |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key (admin access)           | Server-side operations |
-| `SUPABASE_URL`              | Alternative to NEXT_PUBLIC_SUPABASE_URL for server | Server-side operations |
-
-### Example `.env.local`
-
-```env
-# Required - Supabase Configuration
-NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
-
-# Optional - Application Configuration
-NEXT_PUBLIC_APP_URL=https://insight.example.com
-NEXT_PUBLIC_WS_URL=wss://ws.insight.example.com
-
-# Optional - Feature Flags
-NEXT_PUBLIC_ENABLE_REALTIME=true
-NEXT_PUBLIC_ENABLE_ANALYTICS=true
-NEXT_PUBLIC_ENABLE_PERFORMANCE_MONITORING=true
-
-# Server-side only (for API routes, cron jobs)
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key-here
-```
+The application uses environment variables for configuration. Refer to `src/lib/config/env.ts` and `src/lib/config/serverEnv.ts` for the complete list of required and optional variables with their validation logic.
 
 ### Environment Variable Validation
 
@@ -98,8 +54,6 @@ The application validates environment variables at startup. Missing required var
 
 - **Production**: Throw an error and prevent startup
 - **Development**: Show a warning and use fallback values
-
-See [src/lib/config/env.ts](src/lib/config/env.ts) for validation logic.
 
 ---
 
@@ -232,17 +186,7 @@ The migration automatically enables RLS on all tables. Verify:
 In the Vercel project settings:
 
 1. Go to **Settings** > **Environment Variables**
-2. Add all required and optional variables:
-
-   ```
-   NEXT_PUBLIC_SUPABASE_URL=https://xxxxx.supabase.co
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6...
-   NEXT_PUBLIC_APP_URL=https://your-app.vercel.app
-   NEXT_PUBLIC_ENABLE_REALTIME=true
-   NEXT_PUBLIC_ENABLE_ANALYTICS=true
-   NEXT_PUBLIC_ENABLE_PERFORMANCE_MONITORING=true
-   SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6...
-   ```
+2. Add all required and optional variables (refer to `src/lib/config/env.ts` and `src/lib/config/serverEnv.ts` for the complete list)
 
 3. Set environment scope:
    - **Production**: All variables
@@ -290,7 +234,13 @@ To view analytics:
 
 ### Migration File Overview
 
-The initial migration ([supabase/migrations/001_initial_schema.sql](supabase/migrations/001_initial_schema.sql)) creates:
+The project includes the following migration files:
+
+1. [001_initial_schema.sql](supabase/migrations/001_initial_schema.sql) - Initial database schema
+2. [002_add_alert_name.sql](supabase/migrations/002_add_alert_name.sql) - Add alert name field
+3. [003_fix_schema_issues.sql](supabase/migrations/003_fix_schema_issues.sql) - Fix schema issues
+
+The initial migration creates:
 
 #### Tables
 
@@ -479,7 +429,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
           cache: 'npm'
 
       - name: Install dependencies
@@ -491,12 +441,14 @@ jobs:
       - name: Run tests
         run: npm run test
         env:
+          # Add all required env vars as secrets (refer to src/lib/config/env.ts and src/lib/config/serverEnv.ts)
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
 
       - name: Build
         run: npm run build
         env:
+          # Add all required env vars as secrets (refer to src/lib/config/env.ts and src/lib/config/serverEnv.ts)
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
 ```
@@ -505,13 +457,7 @@ jobs:
 
 #### GitHub Secrets
 
-Store sensitive variables in GitHub repository secrets:
-
-1. Go to **Settings** > **Secrets and variables** > **Actions**
-2. Add repository secrets:
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - `SUPABASE_SERVICE_ROLE_KEY`
+Store sensitive variables in GitHub repository secrets (refer to `src/lib/config/env.ts` for the complete list of required variables).
 
 #### Vercel Environment Variables
 
@@ -751,10 +697,7 @@ npm run build
 
 #### Enable Debug Logging
 
-```env
-# Add to environment variables
-NEXT_PUBLIC_DEBUG=true
-```
+Enable debug features via environment variable flags as defined in `src/lib/config/env.ts`.
 
 #### Check Vercel Logs
 

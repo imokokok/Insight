@@ -22,15 +22,23 @@ export interface UseFavoritesOptions {
   configType?: ConfigType;
 }
 
+const VALID_CONFIG_TYPES = new Set<string>(['oracle_config', 'symbol', 'chain_config']);
+
+function isConfigType(value: string): value is ConfigType {
+  return VALID_CONFIG_TYPES.has(value);
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
 function deepEqual(a: unknown, b: unknown): boolean {
   if (a === b) return true;
-  if (typeof a !== 'object' || typeof b !== 'object' || a === null || b === null) return false;
-  const keysA = Object.keys(a as Record<string, unknown>);
-  const keysB = Object.keys(b as Record<string, unknown>);
+  if (!isRecord(a) || !isRecord(b)) return false;
+  const keysA = Object.keys(a);
+  const keysB = Object.keys(b);
   if (keysA.length !== keysB.length) return false;
-  return keysA.every((key) =>
-    deepEqual((a as Record<string, unknown>)[key], (b as Record<string, unknown>)[key])
-  );
+  return keysA.every((key) => deepEqual(a[key], b[key]));
 }
 
 export function useFavorites(options: UseFavoritesOptions = {}) {
@@ -91,7 +99,7 @@ export function useAddFavorite() {
         const favorite = await queries.addFavorite(user.id, {
           name,
           config_type: mapConfigType(configType),
-          config_data: configData as Record<string, unknown>,
+          config_data: Object.fromEntries(Object.entries(configData)),
         });
 
         if (favorite) {
@@ -229,7 +237,7 @@ export function useUpdateFavorite() {
         const updateData: { name?: string; config_data?: Record<string, unknown> } = {};
         if (data.name !== undefined) updateData.name = data.name;
         if (data.configData !== undefined)
-          updateData.config_data = data.configData as Record<string, unknown>;
+          updateData.config_data = Object.fromEntries(Object.entries(data.configData));
 
         const favorite = await queries.updateFavorite(favoriteId, updateData);
 
@@ -259,5 +267,8 @@ function mapConfigType(configType: ConfigType): 'oracle_config' | 'symbol' | 'ch
 }
 
 export function mapConfigTypeFromDB(dbConfigType: string): ConfigType {
-  return dbConfigType as ConfigType;
+  if (isConfigType(dbConfigType)) {
+    return dbConfigType;
+  }
+  return 'symbol';
 }

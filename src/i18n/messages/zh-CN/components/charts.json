@@ -6,8 +6,12 @@
       "candle": "K线"
     },
     "indicators": "指标",
+    "indicator": "指标",
+    "addIndicator": "添加指标",
     "export": "导出",
-    "resetZoom": "重置缩放"
+    "resetZoom": "重置缩放",
+    "settings": "设置",
+    "unavailableWithMultipleSeries": "(多系列时不可用)"
   },
   "charts": {
     "latency": {

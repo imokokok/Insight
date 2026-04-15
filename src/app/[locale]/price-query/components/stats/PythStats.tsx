@@ -29,48 +29,48 @@ export function PythStats({
       <StatCard
         icon={Hash}
         iconColor="text-purple-500"
-        title={t('priceQuery.stats.priceId') || 'Price Feed ID'}
+        title={t('priceQuery.stats.priceId')}
         value={priceId ? `${priceId.slice(0, 6)}...${priceId.slice(-4)}` : '-'}
-        description="Pyth 价格源的唯一定价标识符"
+        description={t('priceQuery.stats.priceIdDesc')}
       />
       <StatCard
         icon={Settings}
         iconColor="text-blue-500"
-        title={t('priceQuery.stats.exponent') || 'Exponent'}
+        title={t('priceQuery.stats.exponent')}
         value={exponent !== undefined ? `10^${exponent}` : '-'}
-        description="价格指数，实际价格 = 原始值 × 10^exponent"
+        description={t('priceQuery.stats.exponentDesc')}
       />
       <StatCard
         icon={BarChart3}
         iconColor="text-emerald-500"
-        title={t('priceQuery.stats.confidenceAbs') || 'Confidence'}
+        title={t('priceQuery.stats.confidenceAbs')}
         value={conf !== undefined ? `$${conf.toFixed(4)}` : '-'}
-        description="置信区间的绝对宽度，表示价格的不确定性范围"
+        description={t('priceQuery.stats.confidenceAbsDesc')}
       />
       <StatCard
         icon={Clock}
         iconColor="text-amber-500"
-        title={t('priceQuery.stats.publishTime') || 'Published'}
+        title={t('priceQuery.stats.publishTime')}
         value={publishTime ? new Date(publishTime).toLocaleTimeString() : '-'}
-        description="价格数据最近一次发布的时间"
+        description={t('priceQuery.stats.publishTimeDesc')}
       />
       <StatCard
         icon={BarChart3}
         iconColor="text-indigo-500"
-        title={t('priceQuery.stats.confidenceWidth') || 'Spread %'}
+        title={t('priceQuery.stats.confidenceWidth')}
         value={
           confidenceInterval?.widthPercentage !== undefined
             ? `${confidenceInterval.widthPercentage.toFixed(4)}%`
             : '-'
         }
-        description="置信区间宽度占价格的百分比，越小表示数据越可信"
+        description={t('priceQuery.stats.confidenceWidthDesc')}
       />
       <StatCard
         icon={Shield}
         iconColor="text-rose-500"
-        title={t('priceQuery.stats.confidenceScore') || 'Confidence Score'}
+        title={t('priceQuery.stats.confidenceScore')}
         value={confidence !== undefined ? `${confidence.toFixed(2)}%` : '-'}
-        description="价格数据的置信度评分，越高表示数据越可靠"
+        description={t('priceQuery.stats.confidenceScoreDesc')}
       />
     </>
   );

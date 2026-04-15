@@ -1,11 +1,7 @@
 'use client';
 
-/**
- * @fileoverview 价格区间可视化条组件
- * @description 展示价格从min到max的范围，并标注中位数位置
- */
-
 import { memo } from 'react';
+import { useTranslations } from 'next-intl';
 
 import { formatPrice } from '@/lib/utils/format';
 
@@ -22,6 +18,8 @@ function PriceRangeBarComponent({
   medianPrice,
   currentPrice,
 }: PriceRangeBarProps) {
+  const t = useTranslations();
+
   if (minPrice === maxPrice) {
     return (
       <div className="w-full">
@@ -40,37 +38,33 @@ function PriceRangeBarComponent({
 
   return (
     <div className="w-full">
-      {/* 价格区间条 */}
       <div className="relative h-3 bg-gradient-to-r from-blue-200 via-blue-400 to-blue-600 rounded-full overflow-hidden">
-        {/* 中位数标记 */}
         <div
           className="absolute top-0 bottom-0 w-1 bg-white border-2 border-gray-800 transform -translate-x-1/2"
           style={{ left: `${medianPosition}%` }}
-          title={`中位数: ${formatPrice(medianPrice)}`}
+          title={t('crossOracle.priceRange.medianLabel', { price: formatPrice(medianPrice) })}
         />
 
-        {/* 当前价格标记 */}
         {currentPosition !== null && (
           <div
             className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full transform -translate-x-1/2 shadow-sm"
             style={{ left: `${currentPosition}%` }}
-            title={`当前: ${formatPrice(currentPrice!)}`}
+            title={t('crossOracle.priceRange.currentLabel', { price: formatPrice(currentPrice!) })}
           />
         )}
       </div>
 
-      {/* 刻度标签 */}
       <div className="flex justify-between mt-2 text-xs">
         <div className="text-left">
-          <span className="text-gray-400">Min</span>
+          <span className="text-gray-400">{t('crossOracle.priceRange.min')}</span>
           <div className="font-medium text-gray-700">{formatPrice(minPrice)}</div>
         </div>
         <div className="text-center">
-          <span className="text-gray-400">Median</span>
+          <span className="text-gray-400">{t('crossOracle.priceRange.median')}</span>
           <div className="font-medium text-gray-900">{formatPrice(medianPrice)}</div>
         </div>
         <div className="text-right">
-          <span className="text-gray-400">Max</span>
+          <span className="text-gray-400">{t('crossOracle.priceRange.max')}</span>
           <div className="font-medium text-gray-700">{formatPrice(maxPrice)}</div>
         </div>
       </div>

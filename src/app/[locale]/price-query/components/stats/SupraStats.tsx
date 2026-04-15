@@ -1,4 +1,5 @@
 import { Hash, Settings, Globe, Database, Clock, Activity } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 import { StatCard } from '@/components/ui/StatCard';
 import type { SupraTokenOnChainData } from '@/lib/oracles/clients/supra';
@@ -10,6 +11,7 @@ interface SupraStatsProps {
 
 export function SupraStats({ data }: SupraStatsProps) {
   const { decimals, supportedChainsCount, pairIndex, pairName, dataAge, source } = data;
+  const t = useTranslations('priceQuery.stats');
 
   const dataAgeRating = dataAge !== null ? getStatRating('latency', dataAge) : null;
 
@@ -18,46 +20,46 @@ export function SupraStats({ data }: SupraStatsProps) {
       <StatCard
         icon={Hash}
         iconColor="text-blue-500"
-        title="Pair Index"
+        title={t('pairIndex')}
         value={`#${pairIndex}`}
-        description="Supra DORA 预言机的交易对索引号"
+        description={t('pairIndexDesc')}
       />
       <StatCard
         icon={Settings}
         iconColor="text-amber-500"
-        title="价格精度"
-        value={`${decimals} 位`}
-        description="价格数据的小数位数，用于确定精度"
+        title={t('pricePrecision')}
+        value={t('precisionDigits', { count: decimals })}
+        description={t('pricePrecisionDesc')}
       />
       <StatCard
         icon={Globe}
         iconColor="text-indigo-500"
-        title="支持链数"
-        value={`${supportedChainsCount} 条`}
-        description="Supra 支持的区块链网络数量"
+        title={t('supportedChains')}
+        value={t('supportedChainsValue', { count: supportedChainsCount })}
+        description={t('supportedChainsDesc', { oracle: 'Supra' })}
       />
       <StatCard
         icon={Activity}
         iconColor="text-teal-500"
-        title="交易对"
+        title={t('tradingPair')}
         value={pairName}
-        description="Supra DORA 预言机追踪的交易对名称"
+        description={t('tradingPairDesc')}
       />
       <StatCard
         icon={Database}
         iconColor="text-purple-500"
-        title="数据源"
+        title={t('dataSource')}
         value={source}
-        description="Supra DORA V2 共识预言机数据来源"
+        description={t('supraDataSourceDesc')}
       />
       <StatCard
         icon={Clock}
         iconColor="text-rose-500"
-        title="数据年龄"
+        title={t('dataAge')}
         value={
           dataAge !== null ? (dataAge < 60 ? `${dataAge}s` : `${Math.round(dataAge / 60)}m`) : '-'
         }
-        description="距离上次价格更新的时间间隔"
+        description={t('dataAgeDesc')}
         rating={dataAgeRating}
       />
     </>

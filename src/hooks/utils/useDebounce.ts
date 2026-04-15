@@ -37,6 +37,7 @@ export function useDebouncedCallback<T extends (...args: unknown[]) => unknown>(
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const callbackRef = useRef(callback);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentionally omit callback from deps to keep ref always current without re-subscribing
   useEffect(() => {
     callbackRef.current = callback;
   });

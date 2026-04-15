@@ -6,6 +6,7 @@ import {
   fetchMultipleOraclePrices,
   createPriceHistoryManager,
   extractBaseSymbol,
+  type TimeRangeValue,
 } from '../utils/oracleDataUtils';
 
 jest.mock('@/lib/utils/logger', () => ({
@@ -59,7 +60,7 @@ describe('oracleDataUtils', () => {
     });
 
     it('should return 24 as default for unknown range', () => {
-      expect(getHoursForTimeRange('UNKNOWN' as any)).toBe(24);
+      expect(getHoursForTimeRange('UNKNOWN' as unknown as TimeRangeValue)).toBe(24);
     });
   });
 

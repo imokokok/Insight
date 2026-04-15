@@ -6,18 +6,21 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-import { Menu, User, LogOut, Heart, Bell, Settings } from 'lucide-react';
+import { Menu, User, Heart, Bell } from 'lucide-react';
 
 import { Button } from '@/components/ui';
 import { useKeyboardShortcuts } from '@/hooks';
 import { useTranslations, useLocale } from '@/i18n';
 import { routing } from '@/i18n/routing';
+import { sanitizeUrl } from '@/lib/security';
 import { useUser, useProfile, useAuthLoading, useAuthActions } from '@/stores/authStore';
 
 import LanguageSwitcher from './LanguageSwitcher';
-import { DropdownMenu, MobileDrawer, navigationConfig } from './navigation';
+import { DropdownMenu, MobileDrawer, UserMenuDropdown, navigationConfig } from './navigation';
 import { type NavGroup } from './navigation/types';
 import { GlobalSearch, SearchButton } from './search';
+
+const LOCALE_PATTERN = new RegExp(`^/(?:${routing.locales.join('|')})(/.*)$`);
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -30,12 +33,12 @@ export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [avatarError, setAvatarError] = useState(false);
 
   const currentPath = useMemo(() => {
     if (!pathname) return '/';
     const pathWithoutQuery = pathname.split('?')[0];
-    const localePattern = new RegExp(`^/(?:${routing.locales.join('|')})(/.*)$`);
-    const localeMatch = pathWithoutQuery.match(localePattern);
+    const localeMatch = pathWithoutQuery.match(LOCALE_PATTERN);
     return localeMatch ? localeMatch[1] : pathWithoutQuery;
   }, [pathname]);
 
@@ -166,18 +169,23 @@ export default function Navbar() {
                       className="flex items-center gap-1.5 p-1 hover:bg-gray-50 rounded-md transition-colors"
                     >
                       <div className="w-7 h-7 bg-primary-600 flex items-center justify-center text-white text-xs font-medium overflow-hidden rounded">
-                        {profile?.avatar_url ? (
-                          <img
-                            src={profile.avatar_url}
+                        {profile?.avatar_url && sanitizeUrl(profile.avatar_url) && !avatarError ? (
+                          <Image
+                            src={sanitizeUrl(profile.avatar_url)}
                             alt={profile?.display_name || 'User'}
+                            width={28}
+                            height={28}
                             className="w-full h-full object-cover"
-                            onError={(e) => {
-                              // 头像加载失败时隐藏图片，显示文字回退
-                              (e.target as HTMLImageElement).style.display = 'none';
-                            }}
+                            onError={() => setAvatarError(true)}
                           />
                         ) : null}
-                        <span className={profile?.avatar_url ? 'hidden' : ''}>
+                        <span
+                          className={
+                            profile?.avatar_url && sanitizeUrl(profile.avatar_url) && !avatarError
+                              ? 'hidden'
+                              : ''
+                          }
+                        >
                           {profile?.display_name?.[0]?.toUpperCase() ||
                             user.email?.[0]?.toUpperCase() || <User className="w-3.5 h-3.5" />}
                         </span>
@@ -185,40 +193,12 @@ export default function Navbar() {
                     </button>
 
                     {isUserMenuOpen && (
-                      <>
-                        <div
-                          className="fixed inset-0 z-40"
-                          onClick={() => setIsUserMenuOpen(false)}
-                        />
-                        <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 py-2 z-50 shadow-lg rounded-md">
-                          <div className="px-4 py-2 border-b border-gray-100">
-                            <p className="text-sm font-medium text-gray-900 truncate">
-                              {profile?.display_name || t('user')}
-                            </p>
-                            <p className="text-xs text-gray-500 truncate">{user.email}</p>
-                          </div>
-                          <div className="py-1">
-                            <Link
-                              href={`/${locale}/settings`}
-                              onClick={() => setIsUserMenuOpen(false)}
-                              className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                            >
-                              <Settings className="w-4 h-4" />
-                              {t('navbar.settings')}
-                            </Link>
-                          </div>
-                          <div className="border-t border-gray-100 py-1">
-                            <Button
-                              variant="ghost"
-                              onClick={handleSignOut}
-                              className="w-full justify-start text-danger-600 hover:text-danger-700 hover:bg-danger-50"
-                              leftIcon={<LogOut className="w-4 h-4" />}
-                            >
-                              {t('navbar.signOut')}
-                            </Button>
-                          </div>
-                        </div>
-                      </>
+                      <UserMenuDropdown
+                        profile={profile}
+                        userEmail={user.email}
+                        onClose={() => setIsUserMenuOpen(false)}
+                        onSignOut={handleSignOut}
+                      />
                     )}
                   </div>
                 </div>

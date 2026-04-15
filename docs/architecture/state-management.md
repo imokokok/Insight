@@ -31,7 +31,12 @@ graph TB
             D[authStore - Auth State]
             E[uiStore - UI State]
             F[realtimeStore - Realtime Data State]
-            G[crossChainStore - Cross-chain State]
+            G[crossChainConfigStore - Config]
+            G2[crossChainDataStore - Data]
+            G3[crossChainSelectorStore - Selector]
+            G4[crossChainUIStore - UI]
+            H[notificationStore - Notifications]
+            I[timeRangeStore - Time Range]
         end
 
         subgraph LocalState["Local State - React Hooks"]
@@ -52,14 +57,19 @@ graph TB
 
 ## Zustand Stores
 
-Insight includes the following four Zustand Stores:
+Insight includes the following Zustand Stores:
 
-| Store           | File Location                   | Purpose                              |
-| --------------- | ------------------------------- | ------------------------------------ |
-| authStore       | `src/stores/authStore.ts`       | User authentication state management |
-| uiStore         | `src/stores/uiStore.ts`         | UI state management                  |
-| realtimeStore   | `src/stores/realtimeStore.ts`   | Realtime data state management       |
-| crossChainStore | `src/stores/crossChainStore.ts` | Cross-chain data state management    |
+| Store                    | File Location                           | Purpose                              |
+| ------------------------ | --------------------------------------- | ------------------------------------ |
+| authStore                | `src/stores/authStore.ts`               | User authentication state management |
+| uiStore                  | `src/stores/uiStore.ts`                 | UI state management                  |
+| realtimeStore            | `src/stores/realtimeStore.ts`           | Realtime data state management       |
+| crossChainConfigStore    | `src/stores/crossChainConfigStore.ts`   | Cross-chain configuration state      |
+| crossChainDataStore      | `src/stores/crossChainDataStore.ts`     | Cross-chain data state               |
+| crossChainSelectorStore  | `src/stores/crossChainSelectorStore.ts` | Cross-chain selector state           |
+| crossChainUIStore        | `src/stores/crossChainUIStore.ts`       | Cross-chain UI state                 |
+| notificationStore        | `src/stores/notificationStore.ts`       | Notification state management        |
+| timeRangeStore           | `src/stores/timeRangeStore.ts`          | Time range selection state           |
 
 ## authStore
 
@@ -271,242 +281,57 @@ export const useRealtimeActions = () =>
 - `subscribeToSnapshotChanges` - Snapshot changes
 - `subscribeToFavoriteChanges` - Favorite changes
 
-## crossChainStore
+## Cross-Chain Stores
 
-Cross-chain data state management, handling oracle, symbol, chain, time range and other states.
+The cross-chain feature uses 4 separate Zustand stores for better state separation:
+
+### crossChainConfigStore
+
+Manages cross-chain configuration state (refresh intervals, thresholds, colorblind mode).
+
+### crossChainDataStore
+
+Manages cross-chain data state (current prices, historical prices, loading status).
+
+### crossChainSelectorStore
+
+Manages cross-chain selector state (selected provider, symbol, time range, base chain).
+
+### crossChainUIStore
+
+Manages cross-chain UI state (chart configuration, hidden lines, table filters, sort state).
 
 ```typescript
-// src/stores/crossChainStore.ts
-import { type RefreshInterval } from '@/app/[locale]/cross-chain/constants';
-import { type ThresholdConfig } from '@/app/[locale]/cross-chain/utils';
-
-interface SelectorState {
-  selectedProvider: OracleProvider;
-  selectedSymbol: string;
-  selectedTimeRange: number;
-  selectedBaseChain: Blockchain | null;
-}
-
-interface UIState {
-  visibleChains: Blockchain[];
-  showMA: boolean;
-  maPeriod: number;
+// src/stores/crossChainUIStore.ts
+interface CrossChainUIState {
   chartKey: number;
   hiddenLines: Set<string>;
   focusedChain: Blockchain | null;
   tableFilter: 'all' | 'abnormal' | 'normal';
-  hoveredCell: { xChain: Blockchain; yChain: Blockchain; x: number; y: number } | null;
-  selectedCell: { xChain: Blockchain; yChain: Blockchain } | null;
-  tooltipPosition: { x: number; y: number };
-  sortColumn: string;
-  sortDirection: 'asc' | 'desc';
-}
-
-interface DataState {
-  currentPrices: PriceData[];
-  historicalPrices: Partial<Record<Blockchain, PriceData[]>>;
-  loading: boolean;
-  refreshStatus: 'idle' | 'refreshing' | 'success' | 'error';
-  showRefreshSuccess: boolean;
-  lastUpdated: Date | null;
-  prevStats: {
-    avgPrice: number;
-    maxPrice: number;
-    minPrice: number;
-    priceRange: number;
-    standardDeviationPercent: number;
-  } | null;
-  recommendedBaseChain: Blockchain | null;
-}
-
-interface ConfigState {
   refreshInterval: RefreshInterval;
   thresholdConfig: ThresholdConfig;
   colorblindMode: boolean;
-  updateIntervals: Partial<Record<Blockchain, number>>;
+  // ... more state
 }
-
-interface CrossChainStore extends SelectorState, UIState, DataState, ConfigState {
-  // Selectors Actions
-  setSelectedProvider: (provider: OracleProvider) => void;
-  setSelectedSymbol: (symbol: string) => void;
-  setSelectedTimeRange: (range: number) => void;
-  setSelectedBaseChain: (chain: Blockchain | null) => void;
-
-  // UI Actions
-  setVisibleChains: (chains: Blockchain[]) => void;
-  setShowMA: (show: boolean) => void;
-  setMaPeriod: (period: number) => void;
-  setChartKey: (key: number) => void;
-  setHiddenLines: (lines: Set<string>) => void;
-  setFocusedChain: (chain: Blockchain | null) => void;
-  setTableFilter: (filter: 'all' | 'abnormal' | 'normal') => void;
-  setHoveredCell: (
-    cell: { xChain: Blockchain; yChain: Blockchain; x: number; y: number } | null
-  ) => void;
-  setSelectedCell: (cell: { xChain: Blockchain; yChain: Blockchain } | null) => void;
-  setTooltipPosition: (position: { x: number; y: number }) => void;
-  setSortColumn: (column: string) => void;
-  setSortDirection: (direction: 'asc' | 'desc') => void;
-
-  // Data Actions
-  setCurrentPrices: (prices: PriceData[]) => void;
-  setHistoricalPrices: (prices: Partial<Record<Blockchain, PriceData[]>>) => void;
-  setLoading: (loading: boolean) => void;
-  setRefreshStatus: (status: 'idle' | 'refreshing' | 'success' | 'error') => void;
-  setShowRefreshSuccess: (show: boolean) => void;
-  setLastUpdated: (date: Date | null) => void;
-  setPrevStats: (stats: DataState['prevStats']) => void;
-  setRecommendedBaseChain: (chain: Blockchain | null) => void;
-
-  // Config Actions
-  setRefreshInterval: (interval: RefreshInterval) => void;
-  setThresholdConfig: (config: ThresholdConfig) => void;
-  setColorblindMode: (enabled: boolean) => void;
-  setUpdateIntervals: (intervals: Partial<Record<Blockchain, number>>) => void;
-
-  // Utility Actions
-  toggleChain: (chain: Blockchain) => void;
-  handleSort: (column: string) => void;
-}
-
-const initialState: SelectorState & UIState & DataState & ConfigState = {
-  selectedProvider: OracleProvider.CHAINLINK,
-  selectedSymbol: 'BTC',
-  selectedTimeRange: 24,
-  selectedBaseChain: null,
-
-  visibleChains: [],
-  showMA: false,
-  maPeriod: 7,
-  chartKey: 0,
-  hiddenLines: new Set(),
-  focusedChain: null,
-  tableFilter: 'all',
-  hoveredCell: null,
-  selectedCell: null,
-  tooltipPosition: { x: 0, y: 0 },
-  sortColumn: 'chain',
-  sortDirection: 'asc',
-
-  currentPrices: [],
-  historicalPrices: {},
-  loading: true,
-  refreshStatus: 'idle',
-  showRefreshSuccess: false,
-  lastUpdated: null,
-  prevStats: null,
-  recommendedBaseChain: null,
-
-  refreshInterval: 0,
-  thresholdConfig: defaultThresholdConfig,
-  colorblindMode: false,
-  updateIntervals: {},
-};
-```
-
-**Using Immer Middleware and Persistence:**
-
-```typescript
-export const useCrossChainStore = create<CrossChainStore>()(
-  devtools(
-    persist(
-      (set, get) => ({
-        ...initialState,
-
-        setSelectedProvider: (provider) => set({ selectedProvider: provider }),
-        setSelectedSymbol: (symbol) => set({ selectedSymbol: symbol }),
-        setSelectedTimeRange: (range) => set({ selectedTimeRange: range }),
-        setSelectedBaseChain: (chain) => set({ selectedBaseChain: chain }),
-
-        setVisibleChains: (chains) => set({ visibleChains: chains }),
-        setShowMA: (show) => set({ showMA: show }),
-        setMaPeriod: (period) => set({ maPeriod: period }),
-        setChartKey: (key) => set({ chartKey: key }),
-        setHiddenLines: (lines) => set({ hiddenLines: lines }),
-        setFocusedChain: (chain) => set({ focusedChain: chain }),
-        setTableFilter: (filter) => set({ tableFilter: filter }),
-        setHoveredCell: (cell) => set({ hoveredCell: cell }),
-        setSelectedCell: (cell) => set({ selectedCell: cell }),
-        setTooltipPosition: (position) => set({ tooltipPosition: position }),
-        setSortColumn: (column) => set({ sortColumn: column }),
-        setSortDirection: (direction) => set({ sortDirection: direction }),
-
-        setCurrentPrices: (prices) => set({ currentPrices: prices }),
-        setHistoricalPrices: (prices) => set({ historicalPrices: prices }),
-        setLoading: (loading) => set({ loading }),
-        setRefreshStatus: (status) => set({ refreshStatus: status }),
-        setShowRefreshSuccess: (show) => set({ showRefreshSuccess: show }),
-        setLastUpdated: (date) => set({ lastUpdated: date }),
-        setPrevStats: (stats) => set({ prevStats: stats }),
-        setRecommendedBaseChain: (chain) => set({ recommendedBaseChain: chain }),
-
-        setRefreshInterval: (interval) => set({ refreshInterval: interval }),
-        setThresholdConfig: (config) => set({ thresholdConfig: config }),
-        setColorblindMode: (enabled) => set({ colorblindMode: enabled }),
-        setUpdateIntervals: (intervals) => set({ updateIntervals: intervals }),
-
-        toggleChain: (chain) => {
-          const { visibleChains } = get();
-          if (visibleChains.includes(chain)) {
-            set({ visibleChains: visibleChains.filter((c) => c !== chain) });
-          } else {
-            set({ visibleChains: [...visibleChains, chain] });
-          }
-        },
-
-        handleSort: (column) => {
-          const { sortColumn, sortDirection } = get();
-          if (sortColumn === column) {
-            set({ sortDirection: sortDirection === 'asc' ? 'desc' : 'asc' });
-          } else {
-            set({ sortColumn: column, sortDirection: 'asc' });
-          }
-        },
-      }),
-      {
-        name: 'cross-chain-store',
-        storage: createJSONStorage(() => localStorage),
-        partialize: (state) => ({
-          selectedProvider: state.selectedProvider,
-          selectedSymbol: state.selectedSymbol,
-          selectedTimeRange: state.selectedTimeRange,
-          refreshInterval: state.refreshInterval,
-          thresholdConfig: state.thresholdConfig,
-          colorblindMode: state.colorblindMode,
-          showMA: state.showMA,
-          maPeriod: state.maPeriod,
-          tableFilter: state.tableFilter,
-          sortColumn: state.sortColumn,
-          sortDirection: state.sortDirection,
-        }),
-      }
-    ),
-    { name: 'CrossChainStore' }
-  )
-);
 ```
 
 ## Selector Pattern
 
+Each store exports fine-grained selector hooks for optimized re-renders:
+
 ```typescript
-// src/stores/selectors.ts
-import { useCrossChainStore } from './crossChainStore';
+// Example from authStore
+export const useUser = () => useAuthStore((state) => state.user);
+export const useIsAuthenticated = () => useAuthStore((state) => !!state.user);
 
-export const useSelectedProvider = () => useCrossChainStore((state) => state.selectedProvider);
+// Example from realtimeStore
+export const useConnectionStatus = () => useRealtimeStore((state) => state.connectionStatus);
+export const useIsConnected = () =>
+  useRealtimeStore((state) => state.connectionStatus === 'connected');
 
-export const useVisibleChains = () => useCrossChainStore((state) => state.visibleChains);
-
-export const useIsChainVisible = (chain: Blockchain) =>
-  useCrossChainStore((state) => state.visibleChains.includes(chain));
-
-export const useCrossChainActions = () =>
-  useCrossChainStore((state) => ({
-    setSelectedProvider: state.setSelectedProvider,
-    setSelectedSymbol: state.setSelectedSymbol,
-    toggleChain: state.toggleChain,
-    reset: state.reset,
-  }));
+// Example from crossChainUIStore
+export const useChartKey = () => useCrossChainUIStore((state) => state.chartKey);
+export const useTableFilter = () => useCrossChainUIStore((state) => state.tableFilter);
 ```
 
 ## State Layering
@@ -757,5 +582,5 @@ export const useRealtimeActions = () =>
 - **Server State**: Use React Query for caching, retries, deduplication features
 - **Client State**: Use Zustand for simplicity, lightweight, TypeScript-friendly
 - **State Separation**: Clearly distinguish between server and client state, avoid mixing
-- **Four Core Stores**: authStore, uiStore, realtimeStore, crossChainStore
+- **Nine Core Stores**: authStore, uiStore, realtimeStore, crossChainConfigStore, crossChainDataStore, crossChainSelectorStore, crossChainUIStore, notificationStore, timeRangeStore
 - **Performance Optimization**: Use fine-grained subscriptions, selectors, and Immer immutable updates

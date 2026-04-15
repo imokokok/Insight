@@ -298,10 +298,10 @@ function SimplePriceTableComponent({
       <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
         <Activity className="w-12 h-12 text-gray-300 mx-auto mb-4" />
         <h3 className="text-lg font-medium text-gray-900 mb-2">
-          {t('crossOracle.noData') || 'No Data Available'}
+          {t('crossOracle.noData')}
         </h3>
         <p className="text-gray-500">
-          {t('crossOracle.noDataDescription') || 'Please try again later'}
+          {t('crossOracle.noDataDescription')}
         </p>
       </div>
     );
@@ -315,7 +315,7 @@ function SimplePriceTableComponent({
             <tr>
               {/* 预言机 */}
               <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                {t('crossOracle.oracle') || 'Oracle'}
+                {t('crossOracle.oracle')}
               </th>
 
               {/* 价格 - 可排序 */}
@@ -324,7 +324,7 @@ function SimplePriceTableComponent({
                 onClick={() => handleSort('price')}
               >
                 <div className="flex items-center justify-end gap-1">
-                  {t('crossOracle.price') || 'Price'}
+                  {t('crossOracle.price')}
                   <SortIcon column="price" sortColumn={sortColumn} sortDirection={sortDirection} />
                 </div>
               </th>
@@ -335,7 +335,7 @@ function SimplePriceTableComponent({
                 onClick={() => handleSort('deviation')}
               >
                 <div className="flex items-center justify-end gap-1">
-                  {t('crossOracle.deviation') || 'Deviation'}
+                  {t('crossOracle.deviation')}
                   <SortIcon
                     column="deviation"
                     sortColumn={sortColumn}
@@ -350,7 +350,7 @@ function SimplePriceTableComponent({
                 onClick={() => handleSort('confidence')}
               >
                 <div className="flex items-center justify-center gap-1">
-                  {t('crossOracle.confidence') || 'Confidence'}
+                  {t('crossOracle.confidence')}
                   <SortIcon
                     column="confidence"
                     sortColumn={sortColumn}
@@ -364,12 +364,12 @@ function SimplePriceTableComponent({
                 className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                 onClick={() => handleSort('latency')}
                 title={
-                  t('crossOracle.latencyTooltip') || 'Estimated latency based on historical data'
+                  t('crossOracle.latencyTooltip')
                 }
               >
                 <div className="flex items-center justify-center gap-1">
                   <Wifi className="w-3 h-3" />
-                  {t('crossOracle.latency') || 'Latency'}
+                  {t('crossOracle.latency')}
                   <HelpCircle className="w-3 h-3 text-gray-400" />
                   <SortIcon
                     column="latency"
@@ -383,13 +383,12 @@ function SimplePriceTableComponent({
               <th
                 className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider"
                 title={
-                  t('crossOracle.dataSourcesTooltip') ||
-                  'Estimated data sources based on official documentation'
+                  t('crossOracle.dataSourcesTooltip')
                 }
               >
                 <div className="flex items-center justify-center gap-1">
                   <Database className="w-3 h-3" />
-                  {t('crossOracle.dataSources.title') || 'Sources'}
+                  {t('crossOracle.dataSources.title')}
                   <HelpCircle className="w-3 h-3 text-gray-400" />
                 </div>
               </th>
@@ -401,7 +400,7 @@ function SimplePriceTableComponent({
               >
                 <div className="flex items-center justify-center gap-1">
                   <Clock className="w-3 h-3" />
-                  {t('crossOracle.updateTime') || 'Updated'}
+                  {t('crossOracle.updateTime')}
                   <SortIcon
                     column="updateTime"
                     sortColumn={sortColumn}
@@ -412,7 +411,7 @@ function SimplePriceTableComponent({
 
               {/* 状态 */}
               <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                {t('crossOracle.status') || 'Status'}
+                {t('crossOracle.status')}
               </th>
             </tr>
           </thead>
@@ -526,10 +525,10 @@ function SimplePriceTableComponent({
                       }`}
                     >
                       {row.status === 'normal'
-                        ? t('crossOracle.statusNormal') || 'Normal'
+                        ? t('crossOracle.statusNormal')
                         : row.status === 'warning'
-                          ? t('crossOracle.statusWarning') || 'Warning'
-                          : t('crossOracle.statusCritical') || 'Critical'}
+                          ? t('crossOracle.statusWarning')
+                          : t('crossOracle.statusCritical')}
                     </span>
                   </div>
                 </td>

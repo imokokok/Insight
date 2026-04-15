@@ -19,12 +19,14 @@ import {
 
 import type { QueryResult } from '../../constants';
 
+type AnyOnChainData = DIATokenOnChainData | RedStoneTokenOnChainData | SupraTokenOnChainData | WINkLinkTokenOnChainData;
+
 interface StatsCardsSelectorProps {
   currentResult: QueryResult;
-  diaOnChainData?: DIATokenOnChainData | null;
-  winklinkOnChainData?: WINkLinkTokenOnChainData | null;
-  redstoneOnChainData?: RedStoneTokenOnChainData | null;
-  supraOnChainData?: SupraTokenOnChainData | null;
+  diaOnChainData?: AnyOnChainData | null;
+  winklinkOnChainData?: AnyOnChainData | null;
+  redstoneOnChainData?: AnyOnChainData | null;
+  supraOnChainData?: AnyOnChainData | null;
   maxPrice: number;
   minPrice: number;
   avgPrice: number;
@@ -100,19 +102,19 @@ export function StatsCardsSelector({
   }
 
   if (diaOnChainData) {
-    return <DIAStats data={diaOnChainData} />;
+    return <DIAStats data={diaOnChainData as DIATokenOnChainData} />;
   }
 
   if (winklinkOnChainData) {
-    return <WINkLinkStats data={winklinkOnChainData} />;
+    return <WINkLinkStats data={winklinkOnChainData as WINkLinkTokenOnChainData} />;
   }
 
   if (redstoneOnChainData) {
-    return <RedStoneStats data={redstoneOnChainData} />;
+    return <RedStoneStats data={redstoneOnChainData as RedStoneTokenOnChainData} />;
   }
 
   if (supraOnChainData) {
-    return <SupraStats data={supraOnChainData} />;
+    return <SupraStats data={supraOnChainData as SupraTokenOnChainData} />;
   }
 
   return (

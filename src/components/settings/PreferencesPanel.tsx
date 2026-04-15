@@ -292,8 +292,8 @@ export function PreferencesPanel() {
                     value={preferences.defaultSymbol}
                     onChange={(value) => updatePreference('defaultSymbol', value)}
                     searchable
-                    searchPlaceholder={t('settings.preferences.searchSymbol') || '搜索交易对...'}
-                    placeholder={t('settings.preferences.selectSymbol') || '请选择交易对'}
+                    searchPlaceholder={t('settings.preferences.searchSymbol')}
+                    placeholder={t('settings.preferences.selectSymbol')}
                   />
                   <p className="text-xs text-gray-500 mt-1">
                     {t('settings.preferences.defaultSymbolHint')}
@@ -341,7 +341,7 @@ export function PreferencesPanel() {
                     options={currencyOptions}
                     value={preferences.defaultCurrency}
                     onChange={(value) => updatePreference('defaultCurrency', value)}
-                    placeholder={t('settings.preferences.selectCurrency') || '请选择货币'}
+                    placeholder={t('settings.preferences.selectCurrency')}
                   />
                   <p className="text-xs text-gray-500 mt-1">
                     {t('settings.preferences.defaultCurrencyHint')}
@@ -358,7 +358,7 @@ export function PreferencesPanel() {
                     value={preferences.autoRefreshInterval}
                     onChange={(value) => updatePreference('autoRefreshInterval', value)}
                     placeholder={
-                      t('settings.preferences.selectRefreshInterval') || '请选择刷新间隔'
+                      t('settings.preferences.selectRefreshInterval')
                     }
                   />
                   <p className="text-xs text-gray-500 mt-1">

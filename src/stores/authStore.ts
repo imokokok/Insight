@@ -284,12 +284,14 @@ export const useAuthStore = create<AuthStore>()(
         onRehydrateStorage: () => (state) => {
           if (!state) return;
           if (state.profile) {
-            if (state.profile.created_at && typeof state.profile.created_at === 'string') {
-              state.profile.created_at = new Date(state.profile.created_at);
+            const profile = { ...state.profile };
+            if (profile.created_at && typeof profile.created_at === 'string') {
+              profile.created_at = new Date(profile.created_at);
             }
-            if (state.profile.updated_at && typeof state.profile.updated_at === 'string') {
-              state.profile.updated_at = new Date(state.profile.updated_at);
+            if (profile.updated_at && typeof profile.updated_at === 'string') {
+              profile.updated_at = new Date(profile.updated_at);
             }
+            state.profile = profile;
           }
         },
       }

@@ -9,7 +9,6 @@ import { memo, useState, useMemo } from 'react';
 
 import { TrendingUp, Filter } from 'lucide-react';
 
-import { formatPrice } from '@/lib/utils/format';
 import type { OracleProvider, PriceData } from '@/types/oracle';
 
 import {
@@ -129,7 +128,7 @@ function SimplePriceComparisonTabComponent({
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-full w-full bg-emerald-500"></span>
               </span>
-              {t('crossOracle.live') || 'Live'}
+              {t('crossOracle.live')}
             </span>
             {stats.anomalyCount > 0 && (
               <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-red-50 rounded text-[10px] font-medium text-red-700">

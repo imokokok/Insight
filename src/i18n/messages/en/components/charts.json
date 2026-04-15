@@ -6,8 +6,12 @@
       "candle": "Candle"
     },
     "indicators": "Indicators",
+    "indicator": "Indicator",
+    "addIndicator": "Add Indicator",
     "export": "Export",
-    "resetZoom": "Reset Zoom"
+    "resetZoom": "Reset Zoom",
+    "settings": "Settings",
+    "unavailableWithMultipleSeries": "(unavailable with multiple series)"
   },
   "charts": {
     "latency": {

@@ -26,13 +26,22 @@ export function timeRangeToValue(range: TimeRange): TimeRangeValue {
   return map[range];
 }
 
-export const timeRanges: { value: TimeRange; label: string }[] = [
-  { value: '1h', label: '1小时' },
-  { value: '24h', label: '24小时' },
-  { value: '7d', label: '7天' },
-  { value: '30d', label: '30天' },
-  { value: '90d', label: '90天' },
-  { value: '1y', label: '1年' },
+export const timeRangeKeys: Record<TimeRange, string> = {
+  '1h': 'crossOracle.timeRanges.1h',
+  '24h': 'crossOracle.timeRanges.24h',
+  '7d': 'crossOracle.timeRanges.7d',
+  '30d': 'crossOracle.timeRanges.30d',
+  '90d': 'crossOracle.timeRanges.90d',
+  '1y': 'crossOracle.timeRanges.1y',
+};
+
+export const timeRanges: { value: TimeRange; labelKey: string }[] = [
+  { value: '1h', labelKey: timeRangeKeys['1h'] },
+  { value: '24h', labelKey: timeRangeKeys['24h'] },
+  { value: '7d', labelKey: timeRangeKeys['7d'] },
+  { value: '30d', labelKey: timeRangeKeys['30d'] },
+  { value: '90d', labelKey: timeRangeKeys['90d'] },
+  { value: '1y', labelKey: timeRangeKeys['1y'] },
 ];
 
 // ============================================================================

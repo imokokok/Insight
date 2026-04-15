@@ -55,7 +55,7 @@ function LoadingState({
         <div className="flex items-center gap-2">
           <Database className="w-5 h-5 text-blue-500" />
           <h3 className="text-sm font-semibold text-gray-900">
-            {t('crossOracle.loadingData') || 'Loading Data'}
+            {t('crossOracle.loadingData')}
           </h3>
         </div>
         <span className="text-xs text-gray-500">
@@ -69,7 +69,7 @@ function LoadingState({
         />
       </div>
       <p className="text-xs text-gray-500 mt-2">
-        {t('crossOracle.querying') || 'Querying'}{' '}
+        {t('crossOracle.querying')}{' '}
         {currentQueryTarget.oracle && t(`navbar.${currentQueryTarget.oracle.toLowerCase()}`)}
       </p>
     </div>

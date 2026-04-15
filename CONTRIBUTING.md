@@ -158,6 +158,7 @@ insight/
 │   │   │   ├── dia.ts          # DIA client
 │   │   │   ├── factory.ts      # Oracle factory
 │   │   │   ├── redstone.ts     # RedStone client
+│   │   │   ├── supra.ts        # Supra client
 │   │   │   └── winklink.ts     # WINkLink client
 │   │   ├── queries/            # React Query keys and client
 │   │   ├── realtime/           # Real-time communication (WebSocket)
@@ -169,9 +170,13 @@ insight/
 │   │   └── validation/         # Validation utilities
 │   ├── stores/                 # Zustand stores
 │   │   ├── authStore.ts        # Authentication state
-│   │   ├── crossChainStore.ts  # Cross-chain data state
+│   │   ├── crossChainConfigStore.ts  # Cross-chain config state
+│   │   ├── crossChainDataStore.ts    # Cross-chain data state
+│   │   ├── crossChainSelectorStore.ts # Cross-chain selector state
+│   │   ├── crossChainUIStore.ts      # Cross-chain UI state
+│   │   ├── notificationStore.ts      # Notification state
 │   │   ├── realtimeStore.ts    # Real-time state
-│   │   ├── selectors.ts        # Store selectors
+│   │   ├── timeRangeStore.ts   # Time range state
 │   │   └── uiStore.ts          # UI state
 │   └── types/                  # TypeScript type definitions
 ├── e2e/                        # E2E tests
@@ -310,9 +315,8 @@ export function PriceChart({ symbol, data, isLoading = false }: PriceChartProps)
 
 Refer to existing components for patterns:
 
-- [PriceChart.tsx](src/components/oracle/PriceChart.tsx) for chart components
+- [PriceChart.tsx](src/app/[locale]/price-query/components/PriceChart.tsx) for chart components
 - [AlertConfig.tsx](src/components/alerts/AlertConfig.tsx) for form components
-- [DashboardCard.tsx](src/components/oracle/DashboardCard.tsx) for card components
 
 ### Use Tailwind CSS for Styling
 
