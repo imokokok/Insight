@@ -11,8 +11,8 @@ const ProfessionalHero = dynamic(() => import('./home-components/ProfessionalHer
 
 export default function HomeContent() {
   return (
-    <main className="min-h-screen rounded-lg">
+    <div className="min-h-screen rounded-lg">
       <ProfessionalHero />
-    </main>
+    </div>
   );
 }

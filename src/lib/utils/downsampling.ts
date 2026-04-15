@@ -93,7 +93,7 @@ export function downsampleData(data: DataPoint[], config: DownsamplingConfig = {
       const midIndex = Math.floor(bucket.length / 2);
       const midPoint = bucket[midIndex];
 
-      if (Math.abs(maxPrice - minPrice) / minPrice > 0.02) {
+      if (minPrice !== 0 && Math.abs(maxPrice - minPrice) / minPrice > 0.02) {
         const firstHalf = bucket.slice(0, midIndex);
         const secondHalf = bucket.slice(midIndex);
 

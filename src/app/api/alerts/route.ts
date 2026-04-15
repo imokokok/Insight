@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
-import { getUserId } from '@/lib/api/utils';
 import { moderateRateLimit } from '@/lib/api/middleware/rateLimitMiddleware';
+import { getUserId } from '@/lib/api/utils';
 import { sanitizeObject } from '@/lib/security';
 import { CreateAlertRequestSchema, AlertListResponseSchema } from '@/lib/security/validation';
 import { type AlertConditionType } from '@/lib/supabase/database.types';

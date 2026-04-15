@@ -186,11 +186,13 @@ export function detectXss(input: string): boolean {
   return xssPatterns.some((pattern) => pattern.test(input));
 }
 
-export function createXSSProtectionHeaders(): Record<string, string> {
+export function createXSSProtectionHeaders(nonce?: string): Record<string, string> {
   return {
     'Content-Security-Policy':
       "default-src 'self'; " +
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
+      "script-src 'self'" +
+      (nonce ? ` 'nonce-${nonce}'` : " 'unsafe-inline'") +
+      '; ' +
       "style-src 'self' 'unsafe-inline'; " +
       "img-src 'self' data: https:; " +
       "font-src 'self'; " +
@@ -205,8 +207,8 @@ export function createXSSProtectionHeaders(): Record<string, string> {
   };
 }
 
-export function applyXSSProtectionHeaders(response: Response): Response {
-  const headers = createXSSProtectionHeaders();
+export function applyXSSProtectionHeaders(response: Response, nonce?: string): Response {
+  const headers = createXSSProtectionHeaders(nonce);
   Object.entries(headers).forEach(([key, value]) => {
     response.headers.set(key, value);
   });

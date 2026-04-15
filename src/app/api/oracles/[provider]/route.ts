@@ -1,5 +1,6 @@
 import { type NextRequest } from 'next/server';
 
+import { lenientRateLimit } from '@/lib/api/middleware/rateLimitMiddleware';
 import {
   validateProvider,
   validatePeriod,
@@ -19,6 +20,11 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ provider: string }> }
 ) {
+  const rateLimitResult = await lenientRateLimit(request);
+  if (!rateLimitResult.success) {
+    return rateLimitResult.response;
+  }
+
   try {
     const { provider } = await params;
     const searchParams = request.nextUrl.searchParams;

@@ -267,7 +267,11 @@ export class RedStoneClient extends BaseOracleClient {
    * @returns Promise resolving to PriceData with current price information
    * @throws OracleError if price fetching fails
    */
-  async getPrice(symbol: string, chain?: Blockchain, options?: { signal?: AbortSignal }): Promise<PriceData> {
+  async getPrice(
+    symbol: string,
+    chain?: Blockchain,
+    options?: { signal?: AbortSignal }
+  ): Promise<PriceData> {
     try {
       const realPrice = await this.fetchRealPrice(symbol, options?.signal);
 

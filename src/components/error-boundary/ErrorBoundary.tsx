@@ -5,7 +5,6 @@ import React, { Component, type ReactNode, type ErrorInfo } from 'react';
 import Link from 'next/link';
 
 import { useTranslations } from '@/i18n';
-
 import {
   isAppError,
   type AppError,
@@ -388,7 +387,9 @@ function DefaultErrorFallback({
           `}
         >
           <span>🔄</span>
-          {level === 'global' || level === 'page' ? t('errorBoundary.tryAgain') : t('errorBoundary.retry')}
+          {level === 'global' || level === 'page'
+            ? t('errorBoundary.tryAgain')
+            : t('errorBoundary.retry')}
         </button>
 
         {level === 'global' && (

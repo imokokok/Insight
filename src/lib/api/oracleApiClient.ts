@@ -23,7 +23,10 @@ export interface FetchHistoricalParams extends FetchPriceParams {
  */
 const REQUEST_TIMEOUT_MS = 15_000;
 
-function createAbortControllerWithTimeout(signal?: AbortSignal): AbortController {
+function createAbortControllerWithTimeout(signal?: AbortSignal): {
+  controller: AbortController;
+  cleanup: () => void;
+} {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
   if (signal) {
@@ -32,7 +35,17 @@ function createAbortControllerWithTimeout(signal?: AbortSignal): AbortController
       controller.abort();
     });
   }
-  return controller;
+  return {
+    controller,
+    cleanup: () => clearTimeout(timeoutId),
+  };
+}
+
+function getBaseUrl(): string {
+  if (typeof window !== 'undefined') {
+    return window.location.origin;
+  }
+  return process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 }
 
 export async function fetchPriceFromApi({
@@ -40,7 +53,7 @@ export async function fetchPriceFromApi({
   symbol,
   chain,
 }: FetchPriceParams): Promise<PriceData> {
-  const url = new URL(`/api/oracles/${provider}`, window.location.origin);
+  const url = new URL(`/api/oracles/${provider}`, getBaseUrl());
   url.searchParams.set('symbol', symbol);
   if (chain) {
     url.searchParams.set('chain', chain);
@@ -48,47 +61,48 @@ export async function fetchPriceFromApi({
 
   logger.info(`Fetching price from API: ${url.toString()}`);
 
-  const controller = createAbortControllerWithTimeout();
+  const { controller, cleanup } = createAbortControllerWithTimeout();
 
-  const response = await fetch(url.toString(), {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    signal: controller.signal,
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text().catch(() => 'Unknown error');
-    let errorData = {};
-    try {
-      errorData = JSON.parse(errorText);
-    } catch {
-      // Not JSON, use text as is
-    }
-    console.error('[oracleApiClient] API error:', {
-      status: response.status,
-      statusText: response.statusText,
-      url: url.toString(),
-      errorData,
-      errorText,
+  try {
+    const response = await fetch(url.toString(), {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      signal: controller.signal,
     });
-    throw new Error(
-      (errorData as { message?: string }).message ||
-        `Failed to fetch price: ${response.status} ${response.statusText}`
-    );
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => 'Unknown error');
+      let errorData = {};
+      try {
+        errorData = JSON.parse(errorText);
+      } catch {
+        // Not JSON, use text as is
+      }
+      logger.error('[oracleApiClient] API error:', undefined, {
+        status: response.status,
+        statusText: response.statusText,
+        url: url.toString(),
+        errorData,
+        errorText,
+      });
+      throw new Error(
+        (errorData as { message?: string }).message ||
+          `Failed to fetch price: ${response.status} ${response.statusText}`
+      );
+    }
+
+    const data = await response.json();
+
+    if (data.error) {
+      throw new Error(data.error.message || 'Unknown error from API');
+    }
+
+    return data as PriceData;
+  } finally {
+    cleanup();
   }
-
-  // API 路由直接返回 PriceData 对象，不是 { data: PriceData } 格式
-  const data = await response.json();
-
-  // 检查是否是错误响应格式
-  if (data.error) {
-    throw new Error(data.error.message || 'Unknown error from API');
-  }
-
-  // 直接返回数据，因为 API 路由返回的就是 PriceData 本身
-  return data as PriceData;
 }
 
 /**
@@ -100,7 +114,7 @@ export async function fetchHistoricalFromApi({
   chain,
   period,
 }: FetchHistoricalParams): Promise<PriceData[]> {
-  const url = new URL(`/api/oracles/${provider}`, window.location.origin);
+  const url = new URL(`/api/oracles/${provider}`, getBaseUrl());
   url.searchParams.set('symbol', symbol);
   url.searchParams.set('period', period.toString());
   if (chain) {
@@ -109,47 +123,48 @@ export async function fetchHistoricalFromApi({
 
   logger.info(`Fetching historical prices from API: ${url.toString()}`);
 
-  const controller = createAbortControllerWithTimeout();
+  const { controller, cleanup } = createAbortControllerWithTimeout();
 
-  const response = await fetch(url.toString(), {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    signal: controller.signal,
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text().catch(() => 'Unknown error');
-    let errorData = {};
-    try {
-      errorData = JSON.parse(errorText);
-    } catch {
-      // Not JSON, use text as is
-    }
-    console.error('[oracleApiClient] Historical API error:', {
-      status: response.status,
-      statusText: response.statusText,
-      url: url.toString(),
-      errorData,
-      errorText,
+  try {
+    const response = await fetch(url.toString(), {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      signal: controller.signal,
     });
-    throw new Error(
-      (errorData as { message?: string }).message ||
-        `Failed to fetch historical prices: ${response.status} ${response.statusText}`
-    );
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => 'Unknown error');
+      let errorData = {};
+      try {
+        errorData = JSON.parse(errorText);
+      } catch {
+        // Not JSON, use text as is
+      }
+      logger.error('[oracleApiClient] Historical API error:', undefined, {
+        status: response.status,
+        statusText: response.statusText,
+        url: url.toString(),
+        errorData,
+        errorText,
+      });
+      throw new Error(
+        (errorData as { message?: string }).message ||
+          `Failed to fetch historical prices: ${response.status} ${response.statusText}`
+      );
+    }
+
+    const data = await response.json();
+
+    if (data.error) {
+      throw new Error(data.error.message || 'Unknown error from API');
+    }
+
+    return data as PriceData[];
+  } finally {
+    cleanup();
   }
-
-  // API 路由直接返回 PriceData[] 数组，不是 { data: PriceData[] } 格式
-  const data = await response.json();
-
-  // 检查是否是错误响应格式
-  if (data.error) {
-    throw new Error(data.error.message || 'Unknown error from API');
-  }
-
-  // 直接返回数据，因为 API 路由返回的就是 PriceData[] 本身
-  return data as PriceData[];
 }
 
 export const oracleApiClient = {

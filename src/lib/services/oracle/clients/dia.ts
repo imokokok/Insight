@@ -1,7 +1,7 @@
 import { BaseOracleClient } from '@/lib/oracles/base';
 import type { OracleClientConfig } from '@/lib/oracles/base';
-import { getDIADataService } from '@/lib/oracles/services/diaDataService';
 import { diaSymbols } from '@/lib/oracles/constants/supportedSymbols';
+import { getDIADataService } from '@/lib/oracles/services/diaDataService';
 import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
 import { createLogger } from '@/lib/utils/logger';
 import { OracleProvider, Blockchain } from '@/types/oracle';
@@ -31,7 +31,11 @@ export class DIAClient extends BaseOracleClient {
    * 当查询 DIA 代币价格时，直接使用 Binance API
    * 其他代币使用 DIA 数据服务
    */
-  async getPrice(symbol: string, chain?: Blockchain, _options?: { signal?: AbortSignal }): Promise<PriceData> {
+  async getPrice(
+    symbol: string,
+    chain?: Blockchain,
+    _options?: { signal?: AbortSignal }
+  ): Promise<PriceData> {
     try {
       const upperSymbol = symbol.toUpperCase();
 

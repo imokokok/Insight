@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
-import { getUserId } from '@/lib/api/utils';
 import { strictRateLimit } from '@/lib/api/middleware/rateLimitMiddleware';
+import { getUserId } from '@/lib/api/utils';
 import { sanitizeObject } from '@/lib/security';
 import { BatchOperationSchema, validateAndSanitize } from '@/lib/security/validation';
 import { getServerQueries } from '@/lib/supabase/server';
@@ -21,7 +21,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const body = await request.json();
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: 'Invalid JSON in request body' }, { status: 400 });
+    }
 
     const validatedData = validateAndSanitize(BatchOperationSchema, body);
 

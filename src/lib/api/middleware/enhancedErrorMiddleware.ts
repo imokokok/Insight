@@ -97,7 +97,7 @@ function getDocumentationUrl(errorCode: string, baseUrl?: string): string | unde
  */
 function isRetryableError(error: unknown): boolean {
   if (isAppError(error)) {
-    return !error.isOperational;
+    return error.isOperational;
   }
 
   if (error instanceof Error) {
@@ -128,7 +128,7 @@ function extractStatusCode(error: unknown): number {
   }
 
   if (error instanceof Error) {
-    const statusMatch = error.message.match(/\b(\d{3})\b/);
+    const statusMatch = error.message.match(/(?:status[:=\s]+|HTTP\s+)(\d{3})(?:\s|$|\b)/i);
     if (statusMatch) {
       const status = parseInt(statusMatch[1], 10);
       if (status >= 100 && status < 600) {

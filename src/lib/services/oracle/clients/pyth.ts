@@ -1,7 +1,7 @@
 import { BaseOracleClient } from '@/lib/oracles/base';
 import type { OracleClientConfig } from '@/lib/oracles/base';
-import { getPythDataService } from '@/lib/oracles/services/pythDataService';
 import { pythSymbols, PYTH_AVAILABLE_PAIRS } from '@/lib/oracles/constants/supportedSymbols';
+import { getPythDataService } from '@/lib/oracles/services/pythDataService';
 import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
 import { createLogger } from '@/lib/utils/logger';
 import { OracleProvider, Blockchain } from '@/types/oracle';
@@ -76,7 +76,11 @@ export class PythClient extends BaseOracleClient {
    * 当查询 PYTH 代币价格时，直接使用 Binance API
    * 其他代币使用 Pyth 预言机 API
    */
-  async getPrice(symbol: string, chain?: Blockchain, _options?: { signal?: AbortSignal }): Promise<PriceData> {
+  async getPrice(
+    symbol: string,
+    chain?: Blockchain,
+    _options?: { signal?: AbortSignal }
+  ): Promise<PriceData> {
     try {
       if (!symbol) {
         throw this.createError('Symbol is required', 'INVALID_SYMBOL');

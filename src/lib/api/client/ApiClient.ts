@@ -65,7 +65,15 @@ class ApiClient {
     }
 
     if (data) {
-      init.body = JSON.stringify(data);
+      try {
+        init.body = JSON.stringify(data);
+      } catch {
+        throw new ApiError({
+          code: 'SERIALIZATION_ERROR',
+          message: 'Failed to serialize request data',
+          statusCode: 400,
+        });
+      }
     }
 
     const fullUrl = this.baseURL + url;
@@ -93,7 +101,16 @@ class ApiClient {
         });
       }
 
-      const result = await response.json();
+      let result;
+      try {
+        result = await response.json();
+      } catch {
+        throw new ApiError({
+          code: 'INVALID_RESPONSE',
+          message: 'Failed to parse response body as JSON',
+          statusCode: response.status,
+        });
+      }
       const duration = Date.now() - startTime;
       logger.debug(`Request completed in ${duration}ms`, { method, url, status: response.status });
 

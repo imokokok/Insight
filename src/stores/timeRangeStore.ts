@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { devtools, persist, createJSONStorage } from 'zustand/middleware';
+import { useShallow } from 'zustand/react/shallow';
 
 import { createLogger } from '@/lib/utils/logger';
 import { type UITimeRange } from '@/types/ui/layout';
@@ -113,11 +114,17 @@ export const useTimeRangeStore = create<TimeRangeState>()(
         },
 
         registerTimeRangeCallback: (callback) => {
-          get()._timeRangeCallbacks.add(callback);
+          set((state) => ({
+            _timeRangeCallbacks: new Set(state._timeRangeCallbacks).add(callback),
+          }));
         },
 
         unregisterTimeRangeCallback: (callback) => {
-          get()._timeRangeCallbacks.delete(callback);
+          set((state) => {
+            const newSet = new Set(state._timeRangeCallbacks);
+            newSet.delete(callback);
+            return { _timeRangeCallbacks: newSet };
+          });
         },
       }),
       {
@@ -175,14 +182,16 @@ export const useSetSelectedTimeRange = () =>
   useTimeRangeStore((state) => state.setSelectedTimeRange);
 
 export const useTimeRangeActions = () =>
-  useTimeRangeStore((state) => ({
-    setGlobalTimeRange: state.setGlobalTimeRange,
-    setSyncEnabled: state.setSyncEnabled,
-    setCustomDateRange: state.setCustomDateRange,
-    setBrushRange: state.setBrushRange,
-    setSelectedHour: state.setSelectedHour,
-    setSelectedTimeRange: state.setSelectedTimeRange,
-  }));
+  useTimeRangeStore(
+    useShallow((state) => ({
+      setGlobalTimeRange: state.setGlobalTimeRange,
+      setSyncEnabled: state.setSyncEnabled,
+      setCustomDateRange: state.setCustomDateRange,
+      setBrushRange: state.setBrushRange,
+      setSelectedHour: state.setSelectedHour,
+      setSelectedTimeRange: state.setSelectedTimeRange,
+    }))
+  );
 
 export const useSyncControl = () => {
   const syncEnabled = useTimeRangeStore((state) => state.syncEnabled);

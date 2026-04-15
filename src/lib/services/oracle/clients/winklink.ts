@@ -28,7 +28,11 @@ export class WINkLinkClient extends BaseOracleClient {
    * 当查询 WIN 代币价格时，直接使用 Binance API，不尝试调用 WINkLink 合约
    * 其他代币按照现有逻辑执行
    */
-  async getPrice(symbol: string, chain?: Blockchain, _options?: { signal?: AbortSignal }): Promise<PriceData> {
+  async getPrice(
+    symbol: string,
+    chain?: Blockchain,
+    _options?: { signal?: AbortSignal }
+  ): Promise<PriceData> {
     try {
       const upperSymbol = symbol.toUpperCase();
       const resolvedSymbol = WINKLINK_SYMBOL_ALIASES[upperSymbol] || upperSymbol;

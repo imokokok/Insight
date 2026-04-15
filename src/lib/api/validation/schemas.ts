@@ -1,3 +1,6 @@
+import type { ValidationResult } from '@/types/oracle/constants';
+import { ORACLE_PROVIDER_VALUES, BLOCKCHAIN_VALUES } from '@/types/oracle/enums';
+
 import {
   type ValidatorFn,
   isString,
@@ -14,8 +17,6 @@ import {
   pattern,
   oneOf,
 } from './validators';
-import type { ValidationResult } from '@/types/oracle/constants';
-import { ORACLE_PROVIDER_VALUES, BLOCKCHAIN_VALUES } from '@/types/oracle/enums';
 
 export interface FieldSchema {
   validators: ValidatorFn[];

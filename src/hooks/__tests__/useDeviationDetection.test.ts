@@ -139,9 +139,7 @@ describe('useDeviationDetection', () => {
     });
 
     it('should handle absolute type with referencePrice - convert percentage to absolute', () => {
-      const { result } = renderHook(() =>
-        useDeviationDetection(1.5, {}, 'absolute', 100)
-      );
+      const { result } = renderHook(() => useDeviationDetection(1.5, {}, 'absolute', 100));
 
       expect(result.current.level).toBe('warning');
     });
@@ -149,9 +147,7 @@ describe('useDeviationDetection', () => {
     it('should convert percentage to absolute using referencePrice', () => {
       // 1.5% of 1000 = $15 absolute deviation
       // With default thresholds (warning: 1, danger: 2), $15 > $2 → danger
-      const { result } = renderHook(() =>
-        useDeviationDetection(1.5, {}, 'absolute', 1000)
-      );
+      const { result } = renderHook(() => useDeviationDetection(1.5, {}, 'absolute', 1000));
 
       expect(result.current.level).toBe('danger');
     });
@@ -173,17 +169,13 @@ describe('useDeviationDetection', () => {
     });
 
     it('should handle absolute type with zero referencePrice', () => {
-      const { result } = renderHook(() =>
-        useDeviationDetection(1.5, {}, 'absolute', 0)
-      );
+      const { result } = renderHook(() => useDeviationDetection(1.5, {}, 'absolute', 0));
 
       expect(result.current.level).toBe('warning');
     });
 
     it('should handle absolute type with negative referencePrice', () => {
-      const { result } = renderHook(() =>
-        useDeviationDetection(1.5, {}, 'absolute', -100)
-      );
+      const { result } = renderHook(() => useDeviationDetection(1.5, {}, 'absolute', -100));
 
       expect(result.current.level).toBe('warning');
     });

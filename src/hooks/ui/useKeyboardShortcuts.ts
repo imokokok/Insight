@@ -225,16 +225,10 @@ export const shortcutManager = new ShortcutManager();
  * 使用键盘快捷键 Hook
  */
 export function useKeyboardShortcuts(shortcuts: KeyboardShortcut[]) {
-  const shortcutsRef = useRef(shortcuts);
-
-  useEffect(() => {
-    shortcutsRef.current = shortcuts;
-  }, [shortcuts]);
-
   useEffect(() => {
     const unregisters: (() => void)[] = [];
 
-    shortcutsRef.current.forEach((shortcut) => {
+    shortcuts.forEach((shortcut) => {
       const unregister = shortcutManager.register(shortcut);
       unregisters.push(unregister);
     });
@@ -242,7 +236,7 @@ export function useKeyboardShortcuts(shortcuts: KeyboardShortcut[]) {
     return () => {
       unregisters.forEach((unregister) => unregister());
     };
-  }, []);
+  }, [shortcuts]);
 }
 
 /**

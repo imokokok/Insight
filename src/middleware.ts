@@ -62,14 +62,16 @@ export async function middleware(request: NextRequest) {
 
   if (isProtectedRoute && !session) {
     const url = request.nextUrl.clone();
-    url.pathname = '/login';
+    const locale = pathname.match(localeReplacePattern)?.[1] || routing.defaultLocale;
+    url.pathname = `/${locale}/login`;
     url.searchParams.set('redirect', pathnameWithoutLocale);
     return NextResponse.redirect(url);
   }
 
   if (isAuthRoute && session) {
     const url = request.nextUrl.clone();
-    url.pathname = '/';
+    const locale = pathname.match(localeReplacePattern)?.[1] || routing.defaultLocale;
+    url.pathname = `/${locale}`;
     return NextResponse.redirect(url);
   }
 

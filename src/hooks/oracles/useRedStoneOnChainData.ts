@@ -4,10 +4,7 @@ import { useMemo, useCallback } from 'react';
 
 import { useQuery } from '@tanstack/react-query';
 
-import {
-  RedStoneClient,
-  type RedStoneTokenOnChainData,
-} from '@/lib/oracles/clients/redstone';
+import { RedStoneClient, type RedStoneTokenOnChainData } from '@/lib/oracles/clients/redstone';
 
 export interface UseRedStoneOnChainDataOptions {
   symbol: string;
