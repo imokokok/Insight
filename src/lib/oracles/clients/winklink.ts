@@ -114,11 +114,12 @@ export class WINkLinkClient extends BaseOracleClient {
       });
 
       const targetChain = chain || Blockchain.TRON;
-      const basePrice = historicalPrices[0].price;
+      const latestPrice = historicalPrices[historicalPrices.length - 1].price;
 
-      return historicalPrices.map((point, index) => {
-        const change24hPercent = index === 0 ? 0 : ((point.price - basePrice) / basePrice) * 100;
-        const change24h = index === 0 ? 0 : point.price - basePrice;
+      return historicalPrices.map((point) => {
+        const change24h = latestPrice - point.price;
+        const change24hPercent =
+          point.price > 0 ? ((latestPrice - point.price) / point.price) * 100 : 0;
 
         return {
           provider: OracleProvider.WINKLINK,
