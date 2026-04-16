@@ -41,6 +41,7 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
       OracleProvider.REDSTONE,
       OracleProvider.DIA,
       OracleProvider.WINKLINK,
+      OracleProvider.SUPRA,
     ],
   } = options;
 
