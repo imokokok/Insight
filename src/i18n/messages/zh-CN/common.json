@@ -177,6 +177,21 @@
     "moonbeam": "Moonbeam",
     "starkex": "StarkEx"
   },
+  "blockchain": {
+    "ethereum": "Ethereum",
+    "arbitrum": "Arbitrum",
+    "optimism": "Optimism",
+    "polygon": "Polygon",
+    "base": "Base",
+    "avalanche": "Avalanche",
+    "starknet": "Starknet",
+    "blast": "Blast",
+    "cardano": "Cardano",
+    "polkadot": "Polkadot",
+    "kava": "Kava",
+    "moonbeam": "Moonbeam",
+    "starkex": "StarkEx"
+  },
   "filters": {
     "filter": "筛选",
     "clearAll": "清除全部",
