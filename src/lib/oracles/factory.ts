@@ -10,6 +10,7 @@ import { DIAClient } from './clients/dia';
 import { PythClient } from './clients/PythClient';
 import { RedStoneClient } from './clients/redstone';
 import { SupraClient } from './clients/supra';
+import { TWAPClient } from './clients/twap';
 import { WINkLinkClient } from './clients/winklink';
 
 import type { OracleClientConfig } from './base';
@@ -71,6 +72,7 @@ export class OracleClientFactory {
       OracleProvider.DIA,
       OracleProvider.WINKLINK,
       OracleProvider.SUPRA,
+      OracleProvider.TWAP,
     ];
 
     const clients: Partial<Record<OracleProvider, BaseOracleClient>> = {};
@@ -166,6 +168,7 @@ export class OracleClientFactory {
       OracleProvider.DIA,
       OracleProvider.WINKLINK,
       OracleProvider.SUPRA,
+      OracleProvider.TWAP,
     ];
 
     for (const provider of providers) {
@@ -202,6 +205,8 @@ export class OracleClientFactory {
         return new WINkLinkClient(this.config);
       case OracleProvider.SUPRA:
         return new SupraClient(this.config);
+      case OracleProvider.TWAP:
+        return new TWAPClient({ ...this.config, useRealData: FEATURE_FLAGS.useRealTwapData });
       default:
         throw new ValidationError(`Unknown oracle provider: ${provider}`, {
           value: provider,

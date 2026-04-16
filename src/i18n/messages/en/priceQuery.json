@@ -62,7 +62,8 @@
         "redstone": "Modular",
         "dia": "Open-source",
         "winklink": "TRON Eco",
-        "supra": "DORA Consensus"
+        "supra": "DORA Consensus",
+        "twap": "TWAP Oracle"
       },
       "qualityScore": {
         "excellent": "Excellent",
@@ -199,7 +200,14 @@
       "askPriceDesc": "Sell price quoted by RedStone",
       "redstoneDataSourceDesc": "RedStone data provider identifier",
       "historicalDataSource": "(Historical data from Binance API)",
-      "previousPeriod": "Previous Period"
+      "previousPeriod": "Previous Period",
+      "twapPrice": "TWAP Price",
+      "spotPrice": "Spot Price",
+      "poolLiquidity": "Pool Liquidity",
+      "feeTier": "Fee Tier",
+      "twapInterval": "TWAP Interval",
+      "priceDeviation": "Price Deviation",
+      "poolAddress": "Pool Address"
     },
     "export": {
       "header": "Price Query Export",

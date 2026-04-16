@@ -3,15 +3,18 @@
 import { useRef, useCallback } from 'react';
 
 import { LiveStatusBar } from '@/components/ui';
-import {
-  useCommonShortcuts,
-  useOnChainDataByProvider,
-} from '@/hooks';
+import { useCommonShortcuts, useOnChainDataByProvider } from '@/hooks';
 import { useTranslations } from '@/i18n';
 import { OracleProvider } from '@/lib/oracles';
 
 import { QueryHeader, QueryForm, QueryResults, ExportConfig } from './components';
-import { type QueryState, type StatsState, type ChartConfig, type ErrorState, type OnChainData } from './constants';
+import {
+  type QueryState,
+  type StatsState,
+  type ChartConfig,
+  type ErrorState,
+  type OnChainData,
+} from './constants';
 import { usePriceQuery } from './hooks/usePriceQuery';
 import { exportToCSV, exportToJSON, exportToPDF } from './utils/exportUtils';
 
@@ -106,6 +109,18 @@ export default function PriceQueryContent() {
     provider: OracleProvider.SUPRA,
     symbol: selectedSymbol,
     enabled: shouldFetchSupraData && !!selectedSymbol && queryResults.length > 0,
+  });
+
+  const shouldFetchTwapData =
+    !selectedOracle ||
+    selectedOracle === OracleProvider.TWAP ||
+    queryResults.some((r) => r.provider === OracleProvider.TWAP);
+
+  const { data: twapOnChainData, isLoading: isTwapDataLoading } = useOnChainDataByProvider({
+    provider: OracleProvider.TWAP,
+    symbol: selectedSymbol,
+    chain: selectedChain || undefined,
+    enabled: shouldFetchTwapData && !!selectedSymbol && queryResults.length > 0,
   });
 
   const debouncedSearchFocus = useCallback(() => {
@@ -265,45 +280,57 @@ export default function PriceQueryContent() {
 
         <main className="flex-1 min-w-0">
           <QueryResults
-            queryState={{
-              queryResults,
-              historicalData,
-              isLoading,
-              queryDuration,
-              queryProgress,
-              currentQueryTarget,
-            } satisfies QueryState}
-            stats={{
-              validPrices,
-              avgPrice,
-              avgChange24hPercent,
-              maxPrice,
-              minPrice,
-              priceRange,
-              standardDeviation,
-              standardDeviationPercent,
-            } satisfies StatsState}
-            chartConfig={{
-              chartData,
-              chartContainerRef,
-              selectedTimeRange,
-            } satisfies ChartConfig}
-            errorState={{
-              queryErrors,
-              onRetryDataSource: retryDataSource,
-              onRetryAllErrors: retryAllErrors,
-              onClearErrors: clearErrors,
-            } satisfies ErrorState}
-            onChainData={{
-              diaOnChainData,
-              isDIADataLoading,
-              winklinkOnChainData,
-              isWINkLinkDataLoading,
-              redstoneOnChainData,
-              isRedStoneDataLoading,
-              supraOnChainData,
-              isSupraDataLoading,
-            } satisfies OnChainData}
+            queryState={
+              {
+                queryResults,
+                historicalData,
+                isLoading,
+                queryDuration,
+                queryProgress,
+                currentQueryTarget,
+              } satisfies QueryState
+            }
+            stats={
+              {
+                validPrices,
+                avgPrice,
+                avgChange24hPercent,
+                maxPrice,
+                minPrice,
+                priceRange,
+                standardDeviation,
+                standardDeviationPercent,
+              } satisfies StatsState
+            }
+            chartConfig={
+              {
+                chartData,
+                chartContainerRef,
+                selectedTimeRange,
+              } satisfies ChartConfig
+            }
+            errorState={
+              {
+                queryErrors,
+                onRetryDataSource: retryDataSource,
+                onRetryAllErrors: retryAllErrors,
+                onClearErrors: clearErrors,
+              } satisfies ErrorState
+            }
+            onChainData={
+              {
+                diaOnChainData,
+                isDIADataLoading,
+                winklinkOnChainData,
+                isWINkLinkDataLoading,
+                redstoneOnChainData,
+                isRedStoneDataLoading,
+                supraOnChainData,
+                isSupraDataLoading,
+                twapOnChainData,
+                isTwapDataLoading,
+              } satisfies OnChainData
+            }
             selectedSymbol={selectedSymbol}
             setSelectedSymbol={setSelectedSymbol}
             onRefresh={fetchQueryData}

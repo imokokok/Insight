@@ -8,7 +8,13 @@ import { PriceFlash } from '@/components/ui/PriceFlash';
 import { useTranslations } from '@/i18n';
 import { safeMax } from '@/lib/utils';
 
-import { type QueryState, type StatsState, type ChartConfig, type ErrorState, type OnChainData } from '../constants';
+import {
+  type QueryState,
+  type StatsState,
+  type ChartConfig,
+  type ErrorState,
+  type OnChainData,
+} from '../constants';
 import { useConsistencyRating } from '../hooks/useConsistencyRating';
 import { formatPrice } from '../utils/queryResultsUtils';
 
@@ -58,17 +64,8 @@ export function QueryResults({
     standardDeviation,
     standardDeviationPercent,
   } = stats;
-  const {
-    chartData,
-    chartContainerRef,
-    selectedTimeRange,
-  } = chartConfig;
-  const {
-    queryErrors,
-    onRetryDataSource,
-    onRetryAllErrors,
-    onClearErrors,
-  } = errorState;
+  const { chartData, chartContainerRef, selectedTimeRange } = chartConfig;
+  const { queryErrors, onRetryDataSource, onRetryAllErrors, onClearErrors } = errorState;
   const {
     diaOnChainData,
     isDIADataLoading: _isDIADataLoading,
@@ -78,6 +75,8 @@ export function QueryResults({
     isRedStoneDataLoading: _isRedStoneDataLoading,
     supraOnChainData,
     isSupraDataLoading: _isSupraDataLoading,
+    twapOnChainData,
+    isTwapDataLoading: _isTwapDataLoading,
   } = onChainData;
   const t = useTranslations();
   const consistencyRating = useConsistencyRating(standardDeviationPercent);
@@ -98,7 +97,7 @@ export function QueryResults({
   const currentPriceValue = currentPrice?.price || avgPrice;
   // eslint-disable-next-line react-hooks/refs
   const previousPriceValue = prevPriceRef.current;
-  // eslint-disable-next-line react-hooks/refs
+
   if (currentPriceValue !== prevPriceRef.current) {
     prevPriceRef.current = currentPriceValue;
   }
@@ -150,6 +149,7 @@ export function QueryResults({
               winklinkOnChainData={winklinkOnChainData}
               redstoneOnChainData={redstoneOnChainData}
               supraOnChainData={supraOnChainData}
+              twapOnChainData={twapOnChainData}
               maxPrice={maxPrice}
               minPrice={minPrice}
               avgPrice={avgPrice}
@@ -195,7 +195,9 @@ export function QueryResults({
             <h3 className="text-sm font-semibold text-gray-800">
               {t('priceQuery.charts.priceHistory')}
             </h3>
-            <span className="text-xs text-gray-400 ml-2">{t('priceQuery.stats.historicalDataSource')}</span>
+            <span className="text-xs text-gray-400 ml-2">
+              {t('priceQuery.stats.historicalDataSource')}
+            </span>
           </div>
           <div className="bg-gray-50/50 rounded-xl border border-gray-100 p-4">
             <PriceChart

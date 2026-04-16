@@ -36,6 +36,7 @@ interface ServerFeatureFlags extends ClientFeatureFlags {
   useRealApi3Data: boolean;
   useRealWinklinkData: boolean;
   useRealSupraData: boolean;
+  useRealTwapData: boolean;
 }
 
 interface WebSocketConfig {
@@ -114,6 +115,7 @@ const serverEnvSchema = z.object({
   USE_REAL_API3_DATA: envBoolean.default(true),
   USE_REAL_WINKLINK_DATA: envBoolean.default(true),
   USE_REAL_SUPRA_DATA: envBoolean.default(true),
+  USE_REAL_TWAP_DATA: envBoolean.default(true),
   SESSION_TIMEOUT: z.coerce.number().optional().default(3600),
   MAX_REQUEST_SIZE: z.coerce.number().optional().default(1048576),
   ALLOWED_ORIGINS: z.string().optional().default(''),
@@ -136,6 +138,7 @@ const lenientServerEnvSchema = z.object({
   USE_REAL_API3_DATA: envBoolean.default(true),
   USE_REAL_WINKLINK_DATA: envBoolean.default(true),
   USE_REAL_SUPRA_DATA: envBoolean.default(true),
+  USE_REAL_TWAP_DATA: envBoolean.default(true),
   SESSION_TIMEOUT: z.coerce.number().optional().default(3600),
   MAX_REQUEST_SIZE: z.coerce.number().optional().default(1048576),
   ALLOWED_ORIGINS: z.string().optional().default(''),
@@ -169,6 +172,7 @@ function getRawServerEnv() {
     USE_REAL_API3_DATA: process.env.USE_REAL_API3_DATA,
     USE_REAL_WINKLINK_DATA: process.env.USE_REAL_WINKLINK_DATA,
     USE_REAL_SUPRA_DATA: process.env.USE_REAL_SUPRA_DATA,
+    USE_REAL_TWAP_DATA: process.env.USE_REAL_TWAP_DATA,
     SESSION_TIMEOUT: process.env.SESSION_TIMEOUT,
     MAX_REQUEST_SIZE: process.env.MAX_REQUEST_SIZE,
     ALLOWED_ORIGINS: process.env.ALLOWED_ORIGINS,
@@ -217,6 +221,7 @@ function parseServerEnv(): ServerEnv {
       USE_REAL_API3_DATA: data.USE_REAL_API3_DATA,
       USE_REAL_WINKLINK_DATA: data.USE_REAL_WINKLINK_DATA,
       USE_REAL_SUPRA_DATA: data.USE_REAL_SUPRA_DATA,
+      USE_REAL_TWAP_DATA: data.USE_REAL_TWAP_DATA,
       SESSION_TIMEOUT: data.SESSION_TIMEOUT,
       MAX_REQUEST_SIZE: data.MAX_REQUEST_SIZE,
       ALLOWED_ORIGINS: data.ALLOWED_ORIGINS,
@@ -291,6 +296,7 @@ function buildServerEnvConfig(parsed: ServerEnv): ServerEnvConfig {
       useRealApi3Data: parsed.USE_REAL_API3_DATA,
       useRealWinklinkData: parsed.USE_REAL_WINKLINK_DATA,
       useRealSupraData: parsed.USE_REAL_SUPRA_DATA,
+      useRealTwapData: parsed.USE_REAL_TWAP_DATA,
     },
     websocket: {
       url: parsed.NEXT_PUBLIC_WS_URL || undefined,
@@ -335,6 +341,7 @@ export const FEATURE_FLAGS: ServerFeatureFlags = _serverEnvConfig
       useRealApi3Data: false,
       useRealWinklinkData: false,
       useRealSupraData: false,
+      useRealTwapData: false,
     };
 
 export function isFeatureEnabled(feature: keyof ServerFeatureFlags): boolean {

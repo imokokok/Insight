@@ -1,11 +1,18 @@
 'use client';
 
+import type { Blockchain, OracleProvider } from '@/types/oracle';
+
 import { useDIAOnChainData, type UseDIAOnChainDataReturn } from './useDIAOnChainData';
-import { useWINkLinkOnChainData, type UseWINkLinkOnChainDataReturn } from './useWINkLinkOnChainData';
-import { useRedStoneOnChainData, type UseRedStoneOnChainDataReturn } from './useRedStoneOnChainData';
+import {
+  useRedStoneOnChainData,
+  type UseRedStoneOnChainDataReturn,
+} from './useRedStoneOnChainData';
 import { useSupraOnChainData, type UseSupraOnChainDataReturn } from './useSupraOnChainData';
-import type { OracleProvider } from '@/types/oracle';
-import type { Blockchain } from '@/types/oracle';
+import { useTwapOnChainData, type UseTwapOnChainDataReturn } from './useTwapOnChainData';
+import {
+  useWINkLinkOnChainData,
+  type UseWINkLinkOnChainDataReturn,
+} from './useWINkLinkOnChainData';
 
 export interface UseOnChainDataByProviderOptions {
   provider: OracleProvider;
@@ -18,7 +25,8 @@ export type OnChainDataReturn =
   | UseDIAOnChainDataReturn
   | UseWINkLinkOnChainDataReturn
   | UseRedStoneOnChainDataReturn
-  | UseSupraOnChainDataReturn;
+  | UseSupraOnChainDataReturn
+  | UseTwapOnChainDataReturn;
 
 export function useOnChainDataByProvider(
   options: UseOnChainDataByProviderOptions
@@ -26,9 +34,16 @@ export function useOnChainDataByProvider(
   const { provider, symbol, chain, enabled = true } = options;
 
   const diaResult = useDIAOnChainData({ symbol, chain, enabled: enabled && provider === 'dia' });
-  const winklinkResult = useWINkLinkOnChainData({ symbol, enabled: enabled && provider === 'winklink' });
-  const redstoneResult = useRedStoneOnChainData({ symbol, enabled: enabled && provider === 'redstone' });
+  const winklinkResult = useWINkLinkOnChainData({
+    symbol,
+    enabled: enabled && provider === 'winklink',
+  });
+  const redstoneResult = useRedStoneOnChainData({
+    symbol,
+    enabled: enabled && provider === 'redstone',
+  });
   const supraResult = useSupraOnChainData({ symbol, enabled: enabled && provider === 'supra' });
+  const twapResult = useTwapOnChainData({ symbol, chain, enabled: enabled && provider === 'twap' });
 
   switch (provider) {
     case 'dia':
@@ -39,6 +54,8 @@ export function useOnChainDataByProvider(
       return redstoneResult;
     case 'supra':
       return supraResult;
+    case 'twap':
+      return twapResult;
     default:
       return {
         data: null,

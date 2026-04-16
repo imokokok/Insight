@@ -40,6 +40,15 @@ export interface PriceData extends PriceDataBase {
   dataAge?: number; // 数据年龄（毫秒）
   // Supra 元数据
   pairIndex?: number; // Supra DORA 交易对索引
+  // TWAP 元数据
+  poolAddress?: string;
+  feeTier?: number;
+  sqrtPriceX96?: string;
+  tick?: number;
+  twapInterval?: number;
+  twapPrice?: number;
+  spotPrice?: number;
+  liquidity?: string;
 }
 
 export interface OracleSymbolSupport {

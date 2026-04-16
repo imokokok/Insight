@@ -53,6 +53,7 @@ export const CACHE_CONFIG = {
   winklinkTtl: parseInt(process.env.WINKLINK_CACHE_TTL || '30000', 10),
   chainlinkPriceTtl: parseInt(process.env.CHAINLINK_PRICE_CACHE_TTL || '30000', 10),
   api3PriceTtl: parseInt(process.env.API3_PRICE_CACHE_TTL || '30000', 10),
+  twapPriceTtl: parseInt(process.env.TWAP_PRICE_CACHE_TTL || '30000', 10),
 };
 
 // Supabase 服务端配置

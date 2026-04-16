@@ -62,7 +62,8 @@
         "redstone": "模块化",
         "dia": "开源",
         "winklink": "TRON生态",
-        "supra": "DORA共识"
+        "supra": "DORA共识",
+        "twap": "TWAP 预言机"
       },
       "qualityScore": {
         "excellent": "优秀",
@@ -201,7 +202,14 @@
       "historicalDataSource": "(历史数据来源于 Binance API)",
       "previousPeriod": "上一周期",
       "pairIndex": "交易对索引",
-      "dataSource": "数据来源"
+      "dataSource": "数据来源",
+      "twapPrice": "TWAP 价格",
+      "spotPrice": "现货价格",
+      "poolLiquidity": "池流动性",
+      "feeTier": "费率等级",
+      "twapInterval": "TWAP 间隔",
+      "priceDeviation": "价格偏差",
+      "poolAddress": "池地址"
     },
     "export": {
       "header": "价格查询导出",

@@ -6,6 +6,7 @@ export enum OracleProvider {
   DIA = 'dia',
   WINKLINK = 'winklink',
   SUPRA = 'supra',
+  TWAP = 'twap',
 }
 
 export enum Blockchain {

@@ -1,5 +1,6 @@
 'use client';
 
+import type { TwapOnChainData } from '@/hooks/oracles/useTwapOnChainData';
 import { OracleProvider as OracleProviderEnum } from '@/lib/oracles';
 import type { RedStoneTokenOnChainData } from '@/lib/oracles/clients/redstone';
 import type { SupraTokenOnChainData } from '@/lib/oracles/clients/supra';
@@ -14,6 +15,7 @@ import {
   WINkLinkStats,
   RedStoneStats,
   SupraStats,
+  TwapStats,
   DefaultStats,
 } from './index';
 
@@ -23,7 +25,8 @@ type AnyOnChainData =
   | DIATokenOnChainData
   | RedStoneTokenOnChainData
   | SupraTokenOnChainData
-  | WINkLinkTokenOnChainData;
+  | WINkLinkTokenOnChainData
+  | TwapOnChainData;
 
 interface StatsCardsSelectorProps {
   currentResult: QueryResult;
@@ -31,6 +34,7 @@ interface StatsCardsSelectorProps {
   winklinkOnChainData?: AnyOnChainData | null;
   redstoneOnChainData?: AnyOnChainData | null;
   supraOnChainData?: AnyOnChainData | null;
+  twapOnChainData?: AnyOnChainData | null;
   maxPrice: number;
   minPrice: number;
   avgPrice: number;
@@ -49,6 +53,7 @@ export function StatsCardsSelector({
   winklinkOnChainData,
   redstoneOnChainData,
   supraOnChainData,
+  twapOnChainData,
   maxPrice,
   minPrice,
   avgPrice,
@@ -138,6 +143,10 @@ export function StatsCardsSelector({
 
   if (redstoneOnChainData) {
     return <RedStoneStats data={redstoneOnChainData as RedStoneTokenOnChainData} />;
+  }
+
+  if (twapOnChainData) {
+    return <TwapStats data={twapOnChainData as TwapOnChainData} />;
   }
 
   return (

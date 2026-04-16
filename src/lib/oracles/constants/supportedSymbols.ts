@@ -459,6 +459,76 @@ export const SUPRA_AVAILABLE_PAIRS: Record<string, string[]> = {
   blast: [...supraSymbols],
 };
 
+export const twapSymbols = [
+  'BTC',
+  'ETH',
+  'USDC',
+  'USDT',
+  'DAI',
+  'WBTC',
+  'LINK',
+  'UNI',
+  'AAVE',
+  'ARB',
+  'OP',
+  'MATIC',
+  'SNX',
+  'CRV',
+  'COMP',
+  'MKR',
+  'SUSHI',
+  '1INCH',
+  'BAL',
+  'BNB',
+  'STETH',
+  'FRAX',
+] as const;
+export type TwapSymbol = (typeof twapSymbols)[number];
+
+export const TWAP_AVAILABLE_PAIRS: Record<string, string[]> = {
+  ethereum: [
+    'BTC',
+    'ETH',
+    'USDC',
+    'USDT',
+    'DAI',
+    'WBTC',
+    'LINK',
+    'UNI',
+    'AAVE',
+    'SNX',
+    'CRV',
+    'COMP',
+    'MKR',
+    'SUSHI',
+    '1INCH',
+    'BAL',
+    'STETH',
+    'FRAX',
+  ],
+  arbitrum: [
+    'BTC',
+    'ETH',
+    'USDC',
+    'USDT',
+    'DAI',
+    'WBTC',
+    'LINK',
+    'UNI',
+    'AAVE',
+    'ARB',
+    'SNX',
+    'CRV',
+    'COMP',
+    'MKR',
+    'GMX',
+  ],
+  optimism: ['BTC', 'ETH', 'USDC', 'USDT', 'DAI', 'WBTC', 'LINK', 'UNI', 'OP', 'SNX'],
+  polygon: ['BTC', 'ETH', 'USDC', 'USDT', 'DAI', 'WBTC', 'LINK', 'UNI', 'AAVE', 'MATIC'],
+  base: ['BTC', 'ETH', 'USDC', 'USDT', 'DAI', 'WBTC', 'LINK', 'UNI', 'AAVE', 'OP'],
+  'bnb-chain': ['BTC', 'ETH', 'USDC', 'USDT', 'DAI', 'WBTC', 'LINK', 'BNB'],
+};
+
 export const oracleSupportedSymbols = {
   chainlink: chainlinkSymbols,
   redstone: redstoneSymbols,
@@ -467,6 +537,7 @@ export const oracleSupportedSymbols = {
   pyth: pythSymbols,
   winklink: winklinkSymbols,
   supra: supraSymbols,
+  twap: twapSymbols,
 } as const;
 
 // 类型定义
