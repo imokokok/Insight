@@ -21,7 +21,7 @@ export const messageFilesConfig: MessageFileConfig[] = [
   { name: 'common' },
   { name: 'navigation' },
   { name: 'home' },
-  { name: 'ui', namespace: 'ui' },
+  { name: 'ui' },
   { name: 'priceQuery' },
   { name: 'comparison' },
   { name: 'crossOracle' },

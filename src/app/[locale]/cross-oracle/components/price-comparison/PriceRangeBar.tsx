@@ -1,6 +1,7 @@
 'use client';
 
 import { memo } from 'react';
+
 import { useTranslations } from 'next-intl';
 
 import { formatPrice } from '@/lib/utils/format';
@@ -42,29 +43,31 @@ function PriceRangeBarComponent({
         <div
           className="absolute top-0 bottom-0 w-1 bg-white border-2 border-gray-800 transform -translate-x-1/2"
           style={{ left: `${medianPosition}%` }}
-          title={t('crossOracle.priceRange.medianLabel', { price: formatPrice(medianPrice) })}
+          title={t('crossOracle.priceRangeLabels.medianLabel', { price: formatPrice(medianPrice) })}
         />
 
         {currentPosition !== null && (
           <div
             className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full transform -translate-x-1/2 shadow-sm"
             style={{ left: `${currentPosition}%` }}
-            title={t('crossOracle.priceRange.currentLabel', { price: formatPrice(currentPrice!) })}
+            title={t('crossOracle.priceRangeLabels.currentLabel', {
+              price: formatPrice(currentPrice!),
+            })}
           />
         )}
       </div>
 
       <div className="flex justify-between mt-2 text-xs">
         <div className="text-left">
-          <span className="text-gray-400">{t('crossOracle.priceRange.min')}</span>
+          <span className="text-gray-400">{t('crossOracle.priceRangeLabels.min')}</span>
           <div className="font-medium text-gray-700">{formatPrice(minPrice)}</div>
         </div>
         <div className="text-center">
-          <span className="text-gray-400">{t('crossOracle.priceRange.median')}</span>
+          <span className="text-gray-400">{t('crossOracle.priceRangeLabels.median')}</span>
           <div className="font-medium text-gray-900">{formatPrice(medianPrice)}</div>
         </div>
         <div className="text-right">
-          <span className="text-gray-400">{t('crossOracle.priceRange.max')}</span>
+          <span className="text-gray-400">{t('crossOracle.priceRangeLabels.max')}</span>
           <div className="font-medium text-gray-700">{formatPrice(maxPrice)}</div>
         </div>
       </div>

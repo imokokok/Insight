@@ -372,6 +372,10 @@
     "e": "Export Data",
     "question": "Show Help"
   },
+  "shortcuts": {
+    "title": "Keyboard Shortcuts",
+    "subtitle": "Use shortcuts to improve your workflow"
+  },
   "freshness": {
     "fresh": "Fresh",
     "freshShort": "Fresh",

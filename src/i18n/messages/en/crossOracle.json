@@ -1,9 +1,9 @@
 {
-  "meta": {
-    "title": "Cross-Oracle - Insight",
-    "description": "Compare prices across multiple oracles"
-  },
   "crossOracle": {
+    "meta": {
+      "title": "Cross-Oracle - Insight",
+      "description": "Compare prices across multiple oracles"
+    },
     "title": "Multi-Oracle Comparative Analytics",
     "subtitle": "Comprehensive Multi-Source Price Aggregation & Convergence Analysis",
     "loadingData": "Loading data...",
@@ -578,7 +578,7 @@
       "severityUnknown": "Unknown",
       "deviation": "Deviation"
     },
-    "priceRange": {
+    "priceRangeLabels": {
       "min": "Min",
       "median": "Median",
       "max": "Max",

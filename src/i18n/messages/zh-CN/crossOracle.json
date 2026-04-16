@@ -1,9 +1,9 @@
 {
-  "meta": {
-    "title": "跨预言机对比 - Insight",
-    "description": "多个预言机之间的价格对比"
-  },
   "crossOracle": {
+    "meta": {
+      "title": "跨预言机对比 - Insight",
+      "description": "多个预言机之间的价格对比"
+    },
     "title": "多预言机比较分析",
     "subtitle": "全面的多源价格聚合与趋同分析",
     "loadingData": "加载数据中...",
@@ -595,7 +595,7 @@
       "severityUnknown": "未知",
       "deviation": "偏差"
     },
-    "priceRange": {
+    "priceRangeLabels": {
       "min": "最小",
       "median": "中位数",
       "max": "最大",
