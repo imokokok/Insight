@@ -1,9 +1,9 @@
 {
-  "meta": {
-    "title": "Cross-Chain - Insight",
-    "description": "Compare oracle prices across blockchains"
-  },
   "crossChain": {
+    "meta": {
+      "title": "Cross-Chain - Insight",
+      "description": "Compare oracle prices across blockchains"
+    },
     "title": "Cross-Chain Price Convergence Analysis",
     "oracleProvider": "Oracle Provider",
     "symbol": "Symbol",

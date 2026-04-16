@@ -1,9 +1,9 @@
 {
-  "meta": {
-    "title": "跨链对比 - Insight",
-    "description": "跨区块链的预言机价格对比"
-  },
   "crossChain": {
+    "meta": {
+      "title": "跨链对比 - Insight",
+      "description": "跨区块链的预言机价格对比"
+    },
     "title": "跨链价格趋同分析",
     "oracleProvider": "预言机提供商",
     "symbol": "交易对",
