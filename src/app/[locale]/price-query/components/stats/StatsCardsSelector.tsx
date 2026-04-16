@@ -19,7 +19,11 @@ import {
 
 import type { QueryResult } from '../../constants';
 
-type AnyOnChainData = DIATokenOnChainData | RedStoneTokenOnChainData | SupraTokenOnChainData | WINkLinkTokenOnChainData;
+type AnyOnChainData =
+  | DIATokenOnChainData
+  | RedStoneTokenOnChainData
+  | SupraTokenOnChainData
+  | WINkLinkTokenOnChainData;
 
 interface StatsCardsSelectorProps {
   currentResult: QueryResult;
@@ -62,6 +66,9 @@ export function StatsCardsSelector({
   const isAPI3 = currentResult?.provider === OracleProviderEnum.API3;
   const api3Data = isAPI3 ? currentResult?.priceData : null;
 
+  const isSupra = currentResult?.provider === OracleProviderEnum.SUPRA;
+  const supraData = isSupra ? currentResult?.priceData : null;
+
   if (isChainlink && chainlinkData) {
     return (
       <ChainlinkStats
@@ -99,6 +106,22 @@ export function StatsCardsSelector({
         confidence={api3Data.confidence}
       />
     );
+  }
+
+  if (isSupra && supraData) {
+    const supraStatsData: SupraTokenOnChainData = {
+      symbol: supraData.symbol,
+      price: supraData.price,
+      decimals: supraData.decimals ?? 8,
+      pairIndex: (supraData as unknown as { pairIndex?: number }).pairIndex ?? 0,
+      pairName: `${supraData.symbol}/USDT`,
+      supportedChainsCount: 27,
+      updateIntervalMinutes: 5,
+      dataAge: supraData.timestamp ? Math.round((Date.now() - supraData.timestamp) / 1000) : null,
+      lastUpdated: supraData.timestamp,
+      source: supraData.source || 'DORA V2',
+    };
+    return <SupraStats data={supraStatsData} />;
   }
 
   if (diaOnChainData) {
