@@ -1,3 +1,4 @@
+import { TRON_CONFIG } from '@/lib/config/serverEnv';
 import { createLogger } from '@/lib/utils/logger';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
@@ -8,8 +9,13 @@ import type { CacheEntry } from '../base';
 
 const logger = createLogger('WINkLinkRealDataService');
 
-const TRON_RPC_URL = 'https://api.trongrid.io';
-const TRONGRID_API_KEY = process.env.TRONGRID_API_KEY || '';
+const TRON_RPC_ENDPOINTS = [
+  TRON_CONFIG.rpcUrl,
+  'https://api.trongrid.io',
+  'https://nile.trongrid.io',
+].filter((url, index, self) => url && self.indexOf(url) === index);
+
+const TRONGRID_API_KEY = TRON_CONFIG.apiKey;
 
 const WINKLINK_PRICE_FEEDS: Record<string, string> = {
   'BTC-USD': 'TQoijQ1iZKRgJsAAWNPMu6amgtCJ3WMUV7',
@@ -51,7 +57,7 @@ export class WINkLinkRealDataService {
   private cleanupInterval: NodeJS.Timeout | null = null;
 
   constructor() {
-    logger.info('WINkLinkRealDataService initialized', { rpcUrl: TRON_RPC_URL });
+    logger.info('WINkLinkRealDataService initialized', { rpcUrl: TRON_RPC_ENDPOINTS[0] });
     this.startCleanupInterval();
   }
 
@@ -142,11 +148,19 @@ export class WINkLinkRealDataService {
     }
   }
 
-  async getPriceFromContract(symbol: string, chain?: string): Promise<PriceData | null> {
+  async getPriceFromContract(
+    symbol: string,
+    chain?: string,
+    signal?: AbortSignal
+  ): Promise<PriceData | null> {
     const cacheKey = `real-price:${symbol}${chain ? `:${chain}` : ''}`;
     const cached = this.getFromCache<PriceData>(cacheKey);
     if (cached) {
       return cached;
+    }
+
+    if (signal?.aborted) {
+      return null;
     }
 
     try {
@@ -167,9 +181,9 @@ export class WINkLinkRealDataService {
       logger.info('Fetching price from WINkLink contract', { symbol, pairKey, contractAddress });
 
       const [decimalsResult, answerResult, timestampResult] = await Promise.allSettled([
-        this.callContractMethodWithRetry(contractAddress, 'decimals', 3),
-        this.callContractMethodWithRetry(contractAddress, 'latestAnswer', 3),
-        this.callContractMethodWithRetry(contractAddress, 'latestTimestamp', 3),
+        this.callContractMethodWithRetry(contractAddress, 'decimals', 3, signal),
+        this.callContractMethodWithRetry(contractAddress, 'latestAnswer', 3, signal),
+        this.callContractMethodWithRetry(contractAddress, 'latestTimestamp', 3, signal),
       ]);
 
       const decimals = decimalsResult.status === 'fulfilled' ? decimalsResult.value : null;
@@ -301,15 +315,21 @@ export class WINkLinkRealDataService {
 
   private async fetchWithTimeout(
     url: string,
-    options: RequestInit,
+    options: RequestInit & { signal?: AbortSignal },
     timeoutMs: number = 15000
   ): Promise<Response> {
+    const externalSignal = options.signal;
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
+    if (externalSignal) {
+      externalSignal.addEventListener('abort', () => controller.abort(), { once: true });
+    }
+
     try {
+      const { signal: _externalSignal, ...fetchOptions } = options;
       return await fetch(url, {
-        ...options,
+        ...fetchOptions,
         signal: controller.signal,
       });
     } finally {
@@ -320,19 +340,29 @@ export class WINkLinkRealDataService {
   private async callContractMethodWithRetry(
     contractAddress: string,
     method: string,
-    _maxRetries: number = 3
+    maxRetries: number = 3,
+    signal?: AbortSignal
   ): Promise<string | null> {
     try {
       return await withOracleRetry(
         async () => {
-          const result = await this.callContractMethod(contractAddress, method);
+          if (signal?.aborted) {
+            throw new Error(`Request aborted for method ${method}`);
+          }
+          const result = await this.callContractMethod(contractAddress, method, signal);
           if (result === null) {
             throw new Error(`Contract method ${method} returned null`);
           }
           return result;
         },
         `callContractMethod:${method}`,
-        ORACLE_RETRY_PRESETS.standard
+        {
+          maxAttempts: maxRetries,
+          baseDelay: 1000,
+          maxDelay: 10000,
+          backoffMultiplier: 2,
+          timeout: 15000,
+        }
       );
     } catch {
       return null;
@@ -353,66 +383,88 @@ export class WINkLinkRealDataService {
 
   private async callContractMethod(
     contractAddress: string,
-    method: string
+    method: string,
+    signal?: AbortSignal
   ): Promise<string | null> {
-    try {
-      const functionSelector = this.getFunctionSelector(method);
+    let lastError: Error | null = null;
 
-      if (!functionSelector) {
-        logger.warn(`Unknown method: ${method}`);
+    for (const rpcUrl of TRON_RPC_ENDPOINTS) {
+      if (signal?.aborted) {
         return null;
       }
 
-      const url = `${TRON_RPC_URL}/wallet/triggerconstantcontract`;
-      const body = {
-        owner_address: 'T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb',
-        contract_address: contractAddress,
-        function_selector: functionSelector,
-        parameter: '',
-        visible: true,
-      };
+      try {
+        const functionSelector = this.getFunctionSelector(method);
 
-      logger.debug(`Calling TRON contract`, { url, contractAddress, method, functionSelector });
-
-      const response = await this.fetchWithTimeout(
-        url,
-        {
-          method: 'POST',
-          headers: this.getHeaders(),
-          body: JSON.stringify(body),
-        },
-        15000
-      );
-
-      if (!response.ok) {
-        const errorText = await response.text().catch(() => 'Unknown error');
-        throw new Error(`HTTP ${response.status}: ${response.statusText} - ${errorText}`);
-      }
-
-      const data = await response.json();
-      logger.debug(`TRON contract response`, { method, data });
-
-      if (data.result && data.result.result === true) {
-        const hexValue = data.constant_result?.[0];
-        if (hexValue && hexValue !== '0x') {
-          return hexValue;
+        if (!functionSelector) {
+          logger.warn(`Unknown method: ${method}`);
+          return null;
         }
-      }
 
-      if (data.result && data.result.message) {
-        const errorMessage = Buffer.from(data.result.message, 'hex').toString('utf8');
-        logger.warn(`TRON contract call failed`, { method, error: errorMessage });
-      }
+        const url = `${rpcUrl}/wallet/triggerconstantcontract`;
+        const body = {
+          owner_address: 'T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb',
+          contract_address: contractAddress,
+          function_selector: functionSelector,
+          parameter: '',
+          visible: true,
+        };
 
-      return null;
-    } catch (error) {
-      logger.error(
-        `Failed to call contract method ${method}`,
-        error instanceof Error ? error : new Error(String(error)),
-        { contractAddress }
-      );
-      return null;
+        logger.debug(`Calling TRON contract`, { url, contractAddress, method, functionSelector });
+
+        const response = await this.fetchWithTimeout(
+          url,
+          {
+            method: 'POST',
+            headers: this.getHeaders(),
+            body: JSON.stringify(body),
+            signal,
+          },
+          15000
+        );
+
+        if (!response.ok) {
+          const errorText = await response.text().catch(() => 'Unknown error');
+          lastError = new Error(`HTTP ${response.status}: ${response.statusText} - ${errorText}`);
+          logger.warn(`TRON RPC ${rpcUrl} failed`, { method, status: response.status });
+          continue;
+        }
+
+        const data = await response.json();
+        logger.debug(`TRON contract response`, { method, data });
+
+        if (data.result && data.result.result === true) {
+          const hexValue = data.constant_result?.[0];
+          if (hexValue && hexValue !== '0x') {
+            return hexValue;
+          }
+        }
+
+        if (data.result && data.result.message) {
+          const errorMessage = Buffer.from(data.result.message, 'hex').toString('utf8');
+          logger.warn(`TRON contract call failed`, { method, error: errorMessage, rpcUrl });
+        }
+
+        lastError = new Error(`Contract call returned no result for ${method}`);
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error(String(error));
+
+        if (signal?.aborted) {
+          return null;
+        }
+
+        logger.warn(`TRON RPC ${rpcUrl} failed for method ${method}`, {
+          error: lastError.message,
+        });
+      }
     }
+
+    if (lastError) {
+      logger.error(`All TRON RPC endpoints failed for method ${method}`, lastError, {
+        contractAddress,
+      });
+    }
+    return null;
   }
 
   private getFunctionSelector(method: string): string {

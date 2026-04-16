@@ -45,9 +45,13 @@ export async function fetchWithTimeout<T = unknown>(
   url: string,
   options: FetchWithTimeoutOptions = {}
 ): Promise<T> {
-  const { timeout = 10000, ...fetchOptions } = options;
+  const { timeout = 10000, signal: externalSignal, ...fetchOptions } = options;
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+  if (externalSignal) {
+    externalSignal.addEventListener('abort', () => controller.abort(), { once: true });
+  }
 
   try {
     const response = await fetch(url, {
@@ -73,6 +77,9 @@ export async function fetchWithTimeout<T = unknown>(
     clearTimeout(timeoutId);
 
     if (error instanceof Error && error.name === 'AbortError') {
+      if (externalSignal?.aborted) {
+        throw new Error(`Request aborted: ${url}`);
+      }
       throw new Error(`Request timeout after ${timeout}ms: ${url}`);
     }
 

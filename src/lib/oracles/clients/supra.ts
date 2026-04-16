@@ -76,6 +76,12 @@ export class SupraClient extends BaseOracleClient {
     chain?: Blockchain,
     options?: { signal?: AbortSignal }
   ): Promise<PriceData> {
+    if (options?.signal?.aborted) {
+      throw this.createError('Request was aborted', 'NETWORK_ERROR' as OracleErrorCode, {
+        retryable: false,
+      });
+    }
+
     const upperSymbol = symbol.toUpperCase();
     const pairIndex = SUPRA_PAIR_INDEX_MAP[upperSymbol];
 
@@ -123,8 +129,12 @@ export class SupraClient extends BaseOracleClient {
     symbol: string,
     chain?: Blockchain,
     period: number = 24,
-    _options?: { signal?: AbortSignal }
+    options?: { signal?: AbortSignal }
   ): Promise<PriceData[]> {
+    if (options?.signal?.aborted) {
+      return [];
+    }
+
     const upperSymbol = symbol.toUpperCase();
 
     if (SUPRA_PAIR_INDEX_MAP[upperSymbol] === undefined) {

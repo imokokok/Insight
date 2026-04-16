@@ -2,6 +2,7 @@ import { BaseOracleClient } from '@/lib/oracles/base';
 import type { OracleClientConfig } from '@/lib/oracles/base';
 import { API3_AVAILABLE_PAIRS } from '@/lib/oracles/constants/supportedSymbols';
 import { api3NetworkService } from '@/lib/oracles/services/api3NetworkService';
+import { withOracleRetry, ORACLE_RETRY_PRESETS } from '@/lib/oracles/utils/retry';
 import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
 import { createLogger } from '@/lib/utils/logger';
 import type { PriceData } from '@/types/oracle';
@@ -22,8 +23,6 @@ export class API3Client extends BaseOracleClient {
   ];
 
   defaultUpdateIntervalMinutes = 1;
-  private dataCache: Map<string, { data: unknown; timestamp: number }> = new Map();
-  private cacheTTL = 60000;
   private useRealData: boolean;
 
   constructor(config?: OracleClientConfig & { useRealData?: boolean }) {
@@ -31,49 +30,32 @@ export class API3Client extends BaseOracleClient {
     this.useRealData = config?.useRealData ?? true;
   }
 
-  private getCached<T>(key: string): T | null {
-    const cached = this.dataCache.get(key);
-    if (cached && Date.now() - cached.timestamp < this.cacheTTL) {
-      return cached.data as T;
-    }
-    return null;
-  }
-
-  private setCache(key: string, data: unknown): void {
-    this.dataCache.set(key, { data, timestamp: Date.now() });
-  }
-
-  private async fetchData<T>(dataFn: () => Promise<T>, cacheKey?: string): Promise<T> {
-    if (cacheKey) {
-      const cached = this.getCached<T>(cacheKey);
-      if (cached) return cached;
-    }
-
-    try {
-      const data = await dataFn();
-      if (cacheKey) this.setCache(cacheKey, data);
-      return data;
-    } catch (error) {
-      logger.warn('Data fetch failed', {
-        error: error instanceof Error ? error.message : String(error),
-      });
-      throw error;
-    }
-  }
-
   async getPrice(
     symbol: string,
     chain?: Blockchain,
-    _options?: { signal?: AbortSignal }
+    options?: { signal?: AbortSignal }
   ): Promise<PriceData> {
     if (!symbol) {
       throw this.createError('Symbol is required', 'INVALID_SYMBOL');
     }
 
+    if (options?.signal?.aborted) {
+      throw this.createError('Request was aborted', 'NETWORK_ERROR', { retryable: false });
+    }
+
     const targetChain = chain || Blockchain.ETHEREUM;
 
     try {
-      const api3Data = await api3NetworkService.getPrice(symbol, targetChain);
+      const api3Data = await withOracleRetry(
+        async () => {
+          if (options?.signal?.aborted) {
+            throw this.createError('Request was aborted', 'NETWORK_ERROR', { retryable: false });
+          }
+          return api3NetworkService.getPrice(symbol, targetChain, options?.signal);
+        },
+        'api3:getPrice',
+        ORACLE_RETRY_PRESETS.standard
+      );
 
       if (!api3Data) {
         throw this.createError(
@@ -119,10 +101,14 @@ export class API3Client extends BaseOracleClient {
     symbol: string,
     chain?: Blockchain,
     period: number = 24,
-    _options?: { signal?: AbortSignal }
+    options?: { signal?: AbortSignal }
   ): Promise<PriceData[]> {
     if (!symbol) {
       throw this.createError('Symbol is required', 'INVALID_SYMBOL');
+    }
+
+    if (options?.signal?.aborted) {
+      return [];
     }
 
     const targetChain = chain || Blockchain.ETHEREUM;
@@ -176,7 +162,6 @@ export class API3Client extends BaseOracleClient {
   }
 
   getSupportedSymbols(): string[] {
-    // 返回所有API3支持的币种（去重）
     const allSymbols = new Set<string>();
     Object.values(API3_AVAILABLE_PAIRS).forEach((symbols) => {
       symbols.forEach((symbol) => allSymbols.add(symbol));
@@ -199,7 +184,6 @@ export class API3Client extends BaseOracleClient {
       return chainSymbols.includes(upperSymbol);
     }
 
-    // 如果没有指定链，检查该币种是否在任何链上支持
     return Object.values(API3_AVAILABLE_PAIRS).some((symbols) => symbols.includes(upperSymbol));
   }
 
@@ -209,7 +193,6 @@ export class API3Client extends BaseOracleClient {
 
     for (const [chain, symbols] of Object.entries(API3_AVAILABLE_PAIRS)) {
       if (symbols.includes(upperSymbol)) {
-        // 将字符串链名转换为Blockchain枚举
         const blockchain = this.supportedChains.find(
           (c) => c.toLowerCase() === chain.toLowerCase()
         );
