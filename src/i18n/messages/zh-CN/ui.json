@@ -372,6 +372,10 @@
     "e": "导出数据",
     "question": "显示帮助"
   },
+  "shortcuts": {
+    "title": "键盘快捷键",
+    "subtitle": "使用快捷键提高工作效率"
+  },
   "freshness": {
     "fresh": "数据新鲜",
     "freshShort": "新鲜",
