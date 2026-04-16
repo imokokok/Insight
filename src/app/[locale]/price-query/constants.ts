@@ -1,3 +1,4 @@
+import type { TwapOnChainData } from '@/hooks/oracles/useTwapOnChainData';
 import {
   providerNames,
   chainNames,
@@ -14,12 +15,17 @@ import type { SupraTokenOnChainData } from '@/lib/oracles/clients/supra';
 import type { DIATokenOnChainData } from '@/lib/oracles/services/diaDataService';
 import type { WINkLinkTokenOnChainData } from '@/lib/oracles/services/winklinkRealDataService';
 
-import type { QueryError } from './hooks/usePriceQueryData';
 import type { ChartDataPoint } from './hooks/usePriceQueryChart';
+import type { QueryError } from './hooks/usePriceQueryData';
 
 export type { PriceData };
 
-type AnyOnChainData = DIATokenOnChainData | RedStoneTokenOnChainData | SupraTokenOnChainData | WINkLinkTokenOnChainData;
+type AnyOnChainData =
+  | DIATokenOnChainData
+  | RedStoneTokenOnChainData
+  | SupraTokenOnChainData
+  | WINkLinkTokenOnChainData
+  | TwapOnChainData;
 
 export interface QueryResult {
   provider: OracleProvider;
@@ -69,6 +75,8 @@ export interface OnChainData {
   isRedStoneDataLoading?: boolean;
   supraOnChainData?: AnyOnChainData | null;
   isSupraDataLoading?: boolean;
+  twapOnChainData?: AnyOnChainData | null;
+  isTwapDataLoading?: boolean;
 }
 
 export {

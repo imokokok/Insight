@@ -61,6 +61,7 @@
     },
     "loading": "Loading...",
     "oracleCard": {
+      "twap": "TWAP Oracle",
       "updateFrequency": "Update Frequency",
       "supportedChains": "Supported Chains",
       "dataSources": "Data Sources",

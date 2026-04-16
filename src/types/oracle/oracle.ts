@@ -66,7 +66,12 @@ export type OracleErrorCode =
   | 'STAKING_ERROR'
   | 'GAMING_ERROR'
   | 'NETWORK_STATS_ERROR'
-  | 'RISK_METRICS_ERROR';
+  | 'RISK_METRICS_ERROR'
+  | 'TWAP_ERROR'
+  | 'TWAP_POOL_NOT_FOUND'
+  | 'TWAP_INSUFFICIENT_LIQUIDITY'
+  | 'TWAP_OBSERVATION_ERROR'
+  | 'TWAP_HISTORICAL_ERROR';
 
 export class OracleError extends AppError {
   public readonly provider: OracleProvider;

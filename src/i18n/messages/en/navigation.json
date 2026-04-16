@@ -28,6 +28,8 @@
     "winklinkDesc": "TRON ecosystem oracle for gaming and DeFi",
     "supra": "Supra",
     "supraDesc": "Intrinsically decentralized oracle with DORA consensus and native cross-chain capabilities",
+    "twap": "TWAP",
+    "twapDesc": "Uniswap V3 Time-Weighted Average Price oracle providing on-chain TWAP data from liquidity pools",
     "favorites": "Favorites",
     "alerts": "Alerts",
     "settings": "Settings",

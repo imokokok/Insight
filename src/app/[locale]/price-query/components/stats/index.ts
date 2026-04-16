@@ -5,5 +5,6 @@ export { DIAStats } from './DIAStats';
 export { WINkLinkStats } from './WINkLinkStats';
 export { RedStoneStats } from './RedStoneStats';
 export { SupraStats } from './SupraStats';
+export { TwapStats } from './TwapStats';
 export { DefaultStats } from './DefaultStats';
 export { StatsCardsSelector } from './StatsCardsSelector';

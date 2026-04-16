@@ -29,6 +29,8 @@
     "supra": "Supra",
     "supraDesc": "原生去中心化预言机，采用 DORA 共识机制，具备原生跨链能力",
     "supraTitle": "Supra 预言机",
+    "twap": "TWAP",
+    "twapDesc": "基于 Uniswap V3 的时间加权平均价格预言机，从流动性池提供链上 TWAP 数据",
     "favorites": "收藏",
     "alerts": "告警",
     "settings": "设置",

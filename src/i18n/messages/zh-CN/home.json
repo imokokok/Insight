@@ -61,6 +61,7 @@
     },
     "loading": "加载中...",
     "oracleCard": {
+      "twap": "TWAP 预言机",
       "updateFrequency": "更新频率",
       "supportedChains": "支持链数量",
       "dataSources": "数据源数量",

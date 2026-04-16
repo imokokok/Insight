@@ -12,6 +12,7 @@ export const providerNames: Record<OracleProvider, string> = {
   [OracleProvider.DIA]: 'DIA',
   [OracleProvider.WINKLINK]: 'WINkLink',
   [OracleProvider.SUPRA]: 'Supra',
+  [OracleProvider.TWAP]: 'TWAP',
 };
 
 // i18n 键名映射，用于将 OracleProvider 映射到 navbar i18n 键
@@ -23,6 +24,7 @@ export const oracleI18nKeys: Record<OracleProvider, string> = {
   [OracleProvider.DIA]: 'dia',
   [OracleProvider.WINKLINK]: 'winklink',
   [OracleProvider.SUPRA]: 'supra',
+  [OracleProvider.TWAP]: 'twap',
 };
 
 export const chainNames: Record<Blockchain, string> = {
@@ -113,6 +115,7 @@ export const oracleColors: Record<OracleProvider, string> = {
   [OracleProvider.DIA]: configChartColors.oracle.dia,
   [OracleProvider.WINKLINK]: configChartColors.oracle.winklink,
   [OracleProvider.SUPRA]: configChartColors.oracle.supra,
+  [OracleProvider.TWAP]: configChartColors.oracle.twap,
 };
 
 export const symbols = [

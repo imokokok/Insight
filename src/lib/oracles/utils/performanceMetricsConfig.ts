@@ -103,6 +103,15 @@ const DEFAULT_PROVIDER_CONFIG: PerformanceMetricsConfig = {
       decentralizationScore: 88,
       supportedChains: 30,
     },
+    twap: {
+      responseTime: 500,
+      updateFrequency: 600,
+      accuracy: 99.0,
+      reliability: 99.5,
+      dataSources: 22,
+      decentralizationScore: 85,
+      supportedChains: 6,
+    },
   },
   fallbackDefaults: {
     responseTime: 600,

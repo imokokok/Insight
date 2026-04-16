@@ -14,6 +14,7 @@
     "noDataTitle": "No data for {symbol}",
     "noDataDescription": "There is no price data available for the selected time range.",
     "selectOraclesHint": "Select multiple oracles for comparison analysis",
+    "twap": "TWAP",
     "oracleCard": {
       "viewDetails": "View {name} details",
       "updateFrequency": "Update Frequency",

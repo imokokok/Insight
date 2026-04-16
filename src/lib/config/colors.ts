@@ -226,6 +226,7 @@ export const chartColors = {
     flux: '#F38181',
     winklink: '#FF4D4D',
     supra: '#14B8A6',
+    twap: '#FF007A',
   } as const,
 
   // 预言机颜色 - 色盲友好版本（使用形状+颜色双重编码）
@@ -239,6 +240,7 @@ export const chartColors = {
     flux: { color: '#ea580c', pattern: 'dashDot' },
     winklink: { color: '#dc2626', pattern: 'dashed' },
     supra: { color: '#0d9488', pattern: 'dotted' },
+    twap: { color: '#FF007A', pattern: 'longDash' },
   } as const,
 
   // 地区颜色

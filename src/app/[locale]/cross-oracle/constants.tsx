@@ -67,6 +67,7 @@ export const oracleNames: Record<OracleProvider, string> = {
   [OracleProvider.DIA]: 'DIA',
   [OracleProvider.WINKLINK]: 'WINkLink',
   [OracleProvider.SUPRA]: 'Supra',
+  [OracleProvider.TWAP]: 'TWAP',
 };
 
 export const oracleColors: Record<string, string> = {
@@ -77,6 +78,7 @@ export const oracleColors: Record<string, string> = {
   [OracleProvider.DIA]: '#c9f31d',
   [OracleProvider.WINKLINK]: '#f0b90b',
   [OracleProvider.SUPRA]: '#14B8A6',
+  [OracleProvider.TWAP]: '#FF007A',
 };
 
 // ============================================================================

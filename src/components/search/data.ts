@@ -38,6 +38,7 @@ const oracleIcons: Record<OracleProvider, LucideIcon> = {
   [OracleProvider.DIA]: Globe,
   [OracleProvider.WINKLINK]: Gamepad2,
   [OracleProvider.SUPRA]: Hexagon,
+  [OracleProvider.TWAP]: LayoutDashboard,
 };
 
 // Oracle descriptions mapping
@@ -49,6 +50,7 @@ const oracleDescriptions: Record<OracleProvider, string> = {
   [OracleProvider.DIA]: 'search.oracles.diaDesc',
   [OracleProvider.WINKLINK]: 'search.oracles.winklinkDesc',
   [OracleProvider.SUPRA]: 'search.oracles.supraDesc',
+  [OracleProvider.TWAP]: 'search.oracles.twapDesc',
 };
 
 // Generate oracle search results
