@@ -38,6 +38,8 @@ export interface PriceData extends PriceDataBase {
   dapiName?: string; // dAPI 名称，如 "ETH/USD"
   proxyAddress?: string; // dAPI Proxy 合约地址
   dataAge?: number; // 数据年龄（毫秒）
+  // Supra 元数据
+  pairIndex?: number; // Supra DORA 交易对索引
 }
 
 export interface OracleSymbolSupport {

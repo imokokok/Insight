@@ -61,7 +61,8 @@
         "api3": "第一方",
         "redstone": "模块化",
         "dia": "开源",
-        "winklink": "TRON生态"
+        "winklink": "TRON生态",
+        "supra": "DORA共识"
       },
       "qualityScore": {
         "excellent": "优秀",
@@ -152,6 +153,7 @@
       "nodeUptime": "节点可用性",
       "nodeUptimeDesc": "预言机节点的在线可用率，越高越可靠",
       "pairIndexDesc": "Supra DORA 预言机的交易对索引号",
+      "pricePrecision": "价格精度",
       "pricePrecisionDesc": "价格数据的小数位数，用于确定精度",
       "precisionDigits": "{count} 位",
       "supportedChainsDesc": "{oracle} 支持的区块链网络数量",

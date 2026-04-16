@@ -152,7 +152,7 @@
         },
         "q2": {
           "question": "支持哪些预言机协议？",
-          "answer": "目前支持 Chainlink、Pyth、API3、RedStone、DIA、WINkLink 等主流预言机。"
+          "answer": "目前支持 Chainlink、Pyth、API3、RedStone、DIA、WINkLink、Supra 等主流预言机。"
         },
         "q3": {
           "question": "数据更新频率是多少？",

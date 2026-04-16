@@ -61,7 +61,8 @@
         "api3": "First-party",
         "redstone": "Modular",
         "dia": "Open-source",
-        "winklink": "TRON Eco"
+        "winklink": "TRON Eco",
+        "supra": "DORA Consensus"
       },
       "qualityScore": {
         "excellent": "Excellent",
@@ -149,6 +150,7 @@
       "nodeUptime": "Node Uptime",
       "nodeUptimeDesc": "Online availability rate of oracle nodes, higher is more reliable",
       "pairIndexDesc": "Trading pair index number of Supra DORA oracle",
+      "pricePrecision": "Price Precision",
       "pricePrecisionDesc": "Number of decimal places in price data, determines precision",
       "precisionDigits": "{count} digits",
       "supportedChainsDesc": "Number of blockchain networks supported by {oracle}",

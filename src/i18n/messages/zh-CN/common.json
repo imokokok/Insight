@@ -1137,7 +1137,18 @@
       "api3": "第一方预言机网络，实现去中心化 API 连接",
       "redstone": "模块化预言机解决方案，支持高效的数据流和灵活的集成选项",
       "dia": "开源的跨链数据预言机平台，提供透明且可验证的金融数据馈送",
-      "winklink": "TRON 生态预言机，专注游戏和 DeFi"
+      "winklink": "TRON 生态预言机，专注游戏和 DeFi",
+      "supra": "原生去中心化预言机，采用 DORA 共识机制，提供原生跨链数据喂价"
+    },
+    "tabs": {
+      "supra": {
+        "market": "市场",
+        "network": "网络",
+        "priceFeeds": "价格喂价",
+        "crossChain": "跨链",
+        "ecosystem": "生态",
+        "riskAssessment": "风险评估"
+      }
     }
   },
   "riskMetrics": {

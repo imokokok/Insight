@@ -116,6 +116,7 @@ export class SupraClient extends BaseOracleClient {
         confidence: 0.95,
         chain: chain || Blockchain.ETHEREUM,
         source: 'supra-dora',
+        pairIndex: latestData.pairIndex,
       };
     } catch (error) {
       if (error && typeof error === 'object' && 'code' in error) {

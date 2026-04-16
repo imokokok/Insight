@@ -108,12 +108,16 @@ export function StatsCardsSelector({
     );
   }
 
+  if (isSupra && supraOnChainData) {
+    return <SupraStats data={supraOnChainData as SupraTokenOnChainData} />;
+  }
+
   if (isSupra && supraData) {
     const supraStatsData: SupraTokenOnChainData = {
       symbol: supraData.symbol,
       price: supraData.price,
       decimals: supraData.decimals ?? 8,
-      pairIndex: (supraData as unknown as { pairIndex?: number }).pairIndex ?? 0,
+      pairIndex: supraData.pairIndex ?? 0,
       pairName: `${supraData.symbol}/USDT`,
       supportedChainsCount: 27,
       updateIntervalMinutes: 5,
@@ -134,10 +138,6 @@ export function StatsCardsSelector({
 
   if (redstoneOnChainData) {
     return <RedStoneStats data={redstoneOnChainData as RedStoneTokenOnChainData} />;
-  }
-
-  if (supraOnChainData) {
-    return <SupraStats data={supraOnChainData as SupraTokenOnChainData} />;
   }
 
   return (
