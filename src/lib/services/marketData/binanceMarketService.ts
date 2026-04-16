@@ -730,7 +730,16 @@ export async function getHistoricalPricesByHours(
 export async function getOHLCData(
   symbol: string,
   days: number = 30
-): Promise<Array<{ timestamp: number; open: number; high: number; low: number; close: number }>> {
+): Promise<
+  Array<{
+    timestamp: number;
+    open: number;
+    high: number;
+    low: number;
+    close: number;
+    volume: number;
+  }>
+> {
   try {
     const binanceSymbol = BINANCE_SYMBOLS[symbol.toUpperCase()];
     if (!binanceSymbol) {
@@ -773,6 +782,7 @@ export async function getOHLCData(
       high: parseFloat(String(item[2])),
       low: parseFloat(String(item[3])),
       close: parseFloat(String(item[4])),
+      volume: parseFloat(String(item[5])),
     }));
 
     logger.info(`Successfully fetched ${ohlcData.length} OHLC data points for ${symbol}`);

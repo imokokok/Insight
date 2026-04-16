@@ -1,8 +1,8 @@
+import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
 import { createLogger } from '@/lib/utils/logger';
 
 import {
   SUPRA_DORA_REST_URL,
-  SUPRA_KLINE_REST_URL,
   SUPRA_CACHE_TTL,
   SUPRA_PAIR_INDEX_MAP,
   SUPRA_INDEX_TO_SYMBOL,
@@ -188,7 +188,7 @@ export class SupraDataService {
     startDate: number,
     endDate: number,
     interval: number,
-    signal?: AbortSignal
+    _signal?: AbortSignal
   ): Promise<SupraOHLCDataPoint[]> {
     const cacheKey = `history:${tradingPair}:${startDate}:${endDate}:${interval}`;
     const cached = this.getFromCache<SupraOHLCDataPoint[]>(cacheKey);
@@ -196,51 +196,44 @@ export class SupraDataService {
       return cached;
     }
 
-    const url = `${SUPRA_KLINE_REST_URL}/history?trading_pair=${tradingPair}&startDate=${startDate}&endDate=${endDate}&interval=${interval}`;
-
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
-      const combinedSignal = signal
-        ? AbortSignal.any([signal, controller.signal])
-        : controller.signal;
-
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          Accept: 'application/json',
-          'x-api-key': process.env.SUPRA_API_KEY || '',
-        },
-        signal: combinedSignal,
-      });
-
-      clearTimeout(timeoutId);
-
-      if (!response.ok) {
-        logger.warn(`Supra Kline API returned HTTP ${response.status}, returning empty history`);
+      // 从 tradingPair 中提取 symbol (格式: btc_usdt -> BTC)
+      const symbol = tradingPair.split('_')[0]?.toUpperCase();
+      if (!symbol) {
+        logger.warn(`Invalid trading pair format: ${tradingPair}`);
         return [];
       }
 
-      const data = await response.json();
+      // 计算天数
+      const days = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
 
-      if (!data.data || !Array.isArray(data.data) || data.data.length === 0) {
+      // 使用 Binance API 获取 OHLC 数据
+      const ohlcData = await binanceMarketService.getOHLCData(symbol, days);
+
+      if (!ohlcData || ohlcData.length === 0) {
+        logger.warn(`No historical data available for ${symbol} from Binance`);
         return [];
       }
 
-      const result: SupraOHLCDataPoint[] = data.data.map((point: SupraOHLCDataPoint) => ({
-        timestamp: point.timestamp,
-        open: point.open,
-        high: point.high,
-        low: point.low,
-        close: point.close,
-        volume: point.volume,
-      }));
+      // 过滤时间范围并转换为 SupraOHLCDataPoint 格式
+      const result: SupraOHLCDataPoint[] = ohlcData
+        .filter((point) => point.timestamp >= startDate && point.timestamp <= endDate)
+        .map((point) => ({
+          timestamp: point.timestamp,
+          open: point.open,
+          high: point.high,
+          low: point.low,
+          close: point.close,
+          volume: point.volume,
+        }));
+
+      logger.info(`Fetched ${result.length} historical data points for ${symbol} from Binance`);
 
       this.setCache(cacheKey, result, SUPRA_CACHE_TTL.HISTORY);
       return result;
     } catch (error) {
       logger.warn(
-        `Supra Kline API error: ${error instanceof Error ? error.message : 'Unknown'}, returning empty history`
+        `Binance API error: ${error instanceof Error ? error.message : 'Unknown'}, returning empty history`
       );
       return [];
     }
