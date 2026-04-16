@@ -108,6 +108,11 @@ export {
   API3Error,
   type API3ErrorDetails,
   type API3ErrorCode,
+
+  // Supra 错误
+  SupraError,
+  type SupraErrorDetails,
+  type SupraErrorCode,
 } from './OracleError';
 
 // ==================== 错误响应处理 ====================

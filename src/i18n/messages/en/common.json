@@ -1142,7 +1142,18 @@
       "api3": "First-party oracle network enabling decentralized API connectivity",
       "redstone": "Modular oracle solution supporting efficient data streams and flexible integration options",
       "dia": "Open-source cross-chain data oracle platform providing transparent and verifiable financial data feeds",
-      "winklink": "TRON ecosystem oracle focused on gaming and DeFi"
+      "winklink": "TRON ecosystem oracle focused on gaming and DeFi",
+      "supra": "Intrinsically decentralized oracle with DORA consensus mechanism, providing native cross-chain data feeds"
+    },
+    "tabs": {
+      "supra": {
+        "market": "Market",
+        "network": "Network",
+        "priceFeeds": "Price Feeds",
+        "crossChain": "Cross-Chain",
+        "ecosystem": "Ecosystem",
+        "riskAssessment": "Risk Assessment"
+      }
     }
   },
   "riskMetrics": {

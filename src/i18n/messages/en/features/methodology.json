@@ -16,7 +16,9 @@
         "chronicle": "Chronicle - Oracle protocol by MakerDAO",
         "dia": "DIA - Open-source oracle platform",
         "redstone": "RedStone - Data ecosystem for DeFi",
-        "tellor": "Tellor - Decentralized oracle for any data"
+        "tellor": "Tellor - Decentralized oracle for any data",
+        "supra": "Supra - Intrinsically decentralized oracle with DORA consensus and native cross-chain capabilities",
+        "winklink": "WINkLink - TRON ecosystem oracle for gaming and DeFi"
       }
     },
     "priceCalculation": {

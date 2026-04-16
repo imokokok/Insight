@@ -16,7 +16,9 @@
         "chronicle": "Chronicle - MakerDAO 的预言机协议",
         "dia": "DIA - 开源预言机平台",
         "redstone": "RedStone - DeFi 数据生态系统",
-        "tellor": "Tellor - 适用于任何数据的去中心化预言机"
+        "tellor": "Tellor - 适用于任何数据的去中心化预言机",
+        "supra": "Supra - 采用 DORA 共识机制的原生去中心化预言机，具备原生跨链能力",
+        "winklink": "WINkLink - TRON 生态预言机，专注游戏和 DeFi"
       }
     },
     "priceCalculation": {

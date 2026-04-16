@@ -152,7 +152,7 @@
         },
         "q2": {
           "question": "Which oracle protocols are supported?",
-          "answer": "Currently supports Chainlink, Pyth, API3, RedStone, DIA, WINkLink, and other mainstream oracles."
+          "answer": "Currently supports Chainlink, Pyth, API3, RedStone, DIA, WINkLink, Supra, and other mainstream oracles."
         },
         "q3": {
           "question": "What is the data update frequency?",

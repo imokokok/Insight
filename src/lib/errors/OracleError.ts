@@ -552,3 +552,71 @@ export class API3Error extends AppError {
     }
   }
 }
+
+/**
+ * Supra 错误代码
+ */
+export type SupraErrorCode =
+  | 'DORA_CONNECTION_ERROR'
+  | 'STALE_PRICE'
+  | 'INVALID_PRICE'
+  | 'PAIR_NOT_FOUND'
+  | 'PRICE_DEVIATION';
+
+/**
+ * Supra 错误详情
+ */
+export interface SupraErrorDetails extends OracleErrorDetails {
+  errorCode: SupraErrorCode;
+  pairIndex?: number;
+  doraTimestamp?: number;
+}
+
+/**
+ * Supra 错误
+ */
+export class SupraError extends AppError {
+  public readonly errorCode: SupraErrorCode;
+
+  constructor(
+    message: string,
+    errorCode: SupraErrorCode,
+    details?: Partial<SupraErrorDetails>,
+    cause?: Error
+  ) {
+    super({
+      message,
+      code: 'SUPRA_ERROR',
+      statusCode: HttpStatusCodes.BAD_GATEWAY,
+      category: 'external_service',
+      severity: SupraError.getSeverity(errorCode),
+      isOperational: true,
+      retryable: SupraError.isRetryableError(errorCode),
+      details: { ...details, errorCode },
+      i18nKey: 'errors.oracle.supra',
+      cause,
+    });
+    this.errorCode = errorCode;
+  }
+
+  private static isRetryableError(errorCode: SupraErrorCode): boolean {
+    const retryableCodes: SupraErrorCode[] = ['DORA_CONNECTION_ERROR', 'STALE_PRICE'];
+    return retryableCodes.includes(errorCode);
+  }
+
+  private static getSeverity(errorCode: SupraErrorCode): 'low' | 'medium' | 'high' | 'critical' {
+    switch (errorCode) {
+      case 'PAIR_NOT_FOUND':
+        return 'low';
+      case 'DORA_CONNECTION_ERROR':
+        return 'medium';
+      case 'STALE_PRICE':
+        return 'high';
+      case 'INVALID_PRICE':
+      case 'PRICE_DEVIATION':
+        return 'critical';
+      default:
+        return 'medium';
+    }
+  }
+}
