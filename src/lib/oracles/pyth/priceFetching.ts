@@ -15,7 +15,8 @@ const logger = createLogger('PythPriceFetching');
 export async function fetchLatestPrice(
   hermesClient: HermesClient,
   cache: PythCache,
-  symbol: string
+  symbol: string,
+  signal?: AbortSignal
 ): Promise<PriceData | null> {
   const cacheKey = `price:${symbol}`;
   const cached = cache.get<PriceData>(cacheKey);
@@ -24,9 +25,18 @@ export async function fetchLatestPrice(
     return cached;
   }
 
+  if (signal?.aborted) {
+    logger.debug('Request aborted before fetch', { symbol });
+    return null;
+  }
+
   try {
     const result = await withOracleRetry(
       async () => {
+        if (signal?.aborted) {
+          return null;
+        }
+
         const pythSymbol = normalizeSymbol(symbol);
         const priceId = PYTH_PRICE_FEED_IDS[pythSymbol];
 

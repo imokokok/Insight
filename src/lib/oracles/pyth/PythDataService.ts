@@ -68,8 +68,8 @@ export class PythDataService {
     return this.wsManager.isConnected();
   }
 
-  async getLatestPrice(symbol: string): Promise<PriceData | null> {
-    return fetchLatestPrice(this.hermesClient, this.cache, symbol);
+  async getLatestPrice(symbol: string, signal?: AbortSignal): Promise<PriceData | null> {
+    return fetchLatestPrice(this.hermesClient, this.cache, symbol, signal);
   }
 
   async getPublishers(): Promise<PublisherData[]> {

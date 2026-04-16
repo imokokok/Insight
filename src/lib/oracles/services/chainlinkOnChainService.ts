@@ -174,7 +174,8 @@ export class ChainlinkOnChainService {
   private async rpcCallWithFallback<T>(
     chainId: number,
     method: string,
-    params: unknown[]
+    params: unknown[],
+    signal?: AbortSignal
   ): Promise<T> {
     const config = getChainlinkRPCConfig(chainId);
     if (!config) {
@@ -186,10 +187,18 @@ export class ChainlinkOnChainService {
       throw new Error(`No RPC endpoints for chain ${chainId}`);
     }
 
+    if (signal?.aborted) {
+      throw new Error(`Request aborted for chain ${chainId}`);
+    }
+
     const startIndex = this.currentEndpointIndex[chainId] || 0;
     let lastError: Error | null = null;
 
     for (let i = 0; i < endpoints.length; i++) {
+      if (signal?.aborted) {
+        throw new Error(`Request aborted for chain ${chainId}`);
+      }
+
       const endpointIndex = (startIndex + i) % endpoints.length;
       const endpoint = endpoints[endpointIndex];
 
@@ -199,6 +208,10 @@ export class ChainlinkOnChainService {
 
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), this.requestTimeout);
+
+      if (signal) {
+        signal.addEventListener('abort', () => controller.abort(), { once: true });
+      }
 
       try {
         const response = await fetch(endpoint, {
@@ -239,7 +252,10 @@ export class ChainlinkOnChainService {
         this.endpointHealth[key] = false;
         this.endpointFailureTime[key] = Date.now();
 
-        if (error instanceof Error && error.name === 'AbortError') {
+        if (error instanceof Error && (error.name === 'AbortError' || signal?.aborted)) {
+          if (signal?.aborted) {
+            throw new Error(`Request aborted for chain ${chainId}`);
+          }
           logger.warn(`RPC endpoint ${endpoint} timed out after ${this.requestTimeout}ms`, {
             chainId,
             endpoint,
@@ -258,8 +274,13 @@ export class ChainlinkOnChainService {
     throw lastError || new Error(`All RPC endpoints failed for chain ${chainId}`);
   }
 
-  private async ethCall(chainId: number, to: `0x${string}`, data: `0x${string}`): Promise<string> {
-    return this.rpcCallWithFallback<string>(chainId, 'eth_call', [{ to, data }, 'latest']);
+  private async ethCall(
+    chainId: number,
+    to: `0x${string}`,
+    data: `0x${string}`,
+    signal?: AbortSignal
+  ): Promise<string> {
+    return this.rpcCallWithFallback<string>(chainId, 'eth_call', [{ to, data }, 'latest'], signal);
   }
 
   private getCached<T>(key: string): T | null {
@@ -274,7 +295,11 @@ export class ChainlinkOnChainService {
     this.cache.set(key, { data, timestamp: Date.now() });
   }
 
-  async getPrice(symbol: string, chainId: number = 1): Promise<ChainlinkPriceData | null> {
+  async getPrice(
+    symbol: string,
+    chainId: number = 1,
+    signal?: AbortSignal
+  ): Promise<ChainlinkPriceData | null> {
     const cacheKey = `price-${symbol}-${chainId}`;
     const cached = this.getCached<ChainlinkPriceData>(cacheKey);
     if (cached) return cached;
@@ -285,12 +310,11 @@ export class ChainlinkOnChainService {
     }
 
     try {
-      // 并行获取价格和元数据
       const [roundData, decimalsData, descriptionData, versionData] = await Promise.all([
-        this.ethCall(chainId, feed.address, encodeAggregatorCall('latestRoundData')),
-        this.ethCall(chainId, feed.address, encodeAggregatorCall('decimals')),
-        this.ethCall(chainId, feed.address, encodeAggregatorCall('description')),
-        this.ethCall(chainId, feed.address, encodeAggregatorCall('version')),
+        this.ethCall(chainId, feed.address, encodeAggregatorCall('latestRoundData'), signal),
+        this.ethCall(chainId, feed.address, encodeAggregatorCall('decimals'), signal),
+        this.ethCall(chainId, feed.address, encodeAggregatorCall('description'), signal),
+        this.ethCall(chainId, feed.address, encodeAggregatorCall('version'), signal),
       ]);
 
       const decoded = decodeLatestRoundData(roundData);

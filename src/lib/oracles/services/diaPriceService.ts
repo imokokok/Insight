@@ -102,7 +102,11 @@ export class DIAPriceService {
     });
   }
 
-  async getAssetPrice(symbol: string, chain?: Blockchain): Promise<PriceData | null> {
+  async getAssetPrice(
+    symbol: string,
+    chain?: Blockchain,
+    signal?: AbortSignal
+  ): Promise<PriceData | null> {
     const cacheKey = `price:${symbol}:${chain || 'default'}`;
     const cached = this.getFromCache<PriceData>(cacheKey);
     if (cached) {
@@ -110,9 +114,18 @@ export class DIAPriceService {
       return cached;
     }
 
+    if (signal?.aborted) {
+      logger.debug('Request aborted before fetch', { symbol });
+      return null;
+    }
+
     try {
       const result = await withRetry(
         async () => {
+          if (signal?.aborted) {
+            return null;
+          }
+
           const upperSymbol = symbol.toUpperCase();
 
           let url: string;
@@ -136,6 +149,7 @@ export class DIAPriceService {
           try {
             const data = await fetchWithTimeout<DIAAssetQuotation | null>(url, {
               timeout: this.requestTimeout,
+              signal,
             });
 
             if (!data) {
@@ -146,6 +160,7 @@ export class DIAPriceService {
                 });
                 const fallbackData = await fetchWithTimeout<DIAAssetQuotation | null>(fallbackUrl, {
                   timeout: this.requestTimeout,
+                  signal,
                 });
                 if (!fallbackData) {
                   logger.warn('Asset not found in DIA (fallback)', { symbol, chain, fallbackUrl });
@@ -164,6 +179,9 @@ export class DIAPriceService {
             logger.info('DIA API data received', { symbol: upperSymbol, price: data.Price });
             return this.parseAssetQuotation(data, chain);
           } catch (fetchError) {
+            if (signal?.aborted) {
+              return null;
+            }
             if (fallbackUrl) {
               try {
                 logger.info('Primary DIA URL error, trying fallback', {
@@ -172,6 +190,7 @@ export class DIAPriceService {
                 });
                 const fallbackData = await fetchWithTimeout<DIAAssetQuotation | null>(fallbackUrl, {
                   timeout: this.requestTimeout,
+                  signal,
                 });
                 if (fallbackData) {
                   logger.info('DIA API data received (fallback after error)', {

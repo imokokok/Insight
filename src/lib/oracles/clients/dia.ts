@@ -26,16 +26,15 @@ export class DIAClient extends BaseOracleClient {
     super(config);
   }
 
-  /**
-   * 获取代币价格
-   * 当查询 DIA 代币价格时，直接使用 Binance API
-   * 其他代币使用 DIA 数据服务
-   */
   async getPrice(
     symbol: string,
     chain?: Blockchain,
-    _options?: { signal?: AbortSignal }
+    options?: { signal?: AbortSignal }
   ): Promise<PriceData> {
+    if (options?.signal?.aborted) {
+      throw this.createError('Request was aborted', 'NETWORK_ERROR', { retryable: false });
+    }
+
     const upperSymbol = symbol.toUpperCase();
 
     if (upperSymbol === 'DIA') {
@@ -73,7 +72,7 @@ export class DIAClient extends BaseOracleClient {
 
       const diaService = getDIADataService();
 
-      const livePrice = await diaService.getAssetPrice(symbol, chain);
+      const livePrice = await diaService.getAssetPrice(symbol, chain, options?.signal);
 
       if (livePrice) {
         logger.info(`Successfully fetched price for ${upperSymbol}`, { price: livePrice.price });
@@ -101,8 +100,12 @@ export class DIAClient extends BaseOracleClient {
     symbol: string,
     chain?: Blockchain,
     period: number = 24,
-    _options?: { signal?: AbortSignal }
+    options?: { signal?: AbortSignal }
   ): Promise<PriceData[]> {
+    if (options?.signal?.aborted) {
+      return [];
+    }
+
     try {
       const historicalPrices = await binanceMarketService.getHistoricalPricesByHours(
         symbol,

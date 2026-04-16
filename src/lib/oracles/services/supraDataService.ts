@@ -7,6 +7,7 @@ import {
   SUPRA_PAIR_INDEX_MAP,
   SUPRA_INDEX_TO_SYMBOL,
 } from '../constants/supraConstants';
+import { withOracleRetry, ORACLE_RETRY_PRESETS } from '../utils/retry';
 
 import type { OracleCacheEntry } from '../base';
 import type SupraOracleClient from 'supra-oracle-sdk';
@@ -103,31 +104,50 @@ export class SupraDataService {
       return cached;
     }
 
+    if (signal?.aborted) {
+      throw new SupraApiError('Request aborted before fetch', 'ABORT_ERROR');
+    }
+
     try {
-      const client = await this.getOracleClient();
+      const result = await withOracleRetry(
+        async () => {
+          if (signal?.aborted) {
+            throw new SupraApiError('Request was aborted', 'ABORT_ERROR');
+          }
 
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
-      const combinedSignal = signal
-        ? AbortSignal.any([signal, controller.signal])
-        : controller.signal;
+          const client = await this.getOracleClient();
 
-      const racePromise = client.getOracleData(pairIndexes);
-      const abortPromise = new Promise<never>((_, reject) => {
-        combinedSignal.addEventListener('abort', () => {
-          clearTimeout(timeoutId);
-          reject(new SupraApiError('Request aborted or timed out', 'TIMEOUT_ERROR'));
-        });
-      });
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
 
-      const oracleData: SupraOraclePriceFeed[] = await Promise.race([racePromise, abortPromise]);
-      clearTimeout(timeoutId);
+          if (signal) {
+            signal.addEventListener('abort', () => controller.abort(), { once: true });
+          }
 
-      if (!oracleData || !Array.isArray(oracleData) || oracleData.length === 0) {
-        throw new SupraApiError('No price data returned from Supra DORA', 'NO_DATA');
-      }
+          try {
+            const oracleData: SupraOraclePriceFeed[] = await client.getOracleData(pairIndexes);
+            clearTimeout(timeoutId);
 
-      const results: SupraLatestPriceData[] = oracleData
+            if (!oracleData || !Array.isArray(oracleData) || oracleData.length === 0) {
+              throw new SupraApiError('No price data returned from Supra DORA', 'NO_DATA');
+            }
+
+            return oracleData;
+          } catch (error) {
+            clearTimeout(timeoutId);
+
+            if (signal?.aborted) {
+              throw new SupraApiError('Request was aborted', 'ABORT_ERROR');
+            }
+
+            throw error;
+          }
+        },
+        'supra:fetchLatestPrices',
+        ORACLE_RETRY_PRESETS.standard
+      );
+
+      const results: SupraLatestPriceData[] = result
         .map((feed) => {
           const pairIndex = parseInt(feed.pairIndex, 10);
           const symbol = SUPRA_INDEX_TO_SYMBOL[pairIndex] || `UNKNOWN_${pairIndex}`;

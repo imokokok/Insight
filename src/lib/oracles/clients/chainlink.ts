@@ -5,6 +5,7 @@ import {
   chainlinkOnChainService,
   type ChainlinkPriceData,
 } from '@/lib/oracles/services/chainlinkOnChainService';
+import { withOracleRetry, ORACLE_RETRY_PRESETS } from '@/lib/oracles/utils/retry';
 import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
 import { createLogger } from '@/lib/utils/logger';
 import { OracleProvider, Blockchain, OracleError } from '@/types/oracle';
@@ -185,17 +186,31 @@ export class ChainlinkClient extends BaseOracleClient {
   async getPrice(
     symbol: string,
     chain?: Blockchain,
-    _options?: { signal?: AbortSignal }
+    options?: { signal?: AbortSignal }
   ): Promise<PriceData> {
     if (!symbol) {
       throw this.createError('Symbol is required', 'INVALID_SYMBOL');
+    }
+
+    if (options?.signal?.aborted) {
+      throw this.createError('Request was aborted', 'NETWORK_ERROR', { retryable: false });
     }
 
     const chainId = this.getChainId(chain);
 
     if (this.useRealData && this.isPriceFeedSupported(symbol, chain)) {
       try {
-        const realData = await chainlinkOnChainService.getPrice(symbol, chainId);
+        const realData = await withOracleRetry(
+          async () => {
+            if (options?.signal?.aborted) {
+              throw this.createError('Request was aborted', 'NETWORK_ERROR', { retryable: false });
+            }
+            return chainlinkOnChainService.getPrice(symbol, chainId, options?.signal);
+          },
+          'chainlink:getPrice',
+          ORACLE_RETRY_PRESETS.standard
+        );
+
         if (!realData) {
           throw this.createError(
             `Invalid price data from Chainlink for ${symbol} on ${chain}. The price feed may be stale or return zero.`,
@@ -222,10 +237,14 @@ export class ChainlinkClient extends BaseOracleClient {
     symbol: string,
     chain?: Blockchain,
     period: number = 24,
-    _options?: { signal?: AbortSignal }
+    options?: { signal?: AbortSignal }
   ): Promise<PriceData[]> {
     if (!symbol) {
       throw this.createError('Symbol is required', 'INVALID_SYMBOL');
+    }
+
+    if (options?.signal?.aborted) {
+      return [];
     }
 
     try {

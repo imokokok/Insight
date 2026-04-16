@@ -71,18 +71,17 @@ export class PythClient extends BaseOracleClient {
     };
   }
 
-  /**
-   * 获取代币价格
-   * 当查询 PYTH 代币价格时，直接使用 Binance API
-   * 其他代币使用 Pyth 预言机 API
-   */
   async getPrice(
     symbol: string,
     chain?: Blockchain,
-    _options?: { signal?: AbortSignal }
+    options?: { signal?: AbortSignal }
   ): Promise<PriceData> {
     if (!symbol) {
       throw this.createError('Symbol is required', 'INVALID_SYMBOL');
+    }
+
+    if (options?.signal?.aborted) {
+      throw this.createError('Request was aborted', 'NETWORK_ERROR', { retryable: false });
     }
 
     const upperSymbol = symbol.toUpperCase();
@@ -114,7 +113,7 @@ export class PythClient extends BaseOracleClient {
     }
 
     try {
-      const realPrice = await this.pythDataService.getLatestPrice(symbol);
+      const realPrice = await this.pythDataService.getLatestPrice(symbol, options?.signal);
       if (realPrice) {
         if (!realPrice.confidenceInterval) {
           realPrice.confidenceInterval = this.generateConfidenceInterval(realPrice.price, symbol);
@@ -143,10 +142,14 @@ export class PythClient extends BaseOracleClient {
     symbol: string,
     chain?: Blockchain,
     period: number = 24,
-    _options?: { signal?: AbortSignal }
+    options?: { signal?: AbortSignal }
   ): Promise<PriceData[]> {
     if (!symbol) {
       throw this.createError('Symbol is required', 'INVALID_SYMBOL');
+    }
+
+    if (options?.signal?.aborted) {
+      return [];
     }
 
     try {

@@ -23,16 +23,15 @@ export class WINkLinkClient extends BaseOracleClient {
     super(config);
   }
 
-  /**
-   * 获取代币价格
-   * 当查询 WIN 代币价格时，直接使用 Binance API，不尝试调用 WINkLink 合约
-   * 其他代币按照现有逻辑执行
-   */
   async getPrice(
     symbol: string,
     chain?: Blockchain,
-    _options?: { signal?: AbortSignal }
+    options?: { signal?: AbortSignal }
   ): Promise<PriceData> {
+    if (options?.signal?.aborted) {
+      throw this.createError('Request was aborted', 'NETWORK_ERROR', { retryable: false });
+    }
+
     try {
       const upperSymbol = symbol.toUpperCase();
       const resolvedSymbol = WINKLINK_SYMBOL_ALIASES[upperSymbol] || upperSymbol;
@@ -54,7 +53,6 @@ export class WINkLinkClient extends BaseOracleClient {
           };
         }
 
-        // WIN 代币必须从 Binance 获取实时数据，不允许降级
         throw this.createError(
           `Failed to fetch WIN token price from Binance API. Real-time data is required.`,
           'NO_DATA_AVAILABLE',
@@ -62,15 +60,17 @@ export class WINkLinkClient extends BaseOracleClient {
         );
       }
 
-      // 必须从 WINkLink 合约获取实时数据，不允许降级到数据库
       const realDataService = getWINkLinkRealDataService();
-      const realPrice = await realDataService.getPriceFromContract(resolvedSymbol);
+      const realPrice = await realDataService.getPriceFromContract(
+        resolvedSymbol,
+        undefined,
+        options?.signal
+      );
 
       if (realPrice) {
         return realPrice;
       }
 
-      // 无法获取实时数据时直接报错，不允许使用旧数据
       throw this.createError(
         `Failed to fetch price from WINkLink contract for ${symbol}. ` +
           `Real-time data is required. Please check: 1) TRON RPC connection, 2) Contract address validity, 3) Symbol support.`,
@@ -78,7 +78,6 @@ export class WINkLinkClient extends BaseOracleClient {
         { retryable: true }
       );
     } catch (error) {
-      // 如果是我们已经格式化的错误，直接抛出
       if (error && typeof error === 'object' && 'code' in error) {
         throw error;
       }
@@ -93,8 +92,12 @@ export class WINkLinkClient extends BaseOracleClient {
     symbol: string,
     chain?: Blockchain,
     period: number = 24,
-    _options?: { signal?: AbortSignal }
+    options?: { signal?: AbortSignal }
   ): Promise<PriceData[]> {
+    if (options?.signal?.aborted) {
+      return [];
+    }
+
     try {
       // 统一使用 Binance API 获取历史价格数据（与其他预言机保持一致）
       const historicalPrices = await binanceMarketService.getHistoricalPricesByHours(

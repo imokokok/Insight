@@ -63,8 +63,12 @@ export class DIADataService {
     return DIADataService.instance;
   }
 
-  async getAssetPrice(symbol: string, chain?: Blockchain): Promise<PriceData | null> {
-    return this.priceService.getAssetPrice(symbol, chain);
+  async getAssetPrice(
+    symbol: string,
+    chain?: Blockchain,
+    signal?: AbortSignal
+  ): Promise<PriceData | null> {
+    return this.priceService.getAssetPrice(symbol, chain, signal);
   }
 
   async getForexRate(symbol: string): Promise<PriceData | null> {

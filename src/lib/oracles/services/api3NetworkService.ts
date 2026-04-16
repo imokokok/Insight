@@ -8,6 +8,26 @@ import { Blockchain } from '@/types/oracle';
 const logger = createLogger('API3NetworkService');
 
 const RPC_TIMEOUT_MS = 10000;
+const ENDPOINT_RECOVERY_TIME = 60000;
+
+const endpointHealth: Record<string, boolean> = {};
+const endpointFailureTime: Record<string, number> = {};
+
+function isEndpointHealthy(chainId: number, index: number): boolean {
+  const key = `${chainId}-${index}`;
+  const health = endpointHealth[key];
+
+  if (health === false) {
+    const lastFail = endpointFailureTime[key];
+    if (lastFail && Date.now() - lastFail > ENDPOINT_RECOVERY_TIME) {
+      endpointHealth[key] = true;
+      delete endpointFailureTime[key];
+      return true;
+    }
+    return false;
+  }
+  return true;
+}
 
 // API3 dAPI Proxy 合约 ABI (简化版，只包含read函数)
 const DAPI_PROXY_ABI = [
@@ -224,20 +244,39 @@ function decodeUint32(data: string): number {
   return parseInt(cleanData.slice(64, 128), 16);
 }
 
-/**
- * 执行RPC调用（带超时控制）
- */
-async function rpcCall(chainId: number, method: string, params: unknown[]): Promise<unknown> {
+async function rpcCall(
+  chainId: number,
+  method: string,
+  params: unknown[],
+  signal?: AbortSignal
+): Promise<unknown> {
   const endpoints = RPC_ENDPOINTS[chainId];
   if (!endpoints || endpoints.length === 0) {
     throw new Error(`No RPC endpoints for chain ${chainId}`);
   }
 
+  if (signal?.aborted) {
+    throw new Error(`Request aborted for chain ${chainId}`);
+  }
+
   let lastError: Error | null = null;
 
-  for (const endpoint of endpoints) {
+  for (let i = 0; i < endpoints.length; i++) {
+    if (signal?.aborted) {
+      throw new Error(`Request aborted for chain ${chainId}`);
+    }
+
+    if (!isEndpointHealthy(chainId, i)) {
+      continue;
+    }
+
+    const endpoint = endpoints[i];
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), RPC_TIMEOUT_MS);
+
+    if (signal) {
+      signal.addEventListener('abort', () => controller.abort(), { once: true });
+    }
 
     try {
       const response = await fetch(endpoint, {
@@ -266,15 +305,26 @@ async function rpcCall(chainId: number, method: string, params: unknown[]): Prom
         throw new Error(`RPC error: ${result.error.message}`);
       }
 
+      const key = `${chainId}-${i}`;
+      endpointHealth[key] = true;
+      delete endpointFailureTime[key];
+
       return result.result;
     } catch (error) {
       clearTimeout(timeoutId);
 
-      if (error instanceof Error && error.name === 'AbortError') {
+      if (error instanceof Error && (error.name === 'AbortError' || signal?.aborted)) {
+        if (signal?.aborted) {
+          throw new Error(`Request aborted for chain ${chainId}`);
+        }
         lastError = new Error(`RPC request timed out after ${RPC_TIMEOUT_MS}ms`);
       } else {
         lastError = error instanceof Error ? error : new Error(String(error));
       }
+
+      const key = `${chainId}-${i}`;
+      endpointHealth[key] = false;
+      endpointFailureTime[key] = Date.now();
 
       logger.warn(`RPC endpoint ${endpoint} failed:`, lastError);
     }
@@ -289,18 +339,24 @@ async function rpcCall(chainId: number, method: string, params: unknown[]): Prom
 async function readDAPIPrice(
   proxyAddress: string,
   chainId: number,
-  dapiName: string
+  dapiName: string,
+  signal?: AbortSignal
 ): Promise<PriceReading | null> {
   try {
     const data = encodeFunctionData('read', DAPI_PROXY_ABI);
 
-    const result = await rpcCall(chainId, 'eth_call', [
-      {
-        to: proxyAddress,
-        data,
-      },
-      'latest',
-    ]);
+    const result = await rpcCall(
+      chainId,
+      'eth_call',
+      [
+        {
+          to: proxyAddress,
+          data,
+        },
+        'latest',
+      ],
+      signal
+    );
 
     if (typeof result !== 'string') {
       throw new Error('Invalid RPC response');
@@ -363,7 +419,8 @@ function computeProxyAddress(dapiName: string, chainId: number): string | null {
  */
 export async function getAPI3Price(
   symbol: string,
-  chain: Blockchain = Blockchain.ETHEREUM
+  chain: Blockchain = Blockchain.ETHEREUM,
+  signal?: AbortSignal
 ): Promise<{
   price: number;
   timestamp: number;
@@ -398,7 +455,7 @@ export async function getAPI3Price(
     logger.info(`Computed proxy address for ${dapiName} on ${chain}: ${proxyAddress}`);
 
     // 读取价格
-    const reading = await readDAPIPrice(proxyAddress, chainId, dapiName);
+    const reading = await readDAPIPrice(proxyAddress, chainId, dapiName, signal);
 
     if (!reading) {
       return null;
