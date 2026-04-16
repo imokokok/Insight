@@ -439,20 +439,23 @@ export const supraSymbols = [
 ] as const;
 
 export const SUPRA_AVAILABLE_PAIRS: Record<string, string[]> = {
+  // 项目 RPC 支持的链（与 .env.local 中的 ALCHEMY_*_RPC 对应）
   ethereum: [...supraSymbols],
   arbitrum: [...supraSymbols],
   optimism: [...supraSymbols],
   polygon: [...supraSymbols],
+  base: [...supraSymbols],
   solana: [...supraSymbols],
-  avalanche: [...supraSymbols],
   'bnb-chain': [...supraSymbols],
+  avalanche: [...supraSymbols],
+  // RedStone 特有链
+  zksync: [...supraSymbols],
+  scroll: [...supraSymbols],
+  mantle: [...supraSymbols],
+  linea: [...supraSymbols],
+  // 其他 Supra 支持的链
   aptos: [...supraSymbols],
   sui: [...supraSymbols],
-  base: [...supraSymbols],
-  scroll: [...supraSymbols],
-  zksync: [...supraSymbols],
-  linea: [...supraSymbols],
-  mantle: [...supraSymbols],
   blast: [...supraSymbols],
 };
 

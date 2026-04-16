@@ -25,32 +25,22 @@ export interface SupraTokenOnChainData {
 
 export class SupraClient extends BaseOracleClient {
   name = OracleProvider.SUPRA;
+  // 项目 RPC 支持的链（与 .env.local 中的 ALCHEMY_*_RPC 对应）
   supportedChains = [
+    // 主要链（有 ALCHEMY RPC）
     Blockchain.ETHEREUM,
     Blockchain.ARBITRUM,
     Blockchain.OPTIMISM,
     Blockchain.POLYGON,
-    Blockchain.AVALANCHE,
     Blockchain.BASE,
+    Blockchain.SOLANA,
     Blockchain.BNB_CHAIN,
-    Blockchain.FANTOM,
-    Blockchain.SCROLL,
+    Blockchain.AVALANCHE,
+    // RedStone 特有链
     Blockchain.ZKSYNC,
+    Blockchain.SCROLL,
     Blockchain.MANTLE,
     Blockchain.LINEA,
-    Blockchain.SOLANA,
-    Blockchain.APTOS,
-    Blockchain.SUI,
-    Blockchain.INJECTIVE,
-    Blockchain.SEI,
-    Blockchain.CELO,
-    Blockchain.GNOSIS,
-    Blockchain.CRONOS,
-    Blockchain.MOONBEAM,
-    Blockchain.KAVA,
-    Blockchain.METIS,
-    Blockchain.BLAST,
-    Blockchain.STARKNET,
   ];
 
   defaultUpdateIntervalMinutes = 5;
