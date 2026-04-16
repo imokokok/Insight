@@ -399,5 +399,13 @@
   },
   "common": {
     "comingSoon": "Coming Soon"
+  },
+  "errorBoundary": {
+    "tryAgain": "Try Again",
+    "retry": "Retry",
+    "backToHome": "Back to Home"
+  },
+  "mobileInteraction": {
+    "current": "Current"
   }
 }
