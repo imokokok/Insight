@@ -147,11 +147,12 @@ export function useCrossChainDataState(): UseCrossChainDataStateReturn {
     return () => clearInterval(intervalId);
   }, [refreshInterval, fetchData]);
 
+  // 当支持的链变化时（包括切换预言机），自动更新可见链为所有支持的链
   useEffect(() => {
-    if (supportedChains.length > 0 && visibleChains.length === 0) {
+    if (supportedChains.length > 0) {
       setVisibleChains([...supportedChains]);
     }
-  }, [supportedChains, visibleChains.length, setVisibleChains]);
+  }, [supportedChains, setVisibleChains]);
 
   useEffect(() => {
     if (supportedChains.length > 0 && !selectedBaseChain) {
