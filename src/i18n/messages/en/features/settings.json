@@ -1,4 +1,8 @@
 {
+  "meta": {
+    "title": "Settings - Insight",
+    "description": "Manage your account settings"
+  },
   "settings": {
     "profile": {
       "title": "Profile",

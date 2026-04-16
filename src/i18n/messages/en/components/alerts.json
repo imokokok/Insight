@@ -1,4 +1,8 @@
 {
+  "meta": {
+    "title": "Alerts - Insight",
+    "description": "Monitor and manage your price alerts"
+  },
   "alerts": {
     "page": {
       "title": "Price Alerts",

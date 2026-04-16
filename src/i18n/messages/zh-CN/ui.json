@@ -395,5 +395,13 @@
   },
   "common": {
     "comingSoon": "即将上线"
+  },
+  "errorBoundary": {
+    "tryAgain": "重试",
+    "retry": "重试",
+    "backToHome": "返回首页"
+  },
+  "mobileInteraction": {
+    "current": "当前"
   }
 }

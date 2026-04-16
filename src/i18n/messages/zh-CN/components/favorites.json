@@ -1,4 +1,8 @@
 {
+  "meta": {
+    "title": "收藏 - Insight",
+    "description": "管理您收藏的预言机配置"
+  },
   "favorites": {
     "page": {
       "title": "我的收藏",
