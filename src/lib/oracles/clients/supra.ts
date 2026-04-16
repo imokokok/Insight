@@ -136,7 +136,7 @@ export class SupraClient extends BaseOracleClient {
   ): Promise<PriceData[]> {
     const upperSymbol = symbol.toUpperCase();
 
-    if (!SUPRA_PAIR_INDEX_MAP[upperSymbol]) {
+    if (SUPRA_PAIR_INDEX_MAP[upperSymbol] === undefined) {
       logger.warn(`Symbol '${upperSymbol}' is not supported by Supra`);
       return [];
     }

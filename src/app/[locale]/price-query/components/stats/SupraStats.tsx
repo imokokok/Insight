@@ -1,4 +1,4 @@
-import { Hash, Settings, Globe, Database, Clock, Activity } from 'lucide-react';
+import { Hash, Settings, Clock, Database, Timer, FileDigit } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
 import { StatCard } from '@/components/ui/StatCard';
@@ -10,50 +10,61 @@ interface SupraStatsProps {
 }
 
 export function SupraStats({ data }: SupraStatsProps) {
-  const { decimals, supportedChainsCount, pairIndex, pairName, dataAge, source } = data;
+  const { price, decimals, pairIndex, source, dataAge, lastUpdated } = data;
   const t = useTranslations('priceQuery.stats');
 
   const dataAgeRating = dataAge !== null ? getStatRating('latency', dataAge) : null;
 
+  const formatTimestamp = (timestamp: number) => {
+    if (!timestamp) return '-';
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString('zh-CN', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    });
+  };
+
+  const formatPrice = (value: number) => {
+    if (!value || isNaN(value)) return '-';
+    return `$${value.toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: decimals || 2,
+    })}`;
+  };
+
   return (
     <>
       <StatCard
-        icon={Hash}
+        icon={Database}
         iconColor="text-blue-500"
-        title={t('pairIndex')}
-        value={`#${pairIndex}`}
-        description={t('pairIndexDesc')}
+        title={t('supraPrice')}
+        value={formatPrice(price)}
+        description={t('supraPriceDesc')}
       />
       <StatCard
-        icon={Settings}
+        icon={FileDigit}
         iconColor="text-amber-500"
         title={t('pricePrecision')}
         value={t('precisionDigits', { count: decimals })}
         description={t('pricePrecisionDesc')}
       />
       <StatCard
-        icon={Globe}
+        icon={Hash}
         iconColor="text-indigo-500"
-        title={t('supportedChains')}
-        value={t('supportedChainsValue', { count: supportedChainsCount })}
-        description={t('supportedChainsDesc', { oracle: 'Supra' })}
-      />
-      <StatCard
-        icon={Activity}
-        iconColor="text-teal-500"
-        title={t('tradingPair')}
-        value={pairName}
-        description={t('tradingPairDesc')}
-      />
-      <StatCard
-        icon={Database}
-        iconColor="text-purple-500"
-        title={t('dataSource')}
-        value={source}
-        description={t('supraDataSourceDesc')}
+        title={t('pairIndex')}
+        value={`#${pairIndex}`}
+        description={t('pairIndexDesc')}
       />
       <StatCard
         icon={Clock}
+        iconColor="text-teal-500"
+        title={t('lastUpdated')}
+        value={formatTimestamp(lastUpdated)}
+        description={t('lastUpdatedDesc')}
+      />
+      <StatCard
+        icon={Timer}
         iconColor="text-rose-500"
         title={t('dataAge')}
         value={
@@ -61,6 +72,13 @@ export function SupraStats({ data }: SupraStatsProps) {
         }
         description={t('dataAgeDesc')}
         rating={dataAgeRating}
+      />
+      <StatCard
+        icon={Database}
+        iconColor="text-purple-500"
+        title={t('dataSource')}
+        value={source}
+        description={t('supraDataSourceDesc')}
       />
     </>
   );
