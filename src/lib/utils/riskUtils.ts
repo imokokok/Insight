@@ -102,14 +102,3 @@ export function getRiskLevel(score: number): RiskLevel {
   if (score <= 60) return 'medium';
   return 'high';
 }
-
-export function getRiskLevelColor(level: RiskLevel): string {
-  switch (level) {
-    case 'low':
-      return 'bg-success-100 text-success-700';
-    case 'medium':
-      return 'bg-warning-100 text-warning-700';
-    case 'high':
-      return 'bg-danger-100 text-danger-700';
-  }
-}

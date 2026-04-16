@@ -446,5 +446,3 @@ export class PerformanceMetricsCalculator {
     };
   }
 }
-
-export const performanceMetricsCalculator = new PerformanceMetricsCalculator();

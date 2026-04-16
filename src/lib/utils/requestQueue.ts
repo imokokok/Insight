@@ -267,15 +267,4 @@ export function getRequestQueue(config?: RequestQueueConfig): RequestQueue {
   return globalQueue;
 }
 
-export function createRequestQueue(config?: RequestQueueConfig): RequestQueue {
-  return new RequestQueue(config);
-}
-
-export function resetGlobalQueue(): void {
-  if (globalQueue) {
-    globalQueue.clear();
-    globalQueue = null;
-  }
-}
-
 export type { RequestQueueConfig, RequestQueueStats };

@@ -107,38 +107,6 @@ export enum ErrorCode {
   INVALID_JSON = 'INVALID_JSON',
 }
 
-export const ERROR_CODE_TO_HTTP_STATUS: Record<ErrorCode, HttpStatusCode> = {
-  [ErrorCode.BAD_REQUEST]: HttpStatusCode.BAD_REQUEST,
-  [ErrorCode.UNAUTHORIZED]: HttpStatusCode.UNAUTHORIZED,
-  [ErrorCode.FORBIDDEN]: HttpStatusCode.FORBIDDEN,
-  [ErrorCode.NOT_FOUND]: HttpStatusCode.NOT_FOUND,
-  [ErrorCode.METHOD_NOT_ALLOWED]: HttpStatusCode.METHOD_NOT_ALLOWED,
-  [ErrorCode.REQUEST_TIMEOUT]: HttpStatusCode.REQUEST_TIMEOUT,
-  [ErrorCode.CONFLICT]: HttpStatusCode.CONFLICT,
-  [ErrorCode.GONE]: HttpStatusCode.GONE,
-  [ErrorCode.PAYLOAD_TOO_LARGE]: HttpStatusCode.PAYLOAD_TOO_LARGE,
-  [ErrorCode.UNSUPPORTED_MEDIA_TYPE]: HttpStatusCode.UNSUPPORTED_MEDIA_TYPE,
-  [ErrorCode.UNPROCESSABLE_ENTITY]: HttpStatusCode.UNPROCESSABLE_ENTITY,
-  [ErrorCode.RATE_LIMIT_EXCEEDED]: HttpStatusCode.RATE_LIMIT_EXCEEDED,
-  [ErrorCode.INTERNAL_ERROR]: HttpStatusCode.INTERNAL_SERVER_ERROR,
-  [ErrorCode.BAD_GATEWAY]: HttpStatusCode.BAD_GATEWAY,
-  [ErrorCode.SERVICE_UNAVAILABLE]: HttpStatusCode.SERVICE_UNAVAILABLE,
-  [ErrorCode.GATEWAY_TIMEOUT]: HttpStatusCode.GATEWAY_TIMEOUT,
-  [ErrorCode.VALIDATION_ERROR]: HttpStatusCode.BAD_REQUEST,
-  [ErrorCode.AUTHENTICATION_ERROR]: HttpStatusCode.UNAUTHORIZED,
-  [ErrorCode.AUTHORIZATION_ERROR]: HttpStatusCode.FORBIDDEN,
-  [ErrorCode.ORACLE_CLIENT_ERROR]: HttpStatusCode.INTERNAL_SERVER_ERROR,
-  [ErrorCode.PRICE_FETCH_ERROR]: HttpStatusCode.BAD_GATEWAY,
-  [ErrorCode.UNSUPPORTED_CHAIN]: HttpStatusCode.BAD_REQUEST,
-  [ErrorCode.UNSUPPORTED_SYMBOL]: HttpStatusCode.BAD_REQUEST,
-  [ErrorCode.REDSTONE_API_ERROR]: HttpStatusCode.BAD_GATEWAY,
-  [ErrorCode.NETWORK_ERROR]: HttpStatusCode.SERVICE_UNAVAILABLE,
-  [ErrorCode.TIMEOUT_ERROR]: HttpStatusCode.GATEWAY_TIMEOUT,
-  [ErrorCode.CONNECTION_ERROR]: HttpStatusCode.SERVICE_UNAVAILABLE,
-  [ErrorCode.UNKNOWN_ERROR]: HttpStatusCode.INTERNAL_SERVER_ERROR,
-  [ErrorCode.INVALID_JSON]: HttpStatusCode.BAD_REQUEST,
-};
-
 export const HTTP_STATUS_TO_CATEGORY: Record<number, ErrorCategory> = {
   400: 'client',
   401: 'auth',

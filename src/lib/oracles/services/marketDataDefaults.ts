@@ -41,16 +41,6 @@ export const DEFAULT_MARKET_SHARE_DATA: MarketShareDataItem[] = [];
 
 export const DEFAULT_CHAIN_SUPPORT_DATA: ChainSupportDataItem[] = [];
 
-export const TVS_TREND_DATA_BY_RANGE: Record<TimeRangeKey, TvsTrendDataPoint[]> = {
-  '1H': [],
-  '24H': [],
-  '7D': [],
-  '30D': [],
-  '90D': [],
-  '1Y': [],
-  ALL: [],
-};
-
 export const CACHE_CONFIG = {
   marketShare: {
     staleTime: 5 * 60 * 1000,
