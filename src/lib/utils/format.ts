@@ -104,18 +104,6 @@ export function formatCompactNumberWithDecimals(value: number, decimals: number 
  * @param decimals - Number of decimal places (default: 2)
  * @returns Compact currency string with $ prefix (e.g., $1.2M)
  */
-export function formatCompactCurrency(value: number, decimals: number = 2): string {
-  if (!isFiniteNumber(value)) return '—';
-  if (value === 0) return '$0';
-
-  const absValue = Math.abs(value);
-  const sign = value < 0 ? '-' : '';
-
-  if (absValue >= 1e9) return `${sign}$${(absValue / 1e9).toFixed(decimals)}B`;
-  if (absValue >= 1e6) return `${sign}$${(absValue / 1e6).toFixed(decimals)}M`;
-  if (absValue >= 1e3) return `${sign}$${(absValue / 1e3).toFixed(decimals)}K`;
-  return `${sign}$${absValue.toLocaleString()}`;
-}
 
 export function formatPrice(price: number): string {
   if (price <= 0) return '-';

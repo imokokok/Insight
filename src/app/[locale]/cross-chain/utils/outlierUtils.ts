@@ -5,18 +5,6 @@ export const isOutlier = (zScore: number | null, threshold: number = 2): boolean
   return Math.abs(zScore) > threshold;
 };
 
-export const isOutlierIQR = (
-  value: number,
-  q1: number,
-  q3: number,
-  multiplier: number = 1.5
-): boolean => {
-  const iqr = q3 - q1;
-  const lowerBound = q1 - multiplier * iqr;
-  const upperBound = q3 + multiplier * iqr;
-  return value < lowerBound || value > upperBound;
-};
-
 export const detectOutliersIQR = (
   prices: number[],
   multiplier: number = 1.5

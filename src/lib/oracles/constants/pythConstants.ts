@@ -79,7 +79,6 @@ export const PYTH_PRICE_FEED_IDS: Record<string, string> = {
 
 export const HERMES_API_URL = 'https://hermes.pyth.network';
 export const HERMES_WS_URL = 'wss://hermes.pyth.network/ws';
-export const PYTHNET_RPC_URL = 'https://api.pythnet.pyth.network';
 
 export const CACHE_TTL = {
   PRICE: 5000,

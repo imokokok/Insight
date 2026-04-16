@@ -148,14 +148,6 @@ export function formatTimeAgo(
   }
 }
 
-export function getTimeAgo(
-  input: Date | number,
-  t: (key: string, params?: Record<string, number>) => string
-): string {
-  const diff = getTimeAgoDiff(input);
-  return formatTimeAgo(diff, t);
-}
-
 export function isSeconds(timestamp: number): boolean {
   return timestamp < 1e12;
 }

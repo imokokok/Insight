@@ -91,7 +91,6 @@ export { getOracleColor } from './colors';
 // Performance Metrics Calculator
 export {
   PerformanceMetricsCalculator,
-  performanceMetricsCalculator,
   type CalculatedPerformanceMetrics,
   type PriceHistoryEntry,
   type MetricsCalculationConfig,

@@ -49,35 +49,6 @@ export function useDateFormatter() {
  * Server-side date formatting functions
  * Use these when you need to format dates outside of React components
  */
-export function formatDateServer(
-  date: Date | number,
-  locale: string,
-  options?: Intl.DateTimeFormatOptions
-): string {
-  const d = typeof date === 'number' ? new Date(date) : date;
-  const dateTimeLocale = locale === 'zh-CN' ? 'zh-CN' : 'en-US';
-  return d.toLocaleDateString(dateTimeLocale, options);
-}
-
-export function formatTimeServer(
-  date: Date | number,
-  locale: string,
-  options?: Intl.DateTimeFormatOptions
-): string {
-  const d = typeof date === 'number' ? new Date(date) : date;
-  const dateTimeLocale = locale === 'zh-CN' ? 'zh-CN' : 'en-US';
-  return d.toLocaleTimeString(dateTimeLocale, options);
-}
-
-export function formatDateTimeServer(
-  date: Date | number,
-  locale: string,
-  options?: Intl.DateTimeFormatOptions
-): string {
-  const d = typeof date === 'number' ? new Date(date) : date;
-  const dateTimeLocale = locale === 'zh-CN' ? 'zh-CN' : 'en-US';
-  return d.toLocaleString(dateTimeLocale, options);
-}
 
 export function formatDate(date: Date | number | string): string {
   let d: Date;

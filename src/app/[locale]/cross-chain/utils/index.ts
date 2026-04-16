@@ -29,7 +29,7 @@ export {
   approximatePValue,
 } from './statisticsUtils';
 
-export { isOutlier, isOutlierIQR, detectOutliersIQR, detectOutliersZScore } from './outlierUtils';
+export { isOutlier, detectOutliersIQR, detectOutliersZScore } from './outlierUtils';
 
 export {
   calculatePearsonCorrelation,

@@ -22,10 +22,9 @@ import {
 
 const logger = createLogger('OracleHandlers');
 
-// 使用统一的缓存配置
-export const PRICE_CACHE_TTL = ORACLE_CACHE_TTL.PRICE;
-export const HISTORY_CACHE_TTL = ORACLE_CACHE_TTL.HISTORICAL;
-export const HISTORY_STALE_THRESHOLD = 5 * 60 * 1000;
+const PRICE_CACHE_TTL = ORACLE_CACHE_TTL.PRICE;
+const HISTORY_CACHE_TTL = ORACLE_CACHE_TTL.HISTORICAL;
+const HISTORY_STALE_THRESHOLD = 5 * 60 * 1000;
 
 export interface OracleQueryParams {
   provider: OracleProvider;
