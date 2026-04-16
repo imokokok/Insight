@@ -201,7 +201,9 @@ export function LiveStatusBar({
         <span className="font-mono">--:--:-- UTC</span>
       </div>
       <div className="flex items-center gap-2">
-        <span>{t('latency')}: {formatLatency(latency)}</span>
+        <span>
+          {t('liveStatus.latency')}: {formatLatency(latency)}
+        </span>
       </div>
       <div className="flex items-center gap-2">
         <StatusIcon className="w-3 h-3" style={{ color: status.color }} />
