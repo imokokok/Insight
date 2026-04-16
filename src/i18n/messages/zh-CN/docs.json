@@ -1,4 +1,8 @@
 {
+  "meta": {
+    "title": "文档 - Insight",
+    "description": "了解如何使用 Insight"
+  },
   "docs": {
     "hero": {
       "title": "文档中心",

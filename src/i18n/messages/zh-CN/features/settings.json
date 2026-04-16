@@ -1,4 +1,8 @@
 {
+  "meta": {
+    "title": "设置 - Insight",
+    "description": "管理您的账户设置"
+  },
   "settings": {
     "profile": {
       "title": "个人资料",

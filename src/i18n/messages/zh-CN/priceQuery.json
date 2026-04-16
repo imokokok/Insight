@@ -118,8 +118,6 @@
       "dataPoints": "数据点数",
       "consistencyRating": "一致性评级",
       "absoluteValue": "绝对值",
-      "maxDifference": "最大差异",
-      "avgDifference": "平均差异",
       "queryDuration": "查询耗时",
       "change24h": "24小时涨跌",
       "volatility": "波动率",
@@ -138,7 +136,6 @@
       "confidenceAbs": "置信区间",
       "publishTime": "发布时间",
       "confidenceWidth": "价差百分比",
-      "publisherCount": "发布者数量",
       "confidenceScore": "置信度",
       "dapiName": "dAPI 名称",
       "proxyAddress": "Proxy 地址",
@@ -202,7 +199,9 @@
       "askPriceDesc": "RedStone 报出的卖出价格",
       "redstoneDataSourceDesc": "RedStone 数据提供商标识",
       "historicalDataSource": "(历史数据来源于 Binance API)",
-      "previousPeriod": "上一周期"
+      "previousPeriod": "上一周期",
+      "pairIndex": "交易对索引",
+      "dataSource": "数据来源"
     },
     "export": {
       "header": "价格查询导出",

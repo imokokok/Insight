@@ -1128,7 +1128,14 @@
       "dataError": "数据错误，请稍后重试。",
       "unknownError": "发生未知错误，请重试。",
       "retry": "重试"
-    }
+    },
+    "currentPrice": "当前价格",
+    "volume24h": "24h 交易量",
+    "dataSources": {
+      "title": "数据来源"
+    },
+    "noHistoricalData": "该交易对暂无历史数据",
+    "noHistoricalDataHint": "历史数据源可能不支持该代币"
   },
   "oracles": {
     "descriptions": {
@@ -1293,7 +1300,6 @@
     "noDataConfidence": "无数据",
     "legend": "图例说明",
     "confidenceProgress": "置信度进度: {value}%",
-    "responseTimeAriaLabel": "响应时间: {time}",
     "positiveDeviation": "正偏离",
     "negativeDeviation": "负偏离",
     "normalStatus": "正常",

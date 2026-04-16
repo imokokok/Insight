@@ -1,4 +1,8 @@
 {
+  "meta": {
+    "title": "警报 - Insight",
+    "description": "监控和管理您的价格警报"
+  },
   "alerts": {
     "page": {
       "title": "价格告警",

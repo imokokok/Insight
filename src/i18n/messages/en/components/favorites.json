@@ -1,4 +1,8 @@
 {
+  "meta": {
+    "title": "Favorites - Insight",
+    "description": "Manage your favorite oracle configurations"
+  },
   "favorites": {
     "page": {
       "title": "My Favorites",

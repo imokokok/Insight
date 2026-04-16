@@ -1,4 +1,8 @@
 {
+  "meta": {
+    "title": "Documentation - Insight",
+    "description": "Learn how to use Insight"
+  },
   "docs": {
     "hero": {
       "title": "Documentation Center",
