@@ -4,8 +4,6 @@ import { createClient } from '@supabase/supabase-js';
 
 import {
   ApiResponseBuilder,
-  CacheConfig as NewCacheConfig,
-  withCacheHeaders as newWithCacheHeaders,
   createCachedJsonResponse as newCreateCachedJsonResponse,
   type ApiErrorResponse,
   type ApiSuccessResponse,
@@ -70,11 +68,6 @@ export async function getUserId(request: NextRequest): Promise<string | null> {
   return user.id;
 }
 
-export {
-  ApiResponseBuilder,
-  NewCacheConfig as NewCacheConfig,
-  newWithCacheHeaders as withCacheHeadersNew,
-  newCreateCachedJsonResponse as createCachedJsonResponseNew,
-};
+export { ApiResponseBuilder, newCreateCachedJsonResponse as createCachedJsonResponseNew };
 
 export type { ApiSuccessResponse, ApiErrorResponse };

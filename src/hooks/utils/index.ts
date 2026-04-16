@@ -1,5 +1,4 @@
 export { useDebounce, useDebouncedCallback } from './useDebounce';
-export type { UseDebounceOptions } from './useDebounce';
 export {
   usePreferences,
   useDefaultOracle,
