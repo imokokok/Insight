@@ -118,11 +118,12 @@ export const formatPrice = (price: number): string => {
 };
 
 export const calculateStandardDeviation = (values: number[]): number => {
-  if (values.length === 0) return 0;
+  if (values.length < 2) return 0;
 
   const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
   const squaredDiffs = values.map((val) => Math.pow(val - mean, 2));
-  const variance = squaredDiffs.reduce((sum, val) => sum + val, 0) / values.length;
+  // 使用样本方差 (n-1) 而非总体方差 (n)，这是金融分析的标准做法
+  const variance = squaredDiffs.reduce((sum, val) => sum + val, 0) / (values.length - 1);
 
   return Math.sqrt(variance);
 };
@@ -131,14 +132,20 @@ export const calculateMovingAverage = (values: number[], period: number): number
   if (values.length < period) return values;
 
   const result: number[] = [];
+  let sum = 0;
 
   for (let i = 0; i < values.length; i++) {
     if (i < period - 1) {
       result.push(values[i]);
+      sum += values[i];
+    } else if (i === period - 1) {
+      // 第一个完整窗口
+      sum += values[i];
+      result.push(sum / period);
     } else {
-      const slice = values.slice(i - period + 1, i + 1);
-      const avg = slice.reduce((sum, val) => sum + val, 0) / period;
-      result.push(avg);
+      // 滑动窗口：新 sum = 旧 sum - 离开窗口的值 + 新进入窗口的值
+      sum = sum - values[i - period] + values[i];
+      result.push(sum / period);
     }
   }
 

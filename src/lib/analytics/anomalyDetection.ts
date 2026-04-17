@@ -242,10 +242,11 @@ export function detectPriceAnomalies(
         else if (absZScore > 2.5) level = 'medium';
         else level = 'low';
 
-        // 检查是否是连续异常 (去重)
-        const isDuplicate = anomalies.some(
-          (a) => Math.abs(a.timestamp - timestamps[priceIndex]) < 60000 // 1分钟内不重复
-        );
+        // 检查是否是连续异常 (去重) - O(1) 而非 O(n)
+        // 只需检查最近一条异常是否在 1 分钟内
+        const lastAnomaly = anomalies[anomalies.length - 1];
+        const isDuplicate =
+          lastAnomaly && Math.abs(lastAnomaly.timestamp - timestamps[priceIndex]) < 60000;
 
         if (!isDuplicate) {
           anomalies.push({
@@ -411,6 +412,44 @@ function calculateTrendSlope(data: number[]): number {
 }
 
 /**
+ * 从时间戳推断数据间隔（分钟）
+ */
+function inferDataIntervalMinutes(timestamps: number[]): number {
+  if (timestamps.length < 2) return 5; // 默认5分钟
+
+  // 计算相邻时间戳的平均间隔
+  let totalInterval = 0;
+  let count = 0;
+  for (let i = 1; i < Math.min(timestamps.length, 100); i++) {
+    const interval = (timestamps[i] - timestamps[i - 1]) / 60000; // 转换为分钟
+    if (interval > 0) {
+      totalInterval += interval;
+      count++;
+    }
+  }
+
+  const avgInterval = count > 0 ? totalInterval / count : 5;
+
+  // 四舍五入到常见间隔：1, 5, 15, 30, 60, 240, 1440 分钟
+  const commonIntervals = [1, 5, 15, 30, 60, 240, 1440];
+  const closest = commonIntervals.reduce((prev, curr) =>
+    Math.abs(curr - avgInterval) < Math.abs(prev - avgInterval) ? curr : prev
+  );
+
+  return closest;
+}
+
+/**
+ * 计算年化因子
+ * @param intervalMinutes 数据间隔（分钟）
+ * @returns 年化因子 sqrt(每年的期数)
+ */
+function getAnnualizationFactor(intervalMinutes: number): number {
+  const periodsPerYear = (365 * 24 * 60) / intervalMinutes;
+  return Math.sqrt(periodsPerYear);
+}
+
+/**
  * 检测波动率异常
  * 使用 Parkinson 波动率估计和 GARCH(1,1) 风格的波动率聚类检测
  * 参考: Parkinson (1980) - The Extreme Value Method
@@ -429,6 +468,10 @@ export function detectVolatilityAnomalies(
     if (prices.length < window * 2) {
       return [];
     }
+
+    // 从时间戳推断数据间隔，动态计算年化因子
+    const dataIntervalMinutes = inferDataIntervalMinutes(timestamps);
+    const annualizationFactor = getAnnualizationFactor(dataIntervalMinutes);
 
     // 计算 Parkinson 波动率 (使用 High-Low 范围更准确地估计波动率)
     const parkinsonVol: number[] = [];
@@ -459,7 +502,8 @@ export function detectVolatilityAnomalies(
 
       const n = highs.length;
       const parkinsonVariance = sumSquaredLogRange / (4 * n * Math.log(2));
-      const annualizedVol = Math.sqrt(parkinsonVariance) * Math.sqrt(365 * 24 * 12) * 100; // 年化，假设5分钟数据
+      // 使用动态计算的年化因子，而非硬编码的 5 分钟假设
+      const annualizedVol = Math.sqrt(parkinsonVariance) * annualizationFactor * 100;
       parkinsonVol.push(annualizedVol);
     }
 
@@ -504,10 +548,10 @@ export function detectVolatilityAnomalies(
           else if (volRatio > 1.5 || volRatio < 0.67) level = 'medium';
           else level = 'low';
 
-          // 去重检查
-          const isDuplicate = anomalies.some(
-            (a) => Math.abs(a.timestamp - timestamps[priceIndex]) < 300000 // 5分钟内不重复
-          );
+          // 去重检查 - O(1) 而非 O(n)，只需检查最近一条异常是否在 5 分钟内
+          const lastAnomaly = anomalies[anomalies.length - 1];
+          const isDuplicate =
+            lastAnomaly && Math.abs(lastAnomaly.timestamp - timestamps[priceIndex]) < 300000;
 
           if (!isDuplicate) {
             anomalies.push({

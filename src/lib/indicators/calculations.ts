@@ -17,11 +17,19 @@ export function calculateSMA(data: number[], period: number): number[] {
       continue;
     }
 
-    let sum = 0;
-    for (let j = 0; j < period; j++) {
-      sum += data[i - j];
+    if (i === period - 1) {
+      // 第一个完整窗口：计算总和
+      let sum = 0;
+      for (let j = 0; j < period; j++) {
+        sum += data[i - j];
+      }
+      result.push(sum / period);
+    } else {
+      // 滑动窗口：新 sum = 旧 sum - 离开窗口的值 + 新进入窗口的值
+      const prevSum = result[i - 1] * period;
+      const newSum = prevSum - data[i - period] + data[i];
+      result.push(newSum / period);
     }
-    result.push(sum / period);
   }
 
   return result;
@@ -272,18 +280,39 @@ export function calculateBollingerBands(
   const lower: number[] = [];
   const stdDev: number[] = [];
 
+  let sumSqDiff = 0;
+
   for (let i = 0; i < prices.length; i++) {
     if (i < period - 1) {
       upper.push(prices[i]);
       lower.push(prices[i]);
       stdDev.push(0);
-    } else {
-      const slice = prices.slice(i - period + 1, i + 1);
+    } else if (i === period - 1) {
+      // 第一个完整窗口：计算方差
       const mean = middle[i];
-      const squaredDiffs = slice.map((p) => Math.pow(p - mean, 2));
-      // 统一使用总体标准差 (除以 period) 以保持一致性
-      // 这是金融分析中布林带的标准做法
-      const variance = squaredDiffs.reduce((sum, d) => sum + d, 0) / period;
+      for (let j = 0; j < period; j++) {
+        sumSqDiff += Math.pow(prices[i - j] - mean, 2);
+      }
+      const variance = sumSqDiff / period;
+      const currentStdDev = Math.sqrt(variance);
+
+      upper.push(mean + multiplier * currentStdDev);
+      lower.push(mean - multiplier * currentStdDev);
+      stdDev.push(currentStdDev);
+    } else {
+      // 滑动窗口：使用 Welford 算法的增量更新思想
+      const mean = middle[i];
+      const prevMean = middle[i - 1];
+      const oldPrice = prices[i - period];
+      const newPrice = prices[i];
+
+      // 增量更新平方差和：减去离开窗口的贡献，加上新进入窗口的贡献
+      // 注意：由于均值也变化了，需要更精确的计算
+      const oldDiff = oldPrice - prevMean;
+      const newDiff = newPrice - mean;
+      sumSqDiff = sumSqDiff - oldDiff * oldDiff + newDiff * newDiff;
+
+      const variance = Math.max(0, sumSqDiff / period);
       const currentStdDev = Math.sqrt(variance);
 
       upper.push(mean + multiplier * currentStdDev);
@@ -415,14 +444,30 @@ export function calculateATR(prices: OHLCVDataPoint[], period: number = 14): ATR
 
 export function calculateRollingStdDev(prices: number[], period: number): number[] {
   const result: number[] = [];
+  let sum = 0;
+  let sumSq = 0;
+
   for (let i = 0; i < prices.length; i++) {
     if (i < period - 1) {
       result.push(NaN);
+      sum += prices[i];
+      sumSq += prices[i] * prices[i];
+    } else if (i === period - 1) {
+      // 第一个完整窗口
+      sum += prices[i];
+      sumSq += prices[i] * prices[i];
+      const mean = sum / period;
+      const variance = sumSq / period - mean * mean;
+      result.push(Math.sqrt(Math.max(0, variance)));
     } else {
-      const windowPrices = prices.slice(i - period + 1, i + 1);
-      const mean = windowPrices.reduce((a, b) => a + b, 0) / period;
-      const variance = windowPrices.reduce((sum, p) => sum + Math.pow(p - mean, 2), 0) / period;
-      result.push(Math.sqrt(variance));
+      // 滑动窗口：增量更新 sum 和 sumSq
+      const oldPrice = prices[i - period];
+      const newPrice = prices[i];
+      sum = sum - oldPrice + newPrice;
+      sumSq = sumSq - oldPrice * oldPrice + newPrice * newPrice;
+      const mean = sum / period;
+      const variance = sumSq / period - mean * mean;
+      result.push(Math.sqrt(Math.max(0, variance)));
     }
   }
   return result;
