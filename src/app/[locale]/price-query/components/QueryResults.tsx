@@ -34,6 +34,7 @@ interface QueryResultsProps {
   selectedSymbol: string;
   setSelectedSymbol: (symbol: string) => void;
   onRefresh: () => void;
+  onTimeRangeChange?: (hours: number) => void;
 }
 
 export function QueryResults({
@@ -45,6 +46,7 @@ export function QueryResults({
   selectedSymbol,
   setSelectedSymbol,
   onRefresh,
+  onTimeRangeChange,
 }: QueryResultsProps) {
   const {
     queryResults,
@@ -205,6 +207,7 @@ export function QueryResults({
               queryResults={queryResults}
               selectedTimeRange={selectedTimeRange}
               avgPrice={avgPrice}
+              onTimeRangeChange={onTimeRangeChange}
             />
           </div>
         </div>

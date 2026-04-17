@@ -334,6 +334,7 @@ export default function PriceQueryContent() {
             selectedSymbol={selectedSymbol}
             setSelectedSymbol={setSelectedSymbol}
             onRefresh={fetchQueryData}
+            onTimeRangeChange={setSelectedTimeRange}
           />
         </main>
       </div>
