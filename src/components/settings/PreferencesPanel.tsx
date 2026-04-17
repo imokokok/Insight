@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
 import {
   Globe,
@@ -70,17 +70,17 @@ const symbolOptions = allSymbols.map((symbol) => ({
   label: `${symbol}/USD`,
 }));
 
-const timeRangeOptionKeys = [
-  { value: '1h', key: 'settings.preferences.timeRange.hour1' },
-  { value: '6h', key: 'settings.preferences.timeRange.hour6' },
-  { value: '24h', key: 'settings.preferences.timeRange.day1' },
-  { value: '7d', key: 'settings.preferences.timeRange.day7' },
-  { value: '30d', key: 'settings.preferences.timeRange.day30' },
+const timeRangeOptions = [
+  { value: '1h', label: '1 Hour' },
+  { value: '6h', label: '6 Hours' },
+  { value: '24h', label: '24 Hours' },
+  { value: '7d', label: '7 Days' },
+  { value: '30d', label: '30 Days' },
 ];
 
-const languageOptionKeys = [
-  { value: 'zh-CN', key: 'settings.preferences.languages.zhCN' },
-  { value: 'en-US', key: 'settings.preferences.languages.en' },
+const languageOptions = [
+  { value: 'zh-CN', label: 'Chinese' },
+  { value: 'en-US', label: 'English' },
 ];
 
 const currencyOptions = [
@@ -91,12 +91,12 @@ const currencyOptions = [
   { value: 'GBP', label: 'GBP (£)' },
 ];
 
-const autoRefreshOptionKeys = [
-  { value: '0', key: 'settings.preferences.refreshInterval.off' },
-  { value: '10', key: 'settings.preferences.refreshInterval.sec10' },
-  { value: '30', key: 'settings.preferences.refreshInterval.sec30' },
-  { value: '60', key: 'settings.preferences.refreshInterval.min1' },
-  { value: '300', key: 'settings.preferences.refreshInterval.min5' },
+const autoRefreshOptions = [
+  { value: '0', label: 'Off' },
+  { value: '10', label: '10 seconds' },
+  { value: '30', label: '30 seconds' },
+  { value: '60', label: '1 minute' },
+  { value: '300', label: '5 minutes' },
 ];
 
 export function PreferencesPanel() {
@@ -111,21 +111,6 @@ export function PreferencesPanel() {
   const [error, setError] = useState<string | null>(null);
 
   const successTimerRef = useRef<NodeJS.Timeout | null>(null);
-
-  const timeRangeOptions = useMemo(
-    () => timeRangeOptionKeys.map((option) => ({ value: option.value, label: option.key })),
-    []
-  );
-
-  const languageOptions = useMemo(
-    () => languageOptionKeys.map((option) => ({ value: option.value, label: option.key })),
-    []
-  );
-
-  const autoRefreshOptions = useMemo(
-    () => autoRefreshOptionKeys.map((option) => ({ value: option.value, label: option.key })),
-    []
-  );
 
   const loadPreferences = useCallback(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -206,7 +191,7 @@ export function PreferencesPanel() {
         });
       }
 
-      setSuccess('settings.preferences.saveSuccess');
+      setSuccess('Preferences saved successfully');
 
       if (successTimerRef.current) {
         clearTimeout(successTimerRef.current);
@@ -214,7 +199,7 @@ export function PreferencesPanel() {
       successTimerRef.current = setTimeout(() => setSuccess(null), 3000);
     } catch (error) {
       console.error('Failed to save preferences:', error);
-      setError('settings.preferences.saveError');
+      setError('Failed to save preferences');
     } finally {
       setIsSaving(false);
     }
@@ -236,9 +221,9 @@ export function PreferencesPanel() {
             <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
               <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                 <Database className="w-5 h-5 text-gray-400" />
-                {'settings.preferences.title'}
+                Preferences
               </h2>
-              <p className="text-sm text-gray-500 mt-1">{'settings.preferences.subtitle'}</p>
+              <p className="text-sm text-gray-500 mt-1">Customize your default settings</p>
             </div>
 
             <div className="p-6 space-y-6">
@@ -259,7 +244,7 @@ export function PreferencesPanel() {
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
                     <Database className="w-4 h-4 text-gray-400" />
-                    {'settings.preferences.defaultOracle'}
+                    Default Oracle
                   </label>
                   <div className="grid grid-cols-5 gap-2">
                     {oracleOptions.map((option) => (
@@ -277,31 +262,31 @@ export function PreferencesPanel() {
                     ))}
                   </div>
                   <p className="text-xs text-gray-500 mt-2">
-                    {'settings.preferences.defaultOracleHint'}
+                    Select your preferred oracle provider for price queries
                   </p>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {'settings.preferences.defaultSymbol'}
+                    Default Symbol
                   </label>
                   <DropdownSelect
                     options={symbolOptions}
                     value={preferences.defaultSymbol}
                     onChange={(value) => updatePreference('defaultSymbol', value)}
                     searchable
-                    searchPlaceholder={'settings.preferences.searchSymbol'}
-                    placeholder={'settings.preferences.selectSymbol'}
+                    searchPlaceholder="Search symbol..."
+                    placeholder="Select symbol"
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    {'settings.preferences.defaultSymbolHint'}
+                    Your default trading pair for queries
                   </p>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                     <Clock className="w-4 h-4 text-gray-400" />
-                    {'settings.preferences.defaultTimeRange'}
+                    Default Time Range
                   </label>
                   <SegmentedControl
                     options={timeRangeOptions}
@@ -309,15 +294,13 @@ export function PreferencesPanel() {
                     onChange={(value) => updatePreference('defaultTimeRange', value as string)}
                     size="md"
                   />
-                  <p className="text-xs text-gray-500 mt-1">
-                    {'settings.preferences.defaultTimeRangeHint'}
-                  </p>
+                  <p className="text-xs text-gray-500 mt-1">Default time range for price charts</p>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                     <Globe className="w-4 h-4 text-gray-400" />
-                    {'settings.preferences.language'}
+                    Language
                   </label>
                   <SegmentedControl
                     options={languageOptions}
@@ -325,41 +308,35 @@ export function PreferencesPanel() {
                     onChange={(value) => updatePreference('language', value as string)}
                     size="md"
                   />
-                  <p className="text-xs text-gray-500 mt-1">
-                    {'settings.preferences.languageHint'}
-                  </p>
+                  <p className="text-xs text-gray-500 mt-1">Interface language preference</p>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                     <DollarSign className="w-4 h-4 text-gray-400" />
-                    {'settings.preferences.defaultCurrency'}
+                    Default Currency
                   </label>
                   <DropdownSelect
                     options={currencyOptions}
                     value={preferences.defaultCurrency}
                     onChange={(value) => updatePreference('defaultCurrency', value)}
-                    placeholder={'settings.preferences.selectCurrency'}
+                    placeholder="Select currency"
                   />
-                  <p className="text-xs text-gray-500 mt-1">
-                    {'settings.preferences.defaultCurrencyHint'}
-                  </p>
+                  <p className="text-xs text-gray-500 mt-1">Currency for displaying prices</p>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                     <RefreshCw className="w-4 h-4 text-gray-400" />
-                    {'settings.preferences.autoRefreshInterval'}
+                    Auto Refresh Interval
                   </label>
                   <DropdownSelect
                     options={autoRefreshOptions}
                     value={preferences.autoRefreshInterval}
                     onChange={(value) => updatePreference('autoRefreshInterval', value)}
-                    placeholder={'settings.preferences.selectRefreshInterval'}
+                    placeholder="Select refresh interval"
                   />
-                  <p className="text-xs text-gray-500 mt-1">
-                    {'settings.preferences.autoRefreshIntervalHint'}
-                  </p>
+                  <p className="text-xs text-gray-500 mt-1">How often to refresh price data</p>
                 </div>
               </div>
             </div>
@@ -376,7 +353,7 @@ export function PreferencesPanel() {
               ) : (
                 <Save className="w-4 h-4" />
               )}
-              {'settings.preferences.saveSettings'}
+              Save Settings
             </button>
           </div>
         </>

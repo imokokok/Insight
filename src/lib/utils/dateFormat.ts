@@ -1,44 +1,33 @@
 /**
- * Date formatting utilities with i18n support
- * Provides consistent date formatting across the application based on current locale
+ * Date formatting utilities
+ * Provides consistent date formatting across the application
  */
 
 /**
- * Gets the appropriate Intl.DateTimeFormat locale based on the current app locale
- * @returns The appropriate locale string for date formatting
- */
-export function getDateTimeLocale(currentLocale: string): string {
-  return currentLocale === 'zh-CN' ? 'zh-CN' : 'en-US';
-}
-
-/**
- * Hook to get date formatting functions based on current locale
+ * Hook to get date formatting functions
  * Use this in client components for consistent date formatting
  */
 export function useDateFormatter() {
-  const locale = 'en';
-  const dateTimeLocale = getDateTimeLocale(locale);
-
   const formatDate = (date: Date | number, options?: Intl.DateTimeFormatOptions): string => {
     const d = typeof date === 'number' ? new Date(date) : date;
-    return d.toLocaleDateString(dateTimeLocale, options);
+    return d.toLocaleDateString('en-US', options);
   };
 
   const formatTime = (date: Date | number, options?: Intl.DateTimeFormatOptions): string => {
     const d = typeof date === 'number' ? new Date(date) : date;
-    return d.toLocaleTimeString(dateTimeLocale, options);
+    return d.toLocaleTimeString('en-US', options);
   };
 
   const formatDateTime = (date: Date | number, options?: Intl.DateTimeFormatOptions): string => {
     const d = typeof date === 'number' ? new Date(date) : date;
-    return d.toLocaleString(dateTimeLocale, options);
+    return d.toLocaleString('en-US', options);
   };
 
   return {
     formatDate,
     formatTime,
     formatDateTime,
-    locale: dateTimeLocale,
+    locale: 'en-US',
   };
 }
 
@@ -99,13 +88,13 @@ export function formatRelativeTime(timestamp: number | Date): string {
   const days = Math.floor(hours / 24);
 
   if (seconds < 60) {
-    return `${seconds}秒前`;
+    return `${seconds}s ago`;
   } else if (minutes < 60) {
-    return `${minutes}分钟前`;
+    return `${minutes}m ago`;
   } else if (hours < 24) {
-    return `${hours}小时前`;
+    return `${hours}h ago`;
   } else {
-    return `${days}天前`;
+    return `${days}d ago`;
   }
 }
 
@@ -120,12 +109,12 @@ export function formatDuration(milliseconds: number): string {
   const remainingHours = hours % 24;
 
   const parts: string[] = [];
-  if (days > 0) parts.push(`${days}天`);
-  if (remainingHours > 0) parts.push(`${remainingHours}小时`);
-  if (remainingMinutes > 0) parts.push(`${remainingMinutes}分钟`);
-  if (remainingSeconds > 0 || parts.length === 0) parts.push(`${remainingSeconds}秒`);
+  if (days > 0) parts.push(`${days}d`);
+  if (remainingHours > 0) parts.push(`${remainingHours}h`);
+  if (remainingMinutes > 0) parts.push(`${remainingMinutes}m`);
+  if (remainingSeconds > 0 || parts.length === 0) parts.push(`${remainingSeconds}s`);
 
-  return parts.join('');
+  return parts.join(' ');
 }
 
 export function formatTimestamp(timestamp: number | string): string {

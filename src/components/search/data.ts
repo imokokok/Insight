@@ -63,7 +63,7 @@ export function getOracleSearchResults(_locale: string): SearchResult[] {
     type: 'oracle' as SearchResultType,
     href: `/en/cross-oracle`,
     icon: oracleIcons[provider],
-    keywords: [provider.toLowerCase(), providerNames[provider].toLowerCase(), 'oracle', '预言机'],
+    keywords: [provider.toLowerCase(), providerNames[provider].toLowerCase(), 'oracle'],
     priority: 10,
   }));
 }
@@ -119,7 +119,7 @@ export function getBlockchainSearchResults(_locale: string): SearchResult[] {
     href: `/en/cross-chain?chain=${chain.toLowerCase()}`,
     iconUrl: blockchainIcons[chain] || undefined,
     icon: Globe,
-    keywords: [chain.toLowerCase(), chainNames[chain].toLowerCase(), 'blockchain', '链'],
+    keywords: [chain.toLowerCase(), chainNames[chain].toLowerCase(), 'blockchain'],
     priority: 8,
   }));
 }
@@ -132,7 +132,7 @@ export function getPairSearchResults(_locale: string): SearchResult[] {
     description: 'search.pairs.priceFeed',
     type: 'pair' as SearchResultType,
     href: `/en/price-query?symbol=${symbol}`,
-    keywords: [symbol.toLowerCase(), 'price', 'price feed', '价格', '交易对'],
+    keywords: [symbol.toLowerCase(), 'price', 'price feed'],
     priority: 9,
   }));
 }
@@ -147,7 +147,7 @@ export function getPageSearchResults(_locale: string): SearchResult[] {
       type: 'page',
       href: `/en/`,
       icon: LayoutDashboard,
-      keywords: ['home', '首页', 'dashboard'],
+      keywords: ['home', 'dashboard'],
       priority: 10,
     },
     {
@@ -157,7 +157,7 @@ export function getPageSearchResults(_locale: string): SearchResult[] {
       type: 'page',
       href: `/en/price-query`,
       icon: Search,
-      keywords: ['price', 'query', '价格查询', '查询'],
+      keywords: ['price', 'query'],
       priority: 9,
     },
     {
@@ -167,7 +167,7 @@ export function getPageSearchResults(_locale: string): SearchResult[] {
       type: 'page',
       href: `/en/cross-oracle`,
       icon: GitCompare,
-      keywords: ['cross oracle', 'comparison', '对比', '预言机对比'],
+      keywords: ['cross oracle', 'comparison'],
       priority: 8,
     },
     {
@@ -177,7 +177,7 @@ export function getPageSearchResults(_locale: string): SearchResult[] {
       type: 'page',
       href: `/en/cross-chain`,
       icon: Link2,
-      keywords: ['cross chain', 'chain', '跨链', '链'],
+      keywords: ['cross chain', 'chain'],
       priority: 8,
     },
     {
@@ -187,7 +187,7 @@ export function getPageSearchResults(_locale: string): SearchResult[] {
       type: 'page',
       href: `/en/favorites`,
       icon: Heart,
-      keywords: ['favorites', '收藏', '关注'],
+      keywords: ['favorites'],
       priority: 7,
     },
     {
@@ -197,7 +197,7 @@ export function getPageSearchResults(_locale: string): SearchResult[] {
       type: 'page',
       href: `/en/alerts`,
       icon: Bell,
-      keywords: ['alerts', 'alert', '提醒', '通知'],
+      keywords: ['alerts', 'alert'],
       priority: 7,
     },
     {
@@ -207,7 +207,7 @@ export function getPageSearchResults(_locale: string): SearchResult[] {
       type: 'page',
       href: `/en/settings`,
       icon: Settings,
-      keywords: ['settings', '设置', '偏好'],
+      keywords: ['settings'],
       priority: 6,
     },
   ];
@@ -223,7 +223,7 @@ export function getFeatureSearchResults(_locale: string): SearchResult[] {
       type: 'feature',
       href: `/en/cross-oracle`,
       icon: GitCompare,
-      keywords: ['comparison', 'compare', '对比', '比较'],
+      keywords: ['comparison', 'compare'],
       priority: 8,
     },
     {
@@ -233,7 +233,7 @@ export function getFeatureSearchResults(_locale: string): SearchResult[] {
       type: 'feature',
       href: `/en/alerts`,
       icon: Bell,
-      keywords: ['alert', 'notification', '提醒', '通知'],
+      keywords: ['alert', 'notification'],
       priority: 7,
     },
     {
@@ -243,7 +243,7 @@ export function getFeatureSearchResults(_locale: string): SearchResult[] {
       type: 'feature',
       href: `/en/price-query`,
       icon: BarChart3,
-      keywords: ['chart', 'graph', '图表', '图形'],
+      keywords: ['chart', 'graph'],
       priority: 7,
     },
   ];
@@ -259,7 +259,7 @@ export function getDocumentationSearchResults(__locale: string): SearchResult[] 
       type: 'documentation',
       href: '/api/docs',
       icon: FileText,
-      keywords: ['api', 'reference', '文档', '接口'],
+      keywords: ['api', 'reference'],
       priority: 5,
     },
   ];

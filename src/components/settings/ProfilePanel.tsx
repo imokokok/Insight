@@ -177,11 +177,11 @@ export function ProfilePanel() {
       if (updateError) {
         setError(updateError.message);
       } else {
-        setSuccess('settings.profile.saveSuccess');
+        setSuccess('Profile saved successfully');
         await refreshProfile();
       }
     } catch {
-      setError('settings.profile.saveError');
+      setError('Failed to save profile');
     } finally {
       setIsSaving(false);
     }
@@ -189,7 +189,6 @@ export function ProfilePanel() {
 
   const handleAvatarUpdate = async (url: string) => {
     setAvatarUrl(url);
-    // 立即刷新全局 profile 状态，确保导航栏等各处同步更新
     await refreshProfile();
   };
 
@@ -205,12 +204,12 @@ export function ProfilePanel() {
     if (!user) return;
 
     if (newPassword.length < 6) {
-      setError('settings.profile.passwordMinLength');
+      setError('Password must be at least 6 characters');
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setError('settings.profile.passwordMismatch');
+      setError('Passwords do not match');
       return;
     }
 
@@ -223,13 +222,13 @@ export function ProfilePanel() {
       if (updateError) {
         setError(updateError.message);
       } else {
-        setSuccess('settings.profile.passwordUpdateSuccess');
+        setSuccess('Password updated successfully');
         setShowPasswordForm(false);
         setNewPassword('');
         setConfirmPassword('');
       }
     } catch {
-      setError('settings.profile.passwordUpdateError');
+      setError('Failed to update password');
     } finally {
       setIsChangingPassword(false);
     }
@@ -241,9 +240,9 @@ export function ProfilePanel() {
         <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
           <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <User className="w-5 h-5 text-gray-400" />
-            {'settings.profile.title'}
+            Profile Settings
           </h2>
-          <p className="text-sm text-gray-500 mt-1">{'settings.profile.subtitle'}</p>
+          <p className="text-sm text-gray-500 mt-1">Manage your account information</p>
         </div>
 
         <div className="p-6 space-y-6">
@@ -273,13 +272,13 @@ export function ProfilePanel() {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {'settings.profile.displayNameLabel'}
+                    Display Name
                   </label>
                   <input
                     type="text"
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
-                    placeholder={'settings.profile.displayNamePlaceholder'}
+                    placeholder="Enter your display name"
                     className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none transition-all duration-200"
                   />
                 </div>
@@ -287,7 +286,7 @@ export function ProfilePanel() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                     <Mail className="w-4 h-4 text-gray-400" />
-                    {'settings.profile.emailLabel'}
+                    Email
                   </label>
                   <input
                     type="email"
@@ -295,9 +294,7 @@ export function ProfilePanel() {
                     disabled
                     className="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
                   />
-                  <p className="text-xs text-gray-500 mt-1">
-                    {'settings.profile.emailNotEditable'}
-                  </p>
+                  <p className="text-xs text-gray-500 mt-1">Email address cannot be changed</p>
                 </div>
               </div>
             </div>
@@ -314,7 +311,7 @@ export function ProfilePanel() {
               ) : (
                 <Save className="w-4 h-4" />
               )}
-              {'settings.profile.saveChanges'}
+              Save Changes
             </button>
           </div>
         </div>
@@ -324,9 +321,9 @@ export function ProfilePanel() {
         <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
           <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <Key className="w-5 h-5 text-gray-400" />
-            {'settings.profile.passwordManagement'}
+            Password Management
           </h2>
-          <p className="text-sm text-gray-500 mt-1">{'settings.profile.passwordManagementDesc'}</p>
+          <p className="text-sm text-gray-500 mt-1">Change your account password</p>
         </div>
 
         <div className="p-6">
@@ -336,32 +333,30 @@ export function ProfilePanel() {
               className="inline-flex items-center gap-2 px-4 py-2.5 border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 hover:border-gray-300 active:bg-gray-100 transition-all duration-200 font-medium text-sm"
             >
               <Key className="w-4 h-4" />
-              {'settings.profile.changePassword'}
+              Change Password
             </button>
           ) : (
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {'settings.profile.newPassword'}
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">New Password</label>
                 <input
                   type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder={'settings.profile.newPasswordPlaceholder'}
+                  placeholder="Enter new password"
                   className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none transition-all duration-200"
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {'settings.profile.confirmNewPassword'}
+                  Confirm New Password
                 </label>
                 <input
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder={'settings.profile.confirmNewPasswordPlaceholder'}
+                  placeholder="Confirm new password"
                   className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none transition-all duration-200"
                 />
               </div>
@@ -377,7 +372,7 @@ export function ProfilePanel() {
                   ) : (
                     <CheckCircle className="w-4 h-4" />
                   )}
-                  {'settings.profile.updatePassword'}
+                  Update Password
                 </button>
                 <button
                   onClick={() => {
@@ -387,7 +382,7 @@ export function ProfilePanel() {
                   }}
                   className="px-4 py-2.5 border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 hover:border-gray-300 active:bg-gray-100 transition-all duration-200 font-medium text-sm"
                 >
-                  {'settings.profile.cancel'}
+                  Cancel
                 </button>
               </div>
             </div>

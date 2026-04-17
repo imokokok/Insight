@@ -73,13 +73,13 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
       </div>
       <div className="space-y-2 text-sm">
         <div className="flex justify-between gap-4">
-          <span style={{ color: baseColors.gray[500] }}>{'crossChain.boxPlot.max'}:</span>
+          <span style={{ color: baseColors.gray[500] }}>Max:</span>
           <span className="font-mono" style={{ color: baseColors.gray[900] }}>
             ${data.max.toFixed(4)}
           </span>
         </div>
         <div className="flex justify-between gap-4">
-          <span style={{ color: baseColors.gray[500] }}>{'crossChain.boxPlot.q3'}:</span>
+          <span style={{ color: baseColors.gray[500] }}>Q3:</span>
           <span className="font-mono" style={{ color: baseColors.gray[900] }}>
             ${data.q3.toFixed(4)}
           </span>
@@ -92,20 +92,20 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
           }}
         >
           <span className="font-medium" style={{ color: semanticColors.info.text }}>
-            {'crossChain.boxPlot.median'}:
+            Median:
           </span>
           <span className="font-mono font-semibold" style={{ color: semanticColors.info.text }}>
             ${data.median.toFixed(4)}
           </span>
         </div>
         <div className="flex justify-between gap-4">
-          <span style={{ color: baseColors.gray[500] }}>{'crossChain.boxPlot.q1'}:</span>
+          <span style={{ color: baseColors.gray[500] }}>Q1:</span>
           <span className="font-mono" style={{ color: baseColors.gray[900] }}>
             ${data.q1.toFixed(4)}
           </span>
         </div>
         <div className="flex justify-between gap-4">
-          <span style={{ color: baseColors.gray[500] }}>{'crossChain.boxPlot.min'}:</span>
+          <span style={{ color: baseColors.gray[500] }}>Min:</span>
           <span className="font-mono" style={{ color: baseColors.gray[900] }}>
             ${data.min.toFixed(4)}
           </span>
@@ -114,7 +114,7 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
           className="flex justify-between gap-4 pt-2 border-t"
           style={{ borderColor: baseColors.gray[100] }}
         >
-          <span style={{ color: baseColors.gray[500] }}>{'crossChain.boxPlot.iqr'}:</span>
+          <span style={{ color: baseColors.gray[500] }}>IQR:</span>
           <span className="font-mono" style={{ color: baseColors.gray[900] }}>
             ${data.iqr.toFixed(4)}
           </span>
@@ -123,7 +123,7 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
           <div className="pt-2 border-t" style={{ borderColor: baseColors.gray[100] }}>
             <div className="flex justify-between gap-4 mb-1">
               <span className="font-medium" style={{ color: semanticColors.warning.dark }}>
-                {'crossChain.boxPlot.outliers'}:
+                Outliers:
               </span>
               <span className="font-mono" style={{ color: semanticColors.warning.dark }}>
                 {data.outliers.length}
@@ -268,7 +268,7 @@ export function StandardBoxPlot({ data, className = '' }: StandardBoxPlotProps) 
   if (!data || data.length === 0) {
     return (
       <div className={`h-64 py-4 flex items-center justify-center ${className}`}>
-        <span style={{ color: baseColors.gray[400] }}>{'crossChain.noData'}</span>
+        <span style={{ color: baseColors.gray[400] }}>No data available</span>
       </div>
     );
   }
@@ -315,7 +315,7 @@ export function StandardBoxPlot({ data, className = '' }: StandardBoxPlotProps) 
               <Scatter
                 data={outlierData}
                 dataKey="value"
-                name={'crossChain.boxPlot.outliers'}
+                name="Outliers"
                 shape="circle"
                 fill={semanticColors.warning.dark}
                 stroke={baseColors.gray[50]}
@@ -337,22 +337,22 @@ export function StandardBoxPlot({ data, className = '' }: StandardBoxPlotProps) 
             className="w-6 h-4 border-2"
             style={{ borderColor: baseColors.gray[400], backgroundColor: baseColors.gray[100] }}
           />
-          <span style={{ color: baseColors.gray[600] }}>{'crossChain.boxPlot.legend.box'}</span>
+          <span style={{ color: baseColors.gray[600] }}>Box (Q1-Q3)</span>
         </div>
         <div className="flex items-center gap-2">
           <div
             className="w-6 h-0.5"
             style={{ backgroundColor: baseColors.gray[400], height: '3px' }}
           />
-          <span style={{ color: baseColors.gray[600] }}>{'crossChain.boxPlot.legend.median'}</span>
+          <span style={{ color: baseColors.gray[600] }}>Median</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-0.5 h-4" style={{ backgroundColor: baseColors.gray[400] }} />
-          <span style={{ color: baseColors.gray[600] }}>{'crossChain.boxPlot.legend.whisker'}</span>
+          <span style={{ color: baseColors.gray[600] }}>Whisker</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-2 h-2" style={{ backgroundColor: semanticColors.warning.main }} />
-          <span style={{ color: baseColors.gray[600] }}>{'crossChain.boxPlot.legend.outlier'}</span>
+          <span style={{ color: baseColors.gray[600] }}>Outlier</span>
         </div>
       </div>
     </div>
