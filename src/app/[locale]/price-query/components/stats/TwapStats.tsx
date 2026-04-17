@@ -3,6 +3,7 @@ import { useTranslations } from 'next-intl';
 
 import { StatCard } from '@/components/ui/StatCard';
 import type { TwapOnChainData } from '@/hooks/oracles/useTwapOnChainData';
+import { formatPrice } from '@/lib/utils/format';
 import { getStatRating } from '@/lib/utils/stat-rating';
 
 interface TwapStatsProps {
@@ -15,7 +16,7 @@ export function TwapStats({ data }: TwapStatsProps) {
   const confidenceRating = getStatRating('confidence', data.confidence);
   const deviationRating = getStatRating('deviation', data.priceDeviation * 100);
 
-  const formatPrice = (value: number) => {
+  const formatTwapPrice = (value: number) => {
     if (!value || isNaN(value)) return '-';
     return `$${value.toLocaleString('en-US', {
       minimumFractionDigits: 2,
@@ -43,7 +44,7 @@ export function TwapStats({ data }: TwapStatsProps) {
         icon={TrendingUp}
         iconColor="text-pink-500"
         title={t('twapPrice')}
-        value={formatPrice(data.twapPrice)}
+        value={formatTwapPrice(data.twapPrice)}
         description={t('twapPriceDesc')}
       />
       <StatCard

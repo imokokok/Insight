@@ -99,26 +99,28 @@ export function formatCompactNumberWithDecimals(value: number, decimals: number 
 }
 
 /**
- * Formats a number as compact currency with custom decimal places
- * @param value - The numeric value to format
- * @param decimals - Number of decimal places (default: 2)
- * @returns Compact currency string with $ prefix (e.g., $1.2M)
+ * Formats a price number with appropriate decimal places based on magnitude
+ * @param price - The numeric price value to format
+ * @returns Formatted price string with $ prefix
  */
-
 export function formatPrice(price: number): string {
-  if (price <= 0) return '-';
+  if (!isFiniteNumber(price)) return '—';
+  if (price === 0) return '$0.00';
+
   const absPrice = Math.abs(price);
+
+  // 根据价格大小选择合适的精度
   if (absPrice >= 1000) {
-    return `$${price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    return `$${price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   }
   if (absPrice >= 1) {
-    return `$${price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}`;
+    return `$${price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 })}`;
   }
   if (absPrice >= 0.0001) {
-    return `$${price.toLocaleString(undefined, { minimumFractionDigits: 4, maximumFractionDigits: 6 })}`;
+    return `$${price.toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 6 })}`;
   }
   if (absPrice >= 0.000001) {
-    return `$${price.toLocaleString(undefined, { minimumFractionDigits: 6, maximumFractionDigits: 8 })}`;
+    return `$${price.toLocaleString('en-US', { minimumFractionDigits: 6, maximumFractionDigits: 8 })}`;
   }
-  return `$${price.toLocaleString(undefined, { minimumFractionDigits: 8, maximumFractionDigits: 12 })}`;
+  return `$${price.toLocaleString('en-US', { minimumFractionDigits: 8, maximumFractionDigits: 12 })}`;
 }

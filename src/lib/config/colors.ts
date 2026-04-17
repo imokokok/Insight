@@ -350,6 +350,8 @@ export const chartColors = {
     success: '#10B981',
     warning: '#f59e0b',
     danger: '#ef4444',
+    // 橙色（用于中等风险）
+    orange: '#f97316',
     // 其他
     cyan: '#06B6D4',
     teal: '#7CE3CB',

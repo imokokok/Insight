@@ -1,5 +1,7 @@
 import { chartColors as configChartColors, semanticColors } from '@/lib/config/colors';
 
+import { formatPrice as formatPriceBase } from './format';
+
 const hexToRgba = (hex: string, alpha: number): string => {
   if (!hex || typeof hex !== 'string' || !/^#[0-9a-fA-F]{6}$/.test(hex)) {
     return `rgba(0, 0, 0, ${alpha})`;
@@ -100,21 +102,7 @@ export const getHeatmapColor = (value: number, min: number, max: number): string
 };
 
 export const formatPrice = (price: number): string => {
-  const absPrice = Math.abs(price);
-  let decimals: number;
-
-  if (absPrice >= 100) {
-    decimals = 2;
-  } else if (absPrice >= 1) {
-    decimals = 4;
-  } else {
-    decimals = 6;
-  }
-
-  if (absPrice >= 1000) {
-    return `$${price.toLocaleString('zh-CN', { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}`;
-  }
-  return `$${price.toFixed(decimals)}`;
+  return formatPriceBase(price);
 };
 
 export const calculateStandardDeviation = (values: number[]): number => {

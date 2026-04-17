@@ -157,55 +157,62 @@ interface BoxPlotShapeProps {
   xAxis?: { scale: (value: number) => number };
 }
 
-function BoxPlotShape({ cx = 0, payload }: BoxPlotShapeProps) {
-  if (!payload) return null;
+function BoxPlotShape({ cx: _cx, cy = 0, payload, xAxis }: BoxPlotShapeProps) {
+  if (!payload || !xAxis) return null;
 
   const { min, q1, median, q3, max, color } = payload;
-  const boxWidth = 24;
-  const halfWidth = boxWidth / 2;
+  const boxHeight = 20;
+  const halfHeight = boxHeight / 2;
+
+  // 使用 xAxis scale 将数值转换为水平坐标
+  const xMin = xAxis.scale(min);
+  const xQ1 = xAxis.scale(q1);
+  const xMedian = xAxis.scale(median);
+  const xQ3 = xAxis.scale(q3);
+  const xMax = xAxis.scale(max);
 
   return (
     <g>
-      {/* Lower whisker line */}
-      <line x1={cx} y1={min} x2={cx} y2={q1} stroke={color} strokeWidth={1.5} />
+      {/* Lower whisker line (min to Q1) */}
+      <line x1={xMin} y1={cy} x2={xQ1} y2={cy} stroke={color} strokeWidth={1.5} />
       {/* Lower whisker cap */}
       <line
-        x1={cx - halfWidth / 2}
-        y1={min}
-        x2={cx + halfWidth / 2}
-        y2={min}
+        x1={xMin}
+        y1={cy - halfHeight / 2}
+        x2={xMin}
+        y2={cy + halfHeight / 2}
         stroke={color}
         strokeWidth={1.5}
       />
       {/* Box (Q1 to Q3) */}
       <rect
-        x={cx - halfWidth}
-        y={q3}
-        width={boxWidth}
-        height={Math.max(q1 - q3, 2)}
+        x={Math.min(xQ1, xQ3)}
+        y={cy - halfHeight}
+        width={Math.abs(xQ3 - xQ1)}
+        height={boxHeight}
         fill={color}
         fillOpacity={0.3}
         stroke={color}
         strokeWidth={2}
-        rx={0}
+        rx={2}
       />
       {/* Median line */}
       <line
-        x1={cx - halfWidth}
-        y1={median}
-        x2={cx + halfWidth}
-        y2={median}
+        x1={xMedian}
+        y1={cy - halfHeight}
+        x2={xMedian}
+        y2={cy + halfHeight}
         stroke={color}
-        strokeWidth={3}
+        strokeWidth={2}
       />
-      {/* Upper whisker line */}
-      <line x1={cx} y1={q3} x2={cx} y2={max} stroke={color} strokeWidth={1.5} />
+      {/* Upper whisker line (Q3 to max) */}
+      <line x1={xQ3} y1={cy} x2={xMax} y2={cy} stroke={color} strokeWidth={1.5} />
       {/* Upper whisker cap */}
       <line
-        x1={cx - halfWidth / 2}
-        y1={max}
-        x2={cx + halfWidth / 2}
-        y2={max}
+        x1={xMax}
+        y1={cy - halfHeight / 2}
+        x2={xMax}
+        y2={cy + halfHeight / 2}
         stroke={color}
         strokeWidth={1.5}
       />
