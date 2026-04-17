@@ -53,10 +53,10 @@ describe('loggingMiddleware', () => {
       expect(id1).not.toBe(id2);
     });
 
-    it('should start with req_', () => {
+    it('should start with req ', () => {
       const id = generateRequestId();
 
-      expect(id.startsWith('req_')).toBe(true);
+      expect(id.startsWith('req ')).toBe(true);
     });
 
     it('should contain timestamp', () => {
@@ -64,7 +64,7 @@ describe('loggingMiddleware', () => {
       const id = generateRequestId();
       const after = Date.now();
 
-      const timestamp = parseInt(id.split('_')[1]);
+      const timestamp = parseInt(id.split(' ')[1]);
       expect(timestamp).toBeGreaterThanOrEqual(before);
       expect(timestamp).toBeLessThanOrEqual(after);
     });
@@ -84,7 +84,7 @@ describe('loggingMiddleware', () => {
       const result = await middleware(request);
 
       expect(result.requestId).toBeDefined();
-      expect(result.requestId.startsWith('req_')).toBe(true);
+      expect(result.requestId.startsWith('req ')).toBe(true);
     });
 
     it('should log query parameters by default', async () => {
@@ -130,7 +130,7 @@ describe('loggingMiddleware', () => {
 
       await middleware(request);
 
-      expect(request.headers.get('authorization')).toBe('Bearer token123');
+      expect(request.headers.get('key')).toBe('Bearer token123');
     });
 
     it('should log body when logBody is true', async () => {

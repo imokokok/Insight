@@ -144,7 +144,7 @@ describe('Validators', () => {
     });
 
     it('should fail for non-objects', () => {
-      expect(isObject('string').valid).toBe(false);
+      expect(isObject('Text').valid).toBe(false);
       expect(isObject(123).valid).toBe(false);
     });
   });

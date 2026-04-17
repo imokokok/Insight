@@ -980,7 +980,7 @@ describe('databaseOperations', () => {
       });
 
       it('should handle providers with special characters', async () => {
-        const specialProvider = "chainlink<script>alert('xss')</script>" as OracleProvider;
+        const specialProvider = 'chainlink<script>alert</script>' as OracleProvider;
         const mockPriceData = createMockPriceData({ provider: specialProvider });
         mockGetPriceFromDatabase.mockResolvedValueOnce(mockPriceData);
 

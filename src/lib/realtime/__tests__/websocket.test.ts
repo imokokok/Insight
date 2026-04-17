@@ -129,14 +129,14 @@ describe('WebSocketManager', () => {
         expect(manager.getStatus()).toBe('connecting');
         expect(statusChanges).toContain('connecting');
 
-        mockWsInstance.onopen?.(new Event('open'));
+        mockWsInstance.onopen?.(new Event('Text'));
         expect(manager.getStatus()).toBe('connected');
         expect(statusChanges).toContain('connected');
       });
 
       it('测试连接建立时的初始化操作', () => {
         manager.connect();
-        mockWsInstance.onopen?.(new Event('open'));
+        mockWsInstance.onopen?.(new Event('Text'));
 
         expect(mockWsInstance.onopen).toBeDefined();
         expect(mockWsInstance.onmessage).toBeDefined();
@@ -146,12 +146,12 @@ describe('WebSocketManager', () => {
 
       it('测试连接建立后重置重连计数', () => {
         manager.connect();
-        mockWsInstance.onopen?.(new Event('open'));
-        mockWsInstance.onclose?.(new CloseEvent('close'));
+        mockWsInstance.onopen?.(new Event('Text'));
+        mockWsInstance.onclose?.(new CloseEvent('Text'));
 
         jest.advanceTimersByTime(1000);
         const reconnectWsInstance = wsInstances[wsInstances.length - 1];
-        reconnectWsInstance.onopen?.(new Event('open'));
+        reconnectWsInstance.onopen?.(new Event('Text'));
 
         expect(manager.getStatus()).toBe('connected');
       });
@@ -171,7 +171,7 @@ describe('WebSocketManager', () => {
 
       it('测试连接后发送认证消息', () => {
         manager.connect();
-        mockWsInstance.onopen?.(new Event('open'));
+        mockWsInstance.onopen?.(new Event('Text'));
 
         manager.send({ type: 'auth', token: 'test-token' });
 
@@ -204,7 +204,7 @@ describe('WebSocketManager', () => {
         manager.connect();
         mockWsInstance.readyState = 0;
 
-        mockWsInstance.onerror?.(new Event('error'));
+        mockWsInstance.onerror?.(new Event('Text'));
 
         expect(manager.getStatus()).toBe('error');
       });
@@ -216,8 +216,8 @@ describe('WebSocketManager', () => {
         manager.onStatusChange((status) => statusHistory.push(status));
 
         manager.connect();
-        mockWsInstance.onopen?.(new Event('open'));
-        mockWsInstance.onclose?.(new CloseEvent('close'));
+        mockWsInstance.onopen?.(new Event('Text'));
+        mockWsInstance.onclose?.(new CloseEvent('Text'));
         jest.advanceTimersByTime(1000);
 
         expect(statusHistory).toContain('connecting');
@@ -234,7 +234,7 @@ describe('WebSocketManager', () => {
         manager.onStatusChange(handler2);
 
         manager.connect();
-        mockWsInstance.onopen?.(new Event('open'));
+        mockWsInstance.onopen?.(new Event('Text'));
 
         expect(handler1).toHaveBeenCalledTimes(2);
         expect(handler2).toHaveBeenCalledTimes(2);
@@ -244,7 +244,7 @@ describe('WebSocketManager', () => {
     describe('多连接处理', () => {
       it('测试重复连接请求被忽略', () => {
         manager.connect();
-        mockWsInstance.onopen?.(new Event('open'));
+        mockWsInstance.onopen?.(new Event('Text'));
 
         const sentBefore = mockWsInstance.send.mock.calls.length;
         manager.connect();
@@ -267,12 +267,12 @@ describe('WebSocketManager', () => {
 
       it('测试断开连接后重新连接', () => {
         manager.connect();
-        mockWsInstance.onopen?.(new Event('open'));
+        mockWsInstance.onopen?.(new Event('Text'));
         manager.disconnect();
 
         manager.connect();
         const newWsInstance = wsInstances[wsInstances.length - 1];
-        newWsInstance.onopen?.(new Event('open'));
+        newWsInstance.onopen?.(new Event('Text'));
 
         expect(manager.getStatus()).toBe('connected');
       });
@@ -283,10 +283,10 @@ describe('WebSocketManager', () => {
     describe('自动重连', () => {
       it('测试断开后自动重连', () => {
         manager.connect();
-        mockWsInstance.onopen?.(new Event('open'));
+        mockWsInstance.onopen?.(new Event('Text'));
         expect(manager.getStatus()).toBe('connected');
 
-        mockWsInstance.onclose?.(new CloseEvent('close'));
+        mockWsInstance.onclose?.(new CloseEvent('Text'));
 
         expect(manager.getStatus()).toBe('reconnecting');
 
@@ -298,12 +298,12 @@ describe('WebSocketManager', () => {
 
       it('测试重连成功后状态恢复', () => {
         manager.connect();
-        mockWsInstance.onopen?.(new Event('open'));
-        mockWsInstance.onclose?.(new CloseEvent('close'));
+        mockWsInstance.onopen?.(new Event('Text'));
+        mockWsInstance.onclose?.(new CloseEvent('Text'));
 
         jest.advanceTimersByTime(1000);
         const reconnectWsInstance = wsInstances[wsInstances.length - 1];
-        reconnectWsInstance.onopen?.(new Event('open'));
+        reconnectWsInstance.onopen?.(new Event('Text'));
 
         expect(manager.getStatus()).toBe('connected');
       });
@@ -323,8 +323,8 @@ describe('WebSocketManager', () => {
 
         exponentialManager.connect();
         const currentWsInstance = wsInstances[wsInstances.length - 1];
-        currentWsInstance.onopen?.(new Event('open'));
-        currentWsInstance.onclose?.(new CloseEvent('close'));
+        currentWsInstance.onopen?.(new Event('Text'));
+        currentWsInstance.onclose?.(new CloseEvent('Text'));
 
         expect(exponentialManager.getStatus()).toBe('reconnecting');
 
@@ -344,8 +344,8 @@ describe('WebSocketManager', () => {
         });
 
         linearManager.connect();
-        mockWsInstance.onopen?.(new Event('open'));
-        mockWsInstance.onclose?.(new CloseEvent('close'));
+        mockWsInstance.onopen?.(new Event('Text'));
+        mockWsInstance.onclose?.(new CloseEvent('Text'));
 
         jest.advanceTimersByTime(1000);
 
@@ -358,15 +358,15 @@ describe('WebSocketManager', () => {
     describe('最大重连次数', () => {
       it('测试达到最大重连次数后停止', () => {
         manager.connect();
-        mockWsInstance.onopen?.(new Event('open'));
+        mockWsInstance.onopen?.(new Event('Text'));
 
-        mockWsInstance.onclose?.(new CloseEvent('close'));
+        mockWsInstance.onclose?.(new CloseEvent('Text'));
 
         for (let i = 0; i < 3; i++) {
           jest.advanceTimersByTime(1000);
           const newWsInstance = wsInstances[wsInstances.length - 1];
           if (newWsInstance) {
-            newWsInstance.onclose?.(new CloseEvent('close'));
+            newWsInstance.onclose?.(new CloseEvent('Text'));
           }
         }
 
@@ -375,13 +375,13 @@ describe('WebSocketManager', () => {
 
       it('测试重连计数重置', () => {
         manager.connect();
-        mockWsInstance.onopen?.(new Event('open'));
-        mockWsInstance.onclose?.(new CloseEvent('close'));
+        mockWsInstance.onopen?.(new Event('Text'));
+        mockWsInstance.onclose?.(new CloseEvent('Text'));
         jest.advanceTimersByTime(1000);
         const reconnectWsInstance = wsInstances[wsInstances.length - 1];
-        reconnectWsInstance.onopen?.(new Event('open'));
+        reconnectWsInstance.onopen?.(new Event('Text'));
 
-        reconnectWsInstance.onclose?.(new CloseEvent('close'));
+        reconnectWsInstance.onclose?.(new CloseEvent('Text'));
 
         expect(manager.getStatus()).toBe('reconnecting');
 
@@ -397,7 +397,7 @@ describe('WebSocketManager', () => {
         manager.subscribe('prices', handler);
 
         manager.connect();
-        mockWsInstance.onopen?.(new Event('open'));
+        mockWsInstance.onopen?.(new Event('Text'));
 
         const calls = mockWsInstance.send.mock.calls;
         const subscribeCall = calls.find((call) => {
@@ -412,7 +412,7 @@ describe('WebSocketManager', () => {
         manager.send({ type: 'test', data: 'queued message' });
 
         manager.connect();
-        mockWsInstance.onopen?.(new Event('open'));
+        mockWsInstance.onopen?.(new Event('Text'));
 
         const calls = mockWsInstance.send.mock.calls;
         const queuedCall = calls.find((call) => {
@@ -427,9 +427,9 @@ describe('WebSocketManager', () => {
     describe('手动重连', () => {
       it('测试手动触发重连', () => {
         manager.connect();
-        mockWsInstance.onopen?.(new Event('open'));
+        mockWsInstance.onopen?.(new Event('Text'));
 
-        mockWsInstance.onclose?.(new CloseEvent('close'));
+        mockWsInstance.onclose?.(new CloseEvent('Text'));
         expect(manager.getStatus()).toBe('reconnecting');
 
         manager.reconnect();
@@ -439,8 +439,8 @@ describe('WebSocketManager', () => {
 
       it('测试手动重连重置重试计数', () => {
         manager.connect();
-        mockWsInstance.onopen?.(new Event('open'));
-        mockWsInstance.onclose?.(new CloseEvent('close'));
+        mockWsInstance.onopen?.(new Event('Text'));
+        mockWsInstance.onclose?.(new CloseEvent('Text'));
 
         manager.reconnect();
 
@@ -453,7 +453,7 @@ describe('WebSocketManager', () => {
     describe('文本消息解析', () => {
       it('测试JSON文本消息解析', () => {
         manager.connect();
-        mockWsInstance.onopen?.(new Event('open'));
+        mockWsInstance.onopen?.(new Event('Text'));
 
         const handler = jest.fn();
         manager.subscribe('prices', handler);
@@ -481,7 +481,7 @@ describe('WebSocketManager', () => {
 
       it('测试消息分发到正确的处理器', () => {
         manager.connect();
-        mockWsInstance.onopen?.(new Event('open'));
+        mockWsInstance.onopen?.(new Event('Text'));
 
         const pricesHandler = jest.fn();
         const tvsHandler = jest.fn();
@@ -509,7 +509,7 @@ describe('WebSocketManager', () => {
     describe('二进制消息处理', () => {
       it('测试二进制消息被忽略', () => {
         manager.connect();
-        mockWsInstance.onopen?.(new Event('open'));
+        mockWsInstance.onopen?.(new Event('Text'));
 
         const handler = jest.fn();
         manager.subscribe('prices', handler);
@@ -524,7 +524,7 @@ describe('WebSocketManager', () => {
     describe('JSON消息解析', () => {
       it('测试有效JSON消息解析', () => {
         manager.connect();
-        mockWsInstance.onopen?.(new Event('open'));
+        mockWsInstance.onopen?.(new Event('Text'));
 
         const handler = jest.fn();
         manager.subscribe('prices', handler);
@@ -544,7 +544,7 @@ describe('WebSocketManager', () => {
 
       it('测试无效JSON消息处理', () => {
         manager.connect();
-        mockWsInstance.onopen?.(new Event('open'));
+        mockWsInstance.onopen?.(new Event('Text'));
 
         const handler = jest.fn();
         manager.subscribe('prices', handler);
@@ -558,7 +558,7 @@ describe('WebSocketManager', () => {
     describe('无效消息格式处理', () => {
       it('测试缺少必要字段的消息', () => {
         manager.connect();
-        mockWsInstance.onopen?.(new Event('open'));
+        mockWsInstance.onopen?.(new Event('Text'));
 
         const handler = jest.fn();
         manager.subscribe('prices', handler);
@@ -573,7 +573,7 @@ describe('WebSocketManager', () => {
 
       it('测试处理器抛出错误时不影响其他处理器', () => {
         manager.connect();
-        mockWsInstance.onopen?.(new Event('open'));
+        mockWsInstance.onopen?.(new Event('Text'));
 
         const errorHandler = jest.fn(() => {
           throw new Error('Handler error');
@@ -603,7 +603,7 @@ describe('WebSocketManager', () => {
     describe('大消息处理', () => {
       it('测试大消息处理', () => {
         manager.connect();
-        mockWsInstance.onopen?.(new Event('open'));
+        mockWsInstance.onopen?.(new Event('Text'));
 
         const handler = jest.fn();
         manager.subscribe('prices', handler);
@@ -629,7 +629,7 @@ describe('WebSocketManager', () => {
 
       it('测试多个大消息连续处理', () => {
         manager.connect();
-        mockWsInstance.onopen?.(new Event('open'));
+        mockWsInstance.onopen?.(new Event('Text'));
 
         const handler = jest.fn();
         manager.subscribe('prices', handler);
@@ -662,7 +662,7 @@ describe('WebSocketManager', () => {
     describe('订阅价格源', () => {
       it('测试 subscribe() 订阅频道', () => {
         manager.connect();
-        mockWsInstance.onopen?.(new Event('open'));
+        mockWsInstance.onopen?.(new Event('Text'));
 
         const handler = jest.fn();
         manager.subscribe('prices', handler);
@@ -678,7 +678,7 @@ describe('WebSocketManager', () => {
 
       it('测试订阅消息格式', () => {
         manager.connect();
-        mockWsInstance.onopen?.(new Event('open'));
+        mockWsInstance.onopen?.(new Event('Text'));
 
         const handler = jest.fn();
         manager.subscribe('prices', handler);
@@ -695,7 +695,7 @@ describe('WebSocketManager', () => {
     describe('取消订阅', () => {
       it('测试 unsubscribe() 取消订阅', () => {
         manager.connect();
-        mockWsInstance.onopen?.(new Event('open'));
+        mockWsInstance.onopen?.(new Event('Text'));
 
         const handler = jest.fn();
         manager.subscribe('prices', handler);
@@ -714,7 +714,7 @@ describe('WebSocketManager', () => {
 
       it('测试取消订阅后不再接收消息', () => {
         manager.connect();
-        mockWsInstance.onopen?.(new Event('open'));
+        mockWsInstance.onopen?.(new Event('Text'));
 
         const handler = jest.fn();
         manager.subscribe('prices', handler);
@@ -747,7 +747,7 @@ describe('WebSocketManager', () => {
     describe('多订阅处理', () => {
       it('测试多个处理器的情况', () => {
         manager.connect();
-        mockWsInstance.onopen?.(new Event('open'));
+        mockWsInstance.onopen?.(new Event('Text'));
 
         const handler1 = jest.fn();
         const handler2 = jest.fn();
@@ -776,7 +776,7 @@ describe('WebSocketManager', () => {
 
       it('测试订阅返回的取消订阅函数', () => {
         manager.connect();
-        mockWsInstance.onopen?.(new Event('open'));
+        mockWsInstance.onopen?.(new Event('Text'));
 
         const handler = jest.fn();
         const unsubscribe = manager.subscribe('prices', handler);
@@ -819,7 +819,7 @@ describe('WebSocketManager', () => {
         manager.subscribe('prices', handler);
 
         manager.connect();
-        mockWsInstance.onopen?.(new Event('open'));
+        mockWsInstance.onopen?.(new Event('Text'));
 
         const calls = mockWsInstance.send.mock.calls;
         const subscribeCall = calls.find((call) => {
@@ -834,7 +834,7 @@ describe('WebSocketManager', () => {
     describe('断开连接时订阅清理', () => {
       it('测试断开连接后订阅状态保留', () => {
         manager.connect();
-        mockWsInstance.onopen?.(new Event('open'));
+        mockWsInstance.onopen?.(new Event('Text'));
 
         const handler = jest.fn();
         manager.subscribe('prices', handler);
@@ -843,7 +843,7 @@ describe('WebSocketManager', () => {
 
         manager.connect();
         const newWsInstance = wsInstances[wsInstances.length - 1];
-        newWsInstance.onopen?.(new Event('open'));
+        newWsInstance.onopen?.(new Event('Text'));
 
         const calls = newWsInstance.send.mock.calls;
         const subscribeCall = calls.find((call) => {
@@ -856,7 +856,7 @@ describe('WebSocketManager', () => {
 
       it('测试取消订阅时不在线则不发送消息', () => {
         manager.connect();
-        mockWsInstance.onopen?.(new Event('open'));
+        mockWsInstance.onopen?.(new Event('Text'));
 
         const handler = jest.fn();
         manager.subscribe('prices', handler);
@@ -874,7 +874,7 @@ describe('WebSocketManager', () => {
     describe('心跳发送', () => {
       it('测试 ping 消息发送', () => {
         manager.connect();
-        mockWsInstance.onopen?.(new Event('open'));
+        mockWsInstance.onopen?.(new Event('Text'));
 
         mockWsInstance.send.mockClear();
         jest.advanceTimersByTime(30000);
@@ -895,7 +895,7 @@ describe('WebSocketManager', () => {
         });
 
         customIntervalManager.connect();
-        mockWsInstance.onopen?.(new Event('open'));
+        mockWsInstance.onopen?.(new Event('Text'));
 
         mockWsInstance.send.mockClear();
         jest.advanceTimersByTime(5000);
@@ -915,7 +915,7 @@ describe('WebSocketManager', () => {
     describe('心跳响应处理', () => {
       it('测试 pong 响应处理', () => {
         manager.connect();
-        mockWsInstance.onopen?.(new Event('open'));
+        mockWsInstance.onopen?.(new Event('Text'));
 
         jest.advanceTimersByTime(30000);
 
@@ -932,7 +932,7 @@ describe('WebSocketManager', () => {
 
       it('测试心跳超时定时器清理', () => {
         manager.connect();
-        mockWsInstance.onopen?.(new Event('open'));
+        mockWsInstance.onopen?.(new Event('Text'));
 
         jest.advanceTimersByTime(30000);
 
@@ -951,7 +951,7 @@ describe('WebSocketManager', () => {
     describe('心跳超时检测', () => {
       it('测试心跳超时处理', () => {
         manager.connect();
-        mockWsInstance.onopen?.(new Event('open'));
+        mockWsInstance.onopen?.(new Event('Text'));
 
         jest.advanceTimersByTime(30000);
 
@@ -962,7 +962,7 @@ describe('WebSocketManager', () => {
 
       it('测试心跳超时后重连', () => {
         manager.connect();
-        mockWsInstance.onopen?.(new Event('open'));
+        mockWsInstance.onopen?.(new Event('Text'));
 
         jest.advanceTimersByTime(30000);
         jest.advanceTimersByTime(10000);
@@ -974,7 +974,7 @@ describe('WebSocketManager', () => {
     describe('连接保活', () => {
       it('测试持续心跳保持连接', () => {
         manager.connect();
-        mockWsInstance.onopen?.(new Event('open'));
+        mockWsInstance.onopen?.(new Event('Text'));
 
         for (let i = 0; i < 5; i++) {
           jest.advanceTimersByTime(30000);
@@ -1006,7 +1006,7 @@ describe('WebSocketManager', () => {
         });
 
         customTimeoutManager.connect();
-        mockWsInstance.onopen?.(new Event('open'));
+        mockWsInstance.onopen?.(new Event('Text'));
 
         jest.advanceTimersByTime(5000);
         jest.advanceTimersByTime(2000);
@@ -1018,7 +1018,7 @@ describe('WebSocketManager', () => {
 
       it('测试断开连接时停止心跳', () => {
         manager.connect();
-        mockWsInstance.onopen?.(new Event('open'));
+        mockWsInstance.onopen?.(new Event('Text'));
 
         manager.disconnect();
 
@@ -1030,7 +1030,7 @@ describe('WebSocketManager', () => {
 
       it('测试心跳在 WebSocket 非打开状态时不发送', () => {
         manager.connect();
-        mockWsInstance.onopen?.(new Event('open'));
+        mockWsInstance.onopen?.(new Event('Text'));
         mockWsInstance.readyState = 0;
 
         mockWsInstance.send.mockClear();
@@ -1051,7 +1051,7 @@ describe('WebSocketManager', () => {
         });
 
         errorManager.connect();
-        mockWsInstance.onerror?.(new Event('error'));
+        mockWsInstance.onerror?.(new Event('Text'));
 
         expect(onError).toHaveBeenCalledTimes(1);
         expect(onError).toHaveBeenCalledWith(expect.any(Error));
@@ -1061,7 +1061,7 @@ describe('WebSocketManager', () => {
 
       it('测试连接错误时状态更新', () => {
         manager.connect();
-        mockWsInstance.onerror?.(new Event('error'));
+        mockWsInstance.onerror?.(new Event('Text'));
 
         expect(manager.getStatus()).toBe('error');
       });
@@ -1070,7 +1070,7 @@ describe('WebSocketManager', () => {
     describe('认证失败', () => {
       it('测试认证失败消息处理', () => {
         manager.connect();
-        mockWsInstance.onopen?.(new Event('open'));
+        mockWsInstance.onopen?.(new Event('Text'));
 
         const handler = jest.fn();
         manager.onStatusChange(handler);
@@ -1092,7 +1092,7 @@ describe('WebSocketManager', () => {
     describe('速率限制处理', () => {
       it('测试消息节流', () => {
         manager.connect();
-        mockWsInstance.onopen?.(new Event('open'));
+        mockWsInstance.onopen?.(new Event('Text'));
 
         const handler = jest.fn();
         manager.subscribe('prices', handler);
@@ -1125,7 +1125,7 @@ describe('WebSocketManager', () => {
     describe('无效消息处理', () => {
       it('测试无效JSON消息处理', () => {
         manager.connect();
-        mockWsInstance.onopen?.(new Event('open'));
+        mockWsInstance.onopen?.(new Event('Text'));
 
         const handler = jest.fn();
         manager.subscribe('prices', handler);
@@ -1137,7 +1137,7 @@ describe('WebSocketManager', () => {
 
       it('测试空消息处理', () => {
         manager.connect();
-        mockWsInstance.onopen?.(new Event('open'));
+        mockWsInstance.onopen?.(new Event('Text'));
 
         const handler = jest.fn();
         manager.subscribe('prices', handler);
@@ -1178,7 +1178,7 @@ describe('WebSocketManager', () => {
       it('测试连接被拒绝', () => {
         manager.connect();
 
-        mockWsInstance.onopen?.(new Event('open'));
+        mockWsInstance.onopen?.(new Event('Text'));
         mockWsInstance.onclose?.(new CloseEvent('close', { code: 1006 }));
 
         expect(manager.getStatus()).toBe('reconnecting');
@@ -1190,7 +1190,7 @@ describe('WebSocketManager', () => {
     describe('消息吞吐量', () => {
       it('测试高吞吐量消息处理', () => {
         manager.connect();
-        mockWsInstance.onopen?.(new Event('open'));
+        mockWsInstance.onopen?.(new Event('Text'));
 
         const handler = jest.fn();
         manager.subscribe('prices', handler);
@@ -1216,7 +1216,7 @@ describe('WebSocketManager', () => {
 
       it('测试消息批处理性能', () => {
         manager.connect();
-        mockWsInstance.onopen?.(new Event('open'));
+        mockWsInstance.onopen?.(new Event('Text'));
 
         const handler = jest.fn();
         manager.subscribe('prices', handler);
@@ -1248,7 +1248,7 @@ describe('WebSocketManager', () => {
         manager.connect();
 
         nowSpy.mockReturnValueOnce(1500);
-        mockWsInstance.onopen?.(new Event('open'));
+        mockWsInstance.onopen?.(new Event('Text'));
 
         const metrics = manager.getPerformanceMetrics();
         expect(metrics.connectionLatency).toBe(500);
@@ -1258,7 +1258,7 @@ describe('WebSocketManager', () => {
 
       it('测试消息处理时间记录', () => {
         manager.connect();
-        mockWsInstance.onopen?.(new Event('open'));
+        mockWsInstance.onopen?.(new Event('Text'));
 
         const handler = jest.fn();
         manager.subscribe('prices', handler);
@@ -1283,7 +1283,7 @@ describe('WebSocketManager', () => {
     describe('负载下内存使用', () => {
       it('测试持续消息流的内存管理', () => {
         manager.connect();
-        mockWsInstance.onopen?.(new Event('open'));
+        mockWsInstance.onopen?.(new Event('Text'));
 
         const handler = jest.fn();
         manager.subscribe('prices', handler);
@@ -1309,7 +1309,7 @@ describe('WebSocketManager', () => {
 
       it('测试大量订阅的内存管理', () => {
         manager.connect();
-        mockWsInstance.onopen?.(new Event('open'));
+        mockWsInstance.onopen?.(new Event('Text'));
 
         const handlers: jest.Mock[] = [];
         for (let i = 0; i < 50; i++) {
@@ -1325,7 +1325,7 @@ describe('WebSocketManager', () => {
     describe('并发连接处理', () => {
       it('测试多个订阅并发处理', () => {
         manager.connect();
-        mockWsInstance.onopen?.(new Event('open'));
+        mockWsInstance.onopen?.(new Event('Text'));
 
         const handlers: jest.Mock[] = [];
         for (let i = 0; i < 10; i++) {
@@ -1359,7 +1359,7 @@ describe('WebSocketManager', () => {
         });
 
         perfManager.connect();
-        mockWsInstance.onopen?.(new Event('open'));
+        mockWsInstance.onopen?.(new Event('Text'));
 
         const testMessage = {
           type: 'update',
@@ -1391,7 +1391,7 @@ describe('WebSocketManager', () => {
       manager.send({ type: 'test', data: 'queued message' });
 
       manager.connect();
-      mockWsInstance.onopen?.(new Event('open'));
+      mockWsInstance.onopen?.(new Event('Text'));
 
       const calls = mockWsInstance.send.mock.calls;
       const queuedCall = calls.find((call) => {
@@ -1404,7 +1404,7 @@ describe('WebSocketManager', () => {
 
     it('测试在线时消息直接发送', () => {
       manager.connect();
-      mockWsInstance.onopen?.(new Event('open'));
+      mockWsInstance.onopen?.(new Event('Text'));
 
       mockWsInstance.send.mockClear();
       manager.send({ type: 'test', data: 'online message' });
@@ -1420,11 +1420,11 @@ describe('WebSocketManager', () => {
       manager.send({ type: 'test', data: 'queued message' });
 
       manager.connect();
-      mockWsInstance.onopen?.(new Event('open'));
+      mockWsInstance.onopen?.(new Event('Text'));
       mockWsInstance.readyState = 0;
 
       const callsBefore = mockWsInstance.send.mock.calls.length;
-      mockWsInstance.onclose?.(new CloseEvent('close'));
+      mockWsInstance.onclose?.(new CloseEvent('Text'));
 
       expect(mockWsInstance.send.mock.calls.length).toBe(callsBefore);
     });
@@ -1448,7 +1448,7 @@ describe('WebSocketManager', () => {
       manager.onStatusChange(handler2);
 
       manager.connect();
-      mockWsInstance.onopen?.(new Event('open'));
+      mockWsInstance.onopen?.(new Event('Text'));
 
       expect(handler1).toHaveBeenCalledTimes(2);
       expect(handler2).toHaveBeenCalledTimes(2);
@@ -1463,7 +1463,7 @@ describe('WebSocketManager', () => {
 
       unsubscribe();
 
-      mockWsInstance.onopen?.(new Event('open'));
+      mockWsInstance.onopen?.(new Event('Text'));
       expect(handler).toHaveBeenCalledTimes(1);
     });
   });
@@ -1490,7 +1490,7 @@ describe('WebSocketManager', () => {
       });
 
       perfManager.connect();
-      mockWsInstance.onopen?.(new Event('open'));
+      mockWsInstance.onopen?.(new Event('Text'));
 
       const testMessage = {
         type: 'update',
@@ -1513,7 +1513,7 @@ describe('WebSocketManager', () => {
   describe('批处理测试', () => {
     it('测试消息批处理', () => {
       manager.connect();
-      mockWsInstance.onopen?.(new Event('open'));
+      mockWsInstance.onopen?.(new Event('Text'));
 
       const handler = jest.fn();
       manager.subscribe('prices', handler);
@@ -1538,7 +1538,7 @@ describe('WebSocketManager', () => {
 
     it('测试批处理窗口刷新', () => {
       manager.connect();
-      mockWsInstance.onopen?.(new Event('open'));
+      mockWsInstance.onopen?.(new Event('Text'));
 
       const handler = jest.fn();
       manager.subscribe('prices', handler);
@@ -1561,7 +1561,7 @@ describe('WebSocketManager', () => {
 
     it('测试断开连接时刷新所有批次', () => {
       manager.connect();
-      mockWsInstance.onopen?.(new Event('open'));
+      mockWsInstance.onopen?.(new Event('Text'));
 
       const handler = jest.fn();
       manager.subscribe('prices', handler);
@@ -1584,7 +1584,7 @@ describe('WebSocketManager', () => {
 
     it('测试批处理定时器清理', () => {
       manager.connect();
-      mockWsInstance.onopen?.(new Event('open'));
+      mockWsInstance.onopen?.(new Event('Text'));
 
       const handler = jest.fn();
       manager.subscribe('prices', handler);
@@ -1611,7 +1611,7 @@ describe('WebSocketManager', () => {
   describe('disconnect 清理测试', () => {
     it('测试 disconnect 时清理 batchTimer', () => {
       manager.connect();
-      mockWsInstance.onopen?.(new Event('open'));
+      mockWsInstance.onopen?.(new Event('Text'));
 
       const handler = jest.fn();
       manager.subscribe('prices', handler);
@@ -1636,7 +1636,7 @@ describe('WebSocketManager', () => {
 
     it('测试 disconnect 时 ws 为 null', () => {
       manager.connect();
-      mockWsInstance.onopen?.(new Event('open'));
+      mockWsInstance.onopen?.(new Event('Text'));
 
       manager.disconnect();
 
@@ -1653,7 +1653,7 @@ describe('WebSocketManager', () => {
       });
 
       managerWithCallback.connect();
-      mockWsInstance.onopen?.(new Event('open'));
+      mockWsInstance.onopen?.(new Event('Text'));
 
       expect(onConnect).toHaveBeenCalledTimes(1);
 
@@ -1669,8 +1669,8 @@ describe('WebSocketManager', () => {
 
       managerWithCallback.connect();
       const currentWsInstance = wsInstances[wsInstances.length - 1];
-      currentWsInstance.onopen?.(new Event('open'));
-      currentWsInstance.onclose?.(new CloseEvent('close'));
+      currentWsInstance.onopen?.(new Event('Text'));
+      currentWsInstance.onclose?.(new CloseEvent('Text'));
 
       expect(onDisconnect).toHaveBeenCalledTimes(1);
 
@@ -1685,7 +1685,7 @@ describe('WebSocketManager', () => {
       });
 
       managerWithCallback.connect();
-      mockWsInstance.onerror?.(new Event('error'));
+      mockWsInstance.onerror?.(new Event('Text'));
 
       expect(onError).toHaveBeenCalledTimes(1);
       expect(onError).toHaveBeenCalledWith(expect.any(Error));
@@ -1988,7 +1988,7 @@ describe('createWebSocketHook Callback Stabilization', () => {
 
     hook({ autoConnect: true, onConnect: onConnect2 });
 
-    wsInstance1.onopen?.(new Event('open'));
+    wsInstance1.onopen?.(new Event('Text'));
 
     expect(wsInstances.length).toBe(1);
     expect(onConnect1).toHaveBeenCalledTimes(1);

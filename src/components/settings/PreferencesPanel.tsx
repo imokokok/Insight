@@ -14,7 +14,6 @@ import {
 } from 'lucide-react';
 
 import { DropdownSelect, SegmentedControl } from '@/components/ui';
-import { useTranslations } from '@/i18n';
 import { getAllSupportedSymbols } from '@/lib/oracles/constants/supportedSymbols';
 import { updateUserProfile } from '@/lib/supabase/auth';
 import { useUser, useProfile, useAuthInitialized } from '@/stores/authStore';
@@ -101,7 +100,6 @@ const autoRefreshOptionKeys = [
 ];
 
 export function PreferencesPanel() {
-  const t = useTranslations('settingsPage');
   const user = useUser();
   const profile = useProfile();
   const authInitialized = useAuthInitialized();
@@ -115,18 +113,18 @@ export function PreferencesPanel() {
   const successTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const timeRangeOptions = useMemo(
-    () => timeRangeOptionKeys.map((option) => ({ value: option.value, label: t(option.key) })),
-    [t]
+    () => timeRangeOptionKeys.map((option) => ({ value: option.value, label: option.key })),
+    []
   );
 
   const languageOptions = useMemo(
-    () => languageOptionKeys.map((option) => ({ value: option.value, label: t(option.key) })),
-    [t]
+    () => languageOptionKeys.map((option) => ({ value: option.value, label: option.key })),
+    []
   );
 
   const autoRefreshOptions = useMemo(
-    () => autoRefreshOptionKeys.map((option) => ({ value: option.value, label: t(option.key) })),
-    [t]
+    () => autoRefreshOptionKeys.map((option) => ({ value: option.value, label: option.key })),
+    []
   );
 
   const loadPreferences = useCallback(() => {
@@ -208,7 +206,7 @@ export function PreferencesPanel() {
         });
       }
 
-      setSuccess(t('settings.preferences.saveSuccess'));
+      setSuccess('settings.preferences.saveSuccess');
 
       if (successTimerRef.current) {
         clearTimeout(successTimerRef.current);
@@ -216,7 +214,7 @@ export function PreferencesPanel() {
       successTimerRef.current = setTimeout(() => setSuccess(null), 3000);
     } catch (error) {
       console.error('Failed to save preferences:', error);
-      setError(t('settings.preferences.saveError'));
+      setError('settings.preferences.saveError');
     } finally {
       setIsSaving(false);
     }
@@ -238,9 +236,9 @@ export function PreferencesPanel() {
             <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
               <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                 <Database className="w-5 h-5 text-gray-400" />
-                {t('settings.preferences.title')}
+                {'settings.preferences.title'}
               </h2>
-              <p className="text-sm text-gray-500 mt-1">{t('settings.preferences.subtitle')}</p>
+              <p className="text-sm text-gray-500 mt-1">{'settings.preferences.subtitle'}</p>
             </div>
 
             <div className="p-6 space-y-6">
@@ -261,7 +259,7 @@ export function PreferencesPanel() {
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
                     <Database className="w-4 h-4 text-gray-400" />
-                    {t('settings.preferences.defaultOracle')}
+                    {'settings.preferences.defaultOracle'}
                   </label>
                   <div className="grid grid-cols-5 gap-2">
                     {oracleOptions.map((option) => (
@@ -279,31 +277,31 @@ export function PreferencesPanel() {
                     ))}
                   </div>
                   <p className="text-xs text-gray-500 mt-2">
-                    {t('settings.preferences.defaultOracleHint')}
+                    {'settings.preferences.defaultOracleHint'}
                   </p>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('settings.preferences.defaultSymbol')}
+                    {'settings.preferences.defaultSymbol'}
                   </label>
                   <DropdownSelect
                     options={symbolOptions}
                     value={preferences.defaultSymbol}
                     onChange={(value) => updatePreference('defaultSymbol', value)}
                     searchable
-                    searchPlaceholder={t('settings.preferences.searchSymbol')}
-                    placeholder={t('settings.preferences.selectSymbol')}
+                    searchPlaceholder={'settings.preferences.searchSymbol'}
+                    placeholder={'settings.preferences.selectSymbol'}
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    {t('settings.preferences.defaultSymbolHint')}
+                    {'settings.preferences.defaultSymbolHint'}
                   </p>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                     <Clock className="w-4 h-4 text-gray-400" />
-                    {t('settings.preferences.defaultTimeRange')}
+                    {'settings.preferences.defaultTimeRange'}
                   </label>
                   <SegmentedControl
                     options={timeRangeOptions}
@@ -312,14 +310,14 @@ export function PreferencesPanel() {
                     size="md"
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    {t('settings.preferences.defaultTimeRangeHint')}
+                    {'settings.preferences.defaultTimeRangeHint'}
                   </p>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                     <Globe className="w-4 h-4 text-gray-400" />
-                    {t('settings.preferences.language')}
+                    {'settings.preferences.language'}
                   </label>
                   <SegmentedControl
                     options={languageOptions}
@@ -328,39 +326,39 @@ export function PreferencesPanel() {
                     size="md"
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    {t('settings.preferences.languageHint')}
+                    {'settings.preferences.languageHint'}
                   </p>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                     <DollarSign className="w-4 h-4 text-gray-400" />
-                    {t('settings.preferences.defaultCurrency')}
+                    {'settings.preferences.defaultCurrency'}
                   </label>
                   <DropdownSelect
                     options={currencyOptions}
                     value={preferences.defaultCurrency}
                     onChange={(value) => updatePreference('defaultCurrency', value)}
-                    placeholder={t('settings.preferences.selectCurrency')}
+                    placeholder={'settings.preferences.selectCurrency'}
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    {t('settings.preferences.defaultCurrencyHint')}
+                    {'settings.preferences.defaultCurrencyHint'}
                   </p>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                     <RefreshCw className="w-4 h-4 text-gray-400" />
-                    {t('settings.preferences.autoRefreshInterval')}
+                    {'settings.preferences.autoRefreshInterval'}
                   </label>
                   <DropdownSelect
                     options={autoRefreshOptions}
                     value={preferences.autoRefreshInterval}
                     onChange={(value) => updatePreference('autoRefreshInterval', value)}
-                    placeholder={t('settings.preferences.selectRefreshInterval')}
+                    placeholder={'settings.preferences.selectRefreshInterval'}
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    {t('settings.preferences.autoRefreshIntervalHint')}
+                    {'settings.preferences.autoRefreshIntervalHint'}
                   </p>
                 </div>
               </div>
@@ -378,7 +376,7 @@ export function PreferencesPanel() {
               ) : (
                 <Save className="w-4 h-4" />
               )}
-              {t('settings.preferences.saveSettings')}
+              {'settings.preferences.saveSettings'}
             </button>
           </div>
         </>

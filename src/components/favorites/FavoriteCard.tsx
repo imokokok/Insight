@@ -5,7 +5,6 @@ import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { mapConfigTypeFromDB, type FavoriteConfig, useRemoveFavorite } from '@/hooks';
-import { useTranslations } from '@/i18n';
 import type { UserFavorite } from '@/lib/supabase/queries';
 
 interface FavoriteCardProps {
@@ -17,7 +16,6 @@ interface FavoriteCardProps {
 
 export function FavoriteCard({ favorite, onApply, onEdit, onDelete }: FavoriteCardProps) {
   const router = useRouter();
-  const t = useTranslations();
   const { removeFavorite, isRemoving } = useRemoveFavorite();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
@@ -58,7 +56,7 @@ export function FavoriteCard({ favorite, onApply, onEdit, onDelete }: FavoriteCa
         return (
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-500">{t('favorites.card.symbol')}</span>
+              <span className="text-xs text-gray-500">{'favorites.card.symbol'}</span>
               <span className="text-sm font-medium text-gray-900">{config.symbol}</span>
             </div>
             <div className="flex flex-wrap gap-1.5">
@@ -79,7 +77,7 @@ export function FavoriteCard({ favorite, onApply, onEdit, onDelete }: FavoriteCa
         return (
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-500">{t('favorites.card.symbol')}</span>
+              <span className="text-xs text-gray-500">{'favorites.card.symbol'}</span>
               <span className="text-sm font-medium text-gray-900">{config.symbol}</span>
             </div>
             {config.chains && config.chains.length > 0 && (
@@ -102,7 +100,7 @@ export function FavoriteCard({ favorite, onApply, onEdit, onDelete }: FavoriteCa
         return (
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-500">{t('favorites.card.chain')}</span>
+              <span className="text-xs text-gray-500">{'favorites.card.chain'}</span>
               <span className="text-sm font-medium text-gray-900">{config.chain}</span>
             </div>
             {config.symbols && config.symbols.length > 0 && (
@@ -122,7 +120,7 @@ export function FavoriteCard({ favorite, onApply, onEdit, onDelete }: FavoriteCa
           </div>
         );
     }
-  }, [configType, config, t]);
+  }, [configType, config]);
 
   const getTypeIcon = useCallback(() => {
     switch (configType) {
@@ -183,13 +181,13 @@ export function FavoriteCard({ favorite, onApply, onEdit, onDelete }: FavoriteCa
   const getTypeLabel = useCallback(() => {
     switch (configType) {
       case 'oracle_config':
-        return t('favorites.card.type.oracleConfig');
+        return 'favorites.card.type.oracleConfig';
       case 'symbol':
-        return t('favorites.card.type.symbol');
+        return 'Symbol';
       case 'chain_config':
-        return t('favorites.card.type.chainConfig');
+        return 'Chain Config';
     }
-  }, [configType, t]);
+  }, [configType]);
 
   const formatDate = useCallback((dateString: string) => {
     const date = new Date(dateString);
@@ -214,7 +212,7 @@ export function FavoriteCard({ favorite, onApply, onEdit, onDelete }: FavoriteCa
           <button
             onClick={() => onEdit?.(favorite)}
             className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100  transition-colors"
-            title={t('actions.edit')}
+            title={'actions.edit'}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
@@ -228,7 +226,7 @@ export function FavoriteCard({ favorite, onApply, onEdit, onDelete }: FavoriteCa
             onClick={() => setShowDeleteConfirm(true)}
             disabled={isRemoving}
             className="p-1.5 text-gray-400 hover:text-danger-600 hover:bg-danger-50  transition-colors disabled:opacity-50"
-            title={t('actions.delete')}
+            title={'actions.delete'}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
@@ -249,7 +247,7 @@ export function FavoriteCard({ favorite, onApply, onEdit, onDelete }: FavoriteCa
           onClick={handleApply}
           className="px-3 py-1.5 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700  transition-colors"
         >
-          {t('actions.apply')}
+          {'actions.apply'}
         </button>
       </div>
 
@@ -257,24 +255,24 @@ export function FavoriteCard({ favorite, onApply, onEdit, onDelete }: FavoriteCa
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="bg-white  p-6 max-w-sm w-full mx-4 ">
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              {t('favorites.card.deleteConfirm.title')}
+              {'favorites.card.deleteConfirm.title'}
             </h3>
             <p className="text-sm text-gray-600 mb-4">
-              {t('favorites.card.deleteConfirm.message').replace('{name}', favorite.name)}
+              {'favorites.card.deleteConfirm.message'.replace('{name}', favorite.name)}
             </p>
             <div className="flex items-center justify-end gap-3">
               <button
                 onClick={() => setShowDeleteConfirm(false)}
                 className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200  transition-colors"
               >
-                {t('actions.cancel')}
+                {'actions.cancel'}
               </button>
               <button
                 onClick={handleDelete}
                 disabled={isRemoving}
                 className="px-4 py-2 text-sm font-medium text-white bg-danger-600 hover:bg-danger-700  transition-colors disabled:opacity-50"
               >
-                {isRemoving ? t('actions.deleting') : t('actions.delete')}
+                {isRemoving ? 'actions.deleting' : 'actions.delete'}
               </button>
             </div>
           </div>

@@ -37,7 +37,7 @@ export function createCachedJsonResponse<T>(
 }
 
 export async function getUserId(request: NextRequest): Promise<string | null> {
-  const authHeader = request.headers.get('authorization');
+  const authHeader = request.headers.get('key');
   if (!authHeader?.startsWith('Bearer ')) {
     return null;
   }

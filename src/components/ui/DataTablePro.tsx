@@ -11,7 +11,6 @@ import React, {
 
 import { useVirtualizer } from '@tanstack/react-virtual';
 
-import { useTranslations } from '@/i18n';
 import { cn } from '@/lib/utils';
 
 import {
@@ -52,7 +51,6 @@ export function DataTablePro<T extends Record<string, unknown>>({
   onDensityChange,
   className,
 }: DataTableProProps<T>) {
-  const t = useTranslations('ui.dataTable');
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [sortConfig, setSortConfig] = useState<SortConfig[]>([]);
@@ -222,7 +220,7 @@ export function DataTablePro<T extends Record<string, unknown>>({
             />
           </svg>
         </div>
-        <p className="text-gray-500 text-sm">{emptyText || t('noData')}</p>
+        <p className="text-gray-500 text-sm">{emptyText || 'No data available'}</p>
       </div>
     );
   }
@@ -232,10 +230,10 @@ export function DataTablePro<T extends Record<string, unknown>>({
       {(columnVisibility || densityToggle) && (
         <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200 bg-gray-50/50">
           <div className="text-xs text-gray-500">
-            {t('totalRecords', { count: data.length })}
+            Total {data.length} records
             {sortConfig.length > 0 && (
               <span className="ml-2 text-blue-600">
-                {t('sorted')}:{' '}
+                Sorted:{' '}
                 {sortConfig.map((s) => `${s.key}(${s.direction === 'asc' ? '↑' : '↓'})`).join(', ')}
               </span>
             )}
@@ -296,7 +294,7 @@ export function DataTablePro<T extends Record<string, unknown>>({
         <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-40">
           <div className="flex items-center gap-3">
             <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-            <span className="text-sm text-gray-600">{t('loading')}</span>
+            <span className="text-sm text-gray-600">Loading...</span>
           </div>
         </div>
       )}

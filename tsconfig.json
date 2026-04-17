@@ -24,8 +24,7 @@
     ],
     "paths": {
       "@/*": ["./src/*"]
-    },
-    "types": ["next-intl"]
+    }
   },
   "include": [
     "next-env.d.ts",
@@ -33,8 +32,7 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
-    "**/*.mts",
-    "src/i18n/types.ts"
+    "**/*.mts"
   ],
   "exclude": [
     "node_modules",

@@ -2,17 +2,15 @@
 
 import { AlignJustify, Rows3, LayoutList } from 'lucide-react';
 
-import { useTranslations } from '@/i18n';
 import { cn } from '@/lib/utils';
 
 import type { DensityToggleProps } from '../types';
 
 export function DensityToggle({ density, onChange }: DensityToggleProps) {
-  const t = useTranslations('ui.dataTable');
   const options = [
-    { key: 'compact', icon: AlignJustify, label: t('density.compact') },
-    { key: 'normal', icon: Rows3, label: t('density.normal') },
-    { key: 'comfortable', icon: LayoutList, label: t('density.comfortable') },
+    { key: 'compact', icon: AlignJustify, label: 'density.compact' },
+    { key: 'normal', icon: Rows3, label: 'density.normal' },
+    { key: 'comfortable', icon: LayoutList, label: 'density.comfortable' },
   ] as const;
 
   return (

@@ -10,22 +10,15 @@ import { Menu, User, Heart, Bell } from 'lucide-react';
 
 import { Button } from '@/components/ui';
 import { useKeyboardShortcuts } from '@/hooks';
-import { useTranslations, useLocale } from '@/i18n';
-import { routing } from '@/i18n/routing';
 import { sanitizeUrl } from '@/lib/security';
 import { useUser, useProfile, useAuthLoading, useAuthActions } from '@/stores/authStore';
 
-import LanguageSwitcher from './LanguageSwitcher';
 import { DropdownMenu, MobileDrawer, UserMenuDropdown, navigationConfig } from './navigation';
 import { type NavGroup } from './navigation/types';
 import { GlobalSearch, SearchButton } from './search';
 
-const LOCALE_PATTERN = new RegExp(`^/(?:${routing.locales.join('|')})(/.*)$`);
-
 export default function Navbar() {
   const pathname = usePathname();
-  const t = useTranslations();
-  const locale = useLocale();
   const user = useUser();
   const profile = useProfile();
   const loading = useAuthLoading();
@@ -38,8 +31,7 @@ export default function Navbar() {
   const currentPath = useMemo(() => {
     if (!pathname) return '/';
     const pathWithoutQuery = pathname.split('?')[0];
-    const localeMatch = pathWithoutQuery.match(LOCALE_PATTERN);
-    return localeMatch ? localeMatch[1] : pathWithoutQuery;
+    return pathWithoutQuery;
   }, [pathname]);
 
   const isActive = (href: string) => {
@@ -74,7 +66,6 @@ export default function Navbar() {
       <nav className="bg-white/95 backdrop-blur-md border-b border-gray-200 sticky top-0 z-40 transition-all duration-300">
         <div className="max-w-[1600px] mx-auto px-3 sm:px-4 lg:px-6">
           <div className="flex justify-between h-14">
-            {/* Left: Logo */}
             <div className="flex items-center">
               <Link href="/" className="flex-shrink-0 flex items-center gap-2 group">
                 <Image
@@ -91,7 +82,6 @@ export default function Navbar() {
               </Link>
             </div>
 
-            {/* Center: Desktop Navigation */}
             <div className="hidden lg:flex items-center justify-center space-x-0.5">
               {navigationConfig.map((navItem) => {
                 if ('items' in navItem) {
@@ -123,41 +113,36 @@ export default function Navbar() {
                     }`}
                   >
                     {ItemIcon && <ItemIcon className="w-4 h-4" />}
-                    <span>{t(item.label)}</span>
+                    <span>{item.label}</span>
                   </Link>
                 );
               })}
             </div>
 
-            {/* Right: Search + Language + User Actions */}
             <div className="flex items-center gap-1">
               <SearchButton onClick={() => setIsSearchOpen(true)} />
-
-              <div className="hidden md:block">
-                <LanguageSwitcher />
-              </div>
 
               {user && !loading ? (
                 <div className="hidden lg:flex items-center gap-0.5">
                   <Link
-                    href={`/${locale}/favorites`}
+                    href="/favorites"
                     className={`p-2 rounded-md transition-colors ${
                       isActive('/favorites')
                         ? 'text-primary-600 bg-primary-50'
                         : 'text-gray-600 hover:text-primary-600 hover:bg-gray-50'
                     }`}
-                    title={t('navbar.favorites')}
+                    title="Favorites"
                   >
                     <Heart className="w-4 h-4" />
                   </Link>
                   <Link
-                    href={`/${locale}/alerts`}
+                    href="/alerts"
                     className={`p-2 rounded-md transition-colors ${
                       isActive('/alerts')
                         ? 'text-primary-600 bg-primary-50'
                         : 'text-gray-600 hover:text-primary-600 hover:bg-gray-50'
                     }`}
-                    title={t('navbar.alerts')}
+                    title="Alerts"
                   >
                     <Bell className="w-4 h-4" />
                   </Link>
@@ -204,14 +189,14 @@ export default function Navbar() {
                 </div>
               ) : !loading ? (
                 <div className="hidden lg:flex items-center gap-1">
-                  <Link href={`/${locale}/login`}>
+                  <Link href="/login">
                     <Button variant="ghost" size="sm">
-                      {t('navbar.login')}
+                      Login
                     </Button>
                   </Link>
-                  <Link href={`/${locale}/register`}>
+                  <Link href="/register">
                     <Button variant="primary" size="sm">
-                      {t('navbar.register')}
+                      Register
                     </Button>
                   </Link>
                 </div>
@@ -222,7 +207,7 @@ export default function Navbar() {
                 size="icon"
                 onClick={() => setIsMobileMenuOpen(true)}
                 className="lg:hidden"
-                aria-label={t('navbar.openMenu')}
+                aria-label="Open menu"
               >
                 <Menu className="w-6 h-6" />
               </Button>

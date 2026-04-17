@@ -7,8 +7,6 @@ import Link from 'next/link';
 
 import { X, ChevronDown } from 'lucide-react';
 
-import { useTranslations } from '@/i18n';
-
 import { oracleColors } from './config';
 import { type NavStructure, type NavGroup } from './types';
 
@@ -20,7 +18,6 @@ interface MobileDrawerProps {
 }
 
 export function MobileDrawer({ isOpen, onClose, navStructure, currentPath }: MobileDrawerProps) {
-  const t = useTranslations();
   const [expandedGroups, setExpandedGroups] = useState<string[]>([]);
 
   const toggleGroup = (groupId: string) => {
@@ -37,32 +34,28 @@ export function MobileDrawer({ isOpen, onClose, navStructure, currentPath }: Mob
 
   return (
     <>
-      {/* Backdrop */}
       <div
         className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40 animate-fade-in"
         onClick={onClose}
       />
 
-      {/* Drawer - Full width on mobile */}
       <div className="fixed inset-y-0 right-0 w-full sm:max-w-sm bg-white rounded-l-lg z-50 animate-slide-in-right">
         <div className="flex flex-col h-full">
-          {/* Header */}
           <div className="flex items-center justify-between px-4 py-4 border-b border-gray-100">
             <div className="flex items-center gap-3">
               <Image src="/logos/owl-logo.svg" alt="Insight Logo" width={32} height={28} priority />
               <div className="text-xl font-bold text-primary-600">Insight</div>
-              <div className="text-lg font-semibold text-gray-900">{t('navbar.menu')}</div>
+              <div className="text-lg font-semibold text-gray-900">Menu</div>
             </div>
             <button
               onClick={onClose}
               className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
-              aria-label={t('actions.close')}
+              aria-label="Close"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
 
-          {/* Navigation */}
           <nav className="flex-1 overflow-y-auto py-4 px-2">
             {navStructure.map((navItem) => {
               if ('items' in navItem) {
@@ -83,7 +76,7 @@ export function MobileDrawer({ isOpen, onClose, navStructure, currentPath }: Mob
                     >
                       <div className="flex items-center gap-3">
                         {GroupIcon && <GroupIcon className="w-5 h-5" />}
-                        <span className="font-medium">{t(group.label)}</span>
+                        <span className="font-medium">{group.label}</span>
                       </div>
                       <ChevronDown
                         className={`w-5 h-5 transition-transform duration-200 ${
@@ -130,7 +123,7 @@ export function MobileDrawer({ isOpen, onClose, navStructure, currentPath }: Mob
                                   />
                                 </div>
                               )}
-                              <span className="text-sm">{t(item.label)}</span>
+                              <span className="text-sm">{item.label}</span>
                               {isItemActive && (
                                 <div className="ml-auto w-1.5 h-1.5 bg-primary-600 " />
                               )}
@@ -143,7 +136,6 @@ export function MobileDrawer({ isOpen, onClose, navStructure, currentPath }: Mob
                 );
               }
 
-              // Single item (not a group)
               const item = navItem;
               const ItemIcon = item.icon;
               const isItemActive = currentPath === item.href;
@@ -160,7 +152,7 @@ export function MobileDrawer({ isOpen, onClose, navStructure, currentPath }: Mob
                   }`}
                 >
                   {ItemIcon && <ItemIcon className="w-5 h-5" />}
-                  <span className="font-medium">{t(item.label)}</span>
+                  <span className="font-medium">{item.label}</span>
                   {isItemActive && <div className="ml-auto w-1.5 h-1.5 bg-primary-600 " />}
                 </Link>
               );

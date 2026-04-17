@@ -1,8 +1,8 @@
 import { create } from 'zustand';
 import { devtools, persist, createJSONStorage } from 'zustand/middleware';
 
-import { type RefreshInterval } from '@/app/[locale]/cross-chain/constants';
-import { type ThresholdConfig, defaultThresholdConfig } from '@/app/[locale]/cross-chain/utils';
+import { type RefreshInterval } from '@/app/cross-chain/constants';
+import { type ThresholdConfig, defaultThresholdConfig } from '@/app/cross-chain/utils';
 import { type Blockchain } from '@/lib/oracles';
 
 interface ConfigState {

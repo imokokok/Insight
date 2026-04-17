@@ -108,27 +108,23 @@ export function getTimeAgoDiff(input: Date | number): TimeAgoResult {
   return { value: Math.floor(seconds / 86400), unit: 'days', isFuture };
 }
 
-export function formatTimeAgo(
-  diff: TimeAgoResult,
-  t: (key: string, params?: Record<string, number>) => string
-): string {
+export function formatTimeAgo(diff: TimeAgoResult): string {
   const { value, unit, isFuture } = diff;
 
   if (value === 0 && unit === 'seconds') {
-    return t('time.justNow');
+    return 'Just now';
   }
 
-  // 根据 isFuture 选择不同的时间格式
   if (isFuture) {
     switch (unit) {
       case 'seconds':
-        return t('time.inSeconds', { seconds: value });
+        return `In ${value} seconds`;
       case 'minutes':
-        return t('time.inMinutes', { minutes: value });
+        return `In ${value} minutes`;
       case 'hours':
-        return t('time.inHours', { hours: value });
+        return `In ${value} hours`;
       case 'days':
-        return t('time.inDays', { days: value });
+        return `In ${value} days`;
       default:
         return '';
     }
@@ -136,13 +132,13 @@ export function formatTimeAgo(
 
   switch (unit) {
     case 'seconds':
-      return t('time.secondsAgo', { seconds: value });
+      return `${value} seconds ago`;
     case 'minutes':
-      return t('time.minutesAgo', { minutes: value });
+      return `${value} minutes ago`;
     case 'hours':
-      return t('time.hoursAgo', { hours: value });
+      return `${value} hours ago`;
     case 'days':
-      return t('time.daysAgo', { days: value });
+      return `${value} days ago`;
     default:
       return '';
   }

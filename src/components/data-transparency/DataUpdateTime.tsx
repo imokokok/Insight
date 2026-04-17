@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 
 import { Clock, RefreshCw, AlertCircle, CheckCircle2 } from 'lucide-react';
 
-import { useTranslations } from '@/i18n';
 import { getTimeAgoDiff, formatTimeAgo } from '@/lib/utils/timestamp';
 
 export interface DataUpdateTimeProps {
@@ -44,7 +43,6 @@ export function DataUpdateTime({
   variant = 'compact',
   showCountdown = true,
 }: DataUpdateTimeProps) {
-  const t = useTranslations();
   const [, setTick] = useState(0);
   const [countdown, setCountdown] = useState(() => {
     if (!autoRefresh || !showCountdown || !lastUpdated) {
@@ -124,7 +122,7 @@ export function DataUpdateTime({
       <div className={`inline-flex items-center gap-1.5 ${className}`}>
         <div className={`w-2 h-2 rounded-full ${config.dotColor}`} />
         <span className="text-xs text-gray-500">
-          {timeAgo ? formatTimeAgo(timeAgo, t) : t('status.noData')}
+          {timeAgo ? formatTimeAgo(timeAgo) : 'No data'}
         </span>
       </div>
     );
@@ -140,13 +138,11 @@ export function DataUpdateTime({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className={`font-medium ${config.color}`}>
-                  {t(`dataTransparency.freshness.${freshness}`)}
-                </span>
+                <span className={`font-medium ${config.color}`}>{freshness}</span>
                 {isLoading && <RefreshCw size={14} className="animate-spin text-gray-400" />}
               </div>
               <p className="text-xs text-gray-500">
-                {timeAgo ? formatTimeAgo(timeAgo, t) : t('status.noData')}
+                {timeAgo ? formatTimeAgo(timeAgo) : 'No data'}
               </p>
             </div>
           </div>
@@ -157,7 +153,7 @@ export function DataUpdateTime({
             )}
             {autoRefresh && showCountdown && (
               <p className="text-xs font-medium text-gray-600">
-                {t('dataTransparency.nextRefresh')}: {formatCountdown(countdown)}
+                {'dataTransparency.nextRefresh'}: {formatCountdown(countdown)}
               </p>
             )}
           </div>
@@ -167,7 +163,7 @@ export function DataUpdateTime({
           <div className="mt-3 pt-3 border-t border-danger-200">
             <p className="text-xs text-danger-600 flex items-center gap-1">
               <AlertCircle size={12} />
-              {error.message || t('status.error')}
+              {error.message || 'status.error'}
             </p>
           </div>
         )}
@@ -182,12 +178,12 @@ export function DataUpdateTime({
               {isLoading ? (
                 <>
                   <RefreshCw size={14} className="animate-spin" />
-                  {t('status.loading')}
+                  {'status.loading'}
                 </>
               ) : (
                 <>
                   <RefreshCw size={14} />
-                  {t('actions.refresh')}
+                  {'actions.refresh'}
                 </>
               )}
             </button>
@@ -205,7 +201,7 @@ export function DataUpdateTime({
         <div className={`w-1.5 h-1.5 rounded-full ${config.dotColor}`} />
         <StatusIcon size={12} className={config.color} />
         <span className={`text-xs font-medium ${config.color}`}>
-          {timeAgo ? formatTimeAgo(timeAgo, t) : t('status.noData')}
+          {timeAgo ? formatTimeAgo(timeAgo) : 'No data'}
         </span>
       </div>
 
@@ -218,7 +214,7 @@ export function DataUpdateTime({
           onClick={onRefresh}
           disabled={isLoading}
           className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          title={t('actions.refresh')}
+          title={'actions.refresh'}
         >
           <RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />
         </button>

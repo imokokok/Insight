@@ -11,7 +11,6 @@ import {
   ChevronDown,
   Settings,
 } from 'lucide-react';
-import { useTranslations } from 'next-intl';
 
 import { baseColors } from '@/lib/config/colors';
 import { cn } from '@/lib/utils';
@@ -42,10 +41,10 @@ const timeRangeLabels: Record<TimeRange, string> = {
   ALL: 'ALL',
 };
 
-const chartTypeConfig: Record<ChartType, { labelKey: string; icon: typeof LineChart }> = {
-  line: { labelKey: 'chartToolbar.chartType.line', icon: LineChart },
-  area: { labelKey: 'chartToolbar.chartType.area', icon: AreaChart },
-  candle: { labelKey: 'chartToolbar.chartType.candle', icon: CandlestickChart },
+const chartTypeConfig: Record<ChartType, { label: string; icon: typeof LineChart }> = {
+  line: { label: 'Line', icon: LineChart },
+  area: { label: 'Area', icon: AreaChart },
+  candle: { label: 'Candle', icon: CandlestickChart },
 };
 
 const defaultIndicators = ['MA', 'EMA', 'RSI', 'MACD', 'BOLL', 'VWAP'];
@@ -63,7 +62,6 @@ export function ChartToolbar({
   onExport,
   className,
 }: ChartToolbarProps) {
-  const t = useTranslations();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isIndicatorMenuOpen, setIsIndicatorMenuOpen] = useState(false);
 
@@ -173,13 +171,11 @@ export function ChartToolbar({
                         : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                   )}
                   title={
-                    isDisabled
-                      ? `${t(config.labelKey)} ${t('chartToolbar.unavailableWithMultipleSeries')}`
-                      : t(config.labelKey)
+                    isDisabled ? `${config.label} (Unavailable with multiple series)` : config.label
                   }
                 >
                   <Icon className="w-3.5 h-3.5" />
-                  <span className="hidden md:inline">{t(config.labelKey)}</span>
+                  <span className="hidden md:inline">{config.label}</span>
                 </button>
               );
             })}
@@ -206,9 +202,7 @@ export function ChartToolbar({
                         : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                   )}
                   title={
-                    isDisabled
-                      ? `${t(config.labelKey)} ${t('chartToolbar.unavailableWithMultipleSeries')}`
-                      : t(config.labelKey)
+                    isDisabled ? `${config.label} (Unavailable with multiple series)` : config.label
                   }
                 >
                   <Icon className="w-3.5 h-3.5" />
@@ -229,12 +223,12 @@ export function ChartToolbar({
               )}
             >
               <Plus className="w-3.5 h-3.5" />
-              <span className="hidden md:inline">{t('chartToolbar.indicator')}</span>
+              <span className="hidden md:inline">Indicator</span>
             </button>
             {isIndicatorMenuOpen && (
               <div className="absolute top-full right-0 mt-1 z-50 min-w-[120px] bg-white border border-gray-200 rounded-md shadow-lg">
                 <div className="px-3 py-2 text-xs font-medium text-gray-500 border-b border-gray-100">
-                  {t('chartToolbar.addIndicator')}
+                  Add Indicator
                 </div>
                 {indicators.map((indicator) => (
                   <button
@@ -260,14 +254,14 @@ export function ChartToolbar({
             )}
           >
             <Download className="w-3.5 h-3.5" />
-            <span className="hidden md:inline">{t('chartToolbar.export')}</span>
+            <span className="hidden md:inline">Export</span>
           </button>
         )}
 
         {/* Settings Button - Mobile Only */}
         <button
           className="sm:hidden flex items-center justify-center w-7 h-7 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all duration-200"
-          title={t('chartToolbar.settings')}
+          title="Settings"
         >
           <Settings className="w-3.5 h-3.5" />
         </button>

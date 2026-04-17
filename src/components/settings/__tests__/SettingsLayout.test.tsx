@@ -2,24 +2,6 @@ import { render, screen, fireEvent } from '@testing-library/react';
 
 import { SettingsLayout, type SettingsTab } from '../SettingsLayout';
 
-jest.mock('@/i18n', () => ({
-  useTranslations: () => (key: string) => {
-    const translations: Record<string, string> = {
-      'settings.title': 'Settings',
-      'settings.subtitle': 'Manage your account settings',
-      'settings.profile': 'Profile',
-      'settings.profileDesc': 'Manage your profile',
-      'settings.preferences': 'Preferences',
-      'settings.preferencesDesc': 'Customize your experience',
-      'settings.notifications': 'Notifications',
-      'settings.notificationsDesc': 'Configure notifications',
-      'settings.data': 'Data',
-      'settings.dataDesc': 'Manage your data',
-    };
-    return translations[key] || key;
-  },
-}));
-
 describe('SettingsLayout', () => {
   const mockOnTabChange = jest.fn();
   const defaultProps = {
@@ -35,17 +17,17 @@ describe('SettingsLayout', () => {
   it('should render settings title and subtitle', () => {
     render(<SettingsLayout {...defaultProps} />);
 
-    expect(screen.getByText('Settings')).toBeInTheDocument();
+    expect(screen.getByText('Text')).toBeInTheDocument();
     expect(screen.getByText('Manage your account settings')).toBeInTheDocument();
   });
 
   it('should render all tabs', () => {
     render(<SettingsLayout {...defaultProps} />);
 
-    expect(screen.getByText('Profile')).toBeInTheDocument();
-    expect(screen.getByText('Preferences')).toBeInTheDocument();
-    expect(screen.getByText('Notifications')).toBeInTheDocument();
-    expect(screen.getByText('Data')).toBeInTheDocument();
+    expect(screen.getByText('Text')).toBeInTheDocument();
+    expect(screen.getByText('Text')).toBeInTheDocument();
+    expect(screen.getByText('Text')).toBeInTheDocument();
+    expect(screen.getByText('Text')).toBeInTheDocument();
   });
 
   it('should render children content', () => {

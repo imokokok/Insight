@@ -982,19 +982,19 @@ describe('riskMetrics', () => {
 
   describe('getRiskLevelText', () => {
     it('should return correct text key for low risk', () => {
-      expect(getRiskLevelText('low')).toBe('risk_level_low');
+      expect(getRiskLevelText('Text')).toBe('risk_level_low');
     });
 
     it('should return correct text key for medium risk', () => {
-      expect(getRiskLevelText('medium')).toBe('risk_level_medium');
+      expect(getRiskLevelText('Text')).toBe('risk_level_medium');
     });
 
     it('should return correct text key for high risk', () => {
-      expect(getRiskLevelText('high')).toBe('risk_level_high');
+      expect(getRiskLevelText('Text')).toBe('risk_level_high');
     });
 
     it('should return correct text key for critical risk', () => {
-      expect(getRiskLevelText('critical')).toBe('risk_level_critical');
+      expect(getRiskLevelText('Text')).toBe('risk_level_critical');
     });
   });
 

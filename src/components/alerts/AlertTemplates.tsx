@@ -3,7 +3,6 @@
 import React, { useState, useCallback, useMemo } from 'react';
 
 import { DropdownSelect } from '@/components/ui';
-import { useTranslations } from '@/i18n';
 import type { AlertConditionType } from '@/lib/supabase/database.types';
 import { type OracleProvider, type Blockchain } from '@/types/oracle';
 
@@ -91,12 +90,12 @@ const TEMPLATE_ICONS: Record<string, React.ReactNode> = {
   ),
 };
 
-export function getPresetTemplates(t: (key: string) => string): AlertTemplate[] {
+export function getPresetTemplates(): AlertTemplate[] {
   return [
     {
       id: 'price_breakout',
-      name: t('alerts.templates.priceBreakout.name'),
-      description: t('alerts.templates.priceBreakout.description'),
+      name: 'Price Breakout',
+      description: 'Alert when price breaks above resistance level',
       icon: 'price_breakout',
       category: 'price',
       config: {
@@ -110,8 +109,8 @@ export function getPresetTemplates(t: (key: string) => string): AlertTemplate[] 
     },
     {
       id: 'price_drop',
-      name: t('alerts.templates.priceDrop.name'),
-      description: t('alerts.templates.priceDrop.description'),
+      name: 'Price Drop',
+      description: 'Alert when price drops below support level',
       icon: 'price_drop',
       category: 'price',
       config: {
@@ -125,8 +124,8 @@ export function getPresetTemplates(t: (key: string) => string): AlertTemplate[] 
     },
     {
       id: 'volatility_spike',
-      name: t('alerts.templates.volatilitySpike.name'),
-      description: t('alerts.templates.volatilitySpike.description'),
+      name: 'Volatility Spike',
+      description: 'Alert when price changes more than 5%',
       icon: 'volatility_spike',
       category: 'volatility',
       config: {
@@ -140,8 +139,8 @@ export function getPresetTemplates(t: (key: string) => string): AlertTemplate[] 
     },
     {
       id: 'deviation_alert',
-      name: t('alerts.templates.deviationAlert.name'),
-      description: t('alerts.templates.deviationAlert.description'),
+      name: 'Deviation Alert',
+      description: 'Alert when price deviates more than 2%',
       icon: 'deviation_alert',
       category: 'volatility',
       config: {
@@ -155,8 +154,8 @@ export function getPresetTemplates(t: (key: string) => string): AlertTemplate[] 
     },
     {
       id: 'data_delay',
-      name: t('alerts.templates.dataDelay.name'),
-      description: t('alerts.templates.dataDelay.description'),
+      name: 'Data Delay',
+      description: 'Alert when data update is delayed',
       icon: 'data_delay',
       category: 'data',
       config: {
@@ -172,11 +171,10 @@ export function getPresetTemplates(t: (key: string) => string): AlertTemplate[] 
 }
 
 export function AlertTemplates({ onSelectTemplate, selectedSymbol = 'BTC' }: AlertTemplatesProps) {
-  const t = useTranslations();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const templates = useMemo(() => getPresetTemplates(t), [t]);
+  const templates = useMemo(() => getPresetTemplates(), []);
 
   const filteredTemplates = useMemo(() => {
     if (selectedCategory === 'all') return templates;
@@ -198,63 +196,55 @@ export function AlertTemplates({ onSelectTemplate, selectedSymbol = 'BTC' }: Ale
   );
 
   const categoryOptions = [
-    { value: 'all', label: t('alerts.templates.categories.all') },
-    { value: 'price', label: t('alerts.templates.categories.price') },
-    { value: 'volatility', label: t('alerts.templates.categories.volatility') },
-    { value: 'data', label: t('alerts.templates.categories.data') },
+    { value: 'all', label: 'All' },
+    { value: 'price', label: 'Price' },
+    { value: 'volatility', label: 'Volatility' },
+    { value: 'data', label: 'Data' },
   ];
-
-  const displayedTemplates = isExpanded ? filteredTemplates : filteredTemplates.slice(0, 3);
 
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h4 className="text-sm font-medium text-gray-700">{t('alerts.templates.title')}</h4>
-        <DropdownSelect
-          options={categoryOptions}
-          value={selectedCategory}
-          onChange={(value) => setSelectedCategory(value as string)}
-        />
-      </div>
-
-      <div className="grid grid-cols-1 gap-2">
-        {displayedTemplates.map((template) => (
-          <button
-            key={template.id}
-            onClick={() => handleSelectTemplate(template)}
-            className="flex items-start gap-3 p-3 text-left border border-gray-200 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition-colors"
-          >
-            <div className="flex-shrink-0 text-gray-500">{TEMPLATE_ICONS[template.icon]}</div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900">{template.name}</p>
-              <p className="text-xs text-gray-500 mt-0.5">{template.description}</p>
-              <div className="flex items-center gap-2 mt-2">
-                <span className="text-xs px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded">
-                  {template.config.symbol}
-                </span>
-                <span className="text-xs px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded">
-                  {template.config.condition_type === 'above'
-                    ? `≥ ${template.config.target_value}`
-                    : template.config.condition_type === 'below'
-                      ? `≤ ${template.config.target_value}`
-                      : `±${template.config.target_value}%`}
-                </span>
-              </div>
-            </div>
-          </button>
-        ))}
-      </div>
-
-      {filteredTemplates.length > 3 && (
+        <h4 className="text-sm font-medium text-gray-700">Quick Templates</h4>
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="w-full py-2 text-sm text-primary-600 hover:text-primary-700 hover:bg-primary-50 transition-colors"
+          className="text-xs text-primary-600 hover:text-primary-700"
         >
-          {isExpanded ? t('alerts.templates.showLess') : t('alerts.templates.showMore')}
+          {isExpanded ? 'Hide' : 'Show'}
         </button>
+      </div>
+
+      {isExpanded && (
+        <>
+          <div className="flex gap-2">
+            <DropdownSelect
+              value={selectedCategory}
+              onChange={setSelectedCategory}
+              options={categoryOptions}
+              placeholder="Select category"
+              className="flex-1"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 gap-2">
+            {filteredTemplates.map((template) => (
+              <button
+                key={template.id}
+                onClick={() => handleSelectTemplate(template)}
+                className="flex items-start gap-3 p-3 text-left bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <div className="flex-shrink-0 text-gray-500">
+                  {TEMPLATE_ICONS[template.icon] || TEMPLATE_ICONS.custom}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium text-gray-900 text-sm">{template.name}</div>
+                  <div className="text-xs text-gray-500 mt-0.5">{template.description}</div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </>
       )}
     </div>
   );
 }
-
-export default AlertTemplates;

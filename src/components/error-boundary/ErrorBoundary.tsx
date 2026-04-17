@@ -4,7 +4,6 @@ import React, { Component, type ReactNode, type ErrorInfo } from 'react';
 
 import Link from 'next/link';
 
-import { useTranslations } from '@/i18n';
 import {
   isAppError,
   type AppError,
@@ -23,14 +22,8 @@ import { useAuthStore } from '@/stores/authStore';
 
 const logger = createLogger('ErrorBoundary');
 
-/**
- * 错误边界级别
- */
 export type ErrorBoundaryLevel = 'global' | 'page' | 'section' | 'component';
 
-/**
- * 错误边界属性
- */
 export interface ErrorBoundaryProps {
   children: ReactNode;
   fallback?: ReactNode;
@@ -45,9 +38,6 @@ export interface ErrorBoundaryProps {
   themeColor?: string;
 }
 
-/**
- * 错误回退渲染属性
- */
 export interface ErrorFallbackRenderProps {
   error: Error;
   reset: () => void;
@@ -56,26 +46,12 @@ export interface ErrorFallbackRenderProps {
   errorInfo?: ErrorInfo;
 }
 
-/**
- * 错误边界状态
- */
 interface ErrorBoundaryState {
   hasError: boolean;
   error?: Error;
   errorInfo?: ErrorInfo;
 }
 
-/**
- * 增强的错误边界组件
- *
- * 功能特性：
- * 1. 多级错误边界支持（global/page/section/component）
- * 2. 自动错误分类和严重级别判断
- * 3. 集成 Sentry 错误追踪
- * 4. 支持重置和恢复
- * 5. 详细的错误日志记录
- * 6. 用户友好的错误界面
- */
 export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
     super(props);
@@ -90,7 +66,6 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     const { resetKeys } = this.props;
     const { hasError } = this.state;
 
-    // 当 resetKeys 变化时自动重置
     if (
       hasError &&
       resetKeys &&
@@ -113,18 +88,14 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
     this.setState({ errorInfo });
 
-    // 构建错误上下文
     const errorContext = this.buildErrorContext(error, level, componentName, errorInfo);
 
-    // 记录错误日志
     this.logError(error, errorContext);
 
-    // 发送到 Sentry
     if (captureInSentry) {
       this.captureInSentry(error, errorContext);
     }
 
-    // 调用自定义错误处理器
     if (onError) {
       try {
         onError(error, errorInfo);
@@ -134,9 +105,6 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     }
   }
 
-  /**
-   * 构建错误上下文
-   */
   private buildErrorContext(
     error: Error,
     level: ErrorBoundaryLevel,
@@ -171,9 +139,6 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     return context;
   }
 
-  /**
-   * 记录错误日志
-   */
   private logError(error: Error, context: Record<string, unknown>): void {
     const { level = 'component', componentName } = this.props;
 
@@ -191,11 +156,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     }
   }
 
-  /**
-   * 发送到 Sentry
-   */
   private captureInSentry(error: Error, context: Record<string, unknown>): void {
-    // 添加面包屑
     addBreadcrumb({
       category: 'error-boundary',
       message: `Error caught at ${context.level} level`,
@@ -207,13 +168,9 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       },
     });
 
-    // 捕获异常
     captureException(error, context);
   }
 
-  /**
-   * 重置错误状态
-   */
   reset = () => {
     const { onReset } = this.props;
 
@@ -280,9 +237,6 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 }
 
-/**
- * 默认错误回退UI
- */
 interface DefaultErrorFallbackProps {
   error: Error;
   reset: () => void;
@@ -300,7 +254,6 @@ function DefaultErrorFallback({
   showDetails = process.env.NODE_ENV === 'development',
   themeColor,
 }: DefaultErrorFallbackProps) {
-  const t = useTranslations();
   const config = getErrorConfig(error, level, themeColor);
   const isDev = showDetails;
 
@@ -387,9 +340,7 @@ function DefaultErrorFallback({
           `}
         >
           <span>🔄</span>
-          {level === 'global' || level === 'page'
-            ? t('errorBoundary.tryAgain')
-            : t('errorBoundary.retry')}
+          {level === 'global' || level === 'page' ? 'Try Again' : 'Retry'}
         </button>
 
         {level === 'global' && (
@@ -398,7 +349,7 @@ function DefaultErrorFallback({
             className="inline-flex items-center gap-2 px-6 py-3 border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors rounded-md"
           >
             <span>🏠</span>
-            {t('errorBoundary.backToHome')}
+            Back to Home
           </Link>
         )}
       </div>
@@ -546,9 +497,6 @@ function getErrorConfig(
   };
 }
 
-/**
- * 全局错误边界 Hook
- */
 export function useSentryUserContext() {
   const user = useAuthStore((state) => state.user);
   const profile = useAuthStore((state) => state.profile);
@@ -565,10 +513,6 @@ export function useSentryUserContext() {
     }
   }, [user, profile]);
 }
-
-/**
- * 便捷的错误边界组件
- */
 
 export function GlobalErrorBoundary({ children, ...props }: Omit<ErrorBoundaryProps, 'level'>) {
   useSentryUserContext();

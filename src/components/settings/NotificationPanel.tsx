@@ -13,8 +13,6 @@ import {
   CheckCircle,
 } from 'lucide-react';
 
-import { useTranslations } from '@/i18n';
-
 interface NotificationSettings {
   emailNotifications: boolean;
   browserNotifications: boolean;
@@ -63,7 +61,6 @@ function Toggle({
 }
 
 export function NotificationPanel() {
-  const t = useTranslations('settingsPage');
   const [settings, setSettings] = useState<NotificationSettings>(() => {
     if (typeof window === 'undefined') return defaultSettings;
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -102,7 +99,7 @@ export function NotificationPanel() {
       setBrowserPermission(permission);
 
       if (permission === 'denied') {
-        alert(t('settings.notifications.browserPermissionDenied'));
+        alert('Browser notifications permission denied');
       }
     }
   };
@@ -115,14 +112,14 @@ export function NotificationPanel() {
 
       localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
 
-      setSuccess(t('settings.notifications.saveSuccess'));
+      setSuccess('settings.notifications.saveSuccess');
 
       if (successTimerRef.current) {
         clearTimeout(successTimerRef.current);
       }
       successTimerRef.current = setTimeout(() => setSuccess(null), 3000);
     } catch {
-      setError(t('settings.notifications.saveError'));
+      setError('settings.notifications.saveError');
     } finally {
       setIsSaving(false);
     }
@@ -141,9 +138,9 @@ export function NotificationPanel() {
         <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
           <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <Bell className="w-5 h-5 text-gray-400" />
-            {t('settings.notifications.title')}
+            {'settings.notifications.title'}
           </h2>
-          <p className="text-sm text-gray-500 mt-1">{t('settings.notifications.subtitle')}</p>
+          <p className="text-sm text-gray-500 mt-1">{'settings.notifications.subtitle'}</p>
         </div>
 
         <div className="p-6 space-y-6">
@@ -168,10 +165,10 @@ export function NotificationPanel() {
                 </div>
                 <div>
                   <div className="font-medium text-gray-900">
-                    {t('settings.notifications.emailNotifications')}
+                    {'settings.notifications.emailNotifications'}
                   </div>
                   <div className="text-sm text-gray-500">
-                    {t('settings.notifications.emailNotificationsDesc')}
+                    {'settings.notifications.emailNotificationsDesc'}
                   </div>
                 </div>
               </div>
@@ -188,14 +185,14 @@ export function NotificationPanel() {
                 </div>
                 <div>
                   <div className="font-medium text-gray-900">
-                    {t('settings.notifications.browserNotifications')}
+                    {'settings.notifications.browserNotifications'}
                   </div>
                   <div className="text-sm text-gray-500">
-                    {t('settings.notifications.browserNotificationsDesc')}
+                    {'settings.notifications.browserNotificationsDesc'}
                   </div>
                   {browserPermission === 'denied' && (
                     <div className="text-xs text-danger-500 mt-1">
-                      {t('settings.notifications.permissionDeniedHint')}
+                      {'settings.notifications.permissionDeniedHint'}
                     </div>
                   )}
                 </div>
@@ -206,7 +203,7 @@ export function NotificationPanel() {
                     onClick={requestBrowserPermission}
                     className="text-xs text-primary-600 hover:text-primary-700 mr-2 transition-colors"
                   >
-                    {t('settings.notifications.authorize')}
+                    {'settings.notifications.authorize'}
                   </button>
                 )}
                 <Toggle
@@ -228,10 +225,10 @@ export function NotificationPanel() {
         <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
           <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <AlertTriangle className="w-5 h-5 text-gray-400" />
-            {t('settings.notifications.alertNotifications')}
+            {'settings.notifications.alertNotifications'}
           </h2>
           <p className="text-sm text-gray-500 mt-1">
-            {t('settings.notifications.alertNotificationsDesc')}
+            {'settings.notifications.alertNotificationsDesc'}
           </p>
         </div>
 
@@ -243,10 +240,10 @@ export function NotificationPanel() {
               </div>
               <div>
                 <div className="font-medium text-gray-900">
-                  {t('settings.notifications.alertTriggerNotification')}
+                  {'settings.notifications.alertTriggerNotification'}
                 </div>
                 <div className="text-sm text-gray-500">
-                  {t('settings.notifications.alertTriggerNotificationDesc')}
+                  {'settings.notifications.alertTriggerNotificationDesc'}
                 </div>
               </div>
             </div>
@@ -262,10 +259,10 @@ export function NotificationPanel() {
         <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
           <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <TrendingUp className="w-5 h-5 text-gray-400" />
-            {t('settings.notifications.priceChangeNotification')}
+            {'settings.notifications.priceChangeNotification'}
           </h2>
           <p className="text-sm text-gray-500 mt-1">
-            {t('settings.notifications.priceChangeNotificationDesc')}
+            {'settings.notifications.priceChangeNotificationDesc'}
           </p>
         </div>
 
@@ -277,10 +274,10 @@ export function NotificationPanel() {
               </div>
               <div>
                 <div className="font-medium text-gray-900">
-                  {t('settings.notifications.enablePriceChangeNotification')}
+                  {'settings.notifications.enablePriceChangeNotification'}
                 </div>
                 <div className="text-sm text-gray-500">
-                  {t('settings.notifications.enablePriceChangeNotificationDesc')}
+                  {'settings.notifications.enablePriceChangeNotificationDesc'}
                 </div>
               </div>
             </div>
@@ -293,7 +290,7 @@ export function NotificationPanel() {
           {settings.priceChangeEnabled && (
             <div className="pl-4">
               <label className="block text-sm font-medium text-gray-700 mb-3">
-                {t('settings.notifications.changeThreshold')}
+                {'settings.notifications.changeThreshold'}
               </label>
               <div className="flex items-center gap-4">
                 <input
@@ -312,7 +309,7 @@ export function NotificationPanel() {
                 </div>
               </div>
               <p className="text-xs text-gray-500 mt-2">
-                {t('settings.notifications.changeThresholdHint')}
+                {'settings.notifications.changeThresholdHint'}
               </p>
             </div>
           )}
@@ -326,7 +323,7 @@ export function NotificationPanel() {
           className="inline-flex items-center gap-2 px-6 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 active:bg-primary-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm shadow-sm hover:shadow-md"
         >
           {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-          {t('settings.notifications.saveSettings')}
+          {'settings.notifications.saveSettings'}
         </button>
       </div>
     </div>

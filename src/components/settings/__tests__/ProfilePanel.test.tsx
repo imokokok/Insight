@@ -2,36 +2,6 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 
 import { ProfilePanel } from '../ProfilePanel';
 
-jest.mock('@/i18n', () => ({
-  useTranslations: () => (key: string) => {
-    const translations: Record<string, string> = {
-      'settings.profile.title': 'Profile Settings',
-      'settings.profile.subtitle': 'Manage your profile information',
-      'settings.profile.displayNameLabel': 'Display Name',
-      'settings.profile.displayNamePlaceholder': 'Enter your display name',
-      'settings.profile.emailLabel': 'Email',
-      'settings.profile.emailNotEditable': 'Email cannot be changed',
-      'settings.profile.saveChanges': 'Save Changes',
-      'settings.profile.saveSuccess': 'Profile saved successfully',
-      'settings.profile.saveError': 'Failed to save profile',
-      'settings.profile.passwordManagement': 'Password Management',
-      'settings.profile.passwordManagementDesc': 'Change your password',
-      'settings.profile.changePassword': 'Change Password',
-      'settings.profile.newPassword': 'New Password',
-      'settings.profile.newPasswordPlaceholder': 'Enter new password',
-      'settings.profile.confirmNewPassword': 'Confirm Password',
-      'settings.profile.confirmNewPasswordPlaceholder': 'Confirm new password',
-      'settings.profile.updatePassword': 'Update Password',
-      'settings.profile.cancel': 'Cancel',
-      'settings.profile.passwordMinLength': 'Password must be at least 6 characters',
-      'settings.profile.passwordMismatch': 'Passwords do not match',
-      'settings.profile.passwordUpdateSuccess': 'Password updated successfully',
-      'settings.profile.passwordUpdateError': 'Failed to update password',
-    };
-    return translations[key] || key;
-  },
-}));
-
 jest.mock('@/lib/supabase/auth', () => ({
   updateUserProfile: jest.fn(),
 }));
@@ -71,7 +41,7 @@ describe('ProfilePanel', () => {
   it('should render email input as disabled', () => {
     render(<ProfilePanel />);
 
-    const emailInput = screen.getByLabelText('Email');
+    const emailInput = screen.getByLabelText('Text');
     expect(emailInput).toBeDisabled();
     expect(emailInput).toHaveValue('test@example.com');
   });

@@ -15,7 +15,7 @@ export function parseQueryParams(search: string): Partial<QueryConfig> {
   const params = new URLSearchParams(search);
   const result: Partial<QueryConfig> = {};
 
-  const oraclesParam = params.get('oracles');
+  const oraclesParam = params.get('key');
   if (oraclesParam) {
     const oracleValues = oraclesParam
       .split(',')
@@ -26,7 +26,7 @@ export function parseQueryParams(search: string): Partial<QueryConfig> {
     }
   }
 
-  const chainsParam = params.get('chains');
+  const chainsParam = params.get('key');
   if (chainsParam) {
     const chainValues = chainsParam
       .split(',')
@@ -37,14 +37,14 @@ export function parseQueryParams(search: string): Partial<QueryConfig> {
     }
   }
 
-  const symbolParam = params.get('symbol');
+  const symbolParam = params.get('key');
   if (symbolParam) {
     const upperSymbol = symbolParam.trim().toUpperCase();
     // 允许任意币种代码，不限于预定义列表
     result.symbol = upperSymbol;
   }
 
-  const timeRangeParam = params.get('timeRange');
+  const timeRangeParam = params.get('key');
   if (timeRangeParam) {
     const timeRange = parseInt(timeRangeParam, 10);
     if (!isNaN(timeRange) && VALID_TIME_RANGES.includes(timeRange)) {

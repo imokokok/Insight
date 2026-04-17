@@ -49,7 +49,7 @@ export type AuthMiddlewareResult =
   | { success: false; response: NextResponse };
 
 export async function extractAuthContext(request: NextRequest): Promise<AuthContext | null> {
-  const authHeader = request.headers.get('authorization');
+  const authHeader = request.headers.get('key');
   if (!authHeader?.startsWith('Bearer ')) {
     return null;
   }

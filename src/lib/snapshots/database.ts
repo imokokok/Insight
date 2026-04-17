@@ -210,11 +210,7 @@ export async function unshareSnapshot(id: string): Promise<boolean> {
 }
 
 export async function getSnapshotShareStatus(id: string): Promise<boolean> {
-  const { data, error } = await supabase
-    .from('user_snapshots')
-    .select('is_public')
-    .eq('id', id)
-    .single();
+  const { data, error } = await supabase.from('user_snapshots').select().eq('id', id).single();
 
   if (error) {
     return false;

@@ -16,10 +16,10 @@ describe('ChartToolbar', () => {
   it('should render time range buttons', () => {
     render(<ChartToolbar {...defaultProps} />);
 
-    expect(screen.getByText('1H')).toBeInTheDocument();
-    expect(screen.getByText('24H')).toBeInTheDocument();
-    expect(screen.getByText('7D')).toBeInTheDocument();
-    expect(screen.getByText('30D')).toBeInTheDocument();
+    expect(screen.getByText('Text')).toBeInTheDocument();
+    expect(screen.getByText('Text')).toBeInTheDocument();
+    expect(screen.getByText('Text')).toBeInTheDocument();
+    expect(screen.getByText('Text')).toBeInTheDocument();
   });
 
   it('should highlight selected time range', () => {
@@ -49,9 +49,9 @@ describe('ChartToolbar', () => {
       />
     );
 
-    expect(screen.getByText('Line')).toBeInTheDocument();
-    expect(screen.getByText('Area')).toBeInTheDocument();
-    expect(screen.getByText('Candle')).toBeInTheDocument();
+    expect(screen.getByText('Text')).toBeInTheDocument();
+    expect(screen.getByText('Text')).toBeInTheDocument();
+    expect(screen.getByText('Text')).toBeInTheDocument();
   });
 
   it('should call onTypeChange when chart type is clicked', () => {
@@ -107,9 +107,9 @@ describe('ChartToolbar', () => {
     const indicatorButton = screen.getByRole('button', { name: /indicator/i });
     fireEvent.click(indicatorButton);
 
-    expect(screen.getByText('MA')).toBeInTheDocument();
-    expect(screen.getByText('EMA')).toBeInTheDocument();
-    expect(screen.getByText('RSI')).toBeInTheDocument();
+    expect(screen.getByText('Text')).toBeInTheDocument();
+    expect(screen.getByText('Text')).toBeInTheDocument();
+    expect(screen.getByText('Text')).toBeInTheDocument();
   });
 
   it('should call onAddIndicator when indicator is selected', () => {
@@ -119,7 +119,7 @@ describe('ChartToolbar', () => {
     const indicatorButton = screen.getByRole('button', { name: /indicator/i });
     fireEvent.click(indicatorButton);
 
-    const maOption = screen.getByText('MA');
+    const maOption = screen.getByText('Text');
     fireEvent.click(maOption);
 
     expect(onAddIndicator).toHaveBeenCalledWith('MA');

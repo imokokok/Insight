@@ -3,8 +3,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
 
-import { useTranslations } from '@/i18n';
-
 import {
   TwitterIcon,
   GitHubIcon,
@@ -15,19 +13,17 @@ import {
 } from './icons/SocialIcons';
 
 export default function Footer() {
-  const t = useTranslations();
-
   const platformLinks = [
-    { label: t('navbar.home'), href: '/' },
-    { label: t('navbar.priceQuery'), href: '/price-query' },
-    { label: t('navbar.crossOracle'), href: '/cross-oracle' },
-    { label: t('navbar.crossChain'), href: '/cross-chain' },
+    { label: 'Home', href: '/' },
+    { label: 'Price Query', href: '/price-query' },
+    { label: 'Cross-Oracle Analysis', href: '/cross-oracle' },
+    { label: 'Cross-Chain Comparison', href: '/cross-chain' },
   ];
 
   const resourceLinks = [
-    { label: t('footer.documentation'), href: '/docs', icon: DocumentationIcon },
-    { label: t('footer.github'), href: 'https://github.com', icon: GitHubIcon },
-    { label: t('footer.api'), href: '/api', icon: ApiIcon },
+    { label: 'Documentation', href: '/docs', icon: DocumentationIcon },
+    { label: 'GitHub', href: 'https://github.com', icon: GitHubIcon },
+    { label: 'API', href: '/api', icon: ApiIcon },
   ];
 
   const socialLinks = [
@@ -39,20 +35,18 @@ export default function Footer() {
 
   return (
     <footer className="bg-slate-900 text-slate-300">
-      {/* Main Footer Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-12">
-          {/* Brand Column */}
           <div className="lg:col-span-4">
             <Link href="/" className="flex items-center space-x-2 mb-4">
               <Image src="/logos/owl-logo-white.svg" alt="Insight Logo" width={32} height={28} />
               <span className="text-white font-bold text-xl">Insight</span>
             </Link>
             <p className="text-slate-400 text-sm leading-relaxed mb-6 max-w-xs">
-              {t('footer.description')}
+              Comprehensive analysis and comparison of mainstream oracle protocols, empowering Web3
+              developers and analysts to make informed decisions.
             </p>
 
-            {/* Social Links */}
             <div className="flex items-center space-x-4">
               {socialLinks.map((social) => (
                 <a
@@ -69,10 +63,9 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Platform Links */}
           <div className="lg:col-span-2">
             <h3 className="text-white font-semibold text-sm uppercase tracking-wider mb-4">
-              {t('footer.links.platform')}
+              Platform
             </h3>
             <ul className="space-y-3">
               {platformLinks.map((link) => (
@@ -88,10 +81,9 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Resources Links */}
           <div className="lg:col-span-3">
             <h3 className="text-white font-semibold text-sm uppercase tracking-wider mb-4">
-              {t('footer.links.resources')}
+              Resources
             </h3>
             <ul className="space-y-3">
               {resourceLinks.map((link) => (
@@ -112,29 +104,28 @@ export default function Footer() {
         </div>
       </div>
 
-      {/* Bottom Bar */}
       <div className="border-t border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-            <p className="text-slate-500 text-sm">{t('footer.copyright')}</p>
+            <p className="text-slate-500 text-sm">© 2026 Insight. All rights reserved.</p>
             <div className="flex items-center space-x-6">
               <Link
                 href="/privacy"
                 className="text-slate-500 hover:text-slate-300 text-sm transition-colors duration-200"
               >
-                {t('footer.privacy')}
+                Privacy Policy
               </Link>
               <Link
                 href="/terms"
                 className="text-slate-500 hover:text-slate-300 text-sm transition-colors duration-200"
               >
-                {t('footer.terms')}
+                Terms of Service
               </Link>
               <Link
                 href="/contact"
                 className="text-slate-500 hover:text-slate-300 text-sm transition-colors duration-200"
               >
-                {t('footer.contact')}
+                Contact
               </Link>
             </div>
           </div>

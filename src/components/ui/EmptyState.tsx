@@ -3,7 +3,6 @@
 import { forwardRef, type ReactNode } from 'react';
 
 import { Inbox } from 'lucide-react';
-import { useTranslations } from 'next-intl';
 
 import { cn } from '@/lib/utils';
 
@@ -19,9 +18,8 @@ export interface EmptyStateProps {
 
 export const EmptyState = forwardRef<HTMLDivElement, EmptyStateProps>(
   ({ title, description, icon, action, secondaryAction, className, compact = false }, ref) => {
-    const t = useTranslations();
-    const resolvedTitle = title ?? t('crossOracle.ui.emptyStateTitle');
-    const resolvedDescription = description ?? t('crossOracle.ui.emptyStateDescription');
+    const resolvedTitle = title ?? 'No data available';
+    const resolvedDescription = description ?? 'There is no data to display at the moment.';
 
     return (
       <div

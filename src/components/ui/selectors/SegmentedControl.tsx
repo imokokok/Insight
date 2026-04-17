@@ -1,7 +1,5 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
-
 import { type SegmentedControlProps, type SelectorOption } from './types';
 
 const sizeClasses = {
@@ -24,9 +22,8 @@ export function SegmentedControl<T = string>({
   selectAllLabel,
   deselectAllLabel,
 }: SegmentedControlProps<T>) {
-  const t = useTranslations();
-  const resolvedSelectAllLabel = selectAllLabel ?? t('crossOracle.ui.selectAllLabel');
-  const resolvedDeselectAllLabel = deselectAllLabel ?? t('crossOracle.ui.deselectAllLabel');
+  const resolvedSelectAllLabel = selectAllLabel ?? 'Select All';
+  const resolvedDeselectAllLabel = deselectAllLabel ?? 'Deselect All';
   const isSelected = (option: SelectorOption<T>): boolean => {
     if (multiple && Array.isArray(value)) {
       return value.some((v) => v === option.value);

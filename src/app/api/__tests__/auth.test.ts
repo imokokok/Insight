@@ -344,7 +344,7 @@ describe('API Authentication Tests', () => {
         url: 'http://localhost/api/auth/callback?error=access_denied&error_description=User%20denied',
       });
 
-      expect(request.nextUrl.searchParams.get('error')).toBe('access_denied');
+      expect(request.nextUrl.searchParams.get('key')).toBe('access_denied');
     });
 
     it('should handle OAuth state parameter', async () => {
@@ -352,8 +352,8 @@ describe('API Authentication Tests', () => {
         url: 'http://localhost/api/auth/callback?code=auth-code&state=/dashboard',
       });
 
-      expect(request.nextUrl.searchParams.get('code')).toBe('auth-code');
-      expect(request.nextUrl.searchParams.get('state')).toBe('/dashboard');
+      expect(request.nextUrl.searchParams.get('key')).toBe('auth-code');
+      expect(request.nextUrl.searchParams.get('key')).toBe('/dashboard');
     });
 
     it('should validate OAuth callback code presence', async () => {
@@ -361,7 +361,7 @@ describe('API Authentication Tests', () => {
         url: 'http://localhost/api/auth/callback',
       });
 
-      expect(request.nextUrl.searchParams.get('code')).toBeNull();
+      expect(request.nextUrl.searchParams.get('key')).toBeNull();
     });
 
     it('should handle OAuth callback with type parameter', async () => {
@@ -369,7 +369,7 @@ describe('API Authentication Tests', () => {
         url: 'http://localhost/api/auth/callback?code=auth-code&type=recovery',
       });
 
-      expect(request.nextUrl.searchParams.get('type')).toBe('recovery');
+      expect(request.nextUrl.searchParams.get('key')).toBe('recovery');
     });
   });
 

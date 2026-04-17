@@ -6,8 +6,6 @@ import Link from 'next/link';
 
 import { ChevronDown } from 'lucide-react';
 
-import { useTranslations } from '@/i18n';
-
 import { oracleColors } from './config';
 import { type NavGroup } from './types';
 
@@ -19,7 +17,6 @@ interface DropdownMenuProps {
 }
 
 export function DropdownMenu({ group, isActive, currentPath, onItemClick }: DropdownMenuProps) {
-  const t = useTranslations();
   const [isOpen, setIsOpen] = useState(false);
   const [_isHovered, setIsHovered] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -84,7 +81,7 @@ export function DropdownMenu({ group, isActive, currentPath, onItemClick }: Drop
         aria-haspopup="true"
       >
         {GroupIcon && <GroupIcon className="w-4 h-4" />}
-        <span>{t(group.label)}</span>
+        <span>{group.label}</span>
         <ChevronDown
           className={`w-4 h-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
         />
@@ -133,10 +130,10 @@ export function DropdownMenu({ group, isActive, currentPath, onItemClick }: Drop
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium">{t(item.label)}</div>
+                  <div className="text-sm font-medium">{item.label}</div>
                   {item.description && (
                     <div className="text-xs text-gray-500 mt-0.5 line-clamp-1">
-                      {t(item.description)}
+                      {item.description}
                     </div>
                   )}
                 </div>

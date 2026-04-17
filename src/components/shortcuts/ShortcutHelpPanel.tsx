@@ -6,7 +6,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Command, Keyboard } from 'lucide-react';
 
 import { getPlatformShortcut, type KeyboardShortcut } from '@/hooks';
-import { useTranslations } from '@/i18n';
 
 import { useShortcutContext } from './ShortcutContext';
 
@@ -16,12 +15,11 @@ interface ShortcutItemProps {
 }
 
 function ShortcutItem({ shortcut, labelKey }: ShortcutItemProps) {
-  const t = useTranslations();
   const displayShortcut = getPlatformShortcut(shortcut);
 
   return (
     <div className="flex items-center justify-between py-2 px-3 hover:bg-gray-50 rounded-lg transition-colors">
-      <span className="text-sm text-gray-700">{t.has(labelKey) ? t(labelKey) : labelKey}</span>
+      <span className="text-sm text-gray-700">{labelKey}</span>
       <kbd className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 border border-gray-200 rounded text-xs font-mono text-gray-600">
         {displayShortcut}
       </kbd>
@@ -35,14 +33,12 @@ interface ShortcutCategoryProps {
 }
 
 function ShortcutCategory({ titleKey, shortcuts }: ShortcutCategoryProps) {
-  const t = useTranslations();
-
   if (shortcuts.length === 0) return null;
 
   return (
     <div className="mb-6">
       <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-3">
-        {t.has(titleKey) ? t(titleKey) : titleKey}
+        {titleKey}
       </h3>
       <div className="space-y-1">
         {shortcuts.map((item, index) => (
@@ -58,7 +54,6 @@ function ShortcutCategory({ titleKey, shortcuts }: ShortcutCategoryProps) {
 }
 
 export function ShortcutHelpPanel() {
-  const t = useTranslations();
   const { isHelpOpen, closeHelp, categories } = useShortcutContext();
 
   // 预定义的快捷键列表
@@ -162,14 +157,14 @@ export function ShortcutHelpPanel() {
                     <Keyboard className="w-5 h-5 text-primary-600" />
                   </div>
                   <div>
-                    <h2 className="text-lg font-semibold text-gray-900">{t('shortcuts.title')}</h2>
-                    <p className="text-sm text-gray-500">{t('shortcuts.subtitle')}</p>
+                    <h2 className="text-lg font-semibold text-gray-900">{'shortcuts.title'}</h2>
+                    <p className="text-sm text-gray-500">{'shortcuts.subtitle'}</p>
                   </div>
                 </div>
                 <button
                   onClick={closeHelp}
                   className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-                  aria-label={t('actions.close')}
+                  aria-label={'actions.close'}
                 >
                   <X className="w-5 h-5 text-gray-500" />
                 </button>
@@ -191,10 +186,10 @@ export function ShortcutHelpPanel() {
                     <Command className="w-5 h-5 text-primary-600 mt-0.5 flex-shrink-0" />
                     <div>
                       <h4 className="text-sm font-medium text-primary-900">
-                        {t('shortcuts.tips.title')}
+                        {'shortcuts.tips.title'}
                       </h4>
                       <p className="text-sm text-primary-700 mt-1">
-                        {t('shortcuts.tips.description')}
+                        {'shortcuts.tips.description'}
                       </p>
                     </div>
                   </div>
@@ -204,7 +199,7 @@ export function ShortcutHelpPanel() {
               {/* Footer */}
               <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">
                 <div className="flex items-center justify-between text-xs text-gray-500">
-                  <span>{t('shortcuts.footer.hint')}</span>
+                  <span>{'shortcuts.footer.hint'}</span>
                   <kbd className="px-2 py-1 bg-white border border-gray-200 rounded font-mono">
                     ?
                   </kbd>

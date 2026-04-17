@@ -14,13 +14,11 @@ import {
   X,
 } from 'lucide-react';
 
-import { useTranslations } from '@/i18n';
 import { queries, supabase } from '@/lib/supabase/client';
 import { downloadBlob } from '@/lib/utils/download';
 import { useUser, useAuthActions } from '@/stores/authStore';
 
 export function DataManagementPanel() {
-  const t = useTranslations('settingsPage');
   const user = useUser();
   const { signOut } = useAuthActions();
   const [isExporting, setIsExporting] = useState(false);
@@ -76,11 +74,11 @@ export function DataManagementPanel() {
       };
 
       const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-      downloadBlob(blob, `user-data-${new Date().toISOString().split('T')[0]}.json`);
+      downloadBlob(blob, `user-data-${new Date().toISOString().split('.')[0]}.json`);
 
-      showSuccess(t('settings.data.exportSuccess'));
+      showSuccess('settings.data.exportSuccess');
     } catch (_err) {
-      setError(t('settings.data.exportError'));
+      setError('settings.data.exportError');
     } finally {
       setIsExporting(false);
     }
@@ -109,11 +107,11 @@ export function DataManagementPanel() {
       };
 
       const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-      downloadBlob(blob, `price-history-${new Date().toISOString().split('T')[0]}.json`);
+      downloadBlob(blob, `price-history-${new Date().toISOString().split('.')[0]}.json`);
 
-      showSuccess(t('settings.data.priceHistoryExportSuccess'));
+      showSuccess('settings.data.priceHistoryExportSuccess');
     } catch (_err) {
-      setError(t('settings.data.exportError'));
+      setError('settings.data.exportError');
     } finally {
       setIsExporting(false);
     }
@@ -135,18 +133,18 @@ export function DataManagementPanel() {
       };
 
       const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-      downloadBlob(blob, `snapshots-${new Date().toISOString().split('T')[0]}.json`);
+      downloadBlob(blob, `snapshots-${new Date().toISOString().split('.')[0]}.json`);
 
-      showSuccess(t('settings.data.snapshotsExportSuccess'));
+      showSuccess('settings.data.snapshotsExportSuccess');
     } catch (_err) {
-      setError(t('settings.data.exportError'));
+      setError('settings.data.exportError');
     } finally {
       setIsExporting(false);
     }
   };
 
   const clearLocalData = async () => {
-    if (!confirm(t('settings.data.clearLocalDataConfirm'))) {
+    if (!confirm('settings.data.clearLocalDataConfirm')) {
       return;
     }
 
@@ -169,9 +167,9 @@ export function DataManagementPanel() {
         await Promise.all(cacheNames.map((name) => caches.delete(name)));
       }
 
-      showSuccess(t('settings.data.clearLocalDataSuccess'));
+      showSuccess('settings.data.clearLocalDataSuccess');
     } catch (_err) {
-      setError(t('settings.data.clearLocalDataError'));
+      setError('settings.data.clearLocalDataError');
     } finally {
       setIsClearing(false);
     }
@@ -191,14 +189,14 @@ export function DataManagementPanel() {
 
       if (!res.ok) {
         const result = await res.json().catch(() => ({ error: 'Unknown error' }));
-        setError(result.error || t('settings.data.deleteAccountError'));
+        setError(result.error || 'settings.data.deleteAccountError');
         return;
       }
 
       await signOut();
       window.location.href = '/';
     } catch (_err) {
-      setError(t('settings.data.deleteAccountError'));
+      setError('settings.data.deleteAccountError');
     } finally {
       setIsDeleting(false);
     }
@@ -210,9 +208,9 @@ export function DataManagementPanel() {
         <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
           <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <Database className="w-5 h-5 text-gray-400" />
-            {t('settings.data.title')}
+            {'settings.data.title'}
           </h2>
-          <p className="text-sm text-gray-500 mt-1">{t('settings.data.subtitle')}</p>
+          <p className="text-sm text-gray-500 mt-1">{'settings.data.subtitle'}</p>
         </div>
 
         <div className="p-6 space-y-6">
@@ -238,10 +236,10 @@ export function DataManagementPanel() {
                   </div>
                   <div>
                     <div className="font-medium text-gray-900">
-                      {t('settings.data.exportUserData')}
+                      {'settings.data.exportUserData'}
                     </div>
                     <div className="text-sm text-gray-500">
-                      {t('settings.data.exportUserDataDesc')}
+                      {'settings.data.exportUserDataDesc'}
                     </div>
                   </div>
                 </div>
@@ -255,7 +253,7 @@ export function DataManagementPanel() {
                   ) : (
                     <Download className="w-4 h-4" />
                   )}
-                  {t('settings.data.export')}
+                  {'settings.data.export'}
                 </button>
               </div>
             </div>
@@ -268,10 +266,10 @@ export function DataManagementPanel() {
                   </div>
                   <div>
                     <div className="font-medium text-gray-900">
-                      {t('settings.data.exportPriceHistory')}
+                      {'settings.data.exportPriceHistory'}
                     </div>
                     <div className="text-sm text-gray-500">
-                      {t('settings.data.exportPriceHistoryDesc')}
+                      {'settings.data.exportPriceHistoryDesc'}
                     </div>
                   </div>
                 </div>
@@ -285,7 +283,7 @@ export function DataManagementPanel() {
                   ) : (
                     <Download className="w-4 h-4" />
                   )}
-                  {t('settings.data.export')}
+                  {'settings.data.export'}
                 </button>
               </div>
             </div>
@@ -298,10 +296,10 @@ export function DataManagementPanel() {
                   </div>
                   <div>
                     <div className="font-medium text-gray-900">
-                      {t('settings.data.exportSnapshots')}
+                      {'settings.data.exportSnapshots'}
                     </div>
                     <div className="text-sm text-gray-500">
-                      {t('settings.data.exportSnapshotsDesc')}
+                      {'settings.data.exportSnapshotsDesc'}
                     </div>
                   </div>
                 </div>
@@ -315,7 +313,7 @@ export function DataManagementPanel() {
                   ) : (
                     <Download className="w-4 h-4" />
                   )}
-                  {t('settings.data.export')}
+                  {'settings.data.export'}
                 </button>
               </div>
             </div>
@@ -327,9 +325,9 @@ export function DataManagementPanel() {
         <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
           <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <Trash2 className="w-5 h-5 text-gray-400" />
-            {t('settings.data.clearData')}
+            {'settings.data.clearData'}
           </h2>
-          <p className="text-sm text-gray-500 mt-1">{t('settings.data.clearDataDesc')}</p>
+          <p className="text-sm text-gray-500 mt-1">{'settings.data.clearDataDesc'}</p>
         </div>
 
         <div className="p-6">
@@ -337,8 +335,8 @@ export function DataManagementPanel() {
             <div className="flex items-start gap-2">
               <AlertTriangle className="w-5 h-5 text-warning-600 flex-shrink-0 mt-0.5" />
               <div className="text-sm text-yellow-800">
-                <p className="font-medium">{t('settings.data.note')}</p>
-                <p className="mt-1">{t('settings.data.clearDataWarning')}</p>
+                <p className="font-medium">{'settings.data.note'}</p>
+                <p className="mt-1">{'settings.data.clearDataWarning'}</p>
               </div>
             </div>
           </div>
@@ -353,7 +351,7 @@ export function DataManagementPanel() {
             ) : (
               <Trash2 className="w-4 h-4" />
             )}
-            {t('settings.data.clearLocalData')}
+            {'settings.data.clearLocalData'}
           </button>
         </div>
       </div>
@@ -362,33 +360,31 @@ export function DataManagementPanel() {
         <div className="px-6 py-4 border-b border-danger-100 bg-danger-50/80">
           <h2 className="text-lg font-semibold text-danger-900 flex items-center gap-2">
             <UserX className="w-5 h-5 text-danger-600" />
-            {t('settings.data.dangerZone')}
+            {'settings.data.dangerZone'}
           </h2>
-          <p className="text-sm text-danger-700 mt-1">{t('settings.data.dangerZoneDesc')}</p>
+          <p className="text-sm text-danger-700 mt-1">{'settings.data.dangerZoneDesc'}</p>
         </div>
 
         <div className="p-6">
           {!showDeleteConfirm ? (
             <div>
-              <p className="text-sm text-gray-600 mb-4">
-                {t('settings.data.deleteAccountWarning')}
-              </p>
+              <p className="text-sm text-gray-600 mb-4">{'settings.data.deleteAccountWarning'}</p>
               <button
                 onClick={() => setShowDeleteConfirm(true)}
                 className="inline-flex items-center gap-2 px-4 py-2 bg-danger-600 text-white rounded-lg hover:bg-danger-700 active:bg-danger-800 transition-all duration-200 text-sm font-medium shadow-sm hover:shadow-md"
               >
                 <UserX className="w-4 h-4" />
-                {t('settings.data.deleteAccount')}
+                {'settings.data.deleteAccount'}
               </button>
             </div>
           ) : (
             <div className="space-y-4">
               <div className="p-4 bg-danger-50 border border-danger-200 rounded-lg">
                 <p className="text-sm text-danger-800 font-medium mb-2">
-                  {t('settings.data.deleteAccountConfirm')}
+                  {'settings.data.deleteAccountConfirm'}
                 </p>
                 <p className="text-sm text-danger-700">
-                  {t('settings.data.deleteAccountConfirmHint')}
+                  {'settings.data.deleteAccountConfirmHint'}
                 </p>
               </div>
 
@@ -396,7 +392,7 @@ export function DataManagementPanel() {
                 type="text"
                 value={deleteConfirmText}
                 onChange={(e) => setDeleteConfirmText(e.target.value)}
-                placeholder={t('settings.data.deleteAccountConfirmPlaceholder')}
+                placeholder={'settings.data.deleteAccountConfirmPlaceholder'}
                 className="w-full px-4 py-2.5 border border-red-300 rounded-lg focus:ring-2 focus:ring-danger-500/20 focus:border-danger-500 outline-none transition-all duration-200"
               />
 
@@ -411,7 +407,7 @@ export function DataManagementPanel() {
                   ) : (
                     <UserX className="w-4 h-4" />
                   )}
-                  {t('settings.data.confirmDeleteAccount')}
+                  {'settings.data.confirmDeleteAccount'}
                 </button>
                 <button
                   onClick={() => {
@@ -421,7 +417,7 @@ export function DataManagementPanel() {
                   className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-gray-400 active:bg-gray-100 transition-all duration-200 text-sm font-medium"
                 >
                   <X className="w-4 h-4" />
-                  {t('settings.data.cancel')}
+                  {'settings.data.cancel'}
                 </button>
               </div>
             </div>

@@ -4,8 +4,6 @@ import { type ReactNode } from 'react';
 
 import { Settings, User, Bell, Database, Palette } from 'lucide-react';
 
-import { useTranslations } from '@/i18n';
-
 export type SettingsTab = 'profile' | 'preferences' | 'notifications' | 'data';
 
 interface SettingsLayoutProps {
@@ -22,32 +20,30 @@ interface TabItem {
 }
 
 export function SettingsLayout({ children, activeTab, onTabChange }: SettingsLayoutProps) {
-  const t = useTranslations();
-
   const tabs: TabItem[] = [
     {
       id: 'profile',
-      label: t('settings.profile'),
+      label: 'settings.profile',
       icon: User,
-      description: t('settings.profileDesc'),
+      description: 'settings.profileDesc',
     },
     {
       id: 'preferences',
-      label: t('settings.preferences'),
+      label: 'settings.preferences',
       icon: Palette,
-      description: t('settings.preferencesDesc'),
+      description: 'settings.preferencesDesc',
     },
     {
       id: 'notifications',
-      label: t('settings.notifications'),
+      label: 'settings.notifications',
       icon: Bell,
-      description: t('settings.notificationsDesc'),
+      description: 'settings.notificationsDesc',
     },
     {
       id: 'data',
-      label: t('settings.data'),
+      label: 'settings.data',
       icon: Database,
-      description: t('settings.dataDesc'),
+      description: 'settings.dataDesc',
     },
   ];
 
@@ -60,8 +56,8 @@ export function SettingsLayout({ children, activeTab, onTabChange }: SettingsLay
               <Settings className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-semibold text-gray-900">{t('settings.title')}</h1>
-              <p className="text-sm text-gray-500 mt-0.5">{t('settings.subtitle')}</p>
+              <h1 className="text-2xl font-semibold text-gray-900">{'settings.title'}</h1>
+              <p className="text-sm text-gray-500 mt-0.5">{'settings.subtitle'}</p>
             </div>
           </div>
         </div>

@@ -55,13 +55,13 @@ const oracleDescriptions: Record<OracleProvider, string> = {
 
 // Generate oracle search results
 // Note: Oracle detail pages have been removed, links now point to cross-oracle comparison
-export function getOracleSearchResults(locale: string): SearchResult[] {
+export function getOracleSearchResults(_locale: string): SearchResult[] {
   return ORACLE_PROVIDER_VALUES.map((provider) => ({
     id: `oracle-${provider}`,
     title: providerNames[provider],
     description: oracleDescriptions[provider],
     type: 'oracle' as SearchResultType,
-    href: `/${locale}/cross-oracle`,
+    href: `/en/cross-oracle`,
     icon: oracleIcons[provider],
     keywords: [provider.toLowerCase(), providerNames[provider].toLowerCase(), 'oracle', '预言机'],
     priority: 10,
@@ -110,13 +110,13 @@ const blockchainIcons: Record<Blockchain, string> = {
 };
 
 // Generate blockchain search results
-export function getBlockchainSearchResults(locale: string): SearchResult[] {
+export function getBlockchainSearchResults(_locale: string): SearchResult[] {
   return BLOCKCHAIN_VALUES.map((chain) => ({
     id: `blockchain-${chain}`,
     title: chainNames[chain],
     description: `search.blockchains.${chain.toLowerCase()}Desc`,
     type: 'blockchain' as SearchResultType,
-    href: `/${locale}/cross-chain?chain=${chain.toLowerCase()}`,
+    href: `/en/cross-chain?chain=${chain.toLowerCase()}`,
     iconUrl: blockchainIcons[chain] || undefined,
     icon: Globe,
     keywords: [chain.toLowerCase(), chainNames[chain].toLowerCase(), 'blockchain', '链'],
@@ -125,27 +125,27 @@ export function getBlockchainSearchResults(locale: string): SearchResult[] {
 }
 
 // Generate trading pair search results
-export function getPairSearchResults(locale: string): SearchResult[] {
+export function getPairSearchResults(_locale: string): SearchResult[] {
   return symbols.map((symbol) => ({
     id: `pair-${symbol}`,
     title: `${symbol}/USD`,
     description: 'search.pairs.priceFeed',
     type: 'pair' as SearchResultType,
-    href: `/${locale}/price-query?symbol=${symbol}`,
+    href: `/en/price-query?symbol=${symbol}`,
     keywords: [symbol.toLowerCase(), 'price', 'price feed', '价格', '交易对'],
     priority: 9,
   }));
 }
 
 // Page search results
-export function getPageSearchResults(locale: string): SearchResult[] {
+export function getPageSearchResults(_locale: string): SearchResult[] {
   return [
     {
       id: 'page-home',
       title: 'search.pages.home',
       description: 'search.pages.homeDesc',
       type: 'page',
-      href: `/${locale}/`,
+      href: `/en/`,
       icon: LayoutDashboard,
       keywords: ['home', '首页', 'dashboard'],
       priority: 10,
@@ -155,7 +155,7 @@ export function getPageSearchResults(locale: string): SearchResult[] {
       title: 'search.pages.priceQuery',
       description: 'search.pages.priceQueryDesc',
       type: 'page',
-      href: `/${locale}/price-query`,
+      href: `/en/price-query`,
       icon: Search,
       keywords: ['price', 'query', '价格查询', '查询'],
       priority: 9,
@@ -165,7 +165,7 @@ export function getPageSearchResults(locale: string): SearchResult[] {
       title: 'search.pages.crossOracle',
       description: 'search.pages.crossOracleDesc',
       type: 'page',
-      href: `/${locale}/cross-oracle`,
+      href: `/en/cross-oracle`,
       icon: GitCompare,
       keywords: ['cross oracle', 'comparison', '对比', '预言机对比'],
       priority: 8,
@@ -175,7 +175,7 @@ export function getPageSearchResults(locale: string): SearchResult[] {
       title: 'search.pages.crossChain',
       description: 'search.pages.crossChainDesc',
       type: 'page',
-      href: `/${locale}/cross-chain`,
+      href: `/en/cross-chain`,
       icon: Link2,
       keywords: ['cross chain', 'chain', '跨链', '链'],
       priority: 8,
@@ -185,7 +185,7 @@ export function getPageSearchResults(locale: string): SearchResult[] {
       title: 'search.pages.favorites',
       description: 'search.pages.favoritesDesc',
       type: 'page',
-      href: `/${locale}/favorites`,
+      href: `/en/favorites`,
       icon: Heart,
       keywords: ['favorites', '收藏', '关注'],
       priority: 7,
@@ -195,7 +195,7 @@ export function getPageSearchResults(locale: string): SearchResult[] {
       title: 'search.pages.alerts',
       description: 'search.pages.alertsDesc',
       type: 'page',
-      href: `/${locale}/alerts`,
+      href: `/en/alerts`,
       icon: Bell,
       keywords: ['alerts', 'alert', '提醒', '通知'],
       priority: 7,
@@ -205,7 +205,7 @@ export function getPageSearchResults(locale: string): SearchResult[] {
       title: 'search.pages.settings',
       description: 'search.pages.settingsDesc',
       type: 'page',
-      href: `/${locale}/settings`,
+      href: `/en/settings`,
       icon: Settings,
       keywords: ['settings', '设置', '偏好'],
       priority: 6,
@@ -214,14 +214,14 @@ export function getPageSearchResults(locale: string): SearchResult[] {
 }
 
 // Feature search results
-export function getFeatureSearchResults(locale: string): SearchResult[] {
+export function getFeatureSearchResults(_locale: string): SearchResult[] {
   return [
     {
       id: 'feature-comparison',
       title: 'search.features.priceComparison',
       description: 'search.features.priceComparisonDesc',
       type: 'feature',
-      href: `/${locale}/cross-oracle`,
+      href: `/en/cross-oracle`,
       icon: GitCompare,
       keywords: ['comparison', 'compare', '对比', '比较'],
       priority: 8,
@@ -231,7 +231,7 @@ export function getFeatureSearchResults(locale: string): SearchResult[] {
       title: 'search.features.priceAlerts',
       description: 'search.features.priceAlertsDesc',
       type: 'feature',
-      href: `/${locale}/alerts`,
+      href: `/en/alerts`,
       icon: Bell,
       keywords: ['alert', 'notification', '提醒', '通知'],
       priority: 7,
@@ -241,7 +241,7 @@ export function getFeatureSearchResults(locale: string): SearchResult[] {
       title: 'search.features.charts',
       description: 'search.features.chartsDesc',
       type: 'feature',
-      href: `/${locale}/price-query`,
+      href: `/en/price-query`,
       icon: BarChart3,
       keywords: ['chart', 'graph', '图表', '图形'],
       priority: 7,
@@ -250,7 +250,7 @@ export function getFeatureSearchResults(locale: string): SearchResult[] {
 }
 
 // Documentation search results
-export function getDocumentationSearchResults(_locale: string): SearchResult[] {
+export function getDocumentationSearchResults(__locale: string): SearchResult[] {
   return [
     {
       id: 'doc-api',
@@ -266,14 +266,14 @@ export function getDocumentationSearchResults(_locale: string): SearchResult[] {
 }
 
 // Get all searchable items
-export function getAllSearchResults(locale: string): SearchResult[] {
+export function getAllSearchResults(_locale: string): SearchResult[] {
   return [
-    ...getOracleSearchResults(locale),
-    ...getBlockchainSearchResults(locale),
-    ...getPairSearchResults(locale),
-    ...getPageSearchResults(locale),
-    ...getFeatureSearchResults(locale),
-    ...getDocumentationSearchResults(locale),
+    ...getOracleSearchResults(_locale),
+    ...getBlockchainSearchResults(_locale),
+    ...getPairSearchResults(_locale),
+    ...getPageSearchResults(_locale),
+    ...getFeatureSearchResults(_locale),
+    ...getDocumentationSearchResults(_locale),
   ];
 }
 

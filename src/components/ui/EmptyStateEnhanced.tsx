@@ -15,12 +15,7 @@ import {
   Lightbulb,
 } from 'lucide-react';
 
-import { useTranslations } from '@/i18n';
 import { cn } from '@/lib/utils';
-
-// ============================================
-// 基础空状态组件
-// ============================================
 
 type EmptyStateType =
   | 'search'
@@ -82,6 +77,50 @@ const sizeClasses = {
   },
 };
 
+const defaultTexts: Record<EmptyStateType, { title: string; description: string }> = {
+  search: {
+    title: 'No results found',
+    description: 'Try adjusting your search keywords or filters',
+  },
+  data: {
+    title: 'No data available',
+    description: 'There is no data to display at the moment, please try again later',
+  },
+  error: {
+    title: 'Something went wrong',
+    description: 'An error occurred while loading data, please refresh the page and try again',
+  },
+  filter: {
+    title: 'No matching results',
+    description:
+      'There are no matching results for the current filters, please adjust your filter criteria',
+  },
+  default: {
+    title: 'No content',
+    description: 'There is no content to display at the moment',
+  },
+  folder: {
+    title: 'No items yet',
+    description: 'This folder is empty. Add some items to get started.',
+  },
+  offline: {
+    title: "You're offline",
+    description: 'Please check your internet connection and try again.',
+  },
+  empty: {
+    title: 'Nothing here',
+    description: "There's nothing to show at the moment.",
+  },
+  new: {
+    title: 'Get started',
+    description: "Welcome! Let's get you set up with a quick guide.",
+  },
+  custom: {
+    title: 'Custom state',
+    description: 'This is a custom empty state message.',
+  },
+};
+
 export function EmptyStateEnhanced({
   type = 'default',
   title,
@@ -92,9 +131,9 @@ export function EmptyStateEnhanced({
   variant = 'default',
   children,
 }: EmptyStateEnhancedProps) {
-  const t = useTranslations('emptyState');
   const Icon = iconMap[type];
   const sizes = sizeClasses[size];
+  const defaultText = defaultTexts[type];
 
   const variantClasses = {
     default: '',
@@ -120,10 +159,10 @@ export function EmptyStateEnhanced({
         {icon || <Icon className={cn('text-gray-400', sizes.icon)} />}
       </div>
       <h3 className={cn('font-semibold text-gray-900 mb-2', sizes.title)}>
-        {title || t(`${type}.title`)}
+        {title || defaultText.title}
       </h3>
       <p className={cn('text-gray-500 max-w-md', sizes.description)}>
-        {description || t(`${type}.description`)}
+        {description || defaultText.description}
       </p>
       {children && <div className="mt-6">{children}</div>}
     </div>

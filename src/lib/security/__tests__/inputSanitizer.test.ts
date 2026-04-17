@@ -17,7 +17,7 @@ import {
 describe('inputSanitizer', () => {
   describe('sanitizeString', () => {
     it('should sanitize basic HTML tags', () => {
-      const input = '<script>alert("xss")</script>';
+      const input = '<script>alert</script>';
       const result = sanitizeString(input);
       expect(result).not.toContain('<script>');
       expect(result).not.toContain('alert');
