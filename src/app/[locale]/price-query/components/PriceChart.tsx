@@ -44,6 +44,7 @@ interface PriceChartProps {
   queryResults: QueryResult[];
   selectedTimeRange: number;
   avgPrice?: number;
+  onTimeRangeChange?: (hours: number) => void;
 }
 
 const hoursToTimeRange = (hours: number): TimeRange => {
@@ -113,7 +114,10 @@ const CandlestickRenderer = ({
     const yOpen = yScale(item.open);
     const yClose = yScale(item.close);
     const isUp = item.close >= item.open;
-    const color = isUp ? chartColors.recharts.success : chartColors.recharts.danger;
+    // 修复：涨用绿色，跌用红色，使用不同颜色
+    const upColor = chartColors.recharts.success; // 涨 - 绿色 #10B981
+    const downColor = chartColors.recharts.danger; // 跌 - 红色 #ef4444
+    const color = isUp ? upColor : downColor;
     const barWidth = Math.max(3, bandSize * 0.6);
 
     return (
@@ -124,7 +128,7 @@ const CandlestickRenderer = ({
           y={Math.min(yOpen, yClose)}
           width={barWidth}
           height={Math.max(Math.abs(yOpen - yClose), 1)}
-          fill={isUp ? color : color}
+          fill={isUp ? upColor : downColor}
           stroke={color}
           strokeWidth={1}
         />
@@ -138,6 +142,7 @@ export function PriceChart({
   queryResults,
   selectedTimeRange,
   avgPrice = 0,
+  onTimeRangeChange,
 }: PriceChartProps) {
   const t = useTranslations();
 
@@ -281,8 +286,10 @@ export function PriceChart({
   }, [enhancedChartData, seriesNames, t]);
 
   const handleRangeChange = (range: string) => {
-    // TODO: Integrate with parent component to update selectedTimeRange
-    const _hours = timeRangeToHours(range);
+    const hours = timeRangeToHours(range);
+    if (onTimeRangeChange && hours !== selectedTimeRange) {
+      onTimeRangeChange(hours);
+    }
   };
 
   const allChartTypes: ChartType[] = useMemo(() => ['line', 'area', 'candle'], []);
@@ -295,12 +302,8 @@ export function PriceChart({
     return (
       <div className="h-[300px] flex flex-col items-center justify-center text-gray-400">
         <TrendingUp className="w-8 h-8 mb-2 opacity-50" />
-        <p className="text-sm">
-          {t('priceQuery.noHistoricalData')}
-        </p>
-        <p className="text-xs mt-1 text-gray-500">
-          {t('priceQuery.noHistoricalDataHint')}
-        </p>
+        <p className="text-sm">{t('priceQuery.noHistoricalData')}</p>
+        <p className="text-xs mt-1 text-gray-500">{t('priceQuery.noHistoricalDataHint')}</p>
       </div>
     );
   }

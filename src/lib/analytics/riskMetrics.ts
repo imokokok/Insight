@@ -455,7 +455,9 @@ export function calculateRiskMetrics(
     };
 
     // 标准化各指标到 0-100
-    const hhiScore = Math.min(hhi.value / 100, 100); // HHI 除以 100
+    // HHI 范围是 0-10000，需要除以 100 得到 0-100 的分数
+    // 但 HHI 越高风险越高，所以直接使用 hhi.value / 100
+    const hhiScore = Math.min((hhi.value / 10000) * 100, 100); // HHI 标准化到 0-100
     const divScore = 100 - diversification.score; // 多元化越低风险越高
     const volScore = volatility.index;
     const corrScore = correlationRisk.score;

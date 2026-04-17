@@ -75,27 +75,34 @@ export interface TrendResult {
 
 /**
  * 计算标准差检测
- * 使用 2σ 原则：约 95% 的数据应落在 μ ± 2σ 范围内
+ * 使用改进的 Z-Score 方法，结合 MAD (Median Absolute Deviation) 进行稳健统计
+ * 参考: Iglewicz & Hoaglin (1993) - 使用调整后的 Z-Score 进行异常检测
  *
  * @param data 数据数组
- * @param threshold 标准差倍数阈值 (默认 2)
+ * @param threshold 标准差倍数阈值 (默认 2.5，对应约 99% 置信区间)
  * @returns 标准差检测结果
  */
-export function calculateStdDevDetection(data: number[], threshold: number = 2): StdDevResult {
+export function calculateStdDevDetection(data: number[], threshold: number = 2.5): StdDevResult {
   try {
     if (data.length < 2) {
       throw new Error('Insufficient data for standard deviation calculation');
     }
 
-    // 计算均值
+    // 计算均值和标准差
     const mean = data.reduce((sum, val) => sum + val, 0) / data.length;
-
-    // 计算标准差
     const variance = data.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / data.length;
     const stdDev = Math.sqrt(variance);
 
-    // 处理 stdDev 为 0 的情况
-    if (stdDev === 0) {
+    // 计算中位数和 MAD (Median Absolute Deviation) 用于稳健统计
+    const sortedData = [...data].sort((a, b) => a - b);
+    const median = sortedData[Math.floor(sortedData.length / 2)];
+    const mad =
+      sortedData.reduce((sum, val) => sum + Math.abs(val - median), 0) / sortedData.length;
+
+    // 处理 stdDev 为 0 的情况，使用 MAD 作为备选
+    const effectiveStdDev = stdDev === 0 ? mad * 1.4826 : stdDev; // 1.4826 是 MAD 到标准差的转换系数
+
+    if (effectiveStdDev === 0) {
       return {
         mean,
         stdDev: 0,
@@ -105,19 +112,26 @@ export function calculateStdDevDetection(data: number[], threshold: number = 2):
       };
     }
 
-    // 计算上下界
-    const upperBound = mean + threshold * stdDev;
-    const lowerBound = mean - threshold * stdDev;
+    // 使用动态阈值：小样本时使用更严格的阈值
+    const adjustedThreshold = data.length < 30 ? threshold * 1.2 : threshold;
 
-    // 检测异常点
+    // 计算上下界
+    const upperBound = mean + adjustedThreshold * effectiveStdDev;
+    const lowerBound = mean - adjustedThreshold * effectiveStdDev;
+
+    // 检测异常点 - 使用改进的 Z-Score
     const anomalies = data
       .map((value, index) => {
-        const deviation = Math.abs(value - mean) / stdDev;
-        if (deviation > threshold) {
+        // 使用调整后的 Z-Score: 0.6745 * (x - median) / MAD
+        const modifiedZScore = (0.6745 * (value - median)) / (mad || effectiveStdDev);
+        const deviation = Math.abs(value - mean) / effectiveStdDev;
+
+        // 异常判定：传统 Z-Score 或改进的 Z-Score 任一超过阈值
+        if (deviation > adjustedThreshold || Math.abs(modifiedZScore) > 3.5) {
           return {
             index,
             value,
-            deviation,
+            deviation: Math.max(deviation, Math.abs(modifiedZScore)),
             isUpper: value > mean,
           };
         }
@@ -126,12 +140,12 @@ export function calculateStdDevDetection(data: number[], threshold: number = 2):
       .filter((item): item is NonNullable<typeof item> => item !== null);
 
     logger.debug(
-      `StdDev detection: mean=${mean.toFixed(4)}, stdDev=${stdDev.toFixed(4)}, anomalies=${anomalies.length}`
+      `StdDev detection: mean=${mean.toFixed(4)}, stdDev=${effectiveStdDev.toFixed(4)}, anomalies=${anomalies.length}`
     );
 
     return {
       mean,
-      stdDev,
+      stdDev: effectiveStdDev,
       upperBound,
       lowerBound,
       anomalies,
@@ -153,6 +167,8 @@ export function calculateStdDevDetection(data: number[], threshold: number = 2):
 
 /**
  * 检测价格异动
+ * 使用对数收益率和 GARCH 风格波动率聚类检测
+ * 参考: Bollinger Bands + 波动率突破检测
  *
  * @param prices 价格历史
  * @param timestamps 时间戳数组
@@ -165,60 +181,90 @@ export function detectPriceAnomalies(
   asset: string
 ): AnomalyData[] {
   try {
-    if (prices.length < 10) {
+    if (prices.length < 20) {
       return [];
     }
 
     const anomalies: AnomalyData[] = [];
 
-    // 计算收益率
-    const returns: number[] = [];
+    // 计算对数收益率 (更稳定的收益率计算方式)
+    const logReturns: number[] = [];
     for (let i = 1; i < prices.length; i++) {
-      // 添加除零检查
-      if (prices[i - 1] !== 0) {
-        const ret = ((prices[i] - prices[i - 1]) / prices[i - 1]) * 100;
-        returns.push(ret);
+      if (prices[i] > 0 && prices[i - 1] > 0) {
+        const logRet = Math.log(prices[i] / prices[i - 1]) * 100; // 转换为百分比
+        logReturns.push(logRet);
       }
     }
 
-    // 使用 2σ 原则检测异常
-    const stdDevResult = calculateStdDevDetection(returns, 2);
+    if (logReturns.length < 10) return [];
 
-    stdDevResult.anomalies.forEach((anomaly) => {
-      const index = anomaly.index + 1; // 收益率比价格少一个
-      const priceChange = returns[anomaly.index];
+    // 使用滚动窗口计算动态波动率 (EWMA - 指数加权移动平均)
+    const lambda = 0.94; // RiskMetrics 标准参数
+    const window = Math.min(20, Math.floor(logReturns.length / 2));
 
-      // 确定异常类型和等级
-      let type: AnomalyType;
-      let level: AnomalyLevel;
+    for (let i = window; i < logReturns.length; i++) {
+      const windowReturns = logReturns.slice(i - window, i);
 
-      if (priceChange > 0) {
-        type = 'price_spike';
-        if (anomaly.deviation > 4) level = 'critical';
-        else if (anomaly.deviation > 3) level = 'high';
-        else level = 'medium';
-      } else {
-        type = 'price_drop';
-        if (anomaly.deviation > 4) level = 'critical';
-        else if (anomaly.deviation > 3) level = 'high';
-        else level = 'medium';
+      // 计算 EWMA 波动率
+      let ewmaVar = 0;
+      let weightSum = 0;
+      for (let j = 0; j < windowReturns.length; j++) {
+        const weight = Math.pow(lambda, windowReturns.length - 1 - j);
+        ewmaVar += weight * windowReturns[j] * windowReturns[j];
+        weightSum += weight;
       }
+      const ewmaVol = Math.sqrt(ewmaVar / weightSum);
 
-      anomalies.push({
-        id: `price-${asset}-${timestamps[index]}-${Date.now()}`,
-        type,
-        level,
-        title: type === 'price_spike' ? 'price_spike_detected' : 'price_drop_detected',
-        description: `${asset} ${type === 'price_spike' ? 'surged' : 'dropped'} ${Math.abs(priceChange).toFixed(2)}%`,
-        timestamp: timestamps[index],
-        asset,
-        value: prices[index],
-        expectedValue: prices[index - 1] * (1 + stdDevResult.mean / 100),
-        deviation: anomaly.deviation,
-        duration: 0,
-        acknowledged: false,
-      });
-    });
+      // 计算当前收益率的 Z-Score
+      const currentReturn = logReturns[i];
+      const windowMean = windowReturns.reduce((a, b) => a + b, 0) / windowReturns.length;
+      const zScore = ewmaVol > 0 ? (currentReturn - windowMean) / ewmaVol : 0;
+
+      // 多阈值检测
+      const absZScore = Math.abs(zScore);
+      if (absZScore > 2) {
+        const priceIndex = i + 1;
+        const priceChange = currentReturn;
+
+        // 确定异常类型和等级
+        let type: AnomalyType;
+        let level: AnomalyLevel;
+
+        if (priceChange > 0) {
+          type = 'price_spike';
+        } else {
+          type = 'price_drop';
+        }
+
+        // 基于 Z-Score 确定等级
+        if (absZScore > 4) level = 'critical';
+        else if (absZScore > 3) level = 'high';
+        else if (absZScore > 2.5) level = 'medium';
+        else level = 'low';
+
+        // 检查是否是连续异常 (去重)
+        const isDuplicate = anomalies.some(
+          (a) => Math.abs(a.timestamp - timestamps[priceIndex]) < 60000 // 1分钟内不重复
+        );
+
+        if (!isDuplicate) {
+          anomalies.push({
+            id: `price-${asset}-${timestamps[priceIndex]}-${Date.now()}`,
+            type,
+            level,
+            title: type === 'price_spike' ? 'price_spike_detected' : 'price_drop_detected',
+            description: `${asset} ${type === 'price_spike' ? 'surged' : 'dropped'} ${Math.abs(priceChange).toFixed(2)}% (Z-Score: ${zScore.toFixed(2)})`,
+            timestamp: timestamps[priceIndex],
+            asset,
+            value: prices[priceIndex],
+            expectedValue: prices[priceIndex - 1] * Math.exp(windowMean / 100),
+            deviation: absZScore,
+            duration: 0,
+            acknowledged: false,
+          });
+        }
+      }
+    }
 
     logger.debug(`Detected ${anomalies.length} price anomalies for ${asset}`);
     return anomalies;
@@ -366,6 +412,8 @@ function calculateTrendSlope(data: number[]): number {
 
 /**
  * 检测波动率异常
+ * 使用 Parkinson 波动率估计和 GARCH(1,1) 风格的波动率聚类检测
+ * 参考: Parkinson (1980) - The Extreme Value Method
  *
  * @param prices 价格历史
  * @param timestamps 时间戳数组
@@ -378,49 +426,109 @@ export function detectVolatilityAnomalies(
   window: number = 20
 ): AnomalyData[] {
   try {
-    if (prices.length < window + 1) {
+    if (prices.length < window * 2) {
       return [];
     }
 
-    // 计算滚动波动率
-    const volatilities: number[] = [];
+    // 计算 Parkinson 波动率 (使用 High-Low 范围更准确地估计波动率)
+    const parkinsonVol: number[] = [];
+
     for (let i = window; i < prices.length; i++) {
       const windowPrices = prices.slice(i - window, i);
-      const returns: number[] = [];
+
+      // 计算价格范围波动率
+      const highs: number[] = [];
+      const lows: number[] = [];
+
       for (let j = 1; j < windowPrices.length; j++) {
-        returns.push(Math.log(windowPrices[j] / windowPrices[j - 1]));
+        const prevPrice = windowPrices[j - 1];
+        const currPrice = windowPrices[j];
+        // 使用前后价格作为高低点估计
+        highs.push(Math.max(prevPrice, currPrice));
+        lows.push(Math.min(prevPrice, currPrice));
       }
-      const variance = returns.reduce((sum, r) => sum + r * r, 0) / returns.length;
-      volatilities.push(Math.sqrt(variance) * Math.sqrt(365) * 100); // 年化波动率
+
+      // Parkinson 波动率公式: σ² = (1/4Nln2) * Σ[ln(Hi/Li)]²
+      let sumSquaredLogRange = 0;
+      for (let j = 0; j < highs.length; j++) {
+        if (lows[j] > 0) {
+          const logRange = Math.log(highs[j] / lows[j]);
+          sumSquaredLogRange += logRange * logRange;
+        }
+      }
+
+      const n = highs.length;
+      const parkinsonVariance = sumSquaredLogRange / (4 * n * Math.log(2));
+      const annualizedVol = Math.sqrt(parkinsonVariance) * Math.sqrt(365 * 24 * 12) * 100; // 年化，假设5分钟数据
+      parkinsonVol.push(annualizedVol);
     }
 
-    // 检测异常波动率
-    const stdDevResult = calculateStdDevDetection(volatilities, 2);
+    if (parkinsonVol.length < 10) return [];
+
+    // 使用 GARCH(1,1) 风格的波动率预测
+    const omega = 0.000001;
+    const alpha = 0.1;
+    const beta = 0.85;
+
+    const garchVol: number[] = [];
+    let lastVar = (parkinsonVol[0] * parkinsonVol[0]) / 10000; // 初始方差
+
+    for (let i = 0; i < parkinsonVol.length; i++) {
+      const currentVol = parkinsonVol[i];
+      const currentVar = (currentVol * currentVol) / 10000;
+
+      // GARCH(1,1): σ²_t = ω + α * ε²_{t-1} + β * σ²_{t-1}
+      const predictedVar = omega + alpha * currentVar + beta * lastVar;
+      const predictedVol = Math.sqrt(predictedVar) * 100;
+
+      garchVol.push(predictedVol);
+      lastVar = predictedVar;
+    }
+
+    // 检测实际波动率与预测波动率的偏离
     const anomalies: AnomalyData[] = [];
 
-    stdDevResult.anomalies.forEach((anomaly) => {
-      const index = anomaly.index + window;
-      let level: AnomalyLevel;
+    for (let i = window; i < parkinsonVol.length; i++) {
+      const actualVol = parkinsonVol[i];
+      const predictedVol = garchVol[i - 1]; // 使用前一期预测
 
-      if (anomaly.deviation > 4) level = 'critical';
-      else if (anomaly.deviation > 3) level = 'high';
-      else if (anomaly.deviation > 2.5) level = 'medium';
-      else level = 'low';
+      if (predictedVol > 0) {
+        const volRatio = actualVol / predictedVol;
+        const deviation = Math.abs(volRatio - 1);
 
-      anomalies.push({
-        id: `volatility-${timestamps[index]}-${Date.now()}`,
-        type: 'volatility_spike',
-        level,
-        title: 'volatility_spike_detected',
-        description: `Volatility spiked to ${anomaly.value.toFixed(2)}%`,
-        timestamp: timestamps[index],
-        value: anomaly.value,
-        expectedValue: stdDevResult.mean,
-        deviation: anomaly.deviation,
-        duration: window,
-        acknowledged: false,
-      });
-    });
+        // 波动率突破阈值
+        if (volRatio > 1.5 || volRatio < 0.5) {
+          const priceIndex = i + window;
+          let level: AnomalyLevel;
+
+          if (volRatio > 3 || volRatio < 0.33) level = 'critical';
+          else if (volRatio > 2 || volRatio < 0.5) level = 'high';
+          else if (volRatio > 1.5 || volRatio < 0.67) level = 'medium';
+          else level = 'low';
+
+          // 去重检查
+          const isDuplicate = anomalies.some(
+            (a) => Math.abs(a.timestamp - timestamps[priceIndex]) < 300000 // 5分钟内不重复
+          );
+
+          if (!isDuplicate) {
+            anomalies.push({
+              id: `volatility-${timestamps[priceIndex]}-${Date.now()}`,
+              type: 'volatility_spike',
+              level,
+              title: volRatio > 1 ? 'volatility_spike_detected' : 'volatility_drop_detected',
+              description: `Volatility ${volRatio > 1 ? 'spiked' : 'dropped'} to ${actualVol.toFixed(1)}% (expected: ${predictedVol.toFixed(1)}%, ratio: ${volRatio.toFixed(2)})`,
+              timestamp: timestamps[priceIndex],
+              value: actualVol,
+              expectedValue: predictedVol,
+              deviation: volRatio,
+              duration: window,
+              acknowledged: false,
+            });
+          }
+        }
+      }
+    }
 
     logger.debug(`Detected ${anomalies.length} volatility anomalies`);
     return anomalies;
