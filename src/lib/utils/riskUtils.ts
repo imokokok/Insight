@@ -41,7 +41,21 @@ export function calculateVolatility(returns: number[]): number {
   return Math.sqrt(variance);
 }
 
-export function calculateSharpeRatio(returns: number[], riskFreeRate: number = 0.02): number {
+/**
+ * 计算年化 Sharpe Ratio（夏普比率）
+ *
+ * Sharpe Ratio = (年化收益率 - 无风险利率) / 年化波动率
+ *
+ * @param returns 收益率序列（如日收益率）
+ * @param riskFreeRate 年化无风险利率（默认 2%）
+ * @param periodsPerYear 每年的期数（如 252 个交易日）
+ * @returns 年化 Sharpe Ratio
+ */
+export function calculateSharpeRatio(
+  returns: number[],
+  riskFreeRate: number = 0.02,
+  periodsPerYear: number = 252
+): number {
   if (returns.length < 2) return 0;
 
   const meanReturn = returns.reduce((sum, r) => sum + r, 0) / returns.length;
@@ -49,7 +63,12 @@ export function calculateSharpeRatio(returns: number[], riskFreeRate: number = 0
 
   if (volatility === 0) return 0;
 
-  return (meanReturn - riskFreeRate / 252) / volatility;
+  // 年化收益率和波动率
+  const annualizedReturn = meanReturn * periodsPerYear;
+  const annualizedVolatility = volatility * Math.sqrt(periodsPerYear);
+
+  // 年化 Sharpe Ratio
+  return (annualizedReturn - riskFreeRate) / annualizedVolatility;
 }
 
 export function calculateMaxDrawdown(prices: number[]): number {
