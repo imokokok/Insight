@@ -16,7 +16,6 @@ describe('ValidationError', () => {
     expect(error.message).toBe('Invalid input');
     expect(error.code).toBe('VALIDATION_ERROR');
     expect(error.statusCode).toBe(400);
-    expect(error.i18nKey).toBe('errors.validation');
     expect(error.isOperational).toBe(true);
   });
 
@@ -25,12 +24,6 @@ describe('ValidationError', () => {
     const error = new ValidationError('Invalid email', details);
 
     expect(error.details).toEqual(details);
-  });
-
-  it('should use custom i18nKey when provided', () => {
-    const error = new ValidationError('Invalid input', {}, 'custom.validation');
-
-    expect(error.i18nKey).toBe('custom.validation');
   });
 });
 
@@ -41,7 +34,6 @@ describe('NotFoundError', () => {
     expect(error.message).toBe('User not found');
     expect(error.code).toBe('NOT_FOUND');
     expect(error.statusCode).toBe(404);
-    expect(error.i18nKey).toBe('errors.notFound');
   });
 
   it('should include resource details when provided', () => {
@@ -59,7 +51,6 @@ describe('AuthenticationError', () => {
     expect(error.message).toBe('Invalid credentials');
     expect(error.code).toBe('AUTHENTICATION_ERROR');
     expect(error.statusCode).toBe(401);
-    expect(error.i18nKey).toBe('errors.authentication');
   });
 
   it('should include reason when provided', () => {
@@ -77,7 +68,6 @@ describe('AuthorizationError', () => {
     expect(error.message).toBe('Access denied');
     expect(error.code).toBe('AUTHORIZATION_ERROR');
     expect(error.statusCode).toBe(403);
-    expect(error.i18nKey).toBe('errors.authorization');
   });
 
   it('should include resource and action details when provided', () => {
@@ -95,7 +85,6 @@ describe('ConflictError', () => {
     expect(error.message).toBe('Resource already exists');
     expect(error.code).toBe('CONFLICT');
     expect(error.statusCode).toBe(409);
-    expect(error.i18nKey).toBe('errors.conflict');
   });
 
   it('should include conflicting value when provided', () => {
@@ -113,7 +102,6 @@ describe('RateLimitError', () => {
     expect(error.message).toBe('Too many requests');
     expect(error.code).toBe('RATE_LIMIT_EXCEEDED');
     expect(error.statusCode).toBe(429);
-    expect(error.i18nKey).toBe('errors.rateLimit');
   });
 
   it('should include retryAfter when provided', () => {
@@ -138,7 +126,6 @@ describe('InternalError', () => {
     expect(error.message).toBe('Internal server error');
     expect(error.code).toBe('INTERNAL_ERROR');
     expect(error.statusCode).toBe(500);
-    expect(error.i18nKey).toBe('errors.internal');
     expect(error.isOperational).toBe(false);
   });
 
@@ -151,7 +138,7 @@ describe('InternalError', () => {
 
   it('should include cause when provided', () => {
     const cause = new Error('Original error');
-    const error = new InternalError('Wrapped error', {}, undefined, cause);
+    const error = new InternalError('Wrapped error', {}, cause);
 
     expect(error.cause).toBe(cause);
   });

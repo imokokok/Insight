@@ -28,7 +28,6 @@ export interface UserProfile {
     language?: string;
     default_currency?: string;
     auto_refresh_interval?: number;
-    theme?: 'light' | 'dark' | 'system';
     chart_settings?: {
       show_confidence_interval?: boolean;
       auto_refresh?: boolean;

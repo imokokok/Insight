@@ -15,7 +15,7 @@ export interface ValidationErrorDetails extends AppErrorDetails {
  * 用于输入验证失败的情况
  */
 export class ValidationError extends AppError {
-  constructor(message: string, details?: ValidationErrorDetails, i18nKey?: string) {
+  constructor(message: string, details?: ValidationErrorDetails) {
     super({
       message,
       code: ErrorCodes.VALIDATION_ERROR,
@@ -23,7 +23,6 @@ export class ValidationError extends AppError {
       category: 'validation',
       severity: 'low',
       details,
-      i18nKey: i18nKey ?? 'errors.validation',
     });
   }
 }
@@ -33,8 +32,8 @@ export class ValidationError extends AppError {
  * 针对特定字段的验证错误
  */
 export class FieldValidationError extends ValidationError {
-  constructor(field: string, message: string, value?: unknown, i18nKey?: string) {
-    super(message, { field, value }, i18nKey ?? `errors.validation.${field}`);
+  constructor(field: string, message: string, value?: unknown) {
+    super(message, { field, value });
     this.name = 'FieldValidationError';
   }
 }
@@ -52,7 +51,7 @@ export interface NotFoundErrorDetails extends AppErrorDetails {
  * 资源未找到错误
  */
 export class NotFoundError extends AppError {
-  constructor(message: string, details?: NotFoundErrorDetails, i18nKey?: string) {
+  constructor(message: string, details?: NotFoundErrorDetails) {
     super({
       message,
       code: ErrorCodes.NOT_FOUND,
@@ -60,7 +59,6 @@ export class NotFoundError extends AppError {
       category: 'not_found',
       severity: 'low',
       details,
-      i18nKey: i18nKey ?? 'errors.notFound',
     });
   }
 
@@ -88,7 +86,7 @@ export interface AuthenticationErrorDetails extends AppErrorDetails {
  * 用户身份验证失败
  */
 export class AuthenticationError extends AppError {
-  constructor(message: string, details?: AuthenticationErrorDetails, i18nKey?: string) {
+  constructor(message: string, details?: AuthenticationErrorDetails) {
     super({
       message,
       code: ErrorCodes.AUTHENTICATION_ERROR,
@@ -96,7 +94,6 @@ export class AuthenticationError extends AppError {
       category: 'authentication',
       severity: 'medium',
       details,
-      i18nKey: i18nKey ?? 'errors.authentication',
     });
   }
 }
@@ -106,7 +103,7 @@ export class AuthenticationError extends AppError {
  */
 export class TokenExpiredError extends AuthenticationError {
   constructor(message = 'Token has expired', details?: AuthenticationErrorDetails) {
-    super(message, { ...details, reason: 'token_expired' }, 'errors.tokenExpired');
+    super(message, { ...details, reason: 'token_expired' });
     this.name = 'TokenExpiredError';
   }
 }
@@ -126,7 +123,7 @@ export interface AuthorizationErrorDetails extends AppErrorDetails {
  * 用户没有权限执行操作
  */
 export class AuthorizationError extends AppError {
-  constructor(message: string, details?: AuthorizationErrorDetails, i18nKey?: string) {
+  constructor(message: string, details?: AuthorizationErrorDetails) {
     super({
       message,
       code: ErrorCodes.AUTHORIZATION_ERROR,
@@ -134,7 +131,6 @@ export class AuthorizationError extends AppError {
       category: 'authorization',
       severity: 'high',
       details,
-      i18nKey: i18nKey ?? 'errors.authorization',
     });
   }
 }
@@ -152,7 +148,7 @@ export interface ConflictErrorDetails extends AppErrorDetails {
  * 资源冲突错误
  */
 export class ConflictError extends AppError {
-  constructor(message: string, details?: ConflictErrorDetails, i18nKey?: string) {
+  constructor(message: string, details?: ConflictErrorDetails) {
     super({
       message,
       code: ErrorCodes.CONFLICT,
@@ -160,7 +156,6 @@ export class ConflictError extends AppError {
       category: 'conflict',
       severity: 'medium',
       details,
-      i18nKey: i18nKey ?? 'errors.conflict',
     });
   }
 }
@@ -169,12 +164,11 @@ export class ConflictError extends AppError {
  * 重复条目错误
  */
 export class DuplicateEntryError extends ConflictError {
-  constructor(resource: string, field: string, value: unknown, i18nKey?: string) {
-    super(
-      `${resource} with ${field} '${value}' already exists`,
-      { resource, conflictingValue: { field, value } },
-      i18nKey ?? 'errors.duplicateEntry'
-    );
+  constructor(resource: string, field: string, value: unknown) {
+    super(`${resource} with ${field} '${value}' already exists`, {
+      resource,
+      conflictingValue: { field, value },
+    });
     this.name = 'DuplicateEntryError';
   }
 }
@@ -195,7 +189,7 @@ export interface RateLimitErrorDetails extends AppErrorDetails {
 export class RateLimitError extends AppError {
   public readonly retryAfter?: number;
 
-  constructor(message: string, details?: RateLimitErrorDetails, i18nKey?: string) {
+  constructor(message: string, details?: RateLimitErrorDetails) {
     super({
       message,
       code: ErrorCodes.RATE_LIMIT_EXCEEDED,
@@ -205,7 +199,6 @@ export class RateLimitError extends AppError {
       retryable: true,
       retryAfter: details?.retryAfter,
       details,
-      i18nKey: i18nKey ?? 'errors.rateLimit',
     });
     this.retryAfter = details?.retryAfter;
   }
@@ -224,7 +217,7 @@ export interface InternalErrorDetails extends AppErrorDetails {
  * 内部服务器错误
  */
 export class InternalError extends AppError {
-  constructor(message: string, details?: InternalErrorDetails, i18nKey?: string, cause?: Error) {
+  constructor(message: string, details?: InternalErrorDetails, cause?: Error) {
     super({
       message,
       code: ErrorCodes.INTERNAL_ERROR,
@@ -233,7 +226,6 @@ export class InternalError extends AppError {
       severity: 'critical',
       isOperational: false,
       details,
-      i18nKey: i18nKey ?? 'errors.internal',
       cause,
     });
   }
@@ -247,7 +239,6 @@ export class ServiceUnavailableError extends InternalError {
     super(
       `Service '${service}' is currently unavailable`,
       { ...details, operation: service },
-      'errors.serviceUnavailable',
       cause
     );
     this.name = 'ServiceUnavailableError';
@@ -259,7 +250,7 @@ export class ServiceUnavailableError extends InternalError {
  */
 export class DatabaseError extends InternalError {
   constructor(message: string, operation?: string, cause?: Error) {
-    super(message, { operation, originalError: cause?.message }, 'errors.database', cause);
+    super(message, { operation, originalError: cause?.message }, cause);
     this.name = 'DatabaseError';
   }
 }
@@ -276,7 +267,6 @@ export class NotImplementedError extends AppError {
       category: 'internal',
       severity: 'medium',
       isOperational: true,
-      i18nKey: 'errors.notImplemented',
     });
     this.name = 'NotImplementedError';
   }
@@ -295,7 +285,7 @@ export interface NetworkErrorDetails extends AppErrorDetails {
  * 网络错误
  */
 export class NetworkError extends AppError {
-  constructor(message: string, details?: NetworkErrorDetails, i18nKey?: string, cause?: Error) {
+  constructor(message: string, details?: NetworkErrorDetails, cause?: Error) {
     super({
       message,
       code: ErrorCodes.NETWORK_ERROR,
@@ -304,7 +294,6 @@ export class NetworkError extends AppError {
       severity: 'high',
       retryable: true,
       details,
-      i18nKey: i18nKey ?? 'errors.network',
       cause,
     });
   }
@@ -318,7 +307,6 @@ export class TimeoutError extends NetworkError {
     super(
       `Operation '${operation}' timed out after ${timeout}ms`,
       { ...details, timeout, operation },
-      'errors.timeout',
       cause
     );
     this.name = 'TimeoutError';
@@ -343,7 +331,6 @@ export class ExternalServiceError extends AppError {
     service: string,
     message: string,
     details?: ExternalServiceErrorDetails,
-    i18nKey?: string,
     cause?: Error
   ) {
     super({
@@ -354,7 +341,6 @@ export class ExternalServiceError extends AppError {
       severity: 'high',
       retryable: true,
       details: { service, ...details },
-      i18nKey: i18nKey ?? 'errors.externalService',
       cause,
     });
   }

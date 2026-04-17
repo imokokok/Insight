@@ -5,7 +5,6 @@ export interface ApiError {
   message: string;
   retryable: boolean;
   details?: Record<string, unknown>;
-  i18nKey?: string;
   documentationUrl?: string;
   requestId?: string;
   timestamp?: number;
@@ -73,7 +72,6 @@ export class ApiResponseBuilder {
     options?: {
       retryable?: boolean;
       details?: Record<string, unknown>;
-      i18nKey?: string;
       requestId?: string;
     }
   ): ApiErrorResponse {
@@ -84,7 +82,6 @@ export class ApiResponseBuilder {
         message,
         retryable: options?.retryable ?? false,
         details: options?.details,
-        i18nKey: options?.i18nKey,
       },
       meta: {
         timestamp: Date.now(),
@@ -93,39 +90,36 @@ export class ApiResponseBuilder {
     };
   }
 
-  static unauthorized(message = 'Unauthorized', options?: { i18nKey?: string }): NextResponse {
-    return NextResponse.json(ApiResponseBuilder.error('UNAUTHORIZED', message, options), {
+  static unauthorized(message = 'Unauthorized'): NextResponse {
+    return NextResponse.json(ApiResponseBuilder.error('UNAUTHORIZED', message), {
       status: 401,
     });
   }
 
-  static forbidden(message = 'Forbidden', options?: { i18nKey?: string }): NextResponse {
-    return NextResponse.json(ApiResponseBuilder.error('FORBIDDEN', message, options), {
+  static forbidden(message = 'Forbidden'): NextResponse {
+    return NextResponse.json(ApiResponseBuilder.error('FORBIDDEN', message), {
       status: 403,
     });
   }
 
-  static notFound(message = 'Not found', options?: { i18nKey?: string }): NextResponse {
-    return NextResponse.json(ApiResponseBuilder.error('NOT_FOUND', message, options), {
+  static notFound(message = 'Not found'): NextResponse {
+    return NextResponse.json(ApiResponseBuilder.error('NOT_FOUND', message), {
       status: 404,
     });
   }
 
   static badRequest(
     message: string,
-    options?: { i18nKey?: string; details?: Record<string, unknown> }
+    options?: { details?: Record<string, unknown> }
   ): NextResponse {
     return NextResponse.json(ApiResponseBuilder.error('BAD_REQUEST', message, options), {
       status: 400,
     });
   }
 
-  static serverError(
-    message = 'Internal server error',
-    options?: { i18nKey?: string }
-  ): NextResponse {
+  static serverError(message = 'Internal server error'): NextResponse {
     return NextResponse.json(
-      ApiResponseBuilder.error('INTERNAL_ERROR', message, { ...options, retryable: true }),
+      ApiResponseBuilder.error('INTERNAL_ERROR', message, { retryable: true }),
       { status: 500 }
     );
   }

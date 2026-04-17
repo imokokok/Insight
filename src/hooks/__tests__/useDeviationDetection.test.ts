@@ -108,9 +108,9 @@ describe('useDeviationDetection', () => {
       const { result } = renderHook(() => useDeviationDetection(1.5));
 
       expect(result.current.colorClass).toBe('text-amber-500');
-      expect(result.current.bgClass).toBe('bg-amber-50 dark:bg-amber-950/30');
-      expect(result.current.borderClass).toBe('border-amber-200 dark:border-amber-800');
-      expect(result.current.textClass).toBe('text-amber-700 dark:text-amber-400');
+      expect(result.current.bgClass).toBe('bg-amber-50');
+      expect(result.current.borderClass).toBe('border-amber-200');
+      expect(result.current.textClass).toBe('text-amber-700');
       expect(result.current.pulseClass).toBe('animate-pulse-warning');
     });
 
@@ -118,9 +118,9 @@ describe('useDeviationDetection', () => {
       const { result } = renderHook(() => useDeviationDetection(3));
 
       expect(result.current.colorClass).toBe('text-red-500');
-      expect(result.current.bgClass).toBe('bg-red-50 dark:bg-red-950/30');
-      expect(result.current.borderClass).toBe('border-red-200 dark:border-red-800');
-      expect(result.current.textClass).toBe('text-red-700 dark:text-red-400');
+      expect(result.current.bgClass).toBe('bg-red-50');
+      expect(result.current.borderClass).toBe('border-red-200');
+      expect(result.current.textClass).toBe('text-red-700');
       expect(result.current.pulseClass).toBe('animate-pulse-danger');
     });
   });

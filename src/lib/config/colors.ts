@@ -529,19 +529,11 @@ export const wcagColors = {
   text: {
     // 浅色背景上的文本（对比度 >= 4.5:1）
     onLight: {
-      primary: '#000000', // 黑色，对比度 21:1
-      secondary: '#1a1a1a', // 深灰，对比度 ~18:1
-      tertiary: '#333333', // 中深灰，对比度 ~12:1
-      muted: '#595959', // 灰色，对比度 7:1 (AA)
-      disabled: '#757575', // 禁用状态，对比度 4.6:1 (AA)
-    },
-    // 深色背景上的文本（对比度 >= 4.5:1）
-    onDark: {
-      primary: '#ffffff', // 白色，对比度 21:1
-      secondary: '#f0f0f0', // 浅灰，对比度 ~18:1
-      tertiary: '#e0e0e0', // 中浅灰，对比度 ~14:1
-      muted: '#b3b3b3', // 灰色，对比度 7:1 (AA)
-      disabled: '#949494', // 禁用状态，对比度 4.6:1 (AA)
+      primary: '#000000',
+      secondary: '#1a1a1a',
+      tertiary: '#333333',
+      muted: '#595959',
+      disabled: '#757575',
     },
   },
 
@@ -633,23 +625,9 @@ export const wcagColors = {
 // ============================================
 
 export const chartColorSchemes = {
-  // 默认配色
   default: chartColors.sequence,
-  // 高对比度配色（WCAG AA）
   highContrast: wcagColors.chart.primary,
-  // 色盲友好配色
   colorblind: accessibleColors.chart.sequence,
-  // 深色主题配色
-  dark: [
-    '#60a5fa', // 浅蓝
-    '#f87171', // 浅红
-    '#4ade80', // 浅绿
-    '#fbbf24', // 浅黄
-    '#a78bfa', // 浅紫
-    '#fb923c', // 浅橙
-    '#22d3ee', // 青
-    '#f472b6', // 粉
-  ],
 } as const;
 
 // ============================================

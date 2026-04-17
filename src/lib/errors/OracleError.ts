@@ -17,7 +17,7 @@ export interface OracleErrorDetails extends AppErrorDetails {
  * Oracle服务客户端连接或配置错误
  */
 export class OracleClientError extends AppError {
-  constructor(message: string, details?: OracleErrorDetails, i18nKey?: string, cause?: Error) {
+  constructor(message: string, details?: OracleErrorDetails, cause?: Error) {
     super({
       message,
       code: ErrorCodes.ORACLE_ERROR,
@@ -26,7 +26,6 @@ export class OracleClientError extends AppError {
       severity: 'high',
       isOperational: false,
       details,
-      i18nKey: i18nKey ?? 'errors.oracle.client',
       cause,
     });
   }
@@ -51,7 +50,7 @@ export class PriceFetchError extends AppError {
   public readonly retryable: boolean;
   public readonly attemptCount: number;
 
-  constructor(message: string, details?: PriceFetchErrorDetails, i18nKey?: string, cause?: Error) {
+  constructor(message: string, details?: PriceFetchErrorDetails, cause?: Error) {
     const retryable = details?.retryable ?? true;
     super({
       message,
@@ -62,43 +61,26 @@ export class PriceFetchError extends AppError {
       isOperational: true,
       retryable,
       details,
-      i18nKey: i18nKey ?? 'errors.oracle.priceFetch',
       cause,
     });
     this.retryable = retryable;
     this.attemptCount = details?.attemptCount ?? 1;
   }
 
-  /**
-   * 创建不可重试的价格获取错误
-   */
   static nonRetryable(
     message: string,
     details?: Omit<PriceFetchErrorDetails, 'retryable'>,
     cause?: Error
   ): PriceFetchError {
-    return new PriceFetchError(
-      message,
-      { ...details, retryable: false },
-      'errors.oracle.priceFetch',
-      cause
-    );
+    return new PriceFetchError(message, { ...details, retryable: false }, cause);
   }
 
-  /**
-   * 创建可重试的价格获取错误
-   */
   static retryable(
     message: string,
     details?: Omit<PriceFetchErrorDetails, 'retryable'>,
     cause?: Error
   ): PriceFetchError {
-    return new PriceFetchError(
-      message,
-      { ...details, retryable: true },
-      'errors.oracle.priceFetchRetryable',
-      cause
-    );
+    return new PriceFetchError(message, { ...details, retryable: true }, cause);
   }
 
   toApiResponse(): {
@@ -140,7 +122,7 @@ export interface UnsupportedChainErrorDetails extends OracleErrorDetails {
  * 不支持的链错误
  */
 export class UnsupportedChainError extends AppError {
-  constructor(message: string, details?: UnsupportedChainErrorDetails, i18nKey?: string) {
+  constructor(message: string, details?: UnsupportedChainErrorDetails) {
     super({
       message,
       code: 'UNSUPPORTED_CHAIN',
@@ -148,7 +130,6 @@ export class UnsupportedChainError extends AppError {
       category: 'validation',
       severity: 'low',
       details,
-      i18nKey: i18nKey ?? 'errors.oracle.unsupportedChain',
     });
   }
 
@@ -179,7 +160,7 @@ export interface UnsupportedSymbolErrorDetails extends OracleErrorDetails {
  * 不支持的代币错误
  */
 export class UnsupportedSymbolError extends AppError {
-  constructor(message: string, details?: UnsupportedSymbolErrorDetails, i18nKey?: string) {
+  constructor(message: string, details?: UnsupportedSymbolErrorDetails) {
     super({
       message,
       code: 'UNSUPPORTED_SYMBOL',
@@ -187,7 +168,6 @@ export class UnsupportedSymbolError extends AppError {
       category: 'validation',
       severity: 'low',
       details,
-      i18nKey: i18nKey ?? 'errors.oracle.unsupportedSymbol',
     });
   }
 
@@ -257,7 +237,6 @@ export class RedStoneApiError extends AppError {
         errorCode,
         retryable: isRetryable,
       },
-      i18nKey: 'errors.oracle.redstoneApi',
       cause,
     });
     this.errorCode = errorCode;
@@ -381,7 +360,6 @@ export class ChainlinkError extends AppError {
       isOperational: true,
       retryable: ChainlinkError.isRetryableError(errorCode),
       details: { ...details, errorCode },
-      i18nKey: 'errors.oracle.chainlink',
       cause,
     });
     this.errorCode = errorCode;
@@ -457,7 +435,6 @@ export class PythError extends AppError {
       isOperational: true,
       retryable: PythError.isRetryableError(errorCode),
       details: { ...details, errorCode },
-      i18nKey: 'errors.oracle.pyth',
       cause,
     });
     this.errorCode = errorCode;
@@ -526,7 +503,6 @@ export class API3Error extends AppError {
       isOperational: true,
       retryable: API3Error.isRetryableError(errorCode),
       details: { ...details, errorCode },
-      i18nKey: 'errors.oracle.api3',
       cause,
     });
     this.errorCode = errorCode;
@@ -593,7 +569,6 @@ export class SupraError extends AppError {
       isOperational: true,
       retryable: SupraError.isRetryableError(errorCode),
       details: { ...details, errorCode },
-      i18nKey: 'errors.oracle.supra',
       cause,
     });
     this.errorCode = errorCode;

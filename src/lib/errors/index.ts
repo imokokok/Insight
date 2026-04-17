@@ -223,12 +223,7 @@ export function toAppError(error: unknown): AppErrorType {
   }
 
   if (error instanceof Error) {
-    return new InternalError(
-      error.message,
-      { originalError: error.name },
-      undefined,
-      error
-    ) as AppErrorType;
+    return new InternalError(error.message, { originalError: error.name }, error) as AppErrorType;
   }
 
   return new InternalError(typeof error === 'string' ? error : 'An unexpected error occurred', {

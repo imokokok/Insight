@@ -48,7 +48,6 @@ export function createValidationMiddleware(options: ValidationMiddlewareOptions)
             response: NextResponse.json(
               ApiResponseBuilder.error('VALIDATION_ERROR', 'Request body validation failed', {
                 details: { errors: result.errors },
-                i18nKey: 'errors.validation',
               }),
               { status: 400 }
             ),
@@ -94,7 +93,6 @@ export function createValidationMiddleware(options: ValidationMiddlewareOptions)
           response: NextResponse.json(
             ApiResponseBuilder.error('VALIDATION_ERROR', 'Query parameters validation failed', {
               details: { errors: result.errors },
-              i18nKey: 'errors.validation',
             }),
             { status: 400 }
           ),
@@ -114,7 +112,6 @@ export function createValidationMiddleware(options: ValidationMiddlewareOptions)
           response: NextResponse.json(
             ApiResponseBuilder.error('VALIDATION_ERROR', 'Route parameters validation failed', {
               details: { errors: result.errors },
-              i18nKey: 'errors.validation',
             }),
             { status: 400 }
           ),

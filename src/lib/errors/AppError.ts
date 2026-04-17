@@ -16,7 +16,6 @@ export interface AppErrorOptions {
   statusCode: number;
   isOperational?: boolean;
   details?: AppErrorDetails;
-  i18nKey?: string;
   cause?: Error;
 }
 
@@ -61,7 +60,6 @@ export abstract class AppError extends Error {
   public readonly statusCode: number;
   public readonly isOperational: boolean;
   public readonly details?: AppErrorDetails;
-  public readonly i18nKey?: string;
   public readonly severity: ErrorSeverity;
   public readonly category: ErrorCategory;
   public readonly retryable: boolean;
@@ -77,7 +75,6 @@ export abstract class AppError extends Error {
     this.statusCode = options.statusCode;
     this.isOperational = options.isOperational ?? true;
     this.details = options.details;
-    this.i18nKey = options.i18nKey;
     this.severity = options.severity ?? 'medium';
     this.category = options.category ?? 'unknown';
     this.retryable = options.retryable ?? options.isOperational !== false;
@@ -119,7 +116,6 @@ export abstract class AppError extends Error {
       requestId: this.requestId,
       timestamp: this.timestamp.toISOString(),
       details: this.details,
-      i18nKey: this.i18nKey,
       stack: this.stack,
       cause:
         this.cause instanceof Error
@@ -209,9 +205,6 @@ export abstract class AppError extends Error {
    * 获取用户友好的错误消息
    */
   getUserMessage(): string {
-    if (this.i18nKey) {
-      return this.i18nKey;
-    }
     return this.isOperational ? this.message : 'An unexpected error occurred';
   }
 }

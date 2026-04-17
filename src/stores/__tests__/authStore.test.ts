@@ -56,9 +56,7 @@ const mockProfile = {
   id: 'test-user-id',
   display_name: 'Test User',
   avatar_url: null,
-  preferences: {
-    theme: 'dark' as const,
-  },
+  preferences: {},
   notification_settings: {
     email_alerts: true,
   },

@@ -323,23 +323,6 @@ describe('API Validation Tests', () => {
         expect(body.error.code).toBe('VALIDATION_ERROR');
       }
     });
-
-    it('should include i18n key for internationalization', async () => {
-      const schema: ObjectSchema = {
-        name: { validators: [isString], required: true },
-      };
-
-      const middleware = createValidationMiddleware({ body: schema });
-      const request = createMockRequest({ body: {} });
-
-      const result = await middleware(request);
-
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        const body = await result.response.json();
-        expect(body.error).toHaveProperty('i18nKey');
-      }
-    });
   });
 
   describe('Boundary Values', () => {

@@ -115,14 +115,13 @@ export interface UseBatchAlertsReturn {
 const ALERTS_KEY = 'user-alerts';
 const ALERT_EVENTS_KEY = 'user-alert-events';
 
-// Alert error message keys for i18n
-export const alertErrorKeys = {
-  userNotLoggedIn: 'hooks.alerts.userNotLoggedIn',
-  createFailed: 'hooks.alerts.createFailed',
-  updateFailed: 'hooks.alerts.updateFailed',
-  deleteFailed: 'hooks.alerts.deleteFailed',
-  acknowledgeFailed: 'hooks.alerts.acknowledgeFailed',
-};
+const ALERT_ERROR_MESSAGES = {
+  userNotLoggedIn: 'User not logged in',
+  createFailed: 'Failed to create alert',
+  updateFailed: 'Failed to update alert',
+  deleteFailed: 'Failed to delete alert',
+  acknowledgeFailed: 'Failed to acknowledge alert',
+} as const;
 
 export function useAlerts(): UseAlertsReturn {
   const user = useUser();
@@ -158,7 +157,7 @@ export function useCreateAlert(): UseCreateAlertReturn {
   const mutation = useMutation({
     mutationFn: async (input: CreateAlertInput) => {
       if (!user?.id) {
-        throw new Error(alertErrorKeys.userNotLoggedIn);
+        throw new Error(ALERT_ERROR_MESSAGES.userNotLoggedIn);
       }
 
       const alert = await queries.createAlert(user.id, {
@@ -172,7 +171,7 @@ export function useCreateAlert(): UseCreateAlertReturn {
       });
 
       if (!alert) {
-        throw new Error(alertErrorKeys.createFailed);
+        throw new Error(ALERT_ERROR_MESSAGES.createFailed);
       }
 
       return alert;
@@ -211,7 +210,7 @@ export function useUpdateAlert(): UseUpdateAlertReturn {
   const mutation = useMutation({
     mutationFn: async ({ id, input }: { id: string; input: UpdateAlertInput }) => {
       if (!user?.id) {
-        throw new Error(alertErrorKeys.userNotLoggedIn);
+        throw new Error(ALERT_ERROR_MESSAGES.userNotLoggedIn);
       }
 
       const alert = await queries.updateAlert(id, {
@@ -221,7 +220,7 @@ export function useUpdateAlert(): UseUpdateAlertReturn {
       });
 
       if (!alert) {
-        throw new Error(alertErrorKeys.updateFailed);
+        throw new Error(ALERT_ERROR_MESSAGES.updateFailed);
       }
 
       return alert;
@@ -270,13 +269,13 @@ export function useDeleteAlert(): UseDeleteAlertReturn {
   const mutation = useMutation({
     mutationFn: async (id: string) => {
       if (!user?.id) {
-        throw new Error(alertErrorKeys.userNotLoggedIn);
+        throw new Error(ALERT_ERROR_MESSAGES.userNotLoggedIn);
       }
 
       const success = await queries.deleteAlert(id, user.id);
 
       if (!success) {
-        throw new Error(alertErrorKeys.deleteFailed);
+        throw new Error(ALERT_ERROR_MESSAGES.deleteFailed);
       }
 
       return true;
@@ -347,13 +346,13 @@ export function useAcknowledgeAlert(): UseAcknowledgeAlertReturn {
   const mutation = useMutation({
     mutationFn: async (eventId: string) => {
       if (!user?.id) {
-        throw new Error(alertErrorKeys.userNotLoggedIn);
+        throw new Error(ALERT_ERROR_MESSAGES.userNotLoggedIn);
       }
 
       const event = await queries.acknowledgeAlertEvent(eventId);
 
       if (!event) {
-        throw new Error(alertErrorKeys.acknowledgeFailed);
+        throw new Error(ALERT_ERROR_MESSAGES.acknowledgeFailed);
       }
 
       return event;
@@ -425,7 +424,7 @@ export function useBatchAlerts(): UseBatchAlertsReturn {
       alertIds: string[];
     }) => {
       if (!user?.id) {
-        throw new Error(alertErrorKeys.userNotLoggedIn);
+        throw new Error(ALERT_ERROR_MESSAGES.userNotLoggedIn);
       }
 
       if (alertIds.length === 0) {

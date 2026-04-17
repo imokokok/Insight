@@ -31,7 +31,6 @@ interface DbUserPreferences {
   language?: string;
   default_currency?: string;
   auto_refresh_interval?: number;
-  theme?: string;
   chart_settings?: {
     show_confidence_interval?: boolean;
     auto_refresh?: boolean;

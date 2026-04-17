@@ -729,19 +729,5 @@ describe('API Rate Limit Tests', () => {
         expect(body.error).toHaveProperty('retryable');
       }
     });
-
-    it('should include i18n key for internationalization', async () => {
-      const middleware = createRateLimitMiddleware({ maxRequests: 1 });
-      const request = createMockRequest();
-
-      await middleware(request);
-      const result = await middleware(request);
-
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        const body = await result.response.json();
-        expect(body.error).toHaveProperty('i18nKey');
-      }
-    });
   });
 });

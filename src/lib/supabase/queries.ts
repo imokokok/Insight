@@ -171,7 +171,6 @@ export interface UserProfile {
     defaultProvider?: OracleProvider;
     refreshInterval?: number;
     notificationsEnabled?: boolean;
-    theme?: 'light' | 'dark' | 'system';
   };
   created_at?: string;
   updated_at?: string;
@@ -185,7 +184,6 @@ export interface UserProfileUpdate {
     defaultProvider?: OracleProvider;
     refreshInterval?: number;
     notificationsEnabled?: boolean;
-    theme?: 'light' | 'dark' | 'system';
   };
 }
 

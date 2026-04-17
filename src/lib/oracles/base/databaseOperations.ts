@@ -45,7 +45,6 @@ export async function fetchPriceWithDatabase(
         chain,
         retryable: true,
       },
-      undefined,
       error instanceof Error ? error : undefined
     );
   }
@@ -85,7 +84,6 @@ export async function fetchHistoricalPricesWithDatabase(
         timestamp: Date.now(),
         retryable: true,
       },
-      undefined,
       error instanceof Error ? error : undefined
     );
   }

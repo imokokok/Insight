@@ -15,7 +15,6 @@ import {
   useAlertEvents,
   useAcknowledgeAlert,
   useBatchAlerts,
-  alertErrorKeys,
 } from '../data/useAlerts';
 
 jest.mock('@/stores/authStore', () => ({
@@ -177,7 +176,7 @@ describe('useCreateAlert', () => {
     });
 
     expect(thrownError).toBeTruthy();
-    expect(thrownError?.message).toBe(alertErrorKeys.userNotLoggedIn);
+    expect(thrownError?.message).toBe('User not logged in');
   });
 
   it('should create alert successfully', async () => {
@@ -222,7 +221,7 @@ describe('useCreateAlert', () => {
     });
 
     expect(thrownError).toBeTruthy();
-    expect(thrownError?.message).toBe(alertErrorKeys.createFailed);
+    expect(thrownError?.message).toBe('Failed to create alert');
   });
 
   it('should track isPending state', async () => {
@@ -362,7 +361,7 @@ describe('useUpdateAlert', () => {
     });
 
     expect(thrownError).toBeTruthy();
-    expect(thrownError?.message).toBe(alertErrorKeys.updateFailed);
+    expect(thrownError?.message).toBe('Failed to update alert');
   });
 
   it('should track isPending state', async () => {
@@ -457,7 +456,7 @@ describe('useDeleteAlert', () => {
     });
 
     expect(thrownError).toBeTruthy();
-    expect(thrownError?.message).toBe(alertErrorKeys.deleteFailed);
+    expect(thrownError?.message).toBe('Failed to delete alert');
   });
 
   it('should track isPending state', async () => {
@@ -588,7 +587,7 @@ describe('useAcknowledgeAlert', () => {
       response = await result.current.acknowledge('event-1');
     });
 
-    expect(response!.error?.message).toBe(alertErrorKeys.acknowledgeFailed);
+    expect(response!.error?.message).toBe('Failed to acknowledge alert');
   });
 
   it('should track isAcknowledging state', async () => {

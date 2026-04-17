@@ -66,14 +66,6 @@ describe('ApiResponseBuilder', () => {
       expect(response.error.details).toEqual({ field: 'email' });
     });
 
-    it('should include i18nKey when provided', () => {
-      const response = ApiResponseBuilder.error('UNAUTHORIZED', 'Not authorized', {
-        i18nKey: 'errors.unauthorized',
-      });
-
-      expect(response.error.i18nKey).toBe('errors.unauthorized');
-    });
-
     it('should include requestId in meta when provided', () => {
       const response = ApiResponseBuilder.error('ERROR', 'Error', {
         requestId: 'req-456',

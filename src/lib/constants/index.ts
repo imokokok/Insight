@@ -15,18 +15,6 @@ export const providerNames: Record<OracleProvider, string> = {
   [OracleProvider.TWAP]: 'TWAP',
 };
 
-// i18n 键名映射，用于将 OracleProvider 映射到 navbar i18n 键
-export const oracleI18nKeys: Record<OracleProvider, string> = {
-  [OracleProvider.CHAINLINK]: 'chainlink',
-  [OracleProvider.PYTH]: 'pythNetwork',
-  [OracleProvider.API3]: 'api3',
-  [OracleProvider.REDSTONE]: 'redstone',
-  [OracleProvider.DIA]: 'dia',
-  [OracleProvider.WINKLINK]: 'winklink',
-  [OracleProvider.SUPRA]: 'supra',
-  [OracleProvider.TWAP]: 'twap',
-};
-
 export const chainNames: Record<Blockchain, string> = {
   [Blockchain.ETHEREUM]: 'Ethereum',
   [Blockchain.ARBITRUM]: 'Arbitrum',

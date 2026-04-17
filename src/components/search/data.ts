@@ -43,14 +43,14 @@ const oracleIcons: Record<OracleProvider, LucideIcon> = {
 
 // Oracle descriptions mapping
 const oracleDescriptions: Record<OracleProvider, string> = {
-  [OracleProvider.CHAINLINK]: 'search.oracles.chainlinkDesc',
-  [OracleProvider.PYTH]: 'search.oracles.pythDesc',
-  [OracleProvider.API3]: 'search.oracles.api3Desc',
-  [OracleProvider.REDSTONE]: 'search.oracles.redstoneDesc',
-  [OracleProvider.DIA]: 'search.oracles.diaDesc',
-  [OracleProvider.WINKLINK]: 'search.oracles.winklinkDesc',
-  [OracleProvider.SUPRA]: 'search.oracles.supraDesc',
-  [OracleProvider.TWAP]: 'search.oracles.twapDesc',
+  [OracleProvider.CHAINLINK]: 'Decentralized oracle network providing reliable price feeds',
+  [OracleProvider.PYTH]: 'High-frequency oracle delivering real-time market data',
+  [OracleProvider.API3]: 'First-party oracle solution with Airnode technology',
+  [OracleProvider.REDSTONE]: 'Innovative oracle with on-chain data streaming',
+  [OracleProvider.DIA]: 'Open-source oracle for financial data',
+  [OracleProvider.WINKLINK]: 'TRON ecosystem oracle for price data',
+  [OracleProvider.SUPRA]: 'Intralayer oracle with fast and reliable data feeds',
+  [OracleProvider.TWAP]: 'Time-weighted average price oracle for DeFi',
 };
 
 // Generate oracle search results
@@ -114,7 +114,7 @@ export function getBlockchainSearchResults(_locale: string): SearchResult[] {
   return BLOCKCHAIN_VALUES.map((chain) => ({
     id: `blockchain-${chain}`,
     title: chainNames[chain],
-    description: `search.blockchains.${chain.toLowerCase()}Desc`,
+    description: `Price data on ${chainNames[chain]}`,
     type: 'blockchain' as SearchResultType,
     href: `/en/cross-chain?chain=${chain.toLowerCase()}`,
     iconUrl: blockchainIcons[chain] || undefined,
@@ -129,7 +129,7 @@ export function getPairSearchResults(_locale: string): SearchResult[] {
   return symbols.map((symbol) => ({
     id: `pair-${symbol}`,
     title: `${symbol}/USD`,
-    description: 'search.pairs.priceFeed',
+    description: 'Real-time price feed data',
     type: 'pair' as SearchResultType,
     href: `/en/price-query?symbol=${symbol}`,
     keywords: [symbol.toLowerCase(), 'price', 'price feed'],
@@ -142,8 +142,8 @@ export function getPageSearchResults(_locale: string): SearchResult[] {
   return [
     {
       id: 'page-home',
-      title: 'search.pages.home',
-      description: 'search.pages.homeDesc',
+      title: 'Home',
+      description: 'Dashboard overview and quick access',
       type: 'page',
       href: `/en/`,
       icon: LayoutDashboard,
@@ -152,8 +152,8 @@ export function getPageSearchResults(_locale: string): SearchResult[] {
     },
     {
       id: 'page-price-query',
-      title: 'search.pages.priceQuery',
-      description: 'search.pages.priceQueryDesc',
+      title: 'Price Query',
+      description: 'Search and view real-time price data',
       type: 'page',
       href: `/en/price-query`,
       icon: Search,
@@ -162,8 +162,8 @@ export function getPageSearchResults(_locale: string): SearchResult[] {
     },
     {
       id: 'page-cross-oracle',
-      title: 'search.pages.crossOracle',
-      description: 'search.pages.crossOracleDesc',
+      title: 'Cross-Oracle Comparison',
+      description: 'Compare prices across multiple oracle providers',
       type: 'page',
       href: `/en/cross-oracle`,
       icon: GitCompare,
@@ -172,8 +172,8 @@ export function getPageSearchResults(_locale: string): SearchResult[] {
     },
     {
       id: 'page-cross-chain',
-      title: 'search.pages.crossChain',
-      description: 'search.pages.crossChainDesc',
+      title: 'Cross-Chain Comparison',
+      description: 'Compare prices across different blockchains',
       type: 'page',
       href: `/en/cross-chain`,
       icon: Link2,
@@ -182,8 +182,8 @@ export function getPageSearchResults(_locale: string): SearchResult[] {
     },
     {
       id: 'page-favorites',
-      title: 'search.pages.favorites',
-      description: 'search.pages.favoritesDesc',
+      title: 'Favorites',
+      description: 'Your saved favorite price feeds',
       type: 'page',
       href: `/en/favorites`,
       icon: Heart,
@@ -192,8 +192,8 @@ export function getPageSearchResults(_locale: string): SearchResult[] {
     },
     {
       id: 'page-alerts',
-      title: 'search.pages.alerts',
-      description: 'search.pages.alertsDesc',
+      title: 'Alerts',
+      description: 'Manage your price alert notifications',
       type: 'page',
       href: `/en/alerts`,
       icon: Bell,
@@ -202,8 +202,8 @@ export function getPageSearchResults(_locale: string): SearchResult[] {
     },
     {
       id: 'page-settings',
-      title: 'search.pages.settings',
-      description: 'search.pages.settingsDesc',
+      title: 'Settings',
+      description: 'Configure application preferences',
       type: 'page',
       href: `/en/settings`,
       icon: Settings,
@@ -218,8 +218,8 @@ export function getFeatureSearchResults(_locale: string): SearchResult[] {
   return [
     {
       id: 'feature-comparison',
-      title: 'search.features.priceComparison',
-      description: 'search.features.priceComparisonDesc',
+      title: 'Price Comparison',
+      description: 'Compare prices across different oracle providers',
       type: 'feature',
       href: `/en/cross-oracle`,
       icon: GitCompare,
@@ -228,8 +228,8 @@ export function getFeatureSearchResults(_locale: string): SearchResult[] {
     },
     {
       id: 'feature-alerts',
-      title: 'search.features.priceAlerts',
-      description: 'search.features.priceAlertsDesc',
+      title: 'Price Alerts',
+      description: 'Set up notifications for price changes',
       type: 'feature',
       href: `/en/alerts`,
       icon: Bell,
@@ -238,8 +238,8 @@ export function getFeatureSearchResults(_locale: string): SearchResult[] {
     },
     {
       id: 'feature-charts',
-      title: 'search.features.charts',
-      description: 'search.features.chartsDesc',
+      title: 'Price Charts',
+      description: 'Visualize price trends and historical data',
       type: 'feature',
       href: `/en/price-query`,
       icon: BarChart3,
@@ -254,8 +254,8 @@ export function getDocumentationSearchResults(__locale: string): SearchResult[] 
   return [
     {
       id: 'doc-api',
-      title: 'search.docs.apiReference',
-      description: 'search.docs.apiReferenceDesc',
+      title: 'API Reference',
+      description: 'API documentation and endpoint reference',
       type: 'documentation',
       href: '/api/docs',
       icon: FileText,
@@ -277,12 +277,12 @@ export function getAllSearchResults(_locale: string): SearchResult[] {
   ];
 }
 
-// Group labels for i18n
+// Group labels
 export const searchGroupLabels: Record<SearchResultType, string> = {
-  oracle: 'search.groups.oracles',
-  pair: 'search.groups.pairs',
-  blockchain: 'search.groups.blockchains',
-  page: 'search.groups.pages',
-  feature: 'search.groups.features',
-  documentation: 'search.groups.documentation',
+  oracle: 'Oracles',
+  pair: 'Pairs',
+  blockchain: 'Blockchains',
+  page: 'Pages',
+  feature: 'Features',
+  documentation: 'Documentation',
 };
