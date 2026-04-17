@@ -1,9 +1,9 @@
 {
+  "meta": {
+    "title": "跨预言机对比 - Insight",
+    "description": "多个预言机之间的价格对比"
+  },
   "crossOracle": {
-    "meta": {
-      "title": "跨预言机对比 - Insight",
-      "description": "多个预言机之间的价格对比"
-    },
     "title": "多预言机比较分析",
     "subtitle": "全面的多源价格聚合与趋同分析",
     "loadingData": "加载数据中...",
@@ -14,7 +14,6 @@
     "noDataTitle": "暂无 {symbol} 数据",
     "noDataDescription": "所选时间范围内没有价格数据。",
     "selectOraclesHint": "选择多个预言机进行对比分析",
-    "twap": "TWAP",
     "oracleCard": {
       "viewDetails": "查看 {name} 详情",
       "updateFrequency": "更新频率",
@@ -178,13 +177,13 @@
     "normal": "正常",
     "anomaly": "异常",
     "median": "中位数",
-    "bid": "买盘",
-    "ask": "卖盘",
+    "bid": "买入价",
+    "ask": "卖出价",
     "bestBid": "最佳买价",
     "bestAsk": "最佳卖价",
     "spread": "价差",
-    "bidDepth": "买盘深度",
-    "askDepth": "卖盘深度",
+    "bidDepth": "买入深度",
+    "askDepth": "卖出深度",
     "lowRisk": "低风险",
     "mediumRisk": "中风险",
     "highRisk": "高风险",
@@ -248,7 +247,7 @@
       "highestPrice": "最高价格",
       "lowestPrice": "最低价格",
       "maxPriceDifference": "最大价格差异",
-      "deviationFromAverage": "均值偏离度",
+      "deviationFromAverage": "均值偏差",
       "avgResponseTime": "平均响应延迟"
     },
     "selectTradingPair": "选择交易对",
@@ -433,7 +432,7 @@
       "supportedBy": "支持于 {count} 个预言机",
       "selectOracleFirst": "请先选择预言机"
     },
-    "freshness": "数据时效性",
+    "freshness": "数据新鲜度",
     "freshnessOptions": {
       "justNow": "刚刚",
       "secondsAgo": "{seconds}秒前",
@@ -505,7 +504,7 @@
       },
       "outlier": "异常值",
       "normal": "正常",
-      "deviationRate": "偏离度",
+      "deviationRate": "偏差率",
       "updateTime": "更新时间"
     },
     "status": "状态",
@@ -596,7 +595,7 @@
       "severityUnknown": "未知",
       "deviation": "偏差"
     },
-    "priceRangeLabels": {
+    "priceRange": {
       "min": "最小",
       "median": "中位数",
       "max": "最大",
