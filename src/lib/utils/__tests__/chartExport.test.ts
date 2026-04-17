@@ -11,7 +11,7 @@ jest.mock('../chartExport/formats/imageExporter');
 jest.mock('../chartExport/formats/jsonExporter');
 jest.mock('../chartExport/formats/pdfExporter');
 jest.mock('../chartExport/utils/exportHelpers', () => ({
-  sanitizeFilename: jest.fn((name: string) => name.replace(/[^a-zA-Z0-9-_]/g, '_')),
+  sanitizeFilename: jest.fn((name: string) => name.replace(/[^a-zA-Z0-9-_]/g, ' ')),
   downloadBlob: jest.fn(),
 }));
 jest.mock('../logger', () => ({
@@ -34,7 +34,7 @@ describe('chartExport', () => {
     { time: '2024-01-02', price: 101, volume: 1100 },
   ];
 
-  const mockChartRef = document.createElement('div');
+  const mockChartRef = document.createElement('a');
 
   beforeEach(() => {
     jest.clearAllMocks();

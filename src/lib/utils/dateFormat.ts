@@ -3,11 +3,8 @@
  * Provides consistent date formatting across the application based on current locale
  */
 
-import { useLocale } from '@/i18n';
-
 /**
  * Gets the appropriate Intl.DateTimeFormat locale based on the current app locale
- * @param currentLocale - The current app locale from useLocale()
  * @returns The appropriate locale string for date formatting
  */
 export function getDateTimeLocale(currentLocale: string): string {
@@ -19,7 +16,7 @@ export function getDateTimeLocale(currentLocale: string): string {
  * Use this in client components for consistent date formatting
  */
 export function useDateFormatter() {
-  const locale = useLocale();
+  const locale = 'en';
   const dateTimeLocale = getDateTimeLocale(locale);
 
   const formatDate = (date: Date | number, options?: Intl.DateTimeFormatOptions): string => {

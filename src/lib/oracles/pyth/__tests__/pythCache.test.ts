@@ -77,8 +77,8 @@ describe('PythCache', () => {
       cache.clear();
 
       expect(cache.size()).toBe(0);
-      expect(cache.get('key1')).toBeNull();
-      expect(cache.get('key2')).toBeNull();
+      expect(cache.get('key')).toBeNull();
+      expect(cache.get('key')).toBeNull();
     });
   });
 
@@ -90,8 +90,8 @@ describe('PythCache', () => {
       const result = cache.delete('key1');
 
       expect(result).toBe(true);
-      expect(cache.get('key1')).toBeNull();
-      expect(cache.get('key2')).toBe('value2');
+      expect(cache.get('key')).toBeNull();
+      expect(cache.get('key')).toBe('value2');
     });
 
     it('should return false for non-existent key', () => {
@@ -150,7 +150,7 @@ describe('PythCache', () => {
 
       expect(cache.size()).toBe(2);
 
-      cache.get('key1');
+      cache.get('key');
 
       expect(cache.size()).toBe(1);
     });

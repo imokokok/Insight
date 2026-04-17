@@ -6,7 +6,6 @@ import { useVirtualizer } from '@tanstack/react-virtual';
 
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { useUpdateAlert, useDeleteAlert, useBatchAlerts } from '@/hooks';
-import { useTranslations } from '@/i18n';
 import { providerNames, chainNames, oracleColors, chainColors } from '@/lib/constants';
 import { type PriceAlert } from '@/lib/supabase/database.types';
 
@@ -31,7 +30,6 @@ function getAlertStatus(alert: PriceAlert): AlertStatus {
 }
 
 export function AlertList({ alerts, isLoading, onRefresh }: AlertListProps) {
-  const t = useTranslations();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState<string>('');
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
@@ -50,50 +48,44 @@ export function AlertList({ alerts, isLoading, onRefresh }: AlertListProps) {
     overscan: 3,
   });
 
-  const getStatusBadge = useCallback(
-    (status: AlertStatus) => {
-      switch (status) {
-        case 'active':
-          return {
-            label: t('alerts.list.statusActive'),
-            bgColor: 'bg-success-100',
-            textColor: 'text-success-700',
-            borderColor: 'border-green-200',
-          };
-        case 'triggered':
-          return {
-            label: t('alerts.list.statusTriggered'),
-            bgColor: 'bg-warning-100',
-            textColor: 'text-warning-700',
-            borderColor: 'border-yellow-200',
-          };
-        case 'disabled':
-          return {
-            label: t('alerts.list.statusDisabled'),
-            bgColor: 'bg-gray-100',
-            textColor: 'text-gray-700',
-            borderColor: 'border-gray-200',
-          };
-      }
-    },
-    [t]
-  );
+  const getStatusBadge = useCallback((status: AlertStatus) => {
+    switch (status) {
+      case 'active':
+        return {
+          label: 'alerts.list.statusActive',
+          bgColor: 'bg-success-100',
+          textColor: 'text-success-700',
+          borderColor: 'border-green-200',
+        };
+      case 'triggered':
+        return {
+          label: 'alerts.list.statusTriggered',
+          bgColor: 'bg-warning-100',
+          textColor: 'text-warning-700',
+          borderColor: 'border-yellow-200',
+        };
+      case 'disabled':
+        return {
+          label: 'alerts.list.statusDisabled',
+          bgColor: 'bg-gray-100',
+          textColor: 'text-gray-700',
+          borderColor: 'border-gray-200',
+        };
+    }
+  }, []);
 
-  const getConditionLabel = useCallback(
-    (conditionType: string, targetValue: number): string => {
-      switch (conditionType) {
-        case 'above':
-          return `${t('alerts.condition.above')} ≥ ${targetValue.toFixed(4)}`;
-        case 'below':
-          return `${t('alerts.condition.below')} ≤ ${targetValue.toFixed(4)}`;
-        case 'change_percent':
-          return `${t('alerts.condition.changePercent')} ≥ ${targetValue.toFixed(2)}%`;
-        default:
-          return `${t('alerts.create.targetValueLabel')}: ${targetValue}`;
-      }
-    },
-    [t]
-  );
+  const getConditionLabel = useCallback((conditionType: string, targetValue: number): string => {
+    switch (conditionType) {
+      case 'above':
+        return `Above ≥ ${targetValue.toFixed(4)}`;
+      case 'below':
+        return `Below ≤ ${targetValue.toFixed(4)}`;
+      case 'change_percent':
+        return `Change % ≥ ${targetValue.toFixed(2)}%`;
+      default:
+        return `Target: ${targetValue}`;
+    }
+  }, []);
 
   const handleToggleActive = useCallback(
     async (alert: PriceAlert) => {
@@ -178,7 +170,7 @@ export function AlertList({ alerts, isLoading, onRefresh }: AlertListProps) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>{t('alerts.list.title')}</CardTitle>
+          <CardTitle>{'alerts.list.title'}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center py-8">
@@ -193,7 +185,7 @@ export function AlertList({ alerts, isLoading, onRefresh }: AlertListProps) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>{t('alerts.list.title')}</CardTitle>
+          <CardTitle>{'alerts.list.title'}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8 text-gray-500">
@@ -209,8 +201,8 @@ export function AlertList({ alerts, isLoading, onRefresh }: AlertListProps) {
                 d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
               />
             </svg>
-            <p className="mt-2 text-sm">{t('alerts.list.empty')}</p>
-            <p className="text-xs text-gray-400">{t('alerts.list.emptyHint')}</p>
+            <p className="mt-2 text-sm">{'alerts.list.empty'}</p>
+            <p className="text-xs text-gray-400">{'alerts.list.emptyHint'}</p>
           </div>
         </CardContent>
       </Card>
@@ -220,7 +212,7 @@ export function AlertList({ alerts, isLoading, onRefresh }: AlertListProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{`${t('alerts.list.title')} (${alerts.length})`}</CardTitle>
+        <CardTitle>{`${'alerts.list.title'} (${alerts.length})`}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
@@ -334,13 +326,13 @@ export function AlertList({ alerts, isLoading, onRefresh }: AlertListProps) {
                                       disabled={isUpdating}
                                       className="px-2 py-1 text-xs bg-primary-600 text-white rounded hover:bg-primary-700"
                                     >
-                                      {t('actions.save')}
+                                      {'actions.save'}
                                     </button>
                                     <button
                                       onClick={handleCancelEdit}
                                       className="px-2 py-1 text-xs bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
                                     >
-                                      {t('actions.cancel')}
+                                      {'actions.cancel'}
                                     </button>
                                   </div>
                                 ) : (
@@ -350,7 +342,7 @@ export function AlertList({ alerts, isLoading, onRefresh }: AlertListProps) {
 
                               {alert.last_triggered_at && (
                                 <p className="text-xs text-gray-400 mt-1">
-                                  {t('alerts.list.lastTriggered')}:{' '}
+                                  {'alerts.list.lastTriggered'}:{' '}
                                   {new Date(alert.last_triggered_at).toLocaleString('zh-CN')}
                                 </p>
                               )}
@@ -364,9 +356,7 @@ export function AlertList({ alerts, isLoading, onRefresh }: AlertListProps) {
                               className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
                                 alert.is_active ? 'bg-primary-600' : 'bg-gray-200'
                               }`}
-                              title={
-                                alert.is_active ? t('alerts.list.disable') : t('alerts.list.enable')
-                              }
+                              title={alert.is_active ? 'alerts.list.disable' : 'alerts.list.enable'}
                             >
                               <span
                                 className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
@@ -379,7 +369,7 @@ export function AlertList({ alerts, isLoading, onRefresh }: AlertListProps) {
                               onClick={() => handleEdit(alert)}
                               disabled={editingId === alert.id}
                               className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded"
-                              title={t('actions.edit')}
+                              title={'actions.edit'}
                             >
                               <svg
                                 className="w-4 h-4"
@@ -402,20 +392,20 @@ export function AlertList({ alerts, isLoading, onRefresh }: AlertListProps) {
                                   disabled={isDeleting}
                                   className="px-2 py-1 text-xs bg-danger-600 text-white rounded hover:bg-danger-700"
                                 >
-                                  {t('alerts.list.confirm')}
+                                  {'alerts.list.confirm'}
                                 </button>
                                 <button
                                   onClick={() => setDeleteConfirmId(null)}
                                   className="px-2 py-1 text-xs bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
                                 >
-                                  {t('actions.cancel')}
+                                  {'actions.cancel'}
                                 </button>
                               </div>
                             ) : (
                               <button
                                 onClick={() => setDeleteConfirmId(alert.id!)}
                                 className="p-1.5 text-gray-400 hover:text-danger-600 hover:bg-danger-50 rounded"
-                                title={t('actions.delete')}
+                                title={'actions.delete'}
                               >
                                 <svg
                                   className="w-4 h-4"

@@ -6,7 +6,6 @@ import Image from 'next/image';
 
 import { Shield, ShieldCheck, ShieldAlert, ShieldX, Info } from 'lucide-react';
 
-import { useTranslations } from '@/i18n';
 import { OracleProvider, type Blockchain } from '@/types/oracle';
 
 export type CredibilityLevel = 'high' | 'medium' | 'low' | 'unverified';
@@ -38,6 +37,7 @@ const credibilityConfig: Record<
     bgColor: string;
     borderColor: string;
     labelKey: string;
+    label: string;
   }
 > = {
   high: {
@@ -46,6 +46,7 @@ const credibilityConfig: Record<
     bgColor: 'bg-success-50',
     borderColor: 'border-green-200',
     labelKey: 'dataTransparency.credibility.high',
+    label: 'High',
   },
   medium: {
     icon: Shield,
@@ -53,6 +54,7 @@ const credibilityConfig: Record<
     bgColor: 'bg-primary-50',
     borderColor: 'border-primary-200',
     labelKey: 'dataTransparency.credibility.medium',
+    label: 'Medium',
   },
   low: {
     icon: ShieldAlert,
@@ -60,6 +62,7 @@ const credibilityConfig: Record<
     bgColor: 'bg-amber-50',
     borderColor: 'border-amber-200',
     labelKey: 'dataTransparency.credibility.low',
+    label: 'Low',
   },
   unverified: {
     icon: ShieldX,
@@ -67,6 +70,7 @@ const credibilityConfig: Record<
     bgColor: 'bg-gray-50',
     borderColor: 'border-gray-200',
     labelKey: 'dataTransparency.credibility.unverified',
+    label: 'Unverified',
   },
 };
 
@@ -113,7 +117,6 @@ export function DataSourceIndicator({
   variant = 'compact',
   className = '',
 }: DataSourceIndicatorProps) {
-  const t = useTranslations();
   const [showTooltip, setShowTooltip] = useState(false);
   const [imageError, setImageError] = useState(false);
 
@@ -193,26 +196,26 @@ export function DataSourceIndicator({
                 className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full ${config.bgColor} ${config.borderColor} border`}
               >
                 <CredibilityIcon size={12} className={config.color} />
-                <span className={`${config.color} text-xs font-medium`}>{t(config.labelKey)}</span>
+                <span className={`${config.color} text-xs font-medium`}>{config.label}</span>
               </div>
             </div>
 
             {showChain && source.chain && (
               <p className="text-xs text-gray-500 mt-0.5">
-                {t('dataTransparency.chain')}: {source.chain}
+                {'dataTransparency.chain'}: {source.chain}
               </p>
             )}
 
             {source.source && (
               <p className="text-xs text-gray-500 mt-0.5 truncate">
-                {t('dataTransparency.source')}: {source.source}
+                {'dataTransparency.source'}: {source.source}
               </p>
             )}
 
             {showConfidence && (
               <div className="mt-2">
                 <div className="flex items-center justify-between text-xs mb-1">
-                  <span className="text-gray-600">{t('dataTransparency.confidence')}</span>
+                  <span className="text-gray-600">{'dataTransparency.confidence'}</span>
                   <span className="font-medium text-gray-900">{confidencePercent}%</span>
                 </div>
                 <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
@@ -241,7 +244,7 @@ export function DataSourceIndicator({
                   className="inline-flex items-center gap-1 text-xs text-primary-600 hover:text-primary-700"
                 >
                   <Info size={12} />
-                  {t('dataTransparency.viewProof')}
+                  {'dataTransparency.viewProof'}
                 </a>
               </div>
             )}
@@ -285,13 +288,13 @@ export function DataSourceIndicator({
         className={`relative inline-flex items-center gap-1 px-2 py-0.5 rounded-full ${config.bgColor} ${config.borderColor} border`}
       >
         <CredibilityIcon size={12} className={config.color} />
-        <span className={`${config.color} text-xs font-medium`}>{t(config.labelKey)}</span>
+        <span className={`${config.color} text-xs font-medium`}>{config.labelKey}</span>
 
         {/* Tooltip */}
         {showTooltip && showConfidence && (
           <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg whitespace-nowrap z-50">
             <div className="font-medium">
-              {t('dataTransparency.confidence')}: {confidencePercent}%
+              {'dataTransparency.confidence'}: {confidencePercent}%
             </div>
             {source.chain && <div className="text-gray-300">{source.chain}</div>}
             <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900" />

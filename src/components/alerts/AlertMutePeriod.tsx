@@ -3,7 +3,6 @@
 import { useState, useCallback, useMemo } from 'react';
 
 import { DropdownSelect } from '@/components/ui';
-import { useTranslations } from '@/i18n';
 
 export interface MutePeriodConfig {
   enabled: boolean;
@@ -41,15 +40,14 @@ const DAYS_OF_WEEK = [
 ];
 
 export function AlertMutePeriod({ config, onChange }: AlertMutePeriodProps) {
-  const t = useTranslations();
   const [localConfig, setLocalConfig] = useState<MutePeriodConfig>(config);
 
   const durationOptions = useMemo(() => {
     return DURATION_OPTIONS.map((opt) => ({
       value: opt.value,
-      label: t(`alerts.mute.duration.${opt.value}`) || opt.label,
+      label: opt.label,
     }));
-  }, [t]);
+  }, []);
 
   const handleToggleEnable = useCallback(() => {
     const newConfig = { ...localConfig, enabled: !localConfig.enabled };
@@ -103,8 +101,8 @@ export function AlertMutePeriod({ config, onChange }: AlertMutePeriodProps) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h4 className="text-sm font-medium text-gray-900">{t('alerts.mute.title')}</h4>
-          <p className="text-xs text-gray-500 mt-0.5">{t('alerts.mute.description')}</p>
+          <h4 className="text-sm font-medium text-gray-900">{'alerts.mute.title'}</h4>
+          <p className="text-xs text-gray-500 mt-0.5">{'alerts.mute.description'}</p>
         </div>
         <button
           type="button"
@@ -125,7 +123,7 @@ export function AlertMutePeriod({ config, onChange }: AlertMutePeriodProps) {
         <div className="space-y-4 pt-3 border-t border-gray-200">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              {t('alerts.mute.durationLabel')}
+              {'alerts.mute.durationLabel'}
             </label>
             <DropdownSelect
               options={durationOptions}
@@ -139,7 +137,7 @@ export function AlertMutePeriod({ config, onChange }: AlertMutePeriodProps) {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-medium text-gray-600 mb-1">
-                    {t('alerts.mute.startTime')}
+                    {'alerts.mute.startTime'}
                   </label>
                   <input
                     type="time"
@@ -150,7 +148,7 @@ export function AlertMutePeriod({ config, onChange }: AlertMutePeriodProps) {
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-600 mb-1">
-                    {t('alerts.mute.endTime')}
+                    {'alerts.mute.endTime'}
                   </label>
                   <input
                     type="time"
@@ -169,14 +167,14 @@ export function AlertMutePeriod({ config, onChange }: AlertMutePeriodProps) {
                     onChange={(e) => handleRecurringChange(e.target.checked)}
                     className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
                   />
-                  {t('alerts.mute.recurring')}
+                  {'alerts.mute.recurring'}
                 </label>
               </div>
 
               {localConfig.recurring && (
                 <div>
                   <label className="block text-xs font-medium text-gray-600 mb-2">
-                    {t('alerts.mute.daysOfWeek')}
+                    {'alerts.mute.daysOfWeek'}
                   </label>
                   <div className="flex flex-wrap gap-1.5">
                     {DAYS_OF_WEEK.map((day) => {
@@ -192,9 +190,7 @@ export function AlertMutePeriod({ config, onChange }: AlertMutePeriodProps) {
                               : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
                           }`}
                         >
-                          {t(
-                            `alerts.mute.daysOfWeek.${['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][day.value]}`
-                          ) || day.label}
+                          {day.label}
                         </button>
                       );
                     })}
@@ -219,7 +215,7 @@ export function AlertMutePeriod({ config, onChange }: AlertMutePeriodProps) {
                   d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
-              <span>{t('alerts.mute.notice')}</span>
+              <span>{'alerts.mute.notice'}</span>
             </div>
           </div>
         </div>
@@ -267,7 +263,7 @@ export function isInMutePeriod(config: MutePeriodConfig): boolean {
 }
 
 export function formatMutePeriod(config: MutePeriodConfig, t: (key: string) => string): string {
-  if (!config.enabled) return t('alerts.mute.disabled');
+  if (!config.enabled) return 'alerts.mute.disabled';
 
   if (config.duration > 0) {
     return t(`alerts.mute.duration.${config.duration}`) || `${config.duration} minutes`;
@@ -288,7 +284,7 @@ export function formatMutePeriod(config: MutePeriodConfig, t: (key: string) => s
     return timeRange;
   }
 
-  return t('alerts.mute.enabled');
+  return 'alerts.mute.enabled';
 }
 
 export default AlertMutePeriod;

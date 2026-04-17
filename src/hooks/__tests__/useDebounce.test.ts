@@ -182,13 +182,13 @@ describe('useDebouncedCallback', () => {
     const callback = jest.fn();
     const { result } = renderHook(() => useDebouncedCallback(callback, 500));
 
-    result.current('first');
+    result.current('Text');
 
     act(() => {
       jest.advanceTimersByTime(200);
     });
 
-    result.current('second');
+    result.current('Text');
 
     act(() => {
       jest.advanceTimersByTime(500);
@@ -256,7 +256,7 @@ describe('useDebouncedCallback', () => {
 
     const { unmount, result } = renderHook(() => useDebouncedCallback(callback, 500));
 
-    result.current('test');
+    result.current('Text');
 
     unmount();
 
@@ -295,7 +295,7 @@ describe('useDebouncedCallback', () => {
 
     rerender({ cb: secondCallback, delay: 500 });
 
-    result.current('test');
+    result.current('Text');
 
     act(() => {
       jest.advanceTimersByTime(500);

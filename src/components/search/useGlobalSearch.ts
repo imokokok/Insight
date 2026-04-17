@@ -4,8 +4,6 @@ import { useState, useMemo, useCallback } from 'react';
 
 import Fuse from 'fuse.js';
 
-import { useLocale } from '@/i18n';
-
 import { getAllSearchResults, searchGroupLabels } from './data';
 import {
   type SearchResult,
@@ -31,14 +29,12 @@ interface FuseResult {
 }
 
 export function useGlobalSearch(options: UseGlobalSearchOptions = {}): UseGlobalSearchReturn {
-  const locale = useLocale();
   const mergedOptions = { ...DEFAULT_OPTIONS, ...options };
 
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  // Use a single object for filter options to reduce useMemo dependencies
   const filterOptions = useMemo(
     () => ({
       includeOracles: mergedOptions.includeOracles,
@@ -60,9 +56,8 @@ export function useGlobalSearch(options: UseGlobalSearchOptions = {}): UseGlobal
 
   const searchableItems = useMemo(() => {
     try {
-      const allItems = getAllSearchResults(locale);
+      const allItems = getAllSearchResults('en');
 
-      // Filter by type if needed
       return allItems.filter((item) => {
         switch (item.type) {
           case 'oracle':
@@ -84,9 +79,8 @@ export function useGlobalSearch(options: UseGlobalSearchOptions = {}): UseGlobal
     } catch {
       return [];
     }
-  }, [locale, filterOptions]);
+  }, [filterOptions]);
 
-  // Initialize Fuse instance with optimized options
   const fuse = useMemo(() => {
     try {
       const fuseOptions = {
@@ -98,11 +92,11 @@ export function useGlobalSearch(options: UseGlobalSearchOptions = {}): UseGlobal
         ],
         threshold: mergedOptions.threshold,
         includeScore: true,
-        minMatchCharLength: 2, // Changed from 1 to 2 for better performance
+        minMatchCharLength: 2,
         ignoreLocation: true,
-        findAllMatches: false, // Changed from true to false for better performance
-        distance: 100, // Limit match distance
-        useExtendedSearch: false, // Disable extended search for better performance
+        findAllMatches: false,
+        distance: 100,
+        useExtendedSearch: false,
       };
 
       return new Fuse(searchableItems, fuseOptions);
@@ -111,12 +105,10 @@ export function useGlobalSearch(options: UseGlobalSearchOptions = {}): UseGlobal
     }
   }, [searchableItems, mergedOptions.threshold]);
 
-  // Group results by type
   const groupResults = useCallback(
     (fuseResults: FuseResult[]): SearchGroup[] => {
       const groups: Record<string, SearchResult[]> = {};
 
-      // Sort by score (lower is better) and priority (higher is better)
       const sortedResults = fuseResults
         .sort((a, b) => {
           const scoreDiff = (a.score || 0) - (b.score || 0);
@@ -125,7 +117,6 @@ export function useGlobalSearch(options: UseGlobalSearchOptions = {}): UseGlobal
         })
         .slice(0, mergedOptions.maxResults);
 
-      // Group by type
       sortedResults.forEach((result) => {
         const type = result.item.type;
         if (!groups[type]) {
@@ -134,7 +125,6 @@ export function useGlobalSearch(options: UseGlobalSearchOptions = {}): UseGlobal
         groups[type].push(result.item);
       });
 
-      // Convert to array with labels
       const typeOrder: Array<SearchResult['type']> = [
         'oracle',
         'pair',
@@ -155,7 +145,6 @@ export function useGlobalSearch(options: UseGlobalSearchOptions = {}): UseGlobal
     [mergedOptions.maxResults]
   );
 
-  // Search function
   const search = useCallback((query: string) => {
     setSearchQuery(query);
     setError(null);
@@ -168,20 +157,17 @@ export function useGlobalSearch(options: UseGlobalSearchOptions = {}): UseGlobal
     setIsSearching(true);
   }, []);
 
-  // Clear search
   const clearSearch = useCallback(() => {
     setSearchQuery('');
     setIsSearching(false);
     setError(null);
   }, []);
 
-  // Retry search
   const retry = useCallback(() => {
     setError(null);
     search(searchQuery);
   }, [search, searchQuery]);
 
-  // Get grouped results
   const results = useMemo(() => {
     if (!searchQuery.trim() || !fuse) {
       return [];

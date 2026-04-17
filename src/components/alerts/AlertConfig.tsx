@@ -5,7 +5,6 @@ import { useState, useCallback, useMemo } from 'react';
 import { DropdownSelect, SegmentedControl, type SelectorOption } from '@/components/ui';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { useCreateAlert, type CreateAlertInput } from '@/hooks';
-import { useTranslations } from '@/i18n';
 import { providerNames, chainNames, symbols, oracleColors } from '@/lib/constants';
 import type { AlertConditionType } from '@/lib/supabase/database.types';
 import { type OracleProvider, type Blockchain } from '@/types/oracle';
@@ -24,7 +23,6 @@ const DEFAULT_MUTE_CONFIG: MutePeriodConfig = {
 };
 
 export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
-  const t = useTranslations();
   const [alertName, setAlertName] = useState<string>('');
   const [symbol, setSymbol] = useState<string>('BTC');
   const [provider, setProvider] = useState<OracleProvider | ''>('');
@@ -45,7 +43,7 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
 
   const providerOptions: SelectorOption<OracleProvider | ''>[] = useMemo(
     () => [
-      { value: '', label: t('alerts.create.allProviders') },
+      { value: '', label: 'All Providers' },
       ...Object.entries(providerNames).map(([key, name]) => ({
         value: key as OracleProvider,
         label: name,
@@ -53,21 +51,21 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
         color: oracleColors[key as OracleProvider],
       })),
     ],
-    [t]
+    []
   );
 
   const chainOptions: SelectorOption<Blockchain | ''>[] = useMemo(
     () => [
       {
         value: '',
-        label: provider ? t('alerts.create.allChains') : t('alerts.create.selectProviderFirst'),
+        label: provider ? 'All Chains' : 'Select Provider First',
       },
       ...Object.entries(chainNames).map(([key, name]) => ({
         value: key as Blockchain,
         label: name,
       })),
     ],
-    [provider, t]
+    [provider]
   );
 
   const CONDITION_OPTIONS: { value: AlertConditionType; label: string; description: string }[] =
@@ -75,21 +73,21 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
       () => [
         {
           value: 'above',
-          label: t('alerts.condition.above'),
-          description: t('alerts.condition.aboveDesc'),
+          label: 'Price Above',
+          description: 'Alert when price goes above target value',
         },
         {
           value: 'below',
-          label: t('alerts.condition.below'),
-          description: t('alerts.condition.belowDesc'),
+          label: 'Price Below',
+          description: 'Alert when price goes below target value',
         },
         {
           value: 'change_percent',
-          label: t('alerts.condition.changePercent'),
-          description: t('alerts.condition.changePercentDesc'),
+          label: 'Price Change %',
+          description: 'Alert when price change percentage exceeds threshold',
         },
       ],
-      [t]
+      []
     );
 
   const handleProviderChange = useCallback((value: OracleProvider | '') => {
@@ -116,16 +114,16 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
 
       const numericTarget = parseFloat(targetValue);
       if (isNaN(numericTarget) || numericTarget <= 0) {
-        setError(t('alerts.error.invalidTargetValue'));
+        setError('alerts.error.invalidTargetValue');
         return;
       }
 
       const conditionLabel =
         conditionType === 'above'
-          ? t('alerts.condition.above')
+          ? 'alerts.condition.above'
           : conditionType === 'below'
-            ? t('alerts.condition.below')
-            : t('alerts.condition.changePercent');
+            ? 'alerts.condition.below'
+            : 'alerts.condition.changePercent';
 
       const input: CreateAlertInput = {
         name: alertName || `${symbol} ${conditionLabel} ${numericTarget}`,
@@ -159,7 +157,6 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
       isActive,
       createAlert,
       onAlertCreated,
-      t,
     ]
   );
 
@@ -167,18 +164,18 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
     switch (conditionType) {
       case 'above':
       case 'below':
-        return t('alerts.placeholder.targetPrice');
+        return 'Enter target price';
       case 'change_percent':
-        return t('alerts.placeholder.percentage');
+        return 'Enter percentage';
       default:
-        return t('alerts.placeholder.targetValue');
+        return 'Enter target value';
     }
-  }, [conditionType, t]);
+  }, [conditionType]);
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{t('alerts.create.title')}</CardTitle>
+        <CardTitle>{'alerts.create.title'}</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -186,27 +183,27 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
 
           <div className="border-t border-gray-200 pt-4">
             <h4 className="text-sm font-medium text-gray-700 mb-3">
-              {t('alerts.create.customConfig')}
+              {'alerts.create.customConfig'}
             </h4>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              {t('alerts.create.nameLabel')}{' '}
-              <span className="text-gray-400">{t('alerts.create.nameOptional')}</span>
+              {'alerts.create.nameLabel'}{' '}
+              <span className="text-gray-400">{'alerts.create.nameOptional'}</span>
             </label>
             <input
               type="text"
               value={alertName}
               onChange={(e) => setAlertName(e.target.value)}
-              placeholder={t('alerts.create.namePlaceholder')}
+              placeholder={'alerts.create.namePlaceholder'}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              {t('alerts.create.symbolLabel')}
+              {'alerts.create.symbolLabel'}
             </label>
             <SegmentedControl
               options={symbolOptions}
@@ -218,21 +215,21 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              {t('alerts.create.providerLabel')}{' '}
-              <span className="text-gray-400">{t('alerts.create.providerOptional')}</span>
+              {'alerts.create.providerLabel'}{' '}
+              <span className="text-gray-400">{'alerts.create.providerOptional'}</span>
             </label>
             <DropdownSelect
               options={providerOptions}
               value={provider}
               onChange={handleProviderChange}
-              placeholder={t('alerts.create.allProviders')}
+              placeholder={'alerts.create.allProviders'}
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              {t('alerts.create.chainLabel')}{' '}
-              <span className="text-gray-400">{t('alerts.create.chainOptional')}</span>
+              {'alerts.create.chainLabel'}{' '}
+              <span className="text-gray-400">{'alerts.create.chainOptional'}</span>
             </label>
             <DropdownSelect
               options={chainOptions}
@@ -240,14 +237,14 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
               onChange={(value) => setChain(value as Blockchain | '')}
               disabled={!provider}
               placeholder={
-                provider ? t('alerts.create.allChains') : t('alerts.create.selectProviderFirst')
+                provider ? 'alerts.create.allChains' : 'alerts.create.selectProviderFirst'
               }
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              {t('alerts.create.conditionLabel')}
+              {'alerts.create.conditionLabel'}
             </label>
             <div className="space-y-2">
               {CONDITION_OPTIONS.map((option) => (
@@ -278,7 +275,7 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              {t('alerts.create.targetValueLabel')}
+              {'alerts.create.targetValueLabel'}
             </label>
             <input
               type="number"
@@ -292,7 +289,7 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
 
           <div className="flex items-center justify-between">
             <label className="text-sm font-medium text-gray-700">
-              {t('alerts.create.enableAlert')}
+              {'alerts.create.enableAlert'}
             </label>
             <button
               type="button"
@@ -318,11 +315,9 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
               className="flex items-center justify-between w-full text-left"
             >
               <div>
-                <h4 className="text-sm font-medium text-gray-700">{t('alerts.mute.settings')}</h4>
+                <h4 className="text-sm font-medium text-gray-700">{'alerts.mute.settings'}</h4>
                 <p className="text-xs text-gray-500">
-                  {muteConfig.enabled
-                    ? t('alerts.mute.enabledHint')
-                    : t('alerts.mute.disabledHint')}
+                  {muteConfig.enabled ? 'alerts.mute.enabledHint' : 'alerts.mute.disabledHint'}
                 </p>
               </div>
               <svg
@@ -362,7 +357,7 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
               isCreating ? 'bg-gray-400 cursor-not-allowed' : 'bg-primary-600 hover:bg-primary-700'
             }`}
           >
-            {isCreating ? t('alerts.create.submitting') : t('alerts.create.submit')}
+            {isCreating ? 'alerts.create.submitting' : 'alerts.create.submit'}
           </button>
         </form>
       </CardContent>

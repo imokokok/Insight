@@ -1,0 +1,116 @@
+import { type ReactNode } from 'react';
+
+import { render, screen } from '@testing-library/react';
+
+import HeroContent from '../HeroContent';
+
+jest.mock('next/link', () => ({
+  __esModule: true,
+  default: ({
+    href,
+    children,
+    className,
+  }: {
+    href: string;
+    children: ReactNode;
+    className?: string;
+  }) => (
+    <a href={href} className={className} data-testid={`link-${href}`}>
+      {children}
+    </a>
+  ),
+}));
+
+describe('HeroContent', () => {
+  describe('基础渲染', () => {
+    it('应该渲染实时数据状态指示器', () => {
+      render(<HeroContent />);
+
+      expect(screen.getByText('Text')).toBeInTheDocument();
+    });
+
+    it('应该渲染标题', () => {
+      render(<HeroContent />);
+
+      expect(screen.getByText('Text')).toBeInTheDocument();
+      expect(screen.getByText('Text')).toBeInTheDocument();
+    });
+
+    it('应该渲染描述文本', () => {
+      render(<HeroContent />);
+
+      expect(screen.getByText('Text')).toBeInTheDocument();
+    });
+
+    it('应该渲染统计数据', () => {
+      render(<HeroContent />);
+
+      expect(screen.getByText('Text')).toBeInTheDocument();
+      expect(screen.getByText('Text')).toBeInTheDocument();
+      expect(screen.getByText('Text')).toBeInTheDocument();
+    });
+  });
+
+  describe('CTA 按钮', () => {
+    it('应该渲染主要 CTA 按钮', () => {
+      render(<HeroContent />);
+
+      const primaryCta = screen.getByText('Text');
+      expect(primaryCta).toBeInTheDocument();
+
+      const link = primaryCta.closest('Text');
+      expect(link).toHaveAttribute('href', '/price-query');
+    });
+
+    it('应该渲染次要 CTA 按钮', () => {
+      render(<HeroContent />);
+
+      const secondaryCta = screen.getByText('Text');
+      expect(secondaryCta).toBeInTheDocument();
+
+      const link = secondaryCta.closest('Text');
+      expect(link).toHaveAttribute('href', '/docs');
+    });
+
+    it('主要 CTA 按钮应该有正确的样式', () => {
+      render(<HeroContent />);
+
+      const primaryCta = screen.getByText('Text').closest('Text');
+      expect(primaryCta).toHaveClass('bg-gray-900');
+      expect(primaryCta).toHaveClass('text-white');
+    });
+
+    it('次要 CTA 按钮应该有正确的样式', () => {
+      render(<HeroContent />);
+
+      const secondaryCta = screen.getByText('Text').closest('Text');
+      expect(secondaryCta).toHaveClass('bg-white');
+      expect(secondaryCta).toHaveClass('border');
+    });
+  });
+
+  describe('图标渲染', () => {
+    it('应该渲染 ArrowRight 图标', () => {
+      render(<HeroContent />);
+
+      const primaryCta = screen.getByTestId('link-/price-query');
+      expect(primaryCta.querySelector('svg')).toBeInTheDocument();
+    });
+
+    it('应该渲染 BookOpen 图标', () => {
+      render(<HeroContent />);
+
+      const secondaryCta = screen.getByTestId('link-/docs');
+      expect(secondaryCta.querySelector('svg')).toBeInTheDocument();
+    });
+  });
+
+  describe('动画效果', () => {
+    it('实时数据指示器应该有动画效果', () => {
+      render(<HeroContent />);
+
+      const pingElement = document.querySelector('.animate-ping');
+      expect(pingElement).toBeInTheDocument();
+    });
+  });
+});

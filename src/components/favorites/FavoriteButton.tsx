@@ -2,8 +2,6 @@
 
 import { useState, useCallback } from 'react';
 
-import { useTranslations } from 'next-intl';
-
 import { useToggleFavorite, useIsFavorited, type FavoriteConfig } from '@/hooks';
 import type { ConfigType } from '@/lib/supabase/database.types';
 import { createLogger } from '@/lib/utils/logger';
@@ -32,7 +30,6 @@ export function FavoriteButton({
   className = '',
   onFavoriteChange,
 }: FavoriteButtonProps) {
-  const t = useTranslations('favorites.button');
   const user = useUser();
   const { isFavorited, favorite: _favorite } = useIsFavorited(configType, configData);
   const { toggleFavorite, isToggling } = useToggleFavorite();
@@ -108,7 +105,7 @@ export function FavoriteButton({
         onClick={handleClick}
         disabled={isToggling}
         className={`${buttonSize}  transition-all hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
-        title={isFavorited ? t('removeTitle') : t('addTitle')}
+        title={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
         onMouseEnter={() => setShowTooltip(true)}
         onMouseLeave={() => setShowTooltip(false)}
       >
@@ -163,7 +160,7 @@ export function FavoriteButton({
         ) : (
           heartIcon
         )}
-        {showLabel && <span>{isFavorited ? t('added') : t('add')}</span>}
+        {showLabel && <span>{isFavorited ? 'Added' : 'Add'}</span>}
       </button>
     );
   }
@@ -197,7 +194,7 @@ export function FavoriteButton({
       ) : (
         heartIcon
       )}
-      {showLabel && <span>{isFavorited ? t('added') : t('add')}</span>}
+      {showLabel && <span>{isFavorited ? 'Added' : 'Add'}</span>}
     </button>
   );
 }

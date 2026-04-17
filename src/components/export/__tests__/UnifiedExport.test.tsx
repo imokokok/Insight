@@ -19,11 +19,6 @@ jest.mock('framer-motion', () => ({
   AnimatePresence: ({ children }: PropsWithChildren) => <>{children}</>,
 }));
 
-jest.mock('@/i18n', () => ({
-  useTranslations: () => (key: string) => key,
-  useLocale: () => 'en',
-}));
-
 jest.mock('@/lib/utils/logger', () => ({
   createLogger: () => ({
     debug: jest.fn(),
@@ -84,8 +79,8 @@ describe('UnifiedExport', () => {
     const exportButton = screen.getByRole('button', { name: /export/i });
     fireEvent.click(exportButton);
 
-    expect(screen.getByText('CSV')).toBeInTheDocument();
-    expect(screen.getByText('JSON')).toBeInTheDocument();
+    expect(screen.getByText('Text')).toBeInTheDocument();
+    expect(screen.getByText('Text')).toBeInTheDocument();
   });
 
   it('should be disabled when disabled prop is true', () => {
@@ -107,10 +102,10 @@ describe('UnifiedExport', () => {
     const exportButton = screen.getByRole('button', { name: /export/i });
     fireEvent.click(exportButton);
 
-    expect(screen.getByText('CSV')).toBeInTheDocument();
-    expect(screen.getByText('JSON')).toBeInTheDocument();
-    expect(screen.getByText('Excel')).toBeInTheDocument();
-    expect(screen.getByText('PDF')).toBeInTheDocument();
+    expect(screen.getByText('Text')).toBeInTheDocument();
+    expect(screen.getByText('Text')).toBeInTheDocument();
+    expect(screen.getByText('Text')).toBeInTheDocument();
+    expect(screen.getByText('Text')).toBeInTheDocument();
   });
 
   it('should call onExportStart when export starts', async () => {
@@ -120,7 +115,7 @@ describe('UnifiedExport', () => {
     const exportButton = screen.getByRole('button', { name: /export/i });
     fireEvent.click(exportButton);
 
-    const csvOption = screen.getByText('CSV');
+    const csvOption = screen.getByText('Text');
     fireEvent.click(csvOption);
   });
 

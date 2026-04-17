@@ -5,7 +5,6 @@ import { useState, useMemo, useCallback } from 'react';
 import { DropdownSelect } from '@/components/ui';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { useAcknowledgeAlert } from '@/hooks';
-import { useTranslations } from '@/i18n';
 import { type AlertEvent } from '@/lib/supabase/database.types';
 
 interface AlertHistoryProps {
@@ -18,7 +17,6 @@ type FilterStatus = 'all' | 'acknowledged' | 'unacknowledged';
 type SortOrder = 'newest' | 'oldest';
 
 export function AlertHistory({ events, isLoading, onRefresh }: AlertHistoryProps) {
-  const t = useTranslations();
   const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
   const [sortOrder, setSortOrder] = useState<SortOrder>('newest');
   const { acknowledge, isAcknowledging } = useAcknowledgeAlert();
@@ -55,7 +53,7 @@ export function AlertHistory({ events, isLoading, onRefresh }: AlertHistoryProps
     return (
       <Card>
         <CardHeader>
-          <CardTitle>{t('alerts.history.title')}</CardTitle>
+          <CardTitle>{'alerts.history.title'}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center py-8">
@@ -70,11 +68,11 @@ export function AlertHistory({ events, isLoading, onRefresh }: AlertHistoryProps
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between w-full">
-          <CardTitle>{t('alerts.history.title')}</CardTitle>
+          <CardTitle>{'alerts.history.title'}</CardTitle>
           <div className="flex items-center gap-2">
             {unacknowledgedCount > 0 && (
               <span className="px-2 py-0.5 text-xs font-medium bg-danger-100 text-danger-700 rounded">
-                {t('alerts.history.unacknowledgedCount').replace(
+                {'alerts.history.unacknowledgedCount'.replace(
                   '{count}',
                   String(unacknowledgedCount)
                 )}
@@ -87,12 +85,12 @@ export function AlertHistory({ events, isLoading, onRefresh }: AlertHistoryProps
         <div className="space-y-4">
           <div className="flex items-center gap-4 flex-wrap">
             <div className="flex items-center gap-2">
-              <label className="text-sm text-gray-600">{t('alerts.history.status')}</label>
+              <label className="text-sm text-gray-600">{'alerts.history.status'}</label>
               <DropdownSelect
                 options={[
-                  { value: 'all', label: t('alerts.history.all') },
-                  { value: 'unacknowledged', label: t('alerts.history.unacknowledged') },
-                  { value: 'acknowledged', label: t('alerts.history.acknowledged') },
+                  { value: 'all', label: 'alerts.history.all' },
+                  { value: 'unacknowledged', label: 'alerts.history.unacknowledged' },
+                  { value: 'acknowledged', label: 'alerts.history.acknowledged' },
                 ]}
                 value={filterStatus}
                 onChange={(value) => setFilterStatus(value as FilterStatus)}
@@ -100,11 +98,11 @@ export function AlertHistory({ events, isLoading, onRefresh }: AlertHistoryProps
             </div>
 
             <div className="flex items-center gap-2">
-              <label className="text-sm text-gray-600">{t('alerts.history.sort')}</label>
+              <label className="text-sm text-gray-600">{'alerts.history.sort'}</label>
               <DropdownSelect
                 options={[
-                  { value: 'newest', label: t('alerts.history.newest') },
-                  { value: 'oldest', label: t('alerts.history.oldest') },
+                  { value: 'newest', label: 'alerts.history.newest' },
+                  { value: 'oldest', label: 'alerts.history.oldest' },
                 ]}
                 value={sortOrder}
                 onChange={(value) => setSortOrder(value as SortOrder)}
@@ -126,7 +124,7 @@ export function AlertHistory({ events, isLoading, onRefresh }: AlertHistoryProps
                   d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
-              <p className="mt-2 text-sm">{t('alerts.history.empty')}</p>
+              <p className="mt-2 text-sm">{'alerts.history.empty'}</p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -150,8 +148,8 @@ export function AlertHistory({ events, isLoading, onRefresh }: AlertHistoryProps
                           }`}
                         >
                           {event.acknowledged
-                            ? t('alerts.history.acknowledged')
-                            : t('alerts.history.pending')}
+                            ? 'alerts.history.acknowledged'
+                            : 'alerts.history.pending'}
                         </span>
                       </div>
 
@@ -159,15 +157,15 @@ export function AlertHistory({ events, isLoading, onRefresh }: AlertHistoryProps
 
                       <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-gray-500">
                         <span>
-                          {t('alerts.history.triggerPrice')} {event.price.toFixed(4)}
+                          {'alerts.history.triggerPrice'} {event.price.toFixed(4)}
                         </span>
                         <span>
-                          {t('alerts.history.time')}{' '}
+                          {'alerts.history.time'}{' '}
                           {new Date(event.triggered_at).toLocaleString('zh-CN')}
                         </span>
                         {event.acknowledged && event.acknowledged_at && (
                           <span>
-                            {t('alerts.history.acknowledgeTime')}{' '}
+                            {'alerts.history.acknowledgeTime'}{' '}
                             {new Date(event.acknowledged_at).toLocaleString('zh-CN')}
                           </span>
                         )}
@@ -181,8 +179,8 @@ export function AlertHistory({ events, isLoading, onRefresh }: AlertHistoryProps
                         className="px-3 py-1.5 text-xs font-medium bg-primary-600 text-white rounded hover:bg-primary-700 disabled:bg-gray-400"
                       >
                         {isAcknowledging
-                          ? t('alerts.history.acknowledging')
-                          : t('alerts.history.acknowledge')}
+                          ? 'alerts.history.acknowledging'
+                          : 'alerts.history.acknowledge'}
                       </button>
                     )}
                   </div>
@@ -193,7 +191,7 @@ export function AlertHistory({ events, isLoading, onRefresh }: AlertHistoryProps
 
           {events.length > 0 && (
             <div className="pt-3 border-t border-gray-200 text-xs text-gray-400 text-center">
-              {t('alerts.history.totalRecords')
+              {'alerts.history.totalRecords'
                 .replace('{total}', String(events.length))
                 .replace('{shown}', String(filteredAndSortedEvents.length))}
             </div>

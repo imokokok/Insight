@@ -6,18 +6,13 @@ import Link from 'next/link';
 
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 
-import { useTranslations } from '@/i18n';
-
 interface ErrorProps {
   error: Error & { digest?: string };
   reset: () => void;
 }
 
 export default function Error({ error, reset }: ErrorProps) {
-  const t = useTranslations('error');
-
   useEffect(() => {
-    // Log error to monitoring service
     console.error('Route error:', error);
   }, [error]);
 
@@ -28,9 +23,11 @@ export default function Error({ error, reset }: ErrorProps) {
           <AlertTriangle className="w-10 h-10 text-danger-500" />
         </div>
 
-        <h1 className="text-2xl font-bold text-gray-900 mb-3">{t('title')}</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-3">Something Went Wrong</h1>
 
-        <p className="text-gray-600 mb-2">{t('description')}</p>
+        <p className="text-gray-600 mb-2">
+          An error occurred while loading this page. Please try again.
+        </p>
 
         {error.message && process.env.NODE_ENV === 'development' && (
           <p className="text-sm text-gray-500 mb-6 font-mono bg-gray-50 p-3 text-left overflow-auto max-h-32">
@@ -38,11 +35,7 @@ export default function Error({ error, reset }: ErrorProps) {
           </p>
         )}
 
-        {error.digest && (
-          <p className="text-xs text-gray-400 mb-6">
-            {t('errorId')}: {error.digest}
-          </p>
-        )}
+        {error.digest && <p className="text-xs text-gray-400 mb-6">Error ID: {error.digest}</p>}
 
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <button
@@ -50,7 +43,7 @@ export default function Error({ error, reset }: ErrorProps) {
             className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary-600 text-white font-medium hover:bg-primary-700 transition-colors rounded-md"
           >
             <RefreshCw className="w-4 h-4" />
-            {t('retry')}
+            Try Again
           </button>
 
           <Link
@@ -58,7 +51,7 @@ export default function Error({ error, reset }: ErrorProps) {
             className="inline-flex items-center justify-center gap-2 px-6 py-3 border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors rounded-md"
           >
             <Home className="w-4 h-4" />
-            {t('backHome')}
+            Back to Home
           </Link>
         </div>
       </div>

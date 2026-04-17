@@ -31,7 +31,7 @@ jest.mock('@/lib/config/colors', () => ({
 }));
 
 jest.mock('@/lib/utils/chartExport/utils/exportHelpers', () => ({
-  sanitizeFilename: jest.fn((name: string) => name.replace(/[^a-zA-Z0-9-_]/g, '_')),
+  sanitizeFilename: jest.fn((name: string) => name.replace(/[^a-zA-Z0-9-_]/g, ' ')),
   downloadBlob: jest.fn(),
   blobToBase64: jest.fn().mockResolvedValue('base64encodedstring'),
   convertToCSV: jest.fn(),
@@ -113,7 +113,7 @@ describe('PDF Export', () => {
     { symbol: 'LINK', price: 15.75, change24h: 0, timestamp: '2024-01-15T10:30:00Z' },
   ];
 
-  const mockChartElement = document.createElement('div');
+  const mockChartElement = document.createElement('a');
   mockChartElement.innerHTML = '<svg><rect width="100" height="100"></rect></svg>';
 
   const mockStats = {

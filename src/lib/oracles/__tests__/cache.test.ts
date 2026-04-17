@@ -63,18 +63,18 @@ describe('OracleCache', () => {
 
       jest.advanceTimersByTime(150);
 
-      expect(cache.get('short')).toBeNull();
-      expect(cache.get('medium')).toEqual(data2);
-      expect(cache.get('long')).toEqual(data3);
+      expect(cache.get('key')).toBeNull();
+      expect(cache.get('key')).toEqual(data2);
+      expect(cache.get('key')).toEqual(data3);
 
       jest.advanceTimersByTime(400);
 
-      expect(cache.get('medium')).toBeNull();
-      expect(cache.get('long')).toEqual(data3);
+      expect(cache.get('key')).toBeNull();
+      expect(cache.get('key')).toEqual(data3);
 
       jest.advanceTimersByTime(500);
 
-      expect(cache.get('long')).toBeNull();
+      expect(cache.get('key')).toBeNull();
     });
 
     it('should handle TTL expiration with cleanup', () => {
@@ -191,7 +191,7 @@ describe('OracleCache', () => {
 
       expect(cleaned).toBe(2);
       expect(cache.size()).toBe(1);
-      expect(cache.get('valid')).toEqual({ data: 3 });
+      expect(cache.get('key')).toEqual({ data: 3 });
     });
 
     it('should preserve valid entries during cleanup', () => {
@@ -269,7 +269,7 @@ describe('OracleCache', () => {
     it('should track cache hits and misses', () => {
       cache.set('existing', 'value', 1000);
 
-      const hit = cache.get('existing');
+      const hit = cache.get('key');
       const miss = cache.get('non-existent');
 
       expect(hit).toBe('value');
@@ -385,8 +385,8 @@ describe('OracleCache', () => {
       const result = cache.delete('key1');
 
       expect(result).toBe(true);
-      expect(cache.get('key1')).toBeNull();
-      expect(cache.get('key2')).toBe('value2');
+      expect(cache.get('key')).toBeNull();
+      expect(cache.get('key')).toBe('value2');
     });
 
     it('should clear all entries', () => {
@@ -397,9 +397,9 @@ describe('OracleCache', () => {
       cache.clear();
 
       expect(cache.size()).toBe(0);
-      expect(cache.get('key1')).toBeNull();
-      expect(cache.get('key2')).toBeNull();
-      expect(cache.get('key3')).toBeNull();
+      expect(cache.get('key')).toBeNull();
+      expect(cache.get('key')).toBeNull();
+      expect(cache.get('key')).toBeNull();
     });
 
     it('should check if key exists', () => {
@@ -501,11 +501,11 @@ describe('OracleCache', () => {
       cache.set('3.14159', 'float', 1000);
       cache.set('1e5', 'scientific', 1000);
 
-      expect(cache.get('123')).toBe('numeric-string');
-      expect(cache.get('0')).toBe('zero');
+      expect(cache.get('key')).toBe('numeric-string');
+      expect(cache.get('key')).toBe('zero');
       expect(cache.get('-1')).toBe('negative');
-      expect(cache.get('3.14159')).toBe('float');
-      expect(cache.get('1e5')).toBe('scientific');
+      expect(cache.get('key')).toBe('float');
+      expect(cache.get('key')).toBe('scientific');
     });
 
     it('should handle object values', () => {
@@ -602,7 +602,7 @@ describe('OracleCache', () => {
       const setResult = cache.get<Set<number>>('set-key');
 
       expect(mapResult).toBeInstanceOf(Map);
-      expect(mapResult!.get('key1')).toBe('value1');
+      expect(mapResult!.get('key')).toBe('value1');
       expect(setResult).toBeInstanceOf(Set);
       expect(setResult!.has(3)).toBe(true);
     });
@@ -642,7 +642,7 @@ describe('OracleCache', () => {
     });
 
     it('should handle BigInt values', () => {
-      const bigIntValue = BigInt('9007199254740991');
+      const bigIntValue = BigInt('Text');
 
       cache.set('bigint-key', bigIntValue, 1000);
 
@@ -658,20 +658,20 @@ describe('OracleCache', () => {
       cache.set('BTC', { price: 68000, timestamp: Date.now() }, 30000);
       cache.set('ETH', { price: 3500, timestamp: Date.now() }, 30000);
 
-      expect(cache.get('BTC')).toBeDefined();
-      expect(cache.get('ETH')).toBeDefined();
+      expect(cache.get('key')).toBeDefined();
+      expect(cache.get('key')).toBeDefined();
 
       jest.advanceTimersByTime(15000);
 
-      expect(cache.get('BTC')).toBeDefined();
-      expect(cache.get('ETH')).toBeDefined();
+      expect(cache.get('key')).toBeDefined();
+      expect(cache.get('key')).toBeDefined();
 
       cache.set('BTC', { price: 68500, timestamp: Date.now() }, 30000);
 
       jest.advanceTimersByTime(20000);
 
-      expect(cache.get('ETH')).toBeNull();
-      expect(cache.get('BTC')).toBeDefined();
+      expect(cache.get('key')).toBeNull();
+      expect(cache.get('key')).toBeDefined();
 
       const cleaned = cache.cleanup();
       expect(cleaned).toBe(0);
@@ -682,16 +682,16 @@ describe('OracleCache', () => {
     it('should handle cache invalidation pattern', () => {
       cache.set('data', { version: 1 }, 1000);
 
-      expect(cache.get('data')).toEqual({ version: 1 });
+      expect(cache.get('key')).toEqual({ version: 1 });
 
       cache.delete('data');
       cache.set('data', { version: 2 }, 1000);
 
-      expect(cache.get('data')).toEqual({ version: 2 });
+      expect(cache.get('key')).toEqual({ version: 2 });
 
       cache.clear();
 
-      expect(cache.get('data')).toBeNull();
+      expect(cache.get('key')).toBeNull();
     });
 
     it('should handle bulk operations', () => {
@@ -781,10 +781,10 @@ describe('OracleCache', () => {
         cache.set(`fill-${i}`, { data: i }, 10000);
       }
 
-      expect(cache.get('expired1')).toBeNull();
-      expect(cache.get('expired2')).toBeNull();
-      expect(cache.get('valid1')).toEqual({ data: 'valid1' });
-      expect(cache.get('valid2')).toEqual({ data: 'valid2' });
+      expect(cache.get('key')).toBeNull();
+      expect(cache.get('key')).toBeNull();
+      expect(cache.get('key')).toEqual({ data: 'valid1' });
+      expect(cache.get('key')).toEqual({ data: 'valid2' });
 
       jest.useRealTimers();
     });
@@ -850,8 +850,8 @@ describe('OracleCache', () => {
 
       jest.advanceTimersByTime(1500);
 
-      expect(cache.get('expired')).toBeNull();
-      expect(cache.get('valid')).toEqual({ data: 2 });
+      expect(cache.get('key')).toBeNull();
+      expect(cache.get('key')).toEqual({ data: 2 });
 
       cache.stopCleanupInterval();
     });

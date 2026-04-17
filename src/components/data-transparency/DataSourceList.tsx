@@ -4,7 +4,6 @@ import { useState } from 'react';
 
 import { ChevronDown, ChevronUp, Database, Layers } from 'lucide-react';
 
-import { useTranslations } from '@/i18n';
 import { type OracleProvider, type Blockchain } from '@/types/oracle';
 
 import {
@@ -51,7 +50,6 @@ export function DataSourceList({
   initiallyExpanded = true,
   maxVisible = 5,
 }: DataSourceListProps) {
-  const t = useTranslations();
   const [isExpanded, setIsExpanded] = useState(initiallyExpanded);
   const [showAll, setShowAll] = useState(false);
 
@@ -79,20 +77,20 @@ export function DataSourceList({
           </div>
           <div>
             <h3 className="font-semibold text-gray-900">
-              {title || t('dataTransparency.dataSources')}
+              {title || 'dataTransparency.dataSources'}
             </h3>
             <div className="flex items-center gap-3 text-xs text-gray-500 mt-0.5">
               <span className="flex items-center gap-1">
                 <Layers size={12} />
-                {providerCount} {t('dataTransparency.providers')}
+                {providerCount} {'dataTransparency.providers'}
               </span>
               <span>•</span>
               <span>
-                {chainCount} {t('dataTransparency.chains')}
+                {chainCount} {'dataTransparency.chains'}
               </span>
               <span>•</span>
               <span>
-                {sources.length} {t('dataTransparency.dataPoints')}
+                {sources.length} {'dataTransparency.dataPoints'}
               </span>
             </div>
           </div>
@@ -151,18 +149,14 @@ export function DataSourceList({
               onClick={() => setShowAll(!showAll)}
               className="mt-3 w-full py-2 text-sm text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded transition-colors"
             >
-              {showAll
-                ? t('dataTransparency.showLess')
-                : t('dataTransparency.showMore', {
-                    count: uniqueSources.length - maxVisible,
-                  })}
+              {showAll ? 'Show Less' : `Show ${uniqueSources.length - maxVisible} more`}
             </button>
           )}
 
           {sources.length === 0 && (
             <div className="text-center py-6 text-gray-500">
               <Database size={32} className="mx-auto mb-2 text-gray-300" />
-              <p className="text-sm">{t('dataTransparency.noSources')}</p>
+              <p className="text-sm">No data sources available</p>
             </div>
           )}
         </div>

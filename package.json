@@ -21,9 +21,6 @@
     "clean:start": "rm -rf .next && next build && next start",
     "perf:test": "ts-node scripts/performance-test.ts",
     "perf:quick": "node scripts/quick-perf.mjs",
-    "i18n:types": "node scripts/generate-i18n-types.js",
-    "i18n:check": "node scripts/check-i18n.js",
-    "i18n:validate": "node scripts/check-i18n.js --json",
     "naming:check": "node scripts/check-naming-convention.js",
     "prepare": "husky"
   },
@@ -104,7 +101,6 @@
     "jszip": "^3.10.1",
     "lucide-react": "^0.577.0",
     "next": "16.1.6",
-    "next-intl": "^4.8.3",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "recharts": "^3.8.0",

@@ -4,7 +4,6 @@ import { useState, useRef, useEffect } from 'react';
 
 import { Settings2, Check } from 'lucide-react';
 
-import { useTranslations } from '@/i18n';
 import { cn } from '@/lib/utils';
 
 import type { ColumnVisibilityDropdownProps } from '../types';
@@ -15,7 +14,6 @@ export function ColumnVisibilityDropdown<T extends Record<string, unknown>>({
   onToggleColumn,
   onToggleAll,
 }: ColumnVisibilityDropdownProps<T>) {
-  const t = useTranslations('ui.dataTable');
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -43,10 +41,10 @@ export function ColumnVisibilityDropdown<T extends Record<string, unknown>>({
           'border border-gray-200 bg-white text-gray-700 hover:bg-gray-50',
           someVisible && 'text-blue-600 border-blue-200 bg-blue-50'
         )}
-        title={t('columnSettings')}
+        title={'columnSettings'}
       >
         <Settings2 className="w-3.5 h-3.5" />
-        <span className="hidden sm:inline">{t('columnSettings')}</span>
+        <span className="hidden sm:inline">{'columnSettings'}</span>
         {someVisible && <span className="ml-0.5 w-1.5 h-1.5 rounded-full bg-blue-500" />}
       </button>
 
@@ -70,7 +68,7 @@ export function ColumnVisibilityDropdown<T extends Record<string, unknown>>({
               >
                 {(allVisible || someVisible) && <Check className="w-3 h-3 text-white" />}
               </div>
-              <span>{allVisible ? t('deselectAll') : t('selectAll')}</span>
+              <span>{allVisible ? 'deselectAll' : 'selectAll'}</span>
             </button>
           </div>
 
@@ -101,7 +99,7 @@ export function ColumnVisibilityDropdown<T extends Record<string, unknown>>({
                   <span className="flex-1 text-left truncate">
                     {typeof column.header === 'string' ? column.header : column.key}
                   </span>
-                  {isFixed && <span className="text-[10px] text-gray-400">{t('fixed')}</span>}
+                  {isFixed && <span className="text-[10px] text-gray-400">{'fixed'}</span>}
                 </button>
               );
             })}

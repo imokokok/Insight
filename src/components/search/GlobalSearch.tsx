@@ -9,7 +9,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Search, X, Command, ArrowUp, ArrowDown, CornerDownLeft } from 'lucide-react';
 
 import { useKeyboardShortcuts, useDebounce } from '@/hooks';
-import { useTranslations, useLocale } from '@/i18n';
 
 import { type SearchResult, type SearchGroup } from './types';
 import { useGlobalSearch } from './useGlobalSearch';
@@ -20,9 +19,7 @@ export interface GlobalSearchProps {
   onClose: () => void;
 }
 
-// Custom comparison function for GlobalSearch props
 function arePropsEqual(prevProps: GlobalSearchProps, nextProps: GlobalSearchProps): boolean {
-  // Compare primitive props
   if (prevProps.isOpen !== nextProps.isOpen) return false;
   if (prevProps.onClose !== nextProps.onClose) return false;
 
@@ -47,7 +44,6 @@ interface SearchGroupSectionProps {
   getItemRef: (groupIndex: number, itemIndex: number) => (el: HTMLDivElement | null) => void;
 }
 
-// Type icon component
 function ResultIcon({ result }: { result: SearchResult }) {
   const [imageError, setImageError] = useState(false);
 
@@ -69,7 +65,6 @@ function ResultIcon({ result }: { result: SearchResult }) {
     return <IconComponent className="w-5 h-5" aria-hidden="true" />;
   }
 
-  // Default icon based on type
   const defaultIcons: Record<SearchResult['type'], React.ReactNode> = {
     oracle: <div className="w-5 h-5 rounded-full bg-primary-500" aria-hidden="true" />,
     pair: <div className="w-5 h-5 rounded bg-success-500" aria-hidden="true" />,
@@ -82,10 +77,7 @@ function ResultIcon({ result }: { result: SearchResult }) {
   return defaultIcons[result.type] || null;
 }
 
-// Search result item component
 function SearchResultItem({ result, isActive, onSelect, onHover, itemRef }: SearchResultItemProps) {
-  const t = useTranslations();
-
   return (
     <div
       ref={itemRef}
@@ -118,12 +110,10 @@ function SearchResultItem({ result, isActive, onSelect, onHover, itemRef }: Sear
       </div>
       <div className="flex-1 min-w-0">
         <div className={`font-medium truncate ${isActive ? 'text-primary-900' : 'text-gray-900'}`}>
-          {t.has(result.title) ? t(result.title) : result.title}
+          {result.title}
         </div>
         {result.description && (
-          <div className="text-sm text-gray-500 truncate">
-            {t.has(result.description) ? t(result.description) : result.description}
-          </div>
+          <div className="text-sm text-gray-500 truncate">{result.description}</div>
         )}
       </div>
       {isActive && (
@@ -133,7 +123,6 @@ function SearchResultItem({ result, isActive, onSelect, onHover, itemRef }: Sear
   );
 }
 
-// Search group component
 function SearchGroupSection({
   group,
   groupIndex,
@@ -143,12 +132,10 @@ function SearchGroupSection({
   onHover,
   getItemRef,
 }: SearchGroupSectionProps) {
-  const t = useTranslations();
-
   return (
-    <div className="py-2" role="group" aria-label={t(group.label)}>
+    <div className="py-2" role="group" aria-label={group.label}>
       <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-        {t(group.label)}
+        {group.label}
       </div>
       <div className="space-y-0.5" role="listbox">
         {group.results.map((result, itemIndex) => (
@@ -166,10 +153,7 @@ function SearchGroupSection({
   );
 }
 
-// Empty state component
 function EmptyState({ query }: { query: string }) {
-  const t = useTranslations();
-
   return (
     <div
       role="status"
@@ -179,27 +163,26 @@ function EmptyState({ query }: { query: string }) {
       <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
         <Search className="w-8 h-8 text-gray-400" aria-hidden="true" />
       </div>
-      <h3 className="text-lg font-medium text-gray-900 mb-1">{t('search.noResults')}</h3>
-      <p className="text-sm text-gray-500 max-w-xs">{t('search.noResultsDesc', { query })}</p>
+      <h3 className="text-lg font-medium text-gray-900 mb-1">No results found</h3>
+      <p className="text-sm text-gray-500 max-w-xs">
+        No results found for &quot;{query}&quot;. Try a different search term.
+      </p>
     </div>
   );
 }
 
-// Initial state component
 function InitialState() {
-  const t = useTranslations();
-
   const shortcuts = useMemo(
     () => [
       {
         key: '↑↓',
-        keyLabel: t('search.shortcuts.arrowKeys'),
-        label: t('search.shortcuts.navigate'),
+        keyLabel: 'Arrow Keys',
+        label: 'Navigate',
       },
-      { key: '↵', keyLabel: t('search.shortcuts.enterKey'), label: t('search.shortcuts.select') },
-      { key: 'esc', keyLabel: t('search.shortcuts.escapeKey'), label: t('search.shortcuts.close') },
+      { key: '↵', keyLabel: 'Enter', label: 'Select' },
+      { key: 'esc', keyLabel: 'Escape', label: 'Close' },
     ],
-    [t]
+    []
   );
 
   return (
@@ -207,8 +190,10 @@ function InitialState() {
       <div className="w-16 h-16 rounded-full bg-primary-50 flex items-center justify-center mb-4">
         <Search className="w-8 h-8 text-primary-500" aria-hidden="true" />
       </div>
-      <h3 className="text-lg font-medium text-gray-900 mb-1">{t('search.initialTitle')}</h3>
-      <p className="text-sm text-gray-500 mb-6">{t('search.initialDesc')}</p>
+      <h3 className="text-lg font-medium text-gray-900 mb-1">Search</h3>
+      <p className="text-sm text-gray-500 mb-6">
+        Search for oracles, pairs, blockchains, and more...
+      </p>
       <div className="flex flex-wrap justify-center gap-3">
         {shortcuts.map((shortcut) => (
           <div key={shortcut.key} className="flex items-center gap-2 text-xs text-gray-500">
@@ -226,17 +211,13 @@ function InitialState() {
   );
 }
 
-// Main GlobalSearch component
 function GlobalSearchComponent({ isOpen, onClose }: GlobalSearchProps) {
   const router = useRouter();
-  const _locale = useLocale();
-  const t = useTranslations();
   const inputRef = useRef<HTMLInputElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
   const [query, setQuery] = useState('');
 
-  // Debounce search query
   const debouncedQuery = useDebounce(query, 300);
 
   const { results, isSearching, error, search, clearSearch, retry } = useGlobalSearch({
@@ -255,7 +236,6 @@ function GlobalSearchComponent({ isOpen, onClose }: GlobalSearchProps) {
     getItemRef,
   } = useSearchKeyboardNavigation(results);
 
-  // Item refs for scrolling
   const itemRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
   const setItemRef = useCallback(
@@ -270,7 +250,6 @@ function GlobalSearchComponent({ isOpen, onClose }: GlobalSearchProps) {
     [getItemRef]
   );
 
-  // Clear item refs when results change
   useEffect(() => {
     const currentRefs = itemRefs.current;
     return () => {
@@ -278,10 +257,8 @@ function GlobalSearchComponent({ isOpen, onClose }: GlobalSearchProps) {
     };
   }, [results]);
 
-  // Focus input when opened and restore focus when closed
   useEffect(() => {
     if (isOpen) {
-      // Save current focus
       previousFocusRef.current = document.activeElement as HTMLElement;
       requestAnimationFrame(() => {
         inputRef.current?.focus();
@@ -289,25 +266,21 @@ function GlobalSearchComponent({ isOpen, onClose }: GlobalSearchProps) {
     } else {
       clearSearch();
       reset();
-      // Restore previous focus
       requestAnimationFrame(() => {
         previousFocusRef.current?.focus();
       });
     }
   }, [isOpen, clearSearch, reset]);
 
-  // Handle debounced search
   useEffect(() => {
     search(debouncedQuery);
     reset();
   }, [debouncedQuery, search, reset]);
 
-  // Handle search query change
   const handleQueryChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setQuery(e.target.value);
   }, []);
 
-  // Handle result selection
   const handleSelect = useCallback(
     (result: SearchResult) => {
       router.push(result.href);
@@ -316,7 +289,6 @@ function GlobalSearchComponent({ isOpen, onClose }: GlobalSearchProps) {
     [router, onClose]
   );
 
-  // Handle keyboard shortcuts
   useKeyboardShortcuts([
     {
       key: 'Escape',
@@ -329,7 +301,6 @@ function GlobalSearchComponent({ isOpen, onClose }: GlobalSearchProps) {
     },
   ]);
 
-  // Handle keyboard navigation in search
   useEffect(() => {
     if (!isOpen) return;
 
@@ -384,7 +355,6 @@ function GlobalSearchComponent({ isOpen, onClose }: GlobalSearchProps) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, moveDown, moveUp, activeResult, handleSelect, results, setPosition]);
 
-  // Scroll active item into view
   useEffect(() => {
     if (activeGroupIndex >= 0 && activeItemIndex >= 0) {
       const refKey = getItemRef(activeGroupIndex, activeItemIndex);
@@ -395,14 +365,12 @@ function GlobalSearchComponent({ isOpen, onClose }: GlobalSearchProps) {
     }
   }, [activeGroupIndex, activeItemIndex, getItemRef]);
 
-  // Clear search
   const handleClear = useCallback(() => {
     setQuery('');
     clearSearch();
     inputRef.current?.focus();
   }, [clearSearch]);
 
-  // Check for reduced motion preference
   const prefersReducedMotion = useMemo(() => {
     if (typeof window === 'undefined') return false;
     return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -416,7 +384,6 @@ function GlobalSearchComponent({ isOpen, onClose }: GlobalSearchProps) {
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Backdrop */}
           <motion.div
             initial={prefersReducedMotion ? undefined : { opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -427,12 +394,11 @@ function GlobalSearchComponent({ isOpen, onClose }: GlobalSearchProps) {
             aria-hidden="true"
           />
 
-          {/* Search Dialog */}
           <div
             className="fixed inset-0 z-50 flex items-start justify-center pt-4 sm:pt-[10vh] pointer-events-none"
             role="dialog"
             aria-modal="true"
-            aria-label={t('search.title')}
+            aria-label="Search"
           >
             <motion.div
               ref={modalRef}
@@ -443,14 +409,13 @@ function GlobalSearchComponent({ isOpen, onClose }: GlobalSearchProps) {
               className="w-full max-w-2xl mx-4 bg-white rounded-lg shadow-2xl overflow-hidden pointer-events-auto"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Search Input */}
               <div className="flex items-center gap-3 px-4 py-4 border-b border-gray-100">
                 <Search className="w-5 h-5 text-gray-400 flex-shrink-0" aria-hidden="true" />
                 <input
                   ref={inputRef}
                   type="text"
                   role="searchbox"
-                  aria-label={t('search.inputLabel')}
+                  aria-label="Search"
                   aria-autocomplete="list"
                   aria-controls="search-results-listbox"
                   aria-activedescendant={
@@ -459,7 +424,7 @@ function GlobalSearchComponent({ isOpen, onClose }: GlobalSearchProps) {
                   aria-describedby="search-shortcuts"
                   value={query}
                   onChange={handleQueryChange}
-                  placeholder={t('search.placeholder')}
+                  placeholder="Search oracles, pairs, blockchains..."
                   className="flex-1 text-lg text-gray-900 placeholder-gray-400 bg-transparent border-none outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded"
                   autoComplete="off"
                   autoCorrect="off"
@@ -469,7 +434,7 @@ function GlobalSearchComponent({ isOpen, onClose }: GlobalSearchProps) {
                 {query && (
                   <button
                     onClick={handleClear}
-                    aria-label={t('search.clearButton')}
+                    aria-label="Clear search"
                     className="p-1 rounded-full hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
                   >
                     <X className="w-4 h-4 text-gray-400" aria-hidden="true" />
@@ -480,20 +445,16 @@ function GlobalSearchComponent({ isOpen, onClose }: GlobalSearchProps) {
                 </div>
               </div>
 
-              {/* ARIA Live Region for Screen Readers */}
               <div aria-live="polite" aria-atomic="true" className="sr-only">
-                {isSearching &&
-                  totalResults > 0 &&
-                  t('search.resultsCount', { count: totalResults })}
-                {isSearching && totalResults === 0 && query && t('search.noResults')}
-                {error && t('search.error')}
+                {isSearching && totalResults > 0 && `${totalResults} results found`}
+                {isSearching && totalResults === 0 && query && 'No results found'}
+                {error && 'Search error'}
               </div>
 
-              {/* Search Results */}
               <div
                 id="search-results-listbox"
                 role="listbox"
-                aria-label={t('search.resultsLabel')}
+                aria-label="Search results"
                 className="max-h-[50vh] sm:max-h-[60vh] overflow-y-auto overscroll-contain"
               >
                 {!isSearching && !query && <InitialState />}
@@ -505,13 +466,15 @@ function GlobalSearchComponent({ isOpen, onClose }: GlobalSearchProps) {
                     <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mb-4">
                       <Search className="w-8 h-8 text-red-400" aria-hidden="true" />
                     </div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-1">{t('search.error')}</h3>
-                    <p className="text-sm text-gray-500 mb-4">{t('search.errorDesc')}</p>
+                    <h3 className="text-lg font-medium text-gray-900 mb-1">Search Error</h3>
+                    <p className="text-sm text-gray-500 mb-4">
+                      An error occurred while searching. Please try again.
+                    </p>
                     <button
                       onClick={retry}
                       className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
                     >
-                      {t('search.retry')}
+                      Retry
                     </button>
                   </div>
                 )}
@@ -534,17 +497,16 @@ function GlobalSearchComponent({ isOpen, onClose }: GlobalSearchProps) {
                 )}
               </div>
 
-              {/* Footer */}
               <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-t border-gray-100 text-xs text-gray-500">
                 <div className="hidden sm:flex items-center gap-4">
                   <div className="flex items-center gap-1">
                     <ArrowUp className="w-3 h-3" aria-hidden="true" />
                     <ArrowDown className="w-3 h-3" aria-hidden="true" />
-                    <span>{t('search.footer.navigate')}</span>
+                    <span>Navigate</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <CornerDownLeft className="w-3 h-3" aria-hidden="true" />
-                    <span>{t('search.footer.select')}</span>
+                    <span>Select</span>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -560,6 +522,5 @@ function GlobalSearchComponent({ isOpen, onClose }: GlobalSearchProps) {
   );
 }
 
-// Export memoized component
 export const GlobalSearch = memo(GlobalSearchComponent, arePropsEqual);
 export default GlobalSearch;

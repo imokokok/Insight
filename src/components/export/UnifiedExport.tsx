@@ -1,11 +1,5 @@
 'use client';
 
-/**
- * 统一导出组件
- *
- * 提供统一的导出按钮样式和位置（页面右上角），支持导出格式选择（CSV、JSON、Excel、PDF），添加导出进度指示
- */
-
 import { useState, useRef, useCallback } from 'react';
 
 import { motion, AnimatePresence } from 'framer-motion';
@@ -21,7 +15,6 @@ import {
   History,
 } from 'lucide-react';
 
-import { useTranslations, useLocale } from '@/i18n';
 import { createLogger } from '@/lib/utils/logger';
 
 import { ExportHistoryPanel } from './ExportHistoryPanel';
@@ -37,7 +30,6 @@ import { useExportHistory } from './useExportHistory';
 
 const logger = createLogger('UnifiedExport');
 
-// 格式图标映射
 const formatIcons: Record<string, React.ReactNode> = {
   csv: <Table className="w-4 h-4" />,
   json: <FileJson className="w-4 h-4" />,
@@ -57,10 +49,6 @@ export function UnifiedExport({
   onExportComplete,
   onExportError,
 }: UnifiedExportProps) {
-  const t = useTranslations('export');
-  const locale = useLocale();
-  const isZh = locale === 'zh-CN';
-
   const [isOpen, setIsOpen] = useState(false);
   const [showConfig, setShowConfig] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
@@ -74,12 +62,10 @@ export function UnifiedExport({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { addHistoryItem } = useExportHistory();
 
-  // 切换格式
   const handleFormatChange = useCallback((format: ExportFormat) => {
     setConfig((prev) => ({ ...prev, format }));
   }, []);
 
-  // 切换字段选择
   const toggleField = useCallback((key: string) => {
     setConfig((prev) => ({
       ...prev,
@@ -87,7 +73,6 @@ export function UnifiedExport({
     }));
   }, []);
 
-  // 全选/取消全选
   const toggleAllFields = useCallback((selected: boolean) => {
     setConfig((prev) => ({
       ...prev,
@@ -95,7 +80,6 @@ export function UnifiedExport({
     }));
   }, []);
 
-  // 执行导出
   const handleExport = useCallback(async () => {
     if (isExporting) return;
 
@@ -110,7 +94,6 @@ export function UnifiedExport({
     onExportStart?.();
 
     try {
-      // 模拟进度
       const progressInterval = setInterval(() => {
         setExportProgress((prev) => Math.min(prev + 10, 90));
       }, 100);
@@ -124,7 +107,7 @@ export function UnifiedExport({
         data,
         exportConfig,
         dataSource,
-        locale,
+        'en',
         chartElement,
         stats
       );
@@ -135,7 +118,6 @@ export function UnifiedExport({
       addHistoryItem(historyItem);
       onExportComplete?.(historyItem);
 
-      // 延迟关闭配置面板
       setTimeout(() => {
         setShowConfig(false);
         setIsOpen(false);
@@ -152,7 +134,6 @@ export function UnifiedExport({
     config,
     data,
     dataSource,
-    locale,
     chartElement,
     stats,
     isExporting,
@@ -162,13 +143,11 @@ export function UnifiedExport({
     addHistoryItem,
   ]);
 
-  // 获取已选字段数量
   const selectedFieldsCount = config.fields.filter((f) => f.selected).length;
   const totalFieldsCount = config.fields.length;
 
   return (
     <div className={`relative ${className}`} ref={dropdownRef}>
-      {/* 主按钮 */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         disabled={disabled || isExporting}
@@ -179,11 +158,10 @@ export function UnifiedExport({
         ) : (
           <Download className="w-4 h-4" />
         )}
-        <span>{isExporting ? t('exporting') : t('export')}</span>
+        <span>{isExporting ? 'Exporting...' : 'Export'}</span>
         {!isExporting && <ChevronDown className="w-4 h-4" />}
       </button>
 
-      {/* 下拉菜单 */}
       <AnimatePresence>
         {isOpen && !showConfig && !showHistory && (
           <motion.div
@@ -193,9 +171,8 @@ export function UnifiedExport({
             transition={{ duration: 0.15 }}
             className="absolute right-0 top-full mt-1 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-50"
           >
-            {/* 格式选项 */}
             <div className="p-2">
-              <p className="text-xs text-gray-500 px-2 py-1">{t('selectFormat')}</p>
+              <p className="text-xs text-gray-500 px-2 py-1">Select Format</p>
               {EXPORT_FORMAT_CONFIGS.map((format) => (
                 <button
                   key={format.value}
@@ -206,26 +183,24 @@ export function UnifiedExport({
                   className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                 >
                   <span className="text-gray-400">{formatIcons[format.value]}</span>
-                  <span>{isZh ? format.labelZh : format.label}</span>
+                  <span>{format.label}</span>
                 </button>
               ))}
             </div>
 
             <div className="border-t border-gray-100" />
 
-            {/* 历史记录入口 */}
             <button
               onClick={() => setShowHistory(true)}
               className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
             >
               <History className="w-4 h-4 text-gray-400" />
-              <span>{t('history')}</span>
+              <span>History</span>
             </button>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* 配置面板 */}
       <AnimatePresence>
         {showConfig && (
           <motion.div
@@ -235,15 +210,11 @@ export function UnifiedExport({
             transition={{ duration: 0.15 }}
             className="absolute right-0 top-full mt-2 w-96 bg-white border border-gray-200 rounded-lg shadow-xl z-50"
           >
-            {/* 头部 */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
               <div className="flex items-center gap-2">
                 {formatIcons[config.format]}
                 <span className="font-medium text-gray-900">
-                  {isZh
-                    ? EXPORT_FORMAT_CONFIGS.find((f) => f.value === config.format)?.labelZh
-                    : EXPORT_FORMAT_CONFIGS.find((f) => f.value === config.format)?.label}
-                  {t('exportConfig')}
+                  {EXPORT_FORMAT_CONFIGS.find((f) => f.value === config.format)?.label} Export
                 </span>
               </div>
               <button
@@ -254,25 +225,24 @@ export function UnifiedExport({
               </button>
             </div>
 
-            {/* 字段选择 */}
             <div className="p-4">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-sm font-medium text-gray-700">
-                  {t('selectFields')} ({selectedFieldsCount}/{totalFieldsCount})
+                  Select Fields ({selectedFieldsCount}/{totalFieldsCount})
                 </span>
                 <div className="flex gap-2">
                   <button
                     onClick={() => toggleAllFields(true)}
                     className="text-xs text-primary-600 hover:text-primary-700"
                   >
-                    {t('selectAll')}
+                    Select All
                   </button>
                   <span className="text-gray-300">|</span>
                   <button
                     onClick={() => toggleAllFields(false)}
                     className="text-xs text-gray-600 hover:text-gray-700"
                   >
-                    {t('deselectAll')}
+                    Deselect All
                   </button>
                 </div>
               </div>
@@ -289,14 +259,11 @@ export function UnifiedExport({
                       onChange={() => toggleField(field.key)}
                       className="rounded border-gray-300 text-primary-600 focus:ring-blue-600"
                     />
-                    <span className="text-sm text-gray-700">
-                      {isZh ? field.labelZh : field.label}
-                    </span>
+                    <span className="text-sm text-gray-700">{field.label}</span>
                   </label>
                 ))}
               </div>
 
-              {/* 选项 */}
               <div className="mt-4 space-y-2">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -307,7 +274,7 @@ export function UnifiedExport({
                     }
                     className="rounded border-gray-300 text-primary-600 focus:ring-blue-600"
                   />
-                  <span className="text-sm text-gray-700">{t('includeMetadata')}</span>
+                  <span className="text-sm text-gray-700">Include Metadata</span>
                 </label>
 
                 {config.format === 'pdf' && (
@@ -321,7 +288,7 @@ export function UnifiedExport({
                         }
                         className="rounded border-gray-300 text-primary-600 focus:ring-blue-600"
                       />
-                      <span className="text-sm text-gray-700">{t('includeChart')}</span>
+                      <span className="text-sm text-gray-700">Include Chart</span>
                     </label>
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input
@@ -332,25 +299,23 @@ export function UnifiedExport({
                         }
                         className="rounded border-gray-300 text-primary-600 focus:ring-blue-600"
                       />
-                      <span className="text-sm text-gray-700">{t('includeStats')}</span>
+                      <span className="text-sm text-gray-700">Include Statistics</span>
                     </label>
                   </>
                 )}
               </div>
 
-              {/* 数据预览 */}
               <div className="mt-4 p-3 bg-gray-50 border border-gray-100 rounded-lg">
-                <p className="text-xs text-gray-500 mb-1">{t('dataPreview')}</p>
+                <p className="text-xs text-gray-500 mb-1">Data Preview</p>
                 <p className="text-sm text-gray-700">
-                  {t('recordCount')}: <span className="font-medium">{data.length}</span>
+                  Records: <span className="font-medium">{data.length}</span>
                 </p>
                 <p className="text-sm text-gray-700">
-                  {t('selectedFields')}: <span className="font-medium">{selectedFieldsCount}</span>
+                  Selected Fields: <span className="font-medium">{selectedFieldsCount}</span>
                 </p>
               </div>
             </div>
 
-            {/* 进度条 */}
             {isExporting && (
               <div className="px-4 pb-2">
                 <div className="h-1 bg-gray-100 rounded-full overflow-hidden">
@@ -365,14 +330,13 @@ export function UnifiedExport({
               </div>
             )}
 
-            {/* 操作按钮 */}
             <div className="flex gap-2 p-4 border-t border-gray-100">
               <button
                 onClick={() => setShowConfig(false)}
                 disabled={isExporting}
                 className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50"
               >
-                {t('cancel')}
+                Cancel
               </button>
               <button
                 onClick={handleExport}
@@ -382,12 +346,12 @@ export function UnifiedExport({
                 {isExporting ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    {t('exporting')}
+                    Exporting...
                   </>
                 ) : (
                   <>
                     <Download className="w-4 h-4" />
-                    {t('export')}
+                    Export
                   </>
                 )}
               </button>
@@ -396,14 +360,12 @@ export function UnifiedExport({
         )}
       </AnimatePresence>
 
-      {/* 历史记录面板 */}
       <AnimatePresence>
         {showHistory && (
           <ExportHistoryPanel onClose={() => setShowHistory(false)} dataSource={dataSource} />
         )}
       </AnimatePresence>
 
-      {/* 点击外部关闭 */}
       {isOpen && (
         <div
           className="fixed inset-0 z-40"

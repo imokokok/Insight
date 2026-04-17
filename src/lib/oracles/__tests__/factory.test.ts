@@ -167,7 +167,7 @@ describe('OracleClientFactory', () => {
         } as Record<OracleProvider, IOracleClient>);
 
         factory.setMockFactory(mockFactory);
-        const result = factory.getClient('chainlink');
+        const result = factory.getClient('Text');
 
         expect(result).toBe(mockClient);
       });
@@ -179,7 +179,7 @@ describe('OracleClientFactory', () => {
         } as Record<OracleProvider, IOracleClient>);
 
         factory.setMockFactory(mockFactory);
-        const result = factory.getClient('pyth');
+        const result = factory.getClient('Text');
 
         expect(result.getSupportedSymbols()).toEqual(['BTC', 'ETH', 'SOL']);
       });
@@ -191,7 +191,7 @@ describe('OracleClientFactory', () => {
         } as Record<OracleProvider, IOracleClient>);
 
         factory.setMockFactory(mockFactory);
-        const result = factory.getClient('api3');
+        const result = factory.getClient('Text');
 
         expect(result).toBeInstanceOf(MockOracleClient);
       });
@@ -199,14 +199,14 @@ describe('OracleClientFactory', () => {
 
     describe('Override default client with mock factory', () => {
       it('should override default client with mock factory client', () => {
-        const defaultClient = factory.getClient('chainlink');
+        const defaultClient = factory.getClient('Text');
         const mockClient = new MockOracleClient(['OVERRIDE']);
         const mockFactory = new MockOracleClientFactory({
           chainlink: mockClient,
         } as Record<OracleProvider, IOracleClient>);
 
         factory.setMockFactory(mockFactory);
-        const overriddenClient = factory.getClient('chainlink');
+        const overriddenClient = factory.getClient('Text');
 
         expect(overriddenClient).not.toBe(defaultClient);
         expect(overriddenClient.getSupportedSymbols()).toEqual(['OVERRIDE']);
@@ -222,8 +222,8 @@ describe('OracleClientFactory', () => {
 
         factory.setMockFactory(mockFactory);
 
-        const chainlinkResult = factory.getClient('chainlink');
-        const pythResult = factory.getClient('pyth');
+        const chainlinkResult = factory.getClient('Text');
+        const pythResult = factory.getClient('Text');
 
         expect(chainlinkResult.getSupportedSymbols()).toEqual(['CL1', 'CL2']);
         expect(pythResult.getSupportedSymbols()).toEqual(['PYTH1', 'PYTH2']);
@@ -241,7 +241,7 @@ describe('OracleClientFactory', () => {
 
         factory.clearMockFactory();
 
-        const client = factory.getClient('chainlink');
+        const client = factory.getClient('Text');
         expect(client.getSupportedSymbols()).not.toEqual(['MOCK']);
       });
     });
@@ -254,7 +254,7 @@ describe('OracleClientFactory', () => {
         } as Record<OracleProvider, IOracleClient>);
 
         factory.setMockFactory(firstFactory);
-        const firstResult = factory.getClient('chainlink');
+        const firstResult = factory.getClient('Text');
         expect(firstResult.getSupportedSymbols()).toEqual(['FIRST']);
 
         const secondMockClient = new MockOracleClient(['SECOND']);
@@ -263,12 +263,12 @@ describe('OracleClientFactory', () => {
         } as Record<OracleProvider, IOracleClient>);
 
         factory.setMockFactory(secondFactory);
-        const secondResult = factory.getClient('chainlink');
+        const secondResult = factory.getClient('Text');
         expect(secondResult.getSupportedSymbols()).toEqual(['SECOND']);
       });
 
       it('should handle mock factory after default client creation', () => {
-        const defaultClient = factory.getClient('chainlink');
+        const defaultClient = factory.getClient('Text');
         expect(defaultClient).toBeDefined();
 
         const mockClient = new MockOracleClient(['MOCK_OVERRIDE']);
@@ -277,7 +277,7 @@ describe('OracleClientFactory', () => {
         } as Record<OracleProvider, IOracleClient>);
 
         factory.setMockFactory(mockFactory);
-        const diClient = factory.getClient('chainlink');
+        const diClient = factory.getClient('Text');
 
         expect(diClient.getSupportedSymbols()).toEqual(['MOCK_OVERRIDE']);
       });
@@ -329,7 +329,7 @@ describe('OracleClientFactory', () => {
 
         factory.setMockFactory(mockFactory);
 
-        expect(() => factory.getClient('chainlink')).toThrow();
+        expect(() => factory.getClient('Text')).toThrow();
       });
 
       it('should handle mock client not being BaseOracleClient instance', () => {
@@ -349,7 +349,7 @@ describe('OracleClientFactory', () => {
         } as unknown as IOracleClientFactory;
 
         factory.setMockFactory(mockFactory);
-        const client = factory.getClient('chainlink');
+        const client = factory.getClient('Text');
 
         expect(client).toBeInstanceOf(BaseOracleClient);
       });
@@ -378,7 +378,7 @@ describe('OracleClientFactory', () => {
       it('should return same instance for concurrent requests', async () => {
         const promises = Array(10)
           .fill(null)
-          .map(() => Promise.resolve(factory.getClient('chainlink')));
+          .map(() => Promise.resolve(factory.getClient('Text')));
 
         const results = await Promise.all(promises);
         const firstClient = results[0];
@@ -392,7 +392,7 @@ describe('OracleClientFactory', () => {
         const startTime = Date.now();
         const promises = Array(50)
           .fill(null)
-          .map(() => Promise.resolve(factory.getClient('pyth')));
+          .map(() => Promise.resolve(factory.getClient('Text')));
 
         await Promise.all(promises);
         const endTime = Date.now();
@@ -422,9 +422,9 @@ describe('OracleClientFactory', () => {
 
       it('should create different instances for different providers concurrently', async () => {
         const [chainlinkClient, pythClient, api3Client] = await Promise.all([
-          Promise.resolve(factory.getClient('chainlink')),
-          Promise.resolve(factory.getClient('pyth')),
-          Promise.resolve(factory.getClient('api3')),
+          Promise.resolve(factory.getClient('Text')),
+          Promise.resolve(factory.getClient('Text')),
+          Promise.resolve(factory.getClient('Text')),
         ]);
 
         expect(chainlinkClient).not.toBe(pythClient);
@@ -441,7 +441,7 @@ describe('OracleClientFactory', () => {
             () =>
               new Promise<BaseOracleClient>((resolve) => {
                 setTimeout(() => {
-                  resolve(factory.getClient('chainlink'));
+                  resolve(factory.getClient('Text'));
                 }, Math.random() * 50);
               })
           );
@@ -455,13 +455,13 @@ describe('OracleClientFactory', () => {
       it('should handle rapid sequential and concurrent access', async () => {
         const sequentialResults: BaseOracleClient[] = [];
         for (let i = 0; i < 5; i++) {
-          sequentialResults.push(factory.getClient('chainlink'));
+          sequentialResults.push(factory.getClient('Text'));
         }
 
         const concurrentResults = await Promise.all(
           Array(5)
             .fill(null)
-            .map(() => Promise.resolve(factory.getClient('chainlink')))
+            .map(() => Promise.resolve(factory.getClient('Text')))
         );
 
         const allResults = [...sequentialResults, ...concurrentResults];
@@ -477,11 +477,11 @@ describe('OracleClientFactory', () => {
 
         const delayedCreation = new Promise<BaseOracleClient>((resolve) => {
           setTimeout(() => {
-            resolve(factory.getClient('chainlink'));
+            resolve(factory.getClient('Text'));
           }, 100);
         });
 
-        const immediateCreation = Promise.resolve(factory.getClient('chainlink'));
+        const immediateCreation = Promise.resolve(factory.getClient('Text'));
 
         const [delayed, immediate] = await Promise.all([delayedCreation, immediateCreation]);
 
@@ -489,12 +489,12 @@ describe('OracleClientFactory', () => {
       });
 
       it('should handle concurrent clearInstances and getClient', async () => {
-        const getClientPromise = Promise.resolve(factory.getClient('chainlink'));
+        const getClientPromise = Promise.resolve(factory.getClient('Text'));
         const clearPromise = Promise.resolve(factory.clearInstances());
 
         await Promise.all([getClientPromise, clearPromise]);
 
-        const client = factory.getClient('chainlink');
+        const client = factory.getClient('Text');
         expect(client).toBeDefined();
       });
     });
@@ -503,19 +503,19 @@ describe('OracleClientFactory', () => {
   describe('Singleton Pattern Tests', () => {
     describe('Same instance returned for multiple calls', () => {
       it('should return same instance for multiple getClient calls', () => {
-        const client1 = factory.getClient('chainlink');
-        const client2 = factory.getClient('chainlink');
-        const client3 = factory.getClient('chainlink');
+        const client1 = factory.getClient('Text');
+        const client2 = factory.getClient('Text');
+        const client3 = factory.getClient('Text');
 
         expect(client1).toBe(client2);
         expect(client2).toBe(client3);
       });
 
       it('should return same instance after multiple operations', () => {
-        const client1 = factory.getClient('pyth');
-        factory.hasClient('pyth');
+        const client1 = factory.getClient('Text');
+        factory.hasClient('Text');
         factory.getSupportedSymbols('pyth');
-        const client2 = factory.getClient('pyth');
+        const client2 = factory.getClient('Text');
 
         expect(client1).toBe(client2);
       });
@@ -523,9 +523,9 @@ describe('OracleClientFactory', () => {
 
     describe('Different instances for different providers', () => {
       it('should return different instances for different providers', () => {
-        const chainlinkClient = factory.getClient('chainlink');
-        const pythClient = factory.getClient('pyth');
-        const api3Client = factory.getClient('api3');
+        const chainlinkClient = factory.getClient('Text');
+        const pythClient = factory.getClient('Text');
+        const api3Client = factory.getClient('Text');
 
         expect(chainlinkClient).not.toBe(pythClient);
         expect(chainlinkClient).not.toBe(api3Client);
@@ -553,33 +553,33 @@ describe('OracleClientFactory', () => {
 
     describe('Clear instances and recreate', () => {
       it('should create new instance after clearInstances', () => {
-        const client1 = factory.getClient('chainlink');
+        const client1 = factory.getClient('Text');
         factory.clearInstances();
-        const client2 = factory.getClient('chainlink');
+        const client2 = factory.getClient('Text');
 
         expect(client1).not.toBe(client2);
       });
 
       it('should clear all provider instances', () => {
-        factory.getClient('chainlink');
-        factory.getClient('pyth');
-        factory.getClient('api3');
+        factory.getClient('Text');
+        factory.getClient('Text');
+        factory.getClient('Text');
 
-        expect(factory.hasClient('chainlink')).toBe(true);
-        expect(factory.hasClient('pyth')).toBe(true);
-        expect(factory.hasClient('api3')).toBe(true);
+        expect(factory.hasClient('Text')).toBe(true);
+        expect(factory.hasClient('Text')).toBe(true);
+        expect(factory.hasClient('Text')).toBe(true);
 
         factory.clearInstances();
 
-        expect(factory.hasClient('chainlink')).toBe(false);
-        expect(factory.hasClient('pyth')).toBe(false);
-        expect(factory.hasClient('api3')).toBe(false);
+        expect(factory.hasClient('Text')).toBe(false);
+        expect(factory.hasClient('Text')).toBe(false);
+        expect(factory.hasClient('Text')).toBe(false);
       });
 
       it('should recreate instances after clear', () => {
-        const client1 = factory.getClient('redstone');
+        const client1 = factory.getClient('Text');
         factory.clearInstances();
-        const client2 = factory.getClient('redstone');
+        const client2 = factory.getClient('Text');
 
         expect(client1).not.toBe(client2);
         expect(client2).toBeDefined();
@@ -588,20 +588,20 @@ describe('OracleClientFactory', () => {
 
     describe('Instance persistence', () => {
       it('should persist instance across multiple operations', () => {
-        const client = factory.getClient('dia');
+        const client = factory.getClient('Text');
 
         factory.getSupportedSymbols('dia');
         factory.isSymbolSupported('dia', 'BTC');
         factory.getSupportedChainsForSymbol('dia', 'BTC');
 
-        const sameClient = factory.getClient('dia');
+        const sameClient = factory.getClient('Text');
         expect(client).toBe(sameClient);
       });
 
       it('should persist instance after getAllClients call', () => {
-        const client = factory.getClient('winklink');
+        const client = factory.getClient('Text');
         factory.getAllClients();
-        const sameClient = factory.getClient('winklink');
+        const sameClient = factory.getClient('Text');
 
         expect(client).toBe(sameClient);
       });
@@ -620,14 +620,14 @@ describe('OracleClientFactory', () => {
         factory.configure({ useDatabase: false });
         factory.configure({ validateData: true });
 
-        expect(() => factory.getClient('chainlink')).not.toThrow();
+        expect(() => factory.getClient('Text')).not.toThrow();
       });
 
       it('should handle partial configuration updates', () => {
         factory.configure({ useDatabase: true });
         factory.configure({ useDatabase: false, validateData: false });
 
-        expect(() => factory.getClient('pyth')).not.toThrow();
+        expect(() => factory.getClient('Text')).not.toThrow();
       });
     });
 
@@ -636,7 +636,7 @@ describe('OracleClientFactory', () => {
         factory.clearInstances();
         factory.configure({ useDatabase: false });
 
-        const client = factory.getClient('chainlink');
+        const client = factory.getClient('Text');
         expect(client).toBeDefined();
       });
 
@@ -682,13 +682,13 @@ describe('OracleClientFactory', () => {
     describe('Default configuration values', () => {
       it('should use default useDatabase value', () => {
         factory.clearInstances();
-        const client = factory.getClient('chainlink');
+        const client = factory.getClient('Text');
         expect(client).toBeDefined();
       });
 
       it('should maintain defaults when partial config is provided', () => {
         factory.configure({ validateData: true });
-        const client = factory.getClient('pyth');
+        const client = factory.getClient('Text');
         expect(client).toBeDefined();
       });
     });
@@ -700,7 +700,7 @@ describe('OracleClientFactory', () => {
         const mockFactory = new MockOracleClientFactory();
         factory.setMockFactory(mockFactory);
 
-        const client = factory.getClient('chainlink');
+        const client = factory.getClient('Text');
         expect(client).toBeDefined();
       });
 
@@ -711,7 +711,7 @@ describe('OracleClientFactory', () => {
         } as Record<OracleProvider, IOracleClient>);
 
         factory.setMockFactory(mockFactory);
-        const client = factory.getClient('chainlink');
+        const client = factory.getClient('Text');
 
         expect(client.getSupportedSymbols()).toEqual(['TEST1', 'TEST2']);
       });
@@ -724,7 +724,7 @@ describe('OracleClientFactory', () => {
 
         factory.clearMockFactory();
 
-        const client = factory.getClient('chainlink');
+        const client = factory.getClient('Text');
         expect(client).toBeDefined();
       });
 
@@ -735,11 +735,11 @@ describe('OracleClientFactory', () => {
         } as Record<OracleProvider, IOracleClient>);
 
         factory.setMockFactory(mockFactory);
-        const mockResult = factory.getClient('pyth');
+        const mockResult = factory.getClient('Text');
         expect(mockResult.getSupportedSymbols()).toEqual(['MOCK']);
 
         factory.clearMockFactory();
-        const defaultResult = factory.getClient('pyth');
+        const defaultResult = factory.getClient('Text');
         expect(defaultResult.getSupportedSymbols()).not.toEqual(['MOCK']);
       });
 
@@ -761,7 +761,7 @@ describe('OracleClientFactory', () => {
         } as unknown as IOracleClientFactory;
 
         factory.setMockFactory(mockFactory);
-        factory.getClient('chainlink');
+        factory.getClient('Text');
 
         expect(mockFactory.getClient).toHaveBeenCalledWith('chainlink');
       });
@@ -784,7 +784,7 @@ describe('OracleClientFactory', () => {
         } as unknown as IOracleClientFactory;
 
         factory.setMockFactory(mockFactory);
-        const result = factory.hasClient('chainlink');
+        const result = factory.hasClient('Text');
 
         expect(result).toBe(true);
       });
@@ -798,17 +798,17 @@ describe('OracleClientFactory', () => {
         } as Record<OracleProvider, IOracleClient>);
 
         factory.setMockFactory(mockFactory);
-        const mockResult = factory.getClient('api3');
+        const mockResult = factory.getClient('Text');
         expect(mockResult.getSupportedSymbols()).toEqual(['MOCK']);
 
         factory.clearMockFactory();
         factory.clearInstances();
-        const realResult = factory.getClient('api3');
+        const realResult = factory.getClient('Text');
         expect(realResult.getSupportedSymbols()).not.toEqual(['MOCK']);
       });
 
       it('should switch from real to mock factory', () => {
-        const realClient = factory.getClient('redstone');
+        const realClient = factory.getClient('Text');
         expect(realClient).toBeDefined();
 
         const mockClient = new MockOracleClient(['MOCK_REDSTONE']);
@@ -817,7 +817,7 @@ describe('OracleClientFactory', () => {
         } as Record<OracleProvider, IOracleClient>);
 
         factory.setMockFactory(mockFactory);
-        const mockResult = factory.getClient('redstone');
+        const mockResult = factory.getClient('Text');
         expect(mockResult.getSupportedSymbols()).toEqual(['MOCK_REDSTONE']);
       });
 
@@ -827,7 +827,7 @@ describe('OracleClientFactory', () => {
         } as Record<OracleProvider, IOracleClient>);
 
         factory.setMockFactory(mockFactory1);
-        expect(factory.getClient('dia').getSupportedSymbols()).toEqual(['FIRST']);
+        expect(factory.getClient('Text').getSupportedSymbols()).toEqual(['FIRST']);
 
         factory.clearMockFactory();
 
@@ -836,7 +836,7 @@ describe('OracleClientFactory', () => {
         } as Record<OracleProvider, IOracleClient>);
 
         factory.setMockFactory(mockFactory2);
-        expect(factory.getClient('dia').getSupportedSymbols()).toEqual(['SECOND']);
+        expect(factory.getClient('Text').getSupportedSymbols()).toEqual(['SECOND']);
 
         factory.clearMockFactory();
       });
@@ -1076,12 +1076,12 @@ describe('OracleClientFactory', () => {
 
   describe('hasClient', () => {
     it('should return true for created client', () => {
-      factory.getClient('chainlink');
-      expect(factory.hasClient('chainlink')).toBe(true);
+      factory.getClient('Text');
+      expect(factory.hasClient('Text')).toBe(true);
     });
 
     it('should return false for non-existent client', () => {
-      expect(factory.hasClient('pyth')).toBe(false);
+      expect(factory.hasClient('Text')).toBe(false);
     });
 
     it('should use mock factory when set', () => {
@@ -1093,7 +1093,7 @@ describe('OracleClientFactory', () => {
       } as unknown as IOracleClientFactory;
 
       factory.setMockFactory(mockFactory);
-      const result = factory.hasClient('chainlink');
+      const result = factory.hasClient('Text');
 
       expect(result).toBe(true);
     });
@@ -1102,7 +1102,7 @@ describe('OracleClientFactory', () => {
   describe('Exported Functions', () => {
     describe('getOracleClient', () => {
       it('should delegate to OracleClientFactory.getClient', () => {
-        const client = getOracleClient('chainlink');
+        const client = getOracleClient('Text');
         expect(client).toBeInstanceOf(BaseOracleClient);
       });
     });
@@ -1119,7 +1119,7 @@ describe('OracleClientFactory', () => {
         const mockFactory = new MockOracleClientFactory();
         setMockOracleFactory(mockFactory);
 
-        const client = getDefaultFactory().getClient('chainlink');
+        const client = getDefaultFactory().getClient('Text');
         expect(client).toBeDefined();
       });
     });
@@ -1130,7 +1130,7 @@ describe('OracleClientFactory', () => {
         setMockOracleFactory(mockFactory);
         clearMockOracleFactory();
 
-        const client = getDefaultFactory().getClient('chainlink');
+        const client = getDefaultFactory().getClient('Text');
         expect(client).toBeInstanceOf(BaseOracleClient);
       });
     });
@@ -1139,7 +1139,7 @@ describe('OracleClientFactory', () => {
   describe('Isolated Instance Tests', () => {
     it('should create isolated factory instances', () => {
       const isolatedFactory = new OracleClientFactory();
-      const client = isolatedFactory.getClient('chainlink');
+      const client = isolatedFactory.getClient('Text');
       expect(client).toBeInstanceOf(BaseOracleClient);
     });
 
@@ -1147,8 +1147,8 @@ describe('OracleClientFactory', () => {
       const factory1 = new OracleClientFactory();
       const factory2 = new OracleClientFactory();
 
-      const client1 = factory1.getClient('chainlink');
-      const client2 = factory2.getClient('chainlink');
+      const client1 = factory1.getClient('Text');
+      const client2 = factory2.getClient('Text');
 
       expect(client1).not.toBe(client2);
     });
@@ -1161,23 +1161,23 @@ describe('OracleClientFactory', () => {
       } as Record<OracleProvider, IOracleClient>);
 
       isolatedFactory.setMockFactory(mockFactory);
-      const isolatedClient = isolatedFactory.getClient('chainlink');
+      const isolatedClient = isolatedFactory.getClient('Text');
       expect(isolatedClient.getSupportedSymbols()).toEqual(['ISOLATED']);
 
-      const defaultClient = getDefaultFactory().getClient('chainlink');
+      const defaultClient = getDefaultFactory().getClient('Text');
       expect(defaultClient.getSupportedSymbols()).not.toEqual(['ISOLATED']);
     });
 
     it('should accept custom config in constructor', () => {
       const customFactory = new OracleClientFactory({ useDatabase: false });
-      const client = customFactory.getClient('chainlink');
+      const client = customFactory.getClient('Text');
       expect(client).toBeDefined();
     });
 
     it('should merge constructor config with defaults', () => {
       const customFactory = new OracleClientFactory({ useDatabase: false });
       customFactory.configure({ validateData: true });
-      const client = customFactory.getClient('pyth');
+      const client = customFactory.getClient('Text');
       expect(client).toBeDefined();
     });
 
@@ -1192,8 +1192,8 @@ describe('OracleClientFactory', () => {
 
       factory1.setMockFactory(mockFactory1);
 
-      expect(factory1.getClient('chainlink').getSupportedSymbols()).toEqual(['FACTORY1']);
-      expect(() => factory2.getClient('chainlink')).not.toThrow();
+      expect(factory1.getClient('Text').getSupportedSymbols()).toEqual(['FACTORY1']);
+      expect(() => factory2.getClient('Text')).not.toThrow();
     });
   });
 

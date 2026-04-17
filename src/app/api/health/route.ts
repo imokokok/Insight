@@ -29,7 +29,7 @@ async function checkDatabase(): Promise<'ok' | 'error'> {
     const { getSupabaseClient } = await import('@/lib/supabase/client');
     const supabase = getSupabaseClient();
 
-    const { error } = await supabase.from('user_profiles').select('id').limit(1);
+    const { error } = await supabase.from('user_profiles').select().limit(1);
 
     if (error) {
       return 'error';

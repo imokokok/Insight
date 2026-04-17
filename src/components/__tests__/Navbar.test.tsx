@@ -88,23 +88,6 @@ jest.mock('@/hooks', () => ({
   useKeyboardShortcuts: jest.fn(),
 }));
 
-jest.mock('@/i18n', () => ({
-  useTranslations: () => (key: string) => key,
-  useLocale: () => 'en',
-}));
-
-jest.mock('@/i18n/routing', () => ({
-  routing: {
-    locales: ['en', 'zh-CN'],
-    defaultLocale: 'en',
-  },
-}));
-
-jest.mock('../LanguageSwitcher', () => ({
-  __esModule: true,
-  default: () => <div data-testid="language-switcher">Language Switcher</div>,
-}));
-
 jest.mock('../navigation', () => ({
   DropdownMenu: ({ group }: { group: { id: string; label: string } }) => (
     <div data-testid={`dropdown-${group.id}`}>{group.label}</div>
@@ -227,13 +210,7 @@ describe('Navbar', () => {
       renderNavbar();
 
       expect(screen.getByAltText('Insight Logo')).toBeInTheDocument();
-      expect(screen.getByText('Insight')).toBeInTheDocument();
-    });
-
-    it('应该渲染语言切换器', () => {
-      renderNavbar();
-
-      expect(screen.getByTestId('language-switcher')).toBeInTheDocument();
+      expect(screen.getByText('Text')).toBeInTheDocument();
     });
 
     it('应该渲染搜索按钮', () => {
@@ -245,7 +222,7 @@ describe('Navbar', () => {
     it('应该渲染桌面端导航链接', () => {
       renderNavbar();
 
-      expect(screen.getByText('navbar.home')).toBeInTheDocument();
+      expect(screen.getByText('Text')).toBeInTheDocument();
       expect(screen.getByTestId('dropdown-market')).toBeInTheDocument();
     });
   });
@@ -254,14 +231,14 @@ describe('Navbar', () => {
     it('应该显示移动端菜单按钮', () => {
       renderNavbar();
 
-      const menuButton = screen.getByLabelText('navbar.openMenu');
+      const menuButton = screen.getByLabelText('Text');
       expect(menuButton).toBeInTheDocument();
     });
 
     it('点击菜单按钮应该打开移动端抽屉', () => {
       renderNavbar();
 
-      const menuButton = screen.getByLabelText('navbar.openMenu');
+      const menuButton = screen.getByLabelText('Text');
       fireEvent.click(menuButton);
 
       expect(screen.getByTestId('mobile-drawer')).toHaveAttribute('data-open', 'true');
@@ -270,7 +247,7 @@ describe('Navbar', () => {
     it('关闭移动端抽屉应该正确更新状态', () => {
       renderNavbar();
 
-      const menuButton = screen.getByLabelText('navbar.openMenu');
+      const menuButton = screen.getByLabelText('Text');
       fireEvent.click(menuButton);
 
       expect(screen.getByTestId('mobile-drawer')).toHaveAttribute('data-open', 'true');
@@ -311,21 +288,21 @@ describe('Navbar', () => {
     it('未登录时应该显示登录和注册按钮', () => {
       renderNavbar();
 
-      expect(screen.getByText('navbar.login')).toBeInTheDocument();
-      expect(screen.getByText('navbar.register')).toBeInTheDocument();
+      expect(screen.getByText('Text')).toBeInTheDocument();
+      expect(screen.getByText('Text')).toBeInTheDocument();
     });
 
     it('登录按钮应该链接到登录页面', () => {
       renderNavbar();
 
-      const loginButton = screen.getByText('navbar.login').closest('a');
+      const loginButton = screen.getByText('Text').closest('Text');
       expect(loginButton).toHaveAttribute('href', '/en/login');
     });
 
     it('注册按钮应该链接到注册页面', () => {
       renderNavbar();
 
-      const registerButton = screen.getByText('navbar.register').closest('a');
+      const registerButton = screen.getByText('Text').closest('Text');
       expect(registerButton).toHaveAttribute('href', '/en/register');
     });
   });
@@ -359,13 +336,13 @@ describe('Navbar', () => {
     it('已登录时应该显示用户头像按钮', () => {
       renderNavbar();
 
-      expect(screen.getByText('T')).toBeInTheDocument();
+      expect(screen.getByText('Text')).toBeInTheDocument();
     });
 
     it('点击用户头像应该打开用户菜单', async () => {
       renderNavbar();
 
-      const avatarButton = screen.getByText('T').closest('button');
+      const avatarButton = screen.getByText('Text').closest('Text');
       fireEvent.click(avatarButton!);
 
       await waitFor(() => {
@@ -376,7 +353,7 @@ describe('Navbar', () => {
     it('用户菜单应该显示设置链接', async () => {
       renderNavbar();
 
-      const avatarButton = screen.getByText('T').closest('button');
+      const avatarButton = screen.getByText('Text').closest('Text');
       fireEvent.click(avatarButton!);
 
       await waitFor(() => {
@@ -387,7 +364,7 @@ describe('Navbar', () => {
     it('点击退出登录应该调用 signOut', async () => {
       renderNavbar();
 
-      const avatarButton = screen.getByText('T').closest('button');
+      const avatarButton = screen.getByText('Text').closest('Text');
       fireEvent.click(avatarButton!);
 
       await waitFor(() => {
@@ -417,7 +394,7 @@ describe('Navbar', () => {
     it('当前页面的导航链接应该有高亮样式', () => {
       renderNavbar();
 
-      const homeLink = screen.getByText('navbar.home').closest('a');
+      const homeLink = screen.getByText('Text').closest('Text');
       expect(homeLink?.className).toMatch(/text-primary-600|bg-primary-50/);
     });
   });
@@ -426,7 +403,7 @@ describe('Navbar', () => {
     it('Logo 应该链接到首页', () => {
       renderNavbar();
 
-      const logoLink = screen.getByAltText('Insight Logo').closest('a');
+      const logoLink = screen.getByAltText('Insight Logo').closest('Text');
       expect(logoLink).toHaveAttribute('href', '/');
     });
   });

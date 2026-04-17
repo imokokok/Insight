@@ -76,7 +76,7 @@ describe('chainUtils', () => {
     });
 
     it('should return undefined for invalid value without fallback', () => {
-      expect(safeBlockchainCast('invalid')).toBeUndefined();
+      expect(safeBlockchainCast('Text')).toBeUndefined();
     });
 
     it('should return fallback for invalid value with fallback', () => {

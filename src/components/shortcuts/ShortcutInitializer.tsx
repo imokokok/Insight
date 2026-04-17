@@ -1,7 +1,6 @@
 'use client';
 
 import { useKeyboardShortcuts, useGlobalKeyboardListener } from '@/hooks';
-import { useTranslations } from '@/i18n';
 import { useUIStore } from '@/stores/uiStore';
 
 import { useShortcutContext } from './ShortcutContext';
@@ -11,7 +10,6 @@ import { useShortcutContext } from './ShortcutContext';
  * 负责注册全局快捷键和初始化键盘监听
  */
 export function ShortcutInitializer() {
-  const _t = useTranslations();
   const { toggleHelp } = useShortcutContext();
   const { closeModal } = useUIStore();
 

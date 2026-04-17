@@ -3,10 +3,6 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { MobileDrawer } from '../MobileDrawer';
 import { type NavStructure, type NavGroup } from '../types';
 
-jest.mock('@/i18n', () => ({
-  useTranslations: () => (key: string) => key,
-}));
-
 jest.mock('../config', () => ({
   oracleColors: {
     chainlink: '#375BD2',
@@ -61,7 +57,7 @@ describe('MobileDrawer', () => {
       />
     );
 
-    expect(screen.queryByText('navbar.menu')).not.toBeInTheDocument();
+    expect(screen.queryByText('Text')).not.toBeInTheDocument();
   });
 
   it('should render when open', () => {
@@ -74,7 +70,7 @@ describe('MobileDrawer', () => {
       />
     );
 
-    expect(screen.getByText('navbar.menu')).toBeInTheDocument();
+    expect(screen.getByText('Text')).toBeInTheDocument();
   });
 
   it('should render close button', () => {
@@ -133,7 +129,7 @@ describe('MobileDrawer', () => {
       />
     );
 
-    expect(screen.getByText('nav.oracles')).toBeInTheDocument();
+    expect(screen.getByText('Text')).toBeInTheDocument();
   });
 
   it('should expand group when clicked', () => {
@@ -149,8 +145,8 @@ describe('MobileDrawer', () => {
     const groupButton = screen.getByRole('button', { name: /nav.oracles/i });
     fireEvent.click(groupButton);
 
-    expect(screen.getByText('nav.chainlink')).toBeInTheDocument();
-    expect(screen.getByText('nav.pyth')).toBeInTheDocument();
+    expect(screen.getByText('Text')).toBeInTheDocument();
+    expect(screen.getByText('Text')).toBeInTheDocument();
   });
 
   it('should collapse group when clicked again', () => {
@@ -165,10 +161,10 @@ describe('MobileDrawer', () => {
 
     const groupButton = screen.getByRole('button', { name: /nav.oracles/i });
     fireEvent.click(groupButton);
-    expect(screen.getByText('nav.chainlink')).toBeInTheDocument();
+    expect(screen.getByText('Text')).toBeInTheDocument();
 
     fireEvent.click(groupButton);
-    expect(screen.queryByText('nav.chainlink')).not.toBeInTheDocument();
+    expect(screen.queryByText('Text')).not.toBeInTheDocument();
   });
 
   it('should highlight active item', () => {
@@ -212,7 +208,7 @@ describe('MobileDrawer', () => {
       />
     );
 
-    expect(screen.getByText('nav.home')).toBeInTheDocument();
+    expect(screen.getByText('Text')).toBeInTheDocument();
   });
 
   it('should call onClose when navigation item is clicked', () => {

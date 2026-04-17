@@ -643,27 +643,27 @@ describe('anomalyDetection', () => {
 
     describe('getAnomalyTypeText', () => {
       it('should return correct text for price_spike', () => {
-        expect(getAnomalyTypeText('price_spike')).toBe('anomaly_price_spike');
+        expect(getAnomalyTypeText('Text')).toBe('anomaly_price_spike');
       });
 
       it('should return correct text for price_drop', () => {
-        expect(getAnomalyTypeText('price_drop')).toBe('anomaly_price_drop');
+        expect(getAnomalyTypeText('Text')).toBe('anomaly_price_drop');
       });
 
       it('should return correct text for volatility_spike', () => {
-        expect(getAnomalyTypeText('volatility_spike')).toBe('anomaly_volatility_spike');
+        expect(getAnomalyTypeText('Text')).toBe('anomaly_volatility_spike');
       });
 
       it('should return correct text for trend_break', () => {
-        expect(getAnomalyTypeText('trend_break')).toBe('anomaly_trend_break');
+        expect(getAnomalyTypeText('Text')).toBe('anomaly_trend_break');
       });
 
       it('should return correct text for volume_anomaly', () => {
-        expect(getAnomalyTypeText('volume_anomaly')).toBe('anomaly_volume');
+        expect(getAnomalyTypeText('Text')).toBe('anomaly_volume');
       });
 
       it('should return correct text for correlation_break', () => {
-        expect(getAnomalyTypeText('correlation_break')).toBe('anomaly_correlation_break');
+        expect(getAnomalyTypeText('Text')).toBe('anomaly_correlation_break');
       });
     });
 

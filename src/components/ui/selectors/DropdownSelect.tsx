@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 
 import { ChevronDown, Search, Check } from 'lucide-react';
-import { useTranslations } from 'next-intl';
 
 import { type DropdownSelectProps, type SelectorOption } from './types';
 
@@ -22,10 +21,9 @@ export function DropdownSelect<T = string>({
   renderOption,
   noOptionsMessage,
 }: DropdownSelectProps<T>) {
-  const t = useTranslations();
-  const resolvedPlaceholder = placeholder ?? t('crossOracle.ui.selectPlaceholder');
-  const resolvedSearchPlaceholder = searchPlaceholder ?? t('crossOracle.ui.searchPlaceholder');
-  const resolvedNoOptionsMessage = noOptionsMessage ?? t('crossOracle.ui.noOptionsMessage');
+  const resolvedPlaceholder = placeholder ?? 'Select...';
+  const resolvedSearchPlaceholder = searchPlaceholder ?? 'Search...';
+  const resolvedNoOptionsMessage = noOptionsMessage ?? 'No options found';
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | undefined>(defaultCategory);
@@ -259,8 +257,8 @@ export function DropdownSelect<T = string>({
           </div>
 
           <div className="px-3 py-2 text-xs flex justify-between border-t border-gray-100 text-gray-400 bg-gray-50/50">
-            <span>{t('crossOracle.ui.keyboardHint')}</span>
-            <span>{t('crossOracle.ui.totalCount', { count: filteredOptions.length })}</span>
+            <span>Use ↑↓ to navigate, Enter to select</span>
+            <span>{filteredOptions.length} options</span>
           </div>
         </div>
       )}

@@ -4,8 +4,6 @@
  * 提供导出配置管理功能，包括字段选择、时间范围配置、格式选项等。
  */
 
-import { isChineseLocale } from '@/i18n/routing';
-
 /**
  * 导出格式类型
  */
@@ -606,8 +604,8 @@ export function createExportConfig(partial: Partial<ExportConfig>): ExportConfig
 /**
  * 获取字段标签
  */
-export function getFieldLabel(field: ExportField, locale: string = 'en'): string {
-  return isChineseLocale(locale) ? field.labelZh : field.label;
+export function getFieldLabel(field: ExportField, _locale: string = 'en'): string {
+  return field.label;
 }
 
 /**

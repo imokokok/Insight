@@ -3,7 +3,6 @@
 import { useState } from 'react';
 
 import { Lock, Eye, EyeOff } from 'lucide-react';
-import { useTranslations } from 'next-intl';
 
 export interface PasswordInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   showToggle?: boolean;
@@ -11,7 +10,6 @@ export interface PasswordInputProps extends React.InputHTMLAttributes<HTMLInputE
 
 export function PasswordInput({ showToggle = true, className, ...props }: PasswordInputProps) {
   const [showPassword, setShowPassword] = useState(false);
-  const t = useTranslations();
 
   return (
     <div className="relative">
@@ -31,9 +29,7 @@ export function PasswordInput({ showToggle = true, className, ...props }: Passwo
           type="button"
           onClick={() => setShowPassword(!showPassword)}
           className="absolute inset-y-0 right-0 pr-4 flex items-center"
-          aria-label={
-            showPassword ? t('crossOracle.ui.hidePassword') : t('crossOracle.ui.showPassword')
-          }
+          aria-label={showPassword ? 'Hide password' : 'Show password'}
         >
           {showPassword ? (
             <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600 transition-colors" />

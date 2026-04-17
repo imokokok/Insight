@@ -6,7 +6,6 @@ import Image from 'next/image';
 
 import { User, Mail, Save, Key, Loader2, CheckCircle, Upload, Trash2 } from 'lucide-react';
 
-import { useTranslations } from '@/i18n';
 import { updateUserProfile, uploadAvatar, deleteAvatar, updatePassword } from '@/lib/supabase/auth';
 import { useUser, useProfile, useAuthActions } from '@/stores/authStore';
 
@@ -142,7 +141,6 @@ const AvatarUploader = ({
 };
 
 export function ProfilePanel() {
-  const t = useTranslations('settingsPage');
   const user = useUser();
   const profile = useProfile();
   const { refreshProfile } = useAuthActions();
@@ -179,11 +177,11 @@ export function ProfilePanel() {
       if (updateError) {
         setError(updateError.message);
       } else {
-        setSuccess(t('settings.profile.saveSuccess'));
+        setSuccess('settings.profile.saveSuccess');
         await refreshProfile();
       }
     } catch {
-      setError(t('settings.profile.saveError'));
+      setError('settings.profile.saveError');
     } finally {
       setIsSaving(false);
     }
@@ -207,12 +205,12 @@ export function ProfilePanel() {
     if (!user) return;
 
     if (newPassword.length < 6) {
-      setError(t('settings.profile.passwordMinLength'));
+      setError('settings.profile.passwordMinLength');
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setError(t('settings.profile.passwordMismatch'));
+      setError('settings.profile.passwordMismatch');
       return;
     }
 
@@ -225,13 +223,13 @@ export function ProfilePanel() {
       if (updateError) {
         setError(updateError.message);
       } else {
-        setSuccess(t('settings.profile.passwordUpdateSuccess'));
+        setSuccess('settings.profile.passwordUpdateSuccess');
         setShowPasswordForm(false);
         setNewPassword('');
         setConfirmPassword('');
       }
     } catch {
-      setError(t('settings.profile.passwordUpdateError'));
+      setError('settings.profile.passwordUpdateError');
     } finally {
       setIsChangingPassword(false);
     }
@@ -243,9 +241,9 @@ export function ProfilePanel() {
         <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
           <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <User className="w-5 h-5 text-gray-400" />
-            {t('settings.profile.title')}
+            {'settings.profile.title'}
           </h2>
-          <p className="text-sm text-gray-500 mt-1">{t('settings.profile.subtitle')}</p>
+          <p className="text-sm text-gray-500 mt-1">{'settings.profile.subtitle'}</p>
         </div>
 
         <div className="p-6 space-y-6">
@@ -275,13 +273,13 @@ export function ProfilePanel() {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('settings.profile.displayNameLabel')}
+                    {'settings.profile.displayNameLabel'}
                   </label>
                   <input
                     type="text"
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
-                    placeholder={t('settings.profile.displayNamePlaceholder')}
+                    placeholder={'settings.profile.displayNamePlaceholder'}
                     className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none transition-all duration-200"
                   />
                 </div>
@@ -289,7 +287,7 @@ export function ProfilePanel() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                     <Mail className="w-4 h-4 text-gray-400" />
-                    {t('settings.profile.emailLabel')}
+                    {'settings.profile.emailLabel'}
                   </label>
                   <input
                     type="email"
@@ -298,7 +296,7 @@ export function ProfilePanel() {
                     className="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    {t('settings.profile.emailNotEditable')}
+                    {'settings.profile.emailNotEditable'}
                   </p>
                 </div>
               </div>
@@ -316,7 +314,7 @@ export function ProfilePanel() {
               ) : (
                 <Save className="w-4 h-4" />
               )}
-              {t('settings.profile.saveChanges')}
+              {'settings.profile.saveChanges'}
             </button>
           </div>
         </div>
@@ -326,11 +324,9 @@ export function ProfilePanel() {
         <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
           <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <Key className="w-5 h-5 text-gray-400" />
-            {t('settings.profile.passwordManagement')}
+            {'settings.profile.passwordManagement'}
           </h2>
-          <p className="text-sm text-gray-500 mt-1">
-            {t('settings.profile.passwordManagementDesc')}
-          </p>
+          <p className="text-sm text-gray-500 mt-1">{'settings.profile.passwordManagementDesc'}</p>
         </div>
 
         <div className="p-6">
@@ -340,32 +336,32 @@ export function ProfilePanel() {
               className="inline-flex items-center gap-2 px-4 py-2.5 border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 hover:border-gray-300 active:bg-gray-100 transition-all duration-200 font-medium text-sm"
             >
               <Key className="w-4 h-4" />
-              {t('settings.profile.changePassword')}
+              {'settings.profile.changePassword'}
             </button>
           ) : (
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {t('settings.profile.newPassword')}
+                  {'settings.profile.newPassword'}
                 </label>
                 <input
                   type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder={t('settings.profile.newPasswordPlaceholder')}
+                  placeholder={'settings.profile.newPasswordPlaceholder'}
                   className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none transition-all duration-200"
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {t('settings.profile.confirmNewPassword')}
+                  {'settings.profile.confirmNewPassword'}
                 </label>
                 <input
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder={t('settings.profile.confirmNewPasswordPlaceholder')}
+                  placeholder={'settings.profile.confirmNewPasswordPlaceholder'}
                   className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none transition-all duration-200"
                 />
               </div>
@@ -381,7 +377,7 @@ export function ProfilePanel() {
                   ) : (
                     <CheckCircle className="w-4 h-4" />
                   )}
-                  {t('settings.profile.updatePassword')}
+                  {'settings.profile.updatePassword'}
                 </button>
                 <button
                   onClick={() => {
@@ -391,7 +387,7 @@ export function ProfilePanel() {
                   }}
                   className="px-4 py-2.5 border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 hover:border-gray-300 active:bg-gray-100 transition-all duration-200 font-medium text-sm"
                 >
-                  {t('settings.profile.cancel')}
+                  {'settings.profile.cancel'}
                 </button>
               </div>
             </div>

@@ -11,10 +11,6 @@ jest.mock('@/hooks', () => ({
   }),
 }));
 
-jest.mock('@/i18n', () => ({
-  useTranslations: () => (key: string) => key,
-}));
-
 jest.mock('@/lib/constants', () => ({
   providerNames: { chainlink: 'Chainlink', pyth: 'Pyth' },
   chainNames: { ethereum: 'Ethereum', solana: 'Solana' },
@@ -65,7 +61,7 @@ describe('AlertConfig', () => {
   it('should render alert config form', () => {
     render(<AlertConfig onAlertCreated={mockOnAlertCreated} />);
 
-    expect(screen.getByText('alerts.create.title')).toBeInTheDocument();
+    expect(screen.getByText('Text')).toBeInTheDocument();
   });
 
   it('should render dropdown selectors', () => {
@@ -84,7 +80,7 @@ describe('AlertConfig', () => {
   it('should render target value input', () => {
     render(<AlertConfig onAlertCreated={mockOnAlertCreated} />);
 
-    const targetInput = screen.getByPlaceholderText('alerts.placeholder.targetPrice');
+    const targetInput = screen.getByPlaceholderText('Text');
     expect(targetInput).toBeInTheDocument();
   });
 
@@ -98,7 +94,7 @@ describe('AlertConfig', () => {
   it('should allow entering alert name', () => {
     render(<AlertConfig onAlertCreated={mockOnAlertCreated} />);
 
-    const nameInput = screen.getByPlaceholderText('alerts.create.namePlaceholder');
+    const nameInput = screen.getByPlaceholderText('Text');
     fireEvent.change(nameInput, { target: { value: 'Test Alert' } });
 
     expect(nameInput).toHaveValue('Test Alert');
@@ -107,7 +103,7 @@ describe('AlertConfig', () => {
   it('should allow entering target value', () => {
     render(<AlertConfig onAlertCreated={mockOnAlertCreated} />);
 
-    const targetInput = screen.getByPlaceholderText('alerts.placeholder.targetPrice');
+    const targetInput = screen.getByPlaceholderText('Text');
     fireEvent.change(targetInput, { target: { value: '50000' } });
 
     expect(targetInput).toHaveValue(50000);
@@ -120,14 +116,14 @@ describe('AlertConfig', () => {
     fireEvent.click(createButton);
 
     await waitFor(() => {
-      expect(screen.getByText('alerts.error.invalidTargetValue')).toBeInTheDocument();
+      expect(screen.getByText('Text')).toBeInTheDocument();
     });
   });
 
   it('should render mute period settings', async () => {
     render(<AlertConfig onAlertCreated={mockOnAlertCreated} />);
 
-    const muteSettingsButton = screen.getByText('alerts.mute.settings');
+    const muteSettingsButton = screen.getByText('Text');
     fireEvent.click(muteSettingsButton);
 
     await waitFor(() => {

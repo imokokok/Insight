@@ -26,10 +26,6 @@ jest.mock('@/hooks', () => ({
   }),
 }));
 
-jest.mock('@/i18n', () => ({
-  useTranslations: () => (key: string) => key,
-}));
-
 jest.mock('@/lib/constants', () => ({
   providerNames: { chainlink: 'Chainlink', pyth: 'Pyth' },
   chainNames: { ethereum: 'Ethereum', solana: 'Solana' },
@@ -82,7 +78,7 @@ describe('AlertList', () => {
   it('should render alert list', () => {
     render(<AlertList {...mockProps} />);
 
-    expect(screen.getByText('alerts.list.title')).toBeInTheDocument();
+    expect(screen.getByText('Text')).toBeInTheDocument();
   });
 
   it('should render loading state', () => {
@@ -101,7 +97,7 @@ describe('AlertList', () => {
     const onRefresh = jest.fn();
     render(<AlertList {...mockProps} onRefresh={onRefresh} />);
 
-    expect(screen.getByText('alerts.list.title')).toBeInTheDocument();
+    expect(screen.getByText('Text')).toBeInTheDocument();
     expect(onRefresh).not.toHaveBeenCalled();
   });
 

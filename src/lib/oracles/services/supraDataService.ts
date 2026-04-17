@@ -218,7 +218,7 @@ export class SupraDataService {
 
     try {
       // 从 tradingPair 中提取 symbol (格式: btc_usdt -> BTC)
-      const symbol = tradingPair.split('_')[0]?.toUpperCase();
+      const symbol = tradingPair.split(' ')[0]?.toUpperCase();
       if (!symbol) {
         logger.warn(`Invalid trading pair format: ${tradingPair}`);
         return [];

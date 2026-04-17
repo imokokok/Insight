@@ -66,7 +66,7 @@ describe('xss', () => {
 
   describe('sanitizeHtml', () => {
     it('should remove script tags', () => {
-      const input = '<script>alert("xss")</script>';
+      const input = '<script>alert</script>';
       const result = sanitizeHtml(input);
       expect(result).not.toContain('<script>');
       expect(result).not.toContain('alert');

@@ -3,8 +3,6 @@
 import { motion } from 'framer-motion';
 import { X, Download, Trash2, FileText, FileJson, Table, FileSpreadsheet } from 'lucide-react';
 
-import { useTranslations } from '@/i18n';
-
 import { type ExportDataSource, type ExportHistoryItem, type ExportFormat } from './types';
 import { useExportHistory } from './useExportHistory';
 
@@ -21,7 +19,6 @@ const formatIcons: Record<ExportFormat, React.ReactNode> = {
 };
 
 export function ExportHistoryPanel({ onClose, dataSource }: ExportHistoryPanelProps) {
-  const t = useTranslations('common');
   const { history, removeHistoryItem, clearHistory, formatFileSize, isLoading } =
     useExportHistory();
 
@@ -52,13 +49,13 @@ export function ExportHistoryPanel({ onClose, dataSource }: ExportHistoryPanelPr
       className="fixed right-4 top-16 z-50 w-96 bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden"
     >
       <div className="flex items-center justify-between p-4 border-b border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-900">{t('exportHistory')}</h3>
+        <h3 className="text-lg font-semibold text-gray-900">{'exportHistory'}</h3>
         <div className="flex items-center gap-2">
           {filteredHistory.length > 0 && (
             <button
               onClick={clearHistory}
               className="p-1.5 text-gray-400 hover:text-red-500 transition-colors"
-              title={t('clearHistory')}
+              title={'clearHistory'}
             >
               <Trash2 className="w-4 h-4" />
             </button>
@@ -74,9 +71,9 @@ export function ExportHistoryPanel({ onClose, dataSource }: ExportHistoryPanelPr
 
       <div className="max-h-96 overflow-y-auto">
         {isLoading ? (
-          <div className="p-8 text-center text-gray-500">{t('loading')}</div>
+          <div className="p-8 text-center text-gray-500">{'loading'}</div>
         ) : filteredHistory.length === 0 ? (
-          <div className="p-8 text-center text-gray-500">{t('noExportHistory')}</div>
+          <div className="p-8 text-center text-gray-500">{'noExportHistory'}</div>
         ) : (
           <div className="divide-y divide-gray-100">
             {filteredHistory.map((item) => (
@@ -97,7 +94,7 @@ export function ExportHistoryPanel({ onClose, dataSource }: ExportHistoryPanelPr
                       <button
                         onClick={() => handleReDownload(item)}
                         className="p-1 text-gray-400 hover:text-blue-500 transition-colors"
-                        title={t('download')}
+                        title={'download'}
                       >
                         <Download className="w-3.5 h-3.5" />
                       </button>
@@ -105,7 +102,7 @@ export function ExportHistoryPanel({ onClose, dataSource }: ExportHistoryPanelPr
                     <button
                       onClick={() => removeHistoryItem(item.id)}
                       className="p-1 text-gray-400 hover:text-red-500 transition-colors"
-                      title={t('delete')}
+                      title={'delete'}
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>

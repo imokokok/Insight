@@ -3,10 +3,6 @@ import { render, screen, fireEvent, act } from '@testing-library/react';
 import { DropdownMenu } from '../DropdownMenu';
 import { type NavGroup } from '../types';
 
-jest.mock('@/i18n', () => ({
-  useTranslations: () => (key: string) => key,
-}));
-
 jest.mock('../config', () => ({
   oracleColors: {
     chainlink: '#375BD2',
@@ -54,7 +50,7 @@ describe('DropdownMenu', () => {
       />
     );
 
-    expect(screen.getByText('nav.oracles')).toBeInTheDocument();
+    expect(screen.getByText('Text')).toBeInTheDocument();
   });
 
   it('should show dropdown menu on click', () => {
@@ -86,8 +82,8 @@ describe('DropdownMenu', () => {
     const button = screen.getByRole('button', { name: /nav.oracles/i });
     fireEvent.click(button);
 
-    expect(screen.getByText('nav.chainlink')).toBeInTheDocument();
-    expect(screen.getByText('nav.pyth')).toBeInTheDocument();
+    expect(screen.getByText('Text')).toBeInTheDocument();
+    expect(screen.getByText('Text')).toBeInTheDocument();
   });
 
   it('should close dropdown when item is clicked', () => {
@@ -252,6 +248,6 @@ describe('DropdownMenu', () => {
     const button = screen.getByRole('button');
     fireEvent.click(button);
 
-    expect(screen.getByText('nav.chainlinkDesc')).toBeInTheDocument();
+    expect(screen.getByText('Text')).toBeInTheDocument();
   });
 });

@@ -4,7 +4,6 @@ import { useState, useEffect, useMemo } from 'react';
 
 import { Wifi, WifiOff, Clock, RefreshCw, Activity } from 'lucide-react';
 
-import { useTranslations } from '@/i18n';
 import { semanticColors } from '@/lib/config/colors';
 import { cn } from '@/lib/utils';
 
@@ -37,49 +36,45 @@ interface FreshnessConfig {
   pulse: boolean;
 }
 
-function getStatusConfig(
-  t: ReturnType<typeof useTranslations>
-): Record<ConnectionStatus, StatusConfig> {
+function getStatusConfig(): Record<ConnectionStatus, StatusConfig> {
   return {
     connected: {
-      label: t('liveStatus.connected'),
+      label: 'Connected',
       icon: Wifi,
       color: semanticColors.success.DEFAULT,
     },
     disconnected: {
-      label: t('liveStatus.disconnected'),
+      label: 'Disconnected',
       icon: WifiOff,
       color: semanticColors.danger.DEFAULT,
     },
     reconnecting: {
-      label: t('liveStatus.reconnecting'),
+      label: 'Reconnecting',
       icon: RefreshCw,
       color: semanticColors.warning.DEFAULT,
     },
   };
 }
 
-function getFreshnessConfig(
-  t: ReturnType<typeof useTranslations>
-): Record<DataFreshnessLevel, FreshnessConfig> {
+function getFreshnessConfig(): Record<DataFreshnessLevel, FreshnessConfig> {
   return {
     fresh: {
-      label: t('liveStatus.dataFresh'),
-      shortLabel: t('liveStatus.dataFresh'),
+      label: 'Data Fresh',
+      shortLabel: 'Fresh',
       color: semanticColors.success.DEFAULT,
       bgColor: 'bg-emerald-50',
       pulse: false,
     },
     stale: {
-      label: t('liveStatus.dataStale'),
-      shortLabel: t('liveStatus.dataStale'),
+      label: 'Data Stale',
+      shortLabel: 'Stale',
       color: semanticColors.warning.DEFAULT,
       bgColor: 'bg-amber-50',
       pulse: true,
     },
     expired: {
-      label: t('liveStatus.dataExpired'),
-      shortLabel: t('liveStatus.dataExpired'),
+      label: 'Data Expired',
+      shortLabel: 'Expired',
       color: semanticColors.danger.DEFAULT,
       bgColor: 'bg-red-50',
       pulse: true,
@@ -99,7 +94,7 @@ function formatLatency(ms?: number): string {
   return `${Math.round(ms)}ms`;
 }
 
-function formatLastUpdate(date?: Date, t?: ReturnType<typeof useTranslations>): string {
+function formatLastUpdate(date?: Date): string {
   if (!date) return '--';
   const now = new Date();
   const diff = now.getTime() - date.getTime();
@@ -107,11 +102,9 @@ function formatLastUpdate(date?: Date, t?: ReturnType<typeof useTranslations>): 
   const minutes = Math.floor(seconds / 60);
   const hours = Math.floor(minutes / 60);
 
-  if (!t) return date.toLocaleDateString();
-
-  if (seconds < 60) return t('time.secondsAgo', { count: seconds });
-  if (minutes < 60) return t('time.minutesAgo', { count: minutes });
-  if (hours < 24) return t('time.hoursAgo', { count: hours });
+  if (seconds < 60) return `${seconds} seconds ago`;
+  if (minutes < 60) return `${minutes} minutes ago`;
+  if (hours < 24) return `${hours} hours ago`;
   return date.toLocaleDateString();
 }
 
@@ -137,7 +130,6 @@ export function LiveStatusBar({
   className,
   freshnessThreshold = 30000,
 }: LiveStatusBarProps) {
-  const t = useTranslations('ui');
   const [currentTime, setCurrentTime] = useState<Date | null>(() => {
     if (typeof window !== 'undefined') {
       return new Date();
@@ -167,13 +159,12 @@ export function LiveStatusBar({
 
   const displayTime = currentTime ?? new Date();
 
-  const statusConfig = getStatusConfig(t);
-  const freshnessConfig = getFreshnessConfig(t);
+  const statusConfig = getStatusConfig();
+  const freshnessConfig = getFreshnessConfig();
   const status = statusConfig[connectionStatus];
   const freshness = freshnessConfig[freshnessLevel];
   const StatusIcon = status.icon;
 
-  // Tooltip 内容 - 只在客户端挂载后显示动态内容
   const tooltipContent = isMounted ? (
     <div className="space-y-1.5">
       <div className="flex items-center gap-2">
@@ -181,9 +172,7 @@ export function LiveStatusBar({
         <span className="font-mono">{formatUTCTime(displayTime)}</span>
       </div>
       <div className="flex items-center gap-2">
-        <span>
-          {t('metrics.responseTime')}: {formatLatency(latency)}
-        </span>
+        <span>Response Time: {formatLatency(latency)}</span>
       </div>
       <div className="flex items-center gap-2">
         <StatusIcon className="w-3 h-3" style={{ color: status.color }} />
@@ -201,9 +190,7 @@ export function LiveStatusBar({
         <span className="font-mono">--:--:-- UTC</span>
       </div>
       <div className="flex items-center gap-2">
-        <span>
-          {t('liveStatus.latency')}: {formatLatency(latency)}
-        </span>
+        <span>Latency: {formatLatency(latency)}</span>
       </div>
       <div className="flex items-center gap-2">
         <StatusIcon className="w-3 h-3" style={{ color: status.color }} />
@@ -224,7 +211,6 @@ export function LiveStatusBar({
           className
         )}
       >
-        {/* 数据新鲜度 - Pill 样式 */}
         <div
           className={cn(
             'flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs',
@@ -249,21 +235,17 @@ export function LiveStatusBar({
           </span>
         </div>
 
-        {/* 分隔线 */}
         <div className="w-px h-3 bg-gray-200" />
 
-        {/* 最后更新时间 */}
         <div className="flex items-center gap-1 text-xs text-gray-500">
           <Clock className="w-3 h-3" />
           <span className="whitespace-nowrap">
-            {isMounted ? formatLastUpdate(lastUpdate, t) : '--'}
+            {isMounted ? formatLastUpdate(lastUpdate) : '--'}
           </span>
         </div>
 
-        {/* 分隔线 - 小屏幕隐藏 */}
         <div className="hidden sm:block w-px h-3 bg-gray-200" />
 
-        {/* 连接状态 - 小屏幕只显示图标 */}
         <div className="flex items-center gap-1">
           <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: status.color }} />
           <StatusIcon

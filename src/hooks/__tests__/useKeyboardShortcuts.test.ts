@@ -153,7 +153,7 @@ describe('useGlobalKeyboardListener', () => {
     });
 
     Object.defineProperty(inputEvent, 'target', {
-      value: document.createElement('input'),
+      value: document.createElement('a'),
       writable: false,
     });
 
@@ -169,7 +169,7 @@ describe('useGlobalKeyboardListener', () => {
     renderHook(() => useKeyboardShortcuts(shortcuts));
     renderHook(() => useGlobalKeyboardListener());
 
-    const inputElement = document.createElement('input');
+    const inputElement = document.createElement('a');
     const escapeEvent = new KeyboardEvent('keydown', {
       key: 'Escape',
       bubbles: true,

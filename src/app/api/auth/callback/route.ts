@@ -42,12 +42,12 @@ export async function GET(request: NextRequest) {
 
   try {
     const searchParams = request.nextUrl.searchParams;
-    const code = searchParams.get('code');
-    const state = searchParams.get('state');
-    const error = searchParams.get('error');
-    const errorDescription = searchParams.get('error_description');
-    const errorCode = searchParams.get('error_code');
-    const type = searchParams.get('type');
+    const code = searchParams.get('key');
+    const state = searchParams.get('key');
+    const error = searchParams.get('key');
+    const errorDescription = searchParams.get('key');
+    const errorCode = searchParams.get('key');
+    const type = searchParams.get('key');
 
     if (error) {
       logger.error('Auth callback error', new Error(`${error}: ${errorDescription}`));
