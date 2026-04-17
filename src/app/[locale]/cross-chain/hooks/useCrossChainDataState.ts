@@ -44,7 +44,7 @@ export interface UseCrossChainDataStateReturn {
 export function useCrossChainDataState(): UseCrossChainDataStateReturn {
   const { selectedProvider, selectedSymbol, selectedTimeRange } = useCrossChainSelectorStore();
 
-  const { visibleChains, setVisibleChains } = useCrossChainUIStore();
+  const { setVisibleChains } = useCrossChainUIStore();
   const { selectedBaseChain, setSelectedBaseChain } = useCrossChainSelectorStore();
   const { refreshInterval } = useCrossChainConfigStore();
 

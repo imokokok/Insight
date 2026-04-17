@@ -64,6 +64,10 @@ The Insight Oracle Data Analytics Platform is a modern web application built on 
 │  │WINkLink  │ │  Supra   │ │         Base Oracle Client         ││
 │  │  Client  │ │  Client  │ │           (Abstract)               ││
 │  └──────────┘ └──────────┘ └────────────────────────────────────┘│
+│  ┌──────────┐                                                    │
+│  │  TWAP    │                                                    │
+│  │  Client  │                                                    │
+│  └──────────┘                                                    │
 └─────────────────────────────────────────────────────────────────┘
                               │
                               ▼
@@ -956,6 +960,7 @@ export class API3Client extends BaseOracleClient {
 | DIA      | `dia.ts`, `diaDataService.ts`, `diaPriceService.ts`, `diaNFTService.ts`, `diaNetworkService.ts` | DIA oracle with modular service architecture |
 | WINkLink | `winklink.ts`, `winklinkRealDataService.ts`                                                     | WINkLink oracle with real data support       |
 | Supra    | `supra.ts`, `supraDataService.ts`                                                               | Supra oracle with SDK integration            |
+| TWAP     | `clients/twap.ts`, `services/twapOnChainService.ts`, `constants/twapConstants.ts`               | Uniswap V3 TWAP oracle with on-chain data    |
 
 #### DIA Service Architecture
 
@@ -992,6 +997,42 @@ class DIADataService {
 **Configured Asset Addresses** (DIA_ASSET_ADDRESSES):
 
 - DIA, ETH, BTC, USDC, USDT, LINK and other multi-chain contract address configurations
+
+### 7.6 TWAP On-Chain Service Architecture
+
+TWAP oracle adopts a direct on-chain data fetching architecture via Uniswap V3 pool contracts:
+
+```typescript
+// src/lib/oracles/services/twapOnChainService.ts
+class TwapOnChainService {
+  private cache: Map<string, { data: TwapPriceData; timestamp: number }>;
+
+  async getTwapPrice(symbol: string, chain: Blockchain): Promise<TwapPriceData>;
+  async getSpotPrice(symbol: string, chain: Blockchain): Promise<TwapPriceData>;
+  async getPoolInfo(poolAddress: string, chain: Blockchain): Promise<PoolInfo>;
+  async getPrices(symbols: string[], chain: Blockchain): Promise<TwapPriceData[]>;
+  async findPoolAddress(token0: string, token1: string, chain: Blockchain): Promise<string | null>;
+}
+```
+
+**Key Features:**
+
+- **RPC with Fallback**: Multiple RPC endpoints per chain with health tracking and automatic recovery
+- **Contract Calls**: Direct encoding/decoding of Uniswap V3 Pool contract calls (`slot0`, `observe`, `liquidity`, `fee`, `token0`, `token1`) and Factory `getPool`
+- **TWAP Computation**: Calls `observe([twapInterval, 0])` to get tick cumulatives, computes average tick, converts to USD price
+- **Confidence Scoring**: Based on liquidity score and TWAP-spot deviation
+- **Caching**: 30-second TTL in-memory cache
+- **Price Calculation**: Converts tick-based prices to USD using ETH/USD and BNB/USD reference prices (fetched from Binance API with on-chain fallback)
+
+**TWAP Constants Configuration** (`src/lib/oracles/constants/twapConstants.ts`):
+
+- Uniswap V3 Factory addresses per chain
+- Fee tiers: LOW (500), MEDIUM (3000), HIGH (10000)
+- TWAP intervals: SHORT (600s/10m), MEDIUM (1800s/30m), LONG (3600s/1h)
+- Token addresses: 25+ tokens with per-chain contract addresses
+- Pool addresses: 15+ trading pairs with per-chain pool configs
+- RPC configuration: Per-chain endpoints with Alchemy + public fallbacks
+- Supported symbols: 22 tokens (BTC, ETH, USDC, USDT, DAI, WBTC, LINK, UNI, AAVE, ARB, OP, MATIC, SNX, CRV, COMP, MKR, SUSHI, 1INCH, BAL, BNB, STETH, FRAX)
 
 ### 7.4 Pyth Hermes Client Integration
 

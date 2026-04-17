@@ -31,6 +31,7 @@ jest.mock('@/lib/oracles/base/databaseOperations', () => ({
   fetchHistoricalPricesWithDatabase: jest.fn(),
 }));
 
+// eslint-disable-next-line max-lines-per-function
 describe('ChainlinkClient', () => {
   let client: ChainlinkClient;
 
@@ -1001,6 +1002,7 @@ describe('ChainlinkClient', () => {
     const {
       fetchPriceWithDatabase,
       fetchHistoricalPricesWithDatabase,
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
     } = require('@/lib/oracles/base/databaseOperations');
 
     describe('Successful database save and retrieval', () => {

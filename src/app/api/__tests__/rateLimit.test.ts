@@ -37,6 +37,7 @@ function createMockRequest(
   } as unknown as NextRequest;
 }
 
+// eslint-disable-next-line max-lines-per-function
 describe('API Rate Limit Tests', () => {
   beforeEach(() => {
     jest.clearAllMocks();

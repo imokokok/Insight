@@ -357,9 +357,7 @@ export function PreferencesPanel() {
                     options={autoRefreshOptions}
                     value={preferences.autoRefreshInterval}
                     onChange={(value) => updatePreference('autoRefreshInterval', value)}
-                    placeholder={
-                      t('settings.preferences.selectRefreshInterval')
-                    }
+                    placeholder={t('settings.preferences.selectRefreshInterval')}
                   />
                   <p className="text-xs text-gray-500 mt-1">
                     {t('settings.preferences.autoRefreshIntervalHint')}

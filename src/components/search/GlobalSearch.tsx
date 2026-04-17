@@ -272,8 +272,9 @@ function GlobalSearchComponent({ isOpen, onClose }: GlobalSearchProps) {
 
   // Clear item refs when results change
   useEffect(() => {
+    const currentRefs = itemRefs.current;
     return () => {
-      itemRefs.current.clear();
+      currentRefs.clear();
     };
   }, [results]);
 
@@ -286,7 +287,6 @@ function GlobalSearchComponent({ isOpen, onClose }: GlobalSearchProps) {
         inputRef.current?.focus();
       });
     } else {
-      setQuery('');
       clearSearch();
       reset();
       // Restore previous focus

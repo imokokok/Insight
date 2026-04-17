@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const accessToken = request.cookies.get('sb-access-token')?.value;
-    const refreshToken = request.cookies.get('sb-refresh-token')?.value;
+    const _refreshToken = request.cookies.get('sb-refresh-token')?.value;
 
     if (!accessToken) {
       return ApiResponseBuilder.unauthorized();

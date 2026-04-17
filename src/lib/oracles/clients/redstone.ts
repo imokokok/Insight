@@ -1,10 +1,9 @@
 import { RedStoneApiError, type RedStoneErrorCode } from '@/lib/errors';
-import { BaseOracleClient } from '@/lib/oracles/base';
-import type { OracleClientConfig, OracleCacheEntry } from '@/lib/oracles/base';
+import { BaseOracleClient, OracleCache } from '@/lib/oracles/base';
+import type { OracleClientConfig } from '@/lib/oracles/base';
 import { SPREAD_PERCENTAGES, REDSTONE_API_BASE } from '@/lib/oracles/constants/redstoneConstants';
 import { redstoneSymbols } from '@/lib/oracles/constants/supportedSymbols';
 import { withOracleRetry, ORACLE_RETRY_PRESETS } from '@/lib/oracles/utils/retry';
-import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
 import { createLogger } from '@/lib/utils/logger';
 import { toMilliseconds } from '@/lib/utils/timestamp';
 import {
@@ -24,13 +23,11 @@ const REDSTONE_CACHE_TTL = {
 interface RedStonePriceResponse {
   symbol: string;
   value: number;
-  /** Timestamp from RedStone API (could be in seconds or milliseconds) */
   timestamp: number;
   provider?: string;
   permawireTx?: string;
   source?: {
     value: number;
-    /** Timestamp (could be in seconds or milliseconds) */
     timestamp: number;
   }[];
   change24h?: number;
@@ -55,40 +52,13 @@ export class RedStoneClient extends BaseOracleClient {
   ];
 
   defaultUpdateIntervalMinutes = 10;
-  private cache: Map<string, OracleCacheEntry<unknown>> = new Map();
+  protected historicalPriceConfidence = 0.97;
+  private cache = new OracleCache();
 
   constructor(config?: OracleClientConfig) {
     super(config);
   }
 
-  private getFromCache<T>(key: string): T | null {
-    const entry = this.cache.get(key) as OracleCacheEntry<T> | undefined;
-    if (!entry) return null;
-
-    const now = Date.now();
-    if (now - entry.timestamp > entry.ttl) {
-      this.cache.delete(key);
-      return null;
-    }
-
-    return entry.data;
-  }
-
-  private setCache<T>(key: string, data: T, ttl: number): void {
-    this.cache.set(key, {
-      data,
-      timestamp: Date.now(),
-      ttl,
-    });
-  }
-
-  /**
-   * Generates a confidence interval (bid/ask spread) for a given price and symbol.
-   * Uses a deterministic algorithm based on time to ensure consistent spreads within each minute.
-   * @param price - The current price of the asset
-   * @param symbol - The trading symbol (e.g., 'BTC', 'ETH')
-   * @returns A ConfidenceInterval object containing bid, ask, and width percentage
-   */
   private generateConfidenceInterval(price: number, symbol: string): ConfidenceInterval {
     const baseSpread = SPREAD_PERCENTAGES[symbol.toUpperCase()] || 0.05;
     const minute = Math.floor(Date.now() / 60000);
@@ -127,16 +97,9 @@ export class RedStoneClient extends BaseOracleClient {
     return 'FETCH_ERROR';
   }
 
-  /**
-   * Fetches real-time price data from the RedStone API.
-   * Implements caching and retry logic with exponential backoff.
-   * @param symbol - The trading symbol to fetch (e.g., 'BTC', 'ETH')
-   * @returns PriceData if successful, null if no data available
-   * @throws RedStoneApiError if the API request fails after all retries
-   */
   private async fetchRealPrice(symbol: string, signal?: AbortSignal): Promise<PriceData | null> {
     const cacheKey = `price:${symbol}`;
-    const cached = this.getFromCache<PriceData>(cacheKey);
+    const cached = this.cache.get<PriceData>(cacheKey);
     if (cached) {
       return cached;
     }
@@ -202,7 +165,7 @@ export class RedStoneClient extends BaseOracleClient {
       );
 
       if (result) {
-        this.setCache(cacheKey, result, REDSTONE_CACHE_TTL.PRICE);
+        this.cache.set(cacheKey, result, REDSTONE_CACHE_TTL.PRICE);
       }
 
       return result;
@@ -232,16 +195,8 @@ export class RedStoneClient extends BaseOracleClient {
     }
   }
 
-  /**
-   * Parses a RedStone API price response into a standardized PriceData object.
-   * Uses toMilliseconds to automatically detect and convert timestamps (seconds or milliseconds).
-   * @param response - The raw response from RedStone API
-   * @param symbol - The trading symbol
-   * @returns Standardized PriceData object
-   */
   private parsePriceResponse(response: RedStonePriceResponse, symbol: string): PriceData {
     const price = response.value;
-    // Use toMilliseconds to automatically detect timestamp format (seconds or milliseconds)
     const timestamp = toMilliseconds(response.timestamp);
     const confidenceInterval = this.generateConfidenceInterval(price, symbol);
 
@@ -259,14 +214,6 @@ export class RedStoneClient extends BaseOracleClient {
     };
   }
 
-  /**
-   * Gets the current price for a given symbol from RedStone oracle.
-   * Uses real data from RedStone API only. No fallback to other sources.
-   * @param symbol - The trading symbol (e.g., 'BTC', 'ETH')
-   * @param chain - Optional blockchain context for chain-specific pricing
-   * @returns Promise resolving to PriceData with current price information
-   * @throws OracleError if price fetching fails
-   */
   async getPrice(
     symbol: string,
     chain?: Blockchain,
@@ -282,7 +229,6 @@ export class RedStoneClient extends BaseOracleClient {
         };
       }
 
-      // If RedStone API returns no data, throw error directly without fallback
       throw this.createError(
         `No price data available for ${symbol} from RedStone API`,
         'FETCH_ERROR'
@@ -295,67 +241,6 @@ export class RedStoneClient extends BaseOracleClient {
         error instanceof Error ? error.message : 'Failed to fetch price from RedStone',
         'REDSTONE_ERROR'
       );
-    }
-  }
-
-  /**
-   * Gets historical price data for a given symbol over a specified time period.
-   * 使用 Binance API 获取历史价格数据（与其他预言机保持一致）
-   * @param symbol - The trading symbol (e.g., 'BTC', 'ETH')
-   * @param chain - Optional blockchain context
-   * @param period - Time period in hours (default: 24)
-   * @returns Promise resolving to an array of PriceData points
-   * @throws OracleError if historical data fetching fails
-   */
-  async getHistoricalPrices(
-    symbol: string,
-    chain?: Blockchain,
-    period: number = 24,
-    _options?: { signal?: AbortSignal }
-  ): Promise<PriceData[]> {
-    try {
-      const historicalPrices = await binanceMarketService.getHistoricalPricesByHours(
-        symbol,
-        period
-      );
-
-      if (!historicalPrices || historicalPrices.length === 0) {
-        logger.warn(`No historical data available for ${symbol}`, { symbol });
-        return [];
-      }
-
-      logger.info(`Using Binance historical data for ${symbol}`, {
-        symbol,
-        points: historicalPrices.length,
-        period,
-      });
-
-      const targetChain = chain || Blockchain.ETHEREUM;
-      const latestPrice = historicalPrices[historicalPrices.length - 1].price;
-
-      return historicalPrices.map((point) => {
-        const change24h = latestPrice - point.price;
-        const change24hPercent =
-          point.price > 0 ? ((latestPrice - point.price) / point.price) * 100 : 0;
-
-        return {
-          provider: this.name,
-          chain: targetChain,
-          symbol: symbol.toUpperCase(),
-          price: point.price,
-          timestamp: point.timestamp,
-          decimals: 8,
-          confidence: 0.97,
-          change24h: Number(change24h.toFixed(4)),
-          change24hPercent: Number(change24hPercent.toFixed(2)),
-          source: 'binance-api',
-        };
-      });
-    } catch (error) {
-      logger.error(
-        `Failed to fetch historical prices for ${symbol}: ${error instanceof Error ? error.message : 'Unknown error'}`
-      );
-      return [];
     }
   }
 
@@ -387,24 +272,19 @@ export class RedStoneClient extends BaseOracleClient {
     return this.supportedChains;
   }
 
-  /**
-   * 获取代币的链上数据（与价格相关的RedStone数据）
-   */
   async getTokenOnChainData(symbol: string): Promise<RedStoneTokenOnChainData | null> {
     const cacheKey = `onchain-data:${symbol.toUpperCase()}`;
-    const cached = this.getFromCache<RedStoneTokenOnChainData>(cacheKey);
+    const cached = this.cache.get<RedStoneTokenOnChainData>(cacheKey);
     if (cached) {
       return cached;
     }
 
     try {
-      // 获取价格数据
       const priceData = await this.fetchRealPrice(symbol);
       if (!priceData) {
         return null;
       }
 
-      // 计算数据年龄（秒）
       const now = Date.now();
       const dataAge = priceData.timestamp ? Math.round((now - priceData.timestamp) / 1000) : null;
 
@@ -422,7 +302,7 @@ export class RedStoneClient extends BaseOracleClient {
         lastUpdated: priceData.timestamp,
       };
 
-      this.setCache(cacheKey, onChainData, 60000); // 1分钟缓存
+      this.cache.set(cacheKey, onChainData, 60000);
       return onChainData;
     } catch (error) {
       logger.error(
@@ -434,20 +314,15 @@ export class RedStoneClient extends BaseOracleClient {
   }
 }
 
-// RedStone代币链上数据接口
 export interface RedStoneTokenOnChainData {
   symbol: string;
   price: number;
-  // 价格和精度
   decimals: number;
-  // 买卖价差
   bid: number | null;
   ask: number | null;
   spreadPercentage: number | null;
-  // 网络统计
   supportedChainsCount: number;
   updateIntervalMinutes: number;
-  // 数据源
   provider: string;
   dataAge: number | null;
   lastUpdated: number;

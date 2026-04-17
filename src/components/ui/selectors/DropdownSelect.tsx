@@ -225,7 +225,9 @@ export function DropdownSelect<T = string>({
 
           <div className="max-h-64 overflow-y-auto py-1">
             {filteredOptions.length === 0 ? (
-              <div className="px-3 py-4 text-sm text-center text-gray-500">{resolvedNoOptionsMessage}</div>
+              <div className="px-3 py-4 text-sm text-center text-gray-500">
+                {resolvedNoOptionsMessage}
+              </div>
             ) : (
               filteredOptions.map((option, index) => {
                 const isSelected = option.value === value;

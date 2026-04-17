@@ -53,6 +53,7 @@ export class TwapOnChainService {
   private requestId = 0;
   private cache: Map<string, { data: unknown; timestamp: number }> = new Map();
   private cacheTTL = 30000;
+  private readonly MAX_CACHE_SIZE = 500;
   private endpointHealth: Record<string, boolean> = {};
   private currentEndpointIndex: Record<number, number> = {};
   private requestTimeout = 10000;
@@ -64,6 +65,10 @@ export class TwapOnChainService {
   private bnbUsdPrice = 0;
   private bnbUsdPriceTimestamp = 0;
   private readonly BNB_USD_CACHE_TTL = 60000;
+  private btcUsdPrice = 0;
+  private btcUsdPriceTimestamp = 0;
+  private readonly BTC_USD_CACHE_TTL = 60000;
+  private inFlightRequests: Map<string, Promise<unknown>> = new Map();
 
   private isEndpointHealthy(chainId: number, index: number): boolean {
     const key = `${chainId}-${index}`;
@@ -120,8 +125,9 @@ export class TwapOnChainService {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), this.requestTimeout);
 
+      const onExternalAbort = () => controller.abort();
       if (signal) {
-        signal.addEventListener('abort', () => controller.abort(), { once: true });
+        signal.addEventListener('abort', onExternalAbort, { once: true });
       }
 
       try {
@@ -140,6 +146,9 @@ export class TwapOnChainService {
         });
 
         clearTimeout(timeoutId);
+        if (signal) {
+          signal.removeEventListener('abort', onExternalAbort);
+        }
 
         if (!response.ok) {
           throw new Error(`RPC call failed: ${response.status}`);
@@ -158,6 +167,9 @@ export class TwapOnChainService {
         return result.result as T;
       } catch (error) {
         clearTimeout(timeoutId);
+        if (signal) {
+          signal.removeEventListener('abort', onExternalAbort);
+        }
         lastError = error instanceof Error ? error : new Error(String(error));
         const key = `${chainId}-${endpointIndex}`;
         this.endpointHealth[key] = false;
@@ -218,6 +230,12 @@ export class TwapOnChainService {
   }
 
   private setCache(key: string, data: unknown): void {
+    if (this.cache.size >= this.MAX_CACHE_SIZE) {
+      const oldestKey = this.cache.keys().next().value;
+      if (oldestKey !== undefined) {
+        this.cache.delete(oldestKey);
+      }
+    }
     this.cache.set(key, { data, timestamp: Date.now() });
   }
 
@@ -340,13 +358,20 @@ export class TwapOnChainService {
   }
 
   private tickToPrice(tick: number): number {
-    return Math.pow(1.0001, tick);
+    if (tick === 0) return 1;
+    const absTick = Math.abs(tick);
+    if (absTick <= 100) {
+      return Math.pow(1.0001, tick);
+    }
+    const absPrice = Math.exp(absTick * Math.log(1.0001));
+    return tick > 0 ? absPrice : 1 / absPrice;
   }
 
   private sqrtPriceX96ToPrice(sqrtPriceX96: bigint): number {
     const Q96 = BigInt(2) ** BigInt(96);
-    const priceRatio = Number(sqrtPriceX96) / Number(Q96);
-    return priceRatio * priceRatio;
+    if (sqrtPriceX96 <= BigInt(0)) return 0;
+    const priceRatio = Number((sqrtPriceX96 * sqrtPriceX96) / (Q96 * Q96));
+    return Number.isFinite(priceRatio) ? priceRatio : Number(sqrtPriceX96) / Number(Q96) ** 2;
   }
 
   private async getEthUsdPrice(chainId: number, signal?: AbortSignal): Promise<number> {
@@ -471,6 +496,67 @@ export class TwapOnChainService {
     return this.bnbUsdPrice || 600;
   }
 
+  private async getBtcUsdPrice(chainId: number, signal?: AbortSignal): Promise<number> {
+    if (this.btcUsdPrice && Date.now() - this.btcUsdPriceTimestamp < this.BTC_USD_CACHE_TTL) {
+      return this.btcUsdPrice;
+    }
+
+    try {
+      const response = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT', {
+        signal,
+      });
+      if (response.ok) {
+        const data = await response.json();
+        const btcPrice = parseFloat(data.price);
+        if (btcPrice > 0) {
+          this.btcUsdPrice = btcPrice;
+          this.btcUsdPriceTimestamp = Date.now();
+          return btcPrice;
+        }
+      }
+    } catch {
+      // Binance API 失败，尝试链上方式
+    }
+
+    const wbtcWethPool = TWAP_POOL_ADDRESSES['WBTC']?.[chainId];
+    if (wbtcWethPool) {
+      try {
+        const slot0Data = await this.ethCall(
+          chainId,
+          wbtcWethPool.address as `0x${string}`,
+          this.encodeSlot0Call(),
+          signal
+        );
+        const { tick } = this.decodeSlot0(slot0Data);
+        const rawPrice = this.tickToPrice(tick);
+        const token0Decimals = this.getTokenDecimals(wbtcWethPool.token0, chainId);
+        const token1Decimals = this.getTokenDecimals(wbtcWethPool.token1, chainId);
+        const decimalAdjustment = Math.pow(10, token0Decimals - token1Decimals);
+        const adjustedPrice = rawPrice * decimalAdjustment;
+
+        let btcEthPrice: number;
+        if (wbtcWethPool.token0 === 'WBTC') {
+          btcEthPrice = adjustedPrice;
+        } else {
+          btcEthPrice = 1 / adjustedPrice;
+        }
+
+        const ethUsdPrice = await this.getEthUsdPrice(chainId, signal);
+        const btcUsdPrice = btcEthPrice * ethUsdPrice;
+
+        if (btcUsdPrice > 0 && btcUsdPrice < 10000000) {
+          this.btcUsdPrice = btcUsdPrice;
+          this.btcUsdPriceTimestamp = Date.now();
+          return btcUsdPrice;
+        }
+      } catch {
+        // 链上方式也失败
+      }
+    }
+
+    return this.btcUsdPrice || 85000;
+  }
+
   private async calculateUsdPrice(
     tick: number,
     token0Symbol: string,
@@ -518,14 +604,12 @@ export class TwapOnChainService {
     }
 
     if (btcTokens.includes(token1Symbol)) {
-      const ethUsdPrice = await this.getEthUsdPrice(chainId, signal);
-      const btcUsdPrice = ethUsdPrice * 36;
+      const btcUsdPrice = await this.getBtcUsdPrice(chainId, signal);
       return adjustedPrice * btcUsdPrice;
     }
 
     if (btcTokens.includes(token0Symbol)) {
-      const ethUsdPrice = await this.getEthUsdPrice(chainId, signal);
-      const btcUsdPrice = ethUsdPrice * 36;
+      const btcUsdPrice = await this.getBtcUsdPrice(chainId, signal);
       return (1 / adjustedPrice) * btcUsdPrice;
     }
 
@@ -644,9 +728,38 @@ export class TwapOnChainService {
     twapInterval: number = TWAP_INTERVALS.MEDIUM,
     signal?: AbortSignal
   ): Promise<TwapPriceData> {
+    if (twapInterval <= 0) {
+      twapInterval = TWAP_INTERVALS.MEDIUM;
+    }
+
     const cacheKey = `twap-${symbol}-${chainId}-${twapInterval}`;
     const cached = this.getCached<TwapPriceData>(cacheKey);
     if (cached) return cached;
+
+    const dedupeKey = `inflight-twap-${symbol}-${chainId}-${twapInterval}`;
+    const inFlight = this.inFlightRequests.get(dedupeKey);
+    if (inFlight) {
+      return inFlight as Promise<TwapPriceData>;
+    }
+
+    const requestPromise = this._executeGetTwapPrice(symbol, chainId, twapInterval, signal);
+    this.inFlightRequests.set(dedupeKey, requestPromise);
+
+    try {
+      const result = await requestPromise;
+      return result;
+    } finally {
+      this.inFlightRequests.delete(dedupeKey);
+    }
+  }
+
+  private async _executeGetTwapPrice(
+    symbol: string,
+    chainId: number,
+    twapInterval: number,
+    signal?: AbortSignal
+  ): Promise<TwapPriceData> {
+    const cacheKey = `twap-${symbol}-${chainId}-${twapInterval}`;
 
     const poolConfig = await this.getPoolAddress(symbol, chainId, signal);
     if (!poolConfig) {
@@ -656,20 +769,46 @@ export class TwapOnChainService {
     const poolAddress = poolConfig.address as `0x${string}`;
 
     try {
-      const [observeData, slot0Data, liquidityData] = await Promise.all([
-        this.ethCall(chainId, poolAddress, this.encodeObserveCall([twapInterval, 0]), signal),
-        this.ethCall(chainId, poolAddress, this.encodeSlot0Call(), signal),
-        this.ethCall(chainId, poolAddress, this.encodeLiquidityCall(), signal),
-      ]);
+      const slot0Data = await this.ethCall(chainId, poolAddress, this.encodeSlot0Call(), signal);
+      const liquidityData = await this.ethCall(
+        chainId,
+        poolAddress,
+        this.encodeLiquidityCall(),
+        signal
+      );
 
-      const { tickCumulatives } = this.decodeObserve(observeData);
       const { sqrtPriceX96, tick } = this.decodeSlot0(slot0Data);
       const liquidity = this.decodeLiquidity(liquidityData);
 
-      const tickCumDelta = tickCumulatives[1] - tickCumulatives[0];
-      const averageTick = Number(tickCumDelta) / twapInterval;
+      let twapTick = tick;
+      let effectiveInterval = twapInterval;
+
+      const observeIntervals = [twapInterval, TWAP_INTERVALS.SHORT, 60];
+      for (const interval of observeIntervals) {
+        try {
+          const observeData = await this.ethCall(
+            chainId,
+            poolAddress,
+            this.encodeObserveCall([interval, 0]),
+            signal
+          );
+          const { tickCumulatives } = this.decodeObserve(observeData);
+          const tickCumDelta = tickCumulatives[1] - tickCumulatives[0];
+          twapTick = Number(tickCumDelta) / interval;
+          effectiveInterval = interval;
+          break;
+        } catch {
+          logger.warn(`observe() failed for interval ${interval}s, trying shorter`, {
+            symbol,
+            chainId,
+            interval,
+          });
+          continue;
+        }
+      }
+
       const twapPrice = await this.calculateUsdPrice(
-        averageTick,
+        twapTick,
         poolConfig.token0,
         poolConfig.token1,
         chainId,
@@ -683,7 +822,7 @@ export class TwapOnChainService {
         signal
       );
 
-      const deviation = Math.abs(twapPrice - spotPrice) / spotPrice;
+      const deviation = spotPrice > 0 ? Math.abs(twapPrice - spotPrice) / spotPrice : 0;
       const liquidityScore =
         liquidity > BigInt(1000000000000000000) ? 1.0 : Number(liquidity) / 1000000000000000000;
       const confidence = Math.min(
@@ -702,7 +841,7 @@ export class TwapOnChainService {
         chainId,
         poolAddress: poolAddress,
         feeTier: poolConfig.feeTier,
-        twapInterval,
+        twapInterval: effectiveInterval,
         confidence,
       };
 
@@ -728,6 +867,30 @@ export class TwapOnChainService {
     const cacheKey = `spot-${symbol}-${chainId}`;
     const cached = this.getCached<TwapPriceData>(cacheKey);
     if (cached) return cached;
+
+    const dedupeKey = `inflight-spot-${symbol}-${chainId}`;
+    const inFlight = this.inFlightRequests.get(dedupeKey);
+    if (inFlight) {
+      return inFlight as Promise<TwapPriceData>;
+    }
+
+    const requestPromise = this._executeGetSpotPrice(symbol, chainId, signal);
+    this.inFlightRequests.set(dedupeKey, requestPromise);
+
+    try {
+      const result = await requestPromise;
+      return result;
+    } finally {
+      this.inFlightRequests.delete(dedupeKey);
+    }
+  }
+
+  private async _executeGetSpotPrice(
+    symbol: string,
+    chainId: number,
+    signal?: AbortSignal
+  ): Promise<TwapPriceData> {
+    const cacheKey = `spot-${symbol}-${chainId}`;
 
     const poolConfig = await this.getPoolAddress(symbol, chainId, signal);
     if (!poolConfig) {

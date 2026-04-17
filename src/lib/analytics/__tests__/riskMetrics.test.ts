@@ -1016,7 +1016,9 @@ describe('riskMetrics', () => {
           configurable: true,
         });
 
-        const result = calculateDiversificationScore(params as unknown as Parameters<typeof calculateDiversificationScore>[0]);
+        const result = calculateDiversificationScore(
+          params as unknown as Parameters<typeof calculateDiversificationScore>[0]
+        );
         expect(result.score).toBe(0);
         expect(result.level).toBe('critical');
         expect(result.description).toBe('calculation_error');

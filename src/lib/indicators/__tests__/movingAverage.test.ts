@@ -5,6 +5,7 @@ import {
   calculateEMAWithNull,
 } from '../calculations';
 
+// eslint-disable-next-line max-lines-per-function
 describe('Moving Averages', () => {
   describe('calculateSMA (Simple Moving Average)', () => {
     describe('Basic SMA calculation', () => {

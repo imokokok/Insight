@@ -30,7 +30,9 @@ interface PriceSpreadHeatmapProps {
   data: ReturnType<typeof useCrossChainData>;
 }
 
-export const PriceSpreadHeatmap = memo(function PriceSpreadHeatmap({ data }: PriceSpreadHeatmapProps) {
+export const PriceSpreadHeatmap = memo(function PriceSpreadHeatmap({
+  data,
+}: PriceSpreadHeatmapProps) {
   const t = useTranslations();
   const { chainsWithHighDeviation } = data;
 

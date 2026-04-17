@@ -16,15 +16,16 @@ The Insight platform supports multiple blockchain oracle providers, adopting a u
 
 ### Supported Oracles
 
-| Oracle       | Identifier  | File Location                    | Primary Chains              | Features                   |
-| ------------ | ----------- | -------------------------------- | --------------------------- | -------------------------- |
-| Chainlink    | `chainlink` | `src/lib/oracles/chainlink.ts`   | Ethereum, Arbitrum, Polygon | Market Leader              |
-| Pyth Network | `pyth`      | `src/lib/oracles/pythNetwork.ts` | Solana, Ethereum            | Low-latency Financial Data |
-| API3         | `api3`      | `src/lib/oracles/api3.ts`        | Ethereum, Polygon           | First-party Oracle         |
-| RedStone     | `redstone`  | `src/lib/oracles/redstone.ts`    | Arbitrum, Ethereum          | Efficient Data Push        |
-| DIA          | `dia`       | `src/lib/oracles/dia.ts`         | Multi-chain                 | Transparent Data Source    |
-| WINkLink     | `winklink`  | `src/lib/oracles/winklink.ts`    | Tron                        | TRON Ecosystem             |
-| Supra        | `supra`     | `src/lib/oracles/clients/supra.ts` | Ethereum                 | Verifiable Randomness      |
+| Oracle       | Identifier  | File Location                      | Primary Chains                                         | Features                   |
+| ------------ | ----------- | ---------------------------------- | ------------------------------------------------------ | -------------------------- |
+| Chainlink    | `chainlink` | `src/lib/oracles/chainlink.ts`     | Ethereum, Arbitrum, Polygon                            | Market Leader              |
+| Pyth Network | `pyth`      | `src/lib/oracles/pythNetwork.ts`   | Solana, Ethereum                                       | Low-latency Financial Data |
+| API3         | `api3`      | `src/lib/oracles/api3.ts`          | Ethereum, Polygon                                      | First-party Oracle         |
+| RedStone     | `redstone`  | `src/lib/oracles/redstone.ts`      | Arbitrum, Ethereum                                     | Efficient Data Push        |
+| DIA          | `dia`       | `src/lib/oracles/dia.ts`           | Multi-chain                                            | Transparent Data Source    |
+| WINkLink     | `winklink`  | `src/lib/oracles/winklink.ts`      | Tron                                                   | TRON Ecosystem             |
+| Supra        | `supra`     | `src/lib/oracles/clients/supra.ts` | Ethereum                                               | Verifiable Randomness      |
+| TWAP         | `twap`      | `src/lib/oracles/clients/twap.ts`  | Ethereum, Arbitrum, Optimism, Polygon, Base, BNB Chain | Uniswap V3 On-Chain TWAP   |
 
 ## Architecture Diagram
 
@@ -52,12 +53,14 @@ graph TB
         K[DIAClient]
         L[WINkLinkClient]
         M[SupraClient]
+        N[TWAPClient]
     end
 
     subgraph DataSources["Data Sources"]
         Q[Supabase DB]
         R[External APIs]
         S[Mock Data]
+        T[On-Chain RPC]
     end
 
     A --> B
@@ -72,9 +75,11 @@ graph TB
     E --> K
     E --> L
     E --> M
+    E --> N
     G --> Q
     G --> R
     G --> S
+    N --> T
 ```
 
 ### Class Hierarchy
@@ -161,6 +166,15 @@ classDiagram
         +getHistoricalPrices(symbol, chain, period): Promise~PriceData[]~
     }
 
+    class TWAPClient {
+        +name: OracleProvider.TWAP
+        +supportedChains: Blockchain[]
+        +getPrice(symbol, chain): Promise~PriceData~
+        +getHistoricalPrices(symbol, chain, period): Promise~PriceData[]~
+        +isSymbolSupported(symbol, chain): boolean
+        +getSupportedChainsForSymbol(symbol): Blockchain[]
+    }
+
     IOracleClient <|.. BaseOracleClient
     BaseOracleClient <|-- ChainlinkClient
     BaseOracleClient <|-- PythClient
@@ -169,6 +183,7 @@ classDiagram
     BaseOracleClient <|-- DIAClient
     BaseOracleClient <|-- WINkLinkClient
     BaseOracleClient <|-- SupraClient
+    BaseOracleClient <|-- TWAPClient
     OracleClientFactory ..> BaseOracleClient : creates
 ```
 
@@ -264,6 +279,7 @@ export class OracleClientFactory {
       OracleProvider.DIA,
       OracleProvider.WINKLINK,
       OracleProvider.SUPRA,
+      OracleProvider.TWAP,
     ];
 
     const clients: Partial<Record<OracleProvider, BaseOracleClient>> = {};
@@ -290,6 +306,8 @@ export class OracleClientFactory {
         return new WINkLinkClient(this.config);
       case OracleProvider.SUPRA:
         return new SupraClient(this.config);
+      case OracleProvider.TWAP:
+        return new TWAPClient(this.config);
       default:
         throw new ValidationError(`Unknown oracle provider: ${provider}`);
     }
@@ -427,6 +445,43 @@ src/lib/oracles/
 3. **Caching Mechanism**: Each service implements internal memory caching with TTL support
 4. **Multi-chain Support**: Supports 35+ blockchains with name mapping via DIA_CHAIN_MAPPING
 5. **Asset Address Configuration**: Multi-chain asset contract addresses configured via DIA_ASSET_ADDRESSES
+
+### 9. TWAP Client Features
+
+TWAP (Time-Weighted Average Price) oracle provides on-chain price data from Uniswap V3 liquidity pools.
+
+```
+src/lib/oracles/
+├── clients/
+│   └── twap.ts               # TWAP client implementation
+├── services/
+│   └── twapOnChainService.ts  # On-chain data service (RPC calls)
+├── constants/
+│   └── twapConstants.ts       # Pool configs, token addresses, ABIs
+```
+
+**TWAP Service Architecture Features:**
+
+1. **Direct On-Chain Data**: Fetches TWAP and spot prices directly from Uniswap V3 pool contracts via RPC
+2. **RPC Fallback**: Multiple RPC endpoints per chain with health tracking and automatic recovery
+3. **TWAP Computation**: Uses `observe([twapInterval, 0])` to get tick cumulatives, computes average tick, converts to USD price
+4. **Confidence Scoring**: Based on liquidity score and TWAP-spot deviation
+5. **Caching**: 30-second TTL in-memory cache for performance
+6. **Multi-chain Support**: 6 chains (Ethereum, Arbitrum, Optimism, Polygon, Base, BNB Chain) with per-chain pool configurations
+7. **Price Conversion**: Tick-based prices converted to USD using ETH/USD and BNB/USD reference prices (Binance API with on-chain fallback)
+
+**Supported Symbols**: 22 tokens (BTC, ETH, USDC, USDT, DAI, WBTC, LINK, UNI, AAVE, ARB, OP, MATIC, SNX, CRV, COMP, MKR, SUSHI, 1INCH, BAL, BNB, STETH, FRAX)
+
+**TWAP-Specific Data Fields**:
+
+- `poolAddress` - Uniswap V3 pool address
+- `feeTier` - Pool fee tier (500, 3000, 10000)
+- `sqrtPriceX96` - Current sqrt price in X96 format
+- `tick` - Current tick
+- `twapInterval` - TWAP calculation interval (600s, 1800s, 3600s)
+- `twapPrice` - Time-weighted average price
+- `spotPrice` - Current spot price
+- `liquidity` - Pool liquidity
 
 ## Data Flow
 

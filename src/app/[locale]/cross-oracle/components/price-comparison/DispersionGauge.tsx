@@ -1,8 +1,8 @@
 'use client';
 
 import { memo } from 'react';
-import { useTranslations } from 'next-intl';
 
+import { useTranslations } from 'next-intl';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 
 import { chartColors } from '@/lib/config/colors';

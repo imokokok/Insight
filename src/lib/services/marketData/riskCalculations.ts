@@ -74,7 +74,7 @@ export async function fetchRiskMetrics(
 
     const correlationInput = priceHistories ?? new Map<string, number[]>();
     if (correlationInput.size === 0) {
-      oracleData.forEach((oracle, index) => {
+      oracleData.forEach((oracle) => {
         correlationInput.set(oracle.name, priceHistory);
       });
     }

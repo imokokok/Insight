@@ -1,6 +1,6 @@
 # Insight - Oracle Data Analytics Platform
 
-Insight is a professional oracle data analytics platform that provides comprehensive analysis and comparison of mainstream oracle protocols including Chainlink, Pyth, API3, RedStone, DIA, WINkLink, and Supra.
+Insight is a professional oracle data analytics platform that provides comprehensive analysis and comparison of mainstream oracle protocols including Chainlink, Pyth, API3, RedStone, DIA, WINkLink, Supra, and TWAP.
 
 ## Key Features
 
@@ -42,8 +42,9 @@ Insight is a professional oracle data analytics platform that provides comprehen
 - Pyth Hermes Client (`@pythnetwork/hermes-client` 2.0.0)
 - Pyth Price Service SDK (`@pythnetwork/price-service-sdk` 1.8.0)
 - API3 Contracts (`@api3/contracts` 27.0.0)
-- Custom oracle clients for all supported providers (Chainlink, Pyth, API3, RedStone, DIA, WINkLink, Supra)
+- Custom oracle clients for all supported providers (Chainlink, Pyth, API3, RedStone, DIA, WINkLink, Supra, TWAP)
 - Supra Oracle SDK (`supra-oracle-sdk` 1.0.4)
+- TWAP On-Chain Service (Uniswap V3 TWAP via direct RPC calls)
 
 ## Prerequisites
 
@@ -324,6 +325,11 @@ insight/
 - **Supported Chains**: Ethereum
 - **Features**: High-performance oracle with verifiable randomness, cross-chain data feeds, Supra Oracle SDK integration
 
+### TWAP
+
+- **Supported Chains**: Ethereum, Arbitrum, Optimism, Polygon, Base, BNB Chain
+- **Features**: Uniswap V3 Time-Weighted Average Price oracle, on-chain TWAP data from liquidity pools, spot price and TWAP price comparison, confidence scoring based on liquidity and deviation, RPC with automatic fallback and health tracking
+
 ## Database Schema
 
 The application uses Supabase (PostgreSQL) with the following main tables:
@@ -446,3 +452,4 @@ This project is private and proprietary.
 - [DIA](https://www.diadata.org/) - Open-source oracle
 - [WINkLink](https://winklink.org/) - TRON ecosystem oracle
 - [Supra](https://supra.com/) - High-performance oracle with verifiable randomness
+- [TWAP](https://uniswap.org/) - Uniswap V3 Time-Weighted Average Price oracle

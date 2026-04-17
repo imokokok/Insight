@@ -21,6 +21,7 @@ export class DIAClient extends BaseOracleClient {
   ];
 
   defaultUpdateIntervalMinutes = 5;
+  protected historicalPriceConfidence = 0.95;
 
   constructor(config?: OracleClientConfig) {
     super(config);
@@ -93,62 +94,6 @@ export class DIAClient extends BaseOracleClient {
         error instanceof Error ? error.message : 'Failed to fetch price from DIA',
         'DIA_ERROR'
       );
-    }
-  }
-
-  async getHistoricalPrices(
-    symbol: string,
-    chain?: Blockchain,
-    period: number = 24,
-    options?: { signal?: AbortSignal }
-  ): Promise<PriceData[]> {
-    if (options?.signal?.aborted) {
-      return [];
-    }
-
-    try {
-      const historicalPrices = await binanceMarketService.getHistoricalPricesByHours(
-        symbol,
-        period
-      );
-
-      if (!historicalPrices || historicalPrices.length === 0) {
-        logger.warn(`No historical data available for ${symbol}`, { symbol });
-        return [];
-      }
-
-      logger.info(`Using Binance historical data for ${symbol}`, {
-        symbol,
-        points: historicalPrices.length,
-        period,
-      });
-
-      const targetChain = chain || Blockchain.ETHEREUM;
-      const latestPrice = historicalPrices[historicalPrices.length - 1].price;
-
-      return historicalPrices.map((point) => {
-        const change24h = latestPrice - point.price;
-        const change24hPercent =
-          point.price > 0 ? ((latestPrice - point.price) / point.price) * 100 : 0;
-
-        return {
-          provider: OracleProvider.DIA,
-          chain: targetChain,
-          symbol: symbol.toUpperCase(),
-          price: point.price,
-          timestamp: point.timestamp,
-          decimals: 8,
-          confidence: 0.95,
-          change24h: Number(change24h.toFixed(4)),
-          change24hPercent: Number(change24hPercent.toFixed(2)),
-          source: 'binance-api',
-        };
-      });
-    } catch (error) {
-      logger.error(
-        `Failed to fetch historical prices for ${symbol}: ${error instanceof Error ? error.message : 'Unknown error'}`
-      );
-      return [];
     }
   }
 

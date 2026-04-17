@@ -31,7 +31,9 @@ export function PasswordInput({ showToggle = true, className, ...props }: Passwo
           type="button"
           onClick={() => setShowPassword(!showPassword)}
           className="absolute inset-y-0 right-0 pr-4 flex items-center"
-          aria-label={showPassword ? t('crossOracle.ui.hidePassword') : t('crossOracle.ui.showPassword')}
+          aria-label={
+            showPassword ? t('crossOracle.ui.hidePassword') : t('crossOracle.ui.showPassword')
+          }
         >
           {showPassword ? (
             <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600 transition-colors" />

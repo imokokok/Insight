@@ -1,11 +1,13 @@
 import { createLogger } from '@/lib/utils/logger';
 
+import type { DOMPurify as DOMPurifyType } from 'dompurify';
+
 const logger = createLogger('xss-protection');
 
-let dompurifyInstance: ReturnType<(typeof import('dompurify'))['default']> | null = null;
+let dompurifyInstance: DOMPurifyType | null = null;
 let dompurifyInitAttempted = false;
 
-function getDOMPurifySync(): ReturnType<(typeof import('dompurify'))['default']> | null {
+function getDOMPurifySync(): DOMPurifyType | null {
   if (dompurifyInstance) return dompurifyInstance;
   if (dompurifyInitAttempted) return null;
   dompurifyInitAttempted = true;

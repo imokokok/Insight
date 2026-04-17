@@ -1,6 +1,6 @@
 {
   "arbitrageHeatmap": {
-    "searchPlaceholder": "Search trading pairs..."
+    "searchPlaceholder": "Search trading pair..."
   },
   "multiSourceAggregation": "Multi-Source Aggregation",
   "cryptographicVerification": "Cryptographic Verification",
@@ -33,8 +33,8 @@
     "type": "Type",
     "reward": "Reward",
     "transaction": "Transaction",
-    "viewOnChain": "View on-chain",
-    "showing": "Showing {start} to {end} of {total} entries",
+    "viewOnChain": "View On-Chain",
+    "showing": "Showing {start} to {end} of {total}",
     "firstPage": "First",
     "previousPage": "Previous",
     "nextPage": "Next",
@@ -44,7 +44,7 @@
   },
   "validatorPanel": {
     "title": "Validators",
-    "subtitle": "{count} validators total",
+    "subtitle": "{count} validators",
     "loading": "Loading validators...",
     "filtered": "(filtered)",
     "totalStaked": "Total Staked:",
@@ -94,41 +94,41 @@
     "reset": "Reset",
     "zoomIn": "Zoom In",
     "zoomOut": "Zoom Out",
-    "viewFullscreen": "Fullscreen",
+    "viewFullscreen": "View Fullscreen",
     "search": "Search",
     "more": "More"
   },
   "forms": {
     "exportData": "Export Data",
-    "noDataToExport": "No Data to Export"
+    "noDataToExport": "No data to export"
   },
   "status": {
     "loading": "Loading...",
-    "noData": "No Data",
+    "noData": "No data",
     "success": "Success",
     "error": "Error",
-    "live": "LIVE",
+    "live": "Live",
     "online": "Online",
     "offline": "Offline"
   },
   "consistency": {
-    "excellent": "Optimal",
-    "good": "Normal",
-    "fair": "Suboptimal",
-    "poor": "Critical"
+    "excellent": "Excellent",
+    "good": "Good",
+    "fair": "Fair",
+    "poor": "Poor"
   },
   "activity": {
-    "active": "Operational",
-    "inactive": "Offline",
+    "active": "Active",
+    "inactive": "Inactive",
     "degraded": "Degraded"
   },
   "alert": {
-    "normal": "Standard",
-    "warning": "Caution",
+    "normal": "Normal",
+    "warning": "Warning",
     "critical": "Critical"
   },
   "time": {
-    "lastUpdated": "Last updated",
+    "lastUpdated": "Last Updated",
     "justNow": "Just now",
     "secondsAgo": "{seconds}s ago",
     "minutesAgo": "{minutes}m ago",
@@ -197,7 +197,7 @@
     "clearAll": "Clear All",
     "currentFilters": "Current Filters",
     "noFilters": "No filters",
-    "filtersApplied": "{count} filter(s) applied",
+    "filtersApplied": "{count} filters applied",
     "all": "All"
   },
   "deviation": {
@@ -218,15 +218,15 @@
     "low": "Low"
   },
   "days": {
-    "0": "Sun",
-    "1": "Mon",
-    "2": "Tue",
-    "3": "Wed",
-    "4": "Thu",
-    "5": "Fri",
-    "6": "Sat"
+    "0": "Sunday",
+    "1": "Monday",
+    "2": "Tuesday",
+    "3": "Wednesday",
+    "4": "Thursday",
+    "5": "Friday",
+    "6": "Saturday"
   },
-  "locale": "en-US",
+  "locale": "en",
   "favorite": "Favorite",
   "favorited": "Favorited",
   "export": "Export",
@@ -266,7 +266,7 @@
   },
   "common": {
     "loading": "Loading...",
-    "noData": "No data available",
+    "noData": "No data",
     "home": "Home",
     "refresh": "Refresh",
     "export": "Export",
@@ -284,8 +284,8 @@
       "loadingFailed": "Loading failed"
     },
     "warning": {
-      "partialData": "Some data failed to load",
-      "partialDataDescription": "The following data sources are unavailable: {items}. Displaying available data."
+      "partialData": "Partial data loaded",
+      "partialDataDescription": "The following data sources are unavailable: {items}. Showing available data."
     },
     "timeRange": {
       "24h": "24h"
@@ -299,7 +299,124 @@
     }
   },
   "comparison": {
-    "title": "Comparison"
+    "title": "Comparison",
+    "benchmark": {
+      "industryAverage": "Industry Average",
+      "marketLeader": "Market Leader",
+      "gap": "Gap"
+    },
+    "oracleComparison": {
+      "medianPrice": "Median Price",
+      "oracle": "Oracle",
+      "price": "Price",
+      "title": "Oracle Comparison",
+      "averagePrice": "Average Price",
+      "consistencyScore": "Consistency Score",
+      "maxDeviation": "Max Deviation",
+      "priceComparison": "Price Comparison",
+      "deviationFromAverage": "Deviation from Average",
+      "performanceRadar": "Performance Radar",
+      "detailedComparison": "Detailed Comparison",
+      "confidence": "Confidence",
+      "responseTime": "Response Time",
+      "accuracy": "Accuracy",
+      "benchmark": "Benchmark",
+      "sortBy": "Sort By",
+      "consistency": {
+        "excellent": "Excellent",
+        "good": "Good",
+        "fair": "Fair",
+        "poor": "Poor"
+      },
+      "metrics": {
+        "price": "Price",
+        "confidence": "Confidence",
+        "responseTime": "Response Time",
+        "accuracy": "Accuracy",
+        "reliability": "Reliability",
+        "deviation": "Deviation"
+      }
+    },
+    "timeRange": {
+      "last1h": "Last 1 Hour",
+      "last24h": "Last 24 Hours",
+      "last7d": "Last 7 Days",
+      "last30d": "Last 30 Days",
+      "last90d": "Last 90 Days",
+      "last1y": "Last 1 Year",
+      "custom": "Custom",
+      "yearOverYear": "Year over Year",
+      "previousPeriod": "Previous Period",
+      "currentYear": "Current Year",
+      "previousYear": "Previous Year",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "cancel": "Cancel",
+      "apply": "Apply",
+      "currentPeriod": "Current Period",
+      "comparisonPeriod": "Comparison Period"
+    },
+    "timeComparison": {
+      "currentPeriod": "Current Period",
+      "comparisonPeriod": "Comparison Period",
+      "difference": "Difference",
+      "percentChange": "Percent Change",
+      "currentAvg": "Current Average",
+      "comparisonAvg": "Comparison Average",
+      "yoy": "YoY",
+      "mom": "MoM"
+    },
+    "difference": {
+      "increase": "Increase",
+      "decrease": "Decrease",
+      "noChange": "No Change",
+      "positive": "Positive",
+      "negative": "Negative",
+      "neutral": "Neutral"
+    },
+    "freshness": {
+      "justNow": "Just now",
+      "minutesAgo": "{minutes}m ago",
+      "hoursAgo": "{hours}h ago"
+    },
+    "riskRecommendations": {
+      "highRiskAnomaly": {
+        "title": "High Risk Price Anomaly Detected",
+        "description": "High-risk price anomalies detected with deviation exceeding 3%. Recommend checking affected oracle data sources immediately."
+      },
+      "mediumRiskAnomaly": {
+        "title": "Price Deviation Warning",
+        "description": "Medium-risk price deviations detected (1-3%). Recommend monitoring these data sources."
+      },
+      "multipleAnomalies": {
+        "title": "Multiple Data Sources Showing Anomalies",
+        "description": "Multiple data sources are reporting anomalies. This may indicate severe market volatility or systemic issues."
+      },
+      "dataLatency": {
+        "title": "Data Source Update Delay",
+        "description": "Some oracle data updates are delayed by more than 5 minutes. This may affect price accuracy."
+      },
+      "dataCompleteness": {
+        "title": "Insufficient Data Completeness",
+        "description": "Current data completeness is below the 80% threshold. Some oracles may not be providing valid data."
+      },
+      "highDispersion": {
+        "title": "High Price Dispersion",
+        "description": "Significant price deviation detected. Price consistency across oracles is poor."
+      },
+      "diversifySources": {
+        "title": "Recommend Diversifying Data Sources",
+        "description": "Currently relying on a single data source. Recommend adding more oracles to improve system robustness and data reliability."
+      },
+      "thresholdOptimization": {
+        "title": "Anomaly Detection Threshold Optimization",
+        "description": "Multiple low-severity anomalies detected. Recommend adjusting anomaly detection thresholds to reduce false positives."
+      },
+      "regularReview": {
+        "title": "Regular Data Source Performance Review",
+        "description": "Recommend reviewing oracle performance metrics weekly, including accuracy, latency, and availability."
+      }
+    }
   },
   "indicators": {
     "title": "Indicators"
@@ -325,8 +442,8 @@
   },
   "confidenceInterval": {
     "title": "Confidence Interval",
-    "bid": "Bid",
-    "ask": "Ask",
+    "bid": "Bid Price",
+    "ask": "Ask Price",
     "spread": "Spread",
     "bidLabel": "Bid",
     "askLabel": "Ask",
@@ -357,7 +474,7 @@
     "subtitle": "Distribution of request types"
   },
   "realtimeUpdate": {
-    "title": "Realtime Update"
+    "title": "Real-time Update"
   },
   "oraclePerformanceRanking": {
     "title": "Oracle Performance Ranking",
@@ -430,15 +547,15 @@
     "correlationCoefficient": "Correlation Coefficient",
     "correlationLevel": "Correlation Level",
     "correlationDirection": "Correlation Direction",
-    "positiveCorrelation": "Positive Correlation",
-    "negativeCorrelation": "Negative Correlation",
+    "positiveCorrelation": "Positive",
+    "negativeCorrelation": "Negative",
     "noCorrelation": "No Correlation",
     "distribution": {
       "title": "Correlation Distribution",
-      "topPairs": "Top Correlation Pairs"
+      "topPairs": "Top Correlated Pairs"
     },
     "explanation": {
-      "title": "Explanation",
+      "title": "Correlation Explanation",
       "description": "Price correlation measures the linear relationship between different oracle price data, ranging from -1 to 1."
     },
     "level": {
@@ -454,7 +571,7 @@
   },
   "crossChainPriceComparison": {
     "title": "{symbol} Cross-Chain Price Comparison",
-    "priceDiff": "Cross-Chain Price Difference: {percent}%",
+    "priceDiff": "Cross-chain price diff: {percent}%",
     "avgPrice": "Average Price",
     "highestPrice": "Highest Price",
     "lowestPrice": "Lowest Price",
@@ -463,14 +580,14 @@
     "high": "High",
     "low": "Low",
     "normal": "Normal",
-    "noData": "No cross-chain price data available"
+    "noData": "No cross-chain price data"
   },
   "concentrationRisk": {
     "title": "Concentration Risk"
   },
   "cdfChart": {
     "title": "Cumulative Distribution Function",
-    "subtitle": "Shows cumulative probability distribution of latency values"
+    "subtitle": "Showing cumulative probability distribution of latency values"
   },
   "oracleCommon": {
     "performanceGauge": {
@@ -573,9 +690,9 @@
   },
   "performanceIndicator": {
     "title": "Performance Monitor",
-    "panelLabel": "Performance Panel",
-    "debugOn": "Debug: On",
-    "debugOff": "Debug: Off",
+    "panelLabel": "Performance Metrics Panel",
+    "debugOn": "Debug: ON",
+    "debugOff": "Debug: OFF",
     "metrics": {
       "queryResponse": "Query Response",
       "dataProcessing": "Data Processing",
@@ -583,7 +700,7 @@
       "cacheHitRate": "Cache Hit Rate",
       "cacheSize": "Cache Size"
     },
-    "thresholds": "Thresholds",
+    "thresholds": "Performance Thresholds",
     "ratings": {
       "good": "Good",
       "needsImprovement": "Needs Improvement",
@@ -591,16 +708,16 @@
       "unknown": "Unknown",
       "noData": "No Data"
     },
-    "reference": "Reference: <2s / <5s | Processing: <100ms / <500ms | Validation: <50ms / <200ms | Cache: >70% / >30%"
+    "reference": "Query: <2s / <5s | Processing: <100ms / <500ms | Validation: <50ms / <200ms | Cache: >70% / >30%"
   },
   "errorFallback": {
     "title": "Page Load Error",
-    "description": "Sorry, we encountered a problem loading this page. Please try refreshing or return to the home page.",
-    "errorDetails": "Error Details (Development Mode Only):",
+    "description": "Sorry, we encountered a problem loading this page. Please try refreshing or return to the homepage.",
+    "errorDetails": "Error Details (dev mode only):",
     "componentStack": "Component Stack",
     "retry": "Retry",
     "goHome": "Go Home",
-    "contactSupport": "If the problem persists, please contact technical support"
+    "contactSupport": "If the problem persists, please contact support"
   },
   "errorBoundary": {
     "tryAgain": "Try Again",
@@ -617,9 +734,9 @@
       "offline": "Offline"
     },
     "networkStatus": "Network Status",
-    "monitoring": "Real-time monitoring",
-    "lastCheck": "Last check",
-    "vsLastWeek": "vs last week",
+    "monitoring": "Real-time Monitoring",
+    "lastCheck": "Last Check",
+    "vsLastWeek": "vs Last Week",
     "activeNodes": "Active Nodes",
     "nodeUptime": "Node Uptime",
     "avgResponseTime": "Avg Response Time",
@@ -635,13 +752,13 @@
       "peakHour": "Peak Hour",
       "avgPerHour": "Avg/Hour",
       "peakRequests": "Peak Requests",
-      "requests": "requests",
+      "requests": "Requests",
       "low": "Low",
       "high": "High"
     },
     "performanceDashboard": {
       "title": "Performance Dashboard",
-      "subtitle": "Real-time network performance visualization",
+      "subtitle": "Real-time network performance metrics",
       "responseTime": "Response Time",
       "uptime": "Uptime",
       "updateFreq": "Update Frequency",
@@ -657,23 +774,23 @@
       "excellent": "Excellent",
       "good": "Good",
       "slow": "Slow",
-      "secondsAgo": "s ago",
-      "minutesAgo": "m ago",
-      "hoursAgo": "h ago"
+      "secondsAgo": "seconds ago",
+      "minutesAgo": "minutes ago",
+      "hoursAgo": "hours ago"
     }
   },
   "crossChain": {
     "autoRefreshOff": "Auto Refresh Off",
-    "autoRefresh30s": "30 Seconds",
-    "autoRefresh1m": "1 Minute",
-    "autoRefresh5m": "5 Minutes",
+    "autoRefresh30s": "30s",
+    "autoRefresh1m": "1m",
+    "autoRefresh5m": "5m",
     "averagePrice": "Average Price",
     "medianPrice": "Median Price",
     "highestPrice": "Highest Price",
     "priceRange": "Price Range",
     "standardDeviation": "Standard Deviation",
     "dataPoints": "Data Points",
-    "iqr": "Interquartile Range",
+    "iqr": "IQR",
     "skewness": "Skewness",
     "kurtosis": "Kurtosis",
     "confidenceInterval95": "95% Confidence Interval",
@@ -688,38 +805,46 @@
     "cointegrationAnalysis": "Cointegration Analysis",
     "cointegrationDesc": "Analyze long-term equilibrium relationships between prices on different chains",
     "volatilityAnalysis": "Volatility Analysis",
-    "volatilityAnalysisDesc": "Analyze statistical characteristics of price volatility",
+    "volatilityAnalysisDesc": "Analyze statistical characteristics of price fluctuations",
     "priceDistributionAnalysis": "Price Distribution Analysis",
     "priceDistributionHistogram": "Price Distribution Histogram",
     "frequency": "Frequency",
     "medianLine": "Median Line",
     "meanLine": "Mean Line",
     "chainPriceBoxPlot": "Chain Price Box Plot",
-    "title": "Cross Chain Analysis",
-    "colorblindModeOn": "Colorblind Mode On",
-    "switchToColorblindMode": "Switch to Colorblind Mode",
-    "colorblindFriendly": "Colorblind Friendly",
+    "title": "Cross-Chain Analysis",
+    "colorblindModeOn": "Color Blind Mode On",
+    "switchToColorblindMode": "Switch to Color Blind Mode",
+    "colorblindFriendly": "Color Blind Friendly",
     "export": "Export",
     "autoRefresh": "Auto Refresh",
     "refreshSuccess": "Refresh Success",
     "loadingData": "Loading data...",
     "tooltip": {
-      "averagePrice": "Average of prices across all chains",
-      "medianPrice": "Median of prices across all chains",
+      "averagePrice": "Average of all chain prices",
+      "medianPrice": "Median of all chain prices",
       "highestPrice": "Highest price across all chains",
       "priceRange": "Difference between highest and lowest prices",
       "standardDeviation": "Standard deviation of price fluctuations",
       "dataPoints": "Number of data points",
-      "iqr": "Difference between third and first quartiles",
+      "iqr": "Difference between Q3 and Q1",
       "skewness": "Asymmetry of price distribution",
       "kurtosis": "Tail thickness of price distribution",
-      "confidenceInterval95": "Price interval at 95% confidence level",
+      "confidenceInterval95": "Price range at 95% confidence level",
       "coefficientOfVariation": "Ratio of standard deviation to mean",
       "consistencyRating": "Consistency rating based on standard deviation"
+    },
+    "filters": "Filters",
+    "visibleChains": "Visible Chains",
+    "stability": {
+      "excellent": "Excellent",
+      "good": "Good",
+      "fair": "Fair",
+      "poor": "Poor"
     }
   },
   "crossOracle": {
-    "subtitle": "Multi-Oracle Price Comparison Analysis",
+    "subtitle": "Multi-oracle price comparison analysis",
     "favorites": {
       "button": "Favorites",
       "quickAccess": "Quick Access",
@@ -728,7 +853,7 @@
     "weighted": "Weighted",
     "historyRange": "History Range",
     "low": "Low",
-    "ofAverage": "Of Average",
+    "ofAverage": "of Average",
     "variance": "Variance",
     "basedOnStdDev": "Based on Std Dev"
   },
@@ -741,10 +866,10 @@
       "emailLabel": "Email",
       "emailNotEditable": "Email is not editable",
       "saveChanges": "Save Changes",
-      "saveSuccess": "Saved successfully",
-      "saveError": "Save failed",
+      "saveSuccess": "Save Success",
+      "saveError": "Save Error",
       "passwordManagement": "Password Management",
-      "passwordManagementDesc": "Update your password to keep your account secure",
+      "passwordManagementDesc": "Update your password to secure your account",
       "changePassword": "Change Password",
       "newPassword": "New Password",
       "newPasswordPlaceholder": "Enter new password",
@@ -761,21 +886,21 @@
       "ethereum": "Ethereum",
       "l2Networks": "L2 Networks",
       "altL1": "Alt L1",
-      "filterByChain": "Filter by chain"
+      "filterByChain": "Filter by Chain"
     },
-    "tvlTrend": "Total Value Locked trend across ecosystem",
+    "tvlTrend": "Ecosystem Total Value Locked Trend",
     "timeRange": {
-      "1M": "1M",
-      "3M": "3M",
-      "6M": "6M",
-      "1Y": "1Y"
+      "1M": "1 Month",
+      "3M": "3 Months",
+      "6M": "6 Months",
+      "1Y": "1 Year"
     },
     "projectAnalysis": {
       "projectsByChain": "Projects by Chain",
       "totalProjects": "Total Projects",
-      "thisMonth": "this month"
+      "thisMonth": "This Month"
     },
-    "distributionByNetwork": "Distribution of projects across supported networks",
+    "distributionByNetwork": "Project Distribution Across Supported Networks",
     "growth": {
       "title": "Ecosystem Growth",
       "newProjects": "New Projects",
@@ -783,7 +908,7 @@
       "communityGrowth": "Community",
       "protocolRevenue": "Revenue"
     },
-    "keyIndicators": "Key performance indicators"
+    "keyIndicators": "Key Performance Indicators"
   },
   "ccip": {
     "dataUnavailable": "CCIP data temporarily unavailable",
@@ -801,8 +926,8 @@
     "comingSoon": "Coming Soon",
     "recentTransactions": "Recent Cross-Chain Transactions",
     "transactionId": "ID",
-    "sourceChain": "Source",
-    "destChain": "Destination",
+    "sourceChain": "Source Chain",
+    "destChain": "Dest Chain",
     "type": "Type",
     "value": "Value",
     "txStatus": "Status",
@@ -835,8 +960,8 @@
   "dataFeeds": {
     "name": "Name",
     "category": "Category",
-    "frequency": "Update Frequency",
-    "threshold": "Deviation Threshold",
+    "frequency": "Frequency",
+    "threshold": "Threshold",
     "status": "Status",
     "requests": "Requests",
     "reliability": "Reliability",
@@ -853,7 +978,7 @@
     "frequencyDesc": "Data feeds are updated based on deviation thresholds and heartbeat intervals to ensure price accuracy.",
     "deviationThreshold": "Deviation Threshold",
     "thresholdDesc": "Minimum price change required to trigger a new on-chain update.",
-    "reliabilityDesc": "Percentage of successful updates over the last 30 days, excluding planned maintenance.",
+    "reliabilityDesc": "Percentage of successful updates over the past 30 days, excluding scheduled maintenance.",
     "decentralization": "Decentralization",
     "decentralizationDesc": "Each data feed is secured by multiple independent validators."
   },
@@ -863,8 +988,8 @@
     "live": "Live",
     "paused": "Paused",
     "activeStreams": "Active Streams",
-    "totalFeeds": "Total feeds",
-    "updateFrequency": "Update Freq",
+    "totalFeeds": "Total Feeds",
+    "updateFrequency": "Update Frequency",
     "updatesPerMin": "updates/min",
     "avgLatency": "Avg Latency",
     "fromLastHour": "from last hour",
@@ -877,17 +1002,17 @@
     "threshold": "Threshold",
     "subscribers": "Subscribers",
     "status": "Status",
-    "noFeeds": "No active data streams",
+    "noFeeds": "No active streams",
     "performanceMetrics": "Performance Metrics",
     "bandwidth": "Bandwidth",
     "packetLoss": "Packet Loss",
     "reconnects": "Reconnects (24h)",
     "latencyPercentiles": "Latency Percentiles",
     "latencyTrend": "Latency Trend",
-    "noLatencyData": "No latency data available",
+    "noLatencyData": "No latency data",
     "latencyDistribution": "Latency Distribution",
-    "pushEvents": "Push Events Log",
-    "realtime": "Real-time updates",
+    "pushEvents": "Push Event Log",
+    "realtime": "Real-time",
     "eventId": "Event ID",
     "feed": "Feed",
     "change": "Change",
@@ -902,24 +1027,24 @@
     "reliable": "Reliable Delivery",
     "reliableDesc": "Guaranteed message delivery with automatic retry and failover mechanisms.",
     "customThresholds": "Custom Thresholds",
-    "customThresholdsDesc": "Configure deviation thresholds and heartbeat intervals based on your requirements.",
+    "customThresholdsDesc": "Configure deviation thresholds and heartbeat intervals according to your needs.",
     "heartbeat": "Heartbeat Updates",
-    "heartbeatDesc": "Regular updates even when prices are stable, ensuring data freshness and contract health.",
+    "heartbeatDesc": "Regular updates even when prices are stable to ensure data freshness and contract health.",
     "autoFailover": "Auto Failover",
-    "autoFailoverDesc": "Automatic failover to backup nodes ensures continuous service availability."
+    "autoFailoverDesc": "Automatic failover to backup nodes to ensure continuous service availability."
   },
   "dataTable": {
     "sort": {
       "asc": "Ascending",
       "desc": "Descending",
-      "unsorted": "Not sorted"
+      "unsorted": "Unsorted"
     }
   },
   "functions": {
     "success": "Success",
     "failed": "Failed",
     "dataUnavailable": "Functions data temporarily unavailable",
-    "executionStats": "Execution Statistics",
+    "executionStats": "Execution Stats",
     "totalCalls": "Total Calls",
     "successRate": "Success Rate",
     "avgExecutionTime": "Avg Execution Time",
@@ -933,24 +1058,24 @@
     "secretsManagement": "Secrets Management",
     "encrypted": "Encrypted",
     "unencrypted": "Unencrypted",
-    "expiresAt": "Expires",
+    "expiresAt": "Expires At",
     "useCaseDistribution": "Use Case Distribution",
     "calls": "calls",
-    "noDataAvailable": "No Functions data available",
+    "noDataAvailable": "No Functions data",
     "noDataDesc": "Functions execution data is temporarily unavailable. Please try again later.",
-    "features": "Key Features",
+    "features": "Core Features",
     "feature1Title": "Custom JavaScript",
     "feature1Desc": "Write custom JavaScript code to fetch and process data from any API endpoint.",
     "feature2Title": "Decentralized Execution",
     "feature2Desc": "Functions are executed by multiple independent node operators for security and reliability.",
     "feature3Title": "Secrets Management",
-    "feature3Desc": "Securely store API keys and credentials with threshold encryption for sensitive data.",
+    "feature3Desc": "Securely store API keys and credentials using threshold encryption.",
     "feature4Title": "Low Latency",
-    "feature4Desc": "Optimized execution pipeline ensures fast response times for time-sensitive applications.",
+    "feature4Desc": "Optimized execution pipeline for fast responses in time-sensitive applications.",
     "feature5Title": "Any API Support",
     "feature5Desc": "Connect to any HTTP API, including Web2 services, without traditional oracle limitations.",
     "feature6Title": "Gas Efficient",
-    "feature6Desc": "Minimize on-chain footprint with off-chain computation and efficient result verification."
+    "feature6Desc": "Minimize on-chain footprint through off-chain computation and efficient result verification."
   },
   "services": {
     "overview": "Services Overview",
@@ -962,7 +1087,7 @@
     "dataFeedsDesc": "Decentralized price feeds for DeFi applications",
     "vrfDesc": "Verifiable randomness for gaming and NFTs",
     "automationDesc": "Smart contract automation for conditional execution",
-    "ccipDesc": "Cross-chain interoperability protocol",
+    "ccipDesc": "Cross-Chain Interoperability Protocol",
     "functionsDesc": "Custom off-chain computation"
   },
   "timeRange": {
@@ -974,7 +1099,7 @@
     "pending": "Pending",
     "failed": "Failed",
     "dataUnavailable": "VRF data temporarily unavailable",
-    "requestStats": "Request Statistics",
+    "requestStats": "Request Stats",
     "requests24h": "Requests (24h)",
     "successRate": "Success Rate",
     "avgResponseTime": "Avg Response Time",
@@ -990,113 +1115,33 @@
     "contracts": "Contracts",
     "recentRequests": "Recent Requests",
     "requestId": "Request ID",
-    "consumer": "Consumer",
+    "consumer": "Consumer Contract",
     "randomWords": "Random Words",
     "status": "Status",
     "useCaseDistribution": "Use Case Distribution",
     "requests": "requests",
-    "noDataAvailable": "No VRF data available",
+    "noDataAvailable": "No VRF data",
     "noDataDesc": "VRF request data is temporarily unavailable. Please try again later.",
     "v2_5Features": "VRF v2.5 Features",
     "feature1Title": "Native Payment",
-    "feature1Desc": "Pay for VRF requests directly with LINK tokens without wrapping or conversion.",
+    "feature1Desc": "Pay for VRF requests directly with LINK tokens, no wrapping or additional conversions needed.",
     "feature2Title": "Batch Requests",
-    "feature2Desc": "Request multiple random numbers in a single on-chain transaction for efficiency.",
+    "feature2Desc": "Request multiple random numbers in a single on-chain transaction for improved efficiency.",
     "feature3Title": "Custom Callback Gas",
     "feature3Desc": "Configure custom gas limits for callback functions to optimize costs and ensure reliable execution.",
-    "feature4Title": "Faster Fulfillment",
-    "feature4Desc": "Optimized coordinator contracts for reduced latency and faster random number delivery.",
+    "feature4Title": "Faster Response",
+    "feature4Desc": "Optimized coordinator contracts for lower latency and faster delivery of randomness.",
     "feature5Title": "On-Chain Verification",
     "feature5Desc": "Cryptographic proof verification ensures randomness cannot be manipulated by any party.",
     "feature6Title": "Subscription Model",
-    "feature6Desc": "Manage funds and consumer contracts efficiently through subscription-based billing."
-  },
-  "common": {
-    "totalValueLockedEcosystem": "Total Value Locked across ecosystem",
-    "distributionProjectsNetworks": "Distribution of projects across supported networks",
-    "keyPerformanceIndicators": "Key performance indicators",
-    "refresh": "Refresh",
-    "export": "Export",
-    "noData": "No data available",
-    "loading": "Loading...",
-    "expand": "Expand",
-    "collapse": "Collapse",
-    "close": "Close"
-  },
-  "crossChain": {
-    "filters": "Filters",
-    "visibleChains": "Visible Chains",
-    "stability": {
-      "excellent": "Excellent",
-      "good": "Good",
-      "fair": "Fair",
-      "poor": "Poor"
-    }
+    "feature6Desc": "Efficiently manage funds and consumer contracts through subscription-based billing."
   },
   "dataSources": {
     "title": "Data Sources"
   },
-  "comparison": {
-    "benchmark": {
-      "industryAverage": "Industry Average",
-      "marketLeader": "Market Leader",
-      "gap": "Gap"
-    },
-    "oracleComparison": {
-      "medianPrice": "Median Price",
-      "oracle": "Oracle",
-      "price": "Price"
-    }
-  },
-  "crossOracle": {
-    "timeRange": {
-      "1h": "1 Hour",
-      "24h": "24 Hours",
-      "7d": "7 Days",
-      "30d": "30 Days"
-    },
-    "filter": {
-      "filtersActive": "Filters Active",
-      "clearAll": "Clear All"
-    },
-    "retrying": "Retrying...",
-    "retry": "Retry",
-    "partialSuccessDesc": "Some data sources are unavailable. Showing available data.",
-    "retryAll": "Retry All",
-    "globalError": "Global Error",
-    "failedOracles": "Failed Oracles",
-    "ofMedian": "of Median",
-    "analysisTab": {
-      "movingAverage": "Moving Average",
-      "dataQuality": "Data Quality",
-      "performanceComparison": "Performance Comparison",
-      "selectOracle": "Select Oracle",
-      "allOracles": "All Oracles",
-      "selectOraclePlaceholder": "Choose an oracle...",
-      "summary": "Summary",
-      "responseTime": "Response Time",
-      "accuracy": "Accuracy",
-      "stability": "Stability",
-      "advancedAnalysis": "Advanced Analysis"
-    },
-    "risk": {
-      "noData": "No risk data available",
-      "noDataDesc": "Risk metrics are temporarily unavailable. Please try again later."
-    }
-  },
-  "export": {
-    "asset": "Asset",
-    "oracle": "Oracle",
-    "price": "Price",
-    "timestamp": "Timestamp",
-    "deviation": "Deviation",
-    "latency": "Latency",
-    "confidence": "Confidence",
-    "updateFrequency": "Update Frequency"
-  },
   "nft": {
     "loading": "Loading NFT data...",
-    "noData": "No NFT data available",
+    "noData": "No NFT data",
     "totalCollections": "Total Collections",
     "trendingCount": "Trending",
     "avgFloorPrice": "Avg Floor Price",
@@ -1109,7 +1154,7 @@
     "chain": "Chain",
     "noCollections": "No collections found",
     "byChain": "By Chain",
-    "noChainData": "No chain data available",
+    "noChainData": "No chain data",
     "floorPriceHistory": "Floor Price History"
   },
   "risk": {
@@ -1141,24 +1186,15 @@
     "bar": "Bar",
     "candle": "Candlestick"
   },
-  "priceQuery": {
-    "errors": {
-      "networkError": "Network error occurred. Please check your connection.",
-      "timeoutError": "Request timed out. Please try again.",
-      "dataError": "Data error occurred. Please try again later.",
-      "unknownError": "An unknown error occurred. Please try again.",
-      "retry": "Retry"
-    }
-  },
   "oracles": {
     "descriptions": {
       "chainlink": "Industry-leading decentralized oracle network providing secure and reliable off-chain data connectivity for smart contracts",
       "pyth": "High-frequency financial data oracle with first-party exchange data and sub-second latency",
       "api3": "First-party oracle network enabling decentralized API connectivity",
-      "redstone": "Modular oracle solution supporting efficient data streams and flexible integration options",
+      "redstone": "Modular oracle solution supporting efficient data streaming and flexible integration options",
       "dia": "Open-source cross-chain data oracle platform providing transparent and verifiable financial data feeds",
       "winklink": "TRON ecosystem oracle focused on gaming and DeFi",
-      "supra": "Intrinsically decentralized oracle with DORA consensus mechanism, providing native cross-chain data feeds"
+      "supra": "Native decentralized oracle using DORA consensus mechanism, providing native cross-chain data feeds"
     },
     "tabs": {
       "supra": {
@@ -1177,11 +1213,11 @@
       "description": "Price volatility is {volatility}%"
     },
     "consistency": {
-      "good": "Data consistency is good",
+      "good": "Good data consistency",
       "description": "Data consistency score is {value}, standard deviation is {stdDev}%"
     },
     "sensitivity": {
-      "description": "Anomaly detection sensitivity set to {value}, currently detected {anomalyCount} anomalies"
+      "description": "Anomaly detection sensitivity is set to {value}, currently detecting {anomalyCount} anomalies"
     },
     "health": {
       "noData": "System health is extremely low: no valid price data",
@@ -1192,11 +1228,11 @@
     "reasons": {
       "severeDeviation": "Price severely deviates from market average",
       "highVolatility": "High market volatility",
-      "dataSourceDifference": "Data source discrepancy",
-      "severelyDelayed": "Data source delayed over 5 minutes",
+      "dataSourceDifference": "Data source differences",
+      "severelyDelayed": "Data source delayed more than 5 minutes",
       "delayed": "Data source delayed",
       "lowConfidence": "Low data source confidence",
-      "mediumConfidence": "Moderate data source confidence",
+      "mediumConfidence": "Medium data source confidence",
       "overThreshold": "Price deviation exceeds threshold",
       "minorDeviation": "Minor price deviation"
     }
@@ -1204,22 +1240,22 @@
   "errors": {
     "suggestions": {
       "default": "Please try again later or contact support",
-      "validationError": "Please check if the input data meets the requirements",
-      "authenticationError": "Please log in again or check your authentication information",
+      "validationError": "Please check if input data meets requirements",
+      "authenticationError": "Please log in again or check your credentials",
       "authorizationError": "Please confirm you have permission to perform this action",
       "notFound": "Please confirm the requested resource exists",
       "rateLimitExceeded": "Please try again later or reduce request frequency",
-      "internalError": "Please try again later, if the problem persists please contact support",
-      "priceFetchError": "Please check your network connection or try again later",
-      "oracleClientError": "Oracle service is temporarily unavailable, please try again later",
-      "badRequest": "Please check if the request parameters are correct",
-      "unauthorized": "Please log in first to perform this action",
+      "internalError": "Please try again later. If the problem persists, contact support",
+      "priceFetchError": "Please check network connection or try again later",
+      "oracleClientError": "Oracle service temporarily unavailable, please try again later",
+      "badRequest": "Please check if request parameters are correct",
+      "unauthorized": "Please log in before performing this action",
       "forbidden": "You do not have permission to access this resource",
-      "conflict": "Request conflicts with current resource state, please refresh and try again",
-      "serviceUnavailable": "Service is temporarily unavailable, please try again later",
-      "networkError": "Network connection error, please check your network settings",
-      "timeoutError": "Request timed out, please try again later",
-      "unknownError": "An unknown error occurred, please try again later or contact support"
+      "conflict": "Request conflicts with current resource state, please refresh and retry",
+      "serviceUnavailable": "Service temporarily unavailable, please try again later",
+      "networkError": "Network connection error, please check network settings",
+      "timeoutError": "Request timeout, please try again later",
+      "unknownError": "Unknown error occurred, please try again later or contact support"
     }
   },
   "export": {
@@ -1238,7 +1274,7 @@
       "processingData": "Processing data {current}/{total}...",
       "processingChart": "Processing chart {current}/{total}: {title}...",
       "exportingChart": "Exporting chart {current}/{total}: {name}...",
-      "cloningSVG": "Cloning SVG element...",
+      "cloningSVG": "Cloning SVG elements...",
       "serializingSVG": "Serializing SVG...",
       "serializingData": "Serializing data...",
       "renderingImage": "Rendering image...",
@@ -1249,17 +1285,25 @@
       "completed": "Export completed",
       "pdfCompleted": "PDF export completed",
       "batchCompleted": "Batch export completed",
-      "allChartsCompleted": "All charts exported successfully",
+      "allChartsCompleted": "All charts exported",
       "chartPrefix": "[{name}] {messageKey}"
     },
     "formats": {
       "csvDescription": "Comma-separated values file, suitable for data analysis",
       "jsonDescription": "Structured data format, suitable for programmatic processing",
-      "excelDescription": "Excel compatible format, suitable for spreadsheet processing",
-      "pngDescription": "High-quality image format, suitable for sharing and reports",
-      "svgDescription": "Vector graphics format, scalable without quality loss",
-      "pdfDescription": "PDF document format, includes charts and summary"
-    }
+      "excelDescription": "Excel-compatible format, suitable for spreadsheet processing",
+      "pngDescription": "High-resolution image format, suitable for sharing and reports",
+      "svgDescription": "Vector graphics format, scalable without loss",
+      "pdfDescription": "PDF document format, includes charts and summaries"
+    },
+    "asset": "Asset",
+    "oracle": "Oracle",
+    "price": "Price",
+    "timestamp": "Timestamp",
+    "deviation": "Deviation",
+    "latency": "Latency",
+    "confidence": "Confidence",
+    "updateFrequency": "Update Frequency"
   },
   "favorites": {
     "loginRequired": "Please log in to view favorites",
@@ -1267,8 +1311,8 @@
     "searchPlaceholder": "Search favorites...",
     "noResults": "No matching favorites found",
     "noResultsDesc": "Try adjusting search criteria or filters",
-    "empty": "No favorites yet",
-    "emptyDesc": "Favorites will appear here after you add them from various pages",
+    "empty": "No favorites",
+    "emptyDesc": "Favorites added on various pages will appear here",
     "all": "All",
     "oracleConfig": "Oracle Config",
     "symbol": "Symbol",
@@ -1287,9 +1331,9 @@
     "dataDesc": "Export and manage data"
   },
   "table": {
-    "noData": "No data available",
+    "noData": "No data",
     "noDataAriaLabel": "No data",
-    "totalRecords": "Total {count} records",
+    "totalRecords": "{count} records total",
     "warningCount": "{count} warnings",
     "errorCount": "{count} errors",
     "status": "Status",
@@ -1301,7 +1345,7 @@
     "price": "Price",
     "priceAriaLabel": "Price: {price}",
     "deviation": "Deviation",
-    "deviationAriaLabel": "Deviation: {deviation}{status, select, danger {, Anomaly} warning {, Warning} other {}}",
+    "deviationAriaLabel": "Deviation: {deviation}{status, select, danger {, Danger} warning {, Warning} other {}}",
     "confidence": "Confidence",
     "confidenceAriaLabel": "Confidence: {confidence}",
     "responseTime": "Response Time",
@@ -1310,21 +1354,20 @@
     "warning": "Warning",
     "error": "Error",
     "benchmark": "Benchmark",
-    "noDataConfidence": "No data",
+    "noDataConfidence": "No Data",
     "legend": "Legend",
-    "confidenceProgress": "Confidence Progress: {value}%",
-    "responseTimeAriaLabel": "Response Time: {time}",
+    "confidenceProgress": "Confidence: {value}%",
     "positiveDeviation": "Positive Deviation",
     "negativeDeviation": "Negative Deviation",
     "normalStatus": "Normal",
     "warningThreshold": "Warning (≥{threshold}%)",
-    "errorThreshold": "Anomaly (≥{threshold}%)",
+    "errorThreshold": "Error (≥{threshold}%)",
     "comparisonTable": "Comparison Table"
   },
   "quality": {
     "title": "Data Quality Assessment",
     "anomalyDetection": "Price Anomaly Detection",
-    "noAnomalies": "No price anomalies detected",
+    "noAnomalies": "No price anomalies found",
     "noAnomaliesDesc": "All data source prices are within normal range",
     "detailedAnalysis": "Detailed Data Quality Analysis",
     "consistency": "Data Consistency",
@@ -1337,7 +1380,7 @@
   },
   "priceTable": {
     "rawPrice": "Raw Price",
-    "priceDiff": "Price Difference from Average",
+    "priceDiff": "Price Diff from Avg",
     "dataDelay": "Data Delay",
     "status": "Status",
     "outlier": "Statistical Outlier",
@@ -1349,6 +1392,6 @@
     "possibleReasons": "Possible Reasons",
     "collapseDetails": "Collapse Details",
     "expandDetails": "Expand Details",
-    "anomalyTooltip": "Price Anomaly: Deviation {deviation}%"
+    "anomalyTooltip": "Price anomaly: {deviation}% deviation"
   }
 }

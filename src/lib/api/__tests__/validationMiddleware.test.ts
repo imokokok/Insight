@@ -22,6 +22,7 @@ jest.mock('../validation', () => ({
   validateObject: jest.fn(),
 }));
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const { validateObject } = require('../validation');
 
 function createMockRequest(

@@ -92,6 +92,7 @@ describe('authMiddleware', () => {
         error: null,
       });
 
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       require('@supabase/supabase-js').createClient.mockReturnValue({
         auth: { getUser: mockGetUser },
       });
@@ -114,6 +115,7 @@ describe('authMiddleware', () => {
         error: { message: 'Invalid token' },
       });
 
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       require('@supabase/supabase-js').createClient.mockReturnValue({
         auth: { getUser: mockGetUser },
       });
@@ -127,6 +129,7 @@ describe('authMiddleware', () => {
     });
 
     it('should handle errors during auth extraction', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       require('@supabase/supabase-js').createClient.mockImplementation(() => {
         throw new Error('Supabase error');
       });
@@ -183,6 +186,7 @@ describe('authMiddleware', () => {
         error: null,
       });
 
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       require('@supabase/supabase-js').createClient.mockReturnValue({
         auth: { getUser: mockGetUser },
       });
@@ -212,6 +216,7 @@ describe('authMiddleware', () => {
         error: null,
       });
 
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       require('@supabase/supabase-js').createClient.mockReturnValue({
         auth: { getUser: mockGetUser },
       });
@@ -242,6 +247,7 @@ describe('authMiddleware', () => {
         error: null,
       });
 
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       require('@supabase/supabase-js').createClient.mockReturnValue({
         auth: { getUser: mockGetUser },
       });
@@ -302,6 +308,7 @@ describe('authMiddleware', () => {
         error: null,
       });
 
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       require('@supabase/supabase-js').createClient.mockReturnValue({
         auth: { getUser: mockGetUser },
       });
@@ -335,6 +342,7 @@ describe('authMiddleware', () => {
         error: null,
       });
 
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       require('@supabase/supabase-js').createClient.mockReturnValue({
         auth: { getUser: mockGetUser },
       });

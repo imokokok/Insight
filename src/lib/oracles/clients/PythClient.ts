@@ -7,7 +7,7 @@ import { createLogger } from '@/lib/utils/logger';
 import { OracleProvider, Blockchain, OracleError } from '@/types/oracle';
 import type { PriceData, ConfidenceInterval } from '@/types/oracle';
 
-const logger = createLogger('PythClient');
+const _logger = createLogger('PythClient');
 
 const SPREAD_PERCENTAGES: Record<string, number> = {
   BTC: 0.02,
@@ -138,77 +138,10 @@ export class PythClient extends BaseOracleClient {
     }
   }
 
-  async getHistoricalPrices(
-    symbol: string,
-    chain?: Blockchain,
-    period: number = 24,
-    options?: { signal?: AbortSignal }
-  ): Promise<PriceData[]> {
-    if (!symbol) {
-      throw this.createError('Symbol is required', 'INVALID_SYMBOL');
-    }
-
-    if (options?.signal?.aborted) {
-      return [];
-    }
-
-    try {
-      const historicalPrices = await binanceMarketService.getHistoricalPricesByHours(
-        symbol,
-        period
-      );
-
-      if (!historicalPrices || historicalPrices.length === 0) {
-        logger.warn(`No historical data available for ${symbol}`, { symbol });
-        return [];
-      }
-
-      logger.info(`Using Binance historical data for ${symbol}`, {
-        symbol,
-        points: historicalPrices.length,
-        period,
-      });
-
-      const targetChain = chain || Blockchain.ETHEREUM;
-      const latestPrice = historicalPrices[historicalPrices.length - 1].price;
-
-      return historicalPrices.map((point) => {
-        const change24h = latestPrice - point.price;
-        const change24hPercent =
-          point.price > 0 ? ((latestPrice - point.price) / point.price) * 100 : 0;
-
-        return {
-          provider: this.name,
-          chain: targetChain,
-          symbol: symbol.toUpperCase(),
-          price: point.price,
-          timestamp: point.timestamp,
-          decimals: 8,
-          confidence: 0.95,
-          change24h: Number(change24h.toFixed(4)),
-          change24hPercent: Number(change24hPercent.toFixed(2)),
-          source: 'binance-api',
-        };
-      });
-    } catch (error) {
-      logger.error(
-        `Failed to fetch historical prices for ${symbol}`,
-        error instanceof Error ? error : new Error(String(error)),
-        { symbol }
-      );
-      return [];
-    }
-  }
-
   getSupportedSymbols(): string[] {
     return [...pythSymbols];
   }
 
-  /**
-   * 获取指定链支持的所有币种
-   * @param chain - 区块链
-   * @returns 该链支持的币种列表
-   */
   getSupportedSymbolsForChain(chain: Blockchain): string[] {
     const chainKey = chain.toLowerCase();
     return PYTH_AVAILABLE_PAIRS[chainKey] || [];
@@ -224,7 +157,6 @@ export class PythClient extends BaseOracleClient {
       return chainSymbols.includes(upperSymbol);
     }
 
-    // 如果没有指定链，检查该币种是否在任何链上支持
     return Object.values(PYTH_AVAILABLE_PAIRS).some((symbols) => symbols.includes(upperSymbol));
   }
 
@@ -234,7 +166,6 @@ export class PythClient extends BaseOracleClient {
 
     for (const [chain, symbols] of Object.entries(PYTH_AVAILABLE_PAIRS)) {
       if (symbols.includes(upperSymbol)) {
-        // 将字符串链名转换为Blockchain枚举
         const blockchain = this.supportedChains.find(
           (c) => c.toLowerCase() === chain.toLowerCase()
         );

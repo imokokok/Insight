@@ -6,8 +6,15 @@ import { UnifiedExport } from '../UnifiedExport';
 
 jest.mock('framer-motion', () => ({
   motion: {
-    div: ({ children, ...props }: PropsWithChildren<HTMLAttributes<HTMLDivElement>>) => <div {...props}>{children}</div>,
-    button: ({ children, ...props }: PropsWithChildren<ButtonHTMLAttributes<HTMLButtonElement>>) => <button {...props}>{children}</button>,
+    div: ({ children, ...props }: PropsWithChildren<HTMLAttributes<HTMLDivElement>>) => (
+      <div {...props}>{children}</div>
+    ),
+    button: ({
+      children,
+      ...props
+    }: PropsWithChildren<ButtonHTMLAttributes<HTMLButtonElement>>) => (
+      <button {...props}>{children}</button>
+    ),
   },
   AnimatePresence: ({ children }: PropsWithChildren) => <>{children}</>,
 }));

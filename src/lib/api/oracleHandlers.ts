@@ -24,7 +24,6 @@ const logger = createLogger('OracleHandlers');
 
 const PRICE_CACHE_TTL = ORACLE_CACHE_TTL.PRICE;
 const HISTORY_CACHE_TTL = ORACLE_CACHE_TTL.HISTORICAL;
-const HISTORY_STALE_THRESHOLD = 5 * 60 * 1000;
 
 export interface OracleQueryParams {
   provider: OracleProvider;

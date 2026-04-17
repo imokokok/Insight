@@ -1,5 +1,7 @@
 'use client';
 
+import { useMemo, useRef } from 'react';
+
 import type { TwapOnChainData } from '@/hooks/oracles/useTwapOnChainData';
 import { OracleProvider as OracleProviderEnum } from '@/lib/oracles';
 import type { RedStoneTokenOnChainData } from '@/lib/oracles/clients/redstone';
@@ -45,6 +47,7 @@ interface StatsCardsSelectorProps {
     color: string;
   } | null;
   standardDeviationPercent: number;
+  currentTime?: number;
 }
 
 export function StatsCardsSelector({
@@ -61,6 +64,7 @@ export function StatsCardsSelector({
   volume24h,
   consistencyRating,
   standardDeviationPercent,
+  currentTime,
 }: StatsCardsSelectorProps) {
   const isChainlink = currentResult?.provider === OracleProviderEnum.CHAINLINK;
   const chainlinkData = isChainlink ? currentResult?.priceData : null;
@@ -73,6 +77,28 @@ export function StatsCardsSelector({
 
   const isSupra = currentResult?.provider === OracleProviderEnum.SUPRA;
   const supraData = isSupra ? currentResult?.priceData : null;
+
+  // Use ref to store initial time to avoid Date.now() in render
+  const timeRef = useRef(currentTime ?? Date.now());
+
+  // Compute supra stats data with useMemo at top level
+  const supraStatsData: SupraTokenOnChainData | null = useMemo(() => {
+    if (!isSupra || !supraData) return null;
+    return {
+      symbol: supraData.symbol,
+      price: supraData.price,
+      decimals: supraData.decimals ?? 8,
+      pairIndex: supraData.pairIndex ?? 0,
+      pairName: `${supraData.symbol}/USDT`,
+      supportedChainsCount: 27,
+      updateIntervalMinutes: 5,
+      dataAge: supraData.timestamp
+        ? Math.round((timeRef.current - supraData.timestamp) / 1000)
+        : null,
+      lastUpdated: supraData.timestamp,
+      source: supraData.source || 'DORA V2',
+    };
+  }, [isSupra, supraData]);
 
   if (isChainlink && chainlinkData) {
     return (
@@ -117,19 +143,7 @@ export function StatsCardsSelector({
     return <SupraStats data={supraOnChainData as SupraTokenOnChainData} />;
   }
 
-  if (isSupra && supraData) {
-    const supraStatsData: SupraTokenOnChainData = {
-      symbol: supraData.symbol,
-      price: supraData.price,
-      decimals: supraData.decimals ?? 8,
-      pairIndex: supraData.pairIndex ?? 0,
-      pairName: `${supraData.symbol}/USDT`,
-      supportedChainsCount: 27,
-      updateIntervalMinutes: 5,
-      dataAge: supraData.timestamp ? Math.round((Date.now() - supraData.timestamp) / 1000) : null,
-      lastUpdated: supraData.timestamp,
-      source: supraData.source || 'DORA V2',
-    };
+  if (supraStatsData) {
     return <SupraStats data={supraStatsData} />;
   }
 

@@ -494,9 +494,7 @@ export function detectVolatilityAnomalies(
 
       if (predictedVol > 0) {
         const volRatio = actualVol / predictedVol;
-        const deviation = Math.abs(volRatio - 1);
 
-        // 波动率突破阈值
         if (volRatio > 1.5 || volRatio < 0.5) {
           const priceIndex = i + window;
           let level: AnomalyLevel;

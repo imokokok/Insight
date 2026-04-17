@@ -27,6 +27,7 @@ interface UseChartConfigOptions {
   validPrices: number[];
   avgPrice: number;
   performanceMetrics: CalculatedPerformanceMetrics[];
+  currentTime?: number;
 }
 
 const initialHistoryMinMax: HistoryMinMax = {
@@ -59,6 +60,7 @@ export function useChartConfig({
   validPrices,
   avgPrice,
   performanceMetrics,
+  currentTime,
 }: UseChartConfigOptions): UseChartConfigReturn {
   // 计算图表颜色配置
   const oracleChartColors = useMemo(() => {
@@ -84,7 +86,8 @@ export function useChartConfig({
 
   // 生成图表数据
   const getChartData = useCallback((): ChartDataPoint[] => {
-    const cutoff = Date.now() - timeRangeToHours(timeRange) * 3600 * 1000;
+    const now = currentTime ?? Date.now();
+    const cutoff = now - timeRangeToHours(timeRange) * 3600 * 1000;
     const dataMap = new Map<number, ChartDataPoint>();
 
     selectedOracles.forEach((oracle) => {
@@ -134,9 +137,10 @@ export function useChartConfig({
 
       return point;
     });
-  }, [historicalData, selectedOracles, timeRange]);
+  }, [historicalData, selectedOracles, timeRange, currentTime]);
   const heatmapData = useMemo(() => {
-    const cutoff = Date.now() - timeRangeToHours(timeRange) * 3600 * 1000;
+    const now = currentTime ?? Date.now();
+    const cutoff = now - timeRangeToHours(timeRange) * 3600 * 1000;
     const data: PriceDeviationDataPoint[] = [];
 
     selectedOracles.forEach((oracle) => {
@@ -153,9 +157,10 @@ export function useChartConfig({
     });
 
     return data;
-  }, [historicalData, selectedOracles, avgPrice, timeRange]);
+  }, [historicalData, selectedOracles, avgPrice, timeRange, currentTime]);
   const boxPlotData = useMemo(() => {
-    const cutoff = Date.now() - timeRangeToHours(timeRange) * 3600 * 1000;
+    const now = currentTime ?? Date.now();
+    const cutoff = now - timeRangeToHours(timeRange) * 3600 * 1000;
     return selectedOracles.map((oracle) => {
       const history = (historicalData[oracle] || []).filter((item) => item.timestamp >= cutoff);
       return {
@@ -163,7 +168,7 @@ export function useChartConfig({
         prices: history.map((h) => h.price),
       };
     });
-  }, [historicalData, selectedOracles, timeRange]);
+  }, [historicalData, selectedOracles, timeRange, currentTime]);
   const volatilityData = useMemo(() => {
     return selectedOracles.map((oracle) => {
       const history = historicalData[oracle] || [];

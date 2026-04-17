@@ -1,5 +1,3 @@
-import { type Blockchain, type PriceData } from '@/lib/oracles';
-
 import { type ThresholdConfig } from '../utils';
 
 import { useChartData, type UseChartDataParams, type UseChartDataReturn } from './useChartData';

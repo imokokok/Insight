@@ -142,6 +142,7 @@ class MockOracleClientFactory implements IOracleClientFactory {
   }
 }
 
+// eslint-disable-next-line max-lines-per-function
 describe('OracleClientFactory', () => {
   let factory: OracleClientFactory;
 
@@ -356,6 +357,7 @@ describe('OracleClientFactory', () => {
 
     describe('Proper error logging', () => {
       it('should log error when client creation fails', () => {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
         const { createLogger } = require('@/lib/utils/logger');
         const mockLogger = createLogger('OracleClientFactory');
 

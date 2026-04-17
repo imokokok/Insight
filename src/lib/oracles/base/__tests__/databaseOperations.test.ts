@@ -23,6 +23,7 @@ jest.mock('../../utils/storage', () => ({
     mockGetHistoricalPricesFromDatabase(...args),
 }));
 
+// eslint-disable-next-line max-lines-per-function
 describe('databaseOperations', () => {
   const mockProvider: OracleProvider = 'chainlink';
   const mockSymbol = 'BTC';

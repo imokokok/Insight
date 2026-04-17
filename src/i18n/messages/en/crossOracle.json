@@ -1,7 +1,7 @@
 {
   "crossOracle": {
     "meta": {
-      "title": "Cross-Oracle - Insight",
+      "title": "Cross-Oracle Comparison - Insight",
       "description": "Compare prices across multiple oracles"
     },
     "title": "Multi-Oracle Comparative Analytics",
@@ -146,7 +146,7 @@
     "avg": "Avg",
     "range": "Range",
     "stdDev": "Std Dev",
-    "consistencyRating": "Price Convergence Index",
+    "consistencyRating": "Consistency Rating",
     "consistency": {
       "excellent": "Excellent",
       "good": "Good",
@@ -170,8 +170,8 @@
     "normal": "Normal",
     "anomaly": "Anomaly",
     "median": "Median",
-    "bid": "Bid",
-    "ask": "Ask",
+    "bid": "Bid Price",
+    "ask": "Ask Price",
     "bestBid": "Best Bid",
     "bestAsk": "Best Ask",
     "spread": "Spread",
@@ -389,10 +389,10 @@
       "monitoring": "Monitoring",
       "keyMetrics": "Key Risk Metrics",
       "systemMetrics": "System Metrics",
-      "数据正常": "Data Normal",
-      "高风险": "High Risk",
-      "中风险": "Medium Risk",
-      "低风险": "Low Risk",
+      "dataNormal": "Data Normal",
+      "highRisk": "High Risk",
+      "mediumRisk": "Medium Risk",
+      "lowRisk": "Low Risk",
       "dataConsistent": "Data Consistent",
       "requiresAttention": "Requires Attention",
       "anomalyCount": "Anomaly Count",
@@ -428,7 +428,7 @@
       "supportedBy": "Supported by {count} oracles",
       "selectOracleFirst": "Please select oracles first"
     },
-    "freshness": "Data Timeliness",
+    "freshness": "Data Freshness",
     "freshnessOptions": {
       "justNow": "Just now",
       "secondsAgo": "{seconds}s ago",
@@ -513,7 +513,7 @@
       "zoomIn": "Zoom In",
       "resetZoom": "Reset Zoom",
       "reset": "Reset",
-      "avgPriceLine": "Average Price"
+      "avgPriceLine": "Average Price Line"
     },
     "chartLegend": {
       "avgPriceLine": "Average Price Line",
@@ -749,142 +749,6 @@
         "timestamp": "Timestamp"
       },
       "filename": "oracle-prices"
-    }
-  },
-  "oraclePerformanceRanking": {
-    "rank": "Rank",
-    "title": "Oracle Performance Ranking",
-    "subtitle": "Comprehensive performance evaluation based on multi-dimensional metrics",
-    "weightInfo": "Weights: Response Time 30% | Accuracy 30% | Stability 20% | Data Sources 10% | Supported Chains 10%",
-    "unchanged": "Unchanged",
-    "overallScore": "Overall Score",
-    "dimensionLabels": {
-      "responseTime": "Response Time",
-      "accuracy": "Accuracy",
-      "stability": "Stability",
-      "dataSources": "Data Sources",
-      "supportedChains": "Supported Chains"
-    },
-    "dimensionDescriptions": {
-      "title": "Dimension Descriptions",
-      "responseTime": {
-        "title": "Response Time",
-        "weight": "Weight: 30%",
-        "description": "Average latency of data updates, shorter is better"
-      },
-      "accuracy": {
-        "title": "Accuracy",
-        "weight": "Weight: 30%",
-        "description": "Deviation of price data from benchmark price"
-      },
-      "stability": {
-        "title": "Stability",
-        "weight": "Weight: 20%",
-        "description": "Stability of price fluctuations"
-      },
-      "dataSources": {
-        "title": "Data Sources",
-        "weight": "Weight: 10%",
-        "description": "Number and diversity of data sources"
-      },
-      "supportedChains": {
-        "title": "Supported Chains",
-        "weight": "Weight: 10%",
-        "description": "Number of supported blockchain networks"
-      }
-    }
-  },
-  "controlPanel": {
-    "title": "Query Configuration",
-    "titleShort": "Filters",
-    "collapse": "Collapse",
-    "expand": "Expand",
-    "symbol": "Trading Pair",
-    "selectSymbol": "Select symbol...",
-    "searchSymbol": "Search symbol...",
-    "oracles": "Oracles",
-    "selectAll": "Select All",
-    "deselectAll": "Deselect All",
-    "timeRange": "Time Range",
-    "deviationFilter": "Deviation Filter",
-    "selectDeviation": "Select deviation range...",
-    "advancedOptions": "Advanced Options",
-    "accessibleColors": "Color Blind Friendly Mode",
-    "loading": "Loading...",
-    "query": "Query",
-    "selectOracleHint": "Please select at least one oracle",
-    "oraclesSelected": "oracles selected",
-    "noCommonSymbols": "Selected oracles have no common supported symbols",
-    "adjustOracleSelection": "Please adjust oracle selection to choose oracles that support the same symbols",
-    "selectOracleFirst": "Please select oracles first"
-  },
-  "crossOracleComparison": {
-    "title": "Multi-Oracle Comparative Analytics",
-    "subtitle": "Comprehensive Multi-Source Price Aggregation & Convergence Analysis",
-    "consistencyScore": "Consistency Score",
-    "quickCompare": "Quick Compare",
-    "deviation": "Deviation",
-    "avgResponseTime": "Avg Response Time",
-    "highDeviation": "High Deviation",
-    "dataSources": "Data Sources",
-    "dataSourcesTooltip": "Estimated data sources based on official documentation",
-    "supportedChains": "Supported Chains",
-    "radar": {
-      "responseTime": "Response Time",
-      "updateFrequency": "Update Frequency",
-      "dataSources": "Data Sources",
-      "supportedChains": "Supported Chains",
-      "reliability": "Reliability"
-    }
-  },
-  "comparison": {
-    "timeComparison": {
-      "currentPeriod": "Current Period",
-      "yoy": "Year over Year",
-      "mom": "Month over Month"
-    }
-  },
-  "freshness": {
-    "justNow": "Just now",
-    "minutesAgo": "{minutes}m ago",
-    "hoursAgo": "{hours}h ago"
-  },
-  "riskRecommendations": {
-    "highRiskAnomaly": {
-      "title": "High Risk Price Anomaly Detected",
-      "description": "High-risk price anomalies detected with deviation exceeding 3%. Recommend checking the affected oracle data sources immediately."
-    },
-    "mediumRiskAnomaly": {
-      "title": "Price Deviation Warning",
-      "description": "Medium-risk price deviations detected (1-3%). Recommend monitoring these data sources."
-    },
-    "multipleAnomalies": {
-      "title": "Multiple Data Sources Showing Anomalies",
-      "description": "Multiple data sources are reporting anomalies. This may indicate severe market volatility or systemic issues."
-    },
-    "dataLatency": {
-      "title": "Data Source Update Delay",
-      "description": "Some oracle data updates are delayed by more than 5 minutes. This may affect price accuracy."
-    },
-    "dataCompleteness": {
-      "title": "Insufficient Data Completeness",
-      "description": "Current data completeness is below the 80% threshold. Some oracles may not be providing valid data."
-    },
-    "highDispersion": {
-      "title": "High Price Dispersion",
-      "description": "Significant price deviation detected. Price consistency across oracles is poor."
-    },
-    "diversifySources": {
-      "title": "Recommend Diversifying Data Sources",
-      "description": "Currently relying on a single data source. Recommend adding more oracles to improve system robustness and data reliability."
-    },
-    "thresholdOptimization": {
-      "title": "Anomaly Detection Threshold Optimization",
-      "description": "Multiple low-severity anomalies detected. Recommend adjusting anomaly detection thresholds to reduce false positives."
-    },
-    "regularReview": {
-      "title": "Regular Data Source Performance Review",
-      "description": "Recommend reviewing oracle performance metrics weekly, including accuracy, latency, and availability."
     }
   }
 }

@@ -7,12 +7,11 @@ import {
 } from '@/lib/oracles/constants/twapConstants';
 import { twapOnChainService } from '@/lib/oracles/services/twapOnChainService';
 import { withOracleRetry, ORACLE_RETRY_PRESETS } from '@/lib/oracles/utils/retry';
-import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
 import { createLogger } from '@/lib/utils/logger';
 import { OracleProvider, Blockchain, OracleError } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
 
-const logger = createLogger('TWAPClient');
+const _logger = createLogger('TWAPClient');
 
 const TWAP_QUALITY_CONFIG = {
   chainReliability: {
@@ -49,7 +48,7 @@ export class TWAPClient extends BaseOracleClient {
     return BLOCKCHAIN_TO_CHAIN_ID[chain || Blockchain.ETHEREUM] || 1;
   }
 
-  private calculateConfidence(chain?: Blockchain): number {
+  protected getHistoricalPriceConfidence(chain?: Blockchain): number {
     const chainRel = TWAP_QUALITY_CONFIG.chainReliability[chain || Blockchain.ETHEREUM] || 0.95;
     return Math.min(0.99, Math.max(TWAP_QUALITY_CONFIG.minConfidence, chainRel));
   }
@@ -80,6 +79,14 @@ export class TWAPClient extends BaseOracleClient {
         { ...ORACLE_RETRY_PRESETS.standard, timeout: 15000 }
       );
 
+      if (!twapData.twapPrice || twapData.twapPrice <= 0) {
+        throw this.createNoDataError(upperSymbol, chain, 'TWAP price is zero or negative');
+      }
+
+      if (!Number.isFinite(twapData.twapPrice)) {
+        throw this.createNoDataError(upperSymbol, chain, 'TWAP price is not a finite number');
+      }
+
       return {
         provider: OracleProvider.TWAP,
         symbol: upperSymbol,
@@ -106,54 +113,6 @@ export class TWAPClient extends BaseOracleClient {
         error instanceof Error ? error : undefined,
         { retryable: true, code: 'TWAP_ERROR' }
       );
-    }
-  }
-
-  async getHistoricalPrices(
-    symbol: string,
-    chain?: Blockchain,
-    period: number = 24,
-    options?: { signal?: AbortSignal }
-  ): Promise<PriceData[]> {
-    if (options?.signal?.aborted) {
-      return [];
-    }
-
-    const upperSymbol = symbol.toUpperCase();
-    if (!this.isSymbolSupported(upperSymbol)) return [];
-
-    try {
-      const historicalPrices = await binanceMarketService.getHistoricalPricesByHours(
-        upperSymbol,
-        period
-      );
-      if (!historicalPrices || historicalPrices.length === 0) return [];
-
-      const targetChain = chain || Blockchain.ETHEREUM;
-      const latestPrice = historicalPrices[historicalPrices.length - 1].price;
-
-      return historicalPrices.map((point) => {
-        const change24h = latestPrice - point.price;
-        const change24hPercent = point.price > 0 ? (change24h / point.price) * 100 : 0;
-        return {
-          provider: this.name,
-          chain: targetChain,
-          symbol: upperSymbol,
-          price: point.price,
-          timestamp: point.timestamp,
-          decimals: 8,
-          confidence: this.calculateConfidence(targetChain),
-          change24h: Number(change24h.toFixed(4)),
-          change24hPercent: Number(change24hPercent.toFixed(2)),
-          source: 'binance-api',
-        };
-      });
-    } catch (error) {
-      logger.error(
-        `Failed to fetch historical prices for ${upperSymbol}`,
-        error instanceof Error ? error : undefined
-      );
-      return [];
     }
   }
 

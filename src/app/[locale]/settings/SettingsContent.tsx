@@ -44,7 +44,9 @@ export default function SettingsContent() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
+    requestAnimationFrame(() => {
+      setMounted(true);
+    });
   }, []);
 
   useEffect(() => {

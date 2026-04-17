@@ -173,7 +173,9 @@ export function ChartToolbar({
                         : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                   )}
                   title={
-                    isDisabled ? `${t(config.labelKey)} ${t('chartToolbar.unavailableWithMultipleSeries')}` : t(config.labelKey)
+                    isDisabled
+                      ? `${t(config.labelKey)} ${t('chartToolbar.unavailableWithMultipleSeries')}`
+                      : t(config.labelKey)
                   }
                 >
                   <Icon className="w-3.5 h-3.5" />
@@ -204,7 +206,9 @@ export function ChartToolbar({
                         : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                   )}
                   title={
-                    isDisabled ? `${t(config.labelKey)} ${t('chartToolbar.unavailableWithMultipleSeries')}` : t(config.labelKey)
+                    isDisabled
+                      ? `${t(config.labelKey)} ${t('chartToolbar.unavailableWithMultipleSeries')}`
+                      : t(config.labelKey)
                   }
                 >
                   <Icon className="w-3.5 h-3.5" />

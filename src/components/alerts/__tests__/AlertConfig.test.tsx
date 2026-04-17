@@ -1,5 +1,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 
+import type { DropdownSelectProps, SegmentedControlProps, SelectorOption } from '@/components/ui';
+
 import { AlertConfig } from '../AlertConfig';
 
 jest.mock('@/hooks', () => ({
@@ -19,8 +21,6 @@ jest.mock('@/lib/constants', () => ({
   symbols: ['BTC', 'ETH', 'SOL'],
   oracleColors: { chainlink: '#375BD2', pyth: '#EC1C79' },
 }));
-
-import type { DropdownSelectProps, SegmentedControlProps, SelectorOption } from '@/components/ui';
 
 jest.mock('@/components/ui', () => ({
   DropdownSelect: ({ options, value, onChange }: DropdownSelectProps) => (

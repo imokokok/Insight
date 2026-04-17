@@ -1,3 +1,5 @@
+import React from 'react';
+
 import { render, screen, waitFor } from '@testing-library/react';
 
 import { useUser, useAuthLoading, useAuthInitialized } from '@/stores/authStore';
@@ -21,8 +23,14 @@ jest.mock('@/stores/authStore', () => ({
   useAuthInitialized: jest.fn(),
 }));
 
+interface SettingsLayoutProps {
+  children: React.ReactNode;
+  activeTab: string;
+  onTabChange: (tab: string) => void;
+}
+
 jest.mock('@/components/settings', () => ({
-  SettingsLayout: ({ children, activeTab, onTabChange }: any) => (
+  SettingsLayout: ({ children, activeTab, onTabChange }: SettingsLayoutProps) => (
     <div data-testid="settings-layout">
       <div data-testid="active-tab">{activeTab}</div>
       <button onClick={() => onTabChange('preferences')}>Change Tab</button>

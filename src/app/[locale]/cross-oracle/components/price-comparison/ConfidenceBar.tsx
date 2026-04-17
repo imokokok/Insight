@@ -1,6 +1,7 @@
 'use client';
 
 import { memo } from 'react';
+
 import { useTranslations } from 'next-intl';
 
 interface ConfidenceBarProps {

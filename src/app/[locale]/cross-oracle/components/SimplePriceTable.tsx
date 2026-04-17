@@ -297,12 +297,8 @@ function SimplePriceTableComponent({
     return (
       <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
         <Activity className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 mb-2">
-          {t('crossOracle.noData')}
-        </h3>
-        <p className="text-gray-500">
-          {t('crossOracle.noDataDescription')}
-        </p>
+        <h3 className="text-lg font-medium text-gray-900 mb-2">{t('crossOracle.noData')}</h3>
+        <p className="text-gray-500">{t('crossOracle.noDataDescription')}</p>
       </div>
     );
   }
@@ -363,9 +359,7 @@ function SimplePriceTableComponent({
               <th
                 className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                 onClick={() => handleSort('latency')}
-                title={
-                  t('crossOracle.latencyTooltip')
-                }
+                title={t('crossOracle.latencyTooltip')}
               >
                 <div className="flex items-center justify-center gap-1">
                   <Wifi className="w-3 h-3" />
@@ -382,9 +376,7 @@ function SimplePriceTableComponent({
               {/* 数据源 */}
               <th
                 className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider"
-                title={
-                  t('crossOracle.dataSourcesTooltip')
-                }
+                title={t('crossOracle.dataSourcesTooltip')}
               >
                 <div className="flex items-center justify-center gap-1">
                   <Database className="w-3 h-3" />

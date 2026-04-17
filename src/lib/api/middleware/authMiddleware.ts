@@ -1,9 +1,10 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import type { SupabaseClient } from '@supabase/supabase-js';
 
 import { createLogger } from '@/lib/utils/logger';
 
 import { ApiResponseBuilder } from '../response';
+
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 const logger = createLogger('auth-middleware');
 

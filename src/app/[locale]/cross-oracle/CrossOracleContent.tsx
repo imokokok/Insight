@@ -64,9 +64,7 @@ export default function CrossOracleContent() {
     standardDeviationPercent,
   } = priceStats;
 
-  const {
-    anomalies,
-  } = anomalyDetection;
+  const { anomalies } = anomalyDetection;
 
   useCommonShortcuts({
     onRefresh: fetchPriceData,
@@ -116,12 +114,8 @@ export default function CrossOracleContent() {
       <div className="flex flex-col gap-3 mb-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              {t('crossOracle.title')}
-            </h1>
-            <p className="text-sm text-gray-500 mt-1">
-              {t('crossOracle.subtitle')}
-            </p>
+            <h1 className="text-2xl font-bold text-gray-900">{t('crossOracle.title')}</h1>
+            <p className="text-sm text-gray-500 mt-1">{t('crossOracle.subtitle')}</p>
           </div>
 
           <div className="flex items-center gap-2">

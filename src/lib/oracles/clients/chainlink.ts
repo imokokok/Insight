@@ -6,16 +6,13 @@ import {
   type ChainlinkPriceData,
 } from '@/lib/oracles/services/chainlinkOnChainService';
 import { withOracleRetry, ORACLE_RETRY_PRESETS } from '@/lib/oracles/utils/retry';
-import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
 import { createLogger } from '@/lib/utils/logger';
 import { OracleProvider, Blockchain, OracleError } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
 
 const logger = createLogger('ChainlinkClient');
 
-// Chainlink 数据源质量配置
 const CHAINLINK_QUALITY_CONFIG = {
-  // 基于链的安全性和可靠性评分
   chainReliability: {
     [Blockchain.ETHEREUM]: 0.99,
     [Blockchain.ARBITRUM]: 0.98,
@@ -24,7 +21,7 @@ const CHAINLINK_QUALITY_CONFIG = {
     [Blockchain.AVALANCHE]: 0.96,
     [Blockchain.BNB_CHAIN]: 0.95,
     [Blockchain.BASE]: 0.97,
-    [Blockchain.SOLANA]: 0.0, // 不支持
+    [Blockchain.SOLANA]: 0.0,
     [Blockchain.FANTOM]: 0.94,
     [Blockchain.CRONOS]: 0.93,
     [Blockchain.JUNO]: 0.0,
@@ -55,9 +52,7 @@ const CHAINLINK_QUALITY_CONFIG = {
     [Blockchain.METIS]: 0.93,
     [Blockchain.STARKEX]: 0.0,
   } as Record<Blockchain, number>,
-  // 默认置信度
   defaultConfidence: 0.98,
-  // 最小置信度
   minConfidence: 0.9,
 };
 
@@ -114,6 +109,7 @@ export class ChainlinkClient extends BaseOracleClient {
   ];
 
   defaultUpdateIntervalMinutes = 60;
+  protected historicalPriceConfidence = 0.98;
   private useRealData: boolean;
 
   constructor(config?: OracleClientConfig & { useRealData?: boolean }) {
@@ -140,8 +136,6 @@ export class ChainlinkClient extends BaseOracleClient {
       CHAINLINK_QUALITY_CONFIG.chainReliability[targetChain] ||
       CHAINLINK_QUALITY_CONFIG.defaultConfidence;
 
-    // 结合链的可靠性和数据源质量计算置信度
-    // Chainlink 作为行业标准的预言机，基础置信度较高
     const baseConfidence = CHAINLINK_QUALITY_CONFIG.defaultConfidence;
     const adjustedConfidence = Math.min(
       baseConfidence,
@@ -149,6 +143,17 @@ export class ChainlinkClient extends BaseOracleClient {
     );
 
     return Number(adjustedConfidence.toFixed(4));
+  }
+
+  protected onHistoricalDataError(symbol: string, error: unknown): PriceData[] {
+    if (error instanceof OracleError) throw error;
+    logger.error(
+      `Failed to fetch historical prices for ${symbol}: ${error instanceof Error ? error.message : 'Unknown error'}`
+    );
+    throw this.createError(
+      error instanceof Error ? error.message : 'Failed to fetch historical prices from Chainlink',
+      'CHAINLINK_HISTORICAL_ERROR'
+    );
   }
 
   private convertToPriceData(chainlinkData: ChainlinkPriceData, chain?: Blockchain): PriceData {
@@ -171,9 +176,7 @@ export class ChainlinkClient extends BaseOracleClient {
       confidence,
       change24h: 0,
       change24hPercent: 0,
-      // Chainlink Feed 元数据
       source: chainlinkData.description || `Chainlink:${chainlinkData.symbol}`,
-      // 扩展字段存储额外元数据
       ...(chainlinkData.roundId !== undefined && {
         roundId: chainlinkData.roundId.toString(),
         answeredInRound: chainlinkData.answeredInRound.toString(),
@@ -233,69 +236,6 @@ export class ChainlinkClient extends BaseOracleClient {
     );
   }
 
-  async getHistoricalPrices(
-    symbol: string,
-    chain?: Blockchain,
-    period: number = 24,
-    options?: { signal?: AbortSignal }
-  ): Promise<PriceData[]> {
-    if (!symbol) {
-      throw this.createError('Symbol is required', 'INVALID_SYMBOL');
-    }
-
-    if (options?.signal?.aborted) {
-      return [];
-    }
-
-    try {
-      const historicalPrices = await binanceMarketService.getHistoricalPricesByHours(
-        symbol,
-        period
-      );
-
-      if (!historicalPrices || historicalPrices.length === 0) {
-        logger.warn(`No historical data available for ${symbol}`, { symbol });
-        return [];
-      }
-
-      logger.info(`Using Binance historical data for ${symbol}`, {
-        symbol,
-        points: historicalPrices.length,
-        period,
-      });
-
-      const targetChain = chain || Blockchain.ETHEREUM;
-      const latestPrice = historicalPrices[historicalPrices.length - 1].price;
-
-      return historicalPrices.map((point) => {
-        const change24h = latestPrice - point.price;
-        const change24hPercent =
-          point.price > 0 ? ((latestPrice - point.price) / point.price) * 100 : 0;
-
-        return {
-          provider: this.name,
-          chain: targetChain,
-          symbol: symbol.toUpperCase(),
-          price: point.price,
-          timestamp: point.timestamp,
-          decimals: 8,
-          confidence: 0.98,
-          change24h: Number(change24h.toFixed(4)),
-          change24hPercent: Number(change24hPercent.toFixed(2)),
-        };
-      });
-    } catch (error) {
-      if (error instanceof OracleError) throw error;
-      logger.error(
-        `Failed to fetch historical prices for ${symbol}: ${error instanceof Error ? error.message : 'Unknown error'}`
-      );
-      throw this.createError(
-        error instanceof Error ? error.message : 'Failed to fetch historical prices from Chainlink',
-        'CHAINLINK_HISTORICAL_ERROR'
-      );
-    }
-  }
-
   private isPriceFeedSupported(symbol: string, chain?: Blockchain): boolean {
     const chainId = this.getChainId(chain);
     return isPriceFeedSupported(symbol, chainId);
@@ -322,11 +262,6 @@ export class ChainlinkClient extends BaseOracleClient {
     return chains;
   }
 
-  /**
-   * 获取指定链支持的所有币种
-   * @param chain - 区块链
-   * @returns 该链支持的币种列表
-   */
   getSupportedSymbolsForChain(chain: Blockchain): string[] {
     const chainId = this.getChainId(chain);
     const allSymbols = this.getSupportedSymbols();

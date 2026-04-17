@@ -1,20 +1,20 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 
 import { type FavoriteConfig, useFavorites } from '@/hooks';
-import { type OracleProvider, type Blockchain } from '@/lib/oracles';
+import { type OracleProvider, type Blockchain, type PriceData } from '@/lib/oracles';
 import { isBlockchain } from '@/lib/utils/chainUtils';
 import { useUser } from '@/stores/authStore';
 import { useCrossChainSelectorStore } from '@/stores/crossChainSelectorStore';
 import { useCrossChainUIStore } from '@/stores/crossChainUIStore';
 
-import { useExport, type PriceDifferenceItem, type UseExportParams } from './useExport';
+import { useExport, type PriceDifferenceItem } from './useExport';
 
 export interface UseCrossChainExportParams {
   selectedProvider: OracleProvider;
   selectedSymbol: string;
   selectedBaseChain: Blockchain | null;
   priceDifferences: PriceDifferenceItem[];
-  historicalPrices: Partial<Record<Blockchain, import('@/lib/oracles').PriceData[]>>;
+  historicalPrices: Partial<Record<Blockchain, PriceData[]>>;
   filteredChains: Blockchain[];
   avgPrice: number;
   maxPrice: number;

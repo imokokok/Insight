@@ -34,6 +34,7 @@ const mockFetchPriceWithDatabase = jest.requireMock(
   '@/lib/oracles/base/databaseOperations'
 ).fetchPriceWithDatabase;
 
+// eslint-disable-next-line max-lines-per-function
 describe('WINkLinkClient', () => {
   let client: WINkLinkClient;
 

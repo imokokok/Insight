@@ -157,17 +157,17 @@ export function usePriceQuery(): UsePriceQueryReturn {
 
   const handleExportCSV = useCallback(() => {
     exportHook.handleExportCSV();
-  }, [exportHook.handleExportCSV]);
+  }, [exportHook]);
 
   const handleExportJSON = useCallback(() => {
     exportHook.handleExportJSON();
-  }, [exportHook.handleExportJSON]);
+  }, [exportHook]);
 
   const generateFilename = useCallback(
     (extension: string) => {
       return exportHook.generateFilename(extension);
     },
-    [exportHook.generateFilename]
+    [exportHook]
   );
 
   const stats = useMemo(() => {

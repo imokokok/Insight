@@ -26,43 +26,6 @@ import { downloadBlob } from '@/lib/utils/download';
 import { type ChartDataPoint } from '../constants';
 import { chainNames, chainColors } from '../utils';
 
-interface CursorPoint {
-  x: number;
-  y: number;
-}
-
-interface CrosshairCursorProps {
-  points: CursorPoint[];
-  height: number;
-}
-
-const CrosshairCursor = ({ points, height }: CrosshairCursorProps) => {
-  if (!points?.length) return null;
-  const { x, y } = points[0];
-  return (
-    <g>
-      <line
-        x1={x}
-        y1={0}
-        x2={x}
-        y2={height}
-        stroke={chartColors.recharts.axis}
-        strokeDasharray="3 3"
-        strokeWidth={1}
-      />
-      <line
-        x1={0}
-        y1={y}
-        x2={x}
-        y2={y}
-        stroke={chartColors.recharts.axis}
-        strokeDasharray="3 3"
-        strokeWidth={1}
-      />
-    </g>
-  );
-};
-
 interface ReferenceLineConfig {
   id: string;
   y: number;

@@ -140,37 +140,6 @@ export function usePriceQueryState(): UsePriceQueryStateReturn {
     _setCompareTimeRange(timeRange);
   }, []);
 
-  const applyPreferences = useCallback(() => {
-    const oracleMapping: Record<string, OracleProvider> = {
-      chainlink: OracleProvider.CHAINLINK,
-      pyth: OracleProvider.PYTH,
-      api3: OracleProvider.API3,
-      redstone: OracleProvider.REDSTONE,
-      dia: OracleProvider.DIA,
-      winklink: OracleProvider.WINKLINK,
-      supra: OracleProvider.SUPRA,
-    };
-
-    const timeRangeMapping: Record<string, number> = {
-      '1h': 1,
-      '6h': 6,
-      '24h': 24,
-      '7d': 168,
-    };
-
-    const defaultOracle = oracleMapping[preferences.defaultOracle] || OracleProvider.CHAINLINK;
-    const defaultTimeRange = timeRangeMapping[preferences.defaultTimeRange] || 24;
-    const defaultSymbol = preferences.defaultSymbol.split('/')[0] || 'BTC';
-
-    selectedOracleRef.current = defaultOracle;
-    selectedChainRef.current = Blockchain.ETHEREUM;
-    selectedSymbolRef.current = defaultSymbol;
-    selectedTimeRangeRef.current = defaultTimeRange;
-    setSelectedOracle(defaultOracle);
-    setSelectedSymbol(defaultSymbol);
-    setSelectedTimeRange(defaultTimeRange);
-  }, [preferences, setSelectedOracle, setSelectedSymbol, setSelectedTimeRange]);
-
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
@@ -205,10 +174,12 @@ export function usePriceQueryState(): UsePriceQueryStateReturn {
       selectedChainRef.current = Blockchain.ETHEREUM;
       selectedSymbolRef.current = defaultSymbol;
       selectedTimeRangeRef.current = defaultTimeRange;
-      setSelectedOracle(defaultOracle);
-      setSelectedSymbol(defaultSymbol);
-      setSelectedTimeRange(defaultTimeRange);
-      setUrlParamsParsed(true);
+      requestAnimationFrame(() => {
+        setSelectedOracle(defaultOracle);
+        setSelectedSymbol(defaultSymbol);
+        setSelectedTimeRange(defaultTimeRange);
+        setUrlParamsParsed(true);
+      });
     } else {
       const oracleFromUrl =
         config.oracles && config.oracles.length > 0 ? config.oracles[0] : selectedOracleRef.current;
@@ -222,11 +193,13 @@ export function usePriceQueryState(): UsePriceQueryStateReturn {
       selectedSymbolRef.current = symbolFromUrl;
       selectedTimeRangeRef.current = timeRangeFromUrl;
 
-      setSelectedOracle(oracleFromUrl);
-      setSelectedChain(chainFromUrl);
-      setSelectedSymbol(symbolFromUrl);
-      setSelectedTimeRange(timeRangeFromUrl);
-      setUrlParamsParsed(true);
+      requestAnimationFrame(() => {
+        setSelectedOracle(oracleFromUrl);
+        setSelectedChain(chainFromUrl);
+        setSelectedSymbol(symbolFromUrl);
+        setSelectedTimeRange(timeRangeFromUrl);
+        setUrlParamsParsed(true);
+      });
     }
   }, [
     preferences.defaultOracle,
