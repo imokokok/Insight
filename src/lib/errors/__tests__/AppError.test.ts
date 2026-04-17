@@ -44,17 +44,6 @@ describe('AppError', () => {
       expect(error.details).toEqual(details);
     });
 
-    it('should include i18nKey when provided', () => {
-      const error = new TestError({
-        message: 'Not found',
-        code: 'NOT_FOUND',
-        statusCode: 404,
-        i18nKey: 'errors.notFound',
-      });
-
-      expect(error.i18nKey).toBe('errors.notFound');
-    });
-
     it('should include cause when provided', () => {
       const cause = new Error('Original error');
       const error = new TestError({
@@ -85,7 +74,6 @@ describe('AppError', () => {
         code: 'TEST_ERROR',
         statusCode: 400,
         details: { field: 'test' },
-        i18nKey: 'errors.test',
       });
 
       const json = error.toJSON();
@@ -96,7 +84,6 @@ describe('AppError', () => {
       expect(json.statusCode).toBe(400);
       expect(json.isOperational).toBe(true);
       expect(json.details).toEqual({ field: 'test' });
-      expect(json.i18nKey).toBe('errors.test');
     });
 
     it('should handle errors without optional properties', () => {

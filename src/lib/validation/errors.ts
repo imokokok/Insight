@@ -19,7 +19,6 @@ export class ZodValidationError extends AppError {
       category: 'validation',
       severity: 'low',
       details,
-      i18nKey: 'errors.validation',
     });
     this.name = 'ZodValidationError';
   }

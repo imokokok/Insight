@@ -100,9 +100,7 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
         return {
           success: false,
           response: NextResponse.json(
-            ApiResponseBuilder.error('UNAUTHORIZED', 'Authentication required', {
-              i18nKey: 'errors.authentication',
-            }),
+            ApiResponseBuilder.error('UNAUTHORIZED', 'Authentication required'),
             { status: 401 }
           ),
         };
@@ -122,7 +120,6 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
           success: false,
           response: NextResponse.json(
             ApiResponseBuilder.error('FORBIDDEN', 'Insufficient permissions', {
-              i18nKey: 'errors.authorization',
               details: { requiredRoles: roles },
             }),
             { status: 403 }

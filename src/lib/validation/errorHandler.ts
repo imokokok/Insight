@@ -16,7 +16,6 @@ export interface ErrorResponse {
     code: string;
     message: string;
     details?: unknown;
-    i18nKey?: string;
   };
   timestamp: number;
 }

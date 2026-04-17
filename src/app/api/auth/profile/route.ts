@@ -11,7 +11,6 @@ import { createLogger } from '@/lib/utils/logger';
 const logger = createLogger('api-auth-profile');
 
 const MAX_DISPLAY_NAME_LENGTH = 100;
-const VALID_THEMES = ['light', 'dark', 'system'] as const;
 const VALID_ORACLES = ['chainlink', 'pyth', 'api3', 'redstone', 'dia', 'winklink'] as const;
 
 function validatePreferences(preferences: unknown): Record<string, unknown> | undefined {
@@ -21,15 +20,6 @@ function validatePreferences(preferences: unknown): Record<string, unknown> | un
 
   const sanitized: Record<string, unknown> = {};
   const prefs = preferences as Record<string, unknown>;
-
-  if (prefs.theme !== undefined) {
-    if (
-      typeof prefs.theme === 'string' &&
-      VALID_THEMES.includes(prefs.theme as (typeof VALID_THEMES)[number])
-    ) {
-      sanitized.theme = prefs.theme;
-    }
-  }
 
   if (prefs.default_oracle !== undefined) {
     if (
@@ -94,7 +84,6 @@ export async function GET(request: NextRequest) {
           preferences: {
             default_oracle: 'chainlink',
             default_symbol: 'BTC/USD',
-            theme: 'system',
           },
         },
       });

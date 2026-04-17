@@ -35,7 +35,6 @@ interface DbUserPreferences {
   language?: string;
   default_currency?: string;
   auto_refresh_interval?: number;
-  theme?: string;
   chart_settings?: {
     show_confidence_interval?: boolean;
     auto_refresh?: boolean;
@@ -179,7 +178,6 @@ export function PreferencesPanel() {
           language: preferences.language,
           default_currency: preferences.defaultCurrency,
           auto_refresh_interval: parseInt(preferences.autoRefreshInterval, 10),
-          theme: 'dark',
           chart_settings: {
             show_confidence_interval: true,
             auto_refresh: preferences.autoRefreshInterval !== '0',

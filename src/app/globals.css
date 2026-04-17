@@ -217,58 +217,6 @@
   --border-hover: 1px solid var(--gray-200);
 }
 
-/* Dark Mode */
-[data-theme='dark'],
-.dark {
-  --background: #0f172a;
-  --foreground: #f8fafc;
-
-  /* Primary in dark mode */
-  --primary-50: #1e3a8a;
-  --primary-100: #1e40af;
-  --primary-200: #1d4ed8;
-  --primary-300: #2563eb;
-  --primary-400: #3b82f6;
-  --primary-500: #60a5fa;
-  --primary-600: #93c5fd;
-  --primary-700: #bfdbfe;
-  --primary-800: #dbeafe;
-  --primary-900: #eff6ff;
-
-  /* Gray in dark mode */
-  --gray-50: #0f172a;
-  --gray-100: #1e293b;
-  --gray-200: #334155;
-  --gray-300: #475569;
-  --gray-400: #64748b;
-  --gray-500: #94a3b8;
-  --gray-600: #cbd5e1;
-  --gray-700: #e2e8f0;
-  --gray-800: #f1f5f9;
-  --gray-900: #f8fafc;
-
-  /* Semantic colors in dark mode */
-  --success-500: #34d399;
-  --success-600: #10b981;
-  --warning-500: #fbbf24;
-  --warning-600: #f59e0b;
-  --danger-500: #f87171;
-  --danger-600: #ef4444;
-  --info-500: #60a5fa;
-  --info-600: #3b82f6;
-
-  /* Legacy dark mode */
-  --bg-insight: #0f172a;
-  --border-insight-separator: #334155;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) {
-    --background: #0f172a;
-    --foreground: #f8fafc;
-  }
-}
-
 html {
   scroll-behavior: smooth;
 }

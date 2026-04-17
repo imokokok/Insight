@@ -5,7 +5,6 @@ export interface ApiErrorResponse {
     message: string;
     details?: Record<string, unknown>;
     retryable: boolean;
-    i18nKey?: string;
     documentationUrl?: string;
     requestId?: string;
     timestamp: number;
@@ -149,25 +148,6 @@ export const RETRYABLE_HTTP_STATUSES: number[] = [
   HttpStatusCode.GATEWAY_TIMEOUT,
 ];
 
-export const ERROR_CODE_SUGGESTIONS: Record<string, string> = {
-  [ErrorCode.VALIDATION_ERROR]: 'errors.suggestions.validationError',
-  [ErrorCode.AUTHENTICATION_ERROR]: 'errors.suggestions.authenticationError',
-  [ErrorCode.AUTHORIZATION_ERROR]: 'errors.suggestions.authorizationError',
-  [ErrorCode.NOT_FOUND]: 'errors.suggestions.notFound',
-  [ErrorCode.RATE_LIMIT_EXCEEDED]: 'errors.suggestions.rateLimitExceeded',
-  [ErrorCode.INTERNAL_ERROR]: 'errors.suggestions.internalError',
-  [ErrorCode.PRICE_FETCH_ERROR]: 'errors.suggestions.priceFetchError',
-  [ErrorCode.ORACLE_CLIENT_ERROR]: 'errors.suggestions.oracleClientError',
-  [ErrorCode.BAD_REQUEST]: 'errors.suggestions.badRequest',
-  [ErrorCode.UNAUTHORIZED]: 'errors.suggestions.unauthorized',
-  [ErrorCode.FORBIDDEN]: 'errors.suggestions.forbidden',
-  [ErrorCode.CONFLICT]: 'errors.suggestions.conflict',
-  [ErrorCode.SERVICE_UNAVAILABLE]: 'errors.suggestions.serviceUnavailable',
-  [ErrorCode.NETWORK_ERROR]: 'errors.suggestions.networkError',
-  [ErrorCode.TIMEOUT_ERROR]: 'errors.suggestions.timeoutError',
-  [ErrorCode.UNKNOWN_ERROR]: 'errors.suggestions.unknownError',
-};
-
 export const ERROR_CODE_DOCUMENTATION: Record<string, string> = {
   [ErrorCode.VALIDATION_ERROR]: '/docs/errors/validation',
   [ErrorCode.AUTHENTICATION_ERROR]: '/docs/errors/authentication',
@@ -221,10 +201,6 @@ export function classifyError(error: { code?: string; statusCode?: number }): Er
   };
 }
 
-export function getSuggestedAction(errorCode: string): string {
-  return ERROR_CODE_SUGGESTIONS[errorCode] || 'errors.suggestions.default';
-}
-
 export function getErrorDocumentationUrl(errorCode: string, baseUrl?: string): string | undefined {
   const docPath = ERROR_CODE_DOCUMENTATION[errorCode];
   if (!docPath) return undefined;
@@ -250,12 +226,10 @@ export function createErrorResponse(
       message,
       details: options?.details,
       retryable: RETRYABLE_ERROR_CODES.includes(code),
-      i18nKey: `errors.${code.toLowerCase()}`,
       documentationUrl: getErrorDocumentationUrl(code),
       requestId: options?.requestId,
       timestamp,
       stackTrace: options?.includeStackTrace ? options?.stackTrace : undefined,
-      suggestedAction: getSuggestedAction(code),
     },
     meta: {
       requestId: options?.requestId,

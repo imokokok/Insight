@@ -13,10 +13,8 @@ export interface ErrorResponse {
     message: string;
     retryable: boolean;
     details?: Record<string, unknown>;
-    i18nKey?: string;
   };
 }
-
 /**
  * 将错误转换为 NextResponse 响应
  * 复用 errorTypes.ts 中的标准错误响应创建函数

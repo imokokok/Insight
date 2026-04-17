@@ -87,7 +87,6 @@ function defaultRateLimitHandler(
   const response = NextResponse.json(
     ApiResponseBuilder.error('RATE_LIMIT_EXCEEDED', 'Too many requests, please try again later', {
       retryable: true,
-      i18nKey: 'errors.rateLimit',
       details: { retryAfter },
     }),
     { status: 429 }

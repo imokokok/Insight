@@ -39,7 +39,6 @@ describe('ZodValidationError', () => {
 
       expect(error.category).toBe('validation');
       expect(error.severity).toBe('low');
-      expect(error.i18nKey).toBe('errors.validation');
     });
   });
 

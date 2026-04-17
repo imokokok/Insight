@@ -35,7 +35,6 @@ const mockProfile: UserProfile = {
   id: 'user-123',
   display_name: 'Test User',
   preferences: {
-    theme: 'dark',
     default_oracle: 'chainlink',
     default_symbol: 'BTC/USD',
     defaultChain: 'ethereum',
@@ -196,14 +195,13 @@ describe('/api/auth/profile', () => {
         ...mockProfile,
         preferences: {
           ...mockProfile.preferences,
-          theme: 'light',
+          default_oracle: 'pyth',
         },
       });
 
       const request = createMockRequest({
         body: {
           preferences: {
-            theme: 'light',
             default_oracle: 'pyth',
           },
         },

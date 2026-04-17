@@ -2,8 +2,6 @@ import { create } from 'zustand';
 import { devtools, persist, createJSONStorage } from 'zustand/middleware';
 import { useShallow } from 'zustand/react/shallow';
 
-type Theme = 'light' | 'dark' | 'system';
-
 interface SidebarState {
   isOpen: boolean;
   isCollapsed: boolean;
@@ -19,7 +17,6 @@ interface ModalState {
 interface UIStore {
   sidebar: SidebarState;
   modal: ModalState;
-  theme: Theme;
   isMobile: boolean;
 
   openSidebar: () => void;
@@ -31,7 +28,6 @@ interface UIStore {
   openModal: (modalId: string, data?: Record<string, unknown>) => void;
   closeModal: () => void;
 
-  setTheme: (theme: Theme) => void;
   setIsMobile: (isMobile: boolean) => void;
 }
 
@@ -49,7 +45,6 @@ export const useUIStore = create<UIStore>()(
           modalId: null,
           modalData: null,
         },
-        theme: 'system',
         isMobile: false,
 
         openSidebar: () =>
@@ -95,8 +90,6 @@ export const useUIStore = create<UIStore>()(
             },
           }),
 
-        setTheme: (theme) => set({ theme }),
-
         setIsMobile: (isMobile) => set({ isMobile }),
       }),
       {
@@ -106,7 +99,6 @@ export const useUIStore = create<UIStore>()(
           sidebar: {
             isCollapsed: state.sidebar.isCollapsed,
           },
-          theme: state.theme,
         }),
       }
     ),
@@ -132,14 +124,6 @@ export const useModalActions = () =>
     useShallow((state) => ({
       openModal: state.openModal,
       closeModal: state.closeModal,
-    }))
-  );
-
-export const useTheme = () => useUIStore((state) => state.theme);
-export const useThemeActions = () =>
-  useUIStore(
-    useShallow((state) => ({
-      setTheme: state.setTheme,
     }))
   );
 

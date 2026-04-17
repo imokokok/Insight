@@ -954,7 +954,6 @@ describe('User Profile operations - getUserProfile', () => {
       display_name: 'Test User',
       preferences: {
         defaultSymbol: 'BTC',
-        theme: 'dark',
       },
     };
 
@@ -983,9 +982,7 @@ describe('User Profile operations - updateUserProfile', () => {
     const mockData: UserProfile = {
       id: 'user-id',
       display_name: 'Updated User',
-      preferences: {
-        theme: 'light',
-      },
+      preferences: {},
     };
 
     mockQuery.single.mockResolvedValueOnce({ data: mockData, error: null });

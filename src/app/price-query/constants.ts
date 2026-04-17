@@ -7,7 +7,6 @@ import {
   oracleColors,
   TIME_RANGES,
   DEVIATION_THRESHOLD,
-  oracleI18nKeys,
 } from '@/lib/constants';
 import { type OracleProvider, type Blockchain, type PriceData } from '@/lib/oracles';
 import type { RedStoneTokenOnChainData } from '@/lib/oracles/clients/redstone';
@@ -87,5 +86,4 @@ export {
   oracleColors,
   TIME_RANGES,
   DEVIATION_THRESHOLD,
-  oracleI18nKeys,
 };

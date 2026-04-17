@@ -21,7 +21,6 @@ export interface StandardizedErrorResponse {
     message: string;
     details?: Record<string, unknown>;
     retryable: boolean;
-    i18nKey?: string;
     documentationUrl?: string;
     requestId?: string;
     timestamp: number;
@@ -154,18 +153,15 @@ function createErrorResponse(
   let errorCode: string;
   let message: string;
   let details: Record<string, unknown> | undefined;
-  let i18nKey: string | undefined;
   let stackTrace: string | undefined;
 
   if (isAppError(error)) {
     errorCode = error.code;
     message = error.message;
     details = error.details as Record<string, unknown> | undefined;
-    i18nKey = error.i18nKey;
   } else if (error instanceof SyntaxError && error.message.includes('JSON')) {
     errorCode = 'INVALID_JSON';
     message = 'Invalid JSON in request body';
-    i18nKey = 'errors.invalidJson';
   } else if (error instanceof Error) {
     const statusCode = extractStatusCode(error);
     errorCode = HTTP_STATUS_TO_ERROR_CODE[statusCode] || 'INTERNAL_ERROR';
@@ -190,7 +186,6 @@ function createErrorResponse(
       message,
       details,
       retryable: isRetryableError(error),
-      i18nKey,
       documentationUrl,
       requestId: options.includeRequestId ? requestId : undefined,
       timestamp,
@@ -356,19 +351,19 @@ export function classifyError(error: unknown): {
  */
 export function getSuggestedAction(errorCode: string): string | undefined {
   const suggestions: Record<string, string> = {
-    VALIDATION_ERROR: '请检查输入数据是否符合要求',
-    AUTHENTICATION_ERROR: '请重新登录或检查您的认证信息',
-    AUTHORIZATION_ERROR: '请确认您有权限执行此操作',
-    NOT_FOUND: '请确认请求的资源存在',
-    RATE_LIMIT_EXCEEDED: '请稍后再试，或降低请求频率',
-    INTERNAL_ERROR: '请稍后重试，如果问题持续存在请联系支持团队',
-    PRICE_FETCH_ERROR: '请检查网络连接或稍后重试',
-    ORACLE_CLIENT_ERROR: '预言机服务暂时不可用，请稍后重试',
-    BAD_REQUEST: '请检查请求参数是否正确',
-    UNAUTHORIZED: '请先登录后再执行此操作',
-    FORBIDDEN: '您没有权限访问此资源',
-    CONFLICT: '请求与当前资源状态冲突，请刷新后重试',
-    SERVICE_UNAVAILABLE: '服务暂时不可用，请稍后重试',
+    VALIDATION_ERROR: 'Please check that the input data meets the requirements',
+    AUTHENTICATION_ERROR: 'Please log in again or check your credentials',
+    AUTHORIZATION_ERROR: 'Please confirm you have permission to perform this action',
+    NOT_FOUND: 'Please confirm the requested resource exists',
+    RATE_LIMIT_EXCEEDED: 'Please try again later or reduce request frequency',
+    INTERNAL_ERROR: 'Please try again later. If the problem persists, contact support',
+    PRICE_FETCH_ERROR: 'Please check your network connection or try again later',
+    ORACLE_CLIENT_ERROR: 'Oracle service is temporarily unavailable, please try again later',
+    BAD_REQUEST: 'Please check that the request parameters are correct',
+    UNAUTHORIZED: 'Please log in before performing this action',
+    FORBIDDEN: 'You do not have permission to access this resource',
+    CONFLICT: 'The request conflicts with the current resource state, please refresh and retry',
+    SERVICE_UNAVAILABLE: 'Service is temporarily unavailable, please try again later',
   };
 
   return suggestions[errorCode];

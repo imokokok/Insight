@@ -6,7 +6,6 @@ beforeEach(() => {
   useUIStore.setState({
     sidebar: { isOpen: true, isCollapsed: false, activeItem: null },
     modal: { isOpen: false, modalId: null, modalData: null },
-    theme: 'system',
     isMobile: false,
   });
 });
@@ -20,7 +19,6 @@ describe('uiStore - 初始状态', () => {
     expect(state.modal.isOpen).toBe(false);
     expect(state.modal.modalId).toBeNull();
     expect(state.modal.modalData).toBeNull();
-    expect(state.theme).toBe('system');
     expect(state.isMobile).toBe(false);
   });
 });
@@ -105,25 +103,6 @@ describe('uiStore - modal', () => {
     });
     expect(useUIStore.getState().modal.isOpen).toBe(false);
     expect(useUIStore.getState().modal.modalId).toBeNull();
-  });
-});
-
-describe('uiStore - theme', () => {
-  it('setTheme 应该更新主题', () => {
-    act(() => {
-      useUIStore.getState().setTheme('light');
-    });
-    expect(useUIStore.getState().theme).toBe('light');
-
-    act(() => {
-      useUIStore.getState().setTheme('dark');
-    });
-    expect(useUIStore.getState().theme).toBe('dark');
-
-    act(() => {
-      useUIStore.getState().setTheme('system');
-    });
-    expect(useUIStore.getState().theme).toBe('system');
   });
 });
 
