@@ -68,11 +68,14 @@ class ApiClient {
       try {
         init.body = JSON.stringify(data);
       } catch (err) {
-        throw new ApiError({
-          code: 'SERIALIZATION_ERROR',
-          message: 'Failed to serialize request data',
-          statusCode: 400,
-        }, err instanceof Error ? err : undefined);
+        throw new ApiError(
+          {
+            code: 'SERIALIZATION_ERROR',
+            message: 'Failed to serialize request data',
+            statusCode: 400,
+          },
+          err instanceof Error ? err : undefined
+        );
       }
     }
 

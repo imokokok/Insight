@@ -2,12 +2,14 @@ import { createLogger } from '@/lib/utils/logger';
 import { ORACLE_PROVIDER_VALUES, BLOCKCHAIN_VALUES } from '@/types/oracle/enums';
 import type { OracleProvider } from '@/types/oracle/enums';
 
+import type { DOMPurify as DOMPurifyType } from 'dompurify';
+
 const logger = createLogger('input-sanitizer');
 
-let dompurifyInstance: ReturnType<(typeof import('dompurify'))['default']> | null = null;
+let dompurifyInstance: DOMPurifyType | null = null;
 let dompurifyInitAttempted = false;
 
-function getDOMPurifySync(): ReturnType<(typeof import('dompurify'))['default']> | null {
+function getDOMPurifySync(): DOMPurifyType | null {
   if (dompurifyInstance) return dompurifyInstance;
   if (dompurifyInitAttempted) return null;
   dompurifyInitAttempted = true;

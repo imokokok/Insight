@@ -21,6 +21,7 @@ jest.mock('@/lib/errors', () => ({
   errorToResponse: jest.fn(),
 }));
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const { isAppError, errorToResponse } = require('@/lib/errors');
 
 describe('errorMiddleware', () => {

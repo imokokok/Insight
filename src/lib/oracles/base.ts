@@ -1,8 +1,9 @@
 import { PriceDataSchema } from '@/lib/security/validation';
+import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
 import { validateOracleData, safeValidateOracleData } from '@/lib/validation/oracleValidation';
 import {
   type OracleProvider,
-  type Blockchain,
+  Blockchain,
   type PriceData,
   OracleError,
   type OracleErrorCode,
@@ -182,21 +183,76 @@ export abstract class BaseOracleClient {
     chain?: Blockchain,
     options?: { signal?: AbortSignal }
   ): Promise<PriceData>;
-  abstract getHistoricalPrices(
-    symbol: string,
-    chain?: Blockchain,
-    period?: number,
-    options?: { signal?: AbortSignal }
-  ): Promise<PriceData[]>;
   abstract getSupportedSymbols(): string[];
 
   defaultUpdateIntervalMinutes: number = 1;
   chainUpdateIntervals: Partial<Record<Blockchain, number>> = {};
 
+  protected historicalPriceConfidence: number = 0.95;
+  protected defaultChain: Blockchain = Blockchain.ETHEREUM;
+
   protected config: OracleClientConfig;
 
   constructor(config?: OracleClientConfig) {
     this.config = { ...DEFAULT_CLIENT_CONFIG, ...config };
+  }
+
+  protected getHistoricalPriceConfidence(_chain?: Blockchain): number {
+    return this.historicalPriceConfidence;
+  }
+
+  protected onNoHistoricalData(_symbol: string): PriceData[] {
+    return [];
+  }
+
+  protected onHistoricalDataError(_symbol: string, _error: unknown): PriceData[] {
+    return [];
+  }
+
+  async getHistoricalPrices(
+    symbol: string,
+    chain?: Blockchain,
+    period: number = 24,
+    options?: { signal?: AbortSignal }
+  ): Promise<PriceData[]> {
+    if (options?.signal?.aborted) {
+      return [];
+    }
+
+    try {
+      const historicalPrices = await binanceMarketService.getHistoricalPricesByHours(
+        symbol,
+        period
+      );
+
+      if (!historicalPrices || historicalPrices.length === 0) {
+        return this.onNoHistoricalData(symbol);
+      }
+
+      const targetChain = chain || this.defaultChain;
+      const latestPrice = historicalPrices[historicalPrices.length - 1].price;
+      const confidence = this.getHistoricalPriceConfidence(targetChain);
+
+      return historicalPrices.map((point) => {
+        const change24h = latestPrice - point.price;
+        const change24hPercent = point.price > 0 ? (change24h / point.price) * 100 : 0;
+
+        return {
+          provider: this.name,
+          chain: targetChain,
+          symbol: symbol.toUpperCase(),
+          price: point.price,
+          timestamp: point.timestamp,
+          decimals: 8,
+          confidence,
+          change24h: Number(change24h.toFixed(4)),
+          change24hPercent: Number(change24hPercent.toFixed(2)),
+          source: 'binance-api',
+        };
+      });
+    } catch (error) {
+      return this.onHistoricalDataError(symbol, error);
+    }
   }
 
   isSymbolSupported(symbol: string, chain?: Blockchain): boolean {

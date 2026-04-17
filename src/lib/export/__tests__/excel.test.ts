@@ -32,6 +32,7 @@ jest.mock('@/lib/config/colors', () => ({
   },
 }));
 
+// eslint-disable-next-line max-lines-per-function
 describe('Excel Export', () => {
   const mockFields: ExportField[] = [
     { key: 'symbol', label: 'Symbol', labelZh: '代码', dataType: 'string', selected: true },

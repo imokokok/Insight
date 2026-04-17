@@ -6,6 +6,8 @@
  * 使用 UnifiedExport 组件替换原有的导出功能
  */
 
+import { useState, useEffect } from 'react';
+
 import { UnifiedExport, type ExportField } from '@/components/export';
 
 import { type QueryResult } from '../constants';
@@ -35,6 +37,14 @@ export default function UnifiedExportSection({
   standardDeviation,
   standardDeviationPercent,
 }: UnifiedExportSectionProps) {
+  const [chartElement, setChartElement] = useState<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    requestAnimationFrame(() => {
+      setChartElement(chartContainerRef?.current ?? null);
+    });
+  }, [chartContainerRef]);
+
   // 定义导出字段
   const exportFields: ExportField[] = [
     { key: 'provider', label: 'Oracle', labelZh: '预言机', dataType: 'string', selected: true },
@@ -95,7 +105,7 @@ export default function UnifiedExportSection({
       data={queryResults}
       dataSource="price-query"
       fields={exportFields}
-      chartElement={chartContainerRef?.current ?? null}
+      chartElement={chartElement}
       stats={stats}
       disabled={loading || queryResults.length === 0}
     />

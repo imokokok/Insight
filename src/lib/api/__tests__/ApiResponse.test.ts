@@ -1,3 +1,5 @@
+import type { NextResponse } from 'next/server';
+
 import {
   ApiResponseBuilder,
   ApiResponseHandler,
@@ -8,8 +10,6 @@ import {
   type ApiErrorResponse,
   type ApiPaginatedResponse,
 } from '../response/ApiResponse';
-
-import type { NextResponse } from 'next/server';
 
 describe('ApiResponseBuilder', () => {
   describe('success', () => {
@@ -375,7 +375,10 @@ describe('withCacheHeaders', () => {
       },
     } as unknown as Response;
 
-    const result = withCacheHeaders(mockResponse as unknown as NextResponse<unknown>, CacheConfig.PRICE);
+    const result = withCacheHeaders(
+      mockResponse as unknown as NextResponse<unknown>,
+      CacheConfig.PRICE
+    );
 
     expect(mockResponse.headers.set).toHaveBeenCalledWith(
       'Cache-Control',

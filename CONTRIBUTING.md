@@ -158,8 +158,9 @@ insight/
 │   │   │   ├── dia.ts          # DIA client
 │   │   │   ├── factory.ts      # Oracle factory
 │   │   │   ├── redstone.ts     # RedStone client
-│   │   │   ├── supra.ts        # Supra client
-│   │   │   └── winklink.ts     # WINkLink client
+│   │   │   ├── supra.ts         # Supra client
+│   │   ├── twap.ts           # TWAP client (Uniswap V3 TWAP)
+│   │   └── winklink.ts     # WINkLink client
 │   │   ├── queries/            # React Query keys and client
 │   │   ├── realtime/           # Real-time communication (WebSocket)
 │   │   ├── security/           # Security utilities

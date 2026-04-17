@@ -6,25 +6,26 @@ The Insight Oracle Data Analytics Platform integrates with multiple leading bloc
 
 ### Supported Providers
 
-| Provider  | Symbol   | Default Chain | Description                             |
-| --------- | -------- | ------------- | --------------------------------------- |
-| Chainlink | LINK     | Ethereum      | Decentralized oracle network            |
-| Pyth      | PYTH     | Solana        | Low-latency high-frequency price oracle |
-| API3      | API3     | Ethereum      | First-party oracle infrastructure       |
-| RedStone  | REDSTONE | Ethereum      | Modular oracle design                   |
-| DIA       | DIA      | Ethereum      | Open-source cross-chain oracle          |
-| WINkLink  | WINKLINK | BNB Chain     | TRON ecosystem oracle                   |
+| Provider  | Symbol   | Default Chain | Description                                        |
+| --------- | -------- | ------------- | -------------------------------------------------- |
+| Chainlink | LINK     | Ethereum      | Decentralized oracle network                       |
+| Pyth      | PYTH     | Solana        | Low-latency high-frequency price oracle            |
+| API3      | API3     | Ethereum      | First-party oracle infrastructure                  |
+| RedStone  | REDSTONE | Ethereum      | Modular oracle design                              |
+| DIA       | DIA      | Ethereum      | Open-source cross-chain oracle                     |
+| WINkLink  | WINKLINK | BNB Chain     | TRON ecosystem oracle                              |
 | Supra     | SUPRA    | Ethereum      | High-performance oracle with verifiable randomness |
+| TWAP      | UNI      | Ethereum      | Uniswap V3 Time-Weighted Average Price oracle      |
 
 ### Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                    Oracle Client Layer                          │
-├─────────────┬─────────┬─────────┬──────────┬──────────┬─────────┬─────────┐
-│ Chainlink   │ Pyth    │ API3    │ RedStone │ DIA      │ WINkLink │ Supra   │
-│ Client      │ Client  │ Client  │ Client   │ Client   │ Client   │ Client  │
-└──────┬──────┴────┬────┴────┬────┴─────┬────┴─────┬────┴────┬────┴────┬────┘
+├─────────────┬─────────┬─────────┬──────────┬──────────┬─────────┬─────────┬─────────┐
+│ Chainlink   │ Pyth    │ API3    │ RedStone │ DIA      │ WINkLink │ Supra   │ TWAP    │
+│ Client      │ Client  │ Client  │ Client   │ Client   │ Client   │ Client  │ Client  │
+└──────┬──────┴────┬────┴────┬────┴─────┬────┴─────┬────┴────┬────┴────┬────┴────┬────┘
        │           │         │          │          │         │
        └───────────┴─────────┴──────────┴──────────┴─────────┴─────────┘
                              │
@@ -464,6 +465,7 @@ enum OracleProvider {
   DIA = 'dia',
   WINKLINK = 'winklink',
   SUPRA = 'supra',
+  TWAP = 'twap',
 }
 ```
 
@@ -688,43 +690,43 @@ interface ModularStats {
 import { DIADataService, getDIADataService } from '@/lib/oracles/diaDataService';
 import { Blockchain } from '@/types/oracle';
 
-// 获取服务实例（单例模式）
+// Get service instance (singleton pattern)
 const diaService = getDIADataService();
 
-// 获取资产价格
+// Get asset price
 const priceData = await diaService.getAssetPrice('BTC', Blockchain.ETHEREUM);
 
-// 获取历史价格
+// Get historical prices
 const historicalData = await diaService.getHistoricalPrices('ETH', Blockchain.ETHEREUM, 24);
 
-// 获取 NFT 地板价
+// Get NFT floor price
 const nftFloorPrice = await diaService.getNFTFloorPrice('0x...', Blockchain.ETHEREUM);
 
-// 获取代币完整链上数据
+// Get token full on-chain data
 const tokenData = await diaService.getTokenOnChainData('DIA', Blockchain.ETHEREUM);
 ```
 
 ### Service Architecture
 
-DIA 采用模块化服务架构：
+DIA uses a modular service architecture:
 
 ```
 src/lib/oracles/
-├── diaDataService.ts      # 主服务入口
-├── diaPriceService.ts     # 价格数据服务
-├── diaNFTService.ts       # NFT 地板价服务
-├── diaNetworkService.ts   # 网络统计服务
-├── diaTypes.ts            # 类型定义
-├── diaUtils.ts            # 工具函数
+├── diaDataService.ts      # Main service entry
+├── diaPriceService.ts     # Price data service
+├── diaNFTService.ts       # NFT floor price service
+├── diaNetworkService.ts   # Network statistics service
+├── diaTypes.ts            # Type definitions
+├── diaUtils.ts            # Utility functions
 └── constants/
-    ├── chainMapping.ts    # 区块链名称映射
-    └── assetAddresses.ts  # 资产合约地址
+    ├── chainMapping.ts    # Blockchain name mapping
+    └── assetAddresses.ts  # Asset contract addresses
 ```
 
 ### Extended Types
 
 ```typescript
-// NFT 地板价数据
+// NFT floor price data
 interface DIANFTQuotation {
   Symbol: string;
   Address: string;
@@ -735,7 +737,7 @@ interface DIANFTQuotation {
   Source: string;
 }
 
-// 代币供应量数据
+// Token supply data
 interface DIASupply {
   Symbol: string;
   CirculatingSupply: number;
@@ -745,7 +747,7 @@ interface DIASupply {
   Time: string;
 }
 
-// 交易所数据
+// Exchange data
 interface DIAExchange {
   Name: string;
   Centralized: boolean;
@@ -754,7 +756,7 @@ interface DIAExchange {
   Pairs: number;
 }
 
-// 代币完整链上数据
+// Token full on-chain data
 interface DIATokenOnChainData {
   symbol: string;
   price: number;
@@ -774,7 +776,7 @@ interface DIATokenOnChainData {
 
 ### Blockchain Name Mapping
 
-DIA 使用特定的区块链名称映射：
+DIA uses specific blockchain name mapping:
 
 ```typescript
 const DIA_BLOCKCHAIN_NAMES: Record<string, string> = {
@@ -792,7 +794,7 @@ const DIA_BLOCKCHAIN_NAMES: Record<string, string> = {
   MOONBEAM: 'Moonbeam',
   GNOSIS: 'Gnosis',
   KAVA: 'Kava',
-  // ... 更多链
+  // ... more chains
 };
 ```
 
@@ -873,26 +875,202 @@ interface TRONEcosystemStats {
 
 ---
 
+## TWAP Integration
+
+**Provider:** `twap`
+**Symbol:** UNI
+**Default Chain:** Ethereum
+
+### Supported Chains
+
+| Chain     | Chain ID | Status |
+| --------- | -------- | ------ |
+| Ethereum  | 1        | Active |
+| Arbitrum  | 42161    | Active |
+| Optimism  | 10       | Active |
+| Polygon   | 137      | Active |
+| Base      | 8453     | Active |
+| BNB Chain | 56       | Active |
+
+### Features
+
+- **On-Chain TWAP Data** - Time-weighted average prices directly from Uniswap V3 pools
+- **Spot Price Comparison** - Real-time spot price alongside TWAP for deviation analysis
+- **Liquidity Monitoring** - Pool liquidity tracking with confidence scoring
+- **RPC Fallback** - Multiple RPC endpoints with health tracking and automatic recovery
+- **Confidence Scoring** - Based on liquidity score and TWAP-spot deviation
+- **Caching** - 30-second TTL in-memory cache for performance
+
+### Implementation
+
+```typescript
+import { TWAPClient } from '@/lib/oracles';
+
+const client = new TWAPClient({ useRealData: true });
+
+const priceData = await client.getPrice('ETH', Blockchain.ETHEREUM);
+// Returns PriceData with TWAP-specific fields:
+// - poolAddress: Uniswap V3 pool address
+// - feeTier: Pool fee tier (500, 3000, 10000)
+// - sqrtPriceX96: Current sqrt price
+// - tick: Current tick
+// - twapInterval: TWAP calculation interval
+// - twapPrice: Time-weighted average price
+// - spotPrice: Current spot price
+// - liquidity: Pool liquidity
+
+// Check if a symbol is supported on a specific chain
+const isSupported = client.isSymbolSupported('BTC', Blockchain.ETHEREUM);
+
+// Get supported chains for a symbol
+const chains = client.getSupportedChainsForSymbol('ETH');
+```
+
+### On-Chain Service
+
+The TWAP oracle uses a dedicated on-chain service for direct RPC calls:
+
+```typescript
+import { twapOnChainService } from '@/lib/oracles';
+
+// Get TWAP price
+const twapData = await twapOnChainService.getTwapPrice('ETH', Blockchain.ETHEREUM);
+
+// Get spot price
+const spotData = await twapOnChainService.getSpotPrice('ETH', Blockchain.ETHEREUM);
+
+// Get pool info
+const poolInfo = await twapOnChainService.getPoolInfo(poolAddress, Blockchain.ETHEREUM);
+
+// Batch price fetching
+const prices = await twapOnChainService.getPrices(['BTC', 'ETH'], Blockchain.ETHEREUM);
+
+// Find pool address
+const poolAddress = await twapOnChainService.findPoolAddress(token0, token1, Blockchain.ETHEREUM);
+```
+
+### React Hook
+
+```typescript
+import { useTwapOnChainData } from '@/hooks/oracles/useTwapOnChainData';
+
+function TwapPriceDisplay({ symbol, chain }) {
+  const { data, isLoading, error } = useTwapOnChainData({ symbol, chain });
+
+  if (isLoading) return <TwapStatsSkeleton />;
+  if (error) return <ErrorState message={error.message} />;
+
+  return (
+    <div>
+      <div>TWAP Price: ${data.twapPrice}</div>
+      <div>Spot Price: ${data.spotPrice}</div>
+      <div>Deviation: {data.priceDeviation}%</div>
+      <div>Liquidity: {data.liquidity}</div>
+      <div>Confidence: {data.confidence}</div>
+    </div>
+  );
+}
+```
+
+### Extended Types
+
+```typescript
+interface TwapPriceData {
+  symbol: string;
+  twapPrice: number;
+  spotPrice: number;
+  tick: number;
+  sqrtPriceX96: string;
+  liquidity: string;
+  timestamp: number;
+  chainId: number;
+  poolAddress: string;
+  feeTier: number;
+  twapInterval: number;
+  confidence: number;
+}
+
+interface TwapOnChainData {
+  poolAddress: string;
+  feeTier: number;
+  liquidity: string;
+  twapInterval: number;
+  twapPrice: number;
+  spotPrice: number;
+  priceDeviation: number;
+  tick: number;
+  sqrtPriceX96: string;
+  confidence: number;
+}
+
+interface PoolInfo {
+  address: string;
+  token0: string;
+  token1: string;
+  fee: number;
+  liquidity: string;
+  sqrtPriceX96: string;
+  tick: number;
+}
+```
+
+### TWAP Intervals
+
+| Interval | Seconds | Description    |
+| -------- | ------- | -------------- |
+| SHORT    | 600     | 10-minute TWAP |
+| MEDIUM   | 1800    | 30-minute TWAP |
+| LONG     | 3600    | 1-hour TWAP    |
+
+### Fee Tiers
+
+| Tier   | Value | Description |
+| ------ | ----- | ----------- |
+| LOW    | 500   | 0.05% fee   |
+| MEDIUM | 3000  | 0.3% fee    |
+| HIGH   | 10000 | 1% fee      |
+
+### Supported Symbols (22 tokens)
+
+BTC, ETH, USDC, USDT, DAI, WBTC, LINK, UNI, AAVE, ARB, OP, MATIC, SNX, CRV, COMP, MKR, SUSHI, 1INCH, BAL, BNB, STETH, FRAX
+
+### Network Metrics
+
+| Metric            | Value  |
+| ----------------- | ------ |
+| Supported Chains  | 6      |
+| Supported Tokens  | 22     |
+| Pool Configs      | 15+    |
+| Avg Response Time | 500ms  |
+| Update Frequency  | 60s    |
+| Cache TTL         | 30s    |
+| Chain Reliability | 95-99% |
+
+---
+
 ## Oracle Comparison Table
 
-| Feature                  | Chainlink | Pyth  | API3  | RedStone | DIA    | WINkLink | Supra |
-| ------------------------ | --------- | ----- | ----- | -------- | ------ | -------- | ----- |
-| **Update Frequency**     | 60s       | 1s    | 10s   | 5s       | 60s    | 30s      | 15s   |
-| **Avg Response Time**    | 245ms     | 100ms | 180ms | 120ms    | 200ms  | 250ms    | 150ms |
-| **Node Uptime**          | 99.9%     | 99.9% | 99.7% | 99.8%    | 99.5%  | 99.7%    | 99.8% |
-| **Supported Chains**     | 13        | 12    | 13    | 16       | 11     | 3        | 1     |
-| **Data Feeds**           | 1,243     | 500   | 168   | 285      | 2,000+ | 80       | 200+  |
-| **Node Analytics**       | ✅        | ❌    | ❌    | ❌       | ❌     | ❌       | ❌    |
-| **Publisher Analytics**  | ❌        | ✅    | ❌    | ❌       | ❌     | ❌       | ❌    |
-| **First-Party Oracle**   | ❌        | ❌    | ✅    | ❌       | ❌     | ❌       | ❌    |
-| **Confidence Intervals** | ❌        | ✅    | ❌    | ❌       | ❌     | ❌       | ✅    |
-| **Cross-Chain Stats**    | ❌        | ❌    | ❌    | ✅       | ✅     | ❌       | ✅    |
-| **Coverage Pools**       | ❌        | ❌    | ✅    | ❌       | ❌     | ❌       | ❌    |
-| **Modular Design**       | ❌        | ❌    | ❌    | ✅       | ❌     | ❌       | ❌    |
-| **NFT Data**             | ❌        | ❌    | ❌    | ❌       | ✅     | ❌       | ❌    |
-| **Gaming Data**          | ❌        | ❌    | ❌    | ❌       | ❌     | ✅       | ❌    |
-| **Open Source**          | ❌        | ❌    | ❌    | ❌       | ✅     | ❌       | ❌    |
-| **Verifiable Randomness**| ❌        | ❌    | ❌    | ❌       | ❌     | ❌       | ✅    |
+| Feature                   | Chainlink | Pyth  | API3  | RedStone | DIA    | WINkLink | Supra | TWAP  |
+| ------------------------- | --------- | ----- | ----- | -------- | ------ | -------- | ----- | ----- |
+| **Update Frequency**      | 60s       | 1s    | 10s   | 5s       | 60s    | 30s      | 15s   | 60s   |
+| **Avg Response Time**     | 245ms     | 100ms | 180ms | 120ms    | 200ms  | 250ms    | 150ms | 500ms |
+| **Node Uptime**           | 99.9%     | 99.9% | 99.7% | 99.8%    | 99.5%  | 99.7%    | 99.8% | 99.5% |
+| **Supported Chains**      | 13        | 12    | 13    | 16       | 11     | 3        | 1     | 6     |
+| **Data Feeds**            | 1,243     | 500   | 168   | 285      | 2,000+ | 80       | 200+  | 22    |
+| **Node Analytics**        | ✅        | ❌    | ❌    | ❌       | ❌     | ❌       | ❌    | ❌    |
+| **Publisher Analytics**   | ❌        | ✅    | ❌    | ❌       | ❌     | ❌       | ❌    | ❌    |
+| **First-Party Oracle**    | ❌        | ❌    | ✅    | ❌       | ❌     | ❌       | ❌    | ❌    |
+| **Confidence Intervals**  | ❌        | ✅    | ❌    | ❌       | ❌     | ❌       | ✅    | ✅    |
+| **Cross-Chain Stats**     | ❌        | ❌    | ❌    | ✅       | ✅     | ❌       | ✅    | ❌    |
+| **Coverage Pools**        | ❌        | ❌    | ✅    | ❌       | ❌     | ❌       | ❌    | ❌    |
+| **Modular Design**        | ❌        | ❌    | ❌    | ✅       | ❌     | ❌       | ❌    | ❌    |
+| **NFT Data**              | ❌        | ❌    | ❌    | ❌       | ✅     | ❌       | ❌    | ❌    |
+| **Gaming Data**           | ❌        | ❌    | ❌    | ❌       | ❌     | ✅       | ❌    | ❌    |
+| **Open Source**           | ❌        | ❌    | ❌    | ❌       | ✅     | ❌       | ❌    | ❌    |
+| **Verifiable Randomness** | ❌        | ❌    | ❌    | ❌       | ❌     | ❌       | ✅    | ❌    |
+| **On-Chain TWAP**         | ❌        | ❌    | ❌    | ❌       | ❌     | ❌       | ❌    | ✅    |
+| **Spot Price**            | ❌        | ❌    | ❌    | ❌       | ❌     | ❌       | ❌    | ✅    |
+| **Liquidity Data**        | ❌        | ❌    | ❌    | ❌       | ❌     | ❌       | ❌    | ✅    |
 
 ---
 
@@ -910,17 +1088,22 @@ interface OracleError {
 
 ### Error Codes
 
-| Code                  | Description                     |
-| --------------------- | ------------------------------- |
-| `CHAINLINK_ERROR`     | Chainlink price fetch failed    |
-| `PYTH_ERROR`          | Pyth price fetch failed         |
-| `API3_ERROR`          | API3 price fetch failed         |
-| `REDSTONE_ERROR`      | RedStone price fetch failed     |
-| `DIA_ERROR`           | DIA price fetch failed          |
-| `WINKLINK_ERROR`      | WINkLink price fetch failed     |
-| `*_HISTORICAL_ERROR`  | Historical data fetch failed    |
-| `NETWORK_STATS_ERROR` | Network statistics fetch failed |
-| `VALIDATORS_ERROR`    | Validator data fetch failed     |
+| Code                          | Description                          |
+| ----------------------------- | ------------------------------------ |
+| `CHAINLINK_ERROR`             | Chainlink price fetch failed         |
+| `PYTH_ERROR`                  | Pyth price fetch failed              |
+| `API3_ERROR`                  | API3 price fetch failed              |
+| `REDSTONE_ERROR`              | RedStone price fetch failed          |
+| `DIA_ERROR`                   | DIA price fetch failed               |
+| `WINKLINK_ERROR`              | WINkLink price fetch failed          |
+| `TWAP_ERROR`                  | TWAP price fetch failed              |
+| `TWAP_POOL_NOT_FOUND`         | TWAP pool not found for symbol       |
+| `TWAP_INSUFFICIENT_LIQUIDITY` | TWAP pool has insufficient liquidity |
+| `TWAP_OBSERVATION_ERROR`      | TWAP on-chain observation failed     |
+| `TWAP_HISTORICAL_ERROR`       | TWAP historical data fetch failed    |
+| `*_HISTORICAL_ERROR`          | Historical data fetch failed         |
+| `NETWORK_STATS_ERROR`         | Network statistics fetch failed      |
+| `VALIDATORS_ERROR`            | Validator data fetch failed          |
 
 ---
 
@@ -971,6 +1154,12 @@ src/lib/oracles/
 ├── redstone.ts           # RedStone client implementation
 ├── dia.ts                # DIA client implementation
 ├── winklink.ts           # WINkLink client implementation
+├── clients/
+│   └── twap.ts           # TWAP client implementation
+├── services/
+│   └── twapOnChainService.ts  # TWAP on-chain data service
+├── constants/
+│   └── twapConstants.ts  # TWAP constants and configuration
 ├── storage.ts            # Database storage layer
 ├── factory.ts            # Oracle client factory
 ├── colors.ts             # Oracle color configurations

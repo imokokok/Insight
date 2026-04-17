@@ -44,10 +44,18 @@ export function useTwapOnChainData(options: UseTwapOnChainDataOptions): UseTwapO
     refetch: queryRefetch,
   } = useQuery({
     queryKey: ['twap-on-chain', symbol, chain],
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       const chainId = BLOCKCHAIN_TO_CHAIN_ID[chain || 'ethereum'] || 1;
-      const twapData = await twapOnChainService.getTwapPrice(symbol.toUpperCase(), chainId);
-      const priceDeviation = Math.abs(twapData.twapPrice - twapData.spotPrice) / twapData.spotPrice;
+      const twapData = await twapOnChainService.getTwapPrice(
+        symbol.toUpperCase(),
+        chainId,
+        undefined,
+        signal
+      );
+      const priceDeviation =
+        twapData.spotPrice > 0
+          ? Math.abs(twapData.twapPrice - twapData.spotPrice) / twapData.spotPrice
+          : 0;
       return {
         poolAddress: twapData.poolAddress,
         feeTier: twapData.feeTier,

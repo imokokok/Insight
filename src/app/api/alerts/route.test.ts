@@ -37,6 +37,7 @@ function createMockRequest(
     headers: new Headers(options?.headers || {}),
     json: async () => bodyData,
     clone: function () {
+      // eslint-disable-next-line @typescript-eslint/no-this-alias
       const self = this;
       return {
         url: self.url,
@@ -49,6 +50,7 @@ function createMockRequest(
   return request;
 }
 
+// eslint-disable-next-line max-lines-per-function
 describe('/api/alerts', () => {
   const mockQueries = {
     getAlerts: jest.fn(),
@@ -96,8 +98,8 @@ describe('/api/alerts', () => {
       const data = await response.json();
 
       if (response.status !== 200) {
-        console.log('Response status:', response.status);
-        console.log('Response data:', JSON.stringify(data, null, 2));
+        console.warn('Response status:', response.status);
+        console.warn('Response data:', JSON.stringify(data, null, 2));
       }
 
       expect(response.status).toBe(200);

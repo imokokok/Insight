@@ -49,8 +49,10 @@ function VerifyEmailForm() {
     }
 
     if (errorParam) {
-      setStatus('error');
-      setErrorMessage(getErrorMessage(errorParam, errorCode));
+      requestAnimationFrame(() => {
+        setStatus('error');
+        setErrorMessage(getErrorMessage(errorParam, errorCode));
+      });
       return;
     }
 

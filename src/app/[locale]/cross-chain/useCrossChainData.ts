@@ -3,8 +3,6 @@
 import { useMemo } from 'react';
 
 import { useCrossChainConfigStore } from '@/stores/crossChainConfigStore';
-import { useCrossChainSelectorStore } from '@/stores/crossChainSelectorStore';
-import { useCrossChainUIStore } from '@/stores/crossChainUIStore';
 
 import { useCrossChainChart } from './hooks/useCrossChainChart';
 import { useCrossChainDataState } from './hooks/useCrossChainDataState';

@@ -56,6 +56,7 @@ function createMockRequest(
   } as unknown as NextRequest;
 }
 
+// eslint-disable-next-line max-lines-per-function
 describe('API Validation Tests', () => {
   beforeEach(() => {
     jest.clearAllMocks();

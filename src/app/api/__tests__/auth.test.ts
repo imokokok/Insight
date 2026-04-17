@@ -39,6 +39,7 @@ function createMockRequest(
   } as unknown as NextRequest;
 }
 
+// eslint-disable-next-line max-lines-per-function
 describe('API Authentication Tests', () => {
   const originalEnv = process.env;
 
@@ -134,6 +135,7 @@ describe('API Authentication Tests', () => {
         error: { message: 'Invalid token format' },
       });
 
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       require('@supabase/supabase-js').createClient.mockReturnValue({
         auth: { getUser: mockGetUser },
       });
@@ -154,6 +156,7 @@ describe('API Authentication Tests', () => {
         error: { message: 'JWT expired' },
       });
 
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       require('@supabase/supabase-js').createClient.mockReturnValue({
         auth: { getUser: mockGetUser },
       });
@@ -172,6 +175,7 @@ describe('API Authentication Tests', () => {
         error: { message: 'Token has expired' },
       });
 
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       require('@supabase/supabase-js').createClient.mockReturnValue({
         auth: { getUser: mockGetUser },
       });
@@ -195,6 +199,7 @@ describe('API Authentication Tests', () => {
         error: { message: 'Refresh token expired' },
       });
 
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       require('@supabase/supabase-js').createClient.mockReturnValue({
         auth: { getUser: mockGetUser },
       });
@@ -221,6 +226,7 @@ describe('API Authentication Tests', () => {
         error: null,
       });
 
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       require('@supabase/supabase-js').createClient.mockReturnValue({
         auth: { getUser: mockGetUser },
       });
@@ -252,6 +258,7 @@ describe('API Authentication Tests', () => {
         error: null,
       });
 
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       require('@supabase/supabase-js').createClient.mockReturnValue({
         auth: { getUser: mockGetUser },
       });
@@ -281,6 +288,7 @@ describe('API Authentication Tests', () => {
         error: null,
       });
 
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       require('@supabase/supabase-js').createClient.mockReturnValue({
         auth: { getUser: mockGetUser },
       });
@@ -310,6 +318,7 @@ describe('API Authentication Tests', () => {
         error: null,
       });
 
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       require('@supabase/supabase-js').createClient.mockReturnValue({
         auth: { getUser: mockGetUser },
       });
@@ -377,6 +386,7 @@ describe('API Authentication Tests', () => {
         error: null,
       });
 
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       require('@supabase/supabase-js').createClient.mockReturnValue({
         auth: { getUser: mockGetUser },
       });
@@ -399,6 +409,7 @@ describe('API Authentication Tests', () => {
         error: { message: 'Session not found' },
       });
 
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       require('@supabase/supabase-js').createClient.mockReturnValue({
         auth: { getUser: mockGetUser },
       });
@@ -422,6 +433,7 @@ describe('API Authentication Tests', () => {
         error: null,
       });
 
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       require('@supabase/supabase-js').createClient.mockReturnValue({
         auth: { getUser: mockGetUser },
       });
@@ -476,6 +488,7 @@ describe('API Authentication Tests', () => {
         error: null,
       });
 
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       require('@supabase/supabase-js').createClient.mockReturnValue({
         auth: { getUser: mockGetUser },
       });
@@ -491,6 +504,7 @@ describe('API Authentication Tests', () => {
 
   describe('Error Handling', () => {
     it('should handle Supabase client creation errors', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       require('@supabase/supabase-js').createClient.mockImplementation(() => {
         throw new Error('Supabase connection error');
       });
@@ -506,6 +520,7 @@ describe('API Authentication Tests', () => {
     it('should handle network errors during token validation', async () => {
       const mockGetUser = jest.fn().mockRejectedValue(new Error('Network error'));
 
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       require('@supabase/supabase-js').createClient.mockReturnValue({
         auth: { getUser: mockGetUser },
       });
@@ -524,6 +539,7 @@ describe('API Authentication Tests', () => {
         error: null,
       });
 
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       require('@supabase/supabase-js').createClient.mockReturnValue({
         auth: { getUser: mockGetUser },
       });
@@ -572,6 +588,7 @@ describe('API Authentication Tests', () => {
           error: null,
         });
 
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
         require('@supabase/supabase-js').createClient.mockReturnValue({
           auth: { getUser: mockGetUser },
         });
@@ -603,6 +620,7 @@ describe('API Authentication Tests', () => {
           error: null,
         });
 
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
         require('@supabase/supabase-js').createClient.mockReturnValue({
           auth: { getUser: mockGetUser },
         });
@@ -636,6 +654,7 @@ describe('API Authentication Tests', () => {
           error: null,
         });
 
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
         require('@supabase/supabase-js').createClient.mockReturnValue({
           auth: { getUser: mockGetUser },
         });

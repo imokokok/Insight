@@ -1,84 +1,80 @@
-# UI 类型定义
+# UI Type Definitions
 
-本目录包含 Insight 项目的所有 UI 相关类型定义，按照功能模块进行组织。
+This directory contains all UI-related type definitions for the Insight project, organized by functional module.
 
-## 目录结构
+## Directory Structure
 
 ```
 src/types/ui/
-├── index.ts       # 统一导出所有 UI 类型
-├── components.ts  # 通用组件 Props 类型
-├── layout.ts      # 布局相关类型
-├── theme.ts       # 主题/设计系统类型
-└── charts.ts      # 图表组件类型
+├── index.ts       # Unified export of all UI types
+├── components.ts  # Common component Props types
+├── layout.ts      # Layout-related types
+├── theme.ts       # Theme/design system types
+└── charts.ts      # Chart component types
 ```
 
-## 使用示例
+## Usage Examples
 
-### 导入组件类型
+### Import Component Types
 
 ```typescript
 import type { CardProps, ButtonProps, StatCardProps, DashboardCardProps } from '@/types/ui';
 
-// 使用示例
 interface MyCardProps extends CardProps {
   customField: string;
 }
 ```
 
-### 导入布局类型
+### Import Layout Types
 
 ```typescript
 import type { PageHeaderProps, HeroProps, TabNavigationProps, UITimeRange } from '@/types/ui';
 
-// 使用示例
 const timeRange: UITimeRange = '24H';
 ```
 
-### 导入主题类型
+### Import Theme Types
 
 ```typescript
 import type { ThemeColor, CardVariant, ChangeType, RadiusSize } from '@/types/ui';
 
-// 使用示例
 const variant: CardVariant = 'elevated';
 const changeType: ChangeType = 'positive';
 ```
 
-### 导入图表类型
+### Import Chart Types
 
 ```typescript
 import type { ChartDataPoint, PriceChartProps, LineChartProps, TooltipPayload } from '@/types/ui';
 
-// 使用示例
 const data: ChartDataPoint[] = [
   { x: '2024-01-01', y: 100, label: 'Jan 1' },
   { x: '2024-01-02', y: 120, label: 'Jan 2' },
 ];
 ```
 
-## 类型命名规范
+## Type Naming Conventions
 
-- **组件 Props**: `ComponentNameProps` (e.g., `CardProps`, `ButtonProps`)
-- **组件变体**: `ComponentNameVariant` (e.g., `CardVariant`, `ButtonVariant`)
-- **组件尺寸**: `ComponentNameSize` (e.g., `CardSize`, `ButtonSize`)
-- **事件类型**: `EventNameEvent` (e.g., `ChartClickEvent`, `TabChangeEvent`)
-- **状态类型**: `FeatureState` (e.g., `UIAsyncState`, `LoadingState`)
+- **Component Props**: `ComponentNameProps` (e.g., `CardProps`, `ButtonProps`)
+- **Component Variants**: `ComponentNameVariant` (e.g., `CardVariant`, `ButtonVariant`)
+- **Component Sizes**: `ComponentNameSize` (e.g., `CardSize`, `ButtonSize`)
+- **Event Types**: `EventNameEvent` (e.g., `ChartClickEvent`, `TabChangeEvent`)
+- **State Types**: `FeatureState` (e.g., `UIAsyncState`, `LoadingState`)
 
-## 注意事项
+## Notes
 
-1. **避免循环依赖**: 类型定义之间应避免循环引用
-2. **向后兼容**: 修改现有类型时应保持向后兼容
-3. **文档注释**: 所有类型定义都应包含 JSDoc 注释
-4. **统一导出**: 所有类型都通过 `index.ts` 统一导出
+1. **Avoid Circular Dependencies**: Type definitions should not have circular references
+2. **Backward Compatibility**: Modifications to existing types should maintain backward compatibility
+3. **Documentation Comments**: All type definitions should include JSDoc comments
+4. **Unified Export**: All types are exported through `index.ts`
 
-## 与现有类型的关系
+## Relationship with Other Type Directories
 
-- `src/types/oracle/`: 预言机领域类型
-- `src/types/api/`: API 相关类型
-- `src/types/common/`: 通用工具类型
-- `src/types/ui/`: UI 组件类型（本目录）
+- `src/types/oracle/`: Oracle domain types
+- `src/types/api/`: API-related types
+- `src/types/common/`: Common utility types
+- `src/types/ui/`: UI component types (this directory)
 
-## 更新记录
+## Changelog
 
-- 2024-03-26: 创建 UI 类型目录，整合分散的组件类型定义
+- 2024-03-26: Created UI types directory, consolidated scattered component type definitions

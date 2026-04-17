@@ -15,7 +15,11 @@ interface ChartDataTableProps {
   selectedTimeRange: number;
 }
 
-export const ChartDataTable = memo(function ChartDataTable({ chartData, seriesNames, selectedTimeRange }: ChartDataTableProps) {
+export const ChartDataTable = memo(function ChartDataTable({
+  chartData,
+  seriesNames,
+  selectedTimeRange,
+}: ChartDataTableProps) {
   const t = useTranslations();
 
   const formatTimestamp = (timestamp: number): string => {

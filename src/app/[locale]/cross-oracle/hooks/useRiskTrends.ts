@@ -32,8 +32,9 @@ export function useRiskTrends(
   anomalies: PriceAnomaly[] = [],
   currentTime?: number
 ): RiskTrendsResult {
+  const now = currentTime ?? Date.now();
+
   return useMemo(() => {
-    const now = currentTime ?? Date.now();
     const hours =
       timeRange === '1h' ? 1 : timeRange === '24h' ? 24 : timeRange === '7d' ? 168 : 720;
     const data: RiskTrendPoint[] = [];
@@ -76,7 +77,7 @@ export function useRiskTrends(
       minRiskScore: riskScores.length > 0 ? safeMin(riskScores) : 0,
       totalAnomalies,
     };
-  }, [timeRange, anomalies, currentTime]);
+  }, [timeRange, anomalies, now]);
 }
 
 export function getRiskLevel(riskScore: number): 'low' | 'medium' | 'high' | 'critical' {

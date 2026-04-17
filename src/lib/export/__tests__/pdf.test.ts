@@ -81,6 +81,7 @@ jest.mock('jspdf-autotable', () => {
   };
 });
 
+// eslint-disable-next-line max-lines-per-function
 describe('PDF Export', () => {
   const mockFields: ExportField[] = [
     { key: 'symbol', label: 'Symbol', labelZh: '代码', dataType: 'string', selected: true },
@@ -157,6 +158,7 @@ describe('PDF Export', () => {
     });
 
     it('should handle chart capture errors gracefully', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const { exportToPNG } = require('@/lib/utils/chartExport/formats/imageExporter');
       exportToPNG.mockRejectedValueOnce(new Error('Chart capture failed'));
 
@@ -551,6 +553,7 @@ describe('PDF Export', () => {
     it('should export PDF with chart options', async () => {
       await exportToPDFFromChartExport(mockPDFOptions);
 
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const JsPDF = require('jspdf').default;
       const mockDoc = new JsPDF();
       expect(mockDoc.save).toHaveBeenCalled();
@@ -579,6 +582,7 @@ describe('PDF Export', () => {
 
       await exportToPDFFromChartExport(multiChartOptions);
 
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const JsPDF = require('jspdf').default;
       const mockDoc = new JsPDF();
       expect(mockDoc.save).toHaveBeenCalled();
@@ -590,6 +594,7 @@ describe('PDF Export', () => {
         includeWatermark: true,
       });
 
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const JsPDF = require('jspdf').default;
       const mockDoc = new JsPDF();
       expect(mockDoc.saveGraphicsState).toHaveBeenCalled();
@@ -604,6 +609,7 @@ describe('PDF Export', () => {
         includeWatermark: false,
       });
 
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const JsPDF = require('jspdf').default;
       const mockDoc = new JsPDF();
       expect(mockDoc.saveGraphicsState).not.toHaveBeenCalled();
@@ -623,6 +629,7 @@ describe('PDF Export', () => {
 
       await exportToPDFFromChartExport(noChartRefOptions);
 
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const JsPDF = require('jspdf').default;
       const mockDoc = new JsPDF();
       expect(mockDoc.save).toHaveBeenCalled();
@@ -631,6 +638,7 @@ describe('PDF Export', () => {
     it('should include data table for small datasets', async () => {
       await exportToPDFFromChartExport(mockPDFOptions);
 
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const JsPDF = require('jspdf').default;
       const mockDoc = new JsPDF();
       expect(mockDoc.save).toHaveBeenCalled();
@@ -654,6 +662,7 @@ describe('PDF Export', () => {
         ],
       });
 
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const JsPDF = require('jspdf').default;
       const mockDoc = new JsPDF();
       expect(mockDoc.save).toHaveBeenCalled();
@@ -740,6 +749,7 @@ describe('PDF Export', () => {
     });
 
     it('should handle image capture failure', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const { exportToPNG } = require('@/lib/utils/chartExport/formats/imageExporter');
       exportToPNG.mockRejectedValueOnce(new Error('Capture failed'));
 

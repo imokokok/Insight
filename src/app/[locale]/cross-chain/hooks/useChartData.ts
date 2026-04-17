@@ -351,7 +351,7 @@ export function useChartData(params: UseChartDataParams): UseChartDataReturn {
     });
 
     return result;
-  }, [historicalPrices, filteredChains, thresholdConfig]);
+  }, [historicalPrices, filteredChains]);
 
   const totalDataPoints = useMemo(() => {
     let count = 0;
@@ -447,7 +447,12 @@ export function useChartData(params: UseChartDataParams): UseChartDataReturn {
     });
 
     return result;
-  }, [historicalPrices, filteredChains]);
+  }, [
+    historicalPrices,
+    filteredChains,
+    thresholdConfig.outlierDetectionMethod,
+    thresholdConfig.outlierThreshold,
+  ]);
 
   const scatterData = useMemo(() => {
     return stdDevHistoricalOutliers

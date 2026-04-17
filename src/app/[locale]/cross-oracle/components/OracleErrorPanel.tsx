@@ -126,9 +126,7 @@ const OracleErrorItem = memo(function OracleErrorItem({
               className="h-7 px-2 text-xs"
             >
               <RefreshCw className={`w-3 h-3 mr-1 ${isRetrying ? 'animate-spin' : ''}`} />
-              {isRetrying
-                ? t('crossOracle.retrying')
-                : t('crossOracle.retry')}
+              {isRetrying ? t('crossOracle.retrying') : t('crossOracle.retry')}
             </Button>
           )}
           <span className="text-xs text-gray-400">
@@ -169,9 +167,7 @@ const PartialSuccessBanner = memo(function PartialSuccessBanner({
               total: totalCount,
             })}
           </p>
-          <p className="text-sm text-amber-600">
-            {t('crossOracle.partialSuccessDesc')}
-          </p>
+          <p className="text-sm text-amber-600">{t('crossOracle.partialSuccessDesc')}</p>
         </div>
       </div>
       {onRetryAll && (
@@ -208,9 +204,7 @@ const GlobalErrorBanner = memo(function GlobalErrorBanner({
       <div className="flex items-center gap-3">
         <AlertCircle className="w-5 h-5 text-red-600" />
         <div>
-          <p className="font-medium text-red-800">
-            {t('crossOracle.globalError')}
-          </p>
+          <p className="font-medium text-red-800">{t('crossOracle.globalError')}</p>
           <p className="text-sm text-red-600">{message}</p>
         </div>
       </div>

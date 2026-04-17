@@ -1,4 +1,4 @@
-import { Hash, Settings, Clock, Database, Timer, FileDigit } from 'lucide-react';
+import { Hash, Clock, Database, Timer, FileDigit } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
 import { StatCard } from '@/components/ui/StatCard';

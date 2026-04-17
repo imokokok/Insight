@@ -58,6 +58,7 @@ describe('validateObject', () => {
 
   describe('with validators', () => {
     it('should run validators and fail on invalid data', () => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const { isString } = require('../validation/validators');
       const schema = {
         age: { validators: [isString], required: true },
@@ -70,6 +71,7 @@ describe('validateObject', () => {
     });
 
     it('should run validators and pass on valid data', () => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const { isString } = require('../validation/validators');
       const schema = {
         name: { validators: [isString], required: true },
@@ -100,6 +102,7 @@ describe('validateObject', () => {
 
   describe('multiple fields', () => {
     it('should validate multiple fields', () => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const { isString, isNumber } = require('../validation/validators');
       const schema = {
         name: { validators: [isString], required: true },
@@ -112,6 +115,7 @@ describe('validateObject', () => {
     });
 
     it('should collect multiple errors', () => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const { isString, isNumber } = require('../validation/validators');
       const schema = {
         name: { validators: [isString], required: true },

@@ -1,9 +1,8 @@
-import { BaseOracleClient } from '@/lib/oracles/base';
-import type { OracleClientConfig, OracleCacheEntry } from '@/lib/oracles/base';
+import { BaseOracleClient, OracleCache } from '@/lib/oracles/base';
+import type { OracleClientConfig } from '@/lib/oracles/base';
 import { supraSymbols, SUPRA_AVAILABLE_PAIRS } from '@/lib/oracles/constants/supportedSymbols';
 import { SUPRA_PAIR_INDEX_MAP } from '@/lib/oracles/constants/supraConstants';
 import { getSupraDataService } from '@/lib/oracles/services/supraDataService';
-import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
 import { createLogger } from '@/lib/utils/logger';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 import type { PriceData, OracleErrorCode } from '@/types/oracle';
@@ -25,9 +24,7 @@ export interface SupraTokenOnChainData {
 
 export class SupraClient extends BaseOracleClient {
   name = OracleProvider.SUPRA;
-  // 项目 RPC 支持的链（与 .env.local 中的 ALCHEMY_*_RPC 对应）
   supportedChains = [
-    // 主要链（有 ALCHEMY RPC）
     Blockchain.ETHEREUM,
     Blockchain.ARBITRUM,
     Blockchain.OPTIMISM,
@@ -36,7 +33,6 @@ export class SupraClient extends BaseOracleClient {
     Blockchain.SOLANA,
     Blockchain.BNB_CHAIN,
     Blockchain.AVALANCHE,
-    // RedStone 特有链
     Blockchain.ZKSYNC,
     Blockchain.SCROLL,
     Blockchain.MANTLE,
@@ -44,31 +40,10 @@ export class SupraClient extends BaseOracleClient {
   ];
 
   defaultUpdateIntervalMinutes = 5;
-  private cache: Map<string, OracleCacheEntry<unknown>> = new Map();
+  private cache = new OracleCache();
 
   constructor(config?: OracleClientConfig) {
     super(config);
-  }
-
-  private getFromCache<T>(key: string): T | null {
-    const entry = this.cache.get(key) as OracleCacheEntry<T> | undefined;
-    if (!entry) return null;
-
-    const now = Date.now();
-    if (now - entry.timestamp > entry.ttl) {
-      this.cache.delete(key);
-      return null;
-    }
-
-    return entry.data;
-  }
-
-  private setCache<T>(key: string, data: T, ttl: number): void {
-    this.cache.set(key, {
-      data,
-      timestamp: Date.now(),
-      ttl,
-    });
   }
 
   async getPrice(
@@ -125,72 +100,9 @@ export class SupraClient extends BaseOracleClient {
     }
   }
 
-  async getHistoricalPrices(
-    symbol: string,
-    chain?: Blockchain,
-    period: number = 24,
-    options?: { signal?: AbortSignal }
-  ): Promise<PriceData[]> {
-    if (options?.signal?.aborted) {
-      return [];
-    }
-
-    const upperSymbol = symbol.toUpperCase();
-
-    if (SUPRA_PAIR_INDEX_MAP[upperSymbol] === undefined) {
-      logger.warn(`Symbol '${upperSymbol}' is not supported by Supra`);
-      return [];
-    }
-
-    try {
-      const historicalPrices = await binanceMarketService.getHistoricalPricesByHours(
-        upperSymbol,
-        period
-      );
-
-      if (!historicalPrices || historicalPrices.length === 0) {
-        logger.warn(`No historical data available for ${upperSymbol}`, { symbol: upperSymbol });
-        return [];
-      }
-
-      logger.info(`Using Binance historical data for ${upperSymbol}`, {
-        symbol: upperSymbol,
-        points: historicalPrices.length,
-        period,
-      });
-
-      const targetChain = chain || Blockchain.ETHEREUM;
-      const latestPrice = historicalPrices[historicalPrices.length - 1].price;
-
-      return historicalPrices.map((point) => {
-        const change24h = latestPrice - point.price;
-        const change24hPercent =
-          point.price > 0 ? ((latestPrice - point.price) / point.price) * 100 : 0;
-
-        return {
-          provider: this.name,
-          chain: targetChain,
-          symbol: upperSymbol,
-          price: point.price,
-          timestamp: point.timestamp,
-          decimals: 8,
-          confidence: 0.95,
-          change24h: Number(change24h.toFixed(4)),
-          change24hPercent: Number(change24hPercent.toFixed(2)),
-          source: 'binance-api',
-        };
-      });
-    } catch (error) {
-      logger.error(
-        `Failed to fetch historical prices for ${upperSymbol}: ${error instanceof Error ? error.message : 'Unknown error'}`
-      );
-      return [];
-    }
-  }
-
   async getTokenOnChainData(symbol: string): Promise<SupraTokenOnChainData | null> {
     const cacheKey = `onchain-data:${symbol.toUpperCase()}`;
-    const cached = this.getFromCache<SupraTokenOnChainData>(cacheKey);
+    const cached = this.cache.get<SupraTokenOnChainData>(cacheKey);
     if (cached) {
       return cached;
     }
@@ -227,7 +139,7 @@ export class SupraClient extends BaseOracleClient {
         source: 'DORA V2',
       };
 
-      this.setCache(cacheKey, onChainData, 60000);
+      this.cache.set(cacheKey, onChainData, 60000);
       return onChainData;
     } catch (error) {
       logger.error(

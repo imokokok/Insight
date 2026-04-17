@@ -1,6 +1,7 @@
 'use client';
 
 import React, { memo } from 'react';
+
 import { useTranslations } from 'next-intl';
 
 import { oracleNames } from '../constants';
@@ -73,7 +74,10 @@ function getSeverityColorClass(severity: AnomalySeverity): string {
   }
 }
 
-function getSeverityLabel(severity: AnomalySeverity, t: ReturnType<typeof useTranslations>): string {
+function getSeverityLabel(
+  severity: AnomalySeverity,
+  t: ReturnType<typeof useTranslations>
+): string {
   switch (severity) {
     case 'high':
       return t('crossOracle.riskAlert.severityHigh');
@@ -156,8 +160,10 @@ function RiskAlertBannerComponent({
               <h4 className="text-sm font-semibold text-gray-900">{alertTitle}</h4>
               <p className="text-xs text-gray-600 mt-0.5">
                 {t('crossOracle.riskAlert.detectedAnomalies', { count })}
-                {highRiskCount > 0 && t('crossOracle.riskAlert.withHighRisk', { count: highRiskCount })}
-                {maxDeviation > 0 && t('crossOracle.riskAlert.maxDeviation', { percent: maxDeviation.toFixed(2) })}
+                {highRiskCount > 0 &&
+                  t('crossOracle.riskAlert.withHighRisk', { count: highRiskCount })}
+                {maxDeviation > 0 &&
+                  t('crossOracle.riskAlert.maxDeviation', { percent: maxDeviation.toFixed(2) })}
               </p>
             </div>
             {onViewDetails && (
@@ -197,7 +203,9 @@ function RiskAlertBannerComponent({
           </div>
         ))}
         {remainingCount > 0 && (
-          <div className="text-xs text-gray-500 pl-1">{t('crossOracle.riskAlert.remainingAnomalies', { count: remainingCount })}</div>
+          <div className="text-xs text-gray-500 pl-1">
+            {t('crossOracle.riskAlert.remainingAnomalies', { count: remainingCount })}
+          </div>
         )}
       </div>
 
@@ -208,19 +216,25 @@ function RiskAlertBannerComponent({
             {highRiskCount > 0 && (
               <span className="inline-flex items-center gap-1">
                 <span className="w-2 h-2 rounded-full bg-red-500" />
-                <span className="text-gray-700">{t('crossOracle.riskAlert.highRisk', { count: highRiskCount })}</span>
+                <span className="text-gray-700">
+                  {t('crossOracle.riskAlert.highRisk', { count: highRiskCount })}
+                </span>
               </span>
             )}
             {mediumRiskCount > 0 && (
               <span className="inline-flex items-center gap-1">
                 <span className="w-2 h-2 rounded-full bg-orange-500" />
-                <span className="text-gray-700">{t('crossOracle.riskAlert.mediumRisk', { count: mediumRiskCount })}</span>
+                <span className="text-gray-700">
+                  {t('crossOracle.riskAlert.mediumRisk', { count: mediumRiskCount })}
+                </span>
               </span>
             )}
             {lowRiskCount > 0 && (
               <span className="inline-flex items-center gap-1">
                 <span className="w-2 h-2 rounded-full bg-yellow-500" />
-                <span className="text-gray-700">{t('crossOracle.riskAlert.lowRisk', { count: lowRiskCount })}</span>
+                <span className="text-gray-700">
+                  {t('crossOracle.riskAlert.lowRisk', { count: lowRiskCount })}
+                </span>
               </span>
             )}
           </div>

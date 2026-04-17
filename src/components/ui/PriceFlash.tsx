@@ -21,7 +21,9 @@ export function PriceFlash({ value, previousValue, className, children }: PriceF
       const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       if (!prefersReducedMotion) {
         const direction = value > prev ? 'up' : 'down';
-        setFlashClass(direction === 'up' ? 'price-flash-up' : 'price-flash-down');
+        requestAnimationFrame(() => {
+          setFlashClass(direction === 'up' ? 'price-flash-up' : 'price-flash-down');
+        });
         const timer = setTimeout(() => setFlashClass(''), 500);
         prevRef.current = value;
         return () => clearTimeout(timer);

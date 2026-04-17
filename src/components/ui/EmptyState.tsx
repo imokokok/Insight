@@ -18,18 +18,7 @@ export interface EmptyStateProps {
 }
 
 export const EmptyState = forwardRef<HTMLDivElement, EmptyStateProps>(
-  (
-    {
-      title,
-      description,
-      icon,
-      action,
-      secondaryAction,
-      className,
-      compact = false,
-    },
-    ref
-  ) => {
+  ({ title, description, icon, action, secondaryAction, className, compact = false }, ref) => {
     const t = useTranslations();
     const resolvedTitle = title ?? t('crossOracle.ui.emptyStateTitle');
     const resolvedDescription = description ?? t('crossOracle.ui.emptyStateDescription');
