@@ -25,7 +25,7 @@ export function SupraStats({ data }: SupraStatsProps) {
     });
   };
 
-  const formatPrice = (value: number) => {
+  const formatSupraPrice = (value: number) => {
     if (!value || isNaN(value)) return '-';
     return `$${value.toLocaleString('en-US', {
       minimumFractionDigits: 2,
@@ -39,7 +39,7 @@ export function SupraStats({ data }: SupraStatsProps) {
         icon={Database}
         iconColor="text-blue-500"
         title={t('supraPrice')}
-        value={formatPrice(price)}
+        value={formatSupraPrice(price)}
         description={t('supraPriceDesc')}
       />
       <StatCard

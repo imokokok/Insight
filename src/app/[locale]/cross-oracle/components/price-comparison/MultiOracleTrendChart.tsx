@@ -41,7 +41,7 @@ function MultiOracleTrendChartComponent({
 }: MultiOracleTrendChartProps) {
   const [hiddenOracles, setHiddenOracles] = useState<Set<OracleProvider>>(new Set());
 
-  // 处理图表数据
+  // 处理图表数据 - 使用最近时间戳匹配算法
   const chartData = useMemo(() => {
     const oracles = Object.keys(historicalData) as OracleProvider[];
     if (oracles.length === 0) return [];
@@ -56,12 +56,54 @@ function MultiOracleTrendChartComponent({
 
     const sortedTimestamps = Array.from(allTimestamps).sort((a, b) => a - b);
 
-    // 构建数据点
+    // 为每个预言机创建时间戳到数据点的映射，用于快速查找
+    const oracleDataMaps = new Map<OracleProvider, Map<number, number>>();
+    oracles.forEach((oracle) => {
+      const dataMap = new Map<number, number>();
+      historicalData[oracle]?.forEach((point) => {
+        dataMap.set(point.timestamp, point.price);
+      });
+      oracleDataMaps.set(oracle, dataMap);
+    });
+
+    // 获取最近的有效价格（在指定时间容差内）
+    const getNearestPrice = (
+      oracle: OracleProvider,
+      targetTimestamp: number,
+      toleranceMs: number = 60000 // 默认1分钟容差
+    ): number | null => {
+      const dataMap = oracleDataMaps.get(oracle);
+      if (!dataMap || dataMap.size === 0) return null;
+
+      // 首先尝试精确匹配
+      if (dataMap.has(targetTimestamp)) {
+        return dataMap.get(targetTimestamp)!;
+      }
+
+      // 查找最近的时间戳
+      let nearestPrice: number | null = null;
+      let minDiff = Infinity;
+
+      dataMap.forEach((price, timestamp) => {
+        const diff = Math.abs(timestamp - targetTimestamp);
+        if (diff < minDiff && diff <= toleranceMs) {
+          minDiff = diff;
+          nearestPrice = price;
+        }
+      });
+
+      return nearestPrice;
+    };
+
+    // 构建数据点 - 使用插值和最近邻匹配
     return sortedTimestamps.map((timestamp) => {
       const point: TrendDataPoint = { timestamp };
       oracles.forEach((oracle) => {
-        const dataPoint = historicalData[oracle]?.find((p) => p.timestamp === timestamp);
-        point[oracle] = dataPoint?.price || 0;
+        const price = getNearestPrice(oracle, timestamp);
+        // 只设置有效价格，不填充0
+        if (price !== null) {
+          point[oracle] = price;
+        }
       });
       return point;
     });

@@ -2,8 +2,10 @@
 
 /**
  * @fileoverview 自定义图表提示框组件
- * @description 显示数据点的详细信息，包含多维度数据展示、涨跌幅计算、数据源标识
+ * @description 显示数据点的详细信息，包含多维度数据展示、涨跌幅计算、数据源标识、溢出检测
  */
+
+import { useEffect, useRef, useState } from 'react';
 
 import { useTranslations, useLocale } from '@/i18n';
 import { isChineseLocale } from '@/i18n/routing';
@@ -35,6 +37,7 @@ interface CustomTooltipProps {
   active?: boolean;
   payload?: CustomTooltipPayloadItem[];
   label?: string | number;
+  coordinate?: { x: number; y: number };
 }
 
 /**
@@ -63,6 +66,45 @@ function formatChangePercent(percent: number | null): string {
 }
 
 /**
+ * 检测并计算 tooltip 位置以避免溢出视口
+ */
+function calculateTooltipPosition(
+  coordinate: { x: number; y: number } | undefined,
+  tooltipWidth: number,
+  tooltipHeight: number
+): { left: number; top: number; transform: string } {
+  if (!coordinate) {
+    return { left: 0, top: 0, transform: 'translate(0, 0)' };
+  }
+
+  const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1200;
+  const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : 800;
+  const margin = 16; // 视口边距
+
+  const left = coordinate.x;
+  let top = coordinate.y;
+  let transform = 'translate(10px, -50%)';
+
+  // 检测右侧溢出
+  if (left + tooltipWidth + margin > viewportWidth) {
+    // 显示在左侧
+    transform = 'translate(calc(-100% - 10px), -50%)';
+  }
+
+  // 检测底部溢出
+  if (top + tooltipHeight / 2 > viewportHeight - margin) {
+    top = viewportHeight - tooltipHeight / 2 - margin;
+  }
+
+  // 检测顶部溢出
+  if (top - tooltipHeight / 2 < margin) {
+    top = tooltipHeight / 2 + margin;
+  }
+
+  return { left, top, transform };
+}
+
+/**
  * 自定义图表提示框组件
  *
  * 显示时间戳和对应的价格数据，包含：
@@ -71,10 +113,21 @@ function formatChangePercent(percent: number | null): string {
  * - 与上一时间点的涨跌幅
  * - 与平均价格的偏差
  * - 数据源标识（预言机名称、链名称）
+ * - 溢出检测和自动位置调整
  */
-export function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
+export function CustomTooltip({ active, payload, label, coordinate }: CustomTooltipProps) {
   const t = useTranslations();
   const locale = useLocale();
+  const tooltipRef = useRef<HTMLDivElement>(null);
+  const [position, setPosition] = useState({ left: 0, top: 0, transform: 'translate(0, 0)' });
+
+  useEffect(() => {
+    if (active && tooltipRef.current) {
+      const rect = tooltipRef.current.getBoundingClientRect();
+      const newPosition = calculateTooltipPosition(coordinate, rect.width, rect.height);
+      setPosition(newPosition);
+    }
+  }, [active, coordinate, payload]);
 
   if (!active || !payload || payload.length === 0) return null;
 
@@ -99,10 +152,15 @@ export function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
 
   return (
     <div
-      className="border shadow-lg rounded-lg p-3 min-w-[220px]"
+      ref={tooltipRef}
+      className="border shadow-lg rounded-lg p-3 min-w-[220px] fixed pointer-events-none"
       style={{
         backgroundColor: chartColors.recharts.white,
         borderColor: chartColors.recharts.border,
+        left: position.left,
+        top: position.top,
+        transform: position.transform,
+        zIndex: 1000,
       }}
     >
       {/* 时间标题 */}

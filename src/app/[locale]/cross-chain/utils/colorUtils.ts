@@ -1,8 +1,6 @@
 import { semanticColors } from '@/lib/config/colors';
-import {
-  getHeatmapColor as getHeatmapColorUtil,
-  formatPrice as formatPriceUtil,
-} from '@/lib/utils/chartSharedUtils';
+import { getHeatmapColor as getHeatmapColorUtil } from '@/lib/utils/chartSharedUtils';
+import { formatPrice as formatPriceUtil } from '@/lib/utils/format';
 
 export const getDiffTextColor = (diffPercent: number): string => {
   if (Math.abs(diffPercent) <= 0.5) {

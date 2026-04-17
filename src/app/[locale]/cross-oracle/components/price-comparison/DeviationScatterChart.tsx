@@ -73,13 +73,13 @@ function DeviationScatterChartComponent({
     });
   }, [priceData, medianPrice, anomalies]);
 
-  // 获取颜色
+  // 获取颜色 - 区分不同风险等级
   const getColor = (severity: 'low' | 'medium' | 'high' | null): string => {
     switch (severity) {
       case 'high':
         return chartColors.recharts.danger;
       case 'medium':
-        return chartColors.recharts.warning;
+        return chartColors.recharts.orange || '#f97316';
       case 'low':
         return chartColors.recharts.warning;
       default:
@@ -111,7 +111,7 @@ function DeviationScatterChartComponent({
           <div className="flex items-center gap-1">
             <div
               className="w-3 h-3 rounded-full"
-              style={{ backgroundColor: chartColors.recharts.warning }}
+              style={{ backgroundColor: chartColors.recharts.orange || '#f97316' }}
             />
             <span className="text-gray-500">{t('crossOracle.mediumRisk')}</span>
           </div>

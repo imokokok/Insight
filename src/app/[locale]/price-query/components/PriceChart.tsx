@@ -351,7 +351,12 @@ export function PriceChart({
           animationDuration={500}
         />
       ))}
-      <Brush dataKey="time" height={40} stroke={chartColors.recharts.primary} travellerWidth={12} />
+      <Brush
+        dataKey="timestamp"
+        height={40}
+        stroke={chartColors.recharts.primary}
+        travellerWidth={12}
+      />
     </LineChart>
   );
 
@@ -398,7 +403,12 @@ export function PriceChart({
           activeDot={{ r: 4, strokeWidth: 2 }}
         />
       ))}
-      <Brush dataKey="time" height={40} stroke={chartColors.recharts.primary} travellerWidth={12} />
+      <Brush
+        dataKey="timestamp"
+        height={40}
+        stroke={chartColors.recharts.primary}
+        travellerWidth={12}
+      />
     </AreaChart>
   );
 
@@ -450,7 +460,7 @@ export function PriceChart({
           )}
         />
         <Brush
-          dataKey="time"
+          dataKey="timestamp"
           height={40}
           stroke={chartColors.recharts.primary}
           travellerWidth={12}
