@@ -36,9 +36,6 @@ export function toMilliseconds(timestamp: number | string | Date): number {
   }
 
   if (typeof timestamp === 'number') {
-    // 改进秒/毫秒判断逻辑：使用更合理的阈值
-    // 秒级时间戳通常在 1e9 到 1e10 之间（2001-09-09 到 2286-11-20）
-    // 毫秒级时间戳通常在 1e12 到 1e14 之间
     if (timestamp < 1e10) {
       return timestamp * 1000;
     }

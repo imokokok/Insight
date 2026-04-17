@@ -15,15 +15,12 @@ interface CompactStatsGridProps {
 export function CompactStatsGrid({ statsData }: CompactStatsGridProps) {
   const [showAll, setShowAll] = useState(false);
 
-  // 核心指标索引（始终显示）
-  const coreIndices = [0, 1, 2, 3, 4, 11]; // 平均价格、价格区间、标准差、中位数、数据点、一致性评级
+  const coreIndices = [0, 1, 2, 3, 4, 11];
 
-  // 获取核心指标
   const coreStats = coreIndices
     .map((index) => statsData[index])
     .filter((stat): stat is ChainStats => stat !== undefined);
 
-  // 获取额外指标（非核心指标）
   const extraStats = statsData.filter((_, index) => !coreIndices.includes(index));
 
   const displayStats = showAll ? [...coreStats, ...extraStats] : coreStats;
@@ -31,9 +28,7 @@ export function CompactStatsGrid({ statsData }: CompactStatsGridProps) {
   return (
     <div id="stats" className="mb-6 pb-6 border-b border-gray-200">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">
-          {'crossChain.keyMetrics'}
-        </h3>
+        <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">Key Metrics</h3>
         <button
           onClick={() => setShowAll(!showAll)}
           className="inline-flex items-center gap-1 text-xs px-3 py-1.5 
@@ -45,12 +40,12 @@ export function CompactStatsGrid({ statsData }: CompactStatsGridProps) {
           {showAll ? (
             <>
               <ChevronUp className="w-3.5 h-3.5" />
-              {'crossChain.collapse'}
+              Collapse
             </>
           ) : (
             <>
               <ChevronDown className="w-3.5 h-3.5" />
-              {'crossChain.viewAll'}
+              View All
             </>
           )}
           <span className="ml-1 text-gray-400">
@@ -77,19 +72,16 @@ export function CompactStatsGrid({ statsData }: CompactStatsGridProps) {
                   }
                 : undefined
             }
-            breakdown={
-              stat.subValue ? [{ label: 'crossChain.detail', value: stat.subValue }] : undefined
-            }
+            breakdown={stat.subValue ? [{ label: 'Detail', value: stat.subValue }] : undefined}
             tooltip={stat.tooltip}
           />
         ))}
       </div>
 
-      {/* 额外指标区域（展开时显示） */}
       {showAll && extraStats.length > 0 && (
         <div className="mt-4 pt-4 border-t border-gray-100">
           <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">
-            {'crossChain.advancedMetrics'}
+            Advanced Metrics
           </h4>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
             {extraStats.map((stat, index) => (
@@ -105,9 +97,7 @@ export function CompactStatsGrid({ statsData }: CompactStatsGridProps) {
                       }
                     : undefined
                 }
-                breakdown={
-                  stat.subValue ? [{ label: 'crossChain.detail', value: stat.subValue }] : undefined
-                }
+                breakdown={stat.subValue ? [{ label: 'Detail', value: stat.subValue }] : undefined}
                 tooltip={stat.tooltip}
               />
             ))}

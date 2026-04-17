@@ -56,69 +56,64 @@ function ShortcutCategory({ titleKey, shortcuts }: ShortcutCategoryProps) {
 export function ShortcutHelpPanel() {
   const { isHelpOpen, closeHelp, categories } = useShortcutContext();
 
-  // 预定义的快捷键列表
   const allCategories = useMemo(() => {
     const result: {
       titleKey: string;
       shortcuts: { shortcut: KeyboardShortcut; labelKey: string }[];
     }[] = [];
 
-    // 导航分类
     result.push({
-      titleKey: 'shortcuts.categories.navigation',
+      titleKey: 'Navigation',
       shortcuts: [
         {
           shortcut: { key: 'k', metaKey: true, handler: () => {} },
-          labelKey: 'shortcuts.search',
+          labelKey: 'Search',
         },
         {
           shortcut: { key: 'k', ctrlKey: true, handler: () => {} },
-          labelKey: 'shortcuts.search',
+          labelKey: 'Search',
         },
       ],
     });
 
-    // 操作分类
     result.push({
-      titleKey: 'shortcuts.categories.actions',
+      titleKey: 'Actions',
       shortcuts: [
         {
           shortcut: { key: 'r', handler: () => {} },
-          labelKey: 'shortcuts.refresh',
+          labelKey: 'Refresh',
         },
         {
           shortcut: { key: 'f', handler: () => {} },
-          labelKey: 'shortcuts.fullscreen',
+          labelKey: 'Fullscreen',
         },
         {
           shortcut: { key: 'e', handler: () => {} },
-          labelKey: 'shortcuts.export',
+          labelKey: 'Export',
         },
       ],
     });
 
-    // 通用分类
     result.push({
-      titleKey: 'shortcuts.categories.general',
+      titleKey: 'General',
       shortcuts: [
         {
           shortcut: { key: '?', handler: () => {} },
-          labelKey: 'shortcuts.help',
+          labelKey: 'Help',
         },
         {
           shortcut: { key: 'Escape', handler: () => {} },
-          labelKey: 'shortcuts.close',
+          labelKey: 'Close',
         },
       ],
     });
 
-    // 添加动态分类
     categories.forEach((cat) => {
       result.push({
         titleKey: cat.labelKey,
         shortcuts: cat.shortcuts.map((s) => ({
           shortcut: s,
-          labelKey: s.description || 'shortcuts.unknown',
+          labelKey: s.description || 'Unknown',
         })),
       });
     });
@@ -157,14 +152,14 @@ export function ShortcutHelpPanel() {
                     <Keyboard className="w-5 h-5 text-primary-600" />
                   </div>
                   <div>
-                    <h2 className="text-lg font-semibold text-gray-900">{'shortcuts.title'}</h2>
-                    <p className="text-sm text-gray-500">{'shortcuts.subtitle'}</p>
+                    <h2 className="text-lg font-semibold text-gray-900">Keyboard Shortcuts</h2>
+                    <p className="text-sm text-gray-500">Quick actions at your fingertips</p>
                   </div>
                 </div>
                 <button
                   onClick={closeHelp}
                   className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-                  aria-label={'actions.close'}
+                  aria-label="Close"
                 >
                   <X className="w-5 h-5 text-gray-500" />
                 </button>
@@ -185,11 +180,9 @@ export function ShortcutHelpPanel() {
                   <div className="flex items-start gap-3">
                     <Command className="w-5 h-5 text-primary-600 mt-0.5 flex-shrink-0" />
                     <div>
-                      <h4 className="text-sm font-medium text-primary-900">
-                        {'shortcuts.tips.title'}
-                      </h4>
+                      <h4 className="text-sm font-medium text-primary-900">Pro Tip</h4>
                       <p className="text-sm text-primary-700 mt-1">
-                        {'shortcuts.tips.description'}
+                        Press any key combination to see if it triggers an action
                       </p>
                     </div>
                   </div>
@@ -199,7 +192,7 @@ export function ShortcutHelpPanel() {
               {/* Footer */}
               <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">
                 <div className="flex items-center justify-between text-xs text-gray-500">
-                  <span>{'shortcuts.footer.hint'}</span>
+                  <span>Press ? to toggle this panel</span>
                   <kbd className="px-2 py-1 bg-white border border-gray-200 rounded font-mono">
                     ?
                   </kbd>

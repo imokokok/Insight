@@ -128,17 +128,14 @@ export function HeatmapDetailView({ data }: HeatmapDetailViewProps) {
   }, [historicalPrices, selectedTimeRange, getTimeRangeInMs]);
 
   const { heatmapData, maxHeatmapValue } = useMemo(() => {
-    // 直接使用原始热力图数据，确保数据一致性
     if (filteredChains.length < 2) {
       return { heatmapData: originalHeatmapData, maxHeatmapValue: originalMaxHeatmapValue };
     }
 
-    // 过滤原始数据以匹配当前选中的链
     const filteredData = originalHeatmapData.filter(
       (d) => filteredChains.includes(d.xChain) && filteredChains.includes(d.yChain)
     );
 
-    // 计算最大值
     const maxValue = safeMax(filteredData.map((d) => d.percent));
 
     return { heatmapData: filteredData, maxHeatmapValue: maxValue > 0 ? maxValue : 1 };
@@ -189,7 +186,6 @@ export function HeatmapDetailView({ data }: HeatmapDetailViewProps) {
     }
   }, [filteredChains, heatmapData, maxHeatmapValue, selectedTimeRange, getTimeRangeInMs]);
 
-  // 根据色盲模式获取热力图颜色
   const getHeatmapColorFn = colorblindMode ? getColorblindHeatmapColor : getHeatmapColor;
 
   const heatmapMap = useMemo(() => {
@@ -205,11 +201,11 @@ export function HeatmapDetailView({ data }: HeatmapDetailViewProps) {
     <div
       className="mb-6 pb-6 border-b border-gray-200"
       role="img"
-      aria-label={'crossChain.priceSpreadHeatmap'}
+      aria-label="Price Spread Heatmap"
       tabIndex={0}
     >
       <div className="sr-only">
-        {'crossChain.priceSpreadHeatmap'} - {'crossChain.heatmapDesc'}
+        Price Spread Heatmap - Visual comparison of price differences across chains
       </div>
       {/* Chart Toolbar */}
       <ChartToolbar
@@ -221,12 +217,11 @@ export function HeatmapDetailView({ data }: HeatmapDetailViewProps) {
       />
 
       <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-3">
-        {'crossChain.priceSpreadHeatmap'}
+        Price Spread Heatmap
       </h3>
 
       <div className="overflow-x-auto">
         <div className="min-w-max">
-          {/* 表头 */}
           <div className="flex">
             <div
               className="flex-shrink-0 flex items-end justify-center pb-2"
@@ -260,10 +255,8 @@ export function HeatmapDetailView({ data }: HeatmapDetailViewProps) {
             })}
           </div>
 
-          {/* 热力图主体 */}
           {filteredChains.map((xChain) => (
             <div key={xChain} className="flex">
-              {/* 行标签 */}
               <div
                 className="flex-shrink-0 flex items-center justify-end pr-3 transition-colors duration-150"
                 style={{
@@ -287,7 +280,6 @@ export function HeatmapDetailView({ data }: HeatmapDetailViewProps) {
                 </span>
               </div>
 
-              {/* 单元格 */}
               {filteredChains.map((yChain) => {
                 const cell = heatmapMap.get(`${xChain}|${yChain}`);
                 const percent = cell?.percent || 0;
@@ -366,11 +358,10 @@ export function HeatmapDetailView({ data }: HeatmapDetailViewProps) {
         </div>
       </div>
 
-      {/* 水平渐变图例 */}
       <div className="mt-4 p-3 bg-gray-50 border border-gray-200 rounded-lg">
         <div className="flex items-center justify-between gap-4">
           <span className="text-xs text-gray-500 whitespace-nowrap">
-            {colorblindMode ? 'crossChain.lowDiff' : 'crossOracle.low'}
+            {colorblindMode ? 'Low Diff' : 'Low'}
           </span>
           <div
             className="flex-1 h-3 rounded-full"
@@ -381,7 +372,7 @@ export function HeatmapDetailView({ data }: HeatmapDetailViewProps) {
             }}
           />
           <span className="text-xs text-gray-500 whitespace-nowrap">
-            {colorblindMode ? 'crossChain.highDiff' : 'crossOracle.high'}
+            {colorblindMode ? 'High Diff' : 'High'}
           </span>
         </div>
         <div className="flex justify-between mt-2 text-xs text-gray-400">
@@ -524,9 +515,7 @@ function HeatmapTooltip({
       {/* Price Info */}
       <div className="space-y-2 mb-3">
         <div className="flex justify-between items-center text-sm">
-          <span className="text-gray-600">
-            {chainNames[cell.xChain]} {'crossChain.price'}
-          </span>
+          <span className="text-gray-600">{chainNames[cell.xChain]} Price</span>
           <span className="font-mono text-gray-900 font-medium">
             $
             {xPrice?.toLocaleString(undefined, {
@@ -536,9 +525,7 @@ function HeatmapTooltip({
           </span>
         </div>
         <div className="flex justify-between items-center text-sm">
-          <span className="text-gray-600">
-            {chainNames[cell.yChain]} {'crossChain.price'}
-          </span>
+          <span className="text-gray-600">{chainNames[cell.yChain]} Price</span>
           <span className="font-mono text-gray-900 font-medium">
             $
             {yPrice?.toLocaleString(undefined, {
@@ -552,13 +539,13 @@ function HeatmapTooltip({
       {/* Difference Info */}
       <div className="pt-3 border-t border-gray-100 space-y-2">
         <div className="flex justify-between items-center text-sm">
-          <span className="text-gray-600">{'crossChain.absoluteDiff'}</span>
+          <span className="text-gray-600">Absolute Difference</span>
           <span className="font-mono font-medium text-gray-900">
             ${cellData?.value.toFixed(4) || '-'}
           </span>
         </div>
         <div className="flex justify-between items-center text-sm">
-          <span className="text-gray-600">{'crossChain.percentDifference'}</span>
+          <span className="text-gray-600">Percent Difference</span>
           <span
             className={`font-mono font-medium ${
               (cellData?.percent || 0) > 0.1 ? 'text-red-600' : 'text-emerald-600'
@@ -571,7 +558,7 @@ function HeatmapTooltip({
         {/* Historical Percentile */}
         {historicalPercentile !== null && (
           <div className="flex justify-between items-center text-sm pt-2 border-t border-gray-100">
-            <span className="text-gray-600">{'crossChain.historicalPercentile'}</span>
+            <span className="text-gray-600">Historical Percentile</span>
             <span className={`font-mono font-medium ${getPercentileColor(historicalPercentile)}`}>
               Higher than {historicalPercentile.toFixed(0)}% of historical data
             </span>
@@ -585,7 +572,7 @@ function HeatmapTooltip({
           <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
             <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
           </svg>
-          <span>{'crossChain.pinnedComparison'}</span>
+          <span>Pinned Comparison</span>
         </div>
       )}
     </div>

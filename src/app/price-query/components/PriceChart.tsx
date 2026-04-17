@@ -113,9 +113,8 @@ const CandlestickRenderer = ({
     const yOpen = yScale(item.open);
     const yClose = yScale(item.close);
     const isUp = item.close >= item.open;
-    // 修复：涨用绿色，跌用红色，使用不同颜色
-    const upColor = chartColors.recharts.success; // 涨 - 绿色 #10B981
-    const downColor = chartColors.recharts.danger; // 跌 - 红色 #ef4444
+    const upColor = chartColors.recharts.success;
+    const downColor = chartColors.recharts.danger;
     const color = isUp ? upColor : downColor;
     const barWidth = Math.max(3, bandSize * 0.6);
 
@@ -267,7 +266,7 @@ export function PriceChart({
 
   const chartAriaLabel = useMemo(() => {
     if (enhancedChartData.length === 0 || seriesNames.length === 0) {
-      return 'priceQuery.charts.priceHistory';
+      return 'Price history chart';
     }
     const firstPoint = enhancedChartData[0];
     const lastPoint = enhancedChartData[enhancedChartData.length - 1];
@@ -294,8 +293,8 @@ export function PriceChart({
     return (
       <div className="h-[300px] flex flex-col items-center justify-center text-gray-400">
         <TrendingUp className="w-8 h-8 mb-2 opacity-50" />
-        <p className="text-sm">{'priceQuery.noHistoricalData'}</p>
-        <p className="text-xs mt-1 text-gray-500">{'priceQuery.noHistoricalDataHint'}</p>
+        <p className="text-sm">No historical data available</p>
+        <p className="text-xs mt-1 text-gray-500">Try selecting a different time range or oracle</p>
       </div>
     );
   }
@@ -493,12 +492,10 @@ export function PriceChart({
               : 'bg-white text-gray-600 hover:text-gray-900 hover:bg-gray-100 border border-gray-200'
           }`}
           aria-pressed={showDataTable}
-          aria-label={
-            showDataTable ? 'priceQuery.charts.hideDataTable' : 'priceQuery.charts.showDataTable'
-          }
+          aria-label={showDataTable ? 'Hide data table' : 'Show data table'}
         >
           <Table className="w-3.5 h-3.5" aria-hidden="true" />
-          <span className="hidden sm:inline">{'priceQuery.charts.tableView'}</span>
+          <span className="hidden sm:inline">Table View</span>
         </button>
       </div>
 

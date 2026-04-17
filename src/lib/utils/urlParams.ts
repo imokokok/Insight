@@ -40,7 +40,6 @@ export function parseQueryParams(search: string): Partial<QueryConfig> {
   const symbolParam = params.get('key');
   if (symbolParam) {
     const upperSymbol = symbolParam.trim().toUpperCase();
-    // 允许任意币种代码，不限于预定义列表
     result.symbol = upperSymbol;
   }
 
