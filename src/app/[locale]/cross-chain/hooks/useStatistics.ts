@@ -21,6 +21,7 @@ export interface UseStatisticsParams {
   filteredChains: Blockchain[];
   selectedTimeRange: number;
   currentClient: BaseOracleClient;
+  selectedBaseChain: Blockchain | null;
 }
 
 export interface UseStatisticsReturn {
@@ -50,8 +51,14 @@ export interface UseStatisticsReturn {
 }
 
 export function useStatistics(params: UseStatisticsParams): UseStatisticsReturn {
-  const { currentPrices, historicalPrices, filteredChains, selectedTimeRange, currentClient } =
-    params;
+  const {
+    currentPrices,
+    historicalPrices,
+    filteredChains,
+    selectedTimeRange,
+    currentClient,
+    selectedBaseChain,
+  } = params;
 
   const validPrices = useMemo(() => {
     return currentPrices
@@ -173,7 +180,9 @@ export function useStatistics(params: UseStatisticsParams): UseStatisticsReturn 
       }
       const mean = prices.reduce((a, b) => a + b, 0) / prices.length;
       const variance =
-        prices.reduce((sum, price) => sum + Math.pow(price - mean, 2), 0) / prices.length;
+        prices.length > 1
+          ? prices.reduce((sum, price) => sum + Math.pow(price - mean, 2), 0) / (prices.length - 1)
+          : 0;
       const stdDev = Math.sqrt(variance);
       volatility[chain] = mean > 0 ? (stdDev / mean) * 100 : 0;
     });
@@ -182,7 +191,10 @@ export function useStatistics(params: UseStatisticsParams): UseStatisticsReturn 
 
   const updateDelays = useMemo(() => {
     if (filteredChains.length === 0) return {};
-    const baseChain = filteredChains[0];
+    const baseChain =
+      selectedBaseChain && filteredChains.includes(selectedBaseChain)
+        ? selectedBaseChain
+        : filteredChains[0];
     const delays: Partial<Record<Blockchain, { avgDelay: number; maxDelay: number }>> = {};
 
     const basePrices = historicalPrices[baseChain] || [];
@@ -240,7 +252,7 @@ export function useStatistics(params: UseStatisticsParams): UseStatisticsReturn 
     });
 
     return delays;
-  }, [historicalPrices, filteredChains]);
+  }, [historicalPrices, filteredChains, selectedBaseChain]);
 
   const dataIntegrity = useMemo(() => {
     const integrity: Partial<Record<Blockchain, number>> = {};

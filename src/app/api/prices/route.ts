@@ -115,7 +115,8 @@ export async function GET(request: NextRequest) {
 
     if (cache.lock) {
       await cache.lock;
-      if (cache.data && now - cache.data.timestamp < CACHE_DURATION) {
+      const nowAfterLock = Date.now();
+      if (cache.data && nowAfterLock - cache.data.timestamp < CACHE_DURATION) {
         const response = NextResponse.json({
           prices: cache.data.prices,
           cached: true,

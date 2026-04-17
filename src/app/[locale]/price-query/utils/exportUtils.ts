@@ -289,10 +289,10 @@ export async function exportToPDF(
     doc.setTextColor(secondaryColor);
 
     const statsData = [
-      [translations.avgPriceLabel, `$${formatPrice(stats.avgPrice)}`],
-      [translations.maxPriceLabel, `$${formatPrice(stats.maxPrice)}`],
-      [translations.minPriceLabel, `$${formatPrice(stats.minPrice)}`],
-      [translations.priceRangeLabel, `$${formatPrice(stats.priceRange)}`],
+      [translations.avgPriceLabel, formatPrice(stats.avgPrice)],
+      [translations.maxPriceLabel, formatPrice(stats.maxPrice)],
+      [translations.minPriceLabel, formatPrice(stats.minPrice)],
+      [translations.priceRangeLabel, formatPrice(stats.priceRange)],
       [translations.stdDevLabel, `${stats.standardDeviationPercent.toFixed(4)}%`],
       [translations.dataPointsLabel, stats.dataPoints.toString()],
     ];
@@ -375,7 +375,7 @@ export async function exportToPDF(
       row.push(chainNames[result.chain]);
     }
     if (enabledFields.find((f) => f.key === 'price')) {
-      row.push(`$${formatPrice(result.priceData.price)}`);
+      row.push(formatPrice(result.priceData.price));
     }
     if (enabledFields.find((f) => f.key === 'timestamp')) {
       row.push(new Date(result.priceData.timestamp).toLocaleString());

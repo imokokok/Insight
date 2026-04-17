@@ -8,6 +8,7 @@ export interface UseCrossChainStatisticsParams {
   filteredChains: Blockchain[];
   selectedTimeRange: number;
   currentClient: BaseOracleClient;
+  selectedBaseChain: Blockchain | null;
 }
 
 export type UseCrossChainStatisticsReturn = UseStatisticsReturn;

@@ -31,7 +31,9 @@ export function usePriceStats(priceData: PriceData[]): PriceStatsResult {
 
   const weightedAvgPrice = useMemo(
     () =>
-      calculateWeightedAverage(priceData.map((d) => ({ value: d.price, weight: d.confidence }))),
+      calculateWeightedAverage(
+        priceData.map((d) => ({ value: d.price, weight: d.confidence ?? 1 }))
+      ),
     [priceData]
   );
 

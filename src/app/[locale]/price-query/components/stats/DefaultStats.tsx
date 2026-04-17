@@ -34,22 +34,22 @@ export function DefaultStats({
     <>
       <StatCard
         title={t('priceQuery.stats.maxPrice')}
-        value={`$${formatPrice(maxPrice)}`}
+        value={formatPrice(maxPrice)}
         description={t('priceQuery.stats.maxPriceDesc')}
       />
       <StatCard
         title={t('priceQuery.stats.minPrice')}
-        value={`$${formatPrice(minPrice)}`}
+        value={formatPrice(minPrice)}
         description={t('priceQuery.stats.minPriceDesc')}
       />
       <StatCard
         title={t('priceQuery.stats.avgPrice')}
-        value={`$${formatPrice(avgPrice)}`}
+        value={formatPrice(avgPrice)}
         description={t('priceQuery.stats.avgPriceDesc')}
       />
       <StatCard
         title={t('priceQuery.stats.priceRange')}
-        value={`$${formatPrice(priceRange)}`}
+        value={formatPrice(priceRange)}
         description={t('priceQuery.stats.priceRangeDesc')}
       />
       <StatCard

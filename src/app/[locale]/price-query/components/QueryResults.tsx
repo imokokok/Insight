@@ -135,7 +135,7 @@ export function QueryResults({
               <div className="flex items-baseline gap-3 sm:justify-end">
                 <PriceFlash value={currentPriceValue} previousValue={previousPriceValue}>
                   <span className="text-4xl sm:text-5xl font-bold text-gray-900 tracking-tight">
-                    ${formatPrice(currentPriceValue)}
+                    {formatPrice(currentPriceValue)}
                   </span>
                 </PriceFlash>
               </div>

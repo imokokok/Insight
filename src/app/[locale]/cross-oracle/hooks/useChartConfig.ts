@@ -62,6 +62,8 @@ export function useChartConfig({
   performanceMetrics,
   currentTime,
 }: UseChartConfigOptions): UseChartConfigReturn {
+  const stableCurrentTime = currentTime ?? Date.now();
+
   // 计算图表颜色配置
   const oracleChartColors = useMemo(() => {
     const colors: Record<OracleProvider, string> = {} as Record<OracleProvider, string>;
@@ -85,8 +87,8 @@ export function useChartConfig({
   }, [selectedOracles, useAccessibleColors]);
 
   // 生成图表数据
-  const getChartData = useCallback((): ChartDataPoint[] => {
-    const now = currentTime ?? Date.now();
+  const chartData = useMemo((): ChartDataPoint[] => {
+    const now = stableCurrentTime;
     const cutoff = now - timeRangeToHours(timeRange) * 3600 * 1000;
     const dataMap = new Map<number, ChartDataPoint>();
 
@@ -105,12 +107,10 @@ export function useChartConfig({
       });
     });
 
-    // 转换为数组并排序
     const sortedData = Array.from(dataMap.values()).sort(
       (a, b) => (a.rawTimestamp || 0) - (b.rawTimestamp || 0)
     );
 
-    // 计算统计值
     return sortedData.map((point) => {
       const prices: number[] = [];
       selectedOracles.forEach((oracle) => {
@@ -137,9 +137,11 @@ export function useChartConfig({
 
       return point;
     });
-  }, [historicalData, selectedOracles, timeRange, currentTime]);
+  }, [historicalData, selectedOracles, timeRange, stableCurrentTime]);
+
+  const getChartData = useCallback((): ChartDataPoint[] => chartData, [chartData]);
   const heatmapData = useMemo(() => {
-    const now = currentTime ?? Date.now();
+    const now = stableCurrentTime;
     const cutoff = now - timeRangeToHours(timeRange) * 3600 * 1000;
     const data: PriceDeviationDataPoint[] = [];
 
@@ -157,9 +159,9 @@ export function useChartConfig({
     });
 
     return data;
-  }, [historicalData, selectedOracles, avgPrice, timeRange, currentTime]);
+  }, [historicalData, selectedOracles, avgPrice, timeRange, stableCurrentTime]);
   const boxPlotData = useMemo(() => {
-    const now = currentTime ?? Date.now();
+    const now = stableCurrentTime;
     const cutoff = now - timeRangeToHours(timeRange) * 3600 * 1000;
     return selectedOracles.map((oracle) => {
       const history = (historicalData[oracle] || []).filter((item) => item.timestamp >= cutoff);
@@ -168,7 +170,7 @@ export function useChartConfig({
         prices: history.map((h) => h.price),
       };
     });
-  }, [historicalData, selectedOracles, timeRange, currentTime]);
+  }, [historicalData, selectedOracles, timeRange, stableCurrentTime]);
   const volatilityData = useMemo(() => {
     return selectedOracles.map((oracle) => {
       const history = historicalData[oracle] || [];

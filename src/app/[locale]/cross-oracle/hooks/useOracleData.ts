@@ -411,7 +411,13 @@ export function useOracleData({
             errors: newErrors,
           };
         }
-        const newErrors = prev.errors.map((e) => (e.provider === provider ? errorInfo : e));
+        const existingIndex = prev.errors.findIndex((e) => e.provider === provider);
+        let newErrors: OracleErrorInfo[];
+        if (existingIndex >= 0) {
+          newErrors = prev.errors.map((e) => (e.provider === provider ? errorInfo : e));
+        } else {
+          newErrors = [...prev.errors, errorInfo];
+        }
         return {
           ...prev,
           errors: newErrors,

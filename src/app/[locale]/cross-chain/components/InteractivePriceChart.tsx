@@ -371,7 +371,7 @@ export function InteractivePriceChart({
         if (newEnd > newStart + 5) {
           setViewState({
             startIndex: Math.max(0, newStart),
-            endIndex: Math.min(chartData.length - 1, newEnd),
+            endIndex: Math.min(timeFilteredData.length - 1, newEnd),
           });
         }
       }
@@ -381,7 +381,7 @@ export function InteractivePriceChart({
     setSelectionStart(null);
     setSelectionEnd(null);
     setShowSelectionBox(false);
-  }, [isSelecting, selectionStart, selectionEnd, viewState, chartData.length]);
+  }, [isSelecting, selectionStart, selectionEnd, viewState, timeFilteredData.length]);
 
   // Reference line functions
   const addReferenceLine = useCallback(

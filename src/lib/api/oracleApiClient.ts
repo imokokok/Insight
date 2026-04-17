@@ -137,7 +137,8 @@ export async function fetchHistoricalFromApi({
   symbol,
   chain,
   period,
-}: FetchHistoricalParams): Promise<PriceData[]> {
+  signal: externalSignal,
+}: FetchHistoricalParams & { signal?: AbortSignal }): Promise<PriceData[]> {
   const url = new URL(`/api/oracles/${provider}`, getBaseUrl());
   url.searchParams.set('symbol', symbol);
   url.searchParams.set('period', period.toString());
@@ -147,7 +148,7 @@ export async function fetchHistoricalFromApi({
 
   logger.info(`Fetching historical prices from API: ${url.toString()}`);
 
-  const { controller, cleanup } = createAbortControllerWithTimeout();
+  const { controller, cleanup } = createAbortControllerWithTimeout(externalSignal);
 
   try {
     const response = await fetch(url.toString(), {

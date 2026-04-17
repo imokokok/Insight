@@ -1174,7 +1174,7 @@ describe('Technical Indicators Calculations', () => {
       const prices = [0, 10, 20, 30];
       const result = calculateROC(prices, 2);
 
-      expect(result[2]).toBe(Infinity);
+      expect(result[2]).toBeNull();
     });
 
     it('should handle prices with zero in the middle', () => {
@@ -1183,7 +1183,7 @@ describe('Technical Indicators Calculations', () => {
 
       expect(result[2]).toBe(-100);
       expect(result[3]).toBe(0);
-      expect(result[4]).toBe(Infinity);
+      expect(result[4]).toBeNull();
     });
   });
 

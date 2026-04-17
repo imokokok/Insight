@@ -204,7 +204,12 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
   const handleApplyFavorite = useCallback(
     (config: { selectedOracles?: string[]; symbol?: string }) => {
       if (config.selectedOracles) {
-        setSelectedOracles(config.selectedOracles as OracleProvider[]);
+        const validOracles = config.selectedOracles.filter((o): o is OracleProvider =>
+          Object.values(OracleProvider).includes(o as OracleProvider)
+        );
+        if (validOracles.length > 0) {
+          setSelectedOracles(validOracles);
+        }
       }
       if (config.symbol) {
         setSelectedSymbol(config.symbol);
@@ -289,19 +294,44 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
       const history = historicalData[oracle] || [];
       return {
         oracle,
-        data: history.map((h: PriceData, i: number) => ({
-          timestamp: h.timestamp,
-          updateLatency: i > 0 ? h.timestamp - (history[i - 1]?.timestamp || 0) : 0,
-          deviationFromMedian: 0,
-          isOutlier: false,
-          isStale: false,
-          heartbeatCompliance: 100,
-        })),
+        data: history.map((h: PriceData, i: number) => {
+          const updateLatency = i > 0 ? h.timestamp - (history[i - 1]?.timestamp || 0) : 0;
+          const deviationFromMedian =
+            priceStats.medianPrice > 0
+              ? ((h.price - priceStats.medianPrice) / priceStats.medianPrice) * 100
+              : 0;
+          const isOutlier =
+            priceStats.standardDeviation > 0
+              ? Math.abs(h.price - priceStats.avgPrice) / priceStats.standardDeviation > 2
+              : false;
+          const maxAcceptableLatency = 60000;
+          const isStale = updateLatency > maxAcceptableLatency;
+          const heartbeatCompliance = isStale
+            ? Math.max(
+                0,
+                100 - ((updateLatency - maxAcceptableLatency) / maxAcceptableLatency) * 50
+              )
+            : 100;
+          return {
+            timestamp: h.timestamp,
+            updateLatency,
+            deviationFromMedian,
+            isOutlier,
+            isStale,
+            heartbeatCompliance,
+          };
+        }),
       };
     });
 
     return { maData, qualityTrendData };
-  }, [historicalData, selectedOracles]);
+  }, [
+    historicalData,
+    selectedOracles,
+    priceStats.medianPrice,
+    priceStats.avgPrice,
+    priceStats.standardDeviation,
+  ]);
 
   // ==========================================================================
   // 返回值

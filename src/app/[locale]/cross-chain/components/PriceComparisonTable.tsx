@@ -113,7 +113,7 @@ export function PriceComparisonTable({ data }: PriceComparisonTableProps) {
       sortable: true,
       formatter: (value: unknown) => {
         const price = value as number;
-        return <span className="font-mono text-sm text-gray-900">${formatPrice(price)}</span>;
+        return <span className="font-mono text-sm text-gray-900">{formatPrice(price)}</span>;
       },
     },
     {

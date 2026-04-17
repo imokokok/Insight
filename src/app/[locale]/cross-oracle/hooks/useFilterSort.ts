@@ -123,11 +123,11 @@ export function useFilterSort({
 
       switch (deviationFilter) {
         case 'normal':
-          return deviationPercent < DEVIATION_FILTER_THRESHOLDS.EXCELLENT;
+          return deviationPercent < DEVIATION_FILTER_THRESHOLDS.GOOD;
         case 'warning':
           return (
-            deviationPercent >= DEVIATION_FILTER_THRESHOLDS.EXCELLENT &&
-            deviationPercent < DEVIATION_FILTER_THRESHOLDS.GOOD
+            deviationPercent >= DEVIATION_FILTER_THRESHOLDS.GOOD &&
+            deviationPercent < DEVIATION_FILTER_THRESHOLDS.POOR
           );
         case 'critical':
           return deviationPercent >= DEVIATION_FILTER_THRESHOLDS.POOR;

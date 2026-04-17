@@ -29,6 +29,7 @@ export function useCrossChainData(): UseCrossChainDataReturn {
     filteredChains,
     selectedTimeRange: selector.selectedTimeRange,
     currentClient: dataState.currentClient,
+    selectedBaseChain: selector.selectedBaseChain,
   });
 
   const thresholdConfig = useCrossChainConfigStore((s) => s.thresholdConfig);
