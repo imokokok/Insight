@@ -10,25 +10,21 @@ import type {
 
 export function calculateSMA(data: number[], period: number): number[] {
   const result: number[] = [];
+  let runningSum = 0;
 
   for (let i = 0; i < data.length; i++) {
     if (i < period - 1) {
+      runningSum += data[i];
       result.push(data[i]);
       continue;
     }
 
     if (i === period - 1) {
-      // 第一个完整窗口：计算总和
-      let sum = 0;
-      for (let j = 0; j < period; j++) {
-        sum += data[i - j];
-      }
-      result.push(sum / period);
+      runningSum += data[i];
+      result.push(runningSum / period);
     } else {
-      // 滑动窗口：新 sum = 旧 sum - 离开窗口的值 + 新进入窗口的值
-      const prevSum = result[i - 1] * period;
-      const newSum = prevSum - data[i - period] + data[i];
-      result.push(newSum / period);
+      runningSum = runningSum - data[i - period] + data[i];
+      result.push(runningSum / period);
     }
   }
 
@@ -280,39 +276,18 @@ export function calculateBollingerBands(
   const lower: number[] = [];
   const stdDev: number[] = [];
 
-  let sumSqDiff = 0;
-
   for (let i = 0; i < prices.length; i++) {
     if (i < period - 1) {
       upper.push(prices[i]);
       lower.push(prices[i]);
       stdDev.push(0);
-    } else if (i === period - 1) {
-      // 第一个完整窗口：计算方差
-      const mean = middle[i];
-      for (let j = 0; j < period; j++) {
-        sumSqDiff += Math.pow(prices[i - j] - mean, 2);
-      }
-      const variance = sumSqDiff / period;
-      const currentStdDev = Math.sqrt(variance);
-
-      upper.push(mean + multiplier * currentStdDev);
-      lower.push(mean - multiplier * currentStdDev);
-      stdDev.push(currentStdDev);
     } else {
-      // 滑动窗口：使用 Welford 算法的增量更新思想
       const mean = middle[i];
-      const prevMean = middle[i - 1];
-      const oldPrice = prices[i - period];
-      const newPrice = prices[i];
-
-      // 增量更新平方差和：减去离开窗口的贡献，加上新进入窗口的贡献
-      // 注意：由于均值也变化了，需要更精确的计算
-      const oldDiff = oldPrice - prevMean;
-      const newDiff = newPrice - mean;
-      sumSqDiff = sumSqDiff - oldDiff * oldDiff + newDiff * newDiff;
-
-      const variance = Math.max(0, sumSqDiff / period);
+      let varianceSum = 0;
+      for (let j = 0; j < period; j++) {
+        varianceSum += Math.pow(prices[i - j] - mean, 2);
+      }
+      const variance = varianceSum / period;
       const currentStdDev = Math.sqrt(variance);
 
       upper.push(mean + multiplier * currentStdDev);
@@ -444,29 +419,14 @@ export function calculateATR(prices: OHLCVDataPoint[], period: number = 14): ATR
 
 export function calculateRollingStdDev(prices: number[], period: number): number[] {
   const result: number[] = [];
-  let sum = 0;
-  let sumSq = 0;
 
   for (let i = 0; i < prices.length; i++) {
     if (i < period - 1) {
       result.push(NaN);
-      sum += prices[i];
-      sumSq += prices[i] * prices[i];
-    } else if (i === period - 1) {
-      // 第一个完整窗口
-      sum += prices[i];
-      sumSq += prices[i] * prices[i];
-      const mean = sum / period;
-      const variance = sumSq / period - mean * mean;
-      result.push(Math.sqrt(Math.max(0, variance)));
     } else {
-      // 滑动窗口：增量更新 sum 和 sumSq
-      const oldPrice = prices[i - period];
-      const newPrice = prices[i];
-      sum = sum - oldPrice + newPrice;
-      sumSq = sumSq - oldPrice * oldPrice + newPrice * newPrice;
-      const mean = sum / period;
-      const variance = sumSq / period - mean * mean;
+      const slice = prices.slice(i - period + 1, i + 1);
+      const mean = slice.reduce((sum, p) => sum + p, 0) / period;
+      const variance = slice.reduce((sum, p) => sum + Math.pow(p - mean, 2), 0) / period;
       result.push(Math.sqrt(Math.max(0, variance)));
     }
   }
@@ -492,11 +452,14 @@ export function calculateVolatility(data: number[], period: number = 20): Nullab
       }
     }
 
-    const mean = returns.reduce((sum, r) => sum + r, 0) / returns.length;
-    const variance = returns.reduce((sum, r) => sum + Math.pow(r - mean, 2), 0) / returns.length;
+    const mean = returns.length > 0 ? returns.reduce((sum, r) => sum + r, 0) / returns.length : 0;
+    const variance =
+      returns.length > 0
+        ? returns.reduce((sum, r) => sum + Math.pow(r - mean, 2), 0) / returns.length
+        : 0;
     const stdDev = Math.sqrt(variance);
 
-    const annualizedVol = stdDev * Math.sqrt(365) * 100;
+    const annualizedVol = returns.length > 0 ? stdDev * Math.sqrt(365) * 100 : null;
     result.push(annualizedVol);
   }
 
@@ -514,8 +477,12 @@ export function calculateROC(data: number[], period: number = 10): NullableNumbe
 
     const currentPrice = data[i];
     const pastPrice = data[i - period];
-    const roc = ((currentPrice - pastPrice) / pastPrice) * 100;
-    result.push(roc);
+    if (pastPrice === 0) {
+      result.push(null);
+    } else {
+      const roc = ((currentPrice - pastPrice) / pastPrice) * 100;
+      result.push(roc);
+    }
   }
 
   return result;
@@ -528,8 +495,12 @@ export function calculateCurrentVolatility(prices: number[]): number | null {
   const returns: number[] = [];
 
   for (let i = 1; i < recentPrices.length; i++) {
-    returns.push(Math.log(recentPrices[i] / recentPrices[i - 1]));
+    if (recentPrices[i] > 0 && recentPrices[i - 1] > 0) {
+      returns.push(Math.log(recentPrices[i] / recentPrices[i - 1]));
+    }
   }
+
+  if (returns.length === 0) return null;
 
   const mean = returns.reduce((sum, r) => sum + r, 0) / returns.length;
   const variance = returns.reduce((sum, r) => sum + Math.pow(r - mean, 2), 0) / returns.length;
@@ -542,18 +513,28 @@ export function addTechnicalIndicators<T extends Record<string, unknown>>(
   chartData: T[],
   dataKey: string
 ): T[] {
-  const prices = chartData.map((d) => d[dataKey] as number).filter((p) => typeof p === 'number');
+  const priceFlags: boolean[] = chartData.map((d) => typeof d[dataKey] === 'number');
+  const validPrices: number[] = chartData
+    .filter((_, i) => priceFlags[i])
+    .map((d) => d[dataKey] as number);
 
-  if (prices.length === 0) return chartData;
+  if (validPrices.length === 0) return chartData;
 
-  const ma7 = calculateSMAWithNull(prices, 7);
-  const ma30 = calculateSMAWithNull(prices, 30);
-  const volatility = calculateVolatility(prices, 20);
+  const ma7 = calculateSMAWithNull(validPrices, 7);
+  const ma30 = calculateSMAWithNull(validPrices, 30);
+  const volatility = calculateVolatility(validPrices, 20);
 
-  return chartData.map((point, index) => ({
-    ...point,
-    [`${dataKey}_MA7`]: ma7[index],
-    [`${dataKey}_MA30`]: ma30[index],
-    [`${dataKey}_Volatility`]: volatility[index],
-  })) as T[];
+  let validIndex = 0;
+  return chartData.map((point, index) => {
+    if (!priceFlags[index]) {
+      return point;
+    }
+    const idx = validIndex++;
+    return {
+      ...point,
+      [`${dataKey}_MA7`]: ma7[idx] ?? null,
+      [`${dataKey}_MA30`]: ma30[idx] ?? null,
+      [`${dataKey}_Volatility`]: volatility[idx] ?? null,
+    };
+  }) as T[];
 }

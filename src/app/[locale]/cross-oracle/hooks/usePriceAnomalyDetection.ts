@@ -129,7 +129,7 @@ export function usePriceAnomalyDetection(
       const deviationPercent = ((data.price - avgPrice) / avgPrice) * 100;
 
       if (Math.abs(deviationPercent) >= ANOMALY_DEVIATION_THRESHOLD) {
-        const freshnessSeconds = Math.floor((now - data.timestamp) / 1000);
+        const freshnessSeconds = Math.max(0, Math.floor((now - data.timestamp) / 1000));
         const severity = getSeverity(deviationPercent);
         const reasonKeys = analyzeReason(deviationPercent, freshnessSeconds, data.confidence);
 

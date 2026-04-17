@@ -12,12 +12,7 @@ import { useCrossChainDataStore } from '@/stores/crossChainDataStore';
 import { useCrossChainSelectorStore } from '@/stores/crossChainSelectorStore';
 import { useCrossChainUIStore } from '@/stores/crossChainUIStore';
 
-import {
-  useDataValidation,
-  useAnomalyDetection,
-  useDataFetching,
-  clearCache as clearDataCache,
-} from './index';
+import { useDataValidation, useAnomalyDetection, useDataFetching } from './index';
 
 export interface UseCrossChainDataStateReturn {
   currentPrices: PriceData[];
@@ -129,7 +124,7 @@ export function useCrossChainDataState(): UseCrossChainDataStateReturn {
       fetchData();
     }
 
-    return () => clearDataCache();
+    return () => {};
   }, [
     selectedProvider,
     selectedSymbol,

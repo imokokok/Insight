@@ -56,7 +56,13 @@ export interface UseChartDataReturn {
   }[];
   heatmapData: HeatmapData[];
   maxHeatmapValue: number;
-  priceDistributionData: { range: string; count: number; midPrice: number }[];
+  priceDistributionData: {
+    range: string;
+    count: number;
+    midPrice: number;
+    minPrice: number;
+    maxPrice: number;
+  }[];
   boxPlotData: BoxPlotData[];
   totalDataPoints: number;
   iqrOutliers: IqrOutliers;
@@ -281,15 +287,17 @@ export function useChartData(params: UseChartDataParams): UseChartDataReturn {
       range: bin.range,
       count: bin.count,
       midPrice: bin.midPrice,
+      minPrice: bin.minPrice,
+      maxPrice: bin.maxPrice,
     }));
   }, [validPrices]);
 
   const meanBinIndex = useMemo(() => {
     if (priceDistributionData.length === 0 || avgPrice === 0) return -1;
     for (let i = 0; i < priceDistributionData.length; i++) {
-      const binMin = i === 0 ? 0 : priceDistributionData[i - 1].midPrice;
-      const binMax = priceDistributionData[i].midPrice;
-      if (avgPrice >= binMin && avgPrice <= binMax) {
+      const binMin = priceDistributionData[i].minPrice;
+      const binMax = priceDistributionData[i].maxPrice;
+      if (avgPrice >= binMin && (avgPrice <= binMax || i === priceDistributionData.length - 1)) {
         return i;
       }
     }
@@ -299,9 +307,12 @@ export function useChartData(params: UseChartDataParams): UseChartDataReturn {
   const medianBinIndex = useMemo(() => {
     if (priceDistributionData.length === 0 || medianPrice === 0) return -1;
     for (let i = 0; i < priceDistributionData.length; i++) {
-      const binMin = i === 0 ? 0 : priceDistributionData[i - 1].midPrice;
-      const binMax = priceDistributionData[i].midPrice;
-      if (medianPrice >= binMin && medianPrice <= binMax) {
+      const binMin = priceDistributionData[i].minPrice;
+      const binMax = priceDistributionData[i].maxPrice;
+      if (
+        medianPrice >= binMin &&
+        (medianPrice <= binMax || i === priceDistributionData.length - 1)
+      ) {
         return i;
       }
     }
@@ -466,7 +477,7 @@ export function useChartData(params: UseChartDataParams): UseChartDataReturn {
           timestamp: outlier.timestamp,
         };
       })
-      .filter((d) => d.timestamp);
+      .filter((d) => d.timestamp !== undefined);
   }, [stdDevHistoricalOutliers, chartData]);
 
   const correlationMatrix = useMemo(() => {

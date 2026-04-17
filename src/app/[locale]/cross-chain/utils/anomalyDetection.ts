@@ -47,7 +47,12 @@ export function detectAnomalousPrices(
     const { price, timestamp, chain } = priceData;
 
     if (price < lowerBound || price > upperBound) {
-      const deviation = Math.abs(price - (price < lowerBound ? q1 : q3)) / iqr;
+      const deviation =
+        iqr > 0
+          ? Math.abs(price - (price < lowerBound ? q1 : q3)) / iqr
+          : stdDev > 0
+            ? Math.abs(price - mean) / stdDev
+            : 0;
       anomalies.push({
         chain,
         price,

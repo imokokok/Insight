@@ -44,13 +44,18 @@ export function BenchmarkComparisonSection({ chainPrices }: BenchmarkComparisonS
       const diffFromMedian = medianPrice > 0 ? ((data.price - medianPrice) / medianPrice) * 100 : 0;
       const diffFromBest = bestPrice > 0 ? ((data.price - bestPrice) / bestPrice) * 100 : 0;
 
+      let rank = 1;
+      for (const p of sortedPrices) {
+        if (p > data.price) rank++;
+      }
+
       return {
         name: data.chain,
         value: data.price,
         diffFromAvg,
         diffFromMedian,
         diffFromBest,
-        rank: sortedPrices.indexOf(data.price) + 1,
+        rank,
       };
     });
 

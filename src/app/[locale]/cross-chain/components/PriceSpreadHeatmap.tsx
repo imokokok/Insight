@@ -144,7 +144,7 @@ export function HeatmapDetailView({ data }: HeatmapDetailViewProps) {
     // 计算最大值
     const maxValue = safeMax(filteredData.map((d) => d.percent));
 
-    return { heatmapData: filteredData, maxHeatmapValue: maxValue };
+    return { heatmapData: filteredData, maxHeatmapValue: maxValue > 0 ? maxValue : 1 };
   }, [filteredChains, originalHeatmapData, originalMaxHeatmapValue]);
 
   // handleExport must be defined after heatmapData is computed

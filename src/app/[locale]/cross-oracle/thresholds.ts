@@ -51,13 +51,9 @@ export const DEVIATION_FILTER_THRESHOLDS = {
 
 /** 数据新鲜度阈值（秒） */
 export const FRESHNESS_THRESHOLDS = {
-  /** 新鲜：延迟 < 30秒 */
   FRESH: 30,
-  /** 一般：30秒 <= 延迟 < 60秒 */
   NORMAL: 60,
-  /** 延迟：延迟 >= 60秒 */
-  DELAYED: 60,
-  /** 严重延迟：延迟 >= 5分钟 */
+  DELAYED: 120,
   SEVERELY_DELAYED: 300,
 } as const;
 

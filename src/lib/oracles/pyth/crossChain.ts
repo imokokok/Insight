@@ -46,98 +46,99 @@ export async function fetchChainSpecificData(
   priceId: string,
   basePrice: number
 ): Promise<CrossChainPriceData[]> {
-  const results: CrossChainPriceData[] = [];
+  const results = await Promise.all(
+    CHAIN_CONFIGS.map(async (chain) => {
+      try {
+        const chainStartTime = Date.now();
+        const response = await fetch(
+          `${chain.endpoint}/api/latest_price_updates?ids[]=${priceId}`,
+          {
+            signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+          }
+        );
 
-  for (const chain of CHAIN_CONFIGS) {
-    try {
-      const chainStartTime = Date.now();
-      const response = await fetch(`${chain.endpoint}/api/latest_price_updates?ids[]=${priceId}`, {
-        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-      });
+        const latency = Date.now() - chainStartTime;
 
-      const latency = Date.now() - chainStartTime;
-
-      if (!response.ok) {
-        logger.warn(`Chain ${chain.name} returned non-OK response`, {
-          chain: chain.id,
-          status: response.status,
-          statusText: response.statusText,
-        });
-        results.push({
-          chain: chain.id,
-          price: basePrice,
-          deviation: 0,
-          latency,
-          status: 'degraded',
-          lastUpdate: new Date(),
-        });
-        continue;
-      }
-
-      const data = await response.json();
-      const parsed = data.parsed?.[0];
-
-      if (parsed?.price && isPythPriceRaw(parsed.price)) {
-        const priceValue =
-          typeof parsed.price.price === 'string'
-            ? parseInt(parsed.price.price, 10)
-            : parsed.price.price;
-        const exponent = parsed.price.expo ?? -8;
-        const price = priceValue * Math.pow(10, exponent);
-        const deviation = basePrice > 0 ? ((price - basePrice) / basePrice) * 100 : 0;
-
-        // 使用配置常量判断链状态
-        const status: 'online' | 'degraded' | 'offline' =
-          latency < CHAIN_STATUS_THRESHOLDS.ONLINE.maxLatency &&
-          Math.abs(deviation) < CHAIN_STATUS_THRESHOLDS.ONLINE.maxDeviation
-            ? 'online'
-            : latency < CHAIN_STATUS_THRESHOLDS.DEGRADED.maxLatency &&
-                Math.abs(deviation) < CHAIN_STATUS_THRESHOLDS.DEGRADED.maxDeviation
-              ? 'degraded'
-              : 'offline';
-
-        results.push({
-          chain: chain.id,
-          price,
-          deviation,
-          latency,
-          status,
-          lastUpdate: new Date((parsed.price.publish_time ?? Date.now() / 1000) * 1000),
-        });
-      } else {
-        logger.warn(`Chain ${chain.name} returned invalid price data format`, {
-          chain: chain.id,
-          parsed: parsed ? 'exists' : 'null',
-        });
-        results.push({
-          chain: chain.id,
-          price: basePrice,
-          deviation: 0,
-          latency,
-          status: 'degraded',
-          lastUpdate: new Date(),
-        });
-      }
-    } catch (error) {
-      logger.error(
-        `Failed to fetch data from chain ${chain.name}`,
-        error instanceof Error ? error : new Error(String(error)),
-        {
-          chain: chain.id,
-          priceId,
-          basePrice,
+        if (!response.ok) {
+          logger.warn(`Chain ${chain.name} returned non-OK response`, {
+            chain: chain.id,
+            status: response.status,
+            statusText: response.statusText,
+          });
+          return {
+            chain: chain.id,
+            price: basePrice,
+            deviation: 0,
+            latency,
+            status: 'degraded' as const,
+            lastUpdate: new Date(),
+          };
         }
-      );
-      results.push({
-        chain: chain.id,
-        price: basePrice,
-        deviation: 0,
-        latency: CHAIN_STATUS_THRESHOLDS.OFFLINE.latency,
-        status: 'offline',
-        lastUpdate: new Date(),
-      });
-    }
-  }
+
+        const data = await response.json();
+        const parsed = data.parsed?.[0];
+
+        if (parsed?.price && isPythPriceRaw(parsed.price)) {
+          const priceValue =
+            typeof parsed.price.price === 'string'
+              ? parseInt(parsed.price.price, 10)
+              : parsed.price.price;
+          const exponent = parsed.price.expo ?? -8;
+          const price = priceValue * Math.pow(10, exponent);
+          const deviation = basePrice > 0 ? ((price - basePrice) / basePrice) * 100 : 0;
+
+          const status: 'online' | 'degraded' | 'offline' =
+            latency < CHAIN_STATUS_THRESHOLDS.ONLINE.maxLatency &&
+            Math.abs(deviation) < CHAIN_STATUS_THRESHOLDS.ONLINE.maxDeviation
+              ? 'online'
+              : latency < CHAIN_STATUS_THRESHOLDS.DEGRADED.maxLatency &&
+                  Math.abs(deviation) < CHAIN_STATUS_THRESHOLDS.DEGRADED.maxDeviation
+                ? 'degraded'
+                : 'offline';
+
+          return {
+            chain: chain.id,
+            price,
+            deviation,
+            latency,
+            status,
+            lastUpdate: new Date((parsed.price.publish_time ?? Date.now() / 1000) * 1000),
+          };
+        } else {
+          logger.warn(`Chain ${chain.name} returned invalid price data format`, {
+            chain: chain.id,
+            parsed: parsed ? 'exists' : 'null',
+          });
+          return {
+            chain: chain.id,
+            price: basePrice,
+            deviation: 0,
+            latency,
+            status: 'degraded' as const,
+            lastUpdate: new Date(),
+          };
+        }
+      } catch (error) {
+        logger.error(
+          `Failed to fetch data from chain ${chain.name}`,
+          error instanceof Error ? error : new Error(String(error)),
+          {
+            chain: chain.id,
+            priceId,
+            basePrice,
+          }
+        );
+        return {
+          chain: chain.id,
+          price: basePrice,
+          deviation: 0,
+          latency: CHAIN_STATUS_THRESHOLDS.OFFLINE.latency,
+          status: 'offline' as const,
+          lastUpdate: new Date(),
+        };
+      }
+    })
+  );
 
   return results;
 }

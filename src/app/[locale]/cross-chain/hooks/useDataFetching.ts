@@ -133,7 +133,8 @@ function calculatePriceStats(prices: PriceData[]): PriceStats {
 function findChainWithMostData(
   supportedChains: Blockchain[],
   historicalPrices: Partial<Record<Blockchain, PriceData[]>>
-): Blockchain {
+): Blockchain | null {
+  if (supportedChains.length === 0) return null;
   return supportedChains.reduce((best, chain) => {
     const bestLen = historicalPrices[best]?.length || 0;
     const chainLen = historicalPrices[chain]?.length || 0;
@@ -244,9 +245,13 @@ export function useDataFetching(
           currentParams.setPrevStats(stats);
 
           if (supportedChains.length > 0) {
-            currentParams.setRecommendedBaseChain(
-              findChainWithMostData(supportedChains, cachedEntry.historicalPrices)
+            const recommended = findChainWithMostData(
+              supportedChains,
+              cachedEntry.historicalPrices
             );
+            if (recommended) {
+              currentParams.setRecommendedBaseChain(recommended);
+            }
           }
 
           currentParams.setLastUpdated(new Date());
@@ -328,9 +333,10 @@ export function useDataFetching(
         currentParams.setPrevStats(stats);
 
         if (supportedChains.length > 0) {
-          currentParams.setRecommendedBaseChain(
-            findChainWithMostData(supportedChains, historicalMap)
-          );
+          const recommended = findChainWithMostData(supportedChains, historicalMap);
+          if (recommended) {
+            currentParams.setRecommendedBaseChain(recommended);
+          }
         }
 
         currentParams.setLastUpdated(new Date());

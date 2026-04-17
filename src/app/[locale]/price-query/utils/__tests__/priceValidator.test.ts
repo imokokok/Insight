@@ -42,28 +42,28 @@ describe('priceValidator', () => {
         const result = validatePrice(NaN);
 
         expect(result.isValid).toBe(false);
-        expect(result.errors).toContain('价格必须是有效数字');
+        expect(result.errors).toContain('PRICE_INVALID_NUMBER');
       });
 
       it('should reject negative price', () => {
         const result = validatePrice(-100);
 
         expect(result.isValid).toBe(false);
-        expect(result.errors).toContain('价格必须为正数');
+        expect(result.errors).toContain('PRICE_MUST_BE_POSITIVE');
       });
 
       it('should reject zero price', () => {
         const result = validatePrice(0);
 
         expect(result.isValid).toBe(false);
-        expect(result.errors).toContain('价格必须为正数');
+        expect(result.errors).toContain('PRICE_MUST_BE_POSITIVE');
       });
 
       it('should reject Infinity price', () => {
         const result = validatePrice(Infinity);
 
         expect(result.isValid).toBe(false);
-        expect(result.errors).toContain('价格不能为无穷大');
+        expect(result.errors).toContain('PRICE_MUST_BE_FINITE');
       });
 
       it('should reject negative Infinity price', () => {
@@ -173,7 +173,7 @@ describe('priceValidator', () => {
         const result = validateTimestamp(NaN);
 
         expect(result.isValid).toBe(false);
-        expect(result.errors).toContain('时间戳必须是有效数字');
+        expect(result.errors).toContain('TIMESTAMP_INVALID_NUMBER');
       });
 
       it('should reject future timestamp', () => {
@@ -181,7 +181,7 @@ describe('priceValidator', () => {
         const result = validateTimestamp(futureTimestamp);
 
         expect(result.isValid).toBe(false);
-        expect(result.errors).toContain('时间戳不能在未来');
+        expect(result.errors).toContain('TIMESTAMP_IN_FUTURE');
         expect(result.anomalies).toHaveLength(1);
         expect(result.anomalies[0].type).toBe('future_timestamp');
         expect(result.anomalies[0].severity).toBe('high');
@@ -266,14 +266,14 @@ describe('priceValidator', () => {
         const result = validateTimeSeries('not an array' as unknown as PriceData[]);
 
         expect(result.isValid).toBe(false);
-        expect(result.errors).toContain('数据必须是数组');
+        expect(result.errors).toContain('TIMESERIES_MUST_BE_ARRAY');
       });
 
       it('should warn about empty array', () => {
         const result = validateTimeSeries([]);
 
         expect(result.isValid).toBe(true);
-        expect(result.warnings).toContain('时间序列数据为空');
+        expect(result.warnings).toContain('TIMESERIES_EMPTY');
       });
     });
 
@@ -289,7 +289,7 @@ describe('priceValidator', () => {
         const result = validateTimeSeries(data);
 
         expect(result.isValid).toBe(false);
-        expect(result.errors.some((e) => e.includes('价格必须为正数'))).toBe(true);
+        expect(result.errors.some((e) => e.includes('PRICE_MUST_BE_POSITIVE'))).toBe(true);
       });
     });
 
@@ -305,7 +305,7 @@ describe('priceValidator', () => {
         const result = validateTimeSeries(data);
 
         expect(result.isValid).toBe(false);
-        expect(result.errors.some((e) => e.includes('时间戳不能在未来'))).toBe(true);
+        expect(result.errors.some((e) => e.includes('TIMESTAMP_IN_FUTURE'))).toBe(true);
       });
     });
 
@@ -320,7 +320,7 @@ describe('priceValidator', () => {
         const result = validateTimeSeries(data);
 
         expect(result.anomalies.some((a) => a.type === 'gap_in_data')).toBe(true);
-        expect(result.warnings.some((w) => w.includes('数据间隙'))).toBe(true);
+        expect(result.warnings.some((w) => w.startsWith('GAP_IN_DATA'))).toBe(true);
       });
 
       it('should not flag normal intervals', () => {
