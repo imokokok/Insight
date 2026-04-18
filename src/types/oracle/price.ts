@@ -25,23 +25,23 @@ export interface PriceData extends PriceDataBase {
   change24hPercent?: number;
   confidenceInterval?: ConfidenceInterval;
   dataSource?: 'real' | 'mock' | 'api' | 'fallback';
-  // Chainlink Feed 元数据
+  // Chainlink Feed metadata
   roundId?: string;
   answeredInRound?: string;
   version?: string;
   startedAt?: number;
-  // Pyth 元数据
+  // Pyth metadata
   priceId?: string; // Price Feed ID
-  exponent?: number; // 价格指数
-  conf?: number; // 置信区间绝对值
-  publishTime?: number; // 发布时间
-  // API3 元数据
-  dapiName?: string; // dAPI 名称，如 "ETH/USD"
-  proxyAddress?: string; // dAPI Proxy 合约地址
-  dataAge?: number; // 数据年龄（毫秒）
-  // Supra 元数据
-  pairIndex?: number; // Supra DORA 交易对索引
-  // TWAP 元数据
+  exponent?: number; // price exponent
+  conf?: number; // confidence interval absolute value
+  publishTime?: number; // publish time
+  // API3 metadata
+  dapiName?: string; // dAPI name， "ETH/USD"
+  proxyAddress?: string; // dAPI Proxy contract address
+  dataAge?: number; // （seconds）
+  // Supra metadata
+  pairIndex?: number; // Supra DORA forindex
+  // TWAP metadata
   poolAddress?: string;
   feeTier?: number;
   sqrtPriceX96?: string;
@@ -50,9 +50,9 @@ export interface PriceData extends PriceDataBase {
   twapPrice?: number;
   spotPrice?: number;
   liquidity?: string;
-  // Reflector 元数据
-  resolution?: number; // 数据更新分辨率（秒）
-  contractVersion?: number; // 合约版本
+  // Reflector metadata
+  resolution?: number; // update（seconds）
+  contractVersion?: number; // version
 }
 
 interface OracleSymbolSupport {

@@ -27,7 +27,7 @@ export function isString(value: unknown, field = 'value'): ValidatorResult {
 }
 
 export function isNumber(value: unknown, field = 'value'): ValidatorResult {
-  // 使用 Number.isFinite 排除 Infinity 和 -Infinity
+  // Use Number.isFinite to exclude Infinity and -Infinity
   if (typeof value !== 'number' || !Number.isFinite(value)) {
     return {
       valid: false,
@@ -38,7 +38,7 @@ export function isNumber(value: unknown, field = 'value'): ValidatorResult {
 }
 
 export function isInteger(value: unknown, field = 'value'): ValidatorResult {
-  // 先验证是否为数字
+  // First validate if it is a number
   const numberCheck = isNumber(value, field);
   if (!numberCheck.valid) {
     return numberCheck;
@@ -84,7 +84,7 @@ export function isObject(value: unknown, field = 'value'): ValidatorResult {
 
 export function minLength(min: number): ValidatorFn {
   return (value: unknown, field = 'value'): ValidatorResult => {
-    // 对非字符串/数组返回错误
+    // Return error for non-string/array
     if (typeof value !== 'string' && !Array.isArray(value)) {
       return {
         valid: false,
@@ -121,7 +121,7 @@ export function minLength(min: number): ValidatorFn {
 
 export function maxLength(max: number): ValidatorFn {
   return (value: unknown, field = 'value'): ValidatorResult => {
-    // 对非字符串/数组返回错误
+    // Return error for non-string/array
     if (typeof value !== 'string' && !Array.isArray(value)) {
       return {
         valid: false,
@@ -158,7 +158,7 @@ export function maxLength(max: number): ValidatorFn {
 
 export function min(min: number): ValidatorFn {
   return (value: unknown, field = 'value'): ValidatorResult => {
-    // 添加类型验证
+    // Add type validation
     if (typeof value !== 'number' || !Number.isFinite(value)) {
       return {
         valid: false,
@@ -181,7 +181,7 @@ export function min(min: number): ValidatorFn {
 
 export function max(max: number): ValidatorFn {
   return (value: unknown, field = 'value'): ValidatorResult => {
-    // 添加类型验证
+    // Add type validation
     if (typeof value !== 'number' || !Number.isFinite(value)) {
       return {
         valid: false,
@@ -204,7 +204,7 @@ export function max(max: number): ValidatorFn {
 
 export function pattern(regex: RegExp, message?: string): ValidatorFn {
   return (value: unknown, field = 'value'): ValidatorResult => {
-    // 对非字符串返回错误
+    // Return error for non-string
     if (typeof value !== 'string') {
       return {
         valid: false,
@@ -253,7 +253,7 @@ export function isUrl(value: unknown, field = 'value'): ValidatorResult {
 }
 
 export function isUuid(value: unknown, field = 'value'): ValidatorResult {
-  // 更新正则支持 v6/v7/v8 UUID
+  // Update regex to support v6/v7/v8 UUID
   // v1: 1xxx, v2: 2xxx, v3: 3xxx, v4: 4xxx, v5: 5xxx, v6: 6xxx, v7: 7xxx, v8: 8xxx
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   if (typeof value !== 'string' || !uuidRegex.test(value)) {

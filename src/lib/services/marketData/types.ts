@@ -1,4 +1,4 @@
-// 市场数据类型定义
+// Market data type definitions
 
 export interface OracleMarketData {
   name: string;

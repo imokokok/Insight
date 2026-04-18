@@ -111,7 +111,7 @@ async function fetchWithRetry(url: string, options: RequestInit = {}): Promise<R
   );
 }
 
-// Binance 交易对映射
+// Binance trading pair mapping
 const BINANCE_SYMBOLS: Record<string, string> = {
   LINK: 'LINKUSDT',
   ETH: 'ETHUSDT',
@@ -289,7 +289,7 @@ const BINANCE_SYMBOLS: Record<string, string> = {
   SUPRA: 'SUPRAUSDT',
 };
 
-// 代币名称映射
+// Token name mapping
 const TOKEN_NAMES: Record<string, string> = {
   LINK: 'Chainlink',
   ETH: 'Ethereum',
@@ -580,7 +580,7 @@ async function getHistoricalPrices(
 
     logger.info(`Fetching historical prices for ${symbol} (${days} days)...`);
 
-    // 将天数转换为合适的间隔
+    // Convert days to appropriate interval
     let interval: string;
     let limit: number;
 
@@ -607,21 +607,21 @@ async function getHistoricalPrices(
 
     const data = await response.json();
 
-    // Binance klines 格式: [
-    //   0: 开盘时间,
-    //   1: 开盘价,
-    //   2: 最高价,
-    //   3: 最低价,
-    //   4: 收盘价,
-    //   5: 成交量,
-    //   6: 收盘时间,
-    //   7: 成交额,
+    // Binance klines format: [
+    //   0: Open time,
+    //   1: Open price,
+    //   2: High price,
+    //   3: Low price,
+    //   4: Close price,
+    //   5: Volume,
+    //   6: Close time,
+    //   7: Quote asset volume,
     //   ...
     // ]
     const prices: HistoricalPricePoint[] = data.map((item: (number | string)[]) => ({
-      timestamp: Number(item[0]), // 开盘时间
-      price: parseFloat(String(item[4])), // 收盘价
-      volume: parseFloat(String(item[5])), // 成交量
+      timestamp: Number(item[0]), // Open time
+      price: parseFloat(String(item[4])), // Close price
+      volume: parseFloat(String(item[5])), // Volume
     }));
 
     logger.info(`Successfully fetched ${prices.length} historical price points for ${symbol}`);
@@ -636,11 +636,11 @@ async function getHistoricalPrices(
 }
 
 /**
- * 根据小时数获取历史价格数据
- * 支持: 1小时、6小时、24小时、7天(168小时)
- * @param symbol - 代币符号
- * @param hours - 小时数
- * @returns 历史价格数据点数组
+ * Get historical price data by hours
+ * support: 1hours、6hours、24hours、7days(168hours)
+ * @param symbol - token symbol
+ * @param hours - hours
+ * @returns historyarray
  */
 async function getHistoricalPricesByHours(
   symbol: string,
@@ -680,24 +680,24 @@ async function getHistoricalPricesByHours(
 
     logger.info(`Fetching historical prices for ${symbol} (${hours} hours)...`);
 
-    // 根据小时数选择合适的间隔和限制
+    // Select appropriate interval and limit based on hours
     let interval: string;
     let limit: number;
 
     if (hours <= 1) {
-      // 1小时: 使用1分钟间隔，获取60个点
+      // 1 hour: use 1-minute interval, get 60 points
       interval = '1m';
       limit = 60;
     } else if (hours <= 6) {
-      // 6小时: 使用5分钟间隔，获取72个点
+      // 6 hours: use 5-minute interval, get 72 points
       interval = '5m';
       limit = Math.min(hours * 12, 72);
     } else if (hours <= 24) {
-      // 24小时: 使用1小时间隔
+      // 24 hours: use 1-hour interval
       interval = '1h';
       limit = hours;
     } else {
-      // 7天(168小时)及以上: 使用4小时间隔
+      // 7 days (168 hours) and above: use 4-hour interval
       interval = '4h';
       limit = Math.min(Math.ceil(hours / 4), 168);
     }
@@ -709,9 +709,9 @@ async function getHistoricalPricesByHours(
     const data = await response.json();
 
     const prices: HistoricalPricePoint[] = data.map((item: (number | string)[]) => ({
-      timestamp: Number(item[0]), // 开盘时间
-      price: parseFloat(String(item[4])), // 收盘价
-      volume: parseFloat(String(item[5])), // 成交量
+      timestamp: Number(item[0]), // Open time
+      price: parseFloat(String(item[4])), // Close price
+      volume: parseFloat(String(item[5])), // Volume
     }));
 
     logger.info(
@@ -749,7 +749,7 @@ async function getOHLCData(
 
     logger.info(`Fetching OHLC data for ${symbol} (${days} days)...`);
 
-    // 将天数转换为合适的间隔
+    // Convert days to appropriate interval
     let interval: string;
     let limit: number;
 

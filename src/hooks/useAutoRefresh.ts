@@ -39,72 +39,75 @@ export function useAutoRefresh({
 }: UseAutoRefreshOptions): UseAutoRefreshReturn {
   const [refreshInterval, setRefreshInterval] = useState<RefreshInterval>(intervalMs);
   const [lastRefreshedAt, setLastRefreshedAt] = useState<Date | null>(null);
-  const [nextRefreshAt, setNextRefreshAt] = useState<Date | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [isDocumentVisible, setIsDocumentVisible] = useState(true);
+  const [isDocumentVisible, setIsDocumentVisible] = useState(!document.hidden);
 
   const onRefreshRef = useRef(onRefresh);
-  onRefreshRef.current = onRefresh;
+  useEffect(() => {
+    onRefreshRef.current = onRefresh;
+  }, [onRefresh]);
+
+  const isRefreshingRef = useRef(false);
 
   const isAutoRefreshEnabled = enabled && refreshInterval !== 0;
+
+  const nextRefreshAt = useMemo(() => {
+    if (!isAutoRefreshEnabled || !isDocumentVisible || !lastRefreshedAt) return null;
+    return new Date(lastRefreshedAt.getTime() + (refreshInterval as number));
+  }, [isAutoRefreshEnabled, isDocumentVisible, lastRefreshedAt, refreshInterval]);
 
   useEffect(() => {
     const handleVisibilityChange = () => {
       const visible = !document.hidden;
       setIsDocumentVisible(visible);
+
+      if (visible && enabled) {
+        const ms = refreshInterval as number;
+        if (ms > 0 && !isRefreshingRef.current) {
+          isRefreshingRef.current = true;
+          setIsRefreshing(true);
+          onRefreshRef
+            .current()
+            .then(() => {
+              setLastRefreshedAt(new Date());
+            })
+            .catch(() => {})
+            .finally(() => {
+              isRefreshingRef.current = false;
+              setIsRefreshing(false);
+            });
+        }
+      }
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, []);
-
-  useEffect(() => {
-    if (!isAutoRefreshEnabled || !isDocumentVisible) {
-      setNextRefreshAt(null);
-      return;
-    }
-
-    const ms = refreshInterval as number;
-    const next = new Date(Date.now() + ms);
-    setNextRefreshAt(next);
-  }, [isAutoRefreshEnabled, isDocumentVisible, refreshInterval, lastRefreshedAt]);
+  }, [enabled, refreshInterval]);
 
   useEffect(() => {
     if (!isAutoRefreshEnabled || !isDocumentVisible) return;
 
     const ms = refreshInterval as number;
 
-    const timer = setInterval(async () => {
+    const timer = setInterval(() => {
+      if (isRefreshingRef.current) return;
+
+      isRefreshingRef.current = true;
       setIsRefreshing(true);
-      try {
-        await onRefreshRef.current();
-      } finally {
-        setLastRefreshedAt(new Date());
-        setIsRefreshing(false);
-      }
+      onRefreshRef
+        .current()
+        .then(() => {
+          setLastRefreshedAt(new Date());
+        })
+        .catch(() => {})
+        .finally(() => {
+          isRefreshingRef.current = false;
+          setIsRefreshing(false);
+        });
     }, ms);
 
     return () => clearInterval(timer);
   }, [isAutoRefreshEnabled, isDocumentVisible, refreshInterval]);
-
-  useEffect(() => {
-    if (!isDocumentVisible && isAutoRefreshEnabled) {
-      const handleVisible = async () => {
-        if (!document.hidden) {
-          setIsRefreshing(true);
-          try {
-            await onRefreshRef.current();
-          } finally {
-            setLastRefreshedAt(new Date());
-            setIsRefreshing(false);
-          }
-        }
-      };
-
-      document.addEventListener('visibilitychange', handleVisible);
-      return () => document.removeEventListener('visibilitychange', handleVisible);
-    }
-  }, [isDocumentVisible, isAutoRefreshEnabled]);
 
   const toggleAutoRefresh = useCallback(() => {
     setRefreshInterval((prev) => (prev === 0 ? 30000 : 0));

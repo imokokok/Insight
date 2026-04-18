@@ -63,15 +63,15 @@ export function calculateEMA(data: number[], period: number): number[] {
 
   for (let i = 0; i < data.length; i++) {
     if (i < period - 1) {
-      // 前 period-1 个值使用 SMA（简单移动平均）
+      // First period-1 values use SMA (Simple Moving Average)
       const sum = data.slice(0, i + 1).reduce((a, b) => a + b, 0);
       result.push(sum / (i + 1));
     } else if (i === period - 1) {
-      // 第 period 个值使用完整周期的 SMA 作为 EMA 的初始值
+      // The period-th value uses the full-cycle SMA as the initial EMA value
       const sum = data.slice(0, period).reduce((a, b) => a + b, 0);
       result.push(sum / period);
     } else {
-      // 后续使用标准 EMA 公式
+      // Subsequent values use the standard EMA formula
       const ema = data[i] * multiplier + result[i - 1] * (1 - multiplier);
       result.push(ema);
     }
@@ -446,7 +446,7 @@ export function calculateVolatility(data: number[], period: number = 20): Nullab
     for (let j = 1; j <= period; j++) {
       const currentPrice = data[i - period + j];
       const prevPrice = data[i - period + j - 1];
-      // 添加除零检查
+      // Add division by zero check
       if (prevPrice > 0 && currentPrice > 0) {
         returns.push(Math.log(currentPrice / prevPrice));
       }

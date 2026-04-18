@@ -1,5 +1,5 @@
-// Chainlink 支持的币种（基于实际验证结果，只包含可用的交易对）
-// 注意：这些币种在至少一条链上有可用的 Chainlink 价格源
+// Chainlink supported symbols (based on actual verification results, only including available trading pairs)
+// Note: These symbols have available Chainlink price feeds on at least one chain
 const chainlinkSymbols = [
   'BTC',
   'ETH',
@@ -49,8 +49,8 @@ const chainlinkSymbols = [
   'BNB',
 ] as const;
 
-// RedStone 支持的币种（基于实际验证结果 - 2026-04-14）
-// 只包含可以正确获取数据的币种
+// RedStone supported symbols (based on actual verification results - 2026-04-14)
+// Only including symbols that can be correctly fetched
 export const redstoneSymbols = [
   // Major Cryptocurrencies
   'BTC',
@@ -106,9 +106,9 @@ export const redstoneSymbols = [
   'RUNE',
   'CAKE',
   'CVX',
-  // LRT (部分可用)
+  // LRT (partially available)
   'METH',
-  // Yield-Bearing Assets (部分可用)
+  // Yield-Bearing Assets (partially available)
   'EIGEN',
   // Stablecoins
   'USDC',
@@ -120,7 +120,7 @@ export const redstoneSymbols = [
   'USDD',
   // Wrapped Assets
   'WBTC',
-  // Layer 2 Tokens (部分可用)
+  // Layer 2 Tokens (partially available)
   'MNT',
   'ZK',
   'MANTA',
@@ -131,8 +131,8 @@ export const redstoneSymbols = [
   'FLOKI',
 ] as const;
 
-// DIA 支持的币种（基于实际检测结果 - 2026-04-14）
-// 只包含可以正确获取数据的币种
+// DIA supported symbols (based on actual detection results - 2026-04-14)
+// Only including symbols that can be correctly fetched
 export const diaSymbols = [
   // Major Cryptocurrencies
   'BTC',
@@ -181,8 +181,8 @@ export const diaSymbols = [
   'WETH',
 ] as const;
 
-// API3 支持的币种（基于实际检测结果 - 2026-04-14）
-// 只包含可以正确获取数据的币种
+// API3 supported symbols (based on actual detection results - 2026-04-14)
+// Only including symbols that can be correctly fetched
 const api3Symbols = [
   'ARB',
   'AVAX',
@@ -198,28 +198,28 @@ const api3Symbols = [
   'WBTC',
 ] as const;
 
-// API3 可用的链-交易对映射（基于实际检测结果 - 2026-04-14）
-// 只包含可以正确获取数据的交易对
+// API3 available chain-trading pair mapping (based on actual detection results - 2026-04-14)
+// Only including trading pairs that can be correctly fetched
 export const API3_AVAILABLE_PAIRS: Record<string, string[]> = {
-  // Ethereum: 5个可用
+  // Ethereum: 5 available
   ethereum: ['BAL', 'BTC', 'COMP', 'ETH', 'USDC'],
-  // Arbitrum: 9个可用
+  // Arbitrum: 9 available
   arbitrum: ['ARB', 'AVAX', 'BTC', 'COMP', 'DAI', 'ETH', 'USDC', 'USDT', 'WBTC'],
-  // Polygon: 7个可用
+  // Polygon: 7 available
   polygon: ['ARB', 'AVAX', 'BNB', 'BTC', 'ETH', 'USDC', 'WBTC'],
-  // Base: 8个可用
+  // Base: 8 available
   base: ['BNB', 'BTC', 'DAI', 'ETH', 'SOL', 'USDC', 'USDT', 'WBTC'],
-  // Optimism: 3个可用
+  // Optimism: 3 available
   optimism: ['ETH', 'USDC', 'WBTC'],
-  // Avalanche: 3个可用
+  // Avalanche: 3 available
   avalanche: ['AVAX', 'ETH', 'USDT'],
-  // BNB Chain: 6个可用
+  // BNB Chain: 6 available
   'bnb-chain': ['BNB', 'BTC', 'ETH', 'USDC', 'USDT', 'WBTC'],
-  // Fantom: 0个成功 - API3 未在 Fantom 部署 dAPI，已移除
+  // Fantom: 0 successful - API3 has not deployed dAPI on Fantom, removed
 };
 
-// Pyth 支持的币种（基于官方文档，支持400+价格源）
-// Pyth 覆盖加密货币、外汇、大宗商品、股票、ETF
+// Pyth supported symbols (based on official documentation, supporting 400+ price feeds)
+// Pyth covers cryptocurrencies, forex, commodities, equities, ETFs
 export const pythSymbols = [
   'BTC',
   'ETH',
@@ -299,8 +299,8 @@ export const pythSymbols = [
   'MNT',
 ] as const;
 
-// Pyth 可用的链-交易对映射
-// Pyth 在所有支持的链上提供相同的交易对（通过 Hermes API 统一获取）
+// Pyth available chain-trading pair mapping
+// Pyth provides the same trading pairs on all supported chains (fetched uniformly via Hermes API)
 export const PYTH_AVAILABLE_PAIRS: Record<string, string[]> = {
   ethereum: [...pythSymbols],
   arbitrum: [...pythSymbols],
@@ -319,7 +319,7 @@ export const PYTH_AVAILABLE_PAIRS: Record<string, string[]> = {
   blast: [...pythSymbols],
 };
 
-// WINkLink 支持的币种（主要支持TRON生态系统，仅包含有真实合约地址的交易对）
+// WINkLink supported symbols (primarily supports TRON ecosystem, only including trading pairs with real contract addresses)
 export const winklinkSymbols = [
   'BTC',
   'ETH',
@@ -346,8 +346,8 @@ export const WINKLINK_AVAILABLE_PAIRS: Record<string, string[]> = {
   tron: [...winklinkSymbols],
 };
 
-// Supra 支持的币种（基于实际验证结果 - 2026-04-16）
-// 只包含可以正确获取数据的币种
+// Supra supported symbols (based on actual verification results - 2026-04-16)
+// Only including symbols that can be correctly fetched
 export const supraSymbols = [
   'AAVE',
   'ADA',
@@ -439,7 +439,7 @@ export const supraSymbols = [
 ] as const;
 
 export const SUPRA_AVAILABLE_PAIRS: Record<string, string[]> = {
-  // 项目 RPC 支持的链（与 .env.local 中的 ALCHEMY_*_RPC 对应）
+  // Chains supported by project RPC (corresponding to ALCHEMY_*_RPC in .env.local)
   ethereum: [...supraSymbols],
   arbitrum: [...supraSymbols],
   optimism: [...supraSymbols],
@@ -448,12 +448,12 @@ export const SUPRA_AVAILABLE_PAIRS: Record<string, string[]> = {
   solana: [...supraSymbols],
   'bnb-chain': [...supraSymbols],
   avalanche: [...supraSymbols],
-  // RedStone 特有链
+  // RedStone-specific chains
   zksync: [...supraSymbols],
   scroll: [...supraSymbols],
   mantle: [...supraSymbols],
   linea: [...supraSymbols],
-  // 其他 Supra 支持的链
+  // Other Supra-supported chains
   aptos: [...supraSymbols],
   sui: [...supraSymbols],
   blast: [...supraSymbols],
@@ -616,7 +616,7 @@ export const oracleSupportedSymbols = {
   flare: flareSymbols,
 } as const;
 
-// 类型定义
+// Type definitions
 type ChainlinkSymbol = (typeof chainlinkSymbols)[number];
 type RedstoneSymbol = (typeof redstoneSymbols)[number];
 type DiaSymbol = (typeof diaSymbols)[number];
@@ -627,7 +627,7 @@ type SupraSymbol = (typeof supraSymbols)[number];
 
 type OracleName = keyof typeof oracleSupportedSymbols;
 
-// 获取所有支持的交易对（去重）
+// Get all supported trading pairs (deduplicated)
 export function getAllSupportedSymbols(): string[] {
   const allSymbols = new Set<string>();
   Object.values(oracleSupportedSymbols).forEach((symbols) => {
@@ -636,12 +636,12 @@ export function getAllSupportedSymbols(): string[] {
   return Array.from(allSymbols).sort();
 }
 
-// 获取指定预言机支持的交易对数量
+// Get the number of trading pairs supported by a specified oracle
 function getOracleSymbolCount(oracle: OracleName): number {
   return oracleSupportedSymbols[oracle].length;
 }
 
-// 检查交易对是否被指定预言机支持
+// Check if a trading pair is supported by a specified oracle
 function isSymbolSupportedByOracle(symbol: string, oracle: OracleName): boolean {
   const symbols = oracleSupportedSymbols[oracle];
   return symbols.includes(symbol.toUpperCase() as never);

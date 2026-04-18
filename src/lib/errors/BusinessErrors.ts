@@ -1,7 +1,7 @@
 import { AppError, type AppErrorDetails, ErrorCodes, HttpStatusCodes } from './AppError';
 
 /**
- * 验证错误详情
+ * Validation error details
  */
 interface ValidationErrorDetails extends AppErrorDetails {
   field?: string;
@@ -11,8 +11,8 @@ interface ValidationErrorDetails extends AppErrorDetails {
 }
 
 /**
- * 验证错误
- * 用于输入验证失败的情况
+ * Validation error
+ * Used when input validation fails
  */
 export class ValidationError extends AppError {
   constructor(message: string, details?: ValidationErrorDetails) {
@@ -28,8 +28,8 @@ export class ValidationError extends AppError {
 }
 
 /**
- * 字段验证错误
- * 针对特定字段的验证错误
+ * Field validation error
+ * Validation error for a specific field
  */
 class FieldValidationError extends ValidationError {
   constructor(field: string, message: string, value?: unknown) {
@@ -39,7 +39,7 @@ class FieldValidationError extends ValidationError {
 }
 
 /**
- * 未找到错误详情
+ * Not found error details
  */
 interface NotFoundErrorDetails extends AppErrorDetails {
   resource?: string;
@@ -48,7 +48,7 @@ interface NotFoundErrorDetails extends AppErrorDetails {
 }
 
 /**
- * 资源未找到错误
+ * Resource not found error
  */
 export class NotFoundError extends AppError {
   constructor(message: string, details?: NotFoundErrorDetails) {
@@ -63,7 +63,7 @@ export class NotFoundError extends AppError {
   }
 
   /**
-   * 创建资源未找到错误
+   * Create resource not found error
    */
   static forResource(resourceType: string, identifier: string | number): NotFoundError {
     return new NotFoundError(`${resourceType} with identifier '${identifier}' was not found`, {
@@ -74,7 +74,7 @@ export class NotFoundError extends AppError {
 }
 
 /**
- * 认证错误详情
+ * Authentication error details
  */
 interface AuthenticationErrorDetails extends AppErrorDetails {
   reason?: string;
@@ -82,8 +82,8 @@ interface AuthenticationErrorDetails extends AppErrorDetails {
 }
 
 /**
- * 认证错误
- * 用户身份验证失败
+ * Authentication error
+ * User authentication failed
  */
 export class AuthenticationError extends AppError {
   constructor(message: string, details?: AuthenticationErrorDetails) {
@@ -99,7 +99,7 @@ export class AuthenticationError extends AppError {
 }
 
 /**
- * Token过期错误
+ * Token expired error
  */
 class TokenExpiredError extends AuthenticationError {
   constructor(message = 'Token has expired', details?: AuthenticationErrorDetails) {
@@ -109,7 +109,7 @@ class TokenExpiredError extends AuthenticationError {
 }
 
 /**
- * 授权错误详情
+ * Authorization error details
  */
 interface AuthorizationErrorDetails extends AppErrorDetails {
   resource?: string;
@@ -119,8 +119,8 @@ interface AuthorizationErrorDetails extends AppErrorDetails {
 }
 
 /**
- * 授权错误
- * 用户没有权限执行操作
+ * Authorization error
+ * User does not have permission to perform the operation
  */
 export class AuthorizationError extends AppError {
   constructor(message: string, details?: AuthorizationErrorDetails) {
@@ -136,7 +136,7 @@ export class AuthorizationError extends AppError {
 }
 
 /**
- * 冲突错误详情
+ * Conflict error details
  */
 interface ConflictErrorDetails extends AppErrorDetails {
   resource?: string;
@@ -145,7 +145,7 @@ interface ConflictErrorDetails extends AppErrorDetails {
 }
 
 /**
- * 资源冲突错误
+ * Resource conflict error
  */
 export class ConflictError extends AppError {
   constructor(message: string, details?: ConflictErrorDetails) {
@@ -161,7 +161,7 @@ export class ConflictError extends AppError {
 }
 
 /**
- * 重复条目错误
+ * Duplicate entry error
  */
 class DuplicateEntryError extends ConflictError {
   constructor(resource: string, field: string, value: unknown) {
@@ -174,7 +174,7 @@ class DuplicateEntryError extends ConflictError {
 }
 
 /**
- * 限流错误详情
+ * Rate limit error details
  */
 interface RateLimitErrorDetails extends AppErrorDetails {
   retryAfter?: number;
@@ -184,7 +184,7 @@ interface RateLimitErrorDetails extends AppErrorDetails {
 }
 
 /**
- * 限流错误
+ * Rate limit error
  */
 export class RateLimitError extends AppError {
   public readonly retryAfter?: number;
@@ -205,7 +205,7 @@ export class RateLimitError extends AppError {
 }
 
 /**
- * 内部错误详情
+ * Internal error details
  */
 interface InternalErrorDetails extends AppErrorDetails {
   operation?: string;
@@ -214,7 +214,7 @@ interface InternalErrorDetails extends AppErrorDetails {
 }
 
 /**
- * 内部服务器错误
+ * Internal server error
  */
 export class InternalError extends AppError {
   constructor(message: string, details?: InternalErrorDetails, cause?: Error) {
@@ -232,7 +232,7 @@ export class InternalError extends AppError {
 }
 
 /**
- * 服务不可用错误
+ * Service unavailable error
  */
 class ServiceUnavailableError extends InternalError {
   constructor(service: string, details?: InternalErrorDetails, cause?: Error) {
@@ -246,7 +246,7 @@ class ServiceUnavailableError extends InternalError {
 }
 
 /**
- * 数据库错误
+ * Database error
  */
 class DatabaseError extends InternalError {
   constructor(message: string, operation?: string, cause?: Error) {
@@ -256,7 +256,7 @@ class DatabaseError extends InternalError {
 }
 
 /**
- * 未实现错误
+ * Not implemented error
  */
 export class NotImplementedError extends AppError {
   constructor(feature: string) {
@@ -273,7 +273,7 @@ export class NotImplementedError extends AppError {
 }
 
 /**
- * 网络错误详情
+ * Network error details
  */
 interface NetworkErrorDetails extends AppErrorDetails {
   url?: string;
@@ -282,7 +282,7 @@ interface NetworkErrorDetails extends AppErrorDetails {
 }
 
 /**
- * 网络错误
+ * Network error
  */
 export class NetworkError extends AppError {
   constructor(message: string, details?: NetworkErrorDetails, cause?: Error) {
@@ -300,7 +300,7 @@ export class NetworkError extends AppError {
 }
 
 /**
- * 超时错误
+ * Timeout error
  */
 class TimeoutError extends NetworkError {
   constructor(operation: string, timeout: number, details?: NetworkErrorDetails, cause?: Error) {
@@ -314,7 +314,7 @@ class TimeoutError extends NetworkError {
 }
 
 /**
- * 外部服务错误详情
+ * External service error details
  */
 interface ExternalServiceErrorDetails extends AppErrorDetails {
   service?: string;
@@ -324,7 +324,7 @@ interface ExternalServiceErrorDetails extends AppErrorDetails {
 }
 
 /**
- * 外部服务错误
+ * External service error
  */
 class ExternalServiceError extends AppError {
   constructor(

@@ -1,25 +1,25 @@
 /**
- * 色盲友好配色方案
- * 使用蓝-黄配色替代传统的绿-红配色，适合红绿色盲用户
+ * colorblind-friendly color scheme
+ * useBlue-YellowGreen-Red，RedGreenuser
  */
 
 import { accessibleColors } from '@/lib/config/colors';
 
 /**
- * 获取色盲友好模式的热力图颜色
- * 根据百分比值从预设的颜色序列中返回对应颜色
+ * getmodeHeatmap colors
+ * valuefromcolorinreturnforcolor
  *
- * @param percent - 当前百分比值
- * @param maxPercent - 最大百分比值（用于归一化）
- * @returns 对应的颜色字符串（hex 格式）
+ * @param percent - currentvalue
+ * @param maxPercent - maximumvalue（usenormalization）
+ * @returns forcolorstring（hex format）
  */
 export const getColorblindHeatmapColor = (percent: number, maxPercent: number): string => {
   const absValue = Math.abs(percent);
   const seq = accessibleColors.chart.sequence;
 
-  // 当最大值为0或范围很小时，使用基于绝对阈值的着色
+ // whenmaximumvalueas0orrangehours，useforthreshold
   if (maxPercent === 0 || maxPercent < 0.001) {
-    // 更精细的阈值（支持到0.001%级别）
+ // threshold（supportto0.001%）
     if (absValue < 0.001) return seq[0];
     if (absValue < 0.003) return seq[1] || seq[0];
     if (absValue < 0.005) return seq[2] || seq[0];
@@ -37,8 +37,8 @@ export const getColorblindHeatmapColor = (percent: number, maxPercent: number): 
 };
 
 /**
- * 色盲友好模式的颜色图例配置
- * 注意：label 需要在组件中使用翻译函数传入
+ * modecolorconfiguration
+ * note：label inComponentsinusefunction
  */
 export const colorblindLegendConfig = {
   heatmap: {

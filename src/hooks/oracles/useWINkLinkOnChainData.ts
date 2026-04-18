@@ -27,8 +27,8 @@ const getQueryKey = (symbol: string): string[] => {
 };
 
 /**
- * 获取WINkLink预言机的代币链上数据
- * 包括Feed合约地址、精度、网络统计等与价格相关的数据
+ * Get token on-chain data from WINkLink oracle
+ * Including Feed contract address, precision, network statistics and other price-related data
  */
 export function useWINkLinkOnChainData(
   options: UseWINkLinkOnChainDataOptions
@@ -47,9 +47,9 @@ export function useWINkLinkOnChainData(
     queryKey,
     queryFn: () => winklinkService.getTokenOnChainData(symbol),
     enabled: enabled && !!symbol,
-    staleTime: 60000, // 1分钟
-    gcTime: 300000, // 5分钟
-    refetchInterval: 60000, // 每分钟自动刷新
+    staleTime: 60000, // 1 minute
+    gcTime: 300000, // 5 minutes
+    refetchInterval: 60000, // Auto-refresh every minute
     refetchOnWindowFocus: false,
     retry: 2,
   });

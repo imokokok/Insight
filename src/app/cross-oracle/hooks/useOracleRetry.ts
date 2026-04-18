@@ -59,9 +59,9 @@ export function useOracleRetry({
   });
   const [retryingOracles, setRetryingOracles] = useState<OracleProvider[]>([]);
   const retryAttemptsRef = useRef<Map<OracleProvider, number>>(new Map());
-  // 使用 Map 存储每个 provider 的 AbortController，避免共享问题
+  // Use Map to store each provider's AbortController, avoiding shared state issues
   const abortControllersRef = useRef<Map<OracleProvider, AbortController>>(new Map());
-  // 用于 retryAllFailed 的独立 AbortController
+  // Separate AbortController for retryAllFailed
   const batchAbortControllerRef = useRef<AbortController | null>(null);
 
   const isRetrying = retryingOracles.length > 0;
@@ -75,13 +75,13 @@ export function useOracleRetry({
   }, []);
 
   const cancelRetry = useCallback(() => {
-    // 取消所有单个重试
+    // Cancel all individual retries
     abortControllersRef.current.forEach((controller) => {
       controller.abort();
     });
     abortControllersRef.current.clear();
 
-    // 取消批量重试
+    // Cancel batch retry
     if (batchAbortControllerRef.current) {
       batchAbortControllerRef.current.abort();
       batchAbortControllerRef.current = null;
@@ -104,13 +104,13 @@ export function useOracleRetry({
 
       setRetryingOracles((prev) => [...prev, provider]);
 
-      // 取消该 provider 之前的重试请求
+      // Cancel previous retry request for this provider
       const existingController = abortControllersRef.current.get(provider);
       if (existingController) {
         existingController.abort();
       }
 
-      // 创建新的 AbortController
+      // Create new AbortController
       const abortController = new AbortController();
       abortControllersRef.current.set(provider, abortController);
       const signal = abortController.signal;
@@ -158,7 +158,7 @@ export function useOracleRetry({
         };
         onErrorUpdate(provider, errorInfo);
       } finally {
-        // 清理该 provider 的 AbortController
+        // Clean up this provider's AbortController
         abortControllersRef.current.delete(provider);
         setRetryingOracles((prev) => prev.filter((o) => o !== provider));
       }
@@ -184,7 +184,7 @@ export function useOracleRetry({
 
       setRetryingOracles(failedOracles);
 
-      // 取消之前的批量重试
+      // Cancel previous batch retry
       if (batchAbortControllerRef.current) {
         batchAbortControllerRef.current.abort();
       }
@@ -237,7 +237,7 @@ export function useOracleRetry({
         }
       });
 
-      // 清理批量 AbortController
+      // Clean up batch AbortController
       batchAbortControllerRef.current = null;
       setRetryingOracles([]);
     },

@@ -29,7 +29,7 @@ function isEndpointHealthy(chainId: number, index: number): boolean {
   return true;
 }
 
-// API3 dAPI Proxy 合约 ABI (简化版，只包含read函数)
+// API3 dAPI Proxy contract ABI (simplified, only includes read function)
 const DAPI_PROXY_ABI = [
   {
     inputs: [],
@@ -43,7 +43,7 @@ const DAPI_PROXY_ABI = [
   },
 ] as const;
 
-// 链ID映射（仅包含API3支持的链）
+// Chain ID mapping (only includes API3-supported chains)
 const CHAIN_ID_MAP: Partial<Record<Blockchain, number>> = {
   [Blockchain.ETHEREUM]: 1,
   [Blockchain.ARBITRUM]: 42161,
@@ -60,7 +60,7 @@ const CHAIN_ID_MAP: Partial<Record<Blockchain, number>> = {
   [Blockchain.SCROLL]: 534352,
 };
 
-// RPC 端点配置
+// RPC endpoint configuration
 const RPC_ENDPOINTS: Record<number, string[]> = {
   1: ALCHEMY_RPC.ethereum
     ? [ALCHEMY_RPC.ethereum, 'https://eth.llamarpc.com', 'https://ethereum.publicnode.com']
@@ -80,28 +80,28 @@ const RPC_ENDPOINTS: Record<number, string[]> = {
   250: ['https://rpc.ftm.tools', 'https://fantom.publicnode.com'],
 };
 
-// 代币符号到dAPI名称的映射
-// 基于实际链上验证结果（2026-04-14）
+// Token symbol to dAPI name mapping
+// Based on actual on-chain verification results (2026-04-14)
 const SYMBOL_TO_DAPI: Record<string, string> = {
-  // === 主要加密货币 ===
+  // === Major Cryptocurrencies ===
   ETH: 'ETH/USD',
   BTC: 'BTC/USD',
   BNB: 'BNB/USD',
   SOL: 'SOL/USD',
-  // === Layer 2 代币 ===
+  // === Layer 2 Tokens ===
   ARB: 'ARB/USD',
-  // === DeFi 代币 ===
+  // === DeFi Tokens ===
   COMP: 'COMP/USD',
   BAL: 'BAL/USD',
-  // === 稳定币 ===
+  // === Stablecoins ===
   USDC: 'USDC/USD',
   USDT: 'USDT/USD',
   DAI: 'DAI/USD',
-  // === 包装资产 ===
+  // === Wrapped Assets ===
   WBTC: 'WBTC/USD',
-  // === 其他已验证代币 ===
+  // === Other Verified Tokens ===
   AVAX: 'AVAX/USD',
-  // === 以下代币在API3 Market上有但可能未激活，保留映射以备将来使用 ===
+  // === The following tokens exist on API3 Market but may not be activated; mapping retained for future use ===
   LINK: 'LINK/USD',
   API3: 'API3/USD',
   MATIC: 'MATIC/USD',
@@ -204,7 +204,7 @@ interface PriceReading {
 }
 
 /**
- * 编码函数调用数据
+ * Encode function call data
  */
 function encodeFunctionData(functionName: 'read', abi: typeof DAPI_PROXY_ABI): `0x${string}` {
   return viemEncodeFunctionData({
@@ -214,33 +214,33 @@ function encodeFunctionData(functionName: 'read', abi: typeof DAPI_PROXY_ABI): `
 }
 
 /**
- * 解码uint224/int224值
+ * Decode uint224/int224 value
  */
 function decodeInt224(data: string): bigint {
   const cleanData = data.startsWith('0x') ? data.slice(2) : data;
   if (!cleanData || cleanData.length < 64) {
     return BigInt(0);
   }
-  // int224 是带符号的，需要处理符号位
+  // int224 is signed, need to handle sign bit
   const value = BigInt('0x' + cleanData.slice(0, 64));
-  // int224 的最大值是 2^223 - 1
+  // Maximum value of int224 is 2^223 - 1
   const maxInt224 = (BigInt(1) << BigInt(223)) - BigInt(1);
   if (value > maxInt224) {
-    // 负数
+    // Negative number
     return value - (BigInt(1) << BigInt(224));
   }
   return value;
 }
 
 /**
- * 解码uint32值
+ * Decode uint32 value
  */
 function decodeUint32(data: string): number {
   const cleanData = data.startsWith('0x') ? data.slice(2) : data;
   if (!cleanData || cleanData.length < 64) {
     return 0;
   }
-  // uint32 在第二个32字节位置
+  // uint32 is in the second 32-byte position
   return parseInt(cleanData.slice(64, 128), 16);
 }
 
@@ -334,7 +334,7 @@ async function rpcCall(
 }
 
 /**
- * 从dAPI Proxy合约读取价格
+ * Read price from dAPI Proxy contract
  */
 async function readDAPIPrice(
   proxyAddress: string,
@@ -385,7 +385,7 @@ async function readDAPIPrice(
 
     return {
       value,
-      timestamp: timestamp * 1000, // 转换为毫秒
+      timestamp: timestamp * 1000, // Convert to milliseconds
       rawValue,
     };
   } catch (error) {
@@ -398,8 +398,8 @@ async function readDAPIPrice(
 }
 
 /**
- * 计算dAPI代理地址
- * 使用@api3/contracts包的computeCommunalApi3ReaderProxyV1Address函数
+ * Compute dAPI proxy address
+ * Uses the computeCommunalApi3ReaderProxyV1Address function from @api3/contracts package
  */
 function computeProxyAddress(dapiName: string, chainId: number): string | null {
   try {
@@ -415,7 +415,7 @@ function computeProxyAddress(dapiName: string, chainId: number): string | null {
 }
 
 /**
- * 获取代币价格（从API3预言机网络）
+ * Get token price (from API3 oracle network)
  */
 async function getAPI3Price(
   symbol: string,
@@ -438,14 +438,14 @@ async function getAPI3Price(
       return null;
     }
 
-    // 获取链ID
+    // Get chain ID
     const chainId = CHAIN_ID_MAP[chain];
     if (!chainId) {
       logger.warn(`Chain ${chain} not supported`);
       return null;
     }
 
-    // 计算代理地址
+    // Compute proxy address
     const proxyAddress = computeProxyAddress(dapiName, chainId);
     if (!proxyAddress) {
       logger.warn(`Failed to compute proxy address for ${dapiName} on ${chain}`);
@@ -454,7 +454,7 @@ async function getAPI3Price(
 
     logger.info(`Computed proxy address for ${dapiName} on ${chain}: ${proxyAddress}`);
 
-    // 读取价格
+    // Read price
     const reading = await readDAPIPrice(proxyAddress, chainId, dapiName, signal);
 
     if (!reading) {
@@ -463,7 +463,7 @@ async function getAPI3Price(
 
     logger.info(`Successfully fetched ${symbol} price from API3: $${reading.value}`);
 
-    // 计算数据年龄
+    // Calculate data age
     const dataAge = Date.now() - reading.timestamp;
 
     return {
@@ -486,8 +486,8 @@ async function getAPI3Price(
 }
 
 /**
- * 获取历史价格数据
- * 注意：API3 dAPI不直接提供历史数据，使用 Binance API 获取历史数据
+ * Get historical price data
+ * Note: API3 dAPI does not directly provide historical data; uses Binance API to fetch historical data
  */
 async function getAPI3HistoricalPrices(
   symbol: string,
@@ -525,21 +525,21 @@ async function getAPI3HistoricalPrices(
 }
 
 /**
- * 获取支持的代币列表
+ * Get supported token list
  */
 function getAPI3SupportedSymbols(): string[] {
   return Object.keys(SYMBOL_TO_DAPI);
 }
 
 /**
- * 检查代币是否受支持
+ * Check if a token is supported
  */
 function isAPI3SymbolSupported(symbol: string): boolean {
   return symbol.toUpperCase() in SYMBOL_TO_DAPI;
 }
 
 /**
- * 获取支持的链列表
+ * Get supported chain list
  */
 function getAPI3SupportedChains(): Blockchain[] {
   return [

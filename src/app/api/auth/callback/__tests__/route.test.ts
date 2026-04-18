@@ -53,7 +53,7 @@ describe('/api/auth/callback', () => {
   });
 
   describe('GET', () => {
-    it('应该处理 OAuth 错误并重定向到验证页面', async () => {
+    it('should handle OAuth error and redirect to auth page', async () => {
       const request = createMockRequest(
         'http://localhost/api/auth/callback?error=access_denied&error_description=User%20denied%20access'
       );
@@ -63,14 +63,14 @@ describe('/api/auth/callback', () => {
       expect(response.status).toBe(302);
     });
 
-    it('应该处理缺少授权码的情况', async () => {
+    it('should handle missing authorization code', async () => {
       const request = createMockRequest('http://localhost/api/auth/callback');
       const response = await GET(request);
 
       expect(response).toBeInstanceOf(NextResponse);
     });
 
-    it('应该处理授权码交换失败', async () => {
+    it('should handle authorization code exchange failure', async () => {
       mockExchangeCodeForSession.mockResolvedValue({
         data: { session: null },
         error: { message: 'Invalid code' },
@@ -83,7 +83,7 @@ describe('/api/auth/callback', () => {
       expect(response).toBeInstanceOf(NextResponse);
     });
 
-    it('应该成功处理有效的授权码', async () => {
+    it('should successfully handle valid authorization code', async () => {
       const mockSession = {
         access_token: 'test-access-token',
         refresh_token: 'test-refresh-token',
@@ -111,7 +111,7 @@ describe('/api/auth/callback', () => {
       expect(response).toBeInstanceOf(NextResponse);
     });
 
-    it('应该处理密码重置类型', async () => {
+    it('should handle password reset type', async () => {
       const mockSession = {
         access_token: 'test-access-token',
         refresh_token: 'test-refresh-token',
@@ -137,7 +137,7 @@ describe('/api/auth/callback', () => {
       expect(response).toBeInstanceOf(NextResponse);
     });
 
-    it('应该处理注册验证类型', async () => {
+    it('should handle signup confirmation type', async () => {
       const mockSession = {
         access_token: 'test-access-token',
         refresh_token: 'test-refresh-token',
@@ -163,7 +163,7 @@ describe('/api/auth/callback', () => {
       expect(response).toBeInstanceOf(NextResponse);
     });
 
-    it('应该处理邮箱变更类型', async () => {
+    it('should handle email change type', async () => {
       const mockSession = {
         access_token: 'test-access-token',
         refresh_token: 'test-refresh-token',
@@ -189,7 +189,7 @@ describe('/api/auth/callback', () => {
       expect(response).toBeInstanceOf(NextResponse);
     });
 
-    it('应该处理有效的 state 重定向路径', async () => {
+    it('should handle valid state redirect path', async () => {
       const mockSession = {
         access_token: 'test-access-token',
         refresh_token: 'test-refresh-token',
@@ -215,7 +215,7 @@ describe('/api/auth/callback', () => {
       expect(response).toBeInstanceOf(NextResponse);
     });
 
-    it('应该拒绝无效的 state 重定向路径（外部 URL）', async () => {
+    it('should reject invalid state redirect path (external URL)', async () => {
       const mockSession = {
         access_token: 'test-access-token',
         refresh_token: 'test-refresh-token',
@@ -241,7 +241,7 @@ describe('/api/auth/callback', () => {
       expect(response).toBeInstanceOf(NextResponse);
     });
 
-    it('应该处理缺少 Supabase 配置的情况', async () => {
+    it('should handle missing Supabase configuration', async () => {
       delete process.env.SUPABASE_URL;
       delete process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -251,7 +251,7 @@ describe('/api/auth/callback', () => {
       expect(response).toBeInstanceOf(NextResponse);
     });
 
-    it('应该处理 profile 创建失败', async () => {
+    it('shouldhandle profile createfailure', async () => {
       const mockSession = {
         access_token: 'test-access-token',
         refresh_token: 'test-refresh-token',
@@ -275,7 +275,7 @@ describe('/api/auth/callback', () => {
       expect(response).toBeInstanceOf(NextResponse);
     });
 
-    it('应该处理异常情况', async () => {
+    it('should handle exception', async () => {
       mockExchangeCodeForSession.mockRejectedValue(new Error('Network error'));
 
       const request = createMockRequest('http://localhost/api/auth/callback?code=valid-code');

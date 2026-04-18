@@ -1,16 +1,16 @@
 /**
- * @fileoverview 多预言机对比功能 - 统一阈值配置
- * @description 集中管理所有异常检测相关的阈值配置
+ * @fileoverview Multi-oracle comparison - unified threshold configuration
+ * @description Centralized management of all anomaly detection threshold configurations
  */
 
 // ============================================================================
-// 价格异常检测阈值
+// Price anomaly detection thresholds
 // ============================================================================
 
-/** 价格异常偏差阈值（1%）- 超过此值视为异常 */
+/** Price anomaly deviation threshold (1%) - values above this are considered anomalous */
 export const ANOMALY_DEVIATION_THRESHOLD = 1.0;
 
-/** 异常严重程度阈值（百分比） */
+/** Anomaly severity thresholds (percentage) */
 export const SEVERITY_THRESHOLDS = {
   HIGH: 3.0,
   MEDIUM: 1.0,
@@ -23,10 +23,10 @@ export const DEVIATION_THRESHOLDS = {
 } as const;
 
 // ============================================================================
-// 数据新鲜度阈值（秒）
+// Data freshness thresholds (seconds)
 // ============================================================================
 
-/** 数据新鲜度阈值（秒） */
+/** Data freshness thresholds (seconds) */
 export const FRESHNESS_THRESHOLDS = {
   FRESH: 30,
   NORMAL: 60,
@@ -35,13 +35,13 @@ export const FRESHNESS_THRESHOLDS = {
 } as const;
 
 // ============================================================================
-// 置信度阈值
+// Confidence thresholds
 // ============================================================================
 
-/** 置信度阈值 */
+/** Confidence thresholds */
 export const CONFIDENCE_THRESHOLDS = {
-  /** 低置信度：< 0.5 */
+  /** Low confidence: < 0.5 */
   LOW: 0.5,
-  /** 中等置信度：0.5 <= 置信度 < 0.8 */
+  /** Medium confidence: 0.5 <= confidence < 0.8 */
   MEDIUM: 0.8,
 } as const;

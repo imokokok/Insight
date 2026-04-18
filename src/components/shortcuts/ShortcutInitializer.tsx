@@ -6,17 +6,17 @@ import { useUIStore } from '@/stores/uiStore';
 import { useShortcutContext } from './ShortcutContext';
 
 /**
- * 快捷键初始化组件
- * 负责注册全局快捷键和初始化键盘监听
+ * Keyboard shortcut initialization component
+ * Responsible for registering global shortcuts and initializing keyboard listener
  */
 export function ShortcutInitializer() {
   const { toggleHelp } = useShortcutContext();
   const { closeModal } = useUIStore();
 
-  // 初始化全局键盘监听
+  // Initialize global keyboard listener
   useGlobalKeyboardListener();
 
-  // 注册帮助面板快捷键 (?)
+  // Register help panel shortcut (?)
   useKeyboardShortcuts([
     {
       key: '?',
@@ -27,9 +27,9 @@ export function ShortcutInitializer() {
     {
       key: 'Escape',
       handler: () => {
-        // 关闭帮助面板
+        // Close help panel
         toggleHelp();
-        // 关闭模态框
+        // Close modal
         closeModal();
       },
       description: 'shortcuts.close',

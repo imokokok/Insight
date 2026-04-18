@@ -16,18 +16,18 @@ interface ErrorResponse {
   };
 }
 /**
- * 将错误转换为 NextResponse 响应
- * 复用 errorTypes.ts 中的标准错误响应创建函数
+ * Convert error to NextResponse response
+ * Reuse the standard error response creation function from errorTypes.ts
  */
 export function errorToResponse(error: unknown): NextResponse {
-  // 记录错误日志
+  // Log error
   if (error instanceof AppError) {
     logger.error(`AppError: ${error.code} - ${error.message}`, error as Error, {
       statusCode: error.statusCode,
       details: error.details,
     });
 
-    // 使用标准的错误响应创建函数
+    // Use the standard error response creation function
     const standardResponse = createStandardErrorResponse(error.code as ErrorCode, error.message, {
       details: error.details,
     });
@@ -35,7 +35,7 @@ export function errorToResponse(error: unknown): NextResponse {
     return NextResponse.json(standardResponse, { status: error.statusCode });
   }
 
-  // 处理原生 Error
+  // Handle native Error
   if (error instanceof Error) {
     logger.error(`Unhandled Error: ${error.message}`, error);
 
@@ -44,7 +44,7 @@ export function errorToResponse(error: unknown): NextResponse {
     return NextResponse.json(standardResponse, { status: 500 });
   }
 
-  // 处理未知错误类型
+  // Handle unknown error type
   logger.error('Unknown error type');
 
   const standardResponse = createStandardErrorResponse(
@@ -56,7 +56,7 @@ export function errorToResponse(error: unknown): NextResponse {
 }
 
 /**
- * 处理错误并添加上下文信息
+ * Handle error and add context information
  */
 function handleError(
   error: unknown,
@@ -77,14 +77,14 @@ function handleError(
 }
 
 /**
- * 检查错误是否为 AppError 类型
+ * Check if error is of AppError type
  */
 export function isAppError(error: unknown): error is AppError {
   return error instanceof AppError;
 }
 
 /**
- * 检查错误是否为可预期的操作错误
+ * Check if error is an operational error
  */
 function isOperationalError(error: unknown): boolean {
   if (error instanceof AppError) {
@@ -94,8 +94,8 @@ function isOperationalError(error: unknown): boolean {
 }
 
 /**
- * 检查错误是否应该重试
- * 复用 errorTypes.ts 中的逻辑
+ * Check if error should be retried
+ * Reuse logic from errorTypes.ts
  */
 function isRetryableError(error: unknown): boolean {
   if (error instanceof AppError) {
@@ -103,7 +103,7 @@ function isRetryableError(error: unknown): boolean {
   }
 
   if (error instanceof Error) {
-    // 检查错误消息中是否包含可重试的模式
+    // Check if error message contains retryable patterns
     const retryablePatterns = [
       'network',
       'timeout',

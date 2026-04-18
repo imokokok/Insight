@@ -1,7 +1,7 @@
 import { AppError, type AppErrorDetails, ErrorCodes, HttpStatusCodes } from './AppError';
 
 /**
- * Oracle错误详情基础接口
+ * Oracle error details base interface
  */
 interface OracleErrorDetails extends AppErrorDetails {
   provider?: string;
@@ -11,8 +11,8 @@ interface OracleErrorDetails extends AppErrorDetails {
 }
 
 /**
- * Oracle客户端错误
- * Oracle服务客户端连接或配置错误
+ * Oracle client error
+ * Oracle service client connection or configuration error
  */
 export class OracleClientError extends AppError {
   constructor(message: string, details?: OracleErrorDetails, cause?: Error) {
@@ -30,7 +30,7 @@ export class OracleClientError extends AppError {
 }
 
 /**
- * 价格获取错误详情
+ * Price fetch error details
  */
 interface PriceFetchErrorDetails extends OracleErrorDetails {
   timestamp?: number;
@@ -41,8 +41,8 @@ interface PriceFetchErrorDetails extends OracleErrorDetails {
 }
 
 /**
- * 价格获取错误
- * 从Oracle获取价格数据失败
+ * Price fetch error
+ * Failed to fetch price data from Oracle
  */
 export class PriceFetchError extends AppError {
   public readonly retryable: boolean;
@@ -109,7 +109,7 @@ export class PriceFetchError extends AppError {
 }
 
 /**
- * 不支持的链错误详情
+ * Unsupported chain error details
  */
 interface UnsupportedChainErrorDetails extends OracleErrorDetails {
   supportedChains?: string[];
@@ -117,7 +117,7 @@ interface UnsupportedChainErrorDetails extends OracleErrorDetails {
 }
 
 /**
- * 不支持的链错误
+ * Unsupported chain error
  */
 export class UnsupportedChainError extends AppError {
   constructor(message: string, details?: UnsupportedChainErrorDetails) {
@@ -132,7 +132,7 @@ export class UnsupportedChainError extends AppError {
   }
 
   /**
-   * 创建不支持的链错误
+   * Create unsupported chain error
    */
   static create(
     chain: string,
@@ -147,7 +147,7 @@ export class UnsupportedChainError extends AppError {
 }
 
 /**
- * 不支持的代币错误详情
+ * Unsupported symbol error details
  */
 interface UnsupportedSymbolErrorDetails extends OracleErrorDetails {
   supportedSymbols?: string[];
@@ -155,7 +155,7 @@ interface UnsupportedSymbolErrorDetails extends OracleErrorDetails {
 }
 
 /**
- * 不支持的代币错误
+ * Unsupported symbol error
  */
 export class UnsupportedSymbolError extends AppError {
   constructor(message: string, details?: UnsupportedSymbolErrorDetails) {
@@ -170,7 +170,7 @@ export class UnsupportedSymbolError extends AppError {
   }
 
   /**
-   * 创建不支持的代币错误
+   * Create unsupported symbol error
    */
   static create(
     symbol: string,
@@ -185,7 +185,7 @@ export class UnsupportedSymbolError extends AppError {
 }
 
 /**
- * RedStone API 错误代码
+ * RedStone API error codes
  */
 export type RedStoneErrorCode =
   | 'FETCH_ERROR'
@@ -198,7 +198,7 @@ export type RedStoneErrorCode =
   | 'PRICE_DEVIATION';
 
 /**
- * RedStone API 错误详情
+ * RedStone API error details
  */
 interface RedStoneApiErrorDetails extends OracleErrorDetails {
   errorCode: RedStoneErrorCode;
@@ -208,7 +208,7 @@ interface RedStoneApiErrorDetails extends OracleErrorDetails {
 }
 
 /**
- * RedStone API 错误
+ * RedStone API error
  */
 export class RedStoneApiError extends AppError {
   public readonly errorCode: RedStoneErrorCode;
@@ -316,7 +316,7 @@ export class RedStoneApiError extends AppError {
 }
 
 /**
- * Chainlink 错误代码
+ * Chainlink error codes
  */
 type ChainlinkErrorCode =
   | 'AGGREGATOR_OFFLINE'
@@ -327,7 +327,7 @@ type ChainlinkErrorCode =
   | 'HEARTBEAT_VIOLATION';
 
 /**
- * Chainlink 错误详情
+ * Chainlink error details
  */
 interface ChainlinkErrorDetails extends OracleErrorDetails {
   errorCode: ChainlinkErrorCode;
@@ -338,7 +338,7 @@ interface ChainlinkErrorDetails extends OracleErrorDetails {
 }
 
 /**
- * Chainlink 错误
+ * Chainlink error
  */
 export class ChainlinkError extends AppError {
   public readonly errorCode: ChainlinkErrorCode;
@@ -393,7 +393,7 @@ export class ChainlinkError extends AppError {
 }
 
 /**
- * Pyth 错误代码
+ * Pyth error codes
  */
 type PythErrorCode =
   | 'PRICE_FEED_NOT_FOUND'
@@ -403,7 +403,7 @@ type PythErrorCode =
   | 'HERMES_CONNECTION_ERROR';
 
 /**
- * Pyth 错误详情
+ * Pyth error details
  */
 interface PythErrorDetails extends OracleErrorDetails {
   errorCode: PythErrorCode;
@@ -413,7 +413,7 @@ interface PythErrorDetails extends OracleErrorDetails {
 }
 
 /**
- * Pyth 错误
+ * Pyth error
  */
 export class PythError extends AppError {
   public readonly errorCode: PythErrorCode;
@@ -461,7 +461,7 @@ export class PythError extends AppError {
 }
 
 /**
- * API3 错误代码
+ * API3 error codes
  */
 type API3ErrorCode =
   | 'DAPI_NOT_FOUND'
@@ -471,7 +471,7 @@ type API3ErrorCode =
   | 'BEACON_OFFLINE';
 
 /**
- * API3 错误详情
+ * API3 error details
  */
 interface API3ErrorDetails extends OracleErrorDetails {
   errorCode: API3ErrorCode;
@@ -481,7 +481,7 @@ interface API3ErrorDetails extends OracleErrorDetails {
 }
 
 /**
- * API3 错误
+ * API3 error
  */
 export class API3Error extends AppError {
   public readonly errorCode: API3ErrorCode;
@@ -528,7 +528,7 @@ export class API3Error extends AppError {
 }
 
 /**
- * Supra 错误代码
+ * Supra error codes
  */
 type SupraErrorCode =
   | 'DORA_CONNECTION_ERROR'
@@ -538,7 +538,7 @@ type SupraErrorCode =
   | 'PRICE_DEVIATION';
 
 /**
- * Supra 错误详情
+ * Supra error details
  */
 interface SupraErrorDetails extends OracleErrorDetails {
   errorCode: SupraErrorCode;
@@ -547,7 +547,7 @@ interface SupraErrorDetails extends OracleErrorDetails {
 }
 
 /**
- * Supra 错误
+ * Supra error
  */
 export class SupraError extends AppError {
   public readonly errorCode: SupraErrorCode;
@@ -595,7 +595,7 @@ export class SupraError extends AppError {
 }
 
 /**
- * Flare 错误代码
+ * Flare error codes
  */
 type FlareErrorCode =
   | 'FTSO_RPC_ERROR'
@@ -606,7 +606,7 @@ type FlareErrorCode =
   | 'CONTRACT_CALL_FAILED';
 
 /**
- * Flare 错误详情
+ * Flare error details
  */
 interface FlareErrorDetails extends OracleErrorDetails {
   errorCode?: FlareErrorCode;
@@ -616,7 +616,7 @@ interface FlareErrorDetails extends OracleErrorDetails {
 }
 
 /**
- * Flare 错误
+ * Flare error
  */
 export class FlareError extends AppError {
   public readonly errorCode: FlareErrorCode;

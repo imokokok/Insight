@@ -236,7 +236,7 @@ export async function fetchRadarData(): Promise<RadarDataPoint[]> {
 
 function getMetricDescription(metricKey: string): string {
   const descriptions: Record<string, string> = {
-    tvs: 'Total Value Secured - 预言机保护的总资产价值',
+    tvs: 'Total Value Secured - Total asset value protected by oracles',
     latency: 'Average response time for price updates',
     accuracy: 'Price accuracy percentage over last 30 days',
     marketShare: 'Percentage of total oracle market',

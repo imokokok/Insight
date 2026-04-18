@@ -1531,7 +1531,6 @@ export class InternalError extends AppError {
 src/lib/services/
 ├── marketData/
 │   ├── binanceMarketService.ts      # Binance market data
-│   ├── coinGeckoMarketService.ts    # CoinGecko market data
 │   ├── anomalyCalculations.ts       # Anomaly detection algorithms
 │   ├── performanceMetrics.ts        # Performance metrics calculations
 │   ├── priceCalculations.ts         # Price computation utilities

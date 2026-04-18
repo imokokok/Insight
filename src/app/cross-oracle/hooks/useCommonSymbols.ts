@@ -1,6 +1,6 @@
 /**
- * @fileoverview 共同支持币种 Hook
- * @description 根据已选预言机筛选共同支持币种的逻辑
+ * @fileoverview Common supported symbols hook
+ * @description Logic for filtering commonly supported symbols based on selected oracles
  */
 
 import { useMemo } from 'react';
@@ -10,19 +10,19 @@ import { oracleSupportedSymbols } from '@/lib/oracles/constants/supportedSymbols
 import { OracleProvider } from '@/types/oracle';
 
 /**
- * 共同支持币种信息
+ * support
  */
 interface CommonSymbolInfo {
-  /** 币种符号 */
+  /** Symbol */
   symbol: string;
-  /** 支持该币种的预言机数量 */
+  /** Number of oracles supporting this symbol */
   oracleCount: number;
-  /** 支持该币种的预言机列表 */
+  /** List of oracles supporting this symbol */
   supportingOracles: OracleProvider[];
 }
 
 /**
- * Hook 返回结果
+ * Hook returnresult
  */
 interface UseCommonSymbolsResult {
   commonSymbols: string[];
@@ -32,7 +32,7 @@ interface UseCommonSymbolsResult {
 }
 
 /**
- * OracleProvider 到 supportedSymbols 键名的映射
+ * OracleProvider to supportedSymbols key namemapping
  */
 const providerToSymbolKey: Record<OracleProvider, keyof typeof oracleSupportedSymbols> = {
   [OracleProvider.CHAINLINK]: 'chainlink',
@@ -48,9 +48,9 @@ const providerToSymbolKey: Record<OracleProvider, keyof typeof oracleSupportedSy
 };
 
 /**
- * 根据已选预言机筛选共同支持币种的 Hook
- * @param selectedOracles - 已选的预言机列表
- * @returns 共同支持的币种列表和相关信息
+ * filtersupport Hook
+ * @param selectedOracles - List of selected oracles
+ * @returns List of commonly supported symbols and related info
  */
 export function useCommonSymbols(selectedOracles: OracleProvider[]): UseCommonSymbolsResult {
   return useMemo(() => {

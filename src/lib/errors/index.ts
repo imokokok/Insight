@@ -1,5 +1,5 @@
-// ==================== 基础错误类 ====================
-// ==================== 导入类型用于工具函数 ====================
+// ==================== Base Error Classes ====================
+// ==================== Import Types for Utility Functions ====================
 import type { ReactNode } from 'react';
 
 import {
@@ -17,31 +17,31 @@ import type { AppError as AppErrorType } from './AppError';
 
 export { AppError } from './AppError';
 
-// ==================== 业务错误 ====================
+// ==================== Business Errors ====================
 export {
-  // 验证错误
+  // validateerror
   ValidationError,
 
-  // 资源错误
+ // error
   NotFoundError,
 
-  // 认证/授权错误
+  // authentication/authorizationerror
   AuthenticationError,
   AuthorizationError,
 
-  // 限流错误
+ // error
   RateLimitError,
 
-  // 内部错误
+  // internalerror
   InternalError,
 
-  // 网络错误
+ // error
   NetworkError,
 
-  // 外部服务错误
+  // externalserviceerror
 } from './BusinessErrors';
 
-// ==================== Oracle 错误 ====================
+// ==================== Oracle Errors ====================
 export {
   OracleClientError,
   PriceFetchError,
@@ -60,13 +60,13 @@ export {
   type WINkLinkErrorCode,
 } from './OracleError';
 
-// ==================== 错误响应处理 ====================
+// ==================== Error Response Handling ====================
 export { errorToResponse, isAppError } from './errorToResponse';
 
-// ==================== 错误工具函数 ====================
+// ==================== Error Utility Functions ====================
 
 /**
- * 检查错误是否为特定类型
+ * Check if error is of a specific type
  */
 export function isValidationError(error: unknown): error is InstanceType<typeof ValidationError> {
   return error instanceof ValidationError;
@@ -97,7 +97,7 @@ export function isNetworkError(error: unknown): error is InstanceType<typeof Net
 }
 
 /**
- * 安全地获取错误消息
+ * Safely get error message
  */
 export function getErrorMessage(error: unknown): string {
   if (isAppError(error)) {
@@ -113,7 +113,7 @@ export function getErrorMessage(error: unknown): string {
 }
 
 /**
- * 安全地获取错误代码
+ * Safely get error code
  */
 export function getErrorCode(error: unknown): string {
   if (isAppError(error)) {
@@ -123,7 +123,7 @@ export function getErrorCode(error: unknown): string {
 }
 
 /**
- * 检查错误是否应该显示给用户
+ * Check if error should be displayed to user
  */
 export function shouldShowErrorToUser(error: unknown): boolean {
   if (isAppError(error)) {
@@ -133,7 +133,7 @@ export function shouldShowErrorToUser(error: unknown): boolean {
 }
 
 /**
- * 将未知错误转换为 AppError
+ * Convert unknown error to AppError
  */
 export function toAppError(error: unknown): AppErrorType {
   if (isAppError(error)) {
@@ -150,7 +150,7 @@ export function toAppError(error: unknown): AppErrorType {
 }
 
 /**
- * 错误分类器
+ * Error classifier
  */
 export interface ErrorClassification {
   category: string;
@@ -160,7 +160,7 @@ export interface ErrorClassification {
 }
 
 /**
- * 分类错误
+ * Classify error
  */
 export function classifyError(error: unknown): ErrorClassification {
   if (isAppError(error)) {
@@ -172,7 +172,7 @@ export function classifyError(error: unknown): ErrorClassification {
     };
   }
 
-  // 根据错误类型推断分类
+  // Infer classification from error type
   if (error instanceof TypeError) {
     return {
       category: 'validation',
@@ -200,7 +200,7 @@ export function classifyError(error: unknown): ErrorClassification {
     };
   }
 
-  // 默认分类
+  // Default classification
   return {
     category: 'unknown',
     severity: 'critical',
@@ -210,7 +210,7 @@ export function classifyError(error: unknown): ErrorClassification {
 }
 
 /**
- * 创建错误处理器
+ * Create error handler
  */
 export function createErrorHandler<T>(
   handler: (error: AppErrorType) => T,
@@ -230,7 +230,7 @@ export function createErrorHandler<T>(
 }
 
 /**
- * 错误边界处理器
+ * Error boundary handler
  */
 export interface ErrorBoundaryHandler {
   onError?: (error: Error, errorInfo: { componentStack: string }) => void;

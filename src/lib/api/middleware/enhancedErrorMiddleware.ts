@@ -35,7 +35,7 @@ export interface StandardizedErrorResponse {
 }
 
 /**
- * HTTP 状态码到错误码的映射
+ * HTTP status code to error code mapping
  */
 const HTTP_STATUS_TO_ERROR_CODE: Record<number, string> = {
   400: 'BAD_REQUEST',
@@ -57,7 +57,7 @@ const HTTP_STATUS_TO_ERROR_CODE: Record<number, string> = {
 };
 
 /**
- * 错误码到文档 URL 的映射
+ * Error code to documentation URL mapping
  */
 const ERROR_CODE_DOCUMENTATION: Record<string, string> = {
   VALIDATION_ERROR: '/docs/errors/validation',
@@ -76,14 +76,14 @@ const ERROR_CODE_DOCUMENTATION: Record<string, string> = {
 };
 
 /**
- * 生成唯一请求 ID
+ * Generate unique request ID
  */
 function generateRequestId(): string {
   return `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
 }
 
 /**
- * 获取错误对应的文档 URL
+ * Get documentation URL for the error
  */
 function getDocumentationUrl(errorCode: string, baseUrl?: string): string | undefined {
   const docPath = ERROR_CODE_DOCUMENTATION[errorCode];
@@ -92,7 +92,7 @@ function getDocumentationUrl(errorCode: string, baseUrl?: string): string | unde
 }
 
 /**
- * 判断错误是否可重试
+ * Determine if the error is retryable
  */
 function isRetryableError(error: unknown): boolean {
   if (isAppError(error)) {
@@ -119,7 +119,7 @@ function isRetryableError(error: unknown): boolean {
 }
 
 /**
- * 提取 HTTP 状态码
+ * Extract HTTP status code
  */
 function extractStatusCode(error: unknown): number {
   if (isAppError(error)) {
@@ -140,7 +140,7 @@ function extractStatusCode(error: unknown): number {
 }
 
 /**
- * 创建增强的错误响应
+ * Create enhanced error response
  */
 function createErrorResponse(
   error: unknown,
@@ -201,7 +201,7 @@ function createErrorResponse(
 }
 
 /**
- * 创建增强的错误处理中间件
+ * Create enhanced error handling middleware
  */
 export function createEnhancedErrorMiddleware(options: EnhancedErrorMiddlewareOptions = {}) {
   const { logErrors = true, includeRequestId = true } = options;
@@ -220,7 +220,7 @@ export function createEnhancedErrorMiddleware(options: EnhancedErrorMiddlewareOp
         }
       : { requestId: generatedRequestId };
 
-    // 日志记录
+    // Logging
     if (logErrors) {
       const logContext = {
         requestId: generatedRequestId,
@@ -246,18 +246,18 @@ export function createEnhancedErrorMiddleware(options: EnhancedErrorMiddlewareOp
       }
     }
 
-    // 创建标准化错误响应
+    // Create standardized error response
     const errorResponse = createErrorResponse(error, options, requestInfo);
     const statusCode = extractStatusCode(error);
 
     const response = NextResponse.json(errorResponse, { status: statusCode });
 
-    // 添加响应头
+    // Add response headers
     if (includeRequestId) {
       response.headers.set('X-Request-ID', generatedRequestId);
     }
 
-    // 添加重试相关的响应头
+    // Add retry-related response headers
     if (errorResponse.error.retryable) {
       response.headers.set('X-Retryable', 'true');
       const retryAfter = errorResponse.error.details?.retryAfter;
@@ -271,12 +271,12 @@ export function createEnhancedErrorMiddleware(options: EnhancedErrorMiddlewareOp
 }
 
 /**
- * 默认的增强错误处理中间件
+ * Default enhanced error handling middleware
  */
 export const enhancedErrorMiddleware = createEnhancedErrorMiddleware();
 
 /**
- * 开发环境错误处理中间件（包含堆栈跟踪）
+ * Development error handling middleware (includes stack trace)
  */
 export const developmentErrorMiddleware = createEnhancedErrorMiddleware({
   includeStackTrace: true,
@@ -287,7 +287,7 @@ export const developmentErrorMiddleware = createEnhancedErrorMiddleware({
 });
 
 /**
- * 生产环境错误处理中间件（不包含敏感信息）
+ * Production error handling middleware (excludes sensitive information)
  */
 export const productionErrorMiddleware = createEnhancedErrorMiddleware({
   includeStackTrace: false,
@@ -298,7 +298,7 @@ export const productionErrorMiddleware = createEnhancedErrorMiddleware({
 });
 
 /**
- * 包装 API 路由处理函数，自动处理错误
+ * Wrap API route handler with automatic error handling
  */
 export function withEnhancedErrorHandling<T>(
   handler: (request: Request) => Promise<T>,
@@ -316,7 +316,7 @@ export function withEnhancedErrorHandling<T>(
 }
 
 /**
- * 错误分类工具函数
+ * Error categoryUtility functions
  */
 export function classifyError(error: unknown): {
   category: 'client' | 'server' | 'network' | 'unknown';
@@ -347,7 +347,7 @@ export function classifyError(error: unknown): {
 }
 
 /**
- * 获取建议的用户操作
+ * Get suggested user action
  */
 export function getSuggestedAction(errorCode: string): string | undefined {
   const suggestions: Record<string, string> = {

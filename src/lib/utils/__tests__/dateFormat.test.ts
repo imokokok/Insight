@@ -54,47 +54,47 @@ describe('dateFormat utilities', () => {
     it('should format relative time for seconds', () => {
       const now = Date.now();
       const fiveSecondsAgo = now - 5000;
-      expect(formatRelativeTime(fiveSecondsAgo)).toContain('秒');
+      expect(formatRelativeTime(fiveSecondsAgo)).toContain('seconds');
     });
 
     it('should format relative time for minutes', () => {
       const now = Date.now();
       const fiveMinutesAgo = now - 5 * 60 * 1000;
-      expect(formatRelativeTime(fiveMinutesAgo)).toContain('分钟');
+      expect(formatRelativeTime(fiveMinutesAgo)).toContain('minutes');
     });
 
     it('should format relative time for hours', () => {
       const now = Date.now();
       const twoHoursAgo = now - 2 * 60 * 60 * 1000;
-      expect(formatRelativeTime(twoHoursAgo)).toContain('小时');
+      expect(formatRelativeTime(twoHoursAgo)).toContain('hours');
     });
 
     it('should format relative time for days', () => {
       const now = Date.now();
       const twoDaysAgo = now - 2 * 24 * 60 * 60 * 1000;
-      expect(formatRelativeTime(twoDaysAgo)).toContain('天');
+      expect(formatRelativeTime(twoDaysAgo)).toContain('days');
     });
   });
 
   describe('formatDuration', () => {
     it('should format duration in seconds', () => {
-      expect(formatDuration(5000)).toBe('5秒');
+      expect(formatDuration(5000)).toBe('5seconds');
     });
 
     it('should format duration in minutes', () => {
-      expect(formatDuration(120000)).toBe('2分钟');
+      expect(formatDuration(120000)).toBe('2minutes');
     });
 
     it('should format duration in hours', () => {
-      expect(formatDuration(7200000)).toBe('2小时');
+      expect(formatDuration(7200000)).toBe('2hours');
     });
 
     it('should format duration in days', () => {
-      expect(formatDuration(172800000)).toBe('2天');
+      expect(formatDuration(172800000)).toBe('2days');
     });
 
     it('should format complex duration', () => {
-      expect(formatDuration(90061000)).toBe('1天1小时1分钟1秒');
+      expect(formatDuration(90061000)).toBe('1days1hours1 minute1seconds');
     });
   });
 

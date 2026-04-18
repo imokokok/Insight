@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+
 import { type SegmentedControlProps, type SelectorOption } from './types';
 
 const sizeClasses = {
@@ -22,6 +24,12 @@ export function SegmentedControl<T = string>({
   selectAllLabel,
   deselectAllLabel,
 }: SegmentedControlProps<T>) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const resolvedSelectAllLabel = selectAllLabel ?? 'Select All';
   const resolvedDeselectAllLabel = deselectAllLabel ?? 'Deselect All';
   const isSelected = (option: SelectorOption<T>): boolean => {
@@ -93,7 +101,7 @@ export function SegmentedControl<T = string>({
               className={`relative inline-flex items-center gap-1.5 font-medium transition-all duration-200 ease-out rounded-md ${sizeClasses[size]} ${
                 selected ? 'bg-white text-gray-900 shadow-md' : 'text-gray-600 hover:text-gray-900'
               } ${disabled || option.disabled ? 'opacity-50 cursor-not-allowed' : 'active:scale-[0.98] hover:bg-gray-50/50'}`}
-              style={{ zIndex: selected ? 1 : 0 }}
+              style={{ zIndex: mounted && selected ? 1 : 0 }}
             >
               {option.icon && (
                 <span

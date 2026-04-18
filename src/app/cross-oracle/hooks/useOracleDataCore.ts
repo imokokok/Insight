@@ -420,6 +420,8 @@ export function useOracleDataCore(
   const fetchPriceDataRef = useRef(fetchPriceData);
   fetchPriceDataRef.current = fetchPriceData;
 
+  const isRefreshingRef = useRef(false);
+
   useEffect(() => {
     isMountedRef.current = true;
 
@@ -469,18 +471,40 @@ export function useOracleDataCore(
     setNextRefreshAt(new Date(Date.now() + intervalMs));
 
     const intervalId = setInterval(() => {
-      if (!document.hidden) {
-        fetchPriceDataRef.current();
-        setLastRefreshedAt(new Date());
-        setNextRefreshAt(new Date(Date.now() + intervalMs));
+      if (!document.hidden && !isRefreshingRef.current) {
+        isRefreshingRef.current = true;
+        fetchPriceDataRef
+          .current()
+          .then(() => {
+            if (isMountedRef.current) {
+              const now = new Date();
+              setLastRefreshedAt(now);
+              setNextRefreshAt(new Date(now.getTime() + intervalMs));
+            }
+          })
+          .catch(() => {})
+          .finally(() => {
+            isRefreshingRef.current = false;
+          });
       }
     }, intervalMs);
 
     const handleVisibilityChange = () => {
-      if (!document.hidden) {
-        fetchPriceDataRef.current();
-        setLastRefreshedAt(new Date());
-        setNextRefreshAt(new Date(Date.now() + intervalMs));
+      if (!document.hidden && !isRefreshingRef.current) {
+        isRefreshingRef.current = true;
+        fetchPriceDataRef
+          .current()
+          .then(() => {
+            if (isMountedRef.current) {
+              const now = new Date();
+              setLastRefreshedAt(now);
+              setNextRefreshAt(new Date(now.getTime() + intervalMs));
+            }
+          })
+          .catch(() => {})
+          .finally(() => {
+            isRefreshingRef.current = false;
+          });
       }
     };
 

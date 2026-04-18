@@ -1,6 +1,6 @@
 /**
- * @fileoverview 多预言机对比页面组合 Hook
- * @description 组合所有专注 hooks，提供统一的页面状态管理接口
+ * @fileoverview Multi-oracle comparison page composition hook
+ * @description Composes all focused hooks, providing a unified page state management interface
  */
 
 import { useState, useCallback } from 'react';

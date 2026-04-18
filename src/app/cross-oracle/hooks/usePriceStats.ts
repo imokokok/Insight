@@ -1,6 +1,6 @@
 /**
- * @fileoverview 价格统计 Hook
- * @description 计算价格数据的各种统计指标，包括平均值、加权平均值、最大值、最小值、价格范围、方差、标准差等
+ * @fileoverview Price statistics hook
+ * @description Calculate various statistical metrics for price data, including mean, weighted average, max, min, price range, variance, standard deviation, etc.
  */
 
 import { useMemo } from 'react';

@@ -73,7 +73,7 @@ export function PerformanceMetricsCollector() {
       if (!isActiveRef.current) return;
 
       try {
-        performanceMetricsCalculator.clearOldData(7 * 24 * 60 * 60 * 1000); // 保留7天数据
+        performanceMetricsCalculator.clearOldData(7 * 24 * 60 * 60 * 1000); // Keep 7 days of data
         const stats = performanceMetricsCalculator.getStats();
         logger.info(
           `Performance metrics stats: ${stats.priceDataPoints} oracle data points, ${stats.referenceDataPoints} reference data points`
@@ -83,10 +83,10 @@ export function PerformanceMetricsCollector() {
       }
     };
 
-    // 立即收集一次
+    // Collect once immediately
     collectReferencePrices();
 
-    // 设置定时器
+    // Set timer
     priceCollectionRef.current = setInterval(collectReferencePrices, REFERENCE_PRICE_INTERVAL);
     cleanupRef.current = setInterval(cleanupOldData, CLEANUP_INTERVAL);
 
@@ -101,6 +101,6 @@ export function PerformanceMetricsCollector() {
     };
   }, []);
 
-  // 这个组件不渲染任何内容
+ // Componentsnotanywithin
   return null;
 }

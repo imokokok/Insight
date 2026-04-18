@@ -1,12 +1,12 @@
 /**
- * @fileoverview 图表组件类型定义
- * @description 为 cross-oracle 页面定义所需的图表类型
+ * @fileoverview Chart component type definitions
+ * @description Define chart types needed for the cross-oracle page
  */
 
 import type { OracleProvider } from '@/types/oracle';
 
 // ============================================================================
-// 价格相关性矩阵类型
+// Price correlation matrix types
 // ============================================================================
 
 export interface OraclePriceSeries {
@@ -18,7 +18,7 @@ export interface OraclePriceSeries {
 }
 
 // ============================================================================
-// 价格偏差热力图类型
+// Price deviation heatmap types
 // ============================================================================
 
 export interface PriceDeviationDataPoint {
@@ -29,7 +29,7 @@ export interface PriceDeviationDataPoint {
 }
 
 // ============================================================================
-// 价格分布箱线图类型
+// Price distribution box plot types
 // ============================================================================
 
 export interface OraclePriceData {
@@ -38,7 +38,7 @@ export interface OraclePriceData {
 }
 
 // ============================================================================
-// 价格波动率图表类型
+// Price volatility chart types
 // ============================================================================
 
 export interface OraclePriceHistory {
@@ -50,7 +50,7 @@ export interface OraclePriceHistory {
 }
 
 // ============================================================================
-// 性能排名类型
+// Performance ranking types
 // ============================================================================
 
 export interface OraclePerformanceData {
@@ -65,7 +65,7 @@ export interface OraclePerformanceData {
 }
 
 // ============================================================================
-// 延迟分布直方图类型
+// Latency distribution histogram types
 // ============================================================================
 
 export interface LatencyStats {

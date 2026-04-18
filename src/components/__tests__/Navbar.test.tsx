@@ -5,406 +5,406 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 
 import Navbar from '../Navbar';
 
-const mockPush = jest.fn();
-const mockReplace = jest.fn();
-const mockSignOut = jest.fn();
+const mockPush = jest.fn;
+const mockReplace = jest.fn;
+const mockSignOut = jest.fn;
 
-jest.mock('next/navigation', () => ({
-  useRouter: () => ({
-    push: mockPush,
-    replace: mockReplace,
-    refresh: jest.fn(),
-    back: jest.fn(),
-    forward: jest.fn(),
-    prefetch: jest.fn(),
-  }),
-  usePathname: () => '/en',
-  useSearchParams: () => new URLSearchParams(),
-  useParams: () => ({ locale: 'en' }),
+jest.mock('next/navigation',  => ({
+ useRouter:  => ({
+ push: mockPush,
+ replace: mockReplace,
+ refresh: jest.fn,
+ back: jest.fn,
+ forward: jest.fn,
+ prefetch: jest.fn,
+ }),
+ usePathname:  => '/en',
+ useSearchParams:  => new URLSearchParams,
+ useParams:  => ({ locale: 'en' }),
 }));
 
-jest.mock('next/image', () => ({
-  __esModule: true,
-  default: ({
-    src,
-    alt,
-    width,
-    height,
-    priority,
-    className,
-  }: {
-    src: string;
-    alt: string;
-    width: number;
-    height: number;
-    priority?: boolean;
-    className?: string;
-  }) => (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={src}
-      alt={alt}
-      width={width}
-      height={height}
-      className={className}
-      data-priority={priority}
-    />
-  ),
+jest.mock('next/image',  => ({
+ __esModule: true,
+ default: ({
+ src,
+ alt,
+ width,
+ height,
+ priority,
+ className,
+ }: {
+ src: string;
+ alt: string;
+ width: number;
+ height: number;
+ priority?: boolean;
+ className?: string;
+ }) => (
+ // eslint-disable-next-line @next/next/no-img-element
+ <img
+ src={src}
+ alt={alt}
+ width={width}
+ height={height}
+ className={className}
+ data-priority={priority}
+ />
+ ),
 }));
 
-jest.mock('next/link', () => ({
-  __esModule: true,
-  default: ({
-    href,
-    children,
-    className,
-    onClick,
-    title,
-  }: {
-    href: string;
-    children: ReactNode;
-    className?: string;
-    onClick?: () => void;
-    title?: string;
-  }) => (
-    <a href={href} className={className} onClick={onClick} title={title}>
-      {children}
-    </a>
-  ),
+jest.mock('next/link',  => ({
+ __esModule: true,
+ default: ({
+ href,
+ children,
+ className,
+ onClick,
+ title,
+ }: {
+ href: string;
+ children: ReactNode;
+ className?: string;
+ onClick?:  => void;
+ title?: string;
+ }) => (
+ <a href={href} className={className} onClick={onClick} title={title}>
+ {children}
+ </a>
+ ),
 }));
 
-jest.mock('@/stores/authStore', () => ({
-  useUser: jest.fn(() => null),
-  useProfile: jest.fn(() => null),
-  useAuthLoading: jest.fn(() => false),
-  useAuthActions: jest.fn(() => ({ signOut: mockSignOut })),
+jest.mock('@/stores/authStore',  => ({
+ useUser: jest.fn( => null),
+ useProfile: jest.fn( => null),
+ useAuthLoading: jest.fn( => false),
+ useAuthActions: jest.fn( => ({ signOut: mockSignOut })),
 }));
 
-jest.mock('@/lib/security', () => ({
-  sanitizeUrl: jest.fn((url: string) => url),
+jest.mock('@/lib/security',  => ({
+ sanitizeUrl: jest.fn((url: string) => url),
 }));
 
-jest.mock('@/hooks', () => ({
-  useKeyboardShortcuts: jest.fn(),
+jest.mock('@/hooks',  => ({
+ useKeyboardShortcuts: jest.fn,
 }));
 
-jest.mock('../navigation', () => ({
-  DropdownMenu: ({ group }: { group: { id: string; label: string } }) => (
-    <div data-testid={`dropdown-${group.id}`}>{group.label}</div>
-  ),
-  MobileDrawer: ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => (
-    <div data-testid="mobile-drawer" data-open={isOpen}>
-      {isOpen && (
-        <button onClick={onClose} data-testid="close-drawer">
-          Close
-        </button>
-      )}
-    </div>
-  ),
-  UserMenuDropdown: ({
-    profile,
-    userEmail,
-    onClose,
-    onSignOut,
-  }: {
-    profile: { display_name: string | null } | null;
-    userEmail: string | undefined;
-    onClose: () => void;
-    onSignOut: () => void;
-  }) => (
-    <div data-testid="user-menu-dropdown">
-      <span>{profile?.display_name || 'User'}</span>
-      <span>{userEmail}</span>
-      <button onClick={onClose} data-testid="close-user-menu">
-        Close Menu
-      </button>
-      <button onClick={onSignOut} data-testid="sign-out">
-        Sign Out
-      </button>
-    </div>
-  ),
-  navigationConfig: [
-    { href: '/', label: 'navbar.home', icon: () => <span>Home Icon</span> },
-    {
-      id: 'market',
-      label: 'navbar.market',
-      icon: () => <span>Market Icon</span>,
-      items: [{ href: '/price-query', label: 'navbar.priceQuery' }],
-    },
-  ],
+jest.mock('../navigation',  => ({
+ DropdownMenu: ({ group }: { group: { id: string; label: string } }) => (
+ <div data-testid={`dropdown-${group.id}`}>{group.label}</div>
+ ),
+ MobileDrawer: ({ isOpen, onClose }: { isOpen: boolean; onClose:  => void }) => (
+ <div data-testid="mobile-drawer" data-open={isOpen}>
+ {isOpen && (
+ <button onClick={onClose} data-testid="close-drawer">
+ Close
+ </button>
+ )}
+ </div>
+ ),
+ UserMenuDropdown: ({
+ profile,
+ userEmail,
+ onClose,
+ onSignOut,
+ }: {
+ profile: { display_name: string | null } | null;
+ userEmail: string | undefined;
+ onClose:  => void;
+ onSignOut:  => void;
+ }) => (
+ <div data-testid="user-menu-dropdown">
+ <span>{profile?.display_name || 'User'}</span>
+ <span>{userEmail}</span>
+ <button onClick={onClose} data-testid="close-user-menu">
+ Close Menu
+ </button>
+ <button onClick={onSignOut} data-testid="sign-out">
+ Sign Out
+ </button>
+ </div>
+ ),
+ navigationConfig: [
+ { href: '/', label: 'navbar.home', icon:  => <span>Home Icon</span> },
+ {
+ id: 'market',
+ label: 'navbar.market',
+ icon:  => <span>Market Icon</span>,
+ items: [{ href: '/price-query', label: 'navbar.priceQuery' }],
+ },
+ ],
 }));
 
-jest.mock('../search', () => ({
-  SearchButton: ({ onClick }: { onClick: () => void }) => (
-    <button onClick={onClick} data-testid="search-button">
-      Search
-    </button>
-  ),
-  GlobalSearch: ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => (
-    <div data-testid="global-search" data-open={isOpen}>
-      {isOpen && (
-        <button onClick={onClose} data-testid="close-search">
-          Close Search
-        </button>
-      )}
-    </div>
-  ),
+jest.mock('../search',  => ({
+ SearchButton: ({ onClick }: { onClick:  => void }) => (
+ <button onClick={onClick} data-testid="search-button">
+ Search
+ </button>
+ ),
+ GlobalSearch: ({ isOpen, onClose }: { isOpen: boolean; onClose:  => void }) => (
+ <div data-testid="global-search" data-open={isOpen}>
+ {isOpen && (
+ <button onClick={onClose} data-testid="close-search">
+ Close Search
+ </button>
+ )}
+ </div>
+ ),
 }));
 
-jest.mock('@/components/ui', () => ({
-  Button: ({
-    children,
-    variant,
-    size,
-    onClick,
-    className,
-    leftIcon,
-    'aria-label': ariaLabel,
-  }: {
-    children?: ReactNode;
-    variant?: string;
-    size?: string;
-    onClick?: () => void;
-    className?: string;
-    leftIcon?: ReactNode;
-    'aria-label'?: string;
-  }) => (
-    <button
-      onClick={onClick}
-      className={className}
-      data-variant={variant}
-      data-size={size}
-      aria-label={ariaLabel}
-    >
-      {leftIcon}
-      {children}
-    </button>
-  ),
+jest.mock('@/components/ui',  => ({
+ Button: ({
+ children,
+ variant,
+ size,
+ onClick,
+ className,
+ leftIcon,
+ 'aria-label': ariaLabel,
+ }: {
+ children?: ReactNode;
+ variant?: string;
+ size?: string;
+ onClick?:  => void;
+ className?: string;
+ leftIcon?: ReactNode;
+ 'aria-label'?: string;
+ }) => (
+ <button
+ onClick={onClick}
+ className={className}
+ data-variant={variant}
+ data-size={size}
+ aria-label={ariaLabel}
+ >
+ {leftIcon}
+ {children}
+ </button>
+ ),
 }));
 
-const createWrapper = () => {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: {
-        retry: false,
-      },
-    },
-  });
+const createWrapper =  => {
+ const queryClient = new QueryClient({
+ defaultOptions: {
+ queries: {
+ retry: false,
+ },
+ },
+ });
 
-  return function Wrapper({ children }: { children: ReactNode }) {
-    return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
-  };
+ return function Wrapper({ children }: { children: ReactNode }) {
+ return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+ };
 };
 
-const renderNavbar = () => {
-  return render(<Navbar />, { wrapper: createWrapper() });
+const renderNavbar =  => {
+ return render(<Navbar />, { wrapper: createWrapper });
 };
 
-describe('Navbar', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
+describe('Navbar',  => {
+ beforeEach( => {
+ jest.clearAllMocks;
+ });
 
-  describe('基础渲染', () => {
-    it('应该正确渲染导航栏', () => {
-      renderNavbar();
+ describe('Basic rendering',  => {
+ it('should render navbar correctly',  => {
+ renderNavbar;
 
-      expect(screen.getByAltText('Insight Logo')).toBeInTheDocument();
-      expect(screen.getByText('Text')).toBeInTheDocument();
-    });
+ expect(screen.getByAltText('Insight Logo')).toBeInTheDocument;
+ expect(screen.getByText('Text')).toBeInTheDocument;
+ });
 
-    it('应该渲染搜索按钮', () => {
-      renderNavbar();
+ it('should render search button',  => {
+ renderNavbar;
 
-      expect(screen.getByTestId('search-button')).toBeInTheDocument();
-    });
+ expect(screen.getByTestId('search-button')).toBeInTheDocument;
+ });
 
-    it('应该渲染桌面端导航链接', () => {
-      renderNavbar();
+ it('should render desktop navigation links',  => {
+ renderNavbar;
 
-      expect(screen.getByText('Text')).toBeInTheDocument();
-      expect(screen.getByTestId('dropdown-market')).toBeInTheDocument();
-    });
-  });
+ expect(screen.getByText('Text')).toBeInTheDocument;
+ expect(screen.getByTestId('dropdown-market')).toBeInTheDocument;
+ });
+ });
 
-  describe('移动端菜单', () => {
-    it('应该显示移动端菜单按钮', () => {
-      renderNavbar();
+ describe('Mobile menu',  => {
+ it('shouldMobile menubutton',  => {
+ renderNavbar;
 
-      const menuButton = screen.getByLabelText('Text');
-      expect(menuButton).toBeInTheDocument();
-    });
+ const menuButton = screen.getByLabelText('Text');
+ expect(menuButton).toBeInTheDocument;
+ });
 
-    it('点击菜单按钮应该打开移动端抽屉', () => {
-      renderNavbar();
+ it('clicking menu button should open mobile drawer',  => {
+ renderNavbar;
 
-      const menuButton = screen.getByLabelText('Text');
-      fireEvent.click(menuButton);
+ const menuButton = screen.getByLabelText('Text');
+ fireEvent.click(menuButton);
 
-      expect(screen.getByTestId('mobile-drawer')).toHaveAttribute('data-open', 'true');
-    });
+ expect(screen.getByTestId('mobile-drawer')).toHaveAttribute('data-open', 'true');
+ });
 
-    it('关闭移动端抽屉应该正确更新状态', () => {
-      renderNavbar();
+ it('closing mobile drawer should correctly update state',  => {
+ renderNavbar;
 
-      const menuButton = screen.getByLabelText('Text');
-      fireEvent.click(menuButton);
+ const menuButton = screen.getByLabelText('Text');
+ fireEvent.click(menuButton);
 
-      expect(screen.getByTestId('mobile-drawer')).toHaveAttribute('data-open', 'true');
+ expect(screen.getByTestId('mobile-drawer')).toHaveAttribute('data-open', 'true');
 
-      const closeButton = screen.getByTestId('close-drawer');
-      fireEvent.click(closeButton);
+ const closeButton = screen.getByTestId('close-drawer');
+ fireEvent.click(closeButton);
 
-      expect(screen.getByTestId('mobile-drawer')).toHaveAttribute('data-open', 'false');
-    });
-  });
+ expect(screen.getByTestId('mobile-drawer')).toHaveAttribute('data-open', 'false');
+ });
+ });
 
-  describe('搜索功能', () => {
-    it('点击搜索按钮应该打开全局搜索', () => {
-      renderNavbar();
+ describe('Search functionality',  => {
+ it('clicking search button should open global search',  => {
+ renderNavbar;
 
-      const searchButton = screen.getByTestId('search-button');
-      fireEvent.click(searchButton);
+ const searchButton = screen.getByTestId('search-button');
+ fireEvent.click(searchButton);
 
-      expect(screen.getByTestId('global-search')).toHaveAttribute('data-open', 'true');
-    });
+ expect(screen.getByTestId('global-search')).toHaveAttribute('data-open', 'true');
+ });
 
-    it('关闭全局搜索应该正确更新状态', () => {
-      renderNavbar();
+ it('closesearchshouldupdatestate',  => {
+ renderNavbar;
 
-      const searchButton = screen.getByTestId('search-button');
-      fireEvent.click(searchButton);
+ const searchButton = screen.getByTestId('search-button');
+ fireEvent.click(searchButton);
 
-      expect(screen.getByTestId('global-search')).toHaveAttribute('data-open', 'true');
+ expect(screen.getByTestId('global-search')).toHaveAttribute('data-open', 'true');
 
-      const closeSearchButton = screen.getByTestId('close-search');
-      fireEvent.click(closeSearchButton);
+ const closeSearchButton = screen.getByTestId('close-search');
+ fireEvent.click(closeSearchButton);
 
-      expect(screen.getByTestId('global-search')).toHaveAttribute('data-open', 'false');
-    });
-  });
+ expect(screen.getByTestId('global-search')).toHaveAttribute('data-open', 'false');
+ });
+ });
 
-  describe('用户菜单 - 未登录状态', () => {
-    it('未登录时应该显示登录和注册按钮', () => {
-      renderNavbar();
+ describe('usermenu - loginstate',  => {
+ it('loginshouldloginandregisterbutton',  => {
+ renderNavbar;
 
-      expect(screen.getByText('Text')).toBeInTheDocument();
-      expect(screen.getByText('Text')).toBeInTheDocument();
-    });
+ expect(screen.getByText('Text')).toBeInTheDocument;
+ expect(screen.getByText('Text')).toBeInTheDocument;
+ });
 
-    it('登录按钮应该链接到登录页面', () => {
-      renderNavbar();
+ it('loginbuttonshouldlinktologinpage',  => {
+ renderNavbar;
 
-      const loginButton = screen.getByText('Text').closest('Text');
-      expect(loginButton).toHaveAttribute('href', '/en/login');
-    });
+ const loginButton = screen.getByText('Text').closest('Text');
+ expect(loginButton).toHaveAttribute('href', '/en/login');
+ });
 
-    it('注册按钮应该链接到注册页面', () => {
-      renderNavbar();
+ it('registerbuttonshouldlinktoregisterpage',  => {
+ renderNavbar;
 
-      const registerButton = screen.getByText('Text').closest('Text');
-      expect(registerButton).toHaveAttribute('href', '/en/register');
-    });
-  });
+ const registerButton = screen.getByText('Text').closest('Text');
+ expect(registerButton).toHaveAttribute('href', '/en/register');
+ });
+ });
 
-  describe('用户菜单 - 已登录状态', () => {
-    const mockUser = {
-      id: 'test-user-id',
-      email: 'test@example.com',
-    };
+ describe('usermenu - loginstate',  => {
+ const mockUser = {
+ id: 'test-user-id',
+ email: 'test@example.com',
+ };
 
-    const mockProfile = {
-      id: 'test-profile-id',
-      display_name: 'Test User',
-      avatar_url: null,
-    };
+ const mockProfile = {
+ id: 'test-profile-id',
+ display_name: 'Test User',
+ avatar_url: null,
+ };
 
-    beforeEach(() => {
-      const { useUser, useProfile, useAuthLoading } = jest.requireMock('@/stores/authStore');
-      useUser.mockReturnValue(mockUser);
-      useProfile.mockReturnValue(mockProfile);
-      useAuthLoading.mockReturnValue(false);
-    });
+ beforeEach( => {
+ const { useUser, useProfile, useAuthLoading } = jest.requireMock('@/stores/authStore');
+ useUser.mockReturnValue(mockUser);
+ useProfile.mockReturnValue(mockProfile);
+ useAuthLoading.mockReturnValue(false);
+ });
 
-    afterEach(() => {
-      const { useUser, useProfile, useAuthLoading } = jest.requireMock('@/stores/authStore');
-      useUser.mockReturnValue(null);
-      useProfile.mockReturnValue(null);
-      useAuthLoading.mockReturnValue(false);
-    });
+ afterEach( => {
+ const { useUser, useProfile, useAuthLoading } = jest.requireMock('@/stores/authStore');
+ useUser.mockReturnValue(null);
+ useProfile.mockReturnValue(null);
+ useAuthLoading.mockReturnValue(false);
+ });
 
-    it('已登录时应该显示用户头像按钮', () => {
-      renderNavbar();
+ it('loginshoulduserheadbutton',  => {
+ renderNavbar;
 
-      expect(screen.getByText('Text')).toBeInTheDocument();
-    });
+ expect(screen.getByText('Text')).toBeInTheDocument;
+ });
 
-    it('点击用户头像应该打开用户菜单', async () => {
-      renderNavbar();
+ it('clickuserheadshouldopenusermenu', async  => {
+ renderNavbar;
 
-      const avatarButton = screen.getByText('Text').closest('Text');
-      fireEvent.click(avatarButton!);
+ const avatarButton = screen.getByText('Text').closest('Text');
+ fireEvent.click(avatarButton!);
 
-      await waitFor(() => {
-        expect(screen.getByTestId('user-menu-dropdown')).toBeInTheDocument();
-      });
-    });
+ await waitFor( => {
+ expect(screen.getByTestId('user-menu-dropdown')).toBeInTheDocument;
+ });
+ });
 
-    it('用户菜单应该显示设置链接', async () => {
-      renderNavbar();
+ it('usermenushouldsettingslink', async  => {
+ renderNavbar;
 
-      const avatarButton = screen.getByText('Text').closest('Text');
-      fireEvent.click(avatarButton!);
+ const avatarButton = screen.getByText('Text').closest('Text');
+ fireEvent.click(avatarButton!);
 
-      await waitFor(() => {
-        expect(screen.getByTestId('user-menu-dropdown')).toBeInTheDocument();
-      });
-    });
+ await waitFor( => {
+ expect(screen.getByTestId('user-menu-dropdown')).toBeInTheDocument;
+ });
+ });
 
-    it('点击退出登录应该调用 signOut', async () => {
-      renderNavbar();
+ it('clicklogoutloginshoulduse signOut', async  => {
+ renderNavbar;
 
-      const avatarButton = screen.getByText('Text').closest('Text');
-      fireEvent.click(avatarButton!);
+ const avatarButton = screen.getByText('Text').closest('Text');
+ fireEvent.click(avatarButton!);
 
-      await waitFor(() => {
-        expect(screen.getByTestId('user-menu-dropdown')).toBeInTheDocument();
-      });
+ await waitFor( => {
+ expect(screen.getByTestId('user-menu-dropdown')).toBeInTheDocument;
+ });
 
-      const signOutButton = screen.getByTestId('sign-out');
-      fireEvent.click(signOutButton);
+ const signOutButton = screen.getByTestId('sign-out');
+ fireEvent.click(signOutButton);
 
-      await waitFor(() => {
-        expect(mockSignOut).toHaveBeenCalled();
-      });
-    });
+ await waitFor( => {
+ expect(mockSignOut).toHaveBeenCalled;
+ });
+ });
 
-    it('应该显示收藏和提醒链接', () => {
-      renderNavbar();
+ it('shouldFavoritesandlink',  => {
+ renderNavbar;
 
-      const favoritesLink = screen.getByTitle('navbar.favorites');
-      const alertsLink = screen.getByTitle('navbar.alerts');
+ const favoritesLink = screen.getByTitle('navbar.favorites');
+ const alertsLink = screen.getByTitle('navbar.alerts');
 
-      expect(favoritesLink).toBeInTheDocument();
-      expect(alertsLink).toBeInTheDocument();
-    });
-  });
+ expect(favoritesLink).toBeInTheDocument;
+ expect(alertsLink).toBeInTheDocument;
+ });
+ });
 
-  describe('导航链接高亮', () => {
-    it('当前页面的导航链接应该有高亮样式', () => {
-      renderNavbar();
+ describe('navigationlink',  => {
+ it('currentpagenavigationlinkshouldhavestyle',  => {
+ renderNavbar;
 
-      const homeLink = screen.getByText('Text').closest('Text');
-      expect(homeLink?.className).toMatch(/text-primary-600|bg-primary-50/);
-    });
-  });
+ const homeLink = screen.getByText('Text').closest('Text');
+ expect(homeLink?.className).toMatch(/text-primary-600|bg-primary-50/);
+ });
+ });
 
-  describe('Logo 链接', () => {
-    it('Logo 应该链接到首页', () => {
-      renderNavbar();
+ describe('Logo link',  => {
+ it('Logo shouldlinkto',  => {
+ renderNavbar;
 
-      const logoLink = screen.getByAltText('Insight Logo').closest('Text');
-      expect(logoLink).toHaveAttribute('href', '/');
-    });
-  });
+ const logoLink = screen.getByAltText('Insight Logo').closest('Text');
+ expect(logoLink).toHaveAttribute('href', '/');
+ });
+ });
 });

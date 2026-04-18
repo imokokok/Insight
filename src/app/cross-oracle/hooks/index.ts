@@ -1,6 +1,6 @@
 /**
- * @fileoverview Hooks 索引文件
- * @description 统一导出所有自定义 hooks
+ * @fileoverview Hooks index file
+ * @description Unified export of all custom hooks
  */
 
 export { useCrossOraclePage } from './useCrossOraclePage';

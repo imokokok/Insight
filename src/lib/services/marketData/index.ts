@@ -10,7 +10,6 @@ import {
   type TokenMarketData,
   type HistoricalPricePoint,
 } from './binanceMarketService';
-import { coinGeckoMarketService } from './coinGeckoMarketService';
 import {
   fetchOraclesData,
   fetchAssetsData,
@@ -81,6 +80,3 @@ async function fetchMarketData(timeRangeHours: number = 720): Promise<MarketData
 }
 
 export { performanceMetricsCalculator };
-
-// 导出 Binance 和 CoinGecko 市场服务
-// 注意：coinGeckoMarketService 现在使用 Binance API 作为后端

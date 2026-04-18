@@ -131,7 +131,7 @@ export class ApiResponseBuilder {
     total: number,
     meta?: { requestId?: string }
   ): ApiPaginatedResponse<T> {
-    // 添加 limit > 0 验证
+    // Add limit > 0 validation
     const validLimit = limit > 0 ? limit : 10;
 
     return {

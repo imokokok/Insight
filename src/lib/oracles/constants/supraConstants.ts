@@ -7,8 +7,8 @@ export const SUPRA_CACHE_TTL = {
   HISTORY: 60000,
 } as const;
 
-// Supra 交易对索引映射（基于实际验证结果 - 2026-04-16）
-// 注意：MKR (index: 11) 和 FTM (index: 56) 已被移除，因为无法获取数据
+// Supra trading pair index mapping (based on actual verification results - 2026-04-16)
+// Note: MKR (index: 11) and FTM (index: 56) have been removed because data cannot be fetched
 export const SUPRA_PAIR_INDEX_MAP: Record<string, number> = {
   BTC: 0,
   ETH: 1,

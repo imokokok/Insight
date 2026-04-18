@@ -1,14 +1,14 @@
 /**
- * 统一导出模块
+ * Unified export module
  *
- * 提供统一的数据导出功能，支持 CSV、JSON、Excel、PDF 格式
+ * Provides unified data export functionality, supporting CSV, JSON, Excel, PDF formats
  */
 
-// 类型定义
+// Type definitions
 export type { ExportField } from './types';
 
-// 常量
-// 工具函数
+// Constants
+// Utility functions
 // Hook
-// 组件
+// Components
 export { UnifiedExport } from './UnifiedExport';

@@ -26,8 +26,8 @@ const getQueryKey = (symbol: string, chain?: Blockchain): string[] => {
 };
 
 /**
- * 获取DIA预言机的代币链上数据
- * 包括供应量、市值、交易所数量等真实链上数据
+ * Get token on-chain data from DIA oracle
+ * Including supply, market cap, exchange count and other real on-chain data
  */
 export function useDIAOnChainData(options: UseDIAOnChainDataOptions): UseDIAOnChainDataReturn {
   const { symbol, chain, enabled = true } = options;
@@ -44,9 +44,9 @@ export function useDIAOnChainData(options: UseDIAOnChainDataOptions): UseDIAOnCh
     queryKey,
     queryFn: () => diaService.getTokenOnChainData(symbol, chain),
     enabled: enabled && !!symbol,
-    staleTime: 60000, // 1分钟
-    gcTime: 300000, // 5分钟
-    refetchInterval: 60000, // 每分钟自动刷新
+    staleTime: 60000, // 1 minute
+    gcTime: 300000, // 5 minutes
+    refetchInterval: 60000, // Auto-refresh every minute
     refetchOnWindowFocus: false,
     retry: 2,
   });

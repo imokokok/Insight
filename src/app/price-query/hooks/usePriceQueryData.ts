@@ -38,6 +38,7 @@ interface UsePriceQueryDataReturn {
   queryResults: QueryResult[];
   historicalData: Partial<Record<string, PriceData[]>>;
   isLoading: boolean;
+  isFetching: boolean;
   queryDuration: number | null;
   queryProgress: { completed: number; total: number };
   currentQueryTarget: { oracle: OracleProvider | null; chain: Blockchain | null };
@@ -142,6 +143,7 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
   );
 
   const isLoading = batchResult.isLoading || batchResult.isFetching;
+  const isFetching = batchResult.isFetching;
 
   useEffect(() => {
     if (isLoading && queryStartTimeRef.current === null) {
@@ -356,6 +358,7 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
     queryResults,
     historicalData,
     isLoading,
+    isFetching,
     queryDuration,
     queryProgress: batchResult.queryProgress,
     currentQueryTarget,

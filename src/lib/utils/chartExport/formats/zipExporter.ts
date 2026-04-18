@@ -1,6 +1,6 @@
 /**
- * @fileoverview ZIP批量导出
- * @description 处理多种格式的批量导出
+ * @fileoverview ZIP batch export
+ * @description Handle batch export in multiple formats
  */
 
 import { createLogger } from '@/lib/utils/logger';
@@ -14,7 +14,7 @@ import type { ZIPExportOptions, ExportProgressCallback } from '../types';
 const logger = createLogger('zipExporter');
 
 /**
- * 批量导出为ZIP格式
+ * Batch export as ZIP format
  */
 export async function exportToZIP(
   options: ZIPExportOptions,

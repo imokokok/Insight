@@ -223,12 +223,12 @@ describe('Enhanced Error Middleware', () => {
   describe('getSuggestedAction', () => {
     it('should return suggestion for known error codes', () => {
       const suggestion = getSuggestedAction('VALIDATION_ERROR');
-      expect(suggestion).toBe('请检查输入数据是否符合要求');
+      expect(suggestion).toBe('Please check if the input data meets the requirements');
     });
 
     it('should return suggestion for rate limit error', () => {
       const suggestion = getSuggestedAction('RATE_LIMIT_EXCEEDED');
-      expect(suggestion).toBe('请稍后再试，或降低请求频率');
+      expect(suggestion).toBe('Please try again later, or reduce request frequency');
     });
 
     it('should return undefined for unknown error codes', () => {

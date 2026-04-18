@@ -1,6 +1,6 @@
 /**
- * @fileoverview 多预言机对比页面类型定义
- * @description 统一导出所有类型定义，确保类型系统清晰一致
+ * @fileoverview Multi-oracle comparison page type definitions
+ * @description Unified export of all type definitions, ensuring a clear and consistent type system
  */
 
 import type { MemoryStats } from '@/lib/oracles/utils/memoryManager';
