@@ -18,23 +18,23 @@ jest.mock('next/image', () => ({
 const mockNavStructure: NavStructure = [
   {
     id: 'oracles',
-    label: 'nav.oracles',
+    label: 'Oracles',
     icon: () => <svg data-testid="oracles-icon" />,
     items: [
       {
-        label: 'nav.chainlink',
+        label: 'Chainlink',
         href: '/chainlink',
         icon: () => <svg data-testid="chainlink-icon" />,
       },
       {
-        label: 'nav.pyth',
+        label: 'Pyth',
         href: '/pyth',
         icon: () => <svg data-testid="pyth-icon" />,
       },
     ],
   } as NavGroup,
   {
-    label: 'nav.home',
+    label: 'Home',
     href: '/',
     icon: () => <svg data-testid="home-icon" />,
   },
@@ -83,7 +83,7 @@ describe('MobileDrawer', () => {
       />
     );
 
-    const closeButton = screen.getByRole('button', { name: /actions.close/i });
+    const closeButton = screen.getByRole('button', { name: /close/i });
     expect(closeButton).toBeInTheDocument();
   });
 
@@ -97,7 +97,7 @@ describe('MobileDrawer', () => {
       />
     );
 
-    const closeButton = screen.getByRole('button', { name: /actions.close/i });
+    const closeButton = screen.getByRole('button', { name: /close/i });
     fireEvent.click(closeButton);
 
     expect(mockOnClose).toHaveBeenCalledTimes(1);
@@ -142,7 +142,7 @@ describe('MobileDrawer', () => {
       />
     );
 
-    const groupButton = screen.getByRole('button', { name: /nav.oracles/i });
+    const groupButton = screen.getByRole('button', { name: /oracles/i });
     fireEvent.click(groupButton);
 
     expect(screen.getByText('Text')).toBeInTheDocument();
@@ -159,7 +159,7 @@ describe('MobileDrawer', () => {
       />
     );
 
-    const groupButton = screen.getByRole('button', { name: /nav.oracles/i });
+    const groupButton = screen.getByRole('button', { name: /oracles/i });
     fireEvent.click(groupButton);
     expect(screen.getByText('Text')).toBeInTheDocument();
 
@@ -177,10 +177,10 @@ describe('MobileDrawer', () => {
       />
     );
 
-    const groupButton = screen.getByRole('button', { name: /nav.oracles/i });
+    const groupButton = screen.getByRole('button', { name: /oracles/i });
     fireEvent.click(groupButton);
 
-    const chainlinkItem = screen.getByRole('link', { name: /nav.chainlink/i });
+    const chainlinkItem = screen.getByRole('link', { name: /chainlink/i });
     expect(chainlinkItem).toHaveClass('bg-primary-50');
   });
 
@@ -194,7 +194,7 @@ describe('MobileDrawer', () => {
       />
     );
 
-    const groupButton = screen.getByRole('button', { name: /nav.oracles/i });
+    const groupButton = screen.getByRole('button', { name: /oracles/i });
     expect(groupButton).toHaveClass('bg-primary-50');
   });
 
@@ -221,7 +221,7 @@ describe('MobileDrawer', () => {
       />
     );
 
-    const homeLink = screen.getByRole('link', { name: /nav.home/i });
+    const homeLink = screen.getByRole('link', { name: /home/i });
     fireEvent.click(homeLink);
 
     expect(mockOnClose).toHaveBeenCalledTimes(1);

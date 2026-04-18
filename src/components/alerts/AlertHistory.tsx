@@ -53,7 +53,7 @@ export function AlertHistory({ events, isLoading, onRefresh }: AlertHistoryProps
     return (
       <Card>
         <CardHeader>
-          <CardTitle>{'alerts.history.title'}</CardTitle>
+          <CardTitle>Alert History</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center py-8">
@@ -68,14 +68,11 @@ export function AlertHistory({ events, isLoading, onRefresh }: AlertHistoryProps
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between w-full">
-          <CardTitle>{'alerts.history.title'}</CardTitle>
+          <CardTitle>Alert History</CardTitle>
           <div className="flex items-center gap-2">
             {unacknowledgedCount > 0 && (
               <span className="px-2 py-0.5 text-xs font-medium bg-danger-100 text-danger-700 rounded">
-                {'alerts.history.unacknowledgedCount'.replace(
-                  '{count}',
-                  String(unacknowledgedCount)
-                )}
+                {unacknowledgedCount} unacknowledged
               </span>
             )}
           </div>
@@ -85,12 +82,12 @@ export function AlertHistory({ events, isLoading, onRefresh }: AlertHistoryProps
         <div className="space-y-4">
           <div className="flex items-center gap-4 flex-wrap">
             <div className="flex items-center gap-2">
-              <label className="text-sm text-gray-600">{'alerts.history.status'}</label>
+              <label className="text-sm text-gray-600">Status</label>
               <DropdownSelect
                 options={[
-                  { value: 'all', label: 'alerts.history.all' },
-                  { value: 'unacknowledged', label: 'alerts.history.unacknowledged' },
-                  { value: 'acknowledged', label: 'alerts.history.acknowledged' },
+                  { value: 'all', label: 'All' },
+                  { value: 'unacknowledged', label: 'Unacknowledged' },
+                  { value: 'acknowledged', label: 'Acknowledged' },
                 ]}
                 value={filterStatus}
                 onChange={(value) => setFilterStatus(value as FilterStatus)}
@@ -98,11 +95,11 @@ export function AlertHistory({ events, isLoading, onRefresh }: AlertHistoryProps
             </div>
 
             <div className="flex items-center gap-2">
-              <label className="text-sm text-gray-600">{'alerts.history.sort'}</label>
+              <label className="text-sm text-gray-600">Sort</label>
               <DropdownSelect
                 options={[
-                  { value: 'newest', label: 'alerts.history.newest' },
-                  { value: 'oldest', label: 'alerts.history.oldest' },
+                  { value: 'newest', label: 'Newest First' },
+                  { value: 'oldest', label: 'Oldest First' },
                 ]}
                 value={sortOrder}
                 onChange={(value) => setSortOrder(value as SortOrder)}
@@ -124,7 +121,7 @@ export function AlertHistory({ events, isLoading, onRefresh }: AlertHistoryProps
                   d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
-              <p className="mt-2 text-sm">{'alerts.history.empty'}</p>
+              <p className="mt-2 text-sm">No alert history</p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -147,25 +144,18 @@ export function AlertHistory({ events, isLoading, onRefresh }: AlertHistoryProps
                               : 'bg-warning-100 text-warning-700'
                           }`}
                         >
-                          {event.acknowledged
-                            ? 'alerts.history.acknowledged'
-                            : 'alerts.history.pending'}
+                          {event.acknowledged ? 'Acknowledged' : 'Pending'}
                         </span>
                       </div>
 
                       <p className="text-sm font-medium text-gray-900">{event.condition_met}</p>
 
                       <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-gray-500">
-                        <span>
-                          {'alerts.history.triggerPrice'} {event.price.toFixed(4)}
-                        </span>
-                        <span>
-                          {'alerts.history.time'}{' '}
-                          {new Date(event.triggered_at).toLocaleString('zh-CN')}
-                        </span>
+                        <span>Trigger Price: {event.price.toFixed(4)}</span>
+                        <span>Time: {new Date(event.triggered_at).toLocaleString('zh-CN')}</span>
                         {event.acknowledged && event.acknowledged_at && (
                           <span>
-                            {'alerts.history.acknowledgeTime'}{' '}
+                            Acknowledged at:{' '}
                             {new Date(event.acknowledged_at).toLocaleString('zh-CN')}
                           </span>
                         )}
@@ -178,9 +168,7 @@ export function AlertHistory({ events, isLoading, onRefresh }: AlertHistoryProps
                         disabled={isAcknowledging}
                         className="px-3 py-1.5 text-xs font-medium bg-primary-600 text-white rounded hover:bg-primary-700 disabled:bg-gray-400"
                       >
-                        {isAcknowledging
-                          ? 'alerts.history.acknowledging'
-                          : 'alerts.history.acknowledge'}
+                        {isAcknowledging ? 'Acknowledging...' : 'Acknowledge'}
                       </button>
                     )}
                   </div>
@@ -191,9 +179,7 @@ export function AlertHistory({ events, isLoading, onRefresh }: AlertHistoryProps
 
           {events.length > 0 && (
             <div className="pt-3 border-t border-gray-200 text-xs text-gray-400 text-center">
-              {'alerts.history.totalRecords'
-                .replace('{total}', String(events.length))
-                .replace('{shown}', String(filteredAndSortedEvents.length))}
+              Showing {filteredAndSortedEvents.length} of {events.length} records
             </div>
           )}
         </div>

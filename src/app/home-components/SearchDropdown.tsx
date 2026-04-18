@@ -40,12 +40,12 @@ export default function SearchDropdown({
   };
 
   const getTypeLabel = (dropdownItem: DropdownItem) => {
-    if (dropdownItem.type === 'popular') return 'home.hero.popular';
+    if (dropdownItem.type === 'popular') return 'Popular';
     if (dropdownItem.type === 'search') {
       const itemType = dropdownItem.item.item.type;
-      if (itemType === 'token') return 'home.hero.token';
-      if (itemType === 'oracle') return 'home.hero.oracle';
-      if (itemType === 'chain') return 'home.hero.blockchain';
+      if (itemType === 'token') return 'Token';
+      if (itemType === 'oracle') return 'Oracle';
+      if (itemType === 'chain') return 'Blockchain';
     }
     return null;
   };
@@ -64,21 +64,21 @@ export default function SearchDropdown({
   return (
     <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-[200] animate-in fade-in slide-in-from-top-2 duration-200 text-left">
       {searchQuery.trim() && dropdownItems.length === 0 ? (
-        <div className="px-4 py-6 text-center text-gray-500 text-sm">{'home.hero.noResults'}</div>
+        <div className="px-4 py-6 text-center text-gray-500 text-sm">No results found</div>
       ) : (
         <>
           {!searchQuery.trim() && (
             <div className="flex items-center justify-between px-4 py-2 bg-gray-50 border-b border-gray-100">
               <div className="flex items-center gap-2 text-xs text-gray-500">
                 <Clock className="w-3 h-3" />
-                <span>{'home.hero.recentSearch'}</span>
+                <span>Recent Searches</span>
               </div>
               <button
                 type="button"
                 onClick={onClearHistory}
                 className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
               >
-                {'home.hero.clear'}
+                Clear
               </button>
             </div>
           )}
@@ -132,7 +132,7 @@ export default function SearchDropdown({
                         type="button"
                         onClick={(e) => onRemoveHistoryItem(dropdownItem.item.symbol, e)}
                         className="p-1 text-gray-300 hover:text-red-500 transition-colors"
-                        title={'home.hero.deleteRecord'}
+                        title="Remove from history"
                       >
                         <X className="w-3.5 h-3.5" />
                       </button>
@@ -145,8 +145,8 @@ export default function SearchDropdown({
           </div>
 
           <div className="px-4 py-2 bg-gray-50 border-t border-gray-100 text-xs text-gray-400 flex items-center justify-between">
-            <span>{'home.hero.keyboardHint'}</span>
-            <span>{'home.hero.escClose'}</span>
+            <span>↑↓ to navigate, Enter to select</span>
+            <span>Esc to close</span>
           </div>
         </>
       )}

@@ -19,13 +19,13 @@ export function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
   const tabs: Tab[] = [
     {
       id: 'overview',
-      label: 'crossChain.tabOverview',
-      description: 'crossChain.tabOverviewDesc',
+      label: 'Overview',
+      description: 'Summary and key metrics',
     },
     {
       id: 'charts',
-      label: 'crossChain.tabCharts',
-      description: 'crossChain.tabChartsDesc',
+      label: 'Charts',
+      description: 'Interactive price charts and analysis',
     },
   ];
 

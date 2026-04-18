@@ -24,44 +24,44 @@ export function ChainlinkStats({
       <StatCard
         icon={Hash}
         iconColor="text-blue-500"
-        title={'priceQuery.stats.roundId'}
+        title="Round ID"
         value={roundId ? `#${roundId.slice(-6)}` : '-'}
-        description={'priceQuery.stats.roundIdDesc'}
+        description="Current round identifier"
       />
       <StatCard
         icon={Layers}
         iconColor="text-indigo-500"
-        title={'priceQuery.stats.answeredInRound'}
+        title="Answered In Round"
         value={answeredInRound ? `#${answeredInRound.slice(-6)}` : '-'}
-        description={'priceQuery.stats.answeredInRoundDesc'}
+        description="Round ID where answer was provided"
       />
       <StatCard
         icon={Settings}
         iconColor="text-amber-500"
-        title={'priceQuery.stats.decimals'}
+        title="Decimals"
         value={decimals ?? '-'}
-        description={'priceQuery.stats.decimalsDesc'}
+        description="Number of decimal places"
       />
       <StatCard
         icon={FileText}
         iconColor="text-emerald-500"
-        title={'priceQuery.stats.version'}
+        title="Version"
         value={version ?? '-'}
-        description={'priceQuery.stats.versionDesc'}
+        description="Feed version number"
       />
       <StatCard
         icon={History}
         iconColor="text-purple-500"
-        title={'priceQuery.stats.roundStarted'}
+        title="Round Started"
         value={startedAt ? new Date(startedAt).toLocaleTimeString() : '-'}
-        description={'priceQuery.stats.roundStartedDesc'}
+        description="Time when current round started"
       />
       <StatCard
         icon={Shield}
         iconColor="text-rose-500"
-        title={'priceQuery.stats.feedDescription'}
+        title="Feed Description"
         value={source || '-'}
-        description={'priceQuery.stats.feedDescriptionDesc'}
+        description="Description of the price feed"
       />
     </>
   );

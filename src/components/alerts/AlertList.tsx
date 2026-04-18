@@ -185,7 +185,7 @@ export function AlertList({ alerts, isLoading, onRefresh }: AlertListProps) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>{'alerts.list.title'}</CardTitle>
+          <CardTitle>My Alerts</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8 text-gray-500">

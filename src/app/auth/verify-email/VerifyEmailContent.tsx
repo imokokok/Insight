@@ -26,13 +26,13 @@ function VerifyEmailForm() {
   const getErrorMessage = useCallback((error: string, _code: string | null): string => {
     switch (error) {
       case 'access_denied':
-        return 'auth.verifyEmail.error.accessDenied';
+        return 'Access denied. Please try again.';
       case 'expired_token':
-        return 'auth.verifyEmail.error.expiredToken';
+        return 'This verification link has expired. Please request a new one.';
       case 'invalid_token':
-        return 'auth.verifyEmail.error.invalidToken';
+        return 'Invalid verification link. Please request a new one.';
       default:
-        return 'auth.verifyEmail.error.default';
+        return 'Verification failed. Please try again.';
     }
   }, []);
 
@@ -76,7 +76,7 @@ function VerifyEmailForm() {
       <div className="min-h-screen flex items-center justify-center bg-insight px-4 rounded-lg">
         <div className="text-center">
           <Loader2 className="w-12 h-12 text-primary-600 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">{'auth.verifyEmail.verifying'}</p>
+          <p className="text-gray-600">Verifying your email...</p>
         </div>
       </div>
     );
@@ -91,15 +91,17 @@ function VerifyEmailForm() {
               <CheckCircle className="w-8 h-8 text-success-600" />
             </div>
             <h2 className="text-xl font-semibold text-gray-900 mb-2">
-              {'auth.verifyEmail.success.title'}
+              Email Verified Successfully
             </h2>
-            <p className="text-gray-500 mb-6">{'auth.verifyEmail.success.description'}</p>
+            <p className="text-gray-500 mb-6">
+              Your email has been verified. You can now log in to your account.
+            </p>
             <div className="space-y-3">
               <Link
                 href={`/en/login`}
                 className="block w-full px-6 py-3 bg-primary-600 text-white font-semibold hover:bg-primary-700 transition-colors rounded-md"
               >
-                {'auth.verifyEmail.success.goToLogin'}
+                Go to Login
               </Link>
             </div>
           </div>
@@ -115,22 +117,20 @@ function VerifyEmailForm() {
           <div className="w-16 h-16 bg-danger-100 flex items-center justify-center mx-auto mb-6 rounded-lg">
             <XCircle className="w-8 h-8 text-danger-600" />
           </div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">
-            {'auth.verifyEmail.error.title'}
-          </h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Verification Failed</h2>
           <p className="text-gray-500 mb-6">{errorMessage}</p>
           <div className="space-y-3">
             <Link
               href={`/en/auth/resend-verification`}
               className="block w-full px-6 py-3 bg-primary-600 text-white font-semibold hover:bg-primary-700 transition-colors rounded-md"
             >
-              {'auth.verifyEmail.error.resendVerification'}
+              Resend Verification Email
             </Link>
             <Link
               href={`/en/register`}
               className="block w-full px-6 py-3 border border-gray-200 text-gray-700 font-medium hover:bg-gray-50 hover:border-gray-300 transition-colors rounded-md"
             >
-              {'auth.verifyEmail.error.registerAgain'}
+              Register Again
             </Link>
           </div>
         </div>

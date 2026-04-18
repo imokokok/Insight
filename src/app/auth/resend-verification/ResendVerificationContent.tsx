@@ -40,7 +40,7 @@ function ResendVerificationForm() {
         setIsSuccess(true);
       }
     } catch {
-      setError('auth.resendVerification.error.default');
+      setError('Failed to resend verification email. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -54,9 +54,7 @@ function ResendVerificationForm() {
             <div className="w-16 h-16 bg-success-100 flex items-center justify-center mx-auto mb-6 rounded-lg">
               <CheckCircle className="w-8 h-8 text-success-600" />
             </div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">
-              {'auth.resendVerification.success.title'}
-            </h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">Verification Email Sent</h2>
             <p className="text-gray-500 mb-6">
               Verification email has been sent to {email}. Please check your inbox.
             </p>
@@ -65,13 +63,13 @@ function ResendVerificationForm() {
                 href={`/en/login`}
                 className="block w-full px-6 py-3 bg-primary-600 text-white font-semibold hover:bg-primary-700 transition-colors rounded-md"
               >
-                {'auth.resendVerification.success.goToLogin'}
+                Go to Login
               </Link>
               <button
                 onClick={() => setIsSuccess(false)}
                 className="w-full px-6 py-3 border border-gray-200 text-gray-700 font-medium hover:bg-gray-50 hover:border-gray-300 transition-colors rounded-md"
               >
-                {'auth.resendVerification.success.sendAgain'}
+                Send Again
               </button>
             </div>
           </div>
@@ -90,10 +88,10 @@ function ResendVerificationForm() {
                 Insight
               </h1>
             </Link>
-            <h2 className="mt-4 text-xl font-semibold text-gray-900">
-              {'auth.resendVerification.title'}
-            </h2>
-            <p className="mt-2 text-sm text-gray-500">{'auth.resendVerification.subtitle'}</p>
+            <h2 className="mt-4 text-xl font-semibold text-gray-900">Resend Verification Email</h2>
+            <p className="mt-2 text-sm text-gray-500">
+              Enter your email address to receive a new verification link
+            </p>
           </div>
 
           {error && (
@@ -105,7 +103,7 @@ function ResendVerificationForm() {
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                {'auth.resendVerification.emailLabel'}
+                Email Address
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -117,7 +115,7 @@ function ResendVerificationForm() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  placeholder={'auth.resendVerification.emailPlaceholder'}
+                  placeholder="Enter your email"
                   className="w-full pl-12 pr-4 py-3 border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-primary-600 transition-colors rounded-md"
                 />
               </div>
@@ -133,9 +131,7 @@ function ResendVerificationForm() {
               ) : (
                 <Mail className="w-5 h-5" />
               )}
-              <span>
-                {isLoading ? 'auth.resendVerification.sending' : 'auth.resendVerification.submit'}
-              </span>
+              <span>{isLoading ? 'Sending...' : 'Send Verification Email'}</span>
             </button>
           </form>
 
@@ -145,7 +141,7 @@ function ResendVerificationForm() {
               className="inline-flex items-center gap-2 text-sm text-primary-600 hover:text-primary-700 font-medium"
             >
               <ArrowLeft className="w-4 h-4" />
-              {'auth.resendVerification.backToLogin'}
+              Back to Login
             </Link>
           </div>
         </div>

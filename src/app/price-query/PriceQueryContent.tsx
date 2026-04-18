@@ -163,39 +163,39 @@ export default function PriceQueryContent() {
     };
 
     const csvTranslations = {
-      csvTitle: 'priceQuery.priceChart.export.csvTitle',
-      symbol: 'priceQuery.priceChart.export.symbol',
-      exportTime: 'priceQuery.priceChart.export.exportTime',
-      oracle: 'priceQuery.export.oracle',
-      blockchain: 'priceQuery.export.blockchain',
-      price: 'priceQuery.export.price',
-      timestamp: 'priceQuery.export.timestamp',
-      change24h: 'priceQuery.export.change24h',
-      confidence: 'priceQuery.export.confidence',
-      source: 'priceQuery.export.source',
+      csvTitle: 'Price Query Results',
+      symbol: 'Symbol',
+      exportTime: 'Export Time',
+      oracle: 'Oracle',
+      blockchain: 'Blockchain',
+      price: 'Price',
+      timestamp: 'Timestamp',
+      change24h: '24h Change',
+      confidence: 'Confidence',
+      source: 'Source',
     };
 
     const pdfTranslations = {
       ...csvTranslations,
-      reportTitle: 'priceQuery.priceChart.export.reportTitle',
-      generatedAt: 'priceQuery.lastUpdated',
-      queryParams: 'priceQuery.priceChart.export.queryParams',
-      oracles: 'priceQuery.export.oracle',
-      chains: 'priceQuery.export.blockchain',
-      timeRange: 'priceQuery.selectors.timeRange',
+      reportTitle: 'Price Query Report',
+      generatedAt: 'Generated at',
+      queryParams: 'Query Parameters',
+      oracles: 'Oracle',
+      chains: 'Blockchain',
+      timeRange: 'Time Range',
       hours: 'h',
-      statsSummary: 'priceQuery.priceChart.export.statsSummary',
-      avgPriceLabel: 'priceQuery.stats.avgPrice',
-      maxPriceLabel: 'priceQuery.stats.maxPrice',
-      minPriceLabel: 'priceQuery.stats.minPrice',
-      priceRangeLabel: 'priceQuery.stats.priceRange',
-      stdDevLabel: 'priceQuery.stats.standardDeviation',
-      dataPointsLabel: 'priceQuery.stats.dataPoints',
-      change24hLabel: 'priceQuery.export.change24h',
-      indicator: 'priceQuery.priceChart.export.indicator',
-      value: 'priceQuery.priceChart.export.value',
-      priceChart: 'priceQuery.chart.title',
-      priceData: 'priceQuery.priceChart.export.priceDataTitle',
+      statsSummary: 'Statistics Summary',
+      avgPriceLabel: 'Average Price',
+      maxPriceLabel: 'Max Price',
+      minPriceLabel: 'Min Price',
+      priceRangeLabel: 'Price Range',
+      stdDevLabel: 'Std Deviation',
+      dataPointsLabel: 'Data Points',
+      change24hLabel: '24h Change',
+      indicator: 'Indicator',
+      value: 'Value',
+      priceChart: 'Price Chart',
+      priceData: 'Price Data',
     };
 
     switch (config.format) {
@@ -230,9 +230,7 @@ export default function PriceQueryContent() {
   return (
     <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 min-h-screen">
       <div aria-live="polite" className="sr-only">
-        {isLoading
-          ? 'priceQuery.loadingData'
-          : `${queryResults.length} ${'priceQuery.results.title'}`}
+        {isLoading ? 'Loading data...' : `${queryResults.length} results`}
       </div>
 
       <div className="flex flex-col gap-3 mb-4">

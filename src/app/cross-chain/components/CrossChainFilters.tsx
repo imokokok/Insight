@@ -110,9 +110,9 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
   ];
 
   const thresholdTypeOptions = [
-    { value: 'fixed' as ThresholdType, label: 'crossChain.fixedThreshold' },
-    { value: 'dynamic' as ThresholdType, label: 'crossChain.dynamicVolatility' },
-    { value: 'atr' as ThresholdType, label: 'crossChain.atrIndicator' },
+    { value: 'fixed' as ThresholdType, label: 'Fixed Threshold' },
+    { value: 'dynamic' as ThresholdType, label: 'Dynamic Volatility' },
+    { value: 'atr' as ThresholdType, label: 'ATR Indicator' },
   ];
 
   const calculationPeriodOptions = [
@@ -144,7 +144,7 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
       <div className="flex items-center justify-between gap-2 px-4 py-3 border-b border-gray-200 bg-gray-50">
         <div className="flex items-center gap-2">
           <Filter className="w-4 h-4 text-gray-500" />
-          <span className="text-sm font-medium text-gray-700">{'crossChain.filters'}</span>
+          <span className="text-sm font-medium text-gray-700">Filters</span>
           {activeFilterCount > 0 && (
             <span className="px-2 py-0.5 text-xs bg-blue-100 text-blue-700 rounded-full">
               {activeFilterCount}
@@ -154,7 +154,7 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
           className="p-1.5 rounded-md transition-colors hover:bg-gray-200 text-gray-500"
-          aria-label={isCollapsed ? 'common.expand' : 'common.collapse'}
+          aria-label={isCollapsed ? 'Expand' : 'Collapse'}
         >
           {isCollapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
         </button>
@@ -171,7 +171,7 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
           <div className="space-y-3">
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-                {'crossChain.oracleProvider'}
+                Oracle Provider
               </label>
               <DropdownSelect
                 options={providerOptions}
@@ -183,7 +183,7 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
 
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-                {'crossChain.symbol'}
+                Symbol
               </label>
               <DropdownSelect
                 options={symbolOptions}
@@ -195,7 +195,7 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
 
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-                {'crossChain.timeRange'}
+                Time Range
               </label>
               <SegmentedControl
                 options={timeRangeOptions}
@@ -207,11 +207,9 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
 
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-medium text-gray-500 uppercase tracking-wide flex items-center gap-2">
-                {'crossChain.baseChain'}
+                Base Chain
                 {recommendedBaseChain && selectedBaseChain === recommendedBaseChain && (
-                  <span className="text-xs font-normal text-blue-600">
-                    ({'crossChain.recommended'})
-                  </span>
+                  <span className="text-xs font-normal text-blue-600">(Recommended)</span>
                 )}
               </label>
               <DropdownSelect
@@ -219,7 +217,7 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
                   ...option,
                   label:
                     option.value === recommendedBaseChain
-                      ? `${option.label} (${'crossChain.recommended'})`
+                      ? `${option.label} (Recommended)`
                       : option.label,
                 }))}
                 value={selectedBaseChain ?? ''}
@@ -241,7 +239,7 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
           {/* Visible Chains */}
           <div>
             <h3 className="text-xs font-medium text-gray-700 uppercase tracking-wide mb-2">
-              {'crossChain.visibleChains'}
+              Visible Chains
               <span className="ml-1 text-gray-400">
                 ({visibleChains.length}/{supportedChains.length})
               </span>
@@ -278,7 +276,7 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
           {/* Technical Indicators */}
           <div>
             <h3 className="text-xs font-medium text-gray-700 uppercase tracking-wide mb-2">
-              {'crossChain.technicalIndicators'}
+              Technical Indicators
             </h3>
             <div className="space-y-2">
               <label className="flex items-center gap-2 cursor-pointer">
@@ -288,12 +286,10 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
                   onChange={(e) => setShowMA(e.target.checked)}
                   className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                 />
-                <span className="text-sm text-gray-700">{'crossChain.showMA'}</span>
+                <span className="text-sm text-gray-700">Show Moving Average</span>
               </label>
               <div className="flex items-center gap-2">
-                <label className="text-xs text-gray-500 uppercase tracking-wide">
-                  {'crossChain.maPeriod'}:
-                </label>
+                <label className="text-xs text-gray-500 uppercase tracking-wide">MA Period:</label>
                 <DropdownSelect
                   options={maPeriodOptions}
                   value={maPeriod}
@@ -310,7 +306,7 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
                 }}
                 className="w-full px-3 py-2 text-xs bg-white border border-gray-300 text-gray-700 rounded-md transition-all duration-200 hover:bg-gray-50 hover:border-gray-400"
               >
-                {'crossChain.resetChart'}
+                Reset Chart
               </button>
             </div>
           </div>
@@ -321,12 +317,12 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
           {/* Anomaly Detection */}
           <div>
             <h3 className="text-xs font-medium text-gray-700 uppercase tracking-wide mb-2">
-              {'crossChain.anomalyDetectionConfig'}
+              Anomaly Detection Config
             </h3>
             <div className="space-y-3">
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs text-gray-500 uppercase tracking-wide">
-                  {'crossChain.thresholdType'}
+                  Threshold Type
                 </label>
                 <DropdownSelect
                   options={thresholdTypeOptions}
@@ -344,7 +340,7 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
               <div className="grid grid-cols-2 gap-2">
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs text-gray-500 uppercase tracking-wide">
-                    {'crossChain.fixedThresholdPercent'}
+                    Fixed Threshold %
                   </label>
                   <input
                     type="number"
@@ -364,7 +360,7 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
 
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs text-gray-500 uppercase tracking-wide">
-                    {'crossChain.volatilityMultiplier'}
+                    Volatility Multiplier
                   </label>
                   <input
                     type="number"
@@ -385,7 +381,7 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
 
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs text-gray-500 uppercase tracking-wide">
-                  {'crossChain.calculationPeriod'}
+                  Calculation Period
                 </label>
                 <DropdownSelect
                   options={calculationPeriodOptions}
@@ -401,9 +397,11 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
               </div>
 
               <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">
-                {thresholdConfig.type === 'fixed' && 'crossChain.fixedThresholdDesc'}
-                {thresholdConfig.type === 'dynamic' && 'crossChain.dynamicThresholdDesc'}
-                {thresholdConfig.type === 'atr' && 'crossChain.atrThresholdDesc'}
+                {thresholdConfig.type === 'fixed' &&
+                  'Fixed threshold for detecting price anomalies'}
+                {thresholdConfig.type === 'dynamic' &&
+                  'Dynamic threshold based on price volatility'}
+                {thresholdConfig.type === 'atr' && 'ATR-based threshold for adaptive detection'}
               </div>
             </div>
           </div>

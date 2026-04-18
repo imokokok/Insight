@@ -8,31 +8,31 @@ export default function TechnicalDocsSection() {
   const docs = [
     {
       icon: <BookOpen className="w-6 h-6" />,
-      title: 'docs.technical.methodology.title',
-      description: 'docs.technical.methodology.description',
+      title: 'Methodology',
+      description: 'Learn about our data collection and validation methodology',
       href: '#methodology',
-      tags: ['docs.technical.methodology.tag1', 'docs.technical.methodology.tag2'],
+      tags: ['Data Quality', 'Validation'],
     },
     {
       icon: <Server className="w-6 h-6" />,
-      title: 'docs.technical.api.title',
-      description: 'docs.technical.api.description',
+      title: 'API Documentation',
+      description: 'Integrate with our API for real-time price data',
       href: '#api',
-      tags: ['docs.technical.api.tag1', 'docs.technical.api.tag2'],
+      tags: ['REST API', 'WebSocket'],
     },
     {
       icon: <Layers className="w-6 h-6" />,
-      title: 'docs.technical.architecture.title',
-      description: 'docs.technical.architecture.description',
+      title: 'Architecture',
+      description: 'Understand our system architecture and design',
       href: '#architecture',
-      tags: ['docs.technical.architecture.tag1', 'docs.technical.architecture.tag2'],
+      tags: ['Microservices', 'Scalability'],
     },
     {
       icon: <Database className="w-6 h-6" />,
-      title: 'docs.technical.dataSources.title',
-      description: 'docs.technical.dataSources.description',
+      title: 'Data Sources',
+      description: 'Explore our oracle data sources and integrations',
       href: '#datasources',
-      tags: ['docs.technical.dataSources.tag1', 'docs.technical.dataSources.tag2'],
+      tags: ['Oracles', 'Chainlink'],
     },
   ];
 
@@ -43,9 +43,11 @@ export default function TechnicalDocsSection() {
           <div className="p-2 bg-green-100 rounded-lg">
             <Code className="w-5 h-5 text-green-600" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900">{'docs.technical.title'}</h2>
+          <h2 className="text-2xl font-bold text-gray-900">Technical Documentation</h2>
         </div>
-        <p className="text-gray-600 leading-relaxed">{'docs.technical.description'}</p>
+        <p className="text-gray-600 leading-relaxed">
+          Deep dive into our technical implementation and architecture
+        </p>
       </div>
 
       {/* Technical Docs Grid */}
@@ -79,7 +81,7 @@ export default function TechnicalDocsSection() {
                   href={doc.href}
                   className="inline-flex items-center gap-2 text-sm font-medium text-green-600 hover:text-green-700 transition-colors"
                 >
-                  {'docs.technical.readMore'}
+                  Read More
                   <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>
@@ -93,19 +95,19 @@ export default function TechnicalDocsSection() {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Zap className="w-5 h-5 text-yellow-400" />
-            <h3 className="text-white font-semibold">{'docs.technical.apiPreview.title'}</h3>
+            <h3 className="text-white font-semibold">API Preview</h3>
           </div>
           <Link href="#api" className="text-sm text-blue-400 hover:text-blue-300 transition-colors">
-            {'docs.technical.apiPreview.viewAll'}
+            View All Endpoints
           </Link>
         </div>
 
         <div className="bg-gray-800 rounded-lg p-4 font-mono text-sm overflow-x-auto">
           <div className="flex items-center gap-2 mb-2">
-            <span className="text-green-400">{'docs.technical.apiPreview.method'}</span>
-            <span className="text-blue-400">{'docs.technical.apiPreview.endpoint'}</span>
+            <span className="text-green-400">GET</span>
+            <span className="text-blue-400">/api/v1/prices/:symbol</span>
           </div>
-          <div className="text-gray-400 mb-2">{'docs.technical.apiPreview.description'}</div>
+          <div className="text-gray-400 mb-2">Get current price for a symbol</div>
           <pre className="text-gray-300">
             {`{
   "symbol": "ETH/USD",

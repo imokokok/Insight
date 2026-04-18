@@ -30,34 +30,34 @@ export function DefaultStats({
   return (
     <>
       <StatCard
-        title={'priceQuery.stats.maxPrice'}
+        title="Max Price"
         value={formatPrice(maxPrice)}
-        description={'priceQuery.stats.maxPriceDesc'}
+        description="Highest price in the selected period"
       />
       <StatCard
-        title={'priceQuery.stats.minPrice'}
+        title="Min Price"
         value={formatPrice(minPrice)}
-        description={'priceQuery.stats.minPriceDesc'}
+        description="Lowest price in the selected period"
       />
       <StatCard
-        title={'priceQuery.stats.avgPrice'}
+        title="Average Price"
         value={formatPrice(avgPrice)}
-        description={'priceQuery.stats.avgPriceDesc'}
+        description="Average price across all data points"
       />
       <StatCard
-        title={'priceQuery.stats.priceRange'}
+        title="Price Range"
         value={formatPrice(priceRange)}
-        description={'priceQuery.stats.priceRangeDesc'}
+        description="Difference between max and min price"
       />
       <StatCard
-        title={'priceQuery.volume24h'}
+        title="24h Volume"
         value={formatLargeNumber(volume24h)}
-        description={'priceQuery.stats.volume24hShortDesc'}
+        description="Trading volume in the last 24 hours"
       />
       <StatCard
-        title={'priceQuery.stats.consistencyRating'}
+        title="Consistency Rating"
         value={standardDeviationPercent > 0 ? consistencyRating?.label : '-'}
-        description={'priceQuery.stats.consistencyRatingDesc'}
+        description="Price consistency across oracles"
         rating={standardDeviationPercent > 0 ? stdDevRating : null}
       />
     </>

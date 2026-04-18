@@ -32,19 +32,19 @@ export default function RegisterContent() {
 
   const validateForm = () => {
     if (!email.trim()) {
-      setLocalError('auth.register.error.emailRequired');
+      setLocalError('Email is required');
       return false;
     }
     if (!password) {
-      setLocalError('auth.register.error.passwordRequired');
+      setLocalError('Password is required');
       return false;
     }
     if (password.length < 6) {
-      setLocalError('auth.register.error.passwordMinLength');
+      setLocalError('Password must be at least 6 characters');
       return false;
     }
     if (password !== confirmPassword) {
-      setLocalError('auth.register.error.passwordMismatch');
+      setLocalError('Passwords do not match');
       return false;
     }
     return true;
@@ -81,19 +81,17 @@ export default function RegisterContent() {
             <div className="w-16 h-16 bg-success-100 flex items-center justify-center mx-auto mb-6 rounded-lg">
               <CheckCircle className="w-8 h-8 text-success-600" />
             </div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">
-              {'auth.register.success.title'}
-            </h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">Registration Successful</h2>
             <p className="text-gray-500 mb-4">Verification email has been sent to {email}</p>
             <div className="bg-primary-50 border border-primary-200 p-4 mb-6 text-left rounded-lg">
               <div className="flex items-start gap-3">
                 <Mail className="w-5 h-5 text-primary-600 flex-shrink-0 mt-0.5" />
                 <div className="text-sm text-primary-800">
-                  <p className="font-medium mb-1">{'auth.register.success.nextSteps'}：</p>
+                  <p className="font-medium mb-1">Next steps:</p>
                   <ol className="list-decimal list-inside space-y-1 text-primary-700">
-                    <li>{'auth.register.success.checkInbox'}</li>
-                    <li>{'auth.register.success.clickLink'}</li>
-                    <li>{'auth.register.success.goBackLogin'}</li>
+                    <li>Check your inbox</li>
+                    <li>Click the verification link</li>
+                    <li>Return to login</li>
                   </ol>
                 </div>
               </div>
@@ -103,7 +101,7 @@ export default function RegisterContent() {
                 href={`/en/login`}
                 className="block w-full px-6 py-3 bg-primary-600 text-white font-semibold hover:bg-primary-700 transition-colors rounded-md"
               >
-                {'auth.register.success.goToLogin'}
+                Go to Login
               </Link>
               <button
                 onClick={() => {
@@ -115,7 +113,7 @@ export default function RegisterContent() {
                 }}
                 className="w-full px-6 py-3 border border-gray-200 text-gray-700 font-medium hover:bg-gray-50 hover:border-gray-300 transition-colors rounded-md"
               >
-                {'auth.register.success.useOtherEmail'}
+                Use Another Email
               </button>
             </div>
           </div>
@@ -134,8 +132,8 @@ export default function RegisterContent() {
                 Insight
               </h1>
             </Link>
-            <h2 className="mt-4 text-xl font-semibold text-gray-900">{'auth.register.title'}</h2>
-            <p className="mt-2 text-sm text-gray-500">{'auth.register.subtitle'}</p>
+            <h2 className="mt-4 text-xl font-semibold text-gray-900">Create Account</h2>
+            <p className="mt-2 text-sm text-gray-500">Sign up for a new account</p>
           </div>
 
           {displayError && (
@@ -153,8 +151,7 @@ export default function RegisterContent() {
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label htmlFor="displayName" className="block text-sm font-medium text-gray-700 mb-2">
-                {'auth.register.displayNameLabel'}{' '}
-                <span className="text-gray-400">{'auth.register.displayNameOptional'}</span>
+                Display Name <span className="text-gray-400">(optional)</span>
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -165,7 +162,7 @@ export default function RegisterContent() {
                   type="text"
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
-                  placeholder={'auth.register.displayNamePlaceholder'}
+                  placeholder="Enter your display name"
                   aria-invalid={!!displayError}
                   aria-describedby={displayError ? 'register-error' : undefined}
                   className="w-full pl-12 pr-4 py-3 border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900 transition-colors rounded-md"
@@ -175,7 +172,7 @@ export default function RegisterContent() {
 
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                {'auth.register.emailLabel'}
+                Email Address
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -187,7 +184,7 @@ export default function RegisterContent() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  placeholder={'auth.register.emailPlaceholder'}
+                  placeholder="Enter your email"
                   aria-invalid={!!displayError}
                   aria-describedby={displayError ? 'register-error' : undefined}
                   className="w-full pl-12 pr-4 py-3 border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900 transition-colors rounded-md"
@@ -197,14 +194,14 @@ export default function RegisterContent() {
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                {'auth.register.passwordLabel'}
+                Password
               </label>
               <PasswordInput
                 id="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                placeholder={'auth.register.passwordPlaceholder'}
+                placeholder="Create a password"
                 aria-invalid={!!displayError}
                 aria-describedby={displayError ? 'register-error' : undefined}
                 className="w-full pl-12 pr-12 py-3 border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900 transition-colors rounded-md"
@@ -216,14 +213,14 @@ export default function RegisterContent() {
                 htmlFor="confirmPassword"
                 className="block text-sm font-medium text-gray-700 mb-2"
               >
-                {'auth.register.confirmPasswordLabel'}
+                Confirm Password
               </label>
               <PasswordInput
                 id="confirmPassword"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
-                placeholder={'auth.register.confirmPasswordPlaceholder'}
+                placeholder="Confirm your password"
                 aria-invalid={!!displayError}
                 aria-describedby={displayError ? 'register-error' : undefined}
                 className="w-full pl-12 pr-12 py-3 border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900 transition-colors rounded-md"
@@ -238,19 +235,19 @@ export default function RegisterContent() {
                 className="h-4 w-4 mt-1 text-primary-600 focus:ring-primary-500 border-gray-300 rounded-md"
               />
               <label htmlFor="terms" className="ml-2 text-sm text-gray-600">
-                <span>{'auth.register.termsAgreementPrefix'}</span>
+                <span>I agree to the </span>
                 <Link
                   href={`/en/terms`}
                   className="text-primary-600 hover:text-primary-700 font-medium"
                 >
-                  {'auth.register.terms'}
+                  Terms of Service
                 </Link>
-                <span>{'auth.register.termsAgreementMiddle'}</span>
+                <span> and </span>
                 <Link
                   href={`/en/privacy`}
                   className="text-primary-600 hover:text-primary-700 font-medium"
                 >
-                  {'auth.register.privacy'}
+                  Privacy Policy
                 </Link>
               </label>
             </div>
@@ -265,19 +262,17 @@ export default function RegisterContent() {
               ) : (
                 <UserPlus className="w-5 h-5" />
               )}
-              <span>
-                {isLoading || loading ? 'auth.register.submitting' : 'auth.register.submit'}
-              </span>
+              <span>{isLoading || loading ? 'Creating account...' : 'Create Account'}</span>
             </button>
           </form>
 
           <p className="mt-8 text-center text-sm text-gray-500">
-            {'auth.register.hasAccount'}{' '}
+            Already have an account?{' '}
             <Link
               href={`/en/login`}
               className="font-semibold text-primary-600 hover:text-primary-700 transition-colors"
             >
-              {'auth.register.loginNow'}
+              Login now
             </Link>
           </p>
         </div>

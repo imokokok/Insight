@@ -24,35 +24,35 @@ export function API3Stats({
       <StatCard
         icon={FileText}
         iconColor="text-emerald-500"
-        title={'priceQuery.stats.dapiName'}
+        title="dAPI Name"
         value={dapiName || '-'}
-        description={'priceQuery.stats.dapiNameDesc'}
+        description="API3 data feed name"
       />
       <StatCard
         icon={Hash}
         iconColor="text-blue-500"
-        title={'priceQuery.stats.proxyAddress'}
+        title="Proxy Address"
         value={proxyAddress ? `${proxyAddress.slice(0, 6)}...${proxyAddress.slice(-4)}` : '-'}
-        description={'priceQuery.stats.proxyAddressDesc'}
+        description="Proxy contract address"
       />
       <StatCard
         icon={Globe}
         iconColor="text-indigo-500"
-        title={'priceQuery.stats.blockchain'}
+        title="Blockchain"
         value={chain || '-'}
-        description={'priceQuery.stats.blockchainDesc'}
+        description="Blockchain network"
       />
       <StatCard
         icon={Settings}
         iconColor="text-amber-500"
-        title={'priceQuery.stats.decimals'}
+        title="Decimals"
         value={decimals ?? '-'}
-        description={'priceQuery.stats.decimalsDesc'}
+        description="Number of decimal places"
       />
       <StatCard
         icon={Clock}
         iconColor="text-purple-500"
-        title={'priceQuery.stats.dataAge'}
+        title="Data Age"
         value={
           dataAge !== undefined
             ? dataAge < 60000
@@ -60,14 +60,14 @@ export function API3Stats({
               : `${Math.round(dataAge / 60000)}m`
             : '-'
         }
-        description={'priceQuery.stats.dataAgeDesc'}
+        description="Time since last update"
       />
       <StatCard
         icon={Shield}
         iconColor="text-rose-500"
-        title={'priceQuery.stats.confidenceScore'}
+        title="Confidence Score"
         value={confidence !== undefined ? `${(confidence * 100).toFixed(0)}%` : '-'}
-        description={'priceQuery.stats.confidenceScoreDesc'}
+        description="Overall confidence score"
       />
     </>
   );

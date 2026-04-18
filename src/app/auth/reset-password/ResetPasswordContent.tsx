@@ -41,15 +41,15 @@ function ResetPasswordForm() {
 
   const validateForm = () => {
     if (!password) {
-      setError('auth.resetPassword.error.passwordRequired');
+      setError('Password is required');
       return false;
     }
     if (password.length < 6) {
-      setError('auth.resetPassword.error.passwordMinLength');
+      setError('Password must be at least 6 characters');
       return false;
     }
     if (password !== confirmPassword) {
-      setError('auth.resetPassword.error.passwordMismatch');
+      setError('Passwords do not match');
       return false;
     }
     return true;
@@ -77,7 +77,7 @@ function ResetPasswordForm() {
         }, 3000);
       }
     } catch {
-      setError('auth.resetPassword.error.default');
+      setError('Failed to reset password. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -88,7 +88,7 @@ function ResetPasswordForm() {
       <div className="min-h-screen flex items-center justify-center bg-insight px-4 rounded-lg">
         <div className="text-center">
           <Loader2 className="w-12 h-12 text-primary-600 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">{'auth.resetPassword.validating'}</p>
+          <p className="text-gray-600">Validating session...</p>
         </div>
       </div>
     );
@@ -102,15 +102,15 @@ function ResetPasswordForm() {
             <div className="w-16 h-16 bg-danger-100 flex items-center justify-center mx-auto mb-6 rounded-lg">
               <XCircle className="w-8 h-8 text-danger-600" />
             </div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">
-              {'auth.resetPassword.invalidLink.title'}
-            </h2>
-            <p className="text-gray-500 mb-6">{'auth.resetPassword.invalidLink.description'}</p>
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">Invalid or Expired Link</h2>
+            <p className="text-gray-500 mb-6">
+              This password reset link has expired or is invalid. Please request a new one.
+            </p>
             <Link
               href={`/en/auth/forgot-password`}
               className="block w-full px-6 py-3 bg-primary-600 text-white font-semibold hover:bg-primary-700 transition-colors rounded-md"
             >
-              {'auth.resetPassword.invalidLink.requestNew'}
+              Request New Link
             </Link>
           </div>
         </div>
@@ -126,15 +126,15 @@ function ResetPasswordForm() {
             <div className="w-16 h-16 bg-success-100 flex items-center justify-center mx-auto mb-6 rounded-lg">
               <CheckCircle className="w-8 h-8 text-success-600" />
             </div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">
-              {'auth.resetPassword.success.title'}
-            </h2>
-            <p className="text-gray-500 mb-6">{'auth.resetPassword.success.description'}</p>
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">Password Reset Successful</h2>
+            <p className="text-gray-500 mb-6">
+              Your password has been reset successfully. Redirecting to login...
+            </p>
             <Link
               href={`/en/login`}
               className="block w-full px-6 py-3 bg-primary-600 text-white font-semibold hover:bg-primary-700 transition-colors rounded-md"
             >
-              {'auth.resetPassword.success.goToLogin'}
+              Go to Login
             </Link>
           </div>
         </div>
@@ -152,10 +152,8 @@ function ResetPasswordForm() {
                 Insight
               </h1>
             </Link>
-            <h2 className="mt-4 text-xl font-semibold text-gray-900">
-              {'auth.resetPassword.title'}
-            </h2>
-            <p className="mt-2 text-sm text-gray-500">{'auth.resetPassword.subtitle'}</p>
+            <h2 className="mt-4 text-xl font-semibold text-gray-900">Reset Password</h2>
+            <p className="mt-2 text-sm text-gray-500">Enter your new password below</p>
           </div>
 
           {error && (
@@ -170,14 +168,14 @@ function ResetPasswordForm() {
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                {'auth.resetPassword.passwordLabel'}
+                New Password
               </label>
               <PasswordInput
                 id="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                placeholder={'auth.resetPassword.passwordPlaceholder'}
+                placeholder="Enter new password"
                 aria-invalid={!!error}
                 aria-describedby={error ? 'reset-password-error' : undefined}
                 className="w-full pl-12 pr-12 py-3 border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-primary-600 transition-colors rounded-md"
@@ -189,14 +187,14 @@ function ResetPasswordForm() {
                 htmlFor="confirmPassword"
                 className="block text-sm font-medium text-gray-700 mb-2"
               >
-                {'auth.resetPassword.confirmPasswordLabel'}
+                Confirm Password
               </label>
               <PasswordInput
                 id="confirmPassword"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
-                placeholder={'auth.resetPassword.confirmPasswordPlaceholder'}
+                placeholder="Confirm new password"
                 aria-invalid={!!error}
                 aria-describedby={error ? 'reset-password-error' : undefined}
                 className="w-full pl-12 pr-12 py-3 border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-primary-600 transition-colors rounded-md"
@@ -213,9 +211,7 @@ function ResetPasswordForm() {
               ) : (
                 <Lock className="w-5 h-5" />
               )}
-              <span>
-                {isLoading ? 'auth.resetPassword.resetting' : 'auth.resetPassword.submit'}
-              </span>
+              <span>{isLoading ? 'Resetting...' : 'Reset Password'}</span>
             </button>
           </form>
         </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 
 import Image from 'next/image';
 import Link from 'next/link';
@@ -10,7 +10,6 @@ import { Menu, User, Heart, Bell } from 'lucide-react';
 
 import { Button } from '@/components/ui';
 import { useKeyboardShortcuts } from '@/hooks';
-import { sanitizeUrl } from '@/lib/security';
 import { useUser, useProfile, useAuthLoading, useAuthActions } from '@/stores/authStore';
 
 import { DropdownMenu, MobileDrawer, UserMenuDropdown, navigationConfig } from './navigation';
@@ -27,6 +26,10 @@ export default function Navbar() {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [avatarError, setAvatarError] = useState(false);
+
+  useEffect(() => {
+    setAvatarError(false);
+  }, [profile?.avatar_url]);
 
   const currentPath = useMemo(() => {
     if (!pathname) return '/';
@@ -154,23 +157,18 @@ export default function Navbar() {
                       className="flex items-center gap-1.5 p-1 hover:bg-gray-50 rounded-md transition-colors"
                     >
                       <div className="w-7 h-7 bg-primary-600 flex items-center justify-center text-white text-xs font-medium overflow-hidden rounded">
-                        {profile?.avatar_url && sanitizeUrl(profile.avatar_url) && !avatarError ? (
+                        {profile?.avatar_url && !avatarError ? (
                           <Image
-                            src={sanitizeUrl(profile.avatar_url)}
+                            src={profile.avatar_url}
                             alt={profile?.display_name || 'User'}
                             width={28}
                             height={28}
                             className="w-full h-full object-cover"
                             onError={() => setAvatarError(true)}
+                            unoptimized
                           />
                         ) : null}
-                        <span
-                          className={
-                            profile?.avatar_url && sanitizeUrl(profile.avatar_url) && !avatarError
-                              ? 'hidden'
-                              : ''
-                          }
-                        >
+                        <span className={profile?.avatar_url && !avatarError ? 'hidden' : ''}>
                           {profile?.display_name?.[0]?.toUpperCase() ||
                             user.email?.[0]?.toUpperCase() || <User className="w-3.5 h-3.5" />}
                         </span>

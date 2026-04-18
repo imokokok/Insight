@@ -26,48 +26,48 @@ export function PythStats({
       <StatCard
         icon={Hash}
         iconColor="text-purple-500"
-        title={'priceQuery.stats.priceId'}
+        title="Price ID"
         value={priceId ? `${priceId.slice(0, 6)}...${priceId.slice(-4)}` : '-'}
-        description={'priceQuery.stats.priceIdDesc'}
+        description="Unique identifier for the price feed"
       />
       <StatCard
         icon={Settings}
         iconColor="text-blue-500"
-        title={'priceQuery.stats.exponent'}
+        title="Exponent"
         value={exponent !== undefined ? `10^${exponent}` : '-'}
-        description={'priceQuery.stats.exponentDesc'}
+        description="Price exponent for decimal calculation"
       />
       <StatCard
         icon={BarChart3}
         iconColor="text-emerald-500"
-        title={'priceQuery.stats.confidenceAbs'}
+        title="Confidence (Absolute)"
         value={conf !== undefined ? `$${conf.toFixed(4)}` : '-'}
-        description={'priceQuery.stats.confidenceAbsDesc'}
+        description="Absolute confidence interval value"
       />
       <StatCard
         icon={Clock}
         iconColor="text-amber-500"
-        title={'priceQuery.stats.publishTime'}
+        title="Publish Time"
         value={publishTime ? new Date(publishTime).toLocaleTimeString() : '-'}
-        description={'priceQuery.stats.publishTimeDesc'}
+        description="Time when price was published"
       />
       <StatCard
         icon={BarChart3}
         iconColor="text-indigo-500"
-        title={'priceQuery.stats.confidenceWidth'}
+        title="Confidence Width"
         value={
           confidenceInterval?.widthPercentage !== undefined
             ? `${confidenceInterval.widthPercentage.toFixed(4)}%`
             : '-'
         }
-        description={'priceQuery.stats.confidenceWidthDesc'}
+        description="Confidence interval width percentage"
       />
       <StatCard
         icon={Shield}
         iconColor="text-rose-500"
-        title={'priceQuery.stats.confidenceScore'}
+        title="Confidence Score"
         value={confidence !== undefined ? `${confidence.toFixed(2)}%` : '-'}
-        description={'priceQuery.stats.confidenceScoreDesc'}
+        description="Overall confidence score"
       />
     </>
   );

@@ -398,17 +398,17 @@ export function InteractivePriceChart({
               .filter((p): p is number => p !== undefined && !isNaN(p));
             y = prices.length > 0 ? prices.reduce((a, b) => a + b, 0) / prices.length : 0;
           }
-          label = 'crossChain.currentPrice';
+          label = 'Current Price';
           color = chartColors.recharts.primary;
           break;
         case 'avg':
           y = avgPrice;
-          label = 'crossChain.averagePrice';
+          label = 'Average Price';
           color = semanticColors.success.main;
           break;
         case 'median':
           y = medianPrice;
-          label = 'crossChain.medianPrice';
+          label = 'Median Price';
           color = semanticColors.warning.main;
           break;
         case 'custom':
@@ -417,7 +417,7 @@ export function InteractivePriceChart({
               ? 0
               : (priceDomain[0] as number) +
                 ((priceDomain[1] as number) - (priceDomain[0] as number)) / 2;
-          label = 'crossChain.customLine';
+          label = 'Custom Line';
           color = semanticColors.info.main;
           break;
       }
@@ -786,7 +786,7 @@ export function InteractivePriceChart({
                   return index >= viewState.startIndex && index <= viewState.endIndex;
                 })}
                 fill={semanticColors.warning.dark}
-                name={'crossChain.anomalyPoint'}
+                name="Anomaly Point"
               />
             )}
 
@@ -818,15 +818,11 @@ export function InteractivePriceChart({
 
       {/* Keyboard Shortcuts Hint */}
       <div className="mt-2 text-xs text-gray-400 flex items-center gap-4 flex-wrap">
-        <span>{'crossChain.shortcuts'}:</span>
-        <span>
-          Ctrl + {'crossChain.scroll'}: {'crossChain.zoom'}
-        </span>
-        <span>← →: {'crossChain.pan'}</span>
-        <span>Home: {'crossChain.reset'}</span>
-        <span>
-          {'crossChain.dragSelect'}: {'crossChain.zoomToArea'}
-        </span>
+        <span>Shortcuts:</span>
+        <span>Ctrl + Scroll: Zoom</span>
+        <span>← →: Pan</span>
+        <span>Home: Reset</span>
+        <span>Drag Select: Zoom to Area</span>
       </div>
     </div>
   );

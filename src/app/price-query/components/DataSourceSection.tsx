@@ -77,7 +77,7 @@ export function DataSourceSection({
       onRefresh={onRefresh}
       isLoading={isLoading}
       error={error}
-      title={'priceQuery.dataSources.title'}
+      title="Data Sources"
       className="mb-6"
       showUpdateTime
       initiallyExpanded={false}

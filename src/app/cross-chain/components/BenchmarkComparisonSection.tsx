@@ -70,30 +70,24 @@ export function BenchmarkComparisonSection({ chainPrices }: BenchmarkComparisonS
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
       <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
-        <h3 className="text-sm font-semibold text-gray-900">{'crossChain.benchmark.title'}</h3>
+        <h3 className="text-sm font-semibold text-gray-900">Benchmark Comparison</h3>
       </div>
       <div className="p-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <div className="text-center p-4 bg-gray-50 rounded-lg">
-            <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
-              {'crossChain.benchmark.average'}
-            </p>
+            <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Average</p>
             <p className="text-xl font-semibold text-gray-900">
               {benchmarkData.industryAverage.toFixed(2)}
             </p>
           </div>
           <div className="text-center p-4 bg-gray-50 rounded-lg">
-            <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
-              {'crossChain.benchmark.median'}
-            </p>
+            <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Median</p>
             <p className="text-xl font-semibold text-gray-900">
               {benchmarkData.industryMedian.toFixed(2)}
             </p>
           </div>
           <div className="text-center p-4 bg-gray-50 rounded-lg">
-            <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
-              {'crossChain.benchmark.highestPrice'}
-            </p>
+            <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Highest Price</p>
             <p className="text-xl font-semibold text-gray-900">
               {benchmarkData.industryBest.toFixed(2)}
             </p>
@@ -104,16 +98,16 @@ export function BenchmarkComparisonSection({ chainPrices }: BenchmarkComparisonS
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200">
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {'crossChain.benchmark.chain'}
+                  Chain
                 </th>
                 <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {'crossChain.benchmark.price'}
+                  Price
                 </th>
                 <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {'crossChain.benchmark.diffFromAvg'}
+                  Diff from Avg
                 </th>
                 <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {'crossChain.benchmark.rank'}
+                  Rank
                 </th>
               </tr>
             </thead>

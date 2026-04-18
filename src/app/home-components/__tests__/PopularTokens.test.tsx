@@ -22,13 +22,13 @@ describe('PopularTokens', () => {
     it('应该渲染热门标签', () => {
       render(<PopularTokens tokens={defaultTokens} onTokenClick={mockOnTokenClick} />);
 
-      expect(screen.getByText('home.hero.popular:')).toBeInTheDocument();
+      expect(screen.getByText('Popular:')).toBeInTheDocument();
     });
 
     it('应该渲染空代币列表', () => {
       render(<PopularTokens tokens={[]} onTokenClick={mockOnTokenClick} />);
 
-      expect(screen.getByText('home.hero.popular:')).toBeInTheDocument();
+      expect(screen.getByText('Popular:')).toBeInTheDocument();
     });
   });
 

@@ -239,7 +239,7 @@ export function CustomTooltip({ active, payload, label, coordinate }: CustomTool
               {deviationPercent !== null && (
                 <div className="flex items-center justify-between pl-4.5">
                   <span className="text-xs" style={{ color: chartColors.recharts.tick }}>
-                    {'priceQuery.chart.tooltip.deviationFromAvg'}
+                    Deviation from avg
                   </span>
                   <span
                     className={`text-xs ${

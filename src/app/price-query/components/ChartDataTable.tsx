@@ -60,24 +60,18 @@ export const ChartDataTable = memo(function ChartDataTable({
     <div className="mt-4 border border-gray-200 rounded-lg overflow-hidden">
       <div className="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center gap-2">
         <Table className="w-4 h-4 text-gray-500" aria-hidden="true" />
-        <h4 className="text-sm font-semibold text-gray-900">{'priceQuery.charts.dataTable'}</h4>
-        <span className="ml-auto text-xs text-gray-500">
-          {'priceQuery.charts.dataPoints'}: {tableData.length}
-        </span>
+        <h4 className="text-sm font-semibold text-gray-900">Price Data</h4>
+        <span className="ml-auto text-xs text-gray-500">Data points: {tableData.length}</span>
       </div>
       <div className="max-h-80 overflow-auto">
-        <table
-          className="w-full text-xs"
-          role="table"
-          aria-label={'priceQuery.charts.dataTableAriaLabel'}
-        >
+        <table className="w-full text-xs" role="table" aria-label="Price data table">
           <thead className="sticky top-0 bg-gray-50">
             <tr>
               <th
                 scope="col"
                 className="px-3 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider border-b border-gray-200"
               >
-                {'priceQuery.charts.time'}
+                Time
               </th>
               {seriesNames.map((name) => (
                 <th
