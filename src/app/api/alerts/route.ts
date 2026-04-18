@@ -1,8 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
-import { moderateRateLimit } from '@/lib/api/middleware/rateLimitMiddleware';
-import { ApiResponseBuilder } from '@/lib/api/response';
-import { getUserId } from '@/lib/api/utils';
+import { createApiHandler, ApiResponseBuilder } from '@/lib/api/handler';
 import { sanitizeObject } from '@/lib/security';
 import { CreateAlertRequestSchema, AlertListResponseSchema } from '@/lib/security/validation';
 import { type AlertConditionType } from '@/lib/supabase/database.types';
@@ -12,14 +10,9 @@ import { validateBodySchema } from '@/lib/validation';
 
 const logger = createLogger('api-alerts');
 
-export async function GET(request: NextRequest) {
-  const rateLimitResult = await moderateRateLimit(request);
-  if (!rateLimitResult.success) {
-    return rateLimitResult.response;
-  }
-
-  try {
-    const userId = await getUserId(request);
+export const GET = createApiHandler(
+  async (_request: NextRequest, context) => {
+    const userId = context.auth?.userId;
     if (!userId) {
       return ApiResponseBuilder.unauthorized();
     }
@@ -43,23 +36,19 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json(validatedResponse.data);
-  } catch (error) {
-    logger.error(
-      'Error fetching alerts',
-      error instanceof Error ? error : new Error(String(error))
-    );
-    return ApiResponseBuilder.serverError();
+  },
+  {
+    middlewares: {
+      logging: true,
+      rateLimit: { preset: 'moderate' },
+      auth: { required: true },
+    },
   }
-}
+);
 
-export async function POST(request: NextRequest) {
-  const rateLimitResult = await moderateRateLimit(request);
-  if (!rateLimitResult.success) {
-    return rateLimitResult.response;
-  }
-
-  try {
-    const userId = await getUserId(request);
+export const POST = createApiHandler(
+  async (request: NextRequest, context) => {
+    const userId = context.auth?.userId;
     if (!userId) {
       return ApiResponseBuilder.unauthorized();
     }
@@ -67,7 +56,7 @@ export async function POST(request: NextRequest) {
     const validation = await validateBodySchema(CreateAlertRequestSchema)(request);
 
     if (!validation.success) {
-      return validation.response;
+      return validation.response ?? ApiResponseBuilder.badRequest('Validation failed');
     }
 
     const sanitizedData = sanitizeObject(validation.data!.body!);
@@ -105,8 +94,12 @@ export async function POST(request: NextRequest) {
       },
       { status: 201 }
     );
-  } catch (error) {
-    logger.error('Error creating alert', error instanceof Error ? error : new Error(String(error)));
-    return ApiResponseBuilder.serverError();
+  },
+  {
+    middlewares: {
+      logging: true,
+      rateLimit: { preset: 'moderate' },
+      auth: { required: true },
+    },
   }
-}
+);

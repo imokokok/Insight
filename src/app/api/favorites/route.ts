@@ -1,24 +1,16 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
-import { moderateRateLimit } from '@/lib/api/middleware/rateLimitMiddleware';
-import { ApiResponseBuilder } from '@/lib/api/response';
-import { getUserId } from '@/lib/api/utils';
+import { createApiHandler, ApiResponseBuilder } from '@/lib/api/handler';
 import { sanitizeObject, sanitizeString } from '@/lib/security';
 import { CreateFavoriteRequestSchema, validateAndSanitize } from '@/lib/security/validation';
 import { type ConfigType } from '@/lib/supabase/database.types';
 import { getServerQueries } from '@/lib/supabase/server';
-import { createLogger } from '@/lib/utils/logger';
 
-const logger = createLogger('api-favorites');
+const VALID_CONFIG_TYPES: ConfigType[] = ['oracle_config', 'symbol', 'chain_config'];
 
-export async function GET(request: NextRequest) {
-  const rateLimitResult = await moderateRateLimit(request);
-  if (!rateLimitResult.success) {
-    return rateLimitResult.response;
-  }
-
-  try {
-    const userId = await getUserId(request);
+export const GET = createApiHandler(
+  async (request: NextRequest, context) => {
+    const userId = context.auth?.userId;
     if (!userId) {
       return ApiResponseBuilder.unauthorized();
     }
@@ -29,20 +21,16 @@ export async function GET(request: NextRequest) {
       ? (sanitizeString(configTypeRaw, { maxLength: 50 }) as unknown as ConfigType | null)
       : null;
 
-    const validConfigTypes: ConfigType[] = ['oracle_config', 'symbol', 'chain_config'];
     const sanitizedConfigType =
-      configType && validConfigTypes.includes(configType as ConfigType)
+      configType && VALID_CONFIG_TYPES.includes(configType as ConfigType)
         ? (configType as ConfigType)
         : null;
 
     const queries = getServerQueries();
 
-    let favorites;
-    if (sanitizedConfigType) {
-      favorites = await queries.getFavoritesByType(userId, sanitizedConfigType);
-    } else {
-      favorites = await queries.getFavorites(userId);
-    }
+    const favorites = sanitizedConfigType
+      ? await queries.getFavoritesByType(userId, sanitizedConfigType)
+      : await queries.getFavorites(userId);
 
     if (!favorites) {
       return ApiResponseBuilder.serverError('Failed to fetch favorites');
@@ -52,23 +40,19 @@ export async function GET(request: NextRequest) {
       favorites,
       count: favorites.length,
     });
-  } catch (error) {
-    logger.error(
-      'Error fetching favorites',
-      error instanceof Error ? error : new Error(String(error))
-    );
-    return ApiResponseBuilder.serverError();
+  },
+  {
+    middlewares: {
+      logging: true,
+      rateLimit: { preset: 'moderate' },
+      auth: { required: true },
+    },
   }
-}
+);
 
-export async function POST(request: NextRequest) {
-  const rateLimitResult = await moderateRateLimit(request);
-  if (!rateLimitResult.success) {
-    return rateLimitResult.response;
-  }
-
-  try {
-    const userId = await getUserId(request);
+export const POST = createApiHandler(
+  async (request: NextRequest, context) => {
+    const userId = context.auth?.userId;
     if (!userId) {
       return ApiResponseBuilder.unauthorized();
     }
@@ -109,11 +93,12 @@ export async function POST(request: NextRequest) {
       },
       { status: 201 }
     );
-  } catch (error) {
-    logger.error(
-      'Error adding favorite',
-      error instanceof Error ? error : new Error(String(error))
-    );
-    return ApiResponseBuilder.serverError();
+  },
+  {
+    middlewares: {
+      logging: true,
+      rateLimit: { preset: 'moderate' },
+      auth: { required: true },
+    },
   }
-}
+);

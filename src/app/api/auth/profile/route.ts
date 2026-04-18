@@ -1,14 +1,9 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
-import { moderateRateLimit } from '@/lib/api/middleware/rateLimitMiddleware';
-import { ApiResponseBuilder } from '@/lib/api/response';
-import { getUserId } from '@/lib/api/utils';
+import { createApiHandler, ApiResponseBuilder } from '@/lib/api/handler';
 import { sanitizeObject, sanitizeString } from '@/lib/security';
 import { type UserProfileUpdate } from '@/lib/supabase/queries';
 import { getServerQueries } from '@/lib/supabase/server';
-import { createLogger } from '@/lib/utils/logger';
-
-const logger = createLogger('api-auth-profile');
 
 const MAX_DISPLAY_NAME_LENGTH = 100;
 const VALID_ORACLES = ['chainlink', 'pyth', 'api3', 'redstone', 'dia', 'winklink'] as const;
@@ -61,14 +56,9 @@ function validatePreferences(preferences: unknown): Record<string, unknown> | un
   return Object.keys(sanitized).length > 0 ? sanitized : undefined;
 }
 
-export async function GET(request: NextRequest) {
-  const rateLimitResult = await moderateRateLimit(request);
-  if (!rateLimitResult.success) {
-    return rateLimitResult.response;
-  }
-
-  try {
-    const userId = await getUserId(request);
+export const GET = createApiHandler(
+  async (_request: NextRequest, context) => {
+    const userId = context.auth?.userId;
     if (!userId) {
       return ApiResponseBuilder.unauthorized();
     }
@@ -90,23 +80,19 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json({ profile });
-  } catch (error) {
-    logger.error(
-      'Error fetching profile',
-      error instanceof Error ? error : new Error(String(error))
-    );
-    return ApiResponseBuilder.serverError();
+  },
+  {
+    middlewares: {
+      logging: true,
+      rateLimit: { preset: 'moderate' },
+      auth: { required: true },
+    },
   }
-}
+);
 
-export async function PUT(request: NextRequest) {
-  const rateLimitResult = await moderateRateLimit(request);
-  if (!rateLimitResult.success) {
-    return rateLimitResult.response;
-  }
-
-  try {
-    const userId = await getUserId(request);
+export const PUT = createApiHandler(
+  async (request: NextRequest, context) => {
+    const userId = context.auth?.userId;
     if (!userId) {
       return ApiResponseBuilder.unauthorized();
     }
@@ -155,11 +141,12 @@ export async function PUT(request: NextRequest) {
       profile: updatedProfile,
       message: 'Profile updated successfully',
     });
-  } catch (error) {
-    logger.error(
-      'Error updating profile',
-      error instanceof Error ? error : new Error(String(error))
-    );
-    return ApiResponseBuilder.serverError();
+  },
+  {
+    middlewares: {
+      logging: true,
+      rateLimit: { preset: 'moderate' },
+      auth: { required: true },
+    },
   }
-}
+);

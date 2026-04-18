@@ -1,0 +1,28 @@
+- [ ] 历史数据来源标注：MultiOracleTrendChart 中显示"历史数据来源: Binance"标注
+- [ ] 模拟数据标注：MarketDepthSimulator 中显示"模拟数据"标注
+- [ ] 估算数据标注：SimplePriceTable 中 Latency/Sources 列显示"估算"标注（当数据为硬编码默认值时）
+- [ ] 价格表格统一：SimplePriceTable 和 PriceTable 合并为单一组件，异常检测逻辑一致
+- [ ] PriceTable.tsx 已删除，所有引用改为 SimplePriceTable
+- [ ] useOracleData.ts 拆分为专注模块（core、error、performance、memory），组合 Hook 返回值不变
+- [ ] oracles.tsx 拆分为按提供商的配置模块，导入路径和返回值不变
+- [ ] OracleErrorType 和 OracleErrorTypeValue 合并为单一 OracleErrorType
+- [ ] deviationThresholds 和 SEVERITY_THRESHOLDS 合并为统一阈值配置
+- [ ] 预言机颜色配置统一为一处（chartColors.oracle），constants.tsx 中 oracleColors 已移除
+- [ ] UnifiedExportSection.tsx 已删除
+- [ ] charts.ts 中未使用的类型定义已清理
+- [ ] hooks/index.ts 已补全所有 hooks 导出
+- [ ] constants.tsx 已重命名为 constants.ts，引用路径已更新
+- [ ] UnsupportedChainError 和 UnsupportedSymbolError 已导出
+- [ ] 共同币种交集为空时，推荐支持最多预言机的交易对子集
+- [ ] ControlPanel 中标注不支持当前交易对的预言机
+- [ ] classifyError 使用 instanceof 结构化错误类型检查，而非字符串匹配
+- [ ] 401/403 错误正确分类为 authorization 而非 network
+- [ ] DIA 和 WINkLink 拥有专用错误类
+- [ ] analyzeReason 返回用户可读文本，而非翻译键
+- [ ] RiskAlertBanner 直接显示可读文本，而非翻译键字符串
+- [ ] 预言机客户端实例为懒加载，应用启动时不创建
+- [ ] priceHistoryMapRef 清理逻辑不依赖 enablePerformanceMetrics 标志
+- [ ] /api/oracles/[provider]/route.ts 使用 Zod schema 验证
+- [ ] npm run typecheck 通过
+- [ ] npm run lint 通过
+- [ ] npm run build 通过

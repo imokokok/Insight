@@ -1,11 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
-import { apiRateLimit, withRateLimitHeaders } from '@/lib/api/middleware/rateLimitMiddleware';
-import { ApiResponseBuilder } from '@/lib/api/response';
+import { createApiHandler, ApiResponseBuilder } from '@/lib/api/handler';
 import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
-import { createLogger } from '@/lib/utils/logger';
-
-const logger = createLogger('api-prices');
 
 const PRICE_SYMBOLS = [
   'BTC',
@@ -56,44 +52,27 @@ async function fetchBinancePrices(): Promise<Record<string, number>> {
   return prices;
 }
 
-export async function GET(request: NextRequest) {
-  const rateLimitResult = await apiRateLimit(request);
-  if (!rateLimitResult.success) {
-    return rateLimitResult.response;
-  }
-
-  try {
+export const GET = createApiHandler(
+  async (_request: NextRequest) => {
     const now = Date.now();
 
     if (cache.data && now - cache.data.timestamp < CACHE_DURATION) {
-      const response = NextResponse.json({
+      return NextResponse.json({
         prices: cache.data.prices,
         cached: true,
         timestamp: cache.data.timestamp,
       });
-      return withRateLimitHeaders(
-        response,
-        100,
-        rateLimitResult.remaining,
-        rateLimitResult.resetTime
-      );
     }
 
     if (cache.lock) {
       await cache.lock;
       const nowAfterLock = Date.now();
       if (cache.data && nowAfterLock - cache.data.timestamp < CACHE_DURATION) {
-        const response = NextResponse.json({
+        return NextResponse.json({
           prices: cache.data.prices,
           cached: true,
           timestamp: cache.data.timestamp,
         });
-        return withRateLimitHeaders(
-          response,
-          100,
-          rateLimitResult.remaining,
-          rateLimitResult.resetTime
-        );
       }
     }
 
@@ -110,42 +89,31 @@ export async function GET(request: NextRequest) {
         timestamp: now,
       };
 
-      const response = NextResponse.json({
+      return NextResponse.json({
         prices,
         cached: false,
         timestamp: now,
       });
-      return withRateLimitHeaders(
-        response,
-        100,
-        rateLimitResult.remaining,
-        rateLimitResult.resetTime
-      );
     } finally {
       resolveLock!();
       cache.lock = null;
     }
-  } catch (error) {
-    logger.error(
-      'Failed to fetch prices',
-      error instanceof Error ? error : new Error(String(error))
-    );
-
-    if (cache.data) {
-      const response = NextResponse.json({
-        prices: cache.data.prices,
-        cached: true,
-        stale: true,
-        timestamp: cache.data.timestamp,
-      });
-      return withRateLimitHeaders(
-        response,
-        100,
-        rateLimitResult.remaining,
-        rateLimitResult.resetTime
-      );
-    }
-
-    return ApiResponseBuilder.serverError('Failed to fetch prices');
+  },
+  {
+    middlewares: {
+      logging: true,
+      rateLimit: { preset: 'api' },
+    },
+    onError: async () => {
+      if (cache.data) {
+        return NextResponse.json({
+          prices: cache.data.prices,
+          cached: true,
+          stale: true,
+          timestamp: cache.data.timestamp,
+        });
+      }
+      return ApiResponseBuilder.serverError('Failed to fetch prices');
+    },
   }
-}
+);

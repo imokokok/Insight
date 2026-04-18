@@ -5,18 +5,19 @@
   - [x] SubTask 1.2: 全局搜索从 `@/lib/oracles` 导入 OracleProvider/Blockchain 等类型的引用，改为从 `@/types/oracle` 导入
   - [x] SubTask 1.3: 验证构建通过，无类型错误
 
-- [ ] Task 2: 将 API 路由迁移到 createApiHandler 声明式中间件模式
-  - [ ] SubTask 2.1: 迁移 `src/app/api/favorites/route.ts` 到 createApiHandler
-  - [ ] SubTask 2.2: 迁移 `src/app/api/favorites/[id]/route.ts` 到 createApiHandler
-  - [ ] SubTask 2.3: 迁移 `src/app/api/alerts/route.ts` 到 createApiHandler
-  - [ ] SubTask 2.4: 迁移 `src/app/api/alerts/[id]/route.ts` 到 createApiHandler
-  - [ ] SubTask 2.5: 迁移 `src/app/api/alerts/batch/route.ts` 到 createApiHandler
-  - [ ] SubTask 2.6: 迁移 `src/app/api/alerts/events/[id]/route.ts` 到 createApiHandler
-  - [ ] SubTask 2.7: 迁移 `src/app/api/auth/callback/route.ts` 到 createApiHandler
-  - [ ] SubTask 2.8: 迁移 `src/app/api/auth/profile/route.ts` 到 createApiHandler
-  - [ ] SubTask 2.9: 迁移 `src/app/api/auth/delete-account/route.ts` 到 createApiHandler
-  - [ ] SubTask 2.10: 迁移 `src/app/api/prices/route.ts` 到 createApiHandler（如需要）
-  - [ ] SubTask 2.11: 验证所有 API 路由测试通过
+- [x] Task 2: 将 API 路由迁移到 createApiHandler 声明式中间件模式
+  - [x] SubTask 2.1: 迁移 `src/app/api/favorites/route.ts` 到 createApiHandler
+  - [x] SubTask 2.2: 迁移 `src/app/api/favorites/[id]/route.ts` 到 createApiHandler
+  - [x] SubTask 2.3: 迁移 `src/app/api/alerts/route.ts` 到 createApiHandler
+  - [x] SubTask 2.4: 迁移 `src/app/api/alerts/[id]/route.ts` 到 createApiHandler
+  - [x] SubTask 2.5: 迁移 `src/app/api/alerts/batch/route.ts` 到 createApiHandler
+  - [x] SubTask 2.6: 迁移 `src/app/api/alerts/events/[id]/acknowledge/route.ts` 到 createApiHandler
+  - [x] SubTask 2.7: 迁移 `src/app/api/auth/callback/route.ts` 到 createApiHandler
+  - [x] SubTask 2.8: 迁移 `src/app/api/auth/profile/route.ts` 到 createApiHandler
+  - [x] SubTask 2.9: 迁移 `src/app/api/auth/delete-account/route.ts` 到 createApiHandler
+  - [x] SubTask 2.10: 迁移 `src/app/api/prices/route.ts` 到 createApiHandler
+  - [x] SubTask 2.11: 迁移 `src/app/api/alerts/events/route.ts` 到 createApiHandler
+  - [x] SubTask 2.12: 验证所有 API 路由测试通过
 
 - [x] Task 3: 抽取 useAllOnChainData hook，消除 PriceQueryContent 重复逻辑
   - [x] SubTask 3.1: 在 `src/hooks/oracles/` 下创建 `useAllOnChainData.ts` hook

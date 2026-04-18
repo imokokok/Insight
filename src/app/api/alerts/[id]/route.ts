@@ -1,13 +1,8 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
-import { moderateRateLimit } from '@/lib/api/middleware/rateLimitMiddleware';
-import { ApiResponseBuilder } from '@/lib/api/response';
-import { getUserId } from '@/lib/api/utils';
+import { createApiHandler, ApiResponseBuilder } from '@/lib/api/handler';
 import { sanitizeObject, sanitizeString, sanitizeUuid } from '@/lib/security';
 import { getServerQueries } from '@/lib/supabase/server';
-import { createLogger } from '@/lib/utils/logger';
-
-const logger = createLogger('api-alerts-id');
 
 const VALID_CONDITION_TYPES = ['above', 'below', 'change_percent'] as const;
 const MAX_NAME_LENGTH = 100;
@@ -100,22 +95,22 @@ async function getAlertById(id: string, userId: string) {
   return queries.getAlertById(id, userId);
 }
 
-export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const rateLimitResult = await moderateRateLimit(request);
-  if (!rateLimitResult.success) {
-    return rateLimitResult.response;
-  }
+export const GET = createApiHandler(
+  async (_request: NextRequest, context) => {
+    const params = context.validated?.params as { id: string } | undefined;
+    const id = params?.id;
 
-  try {
-    const { id } = await params;
+    if (!id) {
+      return ApiResponseBuilder.badRequest('Missing alert ID');
+    }
+
     const validatedId = validateAlertId(id);
 
     if (!validatedId) {
       return ApiResponseBuilder.badRequest('Invalid alert ID');
     }
 
-    const userId = await getUserId(request);
-
+    const userId = context.auth?.userId;
     if (!userId) {
       return ApiResponseBuilder.unauthorized();
     }
@@ -127,28 +122,32 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     return NextResponse.json({ alert });
-  } catch (error) {
-    logger.error('Error fetching alert', error instanceof Error ? error : new Error(String(error)));
-    return ApiResponseBuilder.serverError();
+  },
+  {
+    middlewares: {
+      logging: true,
+      rateLimit: { preset: 'moderate' },
+      auth: { required: true },
+    },
   }
-}
+);
 
-export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const rateLimitResult = await moderateRateLimit(request);
-  if (!rateLimitResult.success) {
-    return rateLimitResult.response;
-  }
+export const PUT = createApiHandler(
+  async (request: NextRequest, context) => {
+    const params = context.validated?.params as { id: string } | undefined;
+    const id = params?.id;
 
-  try {
-    const { id } = await params;
+    if (!id) {
+      return ApiResponseBuilder.badRequest('Missing alert ID');
+    }
+
     const validatedId = validateAlertId(id);
 
     if (!validatedId) {
       return ApiResponseBuilder.badRequest('Invalid alert ID');
     }
 
-    const userId = await getUserId(request);
-
+    const userId = context.auth?.userId;
     if (!userId) {
       return ApiResponseBuilder.unauthorized();
     }
@@ -183,31 +182,32 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       alert: updatedAlert,
       message: 'Alert updated successfully',
     });
-  } catch (error) {
-    logger.error('Error updating alert', error instanceof Error ? error : new Error(String(error)));
-    return ApiResponseBuilder.serverError();
+  },
+  {
+    middlewares: {
+      logging: true,
+      rateLimit: { preset: 'moderate' },
+      auth: { required: true },
+    },
   }
-}
+);
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const rateLimitResult = await moderateRateLimit(request);
-  if (!rateLimitResult.success) {
-    return rateLimitResult.response;
-  }
+export const DELETE = createApiHandler(
+  async (_request: NextRequest, context) => {
+    const params = context.validated?.params as { id: string } | undefined;
+    const id = params?.id;
 
-  try {
-    const { id } = await params;
+    if (!id) {
+      return ApiResponseBuilder.badRequest('Missing alert ID');
+    }
+
     const validatedId = validateAlertId(id);
 
     if (!validatedId) {
       return ApiResponseBuilder.badRequest('Invalid alert ID');
     }
 
-    const userId = await getUserId(request);
-
+    const userId = context.auth?.userId;
     if (!userId) {
       return ApiResponseBuilder.unauthorized();
     }
@@ -228,8 +228,12 @@ export async function DELETE(
     return NextResponse.json({
       message: 'Alert deleted successfully',
     });
-  } catch (error) {
-    logger.error('Error deleting alert', error instanceof Error ? error : new Error(String(error)));
-    return ApiResponseBuilder.serverError();
+  },
+  {
+    middlewares: {
+      logging: true,
+      rateLimit: { preset: 'moderate' },
+      auth: { required: true },
+    },
   }
-}
+);

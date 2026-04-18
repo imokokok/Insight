@@ -1,23 +1,13 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
-import { moderateRateLimit } from '@/lib/api/middleware/rateLimitMiddleware';
-import { ApiResponseBuilder } from '@/lib/api/response';
-import { getUserId } from '@/lib/api/utils';
+import { createApiHandler, ApiResponseBuilder } from '@/lib/api/handler';
 import { getServerQueries } from '@/lib/supabase/server';
-import { createLogger } from '@/lib/utils/logger';
-
-const logger = createLogger('api-alerts-events');
 
 const MAX_LIMIT = 100;
 
-export async function GET(request: NextRequest) {
-  const rateLimitResult = await moderateRateLimit(request);
-  if (!rateLimitResult.success) {
-    return rateLimitResult.response;
-  }
-
-  try {
-    const userId = await getUserId(request);
+export const GET = createApiHandler(
+  async (request: NextRequest, context) => {
+    const userId = context.auth?.userId;
     if (!userId) {
       return ApiResponseBuilder.unauthorized();
     }
@@ -62,11 +52,12 @@ export async function GET(request: NextRequest) {
       events,
       count: events.length,
     });
-  } catch (error) {
-    logger.error(
-      'Error fetching alert events',
-      error instanceof Error ? error : new Error(String(error))
-    );
-    return ApiResponseBuilder.serverError();
+  },
+  {
+    middlewares: {
+      logging: true,
+      rateLimit: { preset: 'moderate' },
+      auth: { required: true },
+    },
   }
-}
+);

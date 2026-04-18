@@ -1,0 +1,31 @@
+- [ ] `useCrossChainData` 已拆分为多个独立 Hook，组件按需订阅，不存在 125+ 字段的单一返回值
+- [ ] `useCrossChainSelector`、`useCrossChainUI`、`useCrossChainStatistics`、`useCrossChainChart` 代理 Hook 已移除，组件直接使用 Store selector 或底层 Hook
+- [ ] `useDataValidation` 和 `useAnomalyDetection` 已提取为普通工具函数，不再使用 Hook 包装
+- [ ] `hoveredCell`、`selectedCell`、`tooltipPosition` 已从 Zustand Store 移至组件本地 useState
+- [ ] `crossChainDataStore` 中无效的 persist 中间件已移除
+- [ ] `selectedBaseChain` 已纳入 `crossChainSelectorStore` 的 partialize 持久化配置
+- [ ] `DispersionGauge` 双重百分比 bug 已修复，CV 值只被转换为百分比一次
+- [ ] `constants.tsx` 和 `thresholds.ts` 中的偏差阈值已统一为单一来源
+- [ ] `MarketDepthSimulator` 已添加"Simulated"标识
+- [ ] `useOracleData` 中 `prices.push` 不安全模式已修复为 `map` + 解构赋值
+- [ ] `getTimeRangeInMs` 已提取为共享工具函数，3 个组件中的重复定义已移除
+- [ ] `getConsistencyRating` 重复定义已统一（保留 `colorUtils.ts` 版本）
+- [ ] `CrossChainFilters.tsx` 中硬编码的 `chainColors` 已改用 `@/lib/config/colors` 配置
+- [ ] Pearson 相关性计算中的时间戳匹配逻辑已提取为内部共享函数
+- [ ] 所有死代码已清理（colorUtils/correlationUtils/statisticsUtils/volatilityUtils/constants 中的未导出函数、未使用组件、未使用类型）
+- [ ] `UnifiedExportSection.tsx` 及其测试已移除
+- [ ] `PriceTable.tsx`（cross-oracle 旧版）及其测试已移除
+- [ ] `constants.tsx` 文件扩展名已改为 `.ts`
+- [ ] `InteractivePriceChart.tsx` 已拆分，单文件不超过 300 行
+- [ ] `PriceSpreadHeatmap.tsx` 已拆分，`HeatmapTooltip` 和 `SelectedCellDetail` 为独立文件
+- [ ] `CrossChainFilters.tsx` 已拆分为 `ChainSelector`、`TechnicalIndicators`、`AnomalyConfig` 子组件
+- [ ] 跨链比较已扩展至多 Oracle 提供商（不仅限于 Pyth）
+- [ ] Pyth 跨链比较已修复为测量链上数据新鲜度而非 API 响应延迟
+- [ ] Chainlink 和 API3 已实现跨链比较逻辑
+- [ ] `RiskAlertBanner.test.tsx` Props 接口已与实际组件对齐
+- [ ] `ControlPanel.test.tsx` 已修复（移除不存在的 `symbols` prop，使用正确的枚举值）
+- [ ] `TabNavigation.test.tsx` 占位符断言已替换为实际测试
+- [ ] `npm run typecheck` 通过
+- [ ] `npm run lint` 通过
+- [ ] `npm run test` 通过
+- [ ] `npm run build` 通过

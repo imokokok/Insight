@@ -1,21 +1,14 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
-import { strictRateLimit } from '@/lib/api/middleware/rateLimitMiddleware';
-import { ApiResponseBuilder } from '@/lib/api/response';
-import { getUserId } from '@/lib/api/utils';
+import { createApiHandler, ApiResponseBuilder } from '@/lib/api/handler';
 import { createServerClient, getServerQueries } from '@/lib/supabase/server';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('api-auth-delete-account');
 
-export async function POST(request: NextRequest) {
-  const rateLimitResult = await strictRateLimit(request);
-  if (!rateLimitResult.success) {
-    return rateLimitResult.response;
-  }
-
-  try {
-    const userId = await getUserId(request);
+export const POST = createApiHandler(
+  async (_request: NextRequest, context) => {
+    const userId = context.auth?.userId;
 
     if (!userId) {
       return ApiResponseBuilder.unauthorized();
@@ -60,11 +53,12 @@ export async function POST(request: NextRequest) {
     response.cookies.delete('sb-refresh-token');
 
     return response;
-  } catch (error) {
-    logger.error(
-      'Error in delete account',
-      error instanceof Error ? error : new Error(String(error))
-    );
-    return ApiResponseBuilder.serverError();
+  },
+  {
+    middlewares: {
+      logging: true,
+      rateLimit: { preset: 'strict' },
+      auth: { required: true },
+    },
   }
-}
+);
