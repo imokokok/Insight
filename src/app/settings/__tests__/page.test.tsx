@@ -10,7 +10,7 @@ jest.mock('next/navigation', () => ({
   useRouter: jest.fn(() => ({
     push: jest.fn(),
   })),
-  usePathname: jest.fn(() => '/en/settings'),
+  usePathname: jest.fn(() => '/settings'),
 }));
 
 jest.mock('@/stores/authStore', () => ({

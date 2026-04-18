@@ -30,7 +30,7 @@ function ResendVerificationForm() {
         type: 'signup',
         email,
         options: {
-          emailRedirectTo: `${window.location.origin}/en/auth/verify-email`,
+          emailRedirectTo: `${window.location.origin}/auth/verify-email`,
         },
       });
 
@@ -60,7 +60,7 @@ function ResendVerificationForm() {
             </p>
             <div className="space-y-3">
               <Link
-                href={`/en/login`}
+                href={`/login`}
                 className="block w-full px-6 py-3 bg-primary-600 text-white font-semibold hover:bg-primary-700 transition-colors rounded-md"
               >
                 Go to Login
@@ -83,7 +83,7 @@ function ResendVerificationForm() {
       <div className="w-full max-w-md">
         <div className="bg-white border border-gray-200 p-8 rounded-lg">
           <div className="text-center mb-8">
-            <Link href={`/en`} className="inline-block">
+            <Link href={`/`} className="inline-block">
               <h1 className="text-2xl font-bold text-primary-600 hover:text-primary-700 transition-colors">
                 Insight
               </h1>
@@ -137,7 +137,7 @@ function ResendVerificationForm() {
 
           <div className="mt-6 text-center">
             <Link
-              href={`/en/login`}
+              href={`/login`}
               className="inline-flex items-center gap-2 text-sm text-primary-600 hover:text-primary-700 font-medium"
             >
               <ArrowLeft className="w-4 h-4" />

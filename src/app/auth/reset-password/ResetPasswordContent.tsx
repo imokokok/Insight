@@ -73,7 +73,7 @@ function ResetPasswordForm() {
       } else {
         setIsSuccess(true);
         setTimeout(() => {
-          router.push(`/en/login`);
+          router.push(`/login`);
         }, 3000);
       }
     } catch {
@@ -107,7 +107,7 @@ function ResetPasswordForm() {
               This password reset link has expired or is invalid. Please request a new one.
             </p>
             <Link
-              href={`/en/auth/forgot-password`}
+              href={`/auth/forgot-password`}
               className="block w-full px-6 py-3 bg-primary-600 text-white font-semibold hover:bg-primary-700 transition-colors rounded-md"
             >
               Request New Link
@@ -131,7 +131,7 @@ function ResetPasswordForm() {
               Your password has been reset successfully. Redirecting to login...
             </p>
             <Link
-              href={`/en/login`}
+              href={`/login`}
               className="block w-full px-6 py-3 bg-primary-600 text-white font-semibold hover:bg-primary-700 transition-colors rounded-md"
             >
               Go to Login
@@ -147,7 +147,7 @@ function ResetPasswordForm() {
       <div className="w-full max-w-md">
         <div className="bg-white border border-gray-200 p-8 rounded-lg">
           <div className="text-center mb-8">
-            <Link href={`/en`} className="inline-block">
+            <Link href={`/`} className="inline-block">
               <h1 className="text-2xl font-bold text-primary-600 hover:text-primary-700 transition-colors">
                 Insight
               </h1>
