@@ -86,32 +86,6 @@ export class OracleClientFactory {
     return clients as Record<OracleProvider, BaseOracleClient>;
   }
 
-  clearInstances(): void {
-    if (this.mockFactory) {
-      this.mockFactory.clearInstances();
-      return;
-    }
-    this.instances.clear();
-    logger.info('Cleared all oracle client instances');
-  }
-
-  hasClient(provider: OracleProvider): boolean {
-    if (this.mockFactory) {
-      return this.mockFactory.hasClient(provider);
-    }
-    return this.instances.has(provider);
-  }
-
-  setMockFactory(factory: IOracleClientFactory): void {
-    this.mockFactory = factory;
-    logger.info('Mock oracle client factory set');
-  }
-
-  clearMockFactory(): void {
-    this.mockFactory = null;
-    logger.info('Mock oracle client factory cleared');
-  }
-
   getSupportedSymbols(provider: OracleProvider): string[] {
     try {
       const client = this.getClient(provider);
@@ -244,12 +218,4 @@ export function getOracleClient(provider: OracleProvider): BaseOracleClient {
 
 export function getAllOracleClients(): Record<OracleProvider, BaseOracleClient> {
   return getDefaultFactory().getAllClients();
-}
-
-export function setMockOracleFactory(mockFactory: IOracleClientFactory): void {
-  getDefaultFactory().setMockFactory(mockFactory);
-}
-
-export function clearMockOracleFactory(): void {
-  getDefaultFactory().clearMockFactory();
 }

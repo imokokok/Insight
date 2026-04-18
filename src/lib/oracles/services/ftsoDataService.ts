@@ -383,30 +383,8 @@ export class FtsoDataService {
     this.cache.clear();
     logger.info('Cache cleared');
   }
-
-  resetEndpointHealth(): void {
-    this.endpointHealth = {};
-  }
-
-  getEndpointStatus(network: string): {
-    current: number;
-    total: number;
-    health: Record<string, boolean>;
-  } {
-    const endpoints = FLARE_RPC_ENDPOINTS[network] || FLARE_RPC_ENDPOINTS.flare;
-    return {
-      current: this.currentEndpointIndex[network] || 0,
-      total: endpoints.length,
-      health: this.endpointHealth,
-    };
-  }
 }
 
 export function getFtsoDataService(): FtsoDataService {
   return FtsoDataService.getInstance();
-}
-
-export function resetFtsoDataService(): void {
-  const instance = FtsoDataService.getInstance();
-  instance.clearCache();
 }

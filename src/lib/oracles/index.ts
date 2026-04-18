@@ -97,7 +97,6 @@ export { FlareClient } from './clients/flare';
 export {
   FtsoDataService,
   getFtsoDataService,
-  resetFtsoDataService,
   type FtsoPriceData,
 } from './services/ftsoDataService';
 export {
@@ -144,8 +143,6 @@ export {
   getDefaultFactory,
   getOracleClient,
   getAllOracleClients,
-  setMockOracleFactory,
-  clearMockOracleFactory,
 } from './factory';
 export * from '@/types/oracle';
 export { getOracleColor } from './colors';
