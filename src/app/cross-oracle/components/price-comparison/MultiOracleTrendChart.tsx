@@ -197,6 +197,7 @@ function MultiOracleTrendChartComponent({
           </LineChart>
         </ResponsiveContainer>
       </div>
+      <div className="mt-3 text-xs text-gray-400 text-center">历史数据来源: Binance API</div>
     </div>
   );
 }

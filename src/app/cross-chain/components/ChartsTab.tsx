@@ -13,35 +13,70 @@ import {
 
 import { SectionErrorBoundary } from '@/components/error-boundary';
 import { baseColors, semanticColors, chartColors } from '@/lib/config/colors';
+import { useCrossChainConfigStore } from '@/stores/crossChainConfigStore';
+import { useCrossChainDataStore } from '@/stores/crossChainDataStore';
+import { useCrossChainSelectorStore } from '@/stores/crossChainSelectorStore';
+import { useCrossChainUIStore } from '@/stores/crossChainUIStore';
 import { type Blockchain } from '@/types/oracle';
 
-import { type useCrossChainData } from '../useCrossChainData';
+import { useChartData } from '../hooks/useChartData';
+import { useStatistics } from '../hooks/useStatistics';
+import { useCurrentClient, useFilteredChains } from '../useCrossChainData';
 
 import { InteractivePriceChart } from './InteractivePriceChart';
 import { StandardBoxPlot } from './StandardBoxPlot';
 
-interface ChartsTabProps {
-  data: ReturnType<typeof useCrossChainData>;
-}
+export function ChartsTab() {
+  const filteredChains = useFilteredChains();
+  const hiddenLines = useCrossChainUIStore((s) => s.hiddenLines);
+  const setHiddenLines = useCrossChainUIStore((s) => s.setHiddenLines);
+  const focusedChain = useCrossChainUIStore((s) => s.focusedChain);
+  const setFocusedChain = useCrossChainUIStore((s) => s.setFocusedChain);
+  const showMA = useCrossChainUIStore((s) => s.showMA);
+  const maPeriod = useCrossChainUIStore((s) => s.maPeriod);
+  const thresholdConfig = useCrossChainConfigStore((s) => s.thresholdConfig);
 
-export function ChartsTab({ data }: ChartsTabProps) {
-  const {
+  const currentPrices = useCrossChainDataStore((s) => s.currentPrices);
+  const historicalPrices = useCrossChainDataStore((s) => s.historicalPrices);
+  const selectedBaseChain = useCrossChainSelectorStore((s) => s.selectedBaseChain);
+  const selectedTimeRange = useCrossChainSelectorStore((s) => s.selectedTimeRange);
+  const currentClient = useCurrentClient();
+
+  const statistics = useStatistics({
+    currentPrices,
+    historicalPrices,
     filteredChains,
-    hiddenLines,
-    setHiddenLines,
-    focusedChain,
-    setFocusedChain,
+    selectedTimeRange,
+    currentClient,
+    selectedBaseChain,
+  });
+
+  const chart = useChartData({
+    currentPrices,
+    historicalPrices,
+    filteredChains,
+    selectedBaseChain,
+    selectedTimeRange,
+    showMA,
+    maPeriod,
+    validPrices: statistics.validPrices,
+    avgPrice: statistics.avgPrice,
+    standardDeviation: statistics.standardDeviation,
+    medianPrice: statistics.medianPrice,
+    thresholdConfig,
+  });
+
+  const {
     chartData,
     chartDataWithMA,
     scatterData,
-    avgPrice,
-    medianPrice,
-    standardDeviation,
     priceDistributionData,
     boxPlotData,
     meanBinIndex,
     medianBinIndex,
-  } = data;
+  } = chart;
+
+  const { avgPrice, medianPrice, standardDeviation } = statistics;
 
   const handleLegendClick = (e: unknown) => {
     const dataKey = (e as { dataKey?: string | number })?.dataKey;

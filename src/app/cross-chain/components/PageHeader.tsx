@@ -8,19 +8,30 @@ import { FavoriteButton } from '@/components/favorites';
 import { LiveStatusBar } from '@/components/ui';
 import type { FavoriteConfig } from '@/hooks';
 import { useColorblindMode, useSetColorblindMode } from '@/stores/crossChainConfigStore';
+import { useCrossChainDataStore } from '@/stores/crossChainDataStore';
+import { useCrossChainSelectorStore } from '@/stores/crossChainSelectorStore';
+import { useCrossChainUIStore } from '@/stores/crossChainUIStore';
 
-import { type useCrossChainData } from '../useCrossChainData';
+import { useCrossChainExportActions } from '../hooks/useCrossChainExport';
 
-interface PageHeaderProps {
-  data: ReturnType<typeof useCrossChainData>;
-}
-
-export function PageHeader({ data }: PageHeaderProps) {
+export function PageHeader() {
   const router = useRouter();
   const colorblindMode = useColorblindMode();
   const setColorblindMode = useSetColorblindMode();
 
+  const selectedSymbol = useCrossChainSelectorStore((s) => s.selectedSymbol);
+  const selectedProvider = useCrossChainSelectorStore((s) => s.selectedProvider);
+  const visibleChains = useCrossChainUIStore((s) => s.visibleChains);
+  const loading = useCrossChainDataStore((s) => s.loading);
+  const currentPrices = useCrossChainDataStore((s) => s.currentPrices);
+  const refreshStatus = useCrossChainDataStore((s) => s.refreshStatus);
+  const showRefreshSuccess = useCrossChainDataStore((s) => s.showRefreshSuccess);
+  const lastUpdated = useCrossChainDataStore((s) => s.lastUpdated);
+  const fetchData = useCrossChainDataStore((s) => s.fetchData);
+
   const {
+    exportToCSV,
+    exportToJSON,
     user,
     chainFavorites,
     currentFavoriteConfig,
@@ -28,18 +39,7 @@ export function PageHeader({ data }: PageHeaderProps) {
     setShowFavoritesDropdown,
     favoritesDropdownRef,
     handleApplyFavorite,
-    selectedSymbol,
-    selectedProvider,
-    visibleChains,
-    loading,
-    currentPrices,
-    exportToCSV,
-    exportToJSON,
-    refreshStatus,
-    showRefreshSuccess,
-    fetchData,
-    lastUpdated,
-  } = data;
+  } = useCrossChainExportActions();
 
   return (
     <div className="mb-6">
@@ -195,7 +195,7 @@ export function PageHeader({ data }: PageHeaderProps) {
           </div>
 
           <button
-            onClick={fetchData}
+            onClick={() => fetchData?.()}
             disabled={refreshStatus === 'refreshing'}
             className={`flex items-center gap-1.5 px-4 py-1.5 text-sm text-white disabled:opacity-50 rounded-md transition-all duration-200 ${
               refreshStatus === 'error'

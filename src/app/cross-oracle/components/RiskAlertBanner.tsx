@@ -13,7 +13,6 @@ interface RiskAlertBannerProps {
   lowRiskCount: number;
   maxDeviation: number;
   onViewDetails?: () => void;
-  t?: (key: string, params?: Record<string, string | number>) => string;
 }
 
 function getRiskStyles(

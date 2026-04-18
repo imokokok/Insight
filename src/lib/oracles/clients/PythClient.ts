@@ -114,6 +114,7 @@ export class PythClient extends BaseOracleClient {
       if (realPrice) {
         if (!realPrice.confidenceInterval) {
           realPrice.confidenceInterval = this.generateConfidenceInterval(realPrice.price, symbol);
+          realPrice.confidenceSource = 'estimated';
         }
         return {
           ...realPrice,

@@ -60,6 +60,7 @@ export function DataSourceSection({
       provider: result.provider,
       chain: result.chain,
       confidence: calculateConfidence(result),
+      confidenceSource: result.priceData.confidenceSource,
       source: result.priceData.source,
       credibilityLevel: getCredibilityLevel(result.provider),
       lastUpdated: result.priceData.timestamp,

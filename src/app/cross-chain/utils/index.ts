@@ -35,3 +35,18 @@ export {
   type ThresholdConfig,
   type ThresholdType,
 } from './volatilityUtils';
+
+export { getTimeRangeInMs } from './timeUtils';
+
+export {
+  validatePriceData,
+  validateCurrentPrices,
+  validateHistoricalPrices,
+  validateSinglePrice,
+} from './validation';
+
+export {
+  detectAnomalousPrices,
+  detectAnomalies,
+  type AnomalousPricePoint,
+} from './anomalyDetection';

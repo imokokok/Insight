@@ -1,6 +1,8 @@
 import { z } from 'zod';
 
 import { createLogger } from '@/lib/utils/logger';
+import { ORACLE_PROVIDER_VALUES } from '@/types/oracle/enums';
+import type { OracleProvider } from '@/types/oracle/enums';
 
 import { sanitizeString, sanitizeSymbol, sanitizeProvider, sanitizeChain } from './inputSanitizer';
 
@@ -246,6 +248,7 @@ export const PriceDataSchema = PriceDataBaseSchema.extend({
   chain: SafeChainSchema.optional(),
   decimals: z.number().int().nonnegative().optional(),
   confidence: z.number().min(0).max(1).optional(),
+  confidenceSource: z.enum(['original', 'estimated']).optional(),
   source: z.string().optional(),
   change: z.number().optional(),
   change24h: z.number().optional(),
@@ -330,3 +333,18 @@ type HistoricalPriceQueryType = z.infer<typeof HistoricalPriceQuerySchema>;
 export type BatchPriceRequestType = z.infer<typeof BatchPriceRequestSchema>;
 type PriceDataType = z.infer<typeof PriceDataSchema>;
 type OracleResponseType = z.infer<typeof OracleResponseSchema>;
+
+export const OracleProviderPathParamSchema = z
+  .string()
+  .refine(
+    (val) => ORACLE_PROVIDER_VALUES.includes(val as OracleProvider),
+    `Invalid provider. Valid providers: ${ORACLE_PROVIDER_VALUES.join(', ')}`
+  );
+
+export const OracleProviderQuerySchema = z.object({
+  symbol: SafeSymbolSchema,
+  chain: SafeChainSchema.optional(),
+  period: SafePeriodSchema.optional(),
+});
+
+export type OracleProviderQueryType = z.infer<typeof OracleProviderQuerySchema>;

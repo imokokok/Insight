@@ -2,19 +2,22 @@ import { type NextRequest } from 'next/server';
 
 import { lenientRateLimit } from '@/lib/api/middleware/rateLimitMiddleware';
 import {
-  validateProvider,
-  validatePeriod,
-  validateSymbol,
-  validateChain,
   handleGetPrice,
   handleGetHistoricalPrices,
   createUnexpectedErrorResponse,
 } from '@/lib/api/oracleHandlers';
 import { ApiResponseBuilder } from '@/lib/api/response';
+import {
+  OracleProviderPathParamSchema,
+  OracleProviderQuerySchema,
+} from '@/lib/security/validation';
 import { createLogger } from '@/lib/utils/logger';
-import { type Blockchain, type OracleProvider } from '@/types/oracle';
+import { validateQuerySchema } from '@/lib/validation';
+import { type Blockchain, type OracleProvider, ORACLE_PROVIDER_VALUES } from '@/types/oracle';
 
 const logger = createLogger('api-oracles-provider');
+
+const VALID_PROVIDERS = ORACLE_PROVIDER_VALUES.join(', ');
 
 export async function GET(
   request: NextRequest,
@@ -27,38 +30,29 @@ export async function GET(
 
   try {
     const { provider } = await params;
-    const searchParams = request.nextUrl.searchParams;
-    const symbol = searchParams.get('symbol');
-    const chain = searchParams.get('chain');
-    const period = searchParams.get('period');
 
-    if (!symbol) {
-      return ApiResponseBuilder.badRequest('Missing required parameter: symbol');
+    const providerResult = OracleProviderPathParamSchema.safeParse(provider);
+    if (!providerResult.success) {
+      return ApiResponseBuilder.badRequest(
+        `Invalid provider: ${provider}. Valid providers: ${VALID_PROVIDERS}`
+      );
     }
 
-    const providerError = validateProvider(provider);
-    if (providerError) return providerError;
+    const validation = await validateQuerySchema(OracleProviderQuerySchema)(request);
 
-    const symbolError = validateSymbol(symbol);
-    if (symbolError) return symbolError;
-
-    const periodNum = period ? parseInt(period, 10) : undefined;
-    const periodError = validatePeriod(periodNum);
-    if (periodError) return periodError;
-
-    const chainValue = chain ? (chain as Blockchain) : undefined;
-
-    if (chain) {
-      const chainError = validateChain(chain);
-      if (chainError) return chainError;
+    if (!validation.success) {
+      return validation.response!;
     }
 
-    if (periodNum) {
+    const { symbol, chain, period } = validation.data!.query!;
+    const chainValue = chain as Blockchain | undefined;
+
+    if (period) {
       return handleGetHistoricalPrices({
         provider: provider as OracleProvider,
         symbol,
         chain: chainValue,
-        period: periodNum,
+        period: period as number,
       });
     }
 

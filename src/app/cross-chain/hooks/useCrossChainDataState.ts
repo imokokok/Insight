@@ -9,7 +9,7 @@ import { type OracleProvider, type Blockchain, type PriceData } from '@/types/or
 
 import { type AnomalousPricePoint } from '../utils/anomalyDetection';
 
-import { useDataValidation, useAnomalyDetection, useDataFetching } from './index';
+import { useDataFetching } from './index';
 
 interface UseCrossChainDataStateReturn {
   currentPrices: PriceData[];
@@ -35,35 +35,38 @@ interface UseCrossChainDataStateReturn {
 }
 
 export function useCrossChainDataState(): UseCrossChainDataStateReturn {
-  const { selectedProvider, selectedSymbol, selectedTimeRange } = useCrossChainSelectorStore();
+  const selectedProvider = useCrossChainSelectorStore((s) => s.selectedProvider);
+  const selectedSymbol = useCrossChainSelectorStore((s) => s.selectedSymbol);
+  const selectedTimeRange = useCrossChainSelectorStore((s) => s.selectedTimeRange);
+  const selectedBaseChain = useCrossChainSelectorStore((s) => s.selectedBaseChain);
+  const setSelectedBaseChain = useCrossChainSelectorStore((s) => s.setSelectedBaseChain);
 
-  const { setVisibleChains } = useCrossChainUIStore();
-  const { selectedBaseChain, setSelectedBaseChain } = useCrossChainSelectorStore();
-  const { refreshInterval } = useCrossChainConfigStore();
+  const setVisibleChains = useCrossChainUIStore((s) => s.setVisibleChains);
 
-  const {
-    currentPrices,
-    historicalPrices,
-    loading,
-    refreshStatus,
-    showRefreshSuccess,
-    lastUpdated,
-    recommendedBaseChain,
-    prevStats,
-    anomalies,
-    setCurrentPrices,
-    setHistoricalPrices,
-    setLoading,
-    setRefreshStatus,
-    setShowRefreshSuccess,
-    setLastUpdated,
-    setPrevStats,
-    setRecommendedBaseChain,
-    setAnomalies,
-  } = useCrossChainDataStore();
+  const refreshInterval = useCrossChainConfigStore((s) => s.refreshInterval);
 
-  const dataValidation = useDataValidation();
-  const anomalyDetection = useAnomalyDetection();
+  const currentPrices = useCrossChainDataStore((s) => s.currentPrices);
+  const historicalPrices = useCrossChainDataStore((s) => s.historicalPrices);
+  const loading = useCrossChainDataStore((s) => s.loading);
+  const refreshStatus = useCrossChainDataStore((s) => s.refreshStatus);
+  const showRefreshSuccess = useCrossChainDataStore((s) => s.showRefreshSuccess);
+  const lastUpdated = useCrossChainDataStore((s) => s.lastUpdated);
+  const recommendedBaseChain = useCrossChainDataStore((s) => s.recommendedBaseChain);
+  const prevStats = useCrossChainDataStore((s) => s.prevStats);
+  const anomalies = useCrossChainDataStore((s) => s.anomalies);
+  const setCurrentPrices = useCrossChainDataStore((s) => s.setCurrentPrices);
+  const setHistoricalPrices = useCrossChainDataStore((s) => s.setHistoricalPrices);
+  const setLoading = useCrossChainDataStore((s) => s.setLoading);
+  const setRefreshStatus = useCrossChainDataStore((s) => s.setRefreshStatus);
+  const setShowRefreshSuccess = useCrossChainDataStore((s) => s.setShowRefreshSuccess);
+  const setLastUpdated = useCrossChainDataStore((s) => s.setLastUpdated);
+  const setPrevStats = useCrossChainDataStore((s) => s.setPrevStats);
+  const setRecommendedBaseChain = useCrossChainDataStore((s) => s.setRecommendedBaseChain);
+  const setAnomalies = useCrossChainDataStore((s) => s.setAnomalies);
+  const setFetchData = useCrossChainDataStore((s) => s.setFetchData);
+  const setClearCache = useCrossChainDataStore((s) => s.setClearCache);
+  const setClearCacheForProvider = useCrossChainDataStore((s) => s.setClearCacheForProvider);
+
   const currentClient = getDefaultFactory().getClient(selectedProvider);
   const supportedChains = currentClient.supportedChains;
 
@@ -87,63 +90,59 @@ export function useCrossChainDataState(): UseCrossChainDataStateReturn {
       setLoading,
       setAnomalies,
     },
-    dataValidation,
-    anomalyDetection
+    refreshInterval || undefined
   );
 
   const fetchData = useCallback(async () => {
     await fetchDataInternal();
   }, [fetchDataInternal]);
 
+  useEffect(() => {
+    setFetchData(fetchData);
+  }, [fetchData, setFetchData]);
+
+  useEffect(() => {
+    setClearCache(clearCache);
+  }, [clearCache, setClearCache]);
+
+  useEffect(() => {
+    setClearCacheForProvider(clearCacheForProvider);
+  }, [clearCacheForProvider, setClearCacheForProvider]);
+
   const prevParamsRef = useRef({
     selectedProvider,
     selectedSymbol,
     selectedTimeRange,
   });
-  const isInitialLoadRef = useRef(true);
 
   useEffect(() => {
-    const isInitialLoad = isInitialLoadRef.current;
     const paramsChanged =
       prevParamsRef.current.selectedProvider !== selectedProvider ||
       prevParamsRef.current.selectedSymbol !== selectedSymbol ||
       prevParamsRef.current.selectedTimeRange !== selectedTimeRange;
 
-    if (isInitialLoad || paramsChanged) {
+    if (paramsChanged) {
       prevParamsRef.current = {
         selectedProvider,
         selectedSymbol,
         selectedTimeRange,
       };
-      isInitialLoadRef.current = false;
 
       setCurrentPrices([]);
       setHistoricalPrices({});
       setLastUpdated(null);
       setRefreshStatus('idle');
-
-      fetchData();
     }
-
-    return () => {};
   }, [
     selectedProvider,
     selectedSymbol,
     selectedTimeRange,
-    fetchData,
     setCurrentPrices,
     setHistoricalPrices,
     setLastUpdated,
     setRefreshStatus,
   ]);
 
-  useEffect(() => {
-    if (refreshInterval === 0) return;
-    const intervalId = setInterval(() => fetchData(), refreshInterval);
-    return () => clearInterval(intervalId);
-  }, [refreshInterval, fetchData]);
-
-  // 当支持的链变化时（包括切换预言机），自动更新可见链为所有支持的链
   useEffect(() => {
     if (supportedChains.length > 0) {
       setVisibleChains([...supportedChains]);

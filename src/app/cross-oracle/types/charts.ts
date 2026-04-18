@@ -32,15 +32,6 @@ export interface PriceDeviationDataPoint {
 // 价格分布箱线图类型
 // ============================================================================
 
-interface BoxPlotStats {
-  min: number;
-  q1: number;
-  median: number;
-  q3: number;
-  max: number;
-  outliers: number[];
-}
-
 export interface OraclePriceData {
   oracleId: string;
   prices: number[];
@@ -56,18 +47,6 @@ export interface OraclePriceHistory {
     timestamp: number;
     price: number;
   }[];
-}
-
-interface VolatilityResult {
-  volatility: number;
-  trend: 'up' | 'down' | 'stable';
-  changePercent: number;
-}
-
-interface VolatilityTrendPoint {
-  timestamp: number;
-  volatility: number;
-  price: number;
 }
 
 // ============================================================================
@@ -86,66 +65,14 @@ export interface OraclePerformanceData {
 }
 
 // ============================================================================
-// 移动平均线图表类型
-// ============================================================================
-
-interface MovingAverageChartProps {
-  data: {
-    oracle: OracleProvider;
-    prices: {
-      timestamp: number;
-      price: number;
-    }[];
-  }[];
-  oracleNames: Record<OracleProvider, string>;
-}
-
-// ============================================================================
-// 数据质量趋势类型
-// ============================================================================
-
-interface QualityDataPoint {
-  timestamp: number;
-  score: number;
-  completeness: number;
-  freshness: number;
-  reliability: number;
-}
-
-interface DataQualityTrendProps {
-  data: {
-    oracle: OracleProvider;
-    data: QualityDataPoint[];
-  }[];
-  oracleNames: Record<OracleProvider, string>;
-}
-
-// ============================================================================
 // 延迟分布直方图类型
 // ============================================================================
 
-interface HistogramBin {
-  bin: string;
-  count: number;
-  range: [number, number];
-}
-
 export interface LatencyStats {
-  /** P50 中位数延迟 */
   p50: number;
-  /** P95 延迟 */
   p95: number;
-  /** P99 延迟 */
   p99: number;
-  /** 最小延迟 */
   min: number;
-  /** 最大延迟 */
   max: number;
-  /** 平均延迟 */
   avg: number;
-}
-
-interface LatencyDistributionHistogramProps {
-  data: number[];
-  oracleName: string;
 }

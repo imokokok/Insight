@@ -3,8 +3,11 @@
  * 提供价格数据的有效性验证功能
  */
 
-import { type Blockchain } from '@/types/oracle';
+import { createLogger } from '@/lib/utils/logger';
+import { type Blockchain, type PriceData } from '@/types/oracle';
 import type { ValidationResult } from '@/types/oracle/constants';
+
+const logger = createLogger('validation');
 
 const BITCOIN_GENESIS_TIMESTAMP = new Date('2009-01-03').getTime();
 
@@ -42,4 +45,39 @@ export function validatePriceData(
     isValid: errors.length === 0,
     errors,
   };
+}
+
+export function validateCurrentPrices(prices: PriceData[]): PriceData[] {
+  return prices.filter((priceData) => {
+    if (!priceData.chain) return false;
+    const validation = validatePriceData(priceData.price, priceData.timestamp, priceData.chain);
+    if (!validation.isValid) {
+      validation.errors.forEach((error) =>
+        logger.warn('Price data validation failed', { error, chain: priceData.chain })
+      );
+      return false;
+    }
+    return true;
+  });
+}
+
+export function validateHistoricalPrices(prices: PriceData[], chain: Blockchain): PriceData[] {
+  return prices.filter((priceData) => {
+    const validation = validatePriceData(priceData.price, priceData.timestamp, chain);
+    if (!validation.isValid) {
+      validation.errors.forEach((error) =>
+        logger.warn('Historical price data validation failed', { error, chain })
+      );
+      return false;
+    }
+    return true;
+  });
+}
+
+export function validateSinglePrice(
+  price: number,
+  timestamp: number,
+  chain: Blockchain
+): ValidationResult {
+  return validatePriceData(price, timestamp, chain);
 }

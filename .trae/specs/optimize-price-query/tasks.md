@@ -1,10 +1,10 @@
 # Tasks
 
-- [ ] Task 1: 引入 React Query 并搭建基础设施
-  - [ ] SubTask 1.1: 安装 @tanstack/react-query 依赖
-  - [ ] SubTask 1.2: 创建 React Query Provider（QueryClient 配置：staleTime/gcTime/retry 默认值）
-  - [ ] SubTask 1.3: 在 layout.tsx 中挂载 QueryClientProvider
-  - [ ] SubTask 1.4: 定义价格查询的 Query Key 工厂函数（priceKeys / historicalKeys / crossChainKeys / crossOracleKeys）
+- [x] Task 1: 引入 React Query 并搭建基础设施
+  - [x] SubTask 1.1: 安装 @tanstack/react-query 依赖
+  - [x] SubTask 1.2: 创建 React Query Provider（QueryClient 配置：staleTime/gcTime/retry 默认值）
+  - [x] SubTask 1.3: 在 layout.tsx 中挂载 QueryClientProvider
+  - [x] SubTask 1.4: 定义价格查询的 Query Key 工厂函数（priceKeys / historicalKeys / crossChainKeys / crossOracleKeys）
 
 - [ ] Task 2: 使用 React Query 重构 Price Query 数据获取层
   - [ ] SubTask 2.1: 创建 usePriceQuery hook（useQuery 封装，替换 oracleApiClient.fetchPrice）
@@ -44,23 +44,23 @@
   - [ ] SubTask 6.4: 图例中标注当前/对比时间范围标签
   - [ ] SubTask 6.5: 验证对比模式图表展示正确
 
-- [ ] Task 7: 修复数据准确性问题
-  - [ ] SubTask 7.1: 移除 QueryResults 中 volume24h=0 硬编码，数据不可用时显示 "N/A"
-  - [ ] SubTask 7.2: 修改 DefaultStats 组件，volume24h 为 0 时显示 "N/A"
-  - [ ] SubTask 7.3: 在 PriceData 类型中添加 confidenceSource 字段（'original' | 'estimated'）
-  - [ ] SubTask 7.4: 修改 Pyth/RedStone/Flare 客户端，设置 confidenceSource='estimated'
-  - [ ] SubTask 7.5: DataSourceSection 和统计卡片中显示置信区间来源标签
-  - [ ] SubTask 7.6: 修改 usePriceQueryChart，缺失数据点使用 null 断开线条，移除 lastValidValues 前值填充
-  - [ ] SubTask 7.7: 修复收藏功能：保存完整配置（Oracle+Chain+Symbol+TimeRange），应用时完整恢复
+- [x] Task 7: 修复数据准确性问题
+  - [x] SubTask 7.1: 移除 QueryResults 中 volume24h=0 硬编码，数据不可用时显示 "N/A"
+  - [x] SubTask 7.2: 修改 DefaultStats 组件，volume24h 为 0 时显示 "N/A"
+  - [x] SubTask 7.3: 在 PriceData 类型中添加 confidenceSource 字段（'original' | 'estimated'）
+  - [x] SubTask 7.4: 修改 Pyth/RedStone/Flare 客户端，设置 confidenceSource='estimated'
+  - [x] SubTask 7.5: DataSourceSection 和统计卡片中显示置信区间来源标签
+  - [x] SubTask 7.6: 修改 usePriceQueryChart，缺失数据点使用 null 断开线条，移除 lastValidValues 前值填充
+  - [x] SubTask 7.7: 修复收藏功能：保存完整配置（Oracle+Chain+Symbol+TimeRange），应用时完整恢复
 
-- [ ] Task 8: 消除重复代码和冗余系统
-  - [ ] SubTask 8.1: 统一 AnyOnChainData 类型定义到 constants.ts，删除 StatsCardsSelector 中的重复定义
-  - [ ] SubTask 8.2: 统一 QueryError 类型定义到 types 文件，删除 queryTaskUtils 中的重复定义
-  - [ ] SubTask 8.3: 统一 ChartDataPoint 类型定义，确保 PriceChart 和 usePriceQueryChart 使用同一类型
-  - [ ] SubTask 8.4: 统一导出入口：移除 usePriceQueryExport，导出功能统一通过 UnifiedExport 组件
-  - [ ] SubTask 8.5: 清理 Selectors 中未使用的 \_showAdvanced 状态和 \_isCurrentSymbolSupported 计算
-  - [ ] SubTask 8.6: 清理 performanceMonitoring.ts 中未使用的 getMetricRatingDisplay 和 getWebVitalRatingDisplay 函数
-  - [ ] SubTask 8.7: 修复 QueryResults 中 prevPriceRef 在渲染期间写入的问题，改用 useEffect 更新
+- [x] Task 8: 消除重复代码和冗余系统
+  - [x] SubTask 8.1: 统一 AnyOnChainData 类型定义到 constants.ts，删除 StatsCardsSelector 中的重复定义
+  - [x] SubTask 8.2: 统一 QueryError 类型定义到 types 文件，删除 queryTaskUtils 中的重复定义
+  - [x] SubTask 8.3: 统一 ChartDataPoint 类型定义，确保 PriceChart 和 usePriceQueryChart 使用同一类型
+  - [x] SubTask 8.4: 统一导出入口：移除 usePriceQueryExport，导出功能统一通过 UnifiedExport 组件
+  - [x] SubTask 8.5: 清理 Selectors 中未使用的 \_showAdvanced 状态和 \_isCurrentSymbolSupported 计算
+  - [x] SubTask 8.6: 清理 performanceMonitoring.ts 中未使用的 getMetricRatingDisplay 和 getWebVitalRatingDisplay 函数
+  - [x] SubTask 8.7: 修复 QueryResults 中 prevPriceRef 在渲染期间写入的问题，改用 useEffect 更新
 
 - [ ] Task 9: Cross-Oracle 功能增强
   - [ ] SubTask 9.1: 在 ControlPanel 中添加链筛选器（下拉选择，默认"全部链"）

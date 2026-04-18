@@ -19,7 +19,7 @@ function PriceDispersionCardComponent({
 }: PriceDispersionCardProps) {
   const cv = useMemo(() => {
     if (avgPrice === 0) return 0;
-    return (standardDeviation / avgPrice) * 100;
+    return standardDeviation / avgPrice;
   }, [standardDeviation, avgPrice]);
 
   const standardError = useMemo(() => {
@@ -49,7 +49,7 @@ function PriceDispersionCardComponent({
           </div>
         </div>
         <div className="text-center group relative">
-          <div className="text-lg font-semibold text-gray-900">{cv.toFixed(4)}%</div>
+          <div className="text-lg font-semibold text-gray-900">{(cv * 100).toFixed(4)}%</div>
           <div className="text-xs text-gray-500">CV</div>
           <div
             className="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 text-xs text-white bg-gray-900 rounded-md shadow-lg whitespace-nowrap pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200"

@@ -16,12 +16,17 @@ import type { DIATokenOnChainData } from '@/lib/oracles/services/diaDataService'
 import type { WINkLinkTokenOnChainData } from '@/lib/oracles/services/winklinkRealDataService';
 import type { OracleProvider, Blockchain, PriceData } from '@/types/oracle';
 
-import type { ChartDataPoint } from './hooks/usePriceQueryChart';
-import type { QueryError } from './hooks/usePriceQueryData';
+import type { QueryError } from './utils/queryTaskUtils';
+
+export interface ChartDataPoint {
+  timestamp: number;
+  time: string;
+  [key: string]: number | string | Record<string, unknown> | null;
+}
 
 export type { PriceData };
 
-type AnyOnChainData =
+export type AnyOnChainData =
   | DIATokenOnChainData
   | RedStoneTokenOnChainData
   | SupraTokenOnChainData

@@ -1,20 +1,28 @@
 'use client';
 
-import { Download, FileJson, FileSpreadsheet, Star, ChevronDown } from 'lucide-react';
+import { Star, ChevronDown } from 'lucide-react';
 
 import type { FavoriteConfig } from '@/hooks';
 import type { UserFavorite } from '@/lib/supabase/queries';
 import type { OracleProvider, Blockchain } from '@/types/oracle';
 
+import UnifiedExportSection from './UnifiedExportSection';
+
+import type { QueryResult } from '../constants';
+
 interface QueryHeaderProps {
   loading: boolean;
-  queryResultsLength: number;
-  onExportCSV: () => void;
-  onExportJSON: () => void;
-  onOpenExportConfig: () => void;
+  queryResults: QueryResult[];
+  chartContainerRef: React.RefObject<HTMLDivElement | null>;
+  selectedSymbol: string;
+  avgPrice: number;
+  maxPrice: number;
+  minPrice: number;
+  priceRange: number;
+  standardDeviation: number;
+  standardDeviationPercent: number;
   selectedOracle: OracleProvider | null;
   selectedChain: Blockchain | null;
-  selectedSymbol: string;
   selectedTimeRange: number;
   setSelectedOracle: (oracle: OracleProvider | null) => void;
   setSelectedChain: (chain: Blockchain | null) => void;
@@ -30,13 +38,17 @@ interface QueryHeaderProps {
 
 export function QueryHeader({
   loading,
-  queryResultsLength,
-  onExportCSV,
-  onExportJSON,
-  onOpenExportConfig,
+  queryResults,
+  chartContainerRef,
+  selectedSymbol,
+  avgPrice,
+  maxPrice,
+  minPrice,
+  priceRange,
+  standardDeviation,
+  standardDeviationPercent,
   selectedOracle,
-  selectedChain,
-  selectedSymbol: _selectedSymbol,
+  selectedChain: _selectedChain,
   selectedTimeRange: _selectedTimeRange,
   setSelectedOracle: _setSelectedOracle,
   setSelectedChain: _setSelectedChain,
@@ -79,18 +91,12 @@ export function QueryHeader({
                   </div>
                 ) : (
                   symbolFavorites.map((favorite) => {
-                    const config = favorite.config_data as { symbol?: string };
+                    const config = favorite.config_data as FavoriteConfig;
                     const symbol = config.symbol || '';
                     return (
                       <button
                         key={favorite.id}
-                        onClick={() =>
-                          handleApplyFavorite({
-                            symbol,
-                            selectedOracles: selectedOracle ? [selectedOracle] : [],
-                            chains: selectedChain ? [selectedChain] : [],
-                          })
-                        }
+                        onClick={() => handleApplyFavorite(config)}
                         className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center justify-between"
                       >
                         <span>{symbol}</span>
@@ -106,34 +112,18 @@ export function QueryHeader({
           )}
         </div>
 
-        <div className="flex items-center gap-1">
-          <button
-            onClick={onExportCSV}
-            disabled={queryResultsLength === 0 || loading}
-            className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            title="Export as CSV"
-          >
-            <FileSpreadsheet className="w-4 h-4" />
-            <span className="hidden sm:inline">CSV</span>
-          </button>
-          <button
-            onClick={onExportJSON}
-            disabled={queryResultsLength === 0 || loading}
-            className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-gray-700 bg-white border-t border-b border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            title="Export as JSON"
-          >
-            <FileJson className="w-4 h-4" />
-            <span className="hidden sm:inline">JSON</span>
-          </button>
-          <button
-            onClick={onOpenExportConfig}
-            disabled={queryResultsLength === 0 || loading}
-            className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            title="Advanced Export Options"
-          >
-            <Download className="w-4 h-4" />
-          </button>
-        </div>
+        <UnifiedExportSection
+          loading={loading}
+          queryResults={queryResults}
+          chartContainerRef={chartContainerRef}
+          selectedSymbol={selectedSymbol}
+          avgPrice={avgPrice}
+          maxPrice={maxPrice}
+          minPrice={minPrice}
+          priceRange={priceRange}
+          standardDeviation={standardDeviation}
+          standardDeviationPercent={standardDeviationPercent}
+        />
       </div>
     </div>
   );

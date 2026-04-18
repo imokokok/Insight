@@ -1,9 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { memo, useState } from 'react';
 
 import { SectionErrorBoundary } from '@/components/error-boundary';
 import { SegmentedControl } from '@/components/ui';
+import { useCrossChainConfigStore } from '@/stores/crossChainConfigStore';
+import { useCrossChainDataStore } from '@/stores/crossChainDataStore';
 
 import { ChartsTab } from './components/ChartsTab';
 import { CrossChainFilters } from './components/CrossChainFilters';
@@ -12,13 +14,26 @@ import { PageHeader } from './components/PageHeader';
 import { PriceSpreadHeatmap } from './components/PriceSpreadHeatmap';
 import { TabNavigation, type TabId } from './components/TabNavigation';
 import { type RefreshInterval } from './constants';
-import { useCrossChainData } from './useCrossChainData';
+import { useCrossChainDataState } from './hooks/useCrossChainDataState';
+
+function CrossChainDataInitializer() {
+  useCrossChainDataState();
+  return null;
+}
+
+const MemoizedPageHeader = memo(PageHeader);
+const MemoizedCrossChainFilters = memo(CrossChainFilters);
+const MemoizedPriceSpreadHeatmap = memo(PriceSpreadHeatmap);
+const MemoizedOverviewTab = memo(OverviewTab);
+const MemoizedChartsTab = memo(ChartsTab);
 
 export default function CrossChainContent() {
-  const data = useCrossChainData();
   const [activeTab, setActiveTab] = useState<TabId>('overview');
 
-  const { loading, lastUpdated, refreshInterval, setRefreshInterval } = data;
+  const loading = useCrossChainDataStore((s) => s.loading);
+  const lastUpdated = useCrossChainDataStore((s) => s.lastUpdated);
+  const refreshInterval = useCrossChainConfigStore((s) => s.refreshInterval);
+  const setRefreshInterval = useCrossChainConfigStore((s) => s.setRefreshInterval);
 
   const refreshOptions = [
     { value: 0, label: 'Off' },
@@ -29,16 +44,17 @@ export default function CrossChainContent() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <CrossChainDataInitializer />
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <PageHeader data={data} />
+        <MemoizedPageHeader />
 
         <div className="flex flex-col xl:flex-row gap-4">
           <div className="xl:w-[360px] flex-shrink-0">
             <div className="xl:sticky xl:top-6 space-y-4">
-              <CrossChainFilters data={data} />
+              <MemoizedCrossChainFilters />
 
               <SectionErrorBoundary componentName="Price Spread Heatmap">
-                <PriceSpreadHeatmap data={data} />
+                <MemoizedPriceSpreadHeatmap />
               </SectionErrorBoundary>
 
               <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
@@ -74,8 +90,8 @@ export default function CrossChainContent() {
               </div>
             ) : (
               <div className="mt-4">
-                {activeTab === 'overview' && <OverviewTab data={data} />}
-                {activeTab === 'charts' && <ChartsTab data={data} />}
+                {activeTab === 'overview' && <MemoizedOverviewTab />}
+                {activeTab === 'charts' && <MemoizedChartsTab />}
               </div>
             )}
           </div>

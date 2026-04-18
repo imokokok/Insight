@@ -3,9 +3,12 @@
  * 提供基于IQR和标准差的异常价格检测功能
  */
 
+import { createLogger } from '@/lib/utils/logger';
 import { type Blockchain, type PriceData } from '@/types/oracle';
 
 import { calculatePercentile } from './statisticsUtils';
+
+const logger = createLogger('anomalyDetection');
 
 export interface AnomalousPricePoint {
   chain: Blockchain;
@@ -81,5 +84,23 @@ export function detectAnomalousPrices(
     }
   });
 
+  return anomalies;
+}
+
+export function detectAnomalies(
+  prices: PriceData[],
+  filteredChains: Blockchain[]
+): AnomalousPricePoint[] {
+  const anomalies = detectAnomalousPrices(prices, filteredChains);
+  if (anomalies.length > 0) {
+    logger.info(`Detected ${anomalies.length} anomalous price points`, {
+      anomalies: anomalies.map((a) => ({
+        chain: a.chain,
+        price: a.price,
+        reason: a.reason,
+        deviation: a.deviation.toFixed(2),
+      })),
+    });
+  }
   return anomalies;
 }

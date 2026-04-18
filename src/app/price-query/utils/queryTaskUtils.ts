@@ -14,7 +14,7 @@ export interface QueryTask {
   isCompare: boolean;
 }
 
-interface QueryError {
+export interface QueryError {
   provider: OracleProvider;
   chain: Blockchain;
   error: string;

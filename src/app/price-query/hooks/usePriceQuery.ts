@@ -8,10 +8,10 @@ import { useUser } from '@/stores/authStore';
 import type { PriceData, OracleProvider, Blockchain } from '@/types/oracle';
 
 import { type QueryResult } from '../constants';
+import { type QueryError } from '../utils/queryTaskUtils';
 
 import { usePriceQueryChart, type ChartDataPoint } from './usePriceQueryChart';
-import { usePriceQueryData, type QueryError } from './usePriceQueryData';
-import { usePriceQueryExport } from './usePriceQueryExport';
+import { usePriceQueryData } from './usePriceQueryData';
 import { usePriceQueryState, type TimeComparisonConfig } from './usePriceQueryState';
 
 import type { AnomalyInfo } from '../utils/priceValidator';
@@ -40,8 +40,6 @@ interface UsePriceQueryReturn {
     setCompareTimeRange: (timeRange: number) => void;
     showBaseline: boolean;
     setShowBaseline: (show: boolean) => void;
-    showExportConfig: boolean;
-    setShowExportConfig: (show: boolean) => void;
     timeComparisonConfig: TimeComparisonConfig;
     setTimeComparisonConfig: (config: TimeComparisonConfig) => void;
     urlParamsParsed: boolean;
@@ -87,7 +85,7 @@ interface UsePriceQueryReturn {
     clearErrors: () => void;
     retryDataSource: (provider: OracleProvider, chain: Blockchain) => Promise<void>;
     retryAllErrors: () => Promise<void>;
-    fetchQueryData: () => Promise<void>;
+    refetch: () => Promise<void>;
   };
   validation: {
     validationWarnings: string[];
@@ -97,9 +95,6 @@ interface UsePriceQueryReturn {
   actions: {
     toggleSeries: (seriesName: string) => void;
     handleSort: (field: 'oracle' | 'blockchain' | 'price' | 'timestamp') => void;
-    generateFilename: (extension: string) => string;
-    handleExportCSV: () => void;
-    handleExportJSON: () => void;
     handleApplyFavorite: (config: FavoriteConfig) => void;
   };
   refs: {
@@ -118,17 +113,13 @@ export function usePriceQuery(): UsePriceQueryReturn {
   const state = usePriceQueryState();
 
   const data = usePriceQueryData({
-    selectedOracleRef: state.selectedOracleRef,
-    selectedChainRef: state.selectedChainRef,
-    selectedSymbolRef: state.selectedSymbolRef,
-    selectedTimeRangeRef: state.selectedTimeRangeRef,
-    isCompareModeRef: state.isCompareModeRef,
-    compareTimeRangeRef: state.compareTimeRangeRef,
     urlParamsParsed: state.urlParamsParsed,
     selectedOracle: state.selectedOracle,
     selectedChain: state.selectedChain,
     selectedSymbol: state.selectedSymbol,
     selectedTimeRange: state.selectedTimeRange,
+    isCompareMode: state.isCompareMode,
+    compareTimeRange: state.compareTimeRange,
   });
 
   const chart = usePriceQueryChart({
@@ -141,32 +132,9 @@ export function usePriceQuery(): UsePriceQueryReturn {
     compareTimeRange: state.compareTimeRange,
   });
 
-  const exportHook = usePriceQueryExport({
-    queryResults: data.queryResults,
-    selectedSymbol: state.selectedSymbol,
-    selectedOracles: state.selectedOracle ? [state.selectedOracle] : [],
-    selectedChains: state.selectedChain ? [state.selectedChain] : [],
-  });
-
-  const [showExportConfig, setShowExportConfig] = useState(false);
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const favoritesDropdownRef = useRef<HTMLDivElement>(null);
   const [showFavoritesDropdown, setShowFavoritesDropdown] = useState(false);
-
-  const handleExportCSV = useCallback(() => {
-    exportHook.handleExportCSV();
-  }, [exportHook]);
-
-  const handleExportJSON = useCallback(() => {
-    exportHook.handleExportJSON();
-  }, [exportHook]);
-
-  const generateFilename = useCallback(
-    (extension: string) => {
-      return exportHook.generateFilename(extension);
-    },
-    [exportHook]
-  );
 
   const stats = useMemo(() => {
     const validPrices = data.queryResults
@@ -279,8 +247,9 @@ export function usePriceQuery(): UsePriceQueryReturn {
       symbol: state.selectedSymbol,
       selectedOracles: state.selectedOracle ? [state.selectedOracle as string] : [],
       chains: state.selectedChain ? [state.selectedChain as string] : [],
+      timeRange: state.selectedTimeRange,
     }),
-    [state.selectedSymbol, state.selectedOracle, state.selectedChain]
+    [state.selectedSymbol, state.selectedOracle, state.selectedChain, state.selectedTimeRange]
   );
 
   const handleApplyFavorite = useCallback(
@@ -290,9 +259,16 @@ export function usePriceQuery(): UsePriceQueryReturn {
       }
       if (config.selectedOracles && config.selectedOracles.length > 0) {
         state.setSelectedOracle(config.selectedOracles[0] as OracleProvider);
+      } else {
+        state.setSelectedOracle(null);
       }
       if (config.chains && config.chains.length > 0) {
         state.setSelectedChain(config.chains[0] as Blockchain);
+      } else {
+        state.setSelectedChain(null);
+      }
+      if (config.timeRange !== undefined) {
+        state.setSelectedTimeRange(config.timeRange);
       }
       setShowFavoritesDropdown(false);
     },
@@ -323,8 +299,6 @@ export function usePriceQuery(): UsePriceQueryReturn {
       setCompareTimeRange: state.setCompareTimeRange,
       showBaseline: state.showBaseline,
       setShowBaseline: state.setShowBaseline,
-      showExportConfig,
-      setShowExportConfig,
       timeComparisonConfig: state.timeComparisonConfig,
       setTimeComparisonConfig: state.setTimeComparisonConfig,
       urlParamsParsed: state.urlParamsParsed,
@@ -354,7 +328,7 @@ export function usePriceQuery(): UsePriceQueryReturn {
       clearErrors: data.clearErrors,
       retryDataSource: data.retryDataSource,
       retryAllErrors: data.retryAllErrors,
-      fetchQueryData: data.fetchQueryData,
+      refetch: data.refetch,
     },
     validation: {
       validationWarnings: data.validationWarnings,
@@ -364,9 +338,6 @@ export function usePriceQuery(): UsePriceQueryReturn {
     actions: {
       toggleSeries: state.toggleSeries,
       handleSort: state.handleSort,
-      generateFilename,
-      handleExportCSV,
-      handleExportJSON,
       handleApplyFavorite,
     },
     refs: {

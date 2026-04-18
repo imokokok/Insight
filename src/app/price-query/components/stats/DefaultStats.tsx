@@ -8,7 +8,7 @@ interface DefaultStatsProps {
   minPrice: number;
   avgPrice: number;
   priceRange: number;
-  volume24h: number;
+  volume24h: number | null | undefined;
   consistencyRating: {
     label: string;
     color: string;
@@ -51,7 +51,7 @@ export function DefaultStats({
       />
       <StatCard
         title="24h Volume"
-        value={formatLargeNumber(volume24h)}
+        value={volume24h ? formatLargeNumber(volume24h) : 'N/A'}
         description="Trading volume in the last 24 hours"
       />
       <StatCard

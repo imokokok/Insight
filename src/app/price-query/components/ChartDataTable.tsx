@@ -6,7 +6,7 @@ import { Table } from 'lucide-react';
 
 import { formatPrice } from '@/lib/utils/chartSharedUtils';
 
-import { type ChartDataPoint } from './PriceChart';
+import { type ChartDataPoint } from '../constants';
 
 interface ChartDataTableProps {
   chartData: ChartDataPoint[];

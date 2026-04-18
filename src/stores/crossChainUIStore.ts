@@ -11,9 +11,6 @@ interface UIState {
   hiddenLines: string[];
   focusedChain: Blockchain | null;
   tableFilter: 'all' | 'abnormal' | 'normal';
-  hoveredCell: { xChain: Blockchain; yChain: Blockchain; x: number; y: number } | null;
-  selectedCell: { xChain: Blockchain; yChain: Blockchain } | null;
-  tooltipPosition: { x: number; y: number };
   sortColumn: string;
   sortDirection: 'asc' | 'desc';
 }
@@ -26,11 +23,6 @@ interface CrossChainUIStore extends UIState {
   setHiddenLines: (lines: string[]) => void;
   setFocusedChain: (chain: Blockchain | null) => void;
   setTableFilter: (filter: 'all' | 'abnormal' | 'normal') => void;
-  setHoveredCell: (
-    cell: { xChain: Blockchain; yChain: Blockchain; x: number; y: number } | null
-  ) => void;
-  setSelectedCell: (cell: { xChain: Blockchain; yChain: Blockchain } | null) => void;
-  setTooltipPosition: (position: { x: number; y: number }) => void;
   setSortColumn: (column: string) => void;
   setSortDirection: (direction: 'asc' | 'desc') => void;
 
@@ -46,9 +38,6 @@ const initialState: UIState = {
   hiddenLines: [],
   focusedChain: null,
   tableFilter: 'all',
-  hoveredCell: null,
-  selectedCell: null,
-  tooltipPosition: { x: 0, y: 0 },
   sortColumn: 'chain',
   sortDirection: 'asc',
 };
@@ -66,9 +55,6 @@ export const useCrossChainUIStore = create<CrossChainUIStore>()(
         setHiddenLines: (lines) => set({ hiddenLines: lines }),
         setFocusedChain: (chain) => set({ focusedChain: chain }),
         setTableFilter: (filter) => set({ tableFilter: filter }),
-        setHoveredCell: (cell) => set({ hoveredCell: cell }),
-        setSelectedCell: (cell) => set({ selectedCell: cell }),
-        setTooltipPosition: (position) => set({ tooltipPosition: position }),
         setSortColumn: (column) => set({ sortColumn: column }),
         setSortDirection: (direction) => set({ sortDirection: direction }),
 
@@ -106,32 +92,3 @@ export const useCrossChainUIStore = create<CrossChainUIStore>()(
     { name: 'CrossChainUIStore' }
   )
 );
-
-const useVisibleChains = () => useCrossChainUIStore((state) => state.visibleChains);
-const useShowMA = () => useCrossChainUIStore((state) => state.showMA);
-const useMaPeriod = () => useCrossChainUIStore((state) => state.maPeriod);
-const useChartKey = () => useCrossChainUIStore((state) => state.chartKey);
-const useHiddenLines = () => useCrossChainUIStore((state) => state.hiddenLines);
-const useFocusedChain = () => useCrossChainUIStore((state) => state.focusedChain);
-const useTableFilter = () => useCrossChainUIStore((state) => state.tableFilter);
-const useHoveredCell = () => useCrossChainUIStore((state) => state.hoveredCell);
-const useSelectedCell = () => useCrossChainUIStore((state) => state.selectedCell);
-const useTooltipPosition = () => useCrossChainUIStore((state) => state.tooltipPosition);
-const useSortColumn = () => useCrossChainUIStore((state) => state.sortColumn);
-const useSortDirection = () => useCrossChainUIStore((state) => state.sortDirection);
-
-const useUIState = () =>
-  useCrossChainUIStore((state) => ({
-    visibleChains: state.visibleChains,
-    showMA: state.showMA,
-    maPeriod: state.maPeriod,
-    chartKey: state.chartKey,
-    hiddenLines: state.hiddenLines,
-    focusedChain: state.focusedChain,
-    tableFilter: state.tableFilter,
-    hoveredCell: state.hoveredCell,
-    selectedCell: state.selectedCell,
-    tooltipPosition: state.tooltipPosition,
-    sortColumn: state.sortColumn,
-    sortDirection: state.sortDirection,
-  }));

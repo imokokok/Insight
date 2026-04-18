@@ -25,12 +25,10 @@ interface CommonSymbolInfo {
  * Hook 返回结果
  */
 interface UseCommonSymbolsResult {
-  /** 共同支持的币种列表 */
   commonSymbols: string[];
-  /** 详细的共同支持币种信息 */
   commonSymbolDetails: CommonSymbolInfo[];
-  /** 每个币种支持的预言机数量映射 */
   oracleCountMap: Record<string, number>;
+  unsupportedOracles: Record<string, OracleProvider[]>;
 }
 
 /**
@@ -56,16 +54,15 @@ const providerToSymbolKey: Record<OracleProvider, keyof typeof oracleSupportedSy
  */
 export function useCommonSymbols(selectedOracles: OracleProvider[]): UseCommonSymbolsResult {
   return useMemo(() => {
-    // 如果没有选择任何预言机，返回空结果
     if (selectedOracles.length === 0) {
       return {
         commonSymbols: [],
         commonSymbolDetails: [],
         oracleCountMap: {},
+        unsupportedOracles: {},
       };
     }
 
-    // 获取每个预言机支持的币种集合
     const oracleSymbolSets = selectedOracles.map((oracle) => {
       const key = providerToSymbolKey[oracle];
       const symbols = oracleSupportedSymbols[key];
@@ -75,13 +72,14 @@ export function useCommonSymbols(selectedOracles: OracleProvider[]): UseCommonSy
       };
     });
 
-    // 获取第一个预言机的币种作为基础集合
-    const baseSymbols = oracleSymbolSets[0].symbols;
+    const allSymbolsSet = new Set<string>();
+    oracleSymbolSets.forEach(({ symbols }) => {
+      symbols.forEach((s) => allSymbolsSet.add(s));
+    });
 
-    // 计算每个币种被多少个已选预言机支持
     const symbolSupportMap = new Map<string, OracleProvider[]>();
 
-    baseSymbols.forEach((symbol) => {
+    allSymbolsSet.forEach((symbol) => {
       const supportingOracles: OracleProvider[] = [];
 
       oracleSymbolSets.forEach(({ oracle, symbols }) => {
@@ -90,28 +88,32 @@ export function useCommonSymbols(selectedOracles: OracleProvider[]): UseCommonSy
         }
       });
 
-      // 只记录被所有已选预言机支持的币种
-      if (supportingOracles.length === selectedOracles.length) {
-        symbolSupportMap.set(symbol, supportingOracles);
-      }
+      symbolSupportMap.set(symbol, supportingOracles);
     });
 
-    // 构建返回结果
+    const maxOracleCount = Math.max(
+      ...Array.from(symbolSupportMap.values()).map((o) => o.length),
+      0
+    );
+
     const commonSymbols: string[] = [];
     const commonSymbolDetails: CommonSymbolInfo[] = [];
     const oracleCountMap: Record<string, number> = {};
+    const unsupportedOracles: Record<string, OracleProvider[]> = {};
 
     symbolSupportMap.forEach((supportingOracles, symbol) => {
-      commonSymbols.push(symbol);
-      commonSymbolDetails.push({
-        symbol,
-        oracleCount: supportingOracles.length,
-        supportingOracles: [...supportingOracles],
-      });
-      oracleCountMap[symbol] = supportingOracles.length;
+      if (supportingOracles.length === maxOracleCount) {
+        commonSymbols.push(symbol);
+        commonSymbolDetails.push({
+          symbol,
+          oracleCount: supportingOracles.length,
+          supportingOracles: [...supportingOracles],
+        });
+        oracleCountMap[symbol] = supportingOracles.length;
+        unsupportedOracles[symbol] = selectedOracles.filter((o) => !supportingOracles.includes(o));
+      }
     });
 
-    // 按 tradingPairs 中的顺序排序（靠前的市值更高）
     const getMarketCapRank = (symbol: string): number => {
       const index = tradingPairs.findIndex((p) => p === symbol);
       return index === -1 ? Number.MAX_SAFE_INTEGER : index;
@@ -124,6 +126,7 @@ export function useCommonSymbols(selectedOracles: OracleProvider[]): UseCommonSy
       commonSymbols,
       commonSymbolDetails,
       oracleCountMap,
+      unsupportedOracles,
     };
   }, [selectedOracles]);
 }
