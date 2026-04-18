@@ -17,6 +17,7 @@ import {
   type UseChartDataReturn,
   type PriceDifferenceItem,
 } from './hooks';
+import { type AnomalousPricePoint } from './utils/anomalyDetection';
 
 export interface UseCrossChainDataReturn {
   selectedProvider: OracleProvider;
@@ -107,6 +108,7 @@ export interface UseCrossChainDataReturn {
     priceRange: number;
     standardDeviationPercent: number;
   } | null;
+  anomalies: AnomalousPricePoint[];
   sortColumn: string;
   setSortColumn: (column: string) => void;
   sortDirection: 'asc' | 'desc';

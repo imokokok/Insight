@@ -204,9 +204,8 @@ export function getFreshnessInfo(timestamp: number): {
 /**
  * 获取新鲜度圆点颜色
  */
-export function getFreshnessDotColor(timestamp: number): string {
-  const age = Date.now() - timestamp;
-  const minutes = Math.floor(age / 60000);
+export function getFreshnessDotColor(freshnessSeconds: number): string {
+  const minutes = Math.floor(freshnessSeconds / 60);
 
   if (minutes < 1) return '#22c55e';
   if (minutes < 5) return '#22c55e';

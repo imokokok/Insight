@@ -65,6 +65,13 @@ export class API3Client extends BaseOracleClient {
 
     const targetChain = chain || Blockchain.ETHEREUM;
 
+    if (!this.useRealData) {
+      throw this.createError(
+        'Real API3 data is required but useRealData is disabled',
+        'REAL_DATA_NOT_AVAILABLE'
+      );
+    }
+
     try {
       const api3Data = await withOracleRetry(
         async () => {

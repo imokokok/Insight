@@ -166,36 +166,3 @@ export async function getHistoricalPricesFromDatabase(
     return null;
   }
 }
-
-async function savePriceWithFallback(
-  priceData: PriceData,
-  fallback: () => Promise<PriceData>
-): Promise<PriceData> {
-  const dbPrice = await getPriceFromDatabase(priceData.provider, priceData.symbol, priceData.chain);
-
-  if (dbPrice) {
-    return dbPrice;
-  }
-
-  const result = await fallback();
-  await savePriceToDatabase(result);
-  return result;
-}
-
-async function saveHistoricalPricesWithFallback(
-  provider: OracleProvider,
-  symbol: string,
-  chain: Blockchain | undefined,
-  period: number,
-  fallback: () => Promise<PriceData[]>
-): Promise<PriceData[]> {
-  const dbPrices = await getHistoricalPricesFromDatabase(provider, symbol, chain, period);
-
-  if (dbPrices && dbPrices.length > 0) {
-    return dbPrices;
-  }
-
-  const results = await fallback();
-  await savePricesToDatabase(results);
-  return results;
-}

@@ -1,43 +1,59 @@
 import { useQuery } from '@tanstack/react-query';
 
-import { apiClient } from '@/lib/api';
-import { PriceFetchError } from '@/lib/errors';
+import { oracleConfigs } from '@/lib/config/oracles';
 import { oracleKeys } from '@/lib/queries/queryKeys';
 import { STALE_TIME_CONFIG, GC_TIME_CONFIG } from '@/providers/ReactQueryProvider';
+import { type OracleProvider } from '@/types/oracle';
 
-interface OracleData {
-  provider: string;
+export interface OracleMetadata {
+  provider: OracleProvider;
   name: string;
-  description: string;
+  descriptionKey: string;
+  symbol: string;
+  defaultChain: string;
   supportedChains: string[];
   supportedSymbols: string[];
-  totalValueSecured: number;
   updateFrequency: number;
   latency: number;
-  reliability: number;
+  themeColor: string;
 }
 
 interface OracleDataParams {
-  provider?: string;
+  provider?: OracleProvider;
+}
+
+function getOracleMetadata(provider: OracleProvider): OracleMetadata {
+  const config = oracleConfigs[provider];
+  const client = config.client;
+
+  return {
+    provider,
+    name: config.name,
+    descriptionKey: config.descriptionKey,
+    symbol: config.symbol,
+    defaultChain: config.defaultChain,
+    supportedChains: config.supportedChains,
+    supportedSymbols: client?.getSupportedSymbols() ?? [],
+    updateFrequency: config.networkData.updateFrequency,
+    latency: config.networkData.latency,
+    themeColor: config.themeColor,
+  };
 }
 
 function useOracleData(params: OracleDataParams = {}) {
-  return useQuery<OracleData | OracleData[]>({
+  return useQuery<OracleMetadata | OracleMetadata[]>({
     queryKey: oracleKeys.list(params),
     queryFn: async () => {
-      const url = params.provider ? `/api/oracles/${params.provider}` : '/api/oracles';
-
-      try {
-        const response = await apiClient.get<OracleData | OracleData[]>(url);
-        return response.data;
-      } catch {
-        throw new PriceFetchError('Failed to fetch oracle data', {
-          provider: params.provider,
-          retryable: true,
-        });
+      if (params.provider) {
+        return getOracleMetadata(params.provider);
       }
+
+      const providers = Object.keys(oracleConfigs) as OracleProvider[];
+      return providers.map(getOracleMetadata);
     },
     staleTime: STALE_TIME_CONFIG.network,
     gcTime: GC_TIME_CONFIG.network,
   });
 }
+
+export { useOracleData };

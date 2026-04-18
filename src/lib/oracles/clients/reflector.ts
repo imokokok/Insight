@@ -6,8 +6,8 @@ import { getReflectorDataService } from '../services/reflectorDataService';
 import { withOracleRetry, ORACLE_RETRY_PRESETS } from '../utils/retry';
 
 export class ReflectorClient extends BaseOracleClient {
-  name = OracleProvider.REFLECTOR as OracleProvider;
-  supportedChains = [Blockchain.STELLAR] as Blockchain[];
+  name = OracleProvider.REFLECTOR;
+  supportedChains = [Blockchain.STELLAR];
   defaultUpdateIntervalMinutes = 5;
 
   private reflectorDataService = getReflectorDataService();
@@ -21,6 +21,10 @@ export class ReflectorClient extends BaseOracleClient {
     chain?: Blockchain,
     options?: { signal?: AbortSignal }
   ): Promise<PriceData> {
+    if (!symbol) {
+      throw this.createUnsupportedSymbolError('', chain);
+    }
+
     const upperSymbol = symbol.toUpperCase();
 
     if (!this.isSymbolSupported(upperSymbol, chain)) {
@@ -30,7 +34,7 @@ export class ReflectorClient extends BaseOracleClient {
     if (this.config.useRealData === false) {
       throw this.createError(
         'Real Reflector data is disabled. USE_REAL_REFLECTOR_DATA must be true.',
-        'PROVIDER_UNAVAILABLE' as Parameters<typeof this.createError>[1],
+        'PROVIDER_UNAVAILABLE',
         { retryable: false }
       );
     }

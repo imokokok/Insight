@@ -23,7 +23,6 @@ import {
   defaultThresholdConfig,
   detectOutliersIQR,
   detectOutliersZScore,
-  calculatePearsonCorrelationByTimestamp,
   calculatePearsonCorrelationWithSignificanceByTimestamp,
   type CorrelationResult,
   type TimestampedPrice,
@@ -466,9 +465,11 @@ export function useChartData(params: UseChartDataParams): UseChartDataReturn {
   ]);
 
   const scatterData = useMemo(() => {
+    if (stdDevHistoricalOutliers.length === 0 || chartData.length === 0) return [];
+    const chartDataMap = new Map(chartData.map((d) => [d.timestamp, d]));
     return stdDevHistoricalOutliers
       .map((outlier) => {
-        const dataPoint = chartData.find((d) => d.timestamp === outlier.timestamp);
+        const dataPoint = chartDataMap.get(outlier.timestamp);
         return {
           ...dataPoint,
           outlierChain: outlier.chain,
@@ -480,49 +481,28 @@ export function useChartData(params: UseChartDataParams): UseChartDataReturn {
       .filter((d) => d.timestamp !== undefined);
   }, [stdDevHistoricalOutliers, chartData]);
 
-  const correlationMatrix = useMemo(() => {
+  const { correlationMatrix, correlationMatrixWithSignificance } = useMemo(() => {
     const matrix: Partial<Record<Blockchain, Partial<Record<Blockchain, number>>>> = {};
+    const matrixWithSig: Partial<
+      Record<Blockchain, Partial<Record<Blockchain, CorrelationResult>>>
+    > = {};
 
     filteredChains.forEach((chainX) => {
       matrix[chainX] = {};
+      matrixWithSig[chainX] = {};
+      const dataX: TimestampedPrice[] =
+        historicalPrices[chainX]?.map((p) => ({ timestamp: p.timestamp, price: p.price })) || [];
+
       filteredChains.forEach((chainY) => {
-        const dataX: TimestampedPrice[] =
-          historicalPrices[chainX]?.map((p) => ({ timestamp: p.timestamp, price: p.price })) || [];
         const dataY: TimestampedPrice[] =
           historicalPrices[chainY]?.map((p) => ({ timestamp: p.timestamp, price: p.price })) || [];
 
         if (chainX === chainY) {
-          // 使用安全赋值，确保对象已初始化
           if (matrix[chainX]) {
             matrix[chainX][chainY] = 1;
           }
-        } else {
-          const correlation = calculatePearsonCorrelationByTimestamp(dataX, dataY);
-          if (matrix[chainX]) {
-            matrix[chainX][chainY] = isNaN(correlation) ? 0 : correlation;
-          }
-        }
-      });
-    });
-
-    return matrix;
-  }, [historicalPrices, filteredChains]);
-
-  const correlationMatrixWithSignificance = useMemo(() => {
-    const matrix: Partial<Record<Blockchain, Partial<Record<Blockchain, CorrelationResult>>>> = {};
-
-    filteredChains.forEach((chainX) => {
-      matrix[chainX] = {};
-      filteredChains.forEach((chainY) => {
-        const dataX: TimestampedPrice[] =
-          historicalPrices[chainX]?.map((p) => ({ timestamp: p.timestamp, price: p.price })) || [];
-        const dataY: TimestampedPrice[] =
-          historicalPrices[chainY]?.map((p) => ({ timestamp: p.timestamp, price: p.price })) || [];
-
-        if (chainX === chainY) {
-          // 使用安全赋值，确保对象已初始化
-          if (matrix[chainX]) {
-            matrix[chainX][chainY] = {
+          if (matrixWithSig[chainX]) {
+            matrixWithSig[chainX][chainY] = {
               correlation: 1,
               pValue: 0,
               sampleSize: dataX.length,
@@ -533,13 +513,16 @@ export function useChartData(params: UseChartDataParams): UseChartDataReturn {
         } else {
           const result = calculatePearsonCorrelationWithSignificanceByTimestamp(dataX, dataY);
           if (matrix[chainX]) {
-            matrix[chainX][chainY] = result;
+            matrix[chainX][chainY] = isNaN(result.correlation) ? 0 : result.correlation;
+          }
+          if (matrixWithSig[chainX]) {
+            matrixWithSig[chainX][chainY] = result;
           }
         }
       });
     });
 
-    return matrix;
+    return { correlationMatrix: matrix, correlationMatrixWithSignificance: matrixWithSig };
   }, [historicalPrices, filteredChains]);
   const priceJumpFrequency = useMemo(() => {
     const frequency: Partial<Record<Blockchain, number>> = {};

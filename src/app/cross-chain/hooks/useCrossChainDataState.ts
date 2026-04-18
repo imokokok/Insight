@@ -12,6 +12,8 @@ import { useCrossChainDataStore } from '@/stores/crossChainDataStore';
 import { useCrossChainSelectorStore } from '@/stores/crossChainSelectorStore';
 import { useCrossChainUIStore } from '@/stores/crossChainUIStore';
 
+import { type AnomalousPricePoint } from '../utils/anomalyDetection';
+
 import { useDataValidation, useAnomalyDetection, useDataFetching } from './index';
 
 interface UseCrossChainDataStateReturn {
@@ -32,6 +34,7 @@ interface UseCrossChainDataStateReturn {
     priceRange: number;
     standardDeviationPercent: number;
   } | null;
+  anomalies: AnomalousPricePoint[];
   clearCache: () => void;
   clearCacheForProvider: (provider: OracleProvider) => void;
 }
@@ -52,6 +55,7 @@ export function useCrossChainDataState(): UseCrossChainDataStateReturn {
     lastUpdated,
     recommendedBaseChain,
     prevStats,
+    anomalies,
     setCurrentPrices,
     setHistoricalPrices,
     setLoading,
@@ -60,6 +64,7 @@ export function useCrossChainDataState(): UseCrossChainDataStateReturn {
     setLastUpdated,
     setPrevStats,
     setRecommendedBaseChain,
+    setAnomalies,
   } = useCrossChainDataStore();
 
   const dataValidation = useDataValidation();
@@ -85,6 +90,7 @@ export function useCrossChainDataState(): UseCrossChainDataStateReturn {
       setRefreshStatus,
       setShowRefreshSuccess,
       setLoading,
+      setAnomalies,
     },
     dataValidation,
     anomalyDetection
@@ -174,6 +180,7 @@ export function useCrossChainDataState(): UseCrossChainDataStateReturn {
     currentClient,
     fetchData,
     prevStats,
+    anomalies,
     clearCache,
     clearCacheForProvider,
   };

@@ -156,6 +156,7 @@ export function useCrossChainData(): UseCrossChainDataReturn {
     stdDevBinRange: chart.stdDevBinRange,
     chainsWithHighDeviation: table.chainsWithHighDeviation,
     prevStats: dataState.prevStats,
+    anomalies: dataState.anomalies,
     sortColumn: ui.sortColumn,
     setSortColumn: ui.setSortColumn,
     sortDirection: ui.sortDirection,

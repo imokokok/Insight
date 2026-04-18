@@ -5,7 +5,7 @@ import { SUPRA_PAIR_INDEX_MAP } from '@/lib/oracles/constants/supraConstants';
 import { getSupraDataService } from '@/lib/oracles/services/supraDataService';
 import { createLogger } from '@/lib/utils/logger';
 import { OracleProvider, Blockchain } from '@/types/oracle';
-import type { PriceData, OracleErrorCode } from '@/types/oracle';
+import type { PriceData } from '@/types/oracle';
 
 const logger = createLogger('SupraClient');
 
@@ -44,6 +44,7 @@ export class SupraClient extends BaseOracleClient {
 
   constructor(config?: OracleClientConfig) {
     super(config);
+    this.cache.startCleanupInterval();
   }
 
   async getPrice(
@@ -51,8 +52,12 @@ export class SupraClient extends BaseOracleClient {
     chain?: Blockchain,
     options?: { signal?: AbortSignal }
   ): Promise<PriceData> {
+    if (!symbol) {
+      throw this.createError('Symbol is required', 'SYMBOL_NOT_SUPPORTED');
+    }
+
     if (options?.signal?.aborted) {
-      throw this.createError('Request was aborted', 'NETWORK_ERROR' as OracleErrorCode, {
+      throw this.createError('Request was aborted', 'NETWORK_ERROR', {
         retryable: false,
       });
     }
@@ -63,7 +68,7 @@ export class SupraClient extends BaseOracleClient {
     if (pairIndex === undefined || pairIndex === null) {
       throw this.createError(
         `Symbol '${upperSymbol}' is not supported by Supra`,
-        'SYMBOL_NOT_SUPPORTED' as OracleErrorCode
+        'SYMBOL_NOT_SUPPORTED'
       );
     }
 
@@ -74,7 +79,7 @@ export class SupraClient extends BaseOracleClient {
       if (!latestData || isNaN(latestData.price)) {
         throw this.createError(
           `No price data available for ${upperSymbol} from Supra DORA`,
-          'NO_DATA_AVAILABLE' as OracleErrorCode
+          'NO_DATA_AVAILABLE'
         );
       }
 
@@ -95,7 +100,7 @@ export class SupraClient extends BaseOracleClient {
       }
       throw this.createError(
         error instanceof Error ? error.message : 'Failed to fetch price from Supra',
-        'SUPRA_ERROR' as OracleErrorCode
+        'SUPRA_ERROR'
       );
     }
   }
@@ -177,5 +182,6 @@ export class SupraClient extends BaseOracleClient {
 
   clearCache(): void {
     this.cache.clear();
+    this.cache.startCleanupInterval();
   }
 }

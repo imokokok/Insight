@@ -2,25 +2,26 @@ import { type NextRequest, NextResponse } from 'next/server';
 
 import { apiRateLimit, withRateLimitHeaders } from '@/lib/api/middleware/rateLimitMiddleware';
 import { ApiResponseBuilder } from '@/lib/api/response';
+import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('api-prices');
 
-const BINANCE_SYMBOLS: Record<string, string> = {
-  BTC: 'BTCUSDT',
-  ETH: 'ETHUSDT',
-  SOL: 'SOLUSDT',
-  AVAX: 'AVAXUSDT',
-  BNB: 'BNBUSDT',
-  MATIC: 'MATICUSDT',
-  ARB: 'ARBUSDT',
-  OP: 'OPUSDT',
-  UNI: 'UNIUSDT',
-  AAVE: 'AAVEUSDT',
-  LINK: 'LINKUSDT',
-  USDC: 'USDCUSDT',
-  DAI: 'DAIUSDT',
-};
+const PRICE_SYMBOLS = [
+  'BTC',
+  'ETH',
+  'SOL',
+  'AVAX',
+  'BNB',
+  'MATIC',
+  'ARB',
+  'OP',
+  'UNI',
+  'AAVE',
+  'LINK',
+  'USDC',
+  'DAI',
+] as const;
 
 const FIXED_PRICES: Record<string, number> = {
   USDT: 1.0,
@@ -32,7 +33,6 @@ interface CacheEntry {
 }
 
 const CACHE_DURATION = 60000;
-const REQUEST_TIMEOUT = 10000;
 
 const cache: {
   data: CacheEntry | null;
@@ -43,51 +43,17 @@ const cache: {
 };
 
 async function fetchBinancePrices(): Promise<Record<string, number>> {
-  const symbols = Object.values(BINANCE_SYMBOLS);
+  const results = await binanceMarketService.getMultipleTokensMarketData([...PRICE_SYMBOLS]);
 
-  const url = `https://api.binance.com/api/v3/ticker/price?symbols=${encodeURIComponent(JSON.stringify(symbols))}`;
+  const prices: Record<string, number> = { ...FIXED_PRICES };
 
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
-
-  try {
-    const response = await fetch(url, {
-      cache: 'no-store',
-      headers: {
-        Accept: 'application/json',
-      },
-      signal: controller.signal,
-    });
-
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      const errorText = await response.text().catch(() => 'Unknown error');
-      throw new Error(`Binance API error: ${response.status} - ${errorText}`);
+  for (const tokenData of results) {
+    if (tokenData.currentPrice > 0) {
+      prices[tokenData.symbol] = tokenData.currentPrice;
     }
-
-    const data = await response.json();
-
-    const prices: Record<string, number> = { ...FIXED_PRICES };
-    const symbolToAsset = Object.fromEntries(
-      Object.entries(BINANCE_SYMBOLS).map(([asset, symbol]) => [symbol, asset])
-    );
-
-    data.forEach((item: { symbol: string; price: string }) => {
-      const asset = symbolToAsset[item.symbol];
-      if (asset) {
-        prices[asset] = parseFloat(item.price);
-      }
-    });
-
-    return prices;
-  } catch (error) {
-    clearTimeout(timeoutId);
-    if (error instanceof Error && error.name === 'AbortError') {
-      throw new Error('Binance API request timeout');
-    }
-    throw error;
   }
+
+  return prices;
 }
 
 export async function GET(request: NextRequest) {

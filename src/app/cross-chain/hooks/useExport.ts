@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useRef } from 'react';
 
 import { OracleProvider, type Blockchain, type PriceData } from '@/lib/oracles';
 import { downloadBlob } from '@/lib/utils/download';
@@ -38,9 +38,7 @@ interface UseExportReturn {
 
 export function useExport(params: UseExportParams): UseExportReturn {
   const paramsRef = useRef(params);
-  useEffect(() => {
-    paramsRef.current = params;
-  });
+  paramsRef.current = params;
 
   const exportToCSV = useCallback((): boolean => {
     const currentParams = paramsRef.current;
