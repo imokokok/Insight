@@ -176,6 +176,10 @@ export function QueryResults({ onChainData }: QueryResultsProps) {
             <div className="w-1 h-5 bg-gradient-to-b from-blue-500 to-indigo-500 rounded-full"></div>
             <h3 className="text-sm font-semibold text-gray-800">Price History</h3>
             <span className="text-xs text-gray-400 ml-2">Historical data source</span>
+            <span className="text-xs text-gray-400 ml-1">
+              (Note: Oracle networks do not provide historical price data. Historical price data is
+              sourced from Binance API.)
+            </span>
           </div>
           <div className="bg-gray-50/50 rounded-xl border border-gray-100 p-4">
             <PriceChart
