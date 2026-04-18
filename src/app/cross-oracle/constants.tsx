@@ -72,7 +72,7 @@ export const oracleNames: Record<OracleProvider, string> = {
   [OracleProvider.FLARE]: 'Flare',
 };
 
-const oracleColors: Record<string, string> = {
+export const oracleColors: Record<string, string> = {
   [OracleProvider.CHAINLINK]: '#375bd2',
   [OracleProvider.PYTH]: '#e6c5ff',
   [OracleProvider.API3]: '#7ce3cb',

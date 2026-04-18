@@ -74,7 +74,13 @@ const CompactStatCard = forwardRef<HTMLDivElement, CompactStatCardProps>(
       if (!change) return null;
       const sign = change.value > 0 ? '+' : '';
       const suffix = change.percentage ? '%' : '';
-      return `${sign}${change.value.toFixed(2)}${suffix}`;
+      // Dynamic precision based on value magnitude
+      let decimals = 2;
+      const absValue = Math.abs(change.value);
+      if (absValue < 0.01) decimals = 4;
+      else if (absValue < 0.1) decimals = 3;
+      else if (absValue >= 100) decimals = 1;
+      return `${sign}${change.value.toFixed(decimals)}${suffix}`;
     };
 
     const cardContent = (

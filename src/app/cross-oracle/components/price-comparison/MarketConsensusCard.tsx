@@ -24,9 +24,10 @@ function MarketConsensusCardComponent({
   previousMedian,
   symbol,
 }: MarketConsensusCardProps) {
-  const changePercent = previousMedian
-    ? ((medianPrice - previousMedian) / previousMedian) * 100
-    : null;
+  const changePercent =
+    previousMedian && previousMedian > 0
+      ? ((medianPrice - previousMedian) / previousMedian) * 100
+      : null;
 
   const [baseAsset, quoteAsset] = symbol.split('/');
 

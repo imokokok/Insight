@@ -3,6 +3,11 @@
  * 用于热力图等场景的智能数值显示
  */
 
+import {
+  formatPercent as formatPercentCore,
+  formatPriceDiff as formatPriceDiffCore,
+} from '@/lib/utils/format';
+
 /**
  * 智能格式化百分比数值
  * 根据数值大小自动选择合适的小数位数
@@ -10,7 +15,7 @@
  * @param options - 配置选项
  * @returns 格式化后的字符串
  */
-function formatPercent(
+export function formatPercent(
   value: number,
   options: {
     minDecimals?: number;
@@ -43,27 +48,8 @@ function formatPercent(
  * @param basePrice - 基准价格（用于计算相对精度）
  * @returns 格式化后的字符串
  */
-function formatPriceDiff(value: number, basePrice?: number): string {
-  if (value === 0) return '$0.00';
-
-  // 根据基准价格确定精度
-  let decimals = 2;
-  if (basePrice && basePrice > 1000) {
-    decimals = 2;
-  } else if (basePrice && basePrice > 100) {
-    decimals = 3;
-  } else if (basePrice && basePrice > 1) {
-    decimals = 4;
-  } else {
-    decimals = 6;
-  }
-
-  // 对于非常小的差异，显示更多小数位
-  if (Math.abs(value) < 0.01) {
-    decimals = Math.max(decimals, 4);
-  }
-
-  return `$${value.toFixed(decimals)}`;
+export function formatPriceDiff(value: number, basePrice?: number): string {
+  return formatPriceDiffCore(value, basePrice);
 }
 
 /**
@@ -72,7 +58,7 @@ function formatPriceDiff(value: number, basePrice?: number): string {
  * @param percent - 百分比值
  * @returns 格式化后的字符串
  */
-function formatHeatmapCell(percent: number): string {
+export function formatHeatmapCell(percent: number): string {
   if (percent === 0) return '0%';
 
   // 对于非常小的值，使用 2 位小数
@@ -94,7 +80,7 @@ function formatHeatmapCell(percent: number): string {
  * @param value - 数值
  * @returns 格式化后的字符串
  */
-function formatLegendValue(value: number): string {
+export function formatLegendValue(value: number): string {
   if (value === 0) return '0%';
   if (value < 0.01) return `${value.toFixed(2)}%`;
   if (value < 0.1) return `${value.toFixed(1)}%`;
@@ -107,7 +93,7 @@ function formatLegendValue(value: number): string {
  * @param value - 数值
  * @returns 精度等级
  */
-function getPrecisionLevel(value: number): 'high' | 'medium' | 'low' {
+export function getPrecisionLevel(value: number): 'high' | 'medium' | 'low' {
   if (Math.abs(value) < 0.01) return 'high';
   if (Math.abs(value) < 0.1) return 'medium';
   return 'low';

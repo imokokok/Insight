@@ -6,6 +6,7 @@ import { Wifi, WifiOff, Clock, RefreshCw, Activity } from 'lucide-react';
 
 import { semanticColors } from '@/lib/config/colors';
 import { cn } from '@/lib/utils';
+import { formatRelativeTime } from '@/lib/utils/format';
 
 import { Tooltip } from './Tooltip';
 
@@ -96,16 +97,7 @@ function formatLatency(ms?: number): string {
 
 function formatLastUpdate(date?: Date): string {
   if (!date) return '--';
-  const now = new Date();
-  const diff = now.getTime() - date.getTime();
-  const seconds = Math.floor(diff / 1000);
-  const minutes = Math.floor(seconds / 60);
-  const hours = Math.floor(minutes / 60);
-
-  if (seconds < 60) return `${seconds} seconds ago`;
-  if (minutes < 60) return `${minutes} minutes ago`;
-  if (hours < 24) return `${hours} hours ago`;
-  return date.toLocaleDateString();
+  return formatRelativeTime(date, { style: 'long' });
 }
 
 function getDataFreshnessLevel(

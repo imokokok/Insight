@@ -1,9 +1,9 @@
 'use client';
 
-import { formatPrice } from '@/app/price-query/utils/queryResultsUtils';
 import { DataTablePro, type ColumnDef, type ConditionalFormattingRule } from '@/components/ui';
 import { type Blockchain } from '@/lib/oracles';
 import { isBlockchain } from '@/lib/utils/chainUtils';
+import { formatPrice, formatPriceDiff } from '@/lib/utils/format';
 
 import { type useCrossChainData } from '../useCrossChainData';
 import { chainNames, chainColors, calculateZScore, isOutlier } from '../utils';
@@ -121,7 +121,7 @@ export function PriceComparisonTable({ data }: PriceComparisonTableProps) {
       minWidth: 110,
       align: 'right',
       sortable: true,
-      formatter: (value: unknown, _row: TableRow) => {
+      formatter: (value: unknown, row: TableRow) => {
         const diff = value as number;
         const isPositive = diff >= 0;
         const isSignificant = Math.abs(diff) > 0.5;
@@ -138,7 +138,7 @@ export function PriceComparisonTable({ data }: PriceComparisonTableProps) {
                   : 'text-emerald-600'
             }`}
           >
-            {isPositive ? '+' : ''}${diff.toFixed(4)}
+            {formatPriceDiff(diff, row.price)}
           </span>
         );
       },

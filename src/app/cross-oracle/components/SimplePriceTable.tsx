@@ -17,10 +17,10 @@ import {
 
 import { chartColors } from '@/lib/config/colors';
 import { getProviderDefaults } from '@/lib/oracles/utils/performanceMetricsConfig';
-import { formatPrice } from '@/lib/utils/format';
+import { formatPrice, formatRelativeTime } from '@/lib/utils/format';
 import { type OracleProvider, type PriceData } from '@/types/oracle';
 
-import { oracleNames } from '../constants';
+import { oracleNames, oracleColors } from '../constants';
 import { ANOMALY_DEVIATION_THRESHOLD } from '../thresholds';
 
 import { ConfidenceBar } from './price-comparison/ConfidenceBar';
@@ -92,14 +92,7 @@ const formatLatency = (latency: number): string => {
   return `${(latency / 1000).toFixed(1)}s`;
 };
 
-const formatTimeAgo = (timestamp: number): string => {
-  const seconds = Math.floor((Date.now() - timestamp) / 1000);
-  if (seconds < 60) return `${seconds}s ago`;
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  return `${hours}h ago`;
-};
+// Use unified formatRelativeTime from core utils
 
 const SortIcon = ({
   column,
@@ -358,7 +351,9 @@ function SimplePriceTableComponent({
                   <div className="flex items-center gap-2">
                     <div
                       className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: chartColors.recharts.primary }}
+                      style={{
+                        backgroundColor: oracleColors[row.provider] || chartColors.recharts.primary,
+                      }}
                     />
                     <span className="font-medium text-gray-900 text-sm">
                       {oracleNames[row.provider] || row.provider}
@@ -431,7 +426,9 @@ function SimplePriceTableComponent({
                 </td>
 
                 <td className="px-4 py-3 whitespace-nowrap text-center">
-                  <span className="text-xs text-gray-500">{formatTimeAgo(row.updateTime)}</span>
+                  <span className="text-xs text-gray-500">
+                    {formatRelativeTime(row.updateTime)}
+                  </span>
                 </td>
 
                 <td className="px-4 py-3 whitespace-nowrap text-center">
