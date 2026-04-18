@@ -2,7 +2,7 @@
  * Statistical utility functions for calculating CDF, quantiles, and other statistical metrics
  */
 
-export interface WeightedData {
+interface WeightedData {
   value: number;
   weight?: number | null;
 }
@@ -67,13 +67,13 @@ export function calculateWeightedAverage(
   return weightSum > 0 ? weightedSum / weightSum : 0;
 }
 
-export interface CDFPoint {
+interface CDFPoint {
   value: number;
   probability: number;
   count: number;
 }
 
-export interface CDFResult {
+interface CDFResult {
   points: CDFPoint[];
   p50: number;
   p95: number;
@@ -85,7 +85,7 @@ export interface CDFResult {
   totalCount: number;
 }
 
-export interface QuantileResult {
+interface QuantileResult {
   p50: number;
   p90: number;
   p95: number;

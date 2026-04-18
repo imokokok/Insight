@@ -417,7 +417,7 @@ function computeProxyAddress(dapiName: string, chainId: number): string | null {
 /**
  * 获取代币价格（从API3预言机网络）
  */
-export async function getAPI3Price(
+async function getAPI3Price(
   symbol: string,
   chain: Blockchain = Blockchain.ETHEREUM,
   signal?: AbortSignal
@@ -489,7 +489,7 @@ export async function getAPI3Price(
  * 获取历史价格数据
  * 注意：API3 dAPI不直接提供历史数据，使用 Binance API 获取历史数据
  */
-export async function getAPI3HistoricalPrices(
+async function getAPI3HistoricalPrices(
   symbol: string,
   _chain: Blockchain = Blockchain.ETHEREUM,
   period: number = 24
@@ -527,21 +527,21 @@ export async function getAPI3HistoricalPrices(
 /**
  * 获取支持的代币列表
  */
-export function getAPI3SupportedSymbols(): string[] {
+function getAPI3SupportedSymbols(): string[] {
   return Object.keys(SYMBOL_TO_DAPI);
 }
 
 /**
  * 检查代币是否受支持
  */
-export function isAPI3SymbolSupported(symbol: string): boolean {
+function isAPI3SymbolSupported(symbol: string): boolean {
   return symbol.toUpperCase() in SYMBOL_TO_DAPI;
 }
 
 /**
  * 获取支持的链列表
  */
-export function getAPI3SupportedChains(): Blockchain[] {
+function getAPI3SupportedChains(): Blockchain[] {
   return [
     Blockchain.ETHEREUM,
     Blockchain.ARBITRUM,

@@ -12,7 +12,7 @@ import { OracleProvider } from '@/types/oracle';
 /**
  * 共同支持币种信息
  */
-export interface CommonSymbolInfo {
+interface CommonSymbolInfo {
   /** 币种符号 */
   symbol: string;
   /** 支持该币种的预言机数量 */
@@ -24,7 +24,7 @@ export interface CommonSymbolInfo {
 /**
  * Hook 返回结果
  */
-export interface UseCommonSymbolsResult {
+interface UseCommonSymbolsResult {
   /** 共同支持的币种列表 */
   commonSymbols: string[];
   /** 详细的共同支持币种信息 */
@@ -127,5 +127,3 @@ export function useCommonSymbols(selectedOracles: OracleProvider[]): UseCommonSy
     };
   }, [selectedOracles]);
 }
-
-export default useCommonSymbols;

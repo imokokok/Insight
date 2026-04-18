@@ -65,74 +65,74 @@
   },
   {
     "name": "ResidualDiagnostics",
-    "file": "src/app/[locale]/cross-chain/components/ResidualDiagnostics.tsx"
+    "file": "src/app/cross-chain/components/ResidualDiagnostics.tsx"
   },
   {
     "name": "SmallComponents",
-    "file": "src/app/[locale]/cross-chain/components/SmallComponents.tsx"
+    "file": "src/app/cross-chain/components/SmallComponents.tsx"
   },
   {
     "name": "ChartTooltip",
-    "file": "src/app/[locale]/cross-oracle/components/ChartTooltip.tsx"
+    "file": "src/app/cross-oracle/components/ChartTooltip.tsx"
   },
   {
     "name": "DataSourcePanel",
-    "file": "src/app/[locale]/cross-oracle/components/DataSourcePanel.tsx"
+    "file": "src/app/cross-oracle/components/DataSourcePanel.tsx"
   },
   {
     "name": "OracleComparisonSection",
-    "file": "src/app/[locale]/cross-oracle/components/OracleComparisonSection.tsx"
+    "file": "src/app/cross-oracle/components/OracleComparisonSection.tsx"
   },
   {
     "name": "PriceTableSection",
-    "file": "src/app/[locale]/cross-oracle/components/PriceTableSection.tsx"
+    "file": "src/app/cross-oracle/components/PriceTableSection.tsx"
   },
   {
     "name": "QualityScoreCard",
-    "file": "src/app/[locale]/cross-oracle/components/QualityScoreCard.tsx"
+    "file": "src/app/cross-oracle/components/QualityScoreCard.tsx"
   },
   {
     "name": "OracleQualityTable",
-    "file": "src/app/[locale]/cross-oracle/components/quality/OracleQualityTable.tsx"
+    "file": "src/app/cross-oracle/components/quality/OracleQualityTable.tsx"
   },
   {
     "name": "QualityAnomaliesPanel",
-    "file": "src/app/[locale]/cross-oracle/components/quality/QualityAnomaliesPanel.tsx"
+    "file": "src/app/cross-oracle/components/quality/QualityAnomaliesPanel.tsx"
   },
   {
     "name": "QualityMetricsHeader",
-    "file": "src/app/[locale]/cross-oracle/components/quality/QualityMetricsHeader.tsx"
+    "file": "src/app/cross-oracle/components/quality/QualityMetricsHeader.tsx"
   },
   {
     "name": "QualityTrendChart",
-    "file": "src/app/[locale]/cross-oracle/components/quality/QualityTrendChart.tsx"
+    "file": "src/app/cross-oracle/components/quality/QualityTrendChart.tsx"
   },
   {
     "name": "RiskDetailsTable",
-    "file": "src/app/[locale]/cross-oracle/components/tabs/RiskDetailsTable.tsx"
+    "file": "src/app/cross-oracle/components/tabs/RiskDetailsTable.tsx"
   },
   {
     "name": "RiskHeatmap",
-    "file": "src/app/[locale]/cross-oracle/components/tabs/RiskHeatmap.tsx"
+    "file": "src/app/cross-oracle/components/tabs/RiskHeatmap.tsx"
   },
   {
     "name": "RiskMetricsGrid",
-    "file": "src/app/[locale]/cross-oracle/components/tabs/RiskMetricsGrid.tsx"
+    "file": "src/app/cross-oracle/components/tabs/RiskMetricsGrid.tsx"
   },
   {
     "name": "RiskOverviewHeader",
-    "file": "src/app/[locale]/cross-oracle/components/tabs/RiskOverviewHeader.tsx"
+    "file": "src/app/cross-oracle/components/tabs/RiskOverviewHeader.tsx"
   },
   {
     "name": "RiskRecommendations",
-    "file": "src/app/[locale]/cross-oracle/components/tabs/RiskRecommendations.tsx"
+    "file": "src/app/cross-oracle/components/tabs/RiskRecommendations.tsx"
   },
   {
     "name": "RiskTrendChart",
-    "file": "src/app/[locale]/cross-oracle/components/tabs/RiskTrendChart.tsx"
+    "file": "src/app/cross-oracle/components/tabs/RiskTrendChart.tsx"
   },
   {
     "name": "constants",
-    "file": "src/app/[locale]/cross-oracle/constants.tsx"
+    "file": "src/app/cross-oracle/constants.tsx"
   }
 ]

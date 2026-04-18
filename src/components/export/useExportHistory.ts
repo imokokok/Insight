@@ -20,7 +20,7 @@ import { type ExportHistoryItem, type ExportSettings, DEFAULT_EXPORT_SETTINGS } 
 
 const logger = createLogger('useExportHistory');
 
-export interface UseExportHistoryReturn {
+interface UseExportHistoryReturn {
   history: ExportHistoryItem[];
   settings: ExportSettings;
   isLoading: boolean;

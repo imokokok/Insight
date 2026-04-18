@@ -2,7 +2,7 @@ import { semanticColors } from '@/lib/config/colors';
 import { getHeatmapColor as getHeatmapColorUtil } from '@/lib/utils/chartSharedUtils';
 import { formatPrice as formatPriceUtil } from '@/lib/utils/format';
 
-export const getDiffTextColor = (diffPercent: number): string => {
+const getDiffTextColor = (diffPercent: number): string => {
   if (Math.abs(diffPercent) <= 0.5) {
     return 'text-gray-600';
   }
@@ -21,7 +21,7 @@ export const getHeatmapColor = (percent: number, maxPercent: number): string => 
   return getHeatmapColorUtil(percent, 0, maxPercent);
 };
 
-export const getCorrelationColor = (correlation: number): string => {
+const getCorrelationColor = (correlation: number): string => {
   const clampedCorrelation = Math.max(-1, Math.min(1, correlation));
 
   if (clampedCorrelation >= 0) {
@@ -58,7 +58,7 @@ export const getIntegrityColor = (value: number): string => {
   return semanticColors.danger.DEFAULT;
 };
 
-export const getVolatilityColor = (value: number): string => {
+const getVolatilityColor = (value: number): string => {
   if (value < 1) return semanticColors.success.DEFAULT;
   if (value <= 3) return semanticColors.warning.DEFAULT;
   return semanticColors.danger.DEFAULT;

@@ -2,7 +2,7 @@
 
 import { ORACLE_CACHE_TTL } from '@/lib/oracles';
 
-export interface CacheEntry<T> {
+interface CacheEntry<T> {
   data: T;
   timestamp: number;
   expiresAt: number;

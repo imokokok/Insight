@@ -10,7 +10,7 @@
 /**
  * 色阶颜色类型 (50-900)
  */
-export interface ColorScale {
+interface ColorScale {
   50: string;
   100: string;
   200: string;
@@ -26,7 +26,7 @@ export interface ColorScale {
 /**
  * 语义化颜色类型
  */
-export interface SemanticColor {
+interface SemanticColor {
   light: string;
   DEFAULT: string;
   dark: string;
@@ -37,7 +37,7 @@ export interface SemanticColor {
 /**
  * 阴影颜色类型
  */
-export interface ShadowColor {
+interface ShadowColor {
   soft: string;
   medium: string;
   strong: string;
@@ -144,7 +144,7 @@ export const semanticColors = {
 // 金融主题颜色
 // ============================================
 
-export const financeColors = {
+const financeColors = {
   primary: baseColors.primary[800],
   secondary: baseColors.primary[500],
   accent: baseColors.primary[400],
@@ -204,7 +204,7 @@ export const chainColors = {
 // 渐变定义
 // ============================================
 
-export const gradients = {
+const gradients = {
   blue: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%)',
   green: 'linear-gradient(135deg, #059669 0%, #10b981 50%, #34d399 100%)',
   purple: 'linear-gradient(135deg, #7c3aed 0%, #8b5cf6 50%, #a78bfa 100%)',
@@ -425,7 +425,7 @@ export const chartColors = {
 // 阴影颜色
 // ============================================
 
-export const shadowColors = {
+const shadowColors = {
   soft: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
   medium: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
   strong: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
@@ -527,7 +527,7 @@ export const accessibleColors = {
 // WCAG AA 标准高对比度配色方案
 // ============================================
 
-export const wcagColors = {
+const wcagColors = {
   // WCAG AA 标准：文本与背景对比度至少 4.5:1
   // WCAG AAA 标准：文本与背景对比度至少 7:1
 
@@ -630,7 +630,7 @@ export const wcagColors = {
 // 图表配色方案集合
 // ============================================
 
-export const chartColorSchemes = {
+const chartColorSchemes = {
   default: chartColors.sequence,
   highContrast: wcagColors.chart.primary,
   colorblind: accessibleColors.chart.sequence,
@@ -640,7 +640,7 @@ export const chartColorSchemes = {
 // UI 组件颜色
 // ============================================
 
-export const uiColors = {
+const uiColors = {
   button: {
     primary: {
       bg: '#2563eb',
@@ -688,7 +688,7 @@ export const uiColors = {
 // 热力图颜色
 // ============================================
 
-export const heatmapColors = {
+const heatmapColors = {
   deviation: {
     extremelyLow: '#10B981', // < 0.1%
     low: '#34D399', // 0.1-0.25%
@@ -717,7 +717,7 @@ export const heatmapColors = {
 // 动画效果颜色
 // ============================================
 
-export const animationColors = {
+const animationColors = {
   pulse: {
     primary: 'rgba(30, 64, 175, 0.1)',
     warning: 'rgba(251, 191, 36, 0.7)',
@@ -850,7 +850,7 @@ const baseBorderClasses = {
 // 组合 Tailwind 类名
 // ============================================
 
-export const tailwindClasses = {
+const tailwindClasses = {
   // 背景色
   bg: baseBgClasses,
 
@@ -926,7 +926,7 @@ export const tailwindClasses = {
  * const downColor = getPriceChangeColor(false, true); // 色盲友好下跌颜色
  * ```
  */
-export function getPriceChangeColor(
+function getPriceChangeColor(
   isPositive: boolean,
   useAccessible: boolean = false
 ): { color: string; bgColor: string; icon: string } {
@@ -958,7 +958,7 @@ export function getPriceChangeColor(
  * const color2 = getChartSequenceColor(8); // 循环回到第一个颜色
  * ```
  */
-export function getChartSequenceColor(index: number): string {
+function getChartSequenceColor(index: number): string {
   return chartColors.sequence[index % chartColors.sequence.length];
 }
 
@@ -978,7 +978,7 @@ export function getChartSequenceColor(index: number): string {
  * const textColor2 = getContrastTextColor('#000000'); // '#FFFFFF'（白色）
  * ```
  */
-export function getContrastTextColor(backgroundColor: string): string {
+function getContrastTextColor(backgroundColor: string): string {
   // 简单的亮度计算
   const hex = backgroundColor.replace('#', '');
   const r = parseInt(hex.substr(0, 2), 16);
@@ -993,7 +993,7 @@ export function getContrastTextColor(backgroundColor: string): string {
 // 导出默认对象
 // ============================================
 
-export const colors = {
+const colors = {
   base: baseColors,
   semantic: semanticColors,
   finance: financeColors,
@@ -1010,5 +1010,3 @@ export const colors = {
   animation: animationColors,
   export: exportColors,
 } as const;
-
-export default colors;

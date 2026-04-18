@@ -60,5 +60,3 @@ function ConfidenceBarComponent({ confidence, showLabel = true, size = 'md' }: C
 
 export const ConfidenceBar = memo(ConfidenceBarComponent);
 ConfidenceBar.displayName = 'ConfidenceBar';
-
-export default ConfidenceBar;

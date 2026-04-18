@@ -39,5 +39,3 @@ export function ShortcutInitializer() {
 
   return null;
 }
-
-export default ShortcutInitializer;

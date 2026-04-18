@@ -7,7 +7,7 @@ import { useQuery } from '@tanstack/react-query';
 import { REFLECTOR_ASSET_CONTRACT_MAP } from '@/lib/oracles/constants/reflectorConstants';
 import { getReflectorDataService } from '@/lib/oracles/services/reflectorDataService';
 
-export interface UseReflectorOnChainDataOptions {
+interface UseReflectorOnChainDataOptions {
   symbol: string;
   enabled?: boolean;
 }

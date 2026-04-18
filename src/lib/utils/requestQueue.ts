@@ -2,8 +2,8 @@ import { createLogger } from './logger';
 
 const logger = createLogger('RequestQueue');
 
-export const DEFAULT_MAX_CONCURRENCY = 6;
-export const DEFAULT_TIMEOUT = 30000;
+const DEFAULT_MAX_CONCURRENCY = 6;
+const DEFAULT_TIMEOUT = 30000;
 
 export type RequestPriority = 'high' | 'normal' | 'low';
 
@@ -266,5 +266,3 @@ export function getRequestQueue(config?: RequestQueueConfig): RequestQueue {
   }
   return globalQueue;
 }
-
-export type { RequestQueueConfig, RequestQueueStats };

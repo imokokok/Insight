@@ -10,7 +10,7 @@ import { ZodValidationError, isZodValidationError } from './errors';
 
 const logger = createLogger('error-handler');
 
-export interface ErrorResponse {
+interface ErrorResponse {
   success: false;
   error: {
     code: string;
@@ -20,7 +20,7 @@ export interface ErrorResponse {
   timestamp: number;
 }
 
-export interface ValidationErrorDetail {
+interface ValidationErrorDetail {
   field: string;
   message: string;
 }
@@ -73,7 +73,7 @@ export function handleValidationError(
  * 处理 AppError
  * 复用基础错误处理函数
  */
-export function handleAppError(error: AppError): NextResponse {
+function handleAppError(error: AppError): NextResponse {
   // 直接使用 errorToResponse 处理
   return baseErrorToResponse(error);
 }

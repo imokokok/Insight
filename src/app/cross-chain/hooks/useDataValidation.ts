@@ -6,7 +6,7 @@ import { validatePriceData } from '../utils/validation';
 
 const logger = createLogger('useDataValidation');
 
-export function validateCurrentPrices(prices: PriceData[]): PriceData[] {
+function validateCurrentPrices(prices: PriceData[]): PriceData[] {
   return prices.filter((priceData) => {
     if (!priceData.chain) return false;
     const validation = validatePriceData(priceData.price, priceData.timestamp, priceData.chain);
@@ -20,7 +20,7 @@ export function validateCurrentPrices(prices: PriceData[]): PriceData[] {
   });
 }
 
-export function validateHistoricalPrices(prices: PriceData[], chain: Blockchain): PriceData[] {
+function validateHistoricalPrices(prices: PriceData[], chain: Blockchain): PriceData[] {
   return prices.filter((priceData) => {
     const validation = validatePriceData(priceData.price, priceData.timestamp, chain);
     if (!validation.isValid) {
@@ -31,7 +31,7 @@ export function validateHistoricalPrices(prices: PriceData[], chain: Blockchain)
   });
 }
 
-export function validateSinglePrice(
+function validateSinglePrice(
   price: number,
   timestamp: number,
   chain: Blockchain

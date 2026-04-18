@@ -1,6 +1,6 @@
 import type { Blockchain } from './enums';
 
-export enum TimeRange {
+enum TimeRange {
   '1H' = 3600,
   '6H' = 21600,
   '24H' = 86400,
@@ -23,19 +23,19 @@ export enum TrendDirection {
   SHRINKING = 'shrinking',
 }
 
-export interface ConfidenceIntervalData {
+interface ConfidenceIntervalData {
   bid: number;
   ask: number;
   widthPercentage: number;
 }
 
-export interface LoadingState {
+interface LoadingState {
   isLoading: boolean;
   error?: string;
   lastUpdated?: number;
 }
 
-export interface FilterState {
+interface FilterState {
   timeRange?: TimeRange;
   chain?: Blockchain;
   symbol?: string;
@@ -49,7 +49,7 @@ export interface ValidationResult<T = unknown> {
   warnings?: string[];
 }
 
-export interface ExportOptions {
+interface ExportOptions {
   format: 'csv' | 'json' | 'png';
   filename?: string;
   includeMetadata?: boolean;

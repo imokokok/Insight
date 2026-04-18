@@ -2,7 +2,7 @@ import { memo } from 'react';
 
 import { cn } from '@/lib/utils';
 
-export interface StatCardProps {
+interface StatCardProps {
   icon?: React.ElementType;
   iconColor?: string;
   title: string;

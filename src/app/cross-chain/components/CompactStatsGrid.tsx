@@ -107,5 +107,3 @@ export function CompactStatsGrid({ statsData }: CompactStatsGridProps) {
     </div>
   );
 }
-
-export default CompactStatsGrid;

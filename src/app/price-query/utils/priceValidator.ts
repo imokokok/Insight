@@ -9,7 +9,7 @@ export interface AnomalyInfo {
   dataPoint?: PriceData;
 }
 
-export interface PriceValidationResult extends ValidationResult {
+interface PriceValidationResult extends ValidationResult {
   warnings: string[];
   anomalies: AnomalyInfo[];
 }

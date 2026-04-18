@@ -10,7 +10,6 @@ Insight is a professional oracle data analytics platform that provides comprehen
 - **Price Alerts & Notifications** - Configure custom price alerts with multiple trigger conditions
 - **User Favorites & Snapshots** - Save and share price snapshots and favorite configurations
 - **Data Export** - Export data in CSV, JSON, Excel, PDF, and PNG formats
-- **Internationalization** - Full support for English and Chinese (zh-CN)
 - **Anomaly Detection** - Automatic detection of price anomalies and outliers
 - **Technical Indicators** - RSI, MACD, Bollinger Bands, ATR, and more
 - **Data Transparency** - Data source indicators and update time tracking
@@ -27,7 +26,6 @@ Insight is a professional oracle data analytics platform that provides comprehen
 - **State Management**: React Query 5.90.21, Zustand 5.0.11
 - **Charts**: Recharts 3.8.0
 - **Animations**: Framer Motion 12.36.0
-- **Internationalization**: next-intl 4.8.3
 
 ### Backend
 
@@ -98,9 +96,6 @@ Insight is a professional oracle data analytics platform that provides comprehen
 | `npm run clean:start`   | Clean .next, build and start server |
 | `npm run perf:test`     | Run performance tests               |
 | `npm run perf:quick`    | Run quick performance check         |
-| `npm run i18n:types`    | Generate i18n types                 |
-| `npm run i18n:check`    | Check i18n translations             |
-| `npm run i18n:validate` | Validate i18n translations          |
 | `npm run naming:check`  | Check naming conventions            |
 | `npm run prepare`       | Prepare husky git hooks             |
 
@@ -110,22 +105,21 @@ Insight is a professional oracle data analytics platform that provides comprehen
 insight/
 ├── src/
 │   ├── app/                    # Next.js App Router pages and API routes
-│   │   ├── [locale]/           # Localized pages (next-intl)
-│   │   │   ├── alerts/         # Alerts management page
-│   │   │   ├── auth/           # Authentication pages
-│   │   │   │   ├── forgot-password/
-│   │   │   │   ├── resend-verification/
-│   │   │   │   ├── reset-password/
-│   │   │   │   └── verify-email/
-│   │   │   ├── cross-chain/    # Cross-chain analysis page
-│   │   │   ├── cross-oracle/   # Cross-oracle comparison page
-│   │   │   ├── docs/           # Documentation page
-│   │   │   ├── favorites/      # User favorites page
-│   │   │   ├── home-components/# Homepage components
-│   │   │   ├── login/          # Login page
-│   │   │   ├── price-query/    # Price query page
-│   │   │   ├── register/       # Registration page
-│   │   │   └── settings/       # User settings page
+│   │   ├── alerts/             # Alerts management page
+│   │   ├── auth/               # Authentication pages
+│   │   │   ├── forgot-password/
+│   │   │   ├── resend-verification/
+│   │   │   ├── reset-password/
+│   │   │   └── verify-email/
+│   │   ├── cross-chain/        # Cross-chain analysis page
+│   │   ├── cross-oracle/       # Cross-oracle comparison page
+│   │   ├── docs/               # Documentation page
+│   │   ├── favorites/          # User favorites page
+│   │   ├── home-components/    # Homepage components
+│   │   ├── login/              # Login page
+│   │   ├── price-query/        # Price query page
+│   │   ├── register/           # Registration page
+│   │   └── settings/           # User settings page
 │   │   ├── api/                # API endpoints
 │   │   │   ├── alerts/         # Price alerts API
 │   │   │   │   ├── batch/      # Batch alert operations
@@ -161,7 +155,6 @@ insight/
 │   │   │   └── selectors/      # Selector components
 │   │   ├── AppInitializer.tsx  # App initializer
 │   │   ├── Footer.tsx          # Footer component
-│   │   ├── LanguageSwitcher.tsx# Language switcher
 │   │   ├── Navbar.tsx          # Navigation bar
 │   │   └── PerformanceMetricsCollector.tsx
 │   ├── hooks/                  # Custom React hooks
@@ -184,7 +177,6 @@ insight/
 │   │   ├── constants/          # Application constants
 │   │   ├── errors/             # Error handling
 │   │   ├── export/             # Data export utilities
-│   │   ├── i18n/               # i18n provider
 │   │   ├── indicators/         # Technical indicators
 │   │   ├── monitoring/         # Performance monitoring
 │   │   ├── oracles/            # Oracle client implementations
@@ -252,29 +244,12 @@ insight/
 │   │   ├── ui/                 # UI types
 │   │   ├── risk.ts             # Risk types
 │   │   ├── guards.ts           # Type guards
-│   ├── i18n/                   # Internationalization
-│   │   ├── messages/           # Translation messages
-│   │   │   ├── en/             # English translations
-│   │   │   │   ├── components/
-│   │   │   │   └── features/
-│   │   │   ├── zh-CN/          # Chinese translations
-│   │   │   │   ├── components/
-│   │   │   │   └── features/
-│   │   │   ├── en.cleaned/     # Cleaned English translations
-│   │   │   └── zh-CN.cleaned/  # Cleaned Chinese translations
-│   │   ├── config.ts
-│   │   ├── generated-types.ts
-│   │   ├── request.ts
-│   │   ├── routing.ts
-│   │   └── types.ts
 │   └── __mocks__/              # Test mocks
 ├── public/                     # Static assets
 │   └── logos/                  # Logo assets
 │       ├── cryptos/            # Cryptocurrency logos
 │       └── oracles/            # Oracle logos
 ├── scripts/                    # Utility scripts
-│   ├── generate-i18n-types.js  # i18n type generation
-│   ├── check-i18n.js           # i18n validation
 │   ├── check-naming-convention.js
 │   ├── performance-test.ts     # Performance testing
 │   └── quick-perf.mjs          # Quick performance check

@@ -182,5 +182,3 @@ function MarketDepthSimulatorComponent({ priceData, medianPrice }: MarketDepthSi
 
 export const MarketDepthSimulator = memo(MarketDepthSimulatorComponent);
 MarketDepthSimulator.displayName = 'MarketDepthSimulator';
-
-export default MarketDepthSimulator;

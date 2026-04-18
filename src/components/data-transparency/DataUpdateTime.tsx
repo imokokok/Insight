@@ -6,7 +6,7 @@ import { Clock, RefreshCw, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 import { getTimeAgoDiff, formatTimeAgo } from '@/lib/utils/timestamp';
 
-export interface DataUpdateTimeProps {
+interface DataUpdateTimeProps {
   lastUpdated: Date | null;
   refreshInterval?: number;
   onRefresh?: () => void;
@@ -222,5 +222,3 @@ export function DataUpdateTime({
     </div>
   );
 }
-
-export default DataUpdateTime;

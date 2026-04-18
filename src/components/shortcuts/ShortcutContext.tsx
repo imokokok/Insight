@@ -8,20 +8,20 @@ import type { KeyboardShortcut } from '@/hooks';
 // 类型定义
 // ============================================================================
 
-export type ShortcutCategory = 'navigation' | 'actions' | 'charts' | 'data' | 'general';
+type ShortcutCategory = 'navigation' | 'actions' | 'charts' | 'data' | 'general';
 
-export interface ShortcutContextState {
+interface ShortcutContextState {
   isHelpOpen: boolean;
   categories: ShortcutCategoryState[];
 }
 
-export interface ShortcutCategoryState {
+interface ShortcutCategoryState {
   id: string;
   label: string;
   shortcuts: KeyboardShortcut[];
 }
 
-export interface ShortcutContextActions {
+interface ShortcutContextActions {
   openHelp: () => void;
   closeHelp: () => void;
   toggleHelp: () => void;
@@ -29,9 +29,9 @@ export interface ShortcutContextActions {
   unregisterShortcut: (category: string, key: string) => void;
 }
 
-export type ShortcutContextValue = ShortcutContextState & ShortcutContextActions;
+type ShortcutContextValue = ShortcutContextState & ShortcutContextActions;
 
-export interface ShortcutProviderProps {
+interface ShortcutProviderProps {
   children: React.ReactNode;
 }
 
@@ -157,12 +157,12 @@ export function useShortcutContext() {
   return context;
 }
 
-export function useShortcutHelp() {
+function useShortcutHelp() {
   const { isHelpOpen, openHelp, closeHelp, toggleHelp } = useShortcutContext();
   return { isHelpOpen, openHelp, closeHelp, toggleHelp };
 }
 
-export function useShortcutRegistration() {
+function useShortcutRegistration() {
   const { registerShortcut, unregisterShortcut } = useShortcutContext();
   return { registerShortcut, unregisterShortcut };
 }

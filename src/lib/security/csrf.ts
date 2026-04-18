@@ -18,7 +18,7 @@ function timingSafeEqual(a: string, b: string): boolean {
 const CSRF_TOKEN_HEADER = 'X-CSRF-Token';
 const CSRF_TOKEN_COOKIE = 'csrf-token';
 
-export interface CSRFOptions {
+interface CSRFOptions {
   cookieName?: string;
   headerName?: string;
   tokenLength?: number;
@@ -65,23 +65,17 @@ export function setCSRFCookie(
   });
 }
 
-export function getCSRFTokenFromCookie(
-  request: NextRequest,
-  options: CSRFOptions = {}
-): string | null {
+function getCSRFTokenFromCookie(request: NextRequest, options: CSRFOptions = {}): string | null {
   const opts = { ...DEFAULT_OPTIONS, ...options };
   return request.cookies.get(opts.cookieName!)?.value || null;
 }
 
-export function getCSRFTokenFromHeader(
-  request: NextRequest,
-  options: CSRFOptions = {}
-): string | null {
+function getCSRFTokenFromHeader(request: NextRequest, options: CSRFOptions = {}): string | null {
   const opts = { ...DEFAULT_OPTIONS, ...options };
   return request.headers.get(opts.headerName!) || null;
 }
 
-export function isPathExcluded(path: string, excludedPaths: string[]): boolean {
+function isPathExcluded(path: string, excludedPaths: string[]): boolean {
   return excludedPaths.some((excludedPath) => {
     if (excludedPath.endsWith('*')) {
       return path.startsWith(excludedPath.slice(0, -1));
@@ -90,7 +84,7 @@ export function isPathExcluded(path: string, excludedPaths: string[]): boolean {
   });
 }
 
-export function validateCSRFToken(
+function validateCSRFToken(
   request: NextRequest,
   options: CSRFOptions = {}
 ): { valid: boolean; error?: string; newToken?: string } {
@@ -138,7 +132,7 @@ export function validateCSRFToken(
   return { valid: true };
 }
 
-export function createCSRFMiddleware(options: CSRFOptions = {}) {
+function createCSRFMiddleware(options: CSRFOptions = {}) {
   const opts = { ...DEFAULT_OPTIONS, ...options };
 
   return async (request: NextRequest): Promise<NextResponse | null> => {
@@ -169,7 +163,7 @@ export function createCSRFMiddleware(options: CSRFOptions = {}) {
   };
 }
 
-export function withCSRFProtection(
+function withCSRFProtection(
   handler: (request: NextRequest) => Promise<NextResponse>,
   options: CSRFOptions = {}
 ) {
@@ -191,7 +185,7 @@ export function withCSRFProtection(
   };
 }
 
-export function createCSRFTokenResponse(options: CSRFOptions = {}): NextResponse {
+function createCSRFTokenResponse(options: CSRFOptions = {}): NextResponse {
   const token = generateCSRFToken(options);
   const response = NextResponse.json({
     success: true,
@@ -205,4 +199,4 @@ export function createCSRFTokenResponse(options: CSRFOptions = {}): NextResponse
   return response;
 }
 
-export { CSRF_TOKEN_HEADER, CSRF_TOKEN_COOKIE };
+export { CSRF_TOKEN_HEADER };

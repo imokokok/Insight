@@ -25,14 +25,14 @@ const logger = createLogger('OracleHandlers');
 const PRICE_CACHE_TTL = ORACLE_CACHE_TTL.PRICE;
 const HISTORY_CACHE_TTL = ORACLE_CACHE_TTL.HISTORICAL;
 
-export interface OracleQueryParams {
+interface OracleQueryParams {
   provider: OracleProvider;
   symbol: string;
   chain?: Blockchain;
   period?: number;
 }
 
-export interface BatchPriceRequest {
+interface BatchPriceRequest {
   provider: OracleProvider | string;
   symbol: string;
   chain?: Blockchain | string;
@@ -47,7 +47,7 @@ interface OracleClientInterface {
 
 type OracleClient = OracleClientInterface;
 
-export function getOracleClient(provider: OracleProvider): OracleClient | null {
+function getOracleClient(provider: OracleProvider): OracleClient | null {
   try {
     const client = getDefaultFactory().getClient(provider);
     return client as OracleClient;
@@ -56,7 +56,7 @@ export function getOracleClient(provider: OracleProvider): OracleClient | null {
   }
 }
 
-export function isValidProvider(provider: string): provider is OracleProvider {
+function isValidProvider(provider: string): provider is OracleProvider {
   return ORACLE_PROVIDER_VALUES.includes(provider as OracleProvider);
 }
 
@@ -78,7 +78,7 @@ export function validateProvider(provider: string): NextResponse | null {
   return null;
 }
 
-export function validateRequiredParams(params: Partial<OracleQueryParams>): NextResponse | null {
+function validateRequiredParams(params: Partial<OracleQueryParams>): NextResponse | null {
   if (!params.provider || !params.symbol) {
     return errorToResponse(
       new ValidationError('Missing required parameters: provider, symbol', {
@@ -163,7 +163,7 @@ export function validateChain(chain: string): NextResponse | null {
   return null;
 }
 
-export async function fetchPriceFromOracle(params: OracleQueryParams): Promise<PriceData> {
+async function fetchPriceFromOracle(params: OracleQueryParams): Promise<PriceData> {
   const client = getOracleClient(params.provider);
   if (!client) {
     throw new NotFoundError(`Oracle provider not found: ${params.provider}`);
@@ -172,7 +172,7 @@ export async function fetchPriceFromOracle(params: OracleQueryParams): Promise<P
   return client.getPrice(params.symbol, params.chain);
 }
 
-export async function fetchHistoricalFromOracle(params: OracleQueryParams): Promise<PriceData[]> {
+async function fetchHistoricalFromOracle(params: OracleQueryParams): Promise<PriceData[]> {
   const client = getOracleClient(params.provider);
   if (!client) {
     throw new NotFoundError(`Oracle provider not found: ${params.provider}`);
@@ -181,7 +181,7 @@ export async function fetchHistoricalFromOracle(params: OracleQueryParams): Prom
   return client.getHistoricalPrices(params.symbol, params.chain, params.period);
 }
 
-export interface BatchPriceResult {
+interface BatchPriceResult {
   success: boolean;
   data?: PriceData;
   error?: {
@@ -190,7 +190,7 @@ export interface BatchPriceResult {
   };
 }
 
-export async function fetchBatchPrices(
+async function fetchBatchPrices(
   requests: BatchPriceRequest[]
 ): Promise<Record<string, BatchPriceResult>> {
   const results: Record<string, BatchPriceResult> = {};
@@ -226,7 +226,7 @@ export async function fetchBatchPrices(
   return results;
 }
 
-export function createPriceResponse(data: PriceData): NextResponse {
+function createPriceResponse(data: PriceData): NextResponse {
   const maxAge = PRICE_CACHE_TTL / 1000;
   const staleWhileRevalidate = 60;
   return createCachedJsonResponse(data, {
@@ -234,7 +234,7 @@ export function createPriceResponse(data: PriceData): NextResponse {
   });
 }
 
-export function createHistoryResponse(data: PriceData[]): NextResponse {
+function createHistoryResponse(data: PriceData[]): NextResponse {
   const maxAge = HISTORY_CACHE_TTL / 1000;
   const staleWhileRevalidate = Math.floor(HISTORY_CACHE_TTL / 1000) * 2;
   return createCachedJsonResponse(data, {
@@ -242,7 +242,7 @@ export function createHistoryResponse(data: PriceData[]): NextResponse {
   });
 }
 
-export function handleOracleError(error: unknown): NextResponse {
+function handleOracleError(error: unknown): NextResponse {
   if (isAppError(error)) {
     return errorToResponse(error);
   }
@@ -251,7 +251,7 @@ export function handleOracleError(error: unknown): NextResponse {
   return errorToResponse(new InternalError(`Oracle operation failed: ${message}`));
 }
 
-export function priceRecordToPriceData(record: PriceRecord): PriceData {
+function priceRecordToPriceData(record: PriceRecord): PriceData {
   return {
     symbol: record.symbol,
     price: record.price,
@@ -262,7 +262,7 @@ export function priceRecordToPriceData(record: PriceRecord): PriceData {
   };
 }
 
-export function priceDataToRecord(
+function priceDataToRecord(
   data: PriceData,
   chain?: Blockchain
 ): Omit<PriceRecord, 'id' | 'created_at'> {

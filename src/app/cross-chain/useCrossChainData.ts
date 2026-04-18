@@ -175,5 +175,3 @@ export function useCrossChainData(): UseCrossChainDataReturn {
     clearCacheForProvider: exportHook.clearCacheForProvider,
   };
 }
-
-export { type UseCrossChainDataReturn } from './types';

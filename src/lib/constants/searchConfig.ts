@@ -10,7 +10,7 @@ export interface SearchableItem {
   path: string;
 }
 
-export const searchableItems: SearchableItem[] = [
+const searchableItems: SearchableItem[] = [
   // Tokens
   {
     id: 'token-btc',

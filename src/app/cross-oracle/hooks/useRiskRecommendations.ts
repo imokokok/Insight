@@ -11,10 +11,10 @@ import type { OracleProvider } from '@/types/oracle';
 import type { PriceAnomaly } from './usePriceAnomalyDetection';
 
 /** 建议优先级 */
-export type RecommendationPriority = 'critical' | 'high' | 'medium' | 'low';
+type RecommendationPriority = 'critical' | 'high' | 'medium' | 'low';
 
 /** 建议类别 */
-export type RecommendationCategory =
+type RecommendationCategory =
   | 'anomaly'
   | 'latency'
   | 'consistency'
@@ -22,7 +22,7 @@ export type RecommendationCategory =
   | 'optimization';
 
 /** 风险建议 */
-export interface RiskRecommendation {
+interface RiskRecommendation {
   /** 建议唯一ID */
   id: string;
   /** 建议标题 */
@@ -44,7 +44,7 @@ export interface RiskRecommendation {
 }
 
 /** 建议生成结果 */
-export interface RiskRecommendationsResult {
+interface RiskRecommendationsResult {
   /** 建议列表 */
   recommendations: RiskRecommendation[];
   /** 按优先级分组的建议 */
@@ -319,7 +319,7 @@ function groupByCategory(
  * @param totalCount - 总数据数量
  * @returns 建议生成结果
  */
-export function useRiskRecommendations(
+function useRiskRecommendations(
   anomalies: PriceAnomaly[],
   validPriceCount: number,
   totalCount: number
@@ -375,7 +375,7 @@ export function useRiskRecommendations(
  * @param priority - 优先级
  * @returns 颜色类名
  */
-export function getPriorityColor(priority: RecommendationPriority): string {
+function getPriorityColor(priority: RecommendationPriority): string {
   const colors = {
     critical: 'text-danger-500 bg-danger-50 border-danger-200',
     high: 'text-warning-500 bg-warning-50 border-warning-200',
@@ -390,7 +390,7 @@ export function getPriorityColor(priority: RecommendationPriority): string {
  * @param priority - 优先级
  * @returns 优先级显示文本
  */
-export function getPriorityLabel(priority: RecommendationPriority): string {
+function getPriorityLabel(priority: RecommendationPriority): string {
   const labels = {
     critical: '紧急',
     high: '高',
@@ -405,7 +405,7 @@ export function getPriorityLabel(priority: RecommendationPriority): string {
  * @param category - 类别
  * @returns 类别显示文本
  */
-export function getCategoryLabel(category: RecommendationCategory): string {
+function getCategoryLabel(category: RecommendationCategory): string {
   const labels = {
     anomaly: '异常检测',
     latency: '延迟优化',
@@ -421,7 +421,7 @@ export function getCategoryLabel(category: RecommendationCategory): string {
  * @param category - 类别
  * @returns 图标名称或标识
  */
-export function getCategoryIcon(category: RecommendationCategory): string {
+function getCategoryIcon(category: RecommendationCategory): string {
   const icons = {
     anomaly: 'alert-triangle',
     latency: 'clock',
@@ -431,5 +431,3 @@ export function getCategoryIcon(category: RecommendationCategory): string {
   };
   return icons[category];
 }
-
-export default useRiskRecommendations;

@@ -112,7 +112,7 @@ function navigationReducer(
   }
 }
 
-export interface UseSearchKeyboardNavigationReturn {
+interface UseSearchKeyboardNavigationReturn {
   activeGroupIndex: number;
   activeItemIndex: number;
   activeResult: { group: SearchGroup; item: SearchGroup['results'][0] } | null;
@@ -192,5 +192,3 @@ export function useSearchKeyboardNavigation(
     getItemRef,
   };
 }
-
-export default useSearchKeyboardNavigation;

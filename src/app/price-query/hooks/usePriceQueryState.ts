@@ -24,7 +24,7 @@ export interface TimeComparisonConfig {
   comparisonType: 'previous' | 'custom';
 }
 
-export interface UsePriceQueryStateReturn {
+interface UsePriceQueryStateReturn {
   selectedOracle: OracleProvider | null;
   setSelectedOracle: (oracle: OracleProvider | null) => void;
   selectedChain: Blockchain | null;

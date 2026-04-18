@@ -102,5 +102,3 @@ export function usePriceStats(priceData: PriceData[]): PriceStatsResult {
     currentStats,
   };
 }
-
-export default usePriceStats;

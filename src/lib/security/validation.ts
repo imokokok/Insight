@@ -6,50 +6,50 @@ import { sanitizeString, sanitizeSymbol, sanitizeProvider, sanitizeChain } from 
 
 const logger = createLogger('security-validation');
 
-export const SanitizedStringSchema = z
+const SanitizedStringSchema = z
   .string()
   .transform((val) => sanitizeString(val, { maxLength: 1000 }));
 
-export const SafeSymbolSchema = z
+const SafeSymbolSchema = z
   .string()
   .min(1, 'Symbol is required')
   .max(20, 'Symbol too long')
   .transform((val) => sanitizeSymbol(val))
   .refine((val) => val.length > 0, 'Invalid symbol format');
 
-export const SafeProviderSchema = z
+const SafeProviderSchema = z
   .string()
   .transform((val) => sanitizeProvider(val))
   .refine((val) => val.length > 0, 'Invalid provider');
 
-export const SafeChainSchema = z
+const SafeChainSchema = z
   .string()
   .transform((val) => sanitizeChain(val))
   .refine((val) => val.length > 0, 'Invalid chain');
 
-export const SafeNameSchema = z
+const SafeNameSchema = z
   .string()
   .min(1, 'Name is required')
   .max(100, 'Name too long')
   .transform((val) => sanitizeString(val, { maxLength: 100 }));
 
-export const SafeDescriptionSchema = z
+const SafeDescriptionSchema = z
   .string()
   .max(500, 'Description too long')
   .transform((val) => sanitizeString(val, { maxLength: 500 }));
 
-export const SafeUuidSchema = z
+const SafeUuidSchema = z
   .string()
   .uuid()
   .transform((val) => val.toLowerCase());
 
-export const SafeEmailSchema = z
+const SafeEmailSchema = z
   .string()
   .email('Invalid email format')
   .max(254, 'Email too long')
   .transform((val) => val.toLowerCase().trim());
 
-export const SafeUrlSchema = z
+const SafeUrlSchema = z
   .string()
   .url('Invalid URL format')
   .max(2048, 'URL too long')
@@ -62,7 +62,7 @@ export const SafeUrlSchema = z
     }
   }, 'Only HTTP and HTTPS URLs are allowed');
 
-export const SafeJsonSchema = z.string().refine((val) => {
+const SafeJsonSchema = z.string().refine((val) => {
   try {
     JSON.parse(val);
     return true;
@@ -71,18 +71,18 @@ export const SafeJsonSchema = z.string().refine((val) => {
   }
 }, 'Invalid JSON format');
 
-export const SafePriceSchema = z.number().positive('Price must be positive').finite();
+const SafePriceSchema = z.number().positive('Price must be positive').finite();
 
-export const SafePercentageSchema = z
+const SafePercentageSchema = z
   .number()
   .min(0, 'Percentage must be at least 0')
   .max(100, 'Percentage must be at most 100');
 
-export const SafeAlertConditionSchema = z.enum(['above', 'below', 'change_percent']);
+const SafeAlertConditionSchema = z.enum(['above', 'below', 'change_percent']);
 
-export const SafeAlertTargetValueSchema = z.number().finite();
+const SafeAlertTargetValueSchema = z.number().finite();
 
-export const SafePaginationSchema = z.object({
+const SafePaginationSchema = z.object({
   page: z
     .union([z.string(), z.number()])
     .transform((val) => (typeof val === 'string' ? parseInt(val, 10) : val))
@@ -95,14 +95,14 @@ export const SafePaginationSchema = z.object({
     .default(20),
 });
 
-export const SafeSearchQuerySchema = z
+const SafeSearchQuerySchema = z
   .string()
   .max(100, 'Search query too long')
   .transform((val) => sanitizeString(val, { maxLength: 100 }));
 
-export const SafeConfigTypeSchema = z.enum(['oracle_config', 'symbol', 'chain_config']);
+const SafeConfigTypeSchema = z.enum(['oracle_config', 'symbol', 'chain_config']);
 
-export const SafeBatchRequestSchema = z
+const SafeBatchRequestSchema = z
   .array(
     z.object({
       provider: SafeProviderSchema,
@@ -113,20 +113,20 @@ export const SafeBatchRequestSchema = z
   .min(1, 'At least one request required')
   .max(50, 'Maximum 50 requests allowed');
 
-export const SafeIdListSchema = z
+const SafeIdListSchema = z
   .array(z.string().uuid())
   .min(1, 'At least one ID required')
   .max(100, 'Maximum 100 IDs allowed');
 
-export const SafeActionSchema = z.enum(['enable', 'disable', 'delete']);
+const SafeActionSchema = z.enum(['enable', 'disable', 'delete']);
 
-export const SafeBooleanSchema = z.union([
+const SafeBooleanSchema = z.union([
   z.boolean(),
   z.string().transform((val) => val.toLowerCase() === 'true'),
   z.number().transform((val) => val === 1),
 ]);
 
-export const SafeTimestampSchema = z
+const SafeTimestampSchema = z
   .union([z.string(), z.number()])
   .transform((val) => {
     if (typeof val === 'string') {
@@ -140,12 +140,12 @@ export const SafeTimestampSchema = z
   })
   .refine((val) => val > 0 && val < 8640000000000000, 'Invalid timestamp');
 
-export const SafePeriodSchema = z
+const SafePeriodSchema = z
   .union([z.string(), z.number()])
   .transform((val) => (typeof val === 'string' ? parseInt(val, 10) : val))
   .refine((val) => !isNaN(val) && val >= 1 && val <= 365, 'Period must be between 1 and 365 days');
 
-export function createSafeEnumSchema<T extends [string, ...string[]]>(values: T) {
+function createSafeEnumSchema<T extends [string, ...string[]]>(values: T) {
   return z
     .enum(values)
     .transform((val) => sanitizeString(val, { maxLength: 50 })?.toLowerCase() ?? val.toLowerCase());
@@ -162,7 +162,7 @@ export function validateAndSanitize<T>(schema: z.ZodSchema<T>, data: unknown): T
   }
 }
 
-export function safeParse<T>(
+function safeParse<T>(
   schema: z.ZodSchema<T>,
   data: unknown
 ): { success: true; data: T } | { success: false; errors: string[] } {
@@ -186,7 +186,7 @@ export const CreateAlertRequestSchema = z.object({
   is_active: SafeBooleanSchema.optional().default(true),
 });
 
-export const UpdateAlertRequestSchema = CreateAlertRequestSchema.partial();
+const UpdateAlertRequestSchema = CreateAlertRequestSchema.partial();
 
 export const CreateFavoriteRequestSchema = z.object({
   name: SafeNameSchema,
@@ -199,9 +199,9 @@ export const CreateFavoriteRequestSchema = z.object({
     }, 'Config data too large'),
 });
 
-export const UpdateFavoriteRequestSchema = CreateFavoriteRequestSchema.partial();
+const UpdateFavoriteRequestSchema = CreateFavoriteRequestSchema.partial();
 
-export const CreateSnapshotRequestSchema = z.object({
+const CreateSnapshotRequestSchema = z.object({
   name: SafeNameSchema.optional(),
   symbol: SafeSymbolSchema,
   selected_oracles: z.array(SafeProviderSchema).min(1).max(10),
@@ -210,21 +210,21 @@ export const CreateSnapshotRequestSchema = z.object({
   is_public: SafeBooleanSchema.optional().default(false),
 });
 
-export const UpdateSnapshotRequestSchema = CreateSnapshotRequestSchema.partial();
+const UpdateSnapshotRequestSchema = CreateSnapshotRequestSchema.partial();
 
 export const BatchOperationSchema = z.object({
   action: SafeActionSchema,
   alertIds: SafeIdListSchema,
 });
 
-export const PriceQuerySchema = z.object({
+const PriceQuerySchema = z.object({
   symbol: SafeSymbolSchema,
   chain: SafeChainSchema.optional(),
   provider: SafeProviderSchema.optional(),
   period: SafePeriodSchema.optional(),
 });
 
-export const HistoricalPriceQuerySchema = z.object({
+const HistoricalPriceQuerySchema = z.object({
   provider: SafeProviderSchema,
   symbol: SafeSymbolSchema,
   chain: SafeChainSchema.optional(),
@@ -235,7 +235,7 @@ export const BatchPriceRequestSchema = z.object({
   requests: SafeBatchRequestSchema,
 });
 
-export const PriceDataBaseSchema = z.object({
+const PriceDataBaseSchema = z.object({
   symbol: z.string().min(1, 'Symbol is required'),
   price: z.number().positive('Price must be positive'),
   timestamp: z.number().int().positive('Timestamp must be a positive integer'),
@@ -252,7 +252,7 @@ export const PriceDataSchema = PriceDataBaseSchema.extend({
   change24hPercent: z.number().optional(),
 });
 
-export const OracleResponseSchema = z.object({
+const OracleResponseSchema = z.object({
   success: z.boolean(),
   data: PriceDataSchema.optional(),
   error: z
@@ -298,13 +298,13 @@ export const HistoricalPriceRequestSchema = z.object({
   period: z.number().int().min(1).max(365).optional().default(24),
 });
 
-export const PaginationParamsSchema = z.object({
+const PaginationParamsSchema = z.object({
   page: z.number().int().positive().optional().default(1),
   limit: z.number().int().positive().max(100).optional().default(20),
   search: z.string().optional(),
 });
 
-export const HealthCheckResponseSchema = z.object({
+const HealthCheckResponseSchema = z.object({
   status: z.enum(['healthy', 'degraded', 'unhealthy']),
   timestamp: z.number().int().positive(),
   version: z.string(),
@@ -318,15 +318,15 @@ export const HealthCheckResponseSchema = z.object({
     .optional(),
 });
 
-export type CreateAlertRequestType = z.infer<typeof CreateAlertRequestSchema>;
-export type UpdateAlertRequestType = z.infer<typeof UpdateAlertRequestSchema>;
-export type CreateFavoriteRequestType = z.infer<typeof CreateFavoriteRequestSchema>;
-export type UpdateFavoriteRequestType = z.infer<typeof UpdateFavoriteRequestSchema>;
-export type CreateSnapshotRequestType = z.infer<typeof CreateSnapshotRequestSchema>;
-export type UpdateSnapshotRequestType = z.infer<typeof UpdateSnapshotRequestSchema>;
-export type BatchOperationType = z.infer<typeof BatchOperationSchema>;
-export type PriceQueryType = z.infer<typeof PriceQuerySchema>;
-export type HistoricalPriceQueryType = z.infer<typeof HistoricalPriceQuerySchema>;
+type CreateAlertRequestType = z.infer<typeof CreateAlertRequestSchema>;
+type UpdateAlertRequestType = z.infer<typeof UpdateAlertRequestSchema>;
+type CreateFavoriteRequestType = z.infer<typeof CreateFavoriteRequestSchema>;
+type UpdateFavoriteRequestType = z.infer<typeof UpdateFavoriteRequestSchema>;
+type CreateSnapshotRequestType = z.infer<typeof CreateSnapshotRequestSchema>;
+type UpdateSnapshotRequestType = z.infer<typeof UpdateSnapshotRequestSchema>;
+type BatchOperationType = z.infer<typeof BatchOperationSchema>;
+type PriceQueryType = z.infer<typeof PriceQuerySchema>;
+type HistoricalPriceQueryType = z.infer<typeof HistoricalPriceQuerySchema>;
 export type BatchPriceRequestType = z.infer<typeof BatchPriceRequestSchema>;
-export type PriceDataType = z.infer<typeof PriceDataSchema>;
-export type OracleResponseType = z.infer<typeof OracleResponseSchema>;
+type PriceDataType = z.infer<typeof PriceDataSchema>;
+type OracleResponseType = z.infer<typeof OracleResponseSchema>;

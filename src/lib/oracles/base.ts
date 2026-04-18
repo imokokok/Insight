@@ -17,9 +17,6 @@ import { shouldUseDatabase, configureStorage, getStorageConfig } from './utils/s
 
 import type { OracleStorageConfig } from './utils/storage';
 
-export { shouldUseDatabase, configureStorage, getStorageConfig };
-export type { OracleStorageConfig };
-
 export const ORACLE_CACHE_TTL = {
   PRICE: 30000,
   HISTORICAL: 60000,
@@ -32,7 +29,7 @@ export const ORACLE_CACHE_TTL = {
 
 export const MAX_CACHE_SIZE = 1000;
 
-export type OracleCacheTTLKey = keyof typeof ORACLE_CACHE_TTL;
+type OracleCacheTTLKey = keyof typeof ORACLE_CACHE_TTL;
 
 export interface OracleCacheEntry<T> {
   data: T;
@@ -162,7 +159,7 @@ export const OracleErrorCodes = {
   INSUFFICIENT_DATA: 'INSUFFICIENT_DATA' as OracleErrorCode,
 } as const;
 
-export type OracleErrorCodeType = (typeof OracleErrorCodes)[keyof typeof OracleErrorCodes];
+type OracleErrorCodeType = (typeof OracleErrorCodes)[keyof typeof OracleErrorCodes];
 
 export interface OracleClientConfig {
   useDatabase?: boolean;

@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils';
  * Props for the Button component
  * @extends ButtonHTMLAttributes<HTMLButtonElement>
  */
-export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   /** Button content */
   children: ReactNode;
   /** Visual style variant */
@@ -86,7 +86,7 @@ MemoizedButton.displayName = 'Button';
  * Props for the IconButton component
  * @extends ButtonHTMLAttributes<HTMLButtonElement>
  */
-export interface IconButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+interface IconButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   /** Icon to display */
   icon: ReactNode;
   /** Accessible label for the button */
@@ -140,4 +140,4 @@ IconButton.displayName = 'IconButton';
 const MemoizedIconButton = memo(IconButton);
 MemoizedIconButton.displayName = 'IconButton';
 
-export { MemoizedButton as Button, MemoizedIconButton as IconButton };
+export { MemoizedButton as Button };

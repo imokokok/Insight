@@ -4,7 +4,7 @@ import { type ReactNode } from 'react';
 
 import { ErrorBoundary, type ErrorBoundaryProps } from './ErrorBoundary';
 
-export interface OracleErrorBoundaryProps {
+interface OracleErrorBoundaryProps {
   children: ReactNode;
   fallback?: ReactNode;
   onReset?: () => void;
@@ -13,7 +13,7 @@ export interface OracleErrorBoundaryProps {
   componentName?: string;
 }
 
-export function OracleErrorBoundary({
+function OracleErrorBoundary({
   children,
   fallback,
   onReset,
@@ -35,5 +35,3 @@ export function OracleErrorBoundary({
     </ErrorBoundary>
   );
 }
-
-export default OracleErrorBoundary;

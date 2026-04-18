@@ -9,11 +9,11 @@ import { cn } from '@/lib/utils';
 
 import { Tooltip } from './Tooltip';
 
-export type ConnectionStatus = 'connected' | 'disconnected' | 'reconnecting';
+type ConnectionStatus = 'connected' | 'disconnected' | 'reconnecting';
 
-export type DataFreshnessLevel = 'fresh' | 'stale' | 'expired';
+type DataFreshnessLevel = 'fresh' | 'stale' | 'expired';
 
-export interface LiveStatusBarProps {
+interface LiveStatusBarProps {
   isConnected: boolean;
   latency?: number;
   lastUpdate?: Date;
@@ -260,5 +260,3 @@ export function LiveStatusBar({
     </Tooltip>
   );
 }
-
-export default LiveStatusBar;

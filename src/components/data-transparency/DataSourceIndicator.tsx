@@ -300,5 +300,3 @@ export function DataSourceIndicator({
     </div>
   );
 }
-
-export default DataSourceIndicator;

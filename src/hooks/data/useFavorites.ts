@@ -18,7 +18,7 @@ export interface FavoriteConfig {
   symbols?: string[];
 }
 
-export interface UseFavoritesOptions {
+interface UseFavoritesOptions {
   configType?: ConfigType;
 }
 

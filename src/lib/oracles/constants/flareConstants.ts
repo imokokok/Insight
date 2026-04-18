@@ -8,13 +8,13 @@ export const FLARE_RPC_ENDPOINTS: Record<string, string[]> = {
   coston2: ['https://coston2-api.flare.network/ext/C/rpc', 'https://coston2.rpc.thirdweb.com'],
 };
 
-export const FLARE_CHAIN_IDS: Record<string, number> = {
+const FLARE_CHAIN_IDS: Record<string, number> = {
   flare: 14,
   songbird: 19,
   coston2: 114,
 };
 
-export const FLARE_NETWORK_DEFAULT = 'flare';
+const FLARE_NETWORK_DEFAULT = 'flare';
 
 export const FTSOV2_ADDRESS: Record<string, `0x${string}`> = {
   flare: '0x7BDE3Df0624114eDB3A67dFe6753e62f4e7c1d20',
@@ -34,7 +34,7 @@ export const FLARE_REQUEST_TIMEOUT = 15000;
 
 export const FLARE_STALE_DATA_THRESHOLD = 300;
 
-export const FLARE_FEED_CATEGORY = {
+const FLARE_FEED_CATEGORY = {
   CRYPTO: 1,
   FOREX: 2,
   COMMODITY: 3,
@@ -79,9 +79,9 @@ export const flareSymbols = [
   'QNT',
 ] as const;
 
-export type FlareSymbol = (typeof flareSymbols)[number];
+type FlareSymbol = (typeof flareSymbols)[number];
 
-export const FLARE_AVAILABLE_PAIRS: Record<string, string[]> = {
+const FLARE_AVAILABLE_PAIRS: Record<string, string[]> = {
   flare: [...flareSymbols],
 };
 
@@ -109,7 +109,7 @@ export const REGISTRY_ABI = [
   },
 ] as const;
 
-export function encodeFeedId(category: number, symbol: string): `0x${string}` {
+function encodeFeedId(category: number, symbol: string): `0x${string}` {
   const categoryByte = Buffer.from([category]);
   const symbolBytes = Buffer.from(symbol + '/USD');
   const buf = Buffer.alloc(21);

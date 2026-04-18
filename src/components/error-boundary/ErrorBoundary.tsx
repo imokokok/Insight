@@ -497,7 +497,7 @@ function getErrorConfig(
   };
 }
 
-export function useSentryUserContext() {
+function useSentryUserContext() {
   const user = useAuthStore((state) => state.user);
   const profile = useAuthStore((state) => state.profile);
 
@@ -514,7 +514,7 @@ export function useSentryUserContext() {
   }, [user, profile]);
 }
 
-export function GlobalErrorBoundary({ children, ...props }: Omit<ErrorBoundaryProps, 'level'>) {
+function GlobalErrorBoundary({ children, ...props }: Omit<ErrorBoundaryProps, 'level'>) {
   useSentryUserContext();
   return (
     <ErrorBoundary level="global" captureInSentry {...props}>
@@ -523,7 +523,7 @@ export function GlobalErrorBoundary({ children, ...props }: Omit<ErrorBoundaryPr
   );
 }
 
-export function PageErrorBoundary({ children, ...props }: Omit<ErrorBoundaryProps, 'level'>) {
+function PageErrorBoundary({ children, ...props }: Omit<ErrorBoundaryProps, 'level'>) {
   return (
     <ErrorBoundary level="page" captureInSentry {...props}>
       {children}
@@ -546,5 +546,3 @@ export function ComponentErrorBoundary({ children, ...props }: Omit<ErrorBoundar
     </ErrorBoundary>
   );
 }
-
-export default ErrorBoundary;

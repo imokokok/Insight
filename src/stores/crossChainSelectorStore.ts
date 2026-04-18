@@ -49,15 +49,12 @@ export const useCrossChainSelectorStore = create<CrossChainSelectorStore>()(
   )
 );
 
-export const useSelectedProvider = () =>
-  useCrossChainSelectorStore((state) => state.selectedProvider);
-export const useSelectedSymbol = () => useCrossChainSelectorStore((state) => state.selectedSymbol);
-export const useCrossChainTimeRange = () =>
-  useCrossChainSelectorStore((state) => state.selectedTimeRange);
-export const useSelectedBaseChain = () =>
-  useCrossChainSelectorStore((state) => state.selectedBaseChain);
+const useSelectedProvider = () => useCrossChainSelectorStore((state) => state.selectedProvider);
+const useSelectedSymbol = () => useCrossChainSelectorStore((state) => state.selectedSymbol);
+const useCrossChainTimeRange = () => useCrossChainSelectorStore((state) => state.selectedTimeRange);
+const useSelectedBaseChain = () => useCrossChainSelectorStore((state) => state.selectedBaseChain);
 
-export const useSelectorState = () =>
+const useSelectorState = () =>
   useCrossChainSelectorStore((state) => ({
     selectedProvider: state.selectedProvider,
     selectedSymbol: state.selectedSymbol,

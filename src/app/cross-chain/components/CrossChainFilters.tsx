@@ -410,5 +410,3 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
     </div>
   );
 }
-
-export default CrossChainFilters;

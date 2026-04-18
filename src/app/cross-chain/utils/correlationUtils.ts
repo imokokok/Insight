@@ -13,7 +13,7 @@ export interface CorrelationResult {
   significanceLevel: '***' | '**' | '*' | '';
 }
 
-export interface RollingCorrelationPoint {
+interface RollingCorrelationPoint {
   timestamp: number;
   correlation: number;
 }
@@ -39,7 +39,7 @@ const findClosestPrice = (
   return closestItem?.price ?? null;
 };
 
-export const calculatePearsonCorrelation = (x: number[], y: number[]): number => {
+const calculatePearsonCorrelation = (x: number[], y: number[]): number => {
   const n = Math.min(x.length, y.length);
   if (n < 2) return 0;
 
@@ -115,7 +115,7 @@ export const calculatePearsonCorrelationByTimestamp = (
   return numerator / denominator;
 };
 
-export const calculatePearsonCorrelationWithSignificance = (
+const calculatePearsonCorrelationWithSignificance = (
   x: number[],
   y: number[]
 ): CorrelationResult => {
@@ -299,7 +299,7 @@ export const calculatePearsonCorrelationWithSignificanceByTimestamp = (
   };
 };
 
-export const calculateRollingCorrelation = (
+const calculateRollingCorrelation = (
   pricesX: number[],
   pricesY: number[],
   windowSize: number,

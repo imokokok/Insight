@@ -439,5 +439,3 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
     symbols,
   };
 }
-
-export default useCrossOraclePage;

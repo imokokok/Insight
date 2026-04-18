@@ -56,7 +56,7 @@ export function useGlobalSearch(options: UseGlobalSearchOptions = {}): UseGlobal
 
   const searchableItems = useMemo(() => {
     try {
-      const allItems = getAllSearchResults('en');
+      const allItems = getAllSearchResults();
 
       return allItems.filter((item) => {
         switch (item.type) {
@@ -190,5 +190,3 @@ export function useGlobalSearch(options: UseGlobalSearchOptions = {}): UseGlobal
     retry,
   };
 }
-
-export default useGlobalSearch;

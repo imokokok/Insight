@@ -262,5 +262,3 @@ export function useOracleRetry({
     cancelRetry,
   };
 }
-
-export default useOracleRetry;

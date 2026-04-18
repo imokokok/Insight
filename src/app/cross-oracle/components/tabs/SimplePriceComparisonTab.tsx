@@ -186,5 +186,3 @@ function SimplePriceComparisonTabComponent({
 
 export const SimplePriceComparisonTab = memo(SimplePriceComparisonTabComponent);
 SimplePriceComparisonTab.displayName = 'SimplePriceComparisonTab';
-
-export default SimplePriceComparisonTab;

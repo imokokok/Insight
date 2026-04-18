@@ -37,7 +37,7 @@ export interface DropdownSelectProps<T = string> {
   noOptionsMessage?: string;
 }
 
-export interface MultiSelectProps<T = string> {
+interface MultiSelectProps<T = string> {
   options: SelectorOption<T>[];
   value: T[];
   onChange: (value: T[]) => void;

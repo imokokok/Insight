@@ -827,5 +827,3 @@ export function InteractivePriceChart({
     </div>
   );
 }
-
-export default InteractivePriceChart;

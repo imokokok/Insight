@@ -219,7 +219,7 @@ export type RefreshInterval = 0 | 30000 | 60000 | 300000;
 // 链分类定义
 // ============================================
 
-export type ChainCategory = 'l1' | 'l2' | 'cosmos' | 'other';
+type ChainCategory = 'l1' | 'l2' | 'cosmos' | 'other';
 
 /**
  * 链分类映射 - 用于按类型筛选链

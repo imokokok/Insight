@@ -9,13 +9,11 @@ import {
 const logger = createLogger('CoinGeckoMarketService');
 
 // 重新导出类型，保持兼容性
-export type { TokenMarketData, HistoricalPricePoint };
-
 /**
  * 获取代币市场数据
  * 注意：此服务现在使用 Binance API 替代 CoinGecko
  */
-export async function getTokenMarketData(symbol: string): Promise<TokenMarketData | null> {
+async function getTokenMarketData(symbol: string): Promise<TokenMarketData | null> {
   logger.info(`Delegating to Binance API for ${symbol} market data`);
   return binanceMarketService.getTokenMarketData(symbol);
 }
@@ -24,7 +22,7 @@ export async function getTokenMarketData(symbol: string): Promise<TokenMarketDat
  * 获取多个代币的市场数据
  * 注意：此服务现在使用 Binance API 替代 CoinGecko
  */
-export async function getMultipleTokensMarketData(symbols: string[]): Promise<TokenMarketData[]> {
+async function getMultipleTokensMarketData(symbols: string[]): Promise<TokenMarketData[]> {
   logger.info(`Delegating to Binance API for multiple tokens market data`);
   return binanceMarketService.getMultipleTokensMarketData(symbols);
 }
@@ -33,7 +31,7 @@ export async function getMultipleTokensMarketData(symbols: string[]): Promise<To
  * 获取历史价格数据
  * 注意：此服务现在使用 Binance API 替代 CoinGecko
  */
-export async function getHistoricalPrices(
+async function getHistoricalPrices(
   symbol: string,
   days: number = 30
 ): Promise<HistoricalPricePoint[]> {
@@ -45,7 +43,7 @@ export async function getHistoricalPrices(
  * 获取 OHLC 数据
  * 注意：此服务现在使用 Binance API 替代 CoinGecko
  */
-export async function getOHLCData(
+async function getOHLCData(
   symbol: string,
   days: number = 30
 ): Promise<Array<{ timestamp: number; open: number; high: number; low: number; close: number }>> {

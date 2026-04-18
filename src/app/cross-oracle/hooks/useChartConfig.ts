@@ -342,5 +342,3 @@ function calculateStdDev(values: number[]): number {
   const variance = values.reduce((sum, v) => sum + Math.pow(v - mean, 2), 0) / values.length;
   return Math.sqrt(variance);
 }
-
-export default useChartConfig;

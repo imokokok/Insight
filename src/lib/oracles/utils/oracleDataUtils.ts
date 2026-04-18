@@ -27,7 +27,7 @@ export function getHoursForTimeRange(range: TimeRangeValue): number | undefined 
   }
 }
 
-export interface OraclePriceFetchResult {
+interface OraclePriceFetchResult {
   provider: OracleProvider;
   price: number;
   timestamp: number;
@@ -38,7 +38,7 @@ export interface OraclePriceFetchResult {
   error?: Error;
 }
 
-export interface FetchOraclePriceOptions {
+interface FetchOraclePriceOptions {
   provider: OracleProvider;
   symbol: string;
   chain?: Blockchain;
@@ -46,7 +46,7 @@ export interface FetchOraclePriceOptions {
   historicalHours?: number | undefined;
 }
 
-export interface FetchOraclePriceResult extends OraclePriceFetchResult {
+interface FetchOraclePriceResult extends OraclePriceFetchResult {
   historicalData?: PriceData[];
 }
 
@@ -103,7 +103,7 @@ export async function fetchOraclePrice(
   }
 }
 
-export interface FetchMultipleOraclePricesOptions {
+interface FetchMultipleOraclePricesOptions {
   providers: OracleProvider[];
   symbol: string;
   chain?: Blockchain;
@@ -112,7 +112,7 @@ export interface FetchMultipleOraclePricesOptions {
   onProgress?: (completed: number, total: number) => void;
 }
 
-export interface FetchMultipleOraclePricesResult {
+interface FetchMultipleOraclePricesResult {
   results: OraclePriceFetchResult[];
   successCount: number;
   errorCount: number;
@@ -164,7 +164,7 @@ export async function fetchMultipleOraclePrices(
   };
 }
 
-export interface PriceHistoryPoint {
+interface PriceHistoryPoint {
   timestamp: number;
   price: number;
 }
@@ -213,7 +213,7 @@ export function createPriceHistoryManager(maxPoints: number = 100) {
   };
 }
 
-export type PriceHistoryManager = ReturnType<typeof createPriceHistoryManager>;
+type PriceHistoryManager = ReturnType<typeof createPriceHistoryManager>;
 
 export function extractBaseSymbol(symbol: string): string {
   return symbol.split('/')[0];

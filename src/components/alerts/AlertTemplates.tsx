@@ -90,7 +90,7 @@ const TEMPLATE_ICONS: Record<string, React.ReactNode> = {
   ),
 };
 
-export function getPresetTemplates(): AlertTemplate[] {
+function getPresetTemplates(): AlertTemplate[] {
   return [
     {
       id: 'price_breakout',

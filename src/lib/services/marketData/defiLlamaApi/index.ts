@@ -1,21 +1,4 @@
 export { MarketDataError } from './types';
-export type {
-  OracleMarketData,
-  AssetData,
-  ChainBreakdown,
-  ProtocolDetail,
-  AssetCategory,
-  ComparisonData,
-  BenchmarkData,
-  CorrelationData,
-  CorrelationPair,
-  RadarDataPoint,
-  DefiLlamaOracleResponse,
-  DefiLlamaProtocol,
-  DefiLlamaChain,
-  CategoryData,
-} from './types';
-
 export { fetchOraclesData, checkApiHealth } from './oracles';
 
 export { fetchAssetsData, fetchAssetCategories } from './assets';

@@ -17,7 +17,7 @@ export interface KeyboardShortcut {
   scope?: string;
 }
 
-export interface ShortcutConflict {
+interface ShortcutConflict {
   shortcut1: KeyboardShortcut;
   shortcut2: KeyboardShortcut;
   conflictKey: string;
@@ -263,7 +263,7 @@ export function useGlobalKeyboardListener() {
 }
 
 // 快捷键描述键，用于国际化
-export const shortcutKeys = {
+const shortcutKeys = {
   refresh: 'shortcuts.refresh',
   search: 'shortcuts.search',
   close: 'shortcuts.close',
@@ -350,5 +350,3 @@ export function useCommonShortcuts({
 
   return shortcuts;
 }
-
-export default useKeyboardShortcuts;

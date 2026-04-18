@@ -2,7 +2,7 @@ import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('BasePrices');
 
-export interface BasePrices {
+interface BasePrices {
   BTC: number;
   ETH: number;
   SOL: number;
@@ -106,12 +106,10 @@ function getBasePrices(): BasePrices {
 
 export const UNIFIED_BASE_PRICES: BasePrices = getBasePrices();
 
-export function updateBasePrices(newPrices: Partial<BasePrices>): void {
+function updateBasePrices(newPrices: Partial<BasePrices>): void {
   Object.assign(UNIFIED_BASE_PRICES, newPrices);
 }
 
-export function resetBasePrices(): void {
+function resetBasePrices(): void {
   Object.assign(UNIFIED_BASE_PRICES, DEFAULT_BASE_PRICES);
 }
-
-export { DEFAULT_BASE_PRICES };

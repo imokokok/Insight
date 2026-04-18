@@ -14,13 +14,13 @@ import {
 
 const logger = createLogger('OracleApiClient');
 
-export interface FetchPriceParams {
+interface FetchPriceParams {
   provider: OracleProvider;
   symbol: string;
   chain?: Blockchain;
 }
 
-export interface FetchHistoricalParams extends FetchPriceParams {
+interface FetchHistoricalParams extends FetchPriceParams {
   period: number;
 }
 
@@ -54,7 +54,7 @@ function getBaseUrl(): string {
   return process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 }
 
-export async function fetchPriceFromApi({
+async function fetchPriceFromApi({
   provider,
   symbol,
   chain,
@@ -132,7 +132,7 @@ export async function fetchPriceFromApi({
 /**
  * 从 API 路由获取历史价格数据
  */
-export async function fetchHistoricalFromApi({
+async function fetchHistoricalFromApi({
   provider,
   symbol,
   chain,

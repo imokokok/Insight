@@ -7,7 +7,7 @@
  * Hook to get date formatting functions
  * Use this in client components for consistent date formatting
  */
-export function useDateFormatter() {
+function useDateFormatter() {
   const formatDate = (date: Date | number, options?: Intl.DateTimeFormatOptions): string => {
     const d = typeof date === 'number' ? new Date(date) : date;
     return d.toLocaleDateString('en-US', options);
@@ -133,7 +133,7 @@ export function parseDate(dateString: string): Date | null {
   return isValidDate(d) ? d : null;
 }
 
-export type TimeRangeKey = '1H' | '24H' | '7D' | '30D';
+type TimeRangeKey = '1H' | '24H' | '7D' | '30D';
 
 export function getTimeRange(key: TimeRangeKey): { start: number; end: number } {
   const end = Date.now();

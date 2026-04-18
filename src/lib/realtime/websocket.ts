@@ -28,7 +28,7 @@ export interface WebSocketMessage<T = unknown> {
   timestamp: number;
 }
 
-export interface PerformanceMetrics {
+interface PerformanceMetrics {
   connectionLatency: number;
   messageProcessingTime: number;
   messagesPerSecond: number;
@@ -37,7 +37,7 @@ export interface PerformanceMetrics {
   throttleCount: number;
 }
 
-export interface WebSocketConfig {
+interface WebSocketConfig {
   url: string;
   reconnectInterval?: number;
   maxReconnectAttempts?: number;
@@ -59,8 +59,8 @@ interface BatchedUpdate {
   firstTimestamp: number;
 }
 
-export type MessageHandler<T = unknown> = (message: WebSocketMessage<T>) => void;
-export type StatusHandler = (status: WebSocketStatus) => void;
+type MessageHandler<T = unknown> = (message: WebSocketMessage<T>) => void;
+type StatusHandler = (status: WebSocketStatus) => void;
 
 export default class WebSocketManager {
   protected ws: WebSocket | null = null;
@@ -602,7 +602,7 @@ export class MockWebSocketManager extends WebSocketManager {
   }
 }
 
-export interface UseWebSocketOptions {
+interface UseWebSocketOptions {
   url?: string;
   channels?: string[];
   autoConnect?: boolean;
@@ -798,7 +798,7 @@ function validateWebSocketUrl(url: string | undefined): string | null {
 
 const validatedWsUrl = validateWebSocketUrl(WS_URL);
 
-export const useWebSocket = createWebSocketHook({
+const useWebSocket = createWebSocketHook({
   url: validatedWsUrl || 'wss://fallback.invalid',
   reconnectInterval: 3000,
   maxReconnectAttempts: validatedWsUrl ? 5 : 0,
@@ -810,6 +810,6 @@ export const useWebSocket = createWebSocketHook({
   throttleMs: 100,
 });
 
-export function isWebSocketEnabled(): boolean {
+function isWebSocketEnabled(): boolean {
   return validatedWsUrl !== null;
 }

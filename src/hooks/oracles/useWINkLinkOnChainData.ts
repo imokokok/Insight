@@ -9,7 +9,7 @@ import {
   type WINkLinkTokenOnChainData,
 } from '@/lib/oracles/services/winklinkRealDataService';
 
-export interface UseWINkLinkOnChainDataOptions {
+interface UseWINkLinkOnChainDataOptions {
   symbol: string;
   enabled?: boolean;
 }

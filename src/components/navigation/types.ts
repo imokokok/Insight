@@ -17,20 +17,20 @@ export interface NavGroup {
 
 export type NavStructure = (NavItem | NavGroup)[];
 
-export interface DropdownMenuProps {
+interface DropdownMenuProps {
   group: NavGroup;
   isActive: boolean;
   onItemClick?: () => void;
 }
 
-export interface MobileDrawerProps {
+interface MobileDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   navStructure: NavStructure;
   currentPath: string;
 }
 
-export interface NavItemProps {
+interface NavItemProps {
   item: NavItem;
   isActive: boolean;
   onClick?: () => void;

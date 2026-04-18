@@ -32,7 +32,7 @@ export interface PriceDeviationDataPoint {
 // 价格分布箱线图类型
 // ============================================================================
 
-export interface BoxPlotStats {
+interface BoxPlotStats {
   min: number;
   q1: number;
   median: number;
@@ -58,13 +58,13 @@ export interface OraclePriceHistory {
   }[];
 }
 
-export interface VolatilityResult {
+interface VolatilityResult {
   volatility: number;
   trend: 'up' | 'down' | 'stable';
   changePercent: number;
 }
 
-export interface VolatilityTrendPoint {
+interface VolatilityTrendPoint {
   timestamp: number;
   volatility: number;
   price: number;
@@ -89,7 +89,7 @@ export interface OraclePerformanceData {
 // 移动平均线图表类型
 // ============================================================================
 
-export interface MovingAverageChartProps {
+interface MovingAverageChartProps {
   data: {
     oracle: OracleProvider;
     prices: {
@@ -104,7 +104,7 @@ export interface MovingAverageChartProps {
 // 数据质量趋势类型
 // ============================================================================
 
-export interface QualityDataPoint {
+interface QualityDataPoint {
   timestamp: number;
   score: number;
   completeness: number;
@@ -112,7 +112,7 @@ export interface QualityDataPoint {
   reliability: number;
 }
 
-export interface DataQualityTrendProps {
+interface DataQualityTrendProps {
   data: {
     oracle: OracleProvider;
     data: QualityDataPoint[];
@@ -124,7 +124,7 @@ export interface DataQualityTrendProps {
 // 延迟分布直方图类型
 // ============================================================================
 
-export interface HistogramBin {
+interface HistogramBin {
   bin: string;
   count: number;
   range: [number, number];
@@ -145,7 +145,7 @@ export interface LatencyStats {
   avg: number;
 }
 
-export interface LatencyDistributionHistogramProps {
+interface LatencyDistributionHistogramProps {
   data: number[];
   oracleName: string;
 }

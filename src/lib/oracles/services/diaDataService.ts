@@ -42,7 +42,7 @@ interface DIATokenOnChainDataInternal {
   dataSource: string;
 }
 
-export class DIADataService {
+class DIADataService {
   private cache: Map<string, CacheEntry<unknown>> = new Map();
   private static instance: DIADataService | null = null;
   private priceService: DIAPriceService;
@@ -229,24 +229,10 @@ export function getDIADataService(): DIADataService {
   return DIADataService.getInstance();
 }
 
-export function resetDIADataService(): void {
+function resetDIADataService(): void {
   const instance = DIADataService.getInstance();
   instance.clearCache();
 }
-
-export type {
-  DIAAssetQuotation,
-  DIANFTQuotation,
-  DIASupply,
-  DIADigitalAsset,
-  DIAExchange,
-  DIANetworkStatsData,
-  DIAStakingData,
-  DIANFTCollection,
-  DIANFTData,
-  DIAEcosystemIntegration,
-  RetryConfig,
-} from '../diaTypes';
 
 // 重新导出链上数据接口
 export type DIATokenOnChainData = DIATokenOnChainDataInternal;

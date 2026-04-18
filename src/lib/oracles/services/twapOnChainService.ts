@@ -17,7 +17,7 @@ import {
 
 const logger = createLogger('TwapOnChainService');
 
-export interface TwapPriceData {
+interface TwapPriceData {
   symbol: string;
   twapPrice: number;
   spotPrice: number;
@@ -32,7 +32,7 @@ export interface TwapPriceData {
   confidence: number;
 }
 
-export interface PoolInfo {
+interface PoolInfo {
   address: string;
   token0: string;
   token1: string;
@@ -49,7 +49,7 @@ interface RPCResponse<T> {
   error?: { code: number; message: string; data?: unknown };
 }
 
-export class TwapOnChainService {
+class TwapOnChainService {
   private requestId = 0;
   private cache: Map<string, { data: unknown; timestamp: number }> = new Map();
   private cacheTTL = 30000;

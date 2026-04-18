@@ -566,9 +566,9 @@ export const twapSymbols = [
   'FRAX',
 ] as const;
 
-export type TwapSymbol = (typeof twapSymbols)[number];
+type TwapSymbol = (typeof twapSymbols)[number];
 
-export const TWAP_AVAILABLE_PAIRS: Record<string, string[]> = {
+const TWAP_AVAILABLE_PAIRS: Record<string, string[]> = {
   ethereum: [
     'BTC',
     'ETH',
@@ -621,7 +621,7 @@ export const BLOCKCHAIN_TO_CHAIN_ID: Record<string, number> = {
   'bnb-chain': 56,
 };
 
-export const CHAIN_ID_TO_BLOCKCHAIN: Record<number, string> = {
+const CHAIN_ID_TO_BLOCKCHAIN: Record<number, string> = {
   1: 'ethereum',
   42161: 'arbitrum',
   10: 'optimism',
@@ -630,7 +630,7 @@ export const CHAIN_ID_TO_BLOCKCHAIN: Record<number, string> = {
   56: 'bnb-chain',
 };
 
-export const TWAP_CHAIN_RELABILITY: Record<string, number> = {
+const TWAP_CHAIN_RELABILITY: Record<string, number> = {
   ethereum: 0.99,
   arbitrum: 0.98,
   optimism: 0.98,

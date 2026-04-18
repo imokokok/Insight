@@ -6,7 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import { FlareClient, type FlareTokenOnChainData } from '@/lib/oracles/clients/flare';
 
-export interface UseFlareOnChainDataOptions {
+interface UseFlareOnChainDataOptions {
   symbol: string;
   enabled?: boolean;
 }

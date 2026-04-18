@@ -102,5 +102,3 @@ export function DataSourceSection({
     </div>
   );
 }
-
-export default DataSourceSection;

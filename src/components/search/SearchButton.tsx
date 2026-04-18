@@ -30,5 +30,3 @@ export function SearchButton({ onClick, className = '' }: SearchButtonProps) {
     </button>
   );
 }
-
-export default SearchButton;

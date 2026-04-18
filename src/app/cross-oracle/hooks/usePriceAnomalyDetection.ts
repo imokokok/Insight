@@ -37,7 +37,7 @@ export interface PriceAnomaly {
 }
 
 /** 异常检测结果 */
-export interface AnomalyDetectionResult {
+interface AnomalyDetectionResult {
   anomalies: PriceAnomaly[];
   count: number;
   highRiskCount: number;
@@ -168,5 +168,3 @@ export function usePriceAnomalyDetection(
     };
   }, [priceData, avgPrice, currentTime]);
 }
-
-export default usePriceAnomalyDetection;

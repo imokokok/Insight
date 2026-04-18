@@ -114,9 +114,9 @@ Oracle Providers → Oracle Clients → API Routes → Database
 
 ## 2. Frontend Architecture
 
-### 2.1 Next.js 16 App Router Structure with Internationalization
+### 2.1 Next.js 16 App Router Structure
 
-The application uses Next.js 16 with the App Router and next-intl for internationalization. All localized pages are organized under the `[locale]` directory.
+The application uses Next.js 16 with the App Router. All pages are organized under the `app` directory.
 
 ```
 src/app/
@@ -125,24 +125,21 @@ src/app/
 ├── globals.css             # Global styles
 ├── favicon.ico             # Application icon
 │
-├── [locale]/               # Internationalized routes
-│   ├── layout.tsx         # Locale-specific layout
-│   │
-│   ├── price-query/       # Price query page
-│   ├── cross-oracle/      # Cross-oracle comparison
-│   ├── cross-chain/       # Cross-chain analysis
-│   ├── favorites/         # User favorites page
-│   ├── alerts/            # Alerts management page
-│   ├── settings/          # User settings page
-│   ├── docs/              # Documentation page
-│   │
-│   ├── login/             # Login page
-│   ├── register/          # Registration page
-│   └── auth/              # Auth related pages
-│       ├── forgot-password/
-│       ├── reset-password/
-│       ├── resend-verification/
-│       └── verify-email/
+├── price-query/            # Price query page
+├── cross-oracle/           # Cross-oracle comparison
+├── cross-chain/            # Cross-chain analysis
+├── favorites/              # User favorites page
+├── alerts/                 # Alerts management page
+├── settings/               # User settings page
+├── docs/                   # Documentation page
+│
+├── login/                  # Login page
+├── register/               # Registration page
+└── auth/                   # Auth related pages
+    ├── forgot-password/
+    ├── reset-password/
+    ├── resend-verification/
+    └── verify-email/
 │
 └── api/                   # API Routes (non-localized)
     ├── oracles/           # Oracle data endpoints
@@ -322,7 +319,6 @@ src/components/
 │
 ├── Navbar.tsx
 ├── Footer.tsx
-├── LanguageSwitcher.tsx
 └── AppInitializer.tsx
 ```
 
@@ -806,7 +802,6 @@ interface ApiErrorResponse {
     message: string;
     retryable: boolean;
     details?: Record<string, unknown>;
-    i18nKey?: string;
   };
   meta?: {
     timestamp: number;
@@ -1346,7 +1341,6 @@ export interface AppErrorOptions {
   statusCode: number;
   isOperational?: boolean;
   details?: AppErrorDetails;
-  i18nKey?: string;
   cause?: Error;
 }
 
@@ -1355,7 +1349,6 @@ export abstract class AppError extends Error {
   public readonly statusCode: number;
   public readonly isOperational: boolean;
   public readonly details?: AppErrorDetails;
-  public readonly i18nKey?: string;
 
   constructor(options: AppErrorOptions);
   toJSON(): Record<string, unknown>;
@@ -1367,32 +1360,32 @@ export abstract class AppError extends Error {
 
 ```typescript
 export class ValidationError extends AppError {
-  constructor(message: string, details?: ValidationErrorDetails, i18nKey?: string);
+  constructor(message: string, details?: ValidationErrorDetails);
 }
 
 export class NotFoundError extends AppError {
-  constructor(message: string, details?: NotFoundErrorDetails, i18nKey?: string);
+  constructor(message: string, details?: NotFoundErrorDetails);
 }
 
 export class AuthenticationError extends AppError {
-  constructor(message: string, details?: AuthenticationErrorDetails, i18nKey?: string);
+  constructor(message: string, details?: AuthenticationErrorDetails);
 }
 
 export class AuthorizationError extends AppError {
-  constructor(message: string, details?: AuthorizationErrorDetails, i18nKey?: string);
+  constructor(message: string, details?: AuthorizationErrorDetails);
 }
 
 export class ConflictError extends AppError {
-  constructor(message: string, details?: ConflictErrorDetails, i18nKey?: string);
+  constructor(message: string, details?: ConflictErrorDetails);
 }
 
 export class RateLimitError extends AppError {
   public readonly retryAfter?: number;
-  constructor(message: string, details?: RateLimitErrorDetails, i18nKey?: string);
+  constructor(message: string, details?: RateLimitErrorDetails);
 }
 
 export class InternalError extends AppError {
-  constructor(message: string, details?: InternalErrorDetails, i18nKey?: string, cause?: Error);
+  constructor(message: string, details?: InternalErrorDetails, cause?: Error);
 }
 ```
 
@@ -1480,70 +1473,40 @@ export function isOutlier(value: number, threshold: number): boolean;
 
 ## Technology Stack Summary
 
-| Category             | Technology              | Version         |
-| -------------------- | ----------------------- | --------------- |
-| Framework            | Next.js                 | 16.1.6          |
-| UI Library           | React                   | 19.2.3          |
-| Language             | TypeScript              | 5.x             |
-| Styling              | Tailwind CSS            | 4.x             |
-| Charts               | Recharts                | 3.8.0           |
-| State Management     | React Query             | 5.90.21         |
-| Client State         | Zustand                 | 5.0.11          |
-| Database             | Supabase PostgreSQL     | -               |
-| Auth                 | Supabase Auth           | 2.98.0          |
-| Real-time            | Supabase Realtime       | -               |
-| Oracle Clients       | Pyth Hermes Client      | 2.0.0           |
-| Oracle Clients       | Pyth Price Service SDK  | 1.8.0           |
-| Oracle Clients       | API3 Contracts          | 27.0.0          |
-| Oracle Clients       | Supra Oracle SDK        | 1.0.4           |
-| Animations           | Framer Motion           | 12.36.0         |
-| Icons                | Lucide React            | 0.577.0         |
-| PDF Export           | jsPDF                   | 4.2.0           |
-| PDF Export           | jsPDF-AutoTable         | 5.0.7           |
-| Internationalization | next-intl               | 4.8.3           |
-| Monitoring           | Sentry                  | 10.43.0         |
-| Security             | DOMPurify               | 3.4.0           |
-| Performance          | web-vitals              | 5.1.0           |
-| Archive              | JSZip                   | 3.10.1          |
-| Virtualization       | @tanstack/react-virtual | 3.13.21         |
-| HTTP Client          | Axios                   | 1.13.6          |
-| Testing              | Jest                    | 30.3.0          |
-| Testing              | Playwright              | 1.58.2          |
-| Testing              | Testing Library         | 10.4.1 / 16.3.2 |
-| Validation           | Zod                     | 4.3.6           |
-| Date Handling        | date-fns                | 4.1.0           |
-| Search               | Fuse.js                 | 7.1.0           |
-| Blockchain           | Viem                    | 2.47.6          |
-| Maps                 | react-simple-maps       | 3.0.0           |
-
----
-
-## Internationalization Architecture
-
-### Message Structure
-
-```
-src/i18n/messages/
-├── common.json           # General translations
-├── home.json            # Homepage translations
-├── navigation.json      # Navigation translations
-├── priceQuery.json      # Price query translations
-├── crossOracle.json     # Cross-oracle translations
-├── crossChain.json      # Cross-chain translations
-├── comparison.json      # Comparison translations
-├── dataQuality.json     # Data quality translations
-├── ui.json              # UI component translations
-├── oracles/             # Oracle-specific translations
-│   ├── chainlink.json
-│   ├── pyth.json
-│   ├── api3.json
-│   ├── redstone.json
-│   ├── dia.json
-│   └── winklink.json
-│   └── supra.json
-├── components/          # Component translations
-└── features/            # Feature translations
-```
+| Category         | Technology              | Version         |
+| ---------------- | ----------------------- | --------------- |
+| Framework        | Next.js                 | 16.1.6          |
+| UI Library       | React                   | 19.2.3          |
+| Language         | TypeScript              | 5.x             |
+| Styling          | Tailwind CSS            | 4.x             |
+| Charts           | Recharts                | 3.8.0           |
+| State Management | React Query             | 5.90.21         |
+| Client State     | Zustand                 | 5.0.11          |
+| Database         | Supabase PostgreSQL     | -               |
+| Auth             | Supabase Auth           | 2.98.0          |
+| Real-time        | Supabase Realtime       | -               |
+| Oracle Clients   | Pyth Hermes Client      | 2.0.0           |
+| Oracle Clients   | Pyth Price Service SDK  | 1.8.0           |
+| Oracle Clients   | API3 Contracts          | 27.0.0          |
+| Oracle Clients   | Supra Oracle SDK        | 1.0.4           |
+| Animations       | Framer Motion           | 12.36.0         |
+| Icons            | Lucide React            | 0.577.0         |
+| PDF Export       | jsPDF                   | 4.2.0           |
+| PDF Export       | jsPDF-AutoTable         | 5.0.7           |
+| Monitoring       | Sentry                  | 10.43.0         |
+| Security         | DOMPurify               | 3.4.0           |
+| Performance      | web-vitals              | 5.1.0           |
+| Archive          | JSZip                   | 3.10.1          |
+| Virtualization   | @tanstack/react-virtual | 3.13.21         |
+| HTTP Client      | Axios                   | 1.13.6          |
+| Testing          | Jest                    | 30.3.0          |
+| Testing          | Playwright              | 1.58.2          |
+| Testing          | Testing Library         | 10.4.1 / 16.3.2 |
+| Validation       | Zod                     | 4.3.6           |
+| Date Handling    | date-fns                | 4.1.0           |
+| Search           | Fuse.js                 | 7.1.0           |
+| Blockchain       | Viem                    | 2.47.6          |
+| Maps             | react-simple-maps       | 3.0.0           |
 
 ---
 

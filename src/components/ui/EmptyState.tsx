@@ -6,7 +6,7 @@ import { Inbox } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 
-export interface EmptyStateProps {
+interface EmptyStateProps {
   title?: string;
   description?: string;
   icon?: ReactNode;
@@ -16,7 +16,7 @@ export interface EmptyStateProps {
   compact?: boolean;
 }
 
-export const EmptyState = forwardRef<HTMLDivElement, EmptyStateProps>(
+const EmptyState = forwardRef<HTMLDivElement, EmptyStateProps>(
   ({ title, description, icon, action, secondaryAction, className, compact = false }, ref) => {
     const resolvedTitle = title ?? 'No data available';
     const resolvedDescription = description ?? 'There is no data to display at the moment.';

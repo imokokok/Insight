@@ -8,10 +8,6 @@ export { MarketConsensusCard } from './MarketConsensusCard';
 export { PriceDispersionCard } from './PriceDispersionCard';
 
 // 辅助组件
-export { ConfidenceBar } from './ConfidenceBar';
-export { DispersionGauge } from './DispersionGauge';
-export { PriceRangeBar } from './PriceRangeBar';
-
 // 图表组件
 export { ChartTabSwitcher, type ChartTabType } from './ChartTabSwitcher';
 export { PriceDistributionHistogram } from './PriceDistributionHistogram';

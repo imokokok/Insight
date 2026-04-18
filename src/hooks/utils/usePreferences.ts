@@ -4,7 +4,7 @@ import { useCallback, useMemo } from 'react';
 
 import { useUser, useProfile } from '@/stores/authStore';
 
-export interface UserPreferences {
+interface UserPreferences {
   defaultOracle: string;
   defaultSymbol: string;
   defaultTimeRange: string;

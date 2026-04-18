@@ -6,13 +6,13 @@ const AVATAR_BUCKET = 'avatars';
 const MAX_AVATAR_SIZE = 2 * 1024 * 1024;
 const ALLOWED_AVATAR_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 
-export interface AuthResponse {
+interface AuthResponse {
   user: User | null;
   session: Session | null;
   error: AuthError | null;
 }
 
-export interface SignUpResponse extends AuthResponse {
+interface SignUpResponse extends AuthResponse {
   profileError: Error | null;
 }
 
@@ -131,7 +131,7 @@ export async function getSession(): Promise<{ session: Session | null; error: Au
   };
 }
 
-export async function getUser(): Promise<{ user: User | null; error: AuthError | null }> {
+async function getUser(): Promise<{ user: User | null; error: AuthError | null }> {
   const { data, error } = await supabase.auth.getUser();
   return {
     user: data.user,
@@ -183,7 +183,7 @@ export async function getUserProfile(
   };
 }
 
-export interface AvatarUploadResult {
+interface AvatarUploadResult {
   url: string | null;
   error: Error | null;
 }

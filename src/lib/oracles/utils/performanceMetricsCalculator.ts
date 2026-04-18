@@ -21,7 +21,7 @@ export interface CalculatedPerformanceMetrics {
   sampleSize: number;
 }
 
-export interface PriceHistoryEntry {
+interface PriceHistoryEntry {
   price: number;
   timestamp: number;
   responseTime: number;
@@ -29,7 +29,7 @@ export interface PriceHistoryEntry {
   source?: string;
 }
 
-export interface MetricsCalculationConfig {
+interface MetricsCalculationConfig {
   accuracyWindowMs: number;
   reliabilityWindowMs: number;
   updateFrequencyWindowMs: number;

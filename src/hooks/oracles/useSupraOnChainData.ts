@@ -6,7 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import { SupraClient, type SupraTokenOnChainData } from '@/lib/oracles/clients/supra';
 
-export interface UseSupraOnChainDataOptions {
+interface UseSupraOnChainDataOptions {
   symbol: string;
   enabled?: boolean;
 }

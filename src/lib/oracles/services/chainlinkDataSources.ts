@@ -1,6 +1,6 @@
 import { ALCHEMY_RPC } from '@/lib/config/serverEnv';
 
-export interface ChainlinkPriceFeed {
+interface ChainlinkPriceFeed {
   address: `0x${string}`;
   name: string;
   symbol: string;
@@ -8,18 +8,18 @@ export interface ChainlinkPriceFeed {
   category: 'crypto' | 'fiat' | 'commodity' | 'index';
 }
 
-export interface ChainlinkContracts {
+interface ChainlinkContracts {
   linkToken: `0x${string}`;
   stakingPool?: `0x${string}`;
 }
 
-export interface ChainlinkRPCConfig {
+interface ChainlinkRPCConfig {
   endpoints: string[];
   chainId: number;
   name: string;
 }
 
-export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPriceFeed>> = {
+const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPriceFeed>> = {
   ETH: {
     1: {
       address: '0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419',
@@ -647,7 +647,7 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
   },
 };
 
-export const CHAINLINK_CONTRACTS: Record<number, ChainlinkContracts> = {
+const CHAINLINK_CONTRACTS: Record<number, ChainlinkContracts> = {
   1: {
     linkToken: '0x514910771AF9Ca656af840dff83E8264EcF986CA',
   },
@@ -691,7 +691,7 @@ function buildEndpoints(
   }
 }
 
-export const CHAINLINK_RPC_CONFIG: Record<number, ChainlinkRPCConfig> = {
+const CHAINLINK_RPC_CONFIG: Record<number, ChainlinkRPCConfig> = {
   1: {
     endpoints: buildEndpoints(ALCHEMY_RPC.ethereum, [
       'https://ethereum.publicnode.com',
@@ -826,7 +826,7 @@ export function getSupportedSymbols(): string[] {
   return Object.keys(CHAINLINK_PRICE_FEEDS);
 }
 
-export function getSupportedChainIds(symbol: string): number[] {
+function getSupportedChainIds(symbol: string): number[] {
   const feeds = CHAINLINK_PRICE_FEEDS[symbol.toUpperCase()];
   if (!feeds) return [];
   return Object.keys(feeds).map(Number);

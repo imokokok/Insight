@@ -49,14 +49,14 @@ export interface RiskAssessmentData {
   lastUpdated: Date;
 }
 
-export interface RiskTrendPoint {
+interface RiskTrendPoint {
   timestamp: number;
   riskScore: number;
   anomalyCount: number;
   event?: string;
 }
 
-export interface RiskRecommendation {
+interface RiskRecommendation {
   id: string;
   priority: 'critical' | 'warning' | 'info';
   title: string;
@@ -65,14 +65,14 @@ export interface RiskRecommendation {
   relatedOracle?: string;
 }
 
-export interface RiskHeatmapData {
+interface RiskHeatmapData {
   oracle: string;
   riskLevel: 'high' | 'medium' | 'low' | 'normal';
   deviation: number;
   timestamp: number;
 }
 
-export interface RiskIndicator {
+interface RiskIndicator {
   name: string;
   value: number;
   unit: string;

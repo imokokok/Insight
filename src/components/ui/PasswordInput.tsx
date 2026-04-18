@@ -4,7 +4,7 @@ import { useState } from 'react';
 
 import { Lock, Eye, EyeOff } from 'lucide-react';
 
-export interface PasswordInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+interface PasswordInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   showToggle?: boolean;
 }
 

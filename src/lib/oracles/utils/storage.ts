@@ -167,7 +167,7 @@ export async function getHistoricalPricesFromDatabase(
   }
 }
 
-export async function savePriceWithFallback(
+async function savePriceWithFallback(
   priceData: PriceData,
   fallback: () => Promise<PriceData>
 ): Promise<PriceData> {
@@ -182,7 +182,7 @@ export async function savePriceWithFallback(
   return result;
 }
 
-export async function saveHistoricalPricesWithFallback(
+async function saveHistoricalPricesWithFallback(
   provider: OracleProvider,
   symbol: string,
   chain: Blockchain | undefined,

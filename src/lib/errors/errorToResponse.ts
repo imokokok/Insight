@@ -7,7 +7,7 @@ import { AppError } from './AppError';
 
 const logger = createLogger('error-handler');
 
-export interface ErrorResponse {
+interface ErrorResponse {
   error: {
     code: string;
     message: string;
@@ -58,7 +58,7 @@ export function errorToResponse(error: unknown): NextResponse {
 /**
  * 处理错误并添加上下文信息
  */
-export function handleError(
+function handleError(
   error: unknown,
   context?: {
     operation?: string;
@@ -86,7 +86,7 @@ export function isAppError(error: unknown): error is AppError {
 /**
  * 检查错误是否为可预期的操作错误
  */
-export function isOperationalError(error: unknown): boolean {
+function isOperationalError(error: unknown): boolean {
   if (error instanceof AppError) {
     return error.isOperational;
   }
@@ -97,7 +97,7 @@ export function isOperationalError(error: unknown): boolean {
  * 检查错误是否应该重试
  * 复用 errorTypes.ts 中的逻辑
  */
-export function isRetryableError(error: unknown): boolean {
+function isRetryableError(error: unknown): boolean {
   if (error instanceof AppError) {
     return error.retryable;
   }

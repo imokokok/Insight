@@ -11,10 +11,10 @@ import type { PriceData } from '@/types/oracle';
 import type { PriceAnomaly } from './usePriceAnomalyDetection';
 
 /** 趋势方向 */
-export type TrendDirection = 'up' | 'down' | 'stable';
+type TrendDirection = 'up' | 'down' | 'stable';
 
 /** 单个风险指标 */
-export interface RiskMetric {
+interface RiskMetric {
   /** 指标值 (0-100) */
   value: number;
   /** 趋势方向 */
@@ -30,7 +30,7 @@ export interface RiskMetric {
 }
 
 /** 历史风险指标（用于趋势计算） */
-export interface HistoricalRiskMetric {
+interface HistoricalRiskMetric {
   /** 价格波动率 */
   volatility?: number;
   /** 数据一致性评分 */
@@ -42,7 +42,7 @@ export interface HistoricalRiskMetric {
 }
 
 /** 风险指标结果 */
-export interface RiskMetricsResult {
+interface RiskMetricsResult {
   /** 价格波动率 */
   volatility: RiskMetric;
   /** 数据一致性评分 */
@@ -296,7 +296,7 @@ function calculateOverallRiskScore(
  * @param previousMetrics - 之前的指标值（用于趋势计算）
  * @returns 风险指标结果
  */
-export function useRiskMetrics(
+function useRiskMetrics(
   priceData: PriceData[],
   anomalies: PriceAnomaly[],
   previousMetrics?: HistoricalRiskMetric,
@@ -342,7 +342,7 @@ export function useRiskMetrics(
  * @param trend - 趋势方向
  * @returns 图标旋转角度
  */
-export function getTrendIconRotation(trend: TrendDirection): number {
+function getTrendIconRotation(trend: TrendDirection): number {
   switch (trend) {
     case 'up':
       return 0;
@@ -360,7 +360,7 @@ export function getTrendIconRotation(trend: TrendDirection): number {
  * @param trend - 趋势方向
  * @returns 颜色类名
  */
-export function getTrendColor(trend: TrendDirection): string {
+function getTrendColor(trend: TrendDirection): string {
   switch (trend) {
     case 'up':
       return 'text-success-500';
@@ -378,7 +378,7 @@ export function getTrendColor(trend: TrendDirection): string {
  * @param status - 状态
  * @returns 颜色类名
  */
-export function getStatusColor(status: 'good' | 'warning' | 'danger'): string {
+function getStatusColor(status: 'good' | 'warning' | 'danger'): string {
   const colors = {
     good: 'text-success-500 bg-success-50',
     warning: 'text-warning-500 bg-warning-50',
@@ -386,5 +386,3 @@ export function getStatusColor(status: 'good' | 'warning' | 'danger'): string {
   };
   return colors[status];
 }
-
-export default useRiskMetrics;

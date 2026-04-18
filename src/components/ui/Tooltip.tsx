@@ -4,9 +4,9 @@ import { forwardRef, type ReactNode, useState } from 'react';
 
 import { cn } from '@/lib/utils';
 
-export type TooltipPlacement = 'top' | 'bottom' | 'left' | 'right';
+type TooltipPlacement = 'top' | 'bottom' | 'left' | 'right';
 
-export interface TooltipProps {
+interface TooltipProps {
   children: ReactNode;
   content: ReactNode;
   placement?: TooltipPlacement;

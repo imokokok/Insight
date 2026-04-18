@@ -2,7 +2,7 @@ import { type Blockchain, type PriceData, type BaseOracleClient } from '@/lib/or
 
 import { useStatistics, type UseStatisticsReturn } from './useStatistics';
 
-export interface UseCrossChainStatisticsParams {
+interface UseCrossChainStatisticsParams {
   currentPrices: PriceData[];
   historicalPrices: Partial<Record<Blockchain, PriceData[]>>;
   filteredChains: Blockchain[];
@@ -11,7 +11,7 @@ export interface UseCrossChainStatisticsParams {
   selectedBaseChain: Blockchain | null;
 }
 
-export type UseCrossChainStatisticsReturn = UseStatisticsReturn;
+type UseCrossChainStatisticsReturn = UseStatisticsReturn;
 
 export function useCrossChainStatistics(
   params: UseCrossChainStatisticsParams

@@ -107,20 +107,20 @@ export const useCrossChainUIStore = create<CrossChainUIStore>()(
   )
 );
 
-export const useVisibleChains = () => useCrossChainUIStore((state) => state.visibleChains);
-export const useShowMA = () => useCrossChainUIStore((state) => state.showMA);
-export const useMaPeriod = () => useCrossChainUIStore((state) => state.maPeriod);
-export const useChartKey = () => useCrossChainUIStore((state) => state.chartKey);
-export const useHiddenLines = () => useCrossChainUIStore((state) => state.hiddenLines);
-export const useFocusedChain = () => useCrossChainUIStore((state) => state.focusedChain);
-export const useTableFilter = () => useCrossChainUIStore((state) => state.tableFilter);
-export const useHoveredCell = () => useCrossChainUIStore((state) => state.hoveredCell);
-export const useSelectedCell = () => useCrossChainUIStore((state) => state.selectedCell);
-export const useTooltipPosition = () => useCrossChainUIStore((state) => state.tooltipPosition);
-export const useSortColumn = () => useCrossChainUIStore((state) => state.sortColumn);
-export const useSortDirection = () => useCrossChainUIStore((state) => state.sortDirection);
+const useVisibleChains = () => useCrossChainUIStore((state) => state.visibleChains);
+const useShowMA = () => useCrossChainUIStore((state) => state.showMA);
+const useMaPeriod = () => useCrossChainUIStore((state) => state.maPeriod);
+const useChartKey = () => useCrossChainUIStore((state) => state.chartKey);
+const useHiddenLines = () => useCrossChainUIStore((state) => state.hiddenLines);
+const useFocusedChain = () => useCrossChainUIStore((state) => state.focusedChain);
+const useTableFilter = () => useCrossChainUIStore((state) => state.tableFilter);
+const useHoveredCell = () => useCrossChainUIStore((state) => state.hoveredCell);
+const useSelectedCell = () => useCrossChainUIStore((state) => state.selectedCell);
+const useTooltipPosition = () => useCrossChainUIStore((state) => state.tooltipPosition);
+const useSortColumn = () => useCrossChainUIStore((state) => state.sortColumn);
+const useSortDirection = () => useCrossChainUIStore((state) => state.sortDirection);
 
-export const useUIState = () =>
+const useUIState = () =>
   useCrossChainUIStore((state) => ({
     visibleChains: state.visibleChains,
     showMA: state.showMA,

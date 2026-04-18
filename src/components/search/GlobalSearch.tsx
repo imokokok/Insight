@@ -14,7 +14,7 @@ import { type SearchResult, type SearchGroup } from './types';
 import { useGlobalSearch } from './useGlobalSearch';
 import { useSearchKeyboardNavigation } from './useSearchKeyboardNavigation';
 
-export interface GlobalSearchProps {
+interface GlobalSearchProps {
   isOpen: boolean;
   onClose: () => void;
 }
@@ -523,4 +523,3 @@ function GlobalSearchComponent({ isOpen, onClose }: GlobalSearchProps) {
 }
 
 export const GlobalSearch = memo(GlobalSearchComponent, arePropsEqual);
-export default GlobalSearch;

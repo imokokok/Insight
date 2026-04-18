@@ -1,11 +1,11 @@
 import { calculateZScore } from './statisticsUtils';
 
-export interface RollingVolatilityPoint {
+interface RollingVolatilityPoint {
   timestamp: number;
   volatility: number;
 }
 
-export interface VolatilityConePoint {
+interface VolatilityConePoint {
   windowSize: number;
   minVolatility: number;
   maxVolatility: number;
@@ -32,7 +32,7 @@ export interface ThresholdConfig {
   outlierThreshold: number;
 }
 
-export const calculateRollingVolatility = (
+const calculateRollingVolatility = (
   prices: number[],
   windowSize: number,
   timestamps?: number[],
@@ -85,7 +85,7 @@ export const calculateRollingVolatility = (
   return result;
 };
 
-export const calculateVolatilityCone = (
+const calculateVolatilityCone = (
   prices: number[],
   windowSizes: number[] = [10, 20, 30, 50, 100]
 ): VolatilityConePoint[] => {
@@ -155,7 +155,7 @@ export const calculateVolatilityCone = (
  * @param period 计算周期（默认14）
  * @returns 近似 ATR 值
  */
-export const calculateATR = (prices: number[], period: number = 14): number => {
+const calculateATR = (prices: number[], period: number = 14): number => {
   if (prices.length < period + 1) {
     // 数据不足时，使用价格变化的标准差作为近似
     const mean = prices.reduce((a, b) => a + b, 0) / prices.length;
@@ -227,7 +227,7 @@ export const calculateDynamicThreshold = (prices: number[], config: ThresholdCon
   }
 };
 
-export const calculatePriceJumpStats = (changes: number[]) => {
+const calculatePriceJumpStats = (changes: number[]) => {
   if (changes.length === 0) {
     return { mean: 0, stdDev: 0 };
   }

@@ -23,13 +23,13 @@ export const SEVERITY_THRESHOLDS = {
 // ============================================================================
 
 /** 数据延迟阈值（毫秒）- 30秒，超过此值数据不够新鲜 */
-export const DATA_DELAY_THRESHOLD = 30000;
+const DATA_DELAY_THRESHOLD = 30000;
 
 /** 数据延迟警告阈值（毫秒）- 60秒，超过此值需要警告 */
-export const DATA_DELAY_WARNING_THRESHOLD = 60000;
+const DATA_DELAY_WARNING_THRESHOLD = 60000;
 
 /** 数据延迟危险阈值（毫秒）- 5分钟，超过此值数据可能不可靠 */
-export const DATA_DELAY_DANGER_THRESHOLD = 300000;
+const DATA_DELAY_DANGER_THRESHOLD = 300000;
 
 // ============================================================================
 // 偏差筛选阈值

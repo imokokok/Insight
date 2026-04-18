@@ -29,14 +29,14 @@ interface StatsData {
   avgChange24hPercent?: number;
 }
 
-export function generateFilename(symbol: string, extension: string, format?: string): string {
+function generateFilename(symbol: string, extension: string, format?: string): string {
   const now = new Date();
   const timestamp = now.toISOString().slice(0, 19).replace(/:/g, '-');
   const formatSuffix = format ? `-${format}` : '';
   return `price-query-${symbol}${formatSuffix}-${timestamp}.${extension}`;
 }
 
-export interface ExportTranslations {
+interface ExportTranslations {
   csvTitle: string;
   symbol: string;
   exportTime: string;
@@ -174,7 +174,7 @@ export function exportToJSON(
   downloadBlob(blob, generateFilename(selectedSymbol, 'json'));
 }
 
-export interface PDFTranslations extends ExportTranslations {
+interface PDFTranslations extends ExportTranslations {
   reportTitle: string;
   generatedAt: string;
   queryParams: string;

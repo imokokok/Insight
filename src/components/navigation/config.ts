@@ -61,7 +61,7 @@ export const navigationConfig: NavStructure = [
   },
 ];
 
-export const userNavigationConfig: NavStructure = [
+const userNavigationConfig: NavStructure = [
   {
     href: '/favorites',
     label: 'Favorites',

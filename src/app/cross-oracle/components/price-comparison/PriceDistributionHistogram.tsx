@@ -170,5 +170,3 @@ function PriceDistributionHistogramComponent({
 
 export const PriceDistributionHistogram = memo(PriceDistributionHistogramComponent);
 PriceDistributionHistogram.displayName = 'PriceDistributionHistogram';
-
-export default PriceDistributionHistogram;

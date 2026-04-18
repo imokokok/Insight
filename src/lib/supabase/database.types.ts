@@ -352,24 +352,23 @@ export interface Database {
 export type Tables<T extends keyof Database['public']['Tables']> =
   Database['public']['Tables'][T]['Row'];
 
-export type InsertTables<T extends keyof Database['public']['Tables']> =
+type InsertTables<T extends keyof Database['public']['Tables']> =
   Database['public']['Tables'][T]['Insert'];
 
-export type UpdateTables<T extends keyof Database['public']['Tables']> =
+type UpdateTables<T extends keyof Database['public']['Tables']> =
   Database['public']['Tables'][T]['Update'];
 
-export type Views<T extends keyof Database['public']['Views']> =
-  Database['public']['Views'][T]['Row'];
+type Views<T extends keyof Database['public']['Views']> = Database['public']['Views'][T]['Row'];
 
-export type UserProfile = Tables<'user_profiles'>;
-export type PriceRecord = Tables<'price_records'>;
-export type UserSnapshot = Tables<'user_snapshots'>;
-export type UserFavorite = Tables<'user_favorites'>;
+type UserProfile = Tables<'user_profiles'>;
+type PriceRecord = Tables<'price_records'>;
+type UserSnapshot = Tables<'user_snapshots'>;
+type UserFavorite = Tables<'user_favorites'>;
 export type PriceAlert = Tables<'price_alerts'>;
 export type AlertEvent = Tables<'alert_events'>;
-export type ActiveAlertWithPrice = Views<'active_alerts_with_prices'>;
+type ActiveAlertWithPrice = Views<'active_alerts_with_prices'>;
 
-export type UserPreferences = {
+type UserPreferences = {
   default_oracle?: string;
   default_symbol?: string;
   default_chain?: string;
@@ -382,13 +381,13 @@ export type UserPreferences = {
   };
 };
 
-export type NotificationSettings = {
+type NotificationSettings = {
   email_alerts?: boolean;
   push_notifications?: boolean;
   alert_frequency?: 'immediate' | 'hourly' | 'daily';
 };
 
-export type SnapshotStats = {
+type SnapshotStats = {
   avgPrice: number;
   weightedAvgPrice: number;
   maxPrice: number;
@@ -399,7 +398,7 @@ export type SnapshotStats = {
   standardDeviationPercent: number;
 };
 
-export type SnapshotPriceData = {
+type SnapshotPriceData = {
   provider: string;
   symbol: string;
   chain?: string;
@@ -409,17 +408,17 @@ export type SnapshotPriceData = {
   source?: string;
 };
 
-export type OracleConfigFavorite = {
+type OracleConfigFavorite = {
   selectedOracles: string[];
   symbol: string;
 };
 
-export type SymbolFavorite = {
+type SymbolFavorite = {
   symbol: string;
   chains?: string[];
 };
 
-export type ChainConfigFavorite = {
+type ChainConfigFavorite = {
   chain: string;
   symbols?: string[];
 };

@@ -67,18 +67,16 @@ export const useCrossChainDataStore = create<CrossChainDataStore>()(
   )
 );
 
-export const useCurrentPrices = () => useCrossChainDataStore((state) => state.currentPrices);
-export const useHistoricalPrices = () => useCrossChainDataStore((state) => state.historicalPrices);
-export const useLoading = () => useCrossChainDataStore((state) => state.loading);
-export const useRefreshStatus = () => useCrossChainDataStore((state) => state.refreshStatus);
-export const useShowRefreshSuccess = () =>
-  useCrossChainDataStore((state) => state.showRefreshSuccess);
-export const useLastUpdated = () => useCrossChainDataStore((state) => state.lastUpdated);
-export const usePrevStats = () => useCrossChainDataStore((state) => state.prevStats);
-export const useRecommendedBaseChain = () =>
-  useCrossChainDataStore((state) => state.recommendedBaseChain);
+const useCurrentPrices = () => useCrossChainDataStore((state) => state.currentPrices);
+const useHistoricalPrices = () => useCrossChainDataStore((state) => state.historicalPrices);
+const useLoading = () => useCrossChainDataStore((state) => state.loading);
+const useRefreshStatus = () => useCrossChainDataStore((state) => state.refreshStatus);
+const useShowRefreshSuccess = () => useCrossChainDataStore((state) => state.showRefreshSuccess);
+const useLastUpdated = () => useCrossChainDataStore((state) => state.lastUpdated);
+const usePrevStats = () => useCrossChainDataStore((state) => state.prevStats);
+const useRecommendedBaseChain = () => useCrossChainDataStore((state) => state.recommendedBaseChain);
 
-export const useDataState = () =>
+const useDataState = () =>
   useCrossChainDataStore((state) => ({
     currentPrices: state.currentPrices,
     historicalPrices: state.historicalPrices,

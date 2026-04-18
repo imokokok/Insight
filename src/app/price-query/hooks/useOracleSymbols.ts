@@ -5,7 +5,7 @@ import { oracleSupportedSymbols } from '@/lib/oracles/constants/supportedSymbols
 import { getDefaultFactory } from '@/lib/oracles/factory';
 import { type Blockchain, type OracleProvider } from '@/types/oracle';
 
-export interface UseOracleSymbolsReturn {
+interface UseOracleSymbolsReturn {
   // 获取选中预言机支持的所有币种
   supportedSymbols: string[];
   // 获取所有币种的并集（带预言机标识）
@@ -224,5 +224,3 @@ export function useOracleSymbols(selectedOracles: OracleProvider[]): UseOracleSy
     getSymbolsForChain,
   };
 }
-
-export default useOracleSymbols;

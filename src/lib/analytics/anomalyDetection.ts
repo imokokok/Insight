@@ -50,7 +50,7 @@ export interface AnomalyData {
 /**
  * 标准差检测结果
  */
-export interface StdDevResult {
+interface StdDevResult {
   mean: number;
   stdDev: number;
   upperBound: number; // μ + 2σ
@@ -66,7 +66,7 @@ export interface StdDevResult {
 /**
  * 趋势检测结果
  */
-export interface TrendResult {
+interface TrendResult {
   direction: 'up' | 'down' | 'flat';
   strength: number; // 0-100
   changePoint?: number; // 突变点索引

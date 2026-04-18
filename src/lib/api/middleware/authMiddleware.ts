@@ -18,7 +18,7 @@ export interface AuthMiddlewareOptions {
   roles?: string[];
 }
 
-export type AuthMiddlewareResult =
+type AuthMiddlewareResult =
   | { success: true; context: AuthContext }
   | { success: false; response: NextResponse };
 

@@ -27,13 +27,13 @@ export interface ChainlinkPriceData {
   startedAt?: number;
 }
 
-export interface ChainlinkTokenData {
+interface ChainlinkTokenData {
   totalSupply: bigint;
   symbol: string;
   name: string;
 }
 
-export interface ChainlinkNetworkStats {
+interface ChainlinkNetworkStats {
   totalFeeds: number;
   activeChains: number;
   lastUpdateTimestamp: number;
@@ -144,7 +144,7 @@ function decodeDecimals(data: string): number {
   }
 }
 
-export class ChainlinkOnChainService {
+class ChainlinkOnChainService {
   private requestId = 0;
   private cache: Map<string, { data: unknown; timestamp: number }> = new Map();
   private cacheTTL = 30000;

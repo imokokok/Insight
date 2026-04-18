@@ -158,7 +158,7 @@ interface MiniChartSkeletonProps {
   className?: string;
 }
 
-export function MiniChartSkeleton({
+function MiniChartSkeleton({
   height = 80,
   width = '100%',
   className = '',
@@ -192,7 +192,7 @@ interface MetricCardSkeletonProps {
   className?: string;
 }
 
-export function MetricCardSkeleton({ className = '' }: MetricCardSkeletonProps) {
+function MetricCardSkeleton({ className = '' }: MetricCardSkeletonProps) {
   return (
     <div
       className={`skeleton-shimmer border border-gray-200/60 bg-gray-50/80 rounded-lg p-6 ${className}`}

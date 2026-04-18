@@ -22,22 +22,6 @@ import type {
 
 const logger = createLogger('chartExport');
 
-export type {
-  ExportOptions,
-  ExportSettings,
-  ExportMetadata,
-  ExportProgress,
-  ExportProgressCallback,
-  ChartExportData,
-  PDFExportOptions,
-  BatchExportItem,
-  ZIPExportOptions,
-  Resolution,
-  ExportRange,
-} from './chartExport/types';
-
-export { RESOLUTION_CONFIG } from './chartExport/types';
-
 /**
  * 导出单个图表
  */
@@ -244,5 +228,3 @@ export function getSupportedExportFormats(): Array<{
     },
   ];
 }
-
-export { exportToCSV, exportToJSON, exportToPNG, exportToSVG, exportToPDF, exportToZIP };

@@ -185,5 +185,3 @@ export function AlertBatchOperations({
     </div>
   );
 }
-
-export default AlertBatchOperations;

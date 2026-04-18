@@ -71,5 +71,3 @@ function PriceRangeBarComponent({
 
 export const PriceRangeBar = memo(PriceRangeBarComponent);
 PriceRangeBar.displayName = 'PriceRangeBar';
-
-export default PriceRangeBar;

@@ -86,12 +86,4 @@ export interface OnChainData {
   isFlareDataLoading?: boolean;
 }
 
-export {
-  providerNames,
-  chainNames,
-  symbols,
-  chainColors,
-  oracleColors,
-  TIME_RANGES,
-  DEVIATION_THRESHOLD,
-};
+export { providerNames, chainNames, symbols, chainColors, oracleColors, TIME_RANGES };

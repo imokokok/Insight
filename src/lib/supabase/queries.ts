@@ -187,7 +187,7 @@ export interface UserProfileUpdate {
   };
 }
 
-export interface IAlertService {
+interface IAlertService {
   getAlerts(userId: string): Promise<PriceAlert[] | null>;
   createAlert(userId: string, alert: Omit<PriceAlertInsert, 'user_id'>): Promise<PriceAlert | null>;
   updateAlert(id: string, data: Partial<PriceAlertInsert>): Promise<PriceAlert | null>;
@@ -197,7 +197,7 @@ export interface IAlertService {
   getActiveAlerts(): Promise<PriceAlert[] | null>;
 }
 
-export interface IFavoriteService {
+interface IFavoriteService {
   getFavorites(userId: string): Promise<UserFavorite[] | null>;
   getFavoritesByType(
     userId: string,
@@ -211,7 +211,7 @@ export interface IFavoriteService {
   deleteFavorite(id: string, userId: string): Promise<boolean>;
 }
 
-export interface ISnapshotService {
+interface ISnapshotService {
   getSnapshots(userId: string): Promise<UserSnapshot[] | null>;
   getSnapshotById(id: string): Promise<UserSnapshot | null>;
   getPublicSnapshot(id: string): Promise<UserSnapshot | null>;

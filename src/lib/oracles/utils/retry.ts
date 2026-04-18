@@ -6,7 +6,7 @@ import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('OracleRetry');
 
-export interface OracleRetryConfig {
+interface OracleRetryConfig {
   maxAttempts?: number;
   baseDelay?: number;
   maxDelay?: number;

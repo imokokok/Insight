@@ -22,14 +22,7 @@ import type {
 } from '../types/index';
 
 // 重新导出类型
-export type DataQualityScore = DataQualityScoreType;
-export type {
-  ExtendedDataQualityScore,
-  LatencyStats,
-  OracleQualityMetrics,
-  ProfessionalQualityMetrics,
-};
-
+type DataQualityScore = DataQualityScoreType;
 function calculateProfessionalMetrics(prices: number[]): ProfessionalQualityMetrics {
   const validPrices = prices.filter((p) => p > 0);
   const sampleSize = validPrices.length;
@@ -149,7 +142,7 @@ function calculateOracleMetrics(
  * @param score - 评分值
  * @returns 等级描述
  */
-export function getScoreLevel(score: number): 'excellent' | 'good' | 'fair' | 'poor' {
+function getScoreLevel(score: number): 'excellent' | 'good' | 'fair' | 'poor' {
   if (score >= 80) return 'excellent';
   if (score >= 60) return 'good';
   if (score >= 40) return 'fair';
@@ -161,7 +154,7 @@ export function getScoreLevel(score: number): 'excellent' | 'good' | 'fair' | 'p
  * @param score - 评分值
  * @returns 颜色类名
  */
-export function getScoreColor(score: number): string {
+function getScoreColor(score: number): string {
   const level = getScoreLevel(score);
   const colors = {
     excellent: 'text-success-500',
@@ -177,7 +170,7 @@ export function getScoreColor(score: number): string {
  * @param score - 评分值
  * @returns 背景色类名
  */
-export function getScoreBgColor(score: number): string {
+function getScoreBgColor(score: number): string {
   const level = getScoreLevel(score);
   const colors = {
     excellent: 'bg-success-500',
@@ -191,7 +184,7 @@ export function getScoreBgColor(score: number): string {
 /**
  * 获取Z-Score颜色类
  */
-export function getZScoreColorClass(zScore: number): string {
+function getZScoreColorClass(zScore: number): string {
   const absZ = Math.abs(zScore);
   if (absZ > 3) return 'text-red-600 bg-red-50';
   if (absZ > 2) return 'text-orange-600 bg-orange-50';
@@ -202,7 +195,7 @@ export function getZScoreColorClass(zScore: number): string {
 /**
  * 格式化延迟显示
  */
-export function formatLatency(ms: number): string {
+function formatLatency(ms: number): string {
   if (ms < 1000) return `${Math.round(ms)}ms`;
   if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`;
   return `${Math.floor(ms / 60000)}m ${Math.round((ms % 60000) / 1000)}s`;
@@ -211,14 +204,14 @@ export function formatLatency(ms: number): string {
 /**
  * 格式化百分比
  */
-export function formatPercent(value: number, digits = 2): string {
+function formatPercent(value: number, digits = 2): string {
   return `${value >= 0 ? '+' : ''}${value.toFixed(digits)}%`;
 }
 
 /**
  * 格式化数值（保留指定位数）
  */
-export function formatNumber(value: number, digits = 4): string {
+function formatNumber(value: number, digits = 4): string {
   return value.toFixed(digits);
 }
 
@@ -227,7 +220,7 @@ export function formatNumber(value: number, digits = 4): string {
  * @param priceData - 价格数据数组
  * @returns 专业质量指标结果
  */
-export function useProfessionalQualityMetrics(priceData: PriceData[]): {
+function useProfessionalQualityMetrics(priceData: PriceData[]): {
   metrics: ProfessionalQualityMetrics;
   latencyStats: LatencyStats;
   oracleMetrics: OracleQualityMetrics[];
@@ -325,5 +318,3 @@ export function useDataQualityScore(params: {
     level: getScoreLevel(score.overall),
   };
 }
-
-export default useDataQualityScore;

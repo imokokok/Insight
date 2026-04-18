@@ -19,14 +19,14 @@ import {
   type UseWINkLinkOnChainDataReturn,
 } from './useWINkLinkOnChainData';
 
-export interface UseOnChainDataByProviderOptions {
+interface UseOnChainDataByProviderOptions {
   provider: OracleProvider;
   symbol: string;
   chain?: Blockchain;
   enabled?: boolean;
 }
 
-export type OnChainDataReturn =
+type OnChainDataReturn =
   | UseDIAOnChainDataReturn
   | UseWINkLinkOnChainDataReturn
   | UseRedStoneOnChainDataReturn

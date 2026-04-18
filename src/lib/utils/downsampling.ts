@@ -15,7 +15,7 @@ export interface DataPoint {
   [key: string]: unknown;
 }
 
-export interface DownsamplingConfig {
+interface DownsamplingConfig {
   targetPoints?: number;
   preservePeaks?: boolean;
   preserveTrends?: boolean;
@@ -140,7 +140,7 @@ export function downsampleDataForPerformance(data: DataPoint[]): DataPoint[] {
   });
 }
 
-export interface AdaptiveDownsampleConfig {
+interface AdaptiveDownsampleConfig {
   renderTime?: number;
   targetRenderTime?: number;
   minPoints?: number;

@@ -138,5 +138,3 @@ export function BenchmarkComparisonSection({ chainPrices }: BenchmarkComparisonS
     </div>
   );
 }
-
-export default BenchmarkComparisonSection;

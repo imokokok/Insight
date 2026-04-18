@@ -41,7 +41,7 @@ import type {
 
 const logger = createLogger('PythDataService');
 
-export class PythDataService {
+class PythDataService {
   private hermesClient: HermesClient;
   private cache: PythCache;
   private wsManager: PythWebSocket;
@@ -206,7 +206,7 @@ export function getPythDataService(): PythDataService {
   return pythDataServiceInstance;
 }
 
-export function resetPythDataService(): void {
+function resetPythDataService(): void {
   if (pythDataServiceInstance) {
     pythDataServiceInstance.disconnect();
     pythDataServiceInstance = null;

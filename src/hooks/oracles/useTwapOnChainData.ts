@@ -19,7 +19,7 @@ export interface TwapOnChainData {
   confidence: number;
 }
 
-export interface UseTwapOnChainDataOptions {
+interface UseTwapOnChainDataOptions {
   symbol: string;
   chain?: Blockchain;
   enabled?: boolean;

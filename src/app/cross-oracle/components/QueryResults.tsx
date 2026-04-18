@@ -169,5 +169,3 @@ function QueryResultsComponent({
 
 export const QueryResults = memo(QueryResultsComponent);
 QueryResults.displayName = 'QueryResults';
-
-export default QueryResults;

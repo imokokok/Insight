@@ -10,14 +10,14 @@ import { priceCache, historicalCache, type CacheStats } from './cacheUtils';
 
 const logger = createLogger('performance-monitoring');
 
-export interface QueryPerformanceMetric {
+interface QueryPerformanceMetric {
   name: 'query_response_time' | 'data_processing_time' | 'chart_render_time' | 'validation_time';
   value: number;
   timestamp: number;
   metadata?: Record<string, unknown>;
 }
 
-export interface PerformanceSnapshot {
+interface PerformanceSnapshot {
   webVitals: {
     fcp: number | null;
     lcp: number | null;
@@ -34,14 +34,14 @@ export interface PerformanceSnapshot {
   timestamp: number;
 }
 
-export interface PerformanceThresholds {
+interface PerformanceThresholds {
   queryResponseTime: { good: number; poor: number };
   dataProcessingTime: { good: number; poor: number };
   chartRenderTime: { good: number; poor: number };
   validationTime: { good: number; poor: number };
 }
 
-export const CUSTOM_THRESHOLDS: PerformanceThresholds = {
+const CUSTOM_THRESHOLDS: PerformanceThresholds = {
   queryResponseTime: { good: 2000, poor: 5000 },
   dataProcessingTime: { good: 100, poor: 500 },
   chartRenderTime: { good: 500, poor: 1500 },
@@ -275,7 +275,7 @@ interface PerformanceEventTiming extends PerformanceEntry {
   processingEnd: number;
 }
 
-export const performanceMonitor = new PerformanceMonitor();
+const performanceMonitor = new PerformanceMonitor();
 
 export function usePerformanceMonitoring() {
   const queryStartTimeRef = useRef<number | null>(null);
@@ -382,7 +382,7 @@ export function usePerformanceMonitoring() {
   };
 }
 
-export function getMetricRatingDisplay(
+function getMetricRatingDisplay(
   metricName: keyof PerformanceThresholds,
   value: number
 ): { rating: MetricRating; color: string; label: string } {
@@ -407,7 +407,7 @@ export function getMetricRatingDisplay(
   };
 }
 
-export function getWebVitalRatingDisplay(
+function getWebVitalRatingDisplay(
   metricName: keyof typeof PERFORMANCE_THRESHOLDS,
   value: number
 ): { rating: MetricRating; color: string; label: string } {
@@ -440,5 +440,3 @@ export function getWebVitalRatingDisplay(
     label: labels[rating],
   };
 }
-
-export { CUSTOM_THRESHOLDS as PERFORMANCE_THRESHOLDS };
