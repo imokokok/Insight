@@ -8,7 +8,7 @@ const logger = createLogger('useAnomalyDetection');
 function detectAnomalies(prices: PriceData[], filteredChains: Blockchain[]): AnomalousPricePoint[] {
   const anomalies = detectAnomalousPrices(prices, filteredChains);
   if (anomalies.length > 0) {
-    logger.info(`检测到 ${anomalies.length} 个异常价格点`, {
+    logger.info(`Detected ${anomalies.length} anomalous price points`, {
       anomalies: anomalies.map((a) => ({
         chain: a.chain,
         price: a.price,

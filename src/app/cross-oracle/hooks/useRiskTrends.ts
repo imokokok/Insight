@@ -61,7 +61,7 @@ function useRiskTrends(
         timestamp: hourEnd,
         riskScore,
         anomalyCount,
-        event: anomalyCount > 0 ? `${anomalyCount} 个异常 detected` : undefined,
+        event: anomalyCount > 0 ? `${anomalyCount} anomalies detected` : undefined,
       });
     }
 

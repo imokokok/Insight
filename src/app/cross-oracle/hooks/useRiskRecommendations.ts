@@ -93,8 +93,8 @@ function generateAnomalyRecommendations(anomalies: PriceAnomaly[]): RiskRecommen
       category: 'anomaly',
       relatedOracles: highRiskAnomalies.map((a) => a.provider),
       timestamp: Date.now(),
-      action: '检查并验证异常数据源',
-      expectedOutcome: '恢复数据一致性',
+      action: 'Check and verify anomalous data sources',
+      expectedOutcome: 'Restore data consistency',
     });
   }
 
@@ -109,8 +109,8 @@ function generateAnomalyRecommendations(anomalies: PriceAnomaly[]): RiskRecommen
       category: 'anomaly',
       relatedOracles: mediumRiskAnomalies.map((a) => a.provider),
       timestamp: Date.now(),
-      action: '监控并分析偏差原因',
-      expectedOutcome: '识别并解决数据源问题',
+      action: 'Monitor and analyze deviation causes',
+      expectedOutcome: 'Identify and resolve data source issues',
     });
   }
 
@@ -124,8 +124,8 @@ function generateAnomalyRecommendations(anomalies: PriceAnomaly[]): RiskRecommen
       category: 'reliability',
       relatedOracles: anomalies.map((a) => a.provider),
       timestamp: Date.now(),
-      action: '评估市场整体状况',
-      expectedOutcome: '确定异常根本原因',
+      action: 'Assess overall market conditions',
+      expectedOutcome: 'Determine root cause of anomalies',
     });
   }
 
@@ -154,8 +154,8 @@ function generateLatencyRecommendations(anomalies: PriceAnomaly[]): RiskRecommen
       category: 'latency',
       relatedOracles: staleDataAnomalies.map((a) => a.provider),
       timestamp: Date.now(),
-      action: '检查网络连接和数据源状态',
-      expectedOutcome: '恢复正常数据更新频率',
+      action: 'Check network connection and data source status',
+      expectedOutcome: 'Restore normal data update frequency',
     });
   }
 
@@ -187,8 +187,8 @@ function generateConsistencyRecommendations(
       category: 'consistency',
       relatedOracles: [],
       timestamp: Date.now(),
-      action: '检查失败的预言机连接',
-      expectedOutcome: '提高数据完整性至 90% 以上',
+      action: 'Check failed oracle connections',
+      expectedOutcome: 'Improve data completeness to above 90%',
     });
   }
 
@@ -204,8 +204,8 @@ function generateConsistencyRecommendations(
         category: 'consistency',
         relatedOracles: anomalies.map((a) => a.provider),
         timestamp: Date.now(),
-        action: '重新评估数据源权重或更换数据源',
-        expectedOutcome: '降低价格离散度',
+        action: 'Re-evaluate data source weights or switch data sources',
+        expectedOutcome: 'Reduce price dispersion',
       });
     }
   }
@@ -233,8 +233,8 @@ function generateOptimizationRecommendations(anomalies: PriceAnomaly[]): RiskRec
         category: 'optimization',
         relatedOracles: [],
         timestamp: Date.now(),
-        action: '配置额外的预言机数据源',
-        expectedOutcome: '提高系统容错能力',
+        action: 'Configure additional oracle data sources',
+        expectedOutcome: 'Improve system fault tolerance',
       });
     }
   }
@@ -250,8 +250,8 @@ function generateOptimizationRecommendations(anomalies: PriceAnomaly[]): RiskRec
       category: 'optimization',
       relatedOracles: [],
       timestamp: Date.now(),
-      action: '调整异常检测参数',
-      expectedOutcome: '减少误报，提高检测精度',
+      action: 'Adjust anomaly detection parameters',
+      expectedOutcome: 'Reduce false positives and improve detection accuracy',
     });
   }
 
@@ -264,8 +264,8 @@ function generateOptimizationRecommendations(anomalies: PriceAnomaly[]): RiskRec
     category: 'optimization',
     relatedOracles: [],
     timestamp: Date.now(),
-    action: '设置定期性能审查提醒',
-    expectedOutcome: '持续优化数据质量',
+    action: 'Set up regular performance review reminders',
+    expectedOutcome: 'Continuously optimize data quality',
   });
 
   return recommendations;
@@ -392,10 +392,10 @@ function getPriorityColor(priority: RecommendationPriority): string {
  */
 function getPriorityLabel(priority: RecommendationPriority): string {
   const labels = {
-    critical: '紧急',
-    high: '高',
-    medium: '中',
-    low: '低',
+    critical: 'Critical',
+    high: 'High',
+    medium: 'Medium',
+    low: 'Low',
   };
   return labels[priority];
 }
@@ -407,11 +407,11 @@ function getPriorityLabel(priority: RecommendationPriority): string {
  */
 function getCategoryLabel(category: RecommendationCategory): string {
   const labels = {
-    anomaly: '异常检测',
-    latency: '延迟优化',
-    consistency: '数据一致性',
-    reliability: '可靠性',
-    optimization: '系统优化',
+    anomaly: 'Anomaly Detection',
+    latency: 'Latency Optimization',
+    consistency: 'Data Consistency',
+    reliability: 'Reliability',
+    optimization: 'System Optimization',
   };
   return labels[category];
 }

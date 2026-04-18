@@ -12,7 +12,7 @@ function validateCurrentPrices(prices: PriceData[]): PriceData[] {
     const validation = validatePriceData(priceData.price, priceData.timestamp, priceData.chain);
     if (!validation.isValid) {
       validation.errors.forEach((error) =>
-        logger.warn('价格数据验证失败', { error, chain: priceData.chain })
+        logger.warn('Price data validation failed', { error, chain: priceData.chain })
       );
       return false;
     }
@@ -24,7 +24,9 @@ function validateHistoricalPrices(prices: PriceData[], chain: Blockchain): Price
   return prices.filter((priceData) => {
     const validation = validatePriceData(priceData.price, priceData.timestamp, chain);
     if (!validation.isValid) {
-      validation.errors.forEach((error) => logger.warn('历史价格数据验证失败', { error, chain }));
+      validation.errors.forEach((error) =>
+        logger.warn('Historical price data validation failed', { error, chain })
+      );
       return false;
     }
     return true;

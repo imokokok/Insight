@@ -395,9 +395,9 @@ function getMetricRatingDisplay(
   };
 
   const labels: Record<MetricRating, string> = {
-    good: '良好',
-    'needs-improvement': '需改进',
-    poor: '较差',
+    good: 'Good',
+    'needs-improvement': 'Needs Improvement',
+    poor: 'Poor',
   };
 
   return {
@@ -429,9 +429,9 @@ function getWebVitalRatingDisplay(
   };
 
   const labels: Record<MetricRating, string> = {
-    good: '良好',
-    'needs-improvement': '需改进',
-    poor: '较差',
+    good: 'Good',
+    'needs-improvement': 'Needs Improvement',
+    poor: 'Poor',
   };
 
   return {

@@ -8,10 +8,10 @@ interface StatRatingResult {
 }
 
 const ratingConfig: Record<StatRating, Omit<StatRatingResult, 'rating'>> = {
-  excellent: { label: '优秀', color: '#059669', bgColor: '#d1fae5' },
-  good: { label: '良好', color: '#2563eb', bgColor: '#dbeafe' },
-  attention: { label: '需关注', color: '#d97706', bgColor: '#fef3c7' },
-  danger: { label: '危险', color: '#dc2626', bgColor: '#fee2e2' },
+  excellent: { label: 'Excellent', color: '#059669', bgColor: '#d1fae5' },
+  good: { label: 'Good', color: '#2563eb', bgColor: '#dbeafe' },
+  attention: { label: 'Attention', color: '#d97706', bgColor: '#fef3c7' },
+  danger: { label: 'Danger', color: '#dc2626', bgColor: '#fee2e2' },
 };
 
 export function getStatRating(metricType: string, value: number): StatRatingResult | null {

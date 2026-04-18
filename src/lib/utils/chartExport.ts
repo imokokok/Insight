@@ -115,7 +115,7 @@ export async function exportChart(
               {
                 chartRef,
                 data,
-                title: chartTitle || '图表',
+                title: chartTitle || 'Chart',
               },
             ],
             includeMetadata,
