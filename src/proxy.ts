@@ -5,12 +5,12 @@ import { createServerClient } from '@supabase/ssr';
 import { generateCSRFToken, setCSRFCookie, CSRF_TOKEN_HEADER } from '@/lib/security/csrf';
 import { createLogger } from '@/lib/utils/logger';
 
-const logger = createLogger('middleware');
+const logger = createLogger('proxy');
 
 const protectedRoutes = ['/settings', '/alerts', '/favorites'];
 const authRoutes = ['/login', '/register', '/forgot-password', '/auth'];
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   if (pathname.startsWith('/api/')) {

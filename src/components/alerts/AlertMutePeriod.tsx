@@ -256,23 +256,18 @@ function isInMutePeriod(config: MutePeriodConfig): boolean {
   return false;
 }
 
-function formatMutePeriod(config: MutePeriodConfig, t: (key: string) => string): string {
+function formatMutePeriod(config: MutePeriodConfig): string {
   if (!config.enabled) return 'Disabled';
 
   if (config.duration > 0) {
-    return t(`alerts.mute.duration.${config.duration}`) || `${config.duration} minutes`;
+    const durationOption = DURATION_OPTIONS.find((opt) => opt.value === config.duration);
+    return durationOption?.label || `${config.duration} minutes`;
   }
 
   if (config.startTime && config.endTime) {
     const timeRange = `${config.startTime} - ${config.endTime}`;
     if (config.recurring && config.daysOfWeek && config.daysOfWeek.length > 0) {
-      const days = config.daysOfWeek
-        .map(
-          (d) =>
-            t(`alerts.mute.daysOfWeek.${['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][d]}`) ||
-            DAYS_OF_WEEK[d].label
-        )
-        .join(', ');
+      const days = config.daysOfWeek.map((d) => DAYS_OF_WEEK[d].label).join(', ');
       return `${timeRange} (${days})`;
     }
     return timeRange;
