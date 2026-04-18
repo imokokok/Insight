@@ -57,6 +57,7 @@ export class RedStoneClient extends BaseOracleClient {
 
   constructor(config?: OracleClientConfig) {
     super(config);
+    this.cache.startCleanupInterval();
   }
 
   private generateConfidenceInterval(price: number, symbol: string): ConfidenceInterval {
@@ -219,6 +220,10 @@ export class RedStoneClient extends BaseOracleClient {
     chain?: Blockchain,
     options?: { signal?: AbortSignal }
   ): Promise<PriceData> {
+    if (!symbol) {
+      throw this.createError('Symbol is required', 'INVALID_SYMBOL');
+    }
+
     try {
       const realPrice = await this.fetchRealPrice(symbol, options?.signal);
 
@@ -246,6 +251,7 @@ export class RedStoneClient extends BaseOracleClient {
 
   clearCache(): void {
     this.cache.clear();
+    this.cache.startCleanupInterval();
   }
 
   getSupportedSymbols(): string[] {

@@ -217,7 +217,7 @@ export function useOracleData({
 
       selectedOracles.forEach((oracle) => {
         const metrics = metricsCalculatorRef.current.calculateAllMetrics(
-          oracle as OracleProvider,
+          oracle,
           baseSymbol,
           priceHistoryMapRef.current
         );
@@ -256,7 +256,7 @@ export function useOracleData({
           requestQueue.add(
             () =>
               oracleApiClient.fetchPrice({
-                provider: oracle as OracleProvider,
+                provider: oracle,
                 symbol: baseSymbol,
               }),
             {
@@ -268,7 +268,7 @@ export function useOracleData({
           requestQueue.add(
             () =>
               oracleApiClient.fetchHistorical({
-                provider: oracle as OracleProvider,
+                provider: oracle,
                 symbol: baseSymbol,
                 period: hours,
               }),
@@ -287,18 +287,12 @@ export function useOracleData({
         const responseTime = Date.now() - requestStart;
 
         if (enablePerformanceMetrics && isMountedRef.current) {
-          metricsCalculatorRef.current.addPriceData(
-            oracle as OracleProvider,
-            baseSymbol,
-            price,
-            responseTime,
-            true
-          );
+          metricsCalculatorRef.current.addPriceData(oracle, baseSymbol, price, responseTime, true);
 
-          if (!priceHistoryMapRef.current.has(oracle as OracleProvider)) {
-            priceHistoryMapRef.current.set(oracle as OracleProvider, []);
+          if (!priceHistoryMapRef.current.has(oracle)) {
+            priceHistoryMapRef.current.set(oracle, []);
           }
-          const historyData = priceHistoryMapRef.current.get(oracle as OracleProvider)!;
+          const historyData = priceHistoryMapRef.current.get(oracle)!;
           historyData.push({
             price: price.price,
             timestamp: price.timestamp,
@@ -311,7 +305,7 @@ export function useOracleData({
           if (memConfig.enabled) {
             const cleanedData = memoryManager.smartCleanup(historyData);
             if (cleanedData.length !== historyData.length) {
-              priceHistoryMapRef.current.set(oracle as OracleProvider, cleanedData);
+              priceHistoryMapRef.current.set(oracle, cleanedData);
             }
           } else if (historyData.length > 1000) {
             historyData.shift();
@@ -328,10 +322,10 @@ export function useOracleData({
 
         if (enablePerformanceMetrics) {
           metricsCalculatorRef.current.addPriceData(
-            oracle as OracleProvider,
+            oracle,
             baseSymbol,
             {
-              provider: oracle as OracleProvider,
+              provider: oracle,
               symbol: baseSymbol,
               price: 0,
               timestamp: Date.now(),
@@ -340,10 +334,10 @@ export function useOracleData({
             false
           );
 
-          if (!priceHistoryMapRef.current.has(oracle as OracleProvider)) {
-            priceHistoryMapRef.current.set(oracle as OracleProvider, []);
+          if (!priceHistoryMapRef.current.has(oracle)) {
+            priceHistoryMapRef.current.set(oracle, []);
           }
-          const historyData = priceHistoryMapRef.current.get(oracle as OracleProvider)!;
+          const historyData = priceHistoryMapRef.current.get(oracle)!;
           historyData.push({
             price: 0,
             timestamp: Date.now(),
@@ -489,7 +483,7 @@ export function useOracleData({
           }
         } catch (err) {
           if (!signal.aborted && isMountedRef.current) {
-            errors.push(createOracleErrorInfo(oracle as OracleProvider, err));
+            errors.push(createOracleErrorInfo(oracle, err));
           }
         } finally {
           if (isMountedRef.current) {
@@ -587,9 +581,6 @@ export function useOracleData({
     if (depsChanged) {
       prevDepsRef.current = { selectedOracles, selectedSymbol, timeRange };
       isInitialMountRef.current = false;
-      // 清理旧数据，避免显示过期数据
-      setPriceData([]);
-      setHistoricalData({});
       setOracleDataError({
         hasError: false,
         isPartialSuccess: false,
@@ -598,7 +589,6 @@ export function useOracleData({
         globalError: null,
       });
       setError(null);
-      // 使用 ref 调用 fetchPriceData，避免依赖循环
       fetchPriceDataRef.current();
     }
 

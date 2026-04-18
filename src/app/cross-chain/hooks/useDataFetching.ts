@@ -100,6 +100,7 @@ interface FetchDataParams {
   setRefreshStatus: (status: 'idle' | 'refreshing' | 'success' | 'error') => void;
   setShowRefreshSuccess: (show: boolean) => void;
   setLoading: (loading: boolean) => void;
+  setAnomalies: (anomalies: import('../utils/anomalyDetection').AnomalousPricePoint[]) => void;
 }
 
 interface PriceStats {
@@ -319,14 +320,18 @@ export function useDataFetching(
 
         currentParams.setHistoricalPrices(historicalMap);
 
-        currentAnomalyDetection.detectAnomalies(validatedCurrentResults, supportedChains);
+        const detectedAnomalies = currentAnomalyDetection.detectAnomalies(
+          validatedCurrentResults,
+          supportedChains
+        );
+        currentParams.setAnomalies(detectedAnomalies);
 
         cleanupCache();
 
         dataCache.set(cacheKey, {
           currentPrices: validatedCurrentResults,
           historicalPrices: historicalMap,
-          timestamp: now,
+          timestamp: Date.now(),
         });
 
         const stats = calculatePriceStats(validatedCurrentResults);

@@ -53,8 +53,6 @@ export enum Blockchain {
   FLARE = 'flare',
 }
 
-const BINANCE = Blockchain.BNB_CHAIN;
-
 export const ORACLE_PROVIDER_VALUES: readonly OracleProvider[] = Object.values(OracleProvider);
 
 export const BLOCKCHAIN_VALUES: readonly Blockchain[] = Object.values(Blockchain);

@@ -7,11 +7,8 @@ import {
 } from '@/lib/oracles/constants/twapConstants';
 import { twapOnChainService } from '@/lib/oracles/services/twapOnChainService';
 import { withOracleRetry, ORACLE_RETRY_PRESETS } from '@/lib/oracles/utils/retry';
-import { createLogger } from '@/lib/utils/logger';
 import { OracleProvider, Blockchain, OracleError } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
-
-const _logger = createLogger('TWAPClient');
 
 const TWAP_QUALITY_CONFIG = {
   chainReliability: {

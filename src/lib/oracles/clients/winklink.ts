@@ -7,11 +7,8 @@ import {
 } from '@/lib/oracles/constants/supportedSymbols';
 import { getWINkLinkRealDataService } from '@/lib/oracles/services/winklinkRealDataService';
 import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
-import { createLogger } from '@/lib/utils/logger';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
-
-const _logger = createLogger('WINkLinkClient');
 
 export class WINkLinkClient extends BaseOracleClient {
   name = OracleProvider.WINKLINK;
@@ -29,6 +26,10 @@ export class WINkLinkClient extends BaseOracleClient {
     chain?: Blockchain,
     options?: { signal?: AbortSignal }
   ): Promise<PriceData> {
+    if (!symbol) {
+      throw this.createError('Symbol is required', 'INVALID_SYMBOL');
+    }
+
     if (options?.signal?.aborted) {
       throw this.createError('Request was aborted', 'NETWORK_ERROR', { retryable: false });
     }

@@ -20,7 +20,8 @@ import { getProviderDefaults } from '@/lib/oracles/utils/performanceMetricsConfi
 import { formatPrice } from '@/lib/utils/format';
 import { type OracleProvider, type PriceData } from '@/types/oracle';
 
-import { oracleNames, ANOMALY_ZSCORE_THRESHOLD } from '../constants';
+import { oracleNames } from '../constants';
+import { ANOMALY_DEVIATION_THRESHOLD } from '../thresholds';
 
 import { ConfidenceBar } from './price-comparison/ConfidenceBar';
 
@@ -138,7 +139,7 @@ function SimplePriceTableComponent({
       const absDeviation = Math.abs(deviationPercent);
 
       const anomaly = anomalies.find((a) => a.provider === data.provider);
-      const isAnomaly = anomaly !== undefined || absDeviation >= ANOMALY_ZSCORE_THRESHOLD;
+      const isAnomaly = anomaly !== undefined || absDeviation >= ANOMALY_DEVIATION_THRESHOLD;
       const severity =
         anomaly?.severity ||
         (absDeviation >= 3

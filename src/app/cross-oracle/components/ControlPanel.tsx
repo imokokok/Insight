@@ -31,7 +31,6 @@ import type { OracleFeature } from '../types/index';
 interface ControlPanelProps {
   selectedSymbol: string;
   onSymbolChange: (symbol: string) => void;
-  symbols: string[];
   selectedOracles: OracleProvider[];
   onOracleToggle: (oracle: OracleProvider) => void;
   oracleChartColors: Record<string, string>;
@@ -68,7 +67,6 @@ const getOracleFeatureInfo = (provider: OracleProvider): OracleFeature => {
 export function ControlPanel({
   selectedSymbol,
   onSymbolChange,
-  symbols: _symbols,
   selectedOracles,
   onOracleToggle,
   oracleChartColors,

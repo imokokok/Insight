@@ -20,16 +20,31 @@ interface QueryError {
   error: string;
 }
 
-export function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+export function withTimeout<T>(promise: Promise<T>, ms: number, signal?: AbortSignal): Promise<T> {
   return new Promise((resolve, reject) => {
+    if (signal?.aborted) {
+      reject(new Error('Request was aborted'));
+      return;
+    }
+
     const timer = setTimeout(() => reject(new Error(`Request timeout after ${ms}ms`)), ms);
+
+    const onAbort = () => {
+      clearTimeout(timer);
+      reject(new Error('Request was aborted'));
+    };
+
+    signal?.addEventListener('abort', onAbort, { once: true });
+
     promise
       .then((result) => {
         clearTimeout(timer);
+        signal?.removeEventListener('abort', onAbort);
         resolve(result);
       })
       .catch((error) => {
         clearTimeout(timer);
+        signal?.removeEventListener('abort', onAbort);
         reject(error);
       });
   });

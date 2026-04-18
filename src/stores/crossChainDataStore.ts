@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { devtools, persist, createJSONStorage } from 'zustand/middleware';
 
+import { type AnomalousPricePoint } from '@/app/cross-chain/utils/anomalyDetection';
 import { type Blockchain, type PriceData } from '@/lib/oracles';
 
 interface DataState {
@@ -18,6 +19,7 @@ interface DataState {
     standardDeviationPercent: number;
   } | null;
   recommendedBaseChain: Blockchain | null;
+  anomalies: AnomalousPricePoint[];
 }
 
 interface CrossChainDataStore extends DataState {
@@ -29,6 +31,7 @@ interface CrossChainDataStore extends DataState {
   setLastUpdated: (date: Date | null) => void;
   setPrevStats: (stats: DataState['prevStats']) => void;
   setRecommendedBaseChain: (chain: Blockchain | null) => void;
+  setAnomalies: (anomalies: AnomalousPricePoint[]) => void;
 }
 
 const initialState: DataState = {
@@ -40,6 +43,7 @@ const initialState: DataState = {
   lastUpdated: null,
   prevStats: null,
   recommendedBaseChain: null,
+  anomalies: [],
 };
 
 export const useCrossChainDataStore = create<CrossChainDataStore>()(
@@ -56,6 +60,7 @@ export const useCrossChainDataStore = create<CrossChainDataStore>()(
         setLastUpdated: (date) => set({ lastUpdated: date }),
         setPrevStats: (stats) => set({ prevStats: stats }),
         setRecommendedBaseChain: (chain) => set({ recommendedBaseChain: chain }),
+        setAnomalies: (anomalies) => set({ anomalies }),
       }),
       {
         name: 'cross-chain-data-store',

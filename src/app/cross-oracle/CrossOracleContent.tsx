@@ -40,8 +40,6 @@ export default function CrossOracleContent() {
 
     toggleOracle,
 
-    symbols,
-
     fetchPriceData,
   } = useCrossOraclePage();
 
@@ -79,10 +77,9 @@ export default function CrossOracleContent() {
 
   const oracleChartColors = useMemo(() => {
     const colors: Record<string, string> = {};
-    selectedOracles.forEach((oracle) => {
-      colors[oracle] =
-        chartColors.oracle[oracle as keyof typeof chartColors.oracle] ||
-        chartColors.sequence[selectedOracles.indexOf(oracle) % chartColors.sequence.length];
+    selectedOracles.forEach((oracle, index) => {
+      const oracleColor = chartColors.oracle[oracle];
+      colors[oracle] = oracleColor ?? chartColors.sequence[index % chartColors.sequence.length];
     });
     return colors;
   }, [selectedOracles]);
@@ -136,7 +133,6 @@ export default function CrossOracleContent() {
             <ControlPanel
               selectedSymbol={selectedSymbol}
               onSymbolChange={setSelectedSymbol}
-              symbols={symbols}
               selectedOracles={selectedOracles}
               onOracleToggle={toggleOracle}
               oracleChartColors={oracleChartColors}

@@ -32,6 +32,10 @@ export class DIAClient extends BaseOracleClient {
     chain?: Blockchain,
     options?: { signal?: AbortSignal }
   ): Promise<PriceData> {
+    if (!symbol) {
+      throw this.createError('Symbol is required', 'INVALID_SYMBOL');
+    }
+
     if (options?.signal?.aborted) {
       throw this.createError('Request was aborted', 'NETWORK_ERROR', { retryable: false });
     }

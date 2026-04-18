@@ -5,6 +5,7 @@
 
 import { useCallback } from 'react';
 
+import { downloadBlob } from '@/lib/utils/download';
 import {
   type PriceData,
   type OracleProvider,
@@ -50,7 +51,9 @@ export function useExport({
         };
       }),
     };
-    exportToCSV(exportData);
+    const csvContent = exportToCSV(exportData);
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    downloadBlob(blob, `cross-oracle-${selectedSymbol}-${Date.now()}.csv`);
   }, [priceData, avgPrice, selectedSymbol]);
 
   const handleExportJSON = useCallback(() => {
@@ -67,7 +70,9 @@ export function useExport({
         };
       }),
     };
-    exportToJSON(exportData);
+    const jsonContent = exportToJSON(exportData);
+    const blob = new Blob([jsonContent], { type: 'application/json;charset=utf-8;' });
+    downloadBlob(blob, `cross-oracle-${selectedSymbol}-${Date.now()}.json`);
   }, [priceData, avgPrice, selectedSymbol]);
 
   const handleSaveSnapshot = useCallback((): OracleSnapshot | null => {

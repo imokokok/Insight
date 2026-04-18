@@ -3,11 +3,8 @@ import type { OracleClientConfig } from '@/lib/oracles/base';
 import { pythSymbols, PYTH_AVAILABLE_PAIRS } from '@/lib/oracles/constants/supportedSymbols';
 import { getPythDataService } from '@/lib/oracles/services/pythDataService';
 import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
-import { createLogger } from '@/lib/utils/logger';
 import { OracleProvider, Blockchain, OracleError } from '@/types/oracle';
 import type { PriceData, ConfidenceInterval } from '@/types/oracle';
-
-const _logger = createLogger('PythClient');
 
 const SPREAD_PERCENTAGES: Record<string, number> = {
   BTC: 0.02,

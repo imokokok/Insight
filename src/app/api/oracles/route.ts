@@ -17,25 +17,20 @@ import { type OracleProvider, type Blockchain } from '@/types/oracle';
 
 export const GET = createApiHandler(
   async (request: NextRequest) => {
-    const validation = await validateQuerySchema(PriceQueryRequestSchema)(request);
+    const searchParams = request.nextUrl.searchParams;
+    const period = searchParams.get('period');
+    const periodNum = period ? parseInt(period, 10) : undefined;
+
+    const schema = periodNum ? HistoricalPriceRequestSchema : PriceQueryRequestSchema;
+    const validation = await validateQuerySchema(schema)(request);
 
     if (!validation.success) {
       return validation.response!;
     }
 
     const { provider, symbol, chain } = validation.data!.query!;
-    const searchParams = request.nextUrl.searchParams;
-    const period = searchParams.get('period');
-
-    const periodNum = period ? parseInt(period, 10) : undefined;
 
     if (periodNum) {
-      const historicalValidation = await validateQuerySchema(HistoricalPriceRequestSchema)(request);
-
-      if (!historicalValidation.success) {
-        return historicalValidation.response!;
-      }
-
       return handleGetHistoricalPrices({
         provider: provider as OracleProvider,
         symbol: symbol!,

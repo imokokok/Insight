@@ -42,6 +42,7 @@ export class FlareClient extends BaseOracleClient {
   constructor(config?: OracleClientConfig) {
     super(config);
     this.ftsoService = getFtsoDataService();
+    this.cache.startCleanupInterval();
   }
 
   private generateConfidenceInterval(price: number, _symbol: string): ConfidenceInterval {
@@ -163,6 +164,10 @@ export class FlareClient extends BaseOracleClient {
     chain?: Blockchain,
     options?: { signal?: AbortSignal }
   ): Promise<PriceData> {
+    if (!symbol) {
+      throw this.createError('Symbol is required', 'INVALID_SYMBOL');
+    }
+
     try {
       const realPrice = await this.fetchRealPrice(symbol, options?.signal);
 
@@ -190,6 +195,7 @@ export class FlareClient extends BaseOracleClient {
 
   clearCache(): void {
     this.cache.clear();
+    this.cache.startCleanupInterval();
     this.ftsoService.clearCache();
   }
 

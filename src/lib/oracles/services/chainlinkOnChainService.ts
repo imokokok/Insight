@@ -148,6 +148,7 @@ class ChainlinkOnChainService {
   private requestId = 0;
   private cache: Map<string, { data: unknown; timestamp: number }> = new Map();
   private cacheTTL = 30000;
+  private maxCacheSize = 200;
   private endpointHealth: Record<string, boolean> = {};
   private currentEndpointIndex: Record<number, number> = {};
   private requestTimeout = 10000;
@@ -292,6 +293,12 @@ class ChainlinkOnChainService {
   }
 
   private setCache(key: string, data: unknown): void {
+    if (this.cache.size >= this.maxCacheSize) {
+      const oldestKey = this.cache.keys().next().value;
+      if (oldestKey !== undefined) {
+        this.cache.delete(oldestKey);
+      }
+    }
     this.cache.set(key, { data, timestamp: Date.now() });
   }
 

@@ -239,7 +239,7 @@ const calculatePriceJumpStats = (changes: number[]) => {
   }
 
   const variance =
-    changes.reduce((sum, change) => sum + Math.pow(change - mean, 2), 0) / changes.length;
+    changes.reduce((sum, change) => sum + Math.pow(change - mean, 2), 0) / (changes.length - 1);
   const stdDev = Math.sqrt(variance);
 
   return { mean, stdDev };
@@ -264,7 +264,8 @@ export const detectPriceJumps = (
 
   if (method === 'std') {
     const stdThreshold = mean + stdDev * threshold;
-    return changes.filter((change) => change > stdThreshold).length;
+    const negStdThreshold = mean - stdDev * threshold;
+    return changes.filter((change) => change > stdThreshold || change < negStdThreshold).length;
   }
 
   if (method === 'zscore') {

@@ -68,7 +68,9 @@ export const detectOutliersZScore = (
 
   const mean = prices.reduce((a, b) => a + b, 0) / prices.length;
   const variance =
-    prices.reduce((sum, price) => sum + Math.pow(price - mean, 2), 0) / prices.length;
+    prices.length > 1
+      ? prices.reduce((sum, price) => sum + Math.pow(price - mean, 2), 0) / (prices.length - 1)
+      : 0;
   const stdDev = Math.sqrt(variance);
 
   if (stdDev === 0) {

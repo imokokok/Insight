@@ -7,7 +7,7 @@ import { useCallback, useMemo } from 'react';
 
 import { chartColors } from '@/lib/config/colors';
 import type { CalculatedPerformanceMetrics } from '@/lib/oracles/utils/performanceMetricsCalculator';
-import { safeMax, safeMin } from '@/lib/utils/statistics';
+import { safeMax, safeMin, calculateStdDev } from '@/lib/utils/statistics';
 import { type OracleProvider, type PriceData } from '@/types/oracle';
 
 import { oracleNames, type TimeRange } from '../constants';
@@ -333,12 +333,4 @@ export function useChartConfig({
     performanceData,
     historyMinMax,
   };
-}
-
-// 辅助函数：计算标准差
-function calculateStdDev(values: number[]): number {
-  if (values.length < 2) return 0;
-  const mean = values.reduce((a, b) => a + b, 0) / values.length;
-  const variance = values.reduce((sum, v) => sum + Math.pow(v - mean, 2), 0) / values.length;
-  return Math.sqrt(variance);
 }
