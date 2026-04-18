@@ -207,16 +207,6 @@ export function Selectors({
             aria-label="Select symbol"
           />
         </section>
-
-        <section className="py-3 border-t border-gray-100" aria-labelledby="timerange-label">
-          <SegmentedControl
-            options={timeRangeOptions}
-            value={selectedTimeRange}
-            onChange={(value) => setSelectedTimeRange(value as number)}
-            label="Time Range"
-            aria-label="Select time range"
-          />
-        </section>
       </div>
     </div>
   );
