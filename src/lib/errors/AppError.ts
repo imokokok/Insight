@@ -259,7 +259,7 @@ export const ErrorCodes = {
   OPERATION_NOT_ALLOWED: 'OPERATION_NOT_ALLOWED',
 } as const;
 
-export type ErrorCode = (typeof ErrorCodes)[keyof typeof ErrorCodes];
+type ErrorCode = (typeof ErrorCodes)[keyof typeof ErrorCodes];
 
 /**
  * HTTP状态码映射
@@ -280,4 +280,4 @@ export const HttpStatusCodes = {
   GATEWAY_TIMEOUT: 504,
 } as const;
 
-export type HttpStatusCode = (typeof HttpStatusCodes)[keyof typeof HttpStatusCodes];
+type HttpStatusCode = (typeof HttpStatusCodes)[keyof typeof HttpStatusCodes];

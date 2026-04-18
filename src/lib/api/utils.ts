@@ -55,7 +55,3 @@ export async function getUserId(request: NextRequest): Promise<string | null> {
 
   return user.id;
 }
-
-export { ApiResponseBuilder, newCreateCachedJsonResponse as createCachedJsonResponseNew };
-
-export type { ApiSuccessResponse, ApiErrorResponse };

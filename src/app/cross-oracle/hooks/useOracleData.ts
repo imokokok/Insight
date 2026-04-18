@@ -691,5 +691,3 @@ export function useOracleData({
     queryProgress,
   };
 }
-
-export default useOracleData;

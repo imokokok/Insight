@@ -25,7 +25,7 @@ export interface VersionInfo {
   migrationGuide?: string;
 }
 
-export function getVersionInfo(version: string): VersionInfo {
+function getVersionInfo(version: string): VersionInfo {
   return {
     version: version as ApiVersion,
     isDeprecated: DEPRECATED_VERSIONS.has(version),
@@ -33,6 +33,6 @@ export function getVersionInfo(version: string): VersionInfo {
   };
 }
 
-export function isVersionSupported(version: string): boolean {
+function isVersionSupported(version: string): boolean {
   return Object.values(API_VERSIONS).includes(version as ApiVersion);
 }

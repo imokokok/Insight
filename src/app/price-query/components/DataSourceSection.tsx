@@ -85,5 +85,3 @@ export function DataSourceSection({
     />
   );
 }
-
-export default DataSourceSection;

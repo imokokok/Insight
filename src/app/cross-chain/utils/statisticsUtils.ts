@@ -78,7 +78,7 @@ export const getTCriticalValue = (df: number, confidenceLevel: number = 0.95): n
   return lowerValue + (upperValue - lowerValue) * weight;
 };
 
-export const calculateStandardDeviationFromValues = (prices: number[]): number => {
+const calculateStandardDeviationFromValues = (prices: number[]): number => {
   return calculateStdDev(prices);
 };
 
@@ -104,7 +104,7 @@ export const calculateSMA = (data: number[], period: number): (number | null)[] 
   return result.map((v) => v);
 };
 
-export const normalCDF = (x: number): number => {
+const normalCDF = (x: number): number => {
   const a1 = 0.254829592;
   const a2 = -0.284496736;
   const a3 = 1.421413741;
@@ -134,5 +134,3 @@ export const approximatePValue = (t: number, df: number): number => {
   const p = 2 * (1 - normalCDF(adjustedT));
   return Math.min(Math.max(p, 0), 1);
 };
-
-export { T_CRITICAL_TABLE_95 };

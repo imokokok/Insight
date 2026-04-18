@@ -42,7 +42,7 @@ const CHAIN_CONFIGS: ChainConfig[] = [
   { id: 'bsc', name: 'BNB Chain', endpoint: HERMES_API_URL },
 ];
 
-export async function fetchChainSpecificData(
+async function fetchChainSpecificData(
   priceId: string,
   basePrice: number
 ): Promise<CrossChainPriceData[]> {

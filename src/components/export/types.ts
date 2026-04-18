@@ -12,7 +12,7 @@ export type ExportFormat = 'csv' | 'json' | 'excel' | 'pdf';
 /**
  * Export status
  */
-export type ExportStatus = 'idle' | 'preparing' | 'exporting' | 'completed' | 'error';
+type ExportStatus = 'idle' | 'preparing' | 'exporting' | 'completed' | 'error';
 
 /**
  * Data source type
@@ -67,7 +67,7 @@ export interface ExportHistoryItem {
 /**
  * Export progress
  */
-export interface ExportProgress {
+interface ExportProgress {
   status: ExportStatus;
   progress: number; // 0-100
   currentStep: string;
@@ -78,7 +78,7 @@ export interface ExportProgress {
 /**
  * Export options
  */
-export interface ExportOptions {
+interface ExportOptions {
   data: unknown[];
   config: ExportConfig;
   dataSource: ExportDataSource;
@@ -105,7 +105,7 @@ export interface UnifiedExportProps {
 /**
  * Export history component props
  */
-export interface ExportHistoryProps {
+interface ExportHistoryProps {
   maxItems?: number;
   onReDownload?: (historyItem: ExportHistoryItem) => void;
   onClearHistory?: () => void;
@@ -115,7 +115,7 @@ export interface ExportHistoryProps {
 /**
  * Export format configuration
  */
-export interface ExportFormatConfig {
+interface ExportFormatConfig {
   value: ExportFormat;
   label: string;
   icon: string;

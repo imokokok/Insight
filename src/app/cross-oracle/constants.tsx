@@ -12,7 +12,7 @@ import { OracleProvider } from '@/types/oracle';
 
 export type TimeRange = '1h' | '24h' | '7d' | '30d' | '90d' | '1y';
 
-export type TimeRangeValue = '1H' | '24H' | '7D' | '30D' | '90D' | '1Y';
+type TimeRangeValue = '1H' | '24H' | '7D' | '30D' | '90D' | '1Y';
 
 export function timeRangeToValue(range: TimeRange): TimeRangeValue {
   const map: Record<TimeRange, TimeRangeValue> = {
@@ -26,7 +26,7 @@ export function timeRangeToValue(range: TimeRange): TimeRangeValue {
   return map[range];
 }
 
-export const timeRangeLabels: Record<TimeRange, string> = {
+const timeRangeLabels: Record<TimeRange, string> = {
   '1h': '1 Hour',
   '24h': '24 Hours',
   '7d': '7 Days',
@@ -72,7 +72,7 @@ export const oracleNames: Record<OracleProvider, string> = {
   [OracleProvider.FLARE]: 'Flare',
 };
 
-export const oracleColors: Record<string, string> = {
+const oracleColors: Record<string, string> = {
   [OracleProvider.CHAINLINK]: '#375bd2',
   [OracleProvider.PYTH]: '#e6c5ff',
   [OracleProvider.API3]: '#7ce3cb',
@@ -95,7 +95,7 @@ export type RefreshInterval = 'off' | '10s' | '30s' | '1m' | '5m';
 // 阈值配置
 // ============================================================================
 
-export const deviationThresholds = {
+const deviationThresholds = {
   critical: 5,
   warning: 2,
   info: 1,
@@ -107,7 +107,7 @@ export const ANOMALY_ZSCORE_THRESHOLD = 2;
 // 图表配置
 // ============================================================================
 
-export const chartConfig = {
+const chartConfig = {
   height: 400,
   margin: { top: 20, right: 30, left: 20, bottom: 30 },
   colors: oracleColors,
@@ -117,7 +117,7 @@ export const chartConfig = {
 // 缓存配置
 // ============================================================================
 
-export const cacheConfig = {
+const cacheConfig = {
   staleTime: 5 * 60 * 1000, // 5分钟
   gcTime: 10 * 60 * 1000, // 10分钟
 };
@@ -227,7 +227,7 @@ export type DeviationFilter = 'all' | 'normal' | 'warning' | 'critical';
 // 导出功能
 // ============================================================================
 
-export interface ExportData {
+interface ExportData {
   symbol: string;
   timestamp: string;
   oracles: {

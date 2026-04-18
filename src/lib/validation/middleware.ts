@@ -10,20 +10,20 @@ const logger = createLogger('zod-validation-middleware');
 // 不应该有 body 的请求方法
 const METHODS_WITHOUT_BODY = ['GET', 'HEAD', 'OPTIONS'];
 
-export interface ZodValidationResult<T> {
+interface ZodValidationResult<T> {
   success: true;
   data: T;
 }
 
-export interface ZodValidationErrorResult {
+interface ZodValidationErrorResult {
   success: false;
   error: ZodError;
   response: NextResponse;
 }
 
-export type ZodValidationResultType<T> = ZodValidationResult<T> | ZodValidationErrorResult;
+type ZodValidationResultType<T> = ZodValidationResult<T> | ZodValidationErrorResult;
 
-export interface ZodValidationOptions {
+interface ZodValidationOptions {
   body?: ZodSchema;
   query?: ZodSchema;
   params?: ZodSchema;
@@ -60,10 +60,7 @@ function formatZodError(error: ZodError): Array<{ field: string; message: string
   });
 }
 
-export function validateWithZod<T>(
-  schema: ZodSchema<T>,
-  data: unknown
-): ZodValidationResultType<T> {
+function validateWithZod<T>(schema: ZodSchema<T>, data: unknown): ZodValidationResultType<T> {
   const result = schema.safeParse(data);
 
   if (!result.success) {
@@ -194,9 +191,7 @@ function validateParams<T>(
   };
 }
 
-export function createZodValidationMiddleware<TBody, TQuery, TParams>(
-  options: ZodValidationOptions
-) {
+function createZodValidationMiddleware<TBody, TQuery, TParams>(options: ZodValidationOptions) {
   return async (
     request: NextRequest,
     params?: Record<string, string>
@@ -254,11 +249,11 @@ export function validateQuerySchema<T>(schema: ZodSchema<T>) {
   return createZodValidationMiddleware<never, T, never>({ query: schema });
 }
 
-export function validateParamsSchema<T>(schema: ZodSchema<T>) {
+function validateParamsSchema<T>(schema: ZodSchema<T>) {
   return createZodValidationMiddleware<never, never, T>({ params: schema });
 }
 
-export function validate<TBody, TQuery = never, TParams = never>(options: {
+function validate<TBody, TQuery = never, TParams = never>(options: {
   body?: ZodSchema<TBody>;
   query?: ZodSchema<TQuery>;
   params?: ZodSchema<TParams>;
@@ -266,12 +261,12 @@ export function validate<TBody, TQuery = never, TParams = never>(options: {
   return createZodValidationMiddleware<TBody, TQuery, TParams>(options);
 }
 
-export function safeValidate<T>(schema: ZodSchema<T>, data: unknown): T | null {
+function safeValidate<T>(schema: ZodSchema<T>, data: unknown): T | null {
   const result = schema.safeParse(data);
   return result.success ? result.data : null;
 }
 
-export function assertValid<T>(schema: ZodSchema<T>, data: unknown): T {
+function assertValid<T>(schema: ZodSchema<T>, data: unknown): T {
   const result = schema.parse(data);
   return result;
 }

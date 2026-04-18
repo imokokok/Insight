@@ -101,5 +101,3 @@ function MarketConsensusCardComponent({
 
 export const MarketConsensusCard = memo(MarketConsensusCardComponent);
 MarketConsensusCard.displayName = 'MarketConsensusCard';
-
-export default MarketConsensusCard;

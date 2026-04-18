@@ -42,7 +42,7 @@ export interface PaginationMeta {
   totalPages: number;
 }
 
-export interface PaginatedResponse<T = unknown> {
+interface PaginatedResponse<T = unknown> {
   data: T[];
   pagination: PaginationMeta;
 }

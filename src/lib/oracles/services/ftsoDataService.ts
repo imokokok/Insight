@@ -29,7 +29,7 @@ export interface FtsoPriceData {
   dataAge: number;
 }
 
-export interface FtsoFeedData {
+interface FtsoFeedData {
   value: bigint;
   decimals: number;
   timestamp: number;
@@ -46,7 +46,7 @@ interface RPCResponse<T> {
   };
 }
 
-export class FtsoApiError extends Error {
+class FtsoApiError extends Error {
   public readonly code: string;
   public readonly statusCode?: number;
   public readonly details?: Record<string, unknown>;

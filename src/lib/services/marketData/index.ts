@@ -36,7 +36,7 @@ import { fetchRiskMetrics, fetchHHI, fetchDiversificationScore } from './riskCal
 
 const logger = createLogger('marketData');
 
-export interface MarketDataResponse {
+interface MarketDataResponse {
   oracleData: OracleMarketData[];
   assets: AssetData[];
   trendData: TVSTrendData[];
@@ -44,7 +44,7 @@ export interface MarketDataResponse {
   error?: string;
 }
 
-export async function fetchMarketData(timeRangeHours: number = 720): Promise<MarketDataResponse> {
+async function fetchMarketData(timeRangeHours: number = 720): Promise<MarketDataResponse> {
   const startTime = Date.now();
 
   try {
@@ -80,33 +80,7 @@ export async function fetchMarketData(timeRangeHours: number = 720): Promise<Mar
   }
 }
 
-export {
-  fetchOraclesData,
-  fetchAssetsData,
-  checkApiHealth,
-  fetchChainBreakdown,
-  fetchProtocolDetails,
-  fetchAssetCategories,
-  fetchComparisonData,
-  fetchBenchmarkData,
-  calculateCorrelation,
-  fetchRadarData,
-  MarketDataError,
-};
-
-export { generateTVSTrendData };
-
-export { fetchRiskMetrics, fetchHHI, fetchDiversificationScore };
-
-export {
-  performanceMetricsCalculator,
-  calculateMetricsFromPriceData,
-  type PriceDataPoint,
-  type ReferencePricePoint,
-  type OraclePerformanceMetrics,
-};
+export { performanceMetricsCalculator };
 
 // 导出 Binance 和 CoinGecko 市场服务
 // 注意：coinGeckoMarketService 现在使用 Binance API 作为后端
-export { binanceMarketService, coinGeckoMarketService };
-export type { TokenMarketData, HistoricalPricePoint };

@@ -27,7 +27,7 @@ import type {
 import type { SortColumn, SortDirection, TimeRange, DeviationFilter } from '../constants';
 
 // 重新导出基础类型
-export type { SortColumn, SortDirection, TimeRange, DeviationFilter } from '../constants';
+export type { SortColumn, SortDirection, DeviationFilter } from '../constants';
 
 // TabId 类型定义（避免循环依赖）
 export type TabId = 'priceComparison' | 'qualityAnalysis' | 'oracleProfiles';
@@ -163,7 +163,7 @@ export interface ChartConfigResult {
 }
 
 // 旧版 ChartDataResult（兼容 useChartData.ts）
-export type ChartDataResult = ChartConfigResult;
+type ChartDataResult = ChartConfigResult;
 
 // ============================================================================
 // 技术指标结果类型
@@ -174,7 +174,7 @@ export interface MovingAverageData {
   prices: { timestamp: number; price: number }[];
 }
 
-export interface GasFeeData {
+interface GasFeeData {
   oracle: OracleProvider;
   chain: string;
   updateCost: number;
@@ -183,23 +183,23 @@ export interface GasFeeData {
   lastUpdate: number;
 }
 
-export interface ATRData {
+interface ATRData {
   oracle: OracleProvider;
   prices: { timestamp: number; price: number; high: number; low: number; close: number }[];
 }
 
-export interface BollingerData {
+interface BollingerData {
   oracle: OracleProvider;
   prices: { timestamp: number; price: number; high: number; low: number; close: number }[];
 }
 
-export interface QualityScoreData {
+interface QualityScoreData {
   freshness: { lastUpdated: Date };
   completeness: { successCount: number; totalCount: number };
   reliability: { historicalAccuracy: number; responseSuccessRate: number };
 }
 
-export interface TechnicalIndicatorsResult {
+interface TechnicalIndicatorsResult {
   maData: MovingAverageData[];
   gasFeeData: GasFeeData[];
   atrData: ATRData[];
@@ -257,7 +257,7 @@ export interface RetryConfig {
 // Hook 返回类型
 // ============================================================================
 
-export interface UseCrossOraclePageReturn {
+interface UseCrossOraclePageReturn {
   selectedOracles: OracleProvider[];
   setSelectedOracles: React.Dispatch<React.SetStateAction<OracleProvider[]>>;
   selectedSymbol: string;
@@ -415,7 +415,7 @@ export interface UseFilterSortReturn extends FilterSortResult {
   setOracleFilter: (filter: OracleProvider | 'all') => void;
 }
 
-export interface UseExportReturn {
+interface UseExportReturn {
   handleExportCSV: () => void;
   handleExportJSON: () => void;
   handleSaveSnapshot: () => void;
@@ -425,7 +425,7 @@ export interface UseExportReturn {
 // 页面状态类型
 // ============================================================================
 
-export interface CrossOraclePageState {
+interface CrossOraclePageState {
   // 选择状态
   selectedOracles: OracleProvider[];
   selectedSymbol: string;
@@ -457,7 +457,7 @@ export interface CrossOraclePageState {
 // 组件 Props 类型
 // ============================================================================
 
-export interface HeaderSectionProps {
+interface HeaderSectionProps {
   selectedSymbol: string;
   setSelectedSymbol: (symbol: string) => void;
   selectedOracles: OracleProvider[];
@@ -488,7 +488,7 @@ export interface HeaderSectionProps {
   t: (key: string, params?: Record<string, string | number>) => string;
 }
 
-export interface StatsSectionProps {
+interface StatsSectionProps {
   qualityScoreData: QualityScoreData;
   selectedSymbol: string;
   selectedOracles: string[];
@@ -509,7 +509,7 @@ export interface StatsSectionProps {
   t: (key: string) => string;
 }
 
-export interface PriceTableSectionProps {
+interface PriceTableSectionProps {
   priceData: PriceData[];
   filteredPriceData: PriceData[];
   isLoading: boolean;
@@ -533,7 +533,7 @@ export interface PriceTableSectionProps {
   t: (key: string) => string;
 }
 
-export interface ComparisonTabsProps {
+interface ComparisonTabsProps {
   activeTab: TabId;
   onTabChange: (tab: TabId) => void;
   selectedSymbol: string;
@@ -614,7 +614,7 @@ export interface ComparisonTabsProps {
 // 风险预警相关类型
 // ============================================================================
 
-export interface PriceAnomaly {
+interface PriceAnomaly {
   provider: OracleProvider;
   price: number;
   deviationPercent: number;
@@ -701,7 +701,7 @@ export interface OracleFeature {
 // 导出类型别名（保持向后兼容）
 // ============================================================================
 
-export type { OracleProvider, PriceData, SnapshotStats, OracleSnapshot };
+export type { OracleProvider, PriceData, SnapshotStats };
 
 // 重新导出图表类型
 export type {
@@ -710,13 +710,5 @@ export type {
   OraclePriceData,
   OraclePriceHistory,
   OraclePerformanceData,
-  BoxPlotStats,
-  VolatilityResult,
-  VolatilityTrendPoint,
-  MovingAverageChartProps,
-  QualityDataPoint,
-  DataQualityTrendProps,
-  HistogramBin,
   LatencyStats,
-  LatencyDistributionHistogramProps,
 } from './charts';

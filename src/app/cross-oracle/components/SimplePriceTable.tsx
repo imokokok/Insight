@@ -473,5 +473,3 @@ function SimplePriceTableComponent({
 
 export const SimplePriceTable = memo(SimplePriceTableComponent);
 SimplePriceTable.displayName = 'SimplePriceTable';
-
-export default SimplePriceTable;

@@ -301,12 +301,12 @@ export const useAuthStore = create<AuthStore>()(
 );
 
 export const useUser = () => useAuthStore((state) => state.user);
-export const useSession = () => useAuthStore((state) => state.session);
+const useSession = () => useAuthStore((state) => state.session);
 export const useProfile = () => useAuthStore((state) => state.profile);
 export const useAuthLoading = () => useAuthStore((state) => state.loading);
 export const useAuthError = () => useAuthStore((state) => state.error);
 export const useAuthInitialized = () => useAuthStore((state) => state.initialized);
-export const useIsAuthenticated = () => useAuthStore((state) => !!state.user);
+const useIsAuthenticated = () => useAuthStore((state) => !!state.user);
 
 export const useAuthActions = () => {
   const initialize = useAuthStore((state) => state.initialize);

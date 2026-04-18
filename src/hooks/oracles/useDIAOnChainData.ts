@@ -7,7 +7,7 @@ import { useQuery } from '@tanstack/react-query';
 import { getDIADataService, type DIATokenOnChainData } from '@/lib/oracles/services/diaDataService';
 import type { Blockchain } from '@/types/oracle';
 
-export interface UseDIAOnChainDataOptions {
+interface UseDIAOnChainDataOptions {
   symbol: string;
   chain?: Blockchain;
   enabled?: boolean;

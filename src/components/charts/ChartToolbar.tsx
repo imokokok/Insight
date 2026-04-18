@@ -280,5 +280,3 @@ export function ChartToolbar({
     </div>
   );
 }
-
-export default ChartToolbar;

@@ -1,6 +1,6 @@
 // Chainlink 支持的币种（基于实际验证结果，只包含可用的交易对）
 // 注意：这些币种在至少一条链上有可用的 Chainlink 价格源
-export const chainlinkSymbols = [
+const chainlinkSymbols = [
   'BTC',
   'ETH',
   'LINK',
@@ -183,7 +183,7 @@ export const diaSymbols = [
 
 // API3 支持的币种（基于实际检测结果 - 2026-04-14）
 // 只包含可以正确获取数据的币种
-export const api3Symbols = [
+const api3Symbols = [
   'ARB',
   'AVAX',
   'BAL',
@@ -459,7 +459,7 @@ export const SUPRA_AVAILABLE_PAIRS: Record<string, string[]> = {
   blast: [...supraSymbols],
 };
 
-export const twapSymbols = [
+const twapSymbols = [
   'BTC',
   'ETH',
   'USDC',
@@ -483,9 +483,9 @@ export const twapSymbols = [
   'STETH',
   'FRAX',
 ] as const;
-export type TwapSymbol = (typeof twapSymbols)[number];
+type TwapSymbol = (typeof twapSymbols)[number];
 
-export const TWAP_AVAILABLE_PAIRS: Record<string, string[]> = {
+const TWAP_AVAILABLE_PAIRS: Record<string, string[]> = {
   ethereum: [
     'BTC',
     'ETH',
@@ -529,7 +529,7 @@ export const TWAP_AVAILABLE_PAIRS: Record<string, string[]> = {
   'bnb-chain': ['BTC', 'ETH', 'USDC', 'USDT', 'DAI', 'WBTC', 'LINK', 'BNB'],
 };
 
-export const reflectorSymbols = [
+const reflectorSymbols = [
   'BTC',
   'ETH',
   'USDT',
@@ -552,13 +552,13 @@ export const reflectorSymbols = [
   'CNY',
 ] as const;
 
-export type ReflectorSymbol = (typeof reflectorSymbols)[number];
+type ReflectorSymbol = (typeof reflectorSymbols)[number];
 
-export const REFLECTOR_AVAILABLE_PAIRS: Record<string, string[]> = {
+const REFLECTOR_AVAILABLE_PAIRS: Record<string, string[]> = {
   stellar: [...reflectorSymbols],
 };
 
-export const flareSymbols = [
+const flareSymbols = [
   'BTC',
   'ETH',
   'FLR',
@@ -597,9 +597,9 @@ export const flareSymbols = [
   'QNT',
 ] as const;
 
-export type FlareSymbol = (typeof flareSymbols)[number];
+type FlareSymbol = (typeof flareSymbols)[number];
 
-export const FLARE_AVAILABLE_PAIRS: Record<string, string[]> = {
+const FLARE_AVAILABLE_PAIRS: Record<string, string[]> = {
   flare: [...flareSymbols],
 };
 
@@ -617,15 +617,15 @@ export const oracleSupportedSymbols = {
 } as const;
 
 // 类型定义
-export type ChainlinkSymbol = (typeof chainlinkSymbols)[number];
-export type RedstoneSymbol = (typeof redstoneSymbols)[number];
-export type DiaSymbol = (typeof diaSymbols)[number];
-export type Api3Symbol = (typeof api3Symbols)[number];
-export type PythSymbol = (typeof pythSymbols)[number];
-export type WinklinkSymbol = (typeof winklinkSymbols)[number];
-export type SupraSymbol = (typeof supraSymbols)[number];
+type ChainlinkSymbol = (typeof chainlinkSymbols)[number];
+type RedstoneSymbol = (typeof redstoneSymbols)[number];
+type DiaSymbol = (typeof diaSymbols)[number];
+type Api3Symbol = (typeof api3Symbols)[number];
+type PythSymbol = (typeof pythSymbols)[number];
+type WinklinkSymbol = (typeof winklinkSymbols)[number];
+type SupraSymbol = (typeof supraSymbols)[number];
 
-export type OracleName = keyof typeof oracleSupportedSymbols;
+type OracleName = keyof typeof oracleSupportedSymbols;
 
 // 获取所有支持的交易对（去重）
 export function getAllSupportedSymbols(): string[] {
@@ -637,12 +637,12 @@ export function getAllSupportedSymbols(): string[] {
 }
 
 // 获取指定预言机支持的交易对数量
-export function getOracleSymbolCount(oracle: OracleName): number {
+function getOracleSymbolCount(oracle: OracleName): number {
   return oracleSupportedSymbols[oracle].length;
 }
 
 // 检查交易对是否被指定预言机支持
-export function isSymbolSupportedByOracle(symbol: string, oracle: OracleName): boolean {
+function isSymbolSupportedByOracle(symbol: string, oracle: OracleName): boolean {
   const symbols = oracleSupportedSymbols[oracle];
   return symbols.includes(symbol.toUpperCase() as never);
 }

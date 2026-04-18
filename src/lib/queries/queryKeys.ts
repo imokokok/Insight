@@ -7,7 +7,7 @@ export const oracleKeys = {
   detail: (provider: string) => [...oracleKeys.details(), provider] as const,
 };
 
-export const priceKeys = {
+const priceKeys = {
   all: ['prices'] as const,
   lists: () => [...priceKeys.all, 'list'] as const,
   list: (params: { provider?: string; symbols?: string[]; chain?: string }) =>
@@ -17,26 +17,26 @@ export const priceKeys = {
     [...priceKeys.histories(), params] as const,
 };
 
-export const networkKeys = {
+const networkKeys = {
   all: ['network'] as const,
   status: () => [...networkKeys.all, 'status'] as const,
   stats: () => [...networkKeys.all, 'stats'] as const,
 };
 
-export const favoritesKeys = {
+const favoritesKeys = {
   all: ['favorites'] as const,
   list: (userId: string) => [...favoritesKeys.all, userId] as const,
   byType: (userId: string, configType: string) =>
     [...favoritesKeys.list(userId), configType] as const,
 };
 
-export const alertsKeys = {
+const alertsKeys = {
   all: ['alerts'] as const,
   list: (userId: string) => [...alertsKeys.all, userId] as const,
   events: (userId: string) => [...alertsKeys.all, 'events', userId] as const,
 };
 
-export const api3Keys = {
+const api3Keys = {
   all: ['api3'] as const,
   price: (symbol: string, chain?: string) =>
     [...api3Keys.all, 'price', symbol, chain ?? 'default'] as const,
@@ -49,7 +49,7 @@ export const api3Keys = {
   latencyDistribution: () => [...api3Keys.all, 'latency-distribution'] as const,
 };
 
-export const queryKeys = {
+const queryKeys = {
   oracle: oracleKeys,
   price: priceKeys,
   network: networkKeys,
@@ -58,6 +58,6 @@ export const queryKeys = {
   api3: api3Keys,
 } as const;
 
-export type OracleListParams = Parameters<typeof oracleKeys.list>[0];
-export type PriceHistoryParams = Parameters<typeof priceKeys.history>[0];
-export type PriceListParams = Parameters<typeof priceKeys.list>[0];
+type OracleListParams = Parameters<typeof oracleKeys.list>[0];
+type PriceHistoryParams = Parameters<typeof priceKeys.history>[0];
+type PriceListParams = Parameters<typeof priceKeys.list>[0];

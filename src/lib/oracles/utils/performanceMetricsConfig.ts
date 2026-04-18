@@ -169,7 +169,7 @@ export function getPerformanceMetricsConfig(): PerformanceMetricsConfig {
   return currentConfig;
 }
 
-export function setPerformanceMetricsConfig(config: Partial<PerformanceMetricsConfig>): void {
+function setPerformanceMetricsConfig(config: Partial<PerformanceMetricsConfig>): void {
   currentConfig = {
     ...currentConfig,
     ...config,
@@ -192,7 +192,7 @@ export function setPerformanceMetricsConfig(config: Partial<PerformanceMetricsCo
   };
 }
 
-export function resetPerformanceMetricsConfig(): void {
+function resetPerformanceMetricsConfig(): void {
   currentConfig = { ...DEFAULT_PROVIDER_CONFIG };
 }
 
@@ -201,7 +201,7 @@ export function getProviderDefaults(provider: OracleProvider): ProviderPerforman
   return config.defaults[provider] || config.fallbackDefaults;
 }
 
-export function updateProviderDefaults(
+function updateProviderDefaults(
   provider: OracleProvider,
   updates: Partial<ProviderPerformanceDefaults>
 ): void {

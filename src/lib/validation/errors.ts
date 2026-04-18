@@ -2,7 +2,7 @@ import { type ZodError } from 'zod';
 
 import { AppError, type AppErrorDetails, ErrorCodes, HttpStatusCodes } from '@/lib/errors/AppError';
 
-export interface ValidationErrorDetails extends AppErrorDetails {
+interface ValidationErrorDetails extends AppErrorDetails {
   errors?: Array<{ field: string; message: string }>;
 }
 

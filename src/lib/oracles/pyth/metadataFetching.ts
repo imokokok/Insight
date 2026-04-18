@@ -129,7 +129,7 @@ export async function fetchNetworkStats(cache: PythCache): Promise<PythServiceNe
   }
 }
 
-export function getFallbackNetworkStats(): PythServiceNetworkStats {
+function getFallbackNetworkStats(): PythServiceNetworkStats {
   return {
     totalPublishers: PYTH_PUBLISHER_STATS.totalPublishers,
     activePublishers: PYTH_PUBLISHER_STATS.activePublishers,

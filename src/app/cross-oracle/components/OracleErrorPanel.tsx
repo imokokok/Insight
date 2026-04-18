@@ -290,5 +290,3 @@ export const OracleErrorPanel = memo(function OracleErrorPanel({
     </div>
   );
 });
-
-export default OracleErrorPanel;

@@ -1,4 +1,4 @@
-export interface MockDataAnnotation {
+interface MockDataAnnotation {
   isMock: boolean;
   source: 'mock' | 'api' | 'chain' | 'cache';
   reason?: string;
@@ -6,12 +6,12 @@ export interface MockDataAnnotation {
   confidence?: number;
 }
 
-export interface AnnotatedData<T> {
+interface AnnotatedData<T> {
   data: T;
   annotation: MockDataAnnotation;
 }
 
-export interface API3Alert {
+interface API3Alert {
   id: string;
   type: 'price_deviation' | 'node_offline' | 'coverage_pool_risk' | 'security_event';
   severity: 'info' | 'warning' | 'critical';
@@ -29,14 +29,14 @@ export interface API3Alert {
   };
 }
 
-export interface AlertThreshold {
+interface AlertThreshold {
   type: string;
   enabled: boolean;
   threshold: number;
   lastTriggered?: Date;
 }
 
-export interface DAPIPriceDeviation {
+interface DAPIPriceDeviation {
   symbol: string;
   dapiPrice: number;
   marketPrice: number;
@@ -58,7 +58,7 @@ export interface DataSourceInfo {
   chain: string;
 }
 
-export interface CoveragePoolEvent {
+interface CoveragePoolEvent {
   id: string;
   type: 'claim' | 'parameter_change' | 'reward_distribution';
   timestamp: Date;
@@ -68,7 +68,7 @@ export interface CoveragePoolEvent {
   description: string;
 }
 
-export interface CoveragePoolDetails {
+interface CoveragePoolDetails {
   totalValueLocked: number;
   collateralizationRatio: number;
   targetCollateralization: number;
@@ -81,7 +81,7 @@ export interface CoveragePoolDetails {
   lastUpdateTime: Date;
 }
 
-export interface CoveragePoolClaim {
+interface CoveragePoolClaim {
   id: string;
   type: 'pending' | 'approved' | 'rejected' | 'processing';
   amount: number;
@@ -95,7 +95,7 @@ export interface CoveragePoolClaim {
   votesAgainst: number;
 }
 
-export interface StakerReward {
+interface StakerReward {
   stakerAddress: string;
   stakedAmount: number;
   pendingRewards: number;
@@ -105,7 +105,7 @@ export interface StakerReward {
   lockEndDate?: Date;
 }
 
-export interface AirnodeNetworkStats {
+interface AirnodeNetworkStats {
   activeAirnodes: number;
   nodeUptime: number;
   avgResponseTime: number;
@@ -138,7 +138,7 @@ export interface DAPICoverage {
   };
 }
 
-export interface StakingData {
+interface StakingData {
   totalStaked: number;
   stakingApr: number;
   stakerCount: number;
@@ -149,7 +149,7 @@ export interface StakingData {
   };
 }
 
-export interface OEVAuction {
+interface OEVAuction {
   id: string;
   dappName: string;
   dapiName: string;
@@ -160,7 +160,7 @@ export interface OEVAuction {
   transactionHash?: string;
 }
 
-export interface OEVParticipant {
+interface OEVParticipant {
   id: string;
   name: string;
   type: 'searcher' | 'dapp';
@@ -169,7 +169,7 @@ export interface OEVParticipant {
   lastActive: Date;
 }
 
-export interface OEVNetworkStats {
+interface OEVNetworkStats {
   totalOevCaptured: number;
   activeAuctions: number;
   totalParticipants: number;

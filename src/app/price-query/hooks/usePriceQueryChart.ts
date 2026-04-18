@@ -12,7 +12,7 @@ export interface ChartDataPoint {
   [key: string]: number | string;
 }
 
-export interface UsePriceQueryChartParams {
+interface UsePriceQueryChartParams {
   historicalData: Partial<Record<string, PriceData[]>>;
   queryResults: QueryResult[];
   selectedTimeRange: number;
@@ -22,7 +22,7 @@ export interface UsePriceQueryChartParams {
   compareTimeRange: number;
 }
 
-export interface UsePriceQueryChartReturn {
+interface UsePriceQueryChartReturn {
   chartData: ChartDataPoint[];
   compareChartData: ChartDataPoint[];
   chartContainerRef: React.RefObject<HTMLDivElement | null>;

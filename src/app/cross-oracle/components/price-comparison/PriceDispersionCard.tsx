@@ -74,5 +74,3 @@ function PriceDispersionCardComponent({
 
 export const PriceDispersionCard = memo(PriceDispersionCardComponent);
 PriceDispersionCard.displayName = 'PriceDispersionCard';
-
-export default PriceDispersionCard;

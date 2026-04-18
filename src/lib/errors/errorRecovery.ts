@@ -1,6 +1,6 @@
 import { captureException, addBreadcrumb } from '@/lib/monitoring';
 
-export interface RetryConfig {
+interface RetryConfig {
   maxAttempts: number;
   baseDelay: number;
   maxDelay: number;
@@ -8,7 +8,7 @@ export interface RetryConfig {
   retryableStatuses: number[];
 }
 
-export interface ErrorLogEntry {
+interface ErrorLogEntry {
   id: string;
   timestamp: Date;
   error: Error;
@@ -17,14 +17,14 @@ export interface ErrorLogEntry {
   retryCount: number;
 }
 
-export interface ErrorContext {
+interface ErrorContext {
   component?: string;
   action?: string;
   userId?: string;
   metadata?: Record<string, unknown>;
 }
 
-export interface ErrorReport {
+interface ErrorReport {
   errorId: string;
   timestamp: Date;
   error: Error;
@@ -284,12 +284,12 @@ class ErrorRecoveryManager {
 }
 
 // 创建单例实例
-export const errorRecovery = new ErrorRecoveryManager();
+const errorRecovery = new ErrorRecoveryManager();
 
 /**
  * React Hook for error recovery
  */
-export function useErrorRecovery() {
+function useErrorRecovery() {
   return {
     withRetry: errorRecovery.withRetry.bind(errorRecovery),
     getErrorLogs: errorRecovery.getErrorLogs.bind(errorRecovery),
@@ -303,7 +303,7 @@ export function useErrorRecovery() {
 /**
  * 创建带有自动重试的数据获取函数
  */
-export function createRetryableFetch<T>(
+function createRetryableFetch<T>(
   fetchFn: () => Promise<T>,
   context: ErrorContext = {},
   config?: Partial<RetryConfig>
@@ -314,7 +314,7 @@ export function createRetryableFetch<T>(
 /**
  * 错误报告服务
  */
-export class ErrorReportingService {
+class ErrorReportingService {
   private static instance: ErrorReportingService;
   private reporters: Array<(report: ErrorReport) => Promise<void>> = [];
 
@@ -393,4 +393,4 @@ export class ErrorReportingService {
   }
 }
 
-export const errorReporting = ErrorReportingService.getInstance();
+const errorReporting = ErrorReportingService.getInstance();

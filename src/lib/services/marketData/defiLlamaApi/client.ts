@@ -6,7 +6,7 @@ import { MarketDataError } from './types';
 const logger = createLogger('marketData:defiLlamaApi');
 
 export const DEFILLAMA_API_BASE = 'https://api.llama.fi';
-export const REQUEST_TIMEOUT = 10000;
+const REQUEST_TIMEOUT = 10000;
 
 export async function fetchWithTimeout(
   url: string,

@@ -540,7 +540,7 @@ export async function getTokenMarketData(symbol: string): Promise<TokenMarketDat
   }
 }
 
-export async function getMultipleTokensMarketData(symbols: string[]): Promise<TokenMarketData[]> {
+async function getMultipleTokensMarketData(symbols: string[]): Promise<TokenMarketData[]> {
   try {
     const binanceSymbols = symbols.map((s) => BINANCE_SYMBOLS[s.toUpperCase()]).filter(Boolean);
 
@@ -567,7 +567,7 @@ export async function getMultipleTokensMarketData(symbols: string[]): Promise<To
   }
 }
 
-export async function getHistoricalPrices(
+async function getHistoricalPrices(
   symbol: string,
   days: number = 30
 ): Promise<HistoricalPricePoint[]> {
@@ -642,7 +642,7 @@ export async function getHistoricalPrices(
  * @param hours - 小时数
  * @returns 历史价格数据点数组
  */
-export async function getHistoricalPricesByHours(
+async function getHistoricalPricesByHours(
   symbol: string,
   hours: number = 24
 ): Promise<HistoricalPricePoint[]> {
@@ -727,7 +727,7 @@ export async function getHistoricalPricesByHours(
   }
 }
 
-export async function getOHLCData(
+async function getOHLCData(
   symbol: string,
   days: number = 30
 ): Promise<

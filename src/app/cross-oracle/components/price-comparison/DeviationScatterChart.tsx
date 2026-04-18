@@ -184,5 +184,3 @@ function DeviationScatterChartComponent({
 
 export const DeviationScatterChart = memo(DeviationScatterChartComponent);
 DeviationScatterChart.displayName = 'DeviationScatterChart';
-
-export default DeviationScatterChart;

@@ -4,7 +4,7 @@ import { type Publisher, type PublisherStats } from '../oracle/publisher';
 import { type OracleSnapshot } from '../oracle/snapshot';
 import { type RiskAssessmentData } from '../risk';
 
-export type ApiStatus = 'idle' | 'loading' | 'success' | 'error';
+type ApiStatus = 'idle' | 'loading' | 'success' | 'error';
 
 export interface ApiError {
   code: string;
@@ -28,60 +28,60 @@ export interface PaginatedResponse<T> {
   hasMore: boolean;
 }
 
-export interface PriceDataResponse extends ApiResponse<PriceData[]> {
+interface PriceDataResponse extends ApiResponse<PriceData[]> {
   provider: OracleProvider;
   symbol: string;
   chain?: Blockchain;
 }
 
-export interface SinglePriceResponse extends ApiResponse<PriceData> {
+interface SinglePriceResponse extends ApiResponse<PriceData> {
   provider: OracleProvider;
   symbol: string;
 }
 
-export interface PriceDeviationResponse extends ApiResponse<PriceDeviation[]> {
+interface PriceDeviationResponse extends ApiResponse<PriceDeviation[]> {
   symbol: string;
   threshold: number;
 }
 
-export interface HistoricalPriceResponse extends ApiResponse<PriceData[]> {
+interface HistoricalPriceResponse extends ApiResponse<PriceData[]> {
   symbol: string;
   startTimestamp: number;
   endTimestamp: number;
   interval: string;
 }
 
-export interface PublisherListResponse extends ApiResponse<Publisher[]> {
+interface PublisherListResponse extends ApiResponse<Publisher[]> {
   chain?: Blockchain;
 }
 
-export interface PublisherStatsResponse extends ApiResponse<PublisherStats> {
+interface PublisherStatsResponse extends ApiResponse<PublisherStats> {
   publisherId: string;
 }
 
-export interface SnapshotListResponse extends ApiResponse<OracleSnapshot[]> {
+interface SnapshotListResponse extends ApiResponse<OracleSnapshot[]> {
   symbol: string;
 }
 
-export interface RiskAssessmentResponse extends ApiResponse<RiskAssessmentData> {
+interface RiskAssessmentResponse extends ApiResponse<RiskAssessmentData> {
   provider: OracleProvider;
   symbol: string;
 }
 
-export type HealthCheckResponse = ApiResponse<{
+type HealthCheckResponse = ApiResponse<{
   status: 'healthy' | 'degraded' | 'unhealthy';
   version: string;
   uptime: number;
   timestamp: number;
 }>;
 
-export interface WebSocketMessage<T = unknown> {
+interface WebSocketMessage<T = unknown> {
   type: 'price_update' | 'deviation_alert' | 'status_change' | 'error';
   payload: T;
   timestamp: number;
 }
 
-export interface PriceUpdateMessage {
+interface PriceUpdateMessage {
   symbol: string;
   provider: OracleProvider;
   price: number;
@@ -89,7 +89,7 @@ export interface PriceUpdateMessage {
   change24h?: number;
 }
 
-export interface DeviationAlertMessage {
+interface DeviationAlertMessage {
   symbol: string;
   provider: OracleProvider;
   deviation: number;
@@ -97,14 +97,14 @@ export interface DeviationAlertMessage {
   timestamp: number;
 }
 
-export interface SubscriptionRequest {
+interface SubscriptionRequest {
   type: 'subscribe' | 'unsubscribe';
   channels: string[];
   symbols?: string[];
   providers?: OracleProvider[];
 }
 
-export type SubscriptionResponse = ApiResponse<{
+type SubscriptionResponse = ApiResponse<{
   channels: string[];
   subscribed: boolean;
 }>;

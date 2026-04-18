@@ -16,7 +16,7 @@ import { usePriceQueryState, type TimeComparisonConfig } from './usePriceQuerySt
 
 import type { AnomalyInfo } from '../utils/priceValidator';
 
-export interface UsePriceQueryReturn {
+interface UsePriceQueryReturn {
   state: {
     selectedOracle: OracleProvider | null;
     setSelectedOracle: (oracle: OracleProvider | null) => void;
@@ -110,8 +110,6 @@ export interface UsePriceQueryReturn {
   symbolFavorites: ReturnType<typeof useFavorites>['favorites'];
   currentFavoriteConfig: FavoriteConfig;
 }
-
-export type { TimeComparisonConfig, ChartDataPoint, QueryError };
 
 export function usePriceQuery(): UsePriceQueryReturn {
   const user = useUser();

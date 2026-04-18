@@ -67,5 +67,3 @@ function ChartTabSwitcherComponent({ activeTab, onTabChange }: ChartTabSwitcherP
 
 export const ChartTabSwitcher = memo(ChartTabSwitcherComponent);
 ChartTabSwitcher.displayName = 'ChartTabSwitcher';
-
-export default ChartTabSwitcher;

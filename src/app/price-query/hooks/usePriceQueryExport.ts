@@ -8,14 +8,14 @@ import { downloadBlob } from '@/lib/utils/download';
 import { type QueryResult, providerNames, chainNames } from '../constants';
 import { formatPrice } from '../utils/queryResultsUtils';
 
-export interface UsePriceQueryExportParams {
+interface UsePriceQueryExportParams {
   queryResults: QueryResult[];
   selectedSymbol: string;
   selectedOracles: OracleProvider[];
   selectedChains: Blockchain[];
 }
 
-export interface UsePriceQueryExportReturn {
+interface UsePriceQueryExportReturn {
   generateFilename: (extension: string) => string;
   handleExportCSV: () => void;
   handleExportJSON: () => void;

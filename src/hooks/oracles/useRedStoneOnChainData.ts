@@ -6,7 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import { RedStoneClient, type RedStoneTokenOnChainData } from '@/lib/oracles/clients/redstone';
 
-export interface UseRedStoneOnChainDataOptions {
+interface UseRedStoneOnChainDataOptions {
   symbol: string;
   enabled?: boolean;
 }

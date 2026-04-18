@@ -15,7 +15,7 @@ import {
   getTCriticalValue,
 } from '../utils';
 
-export interface UseStatisticsParams {
+interface UseStatisticsParams {
   currentPrices: PriceData[];
   historicalPrices: Partial<Record<Blockchain, PriceData[]>>;
   filteredChains: Blockchain[];

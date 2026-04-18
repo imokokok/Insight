@@ -93,5 +93,3 @@ export function ConnectionStatusIndicator({
     </div>
   );
 }
-
-export default ConnectionStatusIndicator;

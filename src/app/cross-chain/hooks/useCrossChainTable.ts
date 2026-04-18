@@ -7,7 +7,7 @@ import { chainNames, calculateDynamicThreshold, type ThresholdConfig } from '../
 
 import { type PriceDifferenceItem } from './useExport';
 
-export interface UseCrossChainTableParams {
+interface UseCrossChainTableParams {
   priceDifferences: PriceDifferenceItem[];
   historicalPrices: Partial<Record<Blockchain, PriceData[]>>;
   filteredChains: Blockchain[];
@@ -15,7 +15,7 @@ export interface UseCrossChainTableParams {
   thresholdConfig: ThresholdConfig;
 }
 
-export interface UseCrossChainTableReturn {
+interface UseCrossChainTableReturn {
   priceDifferences: PriceDifferenceItem[];
   sortedPriceDifferences: PriceDifferenceItem[];
   chainsWithHighDeviation: PriceDifferenceItem[];

@@ -11,14 +11,14 @@ import { safeMax, safeMin } from '@/lib/utils/statistics';
 import type { TimeRange } from '../constants';
 import type { PriceAnomaly } from './usePriceAnomalyDetection';
 
-export interface RiskTrendPoint {
+interface RiskTrendPoint {
   timestamp: number;
   riskScore: number;
   anomalyCount: number;
   event?: string;
 }
 
-export interface RiskTrendsResult {
+interface RiskTrendsResult {
   data: RiskTrendPoint[];
   count: number;
   avgRiskScore: number;
@@ -27,7 +27,7 @@ export interface RiskTrendsResult {
   totalAnomalies: number;
 }
 
-export function useRiskTrends(
+function useRiskTrends(
   timeRange: TimeRange = '24h',
   anomalies: PriceAnomaly[] = [],
   currentTime?: number
@@ -80,14 +80,14 @@ export function useRiskTrends(
   }, [timeRange, anomalies, now]);
 }
 
-export function getRiskLevel(riskScore: number): 'low' | 'medium' | 'high' | 'critical' {
+function getRiskLevel(riskScore: number): 'low' | 'medium' | 'high' | 'critical' {
   if (riskScore < 30) return 'low';
   if (riskScore < 50) return 'medium';
   if (riskScore < 75) return 'high';
   return 'critical';
 }
 
-export function getRiskLevelColor(riskScore: number): string {
+function getRiskLevelColor(riskScore: number): string {
   const level = getRiskLevel(riskScore);
   const colors = {
     low: 'text-success-500',
@@ -98,7 +98,7 @@ export function getRiskLevelColor(riskScore: number): string {
   return colors[level];
 }
 
-export function getRiskLevelBgColor(riskScore: number): string {
+function getRiskLevelBgColor(riskScore: number): string {
   const level = getRiskLevel(riskScore);
   const colors = {
     low: 'bg-success-500',
@@ -108,5 +108,3 @@ export function getRiskLevelBgColor(riskScore: number): string {
   };
   return colors[level];
 }
-
-export default useRiskTrends;

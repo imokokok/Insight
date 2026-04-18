@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 /**
  * Props for the Card component
  */
-export interface CardProps {
+interface CardProps {
   /** Card content */
   children: ReactNode;
   /** Additional CSS classes */
@@ -57,7 +57,7 @@ Card.displayName = 'Card';
 /**
  * Props for the CardHeader component
  */
-export interface CardHeaderProps {
+interface CardHeaderProps {
   /** Header content */
   children: ReactNode;
   /** Additional CSS classes */
@@ -83,7 +83,7 @@ CardHeader.displayName = 'CardHeader';
 /**
  * Props for the CardTitle component
  */
-export interface CardTitleProps {
+interface CardTitleProps {
   /** Title content */
   children: ReactNode;
   /** Additional CSS classes */
@@ -105,14 +105,14 @@ CardTitle.displayName = 'CardTitle';
 /**
  * Props for the CardDescription component
  */
-export interface CardDescriptionProps {
+interface CardDescriptionProps {
   /** Description content */
   children: ReactNode;
   /** Additional CSS classes */
   className?: string;
 }
 
-export const CardDescription = forwardRef<HTMLParagraphElement, CardDescriptionProps>(
+const CardDescription = forwardRef<HTMLParagraphElement, CardDescriptionProps>(
   ({ children, className, ...props }, ref) => {
     return (
       <p ref={ref} className={cn('text-sm text-gray-500 mt-1', className)} {...props}>
@@ -127,7 +127,7 @@ CardDescription.displayName = 'CardDescription';
 /**
  * Props for the CardContent component
  */
-export interface CardContentProps {
+interface CardContentProps {
   /** Content to render */
   children: ReactNode;
   /** Additional CSS classes */
@@ -149,14 +149,14 @@ CardContent.displayName = 'CardContent';
 /**
  * Props for the CardFooter component
  */
-export interface CardFooterProps {
+interface CardFooterProps {
   /** Footer content */
   children: ReactNode;
   /** Additional CSS classes */
   className?: string;
 }
 
-export const CardFooter = forwardRef<HTMLDivElement, CardFooterProps>(
+const CardFooter = forwardRef<HTMLDivElement, CardFooterProps>(
   ({ children, className, ...props }, ref) => {
     return (
       <div

@@ -1,36 +1,3 @@
-export {
-  sanitizeString,
-  sanitizeObject,
-  sanitizeObject as sanitizeInputObject,
-  sanitizeArray,
-  detectSqlInjection,
-  validateInput,
-  sanitizeSymbol,
-  sanitizeProvider,
-  sanitizeChain,
-  sanitizeEmail,
-  sanitizeUuid,
-  detectXss,
-  type SanitizationOptions,
-} from './inputSanitizer';
+export { sanitizeString, sanitizeObject, sanitizeUuid } from './inputSanitizer';
 export * from './csrf';
-export {
-  sanitizeHtml,
-  sanitizeObject as sanitizeXssObject,
-  encodeHtmlEntities,
-  decodeHtmlEntities,
-  stripHtmlTags,
-  sanitizeUrl,
-  sanitizeStyleValue,
-  sanitizeAttributeValue,
-  sanitizeForDisplay,
-  sanitizeForAttribute,
-  sanitizeForJavaScript,
-  sanitizeForCss,
-  createXSSProtectionHeaders,
-  applyXSSProtectionHeaders,
-  detectXss as xssDetect,
-  XSS_PATTERNS,
-  type XSSProtectionOptions,
-} from './xss';
 export * from './validation';

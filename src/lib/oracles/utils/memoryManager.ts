@@ -15,7 +15,7 @@ export interface MemoryStats {
   config: MemoryManagementConfig;
 }
 
-export interface PriceHistoryEntry {
+interface PriceHistoryEntry {
   price: number;
   timestamp: number;
   responseTime: number;
@@ -23,7 +23,7 @@ export interface PriceHistoryEntry {
   source?: string;
 }
 
-export class MemoryManager {
+class MemoryManager {
   private static instance: MemoryManager | null = null;
   private cleanupTimerId: ReturnType<typeof setInterval> | null = null;
   private lastCleanupTime: number = 0;

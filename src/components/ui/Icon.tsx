@@ -6,8 +6,8 @@ import * as LucideIcons from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 
-export type IconSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
-export type IconColor =
+type IconSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+type IconColor =
   | 'inherit'
   | 'current'
   | 'primary'
@@ -18,14 +18,14 @@ export type IconColor =
   | 'info'
   | 'gray';
 
-export interface IconProps extends Omit<SVGAttributes<SVGSVGElement>, 'size' | 'color'> {
+interface IconProps extends Omit<SVGAttributes<SVGSVGElement>, 'size' | 'color'> {
   name: keyof typeof LucideIcons;
   size?: IconSize | number;
   color?: IconColor;
   className?: string;
 }
 
-export const Icon = forwardRef<HTMLSpanElement, IconProps>(
+const Icon = forwardRef<HTMLSpanElement, IconProps>(
   ({ name, size = 'md', color = 'current', className, ...props }, ref) => {
     const LucideIcon = LucideIcons[name] as React.ComponentType<SVGAttributes<SVGSVGElement>>;
 
@@ -84,13 +84,13 @@ export const Icon = forwardRef<HTMLSpanElement, IconProps>(
 Icon.displayName = 'Icon';
 
 // Helper component for creating icon wrappers with consistent styling
-export interface IconWrapperProps {
+interface IconWrapperProps {
   children: React.ReactNode;
   size?: IconSize;
   className?: string;
 }
 
-export const IconWrapper = forwardRef<HTMLSpanElement, IconWrapperProps>(
+const IconWrapper = forwardRef<HTMLSpanElement, IconWrapperProps>(
   ({ children, size = 'md', className }, ref) => {
     const sizeStyles: Record<IconSize, string> = {
       xs: 'w-4 h-4',

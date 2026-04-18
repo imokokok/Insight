@@ -9,7 +9,7 @@ export interface MarketShareDataItem {
   protocols?: number;
 }
 
-export interface TvsTrendDataPoint {
+interface TvsTrendDataPoint {
   time: string;
   chainlink: number;
   pyth: number;
@@ -19,16 +19,16 @@ export interface TvsTrendDataPoint {
   winklink: number;
 }
 
-export interface ChainSupportDataItem {
+interface ChainSupportDataItem {
   name: string;
   chains: number;
   color: string;
   protocols: number;
 }
 
-export type TimeRangeKey = '1H' | '24H' | '7D' | '30D' | '90D' | '1Y' | 'ALL';
+type TimeRangeKey = '1H' | '24H' | '7D' | '30D' | '90D' | '1Y' | 'ALL';
 
-export const COLORS = {
+const COLORS = {
   chainlink: chartColors.oracle.chainlink,
   pyth: chartColors.oracle.pyth,
   api3: chartColors.oracle.api3,
@@ -37,11 +37,11 @@ export const COLORS = {
   winklink: chartColors.oracle.winklink,
 };
 
-export const DEFAULT_MARKET_SHARE_DATA: MarketShareDataItem[] = [];
+const DEFAULT_MARKET_SHARE_DATA: MarketShareDataItem[] = [];
 
-export const DEFAULT_CHAIN_SUPPORT_DATA: ChainSupportDataItem[] = [];
+const DEFAULT_CHAIN_SUPPORT_DATA: ChainSupportDataItem[] = [];
 
-export const CACHE_CONFIG = {
+const CACHE_CONFIG = {
   marketShare: {
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,

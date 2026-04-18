@@ -530,7 +530,7 @@ class ReflectorDataService {
   }
 }
 
-export interface ReflectorOnChainMetadata {
+interface ReflectorOnChainMetadata {
   decimals: number;
   resolution: number;
   version: number;
@@ -545,8 +545,6 @@ export function getReflectorDataService(): ReflectorDataService {
   return ReflectorDataService.getInstance();
 }
 
-export function resetReflectorDataService(): void {
+function resetReflectorDataService(): void {
   ReflectorDataService.resetInstance();
 }
-
-export { ReflectorDataService };

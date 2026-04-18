@@ -18,7 +18,7 @@ export interface RateLimitMiddlewareOptions {
   preset?: 'strict' | 'moderate' | 'lenient' | 'api';
 }
 
-export type RateLimitMiddlewareResult =
+type RateLimitMiddlewareResult =
   | { success: true; remaining: number; resetTime: number }
   | { success: false; response: NextResponse };
 

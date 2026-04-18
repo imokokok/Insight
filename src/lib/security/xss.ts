@@ -24,7 +24,7 @@ function getDOMPurifySync(): DOMPurifyType | null {
   return null;
 }
 
-export interface XSSProtectionOptions {
+interface XSSProtectionOptions {
   stripTags?: boolean;
   encodeHtml?: boolean;
   allowedTags?: string[];
@@ -209,7 +209,7 @@ export function detectXss(input: string): boolean {
   return xssPatterns.some((pattern) => pattern.test(input));
 }
 
-export function createXSSProtectionHeaders(nonce?: string): Record<string, string> {
+function createXSSProtectionHeaders(nonce?: string): Record<string, string> {
   return {
     'Content-Security-Policy':
       "default-src 'self'; " +
@@ -230,7 +230,7 @@ export function createXSSProtectionHeaders(nonce?: string): Record<string, strin
   };
 }
 
-export function applyXSSProtectionHeaders(response: Response, nonce?: string): Response {
+function applyXSSProtectionHeaders(response: Response, nonce?: string): Response {
   const headers = createXSSProtectionHeaders(nonce);
   Object.entries(headers).forEach(([key, value]) => {
     response.headers.set(key, value);
@@ -260,7 +260,7 @@ export function sanitizeForCss(input: string): string {
   return input.replace(/[<>'"]/g, '');
 }
 
-export function sanitizeObject<T extends Record<string, unknown>>(
+function sanitizeObject<T extends Record<string, unknown>>(
   obj: T,
   options: XSSProtectionOptions = {}
 ): T {
@@ -291,5 +291,3 @@ export function sanitizeObject<T extends Record<string, unknown>>(
 
   return sanitized;
 }
-
-export { detectXss as xssDetect };

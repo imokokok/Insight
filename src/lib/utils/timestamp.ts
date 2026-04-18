@@ -81,7 +81,7 @@ export function normalizeTimestamp(timestamp: number | string | Date): number {
   return toMilliseconds(timestamp);
 }
 
-export interface TimeAgoResult {
+interface TimeAgoResult {
   value: number;
   unit: 'seconds' | 'minutes' | 'hours' | 'days';
   isFuture: boolean;

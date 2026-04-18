@@ -99,5 +99,3 @@ function DispersionGaugeComponent({ cv, size = 120 }: DispersionGaugeProps) {
 
 export const DispersionGauge = memo(DispersionGaugeComponent);
 DispersionGauge.displayName = 'DispersionGauge';
-
-export default DispersionGauge;

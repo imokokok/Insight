@@ -9,7 +9,7 @@ import { OracleProvider } from '@/types/oracle';
 /**
  * 获取预言机颜色
  */
-export function getOracleColor(provider: OracleProvider): string {
+function getOracleColor(provider: OracleProvider): string {
   const colorMap: Record<OracleProvider, string> = {
     [OracleProvider.CHAINLINK]: chartColors.oracle.chainlink,
     [OracleProvider.PYTH]: chartColors.oracle['pyth'],

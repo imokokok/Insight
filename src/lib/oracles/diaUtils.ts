@@ -37,7 +37,7 @@ export async function withRetry<T>(
   return withOracleRetry(operation, operationName, oracleConfig);
 }
 
-export interface FetchWithTimeoutOptions extends RequestInit {
+interface FetchWithTimeoutOptions extends RequestInit {
   timeout?: number;
 }
 

@@ -20,7 +20,7 @@ export interface CreateAlertInput {
   is_active?: boolean;
 }
 
-export interface UpdateAlertInput {
+interface UpdateAlertInput {
   symbol?: string;
   provider?: OracleProvider | null;
   chain?: Blockchain | null;
@@ -29,14 +29,14 @@ export interface UpdateAlertInput {
   is_active?: boolean;
 }
 
-export interface UseAlertsReturn {
+interface UseAlertsReturn {
   alerts: PriceAlert[];
   isLoading: boolean;
   error: Error | null;
   refetch: () => Promise<void>;
 }
 
-export interface UseCreateAlertReturn {
+interface UseCreateAlertReturn {
   createAlert: (input: CreateAlertInput) => Promise<PriceAlert | null>;
   mutate: (
     input: CreateAlertInput,
@@ -53,7 +53,7 @@ export interface UseCreateAlertReturn {
   reset: () => void;
 }
 
-export interface UseUpdateAlertReturn {
+interface UseUpdateAlertReturn {
   updateAlert: (id: string, input: UpdateAlertInput) => Promise<PriceAlert | null>;
   mutate: (
     id: string,
@@ -71,7 +71,7 @@ export interface UseUpdateAlertReturn {
   reset: () => void;
 }
 
-export interface UseDeleteAlertReturn {
+interface UseDeleteAlertReturn {
   deleteAlert: (id: string) => Promise<boolean>;
   mutate: (
     id: string,
@@ -84,19 +84,19 @@ export interface UseDeleteAlertReturn {
   reset: () => void;
 }
 
-export interface UseAlertEventsReturn {
+interface UseAlertEventsReturn {
   events: AlertEvent[];
   isLoading: boolean;
   error: Error | null;
   refetch: () => Promise<void>;
 }
 
-export interface UseAcknowledgeAlertReturn {
+interface UseAcknowledgeAlertReturn {
   acknowledge: (eventId: string) => Promise<{ event: AlertEvent | null; error: Error | null }>;
   isAcknowledging: boolean;
 }
 
-export interface BatchOperationResult {
+interface BatchOperationResult {
   processed: number;
   succeeded: number;
   failed: number;
@@ -104,7 +104,7 @@ export interface BatchOperationResult {
   failedIds: string[];
 }
 
-export interface UseBatchAlertsReturn {
+interface UseBatchAlertsReturn {
   batchOperation: (
     action: 'enable' | 'disable' | 'delete',
     alertIds: string[]

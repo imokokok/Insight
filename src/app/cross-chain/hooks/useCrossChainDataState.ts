@@ -14,7 +14,7 @@ import { useCrossChainUIStore } from '@/stores/crossChainUIStore';
 
 import { useDataValidation, useAnomalyDetection, useDataFetching } from './index';
 
-export interface UseCrossChainDataStateReturn {
+interface UseCrossChainDataStateReturn {
   currentPrices: PriceData[];
   historicalPrices: Partial<Record<Blockchain, PriceData[]>>;
   loading: boolean;

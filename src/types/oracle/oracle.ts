@@ -101,7 +101,7 @@ export class OracleError extends AppError {
   }
 }
 
-export interface DataQualityMetrics {
+interface DataQualityMetrics {
   freshness: {
     lastUpdated: number;
     updateInterval: number;
@@ -126,7 +126,7 @@ export interface DataQualityMetrics {
   };
 }
 
-export interface OracleConfig {
+interface OracleConfig {
   provider: OracleProvider;
   chain?: Blockchain;
   symbol: string;
@@ -135,7 +135,7 @@ export interface OracleConfig {
   decimals?: number;
 }
 
-export interface OracleHealth {
+interface OracleHealth {
   provider: OracleProvider;
   status: 'healthy' | 'degraded' | 'unhealthy';
   lastCheck: number;
@@ -149,9 +149,9 @@ export interface OracleHealth {
   avgLatency: number;
 }
 
-export type OracleCategory = 'decentralized' | 'hybrid' | 'centralized';
+type OracleCategory = 'decentralized' | 'hybrid' | 'centralized';
 
-export interface OracleMetadata {
+interface OracleMetadata {
   provider: OracleProvider;
   name: string;
   category: OracleCategory;

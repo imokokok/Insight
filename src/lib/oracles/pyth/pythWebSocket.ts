@@ -13,9 +13,9 @@ import type {
 
 const logger = createLogger('PythWebSocket');
 
-export type PriceUpdateCallback = (priceId: string, price: PythPriceRaw) => void;
+type PriceUpdateCallback = (priceId: string, price: PythPriceRaw) => void;
 
-export interface PythWebSocketOptions {
+interface PythWebSocketOptions {
   maxReconnectAttempts?: number;
   reconnectDelay?: number;
   onPriceUpdate?: PriceUpdateCallback;

@@ -14,7 +14,7 @@ export interface QueryTask {
   isCompare: boolean;
 }
 
-export interface QueryError {
+interface QueryError {
   provider: OracleProvider;
   chain: Blockchain;
   error: string;
@@ -59,7 +59,7 @@ export async function limitConcurrency<T, R>(
   return results;
 }
 
-export interface QueryTaskResult {
+interface QueryTaskResult {
   provider: OracleProvider;
   chain: Blockchain;
   priceData: PriceData;
@@ -126,7 +126,7 @@ export function buildQueryTasks(
   return { primaryTasks, compareTasks, totalQueries };
 }
 
-export interface ProcessedQueryResults {
+interface ProcessedQueryResults {
   results: QueryResult[];
   histories: Partial<Record<string, PriceData[]>>;
   compareResults: QueryResult[];

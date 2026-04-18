@@ -10,7 +10,7 @@
  * @param options - 配置选项
  * @returns 格式化后的字符串
  */
-export function formatPercent(
+function formatPercent(
   value: number,
   options: {
     minDecimals?: number;
@@ -43,7 +43,7 @@ export function formatPercent(
  * @param basePrice - 基准价格（用于计算相对精度）
  * @returns 格式化后的字符串
  */
-export function formatPriceDiff(value: number, basePrice?: number): string {
+function formatPriceDiff(value: number, basePrice?: number): string {
   if (value === 0) return '$0.00';
 
   // 根据基准价格确定精度
@@ -72,7 +72,7 @@ export function formatPriceDiff(value: number, basePrice?: number): string {
  * @param percent - 百分比值
  * @returns 格式化后的字符串
  */
-export function formatHeatmapCell(percent: number): string {
+function formatHeatmapCell(percent: number): string {
   if (percent === 0) return '0%';
 
   // 对于非常小的值，使用 2 位小数
@@ -94,7 +94,7 @@ export function formatHeatmapCell(percent: number): string {
  * @param value - 数值
  * @returns 格式化后的字符串
  */
-export function formatLegendValue(value: number): string {
+function formatLegendValue(value: number): string {
   if (value === 0) return '0%';
   if (value < 0.01) return `${value.toFixed(2)}%`;
   if (value < 0.1) return `${value.toFixed(1)}%`;
@@ -107,7 +107,7 @@ export function formatLegendValue(value: number): string {
  * @param value - 数值
  * @returns 精度等级
  */
-export function getPrecisionLevel(value: number): 'high' | 'medium' | 'low' {
+function getPrecisionLevel(value: number): 'high' | 'medium' | 'low' {
   if (Math.abs(value) < 0.01) return 'high';
   if (Math.abs(value) < 0.1) return 'medium';
   return 'low';

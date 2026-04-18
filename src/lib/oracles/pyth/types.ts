@@ -1,7 +1,5 @@
 import type { RetryConfig } from '../constants/pythConstants';
 
-export type { RetryConfig };
-
 export type WebSocketConnectionStatus = 'connecting' | 'connected' | 'disconnected';
 
 export interface WebSocketConnectionState {

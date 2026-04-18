@@ -14,12 +14,12 @@ const logger = createLogger('riskMetrics');
 /**
  * 风险等级
  */
-export type RiskLevel = 'low' | 'medium' | 'high' | 'critical';
+type RiskLevel = 'low' | 'medium' | 'high' | 'critical';
 
 /**
  * HHI 指数结果
  */
-export interface HHIResult {
+interface HHIResult {
   value: number; // HHI 值 (0-10000)
   level: RiskLevel; // 风险等级
   description: string; // 描述
@@ -29,7 +29,7 @@ export interface HHIResult {
 /**
  * 多元化评分结果
  */
-export interface DiversificationResult {
+interface DiversificationResult {
   score: number; // 评分 (0-100)
   level: RiskLevel;
   description: string;
@@ -43,7 +43,7 @@ export interface DiversificationResult {
 /**
  * 波动率指数结果
  */
-export interface VolatilityResult {
+interface VolatilityResult {
   index: number; // 波动率指数 (0-100)
   level: RiskLevel;
   description: string;
@@ -54,7 +54,7 @@ export interface VolatilityResult {
 /**
  * 相关性风险评估结果
  */
-export interface CorrelationRiskResult {
+interface CorrelationRiskResult {
   score: number; // 风险评分 (0-100)
   level: RiskLevel;
   description: string;
@@ -65,7 +65,7 @@ export interface CorrelationRiskResult {
 /**
  * 综合风险指标
  */
-export interface RiskMetrics {
+interface RiskMetrics {
   hhi: HHIResult;
   diversification: DiversificationResult;
   volatility: VolatilityResult;

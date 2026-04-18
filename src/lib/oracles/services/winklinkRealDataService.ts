@@ -49,7 +49,7 @@ export interface WINkLinkTokenOnChainData {
   dataSource: string;
 }
 
-export class WINkLinkRealDataService {
+class WINkLinkRealDataService {
   private cache: Map<string, CacheEntry<unknown>> = new Map();
   private static instance: WINkLinkRealDataService | null = null;
   private readonly maxCacheSize = 1000;

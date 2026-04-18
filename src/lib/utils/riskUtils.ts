@@ -1,6 +1,6 @@
 import { type RiskLevel } from '@/types/risk';
 
-export interface RiskMetrics {
+interface RiskMetrics {
   volatility?: number;
   maxDrawdown?: number;
   sharpeRatio?: number;

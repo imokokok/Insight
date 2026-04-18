@@ -80,7 +80,7 @@ function detectXss(input: string): boolean {
   return xssPatterns.some((pattern) => pattern.test(input));
 }
 
-export interface SanitizationOptions {
+interface SanitizationOptions {
   maxLength?: number;
   allowHtml?: boolean;
   trim?: boolean;

@@ -203,5 +203,3 @@ function MultiOracleTrendChartComponent({
 
 export const MultiOracleTrendChart = memo(MultiOracleTrendChartComponent);
 MultiOracleTrendChart.displayName = 'MultiOracleTrendChart';
-
-export default MultiOracleTrendChart;

@@ -15,7 +15,7 @@ import { saveSnapshot as saveSnapshotToStorage } from '@/types/oracle/snapshotFu
 
 import { exportToCSV, exportToJSON, oracleNames } from '../constants';
 
-export interface UseExportParams {
+interface UseExportParams {
   priceData: PriceData[];
   avgPrice: number;
   selectedSymbol: string;
@@ -23,7 +23,7 @@ export interface UseExportParams {
   stats: SnapshotStats | null;
 }
 
-export interface UseExportReturn {
+interface UseExportReturn {
   handleExportCSV: () => void;
   handleExportJSON: () => void;
   handleSaveSnapshot: () => OracleSnapshot | null;

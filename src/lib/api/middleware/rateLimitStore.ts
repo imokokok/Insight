@@ -2,12 +2,12 @@ import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('rate-limit-store');
 
-export interface RateLimitResult {
+interface RateLimitResult {
   count: number;
   resetTime: number;
 }
 
-export interface RateLimitStore {
+interface RateLimitStore {
   increment(key: string, windowMs: number): Promise<RateLimitResult>;
   get(key: string): Promise<RateLimitResult | null>;
   cleanup?(): void;

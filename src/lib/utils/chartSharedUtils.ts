@@ -12,7 +12,7 @@ const hexToRgba = (hex: string, alpha: number): string => {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 };
 
-export const chartColors = {
+const chartColors = {
   primary: configChartColors.recharts.primary,
   secondary: configChartColors.recharts.tick,
   success: semanticColors.success.DEFAULT,
@@ -44,7 +44,7 @@ export const chartColors = {
   },
 };
 
-export const getStatusColor = (status: string): string => {
+const getStatusColor = (status: string): string => {
   switch (status) {
     case 'normal':
     case 'active':
@@ -65,7 +65,7 @@ export const getStatusColor = (status: string): string => {
   }
 };
 
-export const getDeviationColor = (deviationPercent: number): string => {
+const getDeviationColor = (deviationPercent: number): string => {
   const absDeviation = Math.abs(deviationPercent);
   if (absDeviation < 0.1) return chartColors.success;
   if (absDeviation < 0.5) return chartColors.warning;

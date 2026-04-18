@@ -52,12 +52,12 @@ interface NetworkDataConfig {
   stakingTokenSymbol: string;
 }
 
-export interface OracleTab {
+interface OracleTab {
   id: string;
   label: string;
 }
 
-export interface OracleViewConfig {
+interface OracleViewConfig {
   id: string;
   label: string;
   component: string;
@@ -65,7 +65,7 @@ export interface OracleViewConfig {
   default?: boolean;
 }
 
-export interface OracleConfig {
+interface OracleConfig {
   provider: OracleProvider;
   name: string;
   descriptionKey: string;
@@ -132,7 +132,7 @@ const getDefaultNetworkData = (): NetworkDataConfig => ({
 });
 
 // 异步获取市场数据的函数
-export async function fetchOracleMarketData(
+async function fetchOracleMarketData(
   symbol: string,
   name: string
 ): Promise<MarketDataConfig & { change24hPercent?: number }> {
@@ -659,11 +659,11 @@ export function getOracleConfig(provider: OracleProvider): OracleConfig {
   return config;
 }
 
-export function getAllOracleConfigs(): OracleConfig[] {
+function getAllOracleConfigs(): OracleConfig[] {
   return Object.values(oracleConfigs);
 }
 
-export function getAllOracleConfigsSortedByMarketCap(): OracleConfig[] {
+function getAllOracleConfigsSortedByMarketCap(): OracleConfig[] {
   return Object.values(oracleConfigs).sort((a, b) => {
     if (a.provider === OracleProvider.API3 && b.provider === OracleProvider.REDSTONE) {
       return -1;
@@ -675,7 +675,7 @@ export function getAllOracleConfigsSortedByMarketCap(): OracleConfig[] {
   });
 }
 
-export function getOracleProvidersSortedByMarketCap(): OracleProvider[] {
+function getOracleProvidersSortedByMarketCap(): OracleProvider[] {
   return Object.values(oracleConfigs)
     .sort((a, b) => {
       if (a.provider === OracleProvider.API3 && b.provider === OracleProvider.REDSTONE) {
@@ -693,7 +693,7 @@ export function getPriceOracleProvidersSortedByMarketCap(): OracleProvider[] {
   return getOracleProvidersSortedByMarketCap();
 }
 
-export function getOracleViews(provider: OracleProvider): OracleViewConfig[] {
+function getOracleViews(provider: OracleProvider): OracleViewConfig[] {
   const config = getOracleConfig(provider);
   return (
     config.views ||

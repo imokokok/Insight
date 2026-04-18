@@ -60,13 +60,13 @@ const oracleDescriptions: Record<OracleProvider, string> = {
 
 // Generate oracle search results
 // Note: Oracle detail pages have been removed, links now point to cross-oracle comparison
-export function getOracleSearchResults(_locale: string): SearchResult[] {
+function getOracleSearchResults(): SearchResult[] {
   return ORACLE_PROVIDER_VALUES.map((provider) => ({
     id: `oracle-${provider}`,
     title: providerNames[provider],
     description: oracleDescriptions[provider],
     type: 'oracle' as SearchResultType,
-    href: `/en/cross-oracle`,
+    href: `/cross-oracle`,
     icon: oracleIcons[provider],
     keywords: [provider.toLowerCase(), providerNames[provider].toLowerCase(), 'oracle'],
     priority: 10,
@@ -117,13 +117,13 @@ const blockchainIcons: Record<Blockchain, string> = {
 };
 
 // Generate blockchain search results
-export function getBlockchainSearchResults(_locale: string): SearchResult[] {
+function getBlockchainSearchResults(): SearchResult[] {
   return BLOCKCHAIN_VALUES.map((chain) => ({
     id: `blockchain-${chain}`,
     title: chainNames[chain],
     description: `Price data on ${chainNames[chain]}`,
     type: 'blockchain' as SearchResultType,
-    href: `/en/cross-chain?chain=${chain.toLowerCase()}`,
+    href: `/cross-chain?chain=${chain.toLowerCase()}`,
     iconUrl: blockchainIcons[chain] || undefined,
     icon: Globe,
     keywords: [chain.toLowerCase(), chainNames[chain].toLowerCase(), 'blockchain'],
@@ -132,27 +132,27 @@ export function getBlockchainSearchResults(_locale: string): SearchResult[] {
 }
 
 // Generate trading pair search results
-export function getPairSearchResults(_locale: string): SearchResult[] {
+function getPairSearchResults(): SearchResult[] {
   return symbols.map((symbol) => ({
     id: `pair-${symbol}`,
     title: `${symbol}/USD`,
     description: 'Real-time price feed data',
     type: 'pair' as SearchResultType,
-    href: `/en/price-query?symbol=${symbol}`,
+    href: `/price-query?symbol=${symbol}`,
     keywords: [symbol.toLowerCase(), 'price', 'price feed'],
     priority: 9,
   }));
 }
 
 // Page search results
-export function getPageSearchResults(_locale: string): SearchResult[] {
+function getPageSearchResults(): SearchResult[] {
   return [
     {
       id: 'page-home',
       title: 'Home',
       description: 'Dashboard overview and quick access',
       type: 'page',
-      href: `/en/`,
+      href: `/`,
       icon: LayoutDashboard,
       keywords: ['home', 'dashboard'],
       priority: 10,
@@ -162,7 +162,7 @@ export function getPageSearchResults(_locale: string): SearchResult[] {
       title: 'Price Query',
       description: 'Search and view real-time price data',
       type: 'page',
-      href: `/en/price-query`,
+      href: `/price-query`,
       icon: Search,
       keywords: ['price', 'query'],
       priority: 9,
@@ -172,7 +172,7 @@ export function getPageSearchResults(_locale: string): SearchResult[] {
       title: 'Cross-Oracle Comparison',
       description: 'Compare prices across multiple oracle providers',
       type: 'page',
-      href: `/en/cross-oracle`,
+      href: `/cross-oracle`,
       icon: GitCompare,
       keywords: ['cross oracle', 'comparison'],
       priority: 8,
@@ -182,7 +182,7 @@ export function getPageSearchResults(_locale: string): SearchResult[] {
       title: 'Cross-Chain Comparison',
       description: 'Compare prices across different blockchains',
       type: 'page',
-      href: `/en/cross-chain`,
+      href: `/cross-chain`,
       icon: Link2,
       keywords: ['cross chain', 'chain'],
       priority: 8,
@@ -192,7 +192,7 @@ export function getPageSearchResults(_locale: string): SearchResult[] {
       title: 'Favorites',
       description: 'Your saved favorite price feeds',
       type: 'page',
-      href: `/en/favorites`,
+      href: `/favorites`,
       icon: Heart,
       keywords: ['favorites'],
       priority: 7,
@@ -202,7 +202,7 @@ export function getPageSearchResults(_locale: string): SearchResult[] {
       title: 'Alerts',
       description: 'Manage your price alert notifications',
       type: 'page',
-      href: `/en/alerts`,
+      href: `/alerts`,
       icon: Bell,
       keywords: ['alerts', 'alert'],
       priority: 7,
@@ -212,7 +212,7 @@ export function getPageSearchResults(_locale: string): SearchResult[] {
       title: 'Settings',
       description: 'Configure application preferences',
       type: 'page',
-      href: `/en/settings`,
+      href: `/settings`,
       icon: Settings,
       keywords: ['settings'],
       priority: 6,
@@ -221,14 +221,14 @@ export function getPageSearchResults(_locale: string): SearchResult[] {
 }
 
 // Feature search results
-export function getFeatureSearchResults(_locale: string): SearchResult[] {
+function getFeatureSearchResults(): SearchResult[] {
   return [
     {
       id: 'feature-comparison',
       title: 'Price Comparison',
       description: 'Compare prices across different oracle providers',
       type: 'feature',
-      href: `/en/cross-oracle`,
+      href: `/cross-oracle`,
       icon: GitCompare,
       keywords: ['comparison', 'compare'],
       priority: 8,
@@ -238,7 +238,7 @@ export function getFeatureSearchResults(_locale: string): SearchResult[] {
       title: 'Price Alerts',
       description: 'Set up notifications for price changes',
       type: 'feature',
-      href: `/en/alerts`,
+      href: `/alerts`,
       icon: Bell,
       keywords: ['alert', 'notification'],
       priority: 7,
@@ -248,7 +248,7 @@ export function getFeatureSearchResults(_locale: string): SearchResult[] {
       title: 'Price Charts',
       description: 'Visualize price trends and historical data',
       type: 'feature',
-      href: `/en/price-query`,
+      href: `/price-query`,
       icon: BarChart3,
       keywords: ['chart', 'graph'],
       priority: 7,
@@ -257,7 +257,7 @@ export function getFeatureSearchResults(_locale: string): SearchResult[] {
 }
 
 // Documentation search results
-export function getDocumentationSearchResults(__locale: string): SearchResult[] {
+function getDocumentationSearchResults(): SearchResult[] {
   return [
     {
       id: 'doc-api',
@@ -273,14 +273,14 @@ export function getDocumentationSearchResults(__locale: string): SearchResult[] 
 }
 
 // Get all searchable items
-export function getAllSearchResults(_locale: string): SearchResult[] {
+export function getAllSearchResults(): SearchResult[] {
   return [
-    ...getOracleSearchResults(_locale),
-    ...getBlockchainSearchResults(_locale),
-    ...getPairSearchResults(_locale),
-    ...getPageSearchResults(_locale),
-    ...getFeatureSearchResults(_locale),
-    ...getDocumentationSearchResults(_locale),
+    ...getOracleSearchResults(),
+    ...getBlockchainSearchResults(),
+    ...getPairSearchResults(),
+    ...getPageSearchResults(),
+    ...getFeatureSearchResults(),
+    ...getDocumentationSearchResults(),
   ];
 }
 

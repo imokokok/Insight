@@ -11,7 +11,7 @@ export interface LoggingMiddlewareOptions {
   sensitiveHeaders?: string[];
 }
 
-export interface RequestLog {
+interface RequestLog {
   method: string;
   path: string;
   query?: Record<string, string>;
@@ -21,7 +21,7 @@ export interface RequestLog {
   requestId: string;
 }
 
-export interface ResponseLog {
+interface ResponseLog {
   statusCode: number;
   duration: number;
   requestId: string;

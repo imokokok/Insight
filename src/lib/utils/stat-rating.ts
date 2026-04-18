@@ -1,6 +1,6 @@
-export type StatRating = 'excellent' | 'good' | 'attention' | 'danger';
+type StatRating = 'excellent' | 'good' | 'attention' | 'danger';
 
-export interface StatRatingResult {
+interface StatRatingResult {
   rating: StatRating;
   label: string;
   color: string;

@@ -9,7 +9,7 @@ import { useCrossChainUIStore } from '@/stores/crossChainUIStore';
 
 import { useExport, type PriceDifferenceItem } from './useExport';
 
-export interface UseCrossChainExportParams {
+interface UseCrossChainExportParams {
   selectedProvider: OracleProvider;
   selectedSymbol: string;
   selectedBaseChain: Blockchain | null;
@@ -27,7 +27,7 @@ export interface UseCrossChainExportParams {
   clearCacheForProvider: (provider: OracleProvider) => void;
 }
 
-export interface UseCrossChainExportReturn {
+interface UseCrossChainExportReturn {
   exportToCSV: () => boolean;
   exportToJSON: () => boolean;
   user: ReturnType<typeof useUser>;

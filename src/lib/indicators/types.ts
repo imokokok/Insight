@@ -33,36 +33,36 @@ export interface ATRResult {
   atr: number[];
 }
 
-export interface RSIResult {
+interface RSIResult {
   values: number[];
   avgGain: number[];
   avgLoss: number[];
 }
 
-export interface BollingerBandsConfig {
+interface BollingerBandsConfig {
   period: number;
   multiplier: number;
 }
 
-export interface RSIConfig {
+interface RSIConfig {
   period: number;
   overbought: number;
   oversold: number;
 }
 
-export interface MACDConfig {
+interface MACDConfig {
   fastPeriod: number;
   slowPeriod: number;
   signalPeriod: number;
 }
 
-export interface MAConfig {
+interface MAConfig {
   enabled: boolean;
   period: number;
   color: string;
 }
 
-export interface IndicatorSettings {
+interface IndicatorSettings {
   showMA7: boolean;
   showMA14: boolean;
   showMA30: boolean;
@@ -89,4 +89,4 @@ export interface OHLCVDataPoint {
 
 export type NullableNumber = number | null;
 
-export type NullableArray = NullableNumber[];
+type NullableArray = NullableNumber[];

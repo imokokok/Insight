@@ -16,7 +16,7 @@ export interface PriceDifferenceItem {
   diffPercent: number;
 }
 
-export interface UseExportParams {
+interface UseExportParams {
   selectedProvider: OracleProvider;
   selectedSymbol: string;
   selectedBaseChain: Blockchain | null;
@@ -31,7 +31,7 @@ export interface UseExportParams {
   totalDataPoints: number;
 }
 
-export interface UseExportReturn {
+interface UseExportReturn {
   exportToCSV: () => boolean;
   exportToJSON: () => boolean;
 }

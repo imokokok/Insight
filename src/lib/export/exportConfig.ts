@@ -55,7 +55,7 @@ export interface ExportConfig {
   updatedAt: number;
 }
 
-export const DEFAULT_FIELD_GROUPS: FieldGroup[] = [
+const DEFAULT_FIELD_GROUPS: FieldGroup[] = [
   {
     key: 'oracleMarket',
     label: 'Oracle Market Data',
@@ -476,7 +476,7 @@ export const DEFAULT_FIELD_GROUPS: FieldGroup[] = [
   },
 ];
 
-export function createDefaultExportConfig(): ExportConfig {
+function createDefaultExportConfig(): ExportConfig {
   const now = Date.now();
   return {
     id: `config-${now}`,
@@ -493,7 +493,7 @@ export function createDefaultExportConfig(): ExportConfig {
   };
 }
 
-export function createExportConfig(partial: Partial<ExportConfig>): ExportConfig {
+function createExportConfig(partial: Partial<ExportConfig>): ExportConfig {
   const defaults = createDefaultExportConfig();
   const now = Date.now();
   return {
@@ -506,14 +506,11 @@ export function createExportConfig(partial: Partial<ExportConfig>): ExportConfig
   };
 }
 
-export function getFieldLabel(field: ExportField): string {
+function getFieldLabel(field: ExportField): string {
   return field.label;
 }
 
-export function getSelectedFields(
-  fieldGroups: FieldGroup[],
-  groupKey: ExportDataType
-): ExportField[] {
+function getSelectedFields(fieldGroups: FieldGroup[], groupKey: ExportDataType): ExportField[] {
   const group = fieldGroups.find((g) => g.key === groupKey);
   return group?.fields.filter((f) => f.selected) || [];
 }

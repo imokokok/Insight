@@ -9,7 +9,7 @@ export interface ApiClientResponse<T> {
   };
 }
 
-export interface PaginatedResponse<T> {
+interface PaginatedResponse<T> {
   data: T[];
   pagination: {
     page: number;

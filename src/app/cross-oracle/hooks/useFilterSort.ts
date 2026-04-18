@@ -273,5 +273,3 @@ export function useFilterSort({
     getFilterSummary,
   };
 }
-
-export default useFilterSort;

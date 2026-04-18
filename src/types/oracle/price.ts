@@ -54,23 +54,23 @@ export interface PriceData extends PriceDataBase {
   contractVersion?: number; // 合约版本
 }
 
-export interface OracleSymbolSupport {
+interface OracleSymbolSupport {
   symbol: string;
   supportedOracles: OracleProvider[];
   supportedChains: Partial<Record<OracleProvider, Blockchain[]>>;
 }
 
-export interface PriceDataPoint extends PriceDataBase {
+interface PriceDataPoint extends PriceDataBase {
   change24h?: number;
   changePercent24h?: number;
 }
 
-export interface PriceDataForTechnicalAnalysis {
+interface PriceDataForTechnicalAnalysis {
   price: number;
   timestamp: number;
 }
 
-export interface PriceDataForChart extends PriceDataBase {
+interface PriceDataForChart extends PriceDataBase {
   open?: number;
   high?: number;
   low?: number;
@@ -78,7 +78,7 @@ export interface PriceDataForChart extends PriceDataBase {
   volume?: number;
 }
 
-export interface PriceDataExtended extends PriceData {
+interface PriceDataExtended extends PriceData {
   changePercent?: number;
 }
 
@@ -92,7 +92,7 @@ export interface PriceDeviation {
   status: DataStatus;
 }
 
-export interface PriceDataForAlert extends PriceDataBase {
+interface PriceDataForAlert extends PriceDataBase {
   change24h: number;
   changePercent24h: number;
 }

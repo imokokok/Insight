@@ -4,7 +4,7 @@ import { useCrossChainSelectorStore } from '@/stores/crossChainSelectorStore';
 
 import { type RefreshInterval } from '../constants';
 
-export interface UseCrossChainSelectorReturn {
+interface UseCrossChainSelectorReturn {
   selectedProvider: OracleProvider;
   setSelectedProvider: (provider: OracleProvider) => void;
   selectedSymbol: string;

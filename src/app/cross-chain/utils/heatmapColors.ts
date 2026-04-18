@@ -4,7 +4,7 @@
  */
 
 // 专业热力图配色 - 从绿到红的渐变
-export const heatmapColorSchemes = {
+const heatmapColorSchemes = {
   // 标准渐变：绿 -> 黄 -> 橙 -> 红
   standard: {
     low: '#10b981', //  emerald-500
@@ -46,7 +46,7 @@ export const heatmapColorSchemes = {
  * @param scheme - 颜色方案
  * @returns HEX 颜色值
  */
-export function getProfessionalHeatmapColor(
+function getProfessionalHeatmapColor(
   value: number,
   min: number,
   max: number,
@@ -81,7 +81,7 @@ export function getProfessionalHeatmapColor(
  * @param max - 最大值
  * @returns HEX 颜色值
  */
-export function getSmoothHeatmapColor(value: number, min: number, max: number): string {
+function getSmoothHeatmapColor(value: number, min: number, max: number): string {
   const range = max - min;
   if (range === 0) {
     return '#10b981'; // 默认绿色
@@ -154,7 +154,7 @@ function hslToHex(h: number, s: number, l: number): string {
  * @param backgroundColor - 背景色 (HEX)
  * @returns 文本颜色 (HEX)
  */
-export function getContrastColor(backgroundColor: string): string {
+function getContrastColor(backgroundColor: string): string {
   // 移除 # 号
   const hex = backgroundColor.replace('#', '');
 
@@ -177,7 +177,7 @@ export function getContrastColor(backgroundColor: string): string {
  * @param isDiagonal - 是否对角线单元格
  * @returns 样式对象
  */
-export function getHeatmapCellStyle(
+function getHeatmapCellStyle(
   percent: number,
   maxPercent: number,
   isDiagonal: boolean = false
@@ -208,7 +208,7 @@ export function getHeatmapCellStyle(
  * @param _maxValue - 最大值
  * @returns CSS 渐变字符串
  */
-export function getLegendGradient(_maxValue: number): string {
+function getLegendGradient(_maxValue: number): string {
   // 从绿色到红色的渐变
   return 'linear-gradient(to right, #10b981, #84cc16, #eab308, #f97316, #ef4444, #dc2626)';
 }

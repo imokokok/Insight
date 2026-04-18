@@ -16,14 +16,14 @@ const logger = createLogger('SupraDataService');
 
 const REQUEST_TIMEOUT = 15000;
 
-export interface SupraOraclePriceFeed {
+interface SupraOraclePriceFeed {
   pairIndex: string;
   price: string;
   decimals: string;
   timestamp: string;
 }
 
-export interface SupraLatestPriceData {
+interface SupraLatestPriceData {
   price: number;
   pairIndex: number;
   decimals: number;
@@ -31,7 +31,7 @@ export interface SupraLatestPriceData {
   symbol: string;
 }
 
-export interface SupraOHLCDataPoint {
+interface SupraOHLCDataPoint {
   timestamp: number;
   open: number;
   high: number;
@@ -40,7 +40,7 @@ export interface SupraOHLCDataPoint {
   volume: number;
 }
 
-export class SupraApiError extends Error {
+class SupraApiError extends Error {
   public readonly code: string;
   public readonly statusCode?: number;
   public readonly details?: Record<string, unknown>;
@@ -59,7 +59,7 @@ export class SupraApiError extends Error {
   }
 }
 
-export class SupraDataService {
+class SupraDataService {
   private cache: Map<string, OracleCacheEntry<unknown>> = new Map();
   private static instance: SupraDataService | null = null;
   private oracleClient: SupraOracleClient | null = null;
@@ -290,7 +290,7 @@ export function getSupraDataService(): SupraDataService {
   return SupraDataService.getInstance();
 }
 
-export function resetSupraDataService(): void {
+function resetSupraDataService(): void {
   const instance = SupraDataService.getInstance();
   instance.clearCache();
 }

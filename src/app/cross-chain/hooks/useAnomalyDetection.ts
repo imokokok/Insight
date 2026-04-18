@@ -5,10 +5,7 @@ import { detectAnomalousPrices, type AnomalousPricePoint } from '../utils/anomal
 
 const logger = createLogger('useAnomalyDetection');
 
-export function detectAnomalies(
-  prices: PriceData[],
-  filteredChains: Blockchain[]
-): AnomalousPricePoint[] {
+function detectAnomalies(prices: PriceData[], filteredChains: Blockchain[]): AnomalousPricePoint[] {
   const anomalies = detectAnomalousPrices(prices, filteredChains);
   if (anomalies.length > 0) {
     logger.info(`检测到 ${anomalies.length} 个异常价格点`, {

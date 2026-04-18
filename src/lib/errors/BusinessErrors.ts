@@ -3,7 +3,7 @@ import { AppError, type AppErrorDetails, ErrorCodes, HttpStatusCodes } from './A
 /**
  * 验证错误详情
  */
-export interface ValidationErrorDetails extends AppErrorDetails {
+interface ValidationErrorDetails extends AppErrorDetails {
   field?: string;
   value?: unknown;
   constraints?: Record<string, unknown>;
@@ -31,7 +31,7 @@ export class ValidationError extends AppError {
  * 字段验证错误
  * 针对特定字段的验证错误
  */
-export class FieldValidationError extends ValidationError {
+class FieldValidationError extends ValidationError {
   constructor(field: string, message: string, value?: unknown) {
     super(message, { field, value });
     this.name = 'FieldValidationError';
@@ -41,7 +41,7 @@ export class FieldValidationError extends ValidationError {
 /**
  * 未找到错误详情
  */
-export interface NotFoundErrorDetails extends AppErrorDetails {
+interface NotFoundErrorDetails extends AppErrorDetails {
   resource?: string;
   identifier?: string | number;
   resourceType?: string;
@@ -76,7 +76,7 @@ export class NotFoundError extends AppError {
 /**
  * 认证错误详情
  */
-export interface AuthenticationErrorDetails extends AppErrorDetails {
+interface AuthenticationErrorDetails extends AppErrorDetails {
   reason?: string;
   provider?: string;
 }
@@ -101,7 +101,7 @@ export class AuthenticationError extends AppError {
 /**
  * Token过期错误
  */
-export class TokenExpiredError extends AuthenticationError {
+class TokenExpiredError extends AuthenticationError {
   constructor(message = 'Token has expired', details?: AuthenticationErrorDetails) {
     super(message, { ...details, reason: 'token_expired' });
     this.name = 'TokenExpiredError';
@@ -111,7 +111,7 @@ export class TokenExpiredError extends AuthenticationError {
 /**
  * 授权错误详情
  */
-export interface AuthorizationErrorDetails extends AppErrorDetails {
+interface AuthorizationErrorDetails extends AppErrorDetails {
   resource?: string;
   action?: string;
   requiredPermission?: string;
@@ -138,7 +138,7 @@ export class AuthorizationError extends AppError {
 /**
  * 冲突错误详情
  */
-export interface ConflictErrorDetails extends AppErrorDetails {
+interface ConflictErrorDetails extends AppErrorDetails {
   resource?: string;
   conflictingValue?: unknown;
   existingResource?: unknown;
@@ -163,7 +163,7 @@ export class ConflictError extends AppError {
 /**
  * 重复条目错误
  */
-export class DuplicateEntryError extends ConflictError {
+class DuplicateEntryError extends ConflictError {
   constructor(resource: string, field: string, value: unknown) {
     super(`${resource} with ${field} '${value}' already exists`, {
       resource,
@@ -176,7 +176,7 @@ export class DuplicateEntryError extends ConflictError {
 /**
  * 限流错误详情
  */
-export interface RateLimitErrorDetails extends AppErrorDetails {
+interface RateLimitErrorDetails extends AppErrorDetails {
   retryAfter?: number;
   limit?: number;
   remaining?: number;
@@ -207,7 +207,7 @@ export class RateLimitError extends AppError {
 /**
  * 内部错误详情
  */
-export interface InternalErrorDetails extends AppErrorDetails {
+interface InternalErrorDetails extends AppErrorDetails {
   operation?: string;
   originalError?: string;
   component?: string;
@@ -234,7 +234,7 @@ export class InternalError extends AppError {
 /**
  * 服务不可用错误
  */
-export class ServiceUnavailableError extends InternalError {
+class ServiceUnavailableError extends InternalError {
   constructor(service: string, details?: InternalErrorDetails, cause?: Error) {
     super(
       `Service '${service}' is currently unavailable`,
@@ -248,7 +248,7 @@ export class ServiceUnavailableError extends InternalError {
 /**
  * 数据库错误
  */
-export class DatabaseError extends InternalError {
+class DatabaseError extends InternalError {
   constructor(message: string, operation?: string, cause?: Error) {
     super(message, { operation, originalError: cause?.message }, cause);
     this.name = 'DatabaseError';
@@ -275,7 +275,7 @@ export class NotImplementedError extends AppError {
 /**
  * 网络错误详情
  */
-export interface NetworkErrorDetails extends AppErrorDetails {
+interface NetworkErrorDetails extends AppErrorDetails {
   url?: string;
   method?: string;
   timeout?: number;
@@ -302,7 +302,7 @@ export class NetworkError extends AppError {
 /**
  * 超时错误
  */
-export class TimeoutError extends NetworkError {
+class TimeoutError extends NetworkError {
   constructor(operation: string, timeout: number, details?: NetworkErrorDetails, cause?: Error) {
     super(
       `Operation '${operation}' timed out after ${timeout}ms`,
@@ -316,7 +316,7 @@ export class TimeoutError extends NetworkError {
 /**
  * 外部服务错误详情
  */
-export interface ExternalServiceErrorDetails extends AppErrorDetails {
+interface ExternalServiceErrorDetails extends AppErrorDetails {
   service?: string;
   endpoint?: string;
   responseStatus?: number;
@@ -326,7 +326,7 @@ export interface ExternalServiceErrorDetails extends AppErrorDetails {
 /**
  * 外部服务错误
  */
-export class ExternalServiceError extends AppError {
+class ExternalServiceError extends AppError {
   constructor(
     service: string,
     message: string,

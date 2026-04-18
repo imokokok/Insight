@@ -5,7 +5,7 @@ import {
   fetchHistoricalPricesWithDatabase,
 } from './base/databaseOperations';
 
-export class OracleRepository {
+class OracleRepository {
   static async fetchPrice(
     provider: OracleProvider,
     symbol: string,

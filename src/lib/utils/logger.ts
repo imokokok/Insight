@@ -137,7 +137,7 @@ export function createLogger(moduleName: string): Logger {
   return new LoggerImpl(moduleName);
 }
 
-export const logger: Logger = createLogger('app');
+const logger: Logger = createLogger('app');
 
 /**
  * 使用示例:

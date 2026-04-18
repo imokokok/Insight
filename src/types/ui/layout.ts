@@ -14,7 +14,7 @@ import { type OracleProvider } from '../oracle';
 /**
  * 页面头部 Props
  */
-export interface PageHeaderProps extends HTMLAttributes<HTMLDivElement> {
+interface PageHeaderProps extends HTMLAttributes<HTMLDivElement> {
   title: string;
   subtitle?: string;
   icon?: ReactNode;
@@ -29,7 +29,7 @@ export interface PageHeaderProps extends HTMLAttributes<HTMLDivElement> {
 /**
  * Hero 区域 Props
  */
-export interface HeroProps extends HTMLAttributes<HTMLDivElement> {
+interface HeroProps extends HTMLAttributes<HTMLDivElement> {
   title: string;
   subtitle?: string;
   description?: string;
@@ -46,7 +46,7 @@ export interface HeroProps extends HTMLAttributes<HTMLDivElement> {
 /**
  * Hero 统计项
  */
-export interface HeroStatItem {
+interface HeroStatItem {
   label: string;
   value: string | number;
   change?: string;
@@ -57,7 +57,7 @@ export interface HeroStatItem {
 /**
  * 面包屑项
  */
-export interface BreadcrumbItem {
+interface BreadcrumbItem {
   label: string;
   href?: string;
   icon?: ReactNode;
@@ -71,7 +71,7 @@ export interface BreadcrumbItem {
 /**
  * 导航项类型
  */
-export interface NavigationItem {
+interface NavigationItem {
   id: string;
   label: string;
   href?: string;
@@ -85,7 +85,7 @@ export interface NavigationItem {
 /**
  * Tab 配置类型
  */
-export interface TabConfig {
+interface TabConfig {
   id: string;
   label: string;
   icon?: React.ComponentType<{ className?: string }>;
@@ -96,7 +96,7 @@ export interface TabConfig {
 /**
  * Tab 导航 Props
  */
-export interface TabNavigationProps extends HTMLAttributes<HTMLElement> {
+interface TabNavigationProps extends HTMLAttributes<HTMLElement> {
   activeTab: string;
   onTabChange: (tabId: string) => void;
   tabs?: TabItem[];
@@ -110,7 +110,7 @@ export interface TabNavigationProps extends HTMLAttributes<HTMLElement> {
 /**
  * Tab 项类型
  */
-export interface TabItem {
+interface TabItem {
   id: string;
   label: string;
   icon: ReactNode;
@@ -121,7 +121,7 @@ export interface TabItem {
 /**
  * Oracle Tab 类型
  */
-export interface OracleTab {
+interface OracleTab {
   id: string;
   labelKey: string;
   icon?: string;
@@ -139,7 +139,7 @@ export type UITimeRange = '1H' | '24H' | '7D' | '30D' | '90D' | '1Y' | 'ALL';
 /**
  * 页面配置类型
  */
-export interface PageConfig {
+interface PageConfig {
   title: string;
   description?: string;
   provider: OracleProvider;
@@ -153,7 +153,7 @@ export interface PageConfig {
 /**
  * 页面模板 Props
  */
-export interface PageTemplateProps extends HTMLAttributes<HTMLDivElement> {
+interface PageTemplateProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
   header?: ReactNode;
   sidebar?: ReactNode;
@@ -171,7 +171,7 @@ export interface PageTemplateProps extends HTMLAttributes<HTMLDivElement> {
 /**
  * 侧边栏 Props
  */
-export interface SidebarProps extends HTMLAttributes<HTMLElement> {
+interface SidebarProps extends HTMLAttributes<HTMLElement> {
   items: NavigationItem[];
   activeItem?: string;
   onItemClick?: (item: NavigationItem) => void;
@@ -184,7 +184,7 @@ export interface SidebarProps extends HTMLAttributes<HTMLElement> {
 /**
  * 侧边栏组 Props
  */
-export interface SidebarGroupProps extends HTMLAttributes<HTMLDivElement> {
+interface SidebarGroupProps extends HTMLAttributes<HTMLDivElement> {
   title?: string;
   children: ReactNode;
   collapsible?: boolean;
@@ -198,7 +198,7 @@ export interface SidebarGroupProps extends HTMLAttributes<HTMLDivElement> {
 /**
  * 布局容器 Props
  */
-export interface LayoutContainerProps extends HTMLAttributes<HTMLDivElement> {
+interface LayoutContainerProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
   direction?: 'row' | 'column';
   gap?: 'none' | 'sm' | 'md' | 'lg' | 'xl';
@@ -211,7 +211,7 @@ export interface LayoutContainerProps extends HTMLAttributes<HTMLDivElement> {
 /**
  * 网格布局 Props
  */
-export interface GridLayoutProps extends HTMLAttributes<HTMLDivElement> {
+interface GridLayoutProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
   columns?: number;
   minColumnWidth?: string;
@@ -222,7 +222,7 @@ export interface GridLayoutProps extends HTMLAttributes<HTMLDivElement> {
 /**
  * 分栏布局 Props
  */
-export interface SplitLayoutProps extends HTMLAttributes<HTMLDivElement> {
+interface SplitLayoutProps extends HTMLAttributes<HTMLDivElement> {
   left: ReactNode;
   right: ReactNode;
   leftWidth?: string;
@@ -239,7 +239,7 @@ export interface SplitLayoutProps extends HTMLAttributes<HTMLDivElement> {
 /**
  * 面板 Props
  */
-export interface PanelProps extends HTMLAttributes<HTMLDivElement> {
+interface PanelProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
   title?: string;
   icon?: ReactNode;
@@ -255,7 +255,7 @@ export interface PanelProps extends HTMLAttributes<HTMLDivElement> {
 /**
  * 可折叠面板 Props
  */
-export interface CollapsiblePanelProps extends HTMLAttributes<HTMLDivElement> {
+interface CollapsiblePanelProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
   title: string;
   icon?: ReactNode;
@@ -271,7 +271,7 @@ export interface CollapsiblePanelProps extends HTMLAttributes<HTMLDivElement> {
 /**
  * 页脚链接组
  */
-export interface FooterLinkGroup {
+interface FooterLinkGroup {
   title: string;
   links: {
     label: string;
@@ -283,7 +283,7 @@ export interface FooterLinkGroup {
 /**
  * 页脚 Props
  */
-export interface FooterProps extends HTMLAttributes<HTMLElement> {
+interface FooterProps extends HTMLAttributes<HTMLElement> {
   linkGroups?: FooterLinkGroup[];
   socialLinks?: {
     icon: ReactNode;
@@ -301,17 +301,17 @@ export interface FooterProps extends HTMLAttributes<HTMLElement> {
 /**
  * 响应式断点类型
  */
-export type Breakpoint = 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+type Breakpoint = 'sm' | 'md' | 'lg' | 'xl' | '2xl';
 
 /**
  * 响应式值类型
  */
-export type ResponsiveValue<T> = T | Partial<Record<Breakpoint, T>>;
+type ResponsiveValue<T> = T | Partial<Record<Breakpoint, T>>;
 
 /**
  * 响应式布局 Props
  */
-export interface ResponsiveLayoutProps extends HTMLAttributes<HTMLDivElement> {
+interface ResponsiveLayoutProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
   columns?: ResponsiveValue<number>;
   gap?: ResponsiveValue<string>;
@@ -325,7 +325,7 @@ export interface ResponsiveLayoutProps extends HTMLAttributes<HTMLDivElement> {
 /**
  * 模态框 Props
  */
-export interface ModalProps extends HTMLAttributes<HTMLDivElement> {
+interface ModalProps extends HTMLAttributes<HTMLDivElement> {
   isOpen: boolean;
   onClose: () => void;
   title?: string;
@@ -341,7 +341,7 @@ export interface ModalProps extends HTMLAttributes<HTMLDivElement> {
 /**
  * 抽屉 Props
  */
-export interface DrawerProps extends HTMLAttributes<HTMLDivElement> {
+interface DrawerProps extends HTMLAttributes<HTMLDivElement> {
   isOpen: boolean;
   onClose: () => void;
   children: ReactNode;
@@ -361,7 +361,7 @@ export interface DrawerProps extends HTMLAttributes<HTMLDivElement> {
 /**
  * 浮动操作按钮 Props
  */
-export interface FloatingActionButtonProps extends HTMLAttributes<HTMLButtonElement> {
+interface FloatingActionButtonProps extends HTMLAttributes<HTMLButtonElement> {
   icon: ReactNode;
   onClick: () => void;
   label?: string;
@@ -378,7 +378,7 @@ export interface FloatingActionButtonProps extends HTMLAttributes<HTMLButtonElem
 /**
  * 加载遮罩 Props
  */
-export interface LoadingOverlayProps extends HTMLAttributes<HTMLDivElement> {
+interface LoadingOverlayProps extends HTMLAttributes<HTMLDivElement> {
   isLoading: boolean;
   message?: string;
   children: ReactNode;
@@ -393,7 +393,7 @@ export interface LoadingOverlayProps extends HTMLAttributes<HTMLDivElement> {
 /**
  * 粘性头部 Props
  */
-export interface StickyHeaderProps extends HTMLAttributes<HTMLDivElement> {
+interface StickyHeaderProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
   offset?: number;
   zIndex?: number;
@@ -403,7 +403,7 @@ export interface StickyHeaderProps extends HTMLAttributes<HTMLDivElement> {
 /**
  * 粘性底部 Props
  */
-export interface StickyFooterProps extends HTMLAttributes<HTMLDivElement> {
+interface StickyFooterProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
   zIndex?: number;
   border?: boolean;

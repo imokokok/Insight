@@ -66,12 +66,12 @@ if (typeof window !== 'undefined') {
   startPeriodicCleanup();
 }
 
-export const clearCache = () => {
+const clearCache = () => {
   const dataCache = getGlobalCache();
   dataCache.clear();
 };
 
-export const clearCacheForProvider = (provider: OracleProvider) => {
+const clearCacheForProvider = (provider: OracleProvider) => {
   const dataCache = getGlobalCache();
   const keysToDelete: string[] = [];
   dataCache.forEach((_, key) => {
@@ -82,7 +82,7 @@ export const clearCacheForProvider = (provider: OracleProvider) => {
   keysToDelete.forEach((key) => dataCache.delete(key));
 };
 
-export interface FetchDataParams {
+interface FetchDataParams {
   selectedProvider: OracleProvider;
   selectedSymbol: string;
   selectedTimeRange: number;
@@ -168,7 +168,7 @@ async function fetchHistoricalFromApi(
   });
 }
 
-export interface UseDataFetchingReturn {
+interface UseDataFetchingReturn {
   fetchData: (signal?: AbortSignal) => Promise<void>;
   clearCache: () => void;
   clearCacheForProvider: (provider: OracleProvider) => void;

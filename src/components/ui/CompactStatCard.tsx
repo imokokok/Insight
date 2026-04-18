@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 
 import { Tooltip } from './Tooltip';
 
-export interface CompactStatCardProps {
+interface CompactStatCardProps {
   title: string;
   value: string | number;
   change?: {
@@ -175,5 +175,4 @@ CompactStatCard.displayName = 'CompactStatCard';
 const MemoizedCompactStatCard = memo(CompactStatCard);
 MemoizedCompactStatCard.displayName = 'CompactStatCard';
 
-export default MemoizedCompactStatCard;
 export { MemoizedCompactStatCard as CompactStatCard };

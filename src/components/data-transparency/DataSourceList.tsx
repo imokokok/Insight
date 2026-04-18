@@ -158,5 +158,3 @@ export function DataSourceList({
     </div>
   );
 }
-
-export default DataSourceList;

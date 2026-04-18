@@ -14,9 +14,9 @@ export interface ExportOptions {
 }
 
 export type Resolution = 'standard' | 'high' | 'ultra';
-export type ExportRange = 'current' | 'all';
+type ExportRange = 'current' | 'all';
 
-export interface ExportSettings {
+interface ExportSettings {
   range: ExportRange;
   includeMetadata: boolean;
   includeWatermark: boolean;

@@ -218,7 +218,7 @@ export function AlertMutePeriod({ config, onChange }: AlertMutePeriodProps) {
   );
 }
 
-export function isInMutePeriod(config: MutePeriodConfig): boolean {
+function isInMutePeriod(config: MutePeriodConfig): boolean {
   if (!config.enabled) return false;
 
   const now = new Date();
@@ -256,7 +256,7 @@ export function isInMutePeriod(config: MutePeriodConfig): boolean {
   return false;
 }
 
-export function formatMutePeriod(config: MutePeriodConfig, t: (key: string) => string): string {
+function formatMutePeriod(config: MutePeriodConfig, t: (key: string) => string): string {
   if (!config.enabled) return 'Disabled';
 
   if (config.duration > 0) {
@@ -280,5 +280,3 @@ export function formatMutePeriod(config: MutePeriodConfig, t: (key: string) => s
 
   return 'Enabled';
 }
-
-export default AlertMutePeriod;

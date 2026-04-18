@@ -343,7 +343,7 @@ const _serverParsedEnv = !_isClient ? parseServerEnv() : null;
 const _clientEnvConfig = _clientParsedEnv ? buildClientEnvConfig(_clientParsedEnv) : null;
 const _serverEnvConfig = _serverParsedEnv ? buildServerEnvConfig(_serverParsedEnv) : null;
 
-export function getEnv(): ClientEnvConfig | ServerEnvConfig {
+function getEnv(): ClientEnvConfig | ServerEnvConfig {
   if (_isClient) {
     return _clientEnvConfig!;
   }
@@ -370,11 +370,11 @@ export const FEATURE_FLAGS: ServerFeatureFlags = _serverEnvConfig
       useRealFlareData: false,
     };
 
-export function isFeatureEnabled(feature: keyof ServerFeatureFlags): boolean {
+function isFeatureEnabled(feature: keyof ServerFeatureFlags): boolean {
   return FEATURE_FLAGS[feature];
 }
 
-export function getSupabaseConfig(): ServerSupabaseConfig {
+function getSupabaseConfig(): ServerSupabaseConfig {
   if (_serverEnvConfig) {
     return _serverEnvConfig.supabase;
   }
@@ -385,15 +385,15 @@ export function getSupabaseConfig(): ServerSupabaseConfig {
   };
 }
 
-export function getAppConfig(): AppConfig {
+function getAppConfig(): AppConfig {
   return env.app;
 }
 
-export function getWebSocketConfig(): WebSocketConfig {
+function getWebSocketConfig(): WebSocketConfig {
   return env.websocket;
 }
 
-export function getSecurityConfig(): SecurityConfig {
+function getSecurityConfig(): SecurityConfig {
   if (_serverEnvConfig) {
     return _serverEnvConfig.security;
   }
@@ -406,7 +406,7 @@ export function getSecurityConfig(): SecurityConfig {
   };
 }
 
-export function validateEnvironment(): { valid: boolean; errors: string[] } {
+function validateEnvironment(): { valid: boolean; errors: string[] } {
   if (_isClient) {
     return { valid: true, errors: [] };
   }
@@ -426,20 +426,3 @@ export function validateEnvironment(): { valid: boolean; errors: string[] } {
 
   return { valid: false, errors };
 }
-
-export { clientEnvSchema, lenientClientEnvSchema, serverEnvSchema, lenientServerEnvSchema };
-
-export type {
-  ClientEnv,
-  ServerEnv,
-  ClientEnvConfig,
-  ServerEnvConfig,
-  ClientSupabaseConfig,
-  ServerSupabaseConfig,
-  AppConfig,
-  ClientFeatureFlags,
-  ServerFeatureFlags,
-  WebSocketConfig,
-  SecurityConfig,
-  Environment,
-};

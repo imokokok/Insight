@@ -81,7 +81,7 @@ export function getSelectedFields(fields: ExportField[]): ExportField[] {
 /**
  * Export to CSV
  */
-export function exportToCSV(
+function exportToCSV(
   data: unknown[],
   config: ExportConfig,
   dataSource: ExportDataSource
@@ -120,7 +120,7 @@ export function exportToCSV(
 /**
  * Export to JSON
  */
-export function exportToJSON(
+function exportToJSON(
   data: unknown[],
   config: ExportConfig,
   dataSource: ExportDataSource
@@ -442,7 +442,7 @@ export function loadExportHistory(): ExportHistoryItem[] {
 /**
  * Save export history to localStorage
  */
-export function saveExportHistory(item: ExportHistoryItem): void {
+function saveExportHistory(item: ExportHistoryItem): void {
   if (typeof window === 'undefined') return;
 
   try {
@@ -529,7 +529,7 @@ export function saveExportSettings(settings: Partial<ExportSettings>): void {
 /**
  * Re-download history item
  */
-export function reDownloadHistoryItem(item: ExportHistoryItem): void {
+function reDownloadHistoryItem(item: ExportHistoryItem): void {
   // Re-download functionality - in actual apps may need to regenerate file
   // This is just an example, actual implementation may need to store file content or regenerate
   logger.info(`Re-downloading ${item.fileName}`);

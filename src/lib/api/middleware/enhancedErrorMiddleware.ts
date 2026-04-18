@@ -5,7 +5,7 @@ import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('enhanced-error-middleware');
 
-export interface EnhancedErrorMiddlewareOptions {
+interface EnhancedErrorMiddlewareOptions {
   includeStackTrace?: boolean;
   logErrors?: boolean;
   includeRequestId?: boolean;
@@ -368,5 +368,3 @@ export function getSuggestedAction(errorCode: string): string | undefined {
 
   return suggestions[errorCode];
 }
-
-export default createEnhancedErrorMiddleware;

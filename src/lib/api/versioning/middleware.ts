@@ -9,13 +9,13 @@ import {
   type VersionInfo,
 } from './constants';
 
-export interface VersionMiddlewareOptions {
+interface VersionMiddlewareOptions {
   defaultVersion?: ApiVersion;
   includeVersionHeader?: boolean;
   onDeprecated?: (version: string, info: VersionInfo) => void;
 }
 
-export function createVersionMiddleware(options: VersionMiddlewareOptions = {}) {
+function createVersionMiddleware(options: VersionMiddlewareOptions = {}) {
   const { defaultVersion = API_VERSIONS.CURRENT, onDeprecated } = options;
 
   return async (request: NextRequest): Promise<NextResponse | null> => {
@@ -49,7 +49,7 @@ export function createVersionMiddleware(options: VersionMiddlewareOptions = {}) 
   };
 }
 
-export function addVersionHeaders(
+function addVersionHeaders(
   response: NextResponse,
   version: ApiVersion,
   isDeprecated: boolean = false,

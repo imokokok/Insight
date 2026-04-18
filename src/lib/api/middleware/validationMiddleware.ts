@@ -14,7 +14,7 @@ export interface ValidationMiddlewareOptions {
   params?: ObjectSchema;
 }
 
-export type ValidationMiddlewareResult =
+type ValidationMiddlewareResult =
   | {
       success: true;
       data: {

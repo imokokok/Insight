@@ -35,7 +35,7 @@ export interface QueryError {
   error: string;
 }
 
-export interface UsePriceQueryDataParams {
+interface UsePriceQueryDataParams {
   selectedOracleRef: React.MutableRefObject<OracleProvider | null>;
   selectedChainRef: React.MutableRefObject<Blockchain | null>;
   selectedSymbolRef: React.MutableRefObject<string>;
@@ -49,7 +49,7 @@ export interface UsePriceQueryDataParams {
   selectedTimeRange: number;
 }
 
-export interface UsePriceQueryDataReturn {
+interface UsePriceQueryDataReturn {
   queryResults: QueryResult[];
   historicalData: Partial<Record<string, PriceData[]>>;
   isLoading: boolean;

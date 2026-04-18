@@ -21,7 +21,7 @@ interface OracleDataParams {
   provider?: string;
 }
 
-export function useOracleData(params: OracleDataParams = {}) {
+function useOracleData(params: OracleDataParams = {}) {
   return useQuery<OracleData | OracleData[]>({
     queryKey: oracleKeys.list(params),
     queryFn: async () => {

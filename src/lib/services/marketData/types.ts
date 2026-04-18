@@ -151,7 +151,7 @@ export interface TVSTrendData {
   [key: string]: string | number;
 }
 
-export interface MarketStats {
+interface MarketStats {
   totalTVS: number;
   totalChains: number;
   totalProtocols: number;
@@ -167,14 +167,14 @@ export interface MarketStats {
   oracleCountChange24h: number;
 }
 
-export interface ChainSupportData {
+interface ChainSupportData {
   name: string;
   chains: number;
   protocols: number;
   color: string;
 }
 
-export interface PriceAlert {
+interface PriceAlert {
   id: string;
   asset: string;
   type: 'above' | 'below' | 'percent_change';
@@ -185,7 +185,7 @@ export interface PriceAlert {
   triggered?: boolean;
 }
 
-export interface AlertHistory {
+interface AlertHistory {
   id: string;
   alertId: string;
   asset: string;
@@ -262,7 +262,7 @@ export interface RiskMetrics {
   };
 }
 
-export type ChartType =
+type ChartType =
   | 'pie'
   | 'trend'
   | 'bar'
@@ -274,8 +274,8 @@ export type ChartType =
   | 'category'
   | 'radar';
 
-export type ViewType = 'chart' | 'table';
+type ViewType = 'chart' | 'table';
 
-export type RefreshStatus = 'idle' | 'refreshing' | 'success' | 'error';
+type RefreshStatus = 'idle' | 'refreshing' | 'success' | 'error';
 
-export type TimeRange = '24H' | '7D' | '30D' | '90D' | '1Y';
+type TimeRange = '24H' | '7D' | '30D' | '90D' | '1Y';

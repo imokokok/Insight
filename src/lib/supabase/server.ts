@@ -42,9 +42,7 @@ export function getServerQueries(): DatabaseQueries {
   return serverQueries;
 }
 
-export function createServerQueries(): DatabaseQueries {
+function createServerQueries(): DatabaseQueries {
   const client = createServerClient();
   return createQueries(client);
 }
-
-export { DatabaseQueries } from './queries';

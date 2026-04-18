@@ -35,7 +35,7 @@ export type ApiHandler<T = unknown> = (
   context: ApiHandlerContext
 ) => Promise<NextResponse<ApiResponse<T>> | NextResponse<ApiSuccessResponse<T>> | NextResponse>;
 
-export interface MiddlewareConfig {
+interface MiddlewareConfig {
   auth?: AuthMiddlewareOptions | boolean;
   validation?: ValidationMiddlewareOptions;
   logging?: LoggingMiddlewareOptions | boolean;
@@ -43,7 +43,7 @@ export interface MiddlewareConfig {
   rateLimit?: RateLimitMiddlewareOptions | boolean;
 }
 
-export interface CreateApiHandlerOptions {
+interface CreateApiHandlerOptions {
   middlewares?: MiddlewareConfig;
   onError?: (error: unknown, context: ApiHandlerContext) => Promise<NextResponse> | NextResponse;
 }
@@ -167,7 +167,7 @@ export function createDeleteHandler<T>(handler: ApiHandler<T>, options?: CreateA
   return createApiHandler(handler, options);
 }
 
-export interface CrudHandlers<T, _CreateDTO = Partial<T>, _UpdateDTO = Partial<T>> {
+interface CrudHandlers<T, _CreateDTO = Partial<T>, _UpdateDTO = Partial<T>> {
   list?: ApiHandler<T[]>;
   get?: ApiHandler<T>;
   create?: ApiHandler<T>;

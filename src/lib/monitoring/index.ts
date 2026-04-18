@@ -32,13 +32,13 @@ export const captureException = (error: Error, context?: Record<string, unknown>
   }
 };
 
-export const captureMessage = (message: string, level: 'info' | 'warning' | 'error' = 'info') => {
+const captureMessage = (message: string, level: 'info' | 'warning' | 'error' = 'info') => {
   if (typeof window !== 'undefined') {
     Sentry.captureMessage(message, level);
   }
 };
 
-export const startSpan = <T>(name: string, callback: () => T): T => {
+const startSpan = <T>(name: string, callback: () => T): T => {
   if (typeof window !== 'undefined') {
     return Sentry.startSpan({ name }, callback);
   }
@@ -65,13 +65,4 @@ export const addBreadcrumb = (breadcrumb: Breadcrumb) => {
   }
 };
 
-export {
-  initWebVitals,
-  onMetric,
-  reportMetric,
-  reportCustomMetric,
-  getPerformanceScore,
-  PERFORMANCE_THRESHOLDS,
-};
-
-export type { WebVitalMetric, MetricName };
+export { reportCustomMetric, PERFORMANCE_THRESHOLDS };

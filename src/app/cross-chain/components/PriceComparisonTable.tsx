@@ -286,5 +286,3 @@ export function PriceComparisonTable({ data }: PriceComparisonTableProps) {
     </div>
   );
 }
-
-export default PriceComparisonTable;

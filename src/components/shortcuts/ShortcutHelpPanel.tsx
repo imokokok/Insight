@@ -205,5 +205,3 @@ export function ShortcutHelpPanel() {
     </AnimatePresence>
   );
 }
-
-export default ShortcutHelpPanel;

@@ -24,7 +24,7 @@ const generateId = (): string => {
 
 const timeoutMap = new Map<string, ReturnType<typeof setTimeout>>();
 
-export const useNotificationStore = create<NotificationState>()(
+const useNotificationStore = create<NotificationState>()(
   devtools(
     (set) => ({
       notifications: [],
@@ -69,8 +69,8 @@ export const useNotificationStore = create<NotificationState>()(
   )
 );
 
-export const useNotifications = () => useNotificationStore((state) => state.notifications);
-export const useNotificationActions = () =>
+const useNotifications = () => useNotificationStore((state) => state.notifications);
+const useNotificationActions = () =>
   useNotificationStore(
     useShallow((state) => ({
       addNotification: state.addNotification,

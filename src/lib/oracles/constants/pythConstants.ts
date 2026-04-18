@@ -96,7 +96,7 @@ export interface RetryConfig {
   backoffMultiplier: number;
 }
 
-export const DEFAULT_RETRY_CONFIG: RetryConfig = {
+const DEFAULT_RETRY_CONFIG: RetryConfig = {
   maxAttempts: 3,
   baseDelay: 1000,
   maxDelay: 10000,
