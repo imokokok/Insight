@@ -1,5 +1,7 @@
 // ==================== 基础错误类 ====================
 // ==================== 导入类型用于工具函数 ====================
+import type { ReactNode } from 'react';
+
 import {
   ValidationError,
   NotFoundError,
@@ -27,8 +29,6 @@ export {
   AuthenticationError,
   AuthorizationError,
 
-  // 冲突错误
-
   // 限流错误
   RateLimitError,
 
@@ -46,24 +46,12 @@ export {
   // 基础 Oracle 错误
   OracleClientError,
 
-  // 通用 Oracle 错误类 (支持 instanceof 检查)
-
   // 价格获取错误
   PriceFetchError,
-
-  // 支持性错误
 
   // RedStone 错误
   RedStoneApiError,
   type RedStoneErrorCode,
-
-  // Chainlink 错误
-
-  // Pyth 错误
-
-  // API3 错误
-
-  // Supra 错误
 
   // Flare 错误
   FlareError,
@@ -72,40 +60,43 @@ export {
 // ==================== 错误响应处理 ====================
 export { errorToResponse, isAppError } from './errorToResponse';
 
-// ==================== 错误恢复 ====================
 // ==================== 错误工具函数 ====================
 
 /**
  * 检查错误是否为特定类型
  */
-function isValidationError(error: unknown): error is InstanceType<typeof ValidationError> {
+export function isValidationError(error: unknown): error is InstanceType<typeof ValidationError> {
   return error instanceof ValidationError;
 }
 
-function isNotFoundError(error: unknown): error is InstanceType<typeof NotFoundError> {
+export function isNotFoundError(error: unknown): error is InstanceType<typeof NotFoundError> {
   return error instanceof NotFoundError;
 }
 
-function isAuthenticationError(error: unknown): error is InstanceType<typeof AuthenticationError> {
+export function isAuthenticationError(
+  error: unknown
+): error is InstanceType<typeof AuthenticationError> {
   return error instanceof AuthenticationError;
 }
 
-function isAuthorizationError(error: unknown): error is InstanceType<typeof AuthorizationError> {
+export function isAuthorizationError(
+  error: unknown
+): error is InstanceType<typeof AuthorizationError> {
   return error instanceof AuthorizationError;
 }
 
-function isRateLimitError(error: unknown): error is InstanceType<typeof RateLimitError> {
+export function isRateLimitError(error: unknown): error is InstanceType<typeof RateLimitError> {
   return error instanceof RateLimitError;
 }
 
-function isNetworkError(error: unknown): error is InstanceType<typeof NetworkError> {
+export function isNetworkError(error: unknown): error is InstanceType<typeof NetworkError> {
   return error instanceof NetworkError;
 }
 
 /**
  * 安全地获取错误消息
  */
-function getErrorMessage(error: unknown): string {
+export function getErrorMessage(error: unknown): string {
   if (isAppError(error)) {
     return error.getUserMessage();
   }
@@ -121,7 +112,7 @@ function getErrorMessage(error: unknown): string {
 /**
  * 安全地获取错误代码
  */
-function getErrorCode(error: unknown): string {
+export function getErrorCode(error: unknown): string {
   if (isAppError(error)) {
     return error.code;
   }
@@ -131,7 +122,7 @@ function getErrorCode(error: unknown): string {
 /**
  * 检查错误是否应该显示给用户
  */
-function shouldShowErrorToUser(error: unknown): boolean {
+export function shouldShowErrorToUser(error: unknown): boolean {
   if (isAppError(error)) {
     return error.isOperational;
   }
@@ -139,14 +130,9 @@ function shouldShowErrorToUser(error: unknown): boolean {
 }
 
 /**
- * 检查错误是否应该重试
- * isRetryableError 已经从 errorToResponse.ts 导出
- * 这里保留 shouldRetryError 作为别名以兼容旧代码
- */
-/**
  * 将未知错误转换为 AppError
  */
-function toAppError(error: unknown): AppErrorType {
+export function toAppError(error: unknown): AppErrorType {
   if (isAppError(error)) {
     return error;
   }
@@ -163,7 +149,7 @@ function toAppError(error: unknown): AppErrorType {
 /**
  * 错误分类器
  */
-interface ErrorClassification {
+export interface ErrorClassification {
   category: string;
   severity: 'low' | 'medium' | 'high' | 'critical';
   retryable: boolean;
@@ -223,7 +209,7 @@ export function classifyError(error: unknown): ErrorClassification {
 /**
  * 创建错误处理器
  */
-function createErrorHandler<T>(
+export function createErrorHandler<T>(
   handler: (error: AppErrorType) => T,
   fallback?: T
 ): (error: unknown) => T {
@@ -243,8 +229,8 @@ function createErrorHandler<T>(
 /**
  * 错误边界处理器
  */
-interface ErrorBoundaryHandler {
+export interface ErrorBoundaryHandler {
   onError?: (error: Error, errorInfo: { componentStack: string }) => void;
   onReset?: () => void;
-  fallback?: React.ReactNode;
+  fallback?: ReactNode;
 }

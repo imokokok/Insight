@@ -2,8 +2,8 @@
 
 import { useCallback } from 'react';
 
-import { type OracleProvider, type Blockchain } from '@/lib/oracles';
 import { downloadBlob } from '@/lib/utils/download';
+import { type OracleProvider, type Blockchain } from '@/types/oracle';
 
 import { type QueryResult, providerNames, chainNames } from '../constants';
 import { formatPrice } from '../utils/queryResultsUtils';

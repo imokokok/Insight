@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { devtools, persist, createJSONStorage } from 'zustand/middleware';
 
-import { type Blockchain } from '@/lib/oracles';
+import { type Blockchain } from '@/types/oracle';
 
 interface UIState {
   visibleChains: Blockchain[];

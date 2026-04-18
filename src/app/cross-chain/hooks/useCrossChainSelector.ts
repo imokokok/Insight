@@ -1,6 +1,6 @@
-import { type OracleProvider, type Blockchain } from '@/lib/oracles';
 import { useCrossChainConfigStore } from '@/stores/crossChainConfigStore';
 import { useCrossChainSelectorStore } from '@/stores/crossChainSelectorStore';
+import { type OracleProvider, type Blockchain } from '@/types/oracle';
 
 import { type RefreshInterval } from '../constants';
 

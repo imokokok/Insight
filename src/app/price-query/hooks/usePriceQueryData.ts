@@ -3,14 +3,10 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 
 import { oracleApiClient } from '@/lib/api/oracleApiClient';
-import {
-  type OracleProvider,
-  type Blockchain,
-  type PriceData,
-  getDefaultFactory,
-} from '@/lib/oracles';
+import { getDefaultFactory } from '@/lib/oracles';
 import { performanceMetricsCalculator } from '@/lib/services/marketData';
 import { createLogger } from '@/lib/utils/logger';
+import { type OracleProvider, type Blockchain, type PriceData } from '@/types/oracle';
 
 import { type QueryResult } from '../constants';
 import { usePerformanceMonitoring } from '../utils/performanceMonitoring';

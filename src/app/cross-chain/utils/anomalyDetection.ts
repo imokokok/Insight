@@ -3,7 +3,7 @@
  * 提供基于IQR和标准差的异常价格检测功能
  */
 
-import { type Blockchain, type PriceData } from '@/lib/oracles';
+import { type Blockchain, type PriceData } from '@/types/oracle';
 
 import { calculatePercentile } from './statisticsUtils';
 

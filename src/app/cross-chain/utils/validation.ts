@@ -3,7 +3,7 @@
  * 提供价格数据的有效性验证功能
  */
 
-import { type Blockchain } from '@/lib/oracles';
+import { type Blockchain } from '@/types/oracle';
 import type { ValidationResult } from '@/types/oracle/constants';
 
 const BITCOIN_GENESIS_TIMESTAMP = new Date('2009-01-03').getTime();

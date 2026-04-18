@@ -2,7 +2,7 @@
 
 import { useMemo, useRef } from 'react';
 
-import { type PriceData } from '@/lib/oracles';
+import { type PriceData } from '@/types/oracle';
 
 import { type QueryResult, providerNames, chainNames } from '../constants';
 

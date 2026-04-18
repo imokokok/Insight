@@ -1,7 +1,7 @@
 'use client';
 
 import { ChartSkeleton } from '@/components/ui';
-import type { OracleProvider, Blockchain } from '@/lib/oracles';
+import type { OracleProvider, Blockchain } from '@/types/oracle';
 
 interface QueryResultsLoadingProps {
   queryProgress: { completed: number; total: number };

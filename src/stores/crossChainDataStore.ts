@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { devtools, persist, createJSONStorage } from 'zustand/middleware';
 
 import { type AnomalousPricePoint } from '@/app/cross-chain/utils/anomalyDetection';
-import { type Blockchain, type PriceData } from '@/lib/oracles';
+import { type Blockchain, type PriceData } from '@/types/oracle';
 
 interface DataState {
   currentPrices: PriceData[];

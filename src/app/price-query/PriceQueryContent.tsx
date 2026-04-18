@@ -3,8 +3,7 @@
 import { useRef, useCallback } from 'react';
 
 import { LiveStatusBar } from '@/components/ui';
-import { useCommonShortcuts, useOnChainDataByProvider } from '@/hooks';
-import { OracleProvider } from '@/lib/oracles';
+import { useCommonShortcuts, useAllOnChainData } from '@/hooks';
 
 import { QueryHeader, QueryForm, QueryResults, ExportConfig } from './components';
 import {
@@ -64,84 +63,11 @@ export default function PriceQueryContent() {
     currentFavoriteConfig,
   } = priceQuery;
 
-  const shouldFetchDIAData =
-    !selectedOracle ||
-    selectedOracle === OracleProvider.DIA ||
-    queryResults.some((r) => r.provider === OracleProvider.DIA);
-
-  const { data: diaOnChainData, isLoading: isDIADataLoading } = useOnChainDataByProvider({
-    provider: OracleProvider.DIA,
-    symbol: selectedSymbol,
-    chain: selectedChain || undefined,
-    enabled: shouldFetchDIAData && !!selectedSymbol && queryResults.length > 0,
-  });
-
-  const shouldFetchWINkLinkData =
-    !selectedOracle ||
-    selectedOracle === OracleProvider.WINKLINK ||
-    queryResults.some((r) => r.provider === OracleProvider.WINKLINK);
-
-  const { data: winklinkOnChainData, isLoading: isWINkLinkDataLoading } = useOnChainDataByProvider({
-    provider: OracleProvider.WINKLINK,
-    symbol: selectedSymbol,
-    enabled: shouldFetchWINkLinkData && !!selectedSymbol && queryResults.length > 0,
-  });
-
-  const shouldFetchRedStoneData =
-    !selectedOracle ||
-    selectedOracle === OracleProvider.REDSTONE ||
-    queryResults.some((r) => r.provider === OracleProvider.REDSTONE);
-
-  const { data: redstoneOnChainData, isLoading: isRedStoneDataLoading } = useOnChainDataByProvider({
-    provider: OracleProvider.REDSTONE,
-    symbol: selectedSymbol,
-    enabled: shouldFetchRedStoneData && !!selectedSymbol && queryResults.length > 0,
-  });
-
-  const shouldFetchSupraData =
-    !selectedOracle ||
-    selectedOracle === OracleProvider.SUPRA ||
-    queryResults.some((r) => r.provider === OracleProvider.SUPRA);
-
-  const { data: supraOnChainData, isLoading: isSupraDataLoading } = useOnChainDataByProvider({
-    provider: OracleProvider.SUPRA,
-    symbol: selectedSymbol,
-    enabled: shouldFetchSupraData && !!selectedSymbol && queryResults.length > 0,
-  });
-
-  const shouldFetchTwapData =
-    !selectedOracle ||
-    selectedOracle === OracleProvider.TWAP ||
-    queryResults.some((r) => r.provider === OracleProvider.TWAP);
-
-  const { data: twapOnChainData, isLoading: isTwapDataLoading } = useOnChainDataByProvider({
-    provider: OracleProvider.TWAP,
-    symbol: selectedSymbol,
-    chain: selectedChain || undefined,
-    enabled: shouldFetchTwapData && !!selectedSymbol && queryResults.length > 0,
-  });
-
-  const shouldFetchReflectorData =
-    !selectedOracle ||
-    selectedOracle === OracleProvider.REFLECTOR ||
-    queryResults.some((r) => r.provider === OracleProvider.REFLECTOR);
-
-  const { data: reflectorOnChainData, isLoading: isReflectorDataLoading } =
-    useOnChainDataByProvider({
-      provider: OracleProvider.REFLECTOR,
-      symbol: selectedSymbol,
-      enabled: shouldFetchReflectorData && !!selectedSymbol && queryResults.length > 0,
-    });
-
-  const shouldFetchFlareData =
-    !selectedOracle ||
-    selectedOracle === OracleProvider.FLARE ||
-    queryResults.some((r) => r.provider === OracleProvider.FLARE);
-
-  const { data: flareOnChainData, isLoading: isFlareDataLoading } = useOnChainDataByProvider({
-    provider: OracleProvider.FLARE,
-    symbol: selectedSymbol,
-    enabled: shouldFetchFlareData && !!selectedSymbol && queryResults.length > 0,
+  const onChainData = useAllOnChainData({
+    selectedOracle,
+    selectedSymbol,
+    selectedChain,
+    queryResults,
   });
 
   const debouncedSearchFocus = useCallback(() => {
@@ -336,24 +262,7 @@ export default function PriceQueryContent() {
                 onClearErrors: clearErrors,
               } satisfies ErrorState
             }
-            onChainData={
-              {
-                diaOnChainData,
-                isDIADataLoading,
-                winklinkOnChainData,
-                isWINkLinkDataLoading,
-                redstoneOnChainData,
-                isRedStoneDataLoading,
-                supraOnChainData,
-                isSupraDataLoading,
-                twapOnChainData,
-                isTwapDataLoading,
-                reflectorOnChainData,
-                isReflectorDataLoading,
-                flareOnChainData,
-                isFlareDataLoading,
-              } satisfies OnChainData
-            }
+            onChainData={onChainData satisfies OnChainData}
             selectedSymbol={selectedSymbol}
             setSelectedSymbol={setSelectedSymbol}
             onRefresh={fetchQueryData}

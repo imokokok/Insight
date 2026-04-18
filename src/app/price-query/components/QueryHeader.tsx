@@ -3,8 +3,8 @@
 import { Download, FileJson, FileSpreadsheet, Star, ChevronDown } from 'lucide-react';
 
 import type { FavoriteConfig } from '@/hooks';
-import type { OracleProvider, Blockchain } from '@/lib/oracles';
 import type { UserFavorite } from '@/lib/supabase/queries';
+import type { OracleProvider, Blockchain } from '@/types/oracle';
 
 interface QueryHeaderProps {
   loading: boolean;

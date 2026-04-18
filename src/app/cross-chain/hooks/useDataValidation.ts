@@ -1,5 +1,5 @@
-import { type Blockchain, type PriceData } from '@/lib/oracles';
 import { createLogger } from '@/lib/utils/logger';
+import { type Blockchain, type PriceData } from '@/types/oracle';
 import type { ValidationResult } from '@/types/oracle/constants';
 
 import { validatePriceData } from '../utils/validation';

@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useRef } from 'react';
 
 import { oracleApiClient } from '@/lib/api/oracleApiClient';
-import { type OracleProvider, type Blockchain, type PriceData } from '@/lib/oracles';
 import { createLogger } from '@/lib/utils/logger';
 import { safeMax, safeMin } from '@/lib/utils/statistics';
+import { type OracleProvider, type Blockchain, type PriceData } from '@/types/oracle';
 
 import type { UseAnomalyDetectionReturn } from './useAnomalyDetection';
 import type { UseDataValidationReturn } from './useDataValidation';

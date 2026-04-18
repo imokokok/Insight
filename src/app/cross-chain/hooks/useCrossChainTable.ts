@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 
-import { type Blockchain, type PriceData } from '@/lib/oracles';
 import { useCrossChainUIStore } from '@/stores/crossChainUIStore';
+import { type Blockchain, type PriceData } from '@/types/oracle';
 
 import { chainNames, calculateDynamicThreshold, type ThresholdConfig } from '../utils';
 

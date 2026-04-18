@@ -2,7 +2,11 @@ import { type NextResponse } from 'next/server';
 
 import { createCachedJsonResponse } from '@/lib/api/utils';
 import { ValidationError, InternalError, errorToResponse, isAppError } from '@/lib/errors';
-import { ORACLE_CACHE_TTL, OracleRepository } from '@/lib/oracles';
+import { ORACLE_CACHE_TTL } from '@/lib/oracles';
+import {
+  fetchPriceWithDatabase,
+  fetchHistoricalPricesWithDatabase,
+} from '@/lib/oracles/base/databaseOperations';
 import { createLogger } from '@/lib/utils/logger';
 import {
   type OracleProvider,
@@ -127,7 +131,7 @@ export function validateChain(chain: string): NextResponse | null {
 }
 
 async function fetchPriceFromOracle(params: OracleQueryParams): Promise<PriceData> {
-  return OracleRepository.fetchPrice(params.provider, params.symbol, params.chain);
+  return fetchPriceWithDatabase(params.provider, params.symbol, params.chain, true);
 }
 
 async function fetchHistoricalFromOracle(params: OracleQueryParams): Promise<PriceData[]> {
@@ -136,11 +140,12 @@ async function fetchHistoricalFromOracle(params: OracleQueryParams): Promise<Pri
       field: 'period',
     });
   }
-  return OracleRepository.fetchHistoricalPrices(
+  return fetchHistoricalPricesWithDatabase(
     params.provider,
     params.symbol,
     params.chain,
-    params.period
+    params.period,
+    true
   );
 }
 
@@ -167,10 +172,11 @@ async function fetchBatchPrices(
       const key = `${request.provider}:${request.symbol}:${request.chain || 'default'}`;
 
       try {
-        const price = await OracleRepository.fetchPrice(
+        const price = await fetchPriceWithDatabase(
           request.provider as OracleProvider,
           request.symbol,
-          request.chain as Blockchain | undefined
+          request.chain as Blockchain | undefined,
+          true
         );
         results[key] = {
           success: true,

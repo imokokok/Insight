@@ -374,12 +374,10 @@ export abstract class BaseOracleClient {
     );
   }
 
-  /** @deprecated Use OracleRepository.fetchPrice() instead */
   async fetchPriceWithDatabase(symbol: string, chain: Blockchain | undefined): Promise<PriceData> {
     return fetchPriceWithDatabase(this.name, symbol, chain, this.config.useDatabase ?? true);
   }
 
-  /** @deprecated Use OracleRepository.fetchHistoricalPrices() instead */
   async fetchHistoricalPricesWithDatabase(
     symbol: string,
     chain: Blockchain | undefined,

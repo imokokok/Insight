@@ -7,9 +7,9 @@ import { ChevronDown, ChevronUp, Filter } from 'lucide-react';
 import { DropdownSelect, SegmentedControl } from '@/components/ui';
 import { chainColors as configChainColors } from '@/lib/config/colors';
 import { getPriceOracleProvidersSortedByMarketCap } from '@/lib/config/oracles';
-import { type OracleProvider, Blockchain } from '@/lib/oracles';
 import { isBlockchain } from '@/lib/utils/chainUtils';
 import { useCrossChainConfigStore } from '@/stores/crossChainConfigStore';
+import { type OracleProvider, Blockchain } from '@/types/oracle';
 
 import { TIME_RANGES, providerNames, chainNames, symbols } from '../constants';
 import { type useCrossChainData } from '../useCrossChainData';

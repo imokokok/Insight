@@ -1,9 +1,9 @@
 import { useCallback, useRef } from 'react';
 
-import { OracleProvider, type Blockchain, type PriceData } from '@/lib/oracles';
 import { downloadBlob } from '@/lib/utils/download';
 import { escapeCSVField } from '@/lib/utils/export';
 import { createLogger } from '@/lib/utils/logger';
+import { OracleProvider, type Blockchain, type PriceData } from '@/types/oracle';
 
 import { chainNames } from '../utils';
 

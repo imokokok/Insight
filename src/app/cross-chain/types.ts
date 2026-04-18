@@ -3,13 +3,9 @@
  */
 
 import { type FavoriteConfig, type useFavorites } from '@/hooks';
-import {
-  type OracleProvider,
-  type Blockchain,
-  type PriceData,
-  type BaseOracleClient,
-} from '@/lib/oracles';
+import { type BaseOracleClient } from '@/lib/oracles';
 import type { useUser } from '@/stores/authStore';
+import { type OracleProvider, type Blockchain, type PriceData } from '@/types/oracle';
 
 import { type RefreshInterval } from './constants';
 import {

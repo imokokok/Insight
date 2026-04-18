@@ -10,8 +10,4 @@ export { ReflectorClient } from './clients/reflector';
 export { FlareClient } from './clients/flare';
 export { BaseOracleClient, ORACLE_CACHE_TTL } from './base';
 export { OracleClientFactory, getDefaultFactory } from './factory';
-export { OracleRepository } from './OracleRepository';
-export * from '@/types/oracle';
-// Performance Metrics Calculator
-// Oracle Data Utilities
 export { getHoursForTimeRange, extractBaseSymbol } from './utils/oracleDataUtils';

@@ -4,12 +4,12 @@ import { useMemo, useRef } from 'react';
 
 import type { ReflectorTokenOnChainData } from '@/hooks/oracles/useReflectorOnChainData';
 import type { TwapOnChainData } from '@/hooks/oracles/useTwapOnChainData';
-import { OracleProvider as OracleProviderEnum } from '@/lib/oracles';
 import type { FlareTokenOnChainData } from '@/lib/oracles/clients/flare';
 import type { RedStoneTokenOnChainData } from '@/lib/oracles/clients/redstone';
 import type { SupraTokenOnChainData } from '@/lib/oracles/clients/supra';
 import type { DIATokenOnChainData } from '@/lib/oracles/services/diaDataService';
 import type { WINkLinkTokenOnChainData } from '@/lib/oracles/services/winklinkRealDataService';
+import { OracleProvider as OracleProviderEnum } from '@/types/oracle';
 
 import {
   ChainlinkStats,

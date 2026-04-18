@@ -1,4 +1,5 @@
-import { type Blockchain, type PriceData, type BaseOracleClient } from '@/lib/oracles';
+import { type BaseOracleClient } from '@/lib/oracles';
+import { type Blockchain, type PriceData } from '@/types/oracle';
 
 import { useStatistics, type UseStatisticsReturn } from './useStatistics';
 

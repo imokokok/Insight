@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { devtools, persist, createJSONStorage } from 'zustand/middleware';
 
-import { OracleProvider, type Blockchain } from '@/lib/oracles';
+import { OracleProvider, type Blockchain } from '@/types/oracle';
 
 interface SelectorState {
   selectedProvider: OracleProvider;

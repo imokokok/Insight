@@ -1,16 +1,11 @@
 import { useEffect, useCallback, useRef } from 'react';
 
-import {
-  type OracleProvider,
-  type Blockchain,
-  type PriceData,
-  getDefaultFactory,
-  type BaseOracleClient,
-} from '@/lib/oracles';
+import { getDefaultFactory, type BaseOracleClient } from '@/lib/oracles';
 import { useCrossChainConfigStore } from '@/stores/crossChainConfigStore';
 import { useCrossChainDataStore } from '@/stores/crossChainDataStore';
 import { useCrossChainSelectorStore } from '@/stores/crossChainSelectorStore';
 import { useCrossChainUIStore } from '@/stores/crossChainUIStore';
+import { type OracleProvider, type Blockchain, type PriceData } from '@/types/oracle';
 
 import { type AnomalousPricePoint } from '../utils/anomalyDetection';
 
