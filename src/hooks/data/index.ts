@@ -1,5 +1,4 @@
 export { useOracleData } from './useOracleData';
-export { usePriceData, useHistoricalPrices } from './useOracleClientData';
 export {
   useAlerts,
   useCreateAlert,
@@ -30,6 +29,3 @@ export {
   mapConfigTypeFromDB,
 } from './useFavorites';
 export type { FavoriteConfig, UseFavoritesOptions } from './useFavorites';
-export { useRealtimeAlerts } from './useRealtimeAlerts';
-export { useDataFreshness } from './useDataFreshness';
-export type { DataFreshnessStatus, UseDataFreshnessReturn } from './useDataFreshness';

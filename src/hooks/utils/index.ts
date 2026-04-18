@@ -8,11 +8,3 @@ export {
   useAutoRefreshInterval,
 } from './usePreferences';
 export type { UserPreferences } from './usePreferences';
-export { useDeviationDetection, useBatchDeviationDetection } from './useDeviationDetection';
-export type {
-  DeviationLevel,
-  DeviationType,
-  DeviationThreshold,
-  DeviationDetectionResult,
-  DEFAULT_DEVIATION_THRESHOLD,
-} from './useDeviationDetection';
