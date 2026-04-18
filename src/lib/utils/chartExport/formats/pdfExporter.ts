@@ -118,14 +118,14 @@ export async function exportToPDF(
     doc.setTextColor(128, 128, 128);
 
     const footerY = pageHeight - margin;
-    doc.text(`页 ${i + 1} / ${charts.length}`, pageWidth / 2, footerY, { align: 'center' });
+    doc.text(`Page ${i + 1} / ${charts.length}`, pageWidth / 2, footerY, { align: 'center' });
 
     if (includeMetadata && metadata) {
-      const metadataText = `导出时间: ${new Date(metadata.exportedAt).toLocaleString('zh-CN')}`;
+      const metadataText = `Exported: ${new Date(metadata.exportedAt).toLocaleString('en-US')}`;
       doc.text(metadataText, margin, footerY);
 
       if (metadata.dataSource) {
-        doc.text(`数据源: ${metadata.dataSource}`, margin, footerY - 5);
+        doc.text(`Data Source: ${metadata.dataSource}`, margin, footerY - 5);
       }
     }
 

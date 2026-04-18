@@ -56,7 +56,9 @@ export const getTCriticalValue = (df: number, confidenceLevel: number = 0.95): n
   }
 
   if (confidenceLevel !== 0.95) {
-    console.warn('getTCriticalValue: 当前仅支持 95% 置信水平，其他置信水平将使用正态近似');
+    console.warn(
+      'getTCriticalValue: Currently only 95% confidence level is supported, other confidence levels will use normal approximation'
+    );
     return 1.96;
   }
 

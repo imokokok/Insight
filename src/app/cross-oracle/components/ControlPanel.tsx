@@ -115,7 +115,7 @@ export function ControlPanel({
             />
             <span>{option.label}</span>
           </div>
-          <span className="text-xs text-gray-400">{oracleCount} 个预言机</span>
+          <span className="text-xs text-gray-400">{oracleCount} oracles</span>
         </div>
       );
     },

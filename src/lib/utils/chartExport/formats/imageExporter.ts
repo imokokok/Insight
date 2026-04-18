@@ -112,12 +112,12 @@ export async function exportToPNG(
             hour: '2-digit',
             minute: '2-digit',
           });
-          ctx.fillText(`导出时间: ${timestamp}`, padding * scale, timestampY);
+          ctx.fillText(`Exported: ${timestamp}`, padding * scale, timestampY);
 
           if (dataSource) {
             ctx.fillStyle = exportColors.text.muted;
             ctx.font = `${10 * scale}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
-            ctx.fillText(`数据来源: ${dataSource}`, padding * scale, timestampY + 18 * scale);
+            ctx.fillText(`Data Source: ${dataSource}`, padding * scale, timestampY + 18 * scale);
           }
         }
 
@@ -307,7 +307,7 @@ export async function exportToSVG(
     );
     timestampText.setAttribute('font-size', '12');
     timestampText.setAttribute('fill', exportColors.text.secondary);
-    timestampText.textContent = `导出时间: ${timestamp}`;
+    timestampText.textContent = `Exported: ${timestamp}`;
     footerGroup.appendChild(timestampText);
 
     if (dataSource) {
@@ -320,7 +320,7 @@ export async function exportToSVG(
       );
       sourceText.setAttribute('font-size', '10');
       sourceText.setAttribute('fill', exportColors.text.muted);
-      sourceText.textContent = `数据来源: ${dataSource}`;
+      sourceText.textContent = `Data Source: ${dataSource}`;
       footerGroup.appendChild(sourceText);
     }
 

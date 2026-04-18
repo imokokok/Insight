@@ -184,13 +184,13 @@ export function validateTimeSeries(data: PriceData[]): PriceValidationResult {
   for (let i = 0; i < sortedData.length; i++) {
     const priceValidation = validatePrice(sortedData[i].price);
     if (!priceValidation.isValid) {
-      result.errors.push(...priceValidation.errors.map((e) => `[索引 ${i}] ${e}`));
+      result.errors.push(...priceValidation.errors.map((e) => `[Index ${i}] ${e}`));
       result.isValid = false;
     }
 
     const timestampValidation = validateTimestamp(sortedData[i].timestamp);
     if (!timestampValidation.isValid) {
-      result.errors.push(...timestampValidation.errors.map((e) => `[索引 ${i}] ${e}`));
+      result.errors.push(...timestampValidation.errors.map((e) => `[Index ${i}] ${e}`));
       result.isValid = false;
     }
     result.anomalies.push(
