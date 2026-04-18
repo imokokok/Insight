@@ -90,7 +90,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       return ApiResponseBuilder.notFound('Favorite not found');
     }
 
-    return NextResponse.json({ favorite });
+    return NextResponse.json(ApiResponseBuilder.success(favorite));
   } catch (error) {
     logger.error(
       'Error fetching favorite',
@@ -146,10 +146,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       return ApiResponseBuilder.serverError('Failed to update favorite');
     }
 
-    return NextResponse.json({
-      favorite: updatedFavorite,
-      message: 'Favorite updated successfully',
-    });
+    return NextResponse.json(ApiResponseBuilder.success(updatedFavorite));
   } catch (error) {
     logger.error(
       'Error updating favorite',
@@ -195,9 +192,7 @@ export async function DELETE(
       return ApiResponseBuilder.serverError('Failed to delete favorite');
     }
 
-    return NextResponse.json({
-      message: 'Favorite deleted successfully',
-    });
+    return NextResponse.json(ApiResponseBuilder.success({ deleted: true }));
   } catch (error) {
     logger.error(
       'Error deleting favorite',

@@ -36,6 +36,11 @@ function useDateFormatter() {
  * Use these when you need to format dates outside of React components
  */
 
+/**
+ * Formats a date to YYYY-MM-DD format (UTC)
+ * @param date - The date to format
+ * @returns Formatted date string in UTC
+ */
 export function formatDate(date: Date | number | string): string {
   let d: Date;
   if (typeof date === 'string') {
@@ -50,9 +55,10 @@ export function formatDate(date: Date | number | string): string {
     return '';
   }
 
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
+  // Use UTC to be consistent with formatDateTime
+  const year = d.getUTCFullYear();
+  const month = String(d.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(d.getUTCDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 }
 
@@ -77,7 +83,18 @@ export function formatDateTime(date: Date | number, format?: string): string {
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 }
 
-export function formatRelativeTime(timestamp: number | Date): string {
+/**
+ * Formats a relative time from a timestamp
+ * @param timestamp - The timestamp to format (Date or number in ms)
+ * @param options - Formatting options
+ * @returns Formatted relative time string
+ * @deprecated Use formatRelativeTime from '@/lib/utils/format' instead
+ */
+export function formatRelativeTime(
+  timestamp: number | Date,
+  options?: { style?: 'short' | 'long' }
+): string {
+  const style = options?.style ?? 'short';
   const now = Date.now();
   const time = typeof timestamp === 'number' ? timestamp : timestamp.getTime();
   const diff = now - time;
@@ -87,15 +104,18 @@ export function formatRelativeTime(timestamp: number | Date): string {
   const hours = Math.floor(minutes / 60);
   const days = Math.floor(hours / 24);
 
-  if (seconds < 60) {
-    return `${seconds}s ago`;
-  } else if (minutes < 60) {
-    return `${minutes}m ago`;
-  } else if (hours < 24) {
-    return `${hours}h ago`;
-  } else {
+  if (style === 'short') {
+    if (seconds < 60) return `${seconds}s ago`;
+    if (minutes < 60) return `${minutes}m ago`;
+    if (hours < 24) return `${hours}h ago`;
     return `${days}d ago`;
   }
+
+  // long style
+  if (seconds < 60) return `${seconds} seconds ago`;
+  if (minutes < 60) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+  if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+  return `${days} day${days > 1 ? 's' : ''} ago`;
 }
 
 export function formatDuration(milliseconds: number): string {

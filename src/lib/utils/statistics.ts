@@ -127,8 +127,12 @@ export function calculateCDF(data: number[], steps: number = 100): CDFResult {
   // Calculate mean
   const mean = sortedData.reduce((sum, val) => sum + val, 0) / totalCount;
 
-  // Calculate standard deviation
-  const variance = sortedData.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / totalCount;
+  // Calculate standard deviation using sample variance (n-1) for consistency with other functions
+  // This is the standard approach for financial analysis
+  const variance =
+    totalCount > 1
+      ? sortedData.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / (totalCount - 1)
+      : 0;
   const stdDev = Math.sqrt(variance);
 
   // Calculate quantiles

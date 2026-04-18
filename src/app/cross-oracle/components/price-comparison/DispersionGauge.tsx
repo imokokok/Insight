@@ -80,7 +80,7 @@ function DispersionGaugeComponent({ cv, size = 120 }: DispersionGaugeProps) {
             height: size * 0.5,
           }}
         >
-          <span className="text-lg font-bold text-gray-900">{cv.toFixed(2)}%</span>
+          <span className="text-lg font-bold text-gray-900">{(cv * 100).toFixed(2)}%</span>
           <span className="text-xs text-gray-500">CV</span>
         </div>
       </div>

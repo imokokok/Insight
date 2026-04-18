@@ -64,6 +64,5 @@ const getVolatilityColor = (value: number): string => {
   return semanticColors.danger.DEFAULT;
 };
 
-export const formatPrice = (price: number, _decimals?: number): string => {
-  return formatPriceUtil(price);
-};
+// Re-export formatPrice from core utils
+export const formatPrice = formatPriceUtil;

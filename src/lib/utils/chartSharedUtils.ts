@@ -1,6 +1,7 @@
 import { chartColors as configChartColors, semanticColors } from '@/lib/config/colors';
 
-import { formatPrice as formatPriceBase } from './format';
+// Re-export formatPrice from core utils to maintain backward compatibility
+export { formatPrice } from './format';
 
 const hexToRgba = (hex: string, alpha: number): string => {
   if (!hex || typeof hex !== 'string' || !/^#[0-9a-fA-F]{6}$/.test(hex)) {
@@ -72,37 +73,40 @@ const getDeviationColor = (deviationPercent: number): string => {
   return chartColors.danger;
 };
 
+/**
+ * Gets heatmap color using project color system
+ * @param value - The value to color
+ * @param min - Minimum value in range
+ * @param max - Maximum value in range
+ * @returns Color hex code
+ */
 export const getHeatmapColor = (value: number, min: number, max: number): string => {
   const range = max - min;
   const absValue = Math.abs(value);
 
   // 当所有值都为0或范围很小时，使用基于绝对阈值的着色
   if (range === 0 || max < 0.01) {
-    // 基于绝对值判断颜色，使用更深的颜色确保可见性
-    if (absValue < 0.001) return '#22c55e'; // < 0.001%: 绿色
-    if (absValue < 0.003) return '#16a34a'; // < 0.003%: 深绿
-    if (absValue < 0.005) return '#65a30d'; // < 0.005%: 黄绿
-    if (absValue < 0.01) return '#84cc16'; // < 0.01%: 浅黄绿
-    if (absValue < 0.03) return '#eab308'; // < 0.03%: 黄色
-    if (absValue < 0.05) return '#f59e0b'; // < 0.05%: 橙黄
-    if (absValue < 0.1) return '#f97316'; // < 0.1%: 橙色
-    if (absValue < 0.3) return '#ea580c'; // < 0.3%: 深橙
-    return chartColors.heatmap.high; // >= 0.3%: 红色
+    // 使用项目颜色系统的语义颜色，避免硬编码
+    if (absValue < 0.001) return semanticColors.success.DEFAULT;
+    if (absValue < 0.003) return semanticColors.success.dark || '#16a34a';
+    if (absValue < 0.005) return '#65a30d'; // 黄绿 - 介于 success 和 warning 之间
+    if (absValue < 0.01) return '#84cc16'; // 浅黄绿
+    if (absValue < 0.03) return semanticColors.warning.DEFAULT;
+    if (absValue < 0.05) return semanticColors.warning.dark || '#f59e0b';
+    if (absValue < 0.1) return '#f97316'; // 橙色 - 介于 warning 和 danger 之间
+    if (absValue < 0.3) return semanticColors.danger.light || '#ea580c';
+    return semanticColors.danger.DEFAULT;
   }
 
   // 正常归一化逻辑
   const normalized = (value - min) / range;
 
-  // 使用更细致的渐变
+  // 使用项目颜色系统
   if (normalized < 0.2) return chartColors.heatmap.low;
   if (normalized < 0.4) return '#84cc16';
   if (normalized < 0.6) return chartColors.heatmap.medium;
   if (normalized < 0.8) return '#f97316';
   return chartColors.heatmap.high;
-};
-
-export const formatPrice = (price: number): string => {
-  return formatPriceBase(price);
 };
 
 export const calculateStandardDeviation = (values: number[]): number => {

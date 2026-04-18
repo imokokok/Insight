@@ -15,6 +15,7 @@ import {
 
 import { chartColors, semanticColors, baseColors } from '@/lib/config/colors';
 import { safeMax, safeMin } from '@/lib/utils';
+import { formatPrice } from '@/lib/utils/format';
 
 import { type BoxPlotData } from '../constants';
 
@@ -75,13 +76,13 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
         <div className="flex justify-between gap-4">
           <span style={{ color: baseColors.gray[500] }}>Max:</span>
           <span className="font-mono" style={{ color: baseColors.gray[900] }}>
-            ${data.max.toFixed(4)}
+            {formatPrice(data.max)}
           </span>
         </div>
         <div className="flex justify-between gap-4">
           <span style={{ color: baseColors.gray[500] }}>Q3:</span>
           <span className="font-mono" style={{ color: baseColors.gray[900] }}>
-            ${data.q3.toFixed(4)}
+            {formatPrice(data.q3)}
           </span>
         </div>
         <div
@@ -95,19 +96,19 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
             Median:
           </span>
           <span className="font-mono font-semibold" style={{ color: semanticColors.info.text }}>
-            ${data.median.toFixed(4)}
+            {formatPrice(data.median)}
           </span>
         </div>
         <div className="flex justify-between gap-4">
           <span style={{ color: baseColors.gray[500] }}>Q1:</span>
           <span className="font-mono" style={{ color: baseColors.gray[900] }}>
-            ${data.q1.toFixed(4)}
+            {formatPrice(data.q1)}
           </span>
         </div>
         <div className="flex justify-between gap-4">
           <span style={{ color: baseColors.gray[500] }}>Min:</span>
           <span className="font-mono" style={{ color: baseColors.gray[900] }}>
-            ${data.min.toFixed(4)}
+            {formatPrice(data.min)}
           </span>
         </div>
         <div
@@ -116,7 +117,7 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
         >
           <span style={{ color: baseColors.gray[500] }}>IQR:</span>
           <span className="font-mono" style={{ color: baseColors.gray[900] }}>
-            ${data.iqr.toFixed(4)}
+            {formatPrice(data.iqr)}
           </span>
         </div>
         {data.outliers.length > 0 && (
@@ -135,7 +136,7 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
             >
               {data.outliers.slice(0, 3).map((v, i) => (
                 <span key={i} className="inline-block mr-2">
-                  ${v.toFixed(2)}
+                  {formatPrice(v)}
                 </span>
               ))}
               {data.outliers.length > 3 && <span style={{ color: baseColors.gray[400] }}>...</span>}

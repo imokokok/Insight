@@ -32,6 +32,17 @@ export function PriceFlash({ value, previousValue, className, children }: PriceF
     prevRef.current = value;
   }, [value]);
 
+  // Determine change description for accessibility
+  const getChangeDescription = () => {
+    const prev = prevRef.current;
+    if (prev === undefined || value === prev) return 'Price unchanged';
+    const direction = value > prev ? 'increased' : 'decreased';
+    const percent = ((Math.abs(value - prev) / prev) * 100).toFixed(2);
+    return `Price ${direction} by ${percent}%`;
+  };
+
+  const changeDescription = getChangeDescription();
+
   return (
     <span
       className={cn(
@@ -39,6 +50,10 @@ export function PriceFlash({ value, previousValue, className, children }: PriceF
         flashClass,
         className
       )}
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+      aria-label={changeDescription}
     >
       {children || value}
     </span>
