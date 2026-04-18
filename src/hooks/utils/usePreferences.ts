@@ -8,7 +8,6 @@ export interface UserPreferences {
   defaultOracle: string;
   defaultSymbol: string;
   defaultTimeRange: string;
-  language: string;
   defaultCurrency: string;
   autoRefreshInterval: number;
 }
@@ -19,7 +18,6 @@ const defaultPreferences: UserPreferences = {
   defaultOracle: 'chainlink',
   defaultSymbol: 'BTC/USD',
   defaultTimeRange: '24h',
-  language: 'en-US',
   defaultCurrency: 'USD',
   autoRefreshInterval: 30,
 };
@@ -28,7 +26,6 @@ interface DbUserPreferences {
   default_oracle?: string;
   default_symbol?: string;
   default_time_range?: string;
-  language?: string;
   default_currency?: string;
   auto_refresh_interval?: number;
   chart_settings?: {
@@ -48,7 +45,6 @@ function getLocalPreferences(): Partial<UserPreferences> {
       defaultOracle: parsed.defaultOracle,
       defaultSymbol: parsed.defaultSymbol,
       defaultTimeRange: parsed.defaultTimeRange,
-      language: parsed.language,
       defaultCurrency: parsed.defaultCurrency,
       autoRefreshInterval: parsed.autoRefreshInterval
         ? parseInt(parsed.autoRefreshInterval, 10)
@@ -77,7 +73,6 @@ export function usePreferences() {
           dbPrefs.default_time_range ||
           localPrefs.defaultTimeRange ||
           defaultPreferences.defaultTimeRange,
-        language: dbPrefs.language || localPrefs.language || defaultPreferences.language,
         defaultCurrency:
           dbPrefs.default_currency ||
           localPrefs.defaultCurrency ||
@@ -98,7 +93,6 @@ export function usePreferences() {
         defaultOracle: prefs.defaultOracle,
         defaultSymbol: prefs.defaultSymbol,
         defaultTimeRange: prefs.defaultTimeRange,
-        language: prefs.language,
         defaultCurrency: prefs.defaultCurrency,
         autoRefreshInterval: String(prefs.autoRefreshInterval),
       })

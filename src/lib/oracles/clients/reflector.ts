@@ -1,7 +1,7 @@
 import { Blockchain, OracleProvider, type PriceData } from '@/types/oracle';
 
 import { BaseOracleClient, type OracleClientConfig } from '../base';
-import { REFLECTOR_CRYPTO_ASSETS } from '../constants/reflectorConstants';
+import { REFLECTOR_CRYPTO_ASSETS, REFLECTOR_FOREX_ASSETS } from '../constants/reflectorConstants';
 import { getReflectorDataService } from '../services/reflectorDataService';
 import { withOracleRetry, ORACLE_RETRY_PRESETS } from '../utils/retry';
 
@@ -61,7 +61,7 @@ export class ReflectorClient extends BaseOracleClient {
   }
 
   getSupportedSymbols(): string[] {
-    return [...REFLECTOR_CRYPTO_ASSETS];
+    return [...REFLECTOR_CRYPTO_ASSETS, ...REFLECTOR_FOREX_ASSETS];
   }
 
   protected onHistoricalDataError(_symbol: string, _error: unknown): PriceData[] {

@@ -4,6 +4,7 @@ import { useMemo, useCallback } from 'react';
 
 import { useQuery } from '@tanstack/react-query';
 
+import { REFLECTOR_ASSET_CONTRACT_MAP } from '@/lib/oracles/constants/reflectorConstants';
 import { getReflectorDataService } from '@/lib/oracles/services/reflectorDataService';
 
 export interface UseReflectorOnChainDataOptions {
@@ -55,9 +56,10 @@ export function useReflectorOnChainData(
   } = useQuery<ReflectorTokenOnChainData | null, Error>({
     queryKey,
     queryFn: async () => {
+      const contractId = REFLECTOR_ASSET_CONTRACT_MAP[symbol.toUpperCase()];
       const [priceData, metadata] = await Promise.all([
         service.fetchLatestPrice(symbol),
-        service.fetchOnChainMetadata(),
+        service.fetchOnChainMetadata(contractId),
       ]);
 
       if (!priceData) return null;

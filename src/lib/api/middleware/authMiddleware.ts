@@ -1,37 +1,11 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
+import { createServerClient } from '@/lib/supabase/server';
 import { createLogger } from '@/lib/utils/logger';
 
 import { ApiResponseBuilder } from '../response';
 
-import type { SupabaseClient } from '@supabase/supabase-js';
-
 const logger = createLogger('auth-middleware');
-
-let supabaseClientPromise: Promise<SupabaseClient | null> | null = null;
-
-const getSupabaseClient = async () => {
-  if (supabaseClientPromise) return supabaseClientPromise;
-
-  supabaseClientPromise = (async () => {
-    const { createClient } = await import('@supabase/supabase-js');
-    const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-    if (!supabaseUrl || !supabaseAnonKey) {
-      return null;
-    }
-
-    return createClient(supabaseUrl, supabaseAnonKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
-    });
-  })();
-
-  return supabaseClientPromise;
-};
 
 export interface AuthContext {
   userId: string | null;
@@ -49,7 +23,7 @@ export type AuthMiddlewareResult =
   | { success: false; response: NextResponse };
 
 export async function extractAuthContext(request: NextRequest): Promise<AuthContext | null> {
-  const authHeader = request.headers.get('key');
+  const authHeader = request.headers.get('authorization');
   if (!authHeader?.startsWith('Bearer ')) {
     return null;
   }
@@ -57,12 +31,7 @@ export async function extractAuthContext(request: NextRequest): Promise<AuthCont
   const token = authHeader.slice(7);
 
   try {
-    const client = await getSupabaseClient();
-
-    if (!client) {
-      logger.warn('Supabase configuration missing');
-      return null;
-    }
+    const client = createServerClient();
 
     const {
       data: { user },

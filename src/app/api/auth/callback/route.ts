@@ -1,8 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
-import { createClient } from '@supabase/supabase-js';
-
 import { strictRateLimit } from '@/lib/api/middleware/rateLimitMiddleware';
+import { createServerClient } from '@/lib/supabase/server';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('api-auth-callback');
@@ -42,12 +41,12 @@ export async function GET(request: NextRequest) {
 
   try {
     const searchParams = request.nextUrl.searchParams;
-    const code = searchParams.get('key');
-    const state = searchParams.get('key');
-    const error = searchParams.get('key');
-    const errorDescription = searchParams.get('key');
-    const errorCode = searchParams.get('key');
-    const type = searchParams.get('key');
+    const code = searchParams.get('code');
+    const state = searchParams.get('state');
+    const error = searchParams.get('error');
+    const errorDescription = searchParams.get('error_description');
+    const errorCode = searchParams.get('error_code');
+    const type = searchParams.get('type');
 
     if (error) {
       logger.error('Auth callback error', new Error(`${error}: ${errorDescription}`));
@@ -66,20 +65,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(new URL('/auth/verify-email?error=missing_code', request.url));
     }
 
-    const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-    if (!supabaseUrl || !supabaseServiceKey) {
-      logger.error('Missing Supabase configuration');
-      return NextResponse.redirect(new URL('/auth/verify-email?error=server_error', request.url));
-    }
-
-    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
-    });
+    const supabase = createServerClient();
 
     const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
 

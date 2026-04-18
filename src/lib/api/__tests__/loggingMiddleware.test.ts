@@ -130,7 +130,7 @@ describe('loggingMiddleware', () => {
 
       await middleware(request);
 
-      expect(request.headers.get('key')).toBe('Bearer token123');
+      expect(request.headers.get('authorization')).toBe('Bearer token123');
     });
 
     it('should log body when logBody is true', async () => {

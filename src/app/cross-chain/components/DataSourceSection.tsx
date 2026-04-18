@@ -31,6 +31,7 @@ function getCredibilityLevel(
     OracleProvider.API3,
     OracleProvider.REDSTONE,
     OracleProvider.DIA,
+    OracleProvider.FLARE,
   ];
 
   if (highCredibility.includes(provider)) return 'high';
@@ -51,6 +52,8 @@ function getProviderForChain(chain: Blockchain): OracleProvider {
     [Blockchain.BNB_CHAIN]: OracleProvider.CHAINLINK,
     [Blockchain.TRON]: OracleProvider.WINKLINK,
     [Blockchain.NEAR]: OracleProvider.CHAINLINK,
+    [Blockchain.FLARE]: OracleProvider.FLARE,
+    [Blockchain.STELLAR]: OracleProvider.REFLECTOR,
   };
 
   return providerMap[chain] || OracleProvider.CHAINLINK;

@@ -86,13 +86,12 @@ class RealtimeManager {
 
     this.client.realtime.connect();
 
-    // 保存定时器引用以便清理
-    this.connectionCheckTimer = setTimeout(checkConnection, 1000);
+    this.connectionCheckTimer = setInterval(checkConnection, 5000);
   }
 
   private clearConnectionCheckTimer() {
     if (this.connectionCheckTimer) {
-      clearTimeout(this.connectionCheckTimer);
+      clearInterval(this.connectionCheckTimer);
       this.connectionCheckTimer = null;
     }
   }
@@ -366,6 +365,17 @@ class RealtimeManager {
     this.reconnectAttempts = 0;
     this.updateConnectionStatus('connecting');
     this.client.realtime.connect();
+  }
+
+  public destroy() {
+    this.clearConnectionCheckTimer();
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
+    this.unsubscribeAll();
+    this.statusListeners.clear();
+    this.client.realtime.disconnect();
   }
 
   public getActiveSubscriptions(): string[] {

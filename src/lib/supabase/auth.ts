@@ -25,7 +25,6 @@ export interface UserProfile {
     default_symbol?: string;
     default_chain?: string;
     default_time_range?: string;
-    language?: string;
     default_currency?: string;
     auto_refresh_interval?: number;
     chart_settings?: {
@@ -104,13 +103,9 @@ export async function signOut(): Promise<{ error: AuthError | null }> {
   return { error };
 }
 
-export async function resetPassword(
-  email: string,
-  locale?: string
-): Promise<{ error: AuthError | null }> {
-  const currentLocale = locale || 'en';
+export async function resetPassword(email: string): Promise<{ error: AuthError | null }> {
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${window.location.origin}/${currentLocale}/auth/reset-password`,
+    redirectTo: `${window.location.origin}/auth/reset-password`,
   });
 
   return { error };

@@ -332,12 +332,12 @@ export class DatabaseQueries {
         query = query.lte('timestamp', endTimeStr);
       }
 
-      if (filters.limit) {
+      if (filters.offset && filters.limit) {
+        query = query.range(filters.offset, filters.offset + filters.limit - 1);
+      } else if (filters.offset) {
+        query = query.range(filters.offset, filters.offset + 99);
+      } else if (filters.limit) {
         query = query.limit(filters.limit);
-      }
-
-      if (filters.offset) {
-        query = query.range(filters.offset, filters.offset + (filters.limit || 100) - 1);
       }
 
       const { data, error } = await query;
@@ -387,7 +387,7 @@ export class DatabaseQueries {
   }
 
   async deleteExpiredPriceRecords(): Promise<number> {
-    const { error } = await this.client.rpc('cleanup_expired_price_records');
+    const { data, error } = await this.client.rpc('cleanup_expired_price_records');
 
     if (error) {
       logger.error(
@@ -397,7 +397,7 @@ export class DatabaseQueries {
       return 0;
     }
 
-    return 1;
+    return typeof data === 'number' ? data : 0;
   }
 
   /**

@@ -544,6 +544,12 @@ export const reflectorSymbols = [
   'XLM',
   'UNI',
   'EURC',
+  'EUR',
+  'GBP',
+  'CAD',
+  'BRL',
+  'JPY',
+  'CNY',
 ] as const;
 
 export type ReflectorSymbol = (typeof reflectorSymbols)[number];

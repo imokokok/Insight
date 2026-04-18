@@ -373,7 +373,6 @@ export type UserPreferences = {
   default_oracle?: string;
   default_symbol?: string;
   default_chain?: string;
-  language?: string;
   default_currency?: string;
   auto_refresh_interval?: number;
   chart_settings?: {

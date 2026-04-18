@@ -63,7 +63,7 @@ function defaultKeyGenerator(request: NextRequest): string {
   }
 
   if (ip === 'unknown') {
-    const authHeader = request.headers.get('key');
+    const authHeader = request.headers.get('authorization');
     if (authHeader) {
       let hash = 0;
       for (let i = 0; i < authHeader.length; i++) {

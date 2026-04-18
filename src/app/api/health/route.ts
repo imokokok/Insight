@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 
 import { ApiResponseBuilder } from '@/lib/api/response';
 import { withVersionHeaders } from '@/lib/api/versioning';
+import { createServerClient } from '@/lib/supabase/server';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,8 +27,7 @@ interface HealthCheckResult {
 
 async function checkDatabase(): Promise<'ok' | 'error'> {
   try {
-    const { getSupabaseClient } = await import('@/lib/supabase/client');
-    const supabase = getSupabaseClient();
+    const supabase = createServerClient();
 
     const { error } = await supabase.from('user_profiles').select().limit(1);
 

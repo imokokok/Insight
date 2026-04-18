@@ -25,7 +25,7 @@ export const GET = createApiHandler(
 
     const { provider, symbol, chain } = validation.data!.query!;
     const searchParams = request.nextUrl.searchParams;
-    const period = searchParams.get('key');
+    const period = searchParams.get('period');
 
     const periodNum = period ? parseInt(period, 10) : undefined;
 

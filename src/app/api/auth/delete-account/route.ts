@@ -1,9 +1,9 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
-import { createClient } from '@supabase/supabase-js';
-
 import { strictRateLimit } from '@/lib/api/middleware/rateLimitMiddleware';
 import { ApiResponseBuilder } from '@/lib/api/response';
+import { getUserId } from '@/lib/api/utils';
+import { createServerClient, getServerQueries } from '@/lib/supabase/server';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('api-auth-delete-account');
@@ -15,70 +15,39 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const accessToken = request.cookies.get('sb-access-token')?.value;
-    const _refreshToken = request.cookies.get('sb-refresh-token')?.value;
+    const userId = await getUserId(request);
 
-    if (!accessToken) {
+    if (!userId) {
       return ApiResponseBuilder.unauthorized();
     }
 
-    const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const queries = getServerQueries();
 
-    if (!supabaseUrl || !supabaseServiceKey) {
-      logger.error('Missing Supabase configuration');
-      return ApiResponseBuilder.serverError('Server configuration error');
+    const favSuccess = await queries.deleteAllFavorites(userId);
+    if (!favSuccess) {
+      logger.error('Failed to delete user favorites');
     }
 
-    const supabaseUser = createClient(supabaseUrl, accessToken, {
-      auth: { autoRefreshToken: false, persistSession: false },
-    });
-
-    const {
-      data: { user },
-    } = await supabaseUser.auth.getUser(accessToken);
-
-    if (!user) {
-      return ApiResponseBuilder.unauthorized();
+    const alertSuccess = await queries.deleteAllAlerts(userId);
+    if (!alertSuccess) {
+      logger.error('Failed to delete user alerts');
     }
 
-    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
-      auth: { autoRefreshToken: false, persistSession: false },
-    });
-
-    const { error: favoritesError } = await supabaseAdmin
-      .from('favorites')
-      .delete()
-      .eq('user_id', user.id);
-    if (favoritesError) {
-      logger.error('Failed to delete user favorites', favoritesError as Error);
+    const snapshotSuccess = await queries.deleteAllSnapshots(userId);
+    if (!snapshotSuccess) {
+      logger.error('Failed to delete user snapshots');
     }
 
-    const { error: alertsError } = await supabaseAdmin
-      .from('alerts')
-      .delete()
-      .eq('user_id', user.id);
-    if (alertsError) {
-      logger.error('Failed to delete user alerts', alertsError as Error);
-    }
-
-    const { error: snapshotsError } = await supabaseAdmin
-      .from('snapshots')
-      .delete()
-      .eq('user_id', user.id);
-    if (snapshotsError) {
-      logger.error('Failed to delete user snapshots', snapshotsError as Error);
-    }
-
+    const supabaseAdmin = createServerClient();
     const { error: profileError } = await supabaseAdmin
       .from('user_profiles')
       .delete()
-      .eq('id', user.id);
+      .eq('id', userId);
     if (profileError) {
       logger.error('Failed to delete user profile', profileError as Error);
     }
 
-    const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(user.id);
+    const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
 
     if (deleteError) {
       logger.error('Failed to delete user account', deleteError as Error);

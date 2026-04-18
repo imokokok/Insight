@@ -66,17 +66,7 @@ export class OracleClientFactory {
   }
 
   getAllClients(): Record<OracleProvider, BaseOracleClient> {
-    const providers = [
-      OracleProvider.CHAINLINK,
-      OracleProvider.PYTH,
-      OracleProvider.API3,
-      OracleProvider.REDSTONE,
-      OracleProvider.DIA,
-      OracleProvider.WINKLINK,
-      OracleProvider.SUPRA,
-      OracleProvider.TWAP,
-      OracleProvider.REFLECTOR,
-    ];
+    const providers = Object.values(OracleProvider);
 
     const clients: Partial<Record<OracleProvider, BaseOracleClient>> = {};
     providers.forEach((provider) => {
@@ -137,17 +127,7 @@ export class OracleClientFactory {
 
   getAllSupportedSymbols(): Record<OracleProvider, string[]> {
     const result: Partial<Record<OracleProvider, string[]>> = {};
-    const providers = [
-      OracleProvider.CHAINLINK,
-      OracleProvider.PYTH,
-      OracleProvider.API3,
-      OracleProvider.REDSTONE,
-      OracleProvider.DIA,
-      OracleProvider.WINKLINK,
-      OracleProvider.SUPRA,
-      OracleProvider.TWAP,
-      OracleProvider.REFLECTOR,
-    ];
+    const providers = Object.values(OracleProvider);
 
     for (const provider of providers) {
       try {
