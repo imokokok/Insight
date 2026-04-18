@@ -95,28 +95,20 @@ describe('exportUtils', () => {
     const mockField: ExportField = {
       key: 'price',
       label: 'Price',
-      labelZh: '价格',
+      dataType: 'number',
       selected: true,
     };
 
-    it('should return English label for English locale', () => {
-      expect(getFieldLabel(mockField, 'en')).toBe('Price');
-    });
-
-    it('should return Chinese label for Chinese locale', () => {
-      expect(getFieldLabel(mockField, 'zh-CN')).toBe('价格');
-    });
-
-    it('should default to English label', () => {
+    it('should return label', () => {
       expect(getFieldLabel(mockField)).toBe('Price');
     });
   });
 
   describe('getSelectedFields', () => {
     const mockFields: ExportField[] = [
-      { key: 'symbol', label: 'Symbol', labelZh: '符号', selected: true },
-      { key: 'price', label: 'Price', labelZh: '价格', selected: false },
-      { key: 'timestamp', label: 'Timestamp', labelZh: '时间戳', selected: true },
+      { key: 'symbol', label: 'Symbol', dataType: 'string', selected: true },
+      { key: 'price', label: 'Price', dataType: 'number', selected: false },
+      { key: 'timestamp', label: 'Timestamp', dataType: 'date', selected: true },
     ];
 
     it('should filter selected fields', () => {
@@ -129,7 +121,7 @@ describe('exportUtils', () => {
 
     it('should return empty array when no fields selected', () => {
       const fields: ExportField[] = [
-        { key: 'symbol', label: 'Symbol', labelZh: '符号', selected: false },
+        { key: 'symbol', label: 'Symbol', dataType: 'string', selected: false },
       ];
 
       expect(getSelectedFields(fields)).toHaveLength(0);
@@ -137,8 +129,8 @@ describe('exportUtils', () => {
 
     it('should return all fields when all selected', () => {
       const fields: ExportField[] = [
-        { key: 'symbol', label: 'Symbol', labelZh: '符号', selected: true },
-        { key: 'price', label: 'Price', labelZh: '价格', selected: true },
+        { key: 'symbol', label: 'Symbol', dataType: 'string', selected: true },
+        { key: 'price', label: 'Price', dataType: 'number', selected: true },
       ];
 
       expect(getSelectedFields(fields)).toHaveLength(2);

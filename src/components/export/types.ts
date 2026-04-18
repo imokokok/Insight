@@ -1,38 +1,37 @@
 /**
- * 统一导出功能类型定义
+ * Unified Export Feature Type Definitions
  *
- * 提供数据导出相关的类型定义，支持 CSV、JSON、Excel、PDF 格式
+ * Provides type definitions for data export functionality, supporting CSV, JSON, Excel, PDF formats
  */
 
 /**
- * 导出格式类型
+ * Export format type
  */
 export type ExportFormat = 'csv' | 'json' | 'excel' | 'pdf';
 
 /**
- * 导出状态
+ * Export status
  */
 export type ExportStatus = 'idle' | 'preparing' | 'exporting' | 'completed' | 'error';
 
 /**
- * 数据源类型
+ * Data source type
  */
 export type ExportDataSource = 'price-query' | 'cross-oracle' | 'oracle-detail' | 'custom';
 
 /**
- * 导出字段定义
+ * Export field definition
  */
 export interface ExportField {
   key: string;
   label: string;
-  labelZh: string;
   dataType: 'string' | 'number' | 'boolean' | 'date';
   format?: string;
   selected: boolean;
 }
 
 /**
- * 导出配置
+ * Export configuration
  */
 export interface ExportConfig {
   format: ExportFormat;
@@ -49,7 +48,7 @@ export interface ExportConfig {
 }
 
 /**
- * 导出历史记录
+ * Export history item
  */
 export interface ExportHistoryItem {
   id: string;
@@ -66,19 +65,18 @@ export interface ExportHistoryItem {
 }
 
 /**
- * 导出进度
+ * Export progress
  */
 export interface ExportProgress {
   status: ExportStatus;
   progress: number; // 0-100
   currentStep: string;
-  currentStepZh: string;
   recordCount: number;
   processedCount: number;
 }
 
 /**
- * 导出选项
+ * Export options
  */
 export interface ExportOptions {
   data: unknown[];
@@ -89,7 +87,7 @@ export interface ExportOptions {
 }
 
 /**
- * 统一导出组件属性
+ * Unified export component props
  */
 export interface UnifiedExportProps {
   data: unknown[];
@@ -105,7 +103,7 @@ export interface UnifiedExportProps {
 }
 
 /**
- * 导出历史组件属性
+ * Export history component props
  */
 export interface ExportHistoryProps {
   maxItems?: number;
@@ -115,25 +113,23 @@ export interface ExportHistoryProps {
 }
 
 /**
- * 导出格式配置
+ * Export format configuration
  */
 export interface ExportFormatConfig {
   value: ExportFormat;
   label: string;
-  labelZh: string;
   icon: string;
   mimeType: string;
   extension: string;
 }
 
 /**
- * 默认导出格式配置
+ * Default export format configurations
  */
 export const EXPORT_FORMAT_CONFIGS: ExportFormatConfig[] = [
   {
     value: 'csv',
     label: 'CSV',
-    labelZh: 'CSV',
     icon: 'table',
     mimeType: 'text/csv;charset=utf-8;',
     extension: 'csv',
@@ -141,7 +137,6 @@ export const EXPORT_FORMAT_CONFIGS: ExportFormatConfig[] = [
   {
     value: 'json',
     label: 'JSON',
-    labelZh: 'JSON',
     icon: 'file-json',
     mimeType: 'application/json',
     extension: 'json',
@@ -149,7 +144,6 @@ export const EXPORT_FORMAT_CONFIGS: ExportFormatConfig[] = [
   {
     value: 'excel',
     label: 'Excel',
-    labelZh: 'Excel',
     icon: 'file-spreadsheet',
     mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     extension: 'xlsx',
@@ -157,7 +151,6 @@ export const EXPORT_FORMAT_CONFIGS: ExportFormatConfig[] = [
   {
     value: 'pdf',
     label: 'PDF',
-    labelZh: 'PDF',
     icon: 'file-text',
     mimeType: 'application/pdf',
     extension: 'pdf',
@@ -165,7 +158,7 @@ export const EXPORT_FORMAT_CONFIGS: ExportFormatConfig[] = [
 ];
 
 /**
- * 默认导出配置
+ * Default export configuration
  */
 export const DEFAULT_EXPORT_CONFIG: ExportConfig = {
   format: 'csv',
@@ -181,13 +174,13 @@ export const DEFAULT_EXPORT_CONFIG: ExportConfig = {
 };
 
 /**
- * localStorage 键名
+ * localStorage keys
  */
 export const EXPORT_HISTORY_STORAGE_KEY = 'oracle_export_history_v2';
 export const EXPORT_SETTINGS_STORAGE_KEY = 'oracle_export_settings_v2';
 
 /**
- * 导出设置
+ * Export settings
  */
 export interface ExportSettings {
   maxHistoryItems: number;
@@ -197,7 +190,7 @@ export interface ExportSettings {
 }
 
 /**
- * 默认导出设置
+ * Default export settings
  */
 export const DEFAULT_EXPORT_SETTINGS: ExportSettings = {
   maxHistoryItems: 50,

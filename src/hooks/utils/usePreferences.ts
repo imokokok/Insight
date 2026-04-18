@@ -19,7 +19,7 @@ const defaultPreferences: UserPreferences = {
   defaultOracle: 'chainlink',
   defaultSymbol: 'BTC/USD',
   defaultTimeRange: '24h',
-  language: 'zh-CN',
+  language: 'en-US',
   defaultCurrency: 'USD',
   autoRefreshInterval: 30,
 };

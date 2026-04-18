@@ -1,9 +1,9 @@
 'use client';
 
 /**
- * 价格查询页面统一导出组件
+ * Price Query Page Unified Export Component
  *
- * 使用 UnifiedExport 组件替换原有的导出功能
+ * Replaces the original export functionality with UnifiedExport component
  */
 
 import { useState, useEffect } from 'react';
@@ -45,14 +45,13 @@ export default function UnifiedExportSection({
     });
   }, [chartContainerRef]);
 
-  // 定义导出字段
+  // Define export fields
   const exportFields: ExportField[] = [
-    { key: 'provider', label: 'Oracle', labelZh: '预言机', dataType: 'string', selected: true },
-    { key: 'chain', label: 'Blockchain', labelZh: '区块链', dataType: 'string', selected: true },
+    { key: 'provider', label: 'Oracle', dataType: 'string', selected: true },
+    { key: 'chain', label: 'Blockchain', dataType: 'string', selected: true },
     {
       key: 'priceData.price',
       label: 'Price',
-      labelZh: '价格',
       dataType: 'number',
       format: '0.0000',
       selected: true,
@@ -60,14 +59,12 @@ export default function UnifiedExportSection({
     {
       key: 'priceData.timestamp',
       label: 'Timestamp',
-      labelZh: '时间戳',
       dataType: 'date',
       selected: true,
     },
     {
       key: 'priceData.change24hPercent',
       label: '24h Change (%)',
-      labelZh: '24小时变化 (%)',
       dataType: 'number',
       format: '0.00',
       selected: true,
@@ -75,14 +72,12 @@ export default function UnifiedExportSection({
     {
       key: 'priceData.confidence',
       label: 'Confidence',
-      labelZh: '置信度',
       dataType: 'number',
       selected: false,
     },
     {
       key: 'priceData.source',
       label: 'Source',
-      labelZh: '来源',
       dataType: 'string',
       selected: false,
     },

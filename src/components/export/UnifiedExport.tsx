@@ -103,14 +103,7 @@ export function UnifiedExport({
         fields: selectedFields,
       };
 
-      const historyItem = await executeExport(
-        data,
-        exportConfig,
-        dataSource,
-        'en',
-        chartElement,
-        stats
-      );
+      const historyItem = await executeExport(data, exportConfig, dataSource, chartElement, stats);
 
       clearInterval(progressInterval);
       setExportProgress(100);

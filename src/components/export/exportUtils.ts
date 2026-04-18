@@ -1,7 +1,7 @@
 /**
- * 统一导出工具函数
+ * Unified Export Utility Functions
  *
- * 提供 CSV、JSON、Excel、PDF 导出功能
+ * Provides CSV, JSON, Excel, PDF export functionality
  */
 
 import html2canvas from 'html2canvas';
@@ -26,14 +26,14 @@ import {
 const logger = createLogger('UnifiedExport');
 
 /**
- * 生成唯一 ID
+ * Generate unique ID
  */
 export function generateId(): string {
   return `export-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 }
 
 /**
- * 生成文件名
+ * Generate file name
  */
 export function generateFileName(
   dataSource: ExportDataSource,
@@ -54,7 +54,7 @@ export function generateFileName(
 }
 
 /**
- * 格式化文件大小
+ * Format file size
  */
 export function formatFileSize(bytes: number): string {
   if (bytes === 0) return '0 B';
@@ -65,32 +65,31 @@ export function formatFileSize(bytes: number): string {
 }
 
 /**
- * 获取格式化的字段标签
+ * Get formatted field label
  */
-export function getFieldLabel(field: ExportField, locale: string = 'en'): string {
-  return locale === 'zh-CN' ? field.labelZh : field.label;
+export function getFieldLabel(field: ExportField): string {
+  return field.label;
 }
 
 /**
- * 过滤已选字段
+ * Filter selected fields
  */
 export function getSelectedFields(fields: ExportField[]): ExportField[] {
   return fields.filter((f) => f.selected);
 }
 
 /**
- * 导出为 CSV
+ * Export to CSV
  */
 export function exportToCSV(
   data: unknown[],
   config: ExportConfig,
-  dataSource: ExportDataSource,
-  locale: string = 'en'
+  dataSource: ExportDataSource
 ): { content: string; fileName: string; mimeType: string } {
   const selectedFields = getSelectedFields(config.fields);
   const lines: string[] = [];
 
-  // 添加元数据
+  // Add metadata
   if (config.includeMetadata) {
     lines.push(`# Data Source: ${dataSource}`);
     lines.push(`# Export Time: ${new Date().toISOString()}`);
@@ -98,11 +97,11 @@ export function exportToCSV(
     lines.push('');
   }
 
-  // 添加表头
-  const headers = selectedFields.map((f) => getFieldLabel(f, locale));
+  // Add headers
+  const headers = selectedFields.map((f) => getFieldLabel(f));
   lines.push(headers.join(','));
 
-  // 添加数据行
+  // Add data rows
   data.forEach((item) => {
     const row = selectedFields.map((field) => {
       const value = getNestedValue(item, field.key);
@@ -119,7 +118,7 @@ export function exportToCSV(
 }
 
 /**
- * 导出为 JSON
+ * Export to JSON
  */
 export function exportToJSON(
   data: unknown[],
@@ -154,17 +153,16 @@ export function exportToJSON(
 }
 
 /**
- * 导出为 Excel (使用 CSV 格式作为基础，实际项目中可以使用 xlsx 库)
+ * Export to Excel (uses CSV format as base, actual projects can use xlsx library)
  */
 export function exportToExcel(
   data: unknown[],
   config: ExportConfig,
-  dataSource: ExportDataSource,
-  locale: string = 'en'
+  dataSource: ExportDataSource
 ): { content: string; fileName: string; mimeType: string } {
-  // Excel 导出使用 CSV 格式，但使用不同的 MIME 类型和扩展名
-  // 实际项目中可以使用 xlsx 库生成真正的 Excel 文件
-  const result = exportToCSV(data, config, dataSource, locale);
+  // Excel export uses CSV format but with different MIME type and extension
+  // Actual projects can use xlsx library to generate real Excel files
+  const result = exportToCSV(data, config, dataSource);
   return {
     content: result.content,
     fileName: generateFileName(dataSource, 'excel', config.fileName),
@@ -173,44 +171,42 @@ export function exportToExcel(
 }
 
 /**
- * 导出为 PDF
+ * Export to PDF
  */
 export async function exportToPDF(
   data: unknown[],
   config: ExportConfig,
   dataSource: ExportDataSource,
-  locale: string = 'en',
   chartElement?: HTMLElement | null,
   stats?: Record<string, number | string>
 ): Promise<{ content: Blob; fileName: string; mimeType: string }> {
   const doc = new jsPDF();
   const selectedFields = getSelectedFields(config.fields);
-  const isZh = locale === 'zh-CN';
 
-  // 标题
+  // Title
   doc.setFontSize(20);
   doc.setTextColor(exportColors.text.primary);
-  doc.text(isZh ? '数据导出报告' : 'Data Export Report', 14, 20);
+  doc.text('Data Export Report', 14, 20);
 
-  // 元数据
+  // Metadata
   doc.setFontSize(10);
   doc.setTextColor(exportColors.text.secondary);
-  doc.text(`${isZh ? '生成时间' : 'Generated'}: ${new Date().toLocaleString(locale)}`, 14, 28);
+  doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 28);
 
   let yPos = 40;
 
-  // 添加统计信息
+  // Add statistics
   if (config.includeStats && stats) {
     doc.setFontSize(12);
     doc.setTextColor(exportColors.text.primary);
-    doc.text(isZh ? '统计摘要' : 'Statistics Summary', 14, yPos);
+    doc.text('Statistics Summary', 14, yPos);
 
     yPos += 8;
     const statsData = Object.entries(stats).map(([key, value]) => [key, String(value)]);
 
     autoTable(doc, {
       startY: yPos,
-      head: [[isZh ? '指标' : 'Metric', isZh ? '数值' : 'Value']],
+      head: [['Metric', 'Value']],
       body: statsData,
       theme: 'striped',
       headStyles: { fillColor: [31, 41, 55], textColor: [255, 255, 255] },
@@ -221,7 +217,7 @@ export async function exportToPDF(
     yPos = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 10;
   }
 
-  // 添加图表
+  // Add chart
   if (config.includeChart && chartElement) {
     try {
       const canvas = await html2canvas(chartElement, {
@@ -241,7 +237,7 @@ export async function exportToPDF(
 
       doc.setFontSize(12);
       doc.setTextColor(exportColors.text.primary);
-      doc.text(isZh ? '数据图表' : 'Data Chart', 14, yPos);
+      doc.text('Data Chart', 14, yPos);
 
       doc.addImage(imgData, 'PNG', 14, yPos + 5, imgWidth, imgHeight);
       yPos += imgHeight + 15;
@@ -250,7 +246,7 @@ export async function exportToPDF(
     }
   }
 
-  // 添加数据表格
+  // Add data table
   if (yPos > 200) {
     doc.addPage();
     yPos = 20;
@@ -258,9 +254,9 @@ export async function exportToPDF(
 
   doc.setFontSize(12);
   doc.setTextColor(exportColors.text.primary);
-  doc.text(isZh ? '数据详情' : 'Data Details', 14, yPos);
+  doc.text('Data Details', 14, yPos);
 
-  const headers = selectedFields.map((f) => getFieldLabel(f, locale));
+  const headers = selectedFields.map((f) => getFieldLabel(f));
   const body = data.map((item) =>
     selectedFields.map((field) => {
       const value = getNestedValue(item, field.key);
@@ -288,13 +284,12 @@ export async function exportToPDF(
 }
 
 /**
- * 执行导出
+ * Execute export
  */
 export async function executeExport(
   data: unknown[],
   config: ExportConfig,
   dataSource: ExportDataSource,
-  locale: string = 'en',
   chartElement?: HTMLElement | null,
   stats?: Record<string, number | string>
 ): Promise<ExportHistoryItem> {
@@ -315,22 +310,22 @@ export async function executeExport(
 
     switch (config.format) {
       case 'csv':
-        result = exportToCSV(data, config, dataSource, locale);
+        result = exportToCSV(data, config, dataSource);
         break;
       case 'json':
         result = exportToJSON(data, config, dataSource);
         break;
       case 'excel':
-        result = exportToExcel(data, config, dataSource, locale);
+        result = exportToExcel(data, config, dataSource);
         break;
       case 'pdf':
-        result = await exportToPDF(data, config, dataSource, locale, chartElement, stats);
+        result = await exportToPDF(data, config, dataSource, chartElement, stats);
         break;
       default:
         throw new Error(`Unsupported export format: ${config.format}`);
     }
 
-    // 创建下载
+    // Create download
     const blob =
       typeof result.content === 'string'
         ? new Blob([result.content], { type: result.mimeType })
@@ -345,13 +340,13 @@ export async function executeExport(
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
 
-    // 更新历史记录
+    // Update history
     historyItem.fileName = result.fileName;
     historyItem.fileSize = blob.size;
     historyItem.completedAt = Date.now();
     historyItem.downloadUrl = url;
 
-    // 保存到历史记录
+    // Save to history
     saveExportHistory(historyItem);
 
     return historyItem;
@@ -364,7 +359,7 @@ export async function executeExport(
 }
 
 /**
- * 获取嵌套对象值
+ * Get nested object value
  */
 function getNestedValue(obj: unknown, path: string): unknown {
   if (obj === null || obj === undefined) return '';
@@ -381,7 +376,7 @@ function getNestedValue(obj: unknown, path: string): unknown {
 }
 
 /**
- * 格式化 CSV 值
+ * Format CSV value
  */
 function formatCSVValue(value: unknown, dataType: string): string {
   if (value === null || value === undefined) return '';
@@ -394,7 +389,7 @@ function formatCSVValue(value: unknown, dataType: string): string {
     case 'number':
       return String(value);
     default:
-      // 处理包含逗号或引号的字符串
+      // Handle strings containing commas or quotes
       const str = String(value);
       if (str.includes(',') || str.includes('"') || str.includes('\n')) {
         return `"${str.replace(/"/g, '""')}"`;
@@ -404,7 +399,7 @@ function formatCSVValue(value: unknown, dataType: string): string {
 }
 
 /**
- * 格式化 PDF 值
+ * Format PDF value
  */
 function formatPDFValue(value: unknown, dataType: string): string {
   if (value === null || value === undefined) return '-';
@@ -428,7 +423,7 @@ function formatPDFValue(value: unknown, dataType: string): string {
 }
 
 /**
- * 从 localStorage 加载导出历史
+ * Load export history from localStorage
  */
 export function loadExportHistory(): ExportHistoryItem[] {
   if (typeof window === 'undefined') return [];
@@ -445,7 +440,7 @@ export function loadExportHistory(): ExportHistoryItem[] {
 }
 
 /**
- * 保存导出历史到 localStorage
+ * Save export history to localStorage
  */
 export function saveExportHistory(item: ExportHistoryItem): void {
   if (typeof window === 'undefined') return;
@@ -454,11 +449,11 @@ export function saveExportHistory(item: ExportHistoryItem): void {
     const history = loadExportHistory();
     const updated = [item, ...history];
 
-    // 应用设置限制
+    // Apply settings limit
     const settings = loadExportSettings();
     const maxItems = settings.maxHistoryItems;
 
-    // 清理旧记录
+    // Clean up old records
     let filtered = updated.slice(0, maxItems);
     if (settings.autoCleanup) {
       const cutoffTime = Date.now() - settings.cleanupAfterDays * 24 * 60 * 60 * 1000;
@@ -472,7 +467,7 @@ export function saveExportHistory(item: ExportHistoryItem): void {
 }
 
 /**
- * 清除导出历史
+ * Clear export history
  */
 export function clearExportHistory(): void {
   if (typeof window === 'undefined') return;
@@ -485,7 +480,7 @@ export function clearExportHistory(): void {
 }
 
 /**
- * 删除单个历史记录
+ * Remove single history item
  */
 export function removeExportHistoryItem(id: string): void {
   if (typeof window === 'undefined') return;
@@ -500,7 +495,7 @@ export function removeExportHistoryItem(id: string): void {
 }
 
 /**
- * 从 localStorage 加载导出设置
+ * Load export settings from localStorage
  */
 export function loadExportSettings(): ExportSettings {
   if (typeof window === 'undefined') return DEFAULT_EXPORT_SETTINGS;
@@ -517,7 +512,7 @@ export function loadExportSettings(): ExportSettings {
 }
 
 /**
- * 保存导出设置到 localStorage
+ * Save export settings to localStorage
  */
 export function saveExportSettings(settings: Partial<ExportSettings>): void {
   if (typeof window === 'undefined') return;
@@ -532,10 +527,10 @@ export function saveExportSettings(settings: Partial<ExportSettings>): void {
 }
 
 /**
- * 重新下载历史记录
+ * Re-download history item
  */
 export function reDownloadHistoryItem(item: ExportHistoryItem): void {
-  // 重新下载功能 - 在实际应用中可能需要重新生成文件
-  // 这里仅作为示例，实际实现可能需要存储文件内容或重新生成
+  // Re-download functionality - in actual apps may need to regenerate file
+  // This is just an example, actual implementation may need to store file content or regenerate
   logger.info(`Re-downloading ${item.fileName}`);
 }
