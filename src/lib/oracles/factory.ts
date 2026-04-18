@@ -9,6 +9,7 @@ import { ChainlinkClient } from './clients/chainlink';
 import { DIAClient } from './clients/dia';
 import { PythClient } from './clients/PythClient';
 import { RedStoneClient } from './clients/redstone';
+import { ReflectorClient } from './clients/reflector';
 import { SupraClient } from './clients/supra';
 import { TWAPClient } from './clients/twap';
 import { WINkLinkClient } from './clients/winklink';
@@ -73,6 +74,7 @@ export class OracleClientFactory {
       OracleProvider.WINKLINK,
       OracleProvider.SUPRA,
       OracleProvider.TWAP,
+      OracleProvider.REFLECTOR,
     ];
 
     const clients: Partial<Record<OracleProvider, BaseOracleClient>> = {};
@@ -169,6 +171,7 @@ export class OracleClientFactory {
       OracleProvider.WINKLINK,
       OracleProvider.SUPRA,
       OracleProvider.TWAP,
+      OracleProvider.REFLECTOR,
     ];
 
     for (const provider of providers) {
@@ -207,6 +210,11 @@ export class OracleClientFactory {
         return new SupraClient(this.config);
       case OracleProvider.TWAP:
         return new TWAPClient({ ...this.config, useRealData: FEATURE_FLAGS.useRealTwapData });
+      case OracleProvider.REFLECTOR:
+        return new ReflectorClient({
+          ...this.config,
+          useRealData: FEATURE_FLAGS.useRealReflectorData,
+        });
       default:
         throw new ValidationError(`Unknown oracle provider: ${provider}`, {
           value: provider,

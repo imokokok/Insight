@@ -39,6 +39,7 @@ const oracleIcons: Record<OracleProvider, LucideIcon> = {
   [OracleProvider.WINKLINK]: Gamepad2,
   [OracleProvider.SUPRA]: Hexagon,
   [OracleProvider.TWAP]: LayoutDashboard,
+  [OracleProvider.REFLECTOR]: BarChart3,
 };
 
 // Oracle descriptions mapping
@@ -51,6 +52,7 @@ const oracleDescriptions: Record<OracleProvider, string> = {
   [OracleProvider.WINKLINK]: 'TRON ecosystem oracle for price data',
   [OracleProvider.SUPRA]: 'Intralayer oracle with fast and reliable data feeds',
   [OracleProvider.TWAP]: 'Time-weighted average price oracle for DeFi',
+  [OracleProvider.REFLECTOR]: 'Stellar-based oracle with multi-signature consensus',
 };
 
 // Generate oracle search results
@@ -107,6 +109,7 @@ const blockchainIcons: Record<Blockchain, string> = {
   [Blockchain.MOONRIVER]: '',
   [Blockchain.METIS]: '',
   [Blockchain.STARKEX]: '',
+  [Blockchain.STELLAR]: '/logos/cryptos/xlm.svg',
 };
 
 // Generate blockchain search results

@@ -45,6 +45,13 @@ export const API3_CONFIG = {
   wsUrl: process.env.API3_WS_URL || 'wss://ws.api3.org',
 };
 
+// Stellar RPC 配置
+export const STELLAR_CONFIG = {
+  rpcUrl: process.env.STELLAR_RPC_URL || '',
+  reflectorCryptoContract: process.env.REFLECTOR_CRYPTO_CONTRACT || '',
+  reflectorForexContract: process.env.REFLECTOR_FOREX_CONTRACT || '',
+};
+
 // 功能开关 - 从 featureFlags 重新导出以保持向后兼容
 export { FEATURE_FLAGS } from './env';
 

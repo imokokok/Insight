@@ -529,6 +529,29 @@ export const TWAP_AVAILABLE_PAIRS: Record<string, string[]> = {
   'bnb-chain': ['BTC', 'ETH', 'USDC', 'USDT', 'DAI', 'WBTC', 'LINK', 'BNB'],
 };
 
+export const reflectorSymbols = [
+  'BTC',
+  'ETH',
+  'USDT',
+  'XRP',
+  'SOL',
+  'USDC',
+  'ADA',
+  'AVAX',
+  'DOT',
+  'LINK',
+  'ATOM',
+  'XLM',
+  'UNI',
+  'EURC',
+] as const;
+
+export type ReflectorSymbol = (typeof reflectorSymbols)[number];
+
+export const REFLECTOR_AVAILABLE_PAIRS: Record<string, string[]> = {
+  stellar: [...reflectorSymbols],
+};
+
 export const oracleSupportedSymbols = {
   chainlink: chainlinkSymbols,
   redstone: redstoneSymbols,
@@ -538,6 +561,7 @@ export const oracleSupportedSymbols = {
   winklink: winklinkSymbols,
   supra: supraSymbols,
   twap: twapSymbols,
+  reflector: reflectorSymbols,
 } as const;
 
 // 类型定义

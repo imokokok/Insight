@@ -37,6 +37,7 @@ interface ServerFeatureFlags extends ClientFeatureFlags {
   useRealWinklinkData: boolean;
   useRealSupraData: boolean;
   useRealTwapData: boolean;
+  useRealReflectorData: boolean;
 }
 
 interface WebSocketConfig {
@@ -116,6 +117,10 @@ const serverEnvSchema = z.object({
   USE_REAL_WINKLINK_DATA: envBoolean.default(true),
   USE_REAL_SUPRA_DATA: envBoolean.default(true),
   USE_REAL_TWAP_DATA: envBoolean.default(true),
+  USE_REAL_REFLECTOR_DATA: envBoolean.default(true),
+  STELLAR_RPC_URL: z.string().url().optional().default(''),
+  REFLECTOR_CRYPTO_CONTRACT: z.string().optional().default(''),
+  REFLECTOR_FOREX_CONTRACT: z.string().optional().default(''),
   SESSION_TIMEOUT: z.coerce.number().optional().default(3600),
   MAX_REQUEST_SIZE: z.coerce.number().optional().default(1048576),
   ALLOWED_ORIGINS: z.string().optional().default(''),
@@ -139,6 +144,10 @@ const lenientServerEnvSchema = z.object({
   USE_REAL_WINKLINK_DATA: envBoolean.default(true),
   USE_REAL_SUPRA_DATA: envBoolean.default(true),
   USE_REAL_TWAP_DATA: envBoolean.default(true),
+  USE_REAL_REFLECTOR_DATA: envBoolean.default(true),
+  STELLAR_RPC_URL: z.string().optional().default(''),
+  REFLECTOR_CRYPTO_CONTRACT: z.string().optional().default(''),
+  REFLECTOR_FOREX_CONTRACT: z.string().optional().default(''),
   SESSION_TIMEOUT: z.coerce.number().optional().default(3600),
   MAX_REQUEST_SIZE: z.coerce.number().optional().default(1048576),
   ALLOWED_ORIGINS: z.string().optional().default(''),
@@ -173,6 +182,10 @@ function getRawServerEnv() {
     USE_REAL_WINKLINK_DATA: process.env.USE_REAL_WINKLINK_DATA,
     USE_REAL_SUPRA_DATA: process.env.USE_REAL_SUPRA_DATA,
     USE_REAL_TWAP_DATA: process.env.USE_REAL_TWAP_DATA,
+    USE_REAL_REFLECTOR_DATA: process.env.USE_REAL_REFLECTOR_DATA,
+    STELLAR_RPC_URL: process.env.STELLAR_RPC_URL,
+    REFLECTOR_CRYPTO_CONTRACT: process.env.REFLECTOR_CRYPTO_CONTRACT,
+    REFLECTOR_FOREX_CONTRACT: process.env.REFLECTOR_FOREX_CONTRACT,
     SESSION_TIMEOUT: process.env.SESSION_TIMEOUT,
     MAX_REQUEST_SIZE: process.env.MAX_REQUEST_SIZE,
     ALLOWED_ORIGINS: process.env.ALLOWED_ORIGINS,
@@ -222,6 +235,10 @@ function parseServerEnv(): ServerEnv {
       USE_REAL_WINKLINK_DATA: data.USE_REAL_WINKLINK_DATA,
       USE_REAL_SUPRA_DATA: data.USE_REAL_SUPRA_DATA,
       USE_REAL_TWAP_DATA: data.USE_REAL_TWAP_DATA,
+      USE_REAL_REFLECTOR_DATA: data.USE_REAL_REFLECTOR_DATA,
+      STELLAR_RPC_URL: data.STELLAR_RPC_URL,
+      REFLECTOR_CRYPTO_CONTRACT: data.REFLECTOR_CRYPTO_CONTRACT,
+      REFLECTOR_FOREX_CONTRACT: data.REFLECTOR_FOREX_CONTRACT,
       SESSION_TIMEOUT: data.SESSION_TIMEOUT,
       MAX_REQUEST_SIZE: data.MAX_REQUEST_SIZE,
       ALLOWED_ORIGINS: data.ALLOWED_ORIGINS,
@@ -297,6 +314,7 @@ function buildServerEnvConfig(parsed: ServerEnv): ServerEnvConfig {
       useRealWinklinkData: parsed.USE_REAL_WINKLINK_DATA,
       useRealSupraData: parsed.USE_REAL_SUPRA_DATA,
       useRealTwapData: parsed.USE_REAL_TWAP_DATA,
+      useRealReflectorData: parsed.USE_REAL_REFLECTOR_DATA,
     },
     websocket: {
       url: parsed.NEXT_PUBLIC_WS_URL || undefined,
@@ -342,6 +360,7 @@ export const FEATURE_FLAGS: ServerFeatureFlags = _serverEnvConfig
       useRealWinklinkData: false,
       useRealSupraData: false,
       useRealTwapData: false,
+      useRealReflectorData: false,
     };
 
 export function isFeatureEnabled(feature: keyof ServerFeatureFlags): boolean {
@@ -417,9 +436,3 @@ export type {
   SecurityConfig,
   Environment,
 };
-
-type SupabaseConfig = ServerSupabaseConfig;
-type FeatureFlags = ServerFeatureFlags;
-type EnvConfig = ServerEnvConfig;
-
-export type { EnvConfig, SupabaseConfig, FeatureFlags };

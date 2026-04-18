@@ -78,6 +78,8 @@ export function QueryResults({
     isSupraDataLoading: _isSupraDataLoading,
     twapOnChainData,
     isTwapDataLoading: _isTwapDataLoading,
+    reflectorOnChainData,
+    isReflectorDataLoading: _isReflectorDataLoading,
   } = onChainData;
   const consistencyRating = useConsistencyRating(standardDeviationPercent);
   const prevPriceRef = useRef<number | undefined>(undefined);
@@ -150,6 +152,7 @@ export function QueryResults({
               redstoneOnChainData={redstoneOnChainData}
               supraOnChainData={supraOnChainData}
               twapOnChainData={twapOnChainData}
+              reflectorOnChainData={reflectorOnChainData}
               maxPrice={maxPrice}
               minPrice={minPrice}
               avgPrice={avgPrice}
