@@ -22,21 +22,18 @@ export default function UnifiedExportSection({
     {
       key: 'asset',
       label: 'Asset',
-      labelZh: 'Asset',
       dataType: 'string',
       selected: true,
     },
     {
       key: 'oracle',
       label: 'Oracle',
-      labelZh: 'Oracle',
       dataType: 'string',
       selected: true,
     },
     {
       key: 'price',
       label: 'Price',
-      labelZh: 'Price',
       dataType: 'number',
       format: '0.0000',
       selected: true,
@@ -44,14 +41,12 @@ export default function UnifiedExportSection({
     {
       key: 'timestamp',
       label: 'Timestamp',
-      labelZh: 'Timestamp',
       dataType: 'date',
       selected: true,
     },
     {
       key: 'deviation',
       label: 'Deviation',
-      labelZh: 'Deviation',
       dataType: 'number',
       format: '0.00',
       selected: true,
@@ -59,21 +54,18 @@ export default function UnifiedExportSection({
     {
       key: 'latency',
       label: 'Latency',
-      labelZh: 'Latency',
       dataType: 'number',
       selected: false,
     },
     {
       key: 'confidence',
       label: 'Confidence',
-      labelZh: 'Confidence',
       dataType: 'number',
       selected: false,
     },
     {
       key: 'updateFrequency',
       label: 'Update Frequency',
-      labelZh: 'Update Frequency',
       dataType: 'number',
       selected: false,
     },

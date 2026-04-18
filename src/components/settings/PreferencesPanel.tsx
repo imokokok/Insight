@@ -48,7 +48,7 @@ const defaultPreferences: UserPreferences = {
   defaultOracle: 'chainlink',
   defaultSymbol: 'BTC/USD',
   defaultTimeRange: '24h',
-  language: 'zh-CN',
+  language: 'en-US',
   defaultCurrency: 'USD',
   autoRefreshInterval: '30',
 };
@@ -77,10 +77,7 @@ const timeRangeOptions = [
   { value: '30d', label: '30 Days' },
 ];
 
-const languageOptions = [
-  { value: 'zh-CN', label: 'Chinese' },
-  { value: 'en-US', label: 'English' },
-];
+const languageOptions = [{ value: 'en-US', label: 'English' }];
 
 const currencyOptions = [
   { value: 'USD', label: 'USD ($)' },

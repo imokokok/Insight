@@ -59,17 +59,17 @@ graph TB
 
 Insight includes the following Zustand Stores:
 
-| Store                    | File Location                           | Purpose                              |
-| ------------------------ | --------------------------------------- | ------------------------------------ |
-| authStore                | `src/stores/authStore.ts`               | User authentication state management |
-| uiStore                  | `src/stores/uiStore.ts`                 | UI state management                  |
-| realtimeStore            | `src/stores/realtimeStore.ts`           | Realtime data state management       |
-| crossChainConfigStore    | `src/stores/crossChainConfigStore.ts`   | Cross-chain configuration state      |
-| crossChainDataStore      | `src/stores/crossChainDataStore.ts`     | Cross-chain data state               |
-| crossChainSelectorStore  | `src/stores/crossChainSelectorStore.ts` | Cross-chain selector state           |
-| crossChainUIStore        | `src/stores/crossChainUIStore.ts`       | Cross-chain UI state                 |
-| notificationStore        | `src/stores/notificationStore.ts`       | Notification state management        |
-| timeRangeStore           | `src/stores/timeRangeStore.ts`          | Time range selection state           |
+| Store                   | File Location                           | Purpose                              |
+| ----------------------- | --------------------------------------- | ------------------------------------ |
+| authStore               | `src/stores/authStore.ts`               | User authentication state management |
+| uiStore                 | `src/stores/uiStore.ts`                 | UI state management                  |
+| realtimeStore           | `src/stores/realtimeStore.ts`           | Realtime data state management       |
+| crossChainConfigStore   | `src/stores/crossChainConfigStore.ts`   | Cross-chain configuration state      |
+| crossChainDataStore     | `src/stores/crossChainDataStore.ts`     | Cross-chain data state               |
+| crossChainSelectorStore | `src/stores/crossChainSelectorStore.ts` | Cross-chain selector state           |
+| crossChainUIStore       | `src/stores/crossChainUIStore.ts`       | Cross-chain UI state                 |
+| notificationStore       | `src/stores/notificationStore.ts`       | Notification state management        |
+| timeRangeStore          | `src/stores/timeRangeStore.ts`          | Time range selection state           |
 
 ## authStore
 

@@ -35,17 +35,16 @@ jest.mock('@/lib/config/colors', () => ({
 // eslint-disable-next-line max-lines-per-function
 describe('Excel Export', () => {
   const mockFields: ExportField[] = [
-    { key: 'symbol', label: 'Symbol', labelZh: '代码', dataType: 'string', selected: true },
-    { key: 'price', label: 'Price', labelZh: '价格', dataType: 'number', selected: true },
+    { key: 'symbol', label: 'Symbol', dataType: 'string', selected: true },
+    { key: 'price', label: 'Price', dataType: 'number', selected: true },
     {
       key: 'change24h',
       label: '24h Change',
-      labelZh: '24小时变化',
       dataType: 'number',
       selected: true,
     },
-    { key: 'timestamp', label: 'Timestamp', labelZh: '时间戳', dataType: 'date', selected: true },
-    { key: 'active', label: 'Active', labelZh: '活跃', dataType: 'boolean', selected: true },
+    { key: 'timestamp', label: 'Timestamp', dataType: 'date', selected: true },
+    { key: 'active', label: 'Active', dataType: 'boolean', selected: true },
   ];
 
   const mockConfig: ExportConfig = {
@@ -260,12 +259,6 @@ describe('Excel Export', () => {
       expect(result.content).toContain('BTC');
       expect(result.content).toContain('ETH');
     });
-
-    it('should handle different locales for labels', () => {
-      const result = exportToExcel(mockData, mockConfig, mockDataSource, 'zh-CN');
-
-      expect(result.content).toBeDefined();
-    });
   });
 
   describe('Formula preservation', () => {
@@ -276,9 +269,9 @@ describe('Excel Export', () => {
       ];
 
       const calcFields: ExportField[] = [
-        { key: 'a', label: 'A', labelZh: 'A', dataType: 'number', selected: true },
-        { key: 'b', label: 'B', labelZh: 'B', dataType: 'number', selected: true },
-        { key: 'sum', label: 'Sum', labelZh: '总和', dataType: 'number', selected: true },
+        { key: 'a', label: 'A', dataType: 'number', selected: true },
+        { key: 'b', label: 'B', dataType: 'number', selected: true },
+        { key: 'sum', label: 'Sum', dataType: 'number', selected: true },
       ];
 
       const calcConfig: ExportConfig = {
@@ -300,11 +293,10 @@ describe('Excel Export', () => {
       ];
 
       const pctFields: ExportField[] = [
-        { key: 'name', label: 'Name', labelZh: '名称', dataType: 'string', selected: true },
+        { key: 'name', label: 'Name', dataType: 'string', selected: true },
         {
           key: 'percentage',
           label: 'Percentage',
-          labelZh: '百分比',
           dataType: 'number',
           selected: true,
         },
@@ -330,8 +322,8 @@ describe('Excel Export', () => {
       ];
 
       const chartFields: ExportField[] = [
-        { key: 'category', label: 'Category', labelZh: '类别', dataType: 'string', selected: true },
-        { key: 'value', label: 'Value', labelZh: '值', dataType: 'number', selected: true },
+        { key: 'category', label: 'Category', dataType: 'string', selected: true },
+        { key: 'value', label: 'Value', dataType: 'number', selected: true },
       ];
 
       const chartConfig: ExportConfig = {
@@ -353,9 +345,9 @@ describe('Excel Export', () => {
       ];
 
       const tsFields: ExportField[] = [
-        { key: 'date', label: 'Date', labelZh: '日期', dataType: 'string', selected: true },
-        { key: 'price', label: 'Price', labelZh: '价格', dataType: 'number', selected: true },
-        { key: 'volume', label: 'Volume', labelZh: '成交量', dataType: 'number', selected: true },
+        { key: 'date', label: 'Date', dataType: 'string', selected: true },
+        { key: 'price', label: 'Price', dataType: 'number', selected: true },
+        { key: 'volume', label: 'Volume', dataType: 'number', selected: true },
       ];
 
       const tsConfig: ExportConfig = {
@@ -414,8 +406,8 @@ describe('Excel Export', () => {
       }));
 
       const simpleFields: ExportField[] = [
-        { key: 'id', label: 'ID', labelZh: 'ID', dataType: 'number', selected: true },
-        { key: 'value', label: 'Value', labelZh: '值', dataType: 'number', selected: true },
+        { key: 'id', label: 'ID', dataType: 'number', selected: true },
+        { key: 'value', label: 'Value', dataType: 'number', selected: true },
       ];
 
       const simpleConfig: ExportConfig = {
@@ -431,13 +423,13 @@ describe('Excel Export', () => {
 
   describe('Worksheet creation', () => {
     it('should create worksheet with correct headers', () => {
-      const result = createWorksheet(mockData, mockFields, 'en');
+      const result = createWorksheet(mockData, mockFields);
 
       expect(result).toBeDefined();
     });
 
     it('should handle empty worksheet', () => {
-      const result = createWorksheet([], mockFields, 'en');
+      const result = createWorksheet([], mockFields);
 
       expect(result).toBeDefined();
     });
@@ -449,7 +441,7 @@ describe('Excel Export', () => {
         { symbol: 'THIRD', price: 3 },
       ];
 
-      const result = createWorksheet(orderedData, mockFields.slice(0, 2), 'en');
+      const result = createWorksheet(orderedData, mockFields.slice(0, 2));
 
       expect(result).toBeDefined();
     });
@@ -521,9 +513,9 @@ describe('Excel Export', () => {
 
     it('should handle data with Unicode characters', () => {
       const unicodeData = [
-        { symbol: '比特币', price: 45000 },
-        { symbol: 'イーサリアム', price: 2500 },
-        { symbol: '🚀', price: 100 },
+        { symbol: 'BTC', price: 45000 },
+        { symbol: 'ETH', price: 2500 },
+        { symbol: 'LINK', price: 100 },
       ];
 
       const result = exportToExcel(unicodeData, mockConfig, mockDataSource);
@@ -545,7 +537,7 @@ describe('Excel Export', () => {
       ];
 
       const nestedFields: ExportField[] = [
-        { key: 'symbol', label: 'Symbol', labelZh: '代码', dataType: 'string', selected: true },
+        { key: 'symbol', label: 'Symbol', dataType: 'string', selected: true },
       ];
 
       const nestedConfig: ExportConfig = {
@@ -562,7 +554,7 @@ describe('Excel Export', () => {
       const arrayData = [{ symbol: 'BTC', tags: ['crypto', 'bitcoin', 'store-of-value'] }];
 
       const arrayFields: ExportField[] = [
-        { key: 'symbol', label: 'Symbol', labelZh: '代码', dataType: 'string', selected: true },
+        { key: 'symbol', label: 'Symbol', dataType: 'string', selected: true },
       ];
 
       const arrayConfig: ExportConfig = {
@@ -628,10 +620,10 @@ function generateExcelStyles(): Record<string, unknown> {
   };
 }
 
-function createWorksheet(data: unknown[], fields: ExportField[], locale: string): string {
+function createWorksheet(data: unknown[], fields: ExportField[]): string {
   if (data.length === 0) return '';
 
-  const headers = fields.map((f) => (locale === 'zh-CN' ? f.labelZh : f.label));
+  const headers = fields.map((f) => f.label);
   const rows = data.map((item) =>
     fields.map((field) => {
       const value = (item as Record<string, unknown>)[field.key];

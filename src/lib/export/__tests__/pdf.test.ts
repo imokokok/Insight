@@ -84,16 +84,15 @@ jest.mock('jspdf-autotable', () => {
 // eslint-disable-next-line max-lines-per-function
 describe('PDF Export', () => {
   const mockFields: ExportField[] = [
-    { key: 'symbol', label: 'Symbol', labelZh: '代码', dataType: 'string', selected: true },
-    { key: 'price', label: 'Price', labelZh: '价格', dataType: 'number', selected: true },
+    { key: 'symbol', label: 'Symbol', dataType: 'string', selected: true },
+    { key: 'price', label: 'Price', dataType: 'number', selected: true },
     {
       key: 'change24h',
       label: '24h Change',
-      labelZh: '24小时变化',
       dataType: 'number',
       selected: true,
     },
-    { key: 'timestamp', label: 'Timestamp', labelZh: '时间戳', dataType: 'date', selected: true },
+    { key: 'timestamp', label: 'Timestamp', dataType: 'date', selected: true },
   ];
 
   const mockConfig: ExportConfig = {
@@ -133,7 +132,6 @@ describe('PDF Export', () => {
         mockData,
         mockConfig,
         mockDataSource,
-        'en',
         mockChartElement,
         mockStats
       );
@@ -148,7 +146,6 @@ describe('PDF Export', () => {
         mockData,
         mockConfig,
         mockDataSource,
-        'en',
         null,
         mockStats
       );
@@ -166,7 +163,6 @@ describe('PDF Export', () => {
         mockData,
         mockConfig,
         mockDataSource,
-        'en',
         mockChartElement,
         mockStats
       );
@@ -175,14 +171,7 @@ describe('PDF Export', () => {
     });
 
     it('should scale chart image correctly', async () => {
-      await exportToPDFFromUtils(
-        mockData,
-        mockConfig,
-        mockDataSource,
-        'en',
-        mockChartElement,
-        mockStats
-      );
+      await exportToPDFFromUtils(mockData, mockConfig, mockDataSource, mockChartElement, mockStats);
 
       expect(mockBlobToBase64).toHaveBeenCalled();
     });
@@ -194,20 +183,6 @@ describe('PDF Export', () => {
         mockData,
         mockConfig,
         mockDataSource,
-        'en',
-        null,
-        mockStats
-      );
-
-      expect(result).toBeDefined();
-    });
-
-    it('should handle Chinese headers', async () => {
-      const result = await exportToPDFFromUtils(
-        mockData,
-        mockConfig,
-        mockDataSource,
-        'zh-CN',
         null,
         mockStats
       );
@@ -222,7 +197,6 @@ describe('PDF Export', () => {
         numberData,
         mockConfig,
         mockDataSource,
-        'en',
         null,
         mockStats
       );
@@ -231,14 +205,7 @@ describe('PDF Export', () => {
     });
 
     it('should handle empty data gracefully', async () => {
-      const result = await exportToPDFFromUtils(
-        [],
-        mockConfig,
-        mockDataSource,
-        'en',
-        null,
-        mockStats
-      );
+      const result = await exportToPDFFromUtils([], mockConfig, mockDataSource, null, mockStats);
 
       expect(result).toBeDefined();
     });
@@ -255,7 +222,6 @@ describe('PDF Export', () => {
         largeData,
         mockConfig,
         mockDataSource,
-        'en',
         null,
         mockStats
       );
@@ -277,7 +243,6 @@ describe('PDF Export', () => {
         largeData,
         mockConfig,
         mockDataSource,
-        'en',
         null,
         mockStats
       );
@@ -290,7 +255,6 @@ describe('PDF Export', () => {
         mockData,
         mockConfig,
         mockDataSource,
-        'en',
         mockChartElement,
         mockStats
       );
@@ -310,7 +274,6 @@ describe('PDF Export', () => {
         multiPageData,
         mockConfig,
         mockDataSource,
-        'en',
         null,
         mockStats
       );
@@ -325,7 +288,6 @@ describe('PDF Export', () => {
         mockData,
         mockConfig,
         mockDataSource,
-        'en',
         null,
         mockStats
       );
@@ -338,20 +300,6 @@ describe('PDF Export', () => {
         mockData,
         mockConfig,
         mockDataSource,
-        'en',
-        null,
-        mockStats
-      );
-
-      expect(result).toBeDefined();
-    });
-
-    it('should use Chinese title for Chinese locale', async () => {
-      const result = await exportToPDFFromUtils(
-        mockData,
-        mockConfig,
-        mockDataSource,
-        'zh-CN',
         null,
         mockStats
       );
@@ -371,7 +319,6 @@ describe('PDF Export', () => {
         largeData,
         mockConfig,
         mockDataSource,
-        'en',
         null,
         mockStats
       );
@@ -386,7 +333,6 @@ describe('PDF Export', () => {
         mockData,
         mockConfig,
         mockDataSource,
-        'en',
         mockChartElement,
         mockStats
       );
@@ -399,7 +345,6 @@ describe('PDF Export', () => {
         mockData,
         mockConfig,
         mockDataSource,
-        'en',
         mockChartElement,
         mockStats
       );
@@ -412,7 +357,6 @@ describe('PDF Export', () => {
         mockData,
         mockConfig,
         mockDataSource,
-        'en',
         mockChartElement,
         mockStats
       );
@@ -427,7 +371,6 @@ describe('PDF Export', () => {
         mockData,
         mockConfig,
         mockDataSource,
-        'en',
         null,
         mockStats
       );
@@ -440,7 +383,6 @@ describe('PDF Export', () => {
         mockData,
         mockConfig,
         mockDataSource,
-        'en',
         null,
         mockStats
       );
@@ -450,15 +392,14 @@ describe('PDF Export', () => {
 
     it('should handle Unicode characters in content', async () => {
       const unicodeData = [
-        { symbol: '比特币', price: 45000, change24h: 2.5, timestamp: '2024-01-15' },
-        { symbol: 'イーサリアム', price: 2500, change24h: -1.2, timestamp: '2024-01-15' },
+        { symbol: 'BTC', price: 45000, change24h: 2.5, timestamp: '2024-01-15' },
+        { symbol: 'ETH', price: 2500, change24h: -1.2, timestamp: '2024-01-15' },
       ];
 
       const result = await exportToPDFFromUtils(
         unicodeData,
         mockConfig,
         mockDataSource,
-        'zh-CN',
         null,
         mockStats
       );
@@ -473,7 +414,6 @@ describe('PDF Export', () => {
         mockData,
         mockConfig,
         mockDataSource,
-        'en',
         null,
         mockStats
       );
@@ -491,7 +431,6 @@ describe('PDF Export', () => {
         mockData,
         noStatsConfig,
         mockDataSource,
-        'en',
         null,
         mockStats
       );
@@ -504,7 +443,6 @@ describe('PDF Export', () => {
         mockData,
         mockConfig,
         mockDataSource,
-        'en',
         null,
         undefined
       );
@@ -517,7 +455,6 @@ describe('PDF Export', () => {
         mockData,
         mockConfig,
         mockDataSource,
-        'en',
         null,
         mockStats
       );
@@ -675,7 +612,6 @@ describe('PDF Export', () => {
         mockData,
         mockConfig,
         mockDataSource,
-        'en',
         null,
         mockStats
       );
@@ -693,7 +629,6 @@ describe('PDF Export', () => {
         mockData,
         customConfig,
         mockDataSource,
-        'en',
         null,
         mockStats
       );
@@ -706,7 +641,6 @@ describe('PDF Export', () => {
         mockData,
         mockConfig,
         mockDataSource,
-        'en',
         null,
         mockStats
       );
@@ -722,7 +656,6 @@ describe('PDF Export', () => {
         [null, undefined] as unknown[],
         mockConfig,
         mockDataSource,
-        'en',
         null,
         mockStats
       );
@@ -740,7 +673,6 @@ describe('PDF Export', () => {
         mockData,
         noFieldsConfig,
         mockDataSource,
-        'en',
         null,
         mockStats
       );
@@ -757,7 +689,6 @@ describe('PDF Export', () => {
         mockData,
         mockConfig,
         mockDataSource,
-        'en',
         mockChartElement,
         mockStats
       );
@@ -780,7 +711,6 @@ describe('PDF Export', () => {
         largeData,
         mockConfig,
         mockDataSource,
-        'en',
         null,
         mockStats
       );
