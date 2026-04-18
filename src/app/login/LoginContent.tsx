@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 
 import Link from 'next/link';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
 import { Mail, LogIn, AlertCircle, MailWarning } from 'lucide-react';
 
@@ -18,7 +18,6 @@ interface ErrorInfo {
 
 export default function LoginContent() {
   const router = useRouter();
-  const _params = useParams();
   const user = useUser();
   const _loading = useAuthLoading();
   const error = useAuthError();
@@ -71,7 +70,7 @@ export default function LoginContent() {
       setErrorInfo(parseError(signInError.message));
       setIsLoading(false);
     } else {
-      router.push(`/en`);
+      router.push(`/`);
     }
   };
 
@@ -94,7 +93,7 @@ export default function LoginContent() {
       <div className="w-full max-w-md">
         <div className="bg-white border border-gray-200 p-8 shadow-sm rounded-lg">
           <div className="text-center mb-8">
-            <Link href={`/en`} className="inline-block">
+            <Link href={`/`} className="inline-block">
               <h1 className="text-2xl font-bold text-primary-600 hover:text-primary-700 transition-colors">
                 Insight
               </h1>
@@ -120,7 +119,7 @@ export default function LoginContent() {
                   <p className="text-sm text-danger-600">{displayError}</p>
                   {errorInfo?.type === 'email_not_confirmed' && (
                     <Link
-                      href={`/en/auth/resend-verification?email=${encodeURIComponent(email)}`}
+                      href={`/auth/resend-verification?email=${encodeURIComponent(email)}`}
                       className="mt-2 inline-block text-sm text-primary-600 hover:text-primary-700 font-medium underline"
                     >
                       Resend Confirmation Email
@@ -181,7 +180,7 @@ export default function LoginContent() {
                 </label>
               </div>
               <Link
-                href={`/en/auth/forgot-password`}
+                href={`/auth/forgot-password`}
                 className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
               >
                 Forgot password?
@@ -259,7 +258,7 @@ export default function LoginContent() {
           <p className="mt-8 text-center text-sm text-gray-500">
             Don&apos;t have an account?{' '}
             <Link
-              href={`/en/register`}
+              href={`/register`}
               className="font-semibold text-primary-600 hover:text-primary-700 transition-colors"
             >
               Register now

@@ -98,7 +98,7 @@ export default function RegisterContent() {
             </div>
             <div className="space-y-3">
               <Link
-                href={`/en/login`}
+                href={`/login`}
                 className="block w-full px-6 py-3 bg-primary-600 text-white font-semibold hover:bg-primary-700 transition-colors rounded-md"
               >
                 Go to Login
@@ -127,7 +127,7 @@ export default function RegisterContent() {
       <div className="w-full max-w-md">
         <div className="bg-white border border-gray-200 p-8 rounded-lg">
           <div className="text-center mb-8">
-            <Link href={`/en`} className="inline-block">
+            <Link href={`/`} className="inline-block">
               <h1 className="text-2xl font-bold text-primary-600 hover:text-primary-700 transition-colors">
                 Insight
               </h1>
@@ -237,14 +237,14 @@ export default function RegisterContent() {
               <label htmlFor="terms" className="ml-2 text-sm text-gray-600">
                 <span>I agree to the </span>
                 <Link
-                  href={`/en/terms`}
+                  href={`/terms`}
                   className="text-primary-600 hover:text-primary-700 font-medium"
                 >
                   Terms of Service
                 </Link>
                 <span> and </span>
                 <Link
-                  href={`/en/privacy`}
+                  href={`/privacy`}
                   className="text-primary-600 hover:text-primary-700 font-medium"
                 >
                   Privacy Policy
@@ -269,7 +269,7 @@ export default function RegisterContent() {
           <p className="mt-8 text-center text-sm text-gray-500">
             Already have an account?{' '}
             <Link
-              href={`/en/login`}
+              href={`/login`}
               className="font-semibold text-primary-600 hover:text-primary-700 transition-colors"
             >
               Login now
