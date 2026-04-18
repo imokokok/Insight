@@ -45,8 +45,8 @@ export function PageHeader({ data }: PageHeaderProps) {
     <div className="mb-6">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">{'crossChain.title'}</h1>
-          <p className="text-sm mt-1 text-gray-500">{'crossOracle.subtitle'}</p>
+          <h1 className="text-2xl font-semibold text-gray-900">Cross-Chain Price Comparison</h1>
+          <p className="text-sm mt-1 text-gray-500">Compare prices across multiple oracles</p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
@@ -79,7 +79,7 @@ export function PageHeader({ data }: PageHeaderProps) {
                     d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
                   />
                 </svg>
-                <span>{'crossOracle.favorites.button'}</span>
+                <span>Favorites</span>
                 <span className="px-1.5 py-0.5 text-xs bg-gray-100 text-gray-600 rounded">
                   {chainFavorites.length}
                 </span>
@@ -101,9 +101,7 @@ export function PageHeader({ data }: PageHeaderProps) {
               {showFavoritesDropdown && (
                 <div className="absolute right-0 mt-2 w-72 bg-white border border-gray-200 z-50 max-h-96 overflow-y-auto rounded-lg shadow-lg">
                   <div className="p-2 border-b border-gray-100">
-                    <h3 className="text-sm font-semibold text-gray-900">
-                      {'crossOracle.favorites.quickAccess'}
-                    </h3>
+                    <h3 className="text-sm font-semibold text-gray-900">Quick Access</h3>
                   </div>
                   <div className="p-1">
                     {chainFavorites.map((favorite) => {
@@ -147,7 +145,7 @@ export function PageHeader({ data }: PageHeaderProps) {
                       }}
                       className="w-full text-center text-sm text-blue-600 hover:text-blue-700 font-medium"
                     >
-                      {'crossOracle.favorites.viewAll'}
+                      View All Favorites
                     </button>
                   </div>
                 </div>
@@ -162,12 +160,10 @@ export function PageHeader({ data }: PageHeaderProps) {
                 ? 'bg-blue-50 border-blue-200 text-blue-700'
                 : 'border-gray-300 text-gray-600 hover:border-gray-400'
             }`}
-            title={
-              colorblindMode ? 'crossChain.colorblindModeOn' : 'crossChain.switchToColorblindMode'
-            }
+            title={colorblindMode ? 'Colorblind mode on' : 'Switch to colorblind mode'}
           >
             <Eye className="w-4 h-4" />
-            <span className="hidden sm:inline">{'crossChain.colorblindFriendly'}</span>
+            <span className="hidden sm:inline">Colorblind Friendly</span>
             {colorblindMode && (
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                 <path
@@ -213,10 +209,10 @@ export function PageHeader({ data }: PageHeaderProps) {
               className={`w-3.5 h-3.5 ${refreshStatus === 'refreshing' ? 'animate-spin' : ''}`}
             />
             {refreshStatus === 'refreshing'
-              ? 'status.loading'
+              ? 'Loading...'
               : showRefreshSuccess
-                ? 'crossChain.refreshSuccess'
-                : 'actions.refresh'}
+                ? 'Refreshed!'
+                : 'Refresh'}
           </button>
         </div>
       </div>

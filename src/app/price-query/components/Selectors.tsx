@@ -141,18 +141,18 @@ export function Selectors({
     <div
       className="bg-white rounded-lg shadow-sm border border-gray-200"
       role="region"
-      aria-label={'priceQuery.selectors.panelLabel'}
+      aria-label="Price query selectors"
     >
       <div className="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
         <h2 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
           <Search className="w-4 h-4 text-gray-500" aria-hidden="true" />
-          {'priceQuery.title'}
+          Price Query
         </h2>
         <button
           onClick={onQuery}
           disabled={isLoading}
           aria-busy={isLoading}
-          aria-label={isLoading ? 'priceQuery.loading' : 'priceQuery.query'}
+          aria-label={isLoading ? 'Loading...' : 'Query'}
           className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
         >
           {isLoading ? (
@@ -160,40 +160,33 @@ export function Selectors({
           ) : (
             <RefreshCw className="w-3 h-3" aria-hidden="true" />
           )}
-          {isLoading ? 'priceQuery.loading' : 'priceQuery.query'}
+          {isLoading ? 'Loading...' : 'Query'}
         </button>
       </div>
 
       <div className="p-4">
         <section className="py-3 first:pt-0" aria-labelledby="oracle-label">
-          <label className="block text-xs font-medium text-gray-700 mb-2">
-            {'priceQuery.selectors.oracle'}
-          </label>
+          <label className="block text-xs font-medium text-gray-700 mb-2">Oracle</label>
           <DropdownSelect
             options={oracleOptions}
             value={selectedOracle}
             onChange={(value) => {
               const newOracle = value as OracleProvider;
               setSelectedOracle(newOracle);
-              // 切换预言机时重置链
               setSelectedChain(null);
-              // 币种由 usePriceQueryData 中的 useEffect 自动处理查询
             }}
-            placeholder={'priceQuery.selectors.selectOracle'}
+            placeholder="Select oracle"
           />
         </section>
 
         <section className="py-3 border-t border-gray-100" aria-labelledby="blockchain-label">
-          <label className="block text-xs font-medium text-gray-700 mb-2">
-            {'priceQuery.selectors.blockchain'}
-          </label>
+          <label className="block text-xs font-medium text-gray-700 mb-2">Blockchain</label>
           <DropdownSelect
             options={chainOptions}
             value={selectedChain}
             onChange={(value) => {
               const newChain = value as Blockchain;
               setSelectedChain(newChain);
-              // 切换链时，如果当前币种在新链上不支持，选择该链的第一个支持的币种
               if (newChain && selectedSymbol && !isSymbolSupported(selectedSymbol, newChain)) {
                 const symbolsForNewChain = getSymbolsForChain(newChain);
                 if (symbolsForNewChain.length > 0) {
@@ -201,7 +194,7 @@ export function Selectors({
                 }
               }
             }}
-            placeholder={'priceQuery.selectors.selectBlockchain'}
+            placeholder="Select blockchain"
           />
         </section>
 
@@ -210,8 +203,8 @@ export function Selectors({
             options={symbolOptions}
             value={selectedSymbol}
             onChange={(value) => setSelectedSymbol(value as string)}
-            label={'priceQuery.selectors.symbol'}
-            aria-label={'priceQuery.selectors.symbolLabel'}
+            label="Symbol"
+            aria-label="Select symbol"
           />
         </section>
 
@@ -220,8 +213,8 @@ export function Selectors({
             options={timeRangeOptions}
             value={selectedTimeRange}
             onChange={(value) => setSelectedTimeRange(value as number)}
-            label={'priceQuery.selectors.timeRange'}
-            aria-label={'priceQuery.selectors.timeRangeLabel'}
+            label="Time Range"
+            aria-label="Select time range"
           />
         </section>
       </div>

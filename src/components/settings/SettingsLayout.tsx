@@ -23,27 +23,27 @@ export function SettingsLayout({ children, activeTab, onTabChange }: SettingsLay
   const tabs: TabItem[] = [
     {
       id: 'profile',
-      label: 'settings.profile',
+      label: 'Profile',
       icon: User,
-      description: 'settings.profileDesc',
+      description: 'Manage your account profile',
     },
     {
       id: 'preferences',
-      label: 'settings.preferences',
+      label: 'Preferences',
       icon: Palette,
-      description: 'settings.preferencesDesc',
+      description: 'Customize your preferences',
     },
     {
       id: 'notifications',
-      label: 'settings.notifications',
+      label: 'Notifications',
       icon: Bell,
-      description: 'settings.notificationsDesc',
+      description: 'Configure notification settings',
     },
     {
       id: 'data',
-      label: 'settings.data',
+      label: 'Data',
       icon: Database,
-      description: 'settings.dataDesc',
+      description: 'Manage your data',
     },
   ];
 
@@ -56,8 +56,10 @@ export function SettingsLayout({ children, activeTab, onTabChange }: SettingsLay
               <Settings className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-semibold text-gray-900">{'settings.title'}</h1>
-              <p className="text-sm text-gray-500 mt-0.5">{'settings.subtitle'}</p>
+              <h1 className="text-2xl font-semibold text-gray-900">Settings</h1>
+              <p className="text-sm text-gray-500 mt-0.5">
+                Manage your account settings and preferences
+              </p>
             </div>
           </div>
         </div>

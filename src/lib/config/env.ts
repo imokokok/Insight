@@ -38,6 +38,7 @@ interface ServerFeatureFlags extends ClientFeatureFlags {
   useRealSupraData: boolean;
   useRealTwapData: boolean;
   useRealReflectorData: boolean;
+  useRealFlareData: boolean;
 }
 
 interface WebSocketConfig {
@@ -118,6 +119,7 @@ const serverEnvSchema = z.object({
   USE_REAL_SUPRA_DATA: envBoolean.default(true),
   USE_REAL_TWAP_DATA: envBoolean.default(true),
   USE_REAL_REFLECTOR_DATA: envBoolean.default(true),
+  USE_REAL_FLARE_DATA: envBoolean.default(true),
   STELLAR_RPC_URL: z.string().url().optional().default(''),
   REFLECTOR_CRYPTO_CONTRACT: z.string().optional().default(''),
   REFLECTOR_FOREX_CONTRACT: z.string().optional().default(''),
@@ -145,6 +147,7 @@ const lenientServerEnvSchema = z.object({
   USE_REAL_SUPRA_DATA: envBoolean.default(true),
   USE_REAL_TWAP_DATA: envBoolean.default(true),
   USE_REAL_REFLECTOR_DATA: envBoolean.default(true),
+  USE_REAL_FLARE_DATA: envBoolean.default(true),
   STELLAR_RPC_URL: z.string().optional().default(''),
   REFLECTOR_CRYPTO_CONTRACT: z.string().optional().default(''),
   REFLECTOR_FOREX_CONTRACT: z.string().optional().default(''),
@@ -183,6 +186,7 @@ function getRawServerEnv() {
     USE_REAL_SUPRA_DATA: process.env.USE_REAL_SUPRA_DATA,
     USE_REAL_TWAP_DATA: process.env.USE_REAL_TWAP_DATA,
     USE_REAL_REFLECTOR_DATA: process.env.USE_REAL_REFLECTOR_DATA,
+    USE_REAL_FLARE_DATA: process.env.USE_REAL_FLARE_DATA,
     STELLAR_RPC_URL: process.env.STELLAR_RPC_URL,
     REFLECTOR_CRYPTO_CONTRACT: process.env.REFLECTOR_CRYPTO_CONTRACT,
     REFLECTOR_FOREX_CONTRACT: process.env.REFLECTOR_FOREX_CONTRACT,
@@ -236,6 +240,7 @@ function parseServerEnv(): ServerEnv {
       USE_REAL_SUPRA_DATA: data.USE_REAL_SUPRA_DATA,
       USE_REAL_TWAP_DATA: data.USE_REAL_TWAP_DATA,
       USE_REAL_REFLECTOR_DATA: data.USE_REAL_REFLECTOR_DATA,
+      USE_REAL_FLARE_DATA: data.USE_REAL_FLARE_DATA,
       STELLAR_RPC_URL: data.STELLAR_RPC_URL,
       REFLECTOR_CRYPTO_CONTRACT: data.REFLECTOR_CRYPTO_CONTRACT,
       REFLECTOR_FOREX_CONTRACT: data.REFLECTOR_FOREX_CONTRACT,
@@ -315,6 +320,7 @@ function buildServerEnvConfig(parsed: ServerEnv): ServerEnvConfig {
       useRealSupraData: parsed.USE_REAL_SUPRA_DATA,
       useRealTwapData: parsed.USE_REAL_TWAP_DATA,
       useRealReflectorData: parsed.USE_REAL_REFLECTOR_DATA,
+      useRealFlareData: parsed.USE_REAL_FLARE_DATA,
     },
     websocket: {
       url: parsed.NEXT_PUBLIC_WS_URL || undefined,
@@ -361,6 +367,7 @@ export const FEATURE_FLAGS: ServerFeatureFlags = _serverEnvConfig
       useRealSupraData: false,
       useRealTwapData: false,
       useRealReflectorData: false,
+      useRealFlareData: false,
     };
 
 export function isFeatureEnabled(feature: keyof ServerFeatureFlags): boolean {

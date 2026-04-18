@@ -46,6 +46,7 @@ const providerToSymbolKey: Record<OracleProvider, keyof typeof oracleSupportedSy
   [OracleProvider.SUPRA]: 'supra',
   [OracleProvider.TWAP]: 'twap',
   [OracleProvider.REFLECTOR]: 'reflector',
+  [OracleProvider.FLARE]: 'flare',
 };
 
 /**

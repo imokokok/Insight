@@ -125,13 +125,13 @@ export function QueryResults({
                 <h2 className="text-2xl font-bold text-gray-900">{selectedSymbol}</h2>
                 <p className="text-sm text-gray-500 flex items-center gap-1.5">
                   <Database className="w-3.5 h-3.5" />
-                  {queryResults.length} {'priceQuery.dataSources.title'}
+                  {queryResults.length} Data Sources
                 </p>
               </div>
             </div>
 
             <div className="text-left sm:text-right">
-              <p className="text-sm text-gray-500 mb-1">{'priceQuery.currentPrice'}</p>
+              <p className="text-sm text-gray-500 mb-1">Current Price</p>
               <div className="flex items-baseline gap-3 sm:justify-end">
                 <PriceFlash value={currentPriceValue} previousValue={previousPriceValue}>
                   <span className="text-4xl sm:text-5xl font-bold text-gray-900 tracking-tight">
@@ -167,7 +167,7 @@ export function QueryResults({
             <div className="flex items-center gap-1.5 text-gray-500">
               <BarChart3 className="w-4 h-4" />
               <span>
-                {'priceQuery.stats.standardDeviation'}:{' '}
+                Standard Deviation:{' '}
                 <span className="font-medium text-gray-700">
                   {standardDeviation > 0 ? `${standardDeviationPercent.toFixed(4)}%` : '-'}
                 </span>
@@ -176,7 +176,7 @@ export function QueryResults({
             <div className="flex items-center gap-1.5 text-gray-500">
               <Database className="w-4 h-4" />
               <span>
-                {'priceQuery.stats.dataPoints'}:{' '}
+                Data Points:{' '}
                 <span className="font-medium text-gray-700">{queryResults.length}</span>
               </span>
             </div>
@@ -184,7 +184,7 @@ export function QueryResults({
               <div className="flex items-center gap-1.5 text-gray-500">
                 <Clock className="w-4 h-4" />
                 <span>
-                  {'priceQuery.stats.queryDuration'}:{' '}
+                  Query Duration:{' '}
                   <span className="font-medium text-gray-700">{queryDuration} ms</span>
                 </span>
               </div>
@@ -195,12 +195,8 @@ export function QueryResults({
         <div ref={chartContainerRef} className="p-6">
           <div className="flex items-center gap-2 mb-4">
             <div className="w-1 h-5 bg-gradient-to-b from-blue-500 to-indigo-500 rounded-full"></div>
-            <h3 className="text-sm font-semibold text-gray-800">
-              {'priceQuery.charts.priceHistory'}
-            </h3>
-            <span className="text-xs text-gray-400 ml-2">
-              {'priceQuery.stats.historicalDataSource'}
-            </span>
+            <h3 className="text-sm font-semibold text-gray-800">Price History</h3>
+            <span className="text-xs text-gray-400 ml-2">Historical data source</span>
           </div>
           <div className="bg-gray-50/50 rounded-xl border border-gray-100 p-4">
             <PriceChart

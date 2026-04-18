@@ -76,22 +76,16 @@ export function DataSourceList({
             <Database size={18} className="text-primary-600" />
           </div>
           <div>
-            <h3 className="font-semibold text-gray-900">
-              {title || 'dataTransparency.dataSources'}
-            </h3>
+            <h3 className="font-semibold text-gray-900">{title || 'Data Sources'}</h3>
             <div className="flex items-center gap-3 text-xs text-gray-500 mt-0.5">
               <span className="flex items-center gap-1">
                 <Layers size={12} />
-                {providerCount} {'dataTransparency.providers'}
+                {providerCount} Providers
               </span>
               <span>•</span>
-              <span>
-                {chainCount} {'dataTransparency.chains'}
-              </span>
+              <span>{chainCount} Chains</span>
               <span>•</span>
-              <span>
-                {sources.length} {'dataTransparency.dataPoints'}
-              </span>
+              <span>{sources.length} Data Points</span>
             </div>
           </div>
         </div>

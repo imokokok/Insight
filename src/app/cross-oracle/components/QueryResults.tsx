@@ -51,7 +51,7 @@ function LoadingState({
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Database className="w-5 h-5 text-blue-500" />
-          <h3 className="text-sm font-semibold text-gray-900">{'crossOracle.loadingData'}</h3>
+          <h3 className="text-sm font-semibold text-gray-900">Loading data...</h3>
         </div>
         <span className="text-xs text-gray-500">
           {queryProgress.completed} / {queryProgress.total}

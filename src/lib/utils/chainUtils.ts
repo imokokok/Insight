@@ -119,6 +119,7 @@ export function getChainShortName(chain: Blockchain): string {
     [Blockchain.METIS]: 'METIS',
     [Blockchain.STARKEX]: 'STX',
     [Blockchain.STELLAR]: 'XLM',
+    [Blockchain.FLARE]: 'FLR',
   };
   return shortNames[chain] || chain.toUpperCase().slice(0, 4);
 }

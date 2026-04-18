@@ -16,7 +16,7 @@ export function QueryResultsLoading({
     <div className="space-y-6">
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-semibold text-gray-900">{'priceQuery.loadingData'}</h3>
+          <h3 className="text-sm font-semibold text-gray-900">Loading data...</h3>
           <span className="text-xs text-gray-500">
             {queryProgress.completed} / {queryProgress.total}
           </span>

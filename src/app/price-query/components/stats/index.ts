@@ -7,5 +7,6 @@ export { RedStoneStats } from './RedStoneStats';
 export { SupraStats } from './SupraStats';
 export { TwapStats } from './TwapStats';
 export { ReflectorStats } from './ReflectorStats';
+export { FlareStats } from './FlareStats';
 export { DefaultStats } from './DefaultStats';
 export { StatsCardsSelector } from './StatsCardsSelector';

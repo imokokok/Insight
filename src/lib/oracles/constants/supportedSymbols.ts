@@ -552,6 +552,51 @@ export const REFLECTOR_AVAILABLE_PAIRS: Record<string, string[]> = {
   stellar: [...reflectorSymbols],
 };
 
+export const flareSymbols = [
+  'BTC',
+  'ETH',
+  'FLR',
+  'XRP',
+  'SOL',
+  'DOGE',
+  'ADA',
+  'BNB',
+  'AVAX',
+  'LINK',
+  'DOT',
+  'MATIC',
+  'ARB',
+  'UNI',
+  'ATOM',
+  'LTC',
+  'USDT',
+  'USDC',
+  'DAI',
+  'AAVE',
+  'NEAR',
+  'APT',
+  'OP',
+  'TRX',
+  'SHIB',
+  'TON',
+  'HBAR',
+  'FIL',
+  'XLM',
+  'SGB',
+  'ALGO',
+  'XDC',
+  'ICP',
+  'RUNE',
+  'FTM',
+  'QNT',
+] as const;
+
+export type FlareSymbol = (typeof flareSymbols)[number];
+
+export const FLARE_AVAILABLE_PAIRS: Record<string, string[]> = {
+  flare: [...flareSymbols],
+};
+
 export const oracleSupportedSymbols = {
   chainlink: chainlinkSymbols,
   redstone: redstoneSymbols,
@@ -562,6 +607,7 @@ export const oracleSupportedSymbols = {
   supra: supraSymbols,
   twap: twapSymbols,
   reflector: reflectorSymbols,
+  flare: flareSymbols,
 } as const;
 
 // 类型定义

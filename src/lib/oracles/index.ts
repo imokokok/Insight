@@ -93,6 +93,24 @@ export {
   type ReflectorForexAsset,
   type ReflectorAsset,
 } from './constants/reflectorConstants';
+export { FlareClient } from './clients/flare';
+export {
+  FtsoDataService,
+  getFtsoDataService,
+  resetFtsoDataService,
+  type FtsoPriceData,
+} from './services/ftsoDataService';
+export {
+  flareSymbols,
+  FLARE_AVAILABLE_PAIRS,
+  FLARE_CACHE_TTL,
+  FLARE_RPC_ENDPOINTS,
+  FLARE_CHAIN_IDS,
+  FTSOV2_ADDRESS,
+  FTSOV2_ABI,
+  encodeFeedId,
+  type FlareSymbol,
+} from './constants/flareConstants';
 export {
   PythDataService,
   getPythDataService,

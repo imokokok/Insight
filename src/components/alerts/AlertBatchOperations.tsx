@@ -63,9 +63,7 @@ export function AlertBatchOperations({
             onChange={allSelected ? onDeselectAll : onSelectAll}
             className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
           />
-          <span className="text-sm text-gray-600">
-            {'alerts.batch.selectAll'.replace('{count}', String(totalCount))}
-          </span>
+          <span className="text-sm text-gray-600">Select all ({totalCount})</span>
         </div>
       </div>
     );
@@ -86,9 +84,7 @@ export function AlertBatchOperations({
             onChange={allSelected ? onDeselectAll : onSelectAll}
             className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
           />
-          <span className="text-sm font-medium text-primary-900">
-            {'alerts.batch.selectedCount'.replace('{count}', String(selectedCount))}
-          </span>
+          <span className="text-sm font-medium text-primary-900">{selectedCount} selected</span>
         </div>
 
         <div className="flex items-center gap-2">
@@ -106,7 +102,7 @@ export function AlertBatchOperations({
                   d="M5 13l4 4L19 7"
                 />
               </svg>
-              {'alerts.batch.enable'}
+              Enable
             </button>
           )}
 
@@ -124,7 +120,7 @@ export function AlertBatchOperations({
                   d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
-              {'alerts.batch.disable'}
+              Disable
             </button>
           )}
 
@@ -142,7 +138,7 @@ export function AlertBatchOperations({
                   d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                 />
               </svg>
-              {'alerts.batch.delete'}
+              Delete
             </button>
           ) : (
             <div className="flex items-center gap-1">
@@ -151,14 +147,14 @@ export function AlertBatchOperations({
                 disabled={isProcessing}
                 className="px-3 py-1.5 text-xs font-medium text-white bg-danger-600 hover:bg-danger-700 rounded transition-colors disabled:opacity-50"
               >
-                {'actions.confirm'}
+                Confirm
               </button>
               <button
                 onClick={handleCancelDelete}
                 disabled={isProcessing}
                 className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-200 hover:bg-gray-300 rounded transition-colors"
               >
-                {'actions.cancel'}
+                Cancel
               </button>
             </div>
           )}
@@ -167,7 +163,7 @@ export function AlertBatchOperations({
             onClick={onDeselectAll}
             disabled={isProcessing}
             className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded transition-colors"
-            title={'alerts.batch.clearSelection'}
+            title="Clear selection"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path
@@ -183,7 +179,7 @@ export function AlertBatchOperations({
 
       {showDeleteConfirm && (
         <div className="p-3 bg-danger-50 border border-danger-200 rounded-lg text-sm text-danger-700">
-          {'alerts.batch.deleteConfirm'.replace('{count}', String(selectedCount))}
+          Are you sure you want to delete {selectedCount} alert(s)?
         </div>
       )}
     </div>

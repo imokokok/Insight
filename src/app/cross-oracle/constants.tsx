@@ -26,22 +26,22 @@ export function timeRangeToValue(range: TimeRange): TimeRangeValue {
   return map[range];
 }
 
-export const timeRangeKeys: Record<TimeRange, string> = {
-  '1h': 'crossOracle.timeRanges.1h',
-  '24h': 'crossOracle.timeRanges.24h',
-  '7d': 'crossOracle.timeRanges.7d',
-  '30d': 'crossOracle.timeRanges.30d',
-  '90d': 'crossOracle.timeRanges.90d',
-  '1y': 'crossOracle.timeRanges.1y',
+export const timeRangeLabels: Record<TimeRange, string> = {
+  '1h': '1 Hour',
+  '24h': '24 Hours',
+  '7d': '7 Days',
+  '30d': '30 Days',
+  '90d': '90 Days',
+  '1y': '1 Year',
 };
 
-export const timeRanges: { value: TimeRange; labelKey: string }[] = [
-  { value: '1h', labelKey: timeRangeKeys['1h'] },
-  { value: '24h', labelKey: timeRangeKeys['24h'] },
-  { value: '7d', labelKey: timeRangeKeys['7d'] },
-  { value: '30d', labelKey: timeRangeKeys['30d'] },
-  { value: '90d', labelKey: timeRangeKeys['90d'] },
-  { value: '1y', labelKey: timeRangeKeys['1y'] },
+export const timeRanges: { value: TimeRange; label: string }[] = [
+  { value: '1h', label: timeRangeLabels['1h'] },
+  { value: '24h', label: timeRangeLabels['24h'] },
+  { value: '7d', label: timeRangeLabels['7d'] },
+  { value: '30d', label: timeRangeLabels['30d'] },
+  { value: '90d', label: timeRangeLabels['90d'] },
+  { value: '1y', label: timeRangeLabels['1y'] },
 ];
 
 // ============================================================================
@@ -69,6 +69,7 @@ export const oracleNames: Record<OracleProvider, string> = {
   [OracleProvider.SUPRA]: 'Supra',
   [OracleProvider.TWAP]: 'TWAP',
   [OracleProvider.REFLECTOR]: 'Reflector',
+  [OracleProvider.FLARE]: 'Flare',
 };
 
 export const oracleColors: Record<string, string> = {
@@ -81,6 +82,7 @@ export const oracleColors: Record<string, string> = {
   [OracleProvider.SUPRA]: '#14B8A6',
   [OracleProvider.TWAP]: '#FF007A',
   [OracleProvider.REFLECTOR]: '#F59E0B',
+  [OracleProvider.FLARE]: '#E84142',
 };
 
 // ============================================================================
@@ -160,8 +162,7 @@ export function getDeviationBgClass(deviation: number): string {
  * 获取数据新鲜度信息
  */
 export function getFreshnessInfo(timestamp: number): {
-  textKey: string;
-  textParams: Record<string, number>;
+  text: string;
   color: string;
   seconds?: number;
 } {
@@ -170,35 +171,31 @@ export function getFreshnessInfo(timestamp: number): {
   const minutes = Math.floor(age / 60000);
 
   if (minutes < 1) {
-    return { textKey: 'crossOracle.freshness.justNow', textParams: {}, color: '#22c55e', seconds };
+    return { text: 'Just now', color: '#22c55e', seconds };
   }
   if (minutes < 5) {
     return {
-      textKey: 'crossOracle.freshness.minutesAgo',
-      textParams: { minutes },
+      text: `${minutes} minutes ago`,
       color: '#22c55e',
       seconds,
     };
   }
   if (minutes < 30) {
     return {
-      textKey: 'crossOracle.freshness.minutesAgo',
-      textParams: { minutes },
+      text: `${minutes} minutes ago`,
       color: '#f59e0b',
       seconds,
     };
   }
   if (minutes < 60) {
     return {
-      textKey: 'crossOracle.freshness.minutesAgo',
-      textParams: { minutes },
+      text: `${minutes} minutes ago`,
       color: '#ef4444',
       seconds,
     };
   }
   return {
-    textKey: 'crossOracle.freshness.hoursAgo',
-    textParams: { hours: Math.floor(minutes / 60) },
+    text: `${Math.floor(minutes / 60)} hours ago`,
     color: '#7f1d1d',
     seconds,
   };

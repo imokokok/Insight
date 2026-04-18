@@ -52,6 +52,11 @@ export const STELLAR_CONFIG = {
   reflectorForexContract: process.env.REFLECTOR_FOREX_CONTRACT || '',
 };
 
+// Flare RPC 配置
+export const FLARE_CONFIG = {
+  rpcUrl: process.env.FLARE_RPC_URL || '',
+};
+
 // 功能开关 - 从 featureFlags 重新导出以保持向后兼容
 export { FEATURE_FLAGS } from './env';
 

@@ -100,6 +100,7 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
     [Blockchain.METIS]: configChainColors.metis,
     [Blockchain.STARKEX]: configChainColors.starkex,
     [Blockchain.STELLAR]: '#14B8A6',
+    [Blockchain.FLARE]: '#E84142',
   };
 
   const maPeriodOptions = [

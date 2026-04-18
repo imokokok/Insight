@@ -153,7 +153,7 @@ export function DataUpdateTime({
             )}
             {autoRefresh && showCountdown && (
               <p className="text-xs font-medium text-gray-600">
-                {'dataTransparency.nextRefresh'}: {formatCountdown(countdown)}
+                Next refresh: {formatCountdown(countdown)}
               </p>
             )}
           </div>
@@ -163,7 +163,7 @@ export function DataUpdateTime({
           <div className="mt-3 pt-3 border-t border-danger-200">
             <p className="text-xs text-danger-600 flex items-center gap-1">
               <AlertCircle size={12} />
-              {error.message || 'status.error'}
+              {error.message || 'Error'}
             </p>
           </div>
         )}
@@ -178,12 +178,12 @@ export function DataUpdateTime({
               {isLoading ? (
                 <>
                   <RefreshCw size={14} className="animate-spin" />
-                  {'status.loading'}
+                  Loading...
                 </>
               ) : (
                 <>
                   <RefreshCw size={14} />
-                  {'actions.refresh'}
+                  Refresh
                 </>
               )}
             </button>
@@ -214,7 +214,7 @@ export function DataUpdateTime({
           onClick={onRefresh}
           disabled={isLoading}
           className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          title={'actions.refresh'}
+          title="Refresh"
         >
           <RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />
         </button>

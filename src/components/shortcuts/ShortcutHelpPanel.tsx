@@ -11,15 +11,15 @@ import { useShortcutContext } from './ShortcutContext';
 
 interface ShortcutItemProps {
   shortcut: KeyboardShortcut;
-  labelKey: string;
+  label: string;
 }
 
-function ShortcutItem({ shortcut, labelKey }: ShortcutItemProps) {
+function ShortcutItem({ shortcut, label }: ShortcutItemProps) {
   const displayShortcut = getPlatformShortcut(shortcut);
 
   return (
     <div className="flex items-center justify-between py-2 px-3 hover:bg-gray-50 rounded-lg transition-colors">
-      <span className="text-sm text-gray-700">{labelKey}</span>
+      <span className="text-sm text-gray-700">{label}</span>
       <kbd className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 border border-gray-200 rounded text-xs font-mono text-gray-600">
         {displayShortcut}
       </kbd>
@@ -28,24 +28,24 @@ function ShortcutItem({ shortcut, labelKey }: ShortcutItemProps) {
 }
 
 interface ShortcutCategoryProps {
-  titleKey: string;
-  shortcuts: { shortcut: KeyboardShortcut; labelKey: string }[];
+  title: string;
+  shortcuts: { shortcut: KeyboardShortcut; label: string }[];
 }
 
-function ShortcutCategory({ titleKey, shortcuts }: ShortcutCategoryProps) {
+function ShortcutCategory({ title, shortcuts }: ShortcutCategoryProps) {
   if (shortcuts.length === 0) return null;
 
   return (
     <div className="mb-6">
       <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-3">
-        {titleKey}
+        {title}
       </h3>
       <div className="space-y-1">
         {shortcuts.map((item, index) => (
           <ShortcutItem
-            key={`${item.labelKey}-${index}`}
+            key={`${item.label}-${index}`}
             shortcut={item.shortcut}
-            labelKey={item.labelKey}
+            label={item.label}
           />
         ))}
       </div>
@@ -58,62 +58,62 @@ export function ShortcutHelpPanel() {
 
   const allCategories = useMemo(() => {
     const result: {
-      titleKey: string;
-      shortcuts: { shortcut: KeyboardShortcut; labelKey: string }[];
+      title: string;
+      shortcuts: { shortcut: KeyboardShortcut; label: string }[];
     }[] = [];
 
     result.push({
-      titleKey: 'Navigation',
+      title: 'Navigation',
       shortcuts: [
         {
           shortcut: { key: 'k', metaKey: true, handler: () => {} },
-          labelKey: 'Search',
+          label: 'Search',
         },
         {
           shortcut: { key: 'k', ctrlKey: true, handler: () => {} },
-          labelKey: 'Search',
+          label: 'Search',
         },
       ],
     });
 
     result.push({
-      titleKey: 'Actions',
+      title: 'Actions',
       shortcuts: [
         {
           shortcut: { key: 'r', handler: () => {} },
-          labelKey: 'Refresh',
+          label: 'Refresh',
         },
         {
           shortcut: { key: 'f', handler: () => {} },
-          labelKey: 'Fullscreen',
+          label: 'Fullscreen',
         },
         {
           shortcut: { key: 'e', handler: () => {} },
-          labelKey: 'Export',
+          label: 'Export',
         },
       ],
     });
 
     result.push({
-      titleKey: 'General',
+      title: 'General',
       shortcuts: [
         {
           shortcut: { key: '?', handler: () => {} },
-          labelKey: 'Help',
+          label: 'Help',
         },
         {
           shortcut: { key: 'Escape', handler: () => {} },
-          labelKey: 'Close',
+          label: 'Close',
         },
       ],
     });
 
     categories.forEach((cat) => {
       result.push({
-        titleKey: cat.labelKey,
+        title: cat.label,
         shortcuts: cat.shortcuts.map((s) => ({
           shortcut: s,
-          labelKey: s.description || 'Unknown',
+          label: s.description || 'Unknown',
         })),
       });
     });
@@ -169,8 +169,8 @@ export function ShortcutHelpPanel() {
               <div className="flex-1 overflow-y-auto p-6">
                 {allCategories.map((category, index) => (
                   <ShortcutCategory
-                    key={`${category.titleKey}-${index}`}
-                    titleKey={category.titleKey}
+                    key={`${category.title}-${index}`}
+                    title={category.title}
                     shortcuts={category.shortcuts}
                   />
                 ))}

@@ -129,12 +129,12 @@ export function ExportConfig({
         <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <Icons.download />
-            {'priceQuery.exportConfig.title'}
+            Export Configuration
           </h2>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 transition-colors"
-            aria-label={'actions.close'}
+            aria-label="Close"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
@@ -149,9 +149,7 @@ export function ExportConfig({
 
         <div className="p-6 space-y-6">
           <div>
-            <h3 className="text-sm font-semibold text-gray-700 mb-3">
-              {'priceQuery.exportConfig.format'}
-            </h3>
+            <h3 className="text-sm font-semibold text-gray-700 mb-3">Format</h3>
             <div className="flex gap-3">
               {(['csv', 'json', 'pdf'] as ExportFormat[]).map((f) => (
                 <button
@@ -171,21 +169,19 @@ export function ExportConfig({
 
           <div>
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold text-gray-700">
-                {'priceQuery.exportConfig.fields'}
-              </h3>
+              <h3 className="text-sm font-semibold text-gray-700">Fields</h3>
               <div className="flex gap-2">
                 <button
                   onClick={handleSelectAllFields}
                   className="text-xs text-gray-600 hover:text-gray-900 underline"
                 >
-                  {'priceQuery.exportConfig.selectAll'}
+                  Select All
                 </button>
                 <button
                   onClick={handleDeselectAllFields}
                   className="text-xs text-gray-600 hover:text-gray-900 underline"
                 >
-                  {'priceQuery.exportConfig.deselectAll'}
+                  Deselect All
                 </button>
               </div>
             </div>
@@ -205,14 +201,10 @@ export function ExportConfig({
           </div>
 
           <div>
-            <h3 className="text-sm font-semibold text-gray-700 mb-3">
-              {'priceQuery.exportConfig.timeRange'}
-            </h3>
+            <h3 className="text-sm font-semibold text-gray-700 mb-3">Time Range</h3>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs text-gray-500 mb-1">
-                  {'priceQuery.exportConfig.startTime'}
-                </label>
+                <label className="block text-xs text-gray-500 mb-1">Start Time</label>
                 <input
                   type="datetime-local"
                   value={timeRangeStart}
@@ -221,9 +213,7 @@ export function ExportConfig({
                 />
               </div>
               <div>
-                <label className="block text-xs text-gray-500 mb-1">
-                  {'priceQuery.exportConfig.endTime'}
-                </label>
+                <label className="block text-xs text-gray-500 mb-1">End Time</label>
                 <input
                   type="datetime-local"
                   value={timeRangeEnd}
@@ -236,9 +226,7 @@ export function ExportConfig({
 
           {format === 'pdf' && (
             <div>
-              <h3 className="text-sm font-semibold text-gray-700 mb-3">
-                {'priceQuery.exportConfig.pdfOptions'}
-              </h3>
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">PDF Options</h3>
               <div className="space-y-2">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -247,9 +235,7 @@ export function ExportConfig({
                     onChange={(e) => setIncludeChart(e.target.checked)}
                     className="rounded border-gray-300 text-primary-600 focus:ring-blue-600"
                   />
-                  <span className="text-sm text-gray-700">
-                    {'priceQuery.exportConfig.includeChart'}
-                  </span>
+                  <span className="text-sm text-gray-700">Include Chart</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -258,49 +244,41 @@ export function ExportConfig({
                     onChange={(e) => setIncludeStats(e.target.checked)}
                     className="rounded border-gray-300 text-primary-600 focus:ring-blue-600"
                   />
-                  <span className="text-sm text-gray-700">
-                    {'priceQuery.exportConfig.includeStats'}
-                  </span>
+                  <span className="text-sm text-gray-700">Include Stats</span>
                 </label>
               </div>
             </div>
           )}
 
           <div className="bg-gray-50 p-4 border border-gray-200">
-            <h3 className="text-sm font-semibold text-gray-700 mb-2">
-              {'priceQuery.exportConfig.preview'}
-            </h3>
+            <h3 className="text-sm font-semibold text-gray-700 mb-2">Preview</h3>
             <div className="space-y-1 text-sm text-gray-600">
               <div className="flex justify-between">
-                <span>{'priceQuery.exportConfig.symbol'}</span>
+                <span>Symbol</span>
                 <span className="font-medium">{selectedSymbol}</span>
               </div>
               <div className="flex justify-between">
-                <span>{'priceQuery.exportConfig.oracleCount'}</span>
+                <span>Oracles</span>
                 <span className="font-medium">{selectedOracles.length}</span>
               </div>
               <div className="flex justify-between">
-                <span>{'priceQuery.exportConfig.chainCount'}</span>
+                <span>Chains</span>
                 <span className="font-medium">{selectedChains.length}</span>
               </div>
               <div className="flex justify-between">
-                <span>{'priceQuery.exportConfig.timeRangeLabel'}</span>
+                <span>Time Range</span>
                 <span className="font-medium">{selectedTimeRange}h</span>
               </div>
               <div className="flex justify-between">
-                <span>{'priceQuery.exportConfig.estimatedRecords'}</span>
-                <span className="font-medium">
-                  {estimatedRecords} {'priceQuery.exportConfig.records'}
-                </span>
+                <span>Estimated Records</span>
+                <span className="font-medium">{estimatedRecords} records</span>
               </div>
               <div className="flex justify-between">
-                <span>{'priceQuery.exportConfig.fieldCount'}</span>
-                <span className="font-medium">
-                  {enabledFieldsCount} {'priceQuery.exportConfig.fields'}
-                </span>
+                <span>Fields</span>
+                <span className="font-medium">{enabledFieldsCount} fields</span>
               </div>
               <div className="flex justify-between pt-2 border-t border-gray-200 mt-2">
-                <span>{'priceQuery.exportConfig.estimatedSize'}</span>
+                <span>Estimated Size</span>
                 <span className="font-medium text-gray-900">
                   {formatFileSize(estimatedFileSize)}
                 </span>
@@ -314,14 +292,14 @@ export function ExportConfig({
             onClick={onClose}
             className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 transition-colors"
           >
-            {'actions.cancel'}
+            Cancel
           </button>
           <button
             onClick={handleExport}
             disabled={enabledFieldsCount === 0}
             className="px-4 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {'priceQuery.exportConfig.export'} {format.toUpperCase()}
+            Export {format.toUpperCase()}
           </button>
         </div>
       </div>
