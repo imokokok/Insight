@@ -15,7 +15,7 @@ export function parseQueryParams(search: string): Partial<QueryConfig> {
   const params = new URLSearchParams(search);
   const result: Partial<QueryConfig> = {};
 
-  const oraclesParam = params.get('key');
+  const oraclesParam = params.get('oracles');
   if (oraclesParam) {
     const oracleValues = oraclesParam
       .split(',')
@@ -26,7 +26,7 @@ export function parseQueryParams(search: string): Partial<QueryConfig> {
     }
   }
 
-  const chainsParam = params.get('key');
+  const chainsParam = params.get('chains');
   if (chainsParam) {
     const chainValues = chainsParam
       .split(',')
@@ -37,13 +37,13 @@ export function parseQueryParams(search: string): Partial<QueryConfig> {
     }
   }
 
-  const symbolParam = params.get('key');
+  const symbolParam = params.get('symbol');
   if (symbolParam) {
     const upperSymbol = symbolParam.trim().toUpperCase();
     result.symbol = upperSymbol;
   }
 
-  const timeRangeParam = params.get('key');
+  const timeRangeParam = params.get('timeRange');
   if (timeRangeParam) {
     const timeRange = parseInt(timeRangeParam, 10);
     if (!isNaN(timeRange) && VALID_TIME_RANGES.includes(timeRange)) {

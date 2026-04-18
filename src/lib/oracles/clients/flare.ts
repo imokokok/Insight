@@ -98,9 +98,16 @@ export class FlareClient extends BaseOracleClient {
             const ftsoData = await this.ftsoService.fetchPrice(symbol, 'flare', signal);
             return this.parseFtsoResponse(ftsoData);
           } catch (error) {
+            const errorCode = this.classifyError(error);
             throw new FlareError(
               `Failed to fetch price: ${error instanceof Error ? error.message : 'Unknown error'}`,
-              'FTSO_RPC_ERROR',
+              errorCode === 'SYMBOL_NOT_SUPPORTED'
+                ? 'FEED_NOT_FOUND'
+                : errorCode === 'INVALID_RESPONSE'
+                  ? 'INVALID_FEED_ID'
+                  : errorCode === 'STALE_DATA'
+                    ? 'STALE_PRICE'
+                    : 'FTSO_RPC_ERROR',
               { symbol, attemptCount }
             );
           }
@@ -118,9 +125,14 @@ export class FlareClient extends BaseOracleClient {
       if (error instanceof FlareError) {
         throw error;
       }
+      const errorCode = this.classifyError(error);
       throw new FlareError(
         `Failed to fetch price for ${symbol}: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        'FTSO_RPC_ERROR',
+        errorCode === 'RATE_LIMIT_ERROR' ||
+          errorCode === 'TIMEOUT_ERROR' ||
+          errorCode === 'NETWORK_ERROR'
+          ? 'CONTRACT_CALL_FAILED'
+          : 'FTSO_RPC_ERROR',
         { symbol, attemptCount },
         error instanceof Error ? error : undefined
       );

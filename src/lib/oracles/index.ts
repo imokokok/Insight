@@ -77,6 +77,7 @@ export { ReflectorClient } from './clients/reflector';
 export {
   ReflectorDataService,
   getReflectorDataService,
+  resetReflectorDataService,
   type ReflectorOnChainMetadata,
 } from './services/reflectorDataService';
 export {

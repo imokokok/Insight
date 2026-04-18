@@ -17,7 +17,6 @@ CREATE TABLE IF NOT EXISTS public.user_profiles (
         "default_oracle": "chainlink",
         "default_symbol": "BTC/USD",
         "default_chain": "ethereum",
-        "language": "zh-CN",
         "chart_settings": {
             "show_confidence_interval": true,
             "auto_refresh": true,

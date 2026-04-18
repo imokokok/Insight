@@ -2,16 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 
-import {
-  Globe,
-  Clock,
-  Database,
-  Save,
-  Loader2,
-  CheckCircle,
-  RefreshCw,
-  DollarSign,
-} from 'lucide-react';
+import { Clock, Database, Save, Loader2, CheckCircle, RefreshCw, DollarSign } from 'lucide-react';
 
 import { DropdownSelect, SegmentedControl } from '@/components/ui';
 import { getAllSupportedSymbols } from '@/lib/oracles/constants/supportedSymbols';
@@ -22,7 +13,6 @@ interface UserPreferences {
   defaultOracle: string;
   defaultSymbol: string;
   defaultTimeRange: string;
-  language: string;
   defaultCurrency: string;
   autoRefreshInterval: string;
 }
@@ -32,7 +22,6 @@ interface DbUserPreferences {
   default_oracle?: string;
   default_symbol?: string;
   default_time_range?: string;
-  language?: string;
   default_currency?: string;
   auto_refresh_interval?: number;
   chart_settings?: {
@@ -48,7 +37,6 @@ const defaultPreferences: UserPreferences = {
   defaultOracle: 'chainlink',
   defaultSymbol: 'BTC/USD',
   defaultTimeRange: '24h',
-  language: 'en-US',
   defaultCurrency: 'USD',
   autoRefreshInterval: '30',
 };
@@ -76,8 +64,6 @@ const timeRangeOptions = [
   { value: '7d', label: '7 Days' },
   { value: '30d', label: '30 Days' },
 ];
-
-const languageOptions = [{ value: 'en-US', label: 'English' }];
 
 const currencyOptions = [
   { value: 'USD', label: 'USD ($)' },
@@ -130,7 +116,6 @@ export function PreferencesPanel() {
           dbPrefs.default_time_range ||
           localPrefs.defaultTimeRange ||
           defaultPreferences.defaultTimeRange,
-        language: dbPrefs.language || localPrefs.language || defaultPreferences.language,
         defaultCurrency:
           dbPrefs.default_currency ||
           localPrefs.defaultCurrency ||
@@ -172,7 +157,6 @@ export function PreferencesPanel() {
           default_oracle: preferences.defaultOracle,
           default_symbol: preferences.defaultSymbol,
           default_time_range: preferences.defaultTimeRange,
-          language: preferences.language,
           default_currency: preferences.defaultCurrency,
           auto_refresh_interval: parseInt(preferences.autoRefreshInterval, 10),
           chart_settings: {
@@ -290,20 +274,6 @@ export function PreferencesPanel() {
                     size="md"
                   />
                   <p className="text-xs text-gray-500 mt-1">Default time range for price charts</p>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                    <Globe className="w-4 h-4 text-gray-400" />
-                    Language
-                  </label>
-                  <SegmentedControl
-                    options={languageOptions}
-                    value={preferences.language}
-                    onChange={(value) => updatePreference('language', value as string)}
-                    size="md"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">Interface language preference</p>
                 </div>
 
                 <div>

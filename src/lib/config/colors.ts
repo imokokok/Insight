@@ -196,6 +196,8 @@ export const chainColors = {
   moonriver: '#F2A902',
   metis: '#00D2FF',
   starkex: '#0C0C4F',
+  flare: '#E84142',
+  stellar: '#14B8A6',
 } as const;
 
 // ============================================
@@ -228,6 +230,7 @@ export const chartColors = {
     supra: '#14B8A6',
     twap: '#FF007A',
     reflector: '#F59E0B',
+    flare: '#E84142',
   } as const,
 
   // 预言机颜色 - 色盲友好版本（使用形状+颜色双重编码）
@@ -243,6 +246,7 @@ export const chartColors = {
     supra: { color: '#0d9488', pattern: 'dotted' },
     twap: { color: '#FF007A', pattern: 'longDash' },
     reflector: { color: '#d97706', pattern: 'dashDot' },
+    flare: { color: '#E84142', pattern: 'dotted' },
   } as const,
 
   // 地区颜色

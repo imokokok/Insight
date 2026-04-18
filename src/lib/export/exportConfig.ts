@@ -506,7 +506,7 @@ export function createExportConfig(partial: Partial<ExportConfig>): ExportConfig
   };
 }
 
-export function getFieldLabel(field: ExportField, _locale: string = 'en'): string {
+export function getFieldLabel(field: ExportField): string {
   return field.label;
 }
 

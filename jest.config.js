@@ -13,11 +13,6 @@ const customJestConfig = {
   slowTestThreshold: 10000,
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
-    // Mock next-intl modules
-    '^next-intl$': '<rootDir>/src/__mocks__/next-intl.ts',
-    '^next-intl/server$': '<rootDir>/src/__mocks__/next-intl-server.ts',
-    '^next-intl/routing$': '<rootDir>/src/__mocks__/next-intl-routing.ts',
-    '^use-intl$': '<rootDir>/src/__mocks__/use-intl.ts',
   },
   testMatch: ['<rootDir>/src/**/*.test.{ts,tsx}', '<rootDir>/src/**/*.spec.{ts,tsx}'],
   collectCoverageFrom: [
@@ -38,7 +33,7 @@ const customJestConfig = {
   coverageReporters: ['text', 'text-summary', 'lcov'],
   testPathIgnorePatterns: ['<rootDir>/node_modules/', '<rootDir>/.next/'],
   transformIgnorePatterns: [
-    'node_modules/(?!(.*\\.mjs$|@vercel/analytics|@vercel/speed-insights|next-intl|use-intl|@pythnetwork|@tanstack/react-query|viem|@wagmi))',
+    'node_modules/(?!(.*\\.mjs$|@vercel/analytics|@vercel/speed-insights|@pythnetwork|@tanstack/react-query|viem|@wagmi))',
   ],
   extensionsToTreatAsEsm: ['.ts', '.tsx'],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'mjs'],

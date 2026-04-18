@@ -1,7 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
-import { createClient } from '@supabase/supabase-js';
-
 import {
   ApiResponseBuilder,
   createCachedJsonResponse as newCreateCachedJsonResponse,
@@ -37,25 +35,15 @@ export function createCachedJsonResponse<T>(
 }
 
 export async function getUserId(request: NextRequest): Promise<string | null> {
-  const authHeader = request.headers.get('key');
+  const authHeader = request.headers.get('authorization');
   if (!authHeader?.startsWith('Bearer ')) {
     return null;
   }
 
   const token = authHeader.slice(7);
-  const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  if (!supabaseUrl || !supabaseAnonKey) {
-    return null;
-  }
-
-  const client = createClient(supabaseUrl, supabaseAnonKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
-  });
+  const { createServerClient } = await import('@/lib/supabase/server');
+  const client = createServerClient();
 
   const {
     data: { user },

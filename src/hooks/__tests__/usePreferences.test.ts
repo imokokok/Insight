@@ -51,7 +51,6 @@ describe('usePreferences', () => {
     expect(result.current.preferences.defaultOracle).toBe('chainlink');
     expect(result.current.preferences.defaultSymbol).toBe('BTC/USD');
     expect(result.current.preferences.defaultTimeRange).toBe('24h');
-    expect(result.current.preferences.language).toBe('zh-CN');
     expect(result.current.preferences.defaultCurrency).toBe('USD');
     expect(result.current.preferences.autoRefreshInterval).toBe(30);
   });
@@ -74,7 +73,6 @@ describe('usePreferences', () => {
     expect(result.current.preferences.defaultOracle).toBe('pyth');
     expect(result.current.preferences.defaultSymbol).toBe('ETH/USD');
     expect(result.current.preferences.autoRefreshInterval).toBe(60);
-    expect(result.current.preferences.language).toBe('zh-CN');
   });
 
   it('should use profile preferences when user is logged in', () => {
@@ -84,7 +82,6 @@ describe('usePreferences', () => {
       preferences: {
         default_oracle: 'dia',
         default_symbol: 'SOL/USD',
-        language: 'en-US',
       },
     });
 
@@ -92,7 +89,6 @@ describe('usePreferences', () => {
 
     expect(result.current.preferences.defaultOracle).toBe('dia');
     expect(result.current.preferences.defaultSymbol).toBe('SOL/USD');
-    expect(result.current.preferences.language).toBe('en-US');
   });
 
   it('should fallback to local preferences when profile preference is missing', () => {
@@ -125,7 +121,6 @@ describe('usePreferences', () => {
       defaultOracle: 'api3',
       defaultSymbol: 'LINK/USD',
       defaultTimeRange: '7d',
-      language: 'en-US',
       defaultCurrency: 'EUR',
       autoRefreshInterval: 45,
     });

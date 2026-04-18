@@ -20,7 +20,7 @@ export function getOracleColor(provider: OracleProvider): string {
     [OracleProvider.SUPRA]: chartColors.oracle.supra,
     [OracleProvider.TWAP]: chartColors.oracle.twap,
     [OracleProvider.REFLECTOR]: chartColors.oracle.reflector,
-    [OracleProvider.FLARE]: '#E84142',
+    [OracleProvider.FLARE]: chartColors.oracle.flare,
   };
   return colorMap[provider] || chartColors.sequence[0];
 }

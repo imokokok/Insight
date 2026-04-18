@@ -121,9 +121,10 @@ export default function PriceQueryContent() {
     enabled: shouldFetchTwapData && !!selectedSymbol && queryResults.length > 0,
   });
 
-  const shouldFetchReflectorData = queryResults.some(
-    (r) => r.provider === OracleProvider.REFLECTOR
-  );
+  const shouldFetchReflectorData =
+    !selectedOracle ||
+    selectedOracle === OracleProvider.REFLECTOR ||
+    queryResults.some((r) => r.provider === OracleProvider.REFLECTOR);
 
   const { data: reflectorOnChainData, isLoading: isReflectorDataLoading } =
     useOnChainDataByProvider({
@@ -131,6 +132,17 @@ export default function PriceQueryContent() {
       symbol: selectedSymbol,
       enabled: shouldFetchReflectorData && !!selectedSymbol && queryResults.length > 0,
     });
+
+  const shouldFetchFlareData =
+    !selectedOracle ||
+    selectedOracle === OracleProvider.FLARE ||
+    queryResults.some((r) => r.provider === OracleProvider.FLARE);
+
+  const { data: flareOnChainData, isLoading: isFlareDataLoading } = useOnChainDataByProvider({
+    provider: OracleProvider.FLARE,
+    symbol: selectedSymbol,
+    enabled: shouldFetchFlareData && !!selectedSymbol && queryResults.length > 0,
+  });
 
   const debouncedSearchFocus = useCallback(() => {
     requestAnimationFrame(() => {
@@ -338,6 +350,8 @@ export default function PriceQueryContent() {
                 isTwapDataLoading,
                 reflectorOnChainData,
                 isReflectorDataLoading,
+                flareOnChainData,
+                isFlareDataLoading,
               } satisfies OnChainData
             }
             selectedSymbol={selectedSymbol}

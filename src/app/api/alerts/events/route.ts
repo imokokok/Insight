@@ -23,8 +23,8 @@ export async function GET(request: NextRequest) {
     }
 
     const searchParams = request.nextUrl.searchParams;
-    const acknowledgedParam = searchParams.get('key');
-    const limitParam = searchParams.get('key');
+    const acknowledgedParam = searchParams.get('acknowledged');
+    const limitParam = searchParams.get('limit');
 
     let acknowledged: boolean | undefined;
     if (acknowledgedParam !== null) {

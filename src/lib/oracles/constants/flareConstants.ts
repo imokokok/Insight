@@ -18,6 +18,8 @@ export const FLARE_NETWORK_DEFAULT = 'flare';
 
 export const FTSOV2_ADDRESS: Record<string, `0x${string}`> = {
   flare: '0x7BDE3Df0624114eDB3A67dFe6753e62f4e7c1d20',
+  songbird: '0x9e3F0E9B67C11EFdB3E4a032A88b4627A1b9653C',
+  coston2: '0x3dE7F2399Acc0c6eEafb77eF8b6E5F59E7e0e7c0',
 };
 
 export const FLARE_CONTRACT_REGISTRY = '0xaD67FE6667226235497ED7B6E0e2416C2E40771B';

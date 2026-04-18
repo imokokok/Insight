@@ -1,4 +1,4 @@
-import { encodeFunctionData } from 'viem';
+import { encodeFunctionData, decodeFunctionResult } from 'viem';
 
 import { createLogger } from '@/lib/utils/logger';
 
@@ -10,6 +10,8 @@ import {
   FLARE_REQUEST_TIMEOUT,
   FLARE_STALE_DATA_THRESHOLD,
   FLARE_SYMBOL_TO_FEED_ID,
+  FLARE_CONTRACT_REGISTRY,
+  REGISTRY_ABI,
 } from '../constants/flareConstants';
 import { withOracleRetry, ORACLE_RETRY_PRESETS } from '../utils/retry';
 
@@ -71,6 +73,7 @@ export class FtsoDataService {
   private currentEndpointIndex: Record<string, number> = {};
   private endpointFailureTime: Record<string, number> = {};
   private endpointRecoveryTime = 60000;
+  private resolvedFtsoV2Address: Record<string, `0x${string}`> = {};
 
   private constructor() {
     logger.info('FtsoDataService initialized');
@@ -234,23 +237,75 @@ export class FtsoDataService {
     });
   }
 
+  private async resolveFtsoV2Address(network: string): Promise<`0x${string}`> {
+    const cached = this.resolvedFtsoV2Address[network];
+    if (cached) {
+      return cached;
+    }
+
+    const hardcoded = FTSOV2_ADDRESS[network];
+    if (!hardcoded) {
+      throw new FtsoApiError(
+        `FTSO V2 address not configured for network '${network}'`,
+        'ADDRESS_NOT_CONFIGURED',
+        undefined,
+        { network }
+      );
+    }
+
+    try {
+      const registryAddress = FLARE_CONTRACT_REGISTRY as `0x${string}`;
+      const data = encodeFunctionData({
+        abi: REGISTRY_ABI,
+        functionName: 'getContractAddressByName',
+        args: ['FtsoV2'],
+      });
+
+      const result = await this.ethCall(network, registryAddress, data);
+      const address = `0x${result.slice(26)}` as `0x${string}`;
+
+      if (address !== '0x' && address.length === 42) {
+        this.resolvedFtsoV2Address[network] = address;
+        logger.info(`Resolved FtsoV2 address for ${network}: ${address}`);
+        return address;
+      }
+    } catch (error) {
+      logger.warn(
+        `Failed to resolve FtsoV2 address from registry for ${network}, using hardcoded fallback`,
+        {
+          network,
+          error: error instanceof Error ? error.message : String(error),
+        }
+      );
+    }
+
+    this.resolvedFtsoV2Address[network] = hardcoded;
+    return hardcoded;
+  }
+
   getFeedId(symbol: string): string | null {
     const upperSymbol = symbol.toUpperCase();
     return FLARE_SYMBOL_TO_FEED_ID[upperSymbol] || null;
   }
 
   private decodeFeedResult(result: string): FtsoFeedData {
-    const cleanResult = result.startsWith('0x') ? result.slice(2) : result;
+    const cleanResult = result.startsWith('0x') ? result : `0x${result}`;
 
-    if (!cleanResult || cleanResult.length < 192) {
+    if (!cleanResult || cleanResult.length < 66) {
       throw new FtsoApiError('Invalid feed result length', 'INVALID_RESULT');
     }
 
     try {
-      const value = BigInt('0x' + cleanResult.slice(0, 64));
-      const decimalsRaw = BigInt('0x' + cleanResult.slice(64, 128));
-      const decimals = Number(decimalsRaw) > 127 ? Number(decimalsRaw) - 256 : Number(decimalsRaw);
-      const timestamp = Number(BigInt('0x' + cleanResult.slice(128, 192)));
+      const decoded = decodeFunctionResult({
+        abi: FTSOV2_ABI,
+        functionName: 'getFeedById',
+        data: cleanResult as `0x${string}`,
+      });
+
+      const value = BigInt(decoded[0]);
+      const decimalsRaw = Number(decoded[1]);
+      const decimals = decimalsRaw > 127 ? decimalsRaw - 256 : decimalsRaw;
+      const timestamp = Number(decoded[2]);
 
       return { value, decimals, timestamp };
     } catch (error) {
@@ -285,7 +340,7 @@ export class FtsoDataService {
       );
     }
 
-    const ftsoV2Address = FTSOV2_ADDRESS[network] || FTSOV2_ADDRESS.flare;
+    const ftsoV2Address = await this.resolveFtsoV2Address(network);
     if (!ftsoV2Address) {
       throw new FtsoApiError(
         `FTSO V2 address not configured for network '${network}'`,
