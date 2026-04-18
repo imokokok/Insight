@@ -6,6 +6,12 @@ import { OracleProvider, Blockchain } from '@/types/oracle';
 import { getDefaultMarketData, getDefaultNetworkData } from './helpers';
 import { type OracleConfig } from './types';
 
+let _client: ReflectorClient | null = null;
+function getClient() {
+  if (!_client) _client = new ReflectorClient({ useRealData: true });
+  return _client;
+}
+
 export const reflectorConfig: OracleConfig = {
   provider: OracleProvider.REFLECTOR,
   name: 'Reflector',
@@ -13,7 +19,7 @@ export const reflectorConfig: OracleConfig = {
   symbol: 'XLM',
   defaultChain: Blockchain.STELLAR,
   supportedChains: [Blockchain.STELLAR],
-  client: new ReflectorClient({ useRealData: true }),
+  getClient,
   iconBgColor: '#F59E0B',
   themeColor: '#F59E0B',
   icon: <Image src="/logos/oracles/reflector.svg" alt="Reflector" width={48} height={48} />,

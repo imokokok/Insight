@@ -6,3 +6,4 @@ export { QueryHeader } from './QueryHeader';
 export { QueryForm } from './QueryForm';
 export { QueryResults } from './QueryResults';
 export { ErrorBanner } from './ErrorBanner';
+export { AutoRefreshControl } from './AutoRefreshControl';

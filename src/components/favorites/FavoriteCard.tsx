@@ -191,7 +191,7 @@ export function FavoriteCard({ favorite, onApply, onEdit, onDelete }: FavoriteCa
 
   const formatDate = useCallback((dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('zh-CN', {
+    return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',

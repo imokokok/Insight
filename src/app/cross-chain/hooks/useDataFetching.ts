@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useRef } from 'react';
 
 import { useQueryClient } from '@tanstack/react-query';
 
+import { comparePricesAcrossChains } from '@/lib/oracles/crossChainComparison';
+import { type CrossChainComparisonResult } from '@/lib/oracles/crossChainComparison';
 import { crossChainKeys } from '@/lib/queryKeys';
 import { createLogger } from '@/lib/utils/logger';
 import { safeMax, safeMin } from '@/lib/utils/statistics';
@@ -67,6 +69,7 @@ interface FetchDataParams {
   setShowRefreshSuccess: (show: boolean) => void;
   setLoading: (loading: boolean) => void;
   setAnomalies: (anomalies: import('../utils/anomalyDetection').AnomalousPricePoint[]) => void;
+  setCrossChainComparison: (results: CrossChainComparisonResult[]) => void;
 }
 
 interface UseDataFetchingReturn {
@@ -122,31 +125,87 @@ export function useDataFetching(
     [supportedChains, historicalPrices]
   );
 
+  const prevCurrentPricesRef = useRef<PriceData[]>([]);
   useEffect(() => {
-    paramsRef.current.setCurrentPrices(currentPrices);
+    const prev = prevCurrentPricesRef.current;
+    if (
+      currentPrices.length !== prev.length ||
+      currentPrices.some((p, i) => prev[i]?.price !== p.price || prev[i]?.timestamp !== p.timestamp)
+    ) {
+      prevCurrentPricesRef.current = currentPrices;
+      paramsRef.current.setCurrentPrices(currentPrices);
+    }
   }, [currentPrices]);
 
+  const prevHistoricalPricesRef = useRef<Partial<Record<Blockchain, PriceData[]>>>({});
   useEffect(() => {
-    paramsRef.current.setHistoricalPrices(historicalPrices);
+    const prev = prevHistoricalPricesRef.current;
+    const hasChanged = Object.keys(historicalPrices).some(
+      (key) => historicalPrices[key as Blockchain]?.length !== prev[key as Blockchain]?.length
+    );
+    if (hasChanged || Object.keys(historicalPrices).length !== Object.keys(prev).length) {
+      prevHistoricalPricesRef.current = historicalPrices;
+      paramsRef.current.setHistoricalPrices(historicalPrices);
+    }
   }, [historicalPrices]);
 
+  const prevPrevStatsRef = useRef<PriceStats | null>(null);
   useEffect(() => {
-    paramsRef.current.setPrevStats(prevStats);
+    const prev = prevPrevStatsRef.current;
+    if (
+      !prev ||
+      prev.avgPrice !== prevStats.avgPrice ||
+      prev.maxPrice !== prevStats.maxPrice ||
+      prev.minPrice !== prevStats.minPrice
+    ) {
+      prevPrevStatsRef.current = prevStats;
+      paramsRef.current.setPrevStats(prevStats);
+    }
   }, [prevStats]);
 
+  const prevRecommendedBaseChainRef = useRef<Blockchain | null>(null);
   useEffect(() => {
-    if (recommendedBaseChain) {
+    if (recommendedBaseChain && recommendedBaseChain !== prevRecommendedBaseChainRef.current) {
+      prevRecommendedBaseChainRef.current = recommendedBaseChain;
       paramsRef.current.setRecommendedBaseChain(recommendedBaseChain);
     }
   }, [recommendedBaseChain]);
 
+  const prevAnomaliesRef = useRef<import('../utils/anomalyDetection').AnomalousPricePoint[]>([]);
   useEffect(() => {
-    paramsRef.current.setAnomalies(anomalies);
+    const prev = prevAnomaliesRef.current;
+    if (
+      anomalies.length !== prev.length ||
+      anomalies.some((a, i) => prev[i]?.chain !== a.chain || prev[i]?.price !== a.price)
+    ) {
+      prevAnomaliesRef.current = anomalies;
+      paramsRef.current.setAnomalies(anomalies);
+    }
   }, [anomalies]);
+
+  useEffect(() => {
+    if (
+      !isLoading &&
+      !isFetching &&
+      errors.length === 0 &&
+      currentPrices.length > 0 &&
+      supportedChains.length > 0
+    ) {
+      comparePricesAcrossChains(provider, paramsRef.current.selectedSymbol, supportedChains)
+        .then((results) => {
+          paramsRef.current.setCrossChainComparison(results);
+        })
+        .catch(() => {
+          paramsRef.current.setCrossChainComparison([]);
+        });
+    }
+  }, [currentPrices, provider, supportedChains, isLoading, isFetching, errors.length]);
 
   useEffect(() => {
     paramsRef.current.setLoading(isLoading);
   }, [isLoading]);
+
+  const lastUpdateTimeRef = useRef<number>(0);
 
   useEffect(() => {
     const currentParams = paramsRef.current;
@@ -155,7 +214,11 @@ export function useDataFetching(
     } else if (errors.length > 0) {
       currentParams.setRefreshStatus('error');
     } else if (!isLoading && !isFetching && supportedChains.length > 0) {
-      currentParams.setLastUpdated(new Date());
+      const now = Date.now();
+      if (now - lastUpdateTimeRef.current > 1000) {
+        lastUpdateTimeRef.current = now;
+        currentParams.setLastUpdated(new Date(now));
+      }
       currentParams.setRefreshStatus('success');
       currentParams.setShowRefreshSuccess(true);
       if (refreshSuccessTimerRef.current) {

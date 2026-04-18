@@ -65,7 +65,11 @@ export interface BatchQueryResultItem {
   dataUpdatedAt: number;
 }
 
-export function useBatchOracleQuery(tasks: BatchQueryTask[], enabled = true) {
+export function useBatchOracleQuery(
+  tasks: BatchQueryTask[],
+  enabled = true,
+  refetchInterval: number | false = false
+) {
   const queryConfigs = useMemo(() => {
     if (!enabled || tasks.length === 0) return [];
 
@@ -81,6 +85,8 @@ export function useBatchOracleQuery(tasks: BatchQueryTask[], enabled = true) {
           }),
         staleTime: 30_000,
         enabled: !!task.provider && !!task.symbol,
+        refetchInterval,
+        refetchIntervalInBackground: false,
       },
       {
         queryKey: priceKeys.historical(task.provider, task.symbol, task.chain, String(task.period)),
@@ -94,9 +100,11 @@ export function useBatchOracleQuery(tasks: BatchQueryTask[], enabled = true) {
           }),
         staleTime: 60_000,
         enabled: !!task.provider && !!task.symbol && !!task.period,
+        refetchInterval,
+        refetchIntervalInBackground: false,
       },
     ]);
-  }, [tasks, enabled]);
+  }, [tasks, enabled, refetchInterval]);
 
   const queryResults = useQueries({ queries: queryConfigs });
 

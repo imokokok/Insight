@@ -1,36 +1,29 @@
-- [ ] React Query 已安装并在 layout.tsx 中挂载 QueryClientProvider
-- [ ] Query Key 工厂函数已定义（priceKeys / historicalKeys / crossChainKeys / crossOracleKeys）
-- [ ] usePriceQueryData 不再手动管理 loading/error/data 状态，改用 React Query 返回值
-- [ ] usePriceQueryData 中无 requestAnimationFrame 初始化代码
-- [ ] Price Query 页面数据获取通过 React Query hooks 完成
-- [ ] usePriceQuery 已拆分为 QueryParamsContext / QueryDataContext / QueryUIContext
-- [ ] PriceQueryContent 使用新的 Context Providers 包裹子组件
-- [ ] 子组件从对应 Context 获取状态，不直接依赖 usePriceQuery
-- [ ] Context 返回值使用 useMemo 保证引用稳定性
-- [ ] Price Query 页面有自动刷新控件（关闭/30s/1m/5m）
-- [ ] Cross-Oracle 页面有自动刷新控件
-- [ ] 自动刷新在页面不可见时暂停，可见时立即刷新一次
-- [ ] Oracle 选择器支持多选模式（Price Query 页面）
-- [ ] 多预言机查询结果有对比视图（价格对比表格 + 偏差率 + 统计摘要）
-- [ ] URL 参数支持多预言机格式（oracle=chainlink,pyth）
-- [ ] 对比模式 UI 有开关和对比时间范围选择器
-- [ ] PriceChart 支持双时间范围数据叠加展示
-- [ ] volume24h 不再硬编码为 0，数据不可用时显示 "N/A"
-- [ ] PriceData 类型包含 confidenceSource 字段
-- [ ] Pyth/RedStone/Flare 客户端设置 confidenceSource='estimated'
-- [ ] DataSourceSection 和统计卡片显示置信区间来源标签
-- [ ] 图表缺失数据点使用 null 断开线条，无 lastValidValues 前值填充
-- [ ] 收藏功能保存完整配置（Oracle+Chain+Symbol+TimeRange），应用时完整恢复
-- [ ] AnyOnChainData / QueryError / ChartDataPoint 类型无重复定义
-- [ ] 导出功能统一通过 UnifiedExport 组件入口
-- [ ] Selectors 中无 \_showAdvanced 和 \_isCurrentSymbolSupported 死代码
-- [ ] performanceMonitoring.ts 中无未使用的函数
-- [ ] QueryResults 中 prevPriceRef 通过 useEffect 更新，不在渲染期间写入
-- [ ] Cross-Oracle ControlPanel 有链筛选器
-- [ ] Cross-Oracle 页面有导出功能（CSV/JSON）
-- [ ] Cross-Chain useDataFetching 中无 moduleCache 模块级缓存
-- [ ] Cross-Chain 数据获取通过 React Query hooks 完成
-- [ ] npm run typecheck 通过
-- [ ] npm run lint 通过
-- [ ] npm run test 通过
-- [ ] npm run build 通过
+- [x] React Query 已安装并在 layout.tsx 中挂载 QueryClientProvider
+- [x] Query Key 工厂函数已定义（priceKeys / historicalKeys / crossChainKeys / crossOracleKeys）
+- [x] usePriceQueryData 不再手动管理 loading/error/data 状态，改用 React Query 返回值
+- [x] usePriceQueryData 中无 requestAnimationFrame 初始化代码
+- [x] Price Query 页面数据获取通过 React Query hooks 完成
+- [x] usePriceQuery 已拆分为 QueryParamsContext / QueryDataContext / QueryUIContext
+- [x] PriceQueryContent 使用新的 Context Providers 包裹子组件
+- [x] 子组件从对应 Context 获取状态，不直接依赖 usePriceQuery
+- [x] Context 返回值使用 useMemo 保证引用稳定性
+- [x] Price Query 页面有自动刷新控件（关闭/30s/1m/5m）
+- [x] Cross-Oracle 页面有自动刷新控件
+- [x] 自动刷新在页面不可见时暂停，可见时立即刷新一次
+- [x] volume24h 不再硬编码为 0，数据不可用时显示 "N/A"
+- [x] PriceData 类型包含 confidenceSource 字段
+- [x] Pyth/RedStone/Flare 客户端设置 confidenceSource='estimated'
+- [x] DataSourceSection 和统计卡片显示置信区间来源标签
+- [x] 图表缺失数据点使用 null 断开线条，无 lastValidValues 前值填充
+- [x] 收藏功能保存完整配置（Oracle+Chain+Symbol+TimeRange），应用时完整恢复
+- [x] AnyOnChainData / QueryError / ChartDataPoint 类型无重复定义
+- [x] 导出功能统一通过 UnifiedExport 组件入口
+- [x] Selectors 中无 \_showAdvanced 和 \_isCurrentSymbolSupported 死代码
+- [x] performanceMonitoring.ts 中无未使用的函数
+- [x] QueryResults 中 prevPriceRef 通过 useEffect 更新，不在渲染期间写入
+- [x] Cross-Oracle 页面有导出功能（CSV/JSON）
+- [x] Cross-Chain useDataFetching 中无 moduleCache 模块级缓存
+- [x] Cross-Chain 数据获取通过 React Query hooks 完成
+- [x] npm run typecheck 通过
+- [x] npm run lint 通过
+- [x] npm run build 通过

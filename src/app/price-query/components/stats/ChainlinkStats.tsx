@@ -53,7 +53,7 @@ export function ChainlinkStats({
         icon={History}
         iconColor="text-purple-500"
         title="Round Started"
-        value={startedAt ? new Date(startedAt).toLocaleTimeString() : '-'}
+        value={startedAt ? new Date(startedAt).toLocaleTimeString('en-US') : '-'}
         description="Time when current round started"
       />
       <StatCard

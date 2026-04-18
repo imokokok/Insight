@@ -6,6 +6,12 @@ import { OracleProvider, Blockchain } from '@/types/oracle';
 import { getDefaultMarketData, getDefaultNetworkData } from './helpers';
 import { type OracleConfig } from './types';
 
+let _client: TWAPClient | null = null;
+function getClient() {
+  if (!_client) _client = new TWAPClient({ useRealData: true });
+  return _client;
+}
+
 export const twapConfig: OracleConfig = {
   provider: OracleProvider.TWAP,
   name: 'TWAP Oracle',
@@ -20,7 +26,7 @@ export const twapConfig: OracleConfig = {
     Blockchain.BASE,
     Blockchain.BNB_CHAIN,
   ],
-  client: new TWAPClient({ useRealData: true }),
+  getClient,
   iconBgColor: '#FF007A',
   themeColor: '#FF007A',
   icon: <Image src="/logos/oracles/twap.svg" alt="TWAP Oracle" width={48} height={48} />,

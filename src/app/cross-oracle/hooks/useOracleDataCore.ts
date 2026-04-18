@@ -5,7 +5,7 @@ import { getHoursForTimeRange, extractBaseSymbol } from '@/lib/oracles';
 import { oracleSupportedSymbols } from '@/lib/oracles/constants/supportedSymbols';
 import { createLogger } from '@/lib/utils/logger';
 import { getRequestQueue, type RequestPriority } from '@/lib/utils/requestQueue';
-import { type OracleProvider, type PriceData } from '@/types/oracle';
+import { OracleProvider, type PriceData } from '@/types/oracle';
 
 import { type TimeRange, type RefreshInterval, timeRangeToValue } from '../constants';
 
@@ -61,6 +61,8 @@ export interface UseOracleDataCoreReturn {
   retryingOracles: OracleProvider[];
   queryProgress: { completed: number; total: number };
   skippedOracles: OracleProvider[];
+  lastRefreshedAt: Date | null;
+  nextRefreshAt: Date | null;
 }
 
 export function useOracleDataCore(
@@ -90,7 +92,7 @@ export function useOracleDataCore(
 
   const { calculatePerformanceMetrics, recordSuccessfulFetch, recordFailedFetch } = performance;
 
-  const { priceHistoryMapRef } = memory;
+  const { priceHistoryMapRef, clearHistoryData } = memory;
 
   const [priceData, setPriceData] = useState<PriceData[]>([]);
   const [historicalData, setHistoricalData] = useState<
@@ -102,6 +104,8 @@ export function useOracleDataCore(
   const [refreshInterval, setRefreshInterval] = useState<RefreshInterval>(initialRefreshInterval);
   const [queryProgress, setQueryProgress] = useState({ completed: 0, total: 0 });
   const [skippedOracles, setSkippedOracles] = useState<OracleProvider[]>([]);
+  const [lastRefreshedAt, setLastRefreshedAt] = useState<Date | null>(null);
+  const [nextRefreshAt, setNextRefreshAt] = useState<Date | null>(null);
 
   const abortControllerRef = useRef<AbortController | null>(null);
   const isMountedRef = useRef(true);
@@ -253,6 +257,7 @@ export function useOracleDataCore(
     setIsLoading(true);
     setError(null);
     resetErrors();
+    clearHistoryData();
     setQueryProgress({ completed: 0, total: selectedOracles.length });
 
     const hours = getHoursForTimeRange(timeRangeToValue(timeRange)) ?? 24;
@@ -409,6 +414,7 @@ export function useOracleDataCore(
     resetErrors,
     setOracleDataError,
     priceHistoryMapRef,
+    clearHistoryData,
   ]);
 
   const fetchPriceDataRef = useRef(fetchPriceData);
@@ -439,7 +445,10 @@ export function useOracleDataCore(
   }, [selectedOracles, selectedSymbol, timeRange, resetErrors]);
 
   useEffect(() => {
-    if (refreshInterval === 'off') return;
+    if (refreshInterval === 'off') {
+      setNextRefreshAt(null);
+      return;
+    }
 
     const intervalMs =
       refreshInterval === '10s'
@@ -452,13 +461,35 @@ export function useOracleDataCore(
               ? 300000
               : 0;
 
-    if (intervalMs === 0) return;
+    if (intervalMs === 0) {
+      setNextRefreshAt(null);
+      return;
+    }
+
+    setNextRefreshAt(new Date(Date.now() + intervalMs));
 
     const intervalId = setInterval(() => {
-      fetchPriceDataRef.current();
+      if (!document.hidden) {
+        fetchPriceDataRef.current();
+        setLastRefreshedAt(new Date());
+        setNextRefreshAt(new Date(Date.now() + intervalMs));
+      }
     }, intervalMs);
 
-    return () => clearInterval(intervalId);
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        fetchPriceDataRef.current();
+        setLastRefreshedAt(new Date());
+        setNextRefreshAt(new Date(Date.now() + intervalMs));
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      clearInterval(intervalId);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, [refreshInterval]);
 
   return {
@@ -479,5 +510,7 @@ export function useOracleDataCore(
     retryingOracles,
     queryProgress,
     skippedOracles,
+    lastRefreshedAt,
+    nextRefreshAt,
   };
 }

@@ -2,7 +2,7 @@ import { type OracleProvider } from '@/types/oracle';
 
 import { type TimeRange, type RefreshInterval } from '../constants';
 
-import { useOracleDataCore, type UseOracleDataCoreOptions } from './useOracleDataCore';
+import { useOracleDataCore } from './useOracleDataCore';
 import { useOracleErrorHandling } from './useOracleErrorHandling';
 import { useOracleMemory } from './useOracleMemory';
 import { useOraclePerformance } from './useOraclePerformance';
@@ -77,5 +77,7 @@ export function useOracleData({
     getDetailedMemoryStats: memory.getDetailedMemoryStats,
     queryProgress: core.queryProgress,
     skippedOracles: core.skippedOracles,
+    lastRefreshedAt: core.lastRefreshedAt,
+    nextRefreshAt: core.nextRefreshAt,
   };
 }

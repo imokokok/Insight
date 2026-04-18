@@ -152,11 +152,11 @@ export function AlertHistory({ events, isLoading, onRefresh }: AlertHistoryProps
 
                       <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-gray-500">
                         <span>Trigger Price: {event.price.toFixed(4)}</span>
-                        <span>Time: {new Date(event.triggered_at).toLocaleString('zh-CN')}</span>
+                        <span>Time: {new Date(event.triggered_at).toLocaleString('en-US')}</span>
                         {event.acknowledged && event.acknowledged_at && (
                           <span>
                             Acknowledged at:{' '}
-                            {new Date(event.acknowledged_at).toLocaleString('zh-CN')}
+                            {new Date(event.acknowledged_at).toLocaleString('en-US')}
                           </span>
                         )}
                       </div>

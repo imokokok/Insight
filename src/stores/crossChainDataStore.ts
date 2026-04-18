@@ -2,11 +2,13 @@ import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
 import { type AnomalousPricePoint } from '@/app/cross-chain/utils/anomalyDetection';
+import { type CrossChainComparisonResult } from '@/lib/oracles/crossChainComparison';
 import { type OracleProvider, type Blockchain, type PriceData } from '@/types/oracle';
 
 interface DataState {
   currentPrices: PriceData[];
   historicalPrices: Partial<Record<Blockchain, PriceData[]>>;
+  crossChainComparison: CrossChainComparisonResult[];
   loading: boolean;
   refreshStatus: 'idle' | 'refreshing' | 'success' | 'error';
   showRefreshSuccess: boolean;
@@ -35,6 +37,7 @@ interface DataActions {
   setPrevStats: (stats: DataState['prevStats']) => void;
   setRecommendedBaseChain: (chain: Blockchain | null) => void;
   setAnomalies: (anomalies: AnomalousPricePoint[]) => void;
+  setCrossChainComparison: (results: CrossChainComparisonResult[]) => void;
   setFetchData: (fn: (() => Promise<void>) | null) => void;
   setClearCache: (fn: (() => void) | null) => void;
   setClearCacheForProvider: (fn: ((provider: OracleProvider) => void) | null) => void;
@@ -46,6 +49,7 @@ const initialState: DataState &
   Pick<DataActions, 'fetchData' | 'clearCache' | 'clearCacheForProvider'> = {
   currentPrices: [],
   historicalPrices: {},
+  crossChainComparison: [],
   loading: true,
   refreshStatus: 'idle',
   showRefreshSuccess: false,
@@ -72,6 +76,7 @@ export const useCrossChainDataStore = create<CrossChainDataStore>()(
       setPrevStats: (stats) => set({ prevStats: stats }),
       setRecommendedBaseChain: (chain) => set({ recommendedBaseChain: chain }),
       setAnomalies: (anomalies) => set({ anomalies }),
+      setCrossChainComparison: (results) => set({ crossChainComparison: results }),
       setFetchData: (fn) => set({ fetchData: fn }),
       setClearCache: (fn) => set({ clearCache: fn }),
       setClearCacheForProvider: (fn) => set({ clearCacheForProvider: fn }),

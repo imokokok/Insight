@@ -61,7 +61,7 @@ export function useExport(params: UseExportParams): UseExportReturn {
         const row = [
           escapeCSVField(chainNames[item.chain]),
           escapeCSVField(
-            item.price.toLocaleString(undefined, {
+            item.price.toLocaleString('en-US', {
               minimumFractionDigits: 2,
               maximumFractionDigits: 4,
             })
@@ -97,13 +97,13 @@ export function useExport(params: UseExportParams): UseExportReturn {
       });
 
       sortedTimestamps.forEach((timestamp) => {
-        const row: string[] = [escapeCSVField(new Date(timestamp).toLocaleString())];
+        const row: string[] = [escapeCSVField(new Date(timestamp).toLocaleString('en-US'))];
         currentParams.filteredChains.forEach((chain) => {
           const price = timestampPriceMaps[chain]?.get(timestamp);
           row.push(
             price !== undefined
               ? escapeCSVField(
-                  price.toLocaleString(undefined, {
+                  price.toLocaleString('en-US', {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 4,
                   })

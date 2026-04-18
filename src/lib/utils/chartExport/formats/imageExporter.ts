@@ -105,7 +105,7 @@ export async function exportToPNG(
           ctx.font = `${12 * scale}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
           ctx.textAlign = 'left';
 
-          const timestamp = new Date().toLocaleString('zh-CN', {
+          const timestamp = new Date().toLocaleString('en-US', {
             year: 'numeric',
             month: '2-digit',
             day: '2-digit',
@@ -290,7 +290,7 @@ export async function exportToSVG(
     const footerGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     footerGroup.setAttribute('class', 'export-footer');
 
-    const timestamp = new Date().toLocaleString('zh-CN', {
+    const timestamp = new Date().toLocaleString('en-US', {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',

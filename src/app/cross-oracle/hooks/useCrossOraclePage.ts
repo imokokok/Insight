@@ -48,6 +48,10 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
     isRetrying,
     retryingOracles,
     queryProgress,
+    refreshInterval,
+    setRefreshInterval,
+    lastRefreshedAt,
+    nextRefreshAt,
   } = useOracleData({
     selectedOracles,
     selectedSymbol,
@@ -92,5 +96,10 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
     toggleOracle,
 
     fetchPriceData,
+
+    refreshInterval,
+    setRefreshInterval,
+    lastRefreshedAt,
+    nextRefreshAt,
   };
 }

@@ -1,18 +1,17 @@
 'use client';
 
-import { useMemo, useCallback, useRef, useState } from 'react';
+import { useMemo, useCallback } from 'react';
 
 import { useFavorites, type FavoriteConfig } from '@/hooks';
-import { safeMax, safeMin } from '@/lib/utils';
 import { useUser } from '@/stores/authStore';
 import type { PriceData, OracleProvider, Blockchain } from '@/types/oracle';
 
 import { type QueryResult } from '../constants';
+import { useQueryParams, useQueryData, useQueryUI } from '../contexts';
 import { type QueryError } from '../utils/queryTaskUtils';
 
-import { usePriceQueryChart, type ChartDataPoint } from './usePriceQueryChart';
-import { usePriceQueryData } from './usePriceQueryData';
-import { usePriceQueryState, type TimeComparisonConfig } from './usePriceQueryState';
+import { type ChartDataPoint } from './usePriceQueryChart';
+import { type TimeComparisonConfig } from './usePriceQueryState';
 
 import type { AnomalyInfo } from '../utils/priceValidator';
 
@@ -106,111 +105,20 @@ interface UsePriceQueryReturn {
   currentFavoriteConfig: FavoriteConfig;
 }
 
+/** @deprecated Use individual context hooks instead: useQueryParams(), useQueryData(), useQueryUI() */
 export function usePriceQuery(): UsePriceQueryReturn {
   const user = useUser();
   const { favorites: symbolFavorites } = useFavorites({ configType: 'symbol' });
 
-  const state = usePriceQueryState();
-
-  const data = usePriceQueryData({
-    urlParamsParsed: state.urlParamsParsed,
-    selectedOracle: state.selectedOracle,
-    selectedChain: state.selectedChain,
-    selectedSymbol: state.selectedSymbol,
-    selectedTimeRange: state.selectedTimeRange,
-    isCompareMode: state.isCompareMode,
-    compareTimeRange: state.compareTimeRange,
-  });
-
-  const chart = usePriceQueryChart({
-    historicalData: data.historicalData,
-    queryResults: data.queryResults,
-    selectedTimeRange: state.selectedTimeRange,
-    isCompareMode: state.isCompareMode,
-    compareHistoricalData: data.compareHistoricalData,
-    compareQueryResults: data.compareQueryResults,
-    compareTimeRange: state.compareTimeRange,
-  });
-
-  const chartContainerRef = useRef<HTMLDivElement>(null);
-  const favoritesDropdownRef = useRef<HTMLDivElement>(null);
-  const [showFavoritesDropdown, setShowFavoritesDropdown] = useState(false);
-
-  const stats = useMemo(() => {
-    const validPrices = data.queryResults
-      .filter((r) => r.priceData && typeof r.priceData.price === 'number')
-      .map((r) => r.priceData!.price);
-
-    const avgPrice =
-      validPrices.length > 0 ? validPrices.reduce((a, b) => a + b, 0) / validPrices.length : 0;
-
-    const validChanges = data.queryResults.filter(
-      (r) => r.priceData?.change24hPercent !== undefined
-    );
-    const avgChange24hPercent =
-      validChanges.length > 0
-        ? validChanges.reduce((sum, r) => sum + r.priceData!.change24hPercent!, 0) /
-          validChanges.length
-        : undefined;
-
-    const maxPrice = safeMax(validPrices);
-    const minPrice = safeMin(validPrices);
-    const priceRange = maxPrice - minPrice;
-
-    const variance =
-      validPrices.length > 0
-        ? validPrices.reduce((sum, price) => sum + Math.pow(price - avgPrice, 2), 0) /
-          validPrices.length
-        : 0;
-    const standardDeviation = Math.sqrt(variance);
-    const standardDeviationPercent = avgPrice > 0 ? (standardDeviation / avgPrice) * 100 : 0;
-
-    const compareValidPrices = data.compareQueryResults
-      .filter((r) => r.priceData && typeof r.priceData.price === 'number')
-      .map((r) => r.priceData!.price);
-
-    const compareAvgPrice =
-      compareValidPrices.length > 0
-        ? compareValidPrices.reduce((a, b) => a + b, 0) / compareValidPrices.length
-        : 0;
-
-    const compareValidChanges = data.compareQueryResults.filter(
-      (r) => r.priceData?.change24hPercent !== undefined
-    );
-    const compareAvgChange24hPercent =
-      compareValidChanges.length > 0
-        ? compareValidChanges.reduce((sum, r) => sum + r.priceData!.change24hPercent!, 0) /
-          compareValidChanges.length
-        : undefined;
-
-    const compareMaxPrice = safeMax(compareValidPrices);
-    const compareMinPrice = safeMin(compareValidPrices);
-    const comparePriceRange = compareMaxPrice - compareMinPrice;
-
-    return {
-      validPrices,
-      avgPrice,
-      avgChange24hPercent,
-      maxPrice,
-      minPrice,
-      priceRange,
-      variance,
-      standardDeviation,
-      standardDeviationPercent,
-      compareValidPrices,
-      compareAvgPrice,
-      compareAvgChange24hPercent,
-      compareMaxPrice,
-      compareMinPrice,
-      comparePriceRange,
-    };
-  }, [data.queryResults, data.compareQueryResults]);
+  const params = useQueryParams();
+  const queryData = useQueryData();
+  const ui = useQueryUI();
 
   const sortedQueryResults = useMemo(() => {
-    return [...data.queryResults].sort((a, b) => {
+    return [...queryData.queryResults].sort((a, b) => {
       let comparison = 0;
 
-      switch (state.sortField) {
+      switch (ui.sortField) {
         case 'oracle':
           comparison = a.provider.localeCompare(b.provider);
           break;
@@ -227,122 +135,122 @@ export function usePriceQuery(): UsePriceQueryReturn {
           break;
       }
 
-      return state.sortDirection === 'asc' ? comparison : -comparison;
+      return ui.sortDirection === 'asc' ? comparison : -comparison;
     });
-  }, [data.queryResults, state.sortField, state.sortDirection]);
+  }, [queryData.queryResults, ui.sortField, ui.sortDirection]);
 
   const filteredQueryResults = useMemo(() => {
-    if (!state.filterText) return sortedQueryResults;
+    if (!ui.filterText) return sortedQueryResults;
 
-    const filter = state.filterText.toLowerCase();
+    const filter = ui.filterText.toLowerCase();
     return sortedQueryResults.filter(
       (result) =>
         result.provider.toLowerCase().includes(filter) ||
         result.chain.toLowerCase().includes(filter)
     );
-  }, [sortedQueryResults, state.filterText]);
+  }, [sortedQueryResults, ui.filterText]);
 
   const currentFavoriteConfig: FavoriteConfig = useMemo(
     () => ({
-      symbol: state.selectedSymbol,
-      selectedOracles: state.selectedOracle ? [state.selectedOracle as string] : [],
-      chains: state.selectedChain ? [state.selectedChain as string] : [],
-      timeRange: state.selectedTimeRange,
+      symbol: params.selectedSymbol,
+      selectedOracles: params.selectedOracle ? [params.selectedOracle as string] : [],
+      chains: params.selectedChain ? [params.selectedChain as string] : [],
+      timeRange: params.selectedTimeRange,
     }),
-    [state.selectedSymbol, state.selectedOracle, state.selectedChain, state.selectedTimeRange]
+    [params.selectedSymbol, params.selectedOracle, params.selectedChain, params.selectedTimeRange]
   );
 
   const handleApplyFavorite = useCallback(
     (config: FavoriteConfig) => {
       if (config.symbol) {
-        state.setSelectedSymbol(config.symbol);
+        params.setSelectedSymbol(config.symbol);
       }
       if (config.selectedOracles && config.selectedOracles.length > 0) {
-        state.setSelectedOracle(config.selectedOracles[0] as OracleProvider);
+        params.setSelectedOracle(config.selectedOracles[0] as OracleProvider);
       } else {
-        state.setSelectedOracle(null);
+        params.setSelectedOracle(null);
       }
       if (config.chains && config.chains.length > 0) {
-        state.setSelectedChain(config.chains[0] as Blockchain);
+        params.setSelectedChain(config.chains[0] as Blockchain);
       } else {
-        state.setSelectedChain(null);
+        params.setSelectedChain(null);
       }
       if (config.timeRange !== undefined) {
-        state.setSelectedTimeRange(config.timeRange);
+        params.setSelectedTimeRange(config.timeRange);
       }
-      setShowFavoritesDropdown(false);
+      ui.setShowFavoritesDropdown(false);
     },
-    [state]
+    [params, ui]
   );
 
   return {
     state: {
-      selectedOracle: state.selectedOracle,
-      setSelectedOracle: state.setSelectedOracle,
-      selectedChain: state.selectedChain,
-      setSelectedChain: state.setSelectedChain,
-      selectedSymbol: state.selectedSymbol,
-      setSelectedSymbol: state.setSelectedSymbol,
-      selectedTimeRange: state.selectedTimeRange,
-      setSelectedTimeRange: state.setSelectedTimeRange,
-      filterText: state.filterText,
-      setFilterText: state.setFilterText,
-      sortField: state.sortField,
-      sortDirection: state.sortDirection,
-      hiddenSeries: state.hiddenSeries,
-      setHiddenSeries: state.setHiddenSeries,
-      selectedRow: state.selectedRow,
-      setSelectedRow: state.setSelectedRow,
-      isCompareMode: state.isCompareMode,
-      setIsCompareMode: state.setIsCompareMode,
-      compareTimeRange: state.compareTimeRange,
-      setCompareTimeRange: state.setCompareTimeRange,
-      showBaseline: state.showBaseline,
-      setShowBaseline: state.setShowBaseline,
-      timeComparisonConfig: state.timeComparisonConfig,
-      setTimeComparisonConfig: state.setTimeComparisonConfig,
-      urlParamsParsed: state.urlParamsParsed,
-      showFavoritesDropdown,
-      setShowFavoritesDropdown,
+      selectedOracle: params.selectedOracle,
+      setSelectedOracle: params.setSelectedOracle,
+      selectedChain: params.selectedChain,
+      setSelectedChain: params.setSelectedChain,
+      selectedSymbol: params.selectedSymbol,
+      setSelectedSymbol: params.setSelectedSymbol,
+      selectedTimeRange: params.selectedTimeRange,
+      setSelectedTimeRange: params.setSelectedTimeRange,
+      filterText: ui.filterText,
+      setFilterText: ui.setFilterText,
+      sortField: ui.sortField,
+      sortDirection: ui.sortDirection,
+      hiddenSeries: ui.hiddenSeries,
+      setHiddenSeries: ui.setHiddenSeries,
+      selectedRow: ui.selectedRow,
+      setSelectedRow: ui.setSelectedRow,
+      isCompareMode: params.isCompareMode,
+      setIsCompareMode: params.setIsCompareMode,
+      compareTimeRange: params.compareTimeRange,
+      setCompareTimeRange: params.setCompareTimeRange,
+      showBaseline: ui.showBaseline,
+      setShowBaseline: ui.setShowBaseline,
+      timeComparisonConfig: ui.timeComparisonConfig,
+      setTimeComparisonConfig: ui.setTimeComparisonConfig,
+      urlParamsParsed: params.urlParamsParsed,
+      showFavoritesDropdown: ui.showFavoritesDropdown,
+      setShowFavoritesDropdown: ui.setShowFavoritesDropdown,
     },
     data: {
-      queryResults: data.queryResults,
-      historicalData: data.historicalData,
-      compareHistoricalData: data.compareHistoricalData,
-      compareQueryResults: data.compareQueryResults,
-      primaryDataFetchTime: data.primaryDataFetchTime,
-      compareDataFetchTime: data.compareDataFetchTime,
-      chartData: chart.chartData,
-      compareChartData: chart.compareChartData,
+      queryResults: queryData.queryResults,
+      historicalData: queryData.historicalData,
+      compareHistoricalData: queryData.compareHistoricalData,
+      compareQueryResults: queryData.compareQueryResults,
+      primaryDataFetchTime: queryData.primaryDataFetchTime,
+      compareDataFetchTime: queryData.compareDataFetchTime,
+      chartData: queryData.chartData,
+      compareChartData: queryData.compareChartData,
       sortedQueryResults,
       filteredQueryResults,
-      supportedChainsBySelectedOracles: data.supportedChainsBySelectedOracles,
+      supportedChainsBySelectedOracles: queryData.supportedChainsBySelectedOracles,
     },
-    stats,
+    stats: queryData.stats,
     query: {
-      isLoading: data.isLoading,
-      queryDuration: data.queryDuration,
-      queryProgress: data.queryProgress,
-      currentQueryTarget: data.currentQueryTarget,
-      queryErrors: data.queryErrors,
-      clearErrors: data.clearErrors,
-      retryDataSource: data.retryDataSource,
-      retryAllErrors: data.retryAllErrors,
-      refetch: data.refetch,
+      isLoading: queryData.isLoading,
+      queryDuration: queryData.queryDuration,
+      queryProgress: queryData.queryProgress,
+      currentQueryTarget: queryData.currentQueryTarget,
+      queryErrors: queryData.queryErrors,
+      clearErrors: queryData.clearErrors,
+      retryDataSource: queryData.retryDataSource,
+      retryAllErrors: queryData.retryAllErrors,
+      refetch: queryData.refetch,
     },
     validation: {
-      validationWarnings: data.validationWarnings,
-      dataAnomalies: data.dataAnomalies,
-      hasDataQualityIssues: data.hasDataQualityIssues,
+      validationWarnings: queryData.validationWarnings,
+      dataAnomalies: queryData.dataAnomalies,
+      hasDataQualityIssues: queryData.hasDataQualityIssues,
     },
     actions: {
-      toggleSeries: state.toggleSeries,
-      handleSort: state.handleSort,
+      toggleSeries: ui.toggleSeries,
+      handleSort: ui.handleSort,
       handleApplyFavorite,
     },
     refs: {
-      chartContainerRef,
-      favoritesDropdownRef,
+      chartContainerRef: queryData.chartContainerRef,
+      favoritesDropdownRef: ui.favoritesDropdownRef,
     },
     user,
     symbolFavorites,

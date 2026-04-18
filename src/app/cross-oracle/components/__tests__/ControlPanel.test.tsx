@@ -68,11 +68,18 @@ jest.mock('@/lib/config/oracles', () => ({
   },
 }));
 
+jest.mock('../../hooks/useCommonSymbols', () => ({
+  useCommonSymbols: () => ({
+    commonSymbols: ['BTC', 'ETH', 'SOL'],
+    oracleCountMap: { BTC: 2, ETH: 2, SOL: 1 },
+    unsupportedOracles: {},
+  }),
+}));
+
 describe('ControlPanel', () => {
   const mockProps = {
     selectedSymbol: 'BTC',
     onSymbolChange: jest.fn(),
-    symbols: ['BTC', 'ETH', 'SOL'],
     selectedOracles: ['chainlink', 'pyth'] as OracleProvider[],
     onOracleToggle: jest.fn(),
     oracleChartColors: { chainlink: '#375BD2', pyth: '#EC1C79' },
@@ -82,7 +89,10 @@ describe('ControlPanel', () => {
     isLoading: false,
     activeFilterCount: 0,
     onClearFilters: jest.fn(),
-    t: (key: string) => key,
+    refreshInterval: 60 as const,
+    onRefreshIntervalChange: jest.fn(),
+    lastRefreshedAt: null as Date | null,
+    nextRefreshAt: null as Date | null,
   };
 
   beforeEach(() => {
@@ -131,14 +141,14 @@ describe('ControlPanel', () => {
   it('should show loading state', () => {
     render(<ControlPanel {...mockProps} isLoading={true} />);
 
-    const queryButton = screen.getByRole('button', { name: /query/i });
-    expect(queryButton).toBeDisabled();
+    const loadingButton = screen.getByRole('button', { name: /loading/i });
+    expect(loadingButton).toBeDisabled();
   });
 
-  it('should show active filter count', () => {
+  it('should show active filter count badge', () => {
     render(<ControlPanel {...mockProps} activeFilterCount={3} />);
 
-    expect(screen.getByText('Text')).toBeInTheDocument();
+    expect(screen.getByText('3')).toBeInTheDocument();
   });
 
   it('should call onClearFilters when clear button is clicked', () => {
@@ -149,5 +159,24 @@ describe('ControlPanel', () => {
     fireEvent.click(clearButton);
 
     expect(onClearFilters).toHaveBeenCalled();
+  });
+
+  it('should render oracle selection buttons', () => {
+    render(<ControlPanel {...mockProps} />);
+
+    expect(screen.getByText('Chainlink')).toBeInTheDocument();
+    expect(screen.getByText('Pyth')).toBeInTheDocument();
+  });
+
+  it('should call onOracleToggle when oracle button is clicked', () => {
+    const onOracleToggle = jest.fn();
+    render(<ControlPanel {...mockProps} onOracleToggle={onOracleToggle} />);
+
+    const chainlinkButton = screen.getByText('Chainlink').closest('button');
+    if (chainlinkButton) {
+      fireEvent.click(chainlinkButton);
+    }
+
+    expect(onOracleToggle).toHaveBeenCalled();
   });
 });

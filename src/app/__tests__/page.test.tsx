@@ -3,7 +3,7 @@ import { type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen } from '@testing-library/react';
 
-import HomePage, { generateMetadata } from '../page';
+import HomePage from '../page';
 
 jest.mock('next/dynamic', () => ({
   __esModule: true,
@@ -37,14 +37,14 @@ const renderHomePage = () => {
 };
 
 describe('HomePage', () => {
-  describe('基础渲染', () => {
-    it('应该正确渲染首页', () => {
+  describe('Basic rendering', () => {
+    it('should render the home page correctly', () => {
       renderHomePage();
 
       expect(screen.getByTestId('professional-hero')).toBeInTheDocument();
     });
 
-    it('应该渲染 main 容器', () => {
+    it('should render the main container', () => {
       renderHomePage();
 
       const main = screen.getByRole('main');
@@ -53,10 +53,9 @@ describe('HomePage', () => {
     });
   });
 
-  describe('generateMetadata', () => {
-    it('应该为英文生成正确的 metadata', async () => {
-      const params = Promise.resolve({ locale: 'en' });
-      const metadata = await generateMetadata({ params });
+  describe('metadata', () => {
+    it('should have correct static metadata', async () => {
+      const { metadata } = await import('../page');
 
       expect(metadata.title).toBe('Insight - Oracle Data Platform');
       expect(metadata.description).toContain('Comprehensive analysis and comparison');
@@ -68,27 +67,14 @@ describe('HomePage', () => {
       expect(metadata.twitter?.card).toBe('summary_large_image');
     });
 
-    it('应该为中文生成正确的 metadata', async () => {
-      const params = Promise.resolve({ locale: 'zh-CN' });
-      const metadata = await generateMetadata({ params });
-
-      expect(metadata.title).toBe('Insight - 预言机数据平台');
-      expect(metadata.description).toContain('全面分析和比较');
-      expect(metadata.keywords).toEqual(expect.arrayContaining(['预言机', 'oracle', 'chainlink']));
-      expect(metadata.openGraph?.title).toBe('Insight - 预言机数据平台');
-      expect(metadata.openGraph?.locale).toBe('zh_CN');
-    });
-
-    it('应该包含正确的 OpenGraph 信息', async () => {
-      const params = Promise.resolve({ locale: 'en' });
-      const metadata = await generateMetadata({ params });
+    it('should include correct OpenGraph information', async () => {
+      const { metadata } = await import('../page');
 
       expect(metadata.openGraph?.type).toBe('website');
     });
 
-    it('应该包含正确的 Twitter 卡片信息', async () => {
-      const params = Promise.resolve({ locale: 'en' });
-      const metadata = await generateMetadata({ params });
+    it('should include correct Twitter card information', async () => {
+      const { metadata } = await import('../page');
 
       expect(metadata.twitter?.card).toBe('summary_large_image');
       expect(metadata.twitter?.title).toBe('Insight - Oracle Data Platform');

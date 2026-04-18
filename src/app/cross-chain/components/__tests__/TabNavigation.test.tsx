@@ -12,22 +12,25 @@ describe('TabNavigation', () => {
   it('should render both tabs', () => {
     render(<TabNavigation activeTab="overview" onTabChange={mockOnTabChange} />);
 
-    expect(screen.getByText('Text')).toBeInTheDocument();
-    expect(screen.getByText('Text')).toBeInTheDocument();
+    const overviewTabs = screen.getAllByRole('button', { name: 'Overview' });
+    const chartsTabs = screen.getAllByRole('button', { name: 'Charts' });
+    expect(overviewTabs.length).toBeGreaterThan(0);
+    expect(chartsTabs.length).toBeGreaterThan(0);
   });
 
   it('should highlight active tab', () => {
     render(<TabNavigation activeTab="overview" onTabChange={mockOnTabChange} />);
 
-    const overviewTab = screen.getByRole('button', { name: 'Overview' });
+    const overviewTab = screen.getAllByRole('button', { name: 'Overview' })[0];
     expect(overviewTab).toBeInTheDocument();
+    expect(overviewTab).toHaveAttribute('title', 'Summary and key metrics');
   });
 
   it('should call onTabChange when tab is clicked', () => {
     render(<TabNavigation activeTab="overview" onTabChange={mockOnTabChange} />);
 
-    const chartsTab = screen.getByRole('button', { name: 'Charts' });
-    fireEvent.click(chartsTab);
+    const chartsTabs = screen.getAllByRole('button', { name: 'Charts' });
+    fireEvent.click(chartsTabs[0]);
 
     expect(mockOnTabChange).toHaveBeenCalledWith('charts');
   });
@@ -35,8 +38,8 @@ describe('TabNavigation', () => {
   it('should render tab descriptions as title', () => {
     render(<TabNavigation activeTab="overview" onTabChange={mockOnTabChange} />);
 
-    const overviewTab = screen.getByRole('button', { name: 'Overview' });
-    expect(overviewTab).toHaveAttribute('title', 'View overview data');
+    const overviewTab = screen.getAllByRole('button', { name: 'Overview' })[0];
+    expect(overviewTab).toHaveAttribute('title', 'Summary and key metrics');
   });
 
   it('should switch active tab correctly', () => {
@@ -44,15 +47,15 @@ describe('TabNavigation', () => {
       <TabNavigation activeTab="overview" onTabChange={mockOnTabChange} />
     );
 
-    const overviewTab = screen.getByRole('button', { name: 'Overview' });
-    fireEvent.click(overviewTab);
+    const overviewTabs = screen.getAllByRole('button', { name: 'Overview' });
+    fireEvent.click(overviewTabs[0]);
 
     expect(mockOnTabChange).toHaveBeenCalledWith('overview');
 
     rerender(<TabNavigation activeTab="charts" onTabChange={mockOnTabChange} />);
 
-    const chartsTab = screen.getByRole('button', { name: 'Charts' });
-    expect(chartsTab).toBeInTheDocument();
+    const chartsTabs = screen.getAllByRole('button', { name: 'Charts' });
+    expect(chartsTabs.length).toBeGreaterThan(0);
   });
 
   it('should render mobile version on small screens', () => {
@@ -60,5 +63,25 @@ describe('TabNavigation', () => {
 
     const tabs = screen.getAllByRole('button');
     expect(tabs.length).toBeGreaterThan(0);
+  });
+
+  it('should show correct active tab styling for overview', () => {
+    render(<TabNavigation activeTab="overview" onTabChange={mockOnTabChange} />);
+
+    const overviewTabs = screen.getAllByRole('button', { name: 'Overview' });
+    const chartsTabs = screen.getAllByRole('button', { name: 'Charts' });
+
+    expect(overviewTabs[0]).toHaveClass('shadow-sm');
+    expect(chartsTabs[0]).not.toHaveClass('shadow-sm');
+  });
+
+  it('should show correct active tab styling for charts', () => {
+    render(<TabNavigation activeTab="charts" onTabChange={mockOnTabChange} />);
+
+    const overviewTabs = screen.getAllByRole('button', { name: 'Overview' });
+    const chartsTabs = screen.getAllByRole('button', { name: 'Charts' });
+
+    expect(chartsTabs[0]).toHaveClass('shadow-sm');
+    expect(overviewTabs[0]).not.toHaveClass('shadow-sm');
   });
 });

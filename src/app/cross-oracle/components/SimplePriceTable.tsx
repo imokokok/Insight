@@ -158,7 +158,7 @@ function ExpandedRowDetail({ row }: { row: TableRow }) {
           {row.priceDiff !== null && (
             <span className="text-xs text-gray-500">
               {row.priceDiff >= 0 ? '+' : ''}$
-              {Math.abs(row.priceDiff).toLocaleString(undefined, { maximumFractionDigits: 4 })}
+              {Math.abs(row.priceDiff).toLocaleString('en-US', { maximumFractionDigits: 4 })}
             </span>
           )}
         </div>

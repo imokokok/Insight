@@ -31,6 +31,7 @@ interface UsePriceQueryDataParams {
   selectedTimeRange: number;
   isCompareMode: boolean;
   compareTimeRange: number;
+  refetchInterval?: number | false;
 }
 
 interface UsePriceQueryDataReturn {
@@ -69,6 +70,7 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
     selectedTimeRange,
     isCompareMode,
     compareTimeRange,
+    refetchInterval = false,
   } = params;
 
   const queryClient = useQueryClient();
@@ -133,7 +135,11 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
     [primaryTasks, compareTasks, selectedSymbol]
   );
 
-  const batchResult = useBatchOracleQuery(batchTasks, urlParamsParsed && !!selectedSymbol);
+  const batchResult = useBatchOracleQuery(
+    batchTasks,
+    urlParamsParsed && !!selectedSymbol,
+    refetchInterval
+  );
 
   const isLoading = batchResult.isLoading || batchResult.isFetching;
 

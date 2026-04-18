@@ -7,6 +7,12 @@ import { OracleProvider, Blockchain } from '@/types/oracle';
 import { getDefaultMarketData, getDefaultNetworkData } from './helpers';
 import { type OracleConfig } from './types';
 
+let _client: PythClient | null = null;
+function getClient() {
+  if (!_client) _client = new PythClient();
+  return _client;
+}
+
 export const pythConfig: OracleConfig = {
   provider: OracleProvider.PYTH,
   name: 'Pyth',
@@ -28,7 +34,7 @@ export const pythConfig: OracleConfig = {
     Blockchain.INJECTIVE,
     Blockchain.SEI,
   ],
-  client: new PythClient(),
+  getClient,
   iconBgColor: `bg-[${chartColors.oracle.pyth}]`,
   themeColor: '#8b5cf6',
   icon: <Image src="/logos/oracles/pyth.svg" alt="Pyth" width={48} height={48} />,

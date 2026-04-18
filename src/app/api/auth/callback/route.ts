@@ -97,15 +97,14 @@ export const GET = createApiHandler(
     }
 
     let redirectPath: string;
-    const userLocale = request.cookies.get('next-locale')?.value || 'en';
     if (type === 'recovery') {
-      redirectPath = `/${userLocale}/auth/reset-password`;
+      redirectPath = '/auth/reset-password';
     } else if (type === 'signup' || type === 'email_change') {
-      redirectPath = `/${userLocale}/auth/verify-email`;
+      redirectPath = '/auth/verify-email';
     } else if (state && isValidRedirectPath(state)) {
       redirectPath = state;
     } else {
-      redirectPath = `/${userLocale}`;
+      redirectPath = '/';
     }
 
     const response = NextResponse.redirect(new URL(redirectPath, request.url));

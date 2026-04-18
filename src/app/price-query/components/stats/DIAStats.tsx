@@ -53,7 +53,7 @@ export function DIAStats({ data }: DIAStatsProps) {
         icon={Zap}
         iconColor="text-purple-500"
         title="Trading Pair Count"
-        value={data.totalTradingPairs > 0 ? data.totalTradingPairs.toLocaleString() : '-'}
+        value={data.totalTradingPairs > 0 ? data.totalTradingPairs.toLocaleString('en-US') : '-'}
         description="Total trading pairs"
       />
       <StatCard

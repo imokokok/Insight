@@ -195,11 +195,11 @@ export function PriceChart({
   const formatXAxisLabel = (timestamp: number) => {
     const date = new Date(timestamp);
     if (selectedTimeRange <= 1) {
-      return date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+      return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
     } else if (selectedTimeRange <= 24) {
-      return date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+      return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
     } else {
-      return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     }
   };
 
@@ -248,7 +248,7 @@ export function PriceChart({
     return Array.from(groups.entries())
       .map(([timestamp, values]) => ({
         timestamp,
-        time: new Date(timestamp).toLocaleString(),
+        time: new Date(timestamp).toLocaleString('en-US'),
         open: values[0],
         close: values[values.length - 1],
         high: safeMax(values),
@@ -264,8 +264,8 @@ export function PriceChart({
     }
     const firstPoint = enhancedChartData[0];
     const lastPoint = enhancedChartData[enhancedChartData.length - 1];
-    const startTime = new Date(firstPoint.timestamp).toLocaleString();
-    const endTime = new Date(lastPoint.timestamp).toLocaleString();
+    const startTime = new Date(firstPoint.timestamp).toLocaleString('en-US');
+    const endTime = new Date(lastPoint.timestamp).toLocaleString('en-US');
     const seriesList = seriesNames.join(', ');
     return `Price chart for ${seriesList} from ${startTime} to ${endTime} with ${enhancedChartData.length} data points`;
   }, [enhancedChartData, seriesNames]);

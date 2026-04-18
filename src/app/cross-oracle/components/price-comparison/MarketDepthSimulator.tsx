@@ -81,7 +81,7 @@ function MarketDepthSimulatorComponent({ priceData, medianPrice }: MarketDepthSi
         <h4 className="text-sm font-semibold text-gray-900">Consensus Depth</h4>
         <div className="flex items-center gap-3">
           <span className="px-2 py-0.5 text-[10px] font-medium text-amber-600 bg-amber-50 border border-amber-200 rounded">
-            模拟数据
+            Simulated
           </span>
           <div className="flex items-center gap-4 text-xs">
             <div className="flex items-center gap-1">
@@ -182,7 +182,7 @@ function MarketDepthSimulatorComponent({ priceData, medianPrice }: MarketDepthSi
         Consensus strength based on oracle price distribution
       </div>
       <div className="mt-1 text-xs text-gray-400 text-center">
-        深度数据由价格偏差计算得出，非真实订单簿数据
+        Depth data is calculated from price deviation, not real order book data
       </div>
     </div>
   );

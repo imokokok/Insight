@@ -22,11 +22,11 @@ export const ChartDataTable = memo(function ChartDataTable({
   const formatTimestamp = (timestamp: number): string => {
     const date = new Date(timestamp);
     if (selectedTimeRange <= 1) {
-      return date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+      return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
     } else if (selectedTimeRange <= 24) {
-      return date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+      return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
     } else {
-      return date.toLocaleDateString(undefined, {
+      return date.toLocaleDateString('en-US', {
         month: 'short',
         day: 'numeric',
         hour: '2-digit',

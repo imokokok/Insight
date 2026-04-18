@@ -7,6 +7,12 @@ import { OracleProvider, Blockchain } from '@/types/oracle';
 import { getDefaultMarketData, getDefaultNetworkData } from './helpers';
 import { type OracleConfig } from './types';
 
+let _client: API3Client | null = null;
+function getClient() {
+  if (!_client) _client = new API3Client();
+  return _client;
+}
+
 export const api3Config: OracleConfig = {
   provider: OracleProvider.API3,
   name: 'API3',
@@ -22,7 +28,7 @@ export const api3Config: OracleConfig = {
     Blockchain.BNB_CHAIN,
     Blockchain.OPTIMISM,
   ],
-  client: new API3Client(),
+  getClient,
   iconBgColor: `bg-[${chartColors.oracle.api3}]`,
   themeColor: '#10b981',
   icon: <Image src="/logos/oracles/api3.svg" alt="API3" width={48} height={48} />,

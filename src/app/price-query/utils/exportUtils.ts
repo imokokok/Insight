@@ -36,54 +36,27 @@ function generateFilename(symbol: string, extension: string, format?: string): s
   return `price-query-${symbol}${formatSuffix}-${timestamp}.${extension}`;
 }
 
-interface ExportTranslations {
-  csvTitle: string;
-  symbol: string;
-  exportTime: string;
-  oracle: string;
-  blockchain: string;
-  price: string;
-  timestamp: string;
-  change24h: string;
-  confidence: string;
-  source: string;
-}
-
 export function exportToCSV(
   queryResults: QueryResult[],
   config: ExportConfigData,
-  selectedSymbol: string,
-  t?: ExportTranslations
+  selectedSymbol: string
 ): void {
   const enabledFields = config.fields;
   const csvLines: string[] = [];
 
-  const translations = t || {
-    csvTitle: 'Price Query Results',
-    symbol: 'Symbol',
-    exportTime: 'Export Time',
-    oracle: 'Oracle',
-    blockchain: 'Blockchain',
-    price: 'Price',
-    timestamp: 'Timestamp',
-    change24h: '24h Change',
-    confidence: 'Confidence',
-    source: 'Source',
-  };
-
-  csvLines.push(`=== ${translations.csvTitle} ===`);
-  csvLines.push(`${translations.symbol}: ${selectedSymbol}`);
-  csvLines.push(`${translations.exportTime}: ${new Date().toLocaleString()}`);
+  csvLines.push('=== Price Query Results ===');
+  csvLines.push(`Symbol: ${selectedSymbol}`);
+  csvLines.push(`Export Time: ${new Date().toLocaleString('en-US')}`);
   csvLines.push('');
 
   const headers: string[] = [];
-  if (enabledFields.find((f) => f.key === 'oracle')) headers.push(translations.oracle);
-  if (enabledFields.find((f) => f.key === 'blockchain')) headers.push(translations.blockchain);
-  if (enabledFields.find((f) => f.key === 'price')) headers.push(translations.price);
-  if (enabledFields.find((f) => f.key === 'timestamp')) headers.push(translations.timestamp);
-  if (enabledFields.find((f) => f.key === 'change24h')) headers.push(translations.change24h);
-  if (enabledFields.find((f) => f.key === 'confidence')) headers.push(translations.confidence);
-  if (enabledFields.find((f) => f.key === 'source')) headers.push(translations.source);
+  if (enabledFields.find((f) => f.key === 'oracle')) headers.push('Oracle');
+  if (enabledFields.find((f) => f.key === 'blockchain')) headers.push('Blockchain');
+  if (enabledFields.find((f) => f.key === 'price')) headers.push('Price');
+  if (enabledFields.find((f) => f.key === 'timestamp')) headers.push('Timestamp');
+  if (enabledFields.find((f) => f.key === 'change24h')) headers.push('24h Change');
+  if (enabledFields.find((f) => f.key === 'confidence')) headers.push('Confidence');
+  if (enabledFields.find((f) => f.key === 'source')) headers.push('Source');
 
   csvLines.push(headers.join(','));
 
@@ -101,7 +74,7 @@ export function exportToCSV(
       row.push(formatPrice(result.priceData.price));
     }
     if (enabledFields.find((f) => f.key === 'timestamp')) {
-      row.push(escapeCSVField(new Date(result.priceData.timestamp).toLocaleString()));
+      row.push(escapeCSVField(new Date(result.priceData.timestamp).toLocaleString('en-US')));
     }
     if (enabledFields.find((f) => f.key === 'change24h')) {
       row.push(
@@ -174,28 +147,6 @@ export function exportToJSON(
   downloadBlob(blob, generateFilename(selectedSymbol, 'json'));
 }
 
-interface PDFTranslations extends ExportTranslations {
-  reportTitle: string;
-  generatedAt: string;
-  queryParams: string;
-  oracles: string;
-  chains: string;
-  timeRange: string;
-  hours: string;
-  statsSummary: string;
-  avgPriceLabel: string;
-  maxPriceLabel: string;
-  minPriceLabel: string;
-  priceRangeLabel: string;
-  stdDevLabel: string;
-  dataPointsLabel: string;
-  change24hLabel: string;
-  indicator: string;
-  value: string;
-  priceChart: string;
-  priceData: string;
-}
-
 export async function exportToPDF(
   queryResults: QueryResult[],
   config: ExportConfigData,
@@ -204,109 +155,68 @@ export async function exportToPDF(
   selectedChains: Blockchain[],
   selectedTimeRange: number,
   stats: StatsData,
-  chartContainerRef?: React.RefObject<HTMLDivElement | null>,
-  t?: PDFTranslations
+  chartContainerRef?: React.RefObject<HTMLDivElement | null>
 ): Promise<void> {
   const doc = new jsPDF();
   const enabledFields = config.fields;
   const filteredResults = filterByTimeRange(queryResults, config.timeRange);
-
-  const translations = t || {
-    csvTitle: 'Price Query Results',
-    symbol: 'Symbol',
-    exportTime: 'Export Time',
-    oracle: 'Oracle',
-    blockchain: 'Blockchain',
-    price: 'Price',
-    timestamp: 'Timestamp',
-    change24h: '24h Change',
-    confidence: 'Confidence',
-    source: 'Source',
-    reportTitle: 'Price Query Report',
-    generatedAt: 'Generated at',
-    queryParams: 'Query Parameters',
-    oracles: 'Oracles',
-    chains: 'Chains',
-    timeRange: 'Time Range',
-    hours: 'hours',
-    statsSummary: 'Statistics Summary',
-    avgPriceLabel: 'Average Price',
-    maxPriceLabel: 'Max Price',
-    minPriceLabel: 'Min Price',
-    priceRangeLabel: 'Price Range',
-    stdDevLabel: 'Std Deviation',
-    dataPointsLabel: 'Data Points',
-    change24hLabel: '24h Change',
-    indicator: 'Indicator',
-    value: 'Value',
-    priceChart: 'Price Chart',
-    priceData: 'Price Data',
-  };
 
   const primaryColor = exportColors.text.primary;
   const secondaryColor = exportColors.text.secondary;
 
   doc.setFontSize(20);
   doc.setTextColor(primaryColor);
-  doc.text(translations.reportTitle, 14, 20);
+  doc.text('Price Query Report', 14, 20);
 
   doc.setFontSize(10);
   doc.setTextColor(secondaryColor);
-  doc.text(`${translations.generatedAt}: ${new Date().toLocaleString()}`, 14, 28);
+  doc.text(`Generated at: ${new Date().toLocaleString('en-US')}`, 14, 28);
 
   doc.setFontSize(12);
   doc.setTextColor(primaryColor);
-  doc.text(translations.queryParams, 14, 40);
+  doc.text('Query Parameters', 14, 40);
 
   doc.setFontSize(10);
   doc.setTextColor(secondaryColor);
   let yPos = 48;
-  doc.text(`${translations.symbol}: ${selectedSymbol}`, 14, yPos);
+  doc.text(`Symbol: ${selectedSymbol}`, 14, yPos);
   yPos += 6;
-  doc.text(
-    `${translations.oracles}: ${selectedOracles.map((o) => providerNames[o]).join(', ')}`,
-    14,
-    yPos
-  );
+  doc.text(`Oracles: ${selectedOracles.map((o) => providerNames[o]).join(', ')}`, 14, yPos);
   yPos += 6;
-  doc.text(
-    `${translations.chains}: ${selectedChains.map((c) => chainNames[c]).join(', ')}`,
-    14,
-    yPos
-  );
+  doc.text(`Chains: ${selectedChains.map((c) => chainNames[c]).join(', ')}`, 14, yPos);
   yPos += 6;
-  doc.text(`${translations.timeRange}: ${selectedTimeRange}${translations.hours}`, 14, yPos);
+  doc.text(`Time Range: ${selectedTimeRange} hours`, 14, yPos);
 
   yPos += 12;
 
   if (config.includeStats) {
     doc.setFontSize(12);
     doc.setTextColor(primaryColor);
-    doc.text(translations.statsSummary, 14, yPos);
+    doc.text('Statistics Summary', 14, yPos);
 
     yPos += 8;
     doc.setFontSize(9);
     doc.setTextColor(secondaryColor);
 
     const statsData = [
-      [translations.avgPriceLabel, formatPrice(stats.avgPrice)],
-      [translations.maxPriceLabel, formatPrice(stats.maxPrice)],
-      [translations.minPriceLabel, formatPrice(stats.minPrice)],
-      [translations.priceRangeLabel, formatPrice(stats.priceRange)],
-      [translations.stdDevLabel, `${stats.standardDeviationPercent.toFixed(4)}%`],
-      [translations.dataPointsLabel, stats.dataPoints.toString()],
+      ['Average Price', formatPrice(stats.avgPrice)],
+      ['Max Price', formatPrice(stats.maxPrice)],
+      ['Min Price', formatPrice(stats.minPrice)],
+      ['Price Range', formatPrice(stats.priceRange)],
+      ['Std Deviation', `${stats.standardDeviationPercent.toFixed(4)}%`],
+      ['Data Points', stats.dataPoints.toString()],
     ];
 
     if (stats.avgChange24hPercent !== undefined) {
       statsData.push([
-        translations.change24hLabel,
+        '24h Change',
         `${stats.avgChange24hPercent >= 0 ? '+' : ''}${stats.avgChange24hPercent.toFixed(2)}%`,
       ]);
     }
 
     autoTable(doc, {
       startY: yPos,
-      head: [[translations.indicator, translations.value]],
+      head: [['Indicator', 'Value']],
       body: statsData,
       theme: 'striped',
       headStyles: { fillColor: [31, 41, 55], textColor: [255, 255, 255] },
@@ -336,7 +246,7 @@ export async function exportToPDF(
 
       doc.setFontSize(12);
       doc.setTextColor(primaryColor);
-      doc.text(translations.priceChart, 14, yPos);
+      doc.text('Price Chart', 14, yPos);
 
       doc.addImage(imgData, 'PNG', 14, yPos + 5, imgWidth, imgHeight);
       yPos += imgHeight + 15;
@@ -355,16 +265,16 @@ export async function exportToPDF(
 
   doc.setFontSize(12);
   doc.setTextColor(primaryColor);
-  doc.text(translations.priceData, 14, yPos);
+  doc.text('Price Data', 14, yPos);
 
   const tableHeaders: string[] = [];
-  if (enabledFields.find((f) => f.key === 'oracle')) tableHeaders.push(translations.oracle);
-  if (enabledFields.find((f) => f.key === 'blockchain')) tableHeaders.push(translations.blockchain);
-  if (enabledFields.find((f) => f.key === 'price')) tableHeaders.push(translations.price);
-  if (enabledFields.find((f) => f.key === 'timestamp')) tableHeaders.push(translations.timestamp);
-  if (enabledFields.find((f) => f.key === 'change24h')) tableHeaders.push(translations.change24h);
-  if (enabledFields.find((f) => f.key === 'confidence')) tableHeaders.push(translations.confidence);
-  if (enabledFields.find((f) => f.key === 'source')) tableHeaders.push(translations.source);
+  if (enabledFields.find((f) => f.key === 'oracle')) tableHeaders.push('Oracle');
+  if (enabledFields.find((f) => f.key === 'blockchain')) tableHeaders.push('Blockchain');
+  if (enabledFields.find((f) => f.key === 'price')) tableHeaders.push('Price');
+  if (enabledFields.find((f) => f.key === 'timestamp')) tableHeaders.push('Timestamp');
+  if (enabledFields.find((f) => f.key === 'change24h')) tableHeaders.push('24h Change');
+  if (enabledFields.find((f) => f.key === 'confidence')) tableHeaders.push('Confidence');
+  if (enabledFields.find((f) => f.key === 'source')) tableHeaders.push('Source');
 
   const tableBody = filteredResults.map((result) => {
     const row: string[] = [];
@@ -378,7 +288,7 @@ export async function exportToPDF(
       row.push(formatPrice(result.priceData.price));
     }
     if (enabledFields.find((f) => f.key === 'timestamp')) {
-      row.push(new Date(result.priceData.timestamp).toLocaleString());
+      row.push(new Date(result.priceData.timestamp).toLocaleString('en-US'));
     }
     if (enabledFields.find((f) => f.key === 'change24h')) {
       row.push(

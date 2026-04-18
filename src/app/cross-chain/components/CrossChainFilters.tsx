@@ -13,9 +13,12 @@ import { useCrossChainSelectorStore } from '@/stores/crossChainSelectorStore';
 import { useCrossChainUIStore } from '@/stores/crossChainUIStore';
 import { type OracleProvider } from '@/types/oracle';
 
-import { TIME_RANGES, providerNames, chainNames, symbols, chainColors } from '../constants';
+import { TIME_RANGES, providerNames, chainNames, symbols } from '../constants';
 import { useSupportedChains } from '../useCrossChainData';
-import { type ThresholdType } from '../utils';
+
+import { AnomalyConfig } from './AnomalyConfig';
+import { ChainSelector } from './ChainSelector';
+import { TechnicalIndicators } from './TechnicalIndicators';
 
 export function CrossChainFilters() {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -60,25 +63,6 @@ export function CrossChainFilters() {
     value: chain,
     label: chainNames[chain],
   }));
-
-  const maPeriodOptions = [
-    { value: 7, label: '7' },
-    { value: 25, label: '25' },
-    { value: 99, label: '99' },
-  ];
-
-  const thresholdTypeOptions = [
-    { value: 'fixed' as ThresholdType, label: 'Fixed Threshold' },
-    { value: 'dynamic' as ThresholdType, label: 'Dynamic Volatility' },
-    { value: 'atr' as ThresholdType, label: 'ATR Indicator' },
-  ];
-
-  const calculationPeriodOptions = [
-    { value: 7, label: '7' },
-    { value: 14, label: '14' },
-    { value: 20, label: '20' },
-    { value: 30, label: '30' },
-  ];
 
   const timeRangeOptions = TIME_RANGES.map((range) => ({
     value: range.value,
@@ -189,170 +173,32 @@ export function CrossChainFilters() {
 
           <div className="border-t border-gray-200" />
 
-          <div>
-            <h3 className="text-xs font-medium text-gray-700 uppercase tracking-wide mb-2">
-              Visible Chains
-              <span className="ml-1 text-gray-400">
-                ({visibleChains.length}/{supportedChains.length})
-              </span>
-            </h3>
-            <div className="flex flex-wrap gap-1.5">
-              {supportedChains.map((chain) => {
-                const isVisible = visibleChains.includes(chain);
-                return (
-                  <button
-                    key={chain}
-                    onClick={() => toggleChain(chain)}
-                    className={`px-2 py-1 text-xs font-medium transition-all duration-200 flex items-center gap-1.5 rounded-md ${
-                      isVisible
-                        ? 'bg-blue-600 text-white hover:bg-blue-700'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }`}
-                  >
-                    <span
-                      className="w-1.5 h-1.5 rounded-full"
-                      style={{
-                        backgroundColor: isVisible ? 'white' : chainColors[chain],
-                      }}
-                    />
-                    {chainNames[chain]}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+          <ChainSelector
+            supportedChains={supportedChains}
+            visibleChains={visibleChains}
+            onToggleChain={toggleChain}
+          />
 
           <div className="border-t border-gray-200" />
 
-          <div>
-            <h3 className="text-xs font-medium text-gray-700 uppercase tracking-wide mb-2">
-              Technical Indicators
-            </h3>
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={showMA}
-                  onChange={(e) => setShowMA(e.target.checked)}
-                  className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                />
-                <span className="text-sm text-gray-700">Show Moving Average</span>
-              </label>
-              <div className="flex items-center gap-2">
-                <label className="text-xs text-gray-500 uppercase tracking-wide">MA Period:</label>
-                <DropdownSelect
-                  options={maPeriodOptions}
-                  value={maPeriod}
-                  onChange={(value) => setMaPeriod(value as number)}
-                  disabled={!showMA}
-                  className="w-20"
-                />
-              </div>
-              <button
-                onClick={() => {
-                  setShowMA(false);
-                  setMaPeriod(7);
-                  setChartKey(chartKey + 1);
-                }}
-                className="w-full px-3 py-2 text-xs bg-white border border-gray-300 text-gray-700 rounded-md transition-all duration-200 hover:bg-gray-50 hover:border-gray-400"
-              >
-                Reset Chart
-              </button>
-            </div>
-          </div>
+          <TechnicalIndicators
+            showMA={showMA}
+            onShowMAChange={setShowMA}
+            maPeriod={maPeriod}
+            onMaPeriodChange={setMaPeriod}
+            onResetChart={() => {
+              setShowMA(false);
+              setMaPeriod(7);
+              setChartKey(chartKey + 1);
+            }}
+          />
 
           <div className="border-t border-gray-200" />
 
-          <div>
-            <h3 className="text-xs font-medium text-gray-700 uppercase tracking-wide mb-2">
-              Anomaly Detection Config
-            </h3>
-            <div className="space-y-3">
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs text-gray-500 uppercase tracking-wide">
-                  Threshold Type
-                </label>
-                <DropdownSelect
-                  options={thresholdTypeOptions}
-                  value={thresholdConfig.type}
-                  onChange={(value) =>
-                    setThresholdConfig({
-                      ...thresholdConfig,
-                      type: value as ThresholdType,
-                    })
-                  }
-                  className="w-full"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs text-gray-500 uppercase tracking-wide">
-                    Fixed Threshold %
-                  </label>
-                  <input
-                    type="number"
-                    value={thresholdConfig.fixedThreshold}
-                    onChange={(e) =>
-                      setThresholdConfig({
-                        ...thresholdConfig,
-                        fixedThreshold: Number(e.target.value),
-                      })
-                    }
-                    step={0.1}
-                    min={0.1}
-                    max={10}
-                    className="px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs text-gray-500 uppercase tracking-wide">
-                    Volatility Multiplier
-                  </label>
-                  <input
-                    type="number"
-                    value={thresholdConfig.atrMultiplier}
-                    onChange={(e) =>
-                      setThresholdConfig({
-                        ...thresholdConfig,
-                        atrMultiplier: Number(e.target.value),
-                      })
-                    }
-                    step={0.5}
-                    min={0.5}
-                    max={5}
-                    className="px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs text-gray-500 uppercase tracking-wide">
-                  Calculation Period
-                </label>
-                <DropdownSelect
-                  options={calculationPeriodOptions}
-                  value={thresholdConfig.volatilityWindow}
-                  onChange={(value) =>
-                    setThresholdConfig({
-                      ...thresholdConfig,
-                      volatilityWindow: value as number,
-                    })
-                  }
-                  className="w-full"
-                />
-              </div>
-
-              <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">
-                {thresholdConfig.type === 'fixed' &&
-                  'Fixed threshold for detecting price anomalies'}
-                {thresholdConfig.type === 'dynamic' &&
-                  'Dynamic threshold based on price volatility'}
-                {thresholdConfig.type === 'atr' && 'ATR-based threshold for adaptive detection'}
-              </div>
-            </div>
-          </div>
+          <AnomalyConfig
+            thresholdConfig={thresholdConfig}
+            onThresholdConfigChange={setThresholdConfig}
+          />
         </div>
       </div>
     </div>

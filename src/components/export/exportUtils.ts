@@ -191,7 +191,7 @@ export async function exportToPDF(
   // Metadata
   doc.setFontSize(10);
   doc.setTextColor(exportColors.text.secondary);
-  doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 28);
+  doc.text(`Generated: ${new Date().toLocaleString('en-US')}`, 14, 28);
 
   let yPos = 40;
 
@@ -407,14 +407,14 @@ function formatPDFValue(value: unknown, dataType: string): string {
   switch (dataType) {
     case 'date':
       if (value instanceof Date) {
-        return value.toLocaleString();
+        return value.toLocaleString('en-US');
       }
       return String(value);
     case 'boolean':
       return value ? 'Yes' : 'No';
     case 'number':
       if (typeof value === 'number') {
-        return value.toLocaleString(undefined, { maximumFractionDigits: 4 });
+        return value.toLocaleString('en-US', { maximumFractionDigits: 4 });
       }
       return String(value);
     default:

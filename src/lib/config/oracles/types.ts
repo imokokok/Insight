@@ -53,7 +53,7 @@ interface OracleConfig {
   symbol: string;
   defaultChain: Blockchain;
   supportedChains: Blockchain[];
-  client?: BaseOracleClient;
+  getClient: () => BaseOracleClient;
   icon: ReactNode;
   iconBgColor: string;
   themeColor: string;

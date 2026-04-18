@@ -37,7 +37,6 @@ const credibilityConfig: Record<
     color: string;
     bgColor: string;
     borderColor: string;
-    labelKey: string;
     label: string;
   }
 > = {
@@ -46,7 +45,6 @@ const credibilityConfig: Record<
     color: 'text-success-600',
     bgColor: 'bg-success-50',
     borderColor: 'border-green-200',
-    labelKey: 'High',
     label: 'High',
   },
   medium: {
@@ -54,7 +52,6 @@ const credibilityConfig: Record<
     color: 'text-primary-600',
     bgColor: 'bg-primary-50',
     borderColor: 'border-primary-200',
-    labelKey: 'Medium',
     label: 'Medium',
   },
   low: {
@@ -62,7 +59,6 @@ const credibilityConfig: Record<
     color: 'text-amber-600',
     bgColor: 'bg-amber-50',
     borderColor: 'border-amber-200',
-    labelKey: 'Low',
     label: 'Low',
   },
   unverified: {
@@ -70,7 +66,6 @@ const credibilityConfig: Record<
     color: 'text-gray-500',
     bgColor: 'bg-gray-50',
     borderColor: 'border-gray-200',
-    labelKey: 'Unverified',
     label: 'Unverified',
   },
 };
@@ -221,7 +216,7 @@ export function DataSourceIndicator({
                       <span
                         className={`ml-1.5 text-xs ${source.confidenceSource === 'estimated' ? 'text-amber-500' : 'text-success-600'}`}
                       >
-                        {source.confidenceSource === 'estimated' ? '估算值' : '原始数据'}
+                        {source.confidenceSource === 'estimated' ? 'Estimated' : 'Raw Data'}
                       </span>
                     )}
                   </span>
@@ -296,7 +291,7 @@ export function DataSourceIndicator({
         className={`relative inline-flex items-center gap-1 px-2 py-0.5 rounded-full ${config.bgColor} ${config.borderColor} border`}
       >
         <CredibilityIcon size={12} className={config.color} />
-        <span className={`${config.color} text-xs font-medium`}>{config.labelKey}</span>
+        <span className={`${config.color} text-xs font-medium`}>{config.label}</span>
 
         {/* Tooltip */}
         {showTooltip && showConfidence && (
@@ -304,7 +299,7 @@ export function DataSourceIndicator({
             <div className="font-medium">
               Confidence: {confidencePercent}%
               {source.confidenceSource
-                ? ` (${source.confidenceSource === 'estimated' ? '估算值' : '原始数据'})`
+                ? ` (${source.confidenceSource === 'estimated' ? 'Estimated' : 'Raw Data'})`
                 : ''}
             </div>
             {source.chain && <div className="text-gray-300">{source.chain}</div>}

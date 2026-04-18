@@ -6,10 +6,12 @@ export interface QueryConfig {
   chains: Blockchain[];
   symbol: string;
   timeRange: number;
+  refreshInterval?: number;
 }
 
 const VALID_ORACLES = ORACLE_PROVIDER_VALUES;
 const VALID_TIME_RANGES = [1, 6, 12, 24, 72, 168, 720];
+const VALID_REFRESH_INTERVALS = [0, 30000, 60000, 300000];
 
 export function parseQueryParams(search: string): Partial<QueryConfig> {
   const params = new URLSearchParams(search);
@@ -51,6 +53,14 @@ export function parseQueryParams(search: string): Partial<QueryConfig> {
     }
   }
 
+  const refreshIntervalParam = params.get('refresh');
+  if (refreshIntervalParam) {
+    const refreshInterval = parseInt(refreshIntervalParam, 10);
+    if (!isNaN(refreshInterval) && VALID_REFRESH_INTERVALS.includes(refreshInterval)) {
+      result.refreshInterval = refreshInterval;
+    }
+  }
+
   return result;
 }
 
@@ -71,6 +81,10 @@ export function buildQueryParams(config: QueryConfig): string {
 
   if (config.timeRange !== undefined && config.timeRange !== null) {
     params.set('timeRange', config.timeRange.toString());
+  }
+
+  if (config.refreshInterval !== undefined && config.refreshInterval !== 0) {
+    params.set('refresh', config.refreshInterval.toString());
   }
 
   const queryString = params.toString();
