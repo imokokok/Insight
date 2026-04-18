@@ -14,6 +14,7 @@ export const providerNames: Record<OracleProvider, string> = {
   [OracleProvider.SUPRA]: 'Supra',
   [OracleProvider.TWAP]: 'TWAP',
   [OracleProvider.REFLECTOR]: 'Reflector',
+  [OracleProvider.FLARE]: 'Flare',
 };
 
 export const chainNames: Record<Blockchain, string> = {
@@ -55,6 +56,7 @@ export const chainNames: Record<Blockchain, string> = {
   [Blockchain.METIS]: 'Metis',
   [Blockchain.STARKEX]: 'StarkEx',
   [Blockchain.STELLAR]: 'Stellar',
+  [Blockchain.FLARE]: 'Flare',
 };
 
 export const chainColors: Record<Blockchain, string> = {
@@ -96,6 +98,7 @@ export const chainColors: Record<Blockchain, string> = {
   [Blockchain.METIS]: configChainColors.metis,
   [Blockchain.STARKEX]: configChainColors.starkex,
   [Blockchain.STELLAR]: '#14B8A6',
+  [Blockchain.FLARE]: '#E84142',
 };
 
 export const oracleColors: Record<OracleProvider, string> = {
@@ -108,6 +111,7 @@ export const oracleColors: Record<OracleProvider, string> = {
   [OracleProvider.SUPRA]: configChartColors.oracle.supra,
   [OracleProvider.TWAP]: configChartColors.oracle.twap,
   [OracleProvider.REFLECTOR]: configChartColors.oracle.reflector,
+  [OracleProvider.FLARE]: '#E84142',
 };
 
 export const symbols = [
@@ -262,6 +266,7 @@ export const CHAIN_CATEGORIES: Record<Blockchain, ChainCategory> = {
   [Blockchain.MOONRIVER]: 'cosmos',
   [Blockchain.METIS]: 'l2',
   [Blockchain.STELLAR]: 'l1',
+  [Blockchain.FLARE]: 'l1',
 } as const;
 
 /**

@@ -91,20 +91,20 @@ export function FavoritesManager({
   };
 
   const typeFilters: Array<{ value: ConfigType | 'all'; label: string; count: number }> = [
-    { value: 'all', label: 'favorites.all', count: favorites.length },
+    { value: 'all', label: 'All', count: favorites.length },
     {
       value: 'oracle_config',
-      label: 'favorites.oracleConfig',
+      label: 'Oracle Config',
       count: favorites.filter((f) => mapConfigTypeFromDB(f.config_type) === 'oracle_config').length,
     },
     {
       value: 'symbol',
-      label: 'favorites.symbol',
+      label: 'Symbol',
       count: favorites.filter((f) => mapConfigTypeFromDB(f.config_type) === 'symbol').length,
     },
     {
       value: 'chain_config',
-      label: 'favorites.chainConfig',
+      label: 'Chain Config',
       count: favorites.filter((f) => mapConfigTypeFromDB(f.config_type) === 'chain_config').length,
     },
   ];
@@ -124,7 +124,7 @@ export function FavoritesManager({
             d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
           />
         </svg>
-        <p className="text-sm text-gray-500">{'favorites.loginRequired'}</p>
+        <p className="text-sm text-gray-500">Please log in to view your favorites</p>
       </div>
     );
   }
@@ -144,7 +144,7 @@ export function FavoritesManager({
             d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
           />
         </svg>
-        <p className="text-sm text-danger-600">{'favorites.loadError'}</p>
+        <p className="text-sm text-danger-600">Failed to load favorites</p>
         <p className="text-xs text-danger-500 mt-1">{error.message}</p>
       </div>
     );
@@ -172,7 +172,7 @@ export function FavoritesManager({
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={'favorites.searchPlaceholder'}
+                placeholder="Search favorites..."
                 className="w-full pl-10 pr-4 py-2.5 border border-gray-200  text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               />
               {searchQuery && (
@@ -254,12 +254,12 @@ export function FavoritesManager({
             />
           </svg>
           <p className="text-base font-medium text-gray-600 mb-1">
-            {searchQuery || selectedType !== 'all' ? 'favorites.noResults' : 'favorites.empty'}
+            {searchQuery || selectedType !== 'all' ? 'No results found' : 'No favorites yet'}
           </p>
           <p className="text-sm text-gray-500">
             {searchQuery || selectedType !== 'all'
-              ? 'favorites.noResultsDesc'
-              : 'favorites.emptyDesc'}
+              ? 'Try adjusting your search or filter'
+              : 'Save your favorite configurations for quick access'}
           </p>
         </div>
       ) : showGroupByType && selectedType === 'all' ? (
@@ -269,9 +269,9 @@ export function FavoritesManager({
             if (typeFavorites.length === 0) return null;
 
             const typeLabels: Record<ConfigType, string> = {
-              oracle_config: 'favorites.oracleConfig',
-              symbol: 'favorites.symbol',
-              chain_config: 'favorites.chainConfig',
+              oracle_config: 'Oracle Config',
+              symbol: 'Symbol',
+              chain_config: 'Chain Config',
             };
 
             return (

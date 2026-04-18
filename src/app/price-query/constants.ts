@@ -9,7 +9,8 @@ import {
   TIME_RANGES,
   DEVIATION_THRESHOLD,
 } from '@/lib/constants';
-import { type OracleProvider, type Blockchain, type PriceData } from '@/lib/oracles';
+import type { OracleProvider, Blockchain, PriceData } from '@/lib/oracles';
+import type { FlareTokenOnChainData } from '@/lib/oracles/clients/flare';
 import type { RedStoneTokenOnChainData } from '@/lib/oracles/clients/redstone';
 import type { SupraTokenOnChainData } from '@/lib/oracles/clients/supra';
 import type { DIATokenOnChainData } from '@/lib/oracles/services/diaDataService';
@@ -26,7 +27,8 @@ type AnyOnChainData =
   | SupraTokenOnChainData
   | WINkLinkTokenOnChainData
   | TwapOnChainData
-  | ReflectorTokenOnChainData;
+  | ReflectorTokenOnChainData
+  | FlareTokenOnChainData;
 
 export interface QueryResult {
   provider: OracleProvider;
@@ -80,6 +82,8 @@ export interface OnChainData {
   isTwapDataLoading?: boolean;
   reflectorOnChainData?: AnyOnChainData | null;
   isReflectorDataLoading?: boolean;
+  flareOnChainData?: AnyOnChainData | null;
+  isFlareDataLoading?: boolean;
 }
 
 export {

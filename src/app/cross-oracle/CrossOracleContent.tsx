@@ -104,20 +104,20 @@ export default function CrossOracleContent() {
   return (
     <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 min-h-screen">
       <div aria-live="polite" className="sr-only">
-        {isLoading ? 'crossOracle.loadingData' : `${priceData.length} ${'crossOracle.results'}`}
+        {isLoading ? 'Loading data...' : `${priceData.length} results`}
       </div>
 
       <div className="flex flex-col gap-3 mb-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">{'crossOracle.title'}</h1>
-            <p className="text-sm text-gray-500 mt-1">{'crossOracle.subtitle'}</p>
+            <h1 className="text-2xl font-bold text-gray-900">Cross Oracle Comparison</h1>
+            <p className="text-sm text-gray-500 mt-1">Compare prices across multiple oracles</p>
           </div>
 
           <div className="flex items-center gap-2">
             {lastUpdated && (
               <span className="text-xs text-gray-500">
-                {'crossOracle.lastUpdated'}: {lastUpdated.toLocaleTimeString()}
+                Last updated: {lastUpdated.toLocaleTimeString()}
               </span>
             )}
           </div>

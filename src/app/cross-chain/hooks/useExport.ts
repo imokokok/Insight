@@ -150,6 +150,7 @@ export function useExport(params: UseExportParams): UseExportReturn {
         [OracleProvider.SUPRA]: 'Supra',
         [OracleProvider.TWAP]: 'TWAP',
         [OracleProvider.REFLECTOR]: 'Reflector',
+        [OracleProvider.FLARE]: 'Flare',
       };
 
       const getConsistencyRating = (stdDevPercent: number): string => {

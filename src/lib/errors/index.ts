@@ -113,6 +113,11 @@ export {
   SupraError,
   type SupraErrorDetails,
   type SupraErrorCode,
+
+  // Flare 错误
+  FlareError,
+  type FlareErrorDetails,
+  type FlareErrorCode,
 } from './OracleError';
 
 // ==================== 错误响应处理 ====================

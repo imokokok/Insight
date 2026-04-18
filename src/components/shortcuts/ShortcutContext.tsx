@@ -17,7 +17,7 @@ export interface ShortcutContextState {
 
 export interface ShortcutCategoryState {
   id: string;
-  labelKey: string;
+  label: string;
   shortcuts: KeyboardShortcut[];
 }
 
@@ -25,7 +25,7 @@ export interface ShortcutContextActions {
   openHelp: () => void;
   closeHelp: () => void;
   toggleHelp: () => void;
-  registerShortcut: (category: string, labelKey: string, shortcut: KeyboardShortcut) => void;
+  registerShortcut: (category: string, label: string, shortcut: KeyboardShortcut) => void;
   unregisterShortcut: (category: string, key: string) => void;
 }
 
@@ -51,7 +51,7 @@ type Action =
   | { type: 'TOGGLE_HELP' }
   | {
       type: 'REGISTER_SHORTCUT';
-      payload: { category: string; labelKey: string; shortcut: KeyboardShortcut };
+      payload: { category: string; label: string; shortcut: KeyboardShortcut };
     }
   | { type: 'UNREGISTER_SHORTCUT'; payload: { category: string; key: string } };
 
@@ -69,7 +69,7 @@ function shortcutReducer(state: ShortcutContextState, action: Action): ShortcutC
     case 'TOGGLE_HELP':
       return { ...state, isHelpOpen: !state.isHelpOpen };
     case 'REGISTER_SHORTCUT': {
-      const { category, labelKey, shortcut } = action.payload;
+      const { category, label, shortcut } = action.payload;
       const existingCategory = state.categories.find((c) => c.id === category);
 
       if (existingCategory) {
@@ -83,7 +83,7 @@ function shortcutReducer(state: ShortcutContextState, action: Action): ShortcutC
 
       return {
         ...state,
-        categories: [...state.categories, { id: category, labelKey, shortcuts: [shortcut] }],
+        categories: [...state.categories, { id: category, label, shortcuts: [shortcut] }],
       };
     }
     case 'UNREGISTER_SHORTCUT': {
@@ -120,8 +120,8 @@ export function ShortcutProvider({ children }: ShortcutProviderProps) {
   }, []);
 
   const registerShortcut = useCallback(
-    (category: string, labelKey: string, shortcut: KeyboardShortcut) => {
-      dispatch({ type: 'REGISTER_SHORTCUT', payload: { category, labelKey, shortcut } });
+    (category: string, label: string, shortcut: KeyboardShortcut) => {
+      dispatch({ type: 'REGISTER_SHORTCUT', payload: { category, label, shortcut } });
     },
     []
   );

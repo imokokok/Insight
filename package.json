@@ -96,6 +96,7 @@
     "@vercel/speed-insights": "^2.0.0",
     "clsx": "^2.1.1",
     "dompurify": "^3.4.0",
+    "flare-oracle-kit-poc-sdk": "^0.1.1",
     "framer-motion": "^12.36.0",
     "fuse.js": "^7.1.0",
     "jspdf": "^4.2.0",

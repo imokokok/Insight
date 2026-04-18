@@ -14,6 +14,7 @@ import {
   SupraClient,
   TWAPClient,
   ReflectorClient,
+  FlareClient,
   type BaseOracleClient,
 } from '@/lib/oracles';
 import { getTokenMarketData } from '@/lib/services/marketData/binanceMarketService';
@@ -53,12 +54,12 @@ interface NetworkDataConfig {
 
 export interface OracleTab {
   id: string;
-  labelKey: string;
+  label: string;
 }
 
 export interface OracleViewConfig {
   id: string;
-  labelKey: string;
+  label: string;
   component: string;
   requiredData?: string[];
   default?: boolean;
@@ -207,39 +208,39 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       hasCoreFeatures: false,
     },
     tabs: [
-      { id: 'market', labelKey: 'chainlink.menu.marketData' },
-      { id: 'network', labelKey: 'chainlink.menu.networkHealth' },
-      { id: 'nodes', labelKey: 'chainlink.menu.nodes' },
-      { id: 'data-feeds', labelKey: 'chainlink.menu.dataFeeds' },
-      { id: 'services', labelKey: 'chainlink.menu.services' },
-      { id: 'ecosystem', labelKey: 'chainlink.menu.ecosystem' },
-      { id: 'risk', labelKey: 'chainlink.menu.riskAssessment' },
+      { id: 'market', label: 'Market Data' },
+      { id: 'network', label: 'Network Health' },
+      { id: 'nodes', label: 'Nodes' },
+      { id: 'data-feeds', label: 'Data Feeds' },
+      { id: 'services', label: 'Services' },
+      { id: 'ecosystem', label: 'Ecosystem' },
+      { id: 'risk', label: 'Risk Assessment' },
     ],
     views: [
       {
         id: 'market',
-        labelKey: 'chainlink.menu.marketData',
+        label: 'Market Data',
         component: 'ChainlinkMarketView',
         default: true,
       },
       {
         id: 'network',
-        labelKey: 'chainlink.menu.networkHealth',
+        label: 'Network Health',
         component: 'ChainlinkNetworkView',
       },
-      { id: 'nodes', labelKey: 'chainlink.menu.nodes', component: 'ChainlinkNodesView' },
+      { id: 'nodes', label: 'Nodes', component: 'ChainlinkNodesView' },
       {
         id: 'data-feeds',
-        labelKey: 'chainlink.menu.dataFeeds',
+        label: 'Data Feeds',
         component: 'ChainlinkDataFeedsView',
       },
-      { id: 'services', labelKey: 'chainlink.menu.services', component: 'ChainlinkServicesView' },
+      { id: 'services', label: 'Services', component: 'ChainlinkServicesView' },
       {
         id: 'ecosystem',
-        labelKey: 'chainlink.menu.ecosystem',
+        label: 'Ecosystem',
         component: 'ChainlinkEcosystemView',
       },
-      { id: 'risk', labelKey: 'chainlink.menu.riskAssessment', component: 'ChainlinkRiskView' },
+      { id: 'risk', label: 'Risk Assessment', component: 'ChainlinkRiskView' },
     ],
   },
   [OracleProvider.PYTH]: {
@@ -280,25 +281,25 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       hasCoreFeatures: true,
     },
     tabs: [
-      { id: 'market', labelKey: 'pyth.menu.marketData' },
-      { id: 'network', labelKey: 'pyth.menu.networkHealth' },
-      { id: 'publishers', labelKey: 'pyth.menu.publishers' },
-      { id: 'validators', labelKey: 'pyth.menu.validators' },
-      { id: 'price-feeds', labelKey: 'pyth.menu.priceFeeds' },
-      { id: 'risk', labelKey: 'pyth.menu.riskAssessment' },
+      { id: 'market', label: 'Market Data' },
+      { id: 'network', label: 'Network Health' },
+      { id: 'publishers', label: 'Publishers' },
+      { id: 'validators', label: 'Validators' },
+      { id: 'price-feeds', label: 'Price Feeds' },
+      { id: 'risk', label: 'Risk Assessment' },
     ],
     views: [
       {
         id: 'market',
-        labelKey: 'pyth.menu.marketData',
+        label: 'Market Data',
         component: 'PythMarketView',
         default: true,
       },
-      { id: 'network', labelKey: 'pyth.menu.networkHealth', component: 'PythNetworkView' },
-      { id: 'publishers', labelKey: 'pyth.menu.publishers', component: 'PythPublishersView' },
-      { id: 'validators', labelKey: 'pyth.menu.validators', component: 'PythValidatorsView' },
-      { id: 'price-feeds', labelKey: 'pyth.menu.priceFeeds', component: 'PythPriceFeedsView' },
-      { id: 'risk', labelKey: 'pyth.menu.riskAssessment', component: 'PythRiskView' },
+      { id: 'network', label: 'Network Health', component: 'PythNetworkView' },
+      { id: 'publishers', label: 'Publishers', component: 'PythPublishersView' },
+      { id: 'validators', label: 'Validators', component: 'PythValidatorsView' },
+      { id: 'price-feeds', label: 'Price Feeds', component: 'PythPriceFeedsView' },
+      { id: 'risk', label: 'Risk Assessment', component: 'PythRiskView' },
     ],
   },
   [OracleProvider.API3]: {
@@ -334,12 +335,12 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       hasRiskAssessment: true,
     },
     tabs: [
-      { id: 'market', labelKey: 'api3.menu.marketData' },
-      { id: 'network', labelKey: 'api3.menu.networkHealth' },
-      { id: 'airnode', labelKey: 'api3.menu.airnode' },
-      { id: 'dapi', labelKey: 'api3.menu.dapi' },
-      { id: 'ecosystem', labelKey: 'api3.menu.ecosystem' },
-      { id: 'risk', labelKey: 'api3.menu.riskAssessment' },
+      { id: 'market', label: 'Market Data' },
+      { id: 'network', label: 'Network Health' },
+      { id: 'airnode', label: 'Airnode' },
+      { id: 'dapi', label: 'dAPI' },
+      { id: 'ecosystem', label: 'Ecosystem' },
+      { id: 'risk', label: 'Risk Assessment' },
     ],
   },
   [OracleProvider.REDSTONE]: {
@@ -385,13 +386,13 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       hasCrossChain: true,
     },
     tabs: [
-      { id: 'market', labelKey: 'redstone.tabs.market' },
-      { id: 'network', labelKey: 'redstone.tabs.network' },
-      { id: 'providers', labelKey: 'redstone.tabs.providers' },
-      { id: 'data-streams', labelKey: 'redstone.tabs.dataStreams' },
-      { id: 'cross-chain', labelKey: 'redstone.tabs.crossChain' },
-      { id: 'ecosystem', labelKey: 'redstone.tabs.ecosystem' },
-      { id: 'risk', labelKey: 'redstone.tabs.riskAssessment' },
+      { id: 'market', label: 'Market' },
+      { id: 'network', label: 'Network' },
+      { id: 'providers', label: 'Providers' },
+      { id: 'data-streams', label: 'Data Streams' },
+      { id: 'cross-chain', label: 'Cross-Chain' },
+      { id: 'ecosystem', label: 'Ecosystem' },
+      { id: 'risk', label: 'Risk Assessment' },
     ],
   },
   [OracleProvider.DIA]: {
@@ -430,13 +431,13 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       hasCoreFeatures: true,
     },
     tabs: [
-      { id: 'market', labelKey: 'dia.tabs.market' },
-      { id: 'network', labelKey: 'dia.tabs.network' },
-      { id: 'data-feeds', labelKey: 'dia.tabs.dataFeeds' },
-      { id: 'nft-data', labelKey: 'dia.tabs.nftData' },
-      { id: 'staking', labelKey: 'dia.tabs.staking' },
-      { id: 'ecosystem', labelKey: 'dia.tabs.ecosystem' },
-      { id: 'risk', labelKey: 'dia.tabs.riskAssessment' },
+      { id: 'market', label: 'Market' },
+      { id: 'network', label: 'Network' },
+      { id: 'data-feeds', label: 'Data Feeds' },
+      { id: 'nft-data', label: 'NFT Data' },
+      { id: 'staking', label: 'Staking' },
+      { id: 'ecosystem', label: 'Ecosystem' },
+      { id: 'risk', label: 'Risk Assessment' },
     ],
   },
   [OracleProvider.WINKLINK]: {
@@ -463,12 +464,12 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       hasCoreFeatures: true,
     },
     tabs: [
-      { id: 'market', labelKey: 'winklink.menu.marketData' },
-      { id: 'network', labelKey: 'winklink.menu.networkHealth' },
-      { id: 'tron', labelKey: 'winklink.menu.tronEcosystem' },
-      { id: 'staking', labelKey: 'winklink.menu.staking' },
-      { id: 'gaming', labelKey: 'winklink.menu.gaming' },
-      { id: 'risk', labelKey: 'winklink.menu.riskAssessment' },
+      { id: 'market', label: 'Market Data' },
+      { id: 'network', label: 'Network Health' },
+      { id: 'tron', label: 'TRON Ecosystem' },
+      { id: 'staking', label: 'Staking' },
+      { id: 'gaming', label: 'Gaming' },
+      { id: 'risk', label: 'Risk Assessment' },
     ],
   },
   [OracleProvider.SUPRA]: {
@@ -523,25 +524,25 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       hasCrossChain: true,
     },
     tabs: [
-      { id: 'market', labelKey: 'supra.tabs.market' },
-      { id: 'network', labelKey: 'supra.tabs.network' },
-      { id: 'price-feeds', labelKey: 'supra.tabs.priceFeeds' },
-      { id: 'cross-chain', labelKey: 'supra.tabs.crossChain' },
-      { id: 'ecosystem', labelKey: 'supra.tabs.ecosystem' },
-      { id: 'risk', labelKey: 'supra.tabs.riskAssessment' },
+      { id: 'market', label: 'Market' },
+      { id: 'network', label: 'Network' },
+      { id: 'price-feeds', label: 'Price Feeds' },
+      { id: 'cross-chain', label: 'Cross-Chain' },
+      { id: 'ecosystem', label: 'Ecosystem' },
+      { id: 'risk', label: 'Risk Assessment' },
     ],
     views: [
       {
         id: 'market',
-        labelKey: 'supra.tabs.market',
+        label: 'Market',
         component: 'SupraMarketView',
         default: true,
       },
-      { id: 'network', labelKey: 'supra.tabs.network', component: 'SupraNetworkView' },
-      { id: 'price-feeds', labelKey: 'supra.tabs.priceFeeds', component: 'SupraPriceFeedsView' },
-      { id: 'cross-chain', labelKey: 'supra.tabs.crossChain', component: 'SupraCrossChainView' },
-      { id: 'ecosystem', labelKey: 'supra.tabs.ecosystem', component: 'SupraEcosystemView' },
-      { id: 'risk', labelKey: 'supra.tabs.riskAssessment', component: 'SupraRiskView' },
+      { id: 'network', label: 'Network', component: 'SupraNetworkView' },
+      { id: 'price-feeds', label: 'Price Feeds', component: 'SupraPriceFeedsView' },
+      { id: 'cross-chain', label: 'Cross-Chain', component: 'SupraCrossChainView' },
+      { id: 'ecosystem', label: 'Ecosystem', component: 'SupraEcosystemView' },
+      { id: 'risk', label: 'Risk Assessment', component: 'SupraRiskView' },
     ],
   },
   [OracleProvider.TWAP]: {
@@ -576,12 +577,12 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       hasCrossChain: true,
     },
     tabs: [
-      { id: 'overview', labelKey: 'twap.tabs.overview' },
-      { id: 'price-feeds', labelKey: 'twap.tabs.priceFeeds' },
-      { id: 'network', labelKey: 'twap.tabs.network' },
-      { id: 'market', labelKey: 'twap.tabs.market' },
-      { id: 'on-chain', labelKey: 'twap.tabs.onChain' },
-      { id: 'methodology', labelKey: 'twap.tabs.methodology' },
+      { id: 'overview', label: 'Overview' },
+      { id: 'price-feeds', label: 'Price Feeds' },
+      { id: 'network', label: 'Network' },
+      { id: 'market', label: 'Market' },
+      { id: 'on-chain', label: 'On-Chain' },
+      { id: 'methodology', label: 'Methodology' },
     ],
   },
   [OracleProvider.REFLECTOR]: {
@@ -609,11 +610,43 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       hasCrossChain: false,
     },
     tabs: [
-      { id: 'overview', labelKey: 'reflector.tabs.overview' },
-      { id: 'price-feeds', labelKey: 'reflector.tabs.priceFeeds' },
-      { id: 'network', labelKey: 'reflector.tabs.network' },
-      { id: 'market', labelKey: 'reflector.tabs.market' },
-      { id: 'on-chain', labelKey: 'reflector.tabs.onChain' },
+      { id: 'overview', label: 'Overview' },
+      { id: 'price-feeds', label: 'Price Feeds' },
+      { id: 'network', label: 'Network' },
+      { id: 'market', label: 'Market' },
+      { id: 'on-chain', label: 'On-Chain' },
+    ],
+  },
+  [OracleProvider.FLARE]: {
+    provider: OracleProvider.FLARE,
+    name: 'Flare',
+    descriptionKey: 'flare.description',
+    symbol: 'FLR',
+    defaultChain: Blockchain.FLARE,
+    supportedChains: [Blockchain.FLARE],
+    client: new FlareClient({ useRealData: true }),
+    iconBgColor: '#E84142',
+    themeColor: '#E84142',
+    icon: <Image src="/logos/oracles/flare.svg" alt="Flare" width={48} height={48} />,
+    marketData: getDefaultMarketData('FLR', 'Flare'),
+    networkData: getDefaultNetworkData(),
+    features: {
+      hasNodeAnalytics: true,
+      hasValidatorAnalytics: true,
+      hasPublisherAnalytics: false,
+      hasDisputeResolution: false,
+      hasPriceFeeds: true,
+      hasQuantifiableSecurity: true,
+      hasFirstPartyOracle: true,
+      hasCoreFeatures: true,
+      hasCrossChain: false,
+    },
+    tabs: [
+      { id: 'overview', label: 'Overview' },
+      { id: 'price-feeds', label: 'Price Feeds' },
+      { id: 'network', label: 'Network' },
+      { id: 'market', label: 'Market' },
+      { id: 'on-chain', label: 'On-Chain' },
     ],
   },
 };
@@ -666,7 +699,7 @@ export function getOracleViews(provider: OracleProvider): OracleViewConfig[] {
     config.views ||
     config.tabs.map((tab) => ({
       id: tab.id,
-      labelKey: tab.labelKey,
+      label: tab.label,
       component: `${provider.charAt(0).toUpperCase() + provider.slice(1).replace(/-/g, '')}View`,
     }))
   );

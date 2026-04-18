@@ -589,8 +589,7 @@ function SelectedCellDetail({ data }: { data: ReturnType<typeof useCrossChainDat
       <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-b border-gray-200">
         <div className="flex items-center gap-3">
           <span className="text-sm font-semibold text-gray-900">
-            {chainNames[selectedCell.xChain]} vs {chainNames[selectedCell.yChain]}{' '}
-            {'crossChain.detailComparison'}
+            {chainNames[selectedCell.xChain]} vs {chainNames[selectedCell.yChain]} Detail Comparison
           </span>
         </div>
         <button
@@ -617,7 +616,7 @@ function SelectedCellDetail({ data }: { data: ReturnType<typeof useCrossChainDat
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
           <div className="bg-gray-50 border border-gray-200 p-3 rounded-lg">
             <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">
-              {chainNames[selectedCell.xChain]} {'crossChain.price'}
+              {chainNames[selectedCell.xChain]} Price
             </div>
             <div className="text-xl font-semibold text-gray-900 font-mono">
               ${currentPrices.find((p) => p.chain === selectedCell.xChain)?.price.toFixed(4) || '-'}
@@ -625,7 +624,7 @@ function SelectedCellDetail({ data }: { data: ReturnType<typeof useCrossChainDat
           </div>
           <div className="bg-gray-50 border border-gray-200 p-3 rounded-lg">
             <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">
-              {chainNames[selectedCell.yChain]} {'crossChain.price'}
+              {chainNames[selectedCell.yChain]} Price
             </div>
             <div className="text-xl font-semibold text-gray-900 font-mono">
               ${currentPrices.find((p) => p.chain === selectedCell.yChain)?.price.toFixed(4) || '-'}
@@ -633,7 +632,7 @@ function SelectedCellDetail({ data }: { data: ReturnType<typeof useCrossChainDat
           </div>
           <div className="bg-gray-50 border border-gray-200 p-3 rounded-lg">
             <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">
-              {'crossChain.priceDifference'}
+              Price Difference
             </div>
             <div className="text-xl font-semibold font-mono">
               <span
@@ -655,9 +654,7 @@ function SelectedCellDetail({ data }: { data: ReturnType<typeof useCrossChainDat
         </div>
 
         <div className="mb-4">
-          <div className="text-sm font-medium text-gray-700 mb-2">
-            {'crossChain.priceTrendComparison'}
-          </div>
+          <div className="text-sm font-medium text-gray-700 mb-2">Price Trend Comparison</div>
           <div className="h-48 bg-gray-50 border border-gray-200 p-2 rounded-lg">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>

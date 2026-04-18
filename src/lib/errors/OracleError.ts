@@ -595,3 +595,77 @@ export class SupraError extends AppError {
     }
   }
 }
+
+/**
+ * Flare 错误代码
+ */
+export type FlareErrorCode =
+  | 'FTSO_RPC_ERROR'
+  | 'FEED_NOT_FOUND'
+  | 'STALE_PRICE'
+  | 'INVALID_PRICE'
+  | 'INVALID_FEED_ID'
+  | 'CONTRACT_CALL_FAILED';
+
+/**
+ * Flare 错误详情
+ */
+export interface FlareErrorDetails extends OracleErrorDetails {
+  errorCode?: FlareErrorCode;
+  feedId?: string;
+  network?: string;
+  timestamp?: number;
+}
+
+/**
+ * Flare 错误
+ */
+export class FlareError extends AppError {
+  public readonly errorCode: FlareErrorCode;
+
+  constructor(
+    message: string,
+    errorCode: FlareErrorCode,
+    details?: Partial<FlareErrorDetails>,
+    cause?: Error
+  ) {
+    super({
+      message,
+      code: 'FLARE_ERROR',
+      statusCode: HttpStatusCodes.BAD_GATEWAY,
+      category: 'external_service',
+      severity: FlareError.getSeverity(errorCode),
+      isOperational: true,
+      retryable: FlareError.isRetryableError(errorCode),
+      details: { ...details, errorCode },
+      cause,
+    });
+    this.errorCode = errorCode;
+  }
+
+  private static isRetryableError(errorCode: FlareErrorCode): boolean {
+    const retryableCodes: FlareErrorCode[] = [
+      'FTSO_RPC_ERROR',
+      'STALE_PRICE',
+      'CONTRACT_CALL_FAILED',
+    ];
+    return retryableCodes.includes(errorCode);
+  }
+
+  private static getSeverity(errorCode: FlareErrorCode): 'low' | 'medium' | 'high' | 'critical' {
+    switch (errorCode) {
+      case 'FEED_NOT_FOUND':
+      case 'INVALID_FEED_ID':
+        return 'low';
+      case 'FTSO_RPC_ERROR':
+      case 'CONTRACT_CALL_FAILED':
+        return 'medium';
+      case 'STALE_PRICE':
+        return 'high';
+      case 'INVALID_PRICE':
+        return 'critical';
+      default:
+        return 'medium';
+    }
+  }
+}

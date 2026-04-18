@@ -96,6 +96,7 @@ const BLOCKCHAIN_TO_CHAIN_ID: Record<Blockchain, number> = {
   [Blockchain.METIS]: 1088,
   [Blockchain.STARKEX]: 0,
   [Blockchain.STELLAR]: 0,
+  [Blockchain.FLARE]: 14,
 };
 
 export class ChainlinkClient extends BaseOracleClient {

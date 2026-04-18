@@ -7,6 +7,7 @@ import { BaseOracleClient } from './base';
 import { API3Client } from './clients/api3';
 import { ChainlinkClient } from './clients/chainlink';
 import { DIAClient } from './clients/dia';
+import { FlareClient } from './clients/flare';
 import { PythClient } from './clients/PythClient';
 import { RedStoneClient } from './clients/redstone';
 import { ReflectorClient } from './clients/reflector';
@@ -214,6 +215,11 @@ export class OracleClientFactory {
         return new ReflectorClient({
           ...this.config,
           useRealData: FEATURE_FLAGS.useRealReflectorData,
+        });
+      case OracleProvider.FLARE:
+        return new FlareClient({
+          ...this.config,
+          useRealData: FEATURE_FLAGS.useRealFlareData,
         });
       default:
         throw new ValidationError(`Unknown oracle provider: ${provider}`, {

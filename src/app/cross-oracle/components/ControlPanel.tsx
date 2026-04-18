@@ -133,7 +133,7 @@ export function ControlPanel({
   // Time range options for segmented control
   const timeRangeOptions = timeRanges.map((range) => ({
     value: range.value,
-    label: range.labelKey,
+    label: range.label,
   }));
 
   // Handle oracle toggle - 支持单个预言机切换

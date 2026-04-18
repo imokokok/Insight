@@ -8,6 +8,7 @@ export enum OracleProvider {
   SUPRA = 'supra',
   TWAP = 'twap',
   REFLECTOR = 'reflector',
+  FLARE = 'flare',
 }
 
 export enum Blockchain {
@@ -49,6 +50,7 @@ export enum Blockchain {
   METIS = 'metis',
   STARKEX = 'starkex',
   STELLAR = 'stellar',
+  FLARE = 'flare',
 }
 
 export const BINANCE = Blockchain.BNB_CHAIN;

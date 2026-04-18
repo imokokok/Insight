@@ -250,10 +250,10 @@ export function PriceComparisonTable({ data }: PriceComparisonTableProps) {
     <div className="mb-6 pb-6 border-b border-gray-200">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
         <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">
-          {'crossChain.priceComparisonTable'}
+          Price Comparison
         </h3>
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-xs text-gray-500">{'crossChain.filter'}:</span>
+          <span className="text-xs text-gray-500">Filter:</span>
           {(['all', 'abnormal', 'normal'] as const).map((filter) => (
             <button
               key={filter}
@@ -281,7 +281,7 @@ export function PriceComparisonTable({ data }: PriceComparisonTableProps) {
         conditionalFormatting={conditionalFormatting}
         density="normal"
         maxHeight={400}
-        emptyText={'crossChain.noData'}
+        emptyText="No data available"
       />
     </div>
   );

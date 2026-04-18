@@ -3,6 +3,7 @@
 import type { Blockchain, OracleProvider } from '@/types/oracle';
 
 import { useDIAOnChainData, type UseDIAOnChainDataReturn } from './useDIAOnChainData';
+import { useFlareOnChainData, type UseFlareOnChainDataReturn } from './useFlareOnChainData';
 import {
   useRedStoneOnChainData,
   type UseRedStoneOnChainDataReturn,
@@ -31,7 +32,8 @@ export type OnChainDataReturn =
   | UseRedStoneOnChainDataReturn
   | UseSupraOnChainDataReturn
   | UseTwapOnChainDataReturn
-  | UseReflectorOnChainDataReturn;
+  | UseReflectorOnChainDataReturn
+  | UseFlareOnChainDataReturn;
 
 export function useOnChainDataByProvider(
   options: UseOnChainDataByProviderOptions
@@ -53,6 +55,10 @@ export function useOnChainDataByProvider(
     symbol,
     enabled: enabled && provider === 'reflector',
   });
+  const flareResult = useFlareOnChainData({
+    symbol,
+    enabled: enabled && provider === 'flare',
+  });
 
   switch (provider) {
     case 'dia':
@@ -67,6 +73,8 @@ export function useOnChainDataByProvider(
       return twapResult;
     case 'reflector':
       return reflectorResult;
+    case 'flare':
+      return flareResult;
     default:
       return {
         data: null,

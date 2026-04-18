@@ -186,7 +186,7 @@ function PriceTableComponent({
         price: data.price,
         deviation: deviationPercent,
         source: data.source || '-',
-        freshness: freshness.textKey,
+        freshness: freshness.text,
         freshnessSeconds: freshness.seconds ?? 0,
         timestamp: data.timestamp,
         zScore,
@@ -230,7 +230,7 @@ function PriceTableComponent({
     const baseColumns: ColumnDef<PriceTableRow>[] = [
       {
         key: 'provider',
-        header: 'crossOracle.oracle',
+        header: 'Oracle',
         width: 200,
         minWidth: 160,
         align: 'left',
@@ -255,7 +255,7 @@ function PriceTableComponent({
                         ? 'text-orange-600 bg-orange-100'
                         : 'text-yellow-600 bg-yellow-100'
                   }`}
-                  title={'priceTable.anomalyTooltip'}
+                  title="Price anomaly detected"
                 >
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
@@ -265,7 +265,7 @@ function PriceTableComponent({
                       d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
                     />
                   </svg>
-                  {'priceTable.anomaly'}
+                  Anomaly
                 </span>
               )}
             </div>
@@ -274,7 +274,7 @@ function PriceTableComponent({
       },
       {
         key: 'price',
-        header: 'crossOracle.price',
+        header: 'Price',
         width: 140,
         minWidth: 120,
         align: 'right',
@@ -307,7 +307,7 @@ function PriceTableComponent({
     if (validPrices.length > 1 && avgPrice > 0) {
       baseColumns.push({
         key: 'deviation',
-        header: 'crossOracle.deviation',
+        header: 'Deviation',
         width: 140,
         minWidth: 120,
         align: 'right',
@@ -339,7 +339,7 @@ function PriceTableComponent({
     // 更新时间列 - 带新鲜度指示
     baseColumns.push({
       key: 'freshness',
-      header: 'crossOracle.freshness',
+      header: 'Freshness',
       width: 140,
       minWidth: 120,
       align: 'right',
@@ -360,7 +360,7 @@ function PriceTableComponent({
     // 操作列 - 展开详情
     baseColumns.push({
       key: 'action',
-      header: 'crossOracle.action',
+      header: 'Action',
       width: 80,
       minWidth: 60,
       align: 'center',
@@ -374,7 +374,7 @@ function PriceTableComponent({
               handleRowClick(row, row.originalIndex);
             }}
             className={`p-1 rounded hover:bg-gray-100 transition-colors ${bgClass}`}
-            title={isExpanded ? 'priceTable.collapseDetails' : 'priceTable.expandDetails'}
+            title={isExpanded ? 'Collapse details' : 'Expand details'}
           >
             <svg
               className={`w-4 h-4 text-gray-500 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
@@ -409,15 +409,15 @@ function PriceTableComponent({
   const getAnomalyReason = (row: PriceTableRow): string => {
     const reasons: string[] = [];
     if (row.deviation && Math.abs(row.deviation) > 1) {
-      reasons.push('priceTable.deviationTooLarge');
+      reasons.push('Large deviation');
     }
     if (row.freshnessSeconds > 60) {
-      reasons.push('priceTable.dataDelay');
+      reasons.push('Data delay');
     }
     if (row.isOutlier) {
-      reasons.push('priceTable.outlier');
+      reasons.push('Outlier');
     }
-    return reasons.length > 0 ? reasons.join('、') : 'priceTable.unknownReason';
+    return reasons.length > 0 ? reasons.join(', ') : 'Unknown reason';
   };
 
   // 简化后的展开行详情
@@ -427,15 +427,13 @@ function PriceTableComponent({
 
     return (
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm py-3 px-2">
-        {/* 原始价格数据 */}
         <div className="bg-white p-3 rounded-lg border border-gray-100">
-          <span className="text-gray-500 block text-xs mb-1">{'priceTable.rawPrice'}</span>
+          <span className="text-gray-500 block text-xs mb-1">Raw Price</span>
           <span className="font-mono text-gray-900 text-lg">{formatPrice(row.price)}</span>
         </div>
 
-        {/* 与均价的差值 */}
         <div className="bg-white p-3 rounded-lg border border-gray-100">
-          <span className="text-gray-500 block text-xs mb-1">{'priceTable.priceDiff'}</span>
+          <span className="text-gray-500 block text-xs mb-1">Price Diff</span>
           <div className="flex flex-col">
             <span
               className={`font-mono text-lg ${
@@ -453,9 +451,8 @@ function PriceTableComponent({
           </div>
         </div>
 
-        {/* 数据延迟时间 */}
         <div className="bg-white p-3 rounded-lg border border-gray-100">
-          <span className="text-gray-500 block text-xs mb-1">{'priceTable.dataDelay'}</span>
+          <span className="text-gray-500 block text-xs mb-1">Data Delay</span>
           <span
             className={`font-medium ${
               row.freshnessSeconds < 30
@@ -469,9 +466,8 @@ function PriceTableComponent({
           </span>
         </div>
 
-        {/* 状态/异常原因 */}
         <div className="bg-white p-3 rounded-lg border border-gray-100">
-          <span className="text-gray-500 block text-xs mb-1">{'priceTable.status'}</span>
+          <span className="text-gray-500 block text-xs mb-1">Status</span>
           {row.isAnomaly ? (
             <div>
               <span
@@ -491,10 +487,10 @@ function PriceTableComponent({
                     d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
                   />
                 </svg>
-                {'priceTable.anomaly'}
+                Anomaly
               </span>
               <p className="text-xs text-gray-500 mt-1">
-                {'priceTable.possibleReasons'}: {getAnomalyReason(row)}
+                Possible reasons: {getAnomalyReason(row)}
               </p>
             </div>
           ) : (
@@ -507,7 +503,7 @@ function PriceTableComponent({
                   d="M5 13l4 4L19 7"
                 />
               </svg>
-              {'priceTable.normal'}
+              Normal
             </span>
           )}
         </div>
@@ -526,11 +522,11 @@ function PriceTableComponent({
         </div>
         <div className="space-y-1.5 text-sm">
           <div className="flex justify-between">
-            <span className="text-gray-500">{'crossOracle.price'}</span>
+            <span className="text-gray-500">Price</span>
             <span className="font-mono text-gray-900">{formatPrice(row.price)}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-500">{'crossOracle.deviation'}</span>
+            <span className="text-gray-500">Deviation</span>
             <span
               className={`font-medium ${
                 deviation !== null && Math.abs(deviation) < 0.1
@@ -546,12 +542,12 @@ function PriceTableComponent({
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-500">{'crossOracle.freshness'}</span>
+            <span className="text-gray-500">Freshness</span>
             <span className="text-gray-900">{row.freshness}</span>
           </div>
           {row.isAnomaly && (
             <div className="pt-1 mt-1 border-t border-gray-100">
-              <span className="text-xs text-red-500">⚠️ {'priceTable.priceAnomaly'}</span>
+              <span className="text-xs text-red-500">⚠️ Price Anomaly</span>
             </div>
           )}
         </div>
@@ -569,7 +565,7 @@ function PriceTableComponent({
         loading={isLoading}
         onSort={handleSort}
         onRowClick={handleRowClick}
-        emptyText={'crossOracle.noData'}
+        emptyText="No data available"
         className="rounded-lg"
       />
 

@@ -45,7 +45,7 @@ const credibilityConfig: Record<
     color: 'text-success-600',
     bgColor: 'bg-success-50',
     borderColor: 'border-green-200',
-    labelKey: 'dataTransparency.credibility.high',
+    labelKey: 'High',
     label: 'High',
   },
   medium: {
@@ -53,7 +53,7 @@ const credibilityConfig: Record<
     color: 'text-primary-600',
     bgColor: 'bg-primary-50',
     borderColor: 'border-primary-200',
-    labelKey: 'dataTransparency.credibility.medium',
+    labelKey: 'Medium',
     label: 'Medium',
   },
   low: {
@@ -61,7 +61,7 @@ const credibilityConfig: Record<
     color: 'text-amber-600',
     bgColor: 'bg-amber-50',
     borderColor: 'border-amber-200',
-    labelKey: 'dataTransparency.credibility.low',
+    labelKey: 'Low',
     label: 'Low',
   },
   unverified: {
@@ -69,7 +69,7 @@ const credibilityConfig: Record<
     color: 'text-gray-500',
     bgColor: 'bg-gray-50',
     borderColor: 'border-gray-200',
-    labelKey: 'dataTransparency.credibility.unverified',
+    labelKey: 'Unverified',
     label: 'Unverified',
   },
 };
@@ -84,6 +84,7 @@ const providerDisplayNames: Record<OracleProvider, string> = {
   [OracleProvider.SUPRA]: 'Supra',
   [OracleProvider.TWAP]: 'TWAP',
   [OracleProvider.REFLECTOR]: 'Reflector',
+  [OracleProvider.FLARE]: 'Flare',
 };
 
 const sizeConfig = {
@@ -202,21 +203,17 @@ export function DataSourceIndicator({
             </div>
 
             {showChain && source.chain && (
-              <p className="text-xs text-gray-500 mt-0.5">
-                {'dataTransparency.chain'}: {source.chain}
-              </p>
+              <p className="text-xs text-gray-500 mt-0.5">Chain: {source.chain}</p>
             )}
 
             {source.source && (
-              <p className="text-xs text-gray-500 mt-0.5 truncate">
-                {'dataTransparency.source'}: {source.source}
-              </p>
+              <p className="text-xs text-gray-500 mt-0.5 truncate">Source: {source.source}</p>
             )}
 
             {showConfidence && (
               <div className="mt-2">
                 <div className="flex items-center justify-between text-xs mb-1">
-                  <span className="text-gray-600">{'dataTransparency.confidence'}</span>
+                  <span className="text-gray-600">Confidence</span>
                   <span className="font-medium text-gray-900">{confidencePercent}%</span>
                 </div>
                 <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
@@ -245,7 +242,7 @@ export function DataSourceIndicator({
                   className="inline-flex items-center gap-1 text-xs text-primary-600 hover:text-primary-700"
                 >
                   <Info size={12} />
-                  {'dataTransparency.viewProof'}
+                  View Proof
                 </a>
               </div>
             )}
@@ -294,9 +291,7 @@ export function DataSourceIndicator({
         {/* Tooltip */}
         {showTooltip && showConfidence && (
           <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg whitespace-nowrap z-50">
-            <div className="font-medium">
-              {'dataTransparency.confidence'}: {confidencePercent}%
-            </div>
+            <div className="font-medium">Confidence: {confidencePercent}%</div>
             {source.chain && <div className="text-gray-300">{source.chain}</div>}
             <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
           </div>

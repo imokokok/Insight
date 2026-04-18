@@ -540,9 +540,7 @@ export function InteractivePriceChart({
       />
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
-        <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">
-          {'crossChain.priceChart'}
-        </h3>
+        <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">Price Chart</h3>
 
         {/* Control Buttons */}
         <div className="flex items-center gap-2 flex-wrap">
@@ -551,7 +549,7 @@ export function InteractivePriceChart({
             <button
               onClick={handleZoomIn}
               className="p-1.5 bg-white hover:bg-gray-50 border border-gray-300 rounded transition-all duration-200 hover:border-gray-400"
-              title={'crossChain.zoomIn'}
+              title="Zoom In"
             >
               <svg
                 className="w-4 h-4 text-gray-600"
@@ -570,7 +568,7 @@ export function InteractivePriceChart({
             <button
               onClick={handleZoomOut}
               className="p-1.5 bg-white hover:bg-gray-50 border border-gray-300 rounded transition-all duration-200 hover:border-gray-400"
-              title={'crossChain.zoomOut'}
+              title="Zoom Out"
             >
               <svg
                 className="w-4 h-4 text-gray-600"
@@ -589,7 +587,7 @@ export function InteractivePriceChart({
             <button
               onClick={handleResetZoom}
               className="p-1.5 bg-white hover:bg-gray-50 border border-gray-300 rounded transition-all duration-200 hover:border-gray-400"
-              title={'crossChain.resetZoom'}
+              title="Reset Zoom"
             >
               <svg
                 className="w-4 h-4 text-gray-600"
@@ -612,7 +610,7 @@ export function InteractivePriceChart({
             <button
               onClick={handlePanLeft}
               className="p-1.5 bg-white hover:bg-gray-50 border border-gray-300 rounded transition-all duration-200 hover:border-gray-400"
-              title={'crossChain.panLeft'}
+              title="Pan Left"
             >
               <svg
                 className="w-4 h-4 text-gray-600"
@@ -631,7 +629,7 @@ export function InteractivePriceChart({
             <button
               onClick={handlePanRight}
               className="p-1.5 bg-white hover:bg-gray-50 border border-gray-300 rounded transition-all duration-200 hover:border-gray-400"
-              title={'crossChain.panRight'}
+              title="Pan Right"
             >
               <svg
                 className="w-4 h-4 text-gray-600"
@@ -655,26 +653,26 @@ export function InteractivePriceChart({
               onClick={() => addReferenceLine('current')}
               className="px-2 py-1.5 text-xs bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 rounded transition-all duration-200"
             >
-              {'crossChain.currentPrice'}
+              Current Price
             </button>
             <button
               onClick={() => addReferenceLine('avg')}
               className="px-2 py-1.5 text-xs bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 rounded transition-all duration-200"
             >
-              {'crossChain.averagePrice'}
+              Average Price
             </button>
             <button
               onClick={() => addReferenceLine('median')}
               className="px-2 py-1.5 text-xs bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 rounded transition-all duration-200"
             >
-              {'crossChain.medianPrice'}
+              Median Price
             </button>
             {referenceLines.length > 0 && (
               <button
                 onClick={clearAllReferenceLines}
                 className="px-2 py-1.5 text-xs bg-red-50 text-red-700 hover:bg-red-100 border border-red-200 rounded transition-all duration-200"
               >
-                {'crossChain.clearAll'}
+                Clear All
               </button>
             )}
           </div>
@@ -689,7 +687,7 @@ export function InteractivePriceChart({
       {/* Reference Lines List */}
       {referenceLines.length > 0 && (
         <div className="flex items-center gap-2 mb-2 flex-wrap">
-          <span className="text-xs text-gray-500">{'crossChain.referenceLines'}:</span>
+          <span className="text-xs text-gray-500">Reference Lines:</span>
           {referenceLines.map((line) => (
             <div
               key={line.id}
@@ -718,7 +716,7 @@ export function InteractivePriceChart({
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
         role="img"
-        aria-label={'crossChain.priceChart'}
+        aria-label="Price Chart"
         tabIndex={0}
         onKeyDown={(e) => {
           if (e.key === 'ArrowLeft') {
@@ -735,8 +733,7 @@ export function InteractivePriceChart({
         }}
       >
         <div className="sr-only">
-          {'crossChain.priceChart'} - {'crossChain.shortcuts'}: Arrow keys to pan, +/- to zoom, Home
-          to reset
+          Price Chart - Shortcuts: Arrow keys to pan, +/- to zoom, Home to reset
         </div>
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={visibleData} margin={{ top: 10, right: 30, left: 10, bottom: 10 }}>

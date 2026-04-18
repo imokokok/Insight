@@ -55,84 +55,84 @@ export function OverviewTab({ data }: OverviewTabProps) {
 
   const statsData: ChainStats[] = [
     {
-      label: 'crossChain.averagePrice',
+      label: 'Average Price',
       value: avgPrice > 0 ? formatPrice(avgPrice) : '-',
       trend: calculateChangePercent(avgPrice, prevStats?.avgPrice || 0),
-      tooltip: 'crossChain.tooltip.averagePrice',
+      tooltip: 'Average price across all chains',
     },
     {
-      label: 'crossChain.medianPrice',
+      label: 'Median Price',
       value: medianPrice > 0 ? formatPrice(medianPrice) : '-',
       trend: null,
-      tooltip: 'crossChain.tooltip.medianPrice',
+      tooltip: 'Median price across all chains',
     },
     {
-      label: 'crossChain.highestPrice',
+      label: 'Highest Price',
       value: maxPrice > 0 ? formatPrice(maxPrice) : '-',
       trend: calculateChangePercent(maxPrice, prevStats?.maxPrice || 0),
       subValue: minPrice > 0 ? `Min: ${formatPrice(minPrice)}` : null,
-      tooltip: 'crossChain.tooltip.highestPrice',
+      tooltip: 'Highest and lowest prices',
     },
     {
-      label: 'crossChain.priceRange',
+      label: 'Price Range',
       value: priceRange > 0 ? formatPrice(priceRange) : '-',
       trend: calculateChangePercent(priceRange, prevStats?.priceRange || 0),
-      tooltip: 'crossChain.tooltip.priceRange',
+      tooltip: 'Difference between highest and lowest price',
     },
     {
-      label: 'crossChain.standardDeviation',
+      label: 'Standard Deviation',
       value: standardDeviation > 0 ? `${standardDeviationPercent.toFixed(4)}%` : '-',
       trend: calculateChangePercent(
         standardDeviationPercent,
         prevStats?.standardDeviationPercent || 0
       ),
       subValue: standardDeviation > 0 ? formatPrice(standardDeviation) : null,
-      tooltip: 'crossChain.tooltip.standardDeviation',
+      tooltip: 'Measure of price variation',
     },
     {
-      label: 'crossChain.dataPoints',
+      label: 'Data Points',
       value: totalDataPoints.toString(),
       trend: null,
-      tooltip: 'crossChain.tooltip.dataPoints',
+      tooltip: 'Total number of data points',
     },
     {
-      label: 'crossChain.iqr',
+      label: 'IQR',
       value: iqrValue > 0 ? formatPrice(iqrValue) : '-',
       trend: null,
-      tooltip: 'crossChain.tooltip.iqr',
+      tooltip: 'Interquartile range',
     },
     {
-      label: 'crossChain.skewness',
+      label: 'Skewness',
       value: skewness !== 0 ? skewness.toFixed(4) : '-',
       trend: null,
-      tooltip: 'crossChain.tooltip.skewness',
+      tooltip: 'Measure of asymmetry in price distribution',
     },
     {
-      label: 'crossChain.kurtosis',
+      label: 'Kurtosis',
       value: kurtosis !== 0 ? kurtosis.toFixed(4) : '-',
       trend: null,
-      tooltip: 'crossChain.tooltip.kurtosis',
+      tooltip: 'Measure of tailedness in price distribution',
     },
     {
-      label: 'crossChain.confidenceInterval95',
+      label: '95% Confidence Interval',
       value:
         confidenceInterval95.lower > 0
           ? `${formatPrice(confidenceInterval95.lower)} - ${formatPrice(confidenceInterval95.upper)}`
           : '-',
       trend: null,
-      tooltip: 'crossChain.tooltip.confidenceInterval95',
+      tooltip: '95% confidence interval for the mean',
     },
     {
-      label: 'crossChain.coefficientOfVariation',
+      label: 'Coefficient of Variation',
       value: coefficientOfVariation > 0 ? `${(coefficientOfVariation * 100).toFixed(4)}%` : '-',
       trend: null,
-      tooltip: 'crossChain.tooltip.coefficientOfVariation',
+      tooltip: 'Relative measure of dispersion',
     },
     {
-      label: 'crossChain.consistencyRating',
+      label: 'Consistency Rating',
       value: standardDeviationPercent > 0 ? getConsistencyRating(standardDeviationPercent) : '-',
       trend: null,
-      tooltip: 'crossChain.tooltip.consistencyRating',
+      tooltip: 'Overall consistency rating',
     },
   ];
 
@@ -179,7 +179,7 @@ export function OverviewTab({ data }: OverviewTabProps) {
         style={{ borderColor: baseColors.gray[100] }}
       >
         <h3 className="text-sm font-semibold mb-3" style={{ color: baseColors.gray[900] }}>
-          {'crossChain.stabilityAnalysis'}
+          Stability Analysis
         </h3>
         <div className="overflow-x-auto">
           <table className="w-full text-left">
@@ -189,31 +189,31 @@ export function OverviewTab({ data }: OverviewTabProps) {
                   className="px-3 py-2.5 text-xs font-medium"
                   style={{ color: baseColors.gray[500] }}
                 >
-                  {'crossChain.blockchain'}
+                  Blockchain
                 </th>
                 <th
                   className="px-3 py-2.5 text-xs font-medium"
                   style={{ color: baseColors.gray[500] }}
                 >
-                  {'crossChain.dataIntegrity'}
+                  Data Integrity
                 </th>
                 <th
                   className="px-3 py-2.5 text-xs font-medium"
                   style={{ color: baseColors.gray[500] }}
                 >
-                  {'crossChain.absolutePriceDiff'}
+                  Absolute Price Diff
                 </th>
                 <th
                   className="px-3 py-2.5 text-xs font-medium"
                   style={{ color: baseColors.gray[500] }}
                 >
-                  {'crossChain.priceJumpFrequency'}
+                  Price Jump Frequency
                 </th>
                 <th
                   className="px-3 py-2.5 text-xs font-medium text-right"
                   style={{ color: baseColors.gray[500] }}
                 >
-                  {'crossChain.stabilityRating'}
+                  Stability Rating
                 </th>
               </tr>
             </thead>
