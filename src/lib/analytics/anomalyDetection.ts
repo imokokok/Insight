@@ -75,7 +75,7 @@ interface TrendResult {
 
 /**
  * calculateStandard deviation detection
- * useimprove Z-Score method， MAD (Median Absolute Deviation) 
+ * useimprove Z-Score method， MAD (Median Absolute Deviation)
  * : Iglewicz & Hoaglin (1993) - useafter Z-Score anomaly
  *
  * @param data array
@@ -93,13 +93,13 @@ export function calculateStdDevDetection(data: number[], threshold: number = 2.5
     const variance = data.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / data.length;
     const stdDev = Math.sqrt(variance);
 
- // calculatemedianand MAD (Median Absolute Deviation) use
+    // calculatemedianand MAD (Median Absolute Deviation) use
     const sortedData = [...data].sort((a, b) => a - b);
     const median = sortedData[Math.floor(sortedData.length / 2)];
     const mad =
       sortedData.reduce((sum, val) => sum + Math.abs(val - median), 0) / sortedData.length;
 
- // handle stdDev as 0 ，use MAD as
+    // handle stdDev as 0 ，use MAD as
     const effectiveStdDev = stdDev === 0 ? mad * 1.4826 : stdDev; // 1.4826 is MAD tostandard deviationconvert
 
     if (effectiveStdDev === 0) {
@@ -112,21 +112,21 @@ export function calculateStdDevDetection(data: number[], threshold: number = 2.5
       };
     }
 
- // usedynamicthreshold：sampleusethreshold
+    // usedynamicthreshold：sampleusethreshold
     const adjustedThreshold = data.length < 30 ? threshold * 1.2 : threshold;
 
- // calculateondown
+    // calculateondown
     const upperBound = mean + adjustedThreshold * effectiveStdDev;
     const lowerBound = mean - adjustedThreshold * effectiveStdDev;
 
- // anomaly - useimprove Z-Score
+    // anomaly - useimprove Z-Score
     const anomalies = data
       .map((value, index) => {
- // useafter Z-Score: 0.6745 * (x - median) / MAD
+        // useafter Z-Score: 0.6745 * (x - median) / MAD
         const modifiedZScore = (0.6745 * (value - median)) / (mad || effectiveStdDev);
         const deviation = Math.abs(value - mean) / effectiveStdDev;
 
- // anomaly： Z-Score orimprove Z-Score threshold
+        // anomaly： Z-Score orimprove Z-Score threshold
         if (deviation > adjustedThreshold || Math.abs(modifiedZScore) > 3.5) {
           return {
             index,
@@ -166,9 +166,9 @@ export function calculateStdDevDetection(data: number[], threshold: number = 2.5
 }
 
 /**
- * 
+ *
  * uselogarithmicand GARCH clustering
- * : Bollinger Bands + 
+ * : Bollinger Bands +
  *
  * @param prices history
  * @param timestamps timearray
@@ -187,7 +187,7 @@ export function detectPriceAnomalies(
 
     const anomalies: AnomalyData[] = [];
 
- // calculatelogarithmic (calculate)
+    // calculatelogarithmic (calculate)
     const logReturns: number[] = [];
     for (let i = 1; i < prices.length; i++) {
       if (prices[i] > 0 && prices[i - 1] > 0) {
@@ -198,14 +198,14 @@ export function detectPriceAnomalies(
 
     if (logReturns.length < 10) return [];
 
- // usescrollcalculatedynamic (EWMA - exponential)
+    // usescrollcalculatedynamic (EWMA - exponential)
     const lambda = 0.94; // RiskMetrics standardparameter
     const window = Math.min(20, Math.floor(logReturns.length / 2));
 
     for (let i = window; i < logReturns.length; i++) {
       const windowReturns = logReturns.slice(i - window, i);
 
- // calculate EWMA 
+      // calculate EWMA
       let ewmaVar = 0;
       let weightSum = 0;
       for (let j = 0; j < windowReturns.length; j++) {
@@ -215,18 +215,18 @@ export function detectPriceAnomalies(
       }
       const ewmaVol = Math.sqrt(ewmaVar / weightSum);
 
- // calculatecurrent Z-Score
+      // calculatecurrent Z-Score
       const currentReturn = logReturns[i];
       const windowMean = windowReturns.reduce((a, b) => a + b, 0) / windowReturns.length;
       const zScore = ewmaVol > 0 ? (currentReturn - windowMean) / ewmaVol : 0;
 
- // threshold
+      // threshold
       const absZScore = Math.abs(zScore);
       if (absZScore > 2) {
         const priceIndex = i + 1;
         const priceChange = currentReturn;
 
- // Anomaly typeandlevel
+        // Anomaly typeandlevel
         let type: AnomalyType;
         let level: AnomalyLevel;
 
@@ -236,14 +236,14 @@ export function detectPriceAnomalies(
           type = 'price_drop';
         }
 
- // Z-Score level
+        // Z-Score level
         if (absZScore > 4) level = 'critical';
         else if (absZScore > 3) level = 'high';
         else if (absZScore > 2.5) level = 'medium';
         else level = 'low';
 
- // checkisisanomaly () - O(1) O(n)
- // checkanomalyisin 1 minuteswithin
+        // checkisisanomaly () - O(1) O(n)
+        // checkanomalyisin 1 minuteswithin
         const lastAnomaly = anomalies[anomalies.length - 1];
         const isDuplicate =
           lastAnomaly && Math.abs(lastAnomaly.timestamp - timestamps[priceIndex]) < 60000;
@@ -300,7 +300,7 @@ export function detectTrendBreak(
       };
     }
 
- // calculatelogarithmic
+    // calculatelogarithmic
     const returns: number[] = [];
     for (let i = 1; i < data.length; i++) {
       // Add division by zero check
@@ -318,7 +318,7 @@ export function detectTrendBreak(
     let posSum = 0;
     let negSum = 0;
     const k = 0.5 * stdDev; // value
-    const h = threshold * stdDev; // 
+    const h = threshold * stdDev; //
 
     let changePoint: number | undefined;
     const anomalies: AnomalyData[] = [];
@@ -332,10 +332,10 @@ export function detectTrendBreak(
       if (posSum > h || negSum > h) {
         changePoint = i + 1;
 
- // to
+        // to
         const direction = posSum > h ? 'up' : 'down';
 
- // calculate
+        // calculate
         const recentData = data.slice(Math.max(0, changePoint - 10), changePoint + 10);
         const trendSlope = calculateTrendSlope(recentData);
         const strength = Math.min(Math.abs(trendSlope) * 100, 100);
@@ -354,14 +354,14 @@ export function detectTrendBreak(
           acknowledged: false,
         });
 
- // usenotisreset，avoid
- // 0.5 to
+        // usenotisreset，avoid
+        // 0.5 to
         posSum *= 0.5;
         negSum *= 0.5;
       }
     }
 
- // calculate
+    // calculate
     const recentReturns = returns.slice(-20);
     const recentMean = recentReturns.reduce((sum, r) => sum + r, 0) / recentReturns.length;
 
@@ -417,7 +417,7 @@ function calculateTrendSlope(data: number[]): number {
 function inferDataIntervalMinutes(timestamps: number[]): number {
   if (timestamps.length < 2) return 5; // default5 minutes
 
- // calculatetime
+  // calculatetime
   let totalInterval = 0;
   let count = 0;
   for (let i = 1; i < Math.min(timestamps.length, 100); i++) {
@@ -430,7 +430,7 @@ function inferDataIntervalMinutes(timestamps: number[]): number {
 
   const avgInterval = count > 0 ? totalInterval / count : 5;
 
- // to：1, 5, 15, 30, 60, 240, 1440 minutes
+  // to：1, 5, 15, 30, 60, 240, 1440 minutes
   const commonIntervals = [1, 5, 15, 30, 60, 240, 1440];
   const closest = commonIntervals.reduce((prev, curr) =>
     Math.abs(curr - avgInterval) < Math.abs(prev - avgInterval) ? curr : prev
@@ -469,29 +469,29 @@ export function detectVolatilityAnomalies(
       return [];
     }
 
- // fromtime，dynamiccalculate
+    // fromtime，dynamiccalculate
     const dataIntervalMinutes = inferDataIntervalMinutes(timestamps);
     const annualizationFactor = getAnnualizationFactor(dataIntervalMinutes);
 
- // calculate Parkinson (use High-Low rangeestimate)
+    // calculate Parkinson (use High-Low rangeestimate)
     const parkinsonVol: number[] = [];
 
     for (let i = window; i < prices.length; i++) {
       const windowPrices = prices.slice(i - window, i);
 
- // calculaterange
+      // calculaterange
       const highs: number[] = [];
       const lows: number[] = [];
 
       for (let j = 1; j < windowPrices.length; j++) {
         const prevPrice = windowPrices[j - 1];
         const currPrice = windowPrices[j];
- // usebeforeafterasestimate
+        // usebeforeafterasestimate
         highs.push(Math.max(prevPrice, currPrice));
         lows.push(Math.min(prevPrice, currPrice));
       }
 
- // Parkinson : σ² = (1/4Nln2) * Σ[ln(Hi/Li)]²
+      // Parkinson : σ² = (1/4Nln2) * Σ[ln(Hi/Li)]²
       let sumSquaredLogRange = 0;
       for (let j = 0; j < highs.length; j++) {
         if (lows[j] > 0) {
@@ -502,14 +502,14 @@ export function detectVolatilityAnomalies(
 
       const n = highs.length;
       const parkinsonVariance = sumSquaredLogRange / (4 * n * Math.log(2));
- // usedynamiccalculate， 5 minuteshypothesis
+      // usedynamiccalculate， 5 minuteshypothesis
       const annualizedVol = Math.sqrt(parkinsonVariance) * annualizationFactor * 100;
       parkinsonVol.push(annualizedVol);
     }
 
     if (parkinsonVol.length < 10) return [];
 
- // use GARCH(1,1) prediction
+    // use GARCH(1,1) prediction
     const omega = 0.000001;
     const alpha = 0.1;
     const beta = 0.85;
@@ -529,7 +529,7 @@ export function detectVolatilityAnomalies(
       lastVar = predictedVar;
     }
 
- // andprediction
+    // andprediction
     const anomalies: AnomalyData[] = [];
 
     for (let i = window; i < parkinsonVol.length; i++) {
@@ -548,7 +548,7 @@ export function detectVolatilityAnomalies(
           else if (volRatio > 1.5 || volRatio < 0.67) level = 'medium';
           else level = 'low';
 
- // check - O(1) O(n)，checkanomalyisin 5 minuteswithin
+          // check - O(1) O(n)，checkanomalyisin 5 minuteswithin
           const lastAnomaly = anomalies[anomalies.length - 1];
           const isDuplicate =
             lastAnomaly && Math.abs(lastAnomaly.timestamp - timestamps[priceIndex]) < 300000;
@@ -636,7 +636,7 @@ export function detectVolumeAnomalies(volumes: number[], timestamps: number[]): 
 /**
  * anomaly
  *
- * @param data 
+ * @param data
  * @returns alltoanomaly
  */
 export function detectAllAnomalies(data: {
@@ -650,7 +650,7 @@ export function detectAllAnomalies(data: {
 
     const allAnomalies: AnomalyData[] = [];
 
- // anomaly
+    // anomaly
     const priceAnomalies = detectPriceAnomalies(prices, timestamps, asset);
     allAnomalies.push(...priceAnomalies);
 
@@ -658,17 +658,17 @@ export function detectAllAnomalies(data: {
     const { anomalies: trendAnomalies } = detectTrendBreak(prices, timestamps);
     allAnomalies.push(...trendAnomalies);
 
- // anomaly
+    // anomaly
     const volatilityAnomalies = detectVolatilityAnomalies(prices, timestamps);
     allAnomalies.push(...volatilityAnomalies);
 
- // Volumeanomaly
+    // Volumeanomaly
     if (volumes && volumes.length > 0) {
       const volumeAnomalies = detectVolumeAnomalies(volumes, timestamps);
       allAnomalies.push(...volumeAnomalies);
     }
 
- // bytimesort
+    // bytimesort
     allAnomalies.sort((a, b) => b.timestamp - a.timestamp);
 
     logger.info(`Total anomalies detected: ${allAnomalies.length}`);

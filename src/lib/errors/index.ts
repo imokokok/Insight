@@ -22,20 +22,20 @@ export {
   // validateerror
   ValidationError,
 
- // error
+  // error
   NotFoundError,
 
   // authentication/authorizationerror
   AuthenticationError,
   AuthorizationError,
 
- // error
+  // error
   RateLimitError,
 
   // internalerror
   InternalError,
 
- // error
+  // error
   NetworkError,
 
   // externalserviceerror

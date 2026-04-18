@@ -95,18 +95,18 @@ export function calculateHHI(marketShares: number[]): HHIResult {
       throw new Error('Market shares array is empty');
     }
 
- // willconvertascalculateand
+    // willconvertascalculateand
     const hhi =
       marketShares.reduce((sum, share) => {
         const decimalShare = share / 100;
         return sum + Math.pow(decimalShare, 2);
       }, 0) * 10000;
 
- // calculate CR4 (before4concentration)
+    // calculate CR4 (before4concentration)
     const sortedShares = [...marketShares].sort((a, b) => b - a);
     const cr4 = sortedShares.slice(0, 4).reduce((sum, share) => sum + share, 0);
 
- // Risk level
+    // Risk level
     let level: RiskLevel;
     let description: string;
 
@@ -149,7 +149,7 @@ export function calculateHHI(marketShares: number[]): HHIResult {
 /**
  * fromcalculate HHI
  *
- * @param oracleData 
+ * @param oracleData
  * @returns HHI calculateresult
  */
 export function calculateHHIFromOracles(oracleData: OracleMarketData[]): HHIResult {
@@ -177,7 +177,7 @@ export function calculateDiversificationScore(params: {
     const { chainCount, totalChains, protocolCount, totalProtocols, assetCount, totalAssets } =
       params;
 
- // calculate (0-100)
+    // calculate (0-100)
     const chainDiversity = Math.min((chainCount / Math.max(totalChains * 0.5, 1)) * 100, 100);
     const protocolDiversity = Math.min(
       (protocolCount / Math.max(totalProtocols * 0.3, 1)) * 100,
@@ -185,10 +185,10 @@ export function calculateDiversificationScore(params: {
     );
     const assetDiversity = Math.min((assetCount / Math.max(totalAssets * 0.5, 1)) * 100, 100);
 
- // 
+    //
     const score = Math.round(chainDiversity * 0.3 + protocolDiversity * 0.4 + assetDiversity * 0.3);
 
- // Risk level ()
+    // Risk level ()
     let level: RiskLevel;
     let description: string;
 
@@ -252,7 +252,7 @@ export function calculateVolatilityIndex(priceHistory: number[]): VolatilityResu
       throw new Error('Insufficient price history data');
     }
 
- // calculatelogarithmic
+    // calculatelogarithmic
     const returns: number[] = [];
     for (let i = 1; i < priceHistory.length; i++) {
       // Add division by zero check
@@ -266,23 +266,23 @@ export function calculateVolatilityIndex(priceHistory: number[]): VolatilityResu
       throw new Error('Unable to calculate returns from price history');
     }
 
- // calculate
+    // calculate
     const avgReturn = returns.reduce((sum, r) => sum + r, 0) / returns.length;
 
     // calculatevariance
     const variance =
       returns.reduce((sum, r) => sum + Math.pow(r - avgReturn, 2), 0) / returns.length;
 
- // (standard deviation)
+    // (standard deviation)
     const dailyVolatility = Math.sqrt(variance);
 
- // (hypothesis 365 days)
+    // (hypothesis 365 days)
     const annualizedVolatility = dailyVolatility * Math.sqrt(365);
 
     // convertasexponential (0-100)
     const index = Math.min(Math.round(annualizedVolatility * 100), 100);
 
- // Risk level
+    // Risk level
     let level: RiskLevel;
     let description: string;
 
@@ -346,14 +346,14 @@ export function calculateCorrelationRisk(
     let pairCount = 0;
     const highCorrelationPairs: string[] = [];
 
- // calculatecorrelation coefficient (calculateon)
+    // calculatecorrelation coefficient (calculateon)
     for (let i = 0; i < n; i++) {
       for (let j = i + 1; j < n; j++) {
         const corr = Math.abs(correlationMatrix[i][j]);
         totalCorrelation += corr;
         pairCount++;
 
- // recordcorrelationfor (>0.8)
+        // recordcorrelationfor (>0.8)
         if (corr > 0.8) {
           highCorrelationPairs.push(
             `${oracleNames[i]} - ${oracleNames[j]} (${(corr * 100).toFixed(1)}%)`
@@ -364,10 +364,10 @@ export function calculateCorrelationRisk(
 
     const avgCorrelation = pairCount > 0 ? totalCorrelation / pairCount : 0;
 
- // convertasScore (0-100)，correlation
+    // convertasScore (0-100)，correlation
     const score = Math.round(avgCorrelation * 100);
 
- // Risk level
+    // Risk level
     let level: RiskLevel;
     let description: string;
 
@@ -412,7 +412,7 @@ export function calculateCorrelationRisk(
 /**
  * calculatecomprehensive risk metrics
  *
- * @param oracleData 
+ * @param oracleData
  * @param priceHistory history
  * @param correlationMatrix correlation coefficient
  * @returns comprehensive risk metrics
@@ -434,19 +434,19 @@ export function calculateRiskMetrics(
       totalChains: totalChains * oracleData.length,
       protocolCount: totalProtocols,
       totalProtocols: totalProtocols * 2, // hypothesishave
-      assetCount: oracleData.length * 10, // 
+      assetCount: oracleData.length * 10, //
       totalAssets: 100, // hypothesis
     });
 
- // calculate
+    // calculate
     const volatility = calculateVolatilityIndex(priceHistory);
 
- // calculatecorrelation
+    // calculatecorrelation
     const oracleNames = oracleData.map((o) => o.name);
     const correlationRisk = calculateCorrelationRisk(correlationMatrix, oracleNames);
 
- // calculaterisk score ()
- // HHI weight 30%，diversification 25%， 25%，correlation 20%
+    // calculaterisk score ()
+    // HHI weight 30%，diversification 25%， 25%，correlation 20%
     const weights = {
       hhi: 0.3,
       diversification: 0.25,
@@ -454,9 +454,9 @@ export function calculateRiskMetrics(
       correlation: 0.2,
     };
 
- // standardizationmetricto 0-100
- // HHI rangeis 0-10000，with 100 to 0-100 
- // HHI ，withuse hhi.value / 100
+    // standardizationmetricto 0-100
+    // HHI rangeis 0-10000，with 100 to 0-100
+    // HHI ，withuse hhi.value / 100
     const hhiScore = Math.min((hhi.value / 10000) * 100, 100); // HHI standardizationto 0-100
     const divScore = 100 - diversification.score; // diversification
     const volScore = volatility.index;
@@ -469,7 +469,7 @@ export function calculateRiskMetrics(
         corrScore * weights.correlation
     );
 
- // Risk level
+    // Risk level
     let overallLevel: RiskLevel;
     if (overallScore < 30) {
       overallLevel = 'low';
