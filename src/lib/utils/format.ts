@@ -46,7 +46,7 @@ export function formatCurrency(value: number, compact: boolean = false): string 
 }
 
 /**
- * Formats a number with locale-specific separators
+ * Formats a number with separators
  * @param value - The numeric value to format
  * @param compact - Whether to use compact notation (e.g., 1.2M)
  * @returns Formatted number string

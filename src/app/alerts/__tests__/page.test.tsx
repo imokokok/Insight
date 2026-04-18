@@ -6,7 +6,7 @@ import AlertsPage from '../page';
 
 jest.mock('next/navigation', () => ({
   useRouter: jest.fn(),
-  usePathname: jest.fn(() => '/en/alerts'),
+  usePathname: jest.fn(() => '/alerts'),
 }));
 
 jest.mock('@/hooks', () => ({
