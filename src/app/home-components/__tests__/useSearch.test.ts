@@ -97,7 +97,7 @@ describe('useSearch',  => {
  result.current.handleSearch('BTC');
  });
 
- expect(mockPush).toHaveBeenCalledWith('/en/price-query?symbol=BTC');
+ expect(mockPush).toHaveBeenCalledWith('/price-query?symbol=BTC');
  });
 
  it('handleSearch shouldspecification',  => {
@@ -107,7 +107,7 @@ describe('useSearch',  => {
  result.current.handleSearch('btc');
  });
 
- expect(mockPush).toHaveBeenCalledWith('/en/price-query?symbol=BTC');
+ expect(mockPush).toHaveBeenCalledWith('/price-query?symbol=BTC');
  });
 
  it('handleSearch useemptystringnotshouldnavigation',  => {
@@ -133,7 +133,7 @@ describe('useSearch',  => {
  result.current.handleSearch(searchResult);
  });
 
- expect(mockPush).toHaveBeenCalledWith('/en/price-query?symbol=ETH');
+ expect(mockPush).toHaveBeenCalledWith('/price-query?symbol=ETH');
  });
  });
 

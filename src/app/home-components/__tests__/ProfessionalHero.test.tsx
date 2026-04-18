@@ -16,9 +16,9 @@ jest.mock('next/navigation',  => ({
  forward: jest.fn,
  prefetch: jest.fn,
  }),
- usePathname:  => '/en',
+ usePathname:  => '/',
  useSearchParams:  => new URLSearchParams,
- useParams:  => ({ locale: 'en' }),
+ useParams:  => ({}),
 }));
 
 jest.mock('../HeroBackground',  => ({
@@ -181,7 +181,7 @@ describe('ProfessionalHero',  => {
  const searchButton = screen.getByTestId('search-button');
  fireEvent.click(searchButton);
 
- expect(mockPush).toHaveBeenCalledWith('/en/price-query?symbol=BTC');
+ expect(mockPush).toHaveBeenCalledWith('/price-query?symbol=BTC');
  });
  });
 
@@ -192,7 +192,7 @@ describe('ProfessionalHero',  => {
  const ethToken = screen.getByTestId('token-ETH');
  fireEvent.click(ethToken);
 
- expect(mockPush).toHaveBeenCalledWith('/en/price-query?symbol=ETH');
+ expect(mockPush).toHaveBeenCalledWith('/price-query?symbol=ETH');
  });
  });
 });

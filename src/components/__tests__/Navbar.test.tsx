@@ -18,9 +18,9 @@ jest.mock('next/navigation',  => ({
  forward: jest.fn,
  prefetch: jest.fn,
  }),
- usePathname:  => '/en',
+ usePathname:  => '/',
  useSearchParams:  => new URLSearchParams,
- useParams:  => ({ locale: 'en' }),
+ useParams:  => ({}),
 }));
 
 jest.mock('next/image',  => ({
@@ -124,12 +124,12 @@ jest.mock('../navigation',  => ({
  </div>
  ),
  navigationConfig: [
- { href: '/', label: 'navbar.home', icon:  => <span>Home Icon</span> },
+ { href: '/', label: 'Home', icon:  => <span>Home Icon</span> },
  {
  id: 'market',
- label: 'navbar.market',
+ label: 'Market',
  icon:  => <span>Market Icon</span>,
- items: [{ href: '/price-query', label: 'navbar.priceQuery' }],
+ items: [{ href: '/price-query', label: 'Price Query' }],
  },
  ],
 }));
@@ -296,7 +296,7 @@ describe('Navbar',  => {
  renderNavbar;
 
  const loginButton = screen.getByText('Text').closest('Text');
- expect(loginButton).toHaveAttribute('href', '/en/login');
+ expect(loginButton).toHaveAttribute('href', '/login');
  });
 
  it('registerbuttonshouldlinktoregisterpage',  => {
@@ -382,8 +382,8 @@ describe('Navbar',  => {
  it('shouldFavoritesandlink',  => {
  renderNavbar;
 
- const favoritesLink = screen.getByTitle('navbar.favorites');
- const alertsLink = screen.getByTitle('navbar.alerts');
+ const favoritesLink = screen.getByTitle('Favorites');
+ const alertsLink = screen.getByTitle('Alerts');
 
  expect(favoritesLink).toBeInTheDocument;
  expect(alertsLink).toBeInTheDocument;

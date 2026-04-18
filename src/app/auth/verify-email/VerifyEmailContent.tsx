@@ -38,7 +38,7 @@ function VerifyEmailForm() {
 
   useEffect(() => {
     if (user) {
-      router.push(`/en`);
+      router.push(`/`);
       return;
     }
 
@@ -98,7 +98,7 @@ function VerifyEmailForm() {
             </p>
             <div className="space-y-3">
               <Link
-                href={`/en/login`}
+                href={`/login`}
                 className="block w-full px-6 py-3 bg-primary-600 text-white font-semibold hover:bg-primary-700 transition-colors rounded-md"
               >
                 Go to Login
@@ -121,13 +121,13 @@ function VerifyEmailForm() {
           <p className="text-gray-500 mb-6">{errorMessage}</p>
           <div className="space-y-3">
             <Link
-              href={`/en/auth/resend-verification`}
+              href={`/auth/resend-verification`}
               className="block w-full px-6 py-3 bg-primary-600 text-white font-semibold hover:bg-primary-700 transition-colors rounded-md"
             >
               Resend Verification Email
             </Link>
             <Link
-              href={`/en/register`}
+              href={`/register`}
               className="block w-full px-6 py-3 border border-gray-200 text-gray-700 font-medium hover:bg-gray-50 hover:border-gray-300 transition-colors rounded-md"
             >
               Register Again
