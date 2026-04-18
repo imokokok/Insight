@@ -45,6 +45,7 @@ const providerToSymbolKey: Record<OracleProvider, keyof typeof oracleSupportedSy
   [OracleProvider.WINKLINK]: 'winklink',
   [OracleProvider.SUPRA]: 'supra',
   [OracleProvider.TWAP]: 'twap',
+  [OracleProvider.REFLECTOR]: 'reflector',
 };
 
 /**

@@ -49,6 +49,9 @@ export interface PriceData extends PriceDataBase {
   twapPrice?: number;
   spotPrice?: number;
   liquidity?: string;
+  // Reflector 元数据
+  resolution?: number; // 数据更新分辨率（秒）
+  contractVersion?: number; // 合约版本
 }
 
 export interface OracleSymbolSupport {

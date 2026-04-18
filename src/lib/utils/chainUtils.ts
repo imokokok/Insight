@@ -118,6 +118,7 @@ export function getChainShortName(chain: Blockchain): string {
     [Blockchain.MOONRIVER]: 'MOVR',
     [Blockchain.METIS]: 'METIS',
     [Blockchain.STARKEX]: 'STX',
+    [Blockchain.STELLAR]: 'XLM',
   };
   return shortNames[chain] || chain.toUpperCase().slice(0, 4);
 }

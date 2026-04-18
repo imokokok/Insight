@@ -38,4 +38,5 @@ export const DIA_CHAIN_MAPPING: Record<Blockchain, string> = {
   [Blockchain.MOONRIVER]: 'Moonriver',
   [Blockchain.METIS]: 'Metis',
   [Blockchain.STARKEX]: 'StarkEx',
+  [Blockchain.STELLAR]: 'Stellar',
 };

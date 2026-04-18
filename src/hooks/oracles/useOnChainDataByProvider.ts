@@ -7,6 +7,10 @@ import {
   useRedStoneOnChainData,
   type UseRedStoneOnChainDataReturn,
 } from './useRedStoneOnChainData';
+import {
+  useReflectorOnChainData,
+  type UseReflectorOnChainDataReturn,
+} from './useReflectorOnChainData';
 import { useSupraOnChainData, type UseSupraOnChainDataReturn } from './useSupraOnChainData';
 import { useTwapOnChainData, type UseTwapOnChainDataReturn } from './useTwapOnChainData';
 import {
@@ -26,7 +30,8 @@ export type OnChainDataReturn =
   | UseWINkLinkOnChainDataReturn
   | UseRedStoneOnChainDataReturn
   | UseSupraOnChainDataReturn
-  | UseTwapOnChainDataReturn;
+  | UseTwapOnChainDataReturn
+  | UseReflectorOnChainDataReturn;
 
 export function useOnChainDataByProvider(
   options: UseOnChainDataByProviderOptions
@@ -44,6 +49,10 @@ export function useOnChainDataByProvider(
   });
   const supraResult = useSupraOnChainData({ symbol, enabled: enabled && provider === 'supra' });
   const twapResult = useTwapOnChainData({ symbol, chain, enabled: enabled && provider === 'twap' });
+  const reflectorResult = useReflectorOnChainData({
+    symbol,
+    enabled: enabled && provider === 'reflector',
+  });
 
   switch (provider) {
     case 'dia':
@@ -56,6 +65,8 @@ export function useOnChainDataByProvider(
       return supraResult;
     case 'twap':
       return twapResult;
+    case 'reflector':
+      return reflectorResult;
     default:
       return {
         data: null,

@@ -149,6 +149,7 @@ export function useExport(params: UseExportParams): UseExportReturn {
         [OracleProvider.WINKLINK]: 'WINkLink',
         [OracleProvider.SUPRA]: 'Supra',
         [OracleProvider.TWAP]: 'TWAP',
+        [OracleProvider.REFLECTOR]: 'Reflector',
       };
 
       const getConsistencyRating = (stdDevPercent: number): string => {

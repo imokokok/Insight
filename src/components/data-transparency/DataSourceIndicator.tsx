@@ -83,6 +83,7 @@ const providerDisplayNames: Record<OracleProvider, string> = {
   [OracleProvider.WINKLINK]: 'WINkLink',
   [OracleProvider.SUPRA]: 'Supra',
   [OracleProvider.TWAP]: 'TWAP',
+  [OracleProvider.REFLECTOR]: 'Reflector',
 };
 
 const sizeConfig = {

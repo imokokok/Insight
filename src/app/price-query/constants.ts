@@ -1,3 +1,4 @@
+import type { ReflectorTokenOnChainData } from '@/hooks/oracles/useReflectorOnChainData';
 import type { TwapOnChainData } from '@/hooks/oracles/useTwapOnChainData';
 import {
   providerNames,
@@ -24,7 +25,8 @@ type AnyOnChainData =
   | RedStoneTokenOnChainData
   | SupraTokenOnChainData
   | WINkLinkTokenOnChainData
-  | TwapOnChainData;
+  | TwapOnChainData
+  | ReflectorTokenOnChainData;
 
 export interface QueryResult {
   provider: OracleProvider;
@@ -76,6 +78,8 @@ export interface OnChainData {
   isSupraDataLoading?: boolean;
   twapOnChainData?: AnyOnChainData | null;
   isTwapDataLoading?: boolean;
+  reflectorOnChainData?: AnyOnChainData | null;
+  isReflectorDataLoading?: boolean;
 }
 
 export {

@@ -121,6 +121,17 @@ export default function PriceQueryContent() {
     enabled: shouldFetchTwapData && !!selectedSymbol && queryResults.length > 0,
   });
 
+  const shouldFetchReflectorData = queryResults.some(
+    (r) => r.provider === OracleProvider.REFLECTOR
+  );
+
+  const { data: reflectorOnChainData, isLoading: isReflectorDataLoading } =
+    useOnChainDataByProvider({
+      provider: OracleProvider.REFLECTOR,
+      symbol: selectedSymbol,
+      enabled: shouldFetchReflectorData && !!selectedSymbol && queryResults.length > 0,
+    });
+
   const debouncedSearchFocus = useCallback(() => {
     requestAnimationFrame(() => {
       filterInputRef.current?.focus();
@@ -327,6 +338,8 @@ export default function PriceQueryContent() {
                 isSupraDataLoading,
                 twapOnChainData,
                 isTwapDataLoading,
+                reflectorOnChainData,
+                isReflectorDataLoading,
               } satisfies OnChainData
             }
             selectedSymbol={selectedSymbol}

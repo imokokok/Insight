@@ -112,6 +112,15 @@ const DEFAULT_PROVIDER_CONFIG: PerformanceMetricsConfig = {
       decentralizationScore: 85,
       supportedChains: 6,
     },
+    reflector: {
+      responseTime: 800,
+      updateFrequency: 300,
+      accuracy: 99.5,
+      reliability: 99.0,
+      dataSources: 7,
+      decentralizationScore: 80,
+      supportedChains: 1,
+    },
   },
   fallbackDefaults: {
     responseTime: 600,

@@ -51,6 +51,7 @@ const CHAINLINK_QUALITY_CONFIG = {
     [Blockchain.MOONRIVER]: 0.91,
     [Blockchain.METIS]: 0.93,
     [Blockchain.STARKEX]: 0.0,
+    [Blockchain.STELLAR]: 0.0,
   } as Record<Blockchain, number>,
   defaultConfidence: 0.98,
   minConfidence: 0.9,
@@ -94,6 +95,7 @@ const BLOCKCHAIN_TO_CHAIN_ID: Record<Blockchain, number> = {
   [Blockchain.MOONRIVER]: 1285,
   [Blockchain.METIS]: 1088,
   [Blockchain.STARKEX]: 0,
+  [Blockchain.STELLAR]: 0,
 };
 
 export class ChainlinkClient extends BaseOracleClient {

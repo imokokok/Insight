@@ -7,6 +7,7 @@ export enum OracleProvider {
   WINKLINK = 'winklink',
   SUPRA = 'supra',
   TWAP = 'twap',
+  REFLECTOR = 'reflector',
 }
 
 export enum Blockchain {
@@ -47,6 +48,7 @@ export enum Blockchain {
   MOONRIVER = 'moonriver',
   METIS = 'metis',
   STARKEX = 'starkex',
+  STELLAR = 'stellar',
 }
 
 export const BINANCE = Blockchain.BNB_CHAIN;
