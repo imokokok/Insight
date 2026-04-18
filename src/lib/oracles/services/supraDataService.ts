@@ -217,17 +217,17 @@ class SupraDataService {
     }
 
     try {
-      // 从 tradingPair 中提取 symbol (格式: btc_usdt -> BTC)
+      // Extract symbol from tradingPair (format: btc_usdt -> BTC)
       const symbol = tradingPair.split(' ')[0]?.toUpperCase();
       if (!symbol) {
         logger.warn(`Invalid trading pair format: ${tradingPair}`);
         return [];
       }
 
-      // 计算天数
+      // Calculate number of days
       const days = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
 
-      // 使用 Binance API 获取 OHLC 数据
+      // Use Binance API to fetch OHLC data
       const ohlcData = await binanceMarketService.getOHLCData(symbol, days);
 
       if (!ohlcData || ohlcData.length === 0) {
@@ -235,7 +235,7 @@ class SupraDataService {
         return [];
       }
 
-      // 过滤时间范围并转换为 SupraOHLCDataPoint 格式
+      // Filter by time range and convert to SupraOHLCDataPoint format
       const result: SupraOHLCDataPoint[] = ohlcData
         .filter((point) => point.timestamp >= startDate && point.timestamp <= endDate)
         .map((point) => ({

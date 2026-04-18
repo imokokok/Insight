@@ -1,10 +1,10 @@
 /**
- * 异常检测模块
+ * Anomaly detection module
  *
- * 提供基于统计学的异常检测功能：
- * - 基于标准差 (2σ) 的异常检测
- * - 趋势突变检测
- * - 价格异动预警
+ * Provides statistics-based anomaly detection functionality:
+ * - Standard deviation (2σ) based anomaly detection
+ * - Trend change detection
+ * - Price movement alert
  */
 
 import { chartColors, semanticColors } from '@/lib/config/colors';
@@ -13,23 +13,23 @@ import { createLogger } from '@/lib/utils/logger';
 const logger = createLogger('anomalyDetection');
 
 /**
- * 异常等级
+ * Anomaly level
  */
 export type AnomalyLevel = 'low' | 'medium' | 'high' | 'critical';
 
 /**
- * 异常类型
+ * Anomaly type
  */
 export type AnomalyType =
-  | 'price_spike' // 价格暴涨
-  | 'price_drop' // 价格暴跌
-  | 'volatility_spike' // 波动率激增
-  | 'trend_break' // 趋势突变
-  | 'volume_anomaly' // 成交量异常
-  | 'correlation_break'; // 相关性断裂
+  | 'price_spike' // Price spike
+  | 'price_drop' // Price drop
+  | 'volatility_spike' // Volatility spike
+  | 'trend_break' // trend break
+  | 'volume_anomaly' // Volumeanomaly
+  | 'correlation_break'; // correlation break
 
 /**
- * 异常数据
+ * anomaly data
  */
 export interface AnomalyData {
   id: string;
@@ -42,13 +42,13 @@ export interface AnomalyData {
   oracle?: string;
   value: number;
   expectedValue: number;
-  deviation: number; // 偏离程度 (标准差倍数)
-  duration: number; // 持续时间 (分钟)
+  deviation: number; // deviation degree (standard deviation multiplier)
+  duration: number; // time (minutes)
   acknowledged: boolean;
 }
 
 /**
- * 标准差检测结果
+ * Standard deviation detectionresult
  */
 interface StdDevResult {
   mean: number;
@@ -64,23 +64,23 @@ interface StdDevResult {
 }
 
 /**
- * 趋势检测结果
+ * result
  */
 interface TrendResult {
   direction: 'up' | 'down' | 'flat';
   strength: number; // 0-100
-  changePoint?: number; // 突变点索引
-  confidence: number; // 置信度 0-1
+  changePoint?: number; // index
+  confidence: number; //  0-1
 }
 
 /**
- * 计算标准差检测
- * 使用改进的 Z-Score 方法，结合 MAD (Median Absolute Deviation) 进行稳健统计
- * 参考: Iglewicz & Hoaglin (1993) - 使用调整后的 Z-Score 进行异常检测
+ * calculateStandard deviation detection
+ * useimprove Z-Score method， MAD (Median Absolute Deviation) 
+ * : Iglewicz & Hoaglin (1993) - useafter Z-Score anomaly
  *
- * @param data 数据数组
- * @param threshold 标准差倍数阈值 (默认 2.5，对应约 99% 置信区间)
- * @returns 标准差检测结果
+ * @param data array
+ * @param threshold Standard deviation multiplier threshold (default 2.5，for 99% confidence interval)
+ * @returns Standard deviation detectionresult
  */
 export function calculateStdDevDetection(data: number[], threshold: number = 2.5): StdDevResult {
   try {
@@ -88,19 +88,19 @@ export function calculateStdDevDetection(data: number[], threshold: number = 2.5
       throw new Error('Insufficient data for standard deviation calculation');
     }
 
-    // 计算均值和标准差
+    // Calculate mean and standard deviation
     const mean = data.reduce((sum, val) => sum + val, 0) / data.length;
     const variance = data.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / data.length;
     const stdDev = Math.sqrt(variance);
 
-    // 计算中位数和 MAD (Median Absolute Deviation) 用于稳健统计
+ // calculatemedianand MAD (Median Absolute Deviation) use
     const sortedData = [...data].sort((a, b) => a - b);
     const median = sortedData[Math.floor(sortedData.length / 2)];
     const mad =
       sortedData.reduce((sum, val) => sum + Math.abs(val - median), 0) / sortedData.length;
 
-    // 处理 stdDev 为 0 的情况，使用 MAD 作为备选
-    const effectiveStdDev = stdDev === 0 ? mad * 1.4826 : stdDev; // 1.4826 是 MAD 到标准差的转换系数
+ // handle stdDev as 0 ，use MAD as
+    const effectiveStdDev = stdDev === 0 ? mad * 1.4826 : stdDev; // 1.4826 is MAD tostandard deviationconvert
 
     if (effectiveStdDev === 0) {
       return {
@@ -112,21 +112,21 @@ export function calculateStdDevDetection(data: number[], threshold: number = 2.5
       };
     }
 
-    // 使用动态阈值：小样本时使用更严格的阈值
+ // usedynamicthreshold：sampleusethreshold
     const adjustedThreshold = data.length < 30 ? threshold * 1.2 : threshold;
 
-    // 计算上下界
+ // calculateondown
     const upperBound = mean + adjustedThreshold * effectiveStdDev;
     const lowerBound = mean - adjustedThreshold * effectiveStdDev;
 
-    // 检测异常点 - 使用改进的 Z-Score
+ // anomaly - useimprove Z-Score
     const anomalies = data
       .map((value, index) => {
-        // 使用调整后的 Z-Score: 0.6745 * (x - median) / MAD
+ // useafter Z-Score: 0.6745 * (x - median) / MAD
         const modifiedZScore = (0.6745 * (value - median)) / (mad || effectiveStdDev);
         const deviation = Math.abs(value - mean) / effectiveStdDev;
 
-        // 异常判定：传统 Z-Score 或改进的 Z-Score 任一超过阈值
+ // anomaly： Z-Score orimprove Z-Score threshold
         if (deviation > adjustedThreshold || Math.abs(modifiedZScore) > 3.5) {
           return {
             index,
@@ -166,14 +166,14 @@ export function calculateStdDevDetection(data: number[], threshold: number = 2.5
 }
 
 /**
- * 检测价格异动
- * 使用对数收益率和 GARCH 风格波动率聚类检测
- * 参考: Bollinger Bands + 波动率突破检测
+ * 
+ * uselogarithmicand GARCH clustering
+ * : Bollinger Bands + 
  *
- * @param prices 价格历史
- * @param timestamps 时间戳数组
- * @param asset 资产名称
- * @returns 异常数据数组
+ * @param prices history
+ * @param timestamps timearray
+ * @param asset name
+ * @returns anomaly dataarray
  */
 export function detectPriceAnomalies(
   prices: number[],
@@ -187,25 +187,25 @@ export function detectPriceAnomalies(
 
     const anomalies: AnomalyData[] = [];
 
-    // 计算对数收益率 (更稳定的收益率计算方式)
+ // calculatelogarithmic (calculate)
     const logReturns: number[] = [];
     for (let i = 1; i < prices.length; i++) {
       if (prices[i] > 0 && prices[i - 1] > 0) {
-        const logRet = Math.log(prices[i] / prices[i - 1]) * 100; // 转换为百分比
+        const logRet = Math.log(prices[i] / prices[i - 1]) * 100; // convertas
         logReturns.push(logRet);
       }
     }
 
     if (logReturns.length < 10) return [];
 
-    // 使用滚动窗口计算动态波动率 (EWMA - 指数加权移动平均)
-    const lambda = 0.94; // RiskMetrics 标准参数
+ // usescrollcalculatedynamic (EWMA - exponential)
+    const lambda = 0.94; // RiskMetrics standardparameter
     const window = Math.min(20, Math.floor(logReturns.length / 2));
 
     for (let i = window; i < logReturns.length; i++) {
       const windowReturns = logReturns.slice(i - window, i);
 
-      // 计算 EWMA 波动率
+ // calculate EWMA 
       let ewmaVar = 0;
       let weightSum = 0;
       for (let j = 0; j < windowReturns.length; j++) {
@@ -215,18 +215,18 @@ export function detectPriceAnomalies(
       }
       const ewmaVol = Math.sqrt(ewmaVar / weightSum);
 
-      // 计算当前收益率的 Z-Score
+ // calculatecurrent Z-Score
       const currentReturn = logReturns[i];
       const windowMean = windowReturns.reduce((a, b) => a + b, 0) / windowReturns.length;
       const zScore = ewmaVol > 0 ? (currentReturn - windowMean) / ewmaVol : 0;
 
-      // 多阈值检测
+ // threshold
       const absZScore = Math.abs(zScore);
       if (absZScore > 2) {
         const priceIndex = i + 1;
         const priceChange = currentReturn;
 
-        // 确定异常类型和等级
+ // Anomaly typeandlevel
         let type: AnomalyType;
         let level: AnomalyLevel;
 
@@ -236,14 +236,14 @@ export function detectPriceAnomalies(
           type = 'price_drop';
         }
 
-        // 基于 Z-Score 确定等级
+ // Z-Score level
         if (absZScore > 4) level = 'critical';
         else if (absZScore > 3) level = 'high';
         else if (absZScore > 2.5) level = 'medium';
         else level = 'low';
 
-        // 检查是否是连续异常 (去重) - O(1) 而非 O(n)
-        // 只需检查最近一条异常是否在 1 分钟内
+ // checkisisanomaly () - O(1) O(n)
+ // checkanomalyisin 1 minuteswithin
         const lastAnomaly = anomalies[anomalies.length - 1];
         const isDuplicate =
           lastAnomaly && Math.abs(lastAnomaly.timestamp - timestamps[priceIndex]) < 60000;
@@ -279,13 +279,13 @@ export function detectPriceAnomalies(
 }
 
 /**
- * 检测趋势突变
- * 使用 CUSUM (累积和) 算法检测趋势变化
+ * trend break
+ * use CUSUM (cumulativeand) algorithm
  *
- * @param data 数据数组
- * @param timestamps 时间戳数组
- * @param threshold 检测阈值
- * @returns 趋势检测结果
+ * @param data array
+ * @param timestamps timearray
+ * @param threshold threshold
+ * @returns result
  */
 export function detectTrendBreak(
   data: number[],
@@ -300,10 +300,10 @@ export function detectTrendBreak(
       };
     }
 
-    // 计算对数收益率
+ // calculatelogarithmic
     const returns: number[] = [];
     for (let i = 1; i < data.length; i++) {
-      // 添加除零检查
+      // Add division by zero check
       if (data[i] > 0 && data[i - 1] > 0) {
         returns.push(Math.log(data[i] / data[i - 1]));
       }
@@ -314,11 +314,11 @@ export function detectTrendBreak(
       returns.reduce((sum, r) => sum + Math.pow(r - mean, 2), 0) / returns.length
     );
 
-    // CUSUM 算法
+    // CUSUM algorithm
     let posSum = 0;
     let negSum = 0;
-    const k = 0.5 * stdDev; // 参考值
-    const h = threshold * stdDev; // 决策区间
+    const k = 0.5 * stdDev; // value
+    const h = threshold * stdDev; // 
 
     let changePoint: number | undefined;
     const anomalies: AnomalyData[] = [];
@@ -332,10 +332,10 @@ export function detectTrendBreak(
       if (posSum > h || negSum > h) {
         changePoint = i + 1;
 
-        // 确定趋势方向
+ // to
         const direction = posSum > h ? 'up' : 'down';
 
-        // 计算趋势强度
+ // calculate
         const recentData = data.slice(Math.max(0, changePoint - 10), changePoint + 10);
         const trendSlope = calculateTrendSlope(recentData);
         const strength = Math.min(Math.abs(trendSlope) * 100, 100);
@@ -354,14 +354,14 @@ export function detectTrendBreak(
           acknowledged: false,
         });
 
-        // 使用衰减而不是重置，避免漏检连续的变化
-        // 衰减因子 0.5 允许检测到连续的趋势变化
+ // usenotisreset，avoid
+ // 0.5 to
         posSum *= 0.5;
         negSum *= 0.5;
       }
     }
 
-    // 计算整体趋势
+ // calculate
     const recentReturns = returns.slice(-20);
     const recentMean = recentReturns.reduce((sum, r) => sum + r, 0) / recentReturns.length;
 
@@ -393,7 +393,7 @@ export function detectTrendBreak(
 }
 
 /**
- * 计算趋势斜率 (简单线性回归)
+ * calculate (linearregression)
  */
 function calculateTrendSlope(data: number[]): number {
   const n = data.length;
@@ -412,16 +412,16 @@ function calculateTrendSlope(data: number[]): number {
 }
 
 /**
- * 从时间戳推断数据间隔（分钟）
+ * fromtime（minutes）
  */
 function inferDataIntervalMinutes(timestamps: number[]): number {
-  if (timestamps.length < 2) return 5; // 默认5分钟
+  if (timestamps.length < 2) return 5; // default5 minutes
 
-  // 计算相邻时间戳的平均间隔
+ // calculatetime
   let totalInterval = 0;
   let count = 0;
   for (let i = 1; i < Math.min(timestamps.length, 100); i++) {
-    const interval = (timestamps[i] - timestamps[i - 1]) / 60000; // 转换为分钟
+    const interval = (timestamps[i] - timestamps[i - 1]) / 60000; // convertasminutes
     if (interval > 0) {
       totalInterval += interval;
       count++;
@@ -430,7 +430,7 @@ function inferDataIntervalMinutes(timestamps: number[]): number {
 
   const avgInterval = count > 0 ? totalInterval / count : 5;
 
-  // 四舍五入到常见间隔：1, 5, 15, 30, 60, 240, 1440 分钟
+ // to：1, 5, 15, 30, 60, 240, 1440 minutes
   const commonIntervals = [1, 5, 15, 30, 60, 240, 1440];
   const closest = commonIntervals.reduce((prev, curr) =>
     Math.abs(curr - avgInterval) < Math.abs(prev - avgInterval) ? curr : prev
@@ -440,9 +440,9 @@ function inferDataIntervalMinutes(timestamps: number[]): number {
 }
 
 /**
- * 计算年化因子
- * @param intervalMinutes 数据间隔（分钟）
- * @returns 年化因子 sqrt(每年的期数)
+ * calculate
+ * @param intervalMinutes （minutes）
+ * @returns sqrt()
  */
 function getAnnualizationFactor(intervalMinutes: number): number {
   const periodsPerYear = (365 * 24 * 60) / intervalMinutes;
@@ -450,14 +450,14 @@ function getAnnualizationFactor(intervalMinutes: number): number {
 }
 
 /**
- * 检测波动率异常
- * 使用 Parkinson 波动率估计和 GARCH(1,1) 风格的波动率聚类检测
- * 参考: Parkinson (1980) - The Extreme Value Method
+ * anomaly
+ * use Parkinson estimateand GARCH(1,1) clustering
+ * : Parkinson (1980) - The Extreme Value Method
  *
- * @param prices 价格历史
- * @param timestamps 时间戳数组
- * @param window 滚动窗口大小
- * @returns 异常数据数组
+ * @param prices history
+ * @param timestamps timearray
+ * @param window scroll
+ * @returns anomaly dataarray
  */
 export function detectVolatilityAnomalies(
   prices: number[],
@@ -469,29 +469,29 @@ export function detectVolatilityAnomalies(
       return [];
     }
 
-    // 从时间戳推断数据间隔，动态计算年化因子
+ // fromtime，dynamiccalculate
     const dataIntervalMinutes = inferDataIntervalMinutes(timestamps);
     const annualizationFactor = getAnnualizationFactor(dataIntervalMinutes);
 
-    // 计算 Parkinson 波动率 (使用 High-Low 范围更准确地估计波动率)
+ // calculate Parkinson (use High-Low rangeestimate)
     const parkinsonVol: number[] = [];
 
     for (let i = window; i < prices.length; i++) {
       const windowPrices = prices.slice(i - window, i);
 
-      // 计算价格范围波动率
+ // calculaterange
       const highs: number[] = [];
       const lows: number[] = [];
 
       for (let j = 1; j < windowPrices.length; j++) {
         const prevPrice = windowPrices[j - 1];
         const currPrice = windowPrices[j];
-        // 使用前后价格作为高低点估计
+ // usebeforeafterasestimate
         highs.push(Math.max(prevPrice, currPrice));
         lows.push(Math.min(prevPrice, currPrice));
       }
 
-      // Parkinson 波动率公式: σ² = (1/4Nln2) * Σ[ln(Hi/Li)]²
+ // Parkinson : σ² = (1/4Nln2) * Σ[ln(Hi/Li)]²
       let sumSquaredLogRange = 0;
       for (let j = 0; j < highs.length; j++) {
         if (lows[j] > 0) {
@@ -502,20 +502,20 @@ export function detectVolatilityAnomalies(
 
       const n = highs.length;
       const parkinsonVariance = sumSquaredLogRange / (4 * n * Math.log(2));
-      // 使用动态计算的年化因子，而非硬编码的 5 分钟假设
+ // usedynamiccalculate， 5 minuteshypothesis
       const annualizedVol = Math.sqrt(parkinsonVariance) * annualizationFactor * 100;
       parkinsonVol.push(annualizedVol);
     }
 
     if (parkinsonVol.length < 10) return [];
 
-    // 使用 GARCH(1,1) 风格的波动率预测
+ // use GARCH(1,1) prediction
     const omega = 0.000001;
     const alpha = 0.1;
     const beta = 0.85;
 
     const garchVol: number[] = [];
-    let lastVar = (parkinsonVol[0] * parkinsonVol[0]) / 10000; // 初始方差
+    let lastVar = (parkinsonVol[0] * parkinsonVol[0]) / 10000; // variance
 
     for (let i = 0; i < parkinsonVol.length; i++) {
       const currentVol = parkinsonVol[i];
@@ -529,12 +529,12 @@ export function detectVolatilityAnomalies(
       lastVar = predictedVar;
     }
 
-    // 检测实际波动率与预测波动率的偏离
+ // andprediction
     const anomalies: AnomalyData[] = [];
 
     for (let i = window; i < parkinsonVol.length; i++) {
       const actualVol = parkinsonVol[i];
-      const predictedVol = garchVol[i - 1]; // 使用前一期预测
+      const predictedVol = garchVol[i - 1]; // usebeforeprediction
 
       if (predictedVol > 0) {
         const volRatio = actualVol / predictedVol;
@@ -548,7 +548,7 @@ export function detectVolatilityAnomalies(
           else if (volRatio > 1.5 || volRatio < 0.67) level = 'medium';
           else level = 'low';
 
-          // 去重检查 - O(1) 而非 O(n)，只需检查最近一条异常是否在 5 分钟内
+ // check - O(1) O(n)，checkanomalyisin 5 minuteswithin
           const lastAnomaly = anomalies[anomalies.length - 1];
           const isDuplicate =
             lastAnomaly && Math.abs(lastAnomaly.timestamp - timestamps[priceIndex]) < 300000;
@@ -584,11 +584,11 @@ export function detectVolatilityAnomalies(
 }
 
 /**
- * 检测成交量异常
+ * Volumeanomaly
  *
- * @param volumes 成交量历史
- * @param timestamps 时间戳数组
- * @returns 异常数据数组
+ * @param volumes Volumehistory
+ * @param timestamps timearray
+ * @returns anomaly dataarray
  */
 export function detectVolumeAnomalies(volumes: number[], timestamps: number[]): AnomalyData[] {
   try {
@@ -634,10 +634,10 @@ export function detectVolumeAnomalies(volumes: number[], timestamps: number[]): 
 }
 
 /**
- * 执行完整异常检测
+ * anomaly
  *
- * @param data 市场数据
- * @returns 所有检测到的异常
+ * @param data 
+ * @returns alltoanomaly
  */
 export function detectAllAnomalies(data: {
   prices: number[];
@@ -650,25 +650,25 @@ export function detectAllAnomalies(data: {
 
     const allAnomalies: AnomalyData[] = [];
 
-    // 价格异常检测
+ // anomaly
     const priceAnomalies = detectPriceAnomalies(prices, timestamps, asset);
     allAnomalies.push(...priceAnomalies);
 
-    // 趋势突变检测
+    // Trend change detection
     const { anomalies: trendAnomalies } = detectTrendBreak(prices, timestamps);
     allAnomalies.push(...trendAnomalies);
 
-    // 波动率异常检测
+ // anomaly
     const volatilityAnomalies = detectVolatilityAnomalies(prices, timestamps);
     allAnomalies.push(...volatilityAnomalies);
 
-    // 成交量异常检测
+ // Volumeanomaly
     if (volumes && volumes.length > 0) {
       const volumeAnomalies = detectVolumeAnomalies(volumes, timestamps);
       allAnomalies.push(...volumeAnomalies);
     }
 
-    // 按时间戳排序
+ // bytimesort
     allAnomalies.sort((a, b) => b.timestamp - a.timestamp);
 
     logger.info(`Total anomalies detected: ${allAnomalies.length}`);
@@ -683,10 +683,10 @@ export function detectAllAnomalies(data: {
 }
 
 /**
- * 获取异常等级颜色
+ * getAnomaly levelcolor
  *
- * @param level 异常等级
- * @returns 颜色代码
+ * @param level Anomaly level
+ * @returns colorcode
  */
 export function getAnomalyLevelColor(level: AnomalyLevel): string {
   const colors: Record<AnomalyLevel, string> = {
@@ -699,10 +699,10 @@ export function getAnomalyLevelColor(level: AnomalyLevel): string {
 }
 
 /**
- * 获取异常类型图标
+ * getAnomaly typeicon
  *
- * @param type 异常类型
- * @returns 图标名称
+ * @param type Anomaly type
+ * @returns iconname
  */
 export function getAnomalyIcon(type: AnomalyType): string {
   const icons: Record<AnomalyType, string> = {
@@ -717,10 +717,10 @@ export function getAnomalyIcon(type: AnomalyType): string {
 }
 
 /**
- * 获取异常类型文本
+ * getAnomaly typetext
  *
- * @param type 异常类型
- * @returns 本地化文本键
+ * @param type Anomaly type
+ * @returns localtext
  */
 export function getAnomalyTypeText(type: AnomalyType): string {
   const texts: Record<AnomalyType, string> = {
@@ -735,20 +735,20 @@ export function getAnomalyTypeText(type: AnomalyType): string {
 }
 
 /**
- * 过滤未确认的异常
+ * filteranomaly
  *
- * @param anomalies 异常数组
- * @returns 未确认的异常
+ * @param anomalies anomalyarray
+ * @returns anomaly
  */
 export function getUnacknowledgedAnomalies(anomalies: AnomalyData[]): AnomalyData[] {
   return anomalies.filter((a) => !a.acknowledged);
 }
 
 /**
- * 按等级统计异常数量
+ * bylevelanomalycount
  *
- * @param anomalies 异常数组
- * @returns 各等级数量
+ * @param anomalies anomalyarray
+ * @returns levelcount
  */
 export function countAnomaliesByLevel(anomalies: AnomalyData[]): Record<AnomalyLevel, number> {
   return anomalies.reduce(

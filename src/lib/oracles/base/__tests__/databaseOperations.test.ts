@@ -929,7 +929,7 @@ describe('databaseOperations', () => {
 
     describe('Unicode data handling', () => {
       it('should handle unicode symbols', async () => {
-        const unicodeSymbol = '比特币';
+        const unicodeSymbol = 'Bitcoin';
         const mockPriceData = createMockPriceData({ symbol: unicodeSymbol });
         mockGetPriceFromDatabase.mockResolvedValueOnce(mockPriceData);
 

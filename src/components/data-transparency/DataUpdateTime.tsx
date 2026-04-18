@@ -59,25 +59,23 @@ export function DataUpdateTime({
     return () => clearInterval(interval);
   }, []);
 
+  const lastUpdatedTime = lastUpdated?.getTime() ?? null;
+
   useEffect(() => {
-    if (!autoRefresh || !showCountdown || !lastUpdated) {
+    if (!autoRefresh || !showCountdown || lastUpdatedTime === null) {
       return;
     }
 
     const updateCountdown = () => {
-      const elapsed = Date.now() - lastUpdated.getTime();
+      const elapsed = Date.now() - lastUpdatedTime;
       const remaining = Math.max(0, refreshInterval - elapsed);
       setCountdown(remaining);
-
-      if (remaining === 0 && onRefresh && !isLoading) {
-        onRefresh();
-      }
     };
 
     updateCountdown();
     const interval = setInterval(updateCountdown, 1000);
     return () => clearInterval(interval);
-  }, [autoRefresh, showCountdown, lastUpdated, refreshInterval, onRefresh, isLoading]);
+  }, [autoRefresh, showCountdown, lastUpdatedTime, refreshInterval]);
 
   const freshness = getFreshnessStatus(lastUpdated, refreshInterval);
   const timeAgo = lastUpdated ? getTimeAgoDiff(lastUpdated) : null;

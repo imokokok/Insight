@@ -1,14 +1,14 @@
 /**
- * 应用错误详情接口
- * 所有错误详情对象的基础接口
+ * Application error details interface
+ * Base interface for all error details objects
  */
 export interface AppErrorDetails {
   [key: string]: unknown;
 }
 
 /**
- * 应用错误选项
- * 用于创建 AppError 的完整配置选项
+ * Application error options
+ * Complete configuration options for creating AppError
  */
 export interface AppErrorOptions {
   message: string;
@@ -20,12 +20,12 @@ export interface AppErrorOptions {
 }
 
 /**
- * 错误严重级别
+ * Error severity level
  */
 export type ErrorSeverity = 'low' | 'medium' | 'high' | 'critical';
 
 /**
- * 错误分类
+ * Error category
  */
 export type ErrorCategory =
   | 'validation'
@@ -41,7 +41,7 @@ export type ErrorCategory =
   | 'unknown';
 
 /**
- * 扩展的错误选项
+ * Extended error options
  */
 export interface ExtendedAppErrorOptions extends AppErrorOptions {
   severity?: ErrorSeverity;
@@ -52,8 +52,8 @@ export interface ExtendedAppErrorOptions extends AppErrorOptions {
 }
 
 /**
- * 应用基础错误类
- * 所有自定义错误的基类，提供统一的错误处理接口
+ * Application base error class
+ * Base class for all custom errors, providing a unified error handling interface
  */
 export abstract class AppError extends Error {
   public readonly code: string;
@@ -93,14 +93,14 @@ export abstract class AppError extends Error {
   }
 
   /**
-   * 生成唯一请求ID
+   * Generate unique request ID
    */
   private static generateRequestId(): string {
     return `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
   }
 
   /**
-   * 转换为JSON对象
+   * Convert to JSON object
    */
   toJSON(): Record<string, unknown> {
     return {
@@ -129,7 +129,7 @@ export abstract class AppError extends Error {
   }
 
   /**
-   * 转换为API响应格式
+   * Convert to API response format
    */
   toApiResponse(): {
     success: false;
@@ -158,7 +158,7 @@ export abstract class AppError extends Error {
   }
 
   /**
-   * 转换为日志格式
+   * Convert to log format
    */
   toLogEntry(): Record<string, unknown> {
     return {
@@ -178,7 +178,7 @@ export abstract class AppError extends Error {
   }
 
   /**
-   * 根据严重级别获取日志级别
+   * Get log level based on severity level
    */
   private getLogLevel(): 'debug' | 'info' | 'warn' | 'error' {
     switch (this.severity) {
@@ -195,14 +195,14 @@ export abstract class AppError extends Error {
   }
 
   /**
-   * 检查是否应该重试
+   * Check if should retry
    */
   shouldRetry(): boolean {
     return this.retryable;
   }
 
   /**
-   * 获取用户友好的错误消息
+   * Get user-friendly error message
    */
   getUserMessage(): string {
     return this.isOperational ? this.message : 'An unexpected error occurred';
@@ -210,50 +210,50 @@ export abstract class AppError extends Error {
 }
 
 /**
- * 错误代码常量
+ * Error code constants
  */
 export const ErrorCodes = {
-  // 验证错误
+  // validateerror
   VALIDATION_ERROR: 'VALIDATION_ERROR',
   INVALID_INPUT: 'INVALID_INPUT',
   MISSING_REQUIRED_FIELD: 'MISSING_REQUIRED_FIELD',
   INVALID_FORMAT: 'INVALID_FORMAT',
 
-  // 认证/授权错误
+  // authentication/authorizationerror
   AUTHENTICATION_ERROR: 'AUTHENTICATION_ERROR',
   AUTHORIZATION_ERROR: 'AUTHORIZATION_ERROR',
   TOKEN_EXPIRED: 'TOKEN_EXPIRED',
   INVALID_CREDENTIALS: 'INVALID_CREDENTIALS',
   SESSION_INVALID: 'SESSION_INVALID',
 
-  // 资源错误
+ // error
   NOT_FOUND: 'NOT_FOUND',
   RESOURCE_NOT_FOUND: 'RESOURCE_NOT_FOUND',
   USER_NOT_FOUND: 'USER_NOT_FOUND',
 
-  // 冲突错误
+  // conflicterror
   CONFLICT: 'CONFLICT',
   DUPLICATE_ENTRY: 'DUPLICATE_ENTRY',
   RESOURCE_EXISTS: 'RESOURCE_EXISTS',
 
-  // 限流错误
+ // error
   RATE_LIMIT_EXCEEDED: 'RATE_LIMIT_EXCEEDED',
   TOO_MANY_REQUESTS: 'TOO_MANY_REQUESTS',
 
-  // 服务器错误
+ // serviceerror
   INTERNAL_ERROR: 'INTERNAL_ERROR',
   SERVICE_UNAVAILABLE: 'SERVICE_UNAVAILABLE',
   DATABASE_ERROR: 'DATABASE_ERROR',
   CACHE_ERROR: 'CACHE_ERROR',
 
-  // 外部服务错误
+  // externalserviceerror
   EXTERNAL_SERVICE_ERROR: 'EXTERNAL_SERVICE_ERROR',
   ORACLE_ERROR: 'ORACLE_ERROR',
   API_ERROR: 'API_ERROR',
   NETWORK_ERROR: 'NETWORK_ERROR',
   TIMEOUT_ERROR: 'TIMEOUT_ERROR',
 
-  // 业务逻辑错误
+ // error
   BUSINESS_RULE_VIOLATION: 'BUSINESS_RULE_VIOLATION',
   INSUFFICIENT_FUNDS: 'INSUFFICIENT_FUNDS',
   OPERATION_NOT_ALLOWED: 'OPERATION_NOT_ALLOWED',
@@ -262,7 +262,7 @@ export const ErrorCodes = {
 type ErrorCode = (typeof ErrorCodes)[keyof typeof ErrorCodes];
 
 /**
- * HTTP状态码映射
+ * HTTP status code mapping
  */
 export const HttpStatusCodes = {
   OK: 200,

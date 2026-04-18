@@ -1,12 +1,9 @@
 /* eslint-disable max-lines-per-function */
 import { DIAClient } from '@/lib/oracles/clients/dia';
 import { diaSymbols } from '@/lib/oracles/constants/supportedSymbols';
-import { getDIADataService } from '@/lib/oracles/services/diaDataService';
 import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
 import { OracleProvider, Blockchain } from '@/types/oracle';
-import type { PriceData } from '@/types/oracle';
 
-jest.mock('@/lib/oracles/services/diaDataService');
 jest.mock('@/lib/services/marketData/binanceMarketService');
 jest.mock('@/lib/utils/logger', () => ({
   createLogger: () => ({
@@ -156,414 +153,350 @@ describe('DIAClient', () => {
   });
 
   describe('getPrice', () => {
-    const mockDIAPriceData: PriceData = {
-      provider: OracleProvider.DIA,
-      symbol: 'ETH',
-      price: 3500.5,
-      timestamp: Date.now(),
-      decimals: 8,
-      confidence: 0.95,
-      chain: Blockchain.ETHEREUM,
-      source: 'dia-api',
-    };
-
     const mockBinanceMarketData = {
-      symbol: 'DIA',
-      name: 'DIA',
-      currentPrice: 0.85,
-      marketCap: 50000000,
-      marketCapRank: 500,
-      totalVolume24h: 1000000,
-      high24h: 0.9,
-      low24h: 0.8,
-      priceChange24h: 0.05,
-      priceChangePercentage24h: 6.25,
-      circulatingSupply: 60000000,
-      totalSupply: 200000000,
-      ath: 5.0,
-      athChangePercentage: -83,
-      atl: 0.5,
-      atlChangePercentage: 70,
+      symbol: 'ETH',
+      name: 'Ethereum',
+      currentPrice: 3500.5,
+      marketCap: 420000000000,
+      marketCapRank: 2,
+      totalVolume24h: 15000000000,
+      high24h: 3550,
+      low24h: 3450,
+      priceChange24h: 50.5,
+      priceChangePercentage24h: 1.46,
+      circulatingSupply: 120000000,
+      totalSupply: 120000000,
+      ath: 4878.26,
+      athChangePercentage: -28.5,
+      atl: 0.42,
+      atlChangePercentage: 832000,
       lastUpdated: new Date().toISOString(),
     };
 
-    describe('DIA token special handling', () => {
-      it('should fetch DIA token price from Binance API', async () => {
-        (binanceMarketService.getTokenMarketData as jest.Mock).mockResolvedValue(
-          mockBinanceMarketData
-        );
+    it('should fetch price from Binance API', async () => {
+      (binanceMarketService.getTokenMarketData as jest.Mock).mockResolvedValue(
+        mockBinanceMarketData
+      );
 
-        const result = await client.getPrice('DIA');
+      const result = await client.getPrice('ETH');
 
-        expect(binanceMarketService.getTokenMarketData).toHaveBeenCalledWith('DIA');
-        expect(result).toMatchObject({
-          provider: OracleProvider.DIA,
-          symbol: 'DIA',
-          price: mockBinanceMarketData.currentPrice,
-          decimals: 8,
-          confidence: 0.95,
-          change24h: mockBinanceMarketData.priceChange24h,
-          change24hPercent: mockBinanceMarketData.priceChangePercentage24h,
-          source: 'binance-api',
-        });
-        expect(result.timestamp).toBe(new Date(mockBinanceMarketData.lastUpdated).getTime());
+      expect(binanceMarketService.getTokenMarketData).toHaveBeenCalledWith('ETH');
+      expect(result).toMatchObject({
+        provider: OracleProvider.DIA,
+        symbol: 'ETH',
+        price: mockBinanceMarketData.currentPrice,
+        decimals: 8,
+        confidence: 0.95,
+        change24h: mockBinanceMarketData.priceChange24h,
+        change24hPercent: mockBinanceMarketData.priceChangePercentage24h,
+        source: 'binance-api',
       });
+      expect(result.timestamp).toBe(new Date(mockBinanceMarketData.lastUpdated).getTime());
+    });
 
-      it('should fetch DIA token price with specified chain', async () => {
-        (binanceMarketService.getTokenMarketData as jest.Mock).mockResolvedValue(
-          mockBinanceMarketData
-        );
+    it('should fetch price with specified chain', async () => {
+      (binanceMarketService.getTokenMarketData as jest.Mock).mockResolvedValue(
+        mockBinanceMarketData
+      );
 
-        const result = await client.getPrice('DIA', Blockchain.ARBITRUM);
+      const result = await client.getPrice('ETH', Blockchain.ARBITRUM);
 
-        expect(result.chain).toBe(Blockchain.ARBITRUM);
-        expect(result.source).toBe('binance-api');
-      });
+      expect(result.chain).toBe(Blockchain.ARBITRUM);
+      expect(result.source).toBe('binance-api');
+    });
 
-      it('should use Ethereum as default chain for DIA token', async () => {
-        (binanceMarketService.getTokenMarketData as jest.Mock).mockResolvedValue(
-          mockBinanceMarketData
-        );
+    it('should use Ethereum as default chain', async () => {
+      (binanceMarketService.getTokenMarketData as jest.Mock).mockResolvedValue(
+        mockBinanceMarketData
+      );
 
-        const result = await client.getPrice('DIA');
+      const result = await client.getPrice('ETH');
 
-        expect(result.chain).toBe(Blockchain.ETHEREUM);
-      });
+      expect(result.chain).toBe(Blockchain.ETHEREUM);
+    });
 
-      it('should handle lowercase DIA symbol', async () => {
-        (binanceMarketService.getTokenMarketData as jest.Mock).mockResolvedValue(
-          mockBinanceMarketData
-        );
+    it('should handle lowercase symbol', async () => {
+      (binanceMarketService.getTokenMarketData as jest.Mock).mockResolvedValue(
+        mockBinanceMarketData
+      );
 
-        const result = await client.getPrice('dia');
+      const result = await client.getPrice('eth');
 
-        expect(result.symbol).toBe('DIA');
-        expect(binanceMarketService.getTokenMarketData).toHaveBeenCalledWith('dia');
-      });
+      expect(result.symbol).toBe('ETH');
+      expect(binanceMarketService.getTokenMarketData).toHaveBeenCalledWith('eth');
+    });
 
-      it('should throw error when Binance returns no data for DIA', async () => {
-        (binanceMarketService.getTokenMarketData as jest.Mock).mockResolvedValue(null);
+    it('should throw error when Binance returns no data', async () => {
+      (binanceMarketService.getTokenMarketData as jest.Mock).mockResolvedValue(null);
 
-        await expect(client.getPrice('DIA')).rejects.toMatchObject({
-          code: 'DIA_ERROR',
-          message: 'Failed to fetch price from DIA',
-        });
-      });
-
-      it('should throw error when Binance API fails for DIA', async () => {
-        (binanceMarketService.getTokenMarketData as jest.Mock).mockRejectedValue(
-          new Error('Binance API error')
-        );
-
-        await expect(client.getPrice('DIA')).rejects.toMatchObject({
-          code: 'DIA_ERROR',
-        });
+      await expect(client.getPrice('ETH')).rejects.toMatchObject({
+        code: 'NO_DATA_AVAILABLE',
       });
     });
 
-    describe('Regular token price fetching', () => {
-      it('should fetch price for valid symbol', async () => {
-        const mockGetAssetPrice = jest.fn().mockResolvedValue(mockDIAPriceData);
-        (getDIADataService as jest.Mock).mockReturnValue({
-          getAssetPrice: mockGetAssetPrice,
-        });
+    it('should throw error when Binance API fails', async () => {
+      (binanceMarketService.getTokenMarketData as jest.Mock).mockRejectedValue(
+        new Error('Binance API error')
+      );
 
-        const result = await client.getPrice('ETH');
-
-        expect(result).toMatchObject({
-          provider: OracleProvider.DIA,
-          symbol: 'ETH',
-          price: mockDIAPriceData.price,
-          chain: Blockchain.ETHEREUM,
-        });
-        expect(mockGetAssetPrice).toHaveBeenCalledWith('ETH', undefined);
-      });
-
-      it('should fetch price for specific chain', async () => {
-        const mockGetAssetPrice = jest.fn().mockResolvedValue({
-          ...mockDIAPriceData,
-          chain: Blockchain.ARBITRUM,
-        });
-        (getDIADataService as jest.Mock).mockReturnValue({
-          getAssetPrice: mockGetAssetPrice,
-        });
-
-        const result = await client.getPrice('ETH', Blockchain.ARBITRUM);
-
-        expect(result.chain).toBe(Blockchain.ARBITRUM);
-        expect(mockGetAssetPrice).toHaveBeenCalledWith('ETH', Blockchain.ARBITRUM);
-      });
-
-      it('should handle lowercase symbol', async () => {
-        const mockGetAssetPrice = jest.fn().mockResolvedValue(mockDIAPriceData);
-        (getDIADataService as jest.Mock).mockReturnValue({
-          getAssetPrice: mockGetAssetPrice,
-        });
-
-        const result = await client.getPrice('eth');
-
-        expect(result.symbol).toBe('ETH');
-        expect(mockGetAssetPrice).toHaveBeenCalledWith('eth', undefined);
-      });
-
-      it('should throw error when DIA service returns no data', async () => {
-        const mockGetAssetPrice = jest.fn().mockResolvedValue(null);
-        (getDIADataService as jest.Mock).mockReturnValue({
-          getAssetPrice: mockGetAssetPrice,
-        });
-
-        await expect(client.getPrice('ETH')).rejects.toMatchObject({
-          code: 'DIA_ERROR',
-          message: 'Failed to fetch price from DIA',
-        });
-      });
-
-      it('should handle DIA service error', async () => {
-        const mockGetAssetPrice = jest.fn().mockRejectedValue(new Error('DIA service error'));
-        (getDIADataService as jest.Mock).mockReturnValue({
-          getAssetPrice: mockGetAssetPrice,
-        });
-
-        await expect(client.getPrice('ETH')).rejects.toMatchObject({
-          code: 'DIA_ERROR',
-        });
-      });
-
-      it('should handle network error', async () => {
-        const mockGetAssetPrice = jest.fn().mockRejectedValue(new Error('Network error'));
-        (getDIADataService as jest.Mock).mockReturnValue({
-          getAssetPrice: mockGetAssetPrice,
-        });
-
-        await expect(client.getPrice('ETH')).rejects.toMatchObject({
-          code: 'DIA_ERROR',
-          message: expect.stringContaining('Network error'),
-        });
-      });
-
-      it('should handle timeout error', async () => {
-        const mockGetAssetPrice = jest.fn().mockRejectedValue(new Error('Request timeout'));
-        (getDIADataService as jest.Mock).mockReturnValue({
-          getAssetPrice: mockGetAssetPrice,
-        });
-
-        await expect(client.getPrice('ETH')).rejects.toMatchObject({
-          code: 'DIA_ERROR',
-        });
-      });
-
-      it('should return price with confidence', async () => {
-        const mockGetAssetPrice = jest.fn().mockResolvedValue(mockDIAPriceData);
-        (getDIADataService as jest.Mock).mockReturnValue({
-          getAssetPrice: mockGetAssetPrice,
-        });
-
-        const result = await client.getPrice('ETH');
-
-        expect(result.confidence).toBeDefined();
-        expect(result.confidence).toBeGreaterThanOrEqual(0.9);
-        expect(result.confidence).toBeLessThanOrEqual(1);
-      });
-
-      it('should return price with source', async () => {
-        const mockGetAssetPrice = jest.fn().mockResolvedValue(mockDIAPriceData);
-        (getDIADataService as jest.Mock).mockReturnValue({
-          getAssetPrice: mockGetAssetPrice,
-        });
-
-        const result = await client.getPrice('ETH');
-
-        expect(result.source).toBeDefined();
-        expect(result.source).toBe('dia-api');
+      await expect(client.getPrice('ETH')).rejects.toMatchObject({
+        code: 'DIA_ERROR',
       });
     });
 
-    describe('Error handling', () => {
-      it('should handle non-Error objects', async () => {
-        const mockGetAssetPrice = jest.fn().mockRejectedValue('String error');
-        (getDIADataService as jest.Mock).mockReturnValue({
-          getAssetPrice: mockGetAssetPrice,
-        });
+    it('should handle network error', async () => {
+      (binanceMarketService.getTokenMarketData as jest.Mock).mockRejectedValue(
+        new Error('Network error')
+      );
 
-        await expect(client.getPrice('ETH')).rejects.toMatchObject({
-          code: 'DIA_ERROR',
-          message: expect.stringContaining('Failed to fetch price from DIA'),
-        });
+      await expect(client.getPrice('ETH')).rejects.toMatchObject({
+        code: 'DIA_ERROR',
+        message: expect.stringContaining('Network error'),
       });
+    });
 
-      it('should handle undefined error', async () => {
-        const mockGetAssetPrice = jest.fn().mockRejectedValue(undefined);
-        (getDIADataService as jest.Mock).mockReturnValue({
-          getAssetPrice: mockGetAssetPrice,
-        });
+    it('should handle timeout error', async () => {
+      (binanceMarketService.getTokenMarketData as jest.Mock).mockRejectedValue(
+        new Error('Request timeout')
+      );
 
-        await expect(client.getPrice('ETH')).rejects.toMatchObject({
-          code: 'DIA_ERROR',
-        });
+      await expect(client.getPrice('ETH')).rejects.toMatchObject({
+        code: 'DIA_ERROR',
       });
+    });
 
-      it('should handle null error', async () => {
-        const mockGetAssetPrice = jest.fn().mockRejectedValue(null);
-        (getDIADataService as jest.Mock).mockReturnValue({
-          getAssetPrice: mockGetAssetPrice,
-        });
+    it('should handle non-Error objects', async () => {
+      (binanceMarketService.getTokenMarketData as jest.Mock).mockRejectedValue('String error');
 
-        await expect(client.getPrice('ETH')).rejects.toMatchObject({
-          code: 'DIA_ERROR',
-        });
+      await expect(client.getPrice('ETH')).rejects.toMatchObject({
+        code: 'DIA_ERROR',
+        message: expect.stringContaining('Failed to fetch price from Binance API'),
+      });
+    });
+
+    it('should handle undefined error', async () => {
+      (binanceMarketService.getTokenMarketData as jest.Mock).mockRejectedValue(undefined);
+
+      await expect(client.getPrice('ETH')).rejects.toMatchObject({
+        code: 'DIA_ERROR',
+      });
+    });
+
+    it('should handle null error', async () => {
+      (binanceMarketService.getTokenMarketData as jest.Mock).mockRejectedValue(null);
+
+      await expect(client.getPrice('ETH')).rejects.toMatchObject({
+        code: 'DIA_ERROR',
+      });
+    });
+
+    it('should fetch DIA token price from Binance API', async () => {
+      const mockDIAMarketData = {
+        ...mockBinanceMarketData,
+        symbol: 'DIA',
+        name: 'DIA',
+        currentPrice: 0.85,
+        priceChange24h: 0.05,
+        priceChangePercentage24h: 6.25,
+      };
+      (binanceMarketService.getTokenMarketData as jest.Mock).mockResolvedValue(mockDIAMarketData);
+
+      const result = await client.getPrice('DIA');
+
+      expect(binanceMarketService.getTokenMarketData).toHaveBeenCalledWith('DIA');
+      expect(result).toMatchObject({
+        provider: OracleProvider.DIA,
+        symbol: 'DIA',
+        price: 0.85,
+        decimals: 8,
+        confidence: 0.95,
+        change24h: 0.05,
+        change24hPercent: 6.25,
+        source: 'binance-api',
+      });
+    });
+
+    it('should throw error when Binance returns no data for DIA', async () => {
+      (binanceMarketService.getTokenMarketData as jest.Mock).mockResolvedValue(null);
+
+      await expect(client.getPrice('DIA')).rejects.toMatchObject({
+        code: 'NO_DATA_AVAILABLE',
+      });
+    });
+
+    it('should throw error when Binance API fails for DIA', async () => {
+      (binanceMarketService.getTokenMarketData as jest.Mock).mockRejectedValue(
+        new Error('Binance API error')
+      );
+
+      await expect(client.getPrice('DIA')).rejects.toMatchObject({
+        code: 'DIA_ERROR',
+      });
+    });
+
+    it('should return price with confidence', async () => {
+      (binanceMarketService.getTokenMarketData as jest.Mock).mockResolvedValue(
+        mockBinanceMarketData
+      );
+
+      const result = await client.getPrice('ETH');
+
+      expect(result.confidence).toBeDefined();
+      expect(result.confidence).toBeGreaterThanOrEqual(0.9);
+      expect(result.confidence).toBeLessThanOrEqual(1);
+    });
+
+    it('should return price with binance-api source', async () => {
+      (binanceMarketService.getTokenMarketData as jest.Mock).mockResolvedValue(
+        mockBinanceMarketData
+      );
+
+      const result = await client.getPrice('ETH');
+
+      expect(result.source).toBe('binance-api');
+    });
+
+    it('should handle very large price values', async () => {
+      const largePriceData = {
+        ...mockBinanceMarketData,
+        currentPrice: 999999999.99,
+      };
+      (binanceMarketService.getTokenMarketData as jest.Mock).mockResolvedValue(largePriceData);
+
+      const result = await client.getPrice('ETH');
+
+      expect(result.price).toBe(999999999.99);
+    });
+
+    it('should handle very small price values', async () => {
+      const smallPriceData = {
+        ...mockBinanceMarketData,
+        currentPrice: 0.00000001,
+      };
+      (binanceMarketService.getTokenMarketData as jest.Mock).mockResolvedValue(smallPriceData);
+
+      const result = await client.getPrice('ETH');
+
+      expect(result.price).toBe(0.00000001);
+    });
+
+    it('should handle rate limiting from Binance API', async () => {
+      (binanceMarketService.getTokenMarketData as jest.Mock).mockRejectedValue(
+        new Error('Rate limit exceeded')
+      );
+
+      await expect(client.getPrice('ETH')).rejects.toMatchObject({
+        code: 'DIA_ERROR',
+        message: expect.stringContaining('Rate limit exceeded'),
+      });
+    });
+
+    it('should handle malformed JSON from Binance API', async () => {
+      (binanceMarketService.getTokenMarketData as jest.Mock).mockRejectedValue(
+        new Error('Unexpected token < in JSON')
+      );
+
+      await expect(client.getPrice('ETH')).rejects.toMatchObject({
+        code: 'DIA_ERROR',
+      });
+    });
+
+    it('should handle connection timeout from Binance API', async () => {
+      (binanceMarketService.getTokenMarketData as jest.Mock).mockRejectedValue(
+        new Error('ETIMEDOUT')
+      );
+
+      await expect(client.getPrice('ETH')).rejects.toMatchObject({
+        code: 'DIA_ERROR',
+      });
+    });
+
+    it('should handle DNS resolution failure', async () => {
+      (binanceMarketService.getTokenMarketData as jest.Mock).mockRejectedValue(
+        new Error('getaddrinfo ENOTFOUND api.binance.com')
+      );
+
+      await expect(client.getPrice('ETH')).rejects.toMatchObject({
+        code: 'DIA_ERROR',
       });
     });
   });
 
   describe('getHistoricalPrices', () => {
-    const mockHistoricalPrices: PriceData[] = [
-      {
-        provider: OracleProvider.DIA,
-        symbol: 'ETH',
-        price: 3450,
-        timestamp: Date.now() - 3600000,
-        decimals: 8,
-        confidence: 0.95,
-        chain: Blockchain.ETHEREUM,
-        source: 'dia-api',
-      },
-      {
-        provider: OracleProvider.DIA,
-        symbol: 'ETH',
-        price: 3475,
-        timestamp: Date.now() - 1800000,
-        decimals: 8,
-        confidence: 0.95,
-        chain: Blockchain.ETHEREUM,
-        source: 'dia-api',
-      },
-      {
-        provider: OracleProvider.DIA,
-        symbol: 'ETH',
-        price: 3500,
-        timestamp: Date.now(),
-        decimals: 8,
-        confidence: 0.95,
-        chain: Blockchain.ETHEREUM,
-        source: 'dia-api',
-      },
+    const mockHistoricalPricePoints = [
+      { price: 3450, timestamp: Date.now() - 7200000 },
+      { price: 3475, timestamp: Date.now() - 3600000 },
+      { price: 3500, timestamp: Date.now() },
     ];
 
-    it('should return historical price data', async () => {
-      const mockGetHistoricalPrices = jest.fn().mockResolvedValue(mockHistoricalPrices);
-      (getDIADataService as jest.Mock).mockReturnValue({
-        getHistoricalPrices: mockGetHistoricalPrices,
-      });
+    it('should return historical price data from Binance API', async () => {
+      (binanceMarketService.getHistoricalPricesByHours as jest.Mock).mockResolvedValue(
+        mockHistoricalPricePoints
+      );
 
       const result = await client.getHistoricalPrices('ETH');
 
+      expect(binanceMarketService.getHistoricalPricesByHours).toHaveBeenCalledWith('ETH', 24);
       expect(Array.isArray(result)).toBe(true);
       expect(result.length).toBe(3);
       expect(result[0]).toMatchObject({
         provider: OracleProvider.DIA,
         symbol: 'ETH',
         chain: Blockchain.ETHEREUM,
+        source: 'binance-api',
       });
-      expect(mockGetHistoricalPrices).toHaveBeenCalledWith('ETH', undefined, 24);
-    });
-
-    it('should return historical prices with change calculations', async () => {
-      const mockGetHistoricalPrices = jest.fn().mockResolvedValue(mockHistoricalPrices);
-      (getDIADataService as jest.Mock).mockReturnValue({
-        getHistoricalPrices: mockGetHistoricalPrices,
-      });
-
-      const result = await client.getHistoricalPrices('ETH');
-
-      expect(result[0].change24h).toBe(0);
-      expect(result[0].change24hPercent).toBe(0);
     });
 
     it('should use specified chain', async () => {
-      const mockGetHistoricalPrices = jest
-        .fn()
-        .mockResolvedValue(mockHistoricalPrices.map((p) => ({ ...p, chain: Blockchain.ARBITRUM })));
-      (getDIADataService as jest.Mock).mockReturnValue({
-        getHistoricalPrices: mockGetHistoricalPrices,
-      });
+      (binanceMarketService.getHistoricalPricesByHours as jest.Mock).mockResolvedValue(
+        mockHistoricalPricePoints
+      );
 
       const result = await client.getHistoricalPrices('ETH', Blockchain.ARBITRUM, 24);
 
       expect(result[0].chain).toBe(Blockchain.ARBITRUM);
-      expect(mockGetHistoricalPrices).toHaveBeenCalledWith('ETH', Blockchain.ARBITRUM, 24);
     });
 
     it('should use default period of 24 hours', async () => {
-      const mockGetHistoricalPrices = jest.fn().mockResolvedValue(mockHistoricalPrices);
-      (getDIADataService as jest.Mock).mockReturnValue({
-        getHistoricalPrices: mockGetHistoricalPrices,
-      });
+      (binanceMarketService.getHistoricalPricesByHours as jest.Mock).mockResolvedValue(
+        mockHistoricalPricePoints
+      );
 
       await client.getHistoricalPrices('ETH');
 
-      expect(mockGetHistoricalPrices).toHaveBeenCalledWith('ETH', undefined, 24);
+      expect(binanceMarketService.getHistoricalPricesByHours).toHaveBeenCalledWith('ETH', 24);
     });
 
     it('should use custom period', async () => {
-      const mockGetHistoricalPrices = jest.fn().mockResolvedValue(mockHistoricalPrices);
-      (getDIADataService as jest.Mock).mockReturnValue({
-        getHistoricalPrices: mockGetHistoricalPrices,
-      });
+      (binanceMarketService.getHistoricalPricesByHours as jest.Mock).mockResolvedValue(
+        mockHistoricalPricePoints
+      );
 
       await client.getHistoricalPrices('ETH', undefined, 48);
 
-      expect(mockGetHistoricalPrices).toHaveBeenCalledWith('ETH', undefined, 48);
+      expect(binanceMarketService.getHistoricalPricesByHours).toHaveBeenCalledWith('ETH', 48);
     });
 
     it('should return empty array when no historical data available', async () => {
-      const mockGetHistoricalPrices = jest.fn().mockResolvedValue([]);
-      (getDIADataService as jest.Mock).mockReturnValue({
-        getHistoricalPrices: mockGetHistoricalPrices,
-      });
+      (binanceMarketService.getHistoricalPricesByHours as jest.Mock).mockResolvedValue([]);
 
       const result = await client.getHistoricalPrices('ETH');
 
       expect(result).toEqual([]);
     });
 
-    it('should return empty array when DIA service returns null', async () => {
-      const mockGetHistoricalPrices = jest.fn().mockResolvedValue(null);
-      (getDIADataService as jest.Mock).mockReturnValue({
-        getHistoricalPrices: mockGetHistoricalPrices,
-      });
+    it('should return empty array when Binance returns null', async () => {
+      (binanceMarketService.getHistoricalPricesByHours as jest.Mock).mockResolvedValue(null);
 
       const result = await client.getHistoricalPrices('ETH');
 
       expect(result).toEqual([]);
     });
 
-    it('should return empty array on service error', async () => {
-      const mockGetHistoricalPrices = jest.fn().mockRejectedValue(new Error('Service error'));
-      (getDIADataService as jest.Mock).mockReturnValue({
-        getHistoricalPrices: mockGetHistoricalPrices,
-      });
-
-      const result = await client.getHistoricalPrices('ETH');
-
-      expect(result).toEqual([]);
-    });
-
-    it('should handle network error gracefully', async () => {
-      const mockGetHistoricalPrices = jest.fn().mockRejectedValue(new Error('Network error'));
-      (getDIADataService as jest.Mock).mockReturnValue({
-        getHistoricalPrices: mockGetHistoricalPrices,
-      });
-
-      const result = await client.getHistoricalPrices('ETH');
-
-      expect(result).toEqual([]);
-    });
-
-    it('should handle non-Error objects in error handling', async () => {
-      const mockGetHistoricalPrices = jest.fn().mockRejectedValue('String error');
-      (getDIADataService as jest.Mock).mockReturnValue({
-        getHistoricalPrices: mockGetHistoricalPrices,
-      });
+    it('should return empty array on Binance API error', async () => {
+      (binanceMarketService.getHistoricalPricesByHours as jest.Mock).mockRejectedValue(
+        new Error('Binance API error')
+      );
 
       const result = await client.getHistoricalPrices('ETH');
 
@@ -571,243 +504,50 @@ describe('DIAClient', () => {
     });
 
     it('should calculate change24h correctly', async () => {
-      const mockData = [
-        { price: 100, timestamp: Date.now() - 7200000, confidence: 0.95, source: 'dia-api' },
-        { price: 105, timestamp: Date.now() - 3600000, confidence: 0.95, source: 'dia-api' },
-        { price: 110, timestamp: Date.now(), confidence: 0.95, source: 'dia-api' },
+      const pricePoints = [
+        { price: 100, timestamp: Date.now() - 7200000 },
+        { price: 105, timestamp: Date.now() - 3600000 },
+        { price: 110, timestamp: Date.now() },
       ];
 
-      const mockGetHistoricalPrices = jest.fn().mockResolvedValue(mockData);
-      (getDIADataService as jest.Mock).mockReturnValue({
-        getHistoricalPrices: mockGetHistoricalPrices,
-      });
+      (binanceMarketService.getHistoricalPricesByHours as jest.Mock).mockResolvedValue(pricePoints);
 
       const result = await client.getHistoricalPrices('ETH');
 
-      expect(result[0].change24h).toBe(0);
-      expect(result[0].change24hPercent).toBe(0);
+      expect(result[0].change24h).toBe(10);
+      expect(result[0].change24hPercent).toBe(10);
       expect(result[1].change24h).toBe(5);
-      expect(result[1].change24hPercent).toBe(5);
-      expect(result[2].change24h).toBe(10);
-      expect(result[2].change24hPercent).toBe(10);
+      expect(result[1].change24hPercent).toBe(4.76);
+      expect(result[2].change24h).toBe(0);
+      expect(result[2].change24hPercent).toBe(0);
     });
 
     it('should use Ethereum as default chain', async () => {
-      const mockGetHistoricalPrices = jest.fn().mockResolvedValue(mockHistoricalPrices);
-      (getDIADataService as jest.Mock).mockReturnValue({
-        getHistoricalPrices: mockGetHistoricalPrices,
-      });
+      (binanceMarketService.getHistoricalPricesByHours as jest.Mock).mockResolvedValue(
+        mockHistoricalPricePoints
+      );
 
       const result = await client.getHistoricalPrices('ETH');
 
       expect(result[0].chain).toBe(Blockchain.ETHEREUM);
     });
 
-    it('should preserve confidence from source data', async () => {
-      const mockDataWithConfidence = [
-        { price: 100, timestamp: Date.now(), confidence: 0.92, source: 'dia-api' },
-        { price: 105, timestamp: Date.now() + 3600000, confidence: 0.98, source: 'dia-api' },
-      ];
-
-      const mockGetHistoricalPrices = jest.fn().mockResolvedValue(mockDataWithConfidence);
-      (getDIADataService as jest.Mock).mockReturnValue({
-        getHistoricalPrices: mockGetHistoricalPrices,
-      });
+    it('should use binance-api as source', async () => {
+      (binanceMarketService.getHistoricalPricesByHours as jest.Mock).mockResolvedValue(
+        mockHistoricalPricePoints
+      );
 
       const result = await client.getHistoricalPrices('ETH');
 
-      expect(result[0].confidence).toBe(0.92);
-      expect(result[1].confidence).toBe(0.98);
-    });
-
-    it('should use default confidence when not provided', async () => {
-      const mockDataWithoutConfidence = [
-        { price: 100, timestamp: Date.now(), source: 'dia-api' },
-        { price: 105, timestamp: Date.now() + 3600000, source: 'dia-api' },
-      ];
-
-      const mockGetHistoricalPrices = jest.fn().mockResolvedValue(mockDataWithoutConfidence);
-      (getDIADataService as jest.Mock).mockReturnValue({
-        getHistoricalPrices: mockGetHistoricalPrices,
-      });
-
-      const result = await client.getHistoricalPrices('ETH');
-
-      expect(result[0].confidence).toBe(0.95);
-      expect(result[1].confidence).toBe(0.95);
-    });
-
-    it('should preserve source from source data', async () => {
-      const mockDataWithSource = [
-        { price: 100, timestamp: Date.now(), confidence: 0.95, source: 'custom-source' },
-      ];
-
-      const mockGetHistoricalPrices = jest.fn().mockResolvedValue(mockDataWithSource);
-      (getDIADataService as jest.Mock).mockReturnValue({
-        getHistoricalPrices: mockGetHistoricalPrices,
-      });
-
-      const result = await client.getHistoricalPrices('ETH');
-
-      expect(result[0].source).toBe('custom-source');
-    });
-
-    it('should use default source when not provided', async () => {
-      const mockDataWithoutSource = [{ price: 100, timestamp: Date.now(), confidence: 0.95 }];
-
-      const mockGetHistoricalPrices = jest.fn().mockResolvedValue(mockDataWithoutSource);
-      (getDIADataService as jest.Mock).mockReturnValue({
-        getHistoricalPrices: mockGetHistoricalPrices,
-      });
-
-      const result = await client.getHistoricalPrices('ETH');
-
-      expect(result[0].source).toBe('dia-api');
-    });
-  });
-
-  describe('Integration with DIADataService', () => {
-    it('should call getDIADataService singleton', async () => {
-      const mockGetAssetPrice = jest.fn().mockResolvedValue({
-        provider: OracleProvider.DIA,
-        symbol: 'ETH',
-        price: 3500,
-        timestamp: Date.now(),
-        decimals: 8,
-        confidence: 0.95,
-        chain: Blockchain.ETHEREUM,
-        source: 'dia-api',
-      });
-
-      (getDIADataService as jest.Mock).mockReturnValue({
-        getAssetPrice: mockGetAssetPrice,
-      });
-
-      await client.getPrice('ETH');
-
-      expect(getDIADataService).toHaveBeenCalled();
-    });
-
-    it('should use same DIADataService instance for multiple calls', async () => {
-      const mockGetAssetPrice = jest.fn().mockResolvedValue({
-        provider: OracleProvider.DIA,
-        symbol: 'ETH',
-        price: 3500,
-        timestamp: Date.now(),
-        decimals: 8,
-        confidence: 0.95,
-        chain: Blockchain.ETHEREUM,
-        source: 'dia-api',
-      });
-
-      (getDIADataService as jest.Mock).mockReturnValue({
-        getAssetPrice: mockGetAssetPrice,
-      });
-
-      await client.getPrice('ETH');
-      await client.getPrice('BTC');
-      await client.getPrice('LINK');
-
-      expect(getDIADataService).toHaveBeenCalledTimes(3);
-    });
-  });
-
-  describe('Edge cases', () => {
-    it('should handle symbol with whitespace', async () => {
-      const mockGetAssetPrice = jest.fn().mockResolvedValue({
-        provider: OracleProvider.DIA,
-        symbol: 'ETH',
-        price: 3500,
-        timestamp: Date.now(),
-        decimals: 8,
-        confidence: 0.95,
-        chain: Blockchain.ETHEREUM,
-        source: 'dia-api',
-      });
-
-      (getDIADataService as jest.Mock).mockReturnValue({
-        getAssetPrice: mockGetAssetPrice,
-      });
-
-      const result = await client.getPrice(' eth ');
-
-      expect(result.symbol).toBe('ETH');
-    });
-
-    it('should handle very large price values', async () => {
-      const largePrice = 999999999.99;
-      const mockGetAssetPrice = jest.fn().mockResolvedValue({
-        provider: OracleProvider.DIA,
-        symbol: 'ETH',
-        price: largePrice,
-        timestamp: Date.now(),
-        decimals: 8,
-        confidence: 0.95,
-        chain: Blockchain.ETHEREUM,
-        source: 'dia-api',
-      });
-
-      (getDIADataService as jest.Mock).mockReturnValue({
-        getAssetPrice: mockGetAssetPrice,
-      });
-
-      const result = await client.getPrice('ETH');
-
-      expect(result.price).toBe(largePrice);
-    });
-
-    it('should handle very small price values', async () => {
-      const smallPrice = 0.00000001;
-      const mockGetAssetPrice = jest.fn().mockResolvedValue({
-        provider: OracleProvider.DIA,
-        symbol: 'ETH',
-        price: smallPrice,
-        timestamp: Date.now(),
-        decimals: 8,
-        confidence: 0.95,
-        chain: Blockchain.ETHEREUM,
-        source: 'dia-api',
-      });
-
-      (getDIADataService as jest.Mock).mockReturnValue({
-        getAssetPrice: mockGetAssetPrice,
-      });
-
-      const result = await client.getPrice('ETH');
-
-      expect(result.price).toBe(smallPrice);
-    });
-
-    it('should handle zero price', async () => {
-      const mockGetAssetPrice = jest.fn().mockResolvedValue({
-        provider: OracleProvider.DIA,
-        symbol: 'ETH',
-        price: 0,
-        timestamp: Date.now(),
-        decimals: 8,
-        confidence: 0.95,
-        chain: Blockchain.ETHEREUM,
-        source: 'dia-api',
-      });
-
-      (getDIADataService as jest.Mock).mockReturnValue({
-        getAssetPrice: mockGetAssetPrice,
-      });
-
-      const result = await client.getPrice('ETH');
-
-      expect(result.price).toBe(0);
+      expect(result[0].source).toBe('binance-api');
     });
 
     it('should handle historical prices with single data point', async () => {
-      const singleDataPoint = [
-        { price: 100, timestamp: Date.now(), confidence: 0.95, source: 'dia-api' },
-      ];
+      const singleDataPoint = [{ price: 100, timestamp: Date.now() }];
 
-      const mockGetHistoricalPrices = jest.fn().mockResolvedValue(singleDataPoint);
-      (getDIADataService as jest.Mock).mockReturnValue({
-        getHistoricalPrices: mockGetHistoricalPrices,
-      });
+      (binanceMarketService.getHistoricalPricesByHours as jest.Mock).mockResolvedValue(
+        singleDataPoint
+      );
 
       const result = await client.getHistoricalPrices('ETH');
 
@@ -820,141 +560,25 @@ describe('DIAClient', () => {
       const manyDataPoints = Array.from({ length: 100 }, (_, i) => ({
         price: 100 + i,
         timestamp: Date.now() - i * 3600000,
-        confidence: 0.95,
-        source: 'dia-api',
       }));
 
-      const mockGetHistoricalPrices = jest.fn().mockResolvedValue(manyDataPoints);
-      (getDIADataService as jest.Mock).mockReturnValue({
-        getHistoricalPrices: mockGetHistoricalPrices,
-      });
+      (binanceMarketService.getHistoricalPricesByHours as jest.Mock).mockResolvedValue(
+        manyDataPoints
+      );
 
       const result = await client.getHistoricalPrices('ETH');
 
       expect(result.length).toBe(100);
     });
-  });
 
-  describe('Real API integration scenarios', () => {
-    it('should handle rate limiting from DIA API', async () => {
-      const mockGetAssetPrice = jest.fn().mockRejectedValue(new Error('Rate limit exceeded'));
-      (getDIADataService as jest.Mock).mockReturnValue({
-        getAssetPrice: mockGetAssetPrice,
-      });
-
-      await expect(client.getPrice('ETH')).rejects.toMatchObject({
-        code: 'DIA_ERROR',
-        message: expect.stringContaining('Rate limit exceeded'),
-      });
-    });
-
-    it('should handle invalid response from DIA API', async () => {
-      const mockGetAssetPrice = jest.fn().mockResolvedValue({
-        invalid: 'response',
-      });
-      (getDIADataService as jest.Mock).mockReturnValue({
-        getAssetPrice: mockGetAssetPrice,
-      });
-
-      const result = await client.getPrice('ETH');
-
-      expect(result).toBeDefined();
-    });
-
-    it('should handle malformed JSON from Binance API', async () => {
-      (binanceMarketService.getTokenMarketData as jest.Mock).mockRejectedValue(
-        new Error('Unexpected token < in JSON')
+    it('should handle non-Error objects in error handling', async () => {
+      (binanceMarketService.getHistoricalPricesByHours as jest.Mock).mockRejectedValue(
+        'String error'
       );
 
-      await expect(client.getPrice('DIA')).rejects.toMatchObject({
-        code: 'DIA_ERROR',
-      });
-    });
+      const result = await client.getHistoricalPrices('ETH');
 
-    it('should handle connection timeout from DIA API', async () => {
-      const mockGetAssetPrice = jest.fn().mockRejectedValue(new Error('ETIMEDOUT'));
-      (getDIADataService as jest.Mock).mockReturnValue({
-        getAssetPrice: mockGetAssetPrice,
-      });
-
-      await expect(client.getPrice('ETH')).rejects.toMatchObject({
-        code: 'DIA_ERROR',
-      });
-    });
-
-    it('should handle DNS resolution failure', async () => {
-      const mockGetAssetPrice = jest
-        .fn()
-        .mockRejectedValue(new Error('getaddrinfo ENOTFOUND api.diadata.org'));
-      (getDIADataService as jest.Mock).mockReturnValue({
-        getAssetPrice: mockGetAssetPrice,
-      });
-
-      await expect(client.getPrice('ETH')).rejects.toMatchObject({
-        code: 'DIA_ERROR',
-      });
-    });
-  });
-
-  describe('Data validation', () => {
-    it('should handle missing timestamp in price data', async () => {
-      const mockGetAssetPrice = jest.fn().mockResolvedValue({
-        provider: OracleProvider.DIA,
-        symbol: 'ETH',
-        price: 3500,
-        decimals: 8,
-        confidence: 0.95,
-        chain: Blockchain.ETHEREUM,
-        source: 'dia-api',
-      });
-
-      (getDIADataService as jest.Mock).mockReturnValue({
-        getAssetPrice: mockGetAssetPrice,
-      });
-
-      const result = await client.getPrice('ETH');
-
-      expect(result).toBeDefined();
-    });
-
-    it('should handle missing decimals in price data', async () => {
-      const mockGetAssetPrice = jest.fn().mockResolvedValue({
-        provider: OracleProvider.DIA,
-        symbol: 'ETH',
-        price: 3500,
-        timestamp: Date.now(),
-        confidence: 0.95,
-        chain: Blockchain.ETHEREUM,
-        source: 'dia-api',
-      });
-
-      (getDIADataService as jest.Mock).mockReturnValue({
-        getAssetPrice: mockGetAssetPrice,
-      });
-
-      const result = await client.getPrice('ETH');
-
-      expect(result).toBeDefined();
-    });
-
-    it('should handle missing confidence in price data', async () => {
-      const mockGetAssetPrice = jest.fn().mockResolvedValue({
-        provider: OracleProvider.DIA,
-        symbol: 'ETH',
-        price: 3500,
-        timestamp: Date.now(),
-        decimals: 8,
-        chain: Blockchain.ETHEREUM,
-        source: 'dia-api',
-      });
-
-      (getDIADataService as jest.Mock).mockReturnValue({
-        getAssetPrice: mockGetAssetPrice,
-      });
-
-      const result = await client.getPrice('ETH');
-
-      expect(result).toBeDefined();
+      expect(result).toEqual([]);
     });
   });
 });

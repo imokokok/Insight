@@ -1,5 +1,5 @@
 /**
- * @fileoverview 跨预言机对比页面常量定义
+ * @fileoverview Cross-oracle comparison page constants
  */
 
 import { getAllSupportedSymbols } from '@/lib/oracles/constants/supportedSymbols';
@@ -8,7 +8,7 @@ import { OracleProvider } from '@/types/oracle';
 import { DEVIATION_THRESHOLDS } from './thresholds';
 
 // ============================================================================
-// 时间范围
+// Time ranges
 // ============================================================================
 
 export type TimeRange = '1h' | '24h' | '7d' | '30d' | '90d' | '1y';
@@ -46,18 +46,18 @@ export const timeRanges: { value: TimeRange; label: string }[] = [
 ];
 
 // ============================================================================
-// 交易对 - 从统一的符号列表生成
+// Trading pairs - generated from unified symbol list
 // ============================================================================
 
-// 获取所有支持的交易对并转换为 BTC/USD 格式
+// Get all supported trading pairs and convert to BTC/USD format
 const allSymbols = getAllSupportedSymbols();
 export const tradingPairs = allSymbols.map((symbol) => `${symbol}/USD`);
 
 // ============================================================================
-// 预言机提供商 - 使用统一的 OracleProvider enum
+// Oracle providers - using unified OracleProvider enum
 // ============================================================================
 
-// 兼容旧代码的导出 - 使用 OracleProvider enum
+// Export for backward compatibility - using OracleProvider enum
 export const oracleNames: Record<OracleProvider, string> = {
   [OracleProvider.CHAINLINK]: 'Chainlink',
   [OracleProvider.PYTH]: 'Pyth',
@@ -72,13 +72,13 @@ export const oracleNames: Record<OracleProvider, string> = {
 };
 
 // ============================================================================
-// 刷新间隔
+// Refresh intervals
 // ============================================================================
 
 export type RefreshInterval = 'off' | '10s' | '30s' | '1m' | '5m';
 
 // ============================================================================
-// 阈值配置
+// Threshold configuration
 // ============================================================================
 
 export const ANOMALY_ZSCORE_THRESHOLD = 2;
@@ -89,14 +89,14 @@ export function calculateZScore(value: number, mean: number, stdDev: number): nu
 }
 
 /**
- * 判断是否为异常值
+ * isasanomaly value
  */
 export function isOutlier(zScore: number, threshold: number = ANOMALY_ZSCORE_THRESHOLD): boolean {
   return Math.abs(zScore) > threshold;
 }
 
 /**
- * 获取偏差背景色类名
+ * getbiasBackgroundclass
  */
 export function getDeviationBgClass(deviation: number): string {
   const absDeviation = Math.abs(deviation);
@@ -113,7 +113,7 @@ export function getDeviationBgClass(deviation: number): string {
 }
 
 /**
- * 获取数据新鲜度信息
+ * getnew
  */
 export function getFreshnessInfo(timestamp: number): {
   text: string;
@@ -156,7 +156,7 @@ export function getFreshnessInfo(timestamp: number): {
 }
 
 /**
- * 获取新鲜度圆点颜色
+ * getnewcolor
  */
 export function getFreshnessDotColor(freshnessSeconds: number): string {
   const minutes = Math.floor(freshnessSeconds / 60);
@@ -169,7 +169,7 @@ export function getFreshnessDotColor(freshnessSeconds: number): string {
 }
 
 // ============================================================================
-// 排序和筛选类型
+// Sort and filter types
 // ============================================================================
 
 export type SortColumn = 'oracle' | 'price' | 'deviation' | 'timestamp' | 'confidence';
@@ -177,5 +177,5 @@ export type SortDirection = 'asc' | 'desc';
 export type DeviationFilter = 'all' | 'normal' | 'warning' | 'critical';
 
 // ============================================================================
-// 导出功能
+// Export functionality
 // ============================================================================

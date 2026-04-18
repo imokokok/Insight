@@ -1345,7 +1345,7 @@ describe('/api/alerts', () => {
 
     it('should handle unicode characters in alert name', async () => {
       const newAlert = {
-        name: '价格提醒 🚀 BTC Alert 中文',
+        name: 'Price Alert 🚀 BTC Alert',
         symbol: 'BTC',
         condition_type: 'above' as const,
         target_value: 50000,

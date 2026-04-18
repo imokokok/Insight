@@ -1,7 +1,7 @@
 /**
- * API 错误处理系统
+ * API error handling system
  *
- * 提供统一的 API 错误处理和响应处理
+ * Provides unified API error handling and response processing
  */
 
 export * from './middleware';

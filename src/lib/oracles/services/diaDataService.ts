@@ -22,22 +22,22 @@ import type {
 
 const logger = createLogger('DIADataService');
 
-// 代币链上数据聚合接口
+// Token on-chain data aggregation interface
 interface DIATokenOnChainDataInternal {
   symbol: string;
   price: number;
   change24hPercent: number;
-  // 供应量数据
+  // Supply data
   circulatingSupply: number | null;
   totalSupply: number | null;
   maxSupply: number | null;
   marketCap: number | null;
-  // 交易所数据
+  // Exchange data
   exchangeCount: number;
   activeExchangeCount: number;
   totalTradingPairs: number;
   totalVolume24h: number;
-  // 数据新鲜度
+  // Data freshness
   lastUpdated: number;
   dataSource: string;
 }
@@ -119,8 +119,8 @@ class DIADataService {
   }
 
   /**
-   * 获取代币的完整链上数据（供应量 + 交易所数据）
-   * 用于价格查询页面的统计卡片展示
+   * Get complete on-chain data for a token (supply + exchange data)
+   * Used for statistics card display on the price query page
    */
   async getTokenOnChainData(
     symbol: string,
@@ -133,7 +133,7 @@ class DIADataService {
     }
 
     try {
-      // 并行获取价格、供应量和交易所数据
+      // Fetch price, supply, and exchange data in parallel
       const [priceData, supplyData, exchanges] = await Promise.all([
         this.priceService.getAssetPrice(symbol, chain),
         this.networkService.getSupply(symbol),
@@ -145,12 +145,12 @@ class DIADataService {
         return null;
       }
 
-      // 计算交易所统计数据
+      // Calculate exchange statistics
       const activeExchanges = exchanges.filter((e) => e.ScraperActive);
       const totalVolume24h = exchanges.reduce((sum, e) => sum + (e.Volume24h || 0), 0);
       const totalPairs = exchanges.reduce((sum, e) => sum + (e.Pairs || 0), 0);
 
-      // 计算市值
+      // Calculate market cap
       const marketCap =
         supplyData?.CirculatingSupply && priceData.price
           ? supplyData.CirculatingSupply * priceData.price
@@ -172,7 +172,7 @@ class DIADataService {
         dataSource: priceData.source || 'DIA',
       };
 
-      this.setCache(cacheKey, onChainData, 60000); // 1分钟缓存
+      this.setCache(cacheKey, onChainData, 60000); // 1-minute cache
       logger.info('Successfully fetched token on-chain data', {
         symbol,
         price: onChainData.price,
@@ -234,5 +234,5 @@ function resetDIADataService(): void {
   instance.clearCache();
 }
 
-// 重新导出链上数据接口
+// Re-export on-chain data interface
 export type DIATokenOnChainData = DIATokenOnChainDataInternal;

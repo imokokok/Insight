@@ -1,7 +1,7 @@
 /**
- * 导出历史记录 Hook
+ * Export history Hook
  *
- * 提供导出历史记录的管理功能
+ * Provides export history management functionality
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -25,27 +25,27 @@ interface UseExportHistoryReturn {
   settings: ExportSettings;
   isLoading: boolean;
 
-  // 操作函数
+  // Action functions
   addHistoryItem: (item: ExportHistoryItem) => void;
   removeHistoryItem: (id: string) => void;
   clearHistory: () => void;
   updateSettings: (settings: Partial<ExportSettings>) => void;
 
-  // 工具函数
+  // Utility functions
   formatFileSize: (bytes: number) => string;
   getHistoryByDataSource: (dataSource: string) => ExportHistoryItem[];
   getRecentExports: (count: number) => ExportHistoryItem[];
 }
 
 /**
- * 导出历史记录 Hook
+ * Export history Hook
  */
 export function useExportHistory(): UseExportHistoryReturn {
   const [history, setHistory] = useState<ExportHistoryItem[]>([]);
   const [settings, setSettings] = useState<ExportSettings>(DEFAULT_EXPORT_SETTINGS);
   const [isLoading, setIsLoading] = useState(true);
 
-  // 初始化加载
+  // Initial load
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
@@ -61,12 +61,12 @@ export function useExportHistory(): UseExportHistoryReturn {
     }
   }, []);
 
-  // 添加历史记录
+  // Add history record
   const addHistoryItem = useCallback(
     (item: ExportHistoryItem) => {
       setHistory((prev) => {
         const updated = [item, ...prev];
-        // 应用设置限制
+        // Apply settings limit
         const maxItems = settings.maxHistoryItems;
         let filtered = updated.slice(0, maxItems);
 
@@ -81,19 +81,19 @@ export function useExportHistory(): UseExportHistoryReturn {
     [settings]
   );
 
-  // 删除历史记录
+  // Delete history record
   const handleRemoveHistoryItem = useCallback((id: string) => {
     setHistory((prev) => prev.filter((h) => h.id !== id));
     removeExportHistoryItem(id);
   }, []);
 
-  // 清空历史记录
+  // Clear history records
   const handleClearHistory = useCallback(() => {
     setHistory([]);
     clearExportHistory();
   }, []);
 
-  // 更新设置
+  // updatesettings
   const handleUpdateSettings = useCallback((newSettings: Partial<ExportSettings>) => {
     setSettings((prev) => {
       const updated = { ...prev, ...newSettings };
@@ -102,7 +102,7 @@ export function useExportHistory(): UseExportHistoryReturn {
     });
   }, []);
 
-  // 按数据源获取历史记录
+ // bygethistoryrecord
   const getHistoryByDataSource = useCallback(
     (dataSource: string) => {
       return history.filter((h) => h.dataSource === dataSource);
@@ -110,7 +110,7 @@ export function useExportHistory(): UseExportHistoryReturn {
     [history]
   );
 
-  // 获取最近的导出记录
+ // getexportrecord
   const getRecentExports = useCallback(
     (count: number) => {
       return history.slice(0, count);

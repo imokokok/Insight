@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 
 import { createLogger } from '@/lib/utils/logger';
 
-// ==================== Hook 工厂函数 ====================
+// ==================== Hook factory functions ====================
 
 const logger = createLogger('WebSocketManager');
 
@@ -304,12 +304,12 @@ export default class WebSocketManager {
     logger.info('WebSocket disconnected manually');
   }
 
-  // 订阅频道
+  // Subscribe to channel
   subscribe<T>(channel: string, handler: MessageHandler<T>): () => void {
     if (!this.messageHandlers.has(channel)) {
       this.messageHandlers.set(channel, new Set());
 
-      // 发送订阅消息
+      // Send subscription message
       if (this.status === 'connected') {
         this.send({
           type: 'subscribe',
@@ -325,7 +325,7 @@ export default class WebSocketManager {
     const typedHandler = handler as MessageHandler;
     handlers.add(typedHandler);
 
-    // 返回取消订阅函数
+    // Return unsubscribe function
     return () => {
       handlers.delete(typedHandler);
       if (handlers.size === 0) {
@@ -334,7 +334,7 @@ export default class WebSocketManager {
     };
   }
 
-  // 取消订阅
+  // Unsubscribe
   unsubscribe(channel: string): void {
     this.messageHandlers.delete(channel);
     this.subscribedChannels.delete(channel);
@@ -348,7 +348,7 @@ export default class WebSocketManager {
     }
   }
 
-  // 发送消息
+  // Send message
   send(message: Record<string, unknown>): void {
     const messageStr = JSON.stringify(message);
 
@@ -364,7 +364,7 @@ export default class WebSocketManager {
     }
   }
 
-  // 注册状态监听器
+  // Register status listener
   onStatusChange(handler: StatusHandler): () => void {
     this.statusHandlers.add(handler);
     return () => {
@@ -372,14 +372,14 @@ export default class WebSocketManager {
     };
   }
 
-  // 手动重连
+  // Manual reconnect
   reconnect(): void {
     this.disconnect();
     this.reconnectAttempts = 0;
     this.connect();
   }
 
-  // 保护方法：设置状态
+  // Protected method: set state
   protected setStatus(status: WebSocketStatus): void {
     this.status = status;
     this.statusHandlers.forEach((handler) => handler(status));
@@ -409,7 +409,7 @@ export default class WebSocketManager {
     }
   }
 
-  // 保护方法：启动心跳
+  // Protected method: start heartbeat
   protected startHeartbeat(): void {
     this.stopHeartbeat();
 
@@ -420,12 +420,12 @@ export default class WebSocketManager {
           timestamp: Date.now(),
         });
 
-        // 清理旧的心跳超时定时器
+ // cleanupoldheartbeat timeout
         if (this.heartbeatTimeoutTimer) {
           clearTimeout(this.heartbeatTimeoutTimer);
         }
 
-        // 设置心跳超时
+        // settingsheartbeat timeout
         this.heartbeatTimeoutTimer = setTimeout(() => {
           logger.warn('Heartbeat timeout, reconnecting...');
           this.ws?.close();
@@ -434,7 +434,7 @@ export default class WebSocketManager {
     }, this.config.heartbeatInterval);
   }
 
-  // 保护方法：停止心跳
+  // Protected method: stop heartbeat
   protected stopHeartbeat(): void {
     if (this.heartbeatTimer) {
       clearInterval(this.heartbeatTimer);
@@ -446,7 +446,7 @@ export default class WebSocketManager {
     }
   }
 
-  // 保护方法：处理心跳响应
+ // method：handleresponse
   protected handlePong(): void {
     if (this.heartbeatTimeoutTimer) {
       clearTimeout(this.heartbeatTimeoutTimer);
@@ -477,7 +477,7 @@ export default class WebSocketManager {
     }, delay);
   }
 
-  // 保护方法：清除重连定时器
+ // method：clear reconnect timer
   protected clearReconnectTimer(): void {
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer);
@@ -485,7 +485,7 @@ export default class WebSocketManager {
     }
   }
 
-  // 保护方法：刷新消息队列
+ // method：refreshmessage
   protected flushMessageQueue(): void {
     while (this.messageQueue.length > 0 && this.ws?.readyState === WebSocket.OPEN) {
       const message = this.messageQueue.shift();
@@ -495,7 +495,7 @@ export default class WebSocketManager {
     }
   }
 
-  // 保护方法：重新订阅频道
+ // method：newSubscribe to channel
   protected resubscribeChannels(): void {
     this.subscribedChannels.forEach((channel) => {
       this.send({
@@ -507,7 +507,7 @@ export default class WebSocketManager {
   }
 }
 
-// ==================== 模拟 WebSocket 实现 ====================
+// ==================== WebSocket ====================
 
 export class MockWebSocketManager extends WebSocketManager {
   private mockInterval: NodeJS.Timeout | null = null;
@@ -534,7 +534,7 @@ export class MockWebSocketManager extends WebSocketManager {
   }
 
   send(message: Record<string, unknown>): void {
-    // 模拟发送消息
+ // Send message
     logger.debug('Mock WebSocket send:', message);
   }
 
@@ -544,7 +544,7 @@ export class MockWebSocketManager extends WebSocketManager {
   }
 
   private setupMockDataGenerators(): void {
-    // 价格数据生成器
+ // generate
     this.mockDataGenerators.set('prices', () => ({
       symbol: ['BTC', 'ETH', 'LINK', 'PYTH', 'BAND'][Math.floor(Math.random() * 5)],
       price: 10000 + Math.random() * 50000,
@@ -552,7 +552,7 @@ export class MockWebSocketManager extends WebSocketManager {
       timestamp: Date.now(),
     }));
 
-    // TVS 数据生成器
+ // TVS generate
     this.mockDataGenerators.set('tvs', () => ({
       oracle: ['Chainlink', 'Pyth Network', 'API3'][Math.floor(Math.random() * 3)],
       tvs: 1 + Math.random() * 10,
@@ -560,7 +560,7 @@ export class MockWebSocketManager extends WebSocketManager {
       timestamp: Date.now(),
     }));
 
-    // 市场统计生成器
+ // generate
     this.mockDataGenerators.set('marketStats', () => ({
       totalTVS: 15 + Math.random() * 5,
       totalChains: 10 + Math.floor(Math.random() * 5),

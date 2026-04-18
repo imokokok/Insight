@@ -21,7 +21,7 @@ export interface ChainlinkPriceData {
   roundId: bigint;
   answeredInRound: bigint;
   chainId: number;
-  // Feed 元数据
+  // Feed metadata
   description?: string;
   version?: bigint;
   startedAt?: number;

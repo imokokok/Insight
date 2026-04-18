@@ -7,7 +7,7 @@ import { type OracleProvider, type Blockchain } from '@/types/oracle';
 
 const logger = createLogger('supabase-queries');
 
-// 创建全局请求队列，限制并发数据库查询数量
+// Create global request queue, limit concurrent database queries
 const queryQueue = new RequestQueue({
   maxConcurrency: 5,
   defaultTimeout: 30000,
@@ -241,7 +241,7 @@ export class DatabaseQueries {
     return queryQueue.add(async () => {
       const timestamp = new Date(normalizeTimestamp(record.timestamp)).toISOString();
 
-      // 计算 ttl 时间戳（默认 1 小时后）
+      // Calculate ttl timestamp (default 1 hour later)
       const ttlInterval = record.ttl || '1h';
       const ttl = this.calculateTtlTimestamp(ttlInterval);
 
@@ -402,12 +402,12 @@ export class DatabaseQueries {
   }
 
   /**
-   * 将 ttl 字符串转换为 ISO 时间戳
-   * 支持格式: '1h' (1小时), '30m' (30分钟), '1d' (1天), '60s' (60秒)
-   * 或者直接返回 ISO 字符串
+   * Convert ttl string to ISO timestamp
+   * Supported formats: '1h' (1 hour), '30m' (30 minutes), '1d' (1 day), '60s' (60 seconds)
+   * Or directly return ISO string
    */
   private calculateTtlTimestamp(ttl: string): string {
-    // 如果已经是 ISO 格式，直接返回
+    // If already in ISO format, return directly
     if (ttl.includes('T') || ttl.includes('-')) {
       return ttl;
     }
@@ -428,7 +428,7 @@ export class DatabaseQueries {
       return new Date(now.getTime() + ms).toISOString();
     }
 
-    // 默认 1 小时
+    // Default 1 hour
     return new Date(now.getTime() + 60 * 60 * 1000).toISOString();
   }
 

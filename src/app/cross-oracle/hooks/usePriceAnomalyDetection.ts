@@ -1,6 +1,6 @@
 /**
- * @fileoverview 价格异常检测 Hook
- * @description 检测价格数据中的异常值，提供异常分级和原因分析
+ * @fileoverview Price anomaly detection hook
+ * @description Detect anomalies in price data, providing anomaly severity classification and cause analysis
  */
 
 import { useMemo } from 'react';
@@ -15,28 +15,28 @@ import {
   CONFIDENCE_THRESHOLDS,
 } from '../thresholds';
 
-/** 异常严重程度 */
+/** Anomaly severity */
 export type AnomalySeverity = 'low' | 'medium' | 'high';
 
-/** 价格异常项 */
+/** Price anomaly item */
 export interface PriceAnomaly {
-  /** 预言机提供商 */
+  /** Oracle provider */
   provider: OracleProvider;
-  /** 异常价格 */
+  /** Anomalous price */
   price: number;
-  /** 偏差百分比（相对于平均值） */
+  /** Deviation percentage (relative to average) */
   deviationPercent: number;
-  /** 异常严重程度 */
+  /** Anomaly severity */
   severity: AnomalySeverity;
-  /** 异常原因可读文本列表 */
+  /** Readable text list of anomaly causes */
   reasonKeys: string[];
-  /** 异常检测时间戳 */
+  /** Anomaly detection timestamp */
   timestamp: number;
-  /** 数据新鲜度（秒） */
+  /** Data freshness (seconds) */
   freshnessSeconds: number;
 }
 
-/** 异常检测结果 */
+/** Anomaly detection result */
 export interface AnomalyDetectionResult {
   anomalies: PriceAnomaly[];
   count: number;

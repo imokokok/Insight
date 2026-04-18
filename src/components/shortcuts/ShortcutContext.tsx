@@ -5,7 +5,7 @@ import React, { createContext, useContext, useReducer, useCallback, useMemo } fr
 import type { KeyboardShortcut } from '@/hooks';
 
 // ============================================================================
-// 类型定义
+// Type definitions
 // ============================================================================
 
 type ShortcutCategory = 'navigation' | 'actions' | 'charts' | 'data' | 'general';

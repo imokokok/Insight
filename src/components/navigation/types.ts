@@ -12,7 +12,7 @@ export interface NavGroup {
   label: string;
   icon?: LucideIcon;
   items: NavItem[];
-  href?: string; // 如果可以直接点击分组
+  href?: string; // If the group can be clicked directly
 }
 
 export type NavStructure = (NavItem | NavGroup)[];

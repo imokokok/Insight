@@ -63,7 +63,7 @@ describe('FavoriteButton', () => {
     render(<FavoriteButton {...defaultProps} />);
 
     const button = screen.getByRole('button');
-    expect(button).toHaveAttribute('title', '添加收藏');
+    expect(button).toHaveAttribute('title', 'Add to favorites');
   });
 
   it('should render with different sizes', () => {
@@ -80,7 +80,7 @@ describe('FavoriteButton', () => {
   it('should render text variant with label', () => {
     render(<FavoriteButton {...defaultProps} variant="text" showLabel />);
 
-    expect(screen.getByText('收藏')).toBeInTheDocument();
+    expect(screen.getByText('Favorites')).toBeInTheDocument();
   });
 
   it('should render button variant', () => {

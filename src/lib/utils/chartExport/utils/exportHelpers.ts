@@ -1,10 +1,10 @@
 /**
- * @fileoverview 图表导出辅助工具函数
- * @description 提供文件名处理、下载等通用工具函数
+ * @fileoverview exportUtility functions
+ * @description providefilehandle、downloadgeneralUtility functions
  */
 
 /**
- * 清理文件名，移除非法字符
+ * Clean filename, remove illegal characters
  */
 export function sanitizeFilename(filename: string): string {
   return filename
@@ -14,7 +14,7 @@ export function sanitizeFilename(filename: string): string {
 }
 
 /**
- * 下载Blob文件
+ * Download Blob file
  */
 export function downloadBlob(blob: Blob, filename: string): void {
   const url = URL.createObjectURL(blob);
@@ -29,7 +29,7 @@ export function downloadBlob(blob: Blob, filename: string): void {
 }
 
 /**
- * Blob转Base64
+ * Blob to Base64
  */
 export function blobToBase64(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -44,7 +44,7 @@ export function blobToBase64(blob: Blob): Promise<string> {
 }
 
 /**
- * 数据转CSV格式
+ * Data to CSV format
  */
 export function convertToCSV(data: Record<string, unknown>[]): string {
   if (data.length === 0) return '';

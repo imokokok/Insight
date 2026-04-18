@@ -17,7 +17,7 @@ interface UserPreferences {
   autoRefreshInterval: string;
 }
 
-// 数据库字段名映射（snake_case）
+// Database field name mapping (snake_case)
 interface DbUserPreferences {
   default_oracle?: string;
   default_symbol?: string;
@@ -50,7 +50,7 @@ const oracleOptions = [
   { value: 'winklink', label: 'WINkLink' },
 ];
 
-// 从统一的符号列表生成交易对选项
+// Generate trading pair options from unified symbol list
 const allSymbols = getAllSupportedSymbols();
 const symbolOptions = allSymbols.map((symbol) => ({
   value: `${symbol}/USD`,

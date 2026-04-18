@@ -5,11 +5,11 @@ import { FEATURE_FLAGS as _FEATURE_FLAGS } from './env';
 const logger = createLogger('ServerEnv');
 
 /**
- * 服务端环境变量配置
- * 这些变量只在服务端使用，不会暴露给客户端
+ * Server environment variable configuration
+ * These variables are only used on the server side and will not be exposed to the client
  */
 
-// Alchemy RPC 配置
+// Alchemy RPC configuration
 export const ALCHEMY_RPC = {
   ethereum: process.env.ALCHEMY_ETHEREUM_RPC || '',
   arbitrum: process.env.ALCHEMY_ARBITRUM_RPC || '',
@@ -25,7 +25,7 @@ export const ALCHEMY_RPC = {
   linea: process.env.ALCHEMY_LINEA_RPC || '',
 };
 
-// TRON 配置
+// TRON configuration
 export const TRON_CONFIG = {
   rpcUrl: process.env.TRON_RPC_URL || 'https://api.trongrid.io',
   solidityRpc: process.env.TRON_SOLIDITY_RPC || 'https://api.trongrid.io/walletsolidity',
@@ -33,32 +33,32 @@ export const TRON_CONFIG = {
   apiKey: process.env.TRONGRID_API_KEY || '',
 };
 
-// The Graph 配置
+// The Graph configuration
 const THEGRAPH_CONFIG = {
   apiKey: process.env.THEGRAPH_API_KEY || '',
 };
 
-// API3 配置
+// API3 configuration
 const API3_CONFIG = {
   marketApiUrl: process.env.API3_MARKET_API_URL || 'https://market.api3.org/api/v1',
   daoApiUrl: process.env.API3_DAO_API_URL || 'https://api.api3.org',
   wsUrl: process.env.API3_WS_URL || 'wss://ws.api3.org',
 };
 
-// Stellar RPC 配置
+// Stellar RPC configuration
 export const STELLAR_CONFIG = {
   rpcUrl: process.env.STELLAR_RPC_URL || '',
   reflectorCryptoContract: process.env.REFLECTOR_CRYPTO_CONTRACT || '',
   reflectorForexContract: process.env.REFLECTOR_FOREX_CONTRACT || '',
 };
 
-// Flare RPC 配置
+// Flare RPC configuration
 const FLARE_CONFIG = {
   rpcUrl: process.env.FLARE_RPC_URL || '',
 };
 
-// 功能开关 - 从 featureFlags 重新导出以保持向后兼容
-// 缓存配置
+// Feature flags - re-exported from featureFlags for backward compatibility
+// Cache configuration
 const CACHE_CONFIG = {
   winklinkTtl: parseInt(process.env.WINKLINK_CACHE_TTL || '30000', 10),
   chainlinkPriceTtl: parseInt(process.env.CHAINLINK_PRICE_CACHE_TTL || '30000', 10),
@@ -66,14 +66,14 @@ const CACHE_CONFIG = {
   twapPriceTtl: parseInt(process.env.TWAP_PRICE_CACHE_TTL || '30000', 10),
 };
 
-// Supabase 服务端配置
+// Supabase server configuration
 const SUPABASE_SERVER_CONFIG = {
   url: process.env.NEXT_PUBLIC_SUPABASE_URL || '',
   anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
   serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
 };
 
-// 安全配置
+// Security configuration
 const SECURITY_CONFIG = {
   csrfSecret: process.env.CSRF_SECRET || '',
   jwtSecret: process.env.JWT_SECRET || '',
@@ -93,20 +93,20 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 /**
- * 验证服务端环境变量
+ * Validate server environment variables
  */
 function validateServerEnv(): { valid: boolean; missing: string[] } {
   const missing: string[] = [];
 
-  // 检查关键的 Alchemy RPC
+  // Check critical Alchemy RPC
   if (!ALCHEMY_RPC.ethereum) missing.push('ALCHEMY_ETHEREUM_RPC');
 
-  // 检查 The Graph API Key
+  // Check The Graph API Key
   if (!THEGRAPH_CONFIG.apiKey) {
     logger.warn('THEGRAPH_API_KEY not set, using fallback endpoints');
   }
 
-  // 检查 TRON API Key
+  // Check TRON API Key
   if (!TRON_CONFIG.apiKey) {
     logger.warn('TRONGRID_API_KEY not set, rate limiting may apply');
   }
@@ -118,7 +118,7 @@ function validateServerEnv(): { valid: boolean; missing: string[] } {
 }
 
 /**
- * 获取指定链的 Alchemy RPC URL
+ * Get the Alchemy RPC URL for the specified chain
  */
 function getAlchemyRpcUrl(chain: keyof typeof ALCHEMY_RPC): string {
   const url = ALCHEMY_RPC[chain];
@@ -130,27 +130,27 @@ function getAlchemyRpcUrl(chain: keyof typeof ALCHEMY_RPC): string {
 }
 
 /**
- * 获取 TRON RPC 配置
+ * Get TRON RPC configuration
  */
 function getTronConfig() {
   return TRON_CONFIG;
 }
 
 /**
- * 获取 The Graph API Key
+ * Get The Graph API Key
  */
 function getTheGraphApiKey(): string {
   return THEGRAPH_CONFIG.apiKey;
 }
 
 /**
- * 获取 API3 配置
+ * Get API3 configuration
  */
 function getApi3Config() {
   return API3_CONFIG;
 }
 
-// 初始化验证 - 延迟到首次调用时执行
+// Initialization validation - deferred until first call
 let _validationDone = false;
 function ensureServerEnvValidated(): void {
   if (!_validationDone && typeof window === 'undefined') {

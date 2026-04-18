@@ -18,17 +18,17 @@ interface ChainConfig {
   endpoint: string;
 }
 
-// 链状态判定阈值配置
+// Chain status threshold configuration
 const CHAIN_STATUS_THRESHOLDS = {
-  // 在线状态：延迟 < 200ms 且偏差 < 0.5%
+  // Online: latency < 200ms and deviation < 0.5%
   ONLINE: { maxLatency: 200, maxDeviation: 0.5 },
-  // 降级状态：延迟 < 500ms 且偏差 < 1%
+  // Degraded: latency < 500ms and deviation < 1%
   DEGRADED: { maxLatency: 500, maxDeviation: 1.0 },
-  // 离线状态：其他情况
+  // Offline: other cases
   OFFLINE: { latency: 999 },
 } as const;
 
-// 请求超时配置
+// Request timeout configuration
 const REQUEST_TIMEOUT_MS = 5000;
 
 const CHAIN_CONFIGS: ChainConfig[] = [

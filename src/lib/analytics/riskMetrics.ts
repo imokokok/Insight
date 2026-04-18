@@ -1,7 +1,7 @@
 /**
- * 风险指标计算模块
+ * Risk metrics calculation module
  *
- * 提供市场集中度风险、多元化评分、波动率指数和相关性风险评估的计算功能
+ * Provides calculation functions for market concentration risk, diversification score, volatility index, and correlation risk assessment
  */
 
 import { semanticColors, chartColors } from '@/lib/config/colors';
@@ -12,25 +12,25 @@ import { createLogger } from '@/lib/utils/logger';
 const logger = createLogger('riskMetrics');
 
 /**
- * 风险等级
+ * Risk level
  */
 type RiskLevel = 'low' | 'medium' | 'high' | 'critical';
 
 /**
- * HHI 指数结果
+ * HHI index result
  */
 interface HHIResult {
-  value: number; // HHI 值 (0-10000)
-  level: RiskLevel; // 风险等级
-  description: string; // 描述
-  concentrationRatio: number; // 集中度比率 (CR4)
+  value: number; // HHI value (0-10000)
+  level: RiskLevel; // Risk level
+  description: string; // Description
+  concentrationRatio: number; // Concentration ratio (CR4)
 }
 
 /**
- * 多元化评分结果
+ * Diversification score result
  */
 interface DiversificationResult {
-  score: number; // 评分 (0-100)
+  score: number; // Score (0-100)
   level: RiskLevel;
   description: string;
   factors: {
@@ -41,10 +41,10 @@ interface DiversificationResult {
 }
 
 /**
- * 波动率指数结果
+ * Volatility index result
  */
 interface VolatilityResult {
-  index: number; // 波动率指数 (0-100)
+  index: number; // volatility index (0-100)
   level: RiskLevel;
   description: string;
   annualizedVolatility: number;
@@ -52,10 +52,10 @@ interface VolatilityResult {
 }
 
 /**
- * 相关性风险评估结果
+ * Correlation risk assessment result
  */
 interface CorrelationRiskResult {
-  score: number; // 风险评分 (0-100)
+  score: number; // Score (0-100)
   level: RiskLevel;
   description: string;
   avgCorrelation: number;
@@ -63,7 +63,7 @@ interface CorrelationRiskResult {
 }
 
 /**
- * 综合风险指标
+ * comprehensive risk metrics
  */
 interface RiskMetrics {
   hhi: HHIResult;
@@ -78,16 +78,16 @@ interface RiskMetrics {
 }
 
 /**
- * 计算 HHI (Herfindahl-Hirschman Index) 指数
- * HHI = Σ(si²) * 10000, 其中 si 是第 i 个企业的市场份额(小数)
+ * calculate HHI (Herfindahl-Hirschman Index) exponential
+ * HHI = Σ(si²) * 10000, in si is i market share()
  *
- * HHI 范围: 0-10000
- * - < 1500: 低集中度 (竞争型)
- * - 1500-2500: 中度集中度
- * - > 2500: 高度集中度 (垄断型)
+ * HHI range: 0-10000
+ * - < 1500: concentration ()
+ * - 1500-2500: inconcentration
+ * - > 2500: concentration ()
  *
- * @param marketShares 市场份额数组 (百分比，如 25.5 表示 25.5%)
- * @returns HHI 计算结果
+ * @param marketShares market sharearray (， 25.5 25.5%)
+ * @returns HHI calculateresult
  */
 export function calculateHHI(marketShares: number[]): HHIResult {
   try {
@@ -95,18 +95,18 @@ export function calculateHHI(marketShares: number[]): HHIResult {
       throw new Error('Market shares array is empty');
     }
 
-    // 将百分比转换为小数并计算平方和
+ // willconvertascalculateand
     const hhi =
       marketShares.reduce((sum, share) => {
         const decimalShare = share / 100;
         return sum + Math.pow(decimalShare, 2);
       }, 0) * 10000;
 
-    // 计算 CR4 (前4大企业集中度)
+ // calculate CR4 (before4concentration)
     const sortedShares = [...marketShares].sort((a, b) => b - a);
     const cr4 = sortedShares.slice(0, 4).reduce((sum, share) => sum + share, 0);
 
-    // 确定风险等级
+ // Risk level
     let level: RiskLevel;
     let description: string;
 
@@ -147,10 +147,10 @@ export function calculateHHI(marketShares: number[]): HHIResult {
 }
 
 /**
- * 从预言机数据计算 HHI
+ * fromcalculate HHI
  *
- * @param oracleData 预言机市场数据
- * @returns HHI 计算结果
+ * @param oracleData 
+ * @returns HHI calculateresult
  */
 export function calculateHHIFromOracles(oracleData: OracleMarketData[]): HHIResult {
   const shares = oracleData.map((o) => o.share);
@@ -158,11 +158,11 @@ export function calculateHHIFromOracles(oracleData: OracleMarketData[]): HHIResu
 }
 
 /**
- * 计算多元化评分
- * 基于链多样性、协议多样性和资产多样性的综合评分
+ * Calculate diversification score
+ * 、andscore
  *
- * @param params 多元化参数
- * @returns 多元化评分结果
+ * @param params diversificationparameter
+ * @returns Diversification score result
  */
 export function calculateDiversificationScore(params: {
   chainCount: number;
@@ -171,13 +171,13 @@ export function calculateDiversificationScore(params: {
   totalProtocols: number;
   assetCount: number;
   totalAssets: number;
-  entropy?: number; // 熵值 (可选)
+  entropy?: number; // value (optional)
 }): DiversificationResult {
   try {
     const { chainCount, totalChains, protocolCount, totalProtocols, assetCount, totalAssets } =
       params;
 
-    // 计算各维度得分 (0-100)
+ // calculate (0-100)
     const chainDiversity = Math.min((chainCount / Math.max(totalChains * 0.5, 1)) * 100, 100);
     const protocolDiversity = Math.min(
       (protocolCount / Math.max(totalProtocols * 0.3, 1)) * 100,
@@ -185,10 +185,10 @@ export function calculateDiversificationScore(params: {
     );
     const assetDiversity = Math.min((assetCount / Math.max(totalAssets * 0.5, 1)) * 100, 100);
 
-    // 加权平均
+ // 
     const score = Math.round(chainDiversity * 0.3 + protocolDiversity * 0.4 + assetDiversity * 0.3);
 
-    // 确定风险等级 (分数越高风险越低)
+ // Risk level ()
     let level: RiskLevel;
     let description: string;
 
@@ -240,11 +240,11 @@ export function calculateDiversificationScore(params: {
 }
 
 /**
- * 计算波动率指数
- * 基于价格数据的标准差计算
+ * Calculate volatility index
+ * standard deviationcalculate
  *
- * @param priceHistory 价格历史数据
- * @returns 波动率指数结果
+ * @param priceHistory history
+ * @returns Volatility index result
  */
 export function calculateVolatilityIndex(priceHistory: number[]): VolatilityResult {
   try {
@@ -252,10 +252,10 @@ export function calculateVolatilityIndex(priceHistory: number[]): VolatilityResu
       throw new Error('Insufficient price history data');
     }
 
-    // 计算对数收益率
+ // calculatelogarithmic
     const returns: number[] = [];
     for (let i = 1; i < priceHistory.length; i++) {
-      // 添加除零检查
+      // Add division by zero check
       if (priceHistory[i] > 0 && priceHistory[i - 1] > 0) {
         const logReturn = Math.log(priceHistory[i] / priceHistory[i - 1]);
         returns.push(logReturn);
@@ -266,23 +266,23 @@ export function calculateVolatilityIndex(priceHistory: number[]): VolatilityResu
       throw new Error('Unable to calculate returns from price history');
     }
 
-    // 计算平均收益率
+ // calculate
     const avgReturn = returns.reduce((sum, r) => sum + r, 0) / returns.length;
 
-    // 计算方差
+    // calculatevariance
     const variance =
       returns.reduce((sum, r) => sum + Math.pow(r - avgReturn, 2), 0) / returns.length;
 
-    // 日波动率 (标准差)
+ // (standard deviation)
     const dailyVolatility = Math.sqrt(variance);
 
-    // 年化波动率 (假设 365 天)
+ // (hypothesis 365 days)
     const annualizedVolatility = dailyVolatility * Math.sqrt(365);
 
-    // 转换为指数 (0-100)
+    // convertasexponential (0-100)
     const index = Math.min(Math.round(annualizedVolatility * 100), 100);
 
-    // 确定风险等级
+ // Risk level
     let level: RiskLevel;
     let description: string;
 
@@ -325,12 +325,12 @@ export function calculateVolatilityIndex(priceHistory: number[]): VolatilityResu
 }
 
 /**
- * 计算相关性风险
- * 基于相关系数矩阵评估系统性风险
+ * calculatecorrelation
+ * correlation coefficientevaluationsystem
  *
- * @param correlationMatrix 相关系数矩阵
- * @param oracleNames 预言机名称数组
- * @returns 相关性风险评估结果
+ * @param correlationMatrix correlation coefficient
+ * @param oracleNames namearray
+ * @returns Correlation risk assessment result
  */
 export function calculateCorrelationRisk(
   correlationMatrix: number[][],
@@ -346,14 +346,14 @@ export function calculateCorrelationRisk(
     let pairCount = 0;
     const highCorrelationPairs: string[] = [];
 
-    // 计算平均相关系数 (只计算上三角)
+ // calculatecorrelation coefficient (calculateon)
     for (let i = 0; i < n; i++) {
       for (let j = i + 1; j < n; j++) {
         const corr = Math.abs(correlationMatrix[i][j]);
         totalCorrelation += corr;
         pairCount++;
 
-        // 记录高相关性对 (>0.8)
+ // recordcorrelationfor (>0.8)
         if (corr > 0.8) {
           highCorrelationPairs.push(
             `${oracleNames[i]} - ${oracleNames[j]} (${(corr * 100).toFixed(1)}%)`
@@ -364,10 +364,10 @@ export function calculateCorrelationRisk(
 
     const avgCorrelation = pairCount > 0 ? totalCorrelation / pairCount : 0;
 
-    // 转换为风险评分 (0-100)，相关性越高风险越高
+ // convertasScore (0-100)，correlation
     const score = Math.round(avgCorrelation * 100);
 
-    // 确定风险等级
+ // Risk level
     let level: RiskLevel;
     let description: string;
 
@@ -392,7 +392,7 @@ export function calculateCorrelationRisk(
       level,
       description,
       avgCorrelation: Number(avgCorrelation.toFixed(4)),
-      highCorrelationPairs: highCorrelationPairs.slice(0, 5), // 最多返回5个
+      highCorrelationPairs: highCorrelationPairs.slice(0, 5), // return5
     };
   } catch (error) {
     logger.error(
@@ -410,12 +410,12 @@ export function calculateCorrelationRisk(
 }
 
 /**
- * 计算综合风险指标
+ * calculatecomprehensive risk metrics
  *
- * @param oracleData 预言机市场数据
- * @param priceHistory 价格历史数据
- * @param correlationMatrix 相关系数矩阵
- * @returns 综合风险指标
+ * @param oracleData 
+ * @param priceHistory history
+ * @param correlationMatrix correlation coefficient
+ * @returns comprehensive risk metrics
  */
 export function calculateRiskMetrics(
   oracleData: OracleMarketData[],
@@ -423,30 +423,30 @@ export function calculateRiskMetrics(
   correlationMatrix: number[][]
 ): RiskMetrics {
   try {
-    // 计算 HHI
+    // calculate HHI
     const hhi = calculateHHIFromOracles(oracleData);
 
-    // 计算多元化评分
+    // Calculate diversification score
     const totalChains = safeMax(oracleData.map((o) => o.chains));
     const totalProtocols = oracleData.reduce((sum, o) => sum + o.protocols, 0);
     const diversification = calculateDiversificationScore({
       chainCount: oracleData.reduce((sum, o) => sum + o.chains, 0),
       totalChains: totalChains * oracleData.length,
       protocolCount: totalProtocols,
-      totalProtocols: totalProtocols * 2, // 假设还有一倍的潜力
-      assetCount: oracleData.length * 10, // 估算
-      totalAssets: 100, // 假设总资产品种
+      totalProtocols: totalProtocols * 2, // hypothesishave
+      assetCount: oracleData.length * 10, // 
+      totalAssets: 100, // hypothesis
     });
 
-    // 计算波动率
+ // calculate
     const volatility = calculateVolatilityIndex(priceHistory);
 
-    // 计算相关性风险
+ // calculatecorrelation
     const oracleNames = oracleData.map((o) => o.name);
     const correlationRisk = calculateCorrelationRisk(correlationMatrix, oracleNames);
 
-    // 计算综合风险评分 (加权平均)
-    // HHI 权重 30%，多元化 25%，波动率 25%，相关性 20%
+ // calculaterisk score ()
+ // HHI weight 30%，diversification 25%， 25%，correlation 20%
     const weights = {
       hhi: 0.3,
       diversification: 0.25,
@@ -454,11 +454,11 @@ export function calculateRiskMetrics(
       correlation: 0.2,
     };
 
-    // 标准化各指标到 0-100
-    // HHI 范围是 0-10000，需要除以 100 得到 0-100 的分数
-    // 但 HHI 越高风险越高，所以直接使用 hhi.value / 100
-    const hhiScore = Math.min((hhi.value / 10000) * 100, 100); // HHI 标准化到 0-100
-    const divScore = 100 - diversification.score; // 多元化越低风险越高
+ // standardizationmetricto 0-100
+ // HHI rangeis 0-10000，with 100 to 0-100 
+ // HHI ，withuse hhi.value / 100
+    const hhiScore = Math.min((hhi.value / 10000) * 100, 100); // HHI standardizationto 0-100
+    const divScore = 100 - diversification.score; // diversification
     const volScore = volatility.index;
     const corrScore = correlationRisk.score;
 
@@ -469,7 +469,7 @@ export function calculateRiskMetrics(
         corrScore * weights.correlation
     );
 
-    // 确定综合风险等级
+ // Risk level
     let overallLevel: RiskLevel;
     if (overallScore < 30) {
       overallLevel = 'low';
@@ -500,7 +500,7 @@ export function calculateRiskMetrics(
       error instanceof Error ? error : new Error(String(error))
     );
 
-    // 返回默认结果
+    // returndefaultresult
     return {
       hhi: {
         value: 0,
@@ -542,10 +542,10 @@ export function calculateRiskMetrics(
 }
 
 /**
- * 获取风险等级颜色
+ * getRisk levelcolor
  *
- * @param level 风险等级
- * @returns 颜色代码
+ * @param level Risk level
+ * @returns colorcode
  */
 export function getRiskLevelColor(level: RiskLevel): string {
   const colors: Record<RiskLevel, string> = {
@@ -558,10 +558,10 @@ export function getRiskLevelColor(level: RiskLevel): string {
 }
 
 /**
- * 获取风险等级文本
+ * getRisk leveltext
  *
- * @param level 风险等级
- * @returns 本地化文本键
+ * @param level Risk level
+ * @returns localtext
  */
 export function getRiskLevelText(level: RiskLevel): string {
   const texts: Record<RiskLevel, string> = {

@@ -115,8 +115,8 @@ export const oracleColors: Record<OracleProvider, string> = {
 };
 
 export const symbols = [
-  // 按市值排名排序（从高到低）
-  // Layer 1 - 按市值排序
+  // Sorted by market cap (high to low)
+  // Layer 1 - Sorted by market cap
   'BTC', // 1. Bitcoin
   'ETH', // 2. Ethereum
   'BNB', // 3. BNB
@@ -147,7 +147,7 @@ export const symbols = [
   'TIA', // 28. Celestia
   'TON', // 29. Toncoin
   'FTM', // 30. Fantom
-  // Stablecoins - 按市值排序
+  // Stablecoins - Sorted by market cap
   'USDT', // 31. Tether
   'USDC', // 32. USD Coin
   'DAI', // 33. DAI
@@ -155,7 +155,7 @@ export const symbols = [
   'LUSD', // 35. Liquity USD
   'BUSD', // 36. Binance USD
   'TUSD', // 37. TrueUSD
-  // DeFi - 按市值排序
+  // DeFi - Sorted by market cap
   'AAVE', // 38. Aave
   'MKR', // 39. Maker
   'COMP', // 40. Compound
@@ -216,13 +216,13 @@ export const DEVIATION_THRESHOLD = 0.5;
 export type RefreshInterval = 0 | 30000 | 60000 | 300000;
 
 // ============================================
-// 链分类定义
+// Chain category definitions
 // ============================================
 
 type ChainCategory = 'l1' | 'l2' | 'cosmos' | 'other';
 
 /**
- * 链分类映射 - 用于按类型筛选链
+ * Chain category mapping - Used to filter chains by type
  */
 export const CHAIN_CATEGORIES: Record<Blockchain, ChainCategory> = {
   // Layer 1
@@ -257,7 +257,7 @@ export const CHAIN_CATEGORIES: Record<Blockchain, ChainCategory> = {
   [Blockchain.BLAST]: 'l2',
   [Blockchain.STARKEX]: 'l2',
   [Blockchain.POLYGON]: 'l2',
-  // Cosmos 生态
+  // Cosmos ecosystem
   [Blockchain.COSMOS]: 'cosmos',
   [Blockchain.OSMOSIS]: 'cosmos',
   [Blockchain.JUNO]: 'cosmos',
@@ -270,7 +270,7 @@ export const CHAIN_CATEGORIES: Record<Blockchain, ChainCategory> = {
 } as const;
 
 /**
- * 按分类获取链列表
+ * Get chain list by category
  */
 export function getChainsByCategory(category: ChainCategory | 'all'): Blockchain[] {
   const allChains = Object.keys(CHAIN_CATEGORIES) as Blockchain[];
@@ -281,7 +281,7 @@ export function getChainsByCategory(category: ChainCategory | 'all'): Blockchain
 }
 
 /**
- * 获取链的分类
+ * Get chain category
  */
 export function getChainCategory(chain: Blockchain): ChainCategory {
   return CHAIN_CATEGORIES[chain] || 'other';

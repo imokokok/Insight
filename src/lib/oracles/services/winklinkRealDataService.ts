@@ -514,12 +514,12 @@ class WINkLinkRealDataService {
       const now = Date.now();
       const priceAge = priceData.timestamp ? Math.round((now - priceData.timestamp) / 1000) : null;
 
-      // 基于价格更新时效性计算节点可用性
-      // WINkLink 预期每 30 秒更新一次价格
-      // 如果价格年龄在 60 秒内，节点可用性为 99.9%
-      // 如果价格年龄在 120 秒内，节点可用性为 99.5%
-      // 如果价格年龄在 300 秒内，节点可用性为 99.0%
-      // 如果价格年龄超过 300 秒，节点可用性为 98.0%
+      // Calculate node availability based on price update freshness
+      // WINkLink is expected to update prices every 30 seconds
+      // If price age is within 60 seconds, node availability is 99.9%
+      // If price age is within 120 seconds, node availability is 99.5%
+      // If price age is within 300 seconds, node availability is 99.0%
+      // If price age exceeds 300 seconds, node availability is 98.0%
       let nodeUptime: number;
       if (priceAge === null) {
         nodeUptime = 99.0;

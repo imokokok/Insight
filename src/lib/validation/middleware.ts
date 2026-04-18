@@ -7,7 +7,7 @@ import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('zod-validation-middleware');
 
-// 不应该有 body 的请求方法
+// Request methods that should not have a body
 const METHODS_WITHOUT_BODY = ['GET', 'HEAD', 'OPTIONS'];
 
 interface ZodValidationResult<T> {
@@ -29,7 +29,7 @@ interface ZodValidationOptions {
   params?: ZodSchema;
 }
 
-// 统一的错误响应格式
+// Unified error response format
 function createErrorResponse(
   code: string,
   message: string,
@@ -80,16 +80,16 @@ function validateWithZod<T>(schema: ZodSchema<T>, data: unknown): ZodValidationR
   };
 }
 
-// 查询参数值类型转换
+// Query parameter value type conversion
 function convertQueryValue(value: string): string | number | boolean {
-  // 尝试转换为数字
+  // Try to convert to number
   if (/^-?\d+$/.test(value)) {
     return parseInt(value, 10);
   }
   if (/^-?\d+\.\d+$/.test(value)) {
     return parseFloat(value);
   }
-  // 尝试转换为布尔值
+  // Try to convert to boolean
   if (value === 'true') return true;
   if (value === 'false') return false;
   return value;
@@ -99,7 +99,7 @@ async function validateBody<T>(
   request: NextRequest,
   schema: ZodSchema<T>
 ): Promise<{ success: true; data: T } | { success: false; response: NextResponse }> {
-  // 检查请求方法
+  // Check request method
   if (METHODS_WITHOUT_BODY.includes(request.method)) {
     return {
       success: false,
@@ -112,7 +112,7 @@ async function validateBody<T>(
   }
 
   try {
-    // 克隆请求以避免 body 只能读取一次的问题
+    // Clone request to avoid body can only be read once issue
     const clonedRequest = request.clone();
     const body = await clonedRequest.json();
     const result = validateWithZod(schema, body);

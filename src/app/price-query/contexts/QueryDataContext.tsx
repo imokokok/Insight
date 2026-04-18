@@ -95,6 +95,11 @@ export function QueryDataProvider({ children }: { children: React.ReactNode }) {
     refetchInterval: refetchIntervalMs,
   });
 
+  const nextRefreshAt = useMemo(() => {
+    if (autoRefreshInterval === 0 || !data.primaryDataFetchTime) return null;
+    return new Date(data.primaryDataFetchTime.getTime() + autoRefreshInterval);
+  }, [autoRefreshInterval, data.primaryDataFetchTime]);
+
   const chart = usePriceQueryChart({
     historicalData: data.historicalData,
     queryResults: data.queryResults,
@@ -204,13 +209,13 @@ export function QueryDataProvider({ children }: { children: React.ReactNode }) {
         isAutoRefreshEnabled: autoRefreshInterval !== 0,
         refreshInterval: autoRefreshInterval,
         lastRefreshedAt: data.primaryDataFetchTime,
-        nextRefreshAt: null,
+        nextRefreshAt,
         setRefreshInterval: setAutoRefreshInterval,
         toggleAutoRefresh: () => setAutoRefreshInterval((prev) => (prev === 0 ? 30000 : 0)),
-        isRefreshing: data.isLoading,
+        isRefreshing: data.isFetching,
       },
     }),
-    [data, chart, stats, autoRefreshInterval]
+    [data, chart, stats, autoRefreshInterval, nextRefreshAt]
   );
 
   return <QueryDataContext.Provider value={value}>{children}</QueryDataContext.Provider>;

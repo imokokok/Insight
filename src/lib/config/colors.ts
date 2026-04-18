@@ -1,14 +1,14 @@
 /**
- * 统一颜色配置文件
- * 集中管理项目中所有颜色，避免硬编码
+ * Unified color configuration file
+ * Centrally manage all colors in the project, avoid hardcoding
  */
 
 // ============================================
-// 类型定义
+// Type definitions
 // ============================================
 
 /**
- * 色阶颜色类型 (50-900)
+ * Color scale type (50-900)
  */
 interface ColorScale {
   50: string;
@@ -24,7 +24,7 @@ interface ColorScale {
 }
 
 /**
- * 语义化颜色类型
+ * Semantic color type
  */
 interface SemanticColor {
   light: string;
@@ -35,7 +35,7 @@ interface SemanticColor {
 }
 
 /**
- * 阴影颜色类型
+ * Shadow color type
  */
 interface ShadowColor {
   soft: string;
@@ -50,11 +50,11 @@ interface ShadowColor {
 }
 
 // ============================================
-// 基础颜色系统
+// Base color system
 // ============================================
 
 export const baseColors = {
-  // 主色调 - 金融蓝色系
+  // Primary tone - Finance blue series
   primary: {
     50: '#eff6ff',
     100: '#dbeafe',
@@ -68,7 +68,7 @@ export const baseColors = {
     900: '#1e3a8a',
   },
 
-  // 中性色 - 灰度
+  // Neutral - Grayscale
   gray: {
     50: '#f9fafb',
     100: '#f3f4f6',
@@ -82,7 +82,7 @@ export const baseColors = {
     900: '#111827',
   },
 
-  // Slate 灰 - 用于文本
+  // Slate gray - For text
   slate: {
     50: '#f8fafc',
     100: '#f1f5f9',
@@ -98,11 +98,11 @@ export const baseColors = {
 } as const;
 
 // ============================================
-// 语义化颜色
+// Semantic colors
 // ============================================
 
 export const semanticColors = {
-  // 状态色
+  // Status colors
   success: {
     light: '#d1fae5',
     DEFAULT: '#10b981',
@@ -141,7 +141,7 @@ export const semanticColors = {
 } as const;
 
 // ============================================
-// 金融主题颜色
+// Finance theme colors
 // ============================================
 
 const financeColors = {
@@ -155,7 +155,7 @@ const financeColors = {
 } as const;
 
 // ============================================
-// 区块链品牌颜色
+// Blockchain brand colors
 // ============================================
 
 export const chainColors = {
@@ -201,7 +201,7 @@ export const chainColors = {
 } as const;
 
 // ============================================
-// 渐变定义
+// Gradient definitions
 // ============================================
 
 const gradients = {
@@ -213,11 +213,11 @@ const gradients = {
 } as const;
 
 // ============================================
-// 图表颜色配置
+// Chart color configuration
 // ============================================
 
 export const chartColors = {
-  // 预言机品牌色 - 优化对比度和可区分性
+  // Oracle brand colors - Optimized for contrast and distinguishability
   oracle: {
     chainlink: '#2563EB',
     pyth: '#7C3AED',
@@ -233,7 +233,7 @@ export const chartColors = {
     flare: '#E84142',
   } as const,
 
-  // 预言机颜色 - 色盲友好版本（使用形状+颜色双重编码）
+  // Oracle colors - Colorblind-friendly version (using shape + color dual encoding)
   oracleAccessible: {
     chainlink: { color: '#1e40af', pattern: 'solid' },
     pyth: { color: '#5b21b6', pattern: 'dashDot' },
@@ -249,7 +249,7 @@ export const chartColors = {
     flare: { color: '#E84142', pattern: 'dotted' },
   } as const,
 
-  // 地区颜色
+  // Region colors
   region: {
     northAmerica: '#3B82F6',
     europe: '#8B5CF6',
@@ -260,7 +260,7 @@ export const chartColors = {
     other: '#64748b',
   },
 
-  // 验证者类型颜色
+  // Validator type colors
   validator: {
     institution: '#8B5CF6',
     independent: '#3B82F6',
@@ -270,7 +270,7 @@ export const chartColors = {
     unknown: '#64748b',
   },
 
-  // 语义颜色（用于图表）
+  // Semantic colors (for charts)
   semantic: {
     positive: '#10B981',
     negative: '#EF4444',
@@ -280,26 +280,26 @@ export const chartColors = {
     danger: '#EF4444',
   },
 
-  // 图表网格和轴线颜色
+  // Chart grid and axis colors
   grid: {
     line: '#E5E7EB',
     axis: '#6B7280',
     background: '#FFFFFF',
   },
 
-  // 通用图表颜色序列
+  // General chart color sequence
   sequence: [
-    '#3B82F6', // 蓝
-    '#10B981', // 绿
-    '#F59E0B', // 橙
-    '#8B5CF6', // 紫
-    '#EC4899', // 粉
-    '#06B6D4', // 青
-    '#F97316', // 深橙
-    '#84CC16', // 浅绿
+    '#3B82F6', // Blue
+    '#10B981', // Green
+    '#F59E0B', // Orange
+    '#8B5CF6', // Purple
+    '#EC4899', // Pink
+    '#06B6D4', // 
+    '#F97316', // Orange
+    '#84CC16', // Green
   ],
 
-  // 市场概览专用颜色
+  // Market overview specific colors
   marketOverview: {
     chainlink: '#375BD2',
     pyth: '#E6B800',
@@ -308,7 +308,7 @@ export const chartColors = {
     default: '#8884d8',
   },
 
-  // 预言机颜色常量 (兼容旧代码)
+  // Oracle color constants (backward compatible)
   ORACLE_COLORS: {
     chainlink: '#375BD2',
     pyth: '#E6B800',
@@ -317,7 +317,7 @@ export const chartColors = {
     others: '#8884d8',
   },
 
-  // 饼图颜色
+  // Pie chart colors
   pie: {
     default: '#8884d8',
     stroke: {
@@ -326,39 +326,39 @@ export const chartColors = {
     },
   },
 
-  // 折线图网格和轴线
+  // Line chart grid and axis
   lineChart: {
     grid: '#f3f4f6',
     axis: '#9ca3af',
   },
 
-  // Recharts 图表常用颜色
+  // Recharts common chart colors
   recharts: {
-    // 网格线
+    // Grid lines
     grid: '#e5e7eb',
     gridLight: '#E5E7EB',
-    // 轴线
+    // Axis lines
     axis: '#9ca3af',
     axisLight: '#9CA3AF',
     secondaryAxis: '#6b7280',
-    // 刻度文字
+    // Tick text
     tick: '#6b7280',
     tickLight: '#6B7280',
     tickDark: '#374151',
-    // 主色
+    // Primary
     primary: '#3B82F6',
     primaryDark: '#2563eb',
     primaryLight: '#3b82f6',
-    // 紫色
+    // Purple
     purple: '#8B5CF6',
     purpleDark: '#7c3aed',
-    // 状态色
+    // Status colors
     success: '#10B981',
     warning: '#f59e0b',
     danger: '#ef4444',
-    // 橙色（用于中等风险）
+    // Orange (for medium risk)
     orange: '#f97316',
-    // 其他
+    // Other
     cyan: '#06B6D4',
     teal: '#7CE3CB',
     pink: '#EC4899',
@@ -366,20 +366,20 @@ export const chartColors = {
     gold: '#E6B800',
     indigo: '#516BEB',
     chainlink: '#375BD2',
-    // 背景
+    // Background
     background: '#f9fafb',
     backgroundLight: '#F3F4F6',
-    // 边框
+    // Border
     border: '#d1d5db',
     borderLight: '#D1D5DB',
-    // 白色
+    // White
     white: '#ffffff',
     whiteLight: '#FFFFFF',
-    // 透明
+    // Transparent
     none: 'none',
   },
 
-  // RSI 技术指标颜色
+  // RSI technical indicator colors
   rsi: {
     line: '#8B5CF6',
     overbought: {
@@ -393,7 +393,7 @@ export const chartColors = {
     neutral: '#6B7280',
   },
 
-  // MACD 技术指标颜色
+  // MACD technical indicator colors
   macd: {
     line: '#3B82F6',
     signal: '#F59E0B',
@@ -404,7 +404,7 @@ export const chartColors = {
     zeroLine: '#9CA3AF',
   },
 
-  // 图表颜色 - 用于 BentoMetricsGrid 等组件
+  // Chart colors - For BentoMetricsGrid and similar components
   chart: {
     blue: '#3B82F6',
     blueLight: '#60A5FA',
@@ -422,7 +422,7 @@ export const chartColors = {
 } as const;
 
 // ============================================
-// 阴影颜色
+// Shadow colors
 // ============================================
 
 const shadowColors = {
@@ -438,7 +438,7 @@ const shadowColors = {
 } as const;
 
 // ============================================
-// 导出颜色常量
+// Export color constants
 // ============================================
 
 export const exportColors = {
@@ -458,25 +458,25 @@ export const exportColors = {
 } as const;
 
 // ============================================
-// 可访问性颜色（色盲友好）
+// Accessibility colors (colorblind-friendly)
 // ============================================
 
 export const accessibleColors = {
-  // 色盲友好的涨跌颜色
+  // Colorblind-friendly price change colors
   priceChange: {
     up: {
-      color: '#1e40af', // 蓝色（替代绿色）
+      color: '#1e40af', // Blue (replacing green)
       bg: '#dbeafe',
       icon: '↑',
     },
     down: {
-      color: '#d97706', // 橙色（替代红色）
+      color: '#d97706', // Orange (replacing red)
       bg: '#fef3c7',
       icon: '↓',
     },
   },
 
-  // 高对比度文本颜色
+  // High contrast text colors
   text: {
     primary: '#111827', // gray-900
     secondary: '#374151', // gray-700
@@ -485,35 +485,35 @@ export const accessibleColors = {
     placeholder: '#9ca3af', // gray-400
   },
 
-  // 色盲友好的图表配色方案
+  // Colorblind-friendly chart color scheme
   chart: {
-    // 使用不同亮度和饱和度的颜色，确保可区分
+    // Use colors with different brightness and saturation to ensure distinguishability
     sequence: [
-      '#003f5c', // 深蓝
-      '#2f4b7c', // 中蓝
-      '#665191', // 紫蓝
-      '#a05195', // 紫色
-      '#d45087', // 紫红
-      '#f95d6a', // 粉红
-      '#ff7c43', // 橙色
-      '#ffa600', // 黄色
-      '#00b4d8', // 青色
-      '#e63946', // 红色 - WINkLink
+      '#003f5c', // Dark blue
+      '#2f4b7c', // Medium blue
+      '#665191', // Purple-blue
+      '#a05195', // Purple
+      '#d45087', // Magenta
+      '#f95d6a', // Pink
+      '#ff7c43', // Orange
+      '#ffa600', // Yellow
+      '#00b4d8', // Cyan
+      '#e63946', // Red - WINkLink
     ],
-    // 高对比度模式
+    // High contrast mode
     highContrast: [
-      '#000000', // 黑
-      '#e60000', // 红
-      '#0073e6', // 蓝
-      '#008a00', // 绿
-      '#f5c400', // 黄
-      '#e67300', // 橙
-      '#9900e6', // 紫
-      '#e6007a', // 粉
+      '#000000', // Black
+      '#e60000', // Red
+      '#0073e6', // Blue
+      '#008a00', // Green
+      '#f5c400', // Yellow
+      '#e67300', // Orange
+      '#9900e6', // Purple
+      '#e6007a', // Pink
     ],
   },
 
-  // 线条样式（用于色盲友好的双重编码）
+  // Line patterns (for colorblind-friendly dual encoding)
   linePatterns: {
     solid: '0',
     dashed: '5 5',
@@ -524,16 +524,16 @@ export const accessibleColors = {
 } as const;
 
 // ============================================
-// WCAG AA 标准高对比度配色方案
+// WCAG AA standard high contrast color scheme
 // ============================================
 
 const wcagColors = {
-  // WCAG AA 标准：文本与背景对比度至少 4.5:1
-  // WCAG AAA 标准：文本与背景对比度至少 7:1
+ // WCAG AA standard：textandBackgroundfor 4.5:1
+ // WCAG AAA standard：textandBackgroundfor 7:1
 
-  // 高对比度文本颜色
+  // High contrast text colors
   text: {
-    // 浅色背景上的文本（对比度 >= 4.5:1）
+ // Backgroundontext（for >= 4.5:1）
     onLight: {
       primary: '#000000',
       secondary: '#1a1a1a',
@@ -543,65 +543,65 @@ const wcagColors = {
     },
   },
 
-  // 高对比度状态色（确保文本可读性）
+ // forStatus colors（ensuretext）
   status: {
     success: {
-      bg: '#006600', // 深绿背景
-      text: '#ffffff', // 白字，对比度 7.5:1
+      bg: '#006600', // GreenBackground
+      text: '#ffffff', // White text, contrast 7.5:1
       border: '#004d00',
-      light: '#e6f4ea', // 浅绿背景
-      lightText: '#1e4620', // 深绿字，对比度 8.6:1
+      light: '#e6f4ea', // GreenBackground
+      lightText: '#1e4620', // Green，for 8.6:1
     },
     warning: {
-      bg: '#b35900', // 深橙背景
-      text: '#ffffff', // 白字，对比度 5.2:1
+      bg: '#b35900', // OrangeBackground
+      text: '#ffffff', // White text, contrast 5.2:1
       border: '#8f4700',
-      light: '#fff3e0', // 浅橙背景
-      lightText: '#663c00', // 深橙字，对比度 7.2:1
+      light: '#fff3e0', // OrangeBackground
+      lightText: '#663c00', // Orange，for 7.2:1
     },
     danger: {
-      bg: '#cc0000', // 深红背景
-      text: '#ffffff', // 白字，对比度 5.7:1
+      bg: '#cc0000', // RedBackground
+      text: '#ffffff', // White text, contrast 5.7:1
       border: '#a30000',
-      light: '#fce8e8', // 浅红背景
-      lightText: '#7f1d1d', // 深红字，对比度 8.4:1
+      light: '#fce8e8', // RedBackground
+      lightText: '#7f1d1d', // Red，for 8.4:1
     },
     info: {
-      bg: '#005fcc', // 深蓝背景
-      text: '#ffffff', // 白字，对比度 6.1:1
+      bg: '#005fcc', // Dark blueBackground
+      text: '#ffffff', // White text, contrast 6.1:1
       border: '#004ba0',
-      light: '#e8f4fd', // 浅蓝背景
-      lightText: '#0c3b6e', // 深蓝字，对比度 8.9:1
+      light: '#e8f4fd', // BlueBackground
+      lightText: '#0c3b6e', // Dark blue，for 8.9:1
     },
   },
 
-  // 图表高对比度配色（WCAG AA 标准）
+  // Chart high contrast colors (WCAG AA standard)
   chart: {
-    // 主色序列 - 确保相邻颜色有足够对比度
+ // Primary - ensurecolorhavefor
     primary: [
-      '#0033a0', // 深蓝
-      '#d90000', // 深红
-      '#008000', // 深绿
-      '#b35900', // 深橙
-      '#6b2c91', // 深紫
-      '#c75b12', // 深棕橙
-      '#005a9c', // 中蓝
-      '#8b0000', // 暗红
+      '#0033a0', // Dark blue
+      '#d90000', // Red
+      '#008000', // Green
+      '#b35900', // Orange
+      '#6b2c91', // Purple
+      '#c75b12', // Orange
+      '#005a9c', // Medium blue
+      '#8b0000', // Red
     ],
-    // 辅助色序列
+    // Secondary color sequence
     secondary: [
-      '#4a4a4a', // 深灰
-      '#707070', // 中灰
-      '#969696', // 浅灰
-      '#1a1a1a', // 近黑
+      '#4a4a4a', // Dark gray
+      '#707070', // Medium gray
+      '#969696', // Light gray
+      '#1a1a1a', // Black
     ],
-    // 背景色
+ // Background
     background: {
       default: '#ffffff',
       subtle: '#f5f5f5',
       grid: '#e0e0e0',
     },
-    // 轴线颜色
+    // Axis linescolor
     axis: {
       line: '#595959',
       text: '#333333',
@@ -609,25 +609,25 @@ const wcagColors = {
     },
   },
 
-  // 焦点指示器（键盘导航可见性）
+  // Focus indicator (keyboard navigation visibility)
   focus: {
-    outline: '#005fcc', // 蓝色焦点环
+    outline: '#005fcc', // Blue
     outlineWidth: '3px',
     outlineOffset: '2px',
     boxShadow: '0 0 0 3px rgba(0, 95, 204, 0.4)',
   },
 
-  // 链接颜色
+  // Link colors
   link: {
-    default: '#005fcc', // 蓝色，对比度 6.1:1
-    visited: '#6b2c91', // 紫色，对比度 7.2:1
-    hover: '#003d7a', // 深蓝，对比度 8.4:1
-    active: '#cc0000', // 红色，对比度 5.7:1
+    default: '#005fcc', // Blue，for 6.1:1
+    visited: '#6b2c91', // Purple，for 7.2:1
+    hover: '#003d7a', // Dark blue，for 8.4:1
+    active: '#cc0000', // Red，for 5.7:1
   },
 } as const;
 
 // ============================================
-// 图表配色方案集合
+// Chart color scheme collection
 // ============================================
 
 const chartColorSchemes = {
@@ -637,7 +637,7 @@ const chartColorSchemes = {
 } as const;
 
 // ============================================
-// UI 组件颜色
+// UI component colors
 // ============================================
 
 const uiColors = {
@@ -685,7 +685,7 @@ const uiColors = {
 } as const;
 
 // ============================================
-// 热力图颜色
+// Heatmap colors
 // ============================================
 
 const heatmapColors = {
@@ -714,7 +714,7 @@ const heatmapColors = {
 } as const;
 
 // ============================================
-// 动画效果颜色
+// Animation effect colors
 // ============================================
 
 const animationColors = {
@@ -737,16 +737,16 @@ const animationColors = {
 } as const;
 
 // ============================================
-// Tailwind 类名映射
+// Tailwind class name mapping
 // ============================================
 
 // ============================================
-// Tailwind 主题配置映射
+// Tailwind theme configuration mapping
 // ============================================
 
-// 颜色名称映射 - 将配置的颜色映射到 Tailwind 类名
+// Color name mapping - Map configured colors to Tailwind class names
 const colorNames = {
-  // 主色调
+ // Primary
   primary: {
     50: 'blue-50',
     100: 'blue-100',
@@ -759,7 +759,7 @@ const colorNames = {
     800: 'blue-800',
     900: 'blue-900',
   },
-  // 灰度
+  // Grayscale
   gray: {
     50: 'gray-50',
     100: 'gray-100',
@@ -785,7 +785,7 @@ const colorNames = {
     800: 'slate-800',
     900: 'slate-900',
   },
-  // 语义色
+  // Semantic colors
   emerald: {
     50: 'emerald-50',
     500: 'emerald-500',
@@ -807,7 +807,7 @@ const colorNames = {
 } as const;
 
 // ============================================
-// Tailwind 类名构建器
+// Tailwind class name builder
 // ============================================
 
 const createBgClass = (color: string) => `bg-${color}`;
@@ -816,7 +816,7 @@ const createBorderClass = (color: string) => `border-${color}`;
 const createHoverBorderClass = (color: string) => `hover:border-${color}`;
 
 // ============================================
-// 基础 Tailwind 类名
+// Base Tailwind class names
 // ============================================
 
 const baseBgClasses = {
@@ -847,20 +847,20 @@ const baseBorderClasses = {
 } as const;
 
 // ============================================
-// 组合 Tailwind 类名
+// Combined Tailwind class names
 // ============================================
 
 const tailwindClasses = {
-  // 背景色
+ // Background
   bg: baseBgClasses,
 
-  // 文本色
+  // Text
   text: baseTextClasses,
 
-  // 边框色
+ // Border
   border: baseBorderClasses,
 
-  // 状态背景色（light 版本）
+ // stateBackground（light version）
   statusBg: {
     success: createBgClass(colorNames.emerald[50]),
     warning: createBgClass(colorNames.amber[50]),
@@ -868,7 +868,7 @@ const tailwindClasses = {
     info: createBgClass(colorNames.primary[50]),
   },
 
-  // 状态文本色
+  // stateText
   statusText: {
     success: createTextClass(colorNames.emerald[700]),
     warning: createTextClass(colorNames.amber[700]),
@@ -876,54 +876,54 @@ const tailwindClasses = {
     info: createTextClass(colorNames.primary[700]),
   },
 
-  // 过渡动画
+  // Transitions
   transition: {
     colors: 'transition-colors duration-200',
     all: 'transition-all duration-200',
   },
 
-  // 边框基础类
+ // Borderclass
   borderBase: {
     DEFAULT: 'border',
     bottom: 'border-b',
   },
 
-  // 悬停效果 - 使用基础类名组合
+  // Hover effects - Using base class name combinations
   hover: {
     borderDark: createHoverBorderClass(colorNames.gray[400]),
   },
 
-  // 鼠标样式
+  // Cursor
   cursor: {
     pointer: 'cursor-pointer',
   },
 
-  // 间距
+  // Spacing
   spacing: {
     cardPadding: 'px-6 py-4',
   },
 
-  // 字体
+  // Font
   font: {
     title: 'text-lg font-semibold',
   },
 } as const;
 
 // ============================================
-// 辅助函数
+// Helper functions
 // ============================================
 
 /**
- * 获取涨跌颜色配置
- * 根据是否上涨返回对应的颜色配置，支持普通模式和色盲友好模式
+ * getcolorconfiguration
+ * Whether price is upreturnforcolorconfiguration，supportmodeandmode
  *
- * @param isPositive - 是否上涨（true 表示上涨，false 表示下跌）
- * @param useAccessible - 是否使用色盲友好颜色（默认为 false）
- * @returns 包含颜色、背景色和图标的配置对象
+ * @param isPositive - Whether price is up（true on，false down）
+ * @param useAccessible - isUse colorblind-friendly colors（defaultas false）
+ * @returns includecolor、Backgroundandiconconfigurationobject
  * @example
  * ```typescript
- * const upColor = getPriceChangeColor(true); // 上涨颜色
- * const downColor = getPriceChangeColor(false, true); // 色盲友好下跌颜色
+ * const upColor = getPriceChangeColor(true); // oncolor
+ * const downColor = getPriceChangeColor(false, true); // downcolor
  * ```
  */
 function getPriceChangeColor(
@@ -947,15 +947,15 @@ function getPriceChangeColor(
 }
 
 /**
- * 获取图表序列颜色
- * 根据索引循环返回预设的颜色序列，用于多系列图表
+ * getcolor
+ * indexloopreturncolor，use
  *
- * @param index - 颜色索引（从 0 开始）
- * @returns 对应索引的颜色值（hex 格式）
+ * @param index - colorindex（from 0 start）
+ * @returns forindexcolorvalue（hex format）
  * @example
  * ```typescript
- * const color1 = getChartSequenceColor(0); // '#3B82F6'（蓝色）
- * const color2 = getChartSequenceColor(8); // 循环回到第一个颜色
+ * const color1 = getChartSequenceColor(0); // '#3B82F6'（Blue）
+ * const color2 = getChartSequenceColor(8); // Cycles back to the first color
  * ```
  */
 function getChartSequenceColor(index: number): string {
@@ -963,23 +963,23 @@ function getChartSequenceColor(index: number): string {
 }
 
 /**
- * 获取对比度安全的文本颜色
- * 根据背景色的亮度计算，返回黑色或白色文本以确保可读性
+ * getfortextcolor
+ * Backgroundcalculate，returnBlackorWhitetextwithensure
  *
- * 算法说明：
- * 使用 YIQ 亮度公式：brightness = (R * 299 + G * 587 + B * 114) / 1000
- * 亮度 > 128 返回深色文本，否则返回白色
+ * algorithm：
+ * use YIQ ：brightness = (R * 299 + G * 587 + B * 114) / 1000
+ * > 128 returntext，returnWhite
  *
- * @param backgroundColor - 背景色（hex 格式，如 '#ffffff'）
- * @returns 适合的文本颜色（hex 格式）
+ * @param backgroundColor - Background（hex format， '#ffffff'）
+ * @returns textcolor（hex format）
  * @example
  * ```typescript
- * const textColor = getContrastTextColor('#ffffff'); // '#111827'（深色）
- * const textColor2 = getContrastTextColor('#000000'); // '#FFFFFF'（白色）
+ * const textColor = getContrastTextColor('#ffffff'); // '#111827'（）
+ * const textColor2 = getContrastTextColor('#000000'); // '#FFFFFF'（White）
  * ```
  */
 function getContrastTextColor(backgroundColor: string): string {
-  // 简单的亮度计算
+  // Simple brightness calculation
   const hex = backgroundColor.replace('#', '');
   const r = parseInt(hex.substr(0, 2), 16);
   const g = parseInt(hex.substr(2, 2), 16);
@@ -990,7 +990,7 @@ function getContrastTextColor(backgroundColor: string): string {
 }
 
 // ============================================
-// 导出默认对象
+// Export default object
 // ============================================
 
 const colors = {

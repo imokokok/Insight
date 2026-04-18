@@ -26,8 +26,8 @@ interface ValidationErrorDetail {
 }
 
 /**
- * 创建错误响应
- * 复用 errorTypes.ts 中的标准错误响应创建函数
+ * Create error response
+ * Reuse the standard error response creation function from errorTypes.ts
  */
 export function createErrorResponse(
   code: string,
@@ -35,7 +35,7 @@ export function createErrorResponse(
   details?: unknown,
   statusCode: number = 400
 ): NextResponse {
-  // 将字符串 code 转换为 ErrorCode 枚举（如果匹配）
+  // Convert string code to ErrorCode enum (if matching)
   const errorCode = Object.values(ErrorCode).includes(code as ErrorCode)
     ? (code as ErrorCode)
     : ErrorCode.BAD_REQUEST;
@@ -48,14 +48,14 @@ export function createErrorResponse(
 }
 
 /**
- * 处理 Zod 验证错误
- * 统一使用 ZodValidationError.fromZodError 来转换错误
+ * Handle Zod validation error
+ * Unified use of ZodValidationError.fromZodError to convert error
  */
 export function handleValidationError(
   error: ZodError | ZodValidationError,
   context?: string
 ): NextResponse {
-  // 统一转换为 ZodValidationError
+  // Unified conversion to ZodValidationError
   const zodValidationError =
     error instanceof ZodValidationError ? error : ZodValidationError.fromZodError(error);
 
@@ -64,22 +64,22 @@ export function handleValidationError(
   const contextMessage = context ? ` in ${context}` : '';
   logger.warn(`Validation error${contextMessage}`, { errors, context });
 
-  // 使用 ZodValidationError 的 toResponse 方法
+  // Use ZodValidationError's toResponse method
   const response = zodValidationError.toResponse();
   return NextResponse.json(response, { status: 400 });
 }
 
 /**
- * 处理 AppError
- * 复用基础错误处理函数
+ * Handle AppError
+ * Reuse base error handling function
  */
 function handleAppError(error: AppError): NextResponse {
-  // 直接使用 errorToResponse 处理
+  // Use errorToResponse directly
   return baseErrorToResponse(error);
 }
 
 /**
- * 处理未知错误
+ * Handle unknown error
  */
 export function handleUnknownError(error: unknown): NextResponse {
   logger.error(
@@ -96,30 +96,30 @@ export function handleUnknownError(error: unknown): NextResponse {
 }
 
 /**
- * 统一错误处理入口
+ * unifiederrorhandle
  */
 export function handleError(error: unknown, context?: string): NextResponse {
-  // 优先处理 ZodValidationError
+  // prioritizehandle ZodValidationError
   if (isZodValidationError(error)) {
     return handleValidationError(error, context);
   }
 
-  // 处理原生 ZodError
+ // handle ZodError
   if (error && typeof error === 'object' && 'issues' in error) {
     return handleValidationError(error as ZodError, context);
   }
 
-  // 处理 AppError
+  // Handle AppError
   if (isAppError(error)) {
     return handleAppError(error);
   }
 
-  // 处理其他错误
+  // handleOthererror
   return handleUnknownError(error);
 }
 
 /**
- * 包装处理器，自动处理错误
+ * packagehandle，handleerror
  */
 export function withErrorHandling<T>(
   handler: () => Promise<NextResponse<T>>,
@@ -129,7 +129,7 @@ export function withErrorHandling<T>(
 }
 
 /**
- * 创建字段验证错误响应
+ * createvalidateerrorresponse
  */
 export function createValidationErrorResponse(
   field: string,
@@ -144,7 +144,7 @@ export function createValidationErrorResponse(
 }
 
 /**
- * 创建未找到错误响应
+ * createtoerrorresponse
  */
 export function createNotFoundErrorResponse(resource: string, id?: string): NextResponse {
   const message = id ? `${resource} with id "${id}" not found` : `${resource} not found`;
@@ -157,7 +157,7 @@ export function createNotFoundErrorResponse(resource: string, id?: string): Next
 }
 
 /**
- * 创建未授权错误响应
+ * createauthorizationerrorresponse
  */
 export function createUnauthorizedErrorResponse(message: string = 'Unauthorized'): NextResponse {
   const standardResponse = createStandardErrorResponse(ErrorCode.UNAUTHORIZED, message);
@@ -166,7 +166,7 @@ export function createUnauthorizedErrorResponse(message: string = 'Unauthorized'
 }
 
 /**
- * 创建禁止访问错误响应
+ * createerrorresponse
  */
 export function createForbiddenErrorResponse(message: string = 'Forbidden'): NextResponse {
   const standardResponse = createStandardErrorResponse(ErrorCode.FORBIDDEN, message);
@@ -175,7 +175,7 @@ export function createForbiddenErrorResponse(message: string = 'Forbidden'): Nex
 }
 
 /**
- * 创建限流错误响应
+ * createerrorresponse
  */
 export function createRateLimitErrorResponse(retryAfter?: number): NextResponse {
   const standardResponse = createStandardErrorResponse(

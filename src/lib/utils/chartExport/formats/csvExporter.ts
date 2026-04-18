@@ -1,6 +1,6 @@
 /**
- * @fileoverview CSV格式导出
- * @description 处理CSV格式的图表数据导出
+ * @fileoverview CSV format export
+ * @description Handle CSV format chart data export
  */
 
 import { sanitizeFilename, downloadBlob } from '../utils/exportHelpers';
@@ -8,7 +8,7 @@ import { sanitizeFilename, downloadBlob } from '../utils/exportHelpers';
 import type { ChartExportData, ExportMetadata, ExportProgressCallback } from '../types';
 
 /**
- * 导出数据为CSV格式
+ * Export data as CSV format
  */
 export async function exportToCSV(
   data: ChartExportData[],

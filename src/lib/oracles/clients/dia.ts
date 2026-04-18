@@ -1,7 +1,6 @@
 import { BaseOracleClient } from '@/lib/oracles/base';
 import type { OracleClientConfig } from '@/lib/oracles/base';
 import { diaSymbols } from '@/lib/oracles/constants/supportedSymbols';
-import { getDIADataService } from '@/lib/oracles/services/diaDataService';
 import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
 import { createLogger } from '@/lib/utils/logger';
 import { OracleProvider, Blockchain, OracleError } from '@/types/oracle';
@@ -42,51 +41,31 @@ export class DIAClient extends BaseOracleClient {
 
     const upperSymbol = symbol.toUpperCase();
 
-    if (upperSymbol === 'DIA') {
-      try {
-        const marketData = await binanceMarketService.getTokenMarketData(symbol);
-        if (marketData) {
-          return {
-            provider: OracleProvider.DIA,
-            symbol: upperSymbol,
-            price: marketData.currentPrice,
-            timestamp: new Date(marketData.lastUpdated).getTime(),
-            decimals: 8,
-            confidence: 0.95,
-            change24h: marketData.priceChange24h,
-            change24hPercent: marketData.priceChangePercentage24h,
-            chain: chain || Blockchain.ETHEREUM,
-            source: 'binance-api',
-          };
-        }
-        throw this.createError(
-          'Failed to fetch DIA token price from Binance API. Binance returned no market data.',
-          'BINANCE_NO_DATA'
-        );
-      } catch (error) {
-        if (error instanceof OracleError) throw error;
-        throw this.createError(
-          error instanceof Error ? error.message : 'Failed to fetch DIA token price',
-          'DIA_ERROR'
-        );
-      }
-    }
-
     try {
-      logger.info(`Fetching price for ${upperSymbol}`, { chain: chain || 'default' });
+      logger.info(`Fetching price for ${upperSymbol} from Binance API`, {
+        chain: chain || 'default',
+      });
 
-      const diaService = getDIADataService();
+      const marketData = await binanceMarketService.getTokenMarketData(symbol);
 
-      const livePrice = await diaService.getAssetPrice(symbol, chain, options?.signal);
-
-      if (livePrice) {
-        logger.info(`Successfully fetched price for ${upperSymbol}`, { price: livePrice.price });
-        return livePrice;
+      if (marketData) {
+        return {
+          provider: OracleProvider.DIA,
+          symbol: upperSymbol,
+          price: marketData.currentPrice,
+          timestamp: new Date(marketData.lastUpdated).getTime(),
+          decimals: 8,
+          confidence: 0.95,
+          change24h: marketData.priceChange24h,
+          change24hPercent: marketData.priceChangePercentage24h,
+          chain: chain || Blockchain.ETHEREUM,
+          source: 'binance-api',
+        };
       }
 
-      logger.error(`No price data available for ${upperSymbol}`);
+      logger.error(`No price data available for ${upperSymbol} from Binance API`);
       throw this.createError(
-        `No price data available for ${symbol} from DIA. Real data source returned no results.`,
+        `No price data available for ${symbol} from Binance API. Binance returned no market data.`,
         'NO_DATA_AVAILABLE'
       );
     } catch (error) {
@@ -95,7 +74,7 @@ export class DIAClient extends BaseOracleClient {
         `Error fetching price for ${symbol}: ${error instanceof Error ? error.message : String(error)}`
       );
       throw this.createError(
-        error instanceof Error ? error.message : 'Failed to fetch price from DIA',
+        error instanceof Error ? error.message : 'Failed to fetch price from Binance API',
         'DIA_ERROR'
       );
     }

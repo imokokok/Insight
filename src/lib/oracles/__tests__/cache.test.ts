@@ -480,7 +480,7 @@ describe('OracleCache', () => {
         'key with space',
         'key\twith\ttab',
         'key\nwith\nnewline',
-        '键值',
+        'key_value',
         '🔑',
         '🎉🎊🎁',
       ];

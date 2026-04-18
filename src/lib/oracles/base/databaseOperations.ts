@@ -9,7 +9,7 @@ import {
   savePricesToDatabase,
 } from '../utils/storage';
 
-// 延迟导入 factory 以避免循环依赖
+// Lazy import factory to avoid circular dependency
 async function getOracleClient(provider: OracleProvider) {
   const { getDefaultFactory } = await import('@/lib/oracles/factory');
   return getDefaultFactory().getClient(provider);

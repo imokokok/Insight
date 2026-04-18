@@ -1,6 +1,6 @@
 /**
- * @fileoverview JSON格式导出
- * @description 处理JSON格式的图表数据导出
+ * @fileoverview JSON format export
+ * @description Handle JSON format chart data export
  */
 
 import { sanitizeFilename, downloadBlob } from '../utils/exportHelpers';
@@ -8,7 +8,7 @@ import { sanitizeFilename, downloadBlob } from '../utils/exportHelpers';
 import type { ChartExportData, ExportMetadata, ExportProgressCallback } from '../types';
 
 /**
- * 导出数据为JSON格式
+ * Export data as JSON format
  */
 export async function exportToJSON(
   data: ChartExportData[] | Record<string, unknown>,

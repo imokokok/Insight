@@ -1,8 +1,8 @@
 'use client';
 
 /**
- * @fileoverview 统一控制面板组件
- * @description 整合所有筛选和选择功能的控制面板，类似 QueryForm
+ * @fileoverview Unified control panel component
+ * @description Control panel integrating all filter and selection functions, similar to QueryForm
  */
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
@@ -48,7 +48,7 @@ interface ControlPanelProps {
   nextRefreshAt: Date | null;
 }
 
-// 获取预言机特性信息
+// Get oracle feature info
 const getOracleFeatureInfo = (provider: OracleProvider): OracleFeature => {
   const config = getOracleConfig(provider);
   const features: string[] = [];
@@ -112,7 +112,7 @@ export function ControlPanel({
     return map[interval] || 'off';
   };
 
-  // 使用 useCommonSymbols hook 获取共同支持的币种
+  // Use useCommonSymbols hook to get commonly supported symbols
   const { commonSymbols, oracleCountMap, unsupportedOracles } = useCommonSymbols(selectedOracles);
 
   const currentUnsupportedOracles = useMemo(() => {
@@ -120,7 +120,7 @@ export function ControlPanel({
     return unsupportedOracles[selectedSymbol] || [];
   }, [unsupportedOracles, selectedSymbol]);
 
-  // 当切换预言机时，如果当前选择的币种不在新的共同币种列表中，自动重置
+  // When switching oracles, if the currently selected symbol is not in the new common symbols list, auto-reset
   useEffect(() => {
     if (selectedOracles.length > 0 && commonSymbols.length > 0) {
       if (!commonSymbols.includes(selectedSymbol)) {
@@ -129,7 +129,7 @@ export function ControlPanel({
     }
   }, [selectedOracles, commonSymbols, selectedSymbol, onSymbolChange]);
 
-  // Symbol options for dropdown - 使用共同支持的币种
+  // Symbol options for dropdown - use commonly supported symbols
   const symbolOptions = commonSymbols.map((symbol) => ({
     value: symbol,
     label: symbol,
@@ -137,7 +137,7 @@ export function ControlPanel({
     color: '#6B7280',
   }));
 
-  // 自定义渲染选项，显示预言机数量
+  // Custom render option, showing oracle count
   const renderSymbolOption = useCallback(
     (option: { value: string; label: string; icon?: boolean; color?: string }) => {
       const oracleCount = oracleCountMap[option.value] || 0;
@@ -171,19 +171,19 @@ export function ControlPanel({
     label: range.label,
   }));
 
-  // Handle oracle toggle - 支持单个预言机切换
+  // Handle oracle toggle - support single oracle toggle
   const handleOracleToggle = (oracle: OracleProvider) => {
     onOracleToggle(oracle);
   };
 
-  // Handle oracle change - 支持批量选择/取消选择
+  // Handle oracle change - support batch select/deselect
   const handleOracleChange = (oracles: OracleProvider[]) => {
-    // 如果新数组比当前数组长，说明是添加
+    // If the new array is longer than the current one, it means addition
     if (oracles.length > selectedOracles.length) {
       const added = oracles.find((o) => !selectedOracles.includes(o));
       if (added) onOracleToggle(added);
     }
-    // 如果新数组比当前数组短，说明是移除
+    // If the new array is shorter than the current one, it means removal
     else if (oracles.length < selectedOracles.length) {
       const removed = selectedOracles.find((o) => !oracles.includes(o));
       if (removed) onOracleToggle(removed);
@@ -192,7 +192,7 @@ export function ControlPanel({
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-      {/* 面板头部 - 优化移动端显示 */}
+      {/* Panel header - optimized for mobile display */}
       <div className="px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
         <h2 className="text-xs sm:text-sm font-semibold text-gray-900 flex items-center gap-1.5 sm:gap-2">
           <Filter className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-500" aria-hidden="true" />
@@ -200,7 +200,7 @@ export function ControlPanel({
           <span className="sm:hidden">Filters</span>
         </h2>
 
-        {/* 移动端展开/收起按钮 */}
+        {/* Mobile expand/collapse button */}
         <button
           onClick={() => setIsMobileExpanded(!isMobileExpanded)}
           className="lg:hidden inline-flex items-center gap-1 text-xs text-gray-600 hover:text-gray-900 px-2 py-1 rounded-md hover:bg-gray-100 transition-colors"
@@ -225,11 +225,11 @@ export function ControlPanel({
         </button>
       </div>
 
-      {/* 控制面板内容 - 移动端优化间距 */}
+      {/* Control panel content - optimized spacing for mobile */}
       <div
         className={`p-3 sm:p-4 space-y-3 sm:space-y-4 ${isMobileExpanded ? '' : 'hidden lg:block'}`}
       >
-        {/* 活跃筛选器标签 */}
+        {/* Active filter tags */}
         {activeFilterCount > 0 && (
           <div className="flex items-center justify-between pb-2 sm:pb-3 border-b border-gray-100">
             <div className="flex items-center gap-2">
@@ -247,7 +247,7 @@ export function ControlPanel({
           </div>
         )}
 
-        {/* 资产选择 */}
+        {/* Asset selection */}
         <section className="bg-gray-50/50 rounded-lg p-2.5 sm:p-3 border border-gray-100">
           <label className="block text-[10px] sm:text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-1.5 sm:mb-2">
             Trading Pair
@@ -284,7 +284,7 @@ export function ControlPanel({
           )}
         </section>
 
-        {/* 预言机多选 - 带悬停提示 */}
+        {/* Oracle multi-select - with hover tooltip */}
         <section className="bg-gray-50/50 rounded-lg p-2.5 sm:p-3 border border-gray-100">
           <div className="flex items-center justify-between mb-2.5">
             <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
@@ -307,7 +307,7 @@ export function ControlPanel({
             </div>
           </div>
 
-          {/* 预言机选择按钮网格 */}
+          {/* Oracle selection button grid */}
           <div className="flex flex-wrap gap-1.5 p-1 bg-gray-100/80 rounded-lg relative">
             {oracleOptions.map((option) => {
               const selected = selectedOracles.includes(option.value as OracleProvider);
@@ -341,14 +341,14 @@ export function ControlPanel({
                     )}
                   </button>
 
-                  {/* 悬停提示框 */}
+                  {/* Hover tooltip */}
                   {hoveredOracle === option.value && (
                     <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 w-56">
                       <div className="bg-gray-900 text-white rounded-lg shadow-xl p-3 text-xs">
-                        {/* 提示框箭头 */}
+                        {/* Tooltip arrow */}
                         <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
 
-                        {/* 预言机名称 */}
+                        {/* Oracle name */}
                         <div className="font-semibold text-sm mb-2 flex items-center gap-2">
                           <span
                             className="w-2 h-2 rounded-full"
@@ -357,9 +357,9 @@ export function ControlPanel({
                           {featureInfo.name}
                         </div>
 
-                        {/* 特性信息网格 */}
+                        {/* Feature info grid */}
                         <div className="space-y-2">
-                          {/* 支持币种数量 */}
+                          {/* Supported symbol count */}
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-1.5 text-gray-300">
                               <Layers className="w-3.5 h-3.5" />
@@ -370,7 +370,7 @@ export function ControlPanel({
                             </span>
                           </div>
 
-                          {/* 平均响应延迟 */}
+                          {/* Average response latency */}
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-1.5 text-gray-300">
                               <Clock className="w-3.5 h-3.5" />
@@ -381,7 +381,7 @@ export function ControlPanel({
                             </span>
                           </div>
 
-                          {/* 特性标签 */}
+                          {/* Feature tags */}
                           {featureInfo.features.length > 0 && (
                             <div className="pt-1">
                               <div className="flex items-center gap-1.5 text-gray-300 mb-1.5">
@@ -416,7 +416,7 @@ export function ControlPanel({
           )}
         </section>
 
-        {/* 时间范围选择 - 移动端使用更紧凑的布局 */}
+        {/* Time range selection - more compact layout for mobile */}
         <section className="bg-gray-50/50 rounded-lg p-2.5 sm:p-3 border border-gray-100">
           <SegmentedControl
             options={timeRangeOptions}
@@ -428,7 +428,7 @@ export function ControlPanel({
           />
         </section>
 
-        {/* 自动刷新控制 */}
+        {/* Auto refresh control */}
         <section className="bg-gray-50/50 rounded-lg p-2.5 sm:p-3 border border-gray-100">
           <label className="block text-[10px] sm:text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-1.5 sm:mb-2">
             Auto Refresh
@@ -444,7 +444,7 @@ export function ControlPanel({
           />
         </section>
 
-        {/* 查询按钮 - 移动端优化 */}
+        {/* Query button - optimized for mobile */}
         <div className="pt-2 border-t border-gray-200">
           <button
             onClick={onQuery}

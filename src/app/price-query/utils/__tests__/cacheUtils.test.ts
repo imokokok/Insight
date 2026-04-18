@@ -19,7 +19,7 @@ describe('cacheUtils', () => {
       cache.clearAll();
     });
 
-    describe('缓存设置和获取', () => {
+    describe('Cache set and get', () => {
       it('should set and get a value', () => {
         cache.set('key1', 'value1');
         const result = cache.get('key');
@@ -62,7 +62,7 @@ describe('cacheUtils', () => {
       });
     });
 
-    describe('缓存过期', () => {
+    describe('Cache expiration', () => {
       it('should return undefined for expired entry', async () => {
         cache = new PriceQueryCache<string>(5, 100);
         cache.set('key1', 'value1');
@@ -116,7 +116,7 @@ describe('cacheUtils', () => {
       });
     });
 
-    describe('缓存清理', () => {
+    describe('Cache cleanup', () => {
       it('should clear a specific key', () => {
         cache.set('key1', 'value1');
         cache.set('key2', 'value2');
@@ -184,7 +184,7 @@ describe('cacheUtils', () => {
       });
     });
 
-    describe('LRU 淘汰', () => {
+    describe('LRU eviction', () => {
       it('should evict oldest entry when max size reached', () => {
         cache.set('key1', 'value1');
         cache.set('key2', 'value2');
@@ -227,7 +227,7 @@ describe('cacheUtils', () => {
       });
     });
 
-    describe('has 方法', () => {
+    describe('has method', () => {
       it('should return true for existing key', () => {
         cache.set('key1', 'value1');
 
@@ -248,7 +248,7 @@ describe('cacheUtils', () => {
       });
     });
 
-    describe('缓存统计', () => {
+    describe('Cache statistics', () => {
       it('should track hits correctly', () => {
         cache.set('key1', 'value1');
         cache.get('key');
@@ -301,7 +301,7 @@ describe('cacheUtils', () => {
       });
     });
 
-    describe('辅助方法', () => {
+    describe('Helper methods', () => {
       it('should return all keys', () => {
         cache.set('key1', 'value1');
         cache.set('key2', 'value2');
@@ -447,7 +447,7 @@ describe('cacheUtils', () => {
     });
   });
 
-  describe('边界情况', () => {
+  describe('Edge cases', () => {
     it('should handle cache with max size 1', () => {
       const smallCache = new PriceQueryCache<string>(1, 1000);
 
@@ -496,7 +496,7 @@ describe('cacheUtils', () => {
         'key/with/slashes',
         'key with spaces',
         'key@with#special$chars',
-        '中文键',
+        'chinese_key',
         '🔑emoji',
       ];
 

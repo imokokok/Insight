@@ -24,8 +24,8 @@ const getQueryKey = (symbol: string): string[] => {
 };
 
 /**
- * 获取RedStone预言机的代币链上数据
- * 包括24h涨跌、买卖价差、数据源等与价格相关的数据
+ * Get token on-chain data from RedStone oracle
+ * Including 24h change, bid-ask spread, data sources and other price-related data
  */
 export function useRedStoneOnChainData(
   options: UseRedStoneOnChainDataOptions
@@ -44,9 +44,9 @@ export function useRedStoneOnChainData(
     queryKey,
     queryFn: () => redstoneClient.getTokenOnChainData(symbol),
     enabled: enabled && !!symbol,
-    staleTime: 60000, // 1分钟
-    gcTime: 300000, // 5分钟
-    refetchInterval: 60000, // 每分钟自动刷新
+    staleTime: 60000, // 1 minute
+    gcTime: 300000, // 5 minutes
+    refetchInterval: 60000, // Auto-refresh every minute
     refetchOnWindowFocus: false,
     retry: 2,
   });

@@ -671,7 +671,7 @@ const CHAINLINK_CONTRACTS: Record<number, ChainlinkContracts> = {
   },
 };
 
-// 构建 RPC 端点列表，优先使用 Alchemy，其次使用可靠的公共节点
+// Build RPC endpoint list, prioritizing Alchemy, then using reliable public nodes
 function buildEndpoints(
   alchemyUrl: string,
   publicEndpoints: string[],
@@ -680,13 +680,13 @@ function buildEndpoints(
   const hasAlchemy = alchemyUrl && alchemyUrl.length > 0;
 
   if (preferAlchemy && hasAlchemy) {
-    // Alchemy 优先模式：Alchemy 放第一位，然后是公共节点
+    // Alchemy priority mode: Alchemy first, then public nodes
     return [alchemyUrl, ...publicEndpoints];
   } else if (hasAlchemy) {
-    // 公共节点优先模式（备用）
+    // Public node priority mode (fallback)
     return [...publicEndpoints, alchemyUrl];
   } else {
-    // 没有 Alchemy，只使用公共节点
+    // No Alchemy available, using only public nodes
     return publicEndpoints;
   }
 }
@@ -743,7 +743,7 @@ const CHAINLINK_RPC_CONFIG: Record<number, ChainlinkRPCConfig> = {
     name: 'BNB Chain',
   },
   10: {
-    // Optimism: Alchemy 可能未启用，优先使用官方 RPC
+    // Optimism: Alchemy may not be enabled, prefer official RPC
     endpoints: [
       'https://mainnet.optimism.io',
       'https://optimism.publicnode.com',

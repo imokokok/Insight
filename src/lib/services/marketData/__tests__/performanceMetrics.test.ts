@@ -79,7 +79,7 @@ describe('performanceMetrics', () => {
           asset: 'BTC',
           price: 50000,
           timestamp: Date.now(),
-          source: 'coingecko',
+          source: 'binance',
         };
 
         performanceMetricsCalculator.addReferencePrice(point);
@@ -160,7 +160,7 @@ describe('performanceMetrics', () => {
             asset: 'BTC',
             price: 50000,
             timestamp: now - i * 1000,
-            source: 'coingecko',
+            source: 'binance',
           });
         }
 

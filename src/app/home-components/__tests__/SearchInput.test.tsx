@@ -2,194 +2,194 @@ import { render, screen, fireEvent } from '@testing-library/react';
 
 import SearchInput from '../SearchInput';
 
-jest.mock('../SearchDropdown', () => ({
-  __esModule: true,
-  default: ({ isOpen }: { isOpen: boolean }) => (
-    <div data-testid="search-dropdown" data-open={isOpen}>
-      Dropdown
-    </div>
-  ),
+jest.mock('../SearchDropdown',  => ({
+ __esModule: true,
+ default: ({ isOpen }: { isOpen: boolean }) => (
+ <div data-testid="search-dropdown" data-open={isOpen}>
+ Dropdown
+ </div>
+ ),
 }));
 
-const createMockRef = () => ({
-  current: null,
+const createMockRef =  => ({
+ current: null,
 });
 
 const defaultProps = {
-  searchQuery: '',
-  onSearchQueryChange: jest.fn(),
-  onSearch: jest.fn(),
-  onClearHistory: jest.fn(),
-  onRemoveHistoryItem: jest.fn(),
-  searchHistory: [],
-  searchResults: [],
-  dropdownItems: [],
-  isDropdownOpen: false,
-  highlightedIndex: -1,
-  onDropdownOpenChange: jest.fn(),
-  onHighlightChange: jest.fn(),
-  dropdownRef: createMockRef(),
-  inputRef: createMockRef(),
-  onKeyDown: jest.fn((e, onSelectItem) => {
-    if (e.key === 'Enter') {
-      onSelectItem();
-    }
-  }),
-  getTokenSymbolFromQuery: jest.fn(),
+ searchQuery: '',
+ onSearchQueryChange: jest.fn,
+ onSearch: jest.fn,
+ onClearHistory: jest.fn,
+ onRemoveHistoryItem: jest.fn,
+ searchHistory: [],
+ searchResults: [],
+ dropdownItems: [],
+ isDropdownOpen: false,
+ highlightedIndex: -1,
+ onDropdownOpenChange: jest.fn,
+ onHighlightChange: jest.fn,
+ dropdownRef: createMockRef,
+ inputRef: createMockRef,
+ onKeyDown: jest.fn((e, onSelectItem) => {
+ if (e.key === 'Enter') {
+ onSelectItem;
+ }
+ }),
+ getTokenSymbolFromQuery: jest.fn,
 };
 
-describe('SearchInput', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
+describe('SearchInput',  => {
+ beforeEach( => {
+ jest.clearAllMocks;
+ });
 
-  describe('基础渲染', () => {
-    it('应该正确渲染搜索输入框', () => {
-      render(<SearchInput {...defaultProps} />);
+ describe('Basic rendering',  => {
+ it('shouldsearchinput',  => {
+ render(<SearchInput {...defaultProps} />);
 
-      expect(screen.getByPlaceholderText('Text')).toBeInTheDocument();
-    });
+ expect(screen.getByPlaceholderText('Text')).toBeInTheDocument;
+ });
 
-    it('应该渲染搜索按钮', () => {
-      render(<SearchInput {...defaultProps} />);
+ it('should render search button',  => {
+ render(<SearchInput {...defaultProps} />);
 
-      expect(screen.getByText('Text')).toBeInTheDocument();
-    });
+ expect(screen.getByText('Text')).toBeInTheDocument;
+ });
 
-    it('应该渲染搜索图标', () => {
-      render(<SearchInput {...defaultProps} />);
+ it('shouldsearchicon',  => {
+ render(<SearchInput {...defaultProps} />);
 
-      const searchIcon = document.querySelector('svg');
-      expect(searchIcon).toBeInTheDocument();
-    });
+ const searchIcon = document.querySelector('svg');
+ expect(searchIcon).toBeInTheDocument;
+ });
 
-    it('当有搜索词时应该显示清除按钮', () => {
-      render(<SearchInput {...defaultProps} searchQuery="BTC" />);
+ it('whenhavesearchshouldbutton',  => {
+ render(<SearchInput {...defaultProps} searchQuery="BTC" />);
 
-      const clearButtons = screen.getAllByRole('button');
-      const clearButton = clearButtons.find(
-        (btn) => btn.querySelector('svg') && btn !== screen.getByText('Text').closest('Text')
-      );
-      expect(clearButton).toBeInTheDocument();
-    });
+ const clearButtons = screen.getAllByRole('button');
+ const clearButton = clearButtons.find(
+ (btn) => btn.querySelector('svg') && btn !== screen.getByText('Text').closest('Text')
+ );
+ expect(clearButton).toBeInTheDocument;
+ });
 
-    it('当没有搜索词时不应该显示清除按钮', () => {
-      render(<SearchInput {...defaultProps} searchQuery="" />);
+ it('whenhavesearchnotshouldbutton',  => {
+ render(<SearchInput {...defaultProps} searchQuery="" />);
 
-      const input = screen.getByPlaceholderText('Text');
-      expect(input).toHaveValue('');
-    });
-  });
+ const input = screen.getByPlaceholderText('Text');
+ expect(input).toHaveValue('');
+ });
+ });
 
-  describe('输入交互', () => {
-    it('输入时应该调用 onSearchQueryChange', () => {
-      render(<SearchInput {...defaultProps} />);
+ describe('interaction',  => {
+ it('shoulduse onSearchQueryChange',  => {
+ render(<SearchInput {...defaultProps} />);
 
-      const input = screen.getByPlaceholderText('Text');
-      fireEvent.change(input, { target: { value: 'ETH' } });
+ const input = screen.getByPlaceholderText('Text');
+ fireEvent.change(input, { target: { value: 'ETH' } });
 
-      expect(defaultProps.onSearchQueryChange).toHaveBeenCalledWith('ETH');
-    });
+ expect(defaultProps.onSearchQueryChange).toHaveBeenCalledWith('ETH');
+ });
 
-    it('输入时应该打开下拉菜单', () => {
-      render(<SearchInput {...defaultProps} />);
+ it('shouldopendropdownmenu',  => {
+ render(<SearchInput {...defaultProps} />);
 
-      const input = screen.getByPlaceholderText('Text');
-      fireEvent.change(input, { target: { value: 'BTC' } });
+ const input = screen.getByPlaceholderText('Text');
+ fireEvent.change(input, { target: { value: 'BTC' } });
 
-      expect(defaultProps.onDropdownOpenChange).toHaveBeenCalledWith(true);
-    });
+ expect(defaultProps.onDropdownOpenChange).toHaveBeenCalledWith(true);
+ });
 
-    it('聚焦时应该打开下拉菜单', () => {
-      render(<SearchInput {...defaultProps} />);
+ it('focusshouldopendropdownmenu',  => {
+ render(<SearchInput {...defaultProps} />);
 
-      const input = screen.getByPlaceholderText('Text');
-      fireEvent.focus(input);
+ const input = screen.getByPlaceholderText('Text');
+ fireEvent.focus(input);
 
-      expect(defaultProps.onDropdownOpenChange).toHaveBeenCalledWith(true);
-    });
-  });
+ expect(defaultProps.onDropdownOpenChange).toHaveBeenCalledWith(true);
+ });
+ });
 
-  describe('表单提交', () => {
-    it('提交表单应该调用 onSearch', () => {
-      render(<SearchInput {...defaultProps} searchQuery="BTC" />);
+ describe('commit',  => {
+ it('commitshoulduse onSearch',  => {
+ render(<SearchInput {...defaultProps} searchQuery="BTC" />);
 
-      const form = screen.getByPlaceholderText('Text').closest('Text');
-      fireEvent.submit(form!);
+ const form = screen.getByPlaceholderText('Text').closest('Text');
+ fireEvent.submit(form!);
 
-      expect(defaultProps.onSearch).toHaveBeenCalled();
-    });
-  });
+ expect(defaultProps.onSearch).toHaveBeenCalled;
+ });
+ });
 
-  describe('键盘交互', () => {
-    it('按下 Enter 键应该触发搜索', () => {
-      render(<SearchInput {...defaultProps} searchQuery="BTC" />);
+ describe('keyboardinteraction',  => {
+ it('bydown Enter shouldtriggersearch',  => {
+ render(<SearchInput {...defaultProps} searchQuery="BTC" />);
 
-      const input = screen.getByPlaceholderText('Text');
-      fireEvent.keyDown(input, { key: 'Enter' });
+ const input = screen.getByPlaceholderText('Text');
+ fireEvent.keyDown(input, { key: 'Enter' });
 
-      expect(defaultProps.onKeyDown).toHaveBeenCalled();
-    });
-  });
+ expect(defaultProps.onKeyDown).toHaveBeenCalled;
+ });
+ });
 
-  describe('清除按钮', () => {
-    it('点击清除按钮应该清空搜索词', () => {
-      render(<SearchInput {...defaultProps} searchQuery="BTC" />);
+ describe('button',  => {
+ it('clickbuttonshouldemptysearch',  => {
+ render(<SearchInput {...defaultProps} searchQuery="BTC" />);
 
-      const clearButton = screen.getAllByRole('button')[0];
-      fireEvent.click(clearButton);
+ const clearButton = screen.getAllByRole('button')[0];
+ fireEvent.click(clearButton);
 
-      expect(defaultProps.onSearchQueryChange).toHaveBeenCalledWith('');
-    });
-  });
+ expect(defaultProps.onSearchQueryChange).toHaveBeenCalledWith('');
+ });
+ });
 
-  describe('焦点状态', () => {
-    it('聚焦时应该更新样式', () => {
-      render(<SearchInput {...defaultProps} />);
+ describe('state',  => {
+ it('focusshouldupdatestyle',  => {
+ render(<SearchInput {...defaultProps} />);
 
-      const input = screen.getByPlaceholderText('Text');
-      fireEvent.focus(input);
+ const input = screen.getByPlaceholderText('Text');
+ fireEvent.focus(input);
 
-      const form = input.closest('Text');
-      expect(form).toHaveClass('border-blue-400');
-    });
+ const form = input.closest('Text');
+ expect(form).toHaveClass('border-blue-400');
+ });
 
-    it('失焦时应该移除焦点样式', () => {
-      render(<SearchInput {...defaultProps} />);
+ it('shouldremovestyle',  => {
+ render(<SearchInput {...defaultProps} />);
 
-      const input = screen.getByPlaceholderText('Text');
-      fireEvent.focus(input);
-      fireEvent.blur(input);
+ const input = screen.getByPlaceholderText('Text');
+ fireEvent.focus(input);
+ fireEvent.blur(input);
 
-      const form = input.closest('Text');
-      expect(form).not.toHaveClass('border-blue-400');
-    });
-  });
+ const form = input.closest('Text');
+ expect(form).not.toHaveClass('border-blue-400');
+ });
+ });
 
-  describe('中文输入法支持', () => {
-    it('在输入法组合期间不应该触发搜索', () => {
-      const mockOnKeyDown = jest.fn();
-      render(<SearchInput {...defaultProps} onKeyDown={mockOnKeyDown} />);
+ describe('insupport',  => {
+ it('innotshouldtriggersearch',  => {
+ const mockOnKeyDown = jest.fn;
+ render(<SearchInput {...defaultProps} onKeyDown={mockOnKeyDown} />);
 
-      const input = screen.getByPlaceholderText('Text');
+ const input = screen.getByPlaceholderText('Text');
 
-      fireEvent.compositionStart(input);
-      fireEvent.keyDown(input, { key: 'Enter' });
+ fireEvent.compositionStart(input);
+ fireEvent.keyDown(input, { key: 'Enter' });
 
-      expect(mockOnKeyDown).not.toHaveBeenCalled();
-    });
+ expect(mockOnKeyDown).not.toHaveBeenCalled;
+ });
 
-    it('输入法组合结束后应该恢复正常行为', () => {
-      const mockOnKeyDown = jest.fn();
-      render(<SearchInput {...defaultProps} onKeyDown={mockOnKeyDown} />);
+ it('endaftershouldnormalas',  => {
+ const mockOnKeyDown = jest.fn;
+ render(<SearchInput {...defaultProps} onKeyDown={mockOnKeyDown} />);
 
-      const input = screen.getByPlaceholderText('Text');
+ const input = screen.getByPlaceholderText('Text');
 
-      fireEvent.compositionStart(input);
-      fireEvent.compositionEnd(input);
-      fireEvent.keyDown(input, { key: 'Enter' });
+ fireEvent.compositionStart(input);
+ fireEvent.compositionEnd(input);
+ fireEvent.keyDown(input, { key: 'Enter' });
 
-      expect(mockOnKeyDown).toHaveBeenCalled();
-    });
-  });
+ expect(mockOnKeyDown).toHaveBeenCalled;
+ });
+ });
 });

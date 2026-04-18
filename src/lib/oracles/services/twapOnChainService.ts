@@ -393,7 +393,7 @@ class TwapOnChainService {
         }
       }
     } catch {
-      // Binance API 失败，尝试链上方式
+      // Binance API failed, trying on-chain method
     }
 
     const usdcWethPool = TWAP_POOL_ADDRESSES['ETH']?.[chainId];
@@ -428,7 +428,7 @@ class TwapOnChainService {
           return ethPrice;
         }
       } catch {
-        // 链上方式也失败
+        // On-chain method also failed
       }
     }
 
@@ -454,7 +454,7 @@ class TwapOnChainService {
         }
       }
     } catch {
-      // Binance API 失败，尝试链上方式
+      // Binance API failed, trying on-chain method
     }
 
     const bnbPool = TWAP_POOL_ADDRESSES['BNB']?.[chainId];
@@ -489,7 +489,7 @@ class TwapOnChainService {
           return bnbPrice;
         }
       } catch {
-        // 链上方式也失败
+        // On-chain method also failed
       }
     }
 
@@ -515,7 +515,7 @@ class TwapOnChainService {
         }
       }
     } catch {
-      // Binance API 失败，尝试链上方式
+      // Binance API failed, trying on-chain method
     }
 
     const wbtcWethPool = TWAP_POOL_ADDRESSES['WBTC']?.[chainId];
@@ -550,7 +550,7 @@ class TwapOnChainService {
           return btcUsdPrice;
         }
       } catch {
-        // 链上方式也失败
+        // On-chain method also failed
       }
     }
 

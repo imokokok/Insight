@@ -11,9 +11,9 @@ export interface KeyboardShortcut {
   handler: () => void;
   description?: string;
   preventDefault?: boolean;
-  /** 优先级，数字越大优先级越高 */
+  /** Priority, higher number means higher priority */
   priority?: number;
-  /** 快捷键作用域，默认为 'global' */
+  /** Shortcut scope, default is 'global' */
   scope?: string;
 }
 
@@ -24,7 +24,7 @@ interface ShortcutConflict {
 }
 
 /**
- * 检查快捷键是否冲突
+ * Check if keyboard shortcuts conflict
  */
 export function checkShortcutConflicts(shortcuts: KeyboardShortcut[]): ShortcutConflict[] {
   const conflicts: ShortcutConflict[] = [];
@@ -55,7 +55,7 @@ export function checkShortcutConflicts(shortcuts: KeyboardShortcut[]): ShortcutC
 }
 
 /**
- * 格式化快捷键为可读字符串
+ * Format shortcut as readable string
  */
 export function formatShortcut(shortcut: KeyboardShortcut): string {
   const parts: string[] = [];
@@ -89,7 +89,7 @@ export function formatShortcut(shortcut: KeyboardShortcut): string {
 }
 
 /**
- * 获取平台特定的快捷键显示
+ * Get platform-specific shortcut display
  */
 export function getPlatformShortcut(shortcut: KeyboardShortcut): string {
   const isMac = typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform);
@@ -132,7 +132,7 @@ export function getPlatformShortcut(shortcut: KeyboardShortcut): string {
 }
 
 /**
- * 全局快捷键管理器
+ * Global keyboard shortcut manager
  */
 class ShortcutManager {
   private shortcuts: Map<string, KeyboardShortcut[]> = new Map();
@@ -148,7 +148,7 @@ class ShortcutManager {
     const scopeShortcuts = this.shortcuts.get(scope)!;
     scopeShortcuts.push(shortcut);
 
-    // 按优先级排序
+    // Sort by priority
     scopeShortcuts.sort((a, b) => (b.priority || 0) - (a.priority || 0));
 
     return () => {
@@ -191,7 +191,7 @@ class ShortcutManager {
   }
 
   handleKeyDown(event: KeyboardEvent): boolean {
-    // 优先处理当前作用域的快捷键
+    // Prioritize shortcuts in current scope
     const scopesToCheck = [this.activeScope, 'global'];
 
     for (const scope of scopesToCheck) {
@@ -218,11 +218,11 @@ class ShortcutManager {
   }
 }
 
-// 全局快捷键管理器实例
+// Global keyboard shortcut manager instance
 export const shortcutManager = new ShortcutManager();
 
 /**
- * 使用键盘快捷键 Hook
+ * Use keyboard shortcuts Hook
  */
 export function useKeyboardShortcuts(shortcuts: KeyboardShortcut[]) {
   useEffect(() => {
@@ -240,14 +240,14 @@ export function useKeyboardShortcuts(shortcuts: KeyboardShortcut[]) {
 }
 
 /**
- * 初始化全局键盘事件监听
+ * initializekeyboardeventlisten
  */
 export function useGlobalKeyboardListener() {
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
-    // 当用户在输入框中输入时不触发快捷键
+ // whenuserininputinnottriggershortcut
     const target = event.target as HTMLElement;
     if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
-      // 但允许 Escape 键关闭对话框
+ // Escape closefor
       if (event.key !== 'Escape') {
         return;
       }
@@ -262,7 +262,7 @@ export function useGlobalKeyboardListener() {
   }, [handleKeyDown]);
 }
 
-// 快捷键描述键，用于国际化
+// shortcutDescription，use
 const shortcutKeys = {
   refresh: 'shortcuts.refresh',
   search: 'shortcuts.search',
@@ -276,7 +276,7 @@ const shortcutKeys = {
 } as const;
 
 /**
- * 常用快捷键 Hook
+ * useshortcut Hook
  */
 export function useCommonShortcuts({
   onRefresh,
