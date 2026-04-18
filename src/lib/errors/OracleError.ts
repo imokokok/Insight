@@ -119,7 +119,7 @@ interface UnsupportedChainErrorDetails extends OracleErrorDetails {
 /**
  * 不支持的链错误
  */
-class UnsupportedChainError extends AppError {
+export class UnsupportedChainError extends AppError {
   constructor(message: string, details?: UnsupportedChainErrorDetails) {
     super({
       message,
@@ -157,7 +157,7 @@ interface UnsupportedSymbolErrorDetails extends OracleErrorDetails {
 /**
  * 不支持的代币错误
  */
-class UnsupportedSymbolError extends AppError {
+export class UnsupportedSymbolError extends AppError {
   constructor(message: string, details?: UnsupportedSymbolErrorDetails) {
     super({
       message,

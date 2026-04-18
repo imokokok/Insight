@@ -208,6 +208,7 @@ export class RedStoneClient extends BaseOracleClient {
       timestamp,
       decimals: 8,
       confidence: 0.97,
+      confidenceSource: 'estimated',
       confidenceInterval,
       change24h: response.change24h ?? 0,
       change24hPercent: response.change24hPercent ?? 0,

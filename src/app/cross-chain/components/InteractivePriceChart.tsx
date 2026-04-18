@@ -24,6 +24,7 @@ import { type Blockchain } from '@/types/oracle';
 
 import { type ChartDataPoint } from '../constants';
 import { chainNames, chainColors } from '../utils';
+import { getTimeRangeInMs } from '../utils/timeUtils';
 
 interface ReferenceLineConfig {
   id: string;
@@ -147,27 +148,11 @@ export function InteractivePriceChart({
     setSelectedTimeRange(range as TimeRange);
   }, []);
 
-  const getTimeRangeInMs = useCallback((range: TimeRange): number => {
-    const now = Date.now();
-    switch (range) {
-      case '1H':
-        return now - 60 * 60 * 1000;
-      case '24H':
-        return now - 24 * 60 * 60 * 1000;
-      case '7D':
-        return now - 7 * 24 * 60 * 60 * 1000;
-      case '30D':
-        return now - 30 * 24 * 60 * 60 * 1000;
-      default:
-        return now - 24 * 60 * 60 * 1000;
-    }
-  }, []);
-
   const timeFilteredData = useMemo(() => {
     if (chartDataWithMA.length === 0) return [];
     const cutoffTime = getTimeRangeInMs(selectedTimeRange);
     return chartDataWithMA.filter((point) => point.timestamp >= cutoffTime);
-  }, [chartDataWithMA, selectedTimeRange, getTimeRangeInMs]);
+  }, [chartDataWithMA, selectedTimeRange]);
 
   const prevDataLengthRef = useRef(chartData.length);
   useEffect(() => {
@@ -245,14 +230,7 @@ export function InteractivePriceChart({
     } catch (error) {
       console.error('Failed to export price chart data:', error);
     }
-  }, [
-    visibleData,
-    filteredChains,
-    selectedTimeRange,
-    viewState,
-    chartData.length,
-    getTimeRangeInMs,
-  ]);
+  }, [visibleData, filteredChains, selectedTimeRange, viewState, chartData.length]);
 
   // Calculate price domain for Y axis
   const priceDomain = useMemo(() => {

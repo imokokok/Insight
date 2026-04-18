@@ -28,7 +28,7 @@ export interface PriceAnomaly {
   deviationPercent: number;
   /** 异常严重程度 */
   severity: AnomalySeverity;
-  /** 可能的原因分析翻译键列表 */
+  /** 异常原因可读文本列表 */
   reasonKeys: string[];
   /** 异常检测时间戳 */
   timestamp: number;
@@ -68,32 +68,32 @@ function analyzeReason(
 
   const absDeviation = Math.abs(deviationPercent);
   if (absDeviation > 5) {
-    reasonKeys.push('anomalyDetection.reasons.severeDeviation');
+    reasonKeys.push('价格偏差超过3%');
   } else if (absDeviation > SEVERITY_THRESHOLDS.HIGH) {
-    reasonKeys.push('anomalyDetection.reasons.highVolatility');
+    reasonKeys.push('市场波动性较高');
   } else if (absDeviation > ANOMALY_DEVIATION_THRESHOLD) {
-    reasonKeys.push('anomalyDetection.reasons.dataSourceDifference');
+    reasonKeys.push('数据源差异');
   }
 
   if (freshnessSeconds > FRESHNESS_THRESHOLDS.SEVERELY_DELAYED) {
-    reasonKeys.push('anomalyDetection.reasons.severelyDelayed');
+    reasonKeys.push('数据更新严重延迟');
   } else if (freshnessSeconds > FRESHNESS_THRESHOLDS.DELAYED) {
-    reasonKeys.push('anomalyDetection.reasons.delayed');
+    reasonKeys.push('数据更新延迟');
   }
 
   if (confidence !== undefined && confidence !== null) {
     if (confidence < CONFIDENCE_THRESHOLDS.LOW) {
-      reasonKeys.push('anomalyDetection.reasons.lowConfidence');
+      reasonKeys.push('数据置信度较低');
     } else if (confidence < CONFIDENCE_THRESHOLDS.MEDIUM) {
-      reasonKeys.push('anomalyDetection.reasons.mediumConfidence');
+      reasonKeys.push('数据置信度中等');
     }
   }
 
   if (reasonKeys.length === 0) {
     if (absDeviation >= ANOMALY_DEVIATION_THRESHOLD) {
-      reasonKeys.push('anomalyDetection.reasons.overThreshold');
+      reasonKeys.push('偏差超过阈值');
     } else {
-      reasonKeys.push('anomalyDetection.reasons.minorDeviation');
+      reasonKeys.push('轻微偏差');
     }
   }
 

@@ -9,7 +9,7 @@ import Footer from '@/components/Footer';
 import Navbar from '@/components/Navbar';
 import { PerformanceMetricsCollector } from '@/components/PerformanceMetricsCollector';
 import { ConnectionStatusIndicator } from '@/components/realtime/ConnectionStatus';
-import { ReactQueryProvider } from '@/providers/ReactQueryProvider';
+import { QueryProvider } from '@/providers/QueryProvider';
 
 import type { Metadata } from 'next';
 
@@ -31,7 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
       </head>
       <body className="antialiased min-h-screen flex flex-col">
-        <ReactQueryProvider>
+        <QueryProvider>
           <ErrorBoundary>
             <AppInitializer>
               <PerformanceMetricsCollector />
@@ -47,7 +47,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               />
             </AppInitializer>
           </ErrorBoundary>
-        </ReactQueryProvider>
+        </QueryProvider>
         <Analytics />
         <SpeedInsights />
       </body>

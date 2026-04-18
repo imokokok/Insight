@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 
 import { Search, RefreshCw } from 'lucide-react';
 
@@ -44,9 +44,6 @@ export function Selectors({
   onQuery,
   supportedChainsBySelectedOracles,
 }: SelectorsProps) {
-  const [_showAdvanced, _setShowAdvanced] = useState(false);
-
-  // 使用 useOracleSymbols Hook 获取预言机相关的币种和链信息
   const {
     supportedSymbols,
     isSymbolSupported,
@@ -109,15 +106,6 @@ export function Selectors({
       label: symbol,
     }));
   }, [selectedOracle, selectedChain, supportedSymbols, getSymbolsForChain]);
-
-  // 检查当前选中的币种是否被当前链支持
-  const _isCurrentSymbolSupported = useMemo(() => {
-    if (!selectedOracle) return true;
-    if (selectedChain) {
-      return isSymbolSupported(selectedSymbol, selectedChain);
-    }
-    return isSymbolSupported(selectedSymbol);
-  }, [selectedOracle, selectedChain, selectedSymbol, isSymbolSupported]);
 
   const oracleOptions: SelectorOption<OracleProvider>[] =
     getPriceOracleProvidersSortedByMarketCap().map((oracle) => ({

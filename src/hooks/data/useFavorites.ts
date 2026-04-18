@@ -16,6 +16,7 @@ export interface FavoriteConfig {
   chains?: string[];
   chain?: string;
   symbols?: string[];
+  timeRange?: number;
 }
 
 interface UseFavoritesOptions {

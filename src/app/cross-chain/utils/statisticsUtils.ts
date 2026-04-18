@@ -80,10 +80,6 @@ export const getTCriticalValue = (df: number, confidenceLevel: number = 0.95): n
   return lowerValue + (upperValue - lowerValue) * weight;
 };
 
-const calculateStandardDeviationFromValues = (prices: number[]): number => {
-  return calculateStdDev(prices);
-};
-
 export const calculateVariance = (prices: number[], mean: number): number => {
   if (prices.length < 2) return 0;
   const sumSquaredDiff = prices.reduce((sum, price) => sum + Math.pow(price - mean, 2), 0);

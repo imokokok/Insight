@@ -18,21 +18,25 @@ import { safeMax } from '@/lib/utils';
 import { isBlockchain } from '@/lib/utils/chainUtils';
 import { downloadBlob } from '@/lib/utils/download';
 import { escapeCSVField } from '@/lib/utils/export';
-import { useColorblindMode } from '@/stores/crossChainConfigStore';
+import { useColorblindMode, useCrossChainConfigStore } from '@/stores/crossChainConfigStore';
+import { useCrossChainDataStore } from '@/stores/crossChainDataStore';
+import { useCrossChainSelectorStore } from '@/stores/crossChainSelectorStore';
+import { useCrossChainUIStore } from '@/stores/crossChainUIStore';
 import { type Blockchain, type PriceData } from '@/types/oracle';
 
 import { getColorblindHeatmapColor, colorblindLegendConfig } from '../colorblindTheme';
-import { type useCrossChainData } from '../useCrossChainData';
+import { useChartData } from '../hooks/useChartData';
+import { useStatistics } from '../hooks/useStatistics';
+import {
+  useChainsWithHighDeviation,
+  useFilteredChains,
+  useCurrentClient,
+} from '../useCrossChainData';
 import { chainNames, chainColors, getHeatmapColor } from '../utils';
+import { getTimeRangeInMs } from '../utils/timeUtils';
 
-interface PriceSpreadHeatmapProps {
-  data: ReturnType<typeof useCrossChainData>;
-}
-
-export const PriceSpreadHeatmap = memo(function PriceSpreadHeatmap({
-  data,
-}: PriceSpreadHeatmapProps) {
-  const { chainsWithHighDeviation } = data;
+export const PriceSpreadHeatmap = memo(function PriceSpreadHeatmap() {
+  const chainsWithHighDeviation = useChainsWithHighDeviation();
 
   if (chainsWithHighDeviation.length > 0) {
     return (
@@ -69,46 +73,78 @@ export const PriceSpreadHeatmap = memo(function PriceSpreadHeatmap({
   return null;
 });
 
-interface HeatmapDetailViewProps {
-  data: ReturnType<typeof useCrossChainData>;
+function useHeatmapData() {
+  const currentPrices = useCrossChainDataStore((s) => s.currentPrices);
+  const historicalPrices = useCrossChainDataStore((s) => s.historicalPrices);
+  const selectedBaseChain = useCrossChainSelectorStore((s) => s.selectedBaseChain);
+  const selectedTimeRange = useCrossChainSelectorStore((s) => s.selectedTimeRange);
+  const showMA = useCrossChainUIStore((s) => s.showMA);
+  const maPeriod = useCrossChainUIStore((s) => s.maPeriod);
+  const thresholdConfig = useCrossChainConfigStore((s) => s.thresholdConfig);
+  const filteredChains = useFilteredChains();
+
+  const currentClient = useCurrentClient();
+
+  const statistics = useStatistics({
+    currentPrices,
+    historicalPrices,
+    filteredChains,
+    selectedTimeRange,
+    currentClient,
+    selectedBaseChain,
+  });
+
+  const chart = useChartData({
+    currentPrices,
+    historicalPrices,
+    filteredChains,
+    selectedBaseChain,
+    selectedTimeRange,
+    showMA,
+    maPeriod,
+    validPrices: statistics.validPrices,
+    avgPrice: statistics.avgPrice,
+    standardDeviation: statistics.standardDeviation,
+    medianPrice: statistics.medianPrice,
+    thresholdConfig,
+  });
+
+  return {
+    filteredChains,
+    heatmapData: chart.heatmapData,
+    maxHeatmapValue: chart.maxHeatmapValue,
+    currentPrices,
+    historicalPrices,
+    chartData: chart.chartData,
+  };
 }
 
-export function HeatmapDetailView({ data }: HeatmapDetailViewProps) {
+export function HeatmapDetailView() {
   const colorblindMode = useColorblindMode();
   const {
     filteredChains,
     heatmapData: originalHeatmapData,
     maxHeatmapValue: originalMaxHeatmapValue,
-    hoveredCell,
-    setHoveredCell,
-    selectedCell,
-    setSelectedCell,
-    tooltipPosition,
-    setTooltipPosition,
     currentPrices,
     historicalPrices,
-  } = data;
+    chartData,
+  } = useHeatmapData();
+
   const [selectedTimeRange, setSelectedTimeRange] = useState<TimeRange>('24H');
+  const [hoveredCell, setHoveredCell] = useState<{
+    xChain: Blockchain;
+    yChain: Blockchain;
+    x: number;
+    y: number;
+  } | null>(null);
+  const [selectedCell, setSelectedCell] = useState<{
+    xChain: Blockchain;
+    yChain: Blockchain;
+  } | null>(null);
+  const [tooltipPosition, setTooltipPosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
 
   const handleTimeRangeChange = useCallback((range: string) => {
     setSelectedTimeRange(range as TimeRange);
-  }, []);
-
-  // Get time range in milliseconds - must be defined before handleExport
-  const getTimeRangeInMs = useCallback((range: TimeRange): number => {
-    const now = Date.now();
-    switch (range) {
-      case '1H':
-        return now - 60 * 60 * 1000;
-      case '24H':
-        return now - 24 * 60 * 60 * 1000;
-      case '7D':
-        return now - 7 * 24 * 60 * 60 * 1000;
-      case '30D':
-        return now - 30 * 24 * 60 * 60 * 1000;
-      default:
-        return now - 24 * 60 * 60 * 1000;
-    }
   }, []);
 
   const filteredHistoricalPrices = useMemo(() => {
@@ -125,7 +161,7 @@ export function HeatmapDetailView({ data }: HeatmapDetailViewProps) {
     });
 
     return filtered;
-  }, [historicalPrices, selectedTimeRange, getTimeRangeInMs]);
+  }, [historicalPrices, selectedTimeRange]);
 
   const { heatmapData, maxHeatmapValue } = useMemo(() => {
     if (filteredChains.length < 2) {
@@ -141,7 +177,6 @@ export function HeatmapDetailView({ data }: HeatmapDetailViewProps) {
     return { heatmapData: filteredData, maxHeatmapValue: maxValue > 0 ? maxValue : 1 };
   }, [filteredChains, originalHeatmapData, originalMaxHeatmapValue]);
 
-  // handleExport must be defined after heatmapData is computed
   const handleExport = useCallback(() => {
     if (filteredChains.length === 0 || heatmapData.length === 0) {
       return;
@@ -184,7 +219,7 @@ export function HeatmapDetailView({ data }: HeatmapDetailViewProps) {
     } catch (error) {
       console.error('Failed to export heatmap data:', error);
     }
-  }, [filteredChains, heatmapData, maxHeatmapValue, selectedTimeRange, getTimeRangeInMs]);
+  }, [filteredChains, heatmapData, maxHeatmapValue, selectedTimeRange]);
 
   const getHeatmapColorFn = colorblindMode ? getColorblindHeatmapColor : getHeatmapColor;
 
@@ -207,7 +242,6 @@ export function HeatmapDetailView({ data }: HeatmapDetailViewProps) {
       <div className="sr-only">
         Price Spread Heatmap - Visual comparison of price differences across chains
       </div>
-      {/* Chart Toolbar */}
       <ChartToolbar
         timeRanges={['1H', '24H', '7D', '30D']}
         selectedRange={selectedTimeRange}
@@ -382,7 +416,6 @@ export function HeatmapDetailView({ data }: HeatmapDetailViewProps) {
         </div>
       </div>
 
-      {/* Enhanced Tooltip - shows on hover or when pinned */}
       {(hoveredCell || selectedCell) && (
         <HeatmapTooltip
           cell={selectedCell || hoveredCell}
@@ -395,12 +428,19 @@ export function HeatmapDetailView({ data }: HeatmapDetailViewProps) {
         />
       )}
 
-      {selectedCell && <SelectedCellDetail data={data} />}
+      {selectedCell && (
+        <SelectedCellDetail
+          heatmapData={heatmapData}
+          currentPrices={currentPrices}
+          chartData={chartData}
+          selectedCell={selectedCell}
+          setSelectedCell={setSelectedCell}
+        />
+      )}
     </div>
   );
 }
 
-// Enhanced Tooltip Component
 interface HeatmapTooltipProps {
   cell: { xChain: Blockchain; yChain: Blockchain; x?: number; y?: number } | null;
   heatmapData: { xChain: Blockchain; yChain: Blockchain; value: number; percent: number }[];
@@ -486,7 +526,6 @@ function HeatmapTooltip({
         top: `${Math.min(tooltipPosition.y + 15, typeof window !== 'undefined' ? window.innerHeight - 350 : 800)}px`,
       }}
     >
-      {/* Header */}
       <div className="flex items-center justify-between mb-3 pb-2 border-b border-gray-100">
         <div className="text-sm font-semibold text-gray-900 flex items-center gap-2">
           <span>{chainNames[cell.xChain]}</span>
@@ -512,7 +551,6 @@ function HeatmapTooltip({
         )}
       </div>
 
-      {/* Price Info */}
       <div className="space-y-2 mb-3">
         <div className="flex justify-between items-center text-sm">
           <span className="text-gray-600">{chainNames[cell.xChain]} Price</span>
@@ -536,7 +574,6 @@ function HeatmapTooltip({
         </div>
       </div>
 
-      {/* Difference Info */}
       <div className="pt-3 border-t border-gray-100 space-y-2">
         <div className="flex justify-between items-center text-sm">
           <span className="text-gray-600">Absolute Difference</span>
@@ -555,7 +592,6 @@ function HeatmapTooltip({
           </span>
         </div>
 
-        {/* Historical Percentile */}
         {historicalPercentile !== null && (
           <div className="flex justify-between items-center text-sm pt-2 border-t border-gray-100">
             <span className="text-gray-600">Historical Percentile</span>
@@ -566,7 +602,6 @@ function HeatmapTooltip({
         )}
       </div>
 
-      {/* Pin indicator */}
       {isPinned && (
         <div className="mt-3 pt-2 border-t border-gray-100 flex items-center gap-1 text-xs text-blue-600">
           <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
@@ -579,9 +614,19 @@ function HeatmapTooltip({
   );
 }
 
-function SelectedCellDetail({ data }: { data: ReturnType<typeof useCrossChainData> }) {
-  const { selectedCell, setSelectedCell, heatmapData, currentPrices, chartData } = data;
-
+function SelectedCellDetail({
+  heatmapData,
+  currentPrices,
+  chartData,
+  selectedCell,
+  setSelectedCell,
+}: {
+  heatmapData: { xChain: Blockchain; yChain: Blockchain; value: number; percent: number }[];
+  currentPrices: PriceData[];
+  chartData: Record<string, unknown>[];
+  selectedCell: { xChain: Blockchain; yChain: Blockchain };
+  setSelectedCell: (cell: { xChain: Blockchain; yChain: Blockchain } | null) => void;
+}) {
   if (!selectedCell) return null;
 
   return (

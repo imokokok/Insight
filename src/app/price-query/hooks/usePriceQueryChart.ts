@@ -4,13 +4,9 @@ import { useMemo, useRef } from 'react';
 
 import { type PriceData } from '@/types/oracle';
 
-import { type QueryResult, providerNames, chainNames } from '../constants';
+import { type QueryResult, type ChartDataPoint, providerNames, chainNames } from '../constants';
 
-export interface ChartDataPoint {
-  timestamp: number;
-  time: string;
-  [key: string]: number | string;
-}
+export type { ChartDataPoint };
 
 interface UsePriceQueryChartParams {
   historicalData: Partial<Record<string, PriceData[]>>;
@@ -67,8 +63,6 @@ export function usePriceQueryChart(params: UsePriceQueryChartParams): UsePriceQu
       }
     };
 
-    const lastValidValues: Record<string, number> = {};
-
     return sortedTimestamps.map((timestamp) => {
       const dataPoint: ChartDataPoint = {
         timestamp,
@@ -82,10 +76,9 @@ export function usePriceQueryChart(params: UsePriceQueryChartParams): UsePriceQu
         const label = `${providerNames[provider]} (${chainNames[chain]})`;
 
         if (price !== undefined) {
-          lastValidValues[label] = price;
           dataPoint[label] = price;
-        } else if (lastValidValues[label] !== undefined) {
-          dataPoint[label] = lastValidValues[label];
+        } else {
+          dataPoint[label] = null;
         }
       });
 

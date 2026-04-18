@@ -10,8 +10,9 @@ import { useEffect, useRef, useState } from 'react';
 import { chartColors } from '@/lib/config/colors';
 import { formatPrice } from '@/lib/utils/chartSharedUtils';
 
+import { type ChartDataPoint } from '../constants';
+
 import { Icons } from './Icons';
-import { type ChartDataPoint } from './PriceChart';
 
 interface CustomTooltipPayloadItem {
   name: string;

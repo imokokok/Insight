@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, memo } from 'react';
+import { useMemo, useState, memo, Fragment } from 'react';
 
 import {
   TrendingUp,
@@ -13,19 +13,23 @@ import {
   Wifi,
   ArrowUpDown,
   HelpCircle,
+  ChevronDown,
 } from 'lucide-react';
 
 import { chartColors } from '@/lib/config/colors';
+import { oracleColors } from '@/lib/constants';
 import { getProviderDefaults } from '@/lib/oracles/utils/performanceMetricsConfig';
 import { formatPrice, formatRelativeTime } from '@/lib/utils/format';
 import { type OracleProvider, type PriceData } from '@/types/oracle';
 
-import { oracleNames, oracleColors } from '../constants';
+import { oracleNames, calculateZScore, ANOMALY_ZSCORE_THRESHOLD } from '../constants';
 import { ANOMALY_DEVIATION_THRESHOLD } from '../thresholds';
 
 import { ConfidenceBar } from './price-comparison/ConfidenceBar';
 
 import type { PriceAnomaly } from '../hooks/usePriceAnomalyDetection';
+
+export type AnomalyDetectionMode = 'deviation' | 'zscore';
 
 interface SimplePriceTableProps {
   priceData: PriceData[];
@@ -34,6 +38,10 @@ interface SimplePriceTableProps {
   isLoading?: boolean;
   validPrices?: number[];
   statusFilter?: 'all' | 'normal' | 'warning' | 'critical';
+  anomalyDetectionMode?: AnomalyDetectionMode;
+  avgPrice?: number;
+  standardDeviation?: number;
+  currentTime?: number;
 }
 
 type SortColumn = 'price' | 'deviation' | 'confidence' | 'latency' | 'updateTime';
@@ -51,6 +59,9 @@ interface TableRow {
   latency: number;
   dataSources: number;
   updateTime: number;
+  zScore: number | null;
+  freshnessSeconds: number;
+  priceDiff: number | null;
 }
 
 const formatDeviation = (deviation: number): string => {
@@ -92,8 +103,6 @@ const formatLatency = (latency: number): string => {
   return `${(latency / 1000).toFixed(1)}s`;
 };
 
-// Use unified formatRelativeTime from core utils
-
 const SortIcon = ({
   column,
   sortColumn,
@@ -113,15 +122,109 @@ const SortIcon = ({
   );
 };
 
+function getAnomalyReason(row: TableRow): string {
+  const reasons: string[] = [];
+  if (Math.abs(row.deviationPercent) > 1) {
+    reasons.push('Large deviation');
+  }
+  if (row.freshnessSeconds > 60) {
+    reasons.push('Data delay');
+  }
+  if (row.zScore !== null && Math.abs(row.zScore) > ANOMALY_ZSCORE_THRESHOLD) {
+    reasons.push('Outlier');
+  }
+  return reasons.length > 0 ? reasons.join(', ') : 'Unknown reason';
+}
+
+function ExpandedRowDetail({ row }: { row: TableRow }) {
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm py-3 px-2">
+      <div className="bg-white p-3 rounded-lg border border-gray-100">
+        <span className="text-gray-500 block text-xs mb-1">Raw Price</span>
+        <span className="font-mono text-gray-900 text-lg">{formatPrice(row.price)}</span>
+      </div>
+
+      <div className="bg-white p-3 rounded-lg border border-gray-100">
+        <span className="text-gray-500 block text-xs mb-1">Price Diff</span>
+        <div className="flex flex-col">
+          <span
+            className={`font-mono text-lg ${
+              row.deviationPercent >= 0 ? 'text-red-600' : 'text-green-600'
+            }`}
+          >
+            {row.deviationPercent >= 0 ? '+' : ''}
+            {row.deviationPercent.toFixed(4)}%
+          </span>
+          {row.priceDiff !== null && (
+            <span className="text-xs text-gray-500">
+              {row.priceDiff >= 0 ? '+' : ''}$
+              {Math.abs(row.priceDiff).toLocaleString(undefined, { maximumFractionDigits: 4 })}
+            </span>
+          )}
+        </div>
+      </div>
+
+      <div className="bg-white p-3 rounded-lg border border-gray-100">
+        <span className="text-gray-500 block text-xs mb-1">Data Delay</span>
+        <span
+          className={`font-medium ${
+            row.freshnessSeconds < 30
+              ? 'text-green-600'
+              : row.freshnessSeconds < 60
+                ? 'text-yellow-600'
+                : 'text-red-600'
+          }`}
+        >
+          {formatRelativeTime(row.updateTime)}
+        </span>
+      </div>
+
+      <div className="bg-white p-3 rounded-lg border border-gray-100">
+        <span className="text-gray-500 block text-xs mb-1">Status</span>
+        {row.isAnomaly ? (
+          <div>
+            <span
+              className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded ${
+                row.severity === 'high'
+                  ? 'text-red-600 bg-red-100'
+                  : row.severity === 'medium'
+                    ? 'text-orange-600 bg-orange-100'
+                    : 'text-yellow-600 bg-yellow-100'
+              }`}
+            >
+              <AlertTriangle className="w-3 h-3" />
+              Anomaly
+            </span>
+            <p className="text-xs text-gray-500 mt-1">Possible reasons: {getAnomalyReason(row)}</p>
+          </div>
+        ) : (
+          <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded text-green-600 bg-green-100">
+            <CheckCircle2 className="w-3 h-3" />
+            Normal
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function SimplePriceTableComponent({
   priceData,
   anomalies = [],
   medianPrice,
   isLoading = false,
   statusFilter = 'all',
+  anomalyDetectionMode = 'deviation',
+  avgPrice: avgPriceProp,
+  standardDeviation = 0,
+  currentTime,
 }: SimplePriceTableProps) {
   const [sortColumn, setSortColumn] = useState<SortColumn>('price');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+  const [expandedRow, setExpandedRow] = useState<string | null>(null);
+
+  const avgPrice = avgPriceProp ?? medianPrice;
+  const [now] = useState(() => currentTime ?? Date.now());
 
   const tableRows: TableRow[] = useMemo(() => {
     if (!priceData.length || medianPrice === 0) return [];
@@ -132,16 +235,33 @@ function SimplePriceTableComponent({
       const absDeviation = Math.abs(deviationPercent);
 
       const anomaly = anomalies.find((a) => a.provider === data.provider);
-      const isAnomaly = anomaly !== undefined || absDeviation >= ANOMALY_DEVIATION_THRESHOLD;
-      const severity =
-        anomaly?.severity ||
-        (absDeviation >= 3
-          ? 'high'
-          : absDeviation >= 1
-            ? 'medium'
-            : absDeviation >= 0.5
-              ? 'low'
-              : null);
+
+      let isAnomaly: boolean;
+      let severity: 'low' | 'medium' | 'high' | null;
+
+      if (anomalyDetectionMode === 'zscore' && standardDeviation > 0) {
+        const zScore = calculateZScore(data.price, avgPrice, standardDeviation);
+        const absZScore = Math.abs(zScore);
+        isAnomaly = absZScore >= ANOMALY_ZSCORE_THRESHOLD;
+        severity = isAnomaly
+          ? absZScore > 3
+            ? 'high'
+            : absZScore >= 2.5
+              ? 'medium'
+              : 'low'
+          : null;
+      } else {
+        isAnomaly = anomaly !== undefined || absDeviation >= ANOMALY_DEVIATION_THRESHOLD;
+        severity =
+          anomaly?.severity ||
+          (absDeviation >= 3
+            ? 'high'
+            : absDeviation >= 1
+              ? 'medium'
+              : absDeviation >= 0.5
+                ? 'low'
+                : null);
+      }
 
       let status: 'normal' | 'warning' | 'critical' = 'normal';
       if (absDeviation >= 1) status = 'critical';
@@ -162,6 +282,15 @@ function SimplePriceTableComponent({
       const latency = providerDefaults.responseTime;
       const dataSources = providerDefaults.dataSources;
       const updateTime = data.timestamp || 0;
+      const freshnessSeconds =
+        updateTime > 0 ? Math.max(0, Math.floor((now - updateTime) / 1000)) : 0;
+
+      const zScore =
+        anomalyDetectionMode === 'zscore' && standardDeviation > 0
+          ? calculateZScore(data.price, avgPrice, standardDeviation)
+          : null;
+
+      const priceDiff = deviationPercent !== 0 ? (data.price * deviationPercent) / 100 : null;
 
       return {
         provider: data.provider,
@@ -175,9 +304,12 @@ function SimplePriceTableComponent({
         latency,
         dataSources,
         updateTime,
+        zScore,
+        freshnessSeconds,
+        priceDiff,
       };
     });
-  }, [priceData, medianPrice, anomalies]);
+  }, [priceData, medianPrice, anomalies, anomalyDetectionMode, avgPrice, standardDeviation, now]);
 
   const filteredAndSortedRows = useMemo(() => {
     let filtered = tableRows;
@@ -215,6 +347,10 @@ function SimplePriceTableComponent({
       setSortColumn(column);
       setSortDirection('asc');
     }
+  };
+
+  const handleToggleExpand = (provider: string) => {
+    setExpandedRow((prev) => (prev === provider ? null : provider));
   };
 
   const getRowClassName = (row: TableRow): string => {
@@ -303,7 +439,7 @@ function SimplePriceTableComponent({
               >
                 <div className="flex items-center justify-center gap-1">
                   <Wifi className="w-3 h-3" />
-                  Latency
+                  Latency (Estimated)
                   <HelpCircle className="w-3 h-3 text-gray-400" />
                   <SortIcon
                     column="latency"
@@ -319,7 +455,7 @@ function SimplePriceTableComponent({
               >
                 <div className="flex items-center justify-center gap-1">
                   <Database className="w-3 h-3" />
-                  Sources
+                  Sources (Estimated)
                   <HelpCircle className="w-3 h-3 text-gray-400" />
                 </div>
               </th>
@@ -342,116 +478,145 @@ function SimplePriceTableComponent({
               <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">
                 Status
               </th>
+
+              <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider w-10">
+                <ChevronDown className="w-3 h-3 text-gray-400 mx-auto" />
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
             {filteredAndSortedRows.map((row) => (
-              <tr key={row.provider} className={getRowClassName(row)}>
-                <td className="px-4 py-3 whitespace-nowrap">
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                      style={{
-                        backgroundColor: oracleColors[row.provider] || chartColors.recharts.primary,
-                      }}
-                    />
-                    <span className="font-medium text-gray-900 text-sm">
-                      {oracleNames[row.provider] || row.provider}
-                    </span>
-                    {row.isAnomaly && row.severity === 'high' && (
-                      <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium text-red-600 bg-red-100">
-                        <AlertTriangle className="w-2.5 h-2.5" />
+              <Fragment key={row.provider}>
+                <tr className={getRowClassName(row)}>
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                        style={{
+                          backgroundColor:
+                            oracleColors[row.provider] || chartColors.recharts.primary,
+                        }}
+                      />
+                      <span className="font-medium text-gray-900 text-sm">
+                        {oracleNames[row.provider] || row.provider}
                       </span>
-                    )}
-                  </div>
-                </td>
+                      {row.isAnomaly && row.severity === 'high' && (
+                        <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium text-red-600 bg-red-100">
+                          <AlertTriangle className="w-2.5 h-2.5" />
+                        </span>
+                      )}
+                    </div>
+                  </td>
 
-                <td className="px-4 py-3 whitespace-nowrap text-right">
-                  <span
-                    className={`font-mono font-medium text-sm ${
-                      row.severity === 'high'
-                        ? 'text-red-700'
-                        : row.severity === 'medium'
-                          ? 'text-orange-700'
-                          : 'text-gray-900'
-                    }`}
-                  >
-                    {formatPrice(row.price)}
-                  </span>
-                </td>
-
-                <td className="px-4 py-3 whitespace-nowrap text-right">
-                  <span
-                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border ${getDeviationBgColor(
-                      row.deviationPercent
-                    )} ${getDeviationColor(row.deviationPercent)}`}
-                  >
-                    {row.deviationPercent > 0 ? (
-                      <TrendingUp className="w-3 h-3" />
-                    ) : row.deviationPercent < 0 ? (
-                      <TrendingDown className="w-3 h-3" />
-                    ) : null}
-                    {formatDeviation(row.deviationPercent)}
-                  </span>
-                </td>
-
-                <td className="px-4 py-3 whitespace-nowrap">
-                  <div className="w-24 mx-auto">
-                    <ConfidenceBar confidence={row.confidence} showLabel={false} size="sm" />
-                  </div>
-                </td>
-
-                <td className="px-4 py-3 whitespace-nowrap text-center">
-                  <span
-                    className={`text-xs font-medium ${
-                      row.latency < 200
-                        ? 'text-emerald-600'
-                        : row.latency < 500
-                          ? 'text-yellow-600'
-                          : 'text-orange-600'
-                    }`}
-                    title="Estimated latency based on historical data"
-                  >
-                    {formatLatency(row.latency)}
-                  </span>
-                </td>
-
-                <td className="px-4 py-3 whitespace-nowrap text-center">
-                  <span
-                    className="text-xs text-gray-600"
-                    title="Estimated data sources based on official documentation"
-                  >
-                    {row.dataSources}
-                  </span>
-                </td>
-
-                <td className="px-4 py-3 whitespace-nowrap text-center">
-                  <span className="text-xs text-gray-500">
-                    {formatRelativeTime(row.updateTime)}
-                  </span>
-                </td>
-
-                <td className="px-4 py-3 whitespace-nowrap text-center">
-                  <div className="flex items-center justify-center gap-1.5">
-                    <StatusIcon status={row.status} severity={row.severity} />
+                  <td className="px-4 py-3 whitespace-nowrap text-right">
                     <span
-                      className={`text-xs font-medium ${
-                        row.status === 'normal'
-                          ? 'text-emerald-600'
-                          : row.status === 'warning'
-                            ? 'text-yellow-600'
-                            : 'text-red-600'
+                      className={`font-mono font-medium text-sm ${
+                        row.severity === 'high'
+                          ? 'text-red-700'
+                          : row.severity === 'medium'
+                            ? 'text-orange-700'
+                            : 'text-gray-900'
                       }`}
                     >
-                      {row.status === 'normal'
-                        ? 'Normal'
-                        : row.status === 'warning'
-                          ? 'Warning'
-                          : 'Critical'}
+                      {formatPrice(row.price)}
                     </span>
-                  </div>
-                </td>
-              </tr>
+                  </td>
+
+                  <td className="px-4 py-3 whitespace-nowrap text-right">
+                    <span
+                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border ${getDeviationBgColor(
+                        row.deviationPercent
+                      )} ${getDeviationColor(row.deviationPercent)}`}
+                    >
+                      {row.deviationPercent > 0 ? (
+                        <TrendingUp className="w-3 h-3" />
+                      ) : row.deviationPercent < 0 ? (
+                        <TrendingDown className="w-3 h-3" />
+                      ) : null}
+                      {formatDeviation(row.deviationPercent)}
+                    </span>
+                  </td>
+
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    <div className="w-24 mx-auto">
+                      <ConfidenceBar confidence={row.confidence} showLabel={false} size="sm" />
+                    </div>
+                  </td>
+
+                  <td className="px-4 py-3 whitespace-nowrap text-center">
+                    <span
+                      className={`text-xs font-medium ${
+                        row.latency < 200
+                          ? 'text-emerald-600'
+                          : row.latency < 500
+                            ? 'text-yellow-600'
+                            : 'text-orange-600'
+                      }`}
+                      title="Estimated latency based on historical data"
+                    >
+                      {formatLatency(row.latency)}
+                    </span>
+                  </td>
+
+                  <td className="px-4 py-3 whitespace-nowrap text-center">
+                    <span
+                      className="text-xs text-gray-600"
+                      title="Estimated data sources based on official documentation"
+                    >
+                      {row.dataSources}
+                    </span>
+                  </td>
+
+                  <td className="px-4 py-3 whitespace-nowrap text-center">
+                    <span className="text-xs text-gray-500">
+                      {formatRelativeTime(row.updateTime)}
+                    </span>
+                  </td>
+
+                  <td className="px-4 py-3 whitespace-nowrap text-center">
+                    <div className="flex items-center justify-center gap-1.5">
+                      <StatusIcon status={row.status} severity={row.severity} />
+                      <span
+                        className={`text-xs font-medium ${
+                          row.status === 'normal'
+                            ? 'text-emerald-600'
+                            : row.status === 'warning'
+                              ? 'text-yellow-600'
+                              : 'text-red-600'
+                        }`}
+                      >
+                        {row.status === 'normal'
+                          ? 'Normal'
+                          : row.status === 'warning'
+                            ? 'Warning'
+                            : 'Critical'}
+                      </span>
+                    </div>
+                  </td>
+
+                  <td className="px-4 py-3 whitespace-nowrap text-center">
+                    <button
+                      onClick={() => handleToggleExpand(row.provider)}
+                      className="p-1 rounded hover:bg-gray-100 transition-colors"
+                      title={expandedRow === row.provider ? 'Collapse details' : 'Expand details'}
+                    >
+                      <ChevronDown
+                        className={`w-4 h-4 text-gray-400 transition-transform ${
+                          expandedRow === row.provider ? 'rotate-180' : ''
+                        }`}
+                      />
+                    </button>
+                  </td>
+                </tr>
+
+                {expandedRow === row.provider && (
+                  <tr>
+                    <td colSpan={9} className="px-4 py-2 bg-gray-50 border-t border-gray-100">
+                      <ExpandedRowDetail row={row} />
+                    </td>
+                  </tr>
+                )}
+              </Fragment>
             ))}
           </tbody>
         </table>
@@ -462,7 +627,12 @@ function SimplePriceTableComponent({
           <span>
             Showing {filteredAndSortedRows.length} / {tableRows.length} oracles
           </span>
-          <span>{anomalies.length} anomalies detected</span>
+          <div className="flex items-center gap-3">
+            {anomalyDetectionMode === 'zscore' && (
+              <span className="text-blue-500">Z-score mode</span>
+            )}
+            <span>{anomalies.length} anomalies detected</span>
+          </div>
         </div>
       </div>
     </div>

@@ -5,7 +5,7 @@ import { escapeCSVField } from '@/lib/utils/export';
 import { createLogger } from '@/lib/utils/logger';
 import { OracleProvider, type Blockchain, type PriceData } from '@/types/oracle';
 
-import { chainNames } from '../utils';
+import { chainNames, getConsistencyRating } from '../utils';
 
 const logger = createLogger('useExport');
 
@@ -149,13 +149,6 @@ export function useExport(params: UseExportParams): UseExportReturn {
         [OracleProvider.TWAP]: 'TWAP',
         [OracleProvider.REFLECTOR]: 'Reflector',
         [OracleProvider.FLARE]: 'Flare',
-      };
-
-      const getConsistencyRating = (stdDevPercent: number): string => {
-        if (stdDevPercent < 0.1) return 'excellent';
-        if (stdDevPercent < 0.3) return 'good';
-        if (stdDevPercent < 0.5) return 'fair';
-        return 'poor';
       };
 
       const exportData = {

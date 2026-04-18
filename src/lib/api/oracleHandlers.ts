@@ -8,13 +8,7 @@ import {
   fetchHistoricalPricesWithDatabase,
 } from '@/lib/oracles/base/databaseOperations';
 import { createLogger } from '@/lib/utils/logger';
-import {
-  type OracleProvider,
-  type Blockchain,
-  type PriceData,
-  ORACLE_PROVIDER_VALUES,
-  BLOCKCHAIN_VALUES,
-} from '@/types/oracle';
+import { type OracleProvider, type Blockchain, type PriceData } from '@/types/oracle';
 
 const logger = createLogger('OracleHandlers');
 
@@ -34,100 +28,6 @@ interface BatchPriceRequest {
   provider: OracleProvider | string;
   symbol: string;
   chain?: Blockchain | string;
-}
-
-function isValidProvider(provider: string): provider is OracleProvider {
-  return ORACLE_PROVIDER_VALUES.includes(provider as OracleProvider);
-}
-
-export function validateProvider(provider: string): NextResponse | null {
-  if (!isValidProvider(provider)) {
-    return errorToResponse(
-      new ValidationError(
-        `Invalid provider: ${provider}. Valid providers: ${ORACLE_PROVIDER_VALUES.join(', ')}`,
-        {
-          field: 'provider',
-          value: provider,
-          constraints: {
-            allowedValues: ORACLE_PROVIDER_VALUES.join(', '),
-          },
-        }
-      )
-    );
-  }
-  return null;
-}
-
-export function validateSymbol(symbol: string): NextResponse | null {
-  if (!symbol || typeof symbol !== 'string' || symbol.trim().length === 0) {
-    return errorToResponse(
-      new ValidationError('Invalid symbol: must be a non-empty string', {
-        field: 'symbol',
-        value: symbol,
-      })
-    );
-  }
-
-  const trimmedSymbol = symbol.trim();
-  if (trimmedSymbol.length > 20) {
-    return errorToResponse(
-      new ValidationError('Invalid symbol: must be at most 20 characters', {
-        field: 'symbol',
-        value: symbol,
-        constraints: {
-          maxLength: 20,
-        },
-      })
-    );
-  }
-
-  if (!/^[A-Za-z0-9\-_./]+$/.test(trimmedSymbol)) {
-    return errorToResponse(
-      new ValidationError('Invalid symbol: contains invalid characters', {
-        field: 'symbol',
-        value: symbol,
-        constraints: {
-          pattern: 'alphanumeric, dash, underscore, dot, slash',
-        },
-      })
-    );
-  }
-
-  return null;
-}
-
-export function validatePeriod(period: number | undefined): NextResponse | null {
-  if (period !== undefined && (typeof period !== 'number' || period <= 0 || period > 365)) {
-    return errorToResponse(
-      new ValidationError('Invalid period: must be a positive number between 1 and 365', {
-        field: 'period',
-        value: period,
-        constraints: {
-          min: 1,
-          max: 365,
-        },
-      })
-    );
-  }
-  return null;
-}
-
-export function validateChain(chain: string): NextResponse | null {
-  if (!BLOCKCHAIN_VALUES.includes(chain as Blockchain)) {
-    return errorToResponse(
-      new ValidationError(
-        `Invalid chain: ${chain}. Valid chains: ${BLOCKCHAIN_VALUES.join(', ')}`,
-        {
-          field: 'chain',
-          value: chain,
-          constraints: {
-            allowedValues: BLOCKCHAIN_VALUES.join(', '),
-          },
-        }
-      )
-    );
-  }
-  return null;
 }
 
 async function fetchPriceFromOracle(params: OracleQueryParams): Promise<PriceData> {

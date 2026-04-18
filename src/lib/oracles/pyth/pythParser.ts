@@ -27,10 +27,10 @@ export function parsePythPrice(
     timestamp: publishTime * 1000,
     decimals: Math.abs(exponent),
     confidence: calculateConfidenceScore(confidenceAbsolute, price),
+    confidenceSource: 'original',
     confidenceInterval,
     change24h: 0,
     change24hPercent: 0,
-    // Pyth 特有元数据
     priceId,
     exponent,
     conf: confidenceAbsolute,

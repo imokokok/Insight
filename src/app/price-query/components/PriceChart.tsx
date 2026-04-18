@@ -27,16 +27,10 @@ import { chainNames } from '@/lib/constants';
 import { safeMax, safeMin } from '@/lib/utils';
 import { formatPrice } from '@/lib/utils/chartSharedUtils';
 
-import { type QueryResult } from '../constants';
+import { type QueryResult, type ChartDataPoint } from '../constants';
 
 import { ChartDataTable } from './ChartDataTable';
 import { CustomTooltip } from './CustomTooltip';
-
-export interface ChartDataPoint {
-  timestamp: number;
-  time: string;
-  [key: string]: number | string | Record<string, unknown>;
-}
 
 interface PriceChartProps {
   chartData: ChartDataPoint[];

@@ -79,20 +79,25 @@ function MarketDepthSimulatorComponent({ priceData, medianPrice }: MarketDepthSi
     <div className="bg-white rounded-xl border border-gray-200 p-5">
       <div className="flex items-center justify-between mb-4">
         <h4 className="text-sm font-semibold text-gray-900">Consensus Depth</h4>
-        <div className="flex items-center gap-4 text-xs">
-          <div className="flex items-center gap-1">
-            <div
-              className="w-3 h-3 rounded"
-              style={{ backgroundColor: chartColors.recharts.success }}
-            />
-            <span className="text-gray-500">Bid</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <div
-              className="w-3 h-3 rounded"
-              style={{ backgroundColor: chartColors.recharts.danger }}
-            />
-            <span className="text-gray-500">Ask</span>
+        <div className="flex items-center gap-3">
+          <span className="px-2 py-0.5 text-[10px] font-medium text-amber-600 bg-amber-50 border border-amber-200 rounded">
+            模拟数据
+          </span>
+          <div className="flex items-center gap-4 text-xs">
+            <div className="flex items-center gap-1">
+              <div
+                className="w-3 h-3 rounded"
+                style={{ backgroundColor: chartColors.recharts.success }}
+              />
+              <span className="text-gray-500">Bid</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div
+                className="w-3 h-3 rounded"
+                style={{ backgroundColor: chartColors.recharts.danger }}
+              />
+              <span className="text-gray-500">Ask</span>
+            </div>
           </div>
         </div>
       </div>
@@ -175,6 +180,9 @@ function MarketDepthSimulatorComponent({ priceData, medianPrice }: MarketDepthSi
 
       <div className="mt-3 text-xs text-gray-500 text-center">
         Consensus strength based on oracle price distribution
+      </div>
+      <div className="mt-1 text-xs text-gray-400 text-center">
+        深度数据由价格偏差计算得出，非真实订单簿数据
       </div>
     </div>
   );

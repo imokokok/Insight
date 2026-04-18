@@ -3,14 +3,17 @@
 import { DataTablePro, type ColumnDef, type ConditionalFormattingRule } from '@/components/ui';
 import { isBlockchain } from '@/lib/utils/chainUtils';
 import { formatPrice, formatPriceDiff } from '@/lib/utils/format';
+import { useCrossChainConfigStore } from '@/stores/crossChainConfigStore';
+import { useCrossChainDataStore } from '@/stores/crossChainDataStore';
+import { useCrossChainSelectorStore } from '@/stores/crossChainSelectorStore';
+import { useCrossChainUIStore } from '@/stores/crossChainUIStore';
 import { type Blockchain } from '@/types/oracle';
 
-import { type useCrossChainData } from '../useCrossChainData';
+import { useChartData } from '../hooks/useChartData';
+import { useCrossChainTable } from '../hooks/useCrossChainTable';
+import { useStatistics } from '../hooks/useStatistics';
+import { useCurrentClient, useFilteredChains } from '../useCrossChainData';
 import { chainNames, chainColors, calculateZScore, isOutlier } from '../utils';
-
-interface PriceComparisonTableProps {
-  data: ReturnType<typeof useCrossChainData>;
-}
 
 interface TableRow extends Record<string, unknown> {
   chain: Blockchain;
@@ -22,18 +25,56 @@ interface TableRow extends Record<string, unknown> {
   priceHistory: number[];
 }
 
-export function PriceComparisonTable({ data }: PriceComparisonTableProps) {
-  const {
-    sortedPriceDifferences,
-    selectedBaseChain,
-    historicalPrices,
-    avgPrice,
-    standardDeviation,
-    tableFilter,
-    setTableFilter,
-  } = data;
+export function PriceComparisonTable() {
+  const selectedBaseChain = useCrossChainSelectorStore((s) => s.selectedBaseChain);
+  const selectedTimeRange = useCrossChainSelectorStore((s) => s.selectedTimeRange);
+  const showMA = useCrossChainUIStore((s) => s.showMA);
+  const maPeriod = useCrossChainUIStore((s) => s.maPeriod);
+  const tableFilter = useCrossChainUIStore((s) => s.tableFilter);
+  const setTableFilter = useCrossChainUIStore((s) => s.setTableFilter);
 
-  // Transform data for DataTablePro
+  const currentPrices = useCrossChainDataStore((s) => s.currentPrices);
+  const historicalPrices = useCrossChainDataStore((s) => s.historicalPrices);
+  const thresholdConfig = useCrossChainConfigStore((s) => s.thresholdConfig);
+
+  const filteredChains = useFilteredChains();
+  const currentClient = useCurrentClient();
+
+  const statistics = useStatistics({
+    currentPrices,
+    historicalPrices,
+    filteredChains,
+    selectedTimeRange,
+    currentClient,
+    selectedBaseChain,
+  });
+
+  const chart = useChartData({
+    currentPrices,
+    historicalPrices,
+    filteredChains,
+    selectedBaseChain,
+    selectedTimeRange,
+    showMA,
+    maPeriod,
+    validPrices: statistics.validPrices,
+    avgPrice: statistics.avgPrice,
+    standardDeviation: statistics.standardDeviation,
+    medianPrice: statistics.medianPrice,
+    thresholdConfig,
+  });
+
+  const table = useCrossChainTable({
+    priceDifferences: chart.priceDifferences,
+    historicalPrices,
+    filteredChains,
+    selectedBaseChain,
+    thresholdConfig,
+  });
+
+  const { avgPrice, standardDeviation } = statistics;
+  const { sortedPriceDifferences } = table;
+
   const tableData: TableRow[] = sortedPriceDifferences.map((item) => {
     const zScore = calculateZScore(item.price, avgPrice, standardDeviation);
     const chainHistoricalPrices = isBlockchain(item.chain)
@@ -52,7 +93,6 @@ export function PriceComparisonTable({ data }: PriceComparisonTableProps) {
     };
   });
 
-  // Conditional formatting rules for price differences
   const conditionalFormatting = [
     {
       field: 'diffPercent',
@@ -71,7 +111,6 @@ export function PriceComparisonTable({ data }: PriceComparisonTableProps) {
     },
   ];
 
-  // Define columns using ColumnDef interface
   const columns: ColumnDef<TableRow>[] = [
     {
       key: 'chain',
@@ -217,7 +256,6 @@ export function PriceComparisonTable({ data }: PriceComparisonTableProps) {
           return <span className="text-gray-300">-</span>;
         }
 
-        // 简单的趋势指示
         const firstPrice = prices[0];
         const lastPrice = prices[prices.length - 1];
         const trend = lastPrice > firstPrice ? 'up' : lastPrice < firstPrice ? 'down' : 'neutral';
@@ -241,7 +279,6 @@ export function PriceComparisonTable({ data }: PriceComparisonTableProps) {
     },
   ];
 
-  // Fixed columns configuration
   const fixedColumns = {
     left: ['chain', 'price'],
   };

@@ -152,6 +152,7 @@ export class FlareClient extends BaseOracleClient {
       timestamp,
       decimals: ftsoData.decimals,
       confidence: 0.95,
+      confidenceSource: 'estimated',
       confidenceInterval,
       change24h: 0,
       change24hPercent: 0,

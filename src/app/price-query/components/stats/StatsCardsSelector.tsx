@@ -25,16 +25,7 @@ import {
   DefaultStats,
 } from './index';
 
-import type { QueryResult } from '../../constants';
-
-type AnyOnChainData =
-  | DIATokenOnChainData
-  | RedStoneTokenOnChainData
-  | SupraTokenOnChainData
-  | WINkLinkTokenOnChainData
-  | TwapOnChainData
-  | ReflectorTokenOnChainData
-  | FlareTokenOnChainData;
+import type { QueryResult, AnyOnChainData } from '../../constants';
 
 interface StatsCardsSelectorProps {
   currentResult: QueryResult;
@@ -49,7 +40,7 @@ interface StatsCardsSelectorProps {
   minPrice: number;
   avgPrice: number;
   priceRange: number;
-  volume24h: number;
+  volume24h: number | null | undefined;
   consistencyRating: {
     label: string;
     color: string;

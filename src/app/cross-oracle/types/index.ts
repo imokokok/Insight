@@ -136,6 +136,7 @@ export interface UseOracleDataReturn {
     formattedBytes: string;
   };
   queryProgress: { completed: number; total: number };
+  skippedOracles: OracleProvider[];
 }
 
 export interface OracleFeature {

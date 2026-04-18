@@ -1,7 +1,3 @@
-/**
- * @fileoverview 跨链数据类型定义
- */
-
 import { type FavoriteConfig, type useFavorites } from '@/hooks';
 import { type BaseOracleClient } from '@/lib/oracles';
 import type { useUser } from '@/stores/authStore';
@@ -15,7 +11,7 @@ import {
 } from './hooks';
 import { type AnomalousPricePoint } from './utils/anomalyDetection';
 
-export interface UseCrossChainDataReturn {
+export interface SelectorSlice {
   selectedProvider: OracleProvider;
   setSelectedProvider: (provider: OracleProvider) => void;
   selectedSymbol: string;
@@ -24,6 +20,11 @@ export interface UseCrossChainDataReturn {
   setSelectedTimeRange: (range: number) => void;
   selectedBaseChain: Blockchain | null;
   setSelectedBaseChain: (chain: Blockchain | null) => void;
+  refreshInterval: RefreshInterval;
+  setRefreshInterval: (interval: RefreshInterval) => void;
+}
+
+export interface UISlice {
   visibleChains: Blockchain[];
   setVisibleChains: (chains: Blockchain[]) => void;
   showMA: boolean;
@@ -38,16 +39,13 @@ export interface UseCrossChainDataReturn {
   setFocusedChain: (chain: Blockchain | null) => void;
   tableFilter: 'all' | 'abnormal' | 'normal';
   setTableFilter: (filter: 'all' | 'abnormal' | 'normal') => void;
-  hoveredCell: { xChain: Blockchain; yChain: Blockchain; x: number; y: number } | null;
-  setHoveredCell: (
-    cell: { xChain: Blockchain; yChain: Blockchain; x: number; y: number } | null
-  ) => void;
-  selectedCell: { xChain: Blockchain; yChain: Blockchain } | null;
-  setSelectedCell: (cell: { xChain: Blockchain; yChain: Blockchain } | null) => void;
-  tooltipPosition: { x: number; y: number };
-  setTooltipPosition: (position: { x: number; y: number }) => void;
-  refreshInterval: RefreshInterval;
-  setRefreshInterval: (interval: RefreshInterval) => void;
+  sortColumn: string;
+  setSortColumn: (column: string) => void;
+  sortDirection: 'asc' | 'desc';
+  setSortDirection: (direction: 'asc' | 'desc') => void;
+}
+
+export interface DataStateSlice {
   lastUpdated: Date | null;
   currentPrices: PriceData[];
   historicalPrices: Partial<Record<Blockchain, PriceData[]>>;
@@ -58,16 +56,17 @@ export interface UseCrossChainDataReturn {
   supportedChains: Blockchain[];
   currentClient: BaseOracleClient;
   fetchData: () => Promise<void>;
-  filteredChains: Blockchain[];
-  priceDifferences: PriceDifferenceItem[];
-  sortedPriceDifferences: PriceDifferenceItem[];
-  chartData: UseChartDataReturn['chartData'];
-  chartDataWithMA: UseChartDataReturn['chartDataWithMA'];
-  heatmapData: UseChartDataReturn['heatmapData'];
-  maxHeatmapValue: number;
-  priceDistributionData: { range: string; count: number; midPrice: number }[];
-  boxPlotData: UseChartDataReturn['boxPlotData'];
-  totalDataPoints: number;
+  prevStats: {
+    avgPrice: number;
+    maxPrice: number;
+    minPrice: number;
+    priceRange: number;
+    standardDeviationPercent: number;
+  } | null;
+  anomalies: AnomalousPricePoint[];
+}
+
+export interface StatisticsSlice {
   validPrices: number[];
   avgPrice: number;
   maxPrice: number;
@@ -82,35 +81,42 @@ export interface UseCrossChainDataReturn {
   skewness: number;
   kurtosis: number;
   confidenceInterval95: UseStatisticsReturn['confidenceInterval95'];
+  chainVolatility: Partial<Record<Blockchain, number>>;
+  updateDelays: Partial<Record<Blockchain, { avgDelay: number; maxDelay: number }>>;
+  dataIntegrity: Partial<Record<Blockchain, number>>;
+  actualUpdateIntervals: Partial<Record<Blockchain, number>>;
+}
+
+export interface ChartSlice {
+  filteredChains: Blockchain[];
+  priceDifferences: PriceDifferenceItem[];
+  chartData: UseChartDataReturn['chartData'];
+  chartDataWithMA: UseChartDataReturn['chartDataWithMA'];
+  heatmapData: UseChartDataReturn['heatmapData'];
+  maxHeatmapValue: number;
+  priceDistributionData: { range: string; count: number; midPrice: number }[];
+  boxPlotData: UseChartDataReturn['boxPlotData'];
+  totalDataPoints: number;
   iqrOutliers: UseChartDataReturn['iqrOutliers'];
   stdDevHistoricalOutliers: UseChartDataReturn['stdDevHistoricalOutliers'];
   scatterData: UseChartDataReturn['scatterData'];
   correlationMatrix: UseChartDataReturn['correlationMatrix'];
   correlationMatrixWithSignificance: UseChartDataReturn['correlationMatrixWithSignificance'];
-  chainVolatility: Partial<Record<Blockchain, number>>;
-  updateDelays: Partial<Record<Blockchain, { avgDelay: number; maxDelay: number }>>;
-  dataIntegrity: Partial<Record<Blockchain, number>>;
-  actualUpdateIntervals: Partial<Record<Blockchain, number>>;
   priceJumpFrequency: Partial<Record<Blockchain, number>>;
   priceChangePercent: Partial<Record<Blockchain, number>>;
   meanBinIndex: number;
   medianBinIndex: number;
   stdDevBinRange: { lower: number; upper: number } | null;
+}
+
+export interface TableSlice {
+  sortedPriceDifferences: PriceDifferenceItem[];
   chainsWithHighDeviation: PriceDifferenceItem[];
-  prevStats: {
-    avgPrice: number;
-    maxPrice: number;
-    minPrice: number;
-    priceRange: number;
-    standardDeviationPercent: number;
-  } | null;
-  anomalies: AnomalousPricePoint[];
-  sortColumn: string;
-  setSortColumn: (column: string) => void;
-  sortDirection: 'asc' | 'desc';
-  setSortDirection: (direction: 'asc' | 'desc') => void;
   toggleChain: (chain: Blockchain) => void;
   handleSort: (column: string) => void;
+}
+
+export interface ExportSlice {
   exportToCSV: () => boolean;
   exportToJSON: () => boolean;
   user: ReturnType<typeof useUser>;
@@ -123,3 +129,11 @@ export interface UseCrossChainDataReturn {
   clearCache: () => void;
   clearCacheForProvider: (provider: OracleProvider) => void;
 }
+
+export type UseCrossChainDataReturn = SelectorSlice &
+  UISlice &
+  DataStateSlice &
+  StatisticsSlice &
+  ChartSlice &
+  TableSlice &
+  ExportSlice;

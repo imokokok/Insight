@@ -18,6 +18,7 @@ export interface PriceData extends PriceDataBase {
   chain?: Blockchain;
   decimals?: number;
   confidence?: number;
+  confidenceSource?: 'original' | 'estimated';
   source?: string;
   change?: number;
   change24h?: number;

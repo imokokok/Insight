@@ -5,7 +5,7 @@
  * @description 整合所有筛选和选择功能的控制面板，类似 QueryForm
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 
 import {
   Search,
@@ -81,7 +81,12 @@ export function ControlPanel({
   const [hoveredOracle, setHoveredOracle] = useState<OracleProvider | null>(null);
 
   // 使用 useCommonSymbols hook 获取共同支持的币种
-  const { commonSymbols, oracleCountMap } = useCommonSymbols(selectedOracles);
+  const { commonSymbols, oracleCountMap, unsupportedOracles } = useCommonSymbols(selectedOracles);
+
+  const currentUnsupportedOracles = useMemo(() => {
+    if (!selectedSymbol) return [] as OracleProvider[];
+    return unsupportedOracles[selectedSymbol] || [];
+  }, [unsupportedOracles, selectedSymbol]);
 
   // 当切换预言机时，如果当前选择的币种不在新的共同币种列表中，自动重置
   useEffect(() => {
@@ -275,6 +280,9 @@ export function ControlPanel({
             {oracleOptions.map((option) => {
               const selected = selectedOracles.includes(option.value as OracleProvider);
               const featureInfo = getOracleFeatureInfo(option.value as OracleProvider);
+              const isUnsupported = currentUnsupportedOracles.includes(
+                option.value as OracleProvider
+              );
 
               return (
                 <div key={String(option.value)} className="relative">
@@ -286,7 +294,7 @@ export function ControlPanel({
                       selected
                         ? 'bg-white text-gray-900 shadow-md'
                         : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50/50'
-                    } active:scale-[0.98]`}
+                    } ${isUnsupported ? 'opacity-50' : ''} active:scale-[0.98]`}
                     style={{ zIndex: selected ? 1 : 0 }}
                   >
                     <span
@@ -294,6 +302,11 @@ export function ControlPanel({
                       style={{ backgroundColor: option.color }}
                     />
                     {option.label}
+                    {isUnsupported && (
+                      <span className="inline-flex items-center px-1 py-0.5 text-[9px] font-medium bg-amber-100 text-amber-700 rounded leading-none">
+                        不支持
+                      </span>
+                    )}
                   </button>
 
                   {/* 悬停提示框 */}

@@ -1,139 +1,13 @@
-/**
- * @fileoverview 预言机数据获取 Hook
- * @description 负责价格数据获取、加载状态管理和自动刷新，集成性能指标计算
- */
+import { type OracleProvider } from '@/types/oracle';
 
-/* eslint-disable max-lines-per-function */
+import { type TimeRange, type RefreshInterval } from '../constants';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useOracleDataCore, type UseOracleDataCoreOptions } from './useOracleDataCore';
+import { useOracleErrorHandling } from './useOracleErrorHandling';
+import { useOracleMemory } from './useOracleMemory';
+import { useOraclePerformance } from './useOraclePerformance';
 
-import { oracleApiClient } from '@/lib/api/oracleApiClient';
-import { getHoursForTimeRange, extractBaseSymbol } from '@/lib/oracles';
-import { memoryManager, type MemoryStats } from '@/lib/oracles/utils/memoryManager';
-import {
-  PerformanceMetricsCalculator,
-  type CalculatedPerformanceMetrics,
-} from '@/lib/oracles/utils/performanceMetricsCalculator';
-import { getPerformanceMetricsConfig } from '@/lib/oracles/utils/performanceMetricsConfig';
-import { createLogger } from '@/lib/utils/logger';
-import { getRequestQueue, type RequestPriority } from '@/lib/utils/requestQueue';
-import { type OracleProvider, type PriceData } from '@/types/oracle';
-
-import { type TimeRange, type RefreshInterval, timeRangeToValue } from '../constants';
-
-import { useOracleRetry } from './useOracleRetry';
-
-import type {
-  UseOracleDataReturn,
-  OracleErrorInfo,
-  OracleErrorType,
-  OracleDataError,
-  PartialSuccessState,
-  RetryConfig,
-} from '../types';
-
-const logger = createLogger('useOracleData');
-
-type OracleErrorTypeValue =
-  | 'network'
-  | 'timeout'
-  | 'data_format'
-  | 'rate_limit'
-  | 'server_error'
-  | 'cors'
-  | 'unknown';
-
-function classifyError(error: unknown): { errorType: OracleErrorTypeValue; retryable: boolean } {
-  if (error instanceof Error) {
-    const message = error.message.toLowerCase();
-    const name = error.name.toLowerCase();
-
-    if (name.includes('timeout') || message.includes('timeout') || message.includes('timed out')) {
-      return { errorType: 'timeout', retryable: true };
-    }
-
-    if (
-      message.includes('cors') ||
-      message.includes('cross-origin') ||
-      message.includes('blocked by cors') ||
-      message.includes('access-control')
-    ) {
-      return { errorType: 'cors', retryable: false };
-    }
-
-    if (
-      message.includes('500') ||
-      message.includes('502') ||
-      message.includes('503') ||
-      message.includes('504') ||
-      message.includes('internal server error') ||
-      message.includes('bad gateway') ||
-      message.includes('service unavailable') ||
-      message.includes('gateway timeout')
-    ) {
-      return { errorType: 'server_error', retryable: true };
-    }
-
-    if (
-      name.includes('network') ||
-      message.includes('network') ||
-      message.includes('fetch') ||
-      message.includes('enotfound') ||
-      message.includes('econnrefused') ||
-      message.includes('econnreset') ||
-      message.includes('networkerror') ||
-      message.includes('failed to fetch')
-    ) {
-      return { errorType: 'network', retryable: true };
-    }
-
-    if (
-      message.includes('rate limit') ||
-      message.includes('too many') ||
-      message.includes('429') ||
-      message.includes('throttl') ||
-      message.includes('quota exceeded')
-    ) {
-      return { errorType: 'rate_limit', retryable: true };
-    }
-
-    if (
-      message.includes('parse') ||
-      message.includes('json') ||
-      message.includes('format') ||
-      message.includes('invalid') ||
-      message.includes('unexpected token') ||
-      message.includes('syntaxerror')
-    ) {
-      return { errorType: 'data_format', retryable: false };
-    }
-
-    if (
-      message.includes('unauthorized') ||
-      message.includes('forbidden') ||
-      message.includes('401') ||
-      message.includes('403')
-    ) {
-      return { errorType: 'network', retryable: false };
-    }
-  }
-
-  return { errorType: 'unknown', retryable: true };
-}
-
-function createOracleErrorInfo(provider: OracleProvider, error: unknown): OracleErrorInfo {
-  const { errorType, retryable } = classifyError(error);
-  const message = error instanceof Error ? error.message : String(error);
-
-  return {
-    provider,
-    errorType: errorType as OracleErrorType,
-    message,
-    originalError: error instanceof Error ? error : undefined,
-    retryable,
-    timestamp: Date.now(),
-  };
-}
+import type { UseOracleDataReturn, RetryConfig } from '../types';
 
 interface UseOracleDataOptions {
   selectedOracles: OracleProvider[];
@@ -143,7 +17,7 @@ interface UseOracleDataOptions {
   enablePerformanceMetrics?: boolean;
   initialRetryConfig?: Partial<RetryConfig>;
   requestTimeout?: number;
-  requestPriority?: RequestPriority;
+  requestPriority?: Parameters<typeof useOracleDataCore>[0]['requestPriority'];
 }
 
 export function useOracleData({
@@ -156,528 +30,52 @@ export function useOracleData({
   requestTimeout,
   requestPriority = 'normal',
 }: UseOracleDataOptions): UseOracleDataReturn {
-  const [priceData, setPriceData] = useState<PriceData[]>([]);
-  const [historicalData, setHistoricalData] = useState<
-    Partial<Record<OracleProvider, PriceData[]>>
-  >({});
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  const [refreshInterval, setRefreshInterval] = useState<RefreshInterval>(initialRefreshInterval);
+  const errorHandling = useOracleErrorHandling();
 
-  const [performanceMetrics, setPerformanceMetrics] = useState<CalculatedPerformanceMetrics[]>([]);
-  const [isCalculatingMetrics, setIsCalculatingMetrics] = useState(false);
-  const metricsCalculatorRef = useRef<PerformanceMetricsCalculator>(
-    new PerformanceMetricsCalculator()
-  );
-  const priceHistoryMapRef = useRef<
-    Map<
-      OracleProvider,
-      Array<{
-        price: number;
-        timestamp: number;
-        responseTime: number;
-        success: boolean;
-        source?: string;
-      }>
-    >
-  >(new Map());
+  const performance = useOraclePerformance({ enablePerformanceMetrics });
 
-  const abortControllerRef = useRef<AbortController | null>(null);
-  const isMountedRef = useRef(true);
-  const prevDepsRef = useRef<{
-    selectedOracles: OracleProvider[];
-    selectedSymbol: string;
-    timeRange: TimeRange;
-  }>({
-    selectedOracles: [],
-    selectedSymbol: '',
-    timeRange: '24h',
-  });
-  const isInitialMountRef = useRef(true);
-
-  const [oracleDataError, setOracleDataError] = useState<OracleDataError>({
-    hasError: false,
-    isPartialSuccess: false,
-    partialSuccess: null,
-    errors: [],
-    globalError: null,
+  const memory = useOracleMemory({
+    metricsCalculatorRef: performance.metricsCalculatorRef,
   });
 
-  const [queryProgress, setQueryProgress] = useState({ completed: 0, total: 0 });
-
-  const calculatePerformanceMetrics = useCallback(() => {
-    if (!enablePerformanceMetrics) return;
-
-    setIsCalculatingMetrics(true);
-
-    try {
-      const newMetrics: CalculatedPerformanceMetrics[] = [];
-      const baseSymbol = extractBaseSymbol(selectedSymbol);
-
-      selectedOracles.forEach((oracle) => {
-        const metrics = metricsCalculatorRef.current.calculateAllMetrics(
-          oracle,
-          baseSymbol,
-          priceHistoryMapRef.current
-        );
-        newMetrics.push(metrics);
-      });
-
-      if (isMountedRef.current) {
-        setPerformanceMetrics(newMetrics);
-        logger.debug('Calculated performance metrics', { count: newMetrics.length });
-      }
-    } catch (err) {
-      logger.error(
-        'Error calculating performance metrics',
-        err instanceof Error ? err : new Error(String(err))
-      );
-    } finally {
-      if (isMountedRef.current) {
-        setIsCalculatingMetrics(false);
-      }
-    }
-  }, [enablePerformanceMetrics, selectedOracles, selectedSymbol]);
-
-  const fetchSingleOracle = useCallback(
-    async (
-      oracle: OracleProvider,
-      baseSymbol: string,
-      hours: number,
-      signal: AbortSignal
-    ): Promise<{ price: PriceData; history: PriceData[] } | null> => {
-      const requestStart = Date.now();
-      const requestQueue = getRequestQueue();
-
-      try {
-        // 使用 API 路由获取数据，避免浏览器端 CORS 问题
-        const [price, history] = await Promise.all([
-          requestQueue.add(
-            () =>
-              oracleApiClient.fetchPrice({
-                provider: oracle,
-                symbol: baseSymbol,
-              }),
-            {
-              priority: requestPriority,
-              timeout: requestTimeout,
-              abortSignal: signal,
-            }
-          ),
-          requestQueue.add(
-            () =>
-              oracleApiClient.fetchHistorical({
-                provider: oracle,
-                symbol: baseSymbol,
-                period: hours,
-              }),
-            {
-              priority: requestPriority,
-              timeout: requestTimeout,
-              abortSignal: signal,
-            }
-          ),
-        ]);
-
-        if (signal.aborted) {
-          return null;
-        }
-
-        const responseTime = Date.now() - requestStart;
-
-        if (enablePerformanceMetrics && isMountedRef.current) {
-          metricsCalculatorRef.current.addPriceData(oracle, baseSymbol, price, responseTime, true);
-
-          if (!priceHistoryMapRef.current.has(oracle)) {
-            priceHistoryMapRef.current.set(oracle, []);
-          }
-          const historyData = priceHistoryMapRef.current.get(oracle)!;
-          historyData.push({
-            price: price.price,
-            timestamp: price.timestamp,
-            responseTime,
-            success: true,
-            source: price.source,
-          });
-
-          const memConfig = getPerformanceMetricsConfig().memoryManagement;
-          if (memConfig.enabled) {
-            const cleanedData = memoryManager.smartCleanup(historyData);
-            if (cleanedData.length !== historyData.length) {
-              priceHistoryMapRef.current.set(oracle, cleanedData);
-            }
-          } else if (historyData.length > 1000) {
-            historyData.shift();
-          }
-        }
-
-        return { price, history };
-      } catch (err) {
-        const responseTime = Date.now() - requestStart;
-        logger.error(
-          `Error fetching data from ${oracle}`,
-          err instanceof Error ? err : new Error(String(err))
-        );
-
-        if (enablePerformanceMetrics) {
-          metricsCalculatorRef.current.addPriceData(
-            oracle,
-            baseSymbol,
-            {
-              provider: oracle,
-              symbol: baseSymbol,
-              price: 0,
-              timestamp: Date.now(),
-            },
-            responseTime,
-            false
-          );
-
-          if (!priceHistoryMapRef.current.has(oracle)) {
-            priceHistoryMapRef.current.set(oracle, []);
-          }
-          const historyData = priceHistoryMapRef.current.get(oracle)!;
-          historyData.push({
-            price: 0,
-            timestamp: Date.now(),
-            responseTime,
-            success: false,
-            source: 'error',
-          });
-        }
-
-        throw err;
-      }
+  const core = useOracleDataCore(
+    {
+      selectedOracles,
+      selectedSymbol,
+      timeRange,
+      initialRefreshInterval,
+      enablePerformanceMetrics,
+      initialRetryConfig,
+      requestTimeout,
+      requestPriority,
     },
-    [enablePerformanceMetrics, requestTimeout, requestPriority]
+    errorHandling,
+    performance,
+    memory
   );
-
-  const handlePriceDataUpdate = useCallback(
-    (provider: OracleProvider, data: { price: PriceData; history: PriceData[] }) => {
-      setPriceData((prev) => {
-        const filtered = prev.filter((p) => p.provider !== provider);
-        return [...filtered, data.price];
-      });
-
-      setHistoricalData((prev) => ({
-        ...prev,
-        [provider]: data.history,
-      }));
-
-      setOracleDataError((prev) => {
-        const newErrors = prev.errors.filter((e) => e.provider !== provider);
-        const newFailedOracles =
-          prev.partialSuccess?.failedOracles.filter((o) => o !== provider) || [];
-        const newSuccessOracles = [...(prev.partialSuccess?.successOracles || []), provider];
-
-        const newPartialSuccess: PartialSuccessState | null =
-          newFailedOracles.length > 0
-            ? {
-                isSuccess: true,
-                successCount: newSuccessOracles.length,
-                failedCount: newFailedOracles.length,
-                totalCount: selectedOracles.length,
-                failedOracles: newFailedOracles,
-                successOracles: newSuccessOracles,
-              }
-            : null;
-
-        return {
-          hasError: newErrors.length > 0,
-          isPartialSuccess: newPartialSuccess !== null,
-          partialSuccess: newPartialSuccess,
-          errors: newErrors,
-          globalError: null,
-        };
-      });
-    },
-    [selectedOracles.length]
-  );
-
-  const handleErrorUpdate = useCallback(
-    (provider: OracleProvider, errorInfo: OracleErrorInfo | null) => {
-      setOracleDataError((prev) => {
-        if (errorInfo === null) {
-          const newErrors = prev.errors.filter((e) => e.provider !== provider);
-          return {
-            ...prev,
-            errors: newErrors,
-          };
-        }
-        const existingIndex = prev.errors.findIndex((e) => e.provider === provider);
-        let newErrors: OracleErrorInfo[];
-        if (existingIndex >= 0) {
-          newErrors = prev.errors.map((e) => (e.provider === provider ? errorInfo : e));
-        } else {
-          newErrors = [...prev.errors, errorInfo];
-        }
-        return {
-          ...prev,
-          errors: newErrors,
-        };
-      });
-    },
-    []
-  );
-
-  const {
-    retryConfig,
-    setRetryConfig,
-    retryOracle,
-    retryAllFailed: retryAllFailedBase,
-    isRetrying,
-    retryingOracles,
-  } = useOracleRetry({
-    selectedOracles,
-    selectedSymbol,
-    timeRange,
-    initialRetryConfig,
-    fetchSingleOracle,
-    onPriceDataUpdate: handlePriceDataUpdate,
-    onErrorUpdate: handleErrorUpdate,
-  });
-
-  const retryAllFailed = useCallback(async () => {
-    await retryAllFailedBase(oracleDataError);
-  }, [retryAllFailedBase, oracleDataError]);
-
-  const fetchPriceData = useCallback(async () => {
-    if (selectedOracles.length === 0) {
-      setPriceData([]);
-      setHistoricalData({});
-      setQueryProgress({ completed: 0, total: 0 });
-      return;
-    }
-
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-    abortControllerRef.current = new AbortController();
-    const signal = abortControllerRef.current.signal;
-
-    setIsLoading(true);
-    setError(null);
-    setOracleDataError({
-      hasError: false,
-      isPartialSuccess: false,
-      partialSuccess: null,
-      errors: [],
-      globalError: null,
-    });
-    setQueryProgress({ completed: 0, total: selectedOracles.length });
-
-    const prices: PriceData[] = [];
-    const histories: Partial<Record<OracleProvider, PriceData[]>> = {};
-    const errors: OracleErrorInfo[] = [];
-    const hours = getHoursForTimeRange(timeRangeToValue(timeRange)) ?? 24;
-    const baseSymbol = extractBaseSymbol(selectedSymbol);
-
-    try {
-      const fetchPromises = selectedOracles.map(async (oracle) => {
-        try {
-          const result = await fetchSingleOracle(oracle, baseSymbol, hours, signal);
-          if (result && isMountedRef.current) {
-            prices.push(result.price);
-            histories[oracle] = result.history;
-          }
-        } catch (err) {
-          if (!signal.aborted && isMountedRef.current) {
-            errors.push(createOracleErrorInfo(oracle, err));
-          }
-        } finally {
-          if (isMountedRef.current) {
-            setQueryProgress((prev) => ({
-              completed: prev.completed + 1,
-              total: selectedOracles.length,
-            }));
-          }
-        }
-      });
-
-      await Promise.all(fetchPromises);
-
-      if (signal.aborted || !isMountedRef.current) {
-        return;
-      }
-
-      const successOracles = prices.map((p) => p.provider);
-      const failedOracles = selectedOracles.filter(
-        (o) => !successOracles.includes(o as OracleProvider)
-      ) as OracleProvider[];
-
-      const partialSuccess: PartialSuccessState | null =
-        failedOracles.length > 0 && successOracles.length > 0
-          ? {
-              isSuccess: successOracles.length > 0,
-              successCount: successOracles.length,
-              failedCount: failedOracles.length,
-              totalCount: selectedOracles.length,
-              failedOracles,
-              successOracles,
-            }
-          : null;
-
-      const isPartialSuccess = partialSuccess !== null;
-      const hasError = errors.length > 0;
-
-      setPriceData(prices);
-      setHistoricalData(histories);
-      setLastUpdated(new Date());
-      setOracleDataError({
-        hasError,
-        isPartialSuccess,
-        partialSuccess,
-        errors,
-        globalError:
-          failedOracles.length === selectedOracles.length
-            ? new Error('All oracles failed to fetch data')
-            : null,
-      });
-
-      if (enablePerformanceMetrics) {
-        calculatePerformanceMetrics();
-      }
-    } catch (err) {
-      const appError = err instanceof Error ? err : new Error(String(err));
-      logger.error('Failed to fetch price data', appError);
-      if (isMountedRef.current) {
-        setError(appError);
-        setOracleDataError({
-          hasError: true,
-          isPartialSuccess: false,
-          partialSuccess: null,
-          errors: [],
-          globalError: appError,
-        });
-      }
-    } finally {
-      if (isMountedRef.current) {
-        setIsLoading(false);
-      }
-    }
-  }, [
-    selectedOracles,
-    selectedSymbol,
-    timeRange,
-    enablePerformanceMetrics,
-    calculatePerformanceMetrics,
-    fetchSingleOracle,
-  ]);
-
-  // 使用 ref 存储 fetchPriceData，避免依赖循环
-  const fetchPriceDataRef = useRef(fetchPriceData);
-  fetchPriceDataRef.current = fetchPriceData;
-
-  useEffect(() => {
-    isMountedRef.current = true;
-    memoryManager.startPeriodicCleanup();
-
-    const currentKey = `${selectedOracles.slice().sort().join(',')}_${selectedSymbol}_${timeRange}`;
-    const prevKey = `${prevDepsRef.current.selectedOracles.slice().sort().join(',')}_${prevDepsRef.current.selectedSymbol}_${prevDepsRef.current.timeRange}`;
-
-    const depsChanged = isInitialMountRef.current || currentKey !== prevKey;
-
-    if (depsChanged) {
-      prevDepsRef.current = { selectedOracles, selectedSymbol, timeRange };
-      isInitialMountRef.current = false;
-      setOracleDataError({
-        hasError: false,
-        isPartialSuccess: false,
-        partialSuccess: null,
-        errors: [],
-        globalError: null,
-      });
-      setError(null);
-      fetchPriceDataRef.current();
-    }
-
-    return () => {
-      isMountedRef.current = false;
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-      memoryManager.stopPeriodicCleanup();
-    };
-    // 注意：不从依赖数组中包含 fetchPriceData，使用 ref 避免循环
-  }, [selectedOracles, selectedSymbol, timeRange]);
-
-  useEffect(() => {
-    if (refreshInterval === 'off') return;
-
-    const intervalMs =
-      refreshInterval === '10s'
-        ? 10000
-        : refreshInterval === '30s'
-          ? 30000
-          : refreshInterval === '1m'
-            ? 60000
-            : refreshInterval === '5m'
-              ? 300000
-              : 0;
-
-    if (intervalMs === 0) return;
-
-    const intervalId = setInterval(() => {
-      // 使用 ref 调用 fetchPriceData，避免依赖循环
-      fetchPriceDataRef.current();
-    }, intervalMs);
-
-    return () => clearInterval(intervalId);
-    // 注意：不从依赖数组中包含 fetchPriceData，使用 ref 避免循环
-  }, [refreshInterval]);
-
-  useEffect(() => {
-    const priceHistoryMap = priceHistoryMapRef.current;
-    const metricsCalculator = metricsCalculatorRef.current;
-    return () => {
-      priceHistoryMap.clear();
-      metricsCalculator.clearAllData();
-    };
-  }, []);
-
-  const getMemoryStats = useCallback((): MemoryStats => {
-    return memoryManager.getMemoryStats(priceHistoryMapRef.current);
-  }, []);
-
-  const clearHistoryData = useCallback(() => {
-    priceHistoryMapRef.current.clear();
-    metricsCalculatorRef.current.clearAllData();
-    logger.info('Cleared all price history data');
-  }, []);
-
-  const getDetailedMemoryStats = useCallback(() => {
-    const calculatorStats = metricsCalculatorRef.current.getDetailedStats();
-    const localStats = getMemoryStats();
-
-    return {
-      localPriceHistory: localStats,
-      calculatorStats,
-      formattedBytes: memoryManager.formatBytes(localStats.estimatedBytes),
-    };
-  }, [getMemoryStats]);
 
   return {
-    priceData,
-    historicalData,
-    isLoading,
-    error,
-    lastUpdated,
-    fetchPriceData,
-    refreshInterval,
-    setRefreshInterval,
-    performanceMetrics,
-    isCalculatingMetrics,
-    oracleDataError,
-    retryConfig,
-    setRetryConfig,
-    retryOracle,
-    retryAllFailed,
-    isRetrying,
-    retryingOracles,
-    getMemoryStats,
-    clearHistoryData,
-    getDetailedMemoryStats,
-    queryProgress,
+    priceData: core.priceData,
+    historicalData: core.historicalData,
+    isLoading: core.isLoading,
+    error: core.error,
+    lastUpdated: core.lastUpdated,
+    fetchPriceData: core.fetchPriceData,
+    refreshInterval: core.refreshInterval,
+    setRefreshInterval: core.setRefreshInterval,
+    performanceMetrics: performance.performanceMetrics,
+    isCalculatingMetrics: performance.isCalculatingMetrics,
+    oracleDataError: core.oracleDataError,
+    retryConfig: core.retryConfig,
+    setRetryConfig: core.setRetryConfig,
+    retryOracle: core.retryOracle,
+    retryAllFailed: core.retryAllFailed,
+    isRetrying: core.isRetrying,
+    retryingOracles: core.retryingOracles,
+    getMemoryStats: memory.getMemoryStats,
+    clearHistoryData: memory.clearHistoryData,
+    getDetailedMemoryStats: memory.getDetailedMemoryStats,
+    queryProgress: core.queryProgress,
+    skippedOracles: core.skippedOracles,
   };
 }

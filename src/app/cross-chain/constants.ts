@@ -9,7 +9,7 @@ import {
 } from '@/lib/constants';
 import { type Blockchain } from '@/types/oracle';
 
-export { TIME_RANGES, symbols, providerNames, chainNames, type RefreshInterval };
+export { TIME_RANGES, symbols, providerNames, chainNames, chainColors, type RefreshInterval };
 
 export interface HeatmapData {
   x: string;
@@ -18,13 +18,6 @@ export interface HeatmapData {
   percent: number;
   xChain: Blockchain;
   yChain: Blockchain;
-}
-
-interface PriceDifference {
-  chain: Blockchain;
-  price: number;
-  diff: number;
-  diffPercent: number;
 }
 
 export interface ChainStats {

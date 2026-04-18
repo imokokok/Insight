@@ -5,6 +5,8 @@
 import { getAllSupportedSymbols } from '@/lib/oracles/constants/supportedSymbols';
 import { OracleProvider } from '@/types/oracle';
 
+import { DEVIATION_THRESHOLDS } from './thresholds';
+
 // ============================================================================
 // 时间范围
 // ============================================================================
@@ -69,19 +71,6 @@ export const oracleNames: Record<OracleProvider, string> = {
   [OracleProvider.FLARE]: 'Flare',
 };
 
-export const oracleColors: Record<string, string> = {
-  [OracleProvider.CHAINLINK]: '#375bd2',
-  [OracleProvider.PYTH]: '#e6c5ff',
-  [OracleProvider.API3]: '#7ce3cb',
-  [OracleProvider.REDSTONE]: '#ff6b6b',
-  [OracleProvider.DIA]: '#c9f31d',
-  [OracleProvider.WINKLINK]: '#f0b90b',
-  [OracleProvider.SUPRA]: '#14B8A6',
-  [OracleProvider.TWAP]: '#FF007A',
-  [OracleProvider.REFLECTOR]: '#F59E0B',
-  [OracleProvider.FLARE]: '#E84142',
-};
-
 // ============================================================================
 // 刷新间隔
 // ============================================================================
@@ -92,40 +81,8 @@ export type RefreshInterval = 'off' | '10s' | '30s' | '1m' | '5m';
 // 阈值配置
 // ============================================================================
 
-const deviationThresholds = {
-  critical: 5,
-  warning: 2,
-  info: 1,
-};
-
 export const ANOMALY_ZSCORE_THRESHOLD = 2;
 
-// ============================================================================
-// 图表配置
-// ============================================================================
-
-const chartConfig = {
-  height: 400,
-  margin: { top: 20, right: 30, left: 20, bottom: 30 },
-  colors: oracleColors,
-};
-
-// ============================================================================
-// 缓存配置
-// ============================================================================
-
-const cacheConfig = {
-  staleTime: 5 * 60 * 1000, // 5分钟
-  gcTime: 10 * 60 * 1000, // 10分钟
-};
-
-// ============================================================================
-// 工具函数
-// ============================================================================
-
-/**
- * 计算Z-score（标准分数）
- */
 export function calculateZScore(value: number, mean: number, stdDev: number): number {
   if (stdDev === 0) return 0;
   return (value - mean) / stdDev;
@@ -143,13 +100,13 @@ export function isOutlier(zScore: number, threshold: number = ANOMALY_ZSCORE_THR
  */
 export function getDeviationBgClass(deviation: number): string {
   const absDeviation = Math.abs(deviation);
-  if (absDeviation >= deviationThresholds.critical) {
+  if (absDeviation >= DEVIATION_THRESHOLDS.critical) {
     return 'bg-red-100 text-red-800';
   }
-  if (absDeviation >= deviationThresholds.warning) {
+  if (absDeviation >= DEVIATION_THRESHOLDS.warning) {
     return 'bg-yellow-100 text-yellow-800';
   }
-  if (absDeviation >= deviationThresholds.info) {
+  if (absDeviation >= DEVIATION_THRESHOLDS.info) {
     return 'bg-blue-100 text-blue-800';
   }
   return 'bg-green-100 text-green-800';

@@ -153,6 +153,9 @@ export function validatePriceData(data: unknown): PriceData {
 
   result.decimals = validateOptionalNumber(obj.decimals, 'decimals');
   result.confidence = validateOptionalNumber(obj.confidence, 'confidence');
+  if (obj.confidenceSource === 'original' || obj.confidenceSource === 'estimated') {
+    result.confidenceSource = obj.confidenceSource;
+  }
   result.source = validateOptionalString(obj.source, 'source');
   result.change = validateOptionalNumber(obj.change, 'change');
   result.change24h = validateOptionalNumber(obj.change24h, 'change24h');

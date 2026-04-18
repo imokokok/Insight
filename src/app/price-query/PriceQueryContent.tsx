@@ -5,7 +5,7 @@ import { useRef, useCallback } from 'react';
 import { LiveStatusBar } from '@/components/ui';
 import { useCommonShortcuts, useAllOnChainData } from '@/hooks';
 
-import { QueryHeader, QueryForm, QueryResults, ExportConfig } from './components';
+import { QueryHeader, QueryForm, QueryResults } from './components';
 import {
   type QueryState,
   type StatsState,
@@ -14,7 +14,6 @@ import {
   type OnChainData,
 } from './constants';
 import { usePriceQuery } from './hooks/usePriceQuery';
-import { exportToCSV, exportToJSON, exportToPDF } from './utils/exportUtils';
 
 export default function PriceQueryContent() {
   const filterInputRef = useRef<HTMLInputElement>(null);
@@ -30,8 +29,6 @@ export default function PriceQueryContent() {
       setSelectedSymbol,
       selectedTimeRange,
       setSelectedTimeRange,
-      showExportConfig,
-      setShowExportConfig,
       showFavoritesDropdown,
       setShowFavoritesDropdown,
     },
@@ -55,9 +52,9 @@ export default function PriceQueryContent() {
       clearErrors,
       retryDataSource,
       retryAllErrors,
-      fetchQueryData,
+      refetch,
     },
-    actions: { handleExportCSV, handleExportJSON, handleApplyFavorite },
+    actions: { handleApplyFavorite },
     refs: { chartContainerRef, favoritesDropdownRef },
     symbolFavorites,
     currentFavoriteConfig,
@@ -77,93 +74,9 @@ export default function PriceQueryContent() {
   }, []);
 
   useCommonShortcuts({
-    onRefresh: fetchQueryData,
+    onRefresh: refetch,
     onSearch: debouncedSearchFocus,
   });
-
-  const handleExportWithConfig = async (config: {
-    format: 'csv' | 'json' | 'pdf';
-    fields: { key: string; label: string; enabled: boolean }[];
-    timeRange: { start: number | null; end: number | null };
-    includeChart: boolean;
-    includeStats: boolean;
-  }) => {
-    const stats = {
-      avgPrice,
-      maxPrice,
-      minPrice,
-      priceRange,
-      standardDeviation,
-      standardDeviationPercent,
-      dataPoints: queryResults.length,
-      queryDuration,
-      avgChange24hPercent,
-    };
-
-    const csvTranslations = {
-      csvTitle: 'Price Query Results',
-      symbol: 'Symbol',
-      exportTime: 'Export Time',
-      oracle: 'Oracle',
-      blockchain: 'Blockchain',
-      price: 'Price',
-      timestamp: 'Timestamp',
-      change24h: '24h Change',
-      confidence: 'Confidence',
-      source: 'Source',
-    };
-
-    const pdfTranslations = {
-      ...csvTranslations,
-      reportTitle: 'Price Query Report',
-      generatedAt: 'Generated at',
-      queryParams: 'Query Parameters',
-      oracles: 'Oracle',
-      chains: 'Blockchain',
-      timeRange: 'Time Range',
-      hours: 'h',
-      statsSummary: 'Statistics Summary',
-      avgPriceLabel: 'Average Price',
-      maxPriceLabel: 'Max Price',
-      minPriceLabel: 'Min Price',
-      priceRangeLabel: 'Price Range',
-      stdDevLabel: 'Std Deviation',
-      dataPointsLabel: 'Data Points',
-      change24hLabel: '24h Change',
-      indicator: 'Indicator',
-      value: 'Value',
-      priceChart: 'Price Chart',
-      priceData: 'Price Data',
-    };
-
-    switch (config.format) {
-      case 'csv':
-        exportToCSV(queryResults, config, selectedSymbol, csvTranslations);
-        break;
-      case 'json':
-        exportToJSON(
-          queryResults,
-          config,
-          selectedSymbol,
-          selectedOracle ? [selectedOracle] : [],
-          selectedChain ? [selectedChain] : []
-        );
-        break;
-      case 'pdf':
-        await exportToPDF(
-          queryResults,
-          config,
-          selectedSymbol,
-          selectedOracle ? [selectedOracle] : [],
-          selectedChain ? [selectedChain] : [],
-          selectedTimeRange,
-          stats,
-          chartContainerRef,
-          pdfTranslations
-        );
-        break;
-    }
-  };
 
   return (
     <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 min-h-screen">
@@ -174,13 +87,17 @@ export default function PriceQueryContent() {
       <div className="flex flex-col gap-3 mb-4">
         <QueryHeader
           loading={isLoading}
-          queryResultsLength={queryResults.length}
-          onExportCSV={handleExportCSV}
-          onExportJSON={handleExportJSON}
-          onOpenExportConfig={() => setShowExportConfig(true)}
+          queryResults={queryResults}
+          chartContainerRef={chartContainerRef}
+          selectedSymbol={selectedSymbol}
+          avgPrice={avgPrice}
+          maxPrice={maxPrice}
+          minPrice={minPrice}
+          priceRange={priceRange}
+          standardDeviation={standardDeviation}
+          standardDeviationPercent={standardDeviationPercent}
           selectedOracle={selectedOracle}
           selectedChain={selectedChain}
-          selectedSymbol={selectedSymbol}
           selectedTimeRange={selectedTimeRange}
           setSelectedOracle={setSelectedOracle}
           setSelectedChain={setSelectedChain}
@@ -218,7 +135,7 @@ export default function PriceQueryContent() {
             selectedTimeRange={selectedTimeRange}
             setSelectedTimeRange={setSelectedTimeRange}
             isLoading={isLoading}
-            onQuery={fetchQueryData}
+            onQuery={refetch}
             supportedChainsBySelectedOracles={supportedChainsBySelectedOracles}
           />
         </aside>
@@ -265,23 +182,11 @@ export default function PriceQueryContent() {
             onChainData={onChainData satisfies OnChainData}
             selectedSymbol={selectedSymbol}
             setSelectedSymbol={setSelectedSymbol}
-            onRefresh={fetchQueryData}
+            onRefresh={refetch}
             onTimeRangeChange={setSelectedTimeRange}
           />
         </main>
       </div>
-
-      <ExportConfig
-        isOpen={showExportConfig}
-        onClose={() => setShowExportConfig(false)}
-        onExport={handleExportWithConfig}
-        queryResults={queryResults}
-        selectedSymbol={selectedSymbol}
-        selectedOracles={selectedOracle ? [selectedOracle] : []}
-        selectedChains={selectedChain ? [selectedChain] : []}
-        selectedTimeRange={selectedTimeRange}
-        chartRef={chartContainerRef}
-      />
     </div>
   );
 }

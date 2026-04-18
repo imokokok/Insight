@@ -15,6 +15,7 @@ export interface DataSourceInfo {
   chain?: Blockchain;
   source?: string;
   confidence?: number;
+  confidenceSource?: 'original' | 'estimated';
   lastUpdated?: number;
   credibilityLevel?: CredibilityLevel;
   verificationProof?: string;
@@ -214,7 +215,16 @@ export function DataSourceIndicator({
               <div className="mt-2">
                 <div className="flex items-center justify-between text-xs mb-1">
                   <span className="text-gray-600">Confidence</span>
-                  <span className="font-medium text-gray-900">{confidencePercent}%</span>
+                  <span className="font-medium text-gray-900">
+                    {confidencePercent}%
+                    {source.confidenceSource && (
+                      <span
+                        className={`ml-1.5 text-xs ${source.confidenceSource === 'estimated' ? 'text-amber-500' : 'text-success-600'}`}
+                      >
+                        {source.confidenceSource === 'estimated' ? '估算值' : '原始数据'}
+                      </span>
+                    )}
+                  </span>
                 </div>
                 <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
                   <div
@@ -291,7 +301,12 @@ export function DataSourceIndicator({
         {/* Tooltip */}
         {showTooltip && showConfidence && (
           <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg whitespace-nowrap z-50">
-            <div className="font-medium">Confidence: {confidencePercent}%</div>
+            <div className="font-medium">
+              Confidence: {confidencePercent}%
+              {source.confidenceSource
+                ? ` (${source.confidenceSource === 'estimated' ? '估算值' : '原始数据'})`
+                : ''}
+            </div>
             {source.chain && <div className="text-gray-300">{source.chain}</div>}
             <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
           </div>

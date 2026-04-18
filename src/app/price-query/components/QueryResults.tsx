@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef } from 'react';
+import { useRef, useEffect } from 'react';
 
 import { Database, BarChart3, Clock } from 'lucide-react';
 
@@ -22,7 +22,7 @@ import { QueryResultsLoading } from './QueryResultsLoading';
 import { StatsCardsSelector } from './stats';
 import { TokenIcon } from './TokenIcon';
 
-import { PriceChart, DataSourceSection, UnifiedExportSection, ErrorBanner } from './index';
+import { PriceChart, DataSourceSection, ErrorBanner } from './index';
 
 interface QueryResultsProps {
   queryState: QueryState;
@@ -83,6 +83,13 @@ export function QueryResults({
   } = onChainData;
   const consistencyRating = useConsistencyRating(standardDeviationPercent);
   const prevPriceRef = useRef<number | undefined>(undefined);
+  const currentPriceValue =
+    queryResults.length > 0 ? queryResults[0]?.priceData?.price || avgPrice : avgPrice;
+  const previousPriceValue = prevPriceRef.current;
+
+  useEffect(() => {
+    prevPriceRef.current = currentPriceValue;
+  }, [currentPriceValue]);
 
   if (isLoading) {
     return (
@@ -95,15 +102,7 @@ export function QueryResults({
   }
 
   const currentResult = queryResults[0];
-  const currentPrice = currentResult?.priceData;
-  const currentPriceValue = currentPrice?.price || avgPrice;
-  // eslint-disable-next-line react-hooks/refs
-  const previousPriceValue = prevPriceRef.current;
-
-  if (currentPriceValue !== prevPriceRef.current) {
-    prevPriceRef.current = currentPriceValue;
-  }
-  const volume24hValue = 0;
+  const volume24hValue: number | null = null;
 
   return (
     <div className="space-y-4">
@@ -220,18 +219,6 @@ export function QueryResults({
           }
           onRefresh={onRefresh}
           isLoading={isLoading}
-        />
-        <UnifiedExportSection
-          loading={isLoading}
-          queryResults={queryResults}
-          chartContainerRef={chartContainerRef}
-          selectedSymbol={selectedSymbol}
-          avgPrice={avgPrice}
-          maxPrice={maxPrice}
-          minPrice={minPrice}
-          priceRange={priceRange}
-          standardDeviation={standardDeviation}
-          standardDeviationPercent={standardDeviationPercent}
         />
       </div>
     </div>

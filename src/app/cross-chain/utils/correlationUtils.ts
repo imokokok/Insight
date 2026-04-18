@@ -13,11 +13,6 @@ export interface CorrelationResult {
   significanceLevel: '***' | '**' | '*' | '';
 }
 
-interface RollingCorrelationPoint {
-  timestamp: number;
-  correlation: number;
-}
-
 const DEFAULT_TIMESTAMP_TOLERANCE_MS = 60000;
 
 const findClosestPrice = (
@@ -37,6 +32,30 @@ const findClosestPrice = (
   }
 
   return closestItem?.price ?? null;
+};
+
+const matchTimestamps = (
+  dataX: TimestampedPrice[],
+  dataY: TimestampedPrice[],
+  toleranceMs: number = DEFAULT_TIMESTAMP_TOLERANCE_MS
+): { x: number; y: number }[] => {
+  const mapY = new Map<number, number>();
+  dataY.forEach((item) => mapY.set(item.timestamp, item.price));
+
+  const matchedPairs: { x: number; y: number }[] = [];
+  dataX.forEach((itemX) => {
+    const priceY = mapY.get(itemX.timestamp);
+    if (priceY !== undefined) {
+      matchedPairs.push({ x: itemX.price, y: priceY });
+    } else {
+      const closestPrice = findClosestPrice(itemX.timestamp, dataY, toleranceMs);
+      if (closestPrice !== null) {
+        matchedPairs.push({ x: itemX.price, y: closestPrice });
+      }
+    }
+  });
+
+  return matchedPairs;
 };
 
 const calculatePearsonCorrelation = (x: number[], y: number[]): number => {
@@ -74,22 +93,7 @@ export const calculatePearsonCorrelationByTimestamp = (
 ): number => {
   if (dataX.length < 2 || dataY.length < 2) return 0;
 
-  const mapY = new Map<number, number>();
-  dataY.forEach((item) => mapY.set(item.timestamp, item.price));
-
-  const matchedPairs: { x: number; y: number }[] = [];
-
-  dataX.forEach((itemX) => {
-    const priceY = mapY.get(itemX.timestamp);
-    if (priceY !== undefined) {
-      matchedPairs.push({ x: itemX.price, y: priceY });
-    } else {
-      const closestPrice = findClosestPrice(itemX.timestamp, dataY, toleranceMs);
-      if (closestPrice !== null) {
-        matchedPairs.push({ x: itemX.price, y: closestPrice });
-      }
-    }
-  });
+  const matchedPairs = matchTimestamps(dataX, dataY, toleranceMs);
 
   if (matchedPairs.length < 2) return 0;
 
@@ -210,21 +214,7 @@ export const calculatePearsonCorrelationWithSignificanceByTimestamp = (
     };
   }
 
-  const mapY = new Map<number, number>();
-  dataY.forEach((item) => mapY.set(item.timestamp, item.price));
-
-  const matchedPairs: { x: number; y: number }[] = [];
-  dataX.forEach((itemX) => {
-    const priceY = mapY.get(itemX.timestamp);
-    if (priceY !== undefined) {
-      matchedPairs.push({ x: itemX.price, y: priceY });
-    } else {
-      const closestPrice = findClosestPrice(itemX.timestamp, dataY, toleranceMs);
-      if (closestPrice !== null) {
-        matchedPairs.push({ x: itemX.price, y: closestPrice });
-      }
-    }
-  });
+  const matchedPairs = matchTimestamps(dataX, dataY, toleranceMs);
 
   const n = matchedPairs.length;
   if (n < 3) {
@@ -348,3 +338,8 @@ const calculateRollingCorrelation = (
 
   return result;
 };
+
+interface RollingCorrelationPoint {
+  timestamp: number;
+  correlation: number;
+}

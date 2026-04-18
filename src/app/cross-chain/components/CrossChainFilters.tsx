@@ -5,45 +5,45 @@ import { useState } from 'react';
 import { ChevronDown, ChevronUp, Filter } from 'lucide-react';
 
 import { DropdownSelect, SegmentedControl } from '@/components/ui';
-import { chainColors as configChainColors } from '@/lib/config/colors';
 import { getPriceOracleProvidersSortedByMarketCap } from '@/lib/config/oracles';
 import { isBlockchain } from '@/lib/utils/chainUtils';
 import { useCrossChainConfigStore } from '@/stores/crossChainConfigStore';
-import { type OracleProvider, Blockchain } from '@/types/oracle';
+import { useCrossChainDataStore } from '@/stores/crossChainDataStore';
+import { useCrossChainSelectorStore } from '@/stores/crossChainSelectorStore';
+import { useCrossChainUIStore } from '@/stores/crossChainUIStore';
+import { type OracleProvider } from '@/types/oracle';
 
-import { TIME_RANGES, providerNames, chainNames, symbols } from '../constants';
-import { type useCrossChainData } from '../useCrossChainData';
+import { TIME_RANGES, providerNames, chainNames, symbols, chainColors } from '../constants';
+import { useSupportedChains } from '../useCrossChainData';
 import { type ThresholdType } from '../utils';
 
-interface CrossChainFiltersProps {
-  data: ReturnType<typeof useCrossChainData>;
-}
-
-export function CrossChainFilters({ data }: CrossChainFiltersProps) {
+export function CrossChainFilters() {
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const {
-    selectedProvider,
-    setSelectedProvider,
-    selectedSymbol,
-    setSelectedSymbol,
-    selectedTimeRange,
-    setSelectedTimeRange,
-    selectedBaseChain,
-    setSelectedBaseChain,
-    supportedChains,
-    visibleChains,
-    toggleChain,
-    showMA,
-    setShowMA,
-    maPeriod,
-    setMaPeriod,
-    chartKey,
-    setChartKey,
-    recommendedBaseChain,
-  } = data;
 
-  const thresholdConfig = useCrossChainConfigStore((state) => state.thresholdConfig);
-  const setThresholdConfig = useCrossChainConfigStore((state) => state.setThresholdConfig);
+  const selectedProvider = useCrossChainSelectorStore((s) => s.selectedProvider);
+  const setSelectedProvider = useCrossChainSelectorStore((s) => s.setSelectedProvider);
+  const selectedSymbol = useCrossChainSelectorStore((s) => s.selectedSymbol);
+  const setSelectedSymbol = useCrossChainSelectorStore((s) => s.setSelectedSymbol);
+  const selectedTimeRange = useCrossChainSelectorStore((s) => s.selectedTimeRange);
+  const setSelectedTimeRange = useCrossChainSelectorStore((s) => s.setSelectedTimeRange);
+  const selectedBaseChain = useCrossChainSelectorStore((s) => s.selectedBaseChain);
+  const setSelectedBaseChain = useCrossChainSelectorStore((s) => s.setSelectedBaseChain);
+
+  const visibleChains = useCrossChainUIStore((s) => s.visibleChains);
+  const showMA = useCrossChainUIStore((s) => s.showMA);
+  const setShowMA = useCrossChainUIStore((s) => s.setShowMA);
+  const maPeriod = useCrossChainUIStore((s) => s.maPeriod);
+  const setMaPeriod = useCrossChainUIStore((s) => s.setMaPeriod);
+  const chartKey = useCrossChainUIStore((s) => s.chartKey);
+  const setChartKey = useCrossChainUIStore((s) => s.setChartKey);
+  const toggleChain = useCrossChainUIStore((s) => s.toggleChain);
+
+  const recommendedBaseChain = useCrossChainDataStore((s) => s.recommendedBaseChain);
+
+  const supportedChains = useSupportedChains();
+
+  const thresholdConfig = useCrossChainConfigStore((s) => s.thresholdConfig);
+  const setThresholdConfig = useCrossChainConfigStore((s) => s.setThresholdConfig);
 
   const providerOptions = getPriceOracleProvidersSortedByMarketCap().map((provider) => ({
     value: provider,
@@ -60,48 +60,6 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
     value: chain,
     label: chainNames[chain],
   }));
-
-  const chainColors: Record<Blockchain, string> = {
-    [Blockchain.ETHEREUM]: configChainColors.ethereum,
-    [Blockchain.ARBITRUM]: configChainColors.arbitrum,
-    [Blockchain.OPTIMISM]: configChainColors.optimism,
-    [Blockchain.POLYGON]: configChainColors.polygon,
-    [Blockchain.SOLANA]: configChainColors.solana,
-    [Blockchain.AVALANCHE]: configChainColors.avalanche,
-    [Blockchain.FANTOM]: configChainColors.fantom,
-    [Blockchain.CRONOS]: configChainColors.cronos,
-    [Blockchain.JUNO]: configChainColors.juno,
-    [Blockchain.COSMOS]: configChainColors.cosmosHub,
-    [Blockchain.OSMOSIS]: configChainColors.osmosis,
-    [Blockchain.BNB_CHAIN]: configChainColors.bnbChain,
-    [Blockchain.BASE]: configChainColors.base,
-    [Blockchain.SCROLL]: configChainColors.scroll,
-    [Blockchain.ZKSYNC]: configChainColors.zkSync,
-    [Blockchain.APTOS]: configChainColors.aptos,
-    [Blockchain.SUI]: configChainColors.sui,
-    [Blockchain.GNOSIS]: configChainColors.gnosis,
-    [Blockchain.MANTLE]: configChainColors.mantle,
-    [Blockchain.LINEA]: configChainColors.linea,
-    [Blockchain.CELESTIA]: configChainColors.celestia,
-    [Blockchain.INJECTIVE]: configChainColors.injective,
-    [Blockchain.SEI]: configChainColors.sei,
-    [Blockchain.TRON]: configChainColors.tron,
-    [Blockchain.TON]: configChainColors.ton,
-    [Blockchain.NEAR]: configChainColors.near,
-    [Blockchain.AURORA]: configChainColors.aurora,
-    [Blockchain.CELO]: configChainColors.celo,
-    [Blockchain.STARKNET]: configChainColors.starknet,
-    [Blockchain.BLAST]: configChainColors.blast,
-    [Blockchain.CARDANO]: configChainColors.cardano,
-    [Blockchain.POLKADOT]: configChainColors.polkadot,
-    [Blockchain.KAVA]: configChainColors.kava,
-    [Blockchain.MOONBEAM]: configChainColors.moonbeam,
-    [Blockchain.MOONRIVER]: configChainColors.moonriver,
-    [Blockchain.METIS]: configChainColors.metis,
-    [Blockchain.STARKEX]: configChainColors.starkex,
-    [Blockchain.STELLAR]: '#14B8A6',
-    [Blockchain.FLARE]: '#E84142',
-  };
 
   const maPeriodOptions = [
     { value: 7, label: '7' },
@@ -127,7 +85,6 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
     label: range.label,
   }));
 
-  // 计算激活的过滤器数量
   const activeFilterCount = [
     selectedProvider !== 'chainlink',
     selectedSymbol !== 'ETH',
@@ -140,7 +97,6 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
-      {/* Header with Collapse Toggle */}
       <div className="flex items-center justify-between gap-2 px-4 py-3 border-b border-gray-200 bg-gray-50">
         <div className="flex items-center gap-2">
           <Filter className="w-4 h-4 text-gray-500" />
@@ -160,14 +116,12 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
         </button>
       </div>
 
-      {/* Collapsible Content */}
       <div
         className={`transition-all duration-300 ease-in-out ${
           isCollapsed ? 'max-h-0 opacity-0 overflow-hidden' : 'max-h-[2000px] opacity-100'
         }`}
       >
         <div className="p-4 space-y-4">
-          {/* Basic Filters */}
           <div className="space-y-3">
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">
@@ -233,10 +187,8 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
             </div>
           </div>
 
-          {/* Divider */}
           <div className="border-t border-gray-200" />
 
-          {/* Visible Chains */}
           <div>
             <h3 className="text-xs font-medium text-gray-700 uppercase tracking-wide mb-2">
               Visible Chains
@@ -270,10 +222,8 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
             </div>
           </div>
 
-          {/* Divider */}
           <div className="border-t border-gray-200" />
 
-          {/* Technical Indicators */}
           <div>
             <h3 className="text-xs font-medium text-gray-700 uppercase tracking-wide mb-2">
               Technical Indicators
@@ -311,10 +261,8 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
             </div>
           </div>
 
-          {/* Divider */}
           <div className="border-t border-gray-200" />
 
-          {/* Anomaly Detection */}
           <div>
             <h3 className="text-xs font-medium text-gray-700 uppercase tracking-wide mb-2">
               Anomaly Detection Config

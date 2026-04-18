@@ -1,10 +1,16 @@
 'use client';
 
 import { baseColors, semanticColors } from '@/lib/config/colors';
+import { useCrossChainConfigStore } from '@/stores/crossChainConfigStore';
+import { useCrossChainDataStore } from '@/stores/crossChainDataStore';
+import { useCrossChainSelectorStore } from '@/stores/crossChainSelectorStore';
+import { useCrossChainUIStore } from '@/stores/crossChainUIStore';
 import { Blockchain } from '@/types/oracle';
 
 import { type ChainStats } from '../constants';
-import { type useCrossChainData } from '../useCrossChainData';
+import { useChartData } from '../hooks/useChartData';
+import { useStatistics } from '../hooks/useStatistics';
+import { useCurrentClient, useFilteredChains } from '../useCrossChainData';
 import {
   chainNames,
   chainColors,
@@ -21,22 +27,49 @@ import { DataSourceSection } from './DataSourceSection';
 import { PriceComparisonTable } from './PriceComparisonTable';
 import { HeatmapDetailView } from './PriceSpreadHeatmap';
 
-interface OverviewTabProps {
-  data: ReturnType<typeof useCrossChainData>;
-}
+export function OverviewTab() {
+  const currentPrices = useCrossChainDataStore((s) => s.currentPrices);
+  const lastUpdated = useCrossChainDataStore((s) => s.lastUpdated);
+  const fetchData = useCrossChainDataStore((s) => s.fetchData);
+  const loading = useCrossChainDataStore((s) => s.loading);
+  const prevStats = useCrossChainDataStore((s) => s.prevStats);
 
-export function OverviewTab({ data }: OverviewTabProps) {
-  const {
+  const selectedProvider = useCrossChainSelectorStore((s) => s.selectedProvider);
+  const selectedBaseChain = useCrossChainSelectorStore((s) => s.selectedBaseChain);
+  const selectedTimeRange = useCrossChainSelectorStore((s) => s.selectedTimeRange);
+  const showMA = useCrossChainUIStore((s) => s.showMA);
+  const maPeriod = useCrossChainUIStore((s) => s.maPeriod);
+  const thresholdConfig = useCrossChainConfigStore((s) => s.thresholdConfig);
+
+  const filteredChains = useFilteredChains();
+  const currentClient = useCurrentClient();
+  const historicalPrices = useCrossChainDataStore((s) => s.historicalPrices);
+
+  const statistics = useStatistics({
     currentPrices,
-    lastUpdated,
-    fetchData,
-    loading,
-    selectedProvider,
+    historicalPrices,
     filteredChains,
-    chainVolatility,
-    dataIntegrity,
-    priceJumpFrequency,
-    priceDifferences,
+    selectedTimeRange,
+    currentClient,
+    selectedBaseChain,
+  });
+
+  const chart = useChartData({
+    currentPrices,
+    historicalPrices,
+    filteredChains,
+    selectedBaseChain,
+    selectedTimeRange,
+    showMA,
+    maPeriod,
+    validPrices: statistics.validPrices,
+    avgPrice: statistics.avgPrice,
+    standardDeviation: statistics.standardDeviation,
+    medianPrice: statistics.medianPrice,
+    thresholdConfig,
+  });
+
+  const {
     avgPrice,
     maxPrice,
     minPrice,
@@ -49,9 +82,11 @@ export function OverviewTab({ data }: OverviewTabProps) {
     skewness,
     kurtosis,
     confidenceInterval95,
-    totalDataPoints,
-    prevStats,
-  } = data;
+    chainVolatility,
+    dataIntegrity,
+  } = statistics;
+
+  const { priceDifferences, priceJumpFrequency, totalDataPoints } = chart;
 
   const statsData: ChainStats[] = [
     {
@@ -150,7 +185,7 @@ export function OverviewTab({ data }: OverviewTabProps) {
           provider: selectedProvider,
         }))}
         lastUpdated={lastUpdated}
-        onRefresh={fetchData}
+        onRefresh={() => fetchData?.()}
         isLoading={loading}
       />
 
@@ -166,11 +201,11 @@ export function OverviewTab({ data }: OverviewTabProps) {
       )}
 
       <div id="heatmap">
-        <HeatmapDetailView data={data} />
+        <HeatmapDetailView />
       </div>
 
       <div id="table">
-        <PriceComparisonTable data={data} />
+        <PriceComparisonTable />
       </div>
 
       <div

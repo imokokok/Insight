@@ -49,6 +49,12 @@ export {
   // 价格获取错误
   PriceFetchError,
 
+  // 不支持的链错误
+  UnsupportedChainError,
+
+  // 不支持的符号错误
+  UnsupportedSymbolError,
+
   // RedStone 错误
   RedStoneApiError,
   type RedStoneErrorCode,
