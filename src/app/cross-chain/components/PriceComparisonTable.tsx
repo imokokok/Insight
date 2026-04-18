@@ -1,9 +1,9 @@
 'use client';
 
 import { DataTablePro, type ColumnDef, type ConditionalFormattingRule } from '@/components/ui';
-import { type Blockchain } from '@/lib/oracles';
 import { isBlockchain } from '@/lib/utils/chainUtils';
 import { formatPrice, formatPriceDiff } from '@/lib/utils/format';
+import { type Blockchain } from '@/types/oracle';
 
 import { type useCrossChainData } from '../useCrossChainData';
 import { chainNames, chainColors, calculateZScore, isOutlier } from '../utils';

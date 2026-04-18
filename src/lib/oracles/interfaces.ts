@@ -19,6 +19,6 @@ export interface IOracleClient {
 export interface IOracleClientFactory {
   getClient(provider: OracleProvider): IOracleClient;
   getAllClients(): Record<OracleProvider, IOracleClient>;
-  hasClient(provider: OracleProvider): boolean;
-  clearInstances(): void;
+  hasClient?(provider: OracleProvider): boolean;
+  clearInstances?(): void;
 }

@@ -6,7 +6,7 @@ import { Search, RefreshCw } from 'lucide-react';
 
 import { SegmentedControl, DropdownSelect, type SelectorOption } from '@/components/ui';
 import { getPriceOracleProvidersSortedByMarketCap } from '@/lib/config/oracles';
-import { type OracleProvider, type Blockchain, BLOCKCHAIN_VALUES } from '@/lib/oracles';
+import { type OracleProvider, type Blockchain, BLOCKCHAIN_VALUES } from '@/types/oracle';
 
 import { symbols, oracleColors, chainColors, TIME_RANGES } from '../constants';
 import { useOracleSymbols } from '../hooks/useOracleSymbols';

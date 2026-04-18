@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 
-import { type OracleProvider, type Blockchain } from '@/lib/oracles';
+import { type OracleProvider, type Blockchain } from '@/types/oracle';
 
 import { type QueryResult } from '../constants';
 

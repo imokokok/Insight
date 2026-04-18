@@ -1,6 +1,6 @@
 'use client';
 
-import { type OracleProvider, type Blockchain } from '@/lib/oracles';
+import { type OracleProvider, type Blockchain } from '@/types/oracle';
 
 import { Selectors } from './Selectors';
 

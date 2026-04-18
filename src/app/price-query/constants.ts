@@ -9,12 +9,12 @@ import {
   TIME_RANGES,
   DEVIATION_THRESHOLD,
 } from '@/lib/constants';
-import type { OracleProvider, Blockchain, PriceData } from '@/lib/oracles';
 import type { FlareTokenOnChainData } from '@/lib/oracles/clients/flare';
 import type { RedStoneTokenOnChainData } from '@/lib/oracles/clients/redstone';
 import type { SupraTokenOnChainData } from '@/lib/oracles/clients/supra';
 import type { DIATokenOnChainData } from '@/lib/oracles/services/diaDataService';
 import type { WINkLinkTokenOnChainData } from '@/lib/oracles/services/winklinkRealDataService';
+import type { OracleProvider, Blockchain, PriceData } from '@/types/oracle';
 
 import type { ChartDataPoint } from './hooks/usePriceQueryChart';
 import type { QueryError } from './hooks/usePriceQueryData';

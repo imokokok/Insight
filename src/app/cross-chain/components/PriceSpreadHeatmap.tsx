@@ -14,12 +14,12 @@ import {
 
 import { ChartToolbar, type TimeRange } from '@/components/charts/ChartToolbar';
 import { baseColors, semanticColors, chartColors } from '@/lib/config/colors';
-import { type Blockchain, type PriceData } from '@/lib/oracles';
 import { safeMax } from '@/lib/utils';
 import { isBlockchain } from '@/lib/utils/chainUtils';
 import { downloadBlob } from '@/lib/utils/download';
 import { escapeCSVField } from '@/lib/utils/export';
 import { useColorblindMode } from '@/stores/crossChainConfigStore';
+import { type Blockchain, type PriceData } from '@/types/oracle';
 
 import { getColorblindHeatmapColor, colorblindLegendConfig } from '../colorblindTheme';
 import { type useCrossChainData } from '../useCrossChainData';

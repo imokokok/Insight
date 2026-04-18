@@ -5,8 +5,9 @@
 
 import { useMemo } from 'react';
 
-import { type Blockchain, type PriceData, type BaseOracleClient } from '@/lib/oracles';
+import { type BaseOracleClient } from '@/lib/oracles';
 import { safeMax, safeMin } from '@/lib/utils/statistics';
+import { type Blockchain, type PriceData } from '@/types/oracle';
 
 import {
   calculateVariance,

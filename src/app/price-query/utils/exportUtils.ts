@@ -5,10 +5,10 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
 import { exportColors } from '@/lib/config/colors';
-import { type OracleProvider, type Blockchain } from '@/lib/oracles';
 import { downloadBlob } from '@/lib/utils/download';
 import { escapeCSVField } from '@/lib/utils/export';
 import { createLogger } from '@/lib/utils/logger';
+import { type OracleProvider, type Blockchain } from '@/types/oracle';
 
 import { type ExportConfigData } from '../components/ExportConfig';
 import { type QueryResult, providerNames, chainNames } from '../constants';

@@ -1,11 +1,11 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 
 import { type FavoriteConfig, useFavorites } from '@/hooks';
-import { type OracleProvider, type Blockchain, type PriceData } from '@/lib/oracles';
 import { isBlockchain } from '@/lib/utils/chainUtils';
 import { useUser } from '@/stores/authStore';
 import { useCrossChainSelectorStore } from '@/stores/crossChainSelectorStore';
 import { useCrossChainUIStore } from '@/stores/crossChainUIStore';
+import { type OracleProvider, type Blockchain, type PriceData } from '@/types/oracle';
 
 import { useExport, type PriceDifferenceItem } from './useExport';
 

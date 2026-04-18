@@ -3,9 +3,9 @@
 import { useMemo, useCallback, useRef, useState } from 'react';
 
 import { useFavorites, type FavoriteConfig } from '@/hooks';
-import type { PriceData, OracleProvider, Blockchain } from '@/lib/oracles';
 import { safeMax, safeMin } from '@/lib/utils';
 import { useUser } from '@/stores/authStore';
+import type { PriceData, OracleProvider, Blockchain } from '@/types/oracle';
 
 import { type QueryResult } from '../constants';
 

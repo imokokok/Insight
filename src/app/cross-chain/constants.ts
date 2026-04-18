@@ -7,7 +7,7 @@ import {
   chainColors,
   type RefreshInterval,
 } from '@/lib/constants';
-import { type Blockchain } from '@/lib/oracles';
+import { type Blockchain } from '@/types/oracle';
 
 export { TIME_RANGES, symbols, providerNames, chainNames, type RefreshInterval };
 

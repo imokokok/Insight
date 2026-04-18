@@ -1,5 +1,5 @@
-import { type Blockchain } from '@/lib/oracles';
 import { useCrossChainUIStore } from '@/stores/crossChainUIStore';
+import { type Blockchain } from '@/types/oracle';
 
 interface UseCrossChainUIReturn {
   visibleChains: Blockchain[];

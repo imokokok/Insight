@@ -2,7 +2,7 @@ import {
   chartColors as configChartColors,
   chainColors as configChainColors,
 } from '@/lib/config/colors';
-import { OracleProvider, Blockchain } from '@/lib/oracles';
+import { OracleProvider, Blockchain } from '@/types/oracle';
 
 export const providerNames: Record<OracleProvider, string> = {
   [OracleProvider.CHAINLINK]: 'Chainlink',

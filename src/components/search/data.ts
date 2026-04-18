@@ -24,7 +24,7 @@ import {
   Blockchain,
   ORACLE_PROVIDER_VALUES,
   BLOCKCHAIN_VALUES,
-} from '@/lib/oracles';
+} from '@/types/oracle';
 
 import { type SearchResult, type SearchResultType } from './types';
 

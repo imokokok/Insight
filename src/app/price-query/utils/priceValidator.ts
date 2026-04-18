@@ -1,4 +1,4 @@
-import type { PriceData } from '@/lib/oracles';
+import type { PriceData } from '@/types/oracle';
 import type { ValidationResult } from '@/types/oracle/constants';
 
 export interface AnomalyInfo {

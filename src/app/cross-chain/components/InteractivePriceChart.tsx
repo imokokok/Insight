@@ -18,9 +18,9 @@ import {
 
 import { ChartToolbar, type TimeRange } from '@/components/charts/ChartToolbar';
 import { chartColors, semanticColors } from '@/lib/config/colors';
-import { type Blockchain } from '@/lib/oracles';
 import { isBlockchain } from '@/lib/utils/chainUtils';
 import { downloadBlob } from '@/lib/utils/download';
+import { type Blockchain } from '@/types/oracle';
 
 import { type ChartDataPoint } from '../constants';
 import { chainNames, chainColors } from '../utils';
