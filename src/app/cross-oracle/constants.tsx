@@ -3,7 +3,6 @@
  */
 
 import { getAllSupportedSymbols } from '@/lib/oracles/constants/supportedSymbols';
-import { escapeCSVField } from '@/lib/utils/export';
 import { OracleProvider } from '@/types/oracle';
 
 // ============================================================================
@@ -51,8 +50,6 @@ export const timeRanges: { value: TimeRange; label: string }[] = [
 // 获取所有支持的交易对并转换为 BTC/USD 格式
 const allSymbols = getAllSupportedSymbols();
 export const tradingPairs = allSymbols.map((symbol) => `${symbol}/USD`);
-
-export const symbols = tradingPairs;
 
 // ============================================================================
 // 预言机提供商 - 使用统一的 OracleProvider enum
@@ -225,40 +222,3 @@ export type DeviationFilter = 'all' | 'normal' | 'warning' | 'critical';
 // ============================================================================
 // 导出功能
 // ============================================================================
-
-interface ExportData {
-  symbol: string;
-  timestamp: string;
-  oracles: {
-    name: string;
-    price: number;
-    deviation: number;
-    timestamp: number;
-  }[];
-}
-
-export function exportToCSV(data: ExportData): string {
-  const headers = ['Symbol', 'Timestamp', 'Oracle', 'Price', 'Deviation (%)', 'Oracle Timestamp'];
-  const rows = data.oracles.map((oracle) => [
-    escapeCSVField(data.symbol),
-    escapeCSVField(data.timestamp),
-    escapeCSVField(oracle.name),
-    escapeCSVField(oracle.price.toFixed(8)),
-    escapeCSVField(oracle.deviation.toFixed(4)),
-    escapeCSVField(new Date(oracle.timestamp).toISOString()),
-  ]);
-
-  return [headers.map(escapeCSVField).join(','), ...rows.map((row) => row.join(','))].join('\n');
-}
-
-export function exportToJSON(data: ExportData): string {
-  return JSON.stringify(
-    {
-      symbol: data.symbol,
-      timestamp: data.timestamp,
-      oracles: data.oracles,
-    },
-    null,
-    2
-  );
-}

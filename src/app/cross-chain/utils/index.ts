@@ -1,5 +1,4 @@
 import { chainNames, chainColors } from '@/lib/constants';
-import { type Blockchain } from '@/lib/oracles';
 
 export { chainNames, chainColors };
 export {

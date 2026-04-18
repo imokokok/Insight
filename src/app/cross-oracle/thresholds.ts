@@ -36,7 +36,7 @@ const DATA_DELAY_DANGER_THRESHOLD = 300000;
 // ============================================================================
 
 /** 偏差筛选阈值（百分比） */
-export const DEVIATION_FILTER_THRESHOLDS = {
+const DEVIATION_FILTER_THRESHOLDS = {
   /** 优秀：偏差 < 0.1% */
   EXCELLENT: 0.1,
   /** 良好：0.1% <= 偏差 < 0.5% */

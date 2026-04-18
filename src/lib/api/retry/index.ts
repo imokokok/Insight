@@ -2,7 +2,6 @@ export {
   EnhancedRetryManager,
   createRetryManager,
   withRetry,
-  createRetryableFetch,
   retryStrategies,
   defaultEnhancedRetryConfig,
 } from './enhancedRetry';
