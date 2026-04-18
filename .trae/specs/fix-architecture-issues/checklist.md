@@ -1,5 +1,5 @@
 - [x] Oracle 类型导入路径统一：所有文件从 `@/types/oracle` 导入类型，`@/lib/oracles/index.ts` 不再重导出类型
-- [ ] API 路由中间件统一：所有 API 路由使用 `createApiHandler` 声明式模式，无手动中间件调用
+- [x] API 路由中间件统一：所有 API 路由使用 `createApiHandler` 声明式模式，无手动中间件调用
 - [x] `useAllOnChainData` hook 已创建，`PriceQueryContent.tsx` 中无重复的 on-chain 数据获取逻辑
 - [ ] Cross-Chain Store 合并为 2 个（`useCrossChainDataStore` + `useCrossChainUIStore`），旧 4 个文件已删除
 - [ ] `BaseOracleClient.getHistoricalPrices` 不再硬编码依赖 `binanceMarketService`，改为可注入服务

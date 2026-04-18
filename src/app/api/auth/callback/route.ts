@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
-import { strictRateLimit } from '@/lib/api/middleware/rateLimitMiddleware';
+import { createApiHandler } from '@/lib/api/handler';
 import { createServerClient } from '@/lib/supabase/server';
 import { createLogger } from '@/lib/utils/logger';
 
@@ -33,13 +33,8 @@ function isValidRedirectPath(path: string): boolean {
   );
 }
 
-export async function GET(request: NextRequest) {
-  const rateLimitResult = await strictRateLimit(request);
-  if (!rateLimitResult.success) {
-    return rateLimitResult.response;
-  }
-
-  try {
+export const GET = createApiHandler(
+  async (request: NextRequest) => {
     const searchParams = request.nextUrl.searchParams;
     const code = searchParams.get('code');
     const state = searchParams.get('state');
@@ -132,11 +127,11 @@ export async function GET(request: NextRequest) {
     });
 
     return response;
-  } catch (error) {
-    logger.error(
-      'Error in auth callback',
-      error instanceof Error ? error : new Error(String(error))
-    );
-    return NextResponse.redirect(new URL('/auth/verify-email?error=server_error', request.url));
+  },
+  {
+    middlewares: {
+      logging: true,
+      rateLimit: { preset: 'strict' },
+    },
   }
-}
+);
