@@ -54,7 +54,7 @@ function removePendingRequest(key: string): void {
 function createAbortControllerWithTimeout(
   key: string,
   signal?: AbortSignal
-): { controller: AbortController; timeoutId: ReturnType<typeof setTimeout> } {
+): { controller: AbortController; timeoutId: ReturnType<typeof setTimeout>; cleanup: () => void } {
   const previous = pendingRequests.get(key);
   if (previous) {
     previous.controller.abort();
@@ -68,6 +68,8 @@ function createAbortControllerWithTimeout(
     pendingRequests.delete(key);
   }, REQUEST_TIMEOUT_MS);
 
+  let cleanup: () => void = () => {};
+
   if (signal) {
     const onExternalAbort = () => {
       clearTimeout(timeoutId);
@@ -75,9 +77,12 @@ function createAbortControllerWithTimeout(
       pendingRequests.delete(key);
     };
     signal.addEventListener('abort', onExternalAbort, { once: true });
+    cleanup = () => {
+      signal.removeEventListener('abort', onExternalAbort);
+    };
   }
 
-  return { controller, timeoutId };
+  return { controller, timeoutId, cleanup };
 }
 
 function getBaseUrl(): string {
@@ -161,7 +166,7 @@ function deduplicatedFetch<T>(
     return existing.promise as Promise<T>;
   }
 
-  const { controller, timeoutId } = createAbortControllerWithTimeout(key, externalSignal);
+  const { controller, timeoutId, cleanup } = createAbortControllerWithTimeout(key, externalSignal);
 
   const promise = fetch(url, {
     method: 'GET',
@@ -172,6 +177,7 @@ function deduplicatedFetch<T>(
   })
     .then((response) => handleApiResponse<T>(response, url, context, validateData))
     .finally(() => {
+      cleanup();
       removePendingRequest(key);
     });
 

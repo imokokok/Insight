@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 
 import { getDefaultFactory, type BaseOracleClient } from '@/lib/oracles';
 import { useCrossChainConfigStore } from '@/stores/crossChainConfigStore';
@@ -68,8 +68,11 @@ export function useCrossChainDataState(): UseCrossChainDataStateReturn {
   const setClearCache = useCrossChainDataStore((s) => s.setClearCache);
   const setClearCacheForProvider = useCrossChainDataStore((s) => s.setClearCacheForProvider);
 
-  const currentClient = getDefaultFactory().getClient(selectedProvider);
-  const supportedChains = currentClient.supportedChains;
+  const currentClient = useMemo(
+    () => getDefaultFactory().getClient(selectedProvider),
+    [selectedProvider]
+  );
+  const supportedChains = useMemo(() => currentClient.supportedChains, [currentClient]);
 
   const {
     fetchData: fetchDataInternal,
@@ -95,13 +98,9 @@ export function useCrossChainDataState(): UseCrossChainDataStateReturn {
     refreshInterval || undefined
   );
 
-  const fetchData = useCallback(async () => {
-    await fetchDataInternal();
-  }, [fetchDataInternal]);
-
   useEffect(() => {
-    setFetchData(fetchData);
-  }, [fetchData, setFetchData]);
+    setFetchData(fetchDataInternal);
+  }, [fetchDataInternal, setFetchData]);
 
   useEffect(() => {
     setClearCache(clearCache);
@@ -145,9 +144,17 @@ export function useCrossChainDataState(): UseCrossChainDataStateReturn {
     setRefreshStatus,
   ]);
 
+  const prevSupportedChainsRef = useRef<Blockchain[]>([]);
   useEffect(() => {
     if (supportedChains.length > 0) {
-      setVisibleChains([...supportedChains]);
+      const prevChains = prevSupportedChainsRef.current;
+      const chainsChanged =
+        prevChains.length !== supportedChains.length ||
+        prevChains.some((c, i) => c !== supportedChains[i]);
+      if (chainsChanged) {
+        prevSupportedChainsRef.current = supportedChains;
+        setVisibleChains([...supportedChains]);
+      }
     }
   }, [supportedChains, setVisibleChains]);
 
@@ -174,7 +181,7 @@ export function useCrossChainDataState(): UseCrossChainDataStateReturn {
     recommendedBaseChain,
     supportedChains,
     currentClient,
-    fetchData,
+    fetchData: fetchDataInternal,
     prevStats,
     anomalies,
     clearCache,

@@ -78,8 +78,13 @@ export function ChartsTab() {
 
   const { avgPrice, medianPrice, standardDeviation } = statistics;
 
-  const handleLegendClick = (e: unknown) => {
-    const dataKey = (e as { dataKey?: string | number })?.dataKey;
+  const handleLegendClick = (e: {
+    dataKey?: string | number;
+    color?: string;
+    type?: string;
+    value?: string;
+  }) => {
+    const dataKey = e.dataKey;
     if (typeof dataKey === 'string') {
       if (hiddenLines.includes(dataKey)) {
         setHiddenLines(hiddenLines.filter((l) => l !== dataKey));

@@ -1,6 +1,6 @@
 /**
- * @fileoverview 价格数据验证工具函数
- * 提供价格数据的有效性验证功能
+ * @fileoverview Price data validation utility functions
+ * Provides price data validity checking functionality
  */
 
 import { createLogger } from '@/lib/utils/logger';
@@ -19,26 +19,30 @@ export function validatePriceData(
   const errors: string[] = [];
 
   if (typeof price !== 'number' || isNaN(price)) {
-    errors.push(`[${chain}] 价格不是有效数字: ${price}`);
+    errors.push(`[${chain}] Price is not a valid number: ${price}`);
   }
 
   if (price === Infinity || price === -Infinity) {
-    errors.push(`[${chain}] 价格为 Infinity`);
+    errors.push(`[${chain}] Price is Infinity`);
   }
 
   if (price < 0) {
-    errors.push(`[${chain}] 价格为负数: ${price}`);
+    errors.push(`[${chain}] Price is negative: ${price}`);
   }
 
   const now = Date.now();
   const oneHourInMs = 60 * 60 * 1000;
 
   if (timestamp < BITCOIN_GENESIS_TIMESTAMP) {
-    errors.push(`[${chain}] 时间戳早于比特币创世时间: ${new Date(timestamp).toISOString()}`);
+    errors.push(
+      `[${chain}] Timestamp is before Bitcoin genesis: ${new Date(timestamp).toISOString()}`
+    );
   }
 
   if (timestamp > now + oneHourInMs) {
-    errors.push(`[${chain}] 时间戳晚于当前时间+1小时: ${new Date(timestamp).toISOString()}`);
+    errors.push(
+      `[${chain}] Timestamp is more than 1 hour in the future: ${new Date(timestamp).toISOString()}`
+    );
   }
 
   return {

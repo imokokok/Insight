@@ -17,7 +17,6 @@ export interface CacheStats {
   misses: number;
 }
 
-// 使用统一的缓存配置
 export const CACHE_CONFIG = {
   PRICE_TTL: ORACLE_CACHE_TTL.PRICE,
   HISTORICAL_TTL: ORACLE_CACHE_TTL.HISTORICAL,

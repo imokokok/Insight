@@ -1,6 +1,6 @@
 /**
- * @fileoverview 图表导出相关类型定义
- * @description 定义导出选项、设置、进度等类型
+ * @fileoverview Chart export type definitions
+ * @description Defines export options, settings, progress and other types
  */
 
 export interface ExportOptions {

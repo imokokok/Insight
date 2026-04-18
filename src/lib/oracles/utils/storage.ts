@@ -59,6 +59,7 @@ function recordToPriceData(record: PriceRecord): PriceData {
     chain: record.chain as Blockchain | undefined,
     price: record.price,
     timestamp: new Date(record.timestamp).getTime(),
+    decimals: record.decimals ?? undefined,
     confidence: record.confidence ?? undefined,
     source: record.source ?? undefined,
   };

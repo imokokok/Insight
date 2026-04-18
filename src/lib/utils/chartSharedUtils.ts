@@ -84,24 +84,20 @@ export const getHeatmapColor = (value: number, min: number, max: number): string
   const range = max - min;
   const absValue = Math.abs(value);
 
-  // 当所有值都为0或范围很小时，使用基于绝对阈值的着色
   if (range === 0 || max < 0.01) {
-    // 使用项目颜色系统的语义颜色，避免硬编码
     if (absValue < 0.001) return semanticColors.success.DEFAULT;
     if (absValue < 0.003) return semanticColors.success.dark || '#16a34a';
-    if (absValue < 0.005) return '#65a30d'; // 黄绿 - 介于 success 和 warning 之间
-    if (absValue < 0.01) return '#84cc16'; // 浅黄绿
+    if (absValue < 0.005) return '#65a30d';
+    if (absValue < 0.01) return '#84cc16';
     if (absValue < 0.03) return semanticColors.warning.DEFAULT;
     if (absValue < 0.05) return semanticColors.warning.dark || '#f59e0b';
-    if (absValue < 0.1) return '#f97316'; // 橙色 - 介于 warning 和 danger 之间
+    if (absValue < 0.1) return '#f97316';
     if (absValue < 0.3) return semanticColors.danger.light || '#ea580c';
     return semanticColors.danger.DEFAULT;
   }
 
-  // 正常归一化逻辑
   const normalized = (value - min) / range;
 
-  // 使用项目颜色系统
   if (normalized < 0.2) return chartColors.heatmap.low;
   if (normalized < 0.4) return '#84cc16';
   if (normalized < 0.6) return chartColors.heatmap.medium;
@@ -114,7 +110,6 @@ export const calculateStandardDeviation = (values: number[]): number => {
 
   const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
   const squaredDiffs = values.map((val) => Math.pow(val - mean, 2));
-  // 使用样本方差 (n-1) 而非总体方差 (n)，这是金融分析的标准做法
   const variance = squaredDiffs.reduce((sum, val) => sum + val, 0) / (values.length - 1);
 
   return Math.sqrt(variance);
@@ -131,11 +126,9 @@ export const calculateMovingAverage = (values: number[], period: number): number
       result.push(values[i]);
       sum += values[i];
     } else if (i === period - 1) {
-      // 第一个完整窗口
       sum += values[i];
       result.push(sum / period);
     } else {
-      // 滑动窗口：新 sum = 旧 sum - 离开窗口的值 + 新进入窗口的值
       sum = sum - values[i - period] + values[i];
       result.push(sum / period);
     }

@@ -1,3 +1,4 @@
+import { BLOCKCHAIN_TO_CHAIN_ID } from '@/lib/oracles/constants/chainMapping';
 import { createLogger } from '@/lib/utils/logger';
 import { type Blockchain } from '@/types/oracle';
 
@@ -12,16 +13,6 @@ import { chainlinkOnChainService } from './services/chainlinkOnChainService';
 import { withOracleRetry, ORACLE_RETRY_PRESETS } from './utils/retry';
 
 const logger = createLogger('ChainlinkCrossChainComparison');
-
-const BLOCKCHAIN_TO_CHAIN_ID: Partial<Record<Blockchain, number>> = {
-  ethereum: 1,
-  arbitrum: 42161,
-  optimism: 10,
-  polygon: 137,
-  avalanche: 43114,
-  'bnb-chain': 56,
-  base: 8453,
-};
 
 interface ChainlinkChainPriceData {
   chain: Blockchain;

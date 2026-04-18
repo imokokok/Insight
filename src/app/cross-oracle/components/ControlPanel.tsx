@@ -93,7 +93,7 @@ export function ControlPanel({
   const crossOracleToNumericInterval = (interval: RefreshInterval): NumericRefreshInterval => {
     const map: Record<RefreshInterval, NumericRefreshInterval> = {
       off: 0,
-      '10s': 30000,
+      '10s': 10000,
       '30s': 30000,
       '1m': 60000,
       '5m': 300000,
@@ -104,11 +104,12 @@ export function ControlPanel({
   const numericToCrossOracleInterval = (interval: NumericRefreshInterval): RefreshInterval => {
     const map: Record<NumericRefreshInterval, RefreshInterval> = {
       0: 'off',
+      10000: '10s',
       30000: '30s',
       60000: '1m',
       300000: '5m',
     };
-    return map[interval];
+    return map[interval] || 'off';
   };
 
   // 使用 useCommonSymbols hook 获取共同支持的币种

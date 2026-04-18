@@ -42,14 +42,14 @@ export function calculateVolatility(returns: number[]): number {
 }
 
 /**
- * 计算年化 Sharpe Ratio（夏普比率）
+ * Calculate annualized Sharpe Ratio
  *
- * Sharpe Ratio = (年化收益率 - 无风险利率) / 年化波动率
+ * Sharpe Ratio = (annualized return - risk-free rate) / annualized volatility
  *
- * @param returns 收益率序列（如日收益率）
- * @param riskFreeRate 年化无风险利率（默认 2%）
- * @param periodsPerYear 每年的期数（如 252 个交易日）
- * @returns 年化 Sharpe Ratio
+ * @param returns Return series (e.g., daily returns)
+ * @param riskFreeRate Annualized risk-free rate (default 2%)
+ * @param periodsPerYear Number of periods per year (e.g., 252 trading days)
+ * @returns Annualized Sharpe Ratio
  */
 export function calculateSharpeRatio(
   returns: number[],
@@ -63,11 +63,9 @@ export function calculateSharpeRatio(
 
   if (volatility === 0) return 0;
 
-  // 年化收益率和波动率
   const annualizedReturn = meanReturn * periodsPerYear;
   const annualizedVolatility = volatility * Math.sqrt(periodsPerYear);
 
-  // 年化 Sharpe Ratio
   return (annualizedReturn - riskFreeRate) / annualizedVolatility;
 }
 

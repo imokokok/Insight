@@ -23,7 +23,7 @@ import {
   useCurrentClient,
 } from '../useCrossChainData';
 import { chainNames, getHeatmapColor } from '../utils';
-import { getTimeRangeInMs } from '../utils/timeUtils';
+import { getTimestampCutoff } from '../utils/timeUtils';
 
 import { HeatmapTooltip } from './HeatmapTooltip';
 import { SelectedCellDetail } from './SelectedCellDetail';
@@ -141,7 +141,7 @@ export function HeatmapDetailView() {
   }, []);
 
   const filteredHistoricalPrices = useMemo(() => {
-    const cutoffTime = getTimeRangeInMs(selectedTimeRange);
+    const cutoffTime = getTimestampCutoff(selectedTimeRange);
     const filtered: Partial<Record<Blockchain, PriceData[]>> = {};
 
     Object.keys(historicalPrices).forEach((chain) => {
@@ -176,7 +176,7 @@ export function HeatmapDetailView() {
     }
 
     try {
-      const cutoffTime = getTimeRangeInMs(selectedTimeRange);
+      const cutoffTime = getTimestampCutoff(selectedTimeRange);
       const startTime = new Date(cutoffTime).toISOString();
       const endTime = new Date().toISOString();
 

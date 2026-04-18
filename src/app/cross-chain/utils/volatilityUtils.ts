@@ -16,23 +16,23 @@ export interface ThresholdConfig {
 }
 
 /**
- * 计算 ATR (Average True Range) 平均真实波幅
+ * Calculate ATR (Average True Range)
  *
- * ⚠️ 注意：此实现仅使用价格序列，没有 OHLC 数据。
- * 真正的 ATR 需要 High-Low-Close 数据来计算：
+ * Note: This implementation only uses a price series, without OHLC data.
+ * True ATR requires High-Low-Close data to calculate:
  *   TR = max(high-low, |high-prevClose|, |low-prevClose|)
  *
- * 当只有价格序列时，此方法退化为"平均绝对价格变化"，
- * 与标准 ATR 有差异。如需精确 ATR，请使用 calculations.ts 中的
- * calculateATR 函数（需要 OHLCVDataPoint 类型数据）。
+ * When only a price series is available, this method degenerates to
+ * "mean absolute price change", which differs from standard ATR.
+ * For precise ATR, use the calculateATR function in calculations.ts
+ * (which requires OHLCVDataPoint type data).
  *
- * @param prices 价格序列
- * @param period 计算周期（默认14）
- * @returns 近似 ATR 值
+ * @param prices Price series
+ * @param period Calculation period (default 14)
+ * @returns Approximate ATR value
  */
 const calculateATR = (prices: number[], period: number = 14): number => {
   if (prices.length < period + 1) {
-    // 数据不足时，使用价格变化的标准差作为近似
     const mean = prices.reduce((a, b) => a + b, 0) / prices.length;
     const variance =
       prices.reduce((sum, price) => sum + Math.pow(price - mean, 2), 0) / prices.length;
@@ -41,7 +41,6 @@ const calculateATR = (prices: number[], period: number = 14): number => {
 
   const trueRanges: number[] = [];
 
-  // 仅用价格序列时，使用相邻价格变化作为 TR 的近似
   for (let i = 1; i < prices.length; i++) {
     const currentPrice = prices[i];
     const previousPrice = prices[i - 1];
@@ -49,7 +48,6 @@ const calculateATR = (prices: number[], period: number = 14): number => {
     trueRanges.push(priceChange);
   }
 
-  // 使用滑动窗口计算 ATR，避免重复 slice
   let sum = 0;
   for (let i = 0; i < period; i++) {
     sum += trueRanges[i];

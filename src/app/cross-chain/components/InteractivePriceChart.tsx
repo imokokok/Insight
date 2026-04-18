@@ -22,7 +22,7 @@ import { type Blockchain } from '@/types/oracle';
 
 import { type ChartDataPoint } from '../constants';
 import { chainNames, chainColors } from '../utils';
-import { getTimeRangeInMs } from '../utils/timeUtils';
+import { getTimestampCutoff } from '../utils/timeUtils';
 
 import { ChartLegend } from './ChartLegend';
 import { ChartToolbar as PriceChartControls } from './ChartToolbar';
@@ -126,11 +126,12 @@ export function InteractivePriceChart({
   avgPrice,
   medianPrice,
   onLegendClick,
+  onLegendDoubleClick,
 }: InteractivePriceChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [viewState, setViewState] = useState<ViewState>(() => ({
     startIndex: 0,
-    endIndex: Math.max(0, chartData.length - 1),
+    endIndex: 0,
   }));
   const [isSelecting, setIsSelecting] = useState(false);
   const [selectionStart, setSelectionStart] = useState<{ x: number; y: number } | null>(null);
@@ -144,7 +145,7 @@ export function InteractivePriceChart({
 
   const timeFilteredData = useMemo(() => {
     if (chartDataWithMA.length === 0) return [];
-    const cutoffTime = getTimeRangeInMs(selectedTimeRange);
+    const cutoffTime = getTimestampCutoff(selectedTimeRange);
     return chartDataWithMA.filter((point) => point.timestamp >= cutoffTime);
   }, [chartDataWithMA, selectedTimeRange]);
 
@@ -152,14 +153,6 @@ export function InteractivePriceChart({
   useEffect(() => {
     if (chartData.length !== prevDataLengthRef.current) {
       prevDataLengthRef.current = chartData.length;
-      if (chartData.length > 0) {
-        queueMicrotask(() => {
-          setViewState({
-            startIndex: 0,
-            endIndex: chartData.length - 1,
-          });
-        });
-      }
     }
   }, [chartData.length]);
 
@@ -172,7 +165,7 @@ export function InteractivePriceChart({
         });
       });
     }
-  }, [selectedTimeRange, timeFilteredData.length]);
+  }, [timeFilteredData.length]);
 
   const visibleData = useMemo(() => {
     if (timeFilteredData.length === 0) return [];
@@ -185,7 +178,7 @@ export function InteractivePriceChart({
     }
 
     try {
-      const cutoffTime = getTimeRangeInMs(selectedTimeRange);
+      const cutoffTime = getTimestampCutoff(selectedTimeRange);
       const startTime = new Date(cutoffTime).toISOString();
       const endTime = new Date().toISOString();
 
@@ -198,7 +191,7 @@ export function InteractivePriceChart({
       csvLines.push(`Data End Time,${endTime}`);
       csvLines.push(`Visible Data Points,${visibleData.length}`);
       csvLines.push(
-        `View Range,${viewState.startIndex + 1}-${viewState.endIndex + 1} of ${chartData.length}`
+        `View Range,${viewState.startIndex + 1}-${viewState.endIndex + 1} of ${timeFilteredData.length}`
       );
       csvLines.push('');
 
@@ -223,10 +216,10 @@ export function InteractivePriceChart({
     } catch (error) {
       console.error('Failed to export price chart data:', error);
     }
-  }, [visibleData, filteredChains, selectedTimeRange, viewState, chartData.length]);
+  }, [visibleData, filteredChains, selectedTimeRange, viewState, timeFilteredData.length]);
 
   const priceDomain = useMemo(() => {
-    if (visibleData.length === 0) return ['auto', 'auto'] as [string, string];
+    if (visibleData.length === 0) return [0, 100] as [number, number];
 
     let minPrice = Infinity;
     let maxPrice = -Infinity;
@@ -241,7 +234,9 @@ export function InteractivePriceChart({
       });
     });
 
-    const padding = (maxPrice - minPrice) * 0.1;
+    if (!isFinite(minPrice) || !isFinite(maxPrice)) return [0, 100] as [number, number];
+
+    const padding = (maxPrice - minPrice) * 0.1 || 1;
     return [minPrice - padding, maxPrice + padding] as [number, number];
   }, [visibleData, filteredChains]);
 
@@ -460,7 +455,7 @@ export function InteractivePriceChart({
         onClearAllReferenceLines={clearAllReferenceLines}
         viewStartIndex={viewState.startIndex}
         viewEndIndex={viewState.endIndex}
-        totalDataPoints={chartData.length}
+        totalDataPoints={timeFilteredData.length}
       />
 
       <ReferenceLineList referenceLines={referenceLines} onRemove={removeReferenceLine} />
@@ -525,12 +520,30 @@ export function InteractivePriceChart({
               />
             ))}
 
+            {filteredChains.map((chain) => {
+              const maKey = `${chain}_MA`;
+              const hasMA = visibleData.some((d) => d[maKey] !== undefined);
+              if (!hasMA || hiddenLines.includes(chain)) return null;
+              return (
+                <Line
+                  key={maKey}
+                  type="monotone"
+                  dataKey={maKey}
+                  name={`${chainNames[chain]} MA`}
+                  stroke={chainColors[chain]}
+                  strokeWidth={1.5}
+                  strokeDasharray="6 3"
+                  dot={false}
+                  hide={hiddenLines.includes(chain)}
+                />
+              );
+            })}
+
             {scatterData.length > 0 && (
               <Scatter
-                data={scatterData.filter((d) => {
-                  const index = chartData.findIndex((cd) => cd.timestamp === d.timestamp);
-                  return index >= viewState.startIndex && index <= viewState.endIndex;
-                })}
+                data={scatterData.filter((d) =>
+                  visibleData.some((cd) => cd.timestamp === d.timestamp)
+                )}
                 fill={semanticColors.warning.dark}
                 name="Anomaly Point"
               />
@@ -565,6 +578,7 @@ export function InteractivePriceChart({
         hiddenLines={hiddenLines}
         hasScatterData={scatterData.length > 0}
         onLegendClick={onLegendClick}
+        onLegendDoubleClick={onLegendDoubleClick}
       />
 
       <div className="mt-2 text-xs text-gray-400 flex items-center gap-4 flex-wrap">

@@ -37,7 +37,7 @@ export interface PriceAnomaly {
 }
 
 /** 异常检测结果 */
-interface AnomalyDetectionResult {
+export interface AnomalyDetectionResult {
   anomalies: PriceAnomaly[];
   count: number;
   highRiskCount: number;
@@ -68,32 +68,32 @@ function analyzeReason(
 
   const absDeviation = Math.abs(deviationPercent);
   if (absDeviation > 5) {
-    reasonKeys.push('价格偏差超过3%');
+    reasonKeys.push('Price deviation exceeds 5%');
   } else if (absDeviation > SEVERITY_THRESHOLDS.HIGH) {
-    reasonKeys.push('市场波动性较高');
+    reasonKeys.push('High market volatility');
   } else if (absDeviation > ANOMALY_DEVIATION_THRESHOLD) {
-    reasonKeys.push('数据源差异');
+    reasonKeys.push('Data source discrepancy');
   }
 
   if (freshnessSeconds > FRESHNESS_THRESHOLDS.SEVERELY_DELAYED) {
-    reasonKeys.push('数据更新严重延迟');
+    reasonKeys.push('Severely delayed data update');
   } else if (freshnessSeconds > FRESHNESS_THRESHOLDS.DELAYED) {
-    reasonKeys.push('数据更新延迟');
+    reasonKeys.push('Delayed data update');
   }
 
   if (confidence !== undefined && confidence !== null) {
     if (confidence < CONFIDENCE_THRESHOLDS.LOW) {
-      reasonKeys.push('数据置信度较低');
+      reasonKeys.push('Low data confidence');
     } else if (confidence < CONFIDENCE_THRESHOLDS.MEDIUM) {
-      reasonKeys.push('数据置信度中等');
+      reasonKeys.push('Medium data confidence');
     }
   }
 
   if (reasonKeys.length === 0) {
     if (absDeviation >= ANOMALY_DEVIATION_THRESHOLD) {
-      reasonKeys.push('偏差超过阈值');
+      reasonKeys.push('Deviation exceeds threshold');
     } else {
-      reasonKeys.push('轻微偏差');
+      reasonKeys.push('Minor deviation');
     }
   }
 

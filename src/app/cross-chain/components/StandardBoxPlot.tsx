@@ -162,7 +162,6 @@ function BoxPlotShape({ cx: _cx, cy = 0, payload, xAxis }: BoxPlotShapeProps) {
   const boxHeight = 20;
   const halfHeight = boxHeight / 2;
 
-  // 使用 xAxis scale 将数值转换为水平坐标
   const xMin = xAxis.scale(min);
   const xQ1 = xAxis.scale(q1);
   const xMedian = xAxis.scale(median);

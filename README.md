@@ -23,7 +23,7 @@ Insight is a professional oracle data analytics platform that provides comprehen
 - **UI Library**: React 19.2.3
 - **Language**: TypeScript 5.x
 - **Styling**: Tailwind CSS 4.x
-- **State Management**: React Query 5.90.21, Zustand 5.0.11
+- **State Management**: React Query 5.99.0, Zustand 5.0.11
 - **Charts**: Recharts 3.8.0
 - **Animations**: Framer Motion 12.36.0
 
@@ -38,10 +38,10 @@ Insight is a professional oracle data analytics platform that provides comprehen
 ### Oracle Clients
 
 - Pyth Hermes Client (`@pythnetwork/hermes-client` 2.0.0)
-- Pyth Price Service SDK (`@pythnetwork/price-service-sdk` 1.8.0)
 - API3 Contracts (`@api3/contracts` 27.0.0)
 - Custom oracle clients for all supported providers (Chainlink, Pyth, API3, RedStone, DIA, WINkLink, Supra, TWAP, Reflector, Flare)
 - Supra Oracle SDK (`supra-oracle-sdk` 1.0.4)
+- Stellar SDK (`@stellar/stellar-sdk` 15.0.1)
 - TWAP On-Chain Service (Uniswap V3 TWAP via direct RPC calls)
 - Reflector On-Chain Service (Stellar Soroban smart contracts)
 - Flare FTSO Service (Flare Time Series Oracle)
@@ -94,9 +94,6 @@ Insight is a professional oracle data analytics platform that provides comprehen
 | `npm run test:e2e:ui`   | Run Playwright E2E tests with UI    |
 | `npm run clean:dev`     | Clean .next and start dev server    |
 | `npm run clean:start`   | Clean .next, build and start server |
-| `npm run perf:test`     | Run performance tests               |
-| `npm run perf:quick`    | Run quick performance check         |
-| `npm run naming:check`  | Check naming conventions            |
 | `npm run prepare`       | Prepare husky git hooks             |
 
 ## Project Structure
@@ -119,7 +116,7 @@ insight/
 │   │   ├── login/              # Login page
 │   │   ├── price-query/        # Price query page
 │   │   ├── register/           # Registration page
-│   │   └── settings/           # User settings page
+│   │   ├── settings/           # User settings page
 │   │   ├── api/                # API endpoints
 │   │   │   ├── alerts/         # Price alerts API
 │   │   │   │   ├── batch/      # Batch alert operations
@@ -145,6 +142,7 @@ insight/
 │   │   ├── error-boundary/     # Error boundary components
 │   │   ├── export/             # Export components
 │   │   ├── favorites/          # Favorite components
+│   │   ├── icons/              # Icon components
 │   │   ├── navigation/         # Navigation components
 │   │   ├── realtime/           # Real-time components
 │   │   ├── search/             # Search components
@@ -167,10 +165,8 @@ insight/
 │   │   ├── api/                # API utilities
 │   │   │   ├── client/         # API client with interceptors
 │   │   │   ├── middleware/     # API middleware (auth, rate limit, validation)
-│   │   │   ├── recovery/       # Error recovery
 │   │   │   ├── response/       # Response builders
 │   │   │   ├── retry/          # Retry logic
-│   │   │   ├── types/          # API types
 │   │   │   ├── validation/     # Validation schemas (Zod)
 │   │   │   └── versioning/     # API versioning
 │   │   ├── config/             # Configuration files
@@ -180,49 +176,16 @@ insight/
 │   │   ├── indicators/         # Technical indicators
 │   │   ├── monitoring/         # Performance monitoring
 │   │   ├── oracles/            # Oracle client implementations
-│   │   │   ├── api3/           # API3 client and services
-│   │   │   ├── base/           # Base oracle client
+│   │   │   ├── base/           # Base oracle database operations
+│   │   │   ├── clients/        # Oracle client implementations
 │   │   │   ├── constants/      # Oracle constants
-│   │   │   ├── pyth/           # Pyth client and services
-│   │   │   ├── api3.ts         # API3 client
-│   │   │   ├── base.ts         # BaseOracleClient abstract class
-│   │   │   ├── chainlink.ts    # Chainlink client
-│   │   │   ├── colors.ts       # Oracle colors
-│   │   │   ├── dia.ts          # DIA client
-│   │   │   ├── diaDataService.ts
-│   │   │   ├── diaNFTService.ts
-│   │   │   ├── diaNetworkService.ts
-│   │   │   ├── diaPriceService.ts
-│   │   │   ├── factory.ts      # OracleClientFactory
-│   │   │   ├── interfaces.ts   # Oracle interfaces
-│   │   │   ├── memoryManager.ts
-│   │   │   ├── oracle-config.ts
-│   │   │   ├── oracleDataUtils.ts
-│   │   │   ├── performanceMetricsCalculator.ts
-│   │   │   ├── pythConstants.ts
-│   │   │   ├── pythDataService.ts
-│   │   │   ├── pythHermesClient.ts
-│   │   │   ├── pythNetwork.ts
-│   │   │   ├── pythPublishersData.ts
-│   │   │   ├── redstone.ts     # RedStone client
-│   │   │   ├── redstoneConstants.ts
-│   │   │   ├── storage.ts
-│   │   │   ├── supra.ts         # Supra client
-│   │   │   ├── supportedSymbols.ts
-│   │   │   └── winklink.ts     # WINkLink client
-│   │   ├── queries/            # React Query keys and client
-│   │   ├── realtime/           # Real-time communication
+│   │   │   ├── pyth/           # Pyth-specific modules
+│   │   │   ├── services/       # Oracle data services
+│   │   │   └── utils/          # Oracle utility functions
+│   │   ├── realtime/           # WebSocket communication
 │   │   ├── security/           # Security utilities
 │   │   ├── services/           # External services
-│   │   │   ├── marketData/     # Market data services
-│   │   │   │   ├── binanceMarketService.ts  # Binance market data
-│   │   │   │   ├── coinGeckoMarketService.ts # CoinGecko market data
-│   │   │   │   ├── anomalyCalculations.ts   # Anomaly detection
-│   │   │   │   ├── performanceMetrics.ts    # Performance metrics
-│   │   │   │   ├── priceCalculations.ts     # Price calculations
-│   │   │   │   ├── riskCalculations.ts      # Risk calculations
-│   │   │   │   └── defiLlamaApi/            # DeFi Llama API
-│   │   │   └── oracle/         # Oracle services
+│   │   │   └── marketData/     # Market data services
 │   │   ├── snapshots/          # Snapshot management
 │   │   ├── supabase/           # Supabase client and utilities
 │   │   ├── utils/              # Utility functions
@@ -234,25 +197,17 @@ insight/
 │   │   ├── crossChainDataStore.ts    # Cross-chain data state
 │   │   ├── crossChainSelectorStore.ts # Cross-chain selector state
 │   │   ├── crossChainUIStore.ts      # Cross-chain UI state
-│   │   ├── notificationStore.ts      # Notification state
 │   │   ├── realtimeStore.ts    # Real-time data state
-│   │   ├── timeRangeStore.ts   # Time range state
 │   │   └── uiStore.ts          # UI state
 │   ├── types/                  # TypeScript type definitions
 │   │   ├── oracle/             # Oracle types
 │   │   ├── api/                # API types
-│   │   ├── ui/                 # UI types
-│   │   ├── risk.ts             # Risk types
-│   │   ├── guards.ts           # Type guards
+│   │   └── ui/                 # UI types
 │   └── __mocks__/              # Test mocks
 ├── public/                     # Static assets
 │   └── logos/                  # Logo assets
 │       ├── cryptos/            # Cryptocurrency logos
 │       └── oracles/            # Oracle logos
-├── scripts/                    # Utility scripts
-│   ├── check-naming-convention.js
-│   ├── performance-test.ts     # Performance testing
-│   └── quick-perf.mjs          # Quick performance check
 ├── next.config.ts              # Next.js configuration
 ├── tsconfig.json               # TypeScript configuration
 ├── jest.config.js              # Jest configuration
@@ -268,39 +223,39 @@ insight/
 
 ### Chainlink
 
-- **Supported Chains**: Ethereum, Arbitrum, Optimism, Polygon, Avalanche, Base, BNB Chain, Fantom, Starknet, Blast, Moonbeam, Kava, Polkadot
-- **Features**: Node analytics, extensive data feeds, high reliability
+- **Supported Chains**: Ethereum, Arbitrum, Optimism, Polygon, Avalanche, BNB Chain, Base
+- **Features**: Node analytics, extensive data feeds, high reliability, on-chain data via Chainlink Data Feeds
 
 ### Pyth
 
-- **Supported Chains**: Solana, Ethereum, Arbitrum, Polygon, Optimism, Avalanche, Base, Starknet, Blast, Sui, Aptos, Injective, Sei
-- **Features**: Publisher analytics, high-frequency updates, confidence intervals
+- **Supported Chains**: Solana, Ethereum, Arbitrum, Polygon, Avalanche, BNB Chain, Aptos, Sui, Base, Optimism
+- **Features**: Publisher analytics, high-frequency updates, confidence intervals, Pyth Hermes Client integration
 
 ### API3
 
-- **Supported Chains**: Ethereum, Arbitrum, Polygon, Avalanche, Base, BNB Chain, Optimism, Moonbeam, Kava, Fantom, Gnosis, Linea, Scroll
-- **Features**: First-party oracle, quantifiable security, Airnode deployments
+- **Supported Chains**: Ethereum, Arbitrum, Polygon, Avalanche, BNB Chain, Base, Optimism
+- **Features**: First-party oracle, quantifiable security, Airnode deployments, dAPI price feeds
 
 ### RedStone
 
-- **Supported Chains**: Ethereum, Arbitrum, Optimism, Polygon, Avalanche, Base, BNB Chain, Fantom, Linea, Mantle, Scroll, zkSync, Blast, Starknet, Aptos, Sui
+- **Supported Chains**: Ethereum, Arbitrum, Optimism, Polygon, Avalanche, Base, BNB Chain, Fantom, Linea, Mantle, Scroll, zkSync
 - **Features**: Modular oracle design, data streams, cross-chain support
 
 ### DIA
 
-- **Supported Chains**: Ethereum, Arbitrum, Polygon, Avalanche, BNB Chain, Base, Optimism, Fantom, Cronos, Moonbeam, Gnosis, Kava, Solana, Sui, Aptos, Injective, Sei, Cosmos, Osmosis, Juno, Celestia, Tron, TON, Near, Aurora, Celo, Starknet, Blast, Cardano, Polkadot, Mantle, Linea, Scroll, zkSync, Moonriver, Metis, StarkEx
+- **Supported Chains**: Ethereum, Arbitrum, Polygon, Avalanche, BNB Chain, Base
 - **Features**: Open-source cross-chain oracle, NFT floor price data feeds, transparent methodology, comprehensive token on-chain data (supply, market cap, exchange volume)
 - **Data Services**: DIADataService with dedicated PriceService, NFTService, and NetworkService modules
 
 ### WINkLink
 
-- **Supported Chains**: BNB Chain, TRON, Ethereum
-- **Features**: TRON ecosystem integration, gaming data feeds, entertainment focus
+- **Supported Chains**: TRON
+- **Features**: TRON ecosystem integration, on-chain contract price fetching, gaming data feeds
 
 ### Supra
 
-- **Supported Chains**: Ethereum
-- **Features**: High-performance oracle with verifiable randomness, cross-chain data feeds, Supra Oracle SDK integration
+- **Supported Chains**: Ethereum, Arbitrum, Optimism, Polygon, Base, Solana, BNB Chain, Avalanche, zkSync, Scroll, Mantle, Linea
+- **Features**: High-performance oracle with verifiable randomness, cross-chain data feeds, Supra Oracle SDK integration, DORA price feeds
 
 ### TWAP
 
@@ -399,9 +354,6 @@ npm run test:coverage
 
 # Run full validation (lint + typecheck + test)
 npm run validate
-
-# Check naming conventions
-npm run naming:check
 ```
 
 ### Code Quality Metrics

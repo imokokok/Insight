@@ -1,5 +1,5 @@
 import { createLogger } from '@/lib/utils/logger';
-import { type OracleProvider, type Blockchain } from '@/types/oracle';
+import { OracleProvider, type Blockchain } from '@/types/oracle';
 
 import { getApi3CrossChainComparison } from './api3CrossChain';
 import { getChainlinkCrossChainComparison } from './chainlinkCrossChain';
@@ -70,13 +70,13 @@ export async function comparePricesAcrossChains(
     let results: CrossChainComparisonResult[];
 
     switch (provider) {
-      case 'pyth':
+      case OracleProvider.PYTH:
         results = await getPythCrossChainComparison(symbol, chains);
         break;
-      case 'chainlink':
+      case OracleProvider.CHAINLINK:
         results = await getChainlinkCrossChainComparison(symbol, chains);
         break;
-      case 'api3':
+      case OracleProvider.API3:
         results = await getApi3CrossChainComparison(symbol, chains);
         break;
       default:

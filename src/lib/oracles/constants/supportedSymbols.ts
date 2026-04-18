@@ -214,7 +214,7 @@ export const API3_AVAILABLE_PAIRS: Record<string, string[]> = {
   // Avalanche: 3个可用
   avalanche: ['AVAX', 'ETH', 'USDT'],
   // BNB Chain: 6个可用
-  bnbchain: ['BNB', 'BTC', 'ETH', 'USDC', 'USDT', 'WBTC'],
+  'bnb-chain': ['BNB', 'BTC', 'ETH', 'USDC', 'USDT', 'WBTC'],
   // Fantom: 0个成功 - API3 未在 Fantom 部署 dAPI，已移除
 };
 

@@ -1,18 +1,14 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 
 import { type FavoriteConfig, useFavorites } from '@/hooks';
-import { getDefaultFactory } from '@/lib/oracles';
 import { isBlockchain } from '@/lib/utils/chainUtils';
 import { useUser } from '@/stores/authStore';
-import { useCrossChainConfigStore } from '@/stores/crossChainConfigStore';
 import { useCrossChainDataStore } from '@/stores/crossChainDataStore';
 import { useCrossChainSelectorStore } from '@/stores/crossChainSelectorStore';
 import { useCrossChainUIStore } from '@/stores/crossChainUIStore';
 import { type OracleProvider, type Blockchain, type PriceData } from '@/types/oracle';
 
-import { useChartData } from './useChartData';
 import { useExport, type PriceDifferenceItem } from './useExport';
-import { useStatistics } from './useStatistics';
 
 interface UseCrossChainExportParams {
   selectedProvider: OracleProvider;
@@ -46,14 +42,30 @@ interface UseCrossChainExportReturn {
   clearCacheForProvider: (provider: OracleProvider) => void;
 }
 
+function useFavoriteActions() {
+  const { setSelectedProvider, setSelectedSymbol } = useCrossChainSelectorStore();
+  const { setVisibleChains } = useCrossChainUIStore();
+
+  const handleApplyFavorite = useCallback(
+    (config: FavoriteConfig, onClose: () => void) => {
+      if (config.chain) setSelectedProvider(config.chain as OracleProvider);
+      if (config.symbol) setSelectedSymbol(config.symbol);
+      if (config.chains) setVisibleChains(config.chains.filter(isBlockchain));
+      onClose();
+    },
+    [setSelectedProvider, setSelectedSymbol, setVisibleChains]
+  );
+
+  return { handleApplyFavorite };
+}
+
 export function useCrossChainExport(params: UseCrossChainExportParams): UseCrossChainExportReturn {
   const user = useUser();
   const { favorites: chainFavorites } = useFavorites({ configType: 'chain_config' });
   const [showFavoritesDropdown, setShowFavoritesDropdown] = useState(false);
   const favoritesDropdownRef = useRef<HTMLDivElement>(null);
 
-  const { setSelectedProvider, setSelectedSymbol } = useCrossChainSelectorStore();
-  const { setVisibleChains } = useCrossChainUIStore();
+  const { handleApplyFavorite } = useFavoriteActions();
 
   const {
     selectedProvider,
@@ -97,14 +109,11 @@ export function useCrossChainExport(params: UseCrossChainExportParams): UseCross
     [selectedProvider, selectedSymbol, visibleChains]
   );
 
-  const handleApplyFavorite = useCallback(
+  const onApplyFavorite = useCallback(
     (config: FavoriteConfig) => {
-      if (config.chain) setSelectedProvider(config.chain as OracleProvider);
-      if (config.symbol) setSelectedSymbol(config.symbol);
-      if (config.chains) setVisibleChains(config.chains.filter(isBlockchain));
-      setShowFavoritesDropdown(false);
+      handleApplyFavorite(config, () => setShowFavoritesDropdown(false));
     },
-    [setSelectedProvider, setSelectedSymbol, setVisibleChains]
+    [handleApplyFavorite]
   );
 
   return {
@@ -116,7 +125,7 @@ export function useCrossChainExport(params: UseCrossChainExportParams): UseCross
     showFavoritesDropdown,
     setShowFavoritesDropdown,
     favoritesDropdownRef,
-    handleApplyFavorite,
+    handleApplyFavorite: onApplyFavorite,
     clearCache,
     clearCacheForProvider,
   };
@@ -129,70 +138,74 @@ export function useCrossChainExportActions(): UseCrossChainExportReturn {
   const favoritesDropdownRef = useRef<HTMLDivElement>(null);
 
   const selectedProvider = useCrossChainSelectorStore((s) => s.selectedProvider);
-  const setSelectedProvider = useCrossChainSelectorStore((s) => s.setSelectedProvider);
   const selectedSymbol = useCrossChainSelectorStore((s) => s.selectedSymbol);
-  const setSelectedSymbol = useCrossChainSelectorStore((s) => s.setSelectedSymbol);
   const selectedBaseChain = useCrossChainSelectorStore((s) => s.selectedBaseChain);
-  const selectedTimeRange = useCrossChainSelectorStore((s) => s.selectedTimeRange);
   const visibleChains = useCrossChainUIStore((s) => s.visibleChains);
-  const setVisibleChains = useCrossChainUIStore((s) => s.setVisibleChains);
-  const showMA = useCrossChainUIStore((s) => s.showMA);
-  const maPeriod = useCrossChainUIStore((s) => s.maPeriod);
   const currentPrices = useCrossChainDataStore((s) => s.currentPrices);
   const historicalPrices = useCrossChainDataStore((s) => s.historicalPrices);
-  const thresholdConfig = useCrossChainConfigStore((s) => s.thresholdConfig);
   const storeClearCache = useCrossChainDataStore((s) => s.clearCache);
   const storeClearCacheForProvider = useCrossChainDataStore((s) => s.clearCacheForProvider);
 
-  const supportedChains = useSupportedChainsForExport();
-  const filteredChains = useMemo(
-    () => supportedChains.filter((chain) => visibleChains.includes(chain)),
-    [supportedChains, visibleChains]
-  );
+  const { handleApplyFavorite } = useFavoriteActions();
 
-  const currentClient = useCurrentClientForExport();
+  const filteredChains = useMemo(() => visibleChains, [visibleChains]);
 
-  const statistics = useStatistics({
-    currentPrices,
-    historicalPrices,
-    filteredChains,
-    selectedTimeRange,
-    currentClient,
-    selectedBaseChain,
-  });
+  const priceDifferences = useMemo(() => {
+    const filteredPrices = currentPrices.filter((p) => p.chain && filteredChains.includes(p.chain));
+    if (filteredPrices.length < 2 || !selectedBaseChain) return [];
+    const basePriceData = filteredPrices.find((p) => p.chain === selectedBaseChain);
+    if (!basePriceData) return [];
+    const basePrice = basePriceData.price;
+    return filteredPrices.map((priceData) => {
+      const diff = priceData.price - basePrice;
+      const diffPercent = basePrice > 0 && priceData.price > 0 ? (diff / basePrice) * 100 : 0;
+      return {
+        chain: priceData.chain!,
+        price: priceData.price,
+        diff,
+        diffPercent,
+      };
+    });
+  }, [currentPrices, selectedBaseChain, filteredChains]);
 
-  const chart = useChartData({
-    currentPrices,
-    historicalPrices,
-    filteredChains,
-    selectedBaseChain,
-    selectedTimeRange,
-    showMA,
-    maPeriod,
-    validPrices: statistics.validPrices,
-    avgPrice: statistics.avgPrice,
-    standardDeviation: statistics.standardDeviation,
-    medianPrice: statistics.medianPrice,
-    thresholdConfig,
-  });
-
-  const clearCache = storeClearCache ?? (() => {});
-  const clearCacheForProvider =
-    storeClearCacheForProvider ?? ((() => {}) as (p: OracleProvider) => void);
+  const statsForExport = useMemo(() => {
+    const validPrices = currentPrices
+      .filter((d) => d.chain && filteredChains.includes(d.chain))
+      .map((d) => d.price)
+      .filter((p) => p > 0);
+    const avgPrice =
+      validPrices.length > 0 ? validPrices.reduce((a, b) => a + b, 0) / validPrices.length : 0;
+    const maxPrice = validPrices.length > 0 ? Math.max(...validPrices) : 0;
+    const minPrice = validPrices.length > 0 ? Math.min(...validPrices) : 0;
+    const variance =
+      validPrices.length > 1
+        ? validPrices.reduce((sum, price) => sum + Math.pow(price - avgPrice, 2), 0) /
+          (validPrices.length - 1)
+        : 0;
+    const stdDev = Math.sqrt(variance);
+    const standardDeviationPercent = avgPrice > 0 ? (stdDev / avgPrice) * 100 : 0;
+    let totalDataPoints = 0;
+    filteredChains.forEach((chain) => {
+      totalDataPoints += historicalPrices[chain]?.length || 0;
+    });
+    return {
+      avgPrice,
+      maxPrice,
+      minPrice,
+      priceRange: maxPrice - minPrice,
+      standardDeviationPercent,
+      totalDataPoints,
+    };
+  }, [currentPrices, filteredChains, historicalPrices]);
 
   const exportHook = useExport({
     selectedProvider,
     selectedSymbol,
     selectedBaseChain,
-    priceDifferences: chart.priceDifferences,
+    priceDifferences,
     historicalPrices,
     filteredChains,
-    avgPrice: statistics.avgPrice,
-    maxPrice: statistics.maxPrice,
-    minPrice: statistics.minPrice,
-    priceRange: statistics.priceRange,
-    standardDeviationPercent: statistics.standardDeviationPercent,
-    totalDataPoints: chart.totalDataPoints,
+    ...statsForExport,
   });
 
   const currentFavoriteConfig: FavoriteConfig = useMemo(
@@ -204,15 +217,16 @@ export function useCrossChainExportActions(): UseCrossChainExportReturn {
     [selectedProvider, selectedSymbol, visibleChains]
   );
 
-  const handleApplyFavorite = useCallback(
+  const onApplyFavorite = useCallback(
     (config: FavoriteConfig) => {
-      if (config.chain) setSelectedProvider(config.chain as OracleProvider);
-      if (config.symbol) setSelectedSymbol(config.symbol);
-      if (config.chains) setVisibleChains(config.chains.filter(isBlockchain));
-      setShowFavoritesDropdown(false);
+      handleApplyFavorite(config, () => setShowFavoritesDropdown(false));
     },
-    [setSelectedProvider, setSelectedSymbol, setVisibleChains]
+    [handleApplyFavorite]
   );
+
+  const clearCache = storeClearCache ?? (() => {});
+  const clearCacheForProvider =
+    storeClearCacheForProvider ?? ((() => {}) as (p: OracleProvider) => void);
 
   return {
     exportToCSV: exportHook.exportToCSV,
@@ -223,18 +237,8 @@ export function useCrossChainExportActions(): UseCrossChainExportReturn {
     showFavoritesDropdown,
     setShowFavoritesDropdown,
     favoritesDropdownRef,
-    handleApplyFavorite,
+    handleApplyFavorite: onApplyFavorite,
     clearCache,
     clearCacheForProvider,
   };
-}
-
-function useCurrentClientForExport() {
-  const selectedProvider = useCrossChainSelectorStore((s) => s.selectedProvider);
-  return useMemo(() => getDefaultFactory().getClient(selectedProvider), [selectedProvider]);
-}
-
-function useSupportedChainsForExport(): Blockchain[] {
-  const currentClient = useCurrentClientForExport();
-  return currentClient.supportedChains;
 }

@@ -1,544 +1,453 @@
-# Insight Performance Optimization Guide
-
-> This guide covers performance optimization best practices for the Insight blockchain oracle data analytics platform.
-
-## Table of Contents
-
-1. [Overview](#overview)
-2. [Code Splitting](#code-splitting)
-3. [Dynamic Imports](#dynamic-imports)
-4. [Image Optimization](#image-optimization)
-5. [Virtual Lists](#virtual-lists)
-6. [Performance Monitoring](#performance-monitoring)
-7. [Best Practices](#best-practices)
-
----
+# Performance Optimization Guide
 
 ## Overview
 
-The Insight project employs multiple performance optimization strategies to ensure a smooth user experience:
-
-- **Code Splitting**: Load components on demand to reduce initial bundle size
-- **Dynamic Imports**: Lazy load non-critical components
-- **Image Optimization**: Use Next.js Image component and lazy loading
-- **Virtual Lists**: Efficiently render large amounts of data
-- **Performance Monitoring**: Real-time monitoring of Web Vitals and performance metrics
+This guide documents the performance optimization strategies and techniques used in the Insight Oracle Data Analytics Platform. It covers the actual implementation patterns found in the codebase.
 
 ---
 
-## Code Splitting
+## 1. Data Fetching Optimization
 
-### 1. Page-level Code Splitting
+### 1.1 React Query Configuration
 
-Use `DynamicPageComponents` for page-level lazy loading:
+The application uses React Query with optimized defaults for server state management:
 
 ```typescript
-import { DynamicCrossOraclePage } from '@/components/performance';
-
-// Use in route configuration
-const routes = [
-  {
-    path: '/cross-oracle',
-    component: DynamicCrossOraclePage,
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: true,
+      retry: 3,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    },
   },
-];
+});
 ```
 
-### 2. Component-level Code Splitting
+**Key optimizations:**
 
-Use `createDynamicComponent` to create dynamic components:
+- **Stale time of 5 minutes** prevents unnecessary refetches for data that doesn't change frequently
+- **Garbage collection time of 10 minutes** balances memory usage with data availability
+- **Disabled refetch on window focus** reduces API calls during tab switching
+- **Exponential backoff retry** prevents overwhelming failing services
+
+### 1.2 Oracle Client Caching
+
+Each oracle client implements an LRU cache with TTL:
 
 ```typescript
-import { createDynamicComponent } from '@/components/performance';
+import { OracleCache } from '@/lib/oracles/base';
 
-const HeavyChart = createDynamicComponent(
-  () => import('@/components/charts/HeavyChart'),
-  {
-    ssr: false,
-    loading: <ChartSkeleton />,
-    priority: 'high',
-  }
-);
+const cache = new OracleCache(maxSize, ttlMs);
+```
 
-// Use component
-function Dashboard() {
-  return <HeavyChart data={data} />;
+**Cache behavior:**
+
+- LRU eviction when cache exceeds `MAX_CACHE_SIZE`
+- TTL-based invalidation with `ORACLE_CACHE_TTL` (default: 30 seconds)
+- Per-client cache instances for RedStone, Supra, and Flare clients
+- `clearCache()` method available for manual invalidation
+
+### 1.3 Database Caching Layer
+
+The oracle storage layer provides database caching with configurable TTL:
+
+```typescript
+import { configureStorage, shouldUseDatabase } from '@/lib/oracles/utils/storage';
+
+configureStorage({
+  enabled: true,
+  defaultExpirationHours: 24,
+});
+```
+
+### 1.4 TWAP On-Chain Service Caching
+
+The TWAP service uses a 30-second in-memory cache:
+
+```typescript
+class TwapOnChainService {
+  private cache: Map<string, { data: TwapPriceData; timestamp: number }>;
+  private readonly CACHE_TTL = 30_000; // 30 seconds
 }
-
-// Preload
-HeavyChart.preload();
-```
-
-### 3. Preloading Strategies
-
-#### Hover-based Preloading
-
-```typescript
-import { preloadOnHover } from '@/components/performance';
-
-function NavigationLink({ to, component }) {
-  return (
-    <Link href={to} {...preloadOnHover(component)}>
-      Go to Page
-    </Link>
-  );
-}
-```
-
-#### Idle-time Preloading
-
-```typescript
-import { preloadWhenIdle } from '@/components/performance';
-
-// During application initialization
-useEffect(() => {
-  preloadWhenIdle([DynamicCrossOraclePage, DynamicMarketOverviewPage]);
-}, []);
 ```
 
 ---
 
-## Dynamic Imports
+## 2. Component Rendering Optimization
 
-### 1. Chart Component Dynamic Imports
+### 2.1 Skeleton Loading States
 
-The project has built-in dynamic chart components:
+The application uses skeleton components for perceived performance:
+
+```typescript
+import { ChartSkeleton, HeroSkeleton } from '@/components/ui';
+import { Skeleton } from '@/components/ui/Skeleton';
+```
+
+- `ChartSkeleton` - Placeholder for chart components during loading
+- `HeroSkeleton` - Placeholder for hero/dashboard sections
+- `Skeleton` - Generic skeleton component for any content area
+
+### 2.2 Error Boundaries
+
+The `ErrorBoundary` component prevents cascading failures:
 
 ```typescript
 import {
-  DynamicPriceChart,
-  DynamicPriceVolatilityChart,
-  DynamicCrossChainTrendChart,
-  DynamicLatencyTrendChart,
-  preloadChart,
-} from '@/components/charts';
-
-// Use dynamic charts
-function PriceAnalysis() {
-  return (
-    <div>
-      <DynamicPriceChart client={client} symbol="BTC" />
-      <DynamicPriceVolatilityChart data={volatilityData} />
-    </div>
-  );
-}
-
-// Preload specific chart
-preloadChart('PriceChart');
+  ErrorBoundary,
+  SectionErrorBoundary,
+  ComponentErrorBoundary,
+} from '@/components/error-boundary';
 ```
 
-### 2. Conditional Dynamic Imports
+**Error boundary levels:**
+
+- `ErrorBoundary` - Global level (full page fallback)
+- `SectionErrorBoundary` - Section level (partial page fallback)
+- `ComponentErrorBoundary` - Component level (inline fallback)
+
+### 2.3 Live Status Indicators
+
+Real-time status feedback via `LiveStatusBar`:
 
 ```typescript
-const AdvancedAnalytics = dynamic(
-  () => import('@/components/analytics/AdvancedAnalytics'),
-  {
-    ssr: false,
-    loading: () => <AnalyticsSkeleton />,
-  }
-);
-
-function Dashboard({ showAdvanced }) {
-  return (
-    <div>
-      {showAdvanced && <AdvancedAnalytics />}
-    </div>
-  );
-}
+import { LiveStatusBar } from '@/components/ui';
 ```
 
 ---
 
-## Image Optimization
+## 3. Data Processing Optimization
 
-### 1. Using OptimizedImage Component
+### 3.1 Downsampling for Charts
 
-```typescript
-import { OptimizedImage } from '@/components/ui';
-// Note: LazyImage and ResponsiveImage are planned features, not yet implemented
-
-// Basic usage
-<OptimizedImage
-  src="/logos/btc.svg"
-  alt="Bitcoin"
-  width={64}
-  height={64}
-  priority
-/>
-
-// Lazy loading
-<LazyImage
-  src="/charts/large-chart.png"
-  alt="Price Chart"
-  threshold={0.2}
-  rootMargin="100px"
-/>
-
-// Responsive image
-<ResponsiveImage
-  src="/hero/banner.jpg"
-  alt="Hero Banner"
-  aspectRatio="21 / 9"
-  breakpoints={[
-    { width: 640, size: '100vw' },
-    { width: 1024, size: '50vw' },
-  ]}
-/>
-```
-
-### 2. Image Format Optimization
+The application includes chart data downsampling utilities:
 
 ```typescript
-// Use WebP format
-<OptimizedImage
-  src="/images/chart.png"
-  alt="Chart"
-  format="webp"
-  quality={85}
-/>
-
-// Use AVIF format (better compression)
-<OptimizedImage
-  src="/images/photo.jpg"
-  alt="Photo"
-  format="avif"
-/>
+import { downsampleData } from '@/lib/utils/downsampling';
 ```
 
-### 3. Background Image Optimization
+This reduces the number of data points rendered in charts, improving rendering performance while maintaining visual accuracy.
 
-```typescript
-import { BackgroundImage } from '@/components/performance';
+### 3.2 Technical Indicators
 
-<BackgroundImage
-  src="/backgrounds/hero.jpg"
-  alt="Hero Background"
-  parallax
-  parallaxSpeed={0.3}
-  overlayClassName="bg-black/30"
->
-  <HeroContent />
-</BackgroundImage>
-```
+Technical indicator calculations are optimized in `src/lib/indicators/calculations.ts`:
 
----
+- Moving Average (MA)
+- Exponential Moving Average (EMA)
+- Relative Strength Index (RSI)
+- MACD
+- Bollinger Bands
+- Average True Range (ATR)
 
-## Virtual Lists
+### 3.3 Anomaly Detection
 
-### 1. Basic Virtual List
-
-```typescript
-import { VirtualList } from '@/components/performance';
-
-function LargeDataTable({ items }) {
-  return (
-    <VirtualList
-      items={items}
-      renderItem={(item, index) => (
-        <DataRow key={item.id} data={item} />
-      )}
-      estimateSize={60}
-      containerHeight={600}
-      overscan={5}
-    />
-  );
-}
-```
-
-### 2. Virtual Grid
-
-```typescript
-import { VirtualGrid } from '@/components/performance';
-
-function AssetGrid({ assets }) {
-  return (
-    <VirtualGrid
-      items={assets}
-      renderItem={(asset) => <AssetCard asset={asset} />}
-      columnCount={4}
-      estimateSize={200}
-      containerHeight={800}
-      gap={16}
-    />
-  );
-}
-```
-
-### 3. Infinite Scroll
-
-```typescript
-import { VirtualList } from '@/components/performance';
-
-function InfinitePriceList() {
-  const [items, setItems] = useState([]);
-  const [page, setPage] = useState(1);
-
-  const loadMore = async () => {
-    const newItems = await fetchPrices(page);
-    setItems((prev) => [...prev, ...newItems]);
-    setPage((p) => p + 1);
-  };
-
-  return (
-    <VirtualList
-      items={items}
-      renderItem={(item) => <PriceItem data={item} />}
-      estimateSize={80}
-      containerHeight={600}
-      onEndReached={loadMore}
-      endReachedThreshold={300}
-      loading={isLoading}
-    />
-  );
-}
-```
-
----
-
-## Performance Monitoring
-
-### 1. Using PerformanceMonitor Component
-
-```typescript
-import { PerformanceMonitor } from '@/components/performance';
-
-function App() {
-  return (
-    <>
-      <PerformanceMonitor
-        enabled={process.env.NODE_ENV === 'development'}
-        position="bottom-right"
-        showDetails
-        onPerformanceIssue={(issue) => {
-          console.warn('Performance issue:', issue);
-        }}
-      />
-      <MainContent />
-    </>
-  );
-}
-```
-
-### 2. Using Performance Hooks
+Anomaly calculations use efficient statistical methods:
 
 ```typescript
 import {
-  usePerformanceOptimizer,
-  useWebVitalsOptimizer,
-  useMemoryOptimizer,
-} from '@/hooks';
-
-function Dashboard() {
-  const performance = usePerformanceOptimizer();
-  const webVitals = useWebVitalsOptimizer();
-  const memory = useMemoryOptimizer();
-
-  useEffect(() => {
-    if (performance.health === 'poor') {
-      // Trigger performance optimization
-      optimizePerformance();
-    }
-  }, [performance.health]);
-
-  return (
-    <div>
-      <PerformanceBadge health={performance.health} />
-      <div>FCP: {webVitals.metrics.fcp}ms</div>
-      <div>Memory: {memory.formatSize(memory.memory?.used || 0)}</div>
-    </div>
-  );
-}
+  detectPriceAnomalies,
+  calculateZScore,
+} from '@/lib/services/marketData/anomalyCalculations';
 ```
 
-### 3. Performance Tracking
+### 3.4 Performance Metrics Calculator
+
+Oracle performance metrics are calculated efficiently:
 
 ```typescript
-import { usePerformanceTracker } from '@/hooks';
-
-function DataFetcher() {
-  const tracker = usePerformanceTracker('fetch-price-data');
-
-  const fetchData = async () => {
-    tracker.start();
-    try {
-      const data = await fetchPrices();
-      return data;
-    } finally {
-      tracker.end({ symbol: 'BTC' });
-    }
-  };
-
-  // Or use measureAsync
-  const fetchDataSimple = () => {
-    return tracker.measureAsync(
-      () => fetchPrices(),
-      { symbol: 'BTC' }
-    );
-  };
-
-  return <button onClick={fetchData}>Fetch Data</button>;
-}
+import { calculatePerformanceMetrics } from '@/lib/oracles/utils/performanceMetricsCalculator';
 ```
 
 ---
 
-## Best Practices
+## 4. Memory Management
 
-### 1. Component Optimization
+### 4.1 Oracle Memory Manager
+
+The oracle memory manager controls memory usage for cached data:
 
 ```typescript
-// ✅ Use React.memo to avoid unnecessary re-renders
-const PriceCard = memo(function PriceCard({ price }) {
-  return <div>{price}</div>;
+import { memoryManager } from '@/lib/oracles/utils/memoryManager';
+```
+
+### 4.2 Cache Cleanup
+
+Oracle clients with their own caches provide cleanup methods:
+
+```typescript
+const redstoneClient = new RedStoneClient();
+redstoneClient.clearCache();
+
+const supraClient = new SupraClient();
+supraClient.clearCache();
+
+const flareClient = new FlareClient();
+flareClient.clearCache();
+```
+
+---
+
+## 5. Auto-Refresh System
+
+### 5.1 Configurable Refresh Intervals
+
+The auto-refresh hook supports multiple intervals:
+
+```typescript
+import { useAutoRefresh, REFRESH_INTERVALS, refreshIntervalToMs } from '@/hooks/useAutoRefresh';
+import type { RefreshInterval } from '@/hooks/useAutoRefresh';
+```
+
+**Available intervals:**
+
+- `5s`, `10s`, `30s`, `1m`, `5m`, `15m`, `30m`, `1h`
+
+### 5.2 Smart Refresh Strategy
+
+The auto-refresh system:
+
+- Pauses when the tab is not visible (via `document.visibilityState`)
+- Respects the user's selected interval preference
+- Provides a manual refresh trigger
+- Tracks last updated timestamp
+
+---
+
+## 6. Debounce and Throttle
+
+### 6.1 Debounce Hook
+
+```typescript
+import { useDebounce, useDebouncedCallback } from '@/hooks/utils/useDebounce';
+```
+
+Used for:
+
+- Search input debouncing
+- Filter change debouncing
+- Chart interaction debouncing
+
+---
+
+## 7. Export Performance
+
+### 7.1 Chart Export Utilities
+
+Chart exports use optimized utilities:
+
+```typescript
+import { exportChart } from '@/lib/utils/chartExport';
+import {
+  exportToCSV,
+  exportToJSON,
+  exportToExcel,
+  exportToPDF,
+} from '@/lib/utils/chartExport/formats';
+```
+
+**Supported formats:**
+
+- CSV (native)
+- JSON (native)
+- Excel (via jsPDF-AutoTable)
+- PDF (via jsPDF-AutoTable)
+- PNG (via html2canvas)
+- ZIP (via JSZip for batch exports)
+
+---
+
+## 8. Real-time Performance
+
+### 8.1 WebSocket Connection Management
+
+The WebSocket manager includes performance optimizations:
+
+```typescript
+import { WebSocketManager } from '@/lib/realtime/websocket';
+```
+
+**Optimizations:**
+
+- Heartbeat mechanism (30s interval, 10s timeout)
+- Automatic reconnection with configurable max attempts
+- Channel-based subscription management
+- Message handler deduplication
+
+### 8.2 Supabase Realtime
+
+Real-time subscriptions are managed efficiently:
+
+```typescript
+import { realtimeManager } from '@/lib/supabase/realtime';
+```
+
+**Optimizations:**
+
+- Subscription deduplication
+- Automatic cleanup on unmount
+- Connection status tracking via `realtimeStore`
+
+---
+
+## 9. Search Performance
+
+### 9.1 Fuse.js Fuzzy Search
+
+The global search uses Fuse.js for efficient fuzzy matching:
+
+```typescript
+import { useGlobalSearch } from '@/components/search/useGlobalSearch';
+```
+
+### 9.2 Search History
+
+Search history is managed with size limits:
+
+```typescript
+import { searchHistoryManager } from '@/lib/utils/searchHistory';
+```
+
+---
+
+## 10. Request Queue
+
+### 10.1 Rate-Limited Request Queue
+
+API requests are managed through a request queue:
+
+```typescript
+import { requestQueue } from '@/lib/utils/requestQueue';
+```
+
+This prevents overwhelming external APIs with too many concurrent requests.
+
+---
+
+## 11. Performance Monitoring
+
+### 11.1 Web Vitals
+
+The application tracks Core Web Vitals:
+
+```typescript
+import {
+  initWebVitals,
+  onMetric,
+  reportCustomMetric,
+  getPerformanceScore,
+} from '@/lib/monitoring/webVitals';
+import { PERFORMANCE_THRESHOLDS } from '@/lib/monitoring/webVitals';
+```
+
+**Tracked metrics:**
+
+- LCP (Largest Contentful Paint) - threshold: 2500ms/4000ms
+- INP (Interaction to Next Paint) - threshold: 200ms/500ms
+- CLS (Cumulative Layout Shift) - threshold: 0.1/0.25
+- FCP (First Contentful Paint) - threshold: 1800ms/3000ms
+- TTFB (Time to First Byte) - threshold: 800ms/1800ms
+
+### 11.2 Performance Metrics Collector
+
+The `PerformanceMetricsCollector` component initializes monitoring:
+
+```typescript
+import PerformanceMetricsCollector from '@/components/PerformanceMetricsCollector';
+```
+
+### 11.3 Sentry Integration
+
+Error tracking and performance monitoring via Sentry:
+
+```typescript
+import { captureException, setUser, addBreadcrumb } from '@/lib/monitoring';
+```
+
+---
+
+## 12. Virtualization
+
+### 12.1 TanStack Virtual
+
+The application uses `@tanstack/react-virtual` for efficient rendering of large lists:
+
+```typescript
+import { useVirtualizer } from '@tanstack/react-virtual';
+```
+
+This is used in data tables and long list views where rendering all items would be expensive.
+
+---
+
+## 13. Image and Asset Optimization
+
+### 13.1 Token Icons
+
+Token icons are loaded from the public directory with lazy loading:
+
+```typescript
+import TokenIcon from '@/app/price-query/components/TokenIcon';
+```
+
+### 13.2 Logo Assets
+
+Oracle and crypto logos are stored in `public/logos/` for static serving.
+
+---
+
+## 14. Bundle Optimization
+
+### 14.1 Dynamic Imports
+
+Heavy components are loaded dynamically using Next.js `dynamic()`:
+
+```typescript
+import dynamic from 'next/dynamic';
+
+const HeavyComponent = dynamic(() => import('./HeavyComponent'), {
+  loading: () => <ChartSkeleton />,
+  ssr: false,
 });
-
-// ✅ Use useMemo to cache computed results
-const sortedPrices = useMemo(() => {
-  return [...prices].sort((a, b) => b.price - a.price);
-}, [prices]);
-
-// ✅ Use useCallback to cache callback functions
-const handleClick = useCallback(() => {
-  onSelect(price);
-}, [onSelect, price]);
 ```
 
-### 2. Data Fetching Optimization
+### 14.2 Tree Shaking
+
+The codebase uses named imports and barrel exports to enable effective tree shaking:
 
 ```typescript
-// ✅ Use React Query's staleTime and gcTime
-const { data } = useQuery({
-  queryKey: ['prices', symbol],
-  queryFn: () => fetchPrice(symbol),
-  staleTime: 30 * 1000, // 30 seconds
-  gcTime: 5 * 60 * 1000, // 5 minutes
-});
-
-// ✅ Use prefetchQuery for data prefetching
-const queryClient = useQueryClient();
-
-const handleHover = (symbol: string) => {
-  queryClient.prefetchQuery({
-    queryKey: ['price', symbol],
-    queryFn: () => fetchPrice(symbol),
-  });
-};
-```
-
-### 3. Rendering Optimization
-
-```typescript
-// ✅ Use virtual lists for large datasets
-<VirtualList
-  items={largeDataset}
-  renderItem={renderItem}
-  estimateSize={50}
-/>
-
-// ✅ Use Intersection Observer for lazy loading
-const { observe, isVisible } = useLazyLoadOptimizer();
-
-useEffect(() => {
-  observe(containerRef.current);
-}, [observe]);
-
-// ✅ Avoid creating new objects in render
-// ❌ Wrong
-<div style={{ color: 'red' }} />
-
-// ✅ Correct
-const style = useMemo(() => ({ color: 'red' }), []);
-<div style={style} />
-```
-
-### 4. Memory Optimization
-
-```typescript
-// ✅ Clean up event listeners in time
-useEffect(() => {
-  const handler = () => {};
-  window.addEventListener('resize', handler);
-  return () => window.removeEventListener('resize', handler);
-}, []);
-
-// ✅ Use AbortController to cancel requests
-useEffect(() => {
-  const controller = new AbortController();
-  fetchData({ signal: controller.signal });
-  return () => controller.abort();
-}, []);
-
-// ✅ Monitor memory usage
-const memory = useMemoryOptimizer();
-
-useEffect(() => {
-  if (memory.isCritical) {
-    // Clear cache
-    clearCache();
-  }
-}, [memory.isCritical]);
+export { Button } from './Button';
+export { LiveStatusBar } from './LiveStatusBar';
+export { DataTablePro } from './DataTablePro';
 ```
 
 ---
 
-## Performance Budget
+## 15. Security Performance
 
-### Web Vitals Metrics
+### 15.1 Input Sanitization
 
-| Metric | Target  | Warning Threshold | Description               |
-| ------ | ------- | ----------------- | ------------------------- |
-| LCP    | < 2.5s  | 4.0s              | Largest Contentful Paint  |
-| INP    | < 200ms | 500ms             | Interaction to Next Paint |
-| CLS    | < 0.1   | 0.25              | Cumulative Layout Shift   |
-| FCP    | < 1.8s  | 3.0s              | First Contentful Paint    |
-| TTFB   | < 800ms | 1.8s              | Time to First Byte        |
+DOMPurify is used for efficient HTML sanitization:
 
-### JavaScript Bundle Size
+```typescript
+import { sanitizeInput } from '@/lib/security/inputSanitizer';
+```
 
-| Type     | Target  | Warning Threshold |
-| -------- | ------- | ----------------- |
-| First JS | < 300KB | 500KB             |
-| CSS      | < 100KB | 150KB             |
-| Images   | < 500KB | 1MB               |
+### 15.2 XSS Prevention
 
-### Resource Limits
+XSS filtering is applied at the middleware level:
 
-| Type                | Maximum Count |
-| ------------------- | ------------- |
-| Total Resources     | 50            |
-| Third-party Scripts | 10            |
-| Font Files          | 5             |
+```typescript
+import { filterXSS } from '@/lib/security/xss';
+```
 
----
+### 15.3 CSRF Protection
 
-## Debugging Tools
+CSRF tokens are validated at the API layer:
 
-### 1. Chrome DevTools
-
-- **Performance**: Analyze runtime performance
-- **Lighthouse**: Generate performance reports
-- **Network**: Monitor resource loading
-- **Memory**: Analyze memory usage
-
-### 2. React DevTools
-
-- **Profiler**: Analyze component rendering performance
-- **Components**: Inspect component tree
-
-### 3. Web Vitals Extension
-
-Install Chrome extension for real-time Core Web Vitals monitoring.
-
----
-
-## Summary
-
-By following the best practices above, you can significantly improve the performance of the Insight platform:
-
-1. **Code Splitting**: Reduce initial load time
-2. **Dynamic Imports**: Load components on demand
-3. **Image Optimization**: Reduce image loading time
-4. **Virtual Lists**: Efficiently handle large amounts of data
-5. **Performance Monitoring**: Continuously track and optimize
-
-Remember, performance optimization is an ongoing process that requires regular monitoring and adjustment.
+```typescript
+import { validateCSRFToken } from '@/lib/security/csrf';
+```

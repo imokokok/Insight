@@ -40,7 +40,7 @@ The Insight Oracle Data Analytics Platform is a modern web application built on 
 │  └──────────────────────────────────────────────────────────┘   │
 │  ┌──────────────────────────────────────────────────────────┐   │
 │  │                    Zustand Stores                         │   │
-│  │  authStore, uiStore, realtimeStore, crossChainStore      │   │
+│  │  authStore, uiStore, realtimeStore, crossChainStores     │   │
 │  └──────────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────────┘
                               │
@@ -96,7 +96,7 @@ The Insight Oracle Data Analytics Platform is a modern web application built on 
 | Database         | Supabase PostgreSQL               | Data persistence                       |
 | Authentication   | Supabase Auth                     | User management                        |
 | Error Handling   | Custom Error Classes + Middleware | Unified error handling                 |
-| Services Layer   | Market Data & Oracle Services     | Business logic & data processing       |
+| Services Layer   | Market Data Services              | Business logic & data processing       |
 
 ### 1.3 Data Flow
 
@@ -141,7 +141,7 @@ src/app/
     ├── resend-verification/
     └── verify-email/
 │
-└── api/                   # API Routes (non-localized)
+└── api/                   # API Routes
     ├── oracles/           # Oracle data endpoints
     ├── alerts/            # Alert management
     ├── favorites/         # User favorites
@@ -193,34 +193,9 @@ export default function InteractiveComponent() {
 | Price Query  | `/price-query`  | Price lookup and historical data                      |
 | Cross-Oracle | `/cross-oracle` | Compare prices across oracles                         |
 | Cross-Chain  | `/cross-chain`  | Cross-chain price analysis                            |
-| Oracle Pages | `/{oracle}`     | Provider-specific analytics                           |
 | Alerts       | `/alerts`       | Price alert management                                |
 | Favorites    | `/favorites`    | Saved configurations                                  |
 | Settings     | `/settings`     | User preferences                                      |
-
-### 2.4 Dynamic Imports for Performance
-
-The home page uses dynamic imports to optimize initial load time:
-
-```typescript
-import dynamic from 'next/dynamic';
-
-const OracleMarketOverview = dynamic(
-  () => import('./home-components/OracleMarketOverview'),
-  {
-    loading: () => <OracleMarketOverviewSkeleton />,
-    ssr: false,
-  }
-);
-
-const ArbitrageHeatmap = dynamic(
-  () => import('./home-components/ArbitrageHeatmap'),
-  {
-    loading: () => <ArbitrageHeatmapSkeleton />,
-    ssr: false,
-  }
-);
-```
 
 ---
 
@@ -231,12 +206,12 @@ const ArbitrageHeatmap = dynamic(
 ```
 src/components/
 ├── charts/                 # Chart components
-│   ├── ChartToolbar.tsx
-│   └── index.ts
+│   └── ChartToolbar.tsx
 │
 ├── navigation/             # Navigation components
 │   ├── DropdownMenu.tsx
 │   ├── MobileDrawer.tsx
+│   ├── UserMenuDropdown.tsx
 │   ├── config.ts
 │   ├── types.ts
 │   └── index.ts
@@ -248,7 +223,7 @@ src/components/
 │   ├── AlertBatchOperations.tsx
 │   ├── AlertMutePeriod.tsx
 │   ├── AlertTemplates.tsx
-│   └── index.ts
+│   └── __tests__/
 │
 ├── favorites/              # Favorites components
 │   ├── FavoriteButton.tsx
@@ -261,6 +236,7 @@ src/components/
 │   ├── ExportHistoryPanel.tsx
 │   ├── exportUtils.ts
 │   ├── types.ts
+│   ├── useExportHistory.ts
 │   └── index.ts
 │
 ├── data-transparency/      # Data transparency components
@@ -278,6 +254,7 @@ src/components/
 │   ├── data.ts
 │   ├── types.ts
 │   ├── useGlobalSearch.ts
+│   ├── useSearchKeyboardNavigation.ts
 │   └── index.ts
 │
 ├── settings/               # Settings components
@@ -289,8 +266,7 @@ src/components/
 │   └── index.ts
 │
 ├── realtime/               # Real-time components
-│   ├── ConnectionStatus.tsx
-│   └── index.ts
+│   └── ConnectionStatus.tsx
 │
 ├── shortcuts/              # Keyboard shortcuts
 │   ├── ShortcutContext.tsx
@@ -300,57 +276,98 @@ src/components/
 │
 ├── error-boundary/         # Error boundary components
 │   ├── ErrorBoundary.tsx
-│   ├── OracleErrorBoundary.tsx
 │   └── index.ts
+│
+├── icons/                  # Icon components
+│   └── SocialIcons.tsx
 │
 ├── ui/                     # Reusable UI components
 │   ├── Button.tsx
 │   ├── Card.tsx
 │   ├── ChartSkeleton.tsx
-│   ├── EmptyState.tsx
-│   ├── EmptyStateEnhanced.tsx
-│   ├── Icon.tsx
-│   ├── LiveStatusBar.tsx
-│   ├── Skeleton.tsx
-│   ├── Tooltip.tsx
+│   ├── CompactStatCard.tsx
 │   ├── DataTablePro.tsx
+│   ├── EmptyStateEnhanced.tsx
+│   ├── LiveStatusBar.tsx
+│   ├── PasswordInput.tsx
+│   ├── PriceFlash.tsx
+│   ├── Skeleton.tsx
+│   ├── StatCard.tsx
+│   ├── Tooltip.tsx
 │   ├── DataTablePro/       # Advanced data table
+│   │   ├── components/
+│   │   ├── hooks/
+│   │   ├── utils/
+│   │   └── types.ts
 │   └── selectors/          # Selector components
+│       ├── DropdownSelect.tsx
+│       ├── SegmentedControl.tsx
+│       ├── types.ts
+│       └── index.ts
 │
 ├── Navbar.tsx
 ├── Footer.tsx
-└── AppInitializer.tsx
+├── AppInitializer.tsx
+└── PerformanceMetricsCollector.tsx
 ```
 
-### 3.2 Oracle Component Categories
+### 3.2 Page-Level Component Organization
 
-#### Price Visualization
+Each major page has its own component directory under `src/app/`:
 
-- `PriceChart.tsx` - Standard price chart
-- `DynamicPriceChart.tsx` - Real-time updating chart
-- `PriceVolatilityChart.tsx` - Volatility visualization
-- `PriceDistributionBoxPlot.tsx` - Price distribution analysis
+#### Price Query Components (`src/app/price-query/components/`)
 
-#### Technical Indicators
+- `PriceChart.tsx` - Price chart with technical indicators
+- `QueryForm.tsx` - Oracle/symbol/chain selection form
+- `QueryHeader.tsx` - Page header with controls
+- `QueryResults.tsx` - Price data results display
+- `ChartDataTable.tsx` - Tabular data view
+- `CustomTooltip.tsx` - Chart tooltip
+- `AutoRefreshControl.tsx` - Auto-refresh toggle
+- `DataSourceSection.tsx` - Data source information
+- `ErrorBanner.tsx` - Error display
+- `ExportConfig.tsx` - Export configuration
+- `UnifiedExportSection.tsx` - Unified export UI
+- `TokenIcon.tsx` - Token icon display
+- `stats/` - Per-oracle statistics cards (ChainlinkStats, PythStats, etc.)
 
-- `BollingerBands.tsx` - Bollinger Bands overlay
-- `RSIIndicator.tsx` - Relative Strength Index
-- `MACDIndicator.tsx` - Moving Average Convergence Divergence
-- `ATRIndicator.tsx` - Average True Range
+#### Cross-Chain Components (`src/app/cross-chain/components/`)
 
-#### Data Quality
+- `InteractivePriceChart.tsx` - Interactive multi-chain price chart
+- `PriceComparisonTable.tsx` - Cross-chain price table
+- `PriceSpreadHeatmap.tsx` - Price spread visualization
+- `OverviewTab.tsx` - Overview tab
+- `ChartsTab.tsx` - Charts tab
+- `TechnicalIndicators.tsx` - Technical indicator overlays
+- `StabilityAnalysis.tsx` - Price stability analysis
+- `ChainSelector.tsx` - Chain selection
+- `CrossChainFilters.tsx` - Filter controls
+- `TabNavigation.tsx` - Tab navigation
+- `AnomalyConfig.tsx` - Anomaly detection config
+- `ReferenceLineManager.ts` - Chart reference lines
+- `BenchmarkComparisonSection.tsx` - Benchmark comparison
+- `DataSourceSection.tsx` - Data source info
+- `FavoritesDropdown.tsx` - Favorites integration
+- `StandardBoxPlot.tsx` - Box plot visualization
 
-- `DataQualityPanel.tsx` - Quality metrics panel
-- `DataQualityScoreCard.tsx` - Quality score display
-- `DataQualityIndicator.tsx` - Quality indicator badge
-- `ConfidenceScore.tsx` - Confidence visualization
+#### Cross-Oracle Components (`src/app/cross-oracle/components/`)
 
-#### Cross-Chain Analysis
-
-- `CrossChainPanel.tsx` - Cross-chain overview
-- `CrossChainTrendChart.tsx` - Cross-chain trends
-- `CrossChainPriceConsistency.tsx` - Price consistency check
-- `PriceDeviationHeatmap.tsx` - Deviation visualization
+- `ControlPanel.tsx` - Oracle/symbol selection
+- `SimplePriceTable.tsx` - Price comparison table
+- `RiskAlertBanner.tsx` - Risk alert display
+- `OracleErrorPanel.tsx` - Error display
+- `CrossOracleExportSection.tsx` - Export UI
+- `price-comparison/` - Price analysis components
+  - `MultiOracleTrendChart.tsx`
+  - `DeviationScatterChart.tsx`
+  - `PriceDistributionHistogram.tsx`
+  - `PriceDispersionCard.tsx`
+  - `MarketConsensusCard.tsx`
+  - `DispersionGauge.tsx`
+  - `ConfidenceBar.tsx`
+  - `PriceRangeBar.tsx`
+  - `MarketDepthSimulator.tsx`
+  - `ChartTabSwitcher.tsx`
 
 ---
 
@@ -380,7 +397,7 @@ The application uses a hybrid state management approach:
 │  └─────────────────────────────────────────────────────┘    │
 │  ┌─────────────────────────────────────────────────────┐    │
 │  │                  uiStore                             │    │
-│  │  - UI preferences, themes, sidebar state             │    │
+│  │  - Sidebar, modal, mobile state                      │    │
 │  └─────────────────────────────────────────────────────┘    │
 │  ┌─────────────────────────────────────────────────────┐    │
 │  │                  realtimeStore                      │    │
@@ -393,14 +410,6 @@ The application uses a hybrid state management approach:
 │  │  - crossChainDataStore: Data state                   │    │
 │  │  - crossChainSelectorStore: Selector state           │    │
 │  │  - crossChainUIStore: UI state                       │    │
-│  └─────────────────────────────────────────────────────┘    │
-│  ┌─────────────────────────────────────────────────────┐    │
-│  │           notificationStore                          │    │
-│  │  - Notification state management                     │    │
-│  └─────────────────────────────────────────────────────┘    │
-│  ┌─────────────────────────────────────────────────────┐    │
-│  │           timeRangeStore                             │    │
-│  │  - Time range selection state                        │    │
 │  └─────────────────────────────────────────────────────┘    │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -432,18 +441,25 @@ const queryClient = new QueryClient({
 Manages authentication state:
 
 ```typescript
-interface AuthStore {
+interface AuthState {
   user: User | null;
   session: Session | null;
   profile: UserProfile | null;
   loading: boolean;
+  error: string | null;
   initialized: boolean;
-  setUser: (user: User | null) => void;
-  setSession: (session: Session | null) => void;
-  setProfile: (profile: UserProfile | null) => void;
-  setLoading: (loading: boolean) => void;
-  setInitialized: (initialized: boolean) => void;
-  reset: () => void;
+  subscription: RealtimeSubscription | null;
+}
+
+interface AuthActions {
+  initialize: () => Promise<void>;
+  cleanup: () => void;
+  signUp: (email: string, password: string) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<void>;
+  signInWithOAuth: (provider: string) => Promise<void>;
+  signOut: () => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
+  refreshProfile: () => Promise<void>;
 }
 ```
 
@@ -453,13 +469,13 @@ Manages UI preferences and state:
 
 ```typescript
 interface UIStore {
-  sidebarCollapsed: boolean;
-  theme: 'light' | 'dark' | 'system';
-  language: string;
-  chartPreferences: ChartPreferences;
+  sidebar: { isOpen: boolean; isCollapsed: boolean; activeItem: string };
+  modal: { isOpen: boolean; modalId: string | null; modalData: unknown };
+  isMobile: boolean;
   toggleSidebar: () => void;
-  setTheme: (theme: 'light' | 'dark' | 'system') => void;
-  setLanguage: (language: string) => void;
+  openModal: (modalId: string, data?: unknown) => void;
+  closeModal: () => void;
+  setIsMobile: (isMobile: boolean) => void;
 }
 ```
 
@@ -468,14 +484,17 @@ interface UIStore {
 Manages real-time connection and subscriptions:
 
 ```typescript
-interface RealtimeStore {
+interface RealtimeState {
   connectionStatus: 'connected' | 'disconnected' | 'connecting';
-  subscriptions: Set<string>;
-  lastMessage: Message | null;
-  setConnectionStatus: (status: ConnectionStatus) => void;
-  addSubscription: (channel: string) => void;
-  removeSubscription: (channel: string) => void;
-  setLastMessage: (message: Message | null) => void;
+  activeSubscriptions: string[];
+  lastPriceUpdate: PriceUpdate | null;
+  lastAlertEvent: AlertEvent | null;
+  lastSnapshotChange: SnapshotChange | null;
+  lastFavoriteChange: FavoriteChange | null;
+  priceUpdateCount: number;
+  alertEventCount: number;
+  reconnectAttempts: number;
+  userId: string | null;
 }
 ```
 
@@ -484,18 +503,11 @@ interface RealtimeStore {
 Manages cross-chain configuration state:
 
 ```typescript
-interface CrossChainConfigStore {
-  selectedProvider: OracleProvider;
-  selectedSymbol: string;
-  selectedTimeRange: number;
-  selectedBaseChain: Blockchain | null;
-  visibleChains: Blockchain[];
-  showMA: boolean;
-  maPeriod: number;
+interface ConfigState {
+  refreshInterval: RefreshInterval;
+  thresholdConfig: ThresholdConfig;
   colorblindMode: boolean;
-  setSelectedProvider: (provider: OracleProvider) => void;
-  toggleChain: (chain: Blockchain) => void;
-  // ... more actions
+  updateIntervals: Record<string, number>;
 }
 ```
 
@@ -504,32 +516,46 @@ interface CrossChainConfigStore {
 Manages cross-chain data state:
 
 ```typescript
-interface CrossChainDataStore {
+interface DataState {
   currentPrices: PriceData[];
   historicalPrices: Partial<Record<Blockchain, PriceData[]>>;
+  crossChainComparison: CrossChainComparisonResult[];
   loading: boolean;
   refreshStatus: 'idle' | 'refreshing' | 'success' | 'error';
-  // ... more actions
+  showRefreshSuccess: boolean;
+  lastUpdated: number | null;
+  anomalies: Anomaly[];
 }
 ```
 
 #### crossChainSelectorStore
 
-Manages cross-chain selector state.
+Manages cross-chain selector state:
+
+```typescript
+interface SelectorState {
+  selectedProvider: OracleProvider;
+  selectedSymbol: string;
+  selectedTimeRange: number;
+  selectedBaseChain: Blockchain | null;
+}
+```
 
 #### crossChainUIStore
 
 Manages cross-chain UI state:
 
 ```typescript
-interface CrossChainUIStore {
+interface UIState {
+  visibleChains: Blockchain[];
+  showMA: boolean;
+  maPeriod: number;
   chartKey: number;
   hiddenLines: Set<string>;
   focusedChain: Blockchain | null;
   tableFilter: 'all' | 'abnormal' | 'normal';
-  refreshInterval: RefreshInterval;
-  thresholdConfig: ThresholdConfig;
-  // ... more actions
+  sortColumn: string;
+  sortDirection: 'asc' | 'desc';
 }
 ```
 
@@ -615,14 +641,6 @@ interface PriceAlert {
 }
 ```
 
-### 5.4 Channel-Based Subscriptions
-
-| Channel       | Purpose                 | Data Type                             |
-| ------------- | ----------------------- | ------------------------------------- |
-| `prices`      | Real-time price updates | Price data with symbol, price, change |
-| `tvs`         | Total Value Secured     | Oracle TVS with 24h change            |
-| `marketStats` | Market statistics       | Total TVS, chains, protocols          |
-
 ---
 
 ## 6. API Layer
@@ -640,8 +658,10 @@ src/lib/api/
 │   └── index.ts
 ├── middleware/
 │   ├── authMiddleware.ts   # Authentication middleware
+│   ├── enhancedErrorMiddleware.ts  # Enhanced error handling
 │   ├── errorMiddleware.ts  # Error handling middleware
 │   ├── rateLimitMiddleware.ts  # Rate limiting
+│   ├── rateLimitStore.ts   # Rate limit state store
 │   ├── validationMiddleware.ts # Request validation
 │   ├── loggingMiddleware.ts    # Request/response logging
 │   └── index.ts
@@ -652,12 +672,17 @@ src/lib/api/
 ├── validation/
 │   ├── schemas.ts          # Validation schemas (Zod)
 │   ├── validators.ts       # Custom validators
+│   ├── oracleDataValidation.ts  # Oracle data validation
 │   └── index.ts
 ├── response/
 │   ├── ApiResponse.ts      # Response builders & helpers
 │   └── index.ts
+├── retry/
+│   ├── enhancedRetry.ts    # Enhanced retry logic
+│   └── index.ts
 ├── handler.ts             # Main API handler
 ├── oracleHandlers.ts      # Oracle-specific handlers
+├── oracleApiClient.ts     # Oracle API client
 └── utils.ts               # API utilities
 ```
 
@@ -860,19 +885,40 @@ The abstract base class defines the interface for all oracle clients:
 export abstract class BaseOracleClient {
   abstract name: OracleProvider;
   abstract supportedChains: Blockchain[];
-  abstract getPrice(symbol: string, chain?: Blockchain): Promise<PriceData>;
-  abstract getHistoricalPrices(
+  abstract getPrice(
+    symbol: string,
+    chain?: Blockchain,
+    options?: PriceFetchOptions
+  ): Promise<PriceData>;
+  abstract getSupportedSymbols(): string[];
+
+  protected config: OracleClientConfig;
+  protected createError(message: string, code?: string, options?: ErrorOptions): OracleError;
+  protected createUnsupportedSymbolError(symbol: string, chain?: Blockchain): OracleError;
+  protected createNoDataError(symbol: string, chain?: Blockchain, reason?: string): OracleError;
+  protected createProviderError(
+    reason: string,
+    originalError?: Error,
+    options?: ErrorOptions
+  ): OracleError;
+  protected validatePriceData(data: unknown, context?: string): PriceData;
+  protected safeValidatePriceData(data: unknown, context?: string): PriceData | null;
+
+  getHistoricalPrices(
+    symbol: string,
+    chain?: Blockchain,
+    period?: number,
+    options?: PriceFetchOptions
+  ): Promise<PriceData[]>;
+  isSymbolSupported(symbol: string, chain?: Blockchain): boolean;
+  getSupportedChainsForSymbol(symbol: string): Blockchain[];
+  getUpdateInterval(chain?: Blockchain): number;
+  fetchPriceWithDatabase(symbol: string, chain?: Blockchain): Promise<PriceData>;
+  fetchHistoricalPricesWithDatabase(
     symbol: string,
     chain?: Blockchain,
     period?: number
   ): Promise<PriceData[]>;
-
-  protected config: OracleClientConfig;
-  protected createError(message: string, code?: string): OracleError;
-  protected generateMockPrice(symbol: string, basePrice: number, chain?: Blockchain): PriceData;
-  protected generateMockHistoricalPrices(...): PriceData[];
-  async fetchPriceWithDatabase(...): Promise<PriceData>;
-  async fetchHistoricalPricesWithDatabase(...): Promise<PriceData[]>;
 }
 ```
 
@@ -889,14 +935,8 @@ export class ChainlinkClient extends BaseOracleClient {
     Blockchain.OPTIMISM,
     Blockchain.POLYGON,
     Blockchain.AVALANCHE,
-    Blockchain.BASE,
     Blockchain.BNB_CHAIN,
-    Blockchain.FANTOM,
-    Blockchain.STARKNET,
-    Blockchain.BLAST,
-    Blockchain.MOONBEAM,
-    Blockchain.KAVA,
-    Blockchain.POLKADOT,
+    Blockchain.BASE,
   ];
 }
 ```
@@ -907,19 +947,16 @@ export class ChainlinkClient extends BaseOracleClient {
 export class PythClient extends BaseOracleClient {
   name = OracleProvider.PYTH;
   supportedChains = [
-    Blockchain.SOLANA,
     Blockchain.ETHEREUM,
     Blockchain.ARBITRUM,
     Blockchain.OPTIMISM,
     Blockchain.POLYGON,
+    Blockchain.SOLANA,
     Blockchain.AVALANCHE,
-    Blockchain.BASE,
-    Blockchain.STARKNET,
-    Blockchain.BLAST,
-    Blockchain.SUI,
+    Blockchain.BNB_CHAIN,
     Blockchain.APTOS,
-    Blockchain.INJECTIVE,
-    Blockchain.SEI,
+    Blockchain.SUI,
+    Blockchain.BASE,
   ];
 }
 ```
@@ -934,41 +971,219 @@ export class API3Client extends BaseOracleClient {
     Blockchain.ARBITRUM,
     Blockchain.POLYGON,
     Blockchain.AVALANCHE,
-    Blockchain.BASE,
     Blockchain.BNB_CHAIN,
+    Blockchain.BASE,
     Blockchain.OPTIMISM,
-    Blockchain.MOONBEAM,
-    Blockchain.KAVA,
-    Blockchain.FANTOM,
-    Blockchain.GNOSIS,
-    Blockchain.LINEA,
-    Blockchain.SCROLL,
   ];
 }
 ```
 
-### 7.3 Additional Oracle Implementations
+#### RedStone Client
 
-| Client    | File                                                                                            | Description                                  |
-| --------- | ----------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| RedStone  | `redstone.ts`, `redstoneConstants.ts`                                                           | RedStone oracle data streams                 |
-| DIA       | `dia.ts`, `diaDataService.ts`, `diaPriceService.ts`, `diaNFTService.ts`, `diaNetworkService.ts` | DIA oracle with modular service architecture |
-| WINkLink  | `winklink.ts`, `winklinkRealDataService.ts`                                                     | WINkLink oracle with real data support       |
-| Supra     | `supra.ts`, `supraDataService.ts`                                                               | Supra oracle with SDK integration            |
-| TWAP      | `clients/twap.ts`, `services/twapOnChainService.ts`, `constants/twapConstants.ts`               | Uniswap V3 TWAP oracle with on-chain data    |
-| Reflector | `clients/reflector.ts`, `services/reflectorDataService.ts`, `constants/reflectorConstants.ts`   | Stellar ecosystem oracle with Soroban        |
-| Flare     | `clients/flare.ts`, `services/ftsoDataService.ts`, `constants/flareConstants.ts`                | Flare FTSO oracle with on-chain data feeds   |
+```typescript
+export class RedStoneClient extends BaseOracleClient {
+  name = OracleProvider.REDSTONE;
+  supportedChains = [
+    Blockchain.ETHEREUM,
+    Blockchain.ARBITRUM,
+    Blockchain.OPTIMISM,
+    Blockchain.POLYGON,
+    Blockchain.AVALANCHE,
+    Blockchain.BASE,
+    Blockchain.BNB_CHAIN,
+    Blockchain.FANTOM,
+    Blockchain.LINEA,
+    Blockchain.MANTLE,
+    Blockchain.SCROLL,
+    Blockchain.ZKSYNC,
+  ];
+}
+```
 
-#### DIA Service Architecture
+#### DIA Client
+
+```typescript
+export class DIAClient extends BaseOracleClient {
+  name = OracleProvider.DIA;
+  supportedChains = [
+    Blockchain.ETHEREUM,
+    Blockchain.ARBITRUM,
+    Blockchain.POLYGON,
+    Blockchain.AVALANCHE,
+    Blockchain.BNB_CHAIN,
+    Blockchain.BASE,
+  ];
+}
+```
+
+#### WINkLink Client
+
+```typescript
+export class WINkLinkClient extends BaseOracleClient {
+  name = OracleProvider.WINKLINK;
+  supportedChains = [Blockchain.TRON];
+}
+```
+
+#### Supra Client
+
+```typescript
+export class SupraClient extends BaseOracleClient {
+  name = OracleProvider.SUPRA;
+  supportedChains = [
+    Blockchain.ETHEREUM,
+    Blockchain.ARBITRUM,
+    Blockchain.OPTIMISM,
+    Blockchain.POLYGON,
+    Blockchain.BASE,
+    Blockchain.SOLANA,
+    Blockchain.BNB_CHAIN,
+    Blockchain.AVALANCHE,
+    Blockchain.ZKSYNC,
+    Blockchain.SCROLL,
+    Blockchain.MANTLE,
+    Blockchain.LINEA,
+  ];
+}
+```
+
+#### TWAP Client
+
+```typescript
+export class TWAPClient extends BaseOracleClient {
+  name = OracleProvider.TWAP;
+  supportedChains = [
+    Blockchain.ETHEREUM,
+    Blockchain.ARBITRUM,
+    Blockchain.OPTIMISM,
+    Blockchain.POLYGON,
+    Blockchain.BASE,
+    Blockchain.BNB_CHAIN,
+  ];
+}
+```
+
+#### Reflector Client
+
+```typescript
+export class ReflectorClient extends BaseOracleClient {
+  name = OracleProvider.REFLECTOR;
+  supportedChains = [Blockchain.STELLAR];
+}
+```
+
+#### Flare Client
+
+```typescript
+export class FlareClient extends BaseOracleClient {
+  name = OracleProvider.FLARE;
+  supportedChains = [Blockchain.FLARE];
+}
+```
+
+### 7.3 Oracle File Structure
+
+```
+src/lib/oracles/
+├── index.ts                  # Public exports
+├── base.ts                   # BaseOracleClient abstract class
+├── factory.ts                # OracleClientFactory (singleton)
+├── interfaces.ts             # IOracleClient, IOracleClientFactory
+├── api3CrossChain.ts         # API3 cross-chain comparison
+├── chainlinkCrossChain.ts    # Chainlink cross-chain comparison
+├── pythCrossChain.ts         # Pyth cross-chain comparison
+├── crossChainComparison.ts   # Cross-chain comparison utilities
+├── diaTypes.ts               # DIA type definitions
+├── diaUtils.ts               # DIA utility functions
+│
+├── base/
+│   └── databaseOperations.ts # Database operations for oracle data
+│
+├── clients/
+│   ├── chainlink.ts          # Chainlink client
+│   ├── PythClient.ts         # Pyth client
+│   ├── api3.ts               # API3 client
+│   ├── redstone.ts           # RedStone client
+│   ├── dia.ts                # DIA client
+│   ├── winklink.ts           # WINkLink client
+│   ├── supra.ts              # Supra client
+│   ├── twap.ts               # TWAP client
+│   ├── reflector.ts          # Reflector client
+│   └── flare.ts              # Flare client
+│
+├── constants/
+│   ├── assetAddresses.ts     # Multi-chain asset addresses
+│   ├── chainMapping.ts       # Blockchain name mapping (DIA)
+│   ├── flareConstants.ts     # Flare FTSO constants
+│   ├── nftCollections.ts     # NFT collection addresses
+│   ├── pythConstants.ts      # Pyth price feed IDs
+│   ├── pythPublishersData.ts # Pyth publisher data
+│   ├── redstoneConstants.ts  # RedStone API constants
+│   ├── reflectorConstants.ts # Reflector Soroban constants
+│   ├── supportedSymbols.ts   # Supported symbol lists
+│   ├── supraConstants.ts     # Supra pair index map
+│   └── twapConstants.ts      # TWAP pool/factory addresses
+│
+├── pyth/
+│   ├── PythDataService.ts    # Pyth data service
+│   ├── calculations.ts       # Pyth price calculations
+│   ├── crossChain.ts         # Pyth cross-chain logic
+│   ├── metadataFetching.ts   # Pyth metadata fetching
+│   ├── priceFetching.ts      # Pyth price fetching
+│   ├── pythCache.ts          # Pyth caching layer
+│   ├── pythParser.ts         # Pyth data parser
+│   ├── pythWebSocket.ts      # Pyth WebSocket client
+│   ├── types.ts              # Pyth types
+│   └── index.ts
+│
+├── services/
+│   ├── api3NetworkService.ts       # API3 network data service
+│   ├── chainlinkDataSources.ts     # Chainlink data source config
+│   ├── chainlinkOnChainService.ts  # Chainlink on-chain data
+│   ├── diaDataService.ts           # DIA main service entry
+│   ├── diaNFTService.ts            # DIA NFT floor price service
+│   ├── diaNetworkService.ts        # DIA network stats service
+│   ├── diaPriceService.ts          # DIA price data service
+│   ├── ftsoDataService.ts          # Flare FTSO data service
+│   ├── marketDataDefaults.ts       # Market data defaults
+│   ├── pythDataService.ts          # Pyth data service
+│   ├── reflectorDataService.ts     # Reflector Soroban service
+│   ├── supraDataService.ts         # Supra DORA service
+│   ├── twapOnChainService.ts       # TWAP Uniswap V3 service
+│   └── winklinkRealDataService.ts  # WINkLink on-chain service
+│
+└── utils/
+    ├── memoryManager.ts              # Memory management
+    ├── oracleDataUtils.ts            # Oracle data utilities
+    ├── performanceMetricsCalculator.ts # Performance metrics
+    ├── performanceMetricsConfig.ts   # Metrics configuration
+    ├── retry.ts                      # Retry logic
+    └── storage.ts                    # Database storage layer
+```
+
+### 7.4 Oracle Client Factory
+
+```typescript
+export class OracleClientFactory {
+  private static instances: Map<OracleProvider, BaseOracleClient> = new Map();
+
+  static getClient(provider: OracleProvider): BaseOracleClient;
+  private static createClient(provider: OracleProvider): BaseOracleClient;
+}
+
+export function getOracleClient(provider: OracleProvider): BaseOracleClient;
+export function getAllOracleClients(): Record<OracleProvider, BaseOracleClient>;
+```
+
+### 7.5 DIA Service Architecture
 
 DIA oracle adopts a modular service architecture:
 
 ```typescript
-// DIADataService - Main service entry point
 class DIADataService {
-  private priceService: DIAPriceService; // Price data service
-  private nftService: DIANFTService; // NFT floor price service
-  private networkService: DIANetworkService; // Network statistics service
+  private priceService: DIAPriceService;
+  private nftService: DIANFTService;
+  private networkService: DIANetworkService;
 
   async getAssetPrice(symbol: string, chain?: Blockchain): Promise<PriceData | null>;
   async getNFTFloorPrice(
@@ -983,24 +1198,11 @@ class DIADataService {
 }
 ```
 
-**Supported Blockchain Mapping** (DIA_CHAIN_MAPPING):
-
-- Ethereum, Arbitrum, Polygon, Avalanche, BNB Chain, Base, Optimism, Fantom, Cronos
-- Moonbeam, Gnosis, Kava, Solana, Sui, Aptos, Injective, Sei
-- Cosmos, Osmosis, Juno, Celestia, Tron, TON, Near, Aurora, Celo
-- Starknet, Blast, Cardano, Polkadot, Mantle, Linea, Scroll, zkSync
-- Moonriver, Metis, StarkEx
-
-**Configured Asset Addresses** (DIA_ASSET_ADDRESSES):
-
-- DIA, ETH, BTC, USDC, USDT, LINK and other multi-chain contract address configurations
-
 ### 7.6 TWAP On-Chain Service Architecture
 
 TWAP oracle adopts a direct on-chain data fetching architecture via Uniswap V3 pool contracts:
 
 ```typescript
-// src/lib/oracles/services/twapOnChainService.ts
 class TwapOnChainService {
   private cache: Map<string, { data: TwapPriceData; timestamp: number }>;
 
@@ -1012,31 +1214,11 @@ class TwapOnChainService {
 }
 ```
 
-**Key Features:**
-
-- **RPC with Fallback**: Multiple RPC endpoints per chain with health tracking and automatic recovery
-- **Contract Calls**: Direct encoding/decoding of Uniswap V3 Pool contract calls (`slot0`, `observe`, `liquidity`, `fee`, `token0`, `token1`) and Factory `getPool`
-- **TWAP Computation**: Calls `observe([twapInterval, 0])` to get tick cumulatives, computes average tick, converts to USD price
-- **Confidence Scoring**: Based on liquidity score and TWAP-spot deviation
-- **Caching**: 30-second TTL in-memory cache
-- **Price Calculation**: Converts tick-based prices to USD using ETH/USD and BNB/USD reference prices (fetched from Binance API with on-chain fallback)
-
-**TWAP Constants Configuration** (`src/lib/oracles/constants/twapConstants.ts`):
-
-- Uniswap V3 Factory addresses per chain
-- Fee tiers: LOW (500), MEDIUM (3000), HIGH (10000)
-- TWAP intervals: SHORT (600s/10m), MEDIUM (1800s/30m), LONG (3600s/1h)
-- Token addresses: 25+ tokens with per-chain contract addresses
-- Pool addresses: 15+ trading pairs with per-chain pool configs
-- RPC configuration: Per-chain endpoints with Alchemy + public fallbacks
-- Supported symbols: 22 tokens (BTC, ETH, USDC, USDT, DAI, WBTC, LINK, UNI, AAVE, ARB, OP, MATIC, SNX, CRV, COMP, MKR, SUSHI, 1INCH, BAL, BNB, STETH, FRAX)
-
 ### 7.7 Reflector Service Architecture
 
 Reflector oracle integrates with the Stellar network via Soroban smart contracts:
 
 ```typescript
-// src/lib/oracles/services/reflectorDataService.ts
 class ReflectorDataService {
   private cache: Map<string, { data: ReflectorPriceData; timestamp: number }>;
 
@@ -1046,28 +1228,11 @@ class ReflectorDataService {
 }
 ```
 
-**Key Features:**
-
-- **Soroban Smart Contracts**: Direct integration with Stellar's smart contract platform
-- **Dual Asset Support**: Both cryptocurrency and forex price feeds
-- **On-Chain Verification**: Transparent price data from source providers
-- **Caching**: 30-second TTL in-memory cache for performance
-- **Default Decimals**: 14 decimal places for high precision
-
-**Reflector Constants Configuration** (`src/lib/oracles/constants/reflectorConstants.ts`):
-
-- Crypto Contract: `CAFJZQWSED6YAWZU3GWRTOCNPPCGBN32L7QV43XX5LZLFTK6JLN34DLN`
-- Forex Contract: `CBKGDQGJ7GZNK2V2LGIXPR326H7F7K2MMG6WRVZJXYHONI4GJMCJZC`
-- RPC Endpoint: `https://rpc.ankr.com/stellar_soroban`
-- Supported Crypto Assets: BTC, ETH, USDT, XRP, SOL, USDC, ADA, AVAX, DOT, LINK, ATOM, XLM, UNI, EURC
-- Supported Forex Assets: EUR, GBP, CAD, BRL, JPY, CNY
-
 ### 7.8 Flare FTSO Service Architecture
 
 Flare oracle uses the Flare Time Series Oracle (FTSO) for on-chain price feeds:
 
 ```typescript
-// src/lib/oracles/services/ftsoDataService.ts
 class FtsoDataService {
   private cache: Map<string, { data: FtsoPriceData; timestamp: number }>;
 
@@ -1075,52 +1240,6 @@ class FtsoDataService {
   async fetchPrices(symbols: string[], network: string): Promise<FtsoPriceData[]>;
   async getFeedId(symbol: string): Promise<string | null>;
   clearCache(): void;
-}
-```
-
-**Key Features:**
-
-- **FTSO V2 Integration**: Direct calls to Flare's Time Series Oracle
-- **Confidence Intervals**: Real-time bid/ask spreads with configurable base spread
-- **Validator Analytics**: Monitor validator node performance and reliability
-- **On-Chain Data**: Direct smart contract calls for price data
-- **Caching**: 30-second TTL in-memory cache
-- **Multi-Network Support**: Flare mainnet, Songbird, and Coston2 testnet
-
-**Flare Constants Configuration** (`src/lib/oracles/constants/flareConstants.ts`):
-
-- FTSOv2 Contract: `0x7BDE3Df0624114eDB3A67dFe6753e62f4e7c1d20`
-- Registry Contract: `0xaD67FE6667226235497ED7B6E0e2416C2E40771B`
-- Chain IDs: Flare (14), Songbird (19), Coston2 (114)
-- RPC Endpoints: Multiple providers with automatic fallback
-- Supported Symbols: 38 tokens including BTC, ETH, FLR, XRP, SOL, DOGE, ADA, BNB, AVAX, LINK, DOT, MATIC, ARB, UNI, ATOM, LTC, USDT, USDC, DAI, AAVE, NEAR, APT, OP, TRX, SHIB, TON, HBAR, FIL, XLM, SGB, ALGO, XDC, ICP, RUNE, FTM, QNT
-
-### 7.4 Pyth Hermes Client Integration
-
-```typescript
-export class PythHermesClient {
-  private client: HermesClient;
-  private priceCallbacks: Map<string, ((price: PythPriceUpdate) => void)[]> = new Map();
-  private wsConnection: WebSocket | null = null;
-
-  constructor(endpoint: string = 'https://hermes.pyth.network');
-  async getLatestPrice(symbol: string): Promise<PriceData | null>;
-  subscribeToPriceUpdates(symbol: string, callback: (price: PythPriceUpdate) => void): () => void;
-}
-```
-
-### 7.5 Oracle Client Factory
-
-```typescript
-export class OracleClientFactory {
-  private static instances: Map<OracleProvider, BaseOracleClient> = new Map();
-  private static config: OracleClientConfig = {
-    useDatabase: true,
-    fallbackToMock: true,
-  };
-
-  static getClient(provider: OracleProvider): BaseOracleClient;
-  private static createClient(provider: OracleProvider): BaseOracleClient;
 }
 ```
 
@@ -1290,6 +1409,8 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 | CSV    | `.csv`    | Native                  | Simple data exchange |
 | JSON   | `.json`   | Native                  | API integration      |
 | Excel  | `.xlsx`   | jsPDF + jsPDF-AutoTable | Reports              |
+| PDF    | `.pdf`    | jsPDF + jsPDF-AutoTable | Printable reports    |
+| PNG    | `.png`    | html2canvas             | Chart screenshots    |
 
 ### 10.2 Export Configuration
 
@@ -1322,7 +1443,6 @@ src/lib/errors/
 ├── AppError.ts           # Abstract base error class
 ├── BusinessErrors.ts     # Business error types
 ├── OracleError.ts        # Oracle-specific errors
-├── errorRecovery.ts      # Error recovery mechanisms
 ├── errorToResponse.ts    # Error to API response conversion
 ├── index.ts              # Exports
 └── __tests__/           # Error tests
@@ -1427,22 +1547,11 @@ src/lib/services/
 │   │   ├── types.ts
 │   │   └── index.ts
 │   └── index.ts
-├── oracle/
-│   ├── OracleMarketDataService.ts   # Oracle market data service
-│   └── index.ts
+└── oracle/
+    └── __tests__/                   # Oracle service tests
 ```
 
-### 12.2 Market Data Service
-
-```typescript
-export class OracleMarketDataService {
-  async getMarketData(): Promise<MarketData>;
-  async getPriceStats(symbol: string, provider: OracleProvider): Promise<PriceStats>;
-  async getHistoricalStats(symbol: string, period: number): Promise<HistoricalStats>;
-}
-```
-
-### 12.3 Price Calculations
+### 12.2 Price Calculations
 
 ```typescript
 export function calculatePriceChange(current: number, previous: number): PriceChange;
@@ -1452,7 +1561,7 @@ export function calculateEMA(prices: number[], period: number): number;
 export function calculateRSI(prices: number[], period: number): number;
 ```
 
-### 12.4 Risk Calculations
+### 12.3 Risk Calculations
 
 ```typescript
 export function calculateVaR(prices: number[], confidence: number): number;
@@ -1461,7 +1570,7 @@ export function calculateMaxDrawdown(prices: number[]): number;
 export function calculateRiskScore(metrics: RiskMetrics): number;
 ```
 
-### 12.5 Anomaly Calculations
+### 12.4 Anomaly Calculations
 
 ```typescript
 export function detectPriceAnomalies(prices: PriceData[]): Anomaly[];
@@ -1480,33 +1589,34 @@ export function isOutlier(value: number, threshold: number): boolean;
 | Language         | TypeScript              | 5.x             |
 | Styling          | Tailwind CSS            | 4.x             |
 | Charts           | Recharts                | 3.8.0           |
-| State Management | React Query             | 5.90.21         |
+| State Management | React Query             | 5.99.0          |
 | Client State     | Zustand                 | 5.0.11          |
 | Database         | Supabase PostgreSQL     | -               |
 | Auth             | Supabase Auth           | 2.98.0          |
 | Real-time        | Supabase Realtime       | -               |
 | Oracle Clients   | Pyth Hermes Client      | 2.0.0           |
-| Oracle Clients   | Pyth Price Service SDK  | 1.8.0           |
 | Oracle Clients   | API3 Contracts          | 27.0.0          |
 | Oracle Clients   | Supra Oracle SDK        | 1.0.4           |
+| Oracle Clients   | Stellar SDK             | 15.0.1          |
+| Blockchain       | Viem                    | 2.47.6          |
 | Animations       | Framer Motion           | 12.36.0         |
 | Icons            | Lucide React            | 0.577.0         |
 | PDF Export       | jsPDF                   | 4.2.0           |
 | PDF Export       | jsPDF-AutoTable         | 5.0.7           |
+| Screenshot       | html2canvas             | 1.4.1           |
 | Monitoring       | Sentry                  | 10.43.0         |
+| Analytics        | Vercel Analytics        | 2.0.1           |
 | Security         | DOMPurify               | 3.4.0           |
 | Performance      | web-vitals              | 5.1.0           |
 | Archive          | JSZip                   | 3.10.1          |
 | Virtualization   | @tanstack/react-virtual | 3.13.21         |
-| HTTP Client      | Axios                   | 1.13.6          |
 | Testing          | Jest                    | 30.3.0          |
 | Testing          | Playwright              | 1.58.2          |
 | Testing          | Testing Library         | 10.4.1 / 16.3.2 |
 | Validation       | Zod                     | 4.3.6           |
-| Date Handling    | date-fns                | 4.1.0           |
 | Search           | Fuse.js                 | 7.1.0           |
-| Blockchain       | Viem                    | 2.47.6          |
-| Maps             | react-simple-maps       | 3.0.0           |
+| Styling Utils    | clsx                    | 2.1.1           |
+| Styling Utils    | tailwind-merge          | 3.5.0           |
 
 ---
 

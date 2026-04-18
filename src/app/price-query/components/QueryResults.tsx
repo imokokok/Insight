@@ -61,12 +61,14 @@ export function QueryResults({ onChainData }: QueryResultsProps) {
     isTwapDataLoading: _isTwapDataLoading,
     reflectorOnChainData,
     isReflectorDataLoading: _isReflectorDataLoading,
+    flareOnChainData,
+    isFlareDataLoading: _isFlareDataLoading,
   } = onChainData;
 
   const consistencyRating = useConsistencyRating(standardDeviationPercent);
   const prevPriceRef = useRef<number | undefined>(undefined);
   const currentPriceValue =
-    queryResults.length > 0 ? queryResults[0]?.priceData?.price || avgPrice : avgPrice;
+    queryResults.length > 0 ? (queryResults[0]?.priceData?.price ?? avgPrice) : avgPrice;
   const previousPriceValue = prevPriceRef.current;
 
   useEffect(() => {
@@ -132,6 +134,7 @@ export function QueryResults({ onChainData }: QueryResultsProps) {
               supraOnChainData={supraOnChainData}
               twapOnChainData={twapOnChainData}
               reflectorOnChainData={reflectorOnChainData}
+              flareOnChainData={flareOnChainData}
               maxPrice={maxPrice}
               minPrice={minPrice}
               avgPrice={avgPrice}

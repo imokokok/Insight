@@ -140,35 +140,29 @@ export function createLogger(moduleName: string): Logger {
 const logger: Logger = createLogger('app');
 
 /**
- * 使用示例:
+ * Usage examples:
  *
- * // 创建模块专用日志实例
  * const log = createLogger('PriceService');
  *
- * // 记录信息日志
- * log.info('价格更新成功', { symbol: 'BTC/USD', price: 45000 });
+ * log.info('Price updated successfully', { symbol: 'BTC/USD', price: 45000 });
  *
- * // 记录警告日志
- * log.warn('价格波动较大', { symbol: 'ETH/USD', volatility: 0.15 });
+ * log.warn('High price volatility', { symbol: 'ETH/USD', volatility: 0.15 });
  *
- * // 记录错误日志（带错误对象）
  * try {
- *   // ... 某些操作
+ *   // ... some operation
  * } catch (error) {
- *   log.error('获取价格失败', error instanceof Error ? error : new Error(String(error)), { symbol: 'BTC/USD' });
+ *   log.error('Failed to fetch price', error instanceof Error ? error : new Error(String(error)), { symbol: 'BTC/USD' });
  * }
  *
- * // 记录调试日志
- * log.debug('API 请求参数', { endpoint: '/api/prices', params: { limit: 100 } });
+ * log.debug('API request params', { endpoint: '/api/prices', params: { limit: 100 } });
  *
- * // 使用全局日志实例
- * logger.info('应用启动完成', { version: '1.0.0' });
+ * logger.info('Application started', { version: '1.0.0' });
  *
- * 环境变量控制:
- * - 开发环境 (NODE_ENV=development): 输出所有级别日志
- * - 生产环境 (NODE_ENV=production): 仅输出 error 级别日志
+ * Environment variable control:
+ * - Development (NODE_ENV=development): outputs all log levels
+ * - Production (NODE_ENV=production): outputs only error level logs
  *
- * 日志格式:
- * [时间戳] [日志级别] [模块名] 消息内容 {数据}
- * 例如: [2024-01-15T10:30:45.123Z] [INFO ] [PriceService] 价格更新成功 { symbol: 'BTC/USD', price: 45000 }
+ * Log format:
+ * [timestamp] [level] [module] message {data}
+ * e.g.: [2024-01-15T10:30:45.123Z] [INFO ] [PriceService] Price updated successfully { symbol: 'BTC/USD', price: 45000 }
  */

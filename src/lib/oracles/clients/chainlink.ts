@@ -1,5 +1,6 @@
 import { BaseOracleClient } from '@/lib/oracles/base';
 import type { OracleClientConfig } from '@/lib/oracles/base';
+import { BLOCKCHAIN_TO_CHAIN_ID } from '@/lib/oracles/constants/chainMapping';
 import { isPriceFeedSupported } from '@/lib/oracles/services/chainlinkDataSources';
 import {
   chainlinkOnChainService,
@@ -55,48 +56,6 @@ const CHAINLINK_QUALITY_CONFIG = {
   } as Record<Blockchain, number>,
   defaultConfidence: 0.98,
   minConfidence: 0.9,
-};
-
-const BLOCKCHAIN_TO_CHAIN_ID: Record<Blockchain, number> = {
-  [Blockchain.ETHEREUM]: 1,
-  [Blockchain.ARBITRUM]: 42161,
-  [Blockchain.OPTIMISM]: 10,
-  [Blockchain.POLYGON]: 137,
-  [Blockchain.AVALANCHE]: 43114,
-  [Blockchain.BNB_CHAIN]: 56,
-  [Blockchain.BASE]: 8453,
-  [Blockchain.SOLANA]: 0,
-  [Blockchain.FANTOM]: 250,
-  [Blockchain.CRONOS]: 25,
-  [Blockchain.JUNO]: 0,
-  [Blockchain.COSMOS]: 0,
-  [Blockchain.OSMOSIS]: 0,
-  [Blockchain.SCROLL]: 534352,
-  [Blockchain.ZKSYNC]: 324,
-  [Blockchain.APTOS]: 0,
-  [Blockchain.SUI]: 0,
-  [Blockchain.GNOSIS]: 100,
-  [Blockchain.MANTLE]: 5000,
-  [Blockchain.LINEA]: 59144,
-  [Blockchain.CELESTIA]: 0,
-  [Blockchain.INJECTIVE]: 0,
-  [Blockchain.SEI]: 0,
-  [Blockchain.TRON]: 0,
-  [Blockchain.TON]: 0,
-  [Blockchain.NEAR]: 0,
-  [Blockchain.AURORA]: 1313161554,
-  [Blockchain.CELO]: 42220,
-  [Blockchain.STARKNET]: 0,
-  [Blockchain.BLAST]: 81457,
-  [Blockchain.CARDANO]: 0,
-  [Blockchain.POLKADOT]: 0,
-  [Blockchain.KAVA]: 2222,
-  [Blockchain.MOONBEAM]: 1284,
-  [Blockchain.MOONRIVER]: 1285,
-  [Blockchain.METIS]: 1088,
-  [Blockchain.STARKEX]: 0,
-  [Blockchain.STELLAR]: 0,
-  [Blockchain.FLARE]: 14,
 };
 
 export class ChainlinkClient extends BaseOracleClient {

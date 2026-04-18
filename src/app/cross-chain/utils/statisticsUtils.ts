@@ -1,7 +1,7 @@
-import {
-  calculateStandardDeviation as calculateStdDev,
-  calculateMovingAverage,
-} from '@/lib/utils/chartSharedUtils';
+import { calculateMovingAverage } from '@/lib/utils/chartSharedUtils';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('statisticsUtils');
 
 export const calculateZScore = (price: number, mean: number, stdDev: number): number | null => {
   if (stdDev === 0) return null;
@@ -56,7 +56,7 @@ export const getTCriticalValue = (df: number, confidenceLevel: number = 0.95): n
   }
 
   if (confidenceLevel !== 0.95) {
-    console.warn(
+    logger.warn(
       'getTCriticalValue: Currently only 95% confidence level is supported, other confidence levels will use normal approximation'
     );
     return 1.96;
@@ -98,8 +98,7 @@ export const calculatePercentile = (sortedPrices: number[], percentile: number):
 };
 
 export const calculateSMA = (data: number[], period: number): (number | null)[] => {
-  const result = calculateMovingAverage(data, period);
-  return result.map((v) => v);
+  return calculateMovingAverage(data, period);
 };
 
 const normalCDF = (x: number): number => {

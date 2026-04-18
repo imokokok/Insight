@@ -6,21 +6,13 @@ import { getDefaultFactory } from '@/lib/oracles/factory';
 import { type Blockchain, type OracleProvider } from '@/types/oracle';
 
 interface UseOracleSymbolsReturn {
-  // 获取选中预言机支持的所有币种
   supportedSymbols: string[];
-  // 获取所有币种的并集（带预言机标识）
   allSymbolsWithOracles: Array<{ symbol: string; oracles: OracleProvider[] }>;
-  // 检查币种是否被所有选中预言机支持（多选模式）
   isSymbolSupportedByAllOracles: (symbol: string) => boolean;
-  // 检查币种是否被选中预言机支持（单选模式）
   isSymbolSupported: (symbol: string, chain?: Blockchain) => boolean;
-  // 获取指定币种支持的链
   getSupportedChainsForSymbol: (symbol: string) => Blockchain[];
-  // 获取币种在指定预言机上支持的链
   getChainsForSymbolOnOracle: (symbol: string, oracle: OracleProvider) => Blockchain[];
-  // 获取不支持指定币种的预言机列表
   getUnsupportedOraclesForSymbol: (symbol: string) => OracleProvider[];
-  // 获取指定链支持的所有币种
   getSymbolsForChain: (chain: Blockchain) => string[];
 }
 
@@ -30,7 +22,6 @@ export function useOracleSymbols(selectedOracles: OracleProvider[]): UseOracleSy
       return [];
     }
 
-    // 获取第一个预言机支持的币种作为初始集合
     const firstOracle = selectedOracles[0];
     const firstOracleSymbols = new Set(
       oracleSupportedSymbols[firstOracle as keyof typeof oracleSupportedSymbols] || []
@@ -40,7 +31,6 @@ export function useOracleSymbols(selectedOracles: OracleProvider[]): UseOracleSy
     if (selectedOracles.length === 1) {
       resultSymbols = Array.from(firstOracleSymbols);
     } else {
-      // 多个预言机时，返回共同支持的币种（交集）
       resultSymbols = selectedOracles.slice(1).reduce((commonSymbols, oracle) => {
         const oracleSymbols = new Set(
           oracleSupportedSymbols[oracle as keyof typeof oracleSupportedSymbols] || []
@@ -49,7 +39,6 @@ export function useOracleSymbols(selectedOracles: OracleProvider[]): UseOracleSy
       }, Array.from(firstOracleSymbols));
     }
 
-    // 按照全局 symbols 数组的顺序排序（市值从高到低）
     const symbolOrder = new Map(symbols.map((s, i) => [s, i]));
     return resultSymbols.sort((a, b) => {
       const orderA = symbolOrder.get(a) ?? Infinity;

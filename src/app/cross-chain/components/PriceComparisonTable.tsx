@@ -1,5 +1,7 @@
 'use client';
 
+import { useMemo } from 'react';
+
 import { DataTablePro, type ColumnDef, type ConditionalFormattingRule } from '@/components/ui';
 import { type CrossChainComparisonResult } from '@/lib/oracles/crossChainComparison';
 import { isBlockchain } from '@/lib/utils/chainUtils';
@@ -80,10 +82,13 @@ export function PriceComparisonTable() {
   const { avgPrice, standardDeviation } = statistics;
   const { sortedPriceDifferences } = table;
 
-  const comparisonMap = new Map<string, CrossChainComparisonResult>();
-  for (const result of crossChainComparison) {
-    comparisonMap.set(result.chain, result);
-  }
+  const comparisonMap = useMemo(() => {
+    const map = new Map<string, CrossChainComparisonResult>();
+    for (const result of crossChainComparison) {
+      map.set(result.chain, result);
+    }
+    return map;
+  }, [crossChainComparison]);
 
   const tableData: TableRow[] = sortedPriceDifferences.map((item) => {
     const zScore = calculateZScore(item.price, avgPrice, standardDeviation);
@@ -273,9 +278,9 @@ export function PriceComparisonTable() {
         if (age < 60) {
           formatted = `${age.toFixed(0)}s`;
           colorClass = 'text-emerald-600';
-        } else if (age < 300) {
+        } else if (age < 3600) {
           formatted = `${(age / 60).toFixed(1)}m`;
-          colorClass = 'text-amber-600';
+          colorClass = age < 300 ? 'text-amber-600' : 'text-red-600';
         } else {
           formatted = `${(age / 3600).toFixed(1)}h`;
           colorClass = 'text-red-600';
