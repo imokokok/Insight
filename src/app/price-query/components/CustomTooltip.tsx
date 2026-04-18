@@ -80,8 +80,17 @@ function calculateTooltipPosition(
   const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : 800;
   const margin = 16; // 视口边距
 
-  const left = coordinate.x;
-  let top = coordinate.y;
+  // 获取图表容器的位置，将相对坐标转换为视口坐标
+  const chartContainer = document.querySelector('.recharts-wrapper');
+  let containerRect = { left: 0, top: 0 };
+  if (chartContainer) {
+    const rect = chartContainer.getBoundingClientRect();
+    containerRect = { left: rect.left, top: rect.top };
+  }
+
+  // 计算相对于视口的绝对位置
+  const left = containerRect.left + coordinate.x;
+  let top = containerRect.top + coordinate.y;
   let transform = 'translate(10px, -50%)';
 
   // 检测右侧溢出
