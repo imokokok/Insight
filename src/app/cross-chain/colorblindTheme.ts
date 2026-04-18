@@ -17,9 +17,9 @@ export const getColorblindHeatmapColor = (percent: number, maxPercent: number): 
   const absValue = Math.abs(percent);
   const seq = accessibleColors.chart.sequence;
 
- // whenmaximumvalueas0orrangehours，useforthreshold
+  // whenmaximumvalueas0orrangehours，useforthreshold
   if (maxPercent === 0 || maxPercent < 0.001) {
- // threshold（supportto0.001%）
+    // threshold（supportto0.001%）
     if (absValue < 0.001) return seq[0];
     if (absValue < 0.003) return seq[1] || seq[0];
     if (absValue < 0.005) return seq[2] || seq[0];

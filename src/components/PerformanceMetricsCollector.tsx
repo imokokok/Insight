@@ -101,6 +101,6 @@ export function PerformanceMetricsCollector() {
     };
   }, []);
 
- // Componentsnotanywithin
+  // Componentsnotanywithin
   return null;
 }

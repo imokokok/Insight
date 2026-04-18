@@ -420,7 +420,7 @@ export default class WebSocketManager {
           timestamp: Date.now(),
         });
 
- // cleanupoldheartbeat timeout
+        // cleanupoldheartbeat timeout
         if (this.heartbeatTimeoutTimer) {
           clearTimeout(this.heartbeatTimeoutTimer);
         }
@@ -446,7 +446,7 @@ export default class WebSocketManager {
     }
   }
 
- // method：handleresponse
+  // method：handleresponse
   protected handlePong(): void {
     if (this.heartbeatTimeoutTimer) {
       clearTimeout(this.heartbeatTimeoutTimer);
@@ -477,7 +477,7 @@ export default class WebSocketManager {
     }, delay);
   }
 
- // method：clear reconnect timer
+  // method：clear reconnect timer
   protected clearReconnectTimer(): void {
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer);
@@ -485,7 +485,7 @@ export default class WebSocketManager {
     }
   }
 
- // method：refreshmessage
+  // method：refreshmessage
   protected flushMessageQueue(): void {
     while (this.messageQueue.length > 0 && this.ws?.readyState === WebSocket.OPEN) {
       const message = this.messageQueue.shift();
@@ -495,7 +495,7 @@ export default class WebSocketManager {
     }
   }
 
- // method：newSubscribe to channel
+  // method：newSubscribe to channel
   protected resubscribeChannels(): void {
     this.subscribedChannels.forEach((channel) => {
       this.send({
@@ -534,7 +534,7 @@ export class MockWebSocketManager extends WebSocketManager {
   }
 
   send(message: Record<string, unknown>): void {
- // Send message
+    // Send message
     logger.debug('Mock WebSocket send:', message);
   }
 
@@ -544,7 +544,7 @@ export class MockWebSocketManager extends WebSocketManager {
   }
 
   private setupMockDataGenerators(): void {
- // generate
+    // generate
     this.mockDataGenerators.set('prices', () => ({
       symbol: ['BTC', 'ETH', 'LINK', 'PYTH', 'BAND'][Math.floor(Math.random() * 5)],
       price: 10000 + Math.random() * 50000,
@@ -552,7 +552,7 @@ export class MockWebSocketManager extends WebSocketManager {
       timestamp: Date.now(),
     }));
 
- // TVS generate
+    // TVS generate
     this.mockDataGenerators.set('tvs', () => ({
       oracle: ['Chainlink', 'Pyth Network', 'API3'][Math.floor(Math.random() * 3)],
       tvs: 1 + Math.random() * 10,
@@ -560,7 +560,7 @@ export class MockWebSocketManager extends WebSocketManager {
       timestamp: Date.now(),
     }));
 
- // generate
+    // generate
     this.mockDataGenerators.set('marketStats', () => ({
       totalTVS: 15 + Math.random() * 5,
       totalChains: 10 + Math.floor(Math.random() * 5),

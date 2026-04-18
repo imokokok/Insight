@@ -5,7 +5,7 @@
 
 import { useState, useCallback } from 'react';
 
-import { OracleProvider } from '@/types/oracle';
+import { type OracleProvider, ORACLE_PROVIDER_VALUES } from '@/types/oracle';
 
 import { type TimeRange } from '../constants';
 
@@ -19,18 +19,7 @@ interface UseCrossOraclePageOptions {
 }
 
 export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
-  const {
-    initialSymbol = 'BTC/USD',
-    initialOracles = [
-      OracleProvider.CHAINLINK,
-      OracleProvider.PYTH,
-      OracleProvider.API3,
-      OracleProvider.REDSTONE,
-      OracleProvider.DIA,
-      OracleProvider.WINKLINK,
-      OracleProvider.SUPRA,
-    ],
-  } = options;
+  const { initialSymbol = 'BTC/USD', initialOracles = [...ORACLE_PROVIDER_VALUES] } = options;
 
   const [selectedOracles, setSelectedOracles] = useState<OracleProvider[]>(initialOracles);
   const [selectedSymbol, setSelectedSymbol] = useState<string>(initialSymbol);

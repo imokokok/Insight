@@ -104,7 +104,7 @@ export function handleError(error: unknown, context?: string): NextResponse {
     return handleValidationError(error, context);
   }
 
- // handle ZodError
+  // handle ZodError
   if (error && typeof error === 'object' && 'issues' in error) {
     return handleValidationError(error as ZodError, context);
   }

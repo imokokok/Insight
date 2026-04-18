@@ -294,7 +294,7 @@ export const chartColors = {
     '#F59E0B', // Orange
     '#8B5CF6', // Purple
     '#EC4899', // Pink
-    '#06B6D4', // 
+    '#06B6D4', //
     '#F97316', // Orange
     '#84CC16', // Green
   ],
@@ -528,12 +528,12 @@ export const accessibleColors = {
 // ============================================
 
 const wcagColors = {
- // WCAG AA standard：textandBackgroundfor 4.5:1
- // WCAG AAA standard：textandBackgroundfor 7:1
+  // WCAG AA standard：textandBackgroundfor 4.5:1
+  // WCAG AAA standard：textandBackgroundfor 7:1
 
   // High contrast text colors
   text: {
- // Backgroundontext（for >= 4.5:1）
+    // Backgroundontext（for >= 4.5:1）
     onLight: {
       primary: '#000000',
       secondary: '#1a1a1a',
@@ -543,7 +543,7 @@ const wcagColors = {
     },
   },
 
- // forStatus colors（ensuretext）
+  // forStatus colors（ensuretext）
   status: {
     success: {
       bg: '#006600', // GreenBackground
@@ -577,7 +577,7 @@ const wcagColors = {
 
   // Chart high contrast colors (WCAG AA standard)
   chart: {
- // Primary - ensurecolorhavefor
+    // Primary - ensurecolorhavefor
     primary: [
       '#0033a0', // Dark blue
       '#d90000', // Red
@@ -595,7 +595,7 @@ const wcagColors = {
       '#969696', // Light gray
       '#1a1a1a', // Black
     ],
- // Background
+    // Background
     background: {
       default: '#ffffff',
       subtle: '#f5f5f5',
@@ -746,7 +746,7 @@ const animationColors = {
 
 // Color name mapping - Map configured colors to Tailwind class names
 const colorNames = {
- // Primary
+  // Primary
   primary: {
     50: 'blue-50',
     100: 'blue-100',
@@ -851,16 +851,16 @@ const baseBorderClasses = {
 // ============================================
 
 const tailwindClasses = {
- // Background
+  // Background
   bg: baseBgClasses,
 
   // Text
   text: baseTextClasses,
 
- // Border
+  // Border
   border: baseBorderClasses,
 
- // stateBackground（light version）
+  // stateBackground（light version）
   statusBg: {
     success: createBgClass(colorNames.emerald[50]),
     warning: createBgClass(colorNames.amber[50]),
@@ -882,7 +882,7 @@ const tailwindClasses = {
     all: 'transition-all duration-200',
   },
 
- // Borderclass
+  // Borderclass
   borderBase: {
     DEFAULT: 'border',
     bottom: 'border-b',

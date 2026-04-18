@@ -244,10 +244,10 @@ export function useKeyboardShortcuts(shortcuts: KeyboardShortcut[]) {
  */
 export function useGlobalKeyboardListener() {
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
- // whenuserininputinnottriggershortcut
+    // whenuserininputinnottriggershortcut
     const target = event.target as HTMLElement;
     if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
- // Escape closefor
+      // Escape closefor
       if (event.key !== 'Escape') {
         return;
       }
