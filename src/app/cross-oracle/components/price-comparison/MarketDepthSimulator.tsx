@@ -69,9 +69,11 @@ function MarketDepthSimulatorComponent({ priceData, medianPrice }: MarketDepthSi
 
   const { bestBid, bestAsk, spread } = useMemo(() => {
     const prices = priceData.map((d) => d.price);
-    const bid = safeMax(prices.filter((p) => p <= medianPrice));
-    const ask = safeMin(prices.filter((p) => p >= medianPrice));
-    const spreadPercent = ((ask - bid) / medianPrice) * 100;
+    const bids = prices.filter((p) => p <= medianPrice);
+    const asks = prices.filter((p) => p >= medianPrice);
+    const bid = bids.length > 0 ? safeMax(bids) : null;
+    const ask = asks.length > 0 ? safeMin(asks) : null;
+    const spreadPercent = bid !== null && ask !== null ? ((ask - bid) / medianPrice) * 100 : 0;
     return { bestBid: bid, bestAsk: ask, spread: spreadPercent };
   }, [priceData, medianPrice]);
 
@@ -105,7 +107,9 @@ function MarketDepthSimulatorComponent({ priceData, medianPrice }: MarketDepthSi
       <div className="grid grid-cols-3 gap-4 mb-4 p-3 bg-gray-50 rounded-lg">
         <div className="text-center">
           <div className="text-xs text-gray-500 mb-1">Best Bid</div>
-          <div className="text-lg font-semibold text-emerald-600">{formatPrice(bestBid)}</div>
+          <div className="text-lg font-semibold text-emerald-600">
+            {bestBid !== null ? formatPrice(bestBid) : '-'}
+          </div>
         </div>
         <div className="text-center border-x border-gray-200">
           <div className="text-xs text-gray-500 mb-1">Spread</div>
@@ -113,7 +117,9 @@ function MarketDepthSimulatorComponent({ priceData, medianPrice }: MarketDepthSi
         </div>
         <div className="text-center">
           <div className="text-xs text-gray-500 mb-1">Best Ask</div>
-          <div className="text-lg font-semibold text-red-600">{formatPrice(bestAsk)}</div>
+          <div className="text-lg font-semibold text-red-600">
+            {bestAsk !== null ? formatPrice(bestAsk) : '-'}
+          </div>
         </div>
       </div>
 

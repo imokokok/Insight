@@ -24,7 +24,7 @@ export function useCurrentClient() {
 
 export function useSupportedChains(): Blockchain[] {
   const currentClient = useCurrentClient();
-  return currentClient.supportedChains;
+  return useMemo(() => [...currentClient.supportedChains], [currentClient]);
 }
 
 export function useFilteredChains(): Blockchain[] {
@@ -201,7 +201,7 @@ export function useCrossChainData(): UseCrossChainDataReturn {
     supportedChains: dataState.supportedChains,
     currentClient: dataState.currentClient,
     fetchData: dataState.fetchData,
-    filteredChains: table.filteredChains,
+    filteredChains,
     priceDifferences: chart.priceDifferences,
     sortedPriceDifferences: table.sortedPriceDifferences,
     chartData: chart.chartData,

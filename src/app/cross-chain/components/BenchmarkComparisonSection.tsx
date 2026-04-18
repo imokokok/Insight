@@ -2,6 +2,11 @@
 
 import { useMemo } from 'react';
 
+import { formatPrice } from '@/lib/utils/format';
+import { type Blockchain } from '@/types/oracle';
+
+import { chainNames } from '../utils';
+
 interface ChainPriceData {
   chain: string;
   price: number;
@@ -47,6 +52,7 @@ export function BenchmarkComparisonSection({ chainPrices }: BenchmarkComparisonS
 
       return {
         name: data.chain,
+        displayName: chainNames[data.chain as Blockchain] || data.chain,
         value: data.price,
         diffFromAvg,
         diffFromMedian,
@@ -77,19 +83,19 @@ export function BenchmarkComparisonSection({ chainPrices }: BenchmarkComparisonS
           <div className="text-center p-4 bg-gray-50 rounded-lg">
             <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Average</p>
             <p className="text-xl font-semibold text-gray-900">
-              {benchmarkData.industryAverage.toFixed(2)}
+              {formatPrice(benchmarkData.industryAverage)}
             </p>
           </div>
           <div className="text-center p-4 bg-gray-50 rounded-lg">
             <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Median</p>
             <p className="text-xl font-semibold text-gray-900">
-              {benchmarkData.industryMedian.toFixed(2)}
+              {formatPrice(benchmarkData.industryMedian)}
             </p>
           </div>
           <div className="text-center p-4 bg-gray-50 rounded-lg">
             <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Highest Price</p>
             <p className="text-xl font-semibold text-gray-900">
-              {benchmarkData.industryBest.toFixed(2)}
+              {formatPrice(benchmarkData.industryBest)}
             </p>
           </div>
         </div>
@@ -114,14 +120,14 @@ export function BenchmarkComparisonSection({ chainPrices }: BenchmarkComparisonS
             <tbody>
               {benchmarkData.metrics.map((metric, index) => (
                 <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="px-4 py-3 font-medium text-gray-900">{metric.name}</td>
-                  <td className="px-4 py-3 text-right font-mono">{metric.value.toFixed(2)}</td>
+                  <td className="px-4 py-3 font-medium text-gray-900">{metric.displayName}</td>
+                  <td className="px-4 py-3 text-right font-mono">{formatPrice(metric.value)}</td>
                   <td
                     className={`px-4 py-3 text-right font-mono ${
                       metric.diffFromAvg > 0
-                        ? 'text-success-600'
+                        ? 'text-danger-600'
                         : metric.diffFromAvg < 0
-                          ? 'text-danger-600'
+                          ? 'text-success-600'
                           : 'text-gray-600'
                     }`}
                   >

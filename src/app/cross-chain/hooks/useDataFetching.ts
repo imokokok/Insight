@@ -9,7 +9,7 @@ import { createLogger } from '@/lib/utils/logger';
 import { safeMax, safeMin } from '@/lib/utils/statistics';
 import { type OracleProvider, type Blockchain, type PriceData } from '@/types/oracle';
 
-import { detectAnomalies } from '../utils/anomalyDetection';
+import { type AnomalousPricePoint, detectAnomalies } from '../utils/anomalyDetection';
 import { validateCurrentPrices, validateHistoricalPrices } from '../utils/validation';
 
 import { useCrossChainQueries } from './useCrossChainQueries';
@@ -68,7 +68,7 @@ interface FetchDataParams {
   setRefreshStatus: (status: 'idle' | 'refreshing' | 'success' | 'error') => void;
   setShowRefreshSuccess: (show: boolean) => void;
   setLoading: (loading: boolean) => void;
-  setAnomalies: (anomalies: import('../utils/anomalyDetection').AnomalousPricePoint[]) => void;
+  setAnomalies: (anomalies: AnomalousPricePoint[]) => void;
   setCrossChainComparison: (results: CrossChainComparisonResult[]) => void;
 }
 
@@ -87,7 +87,9 @@ export function useDataFetching(
   const queryClient = useQueryClient();
   const refreshSuccessTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const paramsRef = useRef(params);
-  paramsRef.current = params;
+  useEffect(() => {
+    paramsRef.current = params;
+  });
 
   const { chainResults, isLoading, isFetching, errors } = useCrossChainQueries(
     provider,
@@ -171,7 +173,7 @@ export function useDataFetching(
     }
   }, [recommendedBaseChain]);
 
-  const prevAnomaliesRef = useRef<import('../utils/anomalyDetection').AnomalousPricePoint[]>([]);
+  const prevAnomaliesRef = useRef<AnomalousPricePoint[]>([]);
   useEffect(() => {
     const prev = prevAnomaliesRef.current;
     if (
@@ -182,6 +184,8 @@ export function useDataFetching(
       paramsRef.current.setAnomalies(anomalies);
     }
   }, [anomalies]);
+
+  const selectedSymbol = params.selectedSymbol;
 
   useEffect(() => {
     if (
@@ -195,14 +199,30 @@ export function useDataFetching(
         .then((results) => {
           paramsRef.current.setCrossChainComparison(results);
         })
-        .catch(() => {
+        .catch((error) => {
+          logger.error(
+            'Failed to compare prices across chains',
+            error instanceof Error ? error : new Error(String(error))
+          );
           paramsRef.current.setCrossChainComparison([]);
         });
     }
-  }, [currentPrices, provider, supportedChains, isLoading, isFetching, errors.length]);
+  }, [
+    currentPrices,
+    provider,
+    selectedSymbol,
+    supportedChains,
+    isLoading,
+    isFetching,
+    errors.length,
+  ]);
 
+  const prevLoadingRef = useRef(false);
   useEffect(() => {
-    paramsRef.current.setLoading(isLoading);
+    if (isLoading !== prevLoadingRef.current) {
+      prevLoadingRef.current = isLoading;
+      paramsRef.current.setLoading(isLoading);
+    }
   }, [isLoading]);
 
   const lastUpdateTimeRef = useRef<number>(0);

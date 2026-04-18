@@ -38,6 +38,8 @@ export async function GET(
       );
     }
 
+    const validatedProvider = providerResult.data as OracleProvider;
+
     const validation = await validateQuerySchema(OracleProviderQuerySchema)(request);
 
     if (!validation.success) {
@@ -47,17 +49,17 @@ export async function GET(
     const { symbol, chain, period } = validation.data!.query!;
     const chainValue = chain as Blockchain | undefined;
 
-    if (period) {
+    if (period !== undefined) {
       return handleGetHistoricalPrices({
-        provider: provider as OracleProvider,
+        provider: validatedProvider,
         symbol,
         chain: chainValue,
-        period: period as number,
+        period,
       });
     }
 
     return handleGetPrice({
-      provider: provider as OracleProvider,
+      provider: validatedProvider,
       symbol,
       chain: chainValue,
     });

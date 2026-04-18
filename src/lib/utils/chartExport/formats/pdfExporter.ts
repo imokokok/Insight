@@ -1,6 +1,6 @@
 /**
- * @fileoverview PDF格式导出
- * @description 处理PDF格式的图表导出
+ * @fileoverview PDF format export
+ * @description Handles PDF format chart export
  */
 
 import { createLogger } from '@/lib/utils/logger';
@@ -34,7 +34,7 @@ async function getJsPDFAutoTable() {
 }
 
 /**
- * 导出为PDF格式
+ * Export as PDF format
  */
 export async function exportToPDF(
   options: PDFExportOptions,

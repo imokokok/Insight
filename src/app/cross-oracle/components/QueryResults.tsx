@@ -8,9 +8,10 @@ import { EmptyStateEnhanced } from '@/components/ui';
 import type { OracleProvider, PriceData } from '@/types/oracle';
 
 import { OracleErrorPanel } from './OracleErrorPanel';
+import { RiskAlertBanner } from './RiskAlertBanner';
 import { SimplePriceComparisonTab } from './tabs/SimplePriceComparisonTab';
 
-import type { PriceAnomaly } from '../hooks/usePriceAnomalyDetection';
+import type { PriceAnomaly, AnomalyDetectionResult } from '../hooks/usePriceAnomalyDetection';
 import type { OracleDataError } from '../types';
 
 interface QueryResultsProps {
@@ -29,6 +30,7 @@ interface QueryResultsProps {
   standardDeviationPercent: number;
   validPrices: number[];
   anomalies: PriceAnomaly[];
+  anomalyDetection: AnomalyDetectionResult;
   historicalData?: Partial<Record<OracleProvider, Array<{ timestamp: number; price: number }>>>;
   oracleColors: Record<OracleProvider, string>;
   onRefresh: () => void;
@@ -98,6 +100,7 @@ function QueryResultsComponent({
   standardDeviationPercent,
   validPrices,
   anomalies,
+  anomalyDetection,
   historicalData,
   oracleColors,
   oracleDataError,
@@ -132,6 +135,17 @@ function QueryResultsComponent({
 
   return (
     <div className="space-y-4">
+      {anomalyDetection.hasAnomalies && (
+        <RiskAlertBanner
+          anomalies={anomalyDetection.anomalies}
+          count={anomalyDetection.count}
+          highRiskCount={anomalyDetection.highRiskCount}
+          mediumRiskCount={anomalyDetection.mediumRiskCount}
+          lowRiskCount={anomalyDetection.lowRiskCount}
+          maxDeviation={anomalyDetection.maxDeviation}
+        />
+      )}
+
       {oracleDataError?.hasError && oracleDataError.isPartialSuccess && (
         <OracleErrorPanel
           oracleDataError={oracleDataError}

@@ -1,6 +1,6 @@
 /**
- * @fileoverview 图表数据 Hook
- * 提供图表数据计算功能
+ * @fileoverview Chart data Hook
+ * Provides chart data calculation functionality
  */
 
 import { useMemo } from 'react';

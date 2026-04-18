@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, memo, Fragment } from 'react';
+import { useMemo, useState, useEffect, memo, Fragment } from 'react';
 
 import {
   TrendingUp,
@@ -23,7 +23,7 @@ import { formatPrice, formatRelativeTime } from '@/lib/utils/format';
 import { type OracleProvider, type PriceData } from '@/types/oracle';
 
 import { oracleNames, calculateZScore, ANOMALY_ZSCORE_THRESHOLD } from '../constants';
-import { ANOMALY_DEVIATION_THRESHOLD } from '../thresholds';
+import { ANOMALY_DEVIATION_THRESHOLD, DEVIATION_THRESHOLDS } from '../thresholds';
 
 import { ConfidenceBar } from './price-comparison/ConfidenceBar';
 
@@ -224,7 +224,14 @@ function SimplePriceTableComponent({
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
 
   const avgPrice = avgPriceProp ?? medianPrice;
-  const [now] = useState(() => currentTime ?? Date.now());
+  const [now, setNow] = useState(() => currentTime ?? Date.now());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setNow(Date.now());
+    }, 10000);
+    return () => clearInterval(timer);
+  }, []);
 
   const tableRows: TableRow[] = useMemo(() => {
     if (!priceData.length || medianPrice === 0) return [];
@@ -264,8 +271,8 @@ function SimplePriceTableComponent({
       }
 
       let status: 'normal' | 'warning' | 'critical' = 'normal';
-      if (absDeviation >= 1) status = 'critical';
-      else if (absDeviation >= 0.5) status = 'warning';
+      if (absDeviation >= DEVIATION_THRESHOLDS.critical) status = 'critical';
+      else if (absDeviation >= DEVIATION_THRESHOLDS.warning) status = 'warning';
 
       const confidence = (() => {
         if (data.confidence === undefined || data.confidence === null) {
@@ -290,7 +297,7 @@ function SimplePriceTableComponent({
           ? calculateZScore(data.price, avgPrice, standardDeviation)
           : null;
 
-      const priceDiff = deviationPercent !== 0 ? (data.price * deviationPercent) / 100 : null;
+      const priceDiff = deviation;
 
       return {
         provider: data.provider,
@@ -434,7 +441,7 @@ function SimplePriceTableComponent({
 
               <th
                 className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                onClick={() => handleSort('updateTime')}
+                onClick={() => handleSort('latency')}
                 title="Estimated latency based on historical data"
               >
                 <div className="flex items-center justify-center gap-1">

@@ -130,13 +130,13 @@ export function OverviewTab() {
     },
     {
       label: 'Skewness',
-      value: skewness !== 0 ? skewness.toFixed(4) : '-',
+      value: skewness !== null && skewness !== undefined ? skewness.toFixed(4) : '-',
       trend: null,
       tooltip: 'Measure of asymmetry in price distribution',
     },
     {
       label: 'Kurtosis',
-      value: kurtosis !== 0 ? kurtosis.toFixed(4) : '-',
+      value: kurtosis !== null && kurtosis !== undefined ? kurtosis.toFixed(4) : '-',
       trend: null,
       tooltip: 'Measure of tailedness in price distribution',
     },

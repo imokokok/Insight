@@ -36,7 +36,7 @@ export {
   type ThresholdType,
 } from './volatilityUtils';
 
-export { getTimeRangeInMs } from './timeUtils';
+export { getTimestampCutoff, getTimeRangeInMs } from './timeUtils';
 
 export {
   validatePriceData,

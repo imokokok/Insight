@@ -20,6 +20,7 @@ export interface PriceRecord {
   chain?: string | null;
   price: number;
   timestamp: string;
+  decimals?: number | null;
   confidence?: number | null;
   source?: string | null;
   created_at?: string;

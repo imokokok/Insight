@@ -1,6 +1,6 @@
 /**
- * @fileoverview 异常价格检测工具函数
- * 提供基于IQR和标准差的异常价格检测功能
+ * @fileoverview Anomalous price detection utility functions
+ * Provides IQR and standard deviation based anomalous price detection
  */
 
 import { createLogger } from '@/lib/utils/logger';
@@ -41,7 +41,9 @@ export function detectAnomalousPrices(
 
   const mean = validPrices.reduce((a, b) => a + b, 0) / validPrices.length;
   const variance =
-    validPrices.reduce((sum, p) => sum + Math.pow(p - mean, 2), 0) / validPrices.length;
+    validPrices.length > 1
+      ? validPrices.reduce((sum, p) => sum + Math.pow(p - mean, 2), 0) / (validPrices.length - 1)
+      : 0;
   const stdDev = Math.sqrt(variance);
 
   prices.forEach((priceData) => {

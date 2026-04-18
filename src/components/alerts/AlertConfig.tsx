@@ -47,8 +47,12 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
       ...Object.entries(providerNames).map(([key, name]) => ({
         value: key as OracleProvider,
         label: name,
-        icon: <span className="w-1.5 h-1.5 rounded-full" />,
-        color: oracleColors[key as OracleProvider],
+        icon: (
+          <span
+            className="w-1.5 h-1.5 rounded-full"
+            style={{ backgroundColor: oracleColors[key as OracleProvider] }}
+          />
+        ),
       })),
     ],
     []

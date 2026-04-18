@@ -1,6 +1,6 @@
 /**
- * @fileoverview 图表导出主模块
- * @description 提供统一的图表导出API，支持多种格式
+ * @fileoverview Chart export main module
+ * @description Provides unified chart export API, supports multiple formats
  */
 
 import { createLogger } from '@/lib/utils/logger';
@@ -23,7 +23,7 @@ import type {
 const logger = createLogger('chartExport');
 
 /**
- * 导出单个图表
+ * Export a single chart
  */
 export async function exportChart(
   chartRef: HTMLElement | null,
@@ -139,7 +139,7 @@ export async function exportChart(
 }
 
 /**
- * 批量导出多个图表
+ * Batch export multiple charts
  */
 export async function exportMultipleCharts(
   charts: Array<{
@@ -181,7 +181,7 @@ export async function exportMultipleCharts(
 }
 
 /**
- * 获取支持的导出格式列表
+ * Get supported export format list
  */
 export function getSupportedExportFormats(): Array<{
   format: ExportOptions['format'];

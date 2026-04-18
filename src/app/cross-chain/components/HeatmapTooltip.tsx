@@ -143,7 +143,9 @@ export function HeatmapTooltip({
         <div className="flex justify-between items-center text-sm">
           <span className="text-gray-600">Absolute Difference</span>
           <span className="font-mono font-medium text-gray-900">
-            ${cellData?.value.toFixed(4) || '-'}
+            {cellData?.value !== undefined && cellData?.value !== null
+              ? `$${cellData.value.toFixed(4)}`
+              : '-'}
           </span>
         </div>
         <div className="flex justify-between items-center text-sm">
@@ -153,7 +155,9 @@ export function HeatmapTooltip({
               (cellData?.percent || 0) > 0.1 ? 'text-red-600' : 'text-emerald-600'
             }`}
           >
-            {cellData?.percent.toFixed(2) || '-'}%
+            {cellData?.percent !== undefined && cellData?.percent !== null
+              ? `${cellData.percent.toFixed(2)}%`
+              : '-'}
           </span>
         </div>
 

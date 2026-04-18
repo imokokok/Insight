@@ -65,12 +65,17 @@ async function fetchPythChainPrice(
   chainConfig: PythChainConfig
 ): Promise<PythChainPriceData> {
   try {
-    const response = await fetch(
-      `${chainConfig.endpoint}/api/latest_price_updates?ids[]=${priceId}`,
-      {
-        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-      }
-    );
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+    let response: Response;
+    try {
+      response = await fetch(`${chainConfig.endpoint}/api/latest_price_updates?ids[]=${priceId}`, {
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
 
     if (!response.ok) {
       logger.warn(`Chain ${chainConfig.name} returned non-OK response`, {

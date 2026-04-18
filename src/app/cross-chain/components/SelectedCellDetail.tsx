@@ -13,12 +13,13 @@ import {
 import { baseColors, chartColors } from '@/lib/config/colors';
 import { type Blockchain, type PriceData } from '@/types/oracle';
 
+import { type ChartDataPoint } from '../constants';
 import { chainNames, chainColors } from '../utils';
 
 export interface SelectedCellDetailProps {
   heatmapData: { xChain: Blockchain; yChain: Blockchain; value: number; percent: number }[];
   currentPrices: PriceData[];
-  chartData: Record<string, unknown>[];
+  chartData: ChartDataPoint[];
   selectedCell: { xChain: Blockchain; yChain: Blockchain };
   setSelectedCell: (cell: { xChain: Blockchain; yChain: Blockchain } | null) => void;
 }
@@ -67,7 +68,9 @@ export function SelectedCellDetail({
               {chainNames[selectedCell.xChain]} Price
             </div>
             <div className="text-xl font-semibold text-gray-900 font-mono">
-              ${currentPrices.find((p) => p.chain === selectedCell.xChain)?.price.toFixed(4) || '-'}
+              {currentPrices.find((p) => p.chain === selectedCell.xChain)?.price !== undefined
+                ? `$${currentPrices.find((p) => p.chain === selectedCell.xChain)!.price.toFixed(4)}`
+                : '-'}
             </div>
           </div>
           <div className="bg-gray-50 border border-gray-200 p-3 rounded-lg">
@@ -75,7 +78,9 @@ export function SelectedCellDetail({
               {chainNames[selectedCell.yChain]} Price
             </div>
             <div className="text-xl font-semibold text-gray-900 font-mono">
-              ${currentPrices.find((p) => p.chain === selectedCell.yChain)?.price.toFixed(4) || '-'}
+              {currentPrices.find((p) => p.chain === selectedCell.yChain)?.price !== undefined
+                ? `$${currentPrices.find((p) => p.chain === selectedCell.yChain)!.price.toFixed(4)}`
+                : '-'}
             </div>
           </div>
           <div className="bg-gray-50 border border-gray-200 p-3 rounded-lg">
@@ -92,10 +97,14 @@ export function SelectedCellDetail({
                     : 'text-emerald-600'
                 }
               >
-                $
-                {heatmapData
-                  .find((d) => d.xChain === selectedCell.xChain && d.yChain === selectedCell.yChain)
-                  ?.value.toFixed(4) || '-'}
+                {(() => {
+                  const diff = heatmapData.find(
+                    (d) => d.xChain === selectedCell.xChain && d.yChain === selectedCell.yChain
+                  );
+                  return diff?.value !== undefined && diff?.value !== null
+                    ? `$${diff.value.toFixed(4)}`
+                    : '-';
+                })()}
               </span>
             </div>
           </div>

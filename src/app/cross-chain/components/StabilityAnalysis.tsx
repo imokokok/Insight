@@ -7,10 +7,10 @@ import { chainNames, chainColors, getIntegrityColor, getStabilityRating } from '
 
 export interface StabilityAnalysisProps {
   filteredChains: Blockchain[];
-  chainVolatility: Record<string, number>;
-  dataIntegrity: Record<string, number>;
-  priceJumpFrequency: Record<string, number>;
-  priceDifferences: Array<{ chain: string; diff: number }>;
+  chainVolatility: Partial<Record<Blockchain, number>>;
+  dataIntegrity: Partial<Record<Blockchain, number>>;
+  priceJumpFrequency: Partial<Record<Blockchain, number>>;
+  priceDifferences: Array<{ chain: Blockchain; diff: number }>;
 }
 
 export function StabilityAnalysis({
@@ -49,7 +49,7 @@ export function StabilityAnalysis({
                 className="px-3 py-2.5 text-xs font-medium"
                 style={{ color: baseColors.gray[500] }}
               >
-                Absolute Price Diff
+                Price Diff
               </th>
               <th
                 className="px-3 py-2.5 text-xs font-medium"
@@ -109,7 +109,7 @@ export function StabilityAnalysis({
                         Math.abs(absoluteDiff) > 1 ? 'font-semibold text-red-600' : 'text-gray-700'
                       }`}
                     >
-                      {absoluteDiff > 0 ? '+' : ''}${absoluteDiff.toFixed(4)}
+                      {absoluteDiff >= 0 ? '+' : '-'}${Math.abs(absoluteDiff).toFixed(4)}
                     </span>
                   </td>
                   <td className="px-3 py-2.5">

@@ -19,7 +19,6 @@ interface UseCrossChainTableReturn {
   priceDifferences: PriceDifferenceItem[];
   sortedPriceDifferences: PriceDifferenceItem[];
   chainsWithHighDeviation: PriceDifferenceItem[];
-  filteredChains: Blockchain[];
   toggleChain: (chain: Blockchain) => void;
   handleSort: (column: string) => void;
   dynamicThreshold: number;
@@ -92,7 +91,6 @@ export function useCrossChainTable(params: UseCrossChainTableParams): UseCrossCh
     priceDifferences,
     sortedPriceDifferences,
     chainsWithHighDeviation,
-    filteredChains,
     toggleChain,
     handleSort,
     dynamicThreshold,

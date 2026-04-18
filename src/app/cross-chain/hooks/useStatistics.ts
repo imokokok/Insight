@@ -1,6 +1,6 @@
 /**
- * @fileoverview 统计计算 Hook
- * 提供价格数据的统计分析功能
+ * @fileoverview Statistics calculation Hook
+ * Provides statistical analysis functionality for price data
  */
 
 import { useMemo } from 'react';

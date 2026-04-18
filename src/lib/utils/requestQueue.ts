@@ -45,7 +45,6 @@ export class RequestQueue {
   private maxConcurrency: number;
   private defaultTimeout: number;
   private requestIdCounter = 0;
-  // 跟踪正在运行的请求，用于超时处理
   private runningRequests = new Map<string, QueuedRequest>();
 
   constructor(config: RequestQueueConfig = {}) {
@@ -148,7 +147,6 @@ export class RequestQueue {
 
   private async executeRequest(request: QueuedRequest): Promise<void> {
     this.running++;
-    // 将请求添加到运行中的请求映射
     this.runningRequests.set(request.id, request);
 
     const timeoutId = setTimeout(() => {
@@ -167,7 +165,6 @@ export class RequestQueue {
       const result = await request.execute();
 
       clearTimeout(timeoutId);
-      // 从运行中的请求映射中移除
       this.runningRequests.delete(request.id);
       this.completed++;
       this.running--;
@@ -180,7 +177,6 @@ export class RequestQueue {
       });
     } catch (error) {
       clearTimeout(timeoutId);
-      // 从运行中的请求映射中移除
       this.runningRequests.delete(request.id);
       this.failed++;
       this.running--;
@@ -198,7 +194,6 @@ export class RequestQueue {
   }
 
   private handleTimeout(request: QueuedRequest): void {
-    // 首先检查请求是否还在队列中（未开始执行）
     const queueIndex = this.queue.findIndex((r) => r.id === request.id);
     if (queueIndex !== -1) {
       this.queue.splice(queueIndex, 1);
@@ -214,7 +209,6 @@ export class RequestQueue {
       return;
     }
 
-    // 检查请求是否正在运行
     if (this.runningRequests.has(request.id)) {
       this.runningRequests.delete(request.id);
       this.failed++;
@@ -228,7 +222,6 @@ export class RequestQueue {
         timeout: request.timeout,
       });
 
-      // 触发队列处理下一个请求
       this.processQueue();
     }
   }

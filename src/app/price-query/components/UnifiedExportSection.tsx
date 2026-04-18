@@ -83,7 +83,6 @@ export default function UnifiedExportSection({
     },
   ];
 
-  // 统计数据
   const stats = {
     symbol: selectedSymbol,
     avgPrice: avgPrice.toFixed(4),

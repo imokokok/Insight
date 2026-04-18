@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 
 export function useConsistencyRating(stdDevPercent: number) {
   return useMemo(() => {
-    if (stdDevPercent <= 0) return null;
+    if (stdDevPercent < 0) return null;
 
     if (stdDevPercent < 0.1) {
       return {

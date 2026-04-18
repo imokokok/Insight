@@ -32,14 +32,12 @@ export function calculateMedian(values: number[]): number {
 export function calculateVariance(values: number[], mean?: number): number {
   if (values.length < 2) return 0;
   const actualMean = mean ?? calculateMean(values);
-  // 使用样本方差 (n-1) 而非总体方差 (n)，这是金融分析的标准做法
   return values.reduce((sum, v) => sum + Math.pow(v - actualMean, 2), 0) / (values.length - 1);
 }
 
 export function calculateStdDev(values: number[], mean?: number): number {
   if (values.length < 2) return 0;
   const actualMean = mean ?? calculateMean(values);
-  // 使用样本方差 (n-1) 而非总体方差 (n)
   const variance =
     values.reduce((sum, v) => sum + Math.pow(v - actualMean, 2), 0) / (values.length - 1);
   return Math.sqrt(variance);
@@ -263,7 +261,6 @@ export function calculateHistogram(
   const binSize = range / binCount;
   const bins: { range: string; min: number; max: number; count: number; percentage: number }[] = [];
 
-  // 初始化 bins
   for (let i = 0; i < binCount; i++) {
     const binMin = min + i * binSize;
     const binMax = min + (i + 1) * binSize;
@@ -276,17 +273,13 @@ export function calculateHistogram(
     });
   }
 
-  // 单次遍历数据：O(n) 而非 O(n×binCount)
   for (const value of data) {
-    // 计算该值属于哪个 bin
     let binIndex = Math.floor((value - min) / binSize);
-    // 处理边界情况：最大值属于最后一个 bin
     if (binIndex >= binCount) binIndex = binCount - 1;
     if (binIndex < 0) binIndex = 0;
     bins[binIndex].count++;
   }
 
-  // 计算百分比
   for (const bin of bins) {
     bin.percentage = Number(((bin.count / data.length) * 100).toFixed(2));
   }

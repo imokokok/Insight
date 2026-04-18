@@ -1,3 +1,5 @@
+import { useMemo } from 'react';
+
 import { useQueries } from '@tanstack/react-query';
 
 import { oracleApiClient } from '@/lib/api/oracleApiClient';
@@ -27,7 +29,8 @@ export function useCrossChainQueries(
   period: number,
   refetchInterval?: number
 ): UseCrossChainQueriesReturn {
-  const resolvedRefetchInterval: number | false = refetchInterval ? refetchInterval : false;
+  const resolvedRefetchInterval: number | false =
+    refetchInterval !== undefined && refetchInterval > 0 ? refetchInterval : false;
 
   const priceQueries = useQueries({
     queries: chains.map((chain) => ({
@@ -55,29 +58,44 @@ export function useCrossChainQueries(
     })),
   });
 
-  const chainResults: Partial<Record<Blockchain, ChainQueryResult>> = {};
-  const errors: Error[] = [];
+  const chainResults: Partial<Record<Blockchain, ChainQueryResult>> = useMemo(() => {
+    const results: Partial<Record<Blockchain, ChainQueryResult>> = {};
+    chains.forEach((chain, index) => {
+      const priceResult = priceQueries[index];
+      const historicalResult = historicalQueries[index];
 
-  chains.forEach((chain, index) => {
-    const priceResult = priceQueries[index];
-    const historicalResult = historicalQueries[index];
+      results[chain] = {
+        price: priceResult.data ?? null,
+        historical: historicalResult.data ?? [],
+        isPriceLoading: priceResult.isLoading,
+        isHistoricalLoading: historicalResult.isLoading,
+        priceError: priceResult.error ?? null,
+        historicalError: historicalResult.error ?? null,
+      };
+    });
+    return results;
+  }, [chains, priceQueries, historicalQueries]);
 
-    if (priceResult.error) errors.push(priceResult.error);
-    if (historicalResult.error) errors.push(historicalResult.error);
+  const errors = useMemo(() => {
+    const errs: Error[] = [];
+    priceQueries.forEach((r) => {
+      if (r.error) errs.push(r.error);
+    });
+    historicalQueries.forEach((r) => {
+      if (r.error) errs.push(r.error);
+    });
+    return errs;
+  }, [priceQueries, historicalQueries]);
 
-    chainResults[chain] = {
-      price: priceResult.data ?? null,
-      historical: historicalResult.data ?? [],
-      isPriceLoading: priceResult.isLoading,
-      isHistoricalLoading: historicalResult.isLoading,
-      priceError: priceResult.error ?? null,
-      historicalError: historicalResult.error ?? null,
-    };
-  });
-
-  const allQueries = [...priceQueries, ...historicalQueries];
-  const isLoading = allQueries.length > 0 && allQueries.some((r) => r.isLoading);
-  const isFetching = allQueries.some((r) => r.isFetching);
+  const isLoading = useMemo(
+    () =>
+      priceQueries.length > 0 && [...priceQueries, ...historicalQueries].some((r) => r.isLoading),
+    [priceQueries, historicalQueries]
+  );
+  const isFetching = useMemo(
+    () => [...priceQueries, ...historicalQueries].some((r) => r.isFetching),
+    [priceQueries, historicalQueries]
+  );
 
   return { chainResults, isLoading, isFetching, errors };
 }

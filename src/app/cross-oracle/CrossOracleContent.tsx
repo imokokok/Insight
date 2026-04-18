@@ -68,11 +68,6 @@ export default function CrossOracleContent() {
 
   const { anomalies } = anomalyDetection;
 
-  useCommonShortcuts({
-    onRefresh: fetchPriceData,
-    onSearch: debouncedSearchFocus,
-  });
-
   const currentQueryTarget = useMemo(
     () => ({
       oracle: selectedOracles[0] || null,
@@ -186,6 +181,7 @@ export default function CrossOracleContent() {
             standardDeviationPercent={standardDeviationPercent}
             validPrices={validPrices}
             anomalies={anomalies}
+            anomalyDetection={anomalyDetection}
             historicalData={historicalData}
             oracleColors={oracleChartColors}
             onRefresh={fetchPriceData}

@@ -109,7 +109,6 @@ export function formatPrice(price: number): string {
 
   const absPrice = Math.abs(price);
 
-  // 根据价格大小选择合适的精度
   if (absPrice >= 1000) {
     return `$${price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   }
@@ -139,7 +138,6 @@ function formatPercent(
 
   const { minDecimals = 2, maxDecimals = 4 } = options ?? {};
 
-  // 根据数值大小动态选择小数位数
   let decimals = minDecimals;
   if (Math.abs(value) < 0.001) {
     decimals = Math.min(4, maxDecimals);
@@ -163,7 +161,6 @@ export function formatPriceDiff(value: number, basePrice?: number): string {
   if (!isFiniteNumber(value)) return '—';
   if (value === 0) return '$0.00';
 
-  // 根据基准价格确定精度
   let decimals = 2;
   if (basePrice && basePrice > 1000) {
     decimals = 2;
@@ -175,7 +172,6 @@ export function formatPriceDiff(value: number, basePrice?: number): string {
     decimals = 6;
   }
 
-  // 对于非常小的差异，显示更多小数位
   if (Math.abs(value) < 0.01) {
     decimals = Math.max(decimals, 4);
   }

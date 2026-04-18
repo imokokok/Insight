@@ -52,7 +52,7 @@ function DeviationScatterChartComponent({
 
     return priceData.map((data) => {
       const deviationPercent = ((data.price - medianPrice) / medianPrice) * 100;
-      const confidence = data.confidence || 50;
+      const confidence = data.confidence ?? 50;
 
       return {
         x: data.price,

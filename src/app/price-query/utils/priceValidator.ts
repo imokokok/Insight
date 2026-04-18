@@ -20,7 +20,6 @@ const IQR_MULTIPLIER = 1.5;
 const DEFAULT_MAX_AGE_MS = 60 * 60 * 1000;
 const MAX_GAP_TOLERANCE_MS = 10 * 60 * 1000;
 
-// 各币种合理价格范围配置（用于检测异常价格）
 const SYMBOL_PRICE_RANGES: Record<string, { min: number; max: number }> = {
   BTC: { min: 1000, max: 200000 },
   ETH: { min: 100, max: 20000 },
@@ -44,7 +43,6 @@ const SYMBOL_PRICE_RANGES: Record<string, { min: number; max: number }> = {
   CRV: { min: 0.01, max: 10 },
 };
 
-// 默认价格范围（当币种未配置时使用）
 const DEFAULT_PRICE_RANGE = { min: 0.0001, max: 1000000 };
 
 export function validatePrice(
@@ -77,7 +75,6 @@ export function validatePrice(
     return result;
   }
 
-  // 检查价格是否在币种合理范围内
   if (symbol) {
     const upperSymbol = symbol.toUpperCase();
     const range = SYMBOL_PRICE_RANGES[upperSymbol] ?? DEFAULT_PRICE_RANGE;

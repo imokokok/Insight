@@ -10,6 +10,7 @@ export interface ChartLegendProps {
   hiddenLines: string[];
   hasScatterData: boolean;
   onLegendClick: (e: { dataKey: string; color: string; type: string; value: string }) => void;
+  onLegendDoubleClick?: (chain: Blockchain) => void;
 }
 
 export function ChartLegend({
@@ -17,6 +18,7 @@ export function ChartLegend({
   hiddenLines,
   hasScatterData,
   onLegendClick,
+  onLegendDoubleClick,
 }: ChartLegendProps) {
   return (
     <div className="flex items-center gap-4 mt-2 flex-wrap">
@@ -33,6 +35,7 @@ export function ChartLegend({
                 value: chainNames[chain],
               })
             }
+            onDoubleClick={() => onLegendDoubleClick?.(chain)}
             className={`flex items-center gap-1.5 text-xs transition-opacity ${
               isHidden ? 'opacity-40' : 'opacity-100'
             }`}

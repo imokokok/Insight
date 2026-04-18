@@ -13,7 +13,7 @@ The Insight Oracle Data Analytics Platform integrates with multiple leading bloc
 | API3      | API3     | Ethereum      | First-party oracle infrastructure                     |
 | RedStone  | REDSTONE | Ethereum      | Modular oracle design                                 |
 | DIA       | DIA      | Ethereum      | Open-source cross-chain oracle                        |
-| WINkLink  | WINKLINK | BNB Chain     | TRON ecosystem oracle                                 |
+| WINkLink  | WINKLINK | TRON          | TRON ecosystem oracle                                 |
 | Supra     | SUPRA    | Ethereum      | High-performance oracle with verifiable randomness    |
 | TWAP      | UNI      | Ethereum      | Uniswap V3 Time-Weighted Average Price oracle         |
 | Reflector | XLM      | Stellar       | Stellar ecosystem oracle with Soroban smart contracts |
@@ -54,12 +54,22 @@ The [BaseOracleClient](src/lib/oracles/base.ts) provides the foundation for all 
 export abstract class BaseOracleClient {
   abstract name: OracleProvider;
   abstract supportedChains: Blockchain[];
-  abstract getPrice(symbol: string, chain?: Blockchain): Promise<PriceData>;
-  abstract getHistoricalPrices(
+  abstract getPrice(
     symbol: string,
     chain?: Blockchain,
-    period?: number
+    options?: PriceFetchOptions
+  ): Promise<PriceData>;
+  abstract getSupportedSymbols(): string[];
+
+  getHistoricalPrices(
+    symbol: string,
+    chain?: Blockchain,
+    period?: number,
+    options?: PriceFetchOptions
   ): Promise<PriceData[]>;
+  isSymbolSupported(symbol: string, chain?: Blockchain): boolean;
+  getSupportedChainsForSymbol(symbol: string): Blockchain[];
+  getUpdateInterval(chain?: Blockchain): number;
 }
 ```
 
@@ -68,13 +78,14 @@ export abstract class BaseOracleClient {
 ```typescript
 interface OracleClientConfig {
   useDatabase?: boolean; // Enable database caching (default: true)
-  fallbackToMock?: boolean; // Fallback to mock data (default: true)
+  validateData?: boolean; // Validate price data (default: true)
+  useRealData?: boolean; // Use real data vs mock (default: true)
 }
 ```
 
 ### Storage Layer
 
-The storage layer provides database caching with TTL support via [storage.ts](src/lib/oracles/storage.ts):
+The storage layer provides database caching with TTL support via [utils/storage.ts](src/lib/oracles/utils/storage.ts):
 
 ```typescript
 interface OracleStorageConfig {
@@ -100,52 +111,29 @@ interface OracleStorageConfig {
 | Optimism  | 10       | Active |
 | Polygon   | 137      | Active |
 | Avalanche | 43114    | Active |
-| Base      | 8453     | Active |
 | BNB Chain | 56       | Active |
-| Fantom    | 250      | Active |
-| Starknet  | -        | Active |
-| Blast     | -        | Active |
-| Moonbeam  | -        | Active |
-| Kava      | -        | Active |
-| Polkadot  | -        | Active |
+| Base      | 8453     | Active |
 
 ### Features
 
+- **On-Chain Data**: Direct Chainlink Data Feeds integration via on-chain contract calls
 - **Node Analytics**: Monitor node performance, uptime, and response times
 - **Market Data**: Real-time market cap, volume, and supply information
 - **Network Data**: Active nodes, data feeds, and hourly activity metrics
+- **Per-Chain Quality Config**: Reliability scores per chain
 
 ### Implementation
 
 ```typescript
 import { ChainlinkClient } from '@/lib/oracles';
 
-const client = new ChainlinkClient();
+const client = new ChainlinkClient({ useRealData: true });
 
 const priceData = await client.getPrice('LINK', Blockchain.ETHEREUM);
 const history = await client.getHistoricalPrices('LINK', Blockchain.ETHEREUM, 24);
+const isSupported = client.isSymbolSupported('BTC', Blockchain.ETHEREUM);
+const symbolsForChain = client.getSupportedSymbolsForChain(Blockchain.ETHEREUM);
 ```
-
-### Network Metrics
-
-| Metric            | Value           |
-| ----------------- | --------------- |
-| Active Nodes      | 1,847           |
-| Node Uptime       | 99.9%           |
-| Avg Response Time | 245ms           |
-| Update Frequency  | 60s             |
-| Data Feeds        | 1,243           |
-| Total Staked      | 45,000,000 LINK |
-
-### Market Data
-
-| Metric             | Value   |
-| ------------------ | ------- |
-| Market Cap         | $13.85B |
-| 24h Volume         | $485M   |
-| Circulating Supply | 608.1M  |
-| Total Supply       | 1B      |
-| Market Cap Rank    | #12     |
 
 ---
 
@@ -165,35 +153,28 @@ const history = await client.getHistoricalPrices('LINK', Blockchain.ETHEREUM, 24
 | Polygon   | 137          | Active |
 | Optimism  | 10           | Active |
 | Avalanche | 43114        | Active |
-| Base      | 8453         | Active |
-| Starknet  | -            | Active |
-| Blast     | -            | Active |
-| Sui       | -            | Active |
+| BNB Chain | 56           | Active |
 | Aptos     | -            | Active |
-| Injective | -            | Active |
-| Sei       | -            | Active |
+| Sui       | -            | Active |
+| Base      | 8453         | Active |
 
 ### Features
 
 - **Publisher Analytics**: Monitor data publisher performance and reliability
 - **High-Frequency Updates**: 1-second update intervals
 - **Confidence Intervals**: Real-time bid/ask spreads with width percentages
-- **Pyth Hermes Client**: Direct integration with Pyth's Hermes API
+- **Pyth Data Service**: Modular Pyth data service with caching, WebSocket, and parser
 
 ### Implementation
 
 ```typescript
-import { PythClient, PythHermesClient } from '@/lib/oracles';
+import { PythClient } from '@/lib/oracles';
 
 const client = new PythClient();
+
 const priceData = await client.getPrice('PYTH', Blockchain.SOLANA);
-
-const hermesClient = new PythHermesClient('https://hermes.pyth.network');
-const latestPrice = await hermesClient.getLatestPrice('BTC/USD');
-
-const unsubscribe = hermesClient.subscribeToPriceUpdates('BTC/USD', (update) => {
-  console.log('Price update:', update.price, 'Confidence:', update.confidence);
-});
+const isSupported = client.isSymbolSupported('BTC', Blockchain.ETHEREUM);
+const chainsForSymbol = client.getSupportedChainsForSymbol('BTC');
 ```
 
 ### Confidence Interval
@@ -206,55 +187,21 @@ interface ConfidenceInterval {
 }
 ```
 
-### Spread Percentages by Asset
+### Pyth Module Architecture
 
-| Asset | Spread % |
-| ----- | -------- |
-| BTC   | 0.02%    |
-| ETH   | 0.03%    |
-| SOL   | 0.05%    |
-| PYTH  | 0.10%    |
-| USDC  | 0.01%    |
-
-### Pyth Hermes Client
-
-The [PythHermesClient](src/lib/oracles/pythHermesClient.ts) provides direct integration with Pyth's price feed:
-
-```typescript
-import { PythHermesClient, getPythHermesClient } from '@/lib/oracles';
-
-const client = getPythHermesClient();
-
-const price = await client.getLatestPrice('BTC/USD');
-
-client.subscribeToPriceUpdates('ETH/USD', (update) => {
-  console.log({
-    price: update.price,
-    confidence: update.confidence,
-    timestamp: update.timestamp,
-  });
-});
 ```
-
-### Price Feed IDs
-
-| Symbol   | Price Feed ID                                                        |
-| -------- | -------------------------------------------------------------------- |
-| BTC/USD  | `0xe62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43` |
-| ETH/USD  | `0xff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace` |
-| SOL/USD  | `0xef0d8b6fda2ceba41da15d4095d1da392a0d2f8ed0c6c7bc0f4cfac8c280b56d` |
-| PYTH/USD | `0x0a0408d619e9380abad35060f9192039ed5042fa6f82301d0e48bb52be830996` |
-
-### Network Metrics
-
-| Metric            | Value |
-| ----------------- | ----- |
-| Active Nodes      | 100   |
-| Node Uptime       | 99.9% |
-| Avg Response Time | 100ms |
-| Update Frequency  | 1s    |
-| Data Feeds        | 500   |
-| Latency           | 50ms  |
+src/lib/oracles/pyth/
+├── PythDataService.ts    # Main data service
+├── calculations.ts       # Price calculations
+├── crossChain.ts         # Cross-chain logic
+├── metadataFetching.ts   # Metadata fetching
+├── priceFetching.ts      # Price fetching
+├── pythCache.ts          # Caching layer
+├── pythParser.ts         # Data parser
+├── pythWebSocket.ts      # WebSocket client
+├── types.ts              # Type definitions
+└── index.ts
+```
 
 ---
 
@@ -272,15 +219,9 @@ client.subscribeToPriceUpdates('ETH/USD', (update) => {
 | Arbitrum  | 42161    | Active |
 | Polygon   | 137      | Active |
 | Avalanche | 43114    | Active |
-| Base      | 8453     | Active |
 | BNB Chain | 56       | Active |
+| Base      | 8453     | Active |
 | Optimism  | 10       | Active |
-| Moonbeam  | -        | Active |
-| Kava      | -        | Active |
-| Fantom    | 250      | Active |
-| Gnosis    | -        | Active |
-| Linea     | -        | Active |
-| Scroll    | -        | Active |
 
 ### Features
 
@@ -288,105 +229,17 @@ client.subscribeToPriceUpdates('ETH/USD', (update) => {
 - **Quantifiable Security**: Coverage pools and insurance mechanisms
 - **Airnode Network**: Decentralized first-party oracle nodes
 - **dAPIs**: Decentralized API price feeds
+- **On-Chain Data**: Real price data via API3 network service
 
 ### Implementation
 
 ```typescript
 import { API3Client } from '@/lib/oracles';
 
-const client = new API3Client();
+const client = new API3Client({ useRealData: true });
 
 const priceData = await client.getPrice('API3', Blockchain.ETHEREUM);
-const airnodeStats = await client.getAirnodeNetworkStats();
-const dapiCoverage = await client.getDapiCoverage();
-const stakingData = await client.getStakingData();
-const deviations = await client.getDapiPriceDeviations();
-const sources = await client.getDataSourceTraceability();
 ```
-
-### Extended Types
-
-```typescript
-interface AirnodeNetworkStats {
-  activeAirnodes: number;
-  nodeUptime: number;
-  avgResponseTime: number;
-  dapiUpdateFrequency: number;
-  totalStaked: number;
-  dataFeeds: number;
-  hourlyActivity: number[];
-  status: 'online' | 'warning' | 'offline';
-  latency: number;
-}
-
-interface DapiCoverage {
-  totalDapis: number;
-  byAssetType: {
-    crypto: number;
-    forex: number;
-    commodities: number;
-    stocks: number;
-  };
-  byChain: {
-    ethereum: number;
-    arbitrum: number;
-    polygon: number;
-  };
-}
-
-interface StakingData {
-  totalStaked: number;
-  stakingApr: number;
-  stakerCount: number;
-  coveragePool: {
-    totalValue: number;
-    coverageRatio: number;
-    historicalPayouts: number;
-  };
-}
-
-interface DataSourceInfo {
-  id: string;
-  name: string;
-  type: 'exchange' | 'traditional_finance' | 'other';
-  credibilityScore: number;
-  accuracy: number;
-  responseSpeed: number;
-  availability: number;
-  airnodeAddress: string;
-  dapiContract: string;
-  chain: string;
-}
-```
-
-### dAPI Price Deviation Tracking
-
-| Symbol  | dAPI Price | Market Price | Deviation | Status   |
-| ------- | ---------- | ------------ | --------- | -------- |
-| BTC/USD | $68,050.25 | $68,120.50   | 0.10%     | Normal   |
-| ETH/USD | $3,505.80  | $3,498.20    | 0.22%     | Normal   |
-| SOL/USD | $180.45    | $182.30      | 1.02%     | Warning  |
-| UNI/USD | $9.45      | $9.12        | 3.62%     | Critical |
-
-### Network Metrics
-
-| Metric            | Value    |
-| ----------------- | -------- |
-| Active Airnodes   | 156      |
-| Node Uptime       | 99.7%    |
-| Avg Response Time | 180ms    |
-| Data Feeds        | 168      |
-| Total Staked      | 25M API3 |
-| Staking APR       | 12.5%    |
-| Coverage Pool     | $8.5M    |
-
-### Data Source Categories
-
-| Type                | Count | Avg Credibility |
-| ------------------- | ----- | --------------- |
-| Exchanges           | 68    | 95%             |
-| Traditional Finance | 52    | 98%             |
-| Others              | 36    | 92%             |
 
 ---
 
@@ -453,6 +306,8 @@ enum Blockchain {
   MOONRIVER = 'moonriver',
   METIS = 'metis',
   STARKEX = 'starkex',
+  STELLAR = 'stellar',
+  FLARE = 'flare',
 }
 ```
 
@@ -522,34 +377,18 @@ history.forEach((point) => {
 ### Multi-Provider Comparison
 
 ```typescript
-import { ChainlinkClient, PythClient, API3Client, OracleProvider } from '@/lib/oracles';
+import { getOracleClient, getAllOracleClients, OracleProvider } from '@/lib/oracles';
 
-const clients = {
-  [OracleProvider.CHAINLINK]: new ChainlinkClient(),
-  [OracleProvider.PYTH]: new PythClient(),
-  [OracleProvider.API3]: new API3Client(),
-};
+const client = getOracleClient(OracleProvider.CHAINLINK);
+const priceData = await client.getPrice('ETH');
 
+const allClients = getAllOracleClients();
 const prices = await Promise.all(
-  Object.entries(clients).map(async ([provider, client]) => {
+  Object.entries(allClients).map(async ([provider, client]) => {
     const data = await client.getPrice('ETH');
     return { provider, price: data.price, confidence: data.confidence };
   })
 );
-```
-
-### Real-time Updates (Pyth)
-
-```typescript
-import { getPythHermesClient } from '@/lib/oracles';
-
-const client = getPythHermesClient();
-
-const unsubscribe = client.subscribeToPriceUpdates('BTC/USD', (update) => {
-  console.log(`BTC: $${update.price} ± $${update.confidence}`);
-});
-
-setTimeout(() => unsubscribe(), 60000);
 ```
 
 ---
@@ -576,10 +415,6 @@ setTimeout(() => unsubscribe(), 60000);
 | Mantle    | -        | Active |
 | Scroll    | -        | Active |
 | zkSync    | -        | Active |
-| Blast     | -        | Active |
-| Starknet  | -        | Active |
-| Aptos     | -        | Active |
-| Sui       | -        | Active |
 
 ### Features
 
@@ -587,6 +422,7 @@ setTimeout(() => unsubscribe(), 60000);
 - **Data Streams** - Real-time streaming data feeds
 - **Cross-Chain Support** - Multi-chain data availability
 - **Cost Efficiency** - Optimized gas usage for data updates
+- **REST API** - Direct RedStone Rapid API integration
 
 ### Implementation
 
@@ -596,39 +432,9 @@ import { RedStoneClient } from '@/lib/oracles';
 const client = new RedStoneClient();
 
 const priceData = await client.getPrice('ETH', Blockchain.ETHEREUM);
-const streamData = await client.getDataStreamInfo();
-const modularStats = await client.getModularStats();
+const onChainData = await client.getTokenOnChainData('ETH');
+client.clearCache();
 ```
-
-### Extended Types
-
-```typescript
-interface DataStreamInfo {
-  streamId: string;
-  symbol: string;
-  updateFrequency: number;
-  lastUpdate: number;
-  sources: string[];
-  confidence: number;
-}
-
-interface ModularStats {
-  activeStreams: number;
-  totalDataPoints: number;
-  avgDeliveryTime: number;
-  costEfficiency: number;
-}
-```
-
-### Network Metrics
-
-| Metric            | Value |
-| ----------------- | ----- |
-| Active Streams    | 285   |
-| Data Points/Day   | 2.5M  |
-| Avg Delivery Time | 120ms |
-| Cost Efficiency   | 85%   |
-| Supported Assets  | 150+  |
 
 ---
 
@@ -648,42 +454,11 @@ interface ModularStats {
 | Avalanche | 43114    | Active |
 | BNB Chain | 56       | Active |
 | Base      | 8453     | Active |
-| Optimism  | 10       | Active |
-| Fantom    | 250      | Active |
-| Cronos    | 25       | Active |
-| Moonbeam  | -        | Active |
-| Gnosis    | -        | Active |
-| Kava      | -        | Active |
-| Solana    | -        | Active |
-| Sui       | -        | Active |
-| Aptos     | -        | Active |
-| Injective | -        | Active |
-| Sei       | -        | Active |
-| Cosmos    | -        | Active |
-| Osmosis   | -        | Active |
-| Juno      | -        | Active |
-| Celestia  | -        | Active |
-| Tron      | -        | Active |
-| TON       | -        | Active |
-| Near      | -        | Active |
-| Aurora    | -        | Active |
-| Celo      | -        | Active |
-| Starknet  | -        | Active |
-| Blast     | -        | Active |
-| Cardano   | -        | Active |
-| Polkadot  | -        | Active |
-| Mantle    | -        | Active |
-| Linea     | -        | Active |
-| Scroll    | -        | Active |
-| zkSync    | -        | Active |
-| Moonriver | -        | Active |
-| Metis     | -        | Active |
-| StarkEx   | -        | Active |
 
 ### Features
 
 - **Open-Source** - Fully transparent oracle infrastructure
-- **Cross-Chain** - Native multi-chain support (35+ blockchains)
+- **Cross-Chain** - Native multi-chain support
 - **NFT Data Feeds** - Specialized NFT floor price data
 - **Transparent Methodology** - Public data sourcing methods
 - **Comprehensive Token Data** - On-chain data including supply, market cap, exchange volume
@@ -691,22 +466,13 @@ interface ModularStats {
 ### Implementation
 
 ```typescript
-import { DIADataService, getDIADataService } from '@/lib/oracles/diaDataService';
+import { getDIADataService } from '@/lib/oracles/services/diaDataService';
 import { Blockchain } from '@/types/oracle';
 
-// Get service instance (singleton pattern)
 const diaService = getDIADataService();
 
-// Get asset price
 const priceData = await diaService.getAssetPrice('BTC', Blockchain.ETHEREUM);
-
-// Get historical prices
-const historicalData = await diaService.getHistoricalPrices('ETH', Blockchain.ETHEREUM, 24);
-
-// Get NFT floor price
 const nftFloorPrice = await diaService.getNFTFloorPrice('0x...', Blockchain.ETHEREUM);
-
-// Get token full on-chain data
 const tokenData = await diaService.getTokenOnChainData('DIA', Blockchain.ETHEREUM);
 ```
 
@@ -715,103 +481,12 @@ const tokenData = await diaService.getTokenOnChainData('DIA', Blockchain.ETHEREU
 DIA uses a modular service architecture:
 
 ```
-src/lib/oracles/
+src/lib/oracles/services/
 ├── diaDataService.ts      # Main service entry
 ├── diaPriceService.ts     # Price data service
 ├── diaNFTService.ts       # NFT floor price service
-├── diaNetworkService.ts   # Network statistics service
-├── diaTypes.ts            # Type definitions
-├── diaUtils.ts            # Utility functions
-└── constants/
-    ├── chainMapping.ts    # Blockchain name mapping
-    └── assetAddresses.ts  # Asset contract addresses
+└── diaNetworkService.ts   # Network statistics service
 ```
-
-### Extended Types
-
-```typescript
-// NFT floor price data
-interface DIANFTQuotation {
-  Symbol: string;
-  Address: string;
-  Blockchain: string;
-  Price: number;
-  PriceYesterday: number;
-  Time: string;
-  Source: string;
-}
-
-// Token supply data
-interface DIASupply {
-  Symbol: string;
-  CirculatingSupply: number;
-  TotalSupply: number;
-  MaxSupply: number | null;
-  Source: string;
-  Time: string;
-}
-
-// Exchange data
-interface DIAExchange {
-  Name: string;
-  Centralized: boolean;
-  ScraperActive: boolean;
-  Volume24h: number;
-  Pairs: number;
-}
-
-// Token full on-chain data
-interface DIATokenOnChainData {
-  symbol: string;
-  price: number;
-  change24hPercent: number;
-  circulatingSupply: number | null;
-  totalSupply: number | null;
-  maxSupply: number | null;
-  marketCap: number | null;
-  exchangeCount: number;
-  activeExchangeCount: number;
-  totalTradingPairs: number;
-  totalVolume24h: number;
-  lastUpdated: number;
-  dataSource: string;
-}
-```
-
-### Blockchain Name Mapping
-
-DIA uses specific blockchain name mapping:
-
-```typescript
-const DIA_BLOCKCHAIN_NAMES: Record<string, string> = {
-  BTC: 'Bitcoin',
-  ETH: 'Ethereum',
-  ETHEREUM: 'Ethereum',
-  ARBITRUM: 'Arbitrum',
-  POLYGON: 'Polygon',
-  AVALANCHE: 'Avalanche',
-  'BNB-CHAIN': 'BinanceSmartChain',
-  BASE: 'Base',
-  OPTIMISM: 'Optimism',
-  FANTOM: 'Fantom',
-  CRONOS: 'Cronos',
-  MOONBEAM: 'Moonbeam',
-  GNOSIS: 'Gnosis',
-  KAVA: 'Kava',
-  // ... more chains
-};
-```
-
-### Network Metrics
-
-| Metric             | Value  |
-| ------------------ | ------ |
-| Data Feeds         | 2,000+ |
-| NFT Collections    | 150+   |
-| Update Frequency   | 60s    |
-| Transparency Score | 98%    |
-| Open Source Repos  | 25+    |
-| Supported Chains   | 35+    |
 
 ---
 
@@ -819,22 +494,19 @@ const DIA_BLOCKCHAIN_NAMES: Record<string, string> = {
 
 **Provider:** `winklink`  
 **Symbol:** WINKLINK  
-**Default Chain:** BNB Chain
+**Default Chain:** TRON
 
 ### Supported Chains
 
-| Chain     | Chain ID | Status |
-| --------- | -------- | ------ |
-| BNB Chain | 56       | Active |
-| TRON      | -        | Active |
-| Ethereum  | 1        | Active |
+| Chain | Chain ID | Status |
+| ----- | -------- | ------ |
+| TRON  | -        | Active |
 
 ### Features
 
 - **TRON Ecosystem** - Native integration with TRON network
-- **Gaming Data Feeds** - Specialized data for gaming applications
-- **Entertainment Focus** - Entertainment and media data
-- **Cross-Platform** - Multi-platform oracle services
+- **On-Chain Contract Price** - Direct contract price fetching via WINkLink real data service
+- **Symbol Aliases** - Flexible symbol resolution for alternate token names
 
 ### Implementation
 
@@ -843,46 +515,60 @@ import { WINkLinkClient } from '@/lib/oracles';
 
 const client = new WINkLinkClient();
 
-const priceData = await client.getPrice('TRX', Blockchain.BNB_CHAIN);
-const gamingData = await client.getGamingData();
-const tronStats = await client.getTRONEcosystemStats();
+const priceData = await client.getPrice('TRX', Blockchain.TRON);
 ```
 
-### Extended Types
+---
+
+## Supra Integration
+
+**Provider:** `supra`  
+**Symbol:** SUPRA  
+**Default Chain:** Ethereum
+
+### Supported Chains
+
+| Chain     | Chain ID | Status |
+| --------- | -------- | ------ |
+| Ethereum  | 1        | Active |
+| Arbitrum  | 42161    | Active |
+| Optimism  | 10       | Active |
+| Polygon   | 137      | Active |
+| Base      | 8453     | Active |
+| Solana    | -        | Active |
+| BNB Chain | 56       | Active |
+| Avalanche | 43114    | Active |
+| zkSync    | -        | Active |
+| Scroll    | -        | Active |
+| Mantle    | -        | Active |
+| Linea     | -        | Active |
+
+### Features
+
+- **DORA Price Feeds** - Supra DORA (Decentralized Oracle Ring Architecture) price data
+- **Verifiable Randomness** - High-performance oracle with verifiable randomness
+- **Cross-Chain Data Feeds** - Multi-chain data availability
+- **Supra Oracle SDK** - Integration with `supra-oracle-sdk`
+- **Pair Index Mapping** - Symbol-to-index mapping for efficient lookups
+
+### Implementation
 
 ```typescript
-interface GamingData {
-  gameId: string;
-  playerCount: number;
-  volume24h: number;
-  avgBetSize: number;
-  platformFee: number;
-}
+import { SupraClient } from '@/lib/oracles';
 
-interface TRONEcosystemStats {
-  totalTransactions: number;
-  activeAddresses: number;
-  tvl: number;
-  gamingVolume: number;
-}
+const client = new SupraClient();
+
+const priceData = await client.getPrice('ETH', Blockchain.ETHEREUM);
+const onChainData = await client.getTokenOnChainData('ETH');
+client.clearCache();
 ```
-
-### Network Metrics
-
-| Metric             | Value |
-| ------------------ | ----- |
-| TRON Addresses     | 2.5M+ |
-| Gaming Platforms   | 50+   |
-| Daily Transactions | 1M+   |
-| TVL                | $800M |
-| Data Feeds         | 80+   |
 
 ---
 
 ## TWAP Integration
 
-**Provider:** `twap`
-**Symbol:** UNI
+**Provider:** `twap`  
+**Symbol:** UNI  
 **Default Chain:** Ethereum
 
 ### Supported Chains
@@ -914,43 +600,22 @@ const client = new TWAPClient({ useRealData: true });
 
 const priceData = await client.getPrice('ETH', Blockchain.ETHEREUM);
 // Returns PriceData with TWAP-specific fields:
-// - poolAddress: Uniswap V3 pool address
-// - feeTier: Pool fee tier (500, 3000, 10000)
-// - sqrtPriceX96: Current sqrt price
-// - tick: Current tick
-// - twapInterval: TWAP calculation interval
-// - twapPrice: Time-weighted average price
-// - spotPrice: Current spot price
-// - liquidity: Pool liquidity
+// - poolAddress, feeTier, sqrtPriceX96, tick
+// - twapInterval, twapPrice, spotPrice, liquidity
 
-// Check if a symbol is supported on a specific chain
 const isSupported = client.isSymbolSupported('BTC', Blockchain.ETHEREUM);
-
-// Get supported chains for a symbol
 const chains = client.getSupportedChainsForSymbol('ETH');
 ```
 
 ### On-Chain Service
 
-The TWAP oracle uses a dedicated on-chain service for direct RPC calls:
-
 ```typescript
-import { twapOnChainService } from '@/lib/oracles';
+import { twapOnChainService } from '@/lib/oracles/services/twapOnChainService';
 
-// Get TWAP price
 const twapData = await twapOnChainService.getTwapPrice('ETH', Blockchain.ETHEREUM);
-
-// Get spot price
 const spotData = await twapOnChainService.getSpotPrice('ETH', Blockchain.ETHEREUM);
-
-// Get pool info
 const poolInfo = await twapOnChainService.getPoolInfo(poolAddress, Blockchain.ETHEREUM);
-
-// Batch price fetching
 const prices = await twapOnChainService.getPrices(['BTC', 'ETH'], Blockchain.ETHEREUM);
-
-// Find pool address
-const poolAddress = await twapOnChainService.findPoolAddress(token0, token1, Blockchain.ETHEREUM);
 ```
 
 ### React Hook
@@ -960,61 +625,7 @@ import { useTwapOnChainData } from '@/hooks/oracles/useTwapOnChainData';
 
 function TwapPriceDisplay({ symbol, chain }) {
   const { data, isLoading, error } = useTwapOnChainData({ symbol, chain });
-
-  if (isLoading) return <TwapStatsSkeleton />;
-  if (error) return <ErrorState message={error.message} />;
-
-  return (
-    <div>
-      <div>TWAP Price: ${data.twapPrice}</div>
-      <div>Spot Price: ${data.spotPrice}</div>
-      <div>Deviation: {data.priceDeviation}%</div>
-      <div>Liquidity: {data.liquidity}</div>
-      <div>Confidence: {data.confidence}</div>
-    </div>
-  );
-}
-```
-
-### Extended Types
-
-```typescript
-interface TwapPriceData {
-  symbol: string;
-  twapPrice: number;
-  spotPrice: number;
-  tick: number;
-  sqrtPriceX96: string;
-  liquidity: string;
-  timestamp: number;
-  chainId: number;
-  poolAddress: string;
-  feeTier: number;
-  twapInterval: number;
-  confidence: number;
-}
-
-interface TwapOnChainData {
-  poolAddress: string;
-  feeTier: number;
-  liquidity: string;
-  twapInterval: number;
-  twapPrice: number;
-  spotPrice: number;
-  priceDeviation: number;
-  tick: number;
-  sqrtPriceX96: string;
-  confidence: number;
-}
-
-interface PoolInfo {
-  address: string;
-  token0: string;
-  token1: string;
-  fee: number;
-  liquidity: string;
-  sqrtPriceX96: string;
-  tick: number;
+  // ...
 }
 ```
 
@@ -1033,22 +644,6 @@ interface PoolInfo {
 | LOW    | 500   | 0.05% fee   |
 | MEDIUM | 3000  | 0.3% fee    |
 | HIGH   | 10000 | 1% fee      |
-
-### Supported Symbols (22 tokens)
-
-BTC, ETH, USDC, USDT, DAI, WBTC, LINK, UNI, AAVE, ARB, OP, MATIC, SNX, CRV, COMP, MKR, SUSHI, 1INCH, BAL, BNB, STETH, FRAX
-
-### Network Metrics
-
-| Metric            | Value  |
-| ----------------- | ------ |
-| Supported Chains  | 6      |
-| Supported Tokens  | 22     |
-| Pool Configs      | 15+    |
-| Avg Response Time | 500ms  |
-| Update Frequency  | 60s    |
-| Cache TTL         | 30s    |
-| Chain Reliability | 95-99% |
 
 ---
 
@@ -1080,18 +675,14 @@ import { ReflectorClient } from '@/lib/oracles';
 const client = new ReflectorClient({ useRealData: true });
 
 const priceData = await client.getPrice('BTC', Blockchain.STELLAR);
-// Returns PriceData with Reflector-specific fields
-
 const isSupported = client.isSymbolSupported('BTC', Blockchain.STELLAR);
 const symbols = client.getSupportedSymbols();
 ```
 
 ### On-Chain Service
 
-Reflector uses the Soroban smart contract platform for on-chain data:
-
 ```typescript
-import { getReflectorDataService } from '@/lib/oracles';
+import { getReflectorDataService } from '@/lib/oracles/services/reflectorDataService';
 
 const reflectorService = getReflectorDataService();
 const priceData = await reflectorService.fetchLatestPrice('BTC');
@@ -1099,7 +690,7 @@ const priceData = await reflectorService.fetchLatestPrice('BTC');
 
 ### Supported Assets
 
-**Cryptocurrencies (15):**
+**Cryptocurrencies (14):**
 BTC, ETH, USDT, XRP, SOL, USDC, ADA, AVAX, DOT, LINK, ATOM, XLM, UNI, EURC
 
 **Forex Currencies (6):**
@@ -1112,16 +703,6 @@ EUR, GBP, CAD, BRL, JPY, CNY
 | Crypto Contract | `CAFJZQWSED6YAWZU3GWRTOCNPPCGBN32L7QV43XX5LZLFTK6JLN34DLN` |
 | Forex Contract  | `CBKGDQGJ7GZNK2V2LGIXPR326H7F7K2MMG6WRVZJXYHONI4GJMCJZC`   |
 | RPC Endpoint    | `https://rpc.ankr.com/stellar_soroban`                     |
-
-### Network Metrics
-
-| Metric            | Value |
-| ----------------- | ----- |
-| Supported Assets  | 21    |
-| Update Frequency  | 5 min |
-| Cache TTL         | 30s   |
-| Default Decimals  | 14    |
-| Avg Response Time | 500ms |
 
 ---
 
@@ -1157,20 +738,17 @@ const client = new FlareClient({ useRealData: true });
 
 const priceData = await client.getPrice('BTC', Blockchain.FLARE);
 // Returns PriceData with Flare-specific fields:
-// - feedId: Encoded feed identifier
-// - decimals: Price decimals
-// - dataAge: Age of the price data
+// - feedId, decimals, dataAge
 
 const isSupported = client.isSymbolSupported('BTC', Blockchain.FLARE);
 const onChainData = await client.getTokenOnChainData('BTC');
+client.clearCache();
 ```
 
 ### On-Chain Service
 
-Flare uses the FTSO (Flare Time Series Oracle) system:
-
 ```typescript
-import { getFtsoDataService } from '@/lib/oracles';
+import { getFtsoDataService } from '@/lib/oracles/services/ftsoDataService';
 
 const ftsoService = getFtsoDataService();
 const priceData = await ftsoService.fetchPrice('BTC', 'flare');
@@ -1195,44 +773,28 @@ BTC, ETH, FLR, XRP, SOL, DOGE, ADA, BNB, AVAX, LINK, DOT, MATIC, ARB, UNI, ATOM,
 | Songbird | `https://songbird-api.flare.network/ext/C/rpc`                            |
 | Coston2  | `https://coston2-api.flare.network/ext/C/rpc`                             |
 
-### Network Metrics
-
-| Metric            | Value |
-| ----------------- | ----- |
-| Supported Symbols | 38    |
-| Update Frequency  | 90s   |
-| Cache TTL         | 30s   |
-| Avg Response Time | 300ms |
-| Confidence Score  | 95%   |
-
 ---
 
 ## Oracle Comparison Table
 
-| Feature                   | Chainlink | Pyth  | API3  | RedStone | DIA    | WINkLink | Supra | TWAP  | Reflector | Flare |
-| ------------------------- | --------- | ----- | ----- | -------- | ------ | -------- | ----- | ----- | --------- | ----- |
-| **Update Frequency**      | 60s       | 1s    | 10s   | 5s       | 60s    | 30s      | 15s   | 60s   | 5min      | 90s   |
-| **Avg Response Time**     | 245ms     | 100ms | 180ms | 120ms    | 200ms  | 250ms    | 150ms | 500ms | 500ms     | 300ms |
-| **Node Uptime**           | 99.9%     | 99.9% | 99.7% | 99.8%    | 99.5%  | 99.7%    | 99.8% | 99.5% | 99.5%     | 99.8% |
-| **Supported Chains**      | 13        | 12    | 13    | 16       | 11     | 3        | 1     | 6     | 1         | 1     |
-| **Data Feeds**            | 1,243     | 500   | 168   | 285      | 2,000+ | 80       | 200+  | 22    | 21        | 38    |
-| **Node Analytics**        | ✅        | ❌    | ❌    | ❌       | ❌     | ❌       | ❌    | ❌    | ❌        | ✅    |
-| **Publisher Analytics**   | ❌        | ✅    | ❌    | ❌       | ❌     | ❌       | ❌    | ❌    | ❌        | ❌    |
-| **First-Party Oracle**    | ❌        | ❌    | ✅    | ❌       | ❌     | ❌       | ❌    | ❌    | ✅        | ✅    |
-| **Confidence Intervals**  | ❌        | ✅    | ❌    | ❌       | ❌     | ❌       | ✅    | ✅    | ❌        | ✅    |
-| **Cross-Chain Stats**     | ❌        | ❌    | ❌    | ✅       | ✅     | ❌       | ✅    | ❌    | ❌        | ❌    |
-| **Coverage Pools**        | ❌        | ❌    | ✅    | ❌       | ❌     | ❌       | ❌    | ❌    | ❌        | ❌    |
-| **Modular Design**        | ❌        | ❌    | ❌    | ✅       | ❌     | ❌       | ❌    | ❌    | ❌        | ❌    |
-| **NFT Data**              | ❌        | ❌    | ❌    | ❌       | ✅     | ❌       | ❌    | ❌    | ❌        | ❌    |
-| **Gaming Data**           | ❌        | ❌    | ❌    | ❌       | ❌     | ✅       | ❌    | ❌    | ❌        | ❌    |
-| **Open Source**           | ❌        | ❌    | ❌    | ❌       | ✅     | ❌       | ❌    | ❌    | ✅        | ❌    |
-| **Verifiable Randomness** | ❌        | ❌    | ❌    | ❌       | ❌     | ❌       | ✅    | ❌    | ❌        | ❌    |
-| **On-Chain TWAP**         | ❌        | ❌    | ❌    | ❌       | ❌     | ❌       | ❌    | ✅    | ❌        | ❌    |
-| **Spot Price**            | ❌        | ❌    | ❌    | ❌       | ❌     | ❌       | ❌    | ✅    | ❌        | ❌    |
-| **Liquidity Data**        | ❌        | ❌    | ❌    | ❌       | ❌     | ❌       | ❌    | ✅    | ❌        | ❌    |
-| **Data Streams**          | ❌        | ❌    | ❌    | ✅       | ❌     | ❌       | ❌    | ❌    | ❌        | ❌    |
-| **Stellar Ecosystem**     | ❌        | ❌    | ❌    | ❌       | ❌     | ❌       | ❌    | ❌    | ✅        | ❌    |
-| **Flare Ecosystem**       | ❌        | ❌    | ❌    | ❌       | ❌     | ❌       | ❌    | ❌    | ❌        | ✅    |
+| Feature                   | Chainlink | Pyth | API3 | RedStone | DIA | WINkLink | Supra | TWAP | Reflector | Flare |
+| ------------------------- | --------- | ---- | ---- | -------- | --- | -------- | ----- | ---- | --------- | ----- |
+| **Update Frequency**      | 60s       | 1s   | 1s   | 10s      | 5s  | 60s      | 5s    | 1s   | 5min      | 1.5s  |
+| **Supported Chains**      | 7         | 10   | 7    | 12       | 6   | 1        | 12    | 6    | 1         | 1     |
+| **First-Party Oracle**    | ❌        | ❌   | ✅   | ❌       | ❌  | ❌       | ❌    | ❌   | ✅        | ✅    |
+| **Confidence Intervals**  | ❌        | ✅   | ❌   | ✅       | ❌  | ❌       | ❌    | ✅   | ❌        | ✅    |
+| **Cross-Chain Stats**     | ✅        | ✅   | ✅   | ❌       | ❌  | ❌       | ❌    | ❌   | ❌        | ❌    |
+| **Coverage Pools**        | ❌        | ❌   | ✅   | ❌       | ❌  | ❌       | ❌    | ❌   | ❌        | ❌    |
+| **Modular Design**        | ❌        | ❌   | ❌   | ✅       | ❌  | ❌       | ❌    | ❌   | ❌        | ❌    |
+| **NFT Data**              | ❌        | ❌   | ❌   | ❌       | ✅  | ❌       | ❌    | ❌   | ❌        | ❌    |
+| **Open Source**           | ❌        | ❌   | ❌   | ❌       | ✅  | ❌       | ❌    | ❌   | ✅        | ❌    |
+| **Verifiable Randomness** | ❌        | ❌   | ❌   | ❌       | ❌  | ❌       | ✅    | ❌   | ❌        | ❌    |
+| **On-Chain TWAP**         | ❌        | ❌   | ❌   | ❌       | ❌  | ❌       | ❌    | ✅   | ❌        | ❌    |
+| **Spot Price**            | ❌        | ❌   | ❌   | ❌       | ❌  | ❌       | ❌    | ✅   | ❌        | ❌    |
+| **Liquidity Data**        | ❌        | ❌   | ❌   | ❌       | ❌  | ❌       | ❌    | ✅   | ❌        | ❌    |
+| **Data Streams**          | ❌        | ❌   | ❌   | ✅       | ❌  | ❌       | ❌    | ❌   | ❌        | ❌    |
+| **Stellar Ecosystem**     | ❌        | ❌   | ❌   | ❌       | ❌  | ❌       | ❌    | ❌   | ✅        | ❌    |
+| **Flare Ecosystem**       | ❌        | ❌   | ❌   | ❌       | ❌  | ❌       | ❌    | ❌   | ❌        | ✅    |
 
 ---
 
@@ -1258,6 +820,7 @@ interface OracleError {
 | `REDSTONE_ERROR`              | RedStone price fetch failed          |
 | `DIA_ERROR`                   | DIA price fetch failed               |
 | `WINKLINK_ERROR`              | WINkLink price fetch failed          |
+| `SUPRA_ERROR`                 | Supra price fetch failed             |
 | `REFLECTOR_ERROR`             | Reflector price fetch failed         |
 | `REFLECTOR_CONTRACT_ERROR`    | Reflector contract call failed       |
 | `REFLECTOR_ASSET_NOT_FOUND`   | Reflector asset not found            |
@@ -1268,10 +831,9 @@ interface OracleError {
 | `TWAP_POOL_NOT_FOUND`         | TWAP pool not found for symbol       |
 | `TWAP_INSUFFICIENT_LIQUIDITY` | TWAP pool has insufficient liquidity |
 | `TWAP_OBSERVATION_ERROR`      | TWAP on-chain observation failed     |
-| `TWAP_HISTORICAL_ERROR`       | TWAP historical data fetch failed    |
-| `*_HISTORICAL_ERROR`          | Historical data fetch failed         |
-| `NETWORK_STATS_ERROR`         | Network statistics fetch failed      |
-| `VALIDATORS_ERROR`            | Validator data fetch failed          |
+| `SYMBOL_NOT_SUPPORTED`        | Symbol not supported by provider     |
+| `NO_DATA_AVAILABLE`           | No data available for the request    |
+| `PROVIDER_UNAVAILABLE`        | Oracle provider is unavailable       |
 
 ---
 
@@ -1303,7 +865,8 @@ import { ChainlinkClient } from '@/lib/oracles';
 
 const client = new ChainlinkClient({
   useDatabase: true,
-  fallbackToMock: true,
+  validateData: true,
+  useRealData: true,
 });
 ```
 
@@ -1313,55 +876,110 @@ const client = new ChainlinkClient({
 
 ```
 src/lib/oracles/
-├── index.ts              # Public exports
-├── base.ts               # BaseOracleClient abstract class
+├── index.ts                  # Public exports
+├── base.ts                   # BaseOracleClient abstract class
+├── factory.ts                # OracleClientFactory (singleton)
+├── interfaces.ts             # IOracleClient, IOracleClientFactory
+├── api3CrossChain.ts         # API3 cross-chain comparison
+├── chainlinkCrossChain.ts    # Chainlink cross-chain comparison
+├── pythCrossChain.ts         # Pyth cross-chain comparison
+├── crossChainComparison.ts   # Cross-chain comparison utilities
+├── diaTypes.ts               # DIA type definitions
+├── diaUtils.ts               # DIA utility functions
+│
+├── base/
+│   └── databaseOperations.ts # Database operations for oracle data
+│
 ├── clients/
-│   ├── chainlink.ts      # Chainlink client implementation
-│   ├── PythClient.ts     # Pyth client implementation
-│   ├── api3.ts           # API3 client implementation
-│   ├── redstone.ts       # RedStone client implementation
-│   ├── dia.ts            # DIA client implementation
-│   ├── winklink.ts       # WINkLink client implementation
-│   ├── supra.ts          # Supra client implementation
-│   ├── twap.ts           # TWAP client implementation
-│   ├── reflector.ts      # Reflector client implementation
-│   └── flare.ts          # Flare client implementation
-├── services/
-│   ├── chainlinkOnChainService.ts  # Chainlink on-chain data service
-│   ├── pythDataService.ts          # Pyth data service
-│   ├── diaDataService.ts           # DIA data service
-│   ├── supraDataService.ts         # Supra data service
-│   ├── twapOnChainService.ts       # TWAP on-chain data service
-│   ├── reflectorDataService.ts     # Reflector data service
-│   └── ftsoDataService.ts          # Flare FTSO data service
+│   ├── chainlink.ts          # Chainlink client
+│   ├── PythClient.ts         # Pyth client
+│   ├── api3.ts               # API3 client
+│   ├── redstone.ts           # RedStone client
+│   ├── dia.ts                # DIA client
+│   ├── winklink.ts           # WINkLink client
+│   ├── supra.ts              # Supra client
+│   ├── twap.ts               # TWAP client
+│   ├── reflector.ts          # Reflector client
+│   └── flare.ts              # Flare client
+│
 ├── constants/
-│   ├── chainlinkDataSources.ts     # Chainlink contract addresses and ABI
-│   ├── pythConstants.ts            # Pyth constants
-│   ├── twapConstants.ts            # TWAP constants and configuration
-│   ├── reflectorConstants.ts       # Reflector constants and configuration
-│   └── flareConstants.ts           # Flare constants and configuration
-├── storage.ts            # Database storage layer
-├── factory.ts            # Oracle client factory
-├── colors.ts             # Oracle color configurations
-├── interfaces.ts         # Oracle interfaces
-├── OracleRepository.ts   # Oracle repository
-└── utils/                # Utility functions
-    ├── oracleDataUtils.ts
-    ├── performanceMetricsCalculator.ts
-    ├── retry.ts
-    └── storage.ts
+│   ├── assetAddresses.ts     # Multi-chain asset addresses
+│   ├── chainMapping.ts       # Blockchain name mapping (DIA)
+│   ├── flareConstants.ts     # Flare FTSO constants
+│   ├── nftCollections.ts     # NFT collection addresses
+│   ├── pythConstants.ts      # Pyth price feed IDs
+│   ├── pythPublishersData.ts # Pyth publisher data
+│   ├── redstoneConstants.ts  # RedStone API constants
+│   ├── reflectorConstants.ts # Reflector Soroban constants
+│   ├── supportedSymbols.ts   # Supported symbol lists
+│   ├── supraConstants.ts     # Supra pair index map
+│   └── twapConstants.ts      # TWAP pool/factory addresses
+│
+├── pyth/
+│   ├── PythDataService.ts    # Pyth data service
+│   ├── calculations.ts       # Pyth price calculations
+│   ├── crossChain.ts         # Pyth cross-chain logic
+│   ├── metadataFetching.ts   # Pyth metadata fetching
+│   ├── priceFetching.ts      # Pyth price fetching
+│   ├── pythCache.ts          # Pyth caching layer
+│   ├── pythParser.ts         # Pyth data parser
+│   ├── pythWebSocket.ts      # Pyth WebSocket client
+│   ├── types.ts              # Pyth types
+│   └── index.ts
+│
+├── services/
+│   ├── api3NetworkService.ts       # API3 network data service
+│   ├── chainlinkDataSources.ts     # Chainlink data source config
+│   ├── chainlinkOnChainService.ts  # Chainlink on-chain data
+│   ├── diaDataService.ts           # DIA main service entry
+│   ├── diaNFTService.ts            # DIA NFT floor price service
+│   ├── diaNetworkService.ts        # DIA network stats service
+│   ├── diaPriceService.ts          # DIA price data service
+│   ├── ftsoDataService.ts          # Flare FTSO data service
+│   ├── marketDataDefaults.ts       # Market data defaults
+│   ├── pythDataService.ts          # Pyth data service
+│   ├── reflectorDataService.ts     # Reflector Soroban service
+│   ├── supraDataService.ts         # Supra DORA service
+│   ├── twapOnChainService.ts       # TWAP Uniswap V3 service
+│   └── winklinkRealDataService.ts  # WINkLink on-chain service
+│
+└── utils/
+    ├── memoryManager.ts              # Memory management
+    ├── oracleDataUtils.ts            # Oracle data utilities
+    ├── performanceMetricsCalculator.ts # Performance metrics
+    ├── performanceMetricsConfig.ts   # Metrics configuration
+    ├── retry.ts                      # Retry logic
+    └── storage.ts                    # Database storage layer
 
 src/types/oracle/           # Oracle types
 ├── index.ts                # Core oracle types
-├── enums.ts                # Oracle enums
+├── enums.ts                # Oracle enums (OracleProvider, Blockchain)
 ├── price.ts                # Price types
-├── config.ts               # Configuration types
-└── ...
+├── api3.ts                 # API3-specific types
+├── publisher.ts            # Publisher types
+├── snapshot.ts             # Snapshot types
+├── snapshotFunctions.ts    # Snapshot utility types
+└── constants.ts            # Oracle constants
 
 src/lib/config/             # Configuration
 ├── colors.ts               # Color configurations
 ├── env.ts                  # Environment variables
-└── basePrices.ts           # Base price configurations
+├── serverEnv.ts            # Server environment variables
+├── basePrices.ts           # Base price configurations
+└── oracles/                # Oracle UI configurations
+    ├── api3.tsx
+    ├── chainlink.tsx
+    ├── dia.tsx
+    ├── flare.tsx
+    ├── helpers.ts
+    ├── index.ts
+    ├── pyth.tsx
+    ├── redstone.tsx
+    ├── reflector.tsx
+    ├── supra.tsx
+    ├── twap.tsx
+    ├── types.ts
+    └── winklink.tsx
 ```
 
 ---

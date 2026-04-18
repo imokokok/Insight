@@ -1,6 +1,6 @@
 /**
- * @fileoverview 图像格式导出 (PNG/SVG)
- * @description 处理PNG和SVG格式的图表导出
+ * @fileoverview Image format export (PNG/SVG)
+ * @description Handles PNG and SVG format chart export
  */
 
 import { exportColors } from '@/lib/config/colors';
@@ -13,7 +13,7 @@ import type { Resolution, ExportProgressCallback } from '../types';
 const logger = createLogger('imageExporter');
 
 /**
- * 导出为PNG格式
+ * Export as PNG format
  */
 export async function exportToPNG(
   chartElement: HTMLElement,
@@ -172,7 +172,7 @@ export async function exportToPNG(
 }
 
 /**
- * 导出为SVG格式
+ * Export as SVG format
  */
 export async function exportToSVG(
   chartElement: HTMLElement,

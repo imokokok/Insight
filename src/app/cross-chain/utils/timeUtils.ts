@@ -1,6 +1,6 @@
 import { type TimeRange } from '@/components/charts/ChartToolbar';
 
-export const getTimeRangeInMs = (range: TimeRange): number => {
+export const getTimestampCutoff = (range: TimeRange): number => {
   const now = Date.now();
   switch (range) {
     case '1H':
@@ -15,3 +15,6 @@ export const getTimeRangeInMs = (range: TimeRange): number => {
       return now - 24 * 60 * 60 * 1000;
   }
 };
+
+/** @deprecated Use getTimestampCutoff instead */
+export const getTimeRangeInMs = getTimestampCutoff;

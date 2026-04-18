@@ -8,7 +8,7 @@ import { SegmentedControl, DropdownSelect, type SelectorOption } from '@/compone
 import { getPriceOracleProvidersSortedByMarketCap } from '@/lib/config/oracles';
 import { type OracleProvider, type Blockchain, BLOCKCHAIN_VALUES } from '@/types/oracle';
 
-import { symbols, oracleColors, chainColors, TIME_RANGES } from '../constants';
+import { symbols, oracleColors, chainColors } from '../constants';
 import { useQueryParams, useQueryData } from '../contexts';
 import { useOracleSymbols } from '../hooks/useOracleSymbols';
 
@@ -22,8 +22,6 @@ export function Selectors() {
     setSelectedChain,
     selectedSymbol,
     setSelectedSymbol,
-    selectedTimeRange,
-    setSelectedTimeRange,
   } = useQueryParams();
 
   const { isLoading, refetch, supportedChainsBySelectedOracles, autoRefresh } = useQueryData();
@@ -94,11 +92,6 @@ export function Selectors() {
       ),
     }));
 
-  const timeRangeOptions: SelectorOption<number>[] = TIME_RANGES.map((range) => ({
-    value: range.value,
-    label: range.key,
-  }));
-
   return (
     <div
       className="bg-white rounded-lg shadow-sm border border-gray-200"
@@ -167,16 +160,6 @@ export function Selectors() {
             onChange={(value) => setSelectedSymbol(value as string)}
             label="Symbol"
             aria-label="Select symbol"
-          />
-        </section>
-
-        <section className="py-3 border-t border-gray-100" aria-labelledby="timerange-label">
-          <SegmentedControl
-            options={timeRangeOptions}
-            value={selectedTimeRange}
-            onChange={(value) => setSelectedTimeRange(value as number)}
-            label="Time Range"
-            aria-label="Select time range"
           />
         </section>
 

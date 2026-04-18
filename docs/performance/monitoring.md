@@ -1,685 +1,307 @@
-# Insight Performance Monitoring Guide
-
-> This guide introduces how to use the performance monitoring tools and APIs of the Insight platform.
-
-## Table of Contents
-
-1. [Overview](#overview)
-2. [Web Vitals Monitoring](#web-vitals-monitoring)
-3. [Performance Hooks](#performance-hooks)
-4. [Performance Monitoring Components](#performance-monitoring-components)
-5. [Real-time Monitoring](#real-time-monitoring)
-6. [Performance Reports](#performance-reports)
-7. [Alert Configuration](#alert-configuration)
-
----
+# Performance Monitoring Documentation
 
 ## Overview
 
-Insight platform provides a comprehensive performance monitoring solution, including:
-
-- **Web Vitals Monitoring**: Automatic collection of Core Web Vitals metrics (LCP, INP, CLS, FCP, TTFB)
-- **Custom Performance Tracking**: Track performance of business-critical operations
-- **Resource Monitoring**: Monitor network requests and resource loading
-- **Memory Monitoring**: Track JavaScript heap memory usage
-- **Real-time Monitoring Dashboard**: Visualize performance metrics
-- **Integrated Monitoring Services**: Support for Vercel Analytics, Speed Insights, and Sentry
+The Insight Oracle Data Analytics Platform includes performance monitoring capabilities through Web Vitals tracking, Sentry error reporting, and Vercel Analytics integration.
 
 ---
 
-## Web Vitals Monitoring
+## 1. Web Vitals Monitoring
 
-### 1. Automatic Collection
+### 1.1 Implementation
 
-The project has integrated automatic Web Vitals collection through `src/lib/monitoring/webVitals.ts`:
+The web vitals monitoring system is implemented in `src/lib/monitoring/webVitals.ts`:
 
 ```typescript
-import { initWebVitals, onMetric, reportCustomMetric } from '@/lib/monitoring/webVitals';
+import {
+  initWebVitals,
+  onMetric,
+  reportMetric,
+  reportCustomMetric,
+  getPerformanceScore,
+  PERFORMANCE_THRESHOLDS,
+} from '@/lib/monitoring/webVitals';
 
-// Initialize Web Vitals monitoring
-initWebVitals();
+import type { WebVitalMetric, MetricName } from '@/lib/monitoring/webVitals';
+```
 
-// Subscribe to metrics
-const unsubscribe = onMetric((metric) => {
-  console.log(`${metric.name}: ${metric.value}ms (${metric.rating})`);
+### 1.2 Tracked Metrics
+
+| Metric | Description               | Good    | Needs Improvement | Poor    |
+| ------ | ------------------------- | ------- | ----------------- | ------- |
+| LCP    | Largest Contentful Paint  | ≤2500ms | ≤4000ms           | >4000ms |
+| INP    | Interaction to Next Paint | ≤200ms  | ≤500ms            | >500ms  |
+| CLS    | Cumulative Layout Shift   | ≤0.1    | ≤0.25             | >0.25   |
+| FCP    | First Contentful Paint    | ≤1800ms | ≤3000ms           | >3000ms |
+| TTFB   | Time to First Byte        | ≤800ms  | ≤1800ms           | >1800ms |
+
+### 1.3 Metric Handler Registration
+
+Register handlers to process metric data:
+
+```typescript
+const unsubscribe = onMetric((metric: WebVitalMetric) => {
+  console.log(`${metric.name}: ${metric.value} (${metric.rating})`);
 });
 
-// Report custom metric
-reportCustomMetric('custom-metric', 150);
+unsubscribe();
 ```
 
-### 2. Metric Thresholds
+### 1.4 Manual Metric Reporting
 
-The project defines precise performance thresholds:
+Report custom metrics manually:
 
 ```typescript
-export const PERFORMANCE_THRESHOLDS = {
-  LCP: { good: 2500, poor: 4000 },
-  INP: { good: 200, poor: 500 },
-  CLS: { good: 0.1, poor: 0.25 },
-  FCP: { good: 1800, poor: 3000 },
-  TTFB: { good: 800, poor: 1800 },
-};
+reportMetric(metric: WebVitalMetric);
+reportCustomMetric(name: string, value: number);
 ```
 
-### 3. Metric Threshold Table
+### 1.5 Performance Score
 
-| Metric | Good    | Needs Improvement | Poor    |
-| ------ | ------- | ----------------- | ------- |
-| LCP    | ≤ 2.5s  | ≤ 4.0s            | > 4.0s  |
-| INP    | ≤ 200ms | ≤ 500ms           | > 500ms |
-| CLS    | ≤ 0.1   | ≤ 0.25            | > 0.25  |
-| FCP    | ≤ 1.8s  | ≤ 3.0s            | > 3.0s  |
-| TTFB   | ≤ 800ms | ≤ 1.8s            | > 1.8s  |
+Get an overall performance score:
+
+```typescript
+const { score, metrics } = getPerformanceScore();
+```
+
+### 1.6 Initialization
+
+Web Vitals are initialized in the `PerformanceMetricsCollector` component:
+
+```typescript
+import PerformanceMetricsCollector from '@/components/PerformanceMetricsCollector';
+```
+
+This component calls `initWebVitals()` which sets up listeners for all Core Web Vitals using the `web-vitals` library.
 
 ---
 
-## Performance Hooks
+## 2. Monitoring Module Exports
 
-### 1. usePerformanceTracker
-
-Track performance of specific operations:
+The monitoring barrel export (`src/lib/monitoring/index.ts`) provides:
 
 ```typescript
-import { usePerformanceTracker } from '@/hooks';
+export {
+  initWebVitals,
+  onMetric,
+  reportMetric,
+  reportCustomMetric,
+  getPerformanceScore,
+  PERFORMANCE_THRESHOLDS,
+} from './webVitals';
 
-function PriceFetcher() {
-  const tracker = usePerformanceTracker('fetch-price-history');
+export type { WebVitalMetric, MetricName } from './webVitals';
 
-  const fetchData = async () => {
-    // Method 1: Manual tracking
-    tracker.start();
-    try {
-      const data = await fetchPriceHistory(symbol);
-      return data;
-    } finally {
-      tracker.end({ symbol, chain });
-    }
-
-    // Method 2: Using measureAsync
-    return tracker.measureAsync(
-      () => fetchPriceHistory(symbol),
-      { symbol, chain }
-    );
-  };
-
-  return <button onClick={fetchData}>Fetch</button>;
-}
-```
-
-### 2. useComponentPerformance
-
-Monitor component rendering performance:
-
-```typescript
-import { useComponentPerformance } from '@/hooks';
-
-function HeavyChart({ data }) {
-  const { metrics, markUpdate } = useComponentPerformance('HeavyChart');
-
-  useEffect(() => {
-    if (metrics?.renderCount > 10) {
-      console.warn('HeavyChart rendered too many times');
-    }
-  }, [metrics]);
-
-  const handleDataUpdate = () => {
-    markUpdate(); // Mark data update
-    updateChartData();
-  };
-
-  return <Chart data={data} onUpdate={handleDataUpdate} />;
-}
-```
-
-### 3. useResourceOptimizer
-
-Monitor resource loading:
-
-```typescript
-import { useResourceOptimizer } from '@/hooks';
-
-function ResourceMonitor() {
-  const { resources, slowResources, totalSize } = useResourceOptimizer();
-
-  return (
-    <div>
-      <div>Total Resources: {resources.length}</div>
-      <div>Slow Resources: {slowResources.length}</div>
-      <div>Total Size: {(totalSize / 1024 / 1024).toFixed(2)} MB</div>
-
-      {slowResources.length > 0 && (
-        <Alert>
-          Found {slowResources.length} slow resources
-        </Alert>
-      )}
-    </div>
-  );
-}
-```
-
-### 4. useMemoryOptimizer
-
-Monitor memory usage:
-
-```typescript
-import { useMemoryOptimizer } from '@/hooks';
-
-function MemoryMonitor() {
-  const { memory, isHighUsage, isCritical, formatSize } = useMemoryOptimizer();
-
-  useEffect(() => {
-    if (isCritical) {
-      // Clear cache
-      clearOldCache();
-      // Notify user
-      showWarning('Memory usage is critical');
-    }
-  }, [isCritical]);
-
-  if (!memory) return null;
-
-  return (
-    <div>
-      <div>Used: {formatSize(memory.used)}</div>
-      <div>Total: {formatSize(memory.total)}</div>
-      <div>Limit: {formatSize(memory.limit)}</div>
-      <Progress value={memory.percentage} max={100} />
-    </div>
-  );
-}
-```
-
-### 5. useNavigationOptimizer
-
-Analyze page navigation performance:
-
-```typescript
-import { useNavigationOptimizer } from '@/hooks';
-
-function NavigationMonitor() {
-  const { timing, bottleneck, isSlow } = useNavigationOptimizer();
-
-  if (!timing) return null;
-
-  return (
-    <div>
-      <div>DNS: {timing.dnsLookup}ms</div>
-      <div>TCP: {timing.tcpConnection}ms</div>
-      <div>Server: {timing.serverResponse}ms</div>
-      <div>DOM: {timing.domProcessing}ms</div>
-      <div>Resources: {timing.resourceLoading}ms</div>
-      <div>Total: {timing.total}ms</div>
-
-      {bottleneck && (
-        <Alert type="warning">
-          Bottleneck: {bottleneck.name} ({bottleneck.duration}ms)
-        </Alert>
-      )}
-    </div>
-  );
-}
+export { captureException, setUser, addBreadcrumb } from './index';
 ```
 
 ---
 
-## Performance Monitoring Components
+## 3. Sentry Integration
 
-### 1. PerformanceMonitor
+### 3.1 Error Tracking
 
-Visual performance monitoring panel:
+Sentry is integrated for error tracking and performance monitoring:
 
 ```typescript
-import { PerformanceMonitor } from '@/components/performance';
+import { captureException, setUser, addBreadcrumb } from '@/lib/monitoring';
+```
 
-function App() {
-  return (
-    <>
-      {/* Show in development environment */}
-      {process.env.NODE_ENV === 'development' && (
-        <PerformanceMonitor
-          enabled={true}
-          position="bottom-right"
-          showDetails={true}
-          onPerformanceIssue={(issue) => {
-            console.error('Performance Issue:', issue);
-            // Send to monitoring service
-            sendToMonitoring(issue);
-          }}
-        />
-      )}
-      <MainContent />
-    </>
-  );
+**Usage:**
+
+```typescript
+try {
+  await riskyOperation();
+} catch (error) {
+  captureException(error);
 }
 ```
 
-### 2. PerformanceBadge
+### 3.2 User Context
 
-Compact performance status indicator:
+Set user context for error tracking:
 
 ```typescript
-import { PerformanceBadge } from '@/components/performance';
-
-function Header() {
-  return (
-    <header className="flex items-center justify-between">
-      <Logo />
-      <PerformanceBadge />
-    </header>
-  );
-}
+setUser({ id: userId, email: userEmail });
 ```
 
-### 3. PerformanceReportButton
+### 3.3 Breadcrumbs
 
-Export performance report:
-
-```typescript
-import { PerformanceReportButton } from '@/components/performance';
-
-function Settings() {
-  return (
-    <div>
-      <h2>Performance</h2>
-      <PerformanceReportButton />
-    </div>
-  );
-}
-```
-
----
-
-## Real-time Monitoring
-
-### 1. Real-time Performance Panel
+Add breadcrumbs for debugging:
 
 ```typescript
-import { usePerformanceOptimizer } from '@/hooks';
-
-function RealTimePerformancePanel() {
-  const { webVitals, resources, memory, health, getReport } = usePerformanceOptimizer();
-
-  const [history, setHistory] = useState([]);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const report = getReport();
-      setHistory(prev => [...prev.slice(-50), report]);
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, [getReport]);
-
-  return (
-    <div className="performance-panel">
-      <div className="health-indicator">
-        Health: <span className={health}>{health}</span>
-      </div>
-
-      <div className="metrics-grid">
-        <MetricCard
-          title="FCP"
-          value={webVitals.metrics.fcp}
-          unit="ms"
-        />
-        <MetricCard
-          title="LCP"
-          value={webVitals.metrics.lcp}
-          unit="ms"
-        />
-        <MetricCard
-          title="Memory"
-          value={memory.memory?.percentage}
-          unit="%"
-        />
-      </div>
-
-      <PerformanceChart data={history} />
-    </div>
-  );
-}
-```
-
-### 2. Long Task Monitoring
-
-```typescript
-import { useLongTaskMonitor } from '@/hooks';
-
-function LongTaskWatcher() {
-  const longTasks = useLongTaskMonitor(50); // 50ms threshold
-
-  useEffect(() => {
-    if (longTasks.length > 0) {
-      const lastTask = longTasks[longTasks.length - 1];
-      console.warn('Long task detected:', lastTask.duration, 'ms');
-    }
-  }, [longTasks]);
-
-  return (
-    <div>
-      <div>Long Tasks: {longTasks.length}</div>
-      {longTasks.slice(-5).map((task, i) => (
-        <div key={i}>
-          {task.name}: {task.duration.toFixed(0)}ms
-        </div>
-      ))}
-    </div>
-  );
-}
-```
-
----
-
-## Performance Reports
-
-### 1. Generate Report
-
-```typescript
-import { usePerformanceReport } from '@/hooks';
-
-function ReportGenerator() {
-  const { report, generateReport, reportOperation } = usePerformanceReport();
-
-  const handleExport = () => {
-    const newReport = generateReport();
-
-    // Download report
-    const blob = new Blob([JSON.stringify(newReport, null, 2)], {
-      type: 'application/json'
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `performance-report-${Date.now()}.json`;
-    a.click();
-  };
-
-  return (
-    <div>
-      <button onClick={handleExport}>Export Report</button>
-      {report && (
-        <div>
-          <div>Timestamp: {new Date(report.timestamp).toLocaleString()}</div>
-          <div>URL: {report.url}</div>
-          <div>Operations: {report.operations.length}</div>
-        </div>
-      )}
-    </div>
-  );
-}
-```
-
-### 2. Report Structure
-
-```typescript
-interface PerformanceReport {
-  timestamp: number;
-  url: string;
-  webVitals: {
-    fcp?: number;
-    lcp?: number;
-    inp?: number;
-    cls?: number;
-    ttfb?: number;
-  };
-  operations: Array<{
-    name: string;
-    duration: number;
-    metadata?: Record<string, unknown>;
-  }>;
-  resources: {
-    total: number;
-    slow: number;
-    totalSize: number;
-  };
-  memory?: {
-    used: number;
-    total: number;
-    limit: number;
-    percentage: number;
-  };
-  navigation?: {
-    dnsLookup: number;
-    tcpConnection: number;
-    serverResponse: number;
-    domProcessing: number;
-    resourceLoading: number;
-    total: number;
-  };
-  health: 'excellent' | 'good' | 'fair' | 'poor';
-}
-```
-
----
-
-## Alert Configuration
-
-### 1. Basic Alerts
-
-```typescript
-import { usePerformanceOptimizer } from '@/hooks';
-
-function PerformanceAlerts() {
-  const { webVitals, memory } = usePerformanceOptimizer();
-  const [alerts, setAlerts] = useState([]);
-
-  useEffect(() => {
-    const newAlerts = [];
-
-    if (webVitals.metrics.fcp && webVitals.metrics.fcp > 1800) {
-      newAlerts.push({
-        type: 'warning',
-        message: `FCP is slow: ${webVitals.metrics.fcp.toFixed(0)}ms`,
-      });
-    }
-
-    if (webVitals.metrics.lcp && webVitals.metrics.lcp > 2500) {
-      newAlerts.push({
-        type: 'error',
-        message: `LCP is slow: ${webVitals.metrics.lcp.toFixed(0)}ms`,
-      });
-    }
-
-    if (memory.isCritical) {
-      newAlerts.push({
-        type: 'critical',
-        message: `Memory usage critical: ${memory.memory?.percentage.toFixed(1)}%`,
-      });
-    }
-
-    setAlerts(newAlerts);
-  }, [webVitals, memory]);
-
-  return (
-    <div className="alerts-container">
-      {alerts.map((alert, i) => (
-        <Alert key={i} type={alert.type}>
-          {alert.message}
-        </Alert>
-      ))}
-    </div>
-  );
-}
-```
-
-### 2. Sentry Integration
-
-The project has integrated @sentry/nextjs for automatic performance data reporting:
-
-```typescript
-import * as Sentry from '@sentry/nextjs';
-import { usePerformanceOptimizer } from '@/hooks';
-
-function SentryIntegration() {
-  const { webVitals, getReport } = usePerformanceOptimizer();
-
-  useEffect(() => {
-    // Report performance metrics to Sentry
-    if (webVitals.metrics.lcp && webVitals.metrics.lcp > 4000) {
-      Sentry.captureMessage('LCP exceeds threshold', {
-        level: 'warning',
-        extra: {
-          lcp: webVitals.metrics.lcp,
-          report: getReport(),
-        },
-      });
-    }
-  }, [webVitals, getReport]);
-
-  return null;
-}
-```
-
-### 3. Custom Monitoring Service
-
-```typescript
-import { usePerformanceOptimizer } from '@/hooks';
-
-function CustomMonitoring() {
-  const performance = usePerformanceOptimizer();
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const report = performance.getReport();
-
-      // Send to custom monitoring service
-      fetch('/api/monitoring/performance', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(report),
-      });
-    }, 30000); // Report every 30 seconds
-
-    return () => clearInterval(interval);
-  }, [performance]);
-
-  return null;
-}
-```
-
----
-
-## Integrated Monitoring Services
-
-### Vercel Analytics
-
-The project has integrated @vercel/analytics for automatic page view and conversion tracking:
-
-```typescript
-import { track } from '@vercel/analytics';
-
-// Track custom events
-track('web-vital', {
-  name: 'LCP',
-  value: 1500,
-  rating: 'good',
+addBreadcrumb({
+  category: 'oracle',
+  message: `Fetching price for ${symbol}`,
+  level: 'info',
 });
 ```
 
-### Vercel Speed Insights
+---
 
-The project has integrated @vercel/speed-insights for automatic performance data collection.
+## 4. Vercel Analytics
 
-### Sentry
+### 4.1 Web Vitals Reporting
 
-The project has integrated @sentry/nextjs for error tracking and performance monitoring:
+Web Vitals metrics are reported to Vercel Analytics automatically when the `@vercel/analytics` package is available:
 
 ```typescript
-import * as Sentry from '@sentry/nextjs';
-
-// Report custom metrics
-Sentry.metrics.distribution('custom-metric', 150);
+import { sendAnalyticsEvent } from '@vercel/analytics';
 ```
 
 ---
 
-## Best Practices
+## 5. Oracle Performance Metrics
 
-### 1. Monitoring Scope
+### 5.1 Performance Metrics Calculator
 
-- **Development Environment**: Enable all monitoring for debugging
-- **Test Environment**: Enable performance monitoring to collect baseline data
-- **Production Environment**: Enable lightweight monitoring to avoid performance overhead
-
-### 2. Sampling Strategy
+Oracle-specific performance metrics are calculated in `src/lib/oracles/utils/performanceMetricsCalculator.ts`:
 
 ```typescript
-// Sample 10% in production
-const shouldMonitor = Math.random() < 0.1;
-
-function App() {
-  return (
-    <>
-      {shouldMonitor && <PerformanceMonitor />}
-      <MainContent />
-    </>
-  );
-}
+import { calculatePerformanceMetrics } from '@/lib/oracles/utils/performanceMetricsCalculator';
 ```
 
-### 3. Performance Budget
+### 5.2 Performance Metrics Configuration
 
-The project's configured performanceBudget:
-
-```typescript
-const PERFORMANCE_BUDGET = {
-  webVitals: {
-    LCP: { target: 2500, warning: 4000 },
-    INP: { target: 200, warning: 500 },
-    CLS: { target: 0.1, warning: 0.25 },
-    FCP: { target: 1800, warning: 3000 },
-    TTFB: { target: 800, warning: 1800 },
-  },
-  bundle: {
-    javascript: { target: 300, warning: 500 },
-    css: { target: 100, warning: 150 },
-    images: { target: 500, warning: 1000 },
-  },
-  resources: {
-    maxResourceCount: 50,
-    maxThirdPartyScripts: 10,
-    maxFonts: 5,
-  },
-};
-```
-
-### 4. User Perception
+Metrics configuration is defined in `src/lib/oracles/utils/performanceMetricsConfig.ts`:
 
 ```typescript
-// Only show warning when performance issues affect user experience
-function UserFacingPerformanceAlert() {
-  const { webVitals } = usePerformanceOptimizer();
-  const [showAlert, setShowAlert] = useState(false);
-
-  useEffect(() => {
-    // Only show user warning when LCP > 4s
-    if (webVitals.metrics.lcp && webVitals.metrics.lcp > 4000) {
-      setShowAlert(true);
-    }
-  }, [webVitals]);
-
-  if (!showAlert) return null;
-
-  return (
-    <Alert closable onClose={() => setShowAlert(false)}>
-      This page is loading slowly. Please check your connection.
-    </Alert>
-  );
-}
+import { performanceMetricsConfig } from '@/lib/oracles/utils/performanceMetricsConfig';
 ```
 
 ---
 
-## Summary
+## 6. Real-time Connection Monitoring
 
-Insight platform provides comprehensive performance monitoring capabilities:
+### 6.1 Connection Status
 
-1. **Automatic Monitoring**: Web Vitals automatic collection (LCP, INP, CLS, FCP, TTFB)
-2. **Custom Tracking**: Flexible performance tracking API
-3. **Real-time Monitoring**: Visual monitoring dashboard
-4. **Alert Mechanism**: Configurable alert rules
-5. **Report Export**: Detailed performance reports
-6. **Third-party Integration**: Vercel Analytics, Speed Insights, Sentry
+The `realtimeStore` tracks WebSocket connection status:
 
-By using these tools appropriately, you can continuously optimize application performance and improve user experience.
+```typescript
+import { useRealtimeStore, useConnectionStatus } from '@/stores/realtimeStore';
+
+function ConnectionMonitor() {
+  const connectionStatus = useConnectionStatus();
+  // 'connected' | 'disconnected' | 'connecting'
+}
+```
+
+### 6.2 Connection Status Component
+
+The `ConnectionStatus` component displays real-time connection status:
+
+```typescript
+import { ConnectionStatus } from '@/components/realtime/ConnectionStatus';
+```
+
+---
+
+## 7. Data Freshness Monitoring
+
+### 7.1 Last Updated Tracking
+
+The `useLastUpdated` hook tracks when data was last refreshed:
+
+```typescript
+import { useLastUpdated } from '@/hooks/oracles/useLastUpdated';
+```
+
+### 7.2 Auto-Refresh Status
+
+The auto-refresh system tracks refresh status:
+
+```typescript
+import { useAutoRefresh } from '@/hooks/useAutoRefresh';
+
+const { lastUpdated, isRefreshing, refresh } = useAutoRefresh({ ... });
+```
+
+---
+
+## 8. Oracle Data Quality Monitoring
+
+### 8.1 On-Chain Data Hooks
+
+Provider-specific on-chain data hooks monitor data quality:
+
+| Hook                       | Provider  |
+| -------------------------- | --------- |
+| `useAllOnChainData`        | All       |
+| `useOnChainDataByProvider` | Any       |
+| `useDIAOnChainData`        | DIA       |
+| `useFlareOnChainData`      | Flare     |
+| `useRedStoneOnChainData`   | RedStone  |
+| `useReflectorOnChainData`  | Reflector |
+| `useSupraOnChainData`      | Supra     |
+| `useTwapOnChainData`       | TWAP      |
+| `useWINkLinkOnChainData`   | WINkLink  |
+
+### 8.2 Data Source Transparency
+
+Data source indicators show where data comes from:
+
+```typescript
+import {
+  DataSourceIndicator,
+  DataSourceList,
+  DataUpdateTime,
+} from '@/components/data-transparency';
+```
+
+---
+
+## 9. Cross-Chain Data Monitoring
+
+### 9.1 Cross-Chain Data Store
+
+The `crossChainDataStore` tracks data loading and refresh status:
+
+```typescript
+import { useCrossChainDataStore } from '@/stores/crossChainDataStore';
+
+const { loading, refreshStatus, showRefreshSuccess, lastUpdated, anomalies } =
+  useCrossChainDataStore();
+```
+
+**Refresh statuses:**
+
+- `idle` - No refresh in progress
+- `refreshing` - Refresh in progress
+- `success` - Refresh completed successfully
+- `error` - Refresh failed
+
+### 9.2 Anomaly Detection
+
+Anomalies are tracked in the cross-chain data store:
+
+```typescript
+const { anomalies } = useCrossChainDataStore();
+```
+
+---
+
+## 10. API Performance Monitoring
+
+### 10.1 Logging Middleware
+
+API request/response logging is handled by the logging middleware:
+
+```typescript
+import { createLoggingMiddleware } from '@/lib/api/middleware/loggingMiddleware';
+```
+
+### 10.2 Rate Limiting
+
+API rate limiting is tracked via the rate limit store:
+
+```typescript
+import { rateLimitStore } from '@/lib/api/middleware/rateLimitStore';
+```
+
+### 10.3 Enhanced Retry
+
+The enhanced retry mechanism tracks retry attempts:
+
+```typescript
+import { enhancedRetry } from '@/lib/api/retry/enhancedRetry';
+```
