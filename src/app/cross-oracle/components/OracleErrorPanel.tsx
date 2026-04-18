@@ -25,6 +25,7 @@ const ERROR_TYPE_LABELS: Record<OracleErrorType, string> = {
   rate_limit: 'Rate Limited',
   server_error: 'Server Error',
   cors: 'CORS Error',
+  authorization: 'Authorization Error',
   unknown: 'Unknown Error',
 };
 
@@ -75,6 +76,13 @@ function getErrorTypeInfo(errorType: OracleErrorType): {
         icon: Shield,
         color: 'text-purple-600',
         bgColor: 'bg-purple-50',
+        label: ERROR_TYPE_LABELS[errorType],
+      };
+    case 'authorization':
+      return {
+        icon: Shield,
+        color: 'text-rose-600',
+        bgColor: 'bg-rose-50',
         label: ERROR_TYPE_LABELS[errorType],
       };
     default:
@@ -138,7 +146,7 @@ const OracleErrorItem = memo(function OracleErrorItem({
             </Button>
           )}
           <span className="text-xs text-gray-400">
-            {new Date(error.timestamp).toLocaleTimeString()}
+            {new Date(error.timestamp).toLocaleTimeString('en-US')}
           </span>
         </div>
       </div>

@@ -4,12 +4,12 @@ import { TrendingUp } from 'lucide-react';
 
 import { EmptyStateEnhanced, SegmentedControl } from '@/components/ui';
 
-interface QueryResultsEmptyProps {
-  selectedSymbol: string;
-  onSymbolChange: (symbol: string) => void;
-}
+import { useQueryParams, useQueryData } from '../contexts';
 
-export function QueryResultsEmpty({ selectedSymbol, onSymbolChange }: QueryResultsEmptyProps) {
+export function QueryResultsEmpty() {
+  const { selectedSymbol, setSelectedSymbol } = useQueryParams();
+  const { queryResults } = useQueryData();
+
   return (
     <EmptyStateEnhanced
       type="search"
@@ -30,7 +30,7 @@ export function QueryResultsEmpty({ selectedSymbol, onSymbolChange }: QueryResul
               label: token,
             }))}
             value={selectedSymbol}
-            onChange={(value) => onSymbolChange(value as string)}
+            onChange={(value) => setSelectedSymbol(value as string)}
             size="sm"
           />
         </div>

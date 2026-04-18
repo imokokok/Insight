@@ -63,6 +63,7 @@ export function useCrossChainDataState(): UseCrossChainDataStateReturn {
   const setPrevStats = useCrossChainDataStore((s) => s.setPrevStats);
   const setRecommendedBaseChain = useCrossChainDataStore((s) => s.setRecommendedBaseChain);
   const setAnomalies = useCrossChainDataStore((s) => s.setAnomalies);
+  const setCrossChainComparison = useCrossChainDataStore((s) => s.setCrossChainComparison);
   const setFetchData = useCrossChainDataStore((s) => s.setFetchData);
   const setClearCache = useCrossChainDataStore((s) => s.setClearCache);
   const setClearCacheForProvider = useCrossChainDataStore((s) => s.setClearCacheForProvider);
@@ -89,6 +90,7 @@ export function useCrossChainDataState(): UseCrossChainDataStateReturn {
       setShowRefreshSuccess,
       setLoading,
       setAnomalies,
+      setCrossChainComparison,
     },
     refreshInterval || undefined
   );

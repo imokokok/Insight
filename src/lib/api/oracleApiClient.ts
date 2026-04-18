@@ -22,22 +22,62 @@ interface FetchHistoricalParams extends FetchPriceParams {
 
 const REQUEST_TIMEOUT_MS = 15_000;
 
-function createAbortControllerWithTimeout(signal?: AbortSignal): {
+interface PendingRequest<T> {
+  promise: Promise<T>;
   controller: AbortController;
-  cleanup: () => void;
-} {
+  timeoutId: ReturnType<typeof setTimeout>;
+}
+
+const pendingRequests = new Map<string, PendingRequest<unknown>>();
+
+function buildRequestKey(
+  prefix: string,
+  provider: OracleProvider,
+  symbol: string,
+  chain?: Blockchain,
+  period?: number
+): string {
+  let key = `${prefix}:${provider}:${symbol}`;
+  if (chain) key += `:${chain}`;
+  if (period !== undefined) key += `:p${period}`;
+  return key;
+}
+
+function removePendingRequest(key: string): void {
+  const pending = pendingRequests.get(key);
+  if (pending) {
+    clearTimeout(pending.timeoutId);
+    pendingRequests.delete(key);
+  }
+}
+
+function createAbortControllerWithTimeout(
+  key: string,
+  signal?: AbortSignal
+): { controller: AbortController; timeoutId: ReturnType<typeof setTimeout> } {
+  const previous = pendingRequests.get(key);
+  if (previous) {
+    previous.controller.abort();
+    clearTimeout(previous.timeoutId);
+    pendingRequests.delete(key);
+  }
+
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  const timeoutId = setTimeout(() => {
+    controller.abort();
+    pendingRequests.delete(key);
+  }, REQUEST_TIMEOUT_MS);
+
   if (signal) {
-    signal.addEventListener('abort', () => {
+    const onExternalAbort = () => {
       clearTimeout(timeoutId);
       controller.abort();
-    });
+      pendingRequests.delete(key);
+    };
+    signal.addEventListener('abort', onExternalAbort, { once: true });
   }
-  return {
-    controller,
-    cleanup: () => clearTimeout(timeoutId),
-  };
+
+  return { controller, timeoutId };
 }
 
 function getBaseUrl(): string {
@@ -109,12 +149,44 @@ async function handleApiResponse<T>(
   }
 }
 
+function deduplicatedFetch<T>(
+  key: string,
+  url: string,
+  context: string,
+  externalSignal: AbortSignal | undefined,
+  validateData: (data: unknown) => T
+): Promise<T> {
+  const existing = pendingRequests.get(key);
+  if (existing) {
+    return existing.promise as Promise<T>;
+  }
+
+  const { controller, timeoutId } = createAbortControllerWithTimeout(key, externalSignal);
+
+  const promise = fetch(url, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    signal: controller.signal,
+  })
+    .then((response) => handleApiResponse<T>(response, url, context, validateData))
+    .finally(() => {
+      removePendingRequest(key);
+    });
+
+  pendingRequests.set(key, { promise, controller, timeoutId });
+
+  return promise;
+}
+
 async function fetchPriceFromApi({
   provider,
   symbol,
   chain,
   signal: externalSignal,
 }: FetchPriceParams): Promise<PriceData> {
+  const key = buildRequestKey('price', provider, symbol, chain);
   const url = new URL(`/api/oracles/${provider}`, getBaseUrl());
   url.searchParams.set('symbol', symbol);
   if (chain) {
@@ -123,21 +195,13 @@ async function fetchPriceFromApi({
 
   logger.info(`Fetching price from API: ${url.toString()}`);
 
-  const { controller, cleanup } = createAbortControllerWithTimeout(externalSignal);
-
-  try {
-    const response = await fetch(url.toString(), {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      signal: controller.signal,
-    });
-
-    return handleApiResponse(response, url.toString(), 'Price', validatePriceData);
-  } finally {
-    cleanup();
-  }
+  return deduplicatedFetch<PriceData>(
+    key,
+    url.toString(),
+    'Price',
+    externalSignal,
+    validatePriceData
+  );
 }
 
 async function fetchHistoricalFromApi({
@@ -147,6 +211,7 @@ async function fetchHistoricalFromApi({
   period,
   signal: externalSignal,
 }: FetchHistoricalParams): Promise<PriceData[]> {
+  const key = buildRequestKey('hist', provider, symbol, chain, period);
   const url = new URL(`/api/oracles/${provider}`, getBaseUrl());
   url.searchParams.set('symbol', symbol);
   url.searchParams.set('period', period.toString());
@@ -156,21 +221,13 @@ async function fetchHistoricalFromApi({
 
   logger.info(`Fetching historical prices from API: ${url.toString()}`);
 
-  const { controller, cleanup } = createAbortControllerWithTimeout(externalSignal);
-
-  try {
-    const response = await fetch(url.toString(), {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      signal: controller.signal,
-    });
-
-    return handleApiResponse(response, url.toString(), 'Historical price', validatePriceDataArray);
-  } finally {
-    cleanup();
-  }
+  return deduplicatedFetch<PriceData[]>(
+    key,
+    url.toString(),
+    'Historical price',
+    externalSignal,
+    validatePriceDataArray
+  );
 }
 
 export const oracleApiClient = {

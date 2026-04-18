@@ -114,7 +114,7 @@ export function useCrossChainData(): UseCrossChainDataReturn {
     [dataState.supportedChains, visibleChains]
   );
 
-  const statistics = useCrossChainStatistics({
+  const statistics = useStatistics({
     currentPrices: dataState.currentPrices,
     historicalPrices: dataState.historicalPrices,
     filteredChains,
@@ -125,7 +125,7 @@ export function useCrossChainData(): UseCrossChainDataReturn {
 
   const thresholdConfig = useCrossChainConfigStore((s) => s.thresholdConfig);
 
-  const chart = useCrossChainChart({
+  const chart = useChartData({
     currentPrices: dataState.currentPrices,
     historicalPrices: dataState.historicalPrices,
     filteredChains,

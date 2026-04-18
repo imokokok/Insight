@@ -6,6 +6,12 @@ import { OracleProvider, Blockchain } from '@/types/oracle';
 import { getDefaultMarketData, getDefaultNetworkData } from './helpers';
 import { type OracleConfig } from './types';
 
+let _client: ChainlinkClient | null = null;
+function getClient() {
+  if (!_client) _client = new ChainlinkClient({ useRealData: true });
+  return _client;
+}
+
 export const chainlinkConfig: OracleConfig = {
   provider: OracleProvider.CHAINLINK,
   name: 'Chainlink',
@@ -33,7 +39,7 @@ export const chainlinkConfig: OracleConfig = {
     Blockchain.LINEA,
     Blockchain.SOLANA,
   ],
-  client: new ChainlinkClient({ useRealData: true }),
+  getClient,
   iconBgColor: 'bg-primary-600',
   themeColor: '#375bd2',
   icon: <Image src="/logos/oracles/chainlink.svg" alt="Chainlink" width={48} height={48} />,

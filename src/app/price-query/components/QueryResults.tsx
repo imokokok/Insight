@@ -7,13 +7,8 @@ import { Database, BarChart3, Clock } from 'lucide-react';
 import { PriceFlash } from '@/components/ui/PriceFlash';
 import { safeMax } from '@/lib/utils';
 
-import {
-  type QueryState,
-  type StatsState,
-  type ChartConfig,
-  type ErrorState,
-  type OnChainData,
-} from '../constants';
+import { type OnChainData } from '../constants';
+import { useQueryParams, useQueryData, useQueryUI } from '../contexts';
 import { useConsistencyRating } from '../hooks/useConsistencyRating';
 import { formatPrice } from '../utils/queryResultsUtils';
 
@@ -25,48 +20,34 @@ import { TokenIcon } from './TokenIcon';
 import { PriceChart, DataSourceSection, ErrorBanner } from './index';
 
 interface QueryResultsProps {
-  queryState: QueryState;
-  stats: StatsState;
-  chartConfig: ChartConfig;
-  errorState: ErrorState;
   onChainData: OnChainData;
-  selectedSymbol: string;
-  setSelectedSymbol: (symbol: string) => void;
-  onRefresh: () => void;
-  onTimeRangeChange?: (hours: number) => void;
 }
 
-export function QueryResults({
-  queryState,
-  stats,
-  chartConfig,
-  errorState,
-  onChainData,
-  selectedSymbol,
-  setSelectedSymbol,
-  onRefresh,
-  onTimeRangeChange,
-}: QueryResultsProps) {
+export function QueryResults({ onChainData }: QueryResultsProps) {
+  const params = useQueryParams();
+  const queryData = useQueryData();
+  const ui = useQueryUI();
+
+  const { selectedSymbol, setSelectedSymbol, selectedTimeRange, setSelectedTimeRange } = params;
+
   const {
     queryResults,
-    historicalData: _historicalData,
     isLoading,
     queryDuration,
     queryProgress,
     currentQueryTarget,
-  } = queryState;
-  const {
-    validPrices: _validPrices,
-    avgPrice,
-    avgChange24hPercent: _avgChange24hPercent,
-    maxPrice,
-    minPrice,
-    priceRange,
-    standardDeviation,
-    standardDeviationPercent,
-  } = stats;
-  const { chartData, chartContainerRef, selectedTimeRange } = chartConfig;
-  const { queryErrors, onRetryDataSource, onRetryAllErrors, onClearErrors } = errorState;
+    queryErrors,
+    retryDataSource,
+    retryAllErrors,
+    clearErrors,
+    refetch,
+    chartData,
+    chartContainerRef,
+  } = queryData;
+
+  const { avgPrice, maxPrice, minPrice, priceRange, standardDeviation, standardDeviationPercent } =
+    queryData.stats;
+
   const {
     diaOnChainData,
     isDIADataLoading: _isDIADataLoading,
@@ -81,6 +62,7 @@ export function QueryResults({
     reflectorOnChainData,
     isReflectorDataLoading: _isReflectorDataLoading,
   } = onChainData;
+
   const consistencyRating = useConsistencyRating(standardDeviationPercent);
   const prevPriceRef = useRef<number | undefined>(undefined);
   const currentPriceValue =
@@ -92,13 +74,11 @@ export function QueryResults({
   }, [currentPriceValue]);
 
   if (isLoading) {
-    return (
-      <QueryResultsLoading queryProgress={queryProgress} currentQueryTarget={currentQueryTarget} />
-    );
+    return <QueryResultsLoading />;
   }
 
   if (queryResults.length === 0) {
-    return <QueryResultsEmpty selectedSymbol={selectedSymbol} onSymbolChange={setSelectedSymbol} />;
+    return <QueryResultsEmpty />;
   }
 
   const currentResult = queryResults[0];
@@ -109,9 +89,9 @@ export function QueryResults({
       {queryErrors.length > 0 && (
         <ErrorBanner
           errors={queryErrors}
-          onRetry={onRetryDataSource}
-          onRetryAll={onRetryAllErrors}
-          onDismiss={onClearErrors}
+          onRetry={retryDataSource}
+          onRetryAll={retryAllErrors}
+          onDismiss={clearErrors}
         />
       )}
 
@@ -203,7 +183,7 @@ export function QueryResults({
               queryResults={queryResults}
               selectedTimeRange={selectedTimeRange}
               avgPrice={avgPrice}
-              onTimeRangeChange={onTimeRangeChange}
+              onTimeRangeChange={setSelectedTimeRange}
             />
           </div>
         </div>
@@ -217,7 +197,7 @@ export function QueryResults({
               ? new Date(safeMax(queryResults.map((r) => r.priceData.timestamp)))
               : null
           }
-          onRefresh={onRefresh}
+          onRefresh={refetch}
           isLoading={isLoading}
         />
       </div>

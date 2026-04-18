@@ -74,7 +74,7 @@ export default function CrossChainContent() {
 
               {lastUpdated && (
                 <div className="text-xs text-gray-400 text-center">
-                  Last updated: {lastUpdated.toLocaleTimeString()}
+                  Last updated: {lastUpdated.toLocaleTimeString('en-US')}
                 </div>
               )}
             </div>

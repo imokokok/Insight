@@ -340,7 +340,7 @@ interface ChainlinkErrorDetails extends OracleErrorDetails {
 /**
  * Chainlink 错误
  */
-class ChainlinkError extends AppError {
+export class ChainlinkError extends AppError {
   public readonly errorCode: ChainlinkErrorCode;
 
   constructor(
@@ -415,7 +415,7 @@ interface PythErrorDetails extends OracleErrorDetails {
 /**
  * Pyth 错误
  */
-class PythError extends AppError {
+export class PythError extends AppError {
   public readonly errorCode: PythErrorCode;
 
   constructor(
@@ -483,7 +483,7 @@ interface API3ErrorDetails extends OracleErrorDetails {
 /**
  * API3 错误
  */
-class API3Error extends AppError {
+export class API3Error extends AppError {
   public readonly errorCode: API3ErrorCode;
 
   constructor(
@@ -549,7 +549,7 @@ interface SupraErrorDetails extends OracleErrorDetails {
 /**
  * Supra 错误
  */
-class SupraError extends AppError {
+export class SupraError extends AppError {
   public readonly errorCode: SupraErrorCode;
 
   constructor(
@@ -659,6 +659,178 @@ export class FlareError extends AppError {
       case 'CONTRACT_CALL_FAILED':
         return 'medium';
       case 'STALE_PRICE':
+        return 'high';
+      case 'INVALID_PRICE':
+        return 'critical';
+      default:
+        return 'medium';
+    }
+  }
+}
+
+export type DIAErrorCode =
+  | 'FETCH_ERROR'
+  | 'PARSE_ERROR'
+  | 'NETWORK_ERROR'
+  | 'TIMEOUT_ERROR'
+  | 'RATE_LIMIT_ERROR'
+  | 'INVALID_RESPONSE'
+  | 'NFT_DATA_ERROR';
+
+interface DIAErrorDetails extends OracleErrorDetails {
+  errorCode: DIAErrorCode;
+  symbol?: string;
+  blockchain?: string;
+  attemptCount?: number;
+}
+
+export class DIAError extends AppError {
+  public readonly errorCode: DIAErrorCode;
+  public readonly retryable: boolean;
+  public readonly attemptCount: number;
+
+  constructor(
+    message: string,
+    errorCode: DIAErrorCode,
+    details?: Partial<DIAErrorDetails>,
+    cause?: Error
+  ) {
+    const isRetryable = DIAError.isRetryableError(errorCode);
+    super({
+      message,
+      code: 'DIA_ERROR',
+      statusCode: DIAError.getStatusCode(errorCode),
+      category: 'external_service',
+      severity: DIAError.getSeverity(errorCode),
+      isOperational: true,
+      retryable: isRetryable,
+      details: { ...details, errorCode },
+      cause,
+    });
+    this.errorCode = errorCode;
+    this.retryable = isRetryable;
+    this.attemptCount = details?.attemptCount ?? 1;
+  }
+
+  private static isRetryableError(errorCode: DIAErrorCode): boolean {
+    const retryableCodes: DIAErrorCode[] = [
+      'NETWORK_ERROR',
+      'TIMEOUT_ERROR',
+      'RATE_LIMIT_ERROR',
+      'FETCH_ERROR',
+    ];
+    return retryableCodes.includes(errorCode);
+  }
+
+  private static getStatusCode(errorCode: DIAErrorCode): number {
+    switch (errorCode) {
+      case 'RATE_LIMIT_ERROR':
+        return HttpStatusCodes.TOO_MANY_REQUESTS;
+      case 'TIMEOUT_ERROR':
+        return HttpStatusCodes.GATEWAY_TIMEOUT;
+      case 'NETWORK_ERROR':
+        return HttpStatusCodes.SERVICE_UNAVAILABLE;
+      case 'INVALID_RESPONSE':
+      case 'PARSE_ERROR':
+        return HttpStatusCodes.UNPROCESSABLE_ENTITY;
+      default:
+        return HttpStatusCodes.BAD_GATEWAY;
+    }
+  }
+
+  private static getSeverity(errorCode: DIAErrorCode): 'low' | 'medium' | 'high' | 'critical' {
+    switch (errorCode) {
+      case 'RATE_LIMIT_ERROR':
+        return 'low';
+      case 'TIMEOUT_ERROR':
+      case 'NETWORK_ERROR':
+        return 'medium';
+      case 'INVALID_RESPONSE':
+      case 'PARSE_ERROR':
+      case 'NFT_DATA_ERROR':
+        return 'high';
+      case 'FETCH_ERROR':
+        return 'critical';
+      default:
+        return 'medium';
+    }
+  }
+}
+
+export type WINkLinkErrorCode =
+  | 'CONTRACT_CALL_ERROR'
+  | 'STALE_DATA'
+  | 'INVALID_PRICE'
+  | 'PAIR_NOT_FOUND'
+  | 'TRON_RPC_ERROR'
+  | 'GAMING_DATA_ERROR';
+
+interface WINkLinkErrorDetails extends OracleErrorDetails {
+  errorCode: WINkLinkErrorCode;
+  pairIndex?: number;
+  contractAddress?: string;
+  attemptCount?: number;
+}
+
+export class WINkLinkError extends AppError {
+  public readonly errorCode: WINkLinkErrorCode;
+  public readonly retryable: boolean;
+  public readonly attemptCount: number;
+
+  constructor(
+    message: string,
+    errorCode: WINkLinkErrorCode,
+    details?: Partial<WINkLinkErrorDetails>,
+    cause?: Error
+  ) {
+    const isRetryable = WINkLinkError.isRetryableError(errorCode);
+    super({
+      message,
+      code: 'WINKLINK_ERROR',
+      statusCode: WINkLinkError.getStatusCode(errorCode),
+      category: 'external_service',
+      severity: WINkLinkError.getSeverity(errorCode),
+      isOperational: true,
+      retryable: isRetryable,
+      details: { ...details, errorCode },
+      cause,
+    });
+    this.errorCode = errorCode;
+    this.retryable = isRetryable;
+    this.attemptCount = details?.attemptCount ?? 1;
+  }
+
+  private static isRetryableError(errorCode: WINkLinkErrorCode): boolean {
+    const retryableCodes: WINkLinkErrorCode[] = [
+      'CONTRACT_CALL_ERROR',
+      'STALE_DATA',
+      'TRON_RPC_ERROR',
+    ];
+    return retryableCodes.includes(errorCode);
+  }
+
+  private static getStatusCode(errorCode: WINkLinkErrorCode): number {
+    switch (errorCode) {
+      case 'TRON_RPC_ERROR':
+        return HttpStatusCodes.SERVICE_UNAVAILABLE;
+      case 'CONTRACT_CALL_ERROR':
+        return HttpStatusCodes.BAD_GATEWAY;
+      case 'PAIR_NOT_FOUND':
+        return HttpStatusCodes.NOT_FOUND;
+      default:
+        return HttpStatusCodes.BAD_GATEWAY;
+    }
+  }
+
+  private static getSeverity(errorCode: WINkLinkErrorCode): 'low' | 'medium' | 'high' | 'critical' {
+    switch (errorCode) {
+      case 'PAIR_NOT_FOUND':
+      case 'GAMING_DATA_ERROR':
+        return 'low';
+      case 'TRON_RPC_ERROR':
+      case 'CONTRACT_CALL_ERROR':
+        return 'medium';
+      case 'STALE_DATA':
         return 'high';
       case 'INVALID_PRICE':
         return 'critical';

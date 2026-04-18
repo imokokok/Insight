@@ -2,65 +2,63 @@
 
 import { Star, ChevronDown } from 'lucide-react';
 
-import type { FavoriteConfig } from '@/hooks';
-import type { UserFavorite } from '@/lib/supabase/queries';
+import { useFavorites, type FavoriteConfig } from '@/hooks';
 import type { OracleProvider, Blockchain } from '@/types/oracle';
+
+import { useQueryParams, useQueryData, useQueryUI } from '../contexts';
 
 import UnifiedExportSection from './UnifiedExportSection';
 
-import type { QueryResult } from '../constants';
+export function QueryHeader() {
+  const params = useQueryParams();
+  const queryData = useQueryData();
+  const ui = useQueryUI();
+  const { favorites: symbolFavorites } = useFavorites({ configType: 'symbol' });
 
-interface QueryHeaderProps {
-  loading: boolean;
-  queryResults: QueryResult[];
-  chartContainerRef: React.RefObject<HTMLDivElement | null>;
-  selectedSymbol: string;
-  avgPrice: number;
-  maxPrice: number;
-  minPrice: number;
-  priceRange: number;
-  standardDeviation: number;
-  standardDeviationPercent: number;
-  selectedOracle: OracleProvider | null;
-  selectedChain: Blockchain | null;
-  selectedTimeRange: number;
-  setSelectedOracle: (oracle: OracleProvider | null) => void;
-  setSelectedChain: (chain: Blockchain | null) => void;
-  setSelectedSymbol: (symbol: string) => void;
-  setSelectedTimeRange: (timeRange: number) => void;
-  symbolFavorites: UserFavorite[];
-  currentFavoriteConfig: FavoriteConfig;
-  showFavoritesDropdown: boolean;
-  setShowFavoritesDropdown: (show: boolean) => void;
-  favoritesDropdownRef: React.RefObject<HTMLDivElement | null>;
-  handleApplyFavorite: (config: FavoriteConfig) => void;
-}
+  const {
+    selectedOracle,
+    setSelectedOracle,
+    selectedChain,
+    setSelectedChain,
+    selectedSymbol,
+    setSelectedSymbol,
+    selectedTimeRange,
+  } = params;
 
-export function QueryHeader({
-  loading,
-  queryResults,
-  chartContainerRef,
-  selectedSymbol,
-  avgPrice,
-  maxPrice,
-  minPrice,
-  priceRange,
-  standardDeviation,
-  standardDeviationPercent,
-  selectedOracle,
-  selectedChain: _selectedChain,
-  selectedTimeRange: _selectedTimeRange,
-  setSelectedOracle: _setSelectedOracle,
-  setSelectedChain: _setSelectedChain,
-  setSelectedSymbol: _setSelectedSymbol,
-  setSelectedTimeRange: _setSelectedTimeRange,
-  symbolFavorites,
-  currentFavoriteConfig,
-  showFavoritesDropdown,
-  setShowFavoritesDropdown,
-  favoritesDropdownRef,
-  handleApplyFavorite,
-}: QueryHeaderProps) {
+  const { queryResults, isLoading: loading, chartContainerRef } = queryData;
+
+  const { avgPrice, maxPrice, minPrice, priceRange, standardDeviation, standardDeviationPercent } =
+    queryData.stats;
+
+  const { showFavoritesDropdown, setShowFavoritesDropdown, favoritesDropdownRef } = ui;
+
+  const handleApplyFavorite = (config: FavoriteConfig) => {
+    if (config.symbol) {
+      setSelectedSymbol(config.symbol);
+    }
+    if (config.selectedOracles && config.selectedOracles.length > 0) {
+      setSelectedOracle(config.selectedOracles[0] as OracleProvider);
+    } else {
+      setSelectedOracle(null);
+    }
+    if (config.chains && config.chains.length > 0) {
+      setSelectedChain(config.chains[0] as Blockchain);
+    } else {
+      setSelectedChain(null);
+    }
+    if (config.timeRange !== undefined) {
+      params.setSelectedTimeRange(config.timeRange);
+    }
+    setShowFavoritesDropdown(false);
+  };
+
+  const currentFavoriteConfig: FavoriteConfig = {
+    symbol: selectedSymbol,
+    selectedOracles: selectedOracle ? [selectedOracle as string] : [],
+    chains: selectedChain ? [selectedChain as string] : [],
+    timeRange: selectedTimeRange,
+  };
+
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div>

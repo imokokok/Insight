@@ -6,6 +6,12 @@ import { OracleProvider, Blockchain } from '@/types/oracle';
 import { getDefaultMarketData, getDefaultNetworkData } from './helpers';
 import { type OracleConfig } from './types';
 
+let _client: DIAClient | null = null;
+function getClient() {
+  if (!_client) _client = new DIAClient();
+  return _client;
+}
+
 export const diaConfig: OracleConfig = {
   provider: OracleProvider.DIA,
   name: 'DIA',
@@ -25,7 +31,7 @@ export const diaConfig: OracleConfig = {
     Blockchain.GNOSIS,
     Blockchain.KAVA,
   ],
-  client: new DIAClient(),
+  getClient,
   iconBgColor: 'bg-indigo-600',
   themeColor: '#6366f1',
   icon: <Image src="/logos/oracles/dia.svg" alt="DIA" width={48} height={48} />,

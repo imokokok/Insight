@@ -19,11 +19,13 @@ import {
   ChevronUp,
 } from 'lucide-react';
 
+import { AutoRefreshControl } from '@/app/price-query/components/AutoRefreshControl';
 import { SegmentedControl, DropdownSelect } from '@/components/ui';
+import { type RefreshInterval as NumericRefreshInterval } from '@/hooks/useAutoRefresh';
 import { getPriceOracleProvidersSortedByMarketCap, getOracleConfig } from '@/lib/config/oracles';
 import { type OracleProvider } from '@/types/oracle';
 
-import { timeRanges, oracleNames, type TimeRange } from '../constants';
+import { timeRanges, oracleNames, type TimeRange, type RefreshInterval } from '../constants';
 import { useCommonSymbols } from '../hooks/useCommonSymbols';
 
 import type { OracleFeature } from '../types/index';
@@ -40,6 +42,10 @@ interface ControlPanelProps {
   isLoading: boolean;
   activeFilterCount: number;
   onClearFilters: () => void;
+  refreshInterval: RefreshInterval;
+  onRefreshIntervalChange: (interval: RefreshInterval) => void;
+  lastRefreshedAt: Date | null;
+  nextRefreshAt: Date | null;
 }
 
 // 获取预言机特性信息
@@ -76,9 +82,34 @@ export function ControlPanel({
   isLoading,
   activeFilterCount,
   onClearFilters,
+  refreshInterval,
+  onRefreshIntervalChange,
+  lastRefreshedAt,
+  nextRefreshAt,
 }: ControlPanelProps) {
   const [isMobileExpanded, setIsMobileExpanded] = useState(false);
   const [hoveredOracle, setHoveredOracle] = useState<OracleProvider | null>(null);
+
+  const crossOracleToNumericInterval = (interval: RefreshInterval): NumericRefreshInterval => {
+    const map: Record<RefreshInterval, NumericRefreshInterval> = {
+      off: 0,
+      '10s': 30000,
+      '30s': 30000,
+      '1m': 60000,
+      '5m': 300000,
+    };
+    return map[interval];
+  };
+
+  const numericToCrossOracleInterval = (interval: NumericRefreshInterval): RefreshInterval => {
+    const map: Record<NumericRefreshInterval, RefreshInterval> = {
+      0: 'off',
+      30000: '30s',
+      60000: '1m',
+      300000: '5m',
+    };
+    return map[interval];
+  };
 
   // 使用 useCommonSymbols hook 获取共同支持的币种
   const { commonSymbols, oracleCountMap, unsupportedOracles } = useCommonSymbols(selectedOracles);
@@ -304,7 +335,7 @@ export function ControlPanel({
                     {option.label}
                     {isUnsupported && (
                       <span className="inline-flex items-center px-1 py-0.5 text-[9px] font-medium bg-amber-100 text-amber-700 rounded leading-none">
-                        不支持
+                        Not Supported
                       </span>
                     )}
                   </button>
@@ -334,7 +365,7 @@ export function ControlPanel({
                               <span>Supported Assets</span>
                             </div>
                             <span className="font-medium text-white">
-                              {featureInfo.symbolCount.toLocaleString()}
+                              {featureInfo.symbolCount.toLocaleString('en-US')}
                             </span>
                           </div>
 
@@ -393,6 +424,22 @@ export function ControlPanel({
             label="Time Range"
             size="sm"
             className="flex-wrap"
+          />
+        </section>
+
+        {/* 自动刷新控制 */}
+        <section className="bg-gray-50/50 rounded-lg p-2.5 sm:p-3 border border-gray-100">
+          <label className="block text-[10px] sm:text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-1.5 sm:mb-2">
+            Auto Refresh
+          </label>
+          <AutoRefreshControl
+            refreshInterval={crossOracleToNumericInterval(refreshInterval)}
+            onIntervalChange={(interval) =>
+              onRefreshIntervalChange(numericToCrossOracleInterval(interval))
+            }
+            lastRefreshedAt={lastRefreshedAt}
+            nextRefreshAt={nextRefreshAt}
+            isRefreshing={isLoading}
           />
         </section>
 

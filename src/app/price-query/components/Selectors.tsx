@@ -9,41 +9,25 @@ import { getPriceOracleProvidersSortedByMarketCap } from '@/lib/config/oracles';
 import { type OracleProvider, type Blockchain, BLOCKCHAIN_VALUES } from '@/types/oracle';
 
 import { symbols, oracleColors, chainColors, TIME_RANGES } from '../constants';
+import { useQueryParams, useQueryData } from '../contexts';
 import { useOracleSymbols } from '../hooks/useOracleSymbols';
 
-interface SelectorsProps {
-  selectedOracle: OracleProvider | null;
-  setSelectedOracle: (oracle: OracleProvider | null) => void;
-  selectedChain: Blockchain | null;
-  setSelectedChain: (chain: Blockchain | null) => void;
-  selectedSymbol: string;
-  setSelectedSymbol: (symbol: string) => void;
-  selectedTimeRange: number;
-  setSelectedTimeRange: (timeRange: number) => void;
-  isLoading: boolean;
-  onQuery: () => void;
-  supportedChainsBySelectedOracles: Set<Blockchain>;
-}
+import { AutoRefreshControl } from './AutoRefreshControl';
 
-/**
- * 查询选择器组件
- *
- * @param props - 组件属性
- * @returns 选择器面板 JSX 元素
- */
-export function Selectors({
-  selectedOracle,
-  setSelectedOracle,
-  selectedChain,
-  setSelectedChain,
-  selectedSymbol,
-  setSelectedSymbol,
-  selectedTimeRange,
-  setSelectedTimeRange,
-  isLoading,
-  onQuery,
-  supportedChainsBySelectedOracles,
-}: SelectorsProps) {
+export function Selectors() {
+  const {
+    selectedOracle,
+    setSelectedOracle,
+    selectedChain,
+    setSelectedChain,
+    selectedSymbol,
+    setSelectedSymbol,
+    selectedTimeRange,
+    setSelectedTimeRange,
+  } = useQueryParams();
+
+  const { isLoading, refetch, supportedChainsBySelectedOracles, autoRefresh } = useQueryData();
+
   const {
     supportedSymbols,
     isSymbolSupported,
@@ -51,15 +35,12 @@ export function Selectors({
     getSymbolsForChain,
   } = useOracleSymbols(selectedOracle ? [selectedOracle] : []);
 
-  // 链选项生成逻辑
   const chainOptions: SelectorOption<Blockchain>[] = useMemo(() => {
     let availableChains: Blockchain[];
 
     if (!selectedOracle) {
-      // 没有选择预言机时，显示所有链
       availableChains = [...BLOCKCHAIN_VALUES];
     } else {
-      // 使用选中预言机支持的所有链
       availableChains = BLOCKCHAIN_VALUES.filter((chain) =>
         supportedChainsBySelectedOracles.has(chain)
       );
@@ -78,12 +59,7 @@ export function Selectors({
     }));
   }, [selectedOracle, supportedChainsBySelectedOracles]);
 
-  // 币种选项生成逻辑：
-  // - 当选择了预言机和链时，只显示该链上支持的币种
-  // - 当只选择了预言机时，显示该预言机支持的所有币种
-  // - 当没有选择预言机时，显示所有币种
   const symbolOptions: SelectorOption<string>[] = useMemo(() => {
-    // 如果没有选择预言机，显示所有币种
     if (!selectedOracle) {
       return symbols.slice(0, 12).map((symbol) => ({
         value: symbol,
@@ -91,7 +67,6 @@ export function Selectors({
       }));
     }
 
-    // 如果选择了预言机和链，只显示该链支持的币种
     if (selectedChain) {
       const symbolsForChain = getSymbolsForChain(selectedChain);
       return symbolsForChain.map((symbol) => ({
@@ -100,7 +75,6 @@ export function Selectors({
       }));
     }
 
-    // 如果只选择了预言机，显示该预言机支持的所有币种
     return supportedSymbols.map((symbol) => ({
       value: symbol,
       label: symbol,
@@ -137,7 +111,7 @@ export function Selectors({
           Price Query
         </h2>
         <button
-          onClick={onQuery}
+          onClick={refetch}
           disabled={isLoading}
           aria-busy={isLoading}
           aria-label={isLoading ? 'Loading...' : 'Query'}
@@ -193,6 +167,27 @@ export function Selectors({
             onChange={(value) => setSelectedSymbol(value as string)}
             label="Symbol"
             aria-label="Select symbol"
+          />
+        </section>
+
+        <section className="py-3 border-t border-gray-100" aria-labelledby="timerange-label">
+          <SegmentedControl
+            options={timeRangeOptions}
+            value={selectedTimeRange}
+            onChange={(value) => setSelectedTimeRange(value as number)}
+            label="Time Range"
+            aria-label="Select time range"
+          />
+        </section>
+
+        <section className="py-3 border-t border-gray-100" aria-labelledby="autorefresh-label">
+          <label className="block text-xs font-medium text-gray-700 mb-2">Auto Refresh</label>
+          <AutoRefreshControl
+            refreshInterval={autoRefresh.refreshInterval}
+            onIntervalChange={autoRefresh.setRefreshInterval}
+            lastRefreshedAt={autoRefresh.lastRefreshedAt}
+            nextRefreshAt={autoRefresh.nextRefreshAt}
+            isRefreshing={autoRefresh.isRefreshing}
           />
         </section>
       </div>

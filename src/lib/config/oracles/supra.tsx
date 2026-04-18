@@ -6,6 +6,12 @@ import { OracleProvider, Blockchain } from '@/types/oracle';
 import { getDefaultMarketData, getDefaultNetworkData } from './helpers';
 import { type OracleConfig } from './types';
 
+let _client: SupraClient | null = null;
+function getClient() {
+  if (!_client) _client = new SupraClient();
+  return _client;
+}
+
 export const supraConfig: OracleConfig = {
   provider: OracleProvider.SUPRA,
   name: 'Supra',
@@ -39,7 +45,7 @@ export const supraConfig: OracleConfig = {
     Blockchain.BLAST,
     Blockchain.STARKNET,
   ],
-  client: new SupraClient(),
+  getClient,
   iconBgColor: 'bg-teal-600',
   themeColor: '#14B8A6',
   icon: <Image src="/logos/oracles/supra.svg" alt="Supra" width={48} height={48} />,

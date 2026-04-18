@@ -6,6 +6,12 @@ import { OracleProvider, Blockchain } from '@/types/oracle';
 import { getDefaultMarketData, getDefaultNetworkData } from './helpers';
 import { type OracleConfig } from './types';
 
+let _client: FlareClient | null = null;
+function getClient() {
+  if (!_client) _client = new FlareClient({ useRealData: true });
+  return _client;
+}
+
 export const flareConfig: OracleConfig = {
   provider: OracleProvider.FLARE,
   name: 'Flare',
@@ -13,7 +19,7 @@ export const flareConfig: OracleConfig = {
   symbol: 'FLR',
   defaultChain: Blockchain.FLARE,
   supportedChains: [Blockchain.FLARE],
-  client: new FlareClient({ useRealData: true }),
+  getClient,
   iconBgColor: '#E84142',
   themeColor: '#E84142',
   icon: <Image src="/logos/oracles/flare.svg" alt="Flare" width={48} height={48} />,

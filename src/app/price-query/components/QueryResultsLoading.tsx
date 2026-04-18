@@ -1,17 +1,12 @@
 'use client';
 
 import { ChartSkeleton } from '@/components/ui';
-import type { OracleProvider, Blockchain } from '@/types/oracle';
 
-interface QueryResultsLoadingProps {
-  queryProgress: { completed: number; total: number };
-  currentQueryTarget: { oracle: OracleProvider | null; chain: Blockchain | null };
-}
+import { useQueryData } from '../contexts';
 
-export function QueryResultsLoading({
-  queryProgress,
-  currentQueryTarget,
-}: QueryResultsLoadingProps) {
+export function QueryResultsLoading() {
+  const { queryProgress, currentQueryTarget } = useQueryData();
+
   return (
     <div className="space-y-6">
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">

@@ -7,6 +7,12 @@ import { OracleProvider, Blockchain } from '@/types/oracle';
 import { getDefaultMarketData, getDefaultNetworkData } from './helpers';
 import { type OracleConfig } from './types';
 
+let _client: RedStoneClient | null = null;
+function getClient() {
+  if (!_client) _client = new RedStoneClient();
+  return _client;
+}
+
 export const redstoneConfig: OracleConfig = {
   provider: OracleProvider.REDSTONE,
   name: 'RedStone',
@@ -31,7 +37,7 @@ export const redstoneConfig: OracleConfig = {
     Blockchain.APTOS,
     Blockchain.SUI,
   ],
-  client: new RedStoneClient(),
+  getClient,
   iconBgColor: `bg-[${chartColors.oracle.redstone}]`,
   themeColor: '#ef4444',
   icon: <Image src="/logos/oracles/redstone.svg" alt="RedStone" width={48} height={48} />,

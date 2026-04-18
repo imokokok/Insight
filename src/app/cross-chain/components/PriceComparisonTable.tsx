@@ -1,6 +1,7 @@
 'use client';
 
 import { DataTablePro, type ColumnDef, type ConditionalFormattingRule } from '@/components/ui';
+import { type CrossChainComparisonResult } from '@/lib/oracles/crossChainComparison';
 import { isBlockchain } from '@/lib/utils/chainUtils';
 import { formatPrice, formatPriceDiff } from '@/lib/utils/format';
 import { useCrossChainConfigStore } from '@/stores/crossChainConfigStore';
@@ -23,6 +24,9 @@ interface TableRow extends Record<string, unknown> {
   isOutlier: boolean;
   zScore: number | null;
   priceHistory: number[];
+  dataFreshness: number | null;
+  chainStatus: 'online' | 'degraded' | 'offline' | null;
+  deviationFromMedian: number | null;
 }
 
 export function PriceComparisonTable() {
@@ -35,6 +39,7 @@ export function PriceComparisonTable() {
 
   const currentPrices = useCrossChainDataStore((s) => s.currentPrices);
   const historicalPrices = useCrossChainDataStore((s) => s.historicalPrices);
+  const crossChainComparison = useCrossChainDataStore((s) => s.crossChainComparison);
   const thresholdConfig = useCrossChainConfigStore((s) => s.thresholdConfig);
 
   const filteredChains = useFilteredChains();
@@ -75,12 +80,18 @@ export function PriceComparisonTable() {
   const { avgPrice, standardDeviation } = statistics;
   const { sortedPriceDifferences } = table;
 
+  const comparisonMap = new Map<string, CrossChainComparisonResult>();
+  for (const result of crossChainComparison) {
+    comparisonMap.set(result.chain, result);
+  }
+
   const tableData: TableRow[] = sortedPriceDifferences.map((item) => {
     const zScore = calculateZScore(item.price, avgPrice, standardDeviation);
     const chainHistoricalPrices = isBlockchain(item.chain)
       ? historicalPrices[item.chain]
       : undefined;
     const priceHistory = chainHistoricalPrices?.map((p) => p.price) ?? [];
+    const comparison = comparisonMap.get(item.chain);
 
     return {
       chain: item.chain,
@@ -90,6 +101,9 @@ export function PriceComparisonTable() {
       isOutlier: isOutlier(zScore),
       zScore,
       priceHistory,
+      dataFreshness: comparison?.latency ?? null,
+      chainStatus: comparison?.status ?? null,
+      deviationFromMedian: comparison?.deviation ?? null,
     };
   });
 
@@ -238,6 +252,58 @@ export function PriceComparisonTable() {
             }`}
           >
             {zScore.toFixed(2)}
+          </span>
+        );
+      },
+    },
+    {
+      key: 'dataFreshness',
+      header: 'Data Age',
+      width: 110,
+      minWidth: 90,
+      align: 'right',
+      sortable: true,
+      formatter: (value: unknown) => {
+        const age = value as number | null;
+        if (age === null || age === Infinity) return <span className="text-gray-400">-</span>;
+
+        let formatted: string;
+        let colorClass: string;
+
+        if (age < 60) {
+          formatted = `${age.toFixed(0)}s`;
+          colorClass = 'text-emerald-600';
+        } else if (age < 300) {
+          formatted = `${(age / 60).toFixed(1)}m`;
+          colorClass = 'text-amber-600';
+        } else {
+          formatted = `${(age / 3600).toFixed(1)}h`;
+          colorClass = 'text-red-600';
+        }
+
+        return <span className={`font-mono text-sm ${colorClass}`}>{formatted}</span>;
+      },
+    },
+    {
+      key: 'chainStatus',
+      header: 'Status',
+      width: 90,
+      minWidth: 70,
+      align: 'center',
+      sortable: true,
+      formatter: (value: unknown) => {
+        const status = value as 'online' | 'degraded' | 'offline' | null;
+        if (!status) return <span className="text-gray-400">-</span>;
+
+        const config = {
+          online: { label: 'Online', className: 'bg-emerald-100 text-emerald-700' },
+          degraded: { label: 'Degraded', className: 'bg-amber-100 text-amber-700' },
+          offline: { label: 'Offline', className: 'bg-red-100 text-red-700' },
+        }[status];
+
+        return (
+          <span className={`px-2 py-0.5 text-xs font-medium rounded ${config.className}`}>
+            {config.label}
           </span>
         );
       },

@@ -27,7 +27,7 @@ export function ExportHistoryPanel({ onClose, dataSource }: ExportHistoryPanelPr
     : history;
 
   const formatDate = (timestamp: number) => {
-    return new Date(timestamp).toLocaleString();
+    return new Date(timestamp).toLocaleString('en-US');
   };
 
   const handleReDownload = (item: ExportHistoryItem) => {

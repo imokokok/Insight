@@ -149,7 +149,7 @@ export function DataUpdateTime({
 
           <div className="text-right">
             {lastUpdated && (
-              <p className="text-xs text-gray-500">{lastUpdated.toLocaleTimeString()}</p>
+              <p className="text-xs text-gray-500">{lastUpdated.toLocaleTimeString('en-US')}</p>
             )}
             {autoRefresh && showCountdown && (
               <p className="text-xs font-medium text-gray-600">

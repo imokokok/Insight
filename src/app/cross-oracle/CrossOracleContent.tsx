@@ -7,6 +7,7 @@ import { useCommonShortcuts } from '@/hooks';
 import { chartColors } from '@/lib/config/colors';
 
 import { ControlPanel } from './components/ControlPanel';
+import CrossOracleExportSection from './components/CrossOracleExportSection';
 import { QueryResults } from './components/QueryResults';
 import { useCrossOraclePage } from './hooks';
 
@@ -41,6 +42,11 @@ export default function CrossOracleContent() {
     toggleOracle,
 
     fetchPriceData,
+
+    refreshInterval,
+    setRefreshInterval,
+    lastRefreshedAt,
+    nextRefreshAt,
   } = useCrossOraclePage();
 
   const debouncedSearchFocus = useCallback(() => {
@@ -114,9 +120,22 @@ export default function CrossOracleContent() {
           <div className="flex items-center gap-2">
             {lastUpdated && (
               <span className="text-xs text-gray-500">
-                Last updated: {lastUpdated.toLocaleTimeString()}
+                Last updated: {lastUpdated.toLocaleTimeString('en-US')}
               </span>
             )}
+            <CrossOracleExportSection
+              loading={isLoading}
+              priceData={priceData}
+              selectedOracles={selectedOracles}
+              selectedSymbol={selectedSymbol}
+              avgPrice={avgPrice}
+              medianPrice={medianPrice}
+              maxPrice={maxPrice}
+              minPrice={minPrice}
+              priceRange={priceRange}
+              standardDeviation={standardDeviation}
+              standardDeviationPercent={standardDeviationPercent}
+            />
           </div>
         </div>
 
@@ -142,6 +161,10 @@ export default function CrossOracleContent() {
               isLoading={isLoading}
               activeFilterCount={activeFilterCount}
               onClearFilters={handleClearFilters}
+              refreshInterval={refreshInterval}
+              onRefreshIntervalChange={setRefreshInterval}
+              lastRefreshedAt={lastRefreshedAt}
+              nextRefreshAt={nextRefreshAt}
             />
           </div>
         </aside>

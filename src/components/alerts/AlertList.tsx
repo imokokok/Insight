@@ -343,7 +343,7 @@ export function AlertList({ alerts, isLoading, onRefresh }: AlertListProps) {
                               {alert.last_triggered_at && (
                                 <p className="text-xs text-gray-400 mt-1">
                                   Last triggered:{' '}
-                                  {new Date(alert.last_triggered_at).toLocaleString('zh-CN')}
+                                  {new Date(alert.last_triggered_at).toLocaleString('en-US')}
                                 </p>
                               )}
                             </div>

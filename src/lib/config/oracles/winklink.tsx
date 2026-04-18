@@ -7,6 +7,12 @@ import { OracleProvider, Blockchain } from '@/types/oracle';
 import { getDefaultMarketData, getDefaultNetworkData } from './helpers';
 import { type OracleConfig } from './types';
 
+let _client: WINkLinkClient | null = null;
+function getClient() {
+  if (!_client) _client = new WINkLinkClient();
+  return _client;
+}
+
 export const winklinkConfig: OracleConfig = {
   provider: OracleProvider.WINKLINK,
   name: 'WINkLink',
@@ -14,7 +20,7 @@ export const winklinkConfig: OracleConfig = {
   symbol: 'WIN/USD',
   defaultChain: Blockchain.BNB_CHAIN,
   supportedChains: [Blockchain.BNB_CHAIN, Blockchain.TRON, Blockchain.ETHEREUM],
-  client: new WINkLinkClient(),
+  getClient,
   iconBgColor: `bg-[${chartColors.oracle.winklink}]`,
   themeColor: '#ec4899',
   icon: <Image src="/logos/oracles/winklink.svg" alt="WINkLink" width={48} height={48} />,

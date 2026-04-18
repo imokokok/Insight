@@ -1,4 +1,3 @@
-/* eslint-disable max-lines-per-function */
 'use client';
 
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
@@ -10,13 +9,12 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip as RechartsTooltip,
-  Legend,
   ResponsiveContainer,
   ReferenceLine,
   Scatter,
 } from 'recharts';
 
-import { ChartToolbar, type TimeRange } from '@/components/charts/ChartToolbar';
+import { ChartToolbar as TimeRangeToolbar, type TimeRange } from '@/components/charts/ChartToolbar';
 import { chartColors, semanticColors } from '@/lib/config/colors';
 import { isBlockchain } from '@/lib/utils/chainUtils';
 import { downloadBlob } from '@/lib/utils/download';
@@ -26,13 +24,11 @@ import { type ChartDataPoint } from '../constants';
 import { chainNames, chainColors } from '../utils';
 import { getTimeRangeInMs } from '../utils/timeUtils';
 
-interface ReferenceLineConfig {
-  id: string;
-  y: number;
-  label: string;
-  color: string;
-  strokeDasharray?: string;
-}
+import { ChartLegend } from './ChartLegend';
+import { ChartToolbar as PriceChartControls } from './ChartToolbar';
+import { ReferenceLineList } from './ReferenceLineManager';
+import { type ReferenceLineConfig } from './ReferenceLineManager';
+import { useReferenceLines } from './useReferenceLines';
 
 interface InteractivePriceChartProps {
   chartData: ChartDataPoint[];
@@ -58,7 +54,6 @@ interface ViewState {
   endIndex: number;
 }
 
-// Custom tooltip component
 interface CustomTooltipProps {
   active?: boolean;
   payload?: ReadonlyArray<{ dataKey?: string | number; value?: number; color?: string }>;
@@ -137,7 +132,6 @@ export function InteractivePriceChart({
     startIndex: 0,
     endIndex: Math.max(0, chartData.length - 1),
   }));
-  const [referenceLines, setReferenceLines] = useState<ReferenceLineConfig[]>([]);
   const [isSelecting, setIsSelecting] = useState(false);
   const [selectionStart, setSelectionStart] = useState<{ x: number; y: number } | null>(null);
   const [selectionEnd, setSelectionEnd] = useState<{ x: number; y: number } | null>(null);
@@ -185,7 +179,6 @@ export function InteractivePriceChart({
     return timeFilteredData.slice(viewState.startIndex, viewState.endIndex + 1);
   }, [timeFilteredData, viewState]);
 
-  // Export price chart data to CSV
   const handleExport = useCallback(() => {
     if (visibleData.length === 0 || filteredChains.length === 0) {
       return;
@@ -232,7 +225,6 @@ export function InteractivePriceChart({
     }
   }, [visibleData, filteredChains, selectedTimeRange, viewState, chartData.length]);
 
-  // Calculate price domain for Y axis
   const priceDomain = useMemo(() => {
     if (visibleData.length === 0) return ['auto', 'auto'] as [string, string];
 
@@ -253,7 +245,6 @@ export function InteractivePriceChart({
     return [minPrice - padding, maxPrice + padding] as [number, number];
   }, [visibleData, filteredChains]);
 
-  // Zoom controls
   const handleZoomIn = useCallback(() => {
     setViewState((prev) => {
       const totalPoints = timeFilteredData.length;
@@ -285,7 +276,6 @@ export function InteractivePriceChart({
     });
   }, [timeFilteredData.length]);
 
-  // Pan controls
   const handlePanLeft = useCallback(() => {
     setViewState((prev) => {
       const currentRange = prev.endIndex - prev.startIndex;
@@ -306,7 +296,6 @@ export function InteractivePriceChart({
     });
   }, [timeFilteredData.length]);
 
-  // Box selection for zoom
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     if (e.button === 0) {
       const rect = containerRef.current?.getBoundingClientRect();
@@ -359,63 +348,9 @@ export function InteractivePriceChart({
     setShowSelectionBox(false);
   }, [isSelecting, selectionStart, selectionEnd, viewState, timeFilteredData.length]);
 
-  // Reference line functions
-  const addReferenceLine = useCallback(
-    (type: 'current' | 'avg' | 'median' | 'custom') => {
-      const id = `ref-${Date.now()}`;
-      let y = 0;
-      let label = '';
-      let color = '';
+  const { referenceLines, addReferenceLine, removeReferenceLine, clearAllReferenceLines } =
+    useReferenceLines(visibleData, filteredChains, avgPrice, medianPrice, priceDomain);
 
-      switch (type) {
-        case 'current':
-          if (visibleData.length > 0) {
-            const lastPoint = visibleData[visibleData.length - 1];
-            const prices = filteredChains
-              .map((chain) => lastPoint[chain] as number | undefined)
-              .filter((p): p is number => p !== undefined && !isNaN(p));
-            y = prices.length > 0 ? prices.reduce((a, b) => a + b, 0) / prices.length : 0;
-          }
-          label = 'Current Price';
-          color = chartColors.recharts.primary;
-          break;
-        case 'avg':
-          y = avgPrice;
-          label = 'Average Price';
-          color = semanticColors.success.main;
-          break;
-        case 'median':
-          y = medianPrice;
-          label = 'Median Price';
-          color = semanticColors.warning.main;
-          break;
-        case 'custom':
-          y =
-            priceDomain[0] === 'auto'
-              ? 0
-              : (priceDomain[0] as number) +
-                ((priceDomain[1] as number) - (priceDomain[0] as number)) / 2;
-          label = 'Custom Line';
-          color = semanticColors.info.main;
-          break;
-      }
-
-      if (y > 0) {
-        setReferenceLines((prev) => [...prev, { id, y, label, color, strokeDasharray: '5 5' }]);
-      }
-    },
-    [visibleData, filteredChains, avgPrice, medianPrice, priceDomain]
-  );
-
-  const removeReferenceLine = useCallback((id: string) => {
-    setReferenceLines((prev) => prev.filter((line) => line.id !== id));
-  }, []);
-
-  const clearAllReferenceLines = useCallback(() => {
-    setReferenceLines([]);
-  }, []);
-
-  // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey) {
@@ -475,7 +410,6 @@ export function InteractivePriceChart({
     };
   }, [handleZoomIn, handleZoomOut, handlePanLeft, handlePanRight, handleResetZoom]);
 
-  // Selection box style
   const selectionBoxStyle = useMemo(() => {
     if (!selectionStart || !selectionEnd || !showSelectionBox) return { display: 'none' };
 
@@ -493,7 +427,6 @@ export function InteractivePriceChart({
     };
   }, [selectionStart, selectionEnd, showSelectionBox]);
 
-  // Tooltip content renderer
   const renderTooltip = useCallback(
     (props: unknown) => {
       const tooltipProps = props as {
@@ -508,8 +441,7 @@ export function InteractivePriceChart({
 
   return (
     <div className="mb-6 pb-6 border-b border-gray-200">
-      {/* Chart Toolbar */}
-      <ChartToolbar
+      <TimeRangeToolbar
         timeRanges={['1H', '24H', '7D', '30D']}
         selectedRange={selectedTimeRange}
         onRangeChange={handleTimeRangeChange}
@@ -517,175 +449,22 @@ export function InteractivePriceChart({
         className="mb-3"
       />
 
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
-        <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">Price Chart</h3>
+      <PriceChartControls
+        onZoomIn={handleZoomIn}
+        onZoomOut={handleZoomOut}
+        onResetZoom={handleResetZoom}
+        onPanLeft={handlePanLeft}
+        onPanRight={handlePanRight}
+        onAddReferenceLine={addReferenceLine}
+        referenceLineCount={referenceLines.length}
+        onClearAllReferenceLines={clearAllReferenceLines}
+        viewStartIndex={viewState.startIndex}
+        viewEndIndex={viewState.endIndex}
+        totalDataPoints={chartData.length}
+      />
 
-        {/* Control Buttons */}
-        <div className="flex items-center gap-2 flex-wrap">
-          {/* Zoom Controls */}
-          <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-md">
-            <button
-              onClick={handleZoomIn}
-              className="p-1.5 bg-white hover:bg-gray-50 border border-gray-300 rounded transition-all duration-200 hover:border-gray-400"
-              title="Zoom In"
-            >
-              <svg
-                className="w-4 h-4 text-gray-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"
-                />
-              </svg>
-            </button>
-            <button
-              onClick={handleZoomOut}
-              className="p-1.5 bg-white hover:bg-gray-50 border border-gray-300 rounded transition-all duration-200 hover:border-gray-400"
-              title="Zoom Out"
-            >
-              <svg
-                className="w-4 h-4 text-gray-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7"
-                />
-              </svg>
-            </button>
-            <button
-              onClick={handleResetZoom}
-              className="p-1.5 bg-white hover:bg-gray-50 border border-gray-300 rounded transition-all duration-200 hover:border-gray-400"
-              title="Reset Zoom"
-            >
-              <svg
-                className="w-4 h-4 text-gray-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                />
-              </svg>
-            </button>
-          </div>
+      <ReferenceLineList referenceLines={referenceLines} onRemove={removeReferenceLine} />
 
-          {/* Pan Controls */}
-          <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-md">
-            <button
-              onClick={handlePanLeft}
-              className="p-1.5 bg-white hover:bg-gray-50 border border-gray-300 rounded transition-all duration-200 hover:border-gray-400"
-              title="Pan Left"
-            >
-              <svg
-                className="w-4 h-4 text-gray-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 19l-7-7 7-7"
-                />
-              </svg>
-            </button>
-            <button
-              onClick={handlePanRight}
-              className="p-1.5 bg-white hover:bg-gray-50 border border-gray-300 rounded transition-all duration-200 hover:border-gray-400"
-              title="Pan Right"
-            >
-              <svg
-                className="w-4 h-4 text-gray-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
-            </button>
-          </div>
-
-          {/* Reference Line Controls */}
-          <div className="flex items-center gap-1">
-            <button
-              onClick={() => addReferenceLine('current')}
-              className="px-2 py-1.5 text-xs bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 rounded transition-all duration-200"
-            >
-              Current Price
-            </button>
-            <button
-              onClick={() => addReferenceLine('avg')}
-              className="px-2 py-1.5 text-xs bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 rounded transition-all duration-200"
-            >
-              Average Price
-            </button>
-            <button
-              onClick={() => addReferenceLine('median')}
-              className="px-2 py-1.5 text-xs bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 rounded transition-all duration-200"
-            >
-              Median Price
-            </button>
-            {referenceLines.length > 0 && (
-              <button
-                onClick={clearAllReferenceLines}
-                className="px-2 py-1.5 text-xs bg-red-50 text-red-700 hover:bg-red-100 border border-red-200 rounded transition-all duration-200"
-              >
-                Clear All
-              </button>
-            )}
-          </div>
-
-          {/* View Range Info */}
-          <div className="text-xs text-gray-500 px-2">
-            {viewState.startIndex + 1} - {viewState.endIndex + 1} / {chartData.length}
-          </div>
-        </div>
-      </div>
-
-      {/* Reference Lines List */}
-      {referenceLines.length > 0 && (
-        <div className="flex items-center gap-2 mb-2 flex-wrap">
-          <span className="text-xs text-gray-500">Reference Lines:</span>
-          {referenceLines.map((line) => (
-            <div
-              key={line.id}
-              className="flex items-center gap-1 px-2 py-1 bg-gray-50 border border-gray-200 rounded text-xs"
-            >
-              <span className="w-2 h-0.5 rounded-full" style={{ backgroundColor: line.color }} />
-              <span className="text-gray-600">{line.label}:</span>
-              <span className="font-mono text-gray-800">${line.y.toFixed(4)}</span>
-              <button
-                onClick={() => removeReferenceLine(line.id)}
-                className="ml-1 text-gray-400 hover:text-red-500 transition-colors"
-              >
-                ×
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Chart Container */}
       <div
         ref={containerRef}
         className="h-80 relative select-none bg-white border border-gray-200 rounded-lg p-2"
@@ -723,7 +502,7 @@ export function InteractivePriceChart({
             />
             <YAxis
               domain={priceDomain}
-              tickFormatter={(v) => `$${Number(v).toLocaleString()}`}
+              tickFormatter={(v) => `$${Number(v).toLocaleString('en-US')}`}
               width={70}
               stroke={chartColors.recharts.axis}
               tick={{ fill: chartColors.recharts.tick, fontSize: 11 }}
@@ -731,17 +510,6 @@ export function InteractivePriceChart({
             <RechartsTooltip
               content={renderTooltip}
               cursor={{ stroke: chartColors.recharts.axis, strokeDasharray: '3 3' }}
-            />
-            <Legend
-              onClick={(data: unknown) => {
-                const legendData = data as {
-                  dataKey: string;
-                  color: string;
-                  type: string;
-                  value: string;
-                };
-                onLegendClick(legendData);
-              }}
             />
 
             {filteredChains.map((chain) => (
@@ -768,8 +536,7 @@ export function InteractivePriceChart({
               />
             )}
 
-            {/* Reference Lines */}
-            {referenceLines.map((line) => (
+            {referenceLines.map((line: ReferenceLineConfig) => (
               <ReferenceLine
                 key={line.id}
                 y={line.y}
@@ -785,7 +552,6 @@ export function InteractivePriceChart({
           </ComposedChart>
         </ResponsiveContainer>
 
-        {/* Selection Box Overlay */}
         {showSelectionBox && (
           <div
             className="absolute border-2 border-blue-500 bg-blue-500/10 pointer-events-none rounded"
@@ -794,7 +560,13 @@ export function InteractivePriceChart({
         )}
       </div>
 
-      {/* Keyboard Shortcuts Hint */}
+      <ChartLegend
+        filteredChains={filteredChains}
+        hiddenLines={hiddenLines}
+        hasScatterData={scatterData.length > 0}
+        onLegendClick={onLegendClick}
+      />
+
       <div className="mt-2 text-xs text-gray-400 flex items-center gap-4 flex-wrap">
         <span>Shortcuts:</span>
         <span>Ctrl + Scroll: Zoom</span>

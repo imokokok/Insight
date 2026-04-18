@@ -72,6 +72,7 @@ export type OracleErrorType =
   | 'rate_limit'
   | 'server_error'
   | 'cors'
+  | 'authorization'
   | 'unknown';
 
 export interface OracleErrorInfo {
@@ -137,6 +138,8 @@ export interface UseOracleDataReturn {
   };
   queryProgress: { completed: number; total: number };
   skippedOracles: OracleProvider[];
+  lastRefreshedAt: Date | null;
+  nextRefreshAt: Date | null;
 }
 
 export interface OracleFeature {
