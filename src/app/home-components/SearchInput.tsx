@@ -122,7 +122,7 @@ export default function SearchInput({
           onKeyDown={handleKeyDown}
           onCompositionStart={() => setIsComposing(true)}
           onCompositionEnd={() => setIsComposing(false)}
-          placeholder={'home.hero.searchPlaceholder'}
+          placeholder="Search token, oracle, or blockchain..."
           className="flex-1 px-4 sm:px-5 py-4 sm:py-5 text-sm sm:text-base text-gray-900 placeholder-gray-400 bg-transparent border-0 min-w-0"
           style={{ outline: 'none', boxShadow: 'none' }}
         />
@@ -142,7 +142,7 @@ export default function SearchInput({
           type="submit"
           className="mr-2 px-5 sm:px-7 py-2.5 sm:py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-blue-800 hover:shadow-lg hover:shadow-blue-500/25 active:scale-95 transition-all duration-200 text-sm sm:text-base whitespace-nowrap"
         >
-          {'actions.search'}
+          Search
         </button>
 
         <SearchDropdown

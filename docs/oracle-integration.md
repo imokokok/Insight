@@ -6,26 +6,28 @@ The Insight Oracle Data Analytics Platform integrates with multiple leading bloc
 
 ### Supported Providers
 
-| Provider  | Symbol   | Default Chain | Description                                        |
-| --------- | -------- | ------------- | -------------------------------------------------- |
-| Chainlink | LINK     | Ethereum      | Decentralized oracle network                       |
-| Pyth      | PYTH     | Solana        | Low-latency high-frequency price oracle            |
-| API3      | API3     | Ethereum      | First-party oracle infrastructure                  |
-| RedStone  | REDSTONE | Ethereum      | Modular oracle design                              |
-| DIA       | DIA      | Ethereum      | Open-source cross-chain oracle                     |
-| WINkLink  | WINKLINK | BNB Chain     | TRON ecosystem oracle                              |
-| Supra     | SUPRA    | Ethereum      | High-performance oracle with verifiable randomness |
-| TWAP      | UNI      | Ethereum      | Uniswap V3 Time-Weighted Average Price oracle      |
+| Provider  | Symbol   | Default Chain | Description                                           |
+| --------- | -------- | ------------- | ----------------------------------------------------- |
+| Chainlink | LINK     | Ethereum      | Decentralized oracle network                          |
+| Pyth      | PYTH     | Solana        | Low-latency high-frequency price oracle               |
+| API3      | API3     | Ethereum      | First-party oracle infrastructure                     |
+| RedStone  | REDSTONE | Ethereum      | Modular oracle design                                 |
+| DIA       | DIA      | Ethereum      | Open-source cross-chain oracle                        |
+| WINkLink  | WINKLINK | BNB Chain     | TRON ecosystem oracle                                 |
+| Supra     | SUPRA    | Ethereum      | High-performance oracle with verifiable randomness    |
+| TWAP      | UNI      | Ethereum      | Uniswap V3 Time-Weighted Average Price oracle         |
+| Reflector | XLM      | Stellar       | Stellar ecosystem oracle with Soroban smart contracts |
+| Flare     | FLR      | Flare         | FTSO-based oracle with on-chain data feeds            |
 
 ### Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                    Oracle Client Layer                          │
-├─────────────┬─────────┬─────────┬──────────┬──────────┬─────────┬─────────┬─────────┐
-│ Chainlink   │ Pyth    │ API3    │ RedStone │ DIA      │ WINkLink │ Supra   │ TWAP    │
-│ Client      │ Client  │ Client  │ Client   │ Client   │ Client   │ Client  │ Client  │
-└──────┬──────┴────┬────┴────┬────┴─────┬────┴─────┬────┴────┬────┴────┬────┴────┬────┘
+├─────────────┬─────────┬─────────┬──────────┬──────────┬─────────┬─────────┬─────────┬─────────┬──────────┐
+│ Chainlink   │ Pyth    │ API3    │ RedStone │ DIA      │ WINkLink │ Supra   │ TWAP    │ Reflector│ Flare    │
+│ Client      │ Client  │ Client  │ Client   │ Client   │ Client   │ Client  │ Client  │ Client   │ Client   │
+└──────┬──────┴────┬────┴────┬────┴─────┬────┴─────┬────┴────┬────┴────┬────┴────┬────┴────┬────┴────┬────┘
        │           │         │          │          │         │
        └───────────┴─────────┴──────────┴──────────┴─────────┴─────────┘
                              │
@@ -466,6 +468,8 @@ enum OracleProvider {
   WINKLINK = 'winklink',
   SUPRA = 'supra',
   TWAP = 'twap',
+  REFLECTOR = 'reflector',
+  FLARE = 'flare',
 }
 ```
 
@@ -518,12 +522,12 @@ history.forEach((point) => {
 ### Multi-Provider Comparison
 
 ```typescript
-import { ChainlinkClient, BandProtocolClient, PythClient, OracleProvider } from '@/lib/oracles';
+import { ChainlinkClient, PythClient, API3Client, OracleProvider } from '@/lib/oracles';
 
 const clients = {
   [OracleProvider.CHAINLINK]: new ChainlinkClient(),
-  [OracleProvider.BAND]: new BandProtocolClient(),
   [OracleProvider.PYTH]: new PythClient(),
+  [OracleProvider.API3]: new API3Client(),
 };
 
 const prices = await Promise.all(
@@ -1048,29 +1052,187 @@ BTC, ETH, USDC, USDT, DAI, WBTC, LINK, UNI, AAVE, ARB, OP, MATIC, SNX, CRV, COMP
 
 ---
 
+## Reflector Integration
+
+**Provider:** `reflector`  
+**Symbol:** XLM  
+**Default Chain:** Stellar
+
+### Supported Chains
+
+| Chain   | Chain ID | Status |
+| ------- | -------- | ------ |
+| Stellar | -        | Active |
+
+### Features
+
+- **Stellar Ecosystem** - Native integration with Stellar network via Soroban smart contracts
+- **First-Party Oracle** - Direct data from source providers
+- **Crypto & Forex Assets** - Support for both cryptocurrency and foreign exchange price feeds
+- **On-Chain Data** - Direct smart contract calls for price data
+- **Quantifiable Security** - Transparent on-chain verification
+
+### Implementation
+
+```typescript
+import { ReflectorClient } from '@/lib/oracles';
+
+const client = new ReflectorClient({ useRealData: true });
+
+const priceData = await client.getPrice('BTC', Blockchain.STELLAR);
+// Returns PriceData with Reflector-specific fields
+
+const isSupported = client.isSymbolSupported('BTC', Blockchain.STELLAR);
+const symbols = client.getSupportedSymbols();
+```
+
+### On-Chain Service
+
+Reflector uses the Soroban smart contract platform for on-chain data:
+
+```typescript
+import { getReflectorDataService } from '@/lib/oracles';
+
+const reflectorService = getReflectorDataService();
+const priceData = await reflectorService.fetchLatestPrice('BTC');
+```
+
+### Supported Assets
+
+**Cryptocurrencies (15):**
+BTC, ETH, USDT, XRP, SOL, USDC, ADA, AVAX, DOT, LINK, ATOM, XLM, UNI, EURC
+
+**Forex Currencies (6):**
+EUR, GBP, CAD, BRL, JPY, CNY
+
+### Contract Configuration
+
+| Contract        | Address                                                    |
+| --------------- | ---------------------------------------------------------- |
+| Crypto Contract | `CAFJZQWSED6YAWZU3GWRTOCNPPCGBN32L7QV43XX5LZLFTK6JLN34DLN` |
+| Forex Contract  | `CBKGDQGJ7GZNK2V2LGIXPR326H7F7K2MMG6WRVZJXYHONI4GJMCJZC`   |
+| RPC Endpoint    | `https://rpc.ankr.com/stellar_soroban`                     |
+
+### Network Metrics
+
+| Metric            | Value |
+| ----------------- | ----- |
+| Supported Assets  | 21    |
+| Update Frequency  | 5 min |
+| Cache TTL         | 30s   |
+| Default Decimals  | 14    |
+| Avg Response Time | 500ms |
+
+---
+
+## Flare Integration
+
+**Provider:** `flare`  
+**Symbol:** FLR  
+**Default Chain:** Flare
+
+### Supported Chains
+
+| Chain    | Chain ID | Status  |
+| -------- | -------- | ------- |
+| Flare    | 14       | Active  |
+| Songbird | 19       | Testnet |
+| Coston2  | 114      | Testnet |
+
+### Features
+
+- **FTSO V2** - Flare Time Series Oracle with on-chain data feeds
+- **Validator Analytics** - Monitor validator node performance
+- **On-Chain Price Feeds** - Direct FTSO contract calls for price data
+- **Confidence Intervals** - Real-time bid/ask spreads
+- **First-Party Oracle** - Direct data from Flare network validators
+- **Quantifiable Security** - Secured by Flare network consensus
+
+### Implementation
+
+```typescript
+import { FlareClient } from '@/lib/oracles';
+
+const client = new FlareClient({ useRealData: true });
+
+const priceData = await client.getPrice('BTC', Blockchain.FLARE);
+// Returns PriceData with Flare-specific fields:
+// - feedId: Encoded feed identifier
+// - decimals: Price decimals
+// - dataAge: Age of the price data
+
+const isSupported = client.isSymbolSupported('BTC', Blockchain.FLARE);
+const onChainData = await client.getTokenOnChainData('BTC');
+```
+
+### On-Chain Service
+
+Flare uses the FTSO (Flare Time Series Oracle) system:
+
+```typescript
+import { getFtsoDataService } from '@/lib/oracles';
+
+const ftsoService = getFtsoDataService();
+const priceData = await ftsoService.fetchPrice('BTC', 'flare');
+```
+
+### Supported Symbols (38)
+
+BTC, ETH, FLR, XRP, SOL, DOGE, ADA, BNB, AVAX, LINK, DOT, MATIC, ARB, UNI, ATOM, LTC, USDT, USDC, DAI, AAVE, NEAR, APT, OP, TRX, SHIB, TON, HBAR, FIL, XLM, SGB, ALGO, XDC, ICP, RUNE, FTM, QNT
+
+### Contract Configuration
+
+| Contract          | Address                                      |
+| ----------------- | -------------------------------------------- |
+| FTSOv2 Contract   | `0x7BDE3Df0624114eDB3A67dFe6753e62f4e7c1d20` |
+| Registry Contract | `0xaD67FE6667226235497ED7B6E0e2416C2E40771B` |
+
+### RPC Endpoints
+
+| Network  | Endpoints                                                                 |
+| -------- | ------------------------------------------------------------------------- |
+| Flare    | `https://flare-api.flare.network/ext/C/rpc`, `https://rpc.ankr.com/flare` |
+| Songbird | `https://songbird-api.flare.network/ext/C/rpc`                            |
+| Coston2  | `https://coston2-api.flare.network/ext/C/rpc`                             |
+
+### Network Metrics
+
+| Metric            | Value |
+| ----------------- | ----- |
+| Supported Symbols | 38    |
+| Update Frequency  | 90s   |
+| Cache TTL         | 30s   |
+| Avg Response Time | 300ms |
+| Confidence Score  | 95%   |
+
+---
+
 ## Oracle Comparison Table
 
-| Feature                   | Chainlink | Pyth  | API3  | RedStone | DIA    | WINkLink | Supra | TWAP  |
-| ------------------------- | --------- | ----- | ----- | -------- | ------ | -------- | ----- | ----- |
-| **Update Frequency**      | 60s       | 1s    | 10s   | 5s       | 60s    | 30s      | 15s   | 60s   |
-| **Avg Response Time**     | 245ms     | 100ms | 180ms | 120ms    | 200ms  | 250ms    | 150ms | 500ms |
-| **Node Uptime**           | 99.9%     | 99.9% | 99.7% | 99.8%    | 99.5%  | 99.7%    | 99.8% | 99.5% |
-| **Supported Chains**      | 13        | 12    | 13    | 16       | 11     | 3        | 1     | 6     |
-| **Data Feeds**            | 1,243     | 500   | 168   | 285      | 2,000+ | 80       | 200+  | 22    |
-| **Node Analytics**        | ✅        | ❌    | ❌    | ❌       | ❌     | ❌       | ❌    | ❌    |
-| **Publisher Analytics**   | ❌        | ✅    | ❌    | ❌       | ❌     | ❌       | ❌    | ❌    |
-| **First-Party Oracle**    | ❌        | ❌    | ✅    | ❌       | ❌     | ❌       | ❌    | ❌    |
-| **Confidence Intervals**  | ❌        | ✅    | ❌    | ❌       | ❌     | ❌       | ✅    | ✅    |
-| **Cross-Chain Stats**     | ❌        | ❌    | ❌    | ✅       | ✅     | ❌       | ✅    | ❌    |
-| **Coverage Pools**        | ❌        | ❌    | ✅    | ❌       | ❌     | ❌       | ❌    | ❌    |
-| **Modular Design**        | ❌        | ❌    | ❌    | ✅       | ❌     | ❌       | ❌    | ❌    |
-| **NFT Data**              | ❌        | ❌    | ❌    | ❌       | ✅     | ❌       | ❌    | ❌    |
-| **Gaming Data**           | ❌        | ❌    | ❌    | ❌       | ❌     | ✅       | ❌    | ❌    |
-| **Open Source**           | ❌        | ❌    | ❌    | ❌       | ✅     | ❌       | ❌    | ❌    |
-| **Verifiable Randomness** | ❌        | ❌    | ❌    | ❌       | ❌     | ❌       | ✅    | ❌    |
-| **On-Chain TWAP**         | ❌        | ❌    | ❌    | ❌       | ❌     | ❌       | ❌    | ✅    |
-| **Spot Price**            | ❌        | ❌    | ❌    | ❌       | ❌     | ❌       | ❌    | ✅    |
-| **Liquidity Data**        | ❌        | ❌    | ❌    | ❌       | ❌     | ❌       | ❌    | ✅    |
+| Feature                   | Chainlink | Pyth  | API3  | RedStone | DIA    | WINkLink | Supra | TWAP  | Reflector | Flare |
+| ------------------------- | --------- | ----- | ----- | -------- | ------ | -------- | ----- | ----- | --------- | ----- |
+| **Update Frequency**      | 60s       | 1s    | 10s   | 5s       | 60s    | 30s      | 15s   | 60s   | 5min      | 90s   |
+| **Avg Response Time**     | 245ms     | 100ms | 180ms | 120ms    | 200ms  | 250ms    | 150ms | 500ms | 500ms     | 300ms |
+| **Node Uptime**           | 99.9%     | 99.9% | 99.7% | 99.8%    | 99.5%  | 99.7%    | 99.8% | 99.5% | 99.5%     | 99.8% |
+| **Supported Chains**      | 13        | 12    | 13    | 16       | 11     | 3        | 1     | 6     | 1         | 1     |
+| **Data Feeds**            | 1,243     | 500   | 168   | 285      | 2,000+ | 80       | 200+  | 22    | 21        | 38    |
+| **Node Analytics**        | ✅        | ❌    | ❌    | ❌       | ❌     | ❌       | ❌    | ❌    | ❌        | ✅    |
+| **Publisher Analytics**   | ❌        | ✅    | ❌    | ❌       | ❌     | ❌       | ❌    | ❌    | ❌        | ❌    |
+| **First-Party Oracle**    | ❌        | ❌    | ✅    | ❌       | ❌     | ❌       | ❌    | ❌    | ✅        | ✅    |
+| **Confidence Intervals**  | ❌        | ✅    | ❌    | ❌       | ❌     | ❌       | ✅    | ✅    | ❌        | ✅    |
+| **Cross-Chain Stats**     | ❌        | ❌    | ❌    | ✅       | ✅     | ❌       | ✅    | ❌    | ❌        | ❌    |
+| **Coverage Pools**        | ❌        | ❌    | ✅    | ❌       | ❌     | ❌       | ❌    | ❌    | ❌        | ❌    |
+| **Modular Design**        | ❌        | ❌    | ❌    | ✅       | ❌     | ❌       | ❌    | ❌    | ❌        | ❌    |
+| **NFT Data**              | ❌        | ❌    | ❌    | ❌       | ✅     | ❌       | ❌    | ❌    | ❌        | ❌    |
+| **Gaming Data**           | ❌        | ❌    | ❌    | ❌       | ❌     | ✅       | ❌    | ❌    | ❌        | ❌    |
+| **Open Source**           | ❌        | ❌    | ❌    | ❌       | ✅     | ❌       | ❌    | ❌    | ✅        | ❌    |
+| **Verifiable Randomness** | ❌        | ❌    | ❌    | ❌       | ❌     | ❌       | ✅    | ❌    | ❌        | ❌    |
+| **On-Chain TWAP**         | ❌        | ❌    | ❌    | ❌       | ❌     | ❌       | ❌    | ✅    | ❌        | ❌    |
+| **Spot Price**            | ❌        | ❌    | ❌    | ❌       | ❌     | ❌       | ❌    | ✅    | ❌        | ❌    |
+| **Liquidity Data**        | ❌        | ❌    | ❌    | ❌       | ❌     | ❌       | ❌    | ✅    | ❌        | ❌    |
+| **Data Streams**          | ❌        | ❌    | ❌    | ✅       | ❌     | ❌       | ❌    | ❌    | ❌        | ❌    |
+| **Stellar Ecosystem**     | ❌        | ❌    | ❌    | ❌       | ❌     | ❌       | ❌    | ❌    | ✅        | ❌    |
+| **Flare Ecosystem**       | ❌        | ❌    | ❌    | ❌       | ❌     | ❌       | ❌    | ❌    | ❌        | ✅    |
 
 ---
 
@@ -1096,6 +1258,12 @@ interface OracleError {
 | `REDSTONE_ERROR`              | RedStone price fetch failed          |
 | `DIA_ERROR`                   | DIA price fetch failed               |
 | `WINKLINK_ERROR`              | WINkLink price fetch failed          |
+| `REFLECTOR_ERROR`             | Reflector price fetch failed         |
+| `REFLECTOR_CONTRACT_ERROR`    | Reflector contract call failed       |
+| `REFLECTOR_ASSET_NOT_FOUND`   | Reflector asset not found            |
+| `FLARE_ERROR`                 | Flare price fetch failed             |
+| `FLARE_FTSO_ERROR`            | Flare FTSO data fetch failed         |
+| `FLARE_FEED_NOT_FOUND`        | Flare feed not found for symbol      |
 | `TWAP_ERROR`                  | TWAP price fetch failed              |
 | `TWAP_POOL_NOT_FOUND`         | TWAP pool not found for symbol       |
 | `TWAP_INSUFFICIENT_LIQUIDITY` | TWAP pool has insufficient liquidity |
@@ -1147,23 +1315,41 @@ const client = new ChainlinkClient({
 src/lib/oracles/
 ├── index.ts              # Public exports
 ├── base.ts               # BaseOracleClient abstract class
-├── chainlink.ts          # Chainlink client implementation
-├── pythNetwork.ts        # Pyth client implementation
-├── pythHermesClient.ts   # Pyth Hermes API client
-├── api3.ts               # API3 client implementation
-├── redstone.ts           # RedStone client implementation
-├── dia.ts                # DIA client implementation
-├── winklink.ts           # WINkLink client implementation
 ├── clients/
-│   └── twap.ts           # TWAP client implementation
+│   ├── chainlink.ts      # Chainlink client implementation
+│   ├── PythClient.ts     # Pyth client implementation
+│   ├── api3.ts           # API3 client implementation
+│   ├── redstone.ts       # RedStone client implementation
+│   ├── dia.ts            # DIA client implementation
+│   ├── winklink.ts       # WINkLink client implementation
+│   ├── supra.ts          # Supra client implementation
+│   ├── twap.ts           # TWAP client implementation
+│   ├── reflector.ts      # Reflector client implementation
+│   └── flare.ts          # Flare client implementation
 ├── services/
-│   └── twapOnChainService.ts  # TWAP on-chain data service
+│   ├── chainlinkOnChainService.ts  # Chainlink on-chain data service
+│   ├── pythDataService.ts          # Pyth data service
+│   ├── diaDataService.ts           # DIA data service
+│   ├── supraDataService.ts         # Supra data service
+│   ├── twapOnChainService.ts       # TWAP on-chain data service
+│   ├── reflectorDataService.ts     # Reflector data service
+│   └── ftsoDataService.ts          # Flare FTSO data service
 ├── constants/
-│   └── twapConstants.ts  # TWAP constants and configuration
+│   ├── chainlinkDataSources.ts     # Chainlink contract addresses and ABI
+│   ├── pythConstants.ts            # Pyth constants
+│   ├── twapConstants.ts            # TWAP constants and configuration
+│   ├── reflectorConstants.ts       # Reflector constants and configuration
+│   └── flareConstants.ts           # Flare constants and configuration
 ├── storage.ts            # Database storage layer
 ├── factory.ts            # Oracle client factory
 ├── colors.ts             # Oracle color configurations
-└── utils.ts              # Utility functions
+├── interfaces.ts         # Oracle interfaces
+├── OracleRepository.ts   # Oracle repository
+└── utils/                # Utility functions
+    ├── oracleDataUtils.ts
+    ├── performanceMetricsCalculator.ts
+    ├── retry.ts
+    └── storage.ts
 
 src/types/oracle/           # Oracle types
 ├── index.ts                # Core oracle types
@@ -1188,3 +1374,6 @@ src/lib/config/             # Configuration
 - [RedStone Documentation](https://docs.redstone.finance/)
 - [DIA Documentation](https://docs.diadata.org/)
 - [WINkLink Documentation](https://doc.winklink.org/)
+- [Supra Documentation](https://docs.supra.com/)
+- [Reflector Documentation](https://reflector.network/)
+- [Flare Documentation](https://docs.flare.network/)

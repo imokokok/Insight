@@ -21,7 +21,7 @@ export function QueryResultsEmpty({ selectedSymbol, onSymbolChange }: QueryResul
       <div className="mt-8 pt-6 border-t border-gray-100 w-full max-w-md">
         <p className="text-xs text-gray-400 mb-4 flex items-center justify-center gap-1">
           <TrendingUp className="w-3 h-3" aria-hidden="true" />
-          {'priceQuery.noResults.popularTokens'}
+          Popular tokens
         </p>
         <div className="flex items-center justify-center">
           <SegmentedControl

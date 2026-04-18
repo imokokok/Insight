@@ -114,16 +114,12 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
 
       const numericTarget = parseFloat(targetValue);
       if (isNaN(numericTarget) || numericTarget <= 0) {
-        setError('alerts.error.invalidTargetValue');
+        setError('Please enter a valid target value');
         return;
       }
 
       const conditionLabel =
-        conditionType === 'above'
-          ? 'alerts.condition.above'
-          : conditionType === 'below'
-            ? 'alerts.condition.below'
-            : 'alerts.condition.changePercent';
+        conditionType === 'above' ? 'above' : conditionType === 'below' ? 'below' : 'change %';
 
       const input: CreateAlertInput = {
         name: alertName || `${symbol} ${conditionLabel} ${numericTarget}`,
@@ -175,36 +171,31 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{'alerts.create.title'}</CardTitle>
+        <CardTitle>Create Alert</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <AlertTemplates onSelectTemplate={handleApplyTemplate} selectedSymbol={symbol} />
 
           <div className="border-t border-gray-200 pt-4">
-            <h4 className="text-sm font-medium text-gray-700 mb-3">
-              {'alerts.create.customConfig'}
-            </h4>
+            <h4 className="text-sm font-medium text-gray-700 mb-3">Custom Configuration</h4>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              {'alerts.create.nameLabel'}{' '}
-              <span className="text-gray-400">{'alerts.create.nameOptional'}</span>
+              Alert Name <span className="text-gray-400">(optional)</span>
             </label>
             <input
               type="text"
               value={alertName}
               onChange={(e) => setAlertName(e.target.value)}
-              placeholder={'alerts.create.namePlaceholder'}
+              placeholder="Enter a name for this alert"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {'alerts.create.symbolLabel'}
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Symbol</label>
             <SegmentedControl
               options={symbolOptions}
               value={symbol}
@@ -215,37 +206,31 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              {'alerts.create.providerLabel'}{' '}
-              <span className="text-gray-400">{'alerts.create.providerOptional'}</span>
+              Oracle Provider <span className="text-gray-400">(optional)</span>
             </label>
             <DropdownSelect
               options={providerOptions}
               value={provider}
               onChange={handleProviderChange}
-              placeholder={'alerts.create.allProviders'}
+              placeholder="All Providers"
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              {'alerts.create.chainLabel'}{' '}
-              <span className="text-gray-400">{'alerts.create.chainOptional'}</span>
+              Blockchain <span className="text-gray-400">(optional)</span>
             </label>
             <DropdownSelect
               options={chainOptions}
               value={chain}
               onChange={(value) => setChain(value as Blockchain | '')}
               disabled={!provider}
-              placeholder={
-                provider ? 'alerts.create.allChains' : 'alerts.create.selectProviderFirst'
-              }
+              placeholder={provider ? 'All Chains' : 'Select Provider First'}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {'alerts.create.conditionLabel'}
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Condition</label>
             <div className="space-y-2">
               {CONDITION_OPTIONS.map((option) => (
                 <label
@@ -274,9 +259,7 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {'alerts.create.targetValueLabel'}
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Target Value</label>
             <input
               type="number"
               step="any"
@@ -288,9 +271,7 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
           </div>
 
           <div className="flex items-center justify-between">
-            <label className="text-sm font-medium text-gray-700">
-              {'alerts.create.enableAlert'}
-            </label>
+            <label className="text-sm font-medium text-gray-700">Enable Alert</label>
             <button
               type="button"
               role="switch"
@@ -315,9 +296,9 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
               className="flex items-center justify-between w-full text-left"
             >
               <div>
-                <h4 className="text-sm font-medium text-gray-700">{'alerts.mute.settings'}</h4>
+                <h4 className="text-sm font-medium text-gray-700">Mute Settings</h4>
                 <p className="text-xs text-gray-500">
-                  {muteConfig.enabled ? 'alerts.mute.enabledHint' : 'alerts.mute.disabledHint'}
+                  {muteConfig.enabled ? 'Mute period is enabled' : 'Mute period is disabled'}
                 </p>
               </div>
               <svg
@@ -357,7 +338,7 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
               isCreating ? 'bg-gray-400 cursor-not-allowed' : 'bg-primary-600 hover:bg-primary-700'
             }`}
           >
-            {isCreating ? 'alerts.create.submitting' : 'alerts.create.submit'}
+            {isCreating ? 'Creating...' : 'Create Alert'}
           </button>
         </form>
       </CardContent>

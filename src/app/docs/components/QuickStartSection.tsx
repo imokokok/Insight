@@ -8,18 +8,18 @@ export default function QuickStartSection() {
   const steps = [
     {
       icon: <Search className="w-6 h-6" />,
-      title: 'docs.quickstart.steps.search.title',
-      description: 'docs.quickstart.steps.search.description',
+      title: 'Search Prices',
+      description: 'Enter a token symbol to get real-time prices from multiple oracles',
     },
     {
       icon: <TrendingUp className="w-6 h-6" />,
-      title: 'docs.quickstart.steps.analyze.title',
-      description: 'docs.quickstart.steps.analyze.description',
+      title: 'Analyze Data',
+      description: 'Compare prices across oracles and blockchains with detailed charts',
     },
     {
       icon: <Bell className="w-6 h-6" />,
-      title: 'docs.quickstart.steps.alert.title',
-      description: 'docs.quickstart.steps.alert.description',
+      title: 'Set Alerts',
+      description: 'Create price alerts to get notified when conditions are met',
     },
   ];
 
@@ -30,36 +30,39 @@ export default function QuickStartSection() {
           <div className="p-2 bg-blue-100 rounded-lg">
             <Rocket className="w-5 h-5 text-blue-600" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900">{'docs.quickstart.title'}</h2>
+          <h2 className="text-2xl font-bold text-gray-900">Quick Start Guide</h2>
         </div>
-        <p className="text-gray-600 leading-relaxed">{'docs.quickstart.description'}</p>
+        <p className="text-gray-600 leading-relaxed">
+          Get started with Insight in just a few steps
+        </p>
       </div>
 
       {/* Platform Overview */}
       <div className="bg-white border border-gray-200 rounded-xl p-6 mb-8">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          {'docs.quickstart.overview.title'}
-        </h3>
-        <p className="text-gray-600 mb-4">{'docs.quickstart.overview.description'}</p>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Platform Overview</h3>
+        <p className="text-gray-600 mb-4">
+          Insight aggregates price data from multiple oracles and blockchains to provide
+          comprehensive market insights.
+        </p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
             <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
-            <span className="text-sm text-gray-700">{'docs.quickstart.overview.point1'}</span>
+            <span className="text-sm text-gray-700">Real-time price data</span>
           </div>
           <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
             <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
-            <span className="text-sm text-gray-700">{'docs.quickstart.overview.point2'}</span>
+            <span className="text-sm text-gray-700">Multi-oracle comparison</span>
           </div>
           <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
             <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
-            <span className="text-sm text-gray-700">{'docs.quickstart.overview.point3'}</span>
+            <span className="text-sm text-gray-700">Cross-chain analysis</span>
           </div>
         </div>
       </div>
 
       {/* Steps */}
       <div className="space-y-6">
-        <h3 className="text-lg font-semibold text-gray-900">{'docs.quickstart.steps.title'}</h3>
+        <h3 className="text-lg font-semibold text-gray-900">Getting Started</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {steps.map((step, index) => (
             <div
@@ -87,14 +90,14 @@ export default function QuickStartSection() {
           href="/price-query"
           className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
         >
-          {'docs.quickstart.cta.primary'}
+          Start Searching
           <ArrowRight className="w-4 h-4" />
         </Link>
         <Link
           href="/cross-oracle"
           className="inline-flex items-center gap-2 px-6 py-3 bg-white text-gray-700 font-medium border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
         >
-          {'docs.quickstart.cta.secondary'}
+          Compare Oracles
         </Link>
       </div>
     </section>

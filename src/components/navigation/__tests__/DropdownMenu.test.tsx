@@ -11,17 +11,17 @@ jest.mock('../config', () => ({
 }));
 
 const mockGroup: NavGroup = {
-  label: 'nav.oracles',
+  label: 'Oracles',
   icon: () => <svg data-testid="group-icon" />,
   items: [
     {
-      label: 'nav.chainlink',
+      label: 'Chainlink',
       href: '/chainlink',
       icon: () => <svg data-testid="chainlink-icon" />,
-      description: 'nav.chainlinkDesc',
+      description: 'Chainlink oracle network',
     },
     {
-      label: 'nav.pyth',
+      label: 'Pyth',
       href: '/pyth',
       icon: () => <svg data-testid="pyth-icon" />,
     },
@@ -63,7 +63,7 @@ describe('DropdownMenu', () => {
       />
     );
 
-    const button = screen.getByRole('button', { name: /nav.oracles/i });
+    const button = screen.getByRole('button', { name: /oracles/i });
     fireEvent.click(button);
 
     expect(screen.getByRole('menu')).toBeInTheDocument();
@@ -99,7 +99,7 @@ describe('DropdownMenu', () => {
     const button = screen.getByRole('button', { name: /nav.oracles/i });
     fireEvent.click(button);
 
-    const chainlinkLink = screen.getByRole('menuitem', { name: /nav.chainlink/i });
+    const chainlinkLink = screen.getByRole('menuitem', { name: /chainlink/i });
     fireEvent.click(chainlinkLink);
 
     expect(mockOnItemClick).toHaveBeenCalled();
@@ -132,7 +132,7 @@ describe('DropdownMenu', () => {
     const button = screen.getByRole('button', { name: /nav.oracles/i });
     fireEvent.click(button);
 
-    const chainlinkItem = screen.getByRole('menuitem', { name: /nav.chainlink/i });
+    const chainlinkItem = screen.getByRole('menuitem', { name: /chainlink/i });
     expect(chainlinkItem).toHaveClass('bg-primary-50');
   });
 

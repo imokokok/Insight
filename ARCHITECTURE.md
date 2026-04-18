@@ -60,14 +60,14 @@ The Insight Oracle Data Analytics Platform is a modern web application built on 
 │  │Chainlink │ │   Pyth   │ │   API3   │ │RedStone  │ │  DIA   ││
 │  │  Client  │ │  Client  │ │  Client  │ │  Client  │ │ Client ││
 │  └──────────┘ └──────────┘ └──────────┘ └──────────┘ └────────┘│
-│  ┌──────────┐ ┌──────────┐ ┌────────────────────────────────────┐│
-│  │WINkLink  │ │  Supra   │ │         Base Oracle Client         ││
-│  │  Client  │ │  Client  │ │           (Abstract)               ││
-│  └──────────┘ └──────────┘ └────────────────────────────────────┘│
-│  ┌──────────┐                                                    │
-│  │  TWAP    │                                                    │
-│  │  Client  │                                                    │
-│  └──────────┘                                                    │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌────────────────────────┐│
+│  │WINkLink  │ │  Supra   │ │   TWAP   │ │    Base Oracle Client  ││
+│  │  Client  │ │  Client  │ │  Client  │ │      (Abstract)        ││
+│  └──────────┘ └──────────┘ └──────────┘ └────────────────────────┘│
+│  ┌──────────┐ ┌──────────┐                                        │
+│  │Reflector │ │  Flare   │                                        │
+│  │  Client  │ │  Client  │                                        │
+│  └──────────┘ └──────────┘                                        │
 └─────────────────────────────────────────────────────────────────┘
                               │
                               ▼
@@ -954,13 +954,15 @@ export class API3Client extends BaseOracleClient {
 
 ### 7.3 Additional Oracle Implementations
 
-| Client   | File                                                                                            | Description                                  |
-| -------- | ----------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| RedStone | `redstone.ts`, `redstoneConstants.ts`                                                           | RedStone oracle data streams                 |
-| DIA      | `dia.ts`, `diaDataService.ts`, `diaPriceService.ts`, `diaNFTService.ts`, `diaNetworkService.ts` | DIA oracle with modular service architecture |
-| WINkLink | `winklink.ts`, `winklinkRealDataService.ts`                                                     | WINkLink oracle with real data support       |
-| Supra    | `supra.ts`, `supraDataService.ts`                                                               | Supra oracle with SDK integration            |
-| TWAP     | `clients/twap.ts`, `services/twapOnChainService.ts`, `constants/twapConstants.ts`               | Uniswap V3 TWAP oracle with on-chain data    |
+| Client    | File                                                                                            | Description                                  |
+| --------- | ----------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| RedStone  | `redstone.ts`, `redstoneConstants.ts`                                                           | RedStone oracle data streams                 |
+| DIA       | `dia.ts`, `diaDataService.ts`, `diaPriceService.ts`, `diaNFTService.ts`, `diaNetworkService.ts` | DIA oracle with modular service architecture |
+| WINkLink  | `winklink.ts`, `winklinkRealDataService.ts`                                                     | WINkLink oracle with real data support       |
+| Supra     | `supra.ts`, `supraDataService.ts`                                                               | Supra oracle with SDK integration            |
+| TWAP      | `clients/twap.ts`, `services/twapOnChainService.ts`, `constants/twapConstants.ts`               | Uniswap V3 TWAP oracle with on-chain data    |
+| Reflector | `clients/reflector.ts`, `services/reflectorDataService.ts`, `constants/reflectorConstants.ts`   | Stellar ecosystem oracle with Soroban        |
+| Flare     | `clients/flare.ts`, `services/ftsoDataService.ts`, `constants/flareConstants.ts`                | Flare FTSO oracle with on-chain data feeds   |
 
 #### DIA Service Architecture
 
@@ -1033,6 +1035,70 @@ class TwapOnChainService {
 - Pool addresses: 15+ trading pairs with per-chain pool configs
 - RPC configuration: Per-chain endpoints with Alchemy + public fallbacks
 - Supported symbols: 22 tokens (BTC, ETH, USDC, USDT, DAI, WBTC, LINK, UNI, AAVE, ARB, OP, MATIC, SNX, CRV, COMP, MKR, SUSHI, 1INCH, BAL, BNB, STETH, FRAX)
+
+### 7.7 Reflector Service Architecture
+
+Reflector oracle integrates with the Stellar network via Soroban smart contracts:
+
+```typescript
+// src/lib/oracles/services/reflectorDataService.ts
+class ReflectorDataService {
+  private cache: Map<string, { data: ReflectorPriceData; timestamp: number }>;
+
+  async fetchLatestPrice(symbol: string, signal?: AbortSignal): Promise<PriceData | null>;
+  async fetchPrices(symbols: string[], signal?: AbortSignal): Promise<PriceData[]>;
+  async getAssetMetadata(symbol: string): Promise<ReflectorAssetMetadata | null>;
+}
+```
+
+**Key Features:**
+
+- **Soroban Smart Contracts**: Direct integration with Stellar's smart contract platform
+- **Dual Asset Support**: Both cryptocurrency and forex price feeds
+- **On-Chain Verification**: Transparent price data from source providers
+- **Caching**: 30-second TTL in-memory cache for performance
+- **Default Decimals**: 14 decimal places for high precision
+
+**Reflector Constants Configuration** (`src/lib/oracles/constants/reflectorConstants.ts`):
+
+- Crypto Contract: `CAFJZQWSED6YAWZU3GWRTOCNPPCGBN32L7QV43XX5LZLFTK6JLN34DLN`
+- Forex Contract: `CBKGDQGJ7GZNK2V2LGIXPR326H7F7K2MMG6WRVZJXYHONI4GJMCJZC`
+- RPC Endpoint: `https://rpc.ankr.com/stellar_soroban`
+- Supported Crypto Assets: BTC, ETH, USDT, XRP, SOL, USDC, ADA, AVAX, DOT, LINK, ATOM, XLM, UNI, EURC
+- Supported Forex Assets: EUR, GBP, CAD, BRL, JPY, CNY
+
+### 7.8 Flare FTSO Service Architecture
+
+Flare oracle uses the Flare Time Series Oracle (FTSO) for on-chain price feeds:
+
+```typescript
+// src/lib/oracles/services/ftsoDataService.ts
+class FtsoDataService {
+  private cache: Map<string, { data: FtsoPriceData; timestamp: number }>;
+
+  async fetchPrice(symbol: string, network: string, signal?: AbortSignal): Promise<FtsoPriceData>;
+  async fetchPrices(symbols: string[], network: string): Promise<FtsoPriceData[]>;
+  async getFeedId(symbol: string): Promise<string | null>;
+  clearCache(): void;
+}
+```
+
+**Key Features:**
+
+- **FTSO V2 Integration**: Direct calls to Flare's Time Series Oracle
+- **Confidence Intervals**: Real-time bid/ask spreads with configurable base spread
+- **Validator Analytics**: Monitor validator node performance and reliability
+- **On-Chain Data**: Direct smart contract calls for price data
+- **Caching**: 30-second TTL in-memory cache
+- **Multi-Network Support**: Flare mainnet, Songbird, and Coston2 testnet
+
+**Flare Constants Configuration** (`src/lib/oracles/constants/flareConstants.ts`):
+
+- FTSOv2 Contract: `0x7BDE3Df0624114eDB3A67dFe6753e62f4e7c1d20`
+- Registry Contract: `0xaD67FE6667226235497ED7B6E0e2416C2E40771B`
+- Chain IDs: Flare (14), Songbird (19), Coston2 (114)
+- RPC Endpoints: Multiple providers with automatic fallback
+- Supported Symbols: 38 tokens including BTC, ETH, FLR, XRP, SOL, DOGE, ADA, BNB, AVAX, LINK, DOT, MATIC, ARB, UNI, ATOM, LTC, USDT, USDC, DAI, AAVE, NEAR, APT, OP, TRX, SHIB, TON, HBAR, FIL, XLM, SGB, ALGO, XDC, ICP, RUNE, FTM, QNT
 
 ### 7.4 Pyth Hermes Client Integration
 

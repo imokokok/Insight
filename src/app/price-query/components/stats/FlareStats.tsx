@@ -1,4 +1,4 @@
-import { Hash, Clock, Database, Timer, FileDigit, Network } from 'lucide-react';
+import { Hash, Clock, Database, Timer, FileDigit, Zap } from 'lucide-react';
 
 import { StatCard } from '@/components/ui/StatCard';
 import type { FlareTokenOnChainData } from '@/lib/oracles/clients/flare';
@@ -60,13 +60,6 @@ export function FlareStats({ data }: FlareStatsProps) {
         description="FTSO feed identifier"
       />
       <StatCard
-        icon={Network}
-        iconColor="text-teal-500"
-        title="Network"
-        value={network?.toUpperCase() || 'FLARE'}
-        description="Flare network"
-      />
-      <StatCard
         icon={Clock}
         iconColor="text-blue-500"
         title="Last Updated"
@@ -82,6 +75,13 @@ export function FlareStats({ data }: FlareStatsProps) {
         }
         description="Time since last update"
         rating={dataAgeRating}
+      />
+      <StatCard
+        icon={Zap}
+        iconColor="text-purple-500"
+        title="Network"
+        value={network?.toUpperCase() || 'FLARE'}
+        description="Flare network"
       />
     </>
   );

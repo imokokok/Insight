@@ -7,7 +7,7 @@ export default function PopularTokens({ tokens, onTokenClick }: PopularTokensPro
   return (
     <div className="max-w-xl mx-auto relative">
       <div className="flex items-center justify-center gap-3 overflow-x-auto pb-2 scrollbar-hide px-4">
-        <span className="text-xs text-gray-400 flex-shrink-0">{'home.hero.popular'}:</span>
+        <span className="text-xs text-gray-400 flex-shrink-0">Popular:</span>
         {tokens.map((token) => (
           <button
             key={token}

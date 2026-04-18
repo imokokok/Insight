@@ -1,6 +1,6 @@
 # Insight - Oracle Data Analytics Platform
 
-Insight is a professional oracle data analytics platform that provides comprehensive analysis and comparison of mainstream oracle protocols including Chainlink, Pyth, API3, RedStone, DIA, WINkLink, Supra, and TWAP.
+Insight is a professional oracle data analytics platform that provides comprehensive analysis and comparison of mainstream oracle protocols including Chainlink, Pyth, API3, RedStone, DIA, WINkLink, Supra, TWAP, Reflector, and Flare.
 
 ## Key Features
 
@@ -42,9 +42,11 @@ Insight is a professional oracle data analytics platform that provides comprehen
 - Pyth Hermes Client (`@pythnetwork/hermes-client` 2.0.0)
 - Pyth Price Service SDK (`@pythnetwork/price-service-sdk` 1.8.0)
 - API3 Contracts (`@api3/contracts` 27.0.0)
-- Custom oracle clients for all supported providers (Chainlink, Pyth, API3, RedStone, DIA, WINkLink, Supra, TWAP)
+- Custom oracle clients for all supported providers (Chainlink, Pyth, API3, RedStone, DIA, WINkLink, Supra, TWAP, Reflector, Flare)
 - Supra Oracle SDK (`supra-oracle-sdk` 1.0.4)
 - TWAP On-Chain Service (Uniswap V3 TWAP via direct RPC calls)
+- Reflector On-Chain Service (Stellar Soroban smart contracts)
+- Flare FTSO Service (Flare Time Series Oracle)
 
 ## Prerequisites
 
@@ -330,6 +332,16 @@ insight/
 - **Supported Chains**: Ethereum, Arbitrum, Optimism, Polygon, Base, BNB Chain
 - **Features**: Uniswap V3 Time-Weighted Average Price oracle, on-chain TWAP data from liquidity pools, spot price and TWAP price comparison, confidence scoring based on liquidity and deviation, RPC with automatic fallback and health tracking
 
+### Reflector
+
+- **Supported Chains**: Stellar
+- **Features**: Stellar ecosystem oracle with Soroban smart contracts, first-party oracle with direct data from source providers, support for both cryptocurrency and forex assets, on-chain data via smart contract calls
+
+### Flare
+
+- **Supported Chains**: Flare
+- **Features**: FTSO-based oracle with on-chain data feeds, validator analytics, confidence intervals with real-time bid/ask spreads, first-party oracle secured by Flare network consensus
+
 ## Database Schema
 
 The application uses Supabase (PostgreSQL) with the following main tables:
@@ -453,3 +465,5 @@ This project is private and proprietary.
 - [WINkLink](https://winklink.org/) - TRON ecosystem oracle
 - [Supra](https://supra.com/) - High-performance oracle with verifiable randomness
 - [TWAP](https://uniswap.org/) - Uniswap V3 Time-Weighted Average Price oracle
+- [Reflector](https://reflector.network/) - Stellar ecosystem oracle
+- [Flare](https://flare.network/) - FTSO-based oracle network

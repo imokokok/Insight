@@ -39,7 +39,7 @@ export default function LoginContent() {
 
     if (lowerError.includes('email not confirmed') || lowerError.includes('email_not_confirmed')) {
       return {
-        message: 'auth.login.error.emailNotConfirmed',
+        message: 'Please verify your email address before logging in.',
         type: 'email_not_confirmed',
       };
     }
@@ -49,7 +49,7 @@ export default function LoginContent() {
       lowerError.includes('invalid credentials')
     ) {
       return {
-        message: 'auth.login.error.invalidCredentials',
+        message: 'Invalid email or password. Please try again.',
         type: 'invalid_credentials',
       };
     }
@@ -99,8 +99,10 @@ export default function LoginContent() {
                 Insight
               </h1>
             </Link>
-            <h2 className="mt-4 text-xl font-semibold text-gray-900">{'auth.login.title'}</h2>
-            <p className="mt-2 text-sm text-gray-500">{'auth.login.subtitle'}</p>
+            <h2 className="mt-4 text-xl font-semibold text-gray-900">Login</h2>
+            <p className="mt-2 text-sm text-gray-500">
+              Welcome back! Please login to your account.
+            </p>
           </div>
 
           {displayError && (
@@ -121,7 +123,7 @@ export default function LoginContent() {
                       href={`/en/auth/resend-verification?email=${encodeURIComponent(email)}`}
                       className="mt-2 inline-block text-sm text-primary-600 hover:text-primary-700 font-medium underline"
                     >
-                      {'auth.login.error.resendConfirmation'}
+                      Resend Confirmation Email
                     </Link>
                   )}
                 </div>
@@ -132,7 +134,7 @@ export default function LoginContent() {
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                {'auth.login.emailLabel'}
+                Email Address
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -144,7 +146,7 @@ export default function LoginContent() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  placeholder={'auth.login.emailPlaceholder'}
+                  placeholder="Enter your email"
                   aria-invalid={!!displayError}
                   aria-describedby={displayError ? 'login-error' : undefined}
                   className="w-full pl-12 pr-4 py-3 border border-gray-300 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors rounded-md"
@@ -154,14 +156,14 @@ export default function LoginContent() {
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                {'auth.login.passwordLabel'}
+                Password
               </label>
               <PasswordInput
                 id="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                placeholder={'auth.login.passwordPlaceholder'}
+                placeholder="Enter your password"
                 aria-invalid={!!displayError}
                 aria-describedby={displayError ? 'login-error' : undefined}
               />
@@ -175,14 +177,14 @@ export default function LoginContent() {
                   className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
                 />
                 <label htmlFor="remember-me" className="ml-2 text-sm text-gray-600">
-                  {'auth.login.rememberMe'}
+                  Remember me
                 </label>
               </div>
               <Link
                 href={`/en/auth/forgot-password`}
                 className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
               >
-                {'auth.login.forgotPassword'}
+                Forgot password?
               </Link>
             </div>
 
@@ -193,7 +195,7 @@ export default function LoginContent() {
               leftIcon={<LogIn className="w-5 h-5" />}
               className="w-full"
             >
-              {isLoading ? 'auth.login.loggingIn' : 'auth.login.submit'}
+              {isLoading ? 'Logging in...' : 'Login'}
             </Button>
           </form>
 
@@ -203,7 +205,7 @@ export default function LoginContent() {
                 <div className="w-full border-t border-gray-200" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-white text-gray-500">{'auth.login.orContinueWith'}</span>
+                <span className="px-4 bg-white text-gray-500">Or continue with</span>
               </div>
             </div>
 
@@ -255,12 +257,12 @@ export default function LoginContent() {
           </div>
 
           <p className="mt-8 text-center text-sm text-gray-500">
-            {'auth.login.noAccount'}{' '}
+            Don&apos;t have an account?{' '}
             <Link
               href={`/en/register`}
               className="font-semibold text-primary-600 hover:text-primary-700 transition-colors"
             >
-              {'auth.login.registerNow'}
+              Register now
             </Link>
           </p>
         </div>

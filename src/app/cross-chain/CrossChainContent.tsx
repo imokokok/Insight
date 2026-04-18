@@ -21,10 +21,10 @@ export default function CrossChainContent() {
   const { loading, lastUpdated, refreshInterval, setRefreshInterval } = data;
 
   const refreshOptions = [
-    { value: 0, label: 'crossChain.autoRefreshOff' },
-    { value: 30000, label: 'crossChain.autoRefresh30s' },
-    { value: 60000, label: 'crossChain.autoRefresh1m' },
-    { value: 300000, label: 'crossChain.autoRefresh5m' },
+    { value: 0, label: 'Off' },
+    { value: 30000, label: '30s' },
+    { value: 60000, label: '1m' },
+    { value: 300000, label: '5m' },
   ];
 
   return (
@@ -43,7 +43,7 @@ export default function CrossChainContent() {
 
               <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">{'crossChain.autoRefresh'}</span>
+                  <span className="text-sm text-gray-600">Auto Refresh</span>
                   <SegmentedControl
                     options={refreshOptions.map((opt) => ({
                       value: opt.value.toString(),
@@ -58,7 +58,7 @@ export default function CrossChainContent() {
 
               {lastUpdated && (
                 <div className="text-xs text-gray-400 text-center">
-                  {'time.lastUpdated'} {lastUpdated.toLocaleTimeString()}
+                  Last updated: {lastUpdated.toLocaleTimeString()}
                 </div>
               )}
             </div>
@@ -70,7 +70,7 @@ export default function CrossChainContent() {
             {loading ? (
               <div className="py-16 flex flex-col justify-center items-center gap-3 bg-white rounded-lg border border-gray-200 mt-4">
                 <div className="w-8 h-8 border-2 border-gray-400 border-t-transparent animate-spin rounded-full" />
-                <div className="text-sm text-gray-500">{'crossChain.loadingData'}</div>
+                <div className="text-sm text-gray-500">Loading data...</div>
               </div>
             ) : (
               <div className="mt-4">

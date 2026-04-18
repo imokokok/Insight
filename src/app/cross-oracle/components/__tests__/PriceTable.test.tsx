@@ -31,7 +31,7 @@ jest.mock('../../constants', () => ({
   },
   getDeviationBgClass: (deviation: number) => (deviation > 5 ? 'bg-red-100' : 'bg-green-100'),
   getFreshnessInfo: (_seconds: number) => ({
-    textKey: 'crossOracle.freshness.justNow',
+    textKey: 'Just now',
     textParams: {},
     color: 'green',
     seconds: _seconds,

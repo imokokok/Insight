@@ -75,7 +75,7 @@ export function PriceComparisonTable({ data }: PriceComparisonTableProps) {
   const columns: ColumnDef<TableRow>[] = [
     {
       key: 'chain',
-      header: 'crossChain.blockchain',
+      header: 'Blockchain',
       width: 160,
       minWidth: 140,
       fixed: 'left',
@@ -94,7 +94,7 @@ export function PriceComparisonTable({ data }: PriceComparisonTableProps) {
             <span className="text-sm font-medium text-gray-900 truncate">{chainName}</span>
             {row.isOutlier && (
               <span className="flex-shrink-0 text-amber-700 text-xs font-medium bg-amber-100 px-1.5 py-0.5 rounded">
-                {'crossChain.outlier'}
+                Outlier
               </span>
             )}
           </div>
@@ -103,7 +103,7 @@ export function PriceComparisonTable({ data }: PriceComparisonTableProps) {
     },
     {
       key: 'price',
-      header: 'crossChain.price',
+      header: 'Price',
       width: 130,
       minWidth: 110,
       fixed: 'left',
@@ -145,7 +145,7 @@ export function PriceComparisonTable({ data }: PriceComparisonTableProps) {
     },
     {
       key: 'diffPercent',
-      header: 'crossChain.percentDifference',
+      header: '% Difference',
       width: 130,
       minWidth: 110,
       align: 'right',
@@ -182,7 +182,7 @@ export function PriceComparisonTable({ data }: PriceComparisonTableProps) {
     },
     {
       key: 'zScore',
-      header: 'crossChain.zScore',
+      header: 'Z-Score',
       width: 100,
       minWidth: 80,
       align: 'right',
@@ -205,7 +205,7 @@ export function PriceComparisonTable({ data }: PriceComparisonTableProps) {
     },
     {
       key: 'trend',
-      header: 'crossChain.trend',
+      header: 'Trend',
       width: 80,
       minWidth: 60,
       align: 'center',

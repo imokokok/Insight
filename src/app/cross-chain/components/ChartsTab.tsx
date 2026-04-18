@@ -73,12 +73,12 @@ export function ChartsTab({ data }: ChartsTabProps) {
         style={{ borderColor: baseColors.gray[100] }}
       >
         <h3 className="text-sm font-semibold mb-3" style={{ color: baseColors.gray[900] }}>
-          {'crossChain.priceDistributionAnalysis'}
+          Price Distribution Analysis
         </h3>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div>
             <h4 className="text-xs font-medium mb-3" style={{ color: baseColors.gray[700] }}>
-              {'crossChain.priceDistributionHistogram'}
+              Price Distribution Histogram
             </h4>
             <div className="h-64 py-4">
               <ResponsiveContainer width="100%" height="100%">
@@ -97,7 +97,7 @@ export function ChartsTab({ data }: ChartsTabProps) {
                     width={40}
                     stroke={chartColors.recharts.axis}
                   />
-                  <RechartsTooltip formatter={(value) => [value, 'crossChain.frequency']} />
+                  <RechartsTooltip formatter={(value) => [value, 'Frequency']} />
                   {meanBinIndex >= 0 && priceDistributionData[meanBinIndex] && (
                     <ReferenceLine
                       x={priceDistributionData[meanBinIndex].range}
@@ -119,7 +119,7 @@ export function ChartsTab({ data }: ChartsTabProps) {
             <div className="mt-4 grid grid-cols-3 gap-3">
               <div className="py-3">
                 <div className="text-xs" style={{ color: baseColors.gray[500] }}>
-                  {'crossChain.medianLine'}
+                  Median Line
                 </div>
                 <div
                   className="text-lg font-semibold"
@@ -130,7 +130,7 @@ export function ChartsTab({ data }: ChartsTabProps) {
               </div>
               <div className="py-3">
                 <div className="text-xs" style={{ color: baseColors.gray[500] }}>
-                  {'crossChain.meanLine'}
+                  Mean Line
                 </div>
                 <div className="text-lg font-semibold" style={{ color: baseColors.primary[500] }}>
                   ${avgPrice.toFixed(4)}
@@ -138,7 +138,7 @@ export function ChartsTab({ data }: ChartsTabProps) {
               </div>
               <div className="py-3">
                 <div className="text-xs" style={{ color: baseColors.gray[500] }}>
-                  {'crossChain.standardDeviation'}
+                  Standard Deviation
                 </div>
                 <div
                   className="text-lg font-semibold"
@@ -151,7 +151,7 @@ export function ChartsTab({ data }: ChartsTabProps) {
           </div>
           <div>
             <h4 className="text-xs font-medium mb-3" style={{ color: baseColors.gray[700] }}>
-              {'crossChain.chainPriceBoxPlot'}
+              Chain Price Box Plot
             </h4>
             <div className="h-64 py-4">
               <StandardBoxPlot data={boxPlotData} />

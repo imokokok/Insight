@@ -106,7 +106,7 @@ describe('AlertsPage', () => {
 
     render(<AlertsPage />);
 
-    const loginLink = screen.getByRole('link', { name: 'alerts.page.goToLogin' });
+    const loginLink = screen.getByRole('link', { name: 'Go to Login' });
     expect(loginLink).toHaveAttribute('href', '/login');
   });
 });

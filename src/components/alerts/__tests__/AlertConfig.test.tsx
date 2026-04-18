@@ -87,7 +87,7 @@ describe('AlertConfig', () => {
   it('should render create button', () => {
     render(<AlertConfig onAlertCreated={mockOnAlertCreated} />);
 
-    const createButton = screen.getByRole('button', { name: 'alerts.create.submit' });
+    const createButton = screen.getByRole('button', { name: 'Create Alert' });
     expect(createButton).toBeInTheDocument();
   });
 
@@ -112,7 +112,7 @@ describe('AlertConfig', () => {
   it('should show error when required fields are missing', async () => {
     render(<AlertConfig onAlertCreated={mockOnAlertCreated} />);
 
-    const createButton = screen.getByRole('button', { name: 'alerts.create.submit' });
+    const createButton = screen.getByRole('button', { name: 'Create Alert' });
     fireEvent.click(createButton);
 
     await waitFor(() => {

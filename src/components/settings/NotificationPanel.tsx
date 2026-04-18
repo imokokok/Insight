@@ -112,14 +112,14 @@ export function NotificationPanel() {
 
       localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
 
-      setSuccess('settings.notifications.saveSuccess');
+      setSuccess('Settings saved successfully');
 
       if (successTimerRef.current) {
         clearTimeout(successTimerRef.current);
       }
       successTimerRef.current = setTimeout(() => setSuccess(null), 3000);
     } catch {
-      setError('settings.notifications.saveError');
+      setError('Failed to save settings');
     } finally {
       setIsSaving(false);
     }
@@ -138,9 +138,9 @@ export function NotificationPanel() {
         <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
           <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <Bell className="w-5 h-5 text-gray-400" />
-            {'settings.notifications.title'}
+            Notification Settings
           </h2>
-          <p className="text-sm text-gray-500 mt-1">{'settings.notifications.subtitle'}</p>
+          <p className="text-sm text-gray-500 mt-1">Manage your notification preferences</p>
         </div>
 
         <div className="p-6 space-y-6">
@@ -164,12 +164,8 @@ export function NotificationPanel() {
                   <Mail className="w-5 h-5 text-primary-600" />
                 </div>
                 <div>
-                  <div className="font-medium text-gray-900">
-                    {'settings.notifications.emailNotifications'}
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    {'settings.notifications.emailNotificationsDesc'}
-                  </div>
+                  <div className="font-medium text-gray-900">Email Notifications</div>
+                  <div className="text-sm text-gray-500">Receive notifications via email</div>
                 </div>
               </div>
               <Toggle
@@ -184,15 +180,11 @@ export function NotificationPanel() {
                   <Globe className="w-5 h-5 text-purple-600" />
                 </div>
                 <div>
-                  <div className="font-medium text-gray-900">
-                    {'settings.notifications.browserNotifications'}
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    {'settings.notifications.browserNotificationsDesc'}
-                  </div>
+                  <div className="font-medium text-gray-900">Browser Notifications</div>
+                  <div className="text-sm text-gray-500">Receive desktop notifications</div>
                   {browserPermission === 'denied' && (
                     <div className="text-xs text-danger-500 mt-1">
-                      {'settings.notifications.permissionDeniedHint'}
+                      Permission denied. Please enable in browser settings.
                     </div>
                   )}
                 </div>
@@ -203,7 +195,7 @@ export function NotificationPanel() {
                     onClick={requestBrowserPermission}
                     className="text-xs text-primary-600 hover:text-primary-700 mr-2 transition-colors"
                   >
-                    {'settings.notifications.authorize'}
+                    Authorize
                   </button>
                 )}
                 <Toggle
@@ -225,11 +217,9 @@ export function NotificationPanel() {
         <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
           <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <AlertTriangle className="w-5 h-5 text-gray-400" />
-            {'settings.notifications.alertNotifications'}
+            Alert Notifications
           </h2>
-          <p className="text-sm text-gray-500 mt-1">
-            {'settings.notifications.alertNotificationsDesc'}
-          </p>
+          <p className="text-sm text-gray-500 mt-1">Configure alert notification settings</p>
         </div>
 
         <div className="p-6 space-y-6">
@@ -239,12 +229,8 @@ export function NotificationPanel() {
                 <AlertTriangle className="w-5 h-5 text-warning-600" />
               </div>
               <div>
-                <div className="font-medium text-gray-900">
-                  {'settings.notifications.alertTriggerNotification'}
-                </div>
-                <div className="text-sm text-gray-500">
-                  {'settings.notifications.alertTriggerNotificationDesc'}
-                </div>
+                <div className="font-medium text-gray-900">Alert Trigger Notifications</div>
+                <div className="text-sm text-gray-500">Get notified when alerts are triggered</div>
               </div>
             </div>
             <Toggle
@@ -259,11 +245,9 @@ export function NotificationPanel() {
         <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
           <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <TrendingUp className="w-5 h-5 text-gray-400" />
-            {'settings.notifications.priceChangeNotification'}
+            Price Change Notifications
           </h2>
-          <p className="text-sm text-gray-500 mt-1">
-            {'settings.notifications.priceChangeNotificationDesc'}
-          </p>
+          <p className="text-sm text-gray-500 mt-1">Get notified about significant price changes</p>
         </div>
 
         <div className="p-6 space-y-6">
@@ -273,11 +257,9 @@ export function NotificationPanel() {
                 <TrendingUp className="w-5 h-5 text-success-600" />
               </div>
               <div>
-                <div className="font-medium text-gray-900">
-                  {'settings.notifications.enablePriceChangeNotification'}
-                </div>
+                <div className="font-medium text-gray-900">Enable Price Change Notifications</div>
                 <div className="text-sm text-gray-500">
-                  {'settings.notifications.enablePriceChangeNotificationDesc'}
+                  Receive alerts for significant price movements
                 </div>
               </div>
             </div>
@@ -290,7 +272,7 @@ export function NotificationPanel() {
           {settings.priceChangeEnabled && (
             <div className="pl-4">
               <label className="block text-sm font-medium text-gray-700 mb-3">
-                {'settings.notifications.changeThreshold'}
+                Change Threshold
               </label>
               <div className="flex items-center gap-4">
                 <input
@@ -309,7 +291,7 @@ export function NotificationPanel() {
                 </div>
               </div>
               <p className="text-xs text-gray-500 mt-2">
-                {'settings.notifications.changeThresholdHint'}
+                You will be notified when price changes exceed this percentage
               </p>
             </div>
           )}
@@ -323,7 +305,7 @@ export function NotificationPanel() {
           className="inline-flex items-center gap-2 px-6 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 active:bg-primary-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm shadow-sm hover:shadow-md"
         >
           {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-          {'settings.notifications.saveSettings'}
+          Save Settings
         </button>
       </div>
     </div>

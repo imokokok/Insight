@@ -18,47 +18,43 @@ export default function FeaturesGuideSection() {
   const features = [
     {
       icon: <Search className="w-6 h-6" />,
-      title: 'docs.features.priceQuery.title',
-      description: 'docs.features.priceQuery.description',
+      title: 'Price Query',
+      description: 'Query real-time prices from multiple oracles with detailed analytics',
       href: '/price-query',
       highlights: [
-        'docs.features.priceQuery.highlight1',
-        'docs.features.priceQuery.highlight2',
-        'docs.features.priceQuery.highlight3',
+        'Multi-oracle price comparison',
+        'Historical price charts',
+        'Confidence intervals',
       ],
     },
     {
       icon: <GitCompare className="w-6 h-6" />,
-      title: 'docs.features.crossOracle.title',
-      description: 'docs.features.crossOracle.description',
+      title: 'Cross-Oracle Comparison',
+      description: 'Compare prices across different oracle providers',
       href: '/cross-oracle',
       highlights: [
-        'docs.features.crossOracle.highlight1',
-        'docs.features.crossOracle.highlight2',
-        'docs.features.crossOracle.highlight3',
+        'Price deviation analysis',
+        'Oracle reliability metrics',
+        'Real-time monitoring',
       ],
     },
     {
       icon: <Link2 className="w-6 h-6" />,
-      title: 'docs.features.crossChain.title',
-      description: 'docs.features.crossChain.description',
+      title: 'Cross-Chain Analysis',
+      description: 'Analyze price differences across blockchains',
       href: '/cross-chain',
       highlights: [
-        'docs.features.crossChain.highlight1',
-        'docs.features.crossChain.highlight2',
-        'docs.features.crossChain.highlight3',
+        'Multi-chain price tracking',
+        'Arbitrage opportunities',
+        'Chain-specific metrics',
       ],
     },
     {
       icon: <Bell className="w-6 h-6" />,
-      title: 'docs.features.alerts.title',
-      description: 'docs.features.alerts.description',
+      title: 'Price Alerts',
+      description: 'Set up custom alerts for price conditions',
       href: '/alerts',
-      highlights: [
-        'docs.features.alerts.highlight1',
-        'docs.features.alerts.highlight2',
-        'docs.features.alerts.highlight3',
-      ],
+      highlights: ['Threshold-based alerts', 'Email notifications', 'Custom conditions'],
     },
   ];
 
@@ -69,9 +65,11 @@ export default function FeaturesGuideSection() {
           <div className="p-2 bg-purple-100 rounded-lg">
             <Layers className="w-5 h-5 text-purple-600" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900">{'docs.features.title'}</h2>
+          <h2 className="text-2xl font-bold text-gray-900">Features Guide</h2>
         </div>
-        <p className="text-gray-600 leading-relaxed">{'docs.features.description'}</p>
+        <p className="text-gray-600 leading-relaxed">
+          Explore all the features Insight has to offer
+        </p>
       </div>
 
       {/* Features Grid */}
@@ -105,7 +103,7 @@ export default function FeaturesGuideSection() {
               href={feature.href}
               className="inline-flex items-center gap-2 text-sm font-medium text-purple-600 hover:text-purple-700 transition-colors"
             >
-              {'docs.features.learnMore'}
+              Learn More
               <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
@@ -117,30 +115,22 @@ export default function FeaturesGuideSection() {
         <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg">
           <Clock className="w-5 h-5 text-blue-600" />
           <div>
-            <p className="text-sm font-medium text-gray-900">
-              {'docs.features.info.realtime.title'}
-            </p>
-            <p className="text-xs text-gray-600">{'docs.features.info.realtime.description'}</p>
+            <p className="text-sm font-medium text-gray-900">Real-time Updates</p>
+            <p className="text-xs text-gray-600">Prices updated every second</p>
           </div>
         </div>
         <div className="flex items-center gap-3 p-4 bg-green-50 rounded-lg">
           <Shield className="w-5 h-5 text-green-600" />
           <div>
-            <p className="text-sm font-medium text-gray-900">
-              {'docs.features.info.accurate.title'}
-            </p>
-            <p className="text-xs text-gray-600">{'docs.features.info.accurate.description'}</p>
+            <p className="text-sm font-medium text-gray-900">Accurate Data</p>
+            <p className="text-xs text-gray-600">Trusted oracle sources</p>
           </div>
         </div>
         <div className="flex items-center gap-3 p-4 bg-purple-50 rounded-lg">
           <BarChart3 className="w-5 h-5 text-purple-600" />
           <div>
-            <p className="text-sm font-medium text-gray-900">
-              {'docs.features.info.comprehensive.title'}
-            </p>
-            <p className="text-xs text-gray-600">
-              {'docs.features.info.comprehensive.description'}
-            </p>
+            <p className="text-sm font-medium text-gray-900">Comprehensive</p>
+            <p className="text-xs text-gray-600">All major oracles covered</p>
           </div>
         </div>
       </div>

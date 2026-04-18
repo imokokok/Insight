@@ -90,7 +90,7 @@ export function DataSourceSection({
         onRefresh={onRefresh}
         isLoading={isLoading}
         error={error}
-        title={'dataSources.title'}
+        title="Data Sources"
         className="shadow-sm"
         showUpdateTime
         initiallyExpanded={false}

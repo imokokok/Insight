@@ -76,9 +76,9 @@ export function DataManagementPanel() {
       const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
       downloadBlob(blob, `user-data-${new Date().toISOString().split('.')[0]}.json`);
 
-      showSuccess('settings.data.exportSuccess');
+      showSuccess('Data exported successfully');
     } catch (_err) {
-      setError('settings.data.exportError');
+      setError('Failed to export data');
     } finally {
       setIsExporting(false);
     }
@@ -109,9 +109,9 @@ export function DataManagementPanel() {
       const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
       downloadBlob(blob, `price-history-${new Date().toISOString().split('.')[0]}.json`);
 
-      showSuccess('settings.data.priceHistoryExportSuccess');
+      showSuccess('Price history exported successfully');
     } catch (_err) {
-      setError('settings.data.exportError');
+      setError('Failed to export data');
     } finally {
       setIsExporting(false);
     }
@@ -135,16 +135,16 @@ export function DataManagementPanel() {
       const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
       downloadBlob(blob, `snapshots-${new Date().toISOString().split('.')[0]}.json`);
 
-      showSuccess('settings.data.snapshotsExportSuccess');
+      showSuccess('Snapshots exported successfully');
     } catch (_err) {
-      setError('settings.data.exportError');
+      setError('Failed to export data');
     } finally {
       setIsExporting(false);
     }
   };
 
   const clearLocalData = async () => {
-    if (!confirm('settings.data.clearLocalDataConfirm')) {
+    if (!confirm('Are you sure you want to clear all local data? This action cannot be undone.')) {
       return;
     }
 
@@ -167,9 +167,9 @@ export function DataManagementPanel() {
         await Promise.all(cacheNames.map((name) => caches.delete(name)));
       }
 
-      showSuccess('settings.data.clearLocalDataSuccess');
+      showSuccess('Local data cleared successfully');
     } catch (_err) {
-      setError('settings.data.clearLocalDataError');
+      setError('Failed to clear local data');
     } finally {
       setIsClearing(false);
     }
@@ -189,14 +189,14 @@ export function DataManagementPanel() {
 
       if (!res.ok) {
         const result = await res.json().catch(() => ({ error: 'Unknown error' }));
-        setError(result.error || 'settings.data.deleteAccountError');
+        setError(result.error || 'Failed to delete account');
         return;
       }
 
       await signOut();
       window.location.href = '/';
     } catch (_err) {
-      setError('settings.data.deleteAccountError');
+      setError('Failed to delete account');
     } finally {
       setIsDeleting(false);
     }
@@ -208,9 +208,9 @@ export function DataManagementPanel() {
         <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
           <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <Database className="w-5 h-5 text-gray-400" />
-            {'settings.data.title'}
+            Data Management
           </h2>
-          <p className="text-sm text-gray-500 mt-1">{'settings.data.subtitle'}</p>
+          <p className="text-sm text-gray-500 mt-1">Export and manage your data</p>
         </div>
 
         <div className="p-6 space-y-6">
@@ -235,11 +235,9 @@ export function DataManagementPanel() {
                     <FileJson className="w-5 h-5 text-primary-600" />
                   </div>
                   <div>
-                    <div className="font-medium text-gray-900">
-                      {'settings.data.exportUserData'}
-                    </div>
+                    <div className="font-medium text-gray-900">Export User Data</div>
                     <div className="text-sm text-gray-500">
-                      {'settings.data.exportUserDataDesc'}
+                      Download all your personal data as JSON
                     </div>
                   </div>
                 </div>
@@ -253,7 +251,7 @@ export function DataManagementPanel() {
                   ) : (
                     <Download className="w-4 h-4" />
                   )}
-                  {'settings.data.export'}
+                  Export
                 </button>
               </div>
             </div>
@@ -265,12 +263,8 @@ export function DataManagementPanel() {
                     <Download className="w-5 h-5 text-success-600" />
                   </div>
                   <div>
-                    <div className="font-medium text-gray-900">
-                      {'settings.data.exportPriceHistory'}
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      {'settings.data.exportPriceHistoryDesc'}
-                    </div>
+                    <div className="font-medium text-gray-900">Export Price History</div>
+                    <div className="text-sm text-gray-500">Download your price query history</div>
                   </div>
                 </div>
                 <button
@@ -283,7 +277,7 @@ export function DataManagementPanel() {
                   ) : (
                     <Download className="w-4 h-4" />
                   )}
-                  {'settings.data.export'}
+                  Export
                 </button>
               </div>
             </div>
@@ -295,12 +289,8 @@ export function DataManagementPanel() {
                     <Database className="w-5 h-5 text-purple-600" />
                   </div>
                   <div>
-                    <div className="font-medium text-gray-900">
-                      {'settings.data.exportSnapshots'}
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      {'settings.data.exportSnapshotsDesc'}
-                    </div>
+                    <div className="font-medium text-gray-900">Export Snapshots</div>
+                    <div className="text-sm text-gray-500">Download your saved snapshots</div>
                   </div>
                 </div>
                 <button
@@ -313,7 +303,7 @@ export function DataManagementPanel() {
                   ) : (
                     <Download className="w-4 h-4" />
                   )}
-                  {'settings.data.export'}
+                  Export
                 </button>
               </div>
             </div>
@@ -325,9 +315,9 @@ export function DataManagementPanel() {
         <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
           <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <Trash2 className="w-5 h-5 text-gray-400" />
-            {'settings.data.clearData'}
+            Clear Data
           </h2>
-          <p className="text-sm text-gray-500 mt-1">{'settings.data.clearDataDesc'}</p>
+          <p className="text-sm text-gray-500 mt-1">Clear local cached data</p>
         </div>
 
         <div className="p-6">
@@ -335,8 +325,10 @@ export function DataManagementPanel() {
             <div className="flex items-start gap-2">
               <AlertTriangle className="w-5 h-5 text-warning-600 flex-shrink-0 mt-0.5" />
               <div className="text-sm text-yellow-800">
-                <p className="font-medium">{'settings.data.note'}</p>
-                <p className="mt-1">{'settings.data.clearDataWarning'}</p>
+                <p className="font-medium">Note</p>
+                <p className="mt-1">
+                  This will clear all locally cached data. Your account data will remain intact.
+                </p>
               </div>
             </div>
           </div>
@@ -351,7 +343,7 @@ export function DataManagementPanel() {
             ) : (
               <Trash2 className="w-4 h-4" />
             )}
-            {'settings.data.clearLocalData'}
+            Clear Local Data
           </button>
         </div>
       </div>
@@ -360,39 +352,39 @@ export function DataManagementPanel() {
         <div className="px-6 py-4 border-b border-danger-100 bg-danger-50/80">
           <h2 className="text-lg font-semibold text-danger-900 flex items-center gap-2">
             <UserX className="w-5 h-5 text-danger-600" />
-            {'settings.data.dangerZone'}
+            Danger Zone
           </h2>
-          <p className="text-sm text-danger-700 mt-1">{'settings.data.dangerZoneDesc'}</p>
+          <p className="text-sm text-danger-700 mt-1">Irreversible actions</p>
         </div>
 
         <div className="p-6">
           {!showDeleteConfirm ? (
             <div>
-              <p className="text-sm text-gray-600 mb-4">{'settings.data.deleteAccountWarning'}</p>
+              <p className="text-sm text-gray-600 mb-4">
+                This action is permanent and cannot be undone. All your data will be deleted.
+              </p>
               <button
                 onClick={() => setShowDeleteConfirm(true)}
                 className="inline-flex items-center gap-2 px-4 py-2 bg-danger-600 text-white rounded-lg hover:bg-danger-700 active:bg-danger-800 transition-all duration-200 text-sm font-medium shadow-sm hover:shadow-md"
               >
                 <UserX className="w-4 h-4" />
-                {'settings.data.deleteAccount'}
+                Delete Account
               </button>
             </div>
           ) : (
             <div className="space-y-4">
               <div className="p-4 bg-danger-50 border border-danger-200 rounded-lg">
                 <p className="text-sm text-danger-800 font-medium mb-2">
-                  {'settings.data.deleteAccountConfirm'}
+                  Are you sure you want to delete your account?
                 </p>
-                <p className="text-sm text-danger-700">
-                  {'settings.data.deleteAccountConfirmHint'}
-                </p>
+                <p className="text-sm text-danger-700">Type DELETE to confirm</p>
               </div>
 
               <input
                 type="text"
                 value={deleteConfirmText}
                 onChange={(e) => setDeleteConfirmText(e.target.value)}
-                placeholder={'settings.data.deleteAccountConfirmPlaceholder'}
+                placeholder="Type DELETE to confirm"
                 className="w-full px-4 py-2.5 border border-red-300 rounded-lg focus:ring-2 focus:ring-danger-500/20 focus:border-danger-500 outline-none transition-all duration-200"
               />
 
@@ -407,7 +399,7 @@ export function DataManagementPanel() {
                   ) : (
                     <UserX className="w-4 h-4" />
                   )}
-                  {'settings.data.confirmDeleteAccount'}
+                  Confirm Delete
                 </button>
                 <button
                   onClick={() => {
@@ -417,7 +409,7 @@ export function DataManagementPanel() {
                   className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-gray-400 active:bg-gray-100 transition-all duration-200 text-sm font-medium"
                 >
                   <X className="w-4 h-4" />
-                  {'settings.data.cancel'}
+                  Cancel
                 </button>
               </div>
             </div>

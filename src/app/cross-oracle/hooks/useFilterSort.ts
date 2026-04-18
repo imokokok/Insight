@@ -232,15 +232,15 @@ export function useFilterSort({
           : deviationFilter === 'warning'
             ? '0.1-0.5%'
             : '>0.5%';
-      summary.push(`${'crossOracle.filterSummary.deviation'}: ${label}`);
+      summary.push(`Deviation: ${label}`);
     }
 
     if (oracleFilter !== 'all') {
-      summary.push(`${'crossOracle.filterSummary.oracle'}: ${oracleNames[oracleFilter]}`);
+      summary.push(`Oracle: ${oracleNames[oracleFilter]}`);
     }
 
     if (timeRange !== '24h') {
-      summary.push(`${'crossOracle.filterSummary.time'}: ${timeRange}`);
+      summary.push(`Time: ${timeRange}`);
     }
 
     return summary;

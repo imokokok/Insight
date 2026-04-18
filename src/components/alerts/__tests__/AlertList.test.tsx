@@ -104,7 +104,7 @@ describe('AlertList', () => {
   it('should display alert count in title', () => {
     render(<AlertList {...mockProps} />);
 
-    expect(screen.getByText('alerts.list.title (2)')).toBeInTheDocument();
+    expect(screen.getByText('My Alerts (2)')).toBeInTheDocument();
   });
 
   it('should render batch operations component', () => {
