@@ -131,7 +131,7 @@ export function formatPrice(price: number): string {
  * @param options - Formatting options
  * @returns Formatted percentage string with % suffix
  */
-export function formatPercent(
+function formatPercent(
   value: number,
   options?: { minDecimals?: number; maxDecimals?: number }
 ): string {
@@ -251,7 +251,7 @@ export function formatRelativeTime(
  * @param type - The type of change ('price' for price changes, 'deviation' for deviations)
  * @returns Tailwind color class
  */
-export function getChangeColorClass(value: number, type: 'price' | 'deviation' = 'price'): string {
+function getChangeColorClass(value: number, type: 'price' | 'deviation' = 'price'): string {
   if (value === 0) return 'text-gray-500';
 
   // For price changes: positive = green (gain), negative = red (loss)
@@ -269,7 +269,7 @@ export function getChangeColorClass(value: number, type: 'price' | 'deviation' =
  * @param deviationPercent - The deviation percentage
  * @returns Tailwind background color class
  */
-export function getDeviationBgClass(deviationPercent: number): string {
+function getDeviationBgClass(deviationPercent: number): string {
   const absDeviation = Math.abs(deviationPercent);
   if (absDeviation < 0.1) return 'bg-emerald-50 border-emerald-200';
   if (absDeviation < 0.5) return 'bg-yellow-50 border-yellow-200';
@@ -282,7 +282,7 @@ export function getDeviationBgClass(deviationPercent: number): string {
  * @param deviationPercent - The deviation percentage
  * @returns Tailwind text color class
  */
-export function getDeviationTextClass(deviationPercent: number): string {
+function getDeviationTextClass(deviationPercent: number): string {
   const absDeviation = Math.abs(deviationPercent);
   if (absDeviation < 0.1) return 'text-emerald-600';
   if (absDeviation < 0.5) return 'text-yellow-600';
@@ -293,7 +293,7 @@ export function getDeviationTextClass(deviationPercent: number): string {
 /**
  * Deviation threshold constants for consistent coloring across the app
  */
-export const DEVIATION_THRESHOLDS = {
+const DEVIATION_THRESHOLDS = {
   /** Excellent: < 0.1% deviation */
   EXCELLENT: 0.1,
   /** Good: < 0.5% deviation */

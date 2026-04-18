@@ -20,19 +20,12 @@ import type { PriceAnomaly } from '../hooks/usePriceAnomalyDetection';
 
 export type { PriceAnomaly };
 
-// 重新导出基础类型
 export type { SortColumn, SortDirection, DeviationFilter } from '../constants';
 
-// TabId 类型定义（避免循环依赖）
 export type TabId = 'priceComparison' | 'qualityAnalysis' | 'oracleProfiles';
-
-// ============================================================================
-// 基础类型定义
-// ============================================================================
 
 export type RefreshInterval = 'off' | '10s' | '30s' | '1m' | '5m';
 
-// 跨预言机对比数据（用于导出）
 export interface CrossOracleData {
   asset?: string;
   oracle?: string;
@@ -43,29 +36,6 @@ export interface CrossOracleData {
   deviation?: number;
   confidence?: number;
 }
-
-// ============================================================================
-// 历史数据极值类型
-// ============================================================================
-
-export interface HistoryMinMaxValue {
-  min: number;
-  max: number;
-}
-
-export interface HistoryMinMax {
-  avgPrice: HistoryMinMaxValue;
-  weightedAvgPrice: HistoryMinMaxValue;
-  maxPrice: HistoryMinMaxValue;
-  minPrice: HistoryMinMaxValue;
-  priceRange: HistoryMinMaxValue;
-  standardDeviationPercent: HistoryMinMaxValue;
-  variance: HistoryMinMaxValue;
-}
-
-// ============================================================================
-// 图表数据类型
-// ============================================================================
 
 export interface ChartDataPoint {
   timestamp: string;
@@ -81,24 +51,6 @@ export interface ChartDataPoint {
   [key: string]: string | number | Date | undefined;
 }
 
-export interface QualityTrendDataPoint {
-  timestamp: number;
-  updateLatency: number;
-  deviationFromMedian: number;
-  isOutlier: boolean;
-  isStale: boolean;
-  heartbeatCompliance: number;
-}
-
-export interface QualityTrendData {
-  oracle: OracleProvider;
-  data: QualityTrendDataPoint[];
-}
-
-// ============================================================================
-// 统计数据类型
-// ============================================================================
-
 export interface PriceStatsResult {
   validPrices: number[];
   avgPrice: number;
@@ -112,99 +64,6 @@ export interface PriceStatsResult {
   standardDeviationPercent: number;
   currentStats: SnapshotStats;
 }
-
-export interface OutlierInfo {
-  index: number;
-  provider: OracleProvider;
-  zScore: number;
-  deviation: number;
-}
-
-export interface OutlierStats {
-  count: number;
-  avgDeviation: number;
-  outliers: OutlierInfo[];
-  oracleNames: string[];
-}
-
-// ============================================================================
-// 筛选排序结果类型
-// ============================================================================
-
-export interface FilterSortResult {
-  sortedPriceData: PriceData[];
-  filteredPriceData: PriceData[];
-  activeFilterCount: number;
-  outlierStats: OutlierStats;
-  handleSort: (column: SortColumn) => void;
-  handleClearFilters: () => void;
-  getFilterSummary: () => string[];
-}
-
-// ============================================================================
-// 图表配置结果类型
-// ============================================================================
-
-export interface ChartConfigResult {
-  oracleChartColors: Record<OracleProvider, string>;
-  getChartData: () => ChartDataPoint[];
-  heatmapData: PriceDeviationDataPoint[];
-  boxPlotData: OraclePriceData[];
-  volatilityData: OraclePriceHistory[];
-  correlationData: OraclePriceSeries[];
-  latencyData: number[];
-  performanceData: OraclePerformanceData[];
-}
-
-// 旧版 ChartDataResult（兼容 useChartData.ts）
-type ChartDataResult = ChartConfigResult;
-
-// ============================================================================
-// 技术指标结果类型
-// ============================================================================
-
-export interface MovingAverageData {
-  oracle: OracleProvider;
-  prices: { timestamp: number; price: number }[];
-}
-
-interface GasFeeData {
-  oracle: OracleProvider;
-  chain: string;
-  updateCost: number;
-  updateFrequency: number;
-  avgGasPrice: number;
-  lastUpdate: number;
-}
-
-interface ATRData {
-  oracle: OracleProvider;
-  prices: { timestamp: number; price: number; high: number; low: number; close: number }[];
-}
-
-interface BollingerData {
-  oracle: OracleProvider;
-  prices: { timestamp: number; price: number; high: number; low: number; close: number }[];
-}
-
-interface QualityScoreData {
-  freshness: { lastUpdated: Date };
-  completeness: { successCount: number; totalCount: number };
-  reliability: { historicalAccuracy: number; responseSuccessRate: number };
-}
-
-interface TechnicalIndicatorsResult {
-  maData: MovingAverageData[];
-  gasFeeData: GasFeeData[];
-  atrData: ATRData[];
-  bollingerData: BollingerData[];
-  qualityTrendData: QualityTrendData[];
-  qualityScoreData: QualityScoreData;
-}
-
-// ============================================================================
-// 错误类型定义
-// ============================================================================
 
 export type OracleErrorType =
   | 'network'
@@ -247,43 +106,6 @@ export interface RetryConfig {
   exponentialBackoff: boolean;
 }
 
-// ============================================================================
-// Hook 返回类型
-// ============================================================================
-
-interface UseCrossOraclePageReturn {
-  selectedOracles: OracleProvider[];
-  setSelectedOracles: React.Dispatch<React.SetStateAction<OracleProvider[]>>;
-  selectedSymbol: string;
-  setSelectedSymbol: React.Dispatch<React.SetStateAction<string>>;
-  timeRange: TimeRange;
-  setTimeRange: React.Dispatch<React.SetStateAction<TimeRange>>;
-  priceData: PriceData[];
-  historicalData: Partial<Record<OracleProvider, PriceData[]>>;
-  isLoading: boolean;
-  lastUpdated: Date | null;
-  priceStats: PriceStatsResult;
-  anomalyDetection: {
-    anomalies: PriceAnomaly[];
-    count: number;
-    highRiskCount: number;
-    mediumRiskCount: number;
-    lowRiskCount: number;
-    hasAnomalies: boolean;
-    maxDeviation: number;
-    anomalyOracleNames: string[];
-  };
-  oracleDataError: OracleDataError;
-  retryOracle: (provider: OracleProvider) => Promise<void>;
-  retryAllFailed: () => Promise<void>;
-  isRetrying: boolean;
-  retryingOracles: OracleProvider[];
-  queryProgress: { completed: number; total: number };
-  toggleOracle: (oracle: OracleProvider) => void;
-  symbols: string[];
-  fetchPriceData: () => Promise<void>;
-}
-
 export interface UseOracleDataReturn {
   priceData: PriceData[];
   historicalData: Partial<Record<OracleProvider, PriceData[]>>;
@@ -316,105 +138,6 @@ export interface UseOracleDataReturn {
   queryProgress: { completed: number; total: number };
 }
 
-export interface UseChartConfigReturn extends ChartConfigResult {
-  historyMinMax: HistoryMinMax;
-}
-
-export interface UseFilterSortReturn extends FilterSortResult {
-  sortColumn: SortColumn | undefined;
-  sortDirection: SortDirection;
-  deviationFilter: DeviationFilter;
-  setDeviationFilter: (filter: DeviationFilter) => void;
-  oracleFilter: OracleProvider | 'all';
-  setOracleFilter: (filter: OracleProvider | 'all') => void;
-}
-
-interface UseExportReturn {
-  handleExportCSV: () => void;
-  handleExportJSON: () => void;
-  handleSaveSnapshot: () => void;
-}
-
-// ============================================================================
-// 页面状态类型
-// ============================================================================
-
-interface CrossOraclePageState {
-  selectedOracles: OracleProvider[];
-  selectedSymbol: string;
-  timeRange: TimeRange;
-}
-
-// ============================================================================
-// 风险预警相关类型
-// ============================================================================
-
-export interface DataQualityScore {
-  consistency: number; // 0-100
-  freshness: number; // 0-100
-  completeness: number; // 0-100
-  overall: number; // 0-100
-  suggestions: string[];
-}
-
-/**
- * 专业质量指标
- */
-export interface ProfessionalQualityMetrics {
-  /** 变异系数 (Coefficient of Variation) = 标准差 / 平均值 */
-  coefficientOfVariation: number;
-  /** 标准误差 (Standard Error of Mean) = 标准差 / √n */
-  standardError: number;
-  /** 95%置信区间下限 */
-  confidenceIntervalLower: number;
-  /** 95%置信区间上限 */
-  confidenceIntervalUpper: number;
-  /** 样本数量 */
-  sampleSize: number;
-  /** 平均值 */
-  mean: number;
-  /** 中位数 */
-  median: number;
-  /** 标准差 */
-  standardDeviation: number;
-  /** 方差 */
-  variance: number;
-}
-
-/**
- * 单个预言机质量指标
- */
-export interface OracleQualityMetrics {
-  /** 预言机提供商 */
-  provider: OracleProvider;
-  /** 价格 */
-  price: number;
-  /** 相对中位数的偏差百分比 */
-  deviationPercent: number;
-  /** Z-Score (标准分数) */
-  zScore: number;
-  /** 更新延迟(ms) */
-  latency: number;
-  /** 置信度 0-1 */
-  confidence: number;
-  /** 是否为异常值 */
-  isOutlier: boolean;
-  /** 最后更新时间 */
-  lastUpdated: number;
-}
-
-/**
- * 扩展的数据质量评分（包含专业指标）
- */
-export interface ExtendedDataQualityScore extends DataQualityScore {
-  /** 专业统计指标 */
-  professionalMetrics: ProfessionalQualityMetrics;
-  /** 各预言机质量指标 */
-  oracleMetrics: OracleQualityMetrics[];
-  /** 延迟统计 */
-  latencyStats: LatencyStats;
-}
-
 export interface OracleFeature {
   provider: OracleProvider;
   name: string;
@@ -424,13 +147,8 @@ export interface OracleFeature {
   descriptionKey: string;
 }
 
-// ============================================================================
-// 导出类型别名（保持向后兼容）
-// ============================================================================
-
 export type { OracleProvider, PriceData, SnapshotStats };
 
-// 重新导出图表类型
 export type {
   OraclePriceSeries,
   PriceDeviationDataPoint,

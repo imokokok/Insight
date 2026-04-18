@@ -17,7 +17,7 @@ export function safeMin(values: number[]): number {
   return values.reduce((min, v) => (v < min ? v : min), Infinity);
 }
 
-export function calculateMean(values: number[]): number {
+function calculateMean(values: number[]): number {
   if (values.length === 0) return 0;
   return values.reduce((sum, v) => sum + v, 0) / values.length;
 }

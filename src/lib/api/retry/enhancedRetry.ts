@@ -3,42 +3,22 @@ import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('enhanced-retry');
 
-/**
- * 重试策略类型
- */
 export type RetryStrategy = 'fixed' | 'exponential' | 'linear' | 'decorrelated-jitter';
 
-/**
- * 增强的重试配置接口
- */
 export interface EnhancedRetryConfig {
-  /** 最大重试次数 */
   maxAttempts: number;
-  /** 基础延迟时间（毫秒） */
   baseDelay: number;
-  /** 最大延迟时间（毫秒） */
   maxDelay: number;
-  /** 退避乘数（用于指数退避） */
   backoffMultiplier: number;
-  /** 重试策略 */
   strategy: RetryStrategy;
-  /** 可重试的 HTTP 状态码 */
   retryableStatuses: number[];
-  /** 可重试的错误码 */
   retryableErrorCodes: string[];
-  /** 超时时间（毫秒） */
   timeout: number;
-  /** 是否启用断路器模式 */
   enableCircuitBreaker: boolean;
-  /** 断路器失败阈值 */
   circuitBreakerThreshold: number;
-  /** 断路器重置时间（毫秒） */
   circuitBreakerResetTime: number;
 }
 
-/**
- * 重试上下文
- */
 export interface RetryContext {
   attempt: number;
   maxAttempts: number;
@@ -47,9 +27,6 @@ export interface RetryContext {
   timestamp: number;
 }
 
-/**
- * 重试事件回调
- */
 export interface RetryCallbacks<T> {
   onRetry?: (context: RetryContext) => void;
   onSuccess?: (result: T, context: RetryContext) => void;
@@ -57,9 +34,6 @@ export interface RetryCallbacks<T> {
   onTimeout?: (context: RetryContext) => void;
 }
 
-/**
- * 重试结果
- */
 export interface RetryResult<T> {
   success: boolean;
   data?: T;
@@ -69,18 +43,12 @@ export interface RetryResult<T> {
   strategy: RetryStrategy;
 }
 
-/**
- * 断路器状态
- */
 enum CircuitBreakerState {
   CLOSED = 'CLOSED',
   OPEN = 'OPEN',
   HALF_OPEN = 'HALF_OPEN',
 }
 
-/**
- * 断路器
- */
 class CircuitBreaker {
   private state: CircuitBreakerState = CircuitBreakerState.CLOSED;
   private failureCount = 0;
@@ -102,13 +70,11 @@ class CircuitBreaker {
     if (this.state === CircuitBreakerState.OPEN) {
       if (this.lastFailureTime && Date.now() - this.lastFailureTime >= this.resetTime) {
         this.state = CircuitBreakerState.HALF_OPEN;
-        // 在 HALF_OPEN 状态下，允许一次试验
         return true;
       }
       return false;
     }
 
-    // HALF_OPEN 状态：只允许一次试验
     if (this.halfOpenInProgress) {
       return false;
     }
@@ -138,9 +104,6 @@ class CircuitBreaker {
   }
 }
 
-/**
- * 默认重试配置
- */
 export const defaultEnhancedRetryConfig: EnhancedRetryConfig = {
   maxAttempts: 3,
   baseDelay: 1000,
@@ -160,9 +123,6 @@ export const defaultEnhancedRetryConfig: EnhancedRetryConfig = {
   circuitBreakerResetTime: 60000,
 };
 
-/**
- * 计算延迟时间
- */
 function calculateDelay(attempt: number, config: EnhancedRetryConfig): number {
   const { strategy, baseDelay, maxDelay, backoffMultiplier } = config;
 
@@ -182,7 +142,6 @@ function calculateDelay(attempt: number, config: EnhancedRetryConfig): number {
       break;
 
     case 'decorrelated-jitter': {
-      // 去相关抖动算法：减少重试风暴
       const prevDelay = baseDelay * Math.pow(backoffMultiplier, attempt - 2);
       delay = Math.random() * (maxDelay - baseDelay) + baseDelay;
       if (attempt > 1) {
@@ -195,30 +154,22 @@ function calculateDelay(attempt: number, config: EnhancedRetryConfig): number {
       delay = baseDelay;
   }
 
-  // 添加随机抖动（±10%）
   const jitter = delay * 0.1 * (Math.random() * 2 - 1);
   delay = Math.min(delay + jitter, maxDelay);
 
   return Math.max(0, Math.round(delay));
 }
 
-/**
- * 判断是否应该重试
- */
 function shouldRetry(error: Error, attempt: number, config: EnhancedRetryConfig): boolean {
   if (attempt >= config.maxAttempts) {
     return false;
   }
 
-  // 检查错误码
   const errorCode = (error as Error & { code?: string }).code;
   if (errorCode && config.retryableErrorCodes.includes(errorCode)) {
     return true;
   }
 
-  // 检查 HTTP 状态码 - 使用更精确的正则表达式
-  // 匹配常见的 HTTP 状态码格式：如 "status: 500", "HTTP 500", "500 Internal Server Error"
-  // 注意：不使用单独的 \s 作为前缀，避免匹配任意三个数字
   const statusMatch = error.message.match(/(?:status[:=\s]+|HTTP\s+)(\d{3})(?:\s|$|\b)/i);
   if (statusMatch) {
     const status = parseInt(statusMatch[1], 10);
@@ -227,7 +178,6 @@ function shouldRetry(error: Error, attempt: number, config: EnhancedRetryConfig)
     }
   }
 
-  // 额外检查：匹配 "500 Internal Server Error" 这种格式（数字后跟大写字母）
   const statusWordMatch = error.message.match(/\b(\d{3})\s+[A-Z][a-zA-Z\s]+/);
   if (statusWordMatch) {
     const status = parseInt(statusWordMatch[1], 10);
@@ -236,7 +186,6 @@ function shouldRetry(error: Error, attempt: number, config: EnhancedRetryConfig)
     }
   }
 
-  // 检查错误对象上的状态码属性
   const errorWithStatus = error as Error & { status?: number; statusCode?: number };
   if (
     typeof errorWithStatus.status === 'number' &&
@@ -251,7 +200,6 @@ function shouldRetry(error: Error, attempt: number, config: EnhancedRetryConfig)
     return true;
   }
 
-  // 检查网络错误
   const networkErrorPatterns = [
     'network',
     'fetch',
@@ -268,9 +216,6 @@ function shouldRetry(error: Error, attempt: number, config: EnhancedRetryConfig)
   return networkErrorPatterns.some((pattern) => errorMessage.includes(pattern.toLowerCase()));
 }
 
-/**
- * 带超时的 Promise 包装器
- */
 function withTimeout<T>(
   promise: Promise<T>,
   timeoutMs: number,
@@ -288,9 +233,6 @@ function withTimeout<T>(
   });
 }
 
-/**
- * 增强的重试管理器
- */
 export class EnhancedRetryManager {
   private config: EnhancedRetryConfig;
   private circuitBreaker?: CircuitBreaker;
@@ -306,9 +248,6 @@ export class EnhancedRetryManager {
     }
   }
 
-  /**
-   * 执行带有重试机制的异步操作
-   */
   async execute<T>(
     operation: () => Promise<T>,
     operationName?: string,
@@ -316,7 +255,6 @@ export class EnhancedRetryManager {
   ): Promise<RetryResult<T>> {
     const startTime = Date.now();
 
-    // 检查断路器状态
     if (this.circuitBreaker && !this.circuitBreaker.canExecute()) {
       const error = new Error(
         `Circuit breaker is OPEN for operation: ${operationName || 'unknown'}`
@@ -368,7 +306,6 @@ export class EnhancedRetryManager {
 
         const result = await withTimeout(operation(), this.config.timeout, operationName);
 
-        // 记录成功
         this.circuitBreaker?.recordSuccess();
 
         const successContext: RetryContext = {
@@ -403,7 +340,6 @@ export class EnhancedRetryManager {
           timestamp: Date.now(),
         };
 
-        // 检查是否是超时错误
         if (lastError.message.includes('timed out')) {
           logger.warn(`Operation ${operationName || ''} timed out`, { attempt });
           callbacks?.onTimeout?.(context);
@@ -439,7 +375,6 @@ export class EnhancedRetryManager {
       }
     }
 
-    // 所有重试都失败了
     this.circuitBreaker?.recordFailure();
 
     if (lastError) {
@@ -468,45 +403,27 @@ export class EnhancedRetryManager {
     };
   }
 
-  /**
-   * 延迟函数
-   */
   private sleep(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
-  /**
-   * 获取断路器状态
-   */
   getCircuitBreakerState(): string | undefined {
     return this.circuitBreaker?.getState();
   }
 
-  /**
-   * 更新配置
-   */
   updateConfig(config: Partial<EnhancedRetryConfig>): void {
     this.config = { ...this.config, ...config };
   }
 
-  /**
-   * 获取当前配置
-   */
   getConfig(): EnhancedRetryConfig {
     return { ...this.config };
   }
 }
 
-/**
- * 创建重试管理器实例
- */
 export function createRetryManager(config?: Partial<EnhancedRetryConfig>): EnhancedRetryManager {
   return new EnhancedRetryManager(config);
 }
 
-/**
- * 便捷函数：使用重试执行操作
- */
 export async function withRetry<T>(
   operation: () => Promise<T>,
   operationName?: string,
@@ -517,34 +434,7 @@ export async function withRetry<T>(
   return manager.execute(operation, operationName, callbacks);
 }
 
-/**
- * 便捷函数：创建可重试的 fetch
- */
-export function createRetryableFetch(
-  fetchFn: typeof fetch,
-  config?: Partial<EnhancedRetryConfig>
-): typeof fetch {
-  const manager = new EnhancedRetryManager(config);
-
-  return async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
-    const result = await manager.execute(
-      () => fetchFn(input, init),
-      `fetch:${typeof input === 'string' ? input : input.toString()}`
-    );
-
-    if (!result.success) {
-      throw result.error || new Error('Fetch failed after retries');
-    }
-
-    return result.data!;
-  };
-}
-
-/**
- * 重试策略预设
- */
 export const retryStrategies = {
-  /** 快速重试：适用于对延迟敏感的操作 */
   fast: {
     maxAttempts: 3,
     baseDelay: 100,
@@ -553,10 +443,8 @@ export const retryStrategies = {
     strategy: 'fixed' as RetryStrategy,
   },
 
-  /** 标准重试：默认策略 */
   standard: defaultEnhancedRetryConfig,
 
-  /** 激进重试：适用于关键操作 */
   aggressive: {
     maxAttempts: 5,
     baseDelay: 500,
@@ -565,7 +453,6 @@ export const retryStrategies = {
     strategy: 'exponential' as RetryStrategy,
   },
 
-  /** 温和重试：适用于非关键操作 */
   gentle: {
     maxAttempts: 2,
     baseDelay: 2000,
@@ -574,7 +461,6 @@ export const retryStrategies = {
     strategy: 'linear' as RetryStrategy,
   },
 
-  /** 抖动重试：适用于高并发场景 */
   jitter: {
     maxAttempts: 3,
     baseDelay: 1000,
@@ -583,5 +469,3 @@ export const retryStrategies = {
     strategy: 'decorrelated-jitter' as RetryStrategy,
   },
 };
-
-export default EnhancedRetryManager;

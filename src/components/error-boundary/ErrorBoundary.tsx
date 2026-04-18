@@ -22,9 +22,9 @@ import { useAuthStore } from '@/stores/authStore';
 
 const logger = createLogger('ErrorBoundary');
 
-export type ErrorBoundaryLevel = 'global' | 'page' | 'section' | 'component';
+type ErrorBoundaryLevel = 'global' | 'page' | 'section' | 'component';
 
-export interface ErrorBoundaryProps {
+interface ErrorBoundaryProps {
   children: ReactNode;
   fallback?: ReactNode;
   fallbackRender?: (props: ErrorFallbackRenderProps) => ReactNode;
@@ -38,7 +38,7 @@ export interface ErrorBoundaryProps {
   themeColor?: string;
 }
 
-export interface ErrorFallbackRenderProps {
+interface ErrorFallbackRenderProps {
   error: Error;
   reset: () => void;
   level: ErrorBoundaryLevel;
