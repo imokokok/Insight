@@ -1,5 +1,3 @@
-'use client';
-
 import Link from 'next/link';
 
 import { BookOpen, Search, ArrowRight } from 'lucide-react';
@@ -36,8 +34,9 @@ export default function DocsHero() {
               </div>
               <input
                 type="text"
-                className="block w-full pl-11 pr-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-white placeholder-blue-200 focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-transparent transition-all"
-                placeholder="Search documentation..."
+                readOnly
+                className="block w-full pl-11 pr-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-white placeholder-blue-200 focus:outline-none cursor-default transition-all"
+                placeholder="Browse sections below..."
               />
             </div>
           </div>
@@ -59,7 +58,7 @@ export default function DocsHero() {
               <ArrowRight className="w-3 h-3" />
             </Link>
             <Link
-              href="#api"
+              href="#technical"
               className="inline-flex items-center gap-1 text-white hover:text-blue-200 transition-colors"
             >
               API Reference

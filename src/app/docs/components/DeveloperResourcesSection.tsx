@@ -18,14 +18,28 @@ import {
 export default function DeveloperResourcesSection() {
   const [copied, setCopied] = useState(false);
 
-  const codeExample = `// Get ETH/USD price data
+  const codeExample = `// Query ETH price from Chainlink
 const response = await fetch(
-  '/api/prices?symbol=ETH/USD&providers=chainlink,pyth'
+  '/api/oracles?symbol=ETH&provider=chainlink'
 );
 const data = await response.json();
 
 console.log(data.price); // 3456.78
-console.log(data.change24h); // 2.45`;
+console.log(data.provider); // "chainlink"
+console.log(data.timestamp); // 1705315800000`;
+
+  const batchCodeExample = `// Batch query multiple prices
+const response = await fetch('/api/oracles', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    requests: [
+      { symbol: 'BTC', provider: 'chainlink' },
+      { symbol: 'ETH', provider: 'pyth' }
+    ]
+  })
+});
+const data = await response.json();`;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(codeExample);
@@ -38,14 +52,14 @@ console.log(data.change24h); // 2.45`;
       icon: <Code2 className="w-6 h-6" />,
       title: 'Integration Guide',
       description: 'Learn how to integrate Insight API into your application',
-      href: '#integration',
+      href: '#developer',
       external: false,
     },
     {
       icon: <FileCode className="w-6 h-6" />,
       title: 'Code Examples',
-      description: 'View API call examples in various programming languages',
-      href: '#examples',
+      description: 'View API call examples in JavaScript and TypeScript',
+      href: '#developer',
       external: false,
     },
     {
@@ -119,7 +133,7 @@ console.log(data.change24h); // 2.45`;
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Code2 className="w-5 h-5 text-blue-400" />
-            <h3 className="text-white font-semibold">Code Example</h3>
+            <h3 className="text-white font-semibold">Code Examples</h3>
           </div>
           <button
             onClick={handleCopy}
@@ -139,14 +153,22 @@ console.log(data.change24h); // 2.45`;
           </button>
         </div>
 
-        <div className="bg-gray-800 rounded-lg p-4 font-mono text-sm overflow-x-auto">
+        <div className="bg-gray-800 rounded-lg p-4 font-mono text-sm overflow-x-auto mb-4">
+          <div className="text-gray-500 mb-2">{'// Single price query'}</div>
           <pre className="text-gray-300">
             <code>{codeExample}</code>
           </pre>
         </div>
+
+        <div className="bg-gray-800 rounded-lg p-4 font-mono text-sm overflow-x-auto">
+          <div className="text-gray-500 mb-2">{'// Batch query'}</div>
+          <pre className="text-gray-300">
+            <code>{batchCodeExample}</code>
+          </pre>
+        </div>
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-xl p-6">
+      <div id="faq" className="bg-white border border-gray-200 rounded-xl p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-6">FAQ</h3>
         <div className="space-y-4">
           {faqs.map((faq, index) => (

@@ -1,5 +1,3 @@
-'use client';
-
 import Link from 'next/link';
 
 import { Code, BookOpen, Server, Database, ArrowRight, Layers, Zap } from 'lucide-react';
@@ -10,29 +8,29 @@ export default function TechnicalDocsSection() {
       icon: <BookOpen className="w-6 h-6" />,
       title: 'Methodology',
       description: 'Learn about our data collection and validation methodology',
-      href: '#methodology',
+      href: '#technical',
       tags: ['Data Quality', 'Validation'],
     },
     {
       icon: <Server className="w-6 h-6" />,
       title: 'API Documentation',
       description: 'Integrate with our API for real-time price data',
-      href: '#api',
-      tags: ['REST API', 'WebSocket'],
+      href: '#technical',
+      tags: ['REST API', 'Real-time'],
     },
     {
       icon: <Layers className="w-6 h-6" />,
       title: 'Architecture',
       description: 'Understand our system architecture and design',
-      href: '#architecture',
-      tags: ['Microservices', 'Scalability'],
+      href: '#technical',
+      tags: ['Next.js', 'Scalability'],
     },
     {
       icon: <Database className="w-6 h-6" />,
       title: 'Data Sources',
       description: 'Explore our oracle data sources and integrations',
-      href: '#datasources',
-      tags: ['Oracles', 'Chainlink'],
+      href: '#technical',
+      tags: ['10 Oracles', 'Multi-chain'],
     },
   ];
 
@@ -97,25 +95,41 @@ export default function TechnicalDocsSection() {
             <Zap className="w-5 h-5 text-yellow-400" />
             <h3 className="text-white font-semibold">API Preview</h3>
           </div>
-          <Link href="#api" className="text-sm text-blue-400 hover:text-blue-300 transition-colors">
-            View All Endpoints
-          </Link>
         </div>
 
         <div className="bg-gray-800 rounded-lg p-4 font-mono text-sm overflow-x-auto">
           <div className="flex items-center gap-2 mb-2">
             <span className="text-green-400">GET</span>
-            <span className="text-blue-400">/api/v1/prices/:symbol</span>
+            <span className="text-blue-400">/api/oracles?symbol=ETH&provider=chainlink</span>
           </div>
-          <div className="text-gray-400 mb-2">Get current price for a symbol</div>
+          <div className="text-gray-400 mb-2">Query price from a specific oracle</div>
           <pre className="text-gray-300">
             {`{
-  "symbol": "ETH/USD",
+  "symbol": "ETH",
   "price": 3456.78,
-  "timestamp": "2024-01-15T10:30:00Z",
-  "source": "chainlink",
-  "confidence": 0.98,
-  "change24h": 2.45
+  "provider": "chainlink",
+  "chain": "ethereum",
+  "timestamp": 1705315800000
+}`}
+          </pre>
+        </div>
+
+        <div className="bg-gray-800 rounded-lg p-4 font-mono text-sm overflow-x-auto mt-4">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-green-400">GET</span>
+            <span className="text-blue-400">/api/prices</span>
+          </div>
+          <div className="text-gray-400 mb-2">Get all token prices</div>
+          <pre className="text-gray-300">
+            {`{
+  "prices": {
+    "BTC": 43256.78,
+    "ETH": 3456.78,
+    "SOL": 98.45,
+    ...
+  },
+  "cached": false,
+  "timestamp": 1705315800000
 }`}
           </pre>
         </div>
