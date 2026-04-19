@@ -66,7 +66,7 @@ export function useOracleSymbols(selectedOracles: OracleProvider[]): UseOracleSy
         symbol,
         oracles,
       }))
-      .sort((a, b) => a.symbol.localeCompare(b.symbol));
+      .sort((a, b) => (a.symbol < b.symbol ? -1 : a.symbol > b.symbol ? 1 : 0));
   }, [selectedOracles]);
 
   const isSymbolSupportedByAllOracles = useCallback(

@@ -1,6 +1,7 @@
 import { Hash, Layers, Settings, FileText, History, Shield } from 'lucide-react';
 
 import { StatCard } from '@/components/ui/StatCard';
+import { formatTimeString } from '@/lib/utils/format';
 
 interface ChainlinkStatsProps {
   roundId?: string;
@@ -53,7 +54,7 @@ export function ChainlinkStats({
         icon={History}
         iconColor="text-purple-500"
         title="Round Started"
-        value={startedAt ? new Date(startedAt).toLocaleTimeString('en-US') : '-'}
+        value={startedAt ? formatTimeString(new Date(startedAt)) : '-'}
         description="Time when current round started"
       />
       <StatCard

@@ -19,7 +19,7 @@ import {
 import { chartColors } from '@/lib/config/colors';
 import { oracleColors } from '@/lib/constants';
 import { getProviderDefaults } from '@/lib/oracles/utils/performanceMetricsConfig';
-import { formatPrice, formatRelativeTime } from '@/lib/utils/format';
+import { formatPrice, formatRelativeTime, formatNumberWithDecimals } from '@/lib/utils/format';
 import { type OracleProvider, type PriceData } from '@/types/oracle';
 
 import { oracleNames, calculateZScore, ANOMALY_ZSCORE_THRESHOLD } from '../constants';
@@ -158,7 +158,7 @@ function ExpandedRowDetail({ row }: { row: TableRow }) {
           {row.priceDiff !== null && (
             <span className="text-xs text-gray-500">
               {row.priceDiff >= 0 ? '+' : ''}$
-              {Math.abs(row.priceDiff).toLocaleString('en-US', { maximumFractionDigits: 4 })}
+              {formatNumberWithDecimals(Math.abs(row.priceDiff), 0, 4)}
             </span>
           )}
         </div>

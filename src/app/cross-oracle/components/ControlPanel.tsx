@@ -23,6 +23,7 @@ import { AutoRefreshControl } from '@/app/price-query/components/AutoRefreshCont
 import { SegmentedControl, DropdownSelect } from '@/components/ui';
 import { type RefreshInterval as NumericRefreshInterval } from '@/hooks/useAutoRefresh';
 import { getPriceOracleProvidersSortedByMarketCap, getOracleConfig } from '@/lib/config/oracles';
+import { addThousandSeparators } from '@/lib/utils/format';
 import { type OracleProvider } from '@/types/oracle';
 
 import { timeRanges, oracleNames, type TimeRange, type RefreshInterval } from '../constants';
@@ -366,7 +367,7 @@ export function ControlPanel({
                               <span>Supported Assets</span>
                             </div>
                             <span className="font-medium text-white">
-                              {featureInfo.symbolCount.toLocaleString('en-US')}
+                              {addThousandSeparators(featureInfo.symbolCount.toString())}
                             </span>
                           </div>
 

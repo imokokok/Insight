@@ -4,6 +4,7 @@
  */
 
 import { exportColors } from '@/lib/config/colors';
+import { formatDateTimeString, formatDateString, formatTimeString } from '@/lib/utils/format';
 import { createLogger } from '@/lib/utils/logger';
 
 import { RESOLUTION_CONFIG } from '../types';
@@ -105,13 +106,7 @@ export async function exportToPNG(
           ctx.font = `${12 * scale}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
           ctx.textAlign = 'left';
 
-          const timestamp = new Date().toLocaleString('en-US', {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit',
-          });
+          const timestamp = formatDateTimeString(new Date());
           ctx.fillText(`Exported: ${timestamp}`, padding * scale, timestampY);
 
           if (dataSource) {
@@ -290,13 +285,7 @@ export async function exportToSVG(
     const footerGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     footerGroup.setAttribute('class', 'export-footer');
 
-    const timestamp = new Date().toLocaleString('en-US', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+    const timestamp = formatDateTimeString(new Date());
 
     const timestampText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
     timestampText.setAttribute('x', String(padding));

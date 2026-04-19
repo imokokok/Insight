@@ -3,6 +3,8 @@
 import { motion } from 'framer-motion';
 import { X, Download, Trash2, FileText, FileJson, Table, FileSpreadsheet } from 'lucide-react';
 
+import { formatDateTimeString } from '@/lib/utils/format';
+
 import { type ExportDataSource, type ExportHistoryItem, type ExportFormat } from './types';
 import { useExportHistory } from './useExportHistory';
 
@@ -27,7 +29,7 @@ export function ExportHistoryPanel({ onClose, dataSource }: ExportHistoryPanelPr
     : history;
 
   const formatDate = (timestamp: number) => {
-    return new Date(timestamp).toLocaleString('en-US');
+    return formatDateTimeString(new Date(timestamp));
   };
 
   const handleReDownload = (item: ExportHistoryItem) => {

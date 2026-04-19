@@ -6,6 +6,7 @@ import { DropdownSelect } from '@/components/ui';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { useAcknowledgeAlert } from '@/hooks';
 import { type AlertEvent } from '@/lib/supabase/database.types';
+import { formatDateTimeString } from '@/lib/utils/format';
 
 interface AlertHistoryProps {
   events: AlertEvent[];
@@ -152,11 +153,10 @@ export function AlertHistory({ events, isLoading, onRefresh }: AlertHistoryProps
 
                       <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-gray-500">
                         <span>Trigger Price: {event.price.toFixed(4)}</span>
-                        <span>Time: {new Date(event.triggered_at).toLocaleString('en-US')}</span>
+                        <span>Time: {formatDateTimeString(new Date(event.triggered_at))}</span>
                         {event.acknowledged && event.acknowledged_at && (
                           <span>
-                            Acknowledged at:{' '}
-                            {new Date(event.acknowledged_at).toLocaleString('en-US')}
+                            Acknowledged at: {formatDateTimeString(new Date(event.acknowledged_at))}
                           </span>
                         )}
                       </div>

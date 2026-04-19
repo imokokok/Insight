@@ -56,7 +56,12 @@ export function useCrossChainTable(params: UseCrossChainTableParams): UseCrossCh
       let comparison = 0;
       switch (sortColumn) {
         case 'chain':
-          comparison = chainNames[a.chain].localeCompare(chainNames[b.chain]);
+          comparison =
+            chainNames[a.chain] < chainNames[b.chain]
+              ? -1
+              : chainNames[a.chain] > chainNames[b.chain]
+                ? 1
+                : 0;
           break;
         case 'price':
           comparison = a.price - b.price;

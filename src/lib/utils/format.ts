@@ -7,58 +7,108 @@ function isFiniteNumber(value: number): boolean {
   return typeof value === 'number' && Number.isFinite(value);
 }
 
-const compactCurrencyFormatter = new Intl.NumberFormat('en-US', {
-  style: 'currency',
-  currency: 'USD',
-  notation: 'compact',
-  maximumFractionDigits: 2,
-});
+export function addThousandSeparators(numStr: string): string {
+  const parts = numStr.split('.');
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return parts.join('.');
+}
 
-const currencyFormatter = new Intl.NumberFormat('en-US', {
-  style: 'currency',
-  currency: 'USD',
-  maximumFractionDigits: 0,
-});
+const MONTHS_SHORT = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+] as const;
 
-const compactNumberFormatter = new Intl.NumberFormat('en-US', {
-  notation: 'compact',
-  maximumFractionDigits: 2,
-});
+export function formatTimeString(date: Date, includeSeconds: boolean = true): string {
+  const hours = date.getHours();
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  const displayHours = hours % 12 || 12;
+  if (includeSeconds) {
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+    return `${displayHours}:${minutes}:${seconds} ${ampm}`;
+  }
+  return `${displayHours}:${minutes} ${ampm}`;
+}
 
-const numberFormatter = new Intl.NumberFormat('en-US', {
-  maximumFractionDigits: 0,
-});
+export function formatDateString(date: Date, style: 'short' | 'medium' | 'full' = 'short'): string {
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+  const year = date.getFullYear();
+  if (style === 'short') {
+    return `${month}/${day}/${year}`;
+  }
+  if (style === 'medium') {
+    return `${MONTHS_SHORT[date.getMonth()]} ${day}`;
+  }
+  return `${MONTHS_SHORT[date.getMonth()]} ${day}, ${year}`;
+}
 
-/**
- * Formats a number as currency (USD)
- * @param value - The numeric value to format
- * @param compact - Whether to use compact notation (e.g., $1.2M)
- * @returns Formatted currency string
- */
+export function formatDateTimeString(date: Date): string {
+  return `${formatDateString(date, 'short')}, ${formatTimeString(date)}`;
+}
+
+export function formatNumberWithDecimals(
+  value: number,
+  minDecimals: number,
+  maxDecimals: number
+): string {
+  let formatted = value.toFixed(maxDecimals);
+  const dotIndex = formatted.indexOf('.');
+  if (dotIndex !== -1) {
+    let decimals = formatted.length - dotIndex - 1;
+    while (decimals > minDecimals && formatted.endsWith('0')) {
+      formatted = formatted.slice(0, -1);
+      decimals--;
+    }
+    if (formatted.endsWith('.')) {
+      formatted = formatted.slice(0, -1);
+    }
+  }
+  return addThousandSeparators(formatted);
+}
+
 export function formatCurrency(value: number, compact: boolean = false): string {
   if (!isFiniteNumber(value)) {
     return '—';
   }
   if (compact) {
-    return compactCurrencyFormatter.format(value);
+    if (value === 0) return '$0';
+    const absValue = Math.abs(value);
+    const sign = value < 0 ? '-' : '';
+    if (absValue >= 1e12) return `${sign}$${(absValue / 1e12).toFixed(2)}T`;
+    if (absValue >= 1e9) return `${sign}$${(absValue / 1e9).toFixed(2)}B`;
+    if (absValue >= 1e6) return `${sign}$${(absValue / 1e6).toFixed(2)}M`;
+    if (absValue >= 1e3) return `${sign}$${(absValue / 1e3).toFixed(2)}K`;
+    return `${sign}$${absValue.toFixed(2)}`;
   }
-  return currencyFormatter.format(value);
+  return `$${addThousandSeparators(Math.round(value).toString())}`;
 }
 
-/**
- * Formats a number with separators
- * @param value - The numeric value to format
- * @param compact - Whether to use compact notation (e.g., 1.2M)
- * @returns Formatted number string
- */
 export function formatNumber(value: number, compact: boolean = false): string {
   if (!isFiniteNumber(value)) {
     return '—';
   }
   if (compact) {
-    return compactNumberFormatter.format(value);
+    if (value === 0) return '0';
+    const absValue = Math.abs(value);
+    const sign = value < 0 ? '-' : '';
+    if (absValue >= 1e12) return `${sign}${(absValue / 1e12).toFixed(2)}T`;
+    if (absValue >= 1e9) return `${sign}${(absValue / 1e9).toFixed(2)}B`;
+    if (absValue >= 1e6) return `${sign}${(absValue / 1e6).toFixed(2)}M`;
+    if (absValue >= 1e3) return `${sign}${(absValue / 1e3).toFixed(2)}K`;
+    return value.toString();
   }
-  return numberFormatter.format(value);
+  return addThousandSeparators(Math.round(value).toString());
 }
 
 /**
@@ -76,7 +126,7 @@ export function formatCompactNumber(value: number): string {
   if (absValue >= 1e9) return `${sign}${(absValue / 1e9).toFixed(2)}B`;
   if (absValue >= 1e6) return `${sign}${(absValue / 1e6).toFixed(2)}M`;
   if (absValue >= 1e3) return `${sign}${(absValue / 1e3).toFixed(2)}K`;
-  return value.toLocaleString('en-US');
+  return addThousandSeparators(value.toString());
 }
 
 /**
@@ -103,6 +153,22 @@ export function formatCompactNumberWithDecimals(value: number, decimals: number 
  * @param price - The numeric price value to format
  * @returns Formatted price string with $ prefix
  */
+function formatWithMinDecimals(value: number, minDecimals: number, maxDecimals: number): string {
+  let formatted = value.toFixed(maxDecimals);
+  const dotIndex = formatted.indexOf('.');
+  if (dotIndex !== -1) {
+    let decimals = formatted.length - dotIndex - 1;
+    while (decimals > minDecimals && formatted.endsWith('0')) {
+      formatted = formatted.slice(0, -1);
+      decimals--;
+    }
+    if (formatted.endsWith('.')) {
+      formatted = formatted.slice(0, -1);
+    }
+  }
+  return addThousandSeparators(formatted);
+}
+
 export function formatPrice(price: number): string {
   if (!isFiniteNumber(price)) return '—';
   if (price === 0) return '$0.00';
@@ -110,18 +176,18 @@ export function formatPrice(price: number): string {
   const absPrice = Math.abs(price);
 
   if (absPrice >= 1000) {
-    return `$${price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    return `$${formatWithMinDecimals(price, 2, 2)}`;
   }
   if (absPrice >= 1) {
-    return `$${price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 })}`;
+    return `$${formatWithMinDecimals(price, 2, 4)}`;
   }
   if (absPrice >= 0.0001) {
-    return `$${price.toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 6 })}`;
+    return `$${formatWithMinDecimals(price, 4, 6)}`;
   }
   if (absPrice >= 0.000001) {
-    return `$${price.toLocaleString('en-US', { minimumFractionDigits: 6, maximumFractionDigits: 8 })}`;
+    return `$${formatWithMinDecimals(price, 6, 8)}`;
   }
-  return `$${price.toLocaleString('en-US', { minimumFractionDigits: 8, maximumFractionDigits: 12 })}`;
+  return `$${formatWithMinDecimals(price, 8, 12)}`;
 }
 
 /**

@@ -21,7 +21,7 @@ export function sortData<T extends Record<string, unknown>>(
 
       const aStr = String(aValue ?? '');
       const bStr = String(bValue ?? '');
-      const comparison = aStr.localeCompare(bStr);
+      const comparison = aStr < bStr ? -1 : aStr > bStr ? 1 : 0;
       return sort.direction === 'asc' ? comparison : -comparison;
     }
     return 0;

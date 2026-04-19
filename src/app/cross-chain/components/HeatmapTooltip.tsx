@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 
+import { formatNumberWithDecimals } from '@/lib/utils/format';
 import { type Blockchain, type PriceData } from '@/types/oracle';
 
 import { chainNames } from '../utils';
@@ -121,20 +122,14 @@ export function HeatmapTooltip({
           <span className="text-gray-600">{chainNames[cell.xChain]} Price</span>
           <span className="font-mono text-gray-900 font-medium">
             $
-            {xPrice?.toLocaleString('en-US', {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 4,
-            }) || '-'}
+            {xPrice !== null && xPrice !== undefined ? formatNumberWithDecimals(xPrice, 2, 4) : '-'}
           </span>
         </div>
         <div className="flex justify-between items-center text-sm">
           <span className="text-gray-600">{chainNames[cell.yChain]} Price</span>
           <span className="font-mono text-gray-900 font-medium">
             $
-            {yPrice?.toLocaleString('en-US', {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 4,
-            }) || '-'}
+            {yPrice !== null && yPrice !== undefined ? formatNumberWithDecimals(yPrice, 2, 4) : '-'}
           </span>
         </div>
       </div>

@@ -5,6 +5,7 @@ import { memo, useMemo } from 'react';
 import { Table } from 'lucide-react';
 
 import { formatPrice } from '@/lib/utils/chartSharedUtils';
+import { formatTimeString, formatDateString } from '@/lib/utils/format';
 
 import { type ChartDataPoint } from '../constants';
 
@@ -22,16 +23,11 @@ export const ChartDataTable = memo(function ChartDataTable({
   const formatTimestamp = (timestamp: number): string => {
     const date = new Date(timestamp);
     if (selectedTimeRange <= 1) {
-      return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+      return formatTimeString(date, false);
     } else if (selectedTimeRange <= 24) {
-      return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+      return formatTimeString(date, false);
     } else {
-      return date.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      });
+      return `${formatDateString(date, 'medium')} ${formatTimeString(date, false)}`;
     }
   };
 

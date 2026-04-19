@@ -1,6 +1,7 @@
 import { Hash, Settings, BarChart3, Clock, Shield } from 'lucide-react';
 
 import { StatCard } from '@/components/ui/StatCard';
+import { formatTimeString } from '@/lib/utils/format';
 
 interface PythStatsProps {
   priceId?: string;
@@ -48,7 +49,7 @@ export function PythStats({
         icon={Clock}
         iconColor="text-amber-500"
         title="Publish Time"
-        value={publishTime ? new Date(publishTime).toLocaleTimeString('en-US') : '-'}
+        value={publishTime ? formatTimeString(new Date(publishTime)) : '-'}
         description="Time when price was published"
       />
       <StatCard

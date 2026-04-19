@@ -2,7 +2,7 @@ import { TrendingUp, Droplets, Percent, Clock, ArrowLeftRight, Shield, Hash } fr
 
 import { StatCard } from '@/components/ui/StatCard';
 import type { TwapOnChainData } from '@/hooks/oracles/useTwapOnChainData';
-import { formatPrice } from '@/lib/utils/format';
+import { formatPrice, formatNumberWithDecimals } from '@/lib/utils/format';
 import { getStatRating } from '@/lib/utils/stat-rating';
 
 interface TwapStatsProps {
@@ -15,10 +15,7 @@ export function TwapStats({ data }: TwapStatsProps) {
 
   const formatTwapPrice = (value: number) => {
     if (!value || isNaN(value)) return '-';
-    return `$${value.toLocaleString('en-US', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 6,
-    })}`;
+    return `$${formatNumberWithDecimals(value, 2, 6)}`;
   };
 
   const formatLiquidity = (liquidity: string) => {

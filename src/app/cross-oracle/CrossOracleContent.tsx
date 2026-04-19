@@ -5,6 +5,7 @@ import { useRef, useCallback, useMemo } from 'react';
 import { LiveStatusBar } from '@/components/ui';
 import { useCommonShortcuts } from '@/hooks';
 import { chartColors } from '@/lib/config/colors';
+import { formatTimeString } from '@/lib/utils/format';
 
 import { ControlPanel } from './components/ControlPanel';
 import CrossOracleExportSection from './components/CrossOracleExportSection';
@@ -115,7 +116,7 @@ export default function CrossOracleContent() {
           <div className="flex items-center gap-2">
             {lastUpdated && (
               <span className="text-xs text-gray-500">
-                Last updated: {lastUpdated.toLocaleTimeString('en-US')}
+                Last updated: {formatTimeString(lastUpdated, false)}
               </span>
             )}
             <CrossOracleExportSection

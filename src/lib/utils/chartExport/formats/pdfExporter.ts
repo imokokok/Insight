@@ -3,6 +3,7 @@
  * @description Handles PDF format chart export
  */
 
+import { formatDateTimeString } from '@/lib/utils/format';
 import { createLogger } from '@/lib/utils/logger';
 
 import { blobToBase64 } from '../utils/exportHelpers';
@@ -121,7 +122,7 @@ export async function exportToPDF(
     doc.text(`Page ${i + 1} / ${charts.length}`, pageWidth / 2, footerY, { align: 'center' });
 
     if (includeMetadata && metadata) {
-      const metadataText = `Exported: ${new Date(metadata.exportedAt).toLocaleString('en-US')}`;
+      const metadataText = `Exported: ${formatDateTimeString(new Date(metadata.exportedAt))}`;
       doc.text(metadataText, margin, footerY);
 
       if (metadata.dataSource) {

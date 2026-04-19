@@ -2,6 +2,7 @@ import { Clock, Database, FileDigit, Hash, Server, Timer } from 'lucide-react';
 
 import { StatCard } from '@/components/ui/StatCard';
 import type { ReflectorTokenOnChainData } from '@/hooks/oracles/useReflectorOnChainData';
+import { formatTimeString, formatNumberWithDecimals } from '@/lib/utils/format';
 import { getStatRating } from '@/lib/utils/stat-rating';
 
 interface ReflectorStatsProps {
@@ -26,20 +27,12 @@ export function ReflectorStats({ data }: ReflectorStatsProps) {
 
   const formatTimestamp = (timestamp: number) => {
     if (!timestamp) return '-';
-    const date = new Date(timestamp);
-    return date.toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-    });
+    return formatTimeString(new Date(timestamp));
   };
 
   const formatPrice = (value: number) => {
     if (!value || isNaN(value)) return '-';
-    return `$${value.toLocaleString('en-US', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: decimals > 8 ? 8 : decimals || 2,
-    })}`;
+    return `$${formatNumberWithDecimals(value, 2, decimals > 8 ? 8 : decimals || 2)}`;
   };
 
   return (
