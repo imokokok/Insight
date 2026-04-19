@@ -1,5 +1,3 @@
-'use client';
-
 import Link from 'next/link';
 
 import { Rocket, Search, TrendingUp, Bell, ArrowRight, CheckCircle } from 'lucide-react';
