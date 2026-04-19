@@ -48,9 +48,9 @@ export const diaConfig: OracleConfig = {
     hasCoreFeatures: true,
   },
   tabs: [
-    { id: 'market', label: 'Market' },
-    { id: 'network', label: 'Network' },
-    { id: 'data-feeds', label: 'Data Feeds' },
+    { id: 'market', label: 'Market Data' },
+    { id: 'network', label: 'Network Health' },
+    { id: 'data-feeds', label: 'Price Feeds' },
     { id: 'nft-data', label: 'NFT Data' },
     { id: 'staking', label: 'Staking' },
     { id: 'ecosystem', label: 'Ecosystem' },

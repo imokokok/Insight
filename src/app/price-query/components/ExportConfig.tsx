@@ -40,13 +40,13 @@ interface ExportConfigProps {
 }
 
 const DEFAULT_FIELDS: ExportField[] = [
-  { key: 'oracle', label: 'oracle', enabled: true },
-  { key: 'blockchain', label: 'blockchain', enabled: true },
-  { key: 'price', label: 'price', enabled: true },
-  { key: 'timestamp', label: 'timestamp', enabled: true },
-  { key: 'change24h', label: 'change24h', enabled: true },
-  { key: 'confidence', label: 'confidence', enabled: true },
-  { key: 'source', label: 'source', enabled: false },
+  { key: 'oracle', label: 'Oracle', enabled: true },
+  { key: 'blockchain', label: 'Blockchain', enabled: true },
+  { key: 'price', label: 'Price', enabled: true },
+  { key: 'timestamp', label: 'Timestamp', enabled: true },
+  { key: 'change24h', label: '24h Change', enabled: true },
+  { key: 'confidence', label: 'Confidence', enabled: true },
+  { key: 'source', label: 'Source', enabled: false },
 ];
 
 export function ExportConfig({

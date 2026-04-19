@@ -17,7 +17,7 @@ export const winklinkConfig: OracleConfig = {
   provider: OracleProvider.WINKLINK,
   name: 'WINkLink',
   descriptionKey: 'oracles.descriptions.winklink',
-  symbol: 'WIN/USD',
+  symbol: 'WIN',
   defaultChain: Blockchain.BNB_CHAIN,
   supportedChains: [Blockchain.BNB_CHAIN, Blockchain.TRON, Blockchain.ETHEREUM],
   getClient,

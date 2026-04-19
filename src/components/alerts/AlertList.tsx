@@ -170,7 +170,7 @@ export function AlertList({ alerts, isLoading, onRefresh }: AlertListProps) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Alerts</CardTitle>
+          <CardTitle>My Alerts</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center py-8">
@@ -212,7 +212,7 @@ export function AlertList({ alerts, isLoading, onRefresh }: AlertListProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{`Alerts (${alerts.length})`}</CardTitle>
+        <CardTitle>{`My Alerts (${alerts.length})`}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-3">

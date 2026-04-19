@@ -64,8 +64,8 @@ export const supraConfig: OracleConfig = {
     hasCrossChain: true,
   },
   tabs: [
-    { id: 'market', label: 'Market' },
-    { id: 'network', label: 'Network' },
+    { id: 'market', label: 'Market Data' },
+    { id: 'network', label: 'Network Health' },
     { id: 'price-feeds', label: 'Price Feeds' },
     { id: 'cross-chain', label: 'Cross-Chain' },
     { id: 'ecosystem', label: 'Ecosystem' },

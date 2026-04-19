@@ -46,13 +46,13 @@ export default function AlertsContent() {
               d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
             />
           </svg>
-          <h2 className="mt-4 text-xl font-semibold text-gray-900">Login Required</h2>
+          <h2 className="mt-4 text-xl font-semibold text-gray-900">Log In Required</h2>
           <p className="mt-2 text-gray-500">Please sign in to view and manage your alerts.</p>
           <Link
             href="/login"
             className="mt-6 inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors"
           >
-            Go to Login
+            Go to Log In
           </Link>
         </div>
       </div>

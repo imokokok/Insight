@@ -91,7 +91,7 @@ function MarketConsensusCardComponent({
             className="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 text-xs text-white bg-gray-900 rounded-md shadow-lg whitespace-nowrap pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200"
             role="tooltip"
           >
-            Oracle quote consistency, higher means closer oracle quotes
+            Price spread between oracle quotes, lower means higher consistency
             <span className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 w-2 h-2 bg-gray-900 border-4 border-gray-900 border-l-transparent border-r-transparent border-b-transparent" />
           </div>
         </span>

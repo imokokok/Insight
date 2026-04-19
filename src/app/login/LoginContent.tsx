@@ -100,7 +100,7 @@ export default function LoginContent() {
             </Link>
             <h2 className="mt-4 text-xl font-semibold text-gray-900">Login</h2>
             <p className="mt-2 text-sm text-gray-500">
-              Welcome back! Please login to your account.
+              Welcome back! Please log in to your account.
             </p>
           </div>
 

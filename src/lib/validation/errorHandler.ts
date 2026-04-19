@@ -96,10 +96,10 @@ export function handleUnknownError(error: unknown): NextResponse {
 }
 
 /**
- * unifiederrorhandle
+ * Unified error handler
  */
 export function handleError(error: unknown, context?: string): NextResponse {
-  // prioritizehandle ZodValidationError
+  // Prioritize handling ZodValidationError
   if (isZodValidationError(error)) {
     return handleValidationError(error, context);
   }
@@ -114,12 +114,12 @@ export function handleError(error: unknown, context?: string): NextResponse {
     return handleAppError(error);
   }
 
-  // handleOthererror
+  // Handle other errors
   return handleUnknownError(error);
 }
 
 /**
- * packagehandle，handleerror
+ * Wrapper handler, handles errors
  */
 export function withErrorHandling<T>(
   handler: () => Promise<NextResponse<T>>,
@@ -129,7 +129,7 @@ export function withErrorHandling<T>(
 }
 
 /**
- * createvalidateerrorresponse
+ * Create validation error response
  */
 export function createValidationErrorResponse(
   field: string,
@@ -144,7 +144,7 @@ export function createValidationErrorResponse(
 }
 
 /**
- * createtoerrorresponse
+ * Create not found error response
  */
 export function createNotFoundErrorResponse(resource: string, id?: string): NextResponse {
   const message = id ? `${resource} with id "${id}" not found` : `${resource} not found`;
@@ -157,7 +157,7 @@ export function createNotFoundErrorResponse(resource: string, id?: string): Next
 }
 
 /**
- * createauthorizationerrorresponse
+ * Create unauthorized error response
  */
 export function createUnauthorizedErrorResponse(message: string = 'Unauthorized'): NextResponse {
   const standardResponse = createStandardErrorResponse(ErrorCode.UNAUTHORIZED, message);
@@ -166,7 +166,7 @@ export function createUnauthorizedErrorResponse(message: string = 'Unauthorized'
 }
 
 /**
- * createerrorresponse
+ * Create forbidden error response
  */
 export function createForbiddenErrorResponse(message: string = 'Forbidden'): NextResponse {
   const standardResponse = createStandardErrorResponse(ErrorCode.FORBIDDEN, message);
@@ -175,7 +175,7 @@ export function createForbiddenErrorResponse(message: string = 'Forbidden'): Nex
 }
 
 /**
- * createerrorresponse
+ * Create rate limit error response
  */
 export function createRateLimitErrorResponse(retryAfter?: number): NextResponse {
   const standardResponse = createStandardErrorResponse(

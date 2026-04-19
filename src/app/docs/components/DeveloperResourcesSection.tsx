@@ -61,17 +61,17 @@ console.log(data.change24h); // 2.45`;
     {
       question: 'What are the API rate limits?',
       answer:
-        'Free users can make up to 100 requests per minute, professional users can make 1000 requests per minute. Contact us for higher quotas.',
+        'Free users can make up to 100 requests per minute; professional users can make 1,000 requests per minute. Contact us for higher quotas.',
     },
     {
       question: 'What data formats are supported?',
       answer:
-        'API returns JSON format data by default. Some endpoints support CSV format via Accept header.',
+        'The API returns JSON-formatted data by default. Some endpoints support CSV format via Accept header.',
     },
     {
       question: 'How do I get an API key?',
       answer:
-        'After registering an account, you can generate and manage your API keys in the settings page.',
+        'After registering an account, you can generate and manage your API keys on the settings page.',
     },
   ];
 

@@ -17,17 +17,17 @@ describe('SettingsLayout', () => {
   it('should render settings title and subtitle', () => {
     render(<SettingsLayout {...defaultProps} />);
 
-    expect(screen.getByText('Text')).toBeInTheDocument();
-    expect(screen.getByText('Manage your account settings')).toBeInTheDocument();
+    expect(screen.getByText('Settings')).toBeInTheDocument();
+    expect(screen.getByText('Manage your account settings and preferences')).toBeInTheDocument();
   });
 
   it('should render all tabs', () => {
     render(<SettingsLayout {...defaultProps} />);
 
-    expect(screen.getByText('Text')).toBeInTheDocument();
-    expect(screen.getByText('Text')).toBeInTheDocument();
-    expect(screen.getByText('Text')).toBeInTheDocument();
-    expect(screen.getByText('Text')).toBeInTheDocument();
+    expect(screen.getByText('Profile')).toBeInTheDocument();
+    expect(screen.getByText('Preferences')).toBeInTheDocument();
+    expect(screen.getByText('Notifications')).toBeInTheDocument();
+    expect(screen.getByText('Data')).toBeInTheDocument();
   });
 
   it('should render children content', () => {
@@ -56,8 +56,8 @@ describe('SettingsLayout', () => {
   it('should render tab descriptions', () => {
     render(<SettingsLayout {...defaultProps} />);
 
-    expect(screen.getByText('Manage your profile')).toBeInTheDocument();
-    expect(screen.getByText('Customize your experience')).toBeInTheDocument();
+    expect(screen.getByText('Manage your account profile')).toBeInTheDocument();
+    expect(screen.getByText('Customize your preferences')).toBeInTheDocument();
   });
 
   it('should render settings icon', () => {

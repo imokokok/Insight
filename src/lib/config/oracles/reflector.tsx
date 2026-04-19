@@ -15,7 +15,7 @@ function getClient() {
 export const reflectorConfig: OracleConfig = {
   provider: OracleProvider.REFLECTOR,
   name: 'Reflector',
-  descriptionKey: 'reflector.description',
+  descriptionKey: 'oracles.descriptions.reflector',
   symbol: 'XLM',
   defaultChain: Blockchain.STELLAR,
   supportedChains: [Blockchain.STELLAR],
@@ -39,8 +39,8 @@ export const reflectorConfig: OracleConfig = {
   tabs: [
     { id: 'overview', label: 'Overview' },
     { id: 'price-feeds', label: 'Price Feeds' },
-    { id: 'network', label: 'Network' },
-    { id: 'market', label: 'Market' },
+    { id: 'network', label: 'Network Health' },
+    { id: 'market', label: 'Market Data' },
     { id: 'on-chain', label: 'On-Chain' },
   ],
 };

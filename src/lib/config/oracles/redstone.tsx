@@ -56,8 +56,8 @@ export const redstoneConfig: OracleConfig = {
     hasCrossChain: true,
   },
   tabs: [
-    { id: 'market', label: 'Market' },
-    { id: 'network', label: 'Network' },
+    { id: 'market', label: 'Market Data' },
+    { id: 'network', label: 'Network Health' },
     { id: 'providers', label: 'Providers' },
     { id: 'data-streams', label: 'Data Streams' },
     { id: 'cross-chain', label: 'Cross-Chain' },

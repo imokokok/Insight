@@ -97,7 +97,7 @@ export function OverviewTab() {
       label: 'Highest Price',
       value: maxPrice > 0 ? formatPrice(maxPrice) : '-',
       trend: calculateChangePercent(maxPrice, prevStats?.maxPrice || 0),
-      subValue: minPrice > 0 ? `Min: ${formatPrice(minPrice)}` : null,
+      subValue: minPrice > 0 ? `Minimum: ${formatPrice(minPrice)}` : null,
       tooltip: 'Highest and lowest prices',
     },
     {

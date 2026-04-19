@@ -61,7 +61,7 @@ describe('AlertConfig', () => {
   it('should render alert config form', () => {
     render(<AlertConfig onAlertCreated={mockOnAlertCreated} />);
 
-    expect(screen.getByText('Text')).toBeInTheDocument();
+    expect(screen.getByText('Create Alert')).toBeInTheDocument();
   });
 
   it('should render dropdown selectors', () => {
@@ -80,7 +80,7 @@ describe('AlertConfig', () => {
   it('should render target value input', () => {
     render(<AlertConfig onAlertCreated={mockOnAlertCreated} />);
 
-    const targetInput = screen.getByPlaceholderText('Text');
+    const targetInput = screen.getByPlaceholderText('Enter target price');
     expect(targetInput).toBeInTheDocument();
   });
 
@@ -94,7 +94,7 @@ describe('AlertConfig', () => {
   it('should allow entering alert name', () => {
     render(<AlertConfig onAlertCreated={mockOnAlertCreated} />);
 
-    const nameInput = screen.getByPlaceholderText('Text');
+    const nameInput = screen.getByPlaceholderText('Enter a name for this alert');
     fireEvent.change(nameInput, { target: { value: 'Test Alert' } });
 
     expect(nameInput).toHaveValue('Test Alert');
@@ -103,7 +103,7 @@ describe('AlertConfig', () => {
   it('should allow entering target value', () => {
     render(<AlertConfig onAlertCreated={mockOnAlertCreated} />);
 
-    const targetInput = screen.getByPlaceholderText('Text');
+    const targetInput = screen.getByPlaceholderText('Enter target price');
     fireEvent.change(targetInput, { target: { value: '50000' } });
 
     expect(targetInput).toHaveValue(50000);
@@ -116,14 +116,14 @@ describe('AlertConfig', () => {
     fireEvent.click(createButton);
 
     await waitFor(() => {
-      expect(screen.getByText('Text')).toBeInTheDocument();
+      expect(screen.getByText('Please enter a valid target value')).toBeInTheDocument();
     });
   });
 
   it('should render mute period settings', async () => {
     render(<AlertConfig onAlertCreated={mockOnAlertCreated} />);
 
-    const muteSettingsButton = screen.getByText('Text');
+    const muteSettingsButton = screen.getByText('Mute Settings');
     fireEvent.click(muteSettingsButton);
 
     await waitFor(() => {

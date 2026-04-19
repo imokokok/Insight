@@ -78,7 +78,7 @@ describe('AlertList', () => {
   it('should render alert list', () => {
     render(<AlertList {...mockProps} />);
 
-    expect(screen.getByText('Text')).toBeInTheDocument();
+    expect(screen.getByText('My Alerts (2)')).toBeInTheDocument();
   });
 
   it('should render loading state', () => {
@@ -97,7 +97,7 @@ describe('AlertList', () => {
     const onRefresh = jest.fn();
     render(<AlertList {...mockProps} onRefresh={onRefresh} />);
 
-    expect(screen.getByText('Text')).toBeInTheDocument();
+    expect(screen.getByText('My Alerts (2)')).toBeInTheDocument();
     expect(onRefresh).not.toHaveBeenCalled();
   });
 

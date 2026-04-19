@@ -254,7 +254,7 @@ export function ControlPanel({
           </label>
           {selectedOracles.length === 0 ? (
             <div className="w-full px-3 py-2 text-sm text-gray-400 bg-gray-100 border border-gray-200 rounded-lg">
-              Select oracle first
+              Select an oracle first
             </div>
           ) : commonSymbols.length === 0 ? (
             <div className="w-full px-3 py-3 text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded-lg">

@@ -28,9 +28,9 @@ export default function HeroContent() {
       <div className="flex items-center justify-center gap-4 sm:gap-6 text-xs sm:text-sm text-gray-500">
         <span>Multiple Oracles</span>
         <span className="w-1 h-1 bg-gray-300 rounded-full" />
-        <span>Real-time Data</span>
+        <span>Real-Time Data</span>
         <span className="w-1 h-1 bg-gray-300 rounded-full" />
-        <span>Cross-chain Support</span>
+        <span>Cross-Chain Support</span>
       </div>
 
       <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">

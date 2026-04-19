@@ -89,14 +89,14 @@ export function calculateZScore(value: number, mean: number, stdDev: number): nu
 }
 
 /**
- * isasanomaly value
+ * Check if a z-score indicates an outlier/anomaly value
  */
 export function isOutlier(zScore: number, threshold: number = ANOMALY_ZSCORE_THRESHOLD): boolean {
   return Math.abs(zScore) > threshold;
 }
 
 /**
- * getbiasBackgroundclass
+ * Get deviation background CSS class
  */
 export function getDeviationBgClass(deviation: number): string {
   const absDeviation = Math.abs(deviation);
@@ -113,7 +113,7 @@ export function getDeviationBgClass(deviation: number): string {
 }
 
 /**
- * getnew
+ * Get freshness information based on timestamp
  */
 export function getFreshnessInfo(timestamp: number): {
   text: string;
@@ -156,7 +156,7 @@ export function getFreshnessInfo(timestamp: number): {
 }
 
 /**
- * getnewcolor
+ * Get freshness dot color based on seconds
  */
 export function getFreshnessDotColor(freshnessSeconds: number): string {
   const minutes = Math.floor(freshnessSeconds / 60);
