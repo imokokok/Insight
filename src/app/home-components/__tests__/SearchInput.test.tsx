@@ -2,194 +2,194 @@ import { render, screen, fireEvent } from '@testing-library/react';
 
 import SearchInput from '../SearchInput';
 
-jest.mock('../SearchDropdown',  => ({
- __esModule: true,
- default: ({ isOpen }: { isOpen: boolean }) => (
- <div data-testid="search-dropdown" data-open={isOpen}>
- Dropdown
- </div>
- ),
+jest.mock('../SearchDropdown', () => ({
+  __esModule: true,
+  default: ({ isOpen }: { isOpen: boolean }) => (
+    <div data-testid="search-dropdown" data-open={isOpen}>
+      Dropdown
+    </div>
+  ),
 }));
 
-const createMockRef =  => ({
- current: null,
+const createMockRef = () => ({
+  current: null,
 });
 
 const defaultProps = {
- searchQuery: '',
- onSearchQueryChange: jest.fn,
- onSearch: jest.fn,
- onClearHistory: jest.fn,
- onRemoveHistoryItem: jest.fn,
- searchHistory: [],
- searchResults: [],
- dropdownItems: [],
- isDropdownOpen: false,
- highlightedIndex: -1,
- onDropdownOpenChange: jest.fn,
- onHighlightChange: jest.fn,
- dropdownRef: createMockRef,
- inputRef: createMockRef,
- onKeyDown: jest.fn((e, onSelectItem) => {
- if (e.key === 'Enter') {
- onSelectItem;
- }
- }),
- getTokenSymbolFromQuery: jest.fn,
+  searchQuery: '',
+  onSearchQueryChange: jest.fn(),
+  onSearch: jest.fn(),
+  onClearHistory: jest.fn(),
+  onRemoveHistoryItem: jest.fn(),
+  searchHistory: [],
+  searchResults: [],
+  dropdownItems: [],
+  isDropdownOpen: false,
+  highlightedIndex: -1,
+  onDropdownOpenChange: jest.fn(),
+  onHighlightChange: jest.fn(),
+  dropdownRef: createMockRef,
+  inputRef: createMockRef,
+  onKeyDown: jest.fn((e, onSelectItem) => {
+    if (e.key === 'Enter') {
+      onSelectItem();
+    }
+  }),
+  getTokenSymbolFromQuery: jest.fn(),
 };
 
-describe('SearchInput',  => {
- beforeEach( => {
- jest.clearAllMocks;
- });
+describe('SearchInput', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
 
- describe('Basic rendering',  => {
- it('shouldsearchinput',  => {
- render(<SearchInput {...defaultProps} />);
+  describe('Basic rendering', () => {
+    it('shouldsearchinput', () => {
+      render(<SearchInput {...defaultProps} />);
 
- expect(screen.getByPlaceholderText('Text')).toBeInTheDocument;
- });
+      expect(screen.getByPlaceholderText('Search...')).toBeInTheDocument();
+    });
 
- it('should render search button',  => {
- render(<SearchInput {...defaultProps} />);
+    it('should render search button', () => {
+      render(<SearchInput {...defaultProps} />);
 
- expect(screen.getByText('Text')).toBeInTheDocument;
- });
+      expect(screen.getByText('BTC')).toBeInTheDocument();
+    });
 
- it('shouldsearchicon',  => {
- render(<SearchInput {...defaultProps} />);
+    it('shouldsearchicon', () => {
+      render(<SearchInput {...defaultProps} />);
 
- const searchIcon = document.querySelector('svg');
- expect(searchIcon).toBeInTheDocument;
- });
+      const searchIcon = document.querySelector('svg');
+      expect(searchIcon).toBeInTheDocument();
+    });
 
- it('whenhavesearchshouldbutton',  => {
- render(<SearchInput {...defaultProps} searchQuery="BTC" />);
+    it('whenhavesearchshouldbutton', () => {
+      render(<SearchInput {...defaultProps} searchQuery="BTC" />);
 
- const clearButtons = screen.getAllByRole('button');
- const clearButton = clearButtons.find(
- (btn) => btn.querySelector('svg') && btn !== screen.getByText('Text').closest('Text')
- );
- expect(clearButton).toBeInTheDocument;
- });
+      const clearButtons = screen.getAllByRole('button');
+      const clearButton = clearButtons.find(
+        (btn) => btn.querySelector('svg') && btn !== screen.getByText('BTC').closest('Mock Text')
+      );
+      expect(clearButton).toBeInTheDocument();
+    });
 
- it('whenhavesearchnotshouldbutton',  => {
- render(<SearchInput {...defaultProps} searchQuery="" />);
+    it('whenhavesearchnotshouldbutton', () => {
+      render(<SearchInput {...defaultProps} searchQuery="" />);
 
- const input = screen.getByPlaceholderText('Text');
- expect(input).toHaveValue('');
- });
- });
+      const input = screen.getByPlaceholderText('Search...');
+      expect(input).toHaveValue('');
+    });
+  });
 
- describe('interaction',  => {
- it('shoulduse onSearchQueryChange',  => {
- render(<SearchInput {...defaultProps} />);
+  describe('interaction', () => {
+    it('shoulduse onSearchQueryChange', () => {
+      render(<SearchInput {...defaultProps} />);
 
- const input = screen.getByPlaceholderText('Text');
- fireEvent.change(input, { target: { value: 'ETH' } });
+      const input = screen.getByPlaceholderText('Search...');
+      fireEvent.change(input, { target: { value: 'ETH' } });
 
- expect(defaultProps.onSearchQueryChange).toHaveBeenCalledWith('ETH');
- });
+      expect(defaultProps.onSearchQueryChange).toHaveBeenCalledWith('ETH');
+    });
 
- it('shouldopendropdownmenu',  => {
- render(<SearchInput {...defaultProps} />);
+    it('shouldopendropdownmenu', () => {
+      render(<SearchInput {...defaultProps} />);
 
- const input = screen.getByPlaceholderText('Text');
- fireEvent.change(input, { target: { value: 'BTC' } });
+      const input = screen.getByPlaceholderText('Search...');
+      fireEvent.change(input, { target: { value: 'BTC' } });
 
- expect(defaultProps.onDropdownOpenChange).toHaveBeenCalledWith(true);
- });
+      expect(defaultProps.onDropdownOpenChange).toHaveBeenCalledWith(true);
+    });
 
- it('focusshouldopendropdownmenu',  => {
- render(<SearchInput {...defaultProps} />);
+    it('focusshouldopendropdownmenu', () => {
+      render(<SearchInput {...defaultProps} />);
 
- const input = screen.getByPlaceholderText('Text');
- fireEvent.focus(input);
+      const input = screen.getByPlaceholderText('Search...');
+      fireEvent.focus(input);
 
- expect(defaultProps.onDropdownOpenChange).toHaveBeenCalledWith(true);
- });
- });
+      expect(defaultProps.onDropdownOpenChange).toHaveBeenCalledWith(true);
+    });
+  });
 
- describe('commit',  => {
- it('commitshoulduse onSearch',  => {
- render(<SearchInput {...defaultProps} searchQuery="BTC" />);
+  describe('commit', () => {
+    it('commitshoulduse onSearch', () => {
+      render(<SearchInput {...defaultProps} searchQuery="BTC" />);
 
- const form = screen.getByPlaceholderText('Text').closest('Text');
- fireEvent.submit(form!);
+      const form = screen.getByPlaceholderText('Search...').closest('Mock Text');
+      fireEvent.submit(form!);
 
- expect(defaultProps.onSearch).toHaveBeenCalled;
- });
- });
+      expect(defaultProps.onSearch).toHaveBeenCalled();
+    });
+  });
 
- describe('keyboardinteraction',  => {
- it('bydown Enter shouldtriggersearch',  => {
- render(<SearchInput {...defaultProps} searchQuery="BTC" />);
+  describe('keyboardinteraction', () => {
+    it('bydown Enter shouldtriggersearch', () => {
+      render(<SearchInput {...defaultProps} searchQuery="BTC" />);
 
- const input = screen.getByPlaceholderText('Text');
- fireEvent.keyDown(input, { key: 'Enter' });
+      const input = screen.getByPlaceholderText('Search...');
+      fireEvent.keyDown(input, { key: 'Enter' });
 
- expect(defaultProps.onKeyDown).toHaveBeenCalled;
- });
- });
+      expect(defaultProps.onKeyDown).toHaveBeenCalled();
+    });
+  });
 
- describe('button',  => {
- it('clickbuttonshouldemptysearch',  => {
- render(<SearchInput {...defaultProps} searchQuery="BTC" />);
+  describe('button', () => {
+    it('clickbuttonshouldemptysearch', () => {
+      render(<SearchInput {...defaultProps} searchQuery="BTC" />);
 
- const clearButton = screen.getAllByRole('button')[0];
- fireEvent.click(clearButton);
+      const clearButton = screen.getAllByRole('button')[0];
+      fireEvent.click(clearButton);
 
- expect(defaultProps.onSearchQueryChange).toHaveBeenCalledWith('');
- });
- });
+      expect(defaultProps.onSearchQueryChange).toHaveBeenCalledWith('');
+    });
+  });
 
- describe('state',  => {
- it('focusshouldupdatestyle',  => {
- render(<SearchInput {...defaultProps} />);
+  describe('state', () => {
+    it('focusshouldupdatestyle', () => {
+      render(<SearchInput {...defaultProps} />);
 
- const input = screen.getByPlaceholderText('Text');
- fireEvent.focus(input);
+      const input = screen.getByPlaceholderText('Search...');
+      fireEvent.focus(input);
 
- const form = input.closest('Text');
- expect(form).toHaveClass('border-blue-400');
- });
+      const form = input.closest('Mock Text');
+      expect(form).toHaveClass('border-blue-400');
+    });
 
- it('shouldremovestyle',  => {
- render(<SearchInput {...defaultProps} />);
+    it('shouldremovestyle', () => {
+      render(<SearchInput {...defaultProps} />);
 
- const input = screen.getByPlaceholderText('Text');
- fireEvent.focus(input);
- fireEvent.blur(input);
+      const input = screen.getByPlaceholderText('Search...');
+      fireEvent.focus(input);
+      fireEvent.blur(input);
 
- const form = input.closest('Text');
- expect(form).not.toHaveClass('border-blue-400');
- });
- });
+      const form = input.closest('Mock Text');
+      expect(form).not.toHaveClass('border-blue-400');
+    });
+  });
 
- describe('insupport',  => {
- it('innotshouldtriggersearch',  => {
- const mockOnKeyDown = jest.fn;
- render(<SearchInput {...defaultProps} onKeyDown={mockOnKeyDown} />);
+  describe('insupport', () => {
+    it('innotshouldtriggersearch', () => {
+      const mockOnKeyDown = jest.fn();
+      render(<SearchInput {...defaultProps} onKeyDown={mockOnKeyDown} />);
 
- const input = screen.getByPlaceholderText('Text');
+      const input = screen.getByPlaceholderText('Search...');
 
- fireEvent.compositionStart(input);
- fireEvent.keyDown(input, { key: 'Enter' });
+      fireEvent.compositionStart(input);
+      fireEvent.keyDown(input, { key: 'Enter' });
 
- expect(mockOnKeyDown).not.toHaveBeenCalled;
- });
+      expect(mockOnKeyDown).not.toHaveBeenCalled();
+    });
 
- it('endaftershouldnormalas',  => {
- const mockOnKeyDown = jest.fn;
- render(<SearchInput {...defaultProps} onKeyDown={mockOnKeyDown} />);
+    it('endaftershouldnormalas', () => {
+      const mockOnKeyDown = jest.fn();
+      render(<SearchInput {...defaultProps} onKeyDown={mockOnKeyDown} />);
 
- const input = screen.getByPlaceholderText('Text');
+      const input = screen.getByPlaceholderText('Search...');
 
- fireEvent.compositionStart(input);
- fireEvent.compositionEnd(input);
- fireEvent.keyDown(input, { key: 'Enter' });
+      fireEvent.compositionStart(input);
+      fireEvent.compositionEnd(input);
+      fireEvent.keyDown(input, { key: 'Enter' });
 
- expect(mockOnKeyDown).toHaveBeenCalled;
- });
- });
+      expect(mockOnKeyDown).toHaveBeenCalled();
+    });
+  });
 });
