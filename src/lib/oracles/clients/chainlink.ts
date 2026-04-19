@@ -128,6 +128,21 @@ export class ChainlinkClient extends BaseOracleClient {
       );
     }
 
+    const roundId = chainlinkData.roundId?.toString();
+    const answeredInRound = chainlinkData.answeredInRound?.toString();
+    const version = chainlinkData.version?.toString();
+    const startedAt = chainlinkData.startedAt;
+
+    logger.debug('Converting Chainlink data to PriceData', {
+      symbol: chainlinkData.symbol,
+      roundId,
+      answeredInRound,
+      version,
+      startedAt,
+      hasRoundId: !!roundId,
+      hasAnsweredInRound: !!answeredInRound,
+    });
+
     return {
       provider: this.name,
       chain: chain || Blockchain.ETHEREUM,
@@ -139,12 +154,10 @@ export class ChainlinkClient extends BaseOracleClient {
       change24h: 0,
       change24hPercent: 0,
       source: chainlinkData.description || `Chainlink:${chainlinkData.symbol}`,
-      ...(chainlinkData.roundId !== undefined && {
-        roundId: chainlinkData.roundId.toString(),
-        answeredInRound: chainlinkData.answeredInRound.toString(),
-        version: chainlinkData.version?.toString(),
-        startedAt: chainlinkData.startedAt,
-      }),
+      roundId: roundId || undefined,
+      answeredInRound: answeredInRound || undefined,
+      version: version || undefined,
+      startedAt: startedAt || undefined,
     };
   }
 

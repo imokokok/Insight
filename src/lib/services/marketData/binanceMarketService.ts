@@ -680,24 +680,22 @@ async function getHistoricalPricesByHours(
 
     logger.info(`Fetching historical prices for ${symbol} (${hours} hours)...`);
 
-    // Select appropriate interval and limit based on hours
     let interval: string;
     let limit: number;
 
     if (hours <= 1) {
-      // 1 hour: use 1-minute interval, get 60 points
       interval = '1m';
       limit = 60;
     } else if (hours <= 6) {
-      // 6 hours: use 5-minute interval, get 72 points
       interval = '5m';
       limit = Math.min(hours * 12, 72);
     } else if (hours <= 24) {
-      // 24 hours: use 1-hour interval
-      interval = '1h';
-      limit = hours;
+      interval = '30m';
+      limit = Math.min(hours * 2, 48);
+    } else if (hours <= 168) {
+      interval = '2h';
+      limit = Math.min(Math.ceil(hours / 2), 84);
     } else {
-      // 7 days (168 hours) and above: use 4-hour interval
       interval = '4h';
       limit = Math.min(Math.ceil(hours / 4), 168);
     }

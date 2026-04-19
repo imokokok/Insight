@@ -21,7 +21,7 @@ import {
   Brush,
 } from 'recharts';
 
-import { ChartToolbar, type ChartType, type TimeRange } from '@/components/charts/ChartToolbar';
+import { ChartToolbar, type ChartType } from '@/components/charts/ChartToolbar';
 import { chartColors } from '@/lib/config/colors';
 import { chainNames } from '@/lib/constants';
 import { safeMax, safeMin } from '@/lib/utils';
@@ -33,6 +33,9 @@ import { type QueryResult, type ChartDataPoint } from '../constants';
 import { ChartDataTable } from './ChartDataTable';
 import { CustomTooltip } from './CustomTooltip';
 
+// Define limited time range type for this component
+type TimeRange = '1H' | '24H' | '7D';
+
 interface PriceChartProps {
   chartData: ChartDataPoint[];
   queryResults: QueryResult[];
@@ -42,12 +45,9 @@ interface PriceChartProps {
 }
 
 const hoursToTimeRange = (hours: number): TimeRange => {
-  if (hours <= 0) return 'ALL';
   if (hours <= 1) return '1H';
   if (hours <= 24) return '24H';
-  if (hours <= 168) return '7D';
-  if (hours <= 720) return '30D';
-  return '1Y';
+  return '7D';
 };
 
 const timeRangeToHours = (range: string): number => {
@@ -55,14 +55,11 @@ const timeRangeToHours = (range: string): number => {
     '1H': 1,
     '24H': 24,
     '7D': 168,
-    '30D': 720,
-    '1Y': 8760,
-    ALL: -1,
   };
-  return mapping[range] ?? -1;
+  return mapping[range] ?? 24;
 };
 
-const TIME_RANGES: TimeRange[] = ['1H', '24H', '7D', '30D', '1Y', 'ALL'];
+const TIME_RANGES: TimeRange[] = ['1H', '24H', '7D'];
 
 interface AxisMap {
   scale: (v: number) => number;
