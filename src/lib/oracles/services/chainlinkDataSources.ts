@@ -695,7 +695,8 @@ const CHAINLINK_RPC_CONFIG: Record<number, ChainlinkRPCConfig> = {
   1: {
     endpoints: buildEndpoints(ALCHEMY_RPC.ethereum, [
       'https://ethereum.publicnode.com',
-      'https://eth.llamarpc.com',
+      'https://rpc.ankr.com/eth',
+      'https://eth.drpc.org',
     ]),
     chainId: 1,
     name: 'Ethereum Mainnet',

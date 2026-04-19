@@ -292,6 +292,20 @@ class ChainlinkOnChainService {
     return null;
   }
 
+  private isValidChainlinkPriceData(data: unknown): data is ChainlinkPriceData {
+    if (!data || typeof data !== 'object') return false;
+    const d = data as Partial<ChainlinkPriceData>;
+    return (
+      typeof d.symbol === 'string' &&
+      typeof d.price === 'number' &&
+      d.price > 0 &&
+      typeof d.decimals === 'number' &&
+      typeof d.timestamp === 'number' &&
+      typeof d.roundId !== 'undefined' &&
+      typeof d.answeredInRound !== 'undefined'
+    );
+  }
+
   private setCache(key: string, data: unknown): void {
     if (this.cache.size >= this.maxCacheSize) {
       const oldestKey = this.cache.keys().next().value;
@@ -309,7 +323,20 @@ class ChainlinkOnChainService {
   ): Promise<ChainlinkPriceData | null> {
     const cacheKey = `price-${symbol}-${chainId}`;
     const cached = this.getCached<ChainlinkPriceData>(cacheKey);
-    if (cached) return cached;
+    if (cached && this.isValidChainlinkPriceData(cached)) {
+      logger.debug('Returning cached Chainlink price data', {
+        symbol,
+        chainId,
+        roundId: cached.roundId?.toString(),
+      });
+      return cached;
+    } else if (cached) {
+      logger.warn('Cached Chainlink price data is invalid, fetching fresh data', {
+        symbol,
+        chainId,
+      });
+      this.cache.delete(cacheKey);
+    }
 
     const feed = getChainlinkPriceFeed(symbol, chainId);
     if (!feed) {
@@ -324,8 +351,25 @@ class ChainlinkOnChainService {
         this.ethCall(chainId, feed.address, encodeAggregatorCall('version'), signal),
       ]);
 
+      logger.debug('Raw RPC responses received', {
+        symbol,
+        chainId,
+        roundDataLength: roundData?.length || 0,
+        decimalsData,
+      });
+
       const decoded = decodeLatestRoundData(roundData);
       const decimals = decodeDecimals(decimalsData);
+
+      logger.debug('Decoded round data', {
+        symbol,
+        roundId: decoded.roundId?.toString(),
+        answer: decoded.answer?.toString(),
+        startedAt: decoded.startedAt?.toString(),
+        updatedAt: decoded.updatedAt?.toString(),
+        answeredInRound: decoded.answeredInRound?.toString(),
+        decimals,
+      });
 
       const rawStr = decoded.answer.toString();
       let price: number;
@@ -360,6 +404,14 @@ class ChainlinkOnChainService {
         version: decodeUint256(versionData),
         startedAt: Number(decoded.startedAt) * 1000,
       };
+
+      logger.info('Successfully fetched Chainlink price', {
+        symbol: result.symbol,
+        price: result.price,
+        roundId: result.roundId?.toString(),
+        answeredInRound: result.answeredInRound?.toString(),
+        chainId: result.chainId,
+      });
 
       this.setCache(cacheKey, result);
       return result;

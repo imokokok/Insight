@@ -145,7 +145,10 @@ const SafeTimestampSchema = z
 const SafePeriodSchema = z
   .union([z.string(), z.number()])
   .transform((val) => (typeof val === 'string' ? parseInt(val, 10) : val))
-  .refine((val) => !isNaN(val) && val >= 1 && val <= 365, 'Period must be between 1 and 365 days');
+  .refine(
+    (val) => !isNaN(val) && val >= 1 && val <= 8760,
+    'Period must be between 1 and 8760 hours (1 year)'
+  );
 
 function createSafeEnumSchema<T extends [string, ...string[]]>(values: T) {
   return z
@@ -298,7 +301,7 @@ export const HistoricalPriceRequestSchema = z.object({
   provider: SafeProviderSchema,
   symbol: SafeSymbolSchema,
   chain: SafeChainSchema.optional(),
-  period: z.number().int().min(1).max(365).optional().default(24),
+  period: z.number().int().min(1).max(8760).optional().default(24),
 });
 
 const PaginationParamsSchema = z.object({
