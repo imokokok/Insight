@@ -2,6 +2,7 @@ import { useCallback, useRef } from 'react';
 
 import { downloadBlob } from '@/lib/utils/download';
 import { escapeCSVField } from '@/lib/utils/export';
+import { formatDateTimeString, formatNumberWithDecimals } from '@/lib/utils/format';
 import { createLogger } from '@/lib/utils/logger';
 import { OracleProvider, type Blockchain, type PriceData } from '@/types/oracle';
 
@@ -60,12 +61,7 @@ export function useExport(params: UseExportParams): UseExportReturn {
       currentParams.priceDifferences.forEach((item) => {
         const row = [
           escapeCSVField(chainNames[item.chain]),
-          escapeCSVField(
-            item.price.toLocaleString('en-US', {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 4,
-            })
-          ),
+          escapeCSVField(formatNumberWithDecimals(item.price, 2, 4)),
           escapeCSVField(item.diff.toFixed(4)),
           escapeCSVField(item.diffPercent.toFixed(4) + '%'),
         ];
@@ -97,18 +93,11 @@ export function useExport(params: UseExportParams): UseExportReturn {
       });
 
       sortedTimestamps.forEach((timestamp) => {
-        const row: string[] = [escapeCSVField(new Date(timestamp).toLocaleString('en-US'))];
+        const row: string[] = [escapeCSVField(formatDateTimeString(new Date(timestamp)))];
         currentParams.filteredChains.forEach((chain) => {
           const price = timestampPriceMaps[chain]?.get(timestamp);
           row.push(
-            price !== undefined
-              ? escapeCSVField(
-                  price.toLocaleString('en-US', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 4,
-                  })
-                )
-              : ''
+            price !== undefined ? escapeCSVField(formatNumberWithDecimals(price, 2, 4)) : ''
           );
         });
         csvLines.push(row.join(','));

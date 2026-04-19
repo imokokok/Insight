@@ -6,6 +6,7 @@ import { RefreshCw, ChevronDown, Clock } from 'lucide-react';
 
 import { REFRESH_INTERVALS, type RefreshInterval } from '@/hooks/useAutoRefresh';
 import { cn } from '@/lib/utils';
+import { formatTimeString } from '@/lib/utils/format';
 
 interface AutoRefreshControlProps {
   refreshInterval: RefreshInterval;
@@ -120,7 +121,7 @@ export function AutoRefreshControl({
           {lastRefreshedAt && (
             <div className="px-3 py-2 border-t border-gray-100 text-[10px] text-gray-400 flex items-center gap-1">
               <Clock className="w-3 h-3" />
-              <span>Last refreshed: {lastRefreshedAt.toLocaleTimeString('en-US')}</span>
+              <span>Last refreshed: {formatTimeString(lastRefreshedAt, false)}</span>
             </div>
           )}
         </div>

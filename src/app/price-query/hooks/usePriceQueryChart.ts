@@ -2,6 +2,7 @@
 
 import { useMemo, useRef } from 'react';
 
+import { formatTimeString, formatDateString } from '@/lib/utils/format';
 import { type PriceData } from '@/types/oracle';
 
 import { type QueryResult, type ChartDataPoint, providerNames, chainNames } from '../constants';
@@ -53,20 +54,21 @@ export function usePriceQueryChart(params: UsePriceQueryChartParams): UsePriceQu
     });
     const sortedTimestamps = Array.from(timestamps).sort((a, b) => a - b);
 
-    const getTimeFormat = (): Intl.DateTimeFormatOptions => {
+    const getFormattedTime = (timestamp: number): string => {
+      const date = new Date(timestamp);
       if (selectedTimeRange <= 6) {
-        return { hour: '2-digit', minute: '2-digit' };
+        return formatTimeString(date, false);
       } else if (selectedTimeRange <= 24) {
-        return { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+        return `${formatDateString(date, 'medium')} ${formatTimeString(date, false)}`;
       } else {
-        return { month: 'short', day: 'numeric' };
+        return formatDateString(date, 'medium');
       }
     };
 
     return sortedTimestamps.map((timestamp) => {
       const dataPoint: ChartDataPoint = {
         timestamp,
-        time: new Date(timestamp).toLocaleString([], getTimeFormat()),
+        time: getFormattedTime(timestamp),
       };
 
       queryResults.forEach(({ provider, chain }) => {
@@ -102,20 +104,21 @@ export function usePriceQueryChart(params: UsePriceQueryChartParams): UsePriceQu
     });
     const sortedTimestamps = Array.from(timestamps).sort((a, b) => a - b);
 
-    const getTimeFormat = (): Intl.DateTimeFormatOptions => {
+    const getCompareFormattedTime = (timestamp: number): string => {
+      const date = new Date(timestamp);
       if (compareTimeRange <= 6) {
-        return { hour: '2-digit', minute: '2-digit' };
+        return formatTimeString(date, false);
       } else if (compareTimeRange <= 24) {
-        return { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+        return `${formatDateString(date, 'medium')} ${formatTimeString(date, false)}`;
       } else {
-        return { month: 'short', day: 'numeric' };
+        return formatDateString(date, 'medium');
       }
     };
 
     return sortedTimestamps.map((timestamp) => {
       const dataPoint: ChartDataPoint = {
         timestamp,
-        time: new Date(timestamp).toLocaleString([], getTimeFormat()),
+        time: getCompareFormattedTime(timestamp),
       };
 
       compareQueryResults.forEach(({ provider, chain }) => {

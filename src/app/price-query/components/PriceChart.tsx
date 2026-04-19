@@ -26,6 +26,7 @@ import { chartColors } from '@/lib/config/colors';
 import { chainNames } from '@/lib/constants';
 import { safeMax, safeMin } from '@/lib/utils';
 import { formatPrice } from '@/lib/utils/chartSharedUtils';
+import { formatTimeString, formatDateString, formatDateTimeString } from '@/lib/utils/format';
 
 import { type QueryResult, type ChartDataPoint } from '../constants';
 
@@ -195,11 +196,11 @@ export function PriceChart({
   const formatXAxisLabel = (timestamp: number) => {
     const date = new Date(timestamp);
     if (selectedTimeRange <= 1) {
-      return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+      return formatTimeString(date, false);
     } else if (selectedTimeRange <= 24) {
-      return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+      return formatTimeString(date, false);
     } else {
-      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      return formatDateString(date, 'medium');
     }
   };
 
@@ -248,7 +249,7 @@ export function PriceChart({
     return Array.from(groups.entries())
       .map(([timestamp, values]) => ({
         timestamp,
-        time: new Date(timestamp).toLocaleString('en-US'),
+        time: formatDateTimeString(new Date(timestamp)),
         open: values[0],
         close: values[values.length - 1],
         high: safeMax(values),
@@ -264,8 +265,8 @@ export function PriceChart({
     }
     const firstPoint = enhancedChartData[0];
     const lastPoint = enhancedChartData[enhancedChartData.length - 1];
-    const startTime = new Date(firstPoint.timestamp).toLocaleString('en-US');
-    const endTime = new Date(lastPoint.timestamp).toLocaleString('en-US');
+    const startTime = formatDateTimeString(new Date(firstPoint.timestamp));
+    const endTime = formatDateTimeString(new Date(lastPoint.timestamp));
     const seriesList = seriesNames.join(', ');
     return `Price chart for ${seriesList} from ${startTime} to ${endTime} with ${enhancedChartData.length} data points`;
   }, [enhancedChartData, seriesNames]);

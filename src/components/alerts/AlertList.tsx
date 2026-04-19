@@ -8,6 +8,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { useUpdateAlert, useDeleteAlert, useBatchAlerts } from '@/hooks';
 import { providerNames, chainNames, oracleColors, chainColors } from '@/lib/constants';
 import { type PriceAlert } from '@/lib/supabase/database.types';
+import { formatDateTimeString } from '@/lib/utils/format';
 
 import { AlertBatchOperations } from './AlertBatchOperations';
 
@@ -343,7 +344,7 @@ export function AlertList({ alerts, isLoading, onRefresh }: AlertListProps) {
                               {alert.last_triggered_at && (
                                 <p className="text-xs text-gray-400 mt-1">
                                   Last triggered:{' '}
-                                  {new Date(alert.last_triggered_at).toLocaleString('en-US')}
+                                  {formatDateTimeString(new Date(alert.last_triggered_at))}
                                 </p>
                               )}
                             </div>

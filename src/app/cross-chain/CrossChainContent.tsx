@@ -4,6 +4,7 @@ import { memo, useState } from 'react';
 
 import { SectionErrorBoundary } from '@/components/error-boundary';
 import { SegmentedControl } from '@/components/ui';
+import { formatTimeString } from '@/lib/utils/format';
 import { useCrossChainConfigStore } from '@/stores/crossChainConfigStore';
 import { useCrossChainDataStore } from '@/stores/crossChainDataStore';
 
@@ -74,7 +75,7 @@ export default function CrossChainContent() {
 
               {lastUpdated && (
                 <div className="text-xs text-gray-400 text-center">
-                  Last updated: {lastUpdated.toLocaleTimeString('en-US')}
+                  Last updated: {formatTimeString(lastUpdated, false)}
                 </div>
               )}
             </div>

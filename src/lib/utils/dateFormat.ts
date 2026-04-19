@@ -7,27 +7,60 @@
  * Hook to get date formatting functions
  * Use this in client components for consistent date formatting
  */
+const MONTHS_SHORT = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+] as const;
+
+type DateStyle = 'short' | 'medium' | 'full';
+
 function useDateFormatter() {
-  const formatDate = (date: Date | number, options?: Intl.DateTimeFormatOptions): string => {
+  const formatDate = (date: Date | number, style: DateStyle = 'short'): string => {
     const d = typeof date === 'number' ? new Date(date) : date;
-    return d.toLocaleDateString('en-US', options);
+    if (style === 'medium') {
+      return `${MONTHS_SHORT[d.getMonth()]} ${d.getDate()}`;
+    }
+    if (style === 'full') {
+      return `${MONTHS_SHORT[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+    }
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${month}/${day}/${year}`;
   };
 
-  const formatTime = (date: Date | number, options?: Intl.DateTimeFormatOptions): string => {
+  const formatTime = (date: Date | number, includeSeconds: boolean = true): string => {
     const d = typeof date === 'number' ? new Date(date) : date;
-    return d.toLocaleTimeString('en-US', options);
+    const hours = d.getHours();
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    const displayHours = hours % 12 || 12;
+    if (includeSeconds) {
+      const seconds = String(d.getSeconds()).padStart(2, '0');
+      return `${displayHours}:${minutes}:${seconds} ${ampm}`;
+    }
+    return `${displayHours}:${minutes} ${ampm}`;
   };
 
-  const formatDateTime = (date: Date | number, options?: Intl.DateTimeFormatOptions): string => {
+  const formatDateTime = (date: Date | number, style: DateStyle = 'short'): string => {
     const d = typeof date === 'number' ? new Date(date) : date;
-    return d.toLocaleString('en-US', options);
+    return `${formatDate(d, style)}, ${formatTime(d)}`;
   };
 
   return {
     formatDate,
     formatTime,
     formatDateTime,
-    locale: 'en-US',
   };
 }
 

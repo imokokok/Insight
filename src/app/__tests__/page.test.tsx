@@ -63,7 +63,6 @@ describe('HomePage', () => {
         expect.arrayContaining(['oracle', 'chainlink', 'pyth', 'price data'])
       );
       expect(metadata.openGraph?.title).toBe('Insight - Oracle Data Platform');
-      expect(metadata.openGraph?.locale).toBe('en_US');
       expect(metadata.twitter?.card).toBe('summary_large_image');
     });
 

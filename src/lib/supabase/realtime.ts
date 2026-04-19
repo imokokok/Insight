@@ -144,7 +144,7 @@ class RealtimeManager {
   ): () => void {
     // Sort by key to ensure consistency
     const sortedFilters = filters
-      ? Object.fromEntries(Object.entries(filters).sort(([a], [b]) => a.localeCompare(b)))
+      ? Object.fromEntries(Object.entries(filters).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)))
       : {};
     const subscriptionId = `price_updates_${JSON.stringify(sortedFilters)}`;
 

@@ -38,7 +38,7 @@ jest.mock('@/lib/oracles/utils/performanceMetricsConfig', () => ({
 }));
 
 jest.mock('@/lib/utils/format', () => ({
-  formatPrice: (price: number) => `$${price.toLocaleString()}`,
+  formatPrice: (price: number) => `$${price.toString()}`,
   formatRelativeTime: (_timestamp: number) => 'Just now',
 }));
 

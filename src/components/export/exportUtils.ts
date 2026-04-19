@@ -9,6 +9,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
 import { exportColors } from '@/lib/config/colors';
+import { formatDateTimeString, formatNumberWithDecimals } from '@/lib/utils/format';
 import { createLogger } from '@/lib/utils/logger';
 
 import {
@@ -191,7 +192,7 @@ export async function exportToPDF(
   // Metadata
   doc.setFontSize(10);
   doc.setTextColor(exportColors.text.secondary);
-  doc.text(`Generated: ${new Date().toLocaleString('en-US')}`, 14, 28);
+  doc.text(`Generated: ${formatDateTimeString(new Date())}`, 14, 28);
 
   let yPos = 40;
 
@@ -407,14 +408,14 @@ function formatPDFValue(value: unknown, dataType: string): string {
   switch (dataType) {
     case 'date':
       if (value instanceof Date) {
-        return value.toLocaleString('en-US');
+        return formatDateTimeString(value);
       }
       return String(value);
     case 'boolean':
       return value ? 'Yes' : 'No';
     case 'number':
       if (typeof value === 'number') {
-        return value.toLocaleString('en-US', { maximumFractionDigits: 4 });
+        return formatNumberWithDecimals(value, 0, 4);
       }
       return String(value);
     default:

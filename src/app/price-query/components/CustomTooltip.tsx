@@ -9,6 +9,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import { chartColors } from '@/lib/config/colors';
 import { formatPrice } from '@/lib/utils/chartSharedUtils';
+import { formatDateString, formatTimeString } from '@/lib/utils/format';
 
 import { type ChartDataPoint } from '../constants';
 
@@ -139,14 +140,7 @@ export function CustomTooltip({ active, payload, label, coordinate }: CustomTool
   const formatDateTime = (timestamp: string | number | undefined) => {
     if (!timestamp) return '';
     const date = new Date(timestamp);
-    return date.toLocaleString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-    });
+    return `${formatDateString(date, 'full')}, ${formatTimeString(date)}`;
   };
 
   return (

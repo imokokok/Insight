@@ -16,6 +16,7 @@ import {
   type RiskMetrics,
   type AnomalyData,
 } from '@/lib/services/marketData/types';
+import { formatTimeString, formatDateString } from '@/lib/utils/format';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('marketData:priceCalculations');
@@ -53,10 +54,7 @@ export function generateTVSTrendData(
   for (let i = points; i >= 0; i--) {
     const timestamp = now - i * interval;
     const date = new Date(timestamp);
-    const dateStr =
-      hours <= 24
-        ? date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
-        : date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    const dateStr = hours <= 24 ? formatTimeString(date, false) : formatDateString(date, 'medium');
 
     const volatility = 0.02;
 

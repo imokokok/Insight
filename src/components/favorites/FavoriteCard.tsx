@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 
 import { mapConfigTypeFromDB, type FavoriteConfig, useRemoveFavorite } from '@/hooks';
 import type { UserFavorite } from '@/lib/supabase/queries';
+import { formatDateString } from '@/lib/utils/format';
 
 interface FavoriteCardProps {
   favorite: UserFavorite;
@@ -190,12 +191,7 @@ export function FavoriteCard({ favorite, onApply, onEdit, onDelete }: FavoriteCa
   }, [configType]);
 
   const formatDate = useCallback((dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
+    return formatDateString(new Date(dateString), 'full');
   }, []);
 
   return (

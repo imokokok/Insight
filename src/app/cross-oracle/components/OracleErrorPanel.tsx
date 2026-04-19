@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 
 import { Button } from '@/components/ui';
+import { formatTimeString } from '@/lib/utils/format';
 import type { OracleProvider } from '@/types/oracle';
 
 import type { OracleDataError, OracleErrorInfo, OracleErrorType } from '../types';
@@ -146,7 +147,7 @@ const OracleErrorItem = memo(function OracleErrorItem({
             </Button>
           )}
           <span className="text-xs text-gray-400">
-            {new Date(error.timestamp).toLocaleTimeString('en-US')}
+            {formatTimeString(new Date(error.timestamp))}
           </span>
         </div>
       </div>

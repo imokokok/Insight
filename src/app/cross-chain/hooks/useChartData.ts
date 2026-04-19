@@ -5,6 +5,7 @@
 
 import { useMemo } from 'react';
 
+import { formatTimeString, formatDateString } from '@/lib/utils/format';
 import { safeMax, safeMin } from '@/lib/utils/statistics';
 import { type Blockchain, type PriceData } from '@/types/oracle';
 
@@ -117,13 +118,14 @@ export function useChartData(params: UseChartDataParams): UseChartDataReturn {
     });
     const sortedTimestamps = Array.from(timestamps).sort((a, b) => a - b);
 
-    const getTimeFormat = (): Intl.DateTimeFormatOptions => {
+    const getFormattedTime = (timestamp: number): string => {
+      const date = new Date(timestamp);
       if (selectedTimeRange <= 6) {
-        return { hour: '2-digit', minute: '2-digit' };
+        return formatTimeString(date, false);
       } else if (selectedTimeRange <= 24) {
-        return { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+        return `${formatDateString(date, 'medium')} ${formatTimeString(date, false)}`;
       } else {
-        return { month: 'short', day: 'numeric' };
+        return formatDateString(date, 'medium');
       }
     };
 
@@ -154,7 +156,7 @@ export function useChartData(params: UseChartDataParams): UseChartDataReturn {
     return sortedTimestamps.map((timestamp, index) => {
       const dataPoint: ChartDataPoint = {
         timestamp,
-        time: new Date(timestamp).toLocaleString([], getTimeFormat()),
+        time: getFormattedTime(timestamp),
       };
       filteredChains.forEach((chain) => {
         const priceData = chainPriceMaps[chain]?.get(timestamp);

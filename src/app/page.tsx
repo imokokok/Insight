@@ -11,7 +11,6 @@ export const metadata: Metadata = {
     title: 'Insight - Oracle Data Platform',
     description: 'Comprehensive analysis and comparison of major oracle protocols.',
     type: 'website',
-    locale: 'en_US',
   },
   twitter: {
     card: 'summary_large_image',

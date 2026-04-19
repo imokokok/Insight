@@ -18,6 +18,7 @@ import { ChartToolbar as TimeRangeToolbar, type TimeRange } from '@/components/c
 import { chartColors, semanticColors } from '@/lib/config/colors';
 import { isBlockchain } from '@/lib/utils/chainUtils';
 import { downloadBlob } from '@/lib/utils/download';
+import { addThousandSeparators } from '@/lib/utils/format';
 import { type Blockchain } from '@/types/oracle';
 
 import { type ChartDataPoint } from '../constants';
@@ -497,7 +498,7 @@ export function InteractivePriceChart({
             />
             <YAxis
               domain={priceDomain}
-              tickFormatter={(v) => `$${Number(v).toLocaleString('en-US')}`}
+              tickFormatter={(v) => `$${addThousandSeparators(Number(v).toString())}`}
               width={70}
               stroke={chartColors.recharts.axis}
               tick={{ fill: chartColors.recharts.tick, fontSize: 11 }}

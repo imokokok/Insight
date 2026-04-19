@@ -2,6 +2,7 @@ import { Activity, Coins, Wallet, Store, Zap, TrendingUp } from 'lucide-react';
 
 import { StatCard } from '@/components/ui/StatCard';
 import type { DIATokenOnChainData } from '@/lib/oracles/services/diaDataService';
+import { addThousandSeparators } from '@/lib/utils/format';
 
 import { formatLargeNumber } from '../../utils/queryResultsUtils';
 
@@ -53,7 +54,11 @@ export function DIAStats({ data }: DIAStatsProps) {
         icon={Zap}
         iconColor="text-purple-500"
         title="Trading Pair Count"
-        value={data.totalTradingPairs > 0 ? data.totalTradingPairs.toLocaleString('en-US') : '-'}
+        value={
+          data.totalTradingPairs > 0
+            ? addThousandSeparators(data.totalTradingPairs.toString())
+            : '-'
+        }
         description="Total trading pairs"
       />
       <StatCard

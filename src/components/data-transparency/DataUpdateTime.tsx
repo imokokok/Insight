@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 
 import { Clock, RefreshCw, AlertCircle, CheckCircle2 } from 'lucide-react';
 
+import { formatTimeString } from '@/lib/utils/format';
 import { getTimeAgoDiff, formatTimeAgo } from '@/lib/utils/timestamp';
 
 interface DataUpdateTimeProps {
@@ -147,7 +148,7 @@ export function DataUpdateTime({
 
           <div className="text-right">
             {lastUpdated && (
-              <p className="text-xs text-gray-500">{lastUpdated.toLocaleTimeString('en-US')}</p>
+              <p className="text-xs text-gray-500">{formatTimeString(lastUpdated, false)}</p>
             )}
             {autoRefresh && showCountdown && (
               <p className="text-xs font-medium text-gray-600">
