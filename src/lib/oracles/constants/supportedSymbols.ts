@@ -196,25 +196,26 @@ const api3Symbols = [
   'USDC',
   'USDT',
   'WBTC',
+  'API3',
 ] as const;
 
 // API3 available chain-trading pair mapping (based on actual detection results - 2026-04-14)
 // Only including trading pairs that can be correctly fetched
 export const API3_AVAILABLE_PAIRS: Record<string, string[]> = {
-  // Ethereum: 5 available
-  ethereum: ['BAL', 'BTC', 'COMP', 'ETH', 'USDC'],
-  // Arbitrum: 9 available
-  arbitrum: ['ARB', 'AVAX', 'BTC', 'COMP', 'DAI', 'ETH', 'USDC', 'USDT', 'WBTC'],
-  // Polygon: 7 available
-  polygon: ['ARB', 'AVAX', 'BNB', 'BTC', 'ETH', 'USDC', 'WBTC'],
-  // Base: 8 available
-  base: ['BNB', 'BTC', 'DAI', 'ETH', 'SOL', 'USDC', 'USDT', 'WBTC'],
-  // Optimism: 3 available
-  optimism: ['ETH', 'USDC', 'WBTC'],
-  // Avalanche: 3 available
-  avalanche: ['AVAX', 'ETH', 'USDT'],
-  // BNB Chain: 6 available
-  'bnb-chain': ['BNB', 'BTC', 'ETH', 'USDC', 'USDT', 'WBTC'],
+  // Ethereum: 6 available
+  ethereum: ['BAL', 'BTC', 'COMP', 'ETH', 'USDC', 'API3'],
+  // Arbitrum: 10 available
+  arbitrum: ['ARB', 'AVAX', 'BTC', 'COMP', 'DAI', 'ETH', 'USDC', 'USDT', 'WBTC', 'API3'],
+  // Polygon: 8 available
+  polygon: ['ARB', 'AVAX', 'BNB', 'BTC', 'ETH', 'USDC', 'WBTC', 'API3'],
+  // Base: 9 available
+  base: ['BNB', 'BTC', 'DAI', 'ETH', 'SOL', 'USDC', 'USDT', 'WBTC', 'API3'],
+  // Optimism: 4 available
+  optimism: ['ETH', 'USDC', 'WBTC', 'API3'],
+  // Avalanche: 4 available
+  avalanche: ['AVAX', 'ETH', 'USDT', 'API3'],
+  // BNB Chain: 7 available
+  'bnb-chain': ['BNB', 'BTC', 'ETH', 'USDC', 'USDT', 'WBTC', 'API3'],
   // Fantom: 0 successful - API3 has not deployed dAPI on Fantom, removed
 };
 
