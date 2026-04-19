@@ -17,7 +17,7 @@ import { QueryResultsLoading } from './QueryResultsLoading';
 import { StatsCardsSelector } from './stats';
 import { TokenIcon } from './TokenIcon';
 
-import { PriceChart, DataSourceSection, ErrorBanner } from './index';
+import { PriceDeviationChart, DataSourceSection, ErrorBanner } from './index';
 
 interface QueryResultsProps {
   onChainData: OnChainData;
@@ -177,21 +177,11 @@ export function QueryResults({ onChainData }: QueryResultsProps) {
         <div ref={chartContainerRef} className="p-6">
           <div className="flex items-center gap-2 mb-4">
             <div className="w-1 h-5 bg-gradient-to-b from-blue-500 to-indigo-500 rounded-full"></div>
-            <h3 className="text-sm font-semibold text-gray-800">Price History</h3>
-            <span className="text-xs text-gray-400 ml-2">Historical data source</span>
-            <span className="text-xs text-gray-400 ml-1">
-              (Note: Oracle networks do not provide historical price data. Historical price data is
-              sourced from Binance API.)
-            </span>
+            <h3 className="text-sm font-semibold text-gray-800">Price Deviation Analysis</h3>
+            <span className="text-xs text-gray-400 ml-2">Real-time oracle comparison</span>
           </div>
           <div className="bg-gray-50/50 rounded-xl border border-gray-100 p-4">
-            <PriceChart
-              chartData={chartData}
-              queryResults={queryResults}
-              selectedTimeRange={selectedTimeRange}
-              avgPrice={avgPrice}
-              onTimeRangeChange={setSelectedTimeRange}
-            />
+            <PriceDeviationChart queryResults={queryResults} avgPrice={avgPrice} />
           </div>
         </div>
       </div>
