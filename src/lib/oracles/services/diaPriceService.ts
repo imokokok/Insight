@@ -2,14 +2,17 @@ import { binanceMarketService } from '@/lib/services/marketData/binanceMarketSer
 import { createLogger } from '@/lib/utils/logger';
 import { OracleProvider, type Blockchain, type PriceData } from '@/types/oracle';
 
-import { CACHE_TTL } from '../diaUtils';
+import { getDIAAssetConfig } from '../constants/diaConstants';
+import { CACHE_TTL, DIA_API_BASE_URL, fetchWithTimeout } from '../diaUtils';
 
 import type { CacheEntry } from '../base';
+import type { DIAAssetQuotation } from '../diaTypes';
 
 const logger = createLogger('DIAPriceService');
 
 const MAX_CACHE_SIZE = 1000;
 const CLEANUP_INTERVAL = 60000;
+const REQUEST_TIMEOUT = 15000;
 
 export class DIAPriceService {
   private cleanupTimer: NodeJS.Timeout | null = null;
@@ -100,34 +103,86 @@ export class DIAPriceService {
       return null;
     }
 
+    const upperSymbol = symbol.toUpperCase();
+
+    const stablecoins = [
+      'USDT',
+      'USDC',
+      'DAI',
+      'FRAX',
+      'TUSD',
+      'BUSD',
+      'LUSD',
+      'USDD',
+      'USDJ',
+      'USDP',
+    ];
+    if (stablecoins.includes(upperSymbol)) {
+      const result: PriceData = {
+        provider: OracleProvider.DIA,
+        symbol: upperSymbol,
+        price: 1.0,
+        timestamp: Date.now(),
+        decimals: 8,
+        confidence: 1.0,
+        change24h: 0,
+        change24hPercent: 0,
+        chain,
+        source: 'dia-api',
+      };
+      this.setCache(cacheKey, result, CACHE_TTL.PRICE);
+      return result;
+    }
+
     try {
-      logger.info('Delegating to Binance API for price', { symbol, chain });
+      logger.info('Fetching price from DIA official API', { symbol, chain });
 
-      const marketData = await binanceMarketService.getTokenMarketData(symbol);
+      const assetConfig = getDIAAssetConfig(upperSymbol);
 
-      if (!marketData) {
-        logger.warn('Binance API returned no data for symbol', { symbol, chain });
+      if (!assetConfig) {
+        logger.warn('Symbol not supported by DIA oracle', { symbol });
         return null;
       }
 
+      const url = `${DIA_API_BASE_URL}/assetQuotation/${assetConfig.blockchain}/${assetConfig.address}`;
+
+      const quotation = await fetchWithTimeout<DIAAssetQuotation | null>(url, {
+        timeout: REQUEST_TIMEOUT,
+        signal,
+      });
+
+      if (!quotation || !quotation.Price) {
+        logger.warn('DIA API returned no data for symbol', { symbol });
+        return null;
+      }
+
+      const change24h = quotation.Price - quotation.PriceYesterday;
+      const change24hPercent =
+        quotation.PriceYesterday > 0 ? (change24h / quotation.PriceYesterday) * 100 : 0;
+
       const result: PriceData = {
         provider: OracleProvider.DIA,
-        symbol: symbol.toUpperCase(),
-        price: marketData.currentPrice,
-        timestamp: new Date(marketData.lastUpdated).getTime(),
+        symbol: upperSymbol,
+        price: quotation.Price,
+        timestamp: new Date(quotation.Time).getTime(),
         decimals: 8,
         confidence: 0.95,
-        change24h: marketData.priceChange24h,
-        change24hPercent: marketData.priceChangePercentage24h,
+        change24h,
+        change24hPercent,
         chain,
-        source: 'binance-api',
+        source: 'dia-api',
       };
 
       this.setCache(cacheKey, result, CACHE_TTL.PRICE);
+      logger.info('Successfully fetched price from DIA API', {
+        symbol,
+        price: result.price,
+        source: 'dia-api',
+      });
       return result;
     } catch (error) {
       logger.error(
-        'Failed to get asset price from Binance API',
+        'Failed to get price from DIA API',
         error instanceof Error ? error : new Error(String(error)),
         { symbol, chain }
       );
@@ -136,7 +191,7 @@ export class DIAPriceService {
   }
 
   async getForexRate(symbol: string): Promise<PriceData | null> {
-    logger.warn('Forex rate fetching is not supported via Binance API', { symbol });
+    logger.warn('Forex rate fetching is not supported via DIA API', { symbol });
     return null;
   }
 
@@ -152,7 +207,7 @@ export class DIAPriceService {
     }
 
     try {
-      logger.info('Delegating to Binance API for historical prices', {
+      logger.info('Fetching historical prices from Binance API', {
         symbol,
         chain,
         periodHours,
