@@ -41,9 +41,9 @@ export const navigationConfig: NavStructure = [
     items: [
       {
         href: '/cross-oracle',
-        label: 'Cross-Oracle Analysis',
+        label: 'Cross-Oracle Comparison',
         icon: GitCompare,
-        description: 'Real-Time Multi-Oracle Price Comparison & Deviation Analytics',
+        description: 'Real-time multi-oracle price comparison and deviation analytics',
       },
       {
         href: '/cross-chain',

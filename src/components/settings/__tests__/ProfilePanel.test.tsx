@@ -29,7 +29,7 @@ describe('ProfilePanel', () => {
     render(<ProfilePanel />);
 
     expect(screen.getByText('Profile Settings')).toBeInTheDocument();
-    expect(screen.getByText('Manage your profile information')).toBeInTheDocument();
+    expect(screen.getByText('Manage your account information')).toBeInTheDocument();
   });
 
   it('should render display name input', () => {
@@ -41,7 +41,7 @@ describe('ProfilePanel', () => {
   it('should render email input as disabled', () => {
     render(<ProfilePanel />);
 
-    const emailInput = screen.getByLabelText('Text');
+    const emailInput = screen.getByLabelText('Email');
     expect(emailInput).toBeDisabled();
     expect(emailInput).toHaveValue('test@example.com');
   });

@@ -21,7 +21,7 @@ function getDispersionInterpretation(cv: number) {
   }
   if (cv < 0.5) {
     return {
-      label: 'Basically Consistent',
+      label: 'Moderately Consistent',
       color: chartColors.recharts.primary,
       description: 'Prices show minor variations',
     };

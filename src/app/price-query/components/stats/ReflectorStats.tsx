@@ -94,7 +94,7 @@ export function ReflectorStats({ data }: ReflectorStatsProps) {
         iconColor="text-purple-500"
         title="Base Asset"
         value={baseAsset}
-        description="Quote currency"
+        description="Base asset symbol"
       />
       <StatCard
         icon={Database}

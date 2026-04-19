@@ -14,8 +14,8 @@ function getClient() {
 
 export const twapConfig: OracleConfig = {
   provider: OracleProvider.TWAP,
-  name: 'TWAP Oracle',
-  descriptionKey: 'twap.description',
+  name: 'TWAP',
+  descriptionKey: 'oracles.descriptions.twap',
   symbol: 'UNI',
   defaultChain: Blockchain.ETHEREUM,
   supportedChains: [
@@ -46,8 +46,8 @@ export const twapConfig: OracleConfig = {
   tabs: [
     { id: 'overview', label: 'Overview' },
     { id: 'price-feeds', label: 'Price Feeds' },
-    { id: 'network', label: 'Network' },
-    { id: 'market', label: 'Market' },
+    { id: 'network', label: 'Network Health' },
+    { id: 'market', label: 'Market Data' },
     { id: 'on-chain', label: 'On-Chain' },
     { id: 'methodology', label: 'Methodology' },
   ],

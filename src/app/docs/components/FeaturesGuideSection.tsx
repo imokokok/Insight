@@ -40,7 +40,7 @@ export default function FeaturesGuideSection() {
     },
     {
       icon: <Link2 className="w-6 h-6" />,
-      title: 'Cross-Chain Analysis',
+      title: 'Cross-Chain Comparison',
       description: 'Analyze price differences across blockchains',
       href: '/cross-chain',
       highlights: [

@@ -23,7 +23,7 @@ export default function Error({ error, reset }: ErrorProps) {
           <AlertTriangle className="w-10 h-10 text-danger-500" />
         </div>
 
-        <h1 className="text-2xl font-bold text-gray-900 mb-3">Something Went Wrong</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-3">Something went wrong</h1>
 
         <p className="text-gray-600 mb-2">
           An error occurred while loading this page. Please try again.

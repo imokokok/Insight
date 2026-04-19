@@ -47,7 +47,7 @@ export default function UserMenuDropdown({
             className="w-full justify-start text-danger-600 hover:text-danger-700 hover:bg-danger-50"
             leftIcon={<LogOut className="w-4 h-4" />}
           >
-            Sign Out
+            Log Out
           </Button>
         </div>
       </div>

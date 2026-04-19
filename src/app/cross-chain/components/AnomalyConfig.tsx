@@ -26,7 +26,7 @@ export function AnomalyConfig({ thresholdConfig, onThresholdConfigChange }: Anom
   return (
     <div>
       <h3 className="text-xs font-medium text-gray-700 uppercase tracking-wide mb-2">
-        Anomaly Detection Config
+        Anomaly Detection Configuration
       </h3>
       <div className="space-y-3">
         <div className="flex flex-col gap-1.5">

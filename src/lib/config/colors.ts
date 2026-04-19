@@ -528,12 +528,12 @@ export const accessibleColors = {
 // ============================================
 
 const wcagColors = {
-  // WCAG AA standard：textandBackgroundfor 4.5:1
-  // WCAG AAA standard：textandBackgroundfor 7:1
+  // WCAG AA standard: text and background contrast ratio 4.5:1
+  // WCAG AAA standard: text and background contrast ratio 7:1
 
   // High contrast text colors
   text: {
-    // Backgroundontext（for >= 4.5:1）
+    // Background on text (for >= 4.5:1)
     onLight: {
       primary: '#000000',
       secondary: '#1a1a1a',
@@ -543,41 +543,41 @@ const wcagColors = {
     },
   },
 
-  // forStatus colors（ensuretext）
+  // Status colors (ensure text readability)
   status: {
     success: {
-      bg: '#006600', // GreenBackground
+      bg: '#006600', // Green background
       text: '#ffffff', // White text, contrast 7.5:1
       border: '#004d00',
-      light: '#e6f4ea', // GreenBackground
-      lightText: '#1e4620', // Green，for 8.6:1
+      light: '#e6f4ea', // Green background
+      lightText: '#1e4620', // Green, for 8.6:1
     },
     warning: {
-      bg: '#b35900', // OrangeBackground
+      bg: '#b35900', // Orange background
       text: '#ffffff', // White text, contrast 5.2:1
       border: '#8f4700',
-      light: '#fff3e0', // OrangeBackground
-      lightText: '#663c00', // Orange，for 7.2:1
+      light: '#fff3e0', // Orange background
+      lightText: '#663c00', // Orange, for 7.2:1
     },
     danger: {
-      bg: '#cc0000', // RedBackground
+      bg: '#cc0000', // Red background
       text: '#ffffff', // White text, contrast 5.7:1
       border: '#a30000',
-      light: '#fce8e8', // RedBackground
-      lightText: '#7f1d1d', // Red，for 8.4:1
+      light: '#fce8e8', // Red background
+      lightText: '#7f1d1d', // Red, for 8.4:1
     },
     info: {
-      bg: '#005fcc', // Dark blueBackground
+      bg: '#005fcc', // Dark blue background
       text: '#ffffff', // White text, contrast 6.1:1
       border: '#004ba0',
-      light: '#e8f4fd', // BlueBackground
-      lightText: '#0c3b6e', // Dark blue，for 8.9:1
+      light: '#e8f4fd', // Blue background
+      lightText: '#0c3b6e', // Dark blue, for 8.9:1
     },
   },
 
   // Chart high contrast colors (WCAG AA standard)
   chart: {
-    // Primary - ensurecolorhavefor
+    // Primary - ensure colors have sufficient contrast
     primary: [
       '#0033a0', // Dark blue
       '#d90000', // Red
@@ -601,7 +601,7 @@ const wcagColors = {
       subtle: '#f5f5f5',
       grid: '#e0e0e0',
     },
-    // Axis linescolor
+    // Axis lines color
     axis: {
       line: '#595959',
       text: '#333333',
@@ -619,10 +619,10 @@ const wcagColors = {
 
   // Link colors
   link: {
-    default: '#005fcc', // Blue，for 6.1:1
-    visited: '#6b2c91', // Purple，for 7.2:1
-    hover: '#003d7a', // Dark blue，for 8.4:1
-    active: '#cc0000', // Red，for 5.7:1
+    default: '#005fcc', // Blue, for 6.1:1
+    visited: '#6b2c91', // Purple, for 7.2:1
+    hover: '#003d7a', // Dark blue, for 8.4:1
+    active: '#cc0000', // Red, for 5.7:1
   },
 } as const;
 
@@ -914,16 +914,16 @@ const tailwindClasses = {
 // ============================================
 
 /**
- * getcolorconfiguration
- * Whether price is upreturnforcolorconfiguration，supportmodeandmode
+ * Get color configuration for price changes
+ * Returns color configuration based on whether price is up or down
  *
- * @param isPositive - Whether price is up（true on，false down）
- * @param useAccessible - isUse colorblind-friendly colors（defaultas false）
- * @returns includecolor、Backgroundandiconconfigurationobject
+ * @param isPositive - Whether price is up (true = up, false = down)
+ * @param useAccessible - Whether to use colorblind-friendly colors (defaults to false)
+ * @returns Object containing color, background, and icon configuration
  * @example
  * ```typescript
- * const upColor = getPriceChangeColor(true); // oncolor
- * const downColor = getPriceChangeColor(false, true); // downcolor
+ * const upColor = getPriceChangeColor(true); // up color
+ * const downColor = getPriceChangeColor(false, true); // down color
  * ```
  */
 function getPriceChangeColor(
@@ -947,14 +947,14 @@ function getPriceChangeColor(
 }
 
 /**
- * getcolor
- * indexloopreturncolor，use
+ * Get color from chart sequence
+ * Returns a color from the sequence based on index, cycling through colors
  *
- * @param index - colorindex（from 0 start）
- * @returns forindexcolorvalue（hex format）
+ * @param index - Color index (starting from 0)
+ * @returns Color value for the given index (hex format)
  * @example
  * ```typescript
- * const color1 = getChartSequenceColor(0); // '#3B82F6'（Blue）
+ * const color1 = getChartSequenceColor(0); // '#3B82F6' (Blue)
  * const color2 = getChartSequenceColor(8); // Cycles back to the first color
  * ```
  */
@@ -963,19 +963,19 @@ function getChartSequenceColor(index: number): string {
 }
 
 /**
- * getfortextcolor
- * Backgroundcalculate，returnBlackorWhitetextwithensure
+ * Get contrast text color
+ * Calculates and returns black or white text color based on background to ensure readability
  *
- * algorithm：
- * use YIQ ：brightness = (R * 299 + G * 587 + B * 114) / 1000
- * > 128 returntext，returnWhite
+ * Algorithm:
+ * Use YIQ: brightness = (R * 299 + G * 587 + B * 114) / 1000
+ * > 128 return black text, otherwise return white
  *
- * @param backgroundColor - Background（hex format， '#ffffff'）
- * @returns textcolor（hex format）
+ * @param backgroundColor - Background color (hex format, e.g. '#ffffff')
+ * @returns Text color (hex format)
  * @example
  * ```typescript
- * const textColor = getContrastTextColor('#ffffff'); // '#111827'（）
- * const textColor2 = getContrastTextColor('#000000'); // '#FFFFFF'（White）
+ * const textColor = getContrastTextColor('#ffffff'); // '#111827' (dark)
+ * const textColor2 = getContrastTextColor('#000000'); // '#FFFFFF' (white)
  * ```
  */
 function getContrastTextColor(backgroundColor: string): string {
