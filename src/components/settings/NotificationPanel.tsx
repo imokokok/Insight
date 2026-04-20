@@ -13,6 +13,9 @@ import {
   CheckCircle,
 } from 'lucide-react';
 
+import { updateUserProfile } from '@/lib/supabase/auth';
+import { useUser, useProfile } from '@/stores/authStore';
+
 interface NotificationSettings {
   emailNotifications: boolean;
   browserNotifications: boolean;
@@ -61,6 +64,8 @@ function Toggle({
 }
 
 export function NotificationPanel() {
+  const user = useUser();
+  const _profile = useProfile();
   const [settings, setSettings] = useState<NotificationSettings>(() => {
     if (typeof window === 'undefined') return defaultSettings;
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -99,7 +104,7 @@ export function NotificationPanel() {
       setBrowserPermission(permission);
 
       if (permission === 'denied') {
-        alert('Browser notifications permission denied');
+        setError('Browser notifications permission denied. Please enable in browser settings.');
       }
     }
   };
@@ -108,9 +113,17 @@ export function NotificationPanel() {
     setIsSaving(true);
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
       localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+
+      if (user) {
+        await updateUserProfile(user.id, {
+          notification_settings: {
+            email_alerts: settings.emailNotifications,
+            push_notifications: settings.browserNotifications,
+            alert_frequency: settings.alertNotifications ? 'immediate' : 'off',
+          },
+        } as Record<string, unknown>);
+      }
 
       setSuccess('Settings saved successfully');
 

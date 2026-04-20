@@ -14,6 +14,15 @@ export const POST = createApiHandler(
       return ApiResponseBuilder.unauthorized();
     }
 
+    const supabaseAdmin = createServerClient();
+
+    const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
+
+    if (deleteError) {
+      logger.error('Failed to delete user account', deleteError as Error);
+      return ApiResponseBuilder.serverError('Failed to delete account');
+    }
+
     const queries = getServerQueries();
 
     const favSuccess = await queries.deleteAllFavorites(userId);
@@ -31,7 +40,6 @@ export const POST = createApiHandler(
       logger.error('Failed to delete user snapshots');
     }
 
-    const supabaseAdmin = createServerClient();
     const { error: profileError } = await supabaseAdmin
       .from('user_profiles')
       .delete()
@@ -40,17 +48,14 @@ export const POST = createApiHandler(
       logger.error('Failed to delete user profile', profileError as Error);
     }
 
-    const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
-
-    if (deleteError) {
-      logger.error('Failed to delete user account', deleteError as Error);
-      return ApiResponseBuilder.serverError('Failed to delete account');
-    }
-
     const response = NextResponse.json({ success: true });
 
-    response.cookies.delete('sb-access-token');
-    response.cookies.delete('sb-refresh-token');
+    const cookieNames = _request.cookies.getAll().map((c) => c.name);
+    for (const name of cookieNames) {
+      if (name.startsWith('sb-') || name.includes('supabase')) {
+        response.cookies.delete(name);
+      }
+    }
 
     return response;
   },

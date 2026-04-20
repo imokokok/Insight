@@ -30,7 +30,7 @@ function ResendVerificationForm() {
         type: 'signup',
         email,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/verify-email`,
+          emailRedirectTo: `${window.location.origin}/api/auth/callback`,
         },
       });
 

@@ -6,6 +6,7 @@ import Image from 'next/image';
 
 import { User, Mail, Save, Key, Loader2, CheckCircle, Upload, Trash2 } from 'lucide-react';
 
+import { PasswordInput } from '@/components/ui/PasswordInput';
 import { updateUserProfile, uploadAvatar, deleteAvatar, updatePassword } from '@/lib/supabase/auth';
 import { useUser, useProfile, useAuthActions } from '@/stores/authStore';
 
@@ -171,7 +172,6 @@ export function ProfilePanel() {
     try {
       const { error: updateError } = await updateUserProfile(user.id, {
         display_name: displayName || null,
-        avatar_url: avatarUrl || null,
       });
 
       if (updateError) {
@@ -339,12 +339,10 @@ export function ProfilePanel() {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">New Password</label>
-                <input
-                  type="password"
+                <PasswordInput
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="Enter new password"
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none transition-all duration-200"
                 />
               </div>
 
@@ -352,12 +350,10 @@ export function ProfilePanel() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Confirm New Password
                 </label>
-                <input
-                  type="password"
+                <PasswordInput
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Confirm new password"
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none transition-all duration-200"
                 />
               </div>
 

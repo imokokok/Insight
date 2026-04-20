@@ -25,9 +25,9 @@ function ResetPasswordForm() {
     const checkSession = async () => {
       try {
         const {
-          data: { session },
-        } = await supabase.auth.getSession();
-        if (session) {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (user) {
           setIsValidSession(true);
         } else {
           setIsValidSession(false);

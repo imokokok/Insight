@@ -1,25 +1,26 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 import { Mail, LogIn, AlertCircle, MailWarning } from 'lucide-react';
 
 import { Button } from '@/components/ui';
 import { PasswordInput } from '@/components/ui/PasswordInput';
-import { useUser, useAuthLoading, useAuthError, useAuthActions } from '@/stores/authStore';
+import { useUser, useAuthError, useAuthActions } from '@/stores/authStore';
 
 interface ErrorInfo {
   message: string;
   type: 'default' | 'email_not_confirmed' | 'invalid_credentials';
 }
 
-export default function LoginContent() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectPath = searchParams.get('redirect') || '/';
   const user = useUser();
-  const _loading = useAuthLoading();
   const error = useAuthError();
   const { signIn, signInWithOAuth } = useAuthActions();
   const [email, setEmail] = useState('');
@@ -29,9 +30,9 @@ export default function LoginContent() {
 
   useEffect(() => {
     if (user) {
-      router.push(`/`);
+      router.push(redirectPath);
     }
-  }, [user, router]);
+  }, [user, router, redirectPath]);
 
   const parseError = (errorMessage: string): ErrorInfo => {
     const lowerError = errorMessage.toLowerCase();
@@ -70,7 +71,7 @@ export default function LoginContent() {
       setErrorInfo(parseError(signInError.message));
       setIsLoading(false);
     } else {
-      router.push(`/`);
+      router.push(redirectPath);
     }
   };
 
@@ -169,16 +170,6 @@ export default function LoginContent() {
             </div>
 
             <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <input
-                  id="remember-me"
-                  type="checkbox"
-                  className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-                />
-                <label htmlFor="remember-me" className="ml-2 text-sm text-gray-600">
-                  Remember me
-                </label>
-              </div>
               <Link
                 href={`/auth/forgot-password`}
                 className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
@@ -267,5 +258,22 @@ export default function LoginContent() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginContent() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 rounded-lg">
+          <div className="text-center">
+            <div className="w-8 h-8 border-2 border-primary-600 border-t-transparent animate-spin mx-auto mb-4 rounded-full" />
+            <p className="text-gray-600">Loading...</p>
+          </div>
+        </div>
+      }
+    >
+      <LoginForm />
+    </Suspense>
   );
 }
