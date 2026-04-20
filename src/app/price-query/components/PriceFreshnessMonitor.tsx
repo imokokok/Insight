@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useEffect, useState } from 'react';
+import { useMemo, useEffect, useState, memo } from 'react';
 
 import {
   Clock,
@@ -166,13 +166,34 @@ function getHealthGrade(score: number): { label: string; color: string } {
   return { label: 'Critical', color: '#ef4444' };
 }
 
+const FreshnessCell = memo(function FreshnessCell({
+  freshnessSeconds,
+  freshnessStatus,
+  timestamp,
+}: {
+  freshnessSeconds: number;
+  freshnessStatus: DataSourceInfo['freshnessStatus'];
+  timestamp: number;
+}) {
+  return (
+    <td className="py-2.5 px-3">
+      <div className="flex flex-col items-center">
+        <span className="text-xs font-medium" style={{ color: getFreshnessColor(freshnessStatus) }}>
+          {freshnessSeconds}s ago
+        </span>
+        <span className="text-[10px] text-gray-400">{formatRelativeTime(timestamp)}</span>
+      </div>
+    </td>
+  );
+});
+
 export function PriceFreshnessMonitor({ queryResults, avgPrice }: PriceFreshnessMonitorProps) {
   const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
     const timer = setInterval(() => {
       setNow(Date.now());
-    }, 1000);
+    }, 15000);
     return () => clearInterval(timer);
   }, []);
 
@@ -391,19 +412,11 @@ export function PriceFreshnessMonitor({ queryResults, avgPrice }: PriceFreshness
                       </span>
                     </td>
                   )}
-                  <td className="py-2.5 px-3">
-                    <div className="flex flex-col items-center">
-                      <span
-                        className="text-xs font-medium"
-                        style={{ color: getFreshnessColor(source.freshnessStatus) }}
-                      >
-                        {source.freshnessSeconds}s ago
-                      </span>
-                      <span className="text-[10px] text-gray-400">
-                        {formatRelativeTime(source.timestamp)}
-                      </span>
-                    </div>
-                  </td>
+                  <FreshnessCell
+                    freshnessSeconds={source.freshnessSeconds}
+                    freshnessStatus={source.freshnessStatus}
+                    timestamp={source.timestamp}
+                  />
                   <td className="py-2.5 px-3">
                     <div className="flex flex-col items-center">
                       <div className="w-16 h-1.5 bg-gray-200 rounded-full overflow-hidden">

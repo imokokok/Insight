@@ -5,14 +5,12 @@ import { Star, ChevronDown } from 'lucide-react';
 import { useFavorites, type FavoriteConfig } from '@/hooks';
 import type { OracleProvider, Blockchain } from '@/types/oracle';
 
-import { useQueryParams, useQueryData, useQueryUI } from '../contexts';
+import { useUnifiedQuery } from '../contexts';
 
 import UnifiedExportSection from './UnifiedExportSection';
 
 export function QueryHeader() {
-  const params = useQueryParams();
-  const queryData = useQueryData();
-  const ui = useQueryUI();
+  const query = useUnifiedQuery();
   const { favorites: symbolFavorites } = useFavorites({ configType: 'symbol' });
 
   const {
@@ -23,12 +21,15 @@ export function QueryHeader() {
     selectedSymbol,
     setSelectedSymbol,
     selectedTimeRange,
-  } = params;
-
-  const { queryResults, isLoading: loading } = queryData;
+    setSelectedTimeRange,
+    queryResults,
+    isLoading: loading,
+    stats,
+    ui,
+  } = query;
 
   const { avgPrice, maxPrice, minPrice, priceRange, standardDeviation, standardDeviationPercent } =
-    queryData.stats;
+    stats;
 
   const { showFavoritesDropdown, setShowFavoritesDropdown, favoritesDropdownRef } = ui;
 
@@ -47,7 +48,7 @@ export function QueryHeader() {
       setSelectedChain(null);
     }
     if (config.timeRange !== undefined) {
-      params.setSelectedTimeRange(config.timeRange);
+      setSelectedTimeRange(config.timeRange);
     }
     setShowFavoritesDropdown(false);
   };
@@ -91,15 +92,23 @@ export function QueryHeader() {
                   symbolFavorites.map((favorite) => {
                     const config = favorite.config_data as FavoriteConfig;
                     const symbol = config.symbol || '';
+                    const oracleName = config.selectedOracles?.[0] || 'Any';
+                    const chainName = config.chains?.[0] || 'Any';
                     return (
                       <button
                         key={favorite.id}
                         onClick={() => handleApplyFavorite(config)}
                         className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center justify-between"
+                        title={`Oracle: ${oracleName}, Chain: ${chainName}`}
                       >
-                        <span>{symbol}</span>
+                        <div className="flex flex-col min-w-0">
+                          <span className="font-medium truncate">{symbol}</span>
+                          <span className="text-xs text-gray-400 truncate">
+                            {oracleName} · {chainName}
+                          </span>
+                        </div>
                         {currentFavoriteConfig.symbol === symbol && (
-                          <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                          <Star className="w-4 h-4 text-yellow-500 fill-yellow-500 flex-shrink-0 ml-2" />
                         )}
                       </button>
                     );

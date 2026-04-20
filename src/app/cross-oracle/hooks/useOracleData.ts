@@ -1,6 +1,6 @@
 import { type OracleProvider } from '@/types/oracle';
 
-import { type TimeRange, type RefreshInterval } from '../constants';
+import { type RefreshInterval } from '../constants';
 
 import { useOracleDataCore } from './useOracleDataCore';
 import { useOracleErrorHandling } from './useOracleErrorHandling';
@@ -12,7 +12,6 @@ import type { UseOracleDataReturn, RetryConfig } from '../types';
 interface UseOracleDataOptions {
   selectedOracles: OracleProvider[];
   selectedSymbol: string;
-  timeRange: TimeRange;
   initialRefreshInterval?: RefreshInterval;
   enablePerformanceMetrics?: boolean;
   initialRetryConfig?: Partial<RetryConfig>;
@@ -23,7 +22,6 @@ interface UseOracleDataOptions {
 export function useOracleData({
   selectedOracles,
   selectedSymbol,
-  timeRange,
   initialRefreshInterval = 'off',
   enablePerformanceMetrics = true,
   initialRetryConfig,
@@ -42,7 +40,6 @@ export function useOracleData({
     {
       selectedOracles,
       selectedSymbol,
-      timeRange,
       initialRefreshInterval,
       enablePerformanceMetrics,
       initialRetryConfig,

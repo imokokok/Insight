@@ -2,10 +2,10 @@
 
 import { ChartSkeleton } from '@/components/ui';
 
-import { useQueryData } from '../contexts';
+import { useUnifiedQuery } from '../contexts';
 
 export function QueryResultsLoading() {
-  const { queryProgress, currentQueryTarget } = useQueryData();
+  const { queryProgress, currentQueryTarget } = useUnifiedQuery();
 
   return (
     <div className="space-y-6">

@@ -2,7 +2,7 @@
 
 import { memo, useState, useMemo } from 'react';
 
-import { TrendingUp, Filter } from 'lucide-react';
+import { TrendingUp, Filter, Activity } from 'lucide-react';
 
 import type { OracleProvider, PriceData } from '@/types/oracle';
 
@@ -13,7 +13,6 @@ import {
   type ChartTabType,
   PriceDistributionHistogram,
   DeviationScatterChart,
-  MarketDepthSimulator,
 } from '../price-comparison';
 import { SimplePriceTable } from '../SimplePriceTable';
 
@@ -53,6 +52,7 @@ function SimplePriceComparisonTabComponent({
   const [statusFilter, setStatusFilter] = useState<'all' | 'normal' | 'warning' | 'critical'>(
     'all'
   );
+  const [anomalyMode, setAnomalyMode] = useState<'deviation' | 'zscore'>('deviation');
 
   const stats = useMemo(() => {
     const oracleCount = priceData.length;
@@ -78,8 +78,6 @@ function SimplePriceComparisonTabComponent({
             anomalies={anomalies}
           />
         );
-      case 'depth':
-        return <MarketDepthSimulator priceData={priceData} medianPrice={medianPrice} />;
       default:
         return null;
     }
@@ -137,18 +135,46 @@ function SimplePriceComparisonTabComponent({
             Price Comparison
           </h4>
 
-          <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-gray-400" />
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
-              className="text-xs border border-gray-200 rounded-md px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="all">All</option>
-              <option value="normal">Normal</option>
-              <option value="warning">Warning</option>
-              <option value="critical">Critical</option>
-            </select>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5">
+              <Activity className="w-3.5 h-3.5 text-gray-400" />
+              <div className="flex items-center gap-1 p-0.5 bg-gray-100 rounded-md">
+                <button
+                  onClick={() => setAnomalyMode('deviation')}
+                  className={`px-2 py-1 text-[10px] font-medium rounded transition-all ${
+                    anomalyMode === 'deviation'
+                      ? 'bg-white text-gray-900 shadow-sm'
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  Deviation
+                </button>
+                <button
+                  onClick={() => setAnomalyMode('zscore')}
+                  className={`px-2 py-1 text-[10px] font-medium rounded transition-all ${
+                    anomalyMode === 'zscore'
+                      ? 'bg-white text-gray-900 shadow-sm'
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  Z-Score
+                </button>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Filter className="w-4 h-4 text-gray-400" />
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
+                className="text-xs border border-gray-200 rounded-md px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="all">All</option>
+                <option value="normal">Normal</option>
+                <option value="warning">Warning</option>
+                <option value="critical">Critical</option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -158,6 +184,9 @@ function SimplePriceComparisonTabComponent({
           validPrices={validPrices}
           anomalies={anomalies}
           statusFilter={statusFilter}
+          anomalyDetectionMode={anomalyMode}
+          avgPrice={avgPrice}
+          standardDeviation={standardDeviation}
         />
       </div>
 

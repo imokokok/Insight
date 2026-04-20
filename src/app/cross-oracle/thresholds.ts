@@ -1,42 +1,48 @@
-/**
- * @fileoverview Multi-oracle comparison - unified threshold configuration
- * @description Centralized management of all anomaly detection threshold configurations
- */
+type VolatilityCategory = 'stablecoin' | 'major' | 'alt' | 'micro';
 
-// ============================================================================
-// Price deviation thresholds (percentage)
-// ============================================================================
+function getVolatilityCategory(symbol: string): VolatilityCategory {
+  const upper = symbol.toUpperCase();
+  if (/^(USDT|USDC|DAI|BUSD|TUSD|USDD|FRAX|GUSD|PAX|USDP)/.test(upper)) {
+    return 'stablecoin';
+  }
+  if (/^(BTC|ETH)\//.test(upper)) {
+    return 'major';
+  }
+  if (/^(SHIB|PEPE|FLOKI|BONK|DOGE|MEME|TRUMP)/.test(upper)) {
+    return 'micro';
+  }
+  return 'alt';
+}
 
-/** Price deviation thresholds for visualization and alerts */
-export const DEVIATION_THRESHOLDS = {
-  /** Normal threshold - below this is considered normal */
-  NORMAL: 0.5,
-  /** Warning threshold - between normal and danger */
-  WARNING: 1.0,
-  /** Danger threshold - above this is considered dangerous */
-  DANGER: 3.0,
-  /** Critical threshold - requires immediate attention */
-  CRITICAL: 5.0,
+const DYNAMIC_DEVIATION_THRESHOLDS: Record<
+  VolatilityCategory,
+  { NORMAL: number; WARNING: number; DANGER: number; CRITICAL: number }
+> = {
+  stablecoin: { NORMAL: 0.05, WARNING: 0.1, DANGER: 0.3, CRITICAL: 0.5 },
+  major: { NORMAL: 0.3, WARNING: 0.8, DANGER: 2.0, CRITICAL: 4.0 },
+  alt: { NORMAL: 0.5, WARNING: 1.5, DANGER: 4.0, CRITICAL: 8.0 },
+  micro: { NORMAL: 1.0, WARNING: 3.0, DANGER: 8.0, CRITICAL: 15.0 },
 } as const;
 
-// ============================================================================
-// Price anomaly detection thresholds
-// ============================================================================
+function getDeviationThresholds(symbol: string) {
+  const category = getVolatilityCategory(symbol);
+  return DYNAMIC_DEVIATION_THRESHOLDS[category];
+}
 
-/** Price anomaly deviation threshold (1%) - values above this are considered anomalous */
+export const DEVIATION_THRESHOLDS = {
+  NORMAL: 0.3,
+  WARNING: 0.8,
+  DANGER: 2.0,
+  CRITICAL: 4.0,
+} as const;
+
 export const ANOMALY_DEVIATION_THRESHOLD = DEVIATION_THRESHOLDS.WARNING;
 
-/** Anomaly severity thresholds (percentage) */
 export const SEVERITY_THRESHOLDS = {
   HIGH: DEVIATION_THRESHOLDS.DANGER,
   MEDIUM: DEVIATION_THRESHOLDS.WARNING,
 } as const;
 
-// ============================================================================
-// Data freshness thresholds (seconds)
-// ============================================================================
-
-/** Data freshness thresholds (seconds) */
 export const FRESHNESS_THRESHOLDS = {
   FRESH: 30,
   NORMAL: 60,
@@ -44,14 +50,7 @@ export const FRESHNESS_THRESHOLDS = {
   SEVERELY_DELAYED: 300,
 } as const;
 
-// ============================================================================
-// Confidence thresholds
-// ============================================================================
-
-/** Confidence thresholds */
 export const CONFIDENCE_THRESHOLDS = {
-  /** Low confidence: < 0.5 */
   LOW: 0.5,
-  /** Medium confidence: 0.5 <= confidence < 0.8 */
   MEDIUM: 0.8,
 } as const;

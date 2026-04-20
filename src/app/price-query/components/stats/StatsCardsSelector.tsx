@@ -1,6 +1,8 @@
 'use client';
 
-import { useMemo, useRef } from 'react';
+import { useMemo, useState } from 'react';
+
+import { ChevronDown, ChevronUp } from 'lucide-react';
 
 import type { ReflectorTokenOnChainData } from '@/hooks/oracles/useReflectorOnChainData';
 import type { TwapOnChainData } from '@/hooks/oracles/useTwapOnChainData';
@@ -46,7 +48,6 @@ interface StatsCardsSelectorProps {
     color: string;
   } | null;
   standardDeviationPercent: number;
-  currentTime?: number;
 }
 
 export function StatsCardsSelector({
@@ -65,122 +66,155 @@ export function StatsCardsSelector({
   volume24h,
   consistencyRating,
   standardDeviationPercent,
-  currentTime,
 }: StatsCardsSelectorProps) {
-  const isChainlink = currentResult?.provider === OracleProviderEnum.CHAINLINK;
-  const chainlinkData = isChainlink ? currentResult?.priceData : null;
+  const [showProviderStats, setShowProviderStats] = useState(false);
+  const provider = currentResult?.provider;
+  const priceData = currentResult?.priceData;
 
-  const isPyth = currentResult?.provider === OracleProviderEnum.PYTH;
-  const pythData = isPyth ? currentResult?.priceData : null;
+  const providerStatsComponent = useMemo(() => {
+    switch (provider) {
+      case OracleProviderEnum.CHAINLINK:
+        if (!priceData) return null;
+        return (
+          <ChainlinkStats
+            roundId={priceData.roundId}
+            answeredInRound={priceData.answeredInRound}
+            decimals={priceData.decimals}
+            version={priceData.version}
+            startedAt={priceData.startedAt}
+            source={priceData.source}
+          />
+        );
 
-  const isAPI3 = currentResult?.provider === OracleProviderEnum.API3;
-  const api3Data = isAPI3 ? currentResult?.priceData : null;
+      case OracleProviderEnum.PYTH:
+        if (!priceData) return null;
+        return (
+          <PythStats
+            priceId={priceData.priceId}
+            exponent={priceData.exponent}
+            conf={priceData.conf}
+            publishTime={priceData.publishTime}
+            confidenceInterval={priceData.confidenceInterval}
+            confidence={priceData.confidence}
+          />
+        );
 
-  const isSupra = currentResult?.provider === OracleProviderEnum.SUPRA;
-  const supraData = isSupra ? currentResult?.priceData : null;
+      case OracleProviderEnum.API3:
+        if (!priceData) return null;
+        return (
+          <API3Stats
+            dapiName={priceData.dapiName}
+            proxyAddress={priceData.proxyAddress}
+            chain={priceData.chain}
+            decimals={priceData.decimals}
+            dataAge={priceData.dataAge}
+            confidence={priceData.confidence}
+          />
+        );
 
-  // Use ref to store initial time to avoid Date.now() in render
-  const timeRef = useRef(currentTime ?? Date.now());
+      case OracleProviderEnum.SUPRA:
+        if (supraOnChainData) {
+          return <SupraStats data={supraOnChainData as SupraTokenOnChainData} />;
+        }
+        if (priceData) {
+          const supraStatsData: SupraTokenOnChainData = {
+            symbol: priceData.symbol,
+            price: priceData.price,
+            decimals: priceData.decimals ?? 8,
+            pairIndex: priceData.pairIndex ?? 0,
+            pairName: `${priceData.symbol}/USDT`,
+            supportedChainsCount: 27,
+            updateIntervalMinutes: 5,
+            dataAge: priceData.dataAge ?? null,
+            lastUpdated: priceData.timestamp,
+            source: priceData.source || 'DORA V2',
+          };
+          return <SupraStats data={supraStatsData} />;
+        }
+        return null;
 
-  // Compute supra stats data with useMemo at top level
-  const supraStatsData: SupraTokenOnChainData | null = useMemo(() => {
-    if (!isSupra || !supraData) return null;
-    return {
-      symbol: supraData.symbol,
-      price: supraData.price,
-      decimals: supraData.decimals ?? 8,
-      pairIndex: supraData.pairIndex ?? 0,
-      pairName: `${supraData.symbol}/USDT`,
-      supportedChainsCount: 27,
-      updateIntervalMinutes: 5,
-      dataAge: supraData.timestamp
-        ? Math.round((timeRef.current - supraData.timestamp) / 1000)
-        : null,
-      lastUpdated: supraData.timestamp,
-      source: supraData.source || 'DORA V2',
-    };
-  }, [isSupra, supraData]);
+      case OracleProviderEnum.DIA:
+        if (diaOnChainData) {
+          return <DIAStats data={diaOnChainData as DIATokenOnChainData} />;
+        }
+        return null;
 
-  if (isChainlink && chainlinkData) {
-    return (
-      <ChainlinkStats
-        roundId={chainlinkData.roundId}
-        answeredInRound={chainlinkData.answeredInRound}
-        decimals={chainlinkData.decimals}
-        version={chainlinkData.version}
-        startedAt={chainlinkData.startedAt}
-        source={chainlinkData.source}
-      />
-    );
-  }
+      case OracleProviderEnum.WINKLINK:
+        if (winklinkOnChainData) {
+          return <WINkLinkStats data={winklinkOnChainData as WINkLinkTokenOnChainData} />;
+        }
+        return null;
 
-  if (isPyth && pythData) {
-    return (
-      <PythStats
-        priceId={pythData.priceId}
-        exponent={pythData.exponent}
-        conf={pythData.conf}
-        publishTime={pythData.publishTime}
-        confidenceInterval={pythData.confidenceInterval}
-        confidence={pythData.confidence}
-      />
-    );
-  }
+      case OracleProviderEnum.REDSTONE:
+        if (redstoneOnChainData) {
+          return <RedStoneStats data={redstoneOnChainData as RedStoneTokenOnChainData} />;
+        }
+        return null;
 
-  if (isAPI3 && api3Data) {
-    return (
-      <API3Stats
-        dapiName={api3Data.dapiName}
-        proxyAddress={api3Data.proxyAddress}
-        chain={api3Data.chain}
-        decimals={api3Data.decimals}
-        dataAge={api3Data.dataAge}
-        confidence={api3Data.confidence}
-      />
-    );
-  }
+      case OracleProviderEnum.TWAP:
+        if (twapOnChainData) {
+          return <TwapStats data={twapOnChainData as TwapOnChainData} />;
+        }
+        return null;
 
-  if (isSupra && supraOnChainData) {
-    return <SupraStats data={supraOnChainData as SupraTokenOnChainData} />;
-  }
+      case OracleProviderEnum.REFLECTOR:
+        if (reflectorOnChainData) {
+          return <ReflectorStats data={reflectorOnChainData as ReflectorTokenOnChainData} />;
+        }
+        return null;
 
-  if (supraStatsData) {
-    return <SupraStats data={supraStatsData} />;
-  }
+      case OracleProviderEnum.FLARE:
+        if (flareOnChainData) {
+          return <FlareStats data={flareOnChainData as FlareTokenOnChainData} />;
+        }
+        return null;
 
-  if (diaOnChainData) {
-    return <DIAStats data={diaOnChainData as DIATokenOnChainData} />;
-  }
-
-  if (winklinkOnChainData) {
-    return <WINkLinkStats data={winklinkOnChainData as WINkLinkTokenOnChainData} />;
-  }
-
-  if (redstoneOnChainData) {
-    return <RedStoneStats data={redstoneOnChainData as RedStoneTokenOnChainData} />;
-  }
-
-  if (twapOnChainData) {
-    return <TwapStats data={twapOnChainData as TwapOnChainData} />;
-  }
-
-  if (reflectorOnChainData) {
-    return <ReflectorStats data={reflectorOnChainData as ReflectorTokenOnChainData} />;
-  }
-
-  if (flareOnChainData) {
-    return <FlareStats data={flareOnChainData as FlareTokenOnChainData} />;
-  }
+      default:
+        return null;
+    }
+  }, [
+    provider,
+    priceData,
+    supraOnChainData,
+    diaOnChainData,
+    winklinkOnChainData,
+    redstoneOnChainData,
+    twapOnChainData,
+    reflectorOnChainData,
+    flareOnChainData,
+  ]);
 
   return (
-    <DefaultStats
-      maxPrice={maxPrice}
-      minPrice={minPrice}
-      avgPrice={avgPrice}
-      priceRange={priceRange}
-      volume24h={volume24h}
-      consistencyRating={consistencyRating}
-      standardDeviationPercent={standardDeviationPercent}
-    />
+    <>
+      <DefaultStats
+        maxPrice={maxPrice}
+        minPrice={minPrice}
+        avgPrice={avgPrice}
+        priceRange={priceRange}
+        volume24h={volume24h}
+        consistencyRating={consistencyRating}
+        standardDeviationPercent={standardDeviationPercent}
+      />
+      {providerStatsComponent && (
+        <div className="col-span-2 md:col-span-3 lg:col-span-6 mt-2">
+          <button
+            onClick={() => setShowProviderStats(!showProviderStats)}
+            className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-700 transition-colors"
+          >
+            {showProviderStats ? (
+              <ChevronUp className="w-3.5 h-3.5" />
+            ) : (
+              <ChevronDown className="w-3.5 h-3.5" />
+            )}
+            {provider} Details
+          </button>
+          {showProviderStats && (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mt-2">
+              {providerStatsComponent}
+            </div>
+          )}
+        </div>
+      )}
+    </>
   );
 }

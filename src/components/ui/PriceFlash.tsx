@@ -11,13 +11,20 @@ interface PriceFlashProps {
   children?: React.ReactNode;
 }
 
+const FLASH_THRESHOLD_PERCENT = 0.1;
+
 export function PriceFlash({ value, previousValue, className, children }: PriceFlashProps) {
   const [flashClass, setFlashClass] = useState('');
   const prevRef = useRef<number | undefined>(previousValue);
 
   useEffect(() => {
     const prev = prevRef.current;
-    if (prev !== undefined && value !== prev) {
+    if (prev !== undefined && prev > 0 && value !== prev) {
+      const changePercent = (Math.abs(value - prev) / prev) * 100;
+      if (changePercent < FLASH_THRESHOLD_PERCENT) {
+        prevRef.current = value;
+        return;
+      }
       const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       if (!prefersReducedMotion) {
         const direction = value > prev ? 'up' : 'down';

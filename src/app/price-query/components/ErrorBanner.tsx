@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 
 import {
   AlertTriangle,
@@ -143,9 +143,20 @@ function ErrorItemRow({ error, onRetry, isRetrying }: ErrorItemRowProps) {
   );
 }
 
+function deduplicateErrors(errors: ErrorItem[]): ErrorItem[] {
+  const seen = new Map<string, ErrorItem>();
+  for (const error of errors) {
+    const key = `${error.provider}-${error.chain}`;
+    seen.set(key, error);
+  }
+  return Array.from(seen.values());
+}
+
 export function ErrorBanner({ errors, onRetry, onRetryAll, onDismiss }: ErrorBannerProps) {
   const [isExpanded, setIsExpanded] = useState(true);
   const [retryingItems, setRetryingItems] = useState<Set<string>>(new Set());
+
+  const uniqueErrors = useMemo(() => deduplicateErrors(errors), [errors]);
 
   const handleRetry = useCallback(
     async (provider: OracleProvider, chain: Blockchain) => {
@@ -170,19 +181,19 @@ export function ErrorBanner({ errors, onRetry, onRetryAll, onDismiss }: ErrorBan
     onRetryAll();
   }, [onRetryAll]);
 
-  if (errors.length === 0) {
+  if (uniqueErrors.length === 0) {
     return null;
   }
 
-  const displayedErrors = isExpanded ? errors : errors.slice(0, 3);
-  const hasMoreErrors = errors.length > 3;
+  const displayedErrors = isExpanded ? uniqueErrors : uniqueErrors.slice(0, 3);
+  const hasMoreErrors = uniqueErrors.length > 3;
 
   return (
     <div className="bg-red-50 border border-red-200 rounded-lg overflow-hidden">
       <div className="flex items-center justify-between px-4 py-3 bg-red-100 border-b border-red-200">
         <div className="flex items-center gap-2">
           <AlertTriangle className="w-5 h-5 text-red-600" />
-          <span className="font-semibold text-red-800">{errors.length} Errors</span>
+          <span className="font-semibold text-red-800">{uniqueErrors.length} Errors</span>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="secondary" size="sm" onClick={handleRetryAll}>
@@ -204,7 +215,7 @@ export function ErrorBanner({ errors, onRetry, onRetryAll, onDismiss }: ErrorBan
       <div className="divide-y divide-gray-100">
         {displayedErrors.map((error, index) => (
           <ErrorItemRow
-            key={`${error.provider}-${error.chain}-${index}`}
+            key={`${error.provider}-${error.chain}-${error.error.length}-${index}`}
             error={error}
             onRetry={handleRetry}
             isRetrying={retryingItems.has(`${error.provider}-${error.chain}`)}

@@ -7,7 +7,7 @@ import { createLogger } from '@/lib/utils/logger';
 import { getRequestQueue, type RequestPriority } from '@/lib/utils/requestQueue';
 import { OracleProvider, type PriceData } from '@/types/oracle';
 
-import { type TimeRange, type RefreshInterval } from '../constants';
+import { type RefreshInterval } from '../constants';
 
 import { createOracleErrorInfo } from './useOracleErrorHandling';
 import { useOracleRetry } from './useOracleRetry';
@@ -35,7 +35,6 @@ const providerToSymbolKey: Record<OracleProvider, keyof typeof oracleSupportedSy
 interface UseOracleDataCoreOptions {
   selectedOracles: OracleProvider[];
   selectedSymbol: string;
-  timeRange: TimeRange;
   initialRefreshInterval?: RefreshInterval;
   enablePerformanceMetrics?: boolean;
   initialRetryConfig?: Partial<RetryConfig>;
@@ -73,7 +72,6 @@ export function useOracleDataCore(
   const {
     selectedOracles,
     selectedSymbol,
-    timeRange: _timeRange,
     initialRefreshInterval = 'off',
     enablePerformanceMetrics = true,
     initialRetryConfig,

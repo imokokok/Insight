@@ -17,8 +17,6 @@ export default function CrossOracleContent() {
     setSelectedOracles,
     selectedSymbol,
     setSelectedSymbol,
-    timeRange,
-    setTimeRange,
 
     priceData,
     isLoading,
@@ -80,15 +78,13 @@ export default function CrossOracleContent() {
     let count = 0;
     if (selectedOracles.length > 0) count++;
     if (selectedSymbol) count++;
-    if (timeRange !== '24h') count++;
     return count;
-  }, [selectedOracles.length, selectedSymbol, timeRange]);
+  }, [selectedOracles.length, selectedSymbol]);
 
   const handleClearFilters = useCallback(() => {
     setSelectedOracles([]);
     setSelectedSymbol('');
-    setTimeRange('24h');
-  }, [setSelectedOracles, setSelectedSymbol, setTimeRange]);
+  }, [setSelectedOracles, setSelectedSymbol]);
 
   return (
     <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 min-h-screen">
@@ -141,8 +137,6 @@ export default function CrossOracleContent() {
               selectedOracles={selectedOracles}
               onOracleToggle={toggleOracle}
               oracleChartColors={oracleChartColors}
-              timeRange={timeRange}
-              onTimeRangeChange={setTimeRange}
               onQuery={fetchPriceData}
               isLoading={isLoading}
               activeFilterCount={activeFilterCount}

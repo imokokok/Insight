@@ -158,6 +158,10 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
     }
   }, [isLoading, batchResult.results, selectedSymbol]);
 
+  const resultsDataSignature = batchResult.results
+    .map((r) => `${r.provider}:${r.chain}:${r.priceData ? '1' : '0'}:${r.isLoading ? '1' : '0'}`)
+    .join('|');
+
   const { queryResults, compareQueryResults, dataProcessingTime } = useMemo(() => {
     startDataProcessingMeasure();
     const qResults: QueryResult[] = [];
@@ -186,7 +190,8 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
       compareQueryResults: cResults,
       dataProcessingTime: processingTime,
     };
-  }, [batchResult.results]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resultsDataSignature, selectedSymbol, selectedOracle, selectedChain]);
 
   const queryErrors: QueryError[] = useMemo(() => {
     return batchResult.errors

@@ -20,7 +20,27 @@ interface FetchHistoricalParams extends FetchPriceParams {
   period: number;
 }
 
-const REQUEST_TIMEOUT_MS = 15_000;
+const DEFAULT_REQUEST_TIMEOUT_MS = 15_000;
+
+const ORACLE_TIMEOUT_CONFIG: Record<string, number> = {
+  chainlink: 10_000,
+  pyth: 8_000,
+  api3: 20_000,
+  dia: 25_000,
+  winklink: 20_000,
+  redstone: 12_000,
+  supra: 10_000,
+  twap: 15_000,
+  reflector: 20_000,
+  flare: 12_000,
+};
+
+function getRequestTimeout(provider?: string): number {
+  if (provider && ORACLE_TIMEOUT_CONFIG[provider]) {
+    return ORACLE_TIMEOUT_CONFIG[provider];
+  }
+  return DEFAULT_REQUEST_TIMEOUT_MS;
+}
 
 interface PendingRequest<T> {
   promise: Promise<T>;
@@ -29,6 +49,9 @@ interface PendingRequest<T> {
 }
 
 const pendingRequests = new Map<string, PendingRequest<unknown>>();
+
+const responseCache = new Map<string, { data: unknown; timestamp: number }>();
+const CACHE_TTL_MS = 5_000;
 
 function buildRequestKey(
   prefix: string,
@@ -43,6 +66,21 @@ function buildRequestKey(
   return key;
 }
 
+function getCachedResponse<T>(key: string): T | undefined {
+  const cached = responseCache.get(key);
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
+    return cached.data as T;
+  }
+  if (cached) {
+    responseCache.delete(key);
+  }
+  return undefined;
+}
+
+function setCachedResponse(key: string, data: unknown): void {
+  responseCache.set(key, { data, timestamp: Date.now() });
+}
+
 function removePendingRequest(key: string): void {
   const pending = pendingRequests.get(key);
   if (pending) {
@@ -53,7 +91,8 @@ function removePendingRequest(key: string): void {
 
 function createAbortControllerWithTimeout(
   key: string,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  provider?: string
 ): { controller: AbortController; timeoutId: ReturnType<typeof setTimeout>; cleanup: () => void } {
   const previous = pendingRequests.get(key);
   if (previous) {
@@ -62,11 +101,12 @@ function createAbortControllerWithTimeout(
     pendingRequests.delete(key);
   }
 
+  const timeoutMs = getRequestTimeout(provider);
   const controller = new AbortController();
   const timeoutId = setTimeout(() => {
     controller.abort();
-    pendingRequests.delete(key);
-  }, REQUEST_TIMEOUT_MS);
+    removePendingRequest(key);
+  }, timeoutMs);
 
   let cleanup: () => void = () => {};
 
@@ -74,11 +114,12 @@ function createAbortControllerWithTimeout(
     const onExternalAbort = () => {
       clearTimeout(timeoutId);
       controller.abort();
-      pendingRequests.delete(key);
+      removePendingRequest(key);
     };
     signal.addEventListener('abort', onExternalAbort, { once: true });
     cleanup = () => {
       signal.removeEventListener('abort', onExternalAbort);
+      removePendingRequest(key);
     };
   }
 
@@ -159,14 +200,24 @@ function deduplicatedFetch<T>(
   url: string,
   context: string,
   externalSignal: AbortSignal | undefined,
-  validateData: (data: unknown) => T
+  validateData: (data: unknown) => T,
+  provider?: string
 ): Promise<T> {
   const existing = pendingRequests.get(key);
   if (existing) {
     return existing.promise as Promise<T>;
   }
 
-  const { controller, timeoutId, cleanup } = createAbortControllerWithTimeout(key, externalSignal);
+  const cached = getCachedResponse<T>(key);
+  if (cached !== undefined) {
+    return Promise.resolve(cached);
+  }
+
+  const { controller, timeoutId, cleanup } = createAbortControllerWithTimeout(
+    key,
+    externalSignal,
+    provider
+  );
 
   const promise = fetch(url, {
     method: 'GET',
@@ -176,6 +227,10 @@ function deduplicatedFetch<T>(
     signal: controller.signal,
   })
     .then((response) => handleApiResponse<T>(response, url, context, validateData))
+    .then((data) => {
+      setCachedResponse(key, data);
+      return data;
+    })
     .finally(() => {
       cleanup();
       removePendingRequest(key);
@@ -206,7 +261,8 @@ async function fetchPriceFromApi({
     url.toString(),
     'Price',
     externalSignal,
-    validatePriceData
+    validatePriceData,
+    provider
   );
 }
 
@@ -232,7 +288,8 @@ async function fetchHistoricalFromApi({
     url.toString(),
     'Historical price',
     externalSignal,
-    validatePriceDataArray
+    validatePriceDataArray,
+    provider
   );
 }
 

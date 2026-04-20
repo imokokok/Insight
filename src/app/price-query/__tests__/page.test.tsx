@@ -16,10 +16,9 @@ jest.mock('../components', () => ({
 }));
 
 jest.mock('../contexts', () => ({
-  QueryParamsProvider: ({ children }: { children: ReactNode }) => <>{children}</>,
-  QueryDataProvider: ({ children }: { children: ReactNode }) => <>{children}</>,
-  QueryUIProvider: ({ children }: { children: ReactNode }) => <>{children}</>,
-  useQueryParams: () => ({
+  UnifiedQueryProvider: ({ children }: { children: ReactNode }) => <>{children}</>,
+  useUnifiedQuery: () => ({
+    // Params
     selectedOracle: null,
     setSelectedOracle: jest.fn(),
     selectedChain: null,
@@ -30,11 +29,15 @@ jest.mock('../contexts', () => ({
     setSelectedTimeRange: jest.fn(),
     isCompareMode: false,
     setIsCompareMode: jest.fn(),
+    compareTimeRange: 24,
+    setCompareTimeRange: jest.fn(),
     urlParamsParsed: true,
-  }),
-  useQueryData: () => ({
+    // Data
     queryResults: [],
     compareQueryResults: [],
+    primaryDataFetchTime: null,
+    compareDataFetchTime: null,
+    supportedChainsBySelectedOracles: new Set(),
     isLoading: false,
     isFetching: false,
     queryDuration: null,
@@ -48,7 +51,6 @@ jest.mock('../contexts', () => ({
     validationWarnings: [],
     dataAnomalies: [],
     hasDataQualityIssues: false,
-    supportedChainsBySelectedOracles: new Set(),
     stats: {
       validPrices: [],
       avgPrice: 0,
@@ -75,41 +77,24 @@ jest.mock('../contexts', () => ({
       toggleAutoRefresh: jest.fn(),
       isRefreshing: false,
     },
-  }),
-  useQueryUI: () => ({
-    filterText: '',
-    setFilterText: jest.fn(),
-    sortField: 'oracle' as const,
-    sortDirection: 'asc' as const,
-    hiddenSeries: new Set(),
-    setHiddenSeries: jest.fn(),
-    toggleSeries: jest.fn(),
-    handleSort: jest.fn(),
-    selectedRow: null,
-    setSelectedRow: jest.fn(),
-    showBaseline: false,
-    setShowBaseline: jest.fn(),
-    timeComparisonConfig: {
-      primaryPeriod: {
-        id: 'p',
-        label: 'P',
-        startDate: new Date(),
-        endDate: new Date(),
-        range: '24h' as const,
-      },
-      comparisonPeriod: {
-        id: 'c',
-        label: 'C',
-        startDate: new Date(),
-        endDate: new Date(),
-        range: '24h' as const,
-      },
-      comparisonType: 'previous' as const,
+    // UI
+    ui: {
+      filterText: '',
+      setFilterText: jest.fn(),
+      sortField: 'oracle' as const,
+      sortDirection: 'asc' as const,
+      hiddenSeries: new Set(),
+      setHiddenSeries: jest.fn(),
+      toggleSeries: jest.fn(),
+      handleSort: jest.fn(),
+      selectedRow: null,
+      setSelectedRow: jest.fn(),
+      showBaseline: false,
+      setShowBaseline: jest.fn(),
+      showFavoritesDropdown: false,
+      setShowFavoritesDropdown: jest.fn(),
+      favoritesDropdownRef: { current: null },
     },
-    setTimeComparisonConfig: jest.fn(),
-    showFavoritesDropdown: false,
-    setShowFavoritesDropdown: jest.fn(),
-    favoritesDropdownRef: { current: null },
   }),
 }));
 

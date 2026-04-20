@@ -7,8 +7,6 @@ import { useState, useCallback } from 'react';
 
 import { type OracleProvider, ORACLE_PROVIDER_VALUES } from '@/types/oracle';
 
-import { type TimeRange } from '../constants';
-
 import { useOracleData } from './useOracleData';
 import { usePriceAnomalyDetection } from './usePriceAnomalyDetection';
 import { usePriceStats } from './usePriceStats';
@@ -23,7 +21,6 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
 
   const [selectedOracles, setSelectedOracles] = useState<OracleProvider[]>(initialOracles);
   const [selectedSymbol, setSelectedSymbol] = useState<string>(initialSymbol);
-  const [timeRange, setTimeRange] = useState<TimeRange>('24h');
 
   const {
     priceData,
@@ -43,7 +40,6 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
   } = useOracleData({
     selectedOracles,
     selectedSymbol,
-    timeRange,
   });
 
   const priceStats = usePriceStats(priceData);
@@ -61,8 +57,6 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
     setSelectedOracles,
     selectedSymbol,
     setSelectedSymbol,
-    timeRange,
-    setTimeRange,
 
     priceData,
     isLoading,

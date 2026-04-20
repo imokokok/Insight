@@ -174,7 +174,7 @@ export function exportToExcel(
 /**
  * Export to PDF
  */
-export async function exportToPDF(
+async function exportToPDF(
   data: unknown[],
   config: ExportConfig,
   dataSource: ExportDataSource,

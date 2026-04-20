@@ -20,13 +20,13 @@ import {
 } from 'lucide-react';
 
 import { AutoRefreshControl } from '@/app/price-query/components/AutoRefreshControl';
-import { SegmentedControl, DropdownSelect } from '@/components/ui';
+import { DropdownSelect } from '@/components/ui';
 import { type RefreshInterval as NumericRefreshInterval } from '@/hooks/useAutoRefresh';
 import { getPriceOracleProvidersSortedByMarketCap, getOracleConfig } from '@/lib/config/oracles';
 import { addThousandSeparators } from '@/lib/utils/format';
 import { type OracleProvider } from '@/types/oracle';
 
-import { timeRanges, oracleNames, type TimeRange, type RefreshInterval } from '../constants';
+import { oracleNames, type RefreshInterval } from '../constants';
 import { useCommonSymbols } from '../hooks/useCommonSymbols';
 
 import type { OracleFeature } from '../types/index';
@@ -37,8 +37,6 @@ interface ControlPanelProps {
   selectedOracles: OracleProvider[];
   onOracleToggle: (oracle: OracleProvider) => void;
   oracleChartColors: Record<string, string>;
-  timeRange: TimeRange;
-  onTimeRangeChange: (range: TimeRange) => void;
   onQuery: () => void;
   isLoading: boolean;
   activeFilterCount: number;
@@ -77,8 +75,6 @@ export function ControlPanel({
   selectedOracles,
   onOracleToggle,
   oracleChartColors,
-  timeRange,
-  onTimeRangeChange,
   onQuery,
   isLoading,
   activeFilterCount,
@@ -164,12 +160,6 @@ export function ControlPanel({
     label: oracleNames[oracle] || String(oracle),
     icon: true,
     color: oracleChartColors[oracle] || '#6B7280',
-  }));
-
-  // Time range options for segmented control
-  const timeRangeOptions = timeRanges.map((range) => ({
-    value: range.value,
-    label: range.label,
   }));
 
   // Handle oracle toggle - support single oracle toggle
@@ -415,18 +405,6 @@ export function ControlPanel({
               {selectedOracles.length} oracles selected
             </div>
           )}
-        </section>
-
-        {/* Time range selection - more compact layout for mobile */}
-        <section className="bg-gray-50/50 rounded-lg p-2.5 sm:p-3 border border-gray-100">
-          <SegmentedControl
-            options={timeRangeOptions}
-            value={timeRange}
-            onChange={(value) => onTimeRangeChange(value as TimeRange)}
-            label="Time Range"
-            size="sm"
-            className="flex-wrap"
-          />
         </section>
 
         {/* Auto refresh control */}
