@@ -9,6 +9,8 @@ import { Mail, Loader2, CheckCircle, ArrowLeft } from 'lucide-react';
 
 import { supabase } from '@/lib/supabase/client';
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 function ResendVerificationForm() {
   const searchParams = useSearchParams();
   const defaultEmail = searchParams.get('email') || '';
@@ -22,13 +24,18 @@ function ResendVerificationForm() {
     e.preventDefault();
     if (!email) return;
 
+    if (!EMAIL_REGEX.test(email.trim())) {
+      setError('Please enter a valid email address');
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
 
     try {
       const { error: resendError } = await supabase.auth.resend({
         type: 'signup',
-        email,
+        email: email.trim(),
         options: {
           emailRedirectTo: `${window.location.origin}/api/auth/callback`,
         },
