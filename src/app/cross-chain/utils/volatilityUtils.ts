@@ -15,22 +15,6 @@ export interface ThresholdConfig {
   outlierThreshold: number;
 }
 
-/**
- * Calculate ATR (Average True Range)
- *
- * Note: This implementation only uses a price series, without OHLC data.
- * True ATR requires High-Low-Close data to calculate:
- *   TR = max(high-low, |high-prevClose|, |low-prevClose|)
- *
- * When only a price series is available, this method degenerates to
- * "mean absolute price change", which differs from standard ATR.
- * For precise ATR, use the calculateATR function in calculations.ts
- * (which requires OHLCVDataPoint type data).
- *
- * @param prices Price series
- * @param period Calculation period (default 14)
- * @returns Approximate ATR value
- */
 const calculateATR = (prices: number[], period: number = 14): number => {
   if (prices.length < period + 1) {
     const mean = prices.reduce((a, b) => a + b, 0) / prices.length;
@@ -63,43 +47,6 @@ const calculateATR = (prices: number[], period: number = 14): number => {
   return atrValues.length > 0 ? atrValues[atrValues.length - 1] : 0;
 };
 
-export const calculateDynamicThreshold = (prices: number[], config: ThresholdConfig): number => {
-  if (prices.length < 2) {
-    return config.fixedThreshold;
-  }
-
-  switch (config.type) {
-    case 'fixed':
-      return config.fixedThreshold;
-
-    case 'atr': {
-      const atr = calculateATR(prices, config.volatilityWindow);
-      const currentPrice = prices[prices.length - 1];
-      if (currentPrice === 0) return config.fixedThreshold;
-      const atrPercent = (atr / currentPrice) * 100;
-      return atrPercent * config.atrMultiplier;
-    }
-
-    case 'dynamic': {
-      const windowSize = Math.min(config.volatilityWindow, prices.length);
-      const recentPrices = prices.slice(-windowSize);
-      const mean = recentPrices.reduce((a, b) => a + b, 0) / recentPrices.length;
-      const variance =
-        recentPrices.reduce((sum, price) => sum + Math.pow(price - mean, 2), 0) /
-        recentPrices.length;
-      const stdDev = Math.sqrt(variance);
-
-      if (mean === 0) return config.fixedThreshold;
-
-      const cv = (stdDev / mean) * 100;
-      return Math.max(cv * config.atrMultiplier, config.fixedThreshold * 0.1);
-    }
-
-    default:
-      return config.fixedThreshold;
-  }
-};
-
 const calculatePriceJumpStats = (changes: number[]) => {
   if (changes.length === 0) {
     return { mean: 0, stdDev: 0 };
@@ -118,7 +65,7 @@ const calculatePriceJumpStats = (changes: number[]) => {
   return { mean, stdDev };
 };
 
-export const detectPriceJumps = (
+const detectPriceJumps = (
   changes: number[],
   method: 'std' | 'zscore' | 'simple',
   threshold: number

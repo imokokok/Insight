@@ -295,7 +295,7 @@ function classifyByStringMatching(
   return null;
 }
 
-export function classifyError(error: unknown): { errorType: OracleErrorType; retryable: boolean } {
+function classifyError(error: unknown): { errorType: OracleErrorType; retryable: boolean } {
   const structuredResult = classifyStructuredError(error);
   if (structuredResult) {
     return structuredResult;

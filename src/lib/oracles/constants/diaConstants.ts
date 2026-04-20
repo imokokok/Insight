@@ -7,7 +7,7 @@ export interface DIAAssetConfig {
   decimals?: number;
 }
 
-export const DIA_ASSET_MAPPING: Record<string, DIAAssetConfig> = {
+const DIA_ASSET_MAPPING: Record<string, DIAAssetConfig> = {
   BTC: {
     symbol: 'BTC',
     blockchain: 'Bitcoin',
@@ -153,23 +153,11 @@ export const DIA_ASSET_MAPPING: Record<string, DIAAssetConfig> = {
     blockchain: 'Polkadot',
     address: '0x0000000000000000000000000000000000000000',
   },
-  // Note: XRP is not supported by DIA API
-  // XRP: {
-  //   symbol: 'XRP',
-  //   blockchain: 'Ripple',
-  //   address: '0x0000000000000000000000000000000000000000',
-  // },
   ADA: {
     symbol: 'ADA',
     blockchain: 'Cardano',
     address: '0x0000000000000000000000000000000000000000',
   },
-  // Note: DOGE is not supported by DIA API
-  // DOGE: {
-  //   symbol: 'DOGE',
-  //   blockchain: 'Dogecoin',
-  //   address: '0x0000000000000000000000000000000000000000',
-  // },
   LTC: {
     symbol: 'LTC',
     blockchain: 'Litecoin',
@@ -200,12 +188,6 @@ export const DIA_ASSET_MAPPING: Record<string, DIAAssetConfig> = {
     blockchain: 'NEAR',
     address: '0x0000000000000000000000000000000000000000',
   },
-  // Note: APT is not supported by DIA API
-  // APT: {
-  //   symbol: 'APT',
-  //   blockchain: 'Aptos',
-  //   address: '0x0000000000000000000000000000000000000000',
-  // },
   FRAX: {
     symbol: 'FRAX',
     blockchain: 'Ethereum',
@@ -225,18 +207,4 @@ export const DIA_ASSET_MAPPING: Record<string, DIAAssetConfig> = {
 
 export function getDIAAssetConfig(symbol: string): DIAAssetConfig | null {
   return DIA_ASSET_MAPPING[symbol.toUpperCase()] || null;
-}
-
-export function getDIABlockchainName(chain?: Blockchain): string {
-  const mapping: Partial<Record<Blockchain, string>> = {
-    [Blockchain.ETHEREUM]: 'Ethereum',
-    [Blockchain.ARBITRUM]: 'Arbitrum',
-    [Blockchain.POLYGON]: 'Polygon',
-    [Blockchain.AVALANCHE]: 'Avalanche',
-    [Blockchain.BNB_CHAIN]: 'BinanceSmartChain',
-    [Blockchain.BASE]: 'Base',
-    [Blockchain.OPTIMISM]: 'Optimism',
-    [Blockchain.SOLANA]: 'Solana',
-  };
-  return chain ? mapping[chain] || 'Ethereum' : 'Ethereum';
 }

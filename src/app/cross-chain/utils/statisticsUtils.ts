@@ -1,4 +1,3 @@
-import { calculateMovingAverage } from '@/lib/utils/chartSharedUtils';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('statisticsUtils');
@@ -6,11 +5,6 @@ const logger = createLogger('statisticsUtils');
 export const calculateZScore = (price: number, mean: number, stdDev: number): number | null => {
   if (stdDev === 0) return null;
   return (price - mean) / stdDev;
-};
-
-export const calculateChangePercent = (current: number, previous: number): number | null => {
-  if (previous === 0 || current === 0) return null;
-  return ((current - previous) / previous) * 100;
 };
 
 export const calculateStandardDeviation = (variance: number): number => {
@@ -95,10 +89,6 @@ export const calculatePercentile = (sortedPrices: number[], percentile: number):
   if (upper >= sortedPrices.length) return sortedPrices[sortedPrices.length - 1];
   if (lower === upper) return sortedPrices[lower];
   return sortedPrices[lower] * (1 - weight) + sortedPrices[upper] * weight;
-};
-
-export const calculateSMA = (data: number[], period: number): (number | null)[] => {
-  return calculateMovingAverage(data, period);
 };
 
 const normalCDF = (x: number): number => {
