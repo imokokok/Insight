@@ -56,7 +56,6 @@ export function useOracleData({
 
   return {
     priceData: core.priceData,
-    historicalData: core.historicalData,
     isLoading: core.isLoading,
     error: core.error,
     lastUpdated: core.lastUpdated,

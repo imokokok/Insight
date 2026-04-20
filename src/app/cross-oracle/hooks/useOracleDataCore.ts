@@ -1,13 +1,13 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
 import { oracleApiClient } from '@/lib/api/oracleApiClient';
-import { getHoursForTimeRange, extractBaseSymbol } from '@/lib/oracles';
+import { extractBaseSymbol } from '@/lib/oracles';
 import { oracleSupportedSymbols } from '@/lib/oracles/constants/supportedSymbols';
 import { createLogger } from '@/lib/utils/logger';
 import { getRequestQueue, type RequestPriority } from '@/lib/utils/requestQueue';
 import { OracleProvider, type PriceData } from '@/types/oracle';
 
-import { type TimeRange, type RefreshInterval, timeRangeToValue } from '../constants';
+import { type TimeRange, type RefreshInterval } from '../constants';
 
 import { createOracleErrorInfo } from './useOracleErrorHandling';
 import { useOracleRetry } from './useOracleRetry';
@@ -45,7 +45,6 @@ export interface UseOracleDataCoreOptions {
 
 export interface UseOracleDataCoreReturn {
   priceData: PriceData[];
-  historicalData: Partial<Record<OracleProvider, PriceData[]>>;
   isLoading: boolean;
   error: Error | null;
   lastUpdated: Date | null;
@@ -95,9 +94,6 @@ export function useOracleDataCore(
   const { priceHistoryMapRef, clearHistoryData } = memory;
 
   const [priceData, setPriceData] = useState<PriceData[]>([]);
-  const [historicalData, setHistoricalData] = useState<
-    Partial<Record<OracleProvider, PriceData[]>>
-  >({});
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
@@ -124,40 +120,24 @@ export function useOracleDataCore(
     async (
       oracle: OracleProvider,
       baseSymbol: string,
-      hours: number,
       signal: AbortSignal
-    ): Promise<{ price: PriceData; history: PriceData[] } | null> => {
+    ): Promise<PriceData | null> => {
       const requestStart = Date.now();
       const requestQueue = getRequestQueue();
 
       try {
-        const [price, history] = await Promise.all([
-          requestQueue.add(
-            () =>
-              oracleApiClient.fetchPrice({
-                provider: oracle,
-                symbol: baseSymbol,
-              }),
-            {
-              priority: requestPriority,
-              timeout: requestTimeout,
-              abortSignal: signal,
-            }
-          ),
-          requestQueue.add(
-            () =>
-              oracleApiClient.fetchHistorical({
-                provider: oracle,
-                symbol: baseSymbol,
-                period: hours,
-              }),
-            {
-              priority: requestPriority,
-              timeout: requestTimeout,
-              abortSignal: signal,
-            }
-          ),
-        ]);
+        const price = await requestQueue.add(
+          () =>
+            oracleApiClient.fetchPrice({
+              provider: oracle,
+              symbol: baseSymbol,
+            }),
+          {
+            priority: requestPriority,
+            timeout: requestTimeout,
+            abortSignal: signal,
+          }
+        );
 
         if (signal.aborted) {
           return null;
@@ -174,7 +154,7 @@ export function useOracleDataCore(
           isMountedRef
         );
 
-        return { price, history };
+        return price;
       } catch (err) {
         const responseTime = Date.now() - requestStart;
         logger.error(
@@ -196,16 +176,11 @@ export function useOracleDataCore(
   );
 
   const handlePriceDataUpdate = useCallback(
-    (provider: OracleProvider, data: { price: PriceData; history: PriceData[] }) => {
+    (provider: OracleProvider, price: PriceData) => {
       setPriceData((prev) => {
         const filtered = prev.filter((p) => p.provider !== provider);
-        return [...filtered, data.price];
+        return [...filtered, price];
       });
-
-      setHistoricalData((prev) => ({
-        ...prev,
-        [provider]: data.history,
-      }));
 
       handleProviderSuccess(provider, selectedOracles.length);
     },
@@ -229,7 +204,6 @@ export function useOracleDataCore(
   } = useOracleRetry({
     selectedOracles,
     selectedSymbol,
-    timeRange,
     initialRetryConfig,
     fetchSingleOracle,
     onPriceDataUpdate: handlePriceDataUpdate,
@@ -243,7 +217,6 @@ export function useOracleDataCore(
   const fetchPriceData = useCallback(async () => {
     if (selectedOracles.length === 0) {
       setPriceData([]);
-      setHistoricalData({});
       setQueryProgress({ completed: 0, total: 0 });
       return;
     }
@@ -260,7 +233,6 @@ export function useOracleDataCore(
     clearHistoryData();
     setQueryProgress({ completed: 0, total: selectedOracles.length });
 
-    const hours = getHoursForTimeRange(timeRangeToValue(timeRange)) ?? 24;
     const baseSymbol = extractBaseSymbol(selectedSymbol);
 
     const skipped: OracleProvider[] = [];
@@ -281,13 +253,12 @@ export function useOracleDataCore(
       const fetchResults = await Promise.all(
         oraclesToFetch.map(async (oracle) => {
           try {
-            const result = await fetchSingleOracle(oracle, baseSymbol, hours, signal);
-            if (result && isMountedRef.current) {
+            const price = await fetchSingleOracle(oracle, baseSymbol, signal);
+            if (price && isMountedRef.current) {
               return {
                 type: 'success' as const,
                 oracle,
-                price: result.price,
-                history: result.history,
+                price,
               };
             }
             return { type: 'empty' as const };
@@ -313,32 +284,10 @@ export function useOracleDataCore(
 
       const prices = fetchResults
         .filter(
-          (
-            r
-          ): r is {
-            type: 'success';
-            oracle: OracleProvider;
-            price: PriceData;
-            history: PriceData[];
-          } => r.type === 'success'
+          (r): r is { type: 'success'; oracle: OracleProvider; price: PriceData } =>
+            r.type === 'success'
         )
         .map((r) => r.price);
-
-      const histories: Partial<Record<OracleProvider, PriceData[]>> = {};
-      fetchResults
-        .filter(
-          (
-            r
-          ): r is {
-            type: 'success';
-            oracle: OracleProvider;
-            price: PriceData;
-            history: PriceData[];
-          } => r.type === 'success'
-        )
-        .forEach((r) => {
-          histories[r.oracle] = r.history;
-        });
 
       const errors = fetchResults
         .filter((r): r is { type: 'error'; error: OracleErrorInfo } => r.type === 'error')
@@ -365,7 +314,6 @@ export function useOracleDataCore(
       const hasError = errors.length > 0;
 
       setPriceData(prices);
-      setHistoricalData(histories);
       setLastUpdated(new Date());
       setOracleDataError({
         hasError,
@@ -407,7 +355,6 @@ export function useOracleDataCore(
   }, [
     selectedOracles,
     selectedSymbol,
-    timeRange,
     enablePerformanceMetrics,
     calculatePerformanceMetrics,
     fetchSingleOracle,
@@ -518,7 +465,6 @@ export function useOracleDataCore(
 
   return {
     priceData,
-    historicalData,
     isLoading,
     error,
     lastUpdated,

@@ -27,7 +27,6 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
 
   const {
     priceData,
-    historicalData,
     isLoading,
     lastUpdated,
     fetchPriceData,
@@ -66,7 +65,6 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
     setTimeRange,
 
     priceData,
-    historicalData,
     isLoading,
     lastUpdated,
 

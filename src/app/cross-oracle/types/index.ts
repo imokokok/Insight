@@ -109,7 +109,6 @@ export interface RetryConfig {
 
 export interface UseOracleDataReturn {
   priceData: PriceData[];
-  historicalData: Partial<Record<OracleProvider, PriceData[]>>;
   isLoading: boolean;
   error: Error | null;
   lastUpdated: Date | null;
