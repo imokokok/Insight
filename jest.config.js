@@ -5,7 +5,7 @@ const createJestConfig = nextJest({
 });
 
 const customJestConfig = {
-  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+  setupFilesAfterEnv: [],
   testEnvironment: 'jest-environment-jsdom',
   maxWorkers: '50%',
   workerIdleMemoryLimit: '4GB',
