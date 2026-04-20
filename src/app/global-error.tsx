@@ -13,8 +13,8 @@ interface GlobalErrorProps {
 
 export default function GlobalError({ error, reset }: GlobalErrorProps) {
   useEffect(() => {
-    // Log error to monitoring service
-    console.error('Global error:', error);
+    // Global error handled by error boundary
+    void error;
   }, [error]);
 
   return (

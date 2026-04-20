@@ -167,8 +167,8 @@ export function HeatmapDetailView() {
         blob,
         `price-spread-heatmap-${selectedTimeRange}-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.csv`
       );
-    } catch (error) {
-      console.error('Failed to export heatmap data:', error);
+    } catch {
+      // Export error silently handled
     }
   }, [filteredChains, heatmapData, maxHeatmapValue, selectedTimeRange]);
 

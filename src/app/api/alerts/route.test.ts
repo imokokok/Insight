@@ -97,11 +97,6 @@ describe('/api/alerts', () => {
       const response = await GET(request);
       const data = await response.json();
 
-      if (response.status !== 200) {
-        console.warn('Response status:', response.status);
-        console.warn('Response data:', JSON.stringify(data, null, 2));
-      }
-
       expect(response.status).toBe(200);
       expect(data.alerts).toEqual(mockAlerts);
       expect(data.count).toBe(2);
