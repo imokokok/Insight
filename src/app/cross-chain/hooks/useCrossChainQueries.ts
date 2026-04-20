@@ -6,13 +6,13 @@ import { oracleApiClient } from '@/lib/api/oracleApiClient';
 import { crossChainKeys } from '@/lib/queryKeys';
 import { type OracleProvider, type Blockchain, type PriceData } from '@/types/oracle';
 
-export interface ChainQueryResult {
+interface ChainQueryResult {
   price: PriceData | null;
   isPriceLoading: boolean;
   priceError: Error | null;
 }
 
-export interface UseCrossChainQueriesReturn {
+interface UseCrossChainQueriesReturn {
   chainResults: Partial<Record<Blockchain, ChainQueryResult>>;
   isLoading: boolean;
   isFetching: boolean;

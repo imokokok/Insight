@@ -13,8 +13,6 @@ import { winklinkConfig } from './winklink';
 
 import type { OracleConfig, OracleViewConfig } from './types';
 
-export type { OracleViewConfig, OracleConfig } from './types';
-
 export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
   [OracleProvider.CHAINLINK]: chainlinkConfig,
   [OracleProvider.PYTH]: pythConfig,

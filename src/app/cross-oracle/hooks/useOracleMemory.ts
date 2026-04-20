@@ -17,7 +17,7 @@ export interface PriceHistoryEntry {
 
 export type PriceHistoryMap = Map<OracleProvider, PriceHistoryEntry[]>;
 
-export interface UseOracleMemoryOptions {
+interface UseOracleMemoryOptions {
   metricsCalculatorRef: React.MutableRefObject<PerformanceMetricsCalculator>;
 }
 

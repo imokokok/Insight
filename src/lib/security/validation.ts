@@ -350,4 +350,4 @@ export const OracleProviderQuerySchema = z.object({
   period: SafePeriodSchema.optional(),
 });
 
-export type OracleProviderQueryType = z.infer<typeof OracleProviderQuerySchema>;
+type OracleProviderQueryType = z.infer<typeof OracleProviderQuerySchema>;

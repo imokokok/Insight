@@ -32,7 +32,7 @@ const providerToSymbolKey: Record<OracleProvider, keyof typeof oracleSupportedSy
   [OracleProvider.FLARE]: 'flare',
 };
 
-export interface UseOracleDataCoreOptions {
+interface UseOracleDataCoreOptions {
   selectedOracles: OracleProvider[];
   selectedSymbol: string;
   timeRange: TimeRange;
@@ -43,7 +43,7 @@ export interface UseOracleDataCoreOptions {
   requestPriority?: RequestPriority;
 }
 
-export interface UseOracleDataCoreReturn {
+interface UseOracleDataCoreReturn {
   priceData: PriceData[];
   isLoading: boolean;
   error: Error | null;

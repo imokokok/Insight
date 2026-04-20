@@ -60,7 +60,7 @@ interface UsePriceQueryStateReturn {
   compareTimeRangeRef: React.MutableRefObject<number>;
 }
 
-export function usePriceQueryState(): UsePriceQueryStateReturn {
+function usePriceQueryState(): UsePriceQueryStateReturn {
   const { preferences } = usePreferences();
 
   const [selectedOracle, _setSelectedOracle] = useState<OracleProvider | null>(

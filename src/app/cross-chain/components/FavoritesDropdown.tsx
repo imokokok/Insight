@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import type { FavoriteConfig } from '@/hooks';
 import { type UserFavorite } from '@/lib/supabase/queries';
 
-export interface FavoritesDropdownProps {
+interface FavoritesDropdownProps {
   chainFavorites: UserFavorite[];
   showFavoritesDropdown: boolean;
   onToggleDropdown: () => void;

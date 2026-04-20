@@ -19,7 +19,7 @@ export interface EnhancedRetryConfig {
   circuitBreakerResetTime: number;
 }
 
-export interface RetryContext {
+interface RetryContext {
   attempt: number;
   maxAttempts: number;
   delay: number;
@@ -27,14 +27,14 @@ export interface RetryContext {
   timestamp: number;
 }
 
-export interface RetryCallbacks<T> {
+interface RetryCallbacks<T> {
   onRetry?: (context: RetryContext) => void;
   onSuccess?: (result: T, context: RetryContext) => void;
   onFailure?: (error: Error, context: RetryContext) => void;
   onTimeout?: (context: RetryContext) => void;
 }
 
-export interface RetryResult<T> {
+interface RetryResult<T> {
   success: boolean;
   data?: T;
   error?: Error;
@@ -104,7 +104,7 @@ class CircuitBreaker {
   }
 }
 
-export const defaultEnhancedRetryConfig: EnhancedRetryConfig = {
+const defaultEnhancedRetryConfig: EnhancedRetryConfig = {
   maxAttempts: 3,
   baseDelay: 1000,
   maxDelay: 30000,
@@ -233,7 +233,7 @@ function withTimeout<T>(
   });
 }
 
-export class EnhancedRetryManager {
+class EnhancedRetryManager {
   private config: EnhancedRetryConfig;
   private circuitBreaker?: CircuitBreaker;
 
@@ -420,10 +420,6 @@ export class EnhancedRetryManager {
   }
 }
 
-export function createRetryManager(config?: Partial<EnhancedRetryConfig>): EnhancedRetryManager {
-  return new EnhancedRetryManager(config);
-}
-
 export async function withRetry<T>(
   operation: () => Promise<T>,
   operationName?: string,
@@ -433,39 +429,3 @@ export async function withRetry<T>(
   const manager = new EnhancedRetryManager(config);
   return manager.execute(operation, operationName, callbacks);
 }
-
-export const retryStrategies = {
-  fast: {
-    maxAttempts: 3,
-    baseDelay: 100,
-    maxDelay: 1000,
-    backoffMultiplier: 2,
-    strategy: 'fixed' as RetryStrategy,
-  },
-
-  standard: defaultEnhancedRetryConfig,
-
-  aggressive: {
-    maxAttempts: 5,
-    baseDelay: 500,
-    maxDelay: 60000,
-    backoffMultiplier: 2,
-    strategy: 'exponential' as RetryStrategy,
-  },
-
-  gentle: {
-    maxAttempts: 2,
-    baseDelay: 2000,
-    maxDelay: 10000,
-    backoffMultiplier: 2,
-    strategy: 'linear' as RetryStrategy,
-  },
-
-  jitter: {
-    maxAttempts: 3,
-    baseDelay: 1000,
-    maxDelay: 30000,
-    backoffMultiplier: 2,
-    strategy: 'decorrelated-jitter' as RetryStrategy,
-  },
-};

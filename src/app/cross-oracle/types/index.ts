@@ -7,26 +7,11 @@ import type { MemoryStats } from '@/lib/oracles/utils/memoryManager';
 import type { CalculatedPerformanceMetrics } from '@/lib/oracles/utils/performanceMetricsCalculator';
 import { type OracleProvider, type PriceData, type SnapshotStats } from '@/types/oracle';
 
-import type {
-  OraclePriceSeries,
-  PriceDeviationDataPoint,
-  OraclePriceData,
-  OraclePriceHistory,
-  OraclePerformanceData,
-  LatencyStats,
-} from './charts';
-import type { SortColumn, SortDirection, TimeRange, DeviationFilter } from '../constants';
-import type { PriceAnomaly } from '../hooks/usePriceAnomalyDetection';
-
-export type { PriceAnomaly };
-
-export type { SortColumn, SortDirection, DeviationFilter } from '../constants';
-
-export type TabId = 'priceComparison' | 'qualityAnalysis' | 'oracleProfiles';
+type TabId = 'priceComparison' | 'qualityAnalysis' | 'oracleProfiles';
 
 export type RefreshInterval = 'off' | '10s' | '30s' | '1m' | '5m';
 
-export interface CrossOracleData {
+interface CrossOracleData {
   asset?: string;
   oracle?: string;
   provider?: string;
@@ -37,7 +22,7 @@ export interface CrossOracleData {
   confidence?: number;
 }
 
-export interface ChartDataPoint {
+interface ChartDataPoint {
   timestamp: string;
   rawTimestamp: number;
   fullTimestamp?: Date;
@@ -151,12 +136,3 @@ export interface OracleFeature {
 }
 
 export type { OracleProvider, PriceData, SnapshotStats };
-
-export type {
-  OraclePriceSeries,
-  PriceDeviationDataPoint,
-  OraclePriceData,
-  OraclePriceHistory,
-  OraclePerformanceData,
-  LatencyStats,
-} from './charts';

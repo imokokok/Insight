@@ -1,12 +1,6 @@
 import type { ReflectorTokenOnChainData } from '@/hooks/oracles/useReflectorOnChainData';
 import type { TwapOnChainData } from '@/hooks/oracles/useTwapOnChainData';
-import {
-  providerNames,
-  symbols,
-  chainColors,
-  oracleColors,
-  DEVIATION_THRESHOLD,
-} from '@/lib/constants';
+import { symbols, chainColors, oracleColors, DEVIATION_THRESHOLD } from '@/lib/constants';
 import type { FlareTokenOnChainData } from '@/lib/oracles/clients/flare';
 import type { RedStoneTokenOnChainData } from '@/lib/oracles/clients/redstone';
 import type { SupraTokenOnChainData } from '@/lib/oracles/clients/supra';
@@ -50,4 +44,4 @@ export interface OnChainData {
   isFlareDataLoading?: boolean;
 }
 
-export { providerNames, symbols, chainColors, oracleColors };
+export { symbols, chainColors, oracleColors };

@@ -4,7 +4,7 @@ import { DropdownSelect } from '@/components/ui';
 
 import { type ThresholdType, type ThresholdConfig } from '../utils';
 
-export interface AnomalyConfigProps {
+interface AnomalyConfigProps {
   thresholdConfig: ThresholdConfig;
   onThresholdConfigChange: (config: ThresholdConfig) => void;
 }

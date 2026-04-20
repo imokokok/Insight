@@ -29,7 +29,7 @@ import { ConfidenceBar } from './price-comparison/ConfidenceBar';
 
 import type { PriceAnomaly } from '../hooks/usePriceAnomalyDetection';
 
-export type AnomalyDetectionMode = 'deviation' | 'zscore';
+type AnomalyDetectionMode = 'deviation' | 'zscore';
 
 interface SimplePriceTableProps {
   priceData: PriceData[];
