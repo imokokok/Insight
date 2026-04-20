@@ -100,13 +100,13 @@ export function isOutlier(zScore: number, threshold: number = ANOMALY_ZSCORE_THR
  */
 export function getDeviationBgClass(deviation: number): string {
   const absDeviation = Math.abs(deviation);
-  if (absDeviation >= DEVIATION_THRESHOLDS.critical) {
+  if (absDeviation >= DEVIATION_THRESHOLDS.CRITICAL) {
     return 'bg-red-100 text-red-800';
   }
-  if (absDeviation >= DEVIATION_THRESHOLDS.warning) {
+  if (absDeviation >= DEVIATION_THRESHOLDS.WARNING) {
     return 'bg-yellow-100 text-yellow-800';
   }
-  if (absDeviation >= DEVIATION_THRESHOLDS.info) {
+  if (absDeviation >= DEVIATION_THRESHOLDS.NORMAL) {
     return 'bg-blue-100 text-blue-800';
   }
   return 'bg-green-100 text-green-800';

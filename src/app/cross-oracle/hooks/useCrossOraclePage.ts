@@ -49,7 +49,7 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
 
   const priceStats = usePriceStats(priceData);
 
-  const anomalyDetection = usePriceAnomalyDetection(priceData, priceStats.avgPrice);
+  const anomalyDetection = usePriceAnomalyDetection(priceData, priceStats.medianPrice);
 
   const toggleOracle = useCallback((oracle: OracleProvider) => {
     setSelectedOracles((prev) =>

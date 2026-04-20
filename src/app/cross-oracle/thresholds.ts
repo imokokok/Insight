@@ -4,22 +4,32 @@
  */
 
 // ============================================================================
+// Price deviation thresholds (percentage)
+// ============================================================================
+
+/** Price deviation thresholds for visualization and alerts */
+export const DEVIATION_THRESHOLDS = {
+  /** Normal threshold - below this is considered normal */
+  NORMAL: 0.5,
+  /** Warning threshold - between normal and danger */
+  WARNING: 1.0,
+  /** Danger threshold - above this is considered dangerous */
+  DANGER: 3.0,
+  /** Critical threshold - requires immediate attention */
+  CRITICAL: 5.0,
+} as const;
+
+// ============================================================================
 // Price anomaly detection thresholds
 // ============================================================================
 
 /** Price anomaly deviation threshold (1%) - values above this are considered anomalous */
-export const ANOMALY_DEVIATION_THRESHOLD = 1.0;
+export const ANOMALY_DEVIATION_THRESHOLD = DEVIATION_THRESHOLDS.WARNING;
 
 /** Anomaly severity thresholds (percentage) */
 export const SEVERITY_THRESHOLDS = {
-  HIGH: 3.0,
-  MEDIUM: 1.0,
-} as const;
-
-export const DEVIATION_THRESHOLDS = {
-  critical: 5,
-  warning: 2,
-  info: 1,
+  HIGH: DEVIATION_THRESHOLDS.DANGER,
+  MEDIUM: DEVIATION_THRESHOLDS.WARNING,
 } as const;
 
 // ============================================================================

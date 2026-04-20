@@ -11,12 +11,7 @@ import { type OracleProvider, type Blockchain, type PriceData } from '@/types/or
 
 import { type QueryResult } from '../constants';
 import { usePerformanceMonitoring } from '../utils/performanceMonitoring';
-import {
-  validatePrice,
-  validateTimestamp,
-  validateTimeSeries,
-  type AnomalyInfo,
-} from '../utils/priceValidator';
+import { validatePrice, validateTimestamp, type AnomalyInfo } from '../utils/priceValidator';
 import { buildQueryTasks, type QueryError } from '../utils/queryTaskUtils';
 
 import { useBatchOracleQuery, type BatchQueryTask } from './usePriceQueries';
@@ -28,15 +23,12 @@ interface UsePriceQueryDataParams {
   selectedOracle: OracleProvider | null;
   selectedChain: Blockchain | null;
   selectedSymbol: string;
-  selectedTimeRange: number;
   isCompareMode: boolean;
-  compareTimeRange: number;
   refetchInterval?: number | false;
 }
 
 interface UsePriceQueryDataReturn {
   queryResults: QueryResult[];
-  historicalData: Partial<Record<string, PriceData[]>>;
   isLoading: boolean;
   isFetching: boolean;
   queryDuration: number | null;
@@ -47,7 +39,6 @@ interface UsePriceQueryDataReturn {
   retryDataSource: (provider: OracleProvider, chain: Blockchain) => Promise<void>;
   retryAllErrors: () => Promise<void>;
   refetch: () => Promise<void>;
-  compareHistoricalData: Partial<Record<string, PriceData[]>>;
   compareQueryResults: QueryResult[];
   primaryDataFetchTime: Date | null;
   compareDataFetchTime: Date | null;
@@ -68,9 +59,7 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
     selectedOracle,
     selectedChain,
     selectedSymbol,
-    selectedTimeRange,
     isCompareMode,
-    compareTimeRange,
     refetchInterval = false,
   } = params;
 
@@ -87,7 +76,6 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
     selectedOracle,
     selectedChain,
     selectedSymbol,
-    selectedTimeRange,
   });
 
   const effectiveDismissedKeys = useMemo(
@@ -101,19 +89,10 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
         selectedOracle,
         selectedChain,
         selectedSymbol,
-        selectedTimeRange,
         isCompareMode,
-        compareTimeRange,
         getDefaultFactory()
       ),
-    [
-      selectedOracle,
-      selectedChain,
-      selectedSymbol,
-      selectedTimeRange,
-      isCompareMode,
-      compareTimeRange,
-    ]
+    [selectedOracle, selectedChain, selectedSymbol, isCompareMode]
   );
 
   const batchTasks: BatchQueryTask[] = useMemo(
@@ -122,14 +101,12 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
         provider: t.provider,
         symbol: selectedSymbol,
         chain: t.chain,
-        period: t.timeRange,
         isCompare: false,
       })),
       ...compareTasks.map((t) => ({
         provider: t.provider,
         symbol: selectedSymbol,
         chain: t.chain,
-        period: t.timeRange,
         isCompare: true,
       })),
     ],
@@ -175,54 +152,35 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
         timestamp: Date.now(),
         confidence: result.priceData.confidence,
       });
-      if (result.history.length > 0) {
-        for (const dp of result.history) {
-          performanceMetricsCalculator.addPriceData({
-            oracle: result.provider,
-            asset: selectedSymbol,
-            price: dp.price,
-            timestamp: new Date(dp.timestamp).getTime(),
-            confidence: dp.confidence,
-          });
-        }
-      }
     }
   }, [isLoading, batchResult.results, selectedSymbol]);
 
-  const { queryResults, historicalData, compareQueryResults, compareHistoricalData } =
-    useMemo(() => {
-      const qResults: QueryResult[] = [];
-      const hData: Partial<Record<string, PriceData[]>> = {};
-      const cResults: QueryResult[] = [];
-      const cData: Partial<Record<string, PriceData[]>> = {};
+  const { queryResults, compareQueryResults } = useMemo(() => {
+    const qResults: QueryResult[] = [];
+    const cResults: QueryResult[] = [];
 
-      for (const result of batchResult.results) {
-        if (!result.priceData) continue;
-        const key = `${result.provider}-${result.chain}`;
-        if (result.isCompare) {
-          cResults.push({
-            provider: result.provider,
-            chain: result.chain,
-            priceData: result.priceData,
-          });
-          if (result.history.length > 0) cData[key] = result.history;
-        } else {
-          qResults.push({
-            provider: result.provider,
-            chain: result.chain,
-            priceData: result.priceData,
-          });
-          if (result.history.length > 0) hData[key] = result.history;
-        }
+    for (const result of batchResult.results) {
+      if (!result.priceData) continue;
+      if (result.isCompare) {
+        cResults.push({
+          provider: result.provider,
+          chain: result.chain,
+          priceData: result.priceData,
+        });
+      } else {
+        qResults.push({
+          provider: result.provider,
+          chain: result.chain,
+          priceData: result.priceData,
+        });
       }
+    }
 
-      return {
-        queryResults: qResults,
-        historicalData: hData,
-        compareQueryResults: cResults,
-        compareHistoricalData: cData,
-      };
-    }, [batchResult.results]);
+    return {
+      queryResults: qResults,
+      compareQueryResults: cResults,
+    };
+  }, [batchResult.results]);
 
   const queryErrors: QueryError[] = useMemo(() => {
     return batchResult.errors
@@ -252,16 +210,8 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
       allAnomalies.push(...priceValidation.anomalies, ...timestampValidation.anomalies);
     }
 
-    for (const [key, history] of Object.entries(historicalData)) {
-      if (history && history.length > 0) {
-        const seriesValidation = validateTimeSeries(history);
-        allWarnings.push(...seriesValidation.warnings.map((w) => `[${key}] ${w}`));
-        allAnomalies.push(...seriesValidation.anomalies);
-      }
-    }
-
     return { validationWarnings: allWarnings, dataAnomalies: allAnomalies };
-  }, [queryResults, historicalData]);
+  }, [queryResults]);
 
   const primaryDataFetchTime = useMemo(() => {
     const primary = batchResult.results.filter((r) => !r.isCompare && r.priceData);
@@ -302,40 +252,11 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
       });
       setDismissedSignature(selectionSignature);
 
-      await Promise.all([
-        queryClient.refetchQueries({
-          queryKey: priceKeys.byProvider(provider, selectedSymbol, chain),
-        }),
-        queryClient.refetchQueries({
-          queryKey: priceKeys.historical(
-            provider,
-            selectedSymbol,
-            chain,
-            String(selectedTimeRange)
-          ),
-        }),
-        ...(isCompareMode
-          ? [
-              queryClient.refetchQueries({
-                queryKey: priceKeys.historical(
-                  provider,
-                  selectedSymbol,
-                  chain,
-                  String(compareTimeRange)
-                ),
-              }),
-            ]
-          : []),
-      ]);
+      await queryClient.refetchQueries({
+        queryKey: priceKeys.byProvider(provider, selectedSymbol, chain),
+      });
     },
-    [
-      queryClient,
-      selectedSymbol,
-      selectedTimeRange,
-      isCompareMode,
-      compareTimeRange,
-      selectionSignature,
-    ]
+    [queryClient, selectedSymbol, selectionSignature]
   );
 
   const retryAllErrors = useCallback(async () => {
@@ -356,7 +277,6 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
 
   return {
     queryResults,
-    historicalData,
     isLoading,
     isFetching,
     queryDuration,
@@ -367,7 +287,6 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
     retryDataSource,
     retryAllErrors,
     refetch,
-    compareHistoricalData,
     compareQueryResults,
     primaryDataFetchTime,
     compareDataFetchTime,

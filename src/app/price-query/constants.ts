@@ -18,12 +18,6 @@ import type { OracleProvider, Blockchain, PriceData } from '@/types/oracle';
 
 import type { QueryError } from './utils/queryTaskUtils';
 
-export interface ChartDataPoint {
-  timestamp: number;
-  time: string;
-  [key: string]: number | string | Record<string, unknown> | null;
-}
-
 export type { PriceData };
 
 export type AnyOnChainData =
@@ -43,7 +37,6 @@ export interface QueryResult {
 
 export interface QueryState {
   queryResults: QueryResult[];
-  historicalData: Partial<Record<string, PriceData[]>>;
   isLoading: boolean;
   queryDuration: number | null;
   queryProgress: { completed: number; total: number };
@@ -59,12 +52,6 @@ export interface StatsState {
   priceRange: number;
   standardDeviation: number;
   standardDeviationPercent: number;
-}
-
-export interface ChartConfig {
-  chartData: ChartDataPoint[];
-  chartContainerRef: React.RefObject<HTMLDivElement | null>;
-  selectedTimeRange: number;
 }
 
 export interface ErrorState {

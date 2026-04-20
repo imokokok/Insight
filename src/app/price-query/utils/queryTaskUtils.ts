@@ -10,7 +10,6 @@ export interface QueryTask {
   provider: OracleProvider;
   chain: Blockchain;
   client: BaseOracleClient;
-  timeRange: number;
   isCompare: boolean;
 }
 
@@ -78,7 +77,6 @@ interface QueryTaskResult {
   provider: OracleProvider;
   chain: Blockchain;
   priceData: PriceData;
-  history: PriceData[];
   isCompare: boolean;
 }
 
@@ -86,9 +84,7 @@ export function buildQueryTasks(
   selectedOracle: OracleProvider | null,
   selectedChain: Blockchain | null,
   selectedSymbol: string,
-  selectedTimeRange: number,
   isCompareMode: boolean,
-  compareTimeRange: number,
   oracleClientFactory: OracleClientFactory
 ): { primaryTasks: QueryTask[]; compareTasks: QueryTask[]; totalQueries: number } {
   const primaryTasks: QueryTask[] = [];
@@ -122,7 +118,6 @@ export function buildQueryTasks(
         provider,
         chain,
         client,
-        timeRange: selectedTimeRange,
         isCompare: false,
       });
 
@@ -131,7 +126,6 @@ export function buildQueryTasks(
           provider,
           chain,
           client,
-          timeRange: compareTimeRange,
           isCompare: true,
         });
       }
@@ -143,9 +137,7 @@ export function buildQueryTasks(
 
 interface ProcessedQueryResults {
   results: QueryResult[];
-  histories: Partial<Record<string, PriceData[]>>;
   compareResults: QueryResult[];
-  compareHistories: Partial<Record<string, PriceData[]>>;
   collectedErrors: QueryError[];
 }
 
@@ -154,23 +146,18 @@ export function processQueryResults(
   allTasks: QueryTask[]
 ): ProcessedQueryResults {
   const results: QueryResult[] = [];
-  const histories: Partial<Record<string, PriceData[]>> = {};
   const compareResults: QueryResult[] = [];
-  const compareHistories: Partial<Record<string, PriceData[]>> = {};
   const collectedErrors: QueryError[] = [];
 
   for (let i = 0; i < taskResults.length; i++) {
     const settledResult = taskResults[i];
     if (settledResult.status === 'fulfilled') {
-      const { provider, chain, priceData, history, isCompare } = settledResult.value;
-      const key = `${provider}-${chain}`;
+      const { provider, chain, priceData, isCompare } = settledResult.value;
 
       if (isCompare) {
         compareResults.push({ provider, chain, priceData });
-        compareHistories[key] = history;
       } else {
         results.push({ provider, chain, priceData });
-        histories[key] = history;
       }
     } else {
       const task = allTasks[i];
@@ -188,5 +175,5 @@ export function processQueryResults(
     }
   }
 
-  return { results, histories, compareResults, compareHistories, collectedErrors };
+  return { results, compareResults, collectedErrors };
 }

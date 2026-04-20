@@ -25,7 +25,7 @@ export function QueryHeader() {
     selectedTimeRange,
   } = params;
 
-  const { queryResults, isLoading: loading, chartContainerRef } = queryData;
+  const { queryResults, isLoading: loading } = queryData;
 
   const { avgPrice, maxPrice, minPrice, priceRange, standardDeviation, standardDeviationPercent } =
     queryData.stats;
@@ -113,7 +113,6 @@ export function QueryHeader() {
         <UnifiedExportSection
           loading={loading}
           queryResults={queryResults}
-          chartContainerRef={chartContainerRef}
           selectedSymbol={selectedSymbol}
           avgPrice={avgPrice}
           maxPrice={maxPrice}

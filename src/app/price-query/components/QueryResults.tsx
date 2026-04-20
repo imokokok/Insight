@@ -41,8 +41,6 @@ export function QueryResults({ onChainData }: QueryResultsProps) {
     retryAllErrors,
     clearErrors,
     refetch,
-    chartData,
-    chartContainerRef,
   } = queryData;
 
   const { avgPrice, maxPrice, minPrice, priceRange, standardDeviation, standardDeviationPercent } =
@@ -174,7 +172,7 @@ export function QueryResults({ onChainData }: QueryResultsProps) {
           </div>
         </div>
 
-        <div ref={chartContainerRef} className="p-6">
+        <div className="p-6">
           <div className="flex items-center gap-2 mb-4">
             <div className="w-1 h-5 bg-gradient-to-b from-blue-500 to-indigo-500 rounded-full"></div>
             <h3 className="text-sm font-semibold text-gray-800">Price Deviation Analysis</h3>
