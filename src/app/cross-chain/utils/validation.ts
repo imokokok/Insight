@@ -1,87 +1,61 @@
-/**
- * @fileoverview Price data validation utility functions
- * Provides price data validity checking functionality
- */
+import { type PriceData, type Blockchain } from '@/types/oracle';
 
-import { createLogger } from '@/lib/utils/logger';
-import { type Blockchain, type PriceData } from '@/types/oracle';
-import type { ValidationResult } from '@/types/oracle/constants';
+export interface ValidationResult {
+  isValid: boolean;
+  errors: string[];
+  warnings: string[];
+}
 
-const logger = createLogger('validation');
+export function validateCurrentPrices(prices: PriceData[]): PriceData[] {
+  return prices.filter((price) => {
+    if (!price.chain) return false;
+    if (typeof price.price !== 'number' || isNaN(price.price) || price.price <= 0) return false;
+    if (!price.timestamp || price.timestamp <= 0) return false;
+    return true;
+  });
+}
 
-const BITCOIN_GENESIS_TIMESTAMP = new Date('2009-01-03').getTime();
-
-export function validatePriceData(
-  price: number,
-  timestamp: number,
-  chain: Blockchain
+export function validateChainSupport(
+  chains: Blockchain[],
+  supportedChains: Blockchain[]
 ): ValidationResult {
   const errors: string[] = [];
+  const warnings: string[] = [];
 
-  if (typeof price !== 'number' || isNaN(price)) {
-    errors.push(`[${chain}] Price is not a valid number: ${price}`);
-  }
-
-  if (price === Infinity || price === -Infinity) {
-    errors.push(`[${chain}] Price is Infinity`);
-  }
-
-  if (price < 0) {
-    errors.push(`[${chain}] Price is negative: ${price}`);
-  }
-
-  const now = Date.now();
-  const oneHourInMs = 60 * 60 * 1000;
-
-  if (timestamp < BITCOIN_GENESIS_TIMESTAMP) {
-    errors.push(
-      `[${chain}] Timestamp is before Bitcoin genesis: ${new Date(timestamp).toISOString()}`
-    );
-  }
-
-  if (timestamp > now + oneHourInMs) {
-    errors.push(
-      `[${chain}] Timestamp is more than 1 hour in the future: ${new Date(timestamp).toISOString()}`
-    );
+  const unsupportedChains = chains.filter((chain) => !supportedChains.includes(chain));
+  if (unsupportedChains.length > 0) {
+    errors.push(`Unsupported chains: ${unsupportedChains.join(', ')}`);
   }
 
   return {
     isValid: errors.length === 0,
     errors,
+    warnings,
   };
 }
 
-export function validateCurrentPrices(prices: PriceData[]): PriceData[] {
-  return prices.filter((priceData) => {
-    if (!priceData.chain) return false;
-    const validation = validatePriceData(priceData.price, priceData.timestamp, priceData.chain);
-    if (!validation.isValid) {
-      validation.errors.forEach((error) =>
-        logger.warn('Price data validation failed', { error, chain: priceData.chain })
-      );
-      return false;
-    }
-    return true;
-  });
-}
+export function validatePriceConsistency(prices: PriceData[]): ValidationResult {
+  const errors: string[] = [];
+  const warnings: string[] = [];
 
-export function validateHistoricalPrices(prices: PriceData[], chain: Blockchain): PriceData[] {
-  return prices.filter((priceData) => {
-    const validation = validatePriceData(priceData.price, priceData.timestamp, chain);
-    if (!validation.isValid) {
-      validation.errors.forEach((error) =>
-        logger.warn('Historical price data validation failed', { error, chain })
-      );
-      return false;
-    }
-    return true;
-  });
-}
+  if (prices.length < 2) {
+    warnings.push('Need at least 2 price sources for consistency check');
+    return { isValid: true, errors, warnings };
+  }
 
-export function validateSinglePrice(
-  price: number,
-  timestamp: number,
-  chain: Blockchain
-): ValidationResult {
-  return validatePriceData(price, timestamp, chain);
+  const priceValues = prices.map((p) => p.price);
+  const avgPrice = priceValues.reduce((a, b) => a + b, 0) / priceValues.length;
+  const maxDeviation = Math.max(
+    ...priceValues.map((p) => Math.abs((p - avgPrice) / avgPrice) * 100)
+  );
+
+  if (maxDeviation > 5) {
+    warnings.push(`High price deviation detected: ${maxDeviation.toFixed(2)}%`);
+  }
+
+  return {
+    isValid: true,
+    errors,
+    warnings,
+  };
 }

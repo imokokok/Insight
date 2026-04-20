@@ -39,10 +39,9 @@ export {
 export { getTimestampCutoff, getTimeRangeInMs } from './timeUtils';
 
 export {
-  validatePriceData,
   validateCurrentPrices,
-  validateHistoricalPrices,
-  validateSinglePrice,
+  validateChainSupport,
+  validatePriceConsistency,
 } from './validation';
 
 export {

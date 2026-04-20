@@ -2,9 +2,9 @@ import { useCallback, useRef } from 'react';
 
 import { downloadBlob } from '@/lib/utils/download';
 import { escapeCSVField } from '@/lib/utils/export';
-import { formatDateTimeString, formatNumberWithDecimals } from '@/lib/utils/format';
+import { formatNumberWithDecimals } from '@/lib/utils/format';
 import { createLogger } from '@/lib/utils/logger';
-import { OracleProvider, type Blockchain, type PriceData } from '@/types/oracle';
+import { OracleProvider, type Blockchain } from '@/types/oracle';
 
 import { chainNames, getConsistencyRating } from '../utils';
 
@@ -22,14 +22,12 @@ interface UseExportParams {
   selectedSymbol: string;
   selectedBaseChain: Blockchain | null;
   priceDifferences: PriceDifferenceItem[];
-  historicalPrices: Partial<Record<Blockchain, PriceData[]>>;
   filteredChains: Blockchain[];
   avgPrice: number;
   maxPrice: number;
   minPrice: number;
   priceRange: number;
   standardDeviationPercent: number;
-  totalDataPoints: number;
 }
 
 interface UseExportReturn {
@@ -43,10 +41,7 @@ export function useExport(params: UseExportParams): UseExportReturn {
 
   const exportToCSV = useCallback((): boolean => {
     const currentParams = paramsRef.current;
-    if (
-      currentParams.priceDifferences.length === 0 &&
-      Object.keys(currentParams.historicalPrices).length === 0
-    ) {
+    if (currentParams.priceDifferences.length === 0) {
       return false;
     }
 
@@ -68,41 +63,6 @@ export function useExport(params: UseExportParams): UseExportReturn {
         csvLines.push(row.join(','));
       });
 
-      csvLines.push('');
-      csvLines.push('# Historical Prices');
-
-      const allTimestamps = new Set<number>();
-      currentParams.filteredChains.forEach((chain) => {
-        currentParams.historicalPrices[chain]?.forEach((price) =>
-          allTimestamps.add(price.timestamp)
-        );
-      });
-      const sortedTimestamps = Array.from(allTimestamps).sort((a, b) => a - b);
-
-      const historicalHeaders = [
-        'timestamp',
-        ...currentParams.filteredChains.map((chain) => chainNames[chain]),
-      ];
-      csvLines.push(historicalHeaders.map(escapeCSVField).join(','));
-
-      const timestampPriceMaps: Partial<Record<Blockchain, Map<number, number>>> = {};
-      currentParams.filteredChains.forEach((chain) => {
-        timestampPriceMaps[chain] = new Map(
-          (currentParams.historicalPrices[chain] || []).map((p) => [p.timestamp, p.price])
-        );
-      });
-
-      sortedTimestamps.forEach((timestamp) => {
-        const row: string[] = [escapeCSVField(formatDateTimeString(new Date(timestamp)))];
-        currentParams.filteredChains.forEach((chain) => {
-          const price = timestampPriceMaps[chain]?.get(timestamp);
-          row.push(
-            price !== undefined ? escapeCSVField(formatNumberWithDecimals(price, 2, 4)) : ''
-          );
-        });
-        csvLines.push(row.join(','));
-      });
-
       const csvContent = csvLines.join('\n');
       const csvBlob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       downloadBlob(
@@ -119,10 +79,7 @@ export function useExport(params: UseExportParams): UseExportReturn {
 
   const exportToJSON = useCallback((): boolean => {
     const currentParams = paramsRef.current;
-    if (
-      currentParams.priceDifferences.length === 0 &&
-      Object.keys(currentParams.historicalPrices).length === 0
-    ) {
+    if (currentParams.priceDifferences.length === 0) {
       return false;
     }
 
@@ -155,15 +112,6 @@ export function useExport(params: UseExportParams): UseExportReturn {
           difference: item.diff,
           percentDifference: item.diffPercent,
         })),
-        historicalPrices: currentParams.filteredChains.map((chain) => ({
-          blockchain: chainNames[chain],
-          prices:
-            currentParams.historicalPrices[chain]?.map((price) => ({
-              price: price.price,
-              timestamp: new Date(price.timestamp).toISOString(),
-              source: price.source,
-            })) || [],
-        })),
         summary: {
           averagePrice: currentParams.avgPrice,
           highestPrice: currentParams.maxPrice,
@@ -171,7 +119,6 @@ export function useExport(params: UseExportParams): UseExportReturn {
           priceRange: currentParams.priceRange,
           standardDeviationPercent: currentParams.standardDeviationPercent,
           consistencyRating: getConsistencyRating(currentParams.standardDeviationPercent),
-          dataPoints: currentParams.totalDataPoints,
         },
       };
 

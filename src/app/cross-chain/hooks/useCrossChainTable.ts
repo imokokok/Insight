@@ -1,18 +1,17 @@
 import { useMemo } from 'react';
 
 import { useCrossChainUIStore } from '@/stores/crossChainUIStore';
-import { type Blockchain, type PriceData } from '@/types/oracle';
+import { type Blockchain } from '@/types/oracle';
 
-import { chainNames, calculateDynamicThreshold, type ThresholdConfig } from '../utils';
+import { chainNames, defaultThresholdConfig, type ThresholdConfig } from '../utils';
 
 import { type PriceDifferenceItem } from './useExport';
 
 interface UseCrossChainTableParams {
   priceDifferences: PriceDifferenceItem[];
-  historicalPrices: Partial<Record<Blockchain, PriceData[]>>;
   filteredChains: Blockchain[];
   selectedBaseChain: Blockchain | null;
-  thresholdConfig: ThresholdConfig;
+  thresholdConfig?: ThresholdConfig;
 }
 
 interface UseCrossChainTableReturn {
@@ -25,20 +24,21 @@ interface UseCrossChainTableReturn {
 }
 
 export function useCrossChainTable(params: UseCrossChainTableParams): UseCrossChainTableReturn {
-  const { priceDifferences, historicalPrices, filteredChains, selectedBaseChain, thresholdConfig } =
-    params;
+  const {
+    priceDifferences,
+    filteredChains,
+    selectedBaseChain,
+    thresholdConfig: thresholdConfigParam,
+  } = params;
+
+  const thresholdConfig = thresholdConfigParam ?? defaultThresholdConfig;
 
   const { tableFilter, sortColumn, sortDirection, toggleChain, handleSort } =
     useCrossChainUIStore();
 
   const dynamicThreshold = useMemo(() => {
-    const allHistoricalPrices: number[] = [];
-    filteredChains.forEach((chain) => {
-      const prices = historicalPrices[chain]?.map((p) => p.price) || [];
-      allHistoricalPrices.push(...prices);
-    });
-    return calculateDynamicThreshold(allHistoricalPrices, thresholdConfig);
-  }, [historicalPrices, filteredChains, thresholdConfig]);
+    return thresholdConfig.fixedThreshold;
+  }, [thresholdConfig]);
 
   const sortedPriceDifferences = useMemo(() => {
     let filtered = [...priceDifferences];

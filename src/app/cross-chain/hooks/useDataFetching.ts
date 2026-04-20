@@ -10,7 +10,7 @@ import { safeMax, safeMin } from '@/lib/utils/statistics';
 import { type OracleProvider, type Blockchain, type PriceData } from '@/types/oracle';
 
 import { type AnomalousPricePoint, detectAnomalies } from '../utils/anomalyDetection';
-import { validateCurrentPrices, validateHistoricalPrices } from '../utils/validation';
+import { validateCurrentPrices } from '../utils/validation';
 
 import { useCrossChainQueries } from './useCrossChainQueries';
 
@@ -44,24 +44,11 @@ function calculatePriceStats(prices: PriceData[]): PriceStats {
   return { avgPrice, maxPrice, minPrice, priceRange, standardDeviationPercent };
 }
 
-function findChainWithMostData(
-  supportedChains: Blockchain[],
-  historicalPrices: Partial<Record<Blockchain, PriceData[]>>
-): Blockchain | null {
-  if (supportedChains.length === 0) return null;
-  return supportedChains.reduce((best, chain) => {
-    const bestLen = historicalPrices[best]?.length || 0;
-    const chainLen = historicalPrices[chain]?.length || 0;
-    return chainLen > bestLen ? chain : best;
-  }, supportedChains[0]);
-}
-
 interface FetchDataParams {
   selectedProvider: OracleProvider;
   selectedSymbol: string;
   selectedTimeRange: number;
   setCurrentPrices: (prices: PriceData[]) => void;
-  setHistoricalPrices: (prices: Partial<Record<Blockchain, PriceData[]>>) => void;
   setPrevStats: (stats: PriceStats) => void;
   setRecommendedBaseChain: (chain: Blockchain) => void;
   setLastUpdated: (date: Date) => void;
@@ -106,15 +93,6 @@ export function useDataFetching(
     return validateCurrentPrices(prices);
   }, [chainResults, supportedChains]);
 
-  const historicalPrices = useMemo(() => {
-    const map: Partial<Record<Blockchain, PriceData[]>> = {};
-    supportedChains.forEach((chain) => {
-      const rawPrices = chainResults[chain]?.historical ?? [];
-      map[chain] = validateHistoricalPrices(rawPrices, chain);
-    });
-    return map;
-  }, [chainResults, supportedChains]);
-
   const anomalies = useMemo(
     () => detectAnomalies(currentPrices, supportedChains),
     [currentPrices, supportedChains]
@@ -122,10 +100,10 @@ export function useDataFetching(
 
   const prevStats = useMemo(() => calculatePriceStats(currentPrices), [currentPrices]);
 
-  const recommendedBaseChain = useMemo(
-    () => findChainWithMostData(supportedChains, historicalPrices),
-    [supportedChains, historicalPrices]
-  );
+  const recommendedBaseChain = useMemo(() => {
+    if (supportedChains.length === 0) return null;
+    return supportedChains[0];
+  }, [supportedChains]);
 
   const prevCurrentPricesRef = useRef<PriceData[]>([]);
   useEffect(() => {
@@ -138,18 +116,6 @@ export function useDataFetching(
       paramsRef.current.setCurrentPrices(currentPrices);
     }
   }, [currentPrices]);
-
-  const prevHistoricalPricesRef = useRef<Partial<Record<Blockchain, PriceData[]>>>({});
-  useEffect(() => {
-    const prev = prevHistoricalPricesRef.current;
-    const hasChanged = Object.keys(historicalPrices).some(
-      (key) => historicalPrices[key as Blockchain]?.length !== prev[key as Blockchain]?.length
-    );
-    if (hasChanged || Object.keys(historicalPrices).length !== Object.keys(prev).length) {
-      prevHistoricalPricesRef.current = historicalPrices;
-      paramsRef.current.setHistoricalPrices(historicalPrices);
-    }
-  }, [historicalPrices]);
 
   const prevPrevStatsRef = useRef<PriceStats | null>(null);
   useEffect(() => {

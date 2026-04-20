@@ -2,178 +2,107 @@
 
 import { useMemo } from 'react';
 
-import { formatNumberWithDecimals } from '@/lib/utils/format';
+import { baseColors, semanticColors } from '@/lib/config/colors';
 import { type Blockchain, type PriceData } from '@/types/oracle';
 
 import { chainNames } from '../utils';
 
-export interface HeatmapTooltipProps {
-  cell: { xChain: Blockchain; yChain: Blockchain; x?: number; y?: number } | null;
+interface HeatmapTooltipProps {
+  cell: { xChain: Blockchain; yChain: Blockchain } | null;
   heatmapData: { xChain: Blockchain; yChain: Blockchain; value: number; percent: number }[];
   currentPrices: PriceData[];
-  historicalPrices: Partial<Record<Blockchain, PriceData[]>>;
+  historicalPrices: Record<string, never>;
   tooltipPosition: { x: number; y: number };
-  isPinned: boolean;
-  onClose: () => void;
+  isPinned?: boolean;
+  onClose?: () => void;
 }
 
 export function HeatmapTooltip({
   cell,
   heatmapData,
   currentPrices,
-  historicalPrices,
   tooltipPosition,
-  isPinned,
+  isPinned = false,
   onClose,
 }: HeatmapTooltipProps) {
-  const cellData = cell
-    ? heatmapData.find((d) => d.xChain === cell.xChain && d.yChain === cell.yChain)
-    : null;
-  const xPrice = cell ? currentPrices.find((p) => p.chain === cell.xChain)?.price : undefined;
-  const yPrice = cell ? currentPrices.find((p) => p.chain === cell.yChain)?.price : undefined;
-
-  const historicalPercentile = useMemo(() => {
+  const cellData = useMemo(() => {
     if (!cell) return null;
+    return heatmapData.find((d) => d.xChain === cell.xChain && d.yChain === cell.yChain);
+  }, [cell, heatmapData]);
 
-    const xHistorical = historicalPrices[cell.xChain] || [];
-    const yHistorical = historicalPrices[cell.yChain] || [];
+  const priceData = useMemo(() => {
+    if (!cell) return { xPrice: null, yPrice: null };
+    const xPrice = currentPrices.find((p) => p.chain === cell.xChain)?.price ?? null;
+    const yPrice = currentPrices.find((p) => p.chain === cell.yChain)?.price ?? null;
+    return { xPrice, yPrice };
+  }, [cell, currentPrices]);
 
-    if (xHistorical.length < 2 || yHistorical.length < 2 || !cellData) return null;
+  if (!cell || !cellData) return null;
 
-    const historicalDiffs: number[] = [];
-    const timestamps = new Set<number>();
-
-    xHistorical.forEach((p) => timestamps.add(p.timestamp));
-    yHistorical.forEach((p) => timestamps.add(p.timestamp));
-
-    timestamps.forEach((timestamp) => {
-      const xHistPrice = xHistorical.find((p) => p.timestamp === timestamp)?.price;
-      const yHistPrice = yHistorical.find((p) => p.timestamp === timestamp)?.price;
-      if (
-        xHistPrice !== undefined &&
-        yHistPrice !== undefined &&
-        xHistPrice > 0 &&
-        yHistPrice > 0
-      ) {
-        const diffPercent = (Math.abs(xHistPrice - yHistPrice) / xHistPrice) * 100;
-        historicalDiffs.push(diffPercent);
-      }
-    });
-
-    if (historicalDiffs.length < 2) return null;
-
-    const sortedDiffs = [...historicalDiffs].sort((a, b) => a - b);
-    const currentValue = cellData.percent;
-
-    let count = 0;
-    for (const diff of sortedDiffs) {
-      if (diff <= currentValue) count++;
-    }
-
-    return (count / sortedDiffs.length) * 100;
-  }, [cell, cellData, historicalPrices]);
-
-  if (!cell) return null;
-
-  const getPercentileColor = (percentile: number): string => {
-    if (percentile >= 80) return 'text-red-600';
-    if (percentile >= 60) return 'text-amber-500';
-    if (percentile >= 40) return 'text-amber-600';
-    return 'text-emerald-600';
+  const tooltipStyle = {
+    position: 'fixed' as const,
+    left: tooltipPosition.x + 10,
+    top: tooltipPosition.y - 10,
+    transform: 'translateY(-100%)',
+    zIndex: 1000,
   };
 
   return (
     <div
-      className={`fixed z-50 bg-white border border-gray-200 p-4 min-w-[280px] rounded-lg shadow-lg ${
-        isPinned ? 'pointer-events-auto' : 'pointer-events-none'
-      }`}
-      style={{
-        left: `${Math.min(tooltipPosition.x + 15, typeof window !== 'undefined' ? window.innerWidth - 320 : 1000)}px`,
-        top: `${Math.min(tooltipPosition.y + 15, typeof window !== 'undefined' ? window.innerHeight - 350 : 800)}px`,
-      }}
+      className="bg-white border border-gray-200 rounded-lg shadow-lg p-3 min-w-[200px]"
+      style={tooltipStyle}
     >
-      <div className="flex items-center justify-between mb-3 pb-2 border-b border-gray-100">
-        <div className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-          <span>{chainNames[cell.xChain]}</span>
-          <span className="text-gray-400">vs</span>
-          <span>{chainNames[cell.yChain]}</span>
-        </div>
-        {isPinned && (
-          <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded transition-colors">
-            <svg
-              className="w-4 h-4 text-gray-500"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
-        )}
-      </div>
-
-      <div className="space-y-2 mb-3">
-        <div className="flex justify-between items-center text-sm">
-          <span className="text-gray-600">{chainNames[cell.xChain]} Price</span>
-          <span className="font-mono text-gray-900 font-medium">
-            $
-            {xPrice !== null && xPrice !== undefined ? formatNumberWithDecimals(xPrice, 2, 4) : '-'}
-          </span>
-        </div>
-        <div className="flex justify-between items-center text-sm">
-          <span className="text-gray-600">{chainNames[cell.yChain]} Price</span>
-          <span className="font-mono text-gray-900 font-medium">
-            $
-            {yPrice !== null && yPrice !== undefined ? formatNumberWithDecimals(yPrice, 2, 4) : '-'}
-          </span>
-        </div>
-      </div>
-
-      <div className="pt-3 border-t border-gray-100 space-y-2">
-        <div className="flex justify-between items-center text-sm">
-          <span className="text-gray-600">Absolute Difference</span>
-          <span className="font-mono font-medium text-gray-900">
-            {cellData?.value !== undefined && cellData?.value !== null
-              ? `$${cellData.value.toFixed(4)}`
-              : '-'}
-          </span>
-        </div>
-        <div className="flex justify-between items-center text-sm">
-          <span className="text-gray-600">Percent Difference</span>
-          <span
-            className={`font-mono font-medium ${
-              (cellData?.percent || 0) > 0.1 ? 'text-red-600' : 'text-emerald-600'
-            }`}
+      {isPinned && onClose && (
+        <button onClick={onClose} className="absolute top-1 right-1 p-1 hover:bg-gray-100 rounded">
+          <svg
+            className="w-4 h-4 text-gray-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
           >
-            {cellData?.percent !== undefined && cellData?.percent !== null
-              ? `${cellData.percent.toFixed(2)}%`
-              : '-'}
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+      )}
+
+      <div className="text-xs font-medium text-gray-500 mb-2">
+        {chainNames[cell.xChain]} vs {chainNames[cell.yChain]}
+      </div>
+
+      <div className="space-y-1.5 text-sm">
+        <div className="flex justify-between">
+          <span className="text-gray-500">{chainNames[cell.xChain]}:</span>
+          <span className="font-mono font-medium">
+            {priceData.xPrice !== null ? `$${priceData.xPrice.toFixed(4)}` : '-'}
           </span>
         </div>
-
-        {historicalPercentile !== null && (
-          <div className="flex justify-between items-center text-sm pt-2 border-t border-gray-100">
-            <span className="text-gray-600">Historical Percentile</span>
-            <span className={`font-mono font-medium ${getPercentileColor(historicalPercentile)}`}>
-              Higher than {historicalPercentile.toFixed(0)}% of historical data
+        <div className="flex justify-between">
+          <span className="text-gray-500">{chainNames[cell.yChain]}:</span>
+          <span className="font-mono font-medium">
+            {priceData.yPrice !== null ? `$${priceData.yPrice.toFixed(4)}` : '-'}
+          </span>
+        </div>
+        <div className="border-t pt-1.5 mt-1.5" style={{ borderColor: baseColors.gray[200] }}>
+          <div className="flex justify-between">
+            <span className="text-gray-500">Difference:</span>
+            <span
+              className="font-mono font-medium"
+              style={{
+                color:
+                  cellData.percent > 0 ? semanticColors.danger.main : semanticColors.success.main,
+              }}
+            >
+              {cellData.percent >= 0 ? '+' : ''}
+              {cellData.percent.toFixed(4)}%
             </span>
           </div>
-        )}
-      </div>
-
-      {isPinned && (
-        <div className="mt-3 pt-2 border-t border-gray-100 flex items-center gap-1 text-xs text-blue-600">
-          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
-          </svg>
-          <span>Pinned Comparison</span>
         </div>
-      )}
+      </div>
     </div>
   );
 }

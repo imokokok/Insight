@@ -64,14 +64,6 @@ export function CompactStatsGrid({ statsData }: CompactStatsGridProps) {
             key={`${stat.label}-${index}`}
             title={stat.label}
             value={stat.value}
-            change={
-              stat.trend !== null && stat.trend !== undefined
-                ? {
-                    value: stat.trend,
-                    percentage: true,
-                  }
-                : undefined
-            }
             breakdown={stat.subValue ? [{ label: 'Detail', value: stat.subValue }] : undefined}
             tooltip={stat.tooltip}
           />
@@ -89,14 +81,6 @@ export function CompactStatsGrid({ statsData }: CompactStatsGridProps) {
                 key={`extra-${stat.label}-${index}`}
                 title={stat.label}
                 value={stat.value}
-                change={
-                  stat.trend !== null && stat.trend !== undefined
-                    ? {
-                        value: stat.trend,
-                        percentage: true,
-                      }
-                    : undefined
-                }
                 breakdown={stat.subValue ? [{ label: 'Detail', value: stat.subValue }] : undefined}
                 tooltip={stat.tooltip}
               />
