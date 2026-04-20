@@ -1,6 +1,5 @@
 import {
   TIME_RANGES,
-  DEVIATION_THRESHOLD,
   symbols,
   providerNames,
   chainNames,
@@ -43,25 +42,4 @@ export interface IqrOutliers {
   iqr: number;
   lowerBound: number;
   upperBound: number;
-}
-
-export interface BoxPlotData {
-  chain: Blockchain;
-  chainName: string;
-  color: string;
-  min: number;
-  q1: number;
-  median: number;
-  q3: number;
-  max: number;
-  outliers: number[];
-  iqr: number;
-  lowerWhisker: number;
-  upperWhisker: number;
-}
-
-export interface ChartDataPoint {
-  timestamp: number;
-  time: string;
-  [key: string]: number | string | null;
 }

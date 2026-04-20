@@ -5,14 +5,12 @@ import { memo, useMemo, useState, useCallback } from 'react';
 import { ChartToolbar, type TimeRange } from '@/components/charts/ChartToolbar';
 import { baseColors, semanticColors, chartColors } from '@/lib/config/colors';
 import { safeMax } from '@/lib/utils';
-import { isBlockchain } from '@/lib/utils/chainUtils';
 import { downloadBlob } from '@/lib/utils/download';
 import { escapeCSVField } from '@/lib/utils/export';
 import { useColorblindMode, useCrossChainConfigStore } from '@/stores/crossChainConfigStore';
 import { useCrossChainDataStore } from '@/stores/crossChainDataStore';
 import { useCrossChainSelectorStore } from '@/stores/crossChainSelectorStore';
-import { useCrossChainUIStore } from '@/stores/crossChainUIStore';
-import { type Blockchain, type PriceData } from '@/types/oracle';
+import { type Blockchain } from '@/types/oracle';
 
 import { getColorblindHeatmapColor, colorblindLegendConfig } from '../colorblindTheme';
 import { useChartData } from '../hooks/useChartData';
@@ -23,10 +21,8 @@ import {
   useCurrentClient,
 } from '../useCrossChainData';
 import { chainNames, getHeatmapColor } from '../utils';
-import { getTimestampCutoff } from '../utils/timeUtils';
 
 import { HeatmapTooltip } from './HeatmapTooltip';
-import { SelectedCellDetail } from './SelectedCellDetail';
 
 export const PriceSpreadHeatmap = memo(function PriceSpreadHeatmap() {
   const chainsWithHighDeviation = useChainsWithHighDeviation();
@@ -68,33 +64,21 @@ export const PriceSpreadHeatmap = memo(function PriceSpreadHeatmap() {
 
 function useHeatmapData() {
   const currentPrices = useCrossChainDataStore((s) => s.currentPrices);
-  const historicalPrices = useCrossChainDataStore((s) => s.historicalPrices);
   const selectedBaseChain = useCrossChainSelectorStore((s) => s.selectedBaseChain);
-  const selectedTimeRange = useCrossChainSelectorStore((s) => s.selectedTimeRange);
-  const showMA = useCrossChainUIStore((s) => s.showMA);
-  const maPeriod = useCrossChainUIStore((s) => s.maPeriod);
   const thresholdConfig = useCrossChainConfigStore((s) => s.thresholdConfig);
   const filteredChains = useFilteredChains();
-
   const currentClient = useCurrentClient();
 
   const statistics = useStatistics({
     currentPrices,
-    historicalPrices,
     filteredChains,
-    selectedTimeRange,
     currentClient,
-    selectedBaseChain,
   });
 
   const chart = useChartData({
     currentPrices,
-    historicalPrices,
     filteredChains,
     selectedBaseChain,
-    selectedTimeRange,
-    showMA,
-    maPeriod,
     validPrices: statistics.validPrices,
     avgPrice: statistics.avgPrice,
     standardDeviation: statistics.standardDeviation,
@@ -107,8 +91,6 @@ function useHeatmapData() {
     heatmapData: chart.heatmapData,
     maxHeatmapValue: chart.maxHeatmapValue,
     currentPrices,
-    historicalPrices,
-    chartData: chart.chartData,
   };
 }
 
@@ -119,8 +101,6 @@ export function HeatmapDetailView() {
     heatmapData: originalHeatmapData,
     maxHeatmapValue: originalMaxHeatmapValue,
     currentPrices,
-    historicalPrices,
-    chartData,
   } = useHeatmapData();
 
   const [selectedTimeRange, setSelectedTimeRange] = useState<TimeRange>('24H');
@@ -139,22 +119,6 @@ export function HeatmapDetailView() {
   const handleTimeRangeChange = useCallback((range: string) => {
     setSelectedTimeRange(range as TimeRange);
   }, []);
-
-  const filteredHistoricalPrices = useMemo(() => {
-    const cutoffTime = getTimestampCutoff(selectedTimeRange);
-    const filtered: Partial<Record<Blockchain, PriceData[]>> = {};
-
-    Object.keys(historicalPrices).forEach((chain) => {
-      if (isBlockchain(chain)) {
-        const prices = historicalPrices[chain];
-        if (prices) {
-          filtered[chain] = prices.filter((p) => p.timestamp >= cutoffTime);
-        }
-      }
-    });
-
-    return filtered;
-  }, [historicalPrices, selectedTimeRange]);
 
   const { heatmapData, maxHeatmapValue } = useMemo(() => {
     if (filteredChains.length < 2) {
@@ -176,17 +140,11 @@ export function HeatmapDetailView() {
     }
 
     try {
-      const cutoffTime = getTimestampCutoff(selectedTimeRange);
-      const startTime = new Date(cutoffTime).toISOString();
-      const endTime = new Date().toISOString();
-
       const csvLines: string[] = [];
 
       csvLines.push('=== Price Spread Heatmap Data ===');
       csvLines.push(`Export Timestamp,${escapeCSVField(new Date().toISOString())}`);
       csvLines.push(`Time Range,${escapeCSVField(selectedTimeRange)}`);
-      csvLines.push(`Data Start Time,${escapeCSVField(startTime)}`);
-      csvLines.push(`Data End Time,${escapeCSVField(endTime)}`);
       csvLines.push(`Chain Count,${filteredChains.length}`);
       csvLines.push(`Max Heatmap Value,${escapeCSVField(maxHeatmapValue.toFixed(4) + '%')}`);
       csvLines.push('');
@@ -414,20 +372,10 @@ export function HeatmapDetailView() {
           cell={selectedCell || hoveredCell}
           heatmapData={heatmapData}
           currentPrices={currentPrices}
-          historicalPrices={filteredHistoricalPrices}
+          historicalPrices={{}}
           tooltipPosition={tooltipPosition}
           isPinned={!!selectedCell}
           onClose={() => setSelectedCell(null)}
-        />
-      )}
-
-      {selectedCell && (
-        <SelectedCellDetail
-          heatmapData={heatmapData}
-          currentPrices={currentPrices}
-          chartData={chartData}
-          selectedCell={selectedCell}
-          setSelectedCell={setSelectedCell}
         />
       )}
     </div>

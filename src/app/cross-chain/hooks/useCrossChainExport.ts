@@ -6,7 +6,7 @@ import { useUser } from '@/stores/authStore';
 import { useCrossChainDataStore } from '@/stores/crossChainDataStore';
 import { useCrossChainSelectorStore } from '@/stores/crossChainSelectorStore';
 import { useCrossChainUIStore } from '@/stores/crossChainUIStore';
-import { type OracleProvider, type Blockchain, type PriceData } from '@/types/oracle';
+import { type OracleProvider, type Blockchain } from '@/types/oracle';
 
 import { useExport, type PriceDifferenceItem } from './useExport';
 
@@ -15,14 +15,12 @@ interface UseCrossChainExportParams {
   selectedSymbol: string;
   selectedBaseChain: Blockchain | null;
   priceDifferences: PriceDifferenceItem[];
-  historicalPrices: Partial<Record<Blockchain, PriceData[]>>;
   filteredChains: Blockchain[];
   avgPrice: number;
   maxPrice: number;
   minPrice: number;
   priceRange: number;
   standardDeviationPercent: number;
-  totalDataPoints: number;
   visibleChains: Blockchain[];
   clearCache: () => void;
   clearCacheForProvider: (provider: OracleProvider) => void;
@@ -72,14 +70,12 @@ export function useCrossChainExport(params: UseCrossChainExportParams): UseCross
     selectedSymbol,
     selectedBaseChain,
     priceDifferences,
-    historicalPrices,
     filteredChains,
     avgPrice,
     maxPrice,
     minPrice,
     priceRange,
     standardDeviationPercent,
-    totalDataPoints,
     visibleChains,
     clearCache,
     clearCacheForProvider,
@@ -90,14 +86,12 @@ export function useCrossChainExport(params: UseCrossChainExportParams): UseCross
     selectedSymbol,
     selectedBaseChain,
     priceDifferences,
-    historicalPrices,
     filteredChains,
     avgPrice,
     maxPrice,
     minPrice,
     priceRange,
     standardDeviationPercent,
-    totalDataPoints,
   });
 
   const currentFavoriteConfig: FavoriteConfig = useMemo(
@@ -142,7 +136,6 @@ export function useCrossChainExportActions(): UseCrossChainExportReturn {
   const selectedBaseChain = useCrossChainSelectorStore((s) => s.selectedBaseChain);
   const visibleChains = useCrossChainUIStore((s) => s.visibleChains);
   const currentPrices = useCrossChainDataStore((s) => s.currentPrices);
-  const historicalPrices = useCrossChainDataStore((s) => s.historicalPrices);
   const storeClearCache = useCrossChainDataStore((s) => s.clearCache);
   const storeClearCacheForProvider = useCrossChainDataStore((s) => s.clearCacheForProvider);
 
@@ -184,26 +177,20 @@ export function useCrossChainExportActions(): UseCrossChainExportReturn {
         : 0;
     const stdDev = Math.sqrt(variance);
     const standardDeviationPercent = avgPrice > 0 ? (stdDev / avgPrice) * 100 : 0;
-    let totalDataPoints = 0;
-    filteredChains.forEach((chain) => {
-      totalDataPoints += historicalPrices[chain]?.length || 0;
-    });
     return {
       avgPrice,
       maxPrice,
       minPrice,
       priceRange: maxPrice - minPrice,
       standardDeviationPercent,
-      totalDataPoints,
     };
-  }, [currentPrices, filteredChains, historicalPrices]);
+  }, [currentPrices, filteredChains]);
 
   const exportHook = useExport({
     selectedProvider,
     selectedSymbol,
     selectedBaseChain,
     priceDifferences,
-    historicalPrices,
     filteredChains,
     ...statsForExport,
   });

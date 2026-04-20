@@ -48,7 +48,6 @@ export interface UISlice {
 export interface DataStateSlice {
   lastUpdated: Date | null;
   currentPrices: PriceData[];
-  historicalPrices: Partial<Record<Blockchain, PriceData[]>>;
   loading: boolean;
   refreshStatus: 'idle' | 'refreshing' | 'success' | 'error';
   showRefreshSuccess: boolean;
@@ -81,32 +80,14 @@ export interface StatisticsSlice {
   skewness: number;
   kurtosis: number;
   confidenceInterval95: UseStatisticsReturn['confidenceInterval95'];
-  chainVolatility: Partial<Record<Blockchain, number>>;
-  updateDelays: Partial<Record<Blockchain, { avgDelay: number; maxDelay: number }>>;
-  dataIntegrity: Partial<Record<Blockchain, number>>;
-  actualUpdateIntervals: Partial<Record<Blockchain, number>>;
 }
 
 export interface ChartSlice {
   filteredChains: Blockchain[];
   priceDifferences: PriceDifferenceItem[];
-  chartData: UseChartDataReturn['chartData'];
-  chartDataWithMA: UseChartDataReturn['chartDataWithMA'];
   heatmapData: UseChartDataReturn['heatmapData'];
   maxHeatmapValue: number;
-  priceDistributionData: { range: string; count: number; midPrice: number }[];
-  boxPlotData: UseChartDataReturn['boxPlotData'];
-  totalDataPoints: number;
   iqrOutliers: UseChartDataReturn['iqrOutliers'];
-  stdDevHistoricalOutliers: UseChartDataReturn['stdDevHistoricalOutliers'];
-  scatterData: UseChartDataReturn['scatterData'];
-  correlationMatrix: UseChartDataReturn['correlationMatrix'];
-  correlationMatrixWithSignificance: UseChartDataReturn['correlationMatrixWithSignificance'];
-  priceJumpFrequency: Partial<Record<Blockchain, number>>;
-  priceChangePercent: Partial<Record<Blockchain, number>>;
-  meanBinIndex: number;
-  medianBinIndex: number;
-  stdDevBinRange: { lower: number; upper: number } | null;
 }
 
 export interface TableSlice {

@@ -4,7 +4,6 @@ import { useMemo } from 'react';
 
 import { DataTablePro, type ColumnDef, type ConditionalFormattingRule } from '@/components/ui';
 import { type CrossChainComparisonResult } from '@/lib/oracles/crossChainComparison';
-import { isBlockchain } from '@/lib/utils/chainUtils';
 import { formatPrice, formatPriceDiff } from '@/lib/utils/format';
 import { useCrossChainConfigStore } from '@/stores/crossChainConfigStore';
 import { useCrossChainDataStore } from '@/stores/crossChainDataStore';
@@ -25,7 +24,6 @@ interface TableRow extends Record<string, unknown> {
   diffPercent: number;
   isOutlier: boolean;
   zScore: number | null;
-  priceHistory: number[];
   dataFreshness: number | null;
   chainStatus: 'online' | 'degraded' | 'offline' | null;
   deviationFromMedian: number | null;
@@ -33,14 +31,10 @@ interface TableRow extends Record<string, unknown> {
 
 export function PriceComparisonTable() {
   const selectedBaseChain = useCrossChainSelectorStore((s) => s.selectedBaseChain);
-  const selectedTimeRange = useCrossChainSelectorStore((s) => s.selectedTimeRange);
-  const showMA = useCrossChainUIStore((s) => s.showMA);
-  const maPeriod = useCrossChainUIStore((s) => s.maPeriod);
   const tableFilter = useCrossChainUIStore((s) => s.tableFilter);
   const setTableFilter = useCrossChainUIStore((s) => s.setTableFilter);
 
   const currentPrices = useCrossChainDataStore((s) => s.currentPrices);
-  const historicalPrices = useCrossChainDataStore((s) => s.historicalPrices);
   const crossChainComparison = useCrossChainDataStore((s) => s.crossChainComparison);
   const thresholdConfig = useCrossChainConfigStore((s) => s.thresholdConfig);
 
@@ -49,31 +43,22 @@ export function PriceComparisonTable() {
 
   const statistics = useStatistics({
     currentPrices,
-    historicalPrices,
     filteredChains,
-    selectedTimeRange,
     currentClient,
-    selectedBaseChain,
   });
 
   const chart = useChartData({
     currentPrices,
-    historicalPrices,
     filteredChains,
     selectedBaseChain,
-    selectedTimeRange,
-    showMA,
-    maPeriod,
     validPrices: statistics.validPrices,
     avgPrice: statistics.avgPrice,
     standardDeviation: statistics.standardDeviation,
     medianPrice: statistics.medianPrice,
-    thresholdConfig,
   });
 
   const table = useCrossChainTable({
     priceDifferences: chart.priceDifferences,
-    historicalPrices,
     filteredChains,
     selectedBaseChain,
     thresholdConfig,
@@ -92,10 +77,6 @@ export function PriceComparisonTable() {
 
   const tableData: TableRow[] = sortedPriceDifferences.map((item) => {
     const zScore = calculateZScore(item.price, avgPrice, standardDeviation);
-    const chainHistoricalPrices = isBlockchain(item.chain)
-      ? historicalPrices[item.chain]
-      : undefined;
-    const priceHistory = chainHistoricalPrices?.map((p) => p.price) ?? [];
     const comparison = comparisonMap.get(item.chain);
 
     return {
@@ -105,7 +86,6 @@ export function PriceComparisonTable() {
       diffPercent: item.diffPercent,
       isOutlier: isOutlier(zScore),
       zScore,
-      priceHistory,
       dataFreshness: comparison?.latency ?? null,
       chainStatus: comparison?.status ?? null,
       deviationFromMedian: comparison?.deviation ?? null,
@@ -310,41 +290,6 @@ export function PriceComparisonTable() {
           <span className={`px-2 py-0.5 text-xs font-medium rounded ${config.className}`}>
             {config.label}
           </span>
-        );
-      },
-    },
-    {
-      key: 'trend',
-      header: 'Trend',
-      width: 80,
-      minWidth: 60,
-      align: 'center',
-      sortable: false,
-      formatter: (_value: unknown, row: TableRow) => {
-        const prices = row.priceHistory;
-
-        if (!prices || prices.length < 2) {
-          return <span className="text-gray-300">-</span>;
-        }
-
-        const firstPrice = prices[0];
-        const lastPrice = prices[prices.length - 1];
-        const trend = lastPrice > firstPrice ? 'up' : lastPrice < firstPrice ? 'down' : 'neutral';
-
-        return (
-          <div className="flex items-center justify-center">
-            <span
-              className={`text-lg ${
-                trend === 'up'
-                  ? 'text-emerald-500'
-                  : trend === 'down'
-                    ? 'text-red-500'
-                    : 'text-gray-400'
-              }`}
-            >
-              {trend === 'up' ? '↗' : trend === 'down' ? '↘' : '→'}
-            </span>
-          </div>
         );
       },
     },

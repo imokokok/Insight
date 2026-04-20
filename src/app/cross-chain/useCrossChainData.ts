@@ -15,7 +15,6 @@ import { useCrossChainExport } from './hooks/useCrossChainExport';
 import { useCrossChainTable } from './hooks/useCrossChainTable';
 import { useStatistics } from './hooks/useStatistics';
 import { type UseCrossChainDataReturn } from './types';
-import { calculateDynamicThreshold } from './utils';
 
 export function useCurrentClient() {
   const selectedProvider = useCrossChainSelectorStore((s) => s.selectedProvider);
@@ -38,7 +37,6 @@ export function useFilteredChains(): Blockchain[] {
 
 export function useChainsWithHighDeviation() {
   const currentPrices = useCrossChainDataStore((s) => s.currentPrices);
-  const historicalPrices = useCrossChainDataStore((s) => s.historicalPrices);
   const selectedBaseChain = useCrossChainSelectorStore((s) => s.selectedBaseChain);
   const filteredChains = useFilteredChains();
   const thresholdConfig = useCrossChainConfigStore((s) => s.thresholdConfig);
@@ -62,13 +60,8 @@ export function useChainsWithHighDeviation() {
   }, [currentPrices, selectedBaseChain, filteredChains]);
 
   const dynamicThreshold = useMemo(() => {
-    const allHistoricalPrices: number[] = [];
-    filteredChains.forEach((chain) => {
-      const prices = historicalPrices[chain]?.map((p) => p.price) || [];
-      allHistoricalPrices.push(...prices);
-    });
-    return calculateDynamicThreshold(allHistoricalPrices, thresholdConfig);
-  }, [historicalPrices, filteredChains, thresholdConfig]);
+    return thresholdConfig.fixedThreshold;
+  }, [thresholdConfig]);
 
   return useMemo(
     () => priceDifferences.filter((item) => Math.abs(item.diffPercent) > dynamicThreshold),
@@ -116,23 +109,16 @@ export function useCrossChainData(): UseCrossChainDataReturn {
 
   const statistics = useStatistics({
     currentPrices: dataState.currentPrices,
-    historicalPrices: dataState.historicalPrices,
     filteredChains,
-    selectedTimeRange,
     currentClient: dataState.currentClient,
-    selectedBaseChain,
   });
 
   const thresholdConfig = useCrossChainConfigStore((s) => s.thresholdConfig);
 
   const chart = useChartData({
     currentPrices: dataState.currentPrices,
-    historicalPrices: dataState.historicalPrices,
     filteredChains,
     selectedBaseChain,
-    selectedTimeRange,
-    showMA,
-    maPeriod,
     validPrices: statistics.validPrices,
     avgPrice: statistics.avgPrice,
     standardDeviation: statistics.standardDeviation,
@@ -142,7 +128,6 @@ export function useCrossChainData(): UseCrossChainDataReturn {
 
   const table = useCrossChainTable({
     priceDifferences: chart.priceDifferences,
-    historicalPrices: dataState.historicalPrices,
     filteredChains,
     selectedBaseChain,
     thresholdConfig,
@@ -153,14 +138,12 @@ export function useCrossChainData(): UseCrossChainDataReturn {
     selectedSymbol,
     selectedBaseChain,
     priceDifferences: chart.priceDifferences,
-    historicalPrices: dataState.historicalPrices,
     filteredChains,
     avgPrice: statistics.avgPrice,
     maxPrice: statistics.maxPrice,
     minPrice: statistics.minPrice,
     priceRange: statistics.priceRange,
     standardDeviationPercent: statistics.standardDeviationPercent,
-    totalDataPoints: chart.totalDataPoints,
     visibleChains,
     clearCache: dataState.clearCache,
     clearCacheForProvider: dataState.clearCacheForProvider,
@@ -193,7 +176,6 @@ export function useCrossChainData(): UseCrossChainDataReturn {
     setRefreshInterval,
     lastUpdated: dataState.lastUpdated,
     currentPrices: dataState.currentPrices,
-    historicalPrices: dataState.historicalPrices,
     loading: dataState.loading,
     refreshStatus: dataState.refreshStatus,
     showRefreshSuccess: dataState.showRefreshSuccess,
@@ -204,13 +186,9 @@ export function useCrossChainData(): UseCrossChainDataReturn {
     filteredChains,
     priceDifferences: chart.priceDifferences,
     sortedPriceDifferences: table.sortedPriceDifferences,
-    chartData: chart.chartData,
-    chartDataWithMA: chart.chartDataWithMA,
     heatmapData: chart.heatmapData,
     maxHeatmapValue: chart.maxHeatmapValue,
-    priceDistributionData: chart.priceDistributionData,
-    boxPlotData: chart.boxPlotData,
-    totalDataPoints: chart.totalDataPoints,
+    iqrOutliers: chart.iqrOutliers,
     validPrices: statistics.validPrices,
     avgPrice: statistics.avgPrice,
     maxPrice: statistics.maxPrice,
@@ -225,20 +203,6 @@ export function useCrossChainData(): UseCrossChainDataReturn {
     skewness: statistics.skewness,
     kurtosis: statistics.kurtosis,
     confidenceInterval95: statistics.confidenceInterval95,
-    iqrOutliers: chart.iqrOutliers,
-    stdDevHistoricalOutliers: chart.stdDevHistoricalOutliers,
-    scatterData: chart.scatterData,
-    correlationMatrix: chart.correlationMatrix,
-    correlationMatrixWithSignificance: chart.correlationMatrixWithSignificance,
-    chainVolatility: statistics.chainVolatility,
-    updateDelays: statistics.updateDelays,
-    dataIntegrity: statistics.dataIntegrity,
-    actualUpdateIntervals: statistics.actualUpdateIntervals,
-    priceJumpFrequency: chart.priceJumpFrequency,
-    priceChangePercent: chart.priceChangePercent,
-    meanBinIndex: chart.meanBinIndex,
-    medianBinIndex: chart.medianBinIndex,
-    stdDevBinRange: chart.stdDevBinRange,
     chainsWithHighDeviation: table.chainsWithHighDeviation,
     prevStats: dataState.prevStats,
     anomalies: dataState.anomalies,

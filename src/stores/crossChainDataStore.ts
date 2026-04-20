@@ -7,7 +7,6 @@ import { type OracleProvider, type Blockchain, type PriceData } from '@/types/or
 
 interface DataState {
   currentPrices: PriceData[];
-  historicalPrices: Partial<Record<Blockchain, PriceData[]>>;
   crossChainComparison: CrossChainComparisonResult[];
   loading: boolean;
   refreshStatus: 'idle' | 'refreshing' | 'success' | 'error';
@@ -29,7 +28,6 @@ interface DataActions {
   clearCache: (() => void) | null;
   clearCacheForProvider: ((provider: OracleProvider) => void) | null;
   setCurrentPrices: (prices: PriceData[]) => void;
-  setHistoricalPrices: (prices: Partial<Record<Blockchain, PriceData[]>>) => void;
   setLoading: (loading: boolean) => void;
   setRefreshStatus: (status: 'idle' | 'refreshing' | 'success' | 'error') => void;
   setShowRefreshSuccess: (show: boolean) => void;
@@ -48,7 +46,6 @@ interface CrossChainDataStore extends DataState, DataActions {}
 const initialState: DataState &
   Pick<DataActions, 'fetchData' | 'clearCache' | 'clearCacheForProvider'> = {
   currentPrices: [],
-  historicalPrices: {},
   crossChainComparison: [],
   loading: true,
   refreshStatus: 'idle',
@@ -68,7 +65,6 @@ export const useCrossChainDataStore = create<CrossChainDataStore>()(
       ...initialState,
 
       setCurrentPrices: (prices) => set({ currentPrices: prices }),
-      setHistoricalPrices: (prices) => set({ historicalPrices: prices }),
       setLoading: (loading) => set({ loading }),
       setRefreshStatus: (status) => set({ refreshStatus: status }),
       setShowRefreshSuccess: (show) => set({ showRefreshSuccess: show }),

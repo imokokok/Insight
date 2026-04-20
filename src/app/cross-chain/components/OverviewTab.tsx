@@ -1,64 +1,47 @@
 'use client';
 
-import { useCrossChainConfigStore } from '@/stores/crossChainConfigStore';
 import { useCrossChainDataStore } from '@/stores/crossChainDataStore';
 import { useCrossChainSelectorStore } from '@/stores/crossChainSelectorStore';
-import { useCrossChainUIStore } from '@/stores/crossChainUIStore';
 import { Blockchain } from '@/types/oracle';
 
 import { type ChainStats } from '../constants';
 import { useChartData } from '../hooks/useChartData';
 import { useStatistics } from '../hooks/useStatistics';
 import { useCurrentClient, useFilteredChains } from '../useCrossChainData';
-import { chainNames, getConsistencyRating, calculateChangePercent, formatPrice } from '../utils';
+import { chainNames, getConsistencyRating, formatPrice } from '../utils';
 
 import { BenchmarkComparisonSection } from './BenchmarkComparisonSection';
 import { CompactStatsGrid } from './CompactStatsGrid';
 import { DataSourceSection } from './DataSourceSection';
 import { PriceComparisonTable } from './PriceComparisonTable';
 import { HeatmapDetailView } from './PriceSpreadHeatmap';
-import { StabilityAnalysis } from './StabilityAnalysis';
 
 export function OverviewTab() {
   const currentPrices = useCrossChainDataStore((s) => s.currentPrices);
   const lastUpdated = useCrossChainDataStore((s) => s.lastUpdated);
   const fetchData = useCrossChainDataStore((s) => s.fetchData);
   const loading = useCrossChainDataStore((s) => s.loading);
-  const prevStats = useCrossChainDataStore((s) => s.prevStats);
 
   const selectedProvider = useCrossChainSelectorStore((s) => s.selectedProvider);
   const selectedBaseChain = useCrossChainSelectorStore((s) => s.selectedBaseChain);
-  const selectedTimeRange = useCrossChainSelectorStore((s) => s.selectedTimeRange);
-  const showMA = useCrossChainUIStore((s) => s.showMA);
-  const maPeriod = useCrossChainUIStore((s) => s.maPeriod);
-  const thresholdConfig = useCrossChainConfigStore((s) => s.thresholdConfig);
 
   const filteredChains = useFilteredChains();
   const currentClient = useCurrentClient();
-  const historicalPrices = useCrossChainDataStore((s) => s.historicalPrices);
 
   const statistics = useStatistics({
     currentPrices,
-    historicalPrices,
     filteredChains,
-    selectedTimeRange,
     currentClient,
-    selectedBaseChain,
   });
 
   const chart = useChartData({
     currentPrices,
-    historicalPrices,
     filteredChains,
     selectedBaseChain,
-    selectedTimeRange,
-    showMA,
-    maPeriod,
     validPrices: statistics.validPrices,
     avgPrice: statistics.avgPrice,
     standardDeviation: statistics.standardDeviation,
     medianPrice: statistics.medianPrice,
-    thresholdConfig,
   });
 
   const {
@@ -74,17 +57,15 @@ export function OverviewTab() {
     skewness,
     kurtosis,
     confidenceInterval95,
-    chainVolatility,
-    dataIntegrity,
   } = statistics;
 
-  const { priceDifferences, priceJumpFrequency, totalDataPoints } = chart;
+  const { priceDifferences } = chart;
 
   const statsData: ChainStats[] = [
     {
       label: 'Average Price',
       value: avgPrice > 0 ? formatPrice(avgPrice) : '-',
-      trend: calculateChangePercent(avgPrice, prevStats?.avgPrice || 0),
+      trend: null,
       tooltip: 'Average price across all chains',
     },
     {
@@ -96,31 +77,22 @@ export function OverviewTab() {
     {
       label: 'Highest Price',
       value: maxPrice > 0 ? formatPrice(maxPrice) : '-',
-      trend: calculateChangePercent(maxPrice, prevStats?.maxPrice || 0),
+      trend: null,
       subValue: minPrice > 0 ? `Minimum: ${formatPrice(minPrice)}` : null,
       tooltip: 'Highest and lowest prices',
     },
     {
       label: 'Price Range',
       value: priceRange > 0 ? formatPrice(priceRange) : '-',
-      trend: calculateChangePercent(priceRange, prevStats?.priceRange || 0),
+      trend: null,
       tooltip: 'Difference between highest and lowest price',
     },
     {
       label: 'Standard Deviation',
       value: standardDeviation > 0 ? `${standardDeviationPercent.toFixed(4)}%` : '-',
-      trend: calculateChangePercent(
-        standardDeviationPercent,
-        prevStats?.standardDeviationPercent || 0
-      ),
+      trend: null,
       subValue: standardDeviation > 0 ? formatPrice(standardDeviation) : null,
       tooltip: 'Measure of price variation',
-    },
-    {
-      label: 'Data Points',
-      value: totalDataPoints.toString(),
-      trend: null,
-      tooltip: 'Total number of data points',
     },
     {
       label: 'IQR',
@@ -199,14 +171,6 @@ export function OverviewTab() {
       <div id="table">
         <PriceComparisonTable />
       </div>
-
-      <StabilityAnalysis
-        filteredChains={filteredChains}
-        chainVolatility={chainVolatility}
-        dataIntegrity={dataIntegrity}
-        priceJumpFrequency={priceJumpFrequency}
-        priceDifferences={priceDifferences}
-      />
     </>
   );
 }

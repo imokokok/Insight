@@ -13,7 +13,6 @@ import { useDataFetching } from './index';
 
 interface UseCrossChainDataStateReturn {
   currentPrices: PriceData[];
-  historicalPrices: Partial<Record<Blockchain, PriceData[]>>;
   loading: boolean;
   refreshStatus: 'idle' | 'refreshing' | 'success' | 'error';
   showRefreshSuccess: boolean;
@@ -46,7 +45,6 @@ export function useCrossChainDataState(): UseCrossChainDataStateReturn {
   const refreshInterval = useCrossChainConfigStore((s) => s.refreshInterval);
 
   const currentPrices = useCrossChainDataStore((s) => s.currentPrices);
-  const historicalPrices = useCrossChainDataStore((s) => s.historicalPrices);
   const loading = useCrossChainDataStore((s) => s.loading);
   const refreshStatus = useCrossChainDataStore((s) => s.refreshStatus);
   const showRefreshSuccess = useCrossChainDataStore((s) => s.showRefreshSuccess);
@@ -55,7 +53,6 @@ export function useCrossChainDataState(): UseCrossChainDataStateReturn {
   const prevStats = useCrossChainDataStore((s) => s.prevStats);
   const anomalies = useCrossChainDataStore((s) => s.anomalies);
   const setCurrentPrices = useCrossChainDataStore((s) => s.setCurrentPrices);
-  const setHistoricalPrices = useCrossChainDataStore((s) => s.setHistoricalPrices);
   const setLoading = useCrossChainDataStore((s) => s.setLoading);
   const setRefreshStatus = useCrossChainDataStore((s) => s.setRefreshStatus);
   const setShowRefreshSuccess = useCrossChainDataStore((s) => s.setShowRefreshSuccess);
@@ -85,7 +82,6 @@ export function useCrossChainDataState(): UseCrossChainDataStateReturn {
       selectedSymbol,
       selectedTimeRange,
       setCurrentPrices,
-      setHistoricalPrices,
       setPrevStats,
       setRecommendedBaseChain,
       setLastUpdated,
@@ -130,7 +126,6 @@ export function useCrossChainDataState(): UseCrossChainDataStateReturn {
       };
 
       setCurrentPrices([]);
-      setHistoricalPrices({});
       setLastUpdated(null);
       setRefreshStatus('idle');
     }
@@ -139,7 +134,6 @@ export function useCrossChainDataState(): UseCrossChainDataStateReturn {
     selectedSymbol,
     selectedTimeRange,
     setCurrentPrices,
-    setHistoricalPrices,
     setLastUpdated,
     setRefreshStatus,
   ]);
@@ -173,7 +167,6 @@ export function useCrossChainDataState(): UseCrossChainDataStateReturn {
 
   return {
     currentPrices,
-    historicalPrices,
     loading,
     refreshStatus,
     showRefreshSuccess,

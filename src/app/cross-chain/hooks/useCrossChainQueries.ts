@@ -8,11 +8,8 @@ import { type OracleProvider, type Blockchain, type PriceData } from '@/types/or
 
 export interface ChainQueryResult {
   price: PriceData | null;
-  historical: PriceData[];
   isPriceLoading: boolean;
-  isHistoricalLoading: boolean;
   priceError: Error | null;
-  historicalError: Error | null;
 }
 
 export interface UseCrossChainQueriesReturn {
@@ -43,59 +40,33 @@ export function useCrossChainQueries(
     })),
   });
 
-  const historicalQueries = useQueries({
-    queries: chains.map((chain) => ({
-      queryKey: [
-        ...crossChainKeys.byProvider(provider, symbol, String(period)),
-        'historical',
-        chain,
-      ],
-      queryFn: ({ signal }: { signal: AbortSignal }) =>
-        oracleApiClient.fetchHistorical({ provider, symbol, chain, period, signal }),
-      staleTime: 60_000,
-      enabled: !!symbol,
-      refetchInterval: resolvedRefetchInterval,
-    })),
-  });
-
   const chainResults: Partial<Record<Blockchain, ChainQueryResult>> = useMemo(() => {
     const results: Partial<Record<Blockchain, ChainQueryResult>> = {};
     chains.forEach((chain, index) => {
       const priceResult = priceQueries[index];
-      const historicalResult = historicalQueries[index];
 
       results[chain] = {
         price: priceResult.data ?? null,
-        historical: historicalResult.data ?? [],
         isPriceLoading: priceResult.isLoading,
-        isHistoricalLoading: historicalResult.isLoading,
         priceError: priceResult.error ?? null,
-        historicalError: historicalResult.error ?? null,
       };
     });
     return results;
-  }, [chains, priceQueries, historicalQueries]);
+  }, [chains, priceQueries]);
 
   const errors = useMemo(() => {
     const errs: Error[] = [];
     priceQueries.forEach((r) => {
       if (r.error) errs.push(r.error);
     });
-    historicalQueries.forEach((r) => {
-      if (r.error) errs.push(r.error);
-    });
     return errs;
-  }, [priceQueries, historicalQueries]);
+  }, [priceQueries]);
 
   const isLoading = useMemo(
-    () =>
-      priceQueries.length > 0 && [...priceQueries, ...historicalQueries].some((r) => r.isLoading),
-    [priceQueries, historicalQueries]
+    () => priceQueries.length > 0 && priceQueries.some((r) => r.isLoading),
+    [priceQueries]
   );
-  const isFetching = useMemo(
-    () => [...priceQueries, ...historicalQueries].some((r) => r.isFetching),
-    [priceQueries, historicalQueries]
-  );
+  const isFetching = useMemo(() => priceQueries.some((r) => r.isFetching), [priceQueries]);
 
   return { chainResults, isLoading, isFetching, errors };
 }
