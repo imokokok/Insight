@@ -28,7 +28,7 @@ export default function RegisterContent() {
     if (user && !isSuccess) {
       router.push(`/`);
     }
-  }, [user, router, isSuccess]);
+  }, [user, isSuccess, router]);
 
   const validateForm = () => {
     if (!email.trim()) {

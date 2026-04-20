@@ -70,8 +70,6 @@ function LoginForm() {
     if (signInError) {
       setErrorInfo(parseError(signInError.message));
       setIsLoading(false);
-    } else {
-      router.push(redirectPath);
     }
   };
 

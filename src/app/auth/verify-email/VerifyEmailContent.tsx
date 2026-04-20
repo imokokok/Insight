@@ -30,16 +30,12 @@ function VerifyEmailForm() {
   const errorParam = searchParams.get('error');
   const codeParam = searchParams.get('code');
 
-  const [status] = useState<'loading' | 'success' | 'error'>(() => {
-    if (errorParam) return 'error';
-    if (codeParam) return 'success';
-    return 'error';
-  });
-  const [errorMessage] = useState<string>(() => {
-    if (errorParam) return getErrorMessage(errorParam);
-    if (!codeParam) return getErrorMessage('missing_code');
-    return '';
-  });
+  const isSuccess = !errorParam && !!codeParam;
+  const errorMessage = errorParam
+    ? getErrorMessage(errorParam)
+    : !codeParam
+      ? getErrorMessage('missing_code')
+      : '';
 
   useEffect(() => {
     if (user) {
@@ -47,18 +43,7 @@ function VerifyEmailForm() {
     }
   }, [user, router]);
 
-  if (status === 'loading') {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-insight px-4 rounded-lg">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 text-primary-600 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">Verifying your email...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (status === 'success') {
+  if (isSuccess) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-insight px-4 py-12 rounded-lg">
         <div className="w-full max-w-md">

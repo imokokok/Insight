@@ -79,8 +79,6 @@ const fetchUserProfile = async (userId: string, session: Session | null) => {
   return userProfile;
 };
 
-let skipProfileFetchUntil = 0;
-
 export const useAuthStore = create<AuthStore>()(
   devtools(
     persist(
@@ -125,13 +123,8 @@ export const useAuthStore = create<AuthStore>()(
                 });
 
                 if (event === 'SIGNED_IN' && newSession?.user) {
-                  const now = Date.now();
-                  if (now < skipProfileFetchUntil) {
-                    skipProfileFetchUntil = 0;
-                  } else {
-                    const profile = await fetchUserProfile(newSession.user.id, newSession);
-                    set({ profile });
-                  }
+                  const profile = await fetchUserProfile(newSession.user.id, newSession);
+                  set({ profile });
                 } else if (event === 'SIGNED_OUT') {
                   set({ profile: null });
                 }
@@ -171,8 +164,6 @@ export const useAuthStore = create<AuthStore>()(
             return { error: signUpError };
           }
 
-          skipProfileFetchUntil = Date.now() + 5000;
-
           set({
             user: newUser,
             session: newSession,
@@ -200,8 +191,6 @@ export const useAuthStore = create<AuthStore>()(
             set({ error: signInError, loading: false });
             return { error: signInError };
           }
-
-          skipProfileFetchUntil = Date.now() + 5000;
 
           set({
             user: signInUser,
