@@ -42,67 +42,73 @@ function usePerformanceDegradation(): PerformanceDegradation {
   });
 
   useEffect(() => {
-    const checkPerformance = () => {
-      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-      const deviceMemory = navigator.deviceMemory;
-      const isLowMemory = deviceMemory && deviceMemory < 4;
+    const deviceMemory = navigator.deviceMemory;
+    const isLowMemory = deviceMemory && deviceMemory < 4;
 
-      if (prefersReducedMotion) {
-        setDegradation({
-          shouldDegrade: true,
-          reason: 'prefers-reduced-motion',
-          reducedParticleCount: 0,
-        });
-        return;
-      }
+    if (prefersReducedMotion) {
+      setDegradation({
+        shouldDegrade: true,
+        reason: 'prefers-reduced-motion',
+        reducedParticleCount: 0,
+      });
+      return;
+    }
 
-      if (isLowMemory) {
-        setDegradation({
-          shouldDegrade: true,
-          reason: 'low-memory',
-          reducedParticleCount: Math.floor(defaultProps.particleCount * 0.3),
-        });
-        return;
-      }
+    if (isLowMemory) {
+      setDegradation({
+        shouldDegrade: true,
+        reason: 'low-memory',
+        reducedParticleCount: Math.floor(defaultProps.particleCount * 0.3),
+      });
+      return;
+    }
 
-      let frameCount = 0;
-      let lastTime = performance.now();
+    let frameCount = 0;
+    let lastTime = performance.now();
+    let rafId: number | null = null;
+    let stopped = false;
 
-      const measureFPS = () => {
-        frameCount++;
-        const currentTime = performance.now();
-        const elapsed = currentTime - lastTime;
+    const measureFPS = () => {
+      if (stopped) return;
 
-        if (elapsed >= 1000) {
-          const fps = Math.round((frameCount * 1000) / elapsed);
-          frameCount = 0;
-          lastTime = currentTime;
+      frameCount++;
+      const currentTime = performance.now();
+      const elapsed = currentTime - lastTime;
 
-          if (fps < 30) {
-            setDegradation({
-              shouldDegrade: true,
-              reason: 'low-fps',
-              reducedParticleCount: Math.floor(defaultProps.particleCount * 0.3),
-            });
-          } else {
-            setDegradation({
-              shouldDegrade: false,
-              reason: '',
-              reducedParticleCount: defaultProps.particleCount,
-            });
-          }
+      if (elapsed >= 1000) {
+        const fps = Math.round((frameCount * 1000) / elapsed);
+        frameCount = 0;
+        lastTime = currentTime;
+
+        if (fps < 30) {
+          setDegradation({
+            shouldDegrade: true,
+            reason: 'low-fps',
+            reducedParticleCount: Math.floor(defaultProps.particleCount * 0.3),
+          });
+          return;
         }
 
-        requestAnimationFrame(measureFPS);
-      };
+        setDegradation({
+          shouldDegrade: false,
+          reason: '',
+          reducedParticleCount: defaultProps.particleCount,
+        });
+      }
 
-      measureFPS();
+      rafId = requestAnimationFrame(measureFPS);
     };
 
-    if (typeof window !== 'undefined') {
-      checkPerformance();
-    }
+    rafId = requestAnimationFrame(measureFPS);
+
+    return () => {
+      stopped = true;
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+      }
+    };
   }, []);
 
   return degradation;
@@ -199,7 +205,7 @@ export default function ParticleNetwork({
       animationRef.current = requestAnimationFrame(animate);
     };
 
-    let resizeTimeout: NodeJS.Timeout;
+    let resizeTimeout: ReturnType<typeof setTimeout>;
     const handleResize = () => {
       clearTimeout(resizeTimeout);
       resizeTimeout = setTimeout(() => {
@@ -218,6 +224,7 @@ export default function ParticleNetwork({
     window.addEventListener('resize', handleResize);
 
     return () => {
+      clearTimeout(resizeTimeout);
       window.removeEventListener('resize', handleResize);
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
@@ -229,7 +236,7 @@ export default function ParticleNetwork({
     return (
       <div
         style={{
-          position: 'fixed',
+          position: 'absolute',
           top: 0,
           left: 0,
           width: '100%',
@@ -247,7 +254,7 @@ export default function ParticleNetwork({
     <canvas
       ref={canvasRef}
       style={{
-        position: 'fixed',
+        position: 'absolute',
         top: 0,
         left: 0,
         width: '100%',

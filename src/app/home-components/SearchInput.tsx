@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 
 import { Search, X } from 'lucide-react';
 
@@ -45,6 +45,7 @@ export default function SearchInput({
 }: SearchInputProps) {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [isComposing, setIsComposing] = useState(false);
+  const blurTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleSelectItem = useCallback(() => {
     if (highlightedIndex >= 0 && highlightedIndex < dropdownItems.length) {
@@ -116,15 +117,28 @@ export default function SearchInput({
           }}
           onFocus={() => {
             setIsSearchFocused(true);
+            if (blurTimeoutRef.current) {
+              clearTimeout(blurTimeoutRef.current);
+              blurTimeoutRef.current = null;
+            }
             onDropdownOpenChange(true);
           }}
-          onBlur={() => setIsSearchFocused(false)}
+          onBlur={() => {
+            setIsSearchFocused(false);
+            blurTimeoutRef.current = setTimeout(() => {
+              onDropdownOpenChange(false);
+            }, 150);
+          }}
           onKeyDown={handleKeyDown}
           onCompositionStart={() => setIsComposing(true)}
           onCompositionEnd={() => setIsComposing(false)}
           placeholder="Search token, oracle, or blockchain..."
           className="flex-1 px-4 sm:px-5 py-4 sm:py-5 text-sm sm:text-base text-gray-900 placeholder-gray-400 bg-transparent border-0 min-w-0"
           style={{ outline: 'none', boxShadow: 'none' }}
+          role="combobox"
+          aria-expanded={isDropdownOpen}
+          aria-autocomplete="list"
+          aria-controls="search-dropdown"
         />
         {searchQuery && (
           <button

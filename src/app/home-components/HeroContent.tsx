@@ -35,14 +35,14 @@ export default function HeroContent() {
 
       <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
         <Link
-          href={`/price-query`}
+          href="/price-query"
           className="inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-gray-900 text-white font-semibold hover:bg-gray-800 transition-colors duration-200 group rounded-lg"
         >
           Start Query
           <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-200" />
         </Link>
         <Link
-          href={`/docs`}
+          href="/docs"
           className="inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-white text-gray-700 font-semibold border border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-colors duration-200 group rounded-lg"
         >
           <BookOpen className="w-5 h-5 text-gray-500 group-hover:text-gray-700 transition-colors duration-200" />

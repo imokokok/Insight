@@ -60,7 +60,7 @@ export default function DataFlowLines() {
           }}
         >
           <div
-            className="h-full w-1/3 animate-flow"
+            className="h-full w-1/3 animate-data-flow"
             style={{
               background:
                 'linear-gradient(90deg, transparent 0%, #3b82f6 20%, #8b5cf6 80%, transparent 100%)',
@@ -71,21 +71,6 @@ export default function DataFlowLines() {
           />
         </div>
       ))}
-
-      <style jsx>{`
-        @keyframes flow {
-          0% {
-            transform: translateX(-100%);
-          }
-          100% {
-            transform: translateX(400%);
-          }
-        }
-
-        .animate-flow {
-          animation: flow linear infinite;
-        }
-      `}</style>
     </div>
   );
 }

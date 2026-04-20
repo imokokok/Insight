@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 import HeroBackground from './HeroBackground';
 import HeroContent from './HeroContent';
@@ -40,10 +40,13 @@ export default function ProfessionalHero() {
     return () => clearTimeout(timer);
   }, []);
 
-  const handleRemoveHistoryItemWithEvent = (symbol: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    handleRemoveHistoryItem(symbol);
-  };
+  const handleRemoveHistoryItemWithEvent = useCallback(
+    (symbol: string, e: React.MouseEvent) => {
+      e.stopPropagation();
+      handleRemoveHistoryItem(symbol);
+    },
+    [handleRemoveHistoryItem]
+  );
 
   return (
     <section className="relative min-h-screen flex flex-col">
