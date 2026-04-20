@@ -31,25 +31,25 @@ function validatePreferences(preferences: unknown): Record<string, unknown> | un
     }
   }
 
-  if (prefs.defaultChain !== undefined) {
-    if (typeof prefs.defaultChain === 'string') {
-      sanitized.defaultChain = sanitizeString(prefs.defaultChain, { maxLength: 30 });
+  if (prefs.default_chain !== undefined) {
+    if (typeof prefs.default_chain === 'string') {
+      sanitized.default_chain = sanitizeString(prefs.default_chain, { maxLength: 30 });
     }
   }
 
-  if (prefs.refreshInterval !== undefined) {
+  if (prefs.refresh_interval !== undefined) {
     if (
-      typeof prefs.refreshInterval === 'number' &&
-      prefs.refreshInterval >= 1000 &&
-      prefs.refreshInterval <= 300000
+      typeof prefs.refresh_interval === 'number' &&
+      prefs.refresh_interval >= 1000 &&
+      prefs.refresh_interval <= 300000
     ) {
-      sanitized.refreshInterval = prefs.refreshInterval;
+      sanitized.refresh_interval = prefs.refresh_interval;
     }
   }
 
-  if (prefs.notificationsEnabled !== undefined) {
-    if (typeof prefs.notificationsEnabled === 'boolean') {
-      sanitized.notificationsEnabled = prefs.notificationsEnabled;
+  if (prefs.notifications_enabled !== undefined) {
+    if (typeof prefs.notifications_enabled === 'boolean') {
+      sanitized.notifications_enabled = prefs.notifications_enabled;
     }
   }
 

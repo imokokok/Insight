@@ -21,7 +21,9 @@ import { useUser, useAuthActions } from '@/stores/authStore';
 export function DataManagementPanel() {
   const user = useUser();
   const { signOut } = useAuthActions();
-  const [isExporting, setIsExporting] = useState(false);
+  const [isExportingUserData, setIsExportingUserData] = useState(false);
+  const [isExportingPrice, setIsExportingPrice] = useState(false);
+  const [isExportingSnapshots, setIsExportingSnapshots] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -50,7 +52,7 @@ export function DataManagementPanel() {
   const exportUserData = async () => {
     if (!user) return;
 
-    setIsExporting(true);
+    setIsExportingUserData(true);
     setError(null);
 
     try {
@@ -80,21 +82,20 @@ export function DataManagementPanel() {
     } catch (_err) {
       setError('Failed to export data');
     } finally {
-      setIsExporting(false);
+      setIsExportingUserData(false);
     }
   };
 
   const exportPriceHistory = async () => {
     if (!user) return;
 
-    setIsExporting(true);
+    setIsExportingPrice(true);
     setError(null);
 
     try {
       const { data, error: queryError } = await supabase
         .from('price_records')
         .select('*')
-        .eq('user_id', user.id)
         .order('timestamp', { ascending: false })
         .limit(10000);
 
@@ -113,14 +114,14 @@ export function DataManagementPanel() {
     } catch (_err) {
       setError('Failed to export data');
     } finally {
-      setIsExporting(false);
+      setIsExportingPrice(false);
     }
   };
 
   const exportSnapshots = async () => {
     if (!user) return;
 
-    setIsExporting(true);
+    setIsExportingSnapshots(true);
     setError(null);
 
     try {
@@ -139,7 +140,7 @@ export function DataManagementPanel() {
     } catch (_err) {
       setError('Failed to export data');
     } finally {
-      setIsExporting(false);
+      setIsExportingSnapshots(false);
     }
   };
 
@@ -243,10 +244,10 @@ export function DataManagementPanel() {
                 </div>
                 <button
                   onClick={exportUserData}
-                  disabled={isExporting}
+                  disabled={isExportingUserData}
                   className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 active:bg-primary-800 transition-all duration-200 disabled:opacity-50 text-sm font-medium shadow-sm hover:shadow-md"
                 >
-                  {isExporting ? (
+                  {isExportingUserData ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
                     <Download className="w-4 h-4" />
@@ -264,15 +265,15 @@ export function DataManagementPanel() {
                   </div>
                   <div>
                     <div className="font-medium text-gray-900">Export Price History</div>
-                    <div className="text-sm text-gray-500">Download your price query history</div>
+                    <div className="text-sm text-gray-500">Download recent price data</div>
                   </div>
                 </div>
                 <button
                   onClick={exportPriceHistory}
-                  disabled={isExporting}
+                  disabled={isExportingPrice}
                   className="inline-flex items-center gap-2 px-4 py-2 bg-success-600 text-white rounded-lg hover:bg-success-700 active:bg-green-800 transition-all duration-200 disabled:opacity-50 text-sm font-medium shadow-sm hover:shadow-md"
                 >
-                  {isExporting ? (
+                  {isExportingPrice ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
                     <Download className="w-4 h-4" />
@@ -295,10 +296,10 @@ export function DataManagementPanel() {
                 </div>
                 <button
                   onClick={exportSnapshots}
-                  disabled={isExporting}
+                  disabled={isExportingSnapshots}
                   className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 active:bg-purple-800 transition-all duration-200 disabled:opacity-50 text-sm font-medium shadow-sm hover:shadow-md"
                 >
-                  {isExporting ? (
+                  {isExportingSnapshots ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
                     <Download className="w-4 h-4" />

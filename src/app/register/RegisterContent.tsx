@@ -8,14 +8,14 @@ import { useRouter } from 'next/navigation';
 import { Mail, User, UserPlus, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 
 import { PasswordInput } from '@/components/ui/PasswordInput';
-import { useUser, useAuthLoading, useAuthError, useAuthActions } from '@/stores/authStore';
+import { useUser, useAuthActions } from '@/stores/authStore';
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function RegisterContent() {
   const router = useRouter();
   const user = useUser();
-  const loading = useAuthLoading();
-  const error = useAuthError();
-  const { signUp } = useAuthActions();
+  const { signUp, clearError } = useAuthActions();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -33,6 +33,10 @@ export default function RegisterContent() {
   const validateForm = () => {
     if (!email.trim()) {
       setLocalError('Email is required');
+      return false;
+    }
+    if (!EMAIL_REGEX.test(email.trim())) {
+      setLocalError('Please enter a valid email address');
       return false;
     }
     if (!password) {
@@ -53,6 +57,7 @@ export default function RegisterContent() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLocalError(null);
+    clearError();
 
     if (!validateForm()) {
       return;
@@ -71,7 +76,7 @@ export default function RegisterContent() {
     }
   };
 
-  const displayError = localError || error?.message;
+  const displayError = localError;
 
   if (isSuccess) {
     return (
@@ -163,8 +168,6 @@ export default function RegisterContent() {
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
                   placeholder="Enter your display name"
-                  aria-invalid={!!displayError}
-                  aria-describedby={displayError ? 'register-error' : undefined}
                   className="w-full pl-12 pr-4 py-3 border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900 transition-colors rounded-md"
                 />
               </div>
@@ -254,15 +257,15 @@ export default function RegisterContent() {
 
             <button
               type="submit"
-              disabled={isLoading || loading}
-              className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-primary-600 text-white font-semibold hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isLoading}
+              className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-primary-600 text-white font-semibold hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed rounded-md"
             >
-              {isLoading || loading ? (
+              {isLoading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
               ) : (
                 <UserPlus className="w-5 h-5" />
               )}
-              <span>{isLoading || loading ? 'Creating account...' : 'Create Account'}</span>
+              <span>{isLoading ? 'Creating account...' : 'Create Account'}</span>
             </button>
           </form>
 

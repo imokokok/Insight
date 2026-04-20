@@ -7,7 +7,10 @@ import { Clock, Database, Save, Loader2, CheckCircle, RefreshCw, DollarSign } fr
 import { DropdownSelect, SegmentedControl } from '@/components/ui';
 import { getAllSupportedSymbols } from '@/lib/oracles/constants/supportedSymbols';
 import { updateUserProfile } from '@/lib/supabase/auth';
+import { createLogger } from '@/lib/utils/logger';
 import { useUser, useProfile, useAuthInitialized } from '@/stores/authStore';
+
+const logger = createLogger('PreferencesPanel');
 
 interface UserPreferences {
   defaultOracle: string;
@@ -176,8 +179,11 @@ export function PreferencesPanel() {
         clearTimeout(successTimerRef.current);
       }
       successTimerRef.current = setTimeout(() => setSuccess(null), 3000);
-    } catch (error) {
-      console.error('Failed to save preferences:', error);
+    } catch (err) {
+      logger.error(
+        'Failed to save preferences',
+        err instanceof Error ? err : new Error(String(err))
+      );
       setError('Failed to save preferences');
     } finally {
       setIsSaving(false);

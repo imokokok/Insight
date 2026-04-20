@@ -1,75 +1,51 @@
 'use client';
 
-import { useEffect, useState, Suspense, useCallback } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
 
-import { supabase } from '@/lib/supabase/client';
 import { useUser } from '@/stores/authStore';
+
+function getErrorMessage(error: string): string {
+  switch (error) {
+    case 'access_denied':
+      return 'Access denied. Please try again.';
+    case 'expired_token':
+      return 'This verification link has expired. Please request a new one.';
+    case 'invalid_token':
+      return 'Invalid verification link. Please request a new one.';
+    default:
+      return 'Verification failed. Please try again.';
+  }
+}
 
 function VerifyEmailForm() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const user = useUser();
 
-  const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
-  const [errorMessage, setErrorMessage] = useState<string>('');
+  const errorParam = searchParams.get('error');
+  const codeParam = searchParams.get('code');
 
-  const errorParam = searchParams.get('key');
-  const errorCode = searchParams.get('key');
-  const emailParam = searchParams.get('key');
-  const codeParam = searchParams.get('key');
-
-  const getErrorMessage = useCallback((error: string, _code: string | null): string => {
-    switch (error) {
-      case 'access_denied':
-        return 'Access denied. Please try again.';
-      case 'expired_token':
-        return 'This verification link has expired. Please request a new one.';
-      case 'invalid_token':
-        return 'Invalid verification link. Please request a new one.';
-      default:
-        return 'Verification failed. Please try again.';
-    }
-  }, []);
+  const [status] = useState<'loading' | 'success' | 'error'>(() => {
+    if (errorParam) return 'error';
+    if (codeParam) return 'success';
+    return 'error';
+  });
+  const [errorMessage] = useState<string>(() => {
+    if (errorParam) return getErrorMessage(errorParam);
+    if (!codeParam) return getErrorMessage('missing_code');
+    return '';
+  });
 
   useEffect(() => {
     if (user) {
       router.push(`/`);
-      return;
     }
-
-    if (errorParam) {
-      requestAnimationFrame(() => {
-        setStatus('error');
-        setErrorMessage(getErrorMessage(errorParam, errorCode));
-      });
-      return;
-    }
-
-    if (codeParam) {
-      supabase.auth
-        .exchangeCodeForSession(codeParam)
-        .then(({ error: exchangeError }) => {
-          if (exchangeError) {
-            setStatus('error');
-            setErrorMessage(getErrorMessage('invalid_token', null));
-          } else {
-            setStatus('success');
-          }
-        })
-        .catch(() => {
-          setStatus('error');
-          setErrorMessage(getErrorMessage('default', null));
-        });
-    } else {
-      setStatus('error');
-      setErrorMessage(getErrorMessage('missing_code', null));
-    }
-  }, [errorParam, errorCode, emailParam, codeParam, user, router, getErrorMessage]);
+  }, [user, router]);
 
   if (status === 'loading') {
     return (

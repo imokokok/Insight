@@ -79,6 +79,8 @@ const fetchUserProfile = async (userId: string, session: Session | null) => {
   return userProfile;
 };
 
+let skipProfileFetchUntil = 0;
+
 export const useAuthStore = create<AuthStore>()(
   devtools(
     persist(
@@ -123,8 +125,13 @@ export const useAuthStore = create<AuthStore>()(
                 });
 
                 if (event === 'SIGNED_IN' && newSession?.user) {
-                  const profile = await fetchUserProfile(newSession.user.id, newSession);
-                  set({ profile });
+                  const now = Date.now();
+                  if (now < skipProfileFetchUntil) {
+                    skipProfileFetchUntil = 0;
+                  } else {
+                    const profile = await fetchUserProfile(newSession.user.id, newSession);
+                    set({ profile });
+                  }
                 } else if (event === 'SIGNED_OUT') {
                   set({ profile: null });
                 }
@@ -164,12 +171,14 @@ export const useAuthStore = create<AuthStore>()(
             return { error: signUpError };
           }
 
+          skipProfileFetchUntil = Date.now() + 5000;
+
           set({
             user: newUser,
             session: newSession,
           });
 
-          if (newUser) {
+          if (newUser && newSession) {
             const profile = await fetchUserProfile(newUser.id, newSession);
             set({ profile });
           }
@@ -191,6 +200,8 @@ export const useAuthStore = create<AuthStore>()(
             set({ error: signInError, loading: false });
             return { error: signInError };
           }
+
+          skipProfileFetchUntil = Date.now() + 5000;
 
           set({
             user: signInUser,
@@ -301,12 +312,10 @@ export const useAuthStore = create<AuthStore>()(
 );
 
 export const useUser = () => useAuthStore((state) => state.user);
-const useSession = () => useAuthStore((state) => state.session);
 export const useProfile = () => useAuthStore((state) => state.profile);
 export const useAuthLoading = () => useAuthStore((state) => state.loading);
 export const useAuthError = () => useAuthStore((state) => state.error);
 export const useAuthInitialized = () => useAuthStore((state) => state.initialized);
-const useIsAuthenticated = () => useAuthStore((state) => !!state.user);
 
 export const useAuthActions = () => {
   const initialize = useAuthStore((state) => state.initialize);

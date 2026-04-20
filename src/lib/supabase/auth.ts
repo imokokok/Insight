@@ -12,9 +12,7 @@ interface AuthResponse {
   error: AuthError | null;
 }
 
-interface SignUpResponse extends AuthResponse {
-  profileError: Error | null;
-}
+type SignUpResponse = AuthResponse;
 
 export interface UserProfile {
   id: string;
@@ -57,20 +55,10 @@ export async function signUp(
     },
   });
 
-  let profileError: Error | null = null;
-
-  if (data.user && !error) {
-    const { error: createProfileError } = await createUserProfile(data.user.id, {
-      display_name: displayName,
-    });
-    profileError = createProfileError;
-  }
-
   return {
     user: data.user,
     session: data.session,
     error,
-    profileError,
   };
 }
 
@@ -127,14 +115,6 @@ export async function getSession(): Promise<{ session: Session | null; error: Au
   const { data, error } = await supabase.auth.getSession();
   return {
     session: data.session,
-    error,
-  };
-}
-
-async function getUser(): Promise<{ user: User | null; error: AuthError | null }> {
-  const { data, error } = await supabase.auth.getUser();
-  return {
-    user: data.user,
     error,
   };
 }
