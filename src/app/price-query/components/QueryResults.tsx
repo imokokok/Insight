@@ -64,9 +64,13 @@ export function QueryResults({ onChainData }: QueryResultsProps) {
   } = onChainData;
 
   const consistencyRating = useConsistencyRating(standardDeviationPercent);
-  const prevPriceRef = useRef<number | undefined>(undefined);
+  const prevPriceRef = useRef<number>(0);
   const currentPriceValue =
-    queryResults.length > 0 ? (queryResults[0]?.priceData?.price ?? avgPrice) : avgPrice;
+    queryResults.length > 0
+      ? (queryResults[0]?.priceData?.price ?? (avgPrice > 0 ? avgPrice : 0))
+      : avgPrice > 0
+        ? avgPrice
+        : 0;
   const previousPriceValue = prevPriceRef.current;
 
   useEffect(() => {

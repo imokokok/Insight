@@ -249,7 +249,7 @@ describe('priceValidator', () => {
 
     describe('Basic validation', () => {
       it('should validate a valid time series', () => {
-        const now = Date.now;
+        const now = Date.now();
         const data: PriceData[] = [
           createPriceData(100, now - 2000),
           createPriceData(101, now - 1000),
@@ -279,7 +279,7 @@ describe('priceValidator', () => {
 
     describe('Price validation', () => {
       it('should validate all prices in series', () => {
-        const now = Date.now;
+        const now = Date.now();
         const data: PriceData[] = [
           createPriceData(100, now - 2000),
           createPriceData(-50, now - 1000),
@@ -295,7 +295,7 @@ describe('priceValidator', () => {
 
     describe('Timestamp validation', () => {
       it('should validate all timestamps in series', () => {
-        const now = Date.now;
+        const now = Date.now();
         const data: PriceData[] = [
           createPriceData(100, now - 2000),
           createPriceData(101, now + 10000),
@@ -309,9 +309,9 @@ describe('priceValidator', () => {
       });
     });
 
-    describe('', () => {
+    describe('Gap detection', () => {
       it('should detect gap in data', () => {
-        const now = Date.now;
+        const now = Date.now();
         const data: PriceData[] = [
           createPriceData(100, now - 30 * 60 * 1000),
           createPriceData(101, now),
@@ -324,7 +324,7 @@ describe('priceValidator', () => {
       });
 
       it('should not flag normal intervals', () => {
-        const now = Date.now;
+        const now = Date.now();
         const data: PriceData[] = [createPriceData(100, now - 5000), createPriceData(101, now)];
 
         const result = validateTimeSeries(data);
@@ -333,7 +333,7 @@ describe('priceValidator', () => {
       });
 
       it('should assign correct severity for gaps', () => {
-        const now = Date.now;
+        const now = Date.now();
         const data1: PriceData[] = [
           createPriceData(100, now - 15 * 60 * 1000),
           createPriceData(101, now),
@@ -360,9 +360,9 @@ describe('priceValidator', () => {
       });
     });
 
-    describe('', () => {
+    describe('Price anomaly detection', () => {
       it('should detect price anomalies in series', () => {
-        const now = Date.now;
+        const now = Date.now();
         const data: PriceData[] = [
           createPriceData(100, now - 2000),
           createPriceData(200, now - 1000),
@@ -379,7 +379,7 @@ describe('priceValidator', () => {
 
     describe('sort', () => {
       it('should handle unsorted data', () => {
-        const now = Date.now;
+        const now = Date.now();
         const data: PriceData[] = [
           createPriceData(102, now),
           createPriceData(100, now - 2000),

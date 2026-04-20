@@ -3,9 +3,8 @@ import { useMemo } from 'react';
 import { useCrossChainUIStore } from '@/stores/crossChainUIStore';
 import { type Blockchain } from '@/types/oracle';
 
+import { type PriceDifferenceItem } from '../types';
 import { chainNames, defaultThresholdConfig, type ThresholdConfig } from '../utils';
-
-import { type PriceDifferenceItem } from './useExport';
 
 interface UseCrossChainTableParams {
   priceDifferences: PriceDifferenceItem[];

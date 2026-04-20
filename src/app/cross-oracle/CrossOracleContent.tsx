@@ -1,9 +1,8 @@
 'use client';
 
-import { useRef, useCallback, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 
 import { LiveStatusBar } from '@/components/ui';
-import { useCommonShortcuts } from '@/hooks';
 import { chartColors } from '@/lib/config/colors';
 import { formatTimeString } from '@/lib/utils/format';
 
@@ -13,8 +12,6 @@ import { QueryResults } from './components/QueryResults';
 import { useCrossOraclePage } from './hooks';
 
 export default function CrossOracleContent() {
-  const filterInputRef = useRef<HTMLInputElement>(null);
-
   const {
     selectedOracles,
     setSelectedOracles,
@@ -48,12 +45,6 @@ export default function CrossOracleContent() {
     lastRefreshedAt,
     nextRefreshAt,
   } = useCrossOraclePage();
-
-  const debouncedSearchFocus = useCallback(() => {
-    requestAnimationFrame(() => {
-      filterInputRef.current?.focus();
-    });
-  }, []);
 
   const {
     validPrices,

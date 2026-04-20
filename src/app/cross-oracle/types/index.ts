@@ -1,40 +1,8 @@
-/**
- * @fileoverview Multi-oracle comparison page type definitions
- * @description Unified export of all type definitions, ensuring a clear and consistent type system
- */
-
 import type { MemoryStats } from '@/lib/oracles/utils/memoryManager';
 import type { CalculatedPerformanceMetrics } from '@/lib/oracles/utils/performanceMetricsCalculator';
 import { type OracleProvider, type PriceData, type SnapshotStats } from '@/types/oracle';
 
-type TabId = 'priceComparison' | 'qualityAnalysis' | 'oracleProfiles';
-
 export type RefreshInterval = 'off' | '10s' | '30s' | '1m' | '5m';
-
-interface CrossOracleData {
-  asset?: string;
-  oracle?: string;
-  provider?: string;
-  chain?: string;
-  price: number;
-  timestamp: number;
-  deviation?: number;
-  confidence?: number;
-}
-
-interface ChartDataPoint {
-  timestamp: string;
-  rawTimestamp: number;
-  fullTimestamp?: Date;
-  avgPrice?: number;
-  stdDev?: number;
-  upperBound1?: number;
-  lowerBound1?: number;
-  upperBound2?: number;
-  lowerBound2?: number;
-  oracleCount?: number;
-  [key: string]: string | number | Date | undefined;
-}
 
 export interface PriceStatsResult {
   validPrices: number[];

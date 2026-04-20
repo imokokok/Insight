@@ -73,7 +73,7 @@ export function useOracleDataCore(
   const {
     selectedOracles,
     selectedSymbol,
-    timeRange,
+    timeRange: _timeRange,
     initialRefreshInterval = 'off',
     enablePerformanceMetrics = true,
     initialRetryConfig,
@@ -108,11 +108,9 @@ export function useOracleDataCore(
   const prevDepsRef = useRef<{
     selectedOracles: OracleProvider[];
     selectedSymbol: string;
-    timeRange: TimeRange;
   }>({
     selectedOracles: [],
     selectedSymbol: '',
-    timeRange: '24h',
   });
   const isInitialMountRef = useRef(true);
 
@@ -372,13 +370,13 @@ export function useOracleDataCore(
   useEffect(() => {
     isMountedRef.current = true;
 
-    const currentKey = `${selectedOracles.slice().sort().join(',')}_${selectedSymbol}_${timeRange}`;
-    const prevKey = `${prevDepsRef.current.selectedOracles.slice().sort().join(',')}_${prevDepsRef.current.selectedSymbol}_${prevDepsRef.current.timeRange}`;
+    const currentKey = `${selectedOracles.slice().sort().join(',')}_${selectedSymbol}`;
+    const prevKey = `${prevDepsRef.current.selectedOracles.slice().sort().join(',')}_${prevDepsRef.current.selectedSymbol}`;
 
     const depsChanged = isInitialMountRef.current || currentKey !== prevKey;
 
     if (depsChanged) {
-      prevDepsRef.current = { selectedOracles, selectedSymbol, timeRange };
+      prevDepsRef.current = { selectedOracles, selectedSymbol };
       isInitialMountRef.current = false;
       resetErrors();
       setError(null);
@@ -391,7 +389,7 @@ export function useOracleDataCore(
         abortControllerRef.current.abort();
       }
     };
-  }, [selectedOracles, selectedSymbol, timeRange, resetErrors]);
+  }, [selectedOracles, selectedSymbol, resetErrors]);
 
   useEffect(() => {
     if (refreshInterval === 'off') {

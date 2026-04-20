@@ -21,6 +21,13 @@ interface PythChainConfig {
 
 const REQUEST_TIMEOUT_MS = 5000;
 
+/**
+ * NOTE: Pyth Network uses a unified Hermes API endpoint that aggregates price data
+ * from all supported chains. While the endpoint is the same, each chain may have
+ * different price update timings and latencies based on their individual block times
+ * and network conditions. This allows us to compare data freshness and availability
+ * across chains even though the underlying price source is unified.
+ */
 const CHAIN_CONFIGS: PythChainConfig[] = [
   { id: 'solana', name: 'Solana', blockchain: 'solana' as Blockchain, endpoint: HERMES_API_URL },
   {

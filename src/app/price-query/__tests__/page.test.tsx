@@ -6,83 +6,111 @@ import { render, screen } from '@testing-library/react';
 import PriceQueryPage from '../page';
 
 jest.mock('../components', () => ({
-  QueryHeader: ({
-    loading,
-    queryResultsLength,
-  }: {
-    loading: boolean;
-    queryResultsLength: number;
-  }) => (
-    <div data-testid="query-header" data-loading={loading} data-results={queryResultsLength}>
-      QueryHeader
+  QueryHeader: () => <div data-testid="query-header">QueryHeader</div>,
+  QueryForm: () => (
+    <div data-testid="query-form">
+      <button data-testid="query-button">Query</button>
     </div>
   ),
-  QueryForm: ({ isLoading, onQuery }: { isLoading: boolean; onQuery: () => void }) => (
-    <div data-testid="query-form" data-loading={isLoading}>
-      <button onClick={onQuery} data-testid="query-button">
-        Query
-      </button>
-    </div>
-  ),
-  QueryResults: ({ queryResults, isLoading }: { queryResults: unknown[]; isLoading: boolean }) => (
-    <div data-testid="query-results" data-loading={isLoading} data-count={queryResults.length}>
-      QueryResults
-    </div>
-  ),
-  ExportConfig: ({ isOpen }: { isOpen: boolean }) => (
-    <div data-testid="export-config" data-open={isOpen}>
-      ExportConfig
-    </div>
-  ),
+  QueryResults: () => <div data-testid="query-results">QueryResults</div>,
 }));
 
-jest.mock('../hooks/usePriceQuery', () => ({
-  usePriceQuery: () => ({
+jest.mock('../contexts', () => ({
+  QueryParamsProvider: ({ children }: { children: ReactNode }) => <>{children}</>,
+  QueryDataProvider: ({ children }: { children: ReactNode }) => <>{children}</>,
+  QueryUIProvider: ({ children }: { children: ReactNode }) => <>{children}</>,
+  useQueryParams: () => ({
     selectedOracle: null,
     setSelectedOracle: jest.fn(),
     selectedChain: null,
     setSelectedChain: jest.fn(),
-    selectedSymbol: '',
+    selectedSymbol: 'BTC',
     setSelectedSymbol: jest.fn(),
     selectedTimeRange: 24,
     setSelectedTimeRange: jest.fn(),
+    isCompareMode: false,
+    setIsCompareMode: jest.fn(),
+    urlParamsParsed: true,
+  }),
+  useQueryData: () => ({
     queryResults: [],
+    compareQueryResults: [],
     isLoading: false,
+    isFetching: false,
     queryDuration: null,
-    queryProgress: 0,
-    currentQueryTarget: null,
-    showExportConfig: false,
-    setShowExportConfig: jest.fn(),
-    chartContainerRef: { current: null },
-    validPrices: [],
-    avgPrice: null,
-    avgChange24hPercent: null,
-    maxPrice: null,
-    minPrice: null,
-    priceRange: null,
-    standardDeviation: null,
-    standardDeviationPercent: null,
-    supportedChainsBySelectedOracles: [],
-    fetchQueryData: jest.fn(),
-    handleExportCSV: jest.fn(),
-    handleExportJSON: jest.fn(),
-    symbolFavorites: [],
-    currentFavoriteConfig: null,
-    showFavoritesDropdown: false,
-    setShowFavoritesDropdown: jest.fn(),
-    favoritesDropdownRef: { current: null },
-    handleApplyFavorite: jest.fn(),
+    queryProgress: { completed: 0, total: 0 },
+    currentQueryTarget: { oracle: null, chain: null },
     queryErrors: [],
     clearErrors: jest.fn(),
     retryDataSource: jest.fn(),
     retryAllErrors: jest.fn(),
+    refetch: jest.fn(),
+    validationWarnings: [],
+    dataAnomalies: [],
+    hasDataQualityIssues: false,
+    supportedChainsBySelectedOracles: new Set(),
+    stats: {
+      validPrices: [],
+      avgPrice: 0,
+      avgChange24hPercent: undefined,
+      maxPrice: 0,
+      minPrice: 0,
+      priceRange: 0,
+      compareValidPrices: [],
+      compareAvgPrice: 0,
+      compareAvgChange24hPercent: undefined,
+      compareMaxPrice: 0,
+      compareMinPrice: 0,
+      comparePriceRange: 0,
+      variance: 0,
+      standardDeviation: 0,
+      standardDeviationPercent: 0,
+    },
+    autoRefresh: {
+      isAutoRefreshEnabled: false,
+      refreshInterval: 0,
+      lastRefreshedAt: null,
+      nextRefreshAt: null,
+      setRefreshInterval: jest.fn(),
+      toggleAutoRefresh: jest.fn(),
+      isRefreshing: false,
+    },
   }),
-}));
-
-jest.mock('../utils/exportUtils', () => ({
-  exportToCSV: jest.fn(),
-  exportToJSON: jest.fn(),
-  exportToPDF: jest.fn(),
+  useQueryUI: () => ({
+    filterText: '',
+    setFilterText: jest.fn(),
+    sortField: 'oracle' as const,
+    sortDirection: 'asc' as const,
+    hiddenSeries: new Set(),
+    setHiddenSeries: jest.fn(),
+    toggleSeries: jest.fn(),
+    handleSort: jest.fn(),
+    selectedRow: null,
+    setSelectedRow: jest.fn(),
+    showBaseline: false,
+    setShowBaseline: jest.fn(),
+    timeComparisonConfig: {
+      primaryPeriod: {
+        id: 'p',
+        label: 'P',
+        startDate: new Date(),
+        endDate: new Date(),
+        range: '24h' as const,
+      },
+      comparisonPeriod: {
+        id: 'c',
+        label: 'C',
+        startDate: new Date(),
+        endDate: new Date(),
+        range: '24h' as const,
+      },
+      comparisonType: 'previous' as const,
+    },
+    setTimeComparisonConfig: jest.fn(),
+    showFavoritesDropdown: false,
+    setShowFavoritesDropdown: jest.fn(),
+    favoritesDropdownRef: { current: null },
+  }),
 }));
 
 jest.mock('@/hooks', () => ({
@@ -90,6 +118,22 @@ jest.mock('@/hooks', () => ({
   useDIAOnChainData: () => ({ data: null, isLoading: false }),
   useWINkLinkOnChainData: () => ({ data: null, isLoading: false }),
   useRedStoneOnChainData: () => ({ data: null, isLoading: false }),
+  useAllOnChainData: () => ({
+    diaOnChainData: null,
+    isDIADataLoading: false,
+    winklinkOnChainData: null,
+    isWINkLinkDataLoading: false,
+    redstoneOnChainData: null,
+    isRedStoneDataLoading: false,
+    supraOnChainData: null,
+    isSupraDataLoading: false,
+    twapOnChainData: null,
+    isTwapDataLoading: false,
+    reflectorOnChainData: null,
+    isReflectorDataLoading: false,
+    flareOnChainData: null,
+    isFlareDataLoading: false,
+  }),
 }));
 
 jest.mock('@/components/ui', () => ({
@@ -125,7 +169,8 @@ const createWrapper = () => {
 };
 
 const renderPriceQueryPage = () => {
-  return render(<PriceQueryPage />, { wrapper: createWrapper });
+  const Wrapper = createWrapper();
+  return render(<PriceQueryPage />, { wrapper: Wrapper });
 };
 
 describe('PriceQueryPage', () => {
@@ -143,20 +188,13 @@ describe('PriceQueryPage', () => {
 
       expect(screen.getByTestId('live-status')).toBeInTheDocument();
     });
-
-    it('should render ExportConfig', () => {
-      renderPriceQueryPage();
-
-      expect(screen.getByTestId('export-config')).toBeInTheDocument();
-    });
   });
 
   describe('Layout structure', () => {
     it('should have correct container styles', () => {
       renderPriceQueryPage();
 
-      const container = screen.getByTestId('query-header').closest('Mock Text')
-        ?.parentElement?.parentElement;
+      const container = screen.getByTestId('query-header').parentElement?.parentElement;
       expect(container).toHaveClass('max-w-[1600px]');
       expect(container).toHaveClass('mx-auto');
     });
@@ -170,25 +208,18 @@ describe('PriceQueryPage', () => {
   });
 
   describe('Initial state', () => {
-    it('QueryHeader should display non-loading state', () => {
+    it('QueryHeader should be in the document', () => {
       renderPriceQueryPage();
 
       const header = screen.getByTestId('query-header');
-      expect(header).toHaveAttribute('data-loading', 'false');
+      expect(header).toBeInTheDocument();
     });
 
-    it('QueryResults should display empty results', () => {
+    it('QueryResults should be in the document', () => {
       renderPriceQueryPage();
 
       const results = screen.getByTestId('query-results');
-      expect(results).toHaveAttribute('data-count', '0');
-    });
-
-    it('ExportConfig shoulddefaultclose', () => {
-      renderPriceQueryPage();
-
-      const exportConfig = screen.getByTestId('export-config');
-      expect(exportConfig).toHaveAttribute('data-open', 'false');
+      expect(results).toBeInTheDocument();
     });
   });
 

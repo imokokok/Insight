@@ -80,6 +80,7 @@ function usePriceQueryState(): UsePriceQueryStateReturn {
   const [showBaseline, setShowBaseline] = useState<boolean>(false);
   const [selectedRow, setSelectedRow] = useState<string | null>(null);
   const [urlParamsParsed, setUrlParamsParsed] = useState(false);
+  const hasInitializedRef = useRef(false);
 
   const [timeComparisonConfig, setTimeComparisonConfig] = useState<TimeComparisonConfig>(() => {
     const now = new Date();
@@ -142,6 +143,8 @@ function usePriceQueryState(): UsePriceQueryStateReturn {
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    if (hasInitializedRef.current) return;
+    hasInitializedRef.current = true;
 
     const config = parseQueryParams(window.location.search);
 
@@ -174,12 +177,10 @@ function usePriceQueryState(): UsePriceQueryStateReturn {
       selectedChainRef.current = Blockchain.ETHEREUM;
       selectedSymbolRef.current = defaultSymbol;
       selectedTimeRangeRef.current = defaultTimeRange;
-      requestAnimationFrame(() => {
-        setSelectedOracle(defaultOracle);
-        setSelectedSymbol(defaultSymbol);
-        setSelectedTimeRange(defaultTimeRange);
-        setUrlParamsParsed(true);
-      });
+      setSelectedOracle(defaultOracle);
+      setSelectedSymbol(defaultSymbol);
+      setSelectedTimeRange(defaultTimeRange);
+      setUrlParamsParsed(true);
     } else {
       const oracleFromUrl =
         config.oracles && config.oracles.length > 0 ? config.oracles[0] : selectedOracleRef.current;
@@ -193,23 +194,14 @@ function usePriceQueryState(): UsePriceQueryStateReturn {
       selectedSymbolRef.current = symbolFromUrl;
       selectedTimeRangeRef.current = timeRangeFromUrl;
 
-      requestAnimationFrame(() => {
-        setSelectedOracle(oracleFromUrl);
-        setSelectedChain(chainFromUrl);
-        setSelectedSymbol(symbolFromUrl);
-        setSelectedTimeRange(timeRangeFromUrl);
-        setUrlParamsParsed(true);
-      });
+      setSelectedOracle(oracleFromUrl);
+      setSelectedChain(chainFromUrl);
+      setSelectedSymbol(symbolFromUrl);
+      setSelectedTimeRange(timeRangeFromUrl);
+      setUrlParamsParsed(true);
     }
-  }, [
-    preferences.defaultOracle,
-    preferences.defaultTimeRange,
-    preferences.defaultSymbol,
-    setSelectedChain,
-    setSelectedOracle,
-    setSelectedSymbol,
-    setSelectedTimeRange,
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (!urlParamsParsed) return;

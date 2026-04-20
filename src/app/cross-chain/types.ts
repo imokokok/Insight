@@ -4,12 +4,15 @@ import type { useUser } from '@/stores/authStore';
 import { type OracleProvider, type Blockchain, type PriceData } from '@/types/oracle';
 
 import { type RefreshInterval } from './constants';
-import {
-  type UseStatisticsReturn,
-  type UseChartDataReturn,
-  type PriceDifferenceItem,
-} from './hooks';
+import { type UseStatisticsReturn, type UseChartDataReturn } from './hooks';
 import { type AnomalousPricePoint } from './utils/anomalyDetection';
+
+export interface PriceDifferenceItem {
+  chain: Blockchain;
+  price: number;
+  diff: number;
+  diffPercent: number;
+}
 
 export interface SelectorSlice {
   selectedProvider: OracleProvider;

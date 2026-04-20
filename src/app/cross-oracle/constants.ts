@@ -1,11 +1,7 @@
 import { getAllSupportedSymbols } from '@/lib/oracles/constants/supportedSymbols';
 import { OracleProvider } from '@/types/oracle';
 
-import { DEVIATION_THRESHOLDS } from './thresholds';
-
 export type TimeRange = '1h' | '24h' | '7d' | '30d' | '90d' | '1y';
-
-type TimeRangeValue = '1H' | '24H' | '7D' | '30D' | '90D' | '1Y';
 
 const timeRangeLabels: Record<TimeRange, string> = {
   '1h': '1 Hour',
@@ -49,7 +45,3 @@ export function calculateZScore(value: number, mean: number, stdDev: number): nu
   if (stdDev === 0) return 0;
   return (value - mean) / stdDev;
 }
-
-type SortColumn = 'oracle' | 'price' | 'deviation' | 'timestamp' | 'confidence';
-type SortDirection = 'asc' | 'desc';
-type DeviationFilter = 'all' | 'normal' | 'warning' | 'critical';

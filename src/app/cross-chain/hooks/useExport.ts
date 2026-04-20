@@ -6,16 +6,10 @@ import { formatNumberWithDecimals } from '@/lib/utils/format';
 import { createLogger } from '@/lib/utils/logger';
 import { OracleProvider, type Blockchain } from '@/types/oracle';
 
+import { type PriceDifferenceItem } from '../types';
 import { chainNames, getConsistencyRating } from '../utils';
 
 const logger = createLogger('useExport');
-
-export interface PriceDifferenceItem {
-  chain: Blockchain;
-  price: number;
-  diff: number;
-  diffPercent: number;
-}
 
 interface UseExportParams {
   selectedProvider: OracleProvider;
