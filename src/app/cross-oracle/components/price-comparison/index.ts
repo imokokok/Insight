@@ -12,5 +12,4 @@ export { PriceDispersionCard } from './PriceDispersionCard';
 export { ChartTabSwitcher, type ChartTabType } from './ChartTabSwitcher';
 export { PriceDistributionHistogram } from './PriceDistributionHistogram';
 export { DeviationScatterChart } from './DeviationScatterChart';
-export { MultiOracleTrendChart } from './MultiOracleTrendChart';
 export { MarketDepthSimulator } from './MarketDepthSimulator';

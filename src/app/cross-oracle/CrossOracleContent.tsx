@@ -24,7 +24,6 @@ export default function CrossOracleContent() {
     setTimeRange,
 
     priceData,
-    historicalData,
     isLoading,
     lastUpdated,
 
@@ -183,8 +182,6 @@ export default function CrossOracleContent() {
             validPrices={validPrices}
             anomalies={anomalies}
             anomalyDetection={anomalyDetection}
-            historicalData={historicalData}
-            oracleColors={oracleChartColors}
             onRefresh={fetchPriceData}
             oracleDataError={oracleDataError}
             retryOracle={retryOracle}

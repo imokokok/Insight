@@ -2,9 +2,9 @@
 
 import { memo } from 'react';
 
-import { BarChart3, ScatterChart, TrendingUp, GitGraph } from 'lucide-react';
+import { BarChart3, ScatterChart, GitGraph } from 'lucide-react';
 
-export type ChartTabType = 'distribution' | 'scatter' | 'trend' | 'depth';
+export type ChartTabType = 'distribution' | 'scatter' | 'depth';
 
 interface ChartTab {
   id: ChartTabType;
@@ -28,11 +28,6 @@ function ChartTabSwitcherComponent({ activeTab, onTabChange }: ChartTabSwitcherP
       id: 'scatter',
       label: 'Scatter',
       icon: <ScatterChart className="w-4 h-4" />,
-    },
-    {
-      id: 'trend',
-      label: 'Trend',
-      icon: <TrendingUp className="w-4 h-4" />,
     },
     {
       id: 'depth',

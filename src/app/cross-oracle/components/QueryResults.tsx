@@ -31,8 +31,6 @@ interface QueryResultsProps {
   validPrices: number[];
   anomalies: PriceAnomaly[];
   anomalyDetection: AnomalyDetectionResult;
-  historicalData?: Partial<Record<OracleProvider, Array<{ timestamp: number; price: number }>>>;
-  oracleColors: Record<OracleProvider, string>;
   onRefresh: () => void;
   oracleDataError?: OracleDataError;
   retryOracle?: (provider: OracleProvider) => Promise<void>;
@@ -101,8 +99,6 @@ function QueryResultsComponent({
   validPrices,
   anomalies,
   anomalyDetection,
-  historicalData,
-  oracleColors,
   oracleDataError,
   retryOracle,
   retryAllFailed,
@@ -172,8 +168,6 @@ function QueryResultsComponent({
             avgPrice={avgPrice}
             validPrices={validPrices}
             anomalies={anomalies}
-            historicalData={historicalData}
-            oracleColors={oracleColors}
           />
         </div>
       </div>

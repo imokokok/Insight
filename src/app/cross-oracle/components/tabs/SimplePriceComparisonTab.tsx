@@ -13,7 +13,6 @@ import {
   type ChartTabType,
   PriceDistributionHistogram,
   DeviationScatterChart,
-  MultiOracleTrendChart,
   MarketDepthSimulator,
 } from '../price-comparison';
 import { SimplePriceTable } from '../SimplePriceTable';
@@ -33,8 +32,6 @@ interface SimplePriceComparisonTabProps {
   avgPrice: number;
   validPrices: number[];
   anomalies: PriceAnomaly[];
-  historicalData?: Partial<Record<OracleProvider, Array<{ timestamp: number; price: number }>>>;
-  oracleColors: Record<OracleProvider, string>;
 }
 
 function SimplePriceComparisonTabComponent({
@@ -50,8 +47,6 @@ function SimplePriceComparisonTabComponent({
   avgPrice,
   validPrices,
   anomalies,
-  historicalData,
-  oracleColors,
 }: SimplePriceComparisonTabProps) {
   const [baseAsset, quoteAsset] = selectedSymbol.split('/');
   const [activeChartTab, setActiveChartTab] = useState<ChartTabType>('distribution');
@@ -81,13 +76,6 @@ function SimplePriceComparisonTabComponent({
             priceData={priceData}
             medianPrice={medianPrice}
             anomalies={anomalies}
-          />
-        );
-      case 'trend':
-        return (
-          <MultiOracleTrendChart
-            historicalData={historicalData || {}}
-            oracleColors={oracleColors}
           />
         );
       case 'depth':
