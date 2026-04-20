@@ -47,6 +47,8 @@ export function useBatchOracleQuery(
       enabled: !!task.provider && !!task.symbol,
       refetchInterval,
       refetchIntervalInBackground: false,
+      retry: 1,
+      retryDelay: 1000,
     }));
   }, [tasks, enabled, refetchInterval]);
 
@@ -71,8 +73,8 @@ export function useBatchOracleQuery(
     });
   }, [tasks, queryResults]);
 
-  const isLoading = results.length > 0 && results.some((r) => r.isLoading);
-  const isFetching = results.length > 0 && results.some((r) => r.isFetching);
+  const isLoading = tasks.length > 0 && results.some((r) => r.isLoading);
+  const isFetching = tasks.length > 0 && results.some((r) => r.isFetching);
   const errors = results.filter((r) => r.error !== null);
   const completedCount = results.filter((r) => !r.isFetching).length;
 

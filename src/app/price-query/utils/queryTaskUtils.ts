@@ -35,7 +35,6 @@ export function buildQueryTasks(
 ): { primaryTasks: QueryTask[]; compareTasks: QueryTask[]; totalQueries: number } {
   const primaryTasks: QueryTask[] = [];
   const compareTasks: QueryTask[] = [];
-  let totalQueries = 0;
 
   const allProviders = selectedOracle ? [selectedOracle] : Object.values(OracleProvider);
 
@@ -58,8 +57,6 @@ export function buildQueryTasks(
         continue;
       }
 
-      totalQueries++;
-
       primaryTasks.push({
         provider,
         chain,
@@ -77,6 +74,8 @@ export function buildQueryTasks(
       }
     }
   }
+
+  const totalQueries = primaryTasks.length + compareTasks.length;
 
   return { primaryTasks, compareTasks, totalQueries };
 }

@@ -9,21 +9,12 @@ import { tradingPairs } from '@/app/cross-oracle/constants';
 import { oracleSupportedSymbols } from '@/lib/oracles/constants/supportedSymbols';
 import { OracleProvider } from '@/types/oracle';
 
-/**
- * support
- */
 interface CommonSymbolInfo {
-  /** Symbol */
   symbol: string;
-  /** Number of oracles supporting this symbol */
   oracleCount: number;
-  /** List of oracles supporting this symbol */
   supportingOracles: OracleProvider[];
 }
 
-/**
- * Hook returnresult
- */
 interface UseCommonSymbolsResult {
   commonSymbols: string[];
   commonSymbolDetails: CommonSymbolInfo[];
@@ -31,9 +22,6 @@ interface UseCommonSymbolsResult {
   unsupportedOracles: Record<string, OracleProvider[]>;
 }
 
-/**
- * OracleProvider to supportedSymbols key namemapping
- */
 const providerToSymbolKey: Record<OracleProvider, keyof typeof oracleSupportedSymbols> = {
   [OracleProvider.CHAINLINK]: 'chainlink',
   [OracleProvider.PYTH]: 'pyth',
@@ -47,11 +35,6 @@ const providerToSymbolKey: Record<OracleProvider, keyof typeof oracleSupportedSy
   [OracleProvider.FLARE]: 'flare',
 };
 
-/**
- * filtersupport Hook
- * @param selectedOracles - List of selected oracles
- * @returns List of commonly supported symbols and related info
- */
 export function useCommonSymbols(selectedOracles: OracleProvider[]): UseCommonSymbolsResult {
   return useMemo(() => {
     if (selectedOracles.length === 0) {
@@ -72,37 +55,23 @@ export function useCommonSymbols(selectedOracles: OracleProvider[]): UseCommonSy
       };
     });
 
-    const allSymbolsSet = new Set<string>();
-    oracleSymbolSets.forEach(({ symbols }) => {
-      symbols.forEach((s) => allSymbolsSet.add(s));
-    });
-
-    const symbolSupportMap = new Map<string, OracleProvider[]>();
-
-    allSymbolsSet.forEach((symbol) => {
-      const supportingOracles: OracleProvider[] = [];
-
-      oracleSymbolSets.forEach(({ oracle, symbols }) => {
-        if (symbols.has(symbol)) {
-          supportingOracles.push(oracle);
-        }
-      });
-
-      symbolSupportMap.set(symbol, supportingOracles);
-    });
-
-    const maxOracleCount = Math.max(
-      ...Array.from(symbolSupportMap.values()).map((o) => o.length),
-      0
-    );
-
     const commonSymbols: string[] = [];
     const commonSymbolDetails: CommonSymbolInfo[] = [];
     const oracleCountMap: Record<string, number> = {};
     const unsupportedOracles: Record<string, OracleProvider[]> = {};
 
-    symbolSupportMap.forEach((supportingOracles, symbol) => {
-      if (supportingOracles.length === maxOracleCount) {
+    const firstSet = oracleSymbolSets[0].symbols;
+
+    firstSet.forEach((symbol) => {
+      const supportingOracles: OracleProvider[] = [oracleSymbolSets[0].oracle];
+
+      for (let i = 1; i < oracleSymbolSets.length; i++) {
+        if (oracleSymbolSets[i].symbols.has(symbol)) {
+          supportingOracles.push(oracleSymbolSets[i].oracle);
+        }
+      }
+
+      if (supportingOracles.length === selectedOracles.length) {
         commonSymbols.push(symbol);
         commonSymbolDetails.push({
           symbol,
@@ -110,7 +79,7 @@ export function useCommonSymbols(selectedOracles: OracleProvider[]): UseCommonSy
           supportingOracles: [...supportingOracles],
         });
         oracleCountMap[symbol] = supportingOracles.length;
-        unsupportedOracles[symbol] = selectedOracles.filter((o) => !supportingOracles.includes(o));
+        unsupportedOracles[symbol] = [];
       }
     });
 

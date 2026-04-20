@@ -7,6 +7,7 @@ import { createLogger } from '@/lib/utils/logger';
 import { type Blockchain, type PriceData } from '@/types/oracle';
 
 import { calculatePercentile } from './statisticsUtils';
+import { defaultThresholdConfig, type ThresholdConfig } from './volatilityUtils';
 
 const logger = createLogger('anomalyDetection');
 
@@ -20,8 +21,10 @@ export interface AnomalousPricePoint {
 
 function detectAnomalousPrices(
   prices: PriceData[],
-  filteredChains: Blockchain[]
+  filteredChains: Blockchain[],
+  thresholdConfig?: ThresholdConfig
 ): AnomalousPricePoint[] {
+  const config = thresholdConfig ?? defaultThresholdConfig;
   const anomalies: AnomalousPricePoint[] = [];
   const validPrices = prices
     .filter((p) => p.chain && filteredChains.includes(p.chain))
@@ -36,8 +39,9 @@ function detectAnomalousPrices(
   const q3 = calculatePercentile(sorted, 75);
   const iqr = q3 - q1;
 
-  const lowerBound = q1 - 1.5 * iqr;
-  const upperBound = q3 + 1.5 * iqr;
+  const iqrMultiplier = config.outlierDetectionMethod === 'iqr' ? config.outlierThreshold : 1.5;
+  const lowerBound = q1 - iqrMultiplier * iqr;
+  const upperBound = q3 + iqrMultiplier * iqr;
 
   const mean = validPrices.reduce((a, b) => a + b, 0) / validPrices.length;
   const variance =
@@ -45,6 +49,8 @@ function detectAnomalousPrices(
       ? validPrices.reduce((sum, p) => sum + Math.pow(p - mean, 2), 0) / (validPrices.length - 1)
       : 0;
   const stdDev = Math.sqrt(variance);
+
+  const zScoreThreshold = config.outlierThreshold;
 
   prices.forEach((priceData) => {
     if (!priceData.chain || !filteredChains.includes(priceData.chain)) return;
@@ -69,7 +75,7 @@ function detectAnomalousPrices(
 
     if (stdDev > 0) {
       const zScore = Math.abs((price - mean) / stdDev);
-      if (zScore > 3) {
+      if (zScore > zScoreThreshold) {
         const existingAnomaly = anomalies.find(
           (a) => a.chain === chain && a.timestamp === timestamp
         );
@@ -91,9 +97,10 @@ function detectAnomalousPrices(
 
 export function detectAnomalies(
   prices: PriceData[],
-  filteredChains: Blockchain[]
+  filteredChains: Blockchain[],
+  thresholdConfig?: ThresholdConfig
 ): AnomalousPricePoint[] {
-  const anomalies = detectAnomalousPrices(prices, filteredChains);
+  const anomalies = detectAnomalousPrices(prices, filteredChains, thresholdConfig);
   if (anomalies.length > 0) {
     logger.info(`Detected ${anomalies.length} anomalous price points`, {
       anomalies: anomalies.map((a) => ({

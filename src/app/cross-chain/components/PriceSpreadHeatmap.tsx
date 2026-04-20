@@ -103,7 +103,6 @@ export function HeatmapDetailView() {
     currentPrices,
   } = useHeatmapData();
 
-  const [selectedTimeRange, setSelectedTimeRange] = useState<TimeRange>('24H');
   const [hoveredCell, setHoveredCell] = useState<{
     xChain: Blockchain;
     yChain: Blockchain;
@@ -115,10 +114,6 @@ export function HeatmapDetailView() {
     yChain: Blockchain;
   } | null>(null);
   const [tooltipPosition, setTooltipPosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
-
-  const handleTimeRangeChange = useCallback((range: string) => {
-    setSelectedTimeRange(range as TimeRange);
-  }, []);
 
   const { heatmapData, maxHeatmapValue } = useMemo(() => {
     if (filteredChains.length < 2) {
@@ -144,7 +139,6 @@ export function HeatmapDetailView() {
 
       csvLines.push('=== Price Spread Heatmap Data ===');
       csvLines.push(`Export Timestamp,${escapeCSVField(new Date().toISOString())}`);
-      csvLines.push(`Time Range,${escapeCSVField(selectedTimeRange)}`);
       csvLines.push(`Chain Count,${filteredChains.length}`);
       csvLines.push(`Max Heatmap Value,${escapeCSVField(maxHeatmapValue.toFixed(4) + '%')}`);
       csvLines.push('');
@@ -165,12 +159,12 @@ export function HeatmapDetailView() {
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       downloadBlob(
         blob,
-        `price-spread-heatmap-${selectedTimeRange}-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.csv`
+        `price-spread-heatmap-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.csv`
       );
     } catch {
       // Export error silently handled
     }
-  }, [filteredChains, heatmapData, maxHeatmapValue, selectedTimeRange]);
+  }, [filteredChains, heatmapData, maxHeatmapValue]);
 
   const getHeatmapColorFn = colorblindMode ? getColorblindHeatmapColor : getHeatmapColor;
 
@@ -194,9 +188,9 @@ export function HeatmapDetailView() {
         Price Spread Heatmap - Visual comparison of price differences across chains
       </div>
       <ChartToolbar
-        timeRanges={['1H', '24H', '7D', '30D']}
-        selectedRange={selectedTimeRange}
-        onRangeChange={handleTimeRangeChange}
+        timeRanges={['1H']}
+        selectedRange={'1H'}
+        onRangeChange={() => {}}
         onExport={handleExport}
         className="mb-3"
       />

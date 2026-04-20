@@ -8,7 +8,9 @@ import { useCrossChainSelectorStore } from '@/stores/crossChainSelectorStore';
 import { useCrossChainUIStore } from '@/stores/crossChainUIStore';
 import { type OracleProvider, type Blockchain } from '@/types/oracle';
 
-import { useExport, type PriceDifferenceItem } from './useExport';
+import { type PriceDifferenceItem } from '../types';
+
+import { useExport } from './useExport';
 
 interface UseCrossChainExportParams {
   selectedProvider: OracleProvider;
@@ -143,29 +145,28 @@ export function useCrossChainExportActions(): UseCrossChainExportReturn {
 
   const filteredChains = useMemo(() => visibleChains, [visibleChains]);
 
-  const priceDifferences = useMemo(() => {
+  const { priceDifferences, statsForExport } = useMemo(() => {
     const filteredPrices = currentPrices.filter((p) => p.chain && filteredChains.includes(p.chain));
-    if (filteredPrices.length < 2 || !selectedBaseChain) return [];
-    const basePriceData = filteredPrices.find((p) => p.chain === selectedBaseChain);
-    if (!basePriceData) return [];
-    const basePrice = basePriceData.price;
-    return filteredPrices.map((priceData) => {
-      const diff = priceData.price - basePrice;
-      const diffPercent = basePrice > 0 && priceData.price > 0 ? (diff / basePrice) * 100 : 0;
-      return {
-        chain: priceData.chain!,
-        price: priceData.price,
-        diff,
-        diffPercent,
-      };
-    });
-  }, [currentPrices, selectedBaseChain, filteredChains]);
 
-  const statsForExport = useMemo(() => {
-    const validPrices = currentPrices
-      .filter((d) => d.chain && filteredChains.includes(d.chain))
-      .map((d) => d.price)
-      .filter((p) => p > 0);
+    let diffs: PriceDifferenceItem[] = [];
+    if (filteredPrices.length >= 2 && selectedBaseChain) {
+      const basePriceData = filteredPrices.find((p) => p.chain === selectedBaseChain);
+      if (basePriceData) {
+        const basePrice = basePriceData.price;
+        diffs = filteredPrices.map((priceData) => {
+          const diff = priceData.price - basePrice;
+          const diffPercent = basePrice > 0 && priceData.price > 0 ? (diff / basePrice) * 100 : 0;
+          return {
+            chain: priceData.chain!,
+            price: priceData.price,
+            diff,
+            diffPercent,
+          };
+        });
+      }
+    }
+
+    const validPrices = filteredPrices.map((d) => d.price).filter((p) => p > 0);
     const avgPrice =
       validPrices.length > 0 ? validPrices.reduce((a, b) => a + b, 0) / validPrices.length : 0;
     const maxPrice = validPrices.length > 0 ? Math.max(...validPrices) : 0;
@@ -177,14 +178,18 @@ export function useCrossChainExportActions(): UseCrossChainExportReturn {
         : 0;
     const stdDev = Math.sqrt(variance);
     const standardDeviationPercent = avgPrice > 0 ? (stdDev / avgPrice) * 100 : 0;
+
     return {
-      avgPrice,
-      maxPrice,
-      minPrice,
-      priceRange: maxPrice - minPrice,
-      standardDeviationPercent,
+      priceDifferences: diffs,
+      statsForExport: {
+        avgPrice,
+        maxPrice,
+        minPrice,
+        priceRange: maxPrice - minPrice,
+        standardDeviationPercent,
+      },
     };
-  }, [currentPrices, filteredChains]);
+  }, [currentPrices, selectedBaseChain, filteredChains]);
 
   const exportHook = useExport({
     selectedProvider,

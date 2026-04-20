@@ -246,7 +246,7 @@ function SimplePriceTableComponent({
       let isAnomaly: boolean;
       let severity: 'low' | 'medium' | 'high' | null;
 
-      if (anomalyDetectionMode === 'zscore' && standardDeviation > 0) {
+      if (anomalyDetectionMode === 'zscore' && standardDeviation > 0 && avgPrice > 0) {
         const zScore = calculateZScore(data.price, avgPrice, standardDeviation);
         const absZScore = Math.abs(zScore);
         isAnomaly = absZScore >= ANOMALY_ZSCORE_THRESHOLD;
@@ -293,7 +293,7 @@ function SimplePriceTableComponent({
         updateTime > 0 ? Math.max(0, Math.floor((now - updateTime) / 1000)) : 0;
 
       const zScore =
-        anomalyDetectionMode === 'zscore' && standardDeviation > 0
+        anomalyDetectionMode === 'zscore' && standardDeviation > 0 && avgPrice > 0
           ? calculateZScore(data.price, avgPrice, standardDeviation)
           : null;
 

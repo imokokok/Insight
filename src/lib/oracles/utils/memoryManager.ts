@@ -194,7 +194,7 @@ class MemoryManager {
 
   destroy(): void {
     this.stopPeriodicCleanup();
-    MemoryManager.instance = null;
+    this.lastCleanupTime = 0;
   }
 }
 

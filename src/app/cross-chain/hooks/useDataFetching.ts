@@ -2,11 +2,15 @@ import { useCallback, useEffect, useMemo, useRef } from 'react';
 
 import { useQueryClient } from '@tanstack/react-query';
 
-import { comparePricesAcrossChains } from '@/lib/oracles/crossChainComparison';
-import { type CrossChainComparisonResult } from '@/lib/oracles/crossChainComparison';
+import {
+  buildCrossChainComparisonFromPrices,
+  type CrossChainComparisonResult,
+  type ChainPriceInfo,
+} from '@/lib/oracles/crossChainComparison';
 import { crossChainKeys } from '@/lib/queryKeys';
 import { createLogger } from '@/lib/utils/logger';
 import { safeMax, safeMin } from '@/lib/utils/statistics';
+import { useCrossChainConfigStore } from '@/stores/crossChainConfigStore';
 import { type OracleProvider, type Blockchain, type PriceData } from '@/types/oracle';
 
 import { type AnomalousPricePoint, detectAnomalies } from '../utils/anomalyDetection';
@@ -93,17 +97,45 @@ export function useDataFetching(
     return validateCurrentPrices(prices);
   }, [chainResults, supportedChains]);
 
+  const thresholdConfig = useCrossChainConfigStore((s) => s.thresholdConfig);
+
   const anomalies = useMemo(
-    () => detectAnomalies(currentPrices, supportedChains),
-    [currentPrices, supportedChains]
+    () => detectAnomalies(currentPrices, supportedChains, thresholdConfig),
+    [currentPrices, supportedChains, thresholdConfig]
   );
 
   const prevStats = useMemo(() => calculatePriceStats(currentPrices), [currentPrices]);
 
   const recommendedBaseChain = useMemo(() => {
     if (supportedChains.length === 0) return null;
-    return supportedChains[0];
-  }, [supportedChains]);
+    if (currentPrices.length === 0) return supportedChains[0];
+
+    const chainScores = supportedChains.map((chain) => {
+      const priceData = currentPrices.find((p) => p.chain === chain);
+      if (!priceData || priceData.price <= 0) {
+        return { chain, score: -Infinity };
+      }
+
+      const now = Date.now();
+      const dataAgeMs = priceData.timestamp > 0 ? now - priceData.timestamp : Infinity;
+      const freshnessScore = dataAgeMs < 60000 ? 100 : dataAgeMs < 300000 ? 50 : 0;
+
+      const priceValues = currentPrices.filter((p) => p.price > 0).map((p) => p.price);
+      const medianPrice =
+        priceValues.length > 0
+          ? [...priceValues].sort((a, b) => a - b)[Math.floor(priceValues.length / 2)]
+          : priceData.price;
+      const deviation =
+        medianPrice > 0 ? Math.abs((priceData.price - medianPrice) / medianPrice) * 100 : 0;
+      const consistencyScore = Math.max(0, 100 - deviation * 10);
+
+      const score = freshnessScore * 0.6 + consistencyScore * 0.4;
+      return { chain, score };
+    });
+
+    chainScores.sort((a, b) => b.score - a.score);
+    return chainScores[0]?.chain ?? supportedChains[0];
+  }, [supportedChains, currentPrices]);
 
   const prevCurrentPricesRef = useRef<PriceData[]>([]);
   useEffect(() => {
@@ -161,17 +193,16 @@ export function useDataFetching(
       currentPrices.length > 0 &&
       supportedChains.length > 0
     ) {
-      comparePricesAcrossChains(provider, paramsRef.current.selectedSymbol, supportedChains)
-        .then((results) => {
-          paramsRef.current.setCrossChainComparison(results);
-        })
-        .catch((error) => {
-          logger.error(
-            'Failed to compare prices across chains',
-            error instanceof Error ? error : new Error(String(error))
-          );
-          paramsRef.current.setCrossChainComparison([]);
-        });
+      const chainPrices: ChainPriceInfo[] = currentPrices
+        .filter((p) => p.chain && supportedChains.includes(p.chain))
+        .map((p) => ({
+          chain: p.chain!,
+          price: p.price,
+          timestamp: p.timestamp,
+        }));
+
+      const results = buildCrossChainComparisonFromPrices(chainPrices);
+      paramsRef.current.setCrossChainComparison(results);
     }
   }, [
     currentPrices,

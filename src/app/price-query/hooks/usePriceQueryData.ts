@@ -70,13 +70,16 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
   const queryStartTimeRef = useRef<number | null>(null);
   const metricsCollectedRef = useRef(false);
 
-  const { startQueryMeasure, endQueryMeasure } = usePerformanceMonitoring();
+  const {
+    startQueryMeasure,
+    endQueryMeasure,
+    startDataProcessingMeasure,
+    endDataProcessingMeasure,
+    startValidationMeasure,
+    endValidationMeasure,
+  } = usePerformanceMonitoring();
 
-  const selectionSignature = JSON.stringify({
-    selectedOracle,
-    selectedChain,
-    selectedSymbol,
-  });
+  const selectionSignature = `${selectedOracle ?? ''}-${selectedChain ?? ''}-${selectedSymbol}`;
 
   const effectiveDismissedKeys = useMemo(
     () => (dismissedSignature === selectionSignature ? dismissedErrorKeys : new Set<string>()),
@@ -119,7 +122,7 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
     refetchInterval
   );
 
-  const isLoading = batchResult.isLoading || batchResult.isFetching;
+  const isLoading = batchResult.isLoading;
   const isFetching = batchResult.isFetching;
 
   useEffect(() => {
@@ -155,7 +158,8 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
     }
   }, [isLoading, batchResult.results, selectedSymbol]);
 
-  const { queryResults, compareQueryResults } = useMemo(() => {
+  const { queryResults, compareQueryResults, dataProcessingTime } = useMemo(() => {
+    startDataProcessingMeasure();
     const qResults: QueryResult[] = [];
     const cResults: QueryResult[] = [];
 
@@ -176,9 +180,11 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
       }
     }
 
+    const processingTime = endDataProcessingMeasure();
     return {
       queryResults: qResults,
       compareQueryResults: cResults,
+      dataProcessingTime: processingTime,
     };
   }, [batchResult.results]);
 
@@ -198,7 +204,8 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
     return { oracle: null as OracleProvider | null, chain: null as Blockchain | null };
   }, [batchResult.results]);
 
-  const { validationWarnings, dataAnomalies } = useMemo(() => {
+  const { validationWarnings, dataAnomalies, validationTime } = useMemo(() => {
+    startValidationMeasure();
     const allWarnings: string[] = [];
     const allAnomalies: AnomalyInfo[] = [];
 
@@ -210,7 +217,8 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
       allAnomalies.push(...priceValidation.anomalies, ...timestampValidation.anomalies);
     }
 
-    return { validationWarnings: allWarnings, dataAnomalies: allAnomalies };
+    const vTime = endValidationMeasure();
+    return { validationWarnings: allWarnings, dataAnomalies: allAnomalies, validationTime: vTime };
   }, [queryResults]);
 
   const primaryDataFetchTime = useMemo(() => {
@@ -296,8 +304,8 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
     supportedChainsBySelectedOracles,
     performanceMetrics: {
       queryResponseTime: queryDuration,
-      dataProcessingTime: null,
-      validationTime: null,
+      dataProcessingTime,
+      validationTime,
     },
   };
 }

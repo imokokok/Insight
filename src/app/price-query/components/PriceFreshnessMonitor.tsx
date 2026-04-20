@@ -179,7 +179,8 @@ export function PriceFreshnessMonitor({ queryResults, avgPrice }: PriceFreshness
   const hasMultipleSources = queryResults.length > 1;
 
   const dataSources = useMemo<DataSourceInfo[]>(() => {
-    if (queryResults.length === 0 || avgPrice <= 0) return [];
+    if (queryResults.length === 0) return [];
+    if (!Number.isFinite(avgPrice) || avgPrice <= 0) return [];
 
     return queryResults
       .filter((result) => result.priceData && result.priceData.price > 0)
