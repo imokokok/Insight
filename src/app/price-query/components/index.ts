@@ -1,4 +1,4 @@
-export { PriceDeviationChart } from './PriceDeviationChart';
+export { PriceFreshnessMonitor } from './PriceFreshnessMonitor';
 export { ExportConfig } from './ExportConfig';
 export { DataSourceSection } from './DataSourceSection';
 export { default as UnifiedExportSection } from './UnifiedExportSection';
