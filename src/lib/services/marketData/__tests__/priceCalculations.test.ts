@@ -194,7 +194,8 @@ describe('priceCalculations', () => {
         data[0].uma +
         data[0].redstone +
         data[0].dia +
-        data[0].winklink;
+        data[0].winklink +
+        data[0].supra;
 
       expect(data[0].total).toBeCloseTo(expectedTotal, 1);
     });
