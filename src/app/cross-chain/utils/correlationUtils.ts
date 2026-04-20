@@ -1,15 +1,11 @@
-import { createLogger } from '@/lib/utils/logger';
-
 import { approximatePValue } from './statisticsUtils';
 
-const logger = createLogger('correlationUtils');
-
-export interface TimestampedPrice {
+interface TimestampedPrice {
   timestamp: number;
   price: number;
 }
 
-export interface CorrelationResult {
+interface CorrelationResult {
   correlation: number;
   pValue: number;
   sampleSize: number;
@@ -60,39 +56,6 @@ const matchTimestamps = (
   });
 
   return matchedPairs;
-};
-
-export const calculatePearsonCorrelationByTimestamp = (
-  dataX: TimestampedPrice[],
-  dataY: TimestampedPrice[],
-  toleranceMs: number = DEFAULT_TIMESTAMP_TOLERANCE_MS
-): number => {
-  if (dataX.length < 2 || dataY.length < 2) return 0;
-
-  const matchedPairs = matchTimestamps(dataX, dataY, toleranceMs);
-
-  if (matchedPairs.length < 2) return 0;
-
-  const n = matchedPairs.length;
-  const xMean = matchedPairs.reduce((sum, pair) => sum + pair.x, 0) / n;
-  const yMean = matchedPairs.reduce((sum, pair) => sum + pair.y, 0) / n;
-
-  let numerator = 0;
-  let xDenominator = 0;
-  let yDenominator = 0;
-
-  for (let i = 0; i < n; i++) {
-    const xDiff = matchedPairs[i].x - xMean;
-    const yDiff = matchedPairs[i].y - yMean;
-    numerator += xDiff * yDiff;
-    xDenominator += xDiff * xDiff;
-    yDenominator += yDiff * yDiff;
-  }
-
-  const denominator = Math.sqrt(xDenominator * yDenominator);
-  if (denominator === 0) return 0;
-
-  return numerator / denominator;
 };
 
 export const calculatePearsonCorrelationWithSignificanceByTimestamp = (

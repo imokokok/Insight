@@ -1,7 +1,3 @@
-/**
- * Statistical utility functions for calculating CDF, quantiles, and other statistical metrics
- */
-
 interface WeightedData {
   value: number;
   weight?: number | null;
@@ -33,14 +29,6 @@ export function calculateVariance(values: number[], mean?: number): number {
   if (values.length < 2) return 0;
   const actualMean = mean ?? calculateMean(values);
   return values.reduce((sum, v) => sum + Math.pow(v - actualMean, 2), 0) / (values.length - 1);
-}
-
-export function calculateStdDev(values: number[], mean?: number): number {
-  if (values.length < 2) return 0;
-  const actualMean = mean ?? calculateMean(values);
-  const variance =
-    values.reduce((sum, v) => sum + Math.pow(v - actualMean, 2), 0) / (values.length - 1);
-  return Math.sqrt(variance);
 }
 
 export function calculateStandardDeviationFromVariance(variance: number): number {
@@ -91,16 +79,7 @@ interface QuantileResult {
   p999: number;
 }
 
-/**
- * Calculates the Cumulative Distribution Function (CDF)
- * CDF(x) = P(X <= x) = Number of data points <= x / Total number of data points
- *
- * @param data - Input data array
- * @param steps - Number of sampling points for the CDF curve (default: 100)
- * @returns CDF calculation result
- */
 export function calculateCDF(data: number[], steps: number = 100): CDFResult {
-  // Filter out invalid data (NaN and Infinity)
   const validData = data.filter(Number.isFinite);
 
   if (validData.length === 0) {
@@ -122,40 +101,32 @@ export function calculateCDF(data: number[], steps: number = 100): CDFResult {
   const max = sortedData[sortedData.length - 1];
   const totalCount = sortedData.length;
 
-  // Calculate mean
   const mean = sortedData.reduce((sum, val) => sum + val, 0) / totalCount;
 
-  // Calculate standard deviation using sample variance (n-1) for consistency with other functions
-  // This is the standard approach for financial analysis
   const variance =
     totalCount > 1
       ? sortedData.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / (totalCount - 1)
       : 0;
   const stdDev = Math.sqrt(variance);
 
-  // Calculate quantiles
   const p50 = calculatePercentile(sortedData, 50);
   const p95 = calculatePercentile(sortedData, 95);
   const p99 = calculatePercentile(sortedData, 99);
 
-  // Generate CDF points
   const points: CDFPoint[] = [];
   const range = max - min;
 
   if (range === 0) {
-    // All values are identical
     points.push({
       value: min,
       probability: 1,
       count: totalCount,
     });
   } else {
-    // Use two-pointer optimization for the loop
     let dataIndex = 0;
     for (let i = 0; i <= steps; i++) {
       const value = min + (range * i) / steps;
 
-      // Move pointer until finding a position greater than the current value
       while (dataIndex < totalCount && sortedData[dataIndex] <= value) {
         dataIndex++;
       }
@@ -183,13 +154,6 @@ export function calculateCDF(data: number[], steps: number = 100): CDFResult {
   };
 }
 
-/**
- * Calculates the value at a specified percentile
- *
- * @param sortedData - Sorted data array
- * @param percentile - Percentile value (0-100)
- * @returns Percentile value
- */
 export function calculatePercentile(sortedData: number[], percentile: number): number {
   if (sortedData.length === 0) return NaN;
   if (percentile <= 0) return sortedData[0];
@@ -207,12 +171,6 @@ export function calculatePercentile(sortedData: number[], percentile: number): n
   return sortedData[lowerIndex] * (1 - weight) + sortedData[upperIndex] * weight;
 }
 
-/**
- * Calculates common quantiles
- *
- * @param data - Input data array
- * @returns Object containing P50, P90, P95, P99, P99.9 values
- */
 export function calculateQuantiles(data: number[]): QuantileResult {
   if (data.length === 0) {
     return { p50: NaN, p90: NaN, p95: NaN, p99: NaN, p999: NaN };
@@ -229,13 +187,6 @@ export function calculateQuantiles(data: number[]): QuantileResult {
   };
 }
 
-/**
- * Calculates histogram data
- *
- * @param data - Input data array
- * @param binCount - Number of bins (default: 20)
- * @returns Array of histogram data points
- */
 export function calculateHistogram(
   data: number[],
   binCount: number = 20

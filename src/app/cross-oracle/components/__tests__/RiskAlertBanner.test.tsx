@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 
-import { type PriceAnomaly, type AnomalySeverity } from '../hooks/usePriceAnomalyDetection';
+import { type PriceAnomaly, type AnomalySeverity } from '../../hooks/usePriceAnomalyDetection';
 import { RiskAlertBanner } from '../RiskAlertBanner';
 
 jest.mock('@/lib/utils/logger', () => ({

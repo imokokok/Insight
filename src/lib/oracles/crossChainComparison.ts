@@ -24,26 +24,17 @@ export interface CrossChainComparisonService {
   ): Promise<CrossChainComparisonResult[]>;
 }
 
-export const DATA_FRESHNESS_THRESHOLDS = {
-  ONLINE: { maxAgeSeconds: 60, maxDeviation: 0.5 },
-  DEGRADED: { maxAgeSeconds: 300, maxDeviation: 1.0 },
-  OFFLINE: { maxAgeSeconds: Infinity, maxDeviation: Infinity },
-} as const;
-
 export function classifyChainStatus(
   deviation: number,
   dataAgeSeconds: number
 ): 'online' | 'degraded' | 'offline' {
-  if (
-    dataAgeSeconds <= DATA_FRESHNESS_THRESHOLDS.ONLINE.maxAgeSeconds &&
-    Math.abs(deviation) < DATA_FRESHNESS_THRESHOLDS.ONLINE.maxDeviation
-  ) {
+  const ONLINE = { maxAgeSeconds: 60, maxDeviation: 0.5 };
+  const DEGRADED = { maxAgeSeconds: 300, maxDeviation: 1.0 };
+
+  if (dataAgeSeconds <= ONLINE.maxAgeSeconds && Math.abs(deviation) < ONLINE.maxDeviation) {
     return 'online';
   }
-  if (
-    dataAgeSeconds <= DATA_FRESHNESS_THRESHOLDS.DEGRADED.maxAgeSeconds &&
-    Math.abs(deviation) < DATA_FRESHNESS_THRESHOLDS.DEGRADED.maxDeviation
-  ) {
+  if (dataAgeSeconds <= DEGRADED.maxAgeSeconds && Math.abs(deviation) < DEGRADED.maxDeviation) {
     return 'degraded';
   }
   return 'offline';

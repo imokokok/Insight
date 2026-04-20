@@ -13,15 +13,7 @@ import { winklinkConfig } from './winklink';
 
 import type { OracleConfig, OracleViewConfig } from './types';
 
-export type {
-  MarketDataConfig,
-  NetworkDataConfig,
-  OracleTab,
-  OracleViewConfig,
-  OracleConfig,
-} from './types';
-
-export { getDefaultMarketData, getDefaultNetworkData, fetchOracleMarketData } from './helpers';
+export type { OracleViewConfig, OracleConfig } from './types';
 
 export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
   [OracleProvider.CHAINLINK]: chainlinkConfig,

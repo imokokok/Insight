@@ -10,8 +10,6 @@ export * from './client';
 
 export * from './response';
 
-export * from './retry';
-
 export * from './validation';
 
 export * from './versioning';

@@ -18,7 +18,7 @@ export interface AnomalousPricePoint {
   deviation: number;
 }
 
-export function detectAnomalousPrices(
+function detectAnomalousPrices(
   prices: PriceData[],
   filteredChains: Blockchain[]
 ): AnomalousPricePoint[] {

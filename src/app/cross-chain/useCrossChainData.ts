@@ -69,7 +69,7 @@ export function useChainsWithHighDeviation() {
   );
 }
 
-export function useCrossChainData(): UseCrossChainDataReturn {
+function useCrossChainData(): UseCrossChainDataReturn {
   const selectedProvider = useCrossChainSelectorStore((s) => s.selectedProvider);
   const setSelectedProvider = useCrossChainSelectorStore((s) => s.setSelectedProvider);
   const selectedSymbol = useCrossChainSelectorStore((s) => s.selectedSymbol);

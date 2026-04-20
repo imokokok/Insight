@@ -2,11 +2,9 @@ import type { ReflectorTokenOnChainData } from '@/hooks/oracles/useReflectorOnCh
 import type { TwapOnChainData } from '@/hooks/oracles/useTwapOnChainData';
 import {
   providerNames,
-  chainNames,
   symbols,
   chainColors,
   oracleColors,
-  TIME_RANGES,
   DEVIATION_THRESHOLD,
 } from '@/lib/constants';
 import type { FlareTokenOnChainData } from '@/lib/oracles/clients/flare';
@@ -35,32 +33,6 @@ export interface QueryResult {
   priceData: PriceData;
 }
 
-export interface QueryState {
-  queryResults: QueryResult[];
-  isLoading: boolean;
-  queryDuration: number | null;
-  queryProgress: { completed: number; total: number };
-  currentQueryTarget: { oracle: OracleProvider | null; chain: Blockchain | null };
-}
-
-export interface StatsState {
-  validPrices: number[];
-  avgPrice: number;
-  avgChange24hPercent?: number;
-  maxPrice: number;
-  minPrice: number;
-  priceRange: number;
-  standardDeviation: number;
-  standardDeviationPercent: number;
-}
-
-export interface ErrorState {
-  queryErrors: QueryError[];
-  onRetryDataSource: (provider: OracleProvider, chain: Blockchain) => void;
-  onRetryAllErrors: () => void;
-  onClearErrors: () => void;
-}
-
 export interface OnChainData {
   diaOnChainData?: AnyOnChainData | null;
   isDIADataLoading?: boolean;
@@ -78,4 +50,4 @@ export interface OnChainData {
   isFlareDataLoading?: boolean;
 }
 
-export { providerNames, chainNames, symbols, chainColors, oracleColors, TIME_RANGES };
+export { providerNames, symbols, chainColors, oracleColors };

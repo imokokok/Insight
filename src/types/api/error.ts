@@ -1,79 +1,3 @@
-export interface ApiErrorResponse {
-  success: false;
-  error: {
-    code: string;
-    message: string;
-    details?: Record<string, unknown>;
-    retryable: boolean;
-    documentationUrl?: string;
-    requestId?: string;
-    timestamp: number;
-    stackTrace?: string;
-    suggestedAction?: string;
-  };
-  meta: {
-    requestId?: string;
-    timestamp: number;
-    path?: string;
-    method?: string;
-  };
-}
-
-export interface ApiSuccessResponse<T> {
-  success: true;
-  data: T;
-  meta?: {
-    timestamp: number;
-    requestId?: string;
-    [key: string]: unknown;
-  };
-}
-
-export type ApiResponse<T> = ApiSuccessResponse<T> | ApiErrorResponse;
-
-export interface PaginationMeta {
-  page: number;
-  limit: number;
-  total: number;
-  totalPages: number;
-}
-
-export interface PaginatedApiResponse<T> extends ApiSuccessResponse<T[]> {
-  pagination: PaginationMeta;
-}
-
-export type ErrorCategory = 'client' | 'server' | 'network' | 'auth' | 'validation' | 'unknown';
-
-export type ErrorSeverity = 'low' | 'medium' | 'high' | 'critical';
-
-export interface ErrorClassification {
-  category: ErrorCategory;
-  severity: ErrorSeverity;
-  retryable: boolean;
-}
-
-export enum HttpStatusCode {
-  OK = 200,
-  CREATED = 201,
-  NO_CONTENT = 204,
-  BAD_REQUEST = 400,
-  UNAUTHORIZED = 401,
-  FORBIDDEN = 403,
-  NOT_FOUND = 404,
-  METHOD_NOT_ALLOWED = 405,
-  REQUEST_TIMEOUT = 408,
-  CONFLICT = 409,
-  GONE = 410,
-  PAYLOAD_TOO_LARGE = 413,
-  UNSUPPORTED_MEDIA_TYPE = 415,
-  UNPROCESSABLE_ENTITY = 422,
-  RATE_LIMIT_EXCEEDED = 429,
-  INTERNAL_SERVER_ERROR = 500,
-  BAD_GATEWAY = 502,
-  SERVICE_UNAVAILABLE = 503,
-  GATEWAY_TIMEOUT = 504,
-}
-
 export enum ErrorCode {
   BAD_REQUEST = 'BAD_REQUEST',
   UNAUTHORIZED = 'UNAUTHORIZED',
@@ -106,107 +30,6 @@ export enum ErrorCode {
   INVALID_JSON = 'INVALID_JSON',
 }
 
-export const HTTP_STATUS_TO_CATEGORY: Record<number, ErrorCategory> = {
-  400: 'client',
-  401: 'auth',
-  403: 'auth',
-  404: 'client',
-  405: 'client',
-  408: 'network',
-  409: 'client',
-  410: 'client',
-  413: 'client',
-  415: 'client',
-  422: 'validation',
-  429: 'client',
-  500: 'server',
-  502: 'server',
-  503: 'server',
-  504: 'network',
-};
-
-export const RETRYABLE_ERROR_CODES: ErrorCode[] = [
-  ErrorCode.RATE_LIMIT_EXCEEDED,
-  ErrorCode.INTERNAL_ERROR,
-  ErrorCode.BAD_GATEWAY,
-  ErrorCode.SERVICE_UNAVAILABLE,
-  ErrorCode.GATEWAY_TIMEOUT,
-  ErrorCode.REQUEST_TIMEOUT,
-  ErrorCode.NETWORK_ERROR,
-  ErrorCode.TIMEOUT_ERROR,
-  ErrorCode.CONNECTION_ERROR,
-  ErrorCode.PRICE_FETCH_ERROR,
-  ErrorCode.REDSTONE_API_ERROR,
-];
-
-export const RETRYABLE_HTTP_STATUSES: number[] = [
-  HttpStatusCode.REQUEST_TIMEOUT,
-  HttpStatusCode.RATE_LIMIT_EXCEEDED,
-  HttpStatusCode.INTERNAL_SERVER_ERROR,
-  HttpStatusCode.BAD_GATEWAY,
-  HttpStatusCode.SERVICE_UNAVAILABLE,
-  HttpStatusCode.GATEWAY_TIMEOUT,
-];
-
-export const ERROR_CODE_DOCUMENTATION: Record<string, string> = {
-  [ErrorCode.VALIDATION_ERROR]: '/docs/errors/validation',
-  [ErrorCode.AUTHENTICATION_ERROR]: '/docs/errors/authentication',
-  [ErrorCode.AUTHORIZATION_ERROR]: '/docs/errors/authorization',
-  [ErrorCode.NOT_FOUND]: '/docs/errors/not-found',
-  [ErrorCode.RATE_LIMIT_EXCEEDED]: '/docs/errors/rate-limit',
-  [ErrorCode.INTERNAL_ERROR]: '/docs/errors/internal',
-  [ErrorCode.PRICE_FETCH_ERROR]: '/docs/errors/price-fetch',
-  [ErrorCode.ORACLE_CLIENT_ERROR]: '/docs/errors/oracle-client',
-  [ErrorCode.BAD_REQUEST]: '/docs/errors/bad-request',
-  [ErrorCode.UNAUTHORIZED]: '/docs/errors/unauthorized',
-  [ErrorCode.FORBIDDEN]: '/docs/errors/forbidden',
-  [ErrorCode.CONFLICT]: '/docs/errors/conflict',
-  [ErrorCode.SERVICE_UNAVAILABLE]: '/docs/errors/service-unavailable',
-  [ErrorCode.NETWORK_ERROR]: '/docs/errors/network',
-  [ErrorCode.TIMEOUT_ERROR]: '/docs/errors/timeout',
-};
-
-export function isRetryableError(error: { code?: string; statusCode?: number }): boolean {
-  if (error.code && RETRYABLE_ERROR_CODES.includes(error.code as ErrorCode)) {
-    return true;
-  }
-
-  if (error.statusCode && RETRYABLE_HTTP_STATUSES.includes(error.statusCode)) {
-    return true;
-  }
-
-  return false;
-}
-
-export function classifyError(error: { code?: string; statusCode?: number }): ErrorClassification {
-  const category: ErrorCategory = HTTP_STATUS_TO_CATEGORY[error.statusCode || 500] || 'unknown';
-
-  let severity: ErrorSeverity = 'medium';
-  if (error.statusCode) {
-    if (error.statusCode >= 500) {
-      severity = 'high';
-    } else if (error.statusCode >= 400) {
-      severity = 'medium';
-    }
-  }
-
-  if (category === 'network') {
-    severity = 'high';
-  }
-
-  return {
-    category,
-    severity,
-    retryable: isRetryableError(error),
-  };
-}
-
-export function getErrorDocumentationUrl(errorCode: string, baseUrl?: string): string | undefined {
-  const docPath = ERROR_CODE_DOCUMENTATION[errorCode];
-  if (!docPath) return undefined;
-  return baseUrl ? `${baseUrl}${docPath}` : docPath;
-}
-
 export function createErrorResponse(
   code: ErrorCode,
   message: string,
@@ -216,17 +39,16 @@ export function createErrorResponse(
     includeStackTrace?: boolean;
     stackTrace?: string;
   }
-): ApiErrorResponse {
+) {
   const timestamp = Date.now();
 
   return {
-    success: false,
+    success: false as const,
     error: {
       code,
       message,
       details: options?.details,
-      retryable: RETRYABLE_ERROR_CODES.includes(code),
-      documentationUrl: getErrorDocumentationUrl(code),
+      retryable: false,
       requestId: options?.requestId,
       timestamp,
       stackTrace: options?.includeStackTrace ? options?.stackTrace : undefined,

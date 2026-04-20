@@ -1,6 +1,5 @@
 import { chartColors as configChartColors, semanticColors } from '@/lib/config/colors';
 
-// Re-export formatPrice from core utils to maintain backward compatibility
 export { formatPrice } from './format';
 
 const hexToRgba = (hex: string, alpha: number): string => {
@@ -45,41 +44,6 @@ const chartColors = {
   },
 };
 
-const getStatusColor = (status: string): string => {
-  switch (status) {
-    case 'normal':
-    case 'active':
-    case 'success':
-      return chartColors.success;
-    case 'warning':
-    case 'degraded':
-    case 'improving':
-      return chartColors.warning;
-    case 'critical':
-    case 'inactive':
-    case 'error':
-      return chartColors.danger;
-    case 'stale':
-      return chartColors.neutral;
-    default:
-      return chartColors.primary;
-  }
-};
-
-const getDeviationColor = (deviationPercent: number): string => {
-  const absDeviation = Math.abs(deviationPercent);
-  if (absDeviation < 0.1) return chartColors.success;
-  if (absDeviation < 0.5) return chartColors.warning;
-  return chartColors.danger;
-};
-
-/**
- * Gets heatmap color using project color system
- * @param value - The value to color
- * @param min - Minimum value in range
- * @param max - Maximum value in range
- * @returns Color hex code
- */
 export const getHeatmapColor = (value: number, min: number, max: number): string => {
   const range = max - min;
   const absValue = Math.abs(value);
@@ -103,16 +67,6 @@ export const getHeatmapColor = (value: number, min: number, max: number): string
   if (normalized < 0.6) return chartColors.heatmap.medium;
   if (normalized < 0.8) return '#f97316';
   return chartColors.heatmap.high;
-};
-
-export const calculateStandardDeviation = (values: number[]): number => {
-  if (values.length < 2) return 0;
-
-  const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
-  const squaredDiffs = values.map((val) => Math.pow(val - mean, 2));
-  const variance = squaredDiffs.reduce((sum, val) => sum + val, 0) / (values.length - 1);
-
-  return Math.sqrt(variance);
 };
 
 export const calculateMovingAverage = (values: number[], period: number): number[] => {
