@@ -82,13 +82,13 @@ const SECURITY_CONFIG = {
 
 if (process.env.NODE_ENV === 'production') {
   if (!SECURITY_CONFIG.csrfSecret) {
-    console.error('FATAL: CSRF_SECRET is not set in production');
+    logger.error('FATAL: CSRF_SECRET is not set in production');
   }
   if (!SECURITY_CONFIG.jwtSecret) {
-    console.error('FATAL: JWT_SECRET is not set in production');
+    logger.error('FATAL: JWT_SECRET is not set in production');
   }
   if (!SECURITY_CONFIG.cronSecret) {
-    console.error('FATAL: CRON_SECRET is not set in production');
+    logger.error('FATAL: CRON_SECRET is not set in production');
   }
 }
 

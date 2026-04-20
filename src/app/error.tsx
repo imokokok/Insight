@@ -13,7 +13,8 @@ interface ErrorProps {
 
 export default function Error({ error, reset }: ErrorProps) {
   useEffect(() => {
-    console.error('Route error:', error);
+    // Route error handled by error boundary
+    void error;
   }, [error]);
 
   return (
