@@ -15,14 +15,6 @@ export enum DataStatus {
   STALE = 'stale',
 }
 
-export enum TrendDirection {
-  IMPROVING = 'improving',
-  STABLE = 'stable',
-  DECLINING = 'declining',
-  EXPANDING = 'expanding',
-  SHRINKING = 'shrinking',
-}
-
 interface ConfidenceIntervalData {
   bid: number;
   ask: number;

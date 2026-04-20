@@ -1,14 +1,14 @@
 'use client';
 
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 
-import { Database, BarChart3, Clock } from 'lucide-react';
+import { Database, BarChart3, Clock, GitCompare, TrendingUp, TrendingDown } from 'lucide-react';
 
 import { PriceFlash } from '@/components/ui/PriceFlash';
 import { safeMax } from '@/lib/utils';
 
-import { type OnChainData } from '../constants';
-import { useQueryParams, useQueryData, useQueryUI } from '../contexts';
+import { type OnChainData, type QueryResult } from '../constants';
+import { useUnifiedQuery } from '../contexts';
 import { useConsistencyRating } from '../hooks/useConsistencyRating';
 import { formatPrice } from '../utils/queryResultsUtils';
 
@@ -24,27 +24,27 @@ interface QueryResultsProps {
 }
 
 export function QueryResults({ onChainData }: QueryResultsProps) {
-  const params = useQueryParams();
-  const queryData = useQueryData();
-  const ui = useQueryUI();
+  const query = useUnifiedQuery();
+  const chartContainerRef = useRef<HTMLDivElement>(null);
 
-  const { selectedSymbol, setSelectedSymbol, selectedTimeRange, setSelectedTimeRange } = params;
+  const { selectedSymbol } = query;
 
   const {
     queryResults,
+    compareQueryResults,
+    isCompareMode,
     isLoading,
     queryDuration,
-    queryProgress,
-    currentQueryTarget,
     queryErrors,
     retryDataSource,
     retryAllErrors,
     clearErrors,
     refetch,
-  } = queryData;
+    stats,
+  } = query;
 
   const { avgPrice, maxPrice, minPrice, priceRange, standardDeviation, standardDeviationPercent } =
-    queryData.stats;
+    stats;
 
   const {
     diaOnChainData,
@@ -64,17 +64,16 @@ export function QueryResults({ onChainData }: QueryResultsProps) {
   } = onChainData;
 
   const consistencyRating = useConsistencyRating(standardDeviationPercent);
-  const prevPriceRef = useRef<number>(0);
+  const [previousPriceValue, setPreviousPriceValue] = useState<number>(0);
   const currentPriceValue =
     queryResults.length > 0
       ? (queryResults[0]?.priceData?.price ?? (avgPrice > 0 ? avgPrice : 0))
       : avgPrice > 0
         ? avgPrice
         : 0;
-  const previousPriceValue = prevPriceRef.current;
 
   useEffect(() => {
-    prevPriceRef.current = currentPriceValue;
+    setPreviousPriceValue(currentPriceValue);
   }, [currentPriceValue]);
 
   if (isLoading) {
@@ -176,7 +175,7 @@ export function QueryResults({ onChainData }: QueryResultsProps) {
           </div>
         </div>
 
-        <div className="p-6">
+        <div className="p-6" ref={chartContainerRef}>
           <div className="flex items-center gap-2 mb-4">
             <div className="w-1 h-5 bg-gradient-to-b from-emerald-500 to-teal-500 rounded-full"></div>
             <h3 className="text-sm font-semibold text-gray-800">Data Freshness Monitor</h3>
@@ -188,6 +187,10 @@ export function QueryResults({ onChainData }: QueryResultsProps) {
         </div>
       </div>
 
+      {isCompareMode && compareQueryResults.length > 0 && (
+        <CompareResultsSection primaryResults={queryResults} compareResults={compareQueryResults} />
+      )}
+
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-1">
         <DataSourceSection
           results={queryResults}
@@ -198,7 +201,111 @@ export function QueryResults({ onChainData }: QueryResultsProps) {
           }
           onRefresh={refetch}
           isLoading={isLoading}
+          chartContainerRef={chartContainerRef}
         />
+      </div>
+    </div>
+  );
+}
+
+function CompareResultsSection({
+  primaryResults,
+  compareResults,
+}: {
+  primaryResults: QueryResult[];
+  compareResults: QueryResult[];
+}) {
+  const primaryByChain = new Map(primaryResults.map((r) => [`${r.provider}_${r.chain}`, r]));
+  const compareByChain = new Map(compareResults.map((r) => [`${r.provider}_${r.chain}`, r]));
+
+  const allKeys = Array.from(new Set([...primaryByChain.keys(), ...compareByChain.keys()]));
+
+  const comparisonRows = allKeys.map((key) => {
+    const primary = primaryByChain.get(key);
+    const compare = compareByChain.get(key);
+    const primaryPrice = primary?.priceData?.price ?? 0;
+    const comparePrice = compare?.priceData?.price ?? 0;
+    const priceDiff = primaryPrice > 0 && comparePrice > 0 ? primaryPrice - comparePrice : 0;
+    const priceDiffPercent =
+      primaryPrice > 0 && comparePrice > 0 ? (priceDiff / primaryPrice) * 100 : 0;
+
+    return {
+      key,
+      provider: primary?.provider ?? compare?.provider ?? '',
+      chain: primary?.chain ?? compare?.chain ?? '',
+      primaryPrice,
+      comparePrice,
+      priceDiff,
+      priceDiffPercent,
+    };
+  });
+
+  return (
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+      <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
+        <GitCompare className="w-4 h-4 text-violet-500" />
+        <h3 className="text-sm font-semibold text-gray-800">Price Comparison</h3>
+        <span className="text-xs text-gray-400 ml-2">
+          {primaryResults.length} primary vs {compareResults.length} compare
+        </span>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-gray-200 bg-gray-50/50">
+              <th className="text-left py-2.5 px-4 font-medium text-gray-500 text-xs">Oracle</th>
+              <th className="text-left py-2.5 px-4 font-medium text-gray-500 text-xs">Chain</th>
+              <th className="text-right py-2.5 px-4 font-medium text-gray-500 text-xs">
+                Primary Price
+              </th>
+              <th className="text-right py-2.5 px-4 font-medium text-gray-500 text-xs">
+                Compare Price
+              </th>
+              <th className="text-right py-2.5 px-4 font-medium text-gray-500 text-xs">
+                Difference
+              </th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {comparisonRows.map((row) => (
+              <tr key={row.key} className="hover:bg-gray-50 transition-colors">
+                <td className="py-2.5 px-4">
+                  <span className="font-medium text-gray-900">{row.provider}</span>
+                </td>
+                <td className="py-2.5 px-4 text-gray-600">{row.chain}</td>
+                <td className="py-2.5 px-4 text-right font-mono text-gray-900">
+                  {row.primaryPrice > 0 ? formatPrice(row.primaryPrice) : '-'}
+                </td>
+                <td className="py-2.5 px-4 text-right font-mono text-gray-900">
+                  {row.comparePrice > 0 ? formatPrice(row.comparePrice) : '-'}
+                </td>
+                <td className="py-2.5 px-4 text-right">
+                  {row.priceDiffPercent !== 0 ? (
+                    <span
+                      className={`inline-flex items-center gap-0.5 text-xs font-medium ${
+                        Math.abs(row.priceDiffPercent) > 1
+                          ? 'text-red-600'
+                          : Math.abs(row.priceDiffPercent) > 0.5
+                            ? 'text-amber-600'
+                            : 'text-emerald-600'
+                      }`}
+                    >
+                      {row.priceDiffPercent > 0 ? (
+                        <TrendingUp className="w-3 h-3" />
+                      ) : (
+                        <TrendingDown className="w-3 h-3" />
+                      )}
+                      {row.priceDiffPercent > 0 ? '+' : ''}
+                      {row.priceDiffPercent.toFixed(4)}%
+                    </span>
+                  ) : (
+                    <span className="text-xs text-gray-400">-</span>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );

@@ -13,6 +13,7 @@ interface DataSourceSectionProps {
   onRefresh: () => void;
   isLoading: boolean;
   error?: Error | null;
+  chartContainerRef?: React.RefObject<HTMLDivElement | null>;
 }
 
 // Map oracle provider to credibility level based on reputation
@@ -54,6 +55,7 @@ export function DataSourceSection({
   onRefresh,
   isLoading,
   error,
+  chartContainerRef: _chartContainerRef,
 }: DataSourceSectionProps) {
   const dataSources: DataSourceGroup[] = useMemo(() => {
     return results.map((result) => ({

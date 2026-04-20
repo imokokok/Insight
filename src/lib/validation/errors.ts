@@ -49,11 +49,3 @@ export class ZodValidationError extends AppError {
     };
   }
 }
-
-export function handleZodError(error: ZodError): never {
-  throw ZodValidationError.fromZodError(error);
-}
-
-export function isZodValidationError(error: unknown): error is ZodValidationError {
-  return error instanceof ZodValidationError;
-}

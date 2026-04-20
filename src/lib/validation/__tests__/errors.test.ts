@@ -1,6 +1,6 @@
 import { ZodError, z } from 'zod';
 
-import { ZodValidationError, handleZodError, isZodValidationError } from '../errors';
+import { ZodValidationError } from '../errors';
 
 describe('ZodValidationError', () => {
   describe('constructor', () => {
@@ -152,77 +152,6 @@ describe('ZodValidationError', () => {
 
       expect(error.stack).toBeDefined();
     });
-  });
-});
-
-describe('handleZodError', () => {
-  it('should throw ZodValidationError', () => {
-    const zodError = new ZodError([
-      {
-        code: 'invalid_type',
-        expected: 'string',
-        received: 'number',
-        path: ['name'],
-        message: 'Expected string',
-      },
-    ]);
-
-    expect(() => handleZodError(zodError)).toThrow(ZodValidationError);
-  });
-
-  it('should preserve error details in thrown error', () => {
-    const zodError = new ZodError([
-      {
-        code: 'invalid_type',
-        expected: 'string',
-        received: 'number',
-        path: ['name'],
-        message: 'Expected string',
-      },
-    ]);
-
-    try {
-      handleZodError(zodError);
-    } catch (error) {
-      expect(error).toBeInstanceOf(ZodValidationError);
-      if (error instanceof ZodValidationError) {
-        expect(error.details?.errors).toHaveLength(1);
-        expect(error.details?.errors?.[0].field).toBe('name');
-      }
-    }
-  });
-});
-
-describe('isZodValidationError', () => {
-  it('should return true for ZodValidationError', () => {
-    const zodError = new ZodError([]);
-    const error = new ZodValidationError('Test', zodError);
-
-    expect(isZodValidationError(error)).toBe(true);
-  });
-
-  it('should return false for regular Error', () => {
-    const error = new Error('Regular error');
-
-    expect(isZodValidationError(error)).toBe(false);
-  });
-
-  it('should return false for ZodError', () => {
-    const zodError = new ZodError([]);
-
-    expect(isZodValidationError(zodError)).toBe(false);
-  });
-
-  it('should return false for null', () => {
-    expect(isZodValidationError(null)).toBe(false);
-  });
-
-  it('should return false for undefined', () => {
-    expect(isZodValidationError(undefined)).toBe(false);
-  });
-
-  it('should return false for plain object', () => {
-    expect(isZodValidationError({ message: 'error' })).toBe(false);
   });
 });
 

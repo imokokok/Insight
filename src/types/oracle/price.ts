@@ -1,4 +1,3 @@
-import type { TrendDirection, DataStatus } from './constants';
 import type { OracleProvider, Blockchain } from './enums';
 
 export interface ConfidenceInterval {
@@ -81,16 +80,6 @@ interface PriceDataForChart extends PriceDataBase {
 
 interface PriceDataExtended extends PriceData {
   changePercent?: number;
-}
-
-export interface PriceDeviation {
-  symbol: string;
-  oraclePrice: number;
-  marketPrice?: number;
-  deviation: number;
-  deviationPercent: number;
-  trend: TrendDirection;
-  status: DataStatus;
 }
 
 interface PriceDataForAlert extends PriceDataBase {

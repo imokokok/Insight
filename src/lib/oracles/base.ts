@@ -146,7 +146,7 @@ export class OracleCache {
   }
 }
 
-export const OracleErrorCodes = {
+const OracleErrorCodes = {
   SYMBOL_NOT_SUPPORTED: 'SYMBOL_NOT_SUPPORTED' as OracleErrorCode,
   NO_DATA_AVAILABLE: 'NO_DATA_AVAILABLE' as OracleErrorCode,
   PROVIDER_UNAVAILABLE: 'PROVIDER_UNAVAILABLE' as OracleErrorCode,

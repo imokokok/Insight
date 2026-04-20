@@ -1,7 +1,7 @@
 import { getAllSupportedSymbols } from '@/lib/oracles/constants/supportedSymbols';
 import { OracleProvider } from '@/types/oracle';
 
-export type TimeRange = '1h' | '24h' | '7d' | '30d' | '90d' | '1y';
+type TimeRange = '1h' | '24h' | '7d' | '30d' | '90d' | '1y';
 
 const timeRangeLabels: Record<TimeRange, string> = {
   '1h': '1 Hour',
@@ -12,7 +12,7 @@ const timeRangeLabels: Record<TimeRange, string> = {
   '1y': '1 Year',
 };
 
-export const timeRanges: { value: TimeRange; label: string }[] = [
+const timeRanges: { value: TimeRange; label: string }[] = [
   { value: '1h', label: timeRangeLabels['1h'] },
   { value: '24h', label: timeRangeLabels['24h'] },
   { value: '7d', label: timeRangeLabels['7d'] },

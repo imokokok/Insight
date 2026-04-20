@@ -7,22 +7,15 @@ import { useCommonShortcuts, useAllOnChainData } from '@/hooks';
 
 import { QueryHeader, QueryForm, QueryResults } from './components';
 import { type OnChainData } from './constants';
-import {
-  QueryParamsProvider,
-  QueryDataProvider,
-  QueryUIProvider,
-  useQueryParams,
-  useQueryData,
-} from './contexts';
+import { UnifiedQueryProvider, useUnifiedQuery } from './contexts';
 
 function PriceQueryContentInner() {
   const filterInputRef = useRef<HTMLInputElement>(null);
 
-  const params = useQueryParams();
-  const queryData = useQueryData();
+  const query = useUnifiedQuery();
 
-  const { selectedOracle, selectedSymbol, selectedChain } = params;
-  const { queryResults, isLoading, queryDuration, queryErrors, refetch } = queryData;
+  const { selectedOracle, selectedSymbol, selectedChain } = query;
+  const { queryResults, isLoading, queryDuration, queryErrors, refetch } = query;
 
   const onChainData = useAllOnChainData({
     selectedOracle,
@@ -78,12 +71,8 @@ function PriceQueryContentInner() {
 
 export default function PriceQueryContent() {
   return (
-    <QueryParamsProvider>
-      <QueryDataProvider>
-        <QueryUIProvider>
-          <PriceQueryContentInner />
-        </QueryUIProvider>
-      </QueryDataProvider>
-    </QueryParamsProvider>
+    <UnifiedQueryProvider>
+      <PriceQueryContentInner />
+    </UnifiedQueryProvider>
   );
 }

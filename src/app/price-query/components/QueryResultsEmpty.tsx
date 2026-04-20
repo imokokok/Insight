@@ -4,11 +4,10 @@ import { TrendingUp } from 'lucide-react';
 
 import { EmptyStateEnhanced, SegmentedControl } from '@/components/ui';
 
-import { useQueryParams, useQueryData } from '../contexts';
+import { useUnifiedQuery } from '../contexts';
 
 export function QueryResultsEmpty() {
-  const { selectedSymbol, setSelectedSymbol } = useQueryParams();
-  const { queryResults } = useQueryData();
+  const { selectedSymbol, setSelectedSymbol } = useUnifiedQuery();
 
   return (
     <EmptyStateEnhanced

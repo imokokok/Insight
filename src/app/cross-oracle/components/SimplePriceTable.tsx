@@ -9,10 +9,7 @@ import {
   CheckCircle2,
   Activity,
   Clock,
-  Database,
-  Wifi,
   ArrowUpDown,
-  HelpCircle,
   ChevronDown,
 } from 'lucide-react';
 
@@ -44,7 +41,7 @@ interface SimplePriceTableProps {
   currentTime?: number;
 }
 
-type SortColumn = 'price' | 'deviation' | 'confidence' | 'latency' | 'updateTime';
+type SortColumn = 'price' | 'deviation' | 'confidence' | 'updateTime';
 type SortDirection = 'asc' | 'desc';
 
 interface TableRow {
@@ -56,8 +53,6 @@ interface TableRow {
   isAnomaly: boolean;
   severity: 'low' | 'medium' | 'high' | null;
   confidence: number;
-  latency: number;
-  dataSources: number;
   updateTime: number;
   zScore: number | null;
   freshnessSeconds: number;
@@ -96,11 +91,6 @@ const StatusIcon = ({ status, severity }: { status: string; severity: string | n
     return <AlertTriangle className="w-4 h-4 text-orange-500" />;
   }
   return <Activity className="w-4 h-4 text-yellow-500" />;
-};
-
-const formatLatency = (latency: number): string => {
-  if (latency < 1000) return `${latency}ms`;
-  return `${(latency / 1000).toFixed(1)}s`;
 };
 
 const SortIcon = ({
@@ -285,9 +275,6 @@ function SimplePriceTableComponent({
         return Math.min(100, Math.max(0, data.confidence));
       })();
 
-      const providerDefaults = getProviderDefaults(data.provider);
-      const latency = providerDefaults.responseTime;
-      const dataSources = providerDefaults.dataSources;
       const updateTime = data.timestamp || 0;
       const freshnessSeconds =
         updateTime > 0 ? Math.max(0, Math.floor((now - updateTime) / 1000)) : 0;
@@ -308,8 +295,6 @@ function SimplePriceTableComponent({
         isAnomaly,
         severity,
         confidence,
-        latency,
-        dataSources,
         updateTime,
         zScore,
         freshnessSeconds,
@@ -335,9 +320,6 @@ function SimplePriceTableComponent({
           break;
         case 'confidence':
           comparison = a.confidence - b.confidence;
-          break;
-        case 'latency':
-          comparison = a.latency - b.latency;
           break;
         case 'updateTime':
           comparison = a.updateTime - b.updateTime;
@@ -441,34 +423,6 @@ function SimplePriceTableComponent({
 
               <th
                 className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                onClick={() => handleSort('latency')}
-                title="Estimated latency based on historical data"
-              >
-                <div className="flex items-center justify-center gap-1">
-                  <Wifi className="w-3 h-3" />
-                  Latency (Estimated)
-                  <HelpCircle className="w-3 h-3 text-gray-400" />
-                  <SortIcon
-                    column="latency"
-                    sortColumn={sortColumn}
-                    sortDirection={sortDirection}
-                  />
-                </div>
-              </th>
-
-              <th
-                className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider"
-                title="Estimated data sources based on official documentation"
-              >
-                <div className="flex items-center justify-center gap-1">
-                  <Database className="w-3 h-3" />
-                  Sources (Estimated)
-                  <HelpCircle className="w-3 h-3 text-gray-400" />
-                </div>
-              </th>
-
-              <th
-                className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                 onClick={() => handleSort('updateTime')}
               >
                 <div className="flex items-center justify-center gap-1">
@@ -551,30 +505,6 @@ function SimplePriceTableComponent({
                   </td>
 
                   <td className="px-4 py-3 whitespace-nowrap text-center">
-                    <span
-                      className={`text-xs font-medium ${
-                        row.latency < 200
-                          ? 'text-emerald-600'
-                          : row.latency < 500
-                            ? 'text-yellow-600'
-                            : 'text-orange-600'
-                      }`}
-                      title="Estimated latency based on historical data"
-                    >
-                      {formatLatency(row.latency)}
-                    </span>
-                  </td>
-
-                  <td className="px-4 py-3 whitespace-nowrap text-center">
-                    <span
-                      className="text-xs text-gray-600"
-                      title="Estimated data sources based on official documentation"
-                    >
-                      {row.dataSources}
-                    </span>
-                  </td>
-
-                  <td className="px-4 py-3 whitespace-nowrap text-center">
                     <span className="text-xs text-gray-500">
                       {formatRelativeTime(row.updateTime)}
                     </span>
@@ -616,13 +546,18 @@ function SimplePriceTableComponent({
                   </td>
                 </tr>
 
-                {expandedRow === row.provider && (
-                  <tr>
-                    <td colSpan={9} className="px-4 py-2 bg-gray-50 border-t border-gray-100">
-                      <ExpandedRowDetail row={row} />
-                    </td>
-                  </tr>
-                )}
+                <tr
+                  className="overflow-hidden transition-all duration-300 ease-in-out"
+                  style={{
+                    maxHeight: expandedRow === row.provider ? '500px' : '0',
+                    opacity: expandedRow === row.provider ? 1 : 0,
+                    display: expandedRow === row.provider ? 'table-row' : 'none',
+                  }}
+                >
+                  <td colSpan={7} className="px-4 py-2 bg-gray-50 border-t border-gray-100">
+                    <ExpandedRowDetail row={row} />
+                  </td>
+                </tr>
               </Fragment>
             ))}
           </tbody>

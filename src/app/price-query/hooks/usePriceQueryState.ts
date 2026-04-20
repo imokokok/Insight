@@ -6,7 +6,7 @@ import { usePreferences } from '@/hooks';
 import { parseQueryParams, updateUrlParams, type QueryConfig } from '@/lib/utils/urlParams';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 
-export interface TimeComparisonConfig {
+interface TimeComparisonConfig {
   primaryPeriod: {
     id: string;
     label: string;
@@ -60,7 +60,7 @@ interface UsePriceQueryStateReturn {
   compareTimeRangeRef: React.MutableRefObject<number>;
 }
 
-function usePriceQueryState(): UsePriceQueryStateReturn {
+export function usePriceQueryState(): UsePriceQueryStateReturn {
   const { preferences } = usePreferences();
 
   const [selectedOracle, _setSelectedOracle] = useState<OracleProvider | null>(

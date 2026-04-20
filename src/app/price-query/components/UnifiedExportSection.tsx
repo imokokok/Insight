@@ -1,7 +1,5 @@
 'use client';
 
-import { useState } from 'react';
-
 import { UnifiedExport, type ExportField } from '@/components/export';
 
 import { type QueryResult } from '../constants';
@@ -16,6 +14,7 @@ interface UnifiedExportSectionProps {
   priceRange: number;
   standardDeviation: number;
   standardDeviationPercent: number;
+  chartContainerRef?: React.RefObject<HTMLDivElement | null>;
 }
 
 export default function UnifiedExportSection({
@@ -28,8 +27,9 @@ export default function UnifiedExportSection({
   priceRange,
   standardDeviation,
   standardDeviationPercent,
+  chartContainerRef,
 }: UnifiedExportSectionProps) {
-  const [chartElement] = useState<HTMLDivElement | null>(null);
+  const chartElement = chartContainerRef?.current ?? null;
 
   const exportFields: ExportField[] = [
     { key: 'provider', label: 'Oracle', dataType: 'string', selected: true },
