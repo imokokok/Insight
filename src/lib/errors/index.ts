@@ -38,20 +38,18 @@ export {
   SupraError,
   FlareError,
   DIAError,
-  type DIAErrorCode,
   WINkLinkError,
-  type WINkLinkErrorCode,
 } from './OracleError';
 
 export { errorToResponse, isAppError } from './errorToResponse';
 
-export interface ErrorBoundaryHandler {
+interface ErrorBoundaryHandler {
   onError?: (error: Error, errorInfo: { componentStack: string }) => void;
   onReset?: () => void;
   fallback?: ReactNode;
 }
 
-export interface ErrorClassification {
+interface ErrorClassification {
   category: string;
   severity: 'low' | 'medium' | 'high' | 'critical';
   retryable: boolean;

@@ -4,7 +4,7 @@ import { type Blockchain } from '@/types/oracle';
 
 import { chainNames, chainColors } from '../constants';
 
-export interface ChainSelectorProps {
+interface ChainSelectorProps {
   supportedChains: Blockchain[];
   visibleChains: Blockchain[];
   onToggleChain: (chain: Blockchain) => void;

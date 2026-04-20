@@ -14,7 +14,7 @@ import type { PriceHistoryMap } from './useOracleMemory';
 
 const logger = createLogger('useOraclePerformance');
 
-export interface UseOraclePerformanceOptions {
+interface UseOraclePerformanceOptions {
   enablePerformanceMetrics: boolean;
 }
 

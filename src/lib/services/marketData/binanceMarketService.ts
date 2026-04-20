@@ -419,7 +419,7 @@ const TOKEN_NAMES: Record<string, string> = {
   USDP: 'Pax Dollar',
 };
 
-export async function getTokenMarketData(symbol: string): Promise<TokenMarketData | null> {
+async function getTokenMarketData(symbol: string): Promise<TokenMarketData | null> {
   try {
     const upperSymbol = symbol.toUpperCase();
 

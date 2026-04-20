@@ -2,7 +2,7 @@
 
 import { DropdownSelect } from '@/components/ui';
 
-export interface TechnicalIndicatorsProps {
+interface TechnicalIndicatorsProps {
   showMA: boolean;
   onShowMAChange: (value: boolean) => void;
   maPeriod: number;

@@ -68,25 +68,3 @@ export const getHeatmapColor = (value: number, min: number, max: number): string
   if (normalized < 0.8) return '#f97316';
   return chartColors.heatmap.high;
 };
-
-export const calculateMovingAverage = (values: number[], period: number): number[] => {
-  if (values.length < period) return values;
-
-  const result: number[] = [];
-  let sum = 0;
-
-  for (let i = 0; i < values.length; i++) {
-    if (i < period - 1) {
-      result.push(values[i]);
-      sum += values[i];
-    } else if (i === period - 1) {
-      sum += values[i];
-      result.push(sum / period);
-    } else {
-      sum = sum - values[i - period] + values[i];
-      result.push(sum / period);
-    }
-  }
-
-  return result;
-};

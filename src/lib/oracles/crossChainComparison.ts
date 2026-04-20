@@ -16,7 +16,7 @@ export interface CrossChainComparisonResult {
   status: 'online' | 'degraded' | 'offline';
 }
 
-export interface CrossChainComparisonService {
+interface CrossChainComparisonService {
   comparePricesAcrossChains(
     provider: OracleProvider,
     symbol: string,

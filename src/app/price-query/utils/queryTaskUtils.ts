@@ -6,7 +6,7 @@ import { type Blockchain, OracleProvider, type PriceData } from '@/types/oracle'
 
 import type { QueryResult } from '../constants';
 
-export interface QueryTask {
+interface QueryTask {
   provider: OracleProvider;
   chain: Blockchain;
   client: BaseOracleClient;
@@ -17,60 +17,6 @@ export interface QueryError {
   provider: OracleProvider;
   chain: Blockchain;
   error: string;
-}
-
-export function withTimeout<T>(promise: Promise<T>, ms: number, signal?: AbortSignal): Promise<T> {
-  return new Promise((resolve, reject) => {
-    if (signal?.aborted) {
-      reject(new Error('Request was aborted'));
-      return;
-    }
-
-    const timer = setTimeout(() => reject(new Error(`Request timeout after ${ms}ms`)), ms);
-
-    const onAbort = () => {
-      clearTimeout(timer);
-      reject(new Error('Request was aborted'));
-    };
-
-    signal?.addEventListener('abort', onAbort, { once: true });
-
-    promise
-      .then((result) => {
-        clearTimeout(timer);
-        signal?.removeEventListener('abort', onAbort);
-        resolve(result);
-      })
-      .catch((error) => {
-        clearTimeout(timer);
-        signal?.removeEventListener('abort', onAbort);
-        reject(error);
-      });
-  });
-}
-
-export async function limitConcurrency<T, R>(
-  items: T[],
-  handler: (item: T) => Promise<R>,
-  maxConcurrent: number
-): Promise<PromiseSettledResult<R>[]> {
-  const results: PromiseSettledResult<R>[] = new Array(items.length);
-  let nextIndex = 0;
-
-  async function runWorker(): Promise<void> {
-    while (nextIndex < items.length) {
-      const index = nextIndex++;
-      try {
-        results[index] = { status: 'fulfilled', value: await handler(items[index]) };
-      } catch (reason) {
-        results[index] = { status: 'rejected', reason };
-      }
-    }
-  }
-
-  const workers = Array.from({ length: Math.min(maxConcurrent, items.length) }, () => runWorker());
-  await Promise.all(workers);
-  return results;
 }
 
 interface QueryTaskResult {
@@ -133,47 +79,4 @@ export function buildQueryTasks(
   }
 
   return { primaryTasks, compareTasks, totalQueries };
-}
-
-interface ProcessedQueryResults {
-  results: QueryResult[];
-  compareResults: QueryResult[];
-  collectedErrors: QueryError[];
-}
-
-export function processQueryResults(
-  taskResults: PromiseSettledResult<QueryTaskResult>[],
-  allTasks: QueryTask[]
-): ProcessedQueryResults {
-  const results: QueryResult[] = [];
-  const compareResults: QueryResult[] = [];
-  const collectedErrors: QueryError[] = [];
-
-  for (let i = 0; i < taskResults.length; i++) {
-    const settledResult = taskResults[i];
-    if (settledResult.status === 'fulfilled') {
-      const { provider, chain, priceData, isCompare } = settledResult.value;
-
-      if (isCompare) {
-        compareResults.push({ provider, chain, priceData });
-      } else {
-        results.push({ provider, chain, priceData });
-      }
-    } else {
-      const task = allTasks[i];
-      if (task) {
-        const errorMessage =
-          settledResult.reason instanceof Error
-            ? settledResult.reason.message
-            : String(settledResult.reason);
-        collectedErrors.push({
-          provider: task.provider,
-          chain: task.chain,
-          error: errorMessage,
-        });
-      }
-    }
-  }
-
-  return { results, compareResults, collectedErrors };
 }

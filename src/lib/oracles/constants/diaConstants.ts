@@ -1,6 +1,6 @@
 import { Blockchain } from '@/types/oracle';
 
-export interface DIAAssetConfig {
+interface DIAAssetConfig {
   symbol: string;
   blockchain: string;
   address: string;

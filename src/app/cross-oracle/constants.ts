@@ -50,6 +50,6 @@ export function calculateZScore(value: number, mean: number, stdDev: number): nu
   return (value - mean) / stdDev;
 }
 
-export type SortColumn = 'oracle' | 'price' | 'deviation' | 'timestamp' | 'confidence';
-export type SortDirection = 'asc' | 'desc';
-export type DeviationFilter = 'all' | 'normal' | 'warning' | 'critical';
+type SortColumn = 'oracle' | 'price' | 'deviation' | 'timestamp' | 'confidence';
+type SortDirection = 'asc' | 'desc';
+type DeviationFilter = 'all' | 'normal' | 'warning' | 'critical';

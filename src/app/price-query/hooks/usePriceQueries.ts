@@ -2,26 +2,11 @@
 
 import { useMemo } from 'react';
 
-import { useQuery, useQueries, type UseQueryResult } from '@tanstack/react-query';
+import { useQueries, type UseQueryResult } from '@tanstack/react-query';
 
 import { oracleApiClient } from '@/lib/api/oracleApiClient';
 import { priceKeys } from '@/lib/queryKeys';
 import type { OracleProvider, Blockchain, PriceData } from '@/types/oracle';
-
-interface UseOraclePriceQueryParams {
-  provider: OracleProvider;
-  symbol: string;
-  chain?: Blockchain;
-}
-
-export function useOraclePriceQuery({ provider, symbol, chain }: UseOraclePriceQueryParams) {
-  return useQuery<PriceData, Error>({
-    queryKey: priceKeys.byProvider(provider, symbol, chain ?? ''),
-    queryFn: ({ signal }) => oracleApiClient.fetchPrice({ provider, symbol, chain, signal }),
-    staleTime: 30_000,
-    enabled: !!provider && !!symbol,
-  });
-}
 
 export interface BatchQueryTask {
   provider: OracleProvider;
@@ -30,7 +15,7 @@ export interface BatchQueryTask {
   isCompare: boolean;
 }
 
-export interface BatchQueryResultItem {
+interface BatchQueryResultItem {
   provider: OracleProvider;
   chain: Blockchain;
   priceData: PriceData | null;

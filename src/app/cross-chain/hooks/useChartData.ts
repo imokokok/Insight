@@ -16,7 +16,7 @@ import {
   type ThresholdConfig,
 } from '../utils';
 
-export interface UseChartDataParams {
+interface UseChartDataParams {
   currentPrices: PriceData[];
   filteredChains: Blockchain[];
   selectedBaseChain: Blockchain | null;

@@ -32,7 +32,7 @@ interface UseAutoRefreshReturn {
   isRefreshing: boolean;
 }
 
-export function useAutoRefresh({
+function useAutoRefresh({
   enabled,
   intervalMs,
   onRefresh,

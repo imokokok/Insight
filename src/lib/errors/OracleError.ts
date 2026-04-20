@@ -668,7 +668,7 @@ export class FlareError extends AppError {
   }
 }
 
-export type DIAErrorCode =
+type DIAErrorCode =
   | 'FETCH_ERROR'
   | 'PARSE_ERROR'
   | 'NETWORK_ERROR'
@@ -757,7 +757,7 @@ export class DIAError extends AppError {
   }
 }
 
-export type WINkLinkErrorCode =
+type WINkLinkErrorCode =
   | 'CONTRACT_CALL_ERROR'
   | 'STALE_DATA'
   | 'INVALID_PRICE'
