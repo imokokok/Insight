@@ -107,15 +107,6 @@ export function useDropdown(
     [isDropdownOpen, dropdownItems.length]
   );
 
-  const openDropdown = useCallback(() => {
-    setIsDropdownOpen(true);
-  }, []);
-
-  const closeDropdown = useCallback(() => {
-    setIsDropdownOpen(false);
-    setHighlightedIndex(-1);
-  }, []);
-
   return {
     isDropdownOpen,
     setIsDropdownOpen,
@@ -125,8 +116,6 @@ export function useDropdown(
     dropdownRef,
     inputRef,
     handleKeyDown,
-    openDropdown,
-    closeDropdown,
     POPULAR_TOKENS,
   };
 }

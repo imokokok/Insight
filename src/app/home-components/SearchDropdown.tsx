@@ -62,9 +62,21 @@ export default function SearchDropdown({
   };
 
   return (
-    <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-[200] animate-in fade-in slide-in-from-top-2 duration-200 text-left">
+    <div
+      className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-[200] animate-in fade-in slide-in-from-top-2 duration-200 text-left"
+      role="listbox"
+      aria-label="Search suggestions"
+      id="search-dropdown"
+    >
       {searchQuery.trim() && dropdownItems.length === 0 ? (
-        <div className="px-4 py-6 text-center text-gray-500 text-sm">No results found</div>
+        <div
+          className="px-4 py-6 text-center text-gray-500 text-sm"
+          role="option"
+          aria-selected={false}
+          aria-disabled="true"
+        >
+          No results found
+        </div>
       ) : (
         <>
           {!searchQuery.trim() && (
@@ -83,7 +95,7 @@ export default function SearchDropdown({
             </div>
           )}
 
-          <div className="max-h-80 overflow-y-auto">
+          <div className="max-h-80 overflow-y-auto" role="group">
             {dropdownItems.map((dropdownItem, index) => {
               const isSearchResult = dropdownItem.type === 'search';
               const symbol =
@@ -99,6 +111,8 @@ export default function SearchDropdown({
                   className={`w-full flex items-center justify-between px-4 py-3 text-left transition-colors ${
                     index === highlightedIndex ? 'bg-blue-50' : 'hover:bg-gray-50'
                   }`}
+                  role="option"
+                  aria-selected={index === highlightedIndex}
                 >
                   <button
                     type="button"

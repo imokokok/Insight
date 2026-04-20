@@ -908,6 +908,19 @@ body {
   }
 }
 
+@keyframes data-flow {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(400%);
+  }
+}
+
+.animate-data-flow {
+  animation: data-flow linear infinite;
+}
+
 /* ============================================
    Background Patterns
    ============================================ */

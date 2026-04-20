@@ -23,10 +23,6 @@ export default function HeroBackground({
   enableParticles = true,
   enableDataFlow = true,
 }: HeroBackgroundProps) {
-  const [mounted] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    return true;
-  });
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(() => {
     if (typeof window === 'undefined') return false;
     return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -51,14 +47,6 @@ export default function HeroBackground({
 
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
-
-  if (!mounted) {
-    return (
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute inset-0 bg-white" />
-      </div>
-    );
-  }
 
   return (
     <div className="absolute inset-0 overflow-hidden">

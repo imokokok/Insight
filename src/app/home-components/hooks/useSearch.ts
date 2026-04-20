@@ -59,10 +59,6 @@ export function useSearch() {
     setSearchHistory(getSearchHistory());
   }, []);
 
-  const getTokenSymbolFromQuery = useCallback((query: string) => {
-    return getTokenSymbol(query);
-  }, []);
-
   return {
     searchQuery,
     setSearchQuery,
@@ -71,6 +67,6 @@ export function useSearch() {
     handleSearch,
     handleClearHistory,
     handleRemoveHistoryItem,
-    getTokenSymbolFromQuery,
+    getTokenSymbolFromQuery: getTokenSymbol,
   };
 }
