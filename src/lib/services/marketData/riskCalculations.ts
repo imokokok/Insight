@@ -32,7 +32,87 @@ function calculatePearsonCorrelation(x: number[], y: number[]): number {
   return sumXY / denominator;
 }
 
-function buildCorrelationMatrix(priceHistories: Map<string, number[]>): {
+/**
+ * 计算 Spearman 秩相关系数
+ * 对异常值更鲁棒，适合非线性关系
+ *
+ * @param x 第一个数据数组
+ * @param y 第二个数据数组
+ * @returns Spearman 相关系数 (-1 到 1)
+ */
+function calculateSpearmanCorrelation(x: number[], y: number[]): number {
+  const n = Math.min(x.length, y.length);
+  if (n < 2) return 0;
+
+  // 计算秩次
+  const getRanks = (data: number[]): number[] => {
+    const indexed = data.map((value, index) => ({ value, index }));
+    indexed.sort((a, b) => a.value - b.value);
+
+    const ranks = new Array(data.length);
+    for (let i = 0; i < indexed.length; i++) {
+      // 处理相同值（取平均秩次）
+      let j = i;
+      while (j < indexed.length - 1 && indexed[j + 1].value === indexed[i].value) {
+        j++;
+      }
+
+      const avgRank = (i + j) / 2 + 1; // +1 因为秩次从 1 开始
+      for (let k = i; k <= j; k++) {
+        ranks[indexed[k].index] = avgRank;
+      }
+      i = j;
+    }
+    return ranks;
+  };
+
+  const xRanks = getRanks(x.slice(0, n));
+  const yRanks = getRanks(y.slice(0, n));
+
+  // 计算秩次的皮尔逊相关系数
+  const meanXRank = xRanks.reduce((a, b) => a + b, 0) / n;
+  const meanYRank = yRanks.reduce((a, b) => a + b, 0) / n;
+
+  let sumXY = 0,
+    sumX2 = 0,
+    sumY2 = 0;
+  for (let i = 0; i < n; i++) {
+    const dx = xRanks[i] - meanXRank;
+    const dy = yRanks[i] - meanYRank;
+    sumXY += dx * dy;
+    sumX2 += dx * dx;
+    sumY2 += dy * dy;
+  }
+
+  const denominator = Math.sqrt(sumX2 * sumY2);
+  if (denominator === 0) return 0;
+  return sumXY / denominator;
+}
+
+/**
+ * 计算综合相关系数
+ * 结合皮尔逊和斯皮尔曼相关系数，提供更稳健的相关性度量
+ */
+function calculateRobustCorrelation(x: number[], y: number[]): number {
+  const pearson = calculatePearsonCorrelation(x, y);
+  const spearman = calculateSpearmanCorrelation(x, y);
+
+  // 如果两个系数差异很大，可能说明存在异常值或非线性关系
+  // 使用斯皮尔曼的权重更大，因为它更鲁棒
+  const diff = Math.abs(pearson - spearman);
+  if (diff > 0.3) {
+    // 差异较大时，主要使用斯皮尔曼
+    return spearman * 0.7 + pearson * 0.3;
+  }
+
+  // 差异较小时，取平均值
+  return (pearson + spearman) / 2;
+}
+
+function buildCorrelationMatrix(
+  priceHistories: Map<string, number[]>,
+  useRobust: boolean = true
+): {
   matrix: number[][];
   names: string[];
 } {
@@ -50,7 +130,9 @@ function buildCorrelationMatrix(priceHistories: Map<string, number[]>): {
     for (let j = i + 1; j < n; j++) {
       const x = priceHistories.get(names[i]) ?? [];
       const y = priceHistories.get(names[j]) ?? [];
-      const correlation = calculatePearsonCorrelation(x, y);
+      const correlation = useRobust
+        ? calculateRobustCorrelation(x, y)
+        : calculatePearsonCorrelation(x, y);
       matrix[i][j] = correlation;
       matrix[j][i] = correlation;
     }

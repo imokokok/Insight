@@ -3,22 +3,48 @@ interface WeightedData {
   weight?: number | null;
 }
 
+function validateNumberArray(values: number[], functionName: string): void {
+  if (!values) {
+    throw new Error(`${functionName}: Input array is undefined or null`);
+  }
+  if (!Array.isArray(values)) {
+    throw new Error(`${functionName}: Input must be an array`);
+  }
+  if (values.some((v) => !Number.isFinite(v))) {
+    throw new Error(`${functionName}: Array contains invalid values (NaN, Infinity, or -Infinity)`);
+  }
+}
+
 export function safeMax(values: number[]): number {
+  validateNumberArray(values, 'safeMax');
   if (values.length === 0) return -Infinity;
-  return values.reduce((max, v) => (v > max ? v : max), -Infinity);
+
+  let max = -Infinity;
+  for (const v of values) {
+    if (v > max) max = v;
+  }
+  return max;
 }
 
 export function safeMin(values: number[]): number {
+  validateNumberArray(values, 'safeMin');
   if (values.length === 0) return Infinity;
-  return values.reduce((min, v) => (v < min ? v : min), Infinity);
+
+  let min = Infinity;
+  for (const v of values) {
+    if (v < min) min = v;
+  }
+  return min;
 }
 
 function calculateMean(values: number[]): number {
+  validateNumberArray(values, 'calculateMean');
   if (values.length === 0) return 0;
   return values.reduce((sum, v) => sum + v, 0) / values.length;
 }
 
 export function calculateMedian(values: number[]): number {
+  validateNumberArray(values, 'calculateMedian');
   if (values.length === 0) return 0;
   const sorted = [...values].sort((a, b) => a - b);
   const mid = Math.floor(sorted.length / 2);
@@ -26,26 +52,37 @@ export function calculateMedian(values: number[]): number {
 }
 
 export function calculateVariance(values: number[], mean?: number): number {
+  validateNumberArray(values, 'calculateVariance');
   if (values.length < 2) return 0;
   const actualMean = mean ?? calculateMean(values);
   return values.reduce((sum, v) => sum + Math.pow(v - actualMean, 2), 0) / (values.length - 1);
 }
 
 export function calculateStandardDeviationFromVariance(variance: number): number {
+  if (!Number.isFinite(variance)) {
+    throw new Error('calculateStandardDeviationFromVariance: Variance must be a finite number');
+  }
+  if (variance < 0) {
+    throw new Error('calculateStandardDeviationFromVariance: Variance cannot be negative');
+  }
   return Math.sqrt(variance);
 }
 
 export function calculateWeightedAverage(
   data: Array<{ value: number; weight?: number | null }> | WeightedData[]
 ): number {
-  const validData = data.filter((d) => d.value > 0);
+  if (!data || !Array.isArray(data)) {
+    throw new Error('calculateWeightedAverage: Input must be an array');
+  }
+
+  const validData = data.filter((d) => d && Number.isFinite(d.value) && d.value > 0);
   if (validData.length === 0) return 0;
 
   let weightedSum = 0;
   let weightSum = 0;
 
   validData.forEach((d) => {
-    const weight = d.weight && d.weight > 0 ? d.weight : 1;
+    const weight = d.weight && Number.isFinite(d.weight) && d.weight > 0 ? d.weight : 1;
     weightedSum += d.value * weight;
     weightSum += weight;
   });

@@ -133,8 +133,7 @@ class PerformanceMetricsCalculator {
         return this.getDefaultAccuracy(oracleName);
       }
 
-      let totalDeviation = 0;
-      let validComparisons = 0;
+      const deviations: number[] = [];
 
       for (const oraclePoint of recentOracleData) {
         const refData = this.referencePrices.get(oraclePoint.asset);
@@ -151,23 +150,59 @@ class PerformanceMetricsCalculator {
 
         if (closestRef.price === 0) continue;
         const deviation = Math.abs(oraclePoint.price - closestRef.price) / closestRef.price;
-        totalDeviation += deviation;
-        validComparisons++;
+        deviations.push(deviation);
       }
 
-      if (validComparisons === 0) {
+      if (deviations.length === 0) {
         return this.getDefaultAccuracy(oracleName);
       }
 
-      const avgDeviation = totalDeviation / validComparisons;
-      const accuracy = Math.max(0, 100 - avgDeviation * 100);
+      // 使用鲁棒统计方法：中位数绝对偏差 (MAD) 过滤异常值
+      const robustAccuracy = this.calculateRobustAccuracy(deviations);
 
-      logger.debug(`Calculated accuracy for ${oracleName}: ${accuracy.toFixed(2)}%`);
-      return Math.min(99.99, Math.round(accuracy * 100) / 100);
+      logger.debug(`Calculated accuracy for ${oracleName}: ${robustAccuracy.toFixed(2)}%`);
+      return Math.min(99.99, Math.round(robustAccuracy * 100) / 100);
     } catch (error) {
       logger.error(`Error calculating accuracy for ${oracleName}`, error as Error);
       return this.getDefaultAccuracy(oracleName);
     }
+  }
+
+  /**
+   * 使用鲁棒统计方法计算准确性
+   * 使用中位数而不是均值，减少异常值影响
+   * 使用 MAD (Median Absolute Deviation) 过滤极端异常值
+   */
+  private calculateRobustAccuracy(deviations: number[]): number {
+    if (deviations.length === 0) return 0;
+
+    // 计算中位数
+    const sorted = [...deviations].sort((a, b) => a - b);
+    const median = sorted[Math.floor(sorted.length / 2)];
+
+    // 计算 MAD (Median Absolute Deviation)
+    const mad = sorted.reduce((sum, d) => sum + Math.abs(d - median), 0) / sorted.length;
+
+    // 使用 3 * MAD 作为阈值过滤异常值 (约 99% 置信区间)
+    const threshold = 3 * mad;
+    const filteredDeviations = deviations.filter((d) => Math.abs(d - median) <= threshold);
+
+    // 如果过滤后数据太少，使用原始数据
+    const finalDeviations =
+      filteredDeviations.length >= deviations.length * 0.5 ? filteredDeviations : deviations;
+
+    // 计算加权平均：越小的偏差权重越大
+    let weightedSum = 0;
+    let weightSum = 0;
+
+    for (const deviation of finalDeviations) {
+      const weight = 1 / (1 + deviation * 10); // 偏差越小权重越大
+      weightedSum += deviation * weight;
+      weightSum += weight;
+    }
+
+    const weightedAvgDeviation = weightSum > 0 ? weightedSum / weightSum : 0;
+    return Math.max(0, 100 - weightedAvgDeviation * 100);
   }
 
   calculateUpdateFrequency(oracleName: string, asset?: string): number {

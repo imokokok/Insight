@@ -106,92 +106,41 @@ export function calculateEMAWithNull(data: number[], period: number): NullableNu
   return result;
 }
 
-export function calculateRSI(prices: number[], period: number = 14): number[] {
-  if (prices.length === 0) {
-    return [];
-  }
-  if (prices.length < period + 1) {
-    return new Array(prices.length).fill(50);
+function calculateRSICore(changes: number[], period: number, outputLength: number): number[] {
+  if (period <= 0) {
+    throw new Error('Period must be a positive number');
   }
 
-  const rsi: number[] = [];
-  const gains: number[] = [];
-  const losses: number[] = [];
+  const rsi: number[] = new Array(outputLength).fill(50);
 
-  for (let i = 1; i < prices.length; i++) {
-    const change = prices[i] - prices[i - 1];
-    gains.push(change > 0 ? change : 0);
-    losses.push(change < 0 ? Math.abs(change) : 0);
+  if (changes.length < period) {
+    return rsi;
   }
 
-  let avgGain = gains.slice(0, period).reduce((a, b) => a + b, 0) / period;
-  let avgLoss = losses.slice(0, period).reduce((a, b) => a + b, 0) / period;
+  let avgGain = 0;
+  let avgLoss = 0;
 
   for (let i = 0; i < period; i++) {
-    rsi.push(50);
-  }
-
-  if (avgLoss === 0) {
-    rsi.push(100);
-  } else {
-    const rs = avgGain / avgLoss;
-    rsi.push(100 - 100 / (1 + rs));
-  }
-
-  for (let i = period + 1; i < prices.length; i++) {
-    const gainIndex = i - 1;
-    const gain = gains[gainIndex] || 0;
-    const loss = losses[gainIndex] || 0;
-
-    avgGain = (avgGain * (period - 1) + gain) / period;
-    avgLoss = (avgLoss * (period - 1) + loss) / period;
-
-    if (avgLoss === 0) {
-      rsi.push(100);
-    } else {
-      const rs = avgGain / avgLoss;
-      rsi.push(100 - 100 / (1 + rs));
-    }
-  }
-
-  return rsi;
-}
-
-export function calculateRSIFromData(
-  data: Array<{ price: number; high?: number; low?: number; close?: number }>,
-  period: number = 14
-): number[] {
-  if (data.length < period + 1) {
-    return new Array(data.length).fill(50);
-  }
-
-  const closes = data.map((d) => d.close || d.price);
-  const rsiValues: number[] = new Array(data.length).fill(50);
-
-  let gains = 0;
-  let losses = 0;
-
-  for (let i = 1; i <= period; i++) {
-    const change = closes[i] - closes[i - 1];
+    const change = changes[i];
     if (change > 0) {
-      gains += change;
+      avgGain += change;
     } else {
-      losses += Math.abs(change);
+      avgLoss += Math.abs(change);
     }
   }
 
-  let avgGain = gains / period;
-  let avgLoss = losses / period;
+  avgGain /= period;
+  avgLoss /= period;
 
   if (avgLoss === 0) {
-    rsiValues[period] = 100;
+    rsi[period] = 100;
   } else {
     const rs = avgGain / avgLoss;
-    rsiValues[period] = 100 - 100 / (1 + rs);
+    rsi[period] = 100 - 100 / (1 + rs);
   }
 
-  for (let i = period + 1; i < data.length; i++) {
-    const change = closes[i] - closes[i - 1];
+  for (let i = period + 1; i < outputLength; i++) {
+    const change = changes[i - 1];
     const gain = change > 0 ? change : 0;
     const loss = change < 0 ? Math.abs(change) : 0;
 
@@ -199,14 +148,53 @@ export function calculateRSIFromData(
     avgLoss = (avgLoss * (period - 1) + loss) / period;
 
     if (avgLoss === 0) {
-      rsiValues[i] = 100;
+      rsi[i] = 100;
     } else {
       const rs = avgGain / avgLoss;
-      rsiValues[i] = 100 - 100 / (1 + rs);
+      rsi[i] = 100 - 100 / (1 + rs);
     }
   }
 
-  return rsiValues;
+  return rsi;
+}
+
+export function calculateRSI(prices: number[], period: number = 14): number[] {
+  if (!prices || prices.length === 0) {
+    return [];
+  }
+
+  if (prices.some((p) => !Number.isFinite(p))) {
+    throw new Error('Prices array contains invalid values (NaN, Infinity, or -Infinity)');
+  }
+
+  const changes: number[] = [];
+  for (let i = 1; i < prices.length; i++) {
+    changes.push(prices[i] - prices[i - 1]);
+  }
+
+  return calculateRSICore(changes, period, prices.length);
+}
+
+export function calculateRSIFromData(
+  data: Array<{ price: number; high?: number; low?: number; close?: number }>,
+  period: number = 14
+): number[] {
+  if (!data || data.length === 0) {
+    return [];
+  }
+
+  const closes = data.map((d) => d.close ?? d.price);
+
+  if (closes.some((p) => !Number.isFinite(p))) {
+    throw new Error('Data contains invalid price values (NaN, Infinity, or -Infinity)');
+  }
+
+  const changes: number[] = [];
+  for (let i = 1; i < closes.length; i++) {
+    changes.push(closes[i] - closes[i - 1]);
+  }
+
+  return calculateRSICore(changes, period, data.length);
 }
 
 export function calculateMACD(
@@ -271,29 +259,43 @@ export function calculateBollingerBands(
   period: number = 20,
   multiplier: number = 2
 ): BollingerBandsResult {
+  if (prices.length === 0) {
+    return { upper: [], middle: [], lower: [], stdDev: [] };
+  }
+
   const middle = calculateSMA(prices, period);
   const upper: number[] = [];
   const lower: number[] = [];
   const stdDev: number[] = [];
+
+  let windowSum = 0;
+  let windowSumSq = 0;
 
   for (let i = 0; i < prices.length; i++) {
     if (i < period - 1) {
       upper.push(prices[i]);
       lower.push(prices[i]);
       stdDev.push(0);
-    } else {
-      const mean = middle[i];
-      let varianceSum = 0;
-      for (let j = 0; j < period; j++) {
-        varianceSum += Math.pow(prices[i - j] - mean, 2);
-      }
-      const variance = varianceSum / period;
-      const currentStdDev = Math.sqrt(variance);
-
-      upper.push(mean + multiplier * currentStdDev);
-      lower.push(mean - multiplier * currentStdDev);
-      stdDev.push(currentStdDev);
+      continue;
     }
+
+    if (i === period - 1) {
+      for (let j = 0; j < period; j++) {
+        windowSum += prices[j];
+        windowSumSq += prices[j] * prices[j];
+      }
+    } else {
+      windowSum += prices[i] - prices[i - period];
+      windowSumSq += prices[i] * prices[i] - prices[i - period] * prices[i - period];
+    }
+
+    const mean = windowSum / period;
+    const variance = Math.max(0, (windowSumSq - (windowSum * windowSum) / period) / period);
+    const currentStdDev = Math.sqrt(variance);
+
+    upper.push(mean + multiplier * currentStdDev);
+    lower.push(mean - multiplier * currentStdDev);
+    stdDev.push(currentStdDev);
   }
 
   return { upper, middle, lower, stdDev };
