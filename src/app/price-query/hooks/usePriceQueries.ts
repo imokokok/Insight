@@ -23,33 +23,10 @@ export function useOraclePriceQuery({ provider, symbol, chain }: UseOraclePriceQ
   });
 }
 
-interface UseOracleHistoricalQueryParams {
-  provider: OracleProvider;
-  symbol: string;
-  chain?: Blockchain;
-  period: number;
-}
-
-export function useOracleHistoricalQuery({
-  provider,
-  symbol,
-  chain,
-  period,
-}: UseOracleHistoricalQueryParams) {
-  return useQuery<PriceData[], Error>({
-    queryKey: priceKeys.historical(provider, symbol, chain ?? '', String(period)),
-    queryFn: ({ signal }) =>
-      oracleApiClient.fetchHistorical({ provider, symbol, chain, period, signal }),
-    staleTime: 60_000,
-    enabled: !!provider && !!symbol && !!period,
-  });
-}
-
 export interface BatchQueryTask {
   provider: OracleProvider;
   symbol: string;
   chain: Blockchain;
-  period: number;
   isCompare: boolean;
 }
 
@@ -57,7 +34,6 @@ export interface BatchQueryResultItem {
   provider: OracleProvider;
   chain: Blockchain;
   priceData: PriceData | null;
-  history: PriceData[];
   isCompare: boolean;
   isLoading: boolean;
   isFetching: boolean;
@@ -73,37 +49,20 @@ export function useBatchOracleQuery(
   const queryConfigs = useMemo(() => {
     if (!enabled || tasks.length === 0) return [];
 
-    return tasks.flatMap((task) => [
-      {
-        queryKey: priceKeys.byProvider(task.provider, task.symbol, task.chain),
-        queryFn: ({ signal }: { signal?: AbortSignal }) =>
-          oracleApiClient.fetchPrice({
-            provider: task.provider,
-            symbol: task.symbol,
-            chain: task.chain,
-            signal,
-          }),
-        staleTime: 30_000,
-        enabled: !!task.provider && !!task.symbol,
-        refetchInterval,
-        refetchIntervalInBackground: false,
-      },
-      {
-        queryKey: priceKeys.historical(task.provider, task.symbol, task.chain, String(task.period)),
-        queryFn: ({ signal }: { signal?: AbortSignal }) =>
-          oracleApiClient.fetchHistorical({
-            provider: task.provider,
-            symbol: task.symbol,
-            chain: task.chain,
-            period: task.period,
-            signal,
-          }),
-        staleTime: 60_000,
-        enabled: !!task.provider && !!task.symbol && !!task.period,
-        refetchInterval,
-        refetchIntervalInBackground: false,
-      },
-    ]);
+    return tasks.map((task) => ({
+      queryKey: priceKeys.byProvider(task.provider, task.symbol, task.chain),
+      queryFn: ({ signal }: { signal?: AbortSignal }) =>
+        oracleApiClient.fetchPrice({
+          provider: task.provider,
+          symbol: task.symbol,
+          chain: task.chain,
+          signal,
+        }),
+      staleTime: 30_000,
+      enabled: !!task.provider && !!task.symbol,
+      refetchInterval,
+      refetchIntervalInBackground: false,
+    }));
   }, [tasks, enabled, refetchInterval]);
 
   const queryResults = useQueries({ queries: queryConfigs });
@@ -112,24 +71,17 @@ export function useBatchOracleQuery(
     if (tasks.length === 0) return [];
 
     return tasks.map((task, i) => {
-      const priceResult = queryResults[i * 2] as UseQueryResult<PriceData, Error> | undefined;
-      const historicalResult = queryResults[i * 2 + 1] as
-        | UseQueryResult<PriceData[], Error>
-        | undefined;
+      const priceResult = queryResults[i] as UseQueryResult<PriceData, Error> | undefined;
 
       return {
         provider: task.provider,
         chain: task.chain,
         priceData: priceResult?.data ?? null,
-        history: historicalResult?.data ?? [],
         isCompare: task.isCompare,
-        isLoading: (priceResult?.isLoading ?? false) || (historicalResult?.isLoading ?? false),
-        isFetching: (priceResult?.isFetching ?? false) || (historicalResult?.isFetching ?? false),
-        error: priceResult?.error || historicalResult?.error || null,
-        dataUpdatedAt: Math.max(
-          priceResult?.dataUpdatedAt ?? 0,
-          historicalResult?.dataUpdatedAt ?? 0
-        ),
+        isLoading: priceResult?.isLoading ?? false,
+        isFetching: priceResult?.isFetching ?? false,
+        error: priceResult?.error || null,
+        dataUpdatedAt: priceResult?.dataUpdatedAt ?? 0,
       };
     });
   }, [tasks, queryResults]);

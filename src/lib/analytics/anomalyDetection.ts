@@ -12,6 +12,33 @@ import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('anomalyDetection');
 
+const ANOMALY_DEDUP_WINDOWS = {
+  PRICE: 60000,
+  VOLATILITY: 300000,
+} as const;
+
+const EWMA_CONFIG = {
+  LAMBDA: 0.94,
+  MIN_PRICES: 20,
+  MIN_LOG_RETURNS: 10,
+  DEFAULT_WINDOW: 20,
+} as const;
+
+const GARCH_CONFIG = {
+  OMEGA: 0.000001,
+  ALPHA: 0.1,
+  BETA: 0.85,
+} as const;
+
+function isDuplicateAnomaly(
+  anomalies: AnomalyData[],
+  timestamp: number,
+  windowMs: number
+): boolean {
+  const lastAnomaly = anomalies[anomalies.length - 1];
+  return lastAnomaly !== undefined && Math.abs(lastAnomaly.timestamp - timestamp) < windowMs;
+}
+
 /**
  * Anomaly level
  */
@@ -181,26 +208,24 @@ export function detectPriceAnomalies(
   asset: string
 ): AnomalyData[] {
   try {
-    if (prices.length < 20) {
+    if (prices.length < EWMA_CONFIG.MIN_PRICES) {
       return [];
     }
 
     const anomalies: AnomalyData[] = [];
 
-    // calculatelogarithmic (calculate)
     const logReturns: number[] = [];
     for (let i = 1; i < prices.length; i++) {
       if (prices[i] > 0 && prices[i - 1] > 0) {
-        const logRet = Math.log(prices[i] / prices[i - 1]) * 100; // convertas
+        const logRet = Math.log(prices[i] / prices[i - 1]) * 100;
         logReturns.push(logRet);
       }
     }
 
-    if (logReturns.length < 10) return [];
+    if (logReturns.length < EWMA_CONFIG.MIN_LOG_RETURNS) return [];
 
-    // usescrollcalculatedynamic (EWMA - exponential)
-    const lambda = 0.94; // RiskMetrics standardparameter
-    const window = Math.min(20, Math.floor(logReturns.length / 2));
+    const lambda = EWMA_CONFIG.LAMBDA;
+    const window = Math.min(EWMA_CONFIG.DEFAULT_WINDOW, Math.floor(logReturns.length / 2));
 
     for (let i = window; i < logReturns.length; i++) {
       const windowReturns = logReturns.slice(i - window, i);
@@ -242,13 +267,7 @@ export function detectPriceAnomalies(
         else if (absZScore > 2.5) level = 'medium';
         else level = 'low';
 
-        // checkisisanomaly () - O(1) O(n)
-        // checkanomalyisin 1 minuteswithin
-        const lastAnomaly = anomalies[anomalies.length - 1];
-        const isDuplicate =
-          lastAnomaly && Math.abs(lastAnomaly.timestamp - timestamps[priceIndex]) < 60000;
-
-        if (!isDuplicate) {
+        if (!isDuplicateAnomaly(anomalies, timestamps[priceIndex], ANOMALY_DEDUP_WINDOWS.PRICE)) {
           anomalies.push({
             id: `price-${asset}-${timestamps[priceIndex]}-${Date.now()}`,
             type,
@@ -507,22 +526,18 @@ export function detectVolatilityAnomalies(
       parkinsonVol.push(annualizedVol);
     }
 
-    if (parkinsonVol.length < 10) return [];
+    if (parkinsonVol.length < EWMA_CONFIG.MIN_LOG_RETURNS) return [];
 
-    // use GARCH(1,1) prediction
-    const omega = 0.000001;
-    const alpha = 0.1;
-    const beta = 0.85;
+    const { OMEGA, ALPHA, BETA } = GARCH_CONFIG;
 
     const garchVol: number[] = [];
-    let lastVar = (parkinsonVol[0] * parkinsonVol[0]) / 10000; // variance
+    let lastVar = (parkinsonVol[0] * parkinsonVol[0]) / 10000;
 
     for (let i = 0; i < parkinsonVol.length; i++) {
       const currentVol = parkinsonVol[i];
       const currentVar = (currentVol * currentVol) / 10000;
 
-      // GARCH(1,1): σ²_t = ω + α * ε²_{t-1} + β * σ²_{t-1}
-      const predictedVar = omega + alpha * currentVar + beta * lastVar;
+      const predictedVar = OMEGA + ALPHA * currentVar + BETA * lastVar;
       const predictedVol = Math.sqrt(predictedVar) * 100;
 
       garchVol.push(predictedVol);
@@ -548,12 +563,9 @@ export function detectVolatilityAnomalies(
           else if (volRatio > 1.5 || volRatio < 0.67) level = 'medium';
           else level = 'low';
 
-          // check - O(1) O(n)，checkanomalyisin 5 minuteswithin
-          const lastAnomaly = anomalies[anomalies.length - 1];
-          const isDuplicate =
-            lastAnomaly && Math.abs(lastAnomaly.timestamp - timestamps[priceIndex]) < 300000;
-
-          if (!isDuplicate) {
+          if (
+            !isDuplicateAnomaly(anomalies, timestamps[priceIndex], ANOMALY_DEDUP_WINDOWS.VOLATILITY)
+          ) {
             anomalies.push({
               id: `volatility-${timestamps[priceIndex]}-${Date.now()}`,
               type: 'volatility_spike',

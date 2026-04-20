@@ -15,6 +15,7 @@ import {
   ReferenceLine,
 } from 'recharts';
 
+import { DEVIATION_THRESHOLDS } from '@/app/cross-oracle/thresholds';
 import { chartColors } from '@/lib/config/colors';
 import { providerNames, chainNames } from '@/lib/constants';
 import { formatPrice } from '@/lib/utils/chartSharedUtils';
@@ -36,20 +37,19 @@ interface DeviationData {
   color: string;
 }
 
-const DEVIATION_THRESHOLD = 0.5; // 0.5% threshold for warning
-const DANGER_THRESHOLD = 1.0; // 1% threshold for danger
+const { NORMAL, WARNING, DANGER } = DEVIATION_THRESHOLDS;
 
 function getDeviationColor(percent: number) {
   const absPercent = Math.abs(percent);
-  if (absPercent > DANGER_THRESHOLD) return '#ef4444'; // red-500
-  if (absPercent > DEVIATION_THRESHOLD) return '#f59e0b'; // amber-500
-  return '#10b981'; // emerald-500
+  if (absPercent > DANGER) return '#ef4444';
+  if (absPercent > NORMAL) return '#f59e0b';
+  return '#10b981';
 }
 
 function getDeviationStatus(percent: number) {
   const absPercent = Math.abs(percent);
-  if (absPercent > DANGER_THRESHOLD) return 'danger';
-  if (absPercent > DEVIATION_THRESHOLD) return 'warning';
+  if (absPercent > DANGER) return 'danger';
+  if (absPercent > NORMAL) return 'warning';
   return 'normal';
 }
 
@@ -103,24 +103,26 @@ function CustomTooltip({ active, payload }: TooltipProps) {
 
 export function PriceDeviationChart({ queryResults, avgPrice }: PriceDeviationChartProps) {
   const deviationData = useMemo<DeviationData[]>(() => {
-    if (queryResults.length === 0 || avgPrice === 0) return [];
+    if (queryResults.length === 0 || avgPrice <= 0) return [];
 
-    return queryResults.map((result, index) => {
-      const price = result.priceData.price;
-      const deviation = price - avgPrice;
-      const deviationPercent = (deviation / avgPrice) * 100;
-      const key = `${result.provider}_${result.chain}`;
+    return queryResults
+      .filter((result) => result.priceData && result.priceData.price > 0)
+      .map((result, index) => {
+        const price = result.priceData.price;
+        const deviation = price - avgPrice;
+        const deviationPercent = (deviation / avgPrice) * 100;
+        const key = `${result.provider}_${result.chain}`;
 
-      return {
-        key,
-        provider: providerNames[result.provider] || result.provider,
-        chain: chainNames[result.chain] || result.chain,
-        price,
-        deviation,
-        deviationPercent,
-        color: chartColors.sequence[index % chartColors.sequence.length],
-      };
-    });
+        return {
+          key,
+          provider: providerNames[result.provider] || result.provider,
+          chain: chainNames[result.chain] || result.chain,
+          price,
+          deviation,
+          deviationPercent,
+          color: chartColors.sequence[index % chartColors.sequence.length],
+        };
+      });
   }, [queryResults, avgPrice]);
 
   const stats = useMemo(() => {
@@ -130,9 +132,7 @@ export function PriceDeviationChart({ queryResults, avgPrice }: PriceDeviationCh
     const avgDeviation =
       deviationData.reduce((sum, d) => sum + Math.abs(d.deviationPercent), 0) /
       deviationData.length;
-    const outliers = deviationData.filter(
-      (d) => Math.abs(d.deviationPercent) > DEVIATION_THRESHOLD
-    );
+    const outliers = deviationData.filter((d) => Math.abs(d.deviationPercent) > NORMAL);
 
     return {
       maxDeviation,
@@ -163,9 +163,9 @@ export function PriceDeviationChart({ queryResults, avgPrice }: PriceDeviationCh
             <p className="text-xs text-gray-500 mb-1">Max Deviation</p>
             <p
               className={`text-lg font-bold ${
-                stats.maxDeviation > DANGER_THRESHOLD
+                stats.maxDeviation > DANGER
                   ? 'text-red-600'
-                  : stats.maxDeviation > DEVIATION_THRESHOLD
+                  : stats.maxDeviation > NORMAL
                     ? 'text-amber-600'
                     : 'text-emerald-600'
               }`}
@@ -218,18 +218,8 @@ export function PriceDeviationChart({ queryResults, avgPrice }: PriceDeviationCh
             />
             <Tooltip content={<CustomTooltip />} />
             <ReferenceLine y={0} stroke="#374151" strokeWidth={1} />
-            <ReferenceLine
-              y={DEVIATION_THRESHOLD}
-              stroke="#f59e0b"
-              strokeDasharray="3 3"
-              strokeWidth={1}
-            />
-            <ReferenceLine
-              y={-DEVIATION_THRESHOLD}
-              stroke="#f59e0b"
-              strokeDasharray="3 3"
-              strokeWidth={1}
-            />
+            <ReferenceLine y={NORMAL} stroke="#f59e0b" strokeDasharray="3 3" strokeWidth={1} />
+            <ReferenceLine y={-NORMAL} stroke="#f59e0b" strokeDasharray="3 3" strokeWidth={1} />
             <Bar dataKey="deviationPercent" radius={[2, 2, 0, 0]}>
               {deviationData.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={getDeviationColor(entry.deviationPercent)} />
@@ -243,17 +233,17 @@ export function PriceDeviationChart({ queryResults, avgPrice }: PriceDeviationCh
       <div className="flex flex-wrap items-center justify-center gap-4 text-xs">
         <div className="flex items-center gap-1.5">
           <div className="w-3 h-3 rounded bg-emerald-500"></div>
-          <span className="text-gray-600">Normal (&lt;{DEVIATION_THRESHOLD}%)</span>
+          <span className="text-gray-600">Normal (&lt;{NORMAL}%)</span>
         </div>
         <div className="flex items-center gap-1.5">
           <div className="w-3 h-3 rounded bg-amber-500"></div>
           <span className="text-gray-600">
-            Warning ({DEVIATION_THRESHOLD}% - {DANGER_THRESHOLD}%)
+            Warning ({NORMAL}% - {DANGER}%)
           </span>
         </div>
         <div className="flex items-center gap-1.5">
           <div className="w-3 h-3 rounded bg-red-500"></div>
-          <span className="text-gray-600">Danger (&gt;{DANGER_THRESHOLD}%)</span>
+          <span className="text-gray-600">Danger (&gt;{DANGER}%)</span>
         </div>
       </div>
 
@@ -291,8 +281,7 @@ export function PriceDeviationChart({ queryResults, avgPrice }: PriceDeviationCh
             <div>
               <p className="text-sm font-medium text-emerald-800">Prices are Consistent</p>
               <p className="text-xs text-emerald-700 mt-1">
-                All oracle prices are within {DEVIATION_THRESHOLD}% deviation from the average
-                price.
+                All oracle prices are within {NORMAL}% deviation from the average price.
               </p>
             </div>
           </div>

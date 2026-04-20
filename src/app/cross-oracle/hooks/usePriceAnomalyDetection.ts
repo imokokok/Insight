@@ -24,7 +24,7 @@ export interface PriceAnomaly {
   provider: OracleProvider;
   /** Anomalous price */
   price: number;
-  /** Deviation percentage (relative to average) */
+  /** Deviation percentage (relative to median price) */
   deviationPercent: number;
   /** Anomaly severity */
   severity: AnomalySeverity;
@@ -102,13 +102,13 @@ function analyzeReason(
 
 export function usePriceAnomalyDetection(
   priceData: PriceData[],
-  avgPrice: number,
+  medianPrice: number,
   currentTime?: number
 ): AnomalyDetectionResult {
   return useMemo(() => {
     // eslint-disable-next-line react-hooks/purity
     const now = currentTime ?? Date.now();
-    if (!priceData.length || avgPrice <= 0) {
+    if (!priceData.length || medianPrice <= 0) {
       return {
         anomalies: [],
         count: 0,
@@ -126,7 +126,7 @@ export function usePriceAnomalyDetection(
     priceData.forEach((data) => {
       if (data.price <= 0) return;
 
-      const deviationPercent = ((data.price - avgPrice) / avgPrice) * 100;
+      const deviationPercent = ((data.price - medianPrice) / medianPrice) * 100;
 
       if (Math.abs(deviationPercent) >= ANOMALY_DEVIATION_THRESHOLD) {
         const freshnessSeconds = Math.max(0, Math.floor((now - data.timestamp) / 1000));
@@ -166,5 +166,5 @@ export function usePriceAnomalyDetection(
       maxDeviation,
       anomalyOracleNames,
     };
-  }, [priceData, avgPrice, currentTime]);
+  }, [priceData, medianPrice, currentTime]);
 }

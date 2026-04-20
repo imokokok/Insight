@@ -1,12 +1,6 @@
 'use client';
 
-/**
- * Price Query Page Unified Export Component
- *
- * Replaces the original export functionality with UnifiedExport component
- */
-
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 import { UnifiedExport, type ExportField } from '@/components/export';
 
@@ -15,7 +9,6 @@ import { type QueryResult } from '../constants';
 interface UnifiedExportSectionProps {
   loading: boolean;
   queryResults: QueryResult[];
-  chartContainerRef: React.RefObject<HTMLDivElement | null>;
   selectedSymbol: string;
   avgPrice: number;
   maxPrice: number;
@@ -28,7 +21,6 @@ interface UnifiedExportSectionProps {
 export default function UnifiedExportSection({
   loading,
   queryResults,
-  chartContainerRef,
   selectedSymbol,
   avgPrice,
   maxPrice,
@@ -37,15 +29,8 @@ export default function UnifiedExportSection({
   standardDeviation,
   standardDeviationPercent,
 }: UnifiedExportSectionProps) {
-  const [chartElement, setChartElement] = useState<HTMLDivElement | null>(null);
+  const [chartElement] = useState<HTMLDivElement | null>(null);
 
-  useEffect(() => {
-    requestAnimationFrame(() => {
-      setChartElement(chartContainerRef?.current ?? null);
-    });
-  }, [chartContainerRef]);
-
-  // Define export fields
   const exportFields: ExportField[] = [
     { key: 'provider', label: 'Oracle', dataType: 'string', selected: true },
     { key: 'chain', label: 'Blockchain', dataType: 'string', selected: true },

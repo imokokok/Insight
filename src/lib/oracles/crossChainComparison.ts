@@ -57,7 +57,11 @@ export function calculateMedian(prices: number[]): number {
 }
 
 export function calculateDeviationFromMedian(price: number, median: number): number {
-  if (median === 0) return 0;
+  if (median === 0) {
+    logger.warn('Cannot calculate deviation: median price is zero');
+    if (price === 0) return 0;
+    return price > 0 ? Infinity : -Infinity;
+  }
   return ((price - median) / median) * 100;
 }
 

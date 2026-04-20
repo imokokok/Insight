@@ -271,8 +271,8 @@ function SimplePriceTableComponent({
       }
 
       let status: 'normal' | 'warning' | 'critical' = 'normal';
-      if (absDeviation >= DEVIATION_THRESHOLDS.critical) status = 'critical';
-      else if (absDeviation >= DEVIATION_THRESHOLDS.warning) status = 'warning';
+      if (absDeviation >= DEVIATION_THRESHOLDS.CRITICAL) status = 'critical';
+      else if (absDeviation >= DEVIATION_THRESHOLDS.WARNING) status = 'warning';
 
       const confidence = (() => {
         if (data.confidence === undefined || data.confidence === null) {

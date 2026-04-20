@@ -6,8 +6,7 @@ import { refreshIntervalToMs, type RefreshInterval } from '@/hooks/useAutoRefres
 import { safeMax, safeMin } from '@/lib/utils';
 import { type PriceData, type OracleProvider, type Blockchain } from '@/types/oracle';
 
-import { type QueryResult, type ChartDataPoint } from '../constants';
-import { usePriceQueryChart } from '../hooks/usePriceQueryChart';
+import { type QueryResult } from '../constants';
 import { usePriceQueryData, type QueryError } from '../hooks/usePriceQueryData';
 
 import { useQueryParams } from './QueryParamsContext';
@@ -34,14 +33,9 @@ interface Stats {
 
 interface QueryDataContextValue {
   queryResults: QueryResult[];
-  historicalData: Partial<Record<string, PriceData[]>>;
-  compareHistoricalData: Partial<Record<string, PriceData[]>>;
   compareQueryResults: QueryResult[];
   primaryDataFetchTime: Date | null;
   compareDataFetchTime: Date | null;
-  chartData: ChartDataPoint[];
-  compareChartData: ChartDataPoint[];
-  chartContainerRef: React.RefObject<HTMLDivElement | null>;
   supportedChainsBySelectedOracles: Set<Blockchain>;
   isLoading: boolean;
   queryDuration: number | null;
@@ -70,15 +64,8 @@ interface QueryDataContextValue {
 const QueryDataContext = createContext<QueryDataContextValue | null>(null);
 
 export function QueryDataProvider({ children }: { children: React.ReactNode }) {
-  const {
-    urlParamsParsed,
-    selectedOracle,
-    selectedChain,
-    selectedSymbol,
-    selectedTimeRange,
-    isCompareMode,
-    compareTimeRange,
-  } = useQueryParams();
+  const { urlParamsParsed, selectedOracle, selectedChain, selectedSymbol, isCompareMode } =
+    useQueryParams();
 
   const [autoRefreshInterval, setAutoRefreshInterval] = useState<RefreshInterval>(0);
 
@@ -89,9 +76,7 @@ export function QueryDataProvider({ children }: { children: React.ReactNode }) {
     selectedOracle,
     selectedChain,
     selectedSymbol,
-    selectedTimeRange,
     isCompareMode,
-    compareTimeRange,
     refetchInterval: refetchIntervalMs,
   });
 
@@ -100,19 +85,9 @@ export function QueryDataProvider({ children }: { children: React.ReactNode }) {
     return new Date(data.primaryDataFetchTime.getTime() + autoRefreshInterval);
   }, [autoRefreshInterval, data.primaryDataFetchTime]);
 
-  const chart = usePriceQueryChart({
-    historicalData: data.historicalData,
-    queryResults: data.queryResults,
-    selectedTimeRange,
-    isCompareMode,
-    compareHistoricalData: data.compareHistoricalData,
-    compareQueryResults: data.compareQueryResults,
-    compareTimeRange,
-  });
-
   const stats = useMemo<Stats>(() => {
     const validPrices = data.queryResults
-      .filter((r) => r.priceData && typeof r.priceData.price === 'number')
+      .filter((r) => r.priceData && typeof r.priceData.price === 'number' && r.priceData.price > 0)
       .map((r) => r.priceData!.price);
 
     const avgPrice =
@@ -140,7 +115,7 @@ export function QueryDataProvider({ children }: { children: React.ReactNode }) {
     const standardDeviationPercent = avgPrice > 0 ? (standardDeviation / avgPrice) * 100 : 0;
 
     const compareValidPrices = data.compareQueryResults
-      .filter((r) => r.priceData && typeof r.priceData.price === 'number')
+      .filter((r) => r.priceData && typeof r.priceData.price === 'number' && r.priceData.price > 0)
       .map((r) => r.priceData!.price);
 
     const compareAvgPrice =
@@ -183,14 +158,9 @@ export function QueryDataProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo(
     () => ({
       queryResults: data.queryResults,
-      historicalData: data.historicalData,
-      compareHistoricalData: data.compareHistoricalData,
       compareQueryResults: data.compareQueryResults,
       primaryDataFetchTime: data.primaryDataFetchTime,
       compareDataFetchTime: data.compareDataFetchTime,
-      chartData: chart.chartData,
-      compareChartData: chart.compareChartData,
-      chartContainerRef: chart.chartContainerRef,
       supportedChainsBySelectedOracles: data.supportedChainsBySelectedOracles,
       isLoading: data.isLoading,
       queryDuration: data.queryDuration,
@@ -215,7 +185,7 @@ export function QueryDataProvider({ children }: { children: React.ReactNode }) {
         isRefreshing: data.isFetching,
       },
     }),
-    [data, chart, stats, autoRefreshInterval, nextRefreshAt]
+    [data, stats, autoRefreshInterval, nextRefreshAt]
   );
 
   return <QueryDataContext.Provider value={value}>{children}</QueryDataContext.Provider>;

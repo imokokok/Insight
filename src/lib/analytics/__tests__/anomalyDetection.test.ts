@@ -24,8 +24,9 @@ describe('anomalyDetection', () => {
 
       expect(result.mean).toBe(19);
       expect(result.stdDev).toBeCloseTo(5.745, 1);
-      expect(result.upperBound).toBeCloseTo(30.49, 1);
-      expect(result.lowerBound).toBeCloseTo(7.51, 1);
+      // Dynamic threshold: data.length < 30, so threshold * 1.2 = 2.4
+      expect(result.upperBound).toBeCloseTo(32.79, 1);
+      expect(result.lowerBound).toBeCloseTo(5.21, 1);
     });
 
     it('should identify upper anomalies correctly', () => {
@@ -127,8 +128,11 @@ describe('anomalyDetection', () => {
     });
 
     it('should detect price spike anomalies', () => {
-      const prices = [100, 101, 102, 103, 104, 105, 106, 107, 108, 150];
-      const timestamps = createTimestamps(10);
+      const prices = [
+        100, 100.1, 100.2, 100.1, 100.3, 100.2, 100.4, 100.3, 100.5, 100.4, 100.6, 100.5, 100.7,
+        100.6, 100.8, 100.7, 100.9, 100.8, 101.0, 150,
+      ];
+      const timestamps = createTimestamps(20);
       const result = detectPriceAnomalies(prices, timestamps, 'BTC');
 
       expect(result.length).toBeGreaterThan(0);
@@ -136,8 +140,11 @@ describe('anomalyDetection', () => {
     });
 
     it('should detect price drop anomalies', () => {
-      const prices = [100, 99, 98, 97, 96, 95, 94, 93, 92, 50];
-      const timestamps = createTimestamps(10);
+      const prices = [
+        100, 99.9, 100.1, 99.8, 100.2, 99.7, 100.3, 99.6, 100.4, 99.5, 100.5, 99.4, 100.6, 99.3,
+        100.7, 99.2, 100.8, 99.1, 100.9, 50,
+      ];
+      const timestamps = createTimestamps(20);
       const result = detectPriceAnomalies(prices, timestamps, 'BTC');
 
       expect(result.length).toBeGreaterThan(0);
@@ -145,8 +152,11 @@ describe('anomalyDetection', () => {
     });
 
     it('should assign correct level based on deviation', () => {
-      const prices = [100, 100, 100, 100, 100, 100, 100, 100, 100, 1000];
-      const timestamps = createTimestamps(10);
+      const prices = [
+        100, 100.1, 100.2, 100.1, 100.3, 100.2, 100.4, 100.3, 100.5, 100.4, 100.6, 100.5, 100.7,
+        100.6, 100.8, 100.7, 100.9, 100.8, 101.0, 1000,
+      ];
+      const timestamps = createTimestamps(20);
       const result = detectPriceAnomalies(prices, timestamps, 'BTC');
 
       expect(result.length).toBeGreaterThan(0);
@@ -154,8 +164,11 @@ describe('anomalyDetection', () => {
     });
 
     it('should assign appropriate level for moderate deviation', () => {
-      const prices = [100, 100, 100, 100, 100, 100, 100, 100, 100, 300];
-      const timestamps = createTimestamps(10);
+      const prices = [
+        100, 100.1, 100.2, 100.1, 100.3, 100.2, 100.4, 100.3, 100.5, 100.4, 100.6, 100.5, 100.7,
+        100.6, 100.8, 100.7, 100.9, 100.8, 101.0, 300,
+      ];
+      const timestamps = createTimestamps(20);
       const result = detectPriceAnomalies(prices, timestamps, 'BTC');
 
       expect(result.length).toBeGreaterThan(0);
@@ -163,8 +176,11 @@ describe('anomalyDetection', () => {
     });
 
     it('should assign medium level for deviation > 2', () => {
-      const prices = [100, 100, 100, 100, 100, 100, 100, 100, 100, 130];
-      const timestamps = createTimestamps(10);
+      const prices = [
+        100, 100.1, 100.2, 100.1, 100.3, 100.2, 100.4, 100.3, 100.5, 100.4, 100.6, 100.5, 100.7,
+        100.6, 100.8, 100.7, 100.9, 100.8, 101.0, 130,
+      ];
+      const timestamps = createTimestamps(20);
       const result = detectPriceAnomalies(prices, timestamps, 'BTC');
 
       expect(result.length).toBeGreaterThan(0);
@@ -180,8 +196,11 @@ describe('anomalyDetection', () => {
     });
 
     it('should include correct asset name in anomaly', () => {
-      const prices = [100, 101, 102, 103, 104, 105, 106, 107, 108, 200];
-      const timestamps = createTimestamps(10);
+      const prices = [
+        100, 100.1, 100.2, 100.1, 100.3, 100.2, 100.4, 100.3, 100.5, 100.4, 100.6, 100.5, 100.7,
+        100.6, 100.8, 100.7, 100.9, 100.8, 101.0, 200,
+      ];
+      const timestamps = createTimestamps(20);
       const result = detectPriceAnomalies(prices, timestamps, 'ETH');
 
       expect(result.length).toBeGreaterThan(0);
@@ -189,12 +208,15 @@ describe('anomalyDetection', () => {
     });
 
     it('should include correct timestamp in anomaly', () => {
-      const prices = [100, 101, 102, 103, 104, 105, 106, 107, 108, 200];
-      const timestamps = createTimestamps(10);
+      const prices = [
+        100, 100.1, 100.2, 100.1, 100.3, 100.2, 100.4, 100.3, 100.5, 100.4, 100.6, 100.5, 100.7,
+        100.6, 100.8, 100.7, 100.9, 100.8, 101.0, 200,
+      ];
+      const timestamps = createTimestamps(20);
       const result = detectPriceAnomalies(prices, timestamps, 'BTC');
 
       expect(result.length).toBeGreaterThan(0);
-      expect(result[0].timestamp).toBe(timestamps[9]);
+      expect(result[0].timestamp).toBe(timestamps[19]);
     });
 
     it('should generate unique IDs for anomalies', () => {
@@ -643,27 +665,27 @@ describe('anomalyDetection', () => {
 
     describe('getAnomalyTypeText', () => {
       it('should return correct text for price_spike', () => {
-        expect(getAnomalyTypeText('Text')).toBe('anomaly_price_spike');
+        expect(getAnomalyTypeText('price_spike')).toBe('anomaly_price_spike');
       });
 
       it('should return correct text for price_drop', () => {
-        expect(getAnomalyTypeText('Text')).toBe('anomaly_price_drop');
+        expect(getAnomalyTypeText('price_drop')).toBe('anomaly_price_drop');
       });
 
       it('should return correct text for volatility_spike', () => {
-        expect(getAnomalyTypeText('Text')).toBe('anomaly_volatility_spike');
+        expect(getAnomalyTypeText('volatility_spike')).toBe('anomaly_volatility_spike');
       });
 
       it('should return correct text for trend_break', () => {
-        expect(getAnomalyTypeText('Text')).toBe('anomaly_trend_break');
+        expect(getAnomalyTypeText('trend_break')).toBe('anomaly_trend_break');
       });
 
       it('should return correct text for volume_anomaly', () => {
-        expect(getAnomalyTypeText('Text')).toBe('anomaly_volume');
+        expect(getAnomalyTypeText('volume_anomaly')).toBe('anomaly_volume');
       });
 
       it('should return correct text for correlation_break', () => {
-        expect(getAnomalyTypeText('Text')).toBe('anomaly_correlation_break');
+        expect(getAnomalyTypeText('correlation_break')).toBe('anomaly_correlation_break');
       });
     });
 
