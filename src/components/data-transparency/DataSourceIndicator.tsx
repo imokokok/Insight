@@ -286,6 +286,9 @@ export function DataSourceIndicator({
       {/* Provider Name */}
       <span className={`font-medium text-gray-900 ${sizes.textSize}`}>{providerName}</span>
 
+      {/* Chain Name */}
+      {showChain && source.chain && <span className="text-xs text-gray-500">• {source.chain}</span>}
+
       {/* Credibility Badge */}
       <div
         className={`relative inline-flex items-center gap-1 px-2 py-0.5 rounded-full ${config.bgColor} ${config.borderColor} border`}
@@ -294,19 +297,37 @@ export function DataSourceIndicator({
         <span className={`${config.color} text-xs font-medium`}>{config.label}</span>
 
         {/* Tooltip */}
-        {showTooltip && showConfidence && (
+        {showTooltip && (
           <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg whitespace-nowrap z-50">
-            <div className="font-medium">
-              Confidence: {confidencePercent}%
-              {source.confidenceSource
-                ? ` (${source.confidenceSource === 'estimated' ? 'Estimated' : 'Raw Data'})`
-                : ''}
-            </div>
-            {source.chain && <div className="text-gray-300">{source.chain}</div>}
+            {showConfidence && source.confidence !== undefined && source.confidence !== null && (
+              <div className="font-medium">
+                Confidence: {confidencePercent}%
+                {source.confidenceSource
+                  ? ` (${source.confidenceSource === 'estimated' ? 'Estimated' : 'Raw Data'})`
+                  : ''}
+              </div>
+            )}
+            {source.lastUpdated && (
+              <div className="text-gray-300">Updated: {formatRelativeTime(source.lastUpdated)}</div>
+            )}
+            {source.source && <div className="text-gray-300">Source: {source.source}</div>}
             <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
           </div>
         )}
       </div>
     </div>
   );
+}
+
+function formatRelativeTime(timestamp: number): string {
+  const now = Date.now();
+  const diff = now - timestamp;
+  const seconds = Math.floor(diff / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+
+  if (seconds < 60) return `${seconds}s ago`;
+  if (minutes < 60) return `${minutes}m ago`;
+  if (hours < 24) return `${hours}h ago`;
+  return `${Math.floor(hours / 24)}d ago`;
 }
