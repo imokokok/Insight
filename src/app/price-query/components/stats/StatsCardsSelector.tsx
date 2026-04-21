@@ -1,8 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { useMemo } from 'react';
 
 import type { ReflectorTokenOnChainData } from '@/hooks/oracles/useReflectorOnChainData';
 import type { TwapOnChainData } from '@/hooks/oracles/useTwapOnChainData';
@@ -24,7 +22,6 @@ import {
   TwapStats,
   ReflectorStats,
   FlareStats,
-  DefaultStats,
 } from './index';
 
 import type { QueryResult, AnyOnChainData } from '../../constants';
@@ -38,15 +35,6 @@ interface StatsCardsSelectorProps {
   twapOnChainData?: AnyOnChainData | null;
   reflectorOnChainData?: AnyOnChainData | null;
   flareOnChainData?: AnyOnChainData | null;
-  maxPrice: number;
-  minPrice: number;
-  avgPrice: number;
-  priceRange: number;
-  consistencyRating: {
-    label: string;
-    color: string;
-  } | null;
-  standardDeviationPercent: number;
 }
 
 export function StatsCardsSelector({
@@ -58,14 +46,7 @@ export function StatsCardsSelector({
   twapOnChainData,
   reflectorOnChainData,
   flareOnChainData,
-  maxPrice,
-  minPrice,
-  avgPrice,
-  priceRange,
-  consistencyRating,
-  standardDeviationPercent,
 }: StatsCardsSelectorProps) {
-  const [showProviderStats, setShowProviderStats] = useState(false);
   const provider = currentResult?.provider;
   const priceData = currentResult?.priceData;
 
@@ -184,32 +165,11 @@ export function StatsCardsSelector({
 
   return (
     <>
-      <DefaultStats
-        maxPrice={maxPrice}
-        minPrice={minPrice}
-        avgPrice={avgPrice}
-        priceRange={priceRange}
-        consistencyRating={consistencyRating}
-        standardDeviationPercent={standardDeviationPercent}
-      />
       {providerStatsComponent && (
-        <div className="col-span-full mt-2">
-          <button
-            onClick={() => setShowProviderStats(!showProviderStats)}
-            className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-700 transition-colors"
-          >
-            {showProviderStats ? (
-              <ChevronUp className="w-3.5 h-3.5" />
-            ) : (
-              <ChevronDown className="w-3.5 h-3.5" />
-            )}
-            {provider} Details
-          </button>
-          {showProviderStats && (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mt-2">
-              {providerStatsComponent}
-            </div>
-          )}
+        <div className="col-span-full">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            {providerStatsComponent}
+          </div>
         </div>
       )}
     </>
