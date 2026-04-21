@@ -68,18 +68,18 @@ export default function Navbar() {
     <>
       <nav className="bg-white/95 backdrop-blur-md border-b border-gray-200 sticky top-0 z-40 transition-all duration-300">
         <div className="max-w-[1600px] mx-auto px-3 sm:px-4 lg:px-6">
-          <div className="flex justify-between h-14">
+          <div className="flex justify-between h-16">
             <div className="flex items-center">
-              <Link href="/" className="flex-shrink-0 flex items-center gap-2 group">
+              <Link href="/" className="flex-shrink-0 flex items-center gap-2.5 group">
                 <Image
                   src="/logos/owl-logo.svg"
                   alt="Insight Logo"
-                  width={32}
-                  height={28}
+                  width={36}
+                  height={32}
                   className="group-hover:scale-105 transition-transform duration-300"
                   priority
                 />
-                <div className="text-lg font-bold text-primary-600 group-hover:text-primary-700 transition-colors duration-300">
+                <div className="text-xl font-bold text-primary-600 group-hover:text-primary-700 transition-colors duration-300">
                   Insight
                 </div>
               </Link>
@@ -129,40 +129,40 @@ export default function Navbar() {
                 <div className="hidden lg:flex items-center gap-0.5">
                   <Link
                     href="/favorites"
-                    className={`p-2 rounded-md transition-colors ${
+                    className={`p-2.5 rounded-md transition-colors ${
                       isActive('/favorites')
                         ? 'text-primary-600 bg-primary-50'
                         : 'text-gray-600 hover:text-primary-600 hover:bg-gray-50'
                     }`}
                     title="Favorites"
                   >
-                    <Heart className="w-4 h-4" />
+                    <Heart className="w-[18px] h-[18px]" />
                   </Link>
                   <Link
                     href="/alerts"
-                    className={`p-2 rounded-md transition-colors ${
+                    className={`p-2.5 rounded-md transition-colors ${
                       isActive('/alerts')
                         ? 'text-primary-600 bg-primary-50'
                         : 'text-gray-600 hover:text-primary-600 hover:bg-gray-50'
                     }`}
                     title="Alerts"
                   >
-                    <Bell className="w-4 h-4" />
+                    <Bell className="w-[18px] h-[18px]" />
                   </Link>
                   <div className="relative ml-1">
                     <button
                       onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                       aria-expanded={isUserMenuOpen}
                       aria-haspopup="menu"
-                      className="flex items-center gap-1.5 p-1 hover:bg-gray-50 rounded-md transition-colors"
+                      className="flex items-center gap-2 p-1.5 hover:bg-gray-50 rounded-md transition-colors"
                     >
-                      <div className="w-7 h-7 bg-primary-600 flex items-center justify-center text-white text-xs font-medium overflow-hidden rounded">
+                      <div className="w-8 h-8 bg-primary-600 flex items-center justify-center text-white text-sm font-medium overflow-hidden rounded">
                         {profile?.avatar_url && !avatarError ? (
                           <Image
                             src={profile.avatar_url}
                             alt={profile?.display_name || 'User'}
-                            width={28}
-                            height={28}
+                            width={32}
+                            height={32}
                             className="w-full h-full object-cover"
                             onError={() => setAvatarError(true)}
                             unoptimized
@@ -170,7 +170,7 @@ export default function Navbar() {
                         ) : null}
                         <span className={profile?.avatar_url && !avatarError ? 'hidden' : ''}>
                           {profile?.display_name?.[0]?.toUpperCase() ||
-                            user.email?.[0]?.toUpperCase() || <User className="w-3.5 h-3.5" />}
+                            user.email?.[0]?.toUpperCase() || <User className="w-4 h-4" />}
                         </span>
                       </div>
                     </button>
