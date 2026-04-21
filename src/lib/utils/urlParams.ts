@@ -7,6 +7,8 @@ export interface QueryConfig {
   symbol: string;
   timeRange: number;
   refreshInterval?: number;
+  isCompareMode?: boolean;
+  compareTimeRange?: number;
 }
 
 const VALID_ORACLES = ORACLE_PROVIDER_VALUES;
@@ -61,6 +63,19 @@ export function parseQueryParams(search: string): Partial<QueryConfig> {
     }
   }
 
+  const compareModeParam = params.get('compare');
+  if (compareModeParam === 'true') {
+    result.isCompareMode = true;
+  }
+
+  const compareTimeRangeParam = params.get('compareTimeRange');
+  if (compareTimeRangeParam) {
+    const compareTimeRange = parseInt(compareTimeRangeParam, 10);
+    if (!isNaN(compareTimeRange) && VALID_TIME_RANGES.includes(compareTimeRange)) {
+      result.compareTimeRange = compareTimeRange;
+    }
+  }
+
   return result;
 }
 
@@ -85,6 +100,14 @@ export function buildQueryParams(config: QueryConfig): string {
 
   if (config.refreshInterval !== undefined && config.refreshInterval !== 0) {
     params.set('refresh', config.refreshInterval.toString());
+  }
+
+  if (config.isCompareMode) {
+    params.set('compare', 'true');
+  }
+
+  if (config.compareTimeRange !== undefined && config.compareTimeRange !== 24) {
+    params.set('compareTimeRange', config.compareTimeRange.toString());
   }
 
   const queryString = params.toString();

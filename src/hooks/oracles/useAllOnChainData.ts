@@ -1,14 +1,14 @@
 'use client';
 
-import type { OnChainData } from '@/app/price-query/constants';
 import { OracleProvider, type Blockchain } from '@/types/oracle';
+import type { OnChainData } from '@/types/oracle/onChainData';
 
 import { useOnChainDataByProvider } from './useOnChainDataByProvider';
 
 interface UseAllOnChainDataParams {
   selectedOracle: OracleProvider | null;
   selectedSymbol: string;
-  selectedChain: string | null;
+  selectedChain: Blockchain | null;
   queryResults: Array<{ provider: OracleProvider }>;
 }
 
@@ -26,7 +26,7 @@ export function useAllOnChainData(params: UseAllOnChainDataParams): OnChainData 
   const { data: diaOnChainData, isLoading: isDIADataLoading } = useOnChainDataByProvider({
     provider: OracleProvider.DIA,
     symbol: selectedSymbol,
-    chain: (selectedChain as Blockchain) || undefined,
+    chain: selectedChain ?? undefined,
     enabled: enabled(OracleProvider.DIA),
   });
 
@@ -51,7 +51,7 @@ export function useAllOnChainData(params: UseAllOnChainDataParams): OnChainData 
   const { data: twapOnChainData, isLoading: isTwapDataLoading } = useOnChainDataByProvider({
     provider: OracleProvider.TWAP,
     symbol: selectedSymbol,
-    chain: (selectedChain as Blockchain) || undefined,
+    chain: selectedChain ?? undefined,
     enabled: enabled(OracleProvider.TWAP),
   });
 

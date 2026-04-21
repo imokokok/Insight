@@ -2,9 +2,7 @@
 
 import type { OracleClientFactory } from '@/lib/oracles';
 import type { BaseOracleClient } from '@/lib/oracles/base';
-import { type Blockchain, OracleProvider, type PriceData } from '@/types/oracle';
-
-import type { QueryResult } from '../constants';
+import { type Blockchain, OracleProvider } from '@/types/oracle';
 
 interface QueryTask {
   provider: OracleProvider;
@@ -19,13 +17,6 @@ export interface QueryError {
   error: string;
 }
 
-interface QueryTaskResult {
-  provider: OracleProvider;
-  chain: Blockchain;
-  priceData: PriceData;
-  isCompare: boolean;
-}
-
 export function buildQueryTasks(
   selectedOracle: OracleProvider | null,
   selectedChain: Blockchain | null,
@@ -36,7 +27,7 @@ export function buildQueryTasks(
   const primaryTasks: QueryTask[] = [];
   const compareTasks: QueryTask[] = [];
 
-  const allProviders = selectedOracle ? [selectedOracle] : Object.values(OracleProvider);
+  const allProviders = Object.values(OracleProvider);
 
   for (const provider of allProviders) {
     let client: BaseOracleClient;
@@ -50,27 +41,82 @@ export function buildQueryTasks(
       continue;
     }
 
-    const chains = selectedChain ? [selectedChain] : client.supportedChains;
-
-    for (const chain of chains) {
-      if (!client.supportedChains.includes(chain)) {
-        continue;
+    if (selectedOracle && selectedChain) {
+      if (provider === selectedOracle) {
+        if (client.supportedChains.includes(selectedChain)) {
+          primaryTasks.push({
+            provider,
+            chain: selectedChain,
+            client,
+            isCompare: false,
+          });
+        }
+      } else if (isCompareMode) {
+        if (client.supportedChains.includes(selectedChain)) {
+          compareTasks.push({
+            provider,
+            chain: selectedChain,
+            client,
+            isCompare: true,
+          });
+        }
       }
-
-      primaryTasks.push({
-        provider,
-        chain,
-        client,
-        isCompare: false,
-      });
-
-      if (isCompareMode) {
-        compareTasks.push({
+    } else if (selectedOracle && !selectedChain) {
+      if (provider === selectedOracle) {
+        for (const chain of client.supportedChains) {
+          if (client.isSymbolSupported(selectedSymbol, chain)) {
+            primaryTasks.push({
+              provider,
+              chain,
+              client,
+              isCompare: false,
+            });
+          }
+        }
+      } else if (isCompareMode) {
+        for (const chain of client.supportedChains) {
+          if (client.isSymbolSupported(selectedSymbol, chain)) {
+            compareTasks.push({
+              provider,
+              chain,
+              client,
+              isCompare: true,
+            });
+          }
+        }
+      }
+    } else if (!selectedOracle && selectedChain) {
+      if (client.supportedChains.includes(selectedChain)) {
+        primaryTasks.push({
           provider,
-          chain,
+          chain: selectedChain,
           client,
-          isCompare: true,
+          isCompare: false,
         });
+      }
+      if (isCompareMode) {
+        const otherChains = client.supportedChains.filter((c) => c !== selectedChain);
+        for (const chain of otherChains) {
+          if (client.isSymbolSupported(selectedSymbol, chain)) {
+            compareTasks.push({
+              provider,
+              chain,
+              client,
+              isCompare: true,
+            });
+          }
+        }
+      }
+    } else {
+      for (const chain of client.supportedChains) {
+        if (client.isSymbolSupported(selectedSymbol, chain)) {
+          primaryTasks.push({
+            provider,
+            chain,
+            client,
+            isCompare: false,
+          });
+        }
       }
     }
   }

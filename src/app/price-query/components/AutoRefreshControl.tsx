@@ -53,7 +53,6 @@ export function AutoRefreshControl({
 
   useEffect(() => {
     if (!isActive || !nextRefreshAt) {
-      setCountdown('');
       return;
     }
 

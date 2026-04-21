@@ -19,7 +19,6 @@ import { chartColors } from '@/lib/config/colors';
 import { providerNames, chainNames, oracleColors } from '@/lib/constants';
 import { getProviderDefaults } from '@/lib/oracles/utils/performanceMetricsConfig';
 import { formatPrice } from '@/lib/utils/chartSharedUtils';
-import { formatRelativeTime } from '@/lib/utils/format';
 import { type OracleProvider, type PriceData } from '@/types/oracle';
 
 import { type QueryResult } from '../constants';
@@ -162,26 +161,33 @@ function getHealthGrade(score: number): { label: string; color: string } {
   if (score >= 90) return { label: 'Excellent', color: '#10b981' };
   if (score >= 80) return { label: 'Good', color: '#3b82f6' };
   if (score >= 70) return { label: 'Fair', color: '#f59e0b' };
-  if (score >= 60) return { label: 'Poor', color: '#f97316' };
+  if (score >= 50) return { label: 'Poor', color: '#f97316' };
   return { label: 'Critical', color: '#ef4444' };
 }
 
 const FreshnessCell = memo(function FreshnessCell({
   freshnessSeconds,
   freshnessStatus,
-  timestamp,
 }: {
   freshnessSeconds: number;
   freshnessStatus: DataSourceInfo['freshnessStatus'];
-  timestamp: number;
 }) {
+  const formatFreshness = (seconds: number): string => {
+    if (seconds < 60) return `${seconds}s`;
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    if (minutes < 60) return `${minutes}m ${remainingSeconds}s`;
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    return `${hours}h ${remainingMinutes}m`;
+  };
+
   return (
     <td className="py-2.5 px-3">
       <div className="flex flex-col items-center">
         <span className="text-xs font-medium" style={{ color: getFreshnessColor(freshnessStatus) }}>
-          {freshnessSeconds}s ago
+          {formatFreshness(freshnessSeconds)}
         </span>
-        <span className="text-[10px] text-gray-400">{formatRelativeTime(timestamp)}</span>
       </div>
     </td>
   );
@@ -193,7 +199,7 @@ export function PriceFreshnessMonitor({ queryResults, avgPrice }: PriceFreshness
   useEffect(() => {
     const timer = setInterval(() => {
       setNow(Date.now());
-    }, 15000);
+    }, 1000);
     return () => clearInterval(timer);
   }, []);
 
@@ -415,7 +421,6 @@ export function PriceFreshnessMonitor({ queryResults, avgPrice }: PriceFreshness
                   <FreshnessCell
                     freshnessSeconds={source.freshnessSeconds}
                     freshnessStatus={source.freshnessStatus}
-                    timestamp={source.timestamp}
                   />
                   <td className="py-2.5 px-3">
                     <div className="flex flex-col items-center">

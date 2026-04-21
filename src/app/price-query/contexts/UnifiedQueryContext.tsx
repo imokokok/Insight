@@ -166,8 +166,13 @@ export function UnifiedQueryProvider({ children }: { children: React.ReactNode }
       selectedRow,
       showBaseline,
       showFavoritesDropdown,
+      favoritesDropdownRef,
     ]
   );
+
+  const toggleAutoRefresh = useCallback(() => {
+    setAutoRefreshInterval((prev) => (prev === 0 ? 30000 : 0));
+  }, []);
 
   const value = useMemo(
     () => ({
@@ -180,12 +185,12 @@ export function UnifiedQueryProvider({ children }: { children: React.ReactNode }
         lastRefreshedAt: data.primaryDataFetchTime,
         nextRefreshAt,
         setRefreshInterval: setAutoRefreshInterval,
-        toggleAutoRefresh: () => setAutoRefreshInterval((prev) => (prev === 0 ? 30000 : 0)),
+        toggleAutoRefresh,
         isRefreshing: data.isFetching,
       },
       ui,
     }),
-    [state, data, stats, autoRefreshInterval, nextRefreshAt, ui]
+    [state, data, stats, autoRefreshInterval, nextRefreshAt, ui, toggleAutoRefresh]
   );
 
   return <UnifiedQueryContext.Provider value={value}>{children}</UnifiedQueryContext.Provider>;
