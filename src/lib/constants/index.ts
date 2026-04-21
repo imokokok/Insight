@@ -211,10 +211,6 @@ export const TIME_RANGES = [
   { value: 168, key: 'timeRange7Days', label: '7D' },
 ];
 
-export const DEVIATION_THRESHOLD = 0.5;
-
-export type { RefreshInterval } from '@/lib/types/crossChain';
-
 // ============================================
 // Chain category definitions
 // ============================================
