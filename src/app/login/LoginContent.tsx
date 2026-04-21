@@ -98,12 +98,15 @@ function LoginForm() {
     e.preventDefault();
     setIsLoading(true);
     setErrorInfo(null);
+    clearError();
 
     const { error: signInError } = await signIn(email, password);
 
     if (signInError) {
       setErrorInfo(parseError(signInError.message));
       setIsLoading(false);
+    } else {
+      setErrorInfo(null);
     }
   };
 
