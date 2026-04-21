@@ -1,3 +1,5 @@
+import { sanitizeString } from '@/lib/security/inputSanitizer';
+
 import { supabase } from './client';
 
 import type { User, Session, AuthError, Provider, AuthChangeEvent } from '@supabase/supabase-js';
@@ -45,12 +47,16 @@ export async function signUp(
   password: string,
   displayName?: string
 ): Promise<SignUpResponse> {
+  const sanitizedDisplayName = displayName
+    ? sanitizeString(displayName, { maxLength: 100 })
+    : undefined;
+
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
       data: {
-        display_name: displayName,
+        display_name: sanitizedDisplayName,
       },
     },
   });
@@ -76,12 +82,22 @@ export async function signIn(email: string, password: string): Promise<AuthRespo
 }
 
 export async function signInWithOAuth(provider: Provider): Promise<{ error: AuthError | null }> {
+  const state = crypto.randomUUID();
+  document.cookie = `oauth_state=${state}; path=/; max-age=600; SameSite=Lax`;
+
   const { error } = await supabase.auth.signInWithOAuth({
     provider,
     options: {
       redirectTo: `${window.location.origin}/api/auth/callback`,
+      queryParams: {
+        state,
+      },
     },
   });
+
+  if (error) {
+    document.cookie = 'oauth_state=; path=/; max-age=0';
+  }
 
   return { error };
 }
@@ -109,6 +125,18 @@ export async function updatePassword(newPassword: string): Promise<AuthResponse>
     session: null,
     error,
   };
+}
+
+export async function resendVerification(email: string): Promise<{ error: AuthError | null }> {
+  const { error } = await supabase.auth.resend({
+    type: 'signup',
+    email: email.trim(),
+    options: {
+      emailRedirectTo: `${window.location.origin}/api/auth/callback`,
+    },
+  });
+
+  return { error };
 }
 
 export async function getSession(): Promise<{ session: Session | null; error: AuthError | null }> {

@@ -9,6 +9,8 @@ import {
   signInWithOAuth as authSignInWithOAuth,
   signOut as authSignOut,
   resetPassword as authResetPassword,
+  updatePassword as authUpdatePassword,
+  resendVerification as authResendVerification,
   getSession,
   onAuthStateChange,
   createUserProfile,
@@ -43,6 +45,8 @@ interface AuthActions {
   signInWithOAuth: (provider: Provider) => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<{ error: AuthError | null }>;
   resetPassword: (email: string) => Promise<{ error: AuthError | null }>;
+  updatePassword: (newPassword: string) => Promise<{ error: AuthError | null }>;
+  resendVerification: (email: string) => Promise<{ error: AuthError | null }>;
   refreshProfile: () => Promise<void>;
   setUser: (user: User | null) => void;
   setSession: (session: Session | null) => void;
@@ -94,7 +98,7 @@ export const useAuthStore = create<AuthStore>()(
         initialize: async () => {
           if (get().initialized) return;
 
-          set({ loading: true, error: null, initialized: true });
+          set({ loading: true, error: null });
 
           try {
             const { session: currentSession } = await getSession();
@@ -253,6 +257,34 @@ export const useAuthStore = create<AuthStore>()(
           return { error: null };
         },
 
+        updatePassword: async (newPassword: string) => {
+          set({ loading: true, error: null });
+
+          const { error: updateError } = await authUpdatePassword(newPassword);
+
+          if (updateError) {
+            set({ error: updateError, loading: false });
+            return { error: updateError };
+          }
+
+          set({ loading: false });
+          return { error: null };
+        },
+
+        resendVerification: async (email: string) => {
+          set({ loading: true, error: null });
+
+          const { error: resendError } = await authResendVerification(email);
+
+          if (resendError) {
+            set({ error: resendError, loading: false });
+            return { error: resendError };
+          }
+
+          set({ loading: false });
+          return { error: null };
+        },
+
         refreshProfile: async () => {
           const { user, session } = get();
           if (user) {
@@ -301,6 +333,7 @@ export const useAuthStore = create<AuthStore>()(
 );
 
 export const useUser = () => useAuthStore((state) => state.user);
+export const useSession = () => useAuthStore((state) => state.session);
 export const useProfile = () => useAuthStore((state) => state.profile);
 export const useAuthLoading = () => useAuthStore((state) => state.loading);
 export const useAuthError = () => useAuthStore((state) => state.error);
@@ -314,6 +347,8 @@ export const useAuthActions = () => {
   const signInWithOAuth = useAuthStore((state) => state.signInWithOAuth);
   const signOut = useAuthStore((state) => state.signOut);
   const resetPassword = useAuthStore((state) => state.resetPassword);
+  const updatePassword = useAuthStore((state) => state.updatePassword);
+  const resendVerification = useAuthStore((state) => state.resendVerification);
   const refreshProfile = useAuthStore((state) => state.refreshProfile);
   const clearError = useAuthStore((state) => state.clearError);
 
@@ -326,6 +361,8 @@ export const useAuthActions = () => {
       signInWithOAuth,
       signOut,
       resetPassword,
+      updatePassword,
+      resendVerification,
       refreshProfile,
       clearError,
     }),
@@ -337,6 +374,8 @@ export const useAuthActions = () => {
       signInWithOAuth,
       signOut,
       resetPassword,
+      updatePassword,
+      resendVerification,
       refreshProfile,
       clearError,
     ]

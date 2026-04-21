@@ -9,7 +9,34 @@ import { Mail, LogIn, AlertCircle, MailWarning } from 'lucide-react';
 
 import { Button } from '@/components/ui';
 import { PasswordInput } from '@/components/ui/PasswordInput';
-import { useUser, useAuthError, useAuthActions } from '@/stores/authStore';
+import { useUser, useAuthError, useAuthActions, useSession } from '@/stores/authStore';
+
+const ALLOWED_REDIRECT_PATHS = [
+  '/',
+  '/dashboard',
+  '/settings',
+  '/profile',
+  '/alerts',
+  '/favorites',
+  '/snapshots',
+  '/price-query',
+  '/cross-chain',
+  '/cross-oracle',
+];
+
+function isValidRedirectPath(path: string): boolean {
+  if (!path || typeof path !== 'string') {
+    return false;
+  }
+
+  if (path.startsWith('//') || path.startsWith('http://') || path.startsWith('https://')) {
+    return false;
+  }
+
+  return ALLOWED_REDIRECT_PATHS.some(
+    (allowed) => path === allowed || path.startsWith(allowed + '/')
+  );
+}
 
 interface ErrorInfo {
   message: string;
@@ -19,8 +46,10 @@ interface ErrorInfo {
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectPath = searchParams.get('redirect') || '/';
+  const rawRedirect = searchParams.get('redirect') || '/';
+  const redirectPath = isValidRedirectPath(rawRedirect) ? rawRedirect : '/';
   const user = useUser();
+  const session = useSession();
   const error = useAuthError();
   const { signIn, signInWithOAuth } = useAuthActions();
   const [email, setEmail] = useState('');
@@ -29,10 +58,10 @@ function LoginForm() {
   const [errorInfo, setErrorInfo] = useState<ErrorInfo | null>(null);
 
   useEffect(() => {
-    if (user) {
+    if (user && session) {
       router.push(redirectPath);
     }
-  }, [user, router, redirectPath]);
+  }, [user, session, router, redirectPath]);
 
   const parseError = (errorMessage: string): ErrorInfo => {
     const lowerError = errorMessage.toLowerCase();
@@ -55,7 +84,7 @@ function LoginForm() {
     }
 
     return {
-      message: errorMessage,
+      message: 'An error occurred during login. Please try again.',
       type: 'default',
     };
   };

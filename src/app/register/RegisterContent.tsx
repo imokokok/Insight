@@ -8,13 +8,15 @@ import { useRouter } from 'next/navigation';
 import { Mail, User, UserPlus, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 
 import { PasswordInput } from '@/components/ui/PasswordInput';
-import { useUser, useAuthActions } from '@/stores/authStore';
+import { validatePassword, getPasswordStrength } from '@/lib/security/passwordValidation';
+import { useUser, useSession, useAuthActions } from '@/stores/authStore';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function RegisterContent() {
   const router = useRouter();
   const user = useUser();
+  const session = useSession();
   const { signUp, clearError } = useAuthActions();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -23,12 +25,13 @@ export default function RegisterContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   useEffect(() => {
-    if (user && !isSuccess) {
+    if (user && session && !isSuccess) {
       router.push(`/`);
     }
-  }, [user, isSuccess, router]);
+  }, [user, session, isSuccess, router]);
 
   const validateForm = () => {
     if (!email.trim()) {
@@ -39,16 +42,17 @@ export default function RegisterContent() {
       setLocalError('Please enter a valid email address');
       return false;
     }
-    if (!password) {
-      setLocalError('Password is required');
-      return false;
-    }
-    if (password.length < 6) {
-      setLocalError('Password must be at least 6 characters');
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      setLocalError(passwordError);
       return false;
     }
     if (password !== confirmPassword) {
       setLocalError('Passwords do not match');
+      return false;
+    }
+    if (!agreedToTerms) {
+      setLocalError('You must agree to the Terms of Service and Privacy Policy');
       return false;
     }
     return true;
@@ -77,6 +81,7 @@ export default function RegisterContent() {
   };
 
   const displayError = localError;
+  const passwordStrength = getPasswordStrength(password);
 
   if (isSuccess) {
     return (
@@ -115,6 +120,7 @@ export default function RegisterContent() {
                   setPassword('');
                   setConfirmPassword('');
                   setDisplayName('');
+                  setAgreedToTerms(false);
                 }}
                 className="w-full px-6 py-3 border border-gray-200 text-gray-700 font-medium hover:bg-gray-50 hover:border-gray-300 transition-colors rounded-md"
               >
@@ -168,6 +174,7 @@ export default function RegisterContent() {
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
                   placeholder="Enter your display name"
+                  maxLength={100}
                   className="w-full pl-12 pr-4 py-3 border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900 transition-colors rounded-md"
                 />
               </div>
@@ -209,6 +216,54 @@ export default function RegisterContent() {
                 aria-describedby={displayError ? 'register-error' : undefined}
                 className="w-full pl-12 pr-12 py-3 border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900 transition-colors rounded-md"
               />
+              {password && (
+                <div className="mt-2">
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all duration-300 ${
+                          passwordStrength.score <= 2
+                            ? 'bg-danger-500 w-1/3'
+                            : passwordStrength.score <= 4
+                              ? 'bg-yellow-500 w-2/3'
+                              : 'bg-success-500 w-full'
+                        }`}
+                      />
+                    </div>
+                    <span className={`text-xs font-medium ${passwordStrength.color}`}>
+                      {passwordStrength.label}
+                    </span>
+                  </div>
+                  <ul className="mt-1.5 space-y-0.5">
+                    <li
+                      className={`text-xs ${password.length >= 8 ? 'text-success-600' : 'text-gray-400'}`}
+                    >
+                      {password.length >= 8 ? '✓' : '○'} At least 8 characters
+                    </li>
+                    <li
+                      className={`text-xs ${/[A-Z]/.test(password) ? 'text-success-600' : 'text-gray-400'}`}
+                    >
+                      {/[A-Z]/.test(password) ? '✓' : '○'} One uppercase letter
+                    </li>
+                    <li
+                      className={`text-xs ${/[a-z]/.test(password) ? 'text-success-600' : 'text-gray-400'}`}
+                    >
+                      {/[a-z]/.test(password) ? '✓' : '○'} One lowercase letter
+                    </li>
+                    <li
+                      className={`text-xs ${/\d/.test(password) ? 'text-success-600' : 'text-gray-400'}`}
+                    >
+                      {/\d/.test(password) ? '✓' : '○'} One number
+                    </li>
+                    <li
+                      className={`text-xs ${/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password) ? 'text-success-600' : 'text-gray-400'}`}
+                    >
+                      {/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password) ? '✓' : '○'} One
+                      special character
+                    </li>
+                  </ul>
+                </div>
+              )}
             </div>
 
             <div>
@@ -234,6 +289,8 @@ export default function RegisterContent() {
               <input
                 id="terms"
                 type="checkbox"
+                checked={agreedToTerms}
+                onChange={(e) => setAgreedToTerms(e.target.checked)}
                 required
                 className="h-4 w-4 mt-1 text-primary-600 focus:ring-primary-500 border-gray-300 rounded-md"
               />
@@ -257,7 +314,7 @@ export default function RegisterContent() {
 
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || !agreedToTerms}
               className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-primary-600 text-white font-semibold hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed rounded-md"
             >
               {isLoading ? (

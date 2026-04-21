@@ -7,11 +7,32 @@ import { createLogger } from '@/lib/utils/logger';
 const logger = createLogger('api-auth-delete-account');
 
 export const POST = createApiHandler(
-  async (_request: NextRequest, context) => {
+  async (request: NextRequest, context) => {
     const userId = context.auth?.userId;
+    const userEmail = context.auth?.email;
 
     if (!userId) {
       return ApiResponseBuilder.unauthorized();
+    }
+
+    let body: Record<string, unknown>;
+    try {
+      body = await request.json();
+    } catch {
+      return ApiResponseBuilder.badRequest('Invalid request body');
+    }
+
+    const { confirmation } = body;
+
+    if (!confirmation || typeof confirmation !== 'string') {
+      return ApiResponseBuilder.badRequest('Confirmation phrase is required to delete account');
+    }
+
+    const expectedConfirmation = `DELETE ${userEmail || userId}`;
+    if (confirmation !== expectedConfirmation) {
+      return ApiResponseBuilder.badRequest(
+        'Confirmation phrase does not match. Please type "DELETE <your-email>" to confirm.'
+      );
     }
 
     const queries = getServerQueries();
@@ -49,7 +70,7 @@ export const POST = createApiHandler(
 
     const response = NextResponse.json({ success: true });
 
-    const cookieNames = _request.cookies.getAll().map((c) => c.name);
+    const cookieNames = request.cookies.getAll().map((c) => c.name);
     for (const name of cookieNames) {
       if (name.startsWith('sb-') || name.includes('supabase')) {
         response.cookies.delete(name);

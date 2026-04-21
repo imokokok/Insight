@@ -7,13 +7,14 @@ import { useSearchParams } from 'next/navigation';
 
 import { Mail, Loader2, CheckCircle, ArrowLeft } from 'lucide-react';
 
-import { supabase } from '@/lib/supabase/client';
+import { useAuthActions } from '@/stores/authStore';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function ResendVerificationForm() {
   const searchParams = useSearchParams();
   const defaultEmail = searchParams.get('email') || '';
+  const { resendVerification } = useAuthActions();
 
   const [email, setEmail] = useState(defaultEmail);
   const [isLoading, setIsLoading] = useState(false);
@@ -32,23 +33,13 @@ function ResendVerificationForm() {
     setIsLoading(true);
     setError(null);
 
-    try {
-      const { error: resendError } = await supabase.auth.resend({
-        type: 'signup',
-        email: email.trim(),
-        options: {
-          emailRedirectTo: `${window.location.origin}/api/auth/callback`,
-        },
-      });
+    const { error: resendError } = await resendVerification(email.trim());
 
-      if (resendError) {
-        setError(resendError.message);
-      } else {
-        setIsSuccess(true);
-      }
-    } catch {
-      setError('Failed to resend verification email. Please try again.');
-    } finally {
+    if (resendError) {
+      setError(resendError.message);
+      setIsLoading(false);
+    } else {
+      setIsSuccess(true);
       setIsLoading(false);
     }
   };

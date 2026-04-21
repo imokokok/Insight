@@ -59,6 +59,15 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL('/auth/verify-email?error=missing_code', request.url));
   }
 
+  const oauthStateCookie = request.cookies.get('oauth_state')?.value;
+  if (oauthStateCookie && state && oauthStateCookie !== state) {
+    logger.warn('OAuth state mismatch - possible CSRF attack', {
+      cookieState: oauthStateCookie,
+      paramState: state,
+    });
+    return NextResponse.redirect(new URL('/auth/verify-email?error=invalid_state', request.url));
+  }
+
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -140,6 +149,8 @@ export async function GET(request: NextRequest) {
   cookiesToSet.forEach(({ name, value, options }) => {
     response.cookies.set(name, value, options);
   });
+
+  response.cookies.delete('oauth_state');
 
   return response;
 }

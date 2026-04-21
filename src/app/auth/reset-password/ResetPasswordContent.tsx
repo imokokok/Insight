@@ -8,11 +8,13 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { Lock, Loader2, CheckCircle, XCircle } from 'lucide-react';
 
 import { PasswordInput } from '@/components/ui/PasswordInput';
-import { supabase } from '@/lib/supabase/client';
+import { validatePassword } from '@/lib/security/passwordValidation';
+import { useAuthActions } from '@/stores/authStore';
 
 function ResetPasswordForm() {
   const _searchParams = useSearchParams();
   const router = useRouter();
+  const { updatePassword } = useAuthActions();
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -24,14 +26,9 @@ function ResetPasswordForm() {
   useEffect(() => {
     const checkSession = async () => {
       try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        if (user) {
-          setIsValidSession(true);
-        } else {
-          setIsValidSession(false);
-        }
+        const { getSession } = await import('@/lib/supabase/auth');
+        const { session } = await getSession();
+        setIsValidSession(!!session);
       } catch {
         setIsValidSession(false);
       }
@@ -40,12 +37,9 @@ function ResetPasswordForm() {
   }, []);
 
   const validateForm = () => {
-    if (!password) {
-      setError('Password is required');
-      return false;
-    }
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters');
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      setError(passwordError);
       return false;
     }
     if (password !== confirmPassword) {
@@ -63,22 +57,16 @@ function ResetPasswordForm() {
 
     setIsLoading(true);
 
-    try {
-      const { error: updateError } = await supabase.auth.updateUser({
-        password,
-      });
+    const { error: updateError } = await updatePassword(password);
 
-      if (updateError) {
-        setError(updateError.message);
-      } else {
-        setIsSuccess(true);
-        setTimeout(() => {
-          router.push(`/login`);
-        }, 3000);
-      }
-    } catch {
-      setError('Failed to reset password. Please try again.');
-    } finally {
+    if (updateError) {
+      setError(updateError.message);
+      setIsLoading(false);
+    } else {
+      setIsSuccess(true);
+      setTimeout(() => {
+        router.push(`/login`);
+      }, 3000);
       setIsLoading(false);
     }
   };

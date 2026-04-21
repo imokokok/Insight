@@ -194,9 +194,11 @@ export function DataManagementPanel() {
     setError(null);
 
     try {
+      const confirmation = `DELETE ${user.email || user.id}`;
       const res = await fetch('/api/auth/delete-account', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ confirmation }),
       });
 
       if (!res.ok) {
