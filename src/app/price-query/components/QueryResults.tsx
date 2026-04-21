@@ -9,7 +9,6 @@ import { safeMax } from '@/lib/utils';
 
 import { type OnChainData, type QueryResult } from '../constants';
 import { useUnifiedQuery } from '../contexts';
-import { useConsistencyRating } from '../hooks/useConsistencyRating';
 import { formatPrice } from '../utils/queryResultsUtils';
 
 import { QueryResultsEmpty } from './QueryResultsEmpty';
@@ -45,8 +44,7 @@ export function QueryResults({ onChainData }: QueryResultsProps) {
     stats,
   } = query;
 
-  const { avgPrice, maxPrice, minPrice, priceRange, standardDeviation, standardDeviationPercent } =
-    stats;
+  const { avgPrice, standardDeviation, standardDeviationPercent } = stats;
 
   const {
     diaOnChainData,
@@ -57,8 +55,6 @@ export function QueryResults({ onChainData }: QueryResultsProps) {
     reflectorOnChainData,
     flareOnChainData,
   } = onChainData;
-
-  const consistencyRating = useConsistencyRating(standardDeviationPercent);
 
   const currentPriceValue = useMemo(() => {
     if (queryResults.length === 0) return avgPrice > 0 ? avgPrice : 0;
@@ -141,12 +137,6 @@ export function QueryResults({ onChainData }: QueryResultsProps) {
               twapOnChainData={twapOnChainData}
               reflectorOnChainData={reflectorOnChainData}
               flareOnChainData={flareOnChainData}
-              maxPrice={maxPrice}
-              minPrice={minPrice}
-              avgPrice={avgPrice}
-              priceRange={priceRange}
-              consistencyRating={consistencyRating}
-              standardDeviationPercent={standardDeviationPercent}
             />
           </div>
 
