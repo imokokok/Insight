@@ -1,6 +1,8 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+
+import { useRouter } from 'next/navigation';
 
 import {
   Database,
@@ -18,8 +20,23 @@ import { queries, supabase } from '@/lib/supabase/client';
 import { downloadBlob } from '@/lib/utils/download';
 import { useUser, useAuthActions } from '@/stores/authStore';
 
+interface ExportConfig {
+  filename: string;
+  data: unknown;
+}
+
+function exportToJson(config: ExportConfig): void {
+  const { filename, data } = config;
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const timestamp = new Date().toISOString().split('.')[0];
+  downloadBlob(blob, `${filename}-${timestamp}.json`);
+}
+
+const LOCAL_STORAGE_PREFIXES = ['insight-', 'auth-store'];
+
 export function DataManagementPanel() {
   const user = useUser();
+  const router = useRouter();
   const { signOut } = useAuthActions();
   const [isExportingUserData, setIsExportingUserData] = useState(false);
   const [isExportingPrice, setIsExportingPrice] = useState(false);
@@ -41,13 +58,13 @@ export function DataManagementPanel() {
     };
   }, []);
 
-  const showSuccess = (message: string) => {
+  const showSuccess = useCallback((message: string) => {
     setSuccess(message);
     if (successTimerRef.current) {
       clearTimeout(successTimerRef.current);
     }
     successTimerRef.current = setTimeout(() => setSuccess(null), 3000);
-  };
+  }, []);
 
   const exportUserData = async () => {
     if (!user) return;
@@ -75,11 +92,9 @@ export function DataManagementPanel() {
         snapshots: snapshotsResult,
       };
 
-      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-      downloadBlob(blob, `user-data-${new Date().toISOString().split('.')[0]}.json`);
-
+      exportToJson({ filename: 'user-data', data: exportData });
       showSuccess('Data exported successfully');
-    } catch (_err) {
+    } catch {
       setError('Failed to export data');
     } finally {
       setIsExportingUserData(false);
@@ -107,11 +122,9 @@ export function DataManagementPanel() {
         count: data?.length || 0,
       };
 
-      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-      downloadBlob(blob, `price-history-${new Date().toISOString().split('.')[0]}.json`);
-
+      exportToJson({ filename: 'price-history', data: exportData });
       showSuccess('Price history exported successfully');
-    } catch (_err) {
+    } catch {
       setError('Failed to export data');
     } finally {
       setIsExportingPrice(false);
@@ -133,11 +146,9 @@ export function DataManagementPanel() {
         count: snapshots?.length || 0,
       };
 
-      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-      downloadBlob(blob, `snapshots-${new Date().toISOString().split('.')[0]}.json`);
-
+      exportToJson({ filename: 'snapshots', data: exportData });
       showSuccess('Snapshots exported successfully');
-    } catch (_err) {
+    } catch {
       setError('Failed to export data');
     } finally {
       setIsExportingSnapshots(false);
@@ -154,9 +165,9 @@ export function DataManagementPanel() {
 
     try {
       const keysToRemove: string[] = [];
-      for (let i = 0; i < localStorage.length; i++) {
+      for (let i = localStorage.length - 1; i >= 0; i--) {
         const key = localStorage.key(i);
-        if (key && (key.startsWith('insight-') || key.startsWith('auth-store'))) {
+        if (key && LOCAL_STORAGE_PREFIXES.some((prefix) => key.startsWith(prefix))) {
           keysToRemove.push(key);
         }
       }
@@ -169,7 +180,7 @@ export function DataManagementPanel() {
       }
 
       showSuccess('Local data cleared successfully');
-    } catch (_err) {
+    } catch {
       setError('Failed to clear local data');
     } finally {
       setIsClearing(false);
@@ -195,8 +206,8 @@ export function DataManagementPanel() {
       }
 
       await signOut();
-      window.location.href = '/';
-    } catch (_err) {
+      router.push('/');
+    } catch {
       setError('Failed to delete account');
     } finally {
       setIsDeleting(false);
@@ -222,7 +233,7 @@ export function DataManagementPanel() {
           )}
 
           {success && (
-            <div className="p-3 bg-success-50 border border-green-200 rounded-lg text-success-700 text-sm flex items-center gap-2">
+            <div className="p-3 bg-success-50 border border-success-200 rounded-lg text-success-700 text-sm flex items-center gap-2">
               <CheckCircle className="w-4 h-4" />
               {success}
             </div>

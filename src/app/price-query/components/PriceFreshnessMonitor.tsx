@@ -207,7 +207,6 @@ export function PriceFreshnessMonitor({ queryResults, avgPrice }: PriceFreshness
 
   const dataSources = useMemo<DataSourceInfo[]>(() => {
     if (queryResults.length === 0) return [];
-    if (!Number.isFinite(avgPrice) || avgPrice <= 0) return [];
 
     return queryResults
       .filter((result) => result.priceData && result.priceData.price > 0)
@@ -217,8 +216,9 @@ export function PriceFreshnessMonitor({ queryResults, avgPrice }: PriceFreshness
         const freshnessSeconds = Math.max(0, Math.floor((now - timestamp) / 1000));
         const freshnessStatus = getFreshnessStatus(freshnessSeconds);
         const providerDefaults = getProviderDefaults(result.provider);
-        const priceDeviation = price - avgPrice;
-        const priceDeviationPercent = (priceDeviation / avgPrice) * 100;
+        const priceDeviation = Number.isFinite(avgPrice) && avgPrice > 0 ? price - avgPrice : 0;
+        const priceDeviationPercent =
+          Number.isFinite(avgPrice) && avgPrice > 0 ? (priceDeviation / avgPrice) * 100 : 0;
         const confidence = calculateConfidenceScore(result.priceData);
         const { score, factors } = calculateHealthScore(
           freshnessStatus,

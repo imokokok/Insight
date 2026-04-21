@@ -1,145 +1,31 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
-import Image from 'next/image';
-
-import { User, Mail, Save, Key, Loader2, CheckCircle, Upload, Trash2 } from 'lucide-react';
+import { Mail, Save, Key, Loader2, CheckCircle } from 'lucide-react';
 
 import { PasswordInput } from '@/components/ui/PasswordInput';
-import { updateUserProfile, uploadAvatar, deleteAvatar, updatePassword } from '@/lib/supabase/auth';
+import { updateUserProfile, updatePassword } from '@/lib/supabase/auth';
 import { useUser, useProfile, useAuthActions } from '@/stores/authStore';
 
-const AvatarUploader = ({
-  currentAvatarUrl,
-  userId,
-  onAvatarUpdate,
-  onError,
-  onSuccess,
-}: {
-  currentAvatarUrl?: string | null;
-  userId: string;
-  onAvatarUpdate: (url: string) => Promise<void>;
-  onError: (errorMsg: string) => void;
-  onSuccess: (message: string) => void;
-}) => {
-  const [imgError, setImgError] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+import { AvatarUploader } from './AvatarUploader';
 
-  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+const PASSWORD_MIN_LENGTH = 8;
+const PASSWORD_COMPLEXITY_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/;
 
-    if (file.size > 2 * 1024 * 1024) {
-      onError('File size must be less than 2MB');
-      return;
-    }
-
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-    if (!allowedTypes.includes(file.type)) {
-      onError('Invalid file type');
-      return;
-    }
-
-    setIsUploading(true);
-    setImgError(false);
-
-    try {
-      const result = await uploadAvatar(userId, file);
-
-      if (result.error) {
-        onError(result.error.message);
-      } else if (result.url) {
-        await onAvatarUpdate(result.url);
-        onSuccess('Avatar updated successfully');
-      }
-    } catch (error) {
-      onError(error instanceof Error ? error.message : 'Failed to upload avatar');
-    } finally {
-      setIsUploading(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-    }
-  };
-
-  const handleDeleteAvatar = async () => {
-    setIsUploading(true);
-
-    try {
-      const result = await deleteAvatar(userId);
-
-      if (result.error) {
-        onError(result.error.message);
-      } else {
-        await onAvatarUpdate('');
-        onSuccess('Avatar removed successfully');
-        setImgError(false);
-      }
-    } catch (error) {
-      onError(error instanceof Error ? error.message : 'Failed to delete avatar');
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
-  return (
-    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-      <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden relative">
-        {currentAvatarUrl && !imgError ? (
-          <Image
-            src={currentAvatarUrl}
-            alt="Avatar"
-            fill
-            className="object-cover"
-            onError={() => setImgError(true)}
-            unoptimized
-          />
-        ) : (
-          <User className="w-10 h-10 text-gray-500" />
-        )}
-      </div>
-      <div className="flex flex-col gap-2">
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/jpeg,image/png,image/webp,image/gif"
-          onChange={handleFileSelect}
-          className="hidden"
-          disabled={isUploading}
-        />
-        <div className="flex gap-2">
-          <button
-            type="button"
-            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 border border-blue-600 rounded-md hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isUploading}
-          >
-            {isUploading ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Upload className="w-4 h-4" />
-            )}
-            {isUploading ? 'Uploading...' : 'Upload Avatar'}
-          </button>
-          {currentAvatarUrl && (
-            <button
-              type="button"
-              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 border border-red-600 rounded-md hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              onClick={handleDeleteAvatar}
-              disabled={isUploading}
-            >
-              <Trash2 className="w-4 h-4" />
-              Remove
-            </button>
-          )}
-        </div>
-        <p className="text-xs text-gray-500">JPG, PNG, WebP or GIF. Max 2MB.</p>
-      </div>
-    </div>
-  );
-};
+function validatePassword(password: string): { valid: boolean; message: string } {
+  if (password.length < PASSWORD_MIN_LENGTH) {
+    return { valid: false, message: `Password must be at least ${PASSWORD_MIN_LENGTH} characters` };
+  }
+  if (!PASSWORD_COMPLEXITY_REGEX.test(password)) {
+    return {
+      valid: false,
+      message:
+        'Password must contain at least one uppercase letter, one lowercase letter, and one number',
+    };
+  }
+  return { valid: true, message: '' };
+}
 
 export function ProfilePanel() {
   const user = useUser();
@@ -151,6 +37,7 @@ export function ProfilePanel() {
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isChangingPassword, setIsChangingPassword] = useState(false);
@@ -203,8 +90,14 @@ export function ProfilePanel() {
   const handleChangePassword = async () => {
     if (!user) return;
 
-    if (newPassword.length < 6) {
-      setError('Password must be at least 6 characters');
+    if (!currentPassword) {
+      setError('Please enter your current password');
+      return;
+    }
+
+    const validation = validatePassword(newPassword);
+    if (!validation.valid) {
+      setError(validation.message);
       return;
     }
 
@@ -224,6 +117,7 @@ export function ProfilePanel() {
       } else {
         setSuccess('Password updated successfully');
         setShowPasswordForm(false);
+        setCurrentPassword('');
         setNewPassword('');
         setConfirmPassword('');
       }
@@ -239,7 +133,7 @@ export function ProfilePanel() {
       <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
           <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-            <User className="w-5 h-5 text-gray-400" />
+            <Mail className="w-5 h-5 text-gray-400" />
             Profile Settings
           </h2>
           <p className="text-sm text-gray-500 mt-1">Manage your account information</p>
@@ -253,7 +147,7 @@ export function ProfilePanel() {
           )}
 
           {success && (
-            <div className="p-3 bg-success-50 border border-green-200 rounded-lg text-success-700 text-sm flex items-center gap-2">
+            <div className="p-3 bg-success-50 border border-success-200 rounded-lg text-success-700 text-sm flex items-center gap-2">
               <CheckCircle className="w-4 h-4" />
               {success}
             </div>
@@ -338,12 +232,27 @@ export function ProfilePanel() {
           ) : (
             <div className="space-y-4">
               <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Current Password
+                </label>
+                <PasswordInput
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  placeholder="Enter current password"
+                />
+              </div>
+
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">New Password</label>
                 <PasswordInput
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="Enter new password"
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  Must be at least {PASSWORD_MIN_LENGTH} characters with uppercase, lowercase, and
+                  number
+                </p>
               </div>
 
               <div>
@@ -373,6 +282,7 @@ export function ProfilePanel() {
                 <button
                   onClick={() => {
                     setShowPasswordForm(false);
+                    setCurrentPassword('');
                     setNewPassword('');
                     setConfirmPassword('');
                   }}

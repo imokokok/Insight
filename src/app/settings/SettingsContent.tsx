@@ -1,37 +1,41 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useSyncExternalStore } from 'react';
 
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 
+import { SectionErrorBoundary } from '@/components/error-boundary';
 import type { SettingsTab } from '@/components/settings';
 import { useUser, useAuthLoading, useAuthInitialized } from '@/stores/authStore';
 
-const SettingsLayout = dynamic(
-  () => import('@/components/settings').then((mod) => mod.SettingsLayout),
-  { ssr: false }
+const SettingsLayout = dynamic(() =>
+  import('@/components/settings').then((mod) => mod.SettingsLayout)
 );
 
-const ProfilePanel = dynamic(
-  () => import('@/components/settings').then((mod) => mod.ProfilePanel),
-  { ssr: false }
+const ProfilePanel = dynamic(() => import('@/components/settings').then((mod) => mod.ProfilePanel));
+
+const PreferencesPanel = dynamic(() =>
+  import('@/components/settings').then((mod) => mod.PreferencesPanel)
 );
 
-const PreferencesPanel = dynamic(
-  () => import('@/components/settings').then((mod) => mod.PreferencesPanel),
-  { ssr: false }
+const NotificationPanel = dynamic(() =>
+  import('@/components/settings').then((mod) => mod.NotificationPanel)
 );
 
-const NotificationPanel = dynamic(
-  () => import('@/components/settings').then((mod) => mod.NotificationPanel),
-  { ssr: false }
+const DataManagementPanel = dynamic(() =>
+  import('@/components/settings').then((mod) => mod.DataManagementPanel)
 );
 
-const DataManagementPanel = dynamic(
-  () => import('@/components/settings').then((mod) => mod.DataManagementPanel),
-  { ssr: false }
-);
+const emptySubscribe = () => () => {};
+
+function useIsClient() {
+  return useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false
+  );
+}
 
 export default function SettingsContent() {
   const user = useUser();
@@ -39,13 +43,7 @@ export default function SettingsContent() {
   const initialized = useAuthInitialized();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    requestAnimationFrame(() => {
-      setMounted(true);
-    });
-  }, []);
+  const isClient = useIsClient();
 
   useEffect(() => {
     if (initialized && !loading && !user) {
@@ -54,7 +52,7 @@ export default function SettingsContent() {
     }
   }, [user, loading, initialized, router]);
 
-  if (loading || !initialized || !mounted) {
+  if (loading || !initialized || !isClient) {
     return (
       <div className="min-h-screen bg-insight">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -89,10 +87,12 @@ export default function SettingsContent() {
   return (
     <div className="bg-insight min-h-screen rounded-lg">
       <SettingsLayout activeTab={activeTab} onTabChange={setActiveTab}>
-        {activeTab === 'profile' && <ProfilePanel />}
-        {activeTab === 'preferences' && <PreferencesPanel />}
-        {activeTab === 'notifications' && <NotificationPanel />}
-        {activeTab === 'data' && <DataManagementPanel />}
+        <SectionErrorBoundary componentName="SettingsPanel">
+          {activeTab === 'profile' && <ProfilePanel />}
+          {activeTab === 'preferences' && <PreferencesPanel />}
+          {activeTab === 'notifications' && <NotificationPanel />}
+          {activeTab === 'data' && <DataManagementPanel />}
+        </SectionErrorBoundary>
       </SettingsLayout>
     </div>
   );

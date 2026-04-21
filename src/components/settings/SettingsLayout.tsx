@@ -66,8 +66,8 @@ export function SettingsLayout({ children, activeTab, onTabChange }: SettingsLay
 
         <div className="flex flex-col lg:flex-row gap-6">
           <nav className="lg:w-64 flex-shrink-0">
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
-              {tabs.map((tab, index) => {
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden divide-y divide-gray-100">
+              {tabs.map((tab) => {
                 const Icon = tab.icon;
                 const isActive = activeTab === tab.id;
 
@@ -75,9 +75,8 @@ export function SettingsLayout({ children, activeTab, onTabChange }: SettingsLay
                   <button
                     key={tab.id}
                     onClick={() => onTabChange(tab.id)}
-                    className={`w-full flex items-center gap-3 px-4 py-3.5 text-left transition-all duration-200 relative rounded-lg ${
-                      index !== 0 ? 'border-t border-gray-100' : ''
-                    } ${
+                    aria-current={isActive ? 'page' : undefined}
+                    className={`w-full flex items-center gap-3 px-4 py-3.5 text-left transition-all duration-200 relative ${
                       isActive
                         ? 'bg-primary-50/80 text-primary-600'
                         : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
