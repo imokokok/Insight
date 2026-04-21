@@ -151,6 +151,7 @@ export function PreferencesPanel() {
 
   const handleSave = async () => {
     setIsSaving(true);
+    setError(null);
 
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(preferences));
@@ -213,7 +214,7 @@ export function PreferencesPanel() {
 
             <div className="p-6 space-y-6">
               {success && (
-                <div className="p-3 bg-success-50 border border-green-200 rounded-lg text-success-700 text-sm flex items-center gap-2">
+                <div className="p-3 bg-success-50 border border-success-200 rounded-lg text-success-700 text-sm flex items-center gap-2">
                   <CheckCircle className="w-4 h-4" />
                   {success}
                 </div>

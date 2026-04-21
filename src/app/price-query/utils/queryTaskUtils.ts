@@ -62,29 +62,9 @@ export function buildQueryTasks(
         }
       }
     } else if (selectedOracle && !selectedChain) {
-      if (provider === selectedOracle) {
-        for (const chain of client.supportedChains) {
-          if (client.isSymbolSupported(selectedSymbol, chain)) {
-            primaryTasks.push({
-              provider,
-              chain,
-              client,
-              isCompare: false,
-            });
-          }
-        }
-      } else if (isCompareMode) {
-        for (const chain of client.supportedChains) {
-          if (client.isSymbolSupported(selectedSymbol, chain)) {
-            compareTasks.push({
-              provider,
-              chain,
-              client,
-              isCompare: true,
-            });
-          }
-        }
-      }
+      // 当选择了预言机但未选择链时，不自动查询所有链
+      // 引导用户选择具体的链
+      // 不添加任何任务，返回空列表
     } else if (!selectedOracle && selectedChain) {
       if (client.supportedChains.includes(selectedChain)) {
         primaryTasks.push({

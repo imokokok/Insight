@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 
 import { updateUserProfile } from '@/lib/supabase/auth';
-import { useUser, useProfile } from '@/stores/authStore';
+import { useUser } from '@/stores/authStore';
 
 interface NotificationSettings {
   emailNotifications: boolean;
@@ -65,7 +65,6 @@ function Toggle({
 
 export function NotificationPanel() {
   const user = useUser();
-  const _profile = useProfile();
   const [settings, setSettings] = useState<NotificationSettings>(() => {
     if (typeof window === 'undefined') return defaultSettings;
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -111,6 +110,7 @@ export function NotificationPanel() {
 
   const handleSave = async () => {
     setIsSaving(true);
+    setError(null);
 
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
@@ -158,7 +158,7 @@ export function NotificationPanel() {
 
         <div className="p-6 space-y-6">
           {success && (
-            <div className="p-3 bg-success-50 border border-green-200 rounded-lg text-success-700 text-sm flex items-center gap-2">
+            <div className="p-3 bg-success-50 border border-success-200 rounded-lg text-success-700 text-sm flex items-center gap-2">
               <CheckCircle className="w-4 h-4" />
               {success}
             </div>
