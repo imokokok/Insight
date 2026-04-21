@@ -51,17 +51,22 @@ function LoginForm() {
   const user = useUser();
   const session = useSession();
   const error = useAuthError();
-  const { signIn, signInWithOAuth } = useAuthActions();
+  const { signIn, signInWithOAuth, clearError } = useAuthActions();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errorInfo, setErrorInfo] = useState<ErrorInfo | null>(null);
 
   useEffect(() => {
+    clearError();
+  }, [clearError]);
+
+  useEffect(() => {
     if (user && session) {
+      clearError();
       router.push(redirectPath);
     }
-  }, [user, session, router, redirectPath]);
+  }, [user, session, router, redirectPath, clearError]);
 
   const parseError = (errorMessage: string): ErrorInfo => {
     const lowerError = errorMessage.toLowerCase();
