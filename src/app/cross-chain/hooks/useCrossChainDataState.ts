@@ -61,9 +61,11 @@ export function useCrossChainDataState(): UseCrossChainDataStateReturn {
   const setRecommendedBaseChain = useCrossChainDataStore((s) => s.setRecommendedBaseChain);
   const setAnomalies = useCrossChainDataStore((s) => s.setAnomalies);
   const setCrossChainComparison = useCrossChainDataStore((s) => s.setCrossChainComparison);
-  const setFetchData = useCrossChainDataStore((s) => s.setFetchData);
-  const setClearCache = useCrossChainDataStore((s) => s.setClearCache);
-  const setClearCacheForProvider = useCrossChainDataStore((s) => s.setClearCacheForProvider);
+  const registerFetchData = useCrossChainDataStore((s) => s.registerFetchData);
+  const registerClearCache = useCrossChainDataStore((s) => s.registerClearCache);
+  const registerClearCacheForProvider = useCrossChainDataStore(
+    (s) => s.registerClearCacheForProvider
+  );
 
   const currentClient = useMemo(
     () => getDefaultFactory().getClient(selectedProvider),
@@ -95,16 +97,16 @@ export function useCrossChainDataState(): UseCrossChainDataStateReturn {
   );
 
   useEffect(() => {
-    setFetchData(fetchDataInternal);
-  }, [fetchDataInternal, setFetchData]);
+    registerFetchData(fetchDataInternal);
+  }, [fetchDataInternal, registerFetchData]);
 
   useEffect(() => {
-    setClearCache(clearCache);
-  }, [clearCache, setClearCache]);
+    registerClearCache(clearCache);
+  }, [clearCache, registerClearCache]);
 
   useEffect(() => {
-    setClearCacheForProvider(clearCacheForProvider);
-  }, [clearCacheForProvider, setClearCacheForProvider]);
+    registerClearCacheForProvider(clearCacheForProvider);
+  }, [clearCacheForProvider, registerClearCacheForProvider]);
 
   const prevParamsRef = useRef({
     selectedProvider,

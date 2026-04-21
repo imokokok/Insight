@@ -2,6 +2,7 @@
 
 import dynamic from 'next/dynamic';
 
+import { ErrorBoundary } from '@/components/error-boundary';
 import { HeroSkeleton } from '@/components/ui';
 
 const ProfessionalHero = dynamic(() => import('./home-components/ProfessionalHero'), {
@@ -9,10 +10,18 @@ const ProfessionalHero = dynamic(() => import('./home-components/ProfessionalHer
   ssr: false,
 });
 
-export default function HomeContent() {
+function HomeContentInner() {
   return (
     <div className="min-h-screen">
       <ProfessionalHero />
     </div>
+  );
+}
+
+export default function HomeContent() {
+  return (
+    <ErrorBoundary level="page" componentName="HomeContent">
+      <HomeContentInner />
+    </ErrorBoundary>
   );
 }

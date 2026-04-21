@@ -1,19 +1,13 @@
+import { type ThresholdConfig } from '@/lib/types/crossChain';
+
 import { calculateZScore } from './statisticsUtils';
 
-export type ThresholdType = 'fixed' | 'dynamic' | 'atr';
-
-export type OutlierDetectionMethod = 'zscore' | 'iqr';
-
-export interface ThresholdConfig {
-  type: ThresholdType;
-  fixedThreshold: number;
-  atrMultiplier: number;
-  volatilityWindow: number;
-  priceJumpMethod: 'std' | 'zscore' | 'simple';
-  priceJumpThreshold: number;
-  outlierDetectionMethod: OutlierDetectionMethod;
-  outlierThreshold: number;
-}
+export type {
+  ThresholdType,
+  OutlierDetectionMethod,
+  ThresholdConfig,
+} from '@/lib/types/crossChain';
+export { defaultThresholdConfig } from '@/lib/types/crossChain';
 
 const calculateATR = (prices: number[], period: number = 14): number => {
   if (prices.length < period + 1) {
@@ -99,15 +93,4 @@ const detectPriceJumps = (
   }
 
   return 0;
-};
-
-export const defaultThresholdConfig: ThresholdConfig = {
-  type: 'fixed',
-  fixedThreshold: 0.5,
-  atrMultiplier: 2.0,
-  volatilityWindow: 14,
-  priceJumpMethod: 'zscore',
-  priceJumpThreshold: 2.0,
-  outlierDetectionMethod: 'zscore',
-  outlierThreshold: 2.0,
 };

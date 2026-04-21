@@ -1,14 +1,8 @@
-import {
-  TIME_RANGES,
-  symbols,
-  providerNames,
-  chainNames,
-  chainColors,
-  type RefreshInterval,
-} from '@/lib/constants';
+import { TIME_RANGES, symbols, providerNames, chainNames, chainColors } from '@/lib/constants';
 import { type Blockchain } from '@/types/oracle';
 
-export { TIME_RANGES, symbols, providerNames, chainNames, chainColors, type RefreshInterval };
+export { TIME_RANGES, symbols, providerNames, chainNames, chainColors };
+export type { RefreshInterval } from '@/lib/types/crossChain';
 
 export interface HeatmapData {
   x: string;

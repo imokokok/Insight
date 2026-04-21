@@ -53,23 +53,26 @@ const pendingRequests = new Map<string, PendingRequest<unknown>>();
 const responseCache = new Map<string, { data: unknown; timestamp: number }>();
 const CACHE_TTL_MS = 5_000;
 const MAX_CACHE_SIZE = 200;
+const CACHE_CLEANUP_INTERVAL = 60_000;
+let lastCacheCleanup = Date.now();
 
 function setCachedResponse(key: string, data: unknown): void {
-  if (responseCache.size >= MAX_CACHE_SIZE) {
-    const now = Date.now();
+  const now = Date.now();
+  if (now - lastCacheCleanup > CACHE_CLEANUP_INTERVAL) {
     for (const [k, v] of responseCache) {
       if (now - v.timestamp >= CACHE_TTL_MS) {
         responseCache.delete(k);
       }
     }
-    if (responseCache.size >= MAX_CACHE_SIZE) {
-      const oldestKey = responseCache.keys().next().value;
-      if (oldestKey !== undefined) {
-        responseCache.delete(oldestKey);
-      }
+    lastCacheCleanup = now;
+  }
+  if (responseCache.size >= MAX_CACHE_SIZE) {
+    const oldestKey = responseCache.keys().next().value;
+    if (oldestKey !== undefined) {
+      responseCache.delete(oldestKey);
     }
   }
-  responseCache.set(key, { data, timestamp: Date.now() });
+  responseCache.set(key, { data, timestamp: now });
 }
 
 function buildRequestKey(

@@ -3,21 +3,16 @@
  * Provides IQR and standard deviation based anomalous price detection
  */
 
+import { type AnomalousPricePoint } from '@/lib/types/crossChain';
 import { createLogger } from '@/lib/utils/logger';
 import { type Blockchain, type PriceData } from '@/types/oracle';
 
 import { calculatePercentile } from './statisticsUtils';
 import { defaultThresholdConfig, type ThresholdConfig } from './volatilityUtils';
 
-const logger = createLogger('anomalyDetection');
+export type { AnomalousPricePoint } from '@/lib/types/crossChain';
 
-export interface AnomalousPricePoint {
-  chain: Blockchain;
-  price: number;
-  timestamp: number;
-  reason: 'iqr_outlier' | 'std_dev_outlier';
-  deviation: number;
-}
+const logger = createLogger('anomalyDetection');
 
 function detectAnomalousPrices(
   prices: PriceData[],

@@ -34,7 +34,7 @@ const nextConfig: NextConfig = {
     ],
   },
   experimental: {
-    optimizePackageImports: ['recharts', 'framer-motion', 'lucide-react', 'date-fns'],
+    optimizePackageImports: ['recharts', 'framer-motion', 'lucide-react'],
   },
   onDemandEntries: {
     maxInactiveAge: 60 * 1000,

@@ -7,10 +7,11 @@ import Link from 'next/link';
 import { AlertConfig } from '@/components/alerts/AlertConfig';
 import { AlertHistory } from '@/components/alerts/AlertHistory';
 import { AlertList } from '@/components/alerts/AlertList';
+import { ErrorBoundary } from '@/components/error-boundary';
 import { useAlerts, useAlertEvents, useAlertEventsRealtime } from '@/hooks';
 import { useUser, useAuthLoading } from '@/stores/authStore';
 
-export default function AlertsContent() {
+function AlertsContentInner() {
   const user = useUser();
   const authLoading = useAuthLoading();
   const { alerts, isLoading: alertsLoading, refetch: refetchAlerts } = useAlerts();
@@ -117,5 +118,13 @@ export default function AlertsContent() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function AlertsContent() {
+  return (
+    <ErrorBoundary level="page" componentName="AlertsContent">
+      <AlertsContentInner />
+    </ErrorBoundary>
   );
 }

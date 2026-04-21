@@ -14,6 +14,7 @@ import {
   BLOCKCHAIN_TO_CHAIN_ID as _BLOCKCHAIN_TO_CHAIN_ID,
   type TwapPoolConfig,
 } from '../constants/twapConstants';
+import { RpcClientWithFallback } from '../utils/rpcClientWithFallback';
 
 const logger = createLogger('TwapOnChainService');
 
@@ -42,23 +43,11 @@ interface PoolInfo {
   tick: number;
 }
 
-interface RPCResponse<T> {
-  jsonrpc: '2.0';
-  id: number;
-  result?: T;
-  error?: { code: number; message: string; data?: unknown };
-}
-
 class TwapOnChainService {
-  private requestId = 0;
+  private rpcClient = new RpcClientWithFallback({ contextLabel: 'twap' });
   private cache: Map<string, { data: unknown; timestamp: number }> = new Map();
   private cacheTTL = 30000;
   private readonly MAX_CACHE_SIZE = 500;
-  private endpointHealth: Record<string, boolean> = {};
-  private currentEndpointIndex: Record<number, number> = {};
-  private requestTimeout = 10000;
-  private endpointFailureTime: Record<string, number> = {};
-  private endpointRecoveryTime = 60000;
   private ethUsdPrice = 0;
   private ethUsdPriceTimestamp = 0;
   private readonly ETH_USD_CACHE_TTL = 60000;
@@ -70,155 +59,17 @@ class TwapOnChainService {
   private readonly BTC_USD_CACHE_TTL = 60000;
   private inFlightRequests: Map<string, Promise<unknown>> = new Map();
 
-  private isEndpointHealthy(chainId: number, index: number): boolean {
-    const key = `${chainId}-${index}`;
-    const health = this.endpointHealth[key];
-
-    if (health === false) {
-      const lastFail = this.endpointFailureTime[key];
-      if (lastFail && Date.now() - lastFail > this.endpointRecoveryTime) {
-        this.endpointHealth[key] = true;
-        delete this.endpointFailureTime[key];
-        logger.debug(`Endpoint ${key} recovered`, { chainId, index });
-        return true;
-      }
-      return false;
-    }
-    return true;
-  }
-
-  private async rpcCallWithFallback<T>(
-    chainId: number,
-    method: string,
-    params: unknown[],
-    signal?: AbortSignal
-  ): Promise<T> {
-    const config = TWAP_RPC_CONFIG[chainId];
-    if (!config) {
-      throw new Error(`No RPC config for chain ${chainId}`);
-    }
-
-    const endpoints = config.endpoints;
-    if (!endpoints || endpoints.length === 0) {
-      throw new Error(`No RPC endpoints for chain ${chainId}`);
-    }
-
-    if (signal?.aborted) {
-      throw new Error(`Request aborted for chain ${chainId}`);
-    }
-
-    const startIndex = this.currentEndpointIndex[chainId] || 0;
-    let lastError: Error | null = null;
-
-    for (let i = 0; i < endpoints.length; i++) {
-      if (signal?.aborted) {
-        throw new Error(`Request aborted for chain ${chainId}`);
-      }
-
-      const endpointIndex = (startIndex + i) % endpoints.length;
-      const endpoint = endpoints[endpointIndex];
-
-      if (!this.isEndpointHealthy(chainId, endpointIndex)) {
-        continue;
-      }
-
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), this.requestTimeout);
-
-      const onExternalAbort = () => controller.abort();
-      if (signal) {
-        signal.addEventListener('abort', onExternalAbort, { once: true });
-      }
-
-      try {
-        const response = await fetch(endpoint, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            jsonrpc: '2.0',
-            id: ++this.requestId,
-            method,
-            params,
-          }),
-          signal: controller.signal,
-        });
-
-        clearTimeout(timeoutId);
-        if (signal) {
-          signal.removeEventListener('abort', onExternalAbort);
-        }
-
-        if (!response.ok) {
-          throw new Error(`RPC call failed: ${response.status}`);
-        }
-
-        const result: RPCResponse<T> = await response.json();
-
-        if (result.error) {
-          throw new Error(`RPC error: ${result.error.message}`);
-        }
-
-        this.currentEndpointIndex[chainId] = endpointIndex;
-        this.endpointHealth[`${chainId}-${endpointIndex}`] = true;
-        delete this.endpointFailureTime[`${chainId}-${endpointIndex}`];
-
-        return result.result as T;
-      } catch (error) {
-        clearTimeout(timeoutId);
-        if (signal) {
-          signal.removeEventListener('abort', onExternalAbort);
-        }
-        lastError = error instanceof Error ? error : new Error(String(error));
-        const key = `${chainId}-${endpointIndex}`;
-        this.endpointHealth[key] = false;
-        this.endpointFailureTime[key] = Date.now();
-
-        if (error instanceof Error && (error.name === 'AbortError' || signal?.aborted)) {
-          if (signal?.aborted) {
-            throw new Error(`Request aborted for chain ${chainId}`);
-          }
-          logger.warn(`RPC endpoint ${endpoint} timed out after ${this.requestTimeout}ms`, {
-            chainId,
-            endpoint,
-            method,
-          });
-        } else {
-          logger.warn(`RPC endpoint ${endpoint} failed, trying next`, {
-            chainId,
-            endpoint,
-            error: lastError.message,
-          });
-        }
-      }
-    }
-
-    throw lastError || new Error(`All RPC endpoints failed for chain ${chainId}`);
-  }
-
   private async ethCall(
     chainId: number,
     to: `0x${string}`,
     data: `0x${string}`,
     signal?: AbortSignal
   ): Promise<string> {
-    const result = await this.rpcCallWithFallback<string>(
-      chainId,
-      'eth_call',
-      [{ to, data }, 'latest'],
-      signal
-    );
-
-    if (!result || result === '0x') {
-      throw new Error('Contract call returned empty data');
+    const config = TWAP_RPC_CONFIG[chainId];
+    if (!config) {
+      throw new Error(`No RPC config for chain ${chainId}`);
     }
-
-    if (result.startsWith('0x08c379a0')) {
-      throw new Error(`Contract revert: ${result}`);
-    }
-
-    return result;
+    return this.rpcClient.ethCall(String(chainId), config.endpoints, to, data, signal);
   }
 
   private getCached<T>(key: string): T | null {
@@ -1033,7 +884,7 @@ class TwapOnChainService {
   }
 
   resetEndpointHealth(): void {
-    this.endpointHealth = {};
+    this.rpcClient = new RpcClientWithFallback({ contextLabel: 'twap' });
   }
 
   getEndpointStatus(chainId: number): {
@@ -1044,9 +895,9 @@ class TwapOnChainService {
     const config = TWAP_RPC_CONFIG[chainId];
     const endpoints = config?.endpoints || [];
     return {
-      current: this.currentEndpointIndex[chainId] || 0,
+      current: 0,
       total: endpoints.length,
-      health: this.endpointHealth,
+      health: {},
     };
   }
 }

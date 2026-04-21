@@ -5,10 +5,11 @@ const createJestConfig = nextJest({
 });
 
 const customJestConfig = {
-  setupFilesAfterEnv: [],
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
+  resetMocks: true,
   testEnvironment: 'jest-environment-jsdom',
   maxWorkers: '50%',
-  workerIdleMemoryLimit: '4GB',
+  workerIdleMemoryLimit: '2GB',
   testTimeout: 15000,
   slowTestThreshold: 10000,
   moduleNameMapper: {
@@ -45,12 +46,6 @@ const customJestConfig = {
         useESM: true,
       },
     ],
-  },
-  globals: {
-    'ts-jest': {
-      tsconfig: '<rootDir>/tsconfig.json',
-      useESM: true,
-    },
   },
 };
 

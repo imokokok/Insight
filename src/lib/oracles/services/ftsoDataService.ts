@@ -14,6 +14,7 @@ import {
   REGISTRY_ABI,
 } from '../constants/flareConstants';
 import { withOracleRetry, ORACLE_RETRY_PRESETS } from '../utils/retry';
+import { RpcClientWithFallback } from '../utils/rpcClientWithFallback';
 
 import type { OracleCacheEntry } from '../base';
 
@@ -33,17 +34,6 @@ interface FtsoFeedData {
   value: bigint;
   decimals: number;
   timestamp: number;
-}
-
-interface RPCResponse<T> {
-  jsonrpc: '2.0';
-  id: number;
-  result?: T;
-  error?: {
-    code: number;
-    message: string;
-    data?: unknown;
-  };
 }
 
 class FtsoApiError extends Error {
@@ -66,13 +56,12 @@ class FtsoApiError extends Error {
 }
 
 export class FtsoDataService {
+  private rpcClient = new RpcClientWithFallback({
+    requestTimeout: FLARE_REQUEST_TIMEOUT,
+    contextLabel: 'ftso',
+  });
   private cache: Map<string, OracleCacheEntry<unknown>> = new Map();
   private static instance: FtsoDataService | null = null;
-  private requestId = 0;
-  private endpointHealth: Record<string, boolean> = {};
-  private currentEndpointIndex: Record<string, number> = {};
-  private endpointFailureTime: Record<string, number> = {};
-  private endpointRecoveryTime = 60000;
   private resolvedFtsoV2Address: Record<string, `0x${string}`> = {};
 
   private constructor() {
@@ -86,134 +75,14 @@ export class FtsoDataService {
     return FtsoDataService.instance;
   }
 
-  private isEndpointHealthy(network: string, index: number): boolean {
-    const key = `${network}-${index}`;
-    const health = this.endpointHealth[key];
-
-    if (health === false) {
-      const lastFail = this.endpointFailureTime[key];
-      if (lastFail && Date.now() - lastFail > this.endpointRecoveryTime) {
-        this.endpointHealth[key] = true;
-        delete this.endpointFailureTime[key];
-        logger.debug(`Endpoint ${key} recovered`, { network, index });
-        return true;
-      }
-      return false;
-    }
-    return true;
-  }
-
-  private async rpcCallWithFallback<T>(
-    network: string,
-    method: string,
-    params: unknown[],
-    signal?: AbortSignal
-  ): Promise<T> {
-    const endpoints = FLARE_RPC_ENDPOINTS[network] || FLARE_RPC_ENDPOINTS.flare;
-    if (!endpoints || endpoints.length === 0) {
-      throw new FtsoApiError('No RPC endpoints available', 'NO_ENDPOINTS');
-    }
-
-    if (signal?.aborted) {
-      throw new FtsoApiError('Request aborted before fetch', 'ABORT_ERROR');
-    }
-
-    const startIndex = this.currentEndpointIndex[network] || 0;
-    let lastError: Error | null = null;
-
-    for (let i = 0; i < endpoints.length; i++) {
-      if (signal?.aborted) {
-        throw new FtsoApiError('Request aborted', 'ABORT_ERROR');
-      }
-
-      const endpointIndex = (startIndex + i) % endpoints.length;
-      const endpoint = endpoints[endpointIndex];
-
-      if (!this.isEndpointHealthy(network, endpointIndex)) {
-        continue;
-      }
-
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), FLARE_REQUEST_TIMEOUT);
-
-      if (signal) {
-        signal.addEventListener('abort', () => controller.abort(), { once: true });
-      }
-
-      try {
-        const response = await fetch(endpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            jsonrpc: '2.0',
-            id: ++this.requestId,
-            method,
-            params,
-          }),
-          signal: controller.signal,
-        });
-
-        clearTimeout(timeoutId);
-
-        if (!response.ok) {
-          throw new FtsoApiError(
-            `RPC call failed: ${response.status}`,
-            'RPC_ERROR',
-            response.status
-          );
-        }
-
-        const result: RPCResponse<T> = await response.json();
-
-        if (result.error) {
-          throw new FtsoApiError(
-            `RPC error: ${result.error.message}`,
-            'RPC_ERROR',
-            result.error.code
-          );
-        }
-
-        this.currentEndpointIndex[network] = endpointIndex;
-        this.endpointHealth[`${network}-${endpointIndex}`] = true;
-        delete this.endpointFailureTime[`${network}-${endpointIndex}`];
-
-        return result.result as T;
-      } catch (error) {
-        clearTimeout(timeoutId);
-        lastError = error instanceof Error ? error : new Error(String(error));
-        const key = `${network}-${endpointIndex}`;
-        this.endpointHealth[key] = false;
-        this.endpointFailureTime[key] = Date.now();
-
-        if (error instanceof Error && error.name === 'AbortError') {
-          if (signal?.aborted) {
-            throw new FtsoApiError('Request aborted', 'ABORT_ERROR');
-          }
-          logger.warn(`RPC endpoint ${endpoint} timed out after ${FLARE_REQUEST_TIMEOUT}ms`, {
-            network,
-            endpoint,
-            method,
-          });
-        } else {
-          logger.warn(`RPC endpoint ${endpoint} failed, trying next`, {
-            network,
-            endpoint,
-            error: lastError.message,
-          });
-        }
-      }
-    }
-
-    throw lastError || new FtsoApiError('All RPC endpoints failed', 'ALL_ENDPOINTS_FAILED');
-  }
-
   private async ethCall(
     network: string,
     to: `0x${string}`,
     data: `0x${string}`,
     signal?: AbortSignal
   ): Promise<string> {
-    return this.rpcCallWithFallback<string>(network, 'eth_call', [{ to, data }, 'latest'], signal);
+    const endpoints = FLARE_RPC_ENDPOINTS[network] || FLARE_RPC_ENDPOINTS.flare;
+    return this.rpcClient.ethCall(network, endpoints, to, data, signal);
   }
 
   private getFromCache<T>(key: string): T | null {

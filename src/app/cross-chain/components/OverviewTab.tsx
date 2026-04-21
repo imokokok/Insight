@@ -173,7 +173,7 @@ export function OverviewTab() {
               provider: selectedProvider,
             }))}
             lastUpdated={lastUpdated}
-            onRefresh={() => fetchData?.()}
+            onRefresh={() => fetchData()}
             isLoading={loading}
           />
 

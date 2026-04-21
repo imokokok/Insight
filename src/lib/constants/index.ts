@@ -213,7 +213,7 @@ export const TIME_RANGES = [
 
 export const DEVIATION_THRESHOLD = 0.5;
 
-export type RefreshInterval = 0 | 30000 | 60000 | 300000;
+export type { RefreshInterval } from '@/lib/types/crossChain';
 
 // ============================================
 // Chain category definitions
