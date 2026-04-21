@@ -1,13 +1,13 @@
 'use client';
 
-import { useEffect, useState, Suspense } from 'react';
+import { useEffect, useState, Suspense, useMemo } from 'react';
 
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
 
-import { useUser } from '@/stores/authStore';
+import { useUser, useSession } from '@/stores/authStore';
 
 function getErrorMessage(error: string): string {
   switch (error) {
@@ -17,6 +17,14 @@ function getErrorMessage(error: string): string {
       return 'This verification link has expired. Please request a new one.';
     case 'invalid_token':
       return 'Invalid verification link. Please request a new one.';
+    case 'invalid_state':
+      return 'Security verification failed. Please try again.';
+    case 'missing_code':
+      return 'Verification code is missing. Please use the link from your email.';
+    case 'auth_failed':
+      return 'Authentication failed. Please try again.';
+    case 'server_error':
+      return 'A server error occurred. Please try again later.';
     default:
       return 'Verification failed. Please try again.';
   }
@@ -26,22 +34,54 @@ function VerifyEmailForm() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const user = useUser();
+  const session = useSession();
 
   const errorParam = searchParams.get('error');
   const codeParam = searchParams.get('code');
 
-  const isSuccess = !errorParam && !!codeParam;
-  const errorMessage = errorParam
-    ? getErrorMessage(errorParam)
-    : !codeParam
-      ? getErrorMessage('missing_code')
-      : '';
+  const initialState = useMemo(() => {
+    if (errorParam) return { verifying: false, result: 'error' as const };
+    if (codeParam) return { verifying: true, result: null as 'success' | 'error' | null };
+    return { verifying: false, result: 'error' as const };
+  }, [errorParam, codeParam]);
+
+  const [isVerifying, setIsVerifying] = useState(initialState.verifying);
+  const [verifyResult, setVerifyResult] = useState<'success' | 'error' | null>(initialState.result);
 
   useEffect(() => {
-    if (user) {
+    if (codeParam && verifyResult === null && isVerifying) {
+      const timer = setTimeout(() => {
+        setVerifyResult('success');
+        setIsVerifying(false);
+      }, 500);
+
+      return () => clearTimeout(timer);
+    }
+  }, [codeParam, verifyResult, isVerifying]);
+
+  useEffect(() => {
+    if (user && session) {
       router.push(`/`);
     }
-  }, [user, router]);
+  }, [user, session, router]);
+
+  const isSuccess = verifyResult === 'success';
+  const errorMessage = errorParam
+    ? getErrorMessage(errorParam)
+    : verifyResult === 'error'
+      ? getErrorMessage('auth_failed')
+      : '';
+
+  if (isVerifying) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-insight px-4 rounded-lg">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 text-primary-600 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600">Verifying your email...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (isSuccess) {
     return (
