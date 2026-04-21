@@ -2,7 +2,7 @@ import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('RpcClientWithFallback');
 
-export interface RPCResponse<T> {
+interface RPCResponse<T> {
   jsonrpc: '2.0';
   id: number;
   result?: T;
@@ -11,10 +11,6 @@ export interface RPCResponse<T> {
     message: string;
     data?: unknown;
   };
-}
-
-export interface RpcEndpointConfig {
-  endpoints: string[];
 }
 
 export class RpcClientWithFallback {

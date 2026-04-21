@@ -2,11 +2,7 @@ import { type ThresholdConfig } from '@/lib/types/crossChain';
 
 import { calculateZScore } from './statisticsUtils';
 
-export type {
-  ThresholdType,
-  OutlierDetectionMethod,
-  ThresholdConfig,
-} from '@/lib/types/crossChain';
+export type { ThresholdType, ThresholdConfig } from '@/lib/types/crossChain';
 export { defaultThresholdConfig } from '@/lib/types/crossChain';
 
 const calculateATR = (prices: number[], period: number = 14): number => {

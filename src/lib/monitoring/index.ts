@@ -6,7 +6,6 @@ import {
   reportMetric,
   reportCustomMetric,
   getPerformanceScore,
-  PERFORMANCE_THRESHOLDS,
   type WebVitalMetric,
   type MetricName,
 } from './webVitals';
@@ -65,4 +64,4 @@ export const addBreadcrumb = (breadcrumb: Breadcrumb) => {
   }
 };
 
-export { reportCustomMetric, PERFORMANCE_THRESHOLDS };
+export { reportCustomMetric };

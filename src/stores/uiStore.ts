@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import { devtools, persist, createJSONStorage } from 'zustand/middleware';
-import { useShallow } from 'zustand/react/shallow';
 
 interface SidebarState {
   isOpen: boolean;
@@ -105,27 +104,3 @@ export const useUIStore = create<UIStore>()(
     { name: 'UIStore' }
   )
 );
-
-export const useSidebar = () => useUIStore((state) => state.sidebar);
-export const useSidebarActions = () =>
-  useUIStore(
-    useShallow((state) => ({
-      openSidebar: state.openSidebar,
-      closeSidebar: state.closeSidebar,
-      toggleSidebar: state.toggleSidebar,
-      toggleSidebarCollapse: state.toggleSidebarCollapse,
-      setActiveSidebarItem: state.setActiveSidebarItem,
-    }))
-  );
-
-export const useModal = () => useUIStore((state) => state.modal);
-export const useModalActions = () =>
-  useUIStore(
-    useShallow((state) => ({
-      openModal: state.openModal,
-      closeModal: state.closeModal,
-    }))
-  );
-
-export const useIsMobile = () => useUIStore((state) => state.isMobile);
-export const useSetIsMobile = () => useUIStore((state) => state.setIsMobile);

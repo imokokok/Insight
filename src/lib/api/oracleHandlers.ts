@@ -184,7 +184,3 @@ export async function handleBatchPrices(requests: BatchPriceRequest[]) {
   const results = await fetchBatchPrices(requests);
   return createCachedJsonResponse({ results }, { header: 'public, max-age=60' });
 }
-
-export function createUnexpectedErrorResponse(error: unknown) {
-  return handleOracleError(error);
-}
