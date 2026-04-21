@@ -125,7 +125,7 @@ const serverEnvSchema = z.object({
   REFLECTOR_FOREX_CONTRACT: z.string().optional().default(''),
   SESSION_TIMEOUT: z.coerce.number().optional().default(3600),
   MAX_REQUEST_SIZE: z.coerce.number().optional().default(1048576),
-  ALLOWED_ORIGINS: z.string().optional().default(''),
+  ALLOWED_ORIGINS: z.string().optional().default('http://localhost:3000'),
 });
 
 const lenientServerEnvSchema = z.object({
@@ -153,7 +153,7 @@ const lenientServerEnvSchema = z.object({
   REFLECTOR_FOREX_CONTRACT: z.string().optional().default(''),
   SESSION_TIMEOUT: z.coerce.number().optional().default(3600),
   MAX_REQUEST_SIZE: z.coerce.number().optional().default(1048576),
-  ALLOWED_ORIGINS: z.string().optional().default(''),
+  ALLOWED_ORIGINS: z.string().optional().default('http://localhost:3000'),
 });
 
 type ClientEnv = z.infer<typeof clientEnvSchema>;

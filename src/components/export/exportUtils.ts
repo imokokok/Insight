@@ -4,10 +4,6 @@
  * Provides CSV, JSON, Excel, PDF export functionality
  */
 
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
-
 import { exportColors } from '@/lib/config/colors';
 import { formatDateTimeString, formatNumberWithDecimals } from '@/lib/utils/format';
 import { createLogger } from '@/lib/utils/logger';
@@ -181,6 +177,10 @@ async function exportToPDF(
   chartElement?: HTMLElement | null,
   stats?: Record<string, number | string>
 ): Promise<{ content: Blob; fileName: string; mimeType: string }> {
+  const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
+    import('jspdf'),
+    import('jspdf-autotable'),
+  ]);
   const doc = new jsPDF();
   const selectedFields = getSelectedFields(config.fields);
 
@@ -221,6 +221,7 @@ async function exportToPDF(
   // Add chart
   if (config.includeChart && chartElement) {
     try {
+      const { default: html2canvas } = await import('html2canvas');
       const canvas = await html2canvas(chartElement, {
         scale: 2,
         useCORS: true,

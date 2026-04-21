@@ -216,9 +216,8 @@ export function useCrossChainExportActions(): UseCrossChainExportReturn {
     [handleApplyFavorite]
   );
 
-  const clearCache = storeClearCache ?? (() => {});
-  const clearCacheForProvider =
-    storeClearCacheForProvider ?? ((() => {}) as (p: OracleProvider) => void);
+  const clearCache = storeClearCache;
+  const clearCacheForProvider = storeClearCacheForProvider;
 
   return {
     exportToCSV: exportHook.exportToCSV,

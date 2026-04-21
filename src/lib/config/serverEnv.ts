@@ -1,112 +1,186 @@
+import { z } from 'zod';
+
 import { createLogger } from '@/lib/utils/logger';
 
 import { FEATURE_FLAGS as _FEATURE_FLAGS } from './env';
 
 const logger = createLogger('ServerEnv');
 
-/**
- * Server environment variable configuration
- * These variables are only used on the server side and will not be exposed to the client
- */
+const alchemyRpcSchema = z.object({
+  ethereum: z.string().url().optional().default(''),
+  arbitrum: z.string().url().optional().default(''),
+  polygon: z.string().url().optional().default(''),
+  base: z.string().url().optional().default(''),
+  optimism: z.string().url().optional().default(''),
+  solana: z.string().url().optional().default(''),
+  bnb: z.string().url().optional().default(''),
+  avalanche: z.string().url().optional().default(''),
+  zksync: z.string().url().optional().default(''),
+  scroll: z.string().url().optional().default(''),
+  mantle: z.string().url().optional().default(''),
+  linea: z.string().url().optional().default(''),
+});
 
-// Alchemy RPC configuration
-export const ALCHEMY_RPC = {
-  ethereum: process.env.ALCHEMY_ETHEREUM_RPC || '',
-  arbitrum: process.env.ALCHEMY_ARBITRUM_RPC || '',
-  polygon: process.env.ALCHEMY_POLYGON_RPC || '',
-  base: process.env.ALCHEMY_BASE_RPC || '',
-  optimism: process.env.ALCHEMY_OPTIMISM_RPC || '',
-  solana: process.env.ALCHEMY_SOLANA_RPC || '',
-  bnb: process.env.ALCHEMY_BNB_RPC || '',
-  avalanche: process.env.ALCHEMY_AVALANCHE_RPC || '',
-  zksync: process.env.ALCHEMY_ZKSYNC_RPC || '',
-  scroll: process.env.ALCHEMY_SCROLL_RPC || '',
-  mantle: process.env.ALCHEMY_MANTLE_RPC || '',
-  linea: process.env.ALCHEMY_LINEA_RPC || '',
-};
+const tronConfigSchema = z.object({
+  rpcUrl: z.string().url().optional().default('https://api.trongrid.io'),
+  solidityRpc: z.string().url().optional().default('https://api.trongrid.io/walletsolidity'),
+  fullnodeRpc: z.string().url().optional().default('https://api.trongrid.io/wallet'),
+  apiKey: z.string().optional().default(''),
+});
 
-// TRON configuration
-export const TRON_CONFIG = {
-  rpcUrl: process.env.TRON_RPC_URL || 'https://api.trongrid.io',
-  solidityRpc: process.env.TRON_SOLIDITY_RPC || 'https://api.trongrid.io/walletsolidity',
-  fullnodeRpc: process.env.TRON_FULLNODE_RPC || 'https://api.trongrid.io/wallet',
-  apiKey: process.env.TRONGRID_API_KEY || '',
-};
+const stellarConfigSchema = z.object({
+  rpcUrl: z.string().url().optional().default(''),
+  reflectorCryptoContract: z.string().optional().default(''),
+  reflectorForexContract: z.string().optional().default(''),
+});
 
-// The Graph configuration
-const THEGRAPH_CONFIG = {
+const cacheConfigSchema = z.object({
+  winklinkTtl: z.coerce.number().positive().default(30000),
+  chainlinkPriceTtl: z.coerce.number().positive().default(30000),
+  api3PriceTtl: z.coerce.number().positive().default(30000),
+  twapPriceTtl: z.coerce.number().positive().default(30000),
+});
+
+const securityConfigSchema = z.object({
+  csrfSecret: z.string().min(1),
+  jwtSecret: z.string().min(1),
+  cronSecret: z.string().min(1),
+});
+
+const lenientSecurityConfigSchema = z.object({
+  csrfSecret: z.string().optional().default(''),
+  jwtSecret: z.string().optional().default(''),
+  cronSecret: z.string().optional().default(''),
+});
+
+function parseAlchemyRpc() {
+  const raw = {
+    ethereum: process.env.ALCHEMY_ETHEREUM_RPC || undefined,
+    arbitrum: process.env.ALCHEMY_ARBITRUM_RPC || undefined,
+    polygon: process.env.ALCHEMY_POLYGON_RPC || undefined,
+    base: process.env.ALCHEMY_BASE_RPC || undefined,
+    optimism: process.env.ALCHEMY_OPTIMISM_RPC || undefined,
+    solana: process.env.ALCHEMY_SOLANA_RPC || undefined,
+    bnb: process.env.ALCHEMY_BNB_RPC || undefined,
+    avalanche: process.env.ALCHEMY_AVALANCHE_RPC || undefined,
+    zksync: process.env.ALCHEMY_ZKSYNC_RPC || undefined,
+    scroll: process.env.ALCHEMY_SCROLL_RPC || undefined,
+    mantle: process.env.ALCHEMY_MANTLE_RPC || undefined,
+    linea: process.env.ALCHEMY_LINEA_RPC || undefined,
+  };
+  const result = alchemyRpcSchema.safeParse(raw);
+  if (result.success) return result.data;
+  logger.warn('Alchemy RPC config validation warnings:', {
+    errors: result.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`),
+  });
+  return alchemyRpcSchema.parse({});
+}
+
+function parseTronConfig() {
+  const raw = {
+    rpcUrl: process.env.TRON_RPC_URL || undefined,
+    solidityRpc: process.env.TRON_SOLIDITY_RPC || undefined,
+    fullnodeRpc: process.env.TRON_FULLNODE_RPC || undefined,
+    apiKey: process.env.TRONGRID_API_KEY || undefined,
+  };
+  const result = tronConfigSchema.safeParse(raw);
+  if (result.success) return result.data;
+  logger.warn('TRON config validation warnings:', {
+    errors: result.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`),
+  });
+  return tronConfigSchema.parse({});
+}
+
+function parseStellarConfig() {
+  const raw = {
+    rpcUrl: process.env.STELLAR_RPC_URL || undefined,
+    reflectorCryptoContract: process.env.REFLECTOR_CRYPTO_CONTRACT || undefined,
+    reflectorForexContract: process.env.REFLECTOR_FOREX_CONTRACT || undefined,
+  };
+  const result = stellarConfigSchema.safeParse(raw);
+  if (result.success) return result.data;
+  logger.warn('Stellar config validation warnings:', {
+    errors: result.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`),
+  });
+  return stellarConfigSchema.parse({});
+}
+
+function parseCacheConfig() {
+  const raw = {
+    winklinkTtl: process.env.WINKLINK_CACHE_TTL || undefined,
+    chainlinkPriceTtl: process.env.CHAINLINK_PRICE_CACHE_TTL || undefined,
+    api3PriceTtl: process.env.API3_PRICE_CACHE_TTL || undefined,
+    twapPriceTtl: process.env.TWAP_PRICE_CACHE_TTL || undefined,
+  };
+  const result = cacheConfigSchema.safeParse(raw);
+  if (result.success) return result.data;
+  logger.warn('Cache config validation warnings:', {
+    errors: result.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`),
+  });
+  return cacheConfigSchema.parse({});
+}
+
+function parseSecurityConfig() {
+  const raw = {
+    csrfSecret: process.env.CSRF_SECRET || undefined,
+    jwtSecret: process.env.JWT_SECRET || undefined,
+    cronSecret: process.env.CRON_SECRET || undefined,
+  };
+  const result = securityConfigSchema.safeParse(raw);
+  if (result.success) return result.data;
+
+  if (process.env.NODE_ENV === 'production') {
+    const errors = result.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`);
+    throw new Error(
+      `FATAL: Security configuration validation failed in production:\n${errors.join('\n')}`
+    );
+  }
+
+  logger.warn('Security config validation warnings (non-production):', {
+    errors: result.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`),
+  });
+  return lenientSecurityConfigSchema.parse(raw);
+}
+
+export const ALCHEMY_RPC = parseAlchemyRpc();
+
+export const TRON_CONFIG = parseTronConfig();
+
+export const THEGRAPH_CONFIG = {
   apiKey: process.env.THEGRAPH_API_KEY || '',
 };
 
-// API3 configuration
-const API3_CONFIG = {
+export const API3_CONFIG = {
   marketApiUrl: process.env.API3_MARKET_API_URL || 'https://market.api3.org/api/v1',
   daoApiUrl: process.env.API3_DAO_API_URL || 'https://api.api3.org',
   wsUrl: process.env.API3_WS_URL || 'wss://ws.api3.org',
 };
 
-// Stellar RPC configuration
-export const STELLAR_CONFIG = {
-  rpcUrl: process.env.STELLAR_RPC_URL || '',
-  reflectorCryptoContract: process.env.REFLECTOR_CRYPTO_CONTRACT || '',
-  reflectorForexContract: process.env.REFLECTOR_FOREX_CONTRACT || '',
-};
+export const STELLAR_CONFIG = parseStellarConfig();
 
-// Flare RPC configuration
-const FLARE_CONFIG = {
+export const FLARE_CONFIG = {
   rpcUrl: process.env.FLARE_RPC_URL || '',
 };
 
-// Feature flags - re-exported from featureFlags for backward compatibility
-// Cache configuration
-const CACHE_CONFIG = {
-  winklinkTtl: parseInt(process.env.WINKLINK_CACHE_TTL || '30000', 10),
-  chainlinkPriceTtl: parseInt(process.env.CHAINLINK_PRICE_CACHE_TTL || '30000', 10),
-  api3PriceTtl: parseInt(process.env.API3_PRICE_CACHE_TTL || '30000', 10),
-  twapPriceTtl: parseInt(process.env.TWAP_PRICE_CACHE_TTL || '30000', 10),
-};
+export const CACHE_CONFIG = parseCacheConfig();
 
-// Supabase server configuration
-const SUPABASE_SERVER_CONFIG = {
+export const SUPABASE_SERVER_CONFIG = {
   url: process.env.NEXT_PUBLIC_SUPABASE_URL || '',
   anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
   serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
 };
 
-// Security configuration
-const SECURITY_CONFIG = {
-  csrfSecret: process.env.CSRF_SECRET || '',
-  jwtSecret: process.env.JWT_SECRET || '',
-  cronSecret: process.env.CRON_SECRET || '',
-};
+export const SECURITY_CONFIG = parseSecurityConfig();
 
-if (process.env.NODE_ENV === 'production') {
-  if (!SECURITY_CONFIG.csrfSecret) {
-    logger.error('FATAL: CSRF_SECRET is not set in production');
-  }
-  if (!SECURITY_CONFIG.jwtSecret) {
-    logger.error('FATAL: JWT_SECRET is not set in production');
-  }
-  if (!SECURITY_CONFIG.cronSecret) {
-    logger.error('FATAL: CRON_SECRET is not set in production');
-  }
-}
-
-/**
- * Validate server environment variables
- */
-function validateServerEnv(): { valid: boolean; missing: string[] } {
+export function validateServerEnv(): { valid: boolean; missing: string[] } {
   const missing: string[] = [];
 
-  // Check critical Alchemy RPC
   if (!ALCHEMY_RPC.ethereum) missing.push('ALCHEMY_ETHEREUM_RPC');
 
-  // Check The Graph API Key
   if (!THEGRAPH_CONFIG.apiKey) {
     logger.warn('THEGRAPH_API_KEY not set, using fallback endpoints');
   }
 
-  // Check TRON API Key
   if (!TRON_CONFIG.apiKey) {
     logger.warn('TRONGRID_API_KEY not set, rate limiting may apply');
   }
@@ -117,10 +191,7 @@ function validateServerEnv(): { valid: boolean; missing: string[] } {
   };
 }
 
-/**
- * Get the Alchemy RPC URL for the specified chain
- */
-function getAlchemyRpcUrl(chain: keyof typeof ALCHEMY_RPC): string {
+export function getAlchemyRpcUrl(chain: keyof typeof ALCHEMY_RPC): string {
   const url = ALCHEMY_RPC[chain];
   if (!url) {
     logger.warn(`Alchemy RPC not configured for chain: ${chain}`);
@@ -129,30 +200,20 @@ function getAlchemyRpcUrl(chain: keyof typeof ALCHEMY_RPC): string {
   return url;
 }
 
-/**
- * Get TRON RPC configuration
- */
-function getTronConfig() {
+export function getTronConfig() {
   return TRON_CONFIG;
 }
 
-/**
- * Get The Graph API Key
- */
-function getTheGraphApiKey(): string {
+export function getTheGraphApiKey(): string {
   return THEGRAPH_CONFIG.apiKey;
 }
 
-/**
- * Get API3 configuration
- */
-function getApi3Config() {
+export function getApi3Config() {
   return API3_CONFIG;
 }
 
-// Initialization validation - deferred until first call
 let _validationDone = false;
-function ensureServerEnvValidated(): void {
+export function ensureServerEnvValidated(): void {
   if (!_validationDone && typeof window === 'undefined') {
     _validationDone = true;
     const validation = validateServerEnv();

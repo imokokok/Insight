@@ -110,7 +110,7 @@ export function PageHeader() {
           </div>
 
           <button
-            onClick={() => fetchData?.()}
+            onClick={() => fetchData()}
             disabled={refreshStatus === 'refreshing'}
             className={`flex items-center gap-1.5 px-4 py-1.5 text-sm text-white disabled:opacity-50 rounded-md transition-all duration-200 ${
               refreshStatus === 'error'

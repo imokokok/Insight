@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo } from 'react';
 
+import { ErrorBoundary } from '@/components/error-boundary';
 import { LiveStatusBar } from '@/components/ui';
 import { chartColors } from '@/lib/config/colors';
 import { formatTimeString } from '@/lib/utils/format';
@@ -11,7 +12,7 @@ import CrossOracleExportSection from './components/CrossOracleExportSection';
 import { QueryResults } from './components/QueryResults';
 import { useCrossOraclePage } from './hooks';
 
-export default function CrossOracleContent() {
+function CrossOracleContentInner() {
   const {
     selectedOracles,
     setSelectedOracles,
@@ -177,5 +178,13 @@ export default function CrossOracleContent() {
         </main>
       </div>
     </div>
+  );
+}
+
+export default function CrossOracleContent() {
+  return (
+    <ErrorBoundary level="page" componentName="CrossOracleContent">
+      <CrossOracleContentInner />
+    </ErrorBoundary>
   );
 }

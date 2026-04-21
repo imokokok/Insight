@@ -4,12 +4,13 @@ import { useEffect } from 'react';
 
 import { useRouter } from 'next/navigation';
 
+import { ErrorBoundary } from '@/components/error-boundary';
 import { FavoritesManager } from '@/components/favorites';
 import { type FavoriteConfig } from '@/hooks';
 import type { ConfigType } from '@/lib/supabase/database.types';
 import { useUser, useAuthLoading } from '@/stores/authStore';
 
-export default function FavoritesContent() {
+function FavoritesContentInner() {
   const user = useUser();
   const loading = useAuthLoading();
   const router = useRouter();
@@ -80,5 +81,13 @@ export default function FavoritesContent() {
 
       <FavoritesManager onApply={handleApply} />
     </div>
+  );
+}
+
+export default function FavoritesContent() {
+  return (
+    <ErrorBoundary level="page" componentName="FavoritesContent">
+      <FavoritesContentInner />
+    </ErrorBoundary>
   );
 }
