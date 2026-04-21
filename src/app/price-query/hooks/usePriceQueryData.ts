@@ -7,7 +7,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { getDefaultFactory } from '@/lib/oracles';
 import { priceKeys } from '@/lib/queryKeys';
 import { performanceMetricsCalculator } from '@/lib/services/marketData';
-import { type OracleProvider, type Blockchain } from '@/types/oracle';
+import { type OracleProvider, type Blockchain, type PriceData } from '@/types/oracle';
 
 import { type QueryResult } from '../constants';
 import { usePerformanceMonitoring } from '../utils/performanceMonitoring';
@@ -159,9 +159,7 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
   }, [isLoading, batchResult.results, selectedSymbol]);
 
   const resultsDataSignature = batchResult.results
-    .map(
-      (r) => `${r.provider}:${r.chain}:${r.priceData?.price ?? 'null'}:${r.isLoading ? '1' : '0'}`
-    )
+    .map((r) => `${r.provider}:${r.chain}:${r.priceData ? '1' : '0'}:${r.isLoading ? '1' : '0'}`)
     .join('|');
 
   const { queryResults, compareQueryResults, dataProcessingTime } = useMemo(() => {
@@ -192,7 +190,6 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
       compareQueryResults: cResults,
       dataProcessingTime: processingTime,
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- resultsDataSignature is derived from batchResult.results
   }, [resultsDataSignature, startDataProcessingMeasure, endDataProcessingMeasure]);
 
   const queryErrors: QueryError[] = useMemo(() => {
@@ -226,7 +223,6 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
 
     const vTime = endValidationMeasure();
     return { validationWarnings: allWarnings, dataAnomalies: allAnomalies, validationTime: vTime };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- Performance measures are stable refs
   }, [queryResults]);
 
   const primaryDataFetchTime = useMemo(() => {
