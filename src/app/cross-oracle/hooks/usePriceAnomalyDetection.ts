@@ -69,9 +69,11 @@ function analyzeReason(
   const absDeviation = Math.abs(deviationPercent);
   if (absDeviation > 5) {
     reasonKeys.push('Price deviation exceeds 5%');
-  } else if (absDeviation > SEVERITY_THRESHOLDS.HIGH) {
+  }
+  if (absDeviation > SEVERITY_THRESHOLDS.HIGH) {
     reasonKeys.push('High market volatility');
-  } else if (absDeviation > ANOMALY_DEVIATION_THRESHOLD) {
+  }
+  if (absDeviation > ANOMALY_DEVIATION_THRESHOLD && absDeviation <= SEVERITY_THRESHOLDS.HIGH) {
     reasonKeys.push('Data source discrepancy');
   }
 

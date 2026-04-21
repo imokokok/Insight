@@ -40,7 +40,10 @@ function useAutoRefresh({
   const [refreshInterval, setRefreshInterval] = useState<RefreshInterval>(intervalMs);
   const [lastRefreshedAt, setLastRefreshedAt] = useState<Date | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [isDocumentVisible, setIsDocumentVisible] = useState(!document.hidden);
+  const [isDocumentVisible, setIsDocumentVisible] = useState(true);
+  useEffect(() => {
+    setIsDocumentVisible(!document.hidden);
+  }, []);
 
   const onRefreshRef = useRef(onRefresh);
   useEffect(() => {

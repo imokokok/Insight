@@ -80,7 +80,7 @@ export function usePreferences() {
         autoRefreshInterval:
           dbPrefs.auto_refresh_interval !== undefined
             ? dbPrefs.auto_refresh_interval
-            : localPrefs.autoRefreshInterval || defaultPreferences.autoRefreshInterval,
+            : (localPrefs.autoRefreshInterval ?? defaultPreferences.autoRefreshInterval),
       };
     }
     return { ...defaultPreferences, ...localPrefs };

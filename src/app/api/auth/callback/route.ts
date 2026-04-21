@@ -114,6 +114,11 @@ export async function GET(request: NextRequest) {
       'Failed to create/update user profile',
       profileError instanceof Error ? profileError : new Error(String(profileError))
     );
+    if (type !== 'recovery') {
+      return NextResponse.redirect(
+        new URL('/auth/verify-email?error=profile_creation_failed', request.url)
+      );
+    }
   }
 
   let redirectPath: string;

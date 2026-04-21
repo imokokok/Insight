@@ -165,6 +165,8 @@ export class PythWebSocket {
     }
   }
 
+  private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+
   private handleReconnect(): void {
     if (this.isShuttingDown) return;
 
@@ -181,7 +183,7 @@ export class PythWebSocket {
         attempt: this.reconnectAttempts,
         maxAttempts: this.maxReconnectAttempts,
       });
-      setTimeout(() => this.initialize(), delay);
+      this.reconnectTimer = setTimeout(() => this.initialize(), delay);
     } else {
       logger.error('Max reconnection attempts reached');
       this.updateConnectionState({

@@ -94,7 +94,7 @@ export const useAuthStore = create<AuthStore>()(
         initialize: async () => {
           if (get().initialized) return;
 
-          set({ loading: true, error: null });
+          set({ loading: true, error: null, initialized: true });
 
           try {
             const { session: currentSession } = await getSession();

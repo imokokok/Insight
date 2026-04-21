@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -166,6 +166,7 @@ export function useToggleFavorite() {
   const { addFavorite, isAdding } = useAddFavorite();
   const { removeFavorite, isRemoving } = useRemoveFavorite();
   const [isToggling, setIsToggling] = useState(false);
+  const togglingRef = useRef(false);
 
   const toggleFavorite = useCallback(
     async (name: string, configType: ConfigType, configData: FavoriteConfig) => {
@@ -175,6 +176,11 @@ export function useToggleFavorite() {
         });
       }
 
+      if (togglingRef.current) {
+        return { action: 'none' as const, favorite: null };
+      }
+
+      togglingRef.current = true;
       setIsToggling(true);
       try {
         const existingFavorite = favorites?.find(
@@ -191,6 +197,7 @@ export function useToggleFavorite() {
           return { action: 'added' as const, favorite: newFavorite };
         }
       } finally {
+        togglingRef.current = false;
         setIsToggling(false);
       }
     },

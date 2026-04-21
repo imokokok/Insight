@@ -32,11 +32,31 @@ export function buildQueryTasks(
   selectedSymbol: string,
   isCompareMode: boolean,
   oracleClientFactory: OracleClientFactory
-): { primaryTasks: QueryTask[]; compareTasks: QueryTask[]; totalQueries: number } {
+): {
+  primaryTasks: QueryTask[];
+  compareTasks: QueryTask[];
+  totalQueries: number;
+  needsChainSelection?: boolean;
+} {
   const primaryTasks: QueryTask[] = [];
   const compareTasks: QueryTask[] = [];
 
   const allProviders = selectedOracle ? [selectedOracle] : Object.values(OracleProvider);
+
+  if (selectedOracle && !selectedChain) {
+    const client = oracleClientFactory.getClient(selectedOracle);
+    if (client.supportedChains.length > 0) {
+      const defaultChain = client.supportedChains[0];
+      primaryTasks.push({
+        provider: selectedOracle,
+        chain: defaultChain,
+        client,
+        isCompare: false,
+      });
+    }
+    const totalQueries = primaryTasks.length + compareTasks.length;
+    return { primaryTasks, compareTasks, totalQueries, needsChainSelection: true as const };
+  }
 
   for (const provider of allProviders) {
     let client: BaseOracleClient;

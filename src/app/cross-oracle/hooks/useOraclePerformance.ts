@@ -127,7 +127,7 @@ export function useOraclePerformance({
           priceHistoryMapRef.current.set(oracle, cleanedData);
         }
       } else if (historyData.length > 1000) {
-        historyData.shift();
+        historyData.splice(0, historyData.length - 999);
       }
     },
     [enablePerformanceMetrics]

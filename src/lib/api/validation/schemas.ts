@@ -43,6 +43,12 @@ export function validateObject(
         errors.push(`${field} is required`);
         continue;
       } else {
+        if (fieldSchema.transform) {
+          const transformed = fieldSchema.transform(
+            undefined as unknown as NonNullable<typeof value>
+          );
+          result[field] = transformed;
+        }
         continue;
       }
     }

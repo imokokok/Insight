@@ -77,7 +77,7 @@ export function useOracleSymbols(selectedOracles: OracleProvider[]): UseOracleSy
       return selectedOracles.every((oracle) => {
         const oracleSyms =
           oracleSupportedSymbols[oracle as keyof typeof oracleSupportedSymbols] || [];
-        return oracleSyms.includes(symbol as never);
+        return (oracleSyms as readonly string[]).includes(symbol);
       });
     },
     [selectedOracles]
@@ -92,7 +92,7 @@ export function useOracleSymbols(selectedOracles: OracleProvider[]): UseOracleSy
       const isSupportedByOracle = selectedOracles.some((oracle) => {
         const oracleSyms =
           oracleSupportedSymbols[oracle as keyof typeof oracleSupportedSymbols] || [];
-        return oracleSyms.includes(symbol as never);
+        return (oracleSyms as readonly string[]).includes(symbol);
       });
 
       if (!isSupportedByOracle) return false;
@@ -158,7 +158,7 @@ export function useOracleSymbols(selectedOracles: OracleProvider[]): UseOracleSy
       return selectedOracles.filter((oracle) => {
         const oracleSyms =
           oracleSupportedSymbols[oracle as keyof typeof oracleSupportedSymbols] || [];
-        return !oracleSyms.includes(symbol as never);
+        return !(oracleSyms as readonly string[]).includes(symbol);
       });
     },
     [selectedOracles]

@@ -33,9 +33,11 @@ const CACHE_DURATION = 60000;
 const cache: {
   data: CacheEntry | null;
   lock: Promise<void> | null;
+  lockTimestamp: number | null;
 } = {
   data: null,
   lock: null,
+  lockTimestamp: null,
 };
 
 async function fetchBinancePrices(): Promise<Record<string, number>> {
@@ -66,8 +68,7 @@ export const GET = createApiHandler(
 
     if (cache.lock) {
       await cache.lock;
-      const nowAfterLock = Date.now();
-      if (cache.data && nowAfterLock - cache.data.timestamp < CACHE_DURATION) {
+      if (cache.data && Date.now() - cache.data.timestamp < CACHE_DURATION) {
         return NextResponse.json({
           prices: cache.data.prices,
           cached: true,
@@ -77,26 +78,41 @@ export const GET = createApiHandler(
     }
 
     let resolveLock: () => void;
-    cache.lock = new Promise<void>((resolve) => {
+    const lockPromise = new Promise<void>((resolve) => {
       resolveLock = resolve;
     });
+    cache.lock = lockPromise;
+    cache.lockTimestamp = now;
 
     try {
       const prices = await fetchBinancePrices();
 
       cache.data = {
         prices,
-        timestamp: now,
+        timestamp: Date.now(),
       };
 
       return NextResponse.json({
         prices,
         cached: false,
-        timestamp: now,
+        timestamp: cache.data.timestamp,
       });
+    } catch (error) {
+      if (cache.data) {
+        return NextResponse.json({
+          prices: cache.data.prices,
+          cached: true,
+          stale: true,
+          timestamp: cache.data.timestamp,
+        });
+      }
+      throw error;
     } finally {
       resolveLock!();
-      cache.lock = null;
+      if (cache.lock === lockPromise) {
+        cache.lock = null;
+        cache.lockTimestamp = null;
+      }
     }
   },
   {

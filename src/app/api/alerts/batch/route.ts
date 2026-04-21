@@ -86,6 +86,10 @@ export const POST = createApiHandler(
           results.failed.push(alertId);
         }
       }
+    } else {
+      return ApiResponseBuilder.badRequest(
+        `Unknown action: ${action}. Valid actions are: enable, disable, delete`
+      );
     }
 
     return NextResponse.json({

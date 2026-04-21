@@ -14,16 +14,8 @@ export const POST = createApiHandler(
       return ApiResponseBuilder.unauthorized();
     }
 
-    const supabaseAdmin = createServerClient();
-
-    const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
-
-    if (deleteError) {
-      logger.error('Failed to delete user account', deleteError as Error);
-      return ApiResponseBuilder.serverError('Failed to delete account');
-    }
-
     const queries = getServerQueries();
+    const supabaseAdmin = createServerClient();
 
     const favSuccess = await queries.deleteAllFavorites(userId);
     if (!favSuccess) {
@@ -46,6 +38,13 @@ export const POST = createApiHandler(
       .eq('id', userId);
     if (profileError) {
       logger.error('Failed to delete user profile', profileError as Error);
+    }
+
+    const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
+
+    if (deleteError) {
+      logger.error('Failed to delete user account', deleteError as Error);
+      return ApiResponseBuilder.serverError('Failed to delete account');
     }
 
     const response = NextResponse.json({ success: true });

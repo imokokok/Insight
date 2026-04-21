@@ -143,7 +143,12 @@ export function validatePriceData(data: unknown): PriceData {
   const result: PriceData = {
     price: obj.price,
     timestamp:
-      typeof obj.timestamp === 'string' ? new Date(obj.timestamp).getTime() : obj.timestamp,
+      typeof obj.timestamp === 'string'
+        ? (() => {
+            const ts = new Date(obj.timestamp).getTime();
+            return Number.isFinite(ts) ? ts : Date.now();
+          })()
+        : obj.timestamp,
     provider: obj.provider as PriceData['provider'],
     symbol: obj.symbol,
   };

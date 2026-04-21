@@ -81,7 +81,7 @@ async function fetchChainSpecificData(
         if (parsed?.price && isPythPriceRaw(parsed.price)) {
           const priceValue =
             typeof parsed.price.price === 'string'
-              ? parseInt(parsed.price.price, 10)
+              ? Number(parsed.price.price)
               : parsed.price.price;
           const exponent = parsed.price.expo ?? -8;
           const price = priceValue * Math.pow(10, exponent);

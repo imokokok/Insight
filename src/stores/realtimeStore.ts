@@ -164,7 +164,18 @@ export const useRealtimeStore = create<RealtimeStore>()(
         realtimeManager.reconnect();
       },
 
-      reset: () => set(initialState),
+      reset: () =>
+        set({
+          connectionStatus: realtimeManager.getConnectionStatus(),
+          activeSubscriptions: [],
+          lastPriceUpdate: null,
+          lastAlertEvent: null,
+          lastSnapshotChange: null,
+          lastFavoriteChange: null,
+          reconnectAttempts: 0,
+          userId: null,
+          _initialized: false,
+        }),
 
       _initialize: () => {
         const { _initialized } = get();

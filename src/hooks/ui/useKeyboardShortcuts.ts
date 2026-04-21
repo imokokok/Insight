@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useMemo, useRef } from 'react';
 
 export interface KeyboardShortcut {
   key: string;
@@ -225,18 +225,40 @@ export const shortcutManager = new ShortcutManager();
  * Use keyboard shortcuts Hook
  */
 export function useKeyboardShortcuts(shortcuts: KeyboardShortcut[]) {
+  const shortcutsRef = useRef(shortcuts);
+  shortcutsRef.current = shortcuts;
+
+  const shortcutKey = shortcuts
+    .map((s) => `${s.key}:${s.ctrlKey}:${s.altKey}:${s.shiftKey}:${s.metaKey}:${s.scope}`)
+    .join(',');
+
+  const stableShortcuts = useMemo(() => {
+    return shortcuts.map((s) => ({ ...s }));
+  }, [shortcuts.length, shortcutKey]);
+
   useEffect(() => {
     const unregisters: (() => void)[] = [];
 
-    shortcuts.forEach((shortcut) => {
-      const unregister = shortcutManager.register(shortcut);
-      unregisters.push(unregister);
+    stableShortcuts.forEach((shortcut) => {
+      const original = shortcutsRef.current.find(
+        (s) =>
+          s.key === shortcut.key &&
+          !!s.ctrlKey === !!shortcut.ctrlKey &&
+          !!s.altKey === !!shortcut.altKey &&
+          !!s.shiftKey === !!shortcut.shiftKey &&
+          !!s.metaKey === !!shortcut.metaKey &&
+          s.scope === shortcut.scope
+      );
+      if (original) {
+        const unregister = shortcutManager.register(original);
+        unregisters.push(unregister);
+      }
     });
 
     return () => {
       unregisters.forEach((unregister) => unregister());
     };
-  }, [shortcuts]);
+  }, [stableShortcuts]);
 }
 
 /**

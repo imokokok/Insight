@@ -20,7 +20,7 @@ interface CrossChainConfigStore extends ConfigState {
 }
 
 const initialState: ConfigState = {
-  refreshInterval: 0,
+  refreshInterval: 30000,
   thresholdConfig: defaultThresholdConfig,
   colorblindMode: false,
   updateIntervals: {},
@@ -35,7 +35,8 @@ export const useCrossChainConfigStore = create<CrossChainConfigStore>()(
         setRefreshInterval: (interval) => set({ refreshInterval: interval }),
         setThresholdConfig: (config) => set({ thresholdConfig: config }),
         setColorblindMode: (enabled) => set({ colorblindMode: enabled }),
-        setUpdateIntervals: (intervals) => set({ updateIntervals: intervals }),
+        setUpdateIntervals: (intervals) =>
+          set((state) => ({ updateIntervals: { ...state.updateIntervals, ...intervals } })),
       }),
       {
         name: 'cross-chain-config-store',

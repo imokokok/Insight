@@ -42,7 +42,7 @@ export const POST = createApiHandler(
       });
     }
 
-    const acknowledgedEvent = await queries.acknowledgeAlertEvent(validatedId);
+    const acknowledgedEvent = await queries.acknowledgeAlertEvent(validatedId, userId);
 
     if (!acknowledgedEvent) {
       return ApiResponseBuilder.serverError('Failed to acknowledge event');

@@ -106,8 +106,8 @@ export const useUIStore = create<UIStore>()(
   )
 );
 
-const useSidebar = () => useUIStore((state) => state.sidebar);
-const useSidebarActions = () =>
+export const useSidebar = () => useUIStore((state) => state.sidebar);
+export const useSidebarActions = () =>
   useUIStore(
     useShallow((state) => ({
       openSidebar: state.openSidebar,
@@ -118,8 +118,8 @@ const useSidebarActions = () =>
     }))
   );
 
-const useModal = () => useUIStore((state) => state.modal);
-const useModalActions = () =>
+export const useModal = () => useUIStore((state) => state.modal);
+export const useModalActions = () =>
   useUIStore(
     useShallow((state) => ({
       openModal: state.openModal,
@@ -127,5 +127,5 @@ const useModalActions = () =>
     }))
   );
 
-const useIsMobile = () => useUIStore((state) => state.isMobile);
-const useSetIsMobile = () => useUIStore((state) => state.setIsMobile);
+export const useIsMobile = () => useUIStore((state) => state.isMobile);
+export const useSetIsMobile = () => useUIStore((state) => state.setIsMobile);
