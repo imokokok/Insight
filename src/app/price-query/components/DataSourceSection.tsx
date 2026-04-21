@@ -32,20 +32,15 @@ function getCredibilityLevel(provider: OracleProvider): 'high' | 'medium' | 'low
 
 // Calculate confidence based on price data quality
 function calculateConfidence(result: QueryResult): number {
-  let confidence = 0.7; // Base confidence
+  let confidence = result.priceData.confidence ?? 0.7;
 
-  // Adjust based on available data
-  if (result.priceData.confidence !== undefined) {
-    confidence = result.priceData.confidence;
+  const age = Date.now() - result.priceData.timestamp;
+  if (age < 60000) {
+    confidence = Math.min(1, confidence + 0.1);
+  } else if (age > 300000) {
+    confidence = Math.max(0, confidence - 0.1);
   }
 
-  // Boost for recent data
-  const age = Date.now() - result.priceData.timestamp;
-  if (age < 60000)
-    confidence += 0.1; // Less than 1 minute
-  else if (age > 300000) confidence -= 0.1; // More than 5 minutes
-
-  // Cap at 0-1 range
   return Math.max(0, Math.min(1, confidence));
 }
 

@@ -213,9 +213,9 @@ export function ErrorBanner({ errors, onRetry, onRetryAll, onDismiss }: ErrorBan
       </div>
 
       <div className="divide-y divide-gray-100">
-        {displayedErrors.map((error, index) => (
+        {displayedErrors.map((error) => (
           <ErrorItemRow
-            key={`${error.provider}-${error.chain}-${error.error.length}-${index}`}
+            key={`${error.provider}-${error.chain}`}
             error={error}
             onRetry={handleRetry}
             isRetrying={retryingItems.has(`${error.provider}-${error.chain}`)}

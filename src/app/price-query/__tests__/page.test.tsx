@@ -209,7 +209,7 @@ describe('PriceQueryPage', () => {
   });
 
   describe('accessibility', () => {
-    it('shouldhave aria-live usestatenotification', () => {
+    it('should have aria-live state notification', () => {
       renderPriceQueryPage();
 
       const liveRegion = document.querySelector('[aria-live="polite"]');

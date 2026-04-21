@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useMemo, useState } from 'react';
 
 import { Database, BarChart3, Clock, GitCompare, TrendingUp, TrendingDown } from 'lucide-react';
 
@@ -26,6 +26,8 @@ interface QueryResultsProps {
 export function QueryResults({ onChainData }: QueryResultsProps) {
   const query = useUnifiedQuery();
   const chartContainerRef = useRef<HTMLDivElement>(null);
+  const [previousPriceValue, setPreviousPriceValue] = useState<number>(0);
+  const wasLoadingRef = useRef(false);
 
   const { selectedSymbol } = query;
 
@@ -48,33 +50,34 @@ export function QueryResults({ onChainData }: QueryResultsProps) {
 
   const {
     diaOnChainData,
-    isDIADataLoading: _isDIADataLoading,
     winklinkOnChainData,
-    isWINkLinkDataLoading: _isWINkLinkDataLoading,
     redstoneOnChainData,
-    isRedStoneDataLoading: _isRedStoneDataLoading,
     supraOnChainData,
-    isSupraDataLoading: _isSupraDataLoading,
     twapOnChainData,
-    isTwapDataLoading: _isTwapDataLoading,
     reflectorOnChainData,
-    isReflectorDataLoading: _isReflectorDataLoading,
     flareOnChainData,
-    isFlareDataLoading: _isFlareDataLoading,
   } = onChainData;
 
   const consistencyRating = useConsistencyRating(standardDeviationPercent);
-  const [previousPriceValue, setPreviousPriceValue] = useState<number>(0);
-  const currentPriceValue =
-    queryResults.length > 0
-      ? (queryResults[0]?.priceData?.price ?? (avgPrice > 0 ? avgPrice : 0))
-      : avgPrice > 0
-        ? avgPrice
-        : 0;
+
+  const currentPriceValue = useMemo(() => {
+    if (queryResults.length === 0) return avgPrice > 0 ? avgPrice : 0;
+    const prices = queryResults
+      .map((r) => r.priceData?.price)
+      .filter((p): p is number => typeof p === 'number' && p > 0);
+    if (prices.length === 0) return avgPrice > 0 ? avgPrice : 0;
+    const sorted = [...prices].sort((a, b) => a - b);
+    const mid = Math.floor(sorted.length / 2);
+    return sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+  }, [queryResults, avgPrice]);
 
   useEffect(() => {
-    setPreviousPriceValue(currentPriceValue);
-  }, [currentPriceValue]);
+    if (wasLoadingRef.current && !isLoading && currentPriceValue > 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Track previous price for flash animation
+      setPreviousPriceValue(currentPriceValue);
+    }
+    wasLoadingRef.current = isLoading;
+  }, [isLoading, currentPriceValue]);
 
   if (isLoading) {
     return <QueryResultsLoading />;
@@ -85,7 +88,6 @@ export function QueryResults({ onChainData }: QueryResultsProps) {
   }
 
   const currentResult = queryResults[0];
-  const volume24hValue: number | null = null;
 
   return (
     <div className="space-y-4">
@@ -115,7 +117,10 @@ export function QueryResults({ onChainData }: QueryResultsProps) {
             <div className="text-left sm:text-right">
               <p className="text-sm text-gray-500 mb-1">Current Price</p>
               <div className="flex items-baseline gap-3 sm:justify-end">
-                <PriceFlash value={currentPriceValue} previousValue={previousPriceValue}>
+                <PriceFlash
+                  value={currentPriceValue}
+                  previousValue={previousPriceValue ?? currentPriceValue}
+                >
                   <span className="text-4xl sm:text-5xl font-bold text-gray-900 tracking-tight">
                     {formatPrice(currentPriceValue)}
                   </span>
@@ -140,7 +145,6 @@ export function QueryResults({ onChainData }: QueryResultsProps) {
               minPrice={minPrice}
               avgPrice={avgPrice}
               priceRange={priceRange}
-              volume24h={volume24hValue}
               consistencyRating={consistencyRating}
               standardDeviationPercent={standardDeviationPercent}
             />
@@ -227,7 +231,7 @@ function CompareResultsSection({
     const comparePrice = compare?.priceData?.price ?? 0;
     const priceDiff = primaryPrice > 0 && comparePrice > 0 ? primaryPrice - comparePrice : 0;
     const priceDiffPercent =
-      primaryPrice > 0 && comparePrice > 0 ? (priceDiff / primaryPrice) * 100 : 0;
+      primaryPrice > 0 && comparePrice > 0 ? (priceDiff / comparePrice) * 100 : 0;
 
     return {
       key,

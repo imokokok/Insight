@@ -42,7 +42,6 @@ interface StatsCardsSelectorProps {
   minPrice: number;
   avgPrice: number;
   priceRange: number;
-  volume24h: number | null | undefined;
   consistencyRating: {
     label: string;
     color: string;
@@ -63,7 +62,6 @@ export function StatsCardsSelector({
   minPrice,
   avgPrice,
   priceRange,
-  volume24h,
   consistencyRating,
   standardDeviationPercent,
 }: StatsCardsSelectorProps) {
@@ -191,12 +189,11 @@ export function StatsCardsSelector({
         minPrice={minPrice}
         avgPrice={avgPrice}
         priceRange={priceRange}
-        volume24h={volume24h}
         consistencyRating={consistencyRating}
         standardDeviationPercent={standardDeviationPercent}
       />
       {providerStatsComponent && (
-        <div className="col-span-2 md:col-span-3 lg:col-span-6 mt-2">
+        <div className="col-span-full mt-2">
           <button
             onClick={() => setShowProviderStats(!showProviderStats)}
             className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-700 transition-colors"

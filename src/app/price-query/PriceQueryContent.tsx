@@ -2,6 +2,7 @@
 
 import { useRef, useCallback } from 'react';
 
+import { ErrorBoundary } from '@/components/error-boundary/ErrorBoundary';
 import { LiveStatusBar } from '@/components/ui';
 import { useCommonShortcuts, useAllOnChainData } from '@/hooks';
 
@@ -71,8 +72,10 @@ function PriceQueryContentInner() {
 
 export default function PriceQueryContent() {
   return (
-    <UnifiedQueryProvider>
-      <PriceQueryContentInner />
-    </UnifiedQueryProvider>
+    <ErrorBoundary level="page" componentName="PriceQueryContent">
+      <UnifiedQueryProvider>
+        <PriceQueryContentInner />
+      </UnifiedQueryProvider>
+    </ErrorBoundary>
   );
 }

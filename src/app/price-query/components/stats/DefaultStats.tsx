@@ -1,14 +1,13 @@
 import { StatCard } from '@/components/ui/StatCard';
 import { getStatRating } from '@/lib/utils/stat-rating';
 
-import { formatPrice, formatLargeNumber } from '../../utils/queryResultsUtils';
+import { formatPrice } from '../../utils/queryResultsUtils';
 
 interface DefaultStatsProps {
   maxPrice: number;
   minPrice: number;
   avgPrice: number;
   priceRange: number;
-  volume24h: number | null | undefined;
   consistencyRating: {
     label: string;
     color: string;
@@ -21,7 +20,6 @@ export function DefaultStats({
   minPrice,
   avgPrice,
   priceRange,
-  volume24h,
   consistencyRating,
   standardDeviationPercent,
 }: DefaultStatsProps) {
@@ -50,9 +48,9 @@ export function DefaultStats({
         description="Difference between max and min price"
       />
       <StatCard
-        title="24h Volume"
-        value={volume24h ? formatLargeNumber(volume24h) : 'N/A'}
-        description="Trading volume in the last 24 hours"
+        title="Data Sources"
+        value={standardDeviationPercent >= 0 ? 'Active' : '-'}
+        description="Number of oracle sources providing data"
       />
       <StatCard
         title="Consistency Rating"

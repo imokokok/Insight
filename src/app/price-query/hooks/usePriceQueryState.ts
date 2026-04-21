@@ -33,12 +33,6 @@ interface UsePriceQueryStateReturn {
   setSelectedSymbol: (symbol: string) => void;
   selectedTimeRange: number;
   setSelectedTimeRange: (timeRange: number) => void;
-  filterText: string;
-  setFilterText: (text: string) => void;
-  sortField: 'oracle' | 'blockchain' | 'price' | 'timestamp';
-  sortDirection: 'asc' | 'desc';
-  hiddenSeries: Set<string>;
-  setHiddenSeries: (series: Set<string>) => void;
   isCompareMode: boolean;
   setIsCompareMode: (mode: boolean) => void;
   compareTimeRange: number;
@@ -48,10 +42,6 @@ interface UsePriceQueryStateReturn {
   timeComparisonConfig: TimeComparisonConfig;
   setTimeComparisonConfig: (config: TimeComparisonConfig) => void;
   urlParamsParsed: boolean;
-  selectedRow: string | null;
-  setSelectedRow: (row: string | null) => void;
-  toggleSeries: (seriesName: string) => void;
-  handleSort: (field: 'oracle' | 'blockchain' | 'price' | 'timestamp') => void;
   selectedOracleRef: React.MutableRefObject<OracleProvider | null>;
   selectedChainRef: React.MutableRefObject<Blockchain | null>;
   selectedSymbolRef: React.MutableRefObject<string>;
@@ -69,16 +59,9 @@ export function usePriceQueryState(): UsePriceQueryStateReturn {
   const [selectedChain, _setSelectedChain] = useState<Blockchain | null>(Blockchain.ETHEREUM);
   const [selectedSymbol, _setSelectedSymbol] = useState<string>('BTC');
   const [selectedTimeRange, _setSelectedTimeRange] = useState<number>(24);
-  const [filterText, setFilterText] = useState<string>('');
-  const [sortField, setSortField] = useState<'oracle' | 'blockchain' | 'price' | 'timestamp'>(
-    'oracle'
-  );
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
-  const [hiddenSeries, setHiddenSeries] = useState<Set<string>>(new Set());
   const [isCompareMode, _setIsCompareMode] = useState<boolean>(false);
   const [compareTimeRange, _setCompareTimeRange] = useState<number>(24);
   const [showBaseline, setShowBaseline] = useState<boolean>(false);
-  const [selectedRow, setSelectedRow] = useState<string | null>(null);
   const [urlParamsParsed, setUrlParamsParsed] = useState(false);
   const hasInitializedRef = useRef(false);
 
@@ -177,6 +160,7 @@ export function usePriceQueryState(): UsePriceQueryStateReturn {
       selectedChainRef.current = Blockchain.ETHEREUM;
       selectedSymbolRef.current = defaultSymbol;
       selectedTimeRangeRef.current = defaultTimeRange;
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- One-time initialization from preferences
       setSelectedOracle(defaultOracle);
       setSelectedSymbol(defaultSymbol);
       setSelectedTimeRange(defaultTimeRange);
@@ -200,8 +184,15 @@ export function usePriceQueryState(): UsePriceQueryStateReturn {
       setSelectedTimeRange(timeRangeFromUrl);
       setUrlParamsParsed(true);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [
+    preferences.defaultOracle,
+    preferences.defaultTimeRange,
+    preferences.defaultSymbol,
+    setSelectedOracle,
+    setSelectedChain,
+    setSelectedSymbol,
+    setSelectedTimeRange,
+  ]);
 
   useEffect(() => {
     if (!urlParamsParsed) return;
@@ -210,33 +201,19 @@ export function usePriceQueryState(): UsePriceQueryStateReturn {
       chains: selectedChain ? [selectedChain] : [],
       symbol: selectedSymbol,
       timeRange: selectedTimeRange,
+      isCompareMode,
+      compareTimeRange,
     };
     updateUrlParams(config);
-  }, [selectedOracle, selectedChain, selectedSymbol, selectedTimeRange, urlParamsParsed]);
-
-  const toggleSeries = useCallback((seriesName: string) => {
-    setHiddenSeries((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(seriesName)) {
-        newSet.delete(seriesName);
-      } else {
-        newSet.add(seriesName);
-      }
-      return newSet;
-    });
-  }, []);
-
-  const handleSort = useCallback((field: 'oracle' | 'blockchain' | 'price' | 'timestamp') => {
-    setSortField((prev) => {
-      if (prev === field) {
-        setSortDirection((dir) => (dir === 'asc' ? 'desc' : 'asc'));
-        return prev;
-      } else {
-        setSortDirection('asc');
-        return field;
-      }
-    });
-  }, []);
+  }, [
+    selectedOracle,
+    selectedChain,
+    selectedSymbol,
+    selectedTimeRange,
+    urlParamsParsed,
+    isCompareMode,
+    compareTimeRange,
+  ]);
 
   return {
     selectedOracle,
@@ -247,12 +224,6 @@ export function usePriceQueryState(): UsePriceQueryStateReturn {
     setSelectedSymbol,
     selectedTimeRange,
     setSelectedTimeRange,
-    filterText,
-    setFilterText,
-    sortField,
-    sortDirection,
-    hiddenSeries,
-    setHiddenSeries,
     isCompareMode,
     setIsCompareMode,
     compareTimeRange,
@@ -262,10 +233,6 @@ export function usePriceQueryState(): UsePriceQueryStateReturn {
     timeComparisonConfig,
     setTimeComparisonConfig,
     urlParamsParsed,
-    selectedRow,
-    setSelectedRow,
-    toggleSeries,
-    handleSort,
     selectedOracleRef,
     selectedChainRef,
     selectedSymbolRef,
