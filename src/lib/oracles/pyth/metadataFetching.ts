@@ -134,7 +134,7 @@ function getFallbackNetworkStats(): PythServiceNetworkStats {
     totalPublishers: PYTH_PUBLISHER_STATS.totalPublishers,
     activePublishers: PYTH_PUBLISHER_STATS.activePublishers,
     totalPriceFeeds: Object.keys(PYTH_PRICE_FEED_IDS).length,
-    totalSubmissions24h: PYTH_PUBLISHER_STATS.totalStake,
+    totalSubmissions24h: calculateTotalSubmissions(PYTH_PUBLISHERS),
     averageLatency: 42,
     uptimePercentage: 99.9,
     lastUpdated: Date.now(),

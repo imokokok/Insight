@@ -364,17 +364,14 @@ export function useAcknowledgeAlert(): UseAcknowledgeAlertReturn {
     },
   });
 
-  const acknowledge = useCallback(
-    async (eventId: string) => {
-      try {
-        const event = await mutation.mutateAsync(eventId);
-        return { event, error: null };
-      } catch (err) {
-        return { event: null, error: err as Error };
-      }
-    },
-    [mutation]
-  );
+  const acknowledge = useCallback(async (eventId: string) => {
+    try {
+      const event = await mutation.mutateAsync(eventId);
+      return { event, error: null };
+    } catch (err) {
+      return { event: null, error: err as Error };
+    }
+  }, []);
 
   return { acknowledge, isAcknowledging: mutation.isPending };
 }
@@ -454,7 +451,7 @@ export function useBatchAlerts(): UseBatchAlertsReturn {
         return { result: null, error: err as Error };
       }
     },
-    [mutation]
+    []
   );
 
   return { batchOperation, isProcessing: mutation.isPending };

@@ -225,8 +225,17 @@ export async function fetchRadarData(): Promise<RadarDataPoint[]> {
     };
 
     comparisonData.forEach((oracle) => {
-      const metricKey = metric.toLowerCase().replace(' ', '') as keyof typeof oracle.metrics;
-      const value = oracle.metrics[metricKey]?.normalizedValue || 0;
+      const metricKeyMap: Record<string, keyof typeof oracle.metrics> = {
+        TVS: 'tvs',
+        Latency: 'latency',
+        Accuracy: 'accuracy',
+        'Market Share': 'marketShare',
+        Chains: 'chains',
+        Protocols: 'protocols',
+        'Update Freq': 'updateFrequency',
+      };
+      const metricKey = metricKeyMap[metric];
+      const value = metricKey ? oracle.metrics[metricKey]?.normalizedValue || 0 : 0;
       point[oracle.oracle] = value;
     });
 
@@ -275,7 +284,7 @@ export async function fetchBenchmarkData(): Promise<BenchmarkData[]> {
           const value = o.metrics[metricKey].value;
           const diffFromAverage = value - average;
           const diffPercent = (diffFromAverage / average) * 100;
-          const percentile = ((sorted.indexOf(value) + 1) / sorted.length) * 100;
+          const percentile = (sorted.filter((v) => v <= value).length / sorted.length) * 100;
 
           return {
             oracle: o.oracle,
@@ -329,6 +338,10 @@ export async function calculateCorrelation(timeRange: string = '30D'): Promise<C
       [0.45, 0.38, 0.42, 0.82, 0.35],
       [0.52, 0.48, 0.55, 0.35, 0.79],
     ];
+
+    logger.warn(
+      'Using estimated correlation values - real price data correlation not yet available'
+    );
 
     for (let i = 0; i < n; i++) {
       for (let j = i + 1; j < n; j++) {

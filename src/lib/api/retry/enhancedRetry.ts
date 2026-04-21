@@ -142,10 +142,9 @@ function calculateDelay(attempt: number, config: EnhancedRetryConfig): number {
       break;
 
     case 'decorrelated-jitter': {
-      const prevDelay = baseDelay * Math.pow(backoffMultiplier, attempt - 2);
-      delay = Math.random() * (maxDelay - baseDelay) + baseDelay;
+      delay = Math.min(maxDelay, baseDelay + Math.random() * baseDelay);
       if (attempt > 1) {
-        delay = Math.min(maxDelay, Math.random() * (delay + prevDelay));
+        delay = Math.min(maxDelay, baseDelay + Math.random() * (delay * 3 - baseDelay));
       }
       break;
     }

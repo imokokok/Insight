@@ -315,9 +315,12 @@ export function chain(...validators: ValidatorFn[]): ValidatorFn {
   };
 }
 
-export function optional(validator: ValidatorFn): ValidatorFn {
+export function optional(
+  validator: ValidatorFn,
+  treatEmptyStringAsUndefined: boolean = true
+): ValidatorFn {
   return (value: unknown, field = 'value'): ValidatorResult => {
-    if (value === undefined || value === null || value === '') {
+    if (value === undefined || value === null || (treatEmptyStringAsUndefined && value === '')) {
       return { valid: true, value: undefined };
     }
     return validator(value, field);

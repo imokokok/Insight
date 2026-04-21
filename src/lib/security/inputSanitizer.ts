@@ -99,12 +99,12 @@ const DEFAULT_OPTIONS: SanitizationOptions = {
 };
 
 const SQL_INJECTION_PATTERNS = [
-  /\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|EXECUTE|UNION|TRUNCATE)\b/gi,
-  /\b(OR|AND)\b\s+\d+\s*=\s*\d+/gi,
-  /(--|#|\/\*|\*\/)/g,
-  /\bWAITFOR\b\s+\bDELAY\b/gi,
-  /\bBENCHMARK\b\s*\(/gi,
-  /\bSLEEP\b\s*\(/gi,
+  /\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|EXECUTE|UNION|TRUNCATE)\b/i,
+  /\b(OR|AND)\b\s+\d+\s*=\s*\d+/i,
+  /(--|#|\/\*|\*\/)/,
+  /\bWAITFOR\b\s+\bDELAY\b/i,
+  /\bBENCHMARK\b\s*\(/i,
+  /\bSLEEP\b\s*\(/i,
 ];
 
 const NULL_BYTES_PATTERN = /\x00/g;

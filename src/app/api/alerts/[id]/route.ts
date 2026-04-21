@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 
 import { createApiHandler, ApiResponseBuilder } from '@/lib/api/handler';
 import { sanitizeObject, sanitizeString, sanitizeUuid } from '@/lib/security';
+import { sanitizeChain, sanitizeProvider } from '@/lib/security/inputSanitizer';
 import { getServerQueries } from '@/lib/supabase/server';
 
 const VALID_CONDITION_TYPES = ['above', 'below', 'change_percent'] as const;
@@ -40,8 +41,14 @@ function validateAlertUpdate(body: unknown): Record<string, unknown> | null {
   }
 
   if (sanitizedBody.chain !== undefined) {
-    if (typeof sanitizedBody.chain === 'string' || sanitizedBody.chain === null) {
-      updateData.chain = sanitizedBody.chain;
+    if (sanitizedBody.chain === null) {
+      updateData.chain = null;
+    } else if (typeof sanitizedBody.chain === 'string') {
+      const validatedChain = sanitizeChain(sanitizedBody.chain);
+      if (!validatedChain) {
+        return null;
+      }
+      updateData.chain = validatedChain;
     } else {
       return null;
     }
@@ -72,8 +79,14 @@ function validateAlertUpdate(body: unknown): Record<string, unknown> | null {
   }
 
   if (sanitizedBody.provider !== undefined) {
-    if (typeof sanitizedBody.provider === 'string' || sanitizedBody.provider === null) {
-      updateData.provider = sanitizedBody.provider;
+    if (sanitizedBody.provider === null) {
+      updateData.provider = null;
+    } else if (typeof sanitizedBody.provider === 'string') {
+      const validatedProvider = sanitizeProvider(sanitizedBody.provider);
+      if (!validatedProvider) {
+        return null;
+      }
+      updateData.provider = validatedProvider;
     } else {
       return null;
     }

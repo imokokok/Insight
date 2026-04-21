@@ -74,7 +74,7 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
           ),
         };
       }
-      return { success: true, context: { userId: '' } };
+      return { success: true, context: { userId: null as unknown as string } };
     }
 
     if (roles.length > 0) {

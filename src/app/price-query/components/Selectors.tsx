@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 
-import { Search, RefreshCw, GitCompare } from 'lucide-react';
+import { Search, RefreshCw } from 'lucide-react';
 
 import { DropdownSelect, type SelectorOption } from '@/components/ui';
 import { getPriceOracleProvidersSortedByMarketCap } from '@/lib/config/oracles';
@@ -28,8 +28,6 @@ export function Selectors() {
     refetch,
     supportedChainsBySelectedOracles,
     autoRefresh,
-    isCompareMode,
-    setIsCompareMode,
   } = query;
 
   const {
@@ -180,26 +178,6 @@ export function Selectors() {
             nextRefreshAt={autoRefresh.nextRefreshAt}
             isRefreshing={autoRefresh.isRefreshing}
           />
-        </section>
-
-        <section className="py-3 border-t border-gray-100" aria-labelledby="compare-label">
-          <label className="block text-xs font-medium text-gray-700 mb-2">Compare Mode</label>
-          <button
-            onClick={() => setIsCompareMode(!isCompareMode)}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md border transition-colors ${
-              isCompareMode
-                ? 'bg-violet-50 border-violet-200 text-violet-700 hover:bg-violet-100'
-                : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
-            }`}
-          >
-            <GitCompare className="w-3.5 h-3.5" />
-            {isCompareMode ? 'Compare On' : 'Compare Off'}
-          </button>
-          {isCompareMode && (
-            <p className="mt-1.5 text-[10px] text-violet-500">
-              Showing price comparison across chains
-            </p>
-          )}
         </section>
       </div>
     </div>

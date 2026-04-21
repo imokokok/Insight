@@ -10,9 +10,17 @@ function isLocalRequest(request: NextRequest): boolean {
   if (process.env.NODE_ENV !== 'production') {
     return true;
   }
-  const forwarded = request.headers.get('x-forwarded-for');
-  const ip = forwarded?.split(',')[0]?.trim() || request.headers.get('x-real-ip') || '';
-  return ip === '127.0.0.1' || ip === '::1' || ip === 'localhost';
+  const vercelIp = request.headers.get('x-vercel-forwarded-for');
+  if (vercelIp) {
+    const ip = vercelIp.split(',').pop()?.trim() || '';
+    return ip === '127.0.0.1' || ip === '::1';
+  }
+  const realIp = request.headers.get('x-real-ip');
+  if (realIp) {
+    const ip = realIp.trim();
+    return ip === '127.0.0.1' || ip === '::1';
+  }
+  return false;
 }
 
 interface HealthCheckResult {

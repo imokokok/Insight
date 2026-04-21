@@ -10,6 +10,24 @@ export function parsePythPrice(
 ): PriceData {
   const priceValue =
     typeof pythPrice.price === 'string' ? Number(pythPrice.price) : pythPrice.price;
+  if (!Number.isFinite(priceValue)) {
+    return {
+      provider: OracleProvider.PYTH,
+      symbol: symbol.toUpperCase(),
+      price: 0,
+      timestamp: Date.now(),
+      decimals: 0,
+      confidence: 0,
+      confidenceSource: 'original',
+      confidenceInterval: { bid: 0, ask: 0, widthPercentage: 0 },
+      change24h: 0,
+      change24hPercent: 0,
+      priceId,
+      exponent: 0,
+      conf: 0,
+      publishTime: Date.now(),
+    };
+  }
   const exponent = pythPrice.expo ?? -8;
   const price = priceValue * Math.pow(10, exponent);
 

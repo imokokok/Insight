@@ -51,7 +51,7 @@ export function generateTVSTrendData(
     supra: 1.2,
   };
 
-  for (let i = points; i >= 0; i--) {
+  for (let i = points - 1; i >= 0; i--) {
     const timestamp = now - i * interval;
     const date = new Date(timestamp);
     const dateStr = hours <= 24 ? formatTimeString(date, false) : formatDateString(date, 'medium');
@@ -59,8 +59,8 @@ export function generateTVSTrendData(
     const volatility = 0.02;
 
     const chainlink =
-      (baseValues.chainlink || defaults.chainlink) * (1 + (Math.random() - 0.48) * volatility);
-    const pyth = (baseValues.pyth || defaults.pyth) * (1 + (Math.random() - 0.45) * volatility);
+      (baseValues.chainlink || defaults.chainlink) * (1 + (Math.random() - 0.5) * volatility);
+    const pyth = (baseValues.pyth || defaults.pyth) * (1 + (Math.random() - 0.5) * volatility);
     const api3 = (baseValues.api3 || defaults.api3) * (1 + (Math.random() - 0.5) * volatility);
     const uma = (baseValues.uma || defaults.uma) * (1 + (Math.random() - 0.5) * volatility);
     const redstone =

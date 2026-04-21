@@ -28,7 +28,10 @@ export function errorToResponse(error: unknown): NextResponse {
     });
 
     // Use the standard error response creation function
-    const standardResponse = createStandardErrorResponse(error.code as ErrorCode, error.message, {
+    const errorCode = Object.values(ErrorCode).includes(error.code as ErrorCode)
+      ? (error.code as ErrorCode)
+      : ErrorCode.INTERNAL_ERROR;
+    const standardResponse = createStandardErrorResponse(errorCode, error.message, {
       details: error.details,
     });
 

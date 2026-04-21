@@ -24,9 +24,9 @@ interface DataState {
 }
 
 interface DataActions {
-  fetchData: (() => Promise<void>) | null;
-  clearCache: (() => void) | null;
-  clearCacheForProvider: ((provider: OracleProvider) => void) | null;
+  fetchData: (() => Promise<void>) | undefined;
+  clearCache: (() => void) | undefined;
+  clearCacheForProvider: ((provider: OracleProvider) => void) | undefined;
   setCurrentPrices: (prices: PriceData[]) => void;
   setLoading: (loading: boolean) => void;
   setRefreshStatus: (status: 'idle' | 'refreshing' | 'success' | 'error') => void;
@@ -36,9 +36,9 @@ interface DataActions {
   setRecommendedBaseChain: (chain: Blockchain | null) => void;
   setAnomalies: (anomalies: AnomalousPricePoint[]) => void;
   setCrossChainComparison: (results: CrossChainComparisonResult[]) => void;
-  setFetchData: (fn: (() => Promise<void>) | null) => void;
-  setClearCache: (fn: (() => void) | null) => void;
-  setClearCacheForProvider: (fn: ((provider: OracleProvider) => void) | null) => void;
+  setFetchData: (fn: (() => Promise<void>) | undefined) => void;
+  setClearCache: (fn: (() => void) | undefined) => void;
+  setClearCacheForProvider: (fn: ((provider: OracleProvider) => void) | undefined) => void;
 }
 
 interface CrossChainDataStore extends DataState, DataActions {}
@@ -54,9 +54,9 @@ const initialState: DataState &
   prevStats: null,
   recommendedBaseChain: null,
   anomalies: [],
-  fetchData: null,
-  clearCache: null,
-  clearCacheForProvider: null,
+  fetchData: undefined,
+  clearCache: undefined,
+  clearCacheForProvider: undefined,
 };
 
 export const useCrossChainDataStore = create<CrossChainDataStore>()(

@@ -37,7 +37,7 @@ class KvRateLimitStore implements RateLimitStore {
       const count = (await Promise.race([kv.incr(fullKey), this.timeout(500)])) as number;
 
       if (count === 1) {
-        await Promise.race([kv.expire(fullKey, windowMsInSeconds), this.timeout(500)]);
+        await Promise.all([kv.expire(fullKey, windowMsInSeconds), this.timeout(500)]);
         return { count, resetTime: Date.now() + windowMs };
       }
 

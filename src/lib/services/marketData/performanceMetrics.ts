@@ -178,10 +178,16 @@ class PerformanceMetricsCalculator {
 
     // 计算中位数
     const sorted = [...deviations].sort((a, b) => a - b);
-    const median = sorted[Math.floor(sorted.length / 2)];
+    const mid = Math.floor(sorted.length / 2);
+    const median = sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
 
-    // 计算 MAD (Median Absolute Deviation)
-    const mad = sorted.reduce((sum, d) => sum + Math.abs(d - median), 0) / sorted.length;
+    const absoluteDeviations = sorted.map((d) => Math.abs(d - median));
+    const sortedAbsDev = [...absoluteDeviations].sort((a, b) => a - b);
+    const madMid = Math.floor(sortedAbsDev.length / 2);
+    const mad =
+      sortedAbsDev.length % 2 !== 0
+        ? sortedAbsDev[madMid]
+        : (sortedAbsDev[madMid - 1] + sortedAbsDev[madMid]) / 2;
 
     // 使用 3 * MAD 作为阈值过滤异常值 (约 99% 置信区间)
     const threshold = 3 * mad;

@@ -116,15 +116,30 @@ export abstract class AppError extends Error {
       requestId: this.requestId,
       timestamp: this.timestamp.toISOString(),
       details: this.details,
-      stack: this.stack,
       cause:
         this.cause instanceof Error
           ? {
               name: this.cause.name,
               message: this.cause.message,
-              stack: this.cause.stack,
             }
           : undefined,
+    };
+  }
+
+  toJSONSafe(): Record<string, unknown> {
+    return {
+      name: this.name,
+      message: this.message,
+      code: this.code,
+      statusCode: this.statusCode,
+      isOperational: this.isOperational,
+      severity: this.severity,
+      category: this.category,
+      retryable: this.retryable,
+      retryAfter: this.retryAfter,
+      requestId: this.requestId,
+      timestamp: this.timestamp.toISOString(),
+      details: this.details,
     };
   }
 

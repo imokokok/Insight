@@ -899,16 +899,20 @@ export class DatabaseQueries {
     return data;
   }
 
-  async acknowledgeAlertEvent(eventId: string): Promise<AlertEvent | null> {
-    const { data, error } = await this.client
+  async acknowledgeAlertEvent(eventId: string, userId?: string): Promise<AlertEvent | null> {
+    let query = this.client
       .from('alert_events')
       .update({
         acknowledged: true,
         acknowledged_at: new Date().toISOString(),
       })
-      .eq('id', eventId)
-      .select()
-      .single();
+      .eq('id', eventId);
+
+    if (userId) {
+      query = query.eq('user_id', userId);
+    }
+
+    const { data, error } = await query.select().single();
 
     if (error) {
       logger.error(

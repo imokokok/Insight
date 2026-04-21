@@ -52,6 +52,25 @@ const pendingRequests = new Map<string, PendingRequest<unknown>>();
 
 const responseCache = new Map<string, { data: unknown; timestamp: number }>();
 const CACHE_TTL_MS = 5_000;
+const MAX_CACHE_SIZE = 200;
+
+function setCachedResponse(key: string, data: unknown): void {
+  if (responseCache.size >= MAX_CACHE_SIZE) {
+    const now = Date.now();
+    for (const [k, v] of responseCache) {
+      if (now - v.timestamp >= CACHE_TTL_MS) {
+        responseCache.delete(k);
+      }
+    }
+    if (responseCache.size >= MAX_CACHE_SIZE) {
+      const oldestKey = responseCache.keys().next().value;
+      if (oldestKey !== undefined) {
+        responseCache.delete(oldestKey);
+      }
+    }
+  }
+  responseCache.set(key, { data, timestamp: Date.now() });
+}
 
 function buildRequestKey(
   prefix: string,
@@ -75,10 +94,6 @@ function getCachedResponse<T>(key: string): T | undefined {
     responseCache.delete(key);
   }
   return undefined;
-}
-
-function setCachedResponse(key: string, data: unknown): void {
-  responseCache.set(key, { data, timestamp: Date.now() });
 }
 
 function removePendingRequest(key: string): void {
@@ -233,7 +248,6 @@ function deduplicatedFetch<T>(
     })
     .finally(() => {
       cleanup();
-      removePendingRequest(key);
     });
 
   pendingRequests.set(key, { promise, controller, timeoutId });

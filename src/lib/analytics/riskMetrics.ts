@@ -139,7 +139,7 @@ export function calculateHHI(marketShares: number[]): HHIResult {
     );
     return {
       value: 0,
-      level: 'low',
+      level: 'critical',
       description: 'calculation_error',
       concentrationRatio: 0,
     };
@@ -271,7 +271,8 @@ export function calculateVolatilityIndex(priceHistory: number[]): VolatilityResu
 
     // calculatevariance
     const variance =
-      returns.reduce((sum, r) => sum + Math.pow(r - avgReturn, 2), 0) / returns.length;
+      returns.reduce((sum, r) => sum + Math.pow(r - avgReturn, 2), 0) /
+      Math.max(returns.length - 1, 1);
 
     // (standard deviation)
     const dailyVolatility = Math.sqrt(variance);
@@ -316,7 +317,7 @@ export function calculateVolatilityIndex(priceHistory: number[]): VolatilityResu
     );
     return {
       index: 0,
-      level: 'low',
+      level: 'critical',
       description: 'calculation_error',
       annualizedVolatility: 0,
       dailyVolatility: 0,
@@ -401,7 +402,7 @@ export function calculateCorrelationRisk(
     );
     return {
       score: 0,
-      level: 'low',
+      level: 'critical',
       description: 'calculation_error',
       avgCorrelation: 0,
       highCorrelationPairs: [],
@@ -427,15 +428,17 @@ export function calculateRiskMetrics(
     const hhi = calculateHHIFromOracles(oracleData);
 
     // Calculate diversification score
-    const totalChains = safeMax(oracleData.map((o) => o.chains));
     const totalProtocols = oracleData.reduce((sum, o) => sum + o.protocols, 0);
     const diversification = calculateDiversificationScore({
       chainCount: oracleData.reduce((sum, o) => sum + o.chains, 0),
-      totalChains: totalChains * oracleData.length,
+      totalChains: Math.max(
+        oracleData.reduce((sum, o) => sum + o.chains, 0),
+        1
+      ),
       protocolCount: totalProtocols,
-      totalProtocols: totalProtocols * 2, // hypothesishave
-      assetCount: oracleData.length * 10, //
-      totalAssets: 100, // hypothesis
+      totalProtocols: Math.max(totalProtocols * 1.5, totalProtocols + 1),
+      assetCount: oracleData.length,
+      totalAssets: Math.max(oracleData.length * 1.5, 1),
     });
 
     // calculate
@@ -504,7 +507,7 @@ export function calculateRiskMetrics(
     return {
       hhi: {
         value: 0,
-        level: 'low',
+        level: 'critical',
         description: 'calculation_error',
         concentrationRatio: 0,
       },
@@ -520,21 +523,21 @@ export function calculateRiskMetrics(
       },
       volatility: {
         index: 0,
-        level: 'low',
+        level: 'critical',
         description: 'calculation_error',
         annualizedVolatility: 0,
         dailyVolatility: 0,
       },
       correlationRisk: {
         score: 0,
-        level: 'low',
+        level: 'critical',
         description: 'calculation_error',
         avgCorrelation: 0,
         highCorrelationPairs: [],
       },
       overallRisk: {
         score: 0,
-        level: 'low',
+        level: 'critical',
         timestamp: Date.now(),
       },
     };

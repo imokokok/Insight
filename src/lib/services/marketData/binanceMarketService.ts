@@ -618,11 +618,18 @@ async function getHistoricalPrices(
     //   7: Quote asset volume,
     //   ...
     // ]
-    const prices: HistoricalPricePoint[] = data.map((item: (number | string)[]) => ({
-      timestamp: Number(item[0]), // Open time
-      price: parseFloat(String(item[4])), // Close price
-      volume: parseFloat(String(item[5])), // Volume
-    }));
+    if (!Array.isArray(data)) {
+      logger.warn(`Invalid historical price data format for ${symbol}`);
+      return [];
+    }
+    const prices: HistoricalPricePoint[] = data
+      .filter((item: unknown) => Array.isArray(item) && item.length >= 6)
+      .map((item: (number | string)[]) => ({
+        timestamp: Number(item[0]),
+        price: parseFloat(String(item[4])),
+        volume: parseFloat(String(item[5])),
+      }))
+      .filter((p) => Number.isFinite(p.timestamp) && Number.isFinite(p.price));
 
     logger.info(`Successfully fetched ${prices.length} historical price points for ${symbol}`);
     return prices;

@@ -2,6 +2,16 @@ import type { CacheEntry } from '../base';
 
 export class PythCache {
   private cache: Map<string, CacheEntry<unknown>> = new Map();
+  private maxSize: number = 500;
+
+  private evictExpired(): void {
+    const now = Date.now();
+    for (const [key, entry] of this.cache) {
+      if (now - entry.timestamp > entry.ttl) {
+        this.cache.delete(key);
+      }
+    }
+  }
 
   get<T>(key: string): T | null {
     const entry = this.cache.get(key) as CacheEntry<T> | undefined;
@@ -17,6 +27,15 @@ export class PythCache {
   }
 
   set<T>(key: string, data: T, ttl: number): void {
+    if (this.cache.size >= this.maxSize) {
+      this.evictExpired();
+    }
+    if (this.cache.size >= this.maxSize) {
+      const oldestKey = this.cache.keys().next().value;
+      if (oldestKey !== undefined) {
+        this.cache.delete(oldestKey);
+      }
+    }
     this.cache.set(key, {
       data,
       timestamp: Date.now(),

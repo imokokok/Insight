@@ -35,7 +35,7 @@ export function createRateLimitMiddleware(options: RateLimitMiddlewareOptions = 
 
     const result = await rateLimitStore.increment(key, windowMs);
 
-    if (result.count >= maxRequests) {
+    if (result.count > maxRequests) {
       const now = Date.now();
       const retryAfter = Math.ceil((result.resetTime - now) / 1000);
       logger.warn('Rate limit exceeded', { key, count: result.count, maxRequests });
