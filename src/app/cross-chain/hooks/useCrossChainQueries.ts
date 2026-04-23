@@ -33,8 +33,8 @@ export function useCrossChainQueries(
     queries: chains.map((chain) => ({
       queryKey: [...crossChainKeys.byProvider(provider, symbol, String(period)), 'price', chain],
       queryFn: ({ signal }: { signal: AbortSignal }) =>
-        oracleApiClient.fetchPrice({ provider, symbol, chain, signal }),
-      staleTime: 30_000,
+        oracleApiClient.fetchPrice({ provider, symbol, chain, signal, forceRefresh: true }),
+      staleTime: 0,
       enabled: !!symbol,
       refetchInterval: resolvedRefetchInterval,
     })),

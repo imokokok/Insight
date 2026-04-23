@@ -70,9 +70,10 @@ export function useTwapOnChainData(options: UseTwapOnChainDataOptions): UseTwapO
       } as TwapOnChainData;
     },
     enabled: enabled && !!symbol,
-    staleTime: 60000,
+    staleTime: 0,
     gcTime: 300000,
     refetchInterval: 60000,
+    refetchOnWindowFocus: true,
     retry: 2,
   });
 
