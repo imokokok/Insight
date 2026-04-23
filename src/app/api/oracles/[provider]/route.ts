@@ -32,7 +32,7 @@ export const GET = createApiHandler(
       return validation.response!;
     }
 
-    const { symbol, chain, period } = validation.data!.query!;
+    const { symbol, chain, period, forceRefresh } = validation.data!.query!;
     const chainValue = chain as Blockchain | undefined;
 
     if (period !== undefined) {
@@ -41,6 +41,7 @@ export const GET = createApiHandler(
         symbol,
         chain: chainValue,
         period,
+        forceRefresh,
       });
     }
 
@@ -48,6 +49,7 @@ export const GET = createApiHandler(
       provider: validatedProvider,
       symbol,
       chain: chainValue,
+      forceRefresh,
     });
   },
   {
