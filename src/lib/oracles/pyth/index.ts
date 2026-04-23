@@ -1,1 +1,1 @@
-export { getPythDataService, resetPythDataService } from './PythDataService';
+export { getPythDataService } from './PythDataService';

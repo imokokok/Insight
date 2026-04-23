@@ -208,10 +208,3 @@ export function getPythDataService(): PythDataService {
   }
   return pythDataServiceInstance;
 }
-
-export function resetPythDataService(): void {
-  if (pythDataServiceInstance) {
-    pythDataServiceInstance.disconnect();
-    pythDataServiceInstance = null;
-  }
-}

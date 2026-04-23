@@ -1,5 +1,5 @@
+import { withOracleRetry, ORACLE_RETRY_PRESETS } from '@/lib/oracles/utils/retry';
 import { createLogger } from '@/lib/utils/logger';
-import { withOracleRetry, ORACLE_RETRY_PRESETS } from '@/lib/utils/retry';
 
 import { MarketDataError } from './types';
 

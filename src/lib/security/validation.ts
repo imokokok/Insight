@@ -1,16 +1,9 @@
 import { z } from 'zod';
 
-import { createLogger } from '@/lib/utils/logger';
 import { ORACLE_PROVIDER_VALUES } from '@/types/oracle/enums';
 import type { OracleProvider } from '@/types/oracle/enums';
 
 import { sanitizeString, sanitizeSymbol, sanitizeProvider, sanitizeChain } from './inputSanitizer';
-
-const logger = createLogger('security-validation');
-
-const SanitizedStringSchema = z
-  .string()
-  .transform((val) => sanitizeString(val, { maxLength: 1000 }));
 
 const SafeSymbolSchema = z
   .string()
@@ -34,11 +27,6 @@ const SafeNameSchema = z
   .min(1, 'Name is required')
   .max(100, 'Name too long')
   .transform((val) => sanitizeString(val, { maxLength: 100 }));
-
-const SafeDescriptionSchema = z
-  .string()
-  .max(500, 'Description too long')
-  .transform((val) => sanitizeString(val, { maxLength: 500 }));
 
 const SafeUuidSchema = z
   .string()
@@ -64,43 +52,15 @@ const SafeUrlSchema = z
     }
   }, 'Only HTTP and HTTPS URLs are allowed');
 
-const SafeJsonSchema = z.string().refine((val) => {
-  try {
-    JSON.parse(val);
-    return true;
-  } catch {
-    return false;
-  }
-}, 'Invalid JSON format');
-
-const SafePriceSchema = z.number().positive('Price must be positive').finite();
-
-const SafePercentageSchema = z
-  .number()
-  .min(0, 'Percentage must be at least 0')
-  .max(100, 'Percentage must be at most 100');
-
 const SafeAlertConditionSchema = z.enum(['above', 'below', 'change_percent']);
 
 const SafeAlertTargetValueSchema = z.number().finite();
 
-const SafePaginationSchema = z.object({
-  page: z
-    .union([z.string(), z.number()])
-    .transform((val) => (typeof val === 'string' ? parseInt(val, 10) : val))
-    .refine((val) => !isNaN(val) && val >= 1, 'Page must be at least 1')
-    .default(1),
-  limit: z
-    .union([z.string(), z.number()])
-    .transform((val) => (typeof val === 'string' ? parseInt(val, 10) : val))
-    .refine((val) => !isNaN(val) && val >= 1 && val <= 100, 'Limit must be between 1 and 100')
-    .default(20),
-});
-
-const SafeSearchQuerySchema = z
-  .string()
-  .max(100, 'Search query too long')
-  .transform((val) => sanitizeString(val, { maxLength: 100 }));
+const SafeBooleanSchema = z.union([
+  z.boolean(),
+  z.string().transform((val) => val.toLowerCase() === 'true'),
+  z.union([z.literal(0), z.literal(1)]).transform((val) => val === 1),
+]);
 
 const SafeConfigTypeSchema = z.enum(['oracle_config', 'symbol', 'chain_config']);
 
@@ -122,26 +82,6 @@ const SafeIdListSchema = z
 
 const SafeActionSchema = z.enum(['enable', 'disable', 'delete']);
 
-const SafeBooleanSchema = z.union([
-  z.boolean(),
-  z.string().transform((val) => val.toLowerCase() === 'true'),
-  z.union([z.literal(0), z.literal(1)]).transform((val) => val === 1),
-]);
-
-const SafeTimestampSchema = z
-  .union([z.string(), z.number()])
-  .transform((val) => {
-    if (typeof val === 'string') {
-      const parsed = Date.parse(val);
-      if (isNaN(parsed)) {
-        throw new Error('Invalid timestamp');
-      }
-      return parsed;
-    }
-    return val;
-  })
-  .refine((val) => val > 0 && val < 8640000000000000, 'Invalid timestamp');
-
 const SafePeriodSchema = z
   .union([z.string(), z.number()])
   .transform((val) => (typeof val === 'string' ? parseInt(val, 10) : val))
@@ -149,12 +89,6 @@ const SafePeriodSchema = z
     (val) => !isNaN(val) && val >= 1 && val <= 8760,
     'Period must be between 1 and 8760 hours (1 year)'
   );
-
-function createSafeEnumSchema<T extends [string, ...string[]]>(values: T) {
-  return z
-    .enum(values)
-    .transform((val) => sanitizeString(val, { maxLength: 50 })?.toLowerCase() ?? val.toLowerCase());
-}
 
 export function validateAndSanitize<T>(
   schema: z.ZodSchema<T>,
@@ -164,7 +98,6 @@ export function validateAndSanitize<T>(
     return { data: schema.parse(data), error: null };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      logger.warn('Validation failed', { errors: error.issues });
       return { data: null, error };
     }
     return {
@@ -180,20 +113,6 @@ export function validateAndSanitize<T>(
   }
 }
 
-function safeParse<T>(
-  schema: z.ZodSchema<T>,
-  data: unknown
-): { success: true; data: T } | { success: false; errors: string[] } {
-  const result = schema.safeParse(data);
-
-  if (result.success) {
-    return { success: true, data: result.data };
-  } else {
-    const errors = result.error.issues.map((err) => `${err.path.join('.')}: ${err.message}`);
-    return { success: false, errors };
-  }
-}
-
 export const CreateAlertRequestSchema = z.object({
   name: SafeNameSchema,
   symbol: SafeSymbolSchema,
@@ -203,8 +122,6 @@ export const CreateAlertRequestSchema = z.object({
   provider: SafeProviderSchema.optional(),
   is_active: SafeBooleanSchema.optional().default(true),
 });
-
-const UpdateAlertRequestSchema = CreateAlertRequestSchema.partial();
 
 export const CreateFavoriteRequestSchema = z.object({
   name: SafeNameSchema,
@@ -217,36 +134,9 @@ export const CreateFavoriteRequestSchema = z.object({
     }, 'Config data too large'),
 });
 
-const UpdateFavoriteRequestSchema = CreateFavoriteRequestSchema.partial();
-
-const CreateSnapshotRequestSchema = z.object({
-  name: SafeNameSchema.optional(),
-  symbol: SafeSymbolSchema,
-  selected_oracles: z.array(SafeProviderSchema).min(1).max(10),
-  price_data: z.record(z.string(), z.union([z.string(), z.number(), z.boolean(), z.null()])),
-  stats: z.record(z.string(), z.union([z.string(), z.number(), z.boolean(), z.null()])),
-  is_public: SafeBooleanSchema.optional().default(false),
-});
-
-const UpdateSnapshotRequestSchema = CreateSnapshotRequestSchema.partial();
-
 export const BatchOperationSchema = z.object({
   action: SafeActionSchema,
   alertIds: SafeIdListSchema,
-});
-
-const PriceQuerySchema = z.object({
-  symbol: SafeSymbolSchema,
-  chain: SafeChainSchema.optional(),
-  provider: SafeProviderSchema.optional(),
-  period: SafePeriodSchema.optional(),
-});
-
-const HistoricalPriceQuerySchema = z.object({
-  provider: SafeProviderSchema,
-  symbol: SafeSymbolSchema,
-  chain: SafeChainSchema.optional(),
-  period: SafePeriodSchema,
 });
 
 export const BatchPriceRequestSchema = z.object({
@@ -269,19 +159,6 @@ export const PriceDataSchema = PriceDataBaseSchema.extend({
   change: z.number().optional(),
   change24h: z.number().optional(),
   change24hPercent: z.number().optional(),
-});
-
-const OracleResponseSchema = z.object({
-  success: z.boolean(),
-  data: PriceDataSchema.optional(),
-  error: z
-    .object({
-      message: z.string(),
-      code: z.string().optional(),
-      provider: SafeProviderSchema.optional(),
-    })
-    .optional(),
-  timestamp: z.number().int().positive(),
 });
 
 export const AlertListResponseSchema = z.object({
@@ -317,39 +194,6 @@ export const HistoricalPriceRequestSchema = z.object({
   period: z.number().int().min(1).max(8760).optional().default(24),
 });
 
-const PaginationParamsSchema = z.object({
-  page: z.number().int().positive().optional().default(1),
-  limit: z.number().int().positive().max(100).optional().default(20),
-  search: z.string().optional(),
-});
-
-const HealthCheckResponseSchema = z.object({
-  status: z.enum(['healthy', 'degraded', 'unhealthy']),
-  timestamp: z.number().int().positive(),
-  version: z.string(),
-  uptime: z.number().nonnegative(),
-  checks: z
-    .object({
-      database: z.enum(['ok', 'error']).optional(),
-      cache: z.enum(['ok', 'error']).optional(),
-      oracles: z.record(z.string(), z.enum(['ok', 'error'])).optional(),
-    })
-    .optional(),
-});
-
-type CreateAlertRequestType = z.infer<typeof CreateAlertRequestSchema>;
-type UpdateAlertRequestType = z.infer<typeof UpdateAlertRequestSchema>;
-type CreateFavoriteRequestType = z.infer<typeof CreateFavoriteRequestSchema>;
-type UpdateFavoriteRequestType = z.infer<typeof UpdateFavoriteRequestSchema>;
-type CreateSnapshotRequestType = z.infer<typeof CreateSnapshotRequestSchema>;
-type UpdateSnapshotRequestType = z.infer<typeof UpdateSnapshotRequestSchema>;
-type BatchOperationType = z.infer<typeof BatchOperationSchema>;
-type PriceQueryType = z.infer<typeof PriceQuerySchema>;
-type HistoricalPriceQueryType = z.infer<typeof HistoricalPriceQuerySchema>;
-export type BatchPriceRequestType = z.infer<typeof BatchPriceRequestSchema>;
-type PriceDataType = z.infer<typeof PriceDataSchema>;
-type OracleResponseType = z.infer<typeof OracleResponseSchema>;
-
 export const OracleProviderPathParamSchema = z
   .string()
   .refine(
@@ -364,4 +208,4 @@ export const OracleProviderQuerySchema = z.object({
   forceRefresh: z.coerce.boolean().optional(),
 });
 
-type OracleProviderQueryType = z.infer<typeof OracleProviderQuerySchema>;
+export type BatchPriceRequestType = z.infer<typeof BatchPriceRequestSchema>;

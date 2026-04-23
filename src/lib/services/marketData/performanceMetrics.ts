@@ -1,6 +1,27 @@
+import { getProviderDefaults } from '@/lib/oracles/utils/performanceMetricsConfig';
 import { createLogger } from '@/lib/utils/logger';
+import { type OracleProvider, ORACLE_PROVIDER_VALUES } from '@/types/oracle/enums';
 
 const logger = createLogger('marketData:performanceMetrics');
+
+const DISPLAY_NAME_MAP: Record<string, OracleProvider> = {
+  Chainlink: 'chainlink' as OracleProvider,
+  'Pyth Network': 'pyth' as OracleProvider,
+  API3: 'api3' as OracleProvider,
+  UMA: 'pyth' as OracleProvider,
+  RedStone: 'redstone' as OracleProvider,
+  Switchboard: 'supra' as OracleProvider,
+  DIA: 'dia' as OracleProvider,
+  Flux: 'flare' as OracleProvider,
+};
+
+function resolveProvider(oracleName: string): OracleProvider | null {
+  const lower = oracleName.toLowerCase();
+  if (ORACLE_PROVIDER_VALUES.includes(lower as OracleProvider)) {
+    return lower as OracleProvider;
+  }
+  return DISPLAY_NAME_MAP[oracleName] || null;
+}
 
 export interface OraclePerformanceMetrics {
   oracleName: string;
@@ -59,28 +80,27 @@ class PerformanceMetricsCalculator {
     }
   }
 
+  private getRelevantData(oracleName: string, asset?: string): PriceDataPoint[] {
+    if (asset) {
+      const key = `${oracleName}-${asset}`;
+      return this.priceHistory.get(key) || [];
+    }
+    const result: PriceDataPoint[] = [];
+    for (const [key, data] of this.priceHistory) {
+      if (key.startsWith(`${oracleName}-`)) {
+        result.push(...data);
+      }
+    }
+    return result;
+  }
+
   calculateLatency(oracleName: string, asset?: string): number {
     try {
-      const now = Date.now();
-      const windowStart = now - this.calculationWindow;
-
-      let relevantData: PriceDataPoint[] = [];
-
-      if (asset) {
-        const key = `${oracleName}-${asset}`;
-        relevantData = this.priceHistory.get(key) || [];
-      } else {
-        for (const [key, data] of this.priceHistory) {
-          if (key.startsWith(`${oracleName}-`)) {
-            relevantData.push(...data);
-          }
-        }
-      }
-
-      const recentData = relevantData.filter((p) => p.timestamp >= windowStart);
+      const recentData = this.getRelevantData(oracleName, asset).filter(
+        (p) => p.timestamp >= Date.now() - this.calculationWindow
+      );
 
       if (recentData.length < 2) {
-        logger.warn(`Insufficient data to calculate latency for ${oracleName}`);
         return this.getDefaultLatency(oracleName);
       }
 
@@ -99,8 +119,6 @@ class PerformanceMetricsCalculator {
       }
 
       const avgLatency = latencies.reduce((sum, l) => sum + l, 0) / latencies.length;
-
-      logger.debug(`Calculated latency for ${oracleName}: ${avgLatency.toFixed(0)}ms`);
       return Math.round(avgLatency);
     } catch (error) {
       logger.error(`Error calculating latency for ${oracleName}`, error as Error);
@@ -110,26 +128,11 @@ class PerformanceMetricsCalculator {
 
   calculateAccuracy(oracleName: string, asset?: string): number {
     try {
-      const now = Date.now();
-      const windowStart = now - this.calculationWindow;
-
-      let oracleData: PriceDataPoint[] = [];
-
-      if (asset) {
-        const key = `${oracleName}-${asset}`;
-        oracleData = this.priceHistory.get(key) || [];
-      } else {
-        for (const [key, data] of this.priceHistory) {
-          if (key.startsWith(`${oracleName}-`)) {
-            oracleData.push(...data);
-          }
-        }
-      }
-
-      const recentOracleData = oracleData.filter((p) => p.timestamp >= windowStart);
+      const recentOracleData = this.getRelevantData(oracleName, asset).filter(
+        (p) => p.timestamp >= Date.now() - this.calculationWindow
+      );
 
       if (recentOracleData.length === 0) {
-        logger.warn(`Insufficient data to calculate accuracy for ${oracleName}`);
         return this.getDefaultAccuracy(oracleName);
       }
 
@@ -157,10 +160,7 @@ class PerformanceMetricsCalculator {
         return this.getDefaultAccuracy(oracleName);
       }
 
-      // 使用鲁棒统计方法：中位数绝对偏差 (MAD) 过滤异常值
       const robustAccuracy = this.calculateRobustAccuracy(deviations);
-
-      logger.debug(`Calculated accuracy for ${oracleName}: ${robustAccuracy.toFixed(2)}%`);
       return Math.min(99.99, Math.round(robustAccuracy * 100) / 100);
     } catch (error) {
       logger.error(`Error calculating accuracy for ${oracleName}`, error as Error);
@@ -168,15 +168,9 @@ class PerformanceMetricsCalculator {
     }
   }
 
-  /**
-   * 使用鲁棒统计方法计算准确性
-   * 使用中位数而不是均值，减少异常值影响
-   * 使用 MAD (Median Absolute Deviation) 过滤极端异常值
-   */
   private calculateRobustAccuracy(deviations: number[]): number {
     if (deviations.length === 0) return 0;
 
-    // 计算中位数
     const sorted = [...deviations].sort((a, b) => a - b);
     const mid = Math.floor(sorted.length / 2);
     const median = sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
@@ -189,20 +183,17 @@ class PerformanceMetricsCalculator {
         ? sortedAbsDev[madMid]
         : (sortedAbsDev[madMid - 1] + sortedAbsDev[madMid]) / 2;
 
-    // 使用 3 * MAD 作为阈值过滤异常值 (约 99% 置信区间)
     const threshold = 3 * mad;
     const filteredDeviations = deviations.filter((d) => Math.abs(d - median) <= threshold);
 
-    // 如果过滤后数据太少，使用原始数据
     const finalDeviations =
       filteredDeviations.length >= deviations.length * 0.5 ? filteredDeviations : deviations;
 
-    // 计算加权平均：越小的偏差权重越大
     let weightedSum = 0;
     let weightSum = 0;
 
     for (const deviation of finalDeviations) {
-      const weight = 1 / (1 + deviation * 10); // 偏差越小权重越大
+      const weight = 1 / (1 + deviation * 10);
       weightedSum += deviation * weight;
       weightSum += weight;
     }
@@ -213,26 +204,11 @@ class PerformanceMetricsCalculator {
 
   calculateUpdateFrequency(oracleName: string, asset?: string): number {
     try {
-      const now = Date.now();
-      const windowStart = now - this.calculationWindow;
-
-      let relevantData: PriceDataPoint[] = [];
-
-      if (asset) {
-        const key = `${oracleName}-${asset}`;
-        relevantData = this.priceHistory.get(key) || [];
-      } else {
-        for (const [key, data] of this.priceHistory) {
-          if (key.startsWith(`${oracleName}-`)) {
-            relevantData.push(...data);
-          }
-        }
-      }
-
-      const recentData = relevantData.filter((p) => p.timestamp >= windowStart);
+      const recentData = this.getRelevantData(oracleName, asset).filter(
+        (p) => p.timestamp >= Date.now() - this.calculationWindow
+      );
 
       if (recentData.length < 2) {
-        logger.warn(`Insufficient data to calculate update frequency for ${oracleName}`);
         return this.getDefaultUpdateFrequency(oracleName);
       }
 
@@ -245,8 +221,6 @@ class PerformanceMetricsCalculator {
       }
 
       const avgFrequency = timeSpan / updateCount / 1000;
-
-      logger.debug(`Calculated update frequency for ${oracleName}: ${avgFrequency.toFixed(0)}s`);
       return Math.round(avgFrequency);
     } catch (error) {
       logger.error(`Error calculating update frequency for ${oracleName}`, error as Error);
@@ -281,45 +255,27 @@ class PerformanceMetricsCalculator {
   }
 
   private getDefaultLatency(oracleName: string): number {
-    const defaults: Record<string, number> = {
-      Chainlink: 450,
-      'Pyth Network': 120,
-      API3: 900,
-      UMA: 1200,
-      RedStone: 200,
-      Switchboard: 300,
-      DIA: 800,
-      Flux: 1000,
-    };
-    return defaults[oracleName] || 600;
+    const provider = resolveProvider(oracleName);
+    if (provider) {
+      return getProviderDefaults(provider).responseTime;
+    }
+    return 600;
   }
 
   private getDefaultAccuracy(oracleName: string): number {
-    const defaults: Record<string, number> = {
-      Chainlink: 99.8,
-      'Pyth Network': 99.5,
-      API3: 98.9,
-      UMA: 98.5,
-      RedStone: 99.3,
-      Switchboard: 99.1,
-      DIA: 98.8,
-      Flux: 98.6,
-    };
-    return defaults[oracleName] || 98.0;
+    const provider = resolveProvider(oracleName);
+    if (provider) {
+      return getProviderDefaults(provider).accuracy;
+    }
+    return 98.0;
   }
 
   private getDefaultUpdateFrequency(oracleName: string): number {
-    const defaults: Record<string, number> = {
-      Chainlink: 3600,
-      'Pyth Network': 400,
-      API3: 3600,
-      UMA: 7200,
-      RedStone: 60,
-      Switchboard: 300,
-      DIA: 120,
-      Flux: 600,
-    };
-    return defaults[oracleName] || 3600;
+    const provider = resolveProvider(oracleName);
+    if (provider) {
+      return getProviderDefaults(provider).updateFrequency;
+    }
+    return 3600;
   }
 
   clearOldData(maxAge: number = 7 * 24 * 60 * 60 * 1000): void {

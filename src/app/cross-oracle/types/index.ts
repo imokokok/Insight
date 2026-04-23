@@ -1,5 +1,6 @@
 import type { MemoryStats } from '@/lib/oracles/utils/memoryManager';
 import type { CalculatedPerformanceMetrics } from '@/lib/oracles/utils/performanceMetricsCalculator';
+import type { OracleRetryConfig as RetryConfig } from '@/lib/oracles/utils/retry';
 import { type OracleProvider, type PriceData, type SnapshotStats } from '@/types/oracle';
 
 export type RefreshInterval = 'off' | '10s' | '30s' | '1m' | '5m';
@@ -54,11 +55,7 @@ export interface OracleDataError {
   globalError: Error | null;
 }
 
-export interface RetryConfig {
-  maxRetries: number;
-  retryDelay: number;
-  exponentialBackoff: boolean;
-}
+export type { RetryConfig };
 
 export interface UseOracleDataReturn {
   priceData: PriceData[];

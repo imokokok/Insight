@@ -1,9 +1,9 @@
-export interface PasswordRule {
+interface PasswordRule {
   pattern: RegExp;
   message: string;
 }
 
-export const PASSWORD_RULES: PasswordRule[] = [
+const PASSWORD_RULES: PasswordRule[] = [
   { pattern: /.{8,}/, message: 'Password must be at least 8 characters' },
   { pattern: /[A-Z]/, message: 'Password must contain at least one uppercase letter' },
   { pattern: /[a-z]/, message: 'Password must contain at least one lowercase letter' },

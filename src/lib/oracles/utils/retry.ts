@@ -6,7 +6,7 @@ import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('OracleRetry');
 
-interface OracleRetryConfig {
+export interface OracleRetryConfig {
   maxAttempts?: number;
   baseDelay?: number;
   maxDelay?: number;
@@ -78,4 +78,15 @@ export async function withOracleRetry<T>(
   });
 
   return result.data!;
+}
+
+export function calculateRetryDelay(
+  attempt: number,
+  baseDelay: number = 1000,
+  backoffMultiplier: number = 2,
+  maxDelay: number = 30000
+): number {
+  const delay = baseDelay * Math.pow(backoffMultiplier, attempt);
+  const jitter = delay * 0.1 * (Math.random() * 2 - 1);
+  return Math.min(Math.max(0, Math.round(delay + jitter)), maxDelay);
 }
