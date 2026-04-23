@@ -40,10 +40,10 @@ export function useFlareOnChainData(
     queryKey,
     queryFn: () => flareClient.getTokenOnChainData(symbol),
     enabled: enabled && !!symbol,
-    staleTime: 60000,
+    staleTime: 0,
     gcTime: 300000,
     refetchInterval: 60000,
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true,
     retry: 2,
   });
 

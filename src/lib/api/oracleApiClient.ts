@@ -220,16 +220,19 @@ function deduplicatedFetch<T>(
   context: string,
   externalSignal: AbortSignal | undefined,
   validateData: (data: unknown) => T,
-  provider?: string
+  provider?: string,
+  forceRefresh: boolean = false
 ): Promise<T> {
   const existing = pendingRequests.get(key);
   if (existing) {
     return existing.promise as Promise<T>;
   }
 
-  const cached = getCachedResponse<T>(key);
-  if (cached !== undefined) {
-    return Promise.resolve(cached);
+  if (!forceRefresh) {
+    const cached = getCachedResponse<T>(key);
+    if (cached !== undefined) {
+      return Promise.resolve(cached);
+    }
   }
 
   const { controller, timeoutId, cleanup } = createAbortControllerWithTimeout(
@@ -247,7 +250,9 @@ function deduplicatedFetch<T>(
   })
     .then((response) => handleApiResponse<T>(response, url, context, validateData))
     .then((data) => {
-      setCachedResponse(key, data);
+      if (!forceRefresh) {
+        setCachedResponse(key, data);
+      }
       return data;
     })
     .finally(() => {
@@ -288,7 +293,8 @@ async function fetchPriceFromApi({
     'Price',
     externalSignal,
     validatePriceData,
-    provider
+    provider,
+    forceRefresh
   );
 }
 

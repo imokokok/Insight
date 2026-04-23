@@ -47,10 +47,10 @@ export function useWINkLinkOnChainData(
     queryKey,
     queryFn: () => winklinkService.getTokenOnChainData(symbol),
     enabled: enabled && !!symbol,
-    staleTime: 60000, // 1 minute
-    gcTime: 300000, // 5 minutes
-    refetchInterval: 60000, // Auto-refresh every minute
-    refetchOnWindowFocus: false,
+    staleTime: 0,
+    gcTime: 300000,
+    refetchInterval: 60000,
+    refetchOnWindowFocus: true,
     retry: 2,
   });
 
