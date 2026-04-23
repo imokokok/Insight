@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 
@@ -379,9 +379,8 @@ export function useAcknowledgeAlert(): UseAcknowledgeAlertReturn {
 export function useAlertEventsRealtime() {
   const user = useUser();
   const { refetch } = useAlertEvents();
-  const stableRefetch = useCallback(async () => {
-    await refetch();
-  }, [refetch]);
+  const refetchRef = useRef(refetch);
+  refetchRef.current = refetch;
 
   useEffect(() => {
     if (!user?.id) return;
@@ -397,7 +396,7 @@ export function useAlertEventsRealtime() {
           filter: `user_id=eq.${user.id}`,
         },
         () => {
-          stableRefetch();
+          refetchRef.current();
         }
       )
       .subscribe();
@@ -405,7 +404,7 @@ export function useAlertEventsRealtime() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user?.id, stableRefetch]);
+  }, [user?.id]);
 }
 
 export function useBatchAlerts(): UseBatchAlertsReturn {

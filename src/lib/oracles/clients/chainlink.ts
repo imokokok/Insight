@@ -95,13 +95,13 @@ export class ChainlinkClient extends BaseOracleClient {
   private calculateConfidence(chain?: Blockchain): number {
     const targetChain = chain || Blockchain.ETHEREUM;
     const chainReliability =
-      CHAINLINK_QUALITY_CONFIG.chainReliability[targetChain] ||
+      CHAINLINK_QUALITY_CONFIG.chainReliability[targetChain] ??
       CHAINLINK_QUALITY_CONFIG.defaultConfidence;
 
     const baseConfidence = CHAINLINK_QUALITY_CONFIG.defaultConfidence;
-    const adjustedConfidence = Math.min(
-      baseConfidence,
-      Math.max(CHAINLINK_QUALITY_CONFIG.minConfidence, chainReliability * baseConfidence)
+    const adjustedConfidence = Math.max(
+      CHAINLINK_QUALITY_CONFIG.minConfidence,
+      chainReliability * baseConfidence
     );
 
     return Number(adjustedConfidence.toFixed(4));

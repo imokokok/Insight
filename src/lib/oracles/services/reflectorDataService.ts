@@ -51,6 +51,18 @@ class ReflectorDataService {
 
   private lastTimestampCache = new Map<string, number>();
 
+  private static readonly MAX_CACHE_SIZE = 500;
+
+  private enforceCacheLimit(cache: Map<string, unknown>): void {
+    if (cache.size > ReflectorDataService.MAX_CACHE_SIZE) {
+      const keys = Array.from(cache.keys());
+      const toDelete = keys.slice(0, keys.length - ReflectorDataService.MAX_CACHE_SIZE);
+      for (const key of toDelete) {
+        cache.delete(key);
+      }
+    }
+  }
+
   private static instance: ReflectorDataService | null = null;
 
   private constructor() {
@@ -202,16 +214,19 @@ class ReflectorDataService {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), REFLECTOR_TIMEOUT_MS);
 
-    const combinedSignal = signal
-      ? AbortSignal.any([signal, controller.signal])
-      : controller.signal;
-
     let simulationResult: rpc.Api.SimulateTransactionResponse;
     try {
-      simulationResult = await this.server.simulateTransaction(transaction);
+      const simulationPromise = this.server.simulateTransaction(transaction);
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(
+          () => reject(new Error(`Simulation timed out after ${REFLECTOR_TIMEOUT_MS}ms`)),
+          REFLECTOR_TIMEOUT_MS
+        )
+      );
+      simulationResult = await Promise.race([simulationPromise, timeoutPromise]);
     } catch (error) {
-      if (combinedSignal.aborted) {
-        throw new Error(`Simulation call aborted or timed out for method '${method}'`);
+      if (signal?.aborted) {
+        throw new Error(`Simulation call aborted for method '${method}'`);
       }
       throw error;
     } finally {
@@ -527,6 +542,11 @@ class ReflectorDataService {
     this.assetsCache = null;
     this.assetScValCache.clear();
     this.lastTimestampCache.clear();
+  }
+
+  private setCacheEntry(key: string, data: unknown, ttlMs: number): void {
+    this.cache.set(key, { data, expiry: Date.now() + ttlMs });
+    this.enforceCacheLimit(this.cache);
   }
 }
 

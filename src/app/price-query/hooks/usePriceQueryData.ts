@@ -159,7 +159,10 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
   }, [isLoading, batchResult.results, selectedSymbol]);
 
   const resultsDataSignature = batchResult.results
-    .map((r) => `${r.provider}:${r.chain}:${r.priceData ? '1' : '0'}:${r.isLoading ? '1' : '0'}`)
+    .map(
+      (r) =>
+        `${r.provider}:${r.chain}:${r.priceData ? `${r.priceData.price}:${r.priceData.timestamp}:${r.priceData.confidence}` : 'null'}:${r.isLoading ? '1' : '0'}`
+    )
     .join('|');
 
   const { queryResults, compareQueryResults, dataProcessingTime } = useMemo(() => {

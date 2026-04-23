@@ -8,17 +8,17 @@ export const dynamic = 'force-dynamic';
 
 function isLocalRequest(request: NextRequest): boolean {
   if (process.env.NODE_ENV !== 'production') {
+    const authHeader = request.headers.get('authorization');
+    const healthSecret = process.env.HEALTH_CHECK_SECRET;
+    if (healthSecret && authHeader === `Bearer ${healthSecret}`) {
+      return true;
+    }
+    return false;
+  }
+  const authHeader = request.headers.get('authorization');
+  const healthSecret = process.env.HEALTH_CHECK_SECRET;
+  if (healthSecret && authHeader === `Bearer ${healthSecret}`) {
     return true;
-  }
-  const vercelIp = request.headers.get('x-vercel-forwarded-for');
-  if (vercelIp) {
-    const ip = vercelIp.split(',').pop()?.trim() || '';
-    return ip === '127.0.0.1' || ip === '::1';
-  }
-  const realIp = request.headers.get('x-real-ip');
-  if (realIp) {
-    const ip = realIp.trim();
-    return ip === '127.0.0.1' || ip === '::1';
   }
   return false;
 }

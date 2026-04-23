@@ -63,6 +63,10 @@ class DIADataService {
     return DIADataService.instance;
   }
 
+  destroy(): void {
+    this.priceService.destroy();
+  }
+
   async getAssetPrice(
     symbol: string,
     chain?: Blockchain,

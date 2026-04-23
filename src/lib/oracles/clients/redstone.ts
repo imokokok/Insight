@@ -162,7 +162,8 @@ export class RedStoneClient extends BaseOracleClient {
           }
         },
         'fetchRealPrice',
-        ORACLE_RETRY_PRESETS.standard
+        ORACLE_RETRY_PRESETS.standard,
+        signal
       );
 
       if (result) {

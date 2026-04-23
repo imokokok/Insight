@@ -263,7 +263,7 @@ export class NotImplementedError extends AppError {
     super({
       message: `Feature '${feature}' is not implemented yet`,
       code: 'NOT_IMPLEMENTED',
-      statusCode: HttpStatusCodes.NOT_FOUND,
+      statusCode: 501,
       category: 'internal',
       severity: 'medium',
       isOperational: true,

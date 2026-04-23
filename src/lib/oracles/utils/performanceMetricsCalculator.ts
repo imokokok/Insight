@@ -92,7 +92,12 @@ export class PerformanceMetricsCalculator {
       history.shift();
     }
 
-    this.invalidateCache(provider, symbol);
+    const cacheEntry = this.metricsCache.get(key);
+    if (cacheEntry && Date.now() - cacheEntry.timestamp > 5000) {
+      this.invalidateCache(provider, symbol);
+    } else if (!cacheEntry) {
+      this.invalidateCache(provider, symbol);
+    }
   }
 
   calculateAllMetrics(
@@ -241,7 +246,7 @@ export class PerformanceMetricsCalculator {
     timestamp: number,
     excludeProvider: OracleProvider,
     allProvidersData: Map<OracleProvider, PriceHistoryEntry[]>,
-    _symbol: string
+    symbol: string
   ): number | null {
     const prices: number[] = [];
     const metricsConfig = getPerformanceMetricsConfig();
@@ -249,7 +254,9 @@ export class PerformanceMetricsCalculator {
     for (const [provider, history] of allProvidersData) {
       if (provider === excludeProvider) continue;
 
-      const symbolHistory = history.filter((h) => h.success);
+      const providerKey = `${provider}-${symbol}`;
+      const providerHistory = this.priceHistory.get(providerKey) || history;
+      const symbolHistory = providerHistory.filter((h) => h.success);
       if (symbolHistory.length === 0) continue;
 
       const closestEntry = symbolHistory.reduce((closest, current) => {

@@ -241,14 +241,19 @@ class ChainlinkOnChainService {
       });
 
       const rawStr = decoded.answer.toString();
+      const isNegative = rawStr.startsWith('-');
+      const absStr = isNegative ? rawStr.slice(1) : rawStr;
       let price: number;
-      if (rawStr.length > decimals) {
-        const intPart = rawStr.slice(0, rawStr.length - decimals) || '0';
-        const decPart = rawStr.slice(rawStr.length - decimals);
+      if (absStr.length > decimals) {
+        const intPart = absStr.slice(0, absStr.length - decimals) || '0';
+        const decPart = absStr.slice(absStr.length - decimals);
         price = parseFloat(`${intPart}.${decPart}`);
       } else {
-        const paddedDec = rawStr.padStart(decimals, '0');
+        const paddedDec = absStr.padStart(decimals, '0');
         price = parseFloat(`0.${paddedDec}`);
+      }
+      if (isNegative) {
+        price = -price;
       }
 
       if (price <= 0) {

@@ -80,13 +80,16 @@ export class PythWebSocket {
   }
 
   initialize(): void {
-    if (this.wsConnection?.readyState === WebSocket.OPEN || this.isShuttingDown) {
+    if (this.wsConnection?.readyState === WebSocket.OPEN) {
       return;
     }
 
     if (this.wsConnection?.readyState === WebSocket.CONNECTING) {
       return;
     }
+
+    this.isShuttingDown = false;
+    this.reconnectAttempts = 0;
 
     this.updateConnectionState({
       status: 'connecting',
@@ -119,11 +122,14 @@ export class PythWebSocket {
           const data = JSON.parse(event.data);
           if (data.type === 'price_update') {
             const now = Date.now();
-            const latency = now - this.lastUpdateTime;
+            const publishTime = data.price?.publish_time
+              ? data.price.publish_time * 1000
+              : this.lastUpdateTime;
+            const latency = now - publishTime;
             this.lastUpdateTime = now;
 
             this.updateConnectionState({
-              lastUpdateLatency: latency,
+              lastUpdateLatency: Math.max(0, latency),
             });
 
             this.handlePriceUpdate(data);
@@ -232,18 +238,22 @@ export class PythWebSocket {
 
   disconnect(): void {
     this.isShuttingDown = true;
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
     if (this.wsConnection) {
       this.wsConnection.close();
       this.wsConnection = null;
     }
     this.subscribedPriceIds.clear();
-    this.connectionStateListeners.clear();
     this.updateConnectionState({
       status: 'disconnected',
       isConnected: false,
       reconnectAttempts: 0,
       error: null,
     });
+    this.connectionStateListeners.clear();
     logger.info('WebSocket disconnected');
   }
 

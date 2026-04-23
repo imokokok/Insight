@@ -30,6 +30,7 @@ interface AuthState {
   loading: boolean;
   error: AuthError | Error | null;
   initialized: boolean;
+  _initializing: boolean;
   subscription: Subscription | null;
 }
 
@@ -93,10 +94,13 @@ export const useAuthStore = create<AuthStore>()(
         loading: true,
         error: null,
         initialized: false,
+        _initializing: false,
         subscription: null,
 
         initialize: async () => {
           if (get().initialized) return;
+          if ((get() as AuthStore)._initializing) return;
+          set({ _initializing: true } as Partial<AuthStore>);
 
           set({ loading: true, error: null });
 
@@ -140,9 +144,19 @@ export const useAuthStore = create<AuthStore>()(
               }
             });
 
-            set({ subscription, initialized: true, loading: false });
+            set({
+              subscription,
+              initialized: true,
+              loading: false,
+              _initializing: false,
+            } as Partial<AuthStore>);
           } catch (err) {
-            set({ error: err as Error, loading: false, initialized: true });
+            set({
+              error: err as Error,
+              loading: false,
+              initialized: true,
+              _initializing: false,
+            } as Partial<AuthStore>);
           }
         },
 
@@ -220,6 +234,7 @@ export const useAuthStore = create<AuthStore>()(
             return { error: oauthError };
           }
 
+          set({ loading: false });
           return { error: null };
         },
 

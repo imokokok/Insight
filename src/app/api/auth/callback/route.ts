@@ -60,10 +60,11 @@ export async function GET(request: NextRequest) {
   }
 
   const oauthStateCookie = request.cookies.get('oauth_state')?.value;
-  if (oauthStateCookie && state && oauthStateCookie !== state) {
-    logger.warn('OAuth state mismatch - possible CSRF attack', {
-      cookieState: oauthStateCookie,
-      paramState: state,
+  if (!oauthStateCookie || !state || oauthStateCookie !== state) {
+    logger.warn('OAuth state validation failed', {
+      hasCookie: !!oauthStateCookie,
+      hasParam: !!state,
+      mismatch: !!(oauthStateCookie && state && oauthStateCookie !== state),
     });
     return NextResponse.redirect(new URL('/auth/verify-email?error=invalid_state', request.url));
   }

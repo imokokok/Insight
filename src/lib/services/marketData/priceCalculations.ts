@@ -179,8 +179,13 @@ function exportToCSV(config: ExportConfig, data: ExportDataOptions): string {
             const value = row[field.key];
             if (value === null || value === undefined) return '';
             const str = String(value);
-            if (str.includes(',') || str.includes('"') || str.includes('\n')) {
-              return `"${str.replace(/"/g, '""')}"`;
+            if (
+              str.includes(',') ||
+              str.includes('"') ||
+              str.includes('\n') ||
+              str.includes('\r')
+            ) {
+              return `"${str.replace(/"/g, '""').replace(/\r/g, '')}"`;
             }
             return str;
           })
@@ -286,7 +291,10 @@ function exportToExcel(config: ExportConfig, data: ExportDataOptions): Blob {
       selectedFields.forEach((field) => {
         const value = row[field.key];
         const type = field.dataType === 'number' ? 'Number' : 'String';
-        const cellValue = value === null || value === undefined ? '' : escapeXml(String(value));
+        let cellValue = value === null || value === undefined ? '' : escapeXml(String(value));
+        if (type === 'String' && /^[=+\-@]/.test(cellValue)) {
+          cellValue = `'${cellValue}`;
+        }
         workbook.push(`        <Cell><Data ss:Type="${type}">${cellValue}</Data></Cell>`);
       });
       workbook.push('      </Row>');
@@ -440,13 +448,16 @@ export function downloadExport(content: string | Blob, fileName: string, mimeTyp
   }
   const blob = content instanceof Blob ? content : new Blob([content], { type: mimeType });
   const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = fileName;
-  link.style.visibility = 'hidden';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
+  try {
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  } finally {
+    URL.revokeObjectURL(url);
+  }
   logger.info(`Downloaded file: ${fileName}`);
 }

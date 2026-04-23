@@ -46,9 +46,9 @@ export function usePriceStats(
     const priceRange = maxPrice - minPrice;
 
     const variance =
-      validPrices.length > 0
+      validPrices.length > 1
         ? validPrices.reduce((sum, price) => sum + Math.pow(price - avgPrice, 2), 0) /
-          validPrices.length
+          (validPrices.length - 1)
         : 0;
     const standardDeviation = Math.sqrt(variance);
     const standardDeviationPercent = avgPrice > 0 ? (standardDeviation / avgPrice) * 100 : 0;

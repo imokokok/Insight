@@ -22,15 +22,15 @@ export const POST = createApiHandler(
       return ApiResponseBuilder.badRequest('Invalid JSON in request body');
     }
 
-    const validatedData = validateAndSanitize(BatchOperationSchema, body);
+    const validationResult = validateAndSanitize(BatchOperationSchema, body);
 
-    if (!validatedData) {
+    if (!validationResult.data) {
       return ApiResponseBuilder.badRequest(
         'Invalid request data. Check action and alertIds fields.'
       );
     }
 
-    const sanitizedData = sanitizeObject(validatedData);
+    const sanitizedData = sanitizeObject(validationResult.data);
     const { action, alertIds } = sanitizedData;
 
     const queries = getServerQueries();

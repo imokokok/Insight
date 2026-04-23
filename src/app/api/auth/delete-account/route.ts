@@ -38,18 +38,23 @@ export const POST = createApiHandler(
     const queries = getServerQueries();
     const supabaseAdmin = createServerClient();
 
+    const deletionErrors: string[] = [];
+
     const favSuccess = await queries.deleteAllFavorites(userId);
     if (!favSuccess) {
+      deletionErrors.push('favorites');
       logger.error('Failed to delete user favorites');
     }
 
     const alertSuccess = await queries.deleteAllAlerts(userId);
     if (!alertSuccess) {
+      deletionErrors.push('alerts');
       logger.error('Failed to delete user alerts');
     }
 
     const snapshotSuccess = await queries.deleteAllSnapshots(userId);
     if (!snapshotSuccess) {
+      deletionErrors.push('snapshots');
       logger.error('Failed to delete user snapshots');
     }
 
@@ -58,6 +63,7 @@ export const POST = createApiHandler(
       .delete()
       .eq('id', userId);
     if (profileError) {
+      deletionErrors.push('profile');
       logger.error('Failed to delete user profile', profileError as Error);
     }
 
@@ -65,10 +71,17 @@ export const POST = createApiHandler(
 
     if (deleteError) {
       logger.error('Failed to delete user account', deleteError as Error);
-      return ApiResponseBuilder.serverError('Failed to delete account');
+      return ApiResponseBuilder.serverError(
+        deletionErrors.length > 0
+          ? `Failed to delete account. Partial deletion occurred for: ${deletionErrors.join(', ')}`
+          : 'Failed to delete account'
+      );
     }
 
-    const response = NextResponse.json({ success: true });
+    const response = NextResponse.json({
+      success: true,
+      ...(deletionErrors.length > 0 && { partialFailures: deletionErrors }),
+    });
 
     const cookieNames = request.cookies.getAll().map((c) => c.name);
     for (const name of cookieNames) {

@@ -1,4 +1,4 @@
-import { type NextRequest } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 
 import { createApiHandler } from '@/lib/api/handler';
 import {
@@ -20,6 +20,16 @@ export const GET = createApiHandler(
     const searchParams = request.nextUrl.searchParams;
     const period = searchParams.get('period');
     const periodNum = period ? parseInt(period, 10) : undefined;
+
+    if (period && (isNaN(periodNum!) || periodNum! <= 0 || !Number.isInteger(periodNum!))) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: { code: 'INVALID_PERIOD', message: 'Period must be a positive integer' },
+        },
+        { status: 400 }
+      );
+    }
 
     const schema = periodNum ? HistoricalPriceRequestSchema : PriceQueryRequestSchema;
     const validation = await validateQuerySchema(schema)(request);

@@ -41,7 +41,8 @@ export const ORACLE_RETRY_PRESETS = {
 export async function withOracleRetry<T>(
   operation: () => Promise<T>,
   operationName: string,
-  config: OracleRetryConfig = ORACLE_RETRY_PRESETS.standard
+  config: OracleRetryConfig = ORACLE_RETRY_PRESETS.standard,
+  signal?: AbortSignal
 ): Promise<T> {
   const enhancedConfig: Partial<EnhancedRetryConfig> = {
     maxAttempts: config.maxAttempts ?? 3,
@@ -52,6 +53,10 @@ export async function withOracleRetry<T>(
     strategy: 'exponential',
     enableCircuitBreaker: false,
   };
+
+  if (signal?.aborted) {
+    throw new Error(`Operation ${operationName} was aborted before starting`);
+  }
 
   const result = await enhancedWithRetry(operation, operationName, enhancedConfig);
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useMemo } from 'react';
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -213,9 +213,15 @@ export function useToggleFavorite() {
 export function useIsFavorited(configType: ConfigType, configData: FavoriteConfig) {
   const { favorites } = useFavorites({ configType });
 
-  const isFavorited = favorites?.some((f) => deepEqual(f.config_data, configData)) ?? false;
+  const isFavorited = useMemo(
+    () => favorites?.some((f) => deepEqual(f.config_data, configData)) ?? false,
+    [favorites, configData]
+  );
 
-  const matchingFavorite = favorites?.find((f) => deepEqual(f.config_data, configData));
+  const matchingFavorite = useMemo(
+    () => favorites?.find((f) => deepEqual(f.config_data, configData)),
+    [favorites, configData]
+  );
 
   return {
     isFavorited,

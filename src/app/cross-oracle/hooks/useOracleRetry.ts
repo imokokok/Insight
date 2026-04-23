@@ -67,17 +67,16 @@ export function useOracleRetry({
   }, []);
 
   const cancelRetry = useCallback(() => {
-    // Cancel all individual retries
     abortControllersRef.current.forEach((controller) => {
       controller.abort();
     });
     abortControllersRef.current.clear();
 
-    // Cancel batch retry
     if (batchAbortControllerRef.current) {
       batchAbortControllerRef.current.abort();
       batchAbortControllerRef.current = null;
     }
+    retryAttemptsRef.current.clear();
     setRetryingOracles([]);
   }, []);
 

@@ -20,15 +20,17 @@ function calculateComparisonMetrics(oracleData: OracleMarketData[]): ComparisonD
   const maxTvs = safeMax(oracleData.map((o) => o.tvsValue));
   const maxChains = safeMax(oracleData.map((o) => o.chains));
   const maxProtocols = safeMax(oracleData.map((o) => o.protocols));
-  const minLatency = safeMin(oracleData.map((o) => o.avgLatency));
+  const maxLatency = safeMax(oracleData.map((o) => o.avgLatency));
   const maxAccuracy = safeMax(oracleData.map((o) => o.accuracy));
-  const minUpdateFreq = safeMin(oracleData.map((o) => o.updateFrequency));
+  const maxUpdateFreq = safeMax(oracleData.map((o) => o.updateFrequency));
   const maxShare = safeMax(oracleData.map((o) => o.share));
 
   const normalize = (value: number, max: number, inverse = false): number => {
     if (max === 0) return 0;
-    const normalized = (value / max) * 100;
-    return inverse ? 100 - normalized : normalized;
+    if (inverse) {
+      return Math.round((1 - value / max) * 100);
+    }
+    return Math.round((value / max) * 100);
   };
 
   const calculateOverallScore = (metrics: ComparisonData['metrics']): number => {
@@ -65,7 +67,7 @@ function calculateComparisonMetrics(oracleData: OracleMarketData[]): ComparisonD
       latency: {
         name: 'Latency',
         value: oracle.avgLatency,
-        normalizedValue: Math.round(normalize(oracle.avgLatency, minLatency, true)),
+        normalizedValue: Math.round(normalize(oracle.avgLatency, maxLatency, true)),
         unit: 'ms',
         rank: 0,
       },
@@ -100,7 +102,7 @@ function calculateComparisonMetrics(oracleData: OracleMarketData[]): ComparisonD
       updateFrequency: {
         name: 'Update Freq',
         value: oracle.updateFrequency,
-        normalizedValue: Math.round(normalize(oracle.updateFrequency, minUpdateFreq, true)),
+        normalizedValue: Math.round(normalize(oracle.updateFrequency, maxUpdateFreq, true)),
         unit: 's',
         rank: 0,
       },
