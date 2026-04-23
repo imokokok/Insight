@@ -159,7 +159,7 @@ class SupraDataService {
             price,
             pairIndex,
             decimals,
-            timestamp: parseInt(feed.timestamp, 10) * 1000,
+            timestamp: parseInt(feed.timestamp, 10),
             symbol,
           };
         })
