@@ -229,53 +229,6 @@ export function useIsFavorited(configType: ConfigType, configData: FavoriteConfi
   };
 }
 
-export function useUpdateFavorite() {
-  const user = useUser();
-  const [isUpdating, setIsUpdating] = useState(false);
-  const queryClient = useQueryClient();
-
-  const updateFavorite = useCallback(
-    async (
-      favoriteId: string,
-      data: { name?: string; configData?: FavoriteConfig },
-      configType?: ConfigType
-    ) => {
-      if (!user) {
-        throw new AuthenticationError('User must be logged in to update favorites', {
-          reason: 'not_authenticated',
-        });
-      }
-
-      setIsUpdating(true);
-      try {
-        const updateData: { name?: string; config_data?: Record<string, unknown> } = {};
-        if (data.name !== undefined) updateData.name = data.name;
-        if (data.configData !== undefined)
-          updateData.config_data = Object.fromEntries(Object.entries(data.configData));
-
-        const favorite = await queries.updateFavorite(favoriteId, updateData);
-
-        if (favorite) {
-          await queryClient.invalidateQueries({ queryKey: ['favorites', user.id] });
-          if (configType) {
-            await queryClient.invalidateQueries({ queryKey: ['favorites', user.id, configType] });
-          }
-        }
-
-        return favorite;
-      } finally {
-        setIsUpdating(false);
-      }
-    },
-    [user, queryClient]
-  );
-
-  return {
-    updateFavorite,
-    isUpdating,
-  };
-}
-
 function mapConfigType(configType: ConfigType): 'oracle_config' | 'symbol' | 'chain_config' {
   return configType;
 }

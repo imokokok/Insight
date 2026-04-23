@@ -1,9 +1,4 @@
 import {
-  type ExportConfig,
-  type ExportDataType,
-  generateExportFileName,
-} from '@/lib/export/exportConfig';
-import {
   type OracleMarketData,
   type TVSTrendData,
   type AssetData,
@@ -18,6 +13,68 @@ import {
 } from '@/lib/services/marketData/types';
 import { formatTimeString, formatDateString } from '@/lib/utils/format';
 import { createLogger } from '@/lib/utils/logger';
+
+type ExportFormat = 'csv' | 'json' | 'excel';
+
+type ExportTimeRange = '1H' | '24H' | '7D' | '30D' | '90D' | '1Y' | 'ALL' | 'custom';
+
+type ExportDataType =
+  | 'oracleMarket'
+  | 'assets'
+  | 'trendData'
+  | 'chainBreakdown'
+  | 'protocolDetails'
+  | 'assetCategories'
+  | 'comparisonData'
+  | 'benchmarkData'
+  | 'correlationData'
+  | 'riskMetrics'
+  | 'anomalies'
+  | 'all';
+
+interface ExportField {
+  key: string;
+  label: string;
+  dataType: 'string' | 'number' | 'boolean' | 'date';
+  format?: string;
+  selected: boolean;
+}
+
+interface FieldGroup {
+  key: ExportDataType;
+  label: string;
+  fields: ExportField[];
+}
+
+interface ExportConfig {
+  id: string;
+  name: string;
+  description?: string;
+  format: ExportFormat;
+  timeRange: ExportTimeRange;
+  customDateRange?: {
+    startDate: string;
+    endDate: string;
+  };
+  dataTypes: ExportDataType[];
+  fieldGroups: FieldGroup[];
+  includeMetadata: boolean;
+  includeTimestamp: boolean;
+  fileName?: string;
+  createdAt: number;
+  updatedAt: number;
+}
+
+function generateExportFileName(config: ExportConfig): string {
+  if (config.fileName) {
+    return config.fileName;
+  }
+
+  const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+  const dataTypes = config.dataTypes.length > 2 ? 'multi' : config.dataTypes.join('-');
+  const extension = config.format === 'excel' ? 'xlsx' : config.format;
+  return `oracle-export-${dataTypes}-${timestamp}.${extension}`;
+}
 
 const logger = createLogger('marketData:priceCalculations');
 

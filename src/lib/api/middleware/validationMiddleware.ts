@@ -4,9 +4,75 @@ import { type ValidationError } from '@/lib/errors';
 import { createLogger } from '@/lib/utils/logger';
 
 import { ApiResponseBuilder } from '../response';
-import { type ObjectSchema, validateObject } from '../validation';
 
 const logger = createLogger('validation-middleware');
+
+interface FieldSchema {
+  validators: Array<(value: unknown, field: string) => ValidatorResult>;
+  required?: boolean;
+  transform?: (value: unknown) => unknown;
+}
+
+interface ObjectSchema {
+  [key: string]: FieldSchema;
+}
+
+interface ValidatorResult {
+  valid: boolean;
+  value?: unknown;
+  error?: ValidationError;
+}
+
+interface ValidateObjectResult {
+  isValid: boolean;
+  data: Record<string, unknown>;
+  errors: Array<{ field: string; message: string }>;
+}
+
+function validateObject(data: Record<string, unknown>, schema: ObjectSchema): ValidateObjectResult {
+  const errors: Array<{ field: string; message: string }> = [];
+  const result: Record<string, unknown> = {};
+
+  for (const [key, fieldSchema] of Object.entries(schema)) {
+    let value = data[key];
+
+    if (value === undefined || value === null) {
+      if (fieldSchema.required) {
+        errors.push({ field: key, message: `${key} is required` });
+        continue;
+      }
+      continue;
+    }
+
+    if (fieldSchema.transform) {
+      value = fieldSchema.transform(value);
+    }
+
+    for (const validator of fieldSchema.validators) {
+      const validatorResult = validator(value, key);
+      if (!validatorResult.valid) {
+        errors.push({
+          field: key,
+          message: validatorResult.error?.message || `Validation failed for ${key}`,
+        });
+        break;
+      }
+      value = validatorResult.value;
+    }
+
+    if (errors.length === 0 || errors[errors.length - 1]?.field !== key) {
+      result[key] = value;
+    }
+  }
+
+  return {
+    isValid: errors.length === 0,
+    data: errors.length === 0 ? { ...data, ...result } : data,
+    errors,
+  };
+}
+
+export type { ObjectSchema, FieldSchema, ValidatorResult };
 
 export interface ValidationMiddlewareOptions {
   body?: ObjectSchema;

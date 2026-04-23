@@ -55,8 +55,6 @@ export const useCrossChainConfigStore = create<CrossChainConfigStore>()(
   )
 );
 
-const useRefreshInterval = () => useCrossChainConfigStore((state) => state.refreshInterval);
-const useThresholdConfig = () => useCrossChainConfigStore((state) => state.thresholdConfig);
 export const useColorblindMode = () => useCrossChainConfigStore((state) => state.colorblindMode);
 export const useSetColorblindMode = () =>
   useCrossChainConfigStore((state) => state.setColorblindMode);

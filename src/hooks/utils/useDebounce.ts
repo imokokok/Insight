@@ -30,7 +30,7 @@ export function useDebounce<T>(value: T, delay: number): T {
  * @param delay - Delay time in milliseconds
  * @returns Debounced callback function
  */
-export function useDebouncedCallback<T extends (...args: unknown[]) => unknown>(
+function useDebouncedCallback<T extends (...args: unknown[]) => unknown>(
   callback: T,
   delay: number
 ): (...args: Parameters<T>) => void {

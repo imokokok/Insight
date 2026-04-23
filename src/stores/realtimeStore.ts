@@ -191,15 +191,6 @@ export const useRealtimeStore = create<RealtimeStore>()(
 );
 
 export const useConnectionStatus = () => useRealtimeStore((state) => state.connectionStatus);
-const useActiveSubscriptions = () => useRealtimeStore((state) => state.activeSubscriptions);
-const useLastPriceUpdate = () => useRealtimeStore((state) => state.lastPriceUpdate);
-const useLastAlertEvent = () => useRealtimeStore((state) => state.lastAlertEvent);
-const useLastSnapshotChange = () => useRealtimeStore((state) => state.lastSnapshotChange);
-const useLastFavoriteChange = () => useRealtimeStore((state) => state.lastFavoriteChange);
-const usePriceUpdateCount = () => useRealtimeStore((state) => state.priceUpdateCount);
-const useAlertEventCount = () => useRealtimeStore((state) => state.alertEventCount);
-const useReconnectAttempts = () => useRealtimeStore((state) => state.reconnectAttempts);
-const useIsConnected = () => useRealtimeStore((state) => state.connectionStatus === 'connected');
 
 export const useRealtimeActions = () =>
   useRealtimeStore(

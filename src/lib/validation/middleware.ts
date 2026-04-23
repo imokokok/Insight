@@ -248,25 +248,3 @@ export function validateBodySchema<T>(schema: ZodSchema<T>) {
 export function validateQuerySchema<T>(schema: ZodSchema<T>) {
   return createZodValidationMiddleware<never, T, never>({ query: schema });
 }
-
-function validateParamsSchema<T>(schema: ZodSchema<T>) {
-  return createZodValidationMiddleware<never, never, T>({ params: schema });
-}
-
-function validate<TBody, TQuery = never, TParams = never>(options: {
-  body?: ZodSchema<TBody>;
-  query?: ZodSchema<TQuery>;
-  params?: ZodSchema<TParams>;
-}) {
-  return createZodValidationMiddleware<TBody, TQuery, TParams>(options);
-}
-
-function safeValidate<T>(schema: ZodSchema<T>, data: unknown): T | null {
-  const result = schema.safeParse(data);
-  return result.success ? result.data : null;
-}
-
-function assertValid<T>(schema: ZodSchema<T>, data: unknown): T {
-  const result = schema.parse(data);
-  return result;
-}

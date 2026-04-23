@@ -105,31 +105,3 @@ export function usePreferences() {
     defaultPreferences,
   };
 }
-
-export function useDefaultOracle() {
-  const { preferences } = usePreferences();
-  return { defaultOracle: preferences.defaultOracle };
-}
-
-export function useDefaultSymbol() {
-  const { preferences } = usePreferences();
-  return { defaultSymbol: preferences.defaultSymbol };
-}
-
-export function useDefaultTimeRange() {
-  const { preferences } = usePreferences();
-  return { defaultTimeRange: preferences.defaultTimeRange };
-}
-
-export function useDefaultCurrency() {
-  const { preferences } = usePreferences();
-  return { defaultCurrency: preferences.defaultCurrency };
-}
-
-export function useAutoRefreshInterval() {
-  const { preferences } = usePreferences();
-  return {
-    autoRefreshInterval: preferences.autoRefreshInterval,
-    refreshIntervalMs: preferences.autoRefreshInterval * 1000,
-  };
-}

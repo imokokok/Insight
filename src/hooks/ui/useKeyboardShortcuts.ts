@@ -26,7 +26,7 @@ interface ShortcutConflict {
 /**
  * Check if keyboard shortcuts conflict
  */
-export function checkShortcutConflicts(shortcuts: KeyboardShortcut[]): ShortcutConflict[] {
+function checkShortcutConflicts(shortcuts: KeyboardShortcut[]): ShortcutConflict[] {
   const conflicts: ShortcutConflict[] = [];
 
   for (let i = 0; i < shortcuts.length; i++) {
@@ -57,7 +57,7 @@ export function checkShortcutConflicts(shortcuts: KeyboardShortcut[]): ShortcutC
 /**
  * Format shortcut as readable string
  */
-export function formatShortcut(shortcut: KeyboardShortcut): string {
+function formatShortcut(shortcut: KeyboardShortcut): string {
   const parts: string[] = [];
 
   if (shortcut.metaKey) parts.push('Cmd');
@@ -219,7 +219,7 @@ class ShortcutManager {
 }
 
 // Global keyboard shortcut manager instance
-export const shortcutManager = new ShortcutManager();
+const shortcutManager = new ShortcutManager();
 
 /**
  * Use keyboard shortcuts Hook

@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef } from 'react';
 
 import { extractBaseSymbol } from '@/lib/oracles';
+import { calculateRetryDelay, ORACLE_RETRY_PRESETS } from '@/lib/oracles/utils/retry';
 import { createLogger } from '@/lib/utils/logger';
 import type { OracleProvider, PriceData } from '@/types/oracle';
 
@@ -9,9 +10,11 @@ import type { OracleErrorInfo, OracleDataError, RetryConfig } from '../types';
 const logger = createLogger('useOracleRetry');
 
 const DEFAULT_RETRY_CONFIG: RetryConfig = {
-  maxRetries: 3,
-  retryDelay: 1000,
-  exponentialBackoff: true,
+  maxAttempts: ORACLE_RETRY_PRESETS.standard.maxAttempts,
+  baseDelay: ORACLE_RETRY_PRESETS.standard.baseDelay,
+  maxDelay: ORACLE_RETRY_PRESETS.standard.maxDelay,
+  backoffMultiplier: ORACLE_RETRY_PRESETS.standard.backoffMultiplier,
+  timeout: ORACLE_RETRY_PRESETS.standard.timeout,
 };
 
 interface UseOracleRetryOptions {
@@ -51,9 +54,7 @@ export function useOracleRetry({
   });
   const [retryingOracles, setRetryingOracles] = useState<OracleProvider[]>([]);
   const retryAttemptsRef = useRef<Map<OracleProvider, number>>(new Map());
-  // Use Map to store each provider's AbortController, avoiding shared state issues
   const abortControllersRef = useRef<Map<OracleProvider, AbortController>>(new Map());
-  // Separate AbortController for retryAllFailed
   const batchAbortControllerRef = useRef<AbortController | null>(null);
 
   const isRetrying = retryingOracles.length > 0;
@@ -88,20 +89,18 @@ export function useOracleRetry({
       }
 
       const currentAttempts = retryAttemptsRef.current.get(provider) || 0;
-      if (currentAttempts >= retryConfig.maxRetries) {
+      if (currentAttempts >= (retryConfig.maxAttempts ?? 3)) {
         logger.warn(`Max retries reached for ${provider}`);
         return;
       }
 
       setRetryingOracles((prev) => [...prev, provider]);
 
-      // Cancel previous retry request for this provider
       const existingController = abortControllersRef.current.get(provider);
       if (existingController) {
         existingController.abort();
       }
 
-      // Create new AbortController
       const abortController = new AbortController();
       abortControllersRef.current.set(provider, abortController);
       const signal = abortController.signal;
@@ -109,9 +108,12 @@ export function useOracleRetry({
       const baseSymbol = extractBaseSymbol(selectedSymbol);
 
       try {
-        const delayMs = retryConfig.exponentialBackoff
-          ? retryConfig.retryDelay * Math.pow(2, currentAttempts)
-          : retryConfig.retryDelay;
+        const delayMs = calculateRetryDelay(
+          currentAttempts,
+          retryConfig.baseDelay ?? 1000,
+          retryConfig.backoffMultiplier ?? 2,
+          retryConfig.maxDelay ?? 30000
+        );
 
         await delay(delayMs);
 
@@ -148,7 +150,6 @@ export function useOracleRetry({
         };
         onErrorUpdate(provider, errorInfo);
       } finally {
-        // Clean up this provider's AbortController
         abortControllersRef.current.delete(provider);
         setRetryingOracles((prev) => prev.filter((o) => o !== provider));
       }
@@ -173,7 +174,6 @@ export function useOracleRetry({
 
       setRetryingOracles(failedOracles);
 
-      // Cancel previous batch retry
       if (batchAbortControllerRef.current) {
         batchAbortControllerRef.current.abort();
       }
@@ -187,9 +187,12 @@ export function useOracleRetry({
           if (signal.aborted) return null;
 
           const currentAttempts = retryAttemptsRef.current.get(provider) || 0;
-          const delayMs = retryConfig.exponentialBackoff
-            ? retryConfig.retryDelay * Math.pow(2, currentAttempts)
-            : retryConfig.retryDelay;
+          const delayMs = calculateRetryDelay(
+            currentAttempts,
+            retryConfig.baseDelay ?? 1000,
+            retryConfig.backoffMultiplier ?? 2,
+            retryConfig.maxDelay ?? 30000
+          );
 
           await delay(delayMs);
 
@@ -225,7 +228,6 @@ export function useOracleRetry({
         }
       });
 
-      // Clean up batch AbortController
       batchAbortControllerRef.current = null;
       setRetryingOracles([]);
     },

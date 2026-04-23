@@ -5,6 +5,8 @@
  */
 
 import { exportColors } from '@/lib/config/colors';
+import { downloadBlob } from '@/lib/utils/download';
+import { escapeCSVField } from '@/lib/utils/export';
 import { formatDateTimeString, formatNumberWithDecimals } from '@/lib/utils/format';
 import { createLogger } from '@/lib/utils/logger';
 
@@ -327,26 +329,16 @@ export async function executeExport(
         throw new Error(`Unsupported export format: ${config.format}`);
     }
 
-    // Create download
     const blob =
       typeof result.content === 'string'
         ? new Blob([result.content], { type: result.mimeType })
         : result.content;
 
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = result.fileName;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    downloadBlob(blob, result.fileName);
 
-    // Update history
     historyItem.fileName = result.fileName;
     historyItem.fileSize = blob.size;
     historyItem.completedAt = Date.now();
-    historyItem.downloadUrl = url;
 
     // Save to history
     saveExportHistory(historyItem);
@@ -385,18 +377,13 @@ function formatCSVValue(value: unknown, dataType: string): string {
 
   switch (dataType) {
     case 'date':
-      return value instanceof Date ? value.toISOString() : String(value);
+      return escapeCSVField(value instanceof Date ? value.toISOString() : String(value));
     case 'boolean':
       return value ? 'true' : 'false';
     case 'number':
       return String(value);
     default:
-      // Handle strings containing commas or quotes
-      const str = String(value);
-      if (str.includes(',') || str.includes('"') || str.includes('\n')) {
-        return `"${str.replace(/"/g, '""')}"`;
-      }
-      return str;
+      return escapeCSVField(String(value));
   }
 }
 
