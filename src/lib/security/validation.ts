@@ -125,7 +125,7 @@ const SafeActionSchema = z.enum(['enable', 'disable', 'delete']);
 const SafeBooleanSchema = z.union([
   z.boolean(),
   z.string().transform((val) => val.toLowerCase() === 'true'),
-  z.number().transform((val) => val === 1),
+  z.union([z.literal(0), z.literal(1)]).transform((val) => val === 1),
 ]);
 
 const SafeTimestampSchema = z
@@ -156,14 +156,27 @@ function createSafeEnumSchema<T extends [string, ...string[]]>(values: T) {
     .transform((val) => sanitizeString(val, { maxLength: 50 })?.toLowerCase() ?? val.toLowerCase());
 }
 
-export function validateAndSanitize<T>(schema: z.ZodSchema<T>, data: unknown): T | null {
+export function validateAndSanitize<T>(
+  schema: z.ZodSchema<T>,
+  data: unknown
+): { data: T; error: null } | { data: null; error: z.ZodError } {
   try {
-    return schema.parse(data);
+    return { data: schema.parse(data), error: null };
   } catch (error) {
     if (error instanceof z.ZodError) {
       logger.warn('Validation failed', { errors: error.issues });
+      return { data: null, error };
     }
-    return null;
+    return {
+      data: null,
+      error: new z.ZodError([
+        {
+          code: 'custom',
+          path: [],
+          message: error instanceof Error ? error.message : 'Unknown validation error',
+        },
+      ]),
+    };
   }
 }
 

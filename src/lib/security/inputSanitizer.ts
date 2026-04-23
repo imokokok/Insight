@@ -49,7 +49,7 @@ function sanitizeHtmlBasic(input: string): string {
   }
 
   return input
-    .replace(/<[^>]*>/g, '')
+    .replace(/<\/?[^>]*(?:>|$)/gi, '')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
@@ -62,20 +62,24 @@ function detectXss(input: string): boolean {
     return false;
   }
   const xssPatterns = [
-    /<script[^>]*>.*?<\/script>/i,
-    /<script[^>]*\/>/i,
-    /javascript:/i,
-    /on\w+\s*=/i,
-    /<iframe/i,
-    /<object/i,
-    /<embed/i,
-    /<form/i,
-    /<svg[^>]*onload=/i,
-    /<img[^>]*src=/i,
-    /data:text\/html/i,
-    /<svg[^>]*>/i,
-    /<math[^>]*>/i,
-    /<style[^>]*>/i,
+    /<script[^>]*>[\s\S]*?<\/script>/gi,
+    /<script[^>]*\/>/gi,
+    /javascript\s*:/gi,
+    /vbscript\s*:/gi,
+    /on\w+\s*=/gi,
+    /<iframe/gi,
+    /<object/gi,
+    /<embed/gi,
+    /<form/gi,
+    /<svg[^>]*onload=/gi,
+    /<img[^>]*src=/gi,
+    /data\s*:\s*text\/html/gi,
+    /<svg[^>]*>/gi,
+    /<math[^>]*>/gi,
+    /<style[^>]*>/gi,
+    /<base/gi,
+    /<link/gi,
+    /<meta/gi,
   ];
   return xssPatterns.some((pattern) => pattern.test(input));
 }
@@ -100,11 +104,14 @@ const DEFAULT_OPTIONS: SanitizationOptions = {
 
 const SQL_INJECTION_PATTERNS = [
   /\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|EXECUTE|UNION|TRUNCATE)\b/i,
-  /\b(OR|AND)\b\s+\d+\s*=\s*\d+/i,
-  /(--|#|\/\*|\*\/)/,
+  /\b(OR|AND)\b\s+['"\d]/i,
+  /(--|\/\*|\*\/)/,
   /\bWAITFOR\b\s+\bDELAY\b/i,
   /\bBENCHMARK\b\s*\(/i,
   /\bSLEEP\b\s*\(/i,
+  /;\s*(?:SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|UNION)/i,
+  /\bINTO\s+(?:OUT|DUMP)FILE\b/i,
+  /\bLOAD_FILE\b\s*\(/i,
 ];
 
 const NULL_BYTES_PATTERN = /\x00/g;
@@ -142,11 +149,12 @@ export function sanitizeString(input: string, options: SanitizationOptions = {})
     logger.warn('Input truncated due to max length', { maxLength: opts.maxLength });
   }
 
-  if (opts.lowercase) {
+  if (opts.lowercase && opts.uppercase) {
+    logger.warn('Both lowercase and uppercase options set; using uppercase');
+    sanitized = sanitized.toUpperCase();
+  } else if (opts.lowercase) {
     sanitized = sanitized.toLowerCase();
-  }
-
-  if (opts.uppercase) {
+  } else if (opts.uppercase) {
     sanitized = sanitized.toUpperCase();
   }
 
@@ -161,28 +169,29 @@ export function sanitizeObject<T extends Record<string, unknown>>(
     return obj;
   }
 
-  const sanitized = {} as T;
+  const MAX_DEPTH = 10;
+  const seen = new WeakSet();
 
-  for (const [key, value] of Object.entries(obj)) {
-    const sanitizedKey = sanitizeString(key, { ...options, allowHtml: false });
+  function sanitizeRecursive(value: unknown, depth: number): unknown {
+    if (depth > MAX_DEPTH) return value;
+    if (typeof value === 'string') return sanitizeString(value, options);
+    if (typeof value !== 'object' || value === null) return value;
+    if (seen.has(value)) return '[Circular]';
+    seen.add(value);
 
-    if (typeof value === 'string') {
-      (sanitized as Record<string, unknown>)[sanitizedKey] = sanitizeString(value, options);
-    } else if (typeof value === 'object' && value !== null) {
-      if (Array.isArray(value)) {
-        (sanitized as Record<string, unknown>)[sanitizedKey] = sanitizeArray(value, options);
-      } else {
-        (sanitized as Record<string, unknown>)[sanitizedKey] = sanitizeObject(
-          value as Record<string, unknown>,
-          options
-        );
-      }
-    } else {
-      (sanitized as Record<string, unknown>)[sanitizedKey] = value;
+    if (Array.isArray(value)) {
+      return value.map((item) => sanitizeRecursive(item, depth + 1));
     }
+
+    const result: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+      const sanitizedKey = sanitizeString(k, { ...options, allowHtml: false });
+      result[sanitizedKey] = sanitizeRecursive(v, depth + 1);
+    }
+    return result;
   }
 
-  return sanitized;
+  return sanitizeRecursive(obj, 0) as T;
 }
 
 export function sanitizeArray<T>(arr: T[], options: SanitizationOptions = {}): T[] {
@@ -290,7 +299,11 @@ export function sanitizeProvider(provider: string): string {
     lowercase: true,
   });
 
-  return validProviders.includes(sanitized as OracleProvider) ? sanitized : '';
+  if (!validProviders.includes(sanitized as OracleProvider)) {
+    logger.warn('Invalid provider value rejected', { provider: provider.substring(0, 50) });
+    throw new Error(`Invalid provider: ${provider.substring(0, 50)}`);
+  }
+  return sanitized;
 }
 
 export function sanitizeChain(chain: string): string {
@@ -303,7 +316,11 @@ export function sanitizeChain(chain: string): string {
     lowercase: true,
   });
 
-  return validChains.includes(sanitized) ? sanitized : '';
+  if (!validChains.includes(sanitized)) {
+    logger.warn('Invalid chain value rejected', { chain: chain.substring(0, 50) });
+    throw new Error(`Invalid chain: ${chain.substring(0, 50)}`);
+  }
+  return sanitized;
 }
 
 export function sanitizeEmail(email: string): string {
@@ -314,7 +331,8 @@ export function sanitizeEmail(email: string): string {
     lowercase: true,
   });
 
-  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const emailPattern =
+    /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
   return emailPattern.test(sanitized) ? sanitized : '';
 }
 

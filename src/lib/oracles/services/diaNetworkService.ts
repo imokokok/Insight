@@ -222,7 +222,7 @@ export class DIANetworkService {
           if (response.ok) {
             const result = await response.json();
             if (result.result) {
-              const stakedAmount = parseInt(result.result, 16) / 1e18;
+              const stakedAmount = Number(BigInt(result.result)) / 1e18;
               if (stakedAmount > 0) {
                 totalStaked = stakedAmount;
               }

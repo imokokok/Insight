@@ -212,14 +212,19 @@ class WINkLinkRealDataService {
 
       const decPlaces = Number(decimalPlaces);
       const rawStr = priceRaw.toString();
+      const isNegative = rawStr.startsWith('-');
+      const absStr = isNegative ? rawStr.slice(1) : rawStr;
       let priceValue: number;
-      if (rawStr.length > decPlaces) {
-        const intPart = rawStr.slice(0, rawStr.length - decPlaces) || '0';
-        const decPart = rawStr.slice(rawStr.length - decPlaces);
+      if (absStr.length > decPlaces) {
+        const intPart = absStr.slice(0, absStr.length - decPlaces) || '0';
+        const decPart = absStr.slice(absStr.length - decPlaces);
         priceValue = parseFloat(`${intPart}.${decPart}`);
       } else {
-        const paddedDec = rawStr.padStart(decPlaces, '0');
+        const paddedDec = absStr.padStart(decPlaces, '0');
         priceValue = parseFloat(`0.${paddedDec}`);
+      }
+      if (isNegative) {
+        priceValue = -priceValue;
       }
 
       const timestamp = timestampRaw ? Number(timestampRaw) * 1000 : Date.now();
@@ -322,8 +327,9 @@ class WINkLinkRealDataService {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
-    if (externalSignal) {
-      externalSignal.addEventListener('abort', () => controller.abort(), { once: true });
+    const onAbort = externalSignal ? () => controller.abort() : null;
+    if (onAbort && externalSignal) {
+      externalSignal.addEventListener('abort', onAbort, { once: true });
     }
 
     try {
@@ -334,6 +340,9 @@ class WINkLinkRealDataService {
       });
     } finally {
       clearTimeout(timeoutId);
+      if (onAbort && externalSignal) {
+        externalSignal.removeEventListener('abort', onAbort);
+      }
     }
   }
 

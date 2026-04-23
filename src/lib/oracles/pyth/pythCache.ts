@@ -31,8 +31,15 @@ export class PythCache {
       this.evictExpired();
     }
     if (this.cache.size >= this.maxSize) {
-      const oldestKey = this.cache.keys().next().value;
-      if (oldestKey !== undefined) {
+      let oldestKey: string | null = null;
+      let oldestTime = Infinity;
+      for (const [k, entry] of this.cache) {
+        if (entry.timestamp < oldestTime) {
+          oldestTime = entry.timestamp;
+          oldestKey = k;
+        }
+      }
+      if (oldestKey !== null) {
         this.cache.delete(oldestKey);
       }
     }

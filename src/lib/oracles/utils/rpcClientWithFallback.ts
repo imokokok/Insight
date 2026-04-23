@@ -126,14 +126,21 @@ export class RpcClientWithFallback {
           signal.removeEventListener('abort', onExternalAbort);
         }
         lastError = error instanceof Error ? error : new Error(String(error));
-        const healthKey = `${key}-${endpointIndex}`;
-        this.endpointHealth[healthKey] = false;
-        this.endpointFailureTime[healthKey] = Date.now();
 
-        if (error instanceof Error && (error.name === 'AbortError' || signal?.aborted)) {
-          if (signal?.aborted) {
-            throw new Error(`Request aborted for ${this.contextLabel}/${key}`);
-          }
+        const isUserAbort = signal?.aborted;
+        const isTimeout = error instanceof Error && error.name === 'AbortError' && !isUserAbort;
+
+        if (isUserAbort) {
+          throw new Error(`Request aborted for ${this.contextLabel}/${key}`);
+        }
+
+        if (!isTimeout) {
+          const healthKey = `${key}-${endpointIndex}`;
+          this.endpointHealth[healthKey] = false;
+          this.endpointFailureTime[healthKey] = Date.now();
+        }
+
+        if (isTimeout) {
           logger.warn(`RPC endpoint ${endpoint} timed out after ${this.requestTimeout}ms`, {
             context: this.contextLabel,
             key,

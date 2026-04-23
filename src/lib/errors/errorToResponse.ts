@@ -42,7 +42,11 @@ export function errorToResponse(error: unknown): NextResponse {
   if (error instanceof Error) {
     logger.error(`Unhandled Error: ${error.message}`, error);
 
-    const standardResponse = createStandardErrorResponse(ErrorCode.INTERNAL_ERROR, error.message);
+    const isDev = process.env.NODE_ENV === 'development';
+    const standardResponse = createStandardErrorResponse(
+      ErrorCode.INTERNAL_ERROR,
+      isDev ? error.message : 'An internal error occurred'
+    );
 
     return NextResponse.json(standardResponse, { status: 500 });
   }

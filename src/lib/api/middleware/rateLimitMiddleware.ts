@@ -14,18 +14,26 @@ export interface RateLimitMiddlewareOptions {
   keyGenerator?: (request: NextRequest) => string;
   skipSuccessfulRequests?: boolean;
   skipFailedRequests?: boolean;
-  handler?: (request: NextRequest, retryAfter: number) => NextResponse;
+  handler?: (request: NextRequest, retryAfter: number, limit?: number) => NextResponse;
   preset?: 'strict' | 'moderate' | 'lenient' | 'api';
 }
+
+const PRESET_CONFIGS: Record<string, { windowMs: number; maxRequests: number }> = {
+  strict: { windowMs: 60000, maxRequests: 20 },
+  moderate: { windowMs: 60000, maxRequests: 60 },
+  lenient: { windowMs: 60000, maxRequests: 200 },
+  api: { windowMs: 60000, maxRequests: 100 },
+};
 
 type RateLimitMiddlewareResult =
   | { success: true; remaining: number; resetTime: number }
   | { success: false; response: NextResponse };
 
 export function createRateLimitMiddleware(options: RateLimitMiddlewareOptions = {}) {
+  const presetConfig = options.preset ? PRESET_CONFIGS[options.preset] : null;
   const {
-    windowMs = 60000,
-    maxRequests = 100,
+    windowMs = presetConfig?.windowMs ?? 60000,
+    maxRequests = presetConfig?.maxRequests ?? 100,
     keyGenerator = defaultKeyGenerator,
     handler = defaultRateLimitHandler,
   } = options;

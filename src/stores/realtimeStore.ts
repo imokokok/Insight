@@ -74,9 +74,10 @@ export const useRealtimeStore = create<RealtimeStore>()(
       setConnectionStatus: (status) => {
         const prevStatus = get().connectionStatus;
         if (status === 'connected' && prevStatus !== 'connected') {
-          set({ reconnectAttempts: 0 });
+          set({ reconnectAttempts: 0, connectionStatus: status });
+        } else {
+          set({ connectionStatus: status });
         }
-        set({ connectionStatus: status });
       },
 
       setActiveSubscriptions: (subscriptions) => set({ activeSubscriptions: subscriptions }),

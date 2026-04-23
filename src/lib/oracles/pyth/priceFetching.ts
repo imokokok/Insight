@@ -115,7 +115,9 @@ export async function fetchMultiplePrices(
           const symbol = symbolToId.get(parsed.id);
           if (symbol) {
             const priceData = parsePythPrice(parsed.price, symbol);
-            results.set(symbol, priceData);
+            if (priceData) {
+              results.set(symbol, priceData);
+            }
           }
         }
       }

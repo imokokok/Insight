@@ -34,11 +34,18 @@ export function createErrorMiddleware(options: ErrorMiddlewareOptions = {}) {
       const response = errorToResponse(error);
 
       if (requestId) {
-        const body = await response.json();
-        return NextResponse.json(
-          { ...body, meta: { ...body.meta, requestId } },
-          { status: response.status, headers: response.headers }
-        );
+        try {
+          const body = await response.json();
+          return NextResponse.json(
+            { ...body, meta: { ...body.meta, requestId } },
+            { status: response.status, headers: response.headers }
+          );
+        } catch {
+          return NextResponse.json(
+            ApiResponseBuilder.error(error.code || 'INTERNAL_ERROR', error.message, { requestId }),
+            { status: response.status }
+          );
+        }
       }
 
       return response;

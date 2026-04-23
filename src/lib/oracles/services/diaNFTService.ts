@@ -117,7 +117,7 @@ export class DIANFTService {
           floorPrice: nftData.FloorPrice,
           floorPriceChange24h: Number(floorPriceChange24h.toFixed(2)),
           volume24h: nftData.VolumeYesterday || 0,
-          totalSupply: 10000,
+          totalSupply: 0,
           chain: nft.chain,
           updateFrequency: 300,
           confidence: 0.95,
@@ -136,8 +136,8 @@ export class DIANFTService {
 
       const byChain: Partial<Record<Blockchain, number>> = {
         [Blockchain.ETHEREUM]: collections.filter((c) => c.chain === Blockchain.ETHEREUM).length,
-        [Blockchain.POLYGON]: 0,
-        [Blockchain.ARBITRUM]: 0,
+        [Blockchain.POLYGON]: collections.filter((c) => c.chain === Blockchain.POLYGON).length,
+        [Blockchain.ARBITRUM]: collections.filter((c) => c.chain === Blockchain.ARBITRUM).length,
       };
 
       const nftData: DIANFTData = {

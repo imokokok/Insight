@@ -33,9 +33,7 @@ export function shouldUseDatabase(): boolean {
 }
 
 function calculateExpirationDate(hours: number = storageConfig.defaultExpirationHours): string {
-  const now = new Date();
-  now.setHours(now.getHours() + hours);
-  return now.toISOString();
+  return new Date(Date.now() + hours * 3600 * 1000).toISOString();
 }
 
 function priceDataToRecord(priceData: PriceData): PriceRecordInsert {

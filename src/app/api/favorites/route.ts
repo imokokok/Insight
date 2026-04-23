@@ -64,15 +64,15 @@ export const POST = createApiHandler(
       return ApiResponseBuilder.badRequest('Invalid JSON in request body');
     }
 
-    const validatedData = validateAndSanitize(CreateFavoriteRequestSchema, body);
+    const validationResult = validateAndSanitize(CreateFavoriteRequestSchema, body);
 
-    if (!validatedData) {
+    if (!validationResult.data) {
       return ApiResponseBuilder.badRequest(
         'Invalid request data. Check name, config_type, and config_data fields.'
       );
     }
 
-    const sanitizedData = sanitizeObject(validatedData);
+    const sanitizedData = sanitizeObject(validationResult.data);
     const { name, config_type, config_data } = sanitizedData;
 
     const queries = getServerQueries();

@@ -49,6 +49,7 @@ function detectAnomalousPrices(
 
   prices.forEach((priceData) => {
     if (!priceData.chain || !filteredChains.includes(priceData.chain)) return;
+    if (priceData.price <= 0 || !Number.isFinite(priceData.price)) return;
 
     const { price, timestamp, chain } = priceData;
 

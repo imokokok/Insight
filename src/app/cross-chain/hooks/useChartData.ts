@@ -128,7 +128,8 @@ export function useChartData(params: UseChartDataParams): UseChartDataReturn {
       if (priceData.price < lowerBound || priceData.price > upperBound) {
         const boundType = priceData.price < lowerBound ? 'lower' : 'upper';
         const boundValue = boundType === 'lower' ? lowerBound : upperBound;
-        const deviationPercent = Math.abs((priceData.price - boundValue) / boundValue) * 100;
+        const deviationPercent =
+          boundValue !== 0 ? Math.abs((priceData.price - boundValue) / boundValue) * 100 : 0;
 
         outliers.push({
           chain: priceData.chain,

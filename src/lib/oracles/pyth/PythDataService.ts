@@ -182,6 +182,9 @@ class PythDataService {
       const symbol = getSymbolFromPriceId(priceId);
       if (symbol) {
         const priceData = parsePythPrice(price, symbol);
+        if (!priceData) return;
+        const cacheKey = `price:${symbol}`;
+        this.cache.set(cacheKey, priceData, CACHE_TTL.PRICE);
         callbacks.forEach((callback) => {
           try {
             callback(priceData);
@@ -206,7 +209,7 @@ export function getPythDataService(): PythDataService {
   return pythDataServiceInstance;
 }
 
-function resetPythDataService(): void {
+export function resetPythDataService(): void {
   if (pythDataServiceInstance) {
     pythDataServiceInstance.disconnect();
     pythDataServiceInstance = null;

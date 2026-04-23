@@ -42,7 +42,8 @@ export async function fetchValidators(cache: PythCache): Promise<ValidatorData[]
     return cached;
   }
 
-  logger.warn('No validator data available - API does not provide validator data');
+  logger.info('No validator data available - API does not provide validator data');
+  cache.set(cacheKey, [], CACHE_TTL.STATS);
   return [];
 }
 
@@ -55,28 +56,20 @@ export async function fetchPriceFeeds(cache: PythCache): Promise<PythServicePric
   }
 
   try {
-    const result = await withOracleRetry(
-      async () => {
-        const feeds: PythServicePriceFeed[] = [];
+    const feeds: PythServicePriceFeed[] = [];
 
-        for (const [symbol, id] of Object.entries(PYTH_PRICE_FEED_IDS)) {
-          feeds.push({
-            id,
-            symbol,
-            description: `${symbol} Price Feed`,
-            assetType: symbol.includes('USD') ? 'Crypto' : 'Unknown',
-            status: 'active',
-          });
-        }
+    for (const [symbol, id] of Object.entries(PYTH_PRICE_FEED_IDS)) {
+      feeds.push({
+        id,
+        symbol,
+        description: `${symbol} Price Feed`,
+        assetType: symbol.includes('USD') ? 'Crypto' : 'Unknown',
+        status: 'active',
+      });
+    }
 
-        return feeds;
-      },
-      'getPriceFeeds',
-      ORACLE_RETRY_PRESETS.standard
-    );
-
-    cache.set(cacheKey, result, CACHE_TTL.FEEDS);
-    return result;
+    cache.set(cacheKey, feeds, CACHE_TTL.FEEDS);
+    return feeds;
   } catch (error) {
     logger.error(
       'Failed to get price feeds',

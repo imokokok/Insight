@@ -232,33 +232,33 @@ export function useKeyboardShortcuts(shortcuts: KeyboardShortcut[]) {
     .map((s) => `${s.key}:${s.ctrlKey}:${s.altKey}:${s.shiftKey}:${s.metaKey}:${s.scope}`)
     .join(',');
 
-  const stableShortcuts = useMemo(() => {
-    return shortcuts.map((s) => ({ ...s }));
-  }, [shortcuts.length, shortcutKey]);
-
   useEffect(() => {
     const unregisters: (() => void)[] = [];
 
-    stableShortcuts.forEach((shortcut) => {
-      const original = shortcutsRef.current.find(
-        (s) =>
-          s.key === shortcut.key &&
-          !!s.ctrlKey === !!shortcut.ctrlKey &&
-          !!s.altKey === !!shortcut.altKey &&
-          !!s.shiftKey === !!shortcut.shiftKey &&
-          !!s.metaKey === !!shortcut.metaKey &&
-          s.scope === shortcut.scope
-      );
-      if (original) {
-        const unregister = shortcutManager.register(original);
-        unregisters.push(unregister);
-      }
+    shortcutsRef.current.forEach((shortcut) => {
+      const wrapper: KeyboardShortcut = {
+        ...shortcut,
+        handler: () => {
+          const current = shortcutsRef.current.find(
+            (s) =>
+              s.key === shortcut.key &&
+              !!s.ctrlKey === !!shortcut.ctrlKey &&
+              !!s.altKey === !!shortcut.altKey &&
+              !!s.shiftKey === !!shortcut.shiftKey &&
+              !!s.metaKey === !!shortcut.metaKey &&
+              s.scope === shortcut.scope
+          );
+          current?.handler();
+        },
+      };
+      const unregister = shortcutManager.register(wrapper);
+      unregisters.push(unregister);
     });
 
     return () => {
       unregisters.forEach((unregister) => unregister());
     };
-  }, [stableShortcuts]);
+  }, [shortcutKey]);
 }
 
 /**

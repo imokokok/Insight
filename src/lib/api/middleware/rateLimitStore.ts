@@ -25,7 +25,7 @@ class KvRateLimitStore implements RateLimitStore {
   }
 
   private failOpen(windowMs: number): RateLimitResult {
-    return { count: 0, resetTime: Date.now() + windowMs };
+    return { count: 1, resetTime: Date.now() + windowMs };
   }
 
   async increment(key: string, windowMs: number): Promise<RateLimitResult> {

@@ -168,6 +168,9 @@ export async function getCrossChainPrices(
       }
 
       const basePriceData = parsePythPrice(parsed.price, symbol);
+      if (!basePriceData) {
+        throw new Error(`Invalid price data for ${symbol}`);
+      }
       const basePrice = basePriceData.price;
       const timestamp = basePriceData.timestamp;
 

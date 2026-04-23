@@ -120,13 +120,15 @@ class SupraDataService {
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
 
-          if (signal) {
-            signal.addEventListener('abort', () => controller.abort(), { once: true });
+          const onAbort = signal ? () => controller.abort() : null;
+          if (onAbort && signal) {
+            signal.addEventListener('abort', onAbort, { once: true });
           }
 
           try {
             const oracleData: SupraOraclePriceFeed[] = await client.getOracleData(pairIndexes);
             clearTimeout(timeoutId);
+            if (onAbort && signal) signal.removeEventListener('abort', onAbort);
 
             if (!oracleData || !Array.isArray(oracleData) || oracleData.length === 0) {
               throw new SupraApiError('No price data returned from Supra DORA', 'NO_DATA');
@@ -135,6 +137,7 @@ class SupraDataService {
             return oracleData;
           } catch (error) {
             clearTimeout(timeoutId);
+            if (onAbort && signal) signal.removeEventListener('abort', onAbort);
 
             if (signal?.aborted) {
               throw new SupraApiError('Request was aborted', 'ABORT_ERROR');
@@ -218,7 +221,7 @@ class SupraDataService {
 
     try {
       // Extract symbol from tradingPair (format: btc_usdt -> BTC)
-      const symbol = tradingPair.split(' ')[0]?.toUpperCase();
+      const symbol = tradingPair.split('_')[0]?.split(' ')[0]?.toUpperCase();
       if (!symbol) {
         logger.warn(`Invalid trading pair format: ${tradingPair}`);
         return [];

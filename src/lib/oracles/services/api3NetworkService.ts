@@ -9,9 +9,23 @@ const logger = createLogger('API3NetworkService');
 
 const RPC_TIMEOUT_MS = 10000;
 const ENDPOINT_RECOVERY_TIME = 60000;
+const MAX_ENDPOINT_ENTRIES = 200;
 
 const endpointHealth: Record<string, boolean> = {};
 const endpointFailureTime: Record<string, number> = {};
+
+function pruneEndpointEntries(): void {
+  const keys = Object.keys(endpointHealth);
+  if (keys.length > MAX_ENDPOINT_ENTRIES) {
+    const now = Date.now();
+    keys.sort((a, b) => (endpointFailureTime[a] || 0) - (endpointFailureTime[b] || 0));
+    const toDelete = keys.slice(0, keys.length - MAX_ENDPOINT_ENTRIES);
+    for (const key of toDelete) {
+      delete endpointHealth[key];
+      delete endpointFailureTime[key];
+    }
+  }
+}
 
 function isEndpointHealthy(chainId: number, index: number): boolean {
   const key = `${chainId}-${index}`;
@@ -274,8 +288,9 @@ async function rpcCall(
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), RPC_TIMEOUT_MS);
 
-    if (signal) {
-      signal.addEventListener('abort', () => controller.abort(), { once: true });
+    const onAbort = signal ? () => controller.abort() : null;
+    if (onAbort && signal) {
+      signal.addEventListener('abort', onAbort, { once: true });
     }
 
     try {
@@ -308,6 +323,11 @@ async function rpcCall(
       const key = `${chainId}-${i}`;
       endpointHealth[key] = true;
       delete endpointFailureTime[key];
+      pruneEndpointEntries();
+
+      if (onAbort && signal) {
+        signal.removeEventListener('abort', onAbort);
+      }
 
       return result.result;
     } catch (error) {
@@ -325,6 +345,10 @@ async function rpcCall(
       const key = `${chainId}-${i}`;
       endpointHealth[key] = false;
       endpointFailureTime[key] = Date.now();
+
+      if (onAbort && signal) {
+        signal.removeEventListener('abort', onAbort);
+      }
 
       logger.warn(`RPC endpoint ${endpoint} failed:`, lastError);
     }

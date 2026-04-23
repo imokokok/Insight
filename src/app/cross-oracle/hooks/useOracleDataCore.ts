@@ -221,8 +221,9 @@ export function useOracleDataCore(
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
-    abortControllerRef.current = new AbortController();
-    const signal = abortControllerRef.current.signal;
+    const currentAbortController = new AbortController();
+    abortControllerRef.current = currentAbortController;
+    const signal = currentAbortController.signal;
 
     setIsLoading(true);
     setError(null);
@@ -345,7 +346,7 @@ export function useOracleDataCore(
         });
       }
     } finally {
-      if (isMountedRef.current) {
+      if (isMountedRef.current && abortControllerRef.current === currentAbortController) {
         setIsLoading(false);
       }
     }
