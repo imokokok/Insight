@@ -40,7 +40,7 @@ function validateFavoriteUpdate(body: unknown): Record<string, unknown> | null {
   }
 
   if (sanitizedBody.config_data !== undefined) {
-    if (typeof sanitizedBody.config_data === 'object') {
+    if (typeof sanitizedBody.config_data === 'object' && sanitizedBody.config_data !== null) {
       const configStr = JSON.stringify(sanitizedBody.config_data);
       if (configStr.length > MAX_CONFIG_DATA_SIZE) {
         return null;

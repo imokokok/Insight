@@ -222,6 +222,10 @@ export abstract class BaseOracleClient {
         period
       );
 
+      if (options?.signal?.aborted) {
+        return [];
+      }
+
       if (!historicalPrices || historicalPrices.length === 0) {
         return this.onNoHistoricalData(symbol);
       }

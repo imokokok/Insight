@@ -45,7 +45,11 @@ export function useTwapOnChainData(options: UseTwapOnChainDataOptions): UseTwapO
   } = useQuery({
     queryKey: ['twap-on-chain', symbol, chain],
     queryFn: async ({ signal }) => {
-      const chainId = BLOCKCHAIN_TO_CHAIN_ID[chain || 'ethereum'] || 1;
+      const chainKey = chain || 'ethereum';
+      const chainId = BLOCKCHAIN_TO_CHAIN_ID[chainKey];
+      if (!chainId) {
+        throw new Error(`Unsupported chain for TWAP: ${chainKey}`);
+      }
       const twapData = await twapOnChainService.getTwapPrice(
         symbol.toUpperCase(),
         chainId,

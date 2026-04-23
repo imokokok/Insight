@@ -114,7 +114,8 @@ export class FlareClient extends BaseOracleClient {
           }
         },
         'fetchRealPrice',
-        ORACLE_RETRY_PRESETS.standard
+        ORACLE_RETRY_PRESETS.standard,
+        signal
       );
 
       if (result) {
@@ -196,6 +197,7 @@ export class FlareClient extends BaseOracleClient {
 
   clearCache(): void {
     this.cache.clear();
+    this.cache.startCleanupInterval();
     this.ftsoService.clearCache();
   }
 

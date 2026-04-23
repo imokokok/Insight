@@ -92,16 +92,22 @@ export const POST = createApiHandler(
       );
     }
 
-    return NextResponse.json({
-      message: `Batch ${action} completed`,
-      results: {
-        processed: results.success.length + results.failed.length,
-        succeeded: results.success.length,
-        failed: results.failed.length,
-        successIds: results.success,
-        failedIds: results.failed,
+    const allFailed = results.failed.length > 0 && results.success.length === 0;
+    const someFailed = results.failed.length > 0 && results.success.length > 0;
+
+    return NextResponse.json(
+      {
+        message: `Batch ${action} completed`,
+        results: {
+          processed: results.success.length + results.failed.length,
+          succeeded: results.success.length,
+          failed: results.failed.length,
+          successIds: results.success,
+          failedIds: results.failed,
+        },
       },
-    });
+      { status: allFailed ? 422 : someFailed ? 207 : 200 }
+    );
   },
   {
     middlewares: {

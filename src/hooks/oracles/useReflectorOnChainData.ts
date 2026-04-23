@@ -57,6 +57,9 @@ export function useReflectorOnChainData(
     queryKey,
     queryFn: async () => {
       const contractId = REFLECTOR_ASSET_CONTRACT_MAP[symbol.toUpperCase()];
+      if (!contractId) {
+        return null;
+      }
       const [priceData, metadata] = await Promise.all([
         service.fetchLatestPrice(symbol),
         service.fetchOnChainMetadata(contractId),

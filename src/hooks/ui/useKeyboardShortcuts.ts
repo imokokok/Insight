@@ -1,6 +1,23 @@
 'use client';
 
-import { useEffect, useCallback, useMemo, useRef } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
+
+const KEY_MAP: Record<string, string> = {
+  escape: 'Esc',
+  enter: '↵',
+  arrowup: '↑',
+  arrowdown: '↓',
+  arrowleft: '←',
+  arrowright: '→',
+  tab: 'Tab',
+  space: 'Space',
+  backspace: '⌫',
+  delete: 'Del',
+  home: 'Home',
+  end: 'End',
+  pageup: 'PgUp',
+  pagedown: 'PgDn',
+};
 
 export interface KeyboardShortcut {
   key: string;
@@ -26,7 +43,7 @@ interface ShortcutConflict {
 /**
  * Check if keyboard shortcuts conflict
  */
-function checkShortcutConflicts(shortcuts: KeyboardShortcut[]): ShortcutConflict[] {
+export function checkShortcutConflicts(shortcuts: KeyboardShortcut[]): ShortcutConflict[] {
   const conflicts: ShortcutConflict[] = [];
 
   for (let i = 0; i < shortcuts.length; i++) {
@@ -57,7 +74,7 @@ function checkShortcutConflicts(shortcuts: KeyboardShortcut[]): ShortcutConflict
 /**
  * Format shortcut as readable string
  */
-function formatShortcut(shortcut: KeyboardShortcut): string {
+export function formatShortcut(shortcut: KeyboardShortcut): string {
   const parts: string[] = [];
 
   if (shortcut.metaKey) parts.push('Cmd');
@@ -65,24 +82,7 @@ function formatShortcut(shortcut: KeyboardShortcut): string {
   if (shortcut.altKey) parts.push('Alt');
   if (shortcut.shiftKey) parts.push('Shift');
 
-  const keyMap: Record<string, string> = {
-    escape: 'Esc',
-    enter: '↵',
-    arrowup: '↑',
-    arrowdown: '↓',
-    arrowleft: '←',
-    arrowright: '→',
-    tab: 'Tab',
-    space: 'Space',
-    backspace: '⌫',
-    delete: 'Del',
-    home: 'Home',
-    end: 'End',
-    pageup: 'PgUp',
-    pagedown: 'PgDn',
-  };
-
-  const keyDisplay = keyMap[shortcut.key.toLowerCase()] || shortcut.key.toUpperCase();
+  const keyDisplay = KEY_MAP[shortcut.key.toLowerCase()] || shortcut.key.toUpperCase();
   parts.push(keyDisplay);
 
   return parts.join('+');
@@ -92,7 +92,8 @@ function formatShortcut(shortcut: KeyboardShortcut): string {
  * Get platform-specific shortcut display
  */
 export function getPlatformShortcut(shortcut: KeyboardShortcut): string {
-  const isMac = typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform);
+  const isMac =
+    typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.userAgent);
 
   const parts: string[] = [];
 
@@ -108,24 +109,7 @@ export function getPlatformShortcut(shortcut: KeyboardShortcut): string {
     if (shortcut.metaKey) parts.push('Win');
   }
 
-  const keyMap: Record<string, string> = {
-    escape: 'Esc',
-    enter: '↵',
-    arrowup: '↑',
-    arrowdown: '↓',
-    arrowleft: '←',
-    arrowright: '→',
-    tab: 'Tab',
-    space: 'Space',
-    backspace: '⌫',
-    delete: 'Del',
-    home: 'Home',
-    end: 'End',
-    pageup: 'PgUp',
-    pagedown: 'PgDn',
-  };
-
-  const keyDisplay = keyMap[shortcut.key.toLowerCase()] || shortcut.key.toUpperCase();
+  const keyDisplay = KEY_MAP[shortcut.key.toLowerCase()] || shortcut.key.toUpperCase();
   parts.push(keyDisplay);
 
   return parts.join(isMac ? '' : '+');
@@ -219,7 +203,7 @@ class ShortcutManager {
 }
 
 // Global keyboard shortcut manager instance
-const shortcutManager = new ShortcutManager();
+export const shortcutManager = new ShortcutManager();
 
 /**
  * Use keyboard shortcuts Hook

@@ -221,7 +221,11 @@ export class ChainlinkClient extends BaseOracleClient {
   }
 
   isSymbolSupported(symbol: string, chain?: Blockchain): boolean {
-    return this.isPriceFeedSupported(symbol, chain);
+    try {
+      return this.isPriceFeedSupported(symbol, chain);
+    } catch {
+      return false;
+    }
   }
 
   getSupportedChainsForSymbol(symbol: string): Blockchain[] {

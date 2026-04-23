@@ -46,9 +46,10 @@ function getLocalPreferences(): Partial<UserPreferences> {
       defaultSymbol: parsed.defaultSymbol,
       defaultTimeRange: parsed.defaultTimeRange,
       defaultCurrency: parsed.defaultCurrency,
-      autoRefreshInterval: parsed.autoRefreshInterval
-        ? parseInt(parsed.autoRefreshInterval, 10)
-        : undefined,
+      autoRefreshInterval:
+        parsed.autoRefreshInterval !== undefined && parsed.autoRefreshInterval !== null
+          ? parseInt(parsed.autoRefreshInterval, 10)
+          : undefined,
     };
   } catch {
     return {};

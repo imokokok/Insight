@@ -53,10 +53,15 @@ class ApiClient {
       logger.warn(`Request timeout after ${timeout}ms`, { method, url });
     }, timeout);
 
+    const combinedSignal =
+      config?.signal && controller.signal
+        ? AbortSignal.any([config.signal, controller.signal])
+        : (config?.signal ?? controller.signal);
+
     let init: RequestInit = {
       method,
       headers: { ...this.defaultHeaders, ...config?.headers },
-      signal: config?.signal ?? controller.signal,
+      signal: combinedSignal,
       cache: config?.cache,
     };
 
@@ -64,7 +69,7 @@ class ApiClient {
       init = await interceptor(init);
     }
 
-    if (data) {
+    if (data !== undefined) {
       try {
         init.body = JSON.stringify(data);
       } catch (err) {
@@ -79,14 +84,25 @@ class ApiClient {
       }
     }
 
-    const fullUrl = this.baseURL + url;
+    const base = this.baseURL.replace(/\/+$/, '');
+    const path = url.startsWith('/') ? url : `/${url}`;
+    const fullUrl = base + path;
     const startTime = Date.now();
 
     try {
       let response = await fetch(fullUrl, init);
 
-      for (const interceptor of this.responseInterceptors) {
-        response = await interceptor(response);
+      try {
+        for (const interceptor of this.responseInterceptors) {
+          response = await interceptor(response);
+        }
+      } catch (interceptorError) {
+        throw new ApiError({
+          code: 'INTERCEPTOR_ERROR',
+          message: 'Response interceptor failed',
+          statusCode: 500,
+          details: { originalError: String(interceptorError) },
+        });
       }
 
       if (!response.ok) {

@@ -123,6 +123,8 @@ export const PUT = createApiHandler(
       const validatedPrefs = validatePreferences(preferences);
       if (validatedPrefs) {
         updateData.preferences = validatedPrefs;
+      } else {
+        return ApiResponseBuilder.badRequest('Invalid preferences data');
       }
     }
 

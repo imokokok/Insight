@@ -51,7 +51,7 @@ function LoginForm() {
   const user = useUser();
   const session = useSession();
   const error = useAuthError();
-  const { signIn, signInWithOAuth, clearError } = useAuthActions();
+  const { signIn, clearError } = useAuthActions();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -98,13 +98,14 @@ function LoginForm() {
     e.preventDefault();
     setIsLoading(true);
     setErrorInfo(null);
+    clearError();
 
     const { error: signInError } = await signIn(email, password);
 
     if (signInError) {
       setErrorInfo(parseError(signInError.message));
-      setIsLoading(false);
     }
+    setIsLoading(false);
   };
 
   const displayError = errorInfo?.message || error?.message;

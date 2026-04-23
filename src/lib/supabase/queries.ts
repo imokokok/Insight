@@ -150,7 +150,7 @@ export interface AlertEvent {
   condition_met: string;
   acknowledged: boolean;
   acknowledged_at: string | null;
-  created_at?: string;
+  created_at: string;
 }
 
 export interface AlertEventInsert {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 
 import { useRouter } from 'next/navigation';
 
@@ -21,21 +21,26 @@ function FavoritesContentInner() {
     }
   }, [user, loading, router]);
 
-  const handleApply = (config: FavoriteConfig, configType: ConfigType) => {
-    switch (configType) {
-      case 'oracle_config':
-        router.push(
-          `/cross-oracle?oracles=${config.selectedOracles?.join(',')}&symbol=${config.symbol}`
-        );
-        break;
-      case 'symbol':
-        router.push(`/price-query?symbol=${config.symbol}`);
-        break;
-      case 'chain_config':
-        router.push(`/cross-chain?chain=${config.chain}`);
-        break;
-    }
-  };
+  const handleApply = useCallback(
+    (config: FavoriteConfig, configType: ConfigType) => {
+      switch (configType) {
+        case 'oracle_config':
+          router.push(
+            `/cross-oracle?oracles=${encodeURIComponent(config.selectedOracles?.join(',') ?? '')}&symbol=${encodeURIComponent(config.symbol ?? '')}`
+          );
+          break;
+        case 'symbol':
+          router.push(`/price-query?symbol=${encodeURIComponent(config.symbol ?? '')}`);
+          break;
+        case 'chain_config':
+          router.push(`/cross-chain?chain=${encodeURIComponent(config.chain ?? '')}`);
+          break;
+        default:
+          break;
+      }
+    },
+    [router]
+  );
 
   if (loading) {
     return (

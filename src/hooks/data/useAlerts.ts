@@ -21,6 +21,7 @@ export interface CreateAlertInput {
 }
 
 interface UpdateAlertInput {
+  name?: string;
   symbol?: string;
   provider?: OracleProvider | null;
   chain?: Blockchain | null;
@@ -104,6 +105,11 @@ interface BatchOperationResult {
   failedIds: string[];
 }
 
+interface BatchOperationResponse {
+  message: string;
+  results: BatchOperationResult;
+}
+
 interface UseBatchAlertsReturn {
   batchOperation: (
     action: 'enable' | 'disable' | 'delete',
@@ -184,12 +190,7 @@ export function useCreateAlert(): UseCreateAlertReturn {
   });
 
   const createAlert = async (input: CreateAlertInput) => {
-    try {
-      const alert = await mutation.mutateAsync(input);
-      return alert;
-    } catch (err) {
-      throw err;
-    }
+    return mutation.mutateAsync(input);
   };
 
   return {
@@ -233,12 +234,7 @@ export function useUpdateAlert(): UseUpdateAlertReturn {
   });
 
   const updateAlert = async (id: string, input: UpdateAlertInput) => {
-    try {
-      const alert = await mutation.mutateAsync({ id, input });
-      return alert;
-    } catch (err) {
-      throw err;
-    }
+    return mutation.mutateAsync({ id, input });
   };
 
   return {
@@ -288,12 +284,8 @@ export function useDeleteAlert(): UseDeleteAlertReturn {
   });
 
   const deleteAlert = async (id: string) => {
-    try {
-      await mutation.mutateAsync(id);
-      return true;
-    } catch (err) {
-      throw err;
-    }
+    await mutation.mutateAsync(id);
+    return true;
   };
 
   return {
@@ -364,9 +356,14 @@ export function useAcknowledgeAlert(): UseAcknowledgeAlertReturn {
     },
   });
 
+  const mutationRef = useRef(mutation);
+  useEffect(() => {
+    mutationRef.current = mutation;
+  });
+
   const acknowledge = useCallback(async (eventId: string) => {
     try {
-      const event = await mutation.mutateAsync(eventId);
+      const event = await mutationRef.current.mutateAsync(eventId);
       return { event, error: null };
     } catch (err) {
       return { event: null, error: err as Error };
@@ -380,7 +377,9 @@ export function useAlertEventsRealtime() {
   const user = useUser();
   const { refetch } = useAlertEvents();
   const refetchRef = useRef(refetch);
-  refetchRef.current = refetch;
+  useEffect(() => {
+    refetchRef.current = refetch;
+  });
 
   useEffect(() => {
     if (!user?.id) return;
@@ -427,12 +426,12 @@ export function useBatchAlerts(): UseBatchAlertsReturn {
         throw new Error('No alerts selected');
       }
 
-      const response = await apiClient.post<BatchOperationResult>('/api/alerts/batch', {
+      const response = await apiClient.post<BatchOperationResponse>('/api/alerts/batch', {
         action,
         alertIds,
       });
 
-      return response.data;
+      return response.data.results;
     },
     onSuccess: () => {
       if (user?.id) {
@@ -441,10 +440,15 @@ export function useBatchAlerts(): UseBatchAlertsReturn {
     },
   });
 
+  const batchMutationRef = useRef(mutation);
+  useEffect(() => {
+    batchMutationRef.current = mutation;
+  });
+
   const batchOperation = useCallback(
     async (action: 'enable' | 'disable' | 'delete', alertIds: string[]) => {
       try {
-        const result = await mutation.mutateAsync({ action, alertIds });
+        const result = await batchMutationRef.current.mutateAsync({ action, alertIds });
         return { result, error: null };
       } catch (err) {
         return { result: null, error: err as Error };
