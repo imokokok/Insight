@@ -1,4 +1,4 @@
-import { type NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 
 import { createCachedJsonResponse } from '@/lib/api/utils';
 import { ValidationError, InternalError, errorToResponse, isAppError } from '@/lib/errors';
@@ -22,6 +22,7 @@ interface OracleQueryParams {
   symbol: string;
   chain?: Blockchain;
   period?: number;
+  forceRefresh?: boolean;
 }
 
 interface BatchPriceRequest {
@@ -31,7 +32,13 @@ interface BatchPriceRequest {
 }
 
 async function fetchPriceFromOracle(params: OracleQueryParams): Promise<PriceData> {
-  return fetchPriceWithDatabase(params.provider, params.symbol, params.chain, true);
+  return fetchPriceWithDatabase(
+    params.provider,
+    params.symbol,
+    params.chain,
+    true,
+    params.forceRefresh
+  );
 }
 
 async function fetchHistoricalFromOracle(params: OracleQueryParams): Promise<PriceData[]> {
@@ -139,6 +146,7 @@ export async function handleGetPrice(params: OracleQueryParams) {
       provider: params.provider,
       symbol: params.symbol,
       chain: params.chain,
+      forceRefresh: params.forceRefresh,
     });
     const data = await fetchPriceFromOracle(params);
     logger.info('Price fetched successfully', {
@@ -147,6 +155,11 @@ export async function handleGetPrice(params: OracleQueryParams) {
       chain: params.chain,
       price: data.price,
     });
+
+    if (params.forceRefresh) {
+      return NextResponse.json(data);
+    }
+
     return createPriceResponse(data);
   } catch (error) {
     logger.error(

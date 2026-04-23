@@ -348,6 +348,7 @@ export const OracleProviderQuerySchema = z.object({
   symbol: SafeSymbolSchema,
   chain: SafeChainSchema.optional(),
   period: SafePeriodSchema.optional(),
+  forceRefresh: z.coerce.boolean().optional(),
 });
 
 type OracleProviderQueryType = z.infer<typeof OracleProviderQuerySchema>;

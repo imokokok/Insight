@@ -25,10 +25,16 @@ export async function fetchPriceWithDatabase(
   provider: OracleProvider,
   symbol: string,
   chain: Blockchain | undefined,
-  useDatabase: boolean
+  useDatabase: boolean,
+  forceRefresh: boolean = false
 ): Promise<PriceData> {
   try {
-    if (useDatabase && shouldUseDatabase() && !PROVIDERS_WITH_EXTRA_FIELDS.has(provider)) {
+    if (
+      !forceRefresh &&
+      useDatabase &&
+      shouldUseDatabase() &&
+      !PROVIDERS_WITH_EXTRA_FIELDS.has(provider)
+    ) {
       const dbPrice = await getPriceFromDatabase(provider, symbol, chain);
       if (dbPrice) {
         return dbPrice;
@@ -36,6 +42,15 @@ export async function fetchPriceWithDatabase(
     }
 
     const client = await getOracleClient(provider);
+
+    if (
+      forceRefresh &&
+      'clearCache' in client &&
+      typeof (client as { clearCache: () => void }).clearCache === 'function'
+    ) {
+      (client as { clearCache: () => void }).clearCache();
+    }
+
     const livePrice = await client.getPrice(symbol, chain);
     if (!PROVIDERS_WITH_EXTRA_FIELDS.has(provider)) {
       savePriceToDatabase(livePrice).catch(() => {});

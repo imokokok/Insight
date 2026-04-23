@@ -127,6 +127,7 @@ export function useOracleDataCore(
             oracleApiClient.fetchPrice({
               provider: oracle,
               symbol: baseSymbol,
+              forceRefresh: true,
             }),
           {
             priority: requestPriority,

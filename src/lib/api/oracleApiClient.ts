@@ -14,6 +14,7 @@ interface FetchPriceParams {
   symbol: string;
   chain?: Blockchain;
   signal?: AbortSignal;
+  forceRefresh?: boolean;
 }
 
 interface FetchHistoricalParams extends FetchPriceParams {
@@ -263,6 +264,7 @@ async function fetchPriceFromApi({
   symbol,
   chain,
   signal: externalSignal,
+  forceRefresh = false,
 }: FetchPriceParams): Promise<PriceData> {
   const key = buildRequestKey('price', provider, symbol, chain);
   const url = new URL(`/api/oracles/${provider}`, getBaseUrl());
@@ -270,8 +272,15 @@ async function fetchPriceFromApi({
   if (chain) {
     url.searchParams.set('chain', chain);
   }
+  if (forceRefresh) {
+    url.searchParams.set('forceRefresh', 'true');
+  }
 
   logger.info(`Fetching price from API: ${url.toString()}`);
+
+  if (forceRefresh) {
+    responseCache.delete(key);
+  }
 
   return deduplicatedFetch<PriceData>(
     key,
