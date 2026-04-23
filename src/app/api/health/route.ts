@@ -8,12 +8,7 @@ export const dynamic = 'force-dynamic';
 
 function isLocalRequest(request: NextRequest): boolean {
   if (process.env.NODE_ENV !== 'production') {
-    const authHeader = request.headers.get('authorization');
-    const healthSecret = process.env.HEALTH_CHECK_SECRET;
-    if (healthSecret && authHeader === `Bearer ${healthSecret}`) {
-      return true;
-    }
-    return false;
+    return true;
   }
   const authHeader = request.headers.get('authorization');
   const healthSecret = process.env.HEALTH_CHECK_SECRET;
@@ -37,7 +32,7 @@ async function checkDatabase(): Promise<'ok' | 'error'> {
   try {
     const supabase = createServerClient();
 
-    const { error } = await supabase.from('user_profiles').select().limit(1);
+    const { error } = await supabase.from('user_profiles').select('id').limit(1);
 
     if (error) {
       return 'error';

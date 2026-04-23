@@ -134,9 +134,14 @@ export class DIAClient extends BaseOracleClient {
   async getHistoricalPrices(
     symbol: string,
     chain?: Blockchain,
-    periodHours: number = 24
+    periodHours: number = 24,
+    options?: { signal?: AbortSignal }
   ): Promise<PriceData[]> {
     try {
+      if (options?.signal?.aborted) {
+        throw this.createError('Request was aborted', 'NETWORK_ERROR', { retryable: false });
+      }
+
       logger.info(`Fetching historical prices for ${symbol} from Binance API`, {
         chain,
         periodHours,
@@ -171,7 +176,7 @@ export class DIAClient extends BaseOracleClient {
           confidence: 0.95,
           change24h: Number(change24h.toFixed(4)),
           change24hPercent: Number(change24hPercent.toFixed(2)),
-          chain,
+          chain: chain || Blockchain.ETHEREUM,
           source: 'binance-api',
         };
       });

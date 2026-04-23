@@ -76,7 +76,7 @@ export class SupraClient extends BaseOracleClient {
       const supraDataService = getSupraDataService();
       const latestData = await supraDataService.fetchLatestPrice(upperSymbol, options?.signal);
 
-      if (!latestData || isNaN(latestData.price)) {
+      if (!latestData || isNaN(latestData.price) || latestData.price <= 0) {
         throw this.createError(
           `No price data available for ${upperSymbol} from Supra DORA`,
           'NO_DATA_AVAILABLE'

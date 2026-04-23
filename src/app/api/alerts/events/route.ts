@@ -22,6 +22,10 @@ export const GET = createApiHandler(
         acknowledged = true;
       } else if (acknowledgedParam === 'false') {
         acknowledged = false;
+      } else {
+        return ApiResponseBuilder.badRequest(
+          'Invalid "acknowledged" parameter. Must be "true" or "false".'
+        );
       }
     }
 
@@ -30,6 +34,10 @@ export const GET = createApiHandler(
       const parsedLimit = parseInt(limitParam, 10);
       if (!isNaN(parsedLimit) && parsedLimit > 0 && parsedLimit <= MAX_LIMIT) {
         limit = parsedLimit;
+      } else {
+        return ApiResponseBuilder.badRequest(
+          `Invalid "limit" parameter. Must be a positive integer up to ${MAX_LIMIT}.`
+        );
       }
     }
 

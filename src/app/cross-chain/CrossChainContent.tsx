@@ -28,6 +28,13 @@ const MemoizedPriceSpreadHeatmap = memo(PriceSpreadHeatmap);
 const MemoizedOverviewTab = memo(OverviewTab);
 const MemoizedChartsTab = memo(ChartsTab);
 
+const REFRESH_OPTIONS = [
+  { value: 0, label: 'Off' },
+  { value: 30000, label: '30s' },
+  { value: 60000, label: '1m' },
+  { value: 300000, label: '5m' },
+] as const;
+
 export default function CrossChainContent() {
   const [activeTab, setActiveTab] = useState<TabId>('overview');
 
@@ -35,13 +42,6 @@ export default function CrossChainContent() {
   const lastUpdated = useCrossChainDataStore((s) => s.lastUpdated);
   const refreshInterval = useCrossChainConfigStore((s) => s.refreshInterval);
   const setRefreshInterval = useCrossChainConfigStore((s) => s.setRefreshInterval);
-
-  const refreshOptions = [
-    { value: 0, label: 'Off' },
-    { value: 30000, label: '30s' },
-    { value: 60000, label: '1m' },
-    { value: 300000, label: '5m' },
-  ];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -62,7 +62,7 @@ export default function CrossChainContent() {
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">Auto Refresh</span>
                   <SegmentedControl
-                    options={refreshOptions.map((opt) => ({
+                    options={REFRESH_OPTIONS.map((opt) => ({
                       value: opt.value.toString(),
                       label: opt.label,
                     }))}

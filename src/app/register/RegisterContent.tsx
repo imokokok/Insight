@@ -9,7 +9,7 @@ import { Mail, User, UserPlus, Loader2, CheckCircle, AlertCircle } from 'lucide-
 
 import { PasswordInput } from '@/components/ui/PasswordInput';
 import { validatePassword, getPasswordStrength } from '@/lib/security/passwordValidation';
-import { useUser, useSession, useAuthActions } from '@/stores/authStore';
+import { useUser, useSession, useAuthActions, useAuthError } from '@/stores/authStore';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -18,6 +18,7 @@ export default function RegisterContent() {
   const user = useUser();
   const session = useSession();
   const { signUp, clearError } = useAuthActions();
+  const authError = useAuthError();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -80,7 +81,7 @@ export default function RegisterContent() {
     }
   };
 
-  const displayError = localError;
+  const displayError = localError || authError?.message;
   const passwordStrength = getPasswordStrength(password);
 
   if (isSuccess) {

@@ -202,8 +202,14 @@ export function DataManagementPanel() {
       });
 
       if (!res.ok) {
-        const result = await res.json().catch(() => ({ error: 'Unknown error' }));
-        setError(result.error || 'Failed to delete account');
+        const result = await res.json().catch(() => ({ error: { message: 'Unknown error' } }));
+        const errorMessage =
+          typeof result.error === 'object' && result.error?.message
+            ? result.error.message
+            : typeof result.error === 'string'
+              ? result.error
+              : result.message || 'Failed to delete account';
+        setError(errorMessage);
         return;
       }
 

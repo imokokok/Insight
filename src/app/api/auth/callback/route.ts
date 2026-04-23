@@ -132,13 +132,12 @@ export async function GET(request: NextRequest) {
   }
 
   let redirectPath: string;
-  let redirectQuery = '';
+  const redirectQuery = '';
 
   if (type === 'recovery') {
     redirectPath = '/auth/reset-password';
   } else if (type === 'signup' || type === 'email_change') {
     redirectPath = '/auth/verify-email';
-    redirectQuery = `?code=${encodeURIComponent(code)}`;
   } else if (state && isValidRedirectPath(state)) {
     redirectPath = state;
   } else {

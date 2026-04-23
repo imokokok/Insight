@@ -20,8 +20,7 @@ export function useAllOnChainData(params: UseAllOnChainDataParams): OnChainData 
     selectedOracle === provider ||
     queryResults.some((r) => r.provider === provider);
 
-  const enabled = (provider: OracleProvider) =>
-    shouldFetch(provider) && !!selectedSymbol && queryResults.length > 0;
+  const enabled = (provider: OracleProvider) => shouldFetch(provider) && !!selectedSymbol;
 
   const { data: diaOnChainData, isLoading: isDIADataLoading } = useOnChainDataByProvider({
     provider: OracleProvider.DIA,

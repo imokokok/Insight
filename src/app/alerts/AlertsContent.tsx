@@ -14,8 +14,18 @@ import { useUser, useAuthLoading } from '@/stores/authStore';
 function AlertsContentInner() {
   const user = useUser();
   const authLoading = useAuthLoading();
-  const { alerts, isLoading: alertsLoading, refetch: refetchAlerts } = useAlerts();
-  const { events, isLoading: eventsLoading, refetch: refetchEvents } = useAlertEvents();
+  const {
+    alerts,
+    isLoading: alertsLoading,
+    error: alertsError,
+    refetch: refetchAlerts,
+  } = useAlerts();
+  const {
+    events,
+    isLoading: eventsLoading,
+    error: eventsError,
+    refetch: refetchEvents,
+  } = useAlertEvents();
   useAlertEventsRealtime();
 
   const handleAlertCreated = useCallback(() => {
@@ -75,16 +85,19 @@ function AlertsContentInner() {
         </div>
 
         <div className="lg:col-span-2">
+          {(alertsError || eventsError) && (
+            <div className="mb-4 p-4 bg-danger-50 border border-danger-200 rounded-lg">
+              <p className="text-sm text-danger-600">
+                {alertsError?.message || eventsError?.message || 'An error occurred'}
+              </p>
+            </div>
+          )}
           <AlertList alerts={alerts} isLoading={alertsLoading} onRefresh={refetchAlerts} />
         </div>
       </div>
 
       <div id="alert-history" className="mt-6">
-        <AlertHistory
-          events={events as never}
-          isLoading={eventsLoading}
-          onRefresh={refetchEvents}
-        />
+        <AlertHistory events={events} isLoading={eventsLoading} onRefresh={refetchEvents} />
       </div>
 
       <div className="mt-8 p-4 bg-primary-50 border border-primary-200 rounded-lg">

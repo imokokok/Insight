@@ -28,7 +28,7 @@ export const POST = createApiHandler(
       return ApiResponseBuilder.badRequest('Confirmation phrase is required to delete account');
     }
 
-    const expectedConfirmation = `DELETE ${userEmail || userId}`;
+    const expectedConfirmation = `DELETE ${userEmail ?? userId}`;
     if (confirmation !== expectedConfirmation) {
       return ApiResponseBuilder.badRequest(
         'Confirmation phrase does not match. Please type "DELETE <your-email>" to confirm.'
@@ -64,13 +64,13 @@ export const POST = createApiHandler(
       .eq('id', userId);
     if (profileError) {
       deletionErrors.push('profile');
-      logger.error('Failed to delete user profile', profileError as Error);
+      logger.error('Failed to delete user profile', new Error(String(profileError)));
     }
 
     const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
 
     if (deleteError) {
-      logger.error('Failed to delete user account', deleteError as Error);
+      logger.error('Failed to delete user account', new Error(String(deleteError)));
       return ApiResponseBuilder.serverError(
         deletionErrors.length > 0
           ? `Failed to delete account. Partial deletion occurred for: ${deletionErrors.join(', ')}`

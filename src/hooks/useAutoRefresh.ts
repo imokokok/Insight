@@ -2,6 +2,10 @@
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('useAutoRefresh');
+
 export type RefreshInterval = 0 | 10000 | 30000 | 60000 | 300000;
 
 export const REFRESH_INTERVALS: { value: RefreshInterval; label: string }[] = [
@@ -32,7 +36,7 @@ interface UseAutoRefreshReturn {
   isRefreshing: boolean;
 }
 
-function useAutoRefresh({
+export function useAutoRefresh({
   enabled,
   intervalMs,
   onRefresh,
@@ -76,7 +80,12 @@ function useAutoRefresh({
             .then(() => {
               setLastRefreshedAt(new Date());
             })
-            .catch(() => {})
+            .catch((err) => {
+              logger.warn(
+                'Auto refresh failed on visibility change',
+                err instanceof Error ? err : new Error(String(err))
+              );
+            })
             .finally(() => {
               isRefreshingRef.current = false;
               setIsRefreshing(false);
@@ -104,7 +113,9 @@ function useAutoRefresh({
         .then(() => {
           setLastRefreshedAt(new Date());
         })
-        .catch(() => {})
+        .catch((err) => {
+          logger.warn('Auto refresh failed', err instanceof Error ? err : new Error(String(err)));
+        })
         .finally(() => {
           isRefreshingRef.current = false;
           setIsRefreshing(false);
