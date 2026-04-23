@@ -361,11 +361,14 @@ export class DatabaseQueries {
     chain?: Blockchain | string | null
   ): Promise<PriceRecord | null> {
     return queryQueue.add(async () => {
+      const now = new Date().toISOString();
+
       let query = this.client
         .from('price_records')
         .select('*')
         .eq('provider', provider)
         .eq('symbol', symbol)
+        .gte('ttl', now)
         .order('timestamp', { ascending: false })
         .limit(1);
 
