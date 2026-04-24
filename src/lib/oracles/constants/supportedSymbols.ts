@@ -134,15 +134,10 @@ export const redstoneSymbols = [
 // DIA supported symbols (based on actual detection results - 2026-04-14)
 // Only including symbols that can be correctly fetched
 export const diaSymbols = [
-  // Major Cryptocurrencies
   'BTC',
   'ETH',
   'BNB',
   'SOL',
-  'XRP',
-  'ADA',
-  'DOGE',
-  'DOT',
   'MATIC',
   'LTC',
   'AVAX',
@@ -154,10 +149,7 @@ export const diaSymbols = [
   'BCH',
   'FIL',
   'NEAR',
-  'APT',
   'ARB',
-  'OP',
-  // DeFi Tokens
   'AAVE',
   'SNX',
   'CRV',
@@ -170,13 +162,11 @@ export const diaSymbols = [
   'LDO',
   'GMX',
   'DYDX',
-  // Stablecoins
   'USDC',
   'USDT',
   'DAI',
   'FRAX',
   'BUSD',
-  // Wrapped Assets
   'WBTC',
   'WETH',
 ] as const;
@@ -196,27 +186,16 @@ const api3Symbols = [
   'USDC',
   'USDT',
   'WBTC',
-  'API3',
 ] as const;
 
-// API3 available chain-trading pair mapping (based on actual detection results - 2026-04-14)
-// Only including trading pairs that can be correctly fetched
 export const API3_AVAILABLE_PAIRS: Record<string, string[]> = {
-  // Ethereum: 6 available
-  ethereum: ['BAL', 'BTC', 'COMP', 'ETH', 'USDC', 'API3'],
-  // Arbitrum: 10 available
-  arbitrum: ['ARB', 'AVAX', 'BTC', 'COMP', 'DAI', 'ETH', 'USDC', 'USDT', 'WBTC', 'API3'],
-  // Polygon: 8 available
-  polygon: ['ARB', 'AVAX', 'BNB', 'BTC', 'ETH', 'USDC', 'WBTC', 'API3'],
-  // Base: 9 available
-  base: ['BNB', 'BTC', 'DAI', 'ETH', 'SOL', 'USDC', 'USDT', 'WBTC', 'API3'],
-  // Optimism: 4 available
-  optimism: ['ETH', 'USDC', 'WBTC', 'API3'],
-  // Avalanche: 4 available
-  avalanche: ['AVAX', 'ETH', 'USDT', 'API3'],
-  // BNB Chain: 7 available
-  'bnb-chain': ['BNB', 'BTC', 'ETH', 'USDC', 'USDT', 'WBTC', 'API3'],
-  // Fantom: 0 successful - API3 has not deployed dAPI on Fantom, removed
+  ethereum: ['BAL', 'BTC', 'COMP', 'ETH', 'USDC'],
+  arbitrum: ['ARB', 'AVAX', 'BTC', 'COMP', 'DAI', 'ETH', 'USDC', 'USDT', 'WBTC'],
+  polygon: ['ARB', 'AVAX', 'BNB', 'BTC', 'ETH', 'USDC', 'WBTC'],
+  base: ['BNB', 'BTC', 'DAI', 'ETH', 'SOL', 'USDC', 'USDT', 'WBTC'],
+  optimism: ['ETH', 'USDC', 'WBTC'],
+  avalanche: ['AVAX', 'ETH', 'USDT'],
+  'bnb-chain': ['BNB', 'BTC', 'ETH', 'USDC', 'USDT', 'WBTC'],
 };
 
 // Pyth supported symbols (based on official documentation, supporting 400+ price feeds)
@@ -325,17 +304,14 @@ export const winklinkSymbols = [
   'BTC',
   'ETH',
   'TRX',
-  'LTC',
-  'WIN',
-  'BTT',
-  'JST',
-  'SUN',
-  'USDD',
-  'NFT',
   'USDT',
   'USDC',
+  'USDD',
+  'WIN',
+  'JST',
+  'SUN',
+  'LTC',
   'TUSD',
-  'USDJ',
   'WBTC',
 ] as const;
 
@@ -487,47 +463,12 @@ const twapSymbols = [
 type TwapSymbol = (typeof twapSymbols)[number];
 
 const TWAP_AVAILABLE_PAIRS: Record<string, string[]> = {
-  ethereum: [
-    'BTC',
-    'ETH',
-    'USDC',
-    'USDT',
-    'DAI',
-    'WBTC',
-    'LINK',
-    'UNI',
-    'AAVE',
-    'SNX',
-    'CRV',
-    'COMP',
-    'MKR',
-    'SUSHI',
-    '1INCH',
-    'BAL',
-    'STETH',
-    'FRAX',
-  ],
-  arbitrum: [
-    'BTC',
-    'ETH',
-    'USDC',
-    'USDT',
-    'DAI',
-    'WBTC',
-    'LINK',
-    'UNI',
-    'AAVE',
-    'ARB',
-    'SNX',
-    'CRV',
-    'COMP',
-    'MKR',
-    'GMX',
-  ],
-  optimism: ['BTC', 'ETH', 'USDC', 'USDT', 'DAI', 'WBTC', 'LINK', 'UNI', 'OP', 'SNX'],
-  polygon: ['BTC', 'ETH', 'USDC', 'USDT', 'DAI', 'WBTC', 'LINK', 'UNI', 'AAVE', 'MATIC'],
-  base: ['BTC', 'ETH', 'USDC', 'USDT', 'DAI', 'WBTC', 'LINK', 'UNI', 'AAVE', 'OP'],
-  'bnb-chain': ['BTC', 'ETH', 'USDC', 'USDT', 'DAI', 'WBTC', 'LINK', 'BNB'],
+  ethereum: ['BTC', 'ETH', 'USDC', 'USDT', 'DAI', 'WBTC', 'LINK', 'UNI', 'AAVE', 'FRAX'],
+  arbitrum: ['BTC', 'ETH', 'USDC', 'WBTC', 'LINK', 'ARB'],
+  optimism: ['BTC', 'ETH', 'USDC', 'WBTC', 'LINK', 'OP'],
+  polygon: ['BTC', 'ETH', 'USDC', 'USDT', 'WBTC'],
+  base: ['BTC', 'ETH', 'USDC', 'WBTC'],
+  'bnb-chain': ['BTC', 'ETH', 'USDT', 'WBTC', 'BNB'],
 };
 
 const reflectorSymbols = [

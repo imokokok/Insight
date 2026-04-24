@@ -159,14 +159,14 @@ const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPriceFeed>> 
       category: 'crypto',
     },
     56: {
-      address: '0x1B329402Cb1825C6F30A0d92aB9E2862BE47333f',
+      address: '0xca236E327F629f9Fc2c30A4E95775EbF0B89fac8',
       name: 'LINK / USD',
       symbol: 'LINK',
       decimals: 8,
       category: 'crypto',
     },
     10: {
-      address: '0xCc232dcFAA0B0C57f147E7D5a3f2DdC1f4B8928b',
+      address: '0xCc232dcFAAE6354cE191Bd574108c1aD03f86450',
       name: 'LINK / USD',
       symbol: 'LINK',
       decimals: 8,
@@ -239,7 +239,7 @@ const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPriceFeed>> 
   },
   AVAX: {
     43114: {
-      address: '0x0FCAa9c899EC5A91eBc3D5Dd869De833b06fB046',
+      address: '0x0A77230d17318075983913bC2145DB16C7366156',
       name: 'AVAX / USD',
       symbol: 'AVAX',
       decimals: 8,
@@ -247,6 +247,13 @@ const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPriceFeed>> 
     },
     1: {
       address: '0xFF3EEb22B5E3dE6e705b44749C2559d704923FD7',
+      name: 'AVAX / USD',
+      symbol: 'AVAX',
+      decimals: 8,
+      category: 'crypto',
+    },
+    42161: {
+      address: '0x8bf61728eeDCE2F32c456454d87B5d6eD6150208',
       name: 'AVAX / USD',
       symbol: 'AVAX',
       decimals: 8,
@@ -261,8 +268,15 @@ const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPriceFeed>> 
       decimals: 8,
       category: 'crypto',
     },
+    1: {
+      address: '0x14E613aC84a31F709EadbdF89C6CC390fDc9540A',
+      name: 'BNB / USD',
+      symbol: 'BNB',
+      decimals: 8,
+      category: 'crypto',
+    },
     42161: {
-      address: '0x1B329402Cb1825C6F30A0d92aB9E2862BE47333f',
+      address: '0x6970460aabF80C5BE983C6b74e5D06dEDCA95D4A',
       name: 'BNB / USD',
       symbol: 'BNB',
       decimals: 8,
