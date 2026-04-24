@@ -117,7 +117,6 @@ const SYMBOL_TO_DAPI: Record<string, string> = {
   AVAX: 'AVAX/USD',
   // === The following tokens exist on API3 Market but may not be activated; mapping retained for future use ===
   LINK: 'LINK/USD',
-  API3: 'API3/USD',
   MATIC: 'MATIC/USD',
   OP: 'OP/USD',
   UNI: 'UNI/USD',
@@ -169,7 +168,6 @@ const DAPI_DECIMALS: Record<string, number> = {
   'WBTC/USD': 18,
   'AVAX/USD': 18,
   'LINK/USD': 18,
-  'API3/USD': 18,
   'MATIC/USD': 18,
   'OP/USD': 18,
   'UNI/USD': 18,

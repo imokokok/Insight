@@ -413,7 +413,8 @@ class TwapOnChainService {
     token0Symbol: string,
     token1Symbol: string,
     chainId: number,
-    signal?: AbortSignal
+    signal?: AbortSignal,
+    targetSymbol?: string
   ): Promise<number> {
     const rawPrice = this.tickToPrice(tick);
     const token0Decimals = this.getTokenDecimals(token0Symbol, chainId);
@@ -426,45 +427,74 @@ class TwapOnChainService {
     const btcTokens = ['WBTC', 'BTC'];
     const bnbTokens = ['BNB', 'WBNB'];
 
+    let token0UsdPrice: number;
+    let token1UsdPrice: number;
+
     if (stablecoins.includes(token1Symbol)) {
-      return adjustedPrice;
-    }
-
-    if (stablecoins.includes(token0Symbol)) {
-      return 1 / adjustedPrice;
-    }
-
-    if (bnbTokens.includes(token1Symbol)) {
-      const bnbUsdPrice = await this.getBnbUsdPrice(chainId, signal);
-      return adjustedPrice * bnbUsdPrice;
-    }
-
-    if (bnbTokens.includes(token0Symbol)) {
-      const bnbUsdPrice = await this.getBnbUsdPrice(chainId, signal);
-      return (1 / adjustedPrice) * bnbUsdPrice;
-    }
-
-    if (ethTokens.includes(token1Symbol)) {
+      token0UsdPrice = adjustedPrice;
+      token1UsdPrice = 1;
+    } else if (stablecoins.includes(token0Symbol)) {
+      token0UsdPrice = 1;
+      token1UsdPrice = 1 / adjustedPrice;
+    } else if (ethTokens.includes(token1Symbol)) {
       const ethUsdPrice = await this.getEthUsdPrice(chainId, signal);
-      return adjustedPrice * ethUsdPrice;
-    }
-
-    if (ethTokens.includes(token0Symbol)) {
+      token0UsdPrice = adjustedPrice * ethUsdPrice;
+      token1UsdPrice = ethUsdPrice;
+    } else if (ethTokens.includes(token0Symbol)) {
       const ethUsdPrice = await this.getEthUsdPrice(chainId, signal);
-      return (1 / adjustedPrice) * ethUsdPrice;
-    }
-
-    if (btcTokens.includes(token1Symbol)) {
+      token0UsdPrice = ethUsdPrice;
+      token1UsdPrice = (1 / adjustedPrice) * ethUsdPrice;
+    } else if (bnbTokens.includes(token1Symbol)) {
+      const bnbUsdPrice = await this.getBnbUsdPrice(chainId, signal);
+      token0UsdPrice = adjustedPrice * bnbUsdPrice;
+      token1UsdPrice = bnbUsdPrice;
+    } else if (bnbTokens.includes(token0Symbol)) {
+      const bnbUsdPrice = await this.getBnbUsdPrice(chainId, signal);
+      token0UsdPrice = bnbUsdPrice;
+      token1UsdPrice = (1 / adjustedPrice) * bnbUsdPrice;
+    } else if (btcTokens.includes(token1Symbol)) {
       const btcUsdPrice = await this.getBtcUsdPrice(chainId, signal);
-      return adjustedPrice * btcUsdPrice;
-    }
-
-    if (btcTokens.includes(token0Symbol)) {
+      token0UsdPrice = adjustedPrice * btcUsdPrice;
+      token1UsdPrice = btcUsdPrice;
+    } else if (btcTokens.includes(token0Symbol)) {
       const btcUsdPrice = await this.getBtcUsdPrice(chainId, signal);
-      return (1 / adjustedPrice) * btcUsdPrice;
+      token0UsdPrice = btcUsdPrice;
+      token1UsdPrice = (1 / adjustedPrice) * btcUsdPrice;
+    } else {
+      token0UsdPrice = adjustedPrice;
+      token1UsdPrice = 1 / adjustedPrice;
     }
 
-    return adjustedPrice;
+    const normalizedTarget = targetSymbol
+      ? ethTokens.includes(targetSymbol)
+        ? 'WETH'
+        : btcTokens.includes(targetSymbol)
+          ? 'WBTC'
+          : targetSymbol
+      : undefined;
+    const normalizedToken0 = ethTokens.includes(token0Symbol)
+      ? 'WETH'
+      : btcTokens.includes(token0Symbol)
+        ? 'WBTC'
+        : token0Symbol;
+    const normalizedToken1 = ethTokens.includes(token1Symbol)
+      ? 'WETH'
+      : btcTokens.includes(token1Symbol)
+        ? 'WBTC'
+        : token1Symbol;
+
+    if (normalizedTarget === normalizedToken1) {
+      return token1UsdPrice;
+    }
+
+    if (normalizedTarget && normalizedTarget !== normalizedToken0) {
+      const targetDecimals = this.getTokenDecimals(targetSymbol!, chainId);
+      const token0Dec = this.getTokenDecimals(token0Symbol, chainId);
+      const decAdj = Math.pow(10, targetDecimals - token0Dec);
+      return token0UsdPrice / (adjustedPrice * decAdj);
+    }
+
+    return token0UsdPrice;
   }
 
   private getTokenDecimals(symbol: string, chainId?: number): number {
@@ -663,14 +693,16 @@ class TwapOnChainService {
         poolConfig.token0,
         poolConfig.token1,
         chainId,
-        signal
+        signal,
+        symbol
       );
       const spotPrice = await this.calculateUsdPrice(
         tick,
         poolConfig.token0,
         poolConfig.token1,
         chainId,
-        signal
+        signal,
+        symbol
       );
 
       const deviation = spotPrice > 0 ? Math.abs(twapPrice - spotPrice) / spotPrice : 0;

@@ -140,7 +140,7 @@ const DIA_ASSET_MAPPING: Record<string, DIAAssetConfig> = {
   },
   OP: {
     symbol: 'OP',
-    blockchain: 'Ethereum',
+    blockchain: 'Optimism',
     address: '0x4200000000000000000000000000000000000042',
   },
   ATOM: {

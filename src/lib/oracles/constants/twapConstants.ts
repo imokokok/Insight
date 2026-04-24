@@ -48,7 +48,7 @@ export const TWAP_TOKEN_ADDRESSES: Record<string, Record<number, `0x${string}`>>
   },
   WBTC: {
     1: '0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599',
-    42161: '0x2f5E2f57A05eA4836B5dE9a2990D5c8E705FA1F0',
+    42161: '0x2f2a2543B76A4166549F7aaB2e75Bef0aefC5B0f',
     10: '0x68f180fcCe6836688e9084f035309E29Bf0A2095',
     137: '0x1BFD67037B42Cf73acF2047067bd4F2C47D9BfD6',
     8453: '0xcbB7C0000aB88B473b1f5aFd9ef808440ee33D29',
@@ -204,26 +204,26 @@ export const TWAP_POOL_ADDRESSES: Record<string, Record<number, TwapPoolConfig>>
   },
   BTC: {
     1: {
-      address: '0x4585FE77225b41b697C938B018E2Ac67Ac5a20c0',
+      address: '0xCBCdF9626bC03E24f779434178A73a0B4bad62eD',
       feeTier: 3000,
       token0: 'WBTC',
       token1: 'WETH',
     },
     42161: {
-      address: '0x2f5E2f57A05eA4836B5dE9a2990D5c8E705FA1F0',
+      address: '0x149e36E72726e0BceA5c59d40df2c43F60f5A22D',
       feeTier: 3000,
       token0: 'WBTC',
       token1: 'WETH',
     },
     10: {
-      address: '0x7a4e5Dd5c79f4983D6E3aC7e0E4B3865D936c7E3',
+      address: '0x73B14a78a0D396C521f954532d43fd5fFe385216',
       feeTier: 3000,
-      token0: 'WBTC',
-      token1: 'WETH',
+      token0: 'WETH',
+      token1: 'WBTC',
     },
     137: {
-      address: '0x50eaEDBc3eEf8b4E4691e3e7c25E70DC4f0e2F0e',
-      feeTier: 3000,
+      address: '0x50eaEDB835021E4A108B7290636d62E9765cc6d7',
+      feeTier: 500,
       token0: 'WBTC',
       token1: 'WETH',
     },
@@ -259,18 +259,6 @@ export const TWAP_POOL_ADDRESSES: Record<string, Record<number, TwapPoolConfig>>
       token0: 'LINK',
       token1: 'WETH',
     },
-    137: {
-      address: '0x3Fb3696a1C4e4e1f8a0C7e0e9e7e3D9A6A0f1B2c',
-      feeTier: 3000,
-      token0: 'LINK',
-      token1: 'WETH',
-    },
-    8453: {
-      address: '0x4e1dC0aA8a5b4fBEe0E6e3A7e8e9e7e3D9A6A0f1',
-      feeTier: 3000,
-      token0: 'LINK',
-      token1: 'WETH',
-    },
   },
   UNI: {
     1: {
@@ -279,34 +267,10 @@ export const TWAP_POOL_ADDRESSES: Record<string, Record<number, TwapPoolConfig>>
       token0: 'UNI',
       token1: 'WETH',
     },
-    42161: {
-      address: '0xc846A8fC8F3a8bA3B0E7a1e2F5c0f3D9A6A0f1B2c',
-      feeTier: 3000,
-      token0: 'UNI',
-      token1: 'WETH',
-    },
-    10: {
-      address: '0xb5c457b0A7e0bD2f5e9A1c2F5c0f3D9A6A0f1B2c',
-      feeTier: 3000,
-      token0: 'UNI',
-      token1: 'WETH',
-    },
   },
   DAI: {
     1: {
-      address: '0x5777d92f208679DB4b9778590Fa3CAB3aC9e2168',
-      feeTier: 500,
-      token0: 'DAI',
-      token1: 'USDC',
-    },
-    42161: {
-      address: '0x9A3c033a8D81176eAeA38D9a94C7B6e1b4e7E4f5',
-      feeTier: 500,
-      token0: 'DAI',
-      token1: 'USDC',
-    },
-    10: {
-      address: '0x1A4c1a8B6E0fB4f5E8c3D2A1B6c0E4f5D8A7b9C2',
+      address: '0x6c6Bc977E13Df9b0de53b251522280BB72383700',
       feeTier: 500,
       token0: 'DAI',
       token1: 'USDC',
@@ -315,12 +279,6 @@ export const TWAP_POOL_ADDRESSES: Record<string, Record<number, TwapPoolConfig>>
   AAVE: {
     1: {
       address: '0x5aB53EE1d50eeF2C1DD3d5402789cd27bB52c1bB',
-      feeTier: 3000,
-      token0: 'AAVE',
-      token1: 'WETH',
-    },
-    42161: {
-      address: '0x3c7b4A8C2e6f1D5A8B3c4E5f6A7b8C9d0E1f2A3b',
       feeTier: 3000,
       token0: 'AAVE',
       token1: 'WETH',
@@ -336,20 +294,13 @@ export const TWAP_POOL_ADDRESSES: Record<string, Record<number, TwapPoolConfig>>
   },
   OP: {
     10: {
-      address: '0x6815e4187e036DfFD6D3e0e8B1b5f0C1e2D3A4b5',
+      address: '0x68F5C0A2DE713a54991E01858Fd27a3832401849',
       feeTier: 3000,
-      token0: 'OP',
-      token1: 'WETH',
+      token0: 'WETH',
+      token1: 'OP',
     },
   },
-  MATIC: {
-    137: {
-      address: '0x50eaEDBc3eEf8b4E4691e3e7c25E70DC4f0e2F0e',
-      feeTier: 3000,
-      token0: 'MATIC',
-      token1: 'USDC',
-    },
-  },
+  MATIC: {},
   BNB: {
     56: {
       address: '0x36696169C63e42cd08ce11f5deeBbCeBae652050',
@@ -374,10 +325,10 @@ export const TWAP_POOL_ADDRESSES: Record<string, Record<number, TwapPoolConfig>>
   },
   USDT: {
     1: {
-      address: '0x4e68Ccd3E89f51C3074ca5072bbAC773960d3633',
+      address: '0x4e68Ccd3E89f51C3074ca5072bbAC773960dFa36',
       feeTier: 3000,
-      token0: 'USDT',
-      token1: 'WETH',
+      token0: 'WETH',
+      token1: 'USDT',
     },
     56: {
       address: '0x36696169C63e42cd08ce11f5deeBbCeBae652050',
@@ -388,23 +339,16 @@ export const TWAP_POOL_ADDRESSES: Record<string, Record<number, TwapPoolConfig>>
   },
   WBTC: {
     1: {
-      address: '0x4585FE77225b41b697C938B018E2Ac67Ac5a20c0',
+      address: '0xCBCdF9626bC03E24f779434178A73a0B4bad62eD',
       feeTier: 3000,
       token0: 'WBTC',
       token1: 'WETH',
     },
   },
-  STETH: {
-    1: {
-      address: '0x1d42064Fc4Beb5F8aAF85F4617AE8b3b5B8Bd801',
-      feeTier: 3000,
-      token0: 'STETH',
-      token1: 'WETH',
-    },
-  },
+  STETH: {},
   FRAX: {
     1: {
-      address: '0xc63B0708E2F76040eE2A91F4eC3b1B3e5e2e4F5a',
+      address: '0xc63B0708E2F7e69CB8A1df0e1389A98C35A76D52',
       feeTier: 500,
       token0: 'FRAX',
       token1: 'USDC',
