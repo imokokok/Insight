@@ -1,6 +1,6 @@
-type VolatilityCategory = 'stablecoin' | 'major' | 'alt' | 'micro';
+export type VolatilityCategory = 'stablecoin' | 'major' | 'alt' | 'micro';
 
-function getVolatilityCategory(symbol: string): VolatilityCategory {
+export function getVolatilityCategory(symbol: string): VolatilityCategory {
   const upper = symbol.toUpperCase();
   if (/^(USDT|USDC|DAI|BUSD|TUSD|USDD|FRAX|GUSD|PAX|USDP)/.test(upper)) {
     return 'stablecoin';
@@ -14,7 +14,7 @@ function getVolatilityCategory(symbol: string): VolatilityCategory {
   return 'alt';
 }
 
-const DYNAMIC_DEVIATION_THRESHOLDS: Record<
+export const DYNAMIC_DEVIATION_THRESHOLDS: Record<
   VolatilityCategory,
   { NORMAL: number; WARNING: number; DANGER: number; CRITICAL: number }
 > = {
@@ -24,7 +24,7 @@ const DYNAMIC_DEVIATION_THRESHOLDS: Record<
   micro: { NORMAL: 1.0, WARNING: 3.0, DANGER: 8.0, CRITICAL: 15.0 },
 } as const;
 
-function getDeviationThresholds(symbol: string) {
+export function getDeviationThresholds(symbol: string) {
   const category = getVolatilityCategory(symbol);
   return DYNAMIC_DEVIATION_THRESHOLDS[category];
 }

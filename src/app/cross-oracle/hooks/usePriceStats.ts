@@ -19,7 +19,7 @@ import { type PriceStatsResult } from '../types/index';
 
 export function usePriceStats(priceData: PriceData[]): PriceStatsResult {
   const validPrices = useMemo(
-    () => priceData.map((d) => d.price).filter((p) => p > 0),
+    () => priceData.map((d) => d.price).filter((p) => p > 0 && !isNaN(p) && isFinite(p)),
     [priceData]
   );
 

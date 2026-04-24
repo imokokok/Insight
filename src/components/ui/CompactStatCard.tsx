@@ -43,13 +43,13 @@ const CompactStatCard = forwardRef<HTMLDivElement, CompactStatCardProps>(
       switch (trend) {
         case 'up':
           return {
-            text: 'text-emerald-600',
-            bg: 'bg-emerald-50',
+            text: 'text-blue-700',
+            bg: 'bg-blue-50',
           };
         case 'down':
           return {
-            text: 'text-red-600',
-            bg: 'bg-red-50',
+            text: 'text-orange-700',
+            bg: 'bg-orange-50',
           };
         default:
           return {
@@ -91,7 +91,6 @@ const CompactStatCard = forwardRef<HTMLDivElement, CompactStatCardProps>(
           'p-4 bg-white rounded-lg border border-gray-200',
           'transition-all duration-200',
           'hover:border-gray-300 hover:shadow-sm',
-          description && 'group',
           className
         )}
       >
@@ -140,33 +139,14 @@ const CompactStatCard = forwardRef<HTMLDivElement, CompactStatCardProps>(
             </div>
           )}
         </div>
-
-        {description && (
-          <div
-            className={cn(
-              'absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2',
-              'px-3 py-2 text-xs text-white bg-gray-900 rounded-md shadow-lg',
-              'whitespace-nowrap pointer-events-none',
-              'opacity-0 group-hover:opacity-100 transition-opacity duration-200'
-            )}
-            role="tooltip"
-          >
-            {description}
-            <span
-              className={cn(
-                'absolute top-full left-1/2 -translate-x-1/2 -mt-1',
-                'w-2 h-2 bg-gray-900 border-4 border-gray-900',
-                'border-l-transparent border-r-transparent border-b-transparent'
-              )}
-            />
-          </div>
-        )}
       </div>
     );
 
-    if (tooltip) {
+    const tooltipContent = tooltip || description;
+
+    if (tooltipContent) {
       return (
-        <Tooltip content={tooltip} placement="top" delay={300}>
+        <Tooltip content={tooltipContent} placement="top" delay={300}>
           {cardContent}
         </Tooltip>
       );

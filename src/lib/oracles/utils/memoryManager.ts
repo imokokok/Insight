@@ -64,6 +64,22 @@ class MemoryManager {
   private performPeriodicCleanup(): void {
     logger.debug('Performing periodic memory cleanup');
     this.lastCleanupTime = Date.now();
+
+    const config = getPerformanceMetricsConfig().memoryManagement;
+    if (!config.enabled) {
+      return;
+    }
+
+    const stats = this.getMemoryStats(new Map<string, PriceHistory[]>());
+
+    if (stats.totalEntries > config.maxSize) {
+      logger.warn('Memory exceeds max size during periodic cleanup', {
+        totalEntries: stats.totalEntries,
+        maxSize: config.maxSize,
+      });
+    }
+
+    this.checkMemoryThreshold(stats);
   }
 
   cleanupByTime<T extends PriceHistoryEntry>(data: T[], maxAgeMs?: number): T[] {
@@ -146,13 +162,10 @@ class MemoryManager {
     }
 
     const oldestEntryAge = Date.now() - oldestTimestamp;
-    const estimatedBytes = this.estimateMemoryUsage(
-      Array.from({ length: totalEntries }).fill({} as PriceHistoryEntry) as PriceHistoryEntry[]
-    );
 
     return {
       totalEntries,
-      estimatedBytes,
+      estimatedBytes: totalEntries * 100,
       providerCount: providers.size,
       oldestEntryAge,
       config,

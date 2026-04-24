@@ -45,7 +45,11 @@ function PriceDistributionHistogramComponent({
     const maxPrice = safeMax(prices);
     const range = maxPrice - minPrice;
 
-    const bucketCount = Math.min(10, Math.max(5, priceData.length));
+    const bucketCount = (() => {
+      if (priceData.length < 5) return priceData.length;
+      const sturges = Math.ceil(1 + Math.log2(priceData.length));
+      return Math.min(10, Math.max(5, sturges));
+    })();
     const bucketSize = range / bucketCount || 1;
 
     const buckets: HistogramData[] = [];

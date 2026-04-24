@@ -5,37 +5,39 @@ import { calculateZScore } from './statisticsUtils';
 export type { ThresholdType, ThresholdConfig } from '@/lib/types/crossChain';
 export { defaultThresholdConfig } from '@/lib/types/crossChain';
 
-const calculateATR = (prices: number[], period: number = 14): number => {
+const calculateAveragePriceChange = (prices: number[], period: number = 14): number => {
   if (prices.length < period + 1) {
     const mean = prices.reduce((a, b) => a + b, 0) / prices.length;
     const variance =
-      prices.reduce((sum, price) => sum + Math.pow(price - mean, 2), 0) / prices.length;
+      prices.reduce((sum, price) => sum + Math.pow(price - mean, 2), 0) /
+      (prices.length > 1 ? prices.length - 1 : 1);
     return Math.sqrt(variance);
   }
 
-  const trueRanges: number[] = [];
+  const priceChanges: number[] = [];
 
   for (let i = 1; i < prices.length; i++) {
-    const currentPrice = prices[i];
-    const previousPrice = prices[i - 1];
-    const priceChange = Math.abs(currentPrice - previousPrice);
-    trueRanges.push(priceChange);
+    const priceChange = Math.abs(prices[i] - prices[i - 1]);
+    priceChanges.push(priceChange);
   }
 
   let sum = 0;
   for (let i = 0; i < period; i++) {
-    sum += trueRanges[i];
+    sum += priceChanges[i];
   }
 
   const atrValues: number[] = [sum / period];
 
-  for (let i = period; i < trueRanges.length; i++) {
-    sum = sum - trueRanges[i - period] + trueRanges[i];
+  for (let i = period; i < priceChanges.length; i++) {
+    sum = sum - priceChanges[i - period] + priceChanges[i];
     atrValues.push(sum / period);
   }
 
   return atrValues.length > 0 ? atrValues[atrValues.length - 1] : 0;
 };
+
+/** @deprecated Use calculateAveragePriceChange instead. True ATR requires OHLC data. */
+const calculateATR = calculateAveragePriceChange;
 
 const calculatePriceJumpStats = (changes: number[]) => {
   if (changes.length === 0) {

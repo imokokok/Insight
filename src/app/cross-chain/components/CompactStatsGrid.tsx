@@ -15,13 +15,15 @@ interface CompactStatsGridProps {
 export function CompactStatsGrid({ statsData }: CompactStatsGridProps) {
   const [showAll, setShowAll] = useState(false);
 
-  const coreIndices = [0, 1, 2, 3, 4, 11];
+  const coreLabels = ['Avg Price', 'Median', 'Std Dev', 'Min', 'Max', 'Chains'];
 
-  const coreStats = coreIndices
-    .map((index) => statsData[index])
-    .filter((stat): stat is ChainStats => stat !== undefined);
+  const coreStats = statsData.filter((stat) =>
+    coreLabels.some((label) => stat.label.includes(label))
+  );
 
-  const extraStats = statsData.filter((_, index) => !coreIndices.includes(index));
+  const extraStats = statsData.filter(
+    (stat) => !coreLabels.some((label) => stat.label.includes(label))
+  );
 
   const displayStats = showAll ? [...coreStats, ...extraStats] : coreStats;
 

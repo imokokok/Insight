@@ -37,6 +37,7 @@ export function PriceFlash({ value, previousValue, className, children }: PriceF
       }
     }
     prevRef.current = value;
+    return undefined;
   }, [value]);
 
   // Determine change description for accessibility

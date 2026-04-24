@@ -146,7 +146,14 @@ export function validatePriceData(data: unknown): PriceData {
       typeof obj.timestamp === 'string'
         ? (() => {
             const ts = new Date(obj.timestamp).getTime();
-            return Number.isFinite(ts) ? ts : Date.now();
+            if (!Number.isFinite(ts)) {
+              throw new OracleDataValidationError(
+                'Invalid price data: timestamp string could not be parsed to a valid date',
+                ['timestamp'],
+                obj.timestamp
+              );
+            }
+            return ts;
           })()
         : obj.timestamp,
     provider: obj.provider as PriceData['provider'],
