@@ -10,6 +10,7 @@ import {
   TelegramIcon,
   DocumentationIcon,
   ApiIcon,
+  EmailIcon,
 } from './icons/SocialIcons';
 
 export default function Footer() {
@@ -22,13 +23,14 @@ export default function Footer() {
 
   const resourceLinks = [
     { label: 'Documentation', href: '/docs', icon: DocumentationIcon },
-    { label: 'GitHub', href: 'https://github.com', icon: GitHubIcon },
+    { label: 'GitHub', href: 'https://github.com/imokokok/Insight', icon: GitHubIcon },
     { label: 'API', href: '/api', icon: ApiIcon },
   ];
 
   const socialLinks = [
-    { label: 'Twitter', href: 'https://twitter.com', icon: TwitterIcon },
-    { label: 'GitHub', href: 'https://github.com', icon: GitHubIcon },
+    { label: 'Email', href: 'mailto:imokokok123@gmail.com', icon: EmailIcon },
+    { label: 'Twitter', href: 'https://x.com/imokokok27', icon: TwitterIcon },
+    { label: 'GitHub', href: 'https://github.com/imokokok/Insight', icon: GitHubIcon },
     { label: 'Discord', href: 'https://discord.com', icon: DiscordIcon },
     { label: 'Telegram', href: 'https://telegram.org', icon: TelegramIcon },
   ];
