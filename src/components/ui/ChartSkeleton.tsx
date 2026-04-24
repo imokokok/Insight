@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useId } from 'react';
 
 import { chartColors } from '@/lib/config/colors';
 
@@ -17,6 +17,7 @@ export function ChartSkeleton({
   showToolbar = true,
   variant = 'price',
 }: ChartSkeletonProps) {
+  const gradientId = useId();
   return (
     <div className={`skeleton-shimmer ${className}`} style={{ height }}>
       {showToolbar && (
@@ -90,14 +91,14 @@ export function ChartSkeleton({
             <>
               <rect x="0" y="0" width="800" height="300" fill={chartColors.recharts.background} />
               <defs>
-                <linearGradient id="skeletonGradient" x1="0" y1="0" x2="0" y2="1">
+                <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor={chartColors.recharts.grid} stopOpacity="0.4" />
                   <stop offset="100%" stopColor={chartColors.recharts.grid} stopOpacity="0" />
                 </linearGradient>
               </defs>
               <path
                 d="M 0 250 Q 100 200, 200 220 T 400 180 T 600 200 T 800 150 L 800 300 L 0 300 Z"
-                fill="url(#skeletonGradient)"
+                fill={`url(#${gradientId})`}
               />
               <path
                 d="M 0 250 Q 100 200, 200 220 T 400 180 T 600 200 T 800 150"
@@ -163,19 +164,20 @@ function MiniChartSkeleton({
   width = '100%',
   className = '',
 }: MiniChartSkeletonProps) {
+  const miniGradientId = useId();
   return (
     <div className={`skeleton-shimmer ${className}`} style={{ height, width }}>
       <svg className="w-full h-full" viewBox="0 0 200 80" preserveAspectRatio="none">
         <rect x="0" y="0" width="200" height="80" fill={chartColors.recharts.background} />
         <defs>
-          <linearGradient id="miniSkeletonGradient" x1="0" y1="0" x2="0" y2="1">
+          <linearGradient id={miniGradientId} x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor={chartColors.recharts.grid} stopOpacity="0.3" />
             <stop offset="100%" stopColor={chartColors.recharts.grid} stopOpacity="0" />
           </linearGradient>
         </defs>
         <path
           d="M 0 60 Q 50 40, 100 50 T 200 30 L 200 80 L 0 80 Z"
-          fill="url(#miniSkeletonGradient)"
+          fill={`url(#${miniGradientId})`}
         />
         <path
           d="M 0 60 Q 50 40, 100 50 T 200 30"

@@ -2,11 +2,12 @@
 
 import { memo, useMemo, useState, useCallback } from 'react';
 
-import { ChartToolbar, type TimeRange } from '@/components/charts/ChartToolbar';
-import { baseColors, semanticColors, chartColors } from '@/lib/config/colors';
+import { ChartToolbar } from '@/components/charts/ChartToolbar';
+import { baseColors, semanticColors } from '@/lib/config/colors';
 import { safeMax } from '@/lib/utils';
 import { downloadBlob } from '@/lib/utils/download';
 import { escapeCSVField } from '@/lib/utils/export';
+import { createLogger } from '@/lib/utils/logger';
 import { useColorblindMode, useCrossChainConfigStore } from '@/stores/crossChainConfigStore';
 import { useCrossChainDataStore } from '@/stores/crossChainDataStore';
 import { useCrossChainSelectorStore } from '@/stores/crossChainSelectorStore';
@@ -23,6 +24,8 @@ import {
 import { chainNames, getHeatmapColor } from '../utils';
 
 import { HeatmapTooltip } from './HeatmapTooltip';
+
+const logger = createLogger('PriceSpreadHeatmap');
 
 export const PriceSpreadHeatmap = memo(function PriceSpreadHeatmap() {
   const chainsWithHighDeviation = useChainsWithHighDeviation();
@@ -161,8 +164,11 @@ export function HeatmapDetailView() {
         blob,
         `price-spread-heatmap-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.csv`
       );
-    } catch {
-      // Export error silently handled
+    } catch (error) {
+      logger.error(
+        'Failed to export heatmap data',
+        error instanceof Error ? error : new Error(String(error))
+      );
     }
   }, [filteredChains, heatmapData, maxHeatmapValue]);
 
@@ -366,7 +372,6 @@ export function HeatmapDetailView() {
           cell={selectedCell || hoveredCell}
           heatmapData={heatmapData}
           currentPrices={currentPrices}
-          historicalPrices={{}}
           tooltipPosition={tooltipPosition}
           isPinned={!!selectedCell}
           onClose={() => setSelectedCell(null)}

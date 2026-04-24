@@ -106,7 +106,10 @@ export function formatNumber(value: number, compact: boolean = false): string {
     if (absValue >= 1e9) return `${sign}${(absValue / 1e9).toFixed(2)}B`;
     if (absValue >= 1e6) return `${sign}${(absValue / 1e6).toFixed(2)}M`;
     if (absValue >= 1e3) return `${sign}${(absValue / 1e3).toFixed(2)}K`;
-    return value.toString();
+    if (absValue < 0.001 && absValue > 0) {
+      return `${sign}${absValue.toExponential(2)}`;
+    }
+    return `${sign}${absValue.toFixed(2)}`;
   }
   return addThousandSeparators(Math.round(value).toString());
 }
@@ -196,7 +199,7 @@ export function formatPrice(price: number): string {
  * @param options - Formatting options
  * @returns Formatted percentage string with % suffix
  */
-function formatPercent(
+export function formatPercent(
   value: number,
   options?: { minDecimals?: number; maxDecimals?: number }
 ): string {
@@ -242,7 +245,7 @@ export function formatPriceDiff(value: number, basePrice?: number): string {
     decimals = Math.max(decimals, 4);
   }
 
-  const sign = value >= 0 ? '+' : '';
+  const sign = value >= 0 ? '+' : '-';
   return `${sign}$${Math.abs(value).toFixed(decimals)}`;
 }
 

@@ -1,6 +1,7 @@
 import { createLogger } from '@/lib/utils/logger';
 import { type OracleProvider, type Blockchain, type PriceData } from '@/types/oracle';
 
+import { withRetry, type EnhancedRetryConfig } from './retry/enhancedRetry';
 import {
   validatePriceData,
   validatePriceDataArray,
@@ -22,6 +23,16 @@ interface FetchHistoricalParams extends FetchPriceParams {
 }
 
 const DEFAULT_REQUEST_TIMEOUT_MS = 15_000;
+
+const ORACLE_RETRY_CONFIG: Partial<EnhancedRetryConfig> = {
+  maxAttempts: 2,
+  baseDelay: 1000,
+  maxDelay: 5000,
+  strategy: 'exponential',
+  retryableStatuses: [408, 429, 500, 502, 503, 504],
+  timeout: DEFAULT_REQUEST_TIMEOUT_MS,
+  enableCircuitBreaker: false,
+};
 
 const ORACLE_TIMEOUT_CONFIG: Record<string, number> = {
   chainlink: 10_000,
@@ -241,19 +252,26 @@ function deduplicatedFetch<T>(
     provider
   );
 
-  const promise = fetch(url, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    signal: controller.signal,
-  })
-    .then((response) => handleApiResponse<T>(response, url, context, validateData))
-    .then((data) => {
-      if (!forceRefresh) {
-        setCachedResponse(key, data);
+  const promise = withRetry(
+    () =>
+      fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        signal: controller.signal,
+      }).then((response) => handleApiResponse<T>(response, url, context, validateData)),
+    `oracle:${context}`,
+    ORACLE_RETRY_CONFIG
+  )
+    .then((result) => {
+      if (result.success && result.data !== undefined) {
+        if (!forceRefresh) {
+          setCachedResponse(key, result.data);
+        }
+        return result.data;
       }
-      return data;
+      throw result.error ?? new Error(`${context} request failed after retry`);
     })
     .finally(() => {
       cleanup();

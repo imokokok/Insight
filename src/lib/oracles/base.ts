@@ -1,5 +1,6 @@
 import { PriceDataSchema } from '@/lib/security/validation';
 import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
+import { createLogger } from '@/lib/utils/logger';
 import { validateOracleData, safeValidateOracleData } from '@/lib/validation/oracleValidation';
 import {
   type OracleProvider,
@@ -16,6 +17,8 @@ import {
 import { shouldUseDatabase, configureStorage, getStorageConfig } from './utils/storage';
 
 import type { OracleStorageConfig } from './utils/storage';
+
+const logger = createLogger('BaseOracleClient');
 
 export const ORACLE_CACHE_TTL = {
   PRICE: 30000,
@@ -357,6 +360,9 @@ export abstract class BaseOracleClient {
 
   protected validatePriceData(data: unknown, context?: string): PriceData {
     if (!this.config.validateData) {
+      if (process.env.NODE_ENV === 'development') {
+        logger.warn('Price data validation is disabled - skipping validation', { context });
+      }
       return data as PriceData;
     }
     return validateOracleData(PriceDataSchema, data, context) as PriceData;
@@ -364,9 +370,16 @@ export abstract class BaseOracleClient {
 
   protected safeValidatePriceData(data: unknown, context?: string): PriceData | null {
     if (!this.config.validateData) {
+      if (process.env.NODE_ENV === 'development') {
+        logger.warn('Price data validation is disabled - skipping validation', { context });
+      }
       return data as PriceData;
     }
-    return safeValidateOracleData(PriceDataSchema, data, context) as PriceData | null;
+    const result = safeValidateOracleData(PriceDataSchema, data, context);
+    if (result === null && process.env.NODE_ENV === 'development') {
+      logger.warn('Price data validation failed silently', { context });
+    }
+    return result as PriceData | null;
   }
 
   protected validatePriceDataArray(data: unknown[], context?: string): PriceData[] {

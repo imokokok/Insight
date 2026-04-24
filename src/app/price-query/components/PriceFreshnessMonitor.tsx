@@ -434,7 +434,18 @@ export function PriceFreshnessMonitor({ queryResults, avgPrice }: PriceFreshness
     const timer = setInterval(() => {
       setNow(Date.now());
     }, 1000);
-    return () => clearInterval(timer);
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        setNow(Date.now());
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+    };
   }, []);
 
   const hasMultipleSources = queryResults.length > 1;

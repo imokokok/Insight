@@ -8,9 +8,9 @@ const DISPLAY_NAME_MAP: Record<string, OracleProvider> = {
   Chainlink: 'chainlink' as OracleProvider,
   'Pyth Network': 'pyth' as OracleProvider,
   API3: 'api3' as OracleProvider,
-  UMA: 'pyth' as OracleProvider,
+  UMA: 'api3' as OracleProvider,
   RedStone: 'redstone' as OracleProvider,
-  Switchboard: 'supra' as OracleProvider,
+  Switchboard: 'chainlink' as OracleProvider,
   DIA: 'dia' as OracleProvider,
   Flux: 'flare' as OracleProvider,
 };

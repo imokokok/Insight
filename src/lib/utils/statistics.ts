@@ -171,8 +171,8 @@ export function calculateCDF(data: number[], steps: number = 100): CDFResult {
       const probability = count / totalCount;
 
       points.push({
-        value: Number(value.toFixed(2)),
-        probability: Number((probability * 100).toFixed(2)),
+        value,
+        probability: probability * 100,
         count,
       });
     }
@@ -185,8 +185,8 @@ export function calculateCDF(data: number[], steps: number = 100): CDFResult {
     p99,
     min,
     max,
-    mean: Number(mean.toFixed(2)),
-    stdDev: Number(stdDev.toFixed(2)),
+    mean,
+    stdDev,
     totalCount,
   };
 }

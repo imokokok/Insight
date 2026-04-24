@@ -11,7 +11,7 @@ interface HeatmapTooltipProps {
   cell: { xChain: Blockchain; yChain: Blockchain } | null;
   heatmapData: { xChain: Blockchain; yChain: Blockchain; value: number; percent: number }[];
   currentPrices: PriceData[];
-  historicalPrices: Record<string, never>;
+  historicalPrices?: Record<string, unknown>;
   tooltipPosition: { x: number; y: number };
   isPinned?: boolean;
   onClose?: () => void;

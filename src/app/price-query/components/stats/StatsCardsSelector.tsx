@@ -163,15 +163,5 @@ export function StatsCardsSelector({
     flareOnChainData,
   ]);
 
-  return (
-    <>
-      {providerStatsComponent && (
-        <div className="col-span-full">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {providerStatsComponent}
-          </div>
-        </div>
-      )}
-    </>
-  );
+  return <>{providerStatsComponent}</>;
 }

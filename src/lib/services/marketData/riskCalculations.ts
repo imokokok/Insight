@@ -157,14 +157,9 @@ export async function fetchRiskMetrics(
     const correlationInput = priceHistories ?? new Map<string, number[]>();
     if (correlationInput.size === 0) {
       logger.warn(
-        'No individual price histories available; correlation matrix will reflect limited data'
+        'No individual price histories available; returning null instead of synthetic correlation data'
       );
-      oracleData.forEach((oracle, index) => {
-        const jitteredHistory = priceHistory.map(
-          (p, i) => p * (1 + Math.sin(index * 7 + i * 0.1) * 0.001)
-        );
-        correlationInput.set(oracle.name, jitteredHistory);
-      });
+      return null;
     }
 
     const { matrix: correlationMatrix, names: oracleNames } =

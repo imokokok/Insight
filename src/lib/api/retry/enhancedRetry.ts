@@ -56,6 +56,7 @@ class CircuitBreaker {
   private readonly threshold: number;
   private readonly resetTime: number;
   private halfOpenInProgress = false;
+  private halfOpenTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
   constructor(threshold: number, resetTime: number) {
     this.threshold = threshold;
@@ -79,6 +80,15 @@ class CircuitBreaker {
       return false;
     }
     this.halfOpenInProgress = true;
+
+    if (this.halfOpenTimeoutId) {
+      clearTimeout(this.halfOpenTimeoutId);
+    }
+    this.halfOpenTimeoutId = setTimeout(() => {
+      this.halfOpenInProgress = false;
+      this.halfOpenTimeoutId = null;
+    }, this.resetTime);
+
     return true;
   }
 
@@ -87,6 +97,10 @@ class CircuitBreaker {
     this.lastFailureTime = undefined;
     this.state = CircuitBreakerState.CLOSED;
     this.halfOpenInProgress = false;
+    if (this.halfOpenTimeoutId) {
+      clearTimeout(this.halfOpenTimeoutId);
+      this.halfOpenTimeoutId = null;
+    }
   }
 
   recordFailure(): void {
@@ -96,11 +110,22 @@ class CircuitBreaker {
     if (this.state === CircuitBreakerState.HALF_OPEN || this.failureCount >= this.threshold) {
       this.state = CircuitBreakerState.OPEN;
       this.halfOpenInProgress = false;
+      if (this.halfOpenTimeoutId) {
+        clearTimeout(this.halfOpenTimeoutId);
+        this.halfOpenTimeoutId = null;
+      }
     }
   }
 
   getState(): CircuitBreakerState {
     return this.state;
+  }
+
+  destroy(): void {
+    if (this.halfOpenTimeoutId) {
+      clearTimeout(this.halfOpenTimeoutId);
+      this.halfOpenTimeoutId = null;
+    }
   }
 }
 
@@ -169,22 +194,6 @@ function shouldRetry(error: Error, attempt: number, config: EnhancedRetryConfig)
     return true;
   }
 
-  const statusMatch = error.message.match(/(?:status[:=\s]+|HTTP\s+)(\d{3})(?:\s|$|\b)/i);
-  if (statusMatch) {
-    const status = parseInt(statusMatch[1], 10);
-    if (status >= 100 && status < 600 && config.retryableStatuses.includes(status)) {
-      return true;
-    }
-  }
-
-  const statusWordMatch = error.message.match(/\b(\d{3})\s+[A-Z][a-zA-Z\s]+/);
-  if (statusWordMatch) {
-    const status = parseInt(statusWordMatch[1], 10);
-    if (status >= 100 && status < 600 && config.retryableStatuses.includes(status)) {
-      return true;
-    }
-  }
-
   const errorWithStatus = error as Error & { status?: number; statusCode?: number };
   if (
     typeof errorWithStatus.status === 'number' &&
@@ -197,6 +206,14 @@ function shouldRetry(error: Error, attempt: number, config: EnhancedRetryConfig)
     config.retryableStatuses.includes(errorWithStatus.statusCode)
   ) {
     return true;
+  }
+
+  const statusMatch = error.message.match(/(?:status[:=\s]+|HTTP\s+)(\d{3})(?:\s|$|\b)/i);
+  if (statusMatch) {
+    const status = parseInt(statusMatch[1], 10);
+    if (status >= 100 && status < 600 && config.retryableStatuses.includes(status)) {
+      return true;
+    }
   }
 
   const networkErrorPatterns = [
