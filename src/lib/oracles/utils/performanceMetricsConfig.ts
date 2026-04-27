@@ -47,7 +47,7 @@ const DEFAULT_PROVIDER_CONFIG: PerformanceMetricsConfig = {
       reliability: 99.9,
       dataSources: 350,
       decentralizationScore: 95,
-      supportedChains: 15,
+      supportedChains: 22,
     },
     pyth: {
       responseTime: 120,
@@ -56,16 +56,16 @@ const DEFAULT_PROVIDER_CONFIG: PerformanceMetricsConfig = {
       reliability: 99.8,
       dataSources: 180,
       decentralizationScore: 90,
-      supportedChains: 10,
+      supportedChains: 12,
     },
     api3: {
       responseTime: 900,
       updateFrequency: 3600,
       accuracy: 98.9,
       reliability: 99.7,
-      dataSources: 168,
+      dataSources: 180,
       decentralizationScore: 80,
-      supportedChains: 5,
+      supportedChains: 8,
     },
     redstone: {
       responseTime: 200,
@@ -74,7 +74,7 @@ const DEFAULT_PROVIDER_CONFIG: PerformanceMetricsConfig = {
       reliability: 99.8,
       dataSources: 120,
       decentralizationScore: 85,
-      supportedChains: 6,
+      supportedChains: 8,
     },
     dia: {
       responseTime: 800,
@@ -83,7 +83,7 @@ const DEFAULT_PROVIDER_CONFIG: PerformanceMetricsConfig = {
       reliability: 99.5,
       dataSources: 80,
       decentralizationScore: 75,
-      supportedChains: 12,
+      supportedChains: 15,
     },
     winklink: {
       responseTime: 600,
@@ -101,7 +101,7 @@ const DEFAULT_PROVIDER_CONFIG: PerformanceMetricsConfig = {
       reliability: 99.7,
       dataSources: 100,
       decentralizationScore: 88,
-      supportedChains: 30,
+      supportedChains: 20,
     },
     twap: {
       responseTime: 500,

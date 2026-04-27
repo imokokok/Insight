@@ -50,18 +50,18 @@ function calculateSpearmanCorrelation(x: number[], y: number[]): number {
     indexed.sort((a, b) => a.value - b.value);
 
     const ranks = new Array(data.length);
-    for (let i = 0; i < indexed.length; i++) {
-      // 处理相同值（取平均秩次）
+    let i = 0;
+    while (i < indexed.length) {
       let j = i;
       while (j < indexed.length - 1 && indexed[j + 1].value === indexed[i].value) {
         j++;
       }
 
-      const avgRank = (i + j) / 2 + 1; // +1 因为秩次从 1 开始
+      const avgRank = (i + j) / 2 + 1;
       for (let k = i; k <= j; k++) {
         ranks[indexed[k].index] = avgRank;
       }
-      i = j;
+      i = j + 1;
     }
     return ranks;
   };
@@ -109,6 +109,16 @@ function calculateRobustCorrelation(x: number[], y: number[]): number {
   return (pearson + spearman) / 2;
 }
 
+function toLogReturns(prices: number[]): number[] {
+  const returns: number[] = [];
+  for (let i = 1; i < prices.length; i++) {
+    if (prices[i] > 0 && prices[i - 1] > 0) {
+      returns.push(Math.log(prices[i] / prices[i - 1]));
+    }
+  }
+  return returns;
+}
+
 function buildCorrelationMatrix(
   priceHistories: Map<string, number[]>,
   useRobust: boolean = true
@@ -116,7 +126,15 @@ function buildCorrelationMatrix(
   matrix: number[][];
   names: string[];
 } {
-  const names = Array.from(priceHistories.keys());
+  const returnHistories = new Map<string, number[]>();
+  for (const [provider, prices] of priceHistories) {
+    const returns = toLogReturns(prices);
+    if (returns.length >= 2) {
+      returnHistories.set(provider, returns);
+    }
+  }
+
+  const names = Array.from(returnHistories.keys());
   const n = names.length;
   const matrix: number[][] = Array(n)
     .fill(null)
@@ -128,8 +146,8 @@ function buildCorrelationMatrix(
 
   for (let i = 0; i < n; i++) {
     for (let j = i + 1; j < n; j++) {
-      const x = priceHistories.get(names[i]) ?? [];
-      const y = priceHistories.get(names[j]) ?? [];
+      const x = returnHistories.get(names[i]) ?? [];
+      const y = returnHistories.get(names[j]) ?? [];
       const correlation = useRobust
         ? calculateRobustCorrelation(x, y)
         : calculatePearsonCorrelation(x, y);

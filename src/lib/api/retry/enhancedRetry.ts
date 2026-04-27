@@ -148,7 +148,7 @@ const defaultEnhancedRetryConfig: EnhancedRetryConfig = {
   circuitBreakerResetTime: 60000,
 };
 
-function calculateDelay(attempt: number, config: EnhancedRetryConfig): number {
+function calculateDelay(attempt: number, config: EnhancedRetryConfig, prevDelay?: number): number {
   const { strategy, baseDelay, maxDelay, backoffMultiplier } = config;
 
   let delay: number;
@@ -167,10 +167,9 @@ function calculateDelay(attempt: number, config: EnhancedRetryConfig): number {
       break;
 
     case 'decorrelated-jitter': {
-      delay = Math.min(maxDelay, baseDelay + Math.random() * baseDelay);
-      if (attempt > 1) {
-        delay = Math.min(maxDelay, baseDelay + Math.random() * (delay * 3 - baseDelay));
-      }
+      const cap = maxDelay;
+      const prev = prevDelay ?? baseDelay;
+      delay = Math.min(cap, baseDelay + Math.random() * (prev * 3 - baseDelay));
       break;
     }
 
@@ -181,7 +180,7 @@ function calculateDelay(attempt: number, config: EnhancedRetryConfig): number {
   const jitter = delay * 0.1 * (Math.random() * 2 - 1);
   delay = Math.min(delay + jitter, maxDelay);
 
-  return Math.max(0, Math.round(delay));
+  return Math.max(baseDelay, Math.round(delay));
 }
 
 function shouldRetry(error: Error, attempt: number, config: EnhancedRetryConfig): boolean {
@@ -252,9 +251,11 @@ function withTimeout<T>(
 class EnhancedRetryManager {
   private config: EnhancedRetryConfig;
   private circuitBreaker?: CircuitBreaker;
+  private prevDelay: number;
 
   constructor(config: Partial<EnhancedRetryConfig> = {}) {
     this.config = { ...defaultEnhancedRetryConfig, ...config };
+    this.prevDelay = this.config.baseDelay;
 
     if (this.config.enableCircuitBreaker) {
       this.circuitBreaker = new CircuitBreaker(
@@ -290,7 +291,11 @@ class EnhancedRetryManager {
 
     for (let attempt = 1; attempt <= this.config.maxAttempts; attempt++) {
       try {
-        const delay = attempt > 1 ? calculateDelay(attempt - 1, this.config) : 0;
+        const delay = attempt > 1 ? calculateDelay(attempt - 1, this.config, this.prevDelay) : 0;
+
+        if (attempt > 1 && delay > 0) {
+          this.prevDelay = delay;
+        }
 
         const context: RetryContext = {
           attempt,

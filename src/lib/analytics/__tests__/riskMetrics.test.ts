@@ -105,7 +105,7 @@ describe('riskMetrics', () => {
       const result = calculateHHI([]);
 
       expect(result.value).toBe(0);
-      expect(result.level).toBe('low');
+      expect(result.level).toBe('critical');
       expect(result.description).toBe('calculation_error');
       expect(result.concentrationRatio).toBe(0);
     });
@@ -193,11 +193,11 @@ describe('riskMetrics', () => {
 
     it('should return low risk for score 60-79', () => {
       const result = calculateDiversificationScore({
-        chainCount: 15,
+        chainCount: 35,
         totalChains: 50,
-        protocolCount: 30,
+        protocolCount: 65,
         totalProtocols: 100,
-        assetCount: 30,
+        assetCount: 70,
         totalAssets: 100,
       });
 
@@ -208,11 +208,11 @@ describe('riskMetrics', () => {
 
     it('should return medium risk for score 40-59', () => {
       const result = calculateDiversificationScore({
-        chainCount: 10,
+        chainCount: 20,
         totalChains: 50,
-        protocolCount: 20,
+        protocolCount: 40,
         totalProtocols: 100,
-        assetCount: 25,
+        assetCount: 50,
         totalAssets: 100,
       });
 
@@ -224,11 +224,11 @@ describe('riskMetrics', () => {
 
     it('should return high risk for score 20-39', () => {
       const result = calculateDiversificationScore({
-        chainCount: 5,
+        chainCount: 10,
         totalChains: 50,
-        protocolCount: 10,
+        protocolCount: 25,
         totalProtocols: 100,
-        assetCount: 10,
+        assetCount: 25,
         totalAssets: 100,
       });
 
@@ -263,9 +263,9 @@ describe('riskMetrics', () => {
         totalAssets: 100,
       });
 
-      const expectedChain = Math.min((25 / (50 * 0.5)) * 100, 100);
-      const expectedProtocol = Math.min((50 / (100 * 0.3)) * 100, 100);
-      const expectedAsset = Math.min((50 / (100 * 0.5)) * 100, 100);
+      const expectedChain = Math.min((25 / 50) * 100, 100);
+      const expectedProtocol = Math.min((50 / 100) * 100, 100);
+      const expectedAsset = Math.min((50 / 100) * 100, 100);
       const expectedScore = Math.round(
         expectedChain * 0.3 + expectedProtocol * 0.4 + expectedAsset * 0.3
       );
@@ -374,7 +374,7 @@ describe('riskMetrics', () => {
       const result = calculateVolatilityIndex([100]);
 
       expect(result.index).toBe(0);
-      expect(result.level).toBe('low');
+      expect(result.level).toBe('critical');
       expect(result.description).toBe('calculation_error');
       expect(result.dailyVolatility).toBe(0);
       expect(result.annualizedVolatility).toBe(0);
@@ -500,7 +500,7 @@ describe('riskMetrics', () => {
       const result = calculateCorrelationRisk([], []);
 
       expect(result.score).toBe(0);
-      expect(result.level).toBe('low');
+      expect(result.level).toBe('critical');
       expect(result.description).toBe('calculation_error');
     });
 
@@ -1034,7 +1034,7 @@ describe('riskMetrics', () => {
         const result = calculateVolatilityIndex(priceHistory);
 
         expect(result.index).toBe(0);
-        expect(result.level).toBe('low');
+        expect(result.level).toBe('critical');
         expect(result.description).toBe('calculation_error');
         expect(result.dailyVolatility).toBe(0);
         expect(result.annualizedVolatility).toBe(0);

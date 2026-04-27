@@ -78,7 +78,94 @@ function generateExportFileName(config: ExportConfig): string {
 
 const logger = createLogger('marketData:priceCalculations');
 
-const CONFIDENCE_INTERVAL = 0.05;
+function boxMullerRandom(): number {
+  let u = 0;
+  let v = 0;
+  while (u === 0) u = Math.random();
+  while (v === 0) v = Math.random();
+  return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+}
+
+interface GBMParams {
+  initialValue: number;
+  drift: number;
+  volatility: number;
+  dt: number;
+}
+
+function generateGBMPath(params: GBMParams, steps: number): number[] {
+  const { initialValue, drift, volatility, dt } = params;
+  const path: number[] = [initialValue];
+  for (let i = 1; i < steps; i++) {
+    const prev = path[i - 1];
+    const z = boxMullerRandom();
+    const next =
+      prev *
+      Math.exp((drift - 0.5 * volatility * volatility) * dt + volatility * Math.sqrt(dt) * z);
+    path.push(Math.max(next, prev * 0.5));
+  }
+  return path;
+}
+
+function calculateConfidenceBand(
+  path: number[],
+  confidenceLevel: number = 0.95
+): { upper: number[]; lower: number[] } {
+  const n = path.length;
+  if (n < 2) {
+    return { upper: path.slice(), lower: path.slice() };
+  }
+
+  const logReturns: number[] = [];
+  for (let i = 1; i < n; i++) {
+    if (path[i] > 0 && path[i - 1] > 0) {
+      logReturns.push(Math.log(path[i] / path[i - 1]));
+    }
+  }
+
+  if (logReturns.length < 2) {
+    return { upper: path.slice(), lower: path.slice() };
+  }
+
+  const meanReturn = logReturns.reduce((a, b) => a + b, 0) / logReturns.length;
+  const variance =
+    logReturns.reduce((sum, r) => sum + Math.pow(r - meanReturn, 2), 0) / (logReturns.length - 1);
+  const stdDev = Math.sqrt(variance);
+
+  const df = logReturns.length - 1;
+  const tCritical = df >= 30 ? 1.96 : getApproxTCritical(df, confidenceLevel);
+  const standardError = stdDev / Math.sqrt(logReturns.length);
+  const marginOfError = tCritical * standardError;
+
+  const upper: number[] = [];
+  const lower: number[] = [];
+
+  for (let i = 0; i < n; i++) {
+    const scaleFactor = Math.exp(marginOfError * Math.sqrt(i + 1));
+    upper.push(path[i] * scaleFactor);
+    lower.push(path[i] / scaleFactor);
+  }
+
+  return { upper, lower };
+}
+
+function getApproxTCritical(df: number, confidenceLevel: number): number {
+  const alpha = 1 - confidenceLevel;
+  if (alpha <= 0.001) return 3.291;
+  if (alpha <= 0.01) return 2.576;
+  if (alpha <= 0.02) return 2.326;
+  if (alpha <= 0.05) {
+    if (df <= 1) return 12.706;
+    if (df <= 2) return 4.303;
+    if (df <= 5) return 2.571;
+    if (df <= 10) return 2.228;
+    if (df <= 20) return 2.086;
+    if (df <= 30) return 2.042;
+    return 1.96;
+  }
+  if (alpha <= 0.1) return 1.645;
+  return 1.96;
+}
 
 export function generateTVSTrendData(
   hours: number,
@@ -108,53 +195,71 @@ export function generateTVSTrendData(
     supra: 1.2,
   };
 
+  const dt = 1 / 365;
+  const oracleKeys = ['chainlink', 'pyth', 'api3', 'uma', 'redstone', 'dia', 'winklink', 'supra'];
+
+  const gbmPaths: Record<string, number[]> = {};
+  const confidenceBands: Record<string, { upper: number[]; lower: number[] }> = {};
+  for (const key of oracleKeys) {
+    const initial = baseValues[key] || defaults[key];
+    gbmPaths[key] = generateGBMPath(
+      {
+        initialValue: initial,
+        drift: 0.05,
+        volatility: 0.3,
+        dt,
+      },
+      points
+    );
+    confidenceBands[key] = calculateConfidenceBand(gbmPaths[key]);
+  }
+
   for (let i = points - 1; i >= 0; i--) {
     const timestamp = now - i * interval;
     const date = new Date(timestamp);
     const dateStr = hours <= 24 ? formatTimeString(date, false) : formatDateString(date, 'medium');
 
-    const volatility = 0.02;
+    const stepIndex = points - 1 - i;
+    const values: Record<string, number> = {};
+    const uppers: Record<string, number> = {};
+    const lowers: Record<string, number> = {};
+    let total = 0;
 
-    const chainlink =
-      (baseValues.chainlink || defaults.chainlink) * (1 + (Math.random() - 0.5) * volatility);
-    const pyth = (baseValues.pyth || defaults.pyth) * (1 + (Math.random() - 0.5) * volatility);
-    const api3 = (baseValues.api3 || defaults.api3) * (1 + (Math.random() - 0.5) * volatility);
-    const uma = (baseValues.uma || defaults.uma) * (1 + (Math.random() - 0.5) * volatility);
-    const redstone =
-      (baseValues.redstone || defaults.redstone) * (1 + (Math.random() - 0.5) * volatility);
-    const dia = (baseValues.dia || defaults.dia) * (1 + (Math.random() - 0.5) * volatility);
-    const winklink =
-      (baseValues.winklink || defaults.winklink) * (1 + (Math.random() - 0.5) * volatility);
-    const supra = (baseValues.supra || defaults.supra) * (1 + (Math.random() - 0.5) * volatility);
+    for (const key of oracleKeys) {
+      values[key] = Number(gbmPaths[key][stepIndex].toFixed(2));
+      uppers[key] = Number(confidenceBands[key].upper[stepIndex].toFixed(2));
+      lowers[key] = Number(confidenceBands[key].lower[stepIndex].toFixed(2));
+      total += values[key];
+    }
 
     data.push({
       timestamp,
       date: dateStr,
-      chainlink: Number(chainlink.toFixed(2)),
-      chainlinkUpper: Number((chainlink * (1 + CONFIDENCE_INTERVAL)).toFixed(2)),
-      chainlinkLower: Number((chainlink * (1 - CONFIDENCE_INTERVAL)).toFixed(2)),
-      pyth: Number(pyth.toFixed(2)),
-      pythUpper: Number((pyth * (1 + CONFIDENCE_INTERVAL)).toFixed(2)),
-      pythLower: Number((pyth * (1 - CONFIDENCE_INTERVAL)).toFixed(2)),
-      api3: Number(api3.toFixed(2)),
-      api3Upper: Number((api3 * (1 + CONFIDENCE_INTERVAL)).toFixed(2)),
-      api3Lower: Number((api3 * (1 - CONFIDENCE_INTERVAL)).toFixed(2)),
-      uma: Number(uma.toFixed(2)),
-      umaUpper: Number((uma * (1 + CONFIDENCE_INTERVAL)).toFixed(2)),
-      umaLower: Number((uma * (1 - CONFIDENCE_INTERVAL)).toFixed(2)),
-      redstone: Number(redstone.toFixed(2)),
-      redstoneUpper: Number((redstone * (1 + CONFIDENCE_INTERVAL)).toFixed(2)),
-      redstoneLower: Number((redstone * (1 - CONFIDENCE_INTERVAL)).toFixed(2)),
-      dia: Number(dia.toFixed(2)),
-      diaUpper: Number((dia * (1 + CONFIDENCE_INTERVAL)).toFixed(2)),
-      diaLower: Number((dia * (1 - CONFIDENCE_INTERVAL)).toFixed(2)),
-      winklink: Number(winklink.toFixed(2)),
-      winklinkUpper: Number((winklink * (1 + CONFIDENCE_INTERVAL)).toFixed(2)),
-      winklinkLower: Number((winklink * (1 - CONFIDENCE_INTERVAL)).toFixed(2)),
-      supra: Number(supra.toFixed(2)),
-      supraUpper: Number((supra * (1 + CONFIDENCE_INTERVAL)).toFixed(2)),
-      supraLower: Number((supra * (1 - CONFIDENCE_INTERVAL)).toFixed(2)),
-      total: Number((chainlink + pyth + api3 + uma + redstone + dia + winklink + supra).toFixed(2)),
+      chainlink: values.chainlink,
+      chainlinkUpper: uppers.chainlink,
+      chainlinkLower: lowers.chainlink,
+      pyth: values.pyth,
+      pythUpper: uppers.pyth,
+      pythLower: lowers.pyth,
+      api3: values.api3,
+      api3Upper: uppers.api3,
+      api3Lower: lowers.api3,
+      uma: values.uma,
+      umaUpper: uppers.uma,
+      umaLower: lowers.uma,
+      redstone: values.redstone,
+      redstoneUpper: uppers.redstone,
+      redstoneLower: lowers.redstone,
+      dia: values.dia,
+      diaUpper: uppers.dia,
+      diaLower: lowers.dia,
+      winklink: values.winklink,
+      winklinkUpper: uppers.winklink,
+      winklinkLower: lowers.winklink,
+      supra: values.supra,
+      supraUpper: uppers.supra,
+      supraLower: lowers.supra,
+      total: Number(total.toFixed(2)),
     });
   }
 
