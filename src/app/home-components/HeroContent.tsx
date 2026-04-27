@@ -15,30 +15,32 @@ export default function HeroContent() {
 
       <div className="space-y-3">
         <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight">
-          Oracle Analytics Platform
+          Oracle Transparency <br className="hidden sm:block" />& Risk Infrastructure
         </h1>
-        <p className="text-xl sm:text-2xl text-gray-600 font-medium">Compare, Analyze, Decide</p>
+        <p className="text-xl sm:text-2xl text-gray-600 font-medium">
+          See through every oracle. Trust with clarity.
+        </p>
       </div>
 
       <p className="text-base sm:text-lg text-gray-600 leading-relaxed max-w-lg mx-auto">
-        Comprehensive analysis and comparison of major oracle protocols. Real-time price monitoring
-        and protocol performance evaluation for Web3 developers and analysts.
+        Real-time price monitoring, cross-oracle comparison, risk analysis, and anomaly detection
+        across 10+ oracle protocols and 54 blockchains.
       </p>
 
       <div className="flex items-center justify-center gap-4 sm:gap-6 text-xs sm:text-sm text-gray-500">
-        <span>Multiple Oracles</span>
+        <span>Risk Analysis</span>
         <span className="w-1 h-1 bg-gray-300 rounded-full" />
-        <span>Real-Time Data</span>
+        <span>Anomaly Detection</span>
         <span className="w-1 h-1 bg-gray-300 rounded-full" />
-        <span>Cross-Chain Support</span>
+        <span>Oracle Ranking</span>
       </div>
 
       <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
         <Link
-          href="/price-query"
+          href="/cross-oracle"
           className="inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-gray-900 text-white font-semibold hover:bg-gray-800 transition-colors duration-200 group rounded-lg"
         >
-          Start Query
+          Start Analysis
           <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-200" />
         </Link>
         <Link

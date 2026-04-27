@@ -14,7 +14,7 @@ const logger = createLogger('riskMetrics');
 /**
  * Risk level
  */
-type RiskLevel = 'low' | 'medium' | 'high' | 'critical';
+export type RiskLevel = 'low' | 'medium' | 'high' | 'critical';
 
 /**
  * HHI index result
@@ -65,7 +65,7 @@ interface CorrelationRiskResult {
 /**
  * comprehensive risk metrics
  */
-interface RiskMetrics {
+export interface RiskMetrics {
   hhi: HHIResult;
   diversification: DiversificationResult;
   volatility: VolatilityResult;

@@ -10,10 +10,19 @@ const ProfessionalHero = dynamic(() => import('./home-components/ProfessionalHer
   ssr: false,
 });
 
+const HomeDashboard = dynamic(
+  () => import('./home-components/HomeDashboard').then((m) => m.HomeDashboard),
+  {
+    loading: () => <HeroSkeleton />,
+    ssr: false,
+  }
+);
+
 function HomeContentInner() {
   return (
     <div className="min-h-screen">
       <ProfessionalHero />
+      <HomeDashboard />
     </div>
   );
 }
