@@ -7,7 +7,6 @@ import { ChevronDown, ChevronUp, Filter } from 'lucide-react';
 import { DropdownSelect, SegmentedControl } from '@/components/ui';
 import { getPriceOracleProvidersSortedByMarketCap } from '@/lib/config/oracles';
 import { isBlockchain } from '@/lib/utils/chainUtils';
-import { useCrossChainConfigStore } from '@/stores/crossChainConfigStore';
 import { useCrossChainDataStore } from '@/stores/crossChainDataStore';
 import { useCrossChainSelectorStore } from '@/stores/crossChainSelectorStore';
 import { useCrossChainUIStore } from '@/stores/crossChainUIStore';
@@ -16,9 +15,7 @@ import { type OracleProvider } from '@/types/oracle';
 import { TIME_RANGES, providerNames, chainNames, symbols } from '../constants';
 import { useSupportedChains } from '../useCrossChainData';
 
-import { AnomalyConfig } from './AnomalyConfig';
 import { ChainSelector } from './ChainSelector';
-import { TechnicalIndicators } from './TechnicalIndicators';
 
 export function CrossChainFilters() {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -33,20 +30,11 @@ export function CrossChainFilters() {
   const setSelectedBaseChain = useCrossChainSelectorStore((s) => s.setSelectedBaseChain);
 
   const visibleChains = useCrossChainUIStore((s) => s.visibleChains);
-  const showMA = useCrossChainUIStore((s) => s.showMA);
-  const setShowMA = useCrossChainUIStore((s) => s.setShowMA);
-  const maPeriod = useCrossChainUIStore((s) => s.maPeriod);
-  const setMaPeriod = useCrossChainUIStore((s) => s.setMaPeriod);
-  const chartKey = useCrossChainUIStore((s) => s.chartKey);
-  const setChartKey = useCrossChainUIStore((s) => s.setChartKey);
   const toggleChain = useCrossChainUIStore((s) => s.toggleChain);
 
   const recommendedBaseChain = useCrossChainDataStore((s) => s.recommendedBaseChain);
 
   const supportedChains = useSupportedChains();
-
-  const thresholdConfig = useCrossChainConfigStore((s) => s.thresholdConfig);
-  const setThresholdConfig = useCrossChainConfigStore((s) => s.setThresholdConfig);
 
   const providerOptions = getPriceOracleProvidersSortedByMarketCap().map((provider) => ({
     value: provider,
@@ -75,8 +63,6 @@ export function CrossChainFilters() {
     selectedTimeRange !== 24,
     selectedBaseChain !== null,
     visibleChains.length !== supportedChains.length,
-    showMA,
-    thresholdConfig.type !== 'fixed',
   ].filter(Boolean).length;
 
   return (
@@ -177,27 +163,6 @@ export function CrossChainFilters() {
             supportedChains={supportedChains}
             visibleChains={visibleChains}
             onToggleChain={toggleChain}
-          />
-
-          <div className="border-t border-gray-200" />
-
-          <TechnicalIndicators
-            showMA={showMA}
-            onShowMAChange={setShowMA}
-            maPeriod={maPeriod}
-            onMaPeriodChange={setMaPeriod}
-            onResetChart={() => {
-              setShowMA(false);
-              setMaPeriod(7);
-              setChartKey(chartKey + 1);
-            }}
-          />
-
-          <div className="border-t border-gray-200" />
-
-          <AnomalyConfig
-            thresholdConfig={thresholdConfig}
-            onThresholdConfigChange={setThresholdConfig}
           />
         </div>
       </div>
