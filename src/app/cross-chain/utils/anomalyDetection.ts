@@ -34,7 +34,7 @@ function detectAnomalousPrices(
   const q3 = calculatePercentile(sorted, 75);
   const iqr = q3 - q1;
 
-  const iqrMultiplier = config.outlierDetectionMethod === 'iqr' ? config.outlierThreshold : 1.5;
+  const iqrMultiplier = config.outlierDetectionMethod === 'iqr' ? config.outlierThreshold : 3.0;
   const lowerBound = q1 - iqrMultiplier * iqr;
   const upperBound = q3 + iqrMultiplier * iqr;
 
@@ -47,11 +47,14 @@ function detectAnomalousPrices(
 
   const zScoreThreshold = config.outlierThreshold;
 
+  const seenKeys = new Set<string>();
+
   prices.forEach((priceData) => {
     if (!priceData.chain || !filteredChains.includes(priceData.chain)) return;
     if (priceData.price <= 0 || !Number.isFinite(priceData.price)) return;
 
     const { price, timestamp, chain } = priceData;
+    const anomalyKey = `${chain}-${timestamp}`;
 
     if (price < lowerBound || price > upperBound) {
       const deviation =
@@ -60,30 +63,29 @@ function detectAnomalousPrices(
           : stdDev > 0
             ? Math.abs(price - mean) / stdDev
             : 0;
-      anomalies.push({
-        chain,
-        price,
-        timestamp,
-        reason: 'iqr_outlier',
-        deviation,
-      });
+      if (!seenKeys.has(anomalyKey)) {
+        seenKeys.add(anomalyKey);
+        anomalies.push({
+          chain,
+          price,
+          timestamp,
+          reason: 'iqr_outlier',
+          deviation,
+        });
+      }
     }
 
     if (stdDev > 0) {
       const zScore = Math.abs((price - mean) / stdDev);
-      if (zScore > zScoreThreshold) {
-        const existingAnomaly = anomalies.find(
-          (a) => a.chain === chain && a.timestamp === timestamp
-        );
-        if (!existingAnomaly) {
-          anomalies.push({
-            chain,
-            price,
-            timestamp,
-            reason: 'std_dev_outlier',
-            deviation: zScore,
-          });
-        }
+      if (zScore > zScoreThreshold && !seenKeys.has(anomalyKey)) {
+        seenKeys.add(anomalyKey);
+        anomalies.push({
+          chain,
+          price,
+          timestamp,
+          reason: 'std_dev_outlier',
+          deviation: zScore,
+        });
       }
     }
   });

@@ -183,7 +183,9 @@ class PerformanceMetricsCalculator {
         ? sortedAbsDev[madMid]
         : (sortedAbsDev[madMid - 1] + sortedAbsDev[madMid]) / 2;
 
-    const threshold = 3 * mad;
+    const MAD_SCALE_FACTOR = 1.4826;
+    const scaledMad = mad * MAD_SCALE_FACTOR;
+    const threshold = 3 * scaledMad;
     const filteredDeviations = deviations.filter((d) => Math.abs(d - median) <= threshold);
 
     const finalDeviations =

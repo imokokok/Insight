@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import {
   calculateRiskMetrics,
   getRiskLevelColor,
+  buildRobustCorrelationMatrix,
   type RiskMetrics,
   type RiskLevel,
 } from '@/lib/analytics/riskMetrics';
@@ -24,69 +25,6 @@ export interface RiskMetricsResult {
   correlationLevel: RiskLevel;
   highCorrelationPairs: string[];
   isCalculating: boolean;
-}
-
-function buildCorrelationMatrixFromPrices(priceData: PriceData[]): {
-  matrix: number[][];
-  names: string[];
-} {
-  const providerPrices = new Map<string, number[]>();
-  for (const pd of priceData) {
-    const arr = providerPrices.get(pd.provider) || [];
-    arr.push(pd.price);
-    providerPrices.set(pd.provider, arr);
-  }
-
-  const names = Array.from(providerPrices.keys());
-  const n = names.length;
-  const matrix: number[][] = Array(n)
-    .fill(null)
-    .map(() => Array(n).fill(0));
-
-  for (let i = 0; i < n; i++) {
-    matrix[i][i] = 1;
-  }
-
-  for (let i = 0; i < n; i++) {
-    for (let j = i + 1; j < n; j++) {
-      const x = providerPrices.get(names[i]) || [];
-      const y = providerPrices.get(names[j]) || [];
-      const minLen = Math.min(x.length, y.length);
-      if (minLen < 1) {
-        matrix[i][j] = 0;
-        matrix[j][i] = 0;
-        continue;
-      }
-      const corr = pearsonCorrelation(x.slice(0, minLen), y.slice(0, minLen));
-      matrix[i][j] = corr;
-      matrix[j][i] = corr;
-    }
-  }
-
-  return { matrix, names };
-}
-
-function pearsonCorrelation(x: number[], y: number[]): number {
-  const n = Math.min(x.length, y.length);
-  if (n < 2) return 0;
-
-  const meanX = x.reduce((a, b) => a + b, 0) / n;
-  const meanY = y.reduce((a, b) => a + b, 0) / n;
-
-  let sumXY = 0,
-    sumX2 = 0,
-    sumY2 = 0;
-  for (let i = 0; i < n; i++) {
-    const dx = x[i] - meanX;
-    const dy = y[i] - meanY;
-    sumXY += dx * dy;
-    sumX2 += dx * dx;
-    sumY2 += dy * dy;
-  }
-
-  const denominator = Math.sqrt(sumX2 * sumY2);
-  if (denominator === 0) return 0;
-  return sumXY / denominator;
 }
 
 export function useRiskMetrics(priceData: PriceData[]): RiskMetricsResult {
@@ -128,7 +66,15 @@ export function useRiskMetrics(priceData: PriceData[]): RiskMetricsResult {
       }));
 
       const priceHistory = priceData.map((p) => p.price);
-      const { matrix: correlationMatrix } = buildCorrelationMatrixFromPrices(priceData);
+
+      const providerPrices = new Map<string, number[]>();
+      for (const pd of priceData) {
+        const arr = providerPrices.get(pd.provider) || [];
+        arr.push(pd.price);
+        providerPrices.set(pd.provider, arr);
+      }
+
+      const { matrix: correlationMatrix } = buildRobustCorrelationMatrix(providerPrices);
 
       const metrics = calculateRiskMetrics(oracleData, priceHistory, correlationMatrix);
 

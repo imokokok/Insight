@@ -18,17 +18,66 @@ export interface ChainPriceInfo {
   timestamp: number;
 }
 
+interface StatusThresholds {
+  maxAgeSecondsOnline: number;
+  maxAgeSecondsDegraded: number;
+  maxDeviationOnline: number;
+  maxDeviationDegraded: number;
+}
+
+const STATUS_THRESHOLDS_BY_CATEGORY: Record<string, StatusThresholds> = {
+  stablecoin: {
+    maxAgeSecondsOnline: 60,
+    maxAgeSecondsDegraded: 300,
+    maxDeviationOnline: 0.1,
+    maxDeviationDegraded: 0.3,
+  },
+  major: {
+    maxAgeSecondsOnline: 60,
+    maxAgeSecondsDegraded: 300,
+    maxDeviationOnline: 0.5,
+    maxDeviationDegraded: 1.5,
+  },
+  alt: {
+    maxAgeSecondsOnline: 90,
+    maxAgeSecondsDegraded: 300,
+    maxDeviationOnline: 1.0,
+    maxDeviationDegraded: 3.0,
+  },
+  micro: {
+    maxAgeSecondsOnline: 120,
+    maxAgeSecondsDegraded: 600,
+    maxDeviationOnline: 2.0,
+    maxDeviationDegraded: 5.0,
+  },
+};
+
+function getVolatilityCategory(symbol: string): string {
+  const upper = symbol.toUpperCase();
+  if (/^(USDT|USDC|DAI|BUSD|TUSD|USDD|FRAX|GUSD|PAX|USDP)/.test(upper)) return 'stablecoin';
+  if (/^(BTC|ETH)\//.test(upper)) return 'major';
+  if (/^(SHIB|PEPE|FLOKI|BONK|DOGE|MEME|TRUMP)/.test(upper)) return 'micro';
+  return 'alt';
+}
+
 function classifyChainStatus(
   deviation: number,
-  dataAgeSeconds: number
+  dataAgeSeconds: number,
+  symbol?: string
 ): 'online' | 'degraded' | 'offline' {
-  const ONLINE = { maxAgeSeconds: 60, maxDeviation: 0.5 };
-  const DEGRADED = { maxAgeSeconds: 300, maxDeviation: 1.0 };
+  const category = symbol ? getVolatilityCategory(symbol) : 'alt';
+  const thresholds = STATUS_THRESHOLDS_BY_CATEGORY[category] ?? STATUS_THRESHOLDS_BY_CATEGORY.alt;
 
-  if (dataAgeSeconds <= ONLINE.maxAgeSeconds && Math.abs(deviation) < ONLINE.maxDeviation) {
+  if (
+    dataAgeSeconds <= thresholds.maxAgeSecondsOnline &&
+    Math.abs(deviation) < thresholds.maxDeviationOnline
+  ) {
     return 'online';
   }
-  if (dataAgeSeconds <= DEGRADED.maxAgeSeconds && Math.abs(deviation) < DEGRADED.maxDeviation) {
+  if (
+    dataAgeSeconds <= thresholds.maxAgeSecondsDegraded &&
+    Math.abs(deviation) < thresholds.maxDeviationDegraded
+  ) {
     return 'degraded';
   }
   return 'offline';
@@ -51,7 +100,8 @@ function calculateDeviationFromMedian(price: number, median: number): number {
 }
 
 export function buildCrossChainComparisonFromPrices(
-  chainPrices: ChainPriceInfo[]
+  chainPrices: ChainPriceInfo[],
+  symbol?: string
 ): CrossChainComparisonResult[] {
   if (chainPrices.length === 0) return [];
 
@@ -82,7 +132,7 @@ export function buildCrossChainComparisonFromPrices(
       timestamp: chainPrice.timestamp,
       deviation,
       latency: dataAgeSeconds,
-      status: classifyChainStatus(deviation, dataAgeSeconds),
+      status: classifyChainStatus(deviation, dataAgeSeconds, symbol),
     };
   });
 }
