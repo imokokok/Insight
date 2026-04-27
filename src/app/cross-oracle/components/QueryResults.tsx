@@ -2,16 +2,21 @@
 
 import { memo } from 'react';
 
-import { Database } from 'lucide-react';
+import { Database, BarChart3, Shield, Trophy } from 'lucide-react';
 
 import { EmptyStateEnhanced } from '@/components/ui';
+import type { CalculatedPerformanceMetrics } from '@/lib/oracles/utils/performanceMetricsCalculator';
 import type { OracleProvider, PriceData } from '@/types/oracle';
 
 import { OracleErrorPanel } from './OracleErrorPanel';
 import { RiskAlertBanner } from './RiskAlertBanner';
+import { OracleRankingTab } from './tabs/OracleRankingTab';
+import { RiskAnalysisTab } from './tabs/RiskAnalysisTab';
 import { SimplePriceComparisonTab } from './tabs/SimplePriceComparisonTab';
 
+import type { CrossOracleTab } from '../hooks/useCrossOraclePage';
 import type { PriceAnomaly, AnomalyDetectionResult } from '../hooks/usePriceAnomalyDetection';
+import type { RiskMetricsResult } from '../hooks/useRiskMetrics';
 import type { OracleDataError } from '../types';
 
 interface QueryResultsProps {
@@ -31,6 +36,11 @@ interface QueryResultsProps {
   validPrices: number[];
   anomalies: PriceAnomaly[];
   anomalyDetection: AnomalyDetectionResult;
+  riskMetrics: RiskMetricsResult;
+  performanceMetrics: CalculatedPerformanceMetrics[];
+  isCalculatingMetrics: boolean;
+  activeTab: CrossOracleTab;
+  onTabChange: (tab: CrossOracleTab) => void;
   onRefresh: () => void;
   oracleDataError?: OracleDataError;
   retryOracle?: (provider: OracleProvider) => Promise<void>;
@@ -38,6 +48,12 @@ interface QueryResultsProps {
   isRetrying?: boolean;
   retryingOracles?: OracleProvider[];
 }
+
+const TABS: { key: CrossOracleTab; label: string; icon: React.ElementType }[] = [
+  { key: 'comparison', label: 'Price Comparison', icon: BarChart3 },
+  { key: 'risk', label: 'Risk Analysis', icon: Shield },
+  { key: 'ranking', label: 'Oracle Ranking', icon: Trophy },
+];
 
 function LoadingState({
   queryProgress,
@@ -99,6 +115,11 @@ function QueryResultsComponent({
   validPrices,
   anomalies,
   anomalyDetection,
+  riskMetrics,
+  performanceMetrics,
+  isCalculatingMetrics,
+  activeTab,
+  onTabChange,
   oracleDataError,
   retryOracle,
   retryAllFailed,
@@ -154,21 +175,70 @@ function QueryResultsComponent({
       )}
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="border-b border-gray-200 px-6 pt-4">
+          <div className="flex items-center gap-1">
+            {TABS.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.key;
+              return (
+                <button
+                  key={tab.key}
+                  onClick={() => onTabChange(tab.key)}
+                  className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium border-b-2 transition-colors ${
+                    isActive
+                      ? 'border-primary-600 text-primary-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         <div className="min-h-[400px] p-6">
-          <SimplePriceComparisonTab
-            priceData={priceData}
-            selectedOracles={selectedOracles}
-            selectedSymbol={selectedSymbol}
-            medianPrice={medianPrice}
-            minPrice={minPrice}
-            maxPrice={maxPrice}
-            priceRange={priceRange}
-            standardDeviation={standardDeviation}
-            standardDeviationPercent={standardDeviationPercent}
-            avgPrice={avgPrice}
-            validPrices={validPrices}
-            anomalies={anomalies}
-          />
+          {activeTab === 'comparison' && (
+            <SimplePriceComparisonTab
+              priceData={priceData}
+              selectedOracles={selectedOracles}
+              selectedSymbol={selectedSymbol}
+              medianPrice={medianPrice}
+              minPrice={minPrice}
+              maxPrice={maxPrice}
+              priceRange={priceRange}
+              standardDeviation={standardDeviation}
+              standardDeviationPercent={standardDeviationPercent}
+              avgPrice={avgPrice}
+              validPrices={validPrices}
+              anomalies={anomalies}
+            />
+          )}
+          {activeTab === 'risk' && (
+            <RiskAnalysisTab
+              riskScore={riskMetrics.riskScore}
+              riskLevel={riskMetrics.riskLevel}
+              riskColor={riskMetrics.riskColor}
+              hhiValue={riskMetrics.hhiValue}
+              hhiLevel={riskMetrics.hhiLevel}
+              diversificationScore={riskMetrics.diversificationScore}
+              diversificationLevel={riskMetrics.diversificationLevel}
+              volatilityIndex={riskMetrics.volatilityIndex}
+              volatilityLevel={riskMetrics.volatilityLevel}
+              correlationScore={riskMetrics.correlationScore}
+              correlationLevel={riskMetrics.correlationLevel}
+              highCorrelationPairs={riskMetrics.highCorrelationPairs}
+              oracleCount={priceData.length}
+            />
+          )}
+          {activeTab === 'ranking' && (
+            <OracleRankingTab
+              priceData={priceData}
+              performanceMetrics={performanceMetrics}
+              isCalculatingMetrics={isCalculatingMetrics}
+            />
+          )}
         </div>
       </div>
     </div>

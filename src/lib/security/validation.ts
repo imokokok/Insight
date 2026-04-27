@@ -52,7 +52,16 @@ const SafeUrlSchema = z
     }
   }, 'Only HTTP and HTTPS URLs are allowed');
 
-const SafeAlertConditionSchema = z.enum(['above', 'below', 'change_percent']);
+const SafeAlertConditionSchema = z.enum([
+  'above',
+  'below',
+  'change_percent',
+  'deviation_from_median',
+  'oracle_disagreement',
+  'stale_data',
+  'confidence_drop',
+  'anomaly_detected',
+]);
 
 const SafeAlertTargetValueSchema = z.number().finite();
 
@@ -159,6 +168,36 @@ export const PriceDataSchema = PriceDataBaseSchema.extend({
   change: z.number().optional(),
   change24h: z.number().optional(),
   change24hPercent: z.number().optional(),
+  dataSource: z.enum(['real', 'mock', 'api', 'fallback']).optional(),
+  confidenceInterval: z
+    .object({
+      bid: z.number(),
+      ask: z.number(),
+      widthPercentage: z.number(),
+    })
+    .optional(),
+  roundId: z.string().optional(),
+  answeredInRound: z.string().optional(),
+  version: z.string().optional(),
+  startedAt: z.number().optional(),
+  priceId: z.string().optional(),
+  exponent: z.number().optional(),
+  conf: z.number().optional(),
+  publishTime: z.number().optional(),
+  dapiName: z.string().optional(),
+  proxyAddress: z.string().optional(),
+  dataAge: z.number().optional(),
+  pairIndex: z.number().optional(),
+  poolAddress: z.string().optional(),
+  feeTier: z.number().optional(),
+  sqrtPriceX96: z.string().optional(),
+  tick: z.number().optional(),
+  twapInterval: z.number().optional(),
+  twapPrice: z.number().optional(),
+  spotPrice: z.number().optional(),
+  liquidity: z.string().optional(),
+  resolution: z.number().optional(),
+  contractVersion: z.number().optional(),
 });
 
 export const AlertListResponseSchema = z.object({

@@ -1,8 +1,3 @@
-/**
- * @fileoverview Multi-oracle comparison page composition hook
- * @description Composes all focused hooks, providing a unified page state management interface
- */
-
 import { useState, useCallback } from 'react';
 
 import { type OracleProvider, ORACLE_PROVIDER_VALUES } from '@/types/oracle';
@@ -10,6 +5,9 @@ import { type OracleProvider, ORACLE_PROVIDER_VALUES } from '@/types/oracle';
 import { useOracleData } from './useOracleData';
 import { usePriceAnomalyDetection } from './usePriceAnomalyDetection';
 import { usePriceStats } from './usePriceStats';
+import { useRiskMetrics } from './useRiskMetrics';
+
+export type CrossOracleTab = 'comparison' | 'risk' | 'ranking';
 
 interface UseCrossOraclePageOptions {
   initialSymbol?: string;
@@ -21,6 +19,7 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
 
   const [selectedOracles, setSelectedOracles] = useState<OracleProvider[]>(initialOracles);
   const [selectedSymbol, setSelectedSymbol] = useState<string>(initialSymbol);
+  const [activeTab, setActiveTab] = useState<CrossOracleTab>('comparison');
 
   const {
     priceData,
@@ -37,6 +36,8 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
     setRefreshInterval,
     lastRefreshedAt,
     nextRefreshAt,
+    performanceMetrics,
+    isCalculatingMetrics,
   } = useOracleData({
     selectedOracles,
     selectedSymbol,
@@ -45,6 +46,8 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
   const priceStats = usePriceStats(priceData);
 
   const anomalyDetection = usePriceAnomalyDetection(priceData, priceStats.medianPrice);
+
+  const riskMetrics = useRiskMetrics(priceData);
 
   const toggleOracle = useCallback((oracle: OracleProvider) => {
     setSelectedOracles((prev) =>
@@ -57,6 +60,8 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
     setSelectedOracles,
     selectedSymbol,
     setSelectedSymbol,
+    activeTab,
+    setActiveTab,
 
     priceData,
     isLoading,
@@ -65,6 +70,11 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
     priceStats,
 
     anomalyDetection,
+
+    riskMetrics,
+
+    performanceMetrics,
+    isCalculatingMetrics,
 
     oracleDataError,
     retryOracle,

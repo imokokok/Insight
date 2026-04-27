@@ -18,6 +18,8 @@ function CrossOracleContentInner() {
     setSelectedOracles,
     selectedSymbol,
     setSelectedSymbol,
+    activeTab,
+    setActiveTab,
 
     priceData,
     isLoading,
@@ -26,6 +28,10 @@ function CrossOracleContentInner() {
     priceStats,
 
     anomalyDetection,
+    riskMetrics,
+
+    performanceMetrics,
+    isCalculatingMetrics,
 
     oracleDataError,
     retryOracle,
@@ -168,6 +174,11 @@ function CrossOracleContentInner() {
             validPrices={validPrices}
             anomalies={anomalies}
             anomalyDetection={anomalyDetection}
+            riskMetrics={riskMetrics}
+            performanceMetrics={performanceMetrics}
+            isCalculatingMetrics={isCalculatingMetrics}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
             onRefresh={fetchPriceData}
             oracleDataError={oracleDataError}
             retryOracle={retryOracle}

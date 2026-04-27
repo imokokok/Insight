@@ -1,3 +1,13 @@
+export type AlertConditionType =
+  | 'above'
+  | 'below'
+  | 'change_percent'
+  | 'deviation_from_median'
+  | 'oracle_disagreement'
+  | 'stale_data'
+  | 'confidence_drop'
+  | 'anomaly_detected';
+
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export interface Database {
@@ -170,7 +180,7 @@ export interface Database {
           symbol: string;
           provider: string | null;
           chain: string | null;
-          condition_type: 'above' | 'below' | 'change_percent';
+          condition_type: AlertConditionType;
           target_value: number;
           is_active: boolean;
           last_triggered_at: string | null;
@@ -184,7 +194,7 @@ export interface Database {
           symbol: string;
           provider?: string | null;
           chain?: string | null;
-          condition_type: 'above' | 'below' | 'change_percent';
+          condition_type: AlertConditionType;
           target_value: number;
           is_active?: boolean;
           last_triggered_at?: string | null;
@@ -198,7 +208,7 @@ export interface Database {
           symbol?: string;
           provider?: string | null;
           chain?: string | null;
-          condition_type?: 'above' | 'below' | 'change_percent';
+          condition_type?: AlertConditionType;
           target_value?: number;
           is_active?: boolean;
           last_triggered_at?: string | null;
@@ -422,7 +432,5 @@ type ChainConfigFavorite = {
   chain: string;
   symbols?: string[];
 };
-
-export type AlertConditionType = 'above' | 'below' | 'change_percent';
 
 export type ConfigType = 'oracle_config' | 'symbol' | 'chain_config';

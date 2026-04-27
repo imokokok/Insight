@@ -1,5 +1,6 @@
 import { type SupabaseClient } from '@supabase/supabase-js';
 
+import { type AlertConditionType } from '@/lib/supabase/database.types';
 import { createLogger } from '@/lib/utils/logger';
 import { RequestQueue } from '@/lib/utils/requestQueue';
 import { normalizeTimestamp } from '@/lib/utils/timestamp';
@@ -121,7 +122,7 @@ export interface PriceAlert {
   name: string | null;
   symbol: string;
   chain: string | null;
-  condition_type: 'above' | 'below' | 'change_percent';
+  condition_type: AlertConditionType;
   target_value: number;
   provider: string | null;
   is_active: boolean;
@@ -135,7 +136,7 @@ export interface PriceAlertInsert {
   name?: string | null;
   symbol: string;
   chain?: string | null;
-  condition_type: 'above' | 'below' | 'change_percent';
+  condition_type: AlertConditionType;
   target_value: number;
   provider?: string | null;
   is_active?: boolean;

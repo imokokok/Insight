@@ -72,27 +72,64 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
     [provider]
   );
 
-  const CONDITION_OPTIONS: { value: AlertConditionType; label: string; description: string }[] =
-    useMemo(
-      () => [
-        {
-          value: 'above',
-          label: 'Price Above',
-          description: 'Alert when price goes above target value',
-        },
-        {
-          value: 'below',
-          label: 'Price Below',
-          description: 'Alert when price goes below target value',
-        },
-        {
-          value: 'change_percent',
-          label: 'Price Change %',
-          description: 'Alert when price change percentage exceeds threshold',
-        },
-      ],
-      []
-    );
+  const CONDITION_OPTIONS: {
+    value: AlertConditionType;
+    label: string;
+    description: string;
+    category: string;
+  }[] = useMemo(
+    () => [
+      {
+        value: 'above',
+        label: 'Price Above',
+        description: 'Alert when price goes above target value',
+        category: 'Price',
+      },
+      {
+        value: 'below',
+        label: 'Price Below',
+        description: 'Alert when price goes below target value',
+        category: 'Price',
+      },
+      {
+        value: 'change_percent',
+        label: 'Price Change %',
+        description: 'Alert when price change percentage exceeds threshold',
+        category: 'Price',
+      },
+      {
+        value: 'deviation_from_median',
+        label: 'Deviation from Median',
+        description: 'Alert when oracle price deviates from median by more than X%',
+        category: 'Smart',
+      },
+      {
+        value: 'oracle_disagreement',
+        label: 'Oracle Disagreement',
+        description: 'Alert when oracles disagree by more than X% on the same asset',
+        category: 'Smart',
+      },
+      {
+        value: 'stale_data',
+        label: 'Stale Data',
+        description: 'Alert when oracle data is older than X seconds',
+        category: 'Smart',
+      },
+      {
+        value: 'confidence_drop',
+        label: 'Confidence Drop',
+        description: 'Alert when oracle confidence score drops below X (0-1)',
+        category: 'Smart',
+      },
+      {
+        value: 'anomaly_detected',
+        label: 'Anomaly Detected',
+        description: 'Alert when price anomaly is automatically detected (IQR/Z-Score)',
+        category: 'Smart',
+      },
+    ],
+    []
+  );
 
   const handleProviderChange = useCallback((value: OracleProvider | '') => {
     setProvider(value);
@@ -166,7 +203,17 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
       case 'below':
         return 'Enter target price';
       case 'change_percent':
-        return 'Enter percentage';
+        return 'Enter percentage (e.g. 5 for 5%)';
+      case 'deviation_from_median':
+        return 'Enter deviation % (e.g. 2 for 2%)';
+      case 'oracle_disagreement':
+        return 'Enter disagreement % (e.g. 3 for 3%)';
+      case 'stale_data':
+        return 'Enter staleness threshold in seconds (e.g. 60)';
+      case 'confidence_drop':
+        return 'Enter confidence threshold (0-1, e.g. 0.9)';
+      case 'anomaly_detected':
+        return 'Auto-detected (enter severity: 1=low, 2=medium, 3=high)';
       default:
         return 'Enter target value';
     }
@@ -235,30 +282,44 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Condition</label>
-            <div className="space-y-2">
-              {CONDITION_OPTIONS.map((option) => (
-                <label
-                  key={option.value}
-                  className={`flex items-start p-3 border rounded-lg cursor-pointer transition-colors ${
-                    conditionType === option.value
-                      ? 'border-primary-500 bg-primary-50'
-                      : 'border-gray-200 hover:bg-gray-50'
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="conditionType"
-                    value={option.value}
-                    checked={conditionType === option.value}
-                    onChange={(e) => setConditionType(e.target.value as AlertConditionType)}
-                    className="mt-1 mr-3"
-                  />
-                  <div>
-                    <span className="font-medium text-gray-900">{option.label}</span>
-                    <p className="text-xs text-gray-500">{option.description}</p>
+            <div className="space-y-3">
+              {['Price', 'Smart'].map((category) => {
+                const options = CONDITION_OPTIONS.filter((o) => o.category === category);
+                return (
+                  <div key={category}>
+                    <p
+                      className={`text-[10px] font-semibold uppercase tracking-wider mb-1.5 ${category === 'Smart' ? 'text-purple-500' : 'text-gray-400'}`}
+                    >
+                      {category === 'Smart' ? '⚡ Smart Alerts' : category}
+                    </p>
+                    <div className="space-y-2">
+                      {options.map((option) => (
+                        <label
+                          key={option.value}
+                          className={`flex items-start p-3 border rounded-lg cursor-pointer transition-colors ${
+                            conditionType === option.value
+                              ? 'border-primary-500 bg-primary-50'
+                              : 'border-gray-200 hover:bg-gray-50'
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            name="conditionType"
+                            value={option.value}
+                            checked={conditionType === option.value}
+                            onChange={(e) => setConditionType(e.target.value as AlertConditionType)}
+                            className="mt-1 mr-3"
+                          />
+                          <div>
+                            <span className="font-medium text-gray-900">{option.label}</span>
+                            <p className="text-xs text-gray-500">{option.description}</p>
+                          </div>
+                        </label>
+                      ))}
+                    </div>
                   </div>
-                </label>
-              ))}
+                );
+              })}
             </div>
           </div>
 
