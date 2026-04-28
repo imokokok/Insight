@@ -5,7 +5,7 @@ import { type PriceData, type OracleProvider, type Blockchain } from '@/types/or
 
 const logger = createLogger('oracle-storage');
 
-export interface OracleStorageConfig {
+interface OracleStorageConfig {
   enabled: boolean;
   defaultExpirationHours: number;
 }
@@ -15,15 +15,7 @@ const DEFAULT_CONFIG: OracleStorageConfig = {
   defaultExpirationHours: 24,
 };
 
-let storageConfig: OracleStorageConfig = { ...DEFAULT_CONFIG };
-
-export function configureStorage(config: Partial<OracleStorageConfig>): void {
-  storageConfig = { ...storageConfig, ...config };
-}
-
-export function getStorageConfig(): OracleStorageConfig {
-  return { ...storageConfig };
-}
+const storageConfig: OracleStorageConfig = { ...DEFAULT_CONFIG };
 
 export function shouldUseDatabase(): boolean {
   if (typeof window !== 'undefined') {
@@ -79,25 +71,6 @@ export async function savePriceToDatabase(priceData: PriceData): Promise<boolean
       error instanceof Error ? error : new Error(String(error))
     );
     return false;
-  }
-}
-
-export async function savePricesToDatabase(priceDataArray: PriceData[]): Promise<number> {
-  if (!shouldUseDatabase() || priceDataArray.length === 0) {
-    return 0;
-  }
-
-  try {
-    const queries = getServerQueries();
-    const records = priceDataArray.map(priceDataToRecord);
-    const results = await queries.savePriceRecords(records);
-    return results?.length || 0;
-  } catch (error) {
-    logger.error(
-      'Failed to save prices to database',
-      error instanceof Error ? error : new Error(String(error))
-    );
-    return 0;
   }
 }
 

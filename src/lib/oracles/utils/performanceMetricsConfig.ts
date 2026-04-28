@@ -259,58 +259,13 @@ const DEFAULT_PROVIDER_CONFIG: PerformanceMetricsConfig = {
   },
 };
 
-let currentConfig: PerformanceMetricsConfig = { ...DEFAULT_PROVIDER_CONFIG };
+const currentConfig: PerformanceMetricsConfig = { ...DEFAULT_PROVIDER_CONFIG };
 
 export function getPerformanceMetricsConfig(): PerformanceMetricsConfig {
   return currentConfig;
 }
 
-function setPerformanceMetricsConfig(config: Partial<PerformanceMetricsConfig>): void {
-  currentConfig = {
-    ...currentConfig,
-    ...config,
-    defaults: {
-      ...currentConfig.defaults,
-      ...config.defaults,
-    },
-    calculation: {
-      ...currentConfig.calculation,
-      ...config.calculation,
-    },
-    cache: {
-      ...currentConfig.cache,
-      ...config.cache,
-    },
-    memoryManagement: {
-      ...currentConfig.memoryManagement,
-      ...config.memoryManagement,
-    },
-  };
-}
-
-function _resetPerformanceMetricsConfig(): void {
-  currentConfig = { ...DEFAULT_PROVIDER_CONFIG };
-}
-
 export function getProviderDefaults(provider: OracleProvider): ProviderPerformanceDefaults {
   const config = getPerformanceMetricsConfig();
   return config.defaults[provider] || config.fallbackDefaults;
-}
-
-function _updateProviderDefaults(
-  provider: OracleProvider,
-  updates: Partial<ProviderPerformanceDefaults>
-): void {
-  const config = getPerformanceMetricsConfig();
-  const currentDefaults = config.defaults[provider] || config.fallbackDefaults;
-
-  setPerformanceMetricsConfig({
-    defaults: {
-      ...config.defaults,
-      [provider]: {
-        ...currentDefaults,
-        ...updates,
-      },
-    },
-  });
 }
