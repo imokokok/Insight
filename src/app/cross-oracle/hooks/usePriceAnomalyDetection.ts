@@ -1,42 +1,27 @@
-/**
- * @fileoverview Price anomaly detection hook
- * @description Detect anomalies in price data, providing anomaly severity classification and cause analysis
- */
-
 import { useMemo } from 'react';
 
 import { safeMax } from '@/lib/utils';
 import { type PriceData, type OracleProvider } from '@/types/oracle';
 
 import {
-  ANOMALY_DEVIATION_THRESHOLD,
+  getDeviationThresholds,
   SEVERITY_THRESHOLDS,
   FRESHNESS_THRESHOLDS,
   CONFIDENCE_THRESHOLDS,
 } from '../thresholds';
 
-/** Anomaly severity */
 export type AnomalySeverity = 'low' | 'medium' | 'high';
 
-/** Price anomaly item */
 export interface PriceAnomaly {
-  /** Oracle provider */
   provider: OracleProvider;
-  /** Anomalous price */
   price: number;
-  /** Deviation percentage (relative to median price) */
   deviationPercent: number;
-  /** Anomaly severity */
   severity: AnomalySeverity;
-  /** Readable text list of anomaly causes */
   reasonKeys: string[];
-  /** Anomaly detection timestamp */
   timestamp: number;
-  /** Data freshness (seconds) */
   freshnessSeconds: number;
 }
 
-/** Anomaly detection result */
 export interface AnomalyDetectionResult {
   anomalies: PriceAnomaly[];
   count: number;
@@ -48,12 +33,13 @@ export interface AnomalyDetectionResult {
   anomalyOracleNames: string[];
 }
 
-function getSeverity(deviationPercent: number): AnomalySeverity {
+function getSeverity(deviationPercent: number, symbol: string): AnomalySeverity {
+  const thresholds = getDeviationThresholds(symbol);
   const absDeviation = Math.abs(deviationPercent);
-  if (absDeviation > SEVERITY_THRESHOLDS.HIGH) {
+  if (absDeviation > thresholds.DANGER) {
     return 'high';
   }
-  if (absDeviation >= SEVERITY_THRESHOLDS.MEDIUM) {
+  if (absDeviation >= thresholds.WARNING) {
     return 'medium';
   }
   return 'low';
@@ -62,18 +48,27 @@ function getSeverity(deviationPercent: number): AnomalySeverity {
 function analyzeReason(
   deviationPercent: number,
   freshnessSeconds: number,
-  confidence?: number | null
+  confidence?: number | null,
+  symbol?: string
 ): string[] {
   const reasonKeys: string[] = [];
+  const thresholds = symbol ? getDeviationThresholds(symbol) : null;
 
   const absDeviation = Math.abs(deviationPercent);
   if (absDeviation > 5) {
     reasonKeys.push('Price deviation exceeds 5%');
   }
-  if (absDeviation > SEVERITY_THRESHOLDS.HIGH) {
+  if (thresholds && absDeviation > thresholds.DANGER) {
+    reasonKeys.push('High market volatility');
+  } else if (absDeviation > SEVERITY_THRESHOLDS.HIGH) {
     reasonKeys.push('High market volatility');
   }
-  if (absDeviation > ANOMALY_DEVIATION_THRESHOLD && absDeviation <= SEVERITY_THRESHOLDS.HIGH) {
+  if (thresholds && absDeviation > thresholds.WARNING && absDeviation <= thresholds.DANGER) {
+    reasonKeys.push('Data source discrepancy');
+  } else if (
+    absDeviation > SEVERITY_THRESHOLDS.MEDIUM &&
+    absDeviation <= SEVERITY_THRESHOLDS.HIGH
+  ) {
     reasonKeys.push('Data source discrepancy');
   }
 
@@ -92,7 +87,8 @@ function analyzeReason(
   }
 
   if (reasonKeys.length === 0) {
-    if (absDeviation >= ANOMALY_DEVIATION_THRESHOLD) {
+    const warningThreshold = thresholds ? thresholds.WARNING : SEVERITY_THRESHOLDS.MEDIUM;
+    if (absDeviation >= warningThreshold) {
       reasonKeys.push('Deviation exceeds threshold');
     } else {
       reasonKeys.push('Minor deviation');
@@ -105,7 +101,8 @@ function analyzeReason(
 export function usePriceAnomalyDetection(
   priceData: PriceData[],
   medianPrice: number,
-  currentTime?: number
+  currentTime?: number,
+  selectedSymbol?: string
 ): AnomalyDetectionResult {
   return useMemo(() => {
     // eslint-disable-next-line react-hooks/purity
@@ -123,6 +120,10 @@ export function usePriceAnomalyDetection(
       };
     }
 
+    const symbol = selectedSymbol ?? '';
+    const thresholds = getDeviationThresholds(symbol);
+    const anomalyThreshold = thresholds.WARNING;
+
     const anomalies: PriceAnomaly[] = [];
 
     priceData.forEach((data) => {
@@ -130,10 +131,15 @@ export function usePriceAnomalyDetection(
 
       const deviationPercent = ((data.price - medianPrice) / medianPrice) * 100;
 
-      if (Math.abs(deviationPercent) >= ANOMALY_DEVIATION_THRESHOLD) {
+      if (Math.abs(deviationPercent) >= anomalyThreshold) {
         const freshnessSeconds = Math.max(0, Math.floor((now - data.timestamp) / 1000));
-        const severity = getSeverity(deviationPercent);
-        const reasonKeys = analyzeReason(deviationPercent, freshnessSeconds, data.confidence);
+        const severity = getSeverity(deviationPercent, symbol);
+        const reasonKeys = analyzeReason(
+          deviationPercent,
+          freshnessSeconds,
+          data.confidence,
+          symbol
+        );
 
         anomalies.push({
           provider: data.provider,
@@ -168,5 +174,5 @@ export function usePriceAnomalyDetection(
       maxDeviation,
       anomalyOracleNames,
     };
-  }, [priceData, medianPrice, currentTime]);
+  }, [priceData, medianPrice, currentTime, selectedSymbol]);
 }

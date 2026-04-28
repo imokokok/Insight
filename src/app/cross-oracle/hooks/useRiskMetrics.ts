@@ -1,14 +1,18 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 
 import {
   calculateRiskMetrics,
   getRiskLevelColor,
-  buildRobustCorrelationMatrix,
   type RiskMetrics,
   type RiskLevel,
+  type RiskWeights,
+  DEFAULT_RISK_WEIGHTS,
 } from '@/lib/analytics/riskMetrics';
 import { chartColors } from '@/lib/config/colors';
+import { getProviderDefaults } from '@/lib/oracles/utils/performanceMetricsConfig';
 import { type PriceData, type OracleProvider } from '@/types/oracle';
+
+import { type PriceHistoryMap } from './useOracleMemory';
 
 export interface RiskMetricsResult {
   riskMetrics: RiskMetrics | null;
@@ -24,10 +28,50 @@ export interface RiskMetricsResult {
   correlationScore: number;
   correlationLevel: RiskLevel;
   highCorrelationPairs: string[];
+  freshnessScore: number;
+  freshnessLevel: RiskLevel;
+  staleOracleCount: number;
+  staleOracles: Array<{ name: string; stalenessSeconds: number }>;
+  manipulationResistanceScore: number;
+  manipulationResistanceLevel: RiskLevel;
+  manipulationResistanceFactors: {
+    dataSourceDiversity: number;
+    aggregationRobustness: number;
+    updateFrequency: number;
+    onChainVerification: number;
+  };
+  sharedDependencyScore: number;
+  sharedDependencyLevel: RiskLevel;
+  sharedSourceGroups: Array<{ source: string; oracles: string[] }>;
+  systemicRiskFactor: number;
+  weights: RiskWeights;
   isCalculating: boolean;
 }
 
-export function useRiskMetrics(priceData: PriceData[]): RiskMetricsResult {
+function extractPriceHistories(priceHistoryMap: PriceHistoryMap): Map<string, number[]> {
+  const result = new Map<string, number[]>();
+  for (const [provider, history] of priceHistoryMap) {
+    const prices = history.filter((h) => h.success && h.price > 0).map((h) => h.price);
+    if (prices.length > 0) {
+      result.set(provider, prices);
+    }
+  }
+  return result;
+}
+
+export function useRiskMetrics(
+  priceData: PriceData[],
+  priceHistoryMapRef?: React.MutableRefObject<PriceHistoryMap> | null,
+  _selectedSymbol?: string
+): RiskMetricsResult {
+  const [priceHistories, setPriceHistories] = useState<Map<string, number[]>>(new Map());
+
+  useEffect(() => {
+    if (priceHistoryMapRef?.current && priceHistoryMapRef.current.size > 0) {
+      setPriceHistories(extractPriceHistories(priceHistoryMapRef.current));
+    }
+  }, [priceHistoryMapRef, priceData]);
+
   const result = useMemo(() => {
     if (priceData.length < 2) {
       return {
@@ -44,39 +88,88 @@ export function useRiskMetrics(priceData: PriceData[]): RiskMetricsResult {
         correlationScore: 0,
         correlationLevel: 'low' as RiskLevel,
         highCorrelationPairs: [],
+        freshnessScore: 0,
+        freshnessLevel: 'low' as RiskLevel,
+        staleOracleCount: 0,
+        staleOracles: [],
+        manipulationResistanceScore: 0,
+        manipulationResistanceLevel: 'low' as RiskLevel,
+        manipulationResistanceFactors: {
+          dataSourceDiversity: 0,
+          aggregationRobustness: 0,
+          updateFrequency: 0,
+          onChainVerification: 0,
+        },
+        sharedDependencyScore: 0,
+        sharedDependencyLevel: 'low' as RiskLevel,
+        sharedSourceGroups: [],
+        systemicRiskFactor: 0,
+        weights: DEFAULT_RISK_WEIGHTS,
         isCalculating: false,
       };
     }
 
     try {
-      const oracleData = priceData.map((p) => ({
-        name: p.provider,
-        share: 100 / priceData.length,
-        color: chartColors.oracle[p.provider as OracleProvider] || '#888888',
-        tvs: '$0',
-        tvsValue: 0,
-        chains: 1,
-        protocols: 1,
-        avgLatency: 0,
-        accuracy: 0,
-        updateFrequency: 0,
-        change24h: p.change24h ?? 0,
-        change7d: 0,
-        change30d: 0,
-      }));
+      const oracleData = priceData.map((p) => {
+        const defaults = getProviderDefaults(p.provider);
+        return {
+          name: p.provider,
+          share: defaults.marketShare,
+          color: chartColors.oracle[p.provider as OracleProvider] || '#888888',
+          tvs: defaults.tvs,
+          tvsValue: defaults.tvsValue,
+          chains: defaults.chains,
+          protocols: defaults.protocols,
+          avgLatency: defaults.responseTime,
+          accuracy: defaults.accuracy,
+          updateFrequency: defaults.updateFrequency,
+          change24h: p.change24h ?? 0,
+          change7d: 0,
+          change30d: 0,
+        };
+      });
 
-      const priceHistory = priceData.map((p) => p.price);
+      const priceHistoriesByProvider = new Map(priceHistories);
 
-      const providerPrices = new Map<string, number[]>();
-      for (const pd of priceData) {
-        const arr = providerPrices.get(pd.provider) || [];
-        arr.push(pd.price);
-        providerPrices.set(pd.provider, arr);
+      if (priceHistoriesByProvider.size < 2) {
+        for (const p of priceData) {
+          if (!priceHistoriesByProvider.has(p.provider) && p.price > 0) {
+            priceHistoriesByProvider.set(p.provider, [p.price]);
+          }
+        }
       }
 
-      const { matrix: correlationMatrix } = buildRobustCorrelationMatrix(providerPrices);
+      const oracleTimestamps = priceData.map((p) => ({
+        name: p.provider,
+        timestamp: p.timestamp,
+      }));
 
-      const metrics = calculateRiskMetrics(oracleData, priceHistory, correlationMatrix);
+      const manipulationResistanceData = priceData.map((p) => {
+        const defaults = getProviderDefaults(p.provider);
+        return {
+          name: p.provider,
+          dataSources: defaults.dataSources,
+          updateFrequencySeconds: defaults.updateFrequency,
+          hasOnChainVerification: defaults.hasOnChainVerification,
+          aggregationMethod: defaults.aggregationMethod,
+        };
+      });
+
+      const sharedDependencyData = priceData.map((p) => {
+        const defaults = getProviderDefaults(p.provider);
+        return {
+          name: p.provider,
+          primaryDataSources: defaults.primaryDataSources,
+        };
+      });
+
+      const metrics = calculateRiskMetrics({
+        oracleData,
+        priceHistoriesByProvider,
+        oracleTimestamps,
+        manipulationResistanceData,
+        sharedDependencyData,
+      });
 
       return {
         riskMetrics: metrics,
@@ -92,6 +185,18 @@ export function useRiskMetrics(priceData: PriceData[]): RiskMetricsResult {
         correlationScore: metrics.correlationRisk.score,
         correlationLevel: metrics.correlationRisk.level,
         highCorrelationPairs: metrics.correlationRisk.highCorrelationPairs,
+        freshnessScore: metrics.freshnessRisk.score,
+        freshnessLevel: metrics.freshnessRisk.level,
+        staleOracleCount: metrics.freshnessRisk.staleOracleCount,
+        staleOracles: metrics.freshnessRisk.staleOracles,
+        manipulationResistanceScore: metrics.manipulationResistance.score,
+        manipulationResistanceLevel: metrics.manipulationResistance.level,
+        manipulationResistanceFactors: metrics.manipulationResistance.factors,
+        sharedDependencyScore: metrics.sharedDependency.score,
+        sharedDependencyLevel: metrics.sharedDependency.level,
+        sharedSourceGroups: metrics.sharedDependency.sharedSourceGroups,
+        systemicRiskFactor: metrics.sharedDependency.systemicRiskFactor,
+        weights: metrics.overallRisk.weights,
         isCalculating: false,
       };
     } catch {
@@ -109,10 +214,27 @@ export function useRiskMetrics(priceData: PriceData[]): RiskMetricsResult {
         correlationScore: 0,
         correlationLevel: 'critical' as RiskLevel,
         highCorrelationPairs: [],
+        freshnessScore: 0,
+        freshnessLevel: 'critical' as RiskLevel,
+        staleOracleCount: 0,
+        staleOracles: [],
+        manipulationResistanceScore: 0,
+        manipulationResistanceLevel: 'critical' as RiskLevel,
+        manipulationResistanceFactors: {
+          dataSourceDiversity: 0,
+          aggregationRobustness: 0,
+          updateFrequency: 0,
+          onChainVerification: 0,
+        },
+        sharedDependencyScore: 0,
+        sharedDependencyLevel: 'critical' as RiskLevel,
+        sharedSourceGroups: [],
+        systemicRiskFactor: 0,
+        weights: DEFAULT_RISK_WEIGHTS,
         isCalculating: false,
       };
     }
-  }, [priceData]);
+  }, [priceData, priceHistories]);
 
   return result;
 }

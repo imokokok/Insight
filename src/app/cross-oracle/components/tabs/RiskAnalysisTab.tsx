@@ -2,9 +2,22 @@
 
 import { memo } from 'react';
 
-import { Shield, BarChart3, TrendingDown, Link2, AlertTriangle } from 'lucide-react';
+import {
+  Shield,
+  BarChart3,
+  TrendingDown,
+  Link2,
+  AlertTriangle,
+  Clock,
+  Lock,
+  Share2,
+} from 'lucide-react';
 
-import { type RiskLevel } from '@/lib/analytics/riskMetrics';
+import {
+  type RiskLevel,
+  type RiskWeights,
+  DEFAULT_RISK_WEIGHTS,
+} from '@/lib/analytics/riskMetrics';
 
 interface RiskAnalysisTabProps {
   riskScore: number;
@@ -19,6 +32,23 @@ interface RiskAnalysisTabProps {
   correlationScore: number;
   correlationLevel: RiskLevel;
   highCorrelationPairs: string[];
+  freshnessScore: number;
+  freshnessLevel: RiskLevel;
+  staleOracleCount: number;
+  staleOracles: Array<{ name: string; stalenessSeconds: number }>;
+  manipulationResistanceScore: number;
+  manipulationResistanceLevel: RiskLevel;
+  manipulationResistanceFactors: {
+    dataSourceDiversity: number;
+    aggregationRobustness: number;
+    updateFrequency: number;
+    onChainVerification: number;
+  };
+  sharedDependencyScore: number;
+  sharedDependencyLevel: RiskLevel;
+  sharedSourceGroups: Array<{ source: string; oracles: string[] }>;
+  systemicRiskFactor: number;
+  weights: RiskWeights;
   oracleCount: number;
 }
 
@@ -49,6 +79,21 @@ function ScoreBar({ value, maxValue, color }: { value: number; maxValue: number;
   );
 }
 
+function getBarColor(level: RiskLevel): string {
+  switch (level) {
+    case 'low':
+      return '#10b981';
+    case 'medium':
+      return '#f59e0b';
+    case 'high':
+      return '#f97316';
+    case 'critical':
+      return '#ef4444';
+    default:
+      return '#888888';
+  }
+}
+
 function RiskMetricCard({
   icon: Icon,
   iconColor,
@@ -58,7 +103,6 @@ function RiskMetricCard({
   maxValue,
   unit,
   level,
-  barColor,
   children,
 }: {
   icon: React.ElementType;
@@ -69,7 +113,7 @@ function RiskMetricCard({
   maxValue: number;
   unit?: string;
   level: RiskLevel;
-  barColor: string;
+  barColor?: string;
   children?: React.ReactNode;
 }) {
   const badge = getLevelBadge(level);
@@ -91,10 +135,16 @@ function RiskMetricCard({
         <span className="text-2xl font-bold text-gray-900 font-mono">{value.toFixed(0)}</span>
         {unit && <span className="text-sm text-gray-500">{unit}</span>}
       </div>
-      <ScoreBar value={value} maxValue={maxValue} color={barColor} />
+      <ScoreBar value={value} maxValue={maxValue} color={getBarColor(level)} />
       {children}
     </div>
   );
+}
+
+function formatStaleness(seconds: number): string {
+  if (seconds < 60) return `${seconds}s`;
+  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
+  return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`;
 }
 
 function RiskAnalysisTabComponent({
@@ -110,9 +160,22 @@ function RiskAnalysisTabComponent({
   correlationScore,
   correlationLevel,
   highCorrelationPairs,
+  freshnessScore,
+  freshnessLevel,
+  staleOracleCount: _staleOracleCount,
+  staleOracles,
+  manipulationResistanceScore,
+  manipulationResistanceLevel,
+  manipulationResistanceFactors,
+  sharedDependencyScore,
+  sharedDependencyLevel,
+  sharedSourceGroups,
+  systemicRiskFactor,
+  weights,
   oracleCount,
 }: RiskAnalysisTabProps) {
   const overallBadge = getLevelBadge(riskLevel);
+  const w = weights ?? DEFAULT_RISK_WEIGHTS;
 
   return (
     <div className="space-y-6">
@@ -123,8 +186,9 @@ function RiskAnalysisTabComponent({
             <span className="text-sm font-medium text-gray-700">Risk Analysis</span>
           </div>
           <p className="text-xs text-gray-500">
-            Comprehensive risk assessment based on market concentration, diversification,
-            volatility, and oracle correlation
+            Comprehensive risk assessment across 7 dimensions: market concentration,
+            diversification, volatility, correlation, data freshness, manipulation resistance, and
+            shared dependency
           </p>
         </div>
         <div className="text-right">
@@ -157,14 +221,18 @@ function RiskAnalysisTabComponent({
           <div className="flex-1">
             <ScoreBar value={riskScore} maxValue={100} color={riskColor} />
             <div className="flex justify-between mt-2 text-[10px] text-gray-400">
-              <span>Low (0-29)</span>
-              <span>Medium (30-49)</span>
-              <span>High (50-69)</span>
-              <span>Critical (70-100)</span>
+              <span>Low (0-24)</span>
+              <span>Medium (25-44)</span>
+              <span>High (45-64)</span>
+              <span>Critical (65-100)</span>
             </div>
             <p className="text-xs text-gray-500 mt-2">
-              Weighted composite: HHI (30%) + Diversification (25%) + Volatility (25%) + Correlation
-              (20%)
+              Weighted composite: HHI ({Math.round(w.hhi * 100)}%) + Diversification (
+              {Math.round(w.diversification * 100)}%) + Volatility ({Math.round(w.volatility * 100)}
+              %) + Correlation ({Math.round(w.correlation * 100)}%) + Freshness (
+              {Math.round(w.freshness * 100)}%) + Manip. Resistance (
+              {Math.round(w.manipulationResistance * 100)}%) + Shared Dep. (
+              {Math.round(w.sharedDependency * 100)}%)
             </p>
           </div>
         </div>
@@ -179,15 +247,6 @@ function RiskAnalysisTabComponent({
           value={hhiValue}
           maxValue={10000}
           level={hhiLevel}
-          barColor={
-            hhiLevel === 'low'
-              ? '#10b981'
-              : hhiLevel === 'medium'
-                ? '#f59e0b'
-                : hhiLevel === 'high'
-                  ? '#f97316'
-                  : '#ef4444'
-          }
         >
           <div className="mt-3 pt-3 border-t border-gray-100 text-xs text-gray-500">
             <span className="font-medium text-gray-700">Thresholds:</span> &lt;1500 Competitive ·
@@ -204,15 +263,6 @@ function RiskAnalysisTabComponent({
           maxValue={100}
           unit="/ 100"
           level={diversificationLevel}
-          barColor={
-            diversificationLevel === 'low'
-              ? '#10b981'
-              : diversificationLevel === 'medium'
-                ? '#f59e0b'
-                : diversificationLevel === 'high'
-                  ? '#f97316'
-                  : '#ef4444'
-          }
         >
           <div className="mt-3 pt-3 border-t border-gray-100 text-xs text-gray-500">
             <span className="font-medium text-gray-700">Composition:</span> Chain Diversity (30%) ·
@@ -224,19 +274,10 @@ function RiskAnalysisTabComponent({
           icon={TrendingDown}
           iconColor="text-purple-500"
           title="Volatility Index"
-          description="Price volatility based on log returns. Higher values indicate greater price instability."
+          description="Price volatility based on log returns from time-series data. Higher values indicate greater price instability."
           value={volatilityIndex}
           maxValue={100}
           level={volatilityLevel}
-          barColor={
-            volatilityLevel === 'low'
-              ? '#10b981'
-              : volatilityLevel === 'medium'
-                ? '#f59e0b'
-                : volatilityLevel === 'high'
-                  ? '#f97316'
-                  : '#ef4444'
-          }
         >
           <div className="mt-3 pt-3 border-t border-gray-100 text-xs text-gray-500">
             <span className="font-medium text-gray-700">Thresholds:</span> &lt;20 Low · 20-40
@@ -252,15 +293,6 @@ function RiskAnalysisTabComponent({
           value={correlationScore}
           maxValue={100}
           level={correlationLevel}
-          barColor={
-            correlationLevel === 'low'
-              ? '#10b981'
-              : correlationLevel === 'medium'
-                ? '#f59e0b'
-                : correlationLevel === 'high'
-                  ? '#f97316'
-                  : '#ef4444'
-          }
         >
           {highCorrelationPairs.length > 0 && (
             <div className="mt-3 pt-3 border-t border-gray-100">
@@ -280,6 +312,114 @@ function RiskAnalysisTabComponent({
           {highCorrelationPairs.length === 0 && (
             <div className="mt-3 pt-3 border-t border-gray-100 text-xs text-gray-500">
               No high correlation pairs detected — oracle sources are sufficiently independent.
+            </div>
+          )}
+        </RiskMetricCard>
+
+        <RiskMetricCard
+          icon={Clock}
+          iconColor="text-cyan-500"
+          title="Data Freshness Risk"
+          description="Risk from stale or delayed oracle data. Stale prices can be exploited in attacks (e.g., Mango Markets $117M)."
+          value={freshnessScore}
+          maxValue={100}
+          level={freshnessLevel}
+        >
+          {staleOracles.length > 0 && (
+            <div className="mt-3 pt-3 border-t border-gray-100">
+              <p className="text-xs font-medium text-gray-700 mb-1.5">
+                Stale Oracles (&gt;2min delay):
+              </p>
+              <div className="space-y-1">
+                {staleOracles.map((oracle, i) => (
+                  <div key={i} className="flex items-center gap-1.5 text-xs">
+                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+                    <span className="text-gray-600">
+                      {oracle.name}: {formatStaleness(oracle.stalenessSeconds)} old
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          {staleOracles.length === 0 && (
+            <div className="mt-3 pt-3 border-t border-gray-100 text-xs text-gray-500">
+              All oracle data is fresh — no stale data detected.
+            </div>
+          )}
+        </RiskMetricCard>
+
+        <RiskMetricCard
+          icon={Lock}
+          iconColor="text-indigo-500"
+          title="Manipulation Resistance"
+          description="Resistance to price manipulation based on data source diversity, aggregation method, update frequency, and on-chain verification."
+          value={manipulationResistanceScore}
+          maxValue={100}
+          level={manipulationResistanceLevel}
+        >
+          <div className="mt-3 pt-3 border-t border-gray-100">
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="flex items-center gap-1.5">
+                <span className="text-gray-500">Data Sources:</span>
+                <span className="font-mono font-medium text-gray-700">
+                  {manipulationResistanceFactors.dataSourceDiversity}%
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-gray-500">Aggregation:</span>
+                <span className="font-mono font-medium text-gray-700">
+                  {manipulationResistanceFactors.aggregationRobustness}%
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-gray-500">Update Freq:</span>
+                <span className="font-mono font-medium text-gray-700">
+                  {manipulationResistanceFactors.updateFrequency}%
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-gray-500">On-chain Verify:</span>
+                <span className="font-mono font-medium text-gray-700">
+                  {manipulationResistanceFactors.onChainVerification}%
+                </span>
+              </div>
+            </div>
+          </div>
+        </RiskMetricCard>
+
+        <RiskMetricCard
+          icon={Share2}
+          iconColor="text-rose-500"
+          title="Shared Dependency Risk"
+          description="Risk from oracles sharing common data sources. If a shared source fails, multiple oracles are affected simultaneously."
+          value={sharedDependencyScore}
+          maxValue={100}
+          level={sharedDependencyLevel}
+        >
+          {sharedSourceGroups.length > 0 && (
+            <div className="mt-3 pt-3 border-t border-gray-100">
+              <p className="text-xs font-medium text-gray-700 mb-1.5">Shared Data Sources:</p>
+              <div className="space-y-1">
+                {sharedSourceGroups.map((group, i) => (
+                  <div key={i} className="flex items-center gap-1.5 text-xs">
+                    <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
+                    <span className="text-gray-600">
+                      <span className="font-medium capitalize">{group.source}</span>
+                      {' → '}
+                      {group.oracles.join(', ')}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <p className="text-[10px] text-gray-400 mt-1.5">
+                Systemic risk factor: {(systemicRiskFactor * 100).toFixed(1)}%
+              </p>
+            </div>
+          )}
+          {sharedSourceGroups.length === 0 && (
+            <div className="mt-3 pt-3 border-t border-gray-100 text-xs text-gray-500">
+              No shared data source dependencies detected — oracle data sources are independent.
             </div>
           )}
         </RiskMetricCard>

@@ -8,6 +8,14 @@ export interface ProviderPerformanceDefaults {
   dataSources: number;
   decentralizationScore: number;
   supportedChains: number;
+  marketShare: number;
+  tvs: string;
+  tvsValue: number;
+  protocols: number;
+  chains: number;
+  aggregationMethod: 'median' | 'weighted_average' | 'simple_average' | 'unknown';
+  hasOnChainVerification: boolean;
+  primaryDataSources: string[];
 }
 
 export interface MemoryManagementConfig {
@@ -48,6 +56,14 @@ const DEFAULT_PROVIDER_CONFIG: PerformanceMetricsConfig = {
       dataSources: 350,
       decentralizationScore: 95,
       supportedChains: 22,
+      marketShare: 55,
+      tvs: '$75B+',
+      tvsValue: 75e9,
+      protocols: 1200,
+      chains: 22,
+      aggregationMethod: 'median',
+      hasOnChainVerification: true,
+      primaryDataSources: ['binance', 'coinbase', 'kraken', 'bitstamp', 'gemini'],
     },
     pyth: {
       responseTime: 120,
@@ -57,6 +73,14 @@ const DEFAULT_PROVIDER_CONFIG: PerformanceMetricsConfig = {
       dataSources: 180,
       decentralizationScore: 90,
       supportedChains: 12,
+      marketShare: 18,
+      tvs: '$15B+',
+      tvsValue: 15e9,
+      protocols: 350,
+      chains: 12,
+      aggregationMethod: 'weighted_average',
+      hasOnChainVerification: true,
+      primaryDataSources: ['binance', 'okx', 'bybit', 'coinbase', 'jump_trading'],
     },
     api3: {
       responseTime: 900,
@@ -66,6 +90,14 @@ const DEFAULT_PROVIDER_CONFIG: PerformanceMetricsConfig = {
       dataSources: 180,
       decentralizationScore: 80,
       supportedChains: 8,
+      marketShare: 5,
+      tvs: '$2B+',
+      tvsValue: 2e9,
+      protocols: 80,
+      chains: 8,
+      aggregationMethod: 'simple_average',
+      hasOnChainVerification: true,
+      primaryDataSources: ['coinbase', 'kraken', 'bitstamp', 'binance'],
     },
     redstone: {
       responseTime: 200,
@@ -75,6 +107,14 @@ const DEFAULT_PROVIDER_CONFIG: PerformanceMetricsConfig = {
       dataSources: 120,
       decentralizationScore: 85,
       supportedChains: 8,
+      marketShare: 4,
+      tvs: '$1.5B+',
+      tvsValue: 1.5e9,
+      protocols: 60,
+      chains: 8,
+      aggregationMethod: 'median',
+      hasOnChainVerification: true,
+      primaryDataSources: ['binance', 'coinbase', 'coingecko', 'coinmarketcap'],
     },
     dia: {
       responseTime: 800,
@@ -84,6 +124,14 @@ const DEFAULT_PROVIDER_CONFIG: PerformanceMetricsConfig = {
       dataSources: 80,
       decentralizationScore: 75,
       supportedChains: 15,
+      marketShare: 3,
+      tvs: '$500M+',
+      tvsValue: 5e8,
+      protocols: 40,
+      chains: 15,
+      aggregationMethod: 'weighted_average',
+      hasOnChainVerification: false,
+      primaryDataSources: ['binance', 'coinbase', 'kraken', 'uniswap'],
     },
     winklink: {
       responseTime: 600,
@@ -93,6 +141,14 @@ const DEFAULT_PROVIDER_CONFIG: PerformanceMetricsConfig = {
       dataSources: 40,
       decentralizationScore: 70,
       supportedChains: 1,
+      marketShare: 1,
+      tvs: '$100M+',
+      tvsValue: 1e8,
+      protocols: 10,
+      chains: 1,
+      aggregationMethod: 'simple_average',
+      hasOnChainVerification: false,
+      primaryDataSources: ['binance', 'huobi'],
     },
     supra: {
       responseTime: 300,
@@ -102,6 +158,14 @@ const DEFAULT_PROVIDER_CONFIG: PerformanceMetricsConfig = {
       dataSources: 100,
       decentralizationScore: 88,
       supportedChains: 20,
+      marketShare: 3,
+      tvs: '$800M+',
+      tvsValue: 8e8,
+      protocols: 50,
+      chains: 20,
+      aggregationMethod: 'median',
+      hasOnChainVerification: true,
+      primaryDataSources: ['binance', 'coinbase', 'kraken', 'okx'],
     },
     twap: {
       responseTime: 500,
@@ -111,6 +175,14 @@ const DEFAULT_PROVIDER_CONFIG: PerformanceMetricsConfig = {
       dataSources: 22,
       decentralizationScore: 85,
       supportedChains: 6,
+      marketShare: 2,
+      tvs: '$300M+',
+      tvsValue: 3e8,
+      protocols: 25,
+      chains: 6,
+      aggregationMethod: 'weighted_average',
+      hasOnChainVerification: true,
+      primaryDataSources: ['uniswap', 'sushiswap', 'curve'],
     },
     reflector: {
       responseTime: 800,
@@ -120,6 +192,14 @@ const DEFAULT_PROVIDER_CONFIG: PerformanceMetricsConfig = {
       dataSources: 7,
       decentralizationScore: 80,
       supportedChains: 1,
+      marketShare: 0.5,
+      tvs: '$50M+',
+      tvsValue: 5e7,
+      protocols: 5,
+      chains: 1,
+      aggregationMethod: 'simple_average',
+      hasOnChainVerification: false,
+      primaryDataSources: ['binance', 'coinbase'],
     },
     flare: {
       responseTime: 400,
@@ -129,6 +209,14 @@ const DEFAULT_PROVIDER_CONFIG: PerformanceMetricsConfig = {
       dataSources: 100,
       decentralizationScore: 92,
       supportedChains: 1,
+      marketShare: 2,
+      tvs: '$400M+',
+      tvsValue: 4e8,
+      protocols: 30,
+      chains: 1,
+      aggregationMethod: 'median',
+      hasOnChainVerification: true,
+      primaryDataSources: ['binance', 'coinbase', 'kraken', 'coingecko'],
     },
   },
   fallbackDefaults: {
@@ -139,6 +227,14 @@ const DEFAULT_PROVIDER_CONFIG: PerformanceMetricsConfig = {
     dataSources: 50,
     decentralizationScore: 80,
     supportedChains: 5,
+    marketShare: 1,
+    tvs: '$100M+',
+    tvsValue: 1e8,
+    protocols: 15,
+    chains: 5,
+    aggregationMethod: 'unknown',
+    hasOnChainVerification: false,
+    primaryDataSources: ['binance', 'coinbase'],
   },
   calculation: {
     accuracyWindowMs: 24 * 60 * 60 * 1000,
@@ -192,7 +288,7 @@ function setPerformanceMetricsConfig(config: Partial<PerformanceMetricsConfig>):
   };
 }
 
-function resetPerformanceMetricsConfig(): void {
+function _resetPerformanceMetricsConfig(): void {
   currentConfig = { ...DEFAULT_PROVIDER_CONFIG };
 }
 
@@ -201,7 +297,7 @@ export function getProviderDefaults(provider: OracleProvider): ProviderPerforman
   return config.defaults[provider] || config.fallbackDefaults;
 }
 
-function updateProviderDefaults(
+function _updateProviderDefaults(
   provider: OracleProvider,
   updates: Partial<ProviderPerformanceDefaults>
 ): void {
