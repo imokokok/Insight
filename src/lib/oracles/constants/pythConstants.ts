@@ -78,15 +78,9 @@ export const PYTH_PRICE_FEED_IDS: Record<string, string> = {
 };
 
 export const HERMES_API_URL = 'https://hermes.pyth.network';
-export const HERMES_WS_URL = 'wss://hermes.pyth.network/ws';
 
 export const CACHE_TTL = {
   PRICE: 5000,
-  PUBLISHERS: 60000,
-  VALIDATORS: 60000,
-  STATS: 30000,
-  FEEDS: 300000,
-  CROSS_CHAIN: 10000,
 } as const;
 
 export interface RetryConfig {

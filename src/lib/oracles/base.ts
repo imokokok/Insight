@@ -14,9 +14,7 @@ import {
   fetchPriceWithDatabase,
   fetchHistoricalPricesWithDatabase,
 } from './base/databaseOperations';
-import { shouldUseDatabase, configureStorage, getStorageConfig } from './utils/storage';
-
-import type { OracleStorageConfig } from './utils/storage';
+import { shouldUseDatabase } from './utils/storage';
 
 const logger = createLogger('BaseOracleClient');
 

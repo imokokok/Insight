@@ -3,8 +3,6 @@ import {
   parsePythPrice,
   calculateConfidenceInterval,
   calculateConfidenceScore,
-  parsePublishers,
-  parsePublisherStatus,
 } from '@/lib/oracles/pyth/pythParser';
 import type { PythPriceRaw } from '@/lib/oracles/pyth/types';
 import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
@@ -12,30 +10,12 @@ import { OracleProvider, Blockchain } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
 
 const mockGetLatestPrice = jest.fn();
-const mockGetMultiplePrices = jest.fn();
 const mockGetHistoricalPrices = jest.fn();
-const mockGetPublishers = jest.fn();
-const mockGetValidators = jest.fn();
-const mockGetNetworkStats = jest.fn();
-const mockSubscribeToPriceUpdates = jest.fn();
-const mockSubscribeToConnectionState = jest.fn();
-const mockGetConnectionState = jest.fn();
-const mockIsWebSocketConnected = jest.fn();
-const mockDisconnect = jest.fn();
 
-jest.mock('@/lib/oracles/pythDataService', () => ({
+jest.mock('@/lib/oracles/services/pythDataService', () => ({
   getPythDataService: () => ({
     getLatestPrice: mockGetLatestPrice,
-    getMultiplePrices: mockGetMultiplePrices,
     getHistoricalPrices: mockGetHistoricalPrices,
-    getPublishers: mockGetPublishers,
-    getValidators: mockGetValidators,
-    getNetworkStats: mockGetNetworkStats,
-    subscribeToPriceUpdates: mockSubscribeToPriceUpdates,
-    subscribeToConnectionState: mockSubscribeToConnectionState,
-    getConnectionState: mockGetConnectionState,
-    isWebSocketConnected: mockIsWebSocketConnected,
-    disconnect: mockDisconnect,
   }),
 }));
 
@@ -55,16 +35,7 @@ describe('PythClient', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetLatestPrice.mockReset();
-    mockGetMultiplePrices.mockReset();
     mockGetHistoricalPrices.mockReset();
-    mockGetPublishers.mockReset();
-    mockGetValidators.mockReset();
-    mockGetNetworkStats.mockReset();
-    mockSubscribeToPriceUpdates.mockReset();
-    mockSubscribeToConnectionState.mockReset();
-    mockGetConnectionState.mockReset();
-    mockIsWebSocketConnected.mockReset();
-    mockDisconnect.mockReset();
     client = new PythClient();
   });
 
@@ -464,30 +435,6 @@ describe('Hermes Client Tests', () => {
       expect(result.source).toBe('pyth-hermes-api');
     });
 
-    it('should retrieve multiple prices from Hermes API', async () => {
-      const mockPrices = new Map<string, PriceData>();
-      mockPrices.set('BTC', {
-        provider: OracleProvider.PYTH,
-        symbol: 'BTC',
-        price: 68000,
-        timestamp: Date.now(),
-        decimals: 8,
-        confidence: 98,
-      });
-      mockPrices.set('ETH', {
-        provider: OracleProvider.PYTH,
-        symbol: 'ETH',
-        price: 3500,
-        timestamp: Date.now(),
-        decimals: 8,
-        confidence: 97,
-      });
-
-      mockGetMultiplePrices.mockResolvedValue(mockPrices);
-
-      expect(mockGetMultiplePrices).toBeDefined();
-    });
-
     it('should handle Hermes API timeout gracefully', async () => {
       mockGetLatestPrice.mockImplementation(
         () => new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 100))
@@ -498,160 +445,6 @@ describe('Hermes Client Tests', () => {
       await expect(client.getPrice('BTC')).rejects.toMatchObject({
         code: 'PYTH_ERROR',
       });
-    });
-  });
-
-  describe('Price feed subscription handling', () => {
-    it('should subscribe to price updates successfully', () => {
-      const mockUnsubscribe = jest.fn();
-      mockSubscribeToPriceUpdates.mockReturnValue(mockUnsubscribe);
-
-      const unsubscribe = mockSubscribeToPriceUpdates('BTC', jest.fn());
-
-      expect(mockSubscribeToPriceUpdates).toHaveBeenCalled();
-      expect(typeof unsubscribe).toBe('function');
-    });
-
-    it('should unsubscribe from price updates correctly', () => {
-      const mockUnsubscribe = jest.fn();
-      mockSubscribeToPriceUpdates.mockReturnValue(mockUnsubscribe);
-
-      const unsubscribe = mockSubscribeToPriceUpdates('BTC', jest.fn());
-      unsubscribe();
-
-      expect(mockUnsubscribe).toHaveBeenCalled();
-    });
-
-    it('should handle multiple subscriptions for same symbol', () => {
-      mockSubscribeToPriceUpdates.mockClear();
-      const mockUnsubscribe = jest.fn();
-      mockSubscribeToPriceUpdates.mockReturnValue(mockUnsubscribe);
-
-      const callback1 = jest.fn();
-      const callback2 = jest.fn();
-
-      const unsub1 = mockSubscribeToPriceUpdates('BTC', callback1);
-      const unsub2 = mockSubscribeToPriceUpdates('BTC', callback2);
-
-      expect(mockSubscribeToPriceUpdates).toHaveBeenCalledTimes(2);
-      unsub1();
-      unsub2();
-    });
-  });
-
-  describe('Real-time price updates', () => {
-    it('should receive real-time price updates via WebSocket', () => {
-      const priceCallback = jest.fn();
-      const mockUnsubscribe = jest.fn();
-
-      mockSubscribeToPriceUpdates.mockReturnValue(mockUnsubscribe);
-      mockIsWebSocketConnected.mockReturnValue(true);
-
-      const unsubscribe = mockSubscribeToPriceUpdates('BTC', priceCallback);
-
-      expect(mockSubscribeToPriceUpdates).toHaveBeenCalledWith('BTC', priceCallback);
-      unsubscribe();
-    });
-
-    it('should handle rapid consecutive price updates', () => {
-      const priceCallback = jest.fn();
-      const mockUnsubscribe = jest.fn();
-
-      mockSubscribeToPriceUpdates.mockReturnValue(mockUnsubscribe);
-
-      const unsubscribe = mockSubscribeToPriceUpdates('BTC', priceCallback);
-
-      const priceData: PriceData = {
-        provider: OracleProvider.PYTH,
-        symbol: 'BTC',
-        price: 68000,
-        timestamp: Date.now(),
-        decimals: 8,
-        confidence: 98,
-      };
-
-      for (let i = 0; i < 10; i++) {
-        priceCallback({ ...priceData, price: 68000 + i * 100 });
-      }
-
-      expect(priceCallback).toHaveBeenCalledTimes(10);
-      unsubscribe();
-    });
-
-    it('should maintain connection state during updates', () => {
-      mockGetConnectionState.mockReturnValue({
-        status: 'connected',
-        isConnected: true,
-        lastUpdateLatency: 50,
-        reconnectAttempts: 0,
-        error: null,
-      });
-
-      const state = mockGetConnectionState();
-
-      expect(state.status).toBe('connected');
-      expect(state.isConnected).toBe(true);
-    });
-  });
-
-  describe('Connection failure and reconnection', () => {
-    it('should handle connection failure gracefully', () => {
-      mockGetConnectionState.mockReturnValue({
-        status: 'disconnected',
-        isConnected: false,
-        lastUpdateLatency: 0,
-        reconnectAttempts: 3,
-        error: new Error('Connection failed'),
-      });
-
-      const state = mockGetConnectionState();
-
-      expect(state.status).toBe('disconnected');
-      expect(state.isConnected).toBe(false);
-      expect(state.error).toBeInstanceOf(Error);
-    });
-
-    it('should track reconnection attempts', () => {
-      mockGetConnectionState.mockReturnValue({
-        status: 'connecting',
-        isConnected: false,
-        lastUpdateLatency: 0,
-        reconnectAttempts: 2,
-        error: null,
-      });
-
-      const state = mockGetConnectionState();
-
-      expect(state.reconnectAttempts).toBe(2);
-    });
-
-    it('should reset reconnection count on successful connection', () => {
-      mockGetConnectionState.mockReturnValue({
-        status: 'connected',
-        isConnected: true,
-        lastUpdateLatency: 50,
-        reconnectAttempts: 0,
-        error: null,
-      });
-
-      const state = mockGetConnectionState();
-
-      expect(state.reconnectAttempts).toBe(0);
-    });
-
-    it('should handle max reconnection attempts reached', () => {
-      mockGetConnectionState.mockReturnValue({
-        status: 'disconnected',
-        isConnected: false,
-        lastUpdateLatency: 0,
-        reconnectAttempts: 5,
-        error: new Error('Max reconnection attempts reached'),
-      });
-
-      const state = mockGetConnectionState();
-
-      expect(state.reconnectAttempts).toBe(5);
-      expect(state.error?.message).toContain('Max reconnection');
     });
   });
 
@@ -875,308 +668,6 @@ describe('Confidence Interval Tests', () => {
   });
 });
 
-describe('Publisher Data Tests', () => {
-  describe('Multiple publisher price aggregation', () => {
-    it('should aggregate prices from multiple publishers', () => {
-      const rawData = [
-        {
-          id: 'pub1',
-          name: 'Publisher 1',
-          publisher_key: 'key1',
-          reliability: 0.95,
-          latency: 50,
-          status: 'active',
-          submission_count: 1000,
-          price_feeds: ['BTC/USD', 'ETH/USD'],
-        },
-        {
-          id: 'pub2',
-          name: 'Publisher 2',
-          publisher_key: 'key2',
-          reliability: 0.98,
-          latency: 30,
-          status: 'active',
-          submission_count: 2000,
-          price_feeds: ['BTC/USD', 'SOL/USD'],
-        },
-        {
-          id: 'pub3',
-          name: 'Publisher 3',
-          publisher_key: 'key3',
-          reliability: 0.92,
-          latency: 80,
-          status: 'active',
-          submission_count: 500,
-          price_feeds: ['ETH/USD'],
-        },
-      ];
-
-      const publishers = parsePublishers(rawData);
-
-      expect(publishers).toHaveLength(3);
-      expect(publishers[0].reliabilityScore).toBe(0.95);
-      expect(publishers[1].reliabilityScore).toBe(0.98);
-      expect(publishers[2].reliabilityScore).toBe(0.92);
-    });
-
-    it('should calculate weighted average from publishers', () => {
-      const rawData = [
-        {
-          id: 'pub1',
-          publisher_key: 'key1',
-          reliability: 0.95,
-          latency: 50,
-          status: 'active',
-          submission_count: 1000,
-          price_feeds: ['BTC/USD'],
-        },
-        {
-          id: 'pub2',
-          publisher_key: 'key2',
-          reliability: 0.98,
-          latency: 30,
-          status: 'active',
-          submission_count: 2000,
-          price_feeds: ['BTC/USD'],
-        },
-      ];
-
-      const publishers = parsePublishers(rawData);
-
-      const totalSubmissions = publishers.reduce((sum, p) => sum + p.submissionCount, 0);
-
-      expect(totalSubmissions).toBe(3000);
-    });
-
-    it('should handle publishers with different price feeds', () => {
-      const rawData = [
-        {
-          id: 'pub1',
-          publisher_key: 'key1',
-          reliability: 0.95,
-          status: 'active',
-          price_feeds: ['BTC/USD', 'ETH/USD', 'SOL/USD'],
-        },
-        {
-          id: 'pub2',
-          publisher_key: 'key2',
-          reliability: 0.98,
-          status: 'active',
-          price_feeds: ['BTC/USD'],
-        },
-      ];
-
-      const publishers = parsePublishers(rawData);
-
-      expect(publishers[0].priceFeeds).toHaveLength(3);
-      expect(publishers[1].priceFeeds).toHaveLength(1);
-    });
-  });
-
-  describe('Publisher reputation scoring', () => {
-    it('should parse publisher reliability scores correctly', () => {
-      const rawData = [
-        {
-          id: 'pub1',
-          publisher_key: 'key1',
-          reliability: 0.99,
-          status: 'active',
-        },
-        {
-          id: 'pub2',
-          publisher_key: 'key2',
-          reliability: 0.85,
-          status: 'active',
-        },
-        {
-          id: 'pub3',
-          publisher_key: 'key3',
-          reliability: 0.7,
-          status: 'degraded',
-        },
-      ];
-
-      const publishers = parsePublishers(rawData);
-
-      expect(publishers[0].reliabilityScore).toBe(0.99);
-      expect(publishers[1].reliabilityScore).toBe(0.85);
-      expect(publishers[2].reliabilityScore).toBe(0.7);
-    });
-
-    it('should use accuracy as fallback for reliability', () => {
-      const rawData = [
-        {
-          id: 'pub1',
-          publisher_key: 'key1',
-          accuracy: 0.95,
-          status: 'active',
-        },
-      ];
-
-      const publishers = parsePublishers(rawData);
-
-      expect(publishers[0].reliabilityScore).toBe(0.95);
-    });
-
-    it('should default reliability to 0.95 when not provided', () => {
-      const rawData = [
-        {
-          id: 'pub1',
-          publisher_key: 'key1',
-          status: 'active',
-        },
-      ];
-
-      const publishers = parsePublishers(rawData);
-
-      expect(publishers[0].reliabilityScore).toBe(0.95);
-    });
-  });
-
-  describe('Publisher timeout handling', () => {
-    it('should detect publisher with high latency', () => {
-      const rawData = [
-        {
-          id: 'pub1',
-          publisher_key: 'key1',
-          latency: 5000,
-          status: 'active',
-        },
-        {
-          id: 'pub2',
-          publisher_key: 'key2',
-          latency: 50,
-          status: 'active',
-        },
-      ];
-
-      const publishers = parsePublishers(rawData);
-
-      expect(publishers[0].latency).toBe(5000);
-      expect(publishers[1].latency).toBe(50);
-    });
-
-    it('should use default latency when not provided', () => {
-      const rawData = [
-        {
-          id: 'pub1',
-          publisher_key: 'key1',
-          status: 'active',
-        },
-      ];
-
-      const publishers = parsePublishers(rawData);
-
-      expect(publishers[0].latency).toBe(100);
-    });
-
-    it('should mark publisher as degraded on timeout', () => {
-      const status = parsePublisherStatus('warning');
-
-      expect(status).toBe('degraded');
-    });
-  });
-
-  describe('Stale publisher data detection', () => {
-    it('should track last update timestamp', () => {
-      const now = Date.now();
-      const rawData = [
-        {
-          id: 'pub1',
-          publisher_key: 'key1',
-          last_update: now - 3600000,
-          status: 'active',
-        },
-      ];
-
-      const publishers = parsePublishers(rawData);
-
-      expect(publishers[0].lastUpdate).toBe(now - 3600000);
-    });
-
-    it('should detect stale data based on timestamp', () => {
-      const oneHourAgo = Date.now() - 3600000;
-      const rawData = [
-        {
-          id: 'pub1',
-          publisher_key: 'key1',
-          last_update: oneHourAgo,
-          status: 'active',
-        },
-      ];
-
-      const publishers = parsePublishers(rawData);
-      const isStale = Date.now() - publishers[0].lastUpdate > 300000;
-
-      expect(isStale).toBe(true);
-    });
-
-    it('should use current time when last_update not provided', () => {
-      const beforeParse = Date.now();
-      const rawData = [
-        {
-          id: 'pub1',
-          publisher_key: 'key1',
-          status: 'active',
-        },
-      ];
-
-      const publishers = parsePublishers(rawData);
-      const afterParse = Date.now();
-
-      expect(publishers[0].lastUpdate).toBeGreaterThanOrEqual(beforeParse);
-      expect(publishers[0].lastUpdate).toBeLessThanOrEqual(afterParse);
-    });
-  });
-
-  describe('Publisher data validation', () => {
-    it('should validate required publisher fields', () => {
-      const rawData = [
-        {
-          id: 'pub1',
-          publisher_key: 'key1',
-          name: 'Test Publisher',
-          status: 'active',
-        },
-      ];
-
-      const publishers = parsePublishers(rawData);
-
-      expect(publishers[0].id).toBe('pub1');
-      expect(publishers[0].publisherKey).toBe('key1');
-      expect(publishers[0].name).toBe('Test Publisher');
-    });
-
-    it('should handle missing optional fields gracefully', () => {
-      const rawData = [
-        {
-          id: 'pub1',
-          status: 'active',
-        },
-      ];
-
-      const publishers = parsePublishers(rawData);
-
-      expect(publishers[0].priceFeeds).toEqual([]);
-      expect(publishers[0].submissionCount).toBe(0);
-    });
-
-    it('should handle empty publisher array', () => {
-      const publishers = parsePublishers([]);
-
-      expect(publishers).toEqual([]);
-    });
-
-    it('should handle invalid publisher data', () => {
-      const rawData = [null, undefined, 'invalid', 123];
-
-      const publishers = parsePublishers(rawData);
-
-      expect(publishers).toEqual([]);
-    });
-  });
-});
-
 describe('Price Accuracy Tests', () => {
   describe('Price deviation detection', () => {
     it('should detect significant price deviation', () => {
@@ -1347,16 +838,7 @@ describe('Error Handling Tests', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetLatestPrice.mockReset();
-    mockGetMultiplePrices.mockReset();
     mockGetHistoricalPrices.mockReset();
-    mockGetPublishers.mockReset();
-    mockGetValidators.mockReset();
-    mockGetNetworkStats.mockReset();
-    mockSubscribeToPriceUpdates.mockReset();
-    mockSubscribeToConnectionState.mockReset();
-    mockGetConnectionState.mockReset();
-    mockIsWebSocketConnected.mockReset();
-    mockDisconnect.mockReset();
     client = new PythClient();
   });
 
@@ -1481,17 +963,6 @@ describe('Error Handling Tests', () => {
         code: 'PYTH_ERROR',
       });
     });
-
-    it('should handle WebSocket disconnection during request', async () => {
-      mockGetLatestPrice.mockRejectedValue(new Error('WebSocket disconnected'));
-      mockIsWebSocketConnected.mockReturnValue(false);
-
-      await expect(client.getPrice('BTC')).rejects.toMatchObject({
-        code: 'PYTH_ERROR',
-      });
-
-      expect(mockGetLatestPrice).toHaveBeenCalled();
-    });
   });
 
   describe('Malformed response handling', () => {
@@ -1608,28 +1079,6 @@ describe('Pyth Parser Functions', () => {
       const score = calculateConfidenceScore(100000, 68000);
 
       expect(score).toBeGreaterThanOrEqual(0);
-    });
-  });
-
-  describe('parsePublisherStatus', () => {
-    it('should parse active status', () => {
-      expect(parsePublisherStatus('active')).toBe('active');
-      expect(parsePublisherStatus('ACTIVE')).toBe('active');
-      expect(parsePublisherStatus('online')).toBe('active');
-    });
-
-    it('should parse degraded status', () => {
-      expect(parsePublisherStatus('degraded')).toBe('degraded');
-      expect(parsePublisherStatus('warning')).toBe('degraded');
-      expect(parsePublisherStatus('WARNING')).toBe('degraded');
-    });
-
-    it('should return inactive for unknown status', () => {
-      expect(parsePublisherStatus('unknown')).toBe('inactive');
-      expect(parsePublisherStatus('')).toBe('inactive');
-      expect(parsePublisherStatus(null)).toBe('inactive');
-      expect(parsePublisherStatus(undefined)).toBe('inactive');
-      expect(parsePublisherStatus(123)).toBe('inactive');
     });
   });
 });

@@ -1,5 +1,4 @@
 @import 'tailwindcss';
-@import '../components/accessibility/accessibility.css';
 
 @theme {
   --color-background: var(--background);

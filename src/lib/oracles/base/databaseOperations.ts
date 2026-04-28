@@ -7,7 +7,6 @@ import {
   getPriceFromDatabase,
   getHistoricalPricesFromDatabase,
   savePriceToDatabase,
-  savePricesToDatabase,
 } from '../utils/storage';
 
 const PROVIDERS_WITH_EXTRA_FIELDS = new Set([
