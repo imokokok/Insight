@@ -3,7 +3,7 @@ import { type SupabaseClient } from '@supabase/supabase-js';
 
 import { type DatabaseQueries, createQueries } from './queries';
 
-export type { PriceAlert, AlertEvent } from './queries';
+export type { PriceAlert, AlertEvent, UserSnapshot, UserSnapshotInsert } from './queries';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;

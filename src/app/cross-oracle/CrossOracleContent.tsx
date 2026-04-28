@@ -1,11 +1,15 @@
 'use client';
 
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
+
+import { Camera, Check } from 'lucide-react';
 
 import { ErrorBoundary } from '@/components/error-boundary';
-import { LiveStatusBar } from '@/components/ui';
+import { Button, LiveStatusBar } from '@/components/ui';
+import { useCreateSnapshot } from '@/hooks';
 import { chartColors } from '@/lib/config/colors';
 import { formatTimeString } from '@/lib/utils/format';
+import { useUser } from '@/stores/authStore';
 
 import { ControlPanel } from './components/ControlPanel';
 import CrossOracleExportSection from './components/CrossOracleExportSection';
@@ -51,6 +55,10 @@ function CrossOracleContentInner() {
     nextRefreshAt,
   } = useCrossOraclePage();
 
+  const user = useUser();
+  const { createSnapshot, isPending: isSavingSnapshot } = useCreateSnapshot();
+  const [snapshotSaveSuccess, setSnapshotSaveSuccess] = useState(false);
+
   const {
     validPrices,
     avgPrice,
@@ -63,6 +71,42 @@ function CrossOracleContentInner() {
   } = priceStats;
 
   const { anomalies } = anomalyDetection;
+
+  const handleSaveSnapshot = useCallback(async () => {
+    if (!user || priceData.length === 0 || !selectedSymbol) return;
+
+    try {
+      await createSnapshot({
+        symbol: selectedSymbol,
+        selected_oracles: selectedOracles,
+        price_data: priceData.map((pd) => ({
+          provider: pd.provider,
+          chain: pd.chain,
+          symbol: pd.symbol,
+          price: pd.price,
+          timestamp: pd.timestamp,
+          decimals: pd.decimals ?? 0,
+          confidence: pd.confidence ?? undefined,
+          source: pd.source ?? undefined,
+        })),
+        stats: {
+          avgPrice: priceStats.currentStats.avgPrice,
+          weightedAvgPrice: priceStats.currentStats.weightedAvgPrice,
+          maxPrice: priceStats.currentStats.maxPrice,
+          minPrice: priceStats.currentStats.minPrice,
+          priceRange: priceStats.currentStats.priceRange,
+          variance: priceStats.currentStats.variance,
+          standardDeviation: priceStats.currentStats.standardDeviation,
+          standardDeviationPercent: priceStats.currentStats.standardDeviationPercent,
+        },
+      });
+
+      setSnapshotSaveSuccess(true);
+      setTimeout(() => setSnapshotSaveSuccess(false), 2000);
+    } catch (err) {
+      console.error('Failed to save snapshot:', err);
+    }
+  }, [user, priceData, selectedSymbol, selectedOracles, priceStats.currentStats, createSnapshot]);
 
   const currentQueryTarget = useMemo(
     () => ({
@@ -111,6 +155,24 @@ function CrossOracleContentInner() {
               <span className="text-xs text-gray-500">
                 Last updated: {formatTimeString(lastUpdated, false)}
               </span>
+            )}
+            {user && priceData.length > 0 && (
+              <Button
+                variant={snapshotSaveSuccess ? 'primary' : 'secondary'}
+                size="sm"
+                leftIcon={
+                  snapshotSaveSuccess ? (
+                    <Check className="w-4 h-4" />
+                  ) : (
+                    <Camera className="w-4 h-4" />
+                  )
+                }
+                onClick={handleSaveSnapshot}
+                isLoading={isSavingSnapshot}
+                disabled={isSavingSnapshot || snapshotSaveSuccess}
+              >
+                {snapshotSaveSuccess ? 'Saved!' : 'Snapshot'}
+              </Button>
             )}
             <CrossOracleExportSection
               loading={isLoading}
