@@ -7,12 +7,8 @@ export const DIA_API_BASE_URL = process.env.DIA_API_URL || 'https://api.diadata.
 export const CACHE_TTL = {
   PRICE: 30000,
   HISTORICAL: 60000,
-  NFT: 60000,
   SUPPLY: 300000,
   DIGITAL_ASSETS: 300000,
-  NETWORK_STATS: 120000,
-  STAKING: 300000,
-  ECOSYSTEM: 600000,
 };
 
 export const DEFAULT_RETRY_CONFIG: RetryConfig = {

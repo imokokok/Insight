@@ -285,9 +285,9 @@ class WINkLinkRealDataService {
       const { binanceMarketService } =
         await import('@/lib/services/marketData/binanceMarketService');
 
-      const historicalPrices = await binanceMarketService.getHistoricalPricesByHours(
+      const historicalPrices = await binanceMarketService.getHistoricalPrices(
         symbol,
-        periodHours
+        Math.max(1, Math.ceil(periodHours / 24))
       );
 
       if (!historicalPrices || historicalPrices.length === 0) {

@@ -1,43 +1,28 @@
 import { createLogger } from '@/lib/utils/logger';
-import { Blockchain } from '@/types/oracle';
-import type { PriceData } from '@/types/oracle';
+import { type Blockchain, type PriceData } from '@/types/oracle';
 
 import { DIA_API_BASE_URL } from '../diaUtils';
 
 import { DIANetworkService } from './diaNetworkService';
-import { DIANFTService } from './diaNFTService';
 import { DIAPriceService } from './diaPriceService';
 
 import type { CacheEntry } from '../base';
-import type {
-  DIANFTQuotation,
-  DIASupply,
-  DIADigitalAsset,
-  DIAExchange,
-  DIANetworkStatsData,
-  DIAStakingData,
-  DIANFTData,
-  DIAEcosystemIntegration,
-} from '../diaTypes';
+import type { DIASupply, DIAExchange } from '../diaTypes';
 
 const logger = createLogger('DIADataService');
 
-// Token on-chain data aggregation interface
 interface DIATokenOnChainDataInternal {
   symbol: string;
   price: number;
   change24hPercent: number;
-  // Supply data
   circulatingSupply: number | null;
   totalSupply: number | null;
   maxSupply: number | null;
   marketCap: number | null;
-  // Exchange data
   exchangeCount: number;
   activeExchangeCount: number;
   totalTradingPairs: number;
   totalVolume24h: number;
-  // Data freshness
   lastUpdated: number;
   dataSource: string;
 }
@@ -46,12 +31,10 @@ class DIADataService {
   private cache: Map<string, CacheEntry<unknown>> = new Map();
   private static instance: DIADataService | null = null;
   private priceService: DIAPriceService;
-  private nftService: DIANFTService;
   private networkService: DIANetworkService;
 
   constructor() {
     this.priceService = new DIAPriceService(this.cache);
-    this.nftService = new DIANFTService(this.cache);
     this.networkService = new DIANetworkService(this.cache);
     logger.info('DIADataService initialized', { baseUrl: DIA_API_BASE_URL });
   }
@@ -75,27 +58,12 @@ class DIADataService {
     return this.priceService.getAssetPrice(symbol, chain, signal);
   }
 
-  async getForexRate(symbol: string): Promise<PriceData | null> {
-    return this.priceService.getForexRate(symbol);
-  }
-
   async getHistoricalPrices(
     symbol: string,
     chain?: Blockchain,
     periodHours: number = 24
   ): Promise<PriceData[]> {
     return this.priceService.getHistoricalPrices(symbol, chain, periodHours);
-  }
-
-  async getNFTFloorPrice(
-    collectionAddress: string,
-    chain: Blockchain = Blockchain.ETHEREUM
-  ): Promise<DIANFTQuotation | null> {
-    return this.nftService.getNFTFloorPrice(collectionAddress, chain);
-  }
-
-  async getNFTData(): Promise<DIANFTData> {
-    return this.nftService.getNFTData();
   }
 
   async getSupply(symbol: string): Promise<DIASupply | null> {
@@ -106,26 +74,6 @@ class DIADataService {
     return this.networkService.getExchanges();
   }
 
-  async getDigitalAssets(): Promise<DIADigitalAsset[]> {
-    return this.networkService.getDigitalAssets();
-  }
-
-  async getNetworkStats(): Promise<DIANetworkStatsData | null> {
-    return this.networkService.getNetworkStats();
-  }
-
-  async getStakingData(): Promise<DIAStakingData | null> {
-    return this.networkService.getStakingData(this.getAssetPrice.bind(this));
-  }
-
-  async getEcosystemIntegrations(): Promise<DIAEcosystemIntegration[]> {
-    return this.networkService.getEcosystemIntegrations();
-  }
-
-  /**
-   * Get complete on-chain data for a token (supply + exchange data)
-   * Used for statistics card display on the price query page
-   */
   async getTokenOnChainData(
     symbol: string,
     chain?: Blockchain
@@ -137,7 +85,6 @@ class DIADataService {
     }
 
     try {
-      // Fetch price, supply, and exchange data in parallel
       const [priceData, supplyData, exchanges] = await Promise.all([
         this.priceService.getAssetPrice(symbol, chain),
         this.networkService.getSupply(symbol),
@@ -149,12 +96,10 @@ class DIADataService {
         return null;
       }
 
-      // Calculate exchange statistics
       const activeExchanges = exchanges.filter((e) => e.ScraperActive);
       const totalVolume24h = exchanges.reduce((sum, e) => sum + (e.Volume24h || 0), 0);
       const totalPairs = exchanges.reduce((sum, e) => sum + (e.Pairs || 0), 0);
 
-      // Calculate market cap
       const marketCap =
         supplyData?.CirculatingSupply && priceData.price
           ? supplyData.CirculatingSupply * priceData.price
@@ -176,7 +121,7 @@ class DIADataService {
         dataSource: priceData.source || 'DIA',
       };
 
-      this.setCache(cacheKey, onChainData, 60000); // 1-minute cache
+      this.setCache(cacheKey, onChainData, 60000);
       logger.info('Successfully fetched token on-chain data', {
         symbol,
         price: onChainData.price,
@@ -238,5 +183,4 @@ function resetDIADataService(): void {
   instance.clearCache();
 }
 
-// Re-export on-chain data interface
 export type DIATokenOnChainData = DIATokenOnChainDataInternal;

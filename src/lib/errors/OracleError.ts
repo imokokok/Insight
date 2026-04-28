@@ -674,8 +674,7 @@ type DIAErrorCode =
   | 'NETWORK_ERROR'
   | 'TIMEOUT_ERROR'
   | 'RATE_LIMIT_ERROR'
-  | 'INVALID_RESPONSE'
-  | 'NFT_DATA_ERROR';
+  | 'INVALID_RESPONSE';
 
 interface DIAErrorDetails extends OracleErrorDetails {
   errorCode: DIAErrorCode;
@@ -747,7 +746,6 @@ export class DIAError extends AppError {
         return 'medium';
       case 'INVALID_RESPONSE':
       case 'PARSE_ERROR':
-      case 'NFT_DATA_ERROR':
         return 'high';
       case 'FETCH_ERROR':
         return 'critical';

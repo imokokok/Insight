@@ -147,9 +147,9 @@ export class DIAClient extends BaseOracleClient {
         periodHours,
       });
 
-      const historicalPrices = await binanceMarketService.getHistoricalPricesByHours(
+      const historicalPrices = await binanceMarketService.getHistoricalPrices(
         symbol,
-        periodHours
+        Math.max(1, Math.ceil(periodHours / 24))
       );
 
       if (!historicalPrices || historicalPrices.length === 0) {

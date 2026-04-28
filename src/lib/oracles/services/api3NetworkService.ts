@@ -519,7 +519,10 @@ async function getAPI3HistoricalPrices(
   try {
     const { binanceMarketService } = await import('@/lib/services/marketData/binanceMarketService');
 
-    const historicalPrices = await binanceMarketService.getHistoricalPricesByHours(symbol, period);
+    const historicalPrices = await binanceMarketService.getHistoricalPrices(
+      symbol,
+      Math.max(1, Math.ceil(period / 24))
+    );
 
     if (!historicalPrices || historicalPrices.length === 0) {
       logger.warn(`No historical data available for ${symbol} from Binance`);
