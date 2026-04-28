@@ -8,6 +8,7 @@ import {
   Heart,
   Bell,
   BookOpen,
+  Camera,
 } from 'lucide-react';
 
 import { oracleColors } from '@/lib/constants';
@@ -50,6 +51,12 @@ export const navigationConfig: NavStructure = [
         label: 'Cross-Chain Comparison',
         icon: Link2,
         description: 'Cross-chain oracle performance benchmarking and reliability analytics',
+      },
+      {
+        href: '/snapshots',
+        label: 'Price Snapshots',
+        icon: Camera,
+        description: 'Save, compare, and track oracle price snapshots over time',
       },
     ],
   },

@@ -17,3 +17,11 @@ export {
   mapConfigTypeFromDB,
 } from './useFavorites';
 export type { FavoriteConfig } from './useFavorites';
+export {
+  useSnapshots,
+  useCreateSnapshot,
+  useUpdateSnapshot,
+  useDeleteSnapshot,
+  useSnapshotsRealtime,
+} from './useSnapshots';
+export type { CreateSnapshotInput } from './useSnapshots';
