@@ -44,18 +44,7 @@ export function buildQueryTasks(
   const allProviders = selectedOracle ? [selectedOracle] : Object.values(OracleProvider);
 
   if (selectedOracle && !selectedChain) {
-    const client = oracleClientFactory.getClient(selectedOracle);
-    if (client.supportedChains.length > 0) {
-      const defaultChain = client.supportedChains[0];
-      primaryTasks.push({
-        provider: selectedOracle,
-        chain: defaultChain,
-        client,
-        isCompare: false,
-      });
-    }
-    const totalQueries = primaryTasks.length + compareTasks.length;
-    return { primaryTasks, compareTasks, totalQueries, needsChainSelection: true as const };
+    return { primaryTasks, compareTasks, totalQueries: 0, needsChainSelection: true as const };
   }
 
   for (const provider of allProviders) {

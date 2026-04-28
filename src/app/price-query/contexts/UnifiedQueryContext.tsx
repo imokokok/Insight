@@ -52,6 +52,7 @@ interface UnifiedQueryContextValue {
   primaryDataFetchTime: Date | null;
   compareDataFetchTime: Date | null;
   supportedChainsBySelectedOracles: Set<Blockchain>;
+  needsChainSelection: boolean;
   isLoading: boolean;
   isFetching: boolean;
   queryDuration: number | null;
