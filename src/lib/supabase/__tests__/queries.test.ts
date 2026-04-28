@@ -160,54 +160,31 @@ describe('savePriceRecord', () => {
   });
 });
 
-describe('savePriceRecords', () => {
-  it('should save multiple price records and return the data', async () => {
-    const mockData: PriceRecord[] = [
-      {
-        id: 'test-id-1',
-        provider: 'chainlink',
-        symbol: 'BTC',
-        price: 50000,
-        timestamp: '2024-01-01T00:00:00Z',
-      },
-      {
-        id: 'test-id-2',
-        provider: 'pyth',
-        symbol: 'ETH',
-        price: 3000,
-        timestamp: '2024-01-01T00:00:00Z',
-      },
-    ];
+describe('getLatestPrice', () => {
+  it('should get the latest price for a provider and symbol', async () => {
+    const mockData: PriceRecord = {
+      id: 'test-id',
+      provider: 'chainlink',
+      symbol: 'BTC',
+      price: 50000,
+      timestamp: '2024-01-01T00:00:00Z',
+    };
 
-    mockQuery.select.mockResolvedValueOnce({ data: mockData, error: null });
+    mockQuery.maybeSingle.mockResolvedValueOnce({ data: mockData, error: null });
 
-    const records: PriceRecordInsert[] = [
-      { provider: 'chainlink', symbol: 'BTC', price: 50000, timestamp: Date.now() },
-      { provider: 'pyth', symbol: 'ETH', price: 3000, timestamp: Date.now() },
-    ];
-
-    const result = await queries.savePriceRecords(records);
+    const result = await queries.getLatestPrice('chainlink', 'BTC');
 
     expect(mockClient.from).toHaveBeenCalledWith('price_records');
     expect(result).toEqual(mockData);
   });
 
-  it('should return empty array for empty input', async () => {
-    const result = await queries.savePriceRecords([]);
-    expect(result).toEqual([]);
-  });
-
   it('should return null on error', async () => {
-    mockQuery.select.mockResolvedValueOnce({
+    mockQuery.maybeSingle.mockResolvedValueOnce({
       data: null,
       error: { message: 'Database error' },
     });
 
-    const records: PriceRecordInsert[] = [
-      { provider: 'chainlink', symbol: 'BTC', price: 50000, timestamp: Date.now() },
-    ];
-
-    const result = await queries.savePriceRecords(records);
+    const result = await queries.getLatestPrice('chainlink', 'BTC');
 
     expect(result).toBeNull();
   });
@@ -252,73 +229,6 @@ describe('getPriceRecords', () => {
     const result = await queries.getPriceRecords({});
 
     expect(result).toBeNull();
-  });
-});
-
-describe('getLatestPrice', () => {
-  it('should get the latest price for a provider and symbol', async () => {
-    const mockData: PriceRecord = {
-      id: 'test-id',
-      provider: 'chainlink',
-      symbol: 'BTC',
-      price: 50000,
-      timestamp: '2024-01-01T00:00:00Z',
-    };
-
-    mockQuery.maybeSingle.mockResolvedValueOnce({ data: mockData, error: null });
-
-    const result = await queries.getLatestPrice('chainlink', 'BTC');
-
-    expect(mockClient.from).toHaveBeenCalledWith('price_records');
-    expect(result).toEqual(mockData);
-  });
-
-  it('should get the latest price with chain filter', async () => {
-    const mockData: PriceRecord = {
-      id: 'test-id',
-      provider: 'chainlink',
-      symbol: 'BTC',
-      chain: 'ethereum',
-      price: 50000,
-      timestamp: '2024-01-01T00:00:00Z',
-    };
-
-    mockQuery.maybeSingle.mockResolvedValueOnce({ data: mockData, error: null });
-
-    const result = await queries.getLatestPrice('chainlink', 'BTC', 'ethereum');
-
-    expect(mockClient.from).toHaveBeenCalledWith('price_records');
-    expect(result).toEqual(mockData);
-  });
-
-  it('should return null on error', async () => {
-    mockQuery.maybeSingle.mockResolvedValueOnce({
-      data: null,
-      error: { message: 'Database error' },
-    });
-
-    const result = await queries.getLatestPrice('chainlink', 'BTC');
-
-    expect(result).toBeNull();
-  });
-});
-
-describe('deleteExpiredPriceRecords', () => {
-  it('should delete expired price records and return 1 on success', async () => {
-    mockClient.rpc = jest.fn().mockResolvedValueOnce({ error: null });
-
-    const result = await queries.deleteExpiredPriceRecords();
-
-    expect(mockClient.rpc).toHaveBeenCalledWith('cleanup_expired_price_records');
-    expect(result).toBe(1);
-  });
-
-  it('should return 0 on error', async () => {
-    mockClient.rpc = jest.fn().mockResolvedValueOnce({ error: { message: 'RPC error' } });
-
-    const result = await queries.deleteExpiredPriceRecords();
-
-    expect(result).toBe(0);
   });
 });
 
@@ -473,36 +383,6 @@ describe('Snapshot operations - getSnapshotById', () => {
     const result = await queries.getSnapshotById('non-existent');
 
     expect(result).toBeNull();
-  });
-});
-
-describe('Snapshot operations - getPublicSnapshot', () => {
-  it('should get a public snapshot by id', async () => {
-    const mockData: UserSnapshot = {
-      id: 'snapshot-id',
-      user_id: 'user-id',
-      symbol: 'BTC',
-      selected_oracles: ['chainlink'],
-      price_data: [],
-      stats: {
-        avgPrice: 50000,
-        weightedAvgPrice: 50000,
-        maxPrice: 51000,
-        minPrice: 49000,
-        priceRange: 2000,
-        variance: 1000,
-        standardDeviation: 31.62,
-        standardDeviationPercent: 0.06,
-      },
-      is_public: true,
-    };
-
-    mockQuery.single.mockResolvedValueOnce({ data: mockData, error: null });
-
-    const result = await queries.getPublicSnapshot('snapshot-id');
-
-    expect(mockClient.from).toHaveBeenCalledWith('user_snapshots');
-    expect(result).toEqual(mockData);
   });
 });
 

@@ -8,7 +8,6 @@ import { type OracleProvider, type Blockchain } from '@/types/oracle';
 
 const logger = createLogger('supabase-queries');
 
-// Create global request queue, limit concurrent database queries
 const queryQueue = new RequestQueue({
   maxConcurrency: 5,
   defaultTimeout: 30000,
@@ -38,6 +37,16 @@ export interface PriceRecordInsert {
   confidence?: number | null;
   source?: string | null;
   ttl?: string;
+}
+
+export interface PriceRecordsFilters {
+  provider?: OracleProvider | string;
+  symbol?: string;
+  chain?: Blockchain | string | null;
+  startTime?: number;
+  endTime?: number;
+  limit?: number;
+  offset?: number;
 }
 
 export interface UserSnapshot {
@@ -213,36 +222,12 @@ interface IFavoriteService {
   deleteFavorite(id: string, userId: string): Promise<boolean>;
 }
 
-interface ISnapshotService {
-  getSnapshots(userId: string): Promise<UserSnapshot[] | null>;
-  getSnapshotById(id: string): Promise<UserSnapshot | null>;
-  getPublicSnapshot(id: string): Promise<UserSnapshot | null>;
-  saveSnapshot(
-    userId: string,
-    snapshot: Omit<UserSnapshotInsert, 'user_id'>
-  ): Promise<UserSnapshot | null>;
-  updateSnapshot(id: string, data: Partial<UserSnapshotInsert>): Promise<UserSnapshot | null>;
-  deleteSnapshot(id: string): Promise<boolean>;
-}
-
-export interface PriceRecordsFilters {
-  provider?: OracleProvider | string;
-  symbol?: string;
-  chain?: Blockchain | string | null;
-  startTime?: number;
-  endTime?: number;
-  limit?: number;
-  offset?: number;
-}
-
 export class DatabaseQueries {
   constructor(private client: SupabaseClient) {}
 
   async savePriceRecord(record: PriceRecordInsert): Promise<PriceRecord | null> {
     return queryQueue.add(async () => {
       const timestamp = new Date(normalizeTimestamp(record.timestamp)).toISOString();
-
-      // Calculate ttl timestamp (default 1 hour later)
       const ttlInterval = record.ttl || '1h';
       const ttl = this.calculateTtlTimestamp(ttlInterval);
 
@@ -273,29 +258,32 @@ export class DatabaseQueries {
     });
   }
 
-  async savePriceRecords(records: PriceRecordInsert[]): Promise<PriceRecord[] | null> {
-    if (records.length === 0) return [];
-
+  async getLatestPrice(
+    provider: OracleProvider | string,
+    symbol: string,
+    chain?: Blockchain | string | null
+  ): Promise<PriceRecord | null> {
     return queryQueue.add(async () => {
-      const formattedRecords = records.map((record) => ({
-        provider: record.provider,
-        symbol: record.symbol,
-        chain: record.chain || null,
-        price: record.price,
-        timestamp: new Date(normalizeTimestamp(record.timestamp)).toISOString(),
-        confidence: record.confidence || null,
-        source: record.source || null,
-        ttl: this.calculateTtlTimestamp(record.ttl || '1h'),
-      }));
+      const now = new Date().toISOString();
 
-      const { data, error } = await this.client
+      let query = this.client
         .from('price_records')
-        .insert(formattedRecords)
-        .select();
+        .select('*')
+        .eq('provider', provider)
+        .eq('symbol', symbol)
+        .gte('ttl', now)
+        .order('timestamp', { ascending: false })
+        .limit(1);
+
+      if (chain) {
+        query = query.eq('chain', chain);
+      }
+
+      const { data, error } = await query.maybeSingle();
 
       if (error) {
         logger.error(
-          'Failed to save price records',
+          'Failed to get latest price',
           error instanceof Error ? error : new Error(String(error))
         );
         return null;
@@ -356,62 +344,7 @@ export class DatabaseQueries {
     });
   }
 
-  async getLatestPrice(
-    provider: OracleProvider | string,
-    symbol: string,
-    chain?: Blockchain | string | null
-  ): Promise<PriceRecord | null> {
-    return queryQueue.add(async () => {
-      const now = new Date().toISOString();
-
-      let query = this.client
-        .from('price_records')
-        .select('*')
-        .eq('provider', provider)
-        .eq('symbol', symbol)
-        .gte('ttl', now)
-        .order('timestamp', { ascending: false })
-        .limit(1);
-
-      if (chain) {
-        query = query.eq('chain', chain);
-      }
-
-      const { data, error } = await query.maybeSingle();
-
-      if (error) {
-        logger.error(
-          'Failed to get latest price',
-          error instanceof Error ? error : new Error(String(error))
-        );
-        return null;
-      }
-
-      return data;
-    });
-  }
-
-  async deleteExpiredPriceRecords(): Promise<number> {
-    const { data, error } = await this.client.rpc('cleanup_expired_price_records');
-
-    if (error) {
-      logger.error(
-        'Failed to delete expired price records',
-        error instanceof Error ? error : new Error(String(error))
-      );
-      return 0;
-    }
-
-    return typeof data === 'number' ? data : 0;
-  }
-
-  /**
-   * Convert ttl string to ISO timestamp
-   * Supported formats: '1h' (1 hour), '30m' (30 minutes), '1d' (1 day), '60s' (60 seconds)
-   * Or directly return ISO string
-   */
   private calculateTtlTimestamp(ttl: string): string {
-    // If already in ISO format, return directly
     if (ttl.includes('T') || ttl.includes('-')) {
       return ttl;
     }
@@ -432,7 +365,6 @@ export class DatabaseQueries {
       return new Date(now.getTime() + ms).toISOString();
     }
 
-    // Default 1 hour
     return new Date(now.getTime() + 60 * 60 * 1000).toISOString();
   }
 
@@ -486,27 +418,6 @@ export class DatabaseQueries {
       if (error.code !== 'PGRST116') {
         logger.error(
           'Failed to get snapshot',
-          error instanceof Error ? error : new Error(String(error))
-        );
-      }
-      return null;
-    }
-
-    return data;
-  }
-
-  async getPublicSnapshot(id: string): Promise<UserSnapshot | null> {
-    const { data, error } = await this.client
-      .from('user_snapshots')
-      .select('*')
-      .eq('id', id)
-      .eq('is_public', true)
-      .single();
-
-    if (error) {
-      if (error.code !== 'PGRST116') {
-        logger.error(
-          'Failed to get public snapshot',
           error instanceof Error ? error : new Error(String(error))
         );
       }
