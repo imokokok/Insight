@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 
 import { type ConnectionStatus } from '@/lib/supabase/realtime';
-import { useConnectionStatus, useRealtimeActions } from '@/stores/realtimeStore';
+import { useConnectionStatus, useRealtimeStore } from '@/stores/realtimeStore';
 
 interface ConnectionStatusIndicatorProps {
   showLabel?: boolean;
@@ -47,7 +47,7 @@ export function ConnectionStatusIndicator({
   className = '',
 }: ConnectionStatusIndicatorProps) {
   const connectionStatus = useConnectionStatus();
-  const { reconnect } = useRealtimeActions();
+  const reconnect = useRealtimeStore((state) => state.reconnect);
   const [isReconnecting, setIsReconnecting] = useState(false);
 
   const reconnectTimerRef = useRef<NodeJS.Timeout | null>(null);
