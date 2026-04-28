@@ -13,15 +13,10 @@ interface ApiClientOptions {
   defaultHeaders?: HeadersInit;
 }
 
-type RequestInterceptor = (config: RequestInit) => RequestInit | Promise<RequestInit>;
-type ResponseInterceptor = (response: Response) => Response | Promise<Response>;
-
 class ApiClient {
   private baseURL: string;
   private defaultHeaders: HeadersInit;
   private defaultTimeout: number;
-  private requestInterceptors: RequestInterceptor[] = [];
-  private responseInterceptors: ResponseInterceptor[] = [];
 
   constructor(options: ApiClientOptions = {}) {
     this.baseURL = options.baseURL || '';
@@ -30,14 +25,6 @@ class ApiClient {
       'Content-Type': 'application/json',
       ...options.defaultHeaders,
     };
-  }
-
-  addRequestInterceptor(interceptor: RequestInterceptor): void {
-    this.requestInterceptors.push(interceptor);
-  }
-
-  addResponseInterceptor(interceptor: ResponseInterceptor): void {
-    this.responseInterceptors.push(interceptor);
   }
 
   private async request<T>(
@@ -58,16 +45,12 @@ class ApiClient {
         ? AbortSignal.any([config.signal, controller.signal])
         : (config?.signal ?? controller.signal);
 
-    let init: RequestInit = {
+    const init: RequestInit = {
       method,
       headers: { ...this.defaultHeaders, ...config?.headers },
       signal: combinedSignal,
       cache: config?.cache,
     };
-
-    for (const interceptor of this.requestInterceptors) {
-      init = await interceptor(init);
-    }
 
     if (data !== undefined) {
       try {
@@ -90,20 +73,7 @@ class ApiClient {
     const startTime = Date.now();
 
     try {
-      let response = await fetch(fullUrl, init);
-
-      try {
-        for (const interceptor of this.responseInterceptors) {
-          response = await interceptor(response);
-        }
-      } catch (interceptorError) {
-        throw new ApiError({
-          code: 'INTERCEPTOR_ERROR',
-          message: 'Response interceptor failed',
-          statusCode: 500,
-          details: { originalError: String(interceptorError) },
-        });
-      }
+      const response = await fetch(fullUrl, init);
 
       if (!response.ok) {
         let errorData;
@@ -177,14 +147,6 @@ class ApiClient {
 
   async post<T>(url: string, data: unknown, config?: RequestConfig): Promise<ApiClientResponse<T>> {
     return this.request<T>('POST', url, data, config);
-  }
-
-  async put<T>(url: string, data: unknown, config?: RequestConfig): Promise<ApiClientResponse<T>> {
-    return this.request<T>('PUT', url, data, config);
-  }
-
-  async delete<T>(url: string, config?: RequestConfig): Promise<ApiClientResponse<T>> {
-    return this.request<T>('DELETE', url, undefined, config);
   }
 }
 

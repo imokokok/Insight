@@ -4,9 +4,6 @@ import {
   Search,
   GitCompare,
   Link2,
-  Settings,
-  Heart,
-  Bell,
   BookOpen,
   Camera,
 } from 'lucide-react';
@@ -65,24 +62,6 @@ export const navigationConfig: NavStructure = [
     href: '/docs',
     label: 'Documentation',
     icon: BookOpen,
-  },
-];
-
-const userNavigationConfig: NavStructure = [
-  {
-    href: '/favorites',
-    label: 'Favorites',
-    icon: Heart,
-  },
-  {
-    href: '/alerts',
-    label: 'Alerts',
-    icon: Bell,
-  },
-  {
-    href: '/settings',
-    label: 'Settings',
-    icon: Settings,
   },
 ];
 
