@@ -229,6 +229,18 @@ function QueryResultsComponent({
               correlationScore={riskMetrics.correlationScore}
               correlationLevel={riskMetrics.correlationLevel}
               highCorrelationPairs={riskMetrics.highCorrelationPairs}
+              freshnessScore={riskMetrics.freshnessScore}
+              freshnessLevel={riskMetrics.freshnessLevel}
+              staleOracleCount={riskMetrics.staleOracleCount}
+              staleOracles={riskMetrics.staleOracles}
+              manipulationResistanceScore={riskMetrics.manipulationResistanceScore}
+              manipulationResistanceLevel={riskMetrics.manipulationResistanceLevel}
+              manipulationResistanceFactors={riskMetrics.manipulationResistanceFactors}
+              sharedDependencyScore={riskMetrics.sharedDependencyScore}
+              sharedDependencyLevel={riskMetrics.sharedDependencyLevel}
+              sharedSourceGroups={riskMetrics.sharedSourceGroups}
+              systemicRiskFactor={riskMetrics.systemicRiskFactor}
+              weights={riskMetrics.weights}
               oracleCount={priceData.length}
             />
           )}

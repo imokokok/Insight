@@ -10,7 +10,47 @@ import {
   calculateRiskMetrics,
   getRiskLevelColor,
   getRiskLevelText,
+  type RiskMetricsInput,
 } from '../riskMetrics';
+
+function buildRiskMetricsInput(
+  oracleData: OracleMarketData[],
+  priceHistory: number[],
+  correlationMatrix: number[][]
+): RiskMetricsInput {
+  const priceHistoriesByProvider = new Map<string, number[]>();
+  const oracleNames = oracleData.map((o) => o.name);
+  oracleNames.forEach((name) => {
+    priceHistoriesByProvider.set(name, priceHistory);
+  });
+
+  const now = Date.now();
+  const oracleTimestamps = oracleData.map((o, i) => ({
+    name: o.name,
+    timestamp: now - i * 1000,
+  }));
+
+  const manipulationResistanceData = oracleData.map((o) => ({
+    name: o.name,
+    dataSources: 10,
+    updateFrequencySeconds: 60,
+    hasOnChainVerification: true,
+    aggregationMethod: 'median' as const,
+  }));
+
+  const sharedDependencyData = oracleData.map((o) => ({
+    name: o.name,
+    primaryDataSources: ['binance', 'coinbase'],
+  }));
+
+  return {
+    oracleData,
+    priceHistoriesByProvider,
+    oracleTimestamps,
+    manipulationResistanceData,
+    sharedDependencyData,
+  };
+}
 
 describe('riskMetrics', () => {
   describe('calculateHHI', () => {
@@ -641,23 +681,30 @@ describe('riskMetrics', () => {
 
     it('should calculate comprehensive risk metrics', () => {
       const result = calculateRiskMetrics(
-        createMockOracleData(),
-        createMockPriceHistory(),
-        createMockCorrelationMatrix()
+        buildRiskMetricsInput(
+          createMockOracleData(),
+          createMockPriceHistory(),
+          createMockCorrelationMatrix()
+        )
       );
 
       expect(result.hhi).toBeDefined();
       expect(result.diversification).toBeDefined();
       expect(result.volatility).toBeDefined();
       expect(result.correlationRisk).toBeDefined();
+      expect(result.freshnessRisk).toBeDefined();
+      expect(result.manipulationResistance).toBeDefined();
+      expect(result.sharedDependency).toBeDefined();
       expect(result.overallRisk).toBeDefined();
     });
 
     it('should calculate overall risk score correctly', () => {
       const result = calculateRiskMetrics(
-        createMockOracleData(),
-        createMockPriceHistory(),
-        createMockCorrelationMatrix()
+        buildRiskMetricsInput(
+          createMockOracleData(),
+          createMockPriceHistory(),
+          createMockCorrelationMatrix()
+        )
       );
 
       expect(result.overallRisk.score).toBeGreaterThanOrEqual(0);
@@ -832,7 +879,7 @@ describe('riskMetrics', () => {
         [0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 1],
       ];
 
-      const result = calculateRiskMetrics(oracleData, priceHistory, matrix);
+      const result = calculateRiskMetrics(buildRiskMetricsInput(oracleData, priceHistory, matrix));
 
       if (result.overallRisk.score < 30) {
         expect(result.overallRisk.level).toBe('low');
@@ -841,9 +888,11 @@ describe('riskMetrics', () => {
 
     it('should return medium overall risk for score 30-49', () => {
       const result = calculateRiskMetrics(
-        createMockOracleData(),
-        createMockPriceHistory(),
-        createMockCorrelationMatrix()
+        buildRiskMetricsInput(
+          createMockOracleData(),
+          createMockPriceHistory(),
+          createMockCorrelationMatrix()
+        )
       );
 
       if (result.overallRisk.score >= 30 && result.overallRisk.score < 50) {
@@ -859,9 +908,7 @@ describe('riskMetrics', () => {
       oracleData[3].share = 10;
 
       const result = calculateRiskMetrics(
-        oracleData,
-        createMockPriceHistory(),
-        createMockCorrelationMatrix()
+        buildRiskMetricsInput(oracleData, createMockPriceHistory(), createMockCorrelationMatrix())
       );
 
       if (result.overallRisk.score >= 50 && result.overallRisk.score < 70) {
@@ -924,7 +971,7 @@ describe('riskMetrics', () => {
         [0.92, 0.94, 1],
       ];
 
-      const result = calculateRiskMetrics(oracleData, priceHistory, matrix);
+      const result = calculateRiskMetrics(buildRiskMetricsInput(oracleData, priceHistory, matrix));
 
       if (result.overallRisk.score >= 70) {
         expect(result.overallRisk.level).toBe('critical');
@@ -932,7 +979,13 @@ describe('riskMetrics', () => {
     });
 
     it('should handle errors gracefully', () => {
-      const result = calculateRiskMetrics([], [], []);
+      const result = calculateRiskMetrics({
+        oracleData: [],
+        priceHistoriesByProvider: new Map(),
+        oracleTimestamps: [],
+        manipulationResistanceData: [],
+        sharedDependencyData: [],
+      });
 
       expect(result.hhi.value).toBe(0);
       expect(result.hhi.description).toBe('calculation_error');
@@ -943,9 +996,11 @@ describe('riskMetrics', () => {
     it('should include timestamp in overall risk', () => {
       const beforeTime = Date.now();
       const result = calculateRiskMetrics(
-        createMockOracleData(),
-        createMockPriceHistory(),
-        createMockCorrelationMatrix()
+        buildRiskMetricsInput(
+          createMockOracleData(),
+          createMockPriceHistory(),
+          createMockCorrelationMatrix()
+        )
       );
       const afterTime = Date.now();
 
@@ -982,19 +1037,19 @@ describe('riskMetrics', () => {
 
   describe('getRiskLevelText', () => {
     it('should return correct text key for low risk', () => {
-      expect(getRiskLevelText('Text')).toBe('risk_level_low');
+      expect(getRiskLevelText('low')).toBe('risk_level_low');
     });
 
     it('should return correct text key for medium risk', () => {
-      expect(getRiskLevelText('Text')).toBe('risk_level_medium');
+      expect(getRiskLevelText('medium')).toBe('risk_level_medium');
     });
 
     it('should return correct text key for high risk', () => {
-      expect(getRiskLevelText('Text')).toBe('risk_level_high');
+      expect(getRiskLevelText('high')).toBe('risk_level_high');
     });
 
     it('should return correct text key for critical risk', () => {
-      expect(getRiskLevelText('Text')).toBe('risk_level_critical');
+      expect(getRiskLevelText('critical')).toBe('risk_level_critical');
     });
   });
 
@@ -1100,14 +1155,37 @@ describe('riskMetrics', () => {
           configurable: true,
         });
 
-        const result = calculateRiskMetrics(
-          oracleData as unknown as OracleMarketData[],
-          [100, 101, 102],
-          [
-            [1, 0.5],
-            [0.5, 1],
-          ]
-        );
+        const result = calculateRiskMetrics({
+          oracleData: oracleData as unknown as OracleMarketData[],
+          priceHistoriesByProvider: new Map([
+            ['A', [100, 101, 102]],
+            ['B', [100, 101, 102]],
+          ]),
+          oracleTimestamps: [
+            { name: 'A', timestamp: Date.now() },
+            { name: 'B', timestamp: Date.now() },
+          ],
+          manipulationResistanceData: [
+            {
+              name: 'A',
+              dataSources: 10,
+              updateFrequencySeconds: 60,
+              hasOnChainVerification: true,
+              aggregationMethod: 'median',
+            },
+            {
+              name: 'B',
+              dataSources: 10,
+              updateFrequencySeconds: 60,
+              hasOnChainVerification: true,
+              aggregationMethod: 'median',
+            },
+          ],
+          sharedDependencyData: [
+            { name: 'A', primaryDataSources: ['binance'] },
+            { name: 'B', primaryDataSources: ['binance'] },
+          ],
+        });
         expect(result.hhi.value).toBe(0);
         expect(result.hhi.description).toBe('calculation_error');
         expect(result.volatility.index).toBe(0);
@@ -1186,7 +1264,9 @@ describe('riskMetrics', () => {
           [0.5, 0.5, 0.5, 1],
         ];
 
-        const result = calculateRiskMetrics(oracleData, priceHistory, matrix);
+        const result = calculateRiskMetrics(
+          buildRiskMetricsInput(oracleData, priceHistory, matrix)
+        );
 
         if (result.overallRisk.score >= 30 && result.overallRisk.score < 50) {
           expect(result.overallRisk.level).toBe('medium');

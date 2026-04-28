@@ -1,7 +1,9 @@
 import type { MemoryStats } from '@/lib/oracles/utils/memoryManager';
 import type { CalculatedPerformanceMetrics } from '@/lib/oracles/utils/performanceMetricsCalculator';
 import type { OracleRetryConfig as RetryConfig } from '@/lib/oracles/utils/retry';
-import { type OracleProvider, type PriceData, type SnapshotStats } from '@/types/oracle';
+import type { OracleProvider, PriceData, SnapshotStats } from '@/types/oracle';
+
+import type { PriceHistoryMap } from '../hooks/useOracleMemory';
 
 export type RefreshInterval = 'off' | '10s' | '30s' | '1m' | '5m';
 
@@ -89,6 +91,7 @@ export interface UseOracleDataReturn {
   skippedOracles: OracleProvider[];
   lastRefreshedAt: Date | null;
   nextRefreshAt: Date | null;
+  priceHistoryMapRef: React.MutableRefObject<PriceHistoryMap>;
 }
 
 export interface OracleFeature {

@@ -38,6 +38,7 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
     nextRefreshAt,
     performanceMetrics,
     isCalculatingMetrics,
+    priceHistoryMapRef,
   } = useOracleData({
     selectedOracles,
     selectedSymbol,
@@ -45,9 +46,14 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
 
   const priceStats = usePriceStats(priceData);
 
-  const anomalyDetection = usePriceAnomalyDetection(priceData, priceStats.medianPrice);
+  const anomalyDetection = usePriceAnomalyDetection(
+    priceData,
+    priceStats.medianPrice,
+    undefined,
+    selectedSymbol
+  );
 
-  const riskMetrics = useRiskMetrics(priceData);
+  const riskMetrics = useRiskMetrics(priceData, priceHistoryMapRef, selectedSymbol);
 
   const toggleOracle = useCallback((oracle: OracleProvider) => {
     setSelectedOracles((prev) =>

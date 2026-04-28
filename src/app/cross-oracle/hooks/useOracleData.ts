@@ -75,5 +75,6 @@ export function useOracleData({
     skippedOracles: core.skippedOracles,
     lastRefreshedAt: core.lastRefreshedAt,
     nextRefreshAt: core.nextRefreshAt,
+    priceHistoryMapRef: memory.priceHistoryMapRef,
   };
 }
