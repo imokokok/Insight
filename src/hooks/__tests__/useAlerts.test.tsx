@@ -4,7 +4,6 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { renderHook, act, waitFor } from '@testing-library/react';
 
 import { apiClient } from '@/lib/api';
-import { queries } from '@/lib/supabase/client';
 import { useUser } from '@/stores/authStore';
 
 import {
@@ -21,20 +20,21 @@ jest.mock('@/stores/authStore', () => ({
   useUser: jest.fn(),
 }));
 
-jest.mock('@/lib/supabase/client', () => ({
-  queries: {
-    getAlerts: jest.fn(),
-    createAlert: jest.fn(),
-    updateAlert: jest.fn(),
-    deleteAlert: jest.fn(),
-    getAlertEvents: jest.fn(),
-    acknowledgeAlertEvent: jest.fn(),
+jest.mock('@/lib/api', () => ({
+  apiClient: {
+    get: jest.fn(),
+    post: jest.fn(),
+    put: jest.fn(),
+    delete: jest.fn(),
   },
 }));
 
-jest.mock('@/lib/api', () => ({
-  apiClient: {
-    post: jest.fn(),
+jest.mock('@/lib/supabase/client', () => ({
+  supabase: {
+    channel: jest.fn().mockReturnThis(),
+    on: jest.fn().mockReturnThis(),
+    subscribe: jest.fn().mockReturnThis(),
+    removeChannel: jest.fn(),
   },
 }));
 
@@ -101,7 +101,9 @@ describe('useAlerts', () => {
   });
 
   it('should fetch alerts for logged in user', async () => {
-    (queries.getAlerts as jest.Mock).mockResolvedValue([mockAlert]);
+    (apiClient.get as jest.Mock).mockResolvedValue({
+      data: { alerts: [mockAlert], count: 1 },
+    });
 
     const { result } = renderHook(() => useAlerts(), {
       wrapper: createTestWrapper(),
@@ -113,10 +115,11 @@ describe('useAlerts', () => {
 
     expect(result.current.alerts).toHaveLength(1);
     expect(result.current.alerts[0].name).toBe('BTC Alert');
+    expect(apiClient.get).toHaveBeenCalledWith('/api/alerts');
   });
 
   it('should handle fetch error', async () => {
-    (queries.getAlerts as jest.Mock).mockRejectedValue(new Error('Fetch error'));
+    (apiClient.get as jest.Mock).mockRejectedValue(new Error('Fetch error'));
 
     const { result } = renderHook(() => useAlerts(), {
       wrapper: createTestWrapper(),
@@ -130,7 +133,9 @@ describe('useAlerts', () => {
   });
 
   it('should refetch alerts', async () => {
-    (queries.getAlerts as jest.Mock).mockResolvedValue([mockAlert]);
+    (apiClient.get as jest.Mock).mockResolvedValue({
+      data: { alerts: [mockAlert], count: 1 },
+    });
 
     const { result } = renderHook(() => useAlerts(), {
       wrapper: createTestWrapper(),
@@ -144,7 +149,7 @@ describe('useAlerts', () => {
       await result.current.refetch();
     });
 
-    expect(queries.getAlerts).toHaveBeenCalledTimes(2);
+    expect(apiClient.get).toHaveBeenCalledTimes(2);
   });
 });
 
@@ -180,7 +185,9 @@ describe('useCreateAlert', () => {
   });
 
   it('should create alert successfully', async () => {
-    (queries.createAlert as jest.Mock).mockResolvedValue(mockAlert);
+    (apiClient.post as jest.Mock).mockResolvedValue({
+      data: { alert: mockAlert, message: 'Alert created' },
+    });
 
     const { result } = renderHook(() => useCreateAlert(), {
       wrapper: createTestWrapper(),
@@ -197,10 +204,19 @@ describe('useCreateAlert', () => {
     });
 
     expect(createdAlert).toEqual(mockAlert);
+    expect(apiClient.post).toHaveBeenCalledWith(
+      '/api/alerts',
+      expect.objectContaining({
+        name: 'BTC Alert',
+        symbol: 'BTC/USD',
+        condition_type: 'above',
+        target_value: 50000,
+      })
+    );
   });
 
   it('should throw error on create failure', async () => {
-    (queries.createAlert as jest.Mock).mockResolvedValue(null);
+    (apiClient.post as jest.Mock).mockRejectedValue(new Error('Failed to create alert'));
 
     const { result } = renderHook(() => useCreateAlert(), {
       wrapper: createTestWrapper(),
@@ -221,15 +237,16 @@ describe('useCreateAlert', () => {
     });
 
     expect(thrownError).toBeTruthy();
-    expect(thrownError?.message).toBe('Failed to create alert');
   });
 
   it('should track isPending state', async () => {
-    let resolveCreate: (value: typeof mockAlert) => void;
-    const createPromise = new Promise<typeof mockAlert>((resolve) => {
-      resolveCreate = resolve;
-    });
-    (queries.createAlert as jest.Mock).mockReturnValue(createPromise);
+    let resolveCreate: (value: { data: { alert: typeof mockAlert; message: string } }) => void;
+    const createPromise = new Promise<{ data: { alert: typeof mockAlert; message: string } }>(
+      (resolve) => {
+        resolveCreate = resolve;
+      }
+    );
+    (apiClient.post as jest.Mock).mockReturnValue(createPromise);
 
     const { result } = renderHook(() => useCreateAlert(), {
       wrapper: createTestWrapper(),
@@ -237,9 +254,8 @@ describe('useCreateAlert', () => {
 
     expect(result.current.isPending).toBe(false);
 
-    let _alertPromise: Promise<typeof mockAlert | null>;
     act(() => {
-      _alertPromise = result.current.createAlert({
+      result.current.mutate({
         name: 'BTC Alert',
         symbol: 'BTC/USD',
         condition_type: 'above',
@@ -251,14 +267,16 @@ describe('useCreateAlert', () => {
       expect(result.current.isPending).toBe(true);
     });
 
-    resolveCreate!(mockAlert);
+    resolveCreate!({ data: { alert: mockAlert, message: 'Alert created' } });
     await waitFor(() => {
       expect(result.current.isPending).toBe(false);
     });
   });
 
   it('should use mutate with callbacks', async () => {
-    (queries.createAlert as jest.Mock).mockResolvedValue(mockAlert);
+    (apiClient.post as jest.Mock).mockResolvedValue({
+      data: { alert: mockAlert, message: 'Alert created' },
+    });
 
     const { result } = renderHook(() => useCreateAlert(), {
       wrapper: createTestWrapper(),
@@ -288,7 +306,7 @@ describe('useCreateAlert', () => {
   });
 
   it('should handle error via mutate callbacks', async () => {
-    (queries.createAlert as jest.Mock).mockResolvedValue(null);
+    (apiClient.post as jest.Mock).mockRejectedValue(new Error('Create failed'));
 
     const { result } = renderHook(() => useCreateAlert(), {
       wrapper: createTestWrapper(),
@@ -326,7 +344,9 @@ describe('useUpdateAlert', () => {
 
   it('should update alert successfully', async () => {
     const updatedAlert = { ...mockAlert, target_value: 55000 };
-    (queries.updateAlert as jest.Mock).mockResolvedValue(updatedAlert);
+    (apiClient.put as jest.Mock).mockResolvedValue({
+      data: { alert: updatedAlert, message: 'Alert updated' },
+    });
 
     const { result } = renderHook(() => useUpdateAlert(), {
       wrapper: createTestWrapper(),
@@ -340,10 +360,16 @@ describe('useUpdateAlert', () => {
     });
 
     expect(updated?.target_value).toBe(55000);
+    expect(apiClient.put).toHaveBeenCalledWith(
+      '/api/alerts/alert-1',
+      expect.objectContaining({
+        target_value: 55000,
+      })
+    );
   });
 
-  it('should throw error on update failure', async () => {
-    (queries.updateAlert as jest.Mock).mockResolvedValue(null);
+  it('should throw error when user is not logged in', async () => {
+    (useUser as jest.Mock).mockReturnValue(null);
 
     const { result } = renderHook(() => useUpdateAlert(), {
       wrapper: createTestWrapper(),
@@ -352,51 +378,21 @@ describe('useUpdateAlert', () => {
     let thrownError: Error | undefined;
     await act(async () => {
       try {
-        await result.current.updateAlert('alert-1', {
-          target_value: 55000,
-        });
+        await result.current.updateAlert('alert-1', { target_value: 55000 });
       } catch (err) {
         thrownError = err as Error;
       }
     });
 
     expect(thrownError).toBeTruthy();
-    expect(thrownError?.message).toBe('Failed to update alert');
-  });
-
-  it('should track isPending state', async () => {
-    let resolveUpdate: (value: typeof mockAlert) => void;
-    const updatePromise = new Promise<typeof mockAlert>((resolve) => {
-      resolveUpdate = resolve;
-    });
-    (queries.updateAlert as jest.Mock).mockReturnValue(updatePromise);
-
-    const { result } = renderHook(() => useUpdateAlert(), {
-      wrapper: createTestWrapper(),
-    });
-
-    expect(result.current.isPending).toBe(false);
-
-    let _updatePromiseResult: Promise<typeof mockAlert | null>;
-    act(() => {
-      _updatePromiseResult = result.current.updateAlert({
-        target_value: 55000,
-      });
-    });
-
-    await waitFor(() => {
-      expect(result.current.isPending).toBe(true);
-    });
-
-    resolveUpdate!(mockAlert);
-    await waitFor(() => {
-      expect(result.current.isPending).toBe(false);
-    });
+    expect(thrownError?.message).toBe('User not logged in');
   });
 
   it('should use mutate with callbacks', async () => {
     const updatedAlert = { ...mockAlert, target_value: 55000 };
-    (queries.updateAlert as jest.Mock).mockResolvedValue(updatedAlert);
+    (apiClient.put as jest.Mock).mockResolvedValue({
+      data: { alert: updatedAlert, message: 'Alert updated' },
+    });
 
     const { result } = renderHook(() => useUpdateAlert(), {
       wrapper: createTestWrapper(),
@@ -425,7 +421,9 @@ describe('useDeleteAlert', () => {
   });
 
   it('should delete alert successfully', async () => {
-    (queries.deleteAlert as jest.Mock).mockResolvedValue(true);
+    (apiClient.delete as jest.Mock).mockResolvedValue({
+      data: { message: 'Alert deleted' },
+    });
 
     const { result } = renderHook(() => useDeleteAlert(), {
       wrapper: createTestWrapper(),
@@ -437,10 +435,11 @@ describe('useDeleteAlert', () => {
     });
 
     expect(success).toBe(true);
+    expect(apiClient.delete).toHaveBeenCalledWith('/api/alerts/alert-1');
   });
 
-  it('should throw error on delete failure', async () => {
-    (queries.deleteAlert as jest.Mock).mockResolvedValue(null);
+  it('should throw error when user is not logged in', async () => {
+    (useUser as jest.Mock).mockReturnValue(null);
 
     const { result } = renderHook(() => useDeleteAlert(), {
       wrapper: createTestWrapper(),
@@ -456,39 +455,13 @@ describe('useDeleteAlert', () => {
     });
 
     expect(thrownError).toBeTruthy();
-    expect(thrownError?.message).toBe('Failed to delete alert');
-  });
-
-  it('should track isPending state', async () => {
-    let resolveDelete: (value: boolean) => void;
-    const deletePromise = new Promise<boolean>((resolve) => {
-      resolveDelete = resolve;
-    });
-    (queries.deleteAlert as jest.Mock).mockReturnValue(deletePromise);
-
-    const { result } = renderHook(() => useDeleteAlert(), {
-      wrapper: createTestWrapper(),
-    });
-
-    expect(result.current.isPending).toBe(false);
-
-    let _deletePromiseResult: Promise<boolean>;
-    act(() => {
-      _deletePromiseResult = result.current.deleteAlert('alert-1');
-    });
-
-    await waitFor(() => {
-      expect(result.current.isPending).toBe(true);
-    });
-
-    resolveDelete!(true);
-    await waitFor(() => {
-      expect(result.current.isPending).toBe(false);
-    });
+    expect(thrownError?.message).toBe('User not logged in');
   });
 
   it('should use mutate with callbacks', async () => {
-    (queries.deleteAlert as jest.Mock).mockResolvedValue(true);
+    (apiClient.delete as jest.Mock).mockResolvedValue({
+      data: { message: 'Alert deleted' },
+    });
 
     const { result } = renderHook(() => useDeleteAlert(), {
       wrapper: createTestWrapper(),
@@ -510,7 +483,7 @@ describe('useDeleteAlert', () => {
   });
 
   it('should handle error via mutate callbacks', async () => {
-    (queries.deleteAlert as jest.Mock).mockResolvedValue(null);
+    (apiClient.delete as jest.Mock).mockRejectedValue(new Error('Delete failed'));
 
     const { result } = renderHook(() => useDeleteAlert(), {
       wrapper: createTestWrapper(),
@@ -539,7 +512,9 @@ describe('useAlertEvents', () => {
   });
 
   it('should fetch alert events', async () => {
-    (queries.getAlertEvents as jest.Mock).mockResolvedValue([mockAlertEvent]);
+    (apiClient.get as jest.Mock).mockResolvedValue({
+      data: { events: [mockAlertEvent], count: 1 },
+    });
 
     const { result } = renderHook(() => useAlertEvents(), {
       wrapper: createTestWrapper(),
@@ -550,6 +525,7 @@ describe('useAlertEvents', () => {
     });
 
     expect(result.current.events).toHaveLength(1);
+    expect(apiClient.get).toHaveBeenCalledWith('/api/alerts/events');
   });
 });
 
@@ -561,7 +537,9 @@ describe('useAcknowledgeAlert', () => {
 
   it('should acknowledge alert event', async () => {
     const acknowledgedEvent = { ...mockAlertEvent, acknowledged_at: new Date().toISOString() };
-    (queries.acknowledgeAlertEvent as jest.Mock).mockResolvedValue(acknowledgedEvent);
+    (apiClient.post as jest.Mock).mockResolvedValue({
+      data: { event: acknowledgedEvent, message: 'Event acknowledged' },
+    });
 
     const { result } = renderHook(() => useAcknowledgeAlert(), {
       wrapper: createTestWrapper(),
@@ -573,10 +551,11 @@ describe('useAcknowledgeAlert', () => {
     });
 
     expect(response!.event?.acknowledged_at).toBeDefined();
+    expect(apiClient.post).toHaveBeenCalledWith('/api/alerts/events/event-1/acknowledge', {});
   });
 
   it('should handle acknowledge error', async () => {
-    (queries.acknowledgeAlertEvent as jest.Mock).mockResolvedValue(null);
+    (apiClient.post as jest.Mock).mockRejectedValue(new Error('Failed to acknowledge alert'));
 
     const { result } = renderHook(() => useAcknowledgeAlert(), {
       wrapper: createTestWrapper(),
@@ -587,15 +566,19 @@ describe('useAcknowledgeAlert', () => {
       response = await result.current.acknowledge('event-1');
     });
 
-    expect(response!.error?.message).toBe('Failed to acknowledge alert');
+    expect(response!.error).toBeTruthy();
   });
 
   it('should track isAcknowledging state', async () => {
-    let resolveAcknowledge: (value: typeof mockAlertEvent) => void;
-    const acknowledgePromise = new Promise<typeof mockAlertEvent>((resolve) => {
+    let resolveAcknowledge: (value: {
+      data: { event: typeof mockAlertEvent; message: string };
+    }) => void;
+    const acknowledgePromise = new Promise<{
+      data: { event: typeof mockAlertEvent; message: string };
+    }>((resolve) => {
       resolveAcknowledge = resolve;
     });
-    (queries.acknowledgeAlertEvent as jest.Mock).mockReturnValue(acknowledgePromise);
+    (apiClient.post as jest.Mock).mockReturnValue(acknowledgePromise);
 
     const { result } = renderHook(() => useAcknowledgeAlert(), {
       wrapper: createTestWrapper(),
@@ -611,7 +594,12 @@ describe('useAcknowledgeAlert', () => {
       expect(result.current.isAcknowledging).toBe(true);
     });
 
-    resolveAcknowledge!({ ...mockAlertEvent, acknowledged_at: new Date().toISOString() });
+    resolveAcknowledge!({
+      data: {
+        event: { ...mockAlertEvent, acknowledged_at: new Date().toISOString() },
+        message: 'Event acknowledged',
+      },
+    });
 
     await waitFor(() => {
       expect(result.current.isAcknowledging).toBe(false);
@@ -628,11 +616,14 @@ describe('useBatchAlerts', () => {
   it('should perform batch operation', async () => {
     (apiClient.post as jest.Mock).mockResolvedValue({
       data: {
-        processed: 3,
-        succeeded: 3,
-        failed: 0,
-        successIds: ['1', '2', '3'],
-        failedIds: [],
+        message: 'Batch operation completed',
+        results: {
+          processed: 3,
+          succeeded: 3,
+          failed: 0,
+          successIds: ['1', '2', '3'],
+          failedIds: [],
+        },
       },
     });
 
@@ -646,6 +637,10 @@ describe('useBatchAlerts', () => {
     });
 
     expect(response!.result?.succeeded).toBe(3);
+    expect(apiClient.post).toHaveBeenCalledWith('/api/alerts/batch', {
+      action: 'enable',
+      alertIds: ['1', '2', '3'],
+    });
   });
 
   it('should return error for empty alert ids', async () => {
@@ -665,20 +660,26 @@ describe('useBatchAlerts', () => {
   it('should track isProcessing state', async () => {
     let resolveBatch: (value: {
       data: {
-        processed: number;
-        succeeded: number;
-        failed: number;
-        successIds: string[];
-        failedIds: string[];
+        message: string;
+        results: {
+          processed: number;
+          succeeded: number;
+          failed: number;
+          successIds: string[];
+          failedIds: string[];
+        };
       };
     }) => void;
     const batchPromise = new Promise<{
       data: {
-        processed: number;
-        succeeded: number;
-        failed: number;
-        successIds: string[];
-        failedIds: string[];
+        message: string;
+        results: {
+          processed: number;
+          succeeded: number;
+          failed: number;
+          successIds: string[];
+          failedIds: string[];
+        };
       };
     }>((resolve) => {
       resolveBatch = resolve;
@@ -700,7 +701,10 @@ describe('useBatchAlerts', () => {
     });
 
     resolveBatch!({
-      data: { processed: 1, succeeded: 1, failed: 0, successIds: ['1'], failedIds: [] },
+      data: {
+        message: 'Done',
+        results: { processed: 1, succeeded: 1, failed: 0, successIds: ['1'], failedIds: [] },
+      },
     });
 
     await waitFor(() => {

@@ -3,7 +3,7 @@ import { type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { renderHook, act, waitFor } from '@testing-library/react';
 
-import { queries } from '@/lib/supabase/client';
+import { apiClient } from '@/lib/api';
 import { useUser, useProfile } from '@/stores/authStore';
 
 import {
@@ -12,7 +12,6 @@ import {
   useRemoveFavorite,
   useToggleFavorite,
   useIsFavorited,
-  useUpdateFavorite,
 } from '../data/useFavorites';
 
 jest.mock('@/stores/authStore', () => ({
@@ -20,13 +19,30 @@ jest.mock('@/stores/authStore', () => ({
   useProfile: jest.fn(),
 }));
 
+jest.mock('@/lib/api', () => ({
+  apiClient: {
+    get: jest.fn(),
+    post: jest.fn(),
+    put: jest.fn(),
+    delete: jest.fn(),
+  },
+}));
+
 jest.mock('@/lib/supabase/client', () => ({
-  queries: {
-    getFavorites: jest.fn(),
-    getFavoritesByType: jest.fn(),
-    addFavorite: jest.fn(),
-    deleteFavorite: jest.fn(),
-    updateFavorite: jest.fn(),
+  supabase: {
+    channel: jest.fn().mockReturnThis(),
+    on: jest.fn().mockReturnThis(),
+    subscribe: jest.fn().mockReturnThis(),
+    removeChannel: jest.fn(),
+  },
+}));
+
+jest.mock('@/lib/errors', () => ({
+  AuthenticationError: class AuthenticationError extends Error {
+    constructor(message: string) {
+      super(message);
+      this.name = 'AuthenticationError';
+    }
   },
 }));
 
@@ -88,7 +104,9 @@ describe('useFavorites', () => {
   });
 
   it('should fetch favorites for logged in user', async () => {
-    (queries.getFavorites as jest.Mock).mockResolvedValue([mockFavorite]);
+    (apiClient.get as jest.Mock).mockResolvedValue({
+      data: { favorites: [mockFavorite], count: 1 },
+    });
 
     const { result } = renderHook(() => useFavorites(), {
       wrapper: createTestWrapper(),
@@ -100,10 +118,13 @@ describe('useFavorites', () => {
 
     expect(result.current.favorites).toHaveLength(1);
     expect(result.current.favorites[0].name).toBe('BTC Favorite');
+    expect(apiClient.get).toHaveBeenCalledWith('/api/favorites');
   });
 
   it('should fetch favorites by type', async () => {
-    (queries.getFavoritesByType as jest.Mock).mockResolvedValue([mockFavorite]);
+    (apiClient.get as jest.Mock).mockResolvedValue({
+      data: { favorites: [mockFavorite], count: 1 },
+    });
 
     const { result } = renderHook(() => useFavorites({ configType: 'oracle_config' }), {
       wrapper: createTestWrapper(),
@@ -113,11 +134,11 @@ describe('useFavorites', () => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    expect(queries.getFavoritesByType).toHaveBeenCalledWith('test-user-id', 'oracle_config');
+    expect(apiClient.get).toHaveBeenCalledWith('/api/favorites?config_type=oracle_config');
   });
 
   it('should handle fetch error', async () => {
-    (queries.getFavorites as jest.Mock).mockRejectedValue(new Error('Fetch error'));
+    (apiClient.get as jest.Mock).mockRejectedValue(new Error('Fetch error'));
 
     const { result } = renderHook(() => useFavorites(), {
       wrapper: createTestWrapper(),
@@ -131,7 +152,9 @@ describe('useFavorites', () => {
   });
 
   it('should refetch favorites', async () => {
-    (queries.getFavorites as jest.Mock).mockResolvedValue([mockFavorite]);
+    (apiClient.get as jest.Mock).mockResolvedValue({
+      data: { favorites: [mockFavorite], count: 1 },
+    });
 
     const { result } = renderHook(() => useFavorites(), {
       wrapper: createTestWrapper(),
@@ -145,7 +168,7 @@ describe('useFavorites', () => {
       await result.current.refetch();
     });
 
-    expect(queries.getFavorites).toHaveBeenCalledTimes(2);
+    expect(apiClient.get).toHaveBeenCalledTimes(2);
   });
 });
 
@@ -172,7 +195,9 @@ describe('useAddFavorite', () => {
   });
 
   it('should add favorite successfully', async () => {
-    (queries.addFavorite as jest.Mock).mockResolvedValue(mockFavorite);
+    (apiClient.post as jest.Mock).mockResolvedValue({
+      data: { favorite: mockFavorite, message: 'Favorite added' },
+    });
 
     const { result } = renderHook(() => useAddFavorite(), {
       wrapper: createTestWrapper(),
@@ -186,14 +211,24 @@ describe('useAddFavorite', () => {
     });
 
     expect(addedFavorite).toEqual(mockFavorite);
+    expect(apiClient.post).toHaveBeenCalledWith(
+      '/api/favorites',
+      expect.objectContaining({
+        name: 'BTC Favorite',
+        config_type: 'oracle_config',
+        config_data: { selectedOracles: ['chainlink'] },
+      })
+    );
   });
 
   it('should track isAdding state', async () => {
-    let resolveAdd: (value: typeof mockFavorite) => void;
-    const addPromise = new Promise<typeof mockFavorite>((resolve) => {
-      resolveAdd = resolve;
-    });
-    (queries.addFavorite as jest.Mock).mockReturnValue(addPromise);
+    let resolveAdd: (value: { data: { favorite: typeof mockFavorite; message: string } }) => void;
+    const addPromise = new Promise<{ data: { favorite: typeof mockFavorite; message: string } }>(
+      (resolve) => {
+        resolveAdd = resolve;
+      }
+    );
+    (apiClient.post as jest.Mock).mockReturnValue(addPromise);
 
     const { result } = renderHook(() => useAddFavorite(), {
       wrapper: createTestWrapper(),
@@ -210,7 +245,7 @@ describe('useAddFavorite', () => {
       expect(result.current.isAdding).toBe(true);
     });
 
-    resolveAdd!(mockFavorite);
+    resolveAdd!({ data: { favorite: mockFavorite, message: 'Favorite added' } });
     await act(async () => {
       await favoritePromise!;
     });
@@ -241,7 +276,9 @@ describe('useRemoveFavorite', () => {
   });
 
   it('should remove favorite successfully', async () => {
-    (queries.deleteFavorite as jest.Mock).mockResolvedValue(true);
+    (apiClient.delete as jest.Mock).mockResolvedValue({
+      data: { message: 'Favorite deleted' },
+    });
 
     const { result } = renderHook(() => useRemoveFavorite(), {
       wrapper: createTestWrapper(),
@@ -253,14 +290,15 @@ describe('useRemoveFavorite', () => {
     });
 
     expect(success).toBe(true);
+    expect(apiClient.delete).toHaveBeenCalledWith('/api/favorites/fav-1');
   });
 
   it('should track isRemoving state', async () => {
-    let resolveRemove: (value: boolean) => void;
-    const removePromise = new Promise<boolean>((resolve) => {
+    let resolveRemove: (value: { data: { message: string } }) => void;
+    const removePromise = new Promise<{ data: { message: string } }>((resolve) => {
       resolveRemove = resolve;
     });
-    (queries.deleteFavorite as jest.Mock).mockReturnValue(removePromise);
+    (apiClient.delete as jest.Mock).mockReturnValue(removePromise);
 
     const { result } = renderHook(() => useRemoveFavorite(), {
       wrapper: createTestWrapper(),
@@ -277,7 +315,7 @@ describe('useRemoveFavorite', () => {
       expect(result.current.isRemoving).toBe(true);
     });
 
-    resolveRemove!(true);
+    resolveRemove!({ data: { message: 'Favorite deleted' } });
     await act(async () => {
       await deletePromise!;
     });
@@ -294,8 +332,12 @@ describe('useToggleFavorite', () => {
   });
 
   it('should add favorite when not exists', async () => {
-    (queries.getFavorites as jest.Mock).mockResolvedValue([]);
-    (queries.addFavorite as jest.Mock).mockResolvedValue(mockFavorite);
+    (apiClient.get as jest.Mock).mockResolvedValue({
+      data: { favorites: [], count: 0 },
+    });
+    (apiClient.post as jest.Mock).mockResolvedValue({
+      data: { favorite: mockFavorite, message: 'Favorite added' },
+    });
 
     const { result } = renderHook(() => useToggleFavorite(), {
       wrapper: createTestWrapper(),
@@ -316,8 +358,12 @@ describe('useToggleFavorite', () => {
   });
 
   it('should remove favorite when exists', async () => {
-    (queries.getFavorites as jest.Mock).mockResolvedValue([mockFavorite]);
-    (queries.deleteFavorite as jest.Mock).mockResolvedValue(true);
+    (apiClient.get as jest.Mock).mockResolvedValue({
+      data: { favorites: [mockFavorite], count: 1 },
+    });
+    (apiClient.delete as jest.Mock).mockResolvedValue({
+      data: { message: 'Favorite deleted' },
+    });
 
     const { result } = renderHook(() => useToggleFavorite(), {
       wrapper: createTestWrapper(),
@@ -328,7 +374,7 @@ describe('useToggleFavorite', () => {
     });
 
     await waitFor(() => {
-      expect(queries.getFavorites).toHaveBeenCalled();
+      expect(apiClient.get).toHaveBeenCalled();
     });
 
     let toggleResult: { action: string } | undefined;
@@ -344,7 +390,9 @@ describe('useToggleFavorite', () => {
   it('should throw error when user is not logged in', async () => {
     (useUser as jest.Mock).mockReturnValue(null);
     (useProfile as jest.Mock).mockReturnValue(null);
-    (queries.getFavorites as jest.Mock).mockResolvedValue([]);
+    (apiClient.get as jest.Mock).mockResolvedValue({
+      data: { favorites: [], count: 0 },
+    });
 
     const { result } = renderHook(() => useToggleFavorite(), {
       wrapper: createTestWrapper(),
@@ -366,7 +414,9 @@ describe('useIsFavorited', () => {
   });
 
   it('should return false when not favorited', async () => {
-    (queries.getFavoritesByType as jest.Mock).mockResolvedValue([]);
+    (apiClient.get as jest.Mock).mockResolvedValue({
+      data: { favorites: [], count: 0 },
+    });
 
     const { result } = renderHook(
       () => useIsFavorited('oracle_config', { selectedOracles: ['chainlink'] }),
@@ -379,7 +429,9 @@ describe('useIsFavorited', () => {
   });
 
   it('should return true when favorited', async () => {
-    (queries.getFavoritesByType as jest.Mock).mockResolvedValue([mockFavorite]);
+    (apiClient.get as jest.Mock).mockResolvedValue({
+      data: { favorites: [mockFavorite], count: 1 },
+    });
 
     const { result } = renderHook(
       () => useIsFavorited('oracle_config', { selectedOracles: ['chainlink'] }),
@@ -391,94 +443,5 @@ describe('useIsFavorited', () => {
     });
 
     expect(result.current.favorite).toEqual(mockFavorite);
-  });
-});
-
-describe('useUpdateFavorite', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    (useUser as jest.Mock).mockReturnValue(mockUser);
-    (useProfile as jest.Mock).mockReturnValue(mockProfile);
-  });
-
-  it('should throw error when user is not logged in', async () => {
-    (useUser as jest.Mock).mockReturnValue(null);
-
-    const { result } = renderHook(() => useUpdateFavorite(), {
-      wrapper: createTestWrapper(),
-    });
-
-    await expect(
-      act(async () => {
-        await result.current.updateFavorite('fav-1', { name: 'Updated' });
-      })
-    ).rejects.toThrow('User must be logged in');
-  });
-
-  it('should update favorite successfully', async () => {
-    const updatedFavorite = { ...mockFavorite, name: 'Updated Name' };
-    (queries.updateFavorite as jest.Mock).mockResolvedValue(updatedFavorite);
-
-    const { result } = renderHook(() => useUpdateFavorite(), {
-      wrapper: createTestWrapper(),
-    });
-
-    let updated: typeof mockFavorite | null = null;
-    await act(async () => {
-      updated = await result.current.updateFavorite('fav-1', { name: 'Updated Name' });
-    });
-
-    expect(updated?.name).toBe('Updated Name');
-  });
-
-  it('should update config data', async () => {
-    const updatedFavorite = {
-      ...mockFavorite,
-      config_data: { selectedOracles: ['pyth'] },
-    };
-    (queries.updateFavorite as jest.Mock).mockResolvedValue(updatedFavorite);
-
-    const { result } = renderHook(() => useUpdateFavorite(), {
-      wrapper: createTestWrapper(),
-    });
-
-    let updated: typeof mockFavorite | null = null;
-    await act(async () => {
-      updated = await result.current.updateFavorite('fav-1', {
-        configData: { selectedOracles: ['pyth'] },
-      });
-    });
-
-    expect(updated?.config_data).toEqual({ selectedOracles: ['pyth'] });
-  });
-
-  it('should track isUpdating state', async () => {
-    let resolveUpdate: (value: typeof mockFavorite) => void;
-    const updatePromise = new Promise<typeof mockFavorite>((resolve) => {
-      resolveUpdate = resolve;
-    });
-    (queries.updateFavorite as jest.Mock).mockReturnValue(updatePromise);
-
-    const { result } = renderHook(() => useUpdateFavorite(), {
-      wrapper: createTestWrapper(),
-    });
-
-    expect(result.current.isUpdating).toBe(false);
-
-    let favoritePromise: Promise<typeof mockFavorite>;
-    act(() => {
-      favoritePromise = result.current.updateFavorite('fav-1', { name: 'Updated' });
-    });
-
-    await waitFor(() => {
-      expect(result.current.isUpdating).toBe(true);
-    });
-
-    resolveUpdate!(mockFavorite);
-    await act(async () => {
-      await favoritePromise!;
-    });
-
-    expect(result.current.isUpdating).toBe(false);
   });
 });

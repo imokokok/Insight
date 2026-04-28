@@ -13,7 +13,7 @@ import {
   CheckCircle,
 } from 'lucide-react';
 
-import { updateUserProfile } from '@/lib/supabase/auth';
+import { apiClient } from '@/lib/api';
 import { useUser } from '@/stores/authStore';
 
 interface NotificationSettings {
@@ -116,13 +116,13 @@ export function NotificationPanel() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
 
       if (user) {
-        await updateUserProfile(user.id, {
+        await apiClient.put('/api/auth/profile', {
           notification_settings: {
             email_alerts: settings.emailNotifications,
             push_notifications: settings.browserNotifications,
             alert_frequency: settings.alertNotifications ? 'immediate' : 'off',
           },
-        } as Record<string, unknown>);
+        });
       }
 
       setSuccess('Settings saved successfully');

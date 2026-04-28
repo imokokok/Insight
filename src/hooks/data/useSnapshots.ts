@@ -4,12 +4,8 @@ import { useRef, useEffect } from 'react';
 
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 
-import {
-  queries,
-  supabase,
-  type UserSnapshot,
-  type UserSnapshotInsert,
-} from '@/lib/supabase/client';
+import { apiClient } from '@/lib/api';
+import { supabase, type UserSnapshot, type UserSnapshotInsert } from '@/lib/supabase/client';
 import { useUser } from '@/stores/authStore';
 import type { OracleProvider } from '@/types/oracle';
 
@@ -99,8 +95,10 @@ export function useSnapshots(): UseSnapshotsReturn {
     queryKey: [SNAPSHOTS_KEY, userId],
     queryFn: async () => {
       if (!userId) return [];
-      const result = await queries.getSnapshots(userId);
-      return result ?? [];
+      const response = await apiClient.get<{ snapshots: UserSnapshot[]; count: number }>(
+        '/api/snapshots'
+      );
+      return response.data.snapshots ?? [];
     },
     enabled: !!userId,
     staleTime: 2 * 60 * 1000,
@@ -128,20 +126,19 @@ export function useCreateSnapshot(): UseCreateSnapshotReturn {
         throw new Error(SNAPSHOT_ERROR_MESSAGES.userNotLoggedIn);
       }
 
-      const snapshot = await queries.saveSnapshot(user.id, {
-        name: input.name,
-        symbol: input.symbol,
-        selected_oracles: input.selected_oracles,
-        price_data: input.price_data,
-        stats: input.stats,
-        is_public: input.is_public ?? false,
-      });
+      const response = await apiClient.post<{ snapshot: UserSnapshot; message: string }>(
+        '/api/snapshots',
+        {
+          name: input.name,
+          symbol: input.symbol,
+          selected_oracles: input.selected_oracles,
+          price_data: input.price_data,
+          stats: input.stats,
+          is_public: input.is_public ?? false,
+        }
+      );
 
-      if (!snapshot) {
-        throw new Error(SNAPSHOT_ERROR_MESSAGES.createFailed);
-      }
-
-      return snapshot;
+      return response.data.snapshot;
     },
     onSuccess: () => {
       if (user?.id) {
@@ -175,13 +172,12 @@ export function useUpdateSnapshot(): UseUpdateSnapshotReturn {
         throw new Error(SNAPSHOT_ERROR_MESSAGES.userNotLoggedIn);
       }
 
-      const snapshot = await queries.updateSnapshot(id, input);
+      const response = await apiClient.put<{ snapshot: UserSnapshot; message: string }>(
+        `/api/snapshots/${id}`,
+        input
+      );
 
-      if (!snapshot) {
-        throw new Error(SNAPSHOT_ERROR_MESSAGES.updateFailed);
-      }
-
-      return snapshot;
+      return response.data.snapshot;
     },
     onSuccess: () => {
       if (user?.id) {
@@ -225,12 +221,7 @@ export function useDeleteSnapshot(): UseDeleteSnapshotReturn {
         throw new Error(SNAPSHOT_ERROR_MESSAGES.userNotLoggedIn);
       }
 
-      const success = await queries.deleteSnapshot(id);
-
-      if (!success) {
-        throw new Error(SNAPSHOT_ERROR_MESSAGES.deleteFailed);
-      }
-
+      await apiClient.delete<{ message: string }>(`/api/snapshots/${id}`);
       return true;
     },
     onSuccess: () => {

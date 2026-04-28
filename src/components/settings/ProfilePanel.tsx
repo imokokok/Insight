@@ -5,7 +5,8 @@ import { useState, useEffect } from 'react';
 import { Mail, Save, Key, Loader2, CheckCircle } from 'lucide-react';
 
 import { PasswordInput } from '@/components/ui/PasswordInput';
-import { updateUserProfile, updatePassword } from '@/lib/supabase/auth';
+import { apiClient } from '@/lib/api';
+import { updatePassword } from '@/lib/supabase/auth';
 import { useUser, useProfile, useAuthActions } from '@/stores/authStore';
 
 import { AvatarUploader } from './AvatarUploader';
@@ -57,13 +58,12 @@ export function ProfilePanel() {
     setSuccess(null);
 
     try {
-      const { error: updateError } = await updateUserProfile(user.id, {
-        display_name: displayName || null,
-      });
+      const response = await apiClient.put<{ profile: Record<string, unknown>; message: string }>(
+        '/api/auth/profile',
+        { display_name: displayName || null }
+      );
 
-      if (updateError) {
-        setError(updateError.message);
-      } else {
+      if (response.data) {
         setSuccess('Profile saved successfully');
         await refreshProfile();
       }

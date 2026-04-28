@@ -4,8 +4,8 @@ import { useState, useCallback, useRef, useMemo } from 'react';
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
+import { apiClient } from '@/lib/api';
 import { AuthenticationError } from '@/lib/errors';
-import { queries } from '@/lib/supabase/client';
 import type { ConfigType } from '@/lib/supabase/database.types';
 import type { UserFavorite } from '@/lib/supabase/queries';
 import { useUser } from '@/stores/authStore';
@@ -57,16 +57,14 @@ export function useFavorites(options: UseFavoritesOptions = {}) {
     queryKey,
     queryFn: async () => {
       if (!user) return [];
-      let result;
+      const params = new URLSearchParams();
       if (configType) {
-        result = await queries.getFavoritesByType(
-          user.id,
-          configType as 'oracle_config' | 'symbol' | 'chain_config'
-        );
-      } else {
-        result = await queries.getFavorites(user.id);
+        params.set('config_type', configType);
       }
-      return result || [];
+      const qs = params.toString();
+      const url = qs ? `/api/favorites?${qs}` : '/api/favorites';
+      const response = await apiClient.get<{ favorites: UserFavorite[]; count: number }>(url);
+      return response.data.favorites ?? [];
     },
     enabled: !!user,
     staleTime: 5 * 60 * 1000,
@@ -97,11 +95,16 @@ export function useAddFavorite() {
 
       setIsAdding(true);
       try {
-        const favorite = await queries.addFavorite(user.id, {
-          name,
-          config_type: mapConfigType(configType),
-          config_data: Object.fromEntries(Object.entries(configData)),
-        });
+        const response = await apiClient.post<{ favorite: UserFavorite; message: string }>(
+          '/api/favorites',
+          {
+            name,
+            config_type: mapConfigType(configType),
+            config_data: Object.fromEntries(Object.entries(configData)),
+          }
+        );
+
+        const favorite = response.data.favorite;
 
         if (favorite) {
           await queryClient.invalidateQueries({ queryKey: ['favorites', user.id] });
@@ -137,16 +140,14 @@ export function useRemoveFavorite() {
 
       setIsRemoving(true);
       try {
-        const success = await queries.deleteFavorite(favoriteId, user.id);
+        await apiClient.delete<{ message: string }>(`/api/favorites/${favoriteId}`);
 
-        if (success) {
-          await queryClient.invalidateQueries({ queryKey: ['favorites', user.id] });
-          if (configType) {
-            await queryClient.invalidateQueries({ queryKey: ['favorites', user.id, configType] });
-          }
+        await queryClient.invalidateQueries({ queryKey: ['favorites', user.id] });
+        if (configType) {
+          await queryClient.invalidateQueries({ queryKey: ['favorites', user.id, configType] });
         }
 
-        return success;
+        return true;
       } finally {
         setIsRemoving(false);
       }
