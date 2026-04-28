@@ -1,20 +1,22 @@
 'use client';
 
-import { TrendingUp } from 'lucide-react';
+import { TrendingUp, Link2 } from 'lucide-react';
 
 import { EmptyStateEnhanced, SegmentedControl } from '@/components/ui';
 
 import { useUnifiedQuery } from '../contexts';
 
 export function QueryResultsEmpty() {
-  const { selectedSymbol, setSelectedSymbol, selectedOracle, selectedChain } = useUnifiedQuery();
+  const { selectedSymbol, setSelectedSymbol, selectedOracle, selectedChain, needsChainSelection } =
+    useUnifiedQuery();
 
   const getEmptyStateContent = () => {
-    if (selectedOracle && !selectedChain) {
+    if (needsChainSelection) {
       return {
         type: 'custom' as const,
         title: 'Please select a blockchain',
         description: `You've selected ${selectedOracle} oracle. Please choose a specific blockchain to view price data.`,
+        icon: <Link2 className="w-12 h-12 text-amber-400" />,
       };
     }
     return {
@@ -33,6 +35,7 @@ export function QueryResultsEmpty() {
       description={emptyStateContent.description}
       size="lg"
       variant="page"
+      icon={emptyStateContent.icon}
     >
       {!selectedOracle && (
         <div className="mt-8 pt-6 border-t border-gray-100 w-full max-w-md">

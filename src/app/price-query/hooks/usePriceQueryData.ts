@@ -46,6 +46,7 @@ interface UsePriceQueryDataReturn {
   dataAnomalies: AnomalyInfo[];
   hasDataQualityIssues: boolean;
   supportedChainsBySelectedOracles: Set<Blockchain>;
+  needsChainSelection: boolean;
   performanceMetrics: {
     queryResponseTime: number | null;
     dataProcessingTime: number | null;
@@ -86,7 +87,7 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
     [dismissedSignature, selectionSignature, dismissedErrorKeys]
   );
 
-  const { primaryTasks, compareTasks } = useMemo(
+  const { primaryTasks, compareTasks, needsChainSelection } = useMemo(
     () =>
       buildQueryTasks(
         selectedOracle,
@@ -309,6 +310,7 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
     dataAnomalies,
     hasDataQualityIssues: validationWarnings.length > 0 || dataAnomalies.length > 0,
     supportedChainsBySelectedOracles,
+    needsChainSelection: !!needsChainSelection,
     performanceMetrics: {
       queryResponseTime: queryDuration,
       dataProcessingTime,
