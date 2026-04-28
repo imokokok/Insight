@@ -190,7 +190,6 @@ function classifyDIAError(error: DIAError): { errorType: OracleErrorType; retrya
       return { errorType: 'rate_limit', retryable: true };
     case 'PARSE_ERROR':
     case 'INVALID_RESPONSE':
-    case 'NFT_DATA_ERROR':
       return { errorType: 'data_format', retryable: false };
     default:
       return { errorType: 'unknown', retryable: error.retryable };

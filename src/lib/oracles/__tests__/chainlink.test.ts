@@ -214,7 +214,7 @@ describe('ChainlinkClient', () => {
     ];
 
     it('should return empty array for empty symbol', async () => {
-      (binanceMarketService.getHistoricalPricesByHours as jest.Mock).mockResolvedValue([]);
+      (binanceMarketService.getHistoricalPrices as jest.Mock).mockResolvedValue([]);
 
       await expect(client.getHistoricalPrices('')).rejects.toMatchObject({
         code: 'CHAINLINK_HISTORICAL_ERROR',
@@ -222,7 +222,7 @@ describe('ChainlinkClient', () => {
     });
 
     it('should return historical price data', async () => {
-      (binanceMarketService.getHistoricalPricesByHours as jest.Mock).mockResolvedValue(
+      (binanceMarketService.getHistoricalPrices as jest.Mock).mockResolvedValue(
         mockHistoricalPrices
       );
 
@@ -238,7 +238,7 @@ describe('ChainlinkClient', () => {
     });
 
     it('should return historical prices with change calculations', async () => {
-      (binanceMarketService.getHistoricalPricesByHours as jest.Mock).mockResolvedValue(
+      (binanceMarketService.getHistoricalPrices as jest.Mock).mockResolvedValue(
         mockHistoricalPrices
       );
 
@@ -249,7 +249,7 @@ describe('ChainlinkClient', () => {
     });
 
     it('should use specified chain', async () => {
-      (binanceMarketService.getHistoricalPricesByHours as jest.Mock).mockResolvedValue(
+      (binanceMarketService.getHistoricalPrices as jest.Mock).mockResolvedValue(
         mockHistoricalPrices
       );
 
@@ -259,27 +259,27 @@ describe('ChainlinkClient', () => {
     });
 
     it('should use default period of 24 hours', async () => {
-      (binanceMarketService.getHistoricalPricesByHours as jest.Mock).mockResolvedValue(
+      (binanceMarketService.getHistoricalPrices as jest.Mock).mockResolvedValue(
         mockHistoricalPrices
       );
 
       await client.getHistoricalPrices('ETH');
 
-      expect(binanceMarketService.getHistoricalPricesByHours).toHaveBeenCalledWith('ETH', 24);
+      expect(binanceMarketService.getHistoricalPrices).toHaveBeenCalledWith('ETH', 24);
     });
 
     it('should use custom period', async () => {
-      (binanceMarketService.getHistoricalPricesByHours as jest.Mock).mockResolvedValue(
+      (binanceMarketService.getHistoricalPrices as jest.Mock).mockResolvedValue(
         mockHistoricalPrices
       );
 
       await client.getHistoricalPrices('ETH', undefined, 48);
 
-      expect(binanceMarketService.getHistoricalPricesByHours).toHaveBeenCalledWith('ETH', 48);
+      expect(binanceMarketService.getHistoricalPrices).toHaveBeenCalledWith('ETH', 48);
     });
 
     it('should return empty array when no historical data available', async () => {
-      (binanceMarketService.getHistoricalPricesByHours as jest.Mock).mockResolvedValue([]);
+      (binanceMarketService.getHistoricalPrices as jest.Mock).mockResolvedValue([]);
 
       const result = await client.getHistoricalPrices('ETH');
 
@@ -287,7 +287,7 @@ describe('ChainlinkClient', () => {
     });
 
     it('should handle service error', async () => {
-      (binanceMarketService.getHistoricalPricesByHours as jest.Mock).mockRejectedValue(
+      (binanceMarketService.getHistoricalPrices as jest.Mock).mockRejectedValue(
         new Error('Service unavailable')
       );
 
@@ -1297,7 +1297,7 @@ describe('ChainlinkClient', () => {
           { timestamp: Date.now() - 1800000, price: 3450 },
         ];
 
-        (binanceMarketService.getHistoricalPricesByHours as jest.Mock).mockResolvedValue(
+        (binanceMarketService.getHistoricalPrices as jest.Mock).mockResolvedValue(
           mockHistoricalPrices
         );
 
@@ -1361,7 +1361,7 @@ describe('ChainlinkClient', () => {
             price: 3500 + Math.random() * 100,
           }));
 
-        (binanceMarketService.getHistoricalPricesByHours as jest.Mock).mockResolvedValue(
+        (binanceMarketService.getHistoricalPrices as jest.Mock).mockResolvedValue(
           mockHistoricalPrices
         );
 

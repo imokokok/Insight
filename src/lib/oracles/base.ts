@@ -220,9 +220,9 @@ export abstract class BaseOracleClient {
     }
 
     try {
-      const historicalPrices = await binanceMarketService.getHistoricalPricesByHours(
+      const historicalPrices = await binanceMarketService.getHistoricalPrices(
         symbol,
-        period
+        Math.max(1, Math.ceil(period / 24))
       );
 
       if (options?.signal?.aborted) {

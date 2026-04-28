@@ -40,8 +40,6 @@ export const winklinkConfig: OracleConfig = {
     { id: 'market', label: 'Market Data' },
     { id: 'network', label: 'Network Health' },
     { id: 'tron', label: 'TRON Ecosystem' },
-    { id: 'staking', label: 'Staking' },
-    { id: 'gaming', label: 'Gaming' },
     { id: 'risk', label: 'Risk Assessment' },
   ],
 };

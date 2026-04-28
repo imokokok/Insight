@@ -227,27 +227,24 @@ class SupraDataService {
         return [];
       }
 
-      // Calculate number of days
-      const days = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
+      const days = Math.max(1, Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)));
 
-      // Use Binance API to fetch OHLC data
-      const ohlcData = await binanceMarketService.getOHLCData(symbol, days);
+      const historicalPrices = await binanceMarketService.getHistoricalPrices(symbol, days);
 
-      if (!ohlcData || ohlcData.length === 0) {
+      if (!historicalPrices || historicalPrices.length === 0) {
         logger.warn(`No historical data available for ${symbol} from Binance`);
         return [];
       }
 
-      // Filter by time range and convert to SupraOHLCDataPoint format
-      const result: SupraOHLCDataPoint[] = ohlcData
+      const result: SupraOHLCDataPoint[] = historicalPrices
         .filter((point) => point.timestamp >= startDate && point.timestamp <= endDate)
         .map((point) => ({
           timestamp: point.timestamp,
-          open: point.open,
-          high: point.high,
-          low: point.low,
-          close: point.close,
-          volume: point.volume,
+          open: point.price,
+          high: point.price,
+          low: point.price,
+          close: point.price,
+          volume: point.volume || 0,
         }));
 
       logger.info(`Fetched ${result.length} historical data points for ${symbol} from Binance`);

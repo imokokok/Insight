@@ -190,11 +190,6 @@ export class DIAPriceService {
     }
   }
 
-  async getForexRate(symbol: string): Promise<PriceData | null> {
-    logger.warn('Forex rate fetching is not supported via DIA API', { symbol });
-    return null;
-  }
-
   async getHistoricalPrices(
     symbol: string,
     chain?: Blockchain,
@@ -213,9 +208,9 @@ export class DIAPriceService {
         periodHours,
       });
 
-      const historicalPrices = await binanceMarketService.getHistoricalPricesByHours(
+      const historicalPrices = await binanceMarketService.getHistoricalPrices(
         symbol,
-        periodHours
+        Math.max(1, Math.ceil(periodHours / 24))
       );
 
       if (!historicalPrices || historicalPrices.length === 0) {

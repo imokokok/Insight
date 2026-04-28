@@ -276,7 +276,7 @@ describe('PythClient', () => {
     });
 
     it('should return historical price data', async () => {
-      (binanceMarketService.getHistoricalPricesByHours as jest.Mock).mockResolvedValue(
+      (binanceMarketService.getHistoricalPrices as jest.Mock).mockResolvedValue(
         mockHistoricalPrices
       );
 
@@ -292,7 +292,7 @@ describe('PythClient', () => {
     });
 
     it('should return historical prices with change calculations', async () => {
-      (binanceMarketService.getHistoricalPricesByHours as jest.Mock).mockResolvedValue(
+      (binanceMarketService.getHistoricalPrices as jest.Mock).mockResolvedValue(
         mockHistoricalPrices
       );
 
@@ -303,7 +303,7 @@ describe('PythClient', () => {
     });
 
     it('should use specified chain', async () => {
-      (binanceMarketService.getHistoricalPricesByHours as jest.Mock).mockResolvedValue(
+      (binanceMarketService.getHistoricalPrices as jest.Mock).mockResolvedValue(
         mockHistoricalPrices
       );
 
@@ -313,27 +313,27 @@ describe('PythClient', () => {
     });
 
     it('should use default period of 24 hours', async () => {
-      (binanceMarketService.getHistoricalPricesByHours as jest.Mock).mockResolvedValue(
+      (binanceMarketService.getHistoricalPrices as jest.Mock).mockResolvedValue(
         mockHistoricalPrices
       );
 
       await client.getHistoricalPrices('BTC');
 
-      expect(binanceMarketService.getHistoricalPricesByHours).toHaveBeenCalledWith('BTC', 24);
+      expect(binanceMarketService.getHistoricalPrices).toHaveBeenCalledWith('BTC', 24);
     });
 
     it('should use custom period', async () => {
-      (binanceMarketService.getHistoricalPricesByHours as jest.Mock).mockResolvedValue(
+      (binanceMarketService.getHistoricalPrices as jest.Mock).mockResolvedValue(
         mockHistoricalPrices
       );
 
       await client.getHistoricalPrices('BTC', undefined, 48);
 
-      expect(binanceMarketService.getHistoricalPricesByHours).toHaveBeenCalledWith('BTC', 48);
+      expect(binanceMarketService.getHistoricalPrices).toHaveBeenCalledWith('BTC', 48);
     });
 
     it('should return empty array when no historical data available', async () => {
-      (binanceMarketService.getHistoricalPricesByHours as jest.Mock).mockResolvedValue([]);
+      (binanceMarketService.getHistoricalPrices as jest.Mock).mockResolvedValue([]);
 
       const result = await client.getHistoricalPrices('BTC');
 
@@ -341,7 +341,7 @@ describe('PythClient', () => {
     });
 
     it('should return empty array when historical data is null', async () => {
-      (binanceMarketService.getHistoricalPricesByHours as jest.Mock).mockResolvedValue(null);
+      (binanceMarketService.getHistoricalPrices as jest.Mock).mockResolvedValue(null);
 
       const result = await client.getHistoricalPrices('BTC');
 
@@ -349,7 +349,7 @@ describe('PythClient', () => {
     });
 
     it('should handle service error gracefully', async () => {
-      (binanceMarketService.getHistoricalPricesByHours as jest.Mock).mockRejectedValue(
+      (binanceMarketService.getHistoricalPrices as jest.Mock).mockRejectedValue(
         new Error('Service unavailable')
       );
 
@@ -365,7 +365,7 @@ describe('PythClient', () => {
         { timestamp: Date.now(), price: 68000 },
       ];
 
-      (binanceMarketService.getHistoricalPricesByHours as jest.Mock).mockResolvedValue(prices);
+      (binanceMarketService.getHistoricalPrices as jest.Mock).mockResolvedValue(prices);
 
       const result = await client.getHistoricalPrices('BTC');
 

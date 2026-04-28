@@ -430,13 +430,13 @@ describe('DIAClient', () => {
     ];
 
     it('should return historical price data from Binance API', async () => {
-      (binanceMarketService.getHistoricalPricesByHours as jest.Mock).mockResolvedValue(
+      (binanceMarketService.getHistoricalPrices as jest.Mock).mockResolvedValue(
         mockHistoricalPricePoints
       );
 
       const result = await client.getHistoricalPrices('ETH');
 
-      expect(binanceMarketService.getHistoricalPricesByHours).toHaveBeenCalledWith('ETH', 24);
+      expect(binanceMarketService.getHistoricalPrices).toHaveBeenCalledWith('ETH', 24);
       expect(Array.isArray(result)).toBe(true);
       expect(result.length).toBe(3);
       expect(result[0]).toMatchObject({
@@ -448,7 +448,7 @@ describe('DIAClient', () => {
     });
 
     it('should use specified chain', async () => {
-      (binanceMarketService.getHistoricalPricesByHours as jest.Mock).mockResolvedValue(
+      (binanceMarketService.getHistoricalPrices as jest.Mock).mockResolvedValue(
         mockHistoricalPricePoints
       );
 
@@ -458,27 +458,27 @@ describe('DIAClient', () => {
     });
 
     it('should use default period of 24 hours', async () => {
-      (binanceMarketService.getHistoricalPricesByHours as jest.Mock).mockResolvedValue(
+      (binanceMarketService.getHistoricalPrices as jest.Mock).mockResolvedValue(
         mockHistoricalPricePoints
       );
 
       await client.getHistoricalPrices('ETH');
 
-      expect(binanceMarketService.getHistoricalPricesByHours).toHaveBeenCalledWith('ETH', 24);
+      expect(binanceMarketService.getHistoricalPrices).toHaveBeenCalledWith('ETH', 24);
     });
 
     it('should use custom period', async () => {
-      (binanceMarketService.getHistoricalPricesByHours as jest.Mock).mockResolvedValue(
+      (binanceMarketService.getHistoricalPrices as jest.Mock).mockResolvedValue(
         mockHistoricalPricePoints
       );
 
       await client.getHistoricalPrices('ETH', undefined, 48);
 
-      expect(binanceMarketService.getHistoricalPricesByHours).toHaveBeenCalledWith('ETH', 48);
+      expect(binanceMarketService.getHistoricalPrices).toHaveBeenCalledWith('ETH', 48);
     });
 
     it('should return empty array when no historical data available', async () => {
-      (binanceMarketService.getHistoricalPricesByHours as jest.Mock).mockResolvedValue([]);
+      (binanceMarketService.getHistoricalPrices as jest.Mock).mockResolvedValue([]);
 
       const result = await client.getHistoricalPrices('ETH');
 
@@ -486,7 +486,7 @@ describe('DIAClient', () => {
     });
 
     it('should return empty array when Binance returns null', async () => {
-      (binanceMarketService.getHistoricalPricesByHours as jest.Mock).mockResolvedValue(null);
+      (binanceMarketService.getHistoricalPrices as jest.Mock).mockResolvedValue(null);
 
       const result = await client.getHistoricalPrices('ETH');
 
@@ -494,7 +494,7 @@ describe('DIAClient', () => {
     });
 
     it('should return empty array on Binance API error', async () => {
-      (binanceMarketService.getHistoricalPricesByHours as jest.Mock).mockRejectedValue(
+      (binanceMarketService.getHistoricalPrices as jest.Mock).mockRejectedValue(
         new Error('Binance API error')
       );
 
@@ -510,7 +510,7 @@ describe('DIAClient', () => {
         { price: 110, timestamp: Date.now() },
       ];
 
-      (binanceMarketService.getHistoricalPricesByHours as jest.Mock).mockResolvedValue(pricePoints);
+      (binanceMarketService.getHistoricalPrices as jest.Mock).mockResolvedValue(pricePoints);
 
       const result = await client.getHistoricalPrices('ETH');
 
@@ -523,7 +523,7 @@ describe('DIAClient', () => {
     });
 
     it('should use Ethereum as default chain', async () => {
-      (binanceMarketService.getHistoricalPricesByHours as jest.Mock).mockResolvedValue(
+      (binanceMarketService.getHistoricalPrices as jest.Mock).mockResolvedValue(
         mockHistoricalPricePoints
       );
 
@@ -533,7 +533,7 @@ describe('DIAClient', () => {
     });
 
     it('should use binance-api as source', async () => {
-      (binanceMarketService.getHistoricalPricesByHours as jest.Mock).mockResolvedValue(
+      (binanceMarketService.getHistoricalPrices as jest.Mock).mockResolvedValue(
         mockHistoricalPricePoints
       );
 
@@ -545,9 +545,7 @@ describe('DIAClient', () => {
     it('should handle historical prices with single data point', async () => {
       const singleDataPoint = [{ price: 100, timestamp: Date.now() }];
 
-      (binanceMarketService.getHistoricalPricesByHours as jest.Mock).mockResolvedValue(
-        singleDataPoint
-      );
+      (binanceMarketService.getHistoricalPrices as jest.Mock).mockResolvedValue(singleDataPoint);
 
       const result = await client.getHistoricalPrices('ETH');
 
@@ -562,9 +560,7 @@ describe('DIAClient', () => {
         timestamp: Date.now() - i * 3600000,
       }));
 
-      (binanceMarketService.getHistoricalPricesByHours as jest.Mock).mockResolvedValue(
-        manyDataPoints
-      );
+      (binanceMarketService.getHistoricalPrices as jest.Mock).mockResolvedValue(manyDataPoints);
 
       const result = await client.getHistoricalPrices('ETH');
 
@@ -572,9 +568,7 @@ describe('DIAClient', () => {
     });
 
     it('should handle non-Error objects in error handling', async () => {
-      (binanceMarketService.getHistoricalPricesByHours as jest.Mock).mockRejectedValue(
-        'String error'
-      );
+      (binanceMarketService.getHistoricalPrices as jest.Mock).mockRejectedValue('String error');
 
       const result = await client.getHistoricalPrices('ETH');
 

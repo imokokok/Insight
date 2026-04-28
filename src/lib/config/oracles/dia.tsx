@@ -51,9 +51,6 @@ export const diaConfig: OracleConfig = {
     { id: 'market', label: 'Market Data' },
     { id: 'network', label: 'Network Health' },
     { id: 'data-feeds', label: 'Price Feeds' },
-    { id: 'nft-data', label: 'NFT Data' },
-    { id: 'staking', label: 'Staking' },
-    { id: 'ecosystem', label: 'Ecosystem' },
     { id: 'risk', label: 'Risk Assessment' },
   ],
 };
