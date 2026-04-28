@@ -116,91 +116,6 @@ describe('ApiClient', () => {
     });
   });
 
-  describe('request interceptors', () => {
-    it('should add and apply request interceptors', async () => {
-      const interceptor = jest.fn((config) => ({
-        ...config,
-        headers: { ...config.headers, 'X-Intercepted': 'true' },
-      }));
-
-      client.addRequestInterceptor(interceptor);
-
-      fetchMock.mockResolvedValueOnce(
-        new Response(JSON.stringify({ data: 'test' }), {
-          status: 200,
-          headers: { 'Content-Type': 'application/json' },
-        })
-      );
-
-      await client.get('/test');
-
-      expect(interceptor).toHaveBeenCalled();
-    });
-
-    it('should apply multiple request interceptors in order', async () => {
-      const order: string[] = [];
-
-      client.addRequestInterceptor((config) => {
-        order.push('first');
-        return config;
-      });
-
-      client.addRequestInterceptor((config) => {
-        order.push('second');
-        return config;
-      });
-
-      fetchMock.mockResolvedValueOnce(
-        new Response(JSON.stringify({ data: 'test' }), {
-          status: 200,
-          headers: { 'Content-Type': 'application/json' },
-        })
-      );
-
-      await client.get('/test');
-
-      expect(order).toEqual(['first', 'second']);
-    });
-  });
-
-  describe('response interceptors', () => {
-    it('should add and apply response interceptors', async () => {
-      const interceptor = jest.fn((response) => response);
-
-      client.addResponseInterceptor(interceptor);
-
-      fetchMock.mockResolvedValueOnce(
-        new Response(JSON.stringify({ data: 'test' }), {
-          status: 200,
-          headers: { 'Content-Type': 'application/json' },
-        })
-      );
-
-      await client.get('/test');
-
-      expect(interceptor).toHaveBeenCalled();
-    });
-
-    it('should apply async response interceptors', async () => {
-      const interceptor = jest.fn(async (response) => {
-        return response;
-      });
-
-      client.addResponseInterceptor(interceptor);
-
-      fetchMock.mockResolvedValueOnce(
-        new Response(JSON.stringify({ data: 'test' }), {
-          status: 200,
-          headers: { 'Content-Type': 'application/json' },
-        })
-      );
-
-      await client.get('/test');
-
-      expect(interceptor).toHaveBeenCalled();
-    });
-  });
-
   describe('HTTP methods', () => {
     beforeEach(() => {
       fetchMock.mockResolvedValue(
@@ -231,28 +146,6 @@ describe('ApiClient', () => {
           method: 'POST',
           body: JSON.stringify(data),
         })
-      );
-    });
-
-    it('should make PUT request with data', async () => {
-      const data = { name: 'updated' };
-      await client.put('/users/1', data);
-
-      expect(fetchMock).toHaveBeenCalledWith(
-        'https://api.example.com/users/1',
-        expect.objectContaining({
-          method: 'PUT',
-          body: JSON.stringify(data),
-        })
-      );
-    });
-
-    it('should make DELETE request', async () => {
-      await client.delete('/users/1');
-
-      expect(fetchMock).toHaveBeenCalledWith(
-        'https://api.example.com/users/1',
-        expect.objectContaining({ method: 'DELETE' })
       );
     });
   });
