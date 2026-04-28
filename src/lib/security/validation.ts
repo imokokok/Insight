@@ -73,17 +73,6 @@ const SafeBooleanSchema = z.union([
 
 const SafeConfigTypeSchema = z.enum(['oracle_config', 'symbol', 'chain_config']);
 
-const SafeBatchRequestSchema = z
-  .array(
-    z.object({
-      provider: SafeProviderSchema,
-      symbol: SafeSymbolSchema,
-      chain: SafeChainSchema.optional(),
-    })
-  )
-  .min(1, 'At least one request required')
-  .max(50, 'Maximum 50 requests allowed');
-
 const SafeIdListSchema = z
   .array(z.string().uuid())
   .min(1, 'At least one ID required')
@@ -146,10 +135,6 @@ export const CreateFavoriteRequestSchema = z.object({
 export const BatchOperationSchema = z.object({
   action: SafeActionSchema,
   alertIds: SafeIdListSchema,
-});
-
-export const BatchPriceRequestSchema = z.object({
-  requests: SafeBatchRequestSchema,
 });
 
 const PriceDataBaseSchema = z.object({
@@ -246,5 +231,3 @@ export const OracleProviderQuerySchema = z.object({
   period: SafePeriodSchema.optional(),
   forceRefresh: z.coerce.boolean().optional(),
 });
-
-export type BatchPriceRequestType = z.infer<typeof BatchPriceRequestSchema>;

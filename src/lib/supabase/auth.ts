@@ -302,25 +302,3 @@ export async function deleteAvatar(userId: string): Promise<{ error: Error | nul
     };
   }
 }
-
-export async function updateUserProfile(
-  userId: string,
-  updates: Partial<
-    Pick<UserProfile, 'display_name' | 'avatar_url' | 'preferences' | 'notification_settings'>
-  >
-): Promise<{ profile: UserProfile | null; error: Error | null }> {
-  const { data, error } = await supabase
-    .from('user_profiles')
-    .update({
-      ...updates,
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', userId)
-    .select()
-    .single();
-
-  return {
-    profile: data as UserProfile | null,
-    error: error as Error | null,
-  };
-}

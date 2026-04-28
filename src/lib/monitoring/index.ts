@@ -1,14 +1,6 @@
 import * as Sentry from '@sentry/nextjs';
 
-import {
-  initWebVitals,
-  onMetric,
-  reportMetric,
-  reportCustomMetric,
-  getPerformanceScore,
-  type WebVitalMetric,
-  type MetricName,
-} from './webVitals';
+import { initWebVitals, reportCustomMetric, type WebVitalMetric } from './webVitals';
 
 import type { User } from '@supabase/supabase-js';
 

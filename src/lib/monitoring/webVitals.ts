@@ -25,18 +25,8 @@ export const PERFORMANCE_THRESHOLDS = {
   TTFB: { good: 800, poor: 1800 },
 } as const;
 
-export type MetricName = keyof typeof PERFORMANCE_THRESHOLDS;
-
-export const onMetric = (handler: MetricHandler) => {
-  handlers.push(handler);
-  return () => {
-    const index = handlers.indexOf(handler);
-    if (index > -1) handlers.splice(index, 1);
-  };
-};
-
 const getRating = (name: string, value: number): 'good' | 'needs-improvement' | 'poor' => {
-  const thresholds = PERFORMANCE_THRESHOLDS[name as MetricName];
+  const thresholds = PERFORMANCE_THRESHOLDS[name as keyof typeof PERFORMANCE_THRESHOLDS];
   if (!thresholds) return 'good';
 
   if (value <= thresholds.good) return 'good';
@@ -46,7 +36,6 @@ const getRating = (name: string, value: number): 'good' | 'needs-improvement' | 
 
 const sendToAnalytics = (metric: WebVitalMetric) => {
   if (env.app.isDevelopment) {
-    // WebVital logging disabled in development
     return;
   }
 
@@ -76,7 +65,7 @@ const handleMetric = (metric: Metric) => {
   sendToAnalytics(webVitalMetric);
 };
 
-export const reportMetric = (metric: WebVitalMetric) => {
+const reportMetric = (metric: WebVitalMetric) => {
   handlers.forEach((handler) => handler(metric));
   sendToAnalytics(metric);
 };
@@ -91,40 +80,6 @@ export const reportCustomMetric = (name: string, value: number) => {
   };
 
   reportMetric(metric);
-};
-
-export const getPerformanceScore = (): {
-  score: number;
-  metrics: Record<string, { value: number; rating: string }>;
-} => {
-  const metrics: Record<string, { value: number; rating: string }> = {};
-
-  const entries = performance.getEntriesByType('navigation');
-  if (entries.length > 0) {
-    const navEntry = entries[0] as PerformanceNavigationTiming;
-    metrics['TTFB'] = {
-      value: navEntry.responseStart - navEntry.requestStart,
-      rating: getRating('TTFB', navEntry.responseStart - navEntry.requestStart),
-    };
-  }
-
-  const paintEntries = performance.getEntriesByType('paint');
-  paintEntries.forEach((entry) => {
-    if (entry.name === 'first-contentful-paint') {
-      metrics['FCP'] = {
-        value: entry.startTime,
-        rating: getRating('FCP', entry.startTime),
-      };
-    }
-  });
-
-  let score = 100;
-  Object.values(metrics).forEach((m) => {
-    if (m.rating === 'poor') score -= 25;
-    else if (m.rating === 'needs-improvement') score -= 10;
-  });
-
-  return { score: Math.max(0, score), metrics };
 };
 
 export const initWebVitals = () => {

@@ -36,12 +36,6 @@ interface DataActions {
   setRecommendedBaseChain: (chain: Blockchain | null) => void;
   setAnomalies: (anomalies: AnomalousPricePoint[]) => void;
   setCrossChainComparison: (results: CrossChainComparisonResult[]) => void;
-  setDataLoaded: (data: {
-    prices: PriceData[];
-    prevStats: DataState['prevStats'];
-    anomalies: AnomalousPricePoint[];
-    recommendedBaseChain: Blockchain | null;
-  }) => void;
   registerFetchData: (fn: () => Promise<void>) => void;
   registerClearCache: (fn: () => void) => void;
   registerClearCacheForProvider: (fn: (provider: OracleProvider) => void) => void;
@@ -82,15 +76,6 @@ export const useCrossChainDataStore = create<CrossChainDataStore>()(
       setRecommendedBaseChain: (chain) => set({ recommendedBaseChain: chain }),
       setAnomalies: (anomalies) => set({ anomalies }),
       setCrossChainComparison: (results) => set({ crossChainComparison: results }),
-      setDataLoaded: (data) =>
-        set({
-          currentPrices: data.prices,
-          prevStats: data.prevStats,
-          anomalies: data.anomalies,
-          recommendedBaseChain: data.recommendedBaseChain,
-          loading: false,
-          lastUpdated: new Date(),
-        }),
       registerFetchData: (fn) => set({ fetchData: fn }),
       registerClearCache: (fn) => set({ clearCache: fn }),
       registerClearCacheForProvider: (fn) => set({ clearCacheForProvider: fn }),

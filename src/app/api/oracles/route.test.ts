@@ -1,18 +1,13 @@
-/**
- * @fileoverview Tests for /api/oracles route
- */
-
 import { type NextRequest } from 'next/server';
 
 import * as oracleHandlers from '@/lib/api/oracleHandlers';
 import { OracleProvider } from '@/types/oracle';
 
-import { GET, POST } from './route';
+import { GET } from './route';
 
 jest.mock('@/lib/api/oracleHandlers', () => ({
   handleGetPrice: jest.fn(),
   handleGetHistoricalPrices: jest.fn(),
-  handleBatchPrices: jest.fn(),
 }));
 
 jest.mock('@/lib/utils/logger', () => ({
@@ -24,24 +19,19 @@ jest.mock('@/lib/utils/logger', () => ({
   })),
 }));
 
-function createMockRequest(
-  url: string,
-  options?: { method?: string; body?: unknown }
-): NextRequest {
+function createMockRequest(url: string): NextRequest {
   const urlObj = new URL(url);
   const request = {
     url,
     nextUrl: urlObj,
-    method: options?.method || 'GET',
+    method: 'GET',
     headers: new Headers(),
-    json: async () => options?.body || {},
     clone: function () {
       return {
         url: this.url,
         nextUrl: this.nextUrl,
         method: this.method,
         headers: this.headers,
-        json: async () => options?.body || {},
       } as unknown as NextRequest;
     },
   } as unknown as NextRequest;
@@ -143,63 +133,6 @@ describe('/api/oracles', () => {
         symbol: 'BTC',
         chain: 'ethereum',
       });
-    });
-  });
-
-  describe('POST', () => {
-    it('should handle batch price requests successfully', async () => {
-      const batchRequests = {
-        requests: [
-          { provider: OracleProvider.CHAINLINK, symbol: 'BTC' },
-          { provider: OracleProvider.PYTH, symbol: 'ETH' },
-        ],
-      };
-
-      const mockBatchResponse = {
-        timestamp: Date.now(),
-        results: [
-          { request: batchRequests.requests[0], status: 'fulfilled', data: { price: 68000 } },
-          { request: batchRequests.requests[1], status: 'fulfilled', data: { price: 3500 } },
-        ],
-      };
-
-      (oracleHandlers.handleBatchPrices as jest.Mock).mockResolvedValue(
-        new Response(JSON.stringify(mockBatchResponse), { status: 200 })
-      );
-
-      const request = createMockRequest('http://localhost:3000/api/oracles', {
-        method: 'POST',
-        body: batchRequests,
-      });
-
-      const response = await POST(request);
-      const data = await response.json();
-
-      expect(response.status).toBe(200);
-      expect(data.results).toHaveLength(2);
-      expect(oracleHandlers.handleBatchPrices).toHaveBeenCalledWith(batchRequests.requests);
-    });
-
-    it('should return error for invalid request body', async () => {
-      const request = createMockRequest('http://localhost:3000/api/oracles', {
-        method: 'POST',
-        body: { invalid: 'body' },
-      });
-
-      const response = await POST(request);
-
-      expect(response.status).toBe(400);
-    });
-
-    it('should return error when requests is not an array', async () => {
-      const request = createMockRequest('http://localhost:3000/api/oracles', {
-        method: 'POST',
-        body: { requests: 'not-an-array' },
-      });
-
-      const response = await POST(request);
-
-      expect(response.status).toBe(400);
     });
   });
 });

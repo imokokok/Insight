@@ -658,34 +658,6 @@ describe('Alert operations - getAlerts', () => {
   });
 });
 
-describe('Alert operations - getActiveAlerts', () => {
-  it('should get all active alerts', async () => {
-    const mockData: PriceAlert[] = [
-      {
-        id: 'alert-1',
-        user_id: 'user-id',
-        name: 'Active Alert',
-        symbol: 'BTC',
-        chain: null,
-        condition_type: 'above',
-        target_value: 60000,
-        provider: null,
-        is_active: true,
-        last_triggered_at: null,
-        created_at: '2024-01-01T00:00:00Z',
-        updated_at: '2024-01-01T00:00:00Z',
-      },
-    ];
-
-    mockQuery.eq.mockResolvedValueOnce({ data: mockData, error: null });
-
-    const result = await queries.getActiveAlerts();
-
-    expect(mockClient.from).toHaveBeenCalledWith('price_alerts');
-    expect(result).toEqual(mockData);
-  });
-});
-
 describe('Alert operations - updateAlert', () => {
   it('should update an alert', async () => {
     const mockData: PriceAlert = {
@@ -731,52 +703,6 @@ describe('Alert operations - deleteAllAlerts', () => {
 
     expect(mockClient.from).toHaveBeenCalledWith('price_alerts');
     expect(result).toBe(true);
-  });
-});
-
-describe('Alert operations - triggerAlert', () => {
-  it('should trigger an alert and create an event', async () => {
-    const mockEvent: AlertEvent = {
-      id: 'event-id',
-      alert_id: 'alert-id',
-      user_id: 'user-id',
-      price: 61000,
-      triggered_at: '2024-01-01T00:00:00Z',
-      condition_met: 'above',
-      acknowledged: false,
-      acknowledged_at: null,
-    };
-
-    mockQuery.single.mockResolvedValueOnce({ data: mockEvent, error: null });
-    mockQuery.eq.mockResolvedValueOnce({ error: null });
-
-    const eventData: Omit<AlertEventInsert, 'alert_id' | 'user_id'> = {
-      price: 61000,
-      triggered_at: '2024-01-01T00:00:00Z',
-      condition_met: 'above',
-    };
-
-    const result = await queries.triggerAlert('alert-id', 'user-id', eventData);
-
-    expect(mockClient.from).toHaveBeenCalledWith('alert_events');
-    expect(result).toEqual(mockEvent);
-  });
-
-  it('should return null on event creation error', async () => {
-    mockQuery.single.mockResolvedValueOnce({
-      data: null,
-      error: { message: 'Database error' },
-    });
-
-    const eventData: Omit<AlertEventInsert, 'alert_id' | 'user_id'> = {
-      price: 61000,
-      triggered_at: '2024-01-01T00:00:00Z',
-      condition_met: 'above',
-    };
-
-    const result = await queries.triggerAlert('alert-id', 'user-id', eventData);
-
-    expect(result).toBeNull();
   });
 });
 
@@ -852,38 +778,6 @@ describe('User Profile operations - getUserProfile', () => {
     });
 
     const result = await queries.getUserProfile('non-existent');
-
-    expect(result).toBeNull();
-  });
-});
-
-describe('User Profile operations - updateUserProfile', () => {
-  it('should update a user profile', async () => {
-    const mockData: UserProfile = {
-      id: 'user-id',
-      display_name: 'Updated User',
-      preferences: {},
-    };
-
-    mockQuery.single.mockResolvedValueOnce({ data: mockData, error: null });
-
-    const updateData: UserProfileUpdate = {
-      display_name: 'Updated User',
-    };
-
-    const result = await queries.updateUserProfile('user-id', updateData);
-
-    expect(mockClient.from).toHaveBeenCalledWith('user_profiles');
-    expect(result).toEqual(mockData);
-  });
-
-  it('should return null on error', async () => {
-    mockQuery.single.mockResolvedValueOnce({
-      data: null,
-      error: { message: 'Database error' },
-    });
-
-    const result = await queries.updateUserProfile('user-id', {});
 
     expect(result).toBeNull();
   });

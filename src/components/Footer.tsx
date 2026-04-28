@@ -9,7 +9,6 @@ import {
   DiscordIcon,
   TelegramIcon,
   DocumentationIcon,
-  ApiIcon,
   EmailIcon,
 } from './icons/SocialIcons';
 
@@ -24,7 +23,6 @@ export default function Footer() {
   const resourceLinks = [
     { label: 'Documentation', href: '/docs', icon: DocumentationIcon },
     { label: 'GitHub', href: 'https://github.com/imokokok/Insight', icon: GitHubIcon },
-    { label: 'API', href: '/api', icon: ApiIcon },
   ];
 
   const socialLinks = [

@@ -6,27 +6,22 @@ import {
   type ThresholdConfig,
   defaultThresholdConfig,
 } from '@/lib/types/crossChain';
-import { type Blockchain } from '@/types/oracle';
 
 interface ConfigState {
   refreshInterval: RefreshInterval;
   thresholdConfig: ThresholdConfig;
   colorblindMode: boolean;
-  updateIntervals: Partial<Record<Blockchain, number>>;
 }
 
 interface CrossChainConfigStore extends ConfigState {
   setRefreshInterval: (interval: RefreshInterval) => void;
-  setThresholdConfig: (config: ThresholdConfig) => void;
   setColorblindMode: (enabled: boolean) => void;
-  setUpdateIntervals: (intervals: Partial<Record<Blockchain, number>>) => void;
 }
 
 const initialState: ConfigState = {
   refreshInterval: 30000,
   thresholdConfig: defaultThresholdConfig,
   colorblindMode: false,
-  updateIntervals: {},
 };
 
 export const useCrossChainConfigStore = create<CrossChainConfigStore>()(
@@ -36,10 +31,7 @@ export const useCrossChainConfigStore = create<CrossChainConfigStore>()(
         ...initialState,
 
         setRefreshInterval: (interval) => set({ refreshInterval: interval }),
-        setThresholdConfig: (config) => set({ thresholdConfig: config }),
         setColorblindMode: (enabled) => set({ colorblindMode: enabled }),
-        setUpdateIntervals: (intervals) =>
-          set((state) => ({ updateIntervals: { ...state.updateIntervals, ...intervals } })),
       }),
       {
         name: 'cross-chain-config-store',
