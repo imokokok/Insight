@@ -206,7 +206,6 @@ interface IAlertService {
   deleteAlert(id: string, userId: string): Promise<boolean>;
   getAlertEvents(userId: string): Promise<AlertEvent[] | null>;
   acknowledgeAlertEvent(eventId: string): Promise<AlertEvent | null>;
-  getActiveAlerts(): Promise<PriceAlert[] | null>;
 }
 
 interface IFavoriteService {
@@ -688,23 +687,6 @@ export class DatabaseQueries {
     return data;
   }
 
-  async getActiveAlerts(): Promise<PriceAlert[] | null> {
-    const { data, error } = await this.client
-      .from('price_alerts')
-      .select('*')
-      .eq('is_active', true);
-
-    if (error) {
-      logger.error(
-        'Failed to get active alerts',
-        error instanceof Error ? error : new Error(String(error))
-      );
-      return null;
-    }
-
-    return data;
-  }
-
   async updateAlert(id: string, data: Partial<PriceAlertInsert>): Promise<PriceAlert | null> {
     const { data: updated, error } = await this.client
       .from('price_alerts')
@@ -740,40 +722,6 @@ export class DatabaseQueries {
     }
 
     return true;
-  }
-
-  async triggerAlert(
-    alertId: string,
-    userId: string,
-    eventData: Omit<AlertEventInsert, 'alert_id' | 'user_id'>
-  ): Promise<AlertEvent | null> {
-    const { data: event, error: eventError } = await this.client
-      .from('alert_events')
-      .insert({ ...eventData, alert_id: alertId, user_id: userId })
-      .select()
-      .single();
-
-    if (eventError) {
-      logger.error(
-        'Failed to create alert event',
-        eventError instanceof Error ? eventError : new Error(String(eventError))
-      );
-      return null;
-    }
-
-    const { error: updateError } = await this.client
-      .from('price_alerts')
-      .update({ last_triggered_at: new Date().toISOString() })
-      .eq('id', alertId);
-
-    if (updateError) {
-      logger.error(
-        'Failed to update alert last_triggered_at',
-        updateError instanceof Error ? updateError : new Error(String(updateError))
-      );
-    }
-
-    return event;
   }
 
   async getAlertEventById(id: string, userId: string): Promise<AlertEvent | null> {
@@ -859,25 +807,6 @@ export class DatabaseQueries {
     }
 
     return data;
-  }
-
-  async updateUserProfile(userId: string, data: UserProfileUpdate): Promise<UserProfile | null> {
-    const { data: updated, error } = await this.client
-      .from('user_profiles')
-      .update({ ...data, updated_at: new Date().toISOString() })
-      .eq('id', userId)
-      .select()
-      .single();
-
-    if (error) {
-      logger.error(
-        'Failed to update user profile',
-        error instanceof Error ? error : new Error(String(error))
-      );
-      return null;
-    }
-
-    return updated;
   }
 
   async upsertUserProfile(userId: string, data: UserProfileUpdate): Promise<UserProfile | null> {

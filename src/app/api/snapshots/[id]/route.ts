@@ -48,43 +48,6 @@ async function getSnapshotById(id: string, userId: string) {
   return snapshot;
 }
 
-export const GET = createApiHandler(
-  async (_request: NextRequest, context) => {
-    const params = context.validated?.params as { id: string } | undefined;
-    const id = params?.id;
-
-    if (!id) {
-      return ApiResponseBuilder.badRequest('Missing snapshot ID');
-    }
-
-    const validatedId = validateSnapshotId(id);
-
-    if (!validatedId) {
-      return ApiResponseBuilder.badRequest('Invalid snapshot ID');
-    }
-
-    const userId = context.auth?.userId;
-    if (!userId) {
-      return ApiResponseBuilder.unauthorized();
-    }
-
-    const snapshot = await getSnapshotById(validatedId, userId);
-
-    if (!snapshot) {
-      return ApiResponseBuilder.notFound('Snapshot not found');
-    }
-
-    return NextResponse.json({ snapshot });
-  },
-  {
-    middlewares: {
-      logging: true,
-      rateLimit: { preset: 'moderate' },
-      auth: { required: true },
-    },
-  }
-);
-
 export const PUT = createApiHandler(
   async (request: NextRequest, context) => {
     const params = context.validated?.params as { id: string } | undefined;

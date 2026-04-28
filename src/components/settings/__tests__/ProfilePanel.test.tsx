@@ -3,7 +3,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { ProfilePanel } from '../ProfilePanel';
 
 jest.mock('@/lib/supabase/auth', () => ({
-  updateUserProfile: jest.fn(),
+  updatePassword: jest.fn(),
 }));
 
 jest.mock('@/stores/authStore', () => ({

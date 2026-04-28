@@ -1,18 +1,9 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
 import { createApiHandler } from '@/lib/api/handler';
-import {
-  handleGetPrice,
-  handleGetHistoricalPrices,
-  handleBatchPrices,
-} from '@/lib/api/oracleHandlers';
-import {
-  PriceQueryRequestSchema,
-  BatchPriceRequestSchema,
-  HistoricalPriceRequestSchema,
-  type BatchPriceRequestType,
-} from '@/lib/security/validation';
-import { validateQuerySchema, validateBodySchema } from '@/lib/validation';
+import { handleGetPrice, handleGetHistoricalPrices } from '@/lib/api/oracleHandlers';
+import { PriceQueryRequestSchema, HistoricalPriceRequestSchema } from '@/lib/security/validation';
+import { validateQuerySchema } from '@/lib/validation';
 import { type OracleProvider, type Blockchain } from '@/types/oracle';
 
 export const GET = createApiHandler(
@@ -59,26 +50,6 @@ export const GET = createApiHandler(
     middlewares: {
       logging: true,
       rateLimit: { preset: 'moderate' },
-    },
-  }
-);
-
-export const POST = createApiHandler(
-  async (request: NextRequest) => {
-    const validation = await validateBodySchema(BatchPriceRequestSchema)(request);
-
-    if (!validation.success) {
-      return validation.response!;
-    }
-
-    const { requests } = validation.data!.body!;
-
-    return handleBatchPrices(requests as BatchPriceRequestType['requests']);
-  },
-  {
-    middlewares: {
-      logging: true,
-      rateLimit: { preset: 'strict' },
     },
   }
 );

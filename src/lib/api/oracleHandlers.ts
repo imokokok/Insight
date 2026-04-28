@@ -15,20 +15,12 @@ const logger = createLogger('OracleHandlers');
 const PRICE_CACHE_TTL = ORACLE_CACHE_TTL.PRICE;
 const HISTORY_CACHE_TTL = ORACLE_CACHE_TTL.HISTORICAL;
 
-const BATCH_MAX_CONCURRENT = 6;
-
 interface OracleQueryParams {
   provider: OracleProvider;
   symbol: string;
   chain?: Blockchain;
   period?: number;
   forceRefresh?: boolean;
-}
-
-interface BatchPriceRequest {
-  provider: OracleProvider | string;
-  symbol: string;
-  chain?: Blockchain | string;
 }
 
 async function fetchPriceFromOracle(params: OracleQueryParams): Promise<PriceData> {
@@ -54,65 +46,6 @@ async function fetchHistoricalFromOracle(params: OracleQueryParams): Promise<Pri
     params.period,
     true
   );
-}
-
-interface BatchPriceResult {
-  success: boolean;
-  data?: PriceData;
-  error?: {
-    message: string;
-    code?: string;
-  };
-}
-
-async function fetchBatchPrices(
-  requests: BatchPriceRequest[]
-): Promise<Record<string, BatchPriceResult>> {
-  const results: Record<string, BatchPriceResult> = {};
-
-  let nextIndex = 0;
-
-  async function runWorker(): Promise<void> {
-    while (nextIndex < requests.length) {
-      const index = nextIndex++;
-      const request = requests[index];
-      const key = `${request.provider}:${request.symbol}:${request.chain || 'default'}`;
-
-      try {
-        const price = await fetchPriceWithDatabase(
-          request.provider as OracleProvider,
-          request.symbol,
-          request.chain as Blockchain | undefined,
-          true
-        );
-        results[key] = {
-          success: true,
-          data: price,
-        };
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        logger.error(
-          `Failed to fetch price for ${key}`,
-          error instanceof Error ? error : new Error(String(error))
-        );
-
-        results[key] = {
-          success: false,
-          error: {
-            message: errorMessage,
-            code: isAppError(error) ? error.code : undefined,
-          },
-        };
-      }
-    }
-  }
-
-  const workers = Array.from({ length: Math.min(BATCH_MAX_CONCURRENT, requests.length) }, () =>
-    runWorker()
-  );
-  await Promise.all(workers);
-
-  return results;
 }
 
 function createPriceResponse(data: PriceData): NextResponse {
@@ -191,9 +124,4 @@ export async function handleGetHistoricalPrices(params: OracleQueryParams) {
     );
     return handleOracleError(error);
   }
-}
-
-export async function handleBatchPrices(requests: BatchPriceRequest[]) {
-  const results = await fetchBatchPrices(requests);
-  return createCachedJsonResponse({ results }, { header: 'public, max-age=60' });
 }

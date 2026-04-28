@@ -260,13 +260,13 @@ function getFeatureSearchResults(): SearchResult[] {
 function getDocumentationSearchResults(): SearchResult[] {
   return [
     {
-      id: 'doc-api',
-      title: 'API Reference',
-      description: 'API documentation and endpoint reference',
+      id: 'doc-docs',
+      title: 'Documentation',
+      description: 'Guides, API reference, and technical documentation',
       type: 'documentation',
-      href: '/api/docs',
+      href: '/docs',
       icon: FileText,
-      keywords: ['api', 'reference'],
+      keywords: ['api', 'reference', 'docs', 'documentation'],
       priority: 5,
     },
   ];
