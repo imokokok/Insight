@@ -27,6 +27,18 @@ class ApiClient {
     };
   }
 
+  private async getAuthToken(): Promise<string | null> {
+    try {
+      const { supabase } = await import('@/lib/supabase/client');
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      return session?.access_token ?? null;
+    } catch {
+      return null;
+    }
+  }
+
   private async request<T>(
     method: string,
     url: string,
@@ -45,9 +57,19 @@ class ApiClient {
         ? AbortSignal.any([config.signal, controller.signal])
         : (config?.signal ?? controller.signal);
 
+    const headers: Record<string, string> = {
+      ...(this.defaultHeaders as Record<string, string>),
+      ...(config?.headers as Record<string, string>),
+    };
+
+    const token = await this.getAuthToken();
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
     const init: RequestInit = {
       method,
-      headers: { ...this.defaultHeaders, ...config?.headers },
+      headers,
       signal: combinedSignal,
       cache: config?.cache,
     };
@@ -147,6 +169,22 @@ class ApiClient {
 
   async post<T>(url: string, data: unknown, config?: RequestConfig): Promise<ApiClientResponse<T>> {
     return this.request<T>('POST', url, data, config);
+  }
+
+  async put<T>(url: string, data?: unknown, config?: RequestConfig): Promise<ApiClientResponse<T>> {
+    return this.request<T>('PUT', url, data, config);
+  }
+
+  async patch<T>(
+    url: string,
+    data?: unknown,
+    config?: RequestConfig
+  ): Promise<ApiClientResponse<T>> {
+    return this.request<T>('PATCH', url, data, config);
+  }
+
+  async delete<T>(url: string, config?: RequestConfig): Promise<ApiClientResponse<T>> {
+    return this.request<T>('DELETE', url, undefined, config);
   }
 }
 

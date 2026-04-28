@@ -5,8 +5,8 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Clock, Database, Save, Loader2, CheckCircle, RefreshCw, DollarSign } from 'lucide-react';
 
 import { DropdownSelect, SegmentedControl } from '@/components/ui';
+import { apiClient } from '@/lib/api';
 import { getAllSupportedSymbols } from '@/lib/oracles/constants/supportedSymbols';
-import { updateUserProfile } from '@/lib/supabase/auth';
 import { createLogger } from '@/lib/utils/logger';
 import { useUser, useProfile, useAuthInitialized } from '@/stores/authStore';
 
@@ -169,7 +169,7 @@ export function PreferencesPanel() {
             refresh_interval: parseInt(preferences.autoRefreshInterval, 10) * 1000,
           },
         };
-        await updateUserProfile(user.id, {
+        await apiClient.put('/api/auth/profile', {
           preferences: dbPreferences as Record<string, unknown>,
         });
       }

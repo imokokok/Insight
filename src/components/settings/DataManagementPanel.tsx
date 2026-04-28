@@ -16,7 +16,8 @@ import {
   X,
 } from 'lucide-react';
 
-import { queries, supabase } from '@/lib/supabase/client';
+import { apiClient } from '@/lib/api';
+import { supabase } from '@/lib/supabase/client';
 import { downloadBlob } from '@/lib/utils/download';
 import { useUser, useAuthActions } from '@/stores/authStore';
 
@@ -73,11 +74,11 @@ export function DataManagementPanel() {
     setError(null);
 
     try {
-      const [profileResult, favoritesResult, alertsResult, snapshotsResult] = await Promise.all([
-        supabase.from('user_profiles').select('*').eq('id', user.id).single(),
-        queries.getFavorites(user.id),
-        queries.getAlerts(user.id),
-        queries.getSnapshots(user.id),
+      const [profileRes, favoritesRes, alertsRes, snapshotsRes] = await Promise.all([
+        apiClient.get<{ profile: Record<string, unknown> }>('/api/auth/profile'),
+        apiClient.get<{ favorites: unknown[]; count: number }>('/api/favorites'),
+        apiClient.get<{ alerts: unknown[]; count: number }>('/api/alerts'),
+        apiClient.get<{ snapshots: unknown[]; count: number }>('/api/snapshots'),
       ]);
 
       const exportData = {
@@ -86,10 +87,10 @@ export function DataManagementPanel() {
           id: user.id,
           email: user.email,
         },
-        profile: profileResult.data,
-        favorites: favoritesResult,
-        alerts: alertsResult,
-        snapshots: snapshotsResult,
+        profile: profileRes.data.profile,
+        favorites: favoritesRes.data.favorites,
+        alerts: alertsRes.data.alerts,
+        snapshots: snapshotsRes.data.snapshots,
       };
 
       exportToJson({ filename: 'user-data', data: exportData });
@@ -138,12 +139,14 @@ export function DataManagementPanel() {
     setError(null);
 
     try {
-      const snapshots = await queries.getSnapshots(user.id);
+      const response = await apiClient.get<{ snapshots: unknown[]; count: number }>(
+        '/api/snapshots'
+      );
 
       const exportData = {
         exportedAt: new Date().toISOString(),
-        snapshots: snapshots,
-        count: snapshots?.length || 0,
+        snapshots: response.data.snapshots,
+        count: response.data.snapshots?.length || 0,
       };
 
       exportToJson({ filename: 'snapshots', data: exportData });
@@ -195,28 +198,13 @@ export function DataManagementPanel() {
 
     try {
       const confirmation = `DELETE ${user.email || user.id}`;
-      const res = await fetch('/api/auth/delete-account', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ confirmation }),
-      });
-
-      if (!res.ok) {
-        const result = await res.json().catch(() => ({ error: { message: 'Unknown error' } }));
-        const errorMessage =
-          typeof result.error === 'object' && result.error?.message
-            ? result.error.message
-            : typeof result.error === 'string'
-              ? result.error
-              : result.message || 'Failed to delete account';
-        setError(errorMessage);
-        return;
-      }
+      await apiClient.post<{ message: string }>('/api/auth/delete-account', { confirmation });
 
       await signOut();
       router.push('/');
-    } catch {
-      setError('Failed to delete account');
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to delete account';
+      setError(errorMessage);
     } finally {
       setIsDeleting(false);
     }

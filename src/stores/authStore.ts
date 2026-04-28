@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import { create } from 'zustand';
 import { createJSONStorage, devtools, persist } from 'zustand/middleware';
 
+import { apiClient } from '@/lib/api';
 import {
   signUp as authSignUp,
   signIn as authSignIn,
@@ -14,7 +15,6 @@ import {
   getSession,
   onAuthStateChange,
   createUserProfile,
-  getUserProfile,
 } from '@/lib/supabase/auth';
 import type { UserProfile } from '@/lib/supabase/auth';
 import { createLogger } from '@/lib/utils/logger';
@@ -60,9 +60,11 @@ interface AuthActions {
 type AuthStore = AuthState & AuthActions;
 
 const fetchUserProfile = async (userId: string, session: Session | null) => {
-  const { profile: userProfile, error: profileError } = await getUserProfile(userId);
-  if (profileError) {
-    if (profileError.message.includes('No rows found')) {
+  try {
+    const response = await apiClient.get<{ profile: UserProfile }>('/api/auth/profile');
+    return response.data.profile;
+  } catch {
+    try {
       const { profile: newProfile, error: createError } = await createUserProfile(userId, {
         display_name: session?.user?.user_metadata?.display_name,
       });
@@ -74,14 +76,14 @@ const fetchUserProfile = async (userId: string, session: Session | null) => {
         return null;
       }
       return newProfile;
+    } catch (createErr) {
+      logger.error(
+        'Failed to create user profile after fetch failure',
+        createErr instanceof Error ? createErr : new Error(String(createErr))
+      );
+      return null;
     }
-    logger.error(
-      'Failed to fetch user profile',
-      profileError instanceof Error ? profileError : new Error(String(profileError))
-    );
-    return null;
   }
-  return userProfile;
 };
 
 export const useAuthStore = create<AuthStore>()(

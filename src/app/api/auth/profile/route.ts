@@ -105,7 +105,7 @@ export const PUT = createApiHandler(
     }
 
     const sanitizedBody = sanitizeObject(body);
-    const { display_name, preferences } = sanitizedBody;
+    const { display_name, preferences, notification_settings } = sanitizedBody;
 
     const updateData: UserProfileUpdate = {};
 
@@ -125,6 +125,14 @@ export const PUT = createApiHandler(
         updateData.preferences = validatedPrefs;
       } else {
         return ApiResponseBuilder.badRequest('Invalid preferences data');
+      }
+    }
+
+    if (notification_settings !== undefined) {
+      if (notification_settings && typeof notification_settings === 'object') {
+        updateData.notification_settings = notification_settings as Record<string, unknown>;
+      } else {
+        return ApiResponseBuilder.badRequest('Invalid notification_settings format');
       }
     }
 

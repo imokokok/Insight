@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 
 import { apiClient } from '@/lib/api';
-import { supabase, queries, type PriceAlert, type AlertEvent } from '@/lib/supabase/client';
+import { supabase, type PriceAlert, type AlertEvent } from '@/lib/supabase/client';
 import type { AlertConditionType } from '@/lib/supabase/database.types';
 import { useUser } from '@/stores/authStore';
 import type { OracleProvider, Blockchain } from '@/types/oracle';
@@ -137,8 +137,8 @@ export function useAlerts(): UseAlertsReturn {
     queryKey: [ALERTS_KEY, userId],
     queryFn: async () => {
       if (!userId) return [];
-      const result = await queries.getAlerts(userId);
-      return result ?? [];
+      const response = await apiClient.get<{ alerts: PriceAlert[]; count: number }>('/api/alerts');
+      return response.data.alerts ?? [];
     },
     enabled: !!userId,
     staleTime: 5 * 60 * 1000,
@@ -166,21 +166,17 @@ export function useCreateAlert(): UseCreateAlertReturn {
         throw new Error(ALERT_ERROR_MESSAGES.userNotLoggedIn);
       }
 
-      const alert = await queries.createAlert(user.id, {
+      const response = await apiClient.post<{ alert: PriceAlert; message: string }>('/api/alerts', {
         name: input.name,
         symbol: input.symbol,
-        provider: (input.provider as string | null | undefined) ?? null,
-        chain: (input.chain as string | null | undefined) ?? null,
+        provider: input.provider ?? null,
+        chain: input.chain ?? null,
         condition_type: input.condition_type,
         target_value: input.target_value,
         is_active: input.is_active ?? true,
       });
 
-      if (!alert) {
-        throw new Error(ALERT_ERROR_MESSAGES.createFailed);
-      }
-
-      return alert;
+      return response.data.alert;
     },
     onSuccess: () => {
       if (user?.id) {
@@ -214,17 +210,16 @@ export function useUpdateAlert(): UseUpdateAlertReturn {
         throw new Error(ALERT_ERROR_MESSAGES.userNotLoggedIn);
       }
 
-      const alert = await queries.updateAlert(id, {
-        ...input,
-        provider: (input.provider as string | null | undefined) ?? null,
-        chain: (input.chain as string | null | undefined) ?? null,
-      });
+      const response = await apiClient.put<{ alert: PriceAlert; message: string }>(
+        `/api/alerts/${id}`,
+        {
+          ...input,
+          provider: input.provider ?? null,
+          chain: input.chain ?? null,
+        }
+      );
 
-      if (!alert) {
-        throw new Error(ALERT_ERROR_MESSAGES.updateFailed);
-      }
-
-      return alert;
+      return response.data.alert;
     },
     onSuccess: () => {
       if (user?.id) {
@@ -268,12 +263,7 @@ export function useDeleteAlert(): UseDeleteAlertReturn {
         throw new Error(ALERT_ERROR_MESSAGES.userNotLoggedIn);
       }
 
-      const success = await queries.deleteAlert(id, user.id);
-
-      if (!success) {
-        throw new Error(ALERT_ERROR_MESSAGES.deleteFailed);
-      }
-
+      await apiClient.delete<{ message: string }>(`/api/alerts/${id}`);
       return true;
     },
     onSuccess: () => {
@@ -312,8 +302,10 @@ export function useAlertEvents(): UseAlertEventsReturn {
     queryKey: [ALERT_EVENTS_KEY, userId],
     queryFn: async () => {
       if (!userId) return [];
-      const result = await queries.getAlertEvents(userId);
-      return result ?? [];
+      const response = await apiClient.get<{ events: AlertEvent[]; count: number }>(
+        '/api/alerts/events'
+      );
+      return response.data.events ?? [];
     },
     enabled: !!userId,
     staleTime: 5 * 60 * 1000,
@@ -341,13 +333,12 @@ export function useAcknowledgeAlert(): UseAcknowledgeAlertReturn {
         throw new Error(ALERT_ERROR_MESSAGES.userNotLoggedIn);
       }
 
-      const event = await queries.acknowledgeAlertEvent(eventId);
+      const response = await apiClient.post<{
+        event: AlertEvent;
+        message: string;
+      }>(`/api/alerts/events/${eventId}/acknowledge`, {});
 
-      if (!event) {
-        throw new Error(ALERT_ERROR_MESSAGES.acknowledgeFailed);
-      }
-
-      return event;
+      return response.data.event;
     },
     onSuccess: () => {
       if (user?.id) {

@@ -196,6 +196,7 @@ export interface UserProfileUpdate {
     refreshInterval?: number;
     notificationsEnabled?: boolean;
   };
+  notification_settings?: Record<string, unknown>;
 }
 
 interface IAlertService {
