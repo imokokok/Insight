@@ -352,10 +352,8 @@ export function calculateFeedHealthScore(params: {
     if (freshnessSeconds <= expectedIntervalSeconds) {
       freshness = 100;
     } else {
-      freshness = Math.max(
-        100 - ((freshnessSeconds - expectedIntervalSeconds) / expectedIntervalSeconds) * 100,
-        0
-      );
+      const extraRatio = (freshnessSeconds - expectedIntervalSeconds) / expectedIntervalSeconds;
+      freshness = Math.max(100 * Math.exp(-extraRatio), 0);
     }
 
     const score = Math.round(

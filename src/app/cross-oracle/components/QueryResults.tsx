@@ -1,6 +1,6 @@
 'use client';
 
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 
 import { Database, BarChart3, Shield, Trophy, Activity, Heart } from 'lucide-react';
 
@@ -140,6 +140,125 @@ function QueryResultsComponent({
   retryingOracles,
   onRefresh,
 }: QueryResultsProps) {
+  const divergenceAccelerationScore =
+    divergenceSignals.acceleratingCount > 0
+      ? Math.min(divergenceSignals.maxAcceleration * 100, 100)
+      : 0;
+
+  const divergenceAccelerationLevel =
+    divergenceSignals.acceleratingCount > 0
+      ? divergenceSignals.maxAcceleration > 0.5
+        ? 'high'
+        : divergenceSignals.maxAcceleration > 0.2
+          ? 'medium'
+          : 'low'
+      : 'low';
+
+  const feedBehaviorHealthLevel =
+    feedBehavior.overallHealthLevel === 'healthy'
+      ? 'low'
+      : feedBehavior.overallHealthLevel === 'fair'
+        ? 'medium'
+        : feedBehavior.overallHealthLevel === 'degraded'
+          ? 'high'
+          : 'critical';
+
+  const stabilityDecayScore =
+    stabilityScore.rapidlyDecliningCount > 0 ? 80 : stabilityScore.decliningCount > 0 ? 50 : 10;
+
+  const stabilityDecayLevel =
+    stabilityScore.rapidlyDecliningCount > 0
+      ? 'high'
+      : stabilityScore.decliningCount > 0
+        ? 'medium'
+        : 'low';
+
+  const riskAttribution = useMemo(
+    () =>
+      [
+        {
+          dimension: 'Market Concentration',
+          contribution: riskMetrics.hhiValue * (riskMetrics.weights?.hhi ?? 0.1),
+          suggestion:
+            riskMetrics.hhiLevel !== 'low'
+              ? 'Consider diversifying oracle sources'
+              : 'Market concentration is healthy',
+        },
+        {
+          dimension: 'Volatility',
+          contribution: riskMetrics.volatilityIndex * (riskMetrics.weights?.volatility ?? 0.1),
+          suggestion:
+            riskMetrics.volatilityLevel !== 'low'
+              ? 'High price volatility increases oracle risk'
+              : 'Price volatility is within normal range',
+        },
+        {
+          dimension: 'Data Freshness',
+          contribution: riskMetrics.freshnessScore * (riskMetrics.weights?.freshness ?? 0.1),
+          suggestion:
+            riskMetrics.staleOracleCount > 0
+              ? `${riskMetrics.staleOracleCount} oracle(s) have stale data`
+              : 'All oracle data is fresh',
+        },
+        {
+          dimension: 'Divergence Acceleration',
+          contribution:
+            divergenceAccelerationScore * (riskMetrics.weights?.divergenceAcceleration ?? 0.1),
+          suggestion:
+            divergenceSignals.acceleratingCount > 0
+              ? `${divergenceSignals.acceleratingCount} oracle(s) showing accelerating deviation`
+              : 'No accelerating deviations detected',
+        },
+        {
+          dimension: 'Feed Health',
+          contribution:
+            (100 - feedBehavior.overallHealthAvg) *
+            (riskMetrics.weights?.feedBehaviorHealth ?? 0.1),
+          suggestion:
+            feedBehavior.overallHealthLevel !== 'healthy'
+              ? 'Some oracle feeds show abnormal behavior'
+              : 'All oracle feeds are healthy',
+        },
+        {
+          dimension: 'Stability Decay',
+          contribution: stabilityDecayScore * (riskMetrics.weights?.stabilityDecay ?? 0.05),
+          suggestion:
+            stabilityScore.decliningCount > 0
+              ? `${stabilityScore.decliningCount} oracle(s) showing declining stability`
+              : 'Oracle data stability is good',
+        },
+        {
+          dimension: 'Correlation Risk',
+          contribution: riskMetrics.correlationScore * (riskMetrics.weights?.correlation ?? 0.1),
+          suggestion:
+            riskMetrics.correlationLevel !== 'low'
+              ? 'High correlation between oracles increases systemic risk'
+              : 'Oracle correlation is within safe range',
+        },
+        {
+          dimension: 'Manipulation Resistance',
+          contribution:
+            (100 - riskMetrics.manipulationResistanceScore) *
+            (riskMetrics.weights?.manipulationResistance ?? 0.1),
+          suggestion:
+            riskMetrics.manipulationResistanceLevel !== 'low'
+              ? 'Low manipulation resistance detected'
+              : 'Manipulation resistance is adequate',
+        },
+      ]
+        .sort((a, b) => b.contribution - a.contribution)
+        .slice(0, 5),
+    [
+      riskMetrics,
+      divergenceAccelerationScore,
+      divergenceSignals.acceleratingCount,
+      feedBehavior.overallHealthAvg,
+      feedBehavior.overallHealthLevel,
+      stabilityDecayScore,
+      stabilityScore.decliningCount,
+    ]
+  );
+
   if (isLoading) {
     return <LoadingState queryProgress={queryProgress} currentQueryTarget={currentQueryTarget} />;
   }
@@ -280,93 +399,13 @@ function QueryResultsComponent({
               systemicRiskFactor={riskMetrics.systemicRiskFactor}
               weights={riskMetrics.weights}
               oracleCount={priceData.length}
-              divergenceAccelerationScore={
-                divergenceSignals.acceleratingCount > 0
-                  ? Math.min(divergenceSignals.maxAcceleration * 100, 100)
-                  : 0
-              }
-              divergenceAccelerationLevel={
-                divergenceSignals.acceleratingCount > 0
-                  ? divergenceSignals.maxAcceleration > 0.5
-                    ? 'high'
-                    : divergenceSignals.maxAcceleration > 0.2
-                      ? 'medium'
-                      : 'low'
-                  : 'low'
-              }
+              divergenceAccelerationScore={divergenceAccelerationScore}
+              divergenceAccelerationLevel={divergenceAccelerationLevel}
               feedBehaviorHealthAvg={feedBehavior.overallHealthAvg}
-              feedBehaviorHealthLevel={
-                feedBehavior.overallHealthLevel === 'healthy'
-                  ? 'low'
-                  : feedBehavior.overallHealthLevel === 'fair'
-                    ? 'medium'
-                    : feedBehavior.overallHealthLevel === 'degraded'
-                      ? 'high'
-                      : 'critical'
-              }
-              stabilityDecayScore={
-                stabilityScore.rapidlyDecliningCount > 0
-                  ? 80
-                  : stabilityScore.decliningCount > 0
-                    ? 50
-                    : 10
-              }
-              stabilityDecayLevel={
-                stabilityScore.rapidlyDecliningCount > 0
-                  ? 'high'
-                  : stabilityScore.decliningCount > 0
-                    ? 'medium'
-                    : 'low'
-              }
-              riskAttribution={[
-                {
-                  dimension: 'Market Concentration',
-                  contribution: (riskMetrics.hhiValue / 100) * 10,
-                  suggestion:
-                    riskMetrics.hhiLevel !== 'low'
-                      ? 'Consider diversifying oracle sources'
-                      : 'Market concentration is healthy',
-                },
-                {
-                  dimension: 'Data Freshness',
-                  contribution: (riskMetrics.freshnessScore / 100) * 10,
-                  suggestion:
-                    riskMetrics.staleOracleCount > 0
-                      ? `${riskMetrics.staleOracleCount} oracle(s) have stale data`
-                      : 'All oracle data is fresh',
-                },
-                {
-                  dimension: 'Divergence Acceleration',
-                  contribution: divergenceSignals.acceleratingCount > 0 ? 25 : 5,
-                  suggestion:
-                    divergenceSignals.acceleratingCount > 0
-                      ? `${divergenceSignals.acceleratingCount} oracle(s) showing accelerating deviation`
-                      : 'No accelerating deviations detected',
-                },
-                {
-                  dimension: 'Feed Health',
-                  contribution: ((100 - feedBehavior.overallHealthAvg) / 100) * 20,
-                  suggestion:
-                    feedBehavior.overallHealthLevel !== 'healthy'
-                      ? 'Some oracle feeds show abnormal behavior'
-                      : 'All oracle feeds are healthy',
-                },
-                {
-                  dimension: 'Stability',
-                  contribution:
-                    stabilityScore.rapidlyDecliningCount > 0
-                      ? 20
-                      : stabilityScore.decliningCount > 0
-                        ? 10
-                        : 2,
-                  suggestion:
-                    stabilityScore.decliningCount > 0
-                      ? `${stabilityScore.decliningCount} oracle(s) showing declining stability`
-                      : 'Oracle data stability is good',
-                },
-              ]
-                .sort((a, b) => b.contribution - a.contribution)
-                .slice(0, 5)}
+              feedBehaviorHealthLevel={feedBehaviorHealthLevel}
+              stabilityDecayScore={stabilityDecayScore}
+              stabilityDecayLevel={stabilityDecayLevel}
+              riskAttribution={riskAttribution}
             />
           )}
           {activeTab === 'ranking' && (

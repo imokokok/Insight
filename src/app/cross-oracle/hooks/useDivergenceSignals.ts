@@ -41,7 +41,8 @@ function extractDivergenceHistories(
 
 export function useDivergenceSignals(
   priceData: PriceData[],
-  priceHistoryMapRef?: React.MutableRefObject<PriceHistoryMap> | null
+  priceHistoryMapRef?: React.MutableRefObject<PriceHistoryMap> | null,
+  symbol?: string
 ): DivergenceSignalsResult {
   const [priceHistories, setPriceHistories] = useState<
     Map<string, Array<{ price: number; timestamp: number; success: boolean }>>
@@ -80,7 +81,7 @@ export function useDivergenceSignals(
         }
       }
 
-      const divergenceResult = calculateDivergenceSignals(priceData, historyMap);
+      const divergenceResult = calculateDivergenceSignals(priceData, historyMap, symbol);
 
       return {
         divergenceResult,
@@ -108,7 +109,7 @@ export function useDivergenceSignals(
         isCalculating: false,
       };
     }
-  }, [priceData, priceHistories]);
+  }, [priceData, priceHistories, symbol]);
 
   return result;
 }

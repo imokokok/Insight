@@ -66,6 +66,10 @@ const MAX_HISTORY_POINTS = 100;
 
 const stabilityHistoryMap = new Map<string, StabilityHistoryPoint[]>();
 
+export function resetStabilityHistory(): void {
+  stabilityHistoryMap.clear();
+}
+
 function getStabilityLevel(score: number): StabilityLevel {
   if (score >= 90) return 'excellent';
   if (score >= 75) return 'good';
@@ -213,7 +217,7 @@ export function calculateDataCompleteness(
       return 80;
     }
 
-    const expectedCount = timeWindow / expectedInterval;
+    const expectedCount = timeWindow / 1000 / expectedInterval;
     const actualCount = timestamps.length;
 
     return 100 * Math.min(actualCount / expectedCount, 1);
@@ -359,6 +363,13 @@ export function calculateStability(
 ): StabilityResult {
   const now = currentTime ?? Date.now();
   try {
+    const currentProviders = new Set(priceData);
+    for (const key of stabilityHistoryMap.keys()) {
+      if (!currentProviders.has(key)) {
+        stabilityHistoryMap.delete(key);
+      }
+    }
+
     const scores: StabilityScore[] = [];
     const allHistory: StabilityHistoryPoint[] = [];
     let decliningCount = 0;

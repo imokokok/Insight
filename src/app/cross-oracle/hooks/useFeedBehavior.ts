@@ -62,6 +62,33 @@ function extractFeedHistories(priceHistoryMap: PriceHistoryMap): Map<
   return result;
 }
 
+function enrichWithConfidence(
+  historyMap: Map<
+    string,
+    Array<{
+      price: number;
+      timestamp: number;
+      success: boolean;
+      confidence?: number;
+      confidenceInterval?: { bid: number; ask: number; widthPercentage: number };
+    }>
+  >,
+  priceData: PriceData[]
+): void {
+  for (const p of priceData) {
+    const entries = historyMap.get(p.provider);
+    if (entries && entries.length > 0) {
+      const lastEntry = entries[entries.length - 1];
+      if (p.confidence !== undefined) {
+        lastEntry.confidence = p.confidence;
+      }
+      if (p.confidenceInterval) {
+        lastEntry.confidenceInterval = p.confidenceInterval;
+      }
+    }
+  }
+}
+
 export function useFeedBehavior(
   priceData: PriceData[],
   priceHistoryMapRef?: React.MutableRefObject<PriceHistoryMap> | null
@@ -104,6 +131,8 @@ export function useFeedBehavior(
 
     try {
       const historyMap = new Map(priceHistories);
+
+      enrichWithConfidence(historyMap, priceData);
 
       for (const p of priceData) {
         if (!historyMap.has(p.provider) && p.price > 0) {

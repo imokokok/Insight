@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useState, useEffect } from 'react';
+import { memo, useMemo } from 'react';
 
 import { Heart, Activity, BarChart3, AlertTriangle, Zap } from 'lucide-react';
 
@@ -135,14 +135,7 @@ function FeedHealthTabComponent({
   confidenceSurgeCount,
 }: FeedHealthTabProps) {
   const overallBadge = getHealthLevelBadge(overallHealthLevel);
-  const [currentTime, setCurrentTime] = useState(() => Date.now());
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(Date.now());
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
+  const currentTime = useMemo(() => Date.now(), []);
 
   return (
     <div className="space-y-6">
@@ -519,14 +512,14 @@ function FeedHealthTabComponent({
                       <span>
                         Current:{' '}
                         <span className="font-mono font-medium text-gray-700">
-                          {oracle.currentWidth.toFixed(4)}
+                          {oracle.currentWidth.toFixed(2)}
                         </span>
                       </span>
                       <span className="text-gray-300">|</span>
                       <span>
                         Average:{' '}
                         <span className="font-mono font-medium text-gray-700">
-                          {oracle.avgWidth.toFixed(4)}
+                          {oracle.avgWidth.toFixed(2)}
                         </span>
                       </span>
                       <span className="text-gray-300">|</span>

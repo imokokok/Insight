@@ -119,11 +119,11 @@ describe('stabilityScore', () => {
   describe('calculateDataCompleteness', () => {
     it('should return 100 for complete data', () => {
       const now = Date.now();
-      const expectedInterval = 1000;
+      const expectedInterval = 1;
       const timeWindow = 10000;
       const timestamps: number[] = [];
       for (let i = 10; i >= 1; i--) {
-        timestamps.push(now - i * expectedInterval);
+        timestamps.push(now - i * expectedInterval * 1000);
       }
 
       const result = calculateDataCompleteness(timestamps, expectedInterval, timeWindow);
@@ -133,7 +133,7 @@ describe('stabilityScore', () => {
 
     it('should return lower score for gaps', () => {
       const now = Date.now();
-      const expectedInterval = 1000;
+      const expectedInterval = 1;
       const timeWindow = 10000;
       const timestamps = [now - 9000, now - 5000, now - 1000];
 
