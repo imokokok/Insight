@@ -100,7 +100,7 @@ function getDeviationAlertThreshold(symbol?: string): number {
       return 1;
   }
 }
-const SIGNIFICANT_CHANGE_THRESHOLD = 0.1;
+const SIGNIFICANT_CHANGE_THRESHOLD = 0.01;
 const DIRECTIONAL_BIAS_MIN_CONSECUTIVE = 3;
 const LEADING_LAG_THRESHOLD = 1;
 const SYNCHRONIZED_LAG_THRESHOLD = 5;
@@ -232,7 +232,7 @@ export function calculateDivergenceTimeSeries(
         for (const [otherProvider, otherEntries] of priceHistoryMap) {
           if (otherProvider === provider) continue;
           const closestEntry = otherEntries
-            .filter((e) => e.success && Math.abs(e.timestamp - entry.timestamp) < 5000)
+            .filter((e) => e.success)
             .sort(
               (a, b) =>
                 Math.abs(a.timestamp - entry.timestamp) - Math.abs(b.timestamp - entry.timestamp)

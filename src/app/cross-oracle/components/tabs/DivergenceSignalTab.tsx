@@ -2,7 +2,7 @@
 
 import { memo } from 'react';
 
-import { TrendingUp, AlertTriangle, Zap, Navigation, Grid3x3 } from 'lucide-react';
+import { TrendingUp, AlertTriangle, Zap, Navigation, Grid3x3, Activity } from 'lucide-react';
 
 import type {
   DivergenceTimeSeries,
@@ -131,6 +131,28 @@ function DivergenceSignalTabComponent({
           </div>
         )}
       </div>
+
+      {timeSeries.length === 0 && (
+        <div className="bg-blue-50 rounded-xl border border-blue-200 p-6 text-center">
+          <Activity className="w-8 h-8 text-blue-400 mx-auto mb-2" />
+          <p className="text-sm font-medium text-blue-700">
+            Insufficient Data for Divergence Analysis
+          </p>
+          <p className="text-xs text-blue-500 mt-1">
+            Divergence signals require at least 2 oracle providers with price history. Enable
+            auto-refresh to accumulate data points over time.
+          </p>
+        </div>
+      )}
+
+      {timeSeries.length > 0 && timeSeries.every((ts) => ts.points.length < 3) && (
+        <div className="bg-amber-50 rounded-xl border border-amber-200 p-4 text-center">
+          <p className="text-xs text-amber-700">
+            Limited data available — acceleration and directional bias detection require 3+ data
+            points per oracle. Keep auto-refresh enabled to accumulate more data.
+          </p>
+        </div>
+      )}
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white rounded-xl border border-gray-200 p-5">
