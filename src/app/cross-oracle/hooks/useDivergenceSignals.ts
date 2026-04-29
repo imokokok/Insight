@@ -73,10 +73,14 @@ export function useDivergenceSignals(
     try {
       const historyMap = new Map(priceHistories);
 
-      if (historyMap.size < 2) {
-        for (const p of priceData) {
-          if (!historyMap.has(p.provider) && p.price > 0) {
-            historyMap.set(p.provider, [{ price: p.price, timestamp: p.timestamp, success: true }]);
+      for (const p of priceData) {
+        if (!historyMap.has(p.provider) && p.price > 0) {
+          historyMap.set(p.provider, [{ price: p.price, timestamp: p.timestamp, success: true }]);
+        } else if (historyMap.has(p.provider) && p.price > 0) {
+          const entries = historyMap.get(p.provider)!;
+          const lastEntry = entries[entries.length - 1];
+          if (lastEntry && p.timestamp > lastEntry.timestamp) {
+            entries.push({ price: p.price, timestamp: p.timestamp, success: true });
           }
         }
       }
