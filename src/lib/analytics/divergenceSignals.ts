@@ -52,6 +52,7 @@ export interface DivergenceSignalResult {
   directionalBiasCount: number;
   leadingOracle: string | null;
   maxAcceleration: number;
+  alertThreshold: number;
 }
 
 interface PriceData {
@@ -73,6 +74,32 @@ interface PriceHistoryEntry {
 }
 
 const ACCELERATION_THRESHOLD = 0.1;
+
+function getSymbolCategory(symbol: string): 'stablecoin' | 'major' | 'alt' | 'micro' {
+  const stablecoins = ['USDT', 'USDC', 'DAI', 'BUSD', 'TUSD', 'USDP', 'FRAX', 'LUSD', 'PYUSD'];
+  const majors = ['BTC', 'ETH', 'WBTC', 'WETH'];
+  const upper = symbol.toUpperCase();
+  if (stablecoins.some((s) => upper.includes(s))) return 'stablecoin';
+  if (majors.some((s) => upper.includes(s))) return 'major';
+  return 'alt';
+}
+
+function getDeviationAlertThreshold(symbol?: string): number {
+  if (!symbol) return 1;
+  const category = getSymbolCategory(symbol);
+  switch (category) {
+    case 'stablecoin':
+      return 0.1;
+    case 'major':
+      return 0.8;
+    case 'alt':
+      return 1.5;
+    case 'micro':
+      return 3.0;
+    default:
+      return 1;
+  }
+}
 const SIGNIFICANT_CHANGE_THRESHOLD = 0.1;
 const DIRECTIONAL_BIAS_MIN_CONSECUTIVE = 3;
 const LEADING_LAG_THRESHOLD = 1;
@@ -119,7 +146,7 @@ export function calculateAcceleration(deviations: number[]): {
       return { value: 0, status: 'stable' };
     }
 
-    const avgSecondDiff = secondDiffs.reduce((sum, d) => sum + Math.abs(d), 0) / secondDiffs.length;
+    const avgSecondDiff = secondDiffs.reduce((sum, d) => sum + d, 0) / secondDiffs.length;
 
     let status: DivergenceAcceleration;
     if (avgSecondDiff > ACCELERATION_THRESHOLD) {
@@ -215,7 +242,7 @@ export function calculateDivergenceTimeSeries(
           }
         }
 
-        const currentPrice = priceData.find((p) => p.provider === provider)?.price ?? entry.price;
+        const currentPrice = entry.price;
         const consensusPrice = getConsensusPrice(
           otherPrices.length > 0 ? [...otherPrices, currentPrice] : [currentPrice]
         );
@@ -325,6 +352,21 @@ export function calculateOracleLeadership(
       totalUpdates.set(provider, 0);
     }
 
+    for (const [provider, entries] of providerEntries) {
+      let changeCount = 0;
+      for (let i = 1; i < entries.length; i++) {
+        const prevPrice = entries[i - 1].price;
+        const currPrice = entries[i].price;
+        if (prevPrice > 0) {
+          const changePercent = Math.abs(((currPrice - prevPrice) / prevPrice) * 100);
+          if (changePercent > SIGNIFICANT_CHANGE_THRESHOLD) {
+            changeCount++;
+          }
+        }
+      }
+      totalUpdates.set(provider, changeCount);
+    }
+
     const TIME_WINDOW = 10000;
 
     for (const event of allEvents) {
@@ -354,7 +396,6 @@ export function calculateOracleLeadership(
       for (const pw of providersInWindow) {
         const lag = (pw.timestamp - firstTimestamp) / 1000;
         lagRecords.get(pw.provider)?.push(lag);
-        totalUpdates.set(pw.provider, (totalUpdates.get(pw.provider) ?? 0) + 1);
       }
     }
 
@@ -444,7 +485,8 @@ export function calculateDivergenceMatrix(priceData: PriceData[]): DivergencePai
 
 export function calculateDivergenceSignals(
   priceData: PriceData[],
-  priceHistoryMap: Map<string, { price: number; timestamp: number; success: boolean }[]>
+  priceHistoryMap: Map<string, { price: number; timestamp: number; success: boolean }[]>,
+  symbol?: string
 ): DivergenceSignalResult {
   try {
     if (!priceData || priceData.length === 0) {
@@ -471,9 +513,10 @@ export function calculateDivergenceSignals(
 
     const directionalBiasCount = timeSeries.filter((ts) => ts.isDirectionalBias).length;
 
+    const alertThreshold = getDeviationAlertThreshold(symbol);
     const alertCount = timeSeries.filter(
       (ts) =>
-        Math.abs(ts.currentDeviation) > 1 ||
+        Math.abs(ts.currentDeviation) > alertThreshold ||
         ts.acceleration === 'accelerating' ||
         ts.isDirectionalBias
     ).length;
@@ -498,6 +541,7 @@ export function calculateDivergenceSignals(
       directionalBiasCount,
       leadingOracle,
       maxAcceleration: Number(maxAcceleration.toFixed(4)),
+      alertThreshold,
     };
   } catch (error) {
     logger.error(
@@ -518,5 +562,6 @@ function getEmptyResult(): DivergenceSignalResult {
     directionalBiasCount: 0,
     leadingOracle: null,
     maxAcceleration: 0,
+    alertThreshold: 1,
   };
 }

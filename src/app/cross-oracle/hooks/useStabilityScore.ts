@@ -2,6 +2,7 @@ import { useMemo, useState, useEffect } from 'react';
 
 import {
   calculateStability,
+  resetStabilityHistory,
   type StabilityResult,
   type StabilityScore as StabilityScoreType,
   type StabilityHistoryPoint,
@@ -46,6 +47,21 @@ function extractStabilityHistories(
   return result;
 }
 
+function enrichWithConfidence(
+  historyMap: Map<
+    string,
+    Array<{ price: number; timestamp: number; success: boolean; confidence?: number }>
+  >,
+  priceData: PriceData[]
+): void {
+  for (const p of priceData) {
+    const entries = historyMap.get(p.provider);
+    if (entries && entries.length > 0 && p.confidence !== undefined) {
+      entries[entries.length - 1].confidence = p.confidence;
+    }
+  }
+}
+
 export function useStabilityScore(
   priceData: PriceData[],
   priceHistoryMapRef?: React.MutableRefObject<PriceHistoryMap> | null
@@ -59,6 +75,12 @@ export function useStabilityScore(
       setPriceHistories(extractStabilityHistories(priceHistoryMapRef.current));
     }
   }, [priceHistoryMapRef, priceData]);
+
+  const providerKey = priceData.map((p) => p.provider).join(',');
+
+  useEffect(() => {
+    resetStabilityHistory();
+  }, [providerKey]);
 
   const result = useMemo(() => {
     if (priceData.length === 0) {
@@ -78,6 +100,8 @@ export function useStabilityScore(
 
     try {
       const historyMap = new Map(priceHistories);
+
+      enrichWithConfidence(historyMap, priceData);
 
       for (const p of priceData) {
         if (!historyMap.has(p.provider) && p.price > 0) {

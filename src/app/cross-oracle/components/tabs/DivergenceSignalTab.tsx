@@ -102,7 +102,7 @@ function DivergenceSignalTabComponent({
   acceleratingCount,
   directionalBiasCount,
   leadingOracle,
-  maxAcceleration: _maxAcceleration,
+  maxAcceleration,
 }: DivergenceSignalTabProps) {
   const sortedLeadership = [...leadership].sort((a, b) => a.lagSeconds - b.lagSeconds);
 
@@ -154,7 +154,12 @@ function DivergenceSignalTabComponent({
           >
             {acceleratingCount}
           </p>
-          <p className="text-[10px] text-gray-400 mt-1">Oracles with accelerating deviation</p>
+          <p className="text-[10px] text-gray-400 mt-1">
+            Oracles with accelerating deviation
+            {maxAcceleration > 0 && (
+              <span className="text-red-500 ml-1">Max: {maxAcceleration.toFixed(4)}%/update</span>
+            )}
+          </p>
         </div>
 
         <div className="bg-white rounded-xl border border-gray-200 p-5">
@@ -356,9 +361,6 @@ function DivergenceSignalTabComponent({
                       {capitalize(oracleNames[rowIdx])}
                     </td>
                     {row.map((pair, colIdx) => {
-                      if (colIdx < rowIdx) {
-                        return <td key={colIdx} className="px-2 py-1.5" />;
-                      }
                       if (colIdx === rowIdx) {
                         return (
                           <td key={colIdx} className="px-2 py-1.5 text-center text-gray-300">
@@ -366,12 +368,16 @@ function DivergenceSignalTabComponent({
                           </td>
                         );
                       }
+                      const deviation =
+                        colIdx > rowIdx
+                          ? pair.deviationPercent
+                          : (divergenceMatrix[colIdx]?.[rowIdx]?.deviationPercent ?? 0);
                       return (
                         <td key={colIdx} className="px-2 py-1.5 text-center">
                           <span
-                            className={`inline-flex items-center justify-center px-1.5 py-0.5 rounded text-[10px] font-mono font-medium ${getDeviationBgColor(pair.deviationPercent)} ${getDeviationColor(pair.deviationPercent)}`}
+                            className={`inline-flex items-center justify-center px-1.5 py-0.5 rounded text-[10px] font-mono font-medium ${getDeviationBgColor(deviation)} ${getDeviationColor(deviation)}`}
                           >
-                            {pair.deviationPercent.toFixed(2)}%
+                            {deviation.toFixed(2)}%
                           </span>
                         </td>
                       );
