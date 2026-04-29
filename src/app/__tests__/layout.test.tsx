@@ -26,10 +26,6 @@ jest.mock('@/components/Navbar', () => ({
   default: () => null,
 }));
 
-jest.mock('@/components/PerformanceMetricsCollector', () => ({
-  PerformanceMetricsCollector: () => null,
-}));
-
 jest.mock('@/components/realtime/ConnectionStatus', () => ({
   ConnectionStatusIndicator: () => null,
 }));

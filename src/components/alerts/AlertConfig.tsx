@@ -9,18 +9,11 @@ import { providerNames, chainNames, symbols, oracleColors } from '@/lib/constant
 import type { AlertConditionType } from '@/lib/supabase/database.types';
 import { type OracleProvider, type Blockchain } from '@/types/oracle';
 
-import { AlertMutePeriod, type MutePeriodConfig } from './AlertMutePeriod';
 import { AlertTemplates, type AlertTemplate } from './AlertTemplates';
 
 interface AlertConfigProps {
   onAlertCreated?: () => void;
 }
-
-const DEFAULT_MUTE_CONFIG: MutePeriodConfig = {
-  enabled: false,
-  duration: 60,
-  recurring: false,
-};
 
 export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
   const [alertName, setAlertName] = useState<string>('');
@@ -30,8 +23,6 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
   const [conditionType, setConditionType] = useState<AlertConditionType>('above');
   const [targetValue, setTargetValue] = useState<string>('');
   const [isActive, setIsActive] = useState<boolean>(true);
-  const [muteConfig, setMuteConfig] = useState<MutePeriodConfig>(DEFAULT_MUTE_CONFIG);
-  const [showMuteSettings, setShowMuteSettings] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const { createAlert, isPending: isCreating } = useCreateAlert();
@@ -352,42 +343,6 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
                 }`}
               />
             </button>
-          </div>
-
-          <div className="border-t border-gray-200 pt-4">
-            <button
-              type="button"
-              onClick={() => setShowMuteSettings(!showMuteSettings)}
-              className="flex items-center justify-between w-full text-left"
-            >
-              <div>
-                <h4 className="text-sm font-medium text-gray-700">Mute Settings</h4>
-                <p className="text-xs text-gray-500">
-                  {muteConfig.enabled ? 'Mute period is enabled' : 'Mute period is disabled'}
-                </p>
-              </div>
-              <svg
-                className={`w-5 h-5 text-gray-400 transition-transform ${
-                  showMuteSettings ? 'rotate-180' : ''
-                }`}
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 9l-7 7-7-7"
-                />
-              </svg>
-            </button>
-
-            {showMuteSettings && (
-              <div className="mt-3">
-                <AlertMutePeriod config={muteConfig} onChange={setMuteConfig} />
-              </div>
-            )}
           </div>
 
           {error && (

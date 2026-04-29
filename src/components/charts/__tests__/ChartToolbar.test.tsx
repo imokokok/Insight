@@ -88,40 +88,9 @@ describe('ChartToolbar', () => {
     expect(onExport).toHaveBeenCalled();
   });
 
-  it('should render indicator dropdown when onAddIndicator is provided', () => {
-    render(<ChartToolbar {...defaultProps} onAddIndicator={jest.fn()} />);
-
-    const indicatorButton = screen.getByRole('button', { name: /indicator/i });
-    expect(indicatorButton).toBeInTheDocument();
-  });
-
   it('should apply custom className', () => {
     const { container } = render(<ChartToolbar {...defaultProps} className="custom-class" />);
 
     expect(container.firstChild).toHaveClass('custom-class');
-  });
-
-  it('should render with default indicators', () => {
-    render(<ChartToolbar {...defaultProps} onAddIndicator={jest.fn()} />);
-
-    const indicatorButton = screen.getByRole('button', { name: /indicator/i });
-    fireEvent.click(indicatorButton);
-
-    expect(screen.getByText('Text')).toBeInTheDocument();
-    expect(screen.getByText('Text')).toBeInTheDocument();
-    expect(screen.getByText('Text')).toBeInTheDocument();
-  });
-
-  it('should call onAddIndicator when indicator is selected', () => {
-    const onAddIndicator = jest.fn();
-    render(<ChartToolbar {...defaultProps} onAddIndicator={onAddIndicator} />);
-
-    const indicatorButton = screen.getByRole('button', { name: /indicator/i });
-    fireEvent.click(indicatorButton);
-
-    const maOption = screen.getByText('Text');
-    fireEvent.click(maOption);
-
-    expect(onAddIndicator).toHaveBeenCalledWith('MA');
   });
 });

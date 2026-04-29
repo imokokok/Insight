@@ -7,7 +7,6 @@ import { AppInitializer } from '@/components/AppInitializer';
 import { ErrorBoundary } from '@/components/error-boundary';
 import Footer from '@/components/Footer';
 import Navbar from '@/components/Navbar';
-import { PerformanceMetricsCollector } from '@/components/PerformanceMetricsCollector';
 import { ConnectionStatusIndicator } from '@/components/realtime/ConnectionStatus';
 import { QueryProvider } from '@/providers/QueryProvider';
 
@@ -34,7 +33,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <QueryProvider>
           <ErrorBoundary>
             <AppInitializer>
-              <PerformanceMetricsCollector />
               <Navbar />
               <main className="flex-1" style={{ backgroundColor: 'var(--background)' }}>
                 {children}

@@ -113,26 +113,6 @@ export default function TechnicalDocsSection() {
 }`}
           </pre>
         </div>
-
-        <div className="bg-gray-800 rounded-lg p-4 font-mono text-sm overflow-x-auto mt-4">
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-green-400">GET</span>
-            <span className="text-blue-400">/api/prices</span>
-          </div>
-          <div className="text-gray-400 mb-2">Get all token prices</div>
-          <pre className="text-gray-300">
-            {`{
-  "prices": {
-    "BTC": 43256.78,
-    "ETH": 3456.78,
-    "SOL": 98.45,
-    ...
-  },
-  "cached": false,
-  "timestamp": 1705315800000
-}`}
-          </pre>
-        </div>
       </div>
     </section>
   );

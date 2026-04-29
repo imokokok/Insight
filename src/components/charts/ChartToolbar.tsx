@@ -7,7 +7,6 @@ import {
   AreaChart,
   CandlestickChart,
   Download,
-  Plus,
   ChevronDown,
   Settings,
 } from 'lucide-react';
@@ -26,8 +25,6 @@ export interface ChartToolbarProps {
   selectedType?: string;
   onTypeChange?: (type: string) => void;
   disabledChartTypes?: ChartType[];
-  indicators?: string[];
-  onAddIndicator?: (indicator: string) => void;
   onExport?: () => void;
   className?: string;
 }
@@ -47,8 +44,6 @@ const chartTypeConfig: Record<ChartType, { label: string; icon: typeof LineChart
   candle: { label: 'Candle', icon: CandlestickChart },
 };
 
-const defaultIndicators = ['MA', 'EMA', 'RSI', 'MACD', 'BOLL', 'VWAP'];
-
 export function ChartToolbar({
   timeRanges,
   selectedRange,
@@ -57,13 +52,10 @@ export function ChartToolbar({
   selectedType = 'line',
   onTypeChange,
   disabledChartTypes = [],
-  indicators = defaultIndicators,
-  onAddIndicator,
   onExport,
   className,
 }: ChartToolbarProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isIndicatorMenuOpen, setIsIndicatorMenuOpen] = useState(false);
 
   const handleRangeChange = useCallback(
     (range: TimeRange) => {
@@ -77,14 +69,6 @@ export function ChartToolbar({
       onTypeChange?.(type);
     },
     [onTypeChange]
-  );
-
-  const handleAddIndicator = useCallback(
-    (indicator: string) => {
-      onAddIndicator?.(indicator);
-      setIsIndicatorMenuOpen(false);
-    },
-    [onAddIndicator]
   );
 
   return (
@@ -212,38 +196,6 @@ export function ChartToolbar({
           </div>
         )}
 
-        {/* Add Indicator Button */}
-        {onAddIndicator && (
-          <div className="relative">
-            <button
-              onClick={() => setIsIndicatorMenuOpen(!isIndicatorMenuOpen)}
-              className={cn(
-                'flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200',
-                'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              )}
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span className="hidden md:inline">Indicator</span>
-            </button>
-            {isIndicatorMenuOpen && (
-              <div className="absolute top-full right-0 mt-1 z-50 min-w-[120px] bg-white border border-gray-200 rounded-md shadow-lg">
-                <div className="px-3 py-2 text-xs font-medium text-gray-500 border-b border-gray-100">
-                  Add Indicator
-                </div>
-                {indicators.map((indicator) => (
-                  <button
-                    key={indicator}
-                    onClick={() => handleAddIndicator(indicator)}
-                    className="w-full px-3 py-2 text-xs font-medium text-left text-gray-700 hover:bg-gray-50 transition-all duration-200 first:rounded-t-md last:rounded-b-md"
-                  >
-                    {indicator}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
         {/* Export Button */}
         {onExport && (
           <button
@@ -268,12 +220,11 @@ export function ChartToolbar({
       </div>
 
       {/* Click outside handler for dropdowns */}
-      {(isMobileMenuOpen || isIndicatorMenuOpen) && (
+      {isMobileMenuOpen && (
         <div
           className="fixed inset-0 z-40"
           onClick={() => {
             setIsMobileMenuOpen(false);
-            setIsIndicatorMenuOpen(false);
           }}
         />
       )}

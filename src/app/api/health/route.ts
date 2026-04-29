@@ -1,7 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
 import { ApiResponseBuilder } from '@/lib/api/response';
-import { withVersionHeaders } from '@/lib/api/versioning';
 import { createServerClient } from '@/lib/supabase/server';
 
 export const dynamic = 'force-dynamic';
@@ -94,9 +93,7 @@ export async function GET(request: NextRequest) {
     checks,
   };
 
-  const response = NextResponse.json(result, {
+  return NextResponse.json(result, {
     status: status === 'unhealthy' ? 503 : 200,
   });
-
-  return withVersionHeaders(response);
 }
