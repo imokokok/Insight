@@ -98,16 +98,22 @@ export interface RiskWeights {
   freshness: number;
   manipulationResistance: number;
   sharedDependency: number;
+  divergenceAcceleration: number;
+  feedBehaviorHealth: number;
+  stabilityDecay: number;
 }
 
 export const DEFAULT_RISK_WEIGHTS: RiskWeights = {
-  hhi: 0.15,
-  diversification: 0.15,
-  volatility: 0.15,
-  correlation: 0.15,
-  freshness: 0.15,
-  manipulationResistance: 0.15,
-  sharedDependency: 0.1,
+  hhi: 0.1,
+  diversification: 0.1,
+  volatility: 0.1,
+  correlation: 0.1,
+  freshness: 0.1,
+  manipulationResistance: 0.1,
+  sharedDependency: 0.05,
+  divergenceAcceleration: 0.1,
+  feedBehaviorHealth: 0.1,
+  stabilityDecay: 0.05,
 };
 
 export function calculateHHI(marketShares: number[]): HHIResult {

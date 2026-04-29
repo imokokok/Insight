@@ -11,6 +11,8 @@ import {
   Clock,
   Lock,
   Share2,
+  Zap,
+  Heart,
 } from 'lucide-react';
 
 import {
@@ -50,6 +52,13 @@ interface RiskAnalysisTabProps {
   systemicRiskFactor: number;
   weights: RiskWeights;
   oracleCount: number;
+  divergenceAccelerationScore: number;
+  divergenceAccelerationLevel: RiskLevel;
+  feedBehaviorHealthAvg: number;
+  feedBehaviorHealthLevel: RiskLevel;
+  stabilityDecayScore: number;
+  stabilityDecayLevel: RiskLevel;
+  riskAttribution: Array<{ dimension: string; contribution: number; suggestion: string }>;
 }
 
 function getLevelBadge(level: RiskLevel): { label: string; bgClass: string; textClass: string } {
@@ -173,6 +182,13 @@ function RiskAnalysisTabComponent({
   systemicRiskFactor,
   weights,
   oracleCount,
+  divergenceAccelerationScore,
+  divergenceAccelerationLevel,
+  feedBehaviorHealthAvg,
+  feedBehaviorHealthLevel,
+  stabilityDecayScore,
+  stabilityDecayLevel,
+  riskAttribution,
 }: RiskAnalysisTabProps) {
   const overallBadge = getLevelBadge(riskLevel);
   const w = weights ?? DEFAULT_RISK_WEIGHTS;
@@ -186,9 +202,9 @@ function RiskAnalysisTabComponent({
             <span className="text-sm font-medium text-gray-700">Risk Analysis</span>
           </div>
           <p className="text-xs text-gray-500">
-            Comprehensive risk assessment across 7 dimensions: market concentration,
-            diversification, volatility, correlation, data freshness, manipulation resistance, and
-            shared dependency
+            Comprehensive risk assessment across 10 dimensions: market concentration,
+            diversification, volatility, correlation, data freshness, manipulation resistance,
+            shared dependency, divergence acceleration, feed behavior health, and stability decay
           </p>
         </div>
         <div className="text-right">
@@ -232,7 +248,11 @@ function RiskAnalysisTabComponent({
               %) + Correlation ({Math.round(w.correlation * 100)}%) + Freshness (
               {Math.round(w.freshness * 100)}%) + Manip. Resistance (
               {Math.round(w.manipulationResistance * 100)}%) + Shared Dep. (
-              {Math.round(w.sharedDependency * 100)}%)
+              {Math.round(w.sharedDependency * 100)}%) + Divergence Accel. (
+              {Math.round(w.divergenceAcceleration * 100)}%) + Feed Health (
+              {Math.round(w.feedBehaviorHealth * 100)}%) + Stability Decay (
+              {Math.round(w.stabilityDecay * 100)}
+              %)
             </p>
           </div>
         </div>
@@ -423,7 +443,88 @@ function RiskAnalysisTabComponent({
             </div>
           )}
         </RiskMetricCard>
+
+        <RiskMetricCard
+          icon={Zap}
+          iconColor="text-pink-500"
+          title="Divergence Acceleration Risk"
+          description="Detects oracles whose deviation from consensus is accelerating, indicating potential data source issues or manipulation attempts"
+          value={divergenceAccelerationScore}
+          maxValue={100}
+          level={divergenceAccelerationLevel}
+        >
+          <div className="mt-3 pt-3 border-t border-gray-100 text-xs text-gray-500">
+            Thresholds: &lt;20 Low · 20-40 Moderate · 40-60 High · &gt;60 Critical
+          </div>
+        </RiskMetricCard>
+
+        <RiskMetricCard
+          icon={Heart}
+          iconColor="text-teal-500"
+          title="Feed Behavior Health"
+          description="Overall health of oracle feed behavior including update rhythm, confidence intervals, and heartbeat reliability"
+          value={feedBehaviorHealthAvg}
+          maxValue={100}
+          level={feedBehaviorHealthLevel}
+        >
+          <div className="mt-3 pt-3 border-t border-gray-100 text-xs text-gray-500">
+            Composition: Rhythm Stability (30%) · Confidence Stability (25%) · Heartbeat Reliability
+            (25%) · Freshness (20%)
+          </div>
+        </RiskMetricCard>
+
+        <RiskMetricCard
+          icon={TrendingDown}
+          iconColor="text-violet-500"
+          title="Stability Decay Risk"
+          description="Detects declining stability trends in oracle data. Early warning before quality degrades to critical levels"
+          value={stabilityDecayScore}
+          maxValue={100}
+          level={stabilityDecayLevel}
+        >
+          <div className="mt-3 pt-3 border-t border-gray-100 text-xs text-gray-500">
+            Thresholds: &lt;20 Low · 20-40 Moderate · 40-60 High · &gt;60 Critical
+          </div>
+        </RiskMetricCard>
       </div>
+
+      {riskAttribution.length > 0 && (
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <AlertTriangle className="w-4 h-4 text-amber-500" />
+            <span className="text-sm font-medium text-gray-700">Risk Attribution Analysis</span>
+          </div>
+          <p className="text-xs text-gray-500 mb-4">
+            Identifies which risk dimensions contribute most to the overall risk score and provides
+            actionable recommendations
+          </p>
+          <div className="space-y-3">
+            {riskAttribution.map((item, i) => (
+              <div key={i} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                <div className="flex-shrink-0 w-16 text-right">
+                  <span className="text-sm font-mono font-medium text-gray-700">
+                    {item.contribution.toFixed(1)}%
+                  </span>
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs font-medium text-gray-700">{item.dimension}</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-1.5">
+                    <div
+                      className="h-1.5 rounded-full bg-amber-500"
+                      style={{ width: `${Math.min(item.contribution, 100)}%` }}
+                    />
+                  </div>
+                </div>
+                <div className="flex-shrink-0 max-w-[200px]">
+                  <span className="text-[10px] text-gray-500">{item.suggestion}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

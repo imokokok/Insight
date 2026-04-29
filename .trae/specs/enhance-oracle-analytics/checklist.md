@@ -1,0 +1,13 @@
+- [x] Divergence Signal Engine 核心计算逻辑实现完成（偏差时序追踪、加速度检测、领先/滞后识别、方向一致性检测）
+- [x] Feed Behavior Analytics 核心计算逻辑实现完成（更新节奏异常、置信区间追踪、心跳检测、Feed 健康度评分）
+- [x] Stability Score & Decay Detection 核心计算逻辑实现完成（稳定性评分、衰减检测、衰减预测）
+- [x] 三个核心引擎的单元测试全部通过（85 个测试用例，3 个测试套件全部通过）
+- [x] useDivergenceSignals、useFeedBehavior、useStabilityScore 三个 React Hooks 正确桥接核心引擎
+- [x] Divergence Signal Tab UI 实现完成（总览卡片、偏差时序图、领先/滞后排名、偏差热力图）
+- [x] Feed Health Tab UI 实现完成（健康度总览、更新节奏图、置信区间追踪图、心跳监控面板）
+- [x] Risk Analysis Tab 增强完成（新增 3 个维度、权重调整、风险归因分析、可操作建议）
+- [x] Cross-Oracle 页面正确集成 5 个 Tab（Price Comparison / Divergence Signals / Feed Health / Risk Analysis / Oracle Ranking）
+- [x] PriceFreshnessMonitor 增强完成（更新节奏异常可视化、心跳丢失检测、稳定性趋势指示器）
+- [x] 首页 HomeDashboard 增强完成（偏差信号摘要卡片、Feed 健康度摘要卡片、跳转链接）
+- [x] 所有新增组件和函数无 TypeScript 类型错误（tsc --noEmit 0 错误）
+- [x] 项目核心定位从"价格查询工具"升级为"预言机分析平台"，用户可通过 Divergence Signals 和 Feed Health 获得超越价格展示的深度分析能力

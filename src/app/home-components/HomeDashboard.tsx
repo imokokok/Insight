@@ -13,6 +13,7 @@ import {
   TrendingUp,
   Eye,
   Trophy,
+  Heart,
 } from 'lucide-react';
 
 import { chartColors } from '@/lib/config/colors';
@@ -55,6 +56,28 @@ const FEATURE_CARDS = [
     icon: Trophy,
     iconColor: 'text-amber-500',
     bgColor: 'bg-amber-50',
+  },
+  {
+    title: 'Divergence Signals',
+    description:
+      'Track accelerating deviations, directional bias, and oracle leadership across 10+ protocols',
+    href: '/cross-oracle?tab=divergence',
+    icon: Activity,
+    iconColor: 'text-rose-500',
+    bgColor: 'bg-rose-50',
+    buttonLabel: 'View Dashboard',
+    summary: 'Real-time oracle deviation monitoring',
+  },
+  {
+    title: 'Feed Health Monitor',
+    description:
+      'Monitor update rhythm, confidence intervals, and heartbeat reliability beyond price data',
+    href: '/cross-oracle?tab=feedHealth',
+    icon: Heart,
+    iconColor: 'text-pink-500',
+    bgColor: 'bg-pink-50',
+    buttonLabel: 'View Dashboard',
+    summary: 'Oracle feed behavior analysis',
   },
 ];
 
@@ -101,7 +124,7 @@ function OracleHealthMatrix() {
 
 function FeatureCards() {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {FEATURE_CARDS.map((card) => {
         const Icon = card.icon;
         return (
@@ -118,7 +141,14 @@ function FeatureCards() {
             <h3 className="text-sm font-semibold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors">
               {card.title}
             </h3>
+            {card.summary && <p className="text-xs text-gray-400 mb-1">{card.summary}</p>}
             <p className="text-xs text-gray-500 leading-relaxed">{card.description}</p>
+            {card.buttonLabel && (
+              <div className="mt-3 flex items-center gap-1 text-xs font-medium text-blue-600 group-hover:text-blue-700">
+                {card.buttonLabel}
+                <ArrowRight className="w-3 h-3" />
+              </div>
+            )}
           </Link>
         );
       })}
