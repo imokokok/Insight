@@ -34,6 +34,10 @@ function CrossOracleContentInner() {
     anomalyDetection,
     riskMetrics,
 
+    divergenceSignals,
+    feedBehavior,
+    stabilityScore,
+
     performanceMetrics,
     isCalculatingMetrics,
 
@@ -237,6 +241,9 @@ function CrossOracleContentInner() {
             anomalies={anomalies}
             anomalyDetection={anomalyDetection}
             riskMetrics={riskMetrics}
+            divergenceSignals={divergenceSignals}
+            feedBehavior={feedBehavior}
+            stabilityScore={stabilityScore}
             performanceMetrics={performanceMetrics}
             isCalculatingMetrics={isCalculatingMetrics}
             activeTab={activeTab}

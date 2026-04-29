@@ -2,12 +2,15 @@ import { useState, useCallback } from 'react';
 
 import { type OracleProvider, ORACLE_PROVIDER_VALUES } from '@/types/oracle';
 
+import { useDivergenceSignals } from './useDivergenceSignals';
+import { useFeedBehavior } from './useFeedBehavior';
 import { useOracleData } from './useOracleData';
 import { usePriceAnomalyDetection } from './usePriceAnomalyDetection';
 import { usePriceStats } from './usePriceStats';
 import { useRiskMetrics } from './useRiskMetrics';
+import { useStabilityScore } from './useStabilityScore';
 
-export type CrossOracleTab = 'comparison' | 'risk' | 'ranking';
+export type CrossOracleTab = 'comparison' | 'divergence' | 'feedHealth' | 'risk' | 'ranking';
 
 interface UseCrossOraclePageOptions {
   initialSymbol?: string;
@@ -55,6 +58,10 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
 
   const riskMetrics = useRiskMetrics(priceData, priceHistoryMapRef, selectedSymbol);
 
+  const divergenceSignals = useDivergenceSignals(priceData, priceHistoryMapRef);
+  const feedBehavior = useFeedBehavior(priceData, priceHistoryMapRef);
+  const stabilityScore = useStabilityScore(priceData, priceHistoryMapRef);
+
   const toggleOracle = useCallback((oracle: OracleProvider) => {
     setSelectedOracles((prev) =>
       prev.includes(oracle) ? prev.filter((o) => o !== oracle) : [...prev, oracle]
@@ -78,6 +85,10 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
     anomalyDetection,
 
     riskMetrics,
+
+    divergenceSignals,
+    feedBehavior,
+    stabilityScore,
 
     performanceMetrics,
     isCalculatingMetrics,

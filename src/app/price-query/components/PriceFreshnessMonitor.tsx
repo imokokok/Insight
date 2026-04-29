@@ -1,9 +1,9 @@
+/* eslint-disable max-lines-per-function */
 'use client';
 
 import { useMemo, useEffect, useState, memo } from 'react';
 
 import {
-  Clock,
   AlertTriangle,
   CheckCircle,
   Info,
@@ -120,21 +120,6 @@ function getFreshnessColor(status: FreshnessStatus): string {
       return '#f97316';
     case 'stale':
       return '#ef4444';
-  }
-}
-
-function getStatusBgColor(status: FreshnessStatus): string {
-  switch (status) {
-    case 'fresh':
-      return 'bg-emerald-50 border-emerald-200';
-    case 'normal':
-      return 'bg-blue-50 border-blue-200';
-    case 'delayed':
-      return 'bg-amber-50 border-amber-200';
-    case 'critical':
-      return 'bg-orange-50 border-orange-200';
-    case 'stale':
-      return 'bg-red-50 border-red-200';
   }
 }
 
@@ -429,6 +414,24 @@ const DistributionBar = memo(function DistributionBar({
 
 export function PriceFreshnessMonitor({ queryResults, avgPrice }: PriceFreshnessMonitorProps) {
   const [now, setNow] = useState(() => Date.now());
+  const [updateTimestamps, setUpdateTimestamps] = useState<Map<string, number[]>>(new Map());
+  const [healthScoreHistory, setHealthScoreHistory] = useState<number[]>([]);
+  const [rhythmAnomalies, setRhythmAnomalies] = useState<
+    Map<
+      string,
+      {
+        avgInterval: number;
+        expectedInterval: number;
+        ratio: number;
+        label: string;
+        color: string;
+      }
+    >
+  >(new Map());
+  const [healthScoreTrend, setHealthScoreTrend] = useState<{
+    arrow: string;
+    color: string;
+  } | null>(null);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -447,6 +450,23 @@ export function PriceFreshnessMonitor({ queryResults, avgPrice }: PriceFreshness
       document.removeEventListener('visibilitychange', onVisibilityChange);
     };
   }, []);
+
+  useEffect(() => {
+    const currentTime = Date.now();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setUpdateTimestamps((prev) => {
+      const next = new Map(prev);
+      queryResults.forEach((result) => {
+        if (result.priceData && result.priceData.price > 0) {
+          const key = `${result.provider}_${result.chain}`;
+          const existing = next.get(key) || [];
+          const updated = [...existing, currentTime].slice(-10);
+          next.set(key, updated);
+        }
+      });
+      return next;
+    });
+  }, [queryResults]);
 
   const hasMultipleSources = queryResults.length > 1;
 
@@ -506,6 +526,52 @@ export function PriceFreshnessMonitor({ queryResults, avgPrice }: PriceFreshness
       .sort((a, b) => b.healthScore - a.healthScore);
   }, [queryResults, avgPrice, now, hasMultipleSources]);
 
+  useEffect(() => {
+    const anomalies = new Map<
+      string,
+      {
+        avgInterval: number;
+        expectedInterval: number;
+        ratio: number;
+        label: string;
+        color: string;
+      }
+    >();
+    dataSources.forEach((ds) => {
+      const ts = updateTimestamps.get(ds.key);
+      if (ts && ts.length >= 2) {
+        const intervals: number[] = [];
+        for (let i = 1; i < ts.length; i++) {
+          intervals.push((ts[i] - ts[i - 1]) / 1000);
+        }
+        const avgInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length;
+        const expectedInterval = ds.expectedUpdateFreq;
+        const ratio = avgInterval / expectedInterval;
+        let label = '';
+        let color = '';
+        if (ratio > 2) {
+          label = 'Irregular';
+          color = '#ef4444';
+        } else if (ratio > 1.5) {
+          label = 'Slow';
+          color = '#f59e0b';
+        } else if (ratio < 0.5) {
+          label = 'Fast';
+          color = '#3b82f6';
+        }
+        anomalies.set(ds.key, { avgInterval, expectedInterval, ratio, label, color });
+      }
+    });
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setRhythmAnomalies(anomalies);
+  }, [dataSources, updateTimestamps]);
+
+  const heartbeatLostCount = useMemo(() => {
+    return dataSources.filter(
+      (d) => d.freshnessStatus === 'stale' || d.freshnessStatus === 'critical'
+    ).length;
+  }, [dataSources]);
+
   const overallStats = useMemo(() => {
     if (dataSources.length === 0) return null;
 
@@ -544,6 +610,27 @@ export function PriceFreshnessMonitor({ queryResults, avgPrice }: PriceFreshness
     };
   }, [dataSources]);
 
+  useEffect(() => {
+    if (overallStats) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setHealthScoreHistory((prev) => [...prev, overallStats.avgHealthScore].slice(-5));
+    }
+  }, [overallStats]);
+
+  useEffect(() => {
+    if (healthScoreHistory.length < 2) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setHealthScoreTrend(null);
+      return;
+    }
+    const latest = healthScoreHistory[healthScoreHistory.length - 1];
+    const previous = healthScoreHistory[healthScoreHistory.length - 2];
+    const diff = latest - previous;
+    if (diff > 2) setHealthScoreTrend({ arrow: '↑', color: '#10b981' });
+    else if (diff < -2) setHealthScoreTrend({ arrow: '↓', color: '#ef4444' });
+    else setHealthScoreTrend({ arrow: '→', color: '#9ca3af' });
+  }, [healthScoreHistory]);
+
   if (dataSources.length === 0) {
     return (
       <div className="h-[200px] flex flex-col items-center justify-center text-gray-400">
@@ -559,7 +646,17 @@ export function PriceFreshnessMonitor({ queryResults, avgPrice }: PriceFreshness
       {overallStats && (
         <div className="bg-gradient-to-br from-slate-50 to-gray-50 rounded-xl p-4 border border-gray-200">
           <div className="flex items-start gap-4">
-            <HealthRing score={overallStats.avgHealthScore} size={90} />
+            <div className="relative">
+              <HealthRing score={overallStats.avgHealthScore} size={90} />
+              {healthScoreTrend && (
+                <span
+                  className="absolute -top-1 -right-1 text-lg font-bold leading-none"
+                  style={{ color: healthScoreTrend.color }}
+                >
+                  {healthScoreTrend.arrow}
+                </span>
+              )}
+            </div>
 
             <div className="flex-1 space-y-3">
               <div className="flex items-center justify-between">
@@ -573,6 +670,11 @@ export function PriceFreshnessMonitor({ queryResults, avgPrice }: PriceFreshness
                     <span className="flex items-center gap-1">
                       <Zap className="w-3 h-3 text-emerald-500" />
                       {overallStats.realtimeCount} real-time
+                    </span>
+                  )}
+                  {heartbeatLostCount > 0 && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-red-100 text-red-700 rounded-full font-medium">
+                      💔 {heartbeatLostCount} Heartbeat{heartbeatLostCount > 1 ? 's' : ''} Lost
                     </span>
                   )}
                 </div>
@@ -673,6 +775,7 @@ export function PriceFreshnessMonitor({ queryResults, avgPrice }: PriceFreshness
                 </th>
               )}
               <th className="text-center py-2 px-3 font-medium text-gray-500 text-xs">Freshness</th>
+              <th className="text-center py-2 px-3 font-medium text-gray-500 text-xs">Rhythm</th>
               <th className="text-center py-2 px-3 font-medium text-gray-500 text-xs">
                 Reliability
               </th>
@@ -738,6 +841,42 @@ export function PriceFreshnessMonitor({ queryResults, avgPrice }: PriceFreshness
                     expectedUpdateFreq={source.expectedUpdateFreq}
                     isRealtime={source.isRealtime}
                   />
+                  <td className="py-2.5 px-3">
+                    <div className="flex flex-col items-center gap-0.5">
+                      {(() => {
+                        const anomaly = rhythmAnomalies.get(source.key);
+                        if (!anomaly) {
+                          return <span className="text-[10px] text-gray-400">—</span>;
+                        }
+                        return (
+                          <>
+                            {anomaly.label && (
+                              <span
+                                className="text-[10px] font-medium"
+                                style={{ color: anomaly.color }}
+                              >
+                                {anomaly.label}
+                              </span>
+                            )}
+                            <span className="text-[9px] text-gray-500">
+                              {anomaly.avgInterval < 60
+                                ? `${anomaly.avgInterval.toFixed(1)}s`
+                                : anomaly.avgInterval < 3600
+                                  ? `${(anomaly.avgInterval / 60).toFixed(1)}m`
+                                  : `${(anomaly.avgInterval / 3600).toFixed(1)}h`}{' '}
+                              vs{' '}
+                              {anomaly.expectedInterval < 60
+                                ? `${anomaly.expectedInterval}s`
+                                : anomaly.expectedInterval < 3600
+                                  ? `${anomaly.expectedInterval / 60}m`
+                                  : `${anomaly.expectedInterval / 3600}h`}{' '}
+                              expected
+                            </span>
+                          </>
+                        );
+                      })()}
+                    </div>
+                  </td>
                   <td className="py-2.5 px-3">
                     <div className="flex flex-col items-center">
                       <div className="w-16 h-1.5 bg-gray-200 rounded-full overflow-hidden">
