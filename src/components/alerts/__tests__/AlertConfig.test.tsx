@@ -43,10 +43,6 @@ jest.mock('@/components/ui', () => ({
   ),
 }));
 
-jest.mock('../AlertMutePeriod', () => ({
-  AlertMutePeriod: () => <div data-testid="mute-period">Mute Period</div>,
-}));
-
 jest.mock('../AlertTemplates', () => ({
   AlertTemplates: () => <div data-testid="alert-templates">Templates</div>,
 }));
@@ -117,17 +113,6 @@ describe('AlertConfig', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Please enter a valid target value')).toBeInTheDocument();
-    });
-  });
-
-  it('should render mute period settings', async () => {
-    render(<AlertConfig onAlertCreated={mockOnAlertCreated} />);
-
-    const muteSettingsButton = screen.getByText('Mute Settings');
-    fireEvent.click(muteSettingsButton);
-
-    await waitFor(() => {
-      expect(screen.getByTestId('mute-period')).toBeInTheDocument();
     });
   });
 

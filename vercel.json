@@ -5,9 +5,6 @@
     },
     "src/app/api/oracles/[provider]/route.ts": {
       "maxDuration": 30
-    },
-    "src/app/api/prices/route.ts": {
-      "maxDuration": 15
     }
   }
 }

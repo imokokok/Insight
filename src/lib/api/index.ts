@@ -12,6 +12,4 @@ export * from './response';
 
 export * from './validation';
 
-export * from './versioning';
-
 export * from './handler';
