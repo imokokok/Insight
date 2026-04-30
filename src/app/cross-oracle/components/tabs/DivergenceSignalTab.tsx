@@ -107,7 +107,7 @@ function DivergenceSignalTabComponent({
   const sortedLeadership = [...leadership].sort((a, b) => a.lagSeconds - b.lagSeconds);
 
   const oracleNames =
-    divergenceMatrix.length > 0 ? divergenceMatrix[0].map((p) => p.providerA) : [];
+    divergenceMatrix.length > 0 ? divergenceMatrix.map((row) => row[0]?.providerA ?? '') : [];
 
   return (
     <div className="space-y-6">
