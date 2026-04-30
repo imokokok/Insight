@@ -4,6 +4,7 @@ const logger = createLogger('feedBehavior');
 
 export type FeedHealthLevel = 'healthy' | 'fair' | 'degraded' | 'critical';
 export type RhythmAnomalyType = 'irregular' | 'sudden_slowdown' | 'sudden_speedup' | 'gap_detected';
+export type HeartbeatSeverity = 'none' | 'minor' | 'moderate' | 'severe' | 'critical';
 
 export interface UpdateRhythmMetrics {
   provider: string;
@@ -14,6 +15,8 @@ export interface UpdateRhythmMetrics {
   isAnomalous: boolean;
   anomalyType: RhythmAnomalyType | null;
   intervals: number[];
+  recentCV?: number;
+  sampleConfidence?: number;
 }
 
 export interface ConfidenceIntervalMetrics {
@@ -25,6 +28,8 @@ export interface ConfidenceIntervalMetrics {
   surgeMagnitude: number;
   trend: 'expanding' | 'contracting' | 'stable';
   widths: number[];
+  ewmaChangeRate?: number;
+  absoluteWidthScore?: number;
 }
 
 export interface HeartbeatMetrics {
@@ -36,6 +41,8 @@ export interface HeartbeatMetrics {
   maxGapSeconds: number;
   isHeartbeatLost: boolean;
   lastUpdateTimestamp: number;
+  heartbeatSeverity?: HeartbeatSeverity;
+  recentReliability?: number;
 }
 
 export interface FeedHealthScore {
@@ -46,6 +53,8 @@ export interface FeedHealthScore {
   confidenceStability: number;
   heartbeatReliability: number;
   freshness: number;
+  penaltyAmplification?: number;
+  weightProfile?: string;
 }
 
 export interface FeedBehaviorResult {
@@ -89,6 +98,8 @@ export function calculateUpdateRhythm(
         isAnomalous: false,
         anomalyType: null,
         intervals: [],
+        recentCV: 0,
+        sampleConfidence: 0,
       };
     }
 
@@ -108,14 +119,30 @@ export function calculateUpdateRhythm(
         isAnomalous: false,
         anomalyType: null,
         intervals: [],
+        recentCV: 0,
+        sampleConfidence: 0,
       };
     }
 
     const mean = intervals.reduce((sum, v) => sum + v, 0) / intervals.length;
-    const variance =
-      intervals.reduce((sum, v) => sum + Math.pow(v - mean, 2), 0) / intervals.length;
-    const stdDev = Math.sqrt(variance);
+    const sampleVariance =
+      intervals.length > 1
+        ? intervals.reduce((sum, v) => sum + Math.pow(v - mean, 2), 0) / (intervals.length - 1)
+        : 0;
+    const stdDev = Math.sqrt(sampleVariance);
     const cv = mean > 0 ? stdDev / mean : 0;
+
+    const recentCount = Math.min(5, intervals.length);
+    const recentIntervals = intervals.slice(-recentCount);
+    const recentMean = recentIntervals.reduce((sum, v) => sum + v, 0) / recentIntervals.length;
+    const recentVariance =
+      recentIntervals.length > 1
+        ? recentIntervals.reduce((sum, v) => sum + Math.pow(v - recentMean, 2), 0) /
+          (recentIntervals.length - 1)
+        : 0;
+    const recentCV = recentMean > 0 ? Math.sqrt(recentVariance) / recentMean : 0;
+
+    const sampleConfidence = Math.min(1, intervals.length / 10);
 
     let isAnomalous = false;
     let anomalyType: RhythmAnomalyType | null = null;
@@ -145,7 +172,7 @@ export function calculateUpdateRhythm(
     }
 
     logger.debug(
-      `Update rhythm for ${provider}: avg=${mean.toFixed(2)}s, cv=${cv.toFixed(4)}, anomalous=${isAnomalous}`
+      `Update rhythm for ${provider}: avg=${mean.toFixed(2)}s, cv=${cv.toFixed(4)}, recentCV=${recentCV.toFixed(4)}, anomalous=${isAnomalous}`
     );
 
     return {
@@ -157,6 +184,8 @@ export function calculateUpdateRhythm(
       isAnomalous,
       anomalyType,
       intervals,
+      recentCV: Number(recentCV.toFixed(4)),
+      sampleConfidence: Number(sampleConfidence.toFixed(4)),
     };
   } catch (error) {
     logger.error(
@@ -172,8 +201,20 @@ export function calculateUpdateRhythm(
       isAnomalous: false,
       anomalyType: null,
       intervals: [],
+      recentCV: 0,
+      sampleConfidence: 0,
     };
   }
+}
+
+function calculateAbsoluteWidthScore(widthPercentage: number): number {
+  const absWidth = Math.abs(widthPercentage);
+  if (absWidth <= 0.1) return 100;
+  if (absWidth <= 0.3) return 100 - ((absWidth - 0.1) / 0.2) * 15;
+  if (absWidth <= 0.5) return 85 - ((absWidth - 0.3) / 0.2) * 20;
+  if (absWidth <= 1.0) return 65 - ((absWidth - 0.5) / 0.5) * 30;
+  if (absWidth <= 3.0) return 35 - ((absWidth - 1.0) / 2.0) * 25;
+  return Math.max(0, 10 - (absWidth - 3.0) * 2);
 }
 
 export function calculateConfidenceIntervalMetrics(
@@ -191,6 +232,8 @@ export function calculateConfidenceIntervalMetrics(
         surgeMagnitude: 0,
         trend: 'stable',
         widths: [],
+        ewmaChangeRate: 0,
+        absoluteWidthScore: 70,
       };
     }
 
@@ -203,6 +246,24 @@ export function calculateConfidenceIntervalMetrics(
       const prevWidth = widths[widths.length - 2];
       widthChangeRate = prevWidth > 0 ? (currentWidth - prevWidth) / prevWidth : 0;
     }
+
+    let ewmaChangeRate = 0;
+    if (widths.length >= 3) {
+      const n = widths.length;
+      const xMean = (n - 1) / 2;
+      let numerator = 0;
+      let denominator = 0;
+      for (let i = 0; i < n; i++) {
+        numerator += (i - xMean) * (widths[i] - avgWidth);
+        denominator += (i - xMean) ** 2;
+      }
+      const slope = denominator > 0 ? numerator / denominator : 0;
+      ewmaChangeRate = avgWidth > 0 ? slope / avgWidth : 0;
+    } else if (widths.length === 2) {
+      ewmaChangeRate = widthChangeRate;
+    }
+
+    const absoluteWidthScore = calculateAbsoluteWidthScore(currentWidth);
 
     let isSurge = false;
     let surgeMagnitude = 0;
@@ -218,14 +279,15 @@ export function calculateConfidenceIntervalMetrics(
     }
 
     let trend: 'expanding' | 'contracting' | 'stable' = 'stable';
-    if (widthChangeRate > 0.1) {
+    const effectiveChangeRate = widths.length >= 3 ? ewmaChangeRate : widthChangeRate;
+    if (effectiveChangeRate > 0.1) {
       trend = 'expanding';
-    } else if (widthChangeRate < -0.1) {
+    } else if (effectiveChangeRate < -0.1) {
       trend = 'contracting';
     }
 
     logger.debug(
-      `Confidence interval for ${provider}: current=${currentWidth.toFixed(4)}, trend=${trend}, surge=${isSurge}`
+      `Confidence interval for ${provider}: current=${currentWidth.toFixed(4)}, trend=${trend}, surge=${isSurge}, ewmaRate=${ewmaChangeRate.toFixed(4)}`
     );
 
     return {
@@ -237,6 +299,8 @@ export function calculateConfidenceIntervalMetrics(
       surgeMagnitude,
       trend,
       widths,
+      ewmaChangeRate: Number(ewmaChangeRate.toFixed(4)),
+      absoluteWidthScore,
     };
   } catch (error) {
     logger.error(
@@ -252,8 +316,24 @@ export function calculateConfidenceIntervalMetrics(
       surgeMagnitude: 0,
       trend: 'stable',
       widths: [],
+      ewmaChangeRate: 0,
+      absoluteWidthScore: 70,
     };
   }
+}
+
+function calculateHeartbeatSeverity(
+  isHeartbeatLost: boolean,
+  maxGapSeconds: number,
+  expectedIntervalSeconds: number,
+  timeSinceLastUpdate: number,
+  reliability: number
+): HeartbeatSeverity {
+  if (!isHeartbeatLost && reliability >= 0.9) return 'none';
+  if (!isHeartbeatLost && reliability >= 0.7) return 'minor';
+  if (isHeartbeatLost && maxGapSeconds <= 3 * expectedIntervalSeconds) return 'moderate';
+  if (isHeartbeatLost && maxGapSeconds <= 5 * expectedIntervalSeconds) return 'severe';
+  return 'critical';
 }
 
 export function calculateHeartbeat(
@@ -273,6 +353,8 @@ export function calculateHeartbeat(
         maxGapSeconds: 0,
         isHeartbeatLost: true,
         lastUpdateTimestamp: 0,
+        heartbeatSeverity: 'critical',
+        recentReliability: 0,
       };
     }
 
@@ -302,8 +384,27 @@ export function calculateHeartbeat(
       isHeartbeatLost = true;
     }
 
+    const heartbeatSeverity = calculateHeartbeatSeverity(
+      isHeartbeatLost,
+      maxGapSeconds,
+      expectedIntervalSeconds,
+      timeSinceLastUpdate,
+      reliability
+    );
+
+    let recentReliability = reliability;
+    if (durationSeconds > 0) {
+      const recentWindowStart = currentTime - durationSeconds * 0.25;
+      const recentUpdates = sorted.filter((t) => t >= recentWindowStart);
+      if (recentUpdates.length > 0) {
+        const recentDuration = (currentTime - recentWindowStart) / 1000;
+        const recentExpected = Math.max(Math.floor(recentDuration / expectedIntervalSeconds), 1);
+        recentReliability = Math.min(recentUpdates.length / recentExpected, 1);
+      }
+    }
+
     logger.debug(
-      `Heartbeat for ${provider}: reliability=${reliability.toFixed(4)}, missed=${missedBeats}, lost=${isHeartbeatLost}`
+      `Heartbeat for ${provider}: reliability=${reliability.toFixed(4)}, recentReliability=${recentReliability.toFixed(4)}, missed=${missedBeats}, severity=${heartbeatSeverity}`
     );
 
     return {
@@ -315,6 +416,8 @@ export function calculateHeartbeat(
       maxGapSeconds: Number(maxGapSeconds.toFixed(4)),
       isHeartbeatLost,
       lastUpdateTimestamp: lastTimestamp,
+      heartbeatSeverity,
+      recentReliability: Number(recentReliability.toFixed(4)),
     };
   } catch (error) {
     logger.error(
@@ -330,6 +433,8 @@ export function calculateHeartbeat(
       maxGapSeconds: 0,
       isHeartbeatLost: true,
       lastUpdateTimestamp: 0,
+      heartbeatSeverity: 'critical',
+      recentReliability: 0,
     };
   }
 }
@@ -344,24 +449,90 @@ export function calculateFeedHealthScore(params: {
   try {
     const { rhythm, confidence, heartbeat, freshnessSeconds, expectedIntervalSeconds } = params;
 
-    const rhythmStability = 100 * (1 - Math.min(rhythm.intervalCV, 1));
-    const confidenceStability = 100 * (1 - Math.min(Math.abs(confidence.widthChangeRate), 1));
-    const heartbeatReliability = heartbeat.reliability * 100;
+    const cvForScoring = rhythm.recentCV ?? rhythm.intervalCV;
+    const sampleConfidence = rhythm.sampleConfidence ?? 1;
+    const rawRhythmStability = 100 / (1 + Math.exp(8 * (cvForScoring - 0.5)));
+    const rhythmStability = rawRhythmStability * (0.7 + 0.3 * sampleConfidence);
+
+    const changeRateForScoring = confidence.ewmaChangeRate ?? confidence.widthChangeRate;
+    const asymmetricChangeRate =
+      changeRateForScoring > 0 ? changeRateForScoring * 1.5 : changeRateForScoring * 0.5;
+    const changeStability = 100 / (1 + Math.exp(5 * (Math.abs(asymmetricChangeRate) - 0.3)));
+    const absoluteScore = confidence.absoluteWidthScore ?? 70;
+    const confidenceStability = changeStability * 0.6 + absoluteScore * 0.4;
+
+    const recentReliability = heartbeat.recentReliability ?? heartbeat.reliability;
+    const combinedHeartbeatReliability = heartbeat.reliability * 0.6 + recentReliability * 0.4;
+    const heartbeatScore = combinedHeartbeatReliability * 100;
+
+    const ratio = freshnessSeconds / expectedIntervalSeconds;
+    const isRealtime = expectedIntervalSeconds <= 1;
+    const isFast = expectedIntervalSeconds <= 60;
+    const decayRate = isRealtime
+      ? 0.15
+      : isFast
+        ? 0.25
+        : expectedIntervalSeconds <= 600
+          ? 0.35
+          : 0.5;
 
     let freshness: number;
-    if (freshnessSeconds <= expectedIntervalSeconds) {
-      freshness = 100;
+    if (ratio <= 1) {
+      freshness = 100 - 3 * ratio;
     } else {
-      const extraRatio = (freshnessSeconds - expectedIntervalSeconds) / expectedIntervalSeconds;
-      freshness = Math.max(100 * Math.exp(-extraRatio), 0);
+      const baseScore = 97;
+      const excessRatio = ratio - 1;
+      freshness = baseScore * Math.exp(-decayRate * excessRatio);
     }
 
-    const score = Math.round(
-      rhythmStability * 0.3 +
-        confidenceStability * 0.25 +
-        heartbeatReliability * 0.25 +
-        freshness * 0.2
+    let weights: { rhythm: number; confidence: number; heartbeat: number; freshness: number };
+    let weightProfile: string;
+
+    if (isRealtime) {
+      weights = { rhythm: 0.2, confidence: 0.2, heartbeat: 0.3, freshness: 0.3 };
+      weightProfile = 'realtime';
+    } else if (isFast) {
+      weights = { rhythm: 0.25, confidence: 0.25, heartbeat: 0.25, freshness: 0.25 };
+      weightProfile = 'fast';
+    } else if (expectedIntervalSeconds <= 600) {
+      weights = { rhythm: 0.3, confidence: 0.25, heartbeat: 0.25, freshness: 0.2 };
+      weightProfile = 'medium';
+    } else {
+      weights = { rhythm: 0.35, confidence: 0.25, heartbeat: 0.25, freshness: 0.15 };
+      weightProfile = 'slow';
+    }
+
+    let score = Math.round(
+      rhythmStability * weights.rhythm +
+        confidenceStability * weights.confidence +
+        heartbeatScore * weights.heartbeat +
+        freshness * weights.freshness
     );
+
+    const subScores = [rhythmStability, confidenceStability, heartbeatScore, freshness];
+    const poorMetrics = subScores.filter((s) => s < 50).length;
+    let penaltyAmplification = 1.0;
+    if (poorMetrics >= 3) {
+      penaltyAmplification = 0.6;
+    } else if (poorMetrics >= 2) {
+      penaltyAmplification = 0.8;
+    }
+    score = Math.round(score * penaltyAmplification);
+
+    if (heartbeat.isHeartbeatLost && rhythm.isAnomalous) {
+      score = Math.round(score * 0.85);
+      penaltyAmplification *= 0.85;
+    }
+    if (confidence.isSurge && freshness < 50) {
+      score = Math.round(score * 0.9);
+      penaltyAmplification *= 0.9;
+    }
+    if (heartbeat.heartbeatSeverity === 'severe' || heartbeat.heartbeatSeverity === 'critical') {
+      score = Math.round(score * 0.85);
+      penaltyAmplification *= 0.85;
+    }
+
+    score = Math.max(0, Math.min(100, score));
 
     let level: FeedHealthLevel;
     if (score >= 80) {
@@ -374,7 +545,9 @@ export function calculateFeedHealthScore(params: {
       level = 'critical';
     }
 
-    logger.debug(`Feed health for ${rhythm.provider}: score=${score}, level=${level}`);
+    logger.debug(
+      `Feed health for ${rhythm.provider}: score=${score}, level=${level}, profile=${weightProfile}, penalty=${penaltyAmplification.toFixed(4)}`
+    );
 
     return {
       provider: rhythm.provider,
@@ -382,8 +555,10 @@ export function calculateFeedHealthScore(params: {
       level,
       rhythmStability: Math.round(rhythmStability),
       confidenceStability: Math.round(confidenceStability),
-      heartbeatReliability: Math.round(heartbeatReliability),
+      heartbeatReliability: Math.round(heartbeatScore),
       freshness: Math.round(freshness),
+      penaltyAmplification: Number(penaltyAmplification.toFixed(4)),
+      weightProfile,
     };
   } catch (error) {
     logger.error(
@@ -398,6 +573,8 @@ export function calculateFeedHealthScore(params: {
       confidenceStability: 0,
       heartbeatReliability: 0,
       freshness: 0,
+      penaltyAmplification: 0,
+      weightProfile: 'unknown',
     };
   }
 }
@@ -467,10 +644,12 @@ export function calculateFeedBehavior(
     const heartbeatLostCount = heartbeatMetrics.filter((h) => h.isHeartbeatLost).length;
     const confidenceSurgeCount = confidenceMetrics.filter((c) => c.isSurge).length;
 
-    const overallHealthAvg =
-      healthScores.length > 0
-        ? Math.round(healthScores.reduce((sum, h) => sum + h.score, 0) / healthScores.length)
-        : 0;
+    let overallHealthAvg = 0;
+    if (healthScores.length > 0) {
+      const simpleAvg = healthScores.reduce((sum, h) => sum + h.score, 0) / healthScores.length;
+      const minScore = Math.min(...healthScores.map((h) => h.score));
+      overallHealthAvg = Math.round(simpleAvg * 0.7 + minScore * 0.3);
+    }
 
     let overallHealthLevel: FeedHealthLevel;
     if (overallHealthAvg >= 80) {
