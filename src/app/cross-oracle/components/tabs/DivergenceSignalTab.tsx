@@ -366,9 +366,9 @@ function DivergenceSignalTabComponent({
               <thead>
                 <tr>
                   <th className="px-2 py-1.5 text-left text-[10px] font-medium text-gray-500" />
-                  {oracleNames.map((name) => (
+                  {oracleNames.map((name, idx) => (
                     <th
-                      key={name}
+                      key={`${name}-${idx}`}
                       className="px-2 py-1.5 text-center text-[10px] font-medium text-gray-500"
                     >
                       {capitalize(name)}
@@ -378,7 +378,7 @@ function DivergenceSignalTabComponent({
               </thead>
               <tbody>
                 {divergenceMatrix.map((row, rowIdx) => (
-                  <tr key={oracleNames[rowIdx]} className="border-t border-gray-100">
+                  <tr key={`row-${rowIdx}`} className="border-t border-gray-100">
                     <td className="px-2 py-1.5 text-[10px] font-medium text-gray-700 whitespace-nowrap">
                       {capitalize(oracleNames[rowIdx])}
                     </td>
