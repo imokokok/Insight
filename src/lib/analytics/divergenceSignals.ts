@@ -440,7 +440,15 @@ export function calculateDivergenceMatrix(priceData: PriceData[]): DivergencePai
       return [];
     }
 
-    const n = priceData.length;
+    const seen = new Set<string>();
+    const uniqueData = priceData.filter((p) => {
+      const key = p.provider.toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
+    const n = uniqueData.length;
     const matrix: DivergencePair[][] = Array(n)
       .fill(null)
       .map(() => Array(n).fill(null));
@@ -451,22 +459,22 @@ export function calculateDivergenceMatrix(priceData: PriceData[]): DivergencePai
       for (let j = 0; j < n; j++) {
         if (i === j) {
           matrix[i][j] = {
-            providerA: priceData[i].provider,
-            providerB: priceData[j].provider,
+            providerA: uniqueData[i].provider,
+            providerB: uniqueData[j].provider,
             deviationPercent: 0,
             timestamp: now,
           };
         } else {
-          const priceA = priceData[i].price;
-          const priceB = priceData[j].price;
+          const priceA = uniqueData[i].price;
+          const priceB = uniqueData[j].price;
           const avgPrice = (priceA + priceB) / 2;
           const deviationPercent = avgPrice > 0 ? ((priceA - priceB) / avgPrice) * 100 : 0;
 
           matrix[i][j] = {
-            providerA: priceData[i].provider,
-            providerB: priceData[j].provider,
+            providerA: uniqueData[i].provider,
+            providerB: uniqueData[j].provider,
             deviationPercent: Number(deviationPercent.toFixed(4)),
-            timestamp: Math.min(priceData[i].timestamp, priceData[j].timestamp),
+            timestamp: Math.min(uniqueData[i].timestamp, uniqueData[j].timestamp),
           };
         }
       }
