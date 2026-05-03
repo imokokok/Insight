@@ -2,7 +2,7 @@
 
 import { baseColors } from '@/lib/config/colors';
 
-export type TabId = 'overview' | 'charts';
+export type TabId = 'overview' | 'charts' | 'risk' | 'divergence' | 'ranking';
 
 interface Tab {
   id: TabId;
@@ -26,6 +26,21 @@ export function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
       id: 'charts',
       label: 'Charts',
       description: 'Interactive price charts and analysis',
+    },
+    {
+      id: 'risk',
+      label: 'Risk',
+      description: 'Cross-chain risk analysis across 10 dimensions',
+    },
+    {
+      id: 'divergence',
+      label: 'Divergence',
+      description: 'Chain deviation signals and feed health',
+    },
+    {
+      id: 'ranking',
+      label: 'Ranking',
+      description: 'Chain reliability ranking and stability',
     },
   ];
 

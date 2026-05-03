@@ -14,7 +14,11 @@ import { OverviewTab } from './components/OverviewTab';
 import { PageHeader } from './components/PageHeader';
 import { PriceSpreadHeatmap } from './components/PriceSpreadHeatmap';
 import { TabNavigation, type TabId } from './components/TabNavigation';
+import { ChainRankingTab } from './components/tabs/ChainRankingTab';
+import { DivergenceSignalTab } from './components/tabs/DivergenceSignalTab';
+import { RiskAnalysisTab } from './components/tabs/RiskAnalysisTab';
 import { type RefreshInterval } from './constants';
+import { useCrossChainAnalytics } from './hooks/useCrossChainAnalytics';
 import { useCrossChainDataState } from './hooks/useCrossChainDataState';
 
 function CrossChainDataInitializer() {
@@ -27,6 +31,9 @@ const MemoizedCrossChainFilters = memo(CrossChainFilters);
 const MemoizedPriceSpreadHeatmap = memo(PriceSpreadHeatmap);
 const MemoizedOverviewTab = memo(OverviewTab);
 const MemoizedChartsTab = memo(ChartsTab);
+const MemoizedRiskAnalysisTab = memo(RiskAnalysisTab);
+const MemoizedDivergenceSignalTab = memo(DivergenceSignalTab);
+const MemoizedChainRankingTab = memo(ChainRankingTab);
 
 const REFRESH_OPTIONS = [
   { value: 0, label: 'Off' },
@@ -39,9 +46,12 @@ export default function CrossChainContent() {
   const [activeTab, setActiveTab] = useState<TabId>('overview');
 
   const loading = useCrossChainDataStore((s) => s.loading);
+  const currentPrices = useCrossChainDataStore((s) => s.currentPrices);
   const lastUpdated = useCrossChainDataStore((s) => s.lastUpdated);
   const refreshInterval = useCrossChainConfigStore((s) => s.refreshInterval);
   const setRefreshInterval = useCrossChainConfigStore((s) => s.setRefreshInterval);
+
+  const analytics = useCrossChainAnalytics(currentPrices);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -93,6 +103,26 @@ export default function CrossChainContent() {
               <div className="mt-4">
                 {activeTab === 'overview' && <MemoizedOverviewTab />}
                 {activeTab === 'charts' && <MemoizedChartsTab />}
+                {activeTab === 'risk' && (
+                  <MemoizedRiskAnalysisTab
+                    risk={analytics.risk}
+                    chainCount={analytics.chainCount}
+                  />
+                )}
+                {activeTab === 'divergence' && (
+                  <MemoizedDivergenceSignalTab
+                    divergence={analytics.divergence}
+                    feed={analytics.feed}
+                  />
+                )}
+                {activeTab === 'ranking' && (
+                  <MemoizedChainRankingTab
+                    currentPrices={currentPrices}
+                    divergence={analytics.divergence}
+                    feed={analytics.feed}
+                    stability={analytics.stability}
+                  />
+                )}
               </div>
             )}
           </div>
