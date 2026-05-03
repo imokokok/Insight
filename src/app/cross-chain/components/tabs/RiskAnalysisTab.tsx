@@ -180,8 +180,7 @@ function RiskAnalysisTabComponent({ risk, chainCount }: RiskAnalysisTabProps) {
               {Math.round(w.sharedDependency * 100)}%) + Divergence Accel. (
               {Math.round(w.divergenceAcceleration * 100)}%) + Feed Health (
               {Math.round(w.feedBehaviorHealth * 100)}%) + Stability Decay (
-              {Math.round(w.stabilityDecay * 100)}
-              %)
+              {Math.round(w.stabilityDecay * 100)}%)
             </p>
           </div>
         </div>
@@ -195,6 +194,7 @@ function RiskAnalysisTabComponent({ risk, chainCount }: RiskAnalysisTabProps) {
           description="Herfindahl-Hirschman Index measuring price concentration across chains. Lower is more balanced."
           value={risk.hhiValue}
           maxValue={10000}
+          unit="HHI"
           level={risk.hhiLevel}
         >
           <div className="mt-3 pt-3 border-t border-gray-100 text-xs text-gray-500">
@@ -206,16 +206,16 @@ function RiskAnalysisTabComponent({ risk, chainCount }: RiskAnalysisTabProps) {
         <RiskMetricCard
           icon={Shield}
           iconColor="text-emerald-500"
-          title="Diversification Score"
-          description="Evaluates chain diversity across data sources. Higher means more resilient against single-chain failures."
-          value={risk.diversificationScore}
+          title="Concentration Risk (Diversification)"
+          description="Risk from insufficient chain diversity. Low diversification means single-chain failures have greater impact."
+          value={100 - risk.diversificationScore}
           maxValue={100}
-          unit="/ 100"
           level={risk.diversificationLevel}
         >
           <div className="mt-3 pt-3 border-t border-gray-100 text-xs text-gray-500">
-            <span className="font-medium text-gray-700">Composition:</span> Chain Diversity (30%) ·
-            Protocol Diversity (40%) · Asset Diversity (30%)
+            <span className="font-medium text-gray-700">Diversification Score:</span>{' '}
+            {risk.diversificationScore}/100 · Chain Diversity (30%) · Protocol Diversity (40%) ·
+            Asset Diversity (30%)
           </div>
         </RiskMetricCard>
 
@@ -390,15 +390,16 @@ function RiskAnalysisTabComponent({ risk, chainCount }: RiskAnalysisTabProps) {
         <RiskMetricCard
           icon={Heart}
           iconColor="text-teal-500"
-          title="Feed Behavior Health"
-          description="Overall health of chain feed behavior including update rhythm, confidence intervals, and heartbeat reliability"
-          value={risk.feedBehaviorHealthAvg}
+          title="Feed Behavior Risk"
+          description="Risk from degraded chain feed behavior including update rhythm anomalies, confidence instability, and heartbeat loss"
+          value={100 - risk.feedBehaviorHealthAvg}
           maxValue={100}
           level={risk.feedBehaviorHealthLevel}
         >
           <div className="mt-3 pt-3 border-t border-gray-100 text-xs text-gray-500">
-            Composition: Rhythm Stability (30%) · Confidence Stability (25%) · Heartbeat Reliability
-            (25%) · Freshness (20%)
+            <span className="font-medium text-gray-700">Feed Health Score:</span>{' '}
+            {risk.feedBehaviorHealthAvg}/100 · Rhythm Stability (30%) · Confidence Stability (25%) ·
+            Heartbeat Reliability (25%) · Freshness (20%)
           </div>
         </RiskMetricCard>
 

@@ -6,7 +6,7 @@ import { Trophy, Clock, Target, Shield, GitBranch, Activity } from 'lucide-react
 
 import { type PriceData, type Blockchain } from '@/types/oracle';
 
-import { chainColors, chainNames } from '../../constants';
+import { chainColors, chainNames, CHAIN_EXPECTED_INTERVALS } from '../../constants';
 import {
   type CrossChainDivergenceResult,
   type CrossChainFeedResult,
@@ -93,17 +93,24 @@ function ChainRankingTabComponent({
         const stabilityScore = stabilityMap.get(chain)?.score ?? 70;
         const leadership = leadershipMap.get(chain);
 
-        const accuracy = Math.max(0, 100 - deviation * 20);
+        const accuracy = Math.max(0, 100 - deviation * 5);
+
         const reliability = feedHealth;
+
         const latency = leadership?.avgLagSeconds ?? 0;
-        const latencyScore = Math.max(0, 100 - latency * 20);
+        const expectedInterval =
+          (CHAIN_EXPECTED_INTERVALS as Record<string, number>)[chain.toLowerCase()] ?? 10;
+        const latencyExcess = Math.max(0, latency - expectedInterval * 2);
+        const latencyScore = Math.max(0, 100 - latencyExcess * 10);
+
+        const deviationScore = Math.max(0, 100 - deviation * 5);
 
         const overallScore = Math.round(
           accuracy * 0.25 +
             reliability * 0.25 +
             latencyScore * 0.15 +
             stabilityScore * 0.2 +
-            (100 - deviation * 20) * 0.15
+            deviationScore * 0.15
         );
 
         return {
@@ -260,7 +267,7 @@ function ChainRankingTabComponent({
             stability, and data completeness
           </p>
           <div className="space-y-3">
-            {stability.scores
+            {[...stability.scores]
               .sort((a, b) => b.score - a.score)
               .map((chain) => {
                 const display =

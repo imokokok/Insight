@@ -4,6 +4,29 @@ import { type Blockchain } from '@/types/oracle';
 export { TIME_RANGES, symbols, providerNames, chainNames, chainColors };
 export type { RefreshInterval } from '@/lib/types/crossChain';
 
+export const CHAIN_EXPECTED_INTERVALS: Record<string, number> = {
+  solana: 1,
+  arbitrum: 2,
+  optimism: 2,
+  base: 2,
+  polygon: 5,
+  avalanche: 5,
+  bnb: 5,
+  ethereum: 12,
+  fantom: 5,
+  cronos: 5,
+  juno: 6,
+  cosmos: 6,
+  osmosis: 6,
+  scroll: 3,
+  zksync: 2,
+  aptos: 1,
+  sui: 1,
+  gnosis: 5,
+  mantle: 2,
+  linea: 2,
+};
+
 export interface HeatmapData {
   x: string;
   y: string;
