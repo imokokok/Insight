@@ -33,6 +33,8 @@ import {
 import { chainColors } from '@/lib/constants';
 import { type Blockchain, type PriceData } from '@/types/oracle';
 
+import { CHAIN_EXPECTED_INTERVALS } from '../constants';
+
 interface ChainPriceHistoryEntry {
   price: number;
   timestamp: number;
@@ -42,29 +44,6 @@ interface ChainPriceHistoryEntry {
 }
 
 const MAX_HISTORY_PER_CHAIN = 200;
-
-const CHAIN_EXPECTED_INTERVALS: Record<string, number> = {
-  solana: 1,
-  arbitrum: 2,
-  optimism: 2,
-  base: 2,
-  polygon: 5,
-  avalanche: 5,
-  bnb: 5,
-  ethereum: 12,
-  fantom: 5,
-  cronos: 5,
-  juno: 6,
-  cosmos: 6,
-  osmosis: 6,
-  scroll: 3,
-  zksync: 2,
-  aptos: 1,
-  sui: 1,
-  gnosis: 5,
-  mantle: 2,
-  linea: 2,
-};
 
 function getChainExpectedInterval(chain: string): number {
   return CHAIN_EXPECTED_INTERVALS[chain.toLowerCase()] ?? 10;
@@ -517,18 +496,43 @@ export function useCrossChainAnalytics(currentPrices: PriceData[]): CrossChainAn
               : 'critical';
 
       const w = riskMetrics.overallRisk.weights;
-      const overallRiskScore = Math.round(
-        hhiScore * w.hhi +
-          divScore * w.diversification +
-          volScore * w.volatility +
-          corrScore * w.correlation +
-          freshScore * w.freshness +
-          manipScore * w.manipulationResistance +
-          sharedScore * w.sharedDependency +
-          divergenceAccelScore * w.divergenceAcceleration +
-          feedHealthRiskScore * w.feedBehaviorHealth +
-          stabilityDecayScore * w.stabilityDecay
-      );
+      const totalWeight =
+        w.hhi +
+        w.diversification +
+        w.volatility +
+        w.correlation +
+        w.freshness +
+        w.manipulationResistance +
+        w.sharedDependency +
+        w.divergenceAcceleration +
+        w.feedBehaviorHealth +
+        w.stabilityDecay;
+
+      const overallRiskScore =
+        totalWeight > 0
+          ? Math.round(
+              (hhiScore * w.hhi +
+                divScore * w.diversification +
+                volScore * w.volatility +
+                corrScore * w.correlation +
+                freshScore * w.freshness +
+                manipScore * w.manipulationResistance +
+                sharedScore * w.sharedDependency +
+                divergenceAccelScore * w.divergenceAcceleration +
+                feedHealthRiskScore * w.feedBehaviorHealth +
+                stabilityDecayScore * w.stabilityDecay) /
+                totalWeight
+            )
+          : 0;
+
+      const overallRiskLevel: RiskLevel =
+        overallRiskScore < 25
+          ? 'low'
+          : overallRiskScore < 45
+            ? 'medium'
+            : overallRiskScore < 65
+              ? 'high'
+              : 'critical';
 
       const riskAttribution = [
         {
@@ -595,9 +599,9 @@ export function useCrossChainAnalytics(currentPrices: PriceData[]): CrossChainAn
 
       const risk: CrossChainRiskResult = {
         riskMetrics,
-        riskLevel: riskMetrics.overallRisk.level,
+        riskLevel: overallRiskLevel,
         riskScore: overallRiskScore,
-        riskColor: getRiskLevelColor(riskMetrics.overallRisk.level),
+        riskColor: getRiskLevelColor(overallRiskLevel),
         hhiValue: riskMetrics.hhi.value,
         hhiLevel: riskMetrics.hhi.level,
         diversificationScore: riskMetrics.diversification.score,
