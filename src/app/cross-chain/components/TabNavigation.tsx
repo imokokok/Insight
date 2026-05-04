@@ -45,7 +45,7 @@ export function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
   ];
 
   return (
-    <div className="mb-4">
+    <div className="mb-4" role="tablist" aria-label="Cross-chain analysis tabs">
       {/* Desktop: SegmentedControl style */}
       <div className="hidden sm:block">
         <div
@@ -58,6 +58,9 @@ export function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
               <button
                 key={tab.id}
                 onClick={() => onTabChange(tab.id)}
+                role="tab"
+                aria-selected={isActive}
+                aria-controls={`tabpanel-${tab.id}`}
                 className={`relative px-4 py-1.5 text-sm font-medium rounded-md transition-all duration-200 whitespace-nowrap ${
                   isActive ? 'shadow-sm' : 'hover:text-gray-900'
                 }`}
@@ -86,6 +89,9 @@ export function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
               <button
                 key={tab.id}
                 onClick={() => onTabChange(tab.id)}
+                role="tab"
+                aria-selected={isActive}
+                aria-controls={`tabpanel-${tab.id}`}
                 className={`relative px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200 whitespace-nowrap flex-shrink-0 ${
                   isActive ? 'shadow-sm' : 'hover:text-gray-900'
                 }`}

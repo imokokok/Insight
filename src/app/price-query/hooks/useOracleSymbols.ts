@@ -3,7 +3,10 @@ import { useMemo, useCallback } from 'react';
 import { symbols } from '@/lib/constants';
 import { oracleSupportedSymbols } from '@/lib/oracles/constants/supportedSymbols';
 import { getDefaultFactory } from '@/lib/oracles/factory';
+import { createLogger } from '@/lib/utils/logger';
 import { type Blockchain, type OracleProvider } from '@/types/oracle';
+
+const logger = createLogger('useOracleSymbols');
 
 interface UseOracleSymbolsReturn {
   supportedSymbols: string[];
@@ -103,6 +106,7 @@ export function useOracleSymbols(selectedOracles: OracleProvider[]): UseOracleSy
             const client = getDefaultFactory().getClient(oracle);
             return client.isSymbolSupported(symbol, chain);
           } catch {
+            logger.warn(`Failed to get supported chains for symbol on oracle`);
             return false;
           }
         });
@@ -127,7 +131,9 @@ export function useOracleSymbols(selectedOracles: OracleProvider[]): UseOracleSy
           if (client.isSymbolSupported(symbol)) {
             client.supportedChains.forEach((chain) => chainsSet.add(chain));
           }
-        } catch {}
+        } catch {
+          logger.warn(`Failed to get supported chains for symbol`, { symbol, oracle });
+        }
       });
 
       return Array.from(chainsSet);
@@ -188,7 +194,9 @@ export function useOracleSymbols(selectedOracles: OracleProvider[]): UseOracleSy
               }
             });
           }
-        } catch {}
+        } catch {
+          logger.warn(`Failed to get symbols for chain`, { chain, oracle });
+        }
       });
 
       const result = Array.from(symbolsSet);

@@ -27,9 +27,10 @@ export default function Navbar() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [avatarError, setAvatarError] = useState(false);
 
+  const currentAvatarUrl = profile?.avatar_url;
   useEffect(() => {
     setAvatarError(false);
-  }, [profile?.avatar_url]);
+  }, [currentAvatarUrl]);
 
   const currentPath = useMemo(() => {
     if (!pathname) return '/';

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 
 import { Clock, RefreshCw, AlertCircle, CheckCircle2 } from 'lucide-react';
 
-import { formatTimeString } from '@/lib/utils/format';
+import { formatCountdown, formatTimeString } from '@/lib/utils/format';
 import { getTimeAgoDiff, formatTimeAgo } from '@/lib/utils/timestamp';
 
 interface DataUpdateTimeProps {
@@ -107,14 +107,6 @@ export function DataUpdateTime({
 
   const config = freshnessConfig[freshness];
   const StatusIcon = config.icon;
-
-  const formatCountdown = (ms: number): string => {
-    const seconds = Math.ceil(ms / 1000);
-    if (seconds < 60) return `${seconds}s`;
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-  };
 
   if (variant === 'minimal') {
     return (

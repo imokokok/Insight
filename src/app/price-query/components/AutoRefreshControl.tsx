@@ -6,7 +6,7 @@ import { RefreshCw, ChevronDown, Clock } from 'lucide-react';
 
 import { REFRESH_INTERVALS, type RefreshInterval } from '@/hooks/useAutoRefresh';
 import { cn } from '@/lib/utils';
-import { formatTimeString } from '@/lib/utils/format';
+import { formatCountdown, formatTimeString } from '@/lib/utils/format';
 
 interface AutoRefreshControlProps {
   refreshInterval: RefreshInterval;
@@ -15,15 +15,6 @@ interface AutoRefreshControlProps {
   nextRefreshAt: Date | null;
   isRefreshing?: boolean;
   className?: string;
-}
-
-function formatCountdown(ms: number): string {
-  if (ms <= 0) return '0s';
-  const seconds = Math.ceil(ms / 1000);
-  if (seconds < 60) return `${seconds}s`;
-  const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = seconds % 60;
-  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
 }
 
 export function AutoRefreshControl({

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef, useMemo } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 import { cn } from '@/lib/utils';
 
@@ -15,6 +15,7 @@ const FLASH_THRESHOLD_PERCENT = 0.1;
 
 export function PriceFlash({ value, previousValue, className, children }: PriceFlashProps) {
   const [flashClass, setFlashClass] = useState('');
+  const [changeDescription, setChangeDescription] = useState('Price unchanged');
   const prevRef = useRef<number | undefined>(previousValue);
 
   useEffect(() => {
@@ -35,18 +36,13 @@ export function PriceFlash({ value, previousValue, className, children }: PriceF
         prevRef.current = value;
         return () => clearTimeout(timer);
       }
+
+      const direction = value > prev ? 'increased' : 'decreased';
+      const percent = ((Math.abs(value - prev) / prev) * 100).toFixed(2);
+      setChangeDescription(`Price ${direction} by ${percent}%`);
     }
     prevRef.current = value;
     return undefined;
-  }, [value]);
-
-  // Determine change description for accessibility
-  const changeDescription = useMemo(() => {
-    const prev = prevRef.current;
-    if (prev === undefined || value === prev) return 'Price unchanged';
-    const direction = value > prev ? 'increased' : 'decreased';
-    const percent = ((Math.abs(value - prev) / prev) * 100).toFixed(2);
-    return `Price ${direction} by ${percent}%`;
   }, [value]);
 
   return (

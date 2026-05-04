@@ -61,6 +61,7 @@ interface PendingRequest<T> {
 }
 
 const pendingRequests = new Map<string, PendingRequest<unknown>>();
+const MAX_PENDING_REQUESTS = 100;
 
 const responseCache = new Map<string, { data: unknown; timestamp: number }>();
 const CACHE_TTL_MS = 5_000;
@@ -295,6 +296,18 @@ function deduplicatedFetch<T>(
     });
 
   pendingRequests.set(key, { promise, controller, timeoutId });
+
+  if (pendingRequests.size > MAX_PENDING_REQUESTS) {
+    const oldestKey = pendingRequests.keys().next().value;
+    if (oldestKey !== undefined && oldestKey !== key) {
+      const oldest = pendingRequests.get(oldestKey);
+      if (oldest) {
+        clearTimeout(oldest.timeoutId);
+        oldest.controller.abort();
+      }
+      pendingRequests.delete(oldestKey);
+    }
+  }
 
   return promise;
 }

@@ -106,6 +106,18 @@ export function buildCrossChainComparisonFromPrices(
   if (chainPrices.length === 0) return [];
 
   const validPrices = chainPrices.filter((p) => p.price > 0);
+
+  if (validPrices.length === 0) {
+    return chainPrices.map((chainPrice) => ({
+      chain: chainPrice.chain,
+      price: 0,
+      timestamp: 0,
+      deviation: 0,
+      latency: Infinity,
+      status: 'offline' as const,
+    }));
+  }
+
   const prices = validPrices.map((p) => p.price);
   const median = calculateMedian(prices);
   const nowSeconds = Date.now() / 1000;

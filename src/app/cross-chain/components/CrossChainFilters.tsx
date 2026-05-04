@@ -81,12 +81,15 @@ export function CrossChainFilters() {
           onClick={() => setIsCollapsed(!isCollapsed)}
           className="p-1.5 rounded-md transition-colors hover:bg-gray-200 text-gray-500"
           aria-label={isCollapsed ? 'Expand' : 'Collapse'}
+          aria-expanded={!isCollapsed}
+          aria-controls="filters-content"
         >
           {isCollapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
         </button>
       </div>
 
       <div
+        id="filters-content"
         className={`transition-all duration-300 ease-in-out ${
           isCollapsed ? 'max-h-0 opacity-0 overflow-hidden' : 'max-h-[2000px] opacity-100'
         }`}

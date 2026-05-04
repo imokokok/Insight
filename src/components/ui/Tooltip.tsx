@@ -1,6 +1,6 @@
 'use client';
 
-import { forwardRef, type ReactNode, useState } from 'react';
+import { forwardRef, type ReactNode, useState, useRef, useEffect } from 'react';
 
 import { cn } from '@/lib/utils';
 
@@ -30,18 +30,25 @@ export const Tooltip = forwardRef<HTMLDivElement, TooltipProps>(
     ref
   ) => {
     const [isVisible, setIsVisible] = useState(false);
-    const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
+    const timeoutIdRef = useRef<NodeJS.Timeout | null>(null);
+
+    useEffect(() => {
+      return () => {
+        if (timeoutIdRef.current) {
+          clearTimeout(timeoutIdRef.current);
+        }
+      };
+    }, []);
 
     const showTooltip = () => {
       if (disabled) return;
-      const id = setTimeout(() => setIsVisible(true), delay);
-      setTimeoutId(id);
+      timeoutIdRef.current = setTimeout(() => setIsVisible(true), delay);
     };
 
     const hideTooltip = () => {
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-        setTimeoutId(null);
+      if (timeoutIdRef.current) {
+        clearTimeout(timeoutIdRef.current);
+        timeoutIdRef.current = null;
       }
       setIsVisible(false);
     };

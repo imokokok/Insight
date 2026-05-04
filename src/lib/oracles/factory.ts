@@ -38,7 +38,12 @@ export class OracleClientFactory {
       if ('clearCache' in client && typeof client.clearCache === 'function') {
         try {
           client.clearCache();
-        } catch {}
+        } catch (error) {
+          logger.warn(
+            'Failed to clear cache during destroy',
+            error instanceof Error ? error : new Error(String(error))
+          );
+        }
       }
     }
     this.instances.clear();

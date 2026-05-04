@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
 import { createApiHandler, ApiResponseBuilder } from '@/lib/api/handler';
-import { sanitizeObject, sanitizeString } from '@/lib/security';
+import { sanitizeString } from '@/lib/security';
 import { getServerQueries } from '@/lib/supabase/server';
 
 const MAX_NAME_LENGTH = 100;
@@ -12,29 +12,26 @@ function validateCreateSnapshot(body: unknown): Record<string, unknown> | null {
     return null;
   }
 
-  const sanitizedBody = sanitizeObject(body as Record<string, unknown>);
+  const rawBody = body as Record<string, unknown>;
   const data: Record<string, unknown> = {};
 
-  if (sanitizedBody.name !== undefined) {
-    if (typeof sanitizedBody.name === 'string') {
-      data.name = sanitizeString(sanitizedBody.name, { maxLength: MAX_NAME_LENGTH });
-    } else if (sanitizedBody.name !== null) {
+  if (rawBody.name !== undefined) {
+    if (typeof rawBody.name === 'string') {
+      data.name = sanitizeString(rawBody.name, { maxLength: MAX_NAME_LENGTH });
+    } else if (rawBody.name !== null) {
       return null;
     }
   }
 
-  if (typeof sanitizedBody.symbol !== 'string' || sanitizedBody.symbol.length === 0) {
+  if (typeof rawBody.symbol !== 'string' || rawBody.symbol.length === 0) {
     return null;
   }
-  data.symbol = sanitizeString(sanitizedBody.symbol, { maxLength: 20, uppercase: true });
+  data.symbol = sanitizeString(rawBody.symbol, { maxLength: 20, uppercase: true });
 
-  if (
-    !Array.isArray(sanitizedBody.selected_oracles) ||
-    sanitizedBody.selected_oracles.length === 0
-  ) {
+  if (!Array.isArray(rawBody.selected_oracles) || rawBody.selected_oracles.length === 0) {
     return null;
   }
-  const validOracles = (sanitizedBody.selected_oracles as unknown[]).filter(
+  const validOracles = (rawBody.selected_oracles as unknown[]).filter(
     (o): o is string => typeof o === 'string' && o.length > 0 && o.length <= 50
   );
   if (validOracles.length === 0) {
@@ -42,26 +39,26 @@ function validateCreateSnapshot(body: unknown): Record<string, unknown> | null {
   }
   data.selected_oracles = validOracles;
 
-  if (!Array.isArray(sanitizedBody.price_data) || sanitizedBody.price_data.length === 0) {
+  if (!Array.isArray(rawBody.price_data) || rawBody.price_data.length === 0) {
     return null;
   }
 
-  for (const item of sanitizedBody.price_data) {
+  for (const item of rawBody.price_data) {
     if (!item || typeof item !== 'object') return null;
     if (typeof item.symbol !== 'string' || item.symbol.trim() === '') return null;
     if (typeof item.price !== 'number' || !isFinite(item.price)) return null;
   }
 
-  const priceDataStr = JSON.stringify(sanitizedBody.price_data);
+  const priceDataStr = JSON.stringify(rawBody.price_data);
   if (priceDataStr.length > MAX_PRICE_DATA_SIZE) {
     return null;
   }
-  data.price_data = sanitizedBody.price_data;
+  data.price_data = rawBody.price_data;
 
-  if (!sanitizedBody.stats || typeof sanitizedBody.stats !== 'object') {
+  if (!rawBody.stats || typeof rawBody.stats !== 'object') {
     return null;
   }
-  const statsObj = sanitizedBody.stats as Record<string, unknown>;
+  const statsObj = rawBody.stats as Record<string, unknown>;
   const requiredStatFields = [
     'avgPrice',
     'weightedAvgPrice',
@@ -78,11 +75,11 @@ function validateCreateSnapshot(body: unknown): Record<string, unknown> | null {
   if (!hasAllStatFields) {
     return null;
   }
-  data.stats = sanitizedBody.stats;
+  data.stats = rawBody.stats;
 
-  if (sanitizedBody.is_public !== undefined) {
-    if (typeof sanitizedBody.is_public === 'boolean') {
-      data.is_public = sanitizedBody.is_public;
+  if (rawBody.is_public !== undefined) {
+    if (typeof rawBody.is_public === 'boolean') {
+      data.is_public = rawBody.is_public;
     } else {
       return null;
     }
