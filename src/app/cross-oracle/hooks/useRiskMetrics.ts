@@ -12,6 +12,8 @@ import { chartColors } from '@/lib/config/colors';
 import { getProviderDefaults } from '@/lib/oracles/utils/performanceMetricsConfig';
 import { type PriceData, type OracleProvider } from '@/types/oracle';
 
+import { extractPriceHistories } from '../utils/historyExtraction';
+
 import { type PriceHistoryMap } from './useOracleMemory';
 
 export interface RiskMetricsResult {
@@ -46,17 +48,6 @@ export interface RiskMetricsResult {
   systemicRiskFactor: number;
   weights: RiskWeights;
   isCalculating: boolean;
-}
-
-function extractPriceHistories(priceHistoryMap: PriceHistoryMap): Map<string, number[]> {
-  const result = new Map<string, number[]>();
-  for (const [provider, history] of priceHistoryMap) {
-    const prices = history.filter((h) => h.success && h.price > 0).map((h) => h.price);
-    if (prices.length > 0) {
-      result.set(provider, prices);
-    }
-  }
-  return result;
 }
 
 export function useRiskMetrics(

@@ -230,14 +230,16 @@ function CrossOracleContentInner() {
             isLoading={isLoading}
             queryProgress={queryProgress}
             currentQueryTarget={currentQueryTarget}
-            avgPrice={avgPrice}
-            medianPrice={medianPrice}
-            maxPrice={maxPrice}
-            minPrice={minPrice}
-            priceRange={priceRange}
-            standardDeviation={standardDeviation}
-            standardDeviationPercent={standardDeviationPercent}
-            validPrices={validPrices}
+            priceStats={{
+              avgPrice,
+              medianPrice,
+              maxPrice,
+              minPrice,
+              priceRange,
+              standardDeviation,
+              standardDeviationPercent,
+              validPrices,
+            }}
             anomalies={anomalies}
             anomalyDetection={anomalyDetection}
             riskMetrics={riskMetrics}

@@ -9,6 +9,8 @@ import {
 } from '@/lib/analytics/divergenceSignals';
 import { type PriceData } from '@/types/oracle';
 
+import { extractHistories, type HistoryEntry } from '../utils/historyExtraction';
+
 import { type PriceHistoryMap } from './useOracleMemory';
 
 export interface DivergenceSignalsResult {
@@ -24,33 +26,16 @@ export interface DivergenceSignalsResult {
   isCalculating: boolean;
 }
 
-function extractDivergenceHistories(
-  priceHistoryMap: PriceHistoryMap
-): Map<string, Array<{ price: number; timestamp: number; success: boolean }>> {
-  const result = new Map<string, Array<{ price: number; timestamp: number; success: boolean }>>();
-  for (const [provider, history] of priceHistoryMap) {
-    const entries = history
-      .filter((h) => h.success && h.price > 0)
-      .map((h) => ({ price: h.price, timestamp: h.timestamp, success: h.success }));
-    if (entries.length > 0) {
-      result.set(provider, entries);
-    }
-  }
-  return result;
-}
-
 export function useDivergenceSignals(
   priceData: PriceData[],
   priceHistoryMapRef?: React.MutableRefObject<PriceHistoryMap> | null,
   symbol?: string
 ): DivergenceSignalsResult {
-  const [priceHistories, setPriceHistories] = useState<
-    Map<string, Array<{ price: number; timestamp: number; success: boolean }>>
-  >(new Map());
+  const [priceHistories, setPriceHistories] = useState<Map<string, HistoryEntry[]>>(new Map());
 
   useEffect(() => {
     if (priceHistoryMapRef?.current && priceHistoryMapRef.current.size > 0) {
-      setPriceHistories(extractDivergenceHistories(priceHistoryMapRef.current));
+      setPriceHistories(extractHistories(priceHistoryMapRef.current));
     }
   }, [priceHistoryMapRef, priceData]);
 

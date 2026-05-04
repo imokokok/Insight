@@ -2,9 +2,10 @@ import { useEffect, useMemo, useRef } from 'react';
 
 import { getDefaultFactory, type BaseOracleClient } from '@/lib/oracles';
 import { useCrossChainConfigStore } from '@/stores/crossChainConfigStore';
-import { useCrossChainDataStore } from '@/stores/crossChainDataStore';
+import { useCrossChainDataStore, registerDataActions } from '@/stores/crossChainDataStore';
 import { useCrossChainSelectorStore } from '@/stores/crossChainSelectorStore';
 import { useCrossChainUIStore } from '@/stores/crossChainUIStore';
+import { type PriceStats } from '@/types/analytics';
 import { type OracleProvider, type Blockchain, type PriceData } from '@/types/oracle';
 
 import { type AnomalousPricePoint } from '../utils/anomalyDetection';
@@ -21,13 +22,7 @@ interface UseCrossChainDataStateReturn {
   supportedChains: Blockchain[];
   currentClient: BaseOracleClient;
   fetchData: () => Promise<void>;
-  prevStats: {
-    avgPrice: number;
-    maxPrice: number;
-    minPrice: number;
-    priceRange: number;
-    standardDeviationPercent: number;
-  } | null;
+  prevStats: PriceStats | null;
   anomalies: AnomalousPricePoint[];
   clearCache: () => void;
   clearCacheForProvider: (provider: OracleProvider) => void;
@@ -61,11 +56,6 @@ export function useCrossChainDataState(): UseCrossChainDataStateReturn {
   const setRecommendedBaseChain = useCrossChainDataStore((s) => s.setRecommendedBaseChain);
   const setAnomalies = useCrossChainDataStore((s) => s.setAnomalies);
   const setCrossChainComparison = useCrossChainDataStore((s) => s.setCrossChainComparison);
-  const registerFetchData = useCrossChainDataStore((s) => s.registerFetchData);
-  const registerClearCache = useCrossChainDataStore((s) => s.registerClearCache);
-  const registerClearCacheForProvider = useCrossChainDataStore(
-    (s) => s.registerClearCacheForProvider
-  );
 
   const currentClient = useMemo(
     () => getDefaultFactory().getClient(selectedProvider),
@@ -97,16 +87,8 @@ export function useCrossChainDataState(): UseCrossChainDataStateReturn {
   );
 
   useEffect(() => {
-    registerFetchData(fetchDataInternal);
-  }, [fetchDataInternal, registerFetchData]);
-
-  useEffect(() => {
-    registerClearCache(clearCache);
-  }, [clearCache, registerClearCache]);
-
-  useEffect(() => {
-    registerClearCacheForProvider(clearCacheForProvider);
-  }, [clearCacheForProvider, registerClearCacheForProvider]);
+    registerDataActions({ fetchData: fetchDataInternal, clearCache, clearCacheForProvider });
+  }, [fetchDataInternal, clearCache, clearCacheForProvider]);
 
   const prevParamsRef = useRef({
     selectedProvider,

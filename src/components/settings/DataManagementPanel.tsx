@@ -16,6 +16,7 @@ import {
   X,
 } from 'lucide-react';
 
+import { useDataExport, useDeleteAccount } from '@/hooks/useProfileUpdate';
 import { apiClient } from '@/lib/api';
 import { supabase } from '@/lib/supabase/client';
 import { downloadBlob } from '@/lib/utils/download';
@@ -39,11 +40,11 @@ export function DataManagementPanel() {
   const user = useUser();
   const router = useRouter();
   const { signOut } = useAuthActions();
-  const [isExportingUserData, setIsExportingUserData] = useState(false);
+  const { exportData, isExporting: isExportingUserData } = useDataExport();
+  const { deleteAccount: deleteAccountApi, isDeleting: isDeletingAccount } = useDeleteAccount();
   const [isExportingPrice, setIsExportingPrice] = useState(false);
   const [isExportingSnapshots, setIsExportingSnapshots] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [success, setSuccess] = useState<string | null>(null);
@@ -70,35 +71,27 @@ export function DataManagementPanel() {
   const exportUserData = async () => {
     if (!user) return;
 
-    setIsExportingUserData(true);
     setError(null);
 
     try {
-      const [profileRes, favoritesRes, alertsRes, snapshotsRes] = await Promise.all([
-        apiClient.get<{ profile: Record<string, unknown> }>('/api/auth/profile'),
-        apiClient.get<{ favorites: unknown[]; count: number }>('/api/favorites'),
-        apiClient.get<{ alerts: unknown[]; count: number }>('/api/alerts'),
-        apiClient.get<{ snapshots: unknown[]; count: number }>('/api/snapshots'),
-      ]);
+      const result = await exportData();
 
-      const exportData = {
+      const exportPayload = {
         exportedAt: new Date().toISOString(),
         user: {
           id: user.id,
           email: user.email,
         },
-        profile: profileRes.data.profile,
-        favorites: favoritesRes.data.favorites,
-        alerts: alertsRes.data.alerts,
-        snapshots: snapshotsRes.data.snapshots,
+        profile: result.profile,
+        favorites: result.favorites,
+        alerts: result.alerts,
+        snapshots: result.snapshots,
       };
 
-      exportToJson({ filename: 'user-data', data: exportData });
+      exportToJson({ filename: 'user-data', data: exportPayload });
       showSuccess('Data exported successfully');
     } catch {
       setError('Failed to export data');
-    } finally {
-      setIsExportingUserData(false);
     }
   };
 
@@ -190,23 +183,19 @@ export function DataManagementPanel() {
     }
   };
 
-  const deleteAccount = async () => {
+  const handleDeleteAccount = async () => {
     if (!user || deleteConfirmText !== 'DELETE') return;
 
-    setIsDeleting(true);
     setError(null);
 
     try {
-      const confirmation = `DELETE ${user.email || user.id}`;
-      await apiClient.post<{ message: string }>('/api/auth/delete-account', { confirmation });
+      await deleteAccountApi();
 
       await signOut();
       router.push('/');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to delete account';
       setError(errorMessage);
-    } finally {
-      setIsDeleting(false);
     }
   };
 
@@ -398,11 +387,11 @@ export function DataManagementPanel() {
 
               <div className="flex gap-3">
                 <button
-                  onClick={deleteAccount}
-                  disabled={isDeleting || deleteConfirmText !== 'DELETE'}
+                  onClick={handleDeleteAccount}
+                  disabled={isDeletingAccount || deleteConfirmText !== 'DELETE'}
                   className="inline-flex items-center gap-2 px-4 py-2 bg-danger-600 text-white rounded-lg hover:bg-danger-700 active:bg-danger-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium shadow-sm hover:shadow-md"
                 >
-                  {isDeleting ? (
+                  {isDeletingAccount ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
                     <UserX className="w-4 h-4" />

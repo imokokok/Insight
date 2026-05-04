@@ -11,6 +11,12 @@ import {
 } from '@/lib/analytics/feedBehavior';
 import { type PriceData } from '@/types/oracle';
 
+import {
+  extractHistories,
+  enrichWithConfidence,
+  type HistoryEntry,
+} from '../utils/historyExtraction';
+
 import { type PriceHistoryMap } from './useOracleMemory';
 
 export interface FeedBehaviorHookResult {
@@ -27,88 +33,15 @@ export interface FeedBehaviorHookResult {
   isCalculating: boolean;
 }
 
-function extractFeedHistories(priceHistoryMap: PriceHistoryMap): Map<
-  string,
-  Array<{
-    price: number;
-    timestamp: number;
-    success: boolean;
-    confidence?: number;
-    confidenceInterval?: { bid: number; ask: number; widthPercentage: number };
-  }>
-> {
-  const result = new Map<
-    string,
-    Array<{
-      price: number;
-      timestamp: number;
-      success: boolean;
-      confidence?: number;
-      confidenceInterval?: { bid: number; ask: number; widthPercentage: number };
-    }>
-  >();
-  for (const [provider, history] of priceHistoryMap) {
-    const entries = history
-      .filter((h) => h.success && h.price > 0)
-      .map((h) => ({
-        price: h.price,
-        timestamp: h.timestamp,
-        success: h.success,
-      }));
-    if (entries.length > 0) {
-      result.set(provider, entries);
-    }
-  }
-  return result;
-}
-
-function enrichWithConfidence(
-  historyMap: Map<
-    string,
-    Array<{
-      price: number;
-      timestamp: number;
-      success: boolean;
-      confidence?: number;
-      confidenceInterval?: { bid: number; ask: number; widthPercentage: number };
-    }>
-  >,
-  priceData: PriceData[]
-): void {
-  for (const p of priceData) {
-    const entries = historyMap.get(p.provider);
-    if (entries && entries.length > 0) {
-      const lastEntry = entries[entries.length - 1];
-      if (p.confidence !== undefined) {
-        lastEntry.confidence = p.confidence;
-      }
-      if (p.confidenceInterval) {
-        lastEntry.confidenceInterval = p.confidenceInterval;
-      }
-    }
-  }
-}
-
 export function useFeedBehavior(
   priceData: PriceData[],
   priceHistoryMapRef?: React.MutableRefObject<PriceHistoryMap> | null
 ): FeedBehaviorHookResult {
-  const [priceHistories, setPriceHistories] = useState<
-    Map<
-      string,
-      Array<{
-        price: number;
-        timestamp: number;
-        success: boolean;
-        confidence?: number;
-        confidenceInterval?: { bid: number; ask: number; widthPercentage: number };
-      }>
-    >
-  >(new Map());
+  const [priceHistories, setPriceHistories] = useState<Map<string, HistoryEntry[]>>(new Map());
 
   useEffect(() => {
     if (priceHistoryMapRef?.current && priceHistoryMapRef.current.size > 0) {
-      setPriceHistories(extractFeedHistories(priceHistoryMapRef.current));
+      setPriceHistories(extractHistories(priceHistoryMapRef.current));
     }
   }, [priceHistoryMapRef, priceData]);
 

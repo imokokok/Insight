@@ -238,7 +238,7 @@ function SimplePriceTableComponent({
 
       if (anomalyDetectionMode === 'zscore' && standardDeviation > 0 && avgPrice > 0) {
         const zScore = calculateZScore(data.price, avgPrice, standardDeviation);
-        const absZScore = Math.abs(zScore);
+        const absZScore = zScore !== null ? Math.abs(zScore) : 0;
         isAnomaly = absZScore >= ANOMALY_ZSCORE_THRESHOLD;
         severity = isAnomaly
           ? absZScore > 3

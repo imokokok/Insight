@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { Mail, Save, Key, Loader2, CheckCircle } from 'lucide-react';
 
 import { PasswordInput } from '@/components/ui/PasswordInput';
-import { apiClient } from '@/lib/api';
+import { useProfileUpdate } from '@/hooks/useProfileUpdate';
 import { updatePassword } from '@/lib/supabase/auth';
 import { useUser, useProfile, useAuthActions } from '@/stores/authStore';
 
@@ -32,9 +32,9 @@ export function ProfilePanel() {
   const user = useUser();
   const profile = useProfile();
   const { refreshProfile } = useAuthActions();
+  const { updateProfile, isUpdating: isSaving } = useProfileUpdate();
   const [displayName, setDisplayName] = useState(profile?.display_name || '');
   const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url || '');
-  const [isSaving, setIsSaving] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showPasswordForm, setShowPasswordForm] = useState(false);
@@ -53,24 +53,15 @@ export function ProfilePanel() {
   const handleSaveProfile = async () => {
     if (!user) return;
 
-    setIsSaving(true);
     setError(null);
     setSuccess(null);
 
     try {
-      const response = await apiClient.put<{ profile: Record<string, unknown>; message: string }>(
-        '/api/auth/profile',
-        { display_name: displayName || null }
-      );
-
-      if (response.data) {
-        setSuccess('Profile saved successfully');
-        await refreshProfile();
-      }
+      await updateProfile({ display_name: displayName || null });
+      setSuccess('Profile saved successfully');
+      await refreshProfile();
     } catch {
       setError('Failed to save profile');
-    } finally {
-      setIsSaving(false);
     }
   };
 

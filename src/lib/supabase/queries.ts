@@ -176,6 +176,7 @@ export interface UserProfile {
   id: string;
   email?: string;
   display_name?: string;
+  avatar_url?: string;
   preferences?: {
     defaultSymbol?: string;
     defaultChain?: Blockchain;

@@ -10,6 +10,12 @@ import {
 } from '@/lib/analytics/stabilityScore';
 import { type PriceData } from '@/types/oracle';
 
+import {
+  extractHistories,
+  enrichWithConfidence,
+  type HistoryEntry,
+} from '../utils/historyExtraction';
+
 import { type PriceHistoryMap } from './useOracleMemory';
 
 export interface StabilityScoreHookResult {
@@ -25,54 +31,15 @@ export interface StabilityScoreHookResult {
   isCalculating: boolean;
 }
 
-function extractStabilityHistories(
-  priceHistoryMap: PriceHistoryMap
-): Map<string, Array<{ price: number; timestamp: number; success: boolean; confidence?: number }>> {
-  const result = new Map<
-    string,
-    Array<{ price: number; timestamp: number; success: boolean; confidence?: number }>
-  >();
-  for (const [provider, history] of priceHistoryMap) {
-    const entries = history
-      .filter((h) => h.success && h.price > 0)
-      .map((h) => ({
-        price: h.price,
-        timestamp: h.timestamp,
-        success: h.success,
-      }));
-    if (entries.length > 0) {
-      result.set(provider, entries);
-    }
-  }
-  return result;
-}
-
-function enrichWithConfidence(
-  historyMap: Map<
-    string,
-    Array<{ price: number; timestamp: number; success: boolean; confidence?: number }>
-  >,
-  priceData: PriceData[]
-): void {
-  for (const p of priceData) {
-    const entries = historyMap.get(p.provider);
-    if (entries && entries.length > 0 && p.confidence !== undefined) {
-      entries[entries.length - 1].confidence = p.confidence;
-    }
-  }
-}
-
 export function useStabilityScore(
   priceData: PriceData[],
   priceHistoryMapRef?: React.MutableRefObject<PriceHistoryMap> | null
 ): StabilityScoreHookResult {
-  const [priceHistories, setPriceHistories] = useState<
-    Map<string, Array<{ price: number; timestamp: number; success: boolean; confidence?: number }>>
-  >(new Map());
+  const [priceHistories, setPriceHistories] = useState<Map<string, HistoryEntry[]>>(new Map());
 
   useEffect(() => {
     if (priceHistoryMapRef?.current && priceHistoryMapRef.current.size > 0) {
-      setPriceHistories(extractStabilityHistories(priceHistoryMapRef.current));
+      setPriceHistories(extractHistories(priceHistoryMapRef.current));
     }
   }, [priceHistoryMapRef, priceData]);
 

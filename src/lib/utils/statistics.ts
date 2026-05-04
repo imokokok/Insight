@@ -15,9 +15,9 @@ function validateNumberArray(values: number[], functionName: string): void {
   }
 }
 
-export function safeMax(values: number[]): number {
+export function safeMax(values: number[], defaultValue?: number): number {
   validateNumberArray(values, 'safeMax');
-  if (values.length === 0) return -Infinity;
+  if (values.length === 0) return defaultValue ?? -Infinity;
 
   let max = -Infinity;
   for (const v of values) {
@@ -26,9 +26,9 @@ export function safeMax(values: number[]): number {
   return max;
 }
 
-export function safeMin(values: number[]): number {
+export function safeMin(values: number[], defaultValue?: number): number {
   validateNumberArray(values, 'safeMin');
-  if (values.length === 0) return Infinity;
+  if (values.length === 0) return defaultValue ?? Infinity;
 
   let min = Infinity;
   for (const v of values) {
@@ -273,4 +273,62 @@ export function calculateHistogram(
   }
 
   return bins;
+}
+
+export function calculateZScore(value: number, mean: number, stdDev: number): number | null {
+  if (stdDev === 0) return null;
+  return (value - mean) / stdDev;
+}
+
+export function calculateStandardDeviation(variance: number): number {
+  return calculateStandardDeviationFromVariance(variance);
+}
+
+const T_CRITICAL_TABLE_95: Record<number, number> = {
+  1: 12.706,
+  2: 4.303,
+  3: 3.182,
+  4: 2.776,
+  5: 2.571,
+  6: 2.447,
+  7: 2.365,
+  8: 2.306,
+  9: 2.262,
+  10: 2.228,
+  11: 2.201,
+  12: 2.179,
+  13: 2.16,
+  14: 2.145,
+  15: 2.131,
+  16: 2.12,
+  17: 2.11,
+  18: 2.101,
+  19: 2.093,
+  20: 2.086,
+  21: 2.08,
+  22: 2.074,
+  23: 2.069,
+  24: 2.064,
+  25: 2.06,
+  26: 2.056,
+  27: 2.052,
+  28: 2.048,
+  29: 2.045,
+  30: 2.042,
+};
+
+export function getTCriticalValue(df: number, confidenceLevel: number = 0.95): number {
+  if (df <= 0) return 1.96;
+  if (confidenceLevel !== 0.95) return 1.96;
+  if (df >= 30) return 1.96;
+
+  const exactValue = T_CRITICAL_TABLE_95[Math.floor(df)];
+  if (exactValue !== undefined) return exactValue;
+
+  const lowerDf = Math.floor(df);
+  const upperDf = lowerDf + 1;
+  const lowerValue = T_CRITICAL_TABLE_95[lowerDf] ?? 2.042;
+  const upperValue = T_CRITICAL_TABLE_95[upperDf] ?? 1.96;
+  const weight = df - lowerDf;
+  return lowerValue + (upperValue - lowerValue) * weight;
 }

@@ -1,6 +1,6 @@
 import type { Blockchain } from '@/types/oracle';
 
-export type RefreshInterval = 0 | 30000 | 60000 | 300000;
+export type { RefreshInterval } from '@/types/common';
 
 export type ThresholdType = 'fixed' | 'dynamic' | 'atr';
 

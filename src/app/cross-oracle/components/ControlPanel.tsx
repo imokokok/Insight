@@ -21,7 +21,6 @@ import {
 
 import { AutoRefreshControl } from '@/app/price-query/components/AutoRefreshControl';
 import { DropdownSelect } from '@/components/ui';
-import { type RefreshInterval as NumericRefreshInterval } from '@/hooks/useAutoRefresh';
 import { getPriceOracleProvidersSortedByMarketCap, getOracleConfig } from '@/lib/config/oracles';
 import { addThousandSeparators } from '@/lib/utils/format';
 import { type OracleProvider } from '@/types/oracle';
@@ -87,29 +86,6 @@ export function ControlPanel({
   const [isMobileExpanded, setIsMobileExpanded] = useState(false);
   const [hoveredOracle, setHoveredOracle] = useState<OracleProvider | null>(null);
 
-  const crossOracleToNumericInterval = (interval: RefreshInterval): NumericRefreshInterval => {
-    const map: Record<RefreshInterval, NumericRefreshInterval> = {
-      off: 0,
-      '10s': 10000,
-      '30s': 30000,
-      '1m': 60000,
-      '5m': 300000,
-    };
-    return map[interval];
-  };
-
-  const numericToCrossOracleInterval = (interval: NumericRefreshInterval): RefreshInterval => {
-    const map: Record<NumericRefreshInterval, RefreshInterval> = {
-      0: 'off',
-      10000: '10s',
-      30000: '30s',
-      60000: '1m',
-      300000: '5m',
-    };
-    return map[interval] || 'off';
-  };
-
-  // Use useCommonSymbols hook to get commonly supported symbols
   const { commonSymbols, oracleCountMap, unsupportedOracles } = useCommonSymbols(selectedOracles);
 
   const currentUnsupportedOracles = useMemo(() => {
@@ -413,10 +389,8 @@ export function ControlPanel({
             Auto Refresh
           </label>
           <AutoRefreshControl
-            refreshInterval={crossOracleToNumericInterval(refreshInterval)}
-            onIntervalChange={(interval) =>
-              onRefreshIntervalChange(numericToCrossOracleInterval(interval))
-            }
+            refreshInterval={refreshInterval}
+            onIntervalChange={onRefreshIntervalChange}
             lastRefreshedAt={lastRefreshedAt}
             nextRefreshAt={nextRefreshAt}
             isRefreshing={isLoading}

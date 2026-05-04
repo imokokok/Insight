@@ -1,16 +1,13 @@
 import { useMemo } from 'react';
 
 import { safeMax, safeMin } from '@/lib/utils';
+import { type PriceStats as BasePriceStats } from '@/types/analytics';
 
 import type { QueryResult } from '../constants';
 
-export interface PriceStats {
+export interface PriceStats extends BasePriceStats {
   validPrices: number[];
-  avgPrice: number;
   avgChange24hPercent: number | undefined;
-  maxPrice: number;
-  minPrice: number;
-  priceRange: number;
   compareValidPrices: number[];
   compareAvgPrice: number;
   compareAvgChange24hPercent: number | undefined;
@@ -19,7 +16,6 @@ export interface PriceStats {
   comparePriceRange: number;
   variance: number;
   standardDeviation: number;
-  standardDeviationPercent: number;
 }
 
 export function usePriceStats(
@@ -41,8 +37,8 @@ export function usePriceStats(
           validChanges.length
         : undefined;
 
-    const maxPrice = safeMax(validPrices);
-    const minPrice = safeMin(validPrices);
+    const maxPrice = safeMax(validPrices, 0);
+    const minPrice = safeMin(validPrices, 0);
     const priceRange = maxPrice - minPrice;
 
     const variance =
@@ -71,8 +67,8 @@ export function usePriceStats(
           compareValidChanges.length
         : undefined;
 
-    const compareMaxPrice = safeMax(compareValidPrices);
-    const compareMinPrice = safeMin(compareValidPrices);
+    const compareMaxPrice = safeMax(compareValidPrices, 0);
+    const compareMinPrice = safeMin(compareValidPrices, 0);
     const comparePriceRange = compareMaxPrice - compareMinPrice;
 
     return {

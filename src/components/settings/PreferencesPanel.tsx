@@ -5,7 +5,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Clock, Database, Save, Loader2, CheckCircle, RefreshCw, DollarSign } from 'lucide-react';
 
 import { DropdownSelect, SegmentedControl } from '@/components/ui';
-import { apiClient } from '@/lib/api';
+import { useProfileUpdate } from '@/hooks/useProfileUpdate';
 import { getAllSupportedSymbols } from '@/lib/oracles/constants/supportedSymbols';
 import { createLogger } from '@/lib/utils/logger';
 import { useUser, useProfile, useAuthInitialized } from '@/stores/authStore';
@@ -88,9 +88,9 @@ export function PreferencesPanel() {
   const user = useUser();
   const profile = useProfile();
   const authInitialized = useAuthInitialized();
+  const { updateProfile, isUpdating: isSaving } = useProfileUpdate();
 
   const [preferences, setPreferences] = useState<UserPreferences>(defaultPreferences);
-  const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -150,7 +150,6 @@ export function PreferencesPanel() {
   }, []);
 
   const handleSave = async () => {
-    setIsSaving(true);
     setError(null);
 
     try {
@@ -169,7 +168,7 @@ export function PreferencesPanel() {
             refresh_interval: parseInt(preferences.autoRefreshInterval, 10) * 1000,
           },
         };
-        await apiClient.put('/api/auth/profile', {
+        await updateProfile({
           preferences: dbPreferences as Record<string, unknown>,
         });
       }
@@ -186,8 +185,6 @@ export function PreferencesPanel() {
         err instanceof Error ? err : new Error(String(err))
       );
       setError('Failed to save preferences');
-    } finally {
-      setIsSaving(false);
     }
   };
 

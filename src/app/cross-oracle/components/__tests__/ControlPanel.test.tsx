@@ -89,7 +89,7 @@ describe('ControlPanel', () => {
     isLoading: false,
     activeFilterCount: 0,
     onClearFilters: jest.fn(),
-    refreshInterval: 60 as const,
+    refreshInterval: 60000 as const,
     onRefreshIntervalChange: jest.fn(),
     lastRefreshedAt: null as Date | null,
     nextRefreshAt: null as Date | null,

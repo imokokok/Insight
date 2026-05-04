@@ -3,6 +3,7 @@ import { devtools } from 'zustand/middleware';
 
 import { type CrossChainComparisonResult } from '@/lib/oracles/crossChainComparison';
 import { type AnomalousPricePoint } from '@/lib/types/crossChain';
+import { type PriceStats } from '@/types/analytics';
 import { type OracleProvider, type Blockchain, type PriceData } from '@/types/oracle';
 
 interface DataState {
@@ -12,18 +13,9 @@ interface DataState {
   refreshStatus: 'idle' | 'refreshing' | 'success' | 'error';
   showRefreshSuccess: boolean;
   lastUpdated: Date | null;
-  prevStats: {
-    avgPrice: number;
-    maxPrice: number;
-    minPrice: number;
-    priceRange: number;
-    standardDeviationPercent: number;
-  } | null;
+  prevStats: PriceStats | null;
   recommendedBaseChain: Blockchain | null;
   anomalies: AnomalousPricePoint[];
-  fetchData: () => Promise<void>;
-  clearCache: () => void;
-  clearCacheForProvider: (provider: OracleProvider) => void;
 }
 
 interface DataActions {
@@ -36,16 +28,8 @@ interface DataActions {
   setRecommendedBaseChain: (chain: Blockchain | null) => void;
   setAnomalies: (anomalies: AnomalousPricePoint[]) => void;
   setCrossChainComparison: (results: CrossChainComparisonResult[]) => void;
-  registerFetchData: (fn: () => Promise<void>) => void;
-  registerClearCache: (fn: () => void) => void;
-  registerClearCacheForProvider: (fn: (provider: OracleProvider) => void) => void;
+  resetDataState: () => void;
 }
-
-interface CrossChainDataStore extends DataState, DataActions {}
-
-const noOpAsync = () => Promise.resolve();
-const noOp = () => {};
-const noOpProvider = (_provider: OracleProvider) => {};
 
 const initialState: DataState = {
   currentPrices: [],
@@ -57,12 +41,9 @@ const initialState: DataState = {
   prevStats: null,
   recommendedBaseChain: null,
   anomalies: [],
-  fetchData: noOpAsync,
-  clearCache: noOp,
-  clearCacheForProvider: noOpProvider,
 };
 
-export const useCrossChainDataStore = create<CrossChainDataStore>()(
+export const useCrossChainDataStore = create<DataState & DataActions>()(
   devtools(
     (set) => ({
       ...initialState,
@@ -76,10 +57,36 @@ export const useCrossChainDataStore = create<CrossChainDataStore>()(
       setRecommendedBaseChain: (chain) => set({ recommendedBaseChain: chain }),
       setAnomalies: (anomalies) => set({ anomalies }),
       setCrossChainComparison: (results) => set({ crossChainComparison: results }),
-      registerFetchData: (fn) => set({ fetchData: fn }),
-      registerClearCache: (fn) => set({ clearCache: fn }),
-      registerClearCacheForProvider: (fn) => set({ clearCacheForProvider: fn }),
+      resetDataState: () => set(initialState),
     }),
     { name: 'CrossChainDataStore' }
   )
 );
+
+const dataActionsRef = {
+  fetchData: (() => Promise.resolve()) as () => Promise<void>,
+  clearCache: (() => {}) as () => void,
+  clearCacheForProvider: ((_provider: OracleProvider) => {}) as (provider: OracleProvider) => void,
+};
+
+export function registerDataActions(actions: {
+  fetchData: () => Promise<void>;
+  clearCache: () => void;
+  clearCacheForProvider: (provider: OracleProvider) => void;
+}) {
+  dataActionsRef.fetchData = actions.fetchData;
+  dataActionsRef.clearCache = actions.clearCache;
+  dataActionsRef.clearCacheForProvider = actions.clearCacheForProvider;
+}
+
+export function getFetchData() {
+  return dataActionsRef.fetchData;
+}
+
+export function getClearCache() {
+  return dataActionsRef.clearCache;
+}
+
+export function getClearCacheForProvider() {
+  return dataActionsRef.clearCacheForProvider;
+}
