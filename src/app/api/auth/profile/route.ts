@@ -7,6 +7,44 @@ import { getServerQueries } from '@/lib/supabase/server';
 
 const MAX_DISPLAY_NAME_LENGTH = 100;
 const VALID_ORACLES = ['chainlink', 'pyth', 'api3', 'redstone', 'dia', 'winklink'] as const;
+const VALID_NOTIFICATION_KEYS = [
+  'email_alerts',
+  'push_notifications',
+  'alert_frequency',
+  'price_alerts',
+  'market_updates',
+] as const;
+const VALID_ALERT_FREQUENCIES = ['immediate', 'hourly', 'daily'] as const;
+
+function validateNotificationSettings(settings: unknown): Record<string, unknown> | undefined {
+  if (!settings || typeof settings !== 'object') {
+    return undefined;
+  }
+
+  const raw = settings as Record<string, unknown>;
+  const validated: Record<string, unknown> = {};
+
+  for (const key of Object.keys(raw)) {
+    if (!VALID_NOTIFICATION_KEYS.includes(key as (typeof VALID_NOTIFICATION_KEYS)[number])) {
+      continue;
+    }
+
+    const value = raw[key];
+
+    if (key === 'alert_frequency') {
+      if (
+        typeof value === 'string' &&
+        VALID_ALERT_FREQUENCIES.includes(value as (typeof VALID_ALERT_FREQUENCIES)[number])
+      ) {
+        validated[key] = value;
+      }
+    } else if (typeof value === 'boolean') {
+      validated[key] = value;
+    }
+  }
+
+  return Object.keys(validated).length > 0 ? validated : undefined;
+}
 
 function validatePreferences(preferences: unknown): Record<string, unknown> | undefined {
   if (!preferences || typeof preferences !== 'object') {
@@ -129,8 +167,9 @@ export const PUT = createApiHandler(
     }
 
     if (notification_settings !== undefined) {
-      if (notification_settings && typeof notification_settings === 'object') {
-        updateData.notification_settings = notification_settings as Record<string, unknown>;
+      const validatedNotifications = validateNotificationSettings(notification_settings);
+      if (validatedNotifications) {
+        updateData.notification_settings = validatedNotifications;
       } else {
         return ApiResponseBuilder.badRequest('Invalid notification_settings format');
       }

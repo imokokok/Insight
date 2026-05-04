@@ -33,6 +33,18 @@ export class OracleClientFactory {
     this.config = { ...DEFAULT_CONFIG, ...config };
   }
 
+  destroy(): void {
+    for (const [, client] of this.instances) {
+      if ('clearCache' in client && typeof client.clearCache === 'function') {
+        try {
+          client.clearCache();
+        } catch {}
+      }
+    }
+    this.instances.clear();
+    this.mockFactory = null;
+  }
+
   configure(config: Partial<OracleClientConfig>): void {
     this.config = { ...this.config, ...config };
     logger.info('Oracle client factory configured', { config: this.config });
@@ -198,4 +210,11 @@ export function getOracleClient(provider: OracleProvider): BaseOracleClient {
 
 export function getAllOracleClients(): Record<OracleProvider, BaseOracleClient> {
   return getDefaultFactory().getAllClients();
+}
+
+export function destroyDefaultFactory(): void {
+  if (defaultInstance) {
+    defaultInstance.destroy();
+    defaultInstance = null;
+  }
 }

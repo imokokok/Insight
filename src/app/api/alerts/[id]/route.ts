@@ -185,7 +185,7 @@ export const PUT = createApiHandler(
     }
 
     const queries = getServerQueries();
-    const updatedAlert = await queries.updateAlert(validatedId, updateData);
+    const updatedAlert = await queries.updateAlert(validatedId, updateData, userId);
 
     if (!updatedAlert) {
       return ApiResponseBuilder.serverError('Failed to update alert');

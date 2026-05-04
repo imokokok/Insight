@@ -210,7 +210,9 @@ export const shortcutManager = new ShortcutManager();
  */
 export function useKeyboardShortcuts(shortcuts: KeyboardShortcut[]) {
   const shortcutsRef = useRef(shortcuts);
-  shortcutsRef.current = shortcuts;
+  useEffect(() => {
+    shortcutsRef.current = shortcuts;
+  });
 
   const shortcutKey = shortcuts
     .map((s) => `${s.key}:${s.ctrlKey}:${s.altKey}:${s.shiftKey}:${s.metaKey}:${s.scope}`)

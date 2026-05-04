@@ -53,8 +53,6 @@ export class OracleCache {
       return null;
     }
 
-    this.cache.delete(key);
-    this.cache.set(key, entry);
     return entry.data;
   }
 

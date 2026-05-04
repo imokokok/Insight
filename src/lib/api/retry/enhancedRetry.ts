@@ -236,7 +236,7 @@ function withTimeout<T>(
   timeoutMs: number,
   operationName?: string
 ): Promise<T> {
-  let timeoutId: ReturnType<typeof setTimeout>;
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
   const timeoutPromise = new Promise<never>((_, reject) => {
     timeoutId = setTimeout(() => {
       reject(new Error(`Operation ${operationName || ''} timed out after ${timeoutMs}ms`));
@@ -244,7 +244,9 @@ function withTimeout<T>(
   });
 
   return Promise.race([promise, timeoutPromise]).finally(() => {
-    clearTimeout(timeoutId);
+    if (timeoutId !== undefined) {
+      clearTimeout(timeoutId);
+    }
   });
 }
 

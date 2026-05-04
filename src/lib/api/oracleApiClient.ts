@@ -66,7 +66,24 @@ const responseCache = new Map<string, { data: unknown; timestamp: number }>();
 const CACHE_TTL_MS = 5_000;
 const MAX_CACHE_SIZE = 200;
 const CACHE_CLEANUP_INTERVAL = 60_000;
+const PENDING_REQUEST_TIMEOUT = 30_000;
 let lastCacheCleanup = Date.now();
+
+function cleanupStalePendingRequests(): void {
+  for (const [key, request] of pendingRequests) {
+    if (request.timeoutId) {
+      clearTimeout(request.timeoutId);
+    }
+    request.controller.abort();
+    pendingRequests.delete(key);
+  }
+}
+
+if (typeof setInterval !== 'undefined') {
+  setInterval(() => {
+    cleanupStalePendingRequests();
+  }, PENDING_REQUEST_TIMEOUT);
+}
 
 function setCachedResponse(key: string, data: unknown): void {
   const now = Date.now();

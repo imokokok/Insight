@@ -15,12 +15,20 @@ class RealtimeManager {
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
   private reconnectDelay = 1000;
-  private reconnectTimer: NodeJS.Timeout | null = null;
-  private connectionCheckTimer: NodeJS.Timeout | null = null;
+  private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+  private connectionCheckTimer: ReturnType<typeof setInterval> | null = null;
+  private static instance: RealtimeManager | null = null;
 
   constructor(client: SupabaseClient) {
     this.client = client;
     this.setupConnectionMonitoring();
+  }
+
+  static getInstance(client: SupabaseClient): RealtimeManager {
+    if (!RealtimeManager.instance) {
+      RealtimeManager.instance = new RealtimeManager(client);
+    }
+    return RealtimeManager.instance;
   }
 
   private setupConnectionMonitoring() {
@@ -107,7 +115,8 @@ class RealtimeManager {
     }
     this.statusListeners.clear();
     this.client.realtime.disconnect();
+    RealtimeManager.instance = null;
   }
 }
 
-export const realtimeManager = new RealtimeManager(supabase);
+export const realtimeManager = RealtimeManager.getInstance(supabase);

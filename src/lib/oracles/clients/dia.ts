@@ -59,17 +59,21 @@ export class DIAClient extends BaseOracleClient {
       'USDP',
     ];
     if (stablecoins.includes(upperSymbol)) {
+      logger.warn(
+        `Returning hardcoded price for stablecoin ${upperSymbol} - not verified against API`
+      );
       return {
         provider: OracleProvider.DIA,
         symbol: upperSymbol,
         price: 1.0,
         timestamp: Date.now(),
         decimals: 8,
-        confidence: 1.0,
+        confidence: 0.5,
+        confidenceSource: 'estimated',
         change24h: 0,
         change24hPercent: 0,
         chain: chain || Blockchain.ETHEREUM,
-        source: 'dia-api',
+        source: 'hardcoded-stablecoin',
       };
     }
 

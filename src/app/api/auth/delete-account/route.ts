@@ -71,21 +71,21 @@ export const POST = createApiHandler(
 
     if (deleteError) {
       logger.error('Failed to delete user account', new Error(String(deleteError)));
-      return ApiResponseBuilder.serverError(
-        deletionErrors.length > 0
-          ? `Failed to delete account. Partial deletion occurred for: ${deletionErrors.join(', ')}`
-          : 'Failed to delete account'
-      );
+      return ApiResponseBuilder.serverError('Failed to delete account');
     }
 
     const response = NextResponse.json({
       success: true,
-      ...(deletionErrors.length > 0 && { partialFailures: deletionErrors }),
     });
 
     const cookieNames = request.cookies.getAll().map((c) => c.name);
     for (const name of cookieNames) {
-      if (name.startsWith('sb-') || name.includes('supabase')) {
+      if (
+        name.startsWith('sb-') ||
+        name.includes('supabase') ||
+        name === 'oauth_state' ||
+        name.includes('csrf')
+      ) {
         response.cookies.delete(name);
       }
     }

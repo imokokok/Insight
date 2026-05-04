@@ -32,6 +32,12 @@ export class RpcClientWithFallback {
     this.contextLabel = options?.contextLabel ?? 'unknown';
   }
 
+  resetHealthState(): void {
+    this.endpointHealth = {};
+    this.currentEndpointIndex = {};
+    this.endpointFailureTime = {};
+  }
+
   isEndpointHealthy(key: string, index: number): boolean {
     const healthKey = `${key}-${index}`;
     const health = this.endpointHealth[healthKey];

@@ -6,14 +6,25 @@ import { createServerClient } from '@/lib/supabase/server';
 export const dynamic = 'force-dynamic';
 
 function isLocalRequest(request: NextRequest): boolean {
-  if (process.env.NODE_ENV !== 'production') {
-    return true;
-  }
   const authHeader = request.headers.get('authorization');
   const healthSecret = process.env.HEALTH_CHECK_SECRET;
   if (healthSecret && authHeader === `Bearer ${healthSecret}`) {
     return true;
   }
+
+  if (process.env.NODE_ENV !== 'production') {
+    const forwarded = request.headers.get('x-forwarded-for');
+    const remoteAddr = request.headers.get('x-real-ip');
+    const isLocalhost =
+      request.nextUrl.hostname === 'localhost' ||
+      request.nextUrl.hostname === '127.0.0.1' ||
+      forwarded === '127.0.0.1' ||
+      remoteAddr === '127.0.0.1';
+    if (isLocalhost) {
+      return true;
+    }
+  }
+
   return false;
 }
 

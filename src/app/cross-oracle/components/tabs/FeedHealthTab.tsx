@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useMemo } from 'react';
+import { memo, useState } from 'react';
 
 import { Heart, Activity, BarChart3, AlertTriangle, Zap } from 'lucide-react';
 
@@ -135,7 +135,7 @@ function FeedHealthTabComponent({
   confidenceSurgeCount,
 }: FeedHealthTabProps) {
   const overallBadge = getHealthLevelBadge(overallHealthLevel);
-  const currentTime = useMemo(() => Date.now(), []);
+  const [currentTime] = useState(() => Date.now());
 
   return (
     <div className="space-y-6">

@@ -28,7 +28,7 @@ export function SegmentedControl<T = string>({
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+  }, [setMounted]);
 
   const resolvedSelectAllLabel = selectAllLabel ?? 'Select All';
   const resolvedDeselectAllLabel = deselectAllLabel ?? 'Deselect All';

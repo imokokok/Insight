@@ -69,14 +69,27 @@ const dataActionsRef = {
   clearCacheForProvider: ((_provider: OracleProvider) => {}) as (provider: OracleProvider) => void,
 };
 
+let dataActionsRegistered = false;
+
 export function registerDataActions(actions: {
   fetchData: () => Promise<void>;
   clearCache: () => void;
   clearCacheForProvider: (provider: OracleProvider) => void;
 }) {
+  if (dataActionsRegistered) {
+    return;
+  }
   dataActionsRef.fetchData = actions.fetchData;
   dataActionsRef.clearCache = actions.clearCache;
   dataActionsRef.clearCacheForProvider = actions.clearCacheForProvider;
+  dataActionsRegistered = true;
+}
+
+export function resetDataActions() {
+  dataActionsRef.fetchData = () => Promise.resolve();
+  dataActionsRef.clearCache = () => {};
+  dataActionsRef.clearCacheForProvider = () => {};
+  dataActionsRegistered = false;
 }
 
 export function getFetchData() {

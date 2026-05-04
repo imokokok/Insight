@@ -98,13 +98,14 @@ export function useDataFetching(
     if (supportedChains.length === 0) return null;
     if (currentPrices.length === 0) return supportedChains[0];
 
+    const now = Date.now();
+
     const chainScores = supportedChains.map((chain) => {
       const priceData = currentPrices.find((p) => p.chain === chain);
       if (!priceData || priceData.price <= 0) {
         return { chain, score: -Infinity };
       }
 
-      const now = Date.now();
       const dataAgeMs = priceData.timestamp > 0 ? now - priceData.timestamp : Infinity;
       const freshnessScore = dataAgeMs < 60000 ? 100 : dataAgeMs < 300000 ? 50 : 0;
 

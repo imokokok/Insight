@@ -54,7 +54,8 @@ class WINkLinkRealDataService {
   private static instance: WINkLinkRealDataService | null = null;
   private readonly maxCacheSize = 1000;
   private readonly defaultCacheTTL = 5 * 60 * 1000;
-  private cleanupInterval: NodeJS.Timeout | null = null;
+  private cleanupInterval: ReturnType<typeof setInterval> | null = null;
+  private isDestroyed = false;
 
   constructor() {
     logger.info('WINkLinkRealDataService initialized', { rpcUrl: TRON_RPC_ENDPOINTS[0] });
@@ -62,7 +63,7 @@ class WINkLinkRealDataService {
   }
 
   static getInstance(): WINkLinkRealDataService {
-    if (!WINkLinkRealDataService.instance) {
+    if (!WINkLinkRealDataService.instance || WINkLinkRealDataService.instance.isDestroyed) {
       WINkLinkRealDataService.instance = new WINkLinkRealDataService();
     }
     return WINkLinkRealDataService.instance;
@@ -129,6 +130,7 @@ class WINkLinkRealDataService {
       this.cleanupInterval = null;
     }
     this.cache.clear();
+    this.isDestroyed = true;
     logger.info('WINkLinkRealDataService destroyed');
   }
 

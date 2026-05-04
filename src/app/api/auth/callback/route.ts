@@ -6,6 +6,38 @@ import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('api-auth-callback');
 
+const CALLBACK_RATE_LIMIT_WINDOW = 60_000;
+const CALLBACK_RATE_LIMIT_MAX = 10;
+const callbackAttempts = new Map<string, { count: number; resetAt: number }>();
+
+function checkCallbackRateLimit(ip: string): boolean {
+  const now = Date.now();
+  const entry = callbackAttempts.get(ip);
+
+  if (!entry || now > entry.resetAt) {
+    callbackAttempts.set(ip, { count: 1, resetAt: now + CALLBACK_RATE_LIMIT_WINDOW });
+    return true;
+  }
+
+  if (entry.count >= CALLBACK_RATE_LIMIT_MAX) {
+    return false;
+  }
+
+  entry.count++;
+  return true;
+}
+
+if (typeof setInterval !== 'undefined') {
+  setInterval(() => {
+    const now = Date.now();
+    for (const [ip, entry] of callbackAttempts) {
+      if (now > entry.resetAt) {
+        callbackAttempts.delete(ip);
+      }
+    }
+  }, CALLBACK_RATE_LIMIT_WINDOW);
+}
+
 const ALLOWED_REDIRECT_PATHS = [
   '/',
   '/dashboard',
@@ -34,6 +66,16 @@ function isValidRedirectPath(path: string): boolean {
 }
 
 export async function GET(request: NextRequest) {
+  const clientIp =
+    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+    request.headers.get('x-real-ip') ||
+    'unknown';
+
+  if (!checkCallbackRateLimit(clientIp)) {
+    logger.warn('Auth callback rate limit exceeded', { ip: clientIp });
+    return NextResponse.redirect(new URL('/auth/verify-email?error=rate_limited', request.url));
+  }
+
   const searchParams = request.nextUrl.searchParams;
   const code = searchParams.get('code');
   const state = searchParams.get('state');

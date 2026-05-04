@@ -30,7 +30,7 @@ interface AuthState {
   loading: boolean;
   error: AuthError | Error | null;
   initialized: boolean;
-  _initializing: boolean;
+  _initPromise: Promise<void> | null;
   subscription: Subscription | null;
 }
 
@@ -96,70 +96,79 @@ export const useAuthStore = create<AuthStore>()(
         loading: true,
         error: null,
         initialized: false,
-        _initializing: false,
+        _initPromise: null,
         subscription: null,
 
         initialize: async () => {
           if (get().initialized) return;
-          if ((get() as AuthStore)._initializing) return;
-          set({ _initializing: true } as Partial<AuthStore>);
 
-          set({ loading: true, error: null });
-
-          try {
-            const { session: currentSession } = await getSession();
-            const currentUser = currentSession?.user ?? null;
-
-            set({
-              session: currentSession,
-              user: currentUser,
-            });
-
-            if (currentSession?.user) {
-              const profile = await fetchUserProfile(currentSession.user.id, currentSession);
-              set({ profile });
-            }
-
-            const existingSubscription = get().subscription;
-            if (existingSubscription) {
-              existingSubscription.unsubscribe();
-            }
-
-            const subscription = onAuthStateChange(async (event, newSession) => {
-              try {
-                set({
-                  session: newSession,
-                  user: newSession?.user ?? null,
-                });
-
-                if (event === 'SIGNED_IN' && newSession?.user) {
-                  const profile = await fetchUserProfile(newSession.user.id, newSession);
-                  set({ profile });
-                } else if (event === 'SIGNED_OUT') {
-                  set({ profile: null });
-                }
-              } catch (err) {
-                logger.error(
-                  'Auth state change handler error',
-                  err instanceof Error ? err : new Error(String(err))
-                );
-              }
-            });
-
-            set({
-              subscription,
-              initialized: true,
-              loading: false,
-              _initializing: false,
-            } as Partial<AuthStore>);
-          } catch (err) {
-            set({
-              error: err as Error,
-              loading: false,
-              initialized: true,
-              _initializing: false,
-            } as Partial<AuthStore>);
+          const existingPromise = (get() as AuthStore)._initPromise;
+          if (existingPromise) {
+            await existingPromise;
+            return;
           }
+
+          const initPromise = (async () => {
+            set({ loading: true, error: null });
+
+            try {
+              const { session: currentSession } = await getSession();
+              const currentUser = currentSession?.user ?? null;
+
+              set({
+                session: currentSession,
+                user: currentUser,
+              });
+
+              if (currentSession?.user) {
+                const profile = await fetchUserProfile(currentSession.user.id, currentSession);
+                set({ profile });
+              }
+
+              const existingSubscription = get().subscription;
+              if (existingSubscription) {
+                existingSubscription.unsubscribe();
+              }
+
+              const subscription = onAuthStateChange(async (event, newSession) => {
+                try {
+                  set({
+                    session: newSession,
+                    user: newSession?.user ?? null,
+                  });
+
+                  if (event === 'SIGNED_IN' && newSession?.user) {
+                    const profile = await fetchUserProfile(newSession.user.id, newSession);
+                    set({ profile });
+                  } else if (event === 'SIGNED_OUT') {
+                    set({ profile: null });
+                  }
+                } catch (err) {
+                  logger.error(
+                    'Auth state change handler error',
+                    err instanceof Error ? err : new Error(String(err))
+                  );
+                }
+              });
+
+              set({
+                subscription,
+                initialized: true,
+                loading: false,
+                _initPromise: null,
+              } as Partial<AuthStore>);
+            } catch (err) {
+              set({
+                error: err as Error,
+                loading: false,
+                initialized: true,
+                _initPromise: null,
+              } as Partial<AuthStore>);
+            }
+          })();
+
+          set({ _initPromise: initPromise } as Partial<AuthStore>);
+          await initPromise;
         },
 
         cleanup: () => {

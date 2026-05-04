@@ -19,7 +19,7 @@ export const GET = createApiHandler(
     const providerResult = OracleProviderPathParamSchema.safeParse(providerSegment);
     if (!providerResult.success) {
       return NextResponse.json(
-        { error: `Invalid provider: ${providerSegment}. Valid providers: ${VALID_PROVIDERS}` },
+        { error: `Invalid provider. Valid providers: ${VALID_PROVIDERS}` },
         { status: 400 }
       );
     }
@@ -55,7 +55,8 @@ export const GET = createApiHandler(
   {
     middlewares: {
       logging: true,
-      rateLimit: { preset: 'lenient' },
+      rateLimit: { preset: 'moderate' },
+      auth: { required: false },
     },
   }
 );

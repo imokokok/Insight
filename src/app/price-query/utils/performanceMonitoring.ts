@@ -107,12 +107,23 @@ class PerformanceMonitor {
       } catch {
         logger.warn('PerformanceObserver not fully supported');
       }
+
+      this._observer = observer;
     };
 
     if (document.readyState === 'complete') {
       observePerformance();
     } else {
-      window.addEventListener('load', observePerformance);
+      window.addEventListener('load', observePerformance, { once: true });
+    }
+  }
+
+  private _observer: PerformanceObserver | null = null;
+
+  disconnect(): void {
+    if (this._observer) {
+      this._observer.disconnect();
+      this._observer = null;
     }
   }
 

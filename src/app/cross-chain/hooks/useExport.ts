@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
 import { downloadBlob } from '@/lib/utils/download';
 import { escapeCSVField } from '@/lib/utils/export';
@@ -31,7 +31,9 @@ interface UseExportReturn {
 
 export function useExport(params: UseExportParams): UseExportReturn {
   const paramsRef = useRef(params);
-  paramsRef.current = params;
+  useEffect(() => {
+    paramsRef.current = params;
+  });
 
   const exportToCSV = useCallback((): boolean => {
     const currentParams = paramsRef.current;

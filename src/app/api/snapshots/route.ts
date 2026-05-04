@@ -45,6 +45,13 @@ function validateCreateSnapshot(body: unknown): Record<string, unknown> | null {
   if (!Array.isArray(sanitizedBody.price_data) || sanitizedBody.price_data.length === 0) {
     return null;
   }
+
+  for (const item of sanitizedBody.price_data) {
+    if (!item || typeof item !== 'object') return null;
+    if (typeof item.symbol !== 'string' || item.symbol.trim() === '') return null;
+    if (typeof item.price !== 'number' || !isFinite(item.price)) return null;
+  }
+
   const priceDataStr = JSON.stringify(sanitizedBody.price_data);
   if (priceDataStr.length > MAX_PRICE_DATA_SIZE) {
     return null;
