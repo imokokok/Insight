@@ -14,10 +14,6 @@ export {
 
 export { isOutlier } from './outlierUtils';
 
-export {
-  defaultThresholdConfig,
-  type ThresholdConfig,
-  type ThresholdType,
-} from './volatilityUtils';
+export { defaultThresholdConfig, type ThresholdConfig } from './volatilityUtils';
 
 export { formatPrice };

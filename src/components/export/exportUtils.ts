@@ -154,7 +154,7 @@ function exportToJSON(
 /**
  * Export to Excel (uses CSV format as base, actual projects can use xlsx library)
  */
-export function exportToExcel(
+function exportToExcel(
   data: unknown[],
   config: ExportConfig,
   dataSource: ExportDataSource
@@ -513,13 +513,4 @@ export function saveExportSettings(settings: Partial<ExportSettings>): void {
   } catch (error) {
     logger.error('Failed to save export settings', error as Error);
   }
-}
-
-/**
- * Re-download history item
- */
-function reDownloadHistoryItem(item: ExportHistoryItem): void {
-  // Re-download functionality - in actual apps may need to regenerate file
-  // This is just an example, actual implementation may need to store file content or regenerate
-  logger.info(`Re-downloading ${item.fileName}`);
 }

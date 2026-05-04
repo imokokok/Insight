@@ -125,7 +125,7 @@ export interface CrossChainStabilityResult {
   worstScore: number;
 }
 
-export interface CrossChainAnalyticsResult {
+interface CrossChainAnalyticsResult {
   risk: CrossChainRiskResult;
   divergence: CrossChainDivergenceResult;
   feed: CrossChainFeedResult;

@@ -3,7 +3,7 @@ import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('BinanceMarketService');
 
-export interface TokenMarketData {
+interface TokenMarketData {
   symbol: string;
   name: string;
   currentPrice: number;
@@ -25,7 +25,7 @@ export interface TokenMarketData {
   lastUpdated: string;
 }
 
-export interface HistoricalPricePoint {
+interface HistoricalPricePoint {
   timestamp: number;
   price: number;
   marketCap?: number;

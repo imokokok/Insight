@@ -18,7 +18,7 @@ const SNAPSHOT_ERROR_MESSAGES = {
   deleteFailed: 'Failed to delete snapshot',
 } as const;
 
-export interface CreateSnapshotInput {
+interface CreateSnapshotInput {
   name?: string;
   symbol: string;
   selected_oracles: OracleProvider[];
