@@ -72,7 +72,7 @@ export function useOracleDataCore(
   const {
     selectedOracles,
     selectedSymbol,
-    initialRefreshInterval = 'off',
+    initialRefreshInterval = 0,
     enablePerformanceMetrics = true,
     initialRetryConfig,
     requestTimeout,
@@ -392,26 +392,12 @@ export function useOracleDataCore(
   }, [selectedOracles, selectedSymbol, resetErrors]);
 
   useEffect(() => {
-    if (refreshInterval === 'off') {
+    if (refreshInterval === 0) {
       setNextRefreshAt(null);
       return;
     }
 
-    const intervalMs =
-      refreshInterval === '10s'
-        ? 10000
-        : refreshInterval === '30s'
-          ? 30000
-          : refreshInterval === '1m'
-            ? 60000
-            : refreshInterval === '5m'
-              ? 300000
-              : 0;
-
-    if (intervalMs === 0) {
-      setNextRefreshAt(null);
-      return;
-    }
+    const intervalMs = refreshInterval;
 
     setNextRefreshAt(new Date(Date.now() + intervalMs));
 

@@ -37,11 +37,13 @@ export const oracleNames: Record<OracleProvider, string> = {
   [OracleProvider.FLARE]: 'Flare',
 };
 
-export type RefreshInterval = 'off' | '10s' | '30s' | '1m' | '5m';
+export type { RefreshInterval } from '@/types/common';
+export {
+  REFRESH_INTERVAL_OPTIONS,
+  refreshIntervalToLabel,
+  labelToRefreshInterval,
+} from '@/types/common';
 
 export const ANOMALY_ZSCORE_THRESHOLD = 2;
 
-export function calculateZScore(value: number, mean: number, stdDev: number): number {
-  if (stdDev === 0) return 0;
-  return (value - mean) / stdDev;
-}
+export { calculateZScore } from '@/lib/utils/statistics';

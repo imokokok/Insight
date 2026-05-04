@@ -21,36 +21,10 @@ import {
   DEFAULT_RISK_WEIGHTS,
 } from '@/lib/analytics/riskMetrics';
 
+import type { RiskMetricsResult } from '../../hooks/useRiskMetrics';
+
 interface RiskAnalysisTabProps {
-  riskScore: number;
-  riskLevel: RiskLevel;
-  riskColor: string;
-  hhiValue: number;
-  hhiLevel: RiskLevel;
-  diversificationScore: number;
-  diversificationLevel: RiskLevel;
-  volatilityIndex: number;
-  volatilityLevel: RiskLevel;
-  correlationScore: number;
-  correlationLevel: RiskLevel;
-  highCorrelationPairs: string[];
-  freshnessScore: number;
-  freshnessLevel: RiskLevel;
-  staleOracleCount: number;
-  staleOracles: Array<{ name: string; stalenessSeconds: number }>;
-  manipulationResistanceScore: number;
-  manipulationResistanceLevel: RiskLevel;
-  manipulationResistanceFactors: {
-    dataSourceDiversity: number;
-    aggregationRobustness: number;
-    updateFrequency: number;
-    onChainVerification: number;
-  };
-  sharedDependencyScore: number;
-  sharedDependencyLevel: RiskLevel;
-  sharedSourceGroups: Array<{ source: string; oracles: string[] }>;
-  systemicRiskFactor: number;
-  weights: RiskWeights;
+  riskMetrics: RiskMetricsResult;
   oracleCount: number;
   divergenceAccelerationScore: number;
   divergenceAccelerationLevel: RiskLevel;
@@ -157,30 +131,7 @@ function formatStaleness(seconds: number): string {
 }
 
 function RiskAnalysisTabComponent({
-  riskScore,
-  riskLevel,
-  riskColor,
-  hhiValue,
-  hhiLevel,
-  diversificationScore,
-  diversificationLevel,
-  volatilityIndex,
-  volatilityLevel,
-  correlationScore,
-  correlationLevel,
-  highCorrelationPairs,
-  freshnessScore,
-  freshnessLevel,
-  staleOracleCount: _staleOracleCount,
-  staleOracles,
-  manipulationResistanceScore,
-  manipulationResistanceLevel,
-  manipulationResistanceFactors,
-  sharedDependencyScore,
-  sharedDependencyLevel,
-  sharedSourceGroups,
-  systemicRiskFactor,
-  weights,
+  riskMetrics,
   oracleCount,
   divergenceAccelerationScore,
   divergenceAccelerationLevel,
@@ -190,6 +141,33 @@ function RiskAnalysisTabComponent({
   stabilityDecayLevel,
   riskAttribution,
 }: RiskAnalysisTabProps) {
+  const {
+    riskScore,
+    riskLevel,
+    riskColor,
+    hhiValue,
+    hhiLevel,
+    diversificationScore,
+    diversificationLevel,
+    volatilityIndex,
+    volatilityLevel,
+    correlationScore,
+    correlationLevel,
+    highCorrelationPairs,
+    freshnessScore,
+    freshnessLevel,
+    staleOracleCount: _staleOracleCount,
+    staleOracles,
+    manipulationResistanceScore,
+    manipulationResistanceLevel,
+    manipulationResistanceFactors,
+    sharedDependencyScore,
+    sharedDependencyLevel,
+    sharedSourceGroups,
+    systemicRiskFactor,
+    weights,
+  } = riskMetrics;
+
   const overallBadge = getLevelBadge(riskLevel);
   const w = weights ?? DEFAULT_RISK_WEIGHTS;
 

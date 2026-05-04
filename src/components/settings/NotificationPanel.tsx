@@ -13,7 +13,7 @@ import {
   CheckCircle,
 } from 'lucide-react';
 
-import { apiClient } from '@/lib/api';
+import { useProfileUpdate } from '@/hooks/useProfileUpdate';
 import { useUser } from '@/stores/authStore';
 
 interface NotificationSettings {
@@ -65,6 +65,7 @@ function Toggle({
 
 export function NotificationPanel() {
   const user = useUser();
+  const { updateProfile, isUpdating: isSaving } = useProfileUpdate();
   const [settings, setSettings] = useState<NotificationSettings>(() => {
     if (typeof window === 'undefined') return defaultSettings;
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -77,7 +78,6 @@ export function NotificationPanel() {
     }
     return defaultSettings;
   });
-  const [isSaving, setIsSaving] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [browserPermission, setBrowserPermission] = useState<NotificationPermission>(() => {
@@ -109,14 +109,13 @@ export function NotificationPanel() {
   };
 
   const handleSave = async () => {
-    setIsSaving(true);
     setError(null);
 
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
 
       if (user) {
-        await apiClient.put('/api/auth/profile', {
+        await updateProfile({
           notification_settings: {
             email_alerts: settings.emailNotifications,
             push_notifications: settings.browserNotifications,
@@ -133,8 +132,6 @@ export function NotificationPanel() {
       successTimerRef.current = setTimeout(() => setSuccess(null), 3000);
     } catch {
       setError('Failed to save settings');
-    } finally {
-      setIsSaving(false);
     }
   };
 

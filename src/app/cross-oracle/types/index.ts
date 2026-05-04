@@ -1,23 +1,15 @@
 import type { MemoryStats } from '@/lib/oracles/utils/memoryManager';
 import type { CalculatedPerformanceMetrics } from '@/lib/oracles/utils/performanceMetricsCalculator';
 import type { OracleRetryConfig as RetryConfig } from '@/lib/oracles/utils/retry';
+import type { ExtendedPriceStats } from '@/types/analytics';
+import type { RefreshInterval } from '@/types/common';
 import type { OracleProvider, PriceData, SnapshotStats } from '@/types/oracle';
 
 import type { PriceHistoryMap } from '../hooks/useOracleMemory';
 
-export type RefreshInterval = 'off' | '10s' | '30s' | '1m' | '5m';
+export type { RefreshInterval } from '@/types/common';
 
-export interface PriceStatsResult {
-  validPrices: number[];
-  avgPrice: number;
-  weightedAvgPrice: number;
-  maxPrice: number;
-  minPrice: number;
-  medianPrice: number;
-  priceRange: number;
-  variance: number;
-  standardDeviation: number;
-  standardDeviationPercent: number;
+export interface PriceStatsResult extends ExtendedPriceStats {
   currentStats: SnapshotStats;
 }
 

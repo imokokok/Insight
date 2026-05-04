@@ -6,6 +6,7 @@ import { Database, BarChart3, Shield, Trophy, Activity, Heart } from 'lucide-rea
 
 import { EmptyStateEnhanced } from '@/components/ui';
 import type { CalculatedPerformanceMetrics } from '@/lib/oracles/utils/performanceMetricsCalculator';
+import type { PriceStats } from '@/types/analytics';
 import type { OracleProvider, PriceData } from '@/types/oracle';
 
 import { OracleErrorPanel } from './OracleErrorPanel';
@@ -31,14 +32,11 @@ interface QueryResultsProps {
   isLoading: boolean;
   queryProgress: { completed: number; total: number };
   currentQueryTarget: { oracle: OracleProvider | null; chain: string | null };
-  avgPrice: number;
-  medianPrice: number;
-  maxPrice: number;
-  minPrice: number;
-  priceRange: number;
-  standardDeviation: number;
-  standardDeviationPercent: number;
-  validPrices: number[];
+  priceStats: PriceStats & {
+    medianPrice: number;
+    standardDeviation: number;
+    validPrices: number[];
+  };
   anomalies: PriceAnomaly[];
   anomalyDetection: AnomalyDetectionResult;
   riskMetrics: RiskMetricsResult;
@@ -115,14 +113,7 @@ function QueryResultsComponent({
   isLoading,
   queryProgress,
   currentQueryTarget,
-  avgPrice,
-  medianPrice,
-  minPrice,
-  maxPrice,
-  priceRange,
-  standardDeviation,
-  standardDeviationPercent,
-  validPrices,
+  priceStats,
   anomalies,
   anomalyDetection,
   riskMetrics,
@@ -336,14 +327,14 @@ function QueryResultsComponent({
               priceData={priceData}
               selectedOracles={selectedOracles}
               selectedSymbol={selectedSymbol}
-              medianPrice={medianPrice}
-              minPrice={minPrice}
-              maxPrice={maxPrice}
-              priceRange={priceRange}
-              standardDeviation={standardDeviation}
-              standardDeviationPercent={standardDeviationPercent}
-              avgPrice={avgPrice}
-              validPrices={validPrices}
+              medianPrice={priceStats.medianPrice}
+              minPrice={priceStats.minPrice}
+              maxPrice={priceStats.maxPrice}
+              priceRange={priceStats.priceRange}
+              standardDeviation={priceStats.standardDeviation}
+              standardDeviationPercent={priceStats.standardDeviationPercent}
+              avgPrice={priceStats.avgPrice}
+              validPrices={priceStats.validPrices}
               anomalies={anomalies}
             />
           )}
@@ -374,30 +365,7 @@ function QueryResultsComponent({
           )}
           {activeTab === 'risk' && (
             <RiskAnalysisTab
-              riskScore={riskMetrics.riskScore}
-              riskLevel={riskMetrics.riskLevel}
-              riskColor={riskMetrics.riskColor}
-              hhiValue={riskMetrics.hhiValue}
-              hhiLevel={riskMetrics.hhiLevel}
-              diversificationScore={riskMetrics.diversificationScore}
-              diversificationLevel={riskMetrics.diversificationLevel}
-              volatilityIndex={riskMetrics.volatilityIndex}
-              volatilityLevel={riskMetrics.volatilityLevel}
-              correlationScore={riskMetrics.correlationScore}
-              correlationLevel={riskMetrics.correlationLevel}
-              highCorrelationPairs={riskMetrics.highCorrelationPairs}
-              freshnessScore={riskMetrics.freshnessScore}
-              freshnessLevel={riskMetrics.freshnessLevel}
-              staleOracleCount={riskMetrics.staleOracleCount}
-              staleOracles={riskMetrics.staleOracles}
-              manipulationResistanceScore={riskMetrics.manipulationResistanceScore}
-              manipulationResistanceLevel={riskMetrics.manipulationResistanceLevel}
-              manipulationResistanceFactors={riskMetrics.manipulationResistanceFactors}
-              sharedDependencyScore={riskMetrics.sharedDependencyScore}
-              sharedDependencyLevel={riskMetrics.sharedDependencyLevel}
-              sharedSourceGroups={riskMetrics.sharedSourceGroups}
-              systemicRiskFactor={riskMetrics.systemicRiskFactor}
-              weights={riskMetrics.weights}
+              riskMetrics={riskMetrics}
               oracleCount={priceData.length}
               divergenceAccelerationScore={divergenceAccelerationScore}
               divergenceAccelerationLevel={divergenceAccelerationLevel}

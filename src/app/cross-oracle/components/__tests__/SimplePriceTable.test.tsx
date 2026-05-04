@@ -47,7 +47,8 @@ jest.mock('../../constants', () => ({
     chainlink: 'Chainlink',
     pyth: 'Pyth',
   },
-  calculateZScore: (price: number, avg: number, std: number) => (std > 0 ? (price - avg) / std : 0),
+  calculateZScore: (price: number, avg: number, std: number) =>
+    std > 0 ? (price - avg) / std : null,
   ANOMALY_ZSCORE_THRESHOLD: 2,
 }));
 

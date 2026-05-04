@@ -23,7 +23,7 @@ interface TableRow extends Record<string, unknown> {
   diff: number;
   diffPercent: number;
   isOutlier: boolean;
-  zScore: number | null;
+  zScore: number;
   dataFreshness: number | null;
   chainStatus: 'online' | 'degraded' | 'offline' | null;
   deviationFromMedian: number | null;
@@ -85,7 +85,7 @@ export function PriceComparisonTable() {
       diff: item.diff,
       diffPercent: item.diffPercent,
       isOutlier: isOutlier(zScore),
-      zScore,
+      zScore: zScore ?? 0,
       dataFreshness: comparison?.latency ?? null,
       chainStatus: comparison?.status ?? null,
       deviationFromMedian: comparison?.deviation ?? null,

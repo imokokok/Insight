@@ -5,7 +5,7 @@ import { Download, RefreshCw, Eye } from 'lucide-react';
 import { FavoriteButton } from '@/components/favorites';
 import { LiveStatusBar } from '@/components/ui';
 import { useColorblindMode, useSetColorblindMode } from '@/stores/crossChainConfigStore';
-import { useCrossChainDataStore } from '@/stores/crossChainDataStore';
+import { useCrossChainDataStore, getFetchData } from '@/stores/crossChainDataStore';
 import { useCrossChainSelectorStore } from '@/stores/crossChainSelectorStore';
 import { useCrossChainUIStore } from '@/stores/crossChainUIStore';
 
@@ -25,7 +25,7 @@ export function PageHeader() {
   const refreshStatus = useCrossChainDataStore((s) => s.refreshStatus);
   const showRefreshSuccess = useCrossChainDataStore((s) => s.showRefreshSuccess);
   const lastUpdated = useCrossChainDataStore((s) => s.lastUpdated);
-  const fetchData = useCrossChainDataStore((s) => s.fetchData);
+  const fetchData = getFetchData();
 
   const {
     exportToCSV,

@@ -3,7 +3,11 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import { type FavoriteConfig, useFavorites } from '@/hooks';
 import { isBlockchain } from '@/lib/utils/chainUtils';
 import { useUser } from '@/stores/authStore';
-import { useCrossChainDataStore } from '@/stores/crossChainDataStore';
+import {
+  useCrossChainDataStore,
+  getClearCache,
+  getClearCacheForProvider,
+} from '@/stores/crossChainDataStore';
 import { useCrossChainSelectorStore } from '@/stores/crossChainSelectorStore';
 import { useCrossChainUIStore } from '@/stores/crossChainUIStore';
 import { type OracleProvider, type Blockchain } from '@/types/oracle';
@@ -138,8 +142,8 @@ export function useCrossChainExportActions(): UseCrossChainExportReturn {
   const selectedBaseChain = useCrossChainSelectorStore((s) => s.selectedBaseChain);
   const visibleChains = useCrossChainUIStore((s) => s.visibleChains);
   const currentPrices = useCrossChainDataStore((s) => s.currentPrices);
-  const storeClearCache = useCrossChainDataStore((s) => s.clearCache);
-  const storeClearCacheForProvider = useCrossChainDataStore((s) => s.clearCacheForProvider);
+  const storeClearCache = getClearCache();
+  const storeClearCacheForProvider = getClearCacheForProvider();
 
   const { handleApplyFavorite } = useFavoriteActions();
 

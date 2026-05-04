@@ -22,7 +22,7 @@ interface UseOracleDataOptions {
 export function useOracleData({
   selectedOracles,
   selectedSymbol,
-  initialRefreshInterval = 'off',
+  initialRefreshInterval = 0,
   enablePerformanceMetrics = true,
   initialRetryConfig,
   requestTimeout,
