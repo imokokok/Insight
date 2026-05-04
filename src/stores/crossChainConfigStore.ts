@@ -19,7 +19,7 @@ interface CrossChainConfigStore extends ConfigState {
 }
 
 const initialState: ConfigState = {
-  refreshInterval: 30000,
+  refreshInterval: 60000,
   thresholdConfig: defaultThresholdConfig,
   colorblindMode: false,
 };
