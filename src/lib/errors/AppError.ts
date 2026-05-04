@@ -274,8 +274,6 @@ export const ErrorCodes = {
   OPERATION_NOT_ALLOWED: 'OPERATION_NOT_ALLOWED',
 } as const;
 
-type ErrorCode = (typeof ErrorCodes)[keyof typeof ErrorCodes];
-
 /**
  * HTTP status code mapping
  */
@@ -294,5 +292,3 @@ export const HttpStatusCodes = {
   SERVICE_UNAVAILABLE: 503,
   GATEWAY_TIMEOUT: 504,
 } as const;
-
-type HttpStatusCode = (typeof HttpStatusCodes)[keyof typeof HttpStatusCodes];

@@ -9,16 +9,6 @@ export interface ApiClientResponse<T> {
   };
 }
 
-interface PaginatedResponse<T> {
-  data: T[];
-  pagination: {
-    page: number;
-    pageSize: number;
-    total: number;
-    totalPages: number;
-  };
-}
-
 export interface ApiErrorBody {
   code: string;
   message: string;

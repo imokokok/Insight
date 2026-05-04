@@ -7,7 +7,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { getDefaultFactory } from '@/lib/oracles';
 import { priceKeys } from '@/lib/queryKeys';
 import { performanceMetricsCalculator } from '@/lib/services/marketData';
-import { type OracleProvider, type Blockchain, type PriceData } from '@/types/oracle';
+import { type OracleProvider, type Blockchain } from '@/types/oracle';
 
 import { type QueryResult } from '../constants';
 import { usePerformanceMonitoring } from '../utils/performanceMonitoring';

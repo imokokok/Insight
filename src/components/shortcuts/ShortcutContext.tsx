@@ -8,8 +8,6 @@ import type { KeyboardShortcut } from '@/hooks';
 // Type definitions
 // ============================================================================
 
-type ShortcutCategory = 'navigation' | 'actions' | 'charts' | 'data' | 'general';
-
 interface ShortcutContextState {
   isHelpOpen: boolean;
   categories: ShortcutCategoryState[];
@@ -155,14 +153,4 @@ export function useShortcutContext() {
     throw new Error('useShortcutContext must be used within a ShortcutProvider');
   }
   return context;
-}
-
-function useShortcutHelp() {
-  const { isHelpOpen, openHelp, closeHelp, toggleHelp } = useShortcutContext();
-  return { isHelpOpen, openHelp, closeHelp, toggleHelp };
-}
-
-function useShortcutRegistration() {
-  const { registerShortcut, unregisterShortcut } = useShortcutContext();
-  return { registerShortcut, unregisterShortcut };
 }

@@ -34,12 +34,6 @@ interface ChainlinkTokenData {
   name: string;
 }
 
-interface ChainlinkNetworkStats {
-  totalFeeds: number;
-  activeChains: number;
-  lastUpdateTimestamp: number;
-}
-
 function encodeAggregatorCall(
   functionName: 'latestRoundData' | 'decimals' | 'description' | 'version'
 ): `0x${string}` {

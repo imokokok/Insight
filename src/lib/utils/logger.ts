@@ -137,8 +137,6 @@ export function createLogger(moduleName: string): Logger {
   return new LoggerImpl(moduleName);
 }
 
-const logger: Logger = createLogger('app');
-
 /**
  * Usage examples:
  *

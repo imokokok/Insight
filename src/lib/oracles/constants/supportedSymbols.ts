@@ -460,16 +460,6 @@ const twapSymbols = [
   'STETH',
   'FRAX',
 ] as const;
-type TwapSymbol = (typeof twapSymbols)[number];
-
-const TWAP_AVAILABLE_PAIRS: Record<string, string[]> = {
-  ethereum: ['BTC', 'ETH', 'USDC', 'USDT', 'DAI', 'WBTC', 'LINK', 'UNI', 'AAVE', 'FRAX'],
-  arbitrum: ['BTC', 'ETH', 'USDC', 'WBTC', 'LINK', 'ARB'],
-  optimism: ['BTC', 'ETH', 'USDC', 'WBTC', 'LINK', 'OP'],
-  polygon: ['BTC', 'ETH', 'USDC', 'USDT', 'WBTC'],
-  base: ['BTC', 'ETH', 'USDC', 'WBTC'],
-  'bnb-chain': ['BTC', 'ETH', 'USDT', 'WBTC', 'BNB'],
-};
 
 const reflectorSymbols = [
   'BTC',
@@ -493,12 +483,6 @@ const reflectorSymbols = [
   'JPY',
   'CNY',
 ] as const;
-
-type ReflectorSymbol = (typeof reflectorSymbols)[number];
-
-const REFLECTOR_AVAILABLE_PAIRS: Record<string, string[]> = {
-  stellar: [...reflectorSymbols],
-};
 
 const flareSymbols = [
   'BTC',
@@ -539,12 +523,6 @@ const flareSymbols = [
   'QNT',
 ] as const;
 
-type FlareSymbol = (typeof flareSymbols)[number];
-
-const FLARE_AVAILABLE_PAIRS: Record<string, string[]> = {
-  flare: [...flareSymbols],
-};
-
 export const oracleSupportedSymbols = {
   chainlink: chainlinkSymbols,
   redstone: redstoneSymbols,
@@ -558,33 +536,10 @@ export const oracleSupportedSymbols = {
   flare: flareSymbols,
 } as const;
 
-// Type definitions
-type ChainlinkSymbol = (typeof chainlinkSymbols)[number];
-type RedstoneSymbol = (typeof redstoneSymbols)[number];
-type DiaSymbol = (typeof diaSymbols)[number];
-type Api3Symbol = (typeof api3Symbols)[number];
-type PythSymbol = (typeof pythSymbols)[number];
-type WinklinkSymbol = (typeof winklinkSymbols)[number];
-type SupraSymbol = (typeof supraSymbols)[number];
-
-type OracleName = keyof typeof oracleSupportedSymbols;
-
-// Get all supported trading pairs (deduplicated)
 export function getAllSupportedSymbols(): string[] {
   const allSymbols = new Set<string>();
   Object.values(oracleSupportedSymbols).forEach((symbols) => {
     symbols.forEach((symbol) => allSymbols.add(symbol));
   });
   return Array.from(allSymbols).sort();
-}
-
-// Get the number of trading pairs supported by a specified oracle
-function getOracleSymbolCount(oracle: OracleName): number {
-  return oracleSupportedSymbols[oracle].length;
-}
-
-// Check if a trading pair is supported by a specified oracle
-function isSymbolSupportedByOracle(symbol: string, oracle: OracleName): boolean {
-  const symbols = oracleSupportedSymbols[oracle];
-  return symbols.includes(symbol.toUpperCase() as never);
 }

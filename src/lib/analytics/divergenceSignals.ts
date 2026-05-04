@@ -209,8 +209,7 @@ export function detectDirectionalBias(directions: DivergenceDirection[]): {
 }
 
 export function calculateDivergenceTimeSeries(
-  priceHistoryMap: Map<string, PriceHistoryEntry[]>,
-  priceData: PriceData[]
+  priceHistoryMap: Map<string, PriceHistoryEntry[]>
 ): DivergenceTimeSeries[] {
   try {
     if (!priceHistoryMap || priceHistoryMap.size === 0) {
@@ -513,7 +512,7 @@ export function calculateDivergenceSignals(
       );
     }
 
-    const timeSeries = calculateDivergenceTimeSeries(historyMap, priceData);
+    const timeSeries = calculateDivergenceTimeSeries(historyMap);
     const leadership = calculateOracleLeadership(historyMap);
     const divergenceMatrix = calculateDivergenceMatrix(priceData);
 

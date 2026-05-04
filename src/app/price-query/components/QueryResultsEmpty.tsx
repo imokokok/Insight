@@ -7,7 +7,7 @@ import { EmptyStateEnhanced, SegmentedControl } from '@/components/ui';
 import { useUnifiedQuery } from '../contexts';
 
 export function QueryResultsEmpty() {
-  const { selectedSymbol, setSelectedSymbol, selectedOracle, selectedChain, needsChainSelection } =
+  const { selectedSymbol, setSelectedSymbol, selectedOracle, needsChainSelection } =
     useUnifiedQuery();
 
   const getEmptyStateContent = () => {

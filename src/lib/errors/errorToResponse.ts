@@ -7,14 +7,6 @@ import { AppError } from './AppError';
 
 const logger = createLogger('error-handler');
 
-interface ErrorResponse {
-  error: {
-    code: string;
-    message: string;
-    retryable: boolean;
-    details?: Record<string, unknown>;
-  };
-}
 /**
  * Convert error to NextResponse response
  * Reuse the standard error response creation function from errorTypes.ts
@@ -62,69 +54,6 @@ export function errorToResponse(error: unknown): NextResponse {
   return NextResponse.json(standardResponse, { status: 500 });
 }
 
-/**
- * Handle error and add context information
- */
-function handleError(
-  error: unknown,
-  context?: {
-    operation?: string;
-    provider?: string;
-    symbol?: string;
-  }
-): NextResponse {
-  if (context) {
-    const err = error instanceof Error ? error : new Error(String(error));
-    logger.error(`Error in ${context.operation || 'unknown operation'}`, err, {
-      context,
-    });
-  }
-
-  return errorToResponse(error);
-}
-
-/**
- * Check if error is of AppError type
- */
 export function isAppError(error: unknown): error is AppError {
   return error instanceof AppError;
-}
-
-/**
- * Check if error is an operational error
- */
-function isOperationalError(error: unknown): boolean {
-  if (error instanceof AppError) {
-    return error.isOperational;
-  }
-  return false;
-}
-
-/**
- * Check if error should be retried
- * Reuse logic from errorTypes.ts
- */
-function isRetryableError(error: unknown): boolean {
-  if (error instanceof AppError) {
-    return error.retryable;
-  }
-
-  if (error instanceof Error) {
-    // Check if error message contains retryable patterns
-    const retryablePatterns = [
-      'network',
-      'timeout',
-      'ECONNREFUSED',
-      'ETIMEDOUT',
-      'fetch',
-      'abort',
-      'ECONNRESET',
-      'EAI_AGAIN',
-    ];
-    return retryablePatterns.some((pattern) =>
-      error.message.toLowerCase().includes(pattern.toLowerCase())
-    );
-  }
-
-  return false;
 }

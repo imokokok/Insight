@@ -1,7 +1,5 @@
 export const SUPRA_DORA_REST_URL = 'https://rpc-mainnet-dora-2.supra.com';
 
-const SUPRA_KLINE_REST_URL = 'https://prod-kline-rest.supra.com';
-
 export const SUPRA_CACHE_TTL = {
   PRICE: 10000,
   HISTORY: 60000,
@@ -102,13 +100,3 @@ export const SUPRA_PAIR_INDEX_MAP: Record<string, number> = {
 export const SUPRA_INDEX_TO_SYMBOL: Record<number, string> = Object.fromEntries(
   Object.entries(SUPRA_PAIR_INDEX_MAP).map(([symbol, index]) => [index, symbol])
 );
-
-const SUPRA_SYMBOL_MAP: Record<string, string> = Object.fromEntries(
-  Object.entries(SUPRA_PAIR_INDEX_MAP).map(([symbol]) => [symbol, `${symbol.toLowerCase()}_usdt`])
-);
-
-const SUPRA_REVERSE_SYMBOL_MAP: Record<string, string> = Object.fromEntries(
-  Object.entries(SUPRA_SYMBOL_MAP).map(([symbol, pair]) => [pair, symbol])
-);
-
-const SUPRA_DEFAULT_PAIR_INDEXES = [0, 1, 10, 49, 14, 90, 104, 107, 80, 2];

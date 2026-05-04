@@ -11,7 +11,7 @@ import { supraConfig } from './supra';
 import { twapConfig } from './twap';
 import { winklinkConfig } from './winklink';
 
-import type { OracleConfig, OracleViewConfig } from './types';
+import type { OracleConfig } from './types';
 
 export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
   [OracleProvider.CHAINLINK]: chainlinkConfig,
@@ -34,22 +34,6 @@ export function getOracleConfig(provider: OracleProvider): OracleConfig {
   return config;
 }
 
-function getAllOracleConfigs(): OracleConfig[] {
-  return Object.values(oracleConfigs);
-}
-
-function getAllOracleConfigsSortedByMarketCap(): OracleConfig[] {
-  return Object.values(oracleConfigs).sort((a, b) => {
-    if (a.provider === OracleProvider.API3 && b.provider === OracleProvider.REDSTONE) {
-      return -1;
-    }
-    if (a.provider === OracleProvider.REDSTONE && b.provider === OracleProvider.API3) {
-      return 1;
-    }
-    return b.marketData.marketCap - a.marketData.marketCap;
-  });
-}
-
 function getOracleProvidersSortedByMarketCap(): OracleProvider[] {
   return Object.values(oracleConfigs)
     .sort((a, b) => {
@@ -66,16 +50,4 @@ function getOracleProvidersSortedByMarketCap(): OracleProvider[] {
 
 export function getPriceOracleProvidersSortedByMarketCap(): OracleProvider[] {
   return getOracleProvidersSortedByMarketCap();
-}
-
-function getOracleViews(provider: OracleProvider): OracleViewConfig[] {
-  const config = getOracleConfig(provider);
-  return (
-    config.views ||
-    config.tabs.map((tab) => ({
-      id: tab.id,
-      label: tab.label,
-      component: `${provider.charAt(0).toUpperCase() + provider.slice(1).replace(/-/g, '')}View`,
-    }))
-  );
 }

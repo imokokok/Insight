@@ -178,9 +178,4 @@ export function getDIADataService(): DIADataService {
   return DIADataService.getInstance();
 }
 
-function resetDIADataService(): void {
-  const instance = DIADataService.getInstance();
-  instance.clearCache();
-}
-
 export type DIATokenOnChainData = DIATokenOnChainDataInternal;

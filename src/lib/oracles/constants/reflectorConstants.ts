@@ -32,10 +32,6 @@ export const REFLECTOR_CRYPTO_ASSETS = [
 
 export const REFLECTOR_FOREX_ASSETS = ['EUR', 'GBP', 'CAD', 'BRL', 'JPY', 'CNY'] as const;
 
-type ReflectorCryptoAsset = (typeof REFLECTOR_CRYPTO_ASSETS)[number];
-type ReflectorForexAsset = (typeof REFLECTOR_FOREX_ASSETS)[number];
-type ReflectorAsset = ReflectorCryptoAsset | ReflectorForexAsset;
-
 export const REFLECTOR_ASSET_CONTRACT_MAP: Record<string, string> = {
   ...Object.fromEntries(REFLECTOR_CRYPTO_ASSETS.map((a) => [a, REFLECTOR_CRYPTO_CONTRACT])),
   ...Object.fromEntries(REFLECTOR_FOREX_ASSETS.map((a) => [a, REFLECTOR_FOREX_CONTRACT])),
@@ -63,5 +59,3 @@ export const REFLECTOR_CONTRACT_METHODS = {
 } as const;
 
 export const REFLECTOR_TIMEOUT_MS = 15_000;
-
-const REFLECTOR_MAX_RETRIES = 3;

@@ -45,7 +45,6 @@ export function useChartData(params: UseChartDataParams): UseChartDataReturn {
     filteredChains,
     selectedBaseChain,
     validPrices,
-    avgPrice,
     thresholdConfig: thresholdConfigParam,
   } = params;
 

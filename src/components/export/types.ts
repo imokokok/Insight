@@ -9,14 +9,6 @@
  */
 export type ExportFormat = 'csv' | 'json' | 'excel' | 'pdf';
 
-/**
- * Export status
- */
-type ExportStatus = 'idle' | 'preparing' | 'exporting' | 'completed' | 'error';
-
-/**
- * Data source type
- */
 export type ExportDataSource = 'price-query' | 'cross-oracle' | 'oracle-detail' | 'custom';
 
 /**
@@ -67,28 +59,6 @@ export interface ExportHistoryItem {
 /**
  * Export progress
  */
-interface ExportProgress {
-  status: ExportStatus;
-  progress: number; // 0-100
-  currentStep: string;
-  recordCount: number;
-  processedCount: number;
-}
-
-/**
- * Export options
- */
-interface ExportOptions {
-  data: unknown[];
-  config: ExportConfig;
-  dataSource: ExportDataSource;
-  chartElement?: HTMLElement | null;
-  stats?: Record<string, number | string>;
-}
-
-/**
- * Unified export component props
- */
 export interface UnifiedExportProps {
   data: unknown[];
   dataSource: ExportDataSource;
@@ -104,16 +74,6 @@ export interface UnifiedExportProps {
 
 /**
  * Export history component props
- */
-interface ExportHistoryProps {
-  maxItems?: number;
-  onReDownload?: (historyItem: ExportHistoryItem) => void;
-  onClearHistory?: () => void;
-  onRemoveItem?: (id: string) => void;
-}
-
-/**
- * Export format configuration
  */
 interface ExportFormatConfig {
   value: ExportFormat;

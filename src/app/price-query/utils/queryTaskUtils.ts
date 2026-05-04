@@ -2,9 +2,7 @@
 
 import type { OracleClientFactory } from '@/lib/oracles';
 import type { BaseOracleClient } from '@/lib/oracles/base';
-import { type Blockchain, OracleProvider, type PriceData } from '@/types/oracle';
-
-import type { QueryResult } from '../constants';
+import { type Blockchain, OracleProvider } from '@/types/oracle';
 
 interface QueryTask {
   provider: OracleProvider;
@@ -17,13 +15,6 @@ export interface QueryError {
   provider: OracleProvider;
   chain: Blockchain;
   error: string;
-}
-
-interface QueryTaskResult {
-  provider: OracleProvider;
-  chain: Blockchain;
-  priceData: PriceData;
-  isCompare: boolean;
 }
 
 export function buildQueryTasks(

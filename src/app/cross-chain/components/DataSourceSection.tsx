@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 
 import Image from 'next/image';
 
-import { Database, Layers, ShieldCheck, RefreshCw } from 'lucide-react';
+import { Database, Layers, ShieldCheck } from 'lucide-react';
 
 import { DataSourceList, type DataSourceGroup } from '@/components/data-transparency';
 import { DataUpdateTime } from '@/components/data-transparency/DataUpdateTime';

@@ -326,7 +326,6 @@ function calculateHeartbeatSeverity(
   isHeartbeatLost: boolean,
   maxGapSeconds: number,
   expectedIntervalSeconds: number,
-  timeSinceLastUpdate: number,
   reliability: number
 ): HeartbeatSeverity {
   if (!isHeartbeatLost && reliability >= 0.9) return 'none';
@@ -388,7 +387,6 @@ export function calculateHeartbeat(
       isHeartbeatLost,
       maxGapSeconds,
       expectedIntervalSeconds,
-      timeSinceLastUpdate,
       reliability
     );
 
@@ -580,7 +578,7 @@ export function calculateFeedHealthScore(params: {
 }
 
 export function calculateFeedBehavior(
-  priceData: Array<{
+  _priceData: Array<{
     provider: string;
     price: number;
     timestamp: number;

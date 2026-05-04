@@ -8,14 +8,6 @@ export const FLARE_RPC_ENDPOINTS: Record<string, string[]> = {
   coston2: ['https://coston2-api.flare.network/ext/C/rpc', 'https://coston2.rpc.thirdweb.com'],
 };
 
-const FLARE_CHAIN_IDS: Record<string, number> = {
-  flare: 14,
-  songbird: 19,
-  coston2: 114,
-};
-
-const FLARE_NETWORK_DEFAULT = 'flare';
-
 export const FTSOV2_ADDRESS: Record<string, `0x${string}`> = {
   flare: '0x7BDE3Df0624114eDB3A67dFe6753e62f4e7c1d20',
   songbird: '0x9e3F0E9B67C11EFdB3E4a032A88b4627A1b9653C',
@@ -78,12 +70,6 @@ export const flareSymbols = [
   'FTM',
   'QNT',
 ] as const;
-
-type FlareSymbol = (typeof flareSymbols)[number];
-
-const FLARE_AVAILABLE_PAIRS: Record<string, string[]> = {
-  flare: [...flareSymbols],
-};
 
 export const FTSOV2_ABI = [
   {

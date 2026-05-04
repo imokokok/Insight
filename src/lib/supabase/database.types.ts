@@ -362,75 +362,7 @@ export interface Database {
 export type Tables<T extends keyof Database['public']['Tables']> =
   Database['public']['Tables'][T]['Row'];
 
-type InsertTables<T extends keyof Database['public']['Tables']> =
-  Database['public']['Tables'][T]['Insert'];
-
-type UpdateTables<T extends keyof Database['public']['Tables']> =
-  Database['public']['Tables'][T]['Update'];
-
-type Views<T extends keyof Database['public']['Views']> = Database['public']['Views'][T]['Row'];
-
-type UserProfile = Tables<'user_profiles'>;
-type PriceRecord = Tables<'price_records'>;
-type UserSnapshot = Tables<'user_snapshots'>;
-type UserFavorite = Tables<'user_favorites'>;
 export type PriceAlert = Tables<'price_alerts'>;
 export type AlertEvent = Tables<'alert_events'>;
-type ActiveAlertWithPrice = Views<'active_alerts_with_prices'>;
-
-type UserPreferences = {
-  default_oracle?: string;
-  default_symbol?: string;
-  default_chain?: string;
-  default_currency?: string;
-  auto_refresh_interval?: number;
-  chart_settings?: {
-    show_confidence_interval?: boolean;
-    auto_refresh?: boolean;
-    refresh_interval?: number;
-  };
-};
-
-type NotificationSettings = {
-  email_alerts?: boolean;
-  push_notifications?: boolean;
-  alert_frequency?: 'immediate' | 'hourly' | 'daily';
-};
-
-type SnapshotStats = {
-  avgPrice: number;
-  weightedAvgPrice: number;
-  maxPrice: number;
-  minPrice: number;
-  priceRange: number;
-  variance: number;
-  standardDeviation: number;
-  standardDeviationPercent: number;
-};
-
-type SnapshotPriceData = {
-  provider: string;
-  symbol: string;
-  chain?: string;
-  price: number;
-  timestamp: number;
-  confidence?: number;
-  source?: string;
-};
-
-type OracleConfigFavorite = {
-  selectedOracles: string[];
-  symbol: string;
-};
-
-type SymbolFavorite = {
-  symbol: string;
-  chains?: string[];
-};
-
-type ChainConfigFavorite = {
-  chain: string;
-  symbols?: string[];
-};
 
 export type ConfigType = 'oracle_config' | 'symbol' | 'chain_config';

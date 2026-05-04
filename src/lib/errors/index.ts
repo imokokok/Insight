@@ -1,17 +1,4 @@
-import type { ReactNode } from 'react';
-
-import {
-  ValidationError,
-  NotFoundError,
-  AuthenticationError,
-  AuthorizationError,
-  RateLimitError,
-  NetworkError,
-  InternalError,
-} from './BusinessErrors';
 import { isAppError } from './errorToResponse';
-
-import type { AppError as AppErrorType } from './AppError';
 
 export { AppError } from './AppError';
 
@@ -42,12 +29,6 @@ export {
 } from './OracleError';
 
 export { errorToResponse, isAppError } from './errorToResponse';
-
-interface ErrorBoundaryHandler {
-  onError?: (error: Error, errorInfo: { componentStack: string }) => void;
-  onReset?: () => void;
-  fallback?: ReactNode;
-}
 
 interface ErrorClassification {
   category: string;

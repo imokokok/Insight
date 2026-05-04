@@ -28,17 +28,6 @@ export class ValidationError extends AppError {
 }
 
 /**
- * Field validation error
- * Validation error for a specific field
- */
-class FieldValidationError extends ValidationError {
-  constructor(field: string, message: string, value?: unknown) {
-    super(message, { field, value });
-    this.name = 'FieldValidationError';
-  }
-}
-
-/**
  * Not found error details
  */
 interface NotFoundErrorDetails extends AppErrorDetails {
@@ -99,16 +88,6 @@ export class AuthenticationError extends AppError {
 }
 
 /**
- * Token expired error
- */
-class TokenExpiredError extends AuthenticationError {
-  constructor(message = 'Token has expired', details?: AuthenticationErrorDetails) {
-    super(message, { ...details, reason: 'token_expired' });
-    this.name = 'TokenExpiredError';
-  }
-}
-
-/**
  * Authorization error details
  */
 interface AuthorizationErrorDetails extends AppErrorDetails {
@@ -157,19 +136,6 @@ export class ConflictError extends AppError {
       severity: 'medium',
       details,
     });
-  }
-}
-
-/**
- * Duplicate entry error
- */
-class DuplicateEntryError extends ConflictError {
-  constructor(resource: string, field: string, value: unknown) {
-    super(`${resource} with ${field} '${value}' already exists`, {
-      resource,
-      conflictingValue: { field, value },
-    });
-    this.name = 'DuplicateEntryError';
   }
 }
 
@@ -232,30 +198,6 @@ export class InternalError extends AppError {
 }
 
 /**
- * Service unavailable error
- */
-class ServiceUnavailableError extends InternalError {
-  constructor(service: string, details?: InternalErrorDetails, cause?: Error) {
-    super(
-      `Service '${service}' is currently unavailable`,
-      { ...details, operation: service },
-      cause
-    );
-    this.name = 'ServiceUnavailableError';
-  }
-}
-
-/**
- * Database error
- */
-class DatabaseError extends InternalError {
-  constructor(message: string, operation?: string, cause?: Error) {
-    super(message, { operation, originalError: cause?.message }, cause);
-    this.name = 'DatabaseError';
-  }
-}
-
-/**
  * Not implemented error
  */
 export class NotImplementedError extends AppError {
@@ -294,53 +236,6 @@ export class NetworkError extends AppError {
       severity: 'high',
       retryable: true,
       details,
-      cause,
-    });
-  }
-}
-
-/**
- * Timeout error
- */
-class TimeoutError extends NetworkError {
-  constructor(operation: string, timeout: number, details?: NetworkErrorDetails, cause?: Error) {
-    super(
-      `Operation '${operation}' timed out after ${timeout}ms`,
-      { ...details, timeout, operation },
-      cause
-    );
-    this.name = 'TimeoutError';
-  }
-}
-
-/**
- * External service error details
- */
-interface ExternalServiceErrorDetails extends AppErrorDetails {
-  service?: string;
-  endpoint?: string;
-  responseStatus?: number;
-  responseBody?: unknown;
-}
-
-/**
- * External service error
- */
-class ExternalServiceError extends AppError {
-  constructor(
-    service: string,
-    message: string,
-    details?: ExternalServiceErrorDetails,
-    cause?: Error
-  ) {
-    super({
-      message: `${service} error: ${message}`,
-      code: ErrorCodes.EXTERNAL_SERVICE_ERROR,
-      statusCode: HttpStatusCodes.BAD_GATEWAY,
-      category: 'external_service',
-      severity: 'high',
-      retryable: true,
-      details: { service, ...details },
       cause,
     });
   }

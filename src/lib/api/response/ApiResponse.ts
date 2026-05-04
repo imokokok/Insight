@@ -42,11 +42,6 @@ export interface PaginationMeta {
   totalPages: number;
 }
 
-interface PaginatedResponse<T = unknown> {
-  data: T[];
-  pagination: PaginationMeta;
-}
-
 export interface ApiPaginatedResponse<T = unknown> extends ApiSuccessResponse<T[]> {
   pagination: PaginationMeta;
 }

@@ -2,12 +2,7 @@ import { PriceFetchError, OracleClientError } from '@/lib/errors';
 import { OracleProvider } from '@/types/oracle';
 import { type Blockchain, type PriceData } from '@/types/oracle';
 
-import {
-  shouldUseDatabase,
-  getPriceFromDatabase,
-  getHistoricalPricesFromDatabase,
-  savePriceToDatabase,
-} from '../utils/storage';
+import { shouldUseDatabase, getPriceFromDatabase, savePriceToDatabase } from '../utils/storage';
 
 const PROVIDERS_WITH_EXTRA_FIELDS = new Set([
   OracleProvider.CHAINLINK,
@@ -77,7 +72,7 @@ export async function fetchHistoricalPricesWithDatabase(
   symbol: string,
   chain: Blockchain | undefined,
   period: number,
-  useDatabase: boolean
+  _useDatabase: boolean
 ): Promise<PriceData[]> {
   try {
     const client = await getOracleClient(provider);

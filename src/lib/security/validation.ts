@@ -28,30 +28,6 @@ const SafeNameSchema = z
   .max(100, 'Name too long')
   .transform((val) => sanitizeString(val, { maxLength: 100 }));
 
-const SafeUuidSchema = z
-  .string()
-  .uuid()
-  .transform((val) => val.toLowerCase());
-
-const SafeEmailSchema = z
-  .string()
-  .email('Invalid email format')
-  .max(254, 'Email too long')
-  .transform((val) => val.toLowerCase().trim());
-
-const SafeUrlSchema = z
-  .string()
-  .url('Invalid URL format')
-  .max(2048, 'URL too long')
-  .refine((val) => {
-    try {
-      const url = new URL(val);
-      return ['http:', 'https:'].includes(url.protocol);
-    } catch {
-      return false;
-    }
-  }, 'Only HTTP and HTTPS URLs are allowed');
-
 const SafeAlertConditionSchema = z.enum([
   'above',
   'below',
