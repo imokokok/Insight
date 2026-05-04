@@ -3,7 +3,12 @@ import { createLogger } from '@/lib/utils/logger';
 import { OracleProvider } from '@/types/oracle';
 import { type Blockchain, type PriceData } from '@/types/oracle';
 
-import { shouldUseDatabase, getPriceFromDatabase, savePriceToDatabase } from '../utils/storage';
+import {
+  shouldUseDatabase,
+  getPriceFromDatabase,
+  savePriceToDatabase,
+  getHistoricalPricesFromDatabase,
+} from '../utils/storage';
 
 const logger = createLogger('databaseOperations');
 
@@ -81,9 +86,16 @@ export async function fetchHistoricalPricesWithDatabase(
   symbol: string,
   chain: Blockchain | undefined,
   period: number,
-  _useDatabase: boolean
+  useDatabase: boolean
 ): Promise<PriceData[]> {
   try {
+    if (useDatabase && shouldUseDatabase()) {
+      const dbPrices = await getHistoricalPricesFromDatabase(provider, symbol, chain, period);
+      if (dbPrices && dbPrices.length > 0) {
+        return dbPrices;
+      }
+    }
+
     const client = await getOracleClient(provider);
     const livePrices = await client.getHistoricalPrices(symbol, chain, period);
     return livePrices;

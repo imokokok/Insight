@@ -28,6 +28,15 @@ const MONTHS_SHORT = [
   'Dec',
 ] as const;
 
+export function formatCountdown(ms: number): string {
+  if (ms <= 0) return '0s';
+  const seconds = Math.ceil(ms / 1000);
+  if (seconds < 60) return `${seconds}s`;
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+}
+
 export function formatTimeString(date: Date, includeSeconds: boolean = true): string {
   const hours = date.getHours();
   const minutes = String(date.getMinutes()).padStart(2, '0');

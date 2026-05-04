@@ -385,14 +385,13 @@ export class DatabaseQueries {
     return data;
   }
 
-  async getSnapshotById(id: string, userId?: string): Promise<UserSnapshot | null> {
-    let query = this.client.from('user_snapshots').select('*').eq('id', id);
-
-    if (userId) {
-      query = query.eq('user_id', userId);
-    }
-
-    const { data, error } = await query.single();
+  async getSnapshotById(id: string, userId: string): Promise<UserSnapshot | null> {
+    const { data, error } = await this.client
+      .from('user_snapshots')
+      .select('*')
+      .eq('id', id)
+      .eq('user_id', userId)
+      .single();
 
     if (error) {
       if (error.code !== 'PGRST116') {
@@ -756,20 +755,17 @@ export class DatabaseQueries {
     return data;
   }
 
-  async acknowledgeAlertEvent(eventId: string, userId?: string): Promise<AlertEvent | null> {
-    let query = this.client
+  async acknowledgeAlertEvent(eventId: string, userId: string): Promise<AlertEvent | null> {
+    const { data, error } = await this.client
       .from('alert_events')
       .update({
         acknowledged: true,
         acknowledged_at: new Date().toISOString(),
       })
-      .eq('id', eventId);
-
-    if (userId) {
-      query = query.eq('user_id', userId);
-    }
-
-    const { data, error } = await query.select().single();
+      .eq('id', eventId)
+      .eq('user_id', userId)
+      .select()
+      .single();
 
     if (error) {
       logger.error(

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState, useRef, useEffect } from 'react';
 
 import { Camera, Check } from 'lucide-react';
 
@@ -9,12 +9,15 @@ import { Button, LiveStatusBar } from '@/components/ui';
 import { useCreateSnapshot } from '@/hooks';
 import { chartColors } from '@/lib/config/colors';
 import { formatTimeString } from '@/lib/utils/format';
+import { createLogger } from '@/lib/utils/logger';
 import { useUser } from '@/stores/authStore';
 
 import { ControlPanel } from './components/ControlPanel';
 import CrossOracleExportSection from './components/CrossOracleExportSection';
 import { QueryResults } from './components/QueryResults';
 import { useCrossOraclePage } from './hooks';
+
+const logger = createLogger('CrossOracleContent');
 
 function CrossOracleContentInner() {
   const {
@@ -62,6 +65,15 @@ function CrossOracleContentInner() {
   const user = useUser();
   const { createSnapshot, isPending: isSavingSnapshot } = useCreateSnapshot();
   const [snapshotSaveSuccess, setSnapshotSaveSuccess] = useState(false);
+  const snapshotTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (snapshotTimerRef.current) {
+        clearTimeout(snapshotTimerRef.current);
+      }
+    };
+  }, []);
 
   const {
     validPrices,
@@ -106,9 +118,9 @@ function CrossOracleContentInner() {
       });
 
       setSnapshotSaveSuccess(true);
-      setTimeout(() => setSnapshotSaveSuccess(false), 2000);
+      snapshotTimerRef.current = setTimeout(() => setSnapshotSaveSuccess(false), 2000);
     } catch (err) {
-      console.error('Failed to save snapshot:', err);
+      logger.warn('Failed to save snapshot', err instanceof Error ? err : new Error(String(err)));
     }
   }, [user, priceData, selectedSymbol, selectedOracles, priceStats.currentStats, createSnapshot]);
 

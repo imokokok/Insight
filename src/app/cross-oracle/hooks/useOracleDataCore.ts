@@ -402,7 +402,7 @@ export function useOracleDataCore(
     setNextRefreshAt(new Date(Date.now() + intervalMs));
 
     const intervalId = setInterval(() => {
-      if (!isMountedRef.current || !document.hidden || isRefreshingRef.current) {
+      if (!isMountedRef.current || document.hidden || isRefreshingRef.current) {
         return;
       }
       isRefreshingRef.current = true;
@@ -415,7 +415,12 @@ export function useOracleDataCore(
             setNextRefreshAt(new Date(now.getTime() + intervalMs));
           }
         })
-        .catch(() => {})
+        .catch((err) => {
+          logger.warn(
+            'Auto-refresh fetch failed',
+            err instanceof Error ? err : new Error(String(err))
+          );
+        })
         .finally(() => {
           isRefreshingRef.current = false;
         });
@@ -433,7 +438,12 @@ export function useOracleDataCore(
               setNextRefreshAt(new Date(now.getTime() + intervalMs));
             }
           })
-          .catch(() => {})
+          .catch((err) => {
+            logger.warn(
+              'Visibility change refresh failed',
+              err instanceof Error ? err : new Error(String(err))
+            );
+          })
           .finally(() => {
             isRefreshingRef.current = false;
           });

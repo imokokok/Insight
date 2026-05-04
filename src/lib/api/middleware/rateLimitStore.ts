@@ -192,7 +192,13 @@ function createRateLimitStore(): RateLimitStore {
     }
   }
 
-  logger.warn('Using in-memory rate limit storage - not suitable for serverless environments');
+  if (process.env.NODE_ENV === 'production') {
+    logger.error(
+      'CRITICAL: Using in-memory rate limit storage in production - rate limiting is effectively disabled in serverless environments. Configure KV_REST_API_URL for proper rate limiting.'
+    );
+  } else {
+    logger.warn('Using in-memory rate limit storage - not suitable for serverless environments');
+  }
   return new MemoryRateLimitStore();
 }
 

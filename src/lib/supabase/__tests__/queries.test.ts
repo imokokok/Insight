@@ -366,7 +366,7 @@ describe('Snapshot operations - getSnapshotById', () => {
 
     mockQuery.single.mockResolvedValueOnce({ data: mockData, error: null });
 
-    const result = await queries.getSnapshotById('snapshot-id');
+    const result = await queries.getSnapshotById('snapshot-id', 'user-id');
 
     expect(mockClient.from).toHaveBeenCalledWith('user_snapshots');
     expect(result).toEqual(mockData);
@@ -378,7 +378,7 @@ describe('Snapshot operations - getSnapshotById', () => {
       error: { code: 'PGRST116' },
     });
 
-    const result = await queries.getSnapshotById('non-existent');
+    const result = await queries.getSnapshotById('non-existent', 'user-id');
 
     expect(result).toBeNull();
   });
@@ -743,7 +743,7 @@ describe('Alert operations - acknowledgeAlertEvent', () => {
 
     mockQuery.single.mockResolvedValueOnce({ data: mockData, error: null });
 
-    const result = await queries.acknowledgeAlertEvent('event-id');
+    const result = await queries.acknowledgeAlertEvent('event-id', 'user-id');
 
     expect(mockClient.from).toHaveBeenCalledWith('alert_events');
     expect(result).toEqual(mockData);

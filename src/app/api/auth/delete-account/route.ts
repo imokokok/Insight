@@ -76,6 +76,11 @@ export const POST = createApiHandler(
 
     const response = NextResponse.json({
       success: true,
+      ...(deletionErrors.length > 0 && {
+        partialFailure: true,
+        failedItems: deletionErrors,
+        message: `Account deleted but some data could not be removed: ${deletionErrors.join(', ')}`,
+      }),
     });
 
     const cookieNames = request.cookies.getAll().map((c) => c.name);

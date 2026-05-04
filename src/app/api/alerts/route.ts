@@ -1,7 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
 import { createApiHandler, ApiResponseBuilder } from '@/lib/api/handler';
-import { sanitizeObject } from '@/lib/security';
 import { CreateAlertRequestSchema, AlertListResponseSchema } from '@/lib/security/validation';
 import { type AlertConditionType } from '@/lib/supabase/database.types';
 import { getServerQueries } from '@/lib/supabase/server';
@@ -59,18 +58,16 @@ export const POST = createApiHandler(
       return validation.response ?? ApiResponseBuilder.badRequest('Validation failed');
     }
 
-    const sanitizedData = sanitizeObject(validation.data!.body!);
-
-    const { name, symbol, chain, condition_type, target_value, provider, is_active } =
-      sanitizedData as {
-        name: string;
-        symbol: string;
-        chain?: string;
-        condition_type: AlertConditionType;
-        target_value: number;
-        provider?: string;
-        is_active?: boolean;
-      };
+    const { name, symbol, chain, condition_type, target_value, provider, is_active } = validation
+      .data!.body! as {
+      name: string;
+      symbol: string;
+      chain?: string;
+      condition_type: AlertConditionType;
+      target_value: number;
+      provider?: string;
+      is_active?: boolean;
+    };
 
     const queries = getServerQueries();
     const alert = await queries.createAlert(userId, {
