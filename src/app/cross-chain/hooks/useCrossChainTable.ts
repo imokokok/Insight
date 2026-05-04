@@ -23,12 +23,7 @@ interface UseCrossChainTableReturn {
 }
 
 export function useCrossChainTable(params: UseCrossChainTableParams): UseCrossChainTableReturn {
-  const {
-    priceDifferences,
-    filteredChains,
-    selectedBaseChain,
-    thresholdConfig: thresholdConfigParam,
-  } = params;
+  const { priceDifferences, selectedBaseChain, thresholdConfig: thresholdConfigParam } = params;
 
   const thresholdConfig = thresholdConfigParam ?? defaultThresholdConfig;
 

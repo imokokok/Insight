@@ -95,7 +95,7 @@ export function clearAllSnapshots(): boolean {
 export function compareSnapshots(
   currentStats: SnapshotStats,
   currentPriceData: PriceData[],
-  currentSymbol: string,
+  _currentSymbol: string,
   snapshot: OracleSnapshot
 ): SnapshotComparisonResult {
   const calculateChange = (current: number, previous: number): number => {

@@ -14,7 +14,6 @@ import {
   fetchPriceWithDatabase,
   fetchHistoricalPricesWithDatabase,
 } from './base/databaseOperations';
-import { shouldUseDatabase } from './utils/storage';
 
 const logger = createLogger('BaseOracleClient');
 
@@ -29,8 +28,6 @@ export const ORACLE_CACHE_TTL = {
 } as const;
 
 export const MAX_CACHE_SIZE = 1000;
-
-type OracleCacheTTLKey = keyof typeof ORACLE_CACHE_TTL;
 
 export interface OracleCacheEntry<T> {
   data: T;
@@ -159,8 +156,6 @@ const OracleErrorCodes = {
   INVALID_PRICE: 'INVALID_PRICE' as OracleErrorCode,
   INSUFFICIENT_DATA: 'INSUFFICIENT_DATA' as OracleErrorCode,
 } as const;
-
-type OracleErrorCodeType = (typeof OracleErrorCodes)[keyof typeof OracleErrorCodes];
 
 export interface OracleClientConfig {
   useDatabase?: boolean;

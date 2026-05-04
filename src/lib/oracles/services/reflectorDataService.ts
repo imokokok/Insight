@@ -543,11 +543,6 @@ class ReflectorDataService {
     this.assetScValCache.clear();
     this.lastTimestampCache.clear();
   }
-
-  private setCacheEntry(key: string, data: unknown, ttlMs: number): void {
-    this.cache.set(key, { data, expiry: Date.now() + ttlMs });
-    this.enforceCacheLimit(this.cache);
-  }
 }
 
 interface ReflectorOnChainMetadata {
@@ -563,8 +558,4 @@ interface ReflectorOnChainMetadata {
 
 export function getReflectorDataService(): ReflectorDataService {
   return ReflectorDataService.getInstance();
-}
-
-function resetReflectorDataService(): void {
-  ReflectorDataService.resetInstance();
 }

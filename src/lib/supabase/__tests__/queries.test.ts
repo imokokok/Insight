@@ -12,9 +12,7 @@ import {
   type PriceAlert,
   type PriceAlertInsert,
   type AlertEvent,
-  type AlertEventInsert,
   type UserProfile,
-  type UserProfileUpdate,
   type PriceRecordsFilters,
 } from '../queries';
 

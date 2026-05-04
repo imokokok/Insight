@@ -289,8 +289,3 @@ class SupraDataService {
 export function getSupraDataService(): SupraDataService {
   return SupraDataService.getInstance();
 }
-
-function resetSupraDataService(): void {
-  const instance = SupraDataService.getInstance();
-  instance.clearCache();
-}

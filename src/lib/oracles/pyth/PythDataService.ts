@@ -3,17 +3,10 @@ import { HermesClient } from '@pythnetwork/hermes-client';
 import { createLogger } from '@/lib/utils/logger';
 import type { PriceData } from '@/types/oracle';
 
-import {
-  PYTH_PRICE_FEED_IDS,
-  HERMES_API_URL,
-  CACHE_TTL,
-  normalizeSymbol,
-} from '../constants/pythConstants';
+import { HERMES_API_URL } from '../constants/pythConstants';
 
 import { fetchLatestPrice, fetchHistoricalPrices } from './priceFetching';
 import { PythCache } from './pythCache';
-
-import type { PythPriceRaw } from './types';
 
 const logger = createLogger('PythDataService');
 

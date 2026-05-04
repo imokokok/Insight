@@ -841,12 +841,6 @@ export function getSupportedSymbols(): string[] {
   return Object.keys(CHAINLINK_PRICE_FEEDS);
 }
 
-function getSupportedChainIds(symbol: string): number[] {
-  const feeds = CHAINLINK_PRICE_FEEDS[symbol.toUpperCase()];
-  if (!feeds) return [];
-  return Object.keys(feeds).map(Number);
-}
-
 export function isPriceFeedSupported(symbol: string, chainId: number): boolean {
   return getChainlinkPriceFeed(symbol, chainId) !== null;
 }

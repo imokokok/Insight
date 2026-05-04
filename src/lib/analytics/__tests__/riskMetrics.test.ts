@@ -16,7 +16,7 @@ import {
 function buildRiskMetricsInput(
   oracleData: OracleMarketData[],
   priceHistory: number[],
-  correlationMatrix: number[][]
+  _correlationMatrix: number[][]
 ): RiskMetricsInput {
   const priceHistoriesByProvider = new Map<string, number[]>();
   const oracleNames = oracleData.map((o) => o.name);

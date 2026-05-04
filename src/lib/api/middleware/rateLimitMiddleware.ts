@@ -88,7 +88,7 @@ function defaultKeyGenerator(request: NextRequest): string {
 }
 
 function defaultRateLimitHandler(
-  request: NextRequest,
+  _request: NextRequest,
   retryAfter: number,
   limit: number = 100
 ): NextResponse {

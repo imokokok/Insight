@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useId } from 'react';
+import { useId } from 'react';
 
 import { chartColors } from '@/lib/config/colors';
 
@@ -149,66 +149,6 @@ export function ChartSkeleton({
           )}
         </svg>
       </div>
-    </div>
-  );
-}
-
-interface MiniChartSkeletonProps {
-  height?: number;
-  width?: string;
-  className?: string;
-}
-
-function MiniChartSkeleton({
-  height = 80,
-  width = '100%',
-  className = '',
-}: MiniChartSkeletonProps) {
-  const miniGradientId = useId();
-  return (
-    <div className={`skeleton-shimmer ${className}`} style={{ height, width }}>
-      <svg className="w-full h-full" viewBox="0 0 200 80" preserveAspectRatio="none">
-        <rect x="0" y="0" width="200" height="80" fill={chartColors.recharts.background} />
-        <defs>
-          <linearGradient id={miniGradientId} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={chartColors.recharts.grid} stopOpacity="0.3" />
-            <stop offset="100%" stopColor={chartColors.recharts.grid} stopOpacity="0" />
-          </linearGradient>
-        </defs>
-        <path
-          d="M 0 60 Q 50 40, 100 50 T 200 30 L 200 80 L 0 80 Z"
-          fill={`url(#${miniGradientId})`}
-        />
-        <path
-          d="M 0 60 Q 50 40, 100 50 T 200 30"
-          fill="none"
-          stroke={chartColors.recharts.border}
-          strokeWidth="1.5"
-        />
-      </svg>
-    </div>
-  );
-}
-
-interface MetricCardSkeletonProps {
-  className?: string;
-}
-
-function MetricCardSkeleton({ className = '' }: MetricCardSkeletonProps) {
-  return (
-    <div
-      className={`skeleton-shimmer border border-gray-200/60 bg-gray-50/80 rounded-lg p-6 ${className}`}
-    >
-      <div className="flex items-start justify-between mb-4">
-        <div className="p-3 bg-gray-200 h-11 w-11 rounded-lg" />
-        <div className="h-6 w-16 bg-gray-200 rounded-md" />
-      </div>
-      <div className="flex-1">
-        <div className="h-4 w-24 bg-gray-200 mb-2 rounded" />
-        <div className="h-8 w-20 bg-gray-200 mb-1 rounded-md" />
-        <div className="h-3 w-16 bg-gray-200 rounded" />
-      </div>
-      <div className="mt-5 h-20 w-full bg-gray-200 rounded-md" />
     </div>
   );
 }

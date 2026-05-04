@@ -3,7 +3,7 @@
 import { useState, Suspense, useEffect } from 'react';
 
 import Link from 'next/link';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
 import { Lock, Loader2, CheckCircle, XCircle } from 'lucide-react';
 
@@ -12,7 +12,6 @@ import { validatePassword } from '@/lib/security/passwordValidation';
 import { useAuthActions } from '@/stores/authStore';
 
 function ResetPasswordForm() {
-  const _searchParams = useSearchParams();
   const router = useRouter();
   const { updatePassword } = useAuthActions();
 

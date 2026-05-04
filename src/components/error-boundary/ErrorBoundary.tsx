@@ -16,9 +16,8 @@ import {
   NetworkError,
   classifyError,
 } from '@/lib/errors';
-import { captureException, addBreadcrumb, setUser } from '@/lib/monitoring';
+import { captureException, addBreadcrumb } from '@/lib/monitoring';
 import { createLogger } from '@/lib/utils/logger';
-import { useAuthStore } from '@/stores/authStore';
 
 const logger = createLogger('ErrorBoundary');
 
@@ -495,40 +494,6 @@ function getErrorConfig(
     bgColor: themeStyle?.bg || 'bg-red-100',
     buttonClass: themeStyle?.button || 'bg-primary-600 text-white hover:bg-primary-700',
   };
-}
-
-function useSentryUserContext() {
-  const user = useAuthStore((state) => state.user);
-  const profile = useAuthStore((state) => state.profile);
-
-  React.useEffect(() => {
-    if (user) {
-      setUser({
-        id: user.id,
-        email: user.email,
-        username: profile?.display_name || user.user_metadata?.display_name,
-      });
-    } else {
-      setUser(null);
-    }
-  }, [user, profile]);
-}
-
-function GlobalErrorBoundary({ children, ...props }: Omit<ErrorBoundaryProps, 'level'>) {
-  useSentryUserContext();
-  return (
-    <ErrorBoundary level="global" captureInSentry {...props}>
-      {children}
-    </ErrorBoundary>
-  );
-}
-
-function PageErrorBoundary({ children, ...props }: Omit<ErrorBoundaryProps, 'level'>) {
-  return (
-    <ErrorBoundary level="page" captureInSentry {...props}>
-      {children}
-    </ErrorBoundary>
-  );
 }
 
 export function SectionErrorBoundary({ children, ...props }: Omit<ErrorBoundaryProps, 'level'>) {

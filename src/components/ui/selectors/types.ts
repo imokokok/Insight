@@ -36,17 +36,3 @@ export interface DropdownSelectProps<T = string> {
   renderOption?: (option: SelectorOption<T>, isSelected: boolean) => React.ReactNode;
   noOptionsMessage?: string;
 }
-
-interface MultiSelectProps<T = string> {
-  options: SelectorOption<T>[];
-  value: T[];
-  onChange: (value: T[]) => void;
-  disabled?: boolean;
-  size?: 'xs' | 'sm' | 'md' | 'lg';
-  className?: string;
-  label?: string;
-  showSelectAll?: boolean;
-  selectAllLabel?: string;
-  deselectAllLabel?: string;
-  maxVisible?: number;
-}

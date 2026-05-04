@@ -1,5 +1,4 @@
 import { oracleConfigs } from '@/lib/config/oracles';
-import { CHAIN_CATEGORIES, getChainsByCategory, getChainCategory } from '@/lib/constants';
 import {
   Blockchain,
   type OracleProvider,

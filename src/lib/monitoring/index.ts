@@ -1,6 +1,6 @@
 import * as Sentry from '@sentry/nextjs';
 
-import { initWebVitals, reportCustomMetric, type WebVitalMetric } from './webVitals';
+import { reportCustomMetric } from './webVitals';
 
 import type { User } from '@supabase/supabase-js';
 
@@ -21,19 +21,6 @@ export const captureException = (error: Error, context?: Record<string, unknown>
   if (typeof window !== 'undefined') {
     Sentry.captureException(error, { extra: context });
   }
-};
-
-const captureMessage = (message: string, level: 'info' | 'warning' | 'error' = 'info') => {
-  if (typeof window !== 'undefined') {
-    Sentry.captureMessage(message, level);
-  }
-};
-
-const startSpan = <T>(name: string, callback: () => T): T => {
-  if (typeof window !== 'undefined') {
-    return Sentry.startSpan({ name }, callback);
-  }
-  return callback();
 };
 
 export const setUser = (user: SentryUser | User | null) => {

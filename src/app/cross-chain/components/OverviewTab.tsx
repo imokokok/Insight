@@ -5,10 +5,9 @@ import { useCrossChainSelectorStore } from '@/stores/crossChainSelectorStore';
 import { Blockchain } from '@/types/oracle';
 
 import { type ChainStats } from '../constants';
-import { useChartData } from '../hooks/useChartData';
 import { useStatistics } from '../hooks/useStatistics';
 import { useCurrentClient, useFilteredChains } from '../useCrossChainData';
-import { chainNames, getConsistencyRating, formatPrice } from '../utils';
+import { getConsistencyRating, formatPrice } from '../utils';
 
 import { BenchmarkComparisonSection } from './BenchmarkComparisonSection';
 import { CompactStatsGrid } from './CompactStatsGrid';
@@ -23,7 +22,6 @@ export function OverviewTab() {
   const loading = useCrossChainDataStore((s) => s.loading);
 
   const selectedProvider = useCrossChainSelectorStore((s) => s.selectedProvider);
-  const selectedBaseChain = useCrossChainSelectorStore((s) => s.selectedBaseChain);
 
   const filteredChains = useFilteredChains();
   const currentClient = useCurrentClient();
@@ -32,16 +30,6 @@ export function OverviewTab() {
     currentPrices,
     filteredChains,
     currentClient,
-  });
-
-  const chart = useChartData({
-    currentPrices,
-    filteredChains,
-    selectedBaseChain,
-    validPrices: statistics.validPrices,
-    avgPrice: statistics.avgPrice,
-    standardDeviation: statistics.standardDeviation,
-    medianPrice: statistics.medianPrice,
   });
 
   const {
@@ -58,8 +46,6 @@ export function OverviewTab() {
     kurtosis,
     confidenceInterval95,
   } = statistics;
-
-  const { priceDifferences } = chart;
 
   const statsData: ChainStats[] = [
     {

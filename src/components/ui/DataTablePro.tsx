@@ -1,13 +1,6 @@
 'use client';
 
-import React, {
-  useState,
-  useCallback,
-  useMemo,
-  useRef,
-  useEffect,
-  type CSSProperties,
-} from 'react';
+import { useState, useCallback, useMemo, useRef, useEffect, type CSSProperties } from 'react';
 
 import { useVirtualizer } from '@tanstack/react-virtual';
 

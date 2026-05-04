@@ -110,14 +110,6 @@ class TwapOnChainService {
     return viemEncodeFunctionData({ abi: UNISWAP_V3_POOL_ABI, functionName: 'fee' });
   }
 
-  private encodeToken0Call(): `0x${string}` {
-    return viemEncodeFunctionData({ abi: UNISWAP_V3_POOL_ABI, functionName: 'token0' });
-  }
-
-  private encodeToken1Call(): `0x${string}` {
-    return viemEncodeFunctionData({ abi: UNISWAP_V3_POOL_ABI, functionName: 'token1' });
-  }
-
   private encodeGetPoolCall(
     tokenA: `0x${string}`,
     tokenB: `0x${string}`,
@@ -216,13 +208,6 @@ class TwapOnChainService {
     }
     const absPrice = Math.exp(absTick * Math.log(1.0001));
     return tick > 0 ? absPrice : 1 / absPrice;
-  }
-
-  private sqrtPriceX96ToPrice(sqrtPriceX96: bigint): number {
-    const Q96 = BigInt(2) ** BigInt(96);
-    if (sqrtPriceX96 <= BigInt(0)) return 0;
-    const priceRatio = Number((sqrtPriceX96 * sqrtPriceX96) / (Q96 * Q96));
-    return Number.isFinite(priceRatio) ? priceRatio : Number(sqrtPriceX96) / Number(Q96) ** 2;
   }
 
   private async getEthUsdPrice(chainId: number, signal?: AbortSignal): Promise<number> {

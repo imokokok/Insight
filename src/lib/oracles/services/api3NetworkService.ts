@@ -17,7 +17,6 @@ const endpointFailureTime: Record<string, number> = {};
 function pruneEndpointEntries(): void {
   const keys = Object.keys(endpointHealth);
   if (keys.length > MAX_ENDPOINT_ENTRIES) {
-    const now = Date.now();
     keys.sort((a, b) => (endpointFailureTime[a] || 0) - (endpointFailureTime[b] || 0));
     const toDelete = keys.slice(0, keys.length - MAX_ENDPOINT_ENTRIES);
     for (const key of toDelete) {

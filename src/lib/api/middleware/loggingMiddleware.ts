@@ -41,7 +41,6 @@ export function createLoggingMiddleware(options: LoggingMiddlewareOptions = {}) 
 
   return async (request: NextRequest): Promise<{ requestId: string }> => {
     const requestId = generateRequestId();
-    const _startTime = Date.now();
 
     const requestLog: RequestLog = {
       method: request.method,

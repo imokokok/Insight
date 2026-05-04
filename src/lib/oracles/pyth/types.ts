@@ -1,5 +1,3 @@
-import type { RetryConfig } from '../constants/pythConstants';
-
 export interface PythPriceRaw {
   price: string | number;
   conf?: string | number;

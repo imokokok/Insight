@@ -90,13 +90,6 @@ export interface RetryConfig {
   backoffMultiplier: number;
 }
 
-const DEFAULT_RETRY_CONFIG: RetryConfig = {
-  maxAttempts: 3,
-  baseDelay: 1000,
-  maxDelay: 10000,
-  backoffMultiplier: 2,
-};
-
 export function normalizeSymbol(symbol: string): string {
   const upperSymbol = symbol.toUpperCase();
   const baseSymbol = upperSymbol.replace('/USD', '');

@@ -31,7 +31,6 @@ export function ChartsTab() {
     skewness,
     kurtosis,
     confidenceInterval95,
-    iqrValue,
     validPrices,
   } = statistics;
 

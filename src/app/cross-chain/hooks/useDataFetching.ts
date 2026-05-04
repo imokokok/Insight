@@ -8,7 +8,6 @@ import {
   type ChainPriceInfo,
 } from '@/lib/oracles/crossChainComparison';
 import { crossChainKeys } from '@/lib/queryKeys';
-import { createLogger } from '@/lib/utils/logger';
 import { safeMax, safeMin } from '@/lib/utils/statistics';
 import { useCrossChainConfigStore } from '@/stores/crossChainConfigStore';
 import { type PriceStats } from '@/types/analytics';
@@ -18,8 +17,6 @@ import { type AnomalousPricePoint, detectAnomalies } from '../utils/anomalyDetec
 import { validateCurrentPrices } from '../utils/validation';
 
 import { useCrossChainQueries } from './useCrossChainQueries';
-
-const logger = createLogger('useDataFetching');
 
 function calculatePriceStats(prices: PriceData[]): PriceStats {
   const validPrices = prices.map((d) => d.price).filter((p) => p > 0);

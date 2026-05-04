@@ -15,11 +15,7 @@ import {
   Heart,
 } from 'lucide-react';
 
-import {
-  type RiskLevel,
-  type RiskWeights,
-  DEFAULT_RISK_WEIGHTS,
-} from '@/lib/analytics/riskMetrics';
+import { type RiskLevel, DEFAULT_RISK_WEIGHTS } from '@/lib/analytics/riskMetrics';
 
 import type { RiskMetricsResult } from '../../hooks/useRiskMetrics';
 

@@ -510,52 +510,6 @@ export const twapSymbols = [
   'FRAX',
 ] as const;
 
-type TwapSymbol = (typeof twapSymbols)[number];
-
-const TWAP_AVAILABLE_PAIRS: Record<string, string[]> = {
-  ethereum: [
-    'BTC',
-    'ETH',
-    'USDC',
-    'USDT',
-    'DAI',
-    'WBTC',
-    'LINK',
-    'UNI',
-    'AAVE',
-    'SNX',
-    'CRV',
-    'COMP',
-    'MKR',
-    'SUSHI',
-    '1INCH',
-    'BAL',
-    'STETH',
-    'FRAX',
-  ],
-  arbitrum: [
-    'BTC',
-    'ETH',
-    'USDC',
-    'USDT',
-    'DAI',
-    'WBTC',
-    'LINK',
-    'UNI',
-    'AAVE',
-    'ARB',
-    'SNX',
-    'CRV',
-    'COMP',
-    'MKR',
-    'GMX',
-  ],
-  optimism: ['BTC', 'ETH', 'USDC', 'USDT', 'DAI', 'WBTC', 'LINK', 'UNI', 'OP', 'SNX'],
-  polygon: ['BTC', 'ETH', 'USDC', 'USDT', 'DAI', 'WBTC', 'LINK', 'UNI', 'AAVE', 'MATIC'],
-  base: ['BTC', 'ETH', 'USDC', 'USDT', 'DAI', 'WBTC', 'LINK', 'UNI', 'AAVE', 'OP'],
-  'bnb-chain': ['BTC', 'ETH', 'USDC', 'USDT', 'DAI', 'WBTC', 'LINK', 'BNB'],
-};
-
 export const BLOCKCHAIN_TO_CHAIN_ID: Record<string, number> = {
   ethereum: 1,
   arbitrum: 42161,
@@ -563,22 +517,4 @@ export const BLOCKCHAIN_TO_CHAIN_ID: Record<string, number> = {
   polygon: 137,
   base: 8453,
   'bnb-chain': 56,
-};
-
-const CHAIN_ID_TO_BLOCKCHAIN: Record<number, string> = {
-  1: 'ethereum',
-  42161: 'arbitrum',
-  10: 'optimism',
-  137: 'polygon',
-  8453: 'base',
-  56: 'bnb-chain',
-};
-
-const TWAP_CHAIN_RELABILITY: Record<string, number> = {
-  ethereum: 0.99,
-  arbitrum: 0.98,
-  optimism: 0.98,
-  polygon: 0.97,
-  base: 0.97,
-  'bnb-chain': 0.95,
 };

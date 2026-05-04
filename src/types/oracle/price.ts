@@ -50,39 +50,6 @@ export interface PriceData extends PriceDataBase {
   spotPrice?: number;
   liquidity?: string;
   // Reflector metadata
-  resolution?: number; // update（seconds）
-  contractVersion?: number; // version
-}
-
-interface OracleSymbolSupport {
-  symbol: string;
-  supportedOracles: OracleProvider[];
-  supportedChains: Partial<Record<OracleProvider, Blockchain[]>>;
-}
-
-interface PriceDataPoint extends PriceDataBase {
-  change24h?: number;
-  changePercent24h?: number;
-}
-
-interface PriceDataForTechnicalAnalysis {
-  price: number;
-  timestamp: number;
-}
-
-interface PriceDataForChart extends PriceDataBase {
-  open?: number;
-  high?: number;
-  low?: number;
-  close?: number;
-  volume?: number;
-}
-
-interface PriceDataExtended extends PriceData {
-  changePercent?: number;
-}
-
-interface PriceDataForAlert extends PriceDataBase {
-  change24h: number;
-  changePercent24h: number;
+  resolution?: number;
+  contractVersion?: number;
 }
