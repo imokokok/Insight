@@ -55,7 +55,7 @@ export const POST = createApiHandler(
 
       for (const alertId of validAlertIds) {
         try {
-          const updated = await queries.updateAlert(alertId, { is_active: isActive });
+          const updated = await queries.updateAlert(alertId, { is_active: isActive }, userId);
           if (updated) {
             results.success.push(alertId);
           } else {

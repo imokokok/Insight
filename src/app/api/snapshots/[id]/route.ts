@@ -41,11 +41,7 @@ function validateSnapshotUpdate(body: unknown): Record<string, unknown> | null {
 
 async function getSnapshotById(id: string, userId: string) {
   const queries = getServerQueries();
-  const snapshot = await queries.getSnapshotById(id);
-  if (snapshot && snapshot.user_id !== userId) {
-    return null;
-  }
-  return snapshot;
+  return queries.getSnapshotById(id, userId);
 }
 
 export const PUT = createApiHandler(
@@ -88,7 +84,7 @@ export const PUT = createApiHandler(
     }
 
     const queries = getServerQueries();
-    const updatedSnapshot = await queries.updateSnapshot(validatedId, updateData);
+    const updatedSnapshot = await queries.updateSnapshot(validatedId, updateData, userId);
 
     if (!updatedSnapshot) {
       return ApiResponseBuilder.serverError('Failed to update snapshot');
@@ -135,7 +131,7 @@ export const DELETE = createApiHandler(
     }
 
     const queries = getServerQueries();
-    const success = await queries.deleteSnapshot(validatedId);
+    const success = await queries.deleteSnapshot(validatedId, userId);
 
     if (!success) {
       return ApiResponseBuilder.serverError('Failed to delete snapshot');

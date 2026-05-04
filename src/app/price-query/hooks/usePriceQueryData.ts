@@ -166,6 +166,7 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
     )
     .join('|');
 
+  /* eslint-disable react-hooks/exhaustive-deps */
   const { queryResults, compareQueryResults, dataProcessingTime } = useMemo(() => {
     startDataProcessingMeasure();
     const qResults: QueryResult[] = [];
@@ -194,7 +195,8 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
       compareQueryResults: cResults,
       dataProcessingTime: processingTime,
     };
-  }, [resultsDataSignature, startDataProcessingMeasure, endDataProcessingMeasure]);
+  }, [resultsDataSignature]);
+  /* eslint-enable react-hooks/exhaustive-deps */
 
   const queryErrors: QueryError[] = useMemo(() => {
     return batchResult.errors
@@ -206,11 +208,13 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
       }));
   }, [batchResult.errors, effectiveDismissedKeys]);
 
+  /* eslint-disable react-hooks/exhaustive-deps */
   const currentQueryTarget = useMemo(() => {
     const fetching = batchResult.results.find((r) => r.isFetching);
     if (fetching) return { oracle: fetching.provider, chain: fetching.chain };
     return { oracle: null as OracleProvider | null, chain: null as Blockchain | null };
-  }, [batchResult.results]);
+  }, [resultsDataSignature]);
+  /* eslint-enable react-hooks/exhaustive-deps */
 
   const { validationWarnings, dataAnomalies, validationTime } = useMemo(() => {
     startValidationMeasure();
@@ -227,21 +231,23 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
 
     const vTime = endValidationMeasure();
     return { validationWarnings: allWarnings, dataAnomalies: allAnomalies, validationTime: vTime };
-  }, [queryResults]);
+  }, [queryResults, startValidationMeasure, endValidationMeasure]);
 
+  /* eslint-disable react-hooks/exhaustive-deps */
   const primaryDataFetchTime = useMemo(() => {
     const primary = batchResult.results.filter((r) => !r.isCompare && r.priceData);
     if (primary.length === 0) return null;
     const maxTime = Math.max(...primary.map((r) => r.dataUpdatedAt));
     return maxTime > 0 ? new Date(maxTime) : null;
-  }, [batchResult.results]);
+  }, [resultsDataSignature]);
 
   const compareDataFetchTime = useMemo(() => {
     const compare = batchResult.results.filter((r) => r.isCompare && r.priceData);
     if (compare.length === 0) return null;
     const maxTime = Math.max(...compare.map((r) => r.dataUpdatedAt));
     return maxTime > 0 ? new Date(maxTime) : null;
-  }, [batchResult.results]);
+  }, [resultsDataSignature]);
+  /* eslint-enable react-hooks/exhaustive-deps */
 
   const supportedChainsBySelectedOracles = useMemo(() => {
     if (!selectedOracle) return new Set<Blockchain>();

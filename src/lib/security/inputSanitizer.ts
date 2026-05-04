@@ -103,13 +103,13 @@ const DEFAULT_OPTIONS: SanitizationOptions = {
 };
 
 const SQL_INJECTION_PATTERNS = [
-  /\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|EXECUTE|UNION|TRUNCATE)\b/i,
-  /\b(OR|AND)\b\s+['"\d]/i,
-  /(--|\/\*|\*\/)/,
+  /\b(?:SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|EXECUTE|UNION|TRUNCATE)\b.*\b(?:FROM|INTO|TABLE|WHERE|SET|VALUES|DATABASE)\b/i,
+  /\b(?:OR|AND)\b\s+['"\d]\s*=\s*['"\d]/i,
+  /(?:--|\/\*|\*\/)/,
   /\bWAITFOR\b\s+\bDELAY\b/i,
   /\bBENCHMARK\b\s*\(/i,
-  /\bSLEEP\b\s*\(/i,
-  /;\s*(?:SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|UNION)/i,
+  /\bSLEEP\b\s*\(\s*\d/i,
+  /;\s*(?:SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|UNION)\b/i,
   /\bINTO\s+(?:OUT|DUMP)FILE\b/i,
   /\bLOAD_FILE\b\s*\(/i,
 ];

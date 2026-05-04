@@ -7,10 +7,13 @@ import {
   defaultThresholdConfig,
 } from '@/lib/types/crossChain';
 
+const CONFIG_STORE_VERSION = 1;
+
 interface ConfigState {
   refreshInterval: RefreshInterval;
   thresholdConfig: ThresholdConfig;
   colorblindMode: boolean;
+  _version: number;
 }
 
 interface CrossChainConfigStore extends ConfigState {
@@ -22,6 +25,7 @@ const initialState: ConfigState = {
   refreshInterval: 60000,
   thresholdConfig: defaultThresholdConfig,
   colorblindMode: false,
+  _version: CONFIG_STORE_VERSION,
 };
 
 export const useCrossChainConfigStore = create<CrossChainConfigStore>()(
@@ -40,7 +44,20 @@ export const useCrossChainConfigStore = create<CrossChainConfigStore>()(
           refreshInterval: state.refreshInterval,
           thresholdConfig: state.thresholdConfig,
           colorblindMode: state.colorblindMode,
+          _version: state._version,
         }),
+        version: CONFIG_STORE_VERSION,
+        migrate: (persistedState: unknown, version: number) => {
+          if (version < CONFIG_STORE_VERSION) {
+            return {
+              ...initialState,
+              ...((persistedState as Record<string, unknown>) || {}),
+              _version: CONFIG_STORE_VERSION,
+              thresholdConfig: defaultThresholdConfig,
+            };
+          }
+          return persistedState;
+        },
       }
     ),
     { name: 'CrossChainConfigStore' }

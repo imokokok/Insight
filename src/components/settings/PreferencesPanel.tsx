@@ -139,7 +139,8 @@ export function PreferencesPanel() {
     if (authInitialized) {
       loadPreferences();
     }
-  }, [authInitialized, loadPreferences]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authInitialized]);
 
   useEffect(() => {
     return () => {

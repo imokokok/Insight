@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 
 import { cn } from '@/lib/utils';
 
@@ -41,15 +41,13 @@ export function PriceFlash({ value, previousValue, className, children }: PriceF
   }, [value]);
 
   // Determine change description for accessibility
-  const getChangeDescription = () => {
+  const changeDescription = useMemo(() => {
     const prev = prevRef.current;
     if (prev === undefined || value === prev) return 'Price unchanged';
     const direction = value > prev ? 'increased' : 'decreased';
     const percent = ((Math.abs(value - prev) / prev) * 100).toFixed(2);
     return `Price ${direction} by ${percent}%`;
-  };
-
-  const changeDescription = getChangeDescription();
+  }, [value]);
 
   return (
     <span

@@ -69,6 +69,10 @@ export class RedStoneClient extends BaseOracleClient {
 
     const halfSpread = price * (spreadPercentage / 100 / 2);
 
+    logger.debug(
+      `Confidence interval for ${symbol} is estimated, not based on actual market bid/ask data`
+    );
+
     return {
       bid: Number((price - halfSpread).toFixed(4)),
       ask: Number((price + halfSpread).toFixed(4)),

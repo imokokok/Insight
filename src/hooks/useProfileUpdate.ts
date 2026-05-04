@@ -19,7 +19,7 @@ export function useProfileUpdate() {
       const appError = err instanceof Error ? err : new Error(String(err));
       logger.error('Failed to update profile', appError);
       setError(appError);
-      throw appError;
+      return null;
     } finally {
       setIsUpdating(false);
     }

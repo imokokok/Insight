@@ -15,14 +15,14 @@ const CLEANUP_INTERVAL = 60000;
 const REQUEST_TIMEOUT = 15000;
 
 export class DIAPriceService {
-  private cleanupTimer: NodeJS.Timeout | null = null;
+  private cleanupTimer: ReturnType<typeof setInterval> | null = null;
 
   constructor(private cache: Map<string, CacheEntry<unknown>>) {
     this.startCleanupTimer();
   }
 
   private startCleanupTimer(): void {
-    if (typeof window === 'undefined' && !this.cleanupTimer) {
+    if (!this.cleanupTimer) {
       this.cleanupTimer = setInterval(() => this.cleanupCache(), CLEANUP_INTERVAL);
     }
   }
@@ -118,17 +118,21 @@ export class DIAPriceService {
       'USDP',
     ];
     if (stablecoins.includes(upperSymbol)) {
+      logger.warn(
+        `Returning hardcoded price for stablecoin ${upperSymbol} - not verified against API`
+      );
       const result: PriceData = {
         provider: OracleProvider.DIA,
         symbol: upperSymbol,
         price: 1.0,
         timestamp: Date.now(),
         decimals: 8,
-        confidence: 1.0,
+        confidence: 0.5,
+        confidenceSource: 'estimated',
         change24h: 0,
         change24hPercent: 0,
         chain,
-        source: 'dia-api',
+        source: 'hardcoded-stablecoin',
       };
       this.setCache(cacheKey, result, CACHE_TTL.PRICE);
       return result;

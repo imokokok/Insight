@@ -79,7 +79,7 @@ export async function signIn(email: string, password: string): Promise<AuthRespo
 
 export async function signInWithOAuth(provider: Provider): Promise<{ error: AuthError | null }> {
   const state = crypto.randomUUID();
-  document.cookie = `oauth_state=${state}; path=/; max-age=600; SameSite=Lax`;
+  document.cookie = `oauth_state=${state}; path=/; max-age=600; SameSite=Lax; Secure`;
 
   const { error } = await supabase.auth.signInWithOAuth({
     provider,

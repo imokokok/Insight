@@ -60,28 +60,32 @@ export function useOnChainDataByProvider(
     enabled: enabled && provider === 'flare',
   });
 
-  switch (provider) {
-    case 'dia':
-      return diaResult;
-    case 'winklink':
-      return winklinkResult;
-    case 'redstone':
-      return redstoneResult;
-    case 'supra':
-      return supraResult;
-    case 'twap':
-      return twapResult;
-    case 'reflector':
-      return reflectorResult;
-    case 'flare':
-      return flareResult;
-    default:
-      return {
-        data: null,
-        isLoading: false,
-        isError: false,
-        error: null,
-        refetch: async () => {},
-      };
-  }
+  const results: Record<OracleProvider, OnChainDataReturn> = {
+    dia: diaResult,
+    winklink: winklinkResult,
+    redstone: redstoneResult,
+    supra: supraResult,
+    twap: twapResult,
+    reflector: reflectorResult,
+    flare: flareResult,
+    chainlink: {
+      data: null,
+      isLoading: false,
+      isError: false,
+      error: null,
+      refetch: async () => {},
+    },
+    pyth: { data: null, isLoading: false, isError: false, error: null, refetch: async () => {} },
+    api3: { data: null, isLoading: false, isError: false, error: null, refetch: async () => {} },
+  };
+
+  return (
+    results[provider] ?? {
+      data: null,
+      isLoading: false,
+      isError: false,
+      error: null,
+      refetch: async () => {},
+    }
+  );
 }

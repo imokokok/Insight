@@ -1,8 +1,11 @@
 import { PriceFetchError, OracleClientError } from '@/lib/errors';
+import { createLogger } from '@/lib/utils/logger';
 import { OracleProvider } from '@/types/oracle';
 import { type Blockchain, type PriceData } from '@/types/oracle';
 
 import { shouldUseDatabase, getPriceFromDatabase, savePriceToDatabase } from '../utils/storage';
+
+const logger = createLogger('databaseOperations');
 
 const PROVIDERS_WITH_EXTRA_FIELDS = new Set([
   OracleProvider.CHAINLINK,
@@ -47,7 +50,13 @@ export async function fetchPriceWithDatabase(
 
     const livePrice = await client.getPrice(symbol, chain);
     if (!PROVIDERS_WITH_EXTRA_FIELDS.has(provider)) {
-      savePriceToDatabase(livePrice).catch(() => {});
+      savePriceToDatabase(livePrice).catch((err) => {
+        logger.error(
+          'Failed to save price to database',
+          err instanceof Error ? err : new Error(String(err)),
+          { provider, symbol }
+        );
+      });
     }
     return livePrice;
   } catch (error) {

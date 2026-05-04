@@ -58,7 +58,18 @@ export async function withOracleRetry<T>(
     throw new Error(`Operation ${operationName} was aborted before starting`);
   }
 
-  const result = await enhancedWithRetry(operation, operationName, enhancedConfig);
+  const abortPromise = signal
+    ? new Promise<never>((_, reject) => {
+        const onAbort = () => reject(new Error(`Operation ${operationName} was aborted`));
+        signal.addEventListener('abort', onAbort, { once: true });
+      })
+    : null;
+
+  const operationPromise = enhancedWithRetry(operation, operationName, enhancedConfig);
+
+  const result = abortPromise
+    ? await Promise.race([operationPromise, abortPromise])
+    : await operationPromise;
 
   if (!result.success) {
     logger.error(`Oracle operation failed after ${result.attempts} attempts`, result.error, {

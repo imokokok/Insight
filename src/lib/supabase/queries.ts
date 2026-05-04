@@ -385,12 +385,14 @@ export class DatabaseQueries {
     return data;
   }
 
-  async getSnapshotById(id: string): Promise<UserSnapshot | null> {
-    const { data, error } = await this.client
-      .from('user_snapshots')
-      .select('*')
-      .eq('id', id)
-      .single();
+  async getSnapshotById(id: string, userId?: string): Promise<UserSnapshot | null> {
+    let query = this.client.from('user_snapshots').select('*').eq('id', id);
+
+    if (userId) {
+      query = query.eq('user_id', userId);
+    }
+
+    const { data, error } = await query.single();
 
     if (error) {
       if (error.code !== 'PGRST116') {
@@ -407,12 +409,14 @@ export class DatabaseQueries {
 
   async updateSnapshot(
     id: string,
-    data: Partial<UserSnapshotInsert>
+    data: Partial<UserSnapshotInsert>,
+    userId: string
   ): Promise<UserSnapshot | null> {
     const { data: updated, error } = await this.client
       .from('user_snapshots')
       .update({ ...data, updated_at: new Date().toISOString() })
       .eq('id', id)
+      .eq('user_id', userId)
       .select()
       .single();
 
@@ -427,8 +431,12 @@ export class DatabaseQueries {
     return updated;
   }
 
-  async deleteSnapshot(id: string): Promise<boolean> {
-    const { error } = await this.client.from('user_snapshots').delete().eq('id', id);
+  async deleteSnapshot(id: string, userId: string): Promise<boolean> {
+    const { error } = await this.client
+      .from('user_snapshots')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', userId);
 
     if (error) {
       logger.error(
@@ -525,12 +533,14 @@ export class DatabaseQueries {
 
   async updateFavorite(
     id: string,
-    data: Partial<UserFavoriteInsert>
+    data: Partial<UserFavoriteInsert>,
+    userId: string
   ): Promise<UserFavorite | null> {
     const { data: updated, error } = await this.client
       .from('user_favorites')
       .update({ ...data, updated_at: new Date().toISOString() })
       .eq('id', id)
+      .eq('user_id', userId)
       .select()
       .single();
 
@@ -665,11 +675,16 @@ export class DatabaseQueries {
     return data;
   }
 
-  async updateAlert(id: string, data: Partial<PriceAlertInsert>): Promise<PriceAlert | null> {
+  async updateAlert(
+    id: string,
+    data: Partial<PriceAlertInsert>,
+    userId: string
+  ): Promise<PriceAlert | null> {
     const { data: updated, error } = await this.client
       .from('price_alerts')
       .update({ ...data, updated_at: new Date().toISOString() })
       .eq('id', id)
+      .eq('user_id', userId)
       .select()
       .single();
 

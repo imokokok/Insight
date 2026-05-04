@@ -55,7 +55,7 @@ const STATUS_THRESHOLDS_BY_CATEGORY: Record<string, StatusThresholds> = {
 function getVolatilityCategory(symbol: string): string {
   const upper = symbol.toUpperCase();
   if (/^(USDT|USDC|DAI|BUSD|TUSD|USDD|FRAX|GUSD|PAX|USDP)/.test(upper)) return 'stablecoin';
-  if (/^(BTC|ETH)\//.test(upper)) return 'major';
+  if (/^(BTC|ETH)(\/|$)/.test(upper)) return 'major';
   if (/^(SHIB|PEPE|FLOKI|BONK|DOGE|MEME|TRUMP)/.test(upper)) return 'micro';
   return 'alt';
 }
