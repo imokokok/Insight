@@ -504,7 +504,7 @@ export function calculateCorrelationRisk(
   }
 }
 
-export function calculateFreshnessRisk(params: {
+function calculateFreshnessRisk(params: {
   oracleTimestamps: Array<{ name: string; timestamp: number }>;
   currentTime?: number;
 }): FreshnessRiskResult {
@@ -602,7 +602,7 @@ export function calculateFreshnessRisk(params: {
   }
 }
 
-export function calculateManipulationResistance(params: {
+function calculateManipulationResistance(params: {
   oracleData: Array<{
     name: string;
     dataSources: number;
@@ -715,7 +715,7 @@ export function calculateManipulationResistance(params: {
   }
 }
 
-export function calculateSharedDependency(params: {
+function calculateSharedDependency(params: {
   oracleData: Array<{
     name: string;
     primaryDataSources: string[];
@@ -806,7 +806,7 @@ export function calculateSharedDependency(params: {
   }
 }
 
-export function buildRobustCorrelationMatrix(priceHistories: Map<string, number[]>): {
+function buildRobustCorrelationMatrix(priceHistories: Map<string, number[]>): {
   matrix: number[][];
   names: string[];
 } {

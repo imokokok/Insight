@@ -23,7 +23,7 @@ function resolveProvider(oracleName: string): OracleProvider | null {
   return DISPLAY_NAME_MAP[oracleName] || null;
 }
 
-export interface OraclePerformanceMetrics {
+interface OraclePerformanceMetrics {
   oracleName: string;
   avgLatency: number;
   accuracy: number;

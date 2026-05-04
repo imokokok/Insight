@@ -72,7 +72,7 @@ function validateObject(data: Record<string, unknown>, schema: ObjectSchema): Va
   };
 }
 
-export type { ObjectSchema, FieldSchema, ValidatorResult };
+export type { ObjectSchema };
 
 export interface ValidationMiddlewareOptions {
   body?: ObjectSchema;

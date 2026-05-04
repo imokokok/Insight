@@ -17,7 +17,7 @@ type MetricHandler = (metric: WebVitalMetric) => void;
 
 const handlers: MetricHandler[] = [];
 
-export const PERFORMANCE_THRESHOLDS = {
+const PERFORMANCE_THRESHOLDS = {
   LCP: { good: 2500, poor: 4000 },
   INP: { good: 200, poor: 500 },
   CLS: { good: 0.1, poor: 0.25 },

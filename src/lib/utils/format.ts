@@ -199,33 +199,6 @@ export function formatPrice(price: number): string {
  * @param options - Formatting options
  * @returns Formatted percentage string with % suffix
  */
-export function formatPercent(
-  value: number,
-  options?: { minDecimals?: number; maxDecimals?: number }
-): string {
-  if (!isFiniteNumber(value)) return '—';
-
-  const { minDecimals = 2, maxDecimals = 4 } = options ?? {};
-
-  let decimals = minDecimals;
-  if (Math.abs(value) < 0.001) {
-    decimals = Math.min(4, maxDecimals);
-  } else if (Math.abs(value) < 0.01) {
-    decimals = Math.min(3, maxDecimals);
-  } else if (Math.abs(value) < 0.1) {
-    decimals = Math.min(2, maxDecimals);
-  }
-
-  const sign = value >= 0 ? '+' : '';
-  return `${sign}${value.toFixed(decimals)}%`;
-}
-
-/**
- * Formats a price difference with appropriate precision based on base price
- * @param value - The price difference value
- * @param basePrice - The base price for determining precision
- * @returns Formatted price difference string with $ prefix
- */
 export function formatPriceDiff(value: number, basePrice?: number): string {
   if (!isFiniteNumber(value)) return '—';
   if (value === 0) return '$0.00';
@@ -309,62 +282,3 @@ export function formatRelativeTime(
   if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
   return `${days} day${days > 1 ? 's' : ''} ago`;
 }
-
-/**
- * Gets the color class for a change value (positive/negative/neutral)
- * @param value - The change value
- * @param type - The type of change ('price' for price changes, 'deviation' for deviations)
- * @returns Tailwind color class
- */
-function getChangeColorClass(value: number, type: 'price' | 'deviation' = 'price'): string {
-  if (value === 0) return 'text-gray-500';
-
-  // For price changes: positive = green (gain), negative = red (loss)
-  // For deviations: positive = red (above median), negative = green (below median)
-  const isPositiveGreen = type === 'price';
-
-  if (value > 0) {
-    return isPositiveGreen ? 'text-emerald-600' : 'text-red-600';
-  }
-  return isPositiveGreen ? 'text-red-600' : 'text-emerald-600';
-}
-
-/**
- * Gets the background color class for deviation values
- * @param deviationPercent - The deviation percentage
- * @returns Tailwind background color class
- */
-function getDeviationBgClass(deviationPercent: number): string {
-  const absDeviation = Math.abs(deviationPercent);
-  if (absDeviation < 0.1) return 'bg-emerald-50 border-emerald-200';
-  if (absDeviation < 0.5) return 'bg-yellow-50 border-yellow-200';
-  if (absDeviation < 1.0) return 'bg-orange-50 border-orange-200';
-  return 'bg-red-50 border-red-200';
-}
-
-/**
- * Gets the text color class for deviation values
- * @param deviationPercent - The deviation percentage
- * @returns Tailwind text color class
- */
-function getDeviationTextClass(deviationPercent: number): string {
-  const absDeviation = Math.abs(deviationPercent);
-  if (absDeviation < 0.1) return 'text-emerald-600';
-  if (absDeviation < 0.5) return 'text-yellow-600';
-  if (absDeviation < 1.0) return 'text-orange-600';
-  return 'text-red-600';
-}
-
-/**
- * Deviation threshold constants for consistent coloring across the app
- */
-const DEVIATION_THRESHOLDS = {
-  /** Excellent: < 0.1% deviation */
-  EXCELLENT: 0.1,
-  /** Good: < 0.5% deviation */
-  GOOD: 0.5,
-  /** Warning: < 1.0% deviation */
-  WARNING: 1.0,
-  /** Critical: >= 1.0% deviation */
-  CRITICAL: 1.0,
-} as const;

@@ -24,4 +24,3 @@ export {
   useDeleteSnapshot,
   useSnapshotsRealtime,
 } from './useSnapshots';
-export type { CreateSnapshotInput } from './useSnapshots';

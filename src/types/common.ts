@@ -7,11 +7,3 @@ export const REFRESH_INTERVAL_OPTIONS: { value: RefreshInterval; label: string }
   { value: 60000, label: '1m' },
   { value: 300000, label: '5m' },
 ];
-
-export function refreshIntervalToLabel(interval: RefreshInterval): string {
-  return REFRESH_INTERVAL_OPTIONS.find((o) => o.value === interval)?.label ?? 'Unknown';
-}
-
-export function labelToRefreshInterval(label: string): RefreshInterval {
-  return REFRESH_INTERVAL_OPTIONS.find((o) => o.label === label)?.value ?? 0;
-}
