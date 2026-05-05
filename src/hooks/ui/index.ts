@@ -5,4 +5,3 @@ export {
   getPlatformShortcut,
 } from './useKeyboardShortcuts';
 export type { KeyboardShortcut } from './useKeyboardShortcuts';
-export { useClickOutside } from './useClickOutside';

@@ -163,15 +163,6 @@ export interface AlertEvent {
   created_at: string;
 }
 
-export interface AlertEventInsert {
-  alert_id: string;
-  user_id: string;
-  price: number;
-  triggered_at: string;
-  condition_met: string;
-  acknowledged?: boolean;
-}
-
 export interface UserProfile {
   id: string;
   email?: string;

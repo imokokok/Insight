@@ -22,7 +22,7 @@ interface UseStatisticsParams {
   currentClient: BaseOracleClient;
 }
 
-export interface UseStatisticsReturn {
+interface UseStatisticsReturn {
   validPrices: number[];
   avgPrice: number;
   maxPrice: number;
