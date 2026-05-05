@@ -86,18 +86,3 @@ export function createErrorMiddleware(options: ErrorMiddlewareOptions = {}) {
     );
   };
 }
-
-export const defaultErrorMiddleware = createErrorMiddleware();
-export const developmentErrorMiddleware = createErrorMiddleware({
-  includeStackTrace: true,
-  logErrors: true,
-});
-
-export function withErrorHandling<T>(
-  fn: () => Promise<T>,
-  options?: ErrorMiddlewareOptions
-): Promise<T | NextResponse> {
-  const errorMiddleware = createErrorMiddleware(options);
-
-  return fn().catch((error) => errorMiddleware(error));
-}

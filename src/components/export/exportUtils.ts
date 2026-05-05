@@ -27,14 +27,14 @@ const logger = createLogger('UnifiedExport');
 /**
  * Generate unique ID
  */
-export function generateId(): string {
+function generateId(): string {
   return `export-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 }
 
 /**
  * Generate file name
  */
-export function generateFileName(
+function generateFileName(
   dataSource: ExportDataSource,
   format: ExportFormat,
   customName?: string
@@ -66,14 +66,14 @@ export function formatFileSize(bytes: number): string {
 /**
  * Get formatted field label
  */
-export function getFieldLabel(field: ExportField): string {
+function getFieldLabel(field: ExportField): string {
   return field.label;
 }
 
 /**
  * Filter selected fields
  */
-export function getSelectedFields(fields: ExportField[]): ExportField[] {
+function getSelectedFields(fields: ExportField[]): ExportField[] {
   return fields.filter((f) => f.selected);
 }
 

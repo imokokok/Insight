@@ -13,7 +13,7 @@ export interface AuthContext {
   role?: string;
 }
 
-export interface AuthMiddlewareOptions {
+interface AuthMiddlewareOptions {
   required?: boolean;
   roles?: string[];
 }
@@ -22,7 +22,7 @@ type AuthMiddlewareResult =
   | { success: true; context: AuthContext }
   | { success: false; response: NextResponse };
 
-export async function extractAuthContext(request: NextRequest): Promise<AuthContext | null> {
+async function extractAuthContext(request: NextRequest): Promise<AuthContext | null> {
   const authHeader = request.headers.get('authorization');
   if (!authHeader?.startsWith('Bearer ')) {
     return null;
@@ -100,16 +100,4 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
     logger.debug('Authentication successful', { userId: authContext.userId });
     return { success: true, context: authContext };
   };
-}
-
-export const requireAuth = createAuthMiddleware({ required: true });
-export const optionalAuth = createAuthMiddleware({ required: false });
-
-export function requireRoles(...roles: string[]) {
-  return createAuthMiddleware({ required: true, roles });
-}
-
-export async function getUserId(request: NextRequest): Promise<string | null> {
-  const authContext = await extractAuthContext(request);
-  return authContext?.userId ?? null;
 }

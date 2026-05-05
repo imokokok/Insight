@@ -61,22 +61,6 @@ export function toMilliseconds(timestamp: number | string | Date): number {
  * toSeconds(new Date()) // Date -> seconds
  * toSeconds('2024-01-01T00:00:00Z') // ISO string -> seconds
  */
-export function toSeconds(timestamp: number | string | Date): number {
-  const ms = toMilliseconds(timestamp);
-  return Math.floor(ms / 1000);
-}
-
-/**
- * Normalizes a timestamp to milliseconds (standard unit for the application).
- * This is an alias for toMilliseconds for semantic clarity.
- *
- * @param timestamp - Input timestamp (seconds, milliseconds, Date, or ISO string)
- * @returns Timestamp in milliseconds
- *
- * @example
- * normalizeTimestamp(1234567890) // -> 1234567890000
- * normalizeTimestamp(Date.now()) // -> current timestamp in ms
- */
 export function normalizeTimestamp(timestamp: number | string | Date): number {
   return toMilliseconds(timestamp);
 }
@@ -139,12 +123,4 @@ export function formatTimeAgo(diff: TimeAgoResult): string {
     default:
       return '';
   }
-}
-
-export function isSeconds(timestamp: number): boolean {
-  return timestamp < 1e12;
-}
-
-export function isMilliseconds(timestamp: number): boolean {
-  return timestamp >= 1e12;
 }

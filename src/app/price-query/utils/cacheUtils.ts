@@ -17,13 +17,13 @@ export interface CacheStats {
   misses: number;
 }
 
-export const CACHE_CONFIG = {
+const CACHE_CONFIG = {
   PRICE_TTL: ORACLE_CACHE_TTL.PRICE,
   HISTORICAL_TTL: ORACLE_CACHE_TTL.HISTORICAL,
   MAX_ENTRIES: 100,
 } as const;
 
-export class PriceQueryCache<T = unknown> {
+class PriceQueryCache<T = unknown> {
   private cache: Map<string, CacheEntry<T>> = new Map();
   private maxSize: number;
   private defaultTTL: number;
@@ -165,15 +165,3 @@ export const historicalCache = new PriceQueryCache<unknown>(
   CACHE_CONFIG.MAX_ENTRIES,
   CACHE_CONFIG.HISTORICAL_TTL
 );
-
-export function createCacheKey(...parts: (string | number)[]): string {
-  return parts.filter(Boolean).join(':');
-}
-
-export function getCacheAge(timestamp: number): number {
-  return Date.now() - timestamp;
-}
-
-export function isCacheFresh(timestamp: number, maxAge: number): boolean {
-  return getCacheAge(timestamp) < maxAge;
-}

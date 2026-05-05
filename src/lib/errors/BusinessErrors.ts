@@ -117,31 +117,6 @@ export class AuthorizationError extends AppError {
 /**
  * Conflict error details
  */
-interface ConflictErrorDetails extends AppErrorDetails {
-  resource?: string;
-  conflictingValue?: unknown;
-  existingResource?: unknown;
-}
-
-/**
- * Resource conflict error
- */
-export class ConflictError extends AppError {
-  constructor(message: string, details?: ConflictErrorDetails) {
-    super({
-      message,
-      code: ErrorCodes.CONFLICT,
-      statusCode: HttpStatusCodes.CONFLICT,
-      category: 'conflict',
-      severity: 'medium',
-      details,
-    });
-  }
-}
-
-/**
- * Rate limit error details
- */
 interface RateLimitErrorDetails extends AppErrorDetails {
   retryAfter?: number;
   limit?: number;
@@ -149,9 +124,6 @@ interface RateLimitErrorDetails extends AppErrorDetails {
   window?: number;
 }
 
-/**
- * Rate limit error
- */
 export class RateLimitError extends AppError {
   public readonly retryAfter?: number;
 
@@ -200,32 +172,12 @@ export class InternalError extends AppError {
 /**
  * Not implemented error
  */
-export class NotImplementedError extends AppError {
-  constructor(feature: string) {
-    super({
-      message: `Feature '${feature}' is not implemented yet`,
-      code: 'NOT_IMPLEMENTED',
-      statusCode: 501,
-      category: 'internal',
-      severity: 'medium',
-      isOperational: true,
-    });
-    this.name = 'NotImplementedError';
-  }
-}
-
-/**
- * Network error details
- */
 interface NetworkErrorDetails extends AppErrorDetails {
   url?: string;
   method?: string;
   timeout?: number;
 }
 
-/**
- * Network error
- */
 export class NetworkError extends AppError {
   constructor(message: string, details?: NetworkErrorDetails, cause?: Error) {
     super({

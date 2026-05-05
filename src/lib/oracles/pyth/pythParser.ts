@@ -3,6 +3,22 @@ import type { PriceData, ConfidenceInterval } from '@/types/oracle';
 
 import type { PythPriceRaw } from './types';
 
+function calculateConfidenceInterval(price: number, confidence: number): ConfidenceInterval {
+  const halfSpread = confidence / 2;
+  return {
+    bid: Number((price - halfSpread).toFixed(8)),
+    ask: Number((price + halfSpread).toFixed(8)),
+    widthPercentage: price > 0 ? Number(((confidence / price) * 100).toFixed(4)) : 0,
+  };
+}
+
+function calculateConfidenceScore(confidence: number, price: number): number {
+  if (price === 0) return 0;
+  const ratio = confidence / price;
+  const score = Math.max(0, Math.min(100, 100 - ratio * 10000));
+  return Number(score.toFixed(2));
+}
+
 export function parsePythPrice(
   pythPrice: PythPriceRaw,
   symbol: string,
@@ -39,20 +55,4 @@ export function parsePythPrice(
     conf: confidenceAbsolute,
     publishTime: publishTime * 1000,
   };
-}
-
-export function calculateConfidenceInterval(price: number, confidence: number): ConfidenceInterval {
-  const halfSpread = confidence / 2;
-  return {
-    bid: Number((price - halfSpread).toFixed(8)),
-    ask: Number((price + halfSpread).toFixed(8)),
-    widthPercentage: price > 0 ? Number(((confidence / price) * 100).toFixed(4)) : 0,
-  };
-}
-
-export function calculateConfidenceScore(confidence: number, price: number): number {
-  if (price === 0) return 0;
-  const ratio = confidence / price;
-  const score = Math.max(0, Math.min(100, 100 - ratio * 10000));
-  return Number(score.toFixed(2));
 }
