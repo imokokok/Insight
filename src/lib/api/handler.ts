@@ -1,17 +1,14 @@
-import { type NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, type NextResponse } from 'next/server';
 
 import { createLogger } from '@/lib/utils/logger';
 
 import {
   createAuthMiddleware,
-  createValidationMiddleware,
   createLoggingMiddleware,
   createErrorMiddleware,
   createRateLimitMiddleware,
   logResponse,
   type AuthContext,
-  type AuthMiddlewareOptions,
-  type ValidationMiddlewareOptions,
   type LoggingMiddlewareOptions,
   type ErrorMiddlewareOptions,
   type RateLimitMiddlewareOptions,
@@ -20,7 +17,7 @@ import { ApiResponseBuilder, type ApiResponse, type ApiSuccessResponse } from '.
 
 const logger = createLogger('api-handler');
 
-export interface ApiHandlerContext {
+interface ApiHandlerContext {
   requestId: string;
   auth?: AuthContext;
   validated?: {
@@ -30,14 +27,13 @@ export interface ApiHandlerContext {
   };
 }
 
-export type ApiHandler<T = unknown> = (
+type ApiHandler<T = unknown> = (
   request: NextRequest,
   context: ApiHandlerContext
 ) => Promise<NextResponse<ApiResponse<T>> | NextResponse<ApiSuccessResponse<T>> | NextResponse>;
 
 interface MiddlewareConfig {
-  auth?: AuthMiddlewareOptions | boolean;
-  validation?: ValidationMiddlewareOptions;
+  auth?: { required?: boolean; roles?: string[] } | boolean;
   logging?: LoggingMiddlewareOptions | boolean;
   error?: ErrorMiddlewareOptions;
   rateLimit?: RateLimitMiddlewareOptions | boolean;
@@ -63,10 +59,6 @@ export function createApiHandler<T = unknown>(
       )
     : null;
 
-  const validationMiddleware = middlewares.validation
-    ? createValidationMiddleware(middlewares.validation)
-    : null;
-
   const loggingMiddleware = middlewares.logging
     ? createLoggingMiddleware(typeof middlewares.logging === 'boolean' ? {} : middlewares.logging)
     : null;
@@ -81,7 +73,7 @@ export function createApiHandler<T = unknown>(
 
   return async (
     request: NextRequest,
-    context: { params: Promise<Record<string, string>> }
+    _context: { params: Promise<Record<string, string>> }
   ): Promise<NextResponse> => {
     const startTime = Date.now();
     const apiContext: ApiHandlerContext = {
@@ -113,16 +105,6 @@ export function createApiHandler<T = unknown>(
         apiContext.auth = authResult.context;
       }
 
-      if (validationMiddleware) {
-        const resolvedParams = context.params ? await context.params : undefined;
-        const validationResult = await validationMiddleware(request, resolvedParams);
-        if (!validationResult.success) {
-          logResponse(apiContext.requestId, 400, startTime);
-          return validationResult.response;
-        }
-        apiContext.validated = validationResult.data;
-      }
-
       const response = await handler(request, apiContext);
 
       logResponse(apiContext.requestId, response.status, startTime);
@@ -144,64 +126,6 @@ export function createApiHandler<T = unknown>(
 
       return errorMiddleware(error, apiContext.requestId);
     }
-  };
-}
-
-export function createGetHandler<T>(handler: ApiHandler<T>, options?: CreateApiHandlerOptions) {
-  return createApiHandler(handler, options);
-}
-
-export function createPostHandler<T>(handler: ApiHandler<T>, options?: CreateApiHandlerOptions) {
-  return createApiHandler(handler, options);
-}
-
-export function createPutHandler<T>(handler: ApiHandler<T>, options?: CreateApiHandlerOptions) {
-  return createApiHandler(handler, options);
-}
-
-export function createPatchHandler<T>(handler: ApiHandler<T>, options?: CreateApiHandlerOptions) {
-  return createApiHandler(handler, options);
-}
-
-export function createDeleteHandler<T>(handler: ApiHandler<T>, options?: CreateApiHandlerOptions) {
-  return createApiHandler(handler, options);
-}
-
-interface CrudHandlers<T, _CreateDTO = Partial<T>, _UpdateDTO = Partial<T>> {
-  list?: ApiHandler<T[]>;
-  get?: ApiHandler<T>;
-  create?: ApiHandler<T>;
-  update?: ApiHandler<T>;
-  delete?: ApiHandler<void>;
-}
-
-export function createCrudHandlers<T, _CreateDTO = Partial<T>, _UpdateDTO = Partial<T>>(
-  handlers: CrudHandlers<T, _CreateDTO, _UpdateDTO>,
-  options?: CreateApiHandlerOptions
-) {
-  return {
-    GET: handlers.list ? createApiHandler(handlers.list, options) : undefined,
-    POST: handlers.create ? createApiHandler(handlers.create, options) : undefined,
-    PUT: handlers.update ? createApiHandler(handlers.update, options) : undefined,
-    PATCH: handlers.update ? createApiHandler(handlers.update, options) : undefined,
-    DELETE: handlers.delete ? createApiHandler(handlers.delete, options) : undefined,
-  };
-}
-
-export function withMiddleware<T>(
-  handler: ApiHandler<T>,
-  ...middlewares: Array<
-    (request: NextRequest, context: ApiHandlerContext) => Promise<NextResponse | void>
-  >
-): ApiHandler<T> {
-  return async (request: NextRequest, context: ApiHandlerContext) => {
-    for (const middleware of middlewares) {
-      const result = await middleware(request, context);
-      if (result instanceof NextResponse) {
-        return result;
-      }
-    }
-    return handler(request, context);
   };
 }
 

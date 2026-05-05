@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-export interface ApiError {
+interface ApiError {
   code: string;
   message: string;
   retryable: boolean;
@@ -22,7 +22,7 @@ export interface ApiSuccessResponse<T = unknown> {
   };
 }
 
-export interface ApiErrorResponse {
+interface ApiErrorResponse {
   success: false;
   error: ApiError;
   meta?: {
@@ -34,17 +34,6 @@ export interface ApiErrorResponse {
 }
 
 export type ApiResponse<T = unknown> = ApiSuccessResponse<T> | ApiErrorResponse;
-
-export interface PaginationMeta {
-  page: number;
-  limit: number;
-  total: number;
-  totalPages: number;
-}
-
-export interface ApiPaginatedResponse<T = unknown> extends ApiSuccessResponse<T[]> {
-  pagination: PaginationMeta;
-}
 
 export class ApiResponseBuilder {
   static success<T>(
@@ -118,39 +107,4 @@ export class ApiResponseBuilder {
       { status: 500 }
     );
   }
-
-  static paginated<T>(
-    data: T[],
-    page: number,
-    limit: number,
-    total: number,
-    meta?: { requestId?: string }
-  ): ApiPaginatedResponse<T> {
-    // Add limit > 0 validation
-    const validLimit = limit > 0 ? limit : 10;
-
-    return {
-      success: true,
-      data,
-      pagination: {
-        page,
-        limit: validLimit,
-        total,
-        totalPages: Math.ceil(total / validLimit),
-      },
-      meta: {
-        timestamp: Date.now(),
-        ...meta,
-      },
-    };
-  }
-}
-
-export function createCachedJsonResponse<T>(
-  data: T,
-  cacheConfig: { header: string }
-): NextResponse<ApiSuccessResponse<T>> {
-  const response = NextResponse.json(ApiResponseBuilder.success(data));
-  response.headers.set('Cache-Control', cacheConfig.header);
-  return response;
 }

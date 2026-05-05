@@ -14,10 +14,10 @@ import {
 import { baseColors } from '@/lib/config/colors';
 import { cn } from '@/lib/utils';
 
-export type TimeRange = '1H' | '24H' | '7D' | '30D' | '1Y' | 'ALL';
-export type ChartType = 'line' | 'area' | 'candle';
+type TimeRange = '1H' | '24H' | '7D' | '30D' | '1Y' | 'ALL';
+type ChartType = 'line' | 'area' | 'candle';
 
-export interface ChartToolbarProps {
+interface ChartToolbarProps {
   timeRanges: TimeRange[];
   selectedRange: string;
   onRangeChange: (range: string) => void;

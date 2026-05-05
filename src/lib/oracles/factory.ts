@@ -208,11 +208,3 @@ export function getDefaultFactory(): OracleClientFactory {
   }
   return defaultInstance;
 }
-
-export function getOracleClient(provider: OracleProvider): BaseOracleClient {
-  return getDefaultFactory().getClient(provider);
-}
-
-export function getAllOracleClients(): Record<OracleProvider, BaseOracleClient> {
-  return getDefaultFactory().getAllClients();
-}

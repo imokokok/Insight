@@ -80,6 +80,42 @@ export function useFavorites(options: UseFavoritesOptions = {}) {
   };
 }
 
+export function useRemoveFavorite() {
+  const user = useUser();
+  const [isRemoving, setIsRemoving] = useState(false);
+  const queryClient = useQueryClient();
+
+  const removeFavorite = useCallback(
+    async (favoriteId: string, configType?: ConfigType) => {
+      if (!user) {
+        throw new AuthenticationError('User must be logged in to remove favorites', {
+          reason: 'not_authenticated',
+        });
+      }
+
+      setIsRemoving(true);
+      try {
+        await apiClient.delete<{ message: string }>(`/api/favorites/${favoriteId}`);
+
+        await queryClient.invalidateQueries({ queryKey: ['favorites', user.id] });
+        if (configType) {
+          await queryClient.invalidateQueries({ queryKey: ['favorites', user.id, configType] });
+        }
+
+        return true;
+      } finally {
+        setIsRemoving(false);
+      }
+    },
+    [user, queryClient]
+  );
+
+  return {
+    removeFavorite,
+    isRemoving,
+  };
+}
+
 export function useAddFavorite() {
   const user = useUser();
   const [isAdding, setIsAdding] = useState(false);
@@ -122,42 +158,6 @@ export function useAddFavorite() {
   return {
     addFavorite,
     isAdding,
-  };
-}
-
-export function useRemoveFavorite() {
-  const user = useUser();
-  const [isRemoving, setIsRemoving] = useState(false);
-  const queryClient = useQueryClient();
-
-  const removeFavorite = useCallback(
-    async (favoriteId: string, configType?: ConfigType) => {
-      if (!user) {
-        throw new AuthenticationError('User must be logged in to remove favorites', {
-          reason: 'not_authenticated',
-        });
-      }
-
-      setIsRemoving(true);
-      try {
-        await apiClient.delete<{ message: string }>(`/api/favorites/${favoriteId}`);
-
-        await queryClient.invalidateQueries({ queryKey: ['favorites', user.id] });
-        if (configType) {
-          await queryClient.invalidateQueries({ queryKey: ['favorites', user.id, configType] });
-        }
-
-        return true;
-      } finally {
-        setIsRemoving(false);
-      }
-    },
-    [user, queryClient]
-  );
-
-  return {
-    removeFavorite,
-    isRemoving,
   };
 }
 

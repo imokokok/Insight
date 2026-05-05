@@ -35,21 +35,3 @@ export function safeValidateOracleData<T>(
     return null;
   }
 }
-
-export function isValidOracleData<T>(schema: ZodSchema<T>, data: unknown): boolean {
-  const result = schema.safeParse(data);
-  return result.success;
-}
-
-export function logValidationWarning(
-  provider: string,
-  symbol: string,
-  issues: Array<{ field: string; message: string }>
-): void {
-  logger.warn(`Data validation warning for ${provider}:${symbol}`, {
-    provider,
-    symbol,
-    issues,
-    timestamp: Date.now(),
-  });
-}

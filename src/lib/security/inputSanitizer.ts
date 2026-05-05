@@ -57,33 +57,6 @@ function sanitizeHtmlBasic(input: string): string {
     .replace(/\//g, '&#x2F;');
 }
 
-function detectXss(input: string): boolean {
-  if (typeof input !== 'string') {
-    return false;
-  }
-  const xssPatterns = [
-    /<script[^>]*>[\s\S]*?<\/script>/gi,
-    /<script[^>]*\/>/gi,
-    /javascript\s*:/gi,
-    /vbscript\s*:/gi,
-    /on\w+\s*=/gi,
-    /<iframe/gi,
-    /<object/gi,
-    /<embed/gi,
-    /<form/gi,
-    /<svg[^>]*onload=/gi,
-    /<img[^>]*src=/gi,
-    /data\s*:\s*text\/html/gi,
-    /<svg[^>]*>/gi,
-    /<math[^>]*>/gi,
-    /<style[^>]*>/gi,
-    /<base/gi,
-    /<link/gi,
-    /<meta/gi,
-  ];
-  return xssPatterns.some((pattern) => pattern.test(input));
-}
-
 interface SanitizationOptions {
   maxLength?: number;
   allowHtml?: boolean;
@@ -101,18 +74,6 @@ const DEFAULT_OPTIONS: SanitizationOptions = {
   removeNullBytes: true,
   normalizeUnicode: true,
 };
-
-const SQL_INJECTION_PATTERNS = [
-  /\b(?:SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|EXECUTE|UNION|TRUNCATE)\b.*\b(?:FROM|INTO|TABLE|WHERE|SET|VALUES|DATABASE)\b/i,
-  /\b(?:OR|AND)\b\s+['"\d]\s*=\s*['"\d]/i,
-  /(?:--|\/\*|\*\/)/,
-  /\bWAITFOR\b\s+\bDELAY\b/i,
-  /\bBENCHMARK\b\s*\(/i,
-  /\bSLEEP\b\s*\(\s*\d/i,
-  /;\s*(?:SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|UNION)\b/i,
-  /\bINTO\s+(?:OUT|DUMP)FILE\b/i,
-  /\bLOAD_FILE\b\s*\(/i,
-];
 
 const NULL_BYTES_PATTERN = /\x00/g;
 
@@ -194,99 +155,29 @@ export function sanitizeObject<T extends Record<string, unknown>>(
   return sanitizeRecursive(obj, 0) as T;
 }
 
-export function sanitizeArray<T>(arr: T[], options: SanitizationOptions = {}): T[] {
-  if (!Array.isArray(arr)) {
-    return [];
-  }
-
-  return arr.map((item) => {
-    if (typeof item === 'string') {
-      return sanitizeString(item, options) as T;
-    } else if (typeof item === 'object' && item !== null) {
-      if (Array.isArray(item)) {
-        return sanitizeArray(item, options) as T;
-      } else {
-        return sanitizeObject(item as Record<string, unknown>, options) as T;
-      }
-    }
-    return item;
-  });
-}
-
-export function detectSqlInjection(input: string): boolean {
-  if (typeof input !== 'string') {
-    return false;
-  }
-
-  return SQL_INJECTION_PATTERNS.some((pattern) => pattern.test(input));
-}
-
-export function validateInput(
-  input: string,
-  options: {
-    maxLength?: number;
-    minLength?: number;
-    pattern?: RegExp;
-    blockXss?: boolean;
-    blockSqlInjection?: boolean;
-  } = {}
-): { valid: boolean; error?: string; sanitized: string } {
-  const { maxLength, minLength, pattern, blockXss = true, blockSqlInjection = true } = options;
-
-  const sanitized = sanitizeString(input);
-
-  if (minLength !== undefined && sanitized.length < minLength) {
-    return {
-      valid: false,
-      error: `Input must be at least ${minLength} characters`,
-      sanitized,
-    };
-  }
-
-  if (maxLength !== undefined && sanitized.length > maxLength) {
-    return {
-      valid: false,
-      error: `Input must be no more than ${maxLength} characters`,
-      sanitized,
-    };
-  }
-
-  if (pattern && !pattern.test(sanitized)) {
-    return {
-      valid: false,
-      error: 'Input format is invalid',
-      sanitized,
-    };
-  }
-
-  if (blockXss && detectXss(input)) {
-    logger.warn('Potential XSS attempt detected', { input: input.substring(0, 100) });
-    return {
-      valid: false,
-      error: 'Input contains potentially dangerous content',
-      sanitized,
-    };
-  }
-
-  if (blockSqlInjection && detectSqlInjection(input)) {
-    logger.warn('Potential SQL injection attempt detected', { input: input.substring(0, 100) });
-    return {
-      valid: false,
-      error: 'Input contains potentially dangerous content',
-      sanitized,
-    };
-  }
-
-  return { valid: true, sanitized };
-}
-
 export function sanitizeSymbol(symbol: string): string {
-  return sanitizeString(symbol, {
+  const sanitized = sanitizeString(symbol, {
     maxLength: 20,
     allowHtml: false,
     trim: true,
     uppercase: true,
-  }).replace(/[^A-Z0-9\/\-]/g, '');
+  });
+
+  return sanitized.replace(/[^A-Z0-9/\-]/g, '');
+}
+
+export function sanitizeUuid(uuid: string): string {
+  const sanitized = sanitizeString(uuid, {
+    maxLength: 36,
+    allowHtml: false,
+    trim: true,
+  });
+
+  const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!uuidPattern.test(sanitized)) {
+    return '';
+  }
+  return sanitized.toLowerCase();
 }
 
 export function sanitizeProvider(provider: string): string {
@@ -322,29 +213,3 @@ export function sanitizeChain(chain: string): string {
   }
   return sanitized;
 }
-
-export function sanitizeEmail(email: string): string {
-  const sanitized = sanitizeString(email, {
-    maxLength: 254,
-    allowHtml: false,
-    trim: true,
-    lowercase: true,
-  });
-
-  const emailPattern =
-    /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
-  return emailPattern.test(sanitized) ? sanitized : '';
-}
-
-export function sanitizeUuid(uuid: string): string {
-  const sanitized = sanitizeString(uuid, {
-    maxLength: 36,
-    allowHtml: false,
-    trim: true,
-  });
-
-  const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  return uuidPattern.test(sanitized) ? sanitized : '';
-}
-
-export { detectXss };

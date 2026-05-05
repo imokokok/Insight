@@ -27,7 +27,7 @@ interface ResponseLog {
   requestId: string;
 }
 
-export function generateRequestId(): string {
+function generateRequestId(): string {
   return `req_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
 }
 
@@ -103,10 +103,3 @@ export function logResponse(requestId: string, statusCode: number, startTime: nu
     logger.info('Request completed', { response: responseLog });
   }
 }
-
-export const defaultLoggingMiddleware = createLoggingMiddleware();
-export const verboseLoggingMiddleware = createLoggingMiddleware({
-  logBody: true,
-  logQuery: true,
-  logHeaders: true,
-});

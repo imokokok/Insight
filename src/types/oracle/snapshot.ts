@@ -11,34 +11,3 @@ export interface SnapshotStats {
   standardDeviation: number;
   standardDeviationPercent: number;
 }
-
-export interface OracleSnapshot {
-  id: string;
-  timestamp: number;
-  symbol: string;
-  selectedOracles: OracleProvider[];
-  priceData: PriceData[];
-  stats: SnapshotStats;
-}
-
-export interface SnapshotComparisonResult {
-  snapshotId: string;
-  snapshotTimestamp: number;
-  priceChange: {
-    avgPrice: number;
-    avgPricePercent: number;
-    maxPrice: number;
-    maxPricePercent: number;
-    minPrice: number;
-    minPricePercent: number;
-  };
-  oracleCountChange: number;
-  statsChange: {
-    priceRange: number;
-    priceRangePercent: number;
-    standardDeviationPercent: number;
-    standardDeviationPercentChange: number;
-    variance: number;
-    variancePercent: number;
-  };
-}

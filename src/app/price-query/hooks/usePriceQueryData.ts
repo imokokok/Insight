@@ -6,7 +6,6 @@ import { useQueryClient } from '@tanstack/react-query';
 
 import { getDefaultFactory } from '@/lib/oracles';
 import { priceKeys } from '@/lib/queryKeys';
-import { performanceMetricsCalculator } from '@/lib/services/marketData';
 import { type OracleProvider, type Blockchain } from '@/types/oracle';
 
 import { type QueryResult } from '../constants';
@@ -69,7 +68,6 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
   const [dismissedSignature, setDismissedSignature] = useState('');
   const [queryDuration, setQueryDuration] = useState<number | null>(null);
   const queryStartTimeRef = useRef<number | null>(null);
-  const metricsCollectedRef = useRef(false);
 
   const {
     startQueryMeasure,
@@ -138,26 +136,6 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
       endQueryMeasure();
     }
   }, [isLoading, startQueryMeasure, endQueryMeasure]);
-
-  useEffect(() => {
-    if (isLoading) {
-      metricsCollectedRef.current = false;
-      return;
-    }
-    if (metricsCollectedRef.current || batchResult.results.length === 0) return;
-    metricsCollectedRef.current = true;
-
-    for (const result of batchResult.results) {
-      if (!result.priceData) continue;
-      performanceMetricsCalculator.addPriceData({
-        oracle: result.provider,
-        asset: selectedSymbol,
-        price: result.priceData.price,
-        timestamp: Date.now(),
-        confidence: result.priceData.confidence,
-      });
-    }
-  }, [isLoading, batchResult.results, selectedSymbol]);
 
   const resultsDataSignature = batchResult.results
     .map(

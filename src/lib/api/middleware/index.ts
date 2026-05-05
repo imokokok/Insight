@@ -1,13 +1,4 @@
-export {
-  createAuthMiddleware,
-  type AuthContext,
-  type AuthMiddlewareOptions,
-} from './authMiddleware';
-
-export {
-  createValidationMiddleware,
-  type ValidationMiddlewareOptions,
-} from './validationMiddleware';
+export { createAuthMiddleware, type AuthContext } from './authMiddleware';
 
 export {
   createLoggingMiddleware,
