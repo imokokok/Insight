@@ -4,7 +4,7 @@ import { onCLS, onINP, onLCP, onFCP, onTTFB, type Metric, type CLSMetric } from 
 
 import { env } from '@/lib/config/env';
 
-export interface WebVitalMetric {
+interface WebVitalMetric {
   name: string;
   value: number;
   rating: 'good' | 'needs-improvement' | 'poor';

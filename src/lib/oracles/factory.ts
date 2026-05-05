@@ -216,10 +216,3 @@ export function getOracleClient(provider: OracleProvider): BaseOracleClient {
 export function getAllOracleClients(): Record<OracleProvider, BaseOracleClient> {
   return getDefaultFactory().getAllClients();
 }
-
-export function destroyDefaultFactory(): void {
-  if (defaultInstance) {
-    defaultInstance.destroy();
-    defaultInstance = null;
-  }
-}

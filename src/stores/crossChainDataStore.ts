@@ -85,13 +85,6 @@ export function registerDataActions(actions: {
   dataActionsRegistered = true;
 }
 
-export function resetDataActions() {
-  dataActionsRef.fetchData = () => Promise.resolve();
-  dataActionsRef.clearCache = () => {};
-  dataActionsRef.clearCacheForProvider = () => {};
-  dataActionsRegistered = false;
-}
-
 export function getFetchData() {
   return dataActionsRef.fetchData;
 }

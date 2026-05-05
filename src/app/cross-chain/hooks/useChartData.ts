@@ -27,7 +27,7 @@ interface UseChartDataParams {
   thresholdConfig?: ThresholdConfig;
 }
 
-export interface UseChartDataReturn {
+interface UseChartDataReturn {
   priceDifferences: {
     chain: Blockchain;
     price: number;

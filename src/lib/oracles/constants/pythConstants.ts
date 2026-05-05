@@ -83,13 +83,6 @@ export const CACHE_TTL = {
   PRICE: 5000,
 } as const;
 
-export interface RetryConfig {
-  maxAttempts: number;
-  baseDelay: number;
-  maxDelay: number;
-  backoffMultiplier: number;
-}
-
 export function normalizeSymbol(symbol: string): string {
   const upperSymbol = symbol.toUpperCase();
   const baseSymbol = upperSymbol.replace('/USD', '');
