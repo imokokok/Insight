@@ -51,18 +51,6 @@ class ReflectorDataService {
 
   private lastTimestampCache = new Map<string, number>();
 
-  private static readonly MAX_CACHE_SIZE = 500;
-
-  private enforceCacheLimit(cache: Map<string, unknown>): void {
-    if (cache.size > ReflectorDataService.MAX_CACHE_SIZE) {
-      const keys = Array.from(cache.keys());
-      const toDelete = keys.slice(0, keys.length - ReflectorDataService.MAX_CACHE_SIZE);
-      for (const key of toDelete) {
-        cache.delete(key);
-      }
-    }
-  }
-
   private static instance: ReflectorDataService | null = null;
 
   private constructor() {
