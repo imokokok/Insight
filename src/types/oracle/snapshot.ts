@@ -1,6 +1,3 @@
-import { type OracleProvider } from '../oracle/enums';
-import { type PriceData } from '../oracle/price';
-
 export interface SnapshotStats {
   avgPrice: number;
   weightedAvgPrice: number;

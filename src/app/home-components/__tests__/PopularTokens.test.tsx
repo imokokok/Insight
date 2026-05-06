@@ -47,10 +47,10 @@ describe('PopularTokens', () => {
       render(<PopularTokens tokens={defaultTokens} onTokenClick={mockOnTokenClick} />);
 
       fireEvent.click(screen.getByText('BTC'));
-      expect(mockOnTokenClick).toHaveBeenCalledWith('ETH');
+      expect(mockOnTokenClick).toHaveBeenCalledWith('BTC');
 
-      fireEvent.click(screen.getByText('BTC'));
-      expect(mockOnTokenClick).toHaveBeenCalledWith('MATIC');
+      fireEvent.click(screen.getByText('ETH'));
+      expect(mockOnTokenClick).toHaveBeenCalledWith('ETH');
 
       expect(mockOnTokenClick).toHaveBeenCalledTimes(2);
     });

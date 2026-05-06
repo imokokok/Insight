@@ -33,20 +33,6 @@ const customJestConfig = {
   },
   coverageReporters: ['text', 'text-summary', 'lcov'],
   testPathIgnorePatterns: ['<rootDir>/node_modules/', '<rootDir>/.next/'],
-  transformIgnorePatterns: [
-    'node_modules/(?!(.*\\.mjs$|@vercel/analytics|@vercel/speed-insights|@pythnetwork|@tanstack/react-query|viem|@wagmi))',
-  ],
-  extensionsToTreatAsEsm: ['.ts', '.tsx'],
-  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'mjs'],
-  transform: {
-    '^.+\\.(ts|tsx|js|jsx|mjs)$': [
-      'ts-jest',
-      {
-        tsconfig: '<rootDir>/tsconfig.json',
-        useESM: true,
-      },
-    ],
-  },
 };
 
 module.exports = createJestConfig(customJestConfig);
