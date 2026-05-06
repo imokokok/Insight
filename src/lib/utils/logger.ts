@@ -76,6 +76,30 @@ function formatConsoleOutput(entry: LogEntry): string {
   return prefix;
 }
 
+function reportToSentry(entry: LogEntry): void {
+  if (entry.level !== 'error') return;
+
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const Sentry = require('@sentry/nextjs');
+    if (Sentry && typeof Sentry.captureException === 'function') {
+      const error = entry.error
+        ? Object.assign(new Error(entry.error.message), {
+            name: entry.error.name,
+            stack: entry.error.stack,
+          })
+        : new Error(entry.message);
+
+      Sentry.captureException(error, {
+        tags: { module: entry.module, logger: 'createLogger' },
+        extra: { ...entry.data, logMessage: entry.message },
+      });
+    }
+  } catch {
+    // Sentry not available or not configured
+  }
+}
+
 function outputToConsole(entry: LogEntry): void {
   const prefix = formatConsoleOutput(entry);
   const { level, message, data, error } = entry;
@@ -124,6 +148,7 @@ class LoggerImpl implements Logger {
     if (!shouldLog('error')) return;
     const entry = formatLogEntry('error', this.moduleName, message, data, error);
     outputToConsole(entry);
+    reportToSentry(entry);
   }
 
   debug(message: string, data?: Record<string, unknown>): void {
@@ -136,31 +161,3 @@ class LoggerImpl implements Logger {
 export function createLogger(moduleName: string): Logger {
   return new LoggerImpl(moduleName);
 }
-
-/**
- * Usage examples:
- *
- * const log = createLogger('PriceService');
- *
- * log.info('Price updated successfully', { symbol: 'BTC/USD', price: 45000 });
- *
- * log.warn('High price volatility', { symbol: 'ETH/USD', volatility: 0.15 });
- *
- * try {
- *   // ... some operation
- * } catch (error) {
- *   log.error('Failed to fetch price', error instanceof Error ? error : new Error(String(error)), { symbol: 'BTC/USD' });
- * }
- *
- * log.debug('API request params', { endpoint: '/api/prices', params: { limit: 100 } });
- *
- * logger.info('Application started', { version: '1.0.0' });
- *
- * Environment variable control:
- * - Development (NODE_ENV=development): outputs all log levels
- * - Production (NODE_ENV=production): outputs only error level logs
- *
- * Log format:
- * [timestamp] [level] [module] message {data}
- * e.g.: [2024-01-15T10:30:45.123Z] [INFO ] [PriceService] Price updated successfully { symbol: 'BTC/USD', price: 45000 }
- */

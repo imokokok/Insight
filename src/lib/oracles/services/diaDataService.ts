@@ -1,5 +1,5 @@
 import { createLogger } from '@/lib/utils/logger';
-import { type Blockchain, type PriceData } from '@/types/oracle';
+import { type Blockchain, type PriceData, type DIATokenOnChainData } from '@/types/oracle';
 
 import { DIA_API_BASE_URL } from '../diaUtils';
 
@@ -11,21 +11,8 @@ import type { DIASupply, DIAExchange } from '../diaTypes';
 
 const logger = createLogger('DIADataService');
 
-interface DIATokenOnChainDataInternal {
-  symbol: string;
-  price: number;
-  change24hPercent: number;
-  circulatingSupply: number | null;
-  totalSupply: number | null;
-  maxSupply: number | null;
-  marketCap: number | null;
-  exchangeCount: number;
-  activeExchangeCount: number;
-  totalTradingPairs: number;
-  totalVolume24h: number;
-  lastUpdated: number;
-  dataSource: string;
-}
+export type { DIATokenOnChainData };
+type DIATokenOnChainDataInternal = DIATokenOnChainData;
 
 class DIADataService {
   private cache: Map<string, OracleCacheEntry<unknown>> = new Map();
@@ -177,5 +164,3 @@ class DIADataService {
 export function getDIADataService(): DIADataService {
   return DIADataService.getInstance();
 }
-
-export type DIATokenOnChainData = DIATokenOnChainDataInternal;

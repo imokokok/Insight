@@ -7,7 +7,7 @@ import {
 } from '@/lib/oracles/constants/twapConstants';
 import { twapOnChainService } from '@/lib/oracles/services/twapOnChainService';
 import { withOracleRetry, ORACLE_RETRY_PRESETS } from '@/lib/oracles/utils/retry';
-import { OracleProvider, Blockchain, OracleError } from '@/types/oracle';
+import { OracleProvider, Blockchain, OracleServiceError } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
 
 const TWAP_QUALITY_CONFIG = {
@@ -104,7 +104,7 @@ export class TWAPClient extends BaseOracleClient {
         liquidity: twapData.liquidity.toString(),
       };
     } catch (error) {
-      if (error instanceof OracleError) throw error;
+      if (error instanceof OracleServiceError) throw error;
       throw this.createProviderError(
         `Failed to fetch TWAP price for ${upperSymbol}: ${error instanceof Error ? error.message : String(error)}`,
         error instanceof Error ? error : undefined,

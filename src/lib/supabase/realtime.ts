@@ -18,10 +18,10 @@ class RealtimeManager {
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private connectionCheckTimer: ReturnType<typeof setInterval> | null = null;
   private static instance: RealtimeManager | null = null;
+  private initialized = false;
 
   constructor(client: SupabaseClient) {
     this.client = client;
-    this.setupConnectionMonitoring();
   }
 
   static getInstance(client: SupabaseClient): RealtimeManager {
@@ -29,6 +29,12 @@ class RealtimeManager {
       RealtimeManager.instance = new RealtimeManager(client);
     }
     return RealtimeManager.instance;
+  }
+
+  initialize(): void {
+    if (this.initialized) return;
+    this.initialized = true;
+    this.setupConnectionMonitoring();
   }
 
   private setupConnectionMonitoring() {
@@ -93,6 +99,9 @@ class RealtimeManager {
   }
 
   public onConnectionStatusChange(callback: (status: ConnectionStatus) => void): () => void {
+    if (!this.initialized) {
+      this.initialize();
+    }
     this.statusListeners.add(callback);
     callback(this.connectionStatus);
 
@@ -102,6 +111,10 @@ class RealtimeManager {
   }
 
   public reconnect() {
+    if (!this.initialized) {
+      this.initialize();
+      return;
+    }
     this.reconnectAttempts = 0;
     this.updateConnectionStatus('connecting');
     this.client.realtime.connect();
@@ -116,6 +129,7 @@ class RealtimeManager {
     this.statusListeners.clear();
     this.client.realtime.disconnect();
     RealtimeManager.instance = null;
+    this.initialized = false;
   }
 }
 

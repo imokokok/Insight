@@ -4,6 +4,11 @@ import { type AlertConditionType } from '@/lib/supabase/database.types';
 import { createLogger } from '@/lib/utils/logger';
 import { RequestQueue } from '@/lib/utils/requestQueue';
 import { normalizeTimestamp } from '@/lib/utils/timestamp';
+import {
+  type UserProfile,
+  type UserPreferences,
+  type UserNotificationSettings,
+} from '@/types/analytics';
 import { type OracleProvider, type Blockchain } from '@/types/oracle';
 
 const logger = createLogger('supabase-queries');
@@ -163,32 +168,10 @@ export interface AlertEvent {
   created_at: string;
 }
 
-export interface UserProfile {
-  id: string;
-  email?: string;
-  display_name?: string;
-  avatar_url?: string;
-  preferences?: {
-    defaultSymbol?: string;
-    defaultChain?: Blockchain;
-    defaultProvider?: OracleProvider;
-    refreshInterval?: number;
-    notificationsEnabled?: boolean;
-  };
-  created_at?: string;
-  updated_at?: string;
-}
-
 export interface UserProfileUpdate {
   display_name?: string;
-  preferences?: {
-    defaultSymbol?: string;
-    defaultChain?: Blockchain;
-    defaultProvider?: OracleProvider;
-    refreshInterval?: number;
-    notificationsEnabled?: boolean;
-  };
-  notification_settings?: Record<string, unknown>;
+  preferences?: UserPreferences;
+  notification_settings?: UserNotificationSettings;
 }
 
 export class DatabaseQueries {

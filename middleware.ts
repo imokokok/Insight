@@ -1,5 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
+import { createServerClient } from '@supabase/ssr';
+
 const PROTECTED_PATHS = [
   '/settings',
   '/alerts',
@@ -8,6 +10,37 @@ const PROTECTED_PATHS = [
   '/dashboard',
   '/profile',
 ];
+
+async function isAuthenticated(request: NextRequest): Promise<boolean> {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    return hasValidSessionCookie(request);
+  }
+
+  try {
+    let hasSession = false;
+
+    const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll() {},
+      },
+    });
+
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    hasSession = session !== null;
+    return hasSession;
+  } catch {
+    return hasValidSessionCookie(request);
+  }
+}
 
 function hasValidSessionCookie(request: NextRequest): boolean {
   const cookies = request.cookies.getAll();
@@ -58,11 +91,11 @@ function hasValidSessionCookie(request: NextRequest): boolean {
   }
 }
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const isAuthenticated = hasValidSessionCookie(request);
+  const authenticated = await isAuthenticated(request);
 
-  if (PROTECTED_PATHS.some((p) => pathname.startsWith(p)) && !isAuthenticated) {
+  if (PROTECTED_PATHS.some((p) => pathname.startsWith(p)) && !authenticated) {
     const loginUrl = new URL('/login', request.url);
     loginUrl.searchParams.set('redirect', pathname);
     return NextResponse.redirect(loginUrl);

@@ -6,27 +6,14 @@ import { useQuery } from '@tanstack/react-query';
 
 import { REFLECTOR_ASSET_CONTRACT_MAP } from '@/lib/oracles/constants/reflectorConstants';
 import { getReflectorDataService } from '@/lib/oracles/services/reflectorDataService';
+import { type ReflectorTokenOnChainData } from '@/types/oracle';
 
 interface UseReflectorOnChainDataOptions {
   symbol: string;
   enabled?: boolean;
 }
 
-export interface ReflectorTokenOnChainData {
-  symbol: string;
-  price: number;
-  decimals: number;
-  resolution: number;
-  version: number;
-  assets: string[];
-  lastTimestamp: number;
-  nodeCount: number;
-  threshold: number;
-  baseAsset: string;
-  dataAge: number | null;
-  lastUpdated: number;
-  source: string;
-}
+export type { ReflectorTokenOnChainData };
 
 export interface UseReflectorOnChainDataReturn {
   data: ReflectorTokenOnChainData | null;

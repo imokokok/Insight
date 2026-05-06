@@ -3,7 +3,7 @@ import type { OracleClientConfig } from '@/lib/oracles/base';
 import { pythSymbols, PYTH_AVAILABLE_PAIRS } from '@/lib/oracles/constants/supportedSymbols';
 import { getPythDataService } from '@/lib/oracles/services/pythDataService';
 import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
-import { OracleProvider, Blockchain, OracleError } from '@/types/oracle';
+import { OracleProvider, Blockchain, OracleServiceError } from '@/types/oracle';
 import type { PriceData, ConfidenceInterval } from '@/types/oracle';
 
 const SPREAD_PERCENTAGES: Record<string, number> = {
@@ -101,7 +101,7 @@ export class PythClient extends BaseOracleClient {
           };
         }
       } catch (error) {
-        if (error instanceof OracleError) throw error;
+        if (error instanceof OracleServiceError) throw error;
         throw this.createError(
           error instanceof Error ? error.message : 'Failed to fetch PYTH price from Binance',
           'PYTH_ERROR'
@@ -128,7 +128,7 @@ export class PythClient extends BaseOracleClient {
         'NO_DATA_AVAILABLE'
       );
     } catch (error) {
-      if (error instanceof OracleError) throw error;
+      if (error instanceof OracleServiceError) throw error;
       throw this.createError(
         error instanceof Error ? error.message : 'Failed to fetch price from Pyth',
         'PYTH_ERROR'

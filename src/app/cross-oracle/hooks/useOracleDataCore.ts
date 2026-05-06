@@ -9,6 +9,7 @@ import { OracleProvider, type PriceData } from '@/types/oracle';
 
 import { type RefreshInterval } from '../constants';
 
+import { useOracleAutoRefresh } from './useOracleAutoRefresh';
 import { createOracleErrorInfo } from './useOracleErrorHandling';
 import { useOracleRetry } from './useOracleRetry';
 
@@ -98,8 +99,6 @@ export function useOracleDataCore(
   const [refreshInterval, setRefreshInterval] = useState<RefreshInterval>(initialRefreshInterval);
   const [queryProgress, setQueryProgress] = useState({ completed: 0, total: 0 });
   const [skippedOracles, setSkippedOracles] = useState<OracleProvider[]>([]);
-  const [lastRefreshedAt, setLastRefreshedAt] = useState<Date | null>(null);
-  const [nextRefreshAt, setNextRefreshAt] = useState<Date | null>(null);
 
   const abortControllerRef = useRef<AbortController | null>(null);
   const isMountedRef = useRef(true);
@@ -365,8 +364,6 @@ export function useOracleDataCore(
   const fetchPriceDataRef = useRef(fetchPriceData);
   fetchPriceDataRef.current = fetchPriceData;
 
-  const isRefreshingRef = useRef(false);
-
   useEffect(() => {
     isMountedRef.current = true;
 
@@ -391,72 +388,11 @@ export function useOracleDataCore(
     };
   }, [selectedOracles, selectedSymbol, resetErrors]);
 
-  useEffect(() => {
-    if (refreshInterval === 0) {
-      setNextRefreshAt(null);
-      return;
-    }
-
-    const intervalMs = refreshInterval;
-
-    setNextRefreshAt(new Date(Date.now() + intervalMs));
-
-    const intervalId = setInterval(() => {
-      if (!isMountedRef.current || document.hidden || isRefreshingRef.current) {
-        return;
-      }
-      isRefreshingRef.current = true;
-      fetchPriceDataRef
-        .current()
-        .then(() => {
-          if (isMountedRef.current) {
-            const now = new Date();
-            setLastRefreshedAt(now);
-            setNextRefreshAt(new Date(now.getTime() + intervalMs));
-          }
-        })
-        .catch((err) => {
-          logger.warn(
-            'Auto-refresh fetch failed',
-            err instanceof Error ? err : new Error(String(err))
-          );
-        })
-        .finally(() => {
-          isRefreshingRef.current = false;
-        });
-    }, intervalMs);
-
-    const handleVisibilityChange = () => {
-      if (!document.hidden && !isRefreshingRef.current) {
-        isRefreshingRef.current = true;
-        fetchPriceDataRef
-          .current()
-          .then(() => {
-            if (isMountedRef.current) {
-              const now = new Date();
-              setLastRefreshedAt(now);
-              setNextRefreshAt(new Date(now.getTime() + intervalMs));
-            }
-          })
-          .catch((err) => {
-            logger.warn(
-              'Visibility change refresh failed',
-              err instanceof Error ? err : new Error(String(err))
-            );
-          })
-          .finally(() => {
-            isRefreshingRef.current = false;
-          });
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    return () => {
-      clearInterval(intervalId);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [refreshInterval]);
+  const { lastRefreshedAt, nextRefreshAt } = useOracleAutoRefresh({
+    refreshInterval,
+    onRefresh: fetchPriceData,
+    isMountedRef,
+  });
 
   return {
     priceData,

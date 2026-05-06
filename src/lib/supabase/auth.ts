@@ -1,5 +1,5 @@
 import { sanitizeString } from '@/lib/security/inputSanitizer';
-import type { UserProfile as BaseUserProfile } from '@/types/analytics';
+import { type UserProfile } from '@/types/analytics';
 
 import { supabase } from './client';
 
@@ -17,26 +17,7 @@ interface AuthResponse {
 
 type SignUpResponse = AuthResponse;
 
-export interface UserProfile extends BaseUserProfile {
-  preferences?: {
-    default_oracle?: string;
-    default_symbol?: string;
-    default_chain?: string;
-    default_time_range?: string;
-    default_currency?: string;
-    auto_refresh_interval?: number;
-    chart_settings?: {
-      show_confidence_interval?: boolean;
-      auto_refresh?: boolean;
-      refresh_interval?: number;
-    };
-  };
-  notification_settings?: {
-    email_alerts?: boolean;
-    push_notifications?: boolean;
-    alert_frequency?: 'immediate' | 'hourly' | 'daily';
-  };
-}
+export type { UserProfile };
 
 export async function signUp(
   email: string,

@@ -72,7 +72,7 @@ export type OracleErrorCode =
   | 'TWAP_OBSERVATION_ERROR'
   | 'TWAP_HISTORICAL_ERROR';
 
-export class OracleError extends AppError {
+export class OracleServiceError extends AppError {
   public readonly provider: OracleProvider;
 
   constructor(

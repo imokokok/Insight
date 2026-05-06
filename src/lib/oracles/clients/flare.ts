@@ -16,20 +16,12 @@ import {
   type OracleErrorCode,
   type PriceData,
   type ConfidenceInterval,
+  type FlareTokenOnChainData,
 } from '@/types/oracle';
 
 const logger = createLogger('FlareClient');
 
-export interface FlareTokenOnChainData {
-  symbol: string;
-  price: number;
-  decimals: number;
-  feedId: string;
-  dataAge: number;
-  lastUpdated: number;
-  network: string;
-  provider: string;
-}
+export type { FlareTokenOnChainData };
 
 export class FlareClient extends BaseOracleClient {
   name = OracleProvider.FLARE;

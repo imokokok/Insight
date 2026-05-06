@@ -5,7 +5,7 @@ import { api3NetworkService } from '@/lib/oracles/services/api3NetworkService';
 import { withOracleRetry, ORACLE_RETRY_PRESETS } from '@/lib/oracles/utils/retry';
 import { createLogger } from '@/lib/utils/logger';
 import type { PriceData } from '@/types/oracle';
-import { OracleProvider, Blockchain, OracleError } from '@/types/oracle';
+import { OracleProvider, Blockchain, OracleServiceError } from '@/types/oracle';
 
 const logger = createLogger('API3Client');
 
@@ -38,7 +38,7 @@ export class API3Client extends BaseOracleClient {
   }
 
   protected onHistoricalDataError(symbol: string, error: unknown): PriceData[] {
-    if (error instanceof OracleError) throw error;
+    if (error instanceof OracleServiceError) throw error;
     logger.error(
       `Failed to fetch historical prices for ${symbol}: ${error instanceof Error ? error.message : String(error)}`
     );
@@ -113,7 +113,7 @@ export class API3Client extends BaseOracleClient {
         dataAge: api3Data.dataAge,
       };
     } catch (error) {
-      if (error instanceof OracleError) throw error;
+      if (error instanceof OracleServiceError) throw error;
       logger.error(
         `Failed to fetch price for ${symbol}: ${error instanceof Error ? error.message : String(error)}`
       );

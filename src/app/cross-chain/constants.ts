@@ -2,7 +2,7 @@ import { TIME_RANGES, symbols, providerNames, chainNames, chainColors } from '@/
 import { type Blockchain } from '@/types/oracle';
 
 export { TIME_RANGES, symbols, providerNames, chainNames, chainColors };
-export type { RefreshInterval } from '@/lib/types/crossChain';
+export type { RefreshInterval } from '@/types/common';
 
 export const CHAIN_EXPECTED_INTERVALS: Record<string, number> = {
   solana: 1,

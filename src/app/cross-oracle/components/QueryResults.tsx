@@ -11,7 +11,7 @@ import type { OracleProvider, PriceData } from '@/types/oracle';
 
 import { OracleErrorPanel } from './OracleErrorPanel';
 import { RiskAlertBanner } from './RiskAlertBanner';
-import { DivergenceSignalTab } from './tabs/DivergenceSignalTab';
+import { CrossOracleDivergenceSignalTab as DivergenceSignalTab } from './tabs/DivergenceSignalTab';
 import { FeedHealthTab } from './tabs/FeedHealthTab';
 import { OracleRankingTab } from './tabs/OracleRankingTab';
 import { RiskAnalysisTab } from './tabs/RiskAnalysisTab';

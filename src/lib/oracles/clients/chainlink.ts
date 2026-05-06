@@ -8,7 +8,7 @@ import {
 } from '@/lib/oracles/services/chainlinkOnChainService';
 import { withOracleRetry, ORACLE_RETRY_PRESETS } from '@/lib/oracles/utils/retry';
 import { createLogger } from '@/lib/utils/logger';
-import { OracleProvider, Blockchain, OracleError } from '@/types/oracle';
+import { OracleProvider, Blockchain, OracleServiceError } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
 
 const logger = createLogger('ChainlinkClient');
@@ -108,7 +108,7 @@ export class ChainlinkClient extends BaseOracleClient {
   }
 
   protected onHistoricalDataError(symbol: string, error: unknown): PriceData[] {
-    if (error instanceof OracleError) throw error;
+    if (error instanceof OracleServiceError) throw error;
     logger.error(
       `Failed to fetch historical prices for ${symbol}: ${error instanceof Error ? error.message : 'Unknown error'}`
     );
@@ -197,7 +197,7 @@ export class ChainlinkClient extends BaseOracleClient {
         }
         return this.convertToPriceData(realData, chain);
       } catch (error) {
-        if (error instanceof OracleError) throw error;
+        if (error instanceof OracleServiceError) throw error;
         throw this.createError(
           error instanceof Error ? error.message : 'Failed to fetch price from Chainlink',
           'CHAINLINK_ERROR'

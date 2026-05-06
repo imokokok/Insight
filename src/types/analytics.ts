@@ -14,12 +14,33 @@ export interface ExtendedPriceStats extends PriceStats {
   validPrices: number[];
 }
 
+export interface UserPreferences {
+  default_oracle?: string;
+  default_symbol?: string;
+  default_chain?: string;
+  default_time_range?: string;
+  default_currency?: string;
+  auto_refresh_interval?: number;
+  chart_settings?: {
+    show_confidence_interval?: boolean;
+    auto_refresh?: boolean;
+    refresh_interval?: number;
+  };
+}
+
+export interface UserNotificationSettings {
+  email_alerts?: boolean;
+  push_notifications?: boolean;
+  alert_frequency?: 'immediate' | 'hourly' | 'daily';
+}
+
 export interface UserProfile {
   id: string;
   email?: string;
   display_name: string | null;
   avatar_url?: string | null;
-  preferences?: Record<string, unknown>;
+  preferences?: UserPreferences;
+  notification_settings?: UserNotificationSettings;
   created_at?: string | Date;
   updated_at?: string | Date;
 }

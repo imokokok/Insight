@@ -6,7 +6,7 @@ import {
   type OracleProvider,
   Blockchain,
   type PriceData,
-  OracleError,
+  OracleServiceError,
   type OracleErrorCode,
 } from '@/types/oracle';
 
@@ -284,11 +284,11 @@ export abstract class BaseOracleClient {
       retryable?: boolean;
       details?: Record<string, unknown>;
     }
-  ): OracleError {
-    return new OracleError(message, this.name, code, options);
+  ): OracleServiceError {
+    return new OracleServiceError(message, this.name, code, options);
   }
 
-  protected createUnsupportedSymbolError(symbol: string, chain?: Blockchain): OracleError {
+  protected createUnsupportedSymbolError(symbol: string, chain?: Blockchain): OracleServiceError {
     return this.createError(
       `Symbol '${symbol}' is not supported${chain ? ` on chain '${chain}'` : ''} by ${this.name}`,
       OracleErrorCodes.SYMBOL_NOT_SUPPORTED,
@@ -304,7 +304,11 @@ export abstract class BaseOracleClient {
     );
   }
 
-  protected createNoDataError(symbol: string, chain?: Blockchain, reason?: string): OracleError {
+  protected createNoDataError(
+    symbol: string,
+    chain?: Blockchain,
+    reason?: string
+  ): OracleServiceError {
     return this.createError(
       `No data available for symbol '${symbol}'${chain ? ` on chain '${chain}'` : ''}${reason ? `: ${reason}` : ''}`,
       OracleErrorCodes.NO_DATA_AVAILABLE,
@@ -326,7 +330,7 @@ export abstract class BaseOracleClient {
       retryable?: boolean;
       code?: OracleErrorCode;
     }
-  ): OracleError {
+  ): OracleServiceError {
     return this.createError(
       `Provider ${this.name} error: ${reason}`,
       options?.code ?? OracleErrorCodes.PROVIDER_UNAVAILABLE,
