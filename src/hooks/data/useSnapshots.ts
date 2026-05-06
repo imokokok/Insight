@@ -11,12 +11,7 @@ import type { OracleProvider } from '@/types/oracle';
 
 const SNAPSHOTS_KEY = 'user-snapshots';
 
-const SNAPSHOT_ERROR_MESSAGES = {
-  userNotLoggedIn: 'User not logged in',
-  createFailed: 'Failed to create snapshot',
-  updateFailed: 'Failed to update snapshot',
-  deleteFailed: 'Failed to delete snapshot',
-} as const;
+const USER_NOT_LOGGED_IN = 'User not logged in';
 
 interface CreateSnapshotInput {
   name?: string;
@@ -123,7 +118,7 @@ export function useCreateSnapshot(): UseCreateSnapshotReturn {
   const mutation = useMutation({
     mutationFn: async (input: CreateSnapshotInput) => {
       if (!user?.id) {
-        throw new Error(SNAPSHOT_ERROR_MESSAGES.userNotLoggedIn);
+        throw new Error(USER_NOT_LOGGED_IN);
       }
 
       const response = await apiClient.post<{ snapshot: UserSnapshot; message: string }>(
@@ -169,7 +164,7 @@ export function useUpdateSnapshot(): UseUpdateSnapshotReturn {
   const mutation = useMutation({
     mutationFn: async ({ id, input }: { id: string; input: UpdateSnapshotInput }) => {
       if (!user?.id) {
-        throw new Error(SNAPSHOT_ERROR_MESSAGES.userNotLoggedIn);
+        throw new Error(USER_NOT_LOGGED_IN);
       }
 
       const response = await apiClient.put<{ snapshot: UserSnapshot; message: string }>(
@@ -218,7 +213,7 @@ export function useDeleteSnapshot(): UseDeleteSnapshotReturn {
   const mutation = useMutation({
     mutationFn: async (id: string) => {
       if (!user?.id) {
-        throw new Error(SNAPSHOT_ERROR_MESSAGES.userNotLoggedIn);
+        throw new Error(USER_NOT_LOGGED_IN);
       }
 
       await apiClient.delete<{ message: string }>(`/api/snapshots/${id}`);

@@ -1,7 +1,7 @@
-import type { CacheEntry } from '../base';
+import type { OracleCacheEntry } from '../base';
 
 export class PythCache {
-  private cache: Map<string, CacheEntry<unknown>> = new Map();
+  private cache: Map<string, OracleCacheEntry<unknown>> = new Map();
   private maxSize: number = 500;
 
   private evictExpired(): void {
@@ -14,7 +14,7 @@ export class PythCache {
   }
 
   get<T>(key: string): T | null {
-    const entry = this.cache.get(key) as CacheEntry<T> | undefined;
+    const entry = this.cache.get(key) as OracleCacheEntry<T> | undefined;
     if (!entry) return null;
 
     const now = Date.now();

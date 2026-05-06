@@ -181,6 +181,16 @@ class MemoryRateLimitStore implements RateLimitStore {
   }
 }
 
+class NoOpRateLimitStore implements RateLimitStore {
+  async increment(_key: string, windowMs: number): Promise<RateLimitResult> {
+    return { count: 1, resetTime: Date.now() + windowMs };
+  }
+
+  async get(_key: string): Promise<RateLimitResult | null> {
+    return null;
+  }
+}
+
 function createRateLimitStore(): RateLimitStore {
   if (process.env.KV_REST_API_URL) {
     try {
@@ -194,11 +204,12 @@ function createRateLimitStore(): RateLimitStore {
 
   if (process.env.NODE_ENV === 'production') {
     logger.error(
-      'CRITICAL: Using in-memory rate limit storage in production - rate limiting is effectively disabled in serverless environments. Configure KV_REST_API_URL for proper rate limiting.'
+      'CRITICAL: No KV store configured in production. Rate limiting is DISABLED. Configure KV_REST_API_URL for proper rate limiting.'
     );
-  } else {
-    logger.warn('Using in-memory rate limit storage - not suitable for serverless environments');
+    return new NoOpRateLimitStore();
   }
+
+  logger.warn('Using in-memory rate limit storage - not suitable for serverless environments');
   return new MemoryRateLimitStore();
 }
 

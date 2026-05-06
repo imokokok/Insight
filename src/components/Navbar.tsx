@@ -27,13 +27,6 @@ export default function Navbar() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [avatarError, setAvatarError] = useState(false);
 
-  const currentAvatarUrl = profile?.avatar_url;
-  const [prevAvatarUrl, setPrevAvatarUrl] = useState(currentAvatarUrl);
-  if (currentAvatarUrl !== prevAvatarUrl) {
-    setPrevAvatarUrl(currentAvatarUrl);
-    setAvatarError(false);
-  }
-
   const currentPath = useMemo(() => {
     if (!pathname) return '/';
     const pathWithoutQuery = pathname.split('?')[0];
@@ -173,6 +166,7 @@ export default function Navbar() {
                       <div className="w-8 h-8 bg-primary-600 flex items-center justify-center text-white text-sm font-medium overflow-hidden rounded">
                         {profile?.avatar_url && !avatarError ? (
                           <Image
+                            key={profile.avatar_url}
                             src={profile.avatar_url}
                             alt={profile?.display_name || 'User'}
                             width={32}

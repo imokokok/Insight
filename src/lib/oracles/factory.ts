@@ -208,3 +208,10 @@ export function getDefaultFactory(): OracleClientFactory {
   }
   return defaultInstance;
 }
+
+export function resetDefaultFactory(): void {
+  if (defaultInstance) {
+    defaultInstance.destroy();
+    defaultInstance = null;
+  }
+}
