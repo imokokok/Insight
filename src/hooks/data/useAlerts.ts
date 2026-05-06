@@ -121,13 +121,7 @@ interface UseBatchAlertsReturn {
 const ALERTS_KEY = 'user-alerts';
 const ALERT_EVENTS_KEY = 'user-alert-events';
 
-const ALERT_ERROR_MESSAGES = {
-  userNotLoggedIn: 'User not logged in',
-  createFailed: 'Failed to create alert',
-  updateFailed: 'Failed to update alert',
-  deleteFailed: 'Failed to delete alert',
-  acknowledgeFailed: 'Failed to acknowledge alert',
-} as const;
+const USER_NOT_LOGGED_IN = 'User not logged in';
 
 export function useAlerts(): UseAlertsReturn {
   const user = useUser();
@@ -163,7 +157,7 @@ export function useCreateAlert(): UseCreateAlertReturn {
   const mutation = useMutation({
     mutationFn: async (input: CreateAlertInput) => {
       if (!user?.id) {
-        throw new Error(ALERT_ERROR_MESSAGES.userNotLoggedIn);
+        throw new Error(USER_NOT_LOGGED_IN);
       }
 
       const response = await apiClient.post<{ alert: PriceAlert; message: string }>('/api/alerts', {
@@ -207,7 +201,7 @@ export function useUpdateAlert(): UseUpdateAlertReturn {
   const mutation = useMutation({
     mutationFn: async ({ id, input }: { id: string; input: UpdateAlertInput }) => {
       if (!user?.id) {
-        throw new Error(ALERT_ERROR_MESSAGES.userNotLoggedIn);
+        throw new Error(USER_NOT_LOGGED_IN);
       }
 
       const response = await apiClient.put<{ alert: PriceAlert; message: string }>(
@@ -260,7 +254,7 @@ export function useDeleteAlert(): UseDeleteAlertReturn {
   const mutation = useMutation({
     mutationFn: async (id: string) => {
       if (!user?.id) {
-        throw new Error(ALERT_ERROR_MESSAGES.userNotLoggedIn);
+        throw new Error(USER_NOT_LOGGED_IN);
       }
 
       await apiClient.delete<{ message: string }>(`/api/alerts/${id}`);
@@ -330,7 +324,7 @@ export function useAcknowledgeAlert(): UseAcknowledgeAlertReturn {
   const mutation = useMutation({
     mutationFn: async (eventId: string) => {
       if (!user?.id) {
-        throw new Error(ALERT_ERROR_MESSAGES.userNotLoggedIn);
+        throw new Error(USER_NOT_LOGGED_IN);
       }
 
       const response = await apiClient.post<{
@@ -410,7 +404,7 @@ export function useBatchAlerts(): UseBatchAlertsReturn {
       alertIds: string[];
     }) => {
       if (!user?.id) {
-        throw new Error(ALERT_ERROR_MESSAGES.userNotLoggedIn);
+        throw new Error(USER_NOT_LOGGED_IN);
       }
 
       if (alertIds.length === 0) {

@@ -22,9 +22,6 @@ export const ORACLE_CACHE_TTL = {
   HISTORICAL: 60000,
   NETWORK_STATS: 120000,
   PROVIDERS: 60000,
-  NFT: 60000,
-  SUPPLY: 300000,
-  ECOSYSTEM: 600000,
 } as const;
 
 export const MAX_CACHE_SIZE = 1000;
@@ -34,9 +31,6 @@ export interface OracleCacheEntry<T> {
   timestamp: number;
   ttl: number;
 }
-
-/** @deprecated Use OracleCacheEntry instead */
-export type CacheEntry<T> = OracleCacheEntry<T>;
 
 export class OracleCache {
   private cache: Map<string, OracleCacheEntry<unknown>> = new Map();
@@ -84,6 +78,10 @@ export class OracleCache {
   clear(): void {
     this.cache.clear();
     this.stopCleanupInterval();
+  }
+
+  destroy(): void {
+    this.clear();
   }
 
   has(key: string): boolean {

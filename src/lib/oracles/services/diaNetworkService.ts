@@ -8,7 +8,7 @@ import {
   fetchWithTimeout,
 } from '../diaUtils';
 
-import type { CacheEntry } from '../base';
+import type { OracleCacheEntry } from '../base';
 import type { DIASupply, DIAExchange } from '../diaTypes';
 
 const logger = createLogger('DIANetworkService');
@@ -16,10 +16,10 @@ const logger = createLogger('DIANetworkService');
 const REQUEST_TIMEOUT = 10000;
 
 export class DIANetworkService {
-  constructor(private cache: Map<string, CacheEntry<unknown>>) {}
+  constructor(private cache: Map<string, OracleCacheEntry<unknown>>) {}
 
   private getFromCache<T>(key: string): T | null {
-    const entry = this.cache.get(key) as CacheEntry<T> | undefined;
+    const entry = this.cache.get(key) as OracleCacheEntry<T> | undefined;
     if (!entry) return null;
 
     const now = Date.now();

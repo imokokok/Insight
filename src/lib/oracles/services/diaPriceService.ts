@@ -5,7 +5,7 @@ import { OracleProvider, type Blockchain, type PriceData } from '@/types/oracle'
 import { getDIAAssetConfig } from '../constants/diaConstants';
 import { CACHE_TTL, DIA_API_BASE_URL, fetchWithTimeout } from '../diaUtils';
 
-import type { CacheEntry } from '../base';
+import type { OracleCacheEntry } from '../base';
 import type { DIAAssetQuotation } from '../diaTypes';
 
 const logger = createLogger('DIAPriceService');
@@ -17,7 +17,7 @@ const REQUEST_TIMEOUT = 15000;
 export class DIAPriceService {
   private cleanupTimer: ReturnType<typeof setInterval> | null = null;
 
-  constructor(private cache: Map<string, CacheEntry<unknown>>) {
+  constructor(private cache: Map<string, OracleCacheEntry<unknown>>) {
     this.startCleanupTimer();
   }
 
@@ -62,7 +62,7 @@ export class DIAPriceService {
   }
 
   private getFromCache<T>(key: string): T | null {
-    const entry = this.cache.get(key) as CacheEntry<T> | undefined;
+    const entry = this.cache.get(key) as OracleCacheEntry<T> | undefined;
     if (!entry) return null;
 
     const now = Date.now();

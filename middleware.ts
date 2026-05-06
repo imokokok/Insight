@@ -33,11 +33,29 @@ function hasValidSessionCookie(request: NextRequest): boolean {
   try {
     const decoded = decodeURIComponent(value);
     if (!decoded || decoded.length < 10) return false;
+
+    const parts = decoded.split('.');
+    if (parts.length < 2) return false;
+
+    for (const part of parts) {
+      try {
+        const payload = JSON.parse(atob(part));
+        if (typeof payload === 'object' && payload !== null) {
+          if (payload.exp && typeof payload.exp === 'number') {
+            const now = Math.floor(Date.now() / 1000);
+            if (payload.exp < now) return false;
+          }
+          return true;
+        }
+      } catch {
+        continue;
+      }
+    }
+
+    return false;
   } catch {
     return false;
   }
-
-  return true;
 }
 
 export function middleware(request: NextRequest) {

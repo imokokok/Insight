@@ -6,7 +6,7 @@ import { DIA_API_BASE_URL } from '../diaUtils';
 import { DIANetworkService } from './diaNetworkService';
 import { DIAPriceService } from './diaPriceService';
 
-import type { CacheEntry } from '../base';
+import type { OracleCacheEntry } from '../base';
 import type { DIASupply, DIAExchange } from '../diaTypes';
 
 const logger = createLogger('DIADataService');
@@ -28,7 +28,7 @@ interface DIATokenOnChainDataInternal {
 }
 
 class DIADataService {
-  private cache: Map<string, CacheEntry<unknown>> = new Map();
+  private cache: Map<string, OracleCacheEntry<unknown>> = new Map();
   private static instance: DIADataService | null = null;
   private priceService: DIAPriceService;
   private networkService: DIANetworkService;
@@ -141,7 +141,7 @@ class DIADataService {
   }
 
   private getFromCache<T>(key: string): T | null {
-    const entry = this.cache.get(key) as CacheEntry<T> | undefined;
+    const entry = this.cache.get(key) as OracleCacheEntry<T> | undefined;
     if (!entry) return null;
 
     const now = Date.now();

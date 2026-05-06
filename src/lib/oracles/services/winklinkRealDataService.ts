@@ -5,7 +5,7 @@ import type { PriceData } from '@/types/oracle';
 
 import { withOracleRetry } from '../utils/retry';
 
-import type { CacheEntry } from '../base';
+import type { OracleCacheEntry } from '../base';
 
 const logger = createLogger('WINkLinkRealDataService');
 
@@ -50,7 +50,7 @@ export interface WINkLinkTokenOnChainData {
 }
 
 class WINkLinkRealDataService {
-  private cache: Map<string, CacheEntry<unknown>> = new Map();
+  private cache: Map<string, OracleCacheEntry<unknown>> = new Map();
   private static instance: WINkLinkRealDataService | null = null;
   private readonly maxCacheSize = 1000;
   private readonly defaultCacheTTL = 5 * 60 * 1000;
@@ -103,7 +103,7 @@ class WINkLinkRealDataService {
   }
 
   private getFromCache<T>(key: string): T | null {
-    const entry = this.cache.get(key) as CacheEntry<T> | undefined;
+    const entry = this.cache.get(key) as OracleCacheEntry<T> | undefined;
     if (!entry) return null;
 
     const now = Date.now();
