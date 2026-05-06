@@ -30,8 +30,8 @@ jest.mock('@/components/realtime/ConnectionStatus', () => ({
   ConnectionStatusIndicator: () => null,
 }));
 
-jest.mock('@/providers/ReactQueryProvider', () => ({
-  ReactQueryProvider: ({ children }: { children: React.ReactNode }) => children,
+jest.mock('@/providers/QueryProvider', () => ({
+  QueryProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 
 describe('RootLayout', () => {

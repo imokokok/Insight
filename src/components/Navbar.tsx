@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 
 import Image from 'next/image';
 import Link from 'next/link';
@@ -28,9 +28,11 @@ export default function Navbar() {
   const [avatarError, setAvatarError] = useState(false);
 
   const currentAvatarUrl = profile?.avatar_url;
-  useEffect(() => {
+  const [prevAvatarUrl, setPrevAvatarUrl] = useState(currentAvatarUrl);
+  if (currentAvatarUrl !== prevAvatarUrl) {
+    setPrevAvatarUrl(currentAvatarUrl);
     setAvatarError(false);
-  }, [currentAvatarUrl]);
+  }
 
   const currentPath = useMemo(() => {
     if (!pathname) return '/';

@@ -43,7 +43,7 @@ interface ShortcutConflict {
 /**
  * Check if keyboard shortcuts conflict
  */
-function checkShortcutConflicts(shortcuts: KeyboardShortcut[]): ShortcutConflict[] {
+export function checkShortcutConflicts(shortcuts: KeyboardShortcut[]): ShortcutConflict[] {
   const conflicts: ShortcutConflict[] = [];
 
   for (let i = 0; i < shortcuts.length; i++) {

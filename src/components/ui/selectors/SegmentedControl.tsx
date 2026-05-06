@@ -1,8 +1,18 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useSyncExternalStore } from 'react';
 
 import { type SegmentedControlProps, type SelectorOption } from './types';
+
+const emptySubscribe = () => () => {};
+
+function useIsMounted() {
+  return useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false
+  );
+}
 
 const sizeClasses = {
   xs: 'px-2 py-1 text-[10px]',
@@ -24,11 +34,7 @@ export function SegmentedControl<T = string>({
   selectAllLabel,
   deselectAllLabel,
 }: SegmentedControlProps<T>) {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, [setMounted]);
+  const mounted = useIsMounted();
 
   const resolvedSelectAllLabel = selectAllLabel ?? 'Select All';
   const resolvedDeselectAllLabel = deselectAllLabel ?? 'Deselect All';

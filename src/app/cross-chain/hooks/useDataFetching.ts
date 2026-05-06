@@ -98,7 +98,7 @@ export function useDataFetching(
     if (supportedChains.length === 0) return null;
     if (currentPrices.length === 0) return supportedChains[0];
 
-    const now = Date.now();
+    const maxTimestamp = Math.max(...currentPrices.map((p) => p.timestamp).filter((t) => t > 0), 0);
 
     const chainScores = supportedChains.map((chain) => {
       const priceData = currentPrices.find((p) => p.chain === chain);
@@ -106,8 +106,9 @@ export function useDataFetching(
         return { chain, score: -Infinity };
       }
 
-      const dataAgeMs = priceData.timestamp > 0 ? now - priceData.timestamp : Infinity;
-      const freshnessScore = dataAgeMs < 60000 ? 100 : dataAgeMs < 300000 ? 50 : 0;
+      const stalenessMs =
+        maxTimestamp > 0 && priceData.timestamp > 0 ? maxTimestamp - priceData.timestamp : Infinity;
+      const freshnessScore = stalenessMs < 60000 ? 100 : stalenessMs < 300000 ? 50 : 0;
 
       const priceValues = currentPrices.filter((p) => p.price > 0).map((p) => p.price);
       const medianPrice =
