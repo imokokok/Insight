@@ -1,6 +1,6 @@
 'use client';
 
-import React, { Component, type ReactNode, type ErrorInfo } from 'react';
+import { Component, type ReactNode, type ErrorInfo } from 'react';
 
 import Link from 'next/link';
 

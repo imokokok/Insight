@@ -28,7 +28,7 @@ const logger = createLogger('UnifiedExport');
  * Generate unique ID
  */
 function generateId(): string {
-  return `export-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  return `export-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
 }
 
 /**

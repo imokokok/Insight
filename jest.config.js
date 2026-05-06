@@ -14,6 +14,10 @@ const customJestConfig = {
   slowTestThreshold: 10000,
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
+    '^@vercel/analytics$': '<rootDir>/src/__mocks__/@vercel/analytics.ts',
+    '^@vercel/analytics/react$': '<rootDir>/src/__mocks__/@vercel/analytics/react.ts',
+    '^@vercel/speed-insights/next$': '<rootDir>/src/__mocks__/@vercel/speed-insights/next.ts',
+    '^@sentry/nextjs$': '<rootDir>/src/__mocks__/@sentry/nextjs.ts',
   },
   testMatch: ['<rootDir>/src/**/*.test.{ts,tsx}', '<rootDir>/src/**/*.spec.{ts,tsx}'],
   collectCoverageFrom: [
@@ -22,6 +26,7 @@ const customJestConfig = {
     '!src/**/*.stories.{ts,tsx}',
     '!src/**/__tests__/**',
     '!src/**/index.ts',
+    '!src/__mocks__/**',
   ],
   coverageThreshold: {
     global: {

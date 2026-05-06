@@ -68,7 +68,10 @@ export function useDataFetching(
   const queryClient = useQueryClient();
   const refreshSuccessTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const paramsRef = useRef(params);
-  paramsRef.current = params;
+
+  useEffect(() => {
+    paramsRef.current = params;
+  });
 
   const { chainResults, isLoading, isFetching, errors } = useCrossChainQueries(
     provider,
