@@ -1,7 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
 import { createApiHandler, ApiResponseBuilder } from '@/lib/api/handler';
-import { sanitizeObject, sanitizeString } from '@/lib/security';
 import { CreateFavoriteRequestSchema, validateAndSanitize } from '@/lib/security/validation';
 import { type ConfigType } from '@/lib/supabase/database.types';
 import { getServerQueries } from '@/lib/supabase/server';
@@ -18,18 +17,15 @@ export const GET = createApiHandler(
     const searchParams = request.nextUrl.searchParams;
     const configTypeRaw = searchParams.get('config_type');
     const configType = configTypeRaw
-      ? (sanitizeString(configTypeRaw, { maxLength: 50 }) as unknown as ConfigType | null)
+      ? VALID_CONFIG_TYPES.includes(configTypeRaw as ConfigType)
+        ? (configTypeRaw as ConfigType)
+        : null
       : null;
-
-    const sanitizedConfigType =
-      configType && VALID_CONFIG_TYPES.includes(configType as ConfigType)
-        ? (configType as ConfigType)
-        : null;
 
     const queries = getServerQueries();
 
-    const favorites = sanitizedConfigType
-      ? await queries.getFavoritesByType(userId, sanitizedConfigType)
+    const favorites = configType
+      ? await queries.getFavoritesByType(userId, configType)
       : await queries.getFavorites(userId);
 
     if (!favorites) {
@@ -72,8 +68,7 @@ export const POST = createApiHandler(
       );
     }
 
-    const sanitizedData = sanitizeObject(validationResult.data);
-    const { name, config_type, config_data } = sanitizedData;
+    const { name, config_type, config_data } = validationResult.data;
 
     const queries = getServerQueries();
     const favorite = await queries.addFavorite(userId, {

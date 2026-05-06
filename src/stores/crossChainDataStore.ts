@@ -16,6 +16,9 @@ interface DataState {
   prevStats: PriceStats | null;
   recommendedBaseChain: Blockchain | null;
   anomalies: AnomalousPricePoint[];
+  fetchData: () => Promise<void>;
+  clearCache: () => void;
+  clearCacheForProvider: (provider: OracleProvider) => void;
 }
 
 interface DataActions {
@@ -28,6 +31,9 @@ interface DataActions {
   setRecommendedBaseChain: (chain: Blockchain | null) => void;
   setAnomalies: (anomalies: AnomalousPricePoint[]) => void;
   setCrossChainComparison: (results: CrossChainComparisonResult[]) => void;
+  setFetchData: (fn: () => Promise<void>) => void;
+  setClearCache: (fn: () => void) => void;
+  setClearCacheForProvider: (fn: (provider: OracleProvider) => void) => void;
   resetDataState: () => void;
 }
 
@@ -41,6 +47,9 @@ const initialState: DataState = {
   prevStats: null,
   recommendedBaseChain: null,
   anomalies: [],
+  fetchData: async () => {},
+  clearCache: () => {},
+  clearCacheForProvider: () => {},
 };
 
 export const useCrossChainDataStore = create<DataState & DataActions>()(
@@ -57,42 +66,11 @@ export const useCrossChainDataStore = create<DataState & DataActions>()(
       setRecommendedBaseChain: (chain) => set({ recommendedBaseChain: chain }),
       setAnomalies: (anomalies) => set({ anomalies }),
       setCrossChainComparison: (results) => set({ crossChainComparison: results }),
+      setFetchData: (fn) => set({ fetchData: fn }),
+      setClearCache: (fn) => set({ clearCache: fn }),
+      setClearCacheForProvider: (fn) => set({ clearCacheForProvider: fn }),
       resetDataState: () => set(initialState),
     }),
     { name: 'CrossChainDataStore' }
   )
 );
-
-const dataActionsRef = {
-  fetchData: (() => Promise.resolve()) as () => Promise<void>,
-  clearCache: (() => {}) as () => void,
-  clearCacheForProvider: ((_provider: OracleProvider) => {}) as (provider: OracleProvider) => void,
-};
-
-let dataActionsRegistered = false;
-
-export function registerDataActions(actions: {
-  fetchData: () => Promise<void>;
-  clearCache: () => void;
-  clearCacheForProvider: (provider: OracleProvider) => void;
-}) {
-  if (dataActionsRegistered) {
-    return;
-  }
-  dataActionsRef.fetchData = actions.fetchData;
-  dataActionsRef.clearCache = actions.clearCache;
-  dataActionsRef.clearCacheForProvider = actions.clearCacheForProvider;
-  dataActionsRegistered = true;
-}
-
-export function getFetchData() {
-  return dataActionsRef.fetchData;
-}
-
-export function getClearCache() {
-  return dataActionsRef.clearCache;
-}
-
-export function getClearCacheForProvider() {
-  return dataActionsRef.clearCacheForProvider;
-}

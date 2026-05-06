@@ -6,7 +6,7 @@ import type { DIAAssetQuotation } from '@/lib/oracles/diaTypes';
 import { DIA_API_BASE_URL, fetchWithTimeout } from '@/lib/oracles/diaUtils';
 import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
 import { createLogger } from '@/lib/utils/logger';
-import { OracleProvider, Blockchain, OracleError } from '@/types/oracle';
+import { OracleProvider, Blockchain, OracleServiceError } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
 
 const logger = createLogger('DIAClient');
@@ -124,7 +124,7 @@ export class DIAClient extends BaseOracleClient {
         source: 'dia-api',
       };
     } catch (error) {
-      if (error instanceof OracleError) throw error;
+      if (error instanceof OracleServiceError) throw error;
       logger.error(
         `Error fetching price for ${symbol}: ${error instanceof Error ? error.message : String(error)}`
       );

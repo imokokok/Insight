@@ -12,6 +12,7 @@ import {
   type OracleErrorCode,
   type PriceData,
   type ConfidenceInterval,
+  type RedStoneTokenOnChainData,
 } from '@/types/oracle';
 
 const logger = createLogger('RedStoneClient');
@@ -326,16 +327,4 @@ export class RedStoneClient extends BaseOracleClient {
   }
 }
 
-export interface RedStoneTokenOnChainData {
-  symbol: string;
-  price: number;
-  decimals: number;
-  bid: number | null;
-  ask: number | null;
-  spreadPercentage: number | null;
-  supportedChainsCount: number;
-  updateIntervalMinutes: number;
-  provider: string;
-  dataAge: number | null;
-  lastUpdated: number;
-}
+export type { RedStoneTokenOnChainData };

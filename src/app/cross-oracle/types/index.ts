@@ -1,6 +1,6 @@
 import type { MemoryStats } from '@/lib/oracles/utils/memoryManager';
 import type { CalculatedPerformanceMetrics } from '@/lib/oracles/utils/performanceMetricsCalculator';
-import type { OracleRetryConfig as RetryConfig } from '@/lib/oracles/utils/retry';
+import type { OracleRetryConfig } from '@/lib/oracles/utils/retry';
 import type { ExtendedPriceStats } from '@/types/analytics';
 import type { RefreshInterval } from '@/types/common';
 import type { OracleProvider, PriceData, SnapshotStats } from '@/types/oracle';
@@ -8,6 +8,7 @@ import type { OracleProvider, PriceData, SnapshotStats } from '@/types/oracle';
 import type { PriceHistoryMap } from '../hooks/useOracleMemory';
 
 export type { RefreshInterval } from '@/types/common';
+export type { OracleRetryConfig as RetryConfig } from '@/lib/oracles/utils/retry';
 
 export interface PriceStatsResult extends ExtendedPriceStats {
   currentStats: SnapshotStats;
@@ -49,8 +50,6 @@ export interface OracleDataError {
   globalError: Error | null;
 }
 
-export type { RetryConfig };
-
 export interface UseOracleDataReturn {
   priceData: PriceData[];
   isLoading: boolean;
@@ -62,8 +61,8 @@ export interface UseOracleDataReturn {
   performanceMetrics: CalculatedPerformanceMetrics[];
   isCalculatingMetrics: boolean;
   oracleDataError: OracleDataError;
-  retryConfig: RetryConfig;
-  setRetryConfig: (config: Partial<RetryConfig>) => void;
+  retryConfig: OracleRetryConfig;
+  setRetryConfig: (config: Partial<OracleRetryConfig>) => void;
   retryOracle: (provider: OracleProvider) => Promise<void>;
   retryAllFailed: () => Promise<void>;
   isRetrying: boolean;

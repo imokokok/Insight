@@ -5,13 +5,13 @@ import dynamic from 'next/dynamic';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { HeroSkeleton } from '@/components/ui';
 
-const ProfessionalHero = dynamic(() => import('./home-components/ProfessionalHero'), {
+const ProfessionalHero = dynamic(() => import('@/components/home/ProfessionalHero'), {
   loading: () => <HeroSkeleton />,
   ssr: false,
 });
 
 const HomeDashboard = dynamic(
-  () => import('./home-components/HomeDashboard').then((m) => m.HomeDashboard),
+  () => import('@/components/home/HomeDashboard').then((m) => m.HomeDashboard),
   {
     loading: () => <HeroSkeleton />,
     ssr: false,

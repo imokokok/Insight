@@ -28,9 +28,4 @@ export interface DIAExchange {
   ScraperActive: boolean;
 }
 
-export interface RetryConfig {
-  maxAttempts: number;
-  baseDelay: number;
-  maxDelay: number;
-  backoffMultiplier: number;
-}
+export type { OracleRetryConfig as RetryConfig } from './utils/retry';

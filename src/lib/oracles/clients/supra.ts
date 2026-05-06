@@ -4,23 +4,16 @@ import { supraSymbols, SUPRA_AVAILABLE_PAIRS } from '@/lib/oracles/constants/sup
 import { SUPRA_PAIR_INDEX_MAP } from '@/lib/oracles/constants/supraConstants';
 import { getSupraDataService } from '@/lib/oracles/services/supraDataService';
 import { createLogger } from '@/lib/utils/logger';
-import { OracleProvider, Blockchain } from '@/types/oracle';
-import type { PriceData } from '@/types/oracle';
+import {
+  OracleProvider,
+  Blockchain,
+  type SupraTokenOnChainData,
+  type PriceData,
+} from '@/types/oracle';
 
 const logger = createLogger('SupraClient');
 
-export interface SupraTokenOnChainData {
-  symbol: string;
-  price: number;
-  decimals: number;
-  pairIndex: number;
-  pairName: string;
-  supportedChainsCount: number;
-  updateIntervalMinutes: number;
-  dataAge: number | null;
-  lastUpdated: number;
-  source: string;
-}
+export type { SupraTokenOnChainData };
 
 export class SupraClient extends BaseOracleClient {
   name = OracleProvider.SUPRA;

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef } from 'react';
 
 import { getDefaultFactory, type BaseOracleClient } from '@/lib/oracles';
 import { useCrossChainConfigStore } from '@/stores/crossChainConfigStore';
-import { useCrossChainDataStore, registerDataActions } from '@/stores/crossChainDataStore';
+import { useCrossChainDataStore } from '@/stores/crossChainDataStore';
 import { useCrossChainSelectorStore } from '@/stores/crossChainSelectorStore';
 import { useCrossChainUIStore } from '@/stores/crossChainUIStore';
 import { type PriceStats } from '@/types/analytics';
@@ -56,6 +56,9 @@ export function useCrossChainDataState(): UseCrossChainDataStateReturn {
   const setRecommendedBaseChain = useCrossChainDataStore((s) => s.setRecommendedBaseChain);
   const setAnomalies = useCrossChainDataStore((s) => s.setAnomalies);
   const setCrossChainComparison = useCrossChainDataStore((s) => s.setCrossChainComparison);
+  const setFetchData = useCrossChainDataStore((s) => s.setFetchData);
+  const setClearCacheAction = useCrossChainDataStore((s) => s.setClearCache);
+  const setClearCacheForProviderAction = useCrossChainDataStore((s) => s.setClearCacheForProvider);
 
   const currentClient = useMemo(
     () => getDefaultFactory().getClient(selectedProvider),
@@ -87,8 +90,17 @@ export function useCrossChainDataState(): UseCrossChainDataStateReturn {
   );
 
   useEffect(() => {
-    registerDataActions({ fetchData: fetchDataInternal, clearCache, clearCacheForProvider });
-  }, [fetchDataInternal, clearCache, clearCacheForProvider]);
+    setFetchData(fetchDataInternal);
+    setClearCacheAction(clearCache);
+    setClearCacheForProviderAction(clearCacheForProvider);
+  }, [
+    fetchDataInternal,
+    clearCache,
+    clearCacheForProvider,
+    setFetchData,
+    setClearCacheAction,
+    setClearCacheForProviderAction,
+  ]);
 
   const prevParamsRef = useRef({
     selectedProvider,

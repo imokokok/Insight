@@ -1,7 +1,11 @@
 import { TRON_CONFIG } from '@/lib/config/serverEnv';
 import { createLogger } from '@/lib/utils/logger';
-import { OracleProvider, Blockchain } from '@/types/oracle';
-import type { PriceData } from '@/types/oracle';
+import {
+  OracleProvider,
+  Blockchain,
+  type WINkLinkTokenOnChainData,
+  type PriceData,
+} from '@/types/oracle';
 
 import { withOracleRetry } from '../utils/retry';
 
@@ -35,19 +39,7 @@ const WINKLINK_PRICE_FEEDS: Record<string, string> = {
   'WBTC-USD': 'TCYS6aj9shB6rZNpTCqSkN1aTwkSnz1wHq',
 };
 
-export interface WINkLinkTokenOnChainData {
-  symbol: string;
-  price: number;
-  feedContractAddress: string | null;
-  decimals: number | null;
-  dataFeedsCount: number;
-  activeNodes: number | null;
-  nodeUptime: number;
-  avgResponseTime: number;
-  lastUpdated: number;
-  priceUpdateTime: number | null;
-  dataSource: string;
-}
+export type { WINkLinkTokenOnChainData };
 
 class WINkLinkRealDataService {
   private cache: Map<string, OracleCacheEntry<unknown>> = new Map();

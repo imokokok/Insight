@@ -4,20 +4,9 @@ import { useQuery } from '@tanstack/react-query';
 
 import { BLOCKCHAIN_TO_CHAIN_ID } from '@/lib/oracles/constants/twapConstants';
 import { twapOnChainService } from '@/lib/oracles/services/twapOnChainService';
-import type { Blockchain } from '@/types/oracle';
+import { type Blockchain, type TwapOnChainData } from '@/types/oracle';
 
-export interface TwapOnChainData {
-  poolAddress: string;
-  feeTier: number;
-  liquidity: string;
-  twapInterval: number;
-  twapPrice: number;
-  spotPrice: number;
-  priceDeviation: number;
-  tick: number;
-  sqrtPriceX96: string;
-  confidence: number;
-}
+export type { TwapOnChainData };
 
 interface UseTwapOnChainDataOptions {
   symbol: string;

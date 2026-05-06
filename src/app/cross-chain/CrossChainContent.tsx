@@ -15,7 +15,7 @@ import { PageHeader } from './components/PageHeader';
 import { PriceSpreadHeatmap } from './components/PriceSpreadHeatmap';
 import { TabNavigation, type TabId } from './components/TabNavigation';
 import { ChainRankingTab } from './components/tabs/ChainRankingTab';
-import { DivergenceSignalTab } from './components/tabs/DivergenceSignalTab';
+import { CrossChainDivergenceSignalTab as DivergenceSignalTab } from './components/tabs/DivergenceSignalTab';
 import { RiskAnalysisTab } from './components/tabs/RiskAnalysisTab';
 import { type RefreshInterval } from './constants';
 import { useCrossChainAnalytics } from './hooks/useCrossChainAnalytics';
