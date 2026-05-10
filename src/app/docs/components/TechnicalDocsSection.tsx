@@ -95,21 +95,69 @@ export default function TechnicalDocsSection() {
             <Zap className="w-5 h-5 text-yellow-400" />
             <h3 className="text-white font-semibold">API Preview</h3>
           </div>
+          <span className="text-xs text-gray-400">Requires API Key</span>
+        </div>
+
+        <div className="bg-gray-800 rounded-lg p-4 font-mono text-sm overflow-x-auto mb-4">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-green-400">GET</span>
+            <span className="text-blue-400">/api/v1/price/BTC%2FUSD</span>
+          </div>
+          <div className="text-gray-400 mb-2">Get aggregated price across all oracles</div>
+          <div className="text-gray-500 mb-2">
+            {'# Symbol with "/" must be URL-encoded: BTC/USD → BTC%2FUSD'}
+          </div>
+          <pre className="text-gray-300">
+            {`{
+  "success": true,
+  "data": {
+    "symbol": "BTC/USD",
+    "aggregatedPrice": 81345.37,
+    "priceRange": {
+      "min": 80749.27, "max": 81424.37,
+      "spread": 675.10, "spreadPercent": 0.83
+    },
+    "providerCount": 10,
+    "providers": [...]
+  }
+}`}
+          </pre>
+        </div>
+
+        <div className="bg-gray-800 rounded-lg p-4 font-mono text-sm overflow-x-auto mb-4">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-green-400">GET</span>
+            <span className="text-blue-400">/api/v1/oracles/chainlink?symbol=BTC</span>
+          </div>
+          <div className="text-gray-400 mb-2">
+            Query price from a specific oracle (symbol is required)
+          </div>
+          <pre className="text-gray-300">
+            {`{
+  "success": true,
+  "data": {
+    "provider": "chainlink",
+    "price": 81345.37,
+    "confidence": 0.97,
+    "source": "BTC / USD"
+  }
+}`}
+          </pre>
         </div>
 
         <div className="bg-gray-800 rounded-lg p-4 font-mono text-sm overflow-x-auto">
           <div className="flex items-center gap-2 mb-2">
             <span className="text-green-400">GET</span>
-            <span className="text-blue-400">/api/oracles?symbol=ETH&provider=chainlink</span>
+            <span className="text-blue-400">
+              /api/v1/price/BTC%2FUSD/history?provider=chainlink
+            </span>
           </div>
-          <div className="text-gray-400 mb-2">Query price from a specific oracle</div>
+          <div className="text-gray-400 mb-2">Historical data requires the provider parameter</div>
           <pre className="text-gray-300">
             {`{
-  "symbol": "ETH",
-  "price": 3456.78,
-  "provider": "chainlink",
-  "chain": "ethereum",
-  "timestamp": 1705315800000
+  "success": true,
+  "data": [...],
+  "meta": { "provider": "chainlink", "symbol": "BTC/USD" }
 }`}
           </pre>
         </div>

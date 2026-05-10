@@ -2,8 +2,11 @@
 
 import { memo, useMemo } from 'react';
 
-import { Trophy, Clock, Target, Shield, GitBranch, Database } from 'lucide-react';
+import Link from 'next/link';
 
+import { Trophy, Clock, Target, Shield, GitBranch, Database, ExternalLink } from 'lucide-react';
+
+import { useReputations } from '@/hooks/data/useReputations';
 import { chartColors } from '@/lib/config/colors';
 import { type CalculatedPerformanceMetrics } from '@/lib/oracles/utils/performanceMetricsCalculator';
 import { type PriceData, type OracleProvider } from '@/types/oracle';
@@ -82,6 +85,20 @@ function OracleRankingTabComponent({
   performanceMetrics,
   isCalculatingMetrics,
 }: OracleRankingTabProps) {
+  const { data: repData } = useReputations();
+  const dbReputations = useMemo(() => repData?.data ?? [], [repData]);
+
+  const reputationMap = useMemo(() => {
+    const map = new Map<string, number>();
+    if (dbReputations) {
+      for (const rep of dbReputations) {
+        if (rep.overall_score > 0) {
+          map.set(rep.provider, rep.overall_score);
+        }
+      }
+    }
+    return map;
+  }, [dbReputations]);
   const rankedOracles = useMemo(() => {
     const perfMap = new Map(performanceMetrics.map((m) => [m.provider, m]));
 
@@ -252,6 +269,42 @@ function OracleRankingTabComponent({
                       </span>
                     </div>
                   </div>
+
+                  {reputationMap.has(oracle.provider) && (
+                    <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between">
+                      <div
+                        className="flex items-center gap-1.5 text-xs"
+                        title="Historical 7-day aggregate score from the Oracle Reputation page"
+                      >
+                        <Trophy className="w-3 h-3 text-amber-400" />
+                        <span className="text-gray-500">Persistent Rep.</span>
+                        <span className="font-mono font-semibold text-amber-600">
+                          {reputationMap.get(oracle.provider)!.toFixed(0)}
+                        </span>
+                      </div>
+                      <Link
+                        href={`/reputation/${encodeURIComponent(oracle.provider)}`}
+                        className="inline-flex items-center gap-1 text-xs text-primary-600 hover:text-primary-700 font-medium"
+                        title="View detailed historical reputation"
+                      >
+                        Details
+                        <ExternalLink className="w-3 h-3" />
+                      </Link>
+                    </div>
+                  )}
+
+                  {!reputationMap.has(oracle.provider) && (
+                    <div className="mt-3 pt-3 border-t border-gray-100">
+                      <Link
+                        href={`/reputation/${encodeURIComponent(oracle.provider)}`}
+                        className="inline-flex items-center gap-1 text-xs text-gray-400 hover:text-primary-600 font-medium"
+                        title="Visit Oracle Reputation page for historical tracking"
+                      >
+                        View persistent reputation
+                        <ExternalLink className="w-3 h-3" />
+                      </Link>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
