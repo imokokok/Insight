@@ -61,6 +61,19 @@ interface SymbolCalculationResult {
   failed: number;
 }
 
+interface ReputationHistoryInsertRow {
+  provider: string;
+  symbol: string;
+  price: number | null;
+  consensus_price: number | null;
+  deviation_pct: number | null;
+  latency_ms: number | null;
+  confidence: number | null;
+  is_success: boolean;
+  error_message: string | null;
+  snapshot_time: string;
+}
+
 class ReputationService {
   async calculateAndStore(): Promise<{ total: number; success: number; failed: number }> {
     const supabase = createServerClient();
@@ -82,24 +95,9 @@ class ReputationService {
 
     if (entries.length > 0) {
       try {
-        const { error } = await supabase.from('reputation_history').insert(
-          entries.map((e) => ({
-            provider: e.provider,
-            symbol: e.symbol,
-            price: e.price > 0 ? e.price : null,
-            consensus_price: e.consensus_price > 0 ? e.consensus_price : null,
-            deviation_pct: e.consensus_price > 0 ? e.deviation_pct : null,
-            latency_ms: e.latency_ms > 0 ? e.latency_ms : null,
-            confidence: e.confidence,
-            is_success: e.is_success,
-            error_message: e.error_message || null,
-            snapshot_time: new Date(now).toISOString(),
-          }))
-        );
-
-        if (error) {
-          logger.error('Failed to insert reputation history', error);
-        }
+        const snapshotTime = new Date(now).toISOString();
+        const historyRows = entries.map((entry) => this.buildHistoryInsertRow(entry, snapshotTime));
+        await this.insertReputationHistory(supabase, historyRows);
 
         const uniqueProviders = [...new Set(entries.map((e) => e.provider))];
         await Promise.all(
@@ -122,6 +120,7 @@ class ReputationService {
           'Failed to persist reputation data',
           dbError instanceof Error ? dbError : undefined
         );
+        throw dbError instanceof Error ? dbError : new Error(String(dbError));
       }
     }
 
@@ -182,6 +181,61 @@ class ReputationService {
     return { entries, total, success, failed };
   }
 
+  private buildHistoryInsertRow(
+    entry: ReputationHistoryEntry,
+    snapshotTime: string
+  ): ReputationHistoryInsertRow {
+    const consensusPrice = this.toPositiveDecimal(entry.consensus_price, 8);
+    const deviationPct =
+      consensusPrice !== null ? this.toBoundedDecimal(entry.deviation_pct, 4, 9999.9999) : null;
+
+    return {
+      provider: entry.provider,
+      symbol: entry.symbol,
+      price: this.toPositiveDecimal(entry.price, 8),
+      consensus_price: consensusPrice,
+      deviation_pct: deviationPct,
+      latency_ms: this.toNullableLatency(entry.latency_ms),
+      confidence: this.toNormalizedConfidence(entry.confidence),
+      is_success: entry.is_success,
+      error_message: entry.error_message || null,
+      snapshot_time: snapshotTime,
+    };
+  }
+
+  private async insertReputationHistory(
+    supabase: ReturnType<typeof createServerClient>,
+    rows: ReputationHistoryInsertRow[]
+  ): Promise<void> {
+    const { error } = await supabase.from('reputation_history').insert(rows);
+
+    if (!error) return;
+
+    logger.error('Failed to insert reputation history in batch', error);
+
+    let insertedCount = 0;
+    let lastInsertError: Error | null = null;
+
+    for (const row of rows) {
+      const { error: rowError } = await supabase.from('reputation_history').insert(row);
+      if (rowError) {
+        lastInsertError = rowError;
+        logger.warn(
+          `Failed to insert reputation history row for ${row.provider}/${row.symbol}`,
+          rowError
+        );
+        continue;
+      }
+      insertedCount++;
+    }
+
+    if (insertedCount === 0) {
+      throw lastInsertError ?? new Error('Failed to insert any reputation history rows');
+    }
+
+    logger.warn(`Inserted ${insertedCount}/${rows.length} reputation history rows after fallback`);
+  }
+
   private async fetchProviderResult(
     factory: ReturnType<typeof getDefaultFactory>,
     provider: OracleProvider,
@@ -193,7 +247,7 @@ class ReputationService {
       const price = await client.getPrice(symbol);
       const latencyMs = Date.now() - startTime;
 
-      if (price && price.price > 0) {
+      if (price && Number.isFinite(price.price) && price.price > 0) {
         return {
           entry: {
             provider,
@@ -236,6 +290,33 @@ class ReputationService {
         failed: 1,
       };
     }
+  }
+
+  private toPositiveDecimal(value: number, scale: number): number | null {
+    if (!Number.isFinite(value) || value <= 0) return null;
+    const rounded = Number(value.toFixed(scale));
+    return Number.isFinite(rounded) ? rounded : null;
+  }
+
+  private toBoundedDecimal(value: number, scale: number, maxAbs: number): number | null {
+    if (!Number.isFinite(value)) return null;
+    const bounded = Math.max(-maxAbs, Math.min(maxAbs, value));
+    const rounded = Number(bounded.toFixed(scale));
+    return Number.isFinite(rounded) ? rounded : null;
+  }
+
+  private toNullableLatency(value: number): number | null {
+    if (!Number.isFinite(value) || value <= 0) return null;
+    const rounded = Math.round(value);
+    return rounded > 0 ? rounded : null;
+  }
+
+  private toNormalizedConfidence(value: number): number | null {
+    if (!Number.isFinite(value)) return null;
+    const normalized = value > 1 && value <= 100 ? value / 100 : value;
+    const bounded = Math.max(0, Math.min(0.9999, normalized));
+    const rounded = Number(bounded.toFixed(4));
+    return Number.isFinite(rounded) ? rounded : null;
   }
 
   async getReputations(): Promise<OracleReputation[]> {
