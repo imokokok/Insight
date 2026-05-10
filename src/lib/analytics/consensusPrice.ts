@@ -55,6 +55,15 @@ export function resetConsensusHistory(): void {
   consensusHistoryMap.clear();
 }
 
+const DEVIATION_THRESHOLDS: Record<string, number> = {
+  stablecoin: 0.005,
+  major: 0.05,
+  alt: 0.15,
+  micro: 0.3,
+};
+
+const HISTORY_DEVIATION_MULTIPLIER = 3;
+
 function getSymbolCategory(symbol: string): 'stablecoin' | 'major' | 'alt' | 'micro' {
   const stablecoins = ['USDT', 'USDC', 'DAI', 'BUSD', 'TUSD', 'USDP', 'FRAX', 'LUSD', 'PYUSD'];
   const majors = ['BTC', 'ETH', 'WBTC', 'WETH'];
@@ -64,6 +73,10 @@ function getSymbolCategory(symbol: string): 'stablecoin' | 'major' | 'alt' | 'mi
   if (majors.some((s) => upper.includes(s))) return 'major';
   if (micros.some((s) => upper.includes(s))) return 'micro';
   return 'alt';
+}
+
+function getDeviationThreshold(category: string): number {
+  return DEVIATION_THRESHOLDS[category] ?? DEVIATION_THRESHOLDS.alt;
 }
 
 function getRecommendedMethod(category: 'stablecoin' | 'major' | 'alt' | 'micro'): ConsensusMethod {
@@ -102,7 +115,7 @@ function medianMethod(prices: number[]): number {
 }
 
 function trimmedMeanMethod(prices: number[], trimRatio: number = 0.25): number {
-  if (prices.length < 3) return calculateMedian(prices);
+  if (prices.length < 3) return calculateMean(prices);
   const sorted = [...prices].sort((a, b) => a - b);
   const trimCount = Math.max(1, Math.floor(sorted.length * trimRatio));
   if (trimCount * 2 >= sorted.length) return calculateMedian(prices);
@@ -174,8 +187,22 @@ function reliabilityWeightedMethod(inputs: ConsensusPriceInput[]): number {
   return weightSum > 0 ? weightedSum / weightSum : calculateMean(inputs.map((i) => i.price));
 }
 
-function iqrFilteredMethod(inputs: ConsensusPriceInput[]): number {
-  if (inputs.length < 3) return calculateMedian(inputs.map((i) => i.price));
+function iqrFilteredMethod(inputs: ConsensusPriceInput[], symbol?: string): number {
+  if (inputs.length < 3) {
+    const prices = inputs.map((i) => i.price);
+    if (inputs.length <= 1) return calculateMedian(prices);
+    const [priceA, priceB] = prices.sort((a, b) => a - b);
+    const ref = priceB > 0 ? priceB : 1;
+    const deviation = (priceB - priceA) / ref;
+    const category = symbol ? getSymbolCategory(symbol) : 'alt';
+    const threshold = getDeviationThreshold(category);
+    if (deviation <= threshold) {
+      return (priceA + priceB) / 2;
+    }
+    const confA = inputs.find((i) => i.price === priceA)?.confidence ?? 0.5;
+    const confB = inputs.find((i) => i.price === priceB)?.confidence ?? 0.5;
+    return confA >= confB ? priceA : priceB;
+  }
 
   const prices = inputs.map((i) => i.price).sort((a, b) => a - b);
   const q1Index = Math.floor(prices.length * 0.25);
@@ -193,12 +220,30 @@ function iqrFilteredMethod(inputs: ConsensusPriceInput[]): number {
   return calculateMedian(filtered.map((i) => i.price));
 }
 
-function detectOutliers(inputs: ConsensusPriceInput[]): {
+interface DetectOutliersContext {
+  symbol?: string;
+  historyKey?: string;
+}
+
+function detectOutliers(
+  inputs: ConsensusPriceInput[],
+  context?: DetectOutliersContext
+): {
   valid: ConsensusPriceInput[];
   outliers: ConsensusPriceInput[];
 } {
-  if (inputs.length < 3) {
-    return { valid: inputs, outliers: [] };
+  if (inputs.length === 0) {
+    return { valid: [], outliers: [] };
+  }
+
+  if (inputs.length === 1) {
+    const input = inputs[0];
+    const isOutlier = checkSingleSourceOutlier(input, context);
+    return isOutlier ? { valid: [], outliers: [input] } : { valid: [input], outliers: [] };
+  }
+
+  if (inputs.length === 2) {
+    return detectDualSourceOutliers(inputs, context);
   }
 
   const prices = inputs.map((i) => i.price);
@@ -230,6 +275,118 @@ function detectOutliers(inputs: ConsensusPriceInput[]): {
   return { valid, outliers };
 }
 
+function checkSingleSourceOutlier(
+  input: ConsensusPriceInput,
+  context?: DetectOutliersContext
+): boolean {
+  if (!context?.historyKey) return false;
+
+  const history = consensusHistoryMap.get(context.historyKey);
+  if (!history || history.length < 3) return false;
+
+  const recentPrices = history.slice(-10).map((h) => h.price);
+  const histMean = calculateMean(recentPrices);
+  if (histMean === 0) return false;
+
+  const category = context.symbol ? getSymbolCategory(context.symbol) : 'alt';
+  const threshold = getDeviationThreshold(category) * HISTORY_DEVIATION_MULTIPLIER;
+  const deviation = Math.abs(input.price - histMean) / histMean;
+
+  return deviation > threshold;
+}
+
+function detectDualSourceOutliers(
+  inputs: ConsensusPriceInput[],
+  context?: DetectOutliersContext
+): { valid: ConsensusPriceInput[]; outliers: ConsensusPriceInput[] } {
+  const [a, b] = inputs;
+  const referencePrice = Math.max(a.price, b.price);
+  const deviation = referencePrice > 0 ? Math.abs(a.price - b.price) / referencePrice : 0;
+
+  const category = context?.symbol ? getSymbolCategory(context.symbol) : 'alt';
+  const threshold = getDeviationThreshold(category);
+
+  if (deviation <= threshold) {
+    return { valid: inputs, outliers: [] };
+  }
+
+  const historyVerdict = resolveDualSourceConflictViaHistory(inputs, context);
+
+  if (historyVerdict !== null) {
+    return historyVerdict;
+  }
+
+  const confidenceVerdict = resolveDualSourceConflictViaConfidence(inputs);
+
+  if (confidenceVerdict !== null) {
+    return confidenceVerdict;
+  }
+
+  return {
+    valid: inputs,
+    outliers: [],
+  };
+}
+
+function resolveDualSourceConflictViaHistory(
+  inputs: ConsensusPriceInput[],
+  context?: DetectOutliersContext
+): { valid: ConsensusPriceInput[]; outliers: ConsensusPriceInput[] } | null {
+  if (!context?.historyKey) return null;
+
+  const history = consensusHistoryMap.get(context.historyKey);
+  if (!history || history.length < 3) return null;
+
+  const recentPrices = history.slice(-10).map((h) => h.price);
+  const histMean = calculateMean(recentPrices);
+  if (histMean === 0) return null;
+
+  const category = context.symbol ? getSymbolCategory(context.symbol) : 'alt';
+  const histThreshold = getDeviationThreshold(category) * HISTORY_DEVIATION_MULTIPLIER;
+
+  const deviations = inputs.map((input) => ({
+    input,
+    deviation: Math.abs(input.price - histMean) / histMean,
+  }));
+
+  const outlierCandidates = deviations.filter((d) => d.deviation > histThreshold);
+
+  if (outlierCandidates.length === 1) {
+    const outlierProvider = outlierCandidates[0].input.provider;
+    return {
+      valid: inputs.filter((i) => i.provider !== outlierProvider),
+      outliers: inputs.filter((i) => i.provider === outlierProvider),
+    };
+  }
+
+  if (outlierCandidates.length === 2) {
+    return null;
+  }
+
+  return null;
+}
+
+function resolveDualSourceConflictViaConfidence(
+  inputs: ConsensusPriceInput[]
+): { valid: ConsensusPriceInput[]; outliers: ConsensusPriceInput[] } | null {
+  const [a, b] = inputs;
+  const confA = a.confidence ?? 0.5;
+  const confB = b.confidence ?? 0.5;
+  const ciWidthA = a.confidenceInterval?.widthPercentage ?? Infinity;
+  const ciWidthB = b.confidenceInterval?.widthPercentage ?? Infinity;
+
+  const scoreA = confA * 0.6 + (1 - Math.min(ciWidthA, 100) / 100) * 0.4;
+  const scoreB = confB * 0.6 + (1 - Math.min(ciWidthB, 100) / 100) * 0.4;
+
+  const scoreDiff = Math.abs(scoreA - scoreB);
+  if (scoreDiff < 0.15) return null;
+
+  const outlier = scoreA < scoreB ? a : b;
+  const valid = scoreA < scoreB ? b : a;
+
+  return { valid: [valid], outliers: [outlier] };
+}
+
 function calculateAgreement(prices: number[]): number {
   if (prices.length < 2) return 1;
   const mean = calculateMean(prices);
@@ -259,7 +416,10 @@ function getConfidenceLevel(confidence: number): ConsensusConfidenceLevel {
   return 'very_low';
 }
 
-function computeAllMethods(validInputs: ConsensusPriceInput[]): Record<ConsensusMethod, number> {
+function computeAllMethods(
+  validInputs: ConsensusPriceInput[],
+  symbol?: string
+): Record<ConsensusMethod, number> {
   const prices = validInputs.map((i) => i.price);
 
   return {
@@ -268,7 +428,7 @@ function computeAllMethods(validInputs: ConsensusPriceInput[]): Record<Consensus
     weighted_median: weightedMedianMethod(validInputs, (input) => input.confidence ?? 0.8),
     confidence_weighted: confidenceWeightedMethod(validInputs),
     reliability_weighted: reliabilityWeightedMethod(validInputs),
-    iqr_filtered: iqrFilteredMethod(validInputs),
+    iqr_filtered: iqrFilteredMethod(validInputs, symbol),
   };
 }
 
@@ -302,18 +462,26 @@ export function calculateConsensusPrice(
       };
     }
 
-    const { valid, outliers } = detectOutliers(validInputs);
+    const historyKey = symbol ?? 'default';
+    const { valid, outliers } = detectOutliers(validInputs, { symbol, historyKey });
     const category = symbol ? getSymbolCategory(symbol) : 'alt';
     const recommendedMethod = getRecommendedMethod(category);
     const activeMethod = method ?? recommendedMethod;
 
-    const methodResults = computeAllMethods(valid);
+    const methodResults = computeAllMethods(valid, symbol);
 
     const consensusPrice = methodResults[activeMethod];
 
     const validPrices = valid.map((i) => i.price);
     const agreement = calculateAgreement(validPrices);
-    const confidence = calculateConsensusConfidence(valid.length, agreement, outliers.length);
+    let confidence = calculateConsensusConfidence(valid.length, agreement, outliers.length);
+
+    if (validInputs.length <= 2 && valid.length < validInputs.length) {
+      confidence = Math.min(confidence, 0.39);
+    } else if (validInputs.length <= 2) {
+      confidence = Math.min(confidence, 0.59);
+    }
+
     const confidenceLevel = getConfidenceLevel(confidence);
 
     const priceRange = {
