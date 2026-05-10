@@ -6,6 +6,7 @@ import { ChevronDown, ChevronUp, Filter } from 'lucide-react';
 
 import { DropdownSelect, SegmentedControl } from '@/components/ui';
 import { getPriceOracleProvidersSortedByMarketCap } from '@/lib/config/oracles';
+import { getAssetClass, ASSET_CLASS_CATEGORIES } from '@/lib/oracles/constants/supportedSymbols';
 import { isBlockchain } from '@/lib/utils/chainUtils';
 import { useCrossChainDataStore } from '@/stores/crossChainDataStore';
 import { useCrossChainSelectorStore } from '@/stores/crossChainSelectorStore';
@@ -44,6 +45,7 @@ export function CrossChainFilters() {
   const symbolOptions = symbols.map((symbol) => ({
     value: symbol,
     label: symbol,
+    category: getAssetClass(symbol),
   }));
 
   const filteredChains = supportedChains.filter((chain) => visibleChains.includes(chain));
@@ -117,6 +119,8 @@ export function CrossChainFilters() {
                 value={selectedSymbol}
                 onChange={(value) => setSelectedSymbol(value)}
                 className="w-full"
+                categories={ASSET_CLASS_CATEGORIES}
+                defaultCategory="crypto"
               />
             </div>
 

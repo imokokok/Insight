@@ -1,6 +1,7 @@
 // Chainlink supported symbols (based on actual verification results, only including available trading pairs)
 // Note: These symbols have available Chainlink price feeds on at least one chain
 const chainlinkSymbols = [
+  // Crypto
   'BTC',
   'ETH',
   'LINK',
@@ -47,6 +48,16 @@ const chainlinkSymbols = [
   'SOL',
   'DOGE',
   'BNB',
+  // Forex (verified on Ethereum Mainnet)
+  'EUR',
+  'GBP',
+  'JPY',
+  'CHF',
+  'AUD',
+  'CAD',
+  // Commodity (verified on Ethereum Mainnet)
+  'XAU',
+  'XAG',
 ] as const;
 
 // RedStone supported symbols (based on actual verification results - 2026-04-14)
@@ -129,6 +140,17 @@ export const redstoneSymbols = [
   'BONK',
   'WIF',
   'FLOKI',
+  // Forex (verified via RedStone API)
+  'EUR',
+  'GBP',
+  'JPY',
+  'CHF',
+  'AUD',
+  'CAD',
+  'NZD',
+  // Commodity (verified via RedStone API)
+  'XAU',
+  'XAG',
 ] as const;
 
 // DIA supported symbols (based on actual detection results - 2026-04-14)
@@ -174,6 +196,7 @@ export const diaSymbols = [
 // API3 supported symbols (based on actual detection results - 2026-04-14)
 // Only including symbols that can be correctly fetched
 const api3Symbols = [
+  // Crypto
   'ARB',
   'AVAX',
   'BAL',
@@ -186,21 +209,118 @@ const api3Symbols = [
   'USDC',
   'USDT',
   'WBTC',
+  // Forex (dAPI names verified via computeCommunalApi3ReaderProxyV1Address)
+  'EUR',
+  'GBP',
+  'JPY',
+  'CHF',
+  'AUD',
+  'CAD',
+  'NZD',
+  // Commodity
+  'XAU',
+  'XAG',
 ] as const;
 
 export const API3_AVAILABLE_PAIRS: Record<string, string[]> = {
-  ethereum: ['BAL', 'BTC', 'COMP', 'ETH', 'USDC'],
-  arbitrum: ['ARB', 'AVAX', 'BTC', 'COMP', 'DAI', 'ETH', 'USDC', 'USDT', 'WBTC'],
-  polygon: ['ARB', 'AVAX', 'BNB', 'BTC', 'ETH', 'USDC', 'WBTC'],
-  base: ['BNB', 'BTC', 'DAI', 'ETH', 'SOL', 'USDC', 'USDT', 'WBTC'],
-  optimism: ['ETH', 'USDC', 'WBTC'],
-  avalanche: ['AVAX', 'ETH', 'USDT'],
-  'bnb-chain': ['BNB', 'BTC', 'ETH', 'USDC', 'USDT', 'WBTC'],
+  ethereum: [
+    'BAL',
+    'BTC',
+    'COMP',
+    'ETH',
+    'USDC',
+    'EUR',
+    'GBP',
+    'JPY',
+    'CHF',
+    'AUD',
+    'CAD',
+    'NZD',
+    'XAU',
+    'XAG',
+  ],
+  arbitrum: [
+    'ARB',
+    'AVAX',
+    'BTC',
+    'COMP',
+    'DAI',
+    'ETH',
+    'USDC',
+    'USDT',
+    'WBTC',
+    'EUR',
+    'GBP',
+    'JPY',
+    'CHF',
+    'AUD',
+    'CAD',
+    'NZD',
+    'XAU',
+    'XAG',
+  ],
+  polygon: [
+    'ARB',
+    'AVAX',
+    'BNB',
+    'BTC',
+    'ETH',
+    'USDC',
+    'WBTC',
+    'EUR',
+    'GBP',
+    'JPY',
+    'CHF',
+    'AUD',
+    'CAD',
+    'NZD',
+    'XAU',
+    'XAG',
+  ],
+  base: [
+    'BNB',
+    'BTC',
+    'DAI',
+    'ETH',
+    'SOL',
+    'USDC',
+    'USDT',
+    'WBTC',
+    'EUR',
+    'GBP',
+    'JPY',
+    'CHF',
+    'AUD',
+    'CAD',
+    'NZD',
+    'XAU',
+    'XAG',
+  ],
+  optimism: ['ETH', 'USDC', 'WBTC', 'EUR', 'GBP', 'JPY', 'CHF', 'AUD', 'CAD', 'NZD', 'XAU', 'XAG'],
+  avalanche: ['AVAX', 'ETH', 'USDT', 'EUR', 'GBP', 'JPY', 'CHF', 'AUD', 'CAD', 'NZD', 'XAU', 'XAG'],
+  'bnb-chain': [
+    'BNB',
+    'BTC',
+    'ETH',
+    'USDC',
+    'USDT',
+    'WBTC',
+    'EUR',
+    'GBP',
+    'JPY',
+    'CHF',
+    'AUD',
+    'CAD',
+    'NZD',
+    'XAU',
+    'XAG',
+  ],
 };
 
 // Pyth supported symbols (based on official documentation, supporting 400+ price feeds)
 // Pyth covers cryptocurrencies, forex, commodities, equities, ETFs
 export const pythSymbols = [
+  // Crypto
   'BTC',
   'ETH',
   'SOL',
@@ -277,6 +397,34 @@ export const pythSymbols = [
   'TIA',
   'TON',
   'MNT',
+  // Forex (verified via Pyth Hermes API - only feeds with actual data)
+  'EUR',
+  'GBP',
+  'JPY',
+  'CHF',
+  'AUD',
+  'CAD',
+  'NZD',
+  'SGD',
+  'HKD',
+  'KRW',
+  'INR',
+  'MXN',
+  'BRL',
+  'SEK',
+  'NOK',
+  'TRY',
+  'ZAR',
+  'PHP',
+  'IDR',
+  // Commodity - Metals (verified via Pyth Hermes API)
+  'XAU',
+  'XAG',
+  'XPT',
+  'XPD',
+  // Commodity - Energy (verified via Pyth Hermes API)
+  'USOILSPOT',
+  'UKOILSPOT',
 ] as const;
 
 // Pyth available chain-trading pair mapping
@@ -485,6 +633,7 @@ const reflectorSymbols = [
 ] as const;
 
 const flareSymbols = [
+  // Crypto
   'BTC',
   'ETH',
   'FLR',
@@ -521,6 +670,16 @@ const flareSymbols = [
   'RUNE',
   'FTM',
   'QNT',
+  // Forex (FTSO V2 category 2)
+  'EUR',
+  'GBP',
+  'JPY',
+  'CHF',
+  'AUD',
+  'CAD',
+  // Commodity (FTSO V2 category 3)
+  'XAU',
+  'XAG',
 ] as const;
 
 export const oracleSupportedSymbols = {
@@ -543,3 +702,54 @@ export function getAllSupportedSymbols(): string[] {
   });
   return Array.from(allSymbols).sort();
 }
+
+export const FOREX_SYMBOLS = [
+  'EUR',
+  'GBP',
+  'JPY',
+  'CHF',
+  'AUD',
+  'CAD',
+  'NZD',
+  'SGD',
+  'HKD',
+  'CNY',
+  'KRW',
+  'INR',
+  'MXN',
+  'BRL',
+  'SEK',
+  'NOK',
+  'TRY',
+  'ZAR',
+  'PHP',
+  'IDR',
+] as const;
+
+export const COMMODITY_SYMBOLS = ['XAU', 'XAG', 'XPT', 'XPD', 'USOILSPOT', 'UKOILSPOT'] as const;
+
+export const STABLECOIN_SYMBOLS = [
+  'USDT',
+  'USDC',
+  'DAI',
+  'FRAX',
+  'LUSD',
+  'TUSD',
+  'USDD',
+  'BUSD',
+] as const;
+
+export function getAssetClass(symbol: string): 'crypto' | 'forex' | 'commodity' | 'stablecoin' {
+  const upper = symbol.toUpperCase();
+  if ((FOREX_SYMBOLS as readonly string[]).includes(upper)) return 'forex';
+  if ((COMMODITY_SYMBOLS as readonly string[]).includes(upper)) return 'commodity';
+  if ((STABLECOIN_SYMBOLS as readonly string[]).includes(upper)) return 'stablecoin';
+  return 'crypto';
+}
+
+export const ASSET_CLASS_CATEGORIES = [
+  { value: 'crypto', label: 'Crypto' },
+  { value: 'stablecoin', label: 'Stablecoin' },
+  { value: 'forex', label: 'Forex' },
+  { value: 'commodity', label: 'Commodity' },
+];

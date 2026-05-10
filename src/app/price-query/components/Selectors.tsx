@@ -6,6 +6,7 @@ import { Search, RefreshCw } from 'lucide-react';
 
 import { DropdownSelect, type SelectorOption } from '@/components/ui';
 import { getPriceOracleProvidersSortedByMarketCap } from '@/lib/config/oracles';
+import { getAssetClass, ASSET_CLASS_CATEGORIES } from '@/lib/oracles/constants/supportedSymbols';
 import { type OracleProvider, type Blockchain, BLOCKCHAIN_VALUES } from '@/types/oracle';
 
 import { symbols, oracleColors, chainColors } from '../constants';
@@ -75,6 +76,7 @@ export function Selectors() {
     return availableSymbols.map((symbol) => ({
       value: symbol,
       label: symbol,
+      category: getAssetClass(symbol),
     }));
   }, [selectedOracle, selectedChain, supportedSymbols, getSymbolsForChain]);
 
@@ -166,6 +168,8 @@ export function Selectors() {
             placeholder="Search or select symbol"
             searchable
             searchPlaceholder="Type to search symbols..."
+            categories={ASSET_CLASS_CATEGORIES}
+            defaultCategory="crypto"
           />
         </section>
 

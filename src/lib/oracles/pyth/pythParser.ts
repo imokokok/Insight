@@ -3,6 +3,24 @@ import type { PriceData, ConfidenceInterval } from '@/types/oracle';
 
 import type { PythPriceRaw } from './types';
 
+const USD_QUOTE_FOREX = new Set([
+  'USD/JPY',
+  'USD/CHF',
+  'USD/CAD',
+  'USD/SGD',
+  'USD/HKD',
+  'USD/KRW',
+  'USD/INR',
+  'USD/MXN',
+  'USD/BRL',
+  'USD/SEK',
+  'USD/NOK',
+  'USD/PHP',
+  'USD/IDR',
+  'USD/TRY',
+  'USD/ZAR',
+]);
+
 function calculateConfidenceInterval(price: number, confidence: number): ConfidenceInterval {
   const halfSpread = confidence / 2;
   return {
@@ -22,7 +40,8 @@ function calculateConfidenceScore(confidence: number, price: number): number {
 export function parsePythPrice(
   pythPrice: PythPriceRaw,
   symbol: string,
-  priceId?: string
+  priceId?: string,
+  pythPairFormat?: string
 ): PriceData | null {
   const priceValue =
     typeof pythPrice.price === 'string' ? Number(pythPrice.price) : pythPrice.price;
@@ -30,11 +49,18 @@ export function parsePythPrice(
     return null;
   }
   const exponent = pythPrice.expo ?? -8;
-  const price = priceValue * Math.pow(10, exponent);
+  let price = priceValue * Math.pow(10, exponent);
 
   const confidenceValue =
     typeof pythPrice.conf === 'string' ? Number(pythPrice.conf) : (pythPrice.conf ?? 0);
-  const confidenceAbsolute = confidenceValue * Math.pow(10, exponent);
+  let confidenceAbsolute = confidenceValue * Math.pow(10, exponent);
+
+  if (pythPairFormat && USD_QUOTE_FOREX.has(pythPairFormat) && price !== 0) {
+    price = 1 / price;
+    confidenceAbsolute =
+      confidenceAbsolute /
+      (priceValue * Math.pow(10, exponent) * priceValue * Math.pow(10, exponent));
+  }
 
   const confidenceInterval = calculateConfidenceInterval(price, confidenceAbsolute);
   const publishTime = pythPrice.publish_time ?? Date.now() / 1000;
