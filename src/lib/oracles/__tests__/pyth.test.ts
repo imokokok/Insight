@@ -420,7 +420,7 @@ describe('Hermes Client Tests', () => {
         price: 68000,
         timestamp: Date.now(),
         decimals: 8,
-        confidence: 98,
+        confidence: 0.98,
       };
 
       mockGetLatestPrice.mockResolvedValue(mockPythPrice);
@@ -537,7 +537,7 @@ describe('Confidence Interval Tests', () => {
 
       const score = calculateConfidenceScore(confidence, price);
 
-      expect(score).toBeGreaterThan(98);
+      expect(score).toBeGreaterThan(0.98);
     });
 
     it('should reflect tight price bounds', () => {
@@ -567,7 +567,7 @@ describe('Confidence Interval Tests', () => {
 
       const score = calculateConfidenceScore(confidence, price);
 
-      expect(score).toBeLessThan(99);
+      expect(score).toBeLessThan(0.99);
     });
 
     it('should reflect loose price bounds', () => {
@@ -589,7 +589,7 @@ describe('Confidence Interval Tests', () => {
         price: 68000,
         timestamp: Date.now(),
         decimals: 8,
-        confidence: 98,
+        confidence: 0.98,
         confidenceInterval: undefined,
       };
 
@@ -610,7 +610,7 @@ describe('Confidence Interval Tests', () => {
         price: 68000,
         timestamp: Date.now(),
         decimals: 8,
-        confidence: 98,
+        confidence: 0.98,
       };
 
       mockGetLatestPrice.mockResolvedValue(mockPythPrice);
@@ -731,7 +731,7 @@ describe('Price Accuracy Tests', () => {
         price: 68000,
         timestamp: Date.now(),
         decimals: 8,
-        confidence: 98,
+        confidence: 0.98,
       };
 
       const binancePrice = {
@@ -758,7 +758,7 @@ describe('Price Accuracy Tests', () => {
         price: 68000,
         timestamp: Date.now(),
         decimals: 8,
-        confidence: 98,
+        confidence: 0.98,
       };
 
       const binancePrice = {
@@ -922,7 +922,7 @@ describe('Error Handling Tests', () => {
         price: 68000,
         timestamp: Date.now(),
         decimals: 8,
-        confidence: 98,
+        confidence: 0.98,
       });
 
       await expect(client.getPrice('BTC')).rejects.toMatchObject({
@@ -1054,13 +1054,13 @@ describe('Pyth Parser Functions', () => {
     it('should return high score for low confidence ratio', () => {
       const score = calculateConfidenceScore(10, 68000);
 
-      expect(score).toBeGreaterThan(98);
+      expect(score).toBeGreaterThan(0.98);
     });
 
     it('should return low score for high confidence ratio', () => {
       const score = calculateConfidenceScore(6800, 68000);
 
-      expect(score).toBeLessThan(99);
+      expect(score).toBeLessThan(0.99);
     });
 
     it('should handle zero price', () => {
@@ -1069,10 +1069,10 @@ describe('Pyth Parser Functions', () => {
       expect(score).toBe(0);
     });
 
-    it('should cap score at 100', () => {
+    it('should cap score at 1', () => {
       const score = calculateConfidenceScore(0, 68000);
 
-      expect(score).toBeLessThanOrEqual(100);
+      expect(score).toBeLessThanOrEqual(1);
     });
 
     it('should not return negative scores', () => {

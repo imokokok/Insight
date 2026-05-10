@@ -156,14 +156,25 @@ export function sanitizeObject<T extends Record<string, unknown>>(
 }
 
 export function sanitizeSymbol(symbol: string): string {
-  const sanitized = sanitizeString(symbol, {
-    maxLength: 20,
-    allowHtml: false,
-    trim: true,
-    uppercase: true,
-  });
+  if (typeof symbol !== 'string') {
+    return '';
+  }
 
-  return sanitized.replace(/[^A-Z0-9/\-]/g, '');
+  let sanitized = symbol.trim();
+
+  sanitized = sanitized.replace(/<\/?[^>]*(?:>|$)/gi, '');
+
+  sanitized = sanitized.toUpperCase();
+
+  sanitized = sanitized.replace(/[^A-Z0-9/\-]/g, '');
+
+  sanitized = sanitized.replace(CONTROL_CHARS_PATTERN, '');
+
+  if (sanitized.length > 20) {
+    sanitized = sanitized.substring(0, 20);
+  }
+
+  return sanitized;
 }
 
 export function sanitizeUuid(uuid: string): string {

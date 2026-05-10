@@ -196,13 +196,13 @@ describe('pythParser', () => {
     it('should return high score for low confidence ratio', () => {
       const score = calculateConfidenceScore(0.01, 68000);
 
-      expect(score).toBeGreaterThan(99);
+      expect(score).toBeGreaterThan(0.99);
     });
 
     it('should return low score for high confidence ratio', () => {
       const score = calculateConfidenceScore(100, 100);
 
-      expect(score).toBeLessThan(50);
+      expect(score).toBeLessThan(0.5);
     });
 
     it('should return 0 for zero price', () => {
@@ -211,9 +211,9 @@ describe('pythParser', () => {
       expect(score).toBe(0);
     });
 
-    it('should clamp score between 0 and 100', () => {
+    it('should clamp score between 0 and 1', () => {
       const veryHighScore = calculateConfidenceScore(0.0001, 100000);
-      expect(veryHighScore).toBeLessThanOrEqual(100);
+      expect(veryHighScore).toBeLessThanOrEqual(1);
 
       const veryLowScore = calculateConfidenceScore(1000, 1);
       expect(veryLowScore).toBeGreaterThanOrEqual(0);
