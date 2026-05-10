@@ -46,6 +46,21 @@ export interface ReputationTrendPoint {
   query_count: number;
 }
 
+interface ProviderFetchResult {
+  entry?: ReputationHistoryEntry;
+  price?: PriceData;
+  total: number;
+  success: number;
+  failed: number;
+}
+
+interface SymbolCalculationResult {
+  entries: ReputationHistoryEntry[];
+  total: number;
+  success: number;
+  failed: number;
+}
+
 class ReputationService {
   async calculateAndStore(): Promise<{ total: number; success: number; failed: number }> {
     const supabase = createServerClient();
@@ -58,73 +73,11 @@ class ReputationService {
     const entries: ReputationHistoryEntry[] = [];
 
     for (const symbol of TOP_SYMBOLS) {
-      const providers = this.getProvidersForSymbol(symbol);
-      const prices: PriceData[] = [];
-
-      for (const provider of providers) {
-        try {
-          const startTime = Date.now();
-          const client = factory.getClient(provider);
-          const price = await client.getPrice(symbol);
-          const latencyMs = Date.now() - startTime;
-
-          if (price && price.price > 0) {
-            prices.push({ ...price, provider, symbol });
-            entries.push({
-              provider,
-              symbol,
-              price: price.price,
-              consensus_price: 0,
-              deviation_pct: 0,
-              latency_ms: latencyMs,
-              confidence: price.confidence ?? 0,
-              is_success: true,
-            });
-            success++;
-          }
-        } catch (error) {
-          logger.warn(
-            `Failed to fetch ${provider} for ${symbol}`,
-            error instanceof Error ? error : undefined
-          );
-          entries.push({
-            provider,
-            symbol,
-            price: 0,
-            consensus_price: 0,
-            deviation_pct: 0,
-            latency_ms: 0,
-            confidence: 0,
-            is_success: false,
-            error_message: error instanceof Error ? error.message : String(error),
-          });
-          failed++;
-        }
-        total++;
-      }
-
-      if (prices.length >= 2) {
-        const inputs = prices.map((p) => ({
-          provider: p.provider,
-          price: p.price,
-          timestamp: p.timestamp,
-          confidence: p.confidence,
-        }));
-
-        try {
-          const consensus = calculateConsensusPrice(inputs, 'median', `${symbol}/USD`);
-          const consensusPrice = consensus.price;
-
-          for (const entry of entries) {
-            if (entry.symbol === symbol && entry.is_success && consensusPrice > 0) {
-              entry.consensus_price = consensusPrice;
-              entry.deviation_pct = ((entry.price - consensusPrice) / consensusPrice) * 100;
-            }
-          }
-        } catch {
-          logger.warn(`Failed to calculate consensus for ${symbol}`);
-        }
-      }
+      const result = await this.calculateSymbolEntries(factory, symbol);
+      entries.push(...result.entries);
+      total += result.total;
+      success += result.success;
+      failed += result.failed;
     }
 
     if (entries.length > 0) {
@@ -149,19 +102,21 @@ class ReputationService {
         }
 
         const uniqueProviders = [...new Set(entries.map((e) => e.provider))];
-        for (const provider of uniqueProviders) {
-          try {
-            await supabase.rpc('aggregate_oracle_reputation', {
-              p_provider: provider,
-              p_lookback_days: 7,
-            });
-          } catch (rpcError) {
-            logger.warn(
-              `Failed to aggregate reputation for ${provider}`,
-              rpcError instanceof Error ? rpcError : undefined
-            );
-          }
-        }
+        await Promise.all(
+          uniqueProviders.map(async (provider) => {
+            try {
+              await supabase.rpc('aggregate_oracle_reputation', {
+                p_provider: provider,
+                p_lookback_days: 7,
+              });
+            } catch (rpcError) {
+              logger.warn(
+                `Failed to aggregate reputation for ${provider}`,
+                rpcError instanceof Error ? rpcError : undefined
+              );
+            }
+          })
+        );
       } catch (dbError) {
         logger.error(
           'Failed to persist reputation data',
@@ -174,6 +129,113 @@ class ReputationService {
       `Reputation calculation complete: ${success} success, ${failed} failed out of ${total}`
     );
     return { total, success, failed };
+  }
+
+  private async calculateSymbolEntries(
+    factory: ReturnType<typeof getDefaultFactory>,
+    symbol: string
+  ): Promise<SymbolCalculationResult> {
+    const providers = this.getProvidersForSymbol(symbol);
+    const results = await Promise.all(
+      providers.map((provider) => this.fetchProviderResult(factory, provider, symbol))
+    );
+
+    const entries: ReputationHistoryEntry[] = [];
+    const prices: PriceData[] = [];
+    let total = 0;
+    let success = 0;
+    let failed = 0;
+
+    for (const result of results) {
+      total += result.total;
+      success += result.success;
+      failed += result.failed;
+      if (result.entry) entries.push(result.entry);
+      if (result.price) prices.push(result.price);
+    }
+
+    if (prices.length >= 2) {
+      const inputs = prices.map((price) => ({
+        provider: price.provider,
+        price: price.price,
+        timestamp: price.timestamp,
+        confidence: price.confidence,
+      }));
+
+      try {
+        const consensus = calculateConsensusPrice(inputs, 'median', `${symbol}/USD`);
+        const consensusPrice = consensus.price;
+
+        if (consensusPrice > 0) {
+          for (const entry of entries) {
+            if (entry.is_success) {
+              entry.consensus_price = consensusPrice;
+              entry.deviation_pct = ((entry.price - consensusPrice) / consensusPrice) * 100;
+            }
+          }
+        }
+      } catch {
+        logger.warn(`Failed to calculate consensus for ${symbol}`);
+      }
+    }
+
+    return { entries, total, success, failed };
+  }
+
+  private async fetchProviderResult(
+    factory: ReturnType<typeof getDefaultFactory>,
+    provider: OracleProvider,
+    symbol: string
+  ): Promise<ProviderFetchResult> {
+    try {
+      const startTime = Date.now();
+      const client = factory.getClient(provider);
+      const price = await client.getPrice(symbol);
+      const latencyMs = Date.now() - startTime;
+
+      if (price && price.price > 0) {
+        return {
+          entry: {
+            provider,
+            symbol,
+            price: price.price,
+            consensus_price: 0,
+            deviation_pct: 0,
+            latency_ms: latencyMs,
+            confidence: price.confidence ?? 0,
+            is_success: true,
+          },
+          price: { ...price, provider, symbol },
+          total: 1,
+          success: 1,
+          failed: 0,
+        };
+      }
+
+      return { total: 1, success: 0, failed: 0 };
+    } catch (error) {
+      logger.warn(
+        `Failed to fetch ${provider} for ${symbol}`,
+        error instanceof Error ? error : undefined
+      );
+
+      return {
+        entry: {
+          provider,
+          symbol,
+          price: 0,
+          consensus_price: 0,
+          deviation_pct: 0,
+          latency_ms: 0,
+          confidence: 0,
+          is_success: false,
+          error_message: error instanceof Error ? error.message : String(error),
+        },
+        total: 1,
+        success: 0,
+        failed: 1,
+      };
+    }
   }
 
   async getReputations(): Promise<OracleReputation[]> {
