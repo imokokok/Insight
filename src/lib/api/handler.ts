@@ -7,11 +7,14 @@ import {
   createLoggingMiddleware,
   createErrorMiddleware,
   createRateLimitMiddleware,
+  createApiKeyMiddleware,
   logResponse,
   type AuthContext,
   type LoggingMiddlewareOptions,
   type ErrorMiddlewareOptions,
   type RateLimitMiddlewareOptions,
+  type ApiKeyContext,
+  type ApiKeyMiddlewareOptions,
 } from './middleware';
 import { ApiResponseBuilder, type ApiResponse, type ApiSuccessResponse } from './response';
 
@@ -20,6 +23,7 @@ const logger = createLogger('api-handler');
 interface ApiHandlerContext {
   requestId: string;
   auth?: AuthContext;
+  apiKey?: ApiKeyContext;
   validated?: {
     body?: Record<string, unknown>;
     query?: Record<string, unknown>;
@@ -37,6 +41,7 @@ interface MiddlewareConfig {
   logging?: LoggingMiddlewareOptions | boolean;
   error?: ErrorMiddlewareOptions;
   rateLimit?: RateLimitMiddlewareOptions | boolean;
+  apiKey?: ApiKeyMiddlewareOptions | boolean;
 }
 
 interface CreateApiHandlerOptions {
@@ -71,6 +76,10 @@ export function createApiHandler<T = unknown>(
       )
     : null;
 
+  const apiKeyMiddleware = middlewares.apiKey
+    ? createApiKeyMiddleware(typeof middlewares.apiKey === 'boolean' ? {} : middlewares.apiKey)
+    : null;
+
   return async (
     request: NextRequest,
     _context: { params: Promise<Record<string, string>> }
@@ -103,6 +112,15 @@ export function createApiHandler<T = unknown>(
           return authResult.response;
         }
         apiContext.auth = authResult.context;
+      }
+
+      if (apiKeyMiddleware) {
+        const apiKeyResult = await apiKeyMiddleware(request);
+        if (!apiKeyResult.success) {
+          logResponse(apiContext.requestId, apiKeyResult.response.status, startTime);
+          return apiKeyResult.response;
+        }
+        apiContext.apiKey = apiKeyResult.context;
       }
 
       const response = await handler(request, apiContext);
