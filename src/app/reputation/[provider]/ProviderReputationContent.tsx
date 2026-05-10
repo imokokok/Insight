@@ -162,7 +162,7 @@ function TrendChart({
         <div className="flex flex-col items-center justify-center py-8 text-gray-400">
           <BarChart3 className="w-8 h-8 mb-2" />
           <p className="text-xs">Trend charts appear after accumulating multiple data points</p>
-          <p className="text-[10px] text-gray-300 mt-1">Data is collected every 6 hours</p>
+          <p className="text-[10px] text-gray-300 mt-1">Data is collected every hour</p>
         </div>
       </div>
     );
@@ -645,7 +645,7 @@ function ProviderReputationContentInner({ provider }: { provider: string }) {
               <strong className="text-gray-800">
                 {reputation.total_queries} historical queries
               </strong>
-              . Updated automatically every 6 hours.
+              . Updated automatically every hour.
             </p>
 
             <div className="flex flex-col md:flex-row gap-6 items-center">

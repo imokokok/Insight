@@ -454,7 +454,7 @@ function ReputationContentInner() {
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-500 flex-shrink-0" />
-                <span>Persists in database, updated every 6 hours</span>
+                <span>Persists in database, updated every hour</span>
               </div>
             </div>
           </div>
