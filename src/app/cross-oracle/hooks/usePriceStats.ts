@@ -6,6 +6,11 @@
 import { useMemo } from 'react';
 
 import {
+  calculateConsensusPrice,
+  type ConsensusResult,
+  type ConsensusMethod,
+} from '@/lib/analytics/consensusPrice';
+import {
   safeMax,
   safeMin,
   calculateMedian,
@@ -17,7 +22,11 @@ import { type PriceData, type SnapshotStats } from '@/types/oracle';
 
 import { type PriceStatsResult } from '../types/index';
 
-export function usePriceStats(priceData: PriceData[]): PriceStatsResult {
+export function usePriceStats(
+  priceData: PriceData[],
+  symbol?: string,
+  consensusMethod?: ConsensusMethod
+): PriceStatsResult {
   const validPrices = useMemo(
     () => priceData.map((d) => d.price).filter((p) => p > 0 && !isNaN(p) && isFinite(p)),
     [priceData]
@@ -88,6 +97,21 @@ export function usePriceStats(priceData: PriceData[]): PriceStatsResult {
     ]
   );
 
+  const consensusResult: ConsensusResult | null = useMemo(() => {
+    if (priceData.length === 0) return null;
+    const inputs = priceData
+      .filter((p) => p.price > 0 && Number.isFinite(p.price))
+      .map((p) => ({
+        provider: p.provider,
+        price: p.price,
+        timestamp: p.timestamp,
+        confidence: p.confidence,
+        confidenceInterval: p.confidenceInterval,
+      }));
+    if (inputs.length === 0) return null;
+    return calculateConsensusPrice(inputs, consensusMethod, symbol);
+  }, [priceData, consensusMethod, symbol]);
+
   return {
     validPrices,
     avgPrice,
@@ -100,5 +124,6 @@ export function usePriceStats(priceData: PriceData[]): PriceStatsResult {
     standardDeviation,
     standardDeviationPercent,
     currentStats,
+    consensusResult,
   };
 }

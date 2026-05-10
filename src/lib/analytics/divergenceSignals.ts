@@ -1,5 +1,10 @@
 import { createLogger } from '@/lib/utils/logger';
 
+import {
+  calculateConsensusPrice as computeConsensus,
+  type ConsensusPriceInput,
+} from './consensusPrice';
+
 const logger = createLogger('divergenceSignals');
 
 export type DivergenceDirection = 'positive' | 'negative' | 'neutral';
@@ -108,18 +113,25 @@ const SYNCHRONIZED_LAG_THRESHOLD = 5;
 export function getConsensusPrice(prices: number[]): number {
   try {
     if (!prices || prices.length === 0) return 0;
+    const inputs: ConsensusPriceInput[] = prices.map((price, i) => ({
+      provider: `oracle_${i}`,
+      price,
+      timestamp: Date.now(),
+    }));
+    const result = computeConsensus(inputs, 'median');
+    return result.price;
+  } catch (error) {
+    logger.error(
+      'Failed to calculate consensus price',
+      error instanceof Error ? error : new Error(String(error))
+    );
+    if (!prices || prices.length === 0) return 0;
     const sorted = [...prices].sort((a, b) => a - b);
     const mid = Math.floor(sorted.length / 2);
     if (sorted.length % 2 === 0) {
       return (sorted[mid - 1] + sorted[mid]) / 2;
     }
     return sorted[mid];
-  } catch (error) {
-    logger.error(
-      'Failed to calculate consensus price',
-      error instanceof Error ? error : new Error(String(error))
-    );
-    return 0;
   }
 }
 

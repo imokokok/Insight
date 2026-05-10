@@ -5,6 +5,7 @@ import { memo, useMemo } from 'react';
 import { Database, BarChart3, Shield, Trophy, Activity, Heart } from 'lucide-react';
 
 import { EmptyStateEnhanced } from '@/components/ui';
+import type { ConsensusResult, ConsensusMethod } from '@/lib/analytics/consensusPrice';
 import type { CalculatedPerformanceMetrics } from '@/lib/oracles/utils/performanceMetricsCalculator';
 import type { PriceStats } from '@/types/analytics';
 import type { OracleProvider, PriceData } from '@/types/oracle';
@@ -53,6 +54,9 @@ interface QueryResultsProps {
   retryAllFailed?: () => Promise<void>;
   isRetrying?: boolean;
   retryingOracles?: OracleProvider[];
+  consensusResult?: ConsensusResult | null;
+  currentConsensusMethod?: ConsensusMethod;
+  onConsensusMethodChange?: (method: ConsensusMethod) => void;
 }
 
 const TABS: { key: CrossOracleTab; label: string; icon: React.ElementType }[] = [
@@ -130,6 +134,9 @@ function QueryResultsComponent({
   isRetrying,
   retryingOracles,
   onRefresh,
+  consensusResult,
+  currentConsensusMethod,
+  onConsensusMethodChange,
 }: QueryResultsProps) {
   const divergenceAccelerationScore =
     divergenceSignals.acceleratingCount > 0
@@ -336,6 +343,9 @@ function QueryResultsComponent({
               avgPrice={priceStats.avgPrice}
               validPrices={priceStats.validPrices}
               anomalies={anomalies}
+              consensusResult={consensusResult}
+              currentConsensusMethod={currentConsensusMethod}
+              onConsensusMethodChange={onConsensusMethodChange}
             />
           )}
           {activeTab === 'divergence' && (
