@@ -75,6 +75,33 @@ export const PYTH_PRICE_FEED_IDS: Record<string, string> = {
   'WSTETH/USD': '6df640f3b8963d8f8358f791f352b8364513f6ab1cca5ed3f1f7b5448980e784',
   'XLM/USD': 'b7a8eba68a997cd0210c2e1e4ee811ad2d174b3611c22d9ebf16f4cb7e9ba850',
   'YFI/USD': '425f4b198ab2504936886c1e93511bb6720fbcf2045a4f3c0723bb213846022f',
+  // === Forex Feed IDs (verified via Hermes API) ===
+  'EUR/USD': 'a995d00bb36a63cef7fd2c287dc105fc8f3d93779f062f09551b0af3e81ec30b',
+  'GBP/USD': '84c2dde9633d93d1bcad84e7dc41c9d56578b7ec52fabedc1f335d673df0a7c1',
+  'AUD/USD': '67a6f93030420c1c9e3fe37c1ab6b77966af82f995944a9fefce357a22854a80',
+  'NZD/USD': '92eea8ba1b00078cdc2ef6f64f091f262e8c7d0576ee4677572f314ebfafa4c7',
+  'USD/BRL': 'd2db4dbf1aea74e0f666b0e8f73b9580d407f5e5cf931940b06dc633d7a95906',
+  'USD/CAD': '3112b03a41c910ed446852aacf67118cb1bec67b2cd0b9a214c58cc0eaa2ecca',
+  'USD/CHF': '0b1e3297e69f162877b577b0d6a47a0d63b2392bc8499e6540da4187a63e28f8',
+  'USD/HKD': '19d75fde7fee50fe67753fdc825e583594eb2f51ae84e114a5246c4ab23aff4c',
+  'USD/IDR': '6693afcd49878bbd622e46bd805e7177932cf6ab0b1c91b135d71151b9207433',
+  'USD/INR': '0ac0f9a2886fc2dd708bc66cc2cea359052ce89d324f45d95fadbc6c4fcf1809',
+  'USD/JPY': 'ef2c98c804ba503c6a707e38be4dfbb16683775f195b091252bf24693042fd52',
+  'USD/KRW': 'e539120487c29b4defdf9a53d337316ea022a2688978a468f9efd847201be7e3',
+  'USD/MXN': 'e13b1c1ffb32f34e1be9545583f01ef385fde7f42ee66049d30570dc866b77ca',
+  'USD/NOK': '235ddea9f40e9af5814dbcc83a418b98e3ee8df1e34e1ae4d45cf5de596023a3',
+  'USD/PHP': '2bda7f268b52bfbc3f2e124c31445247647350db313caadc6771e6299e0a68c9',
+  'USD/SEK': '8ccb376aa871517e807358d4e3cf0bc7fe4950474dbe6c9ffc21ef64e43fc676',
+  'USD/SGD': '396a969a9c1480fa15ed50bc59149e2c0075a72fe8f458ed941ddec48bdb4918',
+  'USD/TRY': '032a2eba1c2635bf973e95fb62b2c0705c1be2603b9572cc8d5edeaf8744e058',
+  'USD/ZAR': '389d889017db82bf42141f23b61b8de938a4e2d156e36312175bebf797f493f1',
+  // === Commodity/Metal Feed IDs (verified via Hermes API) ===
+  'XAU/USD': '765d2ba906dbc32ca17cc11f5310a89e9ee1f6420508c63861f2f8ba4ee34bb2',
+  'XAG/USD': 'f2fb02c32b055c805e7238d628e5e9dadef274376114eb1f012337cabe93871e',
+  'XPT/USD': '398e4bbc7cbf89d6648c21e08019d878967677753b3096799595c78f805a34e5',
+  'XPD/USD': '80367e9664197f37d89a07a804dffd2101c479c7c4e8490501bc9d9e1e7f9021',
+  'USOILSPOT/USD': '925ca92ff005ae943c158e3563f59698ce7e75c5a8c8dd43303a0a154887b3e6',
+  'UKOILSPOT/USD': '27f0d5e09a830083e5491795cac9ca521399c8f7fd56240d09484b14e614d57a',
 };
 
 export const HERMES_API_URL = 'https://hermes.pyth.network';
@@ -86,6 +113,12 @@ export const CACHE_TTL = {
 export function normalizeSymbol(symbol: string): string {
   const upperSymbol = symbol.toUpperCase();
   const baseSymbol = upperSymbol.replace('/USD', '');
+  if (PYTH_PRICE_FEED_IDS[`${baseSymbol}/USD`]) {
+    return `${baseSymbol}/USD`;
+  }
+  if (PYTH_PRICE_FEED_IDS[`USD/${baseSymbol}`]) {
+    return `USD/${baseSymbol}`;
+  }
   return `${baseSymbol}/USD`;
 }
 

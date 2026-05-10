@@ -659,6 +659,80 @@ const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPriceFeed>> 
       category: 'crypto',
     },
   },
+  // === Forex Price Feeds (verified on Ethereum Mainnet) ===
+  EUR: {
+    1: {
+      address: '0xb49f677943BC038e9857d61E7d053CaA2C1734C1',
+      name: 'EUR / USD',
+      symbol: 'EUR',
+      decimals: 8,
+      category: 'fiat',
+    },
+  },
+  GBP: {
+    1: {
+      address: '0x5c0Ab2d9b5a7ed9f470386e82BB36A3613cDd4b5',
+      name: 'GBP / USD',
+      symbol: 'GBP',
+      decimals: 8,
+      category: 'fiat',
+    },
+  },
+  JPY: {
+    1: {
+      address: '0xBcE206caE7f0ec07b545EddE332A47C2F75bbeb3',
+      name: 'JPY / USD',
+      symbol: 'JPY',
+      decimals: 8,
+      category: 'fiat',
+    },
+  },
+  CHF: {
+    1: {
+      address: '0x449d117117838fFA61263B61dA6301AA2a88B13A',
+      name: 'CHF / USD',
+      symbol: 'CHF',
+      decimals: 8,
+      category: 'fiat',
+    },
+  },
+  AUD: {
+    1: {
+      address: '0x77F9710E7d0A19669A13c055F62cd80d313dF022',
+      name: 'AUD / USD',
+      symbol: 'AUD',
+      decimals: 8,
+      category: 'fiat',
+    },
+  },
+  CAD: {
+    1: {
+      address: '0xa34317DB73e77d453b1B8d04550c44D10e981C8e',
+      name: 'CAD / USD',
+      symbol: 'CAD',
+      decimals: 8,
+      category: 'fiat',
+    },
+  },
+  // === Commodity Price Feeds (verified on Ethereum Mainnet) ===
+  XAU: {
+    1: {
+      address: '0x214eD9Da11D2fbe465a6fc601a91E62EbEc1a0D6',
+      name: 'XAU / USD',
+      symbol: 'XAU',
+      decimals: 8,
+      category: 'commodity',
+    },
+  },
+  XAG: {
+    1: {
+      address: '0x379589227b15F1a12195D3f2d90bBc9F31f95235',
+      name: 'XAG / USD',
+      symbol: 'XAG',
+      decimals: 8,
+      category: 'commodity',
+    },
+  },
 };
 
 const CHAINLINK_CONTRACTS: Record<number, ChainlinkContracts> = {

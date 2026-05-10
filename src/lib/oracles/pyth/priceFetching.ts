@@ -59,7 +59,7 @@ export async function fetchLatestPrice(
           return null;
         }
 
-        return parsePythPrice(parsed.price, symbol, priceId);
+        return parsePythPrice(parsed.price, symbol, priceId, pythSymbol);
       },
       'getLatestPrice',
       ORACLE_RETRY_PRESETS.standard
@@ -133,7 +133,7 @@ export async function fetchHistoricalPrices(
               if (priceUpdates.parsed && priceUpdates.parsed.length > 0) {
                 const parsed = priceUpdates.parsed[0];
                 if (parsed && parsed.price && isPythPriceRaw(parsed.price)) {
-                  return parsePythPrice(parsed.price, symbol);
+                  return parsePythPrice(parsed.price, symbol, undefined, pythSymbol);
                 }
               }
               return null;

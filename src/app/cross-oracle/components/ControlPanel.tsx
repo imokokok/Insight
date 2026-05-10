@@ -22,6 +22,7 @@ import {
 import { AutoRefreshControl } from '@/app/price-query/components/AutoRefreshControl';
 import { DropdownSelect } from '@/components/ui';
 import { getPriceOracleProvidersSortedByMarketCap, getOracleConfig } from '@/lib/config/oracles';
+import { getAssetClass, ASSET_CLASS_CATEGORIES } from '@/lib/oracles/constants/supportedSymbols';
 import { addThousandSeparators } from '@/lib/utils/format';
 import { type OracleProvider } from '@/types/oracle';
 
@@ -108,6 +109,7 @@ export function ControlPanel({
     label: symbol,
     icon: true,
     color: '#6B7280',
+    category: getAssetClass(symbol),
   }));
 
   // Custom render option, showing oracle count
@@ -242,6 +244,8 @@ export function ControlPanel({
               searchable
               searchPlaceholder="Search symbol..."
               className="w-full"
+              categories={ASSET_CLASS_CATEGORIES}
+              defaultCategory="crypto"
               renderOption={(option) =>
                 renderSymbolOption(
                   option as { value: string; label: string; icon?: boolean; color?: string }

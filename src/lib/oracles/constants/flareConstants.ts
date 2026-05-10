@@ -106,5 +106,11 @@ function encodeFeedId(category: number, symbol: string): `0x${string}` {
 
 export const FLARE_SYMBOL_TO_FEED_ID: Record<string, `0x${string}`> = {};
 for (const sym of flareSymbols) {
-  FLARE_SYMBOL_TO_FEED_ID[sym] = encodeFeedId(FLARE_FEED_CATEGORY.CRYPTO, sym);
+  if (['EUR', 'GBP', 'JPY', 'CHF', 'AUD', 'CAD'].includes(sym)) {
+    FLARE_SYMBOL_TO_FEED_ID[sym] = encodeFeedId(FLARE_FEED_CATEGORY.FOREX, sym);
+  } else if (['XAU', 'XAG'].includes(sym)) {
+    FLARE_SYMBOL_TO_FEED_ID[sym] = encodeFeedId(FLARE_FEED_CATEGORY.COMMODITY, sym);
+  } else {
+    FLARE_SYMBOL_TO_FEED_ID[sym] = encodeFeedId(FLARE_FEED_CATEGORY.CRYPTO, sym);
+  }
 }
