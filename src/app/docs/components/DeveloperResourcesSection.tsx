@@ -18,28 +18,40 @@ import {
 export default function DeveloperResourcesSection() {
   const [copied, setCopied] = useState(false);
 
-  const codeExample = `// Query ETH price from Chainlink
+  const codeExample = `// Query BTC aggregated price (API Key required)
 const response = await fetch(
-  '/api/oracles?symbol=ETH&provider=chainlink'
+  '/api/v1/price/BTC%2FUSD',
+  {
+    headers: {
+      'x-api-key': 'ik_your_api_key'
+    }
+  }
 );
 const data = await response.json();
 
-console.log(data.price); // 3456.78
-console.log(data.provider); // "chainlink"
-console.log(data.timestamp); // 1705315800000`;
+console.log(data.data.aggregatedPrice); // 81345.37
+console.log(data.data.providerCount);   // 10`;
 
-  const batchCodeExample = `// Batch query multiple prices
-const response = await fetch('/api/oracles', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    requests: [
-      { symbol: 'BTC', provider: 'chainlink' },
-      { symbol: 'ETH', provider: 'pyth' }
-    ]
-  })
-});
-const data = await response.json();`;
+  const batchCodeExample = `// Query price from a specific oracle
+const response = await fetch(
+  '/api/v1/oracles/chainlink?symbol=BTC',
+  {
+    headers: {
+      'x-api-key': 'ik_your_api_key'
+    }
+  }
+);
+const data = await response.json();
+
+// Historical data requires provider parameter
+const history = await fetch(
+  '/api/v1/price/BTC%2FUSD/history?provider=chainlink&period=24',
+  {
+    headers: {
+      'x-api-key': 'ik_your_api_key'
+    }
+  }
+);`;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(codeExample);
@@ -73,19 +85,29 @@ const data = await response.json();`;
 
   const faqs = [
     {
-      question: 'What are the API rate limits?',
+      question: 'How do I authenticate API requests?',
       answer:
-        'Free users can make up to 100 requests per minute; professional users can make 1,000 requests per minute. Contact us for higher quotas.',
+        'All data endpoints require an API key. Pass it via the x-api-key header (x-api-key: ik_xxx) or the Authorization header (Authorization: Bearer ik_xxx). Create API keys at /api/v1/api-keys after signing in.',
     },
     {
-      question: 'What data formats are supported?',
+      question: 'What are the API rate limits?',
       answer:
-        'The API returns JSON-formatted data by default. Some endpoints support CSV format via Accept header.',
+        'Free plan: 60 requests/minute. Pro plan: 600 requests/minute. Enterprise plan: 6,000 requests/minute. Rate limits are per API key.',
+    },
+    {
+      question: 'How should I format the symbol in the URL?',
+      answer:
+        'Symbols containing "/" must be URL-encoded. For example, BTC/USD should be sent as BTC%2FUSD in the URL path. Example: /api/v1/price/BTC%2FUSD.',
+    },
+    {
+      question: 'Why does the history endpoint require a provider?',
+      answer:
+        'Historical data is provider-specific and cannot be aggregated across oracles. You must specify which oracle provider to query, e.g., ?provider=chainlink.',
     },
     {
       question: 'How do I get an API key?',
       answer:
-        'After registering an account, you can generate and manage your API keys on the settings page.',
+        'After registering and signing in, you can generate API keys via the /api/v1/api-keys endpoint. Each user can have up to 5 active keys. The full key is only shown once at creation.',
     },
   ];
 
@@ -154,14 +176,14 @@ const data = await response.json();`;
         </div>
 
         <div className="bg-gray-800 rounded-lg p-4 font-mono text-sm overflow-x-auto mb-4">
-          <div className="text-gray-500 mb-2">{'// Single price query'}</div>
+          <div className="text-gray-500 mb-2">{'// Aggregated price query'}</div>
           <pre className="text-gray-300">
             <code>{codeExample}</code>
           </pre>
         </div>
 
         <div className="bg-gray-800 rounded-lg p-4 font-mono text-sm overflow-x-auto">
-          <div className="text-gray-500 mb-2">{'// Batch query'}</div>
+          <div className="text-gray-500 mb-2">{'// Single oracle & historical query'}</div>
           <pre className="text-gray-300">
             <code>{batchCodeExample}</code>
           </pre>

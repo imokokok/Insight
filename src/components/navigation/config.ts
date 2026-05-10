@@ -6,6 +6,7 @@ import {
   Link2,
   BookOpen,
   Camera,
+  Award,
 } from 'lucide-react';
 
 import { oracleColors } from '@/lib/constants';
@@ -48,6 +49,13 @@ export const navigationConfig: NavStructure = [
         label: 'Cross-Chain Comparison',
         icon: Link2,
         description: 'Cross-chain oracle performance benchmarking and reliability analytics',
+      },
+      {
+        href: '/reputation',
+        label: 'Oracle Reputation',
+        icon: Award,
+        description:
+          'Historical reliability scoring and reputation tracking for all oracle providers',
       },
       {
         href: '/snapshots',

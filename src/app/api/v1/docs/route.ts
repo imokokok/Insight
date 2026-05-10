@@ -8,7 +8,7 @@ const spec = {
     title: 'Insight Oracle API',
     version: '1.0.0',
     description:
-      'Multi-oracle price aggregation API. Access real-time and historical prices from Chainlink, Pyth, API3, RedStone, DIA, WINkLink, Supra, TWAP, Reflector, and Flare oracles. Get consensus prices, compare sources, and monitor oracle health.',
+      'Multi-oracle price aggregation API. Access real-time and historical prices from Chainlink, Pyth, API3, RedStone, DIA, WINkLink, Supra, TWAP, Reflector, and Flare oracles. Get consensus prices, compare sources, and monitor oracle health.\n\n## Authentication\nAll data endpoints require an API key. Pass it via:\n- `x-api-key` header: `x-api-key: ik_your_api_key`\n- `Authorization` header: `Authorization: Bearer ik_your_api_key`\n\nAPI keys start with the `ik_` prefix. Create and manage keys at `/api/v1/api-keys`.\n\n## Symbol Format\nPath parameters containing `/` must be URL-encoded. For example:\n- `BTC/USD` → `/api/v1/price/BTC%2FUSD`\n- `ETH/USD` → `/api/v1/price/ETH%2FUSD`\n\n## Rate Limits\n| Plan | Requests/Minute |\n|------|----------------|\n| Free | 60 |\n| Pro | 600 |\n| Enterprise | 6000 |',
     contact: {
       name: 'Insight API Support',
       url: 'https://insight.oracle',
@@ -29,7 +29,7 @@ const spec = {
       get: {
         summary: 'Get aggregated price',
         description:
-          'Get the aggregated price for a symbol across all available oracle providers. Returns median price, price range, spread, and per-provider breakdown.',
+          'Get the aggregated price for a symbol across all available oracle providers. Returns median price, price range, spread, and per-provider breakdown.\n\n**Note:** The `symbol` path parameter must be URL-encoded when it contains `/`. For example, use `BTC%2FUSD` instead of `BTC/USD`.',
         tags: ['Price'],
         parameters: [
           {
@@ -37,7 +37,8 @@ const spec = {
             in: 'path',
             required: true,
             schema: { type: 'string', example: 'BTC/USD' },
-            description: 'Trading pair symbol (e.g., BTC/USD, ETH/USD)',
+            description:
+              'Trading pair symbol (e.g., BTC/USD, ETH/USD). Must be URL-encoded in the request — use BTC%2FUSD for BTC/USD.',
           },
           {
             name: 'chain',
@@ -71,7 +72,7 @@ const spec = {
       get: {
         summary: 'Get all oracle sources for a symbol',
         description:
-          'Get price data from every oracle provider that supports the given symbol, including both available and unavailable sources.',
+          'Get price data from every oracle provider that supports the given symbol, including both available and unavailable sources.\n\n**Note:** The `symbol` path parameter must be URL-encoded when it contains `/`. For example, use `BTC%2FUSD` instead of `BTC/USD`.',
         tags: ['Price'],
         parameters: [
           {
@@ -79,6 +80,8 @@ const spec = {
             in: 'path',
             required: true,
             schema: { type: 'string', example: 'BTC/USD' },
+            description:
+              'Trading pair symbol. Must be URL-encoded in the request — use BTC%2FUSD for BTC/USD.',
           },
           {
             name: 'chain',
@@ -97,7 +100,7 @@ const spec = {
       get: {
         summary: 'Get historical price data',
         description:
-          'Get historical price data from a specific oracle provider. Requires the provider parameter.',
+          'Get historical price data from a specific oracle provider. **The `provider` query parameter is required** — historical data is provider-specific and cannot be aggregated.\n\n**Note:** The `symbol` path parameter must be URL-encoded when it contains `/`. For example, use `BTC%2FUSD` instead of `BTC/USD`.',
         tags: ['Price'],
         parameters: [
           {
@@ -105,6 +108,8 @@ const spec = {
             in: 'path',
             required: true,
             schema: { type: 'string', example: 'BTC/USD' },
+            description:
+              'Trading pair symbol. Must be URL-encoded in the request — use BTC%2FUSD for BTC/USD.',
           },
           {
             name: 'provider',
@@ -136,7 +141,7 @@ const spec = {
       get: {
         summary: 'Get consensus price',
         description:
-          'Calculate the consensus price across all oracle providers using configurable aggregation methods. Supports 6 consensus algorithms: median, trimmed_mean, weighted_median, confidence_weighted, reliability_weighted, and iqr_filtered.',
+          'Calculate the consensus price across all oracle providers using configurable aggregation methods. Supports 6 consensus algorithms: median, trimmed_mean, weighted_median, confidence_weighted, reliability_weighted, and iqr_filtered.\n\n**Note:** The `symbol` path parameter must be URL-encoded when it contains `/`. For example, use `BTC%2FUSD` instead of `BTC/USD`.',
         tags: ['Consensus'],
         parameters: [
           {
@@ -144,6 +149,8 @@ const spec = {
             in: 'path',
             required: true,
             schema: { type: 'string', example: 'BTC/USD' },
+            description:
+              'Trading pair symbol. Must be URL-encoded in the request — use BTC%2FUSD for BTC/USD.',
           },
           {
             name: 'method',
@@ -177,7 +184,8 @@ const spec = {
     '/oracles/{provider}': {
       get: {
         summary: 'Get price from a specific oracle',
-        description: 'Get real-time or historical price data from a specific oracle provider.',
+        description:
+          'Get real-time or historical price data from a specific oracle provider. **The `symbol` query parameter is required** — you must specify which trading pair to query.',
         tags: ['Oracles'],
         parameters: [
           {
@@ -347,7 +355,8 @@ const spec = {
         type: 'apiKey',
         in: 'header',
         name: 'x-api-key',
-        description: 'API key starting with ik_ prefix',
+        description:
+          'API key starting with ik_ prefix. Can also be passed via Authorization header as Bearer token (Authorization: Bearer ik_xxx).',
       },
       BearerAuth: {
         type: 'http',
