@@ -15,11 +15,5 @@
     "src/app/api/cron/reputation/route.ts": {
       "maxDuration": 60
     }
-  },
-  "crons": [
-    {
-      "path": "/api/cron/reputation",
-      "schedule": "0 0 * * *"
-    }
-  ]
+  }
 }
