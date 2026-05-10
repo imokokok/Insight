@@ -155,7 +155,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Cleanup old history records
 CREATE OR REPLACE FUNCTION public.cleanup_old_reputation_history(
-    p_retention_days INTEGER DEFAULT 90
+    p_retention_days INTEGER DEFAULT 7
 )
 RETURNS void AS $$
 BEGIN

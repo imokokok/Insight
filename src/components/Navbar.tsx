@@ -12,7 +12,13 @@ import { Button } from '@/components/ui';
 import { useKeyboardShortcuts } from '@/hooks';
 import { useUser, useProfile, useAuthLoading, useAuthActions } from '@/stores/authStore';
 
-import { DropdownMenu, MobileDrawer, UserMenuDropdown, navigationConfig } from './navigation';
+import {
+  DropdownMenu,
+  MegaMenu,
+  MobileDrawer,
+  UserMenuDropdown,
+  navigationConfig,
+} from './navigation';
 import { type NavGroup } from './navigation/types';
 import { GlobalSearch, SearchButton } from './search';
 
@@ -86,6 +92,17 @@ export default function Navbar() {
                 if ('items' in navItem) {
                   const group = navItem as NavGroup;
                   const isGroupActive = group.items.some((item) => isActive(item.href));
+
+                  if (group.megaMenu) {
+                    return (
+                      <MegaMenu
+                        key={group.id}
+                        group={group}
+                        isActive={isGroupActive}
+                        currentPath={currentPath}
+                      />
+                    );
+                  }
 
                   return (
                     <DropdownMenu
