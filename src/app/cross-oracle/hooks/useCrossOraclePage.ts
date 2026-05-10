@@ -1,7 +1,9 @@
 import { useState, useCallback } from 'react';
 
+import { type ConsensusMethod } from '@/lib/analytics/consensusPrice';
 import { type OracleProvider, ORACLE_PROVIDER_VALUES } from '@/types/oracle';
 
+import { useConsensusPrice } from './useConsensusPrice';
 import { useDivergenceSignals } from './useDivergenceSignals';
 import { useFeedBehavior } from './useFeedBehavior';
 import { useOracleData } from './useOracleData';
@@ -23,6 +25,7 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
   const [selectedOracles, setSelectedOracles] = useState<OracleProvider[]>(initialOracles);
   const [selectedSymbol, setSelectedSymbol] = useState<string>(initialSymbol);
   const [activeTab, setActiveTab] = useState<CrossOracleTab>('comparison');
+  const [consensusMethod, setConsensusMethod] = useState<ConsensusMethod | undefined>(undefined);
 
   const {
     priceData,
@@ -47,7 +50,11 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
     selectedSymbol,
   });
 
-  const priceStats = usePriceStats(priceData);
+  const priceStats = usePriceStats(priceData, selectedSymbol, consensusMethod);
+
+  const consensus = useConsensusPrice(priceData, selectedSymbol, {
+    defaultMethod: consensusMethod,
+  });
 
   const anomalyDetection = usePriceAnomalyDetection(
     priceData,
@@ -68,6 +75,10 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
     );
   }, []);
 
+  const handleSetConsensusMethod = useCallback((method: ConsensusMethod) => {
+    setConsensusMethod(method);
+  }, []);
+
   return {
     selectedOracles,
     setSelectedOracles,
@@ -81,6 +92,10 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
     lastUpdated,
 
     priceStats,
+
+    consensus,
+    consensusMethod,
+    setConsensusMethod: handleSetConsensusMethod,
 
     anomalyDetection,
 

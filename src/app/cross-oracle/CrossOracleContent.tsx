@@ -41,6 +41,10 @@ function CrossOracleContentInner() {
     feedBehavior,
     stabilityScore,
 
+    consensus,
+    consensusMethod,
+    setConsensusMethod,
+
     performanceMetrics,
     isCalculatingMetrics,
 
@@ -268,6 +272,9 @@ function CrossOracleContentInner() {
             retryAllFailed={retryAllFailed}
             isRetrying={isRetrying}
             retryingOracles={retryingOracles}
+            consensusResult={consensus.consensus}
+            currentConsensusMethod={consensusMethod}
+            onConsensusMethodChange={setConsensusMethod}
           />
         </main>
       </div>

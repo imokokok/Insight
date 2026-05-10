@@ -4,6 +4,7 @@ import { memo, useState, useMemo } from 'react';
 
 import { TrendingUp, Filter, Activity } from 'lucide-react';
 
+import { type ConsensusResult, type ConsensusMethod } from '@/lib/analytics/consensusPrice';
 import type { OracleProvider, PriceData } from '@/types/oracle';
 
 import {
@@ -31,6 +32,9 @@ interface SimplePriceComparisonTabProps {
   avgPrice: number;
   validPrices: number[];
   anomalies: PriceAnomaly[];
+  consensusResult?: ConsensusResult | null;
+  currentConsensusMethod?: ConsensusMethod;
+  onConsensusMethodChange?: (method: ConsensusMethod) => void;
 }
 
 function SimplePriceComparisonTabComponent({
@@ -46,6 +50,9 @@ function SimplePriceComparisonTabComponent({
   avgPrice,
   validPrices,
   anomalies,
+  consensusResult,
+  currentConsensusMethod,
+  onConsensusMethodChange,
 }: SimplePriceComparisonTabProps) {
   const [baseAsset, quoteAsset] = selectedSymbol.split('/');
   const [activeChartTab, setActiveChartTab] = useState<ChartTabType>('distribution');
@@ -120,6 +127,9 @@ function SimplePriceComparisonTabComponent({
           minPrice={minPrice}
           maxPrice={maxPrice}
           symbol={selectedSymbol}
+          consensusResult={consensusResult}
+          currentMethod={currentConsensusMethod}
+          onMethodChange={onConsensusMethodChange}
         />
         <PriceDispersionCard
           standardDeviation={standardDeviation}
