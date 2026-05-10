@@ -20,5 +20,3 @@ export const oracleNames: Record<OracleProvider, string> = {
 };
 
 export const ANOMALY_ZSCORE_THRESHOLD = 2;
-
-export { calculateZScore } from '@/lib/utils/statistics';

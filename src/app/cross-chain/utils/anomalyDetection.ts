@@ -3,12 +3,20 @@
  * Provides IQR and standard deviation based anomalous price detection
  */
 
-import { type AnomalousPricePoint } from '@/lib/types/crossChain';
+import {
+  type AnomalousPricePoint,
+  defaultThresholdConfig,
+  type ThresholdConfig,
+} from '@/lib/types/crossChain';
 import { createLogger } from '@/lib/utils/logger';
+import {
+  calculateMean,
+  calculatePercentile,
+  calculateStandardDeviationFromVariance,
+  calculateVariance,
+  calculateZScore,
+} from '@/lib/utils/statistics';
 import { type Blockchain, type PriceData } from '@/types/oracle';
-
-import { calculatePercentile } from './statisticsUtils';
-import { defaultThresholdConfig, type ThresholdConfig } from './volatilityUtils';
 
 export type { AnomalousPricePoint } from '@/lib/types/crossChain';
 
@@ -38,12 +46,9 @@ function detectAnomalousPrices(
   const lowerBound = q1 - iqrMultiplier * iqr;
   const upperBound = q3 + iqrMultiplier * iqr;
 
-  const mean = validPrices.reduce((a, b) => a + b, 0) / validPrices.length;
-  const variance =
-    validPrices.length > 1
-      ? validPrices.reduce((sum, p) => sum + Math.pow(p - mean, 2), 0) / (validPrices.length - 1)
-      : 0;
-  const stdDev = Math.sqrt(variance);
+  const mean = calculateMean(validPrices);
+  const variance = calculateVariance(validPrices, mean);
+  const stdDev = calculateStandardDeviationFromVariance(variance);
 
   const zScoreThreshold = config.outlierThreshold;
 
@@ -76,7 +81,7 @@ function detectAnomalousPrices(
     }
 
     if (stdDev > 0) {
-      const zScore = Math.abs((price - mean) / stdDev);
+      const zScore = Math.abs(calculateZScore(price, mean, stdDev) ?? 0);
       if (zScore > zScoreThreshold && !seenKeys.has(anomalyKey)) {
         seenKeys.add(anomalyKey);
         anomalies.push({

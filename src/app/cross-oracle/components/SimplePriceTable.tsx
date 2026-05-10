@@ -17,9 +17,10 @@ import { chartColors } from '@/lib/config/colors';
 import { oracleColors } from '@/lib/constants';
 import { getProviderDefaults } from '@/lib/oracles/utils/performanceMetricsConfig';
 import { formatPrice, formatRelativeTime, formatNumberWithDecimals } from '@/lib/utils/format';
+import { calculateZScore } from '@/lib/utils/statistics';
 import { type OracleProvider, type PriceData } from '@/types/oracle';
 
-import { oracleNames, calculateZScore, ANOMALY_ZSCORE_THRESHOLD } from '../constants';
+import { oracleNames, ANOMALY_ZSCORE_THRESHOLD } from '../constants';
 import { ANOMALY_DEVIATION_THRESHOLD, DEVIATION_THRESHOLDS } from '../thresholds';
 
 import { ConfidenceBar } from './price-comparison/ConfidenceBar';

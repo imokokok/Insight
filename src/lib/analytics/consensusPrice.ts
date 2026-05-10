@@ -1,4 +1,12 @@
+import { getSymbolCategory } from '@/lib/constants';
 import { createLogger } from '@/lib/utils/logger';
+import {
+  calculateMean,
+  calculateMedian,
+  calculateStandardDeviationFromVariance,
+  calculateVariance,
+  calculateZScore,
+} from '@/lib/utils/statistics';
 
 const logger = createLogger('consensusPrice');
 
@@ -64,17 +72,6 @@ const DEVIATION_THRESHOLDS: Record<string, number> = {
 
 const HISTORY_DEVIATION_MULTIPLIER = 3;
 
-function getSymbolCategory(symbol: string): 'stablecoin' | 'major' | 'alt' | 'micro' {
-  const stablecoins = ['USDT', 'USDC', 'DAI', 'BUSD', 'TUSD', 'USDP', 'FRAX', 'LUSD', 'PYUSD'];
-  const majors = ['BTC', 'ETH', 'WBTC', 'WETH'];
-  const micros = ['SHIB', 'PEPE', 'FLOKI', 'BONK', 'DOGE', 'MEME', 'TRUMP'];
-  const upper = symbol.toUpperCase();
-  if (stablecoins.some((s) => upper.includes(s))) return 'stablecoin';
-  if (majors.some((s) => upper.includes(s))) return 'major';
-  if (micros.some((s) => upper.includes(s))) return 'micro';
-  return 'alt';
-}
-
 function getDeviationThreshold(category: string): number {
   return DEVIATION_THRESHOLDS[category] ?? DEVIATION_THRESHOLDS.alt;
 }
@@ -90,24 +87,6 @@ function getRecommendedMethod(category: 'stablecoin' | 'major' | 'alt' | 'micro'
     case 'micro':
       return 'median';
   }
-}
-
-function calculateMedian(prices: number[]): number {
-  if (prices.length === 0) return 0;
-  const sorted = [...prices].sort((a, b) => a - b);
-  const mid = Math.floor(sorted.length / 2);
-  return sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
-}
-
-function calculateMean(prices: number[]): number {
-  if (prices.length === 0) return 0;
-  return prices.reduce((sum, p) => sum + p, 0) / prices.length;
-}
-
-function calculateStandardDeviation(prices: number[], mean: number): number {
-  if (prices.length < 2) return 0;
-  const variance = prices.reduce((sum, p) => sum + Math.pow(p - mean, 2), 0) / (prices.length - 1);
-  return Math.sqrt(variance);
 }
 
 function medianMethod(prices: number[]): number {
@@ -248,7 +227,7 @@ function detectOutliers(
 
   const prices = inputs.map((i) => i.price);
   const mean = calculateMean(prices);
-  const stdDev = calculateStandardDeviation(prices, mean);
+  const stdDev = calculateStandardDeviationFromVariance(calculateVariance(prices, mean));
 
   if (stdDev === 0) {
     return { valid: inputs, outliers: [] };
@@ -260,7 +239,7 @@ function detectOutliers(
   const outliers: ConsensusPriceInput[] = [];
 
   for (const input of inputs) {
-    const zScore = Math.abs((input.price - mean) / stdDev);
+    const zScore = Math.abs(calculateZScore(input.price, mean, stdDev) ?? 0);
     if (zScore > outlierThreshold) {
       outliers.push(input);
     } else {
@@ -391,7 +370,7 @@ function calculateAgreement(prices: number[]): number {
   if (prices.length < 2) return 1;
   const mean = calculateMean(prices);
   if (mean === 0) return 0;
-  const stdDev = calculateStandardDeviation(prices, mean);
+  const stdDev = calculateStandardDeviationFromVariance(calculateVariance(prices, mean));
   const cv = stdDev / mean;
   return Math.max(0, Math.min(1, 1 - cv * 10));
 }

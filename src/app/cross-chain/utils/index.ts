@@ -10,10 +10,10 @@ export {
   calculateVariance,
   calculatePercentile,
   getTCriticalValue,
-} from './statisticsUtils';
+} from '@/lib/utils/statistics';
 
 export { isOutlier } from './outlierUtils';
 
-export { defaultThresholdConfig, type ThresholdConfig } from './volatilityUtils';
+export { defaultThresholdConfig, type ThresholdConfig } from '@/lib/types/crossChain';
 
 export { formatPrice };

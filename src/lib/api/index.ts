@@ -1,15 +1,1 @@
-/**
- * API error handling system
- *
- * Provides unified API error handling and response processing
- */
-
-export * from './middleware';
-
-export * from './client';
-
-export * from './response';
-
-export * from './validation';
-
-export * from './handler';
+export { apiClient } from './client/ApiClient';
