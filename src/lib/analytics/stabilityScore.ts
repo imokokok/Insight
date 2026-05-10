@@ -1,3 +1,4 @@
+import { ORACLE_EXPECTED_INTERVALS } from '@/lib/constants';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('stabilityScore');
@@ -41,19 +42,6 @@ export interface StabilityResult {
   worstProvider: string | null;
   worstScore: number;
 }
-
-const EXPECTED_INTERVALS: Record<string, number> = {
-  pyth: 1,
-  redstone: 1,
-  supra: 60,
-  flare: 90,
-  reflector: 300,
-  twap: 600,
-  winklink: 1800,
-  chainlink: 3600,
-  api3: 3600,
-  dia: 3600,
-};
 
 const COMPONENT_WEIGHTS = {
   priceConsistency: 0.3,
@@ -394,7 +382,7 @@ export function calculateStability(
         .map((h) => h.confidence)
         .filter((c): c is number => c !== undefined);
 
-      const expectedInterval = EXPECTED_INTERVALS[provider.toLowerCase()] ?? 60;
+      const expectedInterval = ORACLE_EXPECTED_INTERVALS[provider.toLowerCase()] ?? 60;
 
       const stabilityScore = calculateStabilityScore(
         provider,

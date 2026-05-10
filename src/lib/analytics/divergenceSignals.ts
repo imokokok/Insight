@@ -1,3 +1,4 @@
+import { getSymbolCategory } from '@/lib/constants';
 import { createLogger } from '@/lib/utils/logger';
 
 import {
@@ -79,15 +80,6 @@ interface PriceHistoryEntry {
 }
 
 const ACCELERATION_THRESHOLD = 0.1;
-
-function getSymbolCategory(symbol: string): 'stablecoin' | 'major' | 'alt' | 'micro' {
-  const stablecoins = ['USDT', 'USDC', 'DAI', 'BUSD', 'TUSD', 'USDP', 'FRAX', 'LUSD', 'PYUSD'];
-  const majors = ['BTC', 'ETH', 'WBTC', 'WETH'];
-  const upper = symbol.toUpperCase();
-  if (stablecoins.some((s) => upper.includes(s))) return 'stablecoin';
-  if (majors.some((s) => upper.includes(s))) return 'major';
-  return 'alt';
-}
 
 function getDeviationAlertThreshold(symbol?: string): number {
   if (!symbol) return 1;

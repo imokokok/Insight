@@ -6,15 +6,17 @@
 import { useMemo } from 'react';
 
 import { type BaseOracleClient } from '@/lib/oracles';
-import { safeMax, safeMin } from '@/lib/utils/statistics';
+import {
+  calculateMean,
+  calculateMedian,
+  calculateStandardDeviation,
+  calculateVariance,
+  safeMax,
+  safeMin,
+} from '@/lib/utils/statistics';
 import { type Blockchain, type PriceData } from '@/types/oracle';
 
-import {
-  calculateVariance,
-  calculateStandardDeviation,
-  calculatePercentile,
-  getTCriticalValue,
-} from '../utils';
+import { calculatePercentile, getTCriticalValue } from '../utils';
 
 interface UseStatisticsParams {
   currentPrices: PriceData[];
@@ -55,7 +57,7 @@ export function useStatistics(params: UseStatisticsParams): UseStatisticsReturn 
   }, [currentPrices, filteredChains]);
 
   const avgPrice = useMemo(() => {
-    return validPrices.length > 0 ? validPrices.reduce((a, b) => a + b, 0) / validPrices.length : 0;
+    return calculateMean(validPrices);
   }, [validPrices]);
 
   const maxPrice = useMemo(() => {
@@ -87,10 +89,7 @@ export function useStatistics(params: UseStatisticsParams): UseStatisticsReturn 
   }, [standardDeviation, avgPrice]);
 
   const medianPrice = useMemo(() => {
-    if (validPrices.length === 0) return 0;
-    const sorted = [...validPrices].sort((a, b) => a - b);
-    const mid = Math.floor(sorted.length / 2);
-    return sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+    return calculateMedian(validPrices);
   }, [validPrices]);
 
   const iqrValue = useMemo(() => {

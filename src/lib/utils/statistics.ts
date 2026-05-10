@@ -37,7 +37,7 @@ export function safeMin(values: number[], defaultValue?: number): number {
   return min;
 }
 
-function calculateMean(values: number[]): number {
+export function calculateMean(values: number[]): number {
   validateNumberArray(values, 'calculateMean');
   if (values.length === 0) return 0;
   return values.reduce((sum, v) => sum + v, 0) / values.length;

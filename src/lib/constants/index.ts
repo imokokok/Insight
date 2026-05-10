@@ -114,6 +114,46 @@ export const oracleColors: Record<OracleProvider, string> = {
   [OracleProvider.FLARE]: '#E84142',
 };
 
+export const ORACLE_EXPECTED_INTERVALS: Record<string, number> = {
+  pyth: 1,
+  redstone: 1,
+  supra: 60,
+  flare: 90,
+  reflector: 300,
+  twap: 600,
+  winklink: 1800,
+  chainlink: 3600,
+  api3: 3600,
+  dia: 3600,
+};
+
+export type SymbolVolatilityCategory = 'stablecoin' | 'major' | 'alt' | 'micro';
+
+const STABLECOIN_PATTERNS = [
+  'USDT',
+  'USDC',
+  'DAI',
+  'BUSD',
+  'TUSD',
+  'USDD',
+  'USDP',
+  'FRAX',
+  'LUSD',
+  'PYUSD',
+  'GUSD',
+  'PAX',
+];
+const MAJOR_PATTERNS = ['BTC', 'ETH', 'WBTC', 'WETH'];
+const MICRO_PATTERNS = ['SHIB', 'PEPE', 'FLOKI', 'BONK', 'DOGE', 'MEME', 'TRUMP'];
+
+export function getSymbolCategory(symbol: string): SymbolVolatilityCategory {
+  const upper = symbol.toUpperCase();
+  if (STABLECOIN_PATTERNS.some((s) => upper.includes(s))) return 'stablecoin';
+  if (MAJOR_PATTERNS.some((s) => upper.includes(s))) return 'major';
+  if (MICRO_PATTERNS.some((s) => upper.includes(s))) return 'micro';
+  return 'alt';
+}
+
 export const symbols = [
   // Sorted by market cap (high to low)
   // Layer 1 - Sorted by market cap
