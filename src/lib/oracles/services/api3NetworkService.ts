@@ -151,17 +151,6 @@ const SYMBOL_TO_DAPI: Record<string, string> = {
   FRAX: 'FRAX/USD',
   LUSD: 'LUSD/USD',
   WETH: 'WETH/USD',
-  // === Forex dAPIs (verified via API3 Market) ===
-  EUR: 'EUR/USD',
-  GBP: 'GBP/USD',
-  JPY: 'JPY/USD',
-  CHF: 'CHF/USD',
-  AUD: 'AUD/USD',
-  CAD: 'CAD/USD',
-  NZD: 'NZD/USD',
-  // === Commodity dAPIs (verified via API3 Market) ===
-  XAU: 'XAU/USD',
-  XAG: 'XAG/USD',
 };
 
 const DAPI_DECIMALS: Record<string, number> = {
@@ -213,17 +202,6 @@ const DAPI_DECIMALS: Record<string, number> = {
   'FRAX/USD': 18,
   'LUSD/USD': 18,
   'WETH/USD': 18,
-  // === Forex dAPIs ===
-  'EUR/USD': 18,
-  'GBP/USD': 18,
-  'JPY/USD': 18,
-  'CHF/USD': 18,
-  'AUD/USD': 18,
-  'CAD/USD': 18,
-  'NZD/USD': 18,
-  // === Commodity dAPIs ===
-  'XAU/USD': 18,
-  'XAG/USD': 18,
 };
 
 function getDecimalsForDapi(dapiName: string): number {
