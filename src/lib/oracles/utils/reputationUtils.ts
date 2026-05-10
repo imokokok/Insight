@@ -21,14 +21,6 @@ export function getScoreBadge(score: number): {
   return { label: 'Unrated', bgClass: 'bg-gray-50', textClass: 'text-gray-500' };
 }
 
-export function getScoreGradient(score: number): string {
-  if (score >= 90) return 'from-emerald-500 to-teal-400';
-  if (score >= 75) return 'from-blue-500 to-cyan-400';
-  if (score >= 60) return 'from-amber-500 to-yellow-400';
-  if (score >= 40) return 'from-orange-500 to-amber-400';
-  return 'from-gray-400 to-gray-300';
-}
-
 export function formatTimeAgo(isoString: string | null): { text: string; color: string } | null {
   if (!isoString) return null;
   const diff = Date.now() - new Date(isoString).getTime();

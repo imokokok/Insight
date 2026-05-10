@@ -20,20 +20,6 @@ export interface ApiKeyMiddlewareOptions {
   required?: boolean;
 }
 
-export interface ApiKeyRecord {
-  id: string;
-  user_id: string;
-  name: string;
-  key_hash: string;
-  key_prefix: string;
-  plan: ApiKeyPlan;
-  rate_limit: number;
-  is_active: boolean;
-  last_used_at: string | null;
-  created_at: string;
-  expires_at: string | null;
-}
-
 type ApiKeyMiddlewareResult =
   | { success: true; context: ApiKeyContext }
   | { success: false; response: NextResponse };

@@ -607,7 +607,7 @@ export function getAllSupportedSymbols(): string[] {
   return Array.from(allSymbols).sort();
 }
 
-export const FOREX_SYMBOLS = [
+const FOREX_SYMBOLS = [
   'EUR',
   'GBP',
   'JPY',
@@ -630,18 +630,9 @@ export const FOREX_SYMBOLS = [
   'IDR',
 ] as const;
 
-export const COMMODITY_SYMBOLS = ['XAU', 'XAG', 'XPT', 'XPD', 'USOILSPOT', 'UKOILSPOT'] as const;
+const COMMODITY_SYMBOLS = ['XAU', 'XAG', 'XPT', 'XPD', 'USOILSPOT', 'UKOILSPOT'] as const;
 
-export const STABLECOIN_SYMBOLS = [
-  'USDT',
-  'USDC',
-  'DAI',
-  'FRAX',
-  'LUSD',
-  'TUSD',
-  'USDD',
-  'BUSD',
-] as const;
+const STABLECOIN_SYMBOLS = ['USDT', 'USDC', 'DAI', 'FRAX', 'LUSD', 'TUSD', 'USDD', 'BUSD'] as const;
 
 export function getAssetClass(symbol: string): 'crypto' | 'forex' | 'commodity' | 'stablecoin' {
   const upper = symbol.toUpperCase();

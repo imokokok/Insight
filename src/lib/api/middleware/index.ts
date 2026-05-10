@@ -13,6 +13,5 @@ export { createRateLimitMiddleware, type RateLimitMiddlewareOptions } from './ra
 export {
   createApiKeyMiddleware,
   type ApiKeyContext,
-  type ApiKeyPlan,
   type ApiKeyMiddlewareOptions,
 } from './apiKeyMiddleware';

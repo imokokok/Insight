@@ -46,7 +46,7 @@ export interface ReputationTrendPoint {
   query_count: number;
 }
 
-export class ReputationService {
+class ReputationService {
   async calculateAndStore(): Promise<{ total: number; success: number; failed: number }> {
     const supabase = createServerClient();
     const factory = getDefaultFactory();

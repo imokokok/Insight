@@ -8,6 +8,6 @@ export { TWAPClient } from './clients/twap';
 export { SupraClient } from './clients/supra';
 export { ReflectorClient } from './clients/reflector';
 export { FlareClient } from './clients/flare';
-export { BaseOracleClient, ORACLE_CACHE_TTL, OracleCache } from './base';
-export { OracleClientFactory, getDefaultFactory, resetDefaultFactory } from './factory';
+export { BaseOracleClient, ORACLE_CACHE_TTL } from './base';
+export { OracleClientFactory, getDefaultFactory } from './factory';
 export { extractBaseSymbol } from './utils/oracleDataUtils';
