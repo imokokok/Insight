@@ -1,8 +1,4 @@
-import type {
-  ConsensusResult,
-  ConsensusHistoryPoint,
-  ConsensusMethod,
-} from '@/lib/analytics/consensusPrice';
+import type { ConsensusResult } from '@/lib/analytics/consensusPrice';
 import type { MemoryStats } from '@/lib/oracles/utils/memoryManager';
 import type { CalculatedPerformanceMetrics } from '@/lib/oracles/utils/performanceMetricsCalculator';
 import type { OracleRetryConfig } from '@/lib/oracles/utils/retry';
@@ -14,7 +10,7 @@ import type { PriceHistoryMap } from '../hooks/useOracleMemory';
 
 export type { RefreshInterval } from '@/types/common';
 export type { OracleRetryConfig as RetryConfig } from '@/lib/oracles/utils/retry';
-export type { ConsensusMethod, ConsensusResult, ConsensusHistoryPoint };
+export type { ConsensusResult };
 
 export interface PriceStatsResult extends ExtendedPriceStats {
   currentStats: SnapshotStats;

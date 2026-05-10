@@ -1,7 +1,5 @@
 import type { Blockchain } from '@/types/oracle';
 
-export type { RefreshInterval } from '@/types/common';
-
 export type ThresholdType = 'fixed' | 'dynamic' | 'atr';
 
 export type OutlierDetectionMethod = 'zscore' | 'iqr';

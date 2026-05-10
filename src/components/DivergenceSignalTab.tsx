@@ -13,7 +13,7 @@ import type {
   LeadershipStatus,
 } from '@/lib/analytics/divergenceSignals';
 
-export type DivergenceMode = 'chain' | 'oracle';
+type DivergenceMode = 'chain' | 'oracle';
 
 export interface FeedHealthScore {
   provider: string;

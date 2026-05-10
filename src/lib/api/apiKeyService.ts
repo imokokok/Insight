@@ -6,13 +6,13 @@ import { hashApiKey, PLAN_RATE_LIMITS, type ApiKeyPlan } from './middleware/apiK
 
 const logger = createLogger('api-key-service');
 
-export interface CreateApiKeyInput {
+interface CreateApiKeyInput {
   name: string;
   plan?: ApiKeyPlan;
   expiresAt?: string;
 }
 
-export interface ApiKeyListItem {
+interface ApiKeyListItem {
   id: string;
   name: string;
   key_prefix: string;
@@ -24,7 +24,7 @@ export interface ApiKeyListItem {
   expires_at: string | null;
 }
 
-export interface ApiKeyWithSecret extends ApiKeyListItem {
+interface ApiKeyWithSecret extends ApiKeyListItem {
   key: string;
 }
 
@@ -39,7 +39,7 @@ function generateApiKey(): { key: string; prefix: string } {
   return { key, prefix };
 }
 
-export class ApiKeyService {
+class ApiKeyService {
   constructor(private client: SupabaseClient) {}
 
   async createApiKey(userId: string, input: CreateApiKeyInput): Promise<ApiKeyWithSecret | null> {

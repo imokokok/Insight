@@ -12,12 +12,12 @@ import {
 } from '@/lib/analytics/consensusPrice';
 import { type PriceData } from '@/types/oracle';
 
-export interface UseConsensusPriceOptions {
+interface UseConsensusPriceOptions {
   defaultMethod?: ConsensusMethod;
   enableAutoSelect?: boolean;
 }
 
-export interface UseConsensusPriceReturn {
+interface UseConsensusPriceReturn {
   consensus: ConsensusResult | null;
   currentMethod: ConsensusMethod;
   setMethod: (method: ConsensusMethod) => void;
