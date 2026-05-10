@@ -5,6 +5,15 @@
     },
     "src/app/api/oracles/[provider]/route.ts": {
       "maxDuration": 30
+    },
+    "src/app/api/cron/reputation/route.ts": {
+      "maxDuration": 60
     }
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/cron/reputation",
+      "schedule": "0 * * * *"
+    }
+  ]
 }

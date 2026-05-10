@@ -98,7 +98,7 @@ export function MobileDrawer({ isOpen, onClose, navStructure, currentPath }: Mob
                               key={item.href}
                               href={item.href}
                               onClick={onClose}
-                              className={`flex items-center gap-3 px-4 py-3 mx-2 rounded-lg transition-colors ${
+                              className={`flex items-start gap-3 px-4 py-3 mx-2 rounded-lg transition-colors ${
                                 isItemActive
                                   ? 'bg-primary-50 text-primary-600'
                                   : 'text-gray-600 hover:bg-gray-50'
@@ -106,7 +106,7 @@ export function MobileDrawer({ isOpen, onClose, navStructure, currentPath }: Mob
                             >
                               {ItemIcon && (
                                 <div
-                                  className={`p-1.5 rounded-md ${
+                                  className={`p-1.5 rounded-md flex-shrink-0 ${
                                     isItemActive ? 'bg-primary-100' : 'bg-gray-100'
                                   }`}
                                   style={
@@ -123,9 +123,23 @@ export function MobileDrawer({ isOpen, onClose, navStructure, currentPath }: Mob
                                   />
                                 </div>
                               )}
-                              <span className="text-sm">{item.label}</span>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-sm font-medium">{item.label}</span>
+                                  {item.badge && (
+                                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 text-emerald-700 leading-none">
+                                      {item.badge}
+                                    </span>
+                                  )}
+                                </div>
+                                {item.description && (
+                                  <span className="text-xs text-gray-400 mt-0.5 line-clamp-1">
+                                    {item.description}
+                                  </span>
+                                )}
+                              </div>
                               {isItemActive && (
-                                <div className="ml-auto w-1.5 h-1.5 bg-primary-600 " />
+                                <div className="ml-auto w-1.5 h-1.5 bg-primary-600 rounded-full mt-2 flex-shrink-0" />
                               )}
                             </Link>
                           );

@@ -5,6 +5,8 @@ export interface NavItem {
   label: string;
   icon?: LucideIcon;
   description?: string;
+  badge?: string;
+  highlight?: boolean;
 }
 
 export interface NavGroup {
@@ -12,7 +14,8 @@ export interface NavGroup {
   label: string;
   icon?: LucideIcon;
   items: NavItem[];
-  href?: string; // If the group can be clicked directly
+  href?: string;
+  megaMenu?: boolean;
 }
 
 export type NavStructure = (NavItem | NavGroup)[];

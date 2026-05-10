@@ -2,6 +2,7 @@
 
 import { memo } from 'react';
 
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 
 import {
@@ -12,8 +13,10 @@ import {
   BarChart3,
   TrendingUp,
   Eye,
-  Trophy,
-  Heart,
+  Search,
+  Award,
+  Camera,
+  Bell,
 } from 'lucide-react';
 
 import { chartColors } from '@/lib/config/colors';
@@ -21,24 +24,26 @@ import { ORACLE_PROVIDER_VALUES, type OracleProvider } from '@/types/oracle/enum
 
 const ORACLE_LIST = ORACLE_PROVIDER_VALUES.slice(0, 10);
 
+const FeatureDiscovery = dynamic(() => import('./FeatureDiscovery'), { ssr: false });
+
 const FEATURE_CARDS = [
+  {
+    title: 'Price Query',
+    description:
+      'Instant price lookup across all major oracle networks with real-time data and historical trends',
+    href: '/price-query',
+    icon: Search,
+    iconColor: 'text-blue-500',
+    bgColor: 'bg-blue-50',
+  },
   {
     title: 'Cross-Oracle Comparison',
     description:
       'Compare prices across 10+ oracle protocols with deviation analysis and anomaly detection',
     href: '/cross-oracle',
     icon: BarChart3,
-    iconColor: 'text-blue-500',
-    bgColor: 'bg-blue-50',
-  },
-  {
-    title: 'Risk Analysis',
-    description:
-      'HHI concentration, diversification scoring, volatility index, and correlation risk assessment',
-    href: '/cross-oracle',
-    icon: Shield,
-    iconColor: 'text-emerald-500',
-    bgColor: 'bg-emerald-50',
+    iconColor: 'text-indigo-500',
+    bgColor: 'bg-indigo-50',
   },
   {
     title: 'Cross-Chain Analysis',
@@ -49,35 +54,31 @@ const FEATURE_CARDS = [
     bgColor: 'bg-purple-50',
   },
   {
-    title: 'Oracle Ranking',
+    title: 'Oracle Reputation',
     description:
       'Reliability scoring based on accuracy, latency, decentralization, and price deviation',
-    href: '/cross-oracle',
-    icon: Trophy,
+    href: '/reputation',
+    icon: Award,
     iconColor: 'text-amber-500',
     bgColor: 'bg-amber-50',
   },
   {
-    title: 'Divergence Signals',
-    description:
-      'Track accelerating deviations, directional bias, and oracle leadership across 10+ protocols',
-    href: '/cross-oracle?tab=divergence',
-    icon: Activity,
-    iconColor: 'text-rose-500',
-    bgColor: 'bg-rose-50',
-    buttonLabel: 'View Dashboard',
-    summary: 'Real-time oracle deviation monitoring',
+    title: 'Price Snapshots',
+    description: 'Save and compare oracle price snapshots over time to track market changes',
+    href: '/snapshots',
+    icon: Camera,
+    iconColor: 'text-teal-500',
+    bgColor: 'bg-teal-50',
   },
   {
-    title: 'Feed Health Monitor',
+    title: 'Price Alerts',
     description:
-      'Monitor update rhythm, confidence intervals, and heartbeat reliability beyond price data',
-    href: '/cross-oracle?tab=feedHealth',
-    icon: Heart,
-    iconColor: 'text-pink-500',
-    bgColor: 'bg-pink-50',
-    buttonLabel: 'View Dashboard',
-    summary: 'Oracle feed behavior analysis',
+      'Set custom price alerts and get notified when oracle prices deviate from your thresholds',
+    href: '/alerts',
+    icon: Bell,
+    iconColor: 'text-rose-500',
+    bgColor: 'bg-rose-50',
+    badge: 'New',
   },
 ];
 
@@ -133,22 +134,26 @@ function FeatureCards() {
             href={card.href}
             className="bg-white rounded-xl border border-gray-200 p-5 hover:border-gray-300 hover:shadow-md transition-all group"
           >
-            <div
-              className={`w-10 h-10 rounded-lg ${card.bgColor} flex items-center justify-center mb-3`}
-            >
-              <Icon className={`w-5 h-5 ${card.iconColor}`} />
-            </div>
-            <h3 className="text-sm font-semibold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors">
-              {card.title}
-            </h3>
-            {card.summary && <p className="text-xs text-gray-400 mb-1">{card.summary}</p>}
-            <p className="text-xs text-gray-500 leading-relaxed">{card.description}</p>
-            {card.buttonLabel && (
-              <div className="mt-3 flex items-center gap-1 text-xs font-medium text-blue-600 group-hover:text-blue-700">
-                {card.buttonLabel}
-                <ArrowRight className="w-3 h-3" />
+            <div className="flex items-center gap-3 mb-3">
+              <div
+                className={`w-10 h-10 rounded-lg ${card.bgColor} flex items-center justify-center flex-shrink-0`}
+              >
+                <Icon className={`w-5 h-5 ${card.iconColor}`} />
               </div>
-            )}
+              <h3 className="text-sm font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+                {card.title}
+              </h3>
+              {card.badge && (
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 text-emerald-700 leading-none">
+                  {card.badge}
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-gray-500 leading-relaxed">{card.description}</p>
+            <div className="mt-3 flex items-center gap-1 text-xs font-medium text-blue-600 group-hover:text-blue-700">
+              Explore
+              <ArrowRight className="w-3 h-3" />
+            </div>
           </Link>
         );
       })}
@@ -210,6 +215,8 @@ function DashboardContent() {
       </div>
 
       <div className="space-y-6">
+        <FeatureDiscovery />
+
         <PlatformStats />
 
         <OracleHealthMatrix />

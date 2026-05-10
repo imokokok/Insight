@@ -148,20 +148,7 @@ export class ReputationService {
           logger.error('Failed to insert reputation history', error);
         }
 
-        const uniqueProviders = [...new Set(entries.map((e) => e.provider))];
-        for (const provider of uniqueProviders) {
-          try {
-            await supabase.rpc('aggregate_oracle_reputation', {
-              p_provider: provider,
-              p_lookback_days: 7,
-            });
-          } catch (rpcError) {
-            logger.warn(
-              `Failed to aggregate reputation for ${provider}`,
-              rpcError instanceof Error ? rpcError : undefined
-            );
-          }
-        }
+        // Aggregation is handled by pg_cron at :30 — no longer done here
       } catch (dbError) {
         logger.error(
           'Failed to persist reputation data',

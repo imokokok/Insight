@@ -1,12 +1,14 @@
 import {
   LayoutDashboard,
-  BarChart3,
   Search,
   GitCompare,
   Link2,
   BookOpen,
   Camera,
   Award,
+  Bell,
+  Heart,
+  BarChart3,
 } from 'lucide-react';
 
 import { oracleColors } from '@/lib/constants';
@@ -20,29 +22,23 @@ export const navigationConfig: NavStructure = [
     icon: LayoutDashboard,
   },
   {
-    id: 'market',
-    label: 'Market',
-    icon: BarChart3,
-    items: [
-      {
-        href: '/price-query',
-        label: 'Price Query',
-        icon: Search,
-        description:
-          'Instant price lookup across all major oracle networks with historical trend analysis',
-      },
-    ],
+    href: '/price-query',
+    label: 'Price Query',
+    icon: Search,
   },
   {
     id: 'analysis',
-    label: 'Data Analysis',
-    icon: GitCompare,
+    label: 'Analysis',
+    icon: BarChart3,
+    megaMenu: true,
     items: [
       {
         href: '/cross-oracle',
         label: 'Cross-Oracle Comparison',
         icon: GitCompare,
-        description: 'Real-time multi-oracle price comparison and deviation analytics',
+        description:
+          'Real-time multi-oracle price comparison, deviation analytics and anomaly detection',
+        highlight: true,
       },
       {
         href: '/cross-chain',
@@ -63,9 +59,21 @@ export const navigationConfig: NavStructure = [
         icon: Camera,
         description: 'Save, compare, and track oracle price snapshots over time',
       },
+      {
+        href: '/alerts',
+        label: 'Price Alerts',
+        icon: Bell,
+        description: 'Set custom price alerts and get notified when oracle prices deviate',
+        badge: 'New',
+      },
+      {
+        href: '/favorites',
+        label: 'Favorites',
+        icon: Heart,
+        description: 'Bookmark your favorite oracle pairs for quick access and monitoring',
+      },
     ],
   },
-
   {
     href: '/docs',
     label: 'Documentation',
