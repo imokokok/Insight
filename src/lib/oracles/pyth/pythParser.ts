@@ -21,7 +21,7 @@ const USD_QUOTE_FOREX = new Set([
   'USD/ZAR',
 ]);
 
-function calculateConfidenceInterval(price: number, confidence: number): ConfidenceInterval {
+export function calculateConfidenceInterval(price: number, confidence: number): ConfidenceInterval {
   const halfSpread = confidence / 2;
   return {
     bid: Number((price - halfSpread).toFixed(8)),
@@ -30,11 +30,11 @@ function calculateConfidenceInterval(price: number, confidence: number): Confide
   };
 }
 
-function calculateConfidenceScore(confidence: number, price: number): number {
+export function calculateConfidenceScore(confidence: number, price: number): number {
   if (price === 0) return 0;
   const ratio = confidence / price;
-  const score = Math.max(0, Math.min(100, 100 - ratio * 10000));
-  return Number(score.toFixed(2));
+  const score = Math.max(0, Math.min(1, 1 - ratio * 100));
+  return Number(score.toFixed(4));
 }
 
 export function parsePythPrice(

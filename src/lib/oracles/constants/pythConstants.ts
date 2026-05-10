@@ -112,6 +112,11 @@ export const CACHE_TTL = {
 
 export function normalizeSymbol(symbol: string): string {
   const upperSymbol = symbol.toUpperCase();
+
+  if (PYTH_PRICE_FEED_IDS[upperSymbol]) {
+    return upperSymbol;
+  }
+
   const baseSymbol = upperSymbol.replace('/USD', '');
   if (PYTH_PRICE_FEED_IDS[`${baseSymbol}/USD`]) {
     return `${baseSymbol}/USD`;

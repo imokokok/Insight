@@ -174,12 +174,23 @@ describe('inputSanitizer', () => {
       expect(sanitizeSymbol('eth')).toBe('ETH');
     });
 
-    it('should remove HTML tags', () => {
-      expect(sanitizeSymbol('<script>alert(1)</script>')).toBe('');
+    it('should remove HTML tags but keep tag content', () => {
+      expect(sanitizeSymbol('<script>alert(1)</script>')).toBe('ALERT1');
     });
 
     it('should remove invalid characters', () => {
       expect(sanitizeSymbol('BTC!@#$%^&*()')).toBe('BTC');
+    });
+
+    it('should preserve forward slash in trading pair symbols', () => {
+      expect(sanitizeSymbol('BTC/USD')).toBe('BTC/USD');
+      expect(sanitizeSymbol('ETH/USD')).toBe('ETH/USD');
+      expect(sanitizeSymbol('USD/JPY')).toBe('USD/JPY');
+      expect(sanitizeSymbol('btc/usd')).toBe('BTC/USD');
+    });
+
+    it('should preserve hyphen in symbols', () => {
+      expect(sanitizeSymbol('BTC-USD')).toBe('BTC-USD');
     });
   });
 
