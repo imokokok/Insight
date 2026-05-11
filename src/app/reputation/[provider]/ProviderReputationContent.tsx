@@ -842,7 +842,7 @@ function ProviderReputationContentInner({ provider }: { provider: string }) {
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 min-h-screen">
         <Link
           href="/reputation"
-          className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 mb-6 group font-black"
+          className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-primary-600 mb-6 group font-bold px-3 py-2 rounded-lg border border-gray-200 hover:border-primary-200 hover:bg-primary-50/50 transition-all"
         >
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
           Back to Reputation
@@ -862,7 +862,7 @@ function ProviderReputationContentInner({ provider }: { provider: string }) {
     <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 min-h-screen">
       <Link
         href="/reputation"
-        className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 mb-6 group font-black"
+        className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-primary-600 mb-6 group font-bold px-3 py-2 rounded-lg border border-gray-200 hover:border-primary-200 hover:bg-primary-50/50 transition-all"
       >
         <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
         Back to Reputation

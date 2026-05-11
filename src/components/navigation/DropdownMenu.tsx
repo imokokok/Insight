@@ -59,7 +59,9 @@ export function DropdownMenu({ group, isActive, currentPath, onItemClick }: Drop
     }
   };
 
-  const isGroupActive = group.items.some((item) => item.href === currentPath);
+  const isGroupActive = group.items.some(
+    (item) => currentPath === item.href || currentPath.startsWith(item.href + '/')
+  );
   const GroupIcon = group.icon;
 
   return (
@@ -97,7 +99,8 @@ export function DropdownMenu({ group, isActive, currentPath, onItemClick }: Drop
         >
           {group.items.map((item) => {
             const ItemIcon = item.icon;
-            const isItemActive = currentPath === item.href;
+            const isItemActive =
+              currentPath === item.href || currentPath.startsWith(item.href + '/');
             const oracleKey = item.href.replace('/', '') as keyof typeof oracleColors;
             const accentColor = oracleColors[oracleKey];
 

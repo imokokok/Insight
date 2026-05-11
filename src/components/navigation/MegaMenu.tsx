@@ -71,7 +71,9 @@ export function MegaMenu({ group, isActive, currentPath, onItemClick }: MegaMenu
     }
   };
 
-  const isGroupActive = group.items.some((item) => item.href === currentPath);
+  const isGroupActive = group.items.some(
+    (item) => currentPath === item.href || currentPath.startsWith(item.href + '/')
+  );
   const GroupIcon = group.icon;
 
   return (
@@ -150,7 +152,8 @@ export function MegaMenu({ group, isActive, currentPath, onItemClick }: MegaMenu
             <div className="grid grid-cols-2 gap-1">
               {group.items.map((item) => {
                 const ItemIcon = item.icon;
-                const isItemActive = currentPath === item.href;
+                const isItemActive =
+                  currentPath === item.href || currentPath.startsWith(item.href + '/');
                 const oracleKey = item.href.replace('/', '') as keyof typeof oracleColors;
                 const accentColor = oracleColors[oracleKey];
 

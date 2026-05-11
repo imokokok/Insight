@@ -43,7 +43,7 @@ export default function Navbar() {
     if (href === '/') {
       return currentPath === '/';
     }
-    return currentPath === href;
+    return currentPath === href || currentPath.startsWith(href + '/');
   };
 
   const handleSignOut = async () => {

@@ -27,7 +27,9 @@ export function MobileDrawer({ isOpen, onClose, navStructure, currentPath }: Mob
   };
 
   const isGroupActive = (group: NavGroup) => {
-    return group.items.some((item) => item.href === currentPath);
+    return group.items.some(
+      (item) => currentPath === item.href || currentPath.startsWith(item.href + '/')
+    );
   };
 
   if (!isOpen) return null;
@@ -89,7 +91,8 @@ export function MobileDrawer({ isOpen, onClose, navStructure, currentPath }: Mob
                       <div className="mt-1 ml-4 space-y-1 animate-fade-in">
                         {group.items.map((item) => {
                           const ItemIcon = item.icon;
-                          const isItemActive = currentPath === item.href;
+                          const isItemActive =
+                            currentPath === item.href || currentPath.startsWith(item.href + '/');
                           const oracleKey = item.href.replace('/', '') as keyof typeof oracleColors;
                           const accentColor = oracleColors[oracleKey];
 
@@ -152,7 +155,8 @@ export function MobileDrawer({ isOpen, onClose, navStructure, currentPath }: Mob
 
               const item = navItem;
               const ItemIcon = item.icon;
-              const isItemActive = currentPath === item.href;
+              const isItemActive =
+                currentPath === item.href || currentPath.startsWith(item.href + '/');
 
               return (
                 <Link
