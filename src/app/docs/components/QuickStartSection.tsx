@@ -6,18 +6,21 @@ export default function QuickStartSection() {
   const steps = [
     {
       icon: <Search className="w-6 h-6" />,
-      title: 'Search Prices',
-      description: 'Enter a token symbol to get real-time prices from multiple oracles',
+      title: 'Query Prices',
+      description:
+        'Select an oracle provider, blockchain, and token to get real-time prices with on-chain data',
     },
     {
       icon: <TrendingUp className="w-6 h-6" />,
-      title: 'Analyze Data',
-      description: 'Compare prices across oracles and blockchains with detailed charts',
+      title: 'Compare & Analyze',
+      description:
+        'Cross-oracle comparison with consensus price, cross-chain analysis with heatmap, and reputation scores',
     },
     {
       icon: <Bell className="w-6 h-6" />,
-      title: 'Set Alerts',
-      description: 'Create price alerts to get notified when conditions are met',
+      title: 'Monitor & Alert',
+      description:
+        'Set price alerts, save snapshots for comparison, and track oracle reputation over time',
     },
   ];
 
@@ -35,30 +38,28 @@ export default function QuickStartSection() {
         </p>
       </div>
 
-      {/* Platform Overview */}
       <div className="bg-white border border-gray-200 rounded-xl p-6 mb-8">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Platform Overview</h3>
         <p className="text-gray-600 mb-4">
-          Insight aggregates price data from multiple oracles and blockchains to provide
-          comprehensive market insights.
+          Insight aggregates price data from 10 oracle providers across 54+ blockchains to provide
+          comprehensive market insights, consensus pricing, and oracle reliability analysis.
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
             <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
-            <span className="text-sm text-gray-700">Real-time price data</span>
+            <span className="text-sm text-gray-700">10 oracle providers</span>
           </div>
           <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
             <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
-            <span className="text-sm text-gray-700">Multi-oracle comparison</span>
+            <span className="text-sm text-gray-700">54+ blockchains</span>
           </div>
           <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
             <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
-            <span className="text-sm text-gray-700">Cross-chain analysis</span>
+            <span className="text-sm text-gray-700">6 consensus algorithms</span>
           </div>
         </div>
       </div>
 
-      {/* Steps */}
       <div className="space-y-6">
         <h3 className="text-lg font-semibold text-gray-900">Getting Started</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -82,7 +83,6 @@ export default function QuickStartSection() {
         </div>
       </div>
 
-      {/* CTA */}
       <div className="mt-8 flex flex-wrap gap-4">
         <Link
           href="/price-query"
@@ -96,6 +96,12 @@ export default function QuickStartSection() {
           className="inline-flex items-center gap-2 px-6 py-3 bg-white text-gray-700 font-medium border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
         >
           Compare Oracles
+        </Link>
+        <Link
+          href="/reputation"
+          className="inline-flex items-center gap-2 px-6 py-3 bg-white text-gray-700 font-medium border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+        >
+          View Reputation
         </Link>
       </div>
     </section>
