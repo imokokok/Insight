@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useEffect, useRef } from 'react';
+import { useMemo, useState, useEffect, useRef, useCallback, useLayoutEffect } from 'react';
 
 import Link from 'next/link';
 
@@ -58,9 +58,16 @@ function useCountUp(target: number, duration = 800) {
   const [value, setValue] = useState(0);
   const startRef = useRef<number | null>(null);
   const fromRef = useRef(0);
+  const targetRef = useRef(target);
+  const valueRef = useRef(0);
+
+  useLayoutEffect(() => {
+    valueRef.current = value;
+  });
 
   useEffect(() => {
-    fromRef.current = value;
+    fromRef.current = valueRef.current;
+    targetRef.current = target;
     startRef.current = null;
     let raf: number;
 
@@ -69,7 +76,7 @@ function useCountUp(target: number, duration = 800) {
       const elapsed = now - startRef.current;
       const p = Math.min(elapsed / duration, 1);
       const eased = 1 - Math.pow(1 - p, 3);
-      setValue(fromRef.current + (target - fromRef.current) * eased);
+      setValue(fromRef.current + (targetRef.current - fromRef.current) * eased);
       if (p < 1) raf = requestAnimationFrame(tick);
     };
 
@@ -122,54 +129,6 @@ function ScoreRing({ score, size = 48 }: { score: number; size?: number }) {
   );
 }
 
-/* ─── Sparkline ─── */
-
-function Sparkline({
-  data,
-  color,
-  width = 80,
-  height = 24,
-}: {
-  data: number[];
-  color: string;
-  width?: number;
-  height?: number;
-}) {
-  if (data.length < 2) {
-    return <span className="text-[10px] text-gray-300">—</span>;
-  }
-  const min = Math.min(...data);
-  const max = Math.max(...data);
-  const range = max - min || 1;
-  const points = data
-    .map((v, i) => {
-      const x = (i / (data.length - 1)) * width;
-      const y = height - ((v - min) / range) * height;
-      return `${x},${y}`;
-    })
-    .join(' ');
-
-  return (
-    <svg width={width} height={height} className="overflow-visible">
-      <polyline
-        points={points}
-        fill="none"
-        stroke={color}
-        strokeWidth={1.5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        opacity={0.7}
-      />
-      <circle
-        cx={width}
-        cy={height - ((data[data.length - 1] - min) / range) * height}
-        r={2}
-        fill={color}
-      />
-    </svg>
-  );
-}
-
 /* ─── Risk Badge ─── */
 
 function RiskBadge({ score }: { score: number }) {
@@ -211,12 +170,10 @@ function LeaderboardRow({
   reputation,
   rank,
   maxQueries,
-  trendData,
 }: {
   reputation: OracleReputation;
   rank: number;
   maxQueries: number;
-  trendData?: number[];
 }) {
   const provider = reputation.provider as OracleProvider;
   const color = oracleColors[provider] || '#888888';
@@ -275,15 +232,6 @@ function LeaderboardRow({
           <MetricCell label="Reliability" value={reputation.reliability_score.toFixed(1)} />
           <MetricCell label="Latency" value={`${reputation.avg_latency_ms}ms`} />
           <MetricCell label="Freshness" value={reputation.freshness_score.toFixed(1)} />
-        </div>
-
-        {/* Sparkline */}
-        <div className="w-20 flex-shrink-0 flex items-center justify-center">
-          {trendData ? (
-            <Sparkline data={trendData} color={color} />
-          ) : (
-            <span className="text-[10px] text-gray-300">—</span>
-          )}
         </div>
 
         {/* Activity */}
@@ -381,10 +329,7 @@ function TableView({ reputations }: { reputations: OracleReputation[] }) {
               return (
                 <tr
                   key={provider}
-                  className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors cursor-pointer"
-                  onClick={() =>
-                    (window.location.href = `/reputation/${encodeURIComponent(provider)}`)
-                  }
+                  className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors"
                 >
                   <td className="px-4 py-3">
                     {i === 0 && <Crown className="w-4 h-4 text-amber-500" />}
@@ -395,26 +340,31 @@ function TableView({ reputations }: { reputations: OracleReputation[] }) {
                     )}
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
+                    <Link
+                      href={`/reputation/${encodeURIComponent(provider)}`}
+                      className="flex items-center gap-2 group"
+                    >
                       <div
                         className="w-2.5 h-2.5 rounded-full"
                         style={{ backgroundColor: color }}
                       />
                       <div>
-                        <div className="font-bold text-gray-900 text-sm">
+                        <div className="font-bold text-gray-900 text-sm group-hover:text-primary-600 transition-colors">
                           {providerNames[provider] || provider}
                         </div>
                         <div className="text-[10px] text-gray-400 font-mono">{provider}</div>
                       </div>
-                    </div>
+                    </Link>
                   </td>
                   <td className="px-4 py-3">
-                    <span
-                      className="font-black font-mono text-sm"
-                      style={{ color: getScoreColor(rep.overall_score) }}
-                    >
-                      {rep.overall_score.toFixed(1)}
-                    </span>
+                    <Link href={`/reputation/${encodeURIComponent(provider)}`}>
+                      <span
+                        className="font-black font-mono text-sm"
+                        style={{ color: getScoreColor(rep.overall_score) }}
+                      >
+                        {rep.overall_score.toFixed(1)}
+                      </span>
+                    </Link>
                   </td>
                   <td className="px-4 py-3">
                     <RiskBadge score={rep.overall_score} />
@@ -447,7 +397,9 @@ function TableView({ reputations }: { reputations: OracleReputation[] }) {
                     )}
                   </td>
                   <td className="px-4 py-3">
-                    <ChevronRight className="w-4 h-4 text-gray-300" />
+                    <Link href={`/reputation/${encodeURIComponent(provider)}`}>
+                      <ChevronRight className="w-4 h-4 text-gray-300 hover:text-gray-500 transition-colors" />
+                    </Link>
                   </td>
                 </tr>
               );
@@ -622,26 +574,24 @@ function TopThree({ reputations }: { reputations: OracleReputation[] }) {
 /* ─── Next Update ─── */
 
 function NextUpdateCountdown({ nextRecalcAt }: { nextRecalcAt: string | null | undefined }) {
-  const [remaining, setRemaining] = useState('');
+  const computeRemaining = useCallback(() => {
+    if (!nextRecalcAt) return '';
+    const diff = new Date(nextRecalcAt).getTime() - Date.now();
+    if (diff <= 0) return 'soon';
+    const m = Math.floor(diff / 60000);
+    if (m < 1) return '<1m';
+    if (m < 60) return `${m}m`;
+    const h = Math.floor(m / 60);
+    return `${h}h ${m % 60}m`;
+  }, [nextRecalcAt]);
+
+  const [remaining, setRemaining] = useState(computeRemaining);
 
   useEffect(() => {
-    if (!nextRecalcAt) {
-      setRemaining('');
-      return;
-    }
-    const compute = () => {
-      const diff = new Date(nextRecalcAt).getTime() - Date.now();
-      if (diff <= 0) return 'soon';
-      const m = Math.floor(diff / 60000);
-      if (m < 1) return '<1m';
-      if (m < 60) return `${m}m`;
-      const h = Math.floor(m / 60);
-      return `${h}h ${m % 60}m`;
-    };
-    setRemaining(compute());
-    const t = setInterval(() => setRemaining(compute()), 30000);
+    if (!nextRecalcAt) return;
+    const t = setInterval(() => setRemaining(computeRemaining), 30000);
     return () => clearInterval(t);
-  }, [nextRecalcAt]);
+  }, [nextRecalcAt, computeRemaining]);
 
   if (!nextRecalcAt || !remaining) return null;
   return (
@@ -714,11 +664,6 @@ function ReputationContentInner() {
     return [...reputations].sort((a, b) => {
       const av = a[sortField];
       const bv = b[sortField];
-      if (sortField === 'avg_latency_ms') {
-        return sortDir === 'asc'
-          ? (av as number) - (bv as number)
-          : (bv as number) - (av as number);
-      }
       return sortDir === 'asc' ? (av as number) - (bv as number) : (bv as number) - (av as number);
     });
   }, [reputations, sortField, sortDir]);

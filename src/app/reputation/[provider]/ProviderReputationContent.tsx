@@ -148,6 +148,7 @@ function MetricRow({
   maxVal,
   color,
   weight,
+  invert,
 }: {
   icon: LucideIcon;
   label: string;
@@ -156,9 +157,11 @@ function MetricRow({
   maxVal?: number;
   color: string;
   weight?: number;
+  invert?: boolean;
 }) {
   const num = typeof value === 'number' ? value : parseFloat(String(value));
-  const pct = maxVal ? Math.min((num / maxVal) * 100, 100) : 0;
+  const rawPct = maxVal ? Math.min((num / maxVal) * 100, 100) : 0;
+  const pct = invert ? 100 - rawPct : rawPct;
 
   return (
     <div className="py-2">
@@ -756,16 +759,20 @@ function Sidebar({
             label="Latency"
             value={reputation.avg_latency_ms}
             suffix="ms"
+            maxVal={2000}
             color="#06b6d4"
             weight={10}
+            invert
           />
           <MetricRow
             icon={Activity}
             label="Avg Deviation"
             value={reputation.avg_deviation_pct.toFixed(3)}
             suffix="%"
+            maxVal={5}
             color={reputation.avg_deviation_pct > 0.5 ? '#ef4444' : '#10b981'}
             weight={10}
+            invert
           />
           <MetricRow
             icon={Layers}
@@ -819,10 +826,17 @@ function ProviderReputationContentInner({ provider }: { provider: string }) {
     [reputation]
   );
 
-  const timeAgo = formatTimeAgo(reputation?.last_calculated_at ?? null);
+  const timeAgo = useMemo(
+    () => formatTimeAgo(reputation?.last_calculated_at ?? null),
+    [reputation?.last_calculated_at]
+  );
 
-  const latencyScore = reputation ? Math.max(0, 100 - reputation.avg_latency_ms / 10) : 0;
-  const deviationScore = reputation ? Math.max(0, 100 - reputation.avg_deviation_pct * 100) : 0;
+  const latencyScore = reputation
+    ? Math.max(0, Math.min(100, 100 - (reputation.avg_latency_ms / 2000) * 100))
+    : 0;
+  const deviationScore = reputation
+    ? Math.max(0, Math.min(100, 100 - (reputation.avg_deviation_pct / 5) * 100))
+    : 0;
 
   if (isLoading) {
     return (
