@@ -12,17 +12,19 @@ import type {
   DivergenceAcceleration,
   LeadershipStatus,
 } from '@/lib/analytics/divergenceSignals';
+import type { FeedHealthScore as FullFeedHealthScore } from '@/lib/analytics/feedBehavior';
 
 type DivergenceMode = 'chain' | 'oracle';
 
-export interface FeedHealthScore {
-  provider: string;
-  score: number;
-  rhythmStability: number;
-  confidenceStability: number;
-  heartbeatReliability: number;
-  freshness: number;
-}
+export type FeedHealthScore = Pick<
+  FullFeedHealthScore,
+  | 'provider'
+  | 'score'
+  | 'rhythmStability'
+  | 'confidenceStability'
+  | 'heartbeatReliability'
+  | 'freshness'
+>;
 
 interface DivergenceSignalTabProps {
   timeSeries: DivergenceTimeSeries[];
