@@ -10,6 +10,9 @@ import {
   BarChart3,
   Clock,
   Shield,
+  Award,
+  Camera,
+  Heart,
 } from 'lucide-react';
 
 export default function FeaturesGuideSection() {
@@ -17,42 +20,83 @@ export default function FeaturesGuideSection() {
     {
       icon: <Search className="w-6 h-6" />,
       title: 'Price Query',
-      description: 'Query real-time prices from multiple oracles with detailed analytics',
+      description:
+        'Query real-time prices from any oracle provider with on-chain data, confidence intervals, and auto-refresh',
       href: '/price-query',
       highlights: [
-        'Multi-oracle price comparison',
-        'Historical price charts',
-        'Confidence intervals',
+        '10 oracle providers with cascade filtering',
+        'On-chain data and confidence intervals',
+        'Auto-refresh and keyboard shortcuts',
       ],
     },
     {
       icon: <GitCompare className="w-6 h-6" />,
       title: 'Cross-Oracle Comparison',
-      description: 'Compare prices across different oracle providers',
+      description:
+        'Compare prices across oracle providers with consensus price, divergence signals, and risk analysis',
       href: '/cross-oracle',
       highlights: [
-        'Price deviation analysis',
-        'Oracle reliability metrics',
-        'Real-time monitoring',
+        '6 consensus algorithms (median, trimmed mean, etc.)',
+        'Divergence signals and anomaly detection',
+        'Feed health, risk metrics, and stability scores',
       ],
     },
     {
       icon: <Link2 className="w-6 h-6" />,
       title: 'Cross-Chain Comparison',
-      description: 'Analyze price differences across blockchains',
+      description:
+        'Analyze price differences across blockchains with heatmap visualization and chain ranking',
       href: '/cross-chain',
       highlights: [
-        'Multi-chain price tracking',
-        'Arbitrage opportunities',
-        'Chain-specific metrics',
+        'Price spread heatmap across chains',
+        'Risk analysis with 10 dimensions',
+        'Chain reliability ranking and divergence signals',
+      ],
+    },
+    {
+      icon: <Award className="w-6 h-6" />,
+      title: 'Oracle Reputation',
+      description:
+        'Persistent 7-day rolling reputation scores with accuracy, uptime, reliability, latency, and freshness metrics',
+      href: '/reputation',
+      highlights: [
+        '7-day rolling aggregated scores',
+        '5-metric evaluation (accuracy, uptime, reliability, latency, freshness)',
+        'Provider detail pages with trend charts',
       ],
     },
     {
       icon: <Bell className="w-6 h-6" />,
       title: 'Price Alerts',
-      description: 'Set up custom alerts for price conditions',
+      description: 'Set up custom price alerts with real-time event push and preset templates',
       href: '/alerts',
-      highlights: ['Threshold-based alerts', 'Email notifications', 'Custom conditions'],
+      highlights: [
+        'Threshold-based alerts with templates',
+        'Real-time event push notifications',
+        'Alert history and batch operations',
+      ],
+    },
+    {
+      icon: <Camera className="w-6 h-6" />,
+      title: 'Price Snapshots',
+      description: 'Save price snapshots and compare them across time with detailed analytics',
+      href: '/snapshots',
+      highlights: [
+        'Save and share price snapshots',
+        'Snapshot comparison with change analytics',
+        'Public/private visibility control',
+      ],
+    },
+    {
+      icon: <Heart className="w-6 h-6" />,
+      title: 'Favorites',
+      description: 'Save oracle configurations and apply them with one click to any analysis page',
+      href: '/favorites',
+      highlights: [
+        'Save oracle, symbol, and chain configs',
+        'One-click apply to target pages',
+        'Search and filter by type',
+      ],
     },
   ];
 
@@ -70,7 +114,6 @@ export default function FeaturesGuideSection() {
         </p>
       </div>
 
-      {/* Features Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {features.map((feature, index) => (
           <div
@@ -87,7 +130,6 @@ export default function FeaturesGuideSection() {
               </div>
             </div>
 
-            {/* Highlights */}
             <div className="space-y-2 mb-4">
               {feature.highlights.map((highlight, idx) => (
                 <div key={idx} className="flex items-center gap-2 text-sm text-gray-700">
@@ -108,27 +150,26 @@ export default function FeaturesGuideSection() {
         ))}
       </div>
 
-      {/* Additional Info */}
       <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg">
           <Clock className="w-5 h-5 text-blue-600" />
           <div>
             <p className="text-sm font-medium text-gray-900">Real-time Updates</p>
-            <p className="text-xs text-gray-600">Prices updated every second</p>
+            <p className="text-xs text-gray-600">Live data with auto-refresh</p>
           </div>
         </div>
         <div className="flex items-center gap-3 p-4 bg-green-50 rounded-lg">
           <Shield className="w-5 h-5 text-green-600" />
           <div>
-            <p className="text-sm font-medium text-gray-900">Accurate Data</p>
-            <p className="text-xs text-gray-600">Trusted oracle sources</p>
+            <p className="text-sm font-medium text-gray-900">10 Oracle Providers</p>
+            <p className="text-xs text-gray-600">Chainlink, Pyth, API3, RedStone, DIA, and more</p>
           </div>
         </div>
         <div className="flex items-center gap-3 p-4 bg-purple-50 rounded-lg">
           <BarChart3 className="w-5 h-5 text-purple-600" />
           <div>
-            <p className="text-sm font-medium text-gray-900">Comprehensive</p>
-            <p className="text-xs text-gray-600">All major oracles covered</p>
+            <p className="text-sm font-medium text-gray-900">Multi-format Export</p>
+            <p className="text-xs text-gray-600">CSV, JSON, Excel, PDF, PNG</p>
           </div>
         </div>
       </div>

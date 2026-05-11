@@ -5,218 +5,37 @@ Insight is a professional oracle data analytics platform that provides comprehen
 ## Key Features
 
 - **Real-time Price Monitoring** - Live price feeds from multiple oracle providers with real-time updates
-- **Cross-Oracle Price Comparison** - Compare prices across different oracles for the same asset
-- **Cross-Chain Performance Analysis** - Analyze oracle performance across multiple blockchain networks
-- **Price Alerts & Notifications** - Configure custom price alerts with multiple trigger conditions
-- **User Favorites & Snapshots** - Save and share price snapshots and favorite configurations
+- **Cross-Oracle Price Comparison** - Compare prices across different oracles for the same asset with consensus price calculation, divergence signal detection, and risk analysis
+- **Cross-Chain Performance Analysis** - Analyze oracle performance across multiple blockchain networks with price spread heatmap and chain reliability ranking
+- **Oracle Reputation System** - Persistent 7-day rolling reputation scores with accuracy, uptime, reliability, latency, and freshness metrics
+- **Price Alerts & Notifications** - Configure custom price alerts with multiple trigger conditions and real-time event push
+- **Price Snapshots** - Save and compare price snapshots across time with detailed comparison analytics
+- **User Favorites** - Save oracle configurations and apply them with one click
 - **Data Export** - Export data in CSV, JSON, Excel, PDF, and PNG formats
 - **Anomaly Detection** - Automatic detection of price anomalies and outliers
-- **Technical Indicators** - RSI, MACD, Bollinger Bands, ATR, and more
+- **Consensus Price** - Multiple consensus algorithms (median, trimmed mean, weighted median, confidence-weighted, reliability-weighted, IQR-filtered)
 - **Data Transparency** - Data source indicators and update time tracking
 - **Accessibility Support** - Keyboard navigation, colorblind mode, screen reader support
 
 ## Technology Stack
 
-### Frontend
-
-- **Framework**: Next.js 16.1.6 (App Router)
-- **UI Library**: React 19.2.3
-- **Language**: TypeScript 5.x
+- **Framework**: Next.js 16.2.4 (App Router) + React 19.2.3 + TypeScript 5.x
 - **Styling**: Tailwind CSS 4.x
 - **State Management**: React Query 5.99.0, Zustand 5.0.11
 - **Charts**: Recharts 3.8.0
-- **Animations**: Framer Motion 12.36.0
-
-### Backend
-
-- **API**: Next.js API Routes
-- **Database**: Supabase 2.98.0 (PostgreSQL with Row Level Security)
-- **Authentication**: Supabase Auth with OAuth support
-- **Real-time**: WebSocket, Supabase Realtime
+- **Database & Auth**: Supabase 2.98.0 (PostgreSQL + RLS + Realtime)
 - **Error Tracking**: Sentry 10.43.0
 
-### Oracle Clients
+## Getting Started
 
-- Pyth Hermes Client (`@pythnetwork/hermes-client` 2.0.0)
-- API3 Contracts (`@api3/contracts` 27.0.0)
-- Custom oracle clients for all supported providers (Chainlink, Pyth, API3, RedStone, DIA, WINkLink, Supra, TWAP, Reflector, Flare)
-- Supra Oracle SDK (`supra-oracle-sdk` 1.0.4)
-- Stellar SDK (`@stellar/stellar-sdk` 15.0.1)
-- TWAP On-Chain Service (Uniswap V3 TWAP via direct RPC calls)
-- Reflector On-Chain Service (Stellar Soroban smart contracts)
-- Flare FTSO Service (Flare Time Series Oracle)
-
-## Prerequisites
-
-- Node.js 18.x or higher
-- npm or yarn
-- Supabase account (for database and authentication)
-
-## Installation
-
-1. Clone the repository:
-
-   ```bash
-   git clone <repository-url>
-   cd insight
-   ```
-
-2. Install dependencies:
-
-   ```bash
-   npm install
-   ```
-
-3. Set up environment variables (see `src/lib/config/env.ts` and `src/lib/config/serverEnv.ts` for reference)
-
-4. Run the development server:
-   ```bash
-   npm run dev
-   ```
-
-## Available Scripts
-
-| Command                 | Description                         |
-| ----------------------- | ----------------------------------- |
-| `npm run dev`           | Start development server            |
-| `npm run build`         | Build for production                |
-| `npm run start`         | Start production server             |
-| `npm run lint`          | Run ESLint                          |
-| `npm run lint:fix`      | Run ESLint with auto-fix            |
-| `npm run format`        | Format code with Prettier           |
-| `npm run format:check`  | Check code formatting with Prettier |
-| `npm run typecheck`     | Run TypeScript type checking        |
-| `npm run validate`      | Run lint, typecheck, and tests      |
-| `npm run test`          | Run Jest tests                      |
-| `npm run test:watch`    | Run tests in watch mode             |
-| `npm run test:coverage` | Run tests with coverage report      |
-| `npm run test:e2e`      | Run Playwright E2E tests            |
-| `npm run test:e2e:ui`   | Run Playwright E2E tests with UI    |
-| `npm run clean:dev`     | Clean .next and start dev server    |
-| `npm run clean:start`   | Clean .next, build and start server |
-| `npm run prepare`       | Prepare husky git hooks             |
-
-## Project Structure
-
+```bash
+npm install
 ```
-insight/
-├── src/
-│   ├── app/                    # Next.js App Router pages and API routes
-│   │   ├── alerts/             # Alerts management page
-│   │   ├── auth/               # Authentication pages
-│   │   │   ├── forgot-password/
-│   │   │   ├── resend-verification/
-│   │   │   ├── reset-password/
-│   │   │   └── verify-email/
-│   │   ├── cross-chain/        # Cross-chain analysis page
-│   │   ├── cross-oracle/       # Cross-oracle comparison page
-│   │   ├── docs/               # Documentation page
-│   │   ├── favorites/          # User favorites page
-│   │   ├── home-components/    # Homepage components
-│   │   ├── login/              # Login page
-│   │   ├── price-query/        # Price query page
-│   │   ├── register/           # Registration page
-│   │   ├── settings/           # User settings page
-│   │   ├── api/                # API endpoints
-│   │   │   ├── alerts/         # Price alerts API
-│   │   │   │   ├── batch/      # Batch alert operations
-│   │   │   │   ├── events/     # Alert events API
-│   │   │   │   └── [id]/       # Individual alert endpoints
-│   │   │   ├── auth/           # Authentication callbacks
-│   │   │   ├── favorites/      # User favorites API
-│   │   │   ├── health/         # Health check endpoint
-│   │   │   ├── oracles/        # Oracle data API
-│   │   │   │   └── [provider]/ # Provider-specific endpoints
-│   │   │   └── prices/         # Prices API
-│   │   ├── error.tsx           # Error boundary
-│   │   ├── global-error.tsx    # Global error handler
-│   │   ├── layout.tsx          # Root layout
-│   │   ├── not-found.tsx       # 404 page
-│   │   ├── globals.css         # Global styles
-│   │   └── favicon.ico         # Favicon
-│   ├── components/             # React components
-│   │   ├── accessibility/      # Accessibility components
-│   │   ├── alerts/             # Alert components
-│   │   ├── charts/             # Chart components
-│   │   ├── data-transparency/  # Data transparency components
-│   │   ├── error-boundary/     # Error boundary components
-│   │   ├── export/             # Export components
-│   │   ├── favorites/          # Favorite components
-│   │   ├── icons/              # Icon components
-│   │   ├── navigation/         # Navigation components
-│   │   ├── realtime/           # Real-time components
-│   │   ├── search/             # Search components
-│   │   ├── settings/           # Settings components
-│   │   ├── shortcuts/          # Keyboard shortcuts
-│   │   ├── ui/                 # Reusable UI components
-│   │   │   ├── DataTablePro/   # Advanced data table
-│   │   │   └── selectors/      # Selector components
-│   │   ├── AppInitializer.tsx  # App initializer
-│   │   ├── Footer.tsx          # Footer component
-│   │   ├── Navbar.tsx          # Navigation bar
-│   │   └── PerformanceMetricsCollector.tsx
-│   ├── hooks/                  # Custom React hooks
-│   │   ├── data/               # Data fetching hooks
-│   │   ├── oracles/            # Oracle-specific hooks
-│   │   ├── ui/                 # UI hooks
-│   │   └── utils/              # Utility hooks
-│   ├── lib/                    # Core libraries
-│   │   ├── analytics/          # Analytics utilities
-│   │   ├── api/                # API utilities
-│   │   │   ├── client/         # API client with interceptors
-│   │   │   ├── middleware/     # API middleware (auth, rate limit, validation)
-│   │   │   ├── response/       # Response builders
-│   │   │   ├── retry/          # Retry logic
-│   │   │   ├── validation/     # Validation schemas (Zod)
-│   │   │   └── versioning/     # API versioning
-│   │   ├── config/             # Configuration files
-│   │   ├── constants/          # Application constants
-│   │   ├── errors/             # Error handling
-│   │   ├── export/             # Data export utilities
-│   │   ├── indicators/         # Technical indicators
-│   │   ├── monitoring/         # Performance monitoring
-│   │   ├── oracles/            # Oracle client implementations
-│   │   │   ├── base/           # Base oracle database operations
-│   │   │   ├── clients/        # Oracle client implementations
-│   │   │   ├── constants/      # Oracle constants
-│   │   │   ├── pyth/           # Pyth-specific modules
-│   │   │   ├── services/       # Oracle data services
-│   │   │   └── utils/          # Oracle utility functions
-│   │   ├── realtime/           # WebSocket communication
-│   │   ├── security/           # Security utilities
-│   │   ├── services/           # External services
-│   │   │   └── marketData/     # Market data services
-│   │   ├── snapshots/          # Snapshot management
-│   │   ├── supabase/           # Supabase client and utilities
-│   │   ├── utils/              # Utility functions
-│   │   │   └── chartExport/    # Chart export utilities
-│   │   └── validation/         # Validation utilities
-│   ├── stores/                 # Zustand stores
-│   │   ├── authStore.ts        # Authentication state
-│   │   ├── crossChainConfigStore.ts  # Cross-chain config state
-│   │   ├── crossChainDataStore.ts    # Cross-chain data state
-│   │   ├── crossChainSelectorStore.ts # Cross-chain selector state
-│   │   ├── crossChainUIStore.ts      # Cross-chain UI state
-│   │   ├── realtimeStore.ts    # Real-time data state
-│   │   └── uiStore.ts          # UI state
-│   ├── types/                  # TypeScript type definitions
-│   │   ├── oracle/             # Oracle types
-│   │   ├── api/                # API types
-│   │   └── ui/                 # UI types
-│   └── __mocks__/              # Test mocks
-├── public/                     # Static assets
-│   └── logos/                  # Logo assets
-│       ├── cryptos/            # Cryptocurrency logos
-│       └── oracles/            # Oracle logos
-├── next.config.ts              # Next.js configuration
-├── tsconfig.json               # TypeScript configuration
-├── jest.config.js              # Jest configuration
-├── playwright.config.ts        # Playwright configuration
-├── eslint.config.mjs           # ESLint configuration
-├── .husky/                     # Husky git hooks
-└── .trae/rules/                # Trae IDE rules
-    ├── project_rules.md
-    └── ui-redesign-rules.md
+
+Set up environment variables (see `src/lib/config/env.ts` and `src/lib/config/serverEnv.ts` for reference), then:
+
+```bash
+npm run dev
 ```
 
 ## Supported Oracles
@@ -272,29 +91,48 @@ insight/
 - **Supported Chains**: Flare
 - **Features**: FTSO-based oracle with on-chain data feeds, validator analytics, confidence intervals with real-time bid/ask spreads, first-party oracle secured by Flare network consensus
 
-## Database Schema
-
-The application uses Supabase (PostgreSQL) with the following main tables:
-
-- `user_profiles` - User preferences and settings
-- `price_records` - Historical price data from oracles
-- `user_snapshots` - User-saved price snapshots
-- `user_favorites` - User favorite configurations
-- `price_alerts` - Price alert configurations
-- `alert_events` - Alert trigger event history
-
-All tables have Row Level Security (RLS) enabled for data protection.
-
 ## API Endpoints
 
-### Authentication
+### V1 REST API (API Key Authentication)
+
+All V1 endpoints require an API key passed via `x-api-key` header or `Authorization: Bearer` header.
+
+#### Price
+
+- `GET /api/v1/price/[symbol]` - Get aggregated price across all oracles
+- `GET /api/v1/price/[symbol]/sources` - Get all oracle sources for a symbol
+- `GET /api/v1/price/[symbol]/history` - Get historical price data (requires `provider` parameter)
+
+#### Consensus
+
+- `GET /api/v1/consensus/[symbol]` - Get consensus price with configurable aggregation method
+
+#### Oracles
+
+- `GET /api/v1/oracles/[provider]` - Get price from a specific oracle (requires `symbol` parameter)
+
+#### API Keys
+
+- `GET /api/v1/api-keys` - List your API keys
+- `POST /api/v1/api-keys` - Create new API key
+- `GET /api/v1/api-keys/[id]` - Get API key details
+- `PATCH /api/v1/api-keys/[id]` - Update API key
+- `DELETE /api/v1/api-keys/[id]` - Delete API key
+
+#### Documentation
+
+- `GET /api/v1/docs` - OpenAPI 3.1.0 specification
+
+### Internal API (Session Authentication)
+
+#### Authentication
 
 - `GET /api/auth/callback` - OAuth callback handler
 - `GET /api/auth/profile` - Get user profile
 - `PUT /api/auth/profile` - Update user profile
 - `POST /api/auth/delete-account` - Delete user account
 
-### Alerts
+#### Alerts
 
 - `GET /api/alerts` - List user alerts
 - `POST /api/alerts` - Create new alert
@@ -305,7 +143,7 @@ All tables have Row Level Security (RLS) enabled for data protection.
 - `POST /api/alerts/events/[id]/acknowledge` - Acknowledge alert event
 - `POST /api/alerts/batch` - Batch alert operations
 
-### Favorites
+#### Favorites
 
 - `GET /api/favorites` - List user favorites
 - `POST /api/favorites` - Create favorite
@@ -313,84 +151,28 @@ All tables have Row Level Security (RLS) enabled for data protection.
 - `PUT /api/favorites/[id]` - Update favorite
 - `DELETE /api/favorites/[id]` - Delete favorite
 
-### Oracles
+#### Oracles
 
 - `GET /api/oracles` - List all oracle providers
 - `POST /api/oracles` - Batch price query
 - `GET /api/oracles/[provider]` - Get specific oracle data
+- `GET /api/oracles/consensus` - Get consensus price
 
-### System
+#### Reputation
+
+- `GET /api/reputation` - List oracle reputation scores
+- `POST /api/reputation` - Trigger reputation calculation
+- `GET /api/reputation/[provider]` - Get specific provider reputation
+- `GET /api/reputation/calculate` - Calculate reputation scores
+
+#### Snapshots
+
+- `GET /api/snapshots` - List user snapshots
+- `POST /api/snapshots` - Create snapshot
+- `GET /api/snapshots/[id]` - Get specific snapshot
+- `DELETE /api/snapshots/[id]` - Delete snapshot
+
+#### System
 
 - `GET /api/health` - Health check
-
-## Code Quality
-
-This project adopts strict code quality standards to ensure maintainability and reliability:
-
-### Code Standards
-
-- **ESLint**: TypeScript ESLint ruleset with strict type checking
-- **Prettier**: Unified code formatting configuration
-- **TypeScript**: Strict type checking configuration (`strict: true`)
-- **Naming Conventions**: Unified file and variable naming conventions
-
-### Quality Check Scripts
-
-```bash
-# Run ESLint check
-npm run lint
-
-# Auto-fix ESLint issues
-npm run lint:fix
-
-# Run type checking
-npm run typecheck
-
-# Run all tests
-npm run test
-
-# Run test coverage check
-npm run test:coverage
-
-# Run full validation (lint + typecheck + test)
-npm run validate
-```
-
-### Code Quality Metrics
-
-- **Test Coverage**: Target 80%+
-- **Type Safety**: 100% TypeScript coverage
-- **Lint Pass Rate**: Zero errors, minimized warnings
-- **Build Success Rate**: 100%
-
-### Continuous Improvement
-
-- Regularly run `npm run validate` to ensure code quality
-- Use `npm run lint:fix` to auto-fix formatting issues
-- Ensure all tests pass before committing
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Ensure code passes all quality checks (`npm run validate`)
-4. Commit your changes (`git commit -m 'Add amazing feature'`)
-5. Push to the branch (`git push origin feature/amazing-feature`)
-6. Open a Pull Request
-
-## License
-
-This project is private and proprietary.
-
-## Acknowledgments
-
-- [Chainlink](https://chain.link/) - Decentralized oracle network
-- [Pyth Network](https://pyth.network/) - High-frequency oracle
-- [API3](https://api3.org/) - First-party oracle solution
-- [RedStone](https://redstone.finance/) - Modular oracle
-- [DIA](https://www.diadata.org/) - Open-source oracle
-- [WINkLink](https://winklink.org/) - TRON ecosystem oracle
-- [Supra](https://supra.com/) - High-performance oracle with verifiable randomness
-- [TWAP](https://uniswap.org/) - Uniswap V3 Time-Weighted Average Price oracle
-- [Reflector](https://reflector.network/) - Stellar ecosystem oracle
-- [Flare](https://flare.network/) - FTSO-based oracle network
+- `GET /api/cron/reputation` - Cron job for reputation recalculation

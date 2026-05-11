@@ -1,36 +1,40 @@
 import Link from 'next/link';
 
-import { Code, BookOpen, Server, Database, ArrowRight, Layers, Zap } from 'lucide-react';
+import { Code, BookOpen, Server, Database, ArrowRight, Layers, Zap, Key } from 'lucide-react';
 
 export default function TechnicalDocsSection() {
   const docs = [
     {
       icon: <BookOpen className="w-6 h-6" />,
       title: 'Methodology',
-      description: 'Learn about our data collection and validation methodology',
+      description:
+        'Learn about our data collection, validation methodology, and consensus algorithms',
       href: '#technical',
-      tags: ['Data Quality', 'Validation'],
+      tags: ['Data Quality', 'Validation', 'Consensus'],
     },
     {
       icon: <Server className="w-6 h-6" />,
       title: 'API Documentation',
-      description: 'Integrate with our API for real-time price data',
+      description:
+        'Integrate with our V1 REST API for real-time and historical price data with API Key authentication',
       href: '#technical',
-      tags: ['REST API', 'Real-time'],
+      tags: ['REST API', 'API Key', 'OpenAPI 3.1'],
     },
     {
       icon: <Layers className="w-6 h-6" />,
       title: 'Architecture',
-      description: 'Understand our system architecture and design',
+      description:
+        'Next.js App Router with Supabase, React Query, Zustand, and 10 oracle client implementations',
       href: '#technical',
-      tags: ['Next.js', 'Scalability'],
+      tags: ['Next.js', 'Supabase', 'TypeScript'],
     },
     {
       icon: <Database className="w-6 h-6" />,
       title: 'Data Sources',
-      description: 'Explore our oracle data sources and integrations',
+      description:
+        '10 oracle providers including Chainlink, Pyth, API3, RedStone, DIA, WINkLink, Supra, TWAP, Reflector, and Flare',
       href: '#technical',
-      tags: ['10 Oracles', 'Multi-chain'],
+      tags: ['10 Oracles', '54+ Chains', 'On-chain Data'],
     },
   ];
 
@@ -48,7 +52,6 @@ export default function TechnicalDocsSection() {
         </p>
       </div>
 
-      {/* Technical Docs Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {docs.map((doc, index) => (
           <div
@@ -63,7 +66,6 @@ export default function TechnicalDocsSection() {
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">{doc.title}</h3>
                 <p className="text-sm text-gray-600 mb-3">{doc.description}</p>
 
-                {/* Tags */}
                 <div className="flex flex-wrap gap-2 mb-4">
                   {doc.tags.map((tag, idx) => (
                     <span
@@ -88,14 +90,16 @@ export default function TechnicalDocsSection() {
         ))}
       </div>
 
-      {/* API Preview */}
       <div className="mt-8 bg-gray-900 rounded-xl p-6 overflow-hidden">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Zap className="w-5 h-5 text-yellow-400" />
             <h3 className="text-white font-semibold">API Preview</h3>
           </div>
-          <span className="text-xs text-gray-400">Requires API Key</span>
+          <div className="flex items-center gap-2">
+            <Key className="w-3 h-3 text-gray-400" />
+            <span className="text-xs text-gray-400">Requires API Key</span>
+          </div>
         </div>
 
         <div className="bg-gray-800 rounded-lg p-4 font-mono text-sm overflow-x-auto mb-4">
@@ -119,6 +123,31 @@ export default function TechnicalDocsSection() {
     },
     "providerCount": 10,
     "providers": [...]
+  }
+}`}
+          </pre>
+        </div>
+
+        <div className="bg-gray-800 rounded-lg p-4 font-mono text-sm overflow-x-auto mb-4">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-green-400">GET</span>
+            <span className="text-blue-400">/api/v1/consensus/BTC%2FUSD?method=median</span>
+          </div>
+          <div className="text-gray-400 mb-2">
+            Get consensus price with configurable aggregation method
+          </div>
+          <pre className="text-gray-300">
+            {`{
+  "success": true,
+  "data": {
+    "symbol": "BTC/USD",
+    "consensus": {
+      "price": 81340.50,
+      "method": "median",
+      "confidence": 0.95,
+      "agreement": 0.97,
+      "participantCount": 10
+    }
   }
 }`}
           </pre>

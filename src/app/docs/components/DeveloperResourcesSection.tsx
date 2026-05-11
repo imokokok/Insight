@@ -43,6 +43,16 @@ const response = await fetch(
 );
 const data = await response.json();
 
+// Consensus price with specific method
+const consensus = await fetch(
+  '/api/v1/consensus/BTC%2FUSD?method=median',
+  {
+    headers: {
+      'x-api-key': 'ik_your_api_key'
+    }
+  }
+);
+
 // Historical data requires provider parameter
 const history = await fetch(
   '/api/v1/price/BTC%2FUSD/history?provider=chainlink&period=24',
@@ -100,6 +110,11 @@ const history = await fetch(
         'Symbols containing "/" must be URL-encoded. For example, BTC/USD should be sent as BTC%2FUSD in the URL path. Example: /api/v1/price/BTC%2FUSD.',
     },
     {
+      question: 'What consensus algorithms are available?',
+      answer:
+        'The /api/v1/consensus endpoint supports 6 methods: median, trimmed_mean, weighted_median, confidence_weighted, reliability_weighted, and iqr_filtered. If not specified, the best method is auto-selected based on data characteristics.',
+    },
+    {
       question: 'Why does the history endpoint require a provider?',
       answer:
         'Historical data is provider-specific and cannot be aggregated across oracles. You must specify which oracle provider to query, e.g., ?provider=chainlink.',
@@ -108,6 +123,11 @@ const history = await fetch(
       question: 'How do I get an API key?',
       answer:
         'After registering and signing in, you can generate API keys via the /api/v1/api-keys endpoint. Each user can have up to 5 active keys. The full key is only shown once at creation.',
+    },
+    {
+      question: 'What oracle providers are supported?',
+      answer:
+        'We support 10 oracle providers: chainlink, pyth, api3, redstone, dia, winklink, supra, twap, reflector, and flare. Each provider may support different blockchains and trading pairs.',
     },
   ];
 
@@ -183,7 +203,9 @@ const history = await fetch(
         </div>
 
         <div className="bg-gray-800 rounded-lg p-4 font-mono text-sm overflow-x-auto">
-          <div className="text-gray-500 mb-2">{'// Single oracle & historical query'}</div>
+          <div className="text-gray-500 mb-2">
+            {'// Single oracle, consensus & historical query'}
+          </div>
           <pre className="text-gray-300">
             <code>{batchCodeExample}</code>
           </pre>
