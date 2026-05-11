@@ -127,7 +127,7 @@ export const ORACLE_EXPECTED_INTERVALS: Record<string, number> = {
   dia: 3600,
 };
 
-export type SymbolVolatilityCategory = 'stablecoin' | 'major' | 'alt' | 'micro';
+type SymbolVolatilityCategory = 'stablecoin' | 'major' | 'alt' | 'micro';
 
 const STABLECOIN_PATTERNS = [
   'USDT',
