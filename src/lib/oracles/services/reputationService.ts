@@ -266,7 +266,22 @@ class ReputationService {
         };
       }
 
-      return { total: 1, success: 0, failed: 0 };
+      return {
+        entry: {
+          provider,
+          symbol,
+          price: 0,
+          consensus_price: 0,
+          deviation_pct: 0,
+          latency_ms: 0,
+          confidence: 0,
+          is_success: false,
+          error_message: 'Price returned invalid value',
+        },
+        total: 1,
+        success: 0,
+        failed: 1,
+      };
     } catch (error) {
       logger.warn(
         `Failed to fetch ${provider} for ${symbol}`,

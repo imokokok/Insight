@@ -9,6 +9,7 @@ import { Trophy, Clock, Target, Shield, GitBranch, Database, ExternalLink } from
 import { useReputations } from '@/hooks/data/useReputations';
 import { chartColors } from '@/lib/config/colors';
 import { type CalculatedPerformanceMetrics } from '@/lib/oracles/utils/performanceMetricsCalculator';
+import { getScoreColor, getScoreBadge } from '@/lib/oracles/utils/reputationUtils';
 import { type PriceData, type OracleProvider } from '@/types/oracle';
 
 import { oracleNames } from '../../constants';
@@ -34,23 +35,6 @@ interface RankedOracle {
   confidence: number;
   dataSource: string;
   color: string;
-}
-
-function getScoreColor(score: number): string {
-  if (score >= 90) return '#10b981';
-  if (score >= 75) return '#3b82f6';
-  if (score >= 60) return '#f59e0b';
-  if (score >= 40) return '#f97316';
-  return '#ef4444';
-}
-
-function getScoreBadge(score: number): { label: string; bgClass: string; textClass: string } {
-  if (score >= 90)
-    return { label: 'Excellent', bgClass: 'bg-emerald-50', textClass: 'text-emerald-700' };
-  if (score >= 75) return { label: 'Good', bgClass: 'bg-blue-50', textClass: 'text-blue-700' };
-  if (score >= 60) return { label: 'Fair', bgClass: 'bg-amber-50', textClass: 'text-amber-700' };
-  if (score >= 40) return { label: 'Poor', bgClass: 'bg-orange-50', textClass: 'text-orange-700' };
-  return { label: 'Critical', bgClass: 'bg-red-50', textClass: 'text-red-700' };
 }
 
 function getDataSourceLabel(dataSource: string): { label: string; color: string } {
