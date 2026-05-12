@@ -17,7 +17,7 @@ export const winklinkConfig: OracleConfig = {
   name: 'WINkLink',
   descriptionKey: 'oracles.descriptions.winklink',
   symbol: 'WIN',
-  defaultChain: Blockchain.BNB_CHAIN,
+  defaultChain: Blockchain.TRON,
   supportedChains: [Blockchain.BNB_CHAIN, Blockchain.TRON, Blockchain.ETHEREUM],
   getClient,
   iconBgColor: '#FF4D4D',
@@ -34,6 +34,7 @@ export const winklinkConfig: OracleConfig = {
     hasQuantifiableSecurity: false,
     hasFirstPartyOracle: false,
     hasCoreFeatures: true,
+    hasRiskAssessment: true,
   },
   tabs: [
     { id: 'market', label: 'Market Data' },

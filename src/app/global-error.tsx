@@ -21,7 +21,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
     <html lang="en">
       <body>
         <div className="min-h-screen flex items-center justify-center px-4 bg-gray-50">
-          <div className="text-center max-w-lg bg-white p-8 border border-gray-200">
+          <div className="text-center max-w-lg bg-white p-8 border border-gray-200 rounded-lg">
             <div className="w-24 h-24 bg-danger-50 flex items-center justify-center mx-auto mb-6">
               <AlertOctagon className="w-12 h-12 text-danger-500" />
             </div>
@@ -43,7 +43,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <button
                 onClick={reset}
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary-600 text-white font-medium hover:bg-primary-700 transition-colors"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary-600 text-white font-medium hover:bg-primary-700 transition-colors rounded-md"
               >
                 <RefreshCw className="w-4 h-4" />
                 Try Again
@@ -51,7 +51,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
 
               <Link
                 href="/"
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors rounded-md"
               >
                 <Home className="w-4 h-4" />
                 Back to Home

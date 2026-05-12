@@ -101,7 +101,7 @@ export function ReflectorStats({ data }: ReflectorStatsProps) {
         iconColor="text-teal-500"
         title="Data Source"
         value={source}
-        description="Oracle standard"
+        description="Oracle data source"
       />
     </>
   );

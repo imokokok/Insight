@@ -29,8 +29,8 @@ export const twapConfig: OracleConfig = {
   getClient,
   iconBgColor: '#FF007A',
   themeColor: '#FF007A',
-  icon: <Image src="/logos/oracles/twap.svg" alt="TWAP Oracle" width={48} height={48} />,
-  marketData: getDefaultMarketData('UNI', 'TWAP Oracle'),
+  icon: <Image src="/logos/oracles/twap.svg" alt="TWAP" width={48} height={48} />,
+  marketData: getDefaultMarketData('UNI', 'TWAP'),
   networkData: getDefaultNetworkData(),
   features: {
     hasNodeAnalytics: false,
@@ -49,6 +49,7 @@ export const twapConfig: OracleConfig = {
     { id: 'network', label: 'Network Health' },
     { id: 'market', label: 'Market Data' },
     { id: 'on-chain', label: 'On-Chain' },
+    { id: 'cross-chain', label: 'Cross-Chain' },
     { id: 'methodology', label: 'Methodology' },
   ],
 };

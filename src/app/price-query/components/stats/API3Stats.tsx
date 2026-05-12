@@ -45,8 +45,8 @@ export function API3Stats({
       <StatCard
         icon={Settings}
         iconColor="text-amber-500"
-        title="Decimals"
-        value={decimals ?? '-'}
+        title="Price Precision"
+        value={decimals != null ? `${decimals} decimals` : '-'}
         description="Number of decimal places"
       />
       <StatCard

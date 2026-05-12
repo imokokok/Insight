@@ -33,7 +33,7 @@ export const diaConfig: OracleConfig = {
   ],
   getClient,
   iconBgColor: '#6366F1',
-  themeColor: '#6366f1',
+  themeColor: '#6366F1',
   icon: <Image src="/logos/oracles/dia.svg" alt="DIA" width={48} height={48} />,
   marketData: getDefaultMarketData('DIA', 'DIA'),
   networkData: getDefaultNetworkData(),

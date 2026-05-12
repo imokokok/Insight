@@ -68,6 +68,7 @@ export const supraConfig: OracleConfig = {
     { id: 'market', label: 'Market Data' },
     { id: 'network', label: 'Network Health' },
     { id: 'price-feeds', label: 'Price Feeds' },
+    { id: 'data-streams', label: 'Data Streams' },
     { id: 'cross-chain', label: 'Cross-Chain' },
     { id: 'ecosystem', label: 'Ecosystem' },
     { id: 'risk', label: 'Risk Assessment' },

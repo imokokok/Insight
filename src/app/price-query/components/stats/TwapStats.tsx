@@ -91,9 +91,9 @@ export function TwapStats({ data }: TwapStatsProps) {
       <StatCard
         icon={Shield}
         iconColor="text-emerald-500"
-        title="Confidence"
+        title="Confidence Score"
         value={`${(data.confidence <= 1 ? data.confidence * 100 : Math.min(100, data.confidence)).toFixed(1)}%`}
-        description="Price confidence level"
+        description="Overall confidence score"
         rating={confidenceRating}
       />
     </>

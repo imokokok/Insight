@@ -97,13 +97,13 @@ export const chainColors: Record<Blockchain, string> = {
   [Blockchain.MOONRIVER]: configChainColors.moonriver,
   [Blockchain.METIS]: configChainColors.metis,
   [Blockchain.STARKEX]: configChainColors.starkex,
-  [Blockchain.STELLAR]: '#14B8A6',
-  [Blockchain.FLARE]: '#8B0FE5',
+  [Blockchain.STELLAR]: configChainColors.stellar,
+  [Blockchain.FLARE]: configChainColors.flare,
 };
 
 export const oracleColors: Record<OracleProvider, string> = {
   [OracleProvider.CHAINLINK]: configChartColors.oracle.chainlink,
-  [OracleProvider.PYTH]: configChartColors.oracle['pyth'],
+  [OracleProvider.PYTH]: configChartColors.oracle.pyth,
   [OracleProvider.API3]: configChartColors.oracle.api3,
   [OracleProvider.REDSTONE]: configChartColors.oracle.redstone,
   [OracleProvider.DIA]: configChartColors.oracle.dia,
@@ -111,7 +111,7 @@ export const oracleColors: Record<OracleProvider, string> = {
   [OracleProvider.SUPRA]: configChartColors.oracle.supra,
   [OracleProvider.TWAP]: configChartColors.oracle.twap,
   [OracleProvider.REFLECTOR]: configChartColors.oracle.reflector,
-  [OracleProvider.FLARE]: '#8B0FE5',
+  [OracleProvider.FLARE]: configChartColors.oracle.flare,
 };
 
 export const ORACLE_EXPECTED_INTERVALS: Record<string, number> = {

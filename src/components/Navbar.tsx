@@ -158,7 +158,7 @@ export default function Navbar() {
                         ? 'text-primary-600 bg-primary-50'
                         : 'text-gray-600 hover:text-primary-600 hover:bg-gray-50'
                     }`}
-                    title="Snapshots"
+                    title="Price Snapshots"
                   >
                     <Camera className="w-[18px] h-[18px]" />
                   </Link>
@@ -169,7 +169,7 @@ export default function Navbar() {
                         ? 'text-primary-600 bg-primary-50'
                         : 'text-gray-600 hover:text-primary-600 hover:bg-gray-50'
                     }`}
-                    title="Alerts"
+                    title="Price Alerts"
                   >
                     <Bell className="w-[18px] h-[18px]" />
                   </Link>

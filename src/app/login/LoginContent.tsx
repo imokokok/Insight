@@ -144,7 +144,7 @@ function LoginForm() {
                       href={`/auth/resend-verification?email=${encodeURIComponent(email)}`}
                       className="mt-2 inline-block text-sm text-primary-600 hover:text-primary-700 font-medium underline"
                     >
-                      Resend Confirmation Email
+                      Resend Verification Email
                     </Link>
                   )}
                 </div>

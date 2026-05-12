@@ -477,7 +477,7 @@ export const SUPRA_AVAILABLE_PAIRS: Record<string, string[]> = {
   solana: [...supraSymbols],
   'bnb-chain': [...supraSymbols],
   avalanche: [...supraSymbols],
-  // RedStone-specific chains
+  // Supra-specific L2 chains
   zksync: [...supraSymbols],
   scroll: [...supraSymbols],
   mantle: [...supraSymbols],
