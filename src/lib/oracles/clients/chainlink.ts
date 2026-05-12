@@ -53,6 +53,7 @@ const CHAINLINK_QUALITY_CONFIG = {
     [Blockchain.METIS]: 0.93,
     [Blockchain.STARKEX]: 0.0,
     [Blockchain.STELLAR]: 0.0,
+    [Blockchain.FLARE]: 0.0,
   } as Record<Blockchain, number>,
   defaultConfidence: 0.98,
   minConfidence: 0.9,

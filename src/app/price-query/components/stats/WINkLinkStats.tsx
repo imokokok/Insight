@@ -32,14 +32,14 @@ export function WINkLinkStats({ data }: WINkLinkStatsProps) {
         icon={Database}
         iconColor="text-emerald-500"
         title="Data Feeds"
-        value={data.dataFeedsCount}
+        value={data.dataFeedsCount ?? '-'}
         description="Number of data feeds"
       />
       <StatCard
         icon={Clock}
         iconColor="text-indigo-500"
         title="Response Time"
-        value={`${data.avgResponseTime}ms`}
+        value={data.avgResponseTime != null ? `${data.avgResponseTime}ms` : '-'}
         description="Average response time"
       />
       <StatCard
@@ -59,7 +59,7 @@ export function WINkLinkStats({ data }: WINkLinkStatsProps) {
         icon={Shield}
         iconColor="text-rose-500"
         title="Node Uptime"
-        value={`${data.nodeUptime.toFixed(2)}%`}
+        value={data.nodeUptime != null ? `${data.nodeUptime.toFixed(2)}%` : '-'}
         description="Node uptime percentage"
       />
     </>

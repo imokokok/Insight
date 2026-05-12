@@ -1,6 +1,5 @@
 import Image from 'next/image';
 
-import { chartColors } from '@/lib/config/colors';
 import { WINkLinkClient } from '@/lib/oracles';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 
@@ -21,10 +20,10 @@ export const winklinkConfig: OracleConfig = {
   defaultChain: Blockchain.BNB_CHAIN,
   supportedChains: [Blockchain.BNB_CHAIN, Blockchain.TRON, Blockchain.ETHEREUM],
   getClient,
-  iconBgColor: `bg-[${chartColors.oracle.winklink}]`,
-  themeColor: '#ec4899',
+  iconBgColor: '#FF4D4D',
+  themeColor: '#FF4D4D',
   icon: <Image src="/logos/oracles/winklink.svg" alt="WINkLink" width={48} height={48} />,
-  marketData: getDefaultMarketData('WINKLINK', 'WINkLink'),
+  marketData: getDefaultMarketData('WIN', 'WINkLink'),
   networkData: getDefaultNetworkData(),
   features: {
     hasNodeAnalytics: false,

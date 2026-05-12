@@ -1,6 +1,5 @@
 import Image from 'next/image';
 
-import { chartColors } from '@/lib/config/colors';
 import { API3Client } from '@/lib/oracles';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 
@@ -29,8 +28,8 @@ export const api3Config: OracleConfig = {
     Blockchain.OPTIMISM,
   ],
   getClient,
-  iconBgColor: `bg-[${chartColors.oracle.api3}]`,
-  themeColor: '#10b981',
+  iconBgColor: '#DB2777',
+  themeColor: '#DB2777',
   icon: <Image src="/logos/oracles/api3.svg" alt="API3" width={48} height={48} />,
   marketData: getDefaultMarketData('API3', 'API3'),
   networkData: getDefaultNetworkData(),

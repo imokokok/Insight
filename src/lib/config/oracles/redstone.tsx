@@ -1,6 +1,5 @@
 import Image from 'next/image';
 
-import { chartColors } from '@/lib/config/colors';
 import { RedStoneClient } from '@/lib/oracles';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 
@@ -38,10 +37,10 @@ export const redstoneConfig: OracleConfig = {
     Blockchain.SUI,
   ],
   getClient,
-  iconBgColor: `bg-[${chartColors.oracle.redstone}]`,
-  themeColor: '#ef4444',
+  iconBgColor: '#FF6B6B',
+  themeColor: '#FF6B6B',
   icon: <Image src="/logos/oracles/redstone.svg" alt="RedStone" width={48} height={48} />,
-  marketData: getDefaultMarketData('REDSTONE', 'RedStone'),
+  marketData: getDefaultMarketData('RED', 'RedStone'),
   networkData: getDefaultNetworkData(),
   features: {
     hasNodeAnalytics: false,
@@ -54,6 +53,7 @@ export const redstoneConfig: OracleConfig = {
     hasCoreFeatures: true,
     hasDataStreams: true,
     hasCrossChain: true,
+    hasRiskAssessment: true,
   },
   tabs: [
     { id: 'market', label: 'Market Data' },

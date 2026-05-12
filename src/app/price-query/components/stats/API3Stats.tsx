@@ -55,9 +55,9 @@ export function API3Stats({
         title="Data Age"
         value={
           dataAge !== undefined
-            ? dataAge < 60000
-              ? `${Math.round(dataAge / 1000)}s`
-              : `${Math.round(dataAge / 60000)}m`
+            ? dataAge < 60
+              ? `${Math.round(dataAge)}s`
+              : `${Math.round(dataAge / 60)}m`
             : '-'
         }
         description="Time since last update"
@@ -66,7 +66,11 @@ export function API3Stats({
         icon={Shield}
         iconColor="text-rose-500"
         title="Confidence Score"
-        value={confidence !== undefined ? `${(confidence * 100).toFixed(0)}%` : '-'}
+        value={
+          confidence !== undefined
+            ? `${(confidence <= 1 ? confidence * 100 : Math.min(100, confidence)).toFixed(0)}%`
+            : '-'
+        }
         description="Overall confidence score"
       />
     </>

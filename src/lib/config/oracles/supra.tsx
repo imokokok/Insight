@@ -46,7 +46,7 @@ export const supraConfig: OracleConfig = {
     Blockchain.STARKNET,
   ],
   getClient,
-  iconBgColor: 'bg-teal-600',
+  iconBgColor: '#14B8A6',
   themeColor: '#14B8A6',
   icon: <Image src="/logos/oracles/supra.svg" alt="Supra" width={48} height={48} />,
   marketData: getDefaultMarketData('SUPRA', 'Supra'),
@@ -62,6 +62,7 @@ export const supraConfig: OracleConfig = {
     hasCoreFeatures: true,
     hasDataStreams: true,
     hasCrossChain: true,
+    hasRiskAssessment: true,
   },
   tabs: [
     { id: 'market', label: 'Market Data' },
@@ -74,11 +75,11 @@ export const supraConfig: OracleConfig = {
   views: [
     {
       id: 'market',
-      label: 'Market',
+      label: 'Market Data',
       component: 'SupraMarketView',
       default: true,
     },
-    { id: 'network', label: 'Network', component: 'SupraNetworkView' },
+    { id: 'network', label: 'Network Health', component: 'SupraNetworkView' },
     { id: 'price-feeds', label: 'Price Feeds', component: 'SupraPriceFeedsView' },
     { id: 'cross-chain', label: 'Cross-Chain', component: 'SupraCrossChainView' },
     { id: 'ecosystem', label: 'Ecosystem', component: 'SupraEcosystemView' },

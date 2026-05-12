@@ -105,7 +105,7 @@ function CrossOracleContentInner() {
           symbol: pd.symbol,
           price: pd.price,
           timestamp: pd.timestamp,
-          decimals: pd.decimals ?? 0,
+          decimals: pd.decimals ?? 8,
           confidence: pd.confidence ?? undefined,
           source: pd.source ?? undefined,
         })),

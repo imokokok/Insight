@@ -19,12 +19,16 @@ export function TwapStats({ data }: TwapStatsProps) {
   };
 
   const formatLiquidity = (liquidity: string) => {
-    const num = BigInt(liquidity);
-    const formatted = Number(num) / 1e18;
-    if (formatted >= 1e9) return `$${(formatted / 1e9).toFixed(2)}B`;
-    if (formatted >= 1e6) return `$${(formatted / 1e6).toFixed(2)}M`;
-    if (formatted >= 1e3) return `$${(formatted / 1e3).toFixed(2)}K`;
-    return `$${formatted.toFixed(2)}`;
+    try {
+      const num = BigInt(liquidity);
+      const formatted = Number(num) / 1e18;
+      if (formatted >= 1e9) return `$${(formatted / 1e9).toFixed(2)}B`;
+      if (formatted >= 1e6) return `$${(formatted / 1e6).toFixed(2)}M`;
+      if (formatted >= 1e3) return `$${(formatted / 1e3).toFixed(2)}K`;
+      return `$${formatted.toFixed(2)}`;
+    } catch {
+      return '-';
+    }
   };
 
   const formatPoolAddress = (address: string) => {
@@ -88,7 +92,7 @@ export function TwapStats({ data }: TwapStatsProps) {
         icon={Shield}
         iconColor="text-emerald-500"
         title="Confidence"
-        value={`${(data.confidence * 100).toFixed(1)}%`}
+        value={`${(data.confidence <= 1 ? data.confidence * 100 : Math.min(100, data.confidence)).toFixed(1)}%`}
         description="Price confidence level"
         rating={confidenceRating}
       />

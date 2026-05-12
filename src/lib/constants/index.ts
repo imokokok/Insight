@@ -43,7 +43,7 @@ export const chainNames: Record<Blockchain, string> = {
   [Blockchain.SEI]: 'Sei',
   [Blockchain.TRON]: 'TRON',
   [Blockchain.TON]: 'TON',
-  [Blockchain.NEAR]: 'Near',
+  [Blockchain.NEAR]: 'NEAR',
   [Blockchain.AURORA]: 'Aurora',
   [Blockchain.CELO]: 'Celo',
   [Blockchain.STARKNET]: 'Starknet',
@@ -98,7 +98,7 @@ export const chainColors: Record<Blockchain, string> = {
   [Blockchain.METIS]: configChainColors.metis,
   [Blockchain.STARKEX]: configChainColors.starkex,
   [Blockchain.STELLAR]: '#14B8A6',
-  [Blockchain.FLARE]: '#E84142',
+  [Blockchain.FLARE]: '#8B0FE5',
 };
 
 export const oracleColors: Record<OracleProvider, string> = {
@@ -111,7 +111,7 @@ export const oracleColors: Record<OracleProvider, string> = {
   [OracleProvider.SUPRA]: configChartColors.oracle.supra,
   [OracleProvider.TWAP]: configChartColors.oracle.twap,
   [OracleProvider.REFLECTOR]: configChartColors.oracle.reflector,
-  [OracleProvider.FLARE]: '#E84142',
+  [OracleProvider.FLARE]: '#8B0FE5',
 };
 
 export const ORACLE_EXPECTED_INTERVALS: Record<string, number> = {

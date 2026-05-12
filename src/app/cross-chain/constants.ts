@@ -11,7 +11,7 @@ export const CHAIN_EXPECTED_INTERVALS: Record<string, number> = {
   base: 2,
   polygon: 5,
   avalanche: 5,
-  bnb: 5,
+  'bnb-chain': 5,
   ethereum: 12,
   fantom: 5,
   cronos: 5,

@@ -18,10 +18,14 @@ export function DIAStats({ data }: DIAStatsProps) {
         iconColor="text-blue-500"
         title="24h Change"
         value={
-          <span className={data.change24hPercent >= 0 ? 'text-emerald-600' : 'text-red-600'}>
-            {data.change24hPercent >= 0 ? '+' : ''}
-            {data.change24hPercent.toFixed(2)}%
-          </span>
+          data.change24hPercent != null ? (
+            <span className={data.change24hPercent >= 0 ? 'text-emerald-600' : 'text-red-600'}>
+              {data.change24hPercent >= 0 ? '+' : ''}
+              {data.change24hPercent.toFixed(2)}%
+            </span>
+          ) : (
+            '-'
+          )
         }
         description="Price change in 24 hours"
       />

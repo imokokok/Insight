@@ -40,8 +40,8 @@ export const chainlinkConfig: OracleConfig = {
     Blockchain.SOLANA,
   ],
   getClient,
-  iconBgColor: 'bg-primary-600',
-  themeColor: '#375bd2',
+  iconBgColor: '#2563EB',
+  themeColor: '#2563EB',
   icon: <Image src="/logos/oracles/chainlink.svg" alt="Chainlink" width={48} height={48} />,
   marketData: getDefaultMarketData('LINK', 'Chainlink'),
   networkData: getDefaultNetworkData(),
@@ -54,6 +54,7 @@ export const chainlinkConfig: OracleConfig = {
     hasQuantifiableSecurity: false,
     hasFirstPartyOracle: false,
     hasCoreFeatures: false,
+    hasRiskAssessment: true,
   },
   tabs: [
     { id: 'market', label: 'Market Data' },

@@ -25,7 +25,7 @@ interface QueryResultsProps {
 export function QueryResults({ onChainData }: QueryResultsProps) {
   const query = useUnifiedQuery();
   const chartContainerRef = useRef<HTMLDivElement>(null);
-  const [previousPriceValue, setPreviousPriceValue] = useState<number>(0);
+  const [previousPriceValue, setPreviousPriceValue] = useState<number | null>(null);
   const wasLoadingRef = useRef(false);
 
   const { selectedSymbol } = query;
@@ -115,7 +115,7 @@ export function QueryResults({ onChainData }: QueryResultsProps) {
               <div className="flex items-baseline gap-3 sm:justify-end">
                 <PriceFlash
                   value={currentPriceValue}
-                  previousValue={previousPriceValue ?? currentPriceValue}
+                  previousValue={previousPriceValue ?? undefined}
                 >
                   <span className="text-4xl sm:text-5xl font-bold text-gray-900 tracking-tight">
                     {formatPrice(currentPriceValue)}

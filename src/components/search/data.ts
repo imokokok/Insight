@@ -82,7 +82,7 @@ const blockchainIcons: Record<Blockchain, string> = {
   [Blockchain.SOLANA]: '/logos/cryptos/sol.svg',
   [Blockchain.AVALANCHE]: '/logos/cryptos/avax.svg',
   [Blockchain.FANTOM]: '/logos/cryptos/ftm.svg',
-  [Blockchain.CRONOS]: '/logos/cryptos/crv.svg',
+  [Blockchain.CRONOS]: '',
   [Blockchain.JUNO]: '',
   [Blockchain.COSMOS]: '/logos/cryptos/atom.svg',
   [Blockchain.OSMOSIS]: '',
@@ -112,8 +112,8 @@ const blockchainIcons: Record<Blockchain, string> = {
   [Blockchain.MOONRIVER]: '',
   [Blockchain.METIS]: '',
   [Blockchain.STARKEX]: '',
-  [Blockchain.STELLAR]: '/logos/cryptos/xlm.svg',
-  [Blockchain.FLARE]: '/logos/cryptos/flr.svg',
+  [Blockchain.STELLAR]: '',
+  [Blockchain.FLARE]: '',
 };
 
 // Generate blockchain search results

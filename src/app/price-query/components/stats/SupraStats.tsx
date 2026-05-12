@@ -21,7 +21,7 @@ export function SupraStats({ data }: SupraStatsProps) {
 
   const formatSupraPrice = (value: number) => {
     if (!value || isNaN(value)) return '-';
-    return `$${formatNumberWithDecimals(value, 2, decimals || 2)}`;
+    return `$${formatNumberWithDecimals(value, 2, decimals ?? 2)}`;
   };
 
   return (

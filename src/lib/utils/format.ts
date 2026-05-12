@@ -37,13 +37,14 @@ export function formatCountdown(ms: number): string {
   return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
 }
 
-export function formatTimeString(date: Date, includeSeconds: boolean = true): string {
-  const hours = date.getHours();
-  const minutes = String(date.getMinutes()).padStart(2, '0');
+export function formatTimeString(date: Date | number, includeSeconds: boolean = true): string {
+  const d = date instanceof Date ? date : new Date(date);
+  const hours = d.getHours();
+  const minutes = String(d.getMinutes()).padStart(2, '0');
   const ampm = hours >= 12 ? 'PM' : 'AM';
   const displayHours = hours % 12 || 12;
   if (includeSeconds) {
-    const seconds = String(date.getSeconds()).padStart(2, '0');
+    const seconds = String(d.getSeconds()).padStart(2, '0');
     return `${displayHours}:${minutes}:${seconds} ${ampm}`;
   }
   return `${displayHours}:${minutes} ${ampm}`;
