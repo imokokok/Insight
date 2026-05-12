@@ -51,6 +51,46 @@ import {
 import { cn } from '@/lib/utils';
 import { type OracleProvider } from '@/types/oracle';
 
+/* ─── Oracle Logo ─── */
+
+const ORACLE_LOGO_MAP: Record<string, string> = {
+  chainlink: '/logos/oracles/chainlink.svg',
+  pyth: '/logos/oracles/pyth.svg',
+  api3: '/logos/oracles/api3.svg',
+  redstone: '/logos/oracles/redstone.svg',
+  dia: '/logos/oracles/dia.svg',
+  winklink: '/logos/oracles/winklink.svg',
+  supra: '/logos/oracles/supra.svg',
+  twap: '/logos/oracles/twap.svg',
+  reflector: '/logos/oracles/reflector.svg',
+  flare: '/logos/oracles/flare.svg',
+};
+
+function OracleLogo({
+  provider,
+  size = 20,
+  className = '',
+}: {
+  provider: OracleProvider;
+  size?: number;
+  className?: string;
+}) {
+  const src = ORACLE_LOGO_MAP[provider];
+  if (!src) return null;
+  return (
+    <img
+      src={src}
+      alt={`${providerNames[provider] || provider} logo`}
+      width={size}
+      height={size}
+      className={cn('rounded-full object-contain flex-shrink-0', className)}
+      onError={(e) => {
+        (e.target as HTMLImageElement).style.display = 'none';
+      }}
+    />
+  );
+}
+
 /* ─── Score Ring ─── */
 
 function ScoreRing({ score, size = 140 }: { score: number; size?: number }) {
@@ -658,14 +698,12 @@ function Sidebar({
   reputation,
   provider,
   providerName,
-  color,
   badge,
   timeAgo,
 }: {
   reputation: OracleReputation;
   provider: string;
   providerName: string;
-  color: string;
   badge: ReturnType<typeof getScoreBadge>;
   timeAgo: ReturnType<typeof formatTimeAgo>;
 }) {
@@ -674,10 +712,7 @@ function Sidebar({
       <div className="bg-white rounded-xl border border-gray-200/60 p-5 lg:sticky lg:top-20">
         {/* Header */}
         <div className="flex items-center gap-3 mb-5">
-          <div
-            className="w-4 h-4 rounded-full flex-shrink-0"
-            style={{ backgroundColor: color, boxShadow: `0 0 0 3px ${color}22` }}
-          />
+          <OracleLogo provider={provider as OracleProvider} size={36} />
           <div>
             <h1 className="text-xl font-black text-gray-900">{providerName}</h1>
             <p className="text-[10px] text-gray-400 font-mono uppercase tracking-wide">
@@ -816,7 +851,6 @@ function ProviderReputationContentInner({ provider }: { provider: string }) {
   });
 
   const providerName = providerNames[provider as OracleProvider] || provider;
-  const color = oracleColors[provider as OracleProvider] || '#888888';
 
   const reputation = data?.reputation ?? null;
   const trend = data?.trend ?? [];
@@ -887,7 +921,6 @@ function ProviderReputationContentInner({ provider }: { provider: string }) {
           reputation={reputation}
           provider={provider}
           providerName={providerName}
-          color={color}
           badge={badge}
           timeAgo={timeAgo}
         />
@@ -899,7 +932,10 @@ function ProviderReputationContentInner({ provider }: { provider: string }) {
             deviationScore={deviationScore}
           />
 
-          <TrendCharts trend={trend} providerColor={color} />
+          <TrendCharts
+            trend={trend}
+            providerColor={oracleColors[provider as OracleProvider] || '#888888'}
+          />
 
           <HowItWorks />
         </div>
