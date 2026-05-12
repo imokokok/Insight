@@ -28,8 +28,9 @@ import {
   CheckCircle2,
   XCircle,
   Minus,
-  Activity,
   Gauge,
+  Database,
+  Timer,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -469,7 +470,7 @@ function GlobalStats({ reputations }: { reputations: OracleReputation[] }) {
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
       <StatCard
         icon={Gauge}
-        color="bg-blue-500"
+        gradient="from-blue-500 to-indigo-600"
         label="Average Score"
         value={avgScoreAnim.toFixed(1)}
         sub={`${rated.length} rated providers`}
@@ -477,22 +478,22 @@ function GlobalStats({ reputations }: { reputations: OracleReputation[] }) {
       />
       <StatCard
         icon={Crown}
-        color="bg-amber-500"
+        gradient="from-amber-400 to-orange-500"
         label="Top Provider"
         value={top ? providerNames[top.provider as OracleProvider] || top.provider : '--'}
         sub={top ? `Score ${top.overall_score.toFixed(0)}` : undefined}
         topProvider={top ? (top.provider as OracleProvider) : undefined}
       />
       <StatCard
-        icon={Clock}
-        color="bg-cyan-500"
+        icon={Timer}
+        gradient="from-cyan-400 to-blue-500"
         label="Average Latency"
         value={`${avgLatencyAnim.toFixed(0)}ms`}
         sub="response time"
       />
       <StatCard
-        icon={Activity}
-        color="bg-emerald-500"
+        icon={Database}
+        gradient="from-emerald-400 to-teal-600"
         label="Total Queries"
         value={Math.round(totalQueriesAnim).toLocaleString()}
         sub="7-day aggregate"
@@ -503,7 +504,7 @@ function GlobalStats({ reputations }: { reputations: OracleReputation[] }) {
 
 function StatCard({
   icon: Icon,
-  color,
+  gradient,
   label,
   value,
   sub,
@@ -511,7 +512,7 @@ function StatCard({
   topProvider,
 }: {
   icon: LucideIcon;
-  color: string;
+  gradient: string;
   label: string;
   value: string;
   sub?: string;
@@ -521,11 +522,16 @@ function StatCard({
   return (
     <div className="bg-white rounded-xl border border-gray-200/60 p-4 hover:shadow-sm transition-all duration-200">
       <div className="flex items-center gap-2.5 mb-2">
-        <div className={cn('p-1.5 rounded-lg', color.replace('bg-', 'bg-opacity-10 bg-'))}>
+        <div
+          className={cn(
+            'w-8 h-8 rounded-lg flex items-center justify-center bg-gradient-to-br shadow-sm',
+            gradient
+          )}
+        >
           {topProvider ? (
             <OracleLogo provider={topProvider} size={20} />
           ) : (
-            <Icon className={cn('w-4 h-4', color.replace('bg-', 'text-'))} />
+            <Icon className="w-4 h-4 text-white" />
           )}
         </div>
         <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
