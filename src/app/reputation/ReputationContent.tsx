@@ -9,7 +9,6 @@ import {
   Target,
   Clock,
   TrendingUp,
-  Database,
   AlertTriangle,
   ChevronRight,
   BarChart3,
@@ -29,6 +28,8 @@ import {
   CheckCircle2,
   XCircle,
   Minus,
+  Activity,
+  Gauge,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -40,6 +41,46 @@ import type { OracleReputation } from '@/lib/oracles/services/reputationService'
 import { getScoreColor, formatTimeAgo } from '@/lib/oracles/utils/reputationUtils';
 import { cn } from '@/lib/utils';
 import { type OracleProvider } from '@/types/oracle';
+
+/* ─── Oracle Logo ─── */
+
+const ORACLE_LOGO_MAP: Record<string, string> = {
+  chainlink: '/logos/oracles/chainlink.svg',
+  pyth: '/logos/oracles/pyth.svg',
+  api3: '/logos/oracles/api3.svg',
+  redstone: '/logos/oracles/redstone.svg',
+  dia: '/logos/oracles/dia.svg',
+  winklink: '/logos/oracles/winklink.svg',
+  supra: '/logos/oracles/supra.svg',
+  twap: '/logos/oracles/twap.svg',
+  reflector: '/logos/oracles/reflector.svg',
+  flare: '/logos/oracles/flare.svg',
+};
+
+function OracleLogo({
+  provider,
+  size = 20,
+  className = '',
+}: {
+  provider: OracleProvider;
+  size?: number;
+  className?: string;
+}) {
+  const src = ORACLE_LOGO_MAP[provider];
+  if (!src) return null;
+  return (
+    <img
+      src={src}
+      alt={`${providerNames[provider] || provider} logo`}
+      width={size}
+      height={size}
+      className={cn('rounded-full object-contain flex-shrink-0', className)}
+      onError={(e) => {
+        (e.target as HTMLImageElement).style.display = 'none';
+      }}
+    />
+  );
+}
 
 type SortField =
   | 'overall_score'
@@ -203,10 +244,7 @@ function LeaderboardRow({
 
         {/* Provider */}
         <div className="w-36 flex-shrink-0 flex items-center gap-2.5">
-          <div
-            className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-            style={{ backgroundColor: color }}
-          />
+          <OracleLogo provider={provider} size={22} />
           <div className="min-w-0">
             <div className="text-sm font-bold text-gray-900 truncate group-hover:text-primary-600 transition-colors">
               {providerNames[provider] || provider}
@@ -324,7 +362,6 @@ function TableView({ reputations }: { reputations: OracleReputation[] }) {
           <tbody>
             {reputations.map((rep, i) => {
               const provider = rep.provider as OracleProvider;
-              const color = oracleColors[provider] || '#888888';
               const timeAgo = formatTimeAgo(rep.last_calculated_at);
               return (
                 <tr
@@ -344,10 +381,7 @@ function TableView({ reputations }: { reputations: OracleReputation[] }) {
                       href={`/reputation/${encodeURIComponent(provider)}`}
                       className="flex items-center gap-2 group"
                     >
-                      <div
-                        className="w-2.5 h-2.5 rounded-full"
-                        style={{ backgroundColor: color }}
-                      />
+                      <OracleLogo provider={provider} size={20} />
                       <div>
                         <div className="font-bold text-gray-900 text-sm group-hover:text-primary-600 transition-colors">
                           {providerNames[provider] || provider}
@@ -434,7 +468,7 @@ function GlobalStats({ reputations }: { reputations: OracleReputation[] }) {
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
       <StatCard
-        icon={BarChart3}
+        icon={Gauge}
         color="bg-blue-500"
         label="Average Score"
         value={avgScoreAnim.toFixed(1)}
@@ -447,16 +481,17 @@ function GlobalStats({ reputations }: { reputations: OracleReputation[] }) {
         label="Top Provider"
         value={top ? providerNames[top.provider as OracleProvider] || top.provider : '--'}
         sub={top ? `Score ${top.overall_score.toFixed(0)}` : undefined}
+        topProvider={top ? (top.provider as OracleProvider) : undefined}
       />
       <StatCard
-        icon={Zap}
+        icon={Clock}
         color="bg-cyan-500"
         label="Average Latency"
         value={`${avgLatencyAnim.toFixed(0)}ms`}
         sub="response time"
       />
       <StatCard
-        icon={Database}
+        icon={Activity}
         color="bg-emerald-500"
         label="Total Queries"
         value={Math.round(totalQueriesAnim).toLocaleString()}
@@ -473,6 +508,7 @@ function StatCard({
   value,
   sub,
   valueColor,
+  topProvider,
 }: {
   icon: LucideIcon;
   color: string;
@@ -480,12 +516,17 @@ function StatCard({
   value: string;
   sub?: string;
   valueColor?: string;
+  topProvider?: OracleProvider;
 }) {
   return (
     <div className="bg-white rounded-xl border border-gray-200/60 p-4 hover:shadow-sm transition-all duration-200">
       <div className="flex items-center gap-2.5 mb-2">
         <div className={cn('p-1.5 rounded-lg', color.replace('bg-', 'bg-opacity-10 bg-'))}>
-          <Icon className={cn('w-4 h-4', color.replace('bg-', 'text-'))} />
+          {topProvider ? (
+            <OracleLogo provider={topProvider} size={20} />
+          ) : (
+            <Icon className={cn('w-4 h-4', color.replace('bg-', 'text-'))} />
+          )}
         </div>
         <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
           {label}
@@ -543,6 +584,9 @@ function TopThree({ reputations }: { reputations: OracleReputation[] }) {
             className={cn('flex flex-col items-center group', pos.className)}
           >
             <div className="mb-2">{pos.crown}</div>
+            <div className="mb-2">
+              <OracleLogo provider={provider} size={pos.rank === 1 ? 32 : 28} />
+            </div>
             <div className="mb-2">
               <ScoreRing score={rep.overall_score} size={pos.rank === 1 ? 80 : 64} />
             </div>
