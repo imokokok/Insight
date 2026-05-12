@@ -44,7 +44,7 @@ export function PageHeader() {
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4">
         <div>
           <h1 className="text-2xl font-semibold text-gray-900">Cross-Chain Price Comparison</h1>
-          <p className="text-sm mt-1 text-gray-500">Compare prices across multiple oracles</p>
+          <p className="text-sm mt-1 text-gray-500">Compare prices across multiple chains</p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">

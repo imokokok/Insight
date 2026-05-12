@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useRef } from 'react';
 
+import { providerNames } from '@/lib/constants';
 import { downloadBlob } from '@/lib/utils/download';
 import { escapeCSVField } from '@/lib/utils/export';
 import { formatNumberWithDecimals } from '@/lib/utils/format';
 import { createLogger } from '@/lib/utils/logger';
-import { OracleProvider, type Blockchain } from '@/types/oracle';
+import { type OracleProvider, type Blockchain } from '@/types/oracle';
 
 import { type PriceDifferenceItem } from '../types';
 import { chainNames, getConsistencyRating } from '../utils';
@@ -80,19 +81,6 @@ export function useExport(params: UseExportParams): UseExportReturn {
     }
 
     try {
-      const providerNames: Record<OracleProvider, string> = {
-        [OracleProvider.CHAINLINK]: 'Chainlink',
-        [OracleProvider.PYTH]: 'Pyth Network',
-        [OracleProvider.API3]: 'API3',
-        [OracleProvider.REDSTONE]: 'RedStone',
-        [OracleProvider.DIA]: 'DIA',
-        [OracleProvider.WINKLINK]: 'WINkLink',
-        [OracleProvider.SUPRA]: 'Supra',
-        [OracleProvider.TWAP]: 'TWAP',
-        [OracleProvider.REFLECTOR]: 'Reflector',
-        [OracleProvider.FLARE]: 'Flare',
-      };
-
       const exportData = {
         metadata: {
           symbol: currentParams.selectedSymbol,

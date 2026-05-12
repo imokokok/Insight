@@ -25,7 +25,7 @@ export function WINkLinkStats({ data }: WINkLinkStatsProps) {
         icon={Settings}
         iconColor="text-amber-500"
         title="Price Precision"
-        value={data.decimals ?? '-'}
+        value={data.decimals != null ? `${data.decimals} decimals` : '-'}
         description="Number of decimal places"
       />
       <StatCard

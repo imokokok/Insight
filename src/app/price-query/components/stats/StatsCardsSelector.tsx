@@ -102,7 +102,7 @@ export function StatsCardsSelector({
             decimals: priceData.decimals ?? 8,
             pairIndex: priceData.pairIndex ?? 0,
             pairName: `${priceData.symbol}/USDT`,
-            supportedChainsCount: 27,
+            supportedChainsCount: 25,
             updateIntervalMinutes: 5,
             dataAge: priceData.dataAge ?? null,
             lastUpdated: priceData.timestamp,

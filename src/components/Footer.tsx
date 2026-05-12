@@ -21,6 +21,7 @@ export default function Footer() {
     { label: 'Oracle Reputation', href: '/reputation' },
     { label: 'Price Snapshots', href: '/snapshots' },
     { label: 'Price Alerts', href: '/alerts' },
+    { label: 'Favorites', href: '/favorites' },
   ];
 
   const resourceLinks = [
@@ -31,7 +32,6 @@ export default function Footer() {
   const socialLinks = [
     { label: 'Email', href: 'mailto:imokokok123@gmail.com', icon: EmailIcon },
     { label: 'Twitter', href: 'https://x.com/imokokok27', icon: TwitterIcon },
-    { label: 'GitHub', href: 'https://github.com/imokokok/Insight', icon: GitHubIcon },
     { label: 'Discord', href: 'https://discord.com', icon: DiscordIcon },
     { label: 'Telegram', href: 'https://telegram.org', icon: TelegramIcon },
   ];

@@ -93,7 +93,7 @@ export default function RegisterContent() {
               <CheckCircle className="w-8 h-8 text-success-600" />
             </div>
             <h2 className="text-xl font-semibold text-gray-900 mb-2">Registration Successful</h2>
-            <p className="text-gray-500 mb-4">Verification email has been sent to {email}</p>
+            <p className="text-gray-500 mb-4">Verification email has been sent to {email}.</p>
             <div className="bg-primary-50 border border-primary-200 p-4 mb-6 text-left rounded-lg">
               <div className="flex items-start gap-3">
                 <Mail className="w-5 h-5 text-primary-600 flex-shrink-0 mt-0.5" />
@@ -102,7 +102,7 @@ export default function RegisterContent() {
                   <ol className="list-decimal list-inside space-y-1 text-primary-700">
                     <li>Check your inbox</li>
                     <li>Click the verification link</li>
-                    <li>Return to login</li>
+                    <li>Return to Login</li>
                   </ol>
                 </div>
               </div>
