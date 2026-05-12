@@ -21,7 +21,7 @@ export function FlareStats({ data }: FlareStatsProps) {
 
   const formatFlarePrice = (value: number) => {
     if (!value || isNaN(value)) return '-';
-    return `$${formatNumberWithDecimals(value, 2, decimals || 2)}`;
+    return `$${formatNumberWithDecimals(value, 2, decimals ?? 2)}`;
   };
 
   const formatFeedId = (id: string) => {
@@ -73,7 +73,7 @@ export function FlareStats({ data }: FlareStatsProps) {
         icon={Zap}
         iconColor="text-purple-500"
         title="Network"
-        value={network?.toUpperCase() || 'FLARE'}
+        value={network ? network.toUpperCase() : '-'}
         description="Flare network"
       />
     </>

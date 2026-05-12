@@ -432,7 +432,7 @@ export const supraSymbols = [
   'OP',
   'PAXG',
   'PEPE',
-  'POL',
+  'MATIC',
   'PYTH',
   'RETH',
   'RNDR',

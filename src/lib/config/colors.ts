@@ -96,7 +96,7 @@ export const chainColors = {
   solana: '#14F195',
   bnbChain: '#F0B90B',
   base: '#0052FF',
-  scroll: '#FFEEDA',
+  scroll: '#CBA36E',
   zkSync: '#8C8DFC',
   aptos: '#4CD7D0',
   sui: '#6FBCF0',
@@ -120,7 +120,7 @@ export const chainColors = {
   moonriver: '#F2A902',
   metis: '#00D2FF',
   starkex: '#0C0C4F',
-  flare: '#E84142',
+  flare: '#8B0FE5',
   stellar: '#14B8A6',
 } as const;
 
@@ -137,7 +137,7 @@ export const chartColors = {
     supra: '#14B8A6',
     twap: '#FF007A',
     reflector: '#F59E0B',
-    flare: '#E84142',
+    flare: '#8B0FE5',
   } as const,
 
   oracleAccessible: {
@@ -152,7 +152,7 @@ export const chartColors = {
     supra: { color: '#0d9488', pattern: 'dotted' },
     twap: { color: '#FF007A', pattern: 'longDash' },
     reflector: { color: '#d97706', pattern: 'dashDot' },
-    flare: { color: '#E84142', pattern: 'dotted' },
+    flare: { color: '#8B0FE5', pattern: 'dotted' },
   } as const,
 
   region: {
@@ -199,22 +199,6 @@ export const chartColors = {
     '#F97316',
     '#84CC16',
   ],
-
-  marketOverview: {
-    chainlink: '#375BD2',
-    pyth: '#E6B800',
-    api3: '#7CE3CB',
-    supra: '#14B8A6',
-    default: '#8884d8',
-  },
-
-  ORACLE_COLORS: {
-    chainlink: '#375BD2',
-    pyth: '#E6B800',
-    api3: '#7CE3CB',
-    supra: '#14B8A6',
-    others: '#8884d8',
-  },
 
   pie: {
     default: '#8884d8',

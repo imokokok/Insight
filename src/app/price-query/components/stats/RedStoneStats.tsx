@@ -2,6 +2,7 @@ import { Settings, Globe, TrendingDown, TrendingUp, Database, Clock } from 'luci
 
 import { StatCard } from '@/components/ui/StatCard';
 import type { RedStoneTokenOnChainData } from '@/lib/oracles/clients/redstone';
+import { formatPrice } from '@/lib/utils/format';
 import { getStatRating } from '@/lib/utils/stat-rating';
 
 interface RedStoneStatsProps {
@@ -31,14 +32,14 @@ export function RedStoneStats({ data }: RedStoneStatsProps) {
         icon={TrendingDown}
         iconColor="text-emerald-500"
         title="Bid Price"
-        value={data.bid ? `$${data.bid.toFixed(4)}` : '-'}
+        value={data.bid ? formatPrice(data.bid) : '-'}
         description="Bid price from RedStone"
       />
       <StatCard
         icon={TrendingUp}
         iconColor="text-indigo-500"
         title="Ask Price"
-        value={data.ask ? `$${data.ask.toFixed(4)}` : '-'}
+        value={data.ask ? formatPrice(data.ask) : '-'}
         description="Ask price from RedStone"
       />
       <StatCard

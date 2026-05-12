@@ -1237,13 +1237,13 @@ describe('databaseOperations', () => {
         expect(result.chain).toBe('optimism');
       });
 
-      it('should handle bsc chain', async () => {
-        const mockPriceData = createMockPriceData({ chain: 'bsc' });
+      it('should handle bnb-chain', async () => {
+        const mockPriceData = createMockPriceData({ chain: 'bnb-chain' });
         mockGetPriceFromDatabase.mockResolvedValueOnce(mockPriceData);
 
-        const result = await fetchPriceWithDatabase(mockProvider, mockSymbol, 'bsc', true);
+        const result = await fetchPriceWithDatabase(mockProvider, mockSymbol, 'bnb-chain', true);
 
-        expect(result.chain).toBe('bsc');
+        expect(result.chain).toBe('bnb-chain');
       });
 
       it('should handle undefined chain', async () => {

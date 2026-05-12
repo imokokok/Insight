@@ -30,9 +30,9 @@ export function ReflectorStats({ data }: ReflectorStatsProps) {
     return formatTimeString(new Date(timestamp));
   };
 
-  const formatPrice = (value: number) => {
+  const formatReflectorPrice = (value: number) => {
     if (!value || isNaN(value)) return '-';
-    return `$${formatNumberWithDecimals(value, 2, decimals > 8 ? 8 : decimals || 2)}`;
+    return `$${formatNumberWithDecimals(value, 2, (decimals ?? 2) > 8 ? 8 : (decimals ?? 2))}`;
   };
 
   return (
@@ -41,7 +41,7 @@ export function ReflectorStats({ data }: ReflectorStatsProps) {
         icon={Database}
         iconColor="text-amber-500"
         title="Reflector Price"
-        value={formatPrice(price)}
+        value={formatReflectorPrice(price)}
         description="Current price from Reflector oracle"
       />
       <StatCard

@@ -1,6 +1,5 @@
 import Image from 'next/image';
 
-import { chartColors } from '@/lib/config/colors';
 import { PythClient } from '@/lib/oracles';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 
@@ -35,8 +34,8 @@ export const pythConfig: OracleConfig = {
     Blockchain.SEI,
   ],
   getClient,
-  iconBgColor: `bg-[${chartColors.oracle.pyth}]`,
-  themeColor: '#8b5cf6',
+  iconBgColor: '#7C3AED',
+  themeColor: '#7C3AED',
   icon: <Image src="/logos/oracles/pyth.svg" alt="Pyth" width={48} height={48} />,
   marketData: getDefaultMarketData('PYTH', 'Pyth'),
   networkData: getDefaultNetworkData(),
@@ -49,6 +48,7 @@ export const pythConfig: OracleConfig = {
     hasQuantifiableSecurity: false,
     hasFirstPartyOracle: false,
     hasCoreFeatures: true,
+    hasRiskAssessment: true,
   },
   tabs: [
     { id: 'market', label: 'Market Data' },

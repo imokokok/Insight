@@ -67,7 +67,11 @@ export function PythStats({
         icon={Shield}
         iconColor="text-rose-500"
         title="Confidence Score"
-        value={confidence !== undefined ? `${(confidence * 100).toFixed(0)}%` : '-'}
+        value={
+          confidence !== undefined
+            ? `${(confidence <= 1 ? confidence * 100 : Math.min(100, confidence)).toFixed(0)}%`
+            : '-'
+        }
         description="Overall confidence score"
       />
     </>

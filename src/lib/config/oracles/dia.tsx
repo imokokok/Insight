@@ -32,7 +32,7 @@ export const diaConfig: OracleConfig = {
     Blockchain.KAVA,
   ],
   getClient,
-  iconBgColor: 'bg-indigo-600',
+  iconBgColor: '#6366F1',
   themeColor: '#6366f1',
   icon: <Image src="/logos/oracles/dia.svg" alt="DIA" width={48} height={48} />,
   marketData: getDefaultMarketData('DIA', 'DIA'),
@@ -46,6 +46,7 @@ export const diaConfig: OracleConfig = {
     hasQuantifiableSecurity: false,
     hasFirstPartyOracle: false,
     hasCoreFeatures: true,
+    hasRiskAssessment: true,
   },
   tabs: [
     { id: 'market', label: 'Market Data' },

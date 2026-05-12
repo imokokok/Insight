@@ -21,7 +21,11 @@ import { calculateZScore } from '@/lib/utils/statistics';
 import { type OracleProvider, type PriceData } from '@/types/oracle';
 
 import { oracleNames, ANOMALY_ZSCORE_THRESHOLD } from '../constants';
-import { ANOMALY_DEVIATION_THRESHOLD, DEVIATION_THRESHOLDS } from '../thresholds';
+import {
+  ANOMALY_DEVIATION_THRESHOLD,
+  DEVIATION_THRESHOLDS,
+  getDeviationThresholds,
+} from '../thresholds';
 
 import { ConfidenceBar } from './price-comparison/ConfidenceBar';
 
@@ -40,6 +44,7 @@ interface SimplePriceTableProps {
   avgPrice?: number;
   standardDeviation?: number;
   currentTime?: number;
+  symbol?: string;
 }
 
 type SortColumn = 'price' | 'deviation' | 'confidence' | 'updateTime';
@@ -62,7 +67,7 @@ interface TableRow {
 
 const formatDeviation = (deviation: number): string => {
   const sign = deviation >= 0 ? '+' : '';
-  return `${sign}${deviation.toFixed(3)}%`;
+  return `${sign}${deviation.toFixed(4)}%`;
 };
 
 const getDeviationColor = (deviation: number): string => {
@@ -209,6 +214,7 @@ function SimplePriceTableComponent({
   avgPrice: avgPriceProp,
   standardDeviation = 0,
   currentTime,
+  symbol,
 }: SimplePriceTableProps) {
   const [sortColumn, setSortColumn] = useState<SortColumn>('price');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
@@ -223,6 +229,8 @@ function SimplePriceTableComponent({
     }, 10000);
     return () => clearInterval(timer);
   }, []);
+
+  const thresholds = symbol ? getDeviationThresholds(symbol) : DEVIATION_THRESHOLDS;
 
   const tableRows: TableRow[] = useMemo(() => {
     if (!priceData.length || medianPrice === 0) return [];
@@ -262,8 +270,8 @@ function SimplePriceTableComponent({
       }
 
       let status: 'normal' | 'warning' | 'critical' = 'normal';
-      if (absDeviation >= DEVIATION_THRESHOLDS.CRITICAL) status = 'critical';
-      else if (absDeviation >= DEVIATION_THRESHOLDS.WARNING) status = 'warning';
+      if (absDeviation >= thresholds.CRITICAL) status = 'critical';
+      else if (absDeviation >= thresholds.WARNING) status = 'warning';
 
       const confidence = (() => {
         if (data.confidence === undefined || data.confidence === null) {
@@ -278,7 +286,7 @@ function SimplePriceTableComponent({
 
       const updateTime = data.timestamp || 0;
       const freshnessSeconds =
-        updateTime > 0 ? Math.max(0, Math.floor((now - updateTime) / 1000)) : 0;
+        updateTime > 0 ? Math.max(0, Math.floor((now - updateTime) / 1000)) : -1;
 
       const zScore =
         anomalyDetectionMode === 'zscore' && standardDeviation > 0 && avgPrice > 0
