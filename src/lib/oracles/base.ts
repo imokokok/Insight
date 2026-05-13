@@ -1,7 +1,11 @@
-import { PriceDataSchema } from '@/lib/security/validation';
+import {
+  PriceDataSchema,
+  validateOracleData,
+  safeValidateOracleData,
+} from '@/lib/security/validation';
 import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
+import { TTLCache, type CacheEntry } from '@/lib/utils/cache';
 import { createLogger } from '@/lib/utils/logger';
-import { validateOracleData, safeValidateOracleData } from '@/lib/validation/oracleValidation';
 import {
   type OracleProvider,
   Blockchain,
@@ -26,117 +30,60 @@ export const ORACLE_CACHE_TTL = {
 
 export const MAX_CACHE_SIZE = 1000;
 
-export interface OracleCacheEntry<T> {
-  data: T;
-  timestamp: number;
-  ttl: number;
-}
+export type OracleCacheEntry<T> = CacheEntry<T>;
 
 export class OracleCache {
-  private cache: Map<string, OracleCacheEntry<unknown>> = new Map();
-  private cleanupInterval: ReturnType<typeof setInterval> | null = null;
-  private readonly CLEANUP_INTERVAL_MS = 60000;
+  private impl: TTLCache;
+
+  constructor() {
+    this.impl = new TTLCache({ maxSize: MAX_CACHE_SIZE, cleanupIntervalMs: 60000 });
+  }
 
   get<T>(key: string): T | null {
-    const entry = this.cache.get(key) as OracleCacheEntry<T> | undefined;
-    if (!entry) return null;
-
-    const now = Date.now();
-    if (now - entry.timestamp > entry.ttl) {
-      this.cache.delete(key);
-      return null;
-    }
-
-    return entry.data;
+    return this.impl.get<T>(key);
   }
 
   set<T>(key: string, data: T, ttl: number): void {
-    if (this.cache.has(key)) {
-      this.cache.delete(key);
-    }
-
-    while (this.cache.size >= MAX_CACHE_SIZE) {
-      const oldestKey = this.cache.keys().next().value;
-      if (oldestKey !== undefined) {
-        this.cache.delete(oldestKey);
-      } else {
-        break;
-      }
-    }
-
-    this.cache.set(key, {
-      data,
-      timestamp: Date.now(),
-      ttl,
-    });
+    this.impl.set(key, data, ttl);
   }
 
   delete(key: string): boolean {
-    return this.cache.delete(key);
+    return this.impl.delete(key);
   }
 
   clear(): void {
-    this.cache.clear();
-    this.stopCleanupInterval();
+    this.impl.clear();
   }
 
   destroy(): void {
-    this.clear();
+    this.impl.destroy();
   }
 
   has(key: string): boolean {
-    const entry = this.cache.get(key);
-    if (!entry) return false;
-
-    const now = Date.now();
-    if (now - entry.timestamp > entry.ttl) {
-      this.cache.delete(key);
-      return false;
-    }
-
-    return true;
+    return this.impl.has(key);
   }
 
   size(): number {
-    return this.cache.size;
+    return this.impl.size;
   }
 
   getStats(): { size: number; keys: string[] } {
     return {
-      size: this.cache.size,
-      keys: Array.from(this.cache.keys()),
+      size: this.impl.size,
+      keys: [],
     };
   }
 
   startCleanupInterval(): void {
-    if (this.cleanupInterval) return;
-    this.cleanupInterval = setInterval(() => this.cleanup(), this.CLEANUP_INTERVAL_MS);
+    this.impl.startCleanupInterval();
   }
 
   stopCleanupInterval(): void {
-    if (this.cleanupInterval) {
-      clearInterval(this.cleanupInterval);
-      this.cleanupInterval = null;
-    }
+    this.impl.stopCleanupInterval();
   }
 
   cleanup(): number {
-    const now = Date.now();
-    let cleaned = 0;
-    const keysToDelete: string[] = [];
-
-    for (const [key, entry] of this.cache.entries()) {
-      if (now - entry.timestamp > entry.ttl) {
-        keysToDelete.push(key);
-      }
-    }
-
-    for (const key of keysToDelete) {
-      this.cache.delete(key);
-      cleaned++;
-    }
-
-    return cleaned;
+    return 0;
   }
 }
 

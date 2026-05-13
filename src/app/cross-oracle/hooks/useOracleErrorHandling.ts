@@ -5,14 +5,7 @@ import {
   PriceFetchError,
   UnsupportedChainError,
   UnsupportedSymbolError,
-  RedStoneApiError,
-  ChainlinkError,
-  PythError,
-  API3Error,
-  SupraError,
-  FlareError,
-  DIAError,
-  WINkLinkError,
+  OracleProviderError,
 } from '@/lib/errors';
 import type { OracleProvider } from '@/types/oracle';
 
@@ -22,6 +15,75 @@ import type {
   OracleDataError,
   PartialSuccessState,
 } from '../types';
+
+const PROVIDER_ERROR_CLASSIFICATIONS: Record<
+  string,
+  Record<string, { errorType: OracleErrorType; retryable?: boolean }>
+> = {
+  redstone: {
+    TIMEOUT_ERROR: { errorType: 'timeout', retryable: true },
+    NETWORK_ERROR: { errorType: 'network', retryable: true },
+    FETCH_ERROR: { errorType: 'network', retryable: true },
+    RATE_LIMIT_ERROR: { errorType: 'rate_limit', retryable: true },
+    PARSE_ERROR: { errorType: 'data_format', retryable: false },
+    INVALID_RESPONSE: { errorType: 'data_format', retryable: false },
+    DATA_STALE: { errorType: 'server_error' },
+    PRICE_DEVIATION: { errorType: 'server_error' },
+  },
+  chainlink: {
+    AGGREGATOR_OFFLINE: { errorType: 'server_error' },
+    STALE_DATA: { errorType: 'server_error' },
+    ROUND_INCOMPLETE: { errorType: 'server_error' },
+    HEARTBEAT_VIOLATION: { errorType: 'timeout', retryable: true },
+    PRICE_DEVIATION: { errorType: 'data_format', retryable: false },
+    INVALID_ANSWER: { errorType: 'data_format', retryable: false },
+  },
+  pyth: {
+    HERMES_CONNECTION_ERROR: { errorType: 'network', retryable: true },
+    STALE_PRICE: { errorType: 'server_error', retryable: true },
+    PRICE_FEED_NOT_FOUND: { errorType: 'data_format', retryable: false },
+    INVALID_PRICE: { errorType: 'data_format', retryable: false },
+    CONFIDENCE_INTERVAL_TOO_LARGE: { errorType: 'data_format', retryable: false },
+  },
+  api3: {
+    AIRNODE_ERROR: { errorType: 'server_error' },
+    BEACON_OFFLINE: { errorType: 'server_error' },
+    DAPI_NOT_FOUND: { errorType: 'data_format', retryable: false },
+    TEMPLATE_NOT_FOUND: { errorType: 'data_format', retryable: false },
+    SPONSOR_WALLET_ERROR: { errorType: 'authorization', retryable: false },
+  },
+  supra: {
+    DORA_CONNECTION_ERROR: { errorType: 'network', retryable: true },
+    STALE_PRICE: { errorType: 'server_error', retryable: true },
+    PAIR_NOT_FOUND: { errorType: 'data_format', retryable: false },
+    INVALID_PRICE: { errorType: 'data_format', retryable: false },
+    PRICE_DEVIATION: { errorType: 'data_format', retryable: false },
+  },
+  flare: {
+    FTSO_RPC_ERROR: { errorType: 'network', retryable: true },
+    CONTRACT_CALL_FAILED: { errorType: 'network', retryable: true },
+    STALE_PRICE: { errorType: 'server_error', retryable: true },
+    FEED_NOT_FOUND: { errorType: 'data_format', retryable: false },
+    INVALID_FEED_ID: { errorType: 'data_format', retryable: false },
+    INVALID_PRICE: { errorType: 'data_format', retryable: false },
+  },
+  dia: {
+    NETWORK_ERROR: { errorType: 'network', retryable: true },
+    FETCH_ERROR: { errorType: 'network', retryable: true },
+    TIMEOUT_ERROR: { errorType: 'timeout', retryable: true },
+    RATE_LIMIT_ERROR: { errorType: 'rate_limit', retryable: true },
+    PARSE_ERROR: { errorType: 'data_format', retryable: false },
+    INVALID_RESPONSE: { errorType: 'data_format', retryable: false },
+  },
+  winklink: {
+    TRON_RPC_ERROR: { errorType: 'network', retryable: true },
+    CONTRACT_CALL_ERROR: { errorType: 'network', retryable: true },
+    STALE_DATA: { errorType: 'server_error', retryable: true },
+    PAIR_NOT_FOUND: { errorType: 'data_format', retryable: false },
+    GAMING_DATA_ERROR: { errorType: 'data_format', retryable: false },
+    INVALID_PRICE: { errorType: 'data_format', retryable: false },
+  },
+};
 
 function classifyStructuredError(
   error: unknown
@@ -38,182 +100,21 @@ function classifyStructuredError(
     return { errorType: error.retryable ? 'network' : 'server_error', retryable: error.retryable };
   }
 
-  if (error instanceof RedStoneApiError) {
-    return classifyRedStoneError(error);
-  }
-
-  if (error instanceof ChainlinkError) {
-    return classifyChainlinkError(error);
-  }
-
-  if (error instanceof PythError) {
-    return classifyPythError(error);
-  }
-
-  if (error instanceof API3Error) {
-    return classifyAPI3Error(error);
-  }
-
-  if (error instanceof SupraError) {
-    return classifySupraError(error);
-  }
-
-  if (error instanceof FlareError) {
-    return classifyFlareError(error);
-  }
-
-  if (error instanceof DIAError) {
-    return classifyDIAError(error);
-  }
-
-  if (error instanceof WINkLinkError) {
-    return classifyWINkLinkError(error);
+  if (error instanceof OracleProviderError) {
+    const providerConfig = PROVIDER_ERROR_CLASSIFICATIONS[error.provider];
+    if (providerConfig) {
+      const errorConfig = providerConfig[error.errorCode];
+      if (errorConfig) {
+        return {
+          errorType: errorConfig.errorType,
+          retryable: errorConfig.retryable ?? error.retryable,
+        };
+      }
+    }
+    return { errorType: 'unknown', retryable: error.retryable };
   }
 
   return null;
-}
-
-function classifyRedStoneError(error: RedStoneApiError): {
-  errorType: OracleErrorType;
-  retryable: boolean;
-} {
-  switch (error.errorCode) {
-    case 'TIMEOUT_ERROR':
-      return { errorType: 'timeout', retryable: true };
-    case 'NETWORK_ERROR':
-    case 'FETCH_ERROR':
-      return { errorType: 'network', retryable: true };
-    case 'RATE_LIMIT_ERROR':
-      return { errorType: 'rate_limit', retryable: true };
-    case 'PARSE_ERROR':
-    case 'INVALID_RESPONSE':
-      return { errorType: 'data_format', retryable: false };
-    case 'DATA_STALE':
-    case 'PRICE_DEVIATION':
-      return { errorType: 'server_error', retryable: error.retryable };
-    default:
-      return { errorType: 'unknown', retryable: error.retryable };
-  }
-}
-
-function classifyChainlinkError(error: ChainlinkError): {
-  errorType: OracleErrorType;
-  retryable: boolean;
-} {
-  switch (error.errorCode) {
-    case 'AGGREGATOR_OFFLINE':
-    case 'STALE_DATA':
-    case 'ROUND_INCOMPLETE':
-      return { errorType: 'server_error', retryable: error.retryable };
-    case 'HEARTBEAT_VIOLATION':
-      return { errorType: 'timeout', retryable: true };
-    case 'PRICE_DEVIATION':
-    case 'INVALID_ANSWER':
-      return { errorType: 'data_format', retryable: false };
-    default:
-      return { errorType: 'unknown', retryable: error.retryable };
-  }
-}
-
-function classifyPythError(error: PythError): { errorType: OracleErrorType; retryable: boolean } {
-  switch (error.errorCode) {
-    case 'HERMES_CONNECTION_ERROR':
-      return { errorType: 'network', retryable: true };
-    case 'STALE_PRICE':
-      return { errorType: 'server_error', retryable: true };
-    case 'PRICE_FEED_NOT_FOUND':
-      return { errorType: 'data_format', retryable: false };
-    case 'INVALID_PRICE':
-    case 'CONFIDENCE_INTERVAL_TOO_LARGE':
-      return { errorType: 'data_format', retryable: false };
-    default:
-      return { errorType: 'unknown', retryable: error.retryable };
-  }
-}
-
-function classifyAPI3Error(error: API3Error): { errorType: OracleErrorType; retryable: boolean } {
-  switch (error.errorCode) {
-    case 'AIRNODE_ERROR':
-    case 'BEACON_OFFLINE':
-      return { errorType: 'server_error', retryable: error.retryable };
-    case 'DAPI_NOT_FOUND':
-    case 'TEMPLATE_NOT_FOUND':
-      return { errorType: 'data_format', retryable: false };
-    case 'SPONSOR_WALLET_ERROR':
-      return { errorType: 'authorization', retryable: false };
-    default:
-      return { errorType: 'unknown', retryable: error.retryable };
-  }
-}
-
-function classifySupraError(error: SupraError): { errorType: OracleErrorType; retryable: boolean } {
-  switch (error.errorCode) {
-    case 'DORA_CONNECTION_ERROR':
-      return { errorType: 'network', retryable: true };
-    case 'STALE_PRICE':
-      return { errorType: 'server_error', retryable: true };
-    case 'PAIR_NOT_FOUND':
-      return { errorType: 'data_format', retryable: false };
-    case 'INVALID_PRICE':
-    case 'PRICE_DEVIATION':
-      return { errorType: 'data_format', retryable: false };
-    default:
-      return { errorType: 'unknown', retryable: error.retryable };
-  }
-}
-
-function classifyFlareError(error: FlareError): { errorType: OracleErrorType; retryable: boolean } {
-  switch (error.errorCode) {
-    case 'FTSO_RPC_ERROR':
-    case 'CONTRACT_CALL_FAILED':
-      return { errorType: 'network', retryable: true };
-    case 'STALE_PRICE':
-      return { errorType: 'server_error', retryable: true };
-    case 'FEED_NOT_FOUND':
-    case 'INVALID_FEED_ID':
-      return { errorType: 'data_format', retryable: false };
-    case 'INVALID_PRICE':
-      return { errorType: 'data_format', retryable: false };
-    default:
-      return { errorType: 'unknown', retryable: error.retryable };
-  }
-}
-
-function classifyDIAError(error: DIAError): { errorType: OracleErrorType; retryable: boolean } {
-  switch (error.errorCode) {
-    case 'NETWORK_ERROR':
-    case 'FETCH_ERROR':
-      return { errorType: 'network', retryable: true };
-    case 'TIMEOUT_ERROR':
-      return { errorType: 'timeout', retryable: true };
-    case 'RATE_LIMIT_ERROR':
-      return { errorType: 'rate_limit', retryable: true };
-    case 'PARSE_ERROR':
-    case 'INVALID_RESPONSE':
-      return { errorType: 'data_format', retryable: false };
-    default:
-      return { errorType: 'unknown', retryable: error.retryable };
-  }
-}
-
-function classifyWINkLinkError(error: WINkLinkError): {
-  errorType: OracleErrorType;
-  retryable: boolean;
-} {
-  switch (error.errorCode) {
-    case 'TRON_RPC_ERROR':
-    case 'CONTRACT_CALL_ERROR':
-      return { errorType: 'network', retryable: true };
-    case 'STALE_DATA':
-      return { errorType: 'server_error', retryable: true };
-    case 'PAIR_NOT_FOUND':
-    case 'GAMING_DATA_ERROR':
-      return { errorType: 'data_format', retryable: false };
-    case 'INVALID_PRICE':
-      return { errorType: 'data_format', retryable: false };
-    default:
-      return { errorType: 'unknown', retryable: error.retryable };
-  }
 }
 
 function classifyByStringMatching(

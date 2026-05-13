@@ -1,4 +1,4 @@
-import { RedStoneApiError, type RedStoneErrorCode } from '@/lib/errors';
+import { OracleProviderError } from '@/lib/errors';
 import { BaseOracleClient, OracleCache } from '@/lib/oracles/base';
 import type { OracleClientConfig } from '@/lib/oracles/base';
 import { SPREAD_PERCENTAGES, REDSTONE_API_BASE } from '@/lib/oracles/constants/redstoneConstants';
@@ -81,7 +81,7 @@ export class RedStoneClient extends BaseOracleClient {
     };
   }
 
-  private classifyError(error: unknown): RedStoneErrorCode {
+  private classifyError(error: unknown): string {
     if (error instanceof Error) {
       if (error.message.includes('HTTP 429') || error.message.includes('rate limit')) {
         return 'RATE_LIMIT_ERROR';
@@ -130,8 +130,9 @@ export class RedStoneClient extends BaseOracleClient {
 
             if (!response.ok) {
               const errorCode = this.classifyErrorFromStatus(response.status);
-              throw new RedStoneApiError(
+              throw new OracleProviderError(
                 `HTTP ${response.status}: ${response.statusText}`,
+                'redstone',
                 errorCode,
                 { symbol, attemptCount }
               );
@@ -141,10 +142,15 @@ export class RedStoneClient extends BaseOracleClient {
             try {
               data = await response.json();
             } catch {
-              throw new RedStoneApiError('Failed to parse API response as JSON', 'PARSE_ERROR', {
-                symbol,
-                attemptCount,
-              });
+              throw new OracleProviderError(
+                'Failed to parse API response as JSON',
+                'redstone',
+                'PARSE_ERROR',
+                {
+                  symbol,
+                  attemptCount,
+                }
+              );
             }
 
             if (!Array.isArray(data) || data.length === 0) {
@@ -154,12 +160,13 @@ export class RedStoneClient extends BaseOracleClient {
             const priceData = data[0];
             return this.parsePriceResponse(priceData, symbol);
           } catch (error) {
-            if (error instanceof RedStoneApiError) {
+            if (error instanceof OracleProviderError) {
               throw error;
             }
             const errorCode = this.classifyError(error);
-            throw new RedStoneApiError(
+            throw new OracleProviderError(
               `Failed to fetch price: ${error instanceof Error ? error.message : 'Unknown error'}`,
+              'redstone',
               errorCode,
               { symbol, attemptCount },
               error instanceof Error ? error : undefined
@@ -177,11 +184,12 @@ export class RedStoneClient extends BaseOracleClient {
 
       return result;
     } catch (error) {
-      if (error instanceof RedStoneApiError) {
+      if (error instanceof OracleProviderError) {
         throw error;
       }
-      throw new RedStoneApiError(
+      throw new OracleProviderError(
         `Failed to fetch price for ${symbol}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        'redstone',
         this.classifyError(error),
         { symbol, attemptCount },
         error instanceof Error ? error : undefined
@@ -189,7 +197,7 @@ export class RedStoneClient extends BaseOracleClient {
     }
   }
 
-  private classifyErrorFromStatus(status: number): RedStoneErrorCode {
+  private classifyErrorFromStatus(status: number): string {
     switch (status) {
       case 429:
         return 'RATE_LIMIT_ERROR';
@@ -246,7 +254,7 @@ export class RedStoneClient extends BaseOracleClient {
         'FETCH_ERROR'
       );
     } catch (error) {
-      if (error instanceof RedStoneApiError) {
+      if (error instanceof OracleProviderError) {
         throw this.createError(error.message, error.code as OracleErrorCode);
       }
       throw this.createError(

@@ -222,11 +222,7 @@ function RiskAnalysisTabComponent({
               %) + Correlation ({Math.round(w.correlation * 100)}%) + Freshness (
               {Math.round(w.freshness * 100)}%) + Manip. Resistance (
               {Math.round(w.manipulationResistance * 100)}%) + Shared Dep. (
-              {Math.round(w.sharedDependency * 100)}%) + Divergence Accel. (
-              {Math.round(w.divergenceAcceleration * 100)}%) + Feed Health (
-              {Math.round(w.feedBehaviorHealth * 100)}%) + Stability Decay (
-              {Math.round(w.stabilityDecay * 100)}
-              %)
+              {Math.round(w.sharedDependency * 100)}%)
             </p>
           </div>
         </div>

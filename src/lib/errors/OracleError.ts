@@ -1,8 +1,5 @@
 import { AppError, type AppErrorDetails, ErrorCodes, HttpStatusCodes } from './AppError';
 
-/**
- * Oracle error details base interface
- */
 interface OracleErrorDetails extends AppErrorDetails {
   provider?: string;
   symbol?: string;
@@ -10,10 +7,6 @@ interface OracleErrorDetails extends AppErrorDetails {
   endpoint?: string;
 }
 
-/**
- * Oracle client error
- * Oracle service client connection or configuration error
- */
 export class OracleClientError extends AppError {
   constructor(message: string, details?: OracleErrorDetails, cause?: Error) {
     super({
@@ -29,9 +22,6 @@ export class OracleClientError extends AppError {
   }
 }
 
-/**
- * Price fetch error details
- */
 interface PriceFetchErrorDetails extends OracleErrorDetails {
   timestamp?: number;
   retryable?: boolean;
@@ -40,10 +30,6 @@ interface PriceFetchErrorDetails extends OracleErrorDetails {
   deviation?: number;
 }
 
-/**
- * Price fetch error
- * Failed to fetch price data from Oracle
- */
 export class PriceFetchError extends AppError {
   public readonly retryable: boolean;
   public readonly attemptCount: number;
@@ -108,17 +94,11 @@ export class PriceFetchError extends AppError {
   }
 }
 
-/**
- * Unsupported chain error details
- */
 interface UnsupportedChainErrorDetails extends OracleErrorDetails {
   supportedChains?: string[];
   requestedChain?: string;
 }
 
-/**
- * Unsupported chain error
- */
 export class UnsupportedChainError extends AppError {
   constructor(message: string, details?: UnsupportedChainErrorDetails) {
     super({
@@ -131,9 +111,6 @@ export class UnsupportedChainError extends AppError {
     });
   }
 
-  /**
-   * Create unsupported chain error
-   */
   static create(
     chain: string,
     supportedChains: string[],
@@ -146,17 +123,11 @@ export class UnsupportedChainError extends AppError {
   }
 }
 
-/**
- * Unsupported symbol error details
- */
 interface UnsupportedSymbolErrorDetails extends OracleErrorDetails {
   supportedSymbols?: string[];
   requestedSymbol?: string;
 }
 
-/**
- * Unsupported symbol error
- */
 export class UnsupportedSymbolError extends AppError {
   constructor(message: string, details?: UnsupportedSymbolErrorDetails) {
     super({
@@ -169,9 +140,6 @@ export class UnsupportedSymbolError extends AppError {
     });
   }
 
-  /**
-   * Create unsupported symbol error
-   */
   static create(
     symbol: string,
     supportedSymbols: string[],
@@ -184,106 +152,124 @@ export class UnsupportedSymbolError extends AppError {
   }
 }
 
-/**
- * RedStone API error codes
- */
-export type RedStoneErrorCode =
-  | 'FETCH_ERROR'
-  | 'PARSE_ERROR'
-  | 'NETWORK_ERROR'
-  | 'TIMEOUT_ERROR'
-  | 'RATE_LIMIT_ERROR'
-  | 'INVALID_RESPONSE'
-  | 'DATA_STALE'
-  | 'PRICE_DEVIATION';
-
-/**
- * RedStone API error details
- */
-interface RedStoneApiErrorDetails extends OracleErrorDetails {
-  errorCode: RedStoneErrorCode;
+interface ErrorConfig {
   retryable: boolean;
-  attemptCount?: number;
-  lastSuccessfulFetch?: number;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  statusCode: number;
 }
 
-/**
- * RedStone API error
- */
-export class RedStoneApiError extends AppError {
-  public readonly errorCode: RedStoneErrorCode;
+const PROVIDER_ERROR_CONFIGS: Record<string, Record<string, ErrorConfig>> = {
+  redstone: {
+    FETCH_ERROR: { retryable: true, severity: 'high', statusCode: 502 },
+    PARSE_ERROR: { retryable: false, severity: 'high', statusCode: 422 },
+    NETWORK_ERROR: { retryable: true, severity: 'medium', statusCode: 503 },
+    TIMEOUT_ERROR: { retryable: true, severity: 'medium', statusCode: 504 },
+    RATE_LIMIT_ERROR: { retryable: true, severity: 'low', statusCode: 429 },
+    INVALID_RESPONSE: { retryable: false, severity: 'high', statusCode: 422 },
+    DATA_STALE: { retryable: true, severity: 'medium', statusCode: 502 },
+    PRICE_DEVIATION: { retryable: false, severity: 'critical', statusCode: 502 },
+  },
+  chainlink: {
+    AGGREGATOR_OFFLINE: { retryable: true, severity: 'high', statusCode: 502 },
+    STALE_DATA: { retryable: true, severity: 'high', statusCode: 502 },
+    PRICE_DEVIATION: { retryable: false, severity: 'critical', statusCode: 502 },
+    ROUND_INCOMPLETE: { retryable: true, severity: 'medium', statusCode: 502 },
+    INVALID_ANSWER: { retryable: false, severity: 'critical', statusCode: 502 },
+    HEARTBEAT_VIOLATION: { retryable: true, severity: 'low', statusCode: 502 },
+  },
+  pyth: {
+    PRICE_FEED_NOT_FOUND: { retryable: false, severity: 'low', statusCode: 502 },
+    STALE_PRICE: { retryable: true, severity: 'high', statusCode: 502 },
+    INVALID_PRICE: { retryable: false, severity: 'critical', statusCode: 502 },
+    CONFIDENCE_INTERVAL_TOO_LARGE: { retryable: false, severity: 'critical', statusCode: 502 },
+    HERMES_CONNECTION_ERROR: { retryable: true, severity: 'medium', statusCode: 502 },
+  },
+  api3: {
+    DAPI_NOT_FOUND: { retryable: false, severity: 'low', statusCode: 502 },
+    AIRNODE_ERROR: { retryable: true, severity: 'medium', statusCode: 502 },
+    SPONSOR_WALLET_ERROR: { retryable: false, severity: 'high', statusCode: 502 },
+    TEMPLATE_NOT_FOUND: { retryable: false, severity: 'low', statusCode: 502 },
+    BEACON_OFFLINE: { retryable: true, severity: 'high', statusCode: 502 },
+  },
+  supra: {
+    DORA_CONNECTION_ERROR: { retryable: true, severity: 'medium', statusCode: 502 },
+    STALE_PRICE: { retryable: true, severity: 'high', statusCode: 502 },
+    INVALID_PRICE: { retryable: false, severity: 'critical', statusCode: 502 },
+    PAIR_NOT_FOUND: { retryable: false, severity: 'low', statusCode: 502 },
+    PRICE_DEVIATION: { retryable: false, severity: 'critical', statusCode: 502 },
+  },
+  flare: {
+    FTSO_RPC_ERROR: { retryable: true, severity: 'medium', statusCode: 502 },
+    FEED_NOT_FOUND: { retryable: false, severity: 'low', statusCode: 502 },
+    STALE_PRICE: { retryable: true, severity: 'high', statusCode: 502 },
+    INVALID_PRICE: { retryable: false, severity: 'critical', statusCode: 502 },
+    INVALID_FEED_ID: { retryable: false, severity: 'low', statusCode: 502 },
+    CONTRACT_CALL_FAILED: { retryable: true, severity: 'medium', statusCode: 502 },
+  },
+  dia: {
+    FETCH_ERROR: { retryable: false, severity: 'critical', statusCode: 502 },
+    PARSE_ERROR: { retryable: false, severity: 'high', statusCode: 422 },
+    NETWORK_ERROR: { retryable: true, severity: 'medium', statusCode: 503 },
+    TIMEOUT_ERROR: { retryable: true, severity: 'medium', statusCode: 504 },
+    RATE_LIMIT_ERROR: { retryable: true, severity: 'low', statusCode: 429 },
+    INVALID_RESPONSE: { retryable: false, severity: 'high', statusCode: 422 },
+  },
+  winklink: {
+    CONTRACT_CALL_ERROR: { retryable: true, severity: 'medium', statusCode: 502 },
+    STALE_DATA: { retryable: true, severity: 'high', statusCode: 502 },
+    INVALID_PRICE: { retryable: false, severity: 'critical', statusCode: 502 },
+    PAIR_NOT_FOUND: { retryable: false, severity: 'low', statusCode: 404 },
+    TRON_RPC_ERROR: { retryable: true, severity: 'medium', statusCode: 503 },
+    GAMING_DATA_ERROR: { retryable: false, severity: 'low', statusCode: 502 },
+  },
+};
+
+interface OracleProviderErrorDetails extends OracleErrorDetails {
+  errorCode?: string;
+  attemptCount?: number;
+}
+
+export class OracleProviderError extends AppError {
+  public readonly provider: string;
+  public readonly errorCode: string;
   public readonly retryable: boolean;
   public readonly attemptCount: number;
 
   constructor(
     message: string,
-    errorCode: RedStoneErrorCode,
-    details?: Partial<RedStoneApiErrorDetails>,
+    provider: string,
+    errorCode: string,
+    details?: Partial<OracleProviderErrorDetails>,
     cause?: Error
   ) {
-    const isRetryable = RedStoneApiError.isRetryableError(errorCode);
+    const config = OracleProviderError.getConfig(provider, errorCode);
     super({
       message,
-      code: 'REDSTONE_API_ERROR',
-      statusCode: RedStoneApiError.getStatusCode(errorCode),
+      code: `${provider.toUpperCase()}_ERROR`,
+      statusCode: config.statusCode,
       category: 'external_service',
-      severity: RedStoneApiError.getSeverity(errorCode),
+      severity: config.severity,
       isOperational: true,
-      retryable: isRetryable,
-      details: {
-        ...details,
-        errorCode,
-        retryable: isRetryable,
-      },
+      retryable: config.retryable,
+      details: { ...details, provider, errorCode },
       cause,
     });
+    this.provider = provider;
     this.errorCode = errorCode;
-    this.retryable = isRetryable;
+    this.retryable = config.retryable;
     this.attemptCount = details?.attemptCount ?? 1;
   }
 
-  private static isRetryableError(errorCode: RedStoneErrorCode): boolean {
-    const retryableCodes: RedStoneErrorCode[] = [
-      'NETWORK_ERROR',
-      'TIMEOUT_ERROR',
-      'RATE_LIMIT_ERROR',
-      'FETCH_ERROR',
-      'DATA_STALE',
-    ];
-    return retryableCodes.includes(errorCode);
+  private static getConfig(provider: string, errorCode: string): ErrorConfig {
+    const providerConfigs = PROVIDER_ERROR_CONFIGS[provider];
+    if (providerConfigs && providerConfigs[errorCode]) {
+      return providerConfigs[errorCode];
+    }
+    return { retryable: true, severity: 'medium', statusCode: HttpStatusCodes.BAD_GATEWAY };
   }
 
-  private static getStatusCode(errorCode: RedStoneErrorCode): number {
-    switch (errorCode) {
-      case 'RATE_LIMIT_ERROR':
-        return HttpStatusCodes.TOO_MANY_REQUESTS;
-      case 'TIMEOUT_ERROR':
-        return HttpStatusCodes.GATEWAY_TIMEOUT;
-      case 'NETWORK_ERROR':
-        return HttpStatusCodes.SERVICE_UNAVAILABLE;
-      case 'INVALID_RESPONSE':
-      case 'PARSE_ERROR':
-        return HttpStatusCodes.UNPROCESSABLE_ENTITY;
-      default:
-        return HttpStatusCodes.BAD_GATEWAY;
-    }
-  }
-
-  private static getSeverity(errorCode: RedStoneErrorCode): 'low' | 'medium' | 'high' | 'critical' {
-    switch (errorCode) {
-      case 'RATE_LIMIT_ERROR':
-        return 'low';
-      case 'TIMEOUT_ERROR':
-      case 'NETWORK_ERROR':
-        return 'medium';
-      case 'INVALID_RESPONSE':
-      case 'PARSE_ERROR':
-        return 'high';
-      case 'PRICE_DEVIATION':
-        return 'critical';
-      default:
-        return 'medium';
-    }
+  static isRetryableError(provider: string, errorCode: string): boolean {
+    return OracleProviderError.getConfig(provider, errorCode).retryable;
   }
 
   toApiResponse(): {
@@ -292,7 +278,8 @@ export class RedStoneApiError extends AppError {
       code: string;
       message: string;
       retryable: boolean;
-      errorCode: RedStoneErrorCode;
+      errorCode: string;
+      provider: string;
       attemptCount: number;
       requestId: string | undefined;
       details?: AppErrorDetails;
@@ -306,534 +293,12 @@ export class RedStoneApiError extends AppError {
         message: this.message,
         retryable: this.retryable,
         errorCode: this.errorCode,
+        provider: this.provider,
         attemptCount: this.attemptCount,
         requestId: this.requestId,
         details: this.details,
       },
       timestamp: this.timestamp.toISOString(),
     };
-  }
-}
-
-/**
- * Chainlink error codes
- */
-type ChainlinkErrorCode =
-  | 'AGGREGATOR_OFFLINE'
-  | 'STALE_DATA'
-  | 'PRICE_DEVIATION'
-  | 'ROUND_INCOMPLETE'
-  | 'INVALID_ANSWER'
-  | 'HEARTBEAT_VIOLATION';
-
-/**
- * Chainlink error details
- */
-interface ChainlinkErrorDetails extends OracleErrorDetails {
-  errorCode: ChainlinkErrorCode;
-  aggregator?: string;
-  roundId?: number;
-  updatedAt?: number;
-  heartbeat?: number;
-}
-
-/**
- * Chainlink error
- */
-export class ChainlinkError extends AppError {
-  public readonly errorCode: ChainlinkErrorCode;
-
-  constructor(
-    message: string,
-    errorCode: ChainlinkErrorCode,
-    details?: Partial<ChainlinkErrorDetails>,
-    cause?: Error
-  ) {
-    super({
-      message,
-      code: 'CHAINLINK_ERROR',
-      statusCode: HttpStatusCodes.BAD_GATEWAY,
-      category: 'external_service',
-      severity: ChainlinkError.getSeverity(errorCode),
-      isOperational: true,
-      retryable: ChainlinkError.isRetryableError(errorCode),
-      details: { ...details, errorCode },
-      cause,
-    });
-    this.errorCode = errorCode;
-  }
-
-  private static isRetryableError(errorCode: ChainlinkErrorCode): boolean {
-    const retryableCodes: ChainlinkErrorCode[] = [
-      'AGGREGATOR_OFFLINE',
-      'STALE_DATA',
-      'ROUND_INCOMPLETE',
-    ];
-    return retryableCodes.includes(errorCode);
-  }
-
-  private static getSeverity(
-    errorCode: ChainlinkErrorCode
-  ): 'low' | 'medium' | 'high' | 'critical' {
-    switch (errorCode) {
-      case 'HEARTBEAT_VIOLATION':
-        return 'low';
-      case 'ROUND_INCOMPLETE':
-        return 'medium';
-      case 'AGGREGATOR_OFFLINE':
-      case 'STALE_DATA':
-        return 'high';
-      case 'PRICE_DEVIATION':
-      case 'INVALID_ANSWER':
-        return 'critical';
-      default:
-        return 'medium';
-    }
-  }
-}
-
-/**
- * Pyth error codes
- */
-type PythErrorCode =
-  | 'PRICE_FEED_NOT_FOUND'
-  | 'STALE_PRICE'
-  | 'INVALID_PRICE'
-  | 'CONFIDENCE_INTERVAL_TOO_LARGE'
-  | 'HERMES_CONNECTION_ERROR';
-
-/**
- * Pyth error details
- */
-interface PythErrorDetails extends OracleErrorDetails {
-  errorCode: PythErrorCode;
-  priceFeedId?: string;
-  publishTime?: number;
-  confidence?: number;
-}
-
-/**
- * Pyth error
- */
-export class PythError extends AppError {
-  public readonly errorCode: PythErrorCode;
-
-  constructor(
-    message: string,
-    errorCode: PythErrorCode,
-    details?: Partial<PythErrorDetails>,
-    cause?: Error
-  ) {
-    super({
-      message,
-      code: 'PYTH_ERROR',
-      statusCode: HttpStatusCodes.BAD_GATEWAY,
-      category: 'external_service',
-      severity: PythError.getSeverity(errorCode),
-      isOperational: true,
-      retryable: PythError.isRetryableError(errorCode),
-      details: { ...details, errorCode },
-      cause,
-    });
-    this.errorCode = errorCode;
-  }
-
-  private static isRetryableError(errorCode: PythErrorCode): boolean {
-    const retryableCodes: PythErrorCode[] = ['STALE_PRICE', 'HERMES_CONNECTION_ERROR'];
-    return retryableCodes.includes(errorCode);
-  }
-
-  private static getSeverity(errorCode: PythErrorCode): 'low' | 'medium' | 'high' | 'critical' {
-    switch (errorCode) {
-      case 'HERMES_CONNECTION_ERROR':
-        return 'medium';
-      case 'STALE_PRICE':
-        return 'high';
-      case 'PRICE_FEED_NOT_FOUND':
-        return 'low';
-      case 'INVALID_PRICE':
-      case 'CONFIDENCE_INTERVAL_TOO_LARGE':
-        return 'critical';
-      default:
-        return 'medium';
-    }
-  }
-}
-
-/**
- * API3 error codes
- */
-type API3ErrorCode =
-  | 'DAPI_NOT_FOUND'
-  | 'AIRNODE_ERROR'
-  | 'SPONSOR_WALLET_ERROR'
-  | 'TEMPLATE_NOT_FOUND'
-  | 'BEACON_OFFLINE';
-
-/**
- * API3 error details
- */
-interface API3ErrorDetails extends OracleErrorDetails {
-  errorCode: API3ErrorCode;
-  dapiName?: string;
-  airnodeAddress?: string;
-  templateId?: string;
-}
-
-/**
- * API3 error
- */
-export class API3Error extends AppError {
-  public readonly errorCode: API3ErrorCode;
-
-  constructor(
-    message: string,
-    errorCode: API3ErrorCode,
-    details?: Partial<API3ErrorDetails>,
-    cause?: Error
-  ) {
-    super({
-      message,
-      code: 'API3_ERROR',
-      statusCode: HttpStatusCodes.BAD_GATEWAY,
-      category: 'external_service',
-      severity: API3Error.getSeverity(errorCode),
-      isOperational: true,
-      retryable: API3Error.isRetryableError(errorCode),
-      details: { ...details, errorCode },
-      cause,
-    });
-    this.errorCode = errorCode;
-  }
-
-  private static isRetryableError(errorCode: API3ErrorCode): boolean {
-    const retryableCodes: API3ErrorCode[] = ['AIRNODE_ERROR', 'BEACON_OFFLINE'];
-    return retryableCodes.includes(errorCode);
-  }
-
-  private static getSeverity(errorCode: API3ErrorCode): 'low' | 'medium' | 'high' | 'critical' {
-    switch (errorCode) {
-      case 'TEMPLATE_NOT_FOUND':
-      case 'DAPI_NOT_FOUND':
-        return 'low';
-      case 'AIRNODE_ERROR':
-        return 'medium';
-      case 'SPONSOR_WALLET_ERROR':
-      case 'BEACON_OFFLINE':
-        return 'high';
-      default:
-        return 'medium';
-    }
-  }
-}
-
-/**
- * Supra error codes
- */
-type SupraErrorCode =
-  | 'DORA_CONNECTION_ERROR'
-  | 'STALE_PRICE'
-  | 'INVALID_PRICE'
-  | 'PAIR_NOT_FOUND'
-  | 'PRICE_DEVIATION';
-
-/**
- * Supra error details
- */
-interface SupraErrorDetails extends OracleErrorDetails {
-  errorCode: SupraErrorCode;
-  pairIndex?: number;
-  doraTimestamp?: number;
-}
-
-/**
- * Supra error
- */
-export class SupraError extends AppError {
-  public readonly errorCode: SupraErrorCode;
-
-  constructor(
-    message: string,
-    errorCode: SupraErrorCode,
-    details?: Partial<SupraErrorDetails>,
-    cause?: Error
-  ) {
-    super({
-      message,
-      code: 'SUPRA_ERROR',
-      statusCode: HttpStatusCodes.BAD_GATEWAY,
-      category: 'external_service',
-      severity: SupraError.getSeverity(errorCode),
-      isOperational: true,
-      retryable: SupraError.isRetryableError(errorCode),
-      details: { ...details, errorCode },
-      cause,
-    });
-    this.errorCode = errorCode;
-  }
-
-  private static isRetryableError(errorCode: SupraErrorCode): boolean {
-    const retryableCodes: SupraErrorCode[] = ['DORA_CONNECTION_ERROR', 'STALE_PRICE'];
-    return retryableCodes.includes(errorCode);
-  }
-
-  private static getSeverity(errorCode: SupraErrorCode): 'low' | 'medium' | 'high' | 'critical' {
-    switch (errorCode) {
-      case 'PAIR_NOT_FOUND':
-        return 'low';
-      case 'DORA_CONNECTION_ERROR':
-        return 'medium';
-      case 'STALE_PRICE':
-        return 'high';
-      case 'INVALID_PRICE':
-      case 'PRICE_DEVIATION':
-        return 'critical';
-      default:
-        return 'medium';
-    }
-  }
-}
-
-/**
- * Flare error codes
- */
-type FlareErrorCode =
-  | 'FTSO_RPC_ERROR'
-  | 'FEED_NOT_FOUND'
-  | 'STALE_PRICE'
-  | 'INVALID_PRICE'
-  | 'INVALID_FEED_ID'
-  | 'CONTRACT_CALL_FAILED';
-
-/**
- * Flare error details
- */
-interface FlareErrorDetails extends OracleErrorDetails {
-  errorCode?: FlareErrorCode;
-  feedId?: string;
-  network?: string;
-  timestamp?: number;
-}
-
-/**
- * Flare error
- */
-export class FlareError extends AppError {
-  public readonly errorCode: FlareErrorCode;
-
-  constructor(
-    message: string,
-    errorCode: FlareErrorCode,
-    details?: Partial<FlareErrorDetails>,
-    cause?: Error
-  ) {
-    super({
-      message,
-      code: 'FLARE_ERROR',
-      statusCode: HttpStatusCodes.BAD_GATEWAY,
-      category: 'external_service',
-      severity: FlareError.getSeverity(errorCode),
-      isOperational: true,
-      retryable: FlareError.isRetryableError(errorCode),
-      details: { ...details, errorCode },
-      cause,
-    });
-    this.errorCode = errorCode;
-  }
-
-  private static isRetryableError(errorCode: FlareErrorCode): boolean {
-    const retryableCodes: FlareErrorCode[] = [
-      'FTSO_RPC_ERROR',
-      'STALE_PRICE',
-      'CONTRACT_CALL_FAILED',
-    ];
-    return retryableCodes.includes(errorCode);
-  }
-
-  private static getSeverity(errorCode: FlareErrorCode): 'low' | 'medium' | 'high' | 'critical' {
-    switch (errorCode) {
-      case 'FEED_NOT_FOUND':
-      case 'INVALID_FEED_ID':
-        return 'low';
-      case 'FTSO_RPC_ERROR':
-      case 'CONTRACT_CALL_FAILED':
-        return 'medium';
-      case 'STALE_PRICE':
-        return 'high';
-      case 'INVALID_PRICE':
-        return 'critical';
-      default:
-        return 'medium';
-    }
-  }
-}
-
-type DIAErrorCode =
-  | 'FETCH_ERROR'
-  | 'PARSE_ERROR'
-  | 'NETWORK_ERROR'
-  | 'TIMEOUT_ERROR'
-  | 'RATE_LIMIT_ERROR'
-  | 'INVALID_RESPONSE';
-
-interface DIAErrorDetails extends OracleErrorDetails {
-  errorCode: DIAErrorCode;
-  symbol?: string;
-  blockchain?: string;
-  attemptCount?: number;
-}
-
-export class DIAError extends AppError {
-  public readonly errorCode: DIAErrorCode;
-  public readonly retryable: boolean;
-  public readonly attemptCount: number;
-
-  constructor(
-    message: string,
-    errorCode: DIAErrorCode,
-    details?: Partial<DIAErrorDetails>,
-    cause?: Error
-  ) {
-    const isRetryable = DIAError.isRetryableError(errorCode);
-    super({
-      message,
-      code: 'DIA_ERROR',
-      statusCode: DIAError.getStatusCode(errorCode),
-      category: 'external_service',
-      severity: DIAError.getSeverity(errorCode),
-      isOperational: true,
-      retryable: isRetryable,
-      details: { ...details, errorCode },
-      cause,
-    });
-    this.errorCode = errorCode;
-    this.retryable = isRetryable;
-    this.attemptCount = details?.attemptCount ?? 1;
-  }
-
-  private static isRetryableError(errorCode: DIAErrorCode): boolean {
-    const retryableCodes: DIAErrorCode[] = [
-      'NETWORK_ERROR',
-      'TIMEOUT_ERROR',
-      'RATE_LIMIT_ERROR',
-      'FETCH_ERROR',
-    ];
-    return retryableCodes.includes(errorCode);
-  }
-
-  private static getStatusCode(errorCode: DIAErrorCode): number {
-    switch (errorCode) {
-      case 'RATE_LIMIT_ERROR':
-        return HttpStatusCodes.TOO_MANY_REQUESTS;
-      case 'TIMEOUT_ERROR':
-        return HttpStatusCodes.GATEWAY_TIMEOUT;
-      case 'NETWORK_ERROR':
-        return HttpStatusCodes.SERVICE_UNAVAILABLE;
-      case 'INVALID_RESPONSE':
-      case 'PARSE_ERROR':
-        return HttpStatusCodes.UNPROCESSABLE_ENTITY;
-      default:
-        return HttpStatusCodes.BAD_GATEWAY;
-    }
-  }
-
-  private static getSeverity(errorCode: DIAErrorCode): 'low' | 'medium' | 'high' | 'critical' {
-    switch (errorCode) {
-      case 'RATE_LIMIT_ERROR':
-        return 'low';
-      case 'TIMEOUT_ERROR':
-      case 'NETWORK_ERROR':
-        return 'medium';
-      case 'INVALID_RESPONSE':
-      case 'PARSE_ERROR':
-        return 'high';
-      case 'FETCH_ERROR':
-        return 'critical';
-      default:
-        return 'medium';
-    }
-  }
-}
-
-type WINkLinkErrorCode =
-  | 'CONTRACT_CALL_ERROR'
-  | 'STALE_DATA'
-  | 'INVALID_PRICE'
-  | 'PAIR_NOT_FOUND'
-  | 'TRON_RPC_ERROR'
-  | 'GAMING_DATA_ERROR';
-
-interface WINkLinkErrorDetails extends OracleErrorDetails {
-  errorCode: WINkLinkErrorCode;
-  pairIndex?: number;
-  contractAddress?: string;
-  attemptCount?: number;
-}
-
-export class WINkLinkError extends AppError {
-  public readonly errorCode: WINkLinkErrorCode;
-  public readonly retryable: boolean;
-  public readonly attemptCount: number;
-
-  constructor(
-    message: string,
-    errorCode: WINkLinkErrorCode,
-    details?: Partial<WINkLinkErrorDetails>,
-    cause?: Error
-  ) {
-    const isRetryable = WINkLinkError.isRetryableError(errorCode);
-    super({
-      message,
-      code: 'WINKLINK_ERROR',
-      statusCode: WINkLinkError.getStatusCode(errorCode),
-      category: 'external_service',
-      severity: WINkLinkError.getSeverity(errorCode),
-      isOperational: true,
-      retryable: isRetryable,
-      details: { ...details, errorCode },
-      cause,
-    });
-    this.errorCode = errorCode;
-    this.retryable = isRetryable;
-    this.attemptCount = details?.attemptCount ?? 1;
-  }
-
-  private static isRetryableError(errorCode: WINkLinkErrorCode): boolean {
-    const retryableCodes: WINkLinkErrorCode[] = [
-      'CONTRACT_CALL_ERROR',
-      'STALE_DATA',
-      'TRON_RPC_ERROR',
-    ];
-    return retryableCodes.includes(errorCode);
-  }
-
-  private static getStatusCode(errorCode: WINkLinkErrorCode): number {
-    switch (errorCode) {
-      case 'TRON_RPC_ERROR':
-        return HttpStatusCodes.SERVICE_UNAVAILABLE;
-      case 'CONTRACT_CALL_ERROR':
-        return HttpStatusCodes.BAD_GATEWAY;
-      case 'PAIR_NOT_FOUND':
-        return HttpStatusCodes.NOT_FOUND;
-      default:
-        return HttpStatusCodes.BAD_GATEWAY;
-    }
-  }
-
-  private static getSeverity(errorCode: WINkLinkErrorCode): 'low' | 'medium' | 'high' | 'critical' {
-    switch (errorCode) {
-      case 'PAIR_NOT_FOUND':
-      case 'GAMING_DATA_ERROR':
-        return 'low';
-      case 'TRON_RPC_ERROR':
-      case 'CONTRACT_CALL_ERROR':
-        return 'medium';
-      case 'STALE_DATA':
-        return 'high';
-      case 'INVALID_PRICE':
-        return 'critical';
-      default:
-        return 'medium';
-    }
   }
 }

@@ -17,8 +17,6 @@ const VALID_CONSENSUS_METHODS: ConsensusMethod[] = [
   'median',
   'trimmed_mean',
   'weighted_median',
-  'confidence_weighted',
-  'reliability_weighted',
   'iqr_filtered',
 ];
 

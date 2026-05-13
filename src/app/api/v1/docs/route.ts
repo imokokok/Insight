@@ -141,7 +141,7 @@ const spec = {
       get: {
         summary: 'Get consensus price',
         description:
-          'Calculate the consensus price across all oracle providers using configurable aggregation methods. Supports 6 consensus algorithms: median, trimmed_mean, weighted_median, confidence_weighted, reliability_weighted, and iqr_filtered.\n\n**Note:** The `symbol` path parameter must be URL-encoded when it contains `/`. For example, use `BTC%2FUSD` instead of `BTC/USD`.',
+          'Calculate the consensus price across all oracle providers using configurable aggregation methods. Supports 4 consensus algorithms: median, trimmed_mean, weighted_median, and iqr_filtered.\n\n**Note:** The `symbol` path parameter must be URL-encoded when it contains `/`. For example, use `BTC%2FUSD` instead of `BTC/USD`.',
         tags: ['Consensus'],
         parameters: [
           {
@@ -157,14 +157,7 @@ const spec = {
             in: 'query',
             schema: {
               type: 'string',
-              enum: [
-                'median',
-                'trimmed_mean',
-                'weighted_median',
-                'confidence_weighted',
-                'reliability_weighted',
-                'iqr_filtered',
-              ],
+              enum: ['median', 'trimmed_mean', 'weighted_median', 'iqr_filtered'],
             },
             description: 'Consensus aggregation method (auto-selected if not specified)',
           },

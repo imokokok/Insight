@@ -1,3 +1,4 @@
+import { getSymbolCategory } from '@/lib/constants';
 import { createLogger } from '@/lib/utils/logger';
 import { type Blockchain } from '@/types/oracle';
 
@@ -52,20 +53,12 @@ const STATUS_THRESHOLDS_BY_CATEGORY: Record<string, StatusThresholds> = {
   },
 };
 
-function getVolatilityCategory(symbol: string): string {
-  const upper = symbol.toUpperCase();
-  if (/^(USDT|USDC|DAI|BUSD|TUSD|USDD|FRAX|GUSD|PAX|USDP)/.test(upper)) return 'stablecoin';
-  if (/^(BTC|ETH)(\/|$)/.test(upper)) return 'major';
-  if (/^(SHIB|PEPE|FLOKI|BONK|DOGE|MEME|TRUMP)/.test(upper)) return 'micro';
-  return 'alt';
-}
-
 function classifyChainStatus(
   deviation: number,
   dataAgeSeconds: number,
   symbol?: string
 ): 'online' | 'degraded' | 'offline' {
-  const category = symbol ? getVolatilityCategory(symbol) : 'alt';
+  const category = symbol ? getSymbolCategory(symbol) : 'alt';
   const thresholds = STATUS_THRESHOLDS_BY_CATEGORY[category] ?? STATUS_THRESHOLDS_BY_CATEGORY.alt;
 
   if (

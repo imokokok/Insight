@@ -1,3 +1,4 @@
+import { TTLCache } from '@/lib/utils/cache';
 import { createLogger } from '@/lib/utils/logger';
 import { type OracleProvider, type Blockchain, type PriceData } from '@/types/oracle';
 
@@ -63,12 +64,9 @@ interface PendingRequest<T> {
 const pendingRequests = new Map<string, PendingRequest<unknown>>();
 const MAX_PENDING_REQUESTS = 100;
 
-const responseCache = new Map<string, { data: unknown; timestamp: number }>();
+const responseCache = new TTLCache({ maxSize: 200, cleanupIntervalMs: 60000 });
 const CACHE_TTL_MS = 5_000;
-const MAX_CACHE_SIZE = 200;
-const CACHE_CLEANUP_INTERVAL = 60_000;
 const PENDING_REQUEST_TIMEOUT = 30_000;
-let lastCacheCleanup = Date.now();
 
 function cleanupStalePendingRequests(): void {
   for (const [key, request] of pendingRequests) {
@@ -87,22 +85,7 @@ if (typeof setInterval !== 'undefined') {
 }
 
 function setCachedResponse(key: string, data: unknown): void {
-  const now = Date.now();
-  if (now - lastCacheCleanup > CACHE_CLEANUP_INTERVAL) {
-    for (const [k, v] of responseCache) {
-      if (now - v.timestamp >= CACHE_TTL_MS) {
-        responseCache.delete(k);
-      }
-    }
-    lastCacheCleanup = now;
-  }
-  if (responseCache.size >= MAX_CACHE_SIZE) {
-    const oldestKey = responseCache.keys().next().value;
-    if (oldestKey !== undefined) {
-      responseCache.delete(oldestKey);
-    }
-  }
-  responseCache.set(key, { data, timestamp: now });
+  responseCache.set(key, data, CACHE_TTL_MS);
 }
 
 function buildRequestKey(
@@ -119,14 +102,8 @@ function buildRequestKey(
 }
 
 function getCachedResponse<T>(key: string): T | undefined {
-  const cached = responseCache.get(key);
-  if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
-    return cached.data as T;
-  }
-  if (cached) {
-    responseCache.delete(key);
-  }
-  return undefined;
+  const cached = responseCache.get<T>(key);
+  return cached ?? undefined;
 }
 
 function removePendingRequest(key: string): void {

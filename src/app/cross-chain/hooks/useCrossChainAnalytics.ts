@@ -503,10 +503,7 @@ export function useCrossChainAnalytics(currentPrices: PriceData[]): CrossChainAn
         w.correlation +
         w.freshness +
         w.manipulationResistance +
-        w.sharedDependency +
-        w.divergenceAcceleration +
-        w.feedBehaviorHealth +
-        w.stabilityDecay;
+        w.sharedDependency;
 
       const overallRiskScore =
         totalWeight > 0
@@ -517,10 +514,7 @@ export function useCrossChainAnalytics(currentPrices: PriceData[]): CrossChainAn
                 corrScore * w.correlation +
                 freshScore * w.freshness +
                 manipScore * w.manipulationResistance +
-                sharedScore * w.sharedDependency +
-                divergenceAccelScore * w.divergenceAcceleration +
-                feedHealthRiskScore * w.feedBehaviorHealth +
-                stabilityDecayScore * w.stabilityDecay) /
+                sharedScore * w.sharedDependency) /
                 totalWeight
             )
           : 0;
@@ -569,21 +563,6 @@ export function useCrossChainAnalytics(currentPrices: PriceData[]): CrossChainAn
           dimension: 'Shared Dependency',
           contribution: sharedScore * w.sharedDependency,
           suggestion: 'Identify chains using the same oracle provider as a single point of failure',
-        },
-        {
-          dimension: 'Divergence Acceleration',
-          contribution: divergenceAccelScore * w.divergenceAcceleration,
-          suggestion: 'Investigate chains with accelerating price deviation from consensus',
-        },
-        {
-          dimension: 'Feed Behavior Health',
-          contribution: feedHealthRiskScore * w.feedBehaviorHealth,
-          suggestion: 'Monitor update rhythm and heartbeat reliability on degraded chains',
-        },
-        {
-          dimension: 'Stability Decay',
-          contribution: stabilityDecayScore * w.stabilityDecay,
-          suggestion: 'Watch chains with declining stability trends for early intervention',
         },
       ]
         .filter((item) => item.contribution > 0)

@@ -2,30 +2,14 @@ import { isAppError } from './errorToResponse';
 
 export { AppError } from './AppError';
 
-export {
-  ValidationError,
-  NotFoundError,
-  AuthenticationError,
-  AuthorizationError,
-  RateLimitError,
-  InternalError,
-  NetworkError,
-} from './BusinessErrors';
+export { ValidationError, InternalError } from './BusinessErrors';
 
 export {
   OracleClientError,
   PriceFetchError,
   UnsupportedChainError,
   UnsupportedSymbolError,
-  RedStoneApiError,
-  type RedStoneErrorCode,
-  ChainlinkError,
-  PythError,
-  API3Error,
-  SupraError,
-  FlareError,
-  DIAError,
-  WINkLinkError,
+  OracleProviderError,
 } from './OracleError';
 
 export { errorToResponse, isAppError } from './errorToResponse';

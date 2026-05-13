@@ -1,14 +1,12 @@
 import { AppError } from '../AppError';
+import { ValidationError, InternalError } from '../BusinessErrors';
 import {
-  ValidationError,
-  NotFoundError,
-  AuthenticationError,
-  AuthorizationError,
-  ConflictError,
-  RateLimitError,
-  InternalError,
-  NotImplementedError,
-} from '../BusinessErrors';
+  OracleClientError,
+  PriceFetchError,
+  UnsupportedChainError,
+  UnsupportedSymbolError,
+  OracleProviderError,
+} from '../OracleError';
 
 describe('Error module exports', () => {
   describe('AppError classes', () => {
@@ -22,39 +20,34 @@ describe('Error module exports', () => {
       expect(typeof ValidationError).toBe('function');
     });
 
-    it('should export NotFoundError', () => {
-      expect(NotFoundError).toBeDefined();
-      expect(typeof NotFoundError).toBe('function');
-    });
-
-    it('should export AuthenticationError', () => {
-      expect(AuthenticationError).toBeDefined();
-      expect(typeof AuthenticationError).toBe('function');
-    });
-
-    it('should export AuthorizationError', () => {
-      expect(AuthorizationError).toBeDefined();
-      expect(typeof AuthorizationError).toBe('function');
-    });
-
-    it('should export ConflictError', () => {
-      expect(ConflictError).toBeDefined();
-      expect(typeof ConflictError).toBe('function');
-    });
-
-    it('should export RateLimitError', () => {
-      expect(RateLimitError).toBeDefined();
-      expect(typeof RateLimitError).toBe('function');
-    });
-
     it('should export InternalError', () => {
       expect(InternalError).toBeDefined();
       expect(typeof InternalError).toBe('function');
     });
 
-    it('should export NotImplementedError', () => {
-      expect(NotImplementedError).toBeDefined();
-      expect(typeof NotImplementedError).toBe('function');
+    it('should export OracleClientError', () => {
+      expect(OracleClientError).toBeDefined();
+      expect(typeof OracleClientError).toBe('function');
+    });
+
+    it('should export PriceFetchError', () => {
+      expect(PriceFetchError).toBeDefined();
+      expect(typeof PriceFetchError).toBe('function');
+    });
+
+    it('should export UnsupportedChainError', () => {
+      expect(UnsupportedChainError).toBeDefined();
+      expect(typeof UnsupportedChainError).toBe('function');
+    });
+
+    it('should export UnsupportedSymbolError', () => {
+      expect(UnsupportedSymbolError).toBeDefined();
+      expect(typeof UnsupportedSymbolError).toBe('function');
+    });
+
+    it('should export OracleProviderError', () => {
+      expect(OracleProviderError).toBeDefined();
+      expect(typeof OracleProviderError).toBe('function');
     });
   });
 
@@ -66,41 +59,6 @@ describe('Error module exports', () => {
       expect(error.statusCode).toBe(400);
     });
 
-    it('NotFoundError should work correctly', () => {
-      const error = new NotFoundError('User not found');
-      expect(error.message).toBe('User not found');
-      expect(error.code).toBe('NOT_FOUND');
-      expect(error.statusCode).toBe(404);
-    });
-
-    it('AuthenticationError should work correctly', () => {
-      const error = new AuthenticationError('Invalid credentials');
-      expect(error.message).toBe('Invalid credentials');
-      expect(error.code).toBe('AUTHENTICATION_ERROR');
-      expect(error.statusCode).toBe(401);
-    });
-
-    it('AuthorizationError should work correctly', () => {
-      const error = new AuthorizationError('Access denied');
-      expect(error.message).toBe('Access denied');
-      expect(error.code).toBe('AUTHORIZATION_ERROR');
-      expect(error.statusCode).toBe(403);
-    });
-
-    it('ConflictError should work correctly', () => {
-      const error = new ConflictError('Resource already exists');
-      expect(error.message).toBe('Resource already exists');
-      expect(error.code).toBe('CONFLICT');
-      expect(error.statusCode).toBe(409);
-    });
-
-    it('RateLimitError should work correctly', () => {
-      const error = new RateLimitError('Too many requests');
-      expect(error.message).toBe('Too many requests');
-      expect(error.code).toBe('RATE_LIMIT_EXCEEDED');
-      expect(error.statusCode).toBe(429);
-    });
-
     it('InternalError should work correctly', () => {
       const error = new InternalError('Internal server error');
       expect(error.message).toBe('Internal server error');
@@ -109,10 +67,35 @@ describe('Error module exports', () => {
       expect(error.isOperational).toBe(false);
     });
 
-    it('NotImplementedError should work correctly', () => {
-      const error = new NotImplementedError('Feature not implemented');
-      expect(error.message).toBe("Feature 'Feature not implemented' is not implemented yet");
-      expect(error.name).toBe('NotImplementedError');
+    it('OracleProviderError should work correctly', () => {
+      const error = new OracleProviderError('Fetch failed', 'redstone', 'NETWORK_ERROR');
+      expect(error.message).toBe('Fetch failed');
+      expect(error.provider).toBe('redstone');
+      expect(error.errorCode).toBe('NETWORK_ERROR');
+      expect(error.retryable).toBe(true);
+      expect(error.code).toBe('REDSTONE_ERROR');
+    });
+
+    it('OracleProviderError should use config for severity and retryable', () => {
+      const retryableError = new OracleProviderError('Test', 'chainlink', 'AGGREGATOR_OFFLINE');
+      expect(retryableError.retryable).toBe(true);
+      expect(retryableError.severity).toBe('high');
+
+      const nonRetryableError = new OracleProviderError('Test', 'pyth', 'INVALID_PRICE');
+      expect(nonRetryableError.retryable).toBe(false);
+      expect(nonRetryableError.severity).toBe('critical');
+    });
+
+    it('OracleProviderError should fallback for unknown error codes', () => {
+      const error = new OracleProviderError('Test', 'redstone', 'UNKNOWN_CODE');
+      expect(error.retryable).toBe(true);
+      expect(error.severity).toBe('medium');
+    });
+
+    it('PriceFetchError should work correctly', () => {
+      const error = new PriceFetchError('Price fetch failed', { retryable: true });
+      expect(error.message).toBe('Price fetch failed');
+      expect(error.retryable).toBe(true);
     });
   });
 });

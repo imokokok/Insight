@@ -70,14 +70,14 @@ export function createApiHandler<T = unknown>(
 
   const errorMiddleware = createErrorMiddleware(middlewares.error);
 
-  const rateLimitMiddleware = middlewares.rateLimit
-    ? createRateLimitMiddleware(
-        typeof middlewares.rateLimit === 'boolean' ? {} : middlewares.rateLimit
-      )
-    : null;
-
   const apiKeyMiddleware = middlewares.apiKey
     ? createApiKeyMiddleware(typeof middlewares.apiKey === 'boolean' ? {} : middlewares.apiKey)
+    : null;
+
+  const baseRateLimitOptions = middlewares.rateLimit
+    ? typeof middlewares.rateLimit === 'boolean'
+      ? {}
+      : middlewares.rateLimit
     : null;
 
   return async (
@@ -97,7 +97,26 @@ export function createApiHandler<T = unknown>(
         apiContext.requestId = `req_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
       }
 
-      if (rateLimitMiddleware) {
+      if (apiKeyMiddleware) {
+        const apiKeyResult = await apiKeyMiddleware(request);
+        if (!apiKeyResult.success) {
+          logResponse(apiContext.requestId, apiKeyResult.response.status, startTime);
+          return apiKeyResult.response;
+        }
+        apiContext.apiKey = apiKeyResult.context;
+      }
+
+      if (baseRateLimitOptions) {
+        const rateLimitOptions = { ...baseRateLimitOptions };
+        if (apiContext.apiKey?.rateLimit) {
+          rateLimitOptions.maxRequests = apiContext.apiKey.rateLimit;
+          rateLimitOptions.keyGenerator = (req: NextRequest) => {
+            const baseKey = `api:${apiContext.apiKey!.keyId}`;
+            const path = req.nextUrl.pathname;
+            return `${baseKey}:${path}`;
+          };
+        }
+        const rateLimitMiddleware = createRateLimitMiddleware(rateLimitOptions);
         const rateLimitResult = await rateLimitMiddleware(request);
         if (!rateLimitResult.success) {
           logResponse(apiContext.requestId, 429, startTime);
@@ -112,15 +131,6 @@ export function createApiHandler<T = unknown>(
           return authResult.response;
         }
         apiContext.auth = authResult.context;
-      }
-
-      if (apiKeyMiddleware) {
-        const apiKeyResult = await apiKeyMiddleware(request);
-        if (!apiKeyResult.success) {
-          logResponse(apiContext.requestId, apiKeyResult.response.status, startTime);
-          return apiKeyResult.response;
-        }
-        apiContext.apiKey = apiKeyResult.context;
       }
 
       const response = await handler(request, apiContext);

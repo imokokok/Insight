@@ -8,12 +8,8 @@ import {
   isAppError,
   type AppError,
   ValidationError,
-  NotFoundError,
   PriceFetchError,
-  RateLimitError,
-  AuthenticationError,
-  AuthorizationError,
-  NetworkError,
+  OracleProviderError,
   classifyError,
 } from '@/lib/errors';
 import { captureException, addBreadcrumb } from '@/lib/monitoring';
@@ -392,33 +388,13 @@ const ERROR_CONFIGS: Array<{
     }),
   },
   {
-    check: (error) => error instanceof NotFoundError,
+    check: (error) => error instanceof OracleProviderError,
     getConfig: (_, themeStyle) => ({
-      icon: '🔍',
-      title: 'Not Found',
-      message: 'The requested resource was not found.',
-      bgColor: themeStyle?.bg || 'bg-blue-100',
-      buttonClass: themeStyle?.button || 'bg-blue-600 text-white hover:bg-blue-700',
-    }),
-  },
-  {
-    check: (error) => error instanceof AuthenticationError,
-    getConfig: (_, themeStyle) => ({
-      icon: '🔐',
-      title: 'Authentication Required',
-      message: 'Please sign in to access this feature.',
-      bgColor: themeStyle?.bg || 'bg-orange-100',
-      buttonClass: themeStyle?.button || 'bg-orange-600 text-white hover:bg-orange-700',
-    }),
-  },
-  {
-    check: (error) => error instanceof AuthorizationError,
-    getConfig: (_, themeStyle) => ({
-      icon: '🚫',
-      title: 'Access Denied',
-      message: "You don't have permission to access this resource.",
-      bgColor: themeStyle?.bg || 'bg-red-100',
-      buttonClass: themeStyle?.button || 'bg-red-600 text-white hover:bg-red-700',
+      icon: '📈',
+      title: 'Oracle Error',
+      message: _.message,
+      bgColor: themeStyle?.bg || 'bg-purple-100',
+      buttonClass: themeStyle?.button || 'bg-purple-600 text-white hover:bg-purple-700',
     }),
   },
   {
@@ -431,26 +407,6 @@ const ERROR_CONFIGS: Array<{
         : 'Unable to retrieve price data at this time.',
       bgColor: themeStyle?.bg || 'bg-purple-100',
       buttonClass: themeStyle?.button || 'bg-purple-600 text-white hover:bg-purple-700',
-    }),
-  },
-  {
-    check: (error) => error instanceof RateLimitError,
-    getConfig: (_, themeStyle) => ({
-      icon: '⏱️',
-      title: 'Rate Limit Exceeded',
-      message: 'Too many requests. Please try again later.',
-      bgColor: themeStyle?.bg || 'bg-indigo-100',
-      buttonClass: themeStyle?.button || 'bg-indigo-600 text-white hover:bg-indigo-700',
-    }),
-  },
-  {
-    check: (error) => error instanceof NetworkError,
-    getConfig: (_, themeStyle) => ({
-      icon: '🌐',
-      title: 'Network Error',
-      message: 'Connection failed. Please check your internet connection.',
-      bgColor: themeStyle?.bg || 'bg-cyan-100',
-      buttonClass: themeStyle?.button || 'bg-cyan-600 text-white hover:bg-cyan-700',
     }),
   },
   {

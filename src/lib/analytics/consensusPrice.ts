@@ -10,13 +10,7 @@ import {
 
 const logger = createLogger('consensusPrice');
 
-export type ConsensusMethod =
-  | 'median'
-  | 'trimmed_mean'
-  | 'weighted_median'
-  | 'confidence_weighted'
-  | 'reliability_weighted'
-  | 'iqr_filtered';
+export type ConsensusMethod = 'median' | 'trimmed_mean' | 'weighted_median' | 'iqr_filtered';
 
 export type ConsensusConfidenceLevel = 'high' | 'medium' | 'low' | 'very_low';
 
@@ -127,43 +121,6 @@ function weightedMedianMethod(
   }
 
   return weighted[weighted.length - 1].price;
-}
-
-function confidenceWeightedMethod(inputs: ConsensusPriceInput[]): number {
-  if (inputs.length === 0) return 0;
-
-  let weightedSum = 0;
-  let weightSum = 0;
-
-  for (const input of inputs) {
-    const weight = input.confidence ?? 0.8;
-    weightedSum += input.price * weight;
-    weightSum += weight;
-  }
-
-  return weightSum > 0 ? weightedSum / weightSum : calculateMean(inputs.map((i) => i.price));
-}
-
-function reliabilityWeightedMethod(inputs: ConsensusPriceInput[]): number {
-  if (inputs.length === 0) return 0;
-
-  const now = Date.now();
-  let weightedSum = 0;
-  let weightSum = 0;
-
-  for (const input of inputs) {
-    const confidenceWeight = input.confidence ?? 0.8;
-    const ageSeconds = (now - input.timestamp) / 1000;
-    const freshnessWeight = Math.max(0.1, Math.exp(-ageSeconds / 300));
-    const ciWidth = input.confidenceInterval?.widthPercentage ?? 10;
-    const ciWeight = Math.max(0.1, 1 - ciWidth / 20);
-    const weight = confidenceWeight * 0.4 + freshnessWeight * 0.35 + ciWeight * 0.25;
-
-    weightedSum += input.price * weight;
-    weightSum += weight;
-  }
-
-  return weightSum > 0 ? weightedSum / weightSum : calculateMean(inputs.map((i) => i.price));
 }
 
 function iqrFilteredMethod(inputs: ConsensusPriceInput[], symbol?: string): number {
@@ -289,66 +246,6 @@ function detectDualSourceOutliers(
     return { valid: inputs, outliers: [] };
   }
 
-  const historyVerdict = resolveDualSourceConflictViaHistory(inputs, context);
-
-  if (historyVerdict !== null) {
-    return historyVerdict;
-  }
-
-  const confidenceVerdict = resolveDualSourceConflictViaConfidence(inputs);
-
-  if (confidenceVerdict !== null) {
-    return confidenceVerdict;
-  }
-
-  return {
-    valid: inputs,
-    outliers: [],
-  };
-}
-
-function resolveDualSourceConflictViaHistory(
-  inputs: ConsensusPriceInput[],
-  context?: DetectOutliersContext
-): { valid: ConsensusPriceInput[]; outliers: ConsensusPriceInput[] } | null {
-  if (!context?.historyKey) return null;
-
-  const history = consensusHistoryMap.get(context.historyKey);
-  if (!history || history.length < 3) return null;
-
-  const recentPrices = history.slice(-10).map((h) => h.price);
-  const histMean = calculateMean(recentPrices);
-  if (histMean === 0) return null;
-
-  const category = context.symbol ? getSymbolCategory(context.symbol) : 'alt';
-  const histThreshold = getDeviationThreshold(category) * HISTORY_DEVIATION_MULTIPLIER;
-
-  const deviations = inputs.map((input) => ({
-    input,
-    deviation: Math.abs(input.price - histMean) / histMean,
-  }));
-
-  const outlierCandidates = deviations.filter((d) => d.deviation > histThreshold);
-
-  if (outlierCandidates.length === 1) {
-    const outlierProvider = outlierCandidates[0].input.provider;
-    return {
-      valid: inputs.filter((i) => i.provider !== outlierProvider),
-      outliers: inputs.filter((i) => i.provider === outlierProvider),
-    };
-  }
-
-  if (outlierCandidates.length === 2) {
-    return null;
-  }
-
-  return null;
-}
-
-function resolveDualSourceConflictViaConfidence(
-  inputs: ConsensusPriceInput[]
-): { valid: ConsensusPriceInput[]; outliers: ConsensusPriceInput[] } | null {
-  const [a, b] = inputs;
   const confA = a.confidence ?? 0.5;
   const confB = b.confidence ?? 0.5;
   const ciWidthA = a.confidenceInterval?.widthPercentage ?? Infinity;
@@ -358,7 +255,25 @@ function resolveDualSourceConflictViaConfidence(
   const scoreB = confB * 0.6 + (1 - Math.min(ciWidthB, 100) / 100) * 0.4;
 
   const scoreDiff = Math.abs(scoreA - scoreB);
-  if (scoreDiff < 0.15) return null;
+  if (scoreDiff < 0.15) {
+    if (context?.historyKey) {
+      const history = consensusHistoryMap.get(context.historyKey);
+      if (history && history.length >= 3) {
+        const recentPrices = history.slice(-10).map((h) => h.price);
+        const histMean = calculateMean(recentPrices);
+        if (histMean > 0) {
+          const histDevA = Math.abs(a.price - histMean) / histMean;
+          const histDevB = Math.abs(b.price - histMean) / histMean;
+          if (Math.abs(histDevA - histDevB) > threshold) {
+            const outlier = histDevA > histDevB ? a : b;
+            const validSource = histDevA > histDevB ? b : a;
+            return { valid: [validSource], outliers: [outlier] };
+          }
+        }
+      }
+    }
+    return { valid: inputs, outliers: [] };
+  }
 
   const outlier = scoreA < scoreB ? a : b;
   const valid = scoreA < scoreB ? b : a;
@@ -395,21 +310,49 @@ function getConfidenceLevel(confidence: number): ConsensusConfidenceLevel {
   return 'very_low';
 }
 
+function computeMethod(
+  method: ConsensusMethod,
+  validInputs: ConsensusPriceInput[],
+  symbol?: string
+): number {
+  const prices = validInputs.map((i) => i.price);
+  switch (method) {
+    case 'median':
+      return medianMethod(prices);
+    case 'trimmed_mean':
+      return trimmedMeanMethod(prices);
+    case 'weighted_median':
+      return weightedMedianMethod(validInputs, (input) => {
+        const confidenceWeight = input.confidence ?? 0.8;
+        const ageSeconds = (Date.now() - input.timestamp) / 1000;
+        const freshnessWeight = Math.max(0.1, Math.exp(-ageSeconds / 300));
+        const ciWidth = input.confidenceInterval?.widthPercentage ?? 10;
+        const ciWeight = Math.max(0.1, 1 - ciWidth / 20);
+        return confidenceWeight * 0.4 + freshnessWeight * 0.35 + ciWeight * 0.25;
+      });
+    case 'iqr_filtered':
+      return iqrFilteredMethod(validInputs, symbol);
+  }
+}
+
 function computeAllMethods(
   validInputs: ConsensusPriceInput[],
   symbol?: string
 ): Record<ConsensusMethod, number> {
-  const prices = validInputs.map((i) => i.price);
-
   return {
-    median: medianMethod(prices),
-    trimmed_mean: trimmedMeanMethod(prices),
-    weighted_median: weightedMedianMethod(validInputs, (input) => input.confidence ?? 0.8),
-    confidence_weighted: confidenceWeightedMethod(validInputs),
-    reliability_weighted: reliabilityWeightedMethod(validInputs),
-    iqr_filtered: iqrFilteredMethod(validInputs, symbol),
+    median: computeMethod('median', validInputs, symbol),
+    trimmed_mean: computeMethod('trimmed_mean', validInputs, symbol),
+    weighted_median: computeMethod('weighted_median', validInputs, symbol),
+    iqr_filtered: computeMethod('iqr_filtered', validInputs, symbol),
   };
 }
+
+const EMPTY_METHOD_RESULTS: Record<ConsensusMethod, number> = {
+  median: 0,
+  trimmed_mean: 0,
+  weighted_median: 0,
+  iqr_filtered: 0,
+};
 
 export function calculateConsensusPrice(
   inputs: ConsensusPriceInput[],
@@ -429,14 +372,7 @@ export function calculateConsensusPrice(
         excludedCount: 0,
         excludedProviders: [],
         priceRange: { min: 0, max: 0 },
-        methodResults: {
-          median: 0,
-          trimmed_mean: 0,
-          weighted_median: 0,
-          confidence_weighted: 0,
-          reliability_weighted: 0,
-          iqr_filtered: 0,
-        },
+        methodResults: { ...EMPTY_METHOD_RESULTS },
         recommendedMethod: 'median',
       };
     }
@@ -447,9 +383,7 @@ export function calculateConsensusPrice(
     const recommendedMethod = getRecommendedMethod(category);
     const activeMethod = method ?? recommendedMethod;
 
-    const methodResults = computeAllMethods(valid, symbol);
-
-    const consensusPrice = methodResults[activeMethod];
+    const consensusPrice = computeMethod(activeMethod, valid, symbol);
 
     const validPrices = valid.map((i) => i.price);
     const agreement = calculateAgreement(validPrices);
@@ -480,7 +414,7 @@ export function calculateConsensusPrice(
       excludedCount: outliers.length,
       excludedProviders,
       priceRange,
-      methodResults,
+      methodResults: computeAllMethods(valid, symbol),
       recommendedMethod,
     };
   } catch (error) {
@@ -499,14 +433,7 @@ export function calculateConsensusPrice(
       excludedCount: 0,
       excludedProviders: [],
       priceRange: { min: 0, max: 0 },
-      methodResults: {
-        median: 0,
-        trimmed_mean: 0,
-        weighted_median: 0,
-        confidence_weighted: 0,
-        reliability_weighted: 0,
-        iqr_filtered: 0,
-      },
+      methodResults: { ...EMPTY_METHOD_RESULTS },
       recommendedMethod: 'median',
     };
   }
@@ -538,8 +465,6 @@ export function getConsensusMethodLabel(method: ConsensusMethod): string {
     median: 'Median',
     trimmed_mean: 'Trimmed Mean',
     weighted_median: 'Weighted Median',
-    confidence_weighted: 'Confidence Weighted',
-    reliability_weighted: 'Reliability Weighted',
     iqr_filtered: 'IQR Filtered',
   };
   return labels[method];
@@ -549,9 +474,7 @@ export function getConsensusMethodDescription(method: ConsensusMethod): string {
   const descriptions: Record<ConsensusMethod, string> = {
     median: 'Middle value of sorted prices, robust against extreme outliers',
     trimmed_mean: 'Mean after removing top and bottom 25%, balanced accuracy',
-    weighted_median: 'Median weighted by confidence scores, prioritizes reliable oracles',
-    confidence_weighted: 'Weighted average by confidence, emphasizes high-confidence quotes',
-    reliability_weighted: 'Weighted by confidence + freshness + interval stability',
+    weighted_median: 'Median weighted by confidence, freshness and interval stability',
     iqr_filtered: 'Removes IQR outliers then takes median, best for stablecoins',
   };
   return descriptions[method];
