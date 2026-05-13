@@ -40,12 +40,6 @@ export const POST = createApiHandler(
 
     const deletionErrors: string[] = [];
 
-    const favSuccess = await queries.deleteAllFavorites(userId);
-    if (!favSuccess) {
-      deletionErrors.push('favorites');
-      logger.error('Failed to delete user favorites');
-    }
-
     const alertSuccess = await queries.deleteAllAlerts(userId);
     if (!alertSuccess) {
       deletionErrors.push('alerts');

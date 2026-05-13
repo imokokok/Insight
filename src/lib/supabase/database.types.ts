@@ -134,44 +134,6 @@ export interface Database {
           },
         ];
       };
-      user_favorites: {
-        Row: {
-          id: string;
-          user_id: string;
-          name: string;
-          config_type: 'oracle_config' | 'symbol' | 'chain_config';
-          config_data: Json;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: {
-          id?: string;
-          user_id: string;
-          name: string;
-          config_type: 'oracle_config' | 'symbol' | 'chain_config';
-          config_data: Json;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Update: {
-          id?: string;
-          user_id?: string;
-          name?: string;
-          config_type?: 'oracle_config' | 'symbol' | 'chain_config';
-          config_data?: Json;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'user_favorites_user_id_fkey';
-            columns: ['user_id'];
-            isOneToOne: false;
-            referencedRelation: 'users';
-            referencedColumns: ['id'];
-          },
-        ];
-      };
       price_alerts: {
         Row: {
           id: string;

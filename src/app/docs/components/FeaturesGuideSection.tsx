@@ -12,7 +12,6 @@ import {
   Shield,
   Award,
   Camera,
-  Heart,
 } from 'lucide-react';
 
 export default function FeaturesGuideSection() {
@@ -85,17 +84,6 @@ export default function FeaturesGuideSection() {
         'Save and share price snapshots',
         'Snapshot comparison with change analytics',
         'Public/private visibility control',
-      ],
-    },
-    {
-      icon: <Heart className="w-6 h-6" />,
-      title: 'Favorites',
-      description: 'Save oracle configurations and apply them with one click to any analysis page',
-      href: '/favorites',
-      highlights: [
-        'Save oracle, symbol, and chain configs',
-        'One-click apply to target pages',
-        'Search and filter by type',
       ],
     },
   ];

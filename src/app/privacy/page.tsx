@@ -58,7 +58,6 @@ export default function PrivacyPage() {
                   <ul className="list-disc list-inside space-y-1 ml-4">
                     <li>Price alert configurations</li>
                     <li>Saved price snapshots</li>
-                    <li>Favorite oracle configurations</li>
                     <li>Alert history and events</li>
                   </ul>
                 </div>

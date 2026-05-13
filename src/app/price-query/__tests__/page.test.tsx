@@ -91,9 +91,6 @@ jest.mock('../contexts', () => ({
       setSelectedRow: jest.fn(),
       showBaseline: false,
       setShowBaseline: jest.fn(),
-      showFavoritesDropdown: false,
-      setShowFavoritesDropdown: jest.fn(),
-      favoritesDropdownRef: { current: null },
     },
   }),
 }));

@@ -2,24 +2,16 @@
 
 import { Download, RefreshCw, Eye } from 'lucide-react';
 
-import { FavoriteButton } from '@/components/favorites';
 import { LiveStatusBar } from '@/components/ui';
 import { useColorblindMode, useSetColorblindMode } from '@/stores/crossChainConfigStore';
 import { useCrossChainDataStore } from '@/stores/crossChainDataStore';
-import { useCrossChainSelectorStore } from '@/stores/crossChainSelectorStore';
-import { useCrossChainUIStore } from '@/stores/crossChainUIStore';
 
 import { useCrossChainExportActions } from '../hooks/useCrossChainExport';
-
-import { FavoritesDropdown } from './FavoritesDropdown';
 
 export function PageHeader() {
   const colorblindMode = useColorblindMode();
   const setColorblindMode = useSetColorblindMode();
 
-  const selectedSymbol = useCrossChainSelectorStore((s) => s.selectedSymbol);
-  const selectedProvider = useCrossChainSelectorStore((s) => s.selectedProvider);
-  const visibleChains = useCrossChainUIStore((s) => s.visibleChains);
   const loading = useCrossChainDataStore((s) => s.loading);
   const currentPrices = useCrossChainDataStore((s) => s.currentPrices);
   const refreshStatus = useCrossChainDataStore((s) => s.refreshStatus);
@@ -27,17 +19,7 @@ export function PageHeader() {
   const lastUpdated = useCrossChainDataStore((s) => s.lastUpdated);
   const fetchData = useCrossChainDataStore((s) => s.fetchData);
 
-  const {
-    exportToCSV,
-    exportToJSON,
-    user,
-    chainFavorites,
-    currentFavoriteConfig,
-    showFavoritesDropdown,
-    setShowFavoritesDropdown,
-    favoritesDropdownRef,
-    handleApplyFavorite,
-  } = useCrossChainExportActions();
+  const { exportToCSV, exportToJSON } = useCrossChainExportActions();
 
   return (
     <div className="mb-6">
@@ -48,26 +30,6 @@ export function PageHeader() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          {user && (
-            <FavoriteButton
-              configType="chain_config"
-              configData={currentFavoriteConfig}
-              name={`${selectedSymbol} - ${selectedProvider} (${visibleChains.length} chains)`}
-              variant="button"
-              showLabel
-            />
-          )}
-
-          {user && chainFavorites && chainFavorites.length > 0 && (
-            <FavoritesDropdown
-              chainFavorites={chainFavorites.filter((f): f is typeof f & { id: string } => !!f.id)}
-              showFavoritesDropdown={showFavoritesDropdown}
-              onToggleDropdown={() => setShowFavoritesDropdown(!showFavoritesDropdown)}
-              onApplyFavorite={handleApplyFavorite}
-              dropdownRef={favoritesDropdownRef}
-            />
-          )}
-
           <button
             onClick={() => setColorblindMode(!colorblindMode)}
             className={`flex items-center gap-2 px-3 py-1.5 text-sm border rounded-md transition-colors ${

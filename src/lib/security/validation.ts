@@ -47,8 +47,6 @@ const SafeBooleanSchema = z.union([
   z.union([z.literal(0), z.literal(1)]).transform((val) => val === 1),
 ]);
 
-const SafeConfigTypeSchema = z.enum(['oracle_config', 'symbol', 'chain_config']);
-
 const SafeIdListSchema = z
   .array(z.string().uuid())
   .min(1, 'At least one ID required')
@@ -95,17 +93,6 @@ export const CreateAlertRequestSchema = z.object({
   target_value: SafeAlertTargetValueSchema,
   provider: SafeProviderSchema.optional(),
   is_active: SafeBooleanSchema.optional().default(true),
-});
-
-export const CreateFavoriteRequestSchema = z.object({
-  name: SafeNameSchema,
-  config_type: SafeConfigTypeSchema,
-  config_data: z
-    .record(z.string(), z.union([z.string(), z.number(), z.boolean(), z.null()]))
-    .refine((val) => {
-      const size = JSON.stringify(val).length;
-      return size <= 10000;
-    }, 'Config data too large'),
 });
 
 export const BatchOperationSchema = z.object({

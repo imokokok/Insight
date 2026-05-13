@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useMemo, useCallback, useRef, useState } from 'react';
+import { createContext, useContext, useMemo, useCallback, useState } from 'react';
 
 import { refreshIntervalToMs, type RefreshInterval } from '@/hooks/useAutoRefresh';
 import { type OracleProvider, type Blockchain } from '@/types/oracle';
@@ -26,9 +26,6 @@ interface QueryUIState {
   setSelectedRow: (row: string | null) => void;
   showBaseline: boolean;
   setShowBaseline: (show: boolean) => void;
-  showFavoritesDropdown: boolean;
-  setShowFavoritesDropdown: (show: boolean) => void;
-  favoritesDropdownRef: React.RefObject<HTMLDivElement | null>;
 }
 
 interface UnifiedQueryContextValue {
@@ -112,8 +109,6 @@ export function UnifiedQueryProvider({ children }: { children: React.ReactNode }
   const [hiddenSeries, setHiddenSeries] = useState<Set<string>>(new Set());
   const [selectedRow, setSelectedRow] = useState<string | null>(null);
   const [showBaseline, setShowBaseline] = useState<boolean>(false);
-  const [showFavoritesDropdown, setShowFavoritesDropdown] = useState(false);
-  const favoritesDropdownRef = useRef<HTMLDivElement>(null);
 
   const toggleSeries = useCallback((seriesName: string) => {
     setHiddenSeries((prev) => {
@@ -153,9 +148,6 @@ export function UnifiedQueryProvider({ children }: { children: React.ReactNode }
       setSelectedRow,
       showBaseline,
       setShowBaseline,
-      showFavoritesDropdown,
-      setShowFavoritesDropdown,
-      favoritesDropdownRef,
     }),
     [
       filterText,
@@ -166,8 +158,6 @@ export function UnifiedQueryProvider({ children }: { children: React.ReactNode }
       handleSort,
       selectedRow,
       showBaseline,
-      showFavoritesDropdown,
-      favoritesDropdownRef,
     ]
   );
 

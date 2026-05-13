@@ -83,7 +83,6 @@ export function DataManagementPanel() {
           email: user.email,
         },
         profile: result.profile,
-        favorites: result.favorites,
         alerts: result.alerts,
         snapshots: result.snapshots,
       };

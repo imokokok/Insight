@@ -17,7 +17,6 @@ const ALLOWED_REDIRECT_PATHS = [
   '/settings',
   '/profile',
   '/alerts',
-  '/favorites',
   '/snapshots',
   '/price-query',
   '/cross-chain',

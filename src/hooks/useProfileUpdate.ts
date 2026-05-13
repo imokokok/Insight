@@ -36,13 +36,12 @@ export function useDataExport() {
     setIsExporting(true);
     setError(null);
     try {
-      const [profile, favorites, alerts, snapshots] = await Promise.all([
+      const [profile, alerts, snapshots] = await Promise.all([
         apiClient.get('/api/auth/profile'),
-        apiClient.get('/api/favorites'),
         apiClient.get('/api/alerts'),
         apiClient.get('/api/snapshots'),
       ]);
-      return { profile, favorites, alerts, snapshots };
+      return { profile, alerts, snapshots };
     } catch (err) {
       const appError = err instanceof Error ? err : new Error(String(err));
       logger.error('Failed to export data', appError);

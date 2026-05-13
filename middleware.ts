@@ -2,14 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 
 import { createServerClient } from '@supabase/ssr';
 
-const PROTECTED_PATHS = [
-  '/settings',
-  '/alerts',
-  '/favorites',
-  '/snapshots',
-  '/dashboard',
-  '/profile',
-];
+const PROTECTED_PATHS = ['/settings', '/alerts', '/snapshots', '/dashboard', '/profile'];
 
 async function isAuthenticated(request: NextRequest): Promise<boolean> {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -108,7 +101,6 @@ export const config = {
   matcher: [
     '/settings/:path*',
     '/alerts/:path*',
-    '/favorites/:path*',
     '/snapshots/:path*',
     '/dashboard/:path*',
     '/profile/:path*',

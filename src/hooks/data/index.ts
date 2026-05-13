@@ -10,14 +10,6 @@ export {
 } from './useAlerts';
 export type { CreateAlertInput } from './useAlerts';
 export {
-  useFavorites,
-  useRemoveFavorite,
-  useToggleFavorite,
-  useIsFavorited,
-  mapConfigTypeFromDB,
-} from './useFavorites';
-export type { FavoriteConfig } from './useFavorites';
-export {
   useSnapshots,
   useCreateSnapshot,
   useUpdateSnapshot,
