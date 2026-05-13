@@ -10,7 +10,6 @@ Insight is a professional oracle data analytics platform that provides comprehen
 - **Oracle Reputation System** - Persistent 7-day rolling reputation scores with accuracy, uptime, reliability, latency, and freshness metrics
 - **Price Alerts & Notifications** - Configure custom price alerts with multiple trigger conditions and real-time event push
 - **Price Snapshots** - Save and compare price snapshots across time with detailed comparison analytics
-- **User Favorites** - Save oracle configurations and apply them with one click
 - **Data Export** - Export data in CSV, JSON, Excel, PDF, and PNG formats
 - **Anomaly Detection** - Automatic detection of price anomalies and outliers
 - **Consensus Price** - Multiple consensus algorithms (median, trimmed mean, weighted median, confidence-weighted, reliability-weighted, IQR-filtered)
@@ -142,14 +141,6 @@ All V1 endpoints require an API key passed via `x-api-key` header or `Authorizat
 - `GET /api/alerts/events` - List alert events
 - `POST /api/alerts/events/[id]/acknowledge` - Acknowledge alert event
 - `POST /api/alerts/batch` - Batch alert operations
-
-#### Favorites
-
-- `GET /api/favorites` - List user favorites
-- `POST /api/favorites` - Create favorite
-- `GET /api/favorites/[id]` - Get specific favorite
-- `PUT /api/favorites/[id]` - Update favorite
-- `DELETE /api/favorites/[id]` - Delete favorite
 
 #### Oracles
 

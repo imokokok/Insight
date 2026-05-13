@@ -7,7 +7,6 @@ import {
   Camera,
   Award,
   Bell,
-  Heart,
   BarChart3,
 } from 'lucide-react';
 
@@ -65,12 +64,6 @@ export const navigationConfig: NavStructure = [
         icon: Bell,
         description: 'Set custom price alerts and get notified when oracle prices deviate',
         badge: 'New',
-      },
-      {
-        href: '/favorites',
-        label: 'Favorites',
-        icon: Heart,
-        description: 'Bookmark your favorite oracle pairs for quick access and monitoring',
       },
     ],
   },

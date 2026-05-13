@@ -21,7 +21,6 @@ export default function Footer() {
     { label: 'Oracle Reputation', href: '/reputation' },
     { label: 'Price Snapshots', href: '/snapshots' },
     { label: 'Price Alerts', href: '/alerts' },
-    { label: 'Favorites', href: '/favorites' },
   ];
 
   const resourceLinks = [

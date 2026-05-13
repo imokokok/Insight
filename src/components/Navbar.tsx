@@ -6,7 +6,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-import { Menu, User, Heart, Bell, Camera } from 'lucide-react';
+import { Menu, User, Bell, Camera } from 'lucide-react';
 
 import { Button } from '@/components/ui';
 import { useKeyboardShortcuts } from '@/hooks';
@@ -140,17 +140,6 @@ export default function Navbar() {
 
               {user && !loading ? (
                 <div className="hidden lg:flex items-center gap-0.5">
-                  <Link
-                    href="/favorites"
-                    className={`p-2.5 rounded-md transition-colors ${
-                      isActive('/favorites')
-                        ? 'text-primary-600 bg-primary-50'
-                        : 'text-gray-600 hover:text-primary-600 hover:bg-gray-50'
-                    }`}
-                    title="Favorites"
-                  >
-                    <Heart className="w-[18px] h-[18px]" />
-                  </Link>
                   <Link
                     href="/snapshots"
                     className={`p-2.5 rounded-md transition-colors ${

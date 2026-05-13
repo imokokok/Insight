@@ -1,49 +1,19 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useMemo } from 'react';
 
-import { type FavoriteConfig, useFavorites } from '@/hooks';
-import { isBlockchain } from '@/lib/utils/chainUtils';
-import { useUser } from '@/stores/authStore';
 import { useCrossChainDataStore } from '@/stores/crossChainDataStore';
 import { useCrossChainSelectorStore } from '@/stores/crossChainSelectorStore';
 import { useCrossChainUIStore } from '@/stores/crossChainUIStore';
-import { type OracleProvider } from '@/types/oracle';
 
 import { type PriceDifferenceItem } from '../types';
 
 import { useExport } from './useExport';
 
-function useFavoriteActions() {
-  const { setSelectedProvider, setSelectedSymbol } = useCrossChainSelectorStore();
-  const { setVisibleChains } = useCrossChainUIStore();
-
-  const handleApplyFavorite = useCallback(
-    (config: FavoriteConfig, onClose: () => void) => {
-      if (config.chain) setSelectedProvider(config.chain as OracleProvider);
-      if (config.symbol) setSelectedSymbol(config.symbol);
-      if (config.chains) setVisibleChains(config.chains.filter(isBlockchain));
-      onClose();
-    },
-    [setSelectedProvider, setSelectedSymbol, setVisibleChains]
-  );
-
-  return { handleApplyFavorite };
-}
-
 export function useCrossChainExportActions() {
-  const user = useUser();
-  const { favorites: chainFavorites } = useFavorites({ configType: 'chain_config' });
-  const [showFavoritesDropdown, setShowFavoritesDropdown] = useState(false);
-  const favoritesDropdownRef = useRef<HTMLDivElement>(null);
-
   const selectedProvider = useCrossChainSelectorStore((s) => s.selectedProvider);
   const selectedSymbol = useCrossChainSelectorStore((s) => s.selectedSymbol);
   const selectedBaseChain = useCrossChainSelectorStore((s) => s.selectedBaseChain);
   const visibleChains = useCrossChainUIStore((s) => s.visibleChains);
   const currentPrices = useCrossChainDataStore((s) => s.currentPrices);
-  const storeClearCache = useCrossChainDataStore((s) => s.clearCache);
-  const storeClearCacheForProvider = useCrossChainDataStore((s) => s.clearCacheForProvider);
-
-  const { handleApplyFavorite } = useFavoriteActions();
 
   const filteredChains = useMemo(() => visibleChains, [visibleChains]);
 
@@ -102,36 +72,8 @@ export function useCrossChainExportActions() {
     ...statsForExport,
   });
 
-  const currentFavoriteConfig: FavoriteConfig = useMemo(
-    () => ({
-      chain: selectedProvider,
-      symbol: selectedSymbol,
-      chains: visibleChains.map((c) => c as string),
-    }),
-    [selectedProvider, selectedSymbol, visibleChains]
-  );
-
-  const onApplyFavorite = useCallback(
-    (config: FavoriteConfig) => {
-      handleApplyFavorite(config, () => setShowFavoritesDropdown(false));
-    },
-    [handleApplyFavorite]
-  );
-
-  const clearCache = storeClearCache;
-  const clearCacheForProvider = storeClearCacheForProvider;
-
   return {
     exportToCSV: exportHook.exportToCSV,
     exportToJSON: exportHook.exportToJSON,
-    user,
-    chainFavorites,
-    currentFavoriteConfig,
-    showFavoritesDropdown,
-    setShowFavoritesDropdown,
-    favoritesDropdownRef,
-    handleApplyFavorite: onApplyFavorite,
-    clearCache,
-    clearCacheForProvider,
   };
 }

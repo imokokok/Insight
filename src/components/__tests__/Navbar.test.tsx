@@ -379,13 +379,11 @@ describe('Navbar', () => {
       });
     });
 
-    it('should render favorites and alerts links', () => {
+    it('should render alerts link', () => {
       renderNavbar();
 
-      const favoritesLink = screen.getByTitle('Favorites');
       const alertsLink = screen.getByTitle('Alerts');
 
-      expect(favoritesLink).toBeInTheDocument();
       expect(alertsLink).toBeInTheDocument();
     });
   });
