@@ -199,33 +199,6 @@ function QueryResultsComponent({
               : 'All oracle data is fresh',
         },
         {
-          dimension: 'Divergence Acceleration',
-          contribution:
-            divergenceAccelerationScore * (riskMetrics.weights?.divergenceAcceleration ?? 0.1),
-          suggestion:
-            divergenceSignals.acceleratingCount > 0
-              ? `${divergenceSignals.acceleratingCount} oracle(s) showing accelerating deviation`
-              : 'No accelerating deviations detected',
-        },
-        {
-          dimension: 'Feed Health',
-          contribution:
-            (100 - feedBehavior.overallHealthAvg) *
-            (riskMetrics.weights?.feedBehaviorHealth ?? 0.1),
-          suggestion:
-            feedBehavior.overallHealthLevel !== 'healthy'
-              ? 'Some oracle feeds show abnormal behavior'
-              : 'All oracle feeds are healthy',
-        },
-        {
-          dimension: 'Stability Decay',
-          contribution: stabilityDecayScore * (riskMetrics.weights?.stabilityDecay ?? 0.05),
-          suggestion:
-            stabilityScore.decliningCount > 0
-              ? `${stabilityScore.decliningCount} oracle(s) showing declining stability`
-              : 'Oracle data stability is good',
-        },
-        {
           dimension: 'Correlation Risk',
           contribution: riskMetrics.correlationScore * (riskMetrics.weights?.correlation ?? 0.1),
           suggestion:

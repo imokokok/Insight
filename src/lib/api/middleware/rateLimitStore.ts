@@ -1,5 +1,3 @@
-import { createClient } from '@supabase/supabase-js';
-
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('rate-limit-store');
@@ -183,75 +181,6 @@ class MemoryRateLimitStore implements RateLimitStore {
   }
 }
 
-class NoOpRateLimitStore implements RateLimitStore {
-  async increment(_key: string, windowMs: number): Promise<RateLimitResult> {
-    return { count: 1, resetTime: Date.now() + windowMs };
-  }
-
-  async get(_key: string): Promise<RateLimitResult | null> {
-    return null;
-  }
-}
-
-class SupabaseRateLimitStore implements RateLimitStore {
-  private getClient() {
-    return createClient(
-      process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-      process.env.SUPABASE_SERVICE_ROLE_KEY || '',
-      { auth: { autoRefreshToken: false, persistSession: false } }
-    );
-  }
-
-  async increment(key: string, windowMs: number): Promise<RateLimitResult> {
-    try {
-      const client = this.getClient();
-      const now = new Date();
-      const resetTime = Date.now() + windowMs;
-      const windowStart = new Date(now.getTime() - windowMs).toISOString();
-
-      const { error: deleteError } = await client
-        .from('rate_limits')
-        .delete()
-        .lt('created_at', windowStart);
-
-      if (deleteError) {
-        logger.warn('Supabase rate limit cleanup error', { error: deleteError.message });
-      }
-
-      const { error: insertError } = await client
-        .from('rate_limits')
-        .insert({ key, created_at: now.toISOString() })
-        .select('id')
-        .single();
-
-      if (insertError) {
-        logger.warn('Supabase rate limit insert error', { error: insertError.message });
-        return { count: 1, resetTime };
-      }
-
-      const { count, error: countError } = await client
-        .from('rate_limits')
-        .select('*', { count: 'exact', head: true })
-        .eq('key', key)
-        .gte('created_at', windowStart);
-
-      if (countError) {
-        logger.warn('Supabase rate limit count error', { error: countError.message });
-        return { count: 1, resetTime };
-      }
-
-      return { count: count || 1, resetTime };
-    } catch (error) {
-      logger.warn('Supabase rate limit increment error, failing open', { error });
-      return { count: 1, resetTime: Date.now() + windowMs };
-    }
-  }
-
-  async get(_key: string): Promise<RateLimitResult | null> {
-    return null;
-  }
-}
-
 function createRateLimitStore(): RateLimitStore {
   if (process.env.KV_REST_API_URL) {
     try {
@@ -261,26 +190,6 @@ function createRateLimitStore(): RateLimitStore {
     } catch (error) {
       logger.warn('Failed to create KV rate limit store, falling back', { error });
     }
-  }
-
-  const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (supabaseUrl && supabaseKey) {
-    try {
-      const store = new SupabaseRateLimitStore();
-      logger.info('Using Supabase for rate limit storage');
-      return store;
-    } catch (error) {
-      logger.warn('Failed to create Supabase rate limit store, falling back', { error });
-    }
-  }
-
-  if (process.env.NODE_ENV === 'production') {
-    logger.error(
-      'CRITICAL: No KV or Supabase store configured in production. Rate limiting is DISABLED.'
-    );
-    return new NoOpRateLimitStore();
   }
 
   logger.warn('Using in-memory rate limit storage - not suitable for serverless environments');

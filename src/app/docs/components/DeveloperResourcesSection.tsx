@@ -112,7 +112,7 @@ const history = await fetch(
     {
       question: 'What consensus algorithms are available?',
       answer:
-        'The /api/v1/consensus endpoint supports 6 methods: median, trimmed_mean, weighted_median, confidence_weighted, reliability_weighted, and iqr_filtered. If not specified, the best method is auto-selected based on data characteristics.',
+        'The /api/v1/consensus endpoint supports 4 methods: median, trimmed_mean, weighted_median, and iqr_filtered. If not specified, the best method is auto-selected based on data characteristics.',
     },
     {
       question: 'Why does the history endpoint require a provider?',

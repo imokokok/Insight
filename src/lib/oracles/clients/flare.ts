@@ -1,4 +1,4 @@
-import { FlareError } from '@/lib/errors';
+import { OracleProviderError } from '@/lib/errors';
 import { BaseOracleClient, OracleCache } from '@/lib/oracles/base';
 import type { OracleClientConfig } from '@/lib/oracles/base';
 import { flareSymbols, FLARE_CACHE_TTL } from '@/lib/oracles/constants/flareConstants';
@@ -92,8 +92,9 @@ export class FlareClient extends BaseOracleClient {
             return this.parseFtsoResponse(ftsoData);
           } catch (error) {
             const errorCode = this.classifyError(error);
-            throw new FlareError(
+            throw new OracleProviderError(
               `Failed to fetch price: ${error instanceof Error ? error.message : 'Unknown error'}`,
+              'flare',
               errorCode === 'SYMBOL_NOT_SUPPORTED'
                 ? 'FEED_NOT_FOUND'
                 : errorCode === 'INVALID_RESPONSE'
@@ -116,12 +117,13 @@ export class FlareClient extends BaseOracleClient {
 
       return result;
     } catch (error) {
-      if (error instanceof FlareError) {
+      if (error instanceof OracleProviderError) {
         throw error;
       }
       const errorCode = this.classifyError(error);
-      throw new FlareError(
+      throw new OracleProviderError(
         `Failed to fetch price for ${symbol}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        'flare',
         errorCode === 'RATE_LIMIT_ERROR' ||
           errorCode === 'TIMEOUT_ERROR' ||
           errorCode === 'NETWORK_ERROR'
@@ -177,7 +179,7 @@ export class FlareClient extends BaseOracleClient {
         'NO_DATA_AVAILABLE'
       );
     } catch (error) {
-      if (error instanceof FlareError) {
+      if (error instanceof OracleProviderError) {
         throw this.createError(error.message, error.errorCode as OracleErrorCode);
       }
       throw this.createError(

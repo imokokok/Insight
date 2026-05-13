@@ -1,4 +1,4 @@
-import { RedStoneApiError } from '@/lib/errors';
+import { OracleProviderError } from '@/lib/errors';
 import { RedStoneClient } from '@/lib/oracles/clients/redstone';
 import { REDSTONE_API_BASE } from '@/lib/oracles/constants/redstoneConstants';
 import { OracleProvider, Blockchain } from '@/types/oracle';
@@ -297,7 +297,7 @@ describe('RedStoneClient', () => {
       mockFetch.mockRejectedValue(new Error('Network error'));
 
       await expect(client.getPrice('BTC')).rejects.toMatchObject({
-        code: 'REDSTONE_API_ERROR',
+        code: 'REDSTONE_ERROR',
       });
     });
 
@@ -305,7 +305,7 @@ describe('RedStoneClient', () => {
       mockFetch.mockResolvedValue(createMockResponse({}, false, 429, 'Too Many Requests'));
 
       await expect(client.getPrice('BTC')).rejects.toMatchObject({
-        code: 'REDSTONE_API_ERROR',
+        code: 'REDSTONE_ERROR',
       });
     });
 
@@ -313,7 +313,7 @@ describe('RedStoneClient', () => {
       mockFetch.mockResolvedValue(createMockResponse({}, false, 504, 'Gateway Timeout'));
 
       await expect(client.getPrice('BTC')).rejects.toMatchObject({
-        code: 'REDSTONE_API_ERROR',
+        code: 'REDSTONE_ERROR',
       });
     });
 
@@ -321,7 +321,7 @@ describe('RedStoneClient', () => {
       mockFetch.mockResolvedValue(createMockResponse({}, false, 503, 'Service Unavailable'));
 
       await expect(client.getPrice('BTC')).rejects.toMatchObject({
-        code: 'REDSTONE_API_ERROR',
+        code: 'REDSTONE_ERROR',
       });
     });
 
@@ -347,7 +347,7 @@ describe('RedStoneClient', () => {
       mockFetch.mockResolvedValue(invalidJsonResponse);
 
       await expect(client.getPrice('BTC')).rejects.toMatchObject({
-        code: 'REDSTONE_API_ERROR',
+        code: 'REDSTONE_ERROR',
       });
     });
   });
@@ -660,7 +660,7 @@ describe('RedStoneClient', () => {
       mockFetch.mockRejectedValue(new Error('Network error'));
 
       await expect(client.getPrice('BTC')).rejects.toMatchObject({
-        code: 'REDSTONE_API_ERROR',
+        code: 'REDSTONE_ERROR',
       });
       expect(mockFetch).toHaveBeenCalledTimes(3);
     });
@@ -769,7 +769,7 @@ describe('RedStoneClient', () => {
       mockFetch.mockResolvedValue(createMockResponse({}, false, 429, 'Too Many Requests'));
 
       await expect(client.getPrice('BTC')).rejects.toMatchObject({
-        code: 'REDSTONE_API_ERROR',
+        code: 'REDSTONE_ERROR',
       });
     });
 
@@ -777,7 +777,7 @@ describe('RedStoneClient', () => {
       mockFetch.mockRejectedValue(new Error('timeout'));
 
       await expect(client.getPrice('BTC')).rejects.toMatchObject({
-        code: 'REDSTONE_API_ERROR',
+        code: 'REDSTONE_ERROR',
       });
     });
 
@@ -785,7 +785,7 @@ describe('RedStoneClient', () => {
       mockFetch.mockRejectedValue(new Error('ECONNREFUSED'));
 
       await expect(client.getPrice('BTC')).rejects.toMatchObject({
-        code: 'REDSTONE_API_ERROR',
+        code: 'REDSTONE_ERROR',
       });
     });
 
@@ -793,7 +793,7 @@ describe('RedStoneClient', () => {
       mockFetch.mockRejectedValue(new Error('ENOTFOUND'));
 
       await expect(client.getPrice('BTC')).rejects.toMatchObject({
-        code: 'REDSTONE_API_ERROR',
+        code: 'REDSTONE_ERROR',
       });
     });
 
@@ -801,7 +801,7 @@ describe('RedStoneClient', () => {
       mockFetch.mockRejectedValue(new Error('JSON parse error'));
 
       await expect(client.getPrice('BTC')).rejects.toMatchObject({
-        code: 'REDSTONE_API_ERROR',
+        code: 'REDSTONE_ERROR',
       });
     });
 
@@ -809,63 +809,64 @@ describe('RedStoneClient', () => {
       mockFetch.mockRejectedValue(new Error('Some other error'));
 
       await expect(client.getPrice('BTC')).rejects.toMatchObject({
-        code: 'REDSTONE_API_ERROR',
+        code: 'REDSTONE_ERROR',
       });
     });
   });
 
-  describe('RedStoneApiError', () => {
-    it('should create RedStoneApiError with correct properties', () => {
-      const error = new RedStoneApiError('Test error', 'RATE_LIMIT_ERROR', {
+  describe('RedStoneApiError (now OracleProviderError)', () => {
+    it('should create error with correct properties', () => {
+      const error = new OracleProviderError('Test error', 'redstone', 'RATE_LIMIT_ERROR', {
         symbol: 'BTC',
         attemptCount: 2,
       });
 
       expect(error.message).toBe('Test error');
+      expect(error.provider).toBe('redstone');
       expect(error.errorCode).toBe('RATE_LIMIT_ERROR');
       expect(error.retryable).toBe(true);
       expect(error.attemptCount).toBe(2);
     });
 
     it('should mark rate limit error as retryable', () => {
-      const error = new RedStoneApiError('Rate limited', 'RATE_LIMIT_ERROR');
+      const error = new OracleProviderError('Rate limited', 'redstone', 'RATE_LIMIT_ERROR');
       expect(error.retryable).toBe(true);
     });
 
     it('should mark network error as retryable', () => {
-      const error = new RedStoneApiError('Network error', 'NETWORK_ERROR');
+      const error = new OracleProviderError('Network error', 'redstone', 'NETWORK_ERROR');
       expect(error.retryable).toBe(true);
     });
 
     it('should mark timeout error as retryable', () => {
-      const error = new RedStoneApiError('Timeout', 'TIMEOUT_ERROR');
+      const error = new OracleProviderError('Timeout', 'redstone', 'TIMEOUT_ERROR');
       expect(error.retryable).toBe(true);
     });
 
     it('should mark fetch error as retryable', () => {
-      const error = new RedStoneApiError('Fetch failed', 'FETCH_ERROR');
+      const error = new OracleProviderError('Fetch failed', 'redstone', 'FETCH_ERROR');
       expect(error.retryable).toBe(true);
     });
 
     it('should mark parse error as non-retryable', () => {
-      const error = new RedStoneApiError('Parse failed', 'PARSE_ERROR');
+      const error = new OracleProviderError('Parse failed', 'redstone', 'PARSE_ERROR');
       expect(error.retryable).toBe(false);
     });
 
     it('should mark invalid response as non-retryable', () => {
-      const error = new RedStoneApiError('Invalid response', 'INVALID_RESPONSE');
+      const error = new OracleProviderError('Invalid response', 'redstone', 'INVALID_RESPONSE');
       expect(error.retryable).toBe(false);
     });
 
     it('should include cause error', () => {
       const cause = new Error('Original error');
-      const error = new RedStoneApiError('Wrapped error', 'FETCH_ERROR', {}, cause);
+      const error = new OracleProviderError('Wrapped error', 'redstone', 'FETCH_ERROR', {}, cause);
 
       expect(error.cause).toBe(cause);
     });
 
     it('should generate correct API response', () => {
-      const error = new RedStoneApiError('Test error', 'RATE_LIMIT_ERROR', {
+      const error = new OracleProviderError('Test error', 'redstone', 'RATE_LIMIT_ERROR', {
         symbol: 'BTC',
         attemptCount: 3,
       });
@@ -873,7 +874,7 @@ describe('RedStoneClient', () => {
       const response = error.toApiResponse();
 
       expect(response.success).toBe(false);
-      expect(response.error.code).toBe('REDSTONE_API_ERROR');
+      expect(response.error.code).toBe('REDSTONE_ERROR');
       expect(response.error.errorCode).toBe('RATE_LIMIT_ERROR');
       expect(response.error.retryable).toBe(true);
       expect(response.error.attemptCount).toBe(3);
@@ -885,7 +886,7 @@ describe('RedStoneClient', () => {
       mockFetch.mockResolvedValueOnce(createMockResponse([]));
 
       await expect(client.getPrice('')).rejects.toMatchObject({
-        code: 'REDSTONE_ERROR',
+        code: 'INVALID_SYMBOL',
       });
     });
 

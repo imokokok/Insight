@@ -1,9 +1,13 @@
-import { z } from 'zod';
+import { z, type ZodSchema } from 'zod';
 
+import { createLogger } from '@/lib/utils/logger';
+import { ZodValidationError } from '@/lib/validation/errors';
 import { ORACLE_PROVIDER_VALUES } from '@/types/oracle/enums';
 import type { OracleProvider } from '@/types/oracle/enums';
 
 import { sanitizeString, sanitizeSymbol, sanitizeProvider, sanitizeChain } from './inputSanitizer';
+
+const validationLogger = createLogger('oracle-validation');
 
 const SafeSymbolSchema = z
   .string()
@@ -194,3 +198,34 @@ export const OracleProviderQuerySchema = z.object({
   period: SafePeriodSchema.optional(),
   forceRefresh: z.coerce.boolean().optional(),
 });
+
+export function validateOracleData<T>(schema: ZodSchema<T>, data: unknown, context?: string): T {
+  const result = schema.safeParse(data);
+
+  if (!result.success) {
+    const error = ZodValidationError.fromZodError(result.error);
+    const contextMessage = context ? ` in ${context}` : '';
+    validationLogger.error(`Oracle data validation failed${contextMessage}`, error, {
+      issues: result.error.issues,
+    });
+    throw error;
+  }
+
+  return result.data;
+}
+
+export function safeValidateOracleData<T>(
+  schema: ZodSchema<T>,
+  data: unknown,
+  context?: string
+): T | null {
+  try {
+    return validateOracleData(schema, data, context);
+  } catch (error) {
+    validationLogger.warn(
+      `Oracle data validation failed, returning null${context ? ` in ${context}` : ''}`,
+      { error }
+    );
+    return null;
+  }
+}
