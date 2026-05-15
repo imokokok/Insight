@@ -36,7 +36,6 @@ const cryptoLogoMap: Record<string, string> = {
   USDC: '/logos/cryptos/usdc.svg',
   USDT: '/logos/cryptos/usdt.svg',
   DAI: '/logos/cryptos/dai.svg',
-  // Forex
   EUR: '/logos/forex/eur.svg',
   GBP: '/logos/forex/gbp.svg',
   JPY: '/logos/forex/jpy.svg',
@@ -57,14 +56,23 @@ const cryptoLogoMap: Record<string, string> = {
   ZAR: '/logos/forex/zar.svg',
   PHP: '/logos/forex/php.svg',
   IDR: '/logos/forex/idr.svg',
-  // Commodities
   XAU: '/logos/commodities/xau.svg',
   XAG: '/logos/commodities/xag.svg',
   XPT: '/logos/commodities/xpt.svg',
   XPD: '/logos/commodities/xpd.svg',
   USOILSPOT: '/logos/commodities/usoilspot.svg',
   UKOILSPOT: '/logos/commodities/ukoilspot.svg',
-  // US Equities
+  ARKK: '/logos/etfs/arkk.svg',
+  SGOV: '/logos/etfs/sgov.svg',
+  VEA: '/logos/etfs/vea.svg',
+  DIVB: '/logos/etfs/divb.svg',
+  FBCG: '/logos/etfs/fbcg.svg',
+  ICSH: '/logos/etfs/icsh.svg',
+  IVW: '/logos/etfs/ivw.svg',
+  XLE: '/logos/etfs/xle.svg',
+};
+
+const equityLogoMap: Record<string, string> = {
   AAPL: '/logos/equities/aapl.svg',
   AMZN: '/logos/equities/amzn.svg',
   TSLA: '/logos/equities/tsla.svg',
@@ -91,15 +99,6 @@ const cryptoLogoMap: Record<string, string> = {
   EQR: '/logos/equities/eqr.svg',
   HUM: '/logos/equities/hum.svg',
   FLUT: '/logos/equities/flut.svg',
-  // ETFs
-  ARKK: '/logos/etfs/arkk.svg',
-  SGOV: '/logos/etfs/sgov.svg',
-  VEA: '/logos/etfs/vea.svg',
-  DIVB: '/logos/etfs/divb.svg',
-  FBCG: '/logos/etfs/fbcg.svg',
-  ICSH: '/logos/etfs/icsh.svg',
-  IVW: '/logos/etfs/ivw.svg',
-  XLE: '/logos/etfs/xle.svg',
 };
 
 interface TokenIconProps {
@@ -110,12 +109,12 @@ interface TokenIconProps {
 export function TokenIcon({ symbol, className = 'w-14 h-14' }: TokenIconProps) {
   const [hasError, setHasError] = useState(false);
 
-  const logoPath = cryptoLogoMap[symbol];
+  const localLogoPath = cryptoLogoMap[symbol] || equityLogoMap[symbol];
 
-  if (logoPath && !hasError) {
+  if (localLogoPath && !hasError) {
     return (
       <Image
-        src={logoPath}
+        src={localLogoPath}
         alt={`${symbol} logo`}
         width={56}
         height={56}
