@@ -733,6 +733,79 @@ const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPriceFeed>> 
       category: 'commodity',
     },
   },
+  // === US Equity Price Feeds (verified on BNB Chain) ===
+  AAPL: {
+    56: {
+      address: '0xb7Ed5bE7977d61E83534230f3256C021e0fae0B6',
+      name: 'AAPL / USD',
+      symbol: 'AAPL',
+      decimals: 8,
+      category: 'index',
+    },
+  },
+  AMZN: {
+    56: {
+      address: '0x51d08ca89d3e8c12535BA8AEd33cDf2557ab5b2a',
+      name: 'AMZN / USD',
+      symbol: 'AMZN',
+      decimals: 8,
+      category: 'index',
+    },
+  },
+  TSLA: {
+    56: {
+      address: '0xEEA2ae9c074E87596A85ABE698B2Afebc9B57893',
+      name: 'TSLA / USD',
+      symbol: 'TSLA',
+      decimals: 8,
+      category: 'index',
+    },
+  },
+  GOOGL: {
+    56: {
+      address: '0xeDA73F8acb669274B15A977Cb0cdA57a84F18c2a',
+      name: 'GOOGL / USD',
+      symbol: 'GOOGL',
+      decimals: 8,
+      category: 'index',
+    },
+  },
+  MSFT: {
+    56: {
+      address: '0x5D209cE1fBABeAA8E6f9De4514A74FFB4b34560F',
+      name: 'MSFT / USD',
+      symbol: 'MSFT',
+      decimals: 8,
+      category: 'index',
+    },
+  },
+  META: {
+    56: {
+      address: '0xfc76E9445952A3C31369dFd26edfdfb9713DF5Bb',
+      name: 'META / USD',
+      symbol: 'META',
+      decimals: 8,
+      category: 'index',
+    },
+  },
+  NVDA: {
+    56: {
+      address: '0xea5c2Cbb5cD57daC24E26180b19a929F3E9699B8',
+      name: 'NVDA / USD',
+      symbol: 'NVDA',
+      decimals: 8,
+      category: 'index',
+    },
+  },
+  COIN: {
+    56: {
+      address: '0x2d1AB79D059e21aE519d88F978cAF39d74E31AEB',
+      name: 'COIN / USD',
+      symbol: 'COIN',
+      decimals: 8,
+      category: 'index',
+    },
+  },
 };
 
 const CHAINLINK_CONTRACTS: Record<number, ChainlinkContracts> = {
