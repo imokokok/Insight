@@ -156,7 +156,9 @@ export function OverviewTab() {
               timestamp: p.timestamp,
               source: p.source,
               confidence: p.confidence,
+              confidenceSource: p.confidenceSource,
               provider: selectedProvider,
+              verification: p.verification,
             }))}
             lastUpdated={lastUpdated}
             onRefresh={() => fetchData()}

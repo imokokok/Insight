@@ -11,6 +11,8 @@ import type { DIATokenOnChainData } from '@/lib/oracles/services/diaDataService'
 import type { WINkLinkTokenOnChainData } from '@/lib/oracles/services/winklinkRealDataService';
 import { OracleProvider as OracleProviderEnum } from '@/types/oracle';
 
+import { VerificationStatCard } from './VerificationStatCard';
+
 import {
   ChainlinkStats,
   PythStats,
@@ -62,6 +64,7 @@ export function StatsCardsSelector({
             version={priceData.version}
             startedAt={priceData.startedAt}
             source={priceData.source}
+            verification={priceData.verification}
           />
         );
 
@@ -75,6 +78,7 @@ export function StatsCardsSelector({
             publishTime={priceData.publishTime}
             confidenceInterval={priceData.confidenceInterval}
             confidence={priceData.confidence}
+            verification={priceData.verification}
           />
         );
 
@@ -88,12 +92,18 @@ export function StatsCardsSelector({
             decimals={priceData.decimals}
             dataAge={priceData.dataAge}
             confidence={priceData.confidence}
+            verification={priceData.verification}
           />
         );
 
       case OracleProviderEnum.SUPRA:
         if (supraOnChainData) {
-          return <SupraStats data={supraOnChainData as SupraTokenOnChainData} />;
+          return (
+            <>
+              <SupraStats data={supraOnChainData as SupraTokenOnChainData} />
+              <VerificationStatCard verification={priceData?.verification} />
+            </>
+          );
         }
         if (priceData) {
           const supraStatsData: SupraTokenOnChainData = {
@@ -108,43 +118,78 @@ export function StatsCardsSelector({
             lastUpdated: priceData.timestamp,
             source: priceData.source || 'DORA V2',
           };
-          return <SupraStats data={supraStatsData} />;
+          return (
+            <>
+              <SupraStats data={supraStatsData} />
+              <VerificationStatCard verification={priceData.verification} />
+            </>
+          );
         }
         return null;
 
       case OracleProviderEnum.DIA:
         if (diaOnChainData) {
-          return <DIAStats data={diaOnChainData as DIATokenOnChainData} />;
+          return (
+            <>
+              <DIAStats data={diaOnChainData as DIATokenOnChainData} />
+              <VerificationStatCard verification={priceData?.verification} />
+            </>
+          );
         }
         return null;
 
       case OracleProviderEnum.WINKLINK:
         if (winklinkOnChainData) {
-          return <WINkLinkStats data={winklinkOnChainData as WINkLinkTokenOnChainData} />;
+          return (
+            <>
+              <WINkLinkStats data={winklinkOnChainData as WINkLinkTokenOnChainData} />
+              <VerificationStatCard verification={priceData?.verification} />
+            </>
+          );
         }
         return null;
 
       case OracleProviderEnum.REDSTONE:
         if (redstoneOnChainData) {
-          return <RedStoneStats data={redstoneOnChainData as RedStoneTokenOnChainData} />;
+          return (
+            <>
+              <RedStoneStats data={redstoneOnChainData as RedStoneTokenOnChainData} />
+              <VerificationStatCard verification={priceData?.verification} />
+            </>
+          );
         }
         return null;
 
       case OracleProviderEnum.TWAP:
         if (twapOnChainData) {
-          return <TwapStats data={twapOnChainData as TwapOnChainData} />;
+          return (
+            <>
+              <TwapStats data={twapOnChainData as TwapOnChainData} />
+              <VerificationStatCard verification={priceData?.verification} />
+            </>
+          );
         }
         return null;
 
       case OracleProviderEnum.REFLECTOR:
         if (reflectorOnChainData) {
-          return <ReflectorStats data={reflectorOnChainData as ReflectorTokenOnChainData} />;
+          return (
+            <>
+              <ReflectorStats data={reflectorOnChainData as ReflectorTokenOnChainData} />
+              <VerificationStatCard verification={priceData?.verification} />
+            </>
+          );
         }
         return null;
 
       case OracleProviderEnum.FLARE:
         if (flareOnChainData) {
-          return <FlareStats data={flareOnChainData as FlareTokenOnChainData} />;
+          return (
+            <>
+              <FlareStats data={flareOnChainData as FlareTokenOnChainData} />
+              <VerificationStatCard verification={priceData?.verification} />
+            </>
+          );
         }
         return null;
 

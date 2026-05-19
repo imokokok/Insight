@@ -61,6 +61,7 @@ export function DataSourceSection({
       source: result.priceData.source,
       credibilityLevel: getCredibilityLevel(result.provider),
       lastUpdated: result.priceData.timestamp,
+      verification: result.priceData.verification,
     }));
   }, [results]);
 
@@ -78,7 +79,7 @@ export function DataSourceSection({
       title="Data Sources"
       className="mb-6"
       showUpdateTime
-      initiallyExpanded={false}
+      initiallyExpanded={true}
       maxVisible={5}
     />
   );

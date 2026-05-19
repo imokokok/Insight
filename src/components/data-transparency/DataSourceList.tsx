@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { ChevronDown, ChevronUp, Database, Layers } from 'lucide-react';
 
 import { type OracleProvider, type Blockchain } from '@/types/oracle';
+import type { OnChainVerification } from '@/types/oracle/price';
 
 import {
   DataSourceIndicator,
@@ -22,6 +23,7 @@ export interface DataSourceGroup {
   credibilityLevel?: CredibilityLevel;
   lastUpdated?: number;
   verificationProof?: string;
+  verification?: OnChainVerification;
 }
 
 interface DataSourceListProps {
@@ -125,13 +127,14 @@ export function DataSourceList({
                 credibilityLevel: source.credibilityLevel,
                 lastUpdated: source.lastUpdated,
                 verificationProof: source.verificationProof,
+                verification: source.verification,
               };
 
               return (
                 <DataSourceIndicator
                   key={`${source.provider}-${source.chain}-${index}`}
                   source={dataSourceInfo}
-                  variant="compact"
+                  variant="detailed"
                   size="sm"
                   showConfidence
                   showChain

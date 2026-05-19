@@ -1,4 +1,5 @@
 import { TRON_CONFIG } from '@/lib/config/serverEnv';
+import { buildTronVerification } from '@/lib/oracles/utils/verificationUtils';
 import { createLogger } from '@/lib/utils/logger';
 import {
   OracleProvider,
@@ -250,6 +251,7 @@ class WINkLinkRealDataService {
         change24hPercent: 0,
         chain: Blockchain.TRON,
         source: `WINkLink:${contractAddress}`,
+        verification: buildTronVerification(contractAddress, 'latestAnswer'),
       };
 
       this.setCache(cacheKey, priceData, 30000);

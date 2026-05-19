@@ -17,7 +17,9 @@ interface CrossChainDataPoint {
   timestamp: number;
   source?: string;
   confidence?: number;
+  confidenceSource?: 'original' | 'estimated';
   provider?: OracleProvider;
+  verification?: import('@/types/oracle/price').OnChainVerification;
 }
 
 interface DataSourceSectionProps {
@@ -101,9 +103,11 @@ export function DataSourceSection({
         provider,
         chain: point.chain,
         confidence: point.confidence,
+        confidenceSource: point.confidenceSource,
         source: point.source,
         credibilityLevel: getCredibilityLevel(provider),
         lastUpdated: point.timestamp,
+        verification: point.verification,
       };
     });
 
@@ -218,6 +222,27 @@ export function DataSourceSection({
                       {formatRelativeTime(point.timestamp)}
                     </span>
                   </div>
+                  {point.verification?.explorerUrl && (
+                    <a
+                      href={point.verification.explorerUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-0.5 text-[10px] text-green-600 hover:text-green-700 hover:underline mt-0.5"
+                    >
+                      <svg
+                        className="w-2.5 h-2.5"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                      </svg>
+                      Verified
+                    </a>
+                  )}
                 </div>
               );
             })}

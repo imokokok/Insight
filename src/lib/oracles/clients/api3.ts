@@ -1,8 +1,10 @@
 import { BaseOracleClient } from '@/lib/oracles/base';
 import type { OracleClientConfig } from '@/lib/oracles/base';
+import { BLOCKCHAIN_TO_CHAIN_ID } from '@/lib/oracles/constants/chainMapping';
 import { API3_AVAILABLE_PAIRS } from '@/lib/oracles/constants/supportedSymbols';
 import { api3NetworkService } from '@/lib/oracles/services/api3NetworkService';
 import { withOracleRetry, ORACLE_RETRY_PRESETS } from '@/lib/oracles/utils/retry';
+import { buildEvmVerification } from '@/lib/oracles/utils/verificationUtils';
 import { createLogger } from '@/lib/utils/logger';
 import type { PriceData } from '@/types/oracle';
 import { OracleProvider, Blockchain, OracleServiceError } from '@/types/oracle';
@@ -111,6 +113,13 @@ export class API3Client extends BaseOracleClient {
         dapiName: api3Data.dapiName,
         proxyAddress: api3Data.proxyAddress,
         dataAge: api3Data.dataAge,
+        verification: api3Data.proxyAddress
+          ? buildEvmVerification(
+              api3Data.proxyAddress,
+              BLOCKCHAIN_TO_CHAIN_ID[targetChain] || 1,
+              'readDataFeed'
+            )
+          : undefined,
       };
     } catch (error) {
       if (error instanceof OracleServiceError) throw error;

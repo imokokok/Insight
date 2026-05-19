@@ -1,12 +1,16 @@
 import { BaseOracleClient } from '@/lib/oracles/base';
 import type { OracleClientConfig } from '@/lib/oracles/base';
 import { BLOCKCHAIN_TO_CHAIN_ID } from '@/lib/oracles/constants/chainMapping';
-import { isPriceFeedSupported } from '@/lib/oracles/services/chainlinkDataSources';
+import {
+  isPriceFeedSupported,
+  getChainlinkPriceFeed,
+} from '@/lib/oracles/services/chainlinkDataSources';
 import {
   chainlinkOnChainService,
   type ChainlinkPriceData,
 } from '@/lib/oracles/services/chainlinkOnChainService';
 import { withOracleRetry, ORACLE_RETRY_PRESETS } from '@/lib/oracles/utils/retry';
+import { buildEvmVerification } from '@/lib/oracles/utils/verificationUtils';
 import { createLogger } from '@/lib/utils/logger';
 import { OracleProvider, Blockchain, OracleServiceError } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
@@ -134,6 +138,9 @@ export class ChainlinkClient extends BaseOracleClient {
     const version = chainlinkData.version?.toString();
     const startedAt = chainlinkData.startedAt;
 
+    const chainId = this.getChainId(chain);
+    const feed = getChainlinkPriceFeed(chainlinkData.symbol, chainId);
+
     logger.debug('Converting Chainlink data to PriceData', {
       symbol: chainlinkData.symbol,
       roundId,
@@ -159,6 +166,9 @@ export class ChainlinkClient extends BaseOracleClient {
       answeredInRound: answeredInRound || undefined,
       version: version || undefined,
       startedAt: startedAt || undefined,
+      verification: feed
+        ? buildEvmVerification(feed.address, chainId, 'latestRoundData')
+        : undefined,
     };
   }
 

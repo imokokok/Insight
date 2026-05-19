@@ -63,6 +63,7 @@ interface TableRow {
   zScore: number | null;
   freshnessSeconds: number;
   priceDiff: number | null;
+  verification?: import('@/types/oracle/price').OnChainVerification;
 }
 
 const formatDeviation = (deviation: number): string => {
@@ -134,7 +135,7 @@ function getAnomalyReason(row: TableRow): string {
 
 function ExpandedRowDetail({ row }: { row: TableRow }) {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm py-3 px-2">
+    <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-4 text-sm py-3 px-2">
       <div className="bg-white p-3 rounded-lg border border-gray-100">
         <span className="text-gray-500 block text-xs mb-1">Raw Price</span>
         <span className="font-mono text-gray-900 text-lg">{formatPrice(row.price)}</span>
@@ -200,6 +201,35 @@ function ExpandedRowDetail({ row }: { row: TableRow }) {
           </span>
         )}
       </div>
+
+      {row.verification && (
+        <div className="bg-green-50 p-3 rounded-lg border border-green-200">
+          <span className="text-gray-500 block text-xs mb-1">On-Chain Verification</span>
+          <div className="space-y-1">
+            <div className="text-xs text-gray-600">
+              <span className="text-gray-400">Contract: </span>
+              <code className="text-gray-700">
+                {row.verification.contractAddress.slice(0, 10)}...
+                {row.verification.contractAddress.slice(-6)}
+              </code>
+            </div>
+            <div className="text-xs text-gray-600">
+              <span className="text-gray-400">Method: </span>
+              <code className="text-gray-700">{row.verification.method}</code>
+            </div>
+            {row.verification.explorerUrl && (
+              <a
+                href={row.verification.explorerUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-xs font-medium text-green-600 hover:text-green-700 hover:underline"
+              >
+                Verify on Explorer →
+              </a>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -308,6 +338,7 @@ function SimplePriceTableComponent({
         zScore,
         freshnessSeconds,
         priceDiff,
+        verification: data.verification,
       };
     });
   }, [priceData, medianPrice, anomalies, anomalyDetectionMode, avgPrice, standardDeviation, now]);
@@ -449,6 +480,10 @@ function SimplePriceTableComponent({
                 Status
               </th>
 
+              <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                Verified
+              </th>
+
               <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider w-10">
                 <ChevronDown className="w-3 h-3 text-gray-400 mx-auto" />
               </th>
@@ -541,6 +576,32 @@ function SimplePriceTableComponent({
                   </td>
 
                   <td className="px-4 py-3 whitespace-nowrap text-center">
+                    {row.verification?.explorerUrl ? (
+                      <a
+                        href={row.verification.explorerUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-xs font-medium text-green-600 hover:text-green-700 hover:underline"
+                      >
+                        <svg
+                          className="w-3 h-3"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                        </svg>
+                        Link
+                      </a>
+                    ) : (
+                      <span className="text-xs text-gray-400">-</span>
+                    )}
+                  </td>
+
+                  <td className="px-4 py-3 whitespace-nowrap text-center">
                     <button
                       onClick={() => handleToggleExpand(row.provider)}
                       className="p-1 rounded hover:bg-gray-100 transition-colors"
@@ -563,7 +624,7 @@ function SimplePriceTableComponent({
                     display: expandedRow === row.provider ? 'table-row' : 'none',
                   }}
                 >
-                  <td colSpan={7} className="px-4 py-2 bg-gray-50 border-t border-gray-100">
+                  <td colSpan={8} className="px-4 py-2 bg-gray-50 border-t border-gray-100">
                     <ExpandedRowDetail row={row} />
                   </td>
                 </tr>

@@ -7,6 +7,7 @@ import {
 } from '@/lib/oracles/constants/twapConstants';
 import { twapOnChainService } from '@/lib/oracles/services/twapOnChainService';
 import { withOracleRetry, ORACLE_RETRY_PRESETS } from '@/lib/oracles/utils/retry';
+import { buildEvmVerification } from '@/lib/oracles/utils/verificationUtils';
 import { OracleProvider, Blockchain, OracleServiceError } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
 
@@ -102,6 +103,9 @@ export class TWAPClient extends BaseOracleClient {
         twapPrice: twapData.twapPrice,
         spotPrice: twapData.spotPrice,
         liquidity: twapData.liquidity.toString(),
+        verification: twapData.poolAddress
+          ? buildEvmVerification(twapData.poolAddress, chainId, 'observe')
+          : undefined,
       };
     } catch (error) {
       if (error instanceof OracleServiceError) throw error;

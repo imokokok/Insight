@@ -1,8 +1,9 @@
 import { BaseOracleClient, OracleCache } from '@/lib/oracles/base';
 import type { OracleClientConfig } from '@/lib/oracles/base';
 import { supraSymbols, SUPRA_AVAILABLE_PAIRS } from '@/lib/oracles/constants/supportedSymbols';
-import { SUPRA_PAIR_INDEX_MAP } from '@/lib/oracles/constants/supraConstants';
+import { SUPRA_PAIR_INDEX_MAP, SUPRA_DORA_REST_URL } from '@/lib/oracles/constants/supraConstants';
 import { getSupraDataService } from '@/lib/oracles/services/supraDataService';
+import { buildApiVerification } from '@/lib/oracles/utils/verificationUtils';
 import { createLogger } from '@/lib/utils/logger';
 import {
   OracleProvider,
@@ -86,6 +87,11 @@ export class SupraClient extends BaseOracleClient {
         chain: chain || Blockchain.ETHEREUM,
         source: 'supra-dora',
         pairIndex: latestData.pairIndex,
+        verification: buildApiVerification(
+          `${SUPRA_DORA_REST_URL}/price`,
+          'fetchLatestPrice',
+          'Supra DORA'
+        ),
       };
     } catch (error) {
       if (error && typeof error === 'object' && 'code' in error) {
