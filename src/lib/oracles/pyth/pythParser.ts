@@ -1,3 +1,4 @@
+import { buildApiVerification } from '@/lib/oracles/utils/verificationUtils';
 import { OracleProvider } from '@/types/oracle';
 import type { PriceData, ConfidenceInterval } from '@/types/oracle';
 
@@ -80,5 +81,14 @@ export function parsePythPrice(
     exponent,
     conf: confidenceAbsolute,
     publishTime: publishTime * 1000,
+    ...(priceId
+      ? {
+          verification: buildApiVerification(
+            `https://hermes.pyth.network/v2/updates/price/${priceId}`,
+            'getLatestPriceUpdates',
+            'Pyth Hermes'
+          ),
+        }
+      : {}),
   };
 }

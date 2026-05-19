@@ -4,6 +4,7 @@ import type { OracleClientConfig } from '@/lib/oracles/base';
 import { SPREAD_PERCENTAGES, REDSTONE_API_BASE } from '@/lib/oracles/constants/redstoneConstants';
 import { redstoneSymbols } from '@/lib/oracles/constants/supportedSymbols';
 import { withOracleRetry, ORACLE_RETRY_PRESETS } from '@/lib/oracles/utils/retry';
+import { buildApiVerification } from '@/lib/oracles/utils/verificationUtils';
 import { createLogger } from '@/lib/utils/logger';
 import { toMilliseconds } from '@/lib/utils/timestamp';
 import {
@@ -246,6 +247,11 @@ export class RedStoneClient extends BaseOracleClient {
         return {
           ...realPrice,
           chain,
+          verification: buildApiVerification(
+            `${REDSTONE_API_BASE}/prices?symbol=${symbol.toUpperCase()}`,
+            'getPrice',
+            'RedStone API'
+          ),
         };
       }
 

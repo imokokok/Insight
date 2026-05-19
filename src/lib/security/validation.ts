@@ -150,6 +150,16 @@ export const PriceDataSchema = PriceDataBaseSchema.extend({
   liquidity: z.string().optional(),
   resolution: z.number().optional(),
   contractVersion: z.number().optional(),
+  verification: z
+    .object({
+      type: z.enum(['on-chain', 'api']).optional(),
+      contractAddress: z.string(),
+      chainId: z.number(),
+      explorerUrl: z.string(),
+      method: z.string(),
+      blockNumber: z.number().optional(),
+    })
+    .optional(),
 });
 
 export const AlertListResponseSchema = z.object({

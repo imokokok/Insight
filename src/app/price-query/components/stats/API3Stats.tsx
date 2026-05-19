@@ -1,6 +1,9 @@
 import { FileText, Hash, Globe, Settings, Clock, Shield } from 'lucide-react';
 
 import { StatCard } from '@/components/ui/StatCard';
+import type { OnChainVerification } from '@/types/oracle/price';
+
+import { VerificationStatCard } from './VerificationStatCard';
 
 interface API3StatsProps {
   dapiName?: string;
@@ -9,6 +12,7 @@ interface API3StatsProps {
   decimals?: number;
   dataAge?: number;
   confidence?: number;
+  verification?: OnChainVerification;
 }
 
 export function API3Stats({
@@ -18,6 +22,7 @@ export function API3Stats({
   decimals,
   dataAge,
   confidence,
+  verification,
 }: API3StatsProps) {
   return (
     <>
@@ -73,6 +78,7 @@ export function API3Stats({
         }
         description="Overall confidence score"
       />
+      <VerificationStatCard verification={verification} />
     </>
   );
 }

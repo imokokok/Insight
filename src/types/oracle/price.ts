@@ -6,6 +6,17 @@ export interface ConfidenceInterval {
   widthPercentage: number;
 }
 
+export type VerificationType = 'on-chain' | 'api';
+
+export interface OnChainVerification {
+  type?: VerificationType;
+  contractAddress: string;
+  chainId: number;
+  explorerUrl: string;
+  method: string;
+  blockNumber?: number;
+}
+
 export interface PriceDataBase {
   symbol: string;
   price: number;
@@ -24,22 +35,23 @@ export interface PriceData extends PriceDataBase {
   change24hPercent?: number;
   confidenceInterval?: ConfidenceInterval;
   dataSource?: 'real' | 'mock' | 'api' | 'fallback';
+  verification?: OnChainVerification;
   // Chainlink Feed metadata
   roundId?: string;
   answeredInRound?: string;
   version?: string;
   startedAt?: number;
   // Pyth metadata
-  priceId?: string; // Price Feed ID
-  exponent?: number; // price exponent
-  conf?: number; // confidence interval absolute value
-  publishTime?: number; // publish time
+  priceId?: string;
+  exponent?: number;
+  conf?: number;
+  publishTime?: number;
   // API3 metadata
-  dapiName?: string; // dAPI name， "ETH/USD"
-  proxyAddress?: string; // dAPI Proxy contract address
-  dataAge?: number; // （seconds）
+  dapiName?: string;
+  proxyAddress?: string;
+  dataAge?: number;
   // Supra metadata
-  pairIndex?: number; // Supra DORA forindex
+  pairIndex?: number;
   // TWAP metadata
   poolAddress?: string;
   feeTier?: number;

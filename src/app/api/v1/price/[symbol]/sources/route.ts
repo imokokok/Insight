@@ -94,6 +94,7 @@ export const GET = createApiHandler(
             confidence: s.price!.confidence,
             confidenceInterval: s.price!.confidenceInterval || null,
             source: s.price!.source || null,
+            verification: s.price!.verification || null,
           })),
           unavailable: unavailable.map((s) => ({
             provider: s.provider,

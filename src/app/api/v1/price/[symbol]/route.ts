@@ -57,6 +57,7 @@ export const GET = createApiHandler(
             confidence: price.confidence,
             confidenceInterval: price.confidenceInterval || null,
             source: price.source || null,
+            verification: price.verification || null,
           })
         );
       }
@@ -122,6 +123,7 @@ export const GET = createApiHandler(
             confidence: p.confidence,
             confidenceInterval: p.confidenceInterval || null,
             source: p.source || null,
+            verification: p.verification || null,
           })),
         })
       );

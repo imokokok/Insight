@@ -4,9 +4,10 @@ import { useState } from 'react';
 
 import Image from 'next/image';
 
-import { Shield, ShieldCheck, ShieldAlert, ShieldX, Info } from 'lucide-react';
+import { Shield, ShieldCheck, ShieldAlert, ShieldX, Info, ExternalLink, Globe } from 'lucide-react';
 
 import { OracleProvider, type Blockchain } from '@/types/oracle';
+import type { OnChainVerification } from '@/types/oracle/price';
 
 export type CredibilityLevel = 'high' | 'medium' | 'low' | 'unverified';
 
@@ -19,6 +20,7 @@ export interface DataSourceInfo {
   lastUpdated?: number;
   credibilityLevel?: CredibilityLevel;
   verificationProof?: string;
+  verification?: OnChainVerification;
 }
 
 interface DataSourceIndicatorProps {
@@ -251,6 +253,46 @@ export function DataSourceIndicator({
                 </a>
               </div>
             )}
+
+            {source.verification && (
+              <div className="mt-2 pt-2 border-t border-gray-200 space-y-1.5">
+                <div className="flex items-center gap-1 text-xs text-gray-600 font-medium">
+                  {source.verification.type === 'api' ? (
+                    <Globe size={12} className="text-blue-500" />
+                  ) : (
+                    <ShieldCheck size={12} className="text-success-600" />
+                  )}
+                  {source.verification.type === 'api' ? 'API Verified' : 'On-Chain Verification'}
+                </div>
+                <div className="text-xs text-gray-500 space-y-0.5">
+                  <div className="flex items-center gap-1">
+                    <span className="text-gray-400">
+                      {source.verification.type === 'api' ? 'Source:' : 'Contract:'}
+                    </span>
+                    <code className="text-gray-600 text-[10px] break-all">
+                      {source.verification.type === 'api'
+                        ? source.verification.contractAddress
+                        : `${source.verification.contractAddress.slice(0, 10)}...${source.verification.contractAddress.slice(-8)}`}
+                    </code>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="text-gray-400">Method:</span>
+                    <code className="text-gray-600 text-[10px]">{source.verification.method}</code>
+                  </div>
+                </div>
+                {source.verification.explorerUrl && (
+                  <a
+                    href={source.verification.explorerUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-xs text-primary-600 hover:text-primary-700 font-medium"
+                  >
+                    <ExternalLink size={12} />
+                    {source.verification.type === 'api' ? 'View API Source' : 'Verify on Explorer'}
+                  </a>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -311,6 +353,11 @@ export function DataSourceIndicator({
               <div className="text-gray-300">Updated: {formatRelativeTime(source.lastUpdated)}</div>
             )}
             {source.source && <div className="text-gray-300">Source: {source.source}</div>}
+            {source.verification && (
+              <div className="text-green-400 mt-1 pt-1 border-t border-gray-700">
+                ✓ On-chain: {source.verification.method}
+              </div>
+            )}
             <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
           </div>
         )}

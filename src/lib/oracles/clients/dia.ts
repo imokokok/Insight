@@ -4,6 +4,7 @@ import { getDIAAssetConfig } from '@/lib/oracles/constants/diaConstants';
 import { diaSymbols } from '@/lib/oracles/constants/supportedSymbols';
 import type { DIAAssetQuotation } from '@/lib/oracles/diaTypes';
 import { DIA_API_BASE_URL, fetchWithTimeout } from '@/lib/oracles/diaUtils';
+import { buildApiVerification } from '@/lib/oracles/utils/verificationUtils';
 import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
 import { createLogger } from '@/lib/utils/logger';
 import { OracleProvider, Blockchain, OracleServiceError } from '@/types/oracle';
@@ -74,6 +75,11 @@ export class DIAClient extends BaseOracleClient {
         change24hPercent: 0,
         chain: chain || Blockchain.ETHEREUM,
         source: 'hardcoded-stablecoin',
+        verification: buildApiVerification(
+          `${DIA_API_BASE_URL}/assetQuotation/`,
+          'assetQuotation',
+          'DIA API'
+        ),
       };
     }
 
@@ -122,6 +128,11 @@ export class DIAClient extends BaseOracleClient {
         change24hPercent,
         chain: chain || Blockchain.ETHEREUM,
         source: 'dia-api',
+        verification: buildApiVerification(
+          `${DIA_API_BASE_URL}/assetQuotation/${assetConfig.blockchain}/${assetConfig.address}`,
+          'assetQuotation',
+          'DIA API'
+        ),
       };
     } catch (error) {
       if (error instanceof OracleServiceError) throw error;

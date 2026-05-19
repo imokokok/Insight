@@ -2,6 +2,9 @@ import { Hash, Layers, Settings, FileText, History, Shield } from 'lucide-react'
 
 import { StatCard } from '@/components/ui/StatCard';
 import { formatTimeString } from '@/lib/utils/format';
+import type { OnChainVerification } from '@/types/oracle/price';
+
+import { VerificationStatCard } from './VerificationStatCard';
 
 interface ChainlinkStatsProps {
   roundId?: string;
@@ -10,6 +13,7 @@ interface ChainlinkStatsProps {
   version?: string | bigint;
   startedAt?: number;
   source?: string;
+  verification?: OnChainVerification;
 }
 
 export function ChainlinkStats({
@@ -19,6 +23,7 @@ export function ChainlinkStats({
   version,
   startedAt,
   source,
+  verification,
 }: ChainlinkStatsProps) {
   return (
     <>
@@ -64,6 +69,7 @@ export function ChainlinkStats({
         value={source || '-'}
         description="Description of the price feed"
       />
+      <VerificationStatCard verification={verification} />
     </>
   );
 }

@@ -1,13 +1,18 @@
 import { OracleProviderError } from '@/lib/errors';
 import { BaseOracleClient, OracleCache } from '@/lib/oracles/base';
 import type { OracleClientConfig } from '@/lib/oracles/base';
-import { flareSymbols, FLARE_CACHE_TTL } from '@/lib/oracles/constants/flareConstants';
+import {
+  flareSymbols,
+  FLARE_CACHE_TTL,
+  FTSOV2_ADDRESS,
+} from '@/lib/oracles/constants/flareConstants';
 import {
   getFtsoDataService,
   type FtsoDataService,
   type FtsoPriceData,
 } from '@/lib/oracles/services/ftsoDataService';
 import { withOracleRetry, ORACLE_RETRY_PRESETS } from '@/lib/oracles/utils/retry';
+import { buildEvmVerification } from '@/lib/oracles/utils/verificationUtils';
 import { createLogger } from '@/lib/utils/logger';
 import { toMilliseconds } from '@/lib/utils/timestamp';
 import {
@@ -152,6 +157,7 @@ export class FlareClient extends BaseOracleClient {
       change24h: 0,
       change24hPercent: 0,
       source: 'ftso-v2-on-chain',
+      verification: buildEvmVerification(FTSOV2_ADDRESS.flare, 14, 'getFeedById'),
     };
   }
 
