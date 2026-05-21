@@ -28,6 +28,7 @@ export interface PriceRecord {
   decimals?: number | null;
   confidence?: number | null;
   source?: string | null;
+  verification?: import('@/types/oracle/price').OnChainVerification | null;
   created_at?: string;
   ttl?: string;
 }
@@ -41,6 +42,7 @@ export interface PriceRecordInsert {
   decimals?: number;
   confidence?: number | null;
   source?: string | null;
+  verification?: import('@/types/oracle/price').OnChainVerification | null;
   ttl?: string;
 }
 
@@ -176,6 +178,7 @@ export class DatabaseQueries {
           timestamp,
           confidence: record.confidence || null,
           source: record.source || null,
+          verification: record.verification || null,
           ttl,
         })
         .select()
