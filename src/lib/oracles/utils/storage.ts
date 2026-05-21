@@ -38,6 +38,7 @@ function priceDataToRecord(priceData: PriceData): PriceRecordInsert {
     decimals: priceData.decimals,
     confidence: priceData.confidence,
     source: priceData.source,
+    verification: priceData.verification || null,
     ttl: calculateExpirationDate(),
   };
 }
@@ -52,6 +53,7 @@ function recordToPriceData(record: PriceRecord): PriceData {
     decimals: record.decimals ?? undefined,
     confidence: record.confidence ?? undefined,
     source: record.source ?? undefined,
+    verification: record.verification ?? undefined,
   };
 }
 
