@@ -8,5 +8,4 @@ export { SupraStats } from './SupraStats';
 export { TwapStats } from './TwapStats';
 export { ReflectorStats } from './ReflectorStats';
 export { FlareStats } from './FlareStats';
-export { VerificationStatCard } from './VerificationStatCard';
 export { StatsCardsSelector } from './StatsCardsSelector';

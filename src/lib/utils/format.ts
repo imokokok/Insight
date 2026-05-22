@@ -50,7 +50,7 @@ export function formatTimeString(date: Date | number, includeSeconds: boolean = 
   return `${displayHours}:${minutes} ${ampm}`;
 }
 
-export function formatDateString(date: Date, style: 'short' | 'medium' | 'full' = 'short'): string {
+function formatDateString(date: Date, style: 'short' | 'medium' | 'full' = 'short'): string {
   const month = date.getMonth() + 1;
   const day = date.getDate();
   const year = date.getFullYear();
