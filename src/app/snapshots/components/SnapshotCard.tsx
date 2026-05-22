@@ -26,7 +26,7 @@ export function formatPrice(value: number): string {
   return `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
-export function formatPercent(value: number): string {
+function formatPercent(value: number): string {
   const sign = value > 0 ? '+' : '';
   return `${sign}${value.toFixed(2)}%`;
 }
@@ -42,7 +42,7 @@ export function formatDate(dateStr: string): string {
   });
 }
 
-export function formatTimeAgo(dateStr: string): string {
+function formatTimeAgo(dateStr: string): string {
   const now = Date.now();
   const then = new Date(dateStr).getTime();
   const diff = now - then;

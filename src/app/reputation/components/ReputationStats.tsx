@@ -287,4 +287,4 @@ function ComparisonInfo() {
   );
 }
 
-export { useCountUp, GlobalStats, StatCard, TopThree, NextUpdateCountdown, ComparisonInfo };
+export { GlobalStats, TopThree, NextUpdateCountdown, ComparisonInfo };

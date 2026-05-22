@@ -191,4 +191,4 @@ function InitialState() {
   );
 }
 
-export { ResultIcon, SearchResultItem, SearchGroupSection, EmptyState, InitialState };
+export { SearchGroupSection, EmptyState, InitialState };

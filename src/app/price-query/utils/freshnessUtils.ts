@@ -32,14 +32,14 @@ export interface DataSourceInfo {
   isRealtime: boolean;
 }
 
-export interface FreshnessThresholds {
+interface FreshnessThresholds {
   fresh: number;
   normal: number;
   delayed: number;
   critical: number;
 }
 
-export const HEALTH_WEIGHTS = {
+const HEALTH_WEIGHTS = {
   FRESHNESS: 0.4,
   RELIABILITY: 0.3,
   CONSISTENCY: 0.2,
@@ -119,7 +119,7 @@ export function calculateFreshnessScore(
   return Math.max(0, Math.min(100, Math.round(score)));
 }
 
-export function calculateConsistencyScore(deviationPercent: number): number {
+function calculateConsistencyScore(deviationPercent: number): number {
   const absDeviation = Math.abs(deviationPercent);
   if (absDeviation < 0.1) return 100;
   if (absDeviation < 0.3) return 95;
