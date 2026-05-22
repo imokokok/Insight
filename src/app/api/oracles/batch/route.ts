@@ -23,6 +23,7 @@ const BatchPriceRequestSchema = z.object({
     .array(BatchPriceQuerySchema)
     .min(1, 'At least one query is required')
     .max(20, 'Maximum 20 queries per batch request'),
+  forceRefresh: z.boolean().optional().default(false),
 });
 
 interface BatchPriceResult {
@@ -60,7 +61,7 @@ export const POST = createApiHandler(
       );
     }
 
-    const { queries } = validation.data;
+    const { queries, forceRefresh } = validation.data;
 
     const results = await Promise.allSettled(
       queries.map(async (query): Promise<BatchPriceResult> => {
@@ -70,7 +71,7 @@ export const POST = createApiHandler(
             query.symbol,
             query.chain as Blockchain | undefined,
             true,
-            false
+            forceRefresh
           );
           return {
             provider: query.provider,

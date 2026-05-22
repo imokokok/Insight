@@ -23,6 +23,27 @@ interface FetchHistoricalParams extends FetchPriceParams {
   period: number;
 }
 
+interface FetchBatchPricesParams {
+  provider: OracleProvider;
+  symbol: string;
+  chains: Blockchain[];
+  signal?: AbortSignal;
+  forceRefresh?: boolean;
+}
+
+interface BatchPriceResult {
+  provider: string;
+  symbol: string;
+  chain?: string;
+  price: PriceData | null;
+  error: string | null;
+}
+
+interface BatchPriceResponse {
+  success: boolean;
+  data: BatchPriceResult[];
+}
+
 const DEFAULT_REQUEST_TIMEOUT_MS = 15_000;
 
 const ORACLE_RETRY_CONFIG: Partial<EnhancedRetryConfig> = {
@@ -352,7 +373,79 @@ async function fetchHistoricalFromApi({
   );
 }
 
+async function fetchBatchPricesFromApi({
+  provider,
+  symbol,
+  chains,
+  signal: externalSignal,
+  forceRefresh = false,
+}: FetchBatchPricesParams): Promise<Map<Blockchain, PriceData>> {
+  const result = new Map<Blockchain, PriceData>();
+
+  if (chains.length === 0) return result;
+
+  const url = new URL('/api/oracles/batch', getBaseUrl());
+
+  const controller = new AbortController();
+  const timeoutMs = getRequestTimeout(provider) * 2;
+
+  const timeoutId = setTimeout(() => {
+    controller.abort(new Error(`Batch request timed out after ${timeoutMs}ms`));
+  }, timeoutMs);
+
+  if (externalSignal) {
+    const onExternalAbort = () => controller.abort();
+    externalSignal.addEventListener('abort', onExternalAbort, { once: true });
+  }
+
+  try {
+    const response = await fetch(url.toString(), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        queries: chains.map((chain) => ({
+          provider,
+          symbol,
+          chain,
+        })),
+        forceRefresh,
+      }),
+      signal: controller.signal,
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => 'Unknown error');
+      logger.error('Batch price API error', undefined, {
+        status: response.status,
+        errorText,
+      });
+      throw new Error(`Batch price API error: ${response.status}`);
+    }
+
+    const data: BatchPriceResponse = await response.json();
+
+    if (data.data) {
+      for (const item of data.data) {
+        if (item.price && !item.error && item.chain) {
+          try {
+            result.set(item.chain as Blockchain, validatePriceData(item.price));
+          } catch {
+            logger.warn('Invalid price data in batch response for chain', {
+              chain: item.chain,
+            });
+          }
+        }
+      }
+    }
+
+    return result;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
 export const oracleApiClient = {
   fetchPrice: fetchPriceFromApi,
   fetchHistorical: fetchHistoricalFromApi,
+  fetchBatchPrices: fetchBatchPricesFromApi,
 };

@@ -349,7 +349,7 @@ function RiskAnalysisTabComponent({ risk, chainCount }: RiskAnalysisTabProps) {
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-xs font-medium text-gray-700">{item.dimension}</span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-1.5">
+                  <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
                     <div
                       className="h-1.5 rounded-full bg-amber-500"
                       style={{ width: `${Math.min(item.contribution, 100)}%` }}

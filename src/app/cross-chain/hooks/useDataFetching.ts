@@ -74,13 +74,14 @@ export function useDataFetching(
     paramsRef.current = params;
   });
 
-  const { chainResults, isLoading, isFetching, errors } = useCrossChainQueries(
-    provider,
-    params.selectedSymbol,
-    supportedChains,
-    params.selectedTimeRange,
-    refetchInterval
-  );
+  const { chainResults, isLoading, isFetching, errors, triggerForceRefresh, resetForceRefresh } =
+    useCrossChainQueries(
+      provider,
+      params.selectedSymbol,
+      supportedChains,
+      params.selectedTimeRange,
+      refetchInterval
+    );
 
   const currentPrices = useMemo(() => {
     const prices = supportedChains
@@ -213,6 +214,7 @@ export function useDataFetching(
   }, []);
 
   const fetchData = useCallback(async () => {
+    triggerForceRefresh();
     await queryClient.invalidateQueries({
       queryKey: crossChainKeys.byProvider(
         provider,
@@ -220,7 +222,8 @@ export function useDataFetching(
         String(paramsRef.current.selectedTimeRange)
       ),
     });
-  }, [queryClient, provider]);
+    resetForceRefresh();
+  }, [queryClient, provider, triggerForceRefresh, resetForceRefresh]);
 
   const clearCache = useCallback(() => {
     queryClient.removeQueries({ queryKey: crossChainKeys.all });

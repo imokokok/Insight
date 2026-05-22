@@ -16,14 +16,11 @@ export function QueryResultsLoading() {
             {queryProgress.completed} / {queryProgress.total}
           </span>
         </div>
-        <div className="w-full bg-gray-200 rounded-full h-2">
+        <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
           <div
             className="h-2 rounded-full transition-all duration-300 bg-primary-600"
             style={{
-              width:
-                queryProgress.total > 0
-                  ? `${(queryProgress.completed / queryProgress.total) * 100}%`
-                  : '0%',
+              width: `${queryProgress.total > 0 ? Math.min(100, (queryProgress.completed / queryProgress.total) * 100) : 0}%`,
             }}
           />
         </div>
