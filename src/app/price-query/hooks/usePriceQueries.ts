@@ -44,12 +44,14 @@ export function useBatchOracleQuery(
           signal,
           forceRefresh: true,
         }),
-      staleTime: 0,
+      staleTime: 10_000,
       enabled: !!task.provider && !!task.symbol,
       refetchInterval,
       refetchIntervalInBackground: false,
-      retry: 1,
-      retryDelay: 1000,
+      placeholderData: (previousData: PriceData | undefined) => previousData,
+      retry: 2,
+      retryDelay: (attemptIndex: number) => Math.min(1000 * 2 ** attemptIndex, 3000),
+      refetchOnWindowFocus: false,
     }));
   }, [tasks, enabled, refetchInterval]);
 

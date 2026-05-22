@@ -1,8 +1,11 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
+import { useQueryClient } from '@tanstack/react-query';
+
 import { oracleApiClient } from '@/lib/api/oracleApiClient';
 import { extractBaseSymbol } from '@/lib/oracles';
 import { oracleSupportedSymbols } from '@/lib/oracles/constants/supportedSymbols';
+import { priceKeys } from '@/lib/queryKeys';
 import { createLogger } from '@/lib/utils/logger';
 import { getRequestQueue, type RequestPriority } from '@/lib/utils/requestQueue';
 import { OracleProvider, type PriceData } from '@/types/oracle';
@@ -32,6 +35,8 @@ const providerToSymbolKey: Record<OracleProvider, keyof typeof oracleSupportedSy
   [OracleProvider.REFLECTOR]: 'reflector',
   [OracleProvider.FLARE]: 'flare',
 };
+
+const CACHE_STALE_MS = 15_000;
 
 interface UseOracleDataCoreOptions {
   selectedOracles: OracleProvider[];
@@ -80,6 +85,8 @@ export function useOracleDataCore(
     requestPriority = 'normal',
   } = options;
 
+  const queryClient = useQueryClient();
+
   const {
     oracleDataError,
     setOracleDataError,
@@ -90,7 +97,7 @@ export function useOracleDataCore(
 
   const { calculatePerformanceMetrics, recordSuccessfulFetch, recordFailedFetch } = performance;
 
-  const { priceHistoryMapRef, clearHistoryData } = memory;
+  const { priceHistoryMapRef } = memory;
 
   const [priceData, setPriceData] = useState<PriceData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -115,7 +122,8 @@ export function useOracleDataCore(
     async (
       oracle: OracleProvider,
       baseSymbol: string,
-      signal: AbortSignal
+      signal: AbortSignal,
+      forceRefresh: boolean = false
     ): Promise<PriceData | null> => {
       const requestStart = Date.now();
       const requestQueue = getRequestQueue();
@@ -126,7 +134,7 @@ export function useOracleDataCore(
             oracleApiClient.fetchPrice({
               provider: oracle,
               symbol: baseSymbol,
-              forceRefresh: true,
+              forceRefresh,
             }),
           {
             priority: requestPriority,
@@ -210,156 +218,242 @@ export function useOracleDataCore(
     await retryAllFailedBase(oracleDataError);
   }, [retryAllFailedBase, oracleDataError]);
 
-  const fetchPriceData = useCallback(async () => {
-    if (selectedOracles.length === 0) {
-      setPriceData([]);
-      setQueryProgress({ completed: 0, total: 0 });
-      return;
-    }
-
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-    const currentAbortController = new AbortController();
-    abortControllerRef.current = currentAbortController;
-    const signal = currentAbortController.signal;
-
-    setIsLoading(true);
-    setError(null);
-    resetErrors();
-    clearHistoryData();
-    setQueryProgress({ completed: 0, total: selectedOracles.length });
-
-    const baseSymbol = extractBaseSymbol(selectedSymbol);
-
-    const skipped: OracleProvider[] = [];
-    const oraclesToFetch = selectedOracles.filter((oracle) => {
-      const key = providerToSymbolKey[oracle];
-      const supportedSymbols = oracleSupportedSymbols[key];
-      const isSupported = (supportedSymbols as readonly string[]).includes(baseSymbol);
-      if (!isSupported) {
-        skipped.push(oracle);
-      }
-      return isSupported;
-    });
-
-    setSkippedOracles(skipped);
-    setQueryProgress({ completed: 0, total: oraclesToFetch.length });
-
-    try {
-      const fetchResults = await Promise.all(
-        oraclesToFetch.map(async (oracle) => {
-          try {
-            const price = await fetchSingleOracle(oracle, baseSymbol, signal);
-            if (price && isMountedRef.current) {
-              return {
-                type: 'success' as const,
-                oracle,
-                price,
-              };
-            }
-            return { type: 'empty' as const };
-          } catch (err) {
-            if (!signal.aborted && isMountedRef.current) {
-              return { type: 'error' as const, error: createOracleErrorInfo(oracle, err) };
-            }
-            return { type: 'empty' as const };
-          } finally {
-            if (isMountedRef.current) {
-              setQueryProgress((prev) => ({
-                completed: prev.completed + 1,
-                total: oraclesToFetch.length,
-              }));
-            }
-          }
-        })
-      );
-
-      if (signal.aborted || !isMountedRef.current) {
+  const fetchPriceData = useCallback(
+    async (forceRefresh: boolean = false) => {
+      if (selectedOracles.length === 0) {
+        setPriceData([]);
+        setQueryProgress({ completed: 0, total: 0 });
         return;
       }
 
-      const prices = fetchResults
-        .filter(
-          (r): r is { type: 'success'; oracle: OracleProvider; price: PriceData } =>
-            r.type === 'success'
-        )
-        .map((r) => r.price);
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      const currentAbortController = new AbortController();
+      abortControllerRef.current = currentAbortController;
+      const signal = currentAbortController.signal;
 
-      const errors = fetchResults
-        .filter((r): r is { type: 'error'; error: OracleErrorInfo } => r.type === 'error')
-        .map((r) => r.error);
+      setIsLoading(true);
+      setError(null);
+      resetErrors();
+      setQueryProgress({ completed: 0, total: selectedOracles.length });
 
-      const successOracles = prices.map((p) => p.provider);
-      const failedOracles = oraclesToFetch.filter(
-        (o) => !successOracles.includes(o as OracleProvider)
-      ) as OracleProvider[];
+      const baseSymbol = extractBaseSymbol(selectedSymbol);
 
-      const partialSuccess: PartialSuccessState | null =
-        failedOracles.length > 0 && successOracles.length > 0
-          ? {
-              isSuccess: successOracles.length > 0,
-              successCount: successOracles.length,
-              failedCount: failedOracles.length,
-              totalCount: oraclesToFetch.length,
-              failedOracles,
-              successOracles,
-            }
-          : null;
-
-      const isPartialSuccess = partialSuccess !== null;
-      const hasError = errors.length > 0;
-
-      setPriceData(prices);
-      setLastUpdated(new Date());
-      setOracleDataError({
-        hasError,
-        isPartialSuccess,
-        partialSuccess,
-        errors,
-        globalError:
-          failedOracles.length === oraclesToFetch.length
-            ? new Error('All oracles failed to fetch data')
-            : null,
+      const skipped: OracleProvider[] = [];
+      const oraclesToFetch = selectedOracles.filter((oracle) => {
+        const key = providerToSymbolKey[oracle];
+        const supportedSymbols = oracleSupportedSymbols[key];
+        const isSupported = (supportedSymbols as readonly string[]).includes(baseSymbol);
+        if (!isSupported) {
+          skipped.push(oracle);
+        }
+        return isSupported;
       });
 
-      if (enablePerformanceMetrics) {
-        calculatePerformanceMetrics(
-          selectedOracles,
-          selectedSymbol,
-          priceHistoryMapRef as React.MutableRefObject<PriceHistoryMap>,
-          isMountedRef
+      setSkippedOracles(skipped);
+      setQueryProgress({ completed: 0, total: oraclesToFetch.length });
+
+      if (!forceRefresh) {
+        const cachedPrices: PriceData[] = [];
+        const uncachedOracles: OracleProvider[] = [];
+
+        for (const oracle of oraclesToFetch) {
+          const queryKey = priceKeys.byProvider(oracle, baseSymbol, '');
+          const cached = queryClient.getQueryData<PriceData>(queryKey);
+          if (cached && Date.now() - cached.timestamp < CACHE_STALE_MS) {
+            cachedPrices.push(cached);
+          } else {
+            uncachedOracles.push(oracle);
+          }
+        }
+
+        if (cachedPrices.length > 0) {
+          setPriceData(cachedPrices);
+          setLastUpdated(new Date());
+          setIsLoading(uncachedOracles.length > 0);
+        }
+
+        if (uncachedOracles.length === 0 && cachedPrices.length > 0) {
+          setIsLoading(false);
+
+          const partialSuccess: PartialSuccessState | null =
+            skipped.length > 0
+              ? {
+                  isSuccess: true,
+                  successCount: cachedPrices.length,
+                  failedCount: 0,
+                  totalCount: oraclesToFetch.length,
+                  failedOracles: [],
+                  successOracles: cachedPrices.map((p) => p.provider as OracleProvider),
+                }
+              : null;
+
+          setOracleDataError({
+            hasError: false,
+            isPartialSuccess: partialSuccess !== null,
+            partialSuccess,
+            errors: [],
+            globalError: null,
+          });
+
+          if (enablePerformanceMetrics) {
+            calculatePerformanceMetrics(
+              selectedOracles,
+              selectedSymbol,
+              priceHistoryMapRef as React.MutableRefObject<PriceHistoryMap>,
+              isMountedRef
+            );
+          }
+          return;
+        }
+
+        if (uncachedOracles.length < oraclesToFetch.length) {
+          setQueryProgress({
+            completed: cachedPrices.length,
+            total: oraclesToFetch.length,
+          });
+        }
+      }
+
+      const oraclesToFetchNow = forceRefresh
+        ? oraclesToFetch
+        : oraclesToFetch.filter((oracle) => {
+            const queryKey = priceKeys.byProvider(oracle, baseSymbol, '');
+            const cached = queryClient.getQueryData<PriceData>(queryKey);
+            return !cached || Date.now() - cached.timestamp >= CACHE_STALE_MS;
+          });
+
+      try {
+        const fetchResults = await Promise.all(
+          oraclesToFetchNow.map(async (oracle) => {
+            try {
+              const price = await fetchSingleOracle(oracle, baseSymbol, signal, forceRefresh);
+              if (price && isMountedRef.current) {
+                const queryKey = priceKeys.byProvider(oracle, baseSymbol, '');
+                queryClient.setQueryData(queryKey, price, { updatedAt: Date.now() });
+
+                return {
+                  type: 'success' as const,
+                  oracle,
+                  price,
+                };
+              }
+              return { type: 'empty' as const };
+            } catch (err) {
+              if (!signal.aborted && isMountedRef.current) {
+                return { type: 'error' as const, error: createOracleErrorInfo(oracle, err) };
+              }
+              return { type: 'empty' as const };
+            } finally {
+              if (isMountedRef.current) {
+                setQueryProgress((prev) => ({
+                  completed: prev.completed + 1,
+                  total: oraclesToFetch.length,
+                }));
+              }
+            }
+          })
         );
-      }
-    } catch (err) {
-      const appError = err instanceof Error ? err : new Error(String(err));
-      logger.error('Failed to fetch price data', appError);
-      if (isMountedRef.current) {
-        setError(appError);
+
+        if (signal.aborted || !isMountedRef.current) {
+          return;
+        }
+
+        const newPrices = fetchResults
+          .filter(
+            (r): r is { type: 'success'; oracle: OracleProvider; price: PriceData } =>
+              r.type === 'success'
+          )
+          .map((r) => r.price);
+
+        const errors = fetchResults
+          .filter((r): r is { type: 'error'; error: OracleErrorInfo } => r.type === 'error')
+          .map((r) => r.error);
+
+        if (!forceRefresh) {
+          const existingCached = queryClient.getQueriesData<PriceData>({
+            queryKey: priceKeys.all,
+          });
+          for (const [, data] of existingCached) {
+            if (data && !newPrices.some((p) => p.provider === data.provider)) {
+              newPrices.push(data);
+            }
+          }
+        }
+
+        const successOracles = newPrices.map((p) => p.provider);
+        const failedOracles = oraclesToFetch.filter(
+          (o) => !successOracles.includes(o as OracleProvider)
+        ) as OracleProvider[];
+
+        const partialSuccess: PartialSuccessState | null =
+          failedOracles.length > 0 && successOracles.length > 0
+            ? {
+                isSuccess: successOracles.length > 0,
+                successCount: successOracles.length,
+                failedCount: failedOracles.length,
+                totalCount: oraclesToFetch.length,
+                failedOracles,
+                successOracles,
+              }
+            : null;
+
+        const isPartialSuccess = partialSuccess !== null;
+        const hasError = errors.length > 0;
+
+        setPriceData(newPrices);
+        setLastUpdated(new Date());
         setOracleDataError({
-          hasError: true,
-          isPartialSuccess: false,
-          partialSuccess: null,
-          errors: [],
-          globalError: appError,
+          hasError,
+          isPartialSuccess,
+          partialSuccess,
+          errors,
+          globalError:
+            failedOracles.length === oraclesToFetch.length
+              ? new Error('All oracles failed to fetch data')
+              : null,
         });
+
+        if (enablePerformanceMetrics) {
+          calculatePerformanceMetrics(
+            selectedOracles,
+            selectedSymbol,
+            priceHistoryMapRef as React.MutableRefObject<PriceHistoryMap>,
+            isMountedRef
+          );
+        }
+      } catch (err) {
+        const appError = err instanceof Error ? err : new Error(String(err));
+        logger.error('Failed to fetch price data', appError);
+        if (isMountedRef.current) {
+          setError(appError);
+          setOracleDataError({
+            hasError: true,
+            isPartialSuccess: false,
+            partialSuccess: null,
+            errors: [],
+            globalError: appError,
+          });
+        }
+      } finally {
+        if (isMountedRef.current && abortControllerRef.current === currentAbortController) {
+          setIsLoading(false);
+        }
       }
-    } finally {
-      if (isMountedRef.current && abortControllerRef.current === currentAbortController) {
-        setIsLoading(false);
-      }
-    }
-  }, [
-    selectedOracles,
-    selectedSymbol,
-    enablePerformanceMetrics,
-    calculatePerformanceMetrics,
-    fetchSingleOracle,
-    resetErrors,
-    setOracleDataError,
-    priceHistoryMapRef,
-    clearHistoryData,
-  ]);
+    },
+    [
+      selectedOracles,
+      selectedSymbol,
+      enablePerformanceMetrics,
+      calculatePerformanceMetrics,
+      fetchSingleOracle,
+      resetErrors,
+      setOracleDataError,
+      priceHistoryMapRef,
+      queryClient,
+    ]
+  );
 
   const fetchPriceDataRef = useRef(fetchPriceData);
   fetchPriceDataRef.current = fetchPriceData;
@@ -390,7 +484,7 @@ export function useOracleDataCore(
 
   const { lastRefreshedAt, nextRefreshAt } = useOracleAutoRefresh({
     refreshInterval,
-    onRefresh: fetchPriceData,
+    onRefresh: () => fetchPriceData(false),
     isMountedRef,
   });
 
@@ -399,7 +493,7 @@ export function useOracleDataCore(
     isLoading,
     error,
     lastUpdated,
-    fetchPriceData,
+    fetchPriceData: () => fetchPriceData(true),
     refreshInterval,
     setRefreshInterval,
     oracleDataError,
