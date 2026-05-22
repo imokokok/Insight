@@ -37,7 +37,6 @@ export const navigationConfig: NavStructure = [
         icon: GitCompare,
         description:
           'Real-time multi-oracle price comparison, deviation analytics and anomaly detection',
-        highlight: true,
       },
       {
         href: '/cross-chain',

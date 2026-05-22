@@ -48,10 +48,15 @@ export default function CrossChainContent() {
   const loading = useCrossChainDataStore((s) => s.loading);
   const currentPrices = useCrossChainDataStore((s) => s.currentPrices);
   const lastUpdated = useCrossChainDataStore((s) => s.lastUpdated);
+  const refreshStatus = useCrossChainDataStore((s) => s.refreshStatus);
   const refreshInterval = useCrossChainConfigStore((s) => s.refreshInterval);
   const setRefreshInterval = useCrossChainConfigStore((s) => s.setRefreshInterval);
 
   const analytics = useCrossChainAnalytics(currentPrices);
+
+  const hasData = currentPrices.length > 0;
+  const isInitialLoading = loading && !hasData;
+  const isRefreshing = refreshStatus === 'refreshing' && hasData;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -94,13 +99,19 @@ export default function CrossChainContent() {
           <div className="flex-1 min-w-0">
             <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
 
-            {loading ? (
+            {isInitialLoading ? (
               <div className="py-16 flex flex-col justify-center items-center gap-3 bg-white rounded-lg border border-gray-200 mt-4">
                 <div className="w-8 h-8 border-2 border-gray-400 border-t-transparent animate-spin rounded-full" />
                 <div className="text-sm text-gray-500">Loading data...</div>
               </div>
             ) : (
               <div className="mt-4">
+                {isRefreshing && (
+                  <div className="flex items-center gap-2 mb-3 px-1">
+                    <div className="w-3 h-3 border-2 border-blue-400 border-t-transparent animate-spin rounded-full" />
+                    <span className="text-xs text-blue-500">Refreshing...</span>
+                  </div>
+                )}
                 {activeTab === 'overview' && <MemoizedOverviewTab />}
                 {activeTab === 'charts' && <MemoizedChartsTab />}
                 {activeTab === 'risk' && (

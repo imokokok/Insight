@@ -129,11 +129,18 @@ function decodeDecimals(data: string): number {
   }
 }
 
+interface FeedMetadata {
+  decimals: number;
+  description: string;
+  version: bigint;
+}
+
 class ChainlinkOnChainService {
   private rpcClient = new RpcClientWithFallback({ contextLabel: 'chainlink' });
   private cache: Map<string, { data: unknown; timestamp: number }> = new Map();
   private cacheTTL = 30000;
   private maxCacheSize = 200;
+  private metadataCache: Map<string, FeedMetadata> = new Map();
 
   private async ethCall(
     chainId: number,
@@ -180,6 +187,32 @@ class ChainlinkOnChainService {
     this.cache.set(key, { data, timestamp: Date.now() });
   }
 
+  private async getOrFetchMetadata(
+    symbol: string,
+    chainId: number,
+    feedAddress: `0x${string}`,
+    signal?: AbortSignal
+  ): Promise<FeedMetadata> {
+    const metaKey = `meta-${symbol}-${chainId}`;
+    const cached = this.metadataCache.get(metaKey);
+    if (cached) return cached;
+
+    const [decimalsData, descriptionData, versionData] = await Promise.all([
+      this.ethCall(chainId, feedAddress, encodeAggregatorCall('decimals'), signal),
+      this.ethCall(chainId, feedAddress, encodeAggregatorCall('description'), signal),
+      this.ethCall(chainId, feedAddress, encodeAggregatorCall('version'), signal),
+    ]);
+
+    const metadata: FeedMetadata = {
+      decimals: decodeDecimals(decimalsData),
+      description: this.decodeString(descriptionData),
+      version: decodeUint256(versionData),
+    };
+
+    this.metadataCache.set(metaKey, metadata);
+    return metadata;
+  }
+
   async getPrice(
     symbol: string,
     chainId: number = 1,
@@ -208,22 +241,19 @@ class ChainlinkOnChainService {
     }
 
     try {
-      const [roundData, decimalsData, descriptionData, versionData] = await Promise.all([
+      const [roundData, metadata] = await Promise.all([
         this.ethCall(chainId, feed.address, encodeAggregatorCall('latestRoundData'), signal),
-        this.ethCall(chainId, feed.address, encodeAggregatorCall('decimals'), signal),
-        this.ethCall(chainId, feed.address, encodeAggregatorCall('description'), signal),
-        this.ethCall(chainId, feed.address, encodeAggregatorCall('version'), signal),
+        this.getOrFetchMetadata(symbol, chainId, feed.address, signal),
       ]);
 
       logger.debug('Raw RPC responses received', {
         symbol,
         chainId,
         roundDataLength: roundData?.length || 0,
-        decimalsData,
+        metadataCached: this.metadataCache.has(`meta-${symbol}-${chainId}`),
       });
 
       const decoded = decodeLatestRoundData(roundData);
-      const decimals = decodeDecimals(decimalsData);
 
       logger.debug('Decoded round data', {
         symbol,
@@ -232,18 +262,18 @@ class ChainlinkOnChainService {
         startedAt: decoded.startedAt?.toString(),
         updatedAt: decoded.updatedAt?.toString(),
         answeredInRound: decoded.answeredInRound?.toString(),
-        decimals,
+        decimals: metadata.decimals,
       });
 
       const rawStr = decoded.answer.toString();
-      const price = stringToPrice(rawStr, decimals);
+      const price = stringToPrice(rawStr, metadata.decimals);
 
       if (price <= 0) {
         logger.warn('Invalid price from Chainlink contract', {
           symbol: feed.symbol,
           price,
           rawAnswer: decoded.answer.toString(),
-          decimals,
+          decimals: metadata.decimals,
         });
         return null;
       }
@@ -279,13 +309,13 @@ class ChainlinkOnChainService {
       const result: ChainlinkPriceData = {
         symbol: feed.symbol,
         price,
-        decimals,
+        decimals: metadata.decimals,
         timestamp: Number(decoded.updatedAt) * 1000,
         roundId: decoded.roundId,
         answeredInRound: decoded.answeredInRound,
         chainId,
-        description: this.decodeString(descriptionData),
-        version: decodeUint256(versionData),
+        description: metadata.description,
+        version: metadata.version,
         startedAt: Number(decoded.startedAt) * 1000,
       };
 
@@ -436,6 +466,7 @@ class ChainlinkOnChainService {
 
   clearCache(): void {
     this.cache.clear();
+    this.metadataCache.clear();
   }
 
   resetEndpointHealth(): void {

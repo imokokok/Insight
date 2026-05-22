@@ -168,34 +168,24 @@ export function MegaMenu({ group, isActive, currentPath, onItemClick }: MegaMenu
                     className={`flex items-start gap-3 px-3 py-3 rounded-lg transition-all duration-200 group relative ${
                       isItemActive
                         ? 'bg-primary-50 text-primary-600'
-                        : item.highlight
-                          ? 'bg-blue-50/50 hover:bg-blue-50 text-gray-700'
-                          : 'hover:bg-gray-50 text-gray-700'
+                        : 'hover:bg-gray-50 text-gray-700'
                     }`}
                     role="menuitem"
                   >
                     {ItemIcon && (
                       <div
                         className={`p-2 rounded-lg transition-colors flex-shrink-0 ${
-                          isItemActive
-                            ? 'bg-primary-100'
-                            : item.highlight
-                              ? 'bg-blue-100'
-                              : 'bg-gray-100 group-hover:bg-white'
+                          isItemActive ? 'bg-primary-100' : 'bg-gray-100 group-hover:bg-white'
                         }`}
                         style={
-                          accentColor && !isItemActive && !item.highlight
+                          accentColor && !isItemActive
                             ? { backgroundColor: `${accentColor}15` }
                             : {}
                         }
                       >
                         <ItemIcon
                           className="w-4 h-4"
-                          style={
-                            accentColor && !isItemActive && !item.highlight
-                              ? { color: accentColor }
-                              : {}
-                          }
+                          style={accentColor && !isItemActive ? { color: accentColor } : {}}
                         />
                       </div>
                     )}
