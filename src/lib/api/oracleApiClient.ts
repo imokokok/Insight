@@ -37,7 +37,7 @@ const ORACLE_RETRY_CONFIG: Partial<EnhancedRetryConfig> = {
 
 const ORACLE_TIMEOUT_CONFIG: Record<string, number> = {
   chainlink: 10_000,
-  pyth: 8_000,
+  pyth: 30_000,
   api3: 20_000,
   dia: 25_000,
   winklink: 20_000,
@@ -66,7 +66,6 @@ const MAX_PENDING_REQUESTS = 100;
 
 const responseCache = new TTLCache({ maxSize: 200, cleanupIntervalMs: 60000 });
 const CACHE_TTL_MS = 15_000;
-const FORCE_REFRESH_CACHE_TTL_MS = 3_000;
 const PENDING_REQUEST_TIMEOUT = 30_000;
 
 function cleanupStalePendingRequests(): void {
@@ -74,7 +73,9 @@ function cleanupStalePendingRequests(): void {
     if (request.timeoutId) {
       clearTimeout(request.timeoutId);
     }
-    request.controller.abort();
+    request.controller.abort(
+      new Error(`Request ${key} timed out after ${PENDING_REQUEST_TIMEOUT}ms`)
+    );
     pendingRequests.delete(key);
   }
 }
@@ -85,8 +86,8 @@ if (typeof setInterval !== 'undefined') {
   }, PENDING_REQUEST_TIMEOUT);
 }
 
-function setCachedResponse(key: string, data: unknown, ttlMs?: number): void {
-  responseCache.set(key, data, ttlMs ?? CACHE_TTL_MS);
+function setCachedResponse(key: string, data: unknown): void {
+  responseCache.set(key, data, CACHE_TTL_MS);
 }
 
 function buildRequestKey(
@@ -122,7 +123,7 @@ function createAbortControllerWithTimeout(
 ): { controller: AbortController; timeoutId: ReturnType<typeof setTimeout>; cleanup: () => void } {
   const previous = pendingRequests.get(key);
   if (previous) {
-    previous.controller.abort();
+    previous.controller.abort(new Error(`Request superseded by newer request for ${key}`));
     clearTimeout(previous.timeoutId);
     pendingRequests.delete(key);
   }
@@ -130,7 +131,7 @@ function createAbortControllerWithTimeout(
   const timeoutMs = getRequestTimeout(provider);
   const controller = new AbortController();
   const timeoutId = setTimeout(() => {
-    controller.abort();
+    controller.abort(new Error(`${provider || 'Oracle'} request timed out after ${timeoutMs}ms`));
     removePendingRequest(key);
   }, timeoutMs);
 
@@ -139,7 +140,7 @@ function createAbortControllerWithTimeout(
   if (signal) {
     const onExternalAbort = () => {
       clearTimeout(timeoutId);
-      controller.abort();
+      controller.abort(new Error(`External abort for ${key}`));
       removePendingRequest(key);
     };
     signal.addEventListener('abort', onExternalAbort, { once: true });
@@ -262,8 +263,9 @@ function deduplicatedFetch<T>(
   )
     .then((result) => {
       if (result.success && result.data !== undefined) {
-        const ttl = forceRefresh ? FORCE_REFRESH_CACHE_TTL_MS : CACHE_TTL_MS;
-        setCachedResponse(key, result.data, ttl);
+        if (!forceRefresh) {
+          setCachedResponse(key, result.data);
+        }
         return result.data;
       }
       throw result.error ?? new Error(`${context} request failed after retry`);
@@ -308,27 +310,19 @@ async function fetchPriceFromApi({
 
   logger.info(`Fetching price from API: ${url.toString()}`);
 
-  try {
-    const result = await deduplicatedFetch<PriceData>(
-      key,
-      url.toString(),
-      'Price',
-      externalSignal,
-      validatePriceData,
-      provider,
-      forceRefresh
-    );
-    return result;
-  } catch (error) {
-    if (forceRefresh) {
-      const cached = getCachedResponse<PriceData>(key);
-      if (cached !== undefined) {
-        logger.info(`Force refresh failed, returning cached price for ${key}`);
-        return cached;
-      }
-    }
-    throw error;
+  if (forceRefresh) {
+    responseCache.delete(key);
   }
+
+  return deduplicatedFetch<PriceData>(
+    key,
+    url.toString(),
+    'Price',
+    externalSignal,
+    validatePriceData,
+    provider,
+    forceRefresh
+  );
 }
 
 async function fetchHistoricalFromApi({
@@ -358,17 +352,7 @@ async function fetchHistoricalFromApi({
   );
 }
 
-function getCachedPrice(
-  provider: OracleProvider,
-  symbol: string,
-  chain?: Blockchain
-): PriceData | undefined {
-  const key = buildRequestKey('price', provider, symbol, chain);
-  return getCachedResponse<PriceData>(key);
-}
-
 export const oracleApiClient = {
   fetchPrice: fetchPriceFromApi,
   fetchHistorical: fetchHistoricalFromApi,
-  getCachedPrice,
 };

@@ -188,6 +188,23 @@ function shouldRetry(error: Error, attempt: number, config: EnhancedRetryConfig)
     return false;
   }
 
+  if (error.name === 'AbortError') {
+    return false;
+  }
+
+  if (
+    typeof DOMException !== 'undefined' &&
+    error instanceof DOMException &&
+    error.name === 'AbortError'
+  ) {
+    return false;
+  }
+
+  const errorMessageLower = error.message.toLowerCase();
+  if (errorMessageLower.includes('abort') && !errorMessageLower.includes('503')) {
+    return false;
+  }
+
   const errorCode = (error as Error & { code?: string }).code;
   if (errorCode && config.retryableErrorCodes.includes(errorCode)) {
     return true;
@@ -227,8 +244,7 @@ function shouldRetry(error: Error, attempt: number, config: EnhancedRetryConfig)
     'ECONNABORTED',
   ];
 
-  const errorMessage = error.message.toLowerCase();
-  return networkErrorPatterns.some((pattern) => errorMessage.includes(pattern.toLowerCase()));
+  return networkErrorPatterns.some((pattern) => errorMessageLower.includes(pattern.toLowerCase()));
 }
 
 function withTimeout<T>(

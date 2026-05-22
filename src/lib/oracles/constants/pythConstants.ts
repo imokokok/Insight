@@ -161,6 +161,13 @@ export const PYTH_PRICE_FEED_IDS: Record<string, string> = {
 
 export const HERMES_API_URL = 'https://hermes.pyth.network';
 
+export const HERMES_FALLBACK_URLS = [
+  'https://hermes.pyth.network',
+  'https://hermes-beta.pyth.network',
+];
+
+export const HERMES_DIRECT_IPS = ['35.186.234.172', '34.120.42.22', '34.102.136.94'];
+
 export const CACHE_TTL = {
   PRICE: 5000,
 } as const;
