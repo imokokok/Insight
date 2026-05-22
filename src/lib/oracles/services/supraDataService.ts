@@ -7,6 +7,7 @@ import {
   SUPRA_PAIR_INDEX_MAP,
   SUPRA_INDEX_TO_SYMBOL,
 } from '../constants/supraConstants';
+import { bigIntToPrice } from '../utils/oracleDataUtils';
 import { withOracleRetry, ORACLE_RETRY_PRESETS } from '../utils/retry';
 
 import type { OracleCacheEntry } from '../base';
@@ -117,18 +118,36 @@ class SupraDataService {
 
           const client = await this.getOracleClient();
 
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
+          const oracleDataPromise = client.getOracleData(pairIndexes);
 
-          const onAbort = signal ? () => controller.abort() : null;
-          if (onAbort && signal) {
-            signal.addEventListener('abort', onAbort, { once: true });
-          }
+          const timeoutPromise = new Promise<never>((_, reject) => {
+            const timeoutId = setTimeout(() => {
+              reject(
+                new SupraApiError(
+                  `Supra DORA request timed out after ${REQUEST_TIMEOUT}ms`,
+                  'TIMEOUT_ERROR'
+                )
+              );
+            }, REQUEST_TIMEOUT);
+            timeoutId.unref?.();
+          });
+
+          const abortCtx: { cleanup: (() => void) | null } = { cleanup: null };
+          const abortPromise = signal
+            ? new Promise<never>((_, reject) => {
+                const onAbort = () =>
+                  reject(new SupraApiError('Request was aborted', 'ABORT_ERROR'));
+                signal.addEventListener('abort', onAbort, { once: true });
+                abortCtx.cleanup = () => signal.removeEventListener('abort', onAbort);
+              })
+            : null;
+
+          const racePromises = [oracleDataPromise, timeoutPromise];
+          if (abortPromise) racePromises.push(abortPromise);
 
           try {
-            const oracleData: SupraOraclePriceFeed[] = await client.getOracleData(pairIndexes);
-            clearTimeout(timeoutId);
-            if (onAbort && signal) signal.removeEventListener('abort', onAbort);
+            const oracleData: SupraOraclePriceFeed[] = await Promise.race(racePromises);
+            abortCtx.cleanup?.();
 
             if (!oracleData || !Array.isArray(oracleData) || oracleData.length === 0) {
               throw new SupraApiError('No price data returned from Supra DORA', 'NO_DATA');
@@ -136,13 +155,7 @@ class SupraDataService {
 
             return oracleData;
           } catch (error) {
-            clearTimeout(timeoutId);
-            if (onAbort && signal) signal.removeEventListener('abort', onAbort);
-
-            if (signal?.aborted) {
-              throw new SupraApiError('Request was aborted', 'ABORT_ERROR');
-            }
-
+            abortCtx.cleanup?.();
             throw error;
           }
         },
@@ -156,7 +169,7 @@ class SupraDataService {
           const symbol = SUPRA_INDEX_TO_SYMBOL[pairIndex] || `UNKNOWN_${pairIndex}`;
           const decimals = parseInt(feed.decimals, 10);
           const rawPrice = BigInt(feed.price);
-          const price = Number(rawPrice) / Math.pow(10, decimals);
+          const price = bigIntToPrice(rawPrice, decimals);
 
           return {
             price,

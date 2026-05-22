@@ -26,6 +26,7 @@ import {
   REFLECTOR_CRYPTO_CONTRACT,
   REFLECTOR_FOREX_CONTRACT,
 } from '../constants/reflectorConstants';
+import { bigIntToPrice } from '../utils/oracleDataUtils';
 
 const logger = createLogger('ReflectorDataService');
 
@@ -187,6 +188,10 @@ class ReflectorDataService {
       throw new Error('Soroban RPC server not initialized');
     }
 
+    if (signal?.aborted) {
+      throw new Error(`Simulation call aborted for method '${method}'`);
+    }
+
     const sourceAccount = new Account(REFLECTOR_DEFAULT_ACCOUNT, '0');
     const contract = new Contract(contractId);
     const call = contract.call(method, ...args);
@@ -199,42 +204,50 @@ class ReflectorDataService {
       .setTimeout(REFLECTOR_TIMEOUT_MS)
       .build();
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), REFLECTOR_TIMEOUT_MS);
+    const simulationPromise = this.server.simulateTransaction(transaction);
 
-    let simulationResult: rpc.Api.SimulateTransactionResponse;
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      const timeoutId = setTimeout(() => {
+        reject(new Error(`Simulation timed out after ${REFLECTOR_TIMEOUT_MS}ms`));
+      }, REFLECTOR_TIMEOUT_MS);
+      timeoutId.unref?.();
+    });
+
+    const abortPromise = signal
+      ? new Promise<never>((_, reject) => {
+          const onAbort = () => reject(new Error(`Simulation call aborted for method '${method}'`));
+          signal.addEventListener('abort', onAbort, { once: true });
+        })
+      : null;
+
+    const racePromises: Promise<unknown>[] = [simulationPromise, timeoutPromise];
+    if (abortPromise) racePromises.push(abortPromise);
+
     try {
-      const simulationPromise = this.server.simulateTransaction(transaction);
-      const timeoutPromise = new Promise<never>((_, reject) =>
-        setTimeout(
-          () => reject(new Error(`Simulation timed out after ${REFLECTOR_TIMEOUT_MS}ms`)),
-          REFLECTOR_TIMEOUT_MS
-        )
-      );
-      simulationResult = await Promise.race([simulationPromise, timeoutPromise]);
+      const simulationResult = (await Promise.race(
+        racePromises
+      )) as rpc.Api.SimulateTransactionResponse;
+
+      if (rpc.Api.isSimulationError(simulationResult)) {
+        throw new Error(`Simulation error: ${simulationResult.error}`);
+      }
+
+      if (rpc.Api.isSimulationRestore(simulationResult)) {
+        throw new Error('Simulation requires restore, which is not supported for read-only calls');
+      }
+
+      const results = simulationResult.result?.retval;
+      if (!results) {
+        throw new Error('No result returned from simulation');
+      }
+
+      return results;
     } catch (error) {
       if (signal?.aborted) {
         throw new Error(`Simulation call aborted for method '${method}'`);
       }
       throw error;
-    } finally {
-      clearTimeout(timeoutId);
     }
-
-    if (rpc.Api.isSimulationError(simulationResult)) {
-      throw new Error(`Simulation error: ${simulationResult.error}`);
-    }
-
-    if (rpc.Api.isSimulationRestore(simulationResult)) {
-      throw new Error('Simulation requires restore, which is not supported for read-only calls');
-    }
-
-    const results = simulationResult.result?.retval;
-    if (!results) {
-      throw new Error('No result returned from simulation');
-    }
-
-    return results;
   }
 
   private parsePriceData(
@@ -250,11 +263,12 @@ class ReflectorDataService {
 
       if (parsed && typeof parsed === 'object') {
         const obj = parsed as Record<string, unknown>;
-        const rawPrice = typeof obj.price === 'bigint' ? Number(obj.price) : Number(obj.price || 0);
+        const rawPriceBigInt =
+          typeof obj.price === 'bigint' ? obj.price : BigInt(String(obj.price ?? 0));
         const timestamp =
           typeof obj.timestamp === 'bigint' ? Number(obj.timestamp) : Number(obj.timestamp || 0);
 
-        const actualPrice = rawPrice / Math.pow(10, decimals);
+        const actualPrice = bigIntToPrice(rawPriceBigInt, decimals);
 
         return { price: actualPrice, timestamp };
       }

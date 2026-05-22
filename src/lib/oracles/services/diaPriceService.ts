@@ -105,39 +105,6 @@ export class DIAPriceService {
 
     const upperSymbol = symbol.toUpperCase();
 
-    const stablecoins = [
-      'USDT',
-      'USDC',
-      'DAI',
-      'FRAX',
-      'TUSD',
-      'BUSD',
-      'LUSD',
-      'USDD',
-      'USDJ',
-      'USDP',
-    ];
-    if (stablecoins.includes(upperSymbol)) {
-      logger.warn(
-        `Returning hardcoded price for stablecoin ${upperSymbol} - not verified against API`
-      );
-      const result: PriceData = {
-        provider: OracleProvider.DIA,
-        symbol: upperSymbol,
-        price: 1.0,
-        timestamp: Date.now(),
-        decimals: 8,
-        confidence: 0.5,
-        confidenceSource: 'estimated',
-        change24h: 0,
-        change24hPercent: 0,
-        chain,
-        source: 'hardcoded-stablecoin',
-      };
-      this.setCache(cacheKey, result, CACHE_TTL.PRICE);
-      return result;
-    }
-
     try {
       logger.info('Fetching price from DIA official API', { symbol, chain });
 
@@ -258,3 +225,6 @@ export class DIAPriceService {
     }
   }
 }
+
+const diaPriceCache = new Map<string, OracleCacheEntry<unknown>>();
+export const diaPriceService = new DIAPriceService(diaPriceCache);

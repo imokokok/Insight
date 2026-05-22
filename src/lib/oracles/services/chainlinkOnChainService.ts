@@ -2,6 +2,7 @@ import { encodeFunctionData as viemEncodeFunctionData } from 'viem';
 
 import { createLogger } from '@/lib/utils/logger';
 
+import { stringToPrice } from '../utils/oracleDataUtils';
 import { RpcClientWithFallback } from '../utils/rpcClientWithFallback';
 
 import {
@@ -235,20 +236,7 @@ class ChainlinkOnChainService {
       });
 
       const rawStr = decoded.answer.toString();
-      const isNegative = rawStr.startsWith('-');
-      const absStr = isNegative ? rawStr.slice(1) : rawStr;
-      let price: number;
-      if (absStr.length > decimals) {
-        const intPart = absStr.slice(0, absStr.length - decimals) || '0';
-        const decPart = absStr.slice(absStr.length - decimals);
-        price = parseFloat(`${intPart}.${decPart}`);
-      } else {
-        const paddedDec = absStr.padStart(decimals, '0');
-        price = parseFloat(`0.${paddedDec}`);
-      }
-      if (isNegative) {
-        price = -price;
-      }
+      const price = stringToPrice(rawStr, decimals);
 
       if (price <= 0) {
         logger.warn('Invalid price from Chainlink contract', {
@@ -258,6 +246,34 @@ class ChainlinkOnChainService {
           decimals,
         });
         return null;
+      }
+
+      if (decoded.updatedAt === BigInt(0)) {
+        logger.warn('Chainlink price never updated', {
+          symbol: feed.symbol,
+          roundId: decoded.roundId?.toString(),
+        });
+        return null;
+      }
+
+      if (decoded.answeredInRound < decoded.roundId) {
+        logger.warn('Chainlink price is stale - answeredInRound < roundId', {
+          symbol: feed.symbol,
+          roundId: decoded.roundId?.toString(),
+          answeredInRound: decoded.answeredInRound?.toString(),
+        });
+        return null;
+      }
+
+      const STALE_PRICE_THRESHOLD_SECONDS = 3600;
+      const priceAge = Math.floor(Date.now() / 1000) - Number(decoded.updatedAt);
+      if (priceAge > STALE_PRICE_THRESHOLD_SECONDS) {
+        logger.warn('Chainlink price is stale', {
+          symbol: feed.symbol,
+          priceAge,
+          threshold: STALE_PRICE_THRESHOLD_SECONDS,
+          roundId: decoded.roundId?.toString(),
+        });
       }
 
       const result: ChainlinkPriceData = {

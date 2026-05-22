@@ -5,42 +5,12 @@ import { ALCHEMY_RPC } from '@/lib/config/serverEnv';
 import { createLogger } from '@/lib/utils/logger';
 import { Blockchain } from '@/types/oracle';
 
+import { bigIntToPrice } from '../utils/oracleDataUtils';
+import { RpcClientWithFallback } from '../utils/rpcClientWithFallback';
+
 const logger = createLogger('API3NetworkService');
 
-const RPC_TIMEOUT_MS = 10000;
-const ENDPOINT_RECOVERY_TIME = 60000;
-const MAX_ENDPOINT_ENTRIES = 200;
-
-const endpointHealth: Record<string, boolean> = {};
-const endpointFailureTime: Record<string, number> = {};
-
-function pruneEndpointEntries(): void {
-  const keys = Object.keys(endpointHealth);
-  if (keys.length > MAX_ENDPOINT_ENTRIES) {
-    keys.sort((a, b) => (endpointFailureTime[a] || 0) - (endpointFailureTime[b] || 0));
-    const toDelete = keys.slice(0, keys.length - MAX_ENDPOINT_ENTRIES);
-    for (const key of toDelete) {
-      delete endpointHealth[key];
-      delete endpointFailureTime[key];
-    }
-  }
-}
-
-function isEndpointHealthy(chainId: number, index: number): boolean {
-  const key = `${chainId}-${index}`;
-  const health = endpointHealth[key];
-
-  if (health === false) {
-    const lastFail = endpointFailureTime[key];
-    if (lastFail && Date.now() - lastFail > ENDPOINT_RECOVERY_TIME) {
-      endpointHealth[key] = true;
-      delete endpointFailureTime[key];
-      return true;
-    }
-    return false;
-  }
-  return true;
-}
+const api3RpcClient = new RpcClientWithFallback({ contextLabel: 'api3' });
 
 // API3 dAPI Proxy contract ABI (simplified, only includes read function)
 const DAPI_PROXY_ABI = [
@@ -51,6 +21,13 @@ const DAPI_PROXY_ABI = [
       { internalType: 'int224', name: 'value', type: 'int224' },
       { internalType: 'uint32', name: 'timestamp', type: 'uint32' },
     ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'decimals',
+    outputs: [{ internalType: 'uint8', name: '', type: 'uint8' }],
     stateMutability: 'view',
     type: 'function',
   },
@@ -66,11 +43,6 @@ const CHAIN_ID_MAP: Partial<Record<Blockchain, number>> = {
   [Blockchain.BASE]: 8453,
   [Blockchain.OPTIMISM]: 10,
   [Blockchain.FANTOM]: 250,
-  [Blockchain.GNOSIS]: 100,
-  [Blockchain.MOONBEAM]: 1284,
-  [Blockchain.KAVA]: 2222,
-  [Blockchain.LINEA]: 59144,
-  [Blockchain.SCROLL]: 534352,
 };
 
 // RPC endpoint configuration
@@ -153,65 +125,11 @@ const SYMBOL_TO_DAPI: Record<string, string> = {
   WETH: 'WETH/USD',
 };
 
-const DAPI_DECIMALS: Record<string, number> = {
-  'ETH/USD': 18,
-  'BTC/USD': 18,
-  'BNB/USD': 18,
-  'SOL/USD': 18,
-  'ARB/USD': 18,
-  'COMP/USD': 18,
-  'BAL/USD': 18,
-  'USDC/USD': 18,
-  'USDT/USD': 18,
-  'DAI/USD': 18,
-  'WBTC/USD': 18,
-  'AVAX/USD': 18,
-  'LINK/USD': 18,
-  'MATIC/USD': 18,
-  'OP/USD': 18,
-  'UNI/USD': 18,
-  'AAVE/USD': 18,
-  'PYTH/USD': 18,
-  'DOGE/USD': 18,
-  'XRP/USD': 18,
-  'ADA/USD': 18,
-  'DOT/USD': 18,
-  'LTC/USD': 18,
-  'BCH/USD': 18,
-  'ETC/USD': 18,
-  'XLM/USD': 18,
-  'ATOM/USD': 18,
-  'SHIB/USD': 18,
-  'FTM/USD': 18,
-  'GRT/USD': 18,
-  'SUSHI/USD': 18,
-  'MKR/USD': 18,
-  'YFI/USD': 18,
-  'CRV/USD': 18,
-  'SNX/USD': 18,
-  'THETA/USD': 18,
-  'KAVA/USD': 18,
-  'PEPE/USD': 18,
-  'BONK/USD': 18,
-  'WIF/USD': 18,
-  'INJ/USD': 18,
-  'SUI/USD': 18,
-  'SEI/USD': 18,
-  'TIA/USD': 18,
-  'TON/USD': 18,
-  'FRAX/USD': 18,
-  'LUSD/USD': 18,
-  'WETH/USD': 18,
-};
-
-function getDecimalsForDapi(dapiName: string): number {
-  return DAPI_DECIMALS[dapiName] ?? 18;
-}
-
 interface PriceReading {
   value: number;
   timestamp: number;
   rawValue: bigint;
+  decimals: number;
 }
 
 /**
@@ -265,93 +183,51 @@ async function rpcCall(
   if (!endpoints || endpoints.length === 0) {
     throw new Error(`No RPC endpoints for chain ${chainId}`);
   }
-
   if (signal?.aborted) {
     throw new Error(`Request aborted for chain ${chainId}`);
   }
+  return api3RpcClient.rpcCallWithFallback(String(chainId), endpoints, method, params, signal);
+}
 
-  let lastError: Error | null = null;
+const decimalsCache = new Map<string, number>();
 
-  for (let i = 0; i < endpoints.length; i++) {
-    if (signal?.aborted) {
-      throw new Error(`Request aborted for chain ${chainId}`);
-    }
-
-    if (!isEndpointHealthy(chainId, i)) {
-      continue;
-    }
-
-    const endpoint = endpoints[i];
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), RPC_TIMEOUT_MS);
-
-    const onAbort = signal ? () => controller.abort() : null;
-    if (onAbort && signal) {
-      signal.addEventListener('abort', onAbort, { once: true });
-    }
-
-    try {
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          jsonrpc: '2.0',
-          id: Date.now(),
-          method,
-          params,
-        }),
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeoutId);
-
-      if (!response.ok) {
-        throw new Error(`RPC error: ${response.status}`);
-      }
-
-      const result = await response.json();
-
-      if (result.error) {
-        throw new Error(`RPC error: ${result.error.message}`);
-      }
-
-      const key = `${chainId}-${i}`;
-      endpointHealth[key] = true;
-      delete endpointFailureTime[key];
-      pruneEndpointEntries();
-
-      if (onAbort && signal) {
-        signal.removeEventListener('abort', onAbort);
-      }
-
-      return result.result;
-    } catch (error) {
-      clearTimeout(timeoutId);
-
-      if (error instanceof Error && (error.name === 'AbortError' || signal?.aborted)) {
-        if (signal?.aborted) {
-          throw new Error(`Request aborted for chain ${chainId}`);
-        }
-        lastError = new Error(`RPC request timed out after ${RPC_TIMEOUT_MS}ms`);
-      } else {
-        lastError = error instanceof Error ? error : new Error(String(error));
-      }
-
-      const key = `${chainId}-${i}`;
-      endpointHealth[key] = false;
-      endpointFailureTime[key] = Date.now();
-
-      if (onAbort && signal) {
-        signal.removeEventListener('abort', onAbort);
-      }
-
-      logger.warn(`RPC endpoint ${endpoint} failed:`, lastError);
-    }
+async function readDecimalsFromContract(
+  proxyAddress: string,
+  chainId: number,
+  signal?: AbortSignal
+): Promise<number> {
+  const cacheKey = `${chainId}:${proxyAddress}`;
+  const cached = decimalsCache.get(cacheKey);
+  if (cached !== undefined) {
+    return cached;
   }
 
-  throw lastError || new Error(`All RPC endpoints failed for chain ${chainId}`);
+  try {
+    const data = viemEncodeFunctionData({
+      abi: DAPI_PROXY_ABI,
+      functionName: 'decimals',
+    });
+    const result = await rpcCall(
+      chainId,
+      'eth_call',
+      [{ to: proxyAddress, data }, 'latest'],
+      signal
+    );
+    if (typeof result !== 'string' || !result || result === '0x') {
+      const defaultDecimals = 8;
+      decimalsCache.set(cacheKey, defaultDecimals);
+      return defaultDecimals;
+    }
+    const cleanData = result.startsWith('0x') ? result.slice(2) : result;
+    const parsed = parseInt(cleanData, 16);
+    const decimals = isNaN(parsed) ? 8 : parsed;
+    decimalsCache.set(cacheKey, decimals);
+    return decimals;
+  } catch {
+    const defaultDecimals = 8;
+    decimalsCache.set(cacheKey, defaultDecimals);
+    return defaultDecimals;
+  }
 }
 
 /**
@@ -360,10 +236,11 @@ async function rpcCall(
 async function readDAPIPrice(
   proxyAddress: string,
   chainId: number,
-  dapiName: string,
+  _dapiName: string,
   signal?: AbortSignal
 ): Promise<PriceReading | null> {
   try {
+    const decimals = await readDecimalsFromContract(proxyAddress, chainId, signal);
     const data = encodeFunctionData('read', DAPI_PROXY_ABI);
 
     const result = await rpcCall(
@@ -386,28 +263,13 @@ async function readDAPIPrice(
     const rawValue = decodeInt224(result);
     const timestamp = decodeUint32(result);
 
-    const decimals = getDecimalsForDapi(dapiName);
-    const isNegative = rawValue < BigInt(0);
-    const absValue = isNegative ? -rawValue : rawValue;
-    const rawStr = absValue.toString();
-    let value: number;
-    if (rawStr.length > decimals) {
-      const intPart = rawStr.slice(0, rawStr.length - decimals) || '0';
-      const decPart = rawStr.slice(rawStr.length - decimals);
-      value = parseFloat(`${intPart}.${decPart}`);
-    } else {
-      const paddedDec = rawStr.padStart(decimals, '0');
-      value = parseFloat(`0.${paddedDec}`);
-    }
-
-    if (isNegative) {
-      value = -value;
-    }
+    const value = bigIntToPrice(rawValue, decimals);
 
     return {
       value,
-      timestamp: timestamp * 1000, // Convert to milliseconds
+      timestamp: timestamp * 1000,
       rawValue,
+      decimals,
     };
   } catch (error) {
     logger.error(
@@ -491,7 +353,7 @@ async function getAPI3Price(
       price: reading.value,
       timestamp: reading.timestamp,
       source: `api3-dapi-${chain}`,
-      decimals: getDecimalsForDapi(dapiName),
+      decimals: reading.decimals,
       confidence: 0.98,
       dapiName,
       proxyAddress,

@@ -1,9 +1,8 @@
 import { BaseOracleClient } from '@/lib/oracles/base';
 import type { OracleClientConfig } from '@/lib/oracles/base';
-import { getDIAAssetConfig } from '@/lib/oracles/constants/diaConstants';
 import { diaSymbols } from '@/lib/oracles/constants/supportedSymbols';
-import type { DIAAssetQuotation } from '@/lib/oracles/diaTypes';
-import { DIA_API_BASE_URL, fetchWithTimeout } from '@/lib/oracles/diaUtils';
+import { DIA_API_BASE_URL } from '@/lib/oracles/diaUtils';
+import { diaPriceService } from '@/lib/oracles/services/diaPriceService';
 import { buildApiVerification } from '@/lib/oracles/utils/verificationUtils';
 import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
 import { createLogger } from '@/lib/utils/logger';
@@ -11,8 +10,6 @@ import { OracleProvider, Blockchain, OracleServiceError } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
 
 const logger = createLogger('DIAClient');
-
-const REQUEST_TIMEOUT = 15000;
 
 export class DIAClient extends BaseOracleClient {
   name = OracleProvider.DIA;
@@ -45,100 +42,27 @@ export class DIAClient extends BaseOracleClient {
       throw this.createError('Request was aborted', 'NETWORK_ERROR', { retryable: false });
     }
 
-    const upperSymbol = symbol.toUpperCase();
-
-    const stablecoins = [
-      'USDT',
-      'USDC',
-      'DAI',
-      'FRAX',
-      'TUSD',
-      'BUSD',
-      'LUSD',
-      'USDD',
-      'USDJ',
-      'USDP',
-    ];
-    if (stablecoins.includes(upperSymbol)) {
-      logger.warn(
-        `Returning hardcoded price for stablecoin ${upperSymbol} - not verified against API`
-      );
-      return {
-        provider: OracleProvider.DIA,
-        symbol: upperSymbol,
-        price: 1.0,
-        timestamp: Date.now(),
-        decimals: 8,
-        confidence: 0.5,
-        confidenceSource: 'estimated',
-        change24h: 0,
-        change24hPercent: 0,
-        chain: chain || Blockchain.ETHEREUM,
-        source: 'hardcoded-stablecoin',
-        verification: buildApiVerification(
-          `${DIA_API_BASE_URL}/assetQuotation/`,
-          'assetQuotation',
-          'DIA API'
-        ),
-      };
-    }
-
     try {
-      logger.info(`Fetching price for ${upperSymbol} from DIA official API`, {
-        chain: chain || 'default',
-      });
+      const result = await diaPriceService.getAssetPrice(symbol, chain, options?.signal);
 
-      const assetConfig = getDIAAssetConfig(upperSymbol);
-
-      if (!assetConfig) {
-        logger.warn(`Symbol ${upperSymbol} not supported by DIA oracle`);
-        throw this.createError(
-          `Symbol ${symbol} is not supported by DIA oracle`,
-          'SYMBOL_NOT_SUPPORTED'
-        );
-      }
-
-      const url = `${DIA_API_BASE_URL}/assetQuotation/${assetConfig.blockchain}/${assetConfig.address}`;
-
-      const quotation = await fetchWithTimeout<DIAAssetQuotation | null>(url, {
-        timeout: REQUEST_TIMEOUT,
-        signal: options?.signal,
-      });
-
-      if (!quotation || !quotation.Price) {
-        logger.warn(`DIA API returned no data for ${upperSymbol}`);
+      if (!result) {
         throw this.createError(
           `No price data available for ${symbol} from DIA oracle`,
           'NO_DATA_AVAILABLE'
         );
       }
 
-      const change24h = quotation.Price - quotation.PriceYesterday;
-      const change24hPercent =
-        quotation.PriceYesterday > 0 ? (change24h / quotation.PriceYesterday) * 100 : 0;
-
       return {
-        provider: OracleProvider.DIA,
-        symbol: upperSymbol,
-        price: quotation.Price,
-        timestamp: new Date(quotation.Time).getTime(),
-        decimals: 8,
-        confidence: 0.95,
-        change24h,
-        change24hPercent,
+        ...result,
         chain: chain || Blockchain.ETHEREUM,
-        source: 'dia-api',
         verification: buildApiVerification(
-          `${DIA_API_BASE_URL}/assetQuotation/${assetConfig.blockchain}/${assetConfig.address}`,
+          `${DIA_API_BASE_URL}/assetQuotation/`,
           'assetQuotation',
           'DIA API'
         ),
       };
     } catch (error) {
       if (error instanceof OracleServiceError) throw error;
-      logger.error(
-        `Error fetching price for ${symbol}: ${error instanceof Error ? error.message : String(error)}`
-      );
       throw this.createError(
         error instanceof Error ? error.message : 'Failed to fetch price from DIA oracle',
         'DIA_ERROR'
