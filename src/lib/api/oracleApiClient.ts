@@ -65,7 +65,8 @@ const pendingRequests = new Map<string, PendingRequest<unknown>>();
 const MAX_PENDING_REQUESTS = 100;
 
 const responseCache = new TTLCache({ maxSize: 200, cleanupIntervalMs: 60000 });
-const CACHE_TTL_MS = 5_000;
+const CACHE_TTL_MS = 15_000;
+const FORCE_REFRESH_CACHE_TTL_MS = 3_000;
 const PENDING_REQUEST_TIMEOUT = 30_000;
 
 function cleanupStalePendingRequests(): void {
@@ -84,8 +85,8 @@ if (typeof setInterval !== 'undefined') {
   }, PENDING_REQUEST_TIMEOUT);
 }
 
-function setCachedResponse(key: string, data: unknown): void {
-  responseCache.set(key, data, CACHE_TTL_MS);
+function setCachedResponse(key: string, data: unknown, ttlMs?: number): void {
+  responseCache.set(key, data, ttlMs ?? CACHE_TTL_MS);
 }
 
 function buildRequestKey(
@@ -261,9 +262,8 @@ function deduplicatedFetch<T>(
   )
     .then((result) => {
       if (result.success && result.data !== undefined) {
-        if (!forceRefresh) {
-          setCachedResponse(key, result.data);
-        }
+        const ttl = forceRefresh ? FORCE_REFRESH_CACHE_TTL_MS : CACHE_TTL_MS;
+        setCachedResponse(key, result.data, ttl);
         return result.data;
       }
       throw result.error ?? new Error(`${context} request failed after retry`);
@@ -308,19 +308,27 @@ async function fetchPriceFromApi({
 
   logger.info(`Fetching price from API: ${url.toString()}`);
 
-  if (forceRefresh) {
-    responseCache.delete(key);
+  try {
+    const result = await deduplicatedFetch<PriceData>(
+      key,
+      url.toString(),
+      'Price',
+      externalSignal,
+      validatePriceData,
+      provider,
+      forceRefresh
+    );
+    return result;
+  } catch (error) {
+    if (forceRefresh) {
+      const cached = getCachedResponse<PriceData>(key);
+      if (cached !== undefined) {
+        logger.info(`Force refresh failed, returning cached price for ${key}`);
+        return cached;
+      }
+    }
+    throw error;
   }
-
-  return deduplicatedFetch<PriceData>(
-    key,
-    url.toString(),
-    'Price',
-    externalSignal,
-    validatePriceData,
-    provider,
-    forceRefresh
-  );
 }
 
 async function fetchHistoricalFromApi({
@@ -350,7 +358,17 @@ async function fetchHistoricalFromApi({
   );
 }
 
+function getCachedPrice(
+  provider: OracleProvider,
+  symbol: string,
+  chain?: Blockchain
+): PriceData | undefined {
+  const key = buildRequestKey('price', provider, symbol, chain);
+  return getCachedResponse<PriceData>(key);
+}
+
 export const oracleApiClient = {
   fetchPrice: fetchPriceFromApi,
   fetchHistorical: fetchHistoricalFromApi,
+  getCachedPrice,
 };

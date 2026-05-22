@@ -60,7 +60,9 @@ export function useReputations() {
   >({
     queryKey: ['reputations'],
     queryFn: fetchReputations,
-    staleTime: 60 * 1000,
+    staleTime: 3 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    placeholderData: (previousData) => previousData,
     refetchInterval(query) {
       if (query.state.data?.calculating) {
         return 15 * 1000;
@@ -149,7 +151,9 @@ export function useReputationDetail(
     queryKey: ['reputation', provider, includeTrend, trendDays],
     queryFn: () => fetchReputationDetail(provider!, includeTrend, trendDays),
     enabled: !!provider,
-    staleTime: 60 * 1000,
+    staleTime: 2 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    placeholderData: (previousData) => previousData,
     refetchInterval(query) {
       const data = query.state.data;
       if (!data || data.reputation.overall_score <= 0) {

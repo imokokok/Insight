@@ -10,6 +10,7 @@ import {
 import { crossChainKeys } from '@/lib/queryKeys';
 import { safeMax, safeMin } from '@/lib/utils/statistics';
 import { useCrossChainConfigStore } from '@/stores/crossChainConfigStore';
+import { useCrossChainDataStore } from '@/stores/crossChainDataStore';
 import { type PriceStats } from '@/types/analytics';
 import { type OracleProvider, type Blockchain, type PriceData } from '@/types/oracle';
 
@@ -90,102 +91,52 @@ export function useDataFetching(
 
   const thresholdConfig = useCrossChainConfigStore((s) => s.thresholdConfig);
 
-  const anomalies = useMemo(
-    () => detectAnomalies(currentPrices, supportedChains, thresholdConfig),
-    [currentPrices, supportedChains, thresholdConfig]
-  );
+  const derivedData = useMemo(() => {
+    const anomalies = detectAnomalies(currentPrices, supportedChains, thresholdConfig);
+    const prevStats = calculatePriceStats(currentPrices);
 
-  const prevStats = useMemo(() => calculatePriceStats(currentPrices), [currentPrices]);
+    let recommendedBaseChain: Blockchain | null = null;
+    if (supportedChains.length > 0) {
+      if (currentPrices.length === 0) {
+        recommendedBaseChain = supportedChains[0];
+      } else {
+        const maxTimestamp = Math.max(
+          ...currentPrices.map((p) => p.timestamp).filter((t) => t > 0),
+          0
+        );
 
-  const recommendedBaseChain = useMemo(() => {
-    if (supportedChains.length === 0) return null;
-    if (currentPrices.length === 0) return supportedChains[0];
+        const chainScores = supportedChains.map((chain) => {
+          const priceData = currentPrices.find((p) => p.chain === chain);
+          if (!priceData || priceData.price <= 0) {
+            return { chain, score: -Infinity };
+          }
 
-    const maxTimestamp = Math.max(...currentPrices.map((p) => p.timestamp).filter((t) => t > 0), 0);
+          const stalenessMs =
+            maxTimestamp > 0 && priceData.timestamp > 0
+              ? maxTimestamp - priceData.timestamp
+              : Infinity;
+          const freshnessScore = stalenessMs < 60000 ? 100 : stalenessMs < 300000 ? 50 : 0;
 
-    const chainScores = supportedChains.map((chain) => {
-      const priceData = currentPrices.find((p) => p.chain === chain);
-      if (!priceData || priceData.price <= 0) {
-        return { chain, score: -Infinity };
+          const priceValues = currentPrices.filter((p) => p.price > 0).map((p) => p.price);
+          const medianPrice =
+            priceValues.length > 0
+              ? [...priceValues].sort((a, b) => a - b)[Math.floor(priceValues.length / 2)]
+              : priceData.price;
+          const deviation =
+            medianPrice > 0 ? Math.abs((priceData.price - medianPrice) / medianPrice) * 100 : 0;
+          const consistencyScore = Math.max(0, 100 - deviation * 10);
+
+          const score = freshnessScore * 0.6 + consistencyScore * 0.4;
+          return { chain, score };
+        });
+
+        chainScores.sort((a, b) => b.score - a.score);
+        recommendedBaseChain = chainScores[0]?.chain ?? supportedChains[0];
       }
-
-      const stalenessMs =
-        maxTimestamp > 0 && priceData.timestamp > 0 ? maxTimestamp - priceData.timestamp : Infinity;
-      const freshnessScore = stalenessMs < 60000 ? 100 : stalenessMs < 300000 ? 50 : 0;
-
-      const priceValues = currentPrices.filter((p) => p.price > 0).map((p) => p.price);
-      const medianPrice =
-        priceValues.length > 0
-          ? [...priceValues].sort((a, b) => a - b)[Math.floor(priceValues.length / 2)]
-          : priceData.price;
-      const deviation =
-        medianPrice > 0 ? Math.abs((priceData.price - medianPrice) / medianPrice) * 100 : 0;
-      const consistencyScore = Math.max(0, 100 - deviation * 10);
-
-      const score = freshnessScore * 0.6 + consistencyScore * 0.4;
-      return { chain, score };
-    });
-
-    chainScores.sort((a, b) => b.score - a.score);
-    return chainScores[0]?.chain ?? supportedChains[0];
-  }, [supportedChains, currentPrices]);
-
-  const prevCurrentPricesRef = useRef<PriceData[]>([]);
-  useEffect(() => {
-    const prev = prevCurrentPricesRef.current;
-    if (
-      currentPrices.length !== prev.length ||
-      currentPrices.some((p, i) => prev[i]?.price !== p.price || prev[i]?.timestamp !== p.timestamp)
-    ) {
-      prevCurrentPricesRef.current = currentPrices;
-      paramsRef.current.setCurrentPrices(currentPrices);
     }
-  }, [currentPrices]);
 
-  const prevPrevStatsRef = useRef<PriceStats | null>(null);
-  useEffect(() => {
-    const prev = prevPrevStatsRef.current;
-    if (
-      !prev ||
-      prev.avgPrice !== prevStats.avgPrice ||
-      prev.maxPrice !== prevStats.maxPrice ||
-      prev.minPrice !== prevStats.minPrice
-    ) {
-      prevPrevStatsRef.current = prevStats;
-      paramsRef.current.setPrevStats(prevStats);
-    }
-  }, [prevStats]);
-
-  const prevRecommendedBaseChainRef = useRef<Blockchain | null>(null);
-  useEffect(() => {
-    if (recommendedBaseChain && recommendedBaseChain !== prevRecommendedBaseChainRef.current) {
-      prevRecommendedBaseChainRef.current = recommendedBaseChain;
-      paramsRef.current.setRecommendedBaseChain(recommendedBaseChain);
-    }
-  }, [recommendedBaseChain]);
-
-  const prevAnomaliesRef = useRef<AnomalousPricePoint[]>([]);
-  useEffect(() => {
-    const prev = prevAnomaliesRef.current;
-    if (
-      anomalies.length !== prev.length ||
-      anomalies.some((a, i) => prev[i]?.chain !== a.chain || prev[i]?.price !== a.price)
-    ) {
-      prevAnomaliesRef.current = anomalies;
-      paramsRef.current.setAnomalies(anomalies);
-    }
-  }, [anomalies]);
-
-  const selectedSymbol = params.selectedSymbol;
-
-  useEffect(() => {
-    if (
-      !isLoading &&
-      !isFetching &&
-      errors.length === 0 &&
-      currentPrices.length > 0 &&
-      supportedChains.length > 0
-    ) {
+    let crossChainComparison: CrossChainComparisonResult[] = [];
+    if (currentPrices.length > 0 && supportedChains.length > 0) {
       const chainPrices: ChainPriceInfo[] = currentPrices
         .filter((p) => p.chain && supportedChains.includes(p.chain))
         .map((p) => ({
@@ -193,49 +144,62 @@ export function useDataFetching(
           price: p.price,
           timestamp: p.timestamp,
         }));
-
-      const results = buildCrossChainComparisonFromPrices(chainPrices);
-      paramsRef.current.setCrossChainComparison(results);
+      crossChainComparison = buildCrossChainComparisonFromPrices(chainPrices);
     }
-  }, [
-    currentPrices,
-    provider,
-    selectedSymbol,
-    supportedChains,
-    isLoading,
-    isFetching,
-    errors.length,
-  ]);
+
+    return { anomalies, prevStats, recommendedBaseChain, crossChainComparison };
+  }, [currentPrices, supportedChains, thresholdConfig]);
+
+  const prevDataSignatureRef = useRef('');
+  useEffect(() => {
+    const signature = currentPrices.map((p) => `${p.chain}:${p.price}:${p.timestamp}`).join('|');
+    if (signature === prevDataSignatureRef.current) return;
+    prevDataSignatureRef.current = signature;
+
+    useCrossChainDataStore.setState({
+      currentPrices,
+      prevStats: derivedData.prevStats,
+      anomalies: derivedData.anomalies,
+      recommendedBaseChain: derivedData.recommendedBaseChain,
+      crossChainComparison: derivedData.crossChainComparison,
+    });
+  }, [currentPrices, derivedData]);
 
   const prevLoadingRef = useRef(false);
   useEffect(() => {
     if (isLoading !== prevLoadingRef.current) {
       prevLoadingRef.current = isLoading;
-      paramsRef.current.setLoading(isLoading);
+      useCrossChainDataStore.setState({ loading: isLoading });
     }
   }, [isLoading]);
 
   const lastUpdateTimeRef = useRef<number>(0);
 
   useEffect(() => {
-    const currentParams = paramsRef.current;
     if (isLoading || isFetching) {
-      currentParams.setRefreshStatus('refreshing');
+      useCrossChainDataStore.setState({ refreshStatus: 'refreshing' });
     } else if (errors.length > 0) {
-      currentParams.setRefreshStatus('error');
+      useCrossChainDataStore.setState({ refreshStatus: 'error' });
     } else if (!isLoading && !isFetching && supportedChains.length > 0) {
       const now = Date.now();
       if (now - lastUpdateTimeRef.current > 1000) {
         lastUpdateTimeRef.current = now;
-        currentParams.setLastUpdated(new Date(now));
+        useCrossChainDataStore.setState({
+          refreshStatus: 'success',
+          showRefreshSuccess: true,
+          lastUpdated: new Date(now),
+        });
+      } else {
+        useCrossChainDataStore.setState({
+          refreshStatus: 'success',
+          showRefreshSuccess: true,
+        });
       }
-      currentParams.setRefreshStatus('success');
-      currentParams.setShowRefreshSuccess(true);
       if (refreshSuccessTimerRef.current) {
         clearTimeout(refreshSuccessTimerRef.current);
       }
       refreshSuccessTimerRef.current = setTimeout(() => {
-        currentParams.setShowRefreshSuccess(false);
+        useCrossChainDataStore.setState({ showRefreshSuccess: false });
       }, 2000);
     }
   }, [isLoading, isFetching, errors, supportedChains.length]);

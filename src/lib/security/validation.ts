@@ -9,19 +9,19 @@ import { sanitizeString, sanitizeSymbol, sanitizeProvider, sanitizeChain } from 
 
 const validationLogger = createLogger('oracle-validation');
 
-const SafeSymbolSchema = z
+export const SafeSymbolSchema = z
   .string()
   .min(1, 'Symbol is required')
   .max(20, 'Symbol too long')
   .transform((val) => sanitizeSymbol(val))
   .refine((val) => val.length > 0, 'Invalid symbol format');
 
-const SafeProviderSchema = z
+export const SafeProviderSchema = z
   .string()
   .transform((val) => sanitizeProvider(val))
   .refine((val) => val.length > 0, 'Invalid provider');
 
-const SafeChainSchema = z
+export const SafeChainSchema = z
   .string()
   .transform((val) => sanitizeChain(val))
   .refine((val) => val.length > 0, 'Invalid chain');
