@@ -196,6 +196,7 @@ export class FlareClient extends BaseOracleClient {
   }
 
   clearCache(): void {
+    this.cache.stopCleanupInterval();
     this.cache.clear();
     this.cache.startCleanupInterval();
     this.ftsoService.clearCache();

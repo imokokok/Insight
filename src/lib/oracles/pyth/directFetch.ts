@@ -180,7 +180,7 @@ export async function fetchHistoricalPricesDirect(
   }
 
   const allPrices: PriceData[] = [];
-  const batchSize = 3;
+  const batchSize = 6;
 
   for (let i = 0; i < timestamps.length; i += batchSize) {
     const batch = timestamps.slice(i, i + batchSize);
@@ -233,7 +233,7 @@ export async function fetchHistoricalPricesDirect(
     });
 
     if (i + batchSize < timestamps.length) {
-      await new Promise((resolve) => setTimeout(resolve, 200));
+      await new Promise((resolve) => setTimeout(resolve, 100));
     }
   }
 

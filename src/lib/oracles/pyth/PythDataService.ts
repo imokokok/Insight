@@ -18,6 +18,8 @@ class PythDataService {
   private cache: PythCache;
   private currentEndpoint: string;
   private sdkFailed: boolean = false;
+  private sdkFailedTime: number = 0;
+  private readonly SDK_RECOVERY_INTERVAL = 60000;
 
   constructor(hermesEndpoint: string = HERMES_API_URL) {
     this.currentEndpoint = hermesEndpoint;
@@ -37,7 +39,15 @@ class PythDataService {
     }
 
     if (this.sdkFailed) {
-      return this.directFetchLatest(symbol, cacheKey);
+      if (Date.now() - this.sdkFailedTime > this.SDK_RECOVERY_INTERVAL) {
+        logger.info('Attempting SDK recovery after timeout', {
+          elapsed: Date.now() - this.sdkFailedTime,
+        });
+        this.sdkFailed = false;
+        this.sdkFailedTime = 0;
+      } else {
+        return this.directFetchLatest(symbol, cacheKey);
+      }
     }
 
     try {
@@ -49,6 +59,7 @@ class PythDataService {
       const errMsg = error instanceof Error ? error.message : String(error);
       logger.warn('HermesClient SDK failed, switching to direct fetch', { error: errMsg });
       this.sdkFailed = true;
+      this.sdkFailedTime = Date.now();
     }
 
     return this.directFetchLatest(symbol, cacheKey);
@@ -66,7 +77,15 @@ class PythDataService {
     }
 
     if (this.sdkFailed) {
-      return this.directFetchHistorical(symbol, hours, intervalMinutes, cacheKey);
+      if (Date.now() - this.sdkFailedTime > this.SDK_RECOVERY_INTERVAL) {
+        logger.info('Attempting SDK recovery after timeout', {
+          elapsed: Date.now() - this.sdkFailedTime,
+        });
+        this.sdkFailed = false;
+        this.sdkFailedTime = 0;
+      } else {
+        return this.directFetchHistorical(symbol, hours, intervalMinutes, cacheKey);
+      }
     }
 
     try {
@@ -78,6 +97,7 @@ class PythDataService {
       const errMsg = error instanceof Error ? error.message : String(error);
       logger.warn('HermesClient SDK failed, switching to direct fetch', { error: errMsg });
       this.sdkFailed = true;
+      this.sdkFailedTime = Date.now();
     }
 
     return this.directFetchHistorical(symbol, hours, intervalMinutes, cacheKey);
@@ -86,6 +106,7 @@ class PythDataService {
   clearCache(): void {
     this.cache.clear();
     this.sdkFailed = false;
+    this.sdkFailedTime = 0;
     logger.info('Cache cleared, SDK failure flag reset');
   }
 

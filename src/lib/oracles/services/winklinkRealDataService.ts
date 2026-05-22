@@ -1,4 +1,5 @@
 import { TRON_CONFIG } from '@/lib/config/serverEnv';
+import { stringToPrice } from '@/lib/oracles/utils/oracleDataUtils';
 import { buildTronVerification } from '@/lib/oracles/utils/verificationUtils';
 import { createLogger } from '@/lib/utils/logger';
 import {
@@ -14,11 +15,22 @@ import type { OracleCacheEntry } from '../base';
 
 const logger = createLogger('WINkLinkRealDataService');
 
-const TRON_RPC_ENDPOINTS = [
-  TRON_CONFIG.rpcUrl,
-  'https://api.trongrid.io',
-  'https://nile.trongrid.io',
-].filter((url, index, self) => url && self.indexOf(url) === index);
+function decodeHex(hex: string): string {
+  try {
+    const cleanHex = hex.startsWith('0x') ? hex.slice(2) : hex;
+    const bytes = new Uint8Array(cleanHex.length / 2);
+    for (let i = 0; i < cleanHex.length; i += 2) {
+      bytes[i / 2] = parseInt(cleanHex.substr(i, 2), 16);
+    }
+    return new TextDecoder().decode(bytes);
+  } catch {
+    return hex;
+  }
+}
+
+const TRON_RPC_ENDPOINTS = [TRON_CONFIG.rpcUrl, 'https://api.trongrid.io'].filter(
+  (url, index, self) => url && self.indexOf(url) === index
+);
 
 const TRONGRID_API_KEY = TRON_CONFIG.apiKey;
 
@@ -207,20 +219,7 @@ class WINkLinkRealDataService {
 
       const decPlaces = Number(decimalPlaces);
       const rawStr = priceRaw.toString();
-      const isNegative = rawStr.startsWith('-');
-      const absStr = isNegative ? rawStr.slice(1) : rawStr;
-      let priceValue: number;
-      if (absStr.length > decPlaces) {
-        const intPart = absStr.slice(0, absStr.length - decPlaces) || '0';
-        const decPart = absStr.slice(absStr.length - decPlaces);
-        priceValue = parseFloat(`${intPart}.${decPart}`);
-      } else {
-        const paddedDec = absStr.padStart(decPlaces, '0');
-        priceValue = parseFloat(`0.${paddedDec}`);
-      }
-      if (isNegative) {
-        priceValue = -priceValue;
-      }
+      const priceValue = stringToPrice(rawStr, decPlaces);
 
       const timestamp = timestampRaw ? Number(timestampRaw) * 1000 : Date.now();
 
@@ -446,7 +445,7 @@ class WINkLinkRealDataService {
         }
 
         if (data.result && data.result.message) {
-          const errorMessage = Buffer.from(data.result.message, 'hex').toString('utf8');
+          const errorMessage = decodeHex(data.result.message);
           logger.warn(`TRON contract call failed`, { method, error: errorMessage, rpcUrl });
         }
 

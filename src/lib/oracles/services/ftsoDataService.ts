@@ -13,6 +13,7 @@ import {
   FLARE_CONTRACT_REGISTRY,
   REGISTRY_ABI,
 } from '../constants/flareConstants';
+import { bigIntToPrice } from '../utils/oracleDataUtils';
 import { withOracleRetry, ORACLE_RETRY_PRESETS } from '../utils/retry';
 import { RpcClientWithFallback } from '../utils/rpcClientWithFallback';
 
@@ -187,7 +188,7 @@ export class FtsoDataService {
 
   private calculatePrice(value: bigint, decimals: number): number {
     const absDecimals = Math.abs(decimals);
-    return Number(value) / Math.pow(10, absDecimals);
+    return bigIntToPrice(value, absDecimals);
   }
 
   async fetchPrice(

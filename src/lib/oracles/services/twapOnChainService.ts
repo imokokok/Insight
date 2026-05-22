@@ -255,7 +255,9 @@ class TwapOnChainService {
         } else if (stablecoins.includes(usdcWethPool.token1)) {
           ethPrice = adjustedPrice;
         } else {
-          ethPrice = 2320;
+          throw new Error(
+            'Cannot determine ETH price from pool - no stablecoin pair and no cached price'
+          );
         }
 
         if (ethPrice > 0 && ethPrice < 100000) {
@@ -268,7 +270,10 @@ class TwapOnChainService {
       }
     }
 
-    return this.ethUsdPrice || 2320;
+    if (this.ethUsdPrice > 0) {
+      return this.ethUsdPrice;
+    }
+    throw new Error('Failed to fetch ETH/USD price from all sources');
   }
 
   private async getBnbUsdPrice(chainId: number, signal?: AbortSignal): Promise<number> {
@@ -316,7 +321,9 @@ class TwapOnChainService {
         } else if (stablecoins.includes(bnbPool.token1)) {
           bnbPrice = adjustedPrice;
         } else {
-          bnbPrice = 600;
+          throw new Error(
+            'Cannot determine BNB price from pool - no stablecoin pair and no cached price'
+          );
         }
 
         if (bnbPrice > 0 && bnbPrice < 100000) {
@@ -329,7 +336,10 @@ class TwapOnChainService {
       }
     }
 
-    return this.bnbUsdPrice || 600;
+    if (this.bnbUsdPrice > 0) {
+      return this.bnbUsdPrice;
+    }
+    throw new Error('Failed to fetch BNB/USD price from all sources');
   }
 
   private async getBtcUsdPrice(chainId: number, signal?: AbortSignal): Promise<number> {
@@ -390,7 +400,10 @@ class TwapOnChainService {
       }
     }
 
-    return this.btcUsdPrice || 85000;
+    if (this.btcUsdPrice > 0) {
+      return this.btcUsdPrice;
+    }
+    throw new Error('Failed to fetch BTC/USD price from all sources');
   }
 
   private async calculateUsdPrice(

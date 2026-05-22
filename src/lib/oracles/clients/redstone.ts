@@ -63,17 +63,8 @@ export class RedStoneClient extends BaseOracleClient {
   }
 
   private generateConfidenceInterval(price: number, symbol: string): ConfidenceInterval {
-    const baseSpread = SPREAD_PERCENTAGES[symbol.toUpperCase()] || 0.05;
-    const minute = Math.floor(Date.now() / 60000);
-    const hash = ((minute * 2654435761) % 1000) / 1000;
-    const deterministicFactor = 0.8 + hash * 0.4;
-    const spreadPercentage = baseSpread * deterministicFactor;
-
+    const spreadPercentage = SPREAD_PERCENTAGES[symbol.toUpperCase()] || 0.05;
     const halfSpread = price * (spreadPercentage / 100 / 2);
-
-    logger.debug(
-      `Confidence interval for ${symbol} is estimated, not based on actual market bid/ask data`
-    );
 
     return {
       bid: Number((price - halfSpread).toFixed(4)),
@@ -271,6 +262,7 @@ export class RedStoneClient extends BaseOracleClient {
   }
 
   clearCache(): void {
+    this.cache.stopCleanupInterval();
     this.cache.clear();
     this.cache.startCleanupInterval();
   }

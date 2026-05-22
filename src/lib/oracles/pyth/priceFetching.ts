@@ -134,7 +134,7 @@ export async function fetchHistoricalPrices(
           }
         }
 
-        const batchSize = 5;
+        const batchSize = 10;
         for (let i = 0; i < timestamps.length; i += batchSize) {
           const batch = timestamps.slice(i, i + batchSize);
           const batchPromises = batch.map(async (timestamp) => {
@@ -169,7 +169,7 @@ export async function fetchHistoricalPrices(
           });
 
           if (i + batchSize < timestamps.length) {
-            await new Promise((resolve) => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 50));
           }
         }
 
