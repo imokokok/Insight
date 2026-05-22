@@ -18,8 +18,6 @@ const ORACLE_LOGO_MAP: Record<string, string> = {
   flare: '/logos/oracles/flare.svg',
 };
 
-export { ORACLE_LOGO_MAP };
-
 export function OracleLogo({
   provider,
   size = 20,

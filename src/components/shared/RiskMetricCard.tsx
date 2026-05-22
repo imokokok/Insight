@@ -41,7 +41,7 @@ export function ScoreBar({
   );
 }
 
-export function getBarColor(level: RiskLevel): string {
+function getBarColor(level: RiskLevel): string {
   switch (level) {
     case 'low':
       return '#10b981';

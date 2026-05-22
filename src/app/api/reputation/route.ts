@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 
 import { createApiHandler } from '@/lib/api/handler';
 import { reputationService } from '@/lib/oracles/services/reputationService';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('ReputationRoute');
 
 const RECALC_INTERVAL_MS = 60 * 60 * 1000;
 
@@ -18,7 +21,12 @@ export const GET = createApiHandler(
         calcInProgress = true;
         reputationService
           .calculateAndStore()
-          .catch(() => {})
+          .catch((error) => {
+            logger.error(
+              'Background reputation calculation failed',
+              error instanceof Error ? error : new Error(String(error))
+            );
+          })
           .finally(() => {
             calcInProgress = false;
           });
@@ -48,7 +56,12 @@ export const GET = createApiHandler(
       calcInProgress = true;
       reputationService
         .calculateAndStore()
-        .catch(() => {})
+        .catch((error) => {
+          logger.error(
+            'Background reputation calculation failed',
+            error instanceof Error ? error : new Error(String(error))
+          );
+        })
         .finally(() => {
           calcInProgress = false;
         });

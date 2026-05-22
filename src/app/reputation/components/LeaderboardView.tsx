@@ -141,4 +141,4 @@ function MetricCell({ label, value }: { label: string; value: string }) {
   );
 }
 
-export { RiskBadge, LeaderboardRow, MetricCell };
+export { RiskBadge, LeaderboardRow };

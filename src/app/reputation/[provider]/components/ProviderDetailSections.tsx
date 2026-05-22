@@ -33,7 +33,7 @@ import {
 import { cn } from '@/lib/utils';
 import { type OracleProvider } from '@/types/oracle';
 
-export function RadarChart({
+function RadarChart({
   accuracy,
   uptime,
   reliability,
