@@ -31,10 +31,6 @@ import {
   Gauge,
   Database,
   Timer,
-  BookOpen,
-  Layers,
-  ChevronDown,
-  ChevronUp,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -43,14 +39,7 @@ import { EmptyStateEnhanced } from '@/components/ui/EmptyStateEnhanced';
 import { useReputations, useRecalculateReputation } from '@/hooks/data/useReputations';
 import { oracleColors, providerNames } from '@/lib/constants';
 import type { OracleReputation } from '@/lib/oracles/services/reputationService';
-import {
-  getScoreColor,
-  formatTimeAgo,
-  SCORE_FORMULAS,
-  OVERALL_SCORE_FORMULA,
-  SCORING_METHODOLOGY,
-  ARCHITECTURE_STANDARDIZATION,
-} from '@/lib/oracles/utils/reputationUtils';
+import { getScoreColor, formatTimeAgo } from '@/lib/oracles/utils/reputationUtils';
 import { cn } from '@/lib/utils';
 import { type OracleProvider } from '@/types/oracle';
 
@@ -706,200 +695,6 @@ function ComparisonInfo() {
   );
 }
 
-/* ─── Scoring Methodology ─── */
-
-function ScoringMethodology() {
-  const [expanded, setExpanded] = useState(false);
-
-  return (
-    <div className="bg-white rounded-xl border border-gray-200/60 overflow-hidden">
-      <button
-        onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-center justify-between px-5 py-4 hover:bg-gray-50/50 transition-colors"
-      >
-        <div className="flex items-center gap-2.5">
-          <div className="p-1.5 rounded-lg bg-indigo-50">
-            <BookOpen className="w-4 h-4 text-indigo-500" />
-          </div>
-          <div className="text-left">
-            <h3 className="text-sm font-black text-gray-900">Scoring Methodology</h3>
-            <p className="text-[10px] text-gray-400 mt-0.5">
-              How reputation scores are calculated and weighted
-            </p>
-          </div>
-        </div>
-        {expanded ? (
-          <ChevronUp className="w-4 h-4 text-gray-400 flex-shrink-0" />
-        ) : (
-          <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0" />
-        )}
-      </button>
-
-      {expanded && (
-        <div className="px-5 pb-5 space-y-5 border-t border-gray-100">
-          <div className="pt-4">
-            <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
-              Overall Score Formula
-            </h4>
-            <div className="bg-gray-50 rounded-lg px-4 py-3 border border-gray-100">
-              <code className="text-xs font-mono font-bold text-gray-800 break-all">
-                {OVERALL_SCORE_FORMULA}
-              </code>
-            </div>
-          </div>
-
-          <div>
-            <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
-              Individual Score Formulas
-            </h4>
-            <div className="space-y-2">
-              {SCORE_FORMULAS.map((s) => (
-                <div
-                  key={s.key}
-                  className="flex items-start gap-3 bg-gray-50 rounded-lg px-4 py-3 border border-gray-100"
-                >
-                  <div
-                    className="w-2 h-2 rounded-full flex-shrink-0 mt-1.5"
-                    style={{ backgroundColor: s.color }}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs font-bold text-gray-900">{s.label}</span>
-                      <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-gray-200/60 text-gray-600">
-                        {s.weight}%
-                      </span>
-                      <span className="text-[10px] font-mono text-gray-400">({s.unit})</span>
-                    </div>
-                    <code className="text-[11px] font-mono text-gray-700 break-all">
-                      {s.formula}
-                    </code>
-                    <p className="text-[10px] text-gray-500 mt-1">{s.description}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
-              Consensus Methods
-            </h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {SCORING_METHODOLOGY.consensusMethods.map((cm) => (
-                <div
-                  key={cm.category}
-                  className="bg-gray-50 rounded-lg px-4 py-3 border border-gray-100"
-                >
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs font-bold text-gray-900">{cm.category}</span>
-                    <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-700">
-                      {cm.method}
-                    </span>
-                  </div>
-                  <p className="text-[10px] text-gray-500">{cm.description}</p>
-                  <div className="mt-1.5">
-                    <span className="text-[9px] font-mono text-gray-400">
-                      Threshold: {cm.threshold}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
-              Evaluated Symbols
-            </h4>
-            <div className="flex flex-wrap gap-1.5">
-              {SCORING_METHODOLOGY.symbols.map((sym) => (
-                <span
-                  key={sym}
-                  className="inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-mono font-bold bg-gray-100 text-gray-700 border border-gray-200"
-                >
-                  {sym}
-                </span>
-              ))}
-            </div>
-            <div className="flex items-center gap-4 mt-3 text-[10px] text-gray-400">
-              <span>
-                Lookback:{' '}
-                <strong className="text-gray-600">{SCORING_METHODOLOGY.lookbackDays} days</strong>
-              </span>
-              <span>
-                Update frequency:{' '}
-                <strong className="text-gray-600">{SCORING_METHODOLOGY.updateFrequency}</strong>
-              </span>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-/* ─── Architecture Standardization ─── */
-
-function ArchitectureStandardization() {
-  const [expanded, setExpanded] = useState(false);
-
-  return (
-    <div className="bg-white rounded-xl border border-gray-200/60 overflow-hidden">
-      <button
-        onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-center justify-between px-5 py-4 hover:bg-gray-50/50 transition-colors"
-      >
-        <div className="flex items-center gap-2.5">
-          <div className="p-1.5 rounded-lg bg-violet-50">
-            <Layers className="w-4 h-4 text-violet-500" />
-          </div>
-          <div className="text-left">
-            <h3 className="text-sm font-black text-gray-900">Architecture Standardization</h3>
-            <p className="text-[10px] text-gray-400 mt-0.5">
-              How different oracle architectures are normalized for fair comparison
-            </p>
-          </div>
-        </div>
-        {expanded ? (
-          <ChevronUp className="w-4 h-4 text-gray-400 flex-shrink-0" />
-        ) : (
-          <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0" />
-        )}
-      </button>
-
-      {expanded && (
-        <div className="px-5 pb-5 space-y-3 border-t border-gray-100">
-          {ARCHITECTURE_STANDARDIZATION.map((dim) => (
-            <div
-              key={dim.dimension}
-              className="bg-gray-50 rounded-lg px-4 py-3 border border-gray-100"
-            >
-              <div className="flex items-center gap-2 mb-1.5">
-                <span className="text-xs font-bold text-gray-900">{dim.dimension}</span>
-              </div>
-              <p className="text-[10px] text-gray-500 mb-1">
-                <strong className="text-gray-600">Challenge:</strong> {dim.challenge}
-              </p>
-              <p className="text-[10px] text-gray-600 mb-2">{dim.approach}</p>
-              <div className="flex flex-wrap gap-1.5">
-                {dim.examples.map((ex) => (
-                  <span
-                    key={`${dim.dimension}-${ex.provider}`}
-                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono bg-white border border-gray-200 text-gray-600"
-                  >
-                    <span className="font-bold">{ex.provider}</span>
-                    <span className="text-gray-400">{ex.type}</span>
-                  </span>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
 /* ─── Main ─── */
 
 function ReputationContentInner() {
@@ -1125,18 +920,6 @@ function ReputationContentInner() {
           ) : (
             <TableView reputations={sorted} />
           )}
-
-          {/* Methodology */}
-          <div className="mt-8 space-y-3">
-            <div className="flex items-center gap-2 mb-1">
-              <BookOpen className="w-3.5 h-3.5 text-indigo-500" />
-              <h2 className="text-xs font-bold text-gray-900 uppercase tracking-wider">
-                Methodology & Standards
-              </h2>
-            </div>
-            <ScoringMethodology />
-            <ArchitectureStandardization />
-          </div>
         </>
       )}
 

@@ -45,21 +45,23 @@ export async function fetchLatestPrice(
           return null;
         }
 
-        const priceUpdates = await hermesClient.getLatestPriceUpdates([priceId]);
+        const priceUpdates = await hermesClient.getLatestPriceUpdates([priceId], {
+          parsed: true,
+        });
 
         if (!priceUpdates.parsed || priceUpdates.parsed.length === 0) {
           logger.warn('No price data available', { symbol });
           return null;
         }
 
-        const parsed = priceUpdates.parsed[0];
+        const parsedItem = priceUpdates.parsed[0];
 
-        if (!parsed || !parsed.price || !isPythPriceRaw(parsed.price)) {
-          logger.error('Invalid price data format', new Error(JSON.stringify(parsed)));
+        if (!parsedItem || !parsedItem.price || !isPythPriceRaw(parsedItem.price)) {
+          logger.error('Invalid price data format', new Error(JSON.stringify(parsedItem)));
           return null;
         }
 
-        return parsePythPrice(parsed.price, symbol, priceId, pythSymbol);
+        return parsePythPrice(parsedItem.price, symbol, priceId, pythSymbol);
       },
       'getLatestPrice',
       ORACLE_RETRY_PRESETS.standard
@@ -76,6 +78,17 @@ export async function fetchLatestPrice(
       error instanceof Error ? error : new Error(String(error)),
       { symbol }
     );
+    const errMsg = error instanceof Error ? error.message : String(error);
+    if (
+      errMsg.includes('503') ||
+      errMsg.includes('Service Temporarily Unavailable') ||
+      errMsg.includes('ECONNREFUSED') ||
+      errMsg.includes('ETIMEDOUT') ||
+      errMsg.includes('timeout') ||
+      errMsg.includes('fetch failed')
+    ) {
+      throw error;
+    }
     return null;
   }
 }
@@ -126,14 +139,16 @@ export async function fetchHistoricalPrices(
           const batch = timestamps.slice(i, i + batchSize);
           const batchPromises = batch.map(async (timestamp) => {
             try {
-              const priceUpdates = await hermesClient.getPriceUpdatesAtTimestamp(timestamp, [
-                priceId,
-              ]);
+              const priceUpdates = await hermesClient.getPriceUpdatesAtTimestamp(
+                timestamp,
+                [priceId],
+                { parsed: true }
+              );
 
               if (priceUpdates.parsed && priceUpdates.parsed.length > 0) {
-                const parsed = priceUpdates.parsed[0];
-                if (parsed && parsed.price && isPythPriceRaw(parsed.price)) {
-                  return parsePythPrice(parsed.price, symbol, undefined, pythSymbol);
+                const parsedItem = priceUpdates.parsed[0];
+                if (parsedItem && parsedItem.price && isPythPriceRaw(parsedItem.price)) {
+                  return parsePythPrice(parsedItem.price, symbol, undefined, pythSymbol);
                 }
               }
               return null;
@@ -193,6 +208,17 @@ export async function fetchHistoricalPrices(
       error instanceof Error ? error : new Error(String(error)),
       { symbol, hours }
     );
+    const errMsg = error instanceof Error ? error.message : String(error);
+    if (
+      errMsg.includes('503') ||
+      errMsg.includes('Service Temporarily Unavailable') ||
+      errMsg.includes('ECONNREFUSED') ||
+      errMsg.includes('ETIMEDOUT') ||
+      errMsg.includes('timeout') ||
+      errMsg.includes('fetch failed')
+    ) {
+      throw error;
+    }
     return [];
   }
 }

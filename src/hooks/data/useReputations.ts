@@ -151,9 +151,7 @@ export function useReputationDetail(
     queryKey: ['reputation', provider, includeTrend, trendDays],
     queryFn: () => fetchReputationDetail(provider!, includeTrend, trendDays),
     enabled: !!provider,
-    staleTime: 2 * 60 * 1000,
-    refetchOnWindowFocus: false,
-    placeholderData: (previousData) => previousData,
+    staleTime: 60 * 1000,
     refetchInterval(query) {
       const data = query.state.data;
       if (!data || data.reputation.overall_score <= 0) {

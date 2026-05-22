@@ -55,12 +55,16 @@ export async function withOracleRetry<T>(
   };
 
   if (signal?.aborted) {
-    throw new Error(`Operation ${operationName} was aborted before starting`);
+    const reason = signal.reason instanceof Error ? signal.reason.message : 'unknown reason';
+    throw new Error(`Operation ${operationName} was aborted before starting: ${reason}`);
   }
 
   const abortPromise = signal
     ? new Promise<never>((_, reject) => {
-        const onAbort = () => reject(new Error(`Operation ${operationName} was aborted`));
+        const onAbort = () => {
+          const reason = signal.reason instanceof Error ? signal.reason.message : 'unknown reason';
+          reject(new Error(`Operation ${operationName} was aborted: ${reason}`));
+        };
         signal.addEventListener('abort', onAbort, { once: true });
       })
     : null;
