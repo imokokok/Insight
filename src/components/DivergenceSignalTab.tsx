@@ -2,29 +2,26 @@
 
 import { memo } from 'react';
 
-import { TrendingUp, AlertTriangle, Zap, Navigation, Grid3x3, Activity } from 'lucide-react';
+import { TrendingUp, AlertTriangle, Activity } from 'lucide-react';
 
 import type {
   DivergenceTimeSeries,
   OracleLeadership,
   DivergencePair,
-  DivergenceDirection,
-  DivergenceAcceleration,
-  LeadershipStatus,
 } from '@/lib/analytics/divergenceSignals';
-import type { FeedHealthScore as FullFeedHealthScore } from '@/lib/analytics/feedBehavior';
 
-type DivergenceMode = 'chain' | 'oracle';
+import {
+  LABELS,
+  DivergenceStatsCards,
+  TimeSeriesSection,
+  LeadershipSection,
+  DivergenceMatrixSection,
+  FeedHealthSection,
+} from './DivergenceSignalSections';
 
-export type FeedHealthScore = Pick<
-  FullFeedHealthScore,
-  | 'provider'
-  | 'score'
-  | 'rhythmStability'
-  | 'confidenceStability'
-  | 'heartbeatReliability'
-  | 'freshness'
->;
+import type { DivergenceMode, FeedHealthScore } from './DivergenceSignalSections';
+
+export type { FeedHealthScore } from './DivergenceSignalSections';
 
 interface DivergenceSignalTabProps {
   timeSeries: DivergenceTimeSeries[];
@@ -38,113 +35,6 @@ interface DivergenceSignalTabProps {
   mode: DivergenceMode;
   getDisplayName: (key: string) => string;
   feedHealthScores?: FeedHealthScore[];
-}
-
-const LABELS: Record<DivergenceMode, Record<string, string>> = {
-  chain: {
-    title: 'Cross-Chain Divergence Signals',
-    subtitle:
-      'Track how each chain deviates from cross-chain consensus over time, detect accelerating deviations and directional bias',
-    emptyMessage:
-      'Divergence signals require at least 2 chains with price history. Enable auto-refresh to accumulate data points over time.',
-    limitedDataSuffix: 'per chain',
-    acceleratingLabel: 'Chains with accelerating deviation',
-    directionalLabel: 'Chains with directional bias',
-    leadingLabel: 'Leading Chain',
-    timeSeriesTitle: 'Chain Deviation Time Series',
-    leadershipTitle: 'Chain Response Leadership',
-    matrixTitle: 'Inter-Chain Divergence Matrix',
-    feedHealthTitle: 'Chain Feed Health Summary',
-  },
-  oracle: {
-    title: 'Divergence Signals',
-    subtitle:
-      'Track how each oracle deviates from market consensus over time, detect accelerating deviations and directional bias',
-    emptyMessage:
-      'Divergence signals require at least 2 oracle providers with price history. Enable auto-refresh to accumulate data points over time.',
-    limitedDataSuffix: 'per oracle',
-    acceleratingLabel: 'Oracles with accelerating deviation',
-    directionalLabel: 'Oracles with directional bias',
-    leadingLabel: 'Leading Oracle',
-    timeSeriesTitle: 'Deviation Time Series',
-    leadershipTitle: 'Oracle Response Leadership',
-    matrixTitle: 'Inter-Oracle Divergence Matrix',
-    feedHealthTitle: 'Oracle Feed Health Summary',
-  },
-};
-
-function getDeviationColor(deviation: number): string {
-  const abs = Math.abs(deviation);
-  if (abs < 1) return 'text-emerald-600';
-  if (abs < 3) return 'text-amber-600';
-  return 'text-red-600';
-}
-
-function getDeviationBgColor(deviation: number): string {
-  const abs = Math.abs(deviation);
-  if (abs < 0.5) return 'bg-emerald-50';
-  if (abs < 1) return 'bg-emerald-100';
-  if (abs < 2) return 'bg-amber-50';
-  return 'bg-red-50';
-}
-
-function getLeadershipBadge(status: LeadershipStatus): {
-  label: string;
-  bgClass: string;
-  textClass: string;
-} {
-  switch (status) {
-    case 'leading':
-      return { label: 'Leading', bgClass: 'bg-emerald-50', textClass: 'text-emerald-700' };
-    case 'synchronized':
-      return { label: 'Synchronized', bgClass: 'bg-blue-50', textClass: 'text-blue-700' };
-    case 'lagging':
-      return { label: 'Lagging', bgClass: 'bg-red-50', textClass: 'text-red-700' };
-    default:
-      return { label: 'Unknown', bgClass: 'bg-gray-50', textClass: 'text-gray-700' };
-  }
-}
-
-function getAccelerationBadge(acceleration: DivergenceAcceleration): {
-  label: string;
-  bgClass: string;
-  textClass: string;
-} {
-  switch (acceleration) {
-    case 'accelerating':
-      return { label: 'Accelerating', bgClass: 'bg-red-50', textClass: 'text-red-700' };
-    case 'decelerating':
-      return { label: 'Decelerating', bgClass: 'bg-emerald-50', textClass: 'text-emerald-700' };
-    case 'stable':
-      return { label: 'Stable', bgClass: 'bg-gray-50', textClass: 'text-gray-600' };
-    default:
-      return { label: 'Unknown', bgClass: 'bg-gray-50', textClass: 'text-gray-700' };
-  }
-}
-
-function getDirectionBadge(direction: DivergenceDirection): {
-  label: string;
-  textClass: string;
-} {
-  switch (direction) {
-    case 'positive':
-      return { label: '↑ Positive', textClass: 'text-emerald-600' };
-    case 'negative':
-      return { label: '↓ Negative', textClass: 'text-red-600' };
-    case 'neutral':
-      return { label: '— Neutral', textClass: 'text-gray-500' };
-    default:
-      return { label: '— Unknown', textClass: 'text-gray-500' };
-  }
-}
-
-function getHealthBadge(score: number): { label: string; bgClass: string; textClass: string } {
-  if (score >= 80)
-    return { label: 'Healthy', bgClass: 'bg-emerald-50', textClass: 'text-emerald-700' };
-  if (score >= 60) return { label: 'Fair', bgClass: 'bg-blue-50', textClass: 'text-blue-700' };
-  if (score >= 40)
-    return { label: 'Degraded', bgClass: 'bg-amber-50', textClass: 'text-amber-700' };
-  return { label: 'Critical', bgClass: 'bg-red-50', textClass: 'text-red-700' };
 }
 
 function DivergenceSignalTabComponent({
@@ -204,335 +94,45 @@ function DivergenceSignalTabComponent({
         </div>
       )}
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <div className="flex items-center gap-2 mb-2">
-            <AlertTriangle className="w-4 h-4 text-amber-500" />
-            <span className="text-sm font-medium text-gray-700">Alert Count</span>
-          </div>
-          <p className="text-2xl font-bold text-gray-900 font-mono">{alertCount}</p>
-          <p className="text-[10px] text-gray-400 mt-1">Divergence alerts triggered</p>
-        </div>
+      <DivergenceStatsCards
+        alertCount={alertCount}
+        acceleratingCount={acceleratingCount}
+        directionalBiasCount={directionalBiasCount}
+        leadingEntity={leadingEntity}
+        maxAcceleration={maxAcceleration}
+        acceleratingLabel={labels.acceleratingLabel}
+        directionalLabel={labels.directionalLabel}
+        leadingLabel={labels.leadingLabel}
+        getDisplayName={getDisplayName}
+      />
 
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <div className="flex items-center gap-2 mb-2">
-            <Zap
-              className={`w-4 h-4 ${acceleratingCount > 0 ? 'text-red-500' : 'text-emerald-500'}`}
-            />
-            <span className="text-sm font-medium text-gray-700">Accelerating</span>
-          </div>
-          <p
-            className={`text-2xl font-bold font-mono ${acceleratingCount > 0 ? 'text-red-600' : 'text-emerald-600'}`}
-          >
-            {acceleratingCount}
-          </p>
-          <p className="text-[10px] text-gray-400 mt-1">
-            {labels.acceleratingLabel}
-            {maxAcceleration > 0 && (
-              <span className="text-red-500 ml-1">Max: {maxAcceleration.toFixed(4)}%/update</span>
-            )}
-          </p>
-        </div>
+      <TimeSeriesSection
+        timeSeries={timeSeries}
+        title={labels.timeSeriesTitle}
+        getDisplayName={getDisplayName}
+      />
 
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <div className="flex items-center gap-2 mb-2">
-            <Navigation
-              className={`w-4 h-4 ${directionalBiasCount > 0 ? 'text-orange-500' : 'text-emerald-500'}`}
-            />
-            <span className="text-sm font-medium text-gray-700">Directional Bias</span>
-          </div>
-          <p
-            className={`text-2xl font-bold font-mono ${directionalBiasCount > 0 ? 'text-orange-600' : 'text-emerald-600'}`}
-          >
-            {directionalBiasCount}
-          </p>
-          <p className="text-[10px] text-gray-400 mt-1">{labels.directionalLabel}</p>
-        </div>
-
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <div className="flex items-center gap-2 mb-2">
-            <TrendingUp className="w-4 h-4 text-blue-500" />
-            <span className="text-sm font-medium text-gray-700">{labels.leadingLabel}</span>
-          </div>
-          <p className="text-2xl font-bold text-blue-600 font-mono">
-            {leadingEntity ? getDisplayName(leadingEntity) : 'N/A'}
-          </p>
-          <p className="text-[10px] text-gray-400 mt-1">Fastest response to market</p>
-        </div>
-      </div>
-
-      <div className="bg-white rounded-xl border border-gray-200 p-5">
-        <div className="flex items-center gap-2 mb-4">
-          <TrendingUp className="w-5 h-5 text-gray-700" />
-          <span className="text-base font-semibold text-gray-900">{labels.timeSeriesTitle}</span>
-        </div>
-        <div className="space-y-3">
-          {timeSeries.map((ts) => {
-            const dirBadge = getDirectionBadge(ts.currentDirection);
-            const accBadge = getAccelerationBadge(ts.acceleration);
-            const barWidth =
-              ts.maxDeviation > 0
-                ? Math.min((Math.abs(ts.currentDeviation) / ts.maxDeviation) * 100, 100)
-                : 0;
-
-            return (
-              <div
-                key={ts.provider}
-                className="border border-gray-100 rounded-lg p-3 hover:bg-gray-50 transition-colors"
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold text-gray-900">
-                      {getDisplayName(ts.provider)}
-                    </span>
-                    <span
-                      className={`text-sm font-mono font-medium ${getDeviationColor(ts.currentDeviation)}`}
-                    >
-                      {ts.currentDeviation.toFixed(2)}%
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className={`text-xs font-medium ${dirBadge.textClass}`}>
-                      {dirBadge.label}
-                    </span>
-                    <span
-                      className={`inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium rounded ${accBadge.bgClass} ${accBadge.textClass}`}
-                    >
-                      {accBadge.label}
-                    </span>
-                  </div>
-                </div>
-
-                {ts.isDirectionalBias && (
-                  <div className="flex items-center gap-1 mb-2">
-                    <span className="text-xs text-orange-600 font-medium">
-                      ⚠ Directional Bias ({ts.directionalBiasCount} consecutive)
-                    </span>
-                  </div>
-                )}
-
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="flex-1">
-                    <div className="w-full bg-gray-100 rounded-full h-1.5">
-                      <div
-                        className={`h-1.5 rounded-full transition-all duration-500 ${getDeviationBgColor(ts.currentDeviation)}`}
-                        style={{ width: `${barWidth}%` }}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3 text-[10px] text-gray-400">
-                  <span>Max: {ts.maxDeviation.toFixed(2)}%</span>
-                  <span>Avg: {ts.avgDeviation.toFixed(2)}%</span>
-                </div>
-              </div>
-            );
-          })}
-          {timeSeries.length === 0 && (
-            <p className="text-xs text-gray-500 text-center py-4">
-              No divergence time series data available
-            </p>
-          )}
-        </div>
-      </div>
-
-      <div className="bg-white rounded-xl border border-gray-200 p-5">
-        <div className="flex items-center gap-2 mb-4">
-          <Navigation className="w-5 h-5 text-gray-700" />
-          <span className="text-base font-semibold text-gray-900">{labels.leadershipTitle}</span>
-        </div>
-        <div className="space-y-2">
-          {sortedLeadership.map((entity, index) => {
-            const badge = getLeadershipBadge(entity.status);
-            const reliability =
-              entity.totalUpdates > 0 ? (entity.firstResponseCount / entity.totalUpdates) * 100 : 0;
-
-            return (
-              <div
-                key={entity.provider}
-                className="border border-gray-100 rounded-lg p-3 hover:bg-gray-50 transition-colors"
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center text-[10px] font-bold text-gray-600">
-                      {index + 1}
-                    </span>
-                    <span className="text-sm font-semibold text-gray-900">
-                      {getDisplayName(entity.provider)}
-                    </span>
-                    <span
-                      className={`inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium rounded ${badge.bgClass} ${badge.textClass}`}
-                    >
-                      {badge.label}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3 text-xs text-gray-500">
-                    <span>
-                      Avg lag:{' '}
-                      <span className="font-mono font-medium text-gray-700">
-                        {entity.avgLagSeconds.toFixed(2)}s
-                      </span>
-                    </span>
-                    <span>
-                      First response:{' '}
-                      <span className="font-mono font-medium text-gray-700">
-                        {entity.firstResponseCount}/{entity.totalUpdates}
-                      </span>
-                    </span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] text-gray-400 w-14">Reliability</span>
-                  <div className="flex-1 bg-gray-100 rounded-full h-1.5">
-                    <div
-                      className="h-1.5 rounded-full bg-blue-500 transition-all duration-500"
-                      style={{ width: `${Math.min(reliability, 100)}%` }}
-                    />
-                  </div>
-                  <span className="text-[10px] font-mono text-gray-500 w-10 text-right">
-                    {reliability.toFixed(0)}%
-                  </span>
-                </div>
-              </div>
-            );
-          })}
-          {sortedLeadership.length === 0 && (
-            <p className="text-xs text-gray-500 text-center py-4">No leadership data available</p>
-          )}
-        </div>
-      </div>
+      <LeadershipSection
+        leadership={sortedLeadership}
+        title={labels.leadershipTitle}
+        getDisplayName={getDisplayName}
+      />
 
       {divergenceMatrix.length > 0 && (
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <div className="flex items-center gap-2 mb-4">
-            <Grid3x3 className="w-5 h-5 text-gray-700" />
-            <span className="text-base font-semibold text-gray-900">{labels.matrixTitle}</span>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs">
-              <thead>
-                <tr>
-                  <th className="px-2 py-1.5 text-left text-[10px] font-medium text-gray-500" />
-                  {entityNames.map((name, idx) => (
-                    <th
-                      key={`${name}-${idx}`}
-                      className="px-2 py-1.5 text-center text-[10px] font-medium text-gray-500"
-                    >
-                      {getDisplayName(name)}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {divergenceMatrix.map((row, rowIdx) => (
-                  <tr key={`row-${rowIdx}`} className="border-t border-gray-100">
-                    <td className="px-2 py-1.5 text-[10px] font-medium text-gray-700 whitespace-nowrap">
-                      {getDisplayName(entityNames[rowIdx])}
-                    </td>
-                    {row.map((pair, colIdx) => {
-                      if (colIdx === rowIdx) {
-                        return (
-                          <td key={colIdx} className="px-2 py-1.5 text-center text-gray-300">
-                            —
-                          </td>
-                        );
-                      }
-                      const deviation =
-                        colIdx > rowIdx
-                          ? pair.deviationPercent
-                          : (divergenceMatrix[colIdx]?.[rowIdx]?.deviationPercent ?? 0);
-                      return (
-                        <td key={colIdx} className="px-2 py-1.5 text-center">
-                          <span
-                            className={`inline-flex items-center justify-center px-1.5 py-0.5 rounded text-[10px] font-mono font-medium ${getDeviationBgColor(deviation)} ${getDeviationColor(deviation)}`}
-                          >
-                            {deviation.toFixed(2)}%
-                          </span>
-                        </td>
-                      );
-                    })}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <DivergenceMatrixSection
+          divergenceMatrix={divergenceMatrix}
+          entityNames={entityNames}
+          title={labels.matrixTitle}
+          getDisplayName={getDisplayName}
+        />
       )}
 
       {feedHealthScores && feedHealthScores.length > 0 && (
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <div className="flex items-center gap-2 mb-4">
-            <Activity className="w-5 h-5 text-gray-700" />
-            <span className="text-base font-semibold text-gray-900">{labels.feedHealthTitle}</span>
-          </div>
-          <div className="space-y-3">
-            {feedHealthScores.map((entity) => {
-              const badge = getHealthBadge(entity.score);
-              return (
-                <div key={entity.provider} className="border border-gray-100 rounded-lg p-3">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-gray-900">
-                        {getDisplayName(entity.provider)}
-                      </span>
-                      <span
-                        className={`inline-flex items-center px-2 py-0.5 text-[10px] font-medium rounded ${badge.bgClass} ${badge.textClass}`}
-                      >
-                        {badge.label}
-                      </span>
-                    </div>
-                    <span className="text-lg font-bold text-gray-900 font-mono">
-                      {entity.score}
-                    </span>
-                  </div>
-                  <div className="w-full bg-gray-100 rounded-full h-2 mb-3">
-                    <div
-                      className="h-2 rounded-full transition-all duration-500"
-                      style={{
-                        width: `${entity.score}%`,
-                        backgroundColor:
-                          entity.score >= 80
-                            ? '#10b981'
-                            : entity.score >= 60
-                              ? '#3b82f6'
-                              : entity.score >= 40
-                                ? '#f59e0b'
-                                : '#ef4444',
-                      }}
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-2 text-[10px] text-gray-500">
-                    <span>
-                      Rhythm:{' '}
-                      <span className="font-mono font-medium text-gray-700">
-                        {entity.rhythmStability}%
-                      </span>
-                    </span>
-                    <span>
-                      Confidence:{' '}
-                      <span className="font-mono font-medium text-gray-700">
-                        {entity.confidenceStability}%
-                      </span>
-                    </span>
-                    <span>
-                      Heartbeat:{' '}
-                      <span className="font-mono font-medium text-gray-700">
-                        {entity.heartbeatReliability}%
-                      </span>
-                    </span>
-                    <span>
-                      Freshness:{' '}
-                      <span className="font-mono font-medium text-gray-700">
-                        {entity.freshness}%
-                      </span>
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+        <FeedHealthSection
+          feedHealthScores={feedHealthScores}
+          title={labels.feedHealthTitle}
+          getDisplayName={getDisplayName}
+        />
       )}
     </div>
   );
