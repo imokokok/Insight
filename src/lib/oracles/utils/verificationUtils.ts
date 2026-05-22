@@ -29,21 +29,21 @@ const TRON_EXPLORER_BASE = 'https://tronscan.org/#';
 
 const STELLAR_EXPLORER_BASE = 'https://stellar.expert/explorer/public';
 
-export function getExplorerBaseUrl(chainId: number): string {
+function getExplorerBaseUrl(chainId: number): string {
   return CHAIN_EXPLORER_BASE_URL[chainId] || '';
 }
 
-export function buildContractExplorerUrl(chainId: number, contractAddress: string): string {
+function buildContractExplorerUrl(chainId: number, contractAddress: string): string {
   const base = getExplorerBaseUrl(chainId);
   if (!base) return '';
   return `${base}/address/${contractAddress}#readContract`;
 }
 
-export function buildTronContractExplorerUrl(contractAddress: string): string {
+function buildTronContractExplorerUrl(contractAddress: string): string {
   return `${TRON_EXPLORER_BASE}/contract/${contractAddress}`;
 }
 
-export function buildStellarContractExplorerUrl(contractId: string): string {
+function buildStellarContractExplorerUrl(contractId: string): string {
   return `${STELLAR_EXPLORER_BASE}/contract/${contractId}`;
 }
 

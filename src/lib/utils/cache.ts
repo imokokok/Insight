@@ -4,7 +4,7 @@ export interface CacheEntry<T> {
   ttl: number;
 }
 
-export interface TTLCacheOptions {
+interface TTLCacheOptions {
   maxSize?: number;
   cleanupIntervalMs?: number;
 }

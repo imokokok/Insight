@@ -326,5 +326,3 @@ export type Tables<T extends keyof Database['public']['Tables']> =
 
 export type PriceAlert = Tables<'price_alerts'>;
 export type AlertEvent = Tables<'alert_events'>;
-
-export type ConfigType = 'oracle_config' | 'symbol' | 'chain_config';
