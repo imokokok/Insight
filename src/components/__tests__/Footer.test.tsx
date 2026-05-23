@@ -174,7 +174,7 @@ describe('Footer', () => {
 
       const discordLink = screen.getByLabelText('Twitter');
       expect(discordLink).toBeInTheDocument();
-      expect(discordLink).toHaveAttribute('href', 'https://discord.com');
+      expect(discordLink).toHaveAttribute('href', 'https://discord.gg/YSNgebjBqh');
       expect(discordLink).toHaveAttribute('target', '_blank');
       expect(discordLink).toHaveAttribute('rel', 'noopener noreferrer');
     });
@@ -184,7 +184,7 @@ describe('Footer', () => {
 
       const telegramLink = screen.getByLabelText('Twitter');
       expect(telegramLink).toBeInTheDocument();
-      expect(telegramLink).toHaveAttribute('href', 'https://telegram.org');
+      expect(telegramLink).toHaveAttribute('href', 'https://t.me/+6_HoDnRoDK0zNWI1');
       expect(telegramLink).toHaveAttribute('target', '_blank');
       expect(telegramLink).toHaveAttribute('rel', 'noopener noreferrer');
     });

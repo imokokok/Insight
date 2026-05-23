@@ -29,10 +29,10 @@ export default function Footer() {
   ];
 
   const socialLinks = [
-    { label: 'Email', href: 'mailto:imokokok123@gmail.com', icon: EmailIcon },
+    { label: 'Email', href: '/contact', icon: EmailIcon },
     { label: 'Twitter', href: 'https://x.com/imokokok27', icon: TwitterIcon },
-    { label: 'Discord', href: 'https://discord.com', icon: DiscordIcon },
-    { label: 'Telegram', href: 'https://telegram.org', icon: TelegramIcon },
+    { label: 'Discord', href: 'https://discord.gg/YSNgebjBqh', icon: DiscordIcon },
+    { label: 'Telegram', href: 'https://t.me/+6_HoDnRoDK0zNWI1', icon: TelegramIcon },
   ];
 
   return (
@@ -50,18 +50,34 @@ export default function Footer() {
             </p>
 
             <div className="flex items-center space-x-4">
-              {socialLinks.map((social) => (
-                <a
-                  key={social.label}
-                  href={social.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-slate-400 hover:text-white transition-colors duration-200"
-                  aria-label={social.label}
-                >
-                  <social.icon className="w-5 h-5" />
-                </a>
-              ))}
+              {socialLinks.map((social) => {
+                const isExternal =
+                  social.href.startsWith('http') || social.href.startsWith('mailto:');
+                const className = 'text-slate-400 hover:text-white transition-colors duration-200';
+                const icon = <social.icon className="w-5 h-5" />;
+
+                return isExternal ? (
+                  <a
+                    key={social.label}
+                    href={social.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={className}
+                    aria-label={social.label}
+                  >
+                    {icon}
+                  </a>
+                ) : (
+                  <Link
+                    key={social.label}
+                    href={social.href}
+                    className={className}
+                    aria-label={social.label}
+                  >
+                    {icon}
+                  </Link>
+                );
+              })}
             </div>
           </div>
 
