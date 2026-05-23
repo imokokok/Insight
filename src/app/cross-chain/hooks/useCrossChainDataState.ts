@@ -124,6 +124,8 @@ export function useCrossChainDataState(): UseCrossChainDataStateReturn {
       setCurrentPrices([]);
       setLastUpdated(null);
       setRefreshStatus('idle');
+      setAnomalies([]);
+      setCrossChainComparison([]);
     }
   }, [
     selectedProvider,
@@ -132,6 +134,8 @@ export function useCrossChainDataState(): UseCrossChainDataStateReturn {
     setCurrentPrices,
     setLastUpdated,
     setRefreshStatus,
+    setAnomalies,
+    setCrossChainComparison,
   ]);
 
   const prevSupportedChainsRef = useRef<Blockchain[]>([]);

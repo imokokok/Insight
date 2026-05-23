@@ -149,7 +149,12 @@ export function useOracleSymbols(selectedOracles: OracleProvider[]): UseOracleSy
           return [];
         }
         return client.getSupportedChainsForSymbol(symbol);
-      } catch {
+      } catch (error) {
+        logger.warn('Failed to get chains for symbol on oracle', {
+          symbol,
+          oracle,
+          error: error instanceof Error ? error.message : String(error),
+        });
         return [];
       }
     },

@@ -370,11 +370,10 @@ export function useOracleDataCore(
     const currentKey = `${selectedOracles.slice().sort().join(',')}_${selectedSymbol}`;
     const prevKey = `${prevDepsRef.current.selectedOracles.slice().sort().join(',')}_${prevDepsRef.current.selectedSymbol}`;
 
-    const depsChanged = isInitialMountRef.current || currentKey !== prevKey;
+    const depsChanged = currentKey !== prevKey;
 
     if (depsChanged) {
       prevDepsRef.current = { selectedOracles, selectedSymbol };
-      isInitialMountRef.current = false;
       resetErrors();
       setError(null);
       fetchPriceDataRef.current();
@@ -392,12 +391,13 @@ export function useOracleDataCore(
     const timer = setTimeout(() => {
       if (isInitialMountRef.current && selectedOracles.length > 0 && selectedSymbol) {
         isInitialMountRef.current = false;
+        prevDepsRef.current = { selectedOracles, selectedSymbol };
         fetchPriceDataRef.current();
       }
     }, 100);
 
     return () => clearTimeout(timer);
-  }, [selectedOracles.length, selectedSymbol]);
+  }, [selectedOracles, selectedSymbol]);
 
   const { lastRefreshedAt, nextRefreshAt } = useOracleAutoRefresh({
     refreshInterval,

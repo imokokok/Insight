@@ -110,7 +110,11 @@ export function validatePrice(
   return result;
 }
 
-export function validateTimestamp(timestamp: number, maxAge?: number): PriceValidationResult {
+export function validateTimestamp(
+  timestamp: number,
+  maxAge?: number,
+  currentTime?: number
+): PriceValidationResult {
   const result: PriceValidationResult = {
     isValid: true,
     warnings: [],
@@ -124,7 +128,7 @@ export function validateTimestamp(timestamp: number, maxAge?: number): PriceVali
     return result;
   }
 
-  const now = Date.now();
+  const now = currentTime ?? Date.now();
   const maxAgeMs = maxAge ?? DEFAULT_MAX_AGE_MS;
 
   if (timestamp > now) {

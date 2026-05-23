@@ -237,7 +237,7 @@ export function ErrorBanner({ errors, onRetry, onRetryAll, onDismiss }: ErrorBan
           ) : (
             <>
               <ChevronDown className="w-4 h-4" />
-              <span>Show {errors.length - 3} more</span>
+              <span>Show {uniqueErrors.length - 3} more</span>
             </>
           )}
         </button>

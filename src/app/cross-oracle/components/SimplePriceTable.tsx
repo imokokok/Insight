@@ -163,7 +163,16 @@ function SimplePriceTableComponent({
         verification: data.verification,
       };
     });
-  }, [priceData, medianPrice, anomalies, anomalyDetectionMode, avgPrice, standardDeviation, now]);
+  }, [
+    priceData,
+    medianPrice,
+    anomalies,
+    anomalyDetectionMode,
+    avgPrice,
+    standardDeviation,
+    now,
+    thresholds,
+  ]);
 
   const filteredAndSortedRows = useMemo(() => {
     let filtered = tableRows;

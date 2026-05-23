@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 
-import { DataTablePro, type ColumnDef, type ConditionalFormattingRule } from '@/components/ui';
+import { DataTablePro, type ColumnDef } from '@/components/ui';
 import { type CrossChainComparisonResult } from '@/lib/oracles/crossChainComparison';
 import { formatPrice, formatPriceDiff } from '@/lib/utils/format';
 import { useCrossChainConfigStore } from '@/stores/crossChainConfigStore';
@@ -91,24 +91,6 @@ export function PriceComparisonTable() {
       deviationFromMedian: comparison?.deviation ?? null,
     };
   });
-
-  const conditionalFormatting = [
-    {
-      field: 'diffPercent',
-      rules: [
-        {
-          condition: 'gt' as const,
-          value: 0.5,
-          style: 'danger' as const,
-        },
-        {
-          condition: 'lt' as const,
-          value: -0.5,
-          style: 'success' as const,
-        },
-      ] as ConditionalFormattingRule[],
-    },
-  ];
 
   const columns: ColumnDef<TableRow>[] = [
     {
@@ -331,7 +313,6 @@ export function PriceComparisonTable() {
         data={tableData}
         columns={columns}
         fixedColumns={fixedColumns}
-        conditionalFormatting={conditionalFormatting}
         density="normal"
         maxHeight={400}
         emptyText="No data available"

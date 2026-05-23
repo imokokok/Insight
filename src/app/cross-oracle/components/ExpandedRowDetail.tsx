@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 
 import { formatPrice, formatRelativeTime, formatNumberWithDecimals } from '@/lib/utils/format';
-import { type OracleProvider } from '@/types/oracle';
+import { type OracleProvider, type OnChainVerification } from '@/types/oracle';
 
 import { ANOMALY_ZSCORE_THRESHOLD } from '../constants';
 
@@ -28,7 +28,7 @@ export interface TableRow {
   zScore: number | null;
   freshnessSeconds: number;
   priceDiff: number | null;
-  verification?: import('@/types/oracle/price').OnChainVerification;
+  verification?: OnChainVerification;
 }
 
 export const formatDeviation = (deviation: number): string => {

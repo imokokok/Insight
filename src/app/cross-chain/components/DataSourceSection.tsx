@@ -9,7 +9,7 @@ import { Database, Layers, ShieldCheck } from 'lucide-react';
 import { DataSourceList, type DataSourceGroup } from '@/components/data-transparency';
 import { DataUpdateTime } from '@/components/data-transparency/DataUpdateTime';
 import { providerNames, chainNames } from '@/lib/constants';
-import { OracleProvider, Blockchain } from '@/types/oracle';
+import { OracleProvider, Blockchain, type OnChainVerification } from '@/types/oracle';
 
 interface CrossChainDataPoint {
   chain: Blockchain;
@@ -19,7 +19,7 @@ interface CrossChainDataPoint {
   confidence?: number;
   confidenceSource?: 'original' | 'estimated';
   provider?: OracleProvider;
-  verification?: import('@/types/oracle/price').OnChainVerification;
+  verification?: OnChainVerification;
 }
 
 interface DataSourceSectionProps {

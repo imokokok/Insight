@@ -8,6 +8,7 @@ import {
   type ChainPriceInfo,
 } from '@/lib/oracles/crossChainComparison';
 import { crossChainKeys } from '@/lib/queryKeys';
+import { createLogger } from '@/lib/utils/logger';
 import { safeMax, safeMin } from '@/lib/utils/statistics';
 import { useCrossChainConfigStore } from '@/stores/crossChainConfigStore';
 import { useCrossChainDataStore } from '@/stores/crossChainDataStore';
@@ -18,6 +19,8 @@ import { type AnomalousPricePoint, detectAnomalies } from '../utils/anomalyDetec
 import { validateCurrentPrices } from '../utils/validation';
 
 import { useCrossChainQueries } from './useCrossChainQueries';
+
+const logger = createLogger('useDataFetching');
 
 function calculatePriceStats(prices: PriceData[]): PriceStats {
   const validPrices = prices.map((d) => d.price).filter((p) => p > 0);
@@ -181,6 +184,7 @@ export function useDataFetching(
       useCrossChainDataStore.setState({ refreshStatus: 'refreshing' });
     } else if (errors.length > 0) {
       useCrossChainDataStore.setState({ refreshStatus: 'error' });
+      logger.warn('Cross-chain data fetching encountered errors', { errorCount: errors.length });
     } else if (!isLoading && !isFetching && supportedChains.length > 0) {
       const now = Date.now();
       if (now - lastUpdateTimeRef.current > 1000) {

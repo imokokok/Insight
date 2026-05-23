@@ -6,6 +6,7 @@ import { useQueryClient } from '@tanstack/react-query';
 
 import { getDefaultFactory } from '@/lib/oracles';
 import { priceKeys } from '@/lib/queryKeys';
+import { createLogger } from '@/lib/utils/logger';
 import { type OracleProvider, type Blockchain } from '@/types/oracle';
 
 import { type QueryResult } from '../constants';
@@ -14,6 +15,8 @@ import { validatePrice, validateTimestamp, type AnomalyInfo } from '../utils/pri
 import { buildQueryTasks, type QueryError } from '../utils/queryTaskUtils';
 
 import { useBatchOracleQuery, type BatchQueryTask } from './usePriceQueries';
+
+const logger = createLogger('usePriceQueryData');
 
 export type { QueryError };
 
@@ -144,7 +147,6 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
     )
     .join('|');
 
-  /* eslint-disable react-hooks/exhaustive-deps */
   const { queryResults, compareQueryResults, dataProcessingTime } = useMemo(() => {
     startDataProcessingMeasure();
     const qResults: QueryResult[] = [];
@@ -173,8 +175,7 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
       compareQueryResults: cResults,
       dataProcessingTime: processingTime,
     };
-  }, [resultsDataSignature]);
-  /* eslint-enable react-hooks/exhaustive-deps */
+  }, [resultsDataSignature, startDataProcessingMeasure, endDataProcessingMeasure]);
 
   const queryErrors: QueryError[] = useMemo(() => {
     return batchResult.errors
@@ -186,23 +187,22 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
       }));
   }, [batchResult.errors, effectiveDismissedKeys]);
 
-  /* eslint-disable react-hooks/exhaustive-deps */
   const currentQueryTarget = useMemo(() => {
     const fetching = batchResult.results.find((r) => r.isFetching);
     if (fetching) return { oracle: fetching.provider, chain: fetching.chain };
     return { oracle: null as OracleProvider | null, chain: null as Blockchain | null };
-  }, [resultsDataSignature]);
-  /* eslint-enable react-hooks/exhaustive-deps */
+  }, [batchResult.results]);
 
   const { validationWarnings, dataAnomalies, validationTime } = useMemo(() => {
     startValidationMeasure();
     const allWarnings: string[] = [];
     const allAnomalies: AnomalyInfo[] = [];
+    const now = Date.now();
 
     for (const result of queryResults) {
       if (!result.priceData) continue;
       const priceValidation = validatePrice(result.priceData.price);
-      const timestampValidation = validateTimestamp(result.priceData.timestamp);
+      const timestampValidation = validateTimestamp(result.priceData.timestamp, undefined, now);
       allWarnings.push(...priceValidation.warnings, ...timestampValidation.warnings);
       allAnomalies.push(...priceValidation.anomalies, ...timestampValidation.anomalies);
     }
@@ -211,21 +211,19 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
     return { validationWarnings: allWarnings, dataAnomalies: allAnomalies, validationTime: vTime };
   }, [queryResults, startValidationMeasure, endValidationMeasure]);
 
-  /* eslint-disable react-hooks/exhaustive-deps */
   const primaryDataFetchTime = useMemo(() => {
     const primary = batchResult.results.filter((r) => !r.isCompare && r.priceData);
     if (primary.length === 0) return null;
     const maxTime = Math.max(...primary.map((r) => r.dataUpdatedAt));
     return maxTime > 0 ? new Date(maxTime) : null;
-  }, [resultsDataSignature]);
+  }, [batchResult.results]);
 
   const compareDataFetchTime = useMemo(() => {
     const compare = batchResult.results.filter((r) => r.isCompare && r.priceData);
     if (compare.length === 0) return null;
     const maxTime = Math.max(...compare.map((r) => r.dataUpdatedAt));
     return maxTime > 0 ? new Date(maxTime) : null;
-  }, [resultsDataSignature]);
-  /* eslint-enable react-hooks/exhaustive-deps */
+  }, [batchResult.results]);
 
   const supportedChainsBySelectedOracles = useMemo(() => {
     if (!selectedOracle) return new Set<Blockchain>();
@@ -234,7 +232,11 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
       const client = getDefaultFactory().getClient(selectedOracle);
       client.supportedChains.forEach((chain) => supported.add(chain));
       return supported;
-    } catch {
+    } catch (error) {
+      logger.warn('Failed to get supported chains for oracle', {
+        selectedOracle,
+        error: error instanceof Error ? error.message : String(error),
+      });
       return new Set<Blockchain>();
     }
   }, [selectedOracle]);

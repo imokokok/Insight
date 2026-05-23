@@ -221,15 +221,7 @@ function QueryResultsComponent({
       ]
         .sort((a, b) => b.contribution - a.contribution)
         .slice(0, 5),
-    [
-      riskMetrics,
-      divergenceAccelerationScore,
-      divergenceSignals.acceleratingCount,
-      feedBehavior.overallHealthAvg,
-      feedBehavior.overallHealthLevel,
-      stabilityDecayScore,
-      stabilityScore.decliningCount,
-    ]
+    [riskMetrics]
   );
 
   if (isLoading) {

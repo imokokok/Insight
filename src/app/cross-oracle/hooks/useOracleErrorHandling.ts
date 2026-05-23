@@ -301,7 +301,7 @@ export function useOracleErrorHandling(): UseOracleErrorHandlingReturn {
   );
 
   const resetErrors = useCallback(() => {
-    setOracleDataError(INITIAL_ORACLE_DATA_ERROR);
+    setOracleDataError({ ...INITIAL_ORACLE_DATA_ERROR });
   }, []);
 
   return {

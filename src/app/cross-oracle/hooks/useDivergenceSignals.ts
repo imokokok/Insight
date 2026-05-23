@@ -7,11 +7,14 @@ import {
   type OracleLeadership,
   type DivergencePair,
 } from '@/lib/analytics/divergenceSignals';
+import { createLogger } from '@/lib/utils/logger';
 import { type PriceData } from '@/types/oracle';
 
 import { extractHistories, type HistoryEntry } from '../utils/historyExtraction';
 
 import { type PriceHistoryMap } from './useOracleMemory';
+
+const logger = createLogger('useDivergenceSignals');
 
 export interface DivergenceSignalsResult {
   divergenceResult: DivergenceSignalResult | null;
@@ -84,7 +87,11 @@ export function useDivergenceSignals(
         maxAcceleration: divergenceResult.maxAcceleration,
         isCalculating: false,
       };
-    } catch {
+    } catch (error) {
+      logger.error(
+        'Error calculating divergence signals',
+        error instanceof Error ? error : new Error(String(error))
+      );
       return {
         divergenceResult: null,
         timeSeries: [],

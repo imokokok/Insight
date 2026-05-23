@@ -67,7 +67,12 @@ export function useCrossChainTable(params: UseCrossChainTableParams): UseCrossCh
           comparison = a.diffPercent - b.diffPercent;
           break;
         default:
-          comparison = 0;
+          comparison =
+            chainNames[a.chain] < chainNames[b.chain]
+              ? -1
+              : chainNames[a.chain] > chainNames[b.chain]
+                ? 1
+                : 0;
       }
       return sortDirection === 'asc' ? comparison : -comparison;
     });
