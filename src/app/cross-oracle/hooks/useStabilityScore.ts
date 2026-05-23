@@ -8,6 +8,7 @@ import {
   type StabilityHistoryPoint,
   type StabilityLevel,
 } from '@/lib/analytics/stabilityScore';
+import { createLogger } from '@/lib/utils/logger';
 import { type PriceData } from '@/types/oracle';
 
 import {
@@ -17,6 +18,8 @@ import {
 } from '../utils/historyExtraction';
 
 import { type PriceHistoryMap } from './useOracleMemory';
+
+const logger = createLogger('useStabilityScore');
 
 export interface StabilityScoreHookResult {
   stabilityResult: StabilityResult | null;
@@ -98,7 +101,11 @@ export function useStabilityScore(
         worstScore: stabilityResult.worstScore,
         isCalculating: false,
       };
-    } catch {
+    } catch (error) {
+      logger.error(
+        'Error calculating stability score',
+        error instanceof Error ? error : new Error(String(error))
+      );
       return {
         stabilityResult: null,
         scores: [],

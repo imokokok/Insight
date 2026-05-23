@@ -393,8 +393,9 @@ async function fetchBatchPricesFromApi({
     controller.abort(new Error(`Batch request timed out after ${timeoutMs}ms`));
   }, timeoutMs);
 
+  let onExternalAbort: (() => void) | null = null;
   if (externalSignal) {
-    const onExternalAbort = () => controller.abort();
+    onExternalAbort = () => controller.abort();
     externalSignal.addEventListener('abort', onExternalAbort, { once: true });
   }
 
@@ -441,6 +442,9 @@ async function fetchBatchPricesFromApi({
     return result;
   } finally {
     clearTimeout(timeoutId);
+    if (externalSignal && onExternalAbort) {
+      externalSignal.removeEventListener('abort', onExternalAbort);
+    }
   }
 }
 

@@ -104,9 +104,9 @@ export function usePriceAnomalyDetection(
   currentTime?: number,
   selectedSymbol?: string
 ): AnomalyDetectionResult {
+  const now = currentTime ?? Date.now();
+
   return useMemo(() => {
-    // eslint-disable-next-line react-hooks/purity
-    const now = currentTime ?? Date.now();
     if (!priceData.length || medianPrice <= 0) {
       return {
         anomalies: [],
@@ -174,5 +174,5 @@ export function usePriceAnomalyDetection(
       maxDeviation,
       anomalyOracleNames,
     };
-  }, [priceData, medianPrice, currentTime, selectedSymbol]);
+  }, [priceData, medianPrice, now, selectedSymbol]);
 }

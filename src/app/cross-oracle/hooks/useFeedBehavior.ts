@@ -9,6 +9,7 @@ import {
   type FeedHealthScore,
   type FeedHealthLevel,
 } from '@/lib/analytics/feedBehavior';
+import { createLogger } from '@/lib/utils/logger';
 import { type PriceData } from '@/types/oracle';
 
 import {
@@ -18,6 +19,8 @@ import {
 } from '../utils/historyExtraction';
 
 import { type PriceHistoryMap } from './useOracleMemory';
+
+const logger = createLogger('useFeedBehavior');
 
 export interface FeedBehaviorHookResult {
   feedBehaviorResult: FeedBehaviorResult | null;
@@ -105,7 +108,11 @@ export function useFeedBehavior(
         confidenceSurgeCount: feedBehaviorResult.confidenceSurgeCount,
         isCalculating: false,
       };
-    } catch {
+    } catch (error) {
+      logger.error(
+        'Error calculating feed behavior',
+        error instanceof Error ? error : new Error(String(error))
+      );
       return {
         feedBehaviorResult: null,
         rhythmMetrics: [],

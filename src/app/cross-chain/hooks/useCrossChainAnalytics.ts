@@ -31,6 +31,7 @@ import {
   type StabilityLevel,
 } from '@/lib/analytics/stabilityScore';
 import { chainColors } from '@/lib/constants';
+import { createLogger } from '@/lib/utils/logger';
 import { type Blockchain, type PriceData } from '@/types/oracle';
 
 import { CHAIN_EXPECTED_INTERVALS } from '../constants';
@@ -44,6 +45,8 @@ interface ChainPriceHistoryEntry {
 }
 
 const MAX_HISTORY_PER_CHAIN = 200;
+
+const logger = createLogger('useCrossChainAnalytics');
 
 function getChainExpectedInterval(chain: string): number {
   return CHAIN_EXPECTED_INTERVALS[chain.toLowerCase()] ?? 10;
@@ -655,7 +658,11 @@ export function useCrossChainAnalytics(currentPrices: PriceData[]): CrossChainAn
         chainCount: chainPrices.length,
         isCalculating: false,
       };
-    } catch {
+    } catch (error) {
+      logger.error(
+        'Error calculating cross-chain analytics:',
+        error instanceof Error ? error : new Error(String(error))
+      );
       return {
         risk: getEmptyRiskResult(),
         divergence: getEmptyDivergenceResult(),

@@ -53,11 +53,9 @@ interface UsePriceQueryStateReturn {
 export function usePriceQueryState(): UsePriceQueryStateReturn {
   const { preferences } = usePreferences();
 
-  const [selectedOracle, _setSelectedOracle] = useState<OracleProvider | null>(
-    OracleProvider.CHAINLINK
-  );
-  const [selectedChain, _setSelectedChain] = useState<Blockchain | null>(Blockchain.ETHEREUM);
-  const [selectedSymbol, _setSelectedSymbol] = useState<string>('BTC');
+  const [selectedOracle, _setSelectedOracle] = useState<OracleProvider | null>(null);
+  const [selectedChain, _setSelectedChain] = useState<Blockchain | null>(null);
+  const [selectedSymbol, _setSelectedSymbol] = useState<string>('');
   const [selectedTimeRange, _setSelectedTimeRange] = useState<number>(24);
   const [isCompareMode, _setIsCompareMode] = useState<boolean>(false);
   const [compareTimeRange, _setCompareTimeRange] = useState<number>(24);

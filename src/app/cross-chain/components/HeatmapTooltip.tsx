@@ -41,8 +41,8 @@ export function HeatmapTooltip({
 
   const tooltipStyle = {
     position: 'fixed' as const,
-    left: tooltipPosition.x + 10,
-    top: tooltipPosition.y - 10,
+    left: Math.min(tooltipPosition.x + 10, window.innerWidth - 220),
+    top: Math.max(tooltipPosition.y - 10, 10),
     transform: 'translateY(-100%)',
     zIndex: 1000,
   };

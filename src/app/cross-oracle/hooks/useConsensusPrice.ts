@@ -61,11 +61,6 @@ export function useConsensusPrice(
     return tempResult.recommendedMethod;
   }, [priceData, symbol]);
 
-  useEffect(() => {
-    resetConsensusHistory();
-    setConsensusHistory([]);
-  }, [providerKey]);
-
   const activeMethod: ConsensusMethod = currentMethod ?? defaultMethod ?? recommendedMethod;
 
   const consensus = useMemo(() => {
@@ -81,17 +76,20 @@ export function useConsensusPrice(
   }, [priceData, activeMethod, symbol, enableAutoSelect, defaultMethod]);
 
   useEffect(() => {
-    consensusRef.current = consensus;
-  }, [consensus]);
+    if (providerKey) {
+      resetConsensusHistory();
+    }
+  }, [providerKey]);
 
   useEffect(() => {
-    if (consensusRef.current && consensusRef.current.price > 0) {
+    consensusRef.current = consensus;
+    if (consensus && consensus.price > 0) {
       const historyKey = symbol ?? 'default';
-      recordConsensusHistory(historyKey, consensusRef.current);
+      recordConsensusHistory(historyKey, consensus);
       const updated = getConsensusHistory(historyKey);
       setConsensusHistory(updated);
     }
-  }, [consensus?.price, consensus?.method, symbol]);
+  }, [consensus, symbol]);
 
   const setMethod = useCallback((method: ConsensusMethod) => {
     setCurrentMethod(method);

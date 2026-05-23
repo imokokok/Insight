@@ -40,26 +40,29 @@ export function BenchmarkComparisonSection({ chainPrices }: BenchmarkComparisonS
         : 0;
     const bestPrice = sortedPrices.length > 0 ? sortedPrices[sortedPrices.length - 1] : 0;
 
-    const metrics = chainPrices.map((data) => {
-      const diffFromAvg = avgPrice > 0 ? ((data.price - avgPrice) / avgPrice) * 100 : 0;
-      const diffFromMedian = medianPrice > 0 ? ((data.price - medianPrice) / medianPrice) * 100 : 0;
-      const diffFromBest = bestPrice > 0 ? ((data.price - bestPrice) / bestPrice) * 100 : 0;
+    const metrics = chainPrices
+      .filter((data) => data.price > 0)
+      .map((data) => {
+        const diffFromAvg = avgPrice > 0 ? ((data.price - avgPrice) / avgPrice) * 100 : 0;
+        const diffFromMedian =
+          medianPrice > 0 ? ((data.price - medianPrice) / medianPrice) * 100 : 0;
+        const diffFromBest = bestPrice > 0 ? ((data.price - bestPrice) / bestPrice) * 100 : 0;
 
-      let rank = 1;
-      for (const p of sortedPrices) {
-        if (p > data.price) rank++;
-      }
+        let rank = 1;
+        for (const p of sortedPrices) {
+          if (p > data.price) rank++;
+        }
 
-      return {
-        name: data.chain,
-        displayName: chainNames[data.chain as Blockchain] || data.chain,
-        value: data.price,
-        diffFromAvg,
-        diffFromMedian,
-        diffFromBest,
-        rank,
-      };
-    });
+        return {
+          name: data.chain,
+          displayName: chainNames[data.chain as Blockchain] || data.chain,
+          value: data.price,
+          diffFromAvg,
+          diffFromMedian,
+          diffFromBest,
+          rank,
+        };
+      });
 
     return {
       industryAverage: avgPrice,

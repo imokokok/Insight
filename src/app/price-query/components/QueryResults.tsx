@@ -83,8 +83,6 @@ export function QueryResults({ onChainData }: QueryResultsProps) {
     return <QueryResultsEmpty />;
   }
 
-  const currentResult = queryResults[0];
-
   return (
     <div className="space-y-4">
       {queryErrors.length > 0 && (
@@ -129,7 +127,7 @@ export function QueryResults({ onChainData }: QueryResultsProps) {
         <div className="px-6 py-5 border-b border-gray-100 bg-gray-50/50">
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             <StatsCardsSelector
-              currentResult={currentResult}
+              currentResult={queryResults[0]}
               diaOnChainData={diaOnChainData}
               winklinkOnChainData={winklinkOnChainData}
               redstoneOnChainData={redstoneOnChainData}
