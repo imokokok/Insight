@@ -388,6 +388,17 @@ export function useOracleDataCore(
     };
   }, [selectedOracles, selectedSymbol, resetErrors]);
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (isInitialMountRef.current && selectedOracles.length > 0 && selectedSymbol) {
+        isInitialMountRef.current = false;
+        fetchPriceDataRef.current();
+      }
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [selectedOracles.length, selectedSymbol]);
+
   const { lastRefreshedAt, nextRefreshAt } = useOracleAutoRefresh({
     refreshInterval,
     onRefresh: fetchPriceData,
