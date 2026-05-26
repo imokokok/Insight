@@ -115,7 +115,7 @@ export const PriceDataSchema = PriceDataBaseSchema.extend({
   chain: SafeChainSchema.optional(),
   decimals: z.number().int().nonnegative().optional(),
   confidence: z.number().min(0).max(1).optional(),
-  confidenceSource: z.enum(['original', 'estimated']).optional(),
+  confidenceSource: z.enum(['original', 'estimated', 'calculated']).optional(),
   source: z.string().optional(),
   change: z.number().optional(),
   change24h: z.number().optional(),

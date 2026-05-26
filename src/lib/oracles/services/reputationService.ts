@@ -8,7 +8,23 @@ import { oracleSupportedSymbols } from '../constants/supportedSymbols';
 
 const logger = createLogger('ReputationService');
 
-const TOP_SYMBOLS = ['BTC', 'ETH', 'SOL', 'BNB', 'USDC', 'USDT', 'DAI', 'XAU', 'EUR'] as const;
+const TOP_SYMBOLS = ['BTC', 'ETH', 'SOL', 'BNB', 'USDC', 'USDT', 'DAI', 'XRP', 'ADA'] as const;
+
+export const PROVIDER_TYPE_CONFIG: Record<
+  OracleProvider,
+  { type: 'onchain' | 'api' | 'hybrid'; latencyBaseline: number }
+> = {
+  [OracleProvider.FLARE]: { type: 'onchain', latencyBaseline: 2000 },
+  [OracleProvider.CHAINLINK]: { type: 'onchain', latencyBaseline: 1500 },
+  [OracleProvider.API3]: { type: 'onchain', latencyBaseline: 1200 },
+  [OracleProvider.TWAP]: { type: 'onchain', latencyBaseline: 1800 },
+  [OracleProvider.WINKLINK]: { type: 'onchain', latencyBaseline: 1500 },
+  [OracleProvider.REFLECTOR]: { type: 'onchain', latencyBaseline: 1500 },
+  [OracleProvider.DIA]: { type: 'api', latencyBaseline: 500 },
+  [OracleProvider.PYTH]: { type: 'api', latencyBaseline: 400 },
+  [OracleProvider.REDSTONE]: { type: 'api', latencyBaseline: 300 },
+  [OracleProvider.SUPRA]: { type: 'api', latencyBaseline: 500 },
+};
 
 interface ReputationHistoryEntry {
   provider: string;
@@ -18,6 +34,7 @@ interface ReputationHistoryEntry {
   deviation_pct: number;
   latency_ms: number;
   confidence: number;
+  data_age_seconds: number;
   is_success: boolean;
   error_message?: string;
 }
@@ -69,6 +86,7 @@ interface ReputationHistoryInsertRow {
   deviation_pct: number | null;
   latency_ms: number | null;
   confidence: number | null;
+  data_age_seconds: number | null;
   is_success: boolean;
   error_message: string | null;
   snapshot_time: string;
@@ -103,9 +121,12 @@ class ReputationService {
         await Promise.all(
           uniqueProviders.map(async (provider) => {
             try {
-              await supabase.rpc('aggregate_oracle_reputation', {
+              const providerConfig = PROVIDER_TYPE_CONFIG[provider as OracleProvider];
+              await supabase.rpc('aggregate_oracle_reputation_v3', {
                 p_provider: provider,
                 p_lookback_days: 7,
+                p_latency_baseline: providerConfig?.latencyBaseline ?? 1000,
+                p_provider_type: providerConfig?.type ?? 'api',
               });
             } catch (rpcError) {
               logger.warn(
@@ -162,7 +183,7 @@ class ReputationService {
       }));
 
       try {
-        const consensus = calculateConsensusPrice(inputs, 'median', `${symbol}/USD`);
+        const consensus = calculateConsensusPrice(inputs, 'weighted_median', `${symbol}/USD`);
         const consensusPrice = consensus.price;
 
         if (consensusPrice > 0) {
@@ -197,6 +218,7 @@ class ReputationService {
       deviation_pct: deviationPct,
       latency_ms: this.toNullableLatency(entry.latency_ms),
       confidence: this.toNormalizedConfidence(entry.confidence),
+      data_age_seconds: entry.data_age_seconds,
       is_success: entry.is_success,
       error_message: entry.error_message || null,
       snapshot_time: snapshotTime,
@@ -245,9 +267,13 @@ class ReputationService {
       const startTime = Date.now();
       const client = factory.getClient(provider);
       const price = await client.getPrice(symbol);
-      const latencyMs = Date.now() - startTime;
+      const rawLatencyMs = Date.now() - startTime;
 
       if (price && Number.isFinite(price.price) && price.price > 0) {
+        const dataAgeSeconds = price.timestamp
+          ? Math.floor((Date.now() - price.timestamp) / 1000)
+          : 0;
+
         return {
           entry: {
             provider,
@@ -255,8 +281,9 @@ class ReputationService {
             price: price.price,
             consensus_price: 0,
             deviation_pct: 0,
-            latency_ms: latencyMs,
+            latency_ms: rawLatencyMs,
             confidence: price.confidence ?? 0,
+            data_age_seconds: dataAgeSeconds,
             is_success: true,
           },
           price: { ...price, provider, symbol },
@@ -275,6 +302,7 @@ class ReputationService {
           deviation_pct: 0,
           latency_ms: 0,
           confidence: 0,
+          data_age_seconds: 0,
           is_success: false,
           error_message: 'Price returned invalid value',
         },
@@ -297,6 +325,7 @@ class ReputationService {
           deviation_pct: 0,
           latency_ms: 0,
           confidence: 0,
+          data_age_seconds: 0,
           is_success: false,
           error_message: error instanceof Error ? error.message : String(error),
         },

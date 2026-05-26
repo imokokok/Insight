@@ -16,7 +16,7 @@ export interface DataSourceInfo {
   chain?: Blockchain;
   source?: string;
   confidence?: number;
-  confidenceSource?: 'original' | 'estimated';
+  confidenceSource?: 'original' | 'estimated' | 'calculated';
   lastUpdated?: number;
   credibilityLevel?: CredibilityLevel;
   verificationProof?: string;

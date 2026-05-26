@@ -11,7 +11,13 @@ import { ErrorBoundary } from '@/components/error-boundary';
 import { EmptyStateEnhanced } from '@/components/ui/EmptyStateEnhanced';
 import { useReputationDetail } from '@/hooks/data/useReputations';
 import { providerNames } from '@/lib/constants';
-import { getScoreBadge, formatTimeAgo } from '@/lib/oracles/utils/reputationUtils';
+import { PROVIDER_TYPE_CONFIG } from '@/lib/oracles/services/reputationService';
+import {
+  getScoreBadge,
+  formatTimeAgo,
+  calculateLatencyScore,
+  calculateDeviationScore,
+} from '@/lib/oracles/utils/reputationUtils';
 import { type OracleProvider } from '@/types/oracle';
 
 import { Sidebar, ScoreBreakdown, HowItWorks } from './components/ProviderDetailSections';
@@ -38,12 +44,17 @@ function ProviderReputationContentInner({ provider }: { provider: string }) {
     [reputation?.last_calculated_at]
   );
 
+  const providerConfig = PROVIDER_TYPE_CONFIG[provider as OracleProvider];
+  const latencyBaseline = providerConfig?.latencyBaseline ?? 1000;
+
   const latencyScore = reputation
-    ? Math.max(0, Math.min(100, 100 - (reputation.avg_latency_ms / 2000) * 100))
+    ? calculateLatencyScore(
+        reputation.avg_latency_ms,
+        latencyBaseline,
+        providerConfig?.type === 'onchain' ? 'onchain' : 'api'
+      )
     : 0;
-  const deviationScore = reputation
-    ? Math.max(0, Math.min(100, 100 - (reputation.avg_deviation_pct / 5) * 100))
-    : 0;
+  const deviationScore = reputation ? calculateDeviationScore(reputation.avg_deviation_pct) : 0;
 
   if (isLoading) {
     return (
