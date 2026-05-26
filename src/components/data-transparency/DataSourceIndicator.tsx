@@ -6,10 +6,11 @@ import Image from 'next/image';
 
 import { Shield, ShieldCheck, ShieldAlert, ShieldX, Info, ExternalLink, Globe } from 'lucide-react';
 
+import { type CredibilityLevel } from '@/lib/oracles/utils/reputationUtils';
 import { OracleProvider, type Blockchain } from '@/types/oracle';
 import type { OnChainVerification } from '@/types/oracle/price';
 
-export type CredibilityLevel = 'high' | 'medium' | 'low' | 'unverified';
+export type { CredibilityLevel };
 
 export interface DataSourceInfo {
   provider: OracleProvider;

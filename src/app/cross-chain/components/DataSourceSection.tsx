@@ -8,7 +8,13 @@ import { Database, Layers, ShieldCheck } from 'lucide-react';
 
 import { DataSourceList, type DataSourceGroup } from '@/components/data-transparency';
 import { DataUpdateTime } from '@/components/data-transparency/DataUpdateTime';
+import { useReputations } from '@/hooks/data/useReputations';
 import { providerNames, chainNames } from '@/lib/constants';
+import {
+  getCredibilityFromScore,
+  getCredibilityFromVerification,
+  type CredibilityLevel,
+} from '@/lib/oracles/utils/reputationUtils';
 import { OracleProvider, Blockchain, type OnChainVerification } from '@/types/oracle';
 
 interface CrossChainDataPoint {
@@ -30,22 +36,6 @@ interface DataSourceSectionProps {
   error?: Error | null;
 }
 
-function getCredibilityLevel(
-  provider: OracleProvider = OracleProvider.CHAINLINK
-): 'high' | 'medium' | 'low' | 'unverified' {
-  const highCredibility: OracleProvider[] = [OracleProvider.CHAINLINK, OracleProvider.PYTH];
-  const mediumCredibility: OracleProvider[] = [
-    OracleProvider.API3,
-    OracleProvider.REDSTONE,
-    OracleProvider.DIA,
-    OracleProvider.FLARE,
-  ];
-
-  if (highCredibility.includes(provider)) return 'high';
-  if (mediumCredibility.includes(provider)) return 'medium';
-  return 'low';
-}
-
 function getProviderForChain(chain: Blockchain): OracleProvider {
   const providerMap: Partial<Record<Blockchain, OracleProvider>> = {
     [Blockchain.ETHEREUM]: OracleProvider.CHAINLINK,
@@ -63,6 +53,18 @@ function getProviderForChain(chain: Blockchain): OracleProvider {
   };
 
   return providerMap[chain] || OracleProvider.CHAINLINK;
+}
+
+function getCredibilityLevel(
+  _provider: OracleProvider,
+  reputationScore: number | undefined,
+  hasOnChainVerification: boolean,
+  confidence: number
+): CredibilityLevel {
+  if (reputationScore !== undefined && reputationScore > 0) {
+    return getCredibilityFromScore(reputationScore).level;
+  }
+  return getCredibilityFromVerification(hasOnChainVerification, confidence).level;
 }
 
 function formatRelativeTime(timestamp: number): string {
@@ -85,6 +87,16 @@ export function DataSourceSection({
   isLoading,
   error,
 }: DataSourceSectionProps) {
+  const { data: reputationsData } = useReputations();
+
+  const reputationMap = useMemo(() => {
+    const map = new Map<OracleProvider, number>();
+    reputationsData?.data.forEach((r) => {
+      map.set(r.provider, r.overall_score);
+    });
+    return map;
+  }, [reputationsData]);
+
   const { uniqueProviders, avgConfidence, dataSources } = useMemo(() => {
     const providers = new Set<OracleProvider>();
     let totalConfidence = 0;
@@ -99,13 +111,22 @@ export function DataSourceSection({
         validConfidenceCount++;
       }
 
+      const reputationScore = reputationMap.get(provider);
+      const hasOnChainVerification = point.verification?.type === 'on-chain';
+      const confidence = point.confidence ?? 0;
+
       return {
         provider,
         chain: point.chain,
         confidence: point.confidence,
         confidenceSource: point.confidenceSource,
         source: point.source,
-        credibilityLevel: getCredibilityLevel(provider),
+        credibilityLevel: getCredibilityLevel(
+          provider,
+          reputationScore,
+          hasOnChainVerification,
+          confidence
+        ),
         lastUpdated: point.timestamp,
         verification: point.verification,
       };
@@ -118,7 +139,7 @@ export function DataSourceSection({
       avgConfidence: avgConf,
       dataSources: sources,
     };
-  }, [dataPoints]);
+  }, [dataPoints, reputationMap]);
 
   if (dataPoints.length === 0) {
     return null;
@@ -128,11 +149,19 @@ export function DataSourceSection({
     const provider = Array.from(uniqueProviders)[0];
     const providerName = providerNames[provider];
     const logoPath = `/logos/oracles/${provider}.svg`;
-    const credibility = getCredibilityLevel(provider);
+    const reputationScore = reputationMap.get(provider);
+    const hasOnChainVerification = dataPoints.some((p) => p.verification?.type === 'on-chain');
+    const avgConf = avgConfidence ?? 0;
+    const credibility = getCredibilityLevel(
+      provider,
+      reputationScore,
+      hasOnChainVerification,
+      avgConf
+    );
 
     const credibilityConfig = {
-      high: { color: 'text-success-600', bgColor: 'bg-success-50', label: 'High' },
-      medium: { color: 'text-primary-600', bgColor: 'bg-primary-50', label: 'Medium' },
+      high: { color: 'text-emerald-600', bgColor: 'bg-emerald-50', label: 'High' },
+      medium: { color: 'text-blue-600', bgColor: 'bg-blue-50', label: 'Medium' },
       low: { color: 'text-amber-600', bgColor: 'bg-amber-50', label: 'Low' },
       unverified: { color: 'text-gray-500', bgColor: 'bg-gray-50', label: 'Unverified' },
     };

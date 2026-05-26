@@ -3,7 +3,13 @@
 import { useMemo } from 'react';
 
 import { DataSourceList, type DataSourceGroup } from '@/components/data-transparency';
-import { OracleProvider } from '@/types/oracle';
+import { useReputations } from '@/hooks/data/useReputations';
+import {
+  getCredibilityFromScore,
+  getCredibilityFromVerification,
+  type CredibilityLevel,
+} from '@/lib/oracles/utils/reputationUtils';
+import { type OracleProvider } from '@/types/oracle';
 
 import { type QueryResult } from '../constants';
 
@@ -16,21 +22,18 @@ interface DataSourceSectionProps {
   chartContainerRef?: React.RefObject<HTMLDivElement | null>;
 }
 
-// Map oracle provider to credibility level based on reputation
-function getCredibilityLevel(provider: OracleProvider): 'high' | 'medium' | 'low' | 'unverified' {
-  const highCredibility: OracleProvider[] = [OracleProvider.CHAINLINK, OracleProvider.PYTH];
-  const mediumCredibility: OracleProvider[] = [
-    OracleProvider.API3,
-    OracleProvider.REDSTONE,
-    OracleProvider.DIA,
-  ];
-
-  if (highCredibility.includes(provider)) return 'high';
-  if (mediumCredibility.includes(provider)) return 'medium';
-  return 'low';
+function getCredibilityLevel(
+  _provider: OracleProvider,
+  reputationScore: number | undefined,
+  hasOnChainVerification: boolean,
+  confidence: number
+): CredibilityLevel {
+  if (reputationScore !== undefined && reputationScore > 0) {
+    return getCredibilityFromScore(reputationScore).level;
+  }
+  return getCredibilityFromVerification(hasOnChainVerification, confidence).level;
 }
 
-// Calculate confidence based on price data quality
 function calculateConfidence(result: QueryResult): number {
   let confidence = result.priceData.confidence ?? 0.7;
 
@@ -52,18 +55,39 @@ export function DataSourceSection({
   error,
   chartContainerRef: _chartContainerRef,
 }: DataSourceSectionProps) {
+  const { data: reputationsData } = useReputations();
+
+  const reputationMap = useMemo(() => {
+    const map = new Map<OracleProvider, number>();
+    reputationsData?.data.forEach((r) => {
+      map.set(r.provider, r.overall_score);
+    });
+    return map;
+  }, [reputationsData]);
+
   const dataSources: DataSourceGroup[] = useMemo(() => {
-    return results.map((result) => ({
-      provider: result.provider,
-      chain: result.chain,
-      confidence: calculateConfidence(result),
-      confidenceSource: result.priceData.confidenceSource,
-      source: result.priceData.source,
-      credibilityLevel: getCredibilityLevel(result.provider),
-      lastUpdated: result.priceData.timestamp,
-      verification: result.priceData.verification,
-    }));
-  }, [results]);
+    return results.map((result) => {
+      const confidence = calculateConfidence(result);
+      const reputationScore = reputationMap.get(result.provider);
+      const hasOnChainVerification = result.priceData.verification?.type === 'on-chain';
+
+      return {
+        provider: result.provider,
+        chain: result.chain,
+        confidence,
+        confidenceSource: result.priceData.confidenceSource,
+        source: result.priceData.source,
+        credibilityLevel: getCredibilityLevel(
+          result.provider,
+          reputationScore,
+          hasOnChainVerification,
+          confidence
+        ),
+        lastUpdated: result.priceData.timestamp,
+        verification: result.priceData.verification,
+      };
+    });
+  }, [results, reputationMap]);
 
   if (results.length === 0) {
     return null;
