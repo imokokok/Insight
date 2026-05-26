@@ -21,6 +21,102 @@ export function getScoreBadge(score: number): {
   return { label: 'Unrated', bgClass: 'bg-gray-50', textClass: 'text-gray-500' };
 }
 
+export type CredibilityLevel = 'high' | 'medium' | 'low' | 'unverified';
+
+export interface CredibilityConfig {
+  level: CredibilityLevel;
+  label: string;
+  color: string;
+  bgColor: string;
+  borderColor: string;
+  description: string;
+}
+
+export function getCredibilityFromScore(score: number): CredibilityConfig {
+  if (score >= 85) {
+    return {
+      level: 'high',
+      label: 'High',
+      color: 'text-emerald-600',
+      bgColor: 'bg-emerald-50',
+      borderColor: 'border-emerald-200',
+      description: 'Proven track record with excellent accuracy and reliability',
+    };
+  }
+  if (score >= 60) {
+    return {
+      level: 'medium',
+      label: 'Medium',
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-50',
+      borderColor: 'border-blue-200',
+      description: 'Reliable provider with consistent performance',
+    };
+  }
+  if (score > 0) {
+    return {
+      level: 'low',
+      label: 'Low',
+      color: 'text-amber-600',
+      bgColor: 'bg-amber-50',
+      borderColor: 'border-amber-200',
+      description: 'Limited data or below-average performance metrics',
+    };
+  }
+  return {
+    level: 'unverified',
+    label: 'Unverified',
+    color: 'text-gray-500',
+    bgColor: 'bg-gray-50',
+    borderColor: 'border-gray-200',
+    description: 'Insufficient data to establish credibility rating',
+  };
+}
+
+export function getCredibilityFromVerification(
+  hasOnChainVerification: boolean,
+  confidence?: number
+): CredibilityConfig {
+  if (hasOnChainVerification && (confidence ?? 0) >= 0.9) {
+    return {
+      level: 'high',
+      label: 'High',
+      color: 'text-emerald-600',
+      bgColor: 'bg-emerald-50',
+      borderColor: 'border-emerald-200',
+      description: 'On-chain verified with high confidence',
+    };
+  }
+  if (hasOnChainVerification) {
+    return {
+      level: 'medium',
+      label: 'Medium',
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-50',
+      borderColor: 'border-blue-200',
+      description: 'On-chain verified',
+    };
+  }
+  if ((confidence ?? 0) >= 0.7) {
+    return {
+      level: 'medium',
+      label: 'Medium',
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-50',
+      borderColor: 'border-blue-200',
+      description: 'High confidence data source',
+    };
+  }
+  return {
+    level: 'unverified',
+    label: 'Unverified',
+    color: 'text-gray-500',
+    bgColor: 'bg-gray-50',
+    borderColor: 'border-gray-200',
+    description: 'Insufficient verification data',
+  };
+}
+
 export function formatTimeAgo(isoString: string | null): { text: string; color: string } | null {
   if (!isoString) return null;
   const diff = Date.now() - new Date(isoString).getTime();

@@ -15,6 +15,9 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Insight',
   description: 'Professional oracle analytics platform',
+  icons: {
+    icon: '/logos/owl-logo-icon.svg',
+  },
   other: {
     'dns-prefetch': 'https://fonts.googleapis.com',
   },

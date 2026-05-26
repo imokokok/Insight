@@ -3,6 +3,8 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 
 import { usePreferences } from '@/hooks';
+import { getDefaultFactory } from '@/lib/oracles';
+import { oracleSupportedSymbols } from '@/lib/oracles/constants/supportedSymbols';
 import { parseQueryParams, updateUrlParams, type QueryConfig } from '@/lib/utils/urlParams';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 
@@ -48,6 +50,36 @@ interface UsePriceQueryStateReturn {
   selectedTimeRangeRef: React.MutableRefObject<number>;
   isCompareModeRef: React.MutableRefObject<boolean>;
   compareTimeRangeRef: React.MutableRefObject<number>;
+}
+
+function getFirstSupportedChain(oracle: OracleProvider): Blockchain | null {
+  try {
+    const client = getDefaultFactory().getClient(oracle);
+    const chains = client.supportedChains;
+    return chains.length > 0 ? chains[0] : null;
+  } catch {
+    return null;
+  }
+}
+
+function getFirstSupportedSymbol(oracle: OracleProvider, chain: Blockchain): string {
+  const symbols = oracleSupportedSymbols[oracle as keyof typeof oracleSupportedSymbols] as
+    | readonly string[]
+    | undefined;
+  if (!symbols || symbols.length === 0) return 'BTC';
+
+  try {
+    const client = getDefaultFactory().getClient(oracle);
+    for (const symbol of symbols) {
+      if (client.isSymbolSupported(symbol, chain)) {
+        return symbol;
+      }
+    }
+  } catch {
+    // fallback to first symbol in list
+  }
+
+  return symbols[0];
 }
 
 export function usePriceQueryState(): UsePriceQueryStateReturn {
@@ -152,14 +184,22 @@ export function usePriceQueryState(): UsePriceQueryStateReturn {
 
       const defaultOracle = oracleMapping[preferences.defaultOracle] || OracleProvider.CHAINLINK;
       const defaultTimeRange = timeRangeMapping[preferences.defaultTimeRange] || 24;
-      const defaultSymbol = preferences.defaultSymbol.split('/')[0] || 'BTC';
+
+      // Auto-select first supported chain and symbol for the default oracle
+      const defaultChain = getFirstSupportedChain(defaultOracle);
+      const defaultSymbol = defaultChain
+        ? getFirstSupportedSymbol(defaultOracle, defaultChain)
+        : 'BTC';
 
       selectedOracleRef.current = defaultOracle;
-      selectedChainRef.current = Blockchain.ETHEREUM;
+      selectedChainRef.current = defaultChain;
       selectedSymbolRef.current = defaultSymbol;
       selectedTimeRangeRef.current = defaultTimeRange;
       // eslint-disable-next-line react-hooks/set-state-in-effect -- One-time initialization from preferences
       setSelectedOracle(defaultOracle);
+
+      setSelectedChain(defaultChain);
+
       setSelectedSymbol(defaultSymbol);
       setSelectedTimeRange(defaultTimeRange);
       setUrlParamsParsed(true);

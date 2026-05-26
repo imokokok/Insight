@@ -6,6 +6,7 @@ import { Search, RefreshCw } from 'lucide-react';
 
 import { DropdownSelect, type SelectorOption } from '@/components/ui';
 import { getPriceOracleProvidersSortedByMarketCap } from '@/lib/config/oracles';
+import { getDefaultFactory } from '@/lib/oracles';
 import { getAssetClass, ASSET_CLASS_CATEGORIES } from '@/lib/oracles/constants/supportedSymbols';
 import { type OracleProvider, type Blockchain, BLOCKCHAIN_VALUES } from '@/types/oracle';
 
@@ -14,6 +15,31 @@ import { useUnifiedQuery } from '../contexts';
 import { useOracleSymbols } from '../hooks/useOracleSymbols';
 
 import { AutoRefreshControl } from './AutoRefreshControl';
+
+function getFirstSupportedChain(oracle: OracleProvider): Blockchain | null {
+  try {
+    const client = getDefaultFactory().getClient(oracle);
+    const chains = client.supportedChains;
+    return chains.length > 0 ? chains[0] : null;
+  } catch {
+    return null;
+  }
+}
+
+function getFirstSupportedSymbol(oracle: OracleProvider, chain: Blockchain): string {
+  const allSymbols = symbols;
+  try {
+    const client = getDefaultFactory().getClient(oracle);
+    for (const symbol of allSymbols) {
+      if (client.isSymbolSupported(symbol, chain)) {
+        return symbol;
+      }
+    }
+  } catch {
+    // fallback
+  }
+  return allSymbols[0] || 'BTC';
+}
 
 export function Selectors() {
   const query = useUnifiedQuery();
@@ -129,7 +155,15 @@ export function Selectors() {
             onChange={(value) => {
               const newOracle = value as OracleProvider;
               setSelectedOracle(newOracle);
-              setSelectedChain(null);
+              // Auto-select first supported chain and symbol for the new oracle
+              const firstChain = getFirstSupportedChain(newOracle);
+              setSelectedChain(firstChain);
+              if (firstChain) {
+                const firstSymbol = getFirstSupportedSymbol(newOracle, firstChain);
+                setSelectedSymbol(firstSymbol);
+              } else {
+                setSelectedSymbol('');
+              }
             }}
             placeholder="Select oracle"
           />
@@ -151,7 +185,13 @@ export function Selectors() {
               const newChain = value as Blockchain;
               setSelectedChain(newChain);
               if (newChain && selectedSymbol && !isSymbolSupported(selectedSymbol, newChain)) {
-                setSelectedSymbol('');
+                // Auto-select first supported symbol for the new chain
+                if (selectedOracle) {
+                  const firstSymbol = getFirstSupportedSymbol(selectedOracle, newChain);
+                  setSelectedSymbol(firstSymbol);
+                } else {
+                  setSelectedSymbol('');
+                }
               }
             }}
             placeholder={selectedOracle ? 'Select blockchain' : 'Select oracle first'}
