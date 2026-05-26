@@ -214,21 +214,25 @@ export function ScoreBreakdown({
             {[
               {
                 color: 'bg-blue-400',
-                title: 'Accuracy (25%)',
-                desc: 'Proximity to consensus price',
+                title: 'Accuracy (30%)',
+                desc: 'Proximity to consensus price with consistency bonus',
               },
               { color: 'bg-emerald-400', title: 'Uptime (20%)', desc: 'Successful response rate' },
               {
                 color: 'bg-violet-400',
                 title: 'Reliability (20%)',
-                desc: 'Consistency of performance',
+                desc: 'Consistency of performance with stability bonus',
               },
               { color: 'bg-amber-400', title: 'Freshness (15%)', desc: 'Data update frequency' },
-              { color: 'bg-cyan-400', title: 'Latency (10%)', desc: 'Response speed' },
+              {
+                color: 'bg-cyan-400',
+                title: 'Latency (10%)',
+                desc: 'Response speed (type-normalized)',
+              },
               {
                 color: 'bg-rose-400',
-                title: 'Deviation (10%)',
-                desc: 'Price deviation from consensus',
+                title: 'Deviation (5%)',
+                desc: 'Price deviation from consensus (gentler curve)',
               },
             ].map((item) => (
               <div key={item.title} className="flex items-start gap-2">
@@ -253,26 +257,30 @@ export function HowItWorks() {
           <Info className="w-4 h-4 text-blue-500" />
         </div>
         <div className="text-sm text-gray-600">
-          <p className="font-black text-gray-900 mb-2">How scores are calculated</p>
+          <p className="font-black text-gray-900 mb-2">How scores are calculated (V2)</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2">
             {[
               {
                 color: 'bg-blue-400',
-                title: 'Accuracy (25%)',
-                desc: 'Proximity to consensus price',
+                title: 'Accuracy (30%)',
+                desc: 'Proximity to consensus price with consistency bonus',
               },
               { color: 'bg-emerald-400', title: 'Uptime (20%)', desc: 'Successful response rate' },
               {
                 color: 'bg-violet-400',
                 title: 'Reliability (20%)',
-                desc: 'Consistency of performance',
+                desc: 'Consistency of performance with stability bonus',
               },
               { color: 'bg-amber-400', title: 'Freshness (15%)', desc: 'Data update frequency' },
-              { color: 'bg-cyan-400', title: 'Latency (10%)', desc: 'Response speed' },
+              {
+                color: 'bg-cyan-400',
+                title: 'Latency (10%)',
+                desc: 'Response speed (type-normalized for onchain vs API)',
+              },
               {
                 color: 'bg-rose-400',
-                title: 'Deviation (10%)',
-                desc: 'Price deviation from consensus',
+                title: 'Deviation (5%)',
+                desc: 'Price deviation from consensus (gentler curve)',
               },
             ].map((item) => (
               <div key={item.title} className="flex items-start gap-2">
@@ -283,6 +291,11 @@ export function HowItWorks() {
               </div>
             ))}
           </div>
+          <p className="text-[11px] text-gray-500 mt-3 pt-3 border-t border-gray-100">
+            <strong className="text-gray-700">Type-normalized latency:</strong> Onchain oracles
+            (Flare, Chainlink, etc.) have higher baselines (1200-2000ms) compared to API oracles
+            (300-500ms), ensuring fair comparison.
+          </p>
         </div>
       </div>
     </div>

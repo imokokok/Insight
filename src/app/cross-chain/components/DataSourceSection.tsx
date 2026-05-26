@@ -17,7 +17,7 @@ interface CrossChainDataPoint {
   timestamp: number;
   source?: string;
   confidence?: number;
-  confidenceSource?: 'original' | 'estimated';
+  confidenceSource?: 'original' | 'estimated' | 'calculated';
   provider?: OracleProvider;
   verification?: OnChainVerification;
 }

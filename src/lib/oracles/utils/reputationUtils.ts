@@ -34,10 +34,51 @@ export function formatTimeAgo(isoString: string | null): { text: string; color: 
 }
 
 export const SCORE_WEIGHTS = [
-  { key: 'accuracy', label: 'Accuracy', weight: 25, color: '#3b82f6' },
+  { key: 'accuracy', label: 'Accuracy', weight: 30, color: '#3b82f6' },
   { key: 'uptime', label: 'Uptime', weight: 20, color: '#10b981' },
   { key: 'reliability', label: 'Reliability', weight: 20, color: '#8b5cf6' },
   { key: 'freshness', label: 'Freshness', weight: 15, color: '#f59e0b' },
   { key: 'latency', label: 'Latency', weight: 10, color: '#06b6d4' },
-  { key: 'deviation', label: 'Deviation', weight: 10, color: '#f43f5e' },
+  { key: 'deviation', label: 'Deviation', weight: 5, color: '#f43f5e' },
 ] as const;
+
+export function calculateLatencyScore(
+  avgLatencyMs: number,
+  baseline: number = 1000,
+  providerType: 'onchain' | 'api' = 'api'
+): number {
+  if (avgLatencyMs <= 0) return 95;
+  if (avgLatencyMs <= baseline) {
+    return 85 + 15 * (1 - avgLatencyMs / baseline);
+  }
+  const excessRatio = (avgLatencyMs - baseline) / baseline;
+  const maxPenalty = providerType === 'onchain' ? 50 : 60;
+  const penalty = Math.min(excessRatio * (providerType === 'onchain' ? 25 : 30), maxPenalty);
+  return Math.max(25, 85 - penalty);
+}
+
+export function calculateDeviationScore(avgDeviationPct: number): number {
+  if (avgDeviationPct <= 0.1) return 100;
+  if (avgDeviationPct <= 0.5) return 95 - ((avgDeviationPct - 0.1) / 0.4) * 15;
+  if (avgDeviationPct <= 1.0) return 80 - ((avgDeviationPct - 0.5) / 0.5) * 25;
+  if (avgDeviationPct <= 2.0) return 55 - ((avgDeviationPct - 1.0) / 1.0) * 30;
+  return Math.max(10, 25 - (avgDeviationPct - 2.0) * 5);
+}
+
+export function calculateOverallScore(params: {
+  accuracy: number;
+  uptime: number;
+  reliability: number;
+  freshness: number;
+  latencyScore: number;
+  deviationScore: number;
+}): number {
+  const overall =
+    params.accuracy * 0.3 +
+    params.uptime * 0.2 +
+    params.reliability * 0.2 +
+    params.freshness * 0.15 +
+    params.latencyScore * 0.1 +
+    params.deviationScore * 0.05;
+  return Math.min(100, Math.max(0, overall));
+}

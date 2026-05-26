@@ -324,8 +324,8 @@ function computeMethod(
     case 'weighted_median':
       return weightedMedianMethod(validInputs, (input) => {
         const confidenceWeight = input.confidence ?? 0.8;
-        const ageSeconds = (Date.now() - input.timestamp) / 1000;
-        const freshnessWeight = Math.max(0.1, Math.exp(-ageSeconds / 300));
+        const ageSeconds = Math.abs(Date.now() - input.timestamp) / 1000;
+        const freshnessWeight = Math.max(0.5, Math.exp(-ageSeconds / 600));
         const ciWidth = input.confidenceInterval?.widthPercentage ?? 10;
         const ciWeight = Math.max(0.1, 1 - ciWidth / 20);
         return confidenceWeight * 0.4 + freshnessWeight * 0.35 + ciWeight * 0.25;

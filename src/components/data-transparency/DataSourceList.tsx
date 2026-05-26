@@ -18,7 +18,7 @@ export interface DataSourceGroup {
   provider: OracleProvider;
   chain: Blockchain;
   confidence?: number;
-  confidenceSource?: 'original' | 'estimated';
+  confidenceSource?: 'original' | 'estimated' | 'calculated';
   source?: string;
   credibilityLevel?: CredibilityLevel;
   lastUpdated?: number;

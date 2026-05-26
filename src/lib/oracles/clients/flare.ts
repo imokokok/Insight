@@ -145,14 +145,18 @@ export class FlareClient extends BaseOracleClient {
     const timestamp = toMilliseconds(ftsoData.timestamp);
     const confidenceInterval = this.generateConfidenceInterval(price, ftsoData.symbol);
 
+    const dataAgeSeconds = Math.floor(Date.now() / 1000) - ftsoData.timestamp;
+    const freshnessScore = Math.max(0, 1 - dataAgeSeconds / 180);
+    const dynamicConfidence = Math.min(0.99, 0.9 + freshnessScore * 0.09);
+
     return {
       provider: this.name,
       symbol: ftsoData.symbol.toUpperCase(),
       price,
       timestamp,
       decimals: ftsoData.decimals,
-      confidence: 0.95,
-      confidenceSource: 'estimated',
+      confidence: dynamicConfidence,
+      confidenceSource: 'calculated',
       confidenceInterval,
       change24h: 0,
       change24hPercent: 0,
