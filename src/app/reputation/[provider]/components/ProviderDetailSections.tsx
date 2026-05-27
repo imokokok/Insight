@@ -257,7 +257,7 @@ export function HowItWorks() {
           <Info className="w-4 h-4 text-blue-500" />
         </div>
         <div className="text-sm text-gray-600">
-          <p className="font-black text-gray-900 mb-2">How scores are calculated (V2)</p>
+          <p className="font-black text-gray-900 mb-2">How scores are calculated (V3)</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2">
             {[
               {
@@ -292,9 +292,10 @@ export function HowItWorks() {
             ))}
           </div>
           <p className="text-[11px] text-gray-500 mt-3 pt-3 border-t border-gray-100">
-            <strong className="text-gray-700">Type-normalized latency:</strong> Onchain oracles
-            (Flare, Chainlink, etc.) have higher baselines (1200-2000ms) compared to API oracles
-            (300-500ms), ensuring fair comparison.
+            <strong className="text-gray-700">Type-normalized scoring:</strong> Onchain oracles
+            (Flare, Chainlink, etc.) have higher latency baselines (1200-2000ms) and gentler
+            freshness decay curves compared to API oracles (300-500ms), ensuring fair comparison
+            across fundamentally different architectures.
           </p>
         </div>
       </div>
