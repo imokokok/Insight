@@ -9,9 +9,6 @@
     "src/app/api/reputation/route.ts": {
       "maxDuration": 60
     },
-    "src/app/api/reputation/calculate/route.ts": {
-      "maxDuration": 60
-    },
     "src/app/api/cron/reputation/route.ts": {
       "maxDuration": 60
     }

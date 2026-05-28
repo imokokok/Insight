@@ -215,23 +215,6 @@ class TwapOnChainService {
       return this.ethUsdPrice;
     }
 
-    try {
-      const response = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=ETHUSDT', {
-        signal,
-      });
-      if (response.ok) {
-        const data = await response.json();
-        const ethPrice = parseFloat(data.price);
-        if (ethPrice > 0) {
-          this.ethUsdPrice = ethPrice;
-          this.ethUsdPriceTimestamp = Date.now();
-          return ethPrice;
-        }
-      }
-    } catch {
-      // Binance API failed, trying on-chain method
-    }
-
     const usdcWethPool = TWAP_POOL_ADDRESSES['ETH']?.[chainId];
     if (usdcWethPool) {
       try {
@@ -281,23 +264,6 @@ class TwapOnChainService {
       return this.bnbUsdPrice;
     }
 
-    try {
-      const response = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=BNBUSDT', {
-        signal,
-      });
-      if (response.ok) {
-        const data = await response.json();
-        const bnbPrice = parseFloat(data.price);
-        if (bnbPrice > 0) {
-          this.bnbUsdPrice = bnbPrice;
-          this.bnbUsdPriceTimestamp = Date.now();
-          return bnbPrice;
-        }
-      }
-    } catch {
-      // Binance API failed, trying on-chain method
-    }
-
     const bnbPool = TWAP_POOL_ADDRESSES['BNB']?.[chainId];
     if (bnbPool) {
       try {
@@ -345,23 +311,6 @@ class TwapOnChainService {
   private async getBtcUsdPrice(chainId: number, signal?: AbortSignal): Promise<number> {
     if (this.btcUsdPrice && Date.now() - this.btcUsdPriceTimestamp < this.BTC_USD_CACHE_TTL) {
       return this.btcUsdPrice;
-    }
-
-    try {
-      const response = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT', {
-        signal,
-      });
-      if (response.ok) {
-        const data = await response.json();
-        const btcPrice = parseFloat(data.price);
-        if (btcPrice > 0) {
-          this.btcUsdPrice = btcPrice;
-          this.btcUsdPriceTimestamp = Date.now();
-          return btcPrice;
-        }
-      }
-    } catch {
-      // Binance API failed, trying on-chain method
     }
 
     const wbtcWethPool = TWAP_POOL_ADDRESSES['WBTC']?.[chainId];

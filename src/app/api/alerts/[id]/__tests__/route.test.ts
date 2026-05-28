@@ -2,7 +2,7 @@ import { type NextRequest } from 'next/server';
 
 import type { PriceAlert } from '@/lib/supabase/queries';
 
-import { GET, PUT, DELETE } from '../route';
+import { PUT, DELETE } from '../route';
 
 const mockGetUserId = jest.fn();
 const mockGetServerQueries = jest.fn();
@@ -81,84 +81,6 @@ describe('/api/alerts/[id]', () => {
     mockSanitizeUuid.mockImplementation((id: string) => id);
     mockSanitizeString.mockImplementation((str: string) => str);
     mockSanitizeObject.mockImplementation((obj: unknown) => obj);
-  });
-
-  describe('GET', () => {
-    it('should return specified alert', async () => {
-      mockGetUserId.mockResolvedValue('user-123');
-      mockQueries.getAlerts.mockResolvedValue([mockAlert]);
-
-      const request = createMockRequest();
-      const params = createMockParams('alert-123');
-      const response = await GET(request, { params });
-      const data = await response.json();
-
-      expect(response.status).toBe(200);
-      expect(data.alert).toEqual(mockAlert);
-    });
-
-    it('should return unauthorized error when user is not logged in', async () => {
-      mockGetUserId.mockResolvedValue(null);
-
-      const request = createMockRequest();
-      const params = createMockParams('alert-123');
-      const response = await GET(request, { params });
-      const data = await response.json();
-
-      expect(response.status).toBe(401);
-      expect(data.error).toBe('Unauthorized');
-    });
-
-    it('should return error when ID is invalid', async () => {
-      mockSanitizeUuid.mockReturnValue(null);
-
-      const request = createMockRequest();
-      const params = createMockParams('invalid-id');
-      const response = await GET(request, { params });
-      const data = await response.json();
-
-      expect(response.status).toBe(400);
-      expect(data.error).toBe('Invalid alert ID');
-    });
-
-    it('should return 404 when alert does not exist', async () => {
-      mockGetUserId.mockResolvedValue('user-123');
-      mockQueries.getAlerts.mockResolvedValue([]);
-
-      const request = createMockRequest();
-      const params = createMockParams('alert-nonexistent');
-      const response = await GET(request, { params });
-      const data = await response.json();
-
-      expect(response.status).toBe(404);
-      expect(data.error).toBe('Alert not found');
-    });
-
-    it("should only return current user's alerts", async () => {
-      mockGetUserId.mockResolvedValue('user-123');
-      const otherUserAlert = { ...mockAlert, id: 'alert-other', user_id: 'other-user' };
-      mockQueries.getAlerts.mockResolvedValue([otherUserAlert]);
-
-      const request = createMockRequest();
-      const params = createMockParams('alert-123');
-      const response = await GET(request, { params });
-      const data = await response.json();
-
-      expect(response.status).toBe(404);
-      expect(data.error).toBe('Alert not found');
-    });
-
-    it('should handle exception', async () => {
-      mockGetUserId.mockRejectedValue(new Error('Database error'));
-
-      const request = createMockRequest();
-      const params = createMockParams('alert-123');
-      const response = await GET(request, { params });
-      const data = await response.json();
-
-      expect(response.status).toBe(500);
-      expect(data.error).toBe('Internal server error');
-    });
   });
 
   describe('PUT', () => {
@@ -392,7 +314,7 @@ describe('/api/alerts/[id]', () => {
 
       const request = createMockRequest();
       const params = createMockParams('');
-      const response = await GET(request, { params });
+      const response = await DELETE(request, { params });
       const data = await response.json();
 
       expect(response.status).toBe(400);
@@ -404,7 +326,7 @@ describe('/api/alerts/[id]', () => {
 
       const request = createMockRequest();
       const params = createMockParams('<script>alert(1)</script>');
-      const response = await GET(request, { params });
+      const response = await DELETE(request, { params });
       const data = await response.json();
 
       expect(response.status).toBe(400);

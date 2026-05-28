@@ -5,7 +5,6 @@ import {
   calculateConfidenceScore,
 } from '@/lib/oracles/pyth/pythParser';
 import type { PythPriceRaw } from '@/lib/oracles/pyth/types';
-import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
 
@@ -19,7 +18,6 @@ jest.mock('@/lib/oracles/services/pythDataService', () => ({
   }),
 }));
 
-jest.mock('@/lib/services/marketData/binanceMarketService');
 jest.mock('@/lib/utils/logger', () => ({
   createLogger: () => ({
     info: jest.fn(),
@@ -172,24 +170,11 @@ describe('PythClient', () => {
       expect(result.chain).toBe(Blockchain.SOLANA);
     });
 
-    it('should use Binance API for PYTH token', async () => {
-      const mockMarketData = {
-        currentPrice: 0.45,
-        lastUpdated: new Date().toISOString(),
-        priceChange24h: 0.02,
-        priceChangePercentage24h: 4.5,
-      };
+    it('should throw error for PYTH token', async () => {
+      mockGetLatestPrice.mockResolvedValue(null);
 
-      (binanceMarketService.getTokenMarketData as jest.Mock).mockResolvedValue(mockMarketData);
-
-      const result = await client.getPrice('PYTH');
-
-      expect(binanceMarketService.getTokenMarketData).toHaveBeenCalledWith('PYTH');
-      expect(result).toMatchObject({
-        provider: OracleProvider.PYTH,
-        symbol: 'PYTH',
-        price: mockMarketData.currentPrice,
-        source: 'binance-api',
+      await expect(client.getPrice('PYTH')).rejects.toMatchObject({
+        code: 'PYTH_ERROR',
       });
     });
 
@@ -223,8 +208,7 @@ describe('PythClient', () => {
       });
     });
 
-    it('should handle PYTH token with Binance fallback failure', async () => {
-      (binanceMarketService.getTokenMarketData as jest.Mock).mockResolvedValue(null);
+    it('should throw error for PYTH token when no price data available', async () => {
       mockGetLatestPrice.mockResolvedValue(null);
 
       await expect(client.getPrice('PYTH')).rejects.toMatchObject({
@@ -234,114 +218,28 @@ describe('PythClient', () => {
   });
 
   describe('getHistoricalPrices', () => {
-    const mockHistoricalPrices = [
-      { timestamp: Date.now() - 3600000, price: 67500 },
-      { timestamp: Date.now() - 1800000, price: 67750 },
-      { timestamp: Date.now(), price: 68000 },
-    ];
-
     it('should return empty array for empty symbol', async () => {
       const result = await client.getHistoricalPrices('');
 
       expect(result).toEqual([]);
     });
 
-    it('should return historical price data', async () => {
-      (binanceMarketService.getHistoricalPrices as jest.Mock).mockResolvedValue(
-        mockHistoricalPrices
-      );
-
+    it('should return empty array for valid symbol', async () => {
       const result = await client.getHistoricalPrices('BTC');
 
-      expect(Array.isArray(result)).toBe(true);
-      expect(result.length).toBe(3);
-      expect(result[0]).toMatchObject({
-        provider: OracleProvider.PYTH,
-        symbol: 'BTC',
-        source: 'binance-api',
-      });
+      expect(result).toEqual([]);
     });
 
-    it('should return historical prices with change calculations', async () => {
-      (binanceMarketService.getHistoricalPrices as jest.Mock).mockResolvedValue(
-        mockHistoricalPrices
-      );
-
-      const result = await client.getHistoricalPrices('BTC');
-
-      expect(result[0].change24h).toBe(0);
-      expect(result[0].change24hPercent).toBe(0);
-    });
-
-    it('should use specified chain', async () => {
-      (binanceMarketService.getHistoricalPrices as jest.Mock).mockResolvedValue(
-        mockHistoricalPrices
-      );
-
+    it('should return empty array with chain parameter', async () => {
       const result = await client.getHistoricalPrices('BTC', Blockchain.SOLANA, 24);
 
-      expect(result[0].chain).toBe(Blockchain.SOLANA);
-    });
-
-    it('should use default period of 24 hours', async () => {
-      (binanceMarketService.getHistoricalPrices as jest.Mock).mockResolvedValue(
-        mockHistoricalPrices
-      );
-
-      await client.getHistoricalPrices('BTC');
-
-      expect(binanceMarketService.getHistoricalPrices).toHaveBeenCalledWith('BTC', 24);
-    });
-
-    it('should use custom period', async () => {
-      (binanceMarketService.getHistoricalPrices as jest.Mock).mockResolvedValue(
-        mockHistoricalPrices
-      );
-
-      await client.getHistoricalPrices('BTC', undefined, 48);
-
-      expect(binanceMarketService.getHistoricalPrices).toHaveBeenCalledWith('BTC', 48);
-    });
-
-    it('should return empty array when no historical data available', async () => {
-      (binanceMarketService.getHistoricalPrices as jest.Mock).mockResolvedValue([]);
-
-      const result = await client.getHistoricalPrices('BTC');
-
       expect(result).toEqual([]);
     });
 
-    it('should return empty array when historical data is null', async () => {
-      (binanceMarketService.getHistoricalPrices as jest.Mock).mockResolvedValue(null);
-
-      const result = await client.getHistoricalPrices('BTC');
+    it('should return empty array with custom period', async () => {
+      const result = await client.getHistoricalPrices('BTC', undefined, 48);
 
       expect(result).toEqual([]);
-    });
-
-    it('should handle service error gracefully', async () => {
-      (binanceMarketService.getHistoricalPrices as jest.Mock).mockRejectedValue(
-        new Error('Service unavailable')
-      );
-
-      const result = await client.getHistoricalPrices('BTC');
-
-      expect(result).toEqual([]);
-    });
-
-    it('should calculate 24h changes correctly', async () => {
-      const prices = [
-        { timestamp: Date.now() - 7200000, price: 67000 },
-        { timestamp: Date.now() - 3600000, price: 67500 },
-        { timestamp: Date.now(), price: 68000 },
-      ];
-
-      (binanceMarketService.getHistoricalPrices as jest.Mock).mockResolvedValue(prices);
-
-      const result = await client.getHistoricalPrices('BTC');
-
-      expect(result[0].change24h).toBe(0);
-      expect(result[0].change24hPercent).toBe(0);
     });
   });
 
@@ -724,7 +622,7 @@ describe('Price Accuracy Tests', () => {
   });
 
   describe('Price validation against multiple sources', () => {
-    it('should validate price against multiple sources', async () => {
+    it('should validate price data from Pyth', async () => {
       const pythPrice: PriceData = {
         provider: OracleProvider.PYTH,
         symbol: 'BTC',
@@ -734,46 +632,21 @@ describe('Price Accuracy Tests', () => {
         confidence: 0.98,
       };
 
-      const binancePrice = {
-        currentPrice: 67950,
-        lastUpdated: new Date().toISOString(),
-      };
-
       mockGetLatestPrice.mockResolvedValue(pythPrice);
-      (binanceMarketService.getTokenMarketData as jest.Mock).mockResolvedValue(binancePrice);
 
       const client = new PythClient();
       const result = await client.getPrice('BTC');
 
-      const priceDiff = Math.abs(result.price - binancePrice.currentPrice);
-      const priceDiffPercent = priceDiff / binancePrice.currentPrice;
-
-      expect(priceDiffPercent).toBeLessThan(0.01);
+      expect(result.price).toBe(68000);
+      expect(result.provider).toBe(OracleProvider.PYTH);
+      expect(result.symbol).toBe('BTC');
     });
 
-    it('should flag significant price discrepancy', async () => {
-      const pythPrice: PriceData = {
-        provider: OracleProvider.PYTH,
-        symbol: 'BTC',
-        price: 68000,
-        timestamp: Date.now(),
-        decimals: 8,
-        confidence: 0.98,
-      };
-
-      const binancePrice = {
-        currentPrice: 65000,
-        lastUpdated: new Date().toISOString(),
-      };
-
-      mockGetLatestPrice.mockResolvedValue(pythPrice);
-      (binanceMarketService.getTokenMarketData as jest.Mock).mockResolvedValue(binancePrice);
-
-      const client = new PythClient();
-      const result = await client.getPrice('BTC');
-
-      const priceDiff = Math.abs(result.price - binancePrice.currentPrice);
-      const priceDiffPercent = priceDiff / binancePrice.currentPrice;
+    it('should calculate price deviation correctly', () => {
+      const oraclePrice = 68000;
+      const marketPrice = 65000;
+      const priceDiff = Math.abs(oraclePrice - marketPrice);
+      const priceDiffPercent = priceDiff / marketPrice;
 
       expect(priceDiffPercent).toBeGreaterThan(0.01);
     });

@@ -144,17 +144,14 @@ All V1 endpoints require an API key passed via `x-api-key` header or `Authorizat
 
 #### Oracles
 
-- `GET /api/oracles` - List all oracle providers
-- `POST /api/oracles` - Batch price query
 - `GET /api/oracles/[provider]` - Get specific oracle data
-- `GET /api/oracles/consensus` - Get consensus price
+- `POST /api/oracles/batch` - Batch price query
 
 #### Reputation
 
 - `GET /api/reputation` - List oracle reputation scores
 - `POST /api/reputation` - Trigger reputation calculation
 - `GET /api/reputation/[provider]` - Get specific provider reputation
-- `GET /api/reputation/calculate` - Calculate reputation scores
 
 #### Snapshots
 
@@ -165,5 +162,4 @@ All V1 endpoints require an API key passed via `x-api-key` header or `Authorizat
 
 #### System
 
-- `GET /api/health` - Health check
 - `GET /api/cron/reputation` - Cron job for reputation recalculation

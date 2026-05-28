@@ -108,43 +108,6 @@ async function getAlertById(id: string, userId: string) {
   return queries.getAlertById(id, userId);
 }
 
-export const GET = createApiHandler(
-  async (_request: NextRequest, context) => {
-    const params = context.validated?.params as { id: string } | undefined;
-    const id = params?.id;
-
-    if (!id) {
-      return ApiResponseBuilder.badRequest('Missing alert ID');
-    }
-
-    const validatedId = validateAlertId(id);
-
-    if (!validatedId) {
-      return ApiResponseBuilder.badRequest('Invalid alert ID');
-    }
-
-    const userId = context.auth?.userId;
-    if (!userId) {
-      return ApiResponseBuilder.unauthorized();
-    }
-
-    const alert = await getAlertById(validatedId, userId);
-
-    if (!alert) {
-      return ApiResponseBuilder.notFound('Alert not found');
-    }
-
-    return NextResponse.json({ alert });
-  },
-  {
-    middlewares: {
-      logging: true,
-      rateLimit: { preset: 'moderate' },
-      auth: { required: true },
-    },
-  }
-);
-
 export const PUT = createApiHandler(
   async (request: NextRequest, context) => {
     const params = context.validated?.params as { id: string } | undefined;

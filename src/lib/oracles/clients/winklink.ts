@@ -6,7 +6,6 @@ import {
   WINKLINK_AVAILABLE_PAIRS,
 } from '@/lib/oracles/constants/supportedSymbols';
 import { getWINkLinkRealDataService } from '@/lib/oracles/services/winklinkRealDataService';
-import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
 
@@ -23,7 +22,7 @@ export class WINkLinkClient extends BaseOracleClient {
 
   async getPrice(
     symbol: string,
-    chain?: Blockchain,
+    _chain?: Blockchain,
     options?: { signal?: AbortSignal }
   ): Promise<PriceData> {
     if (!symbol) {
@@ -39,26 +38,9 @@ export class WINkLinkClient extends BaseOracleClient {
       const resolvedSymbol = WINKLINK_SYMBOL_ALIASES[upperSymbol] || upperSymbol;
 
       if (resolvedSymbol === 'WIN') {
-        const marketData = await binanceMarketService.getTokenMarketData(symbol);
-        if (marketData) {
-          return {
-            provider: OracleProvider.WINKLINK,
-            symbol: upperSymbol,
-            price: marketData.currentPrice,
-            timestamp: new Date(marketData.lastUpdated).getTime(),
-            decimals: 8,
-            confidence: 0.95,
-            change24h: marketData.priceChange24h,
-            change24hPercent: marketData.priceChangePercentage24h,
-            chain: chain || Blockchain.TRON,
-            source: 'binance-api',
-          };
-        }
-
         throw this.createError(
-          `Failed to fetch WIN token price from Binance API. Real-time data is required.`,
-          'NO_DATA_AVAILABLE',
-          { retryable: true }
+          'WIN token price is not available from WINkLink oracle network',
+          'NO_DATA_AVAILABLE'
         );
       }
 

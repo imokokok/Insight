@@ -1,4 +1,3 @@
-import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
 import { createLogger } from '@/lib/utils/logger';
 import { OracleProvider, type Blockchain, type PriceData } from '@/types/oracle';
 
@@ -162,67 +161,11 @@ export class DIAPriceService {
   }
 
   async getHistoricalPrices(
-    symbol: string,
-    chain?: Blockchain,
-    periodHours: number = 24
+    _symbol: string,
+    _chain?: Blockchain,
+    _periodHours: number = 24
   ): Promise<PriceData[]> {
-    const cacheKey = `historical:${symbol}:${chain || 'default'}:${periodHours}`;
-    const cached = this.getFromCache<PriceData[]>(cacheKey);
-    if (cached) {
-      return cached;
-    }
-
-    try {
-      logger.info('Fetching historical prices from Binance API', {
-        symbol,
-        chain,
-        periodHours,
-      });
-
-      const historicalPrices = await binanceMarketService.getHistoricalPrices(
-        symbol,
-        Math.max(1, Math.ceil(periodHours / 24))
-      );
-
-      if (!historicalPrices || historicalPrices.length === 0) {
-        logger.warn('No historical data available from Binance API', {
-          symbol,
-          chain,
-          periodHours,
-        });
-        return [];
-      }
-
-      const latestPrice = historicalPrices[historicalPrices.length - 1].price;
-
-      const prices: PriceData[] = historicalPrices.map((point) => {
-        const change24h = latestPrice - point.price;
-        const change24hPercent = point.price > 0 ? (change24h / point.price) * 100 : 0;
-
-        return {
-          provider: OracleProvider.DIA,
-          symbol: symbol.toUpperCase(),
-          price: point.price,
-          timestamp: point.timestamp,
-          decimals: 8,
-          confidence: 0.95,
-          change24h: Number(change24h.toFixed(4)),
-          change24hPercent: Number(change24hPercent.toFixed(2)),
-          chain,
-          source: 'binance-api',
-        };
-      });
-
-      this.setCache(cacheKey, prices, CACHE_TTL.HISTORICAL);
-      return prices;
-    } catch (error) {
-      logger.error(
-        'Failed to fetch historical prices from Binance API',
-        error instanceof Error ? error : new Error(String(error)),
-        { symbol, chain, periodHours }
-      );
-      return [];
-    }
+    return [];
   }
 }
 
