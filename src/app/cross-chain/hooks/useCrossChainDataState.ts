@@ -2,7 +2,12 @@ import { useEffect, useMemo, useRef } from 'react';
 
 import { getDefaultFactory, type BaseOracleClient } from '@/lib/oracles';
 import { useCrossChainConfigStore } from '@/stores/crossChainConfigStore';
-import { useCrossChainDataStore } from '@/stores/crossChainDataStore';
+import {
+  useCrossChainDataStore,
+  setFetchDataRef,
+  setClearCacheRef,
+  setClearCacheForProviderRef,
+} from '@/stores/crossChainDataStore';
 import { useCrossChainSelectorStore } from '@/stores/crossChainSelectorStore';
 import { useCrossChainUIStore } from '@/stores/crossChainUIStore';
 import { type PriceStats } from '@/types/analytics';
@@ -48,17 +53,10 @@ export function useCrossChainDataState(): UseCrossChainDataStateReturn {
   const prevStats = useCrossChainDataStore((s) => s.prevStats);
   const anomalies = useCrossChainDataStore((s) => s.anomalies);
   const setCurrentPrices = useCrossChainDataStore((s) => s.setCurrentPrices);
-  const setLoading = useCrossChainDataStore((s) => s.setLoading);
-  const setRefreshStatus = useCrossChainDataStore((s) => s.setRefreshStatus);
-  const setShowRefreshSuccess = useCrossChainDataStore((s) => s.setShowRefreshSuccess);
   const setLastUpdated = useCrossChainDataStore((s) => s.setLastUpdated);
-  const setPrevStats = useCrossChainDataStore((s) => s.setPrevStats);
-  const setRecommendedBaseChain = useCrossChainDataStore((s) => s.setRecommendedBaseChain);
+  const setRefreshStatus = useCrossChainDataStore((s) => s.setRefreshStatus);
   const setAnomalies = useCrossChainDataStore((s) => s.setAnomalies);
   const setCrossChainComparison = useCrossChainDataStore((s) => s.setCrossChainComparison);
-  const setFetchData = useCrossChainDataStore((s) => s.setFetchData);
-  const setClearCacheAction = useCrossChainDataStore((s) => s.setClearCache);
-  const setClearCacheForProviderAction = useCrossChainDataStore((s) => s.setClearCacheForProvider);
 
   const currentClient = useMemo(
     () => getDefaultFactory().getClient(selectedProvider),
@@ -76,31 +74,15 @@ export function useCrossChainDataState(): UseCrossChainDataStateReturn {
     {
       selectedSymbol,
       selectedTimeRange,
-      setCurrentPrices,
-      setPrevStats,
-      setRecommendedBaseChain,
-      setLastUpdated,
-      setRefreshStatus,
-      setShowRefreshSuccess,
-      setLoading,
-      setAnomalies,
-      setCrossChainComparison,
     },
     refreshInterval || undefined
   );
 
   useEffect(() => {
-    setFetchData(fetchDataInternal);
-    setClearCacheAction(clearCache);
-    setClearCacheForProviderAction(clearCacheForProvider);
-  }, [
-    fetchDataInternal,
-    clearCache,
-    clearCacheForProvider,
-    setFetchData,
-    setClearCacheAction,
-    setClearCacheForProviderAction,
-  ]);
+    setFetchDataRef(fetchDataInternal);
+    setClearCacheRef(clearCache);
+    setClearCacheForProviderRef(clearCacheForProvider);
+  }, [fetchDataInternal, clearCache, clearCacheForProvider]);
 
   const prevParamsRef = useRef({
     selectedProvider,

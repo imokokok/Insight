@@ -88,16 +88,11 @@ export default function SearchInput({
     <div className="relative max-w-xl mx-auto z-[100]" ref={dropdownRef}>
       <form
         onSubmit={handleSubmit}
-        className={`relative flex items-center bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border-2 transition-all duration-300 ease-out overflow-visible ${
+        className={`relative flex items-center bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border-2 transition-all duration-300 ease-out overflow-visible focus-within:shadow-[0_0_0_4px_rgba(59,130,246,0.1),0_10px_40px_-10px_rgba(59,130,246,0.2)] ${
           isSearchFocused
             ? 'border-blue-400 shadow-blue-200/50 shadow-xl'
             : 'border-gray-200/80 hover:border-gray-300'
         }`}
-        style={{
-          boxShadow: isSearchFocused
-            ? `0 0 0 4px rgba(59, 130, 246, 0.1), 0 10px 40px -10px rgba(59, 130, 246, 0.2)`
-            : undefined,
-        }}
       >
         <div className="pl-5">
           <Search
@@ -133,8 +128,7 @@ export default function SearchInput({
           onCompositionStart={() => setIsComposing(true)}
           onCompositionEnd={() => setIsComposing(false)}
           placeholder="Search token, oracle, or blockchain..."
-          className="flex-1 px-4 sm:px-5 py-4 sm:py-5 text-sm sm:text-base text-gray-900 placeholder-gray-400 bg-transparent border-0 min-w-0"
-          style={{ outline: 'none', boxShadow: 'none' }}
+          className="flex-1 px-4 sm:px-5 py-4 sm:py-5 text-sm sm:text-base text-gray-900 placeholder-gray-400 bg-transparent border-0 min-w-0 outline-none shadow-none"
           role="combobox"
           aria-expanded={isDropdownOpen}
           aria-autocomplete="list"

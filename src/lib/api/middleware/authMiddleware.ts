@@ -88,9 +88,7 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
         return {
           success: false,
           response: NextResponse.json(
-            ApiResponseBuilder.error('FORBIDDEN', 'Insufficient permissions', {
-              details: { requiredRoles: roles },
-            }),
+            ApiResponseBuilder.error('FORBIDDEN', 'Insufficient permissions'),
             { status: 403 }
           ),
         };

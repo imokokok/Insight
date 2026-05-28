@@ -11,6 +11,62 @@ import { type OracleProvider, type Blockchain } from '@/types/oracle';
 
 import { AlertTemplates, type AlertTemplate } from './AlertTemplates';
 
+const CONDITION_OPTIONS: {
+  value: AlertConditionType;
+  label: string;
+  description: string;
+  category: string;
+}[] = [
+  {
+    value: 'above',
+    label: 'Price Above',
+    description: 'Alert when price goes above target value',
+    category: 'Price',
+  },
+  {
+    value: 'below',
+    label: 'Price Below',
+    description: 'Alert when price goes below target value',
+    category: 'Price',
+  },
+  {
+    value: 'change_percent',
+    label: 'Price Change %',
+    description: 'Alert when price change percentage exceeds threshold',
+    category: 'Price',
+  },
+  {
+    value: 'deviation_from_median',
+    label: 'Deviation from Median',
+    description: 'Alert when oracle price deviates from median by more than X%',
+    category: 'Smart',
+  },
+  {
+    value: 'oracle_disagreement',
+    label: 'Oracle Disagreement',
+    description: 'Alert when oracles disagree by more than X% on the same asset',
+    category: 'Smart',
+  },
+  {
+    value: 'stale_data',
+    label: 'Stale Data',
+    description: 'Alert when oracle data is older than X seconds',
+    category: 'Smart',
+  },
+  {
+    value: 'confidence_drop',
+    label: 'Confidence Drop',
+    description: 'Alert when oracle confidence score drops below X (0-1)',
+    category: 'Smart',
+  },
+  {
+    value: 'anomaly_detected',
+    label: 'Anomaly Detected',
+    description: 'Alert when price anomaly is automatically detected (IQR/Z-Score)',
+    category: 'Smart',
+  },
+];
+
 interface AlertConfigProps {
   onAlertCreated?: () => void;
 }
@@ -61,65 +117,6 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
       })),
     ],
     [provider]
-  );
-
-  const CONDITION_OPTIONS: {
-    value: AlertConditionType;
-    label: string;
-    description: string;
-    category: string;
-  }[] = useMemo(
-    () => [
-      {
-        value: 'above',
-        label: 'Price Above',
-        description: 'Alert when price goes above target value',
-        category: 'Price',
-      },
-      {
-        value: 'below',
-        label: 'Price Below',
-        description: 'Alert when price goes below target value',
-        category: 'Price',
-      },
-      {
-        value: 'change_percent',
-        label: 'Price Change %',
-        description: 'Alert when price change percentage exceeds threshold',
-        category: 'Price',
-      },
-      {
-        value: 'deviation_from_median',
-        label: 'Deviation from Median',
-        description: 'Alert when oracle price deviates from median by more than X%',
-        category: 'Smart',
-      },
-      {
-        value: 'oracle_disagreement',
-        label: 'Oracle Disagreement',
-        description: 'Alert when oracles disagree by more than X% on the same asset',
-        category: 'Smart',
-      },
-      {
-        value: 'stale_data',
-        label: 'Stale Data',
-        description: 'Alert when oracle data is older than X seconds',
-        category: 'Smart',
-      },
-      {
-        value: 'confidence_drop',
-        label: 'Confidence Drop',
-        description: 'Alert when oracle confidence score drops below X (0-1)',
-        category: 'Smart',
-      },
-      {
-        value: 'anomaly_detected',
-        label: 'Anomaly Detected',
-        description: 'Alert when price anomaly is automatically detected (IQR/Z-Score)',
-        category: 'Smart',
-      },
-    ],
-    []
   );
 
   const handleProviderChange = useCallback((value: OracleProvider | '') => {

@@ -7,6 +7,18 @@ function isFiniteNumber(value: number): boolean {
   return typeof value === 'number' && Number.isFinite(value);
 }
 
+const PRICE_THRESHOLD_HIGH = 1000;
+const PRICE_THRESHOLD_LOW = 0.0001;
+const PRICE_THRESHOLD_VERY_LOW = 0.000001;
+const LARGE_NUMBER_TRILLION = 1e12;
+const LARGE_NUMBER_BILLION = 1e9;
+const LARGE_NUMBER_MILLION = 1e6;
+const LARGE_NUMBER_THOUSAND = 1e3;
+const MS_PER_SECOND = 1000;
+const SECONDS_PER_MINUTE = 60;
+const MINUTES_PER_HOUR = 60;
+const HOURS_PER_DAY = 24;
+
 export function addThousandSeparators(numStr: string): string {
   const parts = numStr.split('.');
   parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
@@ -30,10 +42,10 @@ const MONTHS_SHORT = [
 
 export function formatCountdown(ms: number): string {
   if (ms <= 0) return '0s';
-  const seconds = Math.ceil(ms / 1000);
-  if (seconds < 60) return `${seconds}s`;
-  const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = seconds % 60;
+  const seconds = Math.ceil(ms / MS_PER_SECOND);
+  if (seconds < SECONDS_PER_MINUTE) return `${seconds}s`;
+  const minutes = Math.floor(seconds / SECONDS_PER_MINUTE);
+  const remainingSeconds = seconds % SECONDS_PER_MINUTE;
   return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
 }
 
@@ -109,16 +121,16 @@ export function formatPrice(price: number): string {
 
   const absPrice = Math.abs(price);
 
-  if (absPrice >= 1000) {
+  if (absPrice >= PRICE_THRESHOLD_HIGH) {
     return `$${formatWithMinDecimals(price, 2, 2)}`;
   }
   if (absPrice >= 1) {
     return `$${formatWithMinDecimals(price, 2, 4)}`;
   }
-  if (absPrice >= 0.0001) {
+  if (absPrice >= PRICE_THRESHOLD_LOW) {
     return `$${formatWithMinDecimals(price, 4, 6)}`;
   }
-  if (absPrice >= 0.000001) {
+  if (absPrice >= PRICE_THRESHOLD_VERY_LOW) {
     return `$${formatWithMinDecimals(price, 6, 8)}`;
   }
   return `$${formatWithMinDecimals(price, 8, 12)}`;
@@ -135,7 +147,7 @@ export function formatPriceDiff(value: number, basePrice?: number): string {
   if (value === 0) return '$0.00';
 
   let decimals = 2;
-  if (basePrice && basePrice > 1000) {
+  if (basePrice && basePrice > PRICE_THRESHOLD_HIGH) {
     decimals = 2;
   } else if (basePrice && basePrice > 100) {
     decimals = 3;
@@ -165,17 +177,17 @@ export function formatLargeNumber(value: number): string {
   const absValue = Math.abs(value);
   const sign = value < 0 ? '-' : '';
 
-  if (absValue >= 1e12) {
-    return `${sign}$${(absValue / 1e12).toFixed(2)}T`;
+  if (absValue >= LARGE_NUMBER_TRILLION) {
+    return `${sign}$${(absValue / LARGE_NUMBER_TRILLION).toFixed(2)}T`;
   }
-  if (absValue >= 1e9) {
-    return `${sign}$${(absValue / 1e9).toFixed(2)}B`;
+  if (absValue >= LARGE_NUMBER_BILLION) {
+    return `${sign}$${(absValue / LARGE_NUMBER_BILLION).toFixed(2)}B`;
   }
-  if (absValue >= 1e6) {
-    return `${sign}$${(absValue / 1e6).toFixed(2)}M`;
+  if (absValue >= LARGE_NUMBER_MILLION) {
+    return `${sign}$${(absValue / LARGE_NUMBER_MILLION).toFixed(2)}M`;
   }
-  if (absValue >= 1e3) {
-    return `${sign}$${(absValue / 1e3).toFixed(2)}K`;
+  if (absValue >= LARGE_NUMBER_THOUSAND) {
+    return `${sign}$${(absValue / LARGE_NUMBER_THOUSAND).toFixed(2)}K`;
   }
   return `${sign}$${absValue.toFixed(2)}`;
 }
@@ -195,21 +207,49 @@ export function formatRelativeTime(
   const time = timestamp instanceof Date ? timestamp.getTime() : timestamp;
   const diff = now - time;
 
-  const seconds = Math.floor(diff / 1000);
-  const minutes = Math.floor(seconds / 60);
-  const hours = Math.floor(minutes / 60);
-  const days = Math.floor(hours / 24);
+  const seconds = Math.floor(diff / MS_PER_SECOND);
+  const minutes = Math.floor(seconds / SECONDS_PER_MINUTE);
+  const hours = Math.floor(minutes / MINUTES_PER_HOUR);
+  const days = Math.floor(hours / HOURS_PER_DAY);
 
   if (style === 'short') {
-    if (seconds < 60) return `${seconds}s ago`;
-    if (minutes < 60) return `${minutes}m ago`;
-    if (hours < 24) return `${hours}h ago`;
+    if (seconds < SECONDS_PER_MINUTE) return `${seconds}s ago`;
+    if (minutes < MINUTES_PER_HOUR) return `${minutes}m ago`;
+    if (hours < HOURS_PER_DAY) return `${hours}h ago`;
     return `${days}d ago`;
   }
 
-  // long style
-  if (seconds < 60) return `${seconds} seconds ago`;
-  if (minutes < 60) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
-  if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+  if (seconds < SECONDS_PER_MINUTE) return `${seconds} seconds ago`;
+  if (minutes < MINUTES_PER_HOUR) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+  if (hours < HOURS_PER_DAY) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
   return `${days} day${days > 1 ? 's' : ''} ago`;
+}
+
+export function formatDataAge(seconds: number | null): string {
+  if (seconds == null) return '-';
+  if (seconds < SECONDS_PER_MINUTE) return `${Math.round(seconds)}s`;
+  return `${Math.round(seconds / SECONDS_PER_MINUTE)}m`;
+}
+
+export function formatConfidenceScore(confidence: number): string {
+  if (confidence <= 1) return (confidence * 100).toFixed(1);
+  return Math.min(100, confidence).toFixed(1);
+}
+
+export function truncateAddress(address: string, head: number = 6, tail: number = 4): string {
+  return `${address.slice(0, head)}...${address.slice(-tail)}`;
+}
+
+export function formatOraclePrice(value: number, decimals: number = 2): string {
+  return `$${formatNumberWithDecimals(value, 2, decimals)}`;
+}
+
+export function formatTimestampValue(timestamp: number): string {
+  if (!timestamp) return '-';
+  return formatTimeString(new Date(timestamp));
+}
+
+export function capitalize(s: string): string {
+  if (!s) return s;
+  return s.charAt(0).toUpperCase() + s.slice(1);
 }

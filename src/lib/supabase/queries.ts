@@ -310,39 +310,43 @@ export class DatabaseQueries {
     userId: string,
     snapshot: Omit<UserSnapshotInsert, 'user_id'>
   ): Promise<UserSnapshot | null> {
-    const { data, error } = await this.client
-      .from('user_snapshots')
-      .insert({ ...snapshot, user_id: userId })
-      .select()
-      .single();
+    return queryQueue.add(async () => {
+      const { data, error } = await this.client
+        .from('user_snapshots')
+        .insert({ ...snapshot, user_id: userId })
+        .select()
+        .single();
 
-    if (error) {
-      logger.error(
-        'Failed to save snapshot',
-        error instanceof Error ? error : new Error(String(error))
-      );
-      return null;
-    }
+      if (error) {
+        logger.error(
+          'Failed to save snapshot',
+          error instanceof Error ? error : new Error(String(error))
+        );
+        return null;
+      }
 
-    return data;
+      return data;
+    });
   }
 
   async getSnapshots(userId: string): Promise<UserSnapshot[] | null> {
-    const { data, error } = await this.client
-      .from('user_snapshots')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
+    return queryQueue.add(async () => {
+      const { data, error } = await this.client
+        .from('user_snapshots')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
 
-    if (error) {
-      logger.error(
-        'Failed to get snapshots',
-        error instanceof Error ? error : new Error(String(error))
-      );
-      return null;
-    }
+      if (error) {
+        logger.error(
+          'Failed to get snapshots',
+          error instanceof Error ? error : new Error(String(error))
+        );
+        return null;
+      }
 
-    return data;
+      return data;
+    });
   }
 
   async getSnapshotById(id: string, userId: string): Promise<UserSnapshot | null> {

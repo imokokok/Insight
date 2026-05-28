@@ -15,12 +15,14 @@ import { useCrossChainDataStore } from '@/stores/crossChainDataStore';
 import { type PriceStats } from '@/types/analytics';
 import { type OracleProvider, type Blockchain, type PriceData } from '@/types/oracle';
 
-import { type AnomalousPricePoint, detectAnomalies } from '../utils/anomalyDetection';
+import { detectAnomalies } from '../utils/anomalyDetection';
 import { validateCurrentPrices } from '../utils/validation';
 
 import { useCrossChainQueries } from './useCrossChainQueries';
 
 const logger = createLogger('useDataFetching');
+
+const REFRESH_SUCCESS_DISPLAY_MS = 2000;
 
 function calculatePriceStats(prices: PriceData[]): PriceStats {
   const validPrices = prices.map((d) => d.price).filter((p) => p > 0);
@@ -42,23 +44,8 @@ function calculatePriceStats(prices: PriceData[]): PriceStats {
   return { avgPrice, maxPrice, minPrice, priceRange, standardDeviationPercent };
 }
 
-interface FetchDataParams {
-  selectedProvider: OracleProvider;
-  selectedSymbol: string;
-  selectedTimeRange: number;
-  setCurrentPrices: (prices: PriceData[]) => void;
-  setPrevStats: (stats: PriceStats) => void;
-  setRecommendedBaseChain: (chain: Blockchain) => void;
-  setLastUpdated: (date: Date) => void;
-  setRefreshStatus: (status: 'idle' | 'refreshing' | 'success' | 'error') => void;
-  setShowRefreshSuccess: (show: boolean) => void;
-  setLoading: (loading: boolean) => void;
-  setAnomalies: (anomalies: AnomalousPricePoint[]) => void;
-  setCrossChainComparison: (results: CrossChainComparisonResult[]) => void;
-}
-
 interface UseDataFetchingReturn {
-  fetchData: (signal?: AbortSignal) => Promise<void>;
+  fetchData: () => Promise<void>;
   clearCache: () => void;
   clearCacheForProvider: (provider: OracleProvider) => void;
 }
@@ -66,25 +53,22 @@ interface UseDataFetchingReturn {
 export function useDataFetching(
   provider: OracleProvider,
   supportedChains: Blockchain[],
-  params: Omit<FetchDataParams, 'selectedProvider'>,
+  params: {
+    selectedSymbol: string;
+    selectedTimeRange: number;
+  },
   refetchInterval?: number
 ): UseDataFetchingReturn {
   const queryClient = useQueryClient();
   const refreshSuccessTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const paramsRef = useRef(params);
 
-  useEffect(() => {
-    paramsRef.current = params;
-  });
-
-  const { chainResults, isLoading, isFetching, errors, triggerForceRefresh, resetForceRefresh } =
-    useCrossChainQueries(
-      provider,
-      params.selectedSymbol,
-      supportedChains,
-      params.selectedTimeRange,
-      refetchInterval
-    );
+  const { chainResults, isLoading, isFetching, errors, triggerForceRefresh } = useCrossChainQueries(
+    provider,
+    params.selectedSymbol,
+    supportedChains,
+    params.selectedTimeRange,
+    refetchInterval
+  );
 
   const currentPrices = useMemo(() => {
     const prices = supportedChains
@@ -155,59 +139,59 @@ export function useDataFetching(
   }, [currentPrices, supportedChains, thresholdConfig]);
 
   const prevDataSignatureRef = useRef('');
-  useEffect(() => {
-    const signature = currentPrices.map((p) => `${p.chain}:${p.price}:${p.timestamp}`).join('|');
-    if (signature === prevDataSignatureRef.current) return;
-    prevDataSignatureRef.current = signature;
-
-    useCrossChainDataStore.setState({
-      currentPrices,
-      prevStats: derivedData.prevStats,
-      anomalies: derivedData.anomalies,
-      recommendedBaseChain: derivedData.recommendedBaseChain,
-      crossChainComparison: derivedData.crossChainComparison,
-    });
-  }, [currentPrices, derivedData]);
-
-  const prevLoadingRef = useRef(false);
-  useEffect(() => {
-    if (isLoading !== prevLoadingRef.current) {
-      prevLoadingRef.current = isLoading;
-      useCrossChainDataStore.setState({ loading: isLoading });
-    }
-  }, [isLoading]);
-
   const lastUpdateTimeRef = useRef<number>(0);
 
   useEffect(() => {
+    const signature = currentPrices.map((p) => `${p.chain}:${p.price}:${p.timestamp}`).join('|');
+    const dataChanged = signature !== prevDataSignatureRef.current;
+    const loadingChanged = isLoading !== useCrossChainDataStore.getState().loading;
+
+    if (!dataChanged && !loadingChanged && isFetching === isLoading) return;
+
+    if (dataChanged) {
+      prevDataSignatureRef.current = signature;
+    }
+
+    let refreshStatus: 'idle' | 'refreshing' | 'success' | 'error' = 'idle';
+    let showRefreshSuccess = false;
+    let lastUpdated: Date | null = useCrossChainDataStore.getState().lastUpdated;
+
     if (isLoading || isFetching) {
-      useCrossChainDataStore.setState({ refreshStatus: 'refreshing' });
+      refreshStatus = 'refreshing';
     } else if (errors.length > 0) {
-      useCrossChainDataStore.setState({ refreshStatus: 'error' });
+      refreshStatus = 'error';
       logger.warn('Cross-chain data fetching encountered errors', { errorCount: errors.length });
     } else if (!isLoading && !isFetching && supportedChains.length > 0) {
       const now = Date.now();
+      refreshStatus = 'success';
+      showRefreshSuccess = true;
       if (now - lastUpdateTimeRef.current > 1000) {
         lastUpdateTimeRef.current = now;
-        useCrossChainDataStore.setState({
-          refreshStatus: 'success',
-          showRefreshSuccess: true,
-          lastUpdated: new Date(now),
-        });
-      } else {
-        useCrossChainDataStore.setState({
-          refreshStatus: 'success',
-          showRefreshSuccess: true,
-        });
+        lastUpdated = new Date(now);
       }
       if (refreshSuccessTimerRef.current) {
         clearTimeout(refreshSuccessTimerRef.current);
       }
       refreshSuccessTimerRef.current = setTimeout(() => {
         useCrossChainDataStore.setState({ showRefreshSuccess: false });
-      }, 2000);
+      }, REFRESH_SUCCESS_DISPLAY_MS);
     }
-  }, [isLoading, isFetching, errors, supportedChains.length]);
+
+    useCrossChainDataStore.setState({
+      ...(dataChanged
+        ? {
+            currentPrices,
+            prevStats: derivedData.prevStats,
+            anomalies: derivedData.anomalies,
+            recommendedBaseChain: derivedData.recommendedBaseChain,
+            crossChainComparison: derivedData.crossChainComparison,
+          }
+        : {}),
+      loading: isLoading,
+      refreshStatus,
+      ...(showRefreshSuccess ? { showRefreshSuccess, lastUpdated } : {}),
+    });
+  }, [currentPrices, derivedData, isLoading, isFetching, errors, supportedChains.length]);
 
   useEffect(() => {
     return () => {
@@ -222,12 +206,11 @@ export function useDataFetching(
     await queryClient.invalidateQueries({
       queryKey: crossChainKeys.byProvider(
         provider,
-        paramsRef.current.selectedSymbol,
-        String(paramsRef.current.selectedTimeRange)
+        params.selectedSymbol,
+        String(params.selectedTimeRange)
       ),
     });
-    resetForceRefresh();
-  }, [queryClient, provider, triggerForceRefresh, resetForceRefresh]);
+  }, [queryClient, provider, triggerForceRefresh, params.selectedSymbol, params.selectedTimeRange]);
 
   const clearCache = useCallback(() => {
     queryClient.removeQueries({ queryKey: crossChainKeys.all });
@@ -236,10 +219,8 @@ export function useDataFetching(
   const clearCacheForProvider = useCallback(
     (targetProvider: OracleProvider) => {
       queryClient.removeQueries({
-        predicate: (query) => {
-          const key = query.queryKey;
-          return key[0] === 'cross-chain' && key[1] === targetProvider;
-        },
+        queryKey: crossChainKeys.byProvider(targetProvider, '', ''),
+        exact: false,
       });
     },
     [queryClient]

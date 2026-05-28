@@ -107,6 +107,8 @@ export function sanitizeString(input: string, options: SanitizationOptions = {})
 
   if (opts.maxLength && sanitized.length > opts.maxLength) {
     sanitized = sanitized.substring(0, opts.maxLength);
+    sanitized = sanitized.replace(/&[a-zA-Z0-9]*$/, '');
+    sanitized = sanitized.replace(/&#x?[0-9a-fA-F]*$/, '');
     logger.warn('Input truncated due to max length', { maxLength: opts.maxLength });
   }
 

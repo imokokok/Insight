@@ -67,14 +67,27 @@ async function validateApiKey(key: string): Promise<ApiKeyContext | null> {
 
     if (data.expires_at && new Date(data.expires_at) < new Date()) {
       logger.debug('API key expired', { keyId: data.id });
-      await client.from('api_keys').update({ is_active: false }).eq('id', data.id);
+      client
+        .from('api_keys')
+        .update({ is_active: false })
+        .eq('id', data.id)
+        .then(({ error: updateError }) => {
+          if (updateError) {
+            logger.warn('Failed to deactivate expired API key', { keyId: data.id });
+          }
+        });
       return null;
     }
 
-    await client
+    client
       .from('api_keys')
       .update({ last_used_at: new Date().toISOString() })
-      .eq('id', data.id);
+      .eq('id', data.id)
+      .then(({ error: updateError }) => {
+        if (updateError) {
+          logger.warn('Failed to update API key last_used_at', { keyId: data.id });
+        }
+      });
 
     const plan = (data.plan as ApiKeyPlan) || 'free';
     return {
@@ -92,9 +105,12 @@ async function validateApiKey(key: string): Promise<ApiKeyContext | null> {
   }
 }
 
+const API_KEY_SALT = process.env.API_KEY_HASH_SALT || 'insight-api-key-salt-2024';
+
 async function hashApiKey(key: string): Promise<string> {
   const encoder = new TextEncoder();
-  const data = encoder.encode(key);
+  const saltedKey = API_KEY_SALT + key;
+  const data = encoder.encode(saltedKey);
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
   return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');

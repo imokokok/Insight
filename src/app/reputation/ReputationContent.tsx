@@ -27,7 +27,7 @@ import {
 } from 'lucide-react';
 
 import { OracleLogo } from '@/app/reputation/components/ReputationShared';
-import { ErrorBoundary } from '@/components/error-boundary';
+import { ErrorBoundary, SectionErrorBoundary } from '@/components/error-boundary';
 import { EmptyStateEnhanced } from '@/components/ui/EmptyStateEnhanced';
 import { useReputations, useRecalculateReputation } from '@/hooks/data/useReputations';
 import { providerNames } from '@/lib/constants';
@@ -265,7 +265,9 @@ function ReputationContentInner() {
       </div>
 
       <div className="mb-6">
-        <ComparisonInfo />
+        <SectionErrorBoundary componentName="ComparisonInfo">
+          <ComparisonInfo />
+        </SectionErrorBoundary>
       </div>
 
       {allUnrated && !isCalculating && (
@@ -302,7 +304,9 @@ function ReputationContentInner() {
 
       {!isLoading && sorted.length > 0 && (
         <>
-          <GlobalStats reputations={sorted} />
+          <SectionErrorBoundary componentName="GlobalStats">
+            <GlobalStats reputations={sorted} />
+          </SectionErrorBoundary>
 
           <div className="mt-8 mb-4">
             <div className="flex items-center gap-2 mb-1">
@@ -311,7 +315,9 @@ function ReputationContentInner() {
                 Top Performers
               </h2>
             </div>
-            <TopThree reputations={sorted} />
+            <SectionErrorBoundary componentName="TopPerformers">
+              <TopThree reputations={sorted} />
+            </SectionErrorBoundary>
           </div>
 
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mt-6 mb-4">
@@ -385,18 +391,22 @@ function ReputationContentInner() {
           </div>
 
           {viewMode === 'leaderboard' ? (
-            <div className="space-y-1.5">
-              {sorted.map((rep, i) => (
-                <LeaderboardRow
-                  key={rep.provider}
-                  reputation={rep}
-                  rank={i + 1}
-                  maxQueries={maxQueries}
-                />
-              ))}
-            </div>
+            <SectionErrorBoundary componentName="LeaderboardView">
+              <div className="space-y-1.5">
+                {sorted.map((rep, i) => (
+                  <LeaderboardRow
+                    key={rep.provider}
+                    reputation={rep}
+                    rank={i + 1}
+                    maxQueries={maxQueries}
+                  />
+                ))}
+              </div>
+            </SectionErrorBoundary>
           ) : (
-            <TableView reputations={sorted} />
+            <SectionErrorBoundary componentName="TableView">
+              <TableView reputations={sorted} />
+            </SectionErrorBoundary>
           )}
         </>
       )}

@@ -5,6 +5,11 @@
 
 import { ValidationError } from '@/lib/errors';
 
+const SECONDS_MS_THRESHOLD = 1e10;
+const SECONDS_PER_MINUTE = 60;
+const SECONDS_PER_HOUR = 3600;
+const SECONDS_PER_DAY = 86400;
+
 /**
  * Converts a timestamp to milliseconds.
  * Handles seconds, milliseconds, Date objects, and ISO string formats.
@@ -36,7 +41,7 @@ export function toMilliseconds(timestamp: number | string | Date): number {
   }
 
   if (typeof timestamp === 'number') {
-    if (timestamp < 1e10) {
+    if (timestamp < SECONDS_MS_THRESHOLD) {
       return timestamp * 1000;
     }
     return timestamp;
@@ -49,17 +54,18 @@ export function toMilliseconds(timestamp: number | string | Date): number {
 }
 
 /**
- * Converts a timestamp to seconds.
+ * Normalizes a timestamp to milliseconds.
  * Handles seconds, milliseconds, Date objects, and ISO string formats.
+ * This is an alias for {@link toMilliseconds}.
  *
  * @param timestamp - Input timestamp (seconds, milliseconds, Date, or ISO string)
- * @returns Timestamp in seconds (floor division)
+ * @returns Timestamp in milliseconds
  *
  * @example
- * toSeconds(1234567890) // seconds -> 1234567890
- * toSeconds(1234567890000) // milliseconds -> 1234567890
- * toSeconds(new Date()) // Date -> seconds
- * toSeconds('2024-01-01T00:00:00Z') // ISO string -> seconds
+ * normalizeTimestamp(1234567890) // seconds -> 1234567890000
+ * normalizeTimestamp(1234567890000) // milliseconds -> 1234567890000
+ * normalizeTimestamp(new Date()) // Date -> milliseconds
+ * normalizeTimestamp('2024-01-01T00:00:00Z') // ISO string -> milliseconds
  */
 export function normalizeTimestamp(timestamp: number | string | Date): number {
   return toMilliseconds(timestamp);
@@ -77,16 +83,16 @@ export function getTimeAgoDiff(input: Date | number): TimeAgoResult {
   const isFuture = diffMs < 0;
   const seconds = Math.floor(Math.abs(diffMs) / 1000);
 
-  if (seconds < 60) {
+  if (seconds < SECONDS_PER_MINUTE) {
     return { value: seconds, unit: 'seconds', isFuture };
   }
-  if (seconds < 3600) {
-    return { value: Math.floor(seconds / 60), unit: 'minutes', isFuture };
+  if (seconds < SECONDS_PER_HOUR) {
+    return { value: Math.floor(seconds / SECONDS_PER_MINUTE), unit: 'minutes', isFuture };
   }
-  if (seconds < 86400) {
-    return { value: Math.floor(seconds / 3600), unit: 'hours', isFuture };
+  if (seconds < SECONDS_PER_DAY) {
+    return { value: Math.floor(seconds / SECONDS_PER_HOUR), unit: 'hours', isFuture };
   }
-  return { value: Math.floor(seconds / 86400), unit: 'days', isFuture };
+  return { value: Math.floor(seconds / SECONDS_PER_DAY), unit: 'days', isFuture };
 }
 
 export function formatTimeAgo(diff: TimeAgoResult): string {

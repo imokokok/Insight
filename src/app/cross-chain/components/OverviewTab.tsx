@@ -1,6 +1,6 @@
 'use client';
 
-import { useCrossChainDataStore } from '@/stores/crossChainDataStore';
+import { useCrossChainDataStore, getFetchData } from '@/stores/crossChainDataStore';
 import { useCrossChainSelectorStore } from '@/stores/crossChainSelectorStore';
 import { Blockchain } from '@/types/oracle';
 
@@ -18,7 +18,7 @@ import { HeatmapDetailView } from './PriceSpreadHeatmap';
 export function OverviewTab() {
   const currentPrices = useCrossChainDataStore((s) => s.currentPrices);
   const lastUpdated = useCrossChainDataStore((s) => s.lastUpdated);
-  const fetchData = useCrossChainDataStore((s) => s.fetchData);
+  const fetchData = getFetchData();
   const loading = useCrossChainDataStore((s) => s.loading);
 
   const selectedProvider = useCrossChainSelectorStore((s) => s.selectedProvider);
@@ -161,7 +161,7 @@ export function OverviewTab() {
               verification: p.verification,
             }))}
             lastUpdated={lastUpdated}
-            onRefresh={() => fetchData()}
+            onRefresh={() => fetchData?.()}
             isLoading={loading}
           />
 

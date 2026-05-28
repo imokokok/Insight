@@ -11,6 +11,7 @@ import type {
   LeadershipStatus,
 } from '@/lib/analytics/divergenceSignals';
 import type { FeedHealthScore as FullFeedHealthScore } from '@/lib/analytics/feedBehavior';
+import { getScoreBadge, getScoreColor } from '@/lib/oracles/utils/reputationUtils';
 
 export type DivergenceMode = 'chain' | 'oracle';
 
@@ -120,15 +121,6 @@ function getDirectionBadge(direction: DivergenceDirection): {
     default:
       return { label: '— Unknown', textClass: 'text-gray-500' };
   }
-}
-
-function getHealthBadge(score: number): { label: string; bgClass: string; textClass: string } {
-  if (score >= 80)
-    return { label: 'Healthy', bgClass: 'bg-emerald-50', textClass: 'text-emerald-700' };
-  if (score >= 60) return { label: 'Fair', bgClass: 'bg-blue-50', textClass: 'text-blue-700' };
-  if (score >= 40)
-    return { label: 'Degraded', bgClass: 'bg-amber-50', textClass: 'text-amber-700' };
-  return { label: 'Critical', bgClass: 'bg-red-50', textClass: 'text-red-700' };
 }
 
 interface DivergenceStatsCardsProps {
@@ -462,7 +454,7 @@ function FeedHealthSection({ feedHealthScores, title, getDisplayName }: FeedHeal
       </div>
       <div className="space-y-3">
         {feedHealthScores.map((entity) => {
-          const badge = getHealthBadge(entity.score);
+          const badge = getScoreBadge(entity.score);
           return (
             <div key={entity.provider} className="border border-gray-100 rounded-lg p-3">
               <div className="flex items-center justify-between mb-2">
@@ -483,14 +475,7 @@ function FeedHealthSection({ feedHealthScores, title, getDisplayName }: FeedHeal
                   className="h-2 rounded-full transition-all duration-500"
                   style={{
                     width: `${entity.score}%`,
-                    backgroundColor:
-                      entity.score >= 80
-                        ? '#10b981'
-                        : entity.score >= 60
-                          ? '#3b82f6'
-                          : entity.score >= 40
-                            ? '#f59e0b'
-                            : '#ef4444',
+                    backgroundColor: getScoreColor(entity.score),
                   }}
                 />
               </div>

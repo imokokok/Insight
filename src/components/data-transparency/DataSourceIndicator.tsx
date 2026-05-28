@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { Shield, ShieldCheck, ShieldAlert, ShieldX, Info, ExternalLink, Globe } from 'lucide-react';
 
 import { type CredibilityLevel } from '@/lib/oracles/utils/reputationUtils';
+import { formatRelativeTime } from '@/lib/utils/format';
 import { OracleProvider, type Blockchain } from '@/types/oracle';
 import type { OnChainVerification } from '@/types/oracle/price';
 
@@ -365,17 +366,4 @@ export function DataSourceIndicator({
       </div>
     </div>
   );
-}
-
-function formatRelativeTime(timestamp: number): string {
-  const now = Date.now();
-  const diff = now - timestamp;
-  const seconds = Math.floor(diff / 1000);
-  const minutes = Math.floor(seconds / 60);
-  const hours = Math.floor(minutes / 60);
-
-  if (seconds < 60) return `${seconds}s ago`;
-  if (minutes < 60) return `${minutes}m ago`;
-  if (hours < 24) return `${hours}h ago`;
-  return `${Math.floor(hours / 24)}d ago`;
 }

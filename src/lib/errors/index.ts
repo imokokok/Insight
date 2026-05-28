@@ -27,7 +27,7 @@ export function classifyError(error: unknown): ErrorClassification {
       category: error.category,
       severity: error.severity,
       retryable: error.retryable,
-      logLevel: error.toLogEntry().level as 'debug' | 'info' | 'warn' | 'error',
+      logLevel: error.getLogLevel(),
     };
   }
 

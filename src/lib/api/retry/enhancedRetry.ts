@@ -459,12 +459,19 @@ class EnhancedRetryManager {
   }
 }
 
+const retryManagerRegistry = new Map<string, EnhancedRetryManager>();
+
 export async function withRetry<T>(
   operation: () => Promise<T>,
   operationName?: string,
   config?: Partial<EnhancedRetryConfig>,
   callbacks?: RetryCallbacks<T>
 ): Promise<RetryResult<T>> {
-  const manager = new EnhancedRetryManager(config);
+  const key = operationName || '__default__';
+  let manager = retryManagerRegistry.get(key);
+  if (!manager) {
+    manager = new EnhancedRetryManager(config);
+    retryManagerRegistry.set(key, manager);
+  }
   return manager.execute(operation, operationName, callbacks);
 }

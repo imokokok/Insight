@@ -1,9 +1,11 @@
+import { memo } from 'react';
+
 interface PopularTokensProps {
   tokens: string[];
   onTokenClick: (token: string) => void;
 }
 
-export default function PopularTokens({ tokens, onTokenClick }: PopularTokensProps) {
+export default memo(function PopularTokens({ tokens, onTokenClick }: PopularTokensProps) {
   return (
     <div className="max-w-xl mx-auto relative">
       {tokens.length > 0 && (
@@ -23,4 +25,4 @@ export default function PopularTokens({ tokens, onTokenClick }: PopularTokensPro
       <div className="absolute right-0 top-0 bottom-2 w-8 bg-gradient-to-l from-white to-transparent pointer-events-none sm:hidden" />
     </div>
   );
-}
+});

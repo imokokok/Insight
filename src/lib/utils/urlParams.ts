@@ -13,7 +13,11 @@ export interface QueryConfig {
 
 const VALID_ORACLES = ORACLE_PROVIDER_VALUES;
 const VALID_TIME_RANGES = [1, 6, 12, 24, 72, 168, 720];
-const VALID_REFRESH_INTERVALS = [0, 30000, 60000, 300000];
+const VALID_REFRESH_INTERVALS: number[] = [0, 10000, 30000, 60000, 300000];
+
+function isOracleProvider(value: string): value is OracleProvider {
+  return VALID_ORACLES.some((v) => v === value);
+}
 
 export function parseQueryParams(search: string): Partial<QueryConfig> {
   const params = new URLSearchParams(search);
@@ -24,9 +28,9 @@ export function parseQueryParams(search: string): Partial<QueryConfig> {
     const oracleValues = oraclesParam
       .split(',')
       .map((v) => v.trim().toLowerCase())
-      .filter((v) => VALID_ORACLES.includes(v as OracleProvider));
+      .filter(isOracleProvider);
     if (oracleValues.length > 0) {
-      result.oracles = oracleValues as OracleProvider[];
+      result.oracles = oracleValues;
     }
   }
 

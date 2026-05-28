@@ -16,9 +16,6 @@ interface DataState {
   prevStats: PriceStats | null;
   recommendedBaseChain: Blockchain | null;
   anomalies: AnomalousPricePoint[];
-  fetchData: () => Promise<void>;
-  clearCache: () => void;
-  clearCacheForProvider: (provider: OracleProvider) => void;
 }
 
 interface DataActions {
@@ -31,10 +28,35 @@ interface DataActions {
   setRecommendedBaseChain: (chain: Blockchain | null) => void;
   setAnomalies: (anomalies: AnomalousPricePoint[]) => void;
   setCrossChainComparison: (results: CrossChainComparisonResult[]) => void;
-  setFetchData: (fn: () => Promise<void>) => void;
-  setClearCache: (fn: () => void) => void;
-  setClearCacheForProvider: (fn: (provider: OracleProvider) => void) => void;
   resetDataState: () => void;
+}
+
+let _fetchData: (() => Promise<void>) | null = null;
+let _clearCache: (() => void) | null = null;
+let _clearCacheForProvider: ((provider: OracleProvider) => void) | null = null;
+
+export function setFetchDataRef(fn: () => Promise<void>) {
+  _fetchData = fn;
+}
+
+export function setClearCacheRef(fn: () => void) {
+  _clearCache = fn;
+}
+
+export function setClearCacheForProviderRef(fn: (provider: OracleProvider) => void) {
+  _clearCacheForProvider = fn;
+}
+
+export function getFetchData(): (() => Promise<void>) | null {
+  return _fetchData;
+}
+
+export function getClearCache(): (() => void) | null {
+  return _clearCache;
+}
+
+export function getClearCacheForProvider(): ((provider: OracleProvider) => void) | null {
+  return _clearCacheForProvider;
 }
 
 const initialState: DataState = {
@@ -47,9 +69,6 @@ const initialState: DataState = {
   prevStats: null,
   recommendedBaseChain: null,
   anomalies: [],
-  fetchData: async () => {},
-  clearCache: () => {},
-  clearCacheForProvider: () => {},
 };
 
 export const useCrossChainDataStore = create<DataState & DataActions>()(
@@ -66,9 +85,6 @@ export const useCrossChainDataStore = create<DataState & DataActions>()(
       setRecommendedBaseChain: (chain) => set({ recommendedBaseChain: chain }),
       setAnomalies: (anomalies) => set({ anomalies }),
       setCrossChainComparison: (results) => set({ crossChainComparison: results }),
-      setFetchData: (fn) => set({ fetchData: fn }),
-      setClearCache: (fn) => set({ clearCache: fn }),
-      setClearCacheForProvider: (fn) => set({ clearCacheForProvider: fn }),
       resetDataState: () => set(initialState),
     }),
     { name: 'CrossChainDataStore' }

@@ -6,11 +6,7 @@ import type {
   OracleLeadership,
   DivergencePair,
 } from '@/lib/analytics/divergenceSignals';
-
-function capitalize(s: string): string {
-  if (!s) return s;
-  return s.charAt(0).toUpperCase() + s.slice(1);
-}
+import { capitalize } from '@/lib/utils/format';
 
 interface CrossOracleDivergenceSignalTabProps {
   timeSeries: DivergenceTimeSeries[];

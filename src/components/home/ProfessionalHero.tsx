@@ -54,12 +54,7 @@ export default function ProfessionalHero() {
 
       <div className="relative z-10 flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-12 py-8 sm:py-12">
         <div
-          className="w-full max-w-2xl mx-auto text-center space-y-6 sm:space-y-8"
-          style={{
-            opacity: isVisible ? 1 : 0,
-            transform: isVisible ? 'translateY(0)' : 'translateY(20px)',
-            transition: 'all 0.5s ease-out',
-          }}
+          className={`w-full max-w-2xl mx-auto text-center space-y-6 sm:space-y-8 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'} transition-all duration-500 ease-out`}
         >
           <HeroContent />
 

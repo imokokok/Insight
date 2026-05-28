@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { AlertConfig } from '@/components/alerts/AlertConfig';
 import { AlertHistory } from '@/components/alerts/AlertHistory';
 import { AlertList } from '@/components/alerts/AlertList';
-import { ErrorBoundary } from '@/components/error-boundary';
+import { ErrorBoundary, SectionErrorBoundary } from '@/components/error-boundary';
 import { useAlerts, useAlertEvents, useAlertEventsRealtime } from '@/hooks';
 import { useUser, useAuthLoading } from '@/stores/authStore';
 
@@ -81,7 +81,9 @@ function AlertsContentInner() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1">
-          <AlertConfig onAlertCreated={handleAlertCreated} />
+          <SectionErrorBoundary componentName="AlertConfig">
+            <AlertConfig onAlertCreated={handleAlertCreated} />
+          </SectionErrorBoundary>
         </div>
 
         <div className="lg:col-span-2">
@@ -92,12 +94,16 @@ function AlertsContentInner() {
               </p>
             </div>
           )}
-          <AlertList alerts={alerts} isLoading={alertsLoading} onRefresh={refetchAlerts} />
+          <SectionErrorBoundary componentName="AlertList">
+            <AlertList alerts={alerts} isLoading={alertsLoading} onRefresh={refetchAlerts} />
+          </SectionErrorBoundary>
         </div>
       </div>
 
       <div id="alert-history" className="mt-6">
-        <AlertHistory events={events} isLoading={eventsLoading} onRefresh={refetchEvents} />
+        <SectionErrorBoundary componentName="AlertHistory">
+          <AlertHistory events={events} isLoading={eventsLoading} onRefresh={refetchEvents} />
+        </SectionErrorBoundary>
       </div>
 
       <div className="mt-8 p-4 bg-primary-50 border border-primary-200 rounded-lg">

@@ -11,20 +11,17 @@ import type { DIATokenOnChainData } from '@/lib/oracles/services/diaDataService'
 import type { WINkLinkTokenOnChainData } from '@/lib/oracles/services/winklinkRealDataService';
 import { OracleProvider as OracleProviderEnum } from '@/types/oracle';
 
+import { API3Stats } from './API3Stats';
+import { ChainlinkStats } from './ChainlinkStats';
+import { DIAStats } from './DIAStats';
+import { FlareStats } from './FlareStats';
+import { PythStats } from './PythStats';
+import { RedStoneStats } from './RedStoneStats';
+import { ReflectorStats } from './ReflectorStats';
+import { SupraStats } from './SupraStats';
+import { TwapStats } from './TwapStats';
 import { VerificationStatCard } from './VerificationStatCard';
-
-import {
-  ChainlinkStats,
-  PythStats,
-  API3Stats,
-  DIAStats,
-  WINkLinkStats,
-  RedStoneStats,
-  SupraStats,
-  TwapStats,
-  ReflectorStats,
-  FlareStats,
-} from './index';
+import { WINkLinkStats } from './WINkLinkStats';
 
 import type { QueryResult, AnyOnChainData } from '../../constants';
 

@@ -6,6 +6,7 @@ import Link from 'next/link';
 
 import { Trophy, Clock, Target, Shield, GitBranch, Database, ExternalLink } from 'lucide-react';
 
+import { ProgressBar } from '@/components/ui/ProgressBar';
 import { useReputations } from '@/hooks/data/useReputations';
 import { chartColors } from '@/lib/config/colors';
 import { type CalculatedPerformanceMetrics } from '@/lib/oracles/utils/performanceMetricsCalculator';
@@ -50,18 +51,6 @@ function getDataSourceLabel(dataSource: string): { label: string; color: string 
     default:
       return { label: 'Unknown', color: 'text-gray-400' };
   }
-}
-
-function MetricBar({ value, maxValue, color }: { value: number; maxValue: number; color: string }) {
-  const pct = Math.min((value / maxValue) * 100, 100);
-  return (
-    <div className="w-full bg-gray-100 rounded-full h-1.5">
-      <div
-        className="h-1.5 rounded-full transition-all duration-500"
-        style={{ width: `${pct}%`, backgroundColor: color }}
-      />
-    </div>
-  );
 }
 
 function OracleRankingTabComponent({
@@ -161,7 +150,12 @@ function OracleRankingTabComponent({
 
       <div className="space-y-3">
         {rankedOracles.map((oracle) => {
-          const badge = getScoreBadge(oracle.overallScore);
+          const badge = getScoreBadge(oracle.overallScore, {
+            excellent: 90,
+            good: 75,
+            poor: 60,
+            critical: 40,
+          });
           const dsInfo = getDataSourceLabel(oracle.dataSource);
 
           return (
@@ -201,10 +195,15 @@ function OracleRankingTabComponent({
                   </div>
 
                   <div className="mb-2">
-                    <MetricBar
+                    <ProgressBar
                       value={oracle.overallScore}
                       maxValue={100}
-                      color={getScoreColor(oracle.overallScore)}
+                      color={getScoreColor(oracle.overallScore, {
+                        excellent: 90,
+                        good: 75,
+                        poor: 60,
+                        critical: 40,
+                      })}
                     />
                   </div>
 

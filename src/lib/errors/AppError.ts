@@ -66,10 +66,9 @@ export abstract class AppError extends Error {
   public readonly retryAfter?: number;
   public readonly requestId?: string;
   public readonly timestamp: Date;
-  public readonly cause?: Error;
 
   constructor(options: ExtendedAppErrorOptions) {
-    super(options.message);
+    super(options.message, options.cause ? { cause: options.cause } : undefined);
     this.name = this.constructor.name;
     this.code = options.code;
     this.statusCode = options.statusCode;
@@ -81,10 +80,6 @@ export abstract class AppError extends Error {
     this.retryAfter = options.retryAfter;
     this.requestId = options.requestId ?? AppError.generateRequestId();
     this.timestamp = new Date();
-
-    if (options.cause) {
-      this.cause = options.cause;
-    }
 
     Object.setPrototypeOf(this, new.target.prototype);
     if (typeof Error.captureStackTrace === 'function') {
@@ -195,7 +190,7 @@ export abstract class AppError extends Error {
   /**
    * Get log level based on severity level
    */
-  private getLogLevel(): 'debug' | 'info' | 'warn' | 'error' {
+  public getLogLevel(): 'debug' | 'info' | 'warn' | 'error' {
     switch (this.severity) {
       case 'critical':
       case 'high':

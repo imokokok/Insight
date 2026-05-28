@@ -242,8 +242,8 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
   }, [selectedOracle]);
 
   const refetch = useCallback(async () => {
-    await queryClient.invalidateQueries({ queryKey: priceKeys.all });
-  }, [queryClient]);
+    await queryClient.invalidateQueries({ queryKey: priceKeys.bySymbol(selectedSymbol) });
+  }, [queryClient, selectedSymbol]);
 
   const retryDataSource = useCallback(
     async (provider: OracleProvider, chain: Blockchain) => {

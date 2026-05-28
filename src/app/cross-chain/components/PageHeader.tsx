@@ -4,7 +4,7 @@ import { Download, RefreshCw, Eye } from 'lucide-react';
 
 import { LiveStatusBar } from '@/components/ui';
 import { useColorblindMode, useSetColorblindMode } from '@/stores/crossChainConfigStore';
-import { useCrossChainDataStore } from '@/stores/crossChainDataStore';
+import { useCrossChainDataStore, getFetchData } from '@/stores/crossChainDataStore';
 
 import { useCrossChainExportActions } from '../hooks/useCrossChainExport';
 
@@ -17,7 +17,7 @@ export function PageHeader() {
   const refreshStatus = useCrossChainDataStore((s) => s.refreshStatus);
   const showRefreshSuccess = useCrossChainDataStore((s) => s.showRefreshSuccess);
   const lastUpdated = useCrossChainDataStore((s) => s.lastUpdated);
-  const fetchData = useCrossChainDataStore((s) => s.fetchData);
+  const fetchData = getFetchData();
 
   const { exportToCSV, exportToJSON } = useCrossChainExportActions();
 
@@ -72,7 +72,7 @@ export function PageHeader() {
           </div>
 
           <button
-            onClick={() => fetchData()}
+            onClick={() => fetchData?.()}
             disabled={refreshStatus === 'refreshing'}
             className={`flex items-center gap-1.5 px-4 py-1.5 text-sm text-white disabled:opacity-50 rounded-md transition-all duration-200 ${
               refreshStatus === 'error'

@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useMemo } from 'react';
+import { lazy, memo, Suspense, useMemo } from 'react';
 
 import { Database, BarChart3, Shield, Trophy, Activity, Heart } from 'lucide-react';
 
@@ -12,11 +12,6 @@ import type { OracleProvider, PriceData } from '@/types/oracle';
 
 import { OracleErrorPanel } from './OracleErrorPanel';
 import { RiskAlertBanner } from './RiskAlertBanner';
-import { CrossOracleDivergenceSignalTab as DivergenceSignalTab } from './tabs/DivergenceSignalTab';
-import { FeedHealthTab } from './tabs/FeedHealthTab';
-import { OracleRankingTab } from './tabs/OracleRankingTab';
-import { RiskAnalysisTab } from './tabs/RiskAnalysisTab';
-import { SimplePriceComparisonTab } from './tabs/SimplePriceComparisonTab';
 
 import type { CrossOracleTab } from '../hooks/useCrossOraclePage';
 import type { DivergenceSignalsResult } from '../hooks/useDivergenceSignals';
@@ -25,6 +20,22 @@ import type { PriceAnomaly, AnomalyDetectionResult } from '../hooks/usePriceAnom
 import type { RiskMetricsResult } from '../hooks/useRiskMetrics';
 import type { StabilityScoreHookResult } from '../hooks/useStabilityScore';
 import type { OracleDataError } from '../types';
+
+const LazySimplePriceComparisonTab = lazy(() =>
+  import('./tabs/SimplePriceComparisonTab').then((m) => ({ default: m.SimplePriceComparisonTab }))
+);
+const LazyDivergenceSignalTab = lazy(() =>
+  import('./tabs/DivergenceSignalTab').then((m) => ({ default: m.CrossOracleDivergenceSignalTab }))
+);
+const LazyFeedHealthTab = lazy(() =>
+  import('./tabs/FeedHealthTab').then((m) => ({ default: m.FeedHealthTab }))
+);
+const LazyRiskAnalysisTab = lazy(() =>
+  import('./tabs/RiskAnalysisTab').then((m) => ({ default: m.RiskAnalysisTab }))
+);
+const LazyOracleRankingTab = lazy(() =>
+  import('./tabs/OracleRankingTab').then((m) => ({ default: m.OracleRankingTab }))
+);
 
 interface QueryResultsProps {
   priceData: PriceData[];
@@ -297,68 +308,78 @@ function QueryResultsComponent({
 
         <div className="min-h-[400px] p-6">
           {activeTab === 'comparison' && (
-            <SimplePriceComparisonTab
-              priceData={priceData}
-              selectedOracles={selectedOracles}
-              selectedSymbol={selectedSymbol}
-              medianPrice={priceStats.medianPrice}
-              minPrice={priceStats.minPrice}
-              maxPrice={priceStats.maxPrice}
-              priceRange={priceStats.priceRange}
-              standardDeviation={priceStats.standardDeviation}
-              standardDeviationPercent={priceStats.standardDeviationPercent}
-              avgPrice={priceStats.avgPrice}
-              validPrices={priceStats.validPrices}
-              anomalies={anomalies}
-              consensusResult={consensusResult}
-              currentConsensusMethod={currentConsensusMethod}
-              onConsensusMethodChange={onConsensusMethodChange}
-            />
+            <Suspense fallback={<div className="animate-pulse h-48 bg-gray-100 rounded-lg" />}>
+              <LazySimplePriceComparisonTab
+                priceData={priceData}
+                selectedOracles={selectedOracles}
+                selectedSymbol={selectedSymbol}
+                medianPrice={priceStats.medianPrice}
+                minPrice={priceStats.minPrice}
+                maxPrice={priceStats.maxPrice}
+                priceRange={priceStats.priceRange}
+                standardDeviation={priceStats.standardDeviation}
+                standardDeviationPercent={priceStats.standardDeviationPercent}
+                avgPrice={priceStats.avgPrice}
+                validPrices={priceStats.validPrices}
+                anomalies={anomalies}
+                consensusResult={consensusResult}
+                currentConsensusMethod={currentConsensusMethod}
+                onConsensusMethodChange={onConsensusMethodChange}
+              />
+            </Suspense>
           )}
           {activeTab === 'divergence' && (
-            <DivergenceSignalTab
-              timeSeries={divergenceSignals.timeSeries}
-              leadership={divergenceSignals.leadership}
-              divergenceMatrix={divergenceSignals.divergenceMatrix}
-              alertCount={divergenceSignals.alertCount}
-              acceleratingCount={divergenceSignals.acceleratingCount}
-              directionalBiasCount={divergenceSignals.directionalBiasCount}
-              leadingOracle={divergenceSignals.leadingOracle}
-              maxAcceleration={divergenceSignals.maxAcceleration}
-            />
+            <Suspense fallback={<div className="animate-pulse h-48 bg-gray-100 rounded-lg" />}>
+              <LazyDivergenceSignalTab
+                timeSeries={divergenceSignals.timeSeries}
+                leadership={divergenceSignals.leadership}
+                divergenceMatrix={divergenceSignals.divergenceMatrix}
+                alertCount={divergenceSignals.alertCount}
+                acceleratingCount={divergenceSignals.acceleratingCount}
+                directionalBiasCount={divergenceSignals.directionalBiasCount}
+                leadingOracle={divergenceSignals.leadingOracle}
+                maxAcceleration={divergenceSignals.maxAcceleration}
+              />
+            </Suspense>
           )}
           {activeTab === 'feedHealth' && (
-            <FeedHealthTab
-              rhythmMetrics={feedBehavior.rhythmMetrics}
-              confidenceMetrics={feedBehavior.confidenceMetrics}
-              heartbeatMetrics={feedBehavior.heartbeatMetrics}
-              healthScores={feedBehavior.healthScores}
-              overallHealthAvg={feedBehavior.overallHealthAvg}
-              overallHealthLevel={feedBehavior.overallHealthLevel}
-              anomalyCount={feedBehavior.anomalyCount}
-              heartbeatLostCount={feedBehavior.heartbeatLostCount}
-              confidenceSurgeCount={feedBehavior.confidenceSurgeCount}
-            />
+            <Suspense fallback={<div className="animate-pulse h-48 bg-gray-100 rounded-lg" />}>
+              <LazyFeedHealthTab
+                rhythmMetrics={feedBehavior.rhythmMetrics}
+                confidenceMetrics={feedBehavior.confidenceMetrics}
+                heartbeatMetrics={feedBehavior.heartbeatMetrics}
+                healthScores={feedBehavior.healthScores}
+                overallHealthAvg={feedBehavior.overallHealthAvg}
+                overallHealthLevel={feedBehavior.overallHealthLevel}
+                anomalyCount={feedBehavior.anomalyCount}
+                heartbeatLostCount={feedBehavior.heartbeatLostCount}
+                confidenceSurgeCount={feedBehavior.confidenceSurgeCount}
+              />
+            </Suspense>
           )}
           {activeTab === 'risk' && (
-            <RiskAnalysisTab
-              riskMetrics={riskMetrics}
-              oracleCount={priceData.length}
-              divergenceAccelerationScore={divergenceAccelerationScore}
-              divergenceAccelerationLevel={divergenceAccelerationLevel}
-              feedBehaviorHealthAvg={feedBehavior.overallHealthAvg}
-              feedBehaviorHealthLevel={feedBehaviorHealthLevel}
-              stabilityDecayScore={stabilityDecayScore}
-              stabilityDecayLevel={stabilityDecayLevel}
-              riskAttribution={riskAttribution}
-            />
+            <Suspense fallback={<div className="animate-pulse h-48 bg-gray-100 rounded-lg" />}>
+              <LazyRiskAnalysisTab
+                riskMetrics={riskMetrics}
+                oracleCount={priceData.length}
+                divergenceAccelerationScore={divergenceAccelerationScore}
+                divergenceAccelerationLevel={divergenceAccelerationLevel}
+                feedBehaviorHealthAvg={feedBehavior.overallHealthAvg}
+                feedBehaviorHealthLevel={feedBehaviorHealthLevel}
+                stabilityDecayScore={stabilityDecayScore}
+                stabilityDecayLevel={stabilityDecayLevel}
+                riskAttribution={riskAttribution}
+              />
+            </Suspense>
           )}
           {activeTab === 'ranking' && (
-            <OracleRankingTab
-              priceData={priceData}
-              performanceMetrics={performanceMetrics}
-              isCalculatingMetrics={isCalculatingMetrics}
-            />
+            <Suspense fallback={<div className="animate-pulse h-48 bg-gray-100 rounded-lg" />}>
+              <LazyOracleRankingTab
+                priceData={priceData}
+                performanceMetrics={performanceMetrics}
+                isCalculatingMetrics={isCalculatingMetrics}
+              />
+            </Suspense>
           )}
         </div>
       </div>

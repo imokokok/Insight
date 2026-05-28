@@ -1,4 +1,5 @@
-import { sanitizeString } from '@/lib/security/inputSanitizer';
+import { sanitizeString, sanitizeUuid } from '@/lib/security/inputSanitizer';
+import { validatePassword } from '@/lib/security/passwordValidation';
 import { type UserProfile } from '@/types/analytics';
 
 import { supabase } from './client';
@@ -60,7 +61,7 @@ export async function signIn(email: string, password: string): Promise<AuthRespo
 
 export async function signInWithOAuth(provider: Provider): Promise<{ error: AuthError | null }> {
   const state = crypto.randomUUID();
-  document.cookie = `oauth_state=${state}; path=/; max-age=600; SameSite=Lax; Secure`;
+  document.cookie = `oauth_state=${state}; path=/; max-age=600; SameSite=Strict; Secure; HttpOnly`;
 
   const { error } = await supabase.auth.signInWithOAuth({
     provider,
@@ -93,6 +94,11 @@ export async function resetPassword(email: string): Promise<{ error: AuthError |
 }
 
 export async function updatePassword(newPassword: string): Promise<AuthResponse> {
+  const validationError = validatePassword(newPassword);
+  if (validationError) {
+    return { user: null, session: null, error: { message: validationError } as AuthError };
+  }
+
   const { data, error } = await supabase.auth.updateUser({
     password: newPassword,
   });
@@ -191,8 +197,16 @@ export async function uploadAvatar(userId: string, file: File): Promise<AvatarUp
       };
     }
 
+    const sanitizedUserId = sanitizeUuid(userId);
+    if (!sanitizedUserId) {
+      return {
+        url: null,
+        error: new Error('Invalid user ID'),
+      };
+    }
+
     const fileExt = file.name.split('.').pop()?.toLowerCase() || 'png';
-    const fileName = `${userId}/avatar.${fileExt}`;
+    const fileName = `${sanitizedUserId}/avatar.${fileExt}`;
 
     const { error: uploadError } = await supabase.storage
       .from(AVATAR_BUCKET)

@@ -94,7 +94,7 @@ export function createApiHandler<T = unknown>(
         const logResult = await loggingMiddleware(request);
         apiContext.requestId = logResult.requestId;
       } else {
-        apiContext.requestId = `req_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
+        apiContext.requestId = `req_${crypto.randomUUID().replace(/-/g, '')}`;
       }
 
       if (apiKeyMiddleware) {

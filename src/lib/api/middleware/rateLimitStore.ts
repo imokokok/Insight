@@ -37,7 +37,17 @@ class KvRateLimitStore implements RateLimitStore {
       const count = (await Promise.race([kv.incr(fullKey), this.timeout(500)])) as number;
 
       if (count === 1) {
-        await Promise.all([kv.expire(fullKey, windowMsInSeconds), this.timeout(500)]);
+        try {
+          await Promise.race([kv.expire(fullKey, windowMsInSeconds), this.timeout(500)]);
+        } catch (expireError) {
+          logger.warn('KV expire failed after incr, attempting cleanup', { expireError });
+          try {
+            await kv.set(fullKey, 0, { ex: 1 });
+          } catch {
+            // best effort cleanup
+          }
+          return this.failOpen(windowMs);
+        }
         return { count, resetTime: Date.now() + windowMs };
       }
 
@@ -45,6 +55,12 @@ class KvRateLimitStore implements RateLimitStore {
 
       if (ttl > 0) {
         return { count, resetTime: Date.now() + ttl * 1000 };
+      }
+
+      try {
+        await Promise.race([kv.expire(fullKey, windowMsInSeconds), this.timeout(500)]);
+      } catch {
+        // best effort
       }
 
       return { count, resetTime: Date.now() + windowMs };
