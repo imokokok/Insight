@@ -373,41 +373,11 @@ async function getAPI3Price(
  * Note: API3 dAPI does not directly provide historical data; uses Binance API to fetch historical data
  */
 async function getAPI3HistoricalPrices(
-  symbol: string,
+  _symbol: string,
   _chain: Blockchain = Blockchain.ETHEREUM,
-  period: number = 24
+  _period: number = 24
 ): Promise<Array<{ price: number; timestamp: number; source: string }>> {
-  try {
-    const { binanceMarketService } = await import('@/lib/services/marketData/binanceMarketService');
-
-    const historicalPrices = await binanceMarketService.getHistoricalPrices(
-      symbol,
-      Math.max(1, Math.ceil(period / 24))
-    );
-
-    if (!historicalPrices || historicalPrices.length === 0) {
-      logger.warn(`No historical data available for ${symbol} from Binance`);
-      return [];
-    }
-
-    logger.info(`Using Binance historical data for API3 ${symbol}`, {
-      symbol,
-      points: historicalPrices.length,
-      period,
-    });
-
-    return historicalPrices.map((point) => ({
-      price: point.price,
-      timestamp: point.timestamp,
-      source: `binance-api-for-api3`,
-    }));
-  } catch (error) {
-    logger.error(
-      `Failed to fetch historical prices for ${symbol}`,
-      error instanceof Error ? error : new Error(String(error))
-    );
-    return [];
-  }
+  return [];
 }
 
 /**

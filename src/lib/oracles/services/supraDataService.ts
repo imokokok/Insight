@@ -1,4 +1,3 @@
-import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
 import { createLogger } from '@/lib/utils/logger';
 
 import {
@@ -220,56 +219,13 @@ class SupraDataService {
   }
 
   async fetchHistoricalPrices(
-    tradingPair: string,
-    startDate: number,
-    endDate: number,
-    interval: number,
+    _tradingPair: string,
+    _startDate: number,
+    _endDate: number,
+    _interval: number,
     _signal?: AbortSignal
   ): Promise<SupraOHLCDataPoint[]> {
-    const cacheKey = `history:${tradingPair}:${startDate}:${endDate}:${interval}`;
-    const cached = this.getFromCache<SupraOHLCDataPoint[]>(cacheKey);
-    if (cached) {
-      return cached;
-    }
-
-    try {
-      // Extract symbol from tradingPair (format: btc_usdt -> BTC)
-      const symbol = tradingPair.split('_')[0]?.split(' ')[0]?.toUpperCase();
-      if (!symbol) {
-        logger.warn(`Invalid trading pair format: ${tradingPair}`);
-        return [];
-      }
-
-      const days = Math.max(1, Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)));
-
-      const historicalPrices = await binanceMarketService.getHistoricalPrices(symbol, days);
-
-      if (!historicalPrices || historicalPrices.length === 0) {
-        logger.warn(`No historical data available for ${symbol} from Binance`);
-        return [];
-      }
-
-      const result: SupraOHLCDataPoint[] = historicalPrices
-        .filter((point) => point.timestamp >= startDate && point.timestamp <= endDate)
-        .map((point) => ({
-          timestamp: point.timestamp,
-          open: point.price,
-          high: point.price,
-          low: point.price,
-          close: point.price,
-          volume: point.volume || 0,
-        }));
-
-      logger.info(`Fetched ${result.length} historical data points for ${symbol} from Binance`);
-
-      this.setCache(cacheKey, result, SUPRA_CACHE_TTL.HISTORY);
-      return result;
-    } catch (error) {
-      logger.warn(
-        `Binance API error: ${error instanceof Error ? error.message : 'Unknown'}, returning empty history`
-      );
-      return [];
-    }
+    return [];
   }
 
   private getFromCache<T>(key: string): T | null {

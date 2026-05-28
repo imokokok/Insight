@@ -267,50 +267,10 @@ class WINkLinkRealDataService {
   }
 
   async getHistoricalPrices(
-    symbol: string,
-    periodHours: number = 24
+    _symbol: string,
+    _periodHours: number = 24
   ): Promise<Array<{ price: number; timestamp: number }>> {
-    const cacheKey = `historical:${symbol}:${periodHours}`;
-    const cached = this.getFromCache<Array<{ price: number; timestamp: number }>>(cacheKey);
-    if (cached) {
-      return cached;
-    }
-
-    try {
-      const { binanceMarketService } =
-        await import('@/lib/services/marketData/binanceMarketService');
-
-      const historicalPrices = await binanceMarketService.getHistoricalPrices(
-        symbol,
-        Math.max(1, Math.ceil(periodHours / 24))
-      );
-
-      if (!historicalPrices || historicalPrices.length === 0) {
-        logger.warn(`No historical data available for ${symbol} from Binance`);
-        return [];
-      }
-
-      logger.info('Using Binance historical data for WINkLink', {
-        symbol,
-        points: historicalPrices.length,
-        periodHours,
-      });
-
-      const dataPoints = historicalPrices.map((point) => ({
-        price: point.price,
-        timestamp: point.timestamp,
-      }));
-
-      this.setCache(cacheKey, dataPoints, 5 * 60 * 1000);
-      return dataPoints;
-    } catch (error) {
-      logger.error(
-        'Failed to get historical prices',
-        error instanceof Error ? error : new Error(String(error)),
-        { symbol, periodHours }
-      );
-      return [];
-    }
+    return [];
   }
 
   private async fetchWithTimeout(

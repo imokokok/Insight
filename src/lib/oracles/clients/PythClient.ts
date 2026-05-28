@@ -2,7 +2,6 @@ import { BaseOracleClient } from '@/lib/oracles/base';
 import type { OracleClientConfig } from '@/lib/oracles/base';
 import { pythSymbols, PYTH_AVAILABLE_PAIRS } from '@/lib/oracles/constants/supportedSymbols';
 import { getPythDataService } from '@/lib/oracles/services/pythDataService';
-import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
 import { OracleProvider, Blockchain, OracleServiceError } from '@/types/oracle';
 import type { PriceData, ConfidenceInterval } from '@/types/oracle';
 
@@ -84,29 +83,10 @@ export class PythClient extends BaseOracleClient {
     const upperSymbol = symbol.toUpperCase();
 
     if (upperSymbol === 'PYTH') {
-      try {
-        const marketData = await binanceMarketService.getTokenMarketData(symbol);
-        if (marketData) {
-          return {
-            provider: this.name,
-            symbol: upperSymbol,
-            price: marketData.currentPrice,
-            timestamp: new Date(marketData.lastUpdated).getTime(),
-            decimals: 8,
-            confidence: 0.95,
-            change24h: marketData.priceChange24h,
-            change24hPercent: marketData.priceChangePercentage24h,
-            chain,
-            source: 'binance-api',
-          };
-        }
-      } catch (error) {
-        if (error instanceof OracleServiceError) throw error;
-        throw this.createError(
-          error instanceof Error ? error.message : 'Failed to fetch PYTH price from Binance',
-          'PYTH_ERROR'
-        );
-      }
+      throw this.createError(
+        'PYTH token price is not available from Pyth oracle network',
+        'NO_DATA_AVAILABLE'
+      );
     }
 
     try {

@@ -1,10 +1,8 @@
 import { WINkLinkClient } from '@/lib/oracles/clients/winklink';
 import { getWINkLinkRealDataService } from '@/lib/oracles/services/winklinkRealDataService';
-import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 
 jest.mock('@/lib/oracles/services/winklinkRealDataService');
-jest.mock('@/lib/services/marketData/binanceMarketService');
 jest.mock('@/lib/config/env', () => ({
   FEATURE_FLAGS: {
     useRealWinklinkData: false,
@@ -139,83 +137,12 @@ describe('WINkLinkClient', () => {
     });
   });
 
-  describe('getPrice - WIN token special handling', () => {
-    const mockMarketData = {
-      symbol: 'WIN',
-      name: 'WINkLink',
-      currentPrice: 0.00012,
-      marketCap: 0,
-      marketCapRank: 0,
-      totalVolume24h: 50000000,
-      high24h: 0.00013,
-      low24h: 0.00011,
-      priceChange24h: 0.000002,
-      priceChangePercentage24h: 1.5,
-      circulatingSupply: 0,
-      totalSupply: 0,
-      ath: 0,
-      athChangePercentage: 0,
-      atl: 0,
-      atlChangePercentage: 0,
-      lastUpdated: new Date().toISOString(),
-    };
-
-    it('should use Binance API for WIN token price', async () => {
-      (binanceMarketService.getTokenMarketData as jest.Mock).mockResolvedValue(mockMarketData);
-
-      const result = await client.getPrice('WIN');
-
-      expect(binanceMarketService.getTokenMarketData).toHaveBeenCalledWith('WIN');
-      expect(result).toMatchObject({
-        provider: OracleProvider.WINKLINK,
-        symbol: 'WIN',
-        price: mockMarketData.currentPrice,
-        chain: Blockchain.TRON,
-        source: 'binance-api',
-        decimals: 8,
-        confidence: 0.95,
-      });
-    });
-
-    it('should include 24h change data for WIN token', async () => {
-      (binanceMarketService.getTokenMarketData as jest.Mock).mockResolvedValue(mockMarketData);
-
-      const result = await client.getPrice('WIN');
-
-      expect(result.change24h).toBe(mockMarketData.priceChange24h);
-      expect(result.change24hPercent).toBe(mockMarketData.priceChangePercentage24h);
-    });
-
-    it('should handle WIN token with lowercase symbol', async () => {
-      (binanceMarketService.getTokenMarketData as jest.Mock).mockResolvedValue(mockMarketData);
-
-      const result = await client.getPrice('win');
-
-      expect(binanceMarketService.getTokenMarketData).toHaveBeenCalledWith('win');
-      expect(result.symbol).toBe('WIN');
-    });
-
-    it('should return correct timestamp from market data', async () => {
-      const customTimestamp = Date.now() - 60000;
-      const marketDataWithTimestamp = {
-        ...mockMarketData,
-        lastUpdated: new Date(customTimestamp).toISOString(),
-      };
-      (binanceMarketService.getTokenMarketData as jest.Mock).mockResolvedValue(
-        marketDataWithTimestamp
-      );
-
-      const result = await client.getPrice('WIN');
-
-      expect(result.timestamp).toBe(customTimestamp);
-    });
-
-    it('should fallback to database when Binance returns null for WIN', async () => {
-      (binanceMarketService.getTokenMarketData as jest.Mock).mockResolvedValue(null);
+  describe('getPrice - WIN token', () => {
+    it('should fetch WIN token price from database', async () => {
       mockFetchPriceWithDatabase.mockResolvedValue({
         provider: OracleProvider.WINKLINK,
         symbol: 'WIN',
-        price: 0.00011,
+        price: 0.00012,
         timestamp: Date.now(),
         decimals: 8,
         confidence: 0.95,
@@ -224,8 +151,47 @@ describe('WINkLinkClient', () => {
 
       const result = await client.getPrice('WIN');
 
-      expect(mockFetchPriceWithDatabase).toHaveBeenCalled();
+      expect(result).toMatchObject({
+        provider: OracleProvider.WINKLINK,
+        symbol: 'WIN',
+        price: 0.00012,
+        chain: Blockchain.TRON,
+      });
+    });
+
+    it('should handle WIN token with lowercase symbol', async () => {
+      mockFetchPriceWithDatabase.mockResolvedValue({
+        provider: OracleProvider.WINKLINK,
+        symbol: 'WIN',
+        price: 0.00012,
+        timestamp: Date.now(),
+        decimals: 8,
+        confidence: 0.95,
+        chain: Blockchain.TRON,
+      });
+
+      const result = await client.getPrice('win');
+
       expect(result.symbol).toBe('WIN');
+    });
+
+    it('should include 24h change data for WIN token when available', async () => {
+      mockFetchPriceWithDatabase.mockResolvedValue({
+        provider: OracleProvider.WINKLINK,
+        symbol: 'WIN',
+        price: 0.00012,
+        timestamp: Date.now(),
+        decimals: 8,
+        confidence: 0.95,
+        chain: Blockchain.TRON,
+        change24h: 0.000002,
+        change24hPercent: 1.5,
+      });
+
+      const result = await client.getPrice('WIN');
+
+      expect(result.change24h).toBe(0.000002);
+      expect(result.change24hPercent).toBe(1.5);
     });
   });
 
@@ -311,10 +277,7 @@ describe('WINkLinkClient', () => {
   });
 
   describe('getPrice - error handling', () => {
-    it('should handle network error from Binance for WIN token', async () => {
-      (binanceMarketService.getTokenMarketData as jest.Mock).mockRejectedValue(
-        new Error('Network error')
-      );
+    it('should handle database fetch error for WIN token', async () => {
       mockFetchPriceWithDatabase.mockRejectedValue(new Error('Database error'));
 
       await expect(client.getPrice('WIN')).rejects.toMatchObject({
@@ -513,34 +476,6 @@ describe('WINkLinkClient', () => {
       expect(mockRealDataService.getPriceFromContract).not.toHaveBeenCalled();
       expect(result).toBeDefined();
     });
-
-    it('should always use Binance for WIN regardless of feature flag', async () => {
-      const mockMarketData = {
-        symbol: 'WIN',
-        name: 'WINkLink',
-        currentPrice: 0.00012,
-        marketCap: 0,
-        marketCapRank: 0,
-        totalVolume24h: 50000000,
-        high24h: 0.00013,
-        low24h: 0.00011,
-        priceChange24h: 0.000002,
-        priceChangePercentage24h: 1.5,
-        circulatingSupply: 0,
-        totalSupply: 0,
-        ath: 0,
-        athChangePercentage: 0,
-        atl: 0,
-        atlChangePercentage: 0,
-        lastUpdated: new Date().toISOString(),
-      };
-
-      (binanceMarketService.getTokenMarketData as jest.Mock).mockResolvedValue(mockMarketData);
-
-      await client.getPrice('WIN');
-
-      expect(binanceMarketService.getTokenMarketData).toHaveBeenCalledWith('WIN');
-    });
   });
 
   describe('Real data service integration', () => {
@@ -655,27 +590,15 @@ describe('WINkLinkClient', () => {
     });
 
     it('should return correct decimals for WIN token', async () => {
-      const mockMarketData = {
+      mockFetchPriceWithDatabase.mockResolvedValue({
+        provider: OracleProvider.WINKLINK,
         symbol: 'WIN',
-        name: 'WINkLink',
-        currentPrice: 0.00012,
-        marketCap: 0,
-        marketCapRank: 0,
-        totalVolume24h: 50000000,
-        high24h: 0.00013,
-        low24h: 0.00011,
-        priceChange24h: 0.000002,
-        priceChangePercentage24h: 1.5,
-        circulatingSupply: 0,
-        totalSupply: 0,
-        ath: 0,
-        athChangePercentage: 0,
-        atl: 0,
-        atlChangePercentage: 0,
-        lastUpdated: new Date().toISOString(),
-      };
-
-      (binanceMarketService.getTokenMarketData as jest.Mock).mockResolvedValue(mockMarketData);
+        price: 0.00012,
+        timestamp: Date.now(),
+        decimals: 8,
+        confidence: 0.95,
+        chain: Blockchain.TRON,
+      });
 
       const result = await client.getPrice('WIN');
 

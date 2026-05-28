@@ -3,7 +3,6 @@ import {
   validateOracleData,
   safeValidateOracleData,
 } from '@/lib/security/validation';
-import { binanceMarketService } from '@/lib/services/marketData/binanceMarketService';
 import { TTLCache, type CacheEntry } from '@/lib/utils/cache';
 import { createLogger } from '@/lib/utils/logger';
 import {
@@ -146,53 +145,12 @@ export abstract class BaseOracleClient {
   }
 
   async getHistoricalPrices(
-    symbol: string,
-    chain?: Blockchain,
-    period: number = 24,
-    options?: { signal?: AbortSignal }
+    _symbol: string,
+    _chain?: Blockchain,
+    _period: number = 24,
+    _options?: { signal?: AbortSignal }
   ): Promise<PriceData[]> {
-    if (options?.signal?.aborted) {
-      return [];
-    }
-
-    try {
-      const historicalPrices = await binanceMarketService.getHistoricalPrices(
-        symbol,
-        Math.max(1, Math.ceil(period / 24))
-      );
-
-      if (options?.signal?.aborted) {
-        return [];
-      }
-
-      if (!historicalPrices || historicalPrices.length === 0) {
-        return this.onNoHistoricalData(symbol);
-      }
-
-      const targetChain = chain || this.defaultChain;
-      const latestPrice = historicalPrices[historicalPrices.length - 1].price;
-      const confidence = this.getHistoricalPriceConfidence(targetChain);
-
-      return historicalPrices.map((point) => {
-        const change24h = latestPrice - point.price;
-        const change24hPercent = point.price > 0 ? (change24h / point.price) * 100 : 0;
-
-        return {
-          provider: this.name,
-          chain: targetChain,
-          symbol: symbol.toUpperCase(),
-          price: point.price,
-          timestamp: point.timestamp,
-          decimals: 8,
-          confidence,
-          change24h: Number(change24h.toFixed(4)),
-          change24hPercent: Number(change24hPercent.toFixed(2)),
-          source: 'binance-api',
-        };
-      });
-    } catch (error) {
-      return this.onHistoricalDataError(symbol, error);
-    }
+    return [];
   }
 
   isSymbolSupported(symbol: string, chain?: Blockchain): boolean {
