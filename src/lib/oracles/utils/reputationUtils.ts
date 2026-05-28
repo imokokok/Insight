@@ -1,24 +1,49 @@
-import { semanticColors } from '@/lib/config/colors';
-
-export function getScoreColor(score: number): string {
-  if (score >= 90) return semanticColors.success.DEFAULT;
-  if (score >= 75) return semanticColors.info.DEFAULT;
-  if (score >= 60) return semanticColors.warning.DEFAULT;
-  if (score >= 40) return '#f97316';
-  return semanticColors.danger.DEFAULT;
+export interface ScoreThresholds {
+  excellent: number;
+  good: number;
+  poor: number;
+  critical?: number;
 }
 
-export function getScoreBadge(score: number): {
+const DEFAULT_SCORE_THRESHOLDS: ScoreThresholds = { excellent: 80, good: 60, poor: 40 };
+
+export function getScoreColor(
+  score: number,
+  thresholds: ScoreThresholds = DEFAULT_SCORE_THRESHOLDS
+): string {
+  if (score >= thresholds.excellent) return '#10b981';
+  if (score >= thresholds.good) return '#3b82f6';
+  if (score >= thresholds.poor) return '#f59e0b';
+  if (thresholds.critical !== undefined && score >= thresholds.critical) return '#f97316';
+  return '#ef4444';
+}
+
+export function getScoreBadge(
+  score: number,
+  thresholds: ScoreThresholds = DEFAULT_SCORE_THRESHOLDS
+): {
   label: string;
   bgClass: string;
   textClass: string;
 } {
-  if (score >= 90)
-    return { label: 'Excellent', bgClass: 'bg-emerald-50', textClass: 'text-emerald-700' };
-  if (score >= 75) return { label: 'Good', bgClass: 'bg-blue-50', textClass: 'text-blue-700' };
-  if (score >= 60) return { label: 'Fair', bgClass: 'bg-amber-50', textClass: 'text-amber-700' };
-  if (score >= 40) return { label: 'Poor', bgClass: 'bg-orange-50', textClass: 'text-orange-700' };
-  return { label: 'Unrated', bgClass: 'bg-gray-50', textClass: 'text-gray-500' };
+  if (thresholds.critical !== undefined) {
+    if (score >= thresholds.excellent)
+      return { label: 'Excellent', bgClass: 'bg-emerald-50', textClass: 'text-emerald-700' };
+    if (score >= thresholds.good)
+      return { label: 'Good', bgClass: 'bg-blue-50', textClass: 'text-blue-700' };
+    if (score >= thresholds.poor)
+      return { label: 'Fair', bgClass: 'bg-amber-50', textClass: 'text-amber-700' };
+    if (score >= thresholds.critical)
+      return { label: 'Poor', bgClass: 'bg-orange-50', textClass: 'text-orange-700' };
+    return { label: 'Critical', bgClass: 'bg-red-50', textClass: 'text-red-700' };
+  }
+  if (score >= thresholds.excellent)
+    return { label: 'Healthy', bgClass: 'bg-emerald-50', textClass: 'text-emerald-700' };
+  if (score >= thresholds.good)
+    return { label: 'Fair', bgClass: 'bg-blue-50', textClass: 'text-blue-700' };
+  if (score >= thresholds.poor)
+    return { label: 'Degraded', bgClass: 'bg-amber-50', textClass: 'text-amber-700' };
+  return { label: 'Critical', bgClass: 'bg-red-50', textClass: 'text-red-700' };
 }
 
 export type CredibilityLevel = 'high' | 'medium' | 'low' | 'unverified';

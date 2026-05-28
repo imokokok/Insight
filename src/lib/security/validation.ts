@@ -3,7 +3,7 @@ import { z, type ZodSchema } from 'zod';
 import { createLogger } from '@/lib/utils/logger';
 import { ZodValidationError } from '@/lib/validation/errors';
 import { ORACLE_PROVIDER_VALUES } from '@/types/oracle/enums';
-import type { OracleProvider } from '@/types/oracle/enums';
+import type { OracleProvider, Blockchain } from '@/types/oracle/enums';
 
 import { sanitizeString, sanitizeSymbol, sanitizeProvider, sanitizeChain } from './inputSanitizer';
 
@@ -19,12 +19,12 @@ export const SafeSymbolSchema = z
 export const SafeProviderSchema = z
   .string()
   .transform((val) => sanitizeProvider(val))
-  .refine((val) => val.length > 0, 'Invalid provider');
+  .pipe(z.string()) as unknown as z.ZodType<OracleProvider>;
 
 export const SafeChainSchema = z
   .string()
   .transform((val) => sanitizeChain(val))
-  .refine((val) => val.length > 0, 'Invalid chain');
+  .pipe(z.string()) as unknown as z.ZodType<Blockchain>;
 
 const SafeNameSchema = z
   .string()
@@ -224,18 +224,29 @@ export function validateOracleData<T>(schema: ZodSchema<T>, data: unknown, conte
   return result.data;
 }
 
+export type SafeValidationResult<T> =
+  | { ok: true; data: T }
+  | { ok: false; error: ZodValidationError };
+
 export function safeValidateOracleData<T>(
   schema: ZodSchema<T>,
   data: unknown,
   context?: string
-): T | null {
+): SafeValidationResult<T> {
   try {
-    return validateOracleData(schema, data, context);
+    const validatedData = validateOracleData(schema, data, context);
+    return { ok: true, data: validatedData };
   } catch (error) {
-    validationLogger.warn(
-      `Oracle data validation failed, returning null${context ? ` in ${context}` : ''}`,
-      { error }
+    if (error instanceof ZodValidationError) {
+      validationLogger.warn(`Oracle data validation failed${context ? ` in ${context}` : ''}`, {
+        error,
+      });
+      return { ok: false, error };
+    }
+    validationLogger.error(
+      `Unexpected error during oracle data validation${context ? ` in ${context}` : ''}`,
+      error instanceof Error ? error : new Error(String(error))
     );
-    return null;
+    throw error;
   }
 }

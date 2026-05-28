@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 
 import { useQuery } from '@tanstack/react-query';
 
@@ -41,6 +41,7 @@ export function useCrossChainQueries(
     ],
     queryFn: async ({ signal }: { signal: AbortSignal }) => {
       const shouldForceRefresh = forceRefreshRef.current;
+      forceRefreshRef.current = false;
       return oracleApiClient.fetchBatchPrices({
         provider,
         symbol,
@@ -58,19 +59,13 @@ export function useCrossChainQueries(
     retryDelay: (attemptIndex: number) => Math.min(1000 * 2 ** attemptIndex, 3000),
   });
 
-  const triggerForceRefresh = useMemo(
-    () => () => {
-      forceRefreshRef.current = true;
-    },
-    []
-  );
+  const triggerForceRefresh = useCallback(() => {
+    forceRefreshRef.current = true;
+  }, []);
 
-  const resetForceRefresh = useMemo(
-    () => () => {
-      forceRefreshRef.current = false;
-    },
-    []
-  );
+  const resetForceRefresh = useCallback(() => {
+    forceRefreshRef.current = false;
+  }, []);
 
   const chainResults: Partial<Record<Blockchain, ChainQueryResult>> = useMemo(() => {
     const results: Partial<Record<Blockchain, ChainQueryResult>> = {};

@@ -6,6 +6,10 @@ import { ZodValidationError } from './errors';
 
 const logger = createLogger('oracle-validation');
 
+export type SafeValidationResult<T> =
+  | { ok: true; data: T }
+  | { ok: false; error: ZodValidationError };
+
 export function validateOracleData<T>(schema: ZodSchema<T>, data: unknown, context?: string): T {
   const result = schema.safeParse(data);
 
@@ -25,13 +29,24 @@ export function safeValidateOracleData<T>(
   schema: ZodSchema<T>,
   data: unknown,
   context?: string
-): T | null {
+): SafeValidationResult<T> {
   try {
-    return validateOracleData(schema, data, context);
+    const validatedData = validateOracleData(schema, data, context);
+    return { ok: true, data: validatedData };
   } catch (error) {
-    logger.warn(`Oracle data validation failed, returning null${context ? ` in ${context}` : ''}`, {
-      error,
-    });
-    return null;
+    if (error instanceof ZodValidationError) {
+      logger.warn(`Oracle data validation failed${context ? ` in ${context}` : ''}`, {
+        error,
+      });
+      return { ok: false, error };
+    }
+    logger.error(
+      `Unexpected error during oracle data validation${context ? ` in ${context}` : ''}`,
+      error instanceof Error ? error : undefined,
+      {
+        errorMessage: error instanceof Error ? error.message : String(error),
+      }
+    );
+    throw error;
   }
 }

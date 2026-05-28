@@ -3,6 +3,7 @@ import { AppError, type AppErrorDetails, HttpStatusCodes } from '@/lib/errors/Ap
 import { type OracleProvider } from './enums';
 
 export type OracleErrorCode =
+  | 'ORACLE_ERROR'
   | 'SYMBOL_NOT_SUPPORTED'
   | 'NO_DATA_AVAILABLE'
   | 'NETWORK_ERROR'
@@ -81,7 +82,7 @@ export class OracleServiceError extends AppError {
     code?: OracleErrorCode,
     options?: {
       retryable?: boolean;
-      details?: Record<string, unknown>;
+      details?: AppErrorDetails;
       cause?: Error;
     }
   ) {
@@ -93,7 +94,7 @@ export class OracleServiceError extends AppError {
       severity: 'medium',
       isOperational: true,
       retryable: options?.retryable ?? false,
-      details: options?.details as AppErrorDetails,
+      details: options?.details,
       cause: options?.cause,
     });
     this.provider = provider;

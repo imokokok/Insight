@@ -4,6 +4,7 @@ declare module '@vercel/kv' {
     expire(key: string, seconds: number): Promise<boolean>;
     ttl(key: string): Promise<number>;
     get<T = unknown>(key: string): Promise<T | null>;
+    set(key: string, value: unknown, opts?: { ex?: number }): Promise<string | null>;
   }
 
   export const kv: KvCommands;

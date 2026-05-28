@@ -1,5 +1,6 @@
 import { Heart, Activity, BarChart3, AlertTriangle, Zap } from 'lucide-react';
 
+import { ProgressBar } from '@/components/ui/ProgressBar';
 import type {
   UpdateRhythmMetrics,
   ConfidenceIntervalMetrics,
@@ -8,6 +9,8 @@ import type {
   FeedHealthLevel,
   RhythmAnomalyType,
 } from '@/lib/analytics/feedBehavior';
+import { getScoreBadge, getScoreColor } from '@/lib/oracles/utils/reputationUtils';
+import { capitalize } from '@/lib/utils/format';
 
 export function getHealthLevelBadge(level: FeedHealthLevel): {
   label: string;
@@ -61,11 +64,6 @@ function formatInterval(seconds: number): string {
   return m > 0 ? `${h}h ${m}m` : `${h}h`;
 }
 
-function capitalize(s: string): string {
-  if (!s) return s;
-  return s.charAt(0).toUpperCase() + s.slice(1);
-}
-
 function getTrendBadge(trend: string): { label: string; bgClass: string; textClass: string } {
   switch (trend) {
     case 'expanding':
@@ -77,34 +75,6 @@ function getTrendBadge(trend: string): { label: string; bgClass: string; textCla
     default:
       return { label: 'Unknown', bgClass: 'bg-gray-50', textClass: 'text-gray-700' };
   }
-}
-
-function getScoreBadge(score: number): { label: string; bgClass: string; textClass: string } {
-  if (score >= 80)
-    return { label: 'Healthy', bgClass: 'bg-emerald-50', textClass: 'text-emerald-700' };
-  if (score >= 60) return { label: 'Fair', bgClass: 'bg-blue-50', textClass: 'text-blue-700' };
-  if (score >= 40)
-    return { label: 'Degraded', bgClass: 'bg-amber-50', textClass: 'text-amber-700' };
-  return { label: 'Critical', bgClass: 'bg-red-50', textClass: 'text-red-700' };
-}
-
-function getScoreColor(score: number): string {
-  if (score >= 80) return '#10b981';
-  if (score >= 60) return '#3b82f6';
-  if (score >= 40) return '#f59e0b';
-  return '#ef4444';
-}
-
-function MiniBar({ value, maxValue, color }: { value: number; maxValue: number; color: string }) {
-  const percentage = Math.min((value / maxValue) * 100, 100);
-  return (
-    <div className="w-full bg-gray-100 rounded-full h-1.5">
-      <div
-        className="h-1.5 rounded-full transition-all duration-500"
-        style={{ width: `${percentage}%`, backgroundColor: color }}
-      />
-    </div>
-  );
 }
 
 interface HealthScoreCardsProps {
@@ -240,7 +210,7 @@ export function OracleHealthScoresSection({ healthScores }: OracleHealthScoresSe
                       {oracle.rhythmStability}%
                     </span>
                   </div>
-                  <MiniBar
+                  <ProgressBar
                     value={oracle.rhythmStability}
                     maxValue={100}
                     color={getScoreColor(oracle.rhythmStability)}
@@ -253,7 +223,7 @@ export function OracleHealthScoresSection({ healthScores }: OracleHealthScoresSe
                       {oracle.confidenceStability}%
                     </span>
                   </div>
-                  <MiniBar
+                  <ProgressBar
                     value={oracle.confidenceStability}
                     maxValue={100}
                     color={getScoreColor(oracle.confidenceStability)}
@@ -266,7 +236,7 @@ export function OracleHealthScoresSection({ healthScores }: OracleHealthScoresSe
                       {oracle.heartbeatReliability}%
                     </span>
                   </div>
-                  <MiniBar
+                  <ProgressBar
                     value={oracle.heartbeatReliability}
                     maxValue={100}
                     color={getScoreColor(oracle.heartbeatReliability)}
@@ -279,7 +249,7 @@ export function OracleHealthScoresSection({ healthScores }: OracleHealthScoresSe
                       {oracle.freshness}%
                     </span>
                   </div>
-                  <MiniBar
+                  <ProgressBar
                     value={oracle.freshness}
                     maxValue={100}
                     color={getScoreColor(oracle.freshness)}

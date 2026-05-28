@@ -23,6 +23,9 @@ import type { User, Session, AuthError, Provider, Subscription } from '@supabase
 
 const logger = createLogger('authStore');
 
+let _initPromise: Promise<void> | null = null;
+let _subscription: Subscription | null = null;
+
 interface AuthState {
   user: User | null;
   session: Session | null;
@@ -30,8 +33,6 @@ interface AuthState {
   loading: boolean;
   error: AuthError | Error | null;
   initialized: boolean;
-  _initPromise: Promise<void> | null;
-  subscription: Subscription | null;
 }
 
 interface AuthActions {
@@ -96,19 +97,16 @@ export const useAuthStore = create<AuthStore>()(
         loading: true,
         error: null,
         initialized: false,
-        _initPromise: null,
-        subscription: null,
 
         initialize: async () => {
           if (get().initialized) return;
 
-          const existingPromise = (get() as AuthStore)._initPromise;
-          if (existingPromise) {
-            await existingPromise;
+          if (_initPromise) {
+            await _initPromise;
             return;
           }
 
-          const initPromise = (async () => {
+          _initPromise = (async () => {
             set({ loading: true, error: null });
 
             try {
@@ -125,12 +123,11 @@ export const useAuthStore = create<AuthStore>()(
                 set({ profile });
               }
 
-              const existingSubscription = get().subscription;
-              if (existingSubscription) {
-                existingSubscription.unsubscribe();
+              if (_subscription) {
+                _subscription.unsubscribe();
               }
 
-              const subscription = onAuthStateChange(async (event, newSession) => {
+              _subscription = onAuthStateChange(async (event, newSession) => {
                 try {
                   set({
                     session: newSession,
@@ -152,30 +149,27 @@ export const useAuthStore = create<AuthStore>()(
               });
 
               set({
-                subscription,
                 initialized: true,
                 loading: false,
-                _initPromise: null,
-              } as Partial<AuthStore>);
+              });
             } catch (err) {
               set({
                 error: err as Error,
                 loading: false,
                 initialized: true,
-                _initPromise: null,
-              } as Partial<AuthStore>);
+              });
+            } finally {
+              _initPromise = null;
             }
           })();
 
-          set({ _initPromise: initPromise } as Partial<AuthStore>);
-          await initPromise;
+          await _initPromise;
         },
 
         cleanup: () => {
-          const { subscription } = get();
-          if (subscription) {
-            subscription.unsubscribe();
-            set({ subscription: null });
+          if (_subscription) {
+            _subscription.unsubscribe();
+            _subscription = null;
           }
         },
 

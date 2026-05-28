@@ -80,6 +80,7 @@ interface PendingRequest<T> {
   promise: Promise<T>;
   controller: AbortController;
   timeoutId: ReturnType<typeof setTimeout>;
+  createdAt: number;
 }
 
 const pendingRequests = new Map<string, PendingRequest<unknown>>();
@@ -90,14 +91,17 @@ const CACHE_TTL_MS = 15_000;
 const PENDING_REQUEST_TIMEOUT = 30_000;
 
 function cleanupStalePendingRequests(): void {
+  const now = Date.now();
   for (const [key, request] of pendingRequests) {
-    if (request.timeoutId) {
-      clearTimeout(request.timeoutId);
+    if (now - request.createdAt >= PENDING_REQUEST_TIMEOUT) {
+      if (request.timeoutId) {
+        clearTimeout(request.timeoutId);
+      }
+      request.controller.abort(
+        new Error(`Request ${key} timed out after ${PENDING_REQUEST_TIMEOUT}ms`)
+      );
+      pendingRequests.delete(key);
     }
-    request.controller.abort(
-      new Error(`Request ${key} timed out after ${PENDING_REQUEST_TIMEOUT}ms`)
-    );
-    pendingRequests.delete(key);
   }
 }
 
@@ -295,7 +299,7 @@ function deduplicatedFetch<T>(
       cleanup();
     });
 
-  pendingRequests.set(key, { promise, controller, timeoutId });
+  pendingRequests.set(key, { promise, controller, timeoutId, createdAt: Date.now() });
 
   if (pendingRequests.size > MAX_PENDING_REQUESTS) {
     const oldestKey = pendingRequests.keys().next().value;

@@ -19,7 +19,7 @@ export class TTLCache {
     this.maxSize = options.maxSize ?? 1000;
     this.cleanupIntervalMs = options.cleanupIntervalMs ?? 60000;
 
-    if (options.cleanupIntervalMs !== 0) {
+    if (this.cleanupIntervalMs > 0) {
       this.startCleanupInterval();
     }
   }

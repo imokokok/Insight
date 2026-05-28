@@ -56,6 +56,20 @@ class RealtimeManager {
     this.client.realtime.connect();
 
     this.connectionCheckTimer = setInterval(checkConnection, 5000);
+
+    if (typeof window !== 'undefined') {
+      const onVisibilityChange = () => {
+        if (document.visibilityState === 'visible') {
+          if (!this.connectionCheckTimer) {
+            this.connectionCheckTimer = setInterval(checkConnection, 5000);
+          }
+          this.reconnect();
+        } else {
+          this.clearConnectionCheckTimer();
+        }
+      };
+      document.addEventListener('visibilitychange', onVisibilityChange);
+    }
   }
 
   private clearConnectionCheckTimer() {

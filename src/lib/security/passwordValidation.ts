@@ -4,7 +4,7 @@ interface PasswordRule {
 }
 
 const PASSWORD_RULES: PasswordRule[] = [
-  { pattern: /.{8,}/, message: 'Password must be at least 8 characters' },
+  { pattern: /.{8,128}/, message: 'Password must be between 8 and 128 characters' },
   { pattern: /[A-Z]/, message: 'Password must contain at least one uppercase letter' },
   { pattern: /[a-z]/, message: 'Password must contain at least one lowercase letter' },
   { pattern: /\d/, message: 'Password must contain at least one number' },
@@ -14,9 +14,19 @@ const PASSWORD_RULES: PasswordRule[] = [
   },
 ];
 
+const CONTROL_CHARS_PATTERN = /[\x00-\x1F\x7F]/;
+
 export function validatePassword(password: string): string | null {
   if (!password) {
     return 'Password is required';
+  }
+
+  if (CONTROL_CHARS_PATTERN.test(password)) {
+    return 'Password contains invalid control characters';
+  }
+
+  if (password.length > 128) {
+    return 'Password must be no more than 128 characters';
   }
 
   for (const rule of PASSWORD_RULES) {

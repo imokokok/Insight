@@ -48,7 +48,7 @@ interface UseOracleDataCoreReturn {
   isLoading: boolean;
   error: Error | null;
   lastUpdated: Date | null;
-  fetchPriceData: () => Promise<void>;
+  fetchPriceData: (forceRefresh?: boolean) => Promise<void>;
   refreshInterval: RefreshInterval;
   setRefreshInterval: (interval: RefreshInterval) => void;
   oracleDataError: OracleDataError;
@@ -115,7 +115,8 @@ export function useOracleDataCore(
     async (
       oracle: OracleProvider,
       baseSymbol: string,
-      signal: AbortSignal
+      signal: AbortSignal,
+      forceRefresh = false
     ): Promise<PriceData | null> => {
       const requestStart = Date.now();
       const requestQueue = getRequestQueue();
@@ -126,7 +127,7 @@ export function useOracleDataCore(
             oracleApiClient.fetchPrice({
               provider: oracle,
               symbol: baseSymbol,
-              forceRefresh: true,
+              forceRefresh,
             }),
           {
             priority: requestPriority,
@@ -210,156 +211,159 @@ export function useOracleDataCore(
     await retryAllFailedBase(oracleDataError);
   }, [retryAllFailedBase, oracleDataError]);
 
-  const fetchPriceData = useCallback(async () => {
-    if (selectedOracles.length === 0) {
-      setPriceData([]);
-      setQueryProgress({ completed: 0, total: 0 });
-      return;
-    }
-
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-    const currentAbortController = new AbortController();
-    abortControllerRef.current = currentAbortController;
-    const signal = currentAbortController.signal;
-
-    setIsLoading(true);
-    setError(null);
-    resetErrors();
-    clearHistoryData();
-    setQueryProgress({ completed: 0, total: selectedOracles.length });
-
-    const baseSymbol = extractBaseSymbol(selectedSymbol);
-
-    const skipped: OracleProvider[] = [];
-    const oraclesToFetch = selectedOracles.filter((oracle) => {
-      const key = providerToSymbolKey[oracle];
-      const supportedSymbols = oracleSupportedSymbols[key];
-      const isSupported = (supportedSymbols as readonly string[]).includes(baseSymbol);
-      if (!isSupported) {
-        skipped.push(oracle);
-      }
-      return isSupported;
-    });
-
-    setSkippedOracles(skipped);
-    setQueryProgress({ completed: 0, total: oraclesToFetch.length });
-
-    try {
-      const fetchResults = await Promise.all(
-        oraclesToFetch.map(async (oracle) => {
-          try {
-            const price = await fetchSingleOracle(oracle, baseSymbol, signal);
-            if (price && isMountedRef.current) {
-              return {
-                type: 'success' as const,
-                oracle,
-                price,
-              };
-            }
-            return { type: 'empty' as const };
-          } catch (err) {
-            if (!signal.aborted && isMountedRef.current) {
-              return { type: 'error' as const, error: createOracleErrorInfo(oracle, err) };
-            }
-            return { type: 'empty' as const };
-          } finally {
-            if (isMountedRef.current) {
-              setQueryProgress((prev) => ({
-                completed: prev.completed + 1,
-                total: oraclesToFetch.length,
-              }));
-            }
-          }
-        })
-      );
-
-      if (signal.aborted || !isMountedRef.current) {
+  const fetchPriceData = useCallback(
+    async (forceRefresh = false) => {
+      if (selectedOracles.length === 0) {
+        setPriceData([]);
+        setQueryProgress({ completed: 0, total: 0 });
         return;
       }
 
-      const prices = fetchResults
-        .filter(
-          (r): r is { type: 'success'; oracle: OracleProvider; price: PriceData } =>
-            r.type === 'success'
-        )
-        .map((r) => r.price);
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      const currentAbortController = new AbortController();
+      abortControllerRef.current = currentAbortController;
+      const signal = currentAbortController.signal;
 
-      const errors = fetchResults
-        .filter((r): r is { type: 'error'; error: OracleErrorInfo } => r.type === 'error')
-        .map((r) => r.error);
+      setIsLoading(true);
+      setError(null);
+      resetErrors();
+      clearHistoryData();
+      setQueryProgress({ completed: 0, total: selectedOracles.length });
 
-      const successOracles = prices.map((p) => p.provider);
-      const failedOracles = oraclesToFetch.filter(
-        (o) => !successOracles.includes(o as OracleProvider)
-      ) as OracleProvider[];
+      const baseSymbol = extractBaseSymbol(selectedSymbol);
 
-      const partialSuccess: PartialSuccessState | null =
-        failedOracles.length > 0 && successOracles.length > 0
-          ? {
-              isSuccess: successOracles.length > 0,
-              successCount: successOracles.length,
-              failedCount: failedOracles.length,
-              totalCount: oraclesToFetch.length,
-              failedOracles,
-              successOracles,
-            }
-          : null;
-
-      const isPartialSuccess = partialSuccess !== null;
-      const hasError = errors.length > 0;
-
-      setPriceData(prices);
-      setLastUpdated(new Date());
-      setOracleDataError({
-        hasError,
-        isPartialSuccess,
-        partialSuccess,
-        errors,
-        globalError:
-          failedOracles.length === oraclesToFetch.length
-            ? new Error('All oracles failed to fetch data')
-            : null,
+      const skipped: OracleProvider[] = [];
+      const oraclesToFetch = selectedOracles.filter((oracle) => {
+        const key = providerToSymbolKey[oracle];
+        const supportedSymbols = oracleSupportedSymbols[key];
+        const isSupported = (supportedSymbols as readonly string[]).includes(baseSymbol);
+        if (!isSupported) {
+          skipped.push(oracle);
+        }
+        return isSupported;
       });
 
-      if (enablePerformanceMetrics) {
-        calculatePerformanceMetrics(
-          selectedOracles,
-          selectedSymbol,
-          priceHistoryMapRef as React.MutableRefObject<PriceHistoryMap>,
-          isMountedRef
+      setSkippedOracles(skipped);
+      setQueryProgress({ completed: 0, total: oraclesToFetch.length });
+
+      try {
+        const fetchResults = await Promise.all(
+          oraclesToFetch.map(async (oracle) => {
+            try {
+              const price = await fetchSingleOracle(oracle, baseSymbol, signal, forceRefresh);
+              if (price && isMountedRef.current) {
+                return {
+                  type: 'success' as const,
+                  oracle,
+                  price,
+                };
+              }
+              return { type: 'empty' as const };
+            } catch (err) {
+              if (!signal.aborted && isMountedRef.current) {
+                return { type: 'error' as const, error: createOracleErrorInfo(oracle, err) };
+              }
+              return { type: 'empty' as const };
+            } finally {
+              if (isMountedRef.current) {
+                setQueryProgress((prev) => ({
+                  completed: prev.completed + 1,
+                  total: oraclesToFetch.length,
+                }));
+              }
+            }
+          })
         );
-      }
-    } catch (err) {
-      const appError = err instanceof Error ? err : new Error(String(err));
-      logger.error('Failed to fetch price data', appError);
-      if (isMountedRef.current) {
-        setError(appError);
+
+        if (signal.aborted || !isMountedRef.current) {
+          return;
+        }
+
+        const prices = fetchResults
+          .filter(
+            (r): r is { type: 'success'; oracle: OracleProvider; price: PriceData } =>
+              r.type === 'success'
+          )
+          .map((r) => r.price);
+
+        const errors = fetchResults
+          .filter((r): r is { type: 'error'; error: OracleErrorInfo } => r.type === 'error')
+          .map((r) => r.error);
+
+        const successOracles = prices.map((p) => p.provider);
+        const failedOracles = oraclesToFetch.filter(
+          (o) => !successOracles.includes(o as OracleProvider)
+        ) as OracleProvider[];
+
+        const partialSuccess: PartialSuccessState | null =
+          failedOracles.length > 0 && successOracles.length > 0
+            ? {
+                isSuccess: successOracles.length > 0,
+                successCount: successOracles.length,
+                failedCount: failedOracles.length,
+                totalCount: oraclesToFetch.length,
+                failedOracles,
+                successOracles,
+              }
+            : null;
+
+        const isPartialSuccess = partialSuccess !== null;
+        const hasError = errors.length > 0;
+
+        setPriceData(prices);
+        setLastUpdated(new Date());
         setOracleDataError({
-          hasError: true,
-          isPartialSuccess: false,
-          partialSuccess: null,
-          errors: [],
-          globalError: appError,
+          hasError,
+          isPartialSuccess,
+          partialSuccess,
+          errors,
+          globalError:
+            failedOracles.length === oraclesToFetch.length
+              ? new Error('All oracles failed to fetch data')
+              : null,
         });
+
+        if (enablePerformanceMetrics) {
+          calculatePerformanceMetrics(
+            selectedOracles,
+            selectedSymbol,
+            priceHistoryMapRef as React.MutableRefObject<PriceHistoryMap>,
+            isMountedRef
+          );
+        }
+      } catch (err) {
+        const appError = err instanceof Error ? err : new Error(String(err));
+        logger.error('Failed to fetch price data', appError);
+        if (isMountedRef.current) {
+          setError(appError);
+          setOracleDataError({
+            hasError: true,
+            isPartialSuccess: false,
+            partialSuccess: null,
+            errors: [],
+            globalError: appError,
+          });
+        }
+      } finally {
+        if (isMountedRef.current && abortControllerRef.current === currentAbortController) {
+          setIsLoading(false);
+        }
       }
-    } finally {
-      if (isMountedRef.current && abortControllerRef.current === currentAbortController) {
-        setIsLoading(false);
-      }
-    }
-  }, [
-    selectedOracles,
-    selectedSymbol,
-    enablePerformanceMetrics,
-    calculatePerformanceMetrics,
-    fetchSingleOracle,
-    resetErrors,
-    setOracleDataError,
-    priceHistoryMapRef,
-    clearHistoryData,
-  ]);
+    },
+    [
+      selectedOracles,
+      selectedSymbol,
+      enablePerformanceMetrics,
+      calculatePerformanceMetrics,
+      fetchSingleOracle,
+      resetErrors,
+      setOracleDataError,
+      priceHistoryMapRef,
+      clearHistoryData,
+    ]
+  );
 
   const fetchPriceDataRef = useRef(fetchPriceData);
   fetchPriceDataRef.current = fetchPriceData;
@@ -372,7 +376,13 @@ export function useOracleDataCore(
 
     const depsChanged = currentKey !== prevKey;
 
-    if (depsChanged) {
+    if (
+      depsChanged ||
+      (isInitialMountRef.current && selectedOracles.length > 0 && selectedSymbol)
+    ) {
+      if (isInitialMountRef.current) {
+        isInitialMountRef.current = false;
+      }
       prevDepsRef.current = { selectedOracles, selectedSymbol };
       resetErrors();
       setError(null);
@@ -386,18 +396,6 @@ export function useOracleDataCore(
       }
     };
   }, [selectedOracles, selectedSymbol, resetErrors]);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (isInitialMountRef.current && selectedOracles.length > 0 && selectedSymbol) {
-        isInitialMountRef.current = false;
-        prevDepsRef.current = { selectedOracles, selectedSymbol };
-        fetchPriceDataRef.current();
-      }
-    }, 100);
-
-    return () => clearTimeout(timer);
-  }, [selectedOracles, selectedSymbol]);
 
   const { lastRefreshedAt, nextRefreshAt } = useOracleAutoRefresh({
     refreshInterval,

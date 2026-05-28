@@ -1,9 +1,10 @@
 export const priceKeys = {
   all: ['price'] as const,
+  bySymbol: (symbol: string) => [...priceKeys.all, symbol] as const,
   byProvider: (provider: string, symbol: string, chain: string) =>
-    [...priceKeys.all, provider, symbol, chain] as const,
+    [...priceKeys.bySymbol(symbol), provider, chain] as const,
   historical: (provider: string, symbol: string, chain: string, period: string) =>
-    [...priceKeys.all, 'historical', provider, symbol, chain, period] as const,
+    [...priceKeys.byProvider(provider, symbol, chain), 'historical', period] as const,
 };
 
 export const crossChainKeys = {

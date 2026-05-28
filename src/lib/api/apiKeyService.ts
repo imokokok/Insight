@@ -2,9 +2,25 @@ import { type SupabaseClient } from '@supabase/supabase-js';
 
 import { createLogger } from '@/lib/utils/logger';
 
-import { hashApiKey, PLAN_RATE_LIMITS, type ApiKeyPlan } from './middleware/apiKeyMiddleware';
+import { type ApiKeyPlan } from './middleware/apiKeyMiddleware';
 
 const logger = createLogger('api-key-service');
+
+const PLAN_RATE_LIMITS: Record<ApiKeyPlan, number> = {
+  free: 60,
+  pro: 600,
+  enterprise: 6000,
+};
+
+async function hashApiKey(key: string): Promise<string> {
+  const API_KEY_SALT = process.env.API_KEY_HASH_SALT || 'insight-api-key-salt-2024';
+  const encoder = new TextEncoder();
+  const saltedKey = API_KEY_SALT + key;
+  const data = encoder.encode(saltedKey);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+}
 
 interface CreateApiKeyInput {
   name: string;
@@ -42,7 +58,7 @@ function generateApiKey(): { key: string; prefix: string } {
 class ApiKeyService {
   constructor(private client: SupabaseClient) {}
 
-  async createApiKey(userId: string, input: CreateApiKeyInput): Promise<ApiKeyWithSecret | null> {
+  async createApiKey(userId: string, input: CreateApiKeyInput): Promise<ApiKeyWithSecret> {
     const { key, prefix } = generateApiKey();
     const keyHash = await hashApiKey(key);
     const plan = input.plan || 'free';
@@ -66,11 +82,7 @@ class ApiKeyService {
       .single();
 
     if (error) {
-      logger.error(
-        'Failed to create API key',
-        error instanceof Error ? error : new Error(String(error))
-      );
-      return null;
+      throw new Error(`Failed to create API key: ${error.message}`);
     }
 
     return {
@@ -89,11 +101,7 @@ class ApiKeyService {
       .order('created_at', { ascending: false });
 
     if (error) {
-      logger.error(
-        'Failed to list API keys',
-        error instanceof Error ? error : new Error(String(error))
-      );
-      return [];
+      throw new Error(`Failed to list API keys: ${error.message}`);
     }
 
     return data || [];
@@ -110,11 +118,10 @@ class ApiKeyService {
       .single();
 
     if (error) {
-      logger.error(
-        'Failed to get API key',
-        error instanceof Error ? error : new Error(String(error))
-      );
-      return null;
+      if (error.code === 'PGRST116') {
+        return null;
+      }
+      throw new Error(`Failed to get API key: ${error.message}`);
     }
 
     return data;
@@ -165,8 +172,8 @@ class ApiKeyService {
       updated_at: new Date().toISOString(),
     };
 
-    if (updates.name) updateData.name = updates.name;
-    if (updates.plan) {
+    if (updates.name !== undefined) updateData.name = updates.name;
+    if (updates.plan !== undefined) {
       updateData.plan = updates.plan;
       updateData.rate_limit = PLAN_RATE_LIMITS[updates.plan];
     }
@@ -193,7 +200,7 @@ class ApiKeyService {
   }
 
   async getApiKeyUsage(keyId: string): Promise<{
-    totalRequests: number;
+    totalRequests: number | null;
     last24h: number;
     last7d: number;
   } | null> {
@@ -220,7 +227,7 @@ class ApiKeyService {
       }
 
       return {
-        totalRequests: -1,
+        totalRequests: null,
         last24h: count24h || 0,
         last7d: count7d || 0,
       };

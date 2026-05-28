@@ -23,9 +23,7 @@ export function errorToResponse(error: unknown): NextResponse {
     const errorCode = Object.values(ErrorCode).includes(error.code as ErrorCode)
       ? (error.code as ErrorCode)
       : ErrorCode.INTERNAL_ERROR;
-    const standardResponse = createStandardErrorResponse(errorCode, error.message, {
-      details: error.details,
-    });
+    const standardResponse = createStandardErrorResponse(errorCode, error.message);
 
     return NextResponse.json(standardResponse, { status: error.statusCode });
   }
@@ -37,7 +35,7 @@ export function errorToResponse(error: unknown): NextResponse {
     const isDev = process.env.NODE_ENV === 'development';
     const standardResponse = createStandardErrorResponse(
       ErrorCode.INTERNAL_ERROR,
-      isDev ? error.message : 'An internal error occurred'
+      isDev && error.message.length < 200 ? error.message : 'An internal error occurred'
     );
 
     return NextResponse.json(standardResponse, { status: 500 });

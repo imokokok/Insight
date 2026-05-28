@@ -16,7 +16,7 @@ interface RealtimeActions {
 type RealtimeStore = RealtimeState & RealtimeActions;
 
 const initialState: RealtimeState = {
-  connectionStatus: realtimeManager.getConnectionStatus(),
+  connectionStatus: 'disconnected',
 };
 
 export const useRealtimeStore = create<RealtimeStore>()(
@@ -29,12 +29,13 @@ export const useRealtimeStore = create<RealtimeStore>()(
       },
 
       reconnect: () => {
+        set({ connectionStatus: 'connecting' });
         realtimeManager.reconnect();
       },
 
       reset: () =>
         set({
-          connectionStatus: realtimeManager.getConnectionStatus(),
+          connectionStatus: 'disconnected',
         }),
     }),
     { name: 'RealtimeStore' }

@@ -35,7 +35,8 @@ export function createErrorMiddleware(options: ErrorMiddlewareOptions = {}) {
 
       if (requestId) {
         try {
-          const body = await response.json();
+          const clonedResponse = response.clone();
+          const body = await clonedResponse.json();
           return NextResponse.json(
             { ...body, meta: { ...body.meta, requestId } },
             { status: response.status, headers: response.headers }

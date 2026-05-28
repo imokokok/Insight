@@ -28,7 +28,7 @@ interface ResponseLog {
 }
 
 function generateRequestId(): string {
-  return `req_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
+  return `req_${crypto.randomUUID().replace(/-/g, '')}`;
 }
 
 export function createLoggingMiddleware(options: LoggingMiddlewareOptions = {}) {

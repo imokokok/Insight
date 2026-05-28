@@ -4,6 +4,8 @@ import { memo, useMemo } from 'react';
 
 import { Trophy, Clock, Target, Shield, GitBranch, Activity } from 'lucide-react';
 
+import { ProgressBar } from '@/components/ui/ProgressBar';
+import { getScoreBadge, getScoreColor } from '@/lib/oracles/utils/reputationUtils';
 import { type PriceData, type Blockchain } from '@/types/oracle';
 
 import { chainColors, chainNames, CHAIN_EXPECTED_INTERVALS } from '../../constants';
@@ -34,35 +36,6 @@ interface RankedChain {
   price: number;
   confidence: number;
   color: string;
-}
-
-function getScoreColor(score: number): string {
-  if (score >= 90) return '#10b981';
-  if (score >= 75) return '#3b82f6';
-  if (score >= 60) return '#f59e0b';
-  if (score >= 40) return '#f97316';
-  return '#ef4444';
-}
-
-function getScoreBadge(score: number): { label: string; bgClass: string; textClass: string } {
-  if (score >= 90)
-    return { label: 'Excellent', bgClass: 'bg-emerald-50', textClass: 'text-emerald-700' };
-  if (score >= 75) return { label: 'Good', bgClass: 'bg-blue-50', textClass: 'text-blue-700' };
-  if (score >= 60) return { label: 'Fair', bgClass: 'bg-amber-50', textClass: 'text-amber-700' };
-  if (score >= 40) return { label: 'Poor', bgClass: 'bg-orange-50', textClass: 'text-orange-700' };
-  return { label: 'Critical', bgClass: 'bg-red-50', textClass: 'text-red-700' };
-}
-
-function MetricBar({ value, maxValue, color }: { value: number; maxValue: number; color: string }) {
-  const pct = Math.min((value / maxValue) * 100, 100);
-  return (
-    <div className="w-full bg-gray-100 rounded-full h-1.5">
-      <div
-        className="h-1.5 rounded-full transition-all duration-500"
-        style={{ width: `${pct}%`, backgroundColor: color }}
-      />
-    </div>
-  );
 }
 
 function ChainRankingTabComponent({
@@ -161,7 +134,12 @@ function ChainRankingTabComponent({
 
       <div className="space-y-3">
         {rankedChains.map((chain) => {
-          const badge = getScoreBadge(chain.overallScore);
+          const badge = getScoreBadge(chain.overallScore, {
+            excellent: 90,
+            good: 75,
+            poor: 60,
+            critical: 40,
+          });
 
           return (
             <div
@@ -197,10 +175,15 @@ function ChainRankingTabComponent({
                   </div>
 
                   <div className="mb-2">
-                    <MetricBar
+                    <ProgressBar
                       value={chain.overallScore}
                       maxValue={100}
-                      color={getScoreColor(chain.overallScore)}
+                      color={getScoreColor(chain.overallScore, {
+                        excellent: 90,
+                        good: 75,
+                        poor: 60,
+                        critical: 40,
+                      })}
                     />
                   </div>
 

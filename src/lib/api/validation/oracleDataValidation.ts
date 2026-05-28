@@ -26,7 +26,7 @@ export function validatePriceData(data: unknown): PriceData {
     );
   }
 
-  return result.data as PriceData;
+  return result.data;
 }
 
 export function validatePriceDataArray(data: unknown): PriceData[] {

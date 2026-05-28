@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useState } from 'react';
+import { lazy, memo, Suspense, useState } from 'react';
 
 import { SectionErrorBoundary } from '@/components/error-boundary';
 import { SegmentedControl } from '@/components/ui';
@@ -8,15 +8,10 @@ import { formatTimeString } from '@/lib/utils/format';
 import { useCrossChainConfigStore } from '@/stores/crossChainConfigStore';
 import { useCrossChainDataStore } from '@/stores/crossChainDataStore';
 
-import { ChartsTab } from './components/ChartsTab';
 import { CrossChainFilters } from './components/CrossChainFilters';
-import { OverviewTab } from './components/OverviewTab';
 import { PageHeader } from './components/PageHeader';
 import { PriceSpreadHeatmap } from './components/PriceSpreadHeatmap';
 import { TabNavigation, type TabId } from './components/TabNavigation';
-import { ChainRankingTab } from './components/tabs/ChainRankingTab';
-import { CrossChainDivergenceSignalTab as DivergenceSignalTab } from './components/tabs/DivergenceSignalTab';
-import { RiskAnalysisTab } from './components/tabs/RiskAnalysisTab';
 import { type RefreshInterval } from './constants';
 import { useCrossChainAnalytics } from './hooks/useCrossChainAnalytics';
 import { useCrossChainDataState } from './hooks/useCrossChainDataState';
@@ -29,11 +24,24 @@ function CrossChainDataInitializer() {
 const MemoizedPageHeader = memo(PageHeader);
 const MemoizedCrossChainFilters = memo(CrossChainFilters);
 const MemoizedPriceSpreadHeatmap = memo(PriceSpreadHeatmap);
-const MemoizedOverviewTab = memo(OverviewTab);
-const MemoizedChartsTab = memo(ChartsTab);
-const MemoizedRiskAnalysisTab = memo(RiskAnalysisTab);
-const MemoizedDivergenceSignalTab = memo(DivergenceSignalTab);
-const MemoizedChainRankingTab = memo(ChainRankingTab);
+
+const LazyOverviewTab = lazy(() =>
+  import('./components/OverviewTab').then((m) => ({ default: m.OverviewTab }))
+);
+const LazyChartsTab = lazy(() =>
+  import('./components/ChartsTab').then((m) => ({ default: m.ChartsTab }))
+);
+const LazyRiskAnalysisTab = lazy(() =>
+  import('./components/tabs/RiskAnalysisTab').then((m) => ({ default: m.RiskAnalysisTab }))
+);
+const LazyDivergenceSignalTab = lazy(() =>
+  import('./components/tabs/DivergenceSignalTab').then((m) => ({
+    default: m.CrossChainDivergenceSignalTab,
+  }))
+);
+const LazyChainRankingTab = lazy(() =>
+  import('./components/tabs/ChainRankingTab').then((m) => ({ default: m.ChainRankingTab }))
+);
 
 const REFRESH_OPTIONS = [
   { value: 0, label: 'Off' },
@@ -112,27 +120,61 @@ export default function CrossChainContent() {
                     <span className="text-xs text-blue-500">Refreshing...</span>
                   </div>
                 )}
-                {activeTab === 'overview' && <MemoizedOverviewTab />}
-                {activeTab === 'charts' && <MemoizedChartsTab />}
+                {activeTab === 'overview' && (
+                  <SectionErrorBoundary componentName="OverviewTab">
+                    <Suspense
+                      fallback={<div className="animate-pulse h-48 bg-gray-100 rounded-lg" />}
+                    >
+                      <LazyOverviewTab />
+                    </Suspense>
+                  </SectionErrorBoundary>
+                )}
+                {activeTab === 'charts' && (
+                  <SectionErrorBoundary componentName="ChartsTab">
+                    <Suspense
+                      fallback={<div className="animate-pulse h-48 bg-gray-100 rounded-lg" />}
+                    >
+                      <LazyChartsTab />
+                    </Suspense>
+                  </SectionErrorBoundary>
+                )}
                 {activeTab === 'risk' && (
-                  <MemoizedRiskAnalysisTab
-                    risk={analytics.risk}
-                    chainCount={analytics.chainCount}
-                  />
+                  <SectionErrorBoundary componentName="RiskAnalysisTab">
+                    <Suspense
+                      fallback={<div className="animate-pulse h-48 bg-gray-100 rounded-lg" />}
+                    >
+                      <LazyRiskAnalysisTab
+                        risk={analytics.risk}
+                        chainCount={analytics.chainCount}
+                      />
+                    </Suspense>
+                  </SectionErrorBoundary>
                 )}
                 {activeTab === 'divergence' && (
-                  <MemoizedDivergenceSignalTab
-                    divergence={analytics.divergence}
-                    feed={analytics.feed}
-                  />
+                  <SectionErrorBoundary componentName="DivergenceSignalTab">
+                    <Suspense
+                      fallback={<div className="animate-pulse h-48 bg-gray-100 rounded-lg" />}
+                    >
+                      <LazyDivergenceSignalTab
+                        divergence={analytics.divergence}
+                        feed={analytics.feed}
+                      />
+                    </Suspense>
+                  </SectionErrorBoundary>
                 )}
                 {activeTab === 'ranking' && (
-                  <MemoizedChainRankingTab
-                    currentPrices={currentPrices}
-                    divergence={analytics.divergence}
-                    feed={analytics.feed}
-                    stability={analytics.stability}
-                  />
+                  <SectionErrorBoundary componentName="ChainRankingTab">
+                    <Suspense
+                      fallback={<div className="animate-pulse h-48 bg-gray-100 rounded-lg" />}
+                    >
+                      <LazyChainRankingTab
+                        currentPrices={currentPrices}
+                        divergence={analytics.divergence}
+                        feed={analytics.feed}
+                        stability={analytics.stability}
+                      />
+                    </Suspense>
+                  </SectionErrorBoundary>
                 )}
               </div>
             )}

@@ -274,10 +274,10 @@ export abstract class BaseOracleClient {
       return data as PriceData;
     }
     const result = safeValidateOracleData(PriceDataSchema, data, context);
-    if (result === null && process.env.NODE_ENV === 'development') {
-      logger.warn('Price data validation failed silently', { context });
+    if (!result.ok && process.env.NODE_ENV === 'development') {
+      logger.warn('Price data validation failed silently', { context, error: result.error });
     }
-    return result as PriceData | null;
+    return result.ok ? result.data : null;
   }
 
   protected validatePriceDataArray(data: unknown[], context?: string): PriceData[] {

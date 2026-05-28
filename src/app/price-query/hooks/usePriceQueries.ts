@@ -29,7 +29,8 @@ interface BatchQueryResultItem {
 export function useBatchOracleQuery(
   tasks: BatchQueryTask[],
   enabled = true,
-  refetchInterval: number | false = false
+  refetchInterval: number | false = false,
+  forceRefresh = false
 ) {
   const queryConfigs = useMemo(() => {
     if (!enabled || tasks.length === 0) return [];
@@ -42,7 +43,7 @@ export function useBatchOracleQuery(
           symbol: task.symbol,
           chain: task.chain,
           signal,
-          forceRefresh: true,
+          forceRefresh,
         }),
       staleTime: 10_000,
       enabled: !!task.provider && !!task.symbol,
@@ -53,7 +54,7 @@ export function useBatchOracleQuery(
       retryDelay: (attemptIndex: number) => Math.min(1000 * 2 ** attemptIndex, 3000),
       refetchOnWindowFocus: false,
     }));
-  }, [tasks, enabled, refetchInterval]);
+  }, [tasks, enabled, refetchInterval, forceRefresh]);
 
   const queryResults = useQueries({ queries: queryConfigs });
 
