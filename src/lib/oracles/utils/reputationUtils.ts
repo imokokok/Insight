@@ -1,4 +1,4 @@
-export interface ScoreThresholds {
+interface ScoreThresholds {
   excellent: number;
   good: number;
   poor: number;
@@ -48,7 +48,7 @@ export function getScoreBadge(
 
 export type CredibilityLevel = 'high' | 'medium' | 'low' | 'unverified';
 
-export interface CredibilityConfig {
+interface CredibilityConfig {
   level: CredibilityLevel;
   label: string;
   color: string;
@@ -184,22 +184,4 @@ export function calculateDeviationScore(avgDeviationPct: number): number {
   if (avgDeviationPct <= 1.0) return 80 - ((avgDeviationPct - 0.5) / 0.5) * 25;
   if (avgDeviationPct <= 2.0) return 55 - ((avgDeviationPct - 1.0) / 1.0) * 30;
   return Math.max(10, 25 - (avgDeviationPct - 2.0) * 5);
-}
-
-export function calculateOverallScore(params: {
-  accuracy: number;
-  uptime: number;
-  reliability: number;
-  freshness: number;
-  latencyScore: number;
-  deviationScore: number;
-}): number {
-  const overall =
-    params.accuracy * 0.3 +
-    params.uptime * 0.2 +
-    params.reliability * 0.2 +
-    params.freshness * 0.15 +
-    params.latencyScore * 0.1 +
-    params.deviationScore * 0.05;
-  return Math.min(100, Math.max(0, overall));
 }

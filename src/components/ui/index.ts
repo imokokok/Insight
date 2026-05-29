@@ -1,7 +1,7 @@
 export { Button } from './Button';
 export { LiveStatusBar } from './LiveStatusBar';
 export { DataTablePro } from './DataTablePro';
-export type { ColumnDef, ConditionalFormattingRule } from './DataTablePro';
+export type { ColumnDef } from './DataTablePro';
 
 export { ChartSkeleton, HeroSkeleton } from './ChartSkeleton';
 

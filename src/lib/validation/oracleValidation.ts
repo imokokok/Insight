@@ -6,9 +6,7 @@ import { ZodValidationError } from './errors';
 
 const logger = createLogger('oracle-validation');
 
-export type SafeValidationResult<T> =
-  | { ok: true; data: T }
-  | { ok: false; error: ZodValidationError };
+type SafeValidationResult<T> = { ok: true; data: T } | { ok: false; error: ZodValidationError };
 
 export function validateOracleData<T>(schema: ZodSchema<T>, data: unknown, context?: string): T {
   const result = schema.safeParse(data);

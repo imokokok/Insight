@@ -225,30 +225,6 @@ export function formatRelativeTime(
   return `${days} day${days > 1 ? 's' : ''} ago`;
 }
 
-export function formatDataAge(seconds: number | null): string {
-  if (seconds == null) return '-';
-  if (seconds < SECONDS_PER_MINUTE) return `${Math.round(seconds)}s`;
-  return `${Math.round(seconds / SECONDS_PER_MINUTE)}m`;
-}
-
-export function formatConfidenceScore(confidence: number): string {
-  if (confidence <= 1) return (confidence * 100).toFixed(1);
-  return Math.min(100, confidence).toFixed(1);
-}
-
-export function truncateAddress(address: string, head: number = 6, tail: number = 4): string {
-  return `${address.slice(0, head)}...${address.slice(-tail)}`;
-}
-
-export function formatOraclePrice(value: number, decimals: number = 2): string {
-  return `$${formatNumberWithDecimals(value, 2, decimals)}`;
-}
-
-export function formatTimestampValue(timestamp: number): string {
-  if (!timestamp) return '-';
-  return formatTimeString(new Date(timestamp));
-}
-
 export function capitalize(s: string): string {
   if (!s) return s;
   return s.charAt(0).toUpperCase() + s.slice(1);
