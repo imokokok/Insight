@@ -4,7 +4,7 @@ import { devtools } from 'zustand/middleware';
 import { type CrossChainComparisonResult } from '@/lib/oracles/crossChainComparison';
 import { type AnomalousPricePoint } from '@/lib/types/crossChain';
 import { type PriceStats } from '@/types/analytics';
-import { type OracleProvider, type Blockchain, type PriceData } from '@/types/oracle';
+import { type Blockchain, type PriceData } from '@/types/oracle';
 
 interface DataState {
   currentPrices: PriceData[];
@@ -32,31 +32,13 @@ interface DataActions {
 }
 
 let _fetchData: (() => Promise<void>) | null = null;
-let _clearCache: (() => void) | null = null;
-let _clearCacheForProvider: ((provider: OracleProvider) => void) | null = null;
 
 export function setFetchDataRef(fn: () => Promise<void>) {
   _fetchData = fn;
 }
 
-export function setClearCacheRef(fn: () => void) {
-  _clearCache = fn;
-}
-
-export function setClearCacheForProviderRef(fn: (provider: OracleProvider) => void) {
-  _clearCacheForProvider = fn;
-}
-
 export function getFetchData(): (() => Promise<void>) | null {
   return _fetchData;
-}
-
-export function getClearCache(): (() => void) | null {
-  return _clearCache;
-}
-
-export function getClearCacheForProvider(): ((provider: OracleProvider) => void) | null {
-  return _clearCacheForProvider;
 }
 
 const initialState: DataState = {

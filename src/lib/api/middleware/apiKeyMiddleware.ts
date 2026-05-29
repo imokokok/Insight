@@ -174,5 +174,3 @@ export function createApiKeyMiddleware(options: ApiKeyMiddlewareOptions = {}) {
     return { success: true, context: keyContext };
   };
 }
-
-export { hashApiKey, PLAN_RATE_LIMITS };

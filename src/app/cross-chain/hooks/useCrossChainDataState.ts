@@ -2,12 +2,7 @@ import { useEffect, useMemo, useRef } from 'react';
 
 import { getDefaultFactory, type BaseOracleClient } from '@/lib/oracles';
 import { useCrossChainConfigStore } from '@/stores/crossChainConfigStore';
-import {
-  useCrossChainDataStore,
-  setFetchDataRef,
-  setClearCacheRef,
-  setClearCacheForProviderRef,
-} from '@/stores/crossChainDataStore';
+import { useCrossChainDataStore, setFetchDataRef } from '@/stores/crossChainDataStore';
 import { useCrossChainSelectorStore } from '@/stores/crossChainSelectorStore';
 import { useCrossChainUIStore } from '@/stores/crossChainUIStore';
 import { type PriceStats } from '@/types/analytics';
@@ -80,9 +75,7 @@ export function useCrossChainDataState(): UseCrossChainDataStateReturn {
 
   useEffect(() => {
     setFetchDataRef(fetchDataInternal);
-    setClearCacheRef(clearCache);
-    setClearCacheForProviderRef(clearCacheForProvider);
-  }, [fetchDataInternal, clearCache, clearCacheForProvider]);
+  }, [fetchDataInternal]);
 
   const prevParamsRef = useRef({
     selectedProvider,

@@ -182,19 +182,6 @@ export const AlertListResponseSchema = z.object({
   count: z.number().int().nonnegative(),
 });
 
-export const PriceQueryRequestSchema = z.object({
-  symbol: SafeSymbolSchema,
-  chain: SafeChainSchema.optional(),
-  provider: SafeProviderSchema.optional(),
-});
-
-export const HistoricalPriceRequestSchema = z.object({
-  provider: SafeProviderSchema,
-  symbol: SafeSymbolSchema,
-  chain: SafeChainSchema.optional(),
-  period: z.number().int().min(1).max(8760).optional().default(24),
-});
-
 export const OracleProviderPathParamSchema = z
   .string()
   .refine(
@@ -224,9 +211,7 @@ export function validateOracleData<T>(schema: ZodSchema<T>, data: unknown, conte
   return result.data;
 }
 
-export type SafeValidationResult<T> =
-  | { ok: true; data: T }
-  | { ok: false; error: ZodValidationError };
+type SafeValidationResult<T> = { ok: true; data: T } | { ok: false; error: ZodValidationError };
 
 export function safeValidateOracleData<T>(
   schema: ZodSchema<T>,

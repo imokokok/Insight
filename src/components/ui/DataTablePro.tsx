@@ -295,4 +295,4 @@ export function DataTablePro<T extends Record<string, unknown>>({
   );
 }
 
-export type { ColumnDef, ConditionalFormattingRule } from './DataTablePro/types';
+export type { ColumnDef } from './DataTablePro/types';
