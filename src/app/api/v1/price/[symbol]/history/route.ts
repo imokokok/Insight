@@ -1,15 +1,14 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
 import { createApiHandler, ApiResponseBuilder } from '@/lib/api/handler';
-import { handleGetHistoricalPrices } from '@/lib/api/oracleHandlers';
+import { fetchHistoricalPricesWithDatabase } from '@/lib/oracles/base/databaseOperations';
 import { OracleProviderPathParamSchema } from '@/lib/security/validation';
 import { type Blockchain, type OracleProvider, ORACLE_PROVIDER_VALUES } from '@/types/oracle';
 
 export const GET = createApiHandler(
-  async (request: NextRequest) => {
-    const pathSegments = request.nextUrl.pathname.split('/');
-    const symbolSegment = pathSegments[pathSegments.length - 2];
-    const symbol = decodeURIComponent(symbolSegment);
+  async (request: NextRequest, context) => {
+    const symbolParam = context.validated?.params?.symbol;
+    const symbol = symbolParam ? decodeURIComponent(symbolParam) : '';
 
     if (!symbol) {
       return NextResponse.json(
@@ -58,33 +57,41 @@ export const GET = createApiHandler(
 
     const validatedProvider = providerResult.data as OracleProvider;
     const chainValue = chain as Blockchain | undefined;
+    const baseSymbol = symbol.split('/')[0].toUpperCase();
 
-    const result = await handleGetHistoricalPrices({
-      provider: validatedProvider,
-      symbol,
-      chain: chainValue,
-      period,
-    });
-
-    if (result.status >= 400) {
-      return result;
-    }
-
-    const body = await result.json();
-    return NextResponse.json(
-      ApiResponseBuilder.success(body, {
-        provider: validatedProvider,
-        symbol,
-        chain: chainValue,
+    try {
+      const data = await fetchHistoricalPricesWithDatabase(
+        validatedProvider,
+        baseSymbol,
+        chainValue,
         period,
-      })
-    );
+        true
+      );
+
+      return NextResponse.json(
+        ApiResponseBuilder.success(data, {
+          provider: validatedProvider,
+          symbol,
+          chain: chainValue,
+          period,
+        })
+      );
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error occurred';
+      return NextResponse.json(
+        ApiResponseBuilder.error('ORACLE_ERROR', `Failed to fetch historical prices: ${message}`, {
+          retryable: true,
+        }),
+        { status: 500 }
+      );
+    }
   },
   {
     middlewares: {
       logging: true,
       rateLimit: { preset: 'api' },
       apiKey: true,
+      cors: true,
     },
   }
 );

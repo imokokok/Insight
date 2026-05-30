@@ -1,4 +1,5 @@
-// Chainlink supported symbols (based on actual verification results, only including available trading pairs)
+import { OracleProvider } from '@/types/oracle';
+
 // Note: These symbols have available Chainlink price feeds on at least one chain
 const chainlinkSymbols = [
   // Crypto
@@ -833,6 +834,27 @@ export const oracleSupportedSymbols = {
   reflector: reflectorSymbols,
   flare: flareSymbols,
 } as const;
+
+export const providerToSymbolKey: Record<OracleProvider, keyof typeof oracleSupportedSymbols> = {
+  [OracleProvider.CHAINLINK]: 'chainlink',
+  [OracleProvider.PYTH]: 'pyth',
+  [OracleProvider.API3]: 'api3',
+  [OracleProvider.REDSTONE]: 'redstone',
+  [OracleProvider.DIA]: 'dia',
+  [OracleProvider.WINKLINK]: 'winklink',
+  [OracleProvider.SUPRA]: 'supra',
+  [OracleProvider.TWAP]: 'twap',
+  [OracleProvider.REFLECTOR]: 'reflector',
+  [OracleProvider.FLARE]: 'flare',
+};
+
+export function getProvidersForSymbol(baseSymbol: string): OracleProvider[] {
+  return Object.values(OracleProvider).filter((provider) => {
+    const key = providerToSymbolKey[provider];
+    const supported = oracleSupportedSymbols[key] as readonly string[];
+    return supported.includes(baseSymbol);
+  });
+}
 
 export function getAllSupportedSymbols(): string[] {
   const allSymbols = new Set<string>();

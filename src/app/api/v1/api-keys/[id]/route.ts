@@ -6,7 +6,7 @@ import { type ApiKeyPlan } from '@/lib/api/middleware/apiKeyMiddleware';
 import { createServerClient } from '@/lib/supabase/server';
 
 export const GET = createApiHandler(
-  async (request: NextRequest, context) => {
+  async (_request: NextRequest, context) => {
     const userId = context.auth?.userId;
     if (!userId) {
       return NextResponse.json(
@@ -15,8 +15,12 @@ export const GET = createApiHandler(
       );
     }
 
-    const pathSegments = request.nextUrl.pathname.split('/');
-    const keyId = pathSegments[pathSegments.length - 1];
+    const keyId = context.validated?.params?.id;
+    if (!keyId) {
+      return NextResponse.json(ApiResponseBuilder.error('MISSING_ID', 'API key ID is required'), {
+        status: 400,
+      });
+    }
 
     const client = createServerClient();
     const service = createApiKeyService(client);
@@ -41,6 +45,7 @@ export const GET = createApiHandler(
     middlewares: {
       logging: true,
       auth: { required: true },
+      cors: true,
     },
   }
 );
@@ -55,8 +60,12 @@ export const PATCH = createApiHandler(
       );
     }
 
-    const pathSegments = request.nextUrl.pathname.split('/');
-    const keyId = pathSegments[pathSegments.length - 1];
+    const keyId = context.validated?.params?.id;
+    if (!keyId) {
+      return NextResponse.json(ApiResponseBuilder.error('MISSING_ID', 'API key ID is required'), {
+        status: 400,
+      });
+    }
 
     let body: { name?: string; plan?: ApiKeyPlan };
     try {
@@ -93,12 +102,13 @@ export const PATCH = createApiHandler(
     middlewares: {
       logging: true,
       auth: { required: true },
+      cors: true,
     },
   }
 );
 
 export const DELETE = createApiHandler(
-  async (request: NextRequest, context) => {
+  async (_request: NextRequest, context) => {
     const userId = context.auth?.userId;
     if (!userId) {
       return NextResponse.json(
@@ -107,8 +117,12 @@ export const DELETE = createApiHandler(
       );
     }
 
-    const pathSegments = request.nextUrl.pathname.split('/');
-    const keyId = pathSegments[pathSegments.length - 1];
+    const keyId = context.validated?.params?.id;
+    if (!keyId) {
+      return NextResponse.json(ApiResponseBuilder.error('MISSING_ID', 'API key ID is required'), {
+        status: 400,
+      });
+    }
 
     const client = createServerClient();
     const service = createApiKeyService(client);
@@ -135,6 +149,7 @@ export const DELETE = createApiHandler(
     middlewares: {
       logging: true,
       auth: { required: true },
+      cors: true,
     },
   }
 );

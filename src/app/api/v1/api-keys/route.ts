@@ -30,6 +30,7 @@ export const GET = createApiHandler(
     middlewares: {
       logging: true,
       auth: { required: true },
+      cors: true,
     },
   }
 );
@@ -132,6 +133,7 @@ export const POST = createApiHandler(
     middlewares: {
       logging: true,
       auth: { required: true },
+      cors: true,
     },
   }
 );

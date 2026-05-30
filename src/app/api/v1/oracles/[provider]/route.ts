@@ -1,7 +1,10 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
 import { createApiHandler, ApiResponseBuilder } from '@/lib/api/handler';
-import { handleGetPrice, handleGetHistoricalPrices } from '@/lib/api/oracleHandlers';
+import {
+  fetchPriceWithDatabase,
+  fetchHistoricalPricesWithDatabase,
+} from '@/lib/oracles/base/databaseOperations';
 import {
   OracleProviderPathParamSchema,
   OracleProviderQuerySchema,
@@ -12,11 +15,10 @@ import { type Blockchain, type OracleProvider, ORACLE_PROVIDER_VALUES } from '@/
 const VALID_PROVIDERS = ORACLE_PROVIDER_VALUES.join(', ');
 
 export const GET = createApiHandler(
-  async (request: NextRequest) => {
-    const pathSegments = request.nextUrl.pathname.split('/');
-    const providerSegment = pathSegments[pathSegments.length - 1];
+  async (request: NextRequest, context) => {
+    const providerParam = context.validated?.params?.provider || '';
 
-    const providerResult = OracleProviderPathParamSchema.safeParse(providerSegment);
+    const providerResult = OracleProviderPathParamSchema.safeParse(providerParam);
     if (!providerResult.success) {
       return NextResponse.json(
         ApiResponseBuilder.error(
@@ -39,56 +41,59 @@ export const GET = createApiHandler(
 
     const { symbol, chain, period, forceRefresh } = validation.data!.query!;
     const chainValue = chain as Blockchain | undefined;
+    const baseSymbol = symbol.split('/')[0].toUpperCase();
 
-    if (period !== undefined) {
-      const result = await handleGetHistoricalPrices({
-        provider: validatedProvider,
-        symbol,
-        chain: chainValue,
-        period,
-        forceRefresh,
-      });
+    try {
+      if (period !== undefined) {
+        const data = await fetchHistoricalPricesWithDatabase(
+          validatedProvider,
+          baseSymbol,
+          chainValue,
+          period,
+          true
+        );
 
-      if (result.status >= 400) {
-        return result;
+        return NextResponse.json(
+          ApiResponseBuilder.success(data, {
+            provider: validatedProvider,
+            symbol,
+            chain: chainValue,
+            period,
+          })
+        );
       }
 
-      const body = await result.json();
+      const data = await fetchPriceWithDatabase(
+        validatedProvider,
+        baseSymbol,
+        chainValue,
+        true,
+        forceRefresh
+      );
+
       return NextResponse.json(
-        ApiResponseBuilder.success(body, {
+        ApiResponseBuilder.success(data, {
           provider: validatedProvider,
           symbol,
           chain: chainValue,
-          period,
         })
       );
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error occurred';
+      return NextResponse.json(
+        ApiResponseBuilder.error('ORACLE_ERROR', `Oracle operation failed: ${message}`, {
+          retryable: true,
+        }),
+        { status: 500 }
+      );
     }
-
-    const result = await handleGetPrice({
-      provider: validatedProvider,
-      symbol,
-      chain: chainValue,
-      forceRefresh,
-    });
-
-    if (result.status >= 400) {
-      return result;
-    }
-
-    const body = await result.json();
-    return NextResponse.json(
-      ApiResponseBuilder.success(body, {
-        provider: validatedProvider,
-        symbol,
-        chain: chainValue,
-      })
-    );
   },
   {
     middlewares: {
       logging: true,
       rateLimit: { preset: 'api' },
       apiKey: true,
+      cors: true,
     },
   }
 );
