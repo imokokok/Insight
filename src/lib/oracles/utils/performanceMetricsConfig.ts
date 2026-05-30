@@ -114,7 +114,7 @@ const DEFAULT_PROVIDER_CONFIG: PerformanceMetricsConfig = {
       chains: 8,
       aggregationMethod: 'median',
       hasOnChainVerification: true,
-      primaryDataSources: ['binance', 'coinbase', 'coingecko', 'coinmarketcap'],
+      primaryDataSources: ['binance', 'coinbase', 'coinmarketcap'],
     },
     dia: {
       responseTime: 800,
@@ -216,7 +216,7 @@ const DEFAULT_PROVIDER_CONFIG: PerformanceMetricsConfig = {
       chains: 1,
       aggregationMethod: 'median',
       hasOnChainVerification: true,
-      primaryDataSources: ['binance', 'coinbase', 'kraken', 'coingecko'],
+      primaryDataSources: ['binance', 'coinbase', 'kraken'],
     },
   },
   fallbackDefaults: {
