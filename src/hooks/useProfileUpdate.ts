@@ -28,6 +28,18 @@ export function useProfileUpdate() {
   return { updateProfile, isUpdating, error };
 }
 
+interface ProfileResponse {
+  profile: Record<string, unknown>;
+}
+
+interface AlertsResponse {
+  alerts: unknown[];
+}
+
+interface SnapshotsResponse {
+  snapshots: unknown[];
+}
+
 export function useDataExport() {
   const [isExporting, setIsExporting] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -37,9 +49,9 @@ export function useDataExport() {
     setError(null);
     try {
       const [profile, alerts, snapshots] = await Promise.all([
-        apiClient.get('/api/auth/profile'),
-        apiClient.get('/api/alerts'),
-        apiClient.get('/api/snapshots'),
+        apiClient.get<ProfileResponse>('/api/auth/profile'),
+        apiClient.get<AlertsResponse>('/api/alerts'),
+        apiClient.get<SnapshotsResponse>('/api/snapshots'),
       ]);
       return { profile, alerts, snapshots };
     } catch (err) {
@@ -59,11 +71,11 @@ export function useDeleteAccount() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const deleteAccount = useCallback(async () => {
+  const deleteAccount = useCallback(async (confirmation: string) => {
     setIsDeleting(true);
     setError(null);
     try {
-      await apiClient.post('/api/auth/delete-account', {});
+      await apiClient.post('/api/auth/delete-account', { confirmation });
     } catch (err) {
       const appError = err instanceof Error ? err : new Error(String(err));
       logger.error('Failed to delete account', appError);

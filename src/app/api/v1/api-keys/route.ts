@@ -19,10 +19,17 @@ export const GET = createApiHandler(
     const service = createApiKeyService(client);
     const keys = await service.listApiKeys(userId);
 
+    const keysWithUsage = await Promise.all(
+      keys.map(async (key) => {
+        const usage = await service.getApiKeyUsage(key.id);
+        return { ...key, usage: usage || { last24h: 0, last7d: 0 } };
+      })
+    );
+
     return NextResponse.json(
       ApiResponseBuilder.success({
-        keys,
-        count: keys.length,
+        keys: keysWithUsage,
+        count: keysWithUsage.length,
       })
     );
   },

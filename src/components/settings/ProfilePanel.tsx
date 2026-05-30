@@ -6,7 +6,7 @@ import { Mail, Save, Key, Loader2, CheckCircle } from 'lucide-react';
 
 import { PasswordInput } from '@/components/ui/PasswordInput';
 import { useProfileUpdate } from '@/hooks/useProfileUpdate';
-import { updatePassword } from '@/lib/supabase/auth';
+import { updatePassword, signIn } from '@/lib/supabase/auth';
 import { useUser, useProfile, useAuthActions } from '@/stores/authStore';
 
 import { AvatarUploader } from './AvatarUploader';
@@ -101,6 +101,17 @@ export function ProfilePanel() {
     setError(null);
 
     try {
+      if (!user?.email) {
+        setError('Unable to verify current password');
+        return;
+      }
+
+      const { error: reauthError } = await signIn(user.email, currentPassword);
+      if (reauthError) {
+        setError('Current password is incorrect');
+        return;
+      }
+
       const { error: updateError } = await updatePassword(newPassword);
 
       if (updateError) {

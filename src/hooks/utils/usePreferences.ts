@@ -9,7 +9,7 @@ interface UserPreferences {
   defaultSymbol: string;
   defaultTimeRange: string;
   defaultCurrency: string;
-  autoRefreshInterval: number;
+  autoRefreshInterval: string;
 }
 
 const STORAGE_KEY = 'user_preferences';
@@ -19,7 +19,7 @@ const defaultPreferences: UserPreferences = {
   defaultSymbol: 'BTC/USD',
   defaultTimeRange: '24h',
   defaultCurrency: 'USD',
-  autoRefreshInterval: 30,
+  autoRefreshInterval: '30',
 };
 
 interface DbUserPreferences {
@@ -48,7 +48,7 @@ function getLocalPreferences(): Partial<UserPreferences> {
       defaultCurrency: parsed.defaultCurrency,
       autoRefreshInterval:
         parsed.autoRefreshInterval !== undefined && parsed.autoRefreshInterval !== null
-          ? parseInt(parsed.autoRefreshInterval, 10)
+          ? String(parsed.autoRefreshInterval)
           : undefined,
     };
   } catch {
@@ -80,7 +80,7 @@ export function usePreferences() {
           defaultPreferences.defaultCurrency,
         autoRefreshInterval:
           dbPrefs.auto_refresh_interval !== undefined
-            ? dbPrefs.auto_refresh_interval
+            ? String(dbPrefs.auto_refresh_interval)
             : (localPrefs.autoRefreshInterval ?? defaultPreferences.autoRefreshInterval),
       };
     }
@@ -95,7 +95,7 @@ export function usePreferences() {
         defaultSymbol: prefs.defaultSymbol,
         defaultTimeRange: prefs.defaultTimeRange,
         defaultCurrency: prefs.defaultCurrency,
-        autoRefreshInterval: String(prefs.autoRefreshInterval),
+        autoRefreshInterval: prefs.autoRefreshInterval,
       })
     );
   }, []);

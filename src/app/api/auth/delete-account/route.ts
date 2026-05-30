@@ -40,6 +40,15 @@ export const POST = createApiHandler(
 
     const deletionErrors: string[] = [];
 
+    const { error: apiKeysError } = await supabaseAdmin
+      .from('api_keys')
+      .delete()
+      .eq('user_id', userId);
+    if (apiKeysError) {
+      deletionErrors.push('api_keys');
+      logger.error('Failed to delete user API keys', new Error(String(apiKeysError)));
+    }
+
     const alertSuccess = await queries.deleteAllAlerts(userId);
     if (!alertSuccess) {
       deletionErrors.push('alerts');
