@@ -120,6 +120,8 @@ export function NotificationPanel() {
             email_alerts: settings.emailNotifications,
             push_notifications: settings.browserNotifications,
             alert_frequency: settings.alertNotifications ? 'immediate' : 'off',
+            price_change_enabled: settings.priceChangeEnabled,
+            price_change_threshold: settings.priceChangeThreshold,
           },
         });
       }

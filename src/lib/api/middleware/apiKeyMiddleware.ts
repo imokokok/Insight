@@ -4,6 +4,7 @@ import { createServerClient } from '@/lib/supabase/server';
 import { createLogger } from '@/lib/utils/logger';
 
 import { ApiResponseBuilder } from '../response';
+import { hashApiKey } from '../utils';
 
 const logger = createLogger('api-key-middleware');
 
@@ -103,17 +104,6 @@ async function validateApiKey(key: string): Promise<ApiKeyContext | null> {
     );
     return null;
   }
-}
-
-const API_KEY_SALT = process.env.API_KEY_HASH_SALT || 'insight-api-key-salt-2024';
-
-async function hashApiKey(key: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const saltedKey = API_KEY_SALT + key;
-  const data = encoder.encode(saltedKey);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
 export function createApiKeyMiddleware(options: ApiKeyMiddlewareOptions = {}) {

@@ -9,25 +9,49 @@ import { SectionErrorBoundary } from '@/components/error-boundary';
 import type { SettingsTab } from '@/components/settings';
 import { useUser, useAuthLoading, useAuthInitialized } from '@/stores/authStore';
 
-const SettingsLayout = dynamic(() =>
-  import('@/components/settings').then((mod) => mod.SettingsLayout)
+const SettingsLayout = dynamic(
+  () => import('@/components/settings').then((mod) => mod.SettingsLayout),
+  { loading: () => <div className="min-h-screen" /> }
 );
 
-const ProfilePanel = dynamic(() => import('@/components/settings').then((mod) => mod.ProfilePanel));
-
-const PreferencesPanel = dynamic(() =>
-  import('@/components/settings').then((mod) => mod.PreferencesPanel)
+const ProfilePanel = dynamic(
+  () => import('@/components/settings').then((mod) => mod.ProfilePanel),
+  {
+    loading: () => <PanelLoadingSkeleton />,
+  }
 );
 
-const NotificationPanel = dynamic(() =>
-  import('@/components/settings').then((mod) => mod.NotificationPanel)
+const PreferencesPanel = dynamic(
+  () => import('@/components/settings').then((mod) => mod.PreferencesPanel),
+  { loading: () => <PanelLoadingSkeleton /> }
 );
 
-const DataManagementPanel = dynamic(() =>
-  import('@/components/settings').then((mod) => mod.DataManagementPanel)
+const NotificationPanel = dynamic(
+  () => import('@/components/settings').then((mod) => mod.NotificationPanel),
+  { loading: () => <PanelLoadingSkeleton /> }
 );
 
-const ApiKeyPanel = dynamic(() => import('@/components/settings').then((mod) => mod.ApiKeyPanel));
+const DataManagementPanel = dynamic(
+  () => import('@/components/settings').then((mod) => mod.DataManagementPanel),
+  { loading: () => <PanelLoadingSkeleton /> }
+);
+
+const ApiKeyPanel = dynamic(() => import('@/components/settings').then((mod) => mod.ApiKeyPanel), {
+  loading: () => <PanelLoadingSkeleton />,
+});
+
+function PanelLoadingSkeleton() {
+  return (
+    <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-8">
+      <div className="animate-pulse space-y-4">
+        <div className="h-6 bg-gray-200 w-40 rounded" />
+        <div className="h-4 bg-gray-200 w-64 rounded" />
+        <div className="h-10 bg-gray-200 w-full rounded-lg" />
+        <div className="h-10 bg-gray-200 w-full rounded-lg" />
+      </div>
+    </div>
+  );
+}
 
 const emptySubscribe = () => () => {};
 

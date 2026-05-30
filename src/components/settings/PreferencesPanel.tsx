@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 
 import { Clock, Database, Save, Loader2, CheckCircle, RefreshCw, DollarSign } from 'lucide-react';
 
@@ -90,14 +90,8 @@ export function PreferencesPanel() {
   const authInitialized = useAuthInitialized();
   const { updateProfile, isUpdating: isSaving } = useProfileUpdate();
 
-  const [preferences, setPreferences] = useState<UserPreferences>(defaultPreferences);
-  const [isLoading, setIsLoading] = useState(true);
-  const [success, setSuccess] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  const successTimerRef = useRef<NodeJS.Timeout | null>(null);
-
-  const loadPreferences = useCallback(() => {
+  const computedPreferences = useMemo(() => {
+    if (typeof window === 'undefined') return defaultPreferences;
     const saved = localStorage.getItem(STORAGE_KEY);
     let localPrefs: Partial<UserPreferences> = {};
     if (saved) {
@@ -110,7 +104,7 @@ export function PreferencesPanel() {
 
     if (user && profile?.preferences) {
       const dbPrefs = profile.preferences as DbUserPreferences;
-      const merged: UserPreferences = {
+      return {
         defaultOracle:
           dbPrefs.default_oracle || localPrefs.defaultOracle || defaultPreferences.defaultOracle,
         defaultSymbol:
@@ -128,19 +122,19 @@ export function PreferencesPanel() {
             ? String(dbPrefs.auto_refresh_interval)
             : localPrefs.autoRefreshInterval || defaultPreferences.autoRefreshInterval,
       };
-      setPreferences(merged);
-    } else {
-      setPreferences({ ...defaultPreferences, ...localPrefs });
     }
-    setIsLoading(false);
+    return { ...defaultPreferences, ...localPrefs };
   }, [user, profile]);
 
-  useEffect(() => {
-    if (authInitialized) {
-      loadPreferences();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [authInitialized]);
+  const [localOverrides, setLocalOverrides] = useState<Partial<UserPreferences> | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const preferences = localOverrides
+    ? { ...computedPreferences, ...localOverrides }
+    : computedPreferences;
+
+  const successTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     return () => {
@@ -174,6 +168,7 @@ export function PreferencesPanel() {
         });
       }
 
+      setLocalOverrides(null);
       setSuccess('Preferences saved successfully');
 
       if (successTimerRef.current) {
@@ -190,12 +185,12 @@ export function PreferencesPanel() {
   };
 
   const updatePreference = <K extends keyof UserPreferences>(key: K, value: UserPreferences[K]) => {
-    setPreferences((prev) => ({ ...prev, [key]: value }));
+    setLocalOverrides((prev) => ({ ...(prev || {}), [key]: value }));
   };
 
   return (
     <div className="space-y-6">
-      {isLoading ? (
+      {!authInitialized ? (
         <div className="flex items-center justify-center py-12">
           <Loader2 className="w-8 h-8 animate-spin text-primary-500" />
         </div>

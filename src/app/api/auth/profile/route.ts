@@ -7,14 +7,26 @@ import { type UserProfileUpdate } from '@/lib/supabase/queries';
 import { getServerQueries } from '@/lib/supabase/server';
 
 const VALID_ORACLES = ['chainlink', 'pyth', 'api3', 'redstone', 'dia', 'winklink'] as const;
-const VALID_ALERT_FREQUENCIES = ['immediate', 'hourly', 'daily'] as const;
+const VALID_ALERT_FREQUENCIES = ['immediate', 'hourly', 'daily', 'off'] as const;
+const VALID_TIME_RANGES = ['1h', '6h', '24h', '7d', '30d'] as const;
+const VALID_CURRENCIES = ['USD', 'CNY', 'EUR', 'JPY', 'GBP'] as const;
+
+const ChartSettingsSchema = z.object({
+  show_confidence_interval: z.boolean().optional(),
+  auto_refresh: z.boolean().optional(),
+  refresh_interval: z.number().min(1000).max(300000).optional(),
+});
 
 const PreferencesSchema = z.object({
   default_oracle: z.enum(VALID_ORACLES).optional(),
   default_symbol: z.string().max(20).optional(),
   default_chain: z.string().max(30).optional(),
+  default_time_range: z.enum(VALID_TIME_RANGES).optional(),
+  default_currency: z.enum(VALID_CURRENCIES).optional(),
+  auto_refresh_interval: z.number().min(0).max(300000).optional(),
   refresh_interval: z.number().min(1000).max(300000).optional(),
   notifications_enabled: z.boolean().optional(),
+  chart_settings: ChartSettingsSchema.optional(),
 });
 
 const NotificationSettingsSchema = z.object({
@@ -23,6 +35,8 @@ const NotificationSettingsSchema = z.object({
   alert_frequency: z.enum(VALID_ALERT_FREQUENCIES).optional(),
   price_alerts: z.boolean().optional(),
   market_updates: z.boolean().optional(),
+  price_change_enabled: z.boolean().optional(),
+  price_change_threshold: z.number().min(1).max(20).optional(),
 });
 
 const UpdateProfileSchema = z

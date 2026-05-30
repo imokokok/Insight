@@ -33,7 +33,12 @@ function exportToJson(config: ExportConfig): void {
   downloadBlob(blob, `${filename}-${timestamp}.json`);
 }
 
-const LOCAL_STORAGE_PREFIXES = ['insight-', 'auth-store'];
+const LOCAL_STORAGE_PREFIXES = [
+  'insight-',
+  'auth-store',
+  'user_preferences',
+  'notification_settings',
+];
 
 export function DataManagementPanel() {
   const user = useUser();
@@ -44,6 +49,7 @@ export function DataManagementPanel() {
   const [isExportingPrice, setIsExportingPrice] = useState(false);
   const [isExportingSnapshots, setIsExportingSnapshots] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [success, setSuccess] = useState<string | null>(null);
@@ -132,13 +138,13 @@ export function DataManagementPanel() {
         '/api/snapshots'
       );
 
-      const exportData = {
+      const snapshotExportData = {
         exportedAt: new Date().toISOString(),
         snapshots: response.data.snapshots,
         count: response.data.snapshots?.length || 0,
       };
 
-      exportToJson({ filename: 'snapshots', data: exportData });
+      exportToJson({ filename: 'snapshots', data: snapshotExportData });
       showSuccess('Snapshots exported successfully');
     } catch {
       setError('Failed to export data');
@@ -148,10 +154,6 @@ export function DataManagementPanel() {
   };
 
   const clearLocalData = async () => {
-    if (!confirm('Are you sure you want to clear all local data? This action cannot be undone.')) {
-      return;
-    }
-
     setIsClearing(true);
     setError(null);
 
@@ -171,6 +173,7 @@ export function DataManagementPanel() {
         await Promise.all(cacheNames.map((name) => caches.delete(name)));
       }
 
+      setShowClearConfirm(false);
       showSuccess('Local data cleared successfully');
     } catch {
       setError('Failed to clear local data');
@@ -185,7 +188,8 @@ export function DataManagementPanel() {
     setError(null);
 
     try {
-      await deleteAccountApi();
+      const confirmation = `DELETE ${user.email ?? user.id}`;
+      await deleteAccountApi(confirmation);
 
       await signOut();
       router.push('/');
@@ -327,7 +331,7 @@ export function DataManagementPanel() {
           </div>
 
           <button
-            onClick={clearLocalData}
+            onClick={() => setShowClearConfirm(true)}
             disabled={isClearing}
             className="inline-flex items-center gap-2 px-4 py-2 border border-yellow-300 text-warning-700 rounded-lg hover:bg-warning-50 hover:border-yellow-400 active:bg-warning-100 transition-all duration-200 disabled:opacity-50 text-sm font-medium"
           >
@@ -409,6 +413,47 @@ export function DataManagementPanel() {
           )}
         </div>
       </div>
+
+      {showClearConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 overflow-hidden">
+            <div className="p-6">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-full bg-warning-100 flex items-center justify-center flex-shrink-0">
+                  <AlertTriangle className="w-5 h-5 text-warning-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Clear Local Data</h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Are you sure you want to clear all local cached data? This action cannot be
+                    undone. Your account data will remain intact.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="px-6 py-4 bg-gray-50 flex justify-end gap-3">
+              <button
+                onClick={() => setShowClearConfirm(false)}
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={clearLocalData}
+                disabled={isClearing}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-warning-600 text-white rounded-lg hover:bg-warning-700 transition-colors disabled:opacity-50 text-sm font-medium"
+              >
+                {isClearing ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Trash2 className="w-4 h-4" />
+                )}
+                Clear Data
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
