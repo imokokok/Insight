@@ -18,7 +18,6 @@ import {
 
 import { useDataExport, useDeleteAccount } from '@/hooks/useProfileUpdate';
 import { apiClient } from '@/lib/api';
-import { supabase } from '@/lib/supabase/client';
 import { downloadBlob } from '@/lib/utils/download';
 import { useUser, useAuthActions } from '@/stores/authStore';
 
@@ -101,21 +100,19 @@ export function DataManagementPanel() {
     setError(null);
 
     try {
-      const { data, error: queryError } = await supabase
-        .from('price_records')
-        .select('*')
-        .order('timestamp', { ascending: false })
-        .limit(10000);
+      const response = await apiClient.get<{
+        exportedAt: string;
+        records: unknown[];
+        count: number;
+      }>('/api/price-records/export');
 
-      if (queryError) throw queryError;
-
-      const exportData = {
-        exportedAt: new Date().toISOString(),
-        records: data,
-        count: data?.length || 0,
+      const exportPayload = {
+        exportedAt: response.data?.exportedAt ?? new Date().toISOString(),
+        records: response.data?.records ?? [],
+        count: response.data?.count ?? 0,
       };
 
-      exportToJson({ filename: 'price-history', data: exportData });
+      exportToJson({ filename: 'price-history', data: exportPayload });
       showSuccess('Price history exported successfully');
     } catch {
       setError('Failed to export data');

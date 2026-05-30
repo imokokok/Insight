@@ -27,6 +27,8 @@ const DataManagementPanel = dynamic(() =>
   import('@/components/settings').then((mod) => mod.DataManagementPanel)
 );
 
+const ApiKeyPanel = dynamic(() => import('@/components/settings').then((mod) => mod.ApiKeyPanel));
+
 const emptySubscribe = () => () => {};
 
 function useIsClient() {
@@ -92,6 +94,7 @@ export default function SettingsContent() {
           {activeTab === 'preferences' && <PreferencesPanel />}
           {activeTab === 'notifications' && <NotificationPanel />}
           {activeTab === 'data' && <DataManagementPanel />}
+          {activeTab === 'api-keys' && <ApiKeyPanel />}
         </SectionErrorBoundary>
       </SettingsLayout>
     </div>

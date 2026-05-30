@@ -2,9 +2,9 @@
 
 import { type ReactNode } from 'react';
 
-import { Settings, User, Bell, Database, Palette } from 'lucide-react';
+import { Settings, User, Bell, Database, Palette, Key } from 'lucide-react';
 
-export type SettingsTab = 'profile' | 'preferences' | 'notifications' | 'data';
+export type SettingsTab = 'profile' | 'preferences' | 'notifications' | 'data' | 'api-keys';
 
 interface SettingsLayoutProps {
   children: ReactNode;
@@ -44,6 +44,12 @@ export function SettingsLayout({ children, activeTab, onTabChange }: SettingsLay
       label: 'Data',
       icon: Database,
       description: 'Manage your data',
+    },
+    {
+      id: 'api-keys',
+      label: 'API Keys',
+      icon: Key,
+      description: 'Manage API access',
     },
   ];
 

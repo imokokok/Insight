@@ -119,10 +119,18 @@ export default function TechnicalDocsSection() {
     "aggregatedPrice": 81345.37,
     "priceRange": {
       "min": 80749.27, "max": 81424.37,
+      "average": 81234.50, "median": 81340.50,
       "spread": 675.10, "spreadPercent": 0.83
     },
     "providerCount": 10,
-    "providers": [...]
+    "providers": [
+      {
+        "provider": "chainlink",
+        "price": 81345.37,
+        "timestamp": 1700000000000,
+        "confidence": 0.97
+      }
+    ]
   }
 }`}
           </pre>
@@ -144,9 +152,13 @@ export default function TechnicalDocsSection() {
     "consensus": {
       "price": 81340.50,
       "method": "median",
+      "methodLabel": "Median",
       "confidence": 0.95,
+      "confidenceLevel": "high",
       "agreement": 0.97,
-      "participantCount": 10
+      "participantCount": 10,
+      "excludedCount": 0,
+      "recommendedMethod": "iqr_filtered"
     }
   }
 }`}
@@ -167,8 +179,15 @@ export default function TechnicalDocsSection() {
   "data": {
     "provider": "chainlink",
     "price": 81345.37,
+    "timestamp": 1700000000000,
     "confidence": 0.97,
+    "confidenceInterval": { "lower": 81300, "upper": 81390 },
     "source": "BTC / USD"
+  },
+  "meta": {
+    "provider": "chainlink",
+    "symbol": "BTC",
+    "chain": null
   }
 }`}
           </pre>
