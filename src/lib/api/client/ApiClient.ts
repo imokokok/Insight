@@ -1,7 +1,7 @@
 import { createLogger } from '@/lib/utils/logger';
+import { type ApiClientResponse, type RequestConfig } from '@/types/api/client';
 
 import { ApiError } from './ApiError';
-import { type ApiClientResponse, type RequestConfig } from './types';
 
 const logger = createLogger('ApiClient');
 

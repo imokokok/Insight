@@ -3,7 +3,7 @@ import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('enhanced-retry');
 
-export type RetryStrategy = 'fixed' | 'exponential' | 'linear' | 'decorrelated-jitter';
+type RetryStrategy = 'fixed' | 'exponential' | 'linear' | 'decorrelated-jitter';
 
 export interface EnhancedRetryConfig {
   maxAttempts: number;

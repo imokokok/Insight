@@ -1,6 +1,6 @@
 import { type OracleProvider } from '@/types/oracle';
 
-export interface ProviderPerformanceDefaults {
+interface ProviderPerformanceDefaults {
   responseTime: number;
   updateFrequency: number;
   accuracy: number;

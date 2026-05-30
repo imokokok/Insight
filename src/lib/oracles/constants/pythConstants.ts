@@ -188,16 +188,3 @@ export function normalizeSymbol(symbol: string): string {
   }
   return `${baseSymbol}/USD`;
 }
-
-export function getPriceIdForSymbol(symbol: string): string | undefined {
-  return PYTH_PRICE_FEED_IDS[normalizeSymbol(symbol)];
-}
-
-export function getSymbolFromPriceId(priceId: string): string | null {
-  for (const [symbol, id] of Object.entries(PYTH_PRICE_FEED_IDS)) {
-    if (id === priceId) {
-      return symbol;
-    }
-  }
-  return null;
-}

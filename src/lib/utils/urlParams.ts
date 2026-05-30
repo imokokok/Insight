@@ -83,7 +83,7 @@ export function parseQueryParams(search: string): Partial<QueryConfig> {
   return result;
 }
 
-export function buildQueryParams(config: QueryConfig): string {
+function buildQueryParams(config: QueryConfig): string {
   const params = new URLSearchParams();
 
   if (config.oracles && config.oracles.length > 0) {

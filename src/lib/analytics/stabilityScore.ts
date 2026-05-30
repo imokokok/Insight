@@ -4,9 +4,9 @@ import { createLogger } from '@/lib/utils/logger';
 const logger = createLogger('stabilityScore');
 
 export type StabilityLevel = 'excellent' | 'good' | 'fair' | 'poor' | 'critical';
-export type DecayTrend = 'improving' | 'stable' | 'declining' | 'rapidly_declining';
+type DecayTrend = 'improving' | 'stable' | 'declining' | 'rapidly_declining';
 
-export interface StabilityComponents {
+interface StabilityComponents {
   priceConsistency: number;
   updateFrequencyConsistency: number;
   confidenceStability: number;
@@ -88,7 +88,7 @@ function calculateLinearRegressionSlope(values: number[]): number {
   return (n * sumXY - sumX * sumY) / denominator;
 }
 
-export function calculatePriceConsistency(prices: number[]): number {
+function calculatePriceConsistency(prices: number[]): number {
   try {
     if (!prices || prices.length < 2) {
       return 50;
@@ -124,7 +124,7 @@ export function calculatePriceConsistency(prices: number[]): number {
   }
 }
 
-export function calculateUpdateFrequencyConsistency(timestamps: number[]): number {
+function calculateUpdateFrequencyConsistency(timestamps: number[]): number {
   try {
     if (!timestamps || timestamps.length <= 1) {
       return 50;
@@ -160,7 +160,7 @@ export function calculateUpdateFrequencyConsistency(timestamps: number[]): numbe
   }
 }
 
-export function calculateConfidenceStability(confidences: number[]): number {
+function calculateConfidenceStability(confidences: number[]): number {
   try {
     if (!confidences || confidences.length === 0) {
       return 80;
@@ -187,7 +187,7 @@ export function calculateConfidenceStability(confidences: number[]): number {
   }
 }
 
-export function calculateDataCompleteness(
+function calculateDataCompleteness(
   timestamps: number[],
   expectedInterval: number,
   timeWindow: number
@@ -218,7 +218,7 @@ export function calculateDataCompleteness(
   }
 }
 
-export function calculateStabilityScore(
+function calculateStabilityScore(
   provider: string,
   prices: number[],
   timestamps: number[],
@@ -293,7 +293,7 @@ export function calculateStabilityScore(
   }
 }
 
-export function detectDecayTrend(recentScores: number[]): DecayTrend {
+function detectDecayTrend(recentScores: number[]): DecayTrend {
   try {
     if (!recentScores || recentScores.length < 2) {
       return 'stable';
@@ -314,7 +314,7 @@ export function detectDecayTrend(recentScores: number[]): DecayTrend {
   }
 }
 
-export function estimateTimeToCritical(
+function estimateTimeToCritical(
   currentScore: number,
   decayRate: number,
   updateInterval: number

@@ -12,7 +12,7 @@ export type DivergenceDirection = 'positive' | 'negative' | 'neutral';
 export type DivergenceAcceleration = 'accelerating' | 'decelerating' | 'stable';
 export type LeadershipStatus = 'leading' | 'synchronized' | 'lagging';
 
-export interface DivergencePoint {
+interface DivergencePoint {
   timestamp: number;
   deviationPercent: number;
   direction: DivergenceDirection;
@@ -102,7 +102,7 @@ const DIRECTIONAL_BIAS_MIN_CONSECUTIVE = 3;
 const LEADING_LAG_THRESHOLD = 1;
 const SYNCHRONIZED_LAG_THRESHOLD = 5;
 
-export function getConsensusPrice(prices: number[]): number {
+function getConsensusPrice(prices: number[]): number {
   try {
     if (!prices || prices.length === 0) return 0;
     const inputs: ConsensusPriceInput[] = prices.map((price, i) => ({
@@ -127,7 +127,7 @@ export function getConsensusPrice(prices: number[]): number {
   }
 }
 
-export function calculateAcceleration(deviations: number[]): {
+function calculateAcceleration(deviations: number[]): {
   value: number;
   status: DivergenceAcceleration;
 } {
@@ -171,7 +171,7 @@ export function calculateAcceleration(deviations: number[]): {
   }
 }
 
-export function detectDirectionalBias(directions: DivergenceDirection[]): {
+function detectDirectionalBias(directions: DivergenceDirection[]): {
   isBias: boolean;
   count: number;
 } {
@@ -212,7 +212,7 @@ export function detectDirectionalBias(directions: DivergenceDirection[]): {
   }
 }
 
-export function calculateDivergenceTimeSeries(
+function calculateDivergenceTimeSeries(
   priceHistoryMap: Map<string, PriceHistoryEntry[]>
 ): DivergenceTimeSeries[] {
   try {
@@ -304,7 +304,7 @@ export function calculateDivergenceTimeSeries(
   }
 }
 
-export function calculateOracleLeadership(
+function calculateOracleLeadership(
   priceHistoryMap: Map<string, PriceHistoryEntry[]>
 ): OracleLeadership[] {
   try {
@@ -437,7 +437,7 @@ export function calculateOracleLeadership(
   }
 }
 
-export function calculateDivergenceMatrix(priceData: PriceData[]): DivergencePair[][] {
+function calculateDivergenceMatrix(priceData: PriceData[]): DivergencePair[][] {
   try {
     if (!priceData || priceData.length === 0) {
       return [];

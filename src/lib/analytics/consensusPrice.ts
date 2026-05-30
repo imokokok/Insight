@@ -12,7 +12,7 @@ const logger = createLogger('consensusPrice');
 
 export type ConsensusMethod = 'median' | 'trimmed_mean' | 'weighted_median' | 'iqr_filtered';
 
-export type ConsensusConfidenceLevel = 'high' | 'medium' | 'low' | 'very_low';
+type ConsensusConfidenceLevel = 'high' | 'medium' | 'low' | 'very_low';
 
 export interface ConsensusPriceInput {
   provider: string;

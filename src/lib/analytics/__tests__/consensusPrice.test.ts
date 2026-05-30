@@ -2,9 +2,7 @@ import {
   calculateConsensusPrice,
   recordConsensusHistory,
   resetConsensusHistory,
-  getConsensusHistory,
   type ConsensusPriceInput,
-  type ConsensusResult,
 } from '../consensusPrice';
 
 function makeInput(overrides: Partial<ConsensusPriceInput> = {}): ConsensusPriceInput {
