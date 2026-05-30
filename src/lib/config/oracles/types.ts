@@ -76,4 +76,4 @@ interface OracleConfig {
   views?: OracleViewConfig[];
 }
 
-export type { MarketDataConfig, NetworkDataConfig, OracleConfig };
+export type { MarketDataConfig, NetworkDataConfig, OracleConfig, OracleTab, OracleViewConfig };

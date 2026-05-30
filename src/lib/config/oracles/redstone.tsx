@@ -1,21 +1,11 @@
-import Image from 'next/image';
-
 import { RedStoneClient } from '@/lib/oracles';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 
-import { getDefaultMarketData, getDefaultNetworkData } from './helpers';
-import { type OracleConfig } from './types';
+import { COMMON_TABS, createOracleConfig } from './helpers';
 
-let _client: RedStoneClient | null = null;
-function getClient() {
-  if (!_client) _client = new RedStoneClient();
-  return _client;
-}
-
-export const redstoneConfig: OracleConfig = {
+export const redstoneConfig = createOracleConfig({
   provider: OracleProvider.REDSTONE,
   name: 'RedStone',
-  descriptionKey: 'oracles.descriptions.redstone',
   symbol: 'RED',
   defaultChain: Blockchain.ETHEREUM,
   supportedChains: [
@@ -36,32 +26,23 @@ export const redstoneConfig: OracleConfig = {
     Blockchain.APTOS,
     Blockchain.SUI,
   ],
-  getClient,
-  iconBgColor: '#FF6B6B',
-  themeColor: '#FF6B6B',
-  icon: <Image src="/logos/oracles/redstone.svg" alt="RedStone" width={48} height={48} />,
-  marketData: getDefaultMarketData('RED', 'RedStone'),
-  networkData: getDefaultNetworkData(),
+  clientClass: RedStoneClient,
+  color: '#FF6B6B',
   features: {
-    hasNodeAnalytics: false,
-    hasValidatorAnalytics: false,
     hasPublisherAnalytics: true,
-    hasDisputeResolution: false,
     hasPriceFeeds: true,
-    hasQuantifiableSecurity: false,
-    hasFirstPartyOracle: false,
     hasCoreFeatures: true,
     hasDataStreams: true,
     hasCrossChain: true,
     hasRiskAssessment: true,
   },
   tabs: [
-    { id: 'market', label: 'Market Data' },
-    { id: 'network', label: 'Network Health' },
+    COMMON_TABS.MARKET,
+    COMMON_TABS.NETWORK,
     { id: 'providers', label: 'Providers' },
-    { id: 'data-streams', label: 'Data Streams' },
-    { id: 'cross-chain', label: 'Cross-Chain' },
-    { id: 'ecosystem', label: 'Ecosystem' },
-    { id: 'risk', label: 'Risk Assessment' },
+    COMMON_TABS.DATA_STREAMS,
+    COMMON_TABS.CROSS_CHAIN,
+    COMMON_TABS.ECOSYSTEM,
+    COMMON_TABS.RISK,
   ],
-};
+});

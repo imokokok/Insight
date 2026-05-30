@@ -1,45 +1,25 @@
-import Image from 'next/image';
-
 import { WINkLinkClient } from '@/lib/oracles';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 
-import { getDefaultMarketData, getDefaultNetworkData } from './helpers';
-import { type OracleConfig } from './types';
+import { COMMON_TABS, createOracleConfig } from './helpers';
 
-let _client: WINkLinkClient | null = null;
-function getClient() {
-  if (!_client) _client = new WINkLinkClient();
-  return _client;
-}
-
-export const winklinkConfig: OracleConfig = {
+export const winklinkConfig = createOracleConfig({
   provider: OracleProvider.WINKLINK,
   name: 'WINkLink',
-  descriptionKey: 'oracles.descriptions.winklink',
   symbol: 'WIN',
   defaultChain: Blockchain.TRON,
   supportedChains: [Blockchain.BNB_CHAIN, Blockchain.TRON, Blockchain.ETHEREUM],
-  getClient,
-  iconBgColor: '#FF4D4D',
-  themeColor: '#FF4D4D',
-  icon: <Image src="/logos/oracles/winklink.svg" alt="WINkLink" width={48} height={48} />,
-  marketData: getDefaultMarketData('WIN', 'WINkLink'),
-  networkData: getDefaultNetworkData(),
+  clientClass: WINkLinkClient,
+  color: '#FF4D4D',
   features: {
-    hasNodeAnalytics: false,
-    hasValidatorAnalytics: false,
-    hasPublisherAnalytics: false,
-    hasDisputeResolution: false,
     hasPriceFeeds: true,
-    hasQuantifiableSecurity: false,
-    hasFirstPartyOracle: false,
     hasCoreFeatures: true,
     hasRiskAssessment: true,
   },
   tabs: [
-    { id: 'market', label: 'Market Data' },
-    { id: 'network', label: 'Network Health' },
+    COMMON_TABS.MARKET,
+    COMMON_TABS.NETWORK,
     { id: 'tron', label: 'TRON Ecosystem' },
-    { id: 'risk', label: 'Risk Assessment' },
+    COMMON_TABS.RISK,
   ],
-};
+});

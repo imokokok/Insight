@@ -13,6 +13,8 @@ export class WINkLinkClient extends BaseOracleClient {
   name = OracleProvider.WINKLINK;
   supportedChains = [Blockchain.TRON];
 
+  supportedSymbolsList = winklinkSymbols;
+
   defaultUpdateIntervalMinutes = 60;
   protected defaultChain = Blockchain.TRON;
 
@@ -25,13 +27,7 @@ export class WINkLinkClient extends BaseOracleClient {
     _chain?: Blockchain,
     options?: { signal?: AbortSignal }
   ): Promise<PriceData> {
-    if (!symbol) {
-      throw this.createError('Symbol is required', 'INVALID_SYMBOL');
-    }
-
-    if (options?.signal?.aborted) {
-      throw this.createError('Request was aborted', 'NETWORK_ERROR', { retryable: false });
-    }
+    this.validateGetPriceParams(symbol, options);
 
     try {
       const upperSymbol = symbol.toUpperCase();
@@ -62,18 +58,8 @@ export class WINkLinkClient extends BaseOracleClient {
         { retryable: true }
       );
     } catch (error) {
-      if (error && typeof error === 'object' && 'code' in error) {
-        throw error;
-      }
-      throw this.createError(
-        error instanceof Error ? error.message : 'Failed to fetch price from WINkLink',
-        'WINKLINK_ERROR'
-      );
+      this.handleGetPriceError(error, 'WINkLink', 'WINKLINK_ERROR');
     }
-  }
-
-  getSupportedSymbols(): string[] {
-    return [...winklinkSymbols];
   }
 
   isSymbolSupported(symbol: string, chain?: Blockchain): boolean {
@@ -91,12 +77,5 @@ export class WINkLinkClient extends BaseOracleClient {
       return chainSymbols ? chainSymbols.includes(resolvedSymbol) : false;
     }
     return true;
-  }
-
-  getSupportedChainsForSymbol(symbol: string): Blockchain[] {
-    if (!this.isSymbolSupported(symbol)) {
-      return [];
-    }
-    return this.supportedChains;
   }
 }

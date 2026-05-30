@@ -37,6 +37,8 @@ export const REFLECTOR_ASSET_CONTRACT_MAP: Record<string, string> = {
   ...Object.fromEntries(REFLECTOR_FOREX_ASSETS.map((a) => [a, REFLECTOR_FOREX_CONTRACT])),
 };
 
+export const reflectorSymbols = [...REFLECTOR_CRYPTO_ASSETS, ...REFLECTOR_FOREX_ASSETS] as const;
+
 export const REFLECTOR_CACHE_TTL = {
   PRICE: 30_000,
   METADATA: 300_000,

@@ -3,6 +3,8 @@
  * @param value - The value to check
  * @returns Boolean indicating if value is a finite number
  */
+import { getTimeAgoDiff } from '@/lib/utils/timestamp';
+
 function isFiniteNumber(value: number): boolean {
   return typeof value === 'number' && Number.isFinite(value);
 }
@@ -16,8 +18,6 @@ const LARGE_NUMBER_MILLION = 1e6;
 const LARGE_NUMBER_THOUSAND = 1e3;
 const MS_PER_SECOND = 1000;
 const SECONDS_PER_MINUTE = 60;
-const MINUTES_PER_HOUR = 60;
-const HOURS_PER_DAY = 24;
 
 export function addThousandSeparators(numStr: string): string {
   const parts = numStr.split('.');
@@ -99,20 +99,42 @@ export function formatNumberWithDecimals(
   return addThousandSeparators(formatted);
 }
 
-function formatWithMinDecimals(value: number, minDecimals: number, maxDecimals: number): string {
-  let formatted = value.toFixed(maxDecimals);
-  const dotIndex = formatted.indexOf('.');
-  if (dotIndex !== -1) {
-    let decimals = formatted.length - dotIndex - 1;
-    while (decimals > minDecimals && formatted.endsWith('0')) {
-      formatted = formatted.slice(0, -1);
-      decimals--;
-    }
-    if (formatted.endsWith('.')) {
-      formatted = formatted.slice(0, -1);
-    }
-  }
-  return addThousandSeparators(formatted);
+export function formatDataAge(seconds: number | null | undefined): string {
+  if (seconds == null) return '-';
+  return seconds < 60 ? `${Math.round(seconds)}s` : `${Math.round(seconds / 60)}m`;
+}
+
+export function formatDecimals(decimals: number | null | undefined): string {
+  return decimals != null ? `${decimals} decimals` : '-';
+}
+
+export function truncateAddress(address: string | null | undefined, head = 6, tail = 4): string {
+  if (!address) return '-';
+  if (address.length <= head + tail) return address;
+  return `${address.slice(0, head)}...${address.slice(-tail)}`;
+}
+
+export function formatConfidenceScore(
+  confidence: number | null | undefined,
+  decimalPlaces = 0
+): string {
+  if (confidence == null) return '-';
+  const score = confidence <= 1 ? confidence * 100 : Math.min(100, confidence);
+  return `${score.toFixed(decimalPlaces)}%`;
+}
+
+export function formatOraclePrice(
+  value: number | null | undefined,
+  maxDecimals = 2,
+  precision?: number
+): string {
+  if (!value || isNaN(value)) return '-';
+  return `$${formatNumberWithDecimals(value, maxDecimals, precision ?? maxDecimals)}`;
+}
+
+export function formatOracleTimestamp(timestamp: number | null | undefined): string {
+  if (!timestamp) return '-';
+  return formatTimeString(new Date(timestamp));
 }
 
 export function formatPrice(price: number): string {
@@ -122,18 +144,18 @@ export function formatPrice(price: number): string {
   const absPrice = Math.abs(price);
 
   if (absPrice >= PRICE_THRESHOLD_HIGH) {
-    return `$${formatWithMinDecimals(price, 2, 2)}`;
+    return `$${formatNumberWithDecimals(price, 2, 2)}`;
   }
   if (absPrice >= 1) {
-    return `$${formatWithMinDecimals(price, 2, 4)}`;
+    return `$${formatNumberWithDecimals(price, 2, 4)}`;
   }
   if (absPrice >= PRICE_THRESHOLD_LOW) {
-    return `$${formatWithMinDecimals(price, 4, 6)}`;
+    return `$${formatNumberWithDecimals(price, 4, 6)}`;
   }
   if (absPrice >= PRICE_THRESHOLD_VERY_LOW) {
-    return `$${formatWithMinDecimals(price, 6, 8)}`;
+    return `$${formatNumberWithDecimals(price, 6, 8)}`;
   }
-  return `$${formatWithMinDecimals(price, 8, 12)}`;
+  return `$${formatNumberWithDecimals(price, 8, 12)}`;
 }
 
 /**
@@ -203,26 +225,21 @@ export function formatRelativeTime(
   options?: { style?: 'short' | 'long' }
 ): string {
   const style = options?.style ?? 'short';
-  const now = Date.now();
-  const time = timestamp instanceof Date ? timestamp.getTime() : timestamp;
-  const diff = now - time;
-
-  const seconds = Math.floor(diff / MS_PER_SECOND);
-  const minutes = Math.floor(seconds / SECONDS_PER_MINUTE);
-  const hours = Math.floor(minutes / MINUTES_PER_HOUR);
-  const days = Math.floor(hours / HOURS_PER_DAY);
+  const time = timestamp instanceof Date ? timestamp : new Date(timestamp);
+  const diff = getTimeAgoDiff(time);
+  const { value, unit } = diff;
 
   if (style === 'short') {
-    if (seconds < SECONDS_PER_MINUTE) return `${seconds}s ago`;
-    if (minutes < MINUTES_PER_HOUR) return `${minutes}m ago`;
-    if (hours < HOURS_PER_DAY) return `${hours}h ago`;
-    return `${days}d ago`;
+    if (unit === 'seconds') return `${value}s ago`;
+    if (unit === 'minutes') return `${value}m ago`;
+    if (unit === 'hours') return `${value}h ago`;
+    return `${value}d ago`;
   }
 
-  if (seconds < SECONDS_PER_MINUTE) return `${seconds} seconds ago`;
-  if (minutes < MINUTES_PER_HOUR) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
-  if (hours < HOURS_PER_DAY) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
-  return `${days} day${days > 1 ? 's' : ''} ago`;
+  if (unit === 'seconds') return `${value} seconds ago`;
+  if (unit === 'minutes') return `${value} minute${value > 1 ? 's' : ''} ago`;
+  if (unit === 'hours') return `${value} hour${value > 1 ? 's' : ''} ago`;
+  return `${value} day${value > 1 ? 's' : ''} ago`;
 }
 
 export function capitalize(s: string): string {

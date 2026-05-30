@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 
+import { calculatePriceStats, extractValidPrices } from '@/lib/utils/statistics';
 import { useCrossChainDataStore } from '@/stores/crossChainDataStore';
 import { useCrossChainSelectorStore } from '@/stores/crossChainSelectorStore';
 import { useCrossChainUIStore } from '@/stores/crossChainUIStore';
@@ -38,28 +39,11 @@ export function useCrossChainExportActions() {
       }
     }
 
-    const validPrices = filteredPrices.map((d) => d.price).filter((p) => p > 0);
-    const avgPrice =
-      validPrices.length > 0 ? validPrices.reduce((a, b) => a + b, 0) / validPrices.length : 0;
-    const maxPrice = validPrices.length > 0 ? Math.max(...validPrices) : 0;
-    const minPrice = validPrices.length > 0 ? Math.min(...validPrices) : 0;
-    const variance =
-      validPrices.length > 1
-        ? validPrices.reduce((sum, price) => sum + Math.pow(price - avgPrice, 2), 0) /
-          (validPrices.length - 1)
-        : 0;
-    const stdDev = Math.sqrt(variance);
-    const standardDeviationPercent = avgPrice > 0 ? (stdDev / avgPrice) * 100 : 0;
+    const stats = calculatePriceStats(extractValidPrices(filteredPrices));
 
     return {
       priceDifferences: diffs,
-      statsForExport: {
-        avgPrice,
-        maxPrice,
-        minPrice,
-        priceRange: maxPrice - minPrice,
-        standardDeviationPercent,
-      },
+      statsForExport: stats,
     };
   }, [currentPrices, selectedBaseChain, filteredChains]);
 

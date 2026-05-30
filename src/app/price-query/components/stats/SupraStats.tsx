@@ -2,7 +2,12 @@ import { Hash, Clock, Database, Timer, FileDigit } from 'lucide-react';
 
 import { StatCard } from '@/components/ui/StatCard';
 import type { SupraTokenOnChainData } from '@/lib/oracles/clients/supra';
-import { formatTimeString, formatNumberWithDecimals } from '@/lib/utils/format';
+import {
+  formatDataAge,
+  formatDecimals,
+  formatOraclePrice,
+  formatOracleTimestamp,
+} from '@/lib/utils/format';
 import { getStatRating } from '@/lib/utils/stat-rating';
 
 interface SupraStatsProps {
@@ -14,30 +19,20 @@ export function SupraStats({ data }: SupraStatsProps) {
 
   const dataAgeRating = dataAge !== null ? getStatRating('latency', dataAge) : null;
 
-  const formatTimestamp = (timestamp: number) => {
-    if (!timestamp) return '-';
-    return formatTimeString(new Date(timestamp));
-  };
-
-  const formatSupraPrice = (value: number) => {
-    if (!value || isNaN(value)) return '-';
-    return `$${formatNumberWithDecimals(value, 2, decimals ?? 2)}`;
-  };
-
   return (
     <>
       <StatCard
         icon={Database}
         iconColor="text-blue-500"
         title="Supra Price"
-        value={formatSupraPrice(price)}
+        value={formatOraclePrice(price, 2, decimals ?? 2)}
         description="Current price from Supra oracle"
       />
       <StatCard
         icon={FileDigit}
         iconColor="text-amber-500"
         title="Price Precision"
-        value={`${decimals} decimals`}
+        value={formatDecimals(decimals)}
         description="Number of decimal places"
       />
       <StatCard
@@ -51,16 +46,14 @@ export function SupraStats({ data }: SupraStatsProps) {
         icon={Clock}
         iconColor="text-teal-500"
         title="Last Updated"
-        value={formatTimestamp(lastUpdated)}
+        value={formatOracleTimestamp(lastUpdated)}
         description="Timestamp of last update"
       />
       <StatCard
         icon={Timer}
         iconColor="text-rose-500"
         title="Data Age"
-        value={
-          dataAge !== null ? (dataAge < 60 ? `${dataAge}s` : `${Math.round(dataAge / 60)}m`) : '-'
-        }
+        value={formatDataAge(dataAge)}
         description="Time since last update"
         rating={dataAgeRating}
       />

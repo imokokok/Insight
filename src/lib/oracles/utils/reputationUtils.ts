@@ -1,3 +1,5 @@
+import { getTimeAgoDiff } from '@/lib/utils/timestamp';
+
 interface ScoreThresholds {
   excellent: number;
   good: number;
@@ -144,14 +146,13 @@ export function getCredibilityFromVerification(
 
 export function formatTimeAgo(isoString: string | null): { text: string; color: string } | null {
   if (!isoString) return null;
-  const diff = Date.now() - new Date(isoString).getTime();
-  const minutes = Math.floor(diff / 60000);
-  if (minutes < 1) return { text: 'just now', color: 'text-emerald-600' };
-  if (minutes < 60) return { text: `${minutes}m ago`, color: 'text-emerald-600' };
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return { text: `${hours}h ago`, color: 'text-gray-500' };
-  const days = Math.floor(hours / 24);
-  return { text: `${days}d ago`, color: 'text-gray-400' };
+  const diff = getTimeAgoDiff(new Date(isoString));
+  const { value, unit } = diff;
+
+  if (unit === 'seconds') return { text: 'just now', color: 'text-emerald-600' };
+  if (unit === 'minutes') return { text: `${value}m ago`, color: 'text-emerald-600' };
+  if (unit === 'hours') return { text: `${value}h ago`, color: 'text-gray-500' };
+  return { text: `${value}d ago`, color: 'text-gray-400' };
 }
 
 export const SCORE_WEIGHTS = [

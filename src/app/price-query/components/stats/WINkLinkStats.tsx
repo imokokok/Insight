@@ -2,6 +2,7 @@ import { Hash, Settings, Database, Clock, Shield } from 'lucide-react';
 
 import { StatCard } from '@/components/ui/StatCard';
 import type { WINkLinkTokenOnChainData } from '@/lib/oracles/services/winklinkRealDataService';
+import { formatDataAge, formatDecimals, truncateAddress } from '@/lib/utils/format';
 
 interface WINkLinkStatsProps {
   data: WINkLinkTokenOnChainData;
@@ -14,18 +15,14 @@ export function WINkLinkStats({ data }: WINkLinkStatsProps) {
         icon={Hash}
         iconColor="text-blue-500"
         title="Feed Contract"
-        value={
-          data.feedContractAddress
-            ? `${data.feedContractAddress.slice(0, 6)}...${data.feedContractAddress.slice(-4)}`
-            : '-'
-        }
+        value={truncateAddress(data.feedContractAddress)}
         description="Price feed contract address"
       />
       <StatCard
         icon={Settings}
         iconColor="text-amber-500"
         title="Price Precision"
-        value={data.decimals != null ? `${data.decimals} decimals` : '-'}
+        value={formatDecimals(data.decimals)}
         description="Number of decimal places"
       />
       <StatCard
@@ -46,13 +43,7 @@ export function WINkLinkStats({ data }: WINkLinkStatsProps) {
         icon={Clock}
         iconColor="text-purple-500"
         title="Data Age"
-        value={
-          data.priceUpdateTime !== null
-            ? data.priceUpdateTime < 60
-              ? `${data.priceUpdateTime}s`
-              : `${Math.round(data.priceUpdateTime / 60)}m`
-            : '-'
-        }
+        value={formatDataAge(data.priceUpdateTime)}
         description="Time since last update"
       />
       <StatCard

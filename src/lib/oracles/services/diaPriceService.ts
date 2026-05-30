@@ -1,89 +1,20 @@
 import { createLogger } from '@/lib/utils/logger';
 import { OracleProvider, type Blockchain, type PriceData } from '@/types/oracle';
 
+import { OracleCache } from '../base';
 import { getDIAAssetConfig } from '../constants/diaConstants';
 import { CACHE_TTL, DIA_API_BASE_URL, fetchWithTimeout } from '../diaUtils';
 
-import type { OracleCacheEntry } from '../base';
 import type { DIAAssetQuotation } from '../diaTypes';
 
 const logger = createLogger('DIAPriceService');
 
-const MAX_CACHE_SIZE = 1000;
-const CLEANUP_INTERVAL = 60000;
 const REQUEST_TIMEOUT = 15000;
 
 export class DIAPriceService {
-  private cleanupTimer: ReturnType<typeof setInterval> | null = null;
+  constructor(private cache: OracleCache) {}
 
-  constructor(private cache: Map<string, OracleCacheEntry<unknown>>) {
-    this.startCleanupTimer();
-  }
-
-  private startCleanupTimer(): void {
-    if (!this.cleanupTimer) {
-      this.cleanupTimer = setInterval(() => this.cleanupCache(), CLEANUP_INTERVAL);
-    }
-  }
-
-  private cleanupCache(): void {
-    const now = Date.now();
-    let cleaned = 0;
-
-    for (const [key, entry] of this.cache.entries()) {
-      if (now - entry.timestamp > entry.ttl) {
-        this.cache.delete(key);
-        cleaned++;
-      }
-    }
-
-    if (this.cache.size > MAX_CACHE_SIZE) {
-      const entries = Array.from(this.cache.entries()).sort(
-        (a, b) => a[1].timestamp - b[1].timestamp
-      );
-      const toDelete = entries.slice(0, this.cache.size - MAX_CACHE_SIZE);
-      for (const [key] of toDelete) {
-        this.cache.delete(key);
-        cleaned++;
-      }
-    }
-
-    if (cleaned > 0) {
-      logger.debug(`Cache cleanup completed, removed ${cleaned} entries`);
-    }
-  }
-
-  destroy(): void {
-    if (this.cleanupTimer) {
-      clearInterval(this.cleanupTimer);
-      this.cleanupTimer = null;
-    }
-  }
-
-  private getFromCache<T>(key: string): T | null {
-    const entry = this.cache.get(key) as OracleCacheEntry<T> | undefined;
-    if (!entry) return null;
-
-    const now = Date.now();
-    if (now - entry.timestamp > entry.ttl) {
-      this.cache.delete(key);
-      return null;
-    }
-
-    return entry.data;
-  }
-
-  private setCache<T>(key: string, data: T, ttl: number): void {
-    if (this.cache.size >= MAX_CACHE_SIZE) {
-      this.cleanupCache();
-    }
-
-    this.cache.set(key, {
-      data,
-      timestamp: Date.now(),
-      ttl,
-    });
-  }
+  destroy(): void {}
 
   async getAssetPrice(
     symbol: string,
@@ -91,7 +22,7 @@ export class DIAPriceService {
     signal?: AbortSignal
   ): Promise<PriceData | null> {
     const cacheKey = `price:${symbol}:${chain || 'default'}`;
-    const cached = this.getFromCache<PriceData>(cacheKey);
+    const cached = this.cache.get<PriceData>(cacheKey);
     if (cached) {
       logger.debug('Returning cached price', { symbol, chain });
       return cached;
@@ -143,7 +74,7 @@ export class DIAPriceService {
         source: 'dia-api',
       };
 
-      this.setCache(cacheKey, result, CACHE_TTL.PRICE);
+      this.cache.set(cacheKey, result, CACHE_TTL.PRICE);
       logger.info('Successfully fetched price from DIA API', {
         symbol,
         price: result.price,
@@ -169,5 +100,5 @@ export class DIAPriceService {
   }
 }
 
-const diaPriceCache = new Map<string, OracleCacheEntry<unknown>>();
+const diaPriceCache = new OracleCache();
 export const diaPriceService = new DIAPriceService(diaPriceCache);

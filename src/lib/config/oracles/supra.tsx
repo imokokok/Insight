@@ -1,21 +1,11 @@
-import Image from 'next/image';
-
 import { SupraClient } from '@/lib/oracles';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 
-import { getDefaultMarketData, getDefaultNetworkData } from './helpers';
-import { type OracleConfig } from './types';
+import { COMMON_TABS, createOracleConfig } from './helpers';
 
-let _client: SupraClient | null = null;
-function getClient() {
-  if (!_client) _client = new SupraClient();
-  return _client;
-}
-
-export const supraConfig: OracleConfig = {
+export const supraConfig = createOracleConfig({
   provider: OracleProvider.SUPRA,
   name: 'Supra',
-  descriptionKey: 'oracles.descriptions.supra',
   symbol: 'SUPRA',
   defaultChain: Blockchain.ETHEREUM,
   supportedChains: [
@@ -45,33 +35,25 @@ export const supraConfig: OracleConfig = {
     Blockchain.BLAST,
     Blockchain.STARKNET,
   ],
-  getClient,
-  iconBgColor: '#14B8A6',
-  themeColor: '#14B8A6',
-  icon: <Image src="/logos/oracles/supra.svg" alt="Supra" width={48} height={48} />,
-  marketData: getDefaultMarketData('SUPRA', 'Supra'),
-  networkData: getDefaultNetworkData(),
+  clientClass: SupraClient,
+  color: '#14B8A6',
   features: {
-    hasNodeAnalytics: false,
     hasValidatorAnalytics: true,
-    hasPublisherAnalytics: false,
-    hasDisputeResolution: false,
     hasPriceFeeds: true,
     hasQuantifiableSecurity: true,
-    hasFirstPartyOracle: false,
     hasCoreFeatures: true,
     hasDataStreams: true,
     hasCrossChain: true,
     hasRiskAssessment: true,
   },
   tabs: [
-    { id: 'market', label: 'Market Data' },
-    { id: 'network', label: 'Network Health' },
-    { id: 'price-feeds', label: 'Price Feeds' },
-    { id: 'data-streams', label: 'Data Streams' },
-    { id: 'cross-chain', label: 'Cross-Chain' },
-    { id: 'ecosystem', label: 'Ecosystem' },
-    { id: 'risk', label: 'Risk Assessment' },
+    COMMON_TABS.MARKET,
+    COMMON_TABS.NETWORK,
+    COMMON_TABS.PRICE_FEEDS,
+    COMMON_TABS.DATA_STREAMS,
+    COMMON_TABS.CROSS_CHAIN,
+    COMMON_TABS.ECOSYSTEM,
+    COMMON_TABS.RISK,
   ],
   views: [
     {
@@ -86,4 +68,4 @@ export const supraConfig: OracleConfig = {
     { id: 'ecosystem', label: 'Ecosystem', component: 'SupraEcosystemView' },
     { id: 'risk', label: 'Risk Assessment', component: 'SupraRiskView' },
   ],
-};
+});

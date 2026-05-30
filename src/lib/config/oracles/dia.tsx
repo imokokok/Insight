@@ -1,21 +1,11 @@
-import Image from 'next/image';
-
 import { DIAClient } from '@/lib/oracles';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 
-import { getDefaultMarketData, getDefaultNetworkData } from './helpers';
-import { type OracleConfig } from './types';
+import { COMMON_TABS, createOracleConfig } from './helpers';
 
-let _client: DIAClient | null = null;
-function getClient() {
-  if (!_client) _client = new DIAClient();
-  return _client;
-}
-
-export const diaConfig: OracleConfig = {
+export const diaConfig = createOracleConfig({
   provider: OracleProvider.DIA,
   name: 'DIA',
-  descriptionKey: 'oracles.descriptions.dia',
   symbol: 'DIA',
   defaultChain: Blockchain.ETHEREUM,
   supportedChains: [
@@ -31,27 +21,16 @@ export const diaConfig: OracleConfig = {
     Blockchain.GNOSIS,
     Blockchain.KAVA,
   ],
-  getClient,
-  iconBgColor: '#6366F1',
-  themeColor: '#6366F1',
-  icon: <Image src="/logos/oracles/dia.svg" alt="DIA" width={48} height={48} />,
-  marketData: getDefaultMarketData('DIA', 'DIA'),
-  networkData: getDefaultNetworkData(),
+  clientClass: DIAClient,
+  color: '#6366F1',
   features: {
-    hasNodeAnalytics: false,
-    hasValidatorAnalytics: false,
-    hasPublisherAnalytics: false,
-    hasDisputeResolution: false,
-    hasPriceFeeds: false,
-    hasQuantifiableSecurity: false,
-    hasFirstPartyOracle: false,
     hasCoreFeatures: true,
     hasRiskAssessment: true,
   },
   tabs: [
-    { id: 'market', label: 'Market Data' },
-    { id: 'network', label: 'Network Health' },
+    COMMON_TABS.MARKET,
+    COMMON_TABS.NETWORK,
     { id: 'data-feeds', label: 'Price Feeds' },
-    { id: 'risk', label: 'Risk Assessment' },
+    COMMON_TABS.RISK,
   ],
-};
+});

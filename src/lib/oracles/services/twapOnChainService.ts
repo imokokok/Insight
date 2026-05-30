@@ -2,6 +2,7 @@ import { encodeFunctionData as viemEncodeFunctionData } from 'viem';
 
 import { createLogger } from '@/lib/utils/logger';
 
+import { OracleCache } from '../base';
 import {
   TWAP_POOL_ADDRESSES,
   TWAP_RPC_CONFIG,
@@ -45,9 +46,8 @@ interface PoolInfo {
 
 class TwapOnChainService {
   private rpcClient = new RpcClientWithFallback({ contextLabel: 'twap' });
-  private cache: Map<string, { data: unknown; timestamp: number }> = new Map();
+  private cache = new OracleCache();
   private cacheTTL = 30000;
-  private readonly MAX_CACHE_SIZE = 500;
   private ethUsdPrice = 0;
   private ethUsdPriceTimestamp = 0;
   private readonly ETH_USD_CACHE_TTL = 60000;
@@ -70,24 +70,6 @@ class TwapOnChainService {
       throw new Error(`No RPC config for chain ${chainId}`);
     }
     return this.rpcClient.ethCall(String(chainId), config.endpoints, to, data, signal);
-  }
-
-  private getCached<T>(key: string): T | null {
-    const cached = this.cache.get(key);
-    if (cached && Date.now() - cached.timestamp < this.cacheTTL) {
-      return cached.data as T;
-    }
-    return null;
-  }
-
-  private setCache(key: string, data: unknown): void {
-    if (this.cache.size >= this.MAX_CACHE_SIZE) {
-      const oldestKey = this.cache.keys().next().value;
-      if (oldestKey !== undefined) {
-        this.cache.delete(oldestKey);
-      }
-    }
-    this.cache.set(key, { data, timestamp: Date.now() });
   }
 
   private encodeSlot0Call(): `0x${string}` {
@@ -248,9 +230,7 @@ class TwapOnChainService {
           this.ethUsdPriceTimestamp = Date.now();
           return ethPrice;
         }
-      } catch {
-        // On-chain method also failed
-      }
+      } catch {}
     }
 
     if (this.ethUsdPrice > 0) {
@@ -297,9 +277,7 @@ class TwapOnChainService {
           this.bnbUsdPriceTimestamp = Date.now();
           return bnbPrice;
         }
-      } catch {
-        // On-chain method also failed
-      }
+      } catch {}
     }
 
     if (this.bnbUsdPrice > 0) {
@@ -344,9 +322,7 @@ class TwapOnChainService {
           this.btcUsdPriceTimestamp = Date.now();
           return btcUsdPrice;
         }
-      } catch {
-        // On-chain method also failed
-      }
+      } catch {}
     }
 
     if (this.btcUsdPrice > 0) {
@@ -561,7 +537,7 @@ class TwapOnChainService {
     }
 
     const cacheKey = `twap-${symbol}-${chainId}-${twapInterval}`;
-    const cached = this.getCached<TwapPriceData>(cacheKey);
+    const cached = this.cache.get<TwapPriceData>(cacheKey);
     if (cached) return cached;
 
     const dedupeKey = `inflight-twap-${symbol}-${chainId}-${twapInterval}`;
@@ -675,7 +651,7 @@ class TwapOnChainService {
         confidence,
       };
 
-      this.setCache(cacheKey, result);
+      this.cache.set(cacheKey, result, this.cacheTTL);
       return result;
     } catch (error) {
       logger.error(
@@ -695,7 +671,7 @@ class TwapOnChainService {
     signal?: AbortSignal
   ): Promise<TwapPriceData> {
     const cacheKey = `spot-${symbol}-${chainId}`;
-    const cached = this.getCached<TwapPriceData>(cacheKey);
+    const cached = this.cache.get<TwapPriceData>(cacheKey);
     if (cached) return cached;
 
     const dedupeKey = `inflight-spot-${symbol}-${chainId}`;
@@ -764,7 +740,7 @@ class TwapOnChainService {
         confidence,
       };
 
-      this.setCache(cacheKey, result);
+      this.cache.set(cacheKey, result, this.cacheTTL);
       return result;
     } catch (error) {
       logger.error(
@@ -780,7 +756,7 @@ class TwapOnChainService {
 
   async getPoolInfo(symbol: string, chainId: number, signal?: AbortSignal): Promise<PoolInfo> {
     const cacheKey = `pool-${symbol}-${chainId}`;
-    const cached = this.getCached<PoolInfo>(cacheKey);
+    const cached = this.cache.get<PoolInfo>(cacheKey);
     if (cached) return cached;
 
     const poolConfig = await this.getPoolAddress(symbol, chainId, signal);
@@ -811,7 +787,7 @@ class TwapOnChainService {
         tick,
       };
 
-      this.setCache(cacheKey, result);
+      this.cache.set(cacheKey, result, this.cacheTTL);
       return result;
     } catch (error) {
       logger.error(

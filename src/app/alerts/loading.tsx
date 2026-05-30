@@ -1,22 +1,24 @@
 import { Skeleton } from '@/components/ui/Skeleton';
+import {
+  PageHeaderSkeleton,
+  SkeletonCard,
+  FormFieldSkeleton,
+} from '@/components/ui/SkeletonPatterns';
 
 export default function AlertsLoading() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-8">
-        <Skeleton variant="text" width="200px" height="32px" className="mb-2" />
-        <Skeleton variant="text" width="320px" height="16px" />
-      </div>
+      <PageHeaderSkeleton titleWidth="200px" subtitleWidth="320px" />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1">
-          <div className="bg-white border border-gray-200 rounded-lg p-6 space-y-4">
+          <SkeletonCard className="p-6">
             <Skeleton variant="text" width="120px" height="20px" />
-            <Skeleton variant="rectangular" width="100%" height="40px" className="rounded-md" />
-            <Skeleton variant="rectangular" width="100%" height="40px" className="rounded-md" />
-            <Skeleton variant="rectangular" width="100%" height="40px" className="rounded-md" />
+            <FormFieldSkeleton labelWidth="120px" inputHeight="40px" />
+            <FormFieldSkeleton labelWidth="120px" inputHeight="40px" />
+            <FormFieldSkeleton labelWidth="120px" inputHeight="40px" />
             <Skeleton variant="rectangular" width="100%" height="36px" className="rounded-md" />
-          </div>
+          </SkeletonCard>
         </div>
 
         <div className="lg:col-span-2 space-y-4">
@@ -37,7 +39,7 @@ export default function AlertsLoading() {
       </div>
 
       <div className="mt-6">
-        <div className="bg-white border border-gray-200 rounded-lg p-6 space-y-3">
+        <SkeletonCard className="p-6">
           <Skeleton variant="text" width="140px" height="20px" />
           {[1, 2, 3, 4, 5].map((i) => (
             <div key={i} className="flex items-center gap-4">
@@ -45,7 +47,7 @@ export default function AlertsLoading() {
               <Skeleton variant="text" width="60%" height="14px" />
             </div>
           ))}
-        </div>
+        </SkeletonCard>
       </div>
     </div>
   );

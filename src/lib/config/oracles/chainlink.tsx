@@ -1,21 +1,11 @@
-import Image from 'next/image';
-
 import { ChainlinkClient } from '@/lib/oracles';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 
-import { getDefaultMarketData, getDefaultNetworkData } from './helpers';
-import { type OracleConfig } from './types';
+import { COMMON_TABS, createOracleConfig } from './helpers';
 
-let _client: ChainlinkClient | null = null;
-function getClient() {
-  if (!_client) _client = new ChainlinkClient({ useRealData: true });
-  return _client;
-}
-
-export const chainlinkConfig: OracleConfig = {
+export const chainlinkConfig = createOracleConfig({
   provider: OracleProvider.CHAINLINK,
   name: 'Chainlink',
-  descriptionKey: 'oracles.descriptions.chainlink',
   symbol: 'LINK',
   defaultChain: Blockchain.ETHEREUM,
   supportedChains: [
@@ -39,31 +29,21 @@ export const chainlinkConfig: OracleConfig = {
     Blockchain.LINEA,
     Blockchain.SOLANA,
   ],
-  getClient,
-  iconBgColor: '#2563EB',
-  themeColor: '#2563EB',
-  icon: <Image src="/logos/oracles/chainlink.svg" alt="Chainlink" width={48} height={48} />,
-  marketData: getDefaultMarketData('LINK', 'Chainlink'),
-  networkData: getDefaultNetworkData(),
+  clientClass: ChainlinkClient,
+  clientOptions: { useRealData: true },
+  color: '#2563EB',
   features: {
     hasNodeAnalytics: true,
-    hasValidatorAnalytics: false,
-    hasPublisherAnalytics: false,
-    hasDisputeResolution: false,
-    hasPriceFeeds: false,
-    hasQuantifiableSecurity: false,
-    hasFirstPartyOracle: false,
-    hasCoreFeatures: false,
     hasRiskAssessment: true,
   },
   tabs: [
-    { id: 'market', label: 'Market Data' },
-    { id: 'network', label: 'Network Health' },
+    COMMON_TABS.MARKET,
+    COMMON_TABS.NETWORK,
     { id: 'nodes', label: 'Nodes' },
     { id: 'data-feeds', label: 'Data Feeds' },
     { id: 'services', label: 'Services' },
-    { id: 'ecosystem', label: 'Ecosystem' },
-    { id: 'risk', label: 'Risk Assessment' },
+    COMMON_TABS.ECOSYSTEM,
+    COMMON_TABS.RISK,
   ],
   views: [
     {
@@ -91,4 +71,4 @@ export const chainlinkConfig: OracleConfig = {
     },
     { id: 'risk', label: 'Risk Assessment', component: 'ChainlinkRiskView' },
   ],
-};
+});

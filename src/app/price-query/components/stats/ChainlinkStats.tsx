@@ -1,7 +1,7 @@
 import { Hash, Layers, Settings, FileText, History, Shield } from 'lucide-react';
 
 import { StatCard } from '@/components/ui/StatCard';
-import { formatTimeString } from '@/lib/utils/format';
+import { formatDecimals, formatOracleTimestamp } from '@/lib/utils/format';
 import type { OnChainVerification } from '@/types/oracle/price';
 
 import { VerificationStatCard } from './VerificationStatCard';
@@ -45,7 +45,7 @@ export function ChainlinkStats({
         icon={Settings}
         iconColor="text-amber-500"
         title="Price Precision"
-        value={decimals != null ? `${decimals} decimals` : '-'}
+        value={formatDecimals(decimals)}
         description="Number of decimal places"
       />
       <StatCard
@@ -59,7 +59,7 @@ export function ChainlinkStats({
         icon={History}
         iconColor="text-purple-500"
         title="Round Started"
-        value={startedAt ? formatTimeString(new Date(startedAt)) : '-'}
+        value={formatOracleTimestamp(startedAt)}
         description="Time when current round started"
       />
       <StatCard

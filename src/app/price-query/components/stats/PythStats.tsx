@@ -1,7 +1,7 @@
 import { Hash, Settings, BarChart3, Clock, Shield } from 'lucide-react';
 
 import { StatCard } from '@/components/ui/StatCard';
-import { formatTimeString } from '@/lib/utils/format';
+import { formatOracleTimestamp, truncateAddress, formatConfidenceScore } from '@/lib/utils/format';
 import type { OnChainVerification } from '@/types/oracle/price';
 
 import { VerificationStatCard } from './VerificationStatCard';
@@ -33,7 +33,7 @@ export function PythStats({
         icon={Hash}
         iconColor="text-purple-500"
         title="Price ID"
-        value={priceId ? `${priceId.slice(0, 6)}...${priceId.slice(-4)}` : '-'}
+        value={truncateAddress(priceId)}
         description="Unique identifier for the price feed"
       />
       <StatCard
@@ -54,7 +54,7 @@ export function PythStats({
         icon={Clock}
         iconColor="text-amber-500"
         title="Publish Time"
-        value={publishTime ? formatTimeString(new Date(publishTime)) : '-'}
+        value={formatOracleTimestamp(publishTime)}
         description="Time when price was published"
       />
       <StatCard
@@ -72,11 +72,7 @@ export function PythStats({
         icon={Shield}
         iconColor="text-rose-500"
         title="Confidence Score"
-        value={
-          confidence !== undefined
-            ? `${(confidence <= 1 ? confidence * 100 : Math.min(100, confidence)).toFixed(0)}%`
-            : '-'
-        }
+        value={formatConfidenceScore(confidence)}
         description="Overall confidence score"
       />
       <VerificationStatCard verification={verification} />

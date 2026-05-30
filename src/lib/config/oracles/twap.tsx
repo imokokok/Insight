@@ -1,21 +1,11 @@
-import Image from 'next/image';
-
 import { TWAPClient } from '@/lib/oracles';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 
-import { getDefaultMarketData, getDefaultNetworkData } from './helpers';
-import { type OracleConfig } from './types';
+import { COMMON_TABS, createOracleConfig } from './helpers';
 
-let _client: TWAPClient | null = null;
-function getClient() {
-  if (!_client) _client = new TWAPClient({ useRealData: true });
-  return _client;
-}
-
-export const twapConfig: OracleConfig = {
+export const twapConfig = createOracleConfig({
   provider: OracleProvider.TWAP,
   name: 'TWAP',
-  descriptionKey: 'oracles.descriptions.twap',
   symbol: 'UNI',
   defaultChain: Blockchain.ETHEREUM,
   supportedChains: [
@@ -26,30 +16,21 @@ export const twapConfig: OracleConfig = {
     Blockchain.BASE,
     Blockchain.BNB_CHAIN,
   ],
-  getClient,
-  iconBgColor: '#FF007A',
-  themeColor: '#FF007A',
-  icon: <Image src="/logos/oracles/twap.svg" alt="TWAP" width={48} height={48} />,
-  marketData: getDefaultMarketData('UNI', 'TWAP'),
-  networkData: getDefaultNetworkData(),
+  clientClass: TWAPClient,
+  clientOptions: { useRealData: true },
+  color: '#FF007A',
   features: {
-    hasNodeAnalytics: false,
-    hasValidatorAnalytics: false,
-    hasPublisherAnalytics: false,
-    hasDisputeResolution: false,
     hasPriceFeeds: true,
-    hasQuantifiableSecurity: false,
-    hasFirstPartyOracle: false,
     hasCoreFeatures: true,
     hasCrossChain: true,
   },
   tabs: [
-    { id: 'overview', label: 'Overview' },
-    { id: 'price-feeds', label: 'Price Feeds' },
-    { id: 'network', label: 'Network Health' },
-    { id: 'market', label: 'Market Data' },
-    { id: 'on-chain', label: 'On-Chain' },
-    { id: 'cross-chain', label: 'Cross-Chain' },
+    COMMON_TABS.OVERVIEW,
+    COMMON_TABS.PRICE_FEEDS,
+    COMMON_TABS.NETWORK,
+    COMMON_TABS.MARKET,
+    COMMON_TABS.ON_CHAIN,
+    COMMON_TABS.CROSS_CHAIN,
     { id: 'methodology', label: 'Methodology' },
   ],
-};
+});

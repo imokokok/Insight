@@ -2,7 +2,12 @@ import { TrendingUp, Droplets, Percent, Clock, ArrowLeftRight, Shield, Hash } fr
 
 import { StatCard } from '@/components/ui/StatCard';
 import type { TwapOnChainData } from '@/hooks/oracles/useTwapOnChainData';
-import { formatPrice, formatNumberWithDecimals } from '@/lib/utils/format';
+import {
+  formatPrice,
+  formatOraclePrice,
+  truncateAddress,
+  formatConfidenceScore,
+} from '@/lib/utils/format';
 import { getStatRating } from '@/lib/utils/stat-rating';
 
 interface TwapStatsProps {
@@ -12,11 +17,6 @@ interface TwapStatsProps {
 export function TwapStats({ data }: TwapStatsProps) {
   const confidenceRating = getStatRating('confidence', data.confidence);
   const deviationRating = getStatRating('deviation', data.priceDeviation * 100);
-
-  const formatTwapPrice = (value: number) => {
-    if (!value || isNaN(value)) return '-';
-    return `$${formatNumberWithDecimals(value, 2, 6)}`;
-  };
 
   const formatLiquidity = (liquidity: string) => {
     try {
@@ -31,18 +31,13 @@ export function TwapStats({ data }: TwapStatsProps) {
     }
   };
 
-  const formatPoolAddress = (address: string) => {
-    if (!address) return '-';
-    return `${address.slice(0, 6)}...${address.slice(-4)}`;
-  };
-
   return (
     <>
       <StatCard
         icon={TrendingUp}
         iconColor="text-pink-500"
         title="TWAP Price"
-        value={formatTwapPrice(data.twapPrice)}
+        value={formatOraclePrice(data.twapPrice, 2, 6)}
         description="Time-weighted average price"
       />
       <StatCard
@@ -85,14 +80,14 @@ export function TwapStats({ data }: TwapStatsProps) {
         icon={Hash}
         iconColor="text-indigo-500"
         title="Pool Address"
-        value={formatPoolAddress(data.poolAddress)}
+        value={truncateAddress(data.poolAddress)}
         description="Liquidity pool address"
       />
       <StatCard
         icon={Shield}
         iconColor="text-emerald-500"
         title="Confidence Score"
-        value={`${(data.confidence <= 1 ? data.confidence * 100 : Math.min(100, data.confidence)).toFixed(1)}%`}
+        value={formatConfidenceScore(data.confidence, 1)}
         description="Overall confidence score"
         rating={confidenceRating}
       />

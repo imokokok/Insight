@@ -1,21 +1,11 @@
-import Image from 'next/image';
-
 import { API3Client } from '@/lib/oracles';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 
-import { getDefaultMarketData, getDefaultNetworkData } from './helpers';
-import { type OracleConfig } from './types';
+import { COMMON_TABS, createOracleConfig } from './helpers';
 
-let _client: API3Client | null = null;
-function getClient() {
-  if (!_client) _client = new API3Client();
-  return _client;
-}
-
-export const api3Config: OracleConfig = {
+export const api3Config = createOracleConfig({
   provider: OracleProvider.API3,
   name: 'API3',
-  descriptionKey: 'oracles.descriptions.api3',
   symbol: 'API3',
   defaultChain: Blockchain.ETHEREUM,
   supportedChains: [
@@ -27,29 +17,19 @@ export const api3Config: OracleConfig = {
     Blockchain.BNB_CHAIN,
     Blockchain.OPTIMISM,
   ],
-  getClient,
-  iconBgColor: '#DB2777',
-  themeColor: '#DB2777',
-  icon: <Image src="/logos/oracles/api3.svg" alt="API3" width={48} height={48} />,
-  marketData: getDefaultMarketData('API3', 'API3'),
-  networkData: getDefaultNetworkData(),
+  clientClass: API3Client,
+  color: '#DB2777',
   features: {
-    hasNodeAnalytics: false,
-    hasValidatorAnalytics: false,
-    hasPublisherAnalytics: false,
-    hasDisputeResolution: false,
-    hasPriceFeeds: false,
     hasQuantifiableSecurity: true,
     hasFirstPartyOracle: true,
-    hasCoreFeatures: false,
     hasRiskAssessment: true,
   },
   tabs: [
-    { id: 'market', label: 'Market Data' },
-    { id: 'network', label: 'Network Health' },
+    COMMON_TABS.MARKET,
+    COMMON_TABS.NETWORK,
     { id: 'airnode', label: 'Airnode' },
     { id: 'dapi', label: 'dAPI' },
-    { id: 'ecosystem', label: 'Ecosystem' },
-    { id: 'risk', label: 'Risk Assessment' },
+    COMMON_TABS.ECOSYSTEM,
+    COMMON_TABS.RISK,
   ],
-};
+});

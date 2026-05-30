@@ -83,6 +83,10 @@ export class TTLCache {
     return this.cache.size;
   }
 
+  keys(): string[] {
+    return Array.from(this.cache.keys());
+  }
+
   private cleanup(): void {
     const now = Date.now();
     for (const [key, entry] of this.cache) {

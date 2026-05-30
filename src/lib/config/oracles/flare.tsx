@@ -1,35 +1,20 @@
-import Image from 'next/image';
-
 import { FlareClient } from '@/lib/oracles';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 
-import { getDefaultMarketData, getDefaultNetworkData } from './helpers';
-import { type OracleConfig } from './types';
+import { COMMON_TABS, createOracleConfig } from './helpers';
 
-let _client: FlareClient | null = null;
-function getClient() {
-  if (!_client) _client = new FlareClient({ useRealData: true });
-  return _client;
-}
-
-export const flareConfig: OracleConfig = {
+export const flareConfig = createOracleConfig({
   provider: OracleProvider.FLARE,
   name: 'Flare',
-  descriptionKey: 'oracles.descriptions.flare',
   symbol: 'FLR',
   defaultChain: Blockchain.FLARE,
   supportedChains: [Blockchain.FLARE],
-  getClient,
-  iconBgColor: '#8B0FE5',
-  themeColor: '#8B0FE5',
-  icon: <Image src="/logos/oracles/flare.svg" alt="Flare" width={48} height={48} />,
-  marketData: getDefaultMarketData('FLR', 'Flare'),
-  networkData: getDefaultNetworkData(),
+  clientClass: FlareClient,
+  clientOptions: { useRealData: true },
+  color: '#8B0FE5',
   features: {
     hasNodeAnalytics: true,
     hasValidatorAnalytics: true,
-    hasPublisherAnalytics: false,
-    hasDisputeResolution: false,
     hasPriceFeeds: true,
     hasQuantifiableSecurity: true,
     hasFirstPartyOracle: true,
@@ -37,10 +22,10 @@ export const flareConfig: OracleConfig = {
     hasCrossChain: false,
   },
   tabs: [
-    { id: 'overview', label: 'Overview' },
-    { id: 'price-feeds', label: 'Price Feeds' },
-    { id: 'network', label: 'Network Health' },
-    { id: 'market', label: 'Market Data' },
-    { id: 'on-chain', label: 'On-Chain' },
+    COMMON_TABS.OVERVIEW,
+    COMMON_TABS.PRICE_FEEDS,
+    COMMON_TABS.NETWORK,
+    COMMON_TABS.MARKET,
+    COMMON_TABS.ON_CHAIN,
   ],
-};
+});

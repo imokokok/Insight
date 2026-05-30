@@ -33,6 +33,8 @@ export class SupraClient extends BaseOracleClient {
     Blockchain.LINEA,
   ];
 
+  supportedSymbolsList = supraSymbols;
+
   defaultUpdateIntervalMinutes = 5;
   private cache = new OracleCache();
 
@@ -46,15 +48,7 @@ export class SupraClient extends BaseOracleClient {
     chain?: Blockchain,
     options?: { signal?: AbortSignal }
   ): Promise<PriceData> {
-    if (!symbol) {
-      throw this.createError('Symbol is required', 'SYMBOL_NOT_SUPPORTED');
-    }
-
-    if (options?.signal?.aborted) {
-      throw this.createError('Request was aborted', 'NETWORK_ERROR', {
-        retryable: false,
-      });
-    }
+    this.validateGetPriceParams(symbol, options);
 
     const upperSymbol = symbol.toUpperCase();
     const pairIndex = SUPRA_PAIR_INDEX_MAP[upperSymbol];
@@ -94,13 +88,7 @@ export class SupraClient extends BaseOracleClient {
         ),
       };
     } catch (error) {
-      if (error && typeof error === 'object' && 'code' in error) {
-        throw error;
-      }
-      throw this.createError(
-        error instanceof Error ? error.message : 'Failed to fetch price from Supra',
-        'SUPRA_ERROR'
-      );
+      this.handleGetPriceError(error, 'Supra', 'SUPRA_ERROR');
     }
   }
 
@@ -154,10 +142,6 @@ export class SupraClient extends BaseOracleClient {
     }
   }
 
-  getSupportedSymbols(): string[] {
-    return [...supraSymbols];
-  }
-
   isSymbolSupported(symbol: string, chain?: Blockchain): boolean {
     const upperSymbol = symbol.toUpperCase();
     const isSymbolInList = supraSymbols.includes(upperSymbol as (typeof supraSymbols)[number]);
@@ -170,13 +154,6 @@ export class SupraClient extends BaseOracleClient {
       return chainSymbols ? chainSymbols.includes(upperSymbol) : false;
     }
     return true;
-  }
-
-  getSupportedChainsForSymbol(symbol: string): Blockchain[] {
-    if (!this.isSymbolSupported(symbol)) {
-      return [];
-    }
-    return this.supportedChains;
   }
 
   clearCache(): void {

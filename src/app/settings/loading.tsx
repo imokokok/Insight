@@ -1,4 +1,5 @@
 import { Skeleton } from '@/components/ui/Skeleton';
+import { SkeletonCard, FormFieldSkeleton } from '@/components/ui/SkeletonPatterns';
 
 export default function SettingsLoading() {
   return (
@@ -26,27 +27,11 @@ export default function SettingsLoading() {
           </div>
 
           <div className="flex-1">
-            <div className="bg-white border border-gray-200 rounded-lg p-6 space-y-6">
+            <SkeletonCard className="p-6">
               <Skeleton variant="text" width="140px" height="20px" />
               <div className="space-y-4">
-                <div>
-                  <Skeleton variant="text" width="80px" height="14px" className="mb-2" />
-                  <Skeleton
-                    variant="rectangular"
-                    width="100%"
-                    height="40px"
-                    className="rounded-md"
-                  />
-                </div>
-                <div>
-                  <Skeleton variant="text" width="80px" height="14px" className="mb-2" />
-                  <Skeleton
-                    variant="rectangular"
-                    width="100%"
-                    height="40px"
-                    className="rounded-md"
-                  />
-                </div>
+                <FormFieldSkeleton labelWidth="80px" inputHeight="40px" />
+                <FormFieldSkeleton labelWidth="80px" inputHeight="40px" />
                 <div>
                   <Skeleton variant="text" width="60px" height="14px" className="mb-2" />
                   <Skeleton
@@ -58,7 +43,7 @@ export default function SettingsLoading() {
                 </div>
               </div>
               <Skeleton variant="rectangular" width="120px" height="36px" className="rounded-md" />
-            </div>
+            </SkeletonCard>
           </div>
         </div>
       </div>

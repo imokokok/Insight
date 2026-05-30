@@ -3,6 +3,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 
 import { createApiHandler, ApiResponseBuilder } from '@/lib/api/handler';
+import { requireAuth, AUTH_MODERATE_MIDDLEWARE } from '@/lib/api/utils';
 import { getServerQueries } from '@/lib/supabase/server';
 
 const PriceDataItemSchema = z.object({
@@ -39,79 +40,59 @@ const CreateSnapshotSchema = z
     path: ['price_data'],
   });
 
-export const GET = createApiHandler(
-  async (_request: NextRequest, context) => {
-    const userId = context.auth?.userId;
-    if (!userId) {
-      return ApiResponseBuilder.unauthorized();
-    }
+export const GET = createApiHandler(async (_request: NextRequest, context) => {
+  const authResult = requireAuth(context);
+  if (typeof authResult !== 'string') return authResult;
+  const userId = authResult;
 
-    const queries = getServerQueries();
-    const snapshots = await queries.getSnapshots(userId);
+  const queries = getServerQueries();
+  const snapshots = await queries.getSnapshots(userId);
 
-    if (!snapshots) {
-      return ApiResponseBuilder.serverError('Failed to fetch snapshots');
-    }
-
-    return NextResponse.json({
-      snapshots,
-      count: snapshots.length,
-    });
-  },
-  {
-    middlewares: {
-      logging: true,
-      rateLimit: { preset: 'moderate' },
-      auth: { required: true },
-    },
+  if (!snapshots) {
+    return ApiResponseBuilder.serverError('Failed to fetch snapshots');
   }
-);
 
-export const POST = createApiHandler(
-  async (request: NextRequest, context) => {
-    const userId = context.auth?.userId;
-    if (!userId) {
-      return ApiResponseBuilder.unauthorized();
-    }
+  return NextResponse.json({
+    snapshots,
+    count: snapshots.length,
+  });
+}, AUTH_MODERATE_MIDDLEWARE);
 
-    let body;
-    try {
-      body = await request.json();
-    } catch {
-      return ApiResponseBuilder.badRequest('Invalid JSON in request body');
-    }
+export const POST = createApiHandler(async (request: NextRequest, context) => {
+  const authResult = requireAuth(context);
+  if (typeof authResult !== 'string') return authResult;
+  const userId = authResult;
 
-    const result = CreateSnapshotSchema.safeParse(body);
-
-    if (!result.success) {
-      return ApiResponseBuilder.badRequest(
-        'Invalid request data. Check symbol, selected_oracles, price_data, and stats fields.'
-      );
-    }
-
-    const queries = getServerQueries();
-    const snapshot = await queries.saveSnapshot(
-      userId,
-      result.data as Parameters<typeof queries.saveSnapshot>[1]
-    );
-
-    if (!snapshot) {
-      return ApiResponseBuilder.serverError('Failed to create snapshot');
-    }
-
-    return NextResponse.json(
-      {
-        snapshot,
-        message: 'Snapshot created successfully',
-      },
-      { status: 201 }
-    );
-  },
-  {
-    middlewares: {
-      logging: true,
-      rateLimit: { preset: 'moderate' },
-      auth: { required: true },
-    },
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return ApiResponseBuilder.badRequest('Invalid JSON in request body');
   }
-);
+
+  const result = CreateSnapshotSchema.safeParse(body);
+
+  if (!result.success) {
+    return ApiResponseBuilder.badRequest(
+      'Invalid request data. Check symbol, selected_oracles, price_data, and stats fields.'
+    );
+  }
+
+  const queries = getServerQueries();
+  const snapshot = await queries.saveSnapshot(
+    userId,
+    result.data as Parameters<typeof queries.saveSnapshot>[1]
+  );
+
+  if (!snapshot) {
+    return ApiResponseBuilder.serverError('Failed to create snapshot');
+  }
+
+  return NextResponse.json(
+    {
+      snapshot,
+      message: 'Snapshot created successfully',
+    },
+    { status: 201 }
+  );
+}, AUTH_MODERATE_MIDDLEWARE);

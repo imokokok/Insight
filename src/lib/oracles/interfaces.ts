@@ -1,5 +1,15 @@
 import { type OracleProvider, type Blockchain, type PriceData } from '@/types/oracle';
 
+export interface PriceHistoryEntry {
+  price: number;
+  timestamp: number;
+  responseTime: number;
+  success: boolean;
+  source?: string;
+}
+
+export type PriceHistory = PriceHistoryEntry;
+
 export interface IOracleClient {
   readonly name: OracleProvider;
   readonly supportedChains: Blockchain[];

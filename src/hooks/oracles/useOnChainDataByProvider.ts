@@ -2,6 +2,7 @@
 
 import type { Blockchain, OracleProvider } from '@/types/oracle';
 
+import { EMPTY_ON_CHAIN_RESULT } from './createOnChainDataHook';
 import { useDIAOnChainData, type UseDIAOnChainDataReturn } from './useDIAOnChainData';
 import { useFlareOnChainData, type UseFlareOnChainDataReturn } from './useFlareOnChainData';
 import {
@@ -68,24 +69,10 @@ export function useOnChainDataByProvider(
     twap: twapResult,
     reflector: reflectorResult,
     flare: flareResult,
-    chainlink: {
-      data: null,
-      isLoading: false,
-      isError: false,
-      error: null,
-      refetch: async () => {},
-    },
-    pyth: { data: null, isLoading: false, isError: false, error: null, refetch: async () => {} },
-    api3: { data: null, isLoading: false, isError: false, error: null, refetch: async () => {} },
+    chainlink: EMPTY_ON_CHAIN_RESULT,
+    pyth: EMPTY_ON_CHAIN_RESULT,
+    api3: EMPTY_ON_CHAIN_RESULT,
   };
 
-  return (
-    results[provider] ?? {
-      data: null,
-      isLoading: false,
-      isError: false,
-      error: null,
-      refetch: async () => {},
-    }
-  );
+  return results[provider] ?? EMPTY_ON_CHAIN_RESULT;
 }

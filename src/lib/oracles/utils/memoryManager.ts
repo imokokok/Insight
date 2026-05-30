@@ -1,5 +1,7 @@
 import { createLogger } from '@/lib/utils/logger';
 
+import { type PriceHistoryEntry, type PriceHistory } from '../interfaces';
+
 import {
   getPerformanceMetricsConfig,
   type MemoryManagementConfig,
@@ -13,14 +15,6 @@ export interface MemoryStats {
   providerCount: number;
   oldestEntryAge: number;
   config: MemoryManagementConfig;
-}
-
-interface PriceHistoryEntry {
-  price: number;
-  timestamp: number;
-  responseTime: number;
-  success: boolean;
-  source?: string;
 }
 
 class MemoryManager {
@@ -211,13 +205,5 @@ class MemoryManager {
     MemoryManager.instance = null;
   }
 }
-
-type PriceHistory = {
-  price: number;
-  timestamp: number;
-  responseTime: number;
-  success: boolean;
-  source?: string;
-};
 
 export const memoryManager = MemoryManager.getInstance();
