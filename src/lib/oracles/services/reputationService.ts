@@ -14,15 +14,15 @@ export const PROVIDER_TYPE_CONFIG: Record<
   OracleProvider,
   { type: 'onchain' | 'api' | 'hybrid'; latencyBaseline: number }
 > = {
-  [OracleProvider.FLARE]: { type: 'onchain', latencyBaseline: 2000 },
-  [OracleProvider.CHAINLINK]: { type: 'onchain', latencyBaseline: 1500 },
-  [OracleProvider.API3]: { type: 'onchain', latencyBaseline: 1200 },
-  [OracleProvider.TWAP]: { type: 'onchain', latencyBaseline: 1800 },
-  [OracleProvider.WINKLINK]: { type: 'onchain', latencyBaseline: 1500 },
-  [OracleProvider.REFLECTOR]: { type: 'onchain', latencyBaseline: 1500 },
+  [OracleProvider.FLARE]: { type: 'onchain', latencyBaseline: 1500 },
+  [OracleProvider.CHAINLINK]: { type: 'onchain', latencyBaseline: 1200 },
+  [OracleProvider.API3]: { type: 'onchain', latencyBaseline: 1000 },
+  [OracleProvider.TWAP]: { type: 'onchain', latencyBaseline: 1400 },
+  [OracleProvider.WINKLINK]: { type: 'onchain', latencyBaseline: 1200 },
+  [OracleProvider.REFLECTOR]: { type: 'onchain', latencyBaseline: 1200 },
   [OracleProvider.DIA]: { type: 'api', latencyBaseline: 500 },
   [OracleProvider.PYTH]: { type: 'api', latencyBaseline: 400 },
-  [OracleProvider.REDSTONE]: { type: 'api', latencyBaseline: 300 },
+  [OracleProvider.REDSTONE]: { type: 'api', latencyBaseline: 350 },
   [OracleProvider.SUPRA]: { type: 'api', latencyBaseline: 500 },
 };
 
@@ -122,7 +122,7 @@ class ReputationService {
           uniqueProviders.map(async (provider) => {
             try {
               const providerConfig = PROVIDER_TYPE_CONFIG[provider as OracleProvider];
-              await supabase.rpc('aggregate_oracle_reputation_v3', {
+              await supabase.rpc('aggregate_oracle_reputation_v4', {
                 p_provider: provider,
                 p_lookback_days: 7,
                 p_latency_baseline: providerConfig?.latencyBaseline ?? 1000,

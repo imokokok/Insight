@@ -163,18 +163,13 @@ export const SCORE_WEIGHTS = [
   { key: 'deviation', label: 'Deviation', weight: 5, color: '#f43f5e' },
 ] as const;
 
-export function calculateLatencyScore(
-  avgLatencyMs: number,
-  baseline: number = 1000,
-  providerType: 'onchain' | 'api' = 'api'
-): number {
-  if (avgLatencyMs <= 0) return 95;
+export function calculateLatencyScore(avgLatencyMs: number, baseline: number = 1000): number {
+  if (avgLatencyMs <= 0) return 85;
   if (avgLatencyMs <= baseline) {
     return 85 + 15 * (1 - avgLatencyMs / baseline);
   }
   const excessRatio = (avgLatencyMs - baseline) / baseline;
-  const maxPenalty = providerType === 'onchain' ? 50 : 60;
-  const penalty = Math.min(excessRatio * (providerType === 'onchain' ? 25 : 30), maxPenalty);
+  const penalty = Math.min(excessRatio * 28, 55);
   return Math.max(25, 85 - penalty);
 }
 

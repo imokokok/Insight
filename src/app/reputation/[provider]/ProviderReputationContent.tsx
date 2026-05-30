@@ -48,11 +48,7 @@ function ProviderReputationContentInner({ provider }: { provider: string }) {
   const latencyBaseline = providerConfig?.latencyBaseline ?? 1000;
 
   const latencyScore = reputation
-    ? calculateLatencyScore(
-        reputation.avg_latency_ms,
-        latencyBaseline,
-        providerConfig?.type === 'onchain' ? 'onchain' : 'api'
-      )
+    ? calculateLatencyScore(reputation.avg_latency_ms, latencyBaseline)
     : 0;
   const deviationScore = reputation ? calculateDeviationScore(reputation.avg_deviation_pct) : 0;
 
