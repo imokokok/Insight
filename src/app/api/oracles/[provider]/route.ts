@@ -12,11 +12,10 @@ import { type Blockchain, type OracleProvider, ORACLE_PROVIDER_VALUES } from '@/
 const VALID_PROVIDERS = ORACLE_PROVIDER_VALUES.join(', ');
 
 export const GET = createApiHandler(
-  async (request: NextRequest) => {
-    const pathSegments = request.nextUrl.pathname.split('/');
-    const providerSegment = pathSegments[pathSegments.length - 1];
+  async (_request: NextRequest, context) => {
+    const providerParam = context.validated?.params?.provider || '';
 
-    const providerResult = OracleProviderPathParamSchema.safeParse(providerSegment);
+    const providerResult = OracleProviderPathParamSchema.safeParse(providerParam);
     if (!providerResult.success) {
       return NextResponse.json(
         { error: `Invalid provider. Valid providers: ${VALID_PROVIDERS}` },
@@ -26,7 +25,7 @@ export const GET = createApiHandler(
 
     const validatedProvider = providerResult.data as OracleProvider;
 
-    const validation = await validateQuerySchema(OracleProviderQuerySchema)(request);
+    const validation = await validateQuerySchema(OracleProviderQuerySchema)(_request);
 
     if (!validation.success) {
       return validation.response!;
@@ -57,6 +56,7 @@ export const GET = createApiHandler(
       logging: true,
       rateLimit: { preset: 'moderate' },
       auth: { required: false },
+      cors: true,
     },
   }
 );
