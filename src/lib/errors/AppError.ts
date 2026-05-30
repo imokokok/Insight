@@ -10,7 +10,7 @@ export interface AppErrorDetails {
  * Application error options
  * Complete configuration options for creating AppError
  */
-export interface AppErrorOptions {
+interface AppErrorOptions {
   message: string;
   code: string;
   statusCode: number;
@@ -43,7 +43,7 @@ export type ErrorCategory =
 /**
  * Extended error options
  */
-export interface ExtendedAppErrorOptions extends AppErrorOptions {
+interface ExtendedAppErrorOptions extends AppErrorOptions {
   severity?: ErrorSeverity;
   category?: ErrorCategory;
   retryable?: boolean;

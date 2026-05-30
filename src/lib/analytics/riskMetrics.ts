@@ -42,7 +42,7 @@ interface CorrelationRiskResult {
   oracleNames: string[];
 }
 
-export interface FreshnessRiskResult {
+interface FreshnessRiskResult {
   score: number;
   level: RiskLevel;
   description: string;
@@ -51,7 +51,7 @@ export interface FreshnessRiskResult {
   staleOracles: Array<{ name: string; stalenessSeconds: number }>;
 }
 
-export interface ManipulationResistanceResult {
+interface ManipulationResistanceResult {
   score: number;
   level: RiskLevel;
   description: string;
@@ -63,7 +63,7 @@ export interface ManipulationResistanceResult {
   };
 }
 
-export interface SharedDependencyResult {
+interface SharedDependencyResult {
   score: number;
   level: RiskLevel;
   description: string;
@@ -110,7 +110,7 @@ export const DEFAULT_RISK_WEIGHTS: RiskWeights = {
   sharedDependency: 0.1,
 };
 
-export function calculateHHI(marketShares: number[]): HHIResult {
+function calculateHHI(marketShares: number[]): HHIResult {
   try {
     if (!marketShares || marketShares.length === 0) {
       throw new Error('Market shares array is empty');
@@ -164,12 +164,12 @@ export function calculateHHI(marketShares: number[]): HHIResult {
   }
 }
 
-export function calculateHHIFromOracles(oracleData: OracleMarketData[]): HHIResult {
+function calculateHHIFromOracles(oracleData: OracleMarketData[]): HHIResult {
   const shares = oracleData.map((o) => o.share);
   return calculateHHI(shares);
 }
 
-export function calculateDiversificationScore(params: {
+function calculateDiversificationScore(params: {
   chainCount: number;
   totalChains: number;
   protocolCount: number;
@@ -268,7 +268,7 @@ export function calculateDiversificationScore(params: {
   }
 }
 
-export function calculateVolatilityIndex(priceHistory: number[]): VolatilityResult {
+function calculateVolatilityIndex(priceHistory: number[]): VolatilityResult {
   try {
     if (priceHistory.length < 2) {
       throw new Error('Insufficient price history data');
@@ -421,7 +421,7 @@ function calculateRobustCorrelation(x: number[], y: number[]): number {
   return (pearson + spearman) / 2;
 }
 
-export function calculateCorrelationRisk(
+function calculateCorrelationRisk(
   correlationMatrix: number[][],
   oracleNames: string[]
 ): CorrelationRiskResult {
@@ -827,7 +827,7 @@ function buildRobustCorrelationMatrix(priceHistories: Map<string, number[]>): {
   return { matrix, names };
 }
 
-export interface RiskMetricsInput {
+interface RiskMetricsInput {
   oracleData: OracleMarketData[];
   priceHistoriesByProvider: Map<string, number[]>;
   oracleTimestamps: Array<{ name: string; timestamp: number }>;
@@ -1024,14 +1024,4 @@ export function getRiskLevelColor(level: RiskLevel): string {
     critical: chartColors.oracle['pyth'],
   };
   return colors[level];
-}
-
-export function getRiskLevelText(level: RiskLevel): string {
-  const texts: Record<RiskLevel, string> = {
-    low: 'risk_level_low',
-    medium: 'risk_level_medium',
-    high: 'risk_level_high',
-    critical: 'risk_level_critical',
-  };
-  return texts[level];
 }

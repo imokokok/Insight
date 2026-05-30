@@ -5,7 +5,7 @@ const logger = createLogger('feedBehavior');
 
 export type FeedHealthLevel = 'healthy' | 'fair' | 'degraded' | 'critical';
 export type RhythmAnomalyType = 'irregular' | 'sudden_slowdown' | 'sudden_speedup' | 'gap_detected';
-export type HeartbeatSeverity = 'none' | 'minor' | 'moderate' | 'severe' | 'critical';
+type HeartbeatSeverity = 'none' | 'minor' | 'moderate' | 'severe' | 'critical';
 
 export interface UpdateRhythmMetrics {
   provider: string;
@@ -70,7 +70,7 @@ export interface FeedBehaviorResult {
   confidenceSurgeCount: number;
 }
 
-export function calculateUpdateRhythm(
+function calculateUpdateRhythm(
   provider: string,
   timestamps: number[],
   expectedIntervalSeconds: number
@@ -205,7 +205,7 @@ function calculateAbsoluteWidthScore(widthPercentage: number): number {
   return Math.max(0, 10 - (absWidth - 3.0) * 2);
 }
 
-export function calculateConfidenceIntervalMetrics(
+function calculateConfidenceIntervalMetrics(
   provider: string,
   confidenceData: Array<{ widthPercentage: number }>
 ): ConfidenceIntervalMetrics {
@@ -323,7 +323,7 @@ function calculateHeartbeatSeverity(
   return 'critical';
 }
 
-export function calculateHeartbeat(
+function calculateHeartbeat(
   provider: string,
   timestamps: number[],
   expectedIntervalSeconds: number,
@@ -425,7 +425,7 @@ export function calculateHeartbeat(
   }
 }
 
-export function calculateFeedHealthScore(params: {
+function calculateFeedHealthScore(params: {
   rhythm: UpdateRhythmMetrics;
   confidence: ConfidenceIntervalMetrics;
   heartbeat: HeartbeatMetrics;

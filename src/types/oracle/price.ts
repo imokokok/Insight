@@ -6,7 +6,7 @@ export interface ConfidenceInterval {
   widthPercentage: number;
 }
 
-export type VerificationType = 'on-chain' | 'api';
+type VerificationType = 'on-chain' | 'api';
 
 export interface OnChainVerification {
   type?: VerificationType;
@@ -17,7 +17,7 @@ export interface OnChainVerification {
   blockNumber?: number;
 }
 
-export interface PriceDataBase {
+interface PriceDataBase {
   symbol: string;
   price: number;
   timestamp: number;

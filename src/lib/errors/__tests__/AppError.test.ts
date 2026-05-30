@@ -1,8 +1,8 @@
-import { AppError, type AppErrorOptions, type ExtendedAppErrorOptions } from '../AppError';
+import { AppError } from '../AppError';
 
 class TestError extends AppError {
-  constructor(options: AppErrorOptions | ExtendedAppErrorOptions) {
-    super(options as ExtendedAppErrorOptions);
+  constructor(options: ConstructorParameters<typeof AppError>[0]) {
+    super(options);
   }
 }
 

@@ -1,6 +1,5 @@
 import { AppError, type ErrorCategory, type ErrorSeverity } from '@/lib/errors/AppError';
-
-import { type ApiErrorBody } from './types';
+import { type ApiErrorBody } from '@/types/api/client';
 
 export class ApiError extends AppError {
   public readonly code: string;
