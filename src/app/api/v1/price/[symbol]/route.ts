@@ -1,31 +1,17 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
 import { createApiHandler, ApiResponseBuilder } from '@/lib/api/handler';
-import { oracleSupportedSymbols } from '@/lib/oracles/constants/supportedSymbols';
+import { getProvidersForSymbol } from '@/lib/oracles/constants/supportedSymbols';
 import { getDefaultFactory } from '@/lib/oracles/factory';
 import { createLogger } from '@/lib/utils/logger';
-import { OracleProvider, type Blockchain, type PriceData } from '@/types/oracle';
+import { type OracleProvider, type Blockchain, type PriceData } from '@/types/oracle';
 
 const logger = createLogger('V1PriceAPI');
 
-const providerToSymbolKey: Record<OracleProvider, keyof typeof oracleSupportedSymbols> = {
-  [OracleProvider.CHAINLINK]: 'chainlink',
-  [OracleProvider.PYTH]: 'pyth',
-  [OracleProvider.API3]: 'api3',
-  [OracleProvider.REDSTONE]: 'redstone',
-  [OracleProvider.DIA]: 'dia',
-  [OracleProvider.WINKLINK]: 'winklink',
-  [OracleProvider.SUPRA]: 'supra',
-  [OracleProvider.TWAP]: 'twap',
-  [OracleProvider.REFLECTOR]: 'reflector',
-  [OracleProvider.FLARE]: 'flare',
-};
-
 export const GET = createApiHandler(
-  async (request: NextRequest) => {
-    const pathSegments = request.nextUrl.pathname.split('/');
-    const symbolSegment = pathSegments[pathSegments.length - 1];
-    const symbol = decodeURIComponent(symbolSegment);
+  async (request: NextRequest, context) => {
+    const symbolParam = context.validated?.params?.symbol;
+    const symbol = symbolParam ? decodeURIComponent(symbolParam) : '';
 
     if (!symbol) {
       return NextResponse.json(
@@ -62,11 +48,7 @@ export const GET = createApiHandler(
         );
       }
 
-      const providersToQuery = Object.values(OracleProvider).filter((provider) => {
-        const key = providerToSymbolKey[provider];
-        const supported = oracleSupportedSymbols[key] as readonly string[];
-        return supported.includes(baseSymbol);
-      });
+      const providersToQuery = getProvidersForSymbol(baseSymbol);
 
       const pricePromises = providersToQuery.map(async (provider) => {
         try {
@@ -142,6 +124,7 @@ export const GET = createApiHandler(
       logging: true,
       rateLimit: { preset: 'api' },
       apiKey: true,
+      cors: true,
     },
   }
 );
