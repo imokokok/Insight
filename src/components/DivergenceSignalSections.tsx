@@ -2,6 +2,7 @@
 
 import { TrendingUp, AlertTriangle, Zap, Navigation, Grid3x3, Activity } from 'lucide-react';
 
+import { createBadgeMapper, type BadgeStyle } from '@/components/shared/badgeUtils';
 import type {
   DivergenceTimeSeries,
   OracleLeadership,
@@ -73,39 +74,29 @@ function getDeviationBgColor(deviation: number): string {
   return 'bg-red-50';
 }
 
-function getLeadershipBadge(status: LeadershipStatus): {
-  label: string;
-  bgClass: string;
-  textClass: string;
-} {
-  switch (status) {
-    case 'leading':
-      return { label: 'Leading', bgClass: 'bg-emerald-50', textClass: 'text-emerald-700' };
-    case 'synchronized':
-      return { label: 'Synchronized', bgClass: 'bg-blue-50', textClass: 'text-blue-700' };
-    case 'lagging':
-      return { label: 'Lagging', bgClass: 'bg-red-50', textClass: 'text-red-700' };
-    default:
-      return { label: 'Unknown', bgClass: 'bg-gray-50', textClass: 'text-gray-700' };
-  }
-}
+const leadershipBadgeMapping: Record<LeadershipStatus, BadgeStyle> = {
+  leading: { label: 'Leading', bgClass: 'bg-emerald-50', textClass: 'text-emerald-700' },
+  synchronized: { label: 'Synchronized', bgClass: 'bg-blue-50', textClass: 'text-blue-700' },
+  lagging: { label: 'Lagging', bgClass: 'bg-red-50', textClass: 'text-red-700' },
+};
 
-function getAccelerationBadge(acceleration: DivergenceAcceleration): {
-  label: string;
-  bgClass: string;
-  textClass: string;
-} {
-  switch (acceleration) {
-    case 'accelerating':
-      return { label: 'Accelerating', bgClass: 'bg-red-50', textClass: 'text-red-700' };
-    case 'decelerating':
-      return { label: 'Decelerating', bgClass: 'bg-emerald-50', textClass: 'text-emerald-700' };
-    case 'stable':
-      return { label: 'Stable', bgClass: 'bg-gray-50', textClass: 'text-gray-600' };
-    default:
-      return { label: 'Unknown', bgClass: 'bg-gray-50', textClass: 'text-gray-700' };
-  }
-}
+const getLeadershipBadge = createBadgeMapper<LeadershipStatus>(leadershipBadgeMapping, {
+  label: 'Unknown',
+  bgClass: 'bg-gray-50',
+  textClass: 'text-gray-700',
+});
+
+const accelerationBadgeMapping: Record<DivergenceAcceleration, BadgeStyle> = {
+  accelerating: { label: 'Accelerating', bgClass: 'bg-red-50', textClass: 'text-red-700' },
+  decelerating: { label: 'Decelerating', bgClass: 'bg-emerald-50', textClass: 'text-emerald-700' },
+  stable: { label: 'Stable', bgClass: 'bg-gray-50', textClass: 'text-gray-600' },
+};
+
+const getAccelerationBadge = createBadgeMapper<DivergenceAcceleration>(accelerationBadgeMapping, {
+  label: 'Unknown',
+  bgClass: 'bg-gray-50',
+  textClass: 'text-gray-700',
+});
 
 function getDirectionBadge(direction: DivergenceDirection): {
   label: string;

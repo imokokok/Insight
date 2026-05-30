@@ -2,10 +2,13 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 
 import { oracleApiClient } from '@/lib/api/oracleApiClient';
 import { extractBaseSymbol } from '@/lib/oracles';
-import { oracleSupportedSymbols } from '@/lib/oracles/constants/supportedSymbols';
+import {
+  oracleSupportedSymbols,
+  providerToSymbolKey,
+} from '@/lib/oracles/constants/supportedSymbols';
 import { createLogger } from '@/lib/utils/logger';
 import { getRequestQueue, type RequestPriority } from '@/lib/utils/requestQueue';
-import { OracleProvider, type PriceData } from '@/types/oracle';
+import { type OracleProvider, type PriceData } from '@/types/oracle';
 
 import { type RefreshInterval } from '../constants';
 
@@ -19,19 +22,6 @@ import type { PriceHistoryMap, UseOracleMemoryReturn } from './useOracleMemory';
 import type { UseOraclePerformanceReturn } from './useOraclePerformance';
 
 const logger = createLogger('useOracleData');
-
-const providerToSymbolKey: Record<OracleProvider, keyof typeof oracleSupportedSymbols> = {
-  [OracleProvider.CHAINLINK]: 'chainlink',
-  [OracleProvider.PYTH]: 'pyth',
-  [OracleProvider.API3]: 'api3',
-  [OracleProvider.REDSTONE]: 'redstone',
-  [OracleProvider.DIA]: 'dia',
-  [OracleProvider.WINKLINK]: 'winklink',
-  [OracleProvider.SUPRA]: 'supra',
-  [OracleProvider.TWAP]: 'twap',
-  [OracleProvider.REFLECTOR]: 'reflector',
-  [OracleProvider.FLARE]: 'flare',
-};
 
 interface UseOracleDataCoreOptions {
   selectedOracles: OracleProvider[];

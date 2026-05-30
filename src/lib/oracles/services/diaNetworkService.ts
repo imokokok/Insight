@@ -8,7 +8,7 @@ import {
   fetchWithTimeout,
 } from '../diaUtils';
 
-import type { OracleCacheEntry } from '../base';
+import type { OracleCache } from '../base';
 import type { DIASupply, DIAExchange } from '../diaTypes';
 
 const logger = createLogger('DIANetworkService');
@@ -16,32 +16,11 @@ const logger = createLogger('DIANetworkService');
 const REQUEST_TIMEOUT = 10000;
 
 export class DIANetworkService {
-  constructor(private cache: Map<string, OracleCacheEntry<unknown>>) {}
-
-  private getFromCache<T>(key: string): T | null {
-    const entry = this.cache.get(key) as OracleCacheEntry<T> | undefined;
-    if (!entry) return null;
-
-    const now = Date.now();
-    if (now - entry.timestamp > entry.ttl) {
-      this.cache.delete(key);
-      return null;
-    }
-
-    return entry.data;
-  }
-
-  private setCache<T>(key: string, data: T, ttl: number): void {
-    this.cache.set(key, {
-      data,
-      timestamp: Date.now(),
-      ttl,
-    });
-  }
+  constructor(private cache: OracleCache) {}
 
   async getSupply(symbol: string): Promise<DIASupply | null> {
     const cacheKey = `supply:${symbol}`;
-    const cached = this.getFromCache<DIASupply>(cacheKey);
+    const cached = this.cache.get<DIASupply>(cacheKey);
     if (cached) {
       return cached;
     }
@@ -57,7 +36,7 @@ export class DIANetworkService {
       );
 
       if (result) {
-        this.setCache(cacheKey, result, CACHE_TTL.SUPPLY);
+        this.cache.set(cacheKey, result, CACHE_TTL.SUPPLY);
       }
 
       return result;
@@ -73,7 +52,7 @@ export class DIANetworkService {
 
   async getExchanges(): Promise<DIAExchange[]> {
     const cacheKey = 'exchanges';
-    const cached = this.getFromCache<DIAExchange[]>(cacheKey);
+    const cached = this.cache.get<DIAExchange[]>(cacheKey);
     if (cached) {
       return cached;
     }
@@ -89,7 +68,7 @@ export class DIANetworkService {
       );
 
       if (result) {
-        this.setCache(cacheKey, result, CACHE_TTL.DIGITAL_ASSETS);
+        this.cache.set(cacheKey, result, CACHE_TTL.DIGITAL_ASSETS);
       }
 
       return result || [];

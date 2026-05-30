@@ -9,9 +9,8 @@ import {
   type PriceData,
 } from '@/types/oracle';
 
+import { OracleCache, createSingleton } from '../base';
 import { withOracleRetry } from '../utils/retry';
-
-import type { OracleCacheEntry } from '../base';
 
 const logger = createLogger('WINkLinkRealDataService');
 
@@ -55,87 +54,15 @@ const WINKLINK_PRICE_FEEDS: Record<string, string> = {
 export type { WINkLinkTokenOnChainData };
 
 class WINkLinkRealDataService {
-  private cache: Map<string, OracleCacheEntry<unknown>> = new Map();
-  private static instance: WINkLinkRealDataService | null = null;
-  private readonly maxCacheSize = 1000;
+  private cache = new OracleCache();
   private readonly defaultCacheTTL = 5 * 60 * 1000;
-  private cleanupInterval: ReturnType<typeof setInterval> | null = null;
-  private isDestroyed = false;
 
   constructor() {
     logger.info('WINkLinkRealDataService initialized', { rpcUrl: TRON_RPC_ENDPOINTS[0] });
-    this.startCleanupInterval();
-  }
-
-  static getInstance(): WINkLinkRealDataService {
-    if (!WINkLinkRealDataService.instance || WINkLinkRealDataService.instance.isDestroyed) {
-      WINkLinkRealDataService.instance = new WINkLinkRealDataService();
-    }
-    return WINkLinkRealDataService.instance;
-  }
-
-  private startCleanupInterval(): void {
-    this.cleanupInterval = setInterval(() => {
-      this.cleanupExpiredCache();
-    }, 60000);
-  }
-
-  private cleanupExpiredCache(): void {
-    const now = Date.now();
-    let cleaned = 0;
-    for (const [key, entry] of this.cache.entries()) {
-      if (now - entry.timestamp > entry.ttl) {
-        this.cache.delete(key);
-        cleaned++;
-      }
-    }
-    if (cleaned > 0) {
-      logger.debug(`Cleaned up ${cleaned} expired cache entries`, { remaining: this.cache.size });
-    }
-  }
-
-  private enforceCacheLimit(): void {
-    if (this.cache.size >= this.maxCacheSize) {
-      const entriesToDelete = Math.ceil(this.maxCacheSize * 0.2);
-      const entries = Array.from(this.cache.entries());
-      entries.sort((a, b) => a[1].timestamp - b[1].timestamp);
-
-      for (let i = 0; i < entriesToDelete && i < entries.length; i++) {
-        this.cache.delete(entries[i][0]);
-      }
-      logger.warn(`Cache limit reached, removed ${entriesToDelete} oldest entries`);
-    }
-  }
-
-  private getFromCache<T>(key: string): T | null {
-    const entry = this.cache.get(key) as OracleCacheEntry<T> | undefined;
-    if (!entry) return null;
-
-    const now = Date.now();
-    if (now - entry.timestamp > entry.ttl) {
-      this.cache.delete(key);
-      return null;
-    }
-
-    return entry.data;
-  }
-
-  private setCache<T>(key: string, data: T, ttl: number): void {
-    this.enforceCacheLimit();
-    this.cache.set(key, {
-      data,
-      timestamp: Date.now(),
-      ttl: ttl || this.defaultCacheTTL,
-    });
   }
 
   destroy(): void {
-    if (this.cleanupInterval) {
-      clearInterval(this.cleanupInterval);
-      this.cleanupInterval = null;
-    }
-    this.cache.clear();
-    this.isDestroyed = true;
+    this.cache.destroy();
     logger.info('WINkLinkRealDataService destroyed');
   }
 
@@ -161,7 +88,7 @@ class WINkLinkRealDataService {
     signal?: AbortSignal
   ): Promise<PriceData | null> {
     const cacheKey = `real-price:${symbol}${chain ? `:${chain}` : ''}`;
-    const cached = this.getFromCache<PriceData>(cacheKey);
+    const cached = this.cache.get<PriceData>(cacheKey);
     if (cached) {
       return cached;
     }
@@ -456,7 +383,7 @@ class WINkLinkRealDataService {
 
   async getTokenOnChainData(symbol: string): Promise<WINkLinkTokenOnChainData | null> {
     const cacheKey = `onchain-data:${symbol.toUpperCase()}`;
-    const cached = this.getFromCache<WINkLinkTokenOnChainData>(cacheKey);
+    const cached = this.cache.get<WINkLinkTokenOnChainData>(cacheKey);
     if (cached) {
       return cached;
     }
@@ -478,12 +405,6 @@ class WINkLinkRealDataService {
       const now = Date.now();
       const priceAge = priceData.timestamp ? Math.round((now - priceData.timestamp) / 1000) : null;
 
-      // Calculate node availability based on price update freshness
-      // WINkLink is expected to update prices every 30 seconds
-      // If price age is within 60 seconds, node availability is 99.9%
-      // If price age is within 120 seconds, node availability is 99.5%
-      // If price age is within 300 seconds, node availability is 99.0%
-      // If price age exceeds 300 seconds, node availability is 98.0%
       let nodeUptime: number;
       if (priceAge === null) {
         nodeUptime = 99.0;
@@ -532,12 +453,14 @@ class WINkLinkRealDataService {
     }
   }
 
+  private setCache<T>(key: string, data: T, ttl?: number): void {
+    this.cache.set(key, data, ttl || this.defaultCacheTTL);
+  }
+
   clearCache(): void {
     this.cache.clear();
     logger.info('Cache cleared');
   }
 }
 
-export function getWINkLinkRealDataService(): WINkLinkRealDataService {
-  return WINkLinkRealDataService.getInstance();
-}
+export const getWINkLinkRealDataService = createSingleton(() => new WINkLinkRealDataService());

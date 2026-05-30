@@ -2,6 +2,7 @@ import { encodeFunctionData as viemEncodeFunctionData } from 'viem';
 
 import { createLogger } from '@/lib/utils/logger';
 
+import { OracleCache } from '../base';
 import { stringToPrice } from '../utils/oracleDataUtils';
 import { RpcClientWithFallback } from '../utils/rpcClientWithFallback';
 
@@ -137,9 +138,8 @@ interface FeedMetadata {
 
 class ChainlinkOnChainService {
   private rpcClient = new RpcClientWithFallback({ contextLabel: 'chainlink' });
-  private cache: Map<string, { data: unknown; timestamp: number }> = new Map();
+  private cache = new OracleCache();
   private cacheTTL = 30000;
-  private maxCacheSize = 200;
   private metadataCache: Map<string, FeedMetadata> = new Map();
 
   private async ethCall(
@@ -155,14 +155,6 @@ class ChainlinkOnChainService {
     return this.rpcClient.ethCall(String(chainId), config.endpoints, to, data, signal);
   }
 
-  private getCached<T>(key: string): T | null {
-    const cached = this.cache.get(key);
-    if (cached && Date.now() - cached.timestamp < this.cacheTTL) {
-      return cached.data as T;
-    }
-    return null;
-  }
-
   private isValidChainlinkPriceData(data: unknown): data is ChainlinkPriceData {
     if (!data || typeof data !== 'object') return false;
     const d = data as Partial<ChainlinkPriceData>;
@@ -175,16 +167,6 @@ class ChainlinkOnChainService {
       typeof d.roundId !== 'undefined' &&
       typeof d.answeredInRound !== 'undefined'
     );
-  }
-
-  private setCache(key: string, data: unknown): void {
-    if (this.cache.size >= this.maxCacheSize) {
-      const oldestKey = this.cache.keys().next().value;
-      if (oldestKey !== undefined) {
-        this.cache.delete(oldestKey);
-      }
-    }
-    this.cache.set(key, { data, timestamp: Date.now() });
   }
 
   private async getOrFetchMetadata(
@@ -219,7 +201,7 @@ class ChainlinkOnChainService {
     signal?: AbortSignal
   ): Promise<ChainlinkPriceData | null> {
     const cacheKey = `price-${symbol}-${chainId}`;
-    const cached = this.getCached<ChainlinkPriceData>(cacheKey);
+    const cached = this.cache.get<ChainlinkPriceData>(cacheKey);
     if (cached && this.isValidChainlinkPriceData(cached)) {
       logger.debug('Returning cached Chainlink price data', {
         symbol,
@@ -327,7 +309,7 @@ class ChainlinkOnChainService {
         chainId: result.chainId,
       });
 
-      this.setCache(cacheKey, result);
+      this.cache.set(cacheKey, result, this.cacheTTL);
       return result;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
@@ -365,7 +347,7 @@ class ChainlinkOnChainService {
 
   async getTokenData(chainId: number = 1): Promise<ChainlinkTokenData> {
     const cacheKey = `token-${chainId}`;
-    const cached = this.getCached<ChainlinkTokenData>(cacheKey);
+    const cached = this.cache.get<ChainlinkTokenData>(cacheKey);
     if (cached) return cached;
 
     const contracts = getChainlinkContracts(chainId);
@@ -387,7 +369,7 @@ class ChainlinkOnChainService {
         name: 'Chainlink',
       };
 
-      this.setCache(cacheKey, result);
+      this.cache.set(cacheKey, result, this.cacheTTL);
       return result;
     } catch (error) {
       logger.error('Failed to fetch token data', error instanceof Error ? error : undefined);

@@ -4,25 +4,19 @@ import { useQuery } from '@tanstack/react-query';
 
 import { BLOCKCHAIN_TO_CHAIN_ID } from '@/lib/oracles/constants/twapConstants';
 import { twapOnChainService } from '@/lib/oracles/services/twapOnChainService';
-import { type Blockchain, type TwapOnChainData } from '@/types/oracle';
+import { Blockchain, type TwapOnChainData } from '@/types/oracle';
+
+import {
+  type OnChainDataOptions,
+  type OnChainDataReturn,
+  ON_CHAIN_DATA_QUERY_OPTIONS,
+} from './createOnChainDataHook';
 
 export type { TwapOnChainData };
 
-interface UseTwapOnChainDataOptions {
-  symbol: string;
-  chain?: Blockchain;
-  enabled?: boolean;
-}
+export type UseTwapOnChainDataReturn = OnChainDataReturn<TwapOnChainData>;
 
-export interface UseTwapOnChainDataReturn {
-  data: TwapOnChainData | null;
-  isLoading: boolean;
-  isError: boolean;
-  error: Error | null;
-  refetch: () => Promise<void>;
-}
-
-export function useTwapOnChainData(options: UseTwapOnChainDataOptions): UseTwapOnChainDataReturn {
+export function useTwapOnChainData(options: OnChainDataOptions): UseTwapOnChainDataReturn {
   const { symbol, chain, enabled = true } = options;
 
   const {
@@ -34,7 +28,7 @@ export function useTwapOnChainData(options: UseTwapOnChainDataOptions): UseTwapO
   } = useQuery({
     queryKey: ['twap-on-chain', symbol, chain],
     queryFn: async ({ signal }) => {
-      const chainKey = chain || 'ethereum';
+      const chainKey = chain || Blockchain.ETHEREUM;
       const chainId = BLOCKCHAIN_TO_CHAIN_ID[chainKey];
       if (!chainId) {
         throw new Error(`Unsupported chain for TWAP: ${chainKey}`);
@@ -63,11 +57,7 @@ export function useTwapOnChainData(options: UseTwapOnChainDataOptions): UseTwapO
       } as TwapOnChainData;
     },
     enabled: enabled && !!symbol,
-    staleTime: 0,
-    gcTime: 300000,
-    refetchInterval: 60000,
-    refetchOnWindowFocus: true,
-    retry: 2,
+    ...ON_CHAIN_DATA_QUERY_OPTIONS,
   });
 
   return {

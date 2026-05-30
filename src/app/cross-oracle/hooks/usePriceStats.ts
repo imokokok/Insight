@@ -11,8 +11,8 @@ import {
   type ConsensusMethod,
 } from '@/lib/analytics/consensusPrice';
 import {
-  safeMax,
-  safeMin,
+  calculatePriceStats,
+  extractValidPrices,
   calculateMedian,
   calculateVariance,
   calculateWeightedAverage,
@@ -27,16 +27,9 @@ export function usePriceStats(
   symbol?: string,
   consensusMethod?: ConsensusMethod
 ): PriceStatsResult {
-  const validPrices = useMemo(
-    () => priceData.map((d) => d.price).filter((p) => p > 0 && !isNaN(p) && isFinite(p)),
-    [priceData]
-  );
+  const validPrices = useMemo(() => extractValidPrices(priceData), [priceData]);
 
-  const avgPrice = useMemo(
-    () =>
-      validPrices.length > 0 ? validPrices.reduce((a, b) => a + b, 0) / validPrices.length : 0,
-    [validPrices]
-  );
+  const baseStats = useMemo(() => calculatePriceStats(validPrices), [validPrices]);
 
   const weightedAvgPrice = useMemo(
     () =>
@@ -46,55 +39,31 @@ export function usePriceStats(
     [priceData]
   );
 
-  const maxPrice = useMemo(
-    () => (validPrices.length > 0 ? safeMax(validPrices) : 0),
-    [validPrices]
-  );
-
-  const minPrice = useMemo(
-    () => (validPrices.length > 0 ? safeMin(validPrices) : 0),
-    [validPrices]
-  );
-
   const medianPrice = useMemo(() => calculateMedian(validPrices), [validPrices]);
 
-  const priceRange = useMemo(() => maxPrice - minPrice, [maxPrice, minPrice]);
-
-  const variance = useMemo(() => calculateVariance(validPrices, avgPrice), [validPrices, avgPrice]);
+  const variance = useMemo(
+    () => calculateVariance(validPrices, baseStats.avgPrice),
+    [validPrices, baseStats.avgPrice]
+  );
 
   const standardDeviation = useMemo(
     () => calculateStandardDeviationFromVariance(variance),
     [variance]
   );
 
-  const standardDeviationPercent = useMemo(
-    () => (avgPrice > 0 ? (standardDeviation / avgPrice) * 100 : 0),
-    [avgPrice, standardDeviation]
-  );
-
   const currentStats: SnapshotStats = useMemo(
     () => ({
-      avgPrice,
+      avgPrice: baseStats.avgPrice,
       weightedAvgPrice,
-      maxPrice,
-      minPrice,
+      maxPrice: baseStats.maxPrice,
+      minPrice: baseStats.minPrice,
       medianPrice,
-      priceRange,
+      priceRange: baseStats.priceRange,
       variance,
       standardDeviation,
-      standardDeviationPercent,
+      standardDeviationPercent: baseStats.standardDeviationPercent,
     }),
-    [
-      avgPrice,
-      weightedAvgPrice,
-      maxPrice,
-      minPrice,
-      medianPrice,
-      priceRange,
-      variance,
-      standardDeviation,
-      standardDeviationPercent,
-    ]
+    [baseStats, weightedAvgPrice, medianPrice, variance, standardDeviation]
   );
 
   const consensusResult: ConsensusResult | null = useMemo(() => {
@@ -114,15 +83,15 @@ export function usePriceStats(
 
   return {
     validPrices,
-    avgPrice,
+    avgPrice: baseStats.avgPrice,
     weightedAvgPrice,
-    maxPrice,
-    minPrice,
+    maxPrice: baseStats.maxPrice,
+    minPrice: baseStats.minPrice,
     medianPrice,
-    priceRange,
+    priceRange: baseStats.priceRange,
     variance,
     standardDeviation,
-    standardDeviationPercent,
+    standardDeviationPercent: baseStats.standardDeviationPercent,
     currentStats,
     consensusResult,
   };

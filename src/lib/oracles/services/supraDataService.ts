@@ -1,5 +1,6 @@
 import { createLogger } from '@/lib/utils/logger';
 
+import { OracleCache, createSingleton } from '../base';
 import {
   SUPRA_DORA_REST_URL,
   SUPRA_CACHE_TTL,
@@ -9,7 +10,6 @@ import {
 import { bigIntToPrice } from '../utils/oracleDataUtils';
 import { withOracleRetry, ORACLE_RETRY_PRESETS } from '../utils/retry';
 
-import type { OracleCacheEntry } from '../base';
 import type SupraOracleClient from 'supra-oracle-sdk';
 
 const logger = createLogger('SupraDataService');
@@ -60,19 +60,11 @@ class SupraApiError extends Error {
 }
 
 class SupraDataService {
-  private cache: Map<string, OracleCacheEntry<unknown>> = new Map();
-  private static instance: SupraDataService | null = null;
+  private cache = new OracleCache();
   private oracleClient: SupraOracleClient | null = null;
 
-  private constructor() {
+  constructor() {
     logger.info('SupraDataService initialized', { doraUrl: SUPRA_DORA_REST_URL });
-  }
-
-  static getInstance(): SupraDataService {
-    if (!SupraDataService.instance) {
-      SupraDataService.instance = new SupraDataService();
-    }
-    return SupraDataService.instance;
   }
 
   private async getOracleClient(): Promise<SupraOracleClient> {
@@ -99,7 +91,7 @@ class SupraDataService {
     signal?: AbortSignal
   ): Promise<SupraLatestPriceData[]> {
     const cacheKey = `dora:latest:${pairIndexes.sort().join(',')}`;
-    const cached = this.getFromCache<SupraLatestPriceData[]>(cacheKey);
+    const cached = this.cache.get<SupraLatestPriceData[]>(cacheKey);
     if (cached) {
       return cached;
     }
@@ -184,7 +176,7 @@ class SupraDataService {
         throw new SupraApiError('All price data invalid from Supra DORA', 'INVALID_DATA');
       }
 
-      this.setCache(cacheKey, results, SUPRA_CACHE_TTL.PRICE);
+      this.cache.set(cacheKey, results, SUPRA_CACHE_TTL.PRICE);
       return results;
     } catch (error) {
       if (error instanceof SupraApiError) {
@@ -228,33 +220,10 @@ class SupraDataService {
     return [];
   }
 
-  private getFromCache<T>(key: string): T | null {
-    const entry = this.cache.get(key) as OracleCacheEntry<T> | undefined;
-    if (!entry) return null;
-
-    const now = Date.now();
-    if (now - entry.timestamp > entry.ttl) {
-      this.cache.delete(key);
-      return null;
-    }
-
-    return entry.data;
-  }
-
-  private setCache<T>(key: string, data: T, ttl: number): void {
-    this.cache.set(key, {
-      data,
-      timestamp: Date.now(),
-      ttl,
-    });
-  }
-
   clearCache(): void {
     this.cache.clear();
     logger.info('Cache cleared');
   }
 }
 
-export function getSupraDataService(): SupraDataService {
-  return SupraDataService.getInstance();
-}
+export const getSupraDataService = createSingleton(() => new SupraDataService());

@@ -1,3 +1,5 @@
+import type { PriceStats } from '@/types/analytics';
+
 interface WeightedData {
   value: number;
   weight?: number | null;
@@ -13,6 +15,29 @@ function validateNumberArray(values: number[], functionName: string): void {
   if (values.some((v) => !Number.isFinite(v))) {
     throw new Error(`${functionName}: Array contains invalid values (NaN, Infinity, or -Infinity)`);
   }
+}
+
+export function extractValidPrices(priceData: { price: number }[]): number[] {
+  return priceData.map((d) => d.price).filter((p) => p > 0 && !isNaN(p) && isFinite(p));
+}
+
+export function calculatePriceStats(prices: number[]): PriceStats {
+  const validPrices = prices.filter((p) => p > 0 && !isNaN(p) && isFinite(p));
+  if (validPrices.length === 0) {
+    return { avgPrice: 0, maxPrice: 0, minPrice: 0, priceRange: 0, standardDeviationPercent: 0 };
+  }
+  const avgPrice = validPrices.reduce((a, b) => a + b, 0) / validPrices.length;
+  const maxPrice = safeMax(validPrices);
+  const minPrice = safeMin(validPrices);
+  const priceRange = maxPrice - minPrice;
+  const variance =
+    validPrices.length > 1
+      ? validPrices.reduce((sum, price) => sum + Math.pow(price - avgPrice, 2), 0) /
+        (validPrices.length - 1)
+      : 0;
+  const stdDev = Math.sqrt(variance);
+  const standardDeviationPercent = avgPrice > 0 ? (stdDev / avgPrice) * 100 : 0;
+  return { avgPrice, maxPrice, minPrice, priceRange, standardDeviationPercent };
 }
 
 export function safeMax(values: number[], defaultValue?: number): number {

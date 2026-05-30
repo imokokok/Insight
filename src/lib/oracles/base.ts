@@ -69,7 +69,7 @@ export class OracleCache {
   getStats(): { size: number; keys: string[] } {
     return {
       size: this.impl.size,
-      keys: [],
+      keys: this.impl.keys(),
     };
   }
 
@@ -84,6 +84,16 @@ export class OracleCache {
   cleanup(): number {
     return 0;
   }
+}
+
+export function createSingleton<T>(factory: () => T): () => T {
+  let instance: T | null = null;
+  return () => {
+    if (!instance) {
+      instance = factory();
+    }
+    return instance;
+  };
 }
 
 const OracleErrorCodes = {
@@ -118,7 +128,8 @@ export abstract class BaseOracleClient {
     chain?: Blockchain,
     options?: { signal?: AbortSignal }
   ): Promise<PriceData>;
-  abstract getSupportedSymbols(): string[];
+
+  protected supportedSymbolsList: readonly string[] = [];
 
   defaultUpdateIntervalMinutes: number = 1;
   chainUpdateIntervals: Partial<Record<Blockchain, number>> = {};
@@ -154,8 +165,9 @@ export abstract class BaseOracleClient {
   }
 
   isSymbolSupported(symbol: string, chain?: Blockchain): boolean {
+    const upperSymbol = symbol.toUpperCase();
     const supportedSymbols = this.getSupportedSymbols();
-    const isSymbolInList = supportedSymbols.includes(symbol);
+    const isSymbolInList = supportedSymbols.some((s) => s.toUpperCase() === upperSymbol);
 
     if (!isSymbolInList) {
       return false;
@@ -166,6 +178,10 @@ export abstract class BaseOracleClient {
     }
 
     return true;
+  }
+
+  getSupportedSymbols(): string[] {
+    return [...this.supportedSymbolsList];
   }
 
   getSupportedChainsForSymbol(symbol: string): Blockchain[] {
@@ -180,6 +196,24 @@ export abstract class BaseOracleClient {
       return this.chainUpdateIntervals[chain]!;
     }
     return this.defaultUpdateIntervalMinutes;
+  }
+
+  protected validateGetPriceParams(symbol: string, options?: { signal?: AbortSignal }): void {
+    if (!symbol) {
+      throw this.createError('Symbol is required', 'INVALID_SYMBOL');
+    }
+    if (options?.signal?.aborted) {
+      throw this.createError('Request was aborted', 'NETWORK_ERROR', { retryable: false });
+    }
+  }
+
+  protected handleGetPriceError(error: unknown, providerLabel: string, errorCode?: string): never {
+    if (error instanceof OracleServiceError) throw error;
+    if (error && typeof error === 'object' && 'code' in error) throw error;
+    throw this.createError(
+      error instanceof Error ? error.message : `Failed to fetch price from ${providerLabel}`,
+      (errorCode || 'PROVIDER_ERROR') as OracleErrorCode
+    );
   }
 
   protected createError(

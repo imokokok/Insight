@@ -4,7 +4,7 @@ import { diaSymbols } from '@/lib/oracles/constants/supportedSymbols';
 import { DIA_API_BASE_URL } from '@/lib/oracles/diaUtils';
 import { diaPriceService } from '@/lib/oracles/services/diaPriceService';
 import { buildApiVerification } from '@/lib/oracles/utils/verificationUtils';
-import { OracleProvider, Blockchain, OracleServiceError } from '@/types/oracle';
+import { OracleProvider, Blockchain } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
 
 export class DIAClient extends BaseOracleClient {
@@ -18,6 +18,8 @@ export class DIAClient extends BaseOracleClient {
     Blockchain.BASE,
   ];
 
+  supportedSymbolsList = diaSymbols;
+
   defaultUpdateIntervalMinutes = 5;
   protected historicalPriceConfidence = 0.95;
 
@@ -30,13 +32,7 @@ export class DIAClient extends BaseOracleClient {
     chain?: Blockchain,
     options?: { signal?: AbortSignal }
   ): Promise<PriceData> {
-    if (!symbol) {
-      throw this.createError('Symbol is required', 'INVALID_SYMBOL');
-    }
-
-    if (options?.signal?.aborted) {
-      throw this.createError('Request was aborted', 'NETWORK_ERROR', { retryable: false });
-    }
+    this.validateGetPriceParams(symbol, options);
 
     try {
       const result = await diaPriceService.getAssetPrice(symbol, chain, options?.signal);
@@ -58,11 +54,7 @@ export class DIAClient extends BaseOracleClient {
         ),
       };
     } catch (error) {
-      if (error instanceof OracleServiceError) throw error;
-      throw this.createError(
-        error instanceof Error ? error.message : 'Failed to fetch price from DIA oracle',
-        'DIA_ERROR'
-      );
+      this.handleGetPriceError(error, 'DIA oracle', 'DIA_ERROR');
     }
   }
 
@@ -73,27 +65,5 @@ export class DIAClient extends BaseOracleClient {
     _options?: { signal?: AbortSignal }
   ): Promise<PriceData[]> {
     return [];
-  }
-
-  getSupportedSymbols(): string[] {
-    return [...diaSymbols];
-  }
-
-  isSymbolSupported(symbol: string, chain?: Blockchain): boolean {
-    const isSymbolInList = diaSymbols.includes(symbol.toUpperCase() as (typeof diaSymbols)[number]);
-    if (!isSymbolInList) {
-      return false;
-    }
-    if (chain !== undefined) {
-      return this.supportedChains.includes(chain);
-    }
-    return true;
-  }
-
-  getSupportedChainsForSymbol(symbol: string): Blockchain[] {
-    if (!this.isSymbolSupported(symbol)) {
-      return [];
-    }
-    return this.supportedChains;
   }
 }

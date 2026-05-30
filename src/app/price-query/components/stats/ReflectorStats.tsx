@@ -2,7 +2,12 @@ import { Clock, Database, FileDigit, Hash, Server, Timer } from 'lucide-react';
 
 import { StatCard } from '@/components/ui/StatCard';
 import type { ReflectorTokenOnChainData } from '@/hooks/oracles/useReflectorOnChainData';
-import { formatTimeString, formatNumberWithDecimals } from '@/lib/utils/format';
+import {
+  formatDataAge,
+  formatDecimals,
+  formatOraclePrice,
+  formatOracleTimestamp,
+} from '@/lib/utils/format';
 import { getStatRating } from '@/lib/utils/stat-rating';
 
 interface ReflectorStatsProps {
@@ -25,30 +30,20 @@ export function ReflectorStats({ data }: ReflectorStatsProps) {
 
   const dataAgeRating = dataAge !== null ? getStatRating('latency', dataAge) : null;
 
-  const formatTimestamp = (timestamp: number) => {
-    if (!timestamp) return '-';
-    return formatTimeString(new Date(timestamp));
-  };
-
-  const formatReflectorPrice = (value: number) => {
-    if (!value || isNaN(value)) return '-';
-    return `$${formatNumberWithDecimals(value, 2, (decimals ?? 2) > 8 ? 8 : (decimals ?? 2))}`;
-  };
-
   return (
     <>
       <StatCard
         icon={Database}
         iconColor="text-amber-500"
         title="Reflector Price"
-        value={formatReflectorPrice(price)}
+        value={formatOraclePrice(price, 2, (decimals ?? 2) > 8 ? 8 : (decimals ?? 2))}
         description="Current price from Reflector oracle"
       />
       <StatCard
         icon={FileDigit}
         iconColor="text-amber-600"
         title="Price Precision"
-        value={`${decimals} decimals`}
+        value={formatDecimals(decimals)}
         description="Number of decimal places"
       />
       <StatCard
@@ -69,16 +64,14 @@ export function ReflectorStats({ data }: ReflectorStatsProps) {
         icon={Clock}
         iconColor="text-amber-600"
         title="Last Updated"
-        value={formatTimestamp(lastUpdated)}
+        value={formatOracleTimestamp(lastUpdated)}
         description="Timestamp of last update"
       />
       <StatCard
         icon={Timer}
         iconColor="text-rose-500"
         title="Data Age"
-        value={
-          dataAge !== null ? (dataAge < 60 ? `${dataAge}s` : `${Math.round(dataAge / 60)}m`) : '-'
-        }
+        value={formatDataAge(dataAge)}
         description="Time since last update"
         rating={dataAgeRating}
       />

@@ -9,11 +9,10 @@ import {
 } from '@/lib/oracles/crossChainComparison';
 import { crossChainKeys } from '@/lib/queryKeys';
 import { createLogger } from '@/lib/utils/logger';
-import { safeMax, safeMin } from '@/lib/utils/statistics';
+import { calculatePriceStats, extractValidPrices } from '@/lib/utils/statistics';
 import { useCrossChainConfigStore } from '@/stores/crossChainConfigStore';
 import { useCrossChainDataStore } from '@/stores/crossChainDataStore';
-import { type PriceStats } from '@/types/analytics';
-import { type OracleProvider, type Blockchain, type PriceData } from '@/types/oracle';
+import { type OracleProvider, type Blockchain } from '@/types/oracle';
 
 import { detectAnomalies } from '../utils/anomalyDetection';
 import { validateCurrentPrices } from '../utils/validation';
@@ -23,26 +22,6 @@ import { useCrossChainQueries } from './useCrossChainQueries';
 const logger = createLogger('useDataFetching');
 
 const REFRESH_SUCCESS_DISPLAY_MS = 2000;
-
-function calculatePriceStats(prices: PriceData[]): PriceStats {
-  const validPrices = prices.map((d) => d.price).filter((p) => p > 0);
-  if (validPrices.length === 0) {
-    return { avgPrice: 0, maxPrice: 0, minPrice: 0, priceRange: 0, standardDeviationPercent: 0 };
-  }
-  const avgPrice = validPrices.reduce((a, b) => a + b, 0) / validPrices.length;
-  const maxPrice = safeMax(validPrices);
-  const minPrice = safeMin(validPrices);
-  const priceRange = maxPrice - minPrice;
-  const variance =
-    validPrices.length > 1
-      ? validPrices.reduce((sum, price) => sum + Math.pow(price - avgPrice, 2), 0) /
-        (validPrices.length - 1)
-      : 0;
-  const stdDev = Math.sqrt(variance);
-  const standardDeviationPercent = avgPrice > 0 ? (stdDev / avgPrice) * 100 : 0;
-
-  return { avgPrice, maxPrice, minPrice, priceRange, standardDeviationPercent };
-}
 
 interface UseDataFetchingReturn {
   fetchData: () => Promise<void>;
@@ -81,7 +60,7 @@ export function useDataFetching(
 
   const derivedData = useMemo(() => {
     const anomalies = detectAnomalies(currentPrices, supportedChains, thresholdConfig);
-    const prevStats = calculatePriceStats(currentPrices);
+    const prevStats = calculatePriceStats(extractValidPrices(currentPrices));
 
     let recommendedBaseChain: Blockchain | null = null;
     if (supportedChains.length > 0) {

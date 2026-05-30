@@ -31,6 +31,8 @@ export type { FlareTokenOnChainData };
 export class FlareClient extends BaseOracleClient {
   name = OracleProvider.FLARE;
   supportedChains = [Blockchain.FLARE];
+  supportedSymbolsList = flareSymbols;
+
   defaultUpdateIntervalMinutes = 1.5;
   protected historicalPriceConfidence = 0.95;
   private cache = new OracleCache();
@@ -170,9 +172,7 @@ export class FlareClient extends BaseOracleClient {
     chain?: Blockchain,
     options?: { signal?: AbortSignal }
   ): Promise<PriceData> {
-    if (!symbol) {
-      throw this.createError('Symbol is required', 'INVALID_SYMBOL');
-    }
+    this.validateGetPriceParams(symbol, options);
 
     try {
       const realPrice = await this.fetchRealPrice(symbol, options?.signal);
@@ -189,13 +189,7 @@ export class FlareClient extends BaseOracleClient {
         'NO_DATA_AVAILABLE'
       );
     } catch (error) {
-      if (error instanceof OracleProviderError) {
-        throw this.createError(error.message, error.errorCode as OracleErrorCode);
-      }
-      throw this.createError(
-        error instanceof Error ? error.message : 'Failed to fetch price from Flare',
-        'FETCH_ERROR'
-      );
+      this.handleGetPriceError(error, 'Flare', 'FETCH_ERROR');
     }
   }
 
@@ -204,30 +198,6 @@ export class FlareClient extends BaseOracleClient {
     this.cache.clear();
     this.cache.startCleanupInterval();
     this.ftsoService.clearCache();
-  }
-
-  getSupportedSymbols(): string[] {
-    return [...flareSymbols];
-  }
-
-  isSymbolSupported(symbol: string, chain?: Blockchain): boolean {
-    const isSymbolInList = flareSymbols.includes(
-      symbol.toUpperCase() as (typeof flareSymbols)[number]
-    );
-    if (!isSymbolInList) {
-      return false;
-    }
-    if (chain !== undefined) {
-      return this.supportedChains.includes(chain);
-    }
-    return true;
-  }
-
-  getSupportedChainsForSymbol(symbol: string): Blockchain[] {
-    if (!this.isSymbolSupported(symbol)) {
-      return [];
-    }
-    return this.supportedChains;
   }
 
   async getTokenOnChainData(symbol: string): Promise<FlareTokenOnChainData | null> {

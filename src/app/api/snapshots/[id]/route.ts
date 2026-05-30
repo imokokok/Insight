@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
 import { createApiHandler, ApiResponseBuilder } from '@/lib/api/handler';
+import { requireAuth } from '@/lib/api/utils';
 import { sanitizeObject, sanitizeString, sanitizeUuid } from '@/lib/security';
 import { getServerQueries } from '@/lib/supabase/server';
 
@@ -59,10 +60,8 @@ export const PUT = createApiHandler(
       return ApiResponseBuilder.badRequest('Invalid snapshot ID');
     }
 
-    const userId = context.auth?.userId;
-    if (!userId) {
-      return ApiResponseBuilder.unauthorized();
-    }
+    const userId = requireAuth(context);
+    if (typeof userId !== 'string') return userId;
 
     const existingSnapshot = await getSnapshotById(validatedId, userId);
 
@@ -119,10 +118,8 @@ export const DELETE = createApiHandler(
       return ApiResponseBuilder.badRequest('Invalid snapshot ID');
     }
 
-    const userId = context.auth?.userId;
-    if (!userId) {
-      return ApiResponseBuilder.unauthorized();
-    }
+    const userId = requireAuth(context);
+    if (typeof userId !== 'string') return userId;
 
     const existingSnapshot = await getSnapshotById(validatedId, userId);
 

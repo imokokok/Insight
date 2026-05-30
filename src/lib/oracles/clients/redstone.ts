@@ -10,7 +10,6 @@ import { toMilliseconds } from '@/lib/utils/timestamp';
 import {
   OracleProvider,
   Blockchain,
-  type OracleErrorCode,
   type PriceData,
   type ConfidenceInterval,
   type RedStoneTokenOnChainData,
@@ -52,6 +51,8 @@ export class RedStoneClient extends BaseOracleClient {
     Blockchain.SCROLL,
     Blockchain.ZKSYNC,
   ];
+
+  supportedSymbolsList = redstoneSymbols;
 
   defaultUpdateIntervalMinutes = 10;
   protected historicalPriceConfidence = 0.97;
@@ -227,9 +228,7 @@ export class RedStoneClient extends BaseOracleClient {
     chain?: Blockchain,
     options?: { signal?: AbortSignal }
   ): Promise<PriceData> {
-    if (!symbol) {
-      throw this.createError('Symbol is required', 'INVALID_SYMBOL');
-    }
+    this.validateGetPriceParams(symbol, options);
 
     try {
       const realPrice = await this.fetchRealPrice(symbol, options?.signal);
@@ -251,13 +250,7 @@ export class RedStoneClient extends BaseOracleClient {
         'FETCH_ERROR'
       );
     } catch (error) {
-      if (error instanceof OracleProviderError) {
-        throw this.createError(error.message, error.code as OracleErrorCode);
-      }
-      throw this.createError(
-        error instanceof Error ? error.message : 'Failed to fetch price from RedStone',
-        'REDSTONE_ERROR'
-      );
+      this.handleGetPriceError(error, 'RedStone', 'REDSTONE_ERROR');
     }
   }
 
@@ -265,30 +258,6 @@ export class RedStoneClient extends BaseOracleClient {
     this.cache.stopCleanupInterval();
     this.cache.clear();
     this.cache.startCleanupInterval();
-  }
-
-  getSupportedSymbols(): string[] {
-    return [...redstoneSymbols];
-  }
-
-  isSymbolSupported(symbol: string, chain?: Blockchain): boolean {
-    const isSymbolInList = redstoneSymbols.includes(
-      symbol.toUpperCase() as (typeof redstoneSymbols)[number]
-    );
-    if (!isSymbolInList) {
-      return false;
-    }
-    if (chain !== undefined) {
-      return this.supportedChains.includes(chain);
-    }
-    return true;
-  }
-
-  getSupportedChainsForSymbol(symbol: string): Blockchain[] {
-    if (!this.isSymbolSupported(symbol)) {
-      return [];
-    }
-    return this.supportedChains;
   }
 
   async getTokenOnChainData(symbol: string): Promise<RedStoneTokenOnChainData | null> {

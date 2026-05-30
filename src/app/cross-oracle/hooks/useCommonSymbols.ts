@@ -6,8 +6,11 @@
 import { useMemo } from 'react';
 
 import { tradingPairs } from '@/app/cross-oracle/constants';
-import { oracleSupportedSymbols } from '@/lib/oracles/constants/supportedSymbols';
-import { OracleProvider } from '@/types/oracle';
+import {
+  oracleSupportedSymbols,
+  providerToSymbolKey,
+} from '@/lib/oracles/constants/supportedSymbols';
+import { type OracleProvider } from '@/types/oracle';
 
 interface CommonSymbolInfo {
   symbol: string;
@@ -21,19 +24,6 @@ interface UseCommonSymbolsResult {
   oracleCountMap: Record<string, number>;
   unsupportedOracles: Record<string, OracleProvider[]>;
 }
-
-const providerToSymbolKey: Record<OracleProvider, keyof typeof oracleSupportedSymbols> = {
-  [OracleProvider.CHAINLINK]: 'chainlink',
-  [OracleProvider.PYTH]: 'pyth',
-  [OracleProvider.API3]: 'api3',
-  [OracleProvider.REDSTONE]: 'redstone',
-  [OracleProvider.DIA]: 'dia',
-  [OracleProvider.WINKLINK]: 'winklink',
-  [OracleProvider.SUPRA]: 'supra',
-  [OracleProvider.TWAP]: 'twap',
-  [OracleProvider.REFLECTOR]: 'reflector',
-  [OracleProvider.FLARE]: 'flare',
-};
 
 export function useCommonSymbols(selectedOracles: OracleProvider[]): UseCommonSymbolsResult {
   return useMemo(() => {

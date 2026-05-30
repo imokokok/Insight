@@ -1,6 +1,8 @@
 import { createLogger } from '@/lib/utils/logger';
 import { type OracleProvider, type PriceData } from '@/types/oracle';
 
+import { type PriceHistoryEntry } from '../interfaces';
+
 import { memoryManager, type MemoryStats } from './memoryManager';
 import { getPerformanceMetricsConfig, getProviderDefaults } from './performanceMetricsConfig';
 
@@ -19,14 +21,6 @@ export interface CalculatedPerformanceMetrics {
   supportedChains: number;
   lastCalculated: number;
   sampleSize: number;
-}
-
-interface PriceHistoryEntry {
-  price: number;
-  timestamp: number;
-  responseTime: number;
-  success: boolean;
-  source?: string;
 }
 
 interface MetricsCalculationConfig {

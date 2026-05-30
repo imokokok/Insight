@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
 import { createApiHandler, ApiResponseBuilder } from '@/lib/api/handler';
+import { requireAuth } from '@/lib/api/utils';
 import { sanitizeObject } from '@/lib/security';
 import { BatchOperationSchema, validateAndSanitize } from '@/lib/security/validation';
 import { getServerQueries } from '@/lib/supabase/server';
@@ -10,10 +11,9 @@ const logger = createLogger('api-alerts-batch');
 
 export const POST = createApiHandler(
   async (request: NextRequest, context) => {
-    const userId = context.auth?.userId;
-    if (!userId) {
-      return ApiResponseBuilder.unauthorized();
-    }
+    const authResult = requireAuth(context);
+    if (typeof authResult !== 'string') return authResult;
+    const userId = authResult;
 
     let body;
     try {

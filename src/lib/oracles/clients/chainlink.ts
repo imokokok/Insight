@@ -177,13 +177,7 @@ export class ChainlinkClient extends BaseOracleClient {
     chain?: Blockchain,
     options?: { signal?: AbortSignal }
   ): Promise<PriceData> {
-    if (!symbol) {
-      throw this.createError('Symbol is required', 'INVALID_SYMBOL');
-    }
-
-    if (options?.signal?.aborted) {
-      throw this.createError('Request was aborted', 'NETWORK_ERROR', { retryable: false });
-    }
+    this.validateGetPriceParams(symbol, options);
 
     const chainId = this.getChainId(chain);
 
@@ -208,11 +202,7 @@ export class ChainlinkClient extends BaseOracleClient {
         }
         return this.convertToPriceData(realData, chain);
       } catch (error) {
-        if (error instanceof OracleServiceError) throw error;
-        throw this.createError(
-          error instanceof Error ? error.message : 'Failed to fetch price from Chainlink',
-          'CHAINLINK_ERROR'
-        );
+        this.handleGetPriceError(error, 'Chainlink', 'CHAINLINK_PRICE_ERROR');
       }
     }
 

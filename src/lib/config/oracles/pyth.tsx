@@ -1,21 +1,11 @@
-import Image from 'next/image';
-
 import { PythClient } from '@/lib/oracles';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 
-import { getDefaultMarketData, getDefaultNetworkData } from './helpers';
-import { type OracleConfig } from './types';
+import { COMMON_TABS, createOracleConfig } from './helpers';
 
-let _client: PythClient | null = null;
-function getClient() {
-  if (!_client) _client = new PythClient();
-  return _client;
-}
-
-export const pythConfig: OracleConfig = {
+export const pythConfig = createOracleConfig({
   provider: OracleProvider.PYTH,
   name: 'Pyth',
-  descriptionKey: 'oracles.descriptions.pyth',
   symbol: 'PYTH',
   defaultChain: Blockchain.SOLANA,
   supportedChains: [
@@ -33,30 +23,22 @@ export const pythConfig: OracleConfig = {
     Blockchain.INJECTIVE,
     Blockchain.SEI,
   ],
-  getClient,
-  iconBgColor: '#7C3AED',
-  themeColor: '#7C3AED',
-  icon: <Image src="/logos/oracles/pyth.svg" alt="Pyth" width={48} height={48} />,
-  marketData: getDefaultMarketData('PYTH', 'Pyth'),
-  networkData: getDefaultNetworkData(),
+  clientClass: PythClient,
+  color: '#7C3AED',
   features: {
-    hasNodeAnalytics: false,
     hasValidatorAnalytics: true,
     hasPublisherAnalytics: true,
-    hasDisputeResolution: false,
     hasPriceFeeds: true,
-    hasQuantifiableSecurity: false,
-    hasFirstPartyOracle: false,
     hasCoreFeatures: true,
     hasRiskAssessment: true,
   },
   tabs: [
-    { id: 'market', label: 'Market Data' },
-    { id: 'network', label: 'Network Health' },
+    COMMON_TABS.MARKET,
+    COMMON_TABS.NETWORK,
     { id: 'publishers', label: 'Publishers' },
     { id: 'validators', label: 'Validators' },
-    { id: 'price-feeds', label: 'Price Feeds' },
-    { id: 'risk', label: 'Risk Assessment' },
+    COMMON_TABS.PRICE_FEEDS,
+    COMMON_TABS.RISK,
   ],
   views: [
     {
@@ -71,4 +53,4 @@ export const pythConfig: OracleConfig = {
     { id: 'price-feeds', label: 'Price Feeds', component: 'PythPriceFeedsView' },
     { id: 'risk', label: 'Risk Assessment', component: 'PythRiskView' },
   ],
-};
+});

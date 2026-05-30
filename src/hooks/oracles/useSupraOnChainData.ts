@@ -1,61 +1,12 @@
 'use client';
 
-import { useMemo, useCallback } from 'react';
-
-import { useQuery } from '@tanstack/react-query';
-
 import { SupraClient, type SupraTokenOnChainData } from '@/lib/oracles/clients/supra';
 
-interface UseSupraOnChainDataOptions {
-  symbol: string;
-  enabled?: boolean;
-}
+import { createOnChainDataHook, type OnChainDataReturn } from './createOnChainDataHook';
 
-export interface UseSupraOnChainDataReturn {
-  data: SupraTokenOnChainData | null;
-  isLoading: boolean;
-  isError: boolean;
-  error: Error | null;
-  refetch: () => Promise<void>;
-}
+export type UseSupraOnChainDataReturn = OnChainDataReturn<SupraTokenOnChainData>;
 
-const getQueryKey = (symbol: string): string[] => {
-  return ['supra', 'onchain-data', symbol.toUpperCase()];
-};
-
-export function useSupraOnChainData(
-  options: UseSupraOnChainDataOptions
-): UseSupraOnChainDataReturn {
-  const { symbol, enabled = true } = options;
-  const supraClient = useMemo(() => new SupraClient(), []);
-  const queryKey = getQueryKey(symbol);
-
-  const {
-    data,
-    error,
-    isLoading,
-    isError,
-    refetch: queryRefetch,
-  } = useQuery<SupraTokenOnChainData | null, Error>({
-    queryKey,
-    queryFn: () => supraClient.getTokenOnChainData(symbol),
-    enabled: enabled && !!symbol,
-    staleTime: 0,
-    gcTime: 300000,
-    refetchInterval: 60000,
-    refetchOnWindowFocus: true,
-    retry: 2,
-  });
-
-  const refetch = useCallback(async () => {
-    await queryRefetch();
-  }, [queryRefetch]);
-
-  return {
-    data: data || null,
-    isLoading,
-    isError,
-    error: error || null,
-    refetch,
-  };
-}
+export const useSupraOnChainData = createOnChainDataHook<SupraTokenOnChainData>(
+  'supra',
+  () => new SupraClient()
+);

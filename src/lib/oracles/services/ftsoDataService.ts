@@ -2,6 +2,7 @@ import { encodeFunctionData, decodeFunctionResult } from 'viem';
 
 import { createLogger } from '@/lib/utils/logger';
 
+import { OracleCache, createSingleton } from '../base';
 import {
   FLARE_RPC_ENDPOINTS,
   FTSOV2_ADDRESS,
@@ -16,8 +17,6 @@ import {
 import { bigIntToPrice } from '../utils/oracleDataUtils';
 import { withOracleRetry, ORACLE_RETRY_PRESETS } from '../utils/retry';
 import { RpcClientWithFallback } from '../utils/rpcClientWithFallback';
-
-import type { OracleCacheEntry } from '../base';
 
 const logger = createLogger('FtsoDataService');
 
@@ -56,24 +55,16 @@ class FtsoApiError extends Error {
   }
 }
 
-export class FtsoDataService {
+class FtsoDataService {
   private rpcClient = new RpcClientWithFallback({
     requestTimeout: FLARE_REQUEST_TIMEOUT,
     contextLabel: 'ftso',
   });
-  private cache: Map<string, OracleCacheEntry<unknown>> = new Map();
-  private static instance: FtsoDataService | null = null;
+  private cache = new OracleCache();
   private resolvedFtsoV2Address: Record<string, `0x${string}`> = {};
 
-  private constructor() {
+  constructor() {
     logger.info('FtsoDataService initialized');
-  }
-
-  static getInstance(): FtsoDataService {
-    if (!FtsoDataService.instance) {
-      FtsoDataService.instance = new FtsoDataService();
-    }
-    return FtsoDataService.instance;
   }
 
   private async ethCall(
@@ -84,27 +75,6 @@ export class FtsoDataService {
   ): Promise<string> {
     const endpoints = FLARE_RPC_ENDPOINTS[network] || FLARE_RPC_ENDPOINTS.flare;
     return this.rpcClient.ethCall(network, endpoints, to, data, signal);
-  }
-
-  private getFromCache<T>(key: string): T | null {
-    const entry = this.cache.get(key) as OracleCacheEntry<T> | undefined;
-    if (!entry) return null;
-
-    const now = Date.now();
-    if (now - entry.timestamp > entry.ttl) {
-      this.cache.delete(key);
-      return null;
-    }
-
-    return entry.data;
-  }
-
-  private setCache<T>(key: string, data: T, ttl: number): void {
-    this.cache.set(key, {
-      data,
-      timestamp: Date.now(),
-      ttl,
-    });
   }
 
   private async resolveFtsoV2Address(network: string): Promise<`0x${string}`> {
@@ -197,7 +167,7 @@ export class FtsoDataService {
     signal?: AbortSignal
   ): Promise<FtsoPriceData> {
     const cacheKey = `price:${symbol}:${network}`;
-    const cached = this.getFromCache<FtsoPriceData>(cacheKey);
+    const cached = this.cache.get<FtsoPriceData>(cacheKey);
     if (cached) return cached;
 
     const feedId = this.getFeedId(symbol);
@@ -271,7 +241,7 @@ export class FtsoDataService {
         dataAge,
       };
 
-      this.setCache(cacheKey, priceData, FLARE_CACHE_TTL.PRICE);
+      this.cache.set(cacheKey, priceData, FLARE_CACHE_TTL.PRICE);
       return priceData;
     } catch (error) {
       if (error instanceof FtsoApiError) {
@@ -310,6 +280,6 @@ export class FtsoDataService {
   }
 }
 
-export function getFtsoDataService(): FtsoDataService {
-  return FtsoDataService.getInstance();
-}
+export type { FtsoDataService };
+
+export const getFtsoDataService = createSingleton(() => new FtsoDataService());

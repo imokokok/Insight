@@ -2,7 +2,7 @@ import { Settings, Globe, TrendingDown, TrendingUp, Database, Clock } from 'luci
 
 import { StatCard } from '@/components/ui/StatCard';
 import type { RedStoneTokenOnChainData } from '@/lib/oracles/clients/redstone';
-import { formatPrice } from '@/lib/utils/format';
+import { formatPrice, formatDataAge, formatDecimals } from '@/lib/utils/format';
 import { getStatRating } from '@/lib/utils/stat-rating';
 
 interface RedStoneStatsProps {
@@ -18,7 +18,7 @@ export function RedStoneStats({ data }: RedStoneStatsProps) {
         icon={Settings}
         iconColor="text-blue-500"
         title="Price Precision"
-        value={`${data.decimals} decimals`}
+        value={formatDecimals(data.decimals)}
         description="Number of decimal places"
       />
       <StatCard
@@ -53,13 +53,7 @@ export function RedStoneStats({ data }: RedStoneStatsProps) {
         icon={Clock}
         iconColor="text-rose-500"
         title="Data Age"
-        value={
-          data.dataAge !== null
-            ? data.dataAge < 60
-              ? `${data.dataAge}s`
-              : `${Math.round(data.dataAge / 60)}m`
-            : '-'
-        }
+        value={formatDataAge(data.dataAge)}
         description="Time since last update"
         rating={dataAgeRating}
       />

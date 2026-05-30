@@ -57,13 +57,7 @@ export class API3Client extends BaseOracleClient {
     chain?: Blockchain,
     options?: { signal?: AbortSignal }
   ): Promise<PriceData> {
-    if (!symbol) {
-      throw this.createError('Symbol is required', 'INVALID_SYMBOL');
-    }
-
-    if (options?.signal?.aborted) {
-      throw this.createError('Request was aborted', 'NETWORK_ERROR', { retryable: false });
-    }
+    this.validateGetPriceParams(symbol, options);
 
     const targetChain = chain || Blockchain.ETHEREUM;
 
@@ -122,14 +116,7 @@ export class API3Client extends BaseOracleClient {
           : undefined,
       };
     } catch (error) {
-      if (error instanceof OracleServiceError) throw error;
-      logger.error(
-        `Failed to fetch price for ${symbol}: ${error instanceof Error ? error.message : String(error)}`
-      );
-      throw this.createError(
-        error instanceof Error ? error.message : 'Failed to fetch price from API3 oracle network',
-        'API3_PRICE_ERROR'
-      );
+      this.handleGetPriceError(error, 'API3 oracle network', 'API3_PRICE_ERROR');
     }
   }
 

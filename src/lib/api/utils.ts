@@ -1,5 +1,23 @@
 import { NextResponse } from 'next/server';
 
+import { ApiResponseBuilder } from './response';
+
+export const AUTH_MODERATE_MIDDLEWARE = {
+  middlewares: {
+    logging: true,
+    rateLimit: { preset: 'moderate' },
+    auth: { required: true },
+  },
+} as const;
+
+export function requireAuth(context: { auth?: { userId?: string | null } }): string | NextResponse {
+  const userId = context.auth?.userId;
+  if (!userId) {
+    return ApiResponseBuilder.unauthorized();
+  }
+  return userId;
+}
+
 export function createCachedJsonResponse<T>(
   data: T,
   cacheConfig: { header: string }

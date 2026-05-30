@@ -2,24 +2,20 @@ import { type ElementType, type ReactNode } from 'react';
 
 import { type RiskLevel } from '@/lib/analytics/riskMetrics';
 
-export function getLevelBadge(level: RiskLevel): {
-  label: string;
-  bgClass: string;
-  textClass: string;
-} {
-  switch (level) {
-    case 'low':
-      return { label: 'Low', bgClass: 'bg-emerald-50', textClass: 'text-emerald-700' };
-    case 'medium':
-      return { label: 'Medium', bgClass: 'bg-amber-50', textClass: 'text-amber-700' };
-    case 'high':
-      return { label: 'High', bgClass: 'bg-orange-50', textClass: 'text-orange-700' };
-    case 'critical':
-      return { label: 'Critical', bgClass: 'bg-red-50', textClass: 'text-red-700' };
-    default:
-      return { label: 'Unknown', bgClass: 'bg-gray-50', textClass: 'text-gray-700' };
-  }
-}
+import { createBadgeMapper, type BadgeStyle } from './badgeUtils';
+
+const levelBadgeMapping: Record<RiskLevel, BadgeStyle> = {
+  low: { label: 'Low', bgClass: 'bg-emerald-50', textClass: 'text-emerald-700' },
+  medium: { label: 'Medium', bgClass: 'bg-amber-50', textClass: 'text-amber-700' },
+  high: { label: 'High', bgClass: 'bg-orange-50', textClass: 'text-orange-700' },
+  critical: { label: 'Critical', bgClass: 'bg-red-50', textClass: 'text-red-700' },
+};
+
+export const getLevelBadge = createBadgeMapper<RiskLevel>(levelBadgeMapping, {
+  label: 'Unknown',
+  bgClass: 'bg-gray-50',
+  textClass: 'text-gray-700',
+});
 
 export function ScoreBar({
   value,

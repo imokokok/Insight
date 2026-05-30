@@ -1,3 +1,5 @@
+import { ETHEREUM_TOKEN_ADDRESSES } from './ethereumTokenAddresses';
+
 interface DIAAssetConfig {
   symbol: string;
   blockchain: string;
@@ -19,67 +21,67 @@ const DIA_ASSET_MAPPING: Record<string, DIAAssetConfig> = {
   WETH: {
     symbol: 'WETH',
     blockchain: 'Ethereum',
-    address: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+    address: ETHEREUM_TOKEN_ADDRESSES.WETH,
   },
   WBTC: {
     symbol: 'WBTC',
     blockchain: 'Ethereum',
-    address: '0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599',
+    address: ETHEREUM_TOKEN_ADDRESSES.WBTC,
   },
   USDC: {
     symbol: 'USDC',
     blockchain: 'Ethereum',
-    address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+    address: ETHEREUM_TOKEN_ADDRESSES.USDC,
   },
   USDT: {
     symbol: 'USDT',
     blockchain: 'Ethereum',
-    address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+    address: ETHEREUM_TOKEN_ADDRESSES.USDT,
   },
   DAI: {
     symbol: 'DAI',
     blockchain: 'Ethereum',
-    address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
+    address: ETHEREUM_TOKEN_ADDRESSES.DAI,
   },
   LINK: {
     symbol: 'LINK',
     blockchain: 'Ethereum',
-    address: '0x514910771AF9Ca656af840dff83E8264EcF986CA',
+    address: ETHEREUM_TOKEN_ADDRESSES.LINK,
   },
   UNI: {
     symbol: 'UNI',
     blockchain: 'Ethereum',
-    address: '0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984',
+    address: ETHEREUM_TOKEN_ADDRESSES.UNI,
   },
   AAVE: {
     symbol: 'AAVE',
     blockchain: 'Ethereum',
-    address: '0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9',
+    address: ETHEREUM_TOKEN_ADDRESSES.AAVE,
   },
   MKR: {
     symbol: 'MKR',
     blockchain: 'Ethereum',
-    address: '0x9f8F72aA9304c8B593d555F12eF6589cC3A579A2',
+    address: ETHEREUM_TOKEN_ADDRESSES.MKR,
   },
   COMP: {
     symbol: 'COMP',
     blockchain: 'Ethereum',
-    address: '0xc00e94Cb662C3520282E6f5717214004A7f26888',
+    address: ETHEREUM_TOKEN_ADDRESSES.COMP,
   },
   SNX: {
     symbol: 'SNX',
     blockchain: 'Ethereum',
-    address: '0xC011a73ee8576Fb46F5E1c5751cA3B9Fe0af2a6F',
+    address: ETHEREUM_TOKEN_ADDRESSES.SNX,
   },
   CRV: {
     symbol: 'CRV',
     blockchain: 'Ethereum',
-    address: '0xD533a949740bb3306d119CC777fa900bA034cd52',
+    address: ETHEREUM_TOKEN_ADDRESSES.CRV,
   },
   SUSHI: {
     symbol: 'SUSHI',
     blockchain: 'Ethereum',
-    address: '0x6B3595068778DD592e39A122f4f5a5cF09C90fE2',
+    address: ETHEREUM_TOKEN_ADDRESSES.SUSHI,
   },
   YFI: {
     symbol: 'YFI',
@@ -89,17 +91,17 @@ const DIA_ASSET_MAPPING: Record<string, DIAAssetConfig> = {
   '1INCH': {
     symbol: '1INCH',
     blockchain: 'Ethereum',
-    address: '0x111111111117DC0aa78b770fA6A738034120C302',
+    address: ETHEREUM_TOKEN_ADDRESSES['1INCH'],
   },
   BAL: {
     symbol: 'BAL',
     blockchain: 'Ethereum',
-    address: '0xba100000625a3754423978a60c9317c58a424e3D',
+    address: ETHEREUM_TOKEN_ADDRESSES.BAL,
   },
   LDO: {
     symbol: 'LDO',
     blockchain: 'Ethereum',
-    address: '0x5A98FcBEA516Cf06857215779Fd812CA3beF1B32',
+    address: ETHEREUM_TOKEN_ADDRESSES.LDO,
   },
   GMX: {
     symbol: 'GMX',
@@ -189,7 +191,7 @@ const DIA_ASSET_MAPPING: Record<string, DIAAssetConfig> = {
   FRAX: {
     symbol: 'FRAX',
     blockchain: 'Ethereum',
-    address: '0x853d955aCEf822Db058eb8505911ED77F175b99e',
+    address: ETHEREUM_TOKEN_ADDRESSES.FRAX,
   },
   BUSD: {
     symbol: 'BUSD',
@@ -199,7 +201,7 @@ const DIA_ASSET_MAPPING: Record<string, DIAAssetConfig> = {
   STETH: {
     symbol: 'STETH',
     blockchain: 'Ethereum',
-    address: '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84',
+    address: ETHEREUM_TOKEN_ADDRESSES.STETH,
   },
 };
 

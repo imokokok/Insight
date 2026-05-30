@@ -1,12 +1,12 @@
 import { createLogger } from '@/lib/utils/logger';
 import { type Blockchain, type PriceData, type DIATokenOnChainData } from '@/types/oracle';
 
+import { OracleCache, createSingleton } from '../base';
 import { DIA_API_BASE_URL } from '../diaUtils';
 
 import { DIANetworkService } from './diaNetworkService';
 import { DIAPriceService } from './diaPriceService';
 
-import type { OracleCacheEntry } from '../base';
 import type { DIASupply, DIAExchange } from '../diaTypes';
 
 const logger = createLogger('DIADataService');
@@ -15,8 +15,7 @@ export type { DIATokenOnChainData };
 type DIATokenOnChainDataInternal = DIATokenOnChainData;
 
 class DIADataService {
-  private cache: Map<string, OracleCacheEntry<unknown>> = new Map();
-  private static instance: DIADataService | null = null;
+  private cache = new OracleCache();
   private priceService: DIAPriceService;
   private networkService: DIANetworkService;
 
@@ -24,13 +23,6 @@ class DIADataService {
     this.priceService = new DIAPriceService(this.cache);
     this.networkService = new DIANetworkService(this.cache);
     logger.info('DIADataService initialized', { baseUrl: DIA_API_BASE_URL });
-  }
-
-  static getInstance(): DIADataService {
-    if (!DIADataService.instance) {
-      DIADataService.instance = new DIADataService();
-    }
-    return DIADataService.instance;
   }
 
   destroy(): void {
@@ -66,7 +58,7 @@ class DIADataService {
     chain?: Blockchain
   ): Promise<DIATokenOnChainDataInternal | null> {
     const cacheKey = `onchain-data:${symbol.toUpperCase()}`;
-    const cached = this.getFromCache<DIATokenOnChainDataInternal>(cacheKey);
+    const cached = this.cache.get<DIATokenOnChainDataInternal>(cacheKey);
     if (cached) {
       return cached;
     }
@@ -108,7 +100,7 @@ class DIADataService {
         dataSource: priceData.source || 'DIA',
       };
 
-      this.setCache(cacheKey, onChainData, 60000);
+      this.cache.set(cacheKey, onChainData, 60000);
       logger.info('Successfully fetched token on-chain data', {
         symbol,
         price: onChainData.price,
@@ -127,40 +119,14 @@ class DIADataService {
     }
   }
 
-  private getFromCache<T>(key: string): T | null {
-    const entry = this.cache.get(key) as OracleCacheEntry<T> | undefined;
-    if (!entry) return null;
-
-    const now = Date.now();
-    if (now - entry.timestamp > entry.ttl) {
-      this.cache.delete(key);
-      return null;
-    }
-
-    return entry.data;
-  }
-
-  private setCache<T>(key: string, data: T, ttl: number): void {
-    this.cache.set(key, {
-      data,
-      timestamp: Date.now(),
-      ttl,
-    });
-  }
-
   clearCache(): void {
     this.cache.clear();
     logger.info('Cache cleared');
   }
 
   getCacheStats(): { size: number; keys: string[] } {
-    return {
-      size: this.cache.size,
-      keys: Array.from(this.cache.keys()),
-    };
+    return this.cache.getStats();
   }
 }
 
-export function getDIADataService(): DIADataService {
-  return DIADataService.getInstance();
-}
+export const getDIADataService = createSingleton(() => new DIADataService());
