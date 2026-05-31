@@ -3,6 +3,14 @@ import { getDefaultFactory } from '@/lib/oracles/factory';
 import { createServerClient } from '@/lib/supabase/server';
 import { createLogger } from '@/lib/utils/logger';
 import { OracleProvider, type PriceData } from '@/types/oracle';
+import {
+  FailureMode,
+  classifyFailureMode,
+  buildSignalVector,
+  calculateConsistencySignal,
+  type ConsensusContext,
+  type OracleSignalVector,
+} from '@/types/oracle/signals';
 
 import { oracleSupportedSymbols } from '../constants/supportedSymbols';
 
@@ -37,6 +45,9 @@ interface ReputationHistoryEntry {
   data_age_seconds: number;
   is_success: boolean;
   error_message?: string;
+  failure_mode: FailureMode;
+  signal_vector: OracleSignalVector | null;
+  consensus_context: ConsensusContext | null;
 }
 
 export interface OracleReputation {
@@ -89,6 +100,9 @@ interface ReputationHistoryInsertRow {
   data_age_seconds: number | null;
   is_success: boolean;
   error_message: string | null;
+  failure_mode: string;
+  signal_vector: Record<string, number> | null;
+  consensus_context: Record<string, unknown> | null;
   snapshot_time: string;
 }
 
@@ -192,6 +206,24 @@ class ReputationService {
             if (entry.is_success) {
               entry.consensus_price = consensusPrice;
               entry.deviation_pct = ((entry.price - consensusPrice) / consensusPrice) * 100;
+
+              entry.consensus_context = {
+                consensusPrice,
+                agreement: consensus.agreement,
+                participantCount: consensus.participantCount,
+                isOutlier: consensus.excludedProviders.includes(entry.provider),
+                excludedProviders: consensus.excludedProviders,
+                method: consensus.method,
+                confidenceLevel: consensus.confidenceLevel,
+              };
+
+              if (entry.signal_vector) {
+                entry.signal_vector.consistency = calculateConsistencySignal({
+                  deviationFromConsensus: entry.deviation_pct,
+                  isOutlier: entry.consensus_context.isOutlier,
+                  agreement: consensus.agreement,
+                });
+              }
             }
           }
         }
@@ -222,6 +254,9 @@ class ReputationService {
       data_age_seconds: entry.data_age_seconds,
       is_success: entry.is_success,
       error_message: entry.error_message || null,
+      failure_mode: entry.failure_mode,
+      signal_vector: entry.signal_vector ? { ...entry.signal_vector } : null,
+      consensus_context: entry.consensus_context ? { ...entry.consensus_context } : null,
       snapshot_time: snapshotTime,
     };
   }
@@ -278,6 +313,31 @@ class ReputationService {
           ? Math.min(price.confidence ?? 0, 0.5)
           : (price.confidence ?? 0);
 
+        const providerConfig = PROVIDER_TYPE_CONFIG[provider];
+        const isOnChain = providerConfig?.type === 'onchain' || providerConfig?.type === 'hybrid';
+
+        const failureMode = classifyFailureMode({
+          isAvailable: true,
+          dataAgeSeconds,
+          isMetadataFallback: price.metadataFallback ?? false,
+          hasPartialData: !price.confidence,
+          isInvalidResponse: false,
+          isNetworkError: false,
+          isTimeout: false,
+          isRateLimited: false,
+        });
+
+        const signalVector = buildSignalVector({
+          dataAgeSeconds,
+          isOnChain,
+          hasVerification: !!price.verification,
+          providerUptime: 99,
+          hasConfidence: price.confidence !== undefined,
+          hasTimestamp: price.timestamp > 0,
+          hasDecimals: price.decimals !== undefined,
+          hasSource: !!price.source,
+        });
+
         return {
           entry: {
             provider,
@@ -289,6 +349,9 @@ class ReputationService {
             confidence: adjustedConfidence,
             data_age_seconds: dataAgeSeconds,
             is_success: true,
+            failure_mode: price.failureMode ?? failureMode,
+            signal_vector: price.signalVector ?? signalVector,
+            consensus_context: price.consensusContext ?? null,
           },
           price: { ...price, provider, symbol },
           total: 1,
@@ -309,6 +372,9 @@ class ReputationService {
           data_age_seconds: 0,
           is_success: false,
           error_message: 'Price returned invalid value',
+          failure_mode: FailureMode.INVALID_RESPONSE,
+          signal_vector: null,
+          consensus_context: null,
         },
         total: 1,
         success: 0,
@@ -319,6 +385,16 @@ class ReputationService {
         `Failed to fetch ${provider} for ${symbol}`,
         error instanceof Error ? error : undefined
       );
+
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      let failureMode = FailureMode.SOURCE_UNAVAILABLE;
+      if (errorMessage.toLowerCase().includes('timeout')) {
+        failureMode = FailureMode.TIMEOUT;
+      } else if (errorMessage.toLowerCase().includes('rate limit')) {
+        failureMode = FailureMode.RATE_LIMITED;
+      } else if (errorMessage.toLowerCase().includes('network')) {
+        failureMode = FailureMode.NETWORK_ERROR;
+      }
 
       return {
         entry: {
@@ -331,7 +407,10 @@ class ReputationService {
           confidence: 0,
           data_age_seconds: 0,
           is_success: false,
-          error_message: error instanceof Error ? error.message : String(error),
+          error_message: errorMessage,
+          failure_mode: failureMode,
+          signal_vector: null,
+          consensus_context: null,
         },
         total: 1,
         success: 0,

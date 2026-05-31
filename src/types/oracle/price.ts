@@ -1,4 +1,5 @@
 import type { OracleProvider, Blockchain } from './enums';
+import type { FailureMode, ConsensusContext, OracleSignalVector } from './signals';
 
 export interface ConfidenceInterval {
   bid: number;
@@ -66,4 +67,7 @@ export interface PriceData extends PriceDataBase {
   contractVersion?: number;
   ingestionTimestamp?: number;
   metadataFallback?: boolean;
+  failureMode?: FailureMode;
+  signalVector?: OracleSignalVector;
+  consensusContext?: ConsensusContext;
 }

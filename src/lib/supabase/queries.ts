@@ -10,6 +10,7 @@ import {
   type UserNotificationSettings,
 } from '@/types/analytics';
 import { type OracleProvider, type Blockchain } from '@/types/oracle';
+import type { OnChainVerification } from '@/types/oracle/price';
 
 const logger = createLogger('supabase-queries');
 
@@ -28,9 +29,11 @@ export interface PriceRecord {
   decimals?: number | null;
   confidence?: number | null;
   source?: string | null;
-  verification?: import('@/types/oracle/price').OnChainVerification | null;
+  verification?: OnChainVerification | null;
   ingestion_timestamp?: string | null;
   metadata_fallback?: boolean | null;
+  failure_mode?: string | null;
+  signal_vector?: Record<string, number> | null;
   created_at?: string;
   ttl?: string;
 }
@@ -44,9 +47,11 @@ export interface PriceRecordInsert {
   decimals?: number;
   confidence?: number | null;
   source?: string | null;
-  verification?: import('@/types/oracle/price').OnChainVerification | null;
+  verification?: OnChainVerification | null;
   ingestion_timestamp?: number | string | null;
   metadata_fallback?: boolean | null;
+  failure_mode?: string | null;
+  signal_vector?: Record<string, number> | null;
   ttl?: string;
 }
 
@@ -185,6 +190,8 @@ export class DatabaseQueries {
           verification: record.verification || null,
           ingestion_timestamp: record.ingestion_timestamp || null,
           metadata_fallback: record.metadata_fallback || null,
+          failure_mode: record.failure_mode || null,
+          signal_vector: record.signal_vector || null,
           ttl,
         })
         .select()

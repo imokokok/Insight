@@ -19,6 +19,8 @@ import { type CredibilityLevel } from '@/lib/oracles/utils/reputationUtils';
 import { formatRelativeTime } from '@/lib/utils/format';
 import { OracleProvider, type Blockchain } from '@/types/oracle';
 import type { OnChainVerification } from '@/types/oracle/price';
+import type { FailureMode, OracleSignalVector } from '@/types/oracle/signals';
+import { getFailureModeLabel, getFailureModeSeverity } from '@/types/oracle/signals';
 
 export type { CredibilityLevel };
 
@@ -33,6 +35,8 @@ export interface DataSourceInfo {
   verificationProof?: string;
   verification?: OnChainVerification;
   metadataFallback?: boolean;
+  failureMode?: FailureMode;
+  signalVector?: OracleSignalVector;
 }
 
 interface DataSourceIndicatorProps {
@@ -121,6 +125,193 @@ const sizeConfig = {
   },
 };
 
+const FAILURE_SEVERITY_STYLES: Record<string, { bg: string; border: string; text: string }> = {
+  critical: { bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-600' },
+  high: { bg: 'bg-orange-50', border: 'border-orange-200', text: 'text-orange-600' },
+  medium: { bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-600' },
+  low: { bg: 'bg-yellow-50', border: 'border-yellow-200', text: 'text-yellow-600' },
+};
+
+const SIGNAL_LABELS: Record<string, string> = {
+  freshness: 'Freshness',
+  sourceReliability: 'Source Reliability',
+  metadataCompleteness: 'Metadata',
+  consistency: 'Consistency',
+  auditStatus: 'Audit Status',
+};
+
+const SIGNAL_KEYS = [
+  'freshness',
+  'sourceReliability',
+  'metadataCompleteness',
+  'consistency',
+  'auditStatus',
+] as const;
+
+function FailureModeBadge({ failureMode }: { failureMode: FailureMode }) {
+  const severity = getFailureModeSeverity(failureMode);
+  const style = FAILURE_SEVERITY_STYLES[severity] ?? FAILURE_SEVERITY_STYLES.low;
+
+  return (
+    <div
+      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border ${style.bg} ${style.border}`}
+    >
+      <AlertTriangle size={12} className={style.text} />
+      <span className={`text-xs font-medium ${style.text}`}>
+        {getFailureModeLabel(failureMode)}
+      </span>
+    </div>
+  );
+}
+
+function SignalVectorBars({ signalVector }: { signalVector: OracleSignalVector }) {
+  return (
+    <div className="mt-2 pt-2 border-t border-gray-200 space-y-1">
+      <span className="text-xs text-gray-600 font-medium">Signal Vector</span>
+      {SIGNAL_KEYS.map((key) => {
+        const value = signalVector[key];
+        const percent = Math.round(value * 100);
+        return (
+          <div key={key} className="flex items-center gap-2 text-xs">
+            <span className="text-gray-500 w-24 shrink-0">{SIGNAL_LABELS[key]}</span>
+            <div className="flex-1 h-1 bg-gray-200 rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full ${
+                  percent >= 80
+                    ? 'bg-success-500'
+                    : percent >= 60
+                      ? 'bg-primary-500'
+                      : percent >= 40
+                        ? 'bg-amber-500'
+                        : 'bg-danger-500'
+                }`}
+                style={{ width: `${percent}%` }}
+              />
+            </div>
+            <span className="text-gray-700 w-8 text-right">{percent}%</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function ProviderLogo({
+  logoPath,
+  providerName,
+  size,
+}: {
+  logoPath: string;
+  providerName: string;
+  size: number;
+}) {
+  const [imageError, setImageError] = useState(false);
+
+  if (!imageError) {
+    return (
+      <Image
+        src={logoPath}
+        alt={providerName}
+        width={size}
+        height={size}
+        className="rounded-full"
+        onError={() => setImageError(true)}
+      />
+    );
+  }
+
+  return (
+    <div
+      className="rounded-full bg-gray-200 flex items-center justify-center"
+      style={{ width: size, height: size }}
+    >
+      <span className="text-xs font-bold text-gray-500">{providerName.charAt(0)}</span>
+    </div>
+  );
+}
+
+function ConfidenceBar({
+  confidencePercent,
+  confidenceSource,
+}: {
+  confidencePercent: number;
+  confidenceSource?: string;
+}) {
+  return (
+    <div className="mt-2">
+      <div className="flex items-center justify-between text-xs mb-1">
+        <span className="text-gray-600">Confidence</span>
+        <span className="font-medium text-gray-900">
+          {confidencePercent}%
+          {confidenceSource && (
+            <span
+              className={`ml-1.5 text-xs ${confidenceSource === 'estimated' ? 'text-amber-500' : 'text-success-600'}`}
+            >
+              {confidenceSource === 'estimated' ? 'Estimated' : 'Raw Data'}
+            </span>
+          )}
+        </span>
+      </div>
+      <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
+        <div
+          className={`h-full rounded-full ${
+            confidencePercent >= 90
+              ? 'bg-success-500'
+              : confidencePercent >= 70
+                ? 'bg-primary-500'
+                : confidencePercent >= 50
+                  ? 'bg-amber-500'
+                  : 'bg-danger-500'
+          }`}
+          style={{ width: `${confidencePercent}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function VerificationDetails({ verification }: { verification: OnChainVerification }) {
+  return (
+    <div className="mt-2 pt-2 border-t border-gray-200 space-y-1.5">
+      <div className="flex items-center gap-1 text-xs text-gray-600 font-medium">
+        {verification.type === 'api' ? (
+          <Globe size={12} className="text-blue-500" />
+        ) : (
+          <ShieldCheck size={12} className="text-success-600" />
+        )}
+        {verification.type === 'api' ? 'API Verified' : 'On-Chain Verification'}
+      </div>
+      <div className="text-xs text-gray-500 space-y-0.5">
+        <div className="flex items-center gap-1">
+          <span className="text-gray-400">
+            {verification.type === 'api' ? 'Source:' : 'Contract:'}
+          </span>
+          <code className="text-gray-600 text-[10px] break-all">
+            {verification.type === 'api'
+              ? verification.contractAddress
+              : `${verification.contractAddress.slice(0, 10)}...${verification.contractAddress.slice(-8)}`}
+          </code>
+        </div>
+        <div className="flex items-center gap-1">
+          <span className="text-gray-400">Method:</span>
+          <code className="text-gray-600 text-[10px]">{verification.method}</code>
+        </div>
+      </div>
+      {verification.explorerUrl && (
+        <a
+          href={verification.explorerUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1 text-xs text-primary-600 hover:text-primary-700 font-medium"
+        >
+          <ExternalLink size={12} />
+          {verification.type === 'api' ? 'View API Source' : 'Verify on Explorer'}
+        </a>
+      )}
+    </div>
+  );
+}
+
 export function DataSourceIndicator({
   source,
   showConfidence = true,
@@ -130,7 +321,6 @@ export function DataSourceIndicator({
   className = '',
 }: DataSourceIndicatorProps) {
   const [showTooltip, setShowTooltip] = useState(false);
-  const [imageError, setImageError] = useState(false);
 
   const credibility = source.credibilityLevel || 'medium';
   const config = credibilityConfig[credibility];
@@ -139,9 +329,7 @@ export function DataSourceIndicator({
 
   const providerName = providerDisplayNames[source.provider];
   const logoPath = `/logos/oracles/${source.provider}.svg`;
-
-  const confidenceValue = source.confidence ?? 0;
-  const confidencePercent = Math.round(confidenceValue * 100);
+  const confidencePercent = Math.round((source.confidence ?? 0) * 100);
 
   if (variant === 'minimal') {
     return (
@@ -149,23 +337,7 @@ export function DataSourceIndicator({
         className={`inline-flex items-center ${sizes.gap} ${className}`}
         title={`${providerName}${source.chain ? ` - ${source.chain}` : ''}`}
       >
-        {!imageError ? (
-          <Image
-            src={logoPath}
-            alt={providerName}
-            width={sizes.logoSize}
-            height={sizes.logoSize}
-            className="rounded-full"
-            onError={() => setImageError(true)}
-          />
-        ) : (
-          <div
-            className="rounded-full bg-gray-200 flex items-center justify-center"
-            style={{ width: sizes.logoSize, height: sizes.logoSize }}
-          >
-            <span className="text-xs font-bold text-gray-500">{providerName.charAt(0)}</span>
-          </div>
-        )}
+        <ProviderLogo logoPath={logoPath} providerName={providerName} size={sizes.logoSize} />
         <CredibilityIcon size={sizes.iconSize} className={config.color} />
       </div>
     );
@@ -177,28 +349,10 @@ export function DataSourceIndicator({
         className={`${config.bgColor} ${config.borderColor} border rounded-lg ${sizes.padding} ${className}`}
       >
         <div className={`flex items-start ${sizes.gap}`}>
-          {/* Logo */}
           <div className="flex-shrink-0">
-            {!imageError ? (
-              <Image
-                src={logoPath}
-                alt={providerName}
-                width={sizes.logoSize}
-                height={sizes.logoSize}
-                className="rounded-full"
-                onError={() => setImageError(true)}
-              />
-            ) : (
-              <div
-                className="rounded-full bg-gray-200 flex items-center justify-center"
-                style={{ width: sizes.logoSize, height: sizes.logoSize }}
-              >
-                <span className="text-sm font-bold text-gray-500">{providerName.charAt(0)}</span>
-              </div>
-            )}
+            <ProviderLogo logoPath={logoPath} providerName={providerName} size={sizes.logoSize} />
           </div>
 
-          {/* Info */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <span className={`font-semibold text-gray-900 ${sizes.textSize}`}>
@@ -216,6 +370,9 @@ export function DataSourceIndicator({
                   <span className="text-amber-600 text-xs font-medium">Fallback</span>
                 </div>
               )}
+              {source.failureMode && source.failureMode !== 'none' && (
+                <FailureModeBadge failureMode={source.failureMode} />
+              )}
             </div>
 
             {showChain && source.chain && (
@@ -227,36 +384,13 @@ export function DataSourceIndicator({
             )}
 
             {showConfidence && (
-              <div className="mt-2">
-                <div className="flex items-center justify-between text-xs mb-1">
-                  <span className="text-gray-600">Confidence</span>
-                  <span className="font-medium text-gray-900">
-                    {confidencePercent}%
-                    {source.confidenceSource && (
-                      <span
-                        className={`ml-1.5 text-xs ${source.confidenceSource === 'estimated' ? 'text-amber-500' : 'text-success-600'}`}
-                      >
-                        {source.confidenceSource === 'estimated' ? 'Estimated' : 'Raw Data'}
-                      </span>
-                    )}
-                  </span>
-                </div>
-                <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                  <div
-                    className={`h-full rounded-full ${
-                      confidencePercent >= 90
-                        ? 'bg-success-500'
-                        : confidencePercent >= 70
-                          ? 'bg-primary-500'
-                          : confidencePercent >= 50
-                            ? 'bg-amber-500'
-                            : 'bg-danger-500'
-                    }`}
-                    style={{ width: `${confidencePercent}%` }}
-                  />
-                </div>
-              </div>
+              <ConfidenceBar
+                confidencePercent={confidencePercent}
+                confidenceSource={source.confidenceSource}
+              />
             )}
+
+            {source.signalVector && <SignalVectorBars signalVector={source.signalVector} />}
 
             {source.verificationProof && (
               <div className="mt-2 pt-2 border-t border-gray-200">
@@ -272,91 +406,31 @@ export function DataSourceIndicator({
               </div>
             )}
 
-            {source.verification && (
-              <div className="mt-2 pt-2 border-t border-gray-200 space-y-1.5">
-                <div className="flex items-center gap-1 text-xs text-gray-600 font-medium">
-                  {source.verification.type === 'api' ? (
-                    <Globe size={12} className="text-blue-500" />
-                  ) : (
-                    <ShieldCheck size={12} className="text-success-600" />
-                  )}
-                  {source.verification.type === 'api' ? 'API Verified' : 'On-Chain Verification'}
-                </div>
-                <div className="text-xs text-gray-500 space-y-0.5">
-                  <div className="flex items-center gap-1">
-                    <span className="text-gray-400">
-                      {source.verification.type === 'api' ? 'Source:' : 'Contract:'}
-                    </span>
-                    <code className="text-gray-600 text-[10px] break-all">
-                      {source.verification.type === 'api'
-                        ? source.verification.contractAddress
-                        : `${source.verification.contractAddress.slice(0, 10)}...${source.verification.contractAddress.slice(-8)}`}
-                    </code>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <span className="text-gray-400">Method:</span>
-                    <code className="text-gray-600 text-[10px]">{source.verification.method}</code>
-                  </div>
-                </div>
-                {source.verification.explorerUrl && (
-                  <a
-                    href={source.verification.explorerUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-xs text-primary-600 hover:text-primary-700 font-medium"
-                  >
-                    <ExternalLink size={12} />
-                    {source.verification.type === 'api' ? 'View API Source' : 'Verify on Explorer'}
-                  </a>
-                )}
-              </div>
-            )}
+            {source.verification && <VerificationDetails verification={source.verification} />}
           </div>
         </div>
       </div>
     );
   }
 
-  // Compact variant (default)
   return (
     <div
       className={`inline-flex items-center ${sizes.gap} ${className}`}
       onMouseEnter={() => setShowTooltip(true)}
       onMouseLeave={() => setShowTooltip(false)}
     >
-      {/* Logo */}
-      {!imageError ? (
-        <Image
-          src={logoPath}
-          alt={providerName}
-          width={sizes.logoSize}
-          height={sizes.logoSize}
-          className="rounded-full"
-          onError={() => setImageError(true)}
-        />
-      ) : (
-        <div
-          className="rounded-full bg-gray-200 flex items-center justify-center"
-          style={{ width: sizes.logoSize, height: sizes.logoSize }}
-        >
-          <span className="text-xs font-bold text-gray-500">{providerName.charAt(0)}</span>
-        </div>
-      )}
+      <ProviderLogo logoPath={logoPath} providerName={providerName} size={sizes.logoSize} />
 
-      {/* Provider Name */}
       <span className={`font-medium text-gray-900 ${sizes.textSize}`}>{providerName}</span>
 
-      {/* Chain Name */}
       {showChain && source.chain && <span className="text-xs text-gray-500">• {source.chain}</span>}
 
-      {/* Credibility Badge */}
       <div
         className={`relative inline-flex items-center gap-1 px-2 py-0.5 rounded-full ${config.bgColor} ${config.borderColor} border`}
       >
         <CredibilityIcon size={12} className={config.color} />
         <span className={`${config.color} text-xs font-medium`}>{config.label}</span>
 
-        {/* Tooltip */}
         {showTooltip && (
           <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg whitespace-nowrap z-50">
             {showConfidence && source.confidence !== undefined && source.confidence !== null && (

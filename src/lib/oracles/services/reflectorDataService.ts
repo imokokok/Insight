@@ -11,6 +11,7 @@ import {
 import { createLogger } from '@/lib/utils/logger';
 import type { PriceData } from '@/types/oracle';
 import { OracleProvider } from '@/types/oracle';
+import { FailureMode, buildSignalVector } from '@/types/oracle/signals';
 
 import {
   STELLAR_RPC_URL,
@@ -338,6 +339,17 @@ class ReflectorDataService {
         contractVersion: version ?? undefined,
         ingestionTimestamp: Date.now(),
         metadataFallback: decimalsResult.isFallback || undefined,
+        failureMode: decimalsResult.isFallback ? FailureMode.FALLBACK_METADATA : FailureMode.NONE,
+        signalVector: buildSignalVector({
+          dataAgeSeconds: parsed.timestamp ? Math.floor(Date.now() / 1000 - parsed.timestamp) : 999,
+          isOnChain: true,
+          hasVerification: false,
+          providerUptime: 95,
+          hasConfidence: true,
+          hasTimestamp: parsed.timestamp > 0,
+          hasDecimals: decimals !== undefined,
+          hasSource: true,
+        }),
       };
 
       this.setCache(cacheKey, priceData, REFLECTOR_CACHE_TTL.PRICE);

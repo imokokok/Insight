@@ -1,6 +1,7 @@
 import { buildApiVerification } from '@/lib/oracles/utils/verificationUtils';
 import { OracleProvider } from '@/types/oracle';
 import type { PriceData, ConfidenceInterval } from '@/types/oracle';
+import { FailureMode, buildSignalVector } from '@/types/oracle/signals';
 
 import type { PythPriceRaw } from './types';
 
@@ -86,6 +87,18 @@ export function parsePythPrice(
     publishTime: publishTime * 1000,
     ingestionTimestamp: Date.now(),
     metadataFallback: timestampIsEstimated || undefined,
+    failureMode: timestampIsEstimated ? FailureMode.FALLBACK_METADATA : FailureMode.NONE,
+    signalVector: buildSignalVector({
+      dataAgeSeconds: timestampIsEstimated ? 999 : Math.floor(Date.now() / 1000 - publishTime),
+      isOnChain: false,
+      hasVerification: !!priceId,
+      providerUptime: 99,
+      hasConfidence: true,
+      hasTimestamp: !timestampIsEstimated,
+      hasDecimals: exponent !== undefined,
+      hasSource: !!priceId,
+      verificationMethod: 'getLatestPriceUpdates',
+    }),
     ...(priceId
       ? {
           verification: buildApiVerification(

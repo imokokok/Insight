@@ -8,6 +8,7 @@ import {
   type WINkLinkTokenOnChainData,
   type PriceData,
 } from '@/types/oracle';
+import { FailureMode, buildSignalVector } from '@/types/oracle/signals';
 
 import { OracleCache, createSingleton } from '../base';
 import { withOracleRetry } from '../utils/retry';
@@ -184,6 +185,18 @@ class WINkLinkRealDataService {
         source: `WINkLink:${contractAddress}`,
         ingestionTimestamp: Date.now(),
         metadataFallback: timestampIsEstimated || undefined,
+        failureMode: timestampIsEstimated ? FailureMode.FALLBACK_METADATA : FailureMode.NONE,
+        signalVector: buildSignalVector({
+          dataAgeSeconds: timestamp ? Math.floor((Date.now() - timestamp) / 1000) : 999,
+          isOnChain: true,
+          hasVerification: true,
+          providerUptime: 95,
+          hasConfidence: true,
+          hasTimestamp: !!timestamp,
+          hasDecimals: true,
+          hasSource: true,
+          verificationMethod: 'latestAnswer',
+        }),
         verification: buildTronVerification(contractAddress, 'latestAnswer'),
       };
 
