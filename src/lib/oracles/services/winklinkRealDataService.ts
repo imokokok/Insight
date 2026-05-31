@@ -149,12 +149,14 @@ class WINkLinkRealDataService {
       const priceValue = stringToPrice(rawStr, decPlaces);
 
       const timestamp = timestampRaw ? Number(timestampRaw) * 1000 : Date.now();
+      const timestampIsEstimated = !timestampRaw;
 
       logger.info('Parsed price data', {
         symbol,
         priceValue,
         decimalPlaces: Number(decimalPlaces),
         timestamp,
+        timestampIsEstimated,
       });
 
       if (priceValue <= 0) {
@@ -166,17 +168,22 @@ class WINkLinkRealDataService {
         return null;
       }
 
+      const confidence = timestampIsEstimated ? 0.45 : 0.98;
+
       const priceData: PriceData = {
         provider: OracleProvider.WINKLINK,
         symbol: symbol.toUpperCase(),
         price: priceValue,
         timestamp: timestamp || Date.now(),
         decimals: Number(decimalPlaces),
-        confidence: 0.98,
+        confidence,
+        confidenceSource: timestampIsEstimated ? 'estimated' : undefined,
         change24h: 0,
         change24hPercent: 0,
         chain: Blockchain.TRON,
         source: `WINkLink:${contractAddress}`,
+        ingestionTimestamp: Date.now(),
+        metadataFallback: timestampIsEstimated || undefined,
         verification: buildTronVerification(contractAddress, 'latestAnswer'),
       };
 
@@ -403,7 +410,8 @@ class WINkLinkRealDataService {
       const feedContractAddress = WINKLINK_PRICE_FEEDS[pairKey] || null;
 
       const now = Date.now();
-      const priceAge = priceData.timestamp ? Math.round((now - priceData.timestamp) / 1000) : null;
+      const refTime = priceData.ingestionTimestamp ?? priceData.timestamp;
+      const priceAge = refTime ? Math.round((now - refTime) / 1000) : null;
 
       let nodeUptime: number;
       if (priceAge === null) {

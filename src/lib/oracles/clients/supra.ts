@@ -81,6 +81,7 @@ export class SupraClient extends BaseOracleClient {
         chain: chain || Blockchain.ETHEREUM,
         source: 'supra-dora',
         pairIndex: latestData.pairIndex,
+        ingestionTimestamp: Date.now(),
         verification: buildApiVerification(
           `${SUPRA_DORA_REST_URL}/price`,
           'fetchLatestPrice',

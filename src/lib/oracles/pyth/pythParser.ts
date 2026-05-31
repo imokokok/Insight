@@ -65,6 +65,7 @@ export function parsePythPrice(
 
   const confidenceInterval = calculateConfidenceInterval(price, confidenceAbsolute);
   const publishTime = pythPrice.publish_time ?? Date.now() / 1000;
+  const timestampIsEstimated = pythPrice.publish_time == null;
 
   return {
     provider: OracleProvider.PYTH,
@@ -72,8 +73,10 @@ export function parsePythPrice(
     price,
     timestamp: publishTime * 1000,
     decimals: Math.abs(exponent),
-    confidence: calculateConfidenceScore(confidenceAbsolute, price),
-    confidenceSource: 'original',
+    confidence: timestampIsEstimated
+      ? Math.min(calculateConfidenceScore(confidenceAbsolute, price), 0.45)
+      : calculateConfidenceScore(confidenceAbsolute, price),
+    confidenceSource: timestampIsEstimated ? 'estimated' : 'original',
     confidenceInterval,
     change24h: 0,
     change24hPercent: 0,
@@ -81,6 +84,8 @@ export function parsePythPrice(
     exponent,
     conf: confidenceAbsolute,
     publishTime: publishTime * 1000,
+    ingestionTimestamp: Date.now(),
+    metadataFallback: timestampIsEstimated || undefined,
     ...(priceId
       ? {
           verification: buildApiVerification(

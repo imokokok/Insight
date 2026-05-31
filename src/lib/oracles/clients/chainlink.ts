@@ -124,7 +124,11 @@ export class ChainlinkClient extends BaseOracleClient {
   }
 
   private convertToPriceData(chainlinkData: ChainlinkPriceData, chain?: Blockchain): PriceData {
-    const confidence = this.calculateConfidence(chain);
+    let confidence = this.calculateConfidence(chain);
+
+    if (chainlinkData.decimalsIsFallback) {
+      confidence = Math.min(confidence, 0.45);
+    }
 
     if (!chainlinkData.price || chainlinkData.price <= 0) {
       throw this.createError(
@@ -166,6 +170,8 @@ export class ChainlinkClient extends BaseOracleClient {
       answeredInRound: answeredInRound || undefined,
       version: version || undefined,
       startedAt: startedAt || undefined,
+      ingestionTimestamp: Date.now(),
+      metadataFallback: chainlinkData.decimalsIsFallback || undefined,
       verification: feed
         ? buildEvmVerification(feed.address, chainId, 'latestRoundData')
         : undefined,

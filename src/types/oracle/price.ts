@@ -64,4 +64,6 @@ export interface PriceData extends PriceDataBase {
   // Reflector metadata
   resolution?: number;
   contractVersion?: number;
+  ingestionTimestamp?: number;
+  metadataFallback?: boolean;
 }

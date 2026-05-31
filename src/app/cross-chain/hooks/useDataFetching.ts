@@ -68,7 +68,7 @@ export function useDataFetching(
         recommendedBaseChain = supportedChains[0];
       } else {
         const maxTimestamp = Math.max(
-          ...currentPrices.map((p) => p.timestamp).filter((t) => t > 0),
+          ...currentPrices.map((p) => p.ingestionTimestamp ?? p.timestamp).filter((t) => t > 0),
           0
         );
 
@@ -78,10 +78,9 @@ export function useDataFetching(
             return { chain, score: -Infinity };
           }
 
+          const priceRefTime = priceData.ingestionTimestamp ?? priceData.timestamp;
           const stalenessMs =
-            maxTimestamp > 0 && priceData.timestamp > 0
-              ? maxTimestamp - priceData.timestamp
-              : Infinity;
+            maxTimestamp > 0 && priceRefTime > 0 ? maxTimestamp - priceRefTime : Infinity;
           const freshnessScore = stalenessMs < 60000 ? 100 : stalenessMs < 300000 ? 50 : 0;
 
           const priceValues = currentPrices.filter((p) => p.price > 0).map((p) => p.price);

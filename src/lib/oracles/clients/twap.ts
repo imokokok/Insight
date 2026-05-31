@@ -95,6 +95,7 @@ export class TWAPClient extends BaseOracleClient {
         confidence: twapData.confidence,
         source: 'twap-oracle',
         dataSource: 'real',
+        ingestionTimestamp: Date.now(),
         poolAddress: twapData.poolAddress,
         feeTier: twapData.feeTier,
         sqrtPriceX96: twapData.sqrtPriceX96.toString(),

@@ -4,7 +4,16 @@ import { useState } from 'react';
 
 import Image from 'next/image';
 
-import { Shield, ShieldCheck, ShieldAlert, ShieldX, Info, ExternalLink, Globe } from 'lucide-react';
+import {
+  Shield,
+  ShieldCheck,
+  ShieldAlert,
+  ShieldX,
+  Info,
+  ExternalLink,
+  Globe,
+  AlertTriangle,
+} from 'lucide-react';
 
 import { type CredibilityLevel } from '@/lib/oracles/utils/reputationUtils';
 import { formatRelativeTime } from '@/lib/utils/format';
@@ -23,6 +32,7 @@ export interface DataSourceInfo {
   credibilityLevel?: CredibilityLevel;
   verificationProof?: string;
   verification?: OnChainVerification;
+  metadataFallback?: boolean;
 }
 
 interface DataSourceIndicatorProps {
@@ -200,6 +210,12 @@ export function DataSourceIndicator({
                 <CredibilityIcon size={12} className={config.color} />
                 <span className={`${config.color} text-xs font-medium`}>{config.label}</span>
               </div>
+              {source.metadataFallback && (
+                <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 border border-amber-200">
+                  <AlertTriangle size={12} className="text-amber-600" />
+                  <span className="text-amber-600 text-xs font-medium">Fallback</span>
+                </div>
+              )}
             </div>
 
             {showChain && source.chain && (

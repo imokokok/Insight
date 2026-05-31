@@ -130,6 +130,7 @@ interface PriceReading {
   timestamp: number;
   rawValue: bigint;
   decimals: number;
+  decimalsIsFallback: boolean;
 }
 
 /**
@@ -195,11 +196,11 @@ async function readDecimalsFromContract(
   proxyAddress: string,
   chainId: number,
   signal?: AbortSignal
-): Promise<number> {
+): Promise<{ decimals: number; isFallback: boolean }> {
   const cacheKey = `${chainId}:${proxyAddress}`;
   const cached = decimalsCache.get(cacheKey);
   if (cached !== undefined) {
-    return cached;
+    return { decimals: cached, isFallback: false };
   }
 
   try {
@@ -214,19 +215,17 @@ async function readDecimalsFromContract(
       signal
     );
     if (typeof result !== 'string' || !result || result === '0x') {
-      const defaultDecimals = 8;
-      decimalsCache.set(cacheKey, defaultDecimals);
-      return defaultDecimals;
+      return { decimals: 8, isFallback: true };
     }
     const cleanData = result.startsWith('0x') ? result.slice(2) : result;
     const parsed = parseInt(cleanData, 16);
-    const decimals = isNaN(parsed) ? 8 : parsed;
-    decimalsCache.set(cacheKey, decimals);
-    return decimals;
+    if (isNaN(parsed)) {
+      return { decimals: 8, isFallback: true };
+    }
+    decimalsCache.set(cacheKey, parsed);
+    return { decimals: parsed, isFallback: false };
   } catch {
-    const defaultDecimals = 8;
-    decimalsCache.set(cacheKey, defaultDecimals);
-    return defaultDecimals;
+    return { decimals: 8, isFallback: true };
   }
 }
 
@@ -240,7 +239,7 @@ async function readDAPIPrice(
   signal?: AbortSignal
 ): Promise<PriceReading | null> {
   try {
-    const decimals = await readDecimalsFromContract(proxyAddress, chainId, signal);
+    const decimalsResult = await readDecimalsFromContract(proxyAddress, chainId, signal);
     const data = encodeFunctionData('read', DAPI_PROXY_ABI);
 
     const result = await rpcCall(
@@ -263,13 +262,14 @@ async function readDAPIPrice(
     const rawValue = decodeInt224(result);
     const timestamp = decodeUint32(result);
 
-    const value = bigIntToPrice(rawValue, decimals);
+    const value = bigIntToPrice(rawValue, decimalsResult.decimals);
 
     return {
       value,
       timestamp: timestamp * 1000,
       rawValue,
-      decimals,
+      decimals: decimalsResult.decimals,
+      decimalsIsFallback: decimalsResult.isFallback,
     };
   } catch (error) {
     logger.error(
@@ -346,15 +346,16 @@ async function getAPI3Price(
 
     logger.info(`Successfully fetched ${symbol} price from API3: $${reading.value}`);
 
-    // Calculate data age
     const dataAge = Date.now() - reading.timestamp;
+
+    const confidence = reading.decimalsIsFallback ? 0.45 : 0.98;
 
     return {
       price: reading.value,
       timestamp: reading.timestamp,
       source: `api3-dapi-${chain}`,
       decimals: reading.decimals,
-      confidence: 0.98,
+      confidence,
       dapiName,
       proxyAddress,
       dataAge,

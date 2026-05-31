@@ -179,6 +179,7 @@ class ReputationService {
         provider: price.provider,
         price: price.price,
         timestamp: price.timestamp,
+        ingestionTimestamp: price.ingestionTimestamp,
         confidence: price.confidence,
       }));
 
@@ -270,9 +271,12 @@ class ReputationService {
       const rawLatencyMs = Date.now() - startTime;
 
       if (price && Number.isFinite(price.price) && price.price > 0) {
-        const dataAgeSeconds = price.timestamp
-          ? Math.floor((Date.now() - price.timestamp) / 1000)
-          : 0;
+        const refTime = price.ingestionTimestamp ?? price.timestamp;
+        const dataAgeSeconds = refTime ? Math.floor((Date.now() - refTime) / 1000) : 0;
+
+        const adjustedConfidence = price.metadataFallback
+          ? Math.min(price.confidence ?? 0, 0.5)
+          : (price.confidence ?? 0);
 
         return {
           entry: {
@@ -282,7 +286,7 @@ class ReputationService {
             consensus_price: 0,
             deviation_pct: 0,
             latency_ms: rawLatencyMs,
-            confidence: price.confidence ?? 0,
+            confidence: adjustedConfidence,
             data_age_seconds: dataAgeSeconds,
             is_success: true,
           },
