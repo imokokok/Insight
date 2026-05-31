@@ -311,7 +311,7 @@ export abstract class BaseOracleClient {
     if (!result.ok && process.env.NODE_ENV === 'development') {
       logger.warn('Price data validation failed silently', { context, error: result.error });
     }
-    return result.ok ? result.data : null;
+    return result.ok ? (result.data as PriceData) : null;
   }
 
   protected validatePriceDataArray(data: unknown[], context?: string): PriceData[] {

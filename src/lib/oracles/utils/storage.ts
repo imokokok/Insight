@@ -2,6 +2,7 @@ import { type PriceRecordInsert, type PriceRecord } from '@/lib/supabase/queries
 import { getServerQueries } from '@/lib/supabase/server';
 import { createLogger } from '@/lib/utils/logger';
 import { type PriceData, type OracleProvider, type Blockchain } from '@/types/oracle';
+import { type FailureMode, type OracleSignalVector } from '@/types/oracle/signals';
 
 const logger = createLogger('oracle-storage');
 
@@ -41,6 +42,8 @@ function priceDataToRecord(priceData: PriceData): PriceRecordInsert {
     verification: priceData.verification || null,
     ingestion_timestamp: priceData.ingestionTimestamp ?? null,
     metadata_fallback: priceData.metadataFallback ?? null,
+    failure_mode: priceData.failureMode ?? null,
+    signal_vector: priceData.signalVector ? { ...priceData.signalVector } : null,
     ttl: calculateExpirationDate(),
   };
 }
@@ -60,6 +63,8 @@ function recordToPriceData(record: PriceRecord): PriceData {
       ? new Date(record.ingestion_timestamp).getTime()
       : undefined,
     metadataFallback: record.metadata_fallback ?? undefined,
+    failureMode: record.failure_mode as FailureMode | undefined,
+    signalVector: record.signal_vector as OracleSignalVector | undefined,
   };
 }
 

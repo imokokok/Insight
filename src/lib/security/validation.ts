@@ -4,6 +4,7 @@ import { createLogger } from '@/lib/utils/logger';
 import { ZodValidationError } from '@/lib/validation/errors';
 import { ORACLE_PROVIDER_VALUES } from '@/types/oracle/enums';
 import type { OracleProvider, Blockchain } from '@/types/oracle/enums';
+import { FAILURE_MODE_VALUES } from '@/types/oracle/signals';
 
 import { sanitizeString, sanitizeSymbol, sanitizeProvider, sanitizeChain } from './inputSanitizer';
 
@@ -152,6 +153,27 @@ export const PriceDataSchema = PriceDataBaseSchema.extend({
   contractVersion: z.number().optional(),
   ingestionTimestamp: z.number().optional(),
   metadataFallback: z.boolean().optional(),
+  failureMode: z.enum(FAILURE_MODE_VALUES as [string, ...string[]]).optional(),
+  signalVector: z
+    .object({
+      freshness: z.number().min(0).max(1),
+      sourceReliability: z.number().min(0).max(1),
+      metadataCompleteness: z.number().min(0).max(1),
+      consistency: z.number().min(0).max(1),
+      auditStatus: z.number().min(0).max(1),
+    })
+    .optional(),
+  consensusContext: z
+    .object({
+      consensusPrice: z.number(),
+      agreement: z.number().min(0).max(1),
+      participantCount: z.number().int().nonnegative(),
+      isOutlier: z.boolean(),
+      excludedProviders: z.array(z.string()),
+      method: z.string(),
+      confidenceLevel: z.string(),
+    })
+    .optional(),
   verification: z
     .object({
       type: z.enum(['on-chain', 'api']).optional(),

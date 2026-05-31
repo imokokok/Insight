@@ -14,6 +14,7 @@ import { buildEvmVerification } from '@/lib/oracles/utils/verificationUtils';
 import { createLogger } from '@/lib/utils/logger';
 import { OracleProvider, Blockchain, OracleServiceError } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
+import { FailureMode, buildSignalVector } from '@/types/oracle/signals';
 
 const logger = createLogger('ChainlinkClient');
 
@@ -172,6 +173,23 @@ export class ChainlinkClient extends BaseOracleClient {
       startedAt: startedAt || undefined,
       ingestionTimestamp: Date.now(),
       metadataFallback: chainlinkData.decimalsIsFallback || undefined,
+      failureMode: chainlinkData.decimalsIsFallback
+        ? FailureMode.FALLBACK_METADATA
+        : FailureMode.NONE,
+      signalVector: buildSignalVector({
+        dataAgeSeconds: chainlinkData.timestamp
+          ? Math.floor((Date.now() - chainlinkData.timestamp) / 1000)
+          : 0,
+        isOnChain: true,
+        hasVerification: !!feed,
+        providerUptime:
+          (CHAINLINK_QUALITY_CONFIG.chainReliability[chain || Blockchain.ETHEREUM] ?? 0.98) * 100,
+        hasConfidence: true,
+        hasTimestamp: chainlinkData.timestamp > 0,
+        hasDecimals: chainlinkData.decimals !== undefined,
+        hasSource: !!chainlinkData.description,
+        verificationMethod: 'latestRoundData',
+      }),
       verification: feed
         ? buildEvmVerification(feed.address, chainId, 'latestRoundData')
         : undefined,

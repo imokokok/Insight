@@ -6,6 +6,7 @@ import { ChevronDown, ChevronUp, Database, Layers } from 'lucide-react';
 
 import { type OracleProvider, type Blockchain } from '@/types/oracle';
 import type { OnChainVerification } from '@/types/oracle/price';
+import type { FailureMode, OracleSignalVector } from '@/types/oracle/signals';
 
 import {
   DataSourceIndicator,
@@ -25,6 +26,8 @@ export interface DataSourceGroup {
   verificationProof?: string;
   verification?: OnChainVerification;
   metadataFallback?: boolean;
+  failureMode?: FailureMode;
+  signalVector?: OracleSignalVector;
 }
 
 interface DataSourceListProps {
@@ -130,6 +133,8 @@ export function DataSourceList({
                 verificationProof: source.verificationProof,
                 verification: source.verification,
                 metadataFallback: source.metadataFallback,
+                failureMode: source.failureMode,
+                signalVector: source.signalVector,
               };
 
               return (

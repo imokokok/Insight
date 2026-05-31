@@ -8,6 +8,7 @@ import { buildEvmVerification } from '@/lib/oracles/utils/verificationUtils';
 import { createLogger } from '@/lib/utils/logger';
 import type { PriceData } from '@/types/oracle';
 import { OracleProvider, Blockchain, OracleServiceError } from '@/types/oracle';
+import { FailureMode, buildSignalVector } from '@/types/oracle/signals';
 
 const logger = createLogger('API3Client');
 
@@ -109,6 +110,18 @@ export class API3Client extends BaseOracleClient {
         dataAge: api3Data.dataAge,
         ingestionTimestamp: Date.now(),
         metadataFallback: api3Data.confidence < 0.9 || undefined,
+        failureMode: api3Data.confidence < 0.9 ? FailureMode.FALLBACK_METADATA : FailureMode.NONE,
+        signalVector: buildSignalVector({
+          dataAgeSeconds: api3Data.dataAge ?? 0,
+          isOnChain: true,
+          hasVerification: !!api3Data.proxyAddress,
+          providerUptime: 98,
+          hasConfidence: api3Data.confidence !== undefined,
+          hasTimestamp: api3Data.timestamp > 0,
+          hasDecimals: api3Data.decimals !== undefined,
+          hasSource: !!api3Data.source,
+          verificationMethod: 'readDataFeed',
+        }),
         verification: api3Data.proxyAddress
           ? buildEvmVerification(
               api3Data.proxyAddress,
