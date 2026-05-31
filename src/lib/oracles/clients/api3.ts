@@ -103,10 +103,12 @@ export class API3Client extends BaseOracleClient {
         confidence: api3Data.confidence,
         chain: targetChain,
         source: api3Data.source,
-        dataSource: 'real',
+        dataSource: api3Data.confidence < 0.9 ? 'fallback' : 'real',
         dapiName: api3Data.dapiName,
         proxyAddress: api3Data.proxyAddress,
         dataAge: api3Data.dataAge,
+        ingestionTimestamp: Date.now(),
+        metadataFallback: api3Data.confidence < 0.9 || undefined,
         verification: api3Data.proxyAddress
           ? buildEvmVerification(
               api3Data.proxyAddress,

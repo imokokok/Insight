@@ -37,7 +37,7 @@ function getCredibilityLevel(
 function calculateConfidence(result: QueryResult): number {
   let confidence = result.priceData.confidence ?? 0.7;
 
-  const age = Date.now() - result.priceData.timestamp;
+  const age = Date.now() - (result.priceData.ingestionTimestamp ?? result.priceData.timestamp);
   if (age < 60000) {
     confidence = Math.min(1, confidence + 0.1);
   } else if (age > 300000) {
@@ -85,6 +85,7 @@ export function DataSourceSection({
         ),
         lastUpdated: result.priceData.timestamp,
         verification: result.priceData.verification,
+        metadataFallback: result.priceData.metadataFallback,
       };
     });
   }, [results, reputationMap]);

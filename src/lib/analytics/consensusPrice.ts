@@ -18,6 +18,7 @@ export interface ConsensusPriceInput {
   provider: string;
   price: number;
   timestamp: number;
+  ingestionTimestamp?: number;
   confidence?: number;
   confidenceInterval?: {
     bid: number;
@@ -324,7 +325,8 @@ function computeMethod(
     case 'weighted_median':
       return weightedMedianMethod(validInputs, (input) => {
         const confidenceWeight = input.confidence ?? 0.8;
-        const ageSeconds = Math.abs(Date.now() - input.timestamp) / 1000;
+        const refTime = input.ingestionTimestamp ?? input.timestamp;
+        const ageSeconds = Math.abs(Date.now() - refTime) / 1000;
         const freshnessWeight = Math.max(0.5, Math.exp(-ageSeconds / 600));
         const ciWidth = input.confidenceInterval?.widthPercentage ?? 10;
         const ciWeight = Math.max(0.1, 1 - ciWidth / 20);

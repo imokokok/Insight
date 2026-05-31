@@ -159,6 +159,7 @@ export function OverviewTab() {
               confidenceSource: p.confidenceSource,
               provider: selectedProvider,
               verification: p.verification,
+              metadataFallback: p.metadataFallback,
             }))}
             lastUpdated={lastUpdated}
             onRefresh={() => fetchData?.()}

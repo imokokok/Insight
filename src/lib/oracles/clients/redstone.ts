@@ -220,6 +220,7 @@ export class RedStoneClient extends BaseOracleClient {
       change24h: response.change24h ?? 0,
       change24hPercent: response.change24hPercent ?? 0,
       source: response.provider,
+      ingestionTimestamp: Date.now(),
     };
   }
 
@@ -274,7 +275,8 @@ export class RedStoneClient extends BaseOracleClient {
       }
 
       const now = Date.now();
-      const dataAge = priceData.timestamp ? Math.round((now - priceData.timestamp) / 1000) : null;
+      const refTime = priceData.ingestionTimestamp ?? priceData.timestamp;
+      const dataAge = refTime ? Math.round((now - refTime) / 1000) : null;
 
       const onChainData: RedStoneTokenOnChainData = {
         symbol: symbol.toUpperCase(),

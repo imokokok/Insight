@@ -21,6 +21,7 @@ export interface ChainlinkPriceData {
   symbol: string;
   price: number;
   decimals: number;
+  decimalsIsFallback: boolean;
   timestamp: number;
   roundId: bigint;
   answeredInRound: bigint;
@@ -116,22 +117,25 @@ function decodeLatestRoundData(data: string): {
   }
 }
 
-function decodeDecimals(data: string): number {
+function decodeDecimals(data: string): { decimals: number; isFallback: boolean } {
   const cleanData = data.startsWith('0x') ? data.slice(2) : data;
   if (!cleanData || cleanData.length === 0) {
-    return 8;
+    return { decimals: 8, isFallback: true };
   }
   try {
     const parsed = parseInt(cleanData, 16);
-    return isNaN(parsed) ? 8 : parsed;
+    return isNaN(parsed)
+      ? { decimals: 8, isFallback: true }
+      : { decimals: parsed, isFallback: false };
   } catch {
     logger.error('Failed to decode decimals', undefined, { data });
-    return 8;
+    return { decimals: 8, isFallback: true };
   }
 }
 
 interface FeedMetadata {
   decimals: number;
+  decimalsIsFallback: boolean;
   description: string;
   version: bigint;
 }
@@ -185,13 +189,18 @@ class ChainlinkOnChainService {
       this.ethCall(chainId, feedAddress, encodeAggregatorCall('version'), signal),
     ]);
 
+    const decimalsResult = decodeDecimals(decimalsData);
     const metadata: FeedMetadata = {
-      decimals: decodeDecimals(decimalsData),
+      decimals: decimalsResult.decimals,
+      decimalsIsFallback: decimalsResult.isFallback,
       description: this.decodeString(descriptionData),
       version: decodeUint256(versionData),
     };
 
-    this.metadataCache.set(metaKey, metadata);
+    if (!decimalsResult.isFallback) {
+      this.metadataCache.set(metaKey, metadata);
+    }
+
     return metadata;
   }
 
@@ -292,6 +301,7 @@ class ChainlinkOnChainService {
         symbol: feed.symbol,
         price,
         decimals: metadata.decimals,
+        decimalsIsFallback: metadata.decimalsIsFallback,
         timestamp: Number(decoded.updatedAt) * 1000,
         roundId: decoded.roundId,
         answeredInRound: decoded.answeredInRound,
@@ -398,7 +408,7 @@ class ChainlinkOnChainService {
       ]);
 
       return {
-        decimals: decodeDecimals(decimalsData),
+        decimals: decodeDecimals(decimalsData).decimals,
         description: this.decodeString(descriptionData),
         version: decodeUint256(versionData),
       };

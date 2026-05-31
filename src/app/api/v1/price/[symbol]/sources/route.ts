@@ -73,10 +73,12 @@ export const GET = createApiHandler(
             provider: s.provider,
             price: s.price!.price,
             timestamp: s.price!.timestamp,
+            ingestionTimestamp: s.price!.ingestionTimestamp || null,
             confidence: s.price!.confidence,
             confidenceInterval: s.price!.confidenceInterval || null,
             source: s.price!.source || null,
             verification: s.price!.verification || null,
+            metadataFallback: s.price!.metadataFallback || null,
           })),
           unavailable: unavailable.map((s) => ({
             provider: s.provider,

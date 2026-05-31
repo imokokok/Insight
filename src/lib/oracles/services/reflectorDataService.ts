@@ -296,7 +296,8 @@ class ReflectorDataService {
         return null;
       }
 
-      const decimals = await this.fetchDecimals(contractId, signal);
+      const decimalsResult = await this.fetchDecimals(contractId, signal);
+      const decimals = decimalsResult.decimals;
       const assetArg = await this.ensureAssetScVal(upper, signal);
       const result = await this.simulateContractCall(
         contractId,
@@ -313,7 +314,11 @@ class ReflectorDataService {
 
       const dataAge = Date.now() - parsed.timestamp * 1000;
       const freshnessScore = Math.max(0, 1 - dataAge / (5 * 60 * 1000));
-      const confidence = Math.min(0.99, 0.85 + freshnessScore * 0.14);
+      let confidence = Math.min(0.99, 0.85 + freshnessScore * 0.14);
+
+      if (decimalsResult.isFallback) {
+        confidence = Math.min(confidence, 0.45);
+      }
 
       const [resolution, version] = await Promise.all([
         this.fetchResolution(contractId, signal).catch(() => null),
@@ -328,9 +333,11 @@ class ReflectorDataService {
         decimals,
         confidence,
         source: 'reflector',
-        dataSource: 'real',
+        dataSource: decimalsResult.isFallback ? 'fallback' : 'real',
         resolution: resolution ?? undefined,
         contractVersion: version ?? undefined,
+        ingestionTimestamp: Date.now(),
+        metadataFallback: decimalsResult.isFallback || undefined,
       };
 
       this.setCache(cacheKey, priceData, REFLECTOR_CACHE_TTL.PRICE);
@@ -344,16 +351,19 @@ class ReflectorDataService {
     }
   }
 
-  async fetchDecimals(contractId?: string, signal?: AbortSignal): Promise<number> {
+  async fetchDecimals(
+    contractId?: string,
+    signal?: AbortSignal
+  ): Promise<{ decimals: number; isFallback: boolean }> {
     const resolvedContractId = contractId ?? REFLECTOR_CRYPTO_CONTRACT;
     const cacheKey = `metadata:decimals:${resolvedContractId}`;
     const cached = this.decimalsCache.get(resolvedContractId);
-    if (cached !== undefined) return cached;
+    if (cached !== undefined) return { decimals: cached, isFallback: false };
 
     const cachedEntry = this.getFromCache<number>(cacheKey);
     if (cachedEntry !== null) {
       this.decimalsCache.set(resolvedContractId, cachedEntry);
-      return cachedEntry;
+      return { decimals: cachedEntry, isFallback: false };
     }
 
     try {
@@ -367,13 +377,13 @@ class ReflectorDataService {
       const decimals = Number(scValToNative(result));
       this.decimalsCache.set(resolvedContractId, decimals);
       this.setCache(cacheKey, decimals, REFLECTOR_CACHE_TTL.METADATA);
-      return decimals;
+      return { decimals, isFallback: false };
     } catch (_error) {
       logger.warn('Failed to fetch decimals, using default', {
         default: REFLECTOR_DEFAULT_DECIMALS,
         contractId: resolvedContractId,
       });
-      return REFLECTOR_DEFAULT_DECIMALS;
+      return { decimals: REFLECTOR_DEFAULT_DECIMALS, isFallback: true };
     }
   }
 
@@ -515,7 +525,8 @@ class ReflectorDataService {
     ]);
 
     return {
-      decimals: decimals.status === 'fulfilled' ? decimals.value : REFLECTOR_DEFAULT_DECIMALS,
+      decimals:
+        decimals.status === 'fulfilled' ? decimals.value.decimals : REFLECTOR_DEFAULT_DECIMALS,
       resolution: resolution.status === 'fulfilled' ? resolution.value : 300,
       version: version.status === 'fulfilled' ? version.value : 0,
       assets:

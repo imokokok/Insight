@@ -163,6 +163,7 @@ export class FlareClient extends BaseOracleClient {
       change24h: 0,
       change24hPercent: 0,
       source: 'ftso-v2-on-chain',
+      ingestionTimestamp: Date.now(),
       verification: buildEvmVerification(FTSOV2_ADDRESS.flare, 14, 'getFeedById'),
     };
   }

@@ -122,6 +122,7 @@ describe('ChainlinkClient', () => {
       price: 3500.5,
       timestamp: Date.now(),
       decimals: 8,
+      decimalsIsFallback: false,
       roundId: BigInt(12345),
       answeredInRound: BigInt(12345),
       chainId: 1,

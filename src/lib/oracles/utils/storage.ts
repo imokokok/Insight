@@ -39,6 +39,8 @@ function priceDataToRecord(priceData: PriceData): PriceRecordInsert {
     confidence: priceData.confidence,
     source: priceData.source,
     verification: priceData.verification || null,
+    ingestion_timestamp: priceData.ingestionTimestamp ?? null,
+    metadata_fallback: priceData.metadataFallback ?? null,
     ttl: calculateExpirationDate(),
   };
 }
@@ -54,6 +56,10 @@ function recordToPriceData(record: PriceRecord): PriceData {
     confidence: record.confidence ?? undefined,
     source: record.source ?? undefined,
     verification: record.verification ?? undefined,
+    ingestionTimestamp: record.ingestion_timestamp
+      ? new Date(record.ingestion_timestamp).getTime()
+      : undefined,
+    metadataFallback: record.metadata_fallback ?? undefined,
   };
 }
 

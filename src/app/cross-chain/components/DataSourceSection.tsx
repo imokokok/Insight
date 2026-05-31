@@ -27,6 +27,7 @@ interface CrossChainDataPoint {
   confidenceSource?: 'original' | 'estimated' | 'calculated';
   provider?: OracleProvider;
   verification?: OnChainVerification;
+  metadataFallback?: boolean;
 }
 
 interface DataSourceSectionProps {
@@ -117,6 +118,7 @@ export function DataSourceSection({
         ),
         lastUpdated: point.timestamp,
         verification: point.verification,
+        metadataFallback: point.metadataFallback,
       };
     });
 

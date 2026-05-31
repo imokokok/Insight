@@ -84,6 +84,7 @@ export const GET = createApiHandler(
         provider: p.provider,
         price: p.price,
         timestamp: p.timestamp,
+        ingestionTimestamp: p.ingestionTimestamp,
         confidence: p.confidence,
         confidenceInterval: p.confidenceInterval,
       }));
@@ -117,7 +118,9 @@ export const GET = createApiHandler(
             provider: p.provider,
             price: p.price,
             timestamp: p.timestamp,
+            ingestionTimestamp: p.ingestionTimestamp || null,
             confidence: p.confidence,
+            metadataFallback: p.metadataFallback || null,
           })),
         })
       );

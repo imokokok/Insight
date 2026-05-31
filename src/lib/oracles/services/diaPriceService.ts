@@ -72,6 +72,7 @@ export class DIAPriceService {
         change24hPercent,
         chain,
         source: 'dia-api',
+        ingestionTimestamp: Date.now(),
       };
 
       this.cache.set(cacheKey, result, CACHE_TTL.PRICE);

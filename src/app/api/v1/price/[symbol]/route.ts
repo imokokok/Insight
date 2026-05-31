@@ -40,10 +40,12 @@ export const GET = createApiHandler(
             chain: chain || null,
             price: price.price,
             timestamp: price.timestamp,
+            ingestionTimestamp: price.ingestionTimestamp || null,
             confidence: price.confidence,
             confidenceInterval: price.confidenceInterval || null,
             source: price.source || null,
             verification: price.verification || null,
+            metadataFallback: price.metadataFallback || null,
           })
         );
       }
@@ -102,10 +104,12 @@ export const GET = createApiHandler(
             provider: p.provider,
             price: p.price,
             timestamp: p.timestamp,
+            ingestionTimestamp: p.ingestionTimestamp || null,
             confidence: p.confidence,
             confidenceInterval: p.confidenceInterval || null,
             source: p.source || null,
             verification: p.verification || null,
+            metadataFallback: p.metadataFallback || null,
           })),
         })
       );

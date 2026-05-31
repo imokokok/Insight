@@ -29,6 +29,8 @@ export interface PriceRecord {
   confidence?: number | null;
   source?: string | null;
   verification?: import('@/types/oracle/price').OnChainVerification | null;
+  ingestion_timestamp?: string | null;
+  metadata_fallback?: boolean | null;
   created_at?: string;
   ttl?: string;
 }
@@ -43,6 +45,8 @@ export interface PriceRecordInsert {
   confidence?: number | null;
   source?: string | null;
   verification?: import('@/types/oracle/price').OnChainVerification | null;
+  ingestion_timestamp?: number | string | null;
+  metadata_fallback?: boolean | null;
   ttl?: string;
 }
 
@@ -179,6 +183,8 @@ export class DatabaseQueries {
           confidence: record.confidence || null,
           source: record.source || null,
           verification: record.verification || null,
+          ingestion_timestamp: record.ingestion_timestamp || null,
+          metadata_fallback: record.metadata_fallback || null,
           ttl,
         })
         .select()

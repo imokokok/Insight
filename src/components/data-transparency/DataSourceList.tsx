@@ -24,6 +24,7 @@ export interface DataSourceGroup {
   lastUpdated?: number;
   verificationProof?: string;
   verification?: OnChainVerification;
+  metadataFallback?: boolean;
 }
 
 interface DataSourceListProps {
@@ -128,6 +129,7 @@ export function DataSourceList({
                 lastUpdated: source.lastUpdated,
                 verificationProof: source.verificationProof,
                 verification: source.verification,
+                metadataFallback: source.metadataFallback,
               };
 
               return (

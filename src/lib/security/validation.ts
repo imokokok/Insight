@@ -150,6 +150,8 @@ export const PriceDataSchema = PriceDataBaseSchema.extend({
   liquidity: z.string().optional(),
   resolution: z.number().optional(),
   contractVersion: z.number().optional(),
+  ingestionTimestamp: z.number().optional(),
+  metadataFallback: z.boolean().optional(),
   verification: z
     .object({
       type: z.enum(['on-chain', 'api']).optional(),
