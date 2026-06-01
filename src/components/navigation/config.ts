@@ -46,10 +46,10 @@ export const navigationConfig: NavStructure = [
       },
       {
         href: '/reputation',
-        label: 'Oracle Reputation',
+        label: 'Oracle Directory',
         icon: Award,
         description:
-          'Historical reliability scoring and reputation tracking for all oracle providers',
+          'Explore oracle providers, their unique capabilities, and historical performance tracking',
       },
       {
         href: '/snapshots',
