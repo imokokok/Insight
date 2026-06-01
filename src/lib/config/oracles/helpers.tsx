@@ -133,5 +133,3 @@ export function createOracleConfig(params: {
     ...(views ? { views } : {}),
   };
 }
-
-export { getDefaultMarketData, getDefaultNetworkData };

@@ -69,7 +69,7 @@ export function classifyFailureMode(params: {
   return FailureMode.NONE;
 }
 
-export function calculateFreshnessSignal(
+function calculateFreshnessSignal(
   dataAgeSeconds: number,
   staleThresholdSeconds: number = 300
 ): number {
@@ -78,7 +78,7 @@ export function calculateFreshnessSignal(
   return Math.max(0, 1 - dataAgeSeconds / staleThresholdSeconds);
 }
 
-export function calculateSourceReliabilitySignal(params: {
+function calculateSourceReliabilitySignal(params: {
   isOnChain: boolean;
   hasVerification: boolean;
   providerUptime: number;
@@ -91,7 +91,7 @@ export function calculateSourceReliabilitySignal(params: {
   return Math.min(1, score);
 }
 
-export function calculateMetadataCompletenessSignal(params: {
+function calculateMetadataCompletenessSignal(params: {
   hasConfidence: boolean;
   hasTimestamp: boolean;
   hasVerification: boolean;
@@ -127,7 +127,7 @@ export function calculateConsistencySignal(params: {
   return Math.max(0, agreement * (1 - deviationPenalty));
 }
 
-export function calculateAuditStatusSignal(params: {
+function calculateAuditStatusSignal(params: {
   hasOnChainVerification: boolean;
   verificationMethod: string;
   blockNumber: number | null;

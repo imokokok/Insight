@@ -6,13 +6,6 @@ const logger = createLogger('riskMetrics');
 
 export type RiskLevel = 'low' | 'medium' | 'high' | 'critical';
 
-export function scoreToRiskLevel(score: number): RiskLevel {
-  if (score < 20) return 'low';
-  if (score < 40) return 'medium';
-  if (score < 60) return 'high';
-  return 'critical';
-}
-
 interface HHIResult {
   value: number;
   level: RiskLevel;

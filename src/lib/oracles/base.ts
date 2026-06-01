@@ -3,7 +3,7 @@ import {
   validateOracleData,
   safeValidateOracleData,
 } from '@/lib/security/validation';
-import { TTLCache, type CacheEntry } from '@/lib/utils/cache';
+import { TTLCache } from '@/lib/utils/cache';
 import { createLogger } from '@/lib/utils/logger';
 import {
   type OracleProvider,
@@ -28,8 +28,6 @@ export const ORACLE_CACHE_TTL = {
 } as const;
 
 export const MAX_CACHE_SIZE = 1000;
-
-export type OracleCacheEntry<T> = CacheEntry<T>;
 
 export class OracleCache {
   private impl: TTLCache;
