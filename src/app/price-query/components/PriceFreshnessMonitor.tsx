@@ -114,7 +114,7 @@ export function PriceFreshnessMonitor({ queryResults, avgPrice }: PriceFreshness
         const freshnessSeconds = Math.max(0, Math.floor((now - timestamp) / 1000));
         const expectedUpdateFreq = ORACLE_UPDATE_FREQUENCIES[result.provider] || 3600;
         const isRealtime = REALTIME_ORACLES.includes(result.provider);
-        const thresholds = getDynamicThresholds(expectedUpdateFreq);
+        const thresholds = getDynamicThresholds(expectedUpdateFreq, isRealtime);
         const freshnessStatus = getFreshnessStatus(freshnessSeconds, thresholds);
         const freshnessScore = calculateFreshnessScore(
           freshnessSeconds,
