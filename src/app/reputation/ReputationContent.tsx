@@ -58,7 +58,7 @@ interface OracleCardReputation {
   last_calculated_at: string | null;
 }
 
-const PROVIDER_PROFILES: Record<OracleProvider, ProviderProfile> = {
+export const PROVIDER_PROFILES: Record<OracleProvider, ProviderProfile> = {
   chainlink: {
     tagline: 'Industry Standard Oracle',
     description:

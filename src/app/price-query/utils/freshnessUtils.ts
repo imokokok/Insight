@@ -64,7 +64,18 @@ export const REALTIME_ORACLES: OracleProvider[] = [
   OracleProviderEnum.REDSTONE,
 ];
 
-export function getDynamicThresholds(expectedUpdateFreq: number): FreshnessThresholds {
+export function getDynamicThresholds(
+  expectedUpdateFreq: number,
+  isRealtime: boolean = false
+): FreshnessThresholds {
+  if (isRealtime) {
+    return {
+      fresh: expectedUpdateFreq * 5,
+      normal: expectedUpdateFreq * 15,
+      delayed: expectedUpdateFreq * 30,
+      critical: expectedUpdateFreq * 60,
+    };
+  }
   return {
     fresh: expectedUpdateFreq * 0.5,
     normal: expectedUpdateFreq * 1.0,
@@ -107,11 +118,11 @@ export function calculateFreshnessScore(
   const ratio = seconds / expectedUpdateFreq;
 
   if (isRealtime) {
-    if (ratio <= 1) return 100;
-    if (ratio <= 2) return 90 - (ratio - 1) * 20;
-    if (ratio <= 5) return 70 - (ratio - 2) * 10;
-    if (ratio <= 10) return 40 - (ratio - 5) * 5;
-    return Math.max(0, 15 - (ratio - 10) * 1.5);
+    if (ratio <= 5) return 100 - (ratio / 5) * 10;
+    if (ratio <= 15) return 90 - ((ratio - 5) / 10) * 20;
+    if (ratio <= 30) return 70 - ((ratio - 15) / 15) * 30;
+    if (ratio <= 60) return 40 - ((ratio - 30) / 30) * 25;
+    return Math.max(0, 15 - (ratio - 60) * 1.5);
   }
 
   const decayRate = 0.5;

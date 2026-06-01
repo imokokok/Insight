@@ -16,6 +16,7 @@ import {
   ChevronUp,
   Layers,
   Globe,
+  Sparkles,
 } from 'lucide-react';
 
 import {
@@ -24,6 +25,7 @@ import {
   MiniRing,
   MetricRow,
 } from '@/app/reputation/components/ReputationShared';
+import { PROVIDER_PROFILES } from '@/app/reputation/ReputationContent';
 import type { OracleReputation } from '@/lib/oracles/services/reputationService';
 import {
   type getScoreBadge,
@@ -121,6 +123,52 @@ function RadarChart({
           <circle key={i} cx={p.x} cy={p.y} r={3} fill="#3b82f6" stroke="white" strokeWidth={1.5} />
         ))}
       </svg>
+    </div>
+  );
+}
+
+export function ProviderProfile({ provider }: { provider: string }) {
+  const profile = PROVIDER_PROFILES[provider as OracleProvider];
+  if (!profile) return null;
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-200/60 p-5">
+      <div className="flex items-center gap-2 mb-3">
+        <div className="p-1.5 rounded-lg bg-violet-50">
+          <Sparkles className="w-4 h-4 text-violet-500" />
+        </div>
+        <h2 className="text-sm font-black text-gray-900">Provider Profile</h2>
+      </div>
+
+      <p className="text-xs text-gray-500 font-semibold mb-2">{profile.tagline}</p>
+
+      <p className="text-[13px] text-gray-600 leading-relaxed mb-4">{profile.description}</p>
+
+      <div className="grid grid-cols-4 gap-0 divide-x divide-gray-100 border-t border-b border-gray-100 py-3 mb-4">
+        {profile.features.map((f) => {
+          const Icon = f.icon;
+          return (
+            <div key={f.label} className="flex flex-col items-center first:pl-0 last:pr-0 px-1">
+              <Icon className="w-3.5 h-3.5 text-gray-400 mb-1" />
+              <span className="text-[13px] font-black text-gray-800 font-mono">{f.value}</span>
+              <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wider mt-0.5">
+                {f.label}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="flex flex-wrap gap-1.5">
+        {profile.highlights.map((h) => (
+          <span
+            key={h}
+            className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-gray-50 text-gray-600 border border-gray-100"
+          >
+            {h}
+          </span>
+        ))}
+      </div>
     </div>
   );
 }

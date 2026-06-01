@@ -20,7 +20,12 @@ import {
 } from '@/lib/oracles/utils/reputationUtils';
 import { type OracleProvider } from '@/types/oracle';
 
-import { Sidebar, ScoreBreakdown, HowItWorks } from './components/ProviderDetailSections';
+import {
+  Sidebar,
+  ScoreBreakdown,
+  HowItWorks,
+  ProviderProfile,
+} from './components/ProviderDetailSections';
 import { TrendCharts } from './components/TrendCharts';
 
 function ProviderReputationContentInner({ provider }: { provider: string }) {
@@ -106,6 +111,8 @@ function ProviderReputationContentInner({ provider }: { provider: string }) {
         />
 
         <div className="flex-1 min-w-0 space-y-5">
+          <ProviderProfile provider={provider} />
+
           <ScoreBreakdown
             reputation={reputation}
             latencyScore={latencyScore}
