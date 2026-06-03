@@ -55,7 +55,7 @@ export interface PriceRecordInsert {
   ttl?: string;
 }
 
-export interface PriceRecordsFilters {
+interface PriceRecordsFilters {
   provider?: OracleProvider | string;
   symbol?: string;
   chain?: Blockchain | string | null;

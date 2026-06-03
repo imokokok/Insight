@@ -18,7 +18,6 @@ interface UseCrossChainQueriesReturn {
   isFetching: boolean;
   errors: Error[];
   triggerForceRefresh: () => void;
-  resetForceRefresh: () => void;
 }
 
 export function useCrossChainQueries(
@@ -63,10 +62,6 @@ export function useCrossChainQueries(
     forceRefreshRef.current = true;
   }, []);
 
-  const resetForceRefresh = useCallback(() => {
-    forceRefreshRef.current = false;
-  }, []);
-
   const chainResults: Partial<Record<Blockchain, ChainQueryResult>> = useMemo(() => {
     const results: Partial<Record<Blockchain, ChainQueryResult>> = {};
     const data = query.data;
@@ -90,5 +85,5 @@ export function useCrossChainQueries(
   const isLoading = query.isLoading;
   const isFetching = query.isFetching;
 
-  return { chainResults, isLoading, isFetching, errors, triggerForceRefresh, resetForceRefresh };
+  return { chainResults, isLoading, isFetching, errors, triggerForceRefresh };
 }

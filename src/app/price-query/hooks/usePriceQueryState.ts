@@ -8,24 +8,6 @@ import { oracleSupportedSymbols } from '@/lib/oracles/constants/supportedSymbols
 import { parseQueryParams, updateUrlParams, type QueryConfig } from '@/lib/utils/urlParams';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 
-interface TimeComparisonConfig {
-  primaryPeriod: {
-    id: string;
-    label: string;
-    startDate: Date;
-    endDate: Date;
-    range: '1h' | '6h' | '24h' | '7d' | 'custom';
-  };
-  comparisonPeriod: {
-    id: string;
-    label: string;
-    startDate: Date;
-    endDate: Date;
-    range: '1h' | '6h' | '24h' | '7d' | 'custom';
-  };
-  comparisonType: 'previous' | 'custom';
-}
-
 interface UsePriceQueryStateReturn {
   selectedOracle: OracleProvider | null;
   setSelectedOracle: (oracle: OracleProvider | null) => void;
@@ -33,23 +15,11 @@ interface UsePriceQueryStateReturn {
   setSelectedChain: (chain: Blockchain | null) => void;
   selectedSymbol: string;
   setSelectedSymbol: (symbol: string) => void;
-  selectedTimeRange: number;
-  setSelectedTimeRange: (timeRange: number) => void;
   isCompareMode: boolean;
   setIsCompareMode: (mode: boolean) => void;
-  compareTimeRange: number;
-  setCompareTimeRange: (timeRange: number) => void;
   showBaseline: boolean;
   setShowBaseline: (show: boolean) => void;
-  timeComparisonConfig: TimeComparisonConfig;
-  setTimeComparisonConfig: (config: TimeComparisonConfig) => void;
   urlParamsParsed: boolean;
-  selectedOracleRef: React.MutableRefObject<OracleProvider | null>;
-  selectedChainRef: React.MutableRefObject<Blockchain | null>;
-  selectedSymbolRef: React.MutableRefObject<string>;
-  selectedTimeRangeRef: React.MutableRefObject<number>;
-  isCompareModeRef: React.MutableRefObject<boolean>;
-  compareTimeRangeRef: React.MutableRefObject<number>;
 }
 
 function getFirstSupportedChain(oracle: OracleProvider): Blockchain | null {
@@ -95,34 +65,11 @@ export function usePriceQueryState(): UsePriceQueryStateReturn {
   const [urlParamsParsed, setUrlParamsParsed] = useState(false);
   const hasInitializedRef = useRef(false);
 
-  const [timeComparisonConfig, setTimeComparisonConfig] = useState<TimeComparisonConfig>(() => {
-    const now = new Date();
-    const start = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-    return {
-      primaryPeriod: {
-        id: 'primary-24h',
-        label: 'Last 24h',
-        startDate: start,
-        endDate: now,
-        range: '24h',
-      },
-      comparisonPeriod: {
-        id: 'comparison-24h',
-        label: 'Previous Period',
-        startDate: new Date(start.getTime() - 24 * 60 * 60 * 1000),
-        endDate: start,
-        range: '24h',
-      },
-      comparisonType: 'previous',
-    };
-  });
-
   const selectedOracleRef = useRef<OracleProvider | null>(OracleProvider.CHAINLINK);
   const selectedChainRef = useRef<Blockchain | null>(Blockchain.ETHEREUM);
   const selectedSymbolRef = useRef<string>('BTC');
   const selectedTimeRangeRef = useRef<number>(24);
   const isCompareModeRef = useRef<boolean>(false);
-  const compareTimeRangeRef = useRef<number>(24);
 
   const setSelectedOracle = useCallback((oracle: OracleProvider | null) => {
     selectedOracleRef.current = oracle;
@@ -147,11 +94,6 @@ export function usePriceQueryState(): UsePriceQueryStateReturn {
   const setIsCompareMode = useCallback((mode: boolean) => {
     isCompareModeRef.current = mode;
     _setIsCompareMode(mode);
-  }, []);
-
-  const setCompareTimeRange = useCallback((timeRange: number) => {
-    compareTimeRangeRef.current = timeRange;
-    _setCompareTimeRange(timeRange);
   }, []);
 
   useEffect(() => {
@@ -260,22 +202,10 @@ export function usePriceQueryState(): UsePriceQueryStateReturn {
     setSelectedChain,
     selectedSymbol,
     setSelectedSymbol,
-    selectedTimeRange,
-    setSelectedTimeRange,
     isCompareMode,
     setIsCompareMode,
-    compareTimeRange,
-    setCompareTimeRange,
     showBaseline,
     setShowBaseline,
-    timeComparisonConfig,
-    setTimeComparisonConfig,
     urlParamsParsed,
-    selectedOracleRef,
-    selectedChainRef,
-    selectedSymbolRef,
-    selectedTimeRangeRef,
-    isCompareModeRef,
-    compareTimeRangeRef,
   };
 }

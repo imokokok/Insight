@@ -10,7 +10,6 @@ interface ModalState {
 interface UIStore {
   modal: ModalState;
 
-  openModal: (modalId: string, data?: Record<string, unknown>) => void;
   closeModal: () => void;
 }
 
@@ -22,15 +21,6 @@ export const useUIStore = create<UIStore>()(
         modalId: null,
         modalData: null,
       },
-
-      openModal: (modalId, data) =>
-        set({
-          modal: {
-            isOpen: true,
-            modalId,
-            modalData: data || null,
-          },
-        }),
 
       closeModal: () =>
         set({

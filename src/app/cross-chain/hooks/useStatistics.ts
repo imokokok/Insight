@@ -9,7 +9,7 @@ import { type BaseOracleClient } from '@/lib/oracles';
 import {
   calculateMean,
   calculateMedian,
-  calculateStandardDeviation,
+  calculateStandardDeviationFromVariance,
   calculateVariance,
   safeMax,
   safeMin,
@@ -77,7 +77,7 @@ export function useStatistics(params: UseStatisticsParams): UseStatisticsReturn 
   }, [validPrices, avgPrice]);
 
   const standardDeviation = useMemo(() => {
-    return calculateStandardDeviation(variance);
+    return calculateStandardDeviationFromVariance(variance);
   }, [variance]);
 
   const standardDeviationPercent = useMemo(() => {

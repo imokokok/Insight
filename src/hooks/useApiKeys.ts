@@ -111,21 +111,5 @@ export function useApiKeys() {
     [fetchKeys]
   );
 
-  const updateKey = useCallback(
-    async (keyId: string, updates: { name?: string; plan?: 'free' | 'pro' | 'enterprise' }) => {
-      setError(null);
-      try {
-        await apiClient.patch(`/api/v1/api-keys/${keyId}`, updates);
-        await fetchKeys();
-        return true;
-      } catch (err) {
-        const message = err instanceof Error ? err.message : 'Failed to update API key';
-        setError(message);
-        return false;
-      }
-    },
-    [fetchKeys]
-  );
-
-  return { keys, isLoading, error, createKey, deleteKey, updateKey, refresh: fetchKeys };
+  return { keys, isLoading, error, createKey, deleteKey };
 }

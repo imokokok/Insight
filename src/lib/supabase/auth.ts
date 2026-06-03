@@ -159,21 +159,6 @@ export async function createUserProfile(
   };
 }
 
-export async function getUserProfile(
-  userId: string
-): Promise<{ profile: UserProfile | null; error: Error | null }> {
-  const { data, error } = await supabase
-    .from('user_profiles')
-    .select('*')
-    .eq('id', userId)
-    .single();
-
-  return {
-    profile: data as UserProfile | null,
-    error: error as Error | null,
-  };
-}
-
 interface AvatarUploadResult {
   url: string | null;
   error: Error | null;

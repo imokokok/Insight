@@ -137,10 +137,6 @@ export function calculateZScore(value: number, mean: number, stdDev: number): nu
   return (value - mean) / stdDev;
 }
 
-export function calculateStandardDeviation(variance: number): number {
-  return calculateStandardDeviationFromVariance(variance);
-}
-
 const T_CRITICAL_TABLE_95: Record<number, number> = {
   1: 12.706,
   2: 4.303,
