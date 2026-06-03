@@ -1,6 +1,6 @@
-export type SearchItemType = 'token' | 'oracle' | 'chain' | 'protocol';
+type SearchItemType = 'token' | 'oracle' | 'chain' | 'protocol';
 
-export interface SearchableItem {
+interface SearchableItem {
   id: string;
   type: SearchItemType;
   name: string;

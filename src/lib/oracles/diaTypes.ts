@@ -27,5 +27,3 @@ export interface DIAExchange {
   Blockchain: string;
   ScraperActive: boolean;
 }
-
-export type { OracleRetryConfig as RetryConfig } from './utils/retry';

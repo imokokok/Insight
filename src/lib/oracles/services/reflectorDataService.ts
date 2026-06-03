@@ -523,35 +523,6 @@ class ReflectorDataService {
     }
   }
 
-  async fetchOnChainMetadata(
-    contractId?: string,
-    signal?: AbortSignal
-  ): Promise<ReflectorOnChainMetadata> {
-    const resolvedContractId = contractId ?? REFLECTOR_CRYPTO_CONTRACT;
-    const [decimals, resolution, version, assets, lastTimestamp] = await Promise.allSettled([
-      this.fetchDecimals(resolvedContractId, signal),
-      this.fetchResolution(resolvedContractId, signal),
-      this.fetchVersion(resolvedContractId, signal),
-      this.fetchAssets(signal),
-      this.fetchLastTimestamp(resolvedContractId, signal),
-    ]);
-
-    return {
-      decimals:
-        decimals.status === 'fulfilled' ? decimals.value.decimals : REFLECTOR_DEFAULT_DECIMALS,
-      resolution: resolution.status === 'fulfilled' ? resolution.value : 300,
-      version: version.status === 'fulfilled' ? version.value : 0,
-      assets:
-        assets.status === 'fulfilled'
-          ? assets.value
-          : [...REFLECTOR_CRYPTO_ASSETS, ...REFLECTOR_FOREX_ASSETS],
-      lastTimestamp: lastTimestamp.status === 'fulfilled' ? lastTimestamp.value : 0,
-      nodeCount: 7,
-      threshold: 4,
-      baseAsset: 'USD',
-    };
-  }
-
   static resetInstance(): void {
     if (ReflectorDataService.instance) {
       ReflectorDataService.instance.clearCache();
@@ -568,17 +539,6 @@ class ReflectorDataService {
     this.assetScValCache.clear();
     this.lastTimestampCache.clear();
   }
-}
-
-interface ReflectorOnChainMetadata {
-  decimals: number;
-  resolution: number;
-  version: number;
-  assets: string[];
-  lastTimestamp: number;
-  nodeCount: number;
-  threshold: number;
-  baseAsset: string;
 }
 
 export function getReflectorDataService(): ReflectorDataService {

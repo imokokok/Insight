@@ -36,26 +36,4 @@ export class ApiError extends AppError {
     this.statusCode = statusCode;
     this.details = details;
   }
-
-  static fromError(error: unknown): ApiError {
-    if (error instanceof ApiError) {
-      return error;
-    }
-    if (error instanceof Error) {
-      const statusCode = (error as Error & { statusCode?: number }).statusCode ?? 500;
-      return new ApiError(
-        {
-          code: 'UNKNOWN_ERROR',
-          message: error.message,
-          statusCode,
-        },
-        error instanceof Error ? error : undefined
-      );
-    }
-    return new ApiError({
-      code: 'UNKNOWN_ERROR',
-      message: 'An unknown error occurred',
-      statusCode: 500,
-    });
-  }
 }

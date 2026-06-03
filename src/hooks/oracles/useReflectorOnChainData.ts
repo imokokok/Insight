@@ -47,24 +47,29 @@ export function useReflectorOnChainData(
       if (!contractId) {
         return null;
       }
-      const [priceData, metadata] = await Promise.all([
-        service.fetchLatestPrice(symbol),
-        service.fetchOnChainMetadata(contractId),
-      ]);
+      const [priceData, decimalsResult, resolution, version, assets, lastTimestamp] =
+        await Promise.all([
+          service.fetchLatestPrice(symbol),
+          service.fetchDecimals(contractId),
+          service.fetchResolution(contractId).catch(() => null),
+          service.fetchVersion(contractId).catch(() => null),
+          service.fetchAssets(),
+          service.fetchLastTimestamp(contractId).catch(() => null),
+        ]);
 
       if (!priceData) return null;
 
       return {
         symbol: priceData.symbol,
         price: priceData.price,
-        decimals: metadata.decimals,
-        resolution: metadata.resolution,
-        version: metadata.version,
-        assets: metadata.assets,
-        lastTimestamp: metadata.lastTimestamp,
-        nodeCount: metadata.nodeCount,
-        threshold: metadata.threshold,
-        baseAsset: metadata.baseAsset,
+        decimals: decimalsResult.decimals,
+        resolution: resolution ?? 300,
+        version: version ?? 0,
+        assets: assets ?? [],
+        lastTimestamp: lastTimestamp ?? 0,
+        nodeCount: 7,
+        threshold: 4,
+        baseAsset: 'USD',
         dataAge: priceData.timestamp ? Math.round((Date.now() - priceData.timestamp) / 1000) : null,
         lastUpdated: priceData.timestamp,
         source: 'SEP-40',

@@ -1,16 +1,12 @@
 import { BaseOracleClient } from '@/lib/oracles/base';
-import type { OracleClientConfig } from '@/lib/oracles/base';
 import { BLOCKCHAIN_TO_CHAIN_ID } from '@/lib/oracles/constants/chainMapping';
 import { API3_AVAILABLE_PAIRS } from '@/lib/oracles/constants/supportedSymbols';
 import { api3NetworkService } from '@/lib/oracles/services/api3NetworkService';
 import { withOracleRetry, ORACLE_RETRY_PRESETS } from '@/lib/oracles/utils/retry';
 import { buildEvmVerification } from '@/lib/oracles/utils/verificationUtils';
-import { createLogger } from '@/lib/utils/logger';
 import type { PriceData } from '@/types/oracle';
-import { OracleProvider, Blockchain, OracleServiceError } from '@/types/oracle';
+import { OracleProvider, Blockchain } from '@/types/oracle';
 import { FailureMode, buildSignalVector } from '@/types/oracle/signals';
-
-const logger = createLogger('API3Client');
 
 export class API3Client extends BaseOracleClient {
   name = OracleProvider.API3;
@@ -25,33 +21,6 @@ export class API3Client extends BaseOracleClient {
   ];
 
   defaultUpdateIntervalMinutes = 1;
-  protected historicalPriceConfidence = 0.98;
-  private useRealData: boolean;
-
-  constructor(config?: OracleClientConfig & { useRealData?: boolean }) {
-    super(config);
-    this.useRealData = config?.useRealData ?? true;
-  }
-
-  protected onNoHistoricalData(symbol: string): PriceData[] {
-    throw this.createError(
-      `Historical price data not available for symbol: ${symbol}. Please check if the symbol is supported.`,
-      'API3_HISTORICAL_PRICES_NOT_AVAILABLE'
-    );
-  }
-
-  protected onHistoricalDataError(symbol: string, error: unknown): PriceData[] {
-    if (error instanceof OracleServiceError) throw error;
-    logger.error(
-      `Failed to fetch historical prices for ${symbol}: ${error instanceof Error ? error.message : String(error)}`
-    );
-    throw this.createError(
-      error instanceof Error
-        ? error.message
-        : 'Failed to fetch historical prices from API3 oracle network',
-      'API3_HISTORICAL_PRICES_ERROR'
-    );
-  }
 
   async getPrice(
     symbol: string,
@@ -61,13 +30,6 @@ export class API3Client extends BaseOracleClient {
     this.validateGetPriceParams(symbol, options);
 
     const targetChain = chain || Blockchain.ETHEREUM;
-
-    if (!this.useRealData) {
-      throw this.createError(
-        'Real API3 data is required but useRealData is disabled',
-        'REAL_DATA_NOT_AVAILABLE'
-      );
-    }
 
     try {
       const api3Data = await withOracleRetry(

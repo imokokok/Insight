@@ -369,51 +369,6 @@ async function getAPI3Price(
   }
 }
 
-/**
- * Get historical price data
- * Note: API3 dAPI does not directly provide historical data; uses Binance API to fetch historical data
- */
-async function getAPI3HistoricalPrices(
-  _symbol: string,
-  _chain: Blockchain = Blockchain.ETHEREUM,
-  _period: number = 24
-): Promise<Array<{ price: number; timestamp: number; source: string }>> {
-  return [];
-}
-
-/**
- * Get supported token list
- */
-function getAPI3SupportedSymbols(): string[] {
-  return Object.keys(SYMBOL_TO_DAPI);
-}
-
-/**
- * Check if a token is supported
- */
-function isAPI3SymbolSupported(symbol: string): boolean {
-  return symbol.toUpperCase() in SYMBOL_TO_DAPI;
-}
-
-/**
- * Get supported chain list
- */
-function getAPI3SupportedChains(): Blockchain[] {
-  return [
-    Blockchain.ETHEREUM,
-    Blockchain.ARBITRUM,
-    Blockchain.POLYGON,
-    Blockchain.AVALANCHE,
-    Blockchain.BNB_CHAIN,
-    Blockchain.BASE,
-    Blockchain.OPTIMISM,
-  ];
-}
-
 export const api3NetworkService = {
   getPrice: getAPI3Price,
-  getHistoricalPrices: getAPI3HistoricalPrices,
-  getSupportedSymbols: getAPI3SupportedSymbols,
-  isSymbolSupported: isAPI3SymbolSupported,
-  getSupportedChains: getAPI3SupportedChains,
 };

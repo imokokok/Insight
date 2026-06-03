@@ -116,17 +116,6 @@ class CircuitBreaker {
       }
     }
   }
-
-  getState(): CircuitBreakerState {
-    return this.state;
-  }
-
-  destroy(): void {
-    if (this.halfOpenTimeoutId) {
-      clearTimeout(this.halfOpenTimeoutId);
-      this.halfOpenTimeoutId = null;
-    }
-  }
 }
 
 const defaultEnhancedRetryConfig: EnhancedRetryConfig = {
@@ -444,10 +433,6 @@ class EnhancedRetryManager {
 
   private sleep(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
-  }
-
-  getCircuitBreakerState(): string | undefined {
-    return this.circuitBreaker?.getState();
   }
 }
 

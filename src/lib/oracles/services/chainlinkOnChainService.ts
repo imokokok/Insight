@@ -8,9 +8,7 @@ import { RpcClientWithFallback } from '../utils/rpcClientWithFallback';
 
 import {
   CHAINLINK_AGGREGATOR_ABI,
-  CHAINLINK_TOKEN_ABI,
   getChainlinkPriceFeed,
-  getChainlinkContracts,
   getChainlinkRPCConfig,
   getSupportedSymbols,
 } from './chainlinkDataSources';
@@ -31,25 +29,12 @@ export interface ChainlinkPriceData {
   startedAt?: number;
 }
 
-interface ChainlinkTokenData {
-  totalSupply: bigint;
-  symbol: string;
-  name: string;
-}
-
 function encodeAggregatorCall(
   functionName: 'latestRoundData' | 'decimals' | 'description' | 'version'
 ): `0x${string}` {
   return viemEncodeFunctionData({
     abi: CHAINLINK_AGGREGATOR_ABI,
     functionName,
-  });
-}
-
-function encodeTokenCall(_functionName: 'totalSupply'): `0x${string}` {
-  return viemEncodeFunctionData({
-    abi: CHAINLINK_TOKEN_ABI,
-    functionName: 'totalSupply',
   });
 }
 
@@ -338,86 +323,6 @@ class ChainlinkOnChainService {
         }
       );
       throw new Error(`Failed to fetch price for ${symbol} on chain ${chainId}: ${errorMessage}`);
-    }
-  }
-
-  async getPrices(symbols: string[], chainId: number = 1): Promise<ChainlinkPriceData[]> {
-    const promises = symbols.map((symbol) =>
-      this.getPrice(symbol, chainId).catch((error) => {
-        logger.warn(`Failed to fetch price for ${symbol}`, {
-          error: error instanceof Error ? error.message : String(error),
-        });
-        return null;
-      })
-    );
-
-    const results = await Promise.all(promises);
-    return results.filter((result): result is ChainlinkPriceData => result !== null);
-  }
-
-  async getTokenData(chainId: number = 1): Promise<ChainlinkTokenData> {
-    const cacheKey = `token-${chainId}`;
-    const cached = this.cache.get<ChainlinkTokenData>(cacheKey);
-    if (cached) return cached;
-
-    const contracts = getChainlinkContracts(chainId);
-    if (!contracts) {
-      throw new Error(`Contracts not found for chain ${chainId}`);
-    }
-
-    try {
-      const totalSupplyData = await this.ethCall(
-        chainId,
-        contracts.linkToken,
-        encodeTokenCall('totalSupply')
-      );
-      const totalSupply = decodeUint256(totalSupplyData);
-
-      const result: ChainlinkTokenData = {
-        totalSupply,
-        symbol: 'LINK',
-        name: 'Chainlink',
-      };
-
-      this.cache.set(cacheKey, result, this.cacheTTL);
-      return result;
-    } catch (error) {
-      logger.error('Failed to fetch token data', error instanceof Error ? error : undefined);
-      throw error;
-    }
-  }
-
-  async getFeedMetadata(
-    symbol: string,
-    chainId: number = 1
-  ): Promise<{
-    decimals: number;
-    description: string;
-    version: bigint;
-  }> {
-    const feed = getChainlinkPriceFeed(symbol, chainId);
-    if (!feed) {
-      throw new Error(`Price feed not found for ${symbol} on chain ${chainId}`);
-    }
-
-    try {
-      const [decimalsData, descriptionData, versionData] = await Promise.all([
-        this.ethCall(chainId, feed.address, encodeAggregatorCall('decimals')),
-        this.ethCall(chainId, feed.address, encodeAggregatorCall('description')),
-        this.ethCall(chainId, feed.address, encodeAggregatorCall('version')),
-      ]);
-
-      return {
-        decimals: decodeDecimals(decimalsData).decimals,
-        description: this.decodeString(descriptionData),
-        version: decodeUint256(versionData),
-      };
-    } catch (error) {
-      logger.error(
-        `Failed to fetch metadata for ${symbol}`,
-        error instanceof Error ? error : undefined
-      );
-      throw error;
     }
   }
 

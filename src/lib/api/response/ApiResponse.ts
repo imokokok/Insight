@@ -80,12 +80,6 @@ export class ApiResponseBuilder {
     });
   }
 
-  static forbidden(message = 'Forbidden'): NextResponse {
-    return NextResponse.json(ApiResponseBuilder.error('FORBIDDEN', message), {
-      status: 403,
-    });
-  }
-
   static notFound(message = 'Not found'): NextResponse {
     return NextResponse.json(ApiResponseBuilder.error('NOT_FOUND', message), {
       status: 404,

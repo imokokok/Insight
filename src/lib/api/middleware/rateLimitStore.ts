@@ -9,7 +9,6 @@ interface RateLimitResult {
 
 interface RateLimitStore {
   increment(key: string, windowMs: number): Promise<RateLimitResult>;
-  get(key: string): Promise<RateLimitResult | null>;
   cleanup?(): void;
   clear?(): void;
   stopCleanup?(): void;
@@ -67,30 +66,6 @@ class KvRateLimitStore implements RateLimitStore {
     } catch (error) {
       logger.warn('KV rate limit increment error, failing open', { error });
       return this.failOpen(windowMs);
-    }
-  }
-
-  async get(key: string): Promise<RateLimitResult | null> {
-    try {
-      const { kv } = await import('@vercel/kv');
-      const fullKey = `${this.prefix}${key}`;
-
-      const count = (await Promise.race([kv.get<number>(fullKey), this.timeout(500)])) as
-        | number
-        | null;
-
-      if (count === null || count === undefined) return null;
-
-      const ttl = (await Promise.race([kv.ttl(fullKey), this.timeout(500)])) as number;
-
-      if (ttl > 0) {
-        return { count, resetTime: Date.now() + ttl * 1000 };
-      }
-
-      return { count, resetTime: Date.now() };
-    } catch (error) {
-      logger.warn('KV rate limit get error, failing open', { error });
-      return null;
     }
   }
 }
@@ -160,18 +135,6 @@ class MemoryRateLimitStore implements RateLimitStore {
 
     entry.count++;
     entry.lastAccessTime = now;
-    return { count: entry.count, resetTime: entry.resetTime };
-  }
-
-  async get(key: string): Promise<RateLimitResult | null> {
-    const entry = this.store.get(key);
-    if (!entry) return null;
-
-    if (entry.resetTime < Date.now()) {
-      this.store.delete(key);
-      return null;
-    }
-
     return { count: entry.count, resetTime: entry.resetTime };
   }
 

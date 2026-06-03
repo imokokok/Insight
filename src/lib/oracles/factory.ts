@@ -1,7 +1,7 @@
 import { FEATURE_FLAGS } from '@/lib/config/env';
 import { OracleClientError, ValidationError } from '@/lib/errors';
 import { createLogger } from '@/lib/utils/logger';
-import { type Blockchain, OracleProvider } from '@/types/oracle';
+import { OracleProvider } from '@/types/oracle';
 
 import { BaseOracleClient } from './base';
 import { API3Client } from './clients/api3';
@@ -33,28 +33,6 @@ export class OracleClientFactory {
     this.config = { ...DEFAULT_CONFIG, ...config };
   }
 
-  destroy(): void {
-    for (const [, client] of this.instances) {
-      if ('clearCache' in client && typeof client.clearCache === 'function') {
-        try {
-          client.clearCache();
-        } catch (error) {
-          logger.warn(
-            'Failed to clear cache during destroy',
-            error instanceof Error ? error : new Error(String(error))
-          );
-        }
-      }
-    }
-    this.instances.clear();
-    this.mockFactory = null;
-  }
-
-  configure(config: Partial<OracleClientConfig>): void {
-    this.config = { ...this.config, ...config };
-    logger.info('Oracle client factory configured', { config: this.config });
-  }
-
   getClient(provider: OracleProvider): BaseOracleClient {
     if (this.mockFactory) {
       try {
@@ -80,85 +58,6 @@ export class OracleClientFactory {
       });
     }
     return client;
-  }
-
-  getAllClients(): Record<OracleProvider, BaseOracleClient> {
-    const providers = Object.values(OracleProvider);
-
-    const clients: Partial<Record<OracleProvider, BaseOracleClient>> = {};
-    providers.forEach((provider) => {
-      clients[provider] = this.getClient(provider);
-    });
-
-    return clients as Record<OracleProvider, BaseOracleClient>;
-  }
-
-  getSupportedSymbols(provider: OracleProvider): string[] {
-    try {
-      const client = this.getClient(provider);
-      return client.getSupportedSymbols();
-    } catch (error) {
-      logger.error(
-        `Failed to get supported symbols for provider ${provider}`,
-        error instanceof Error ? error : new Error(String(error))
-      );
-      return [];
-    }
-  }
-
-  isSymbolSupported(provider: OracleProvider, symbol: string, chain?: Blockchain): boolean {
-    if (!symbol || symbol.trim() === '') {
-      return false;
-    }
-
-    try {
-      const client = this.getClient(provider);
-      return client.isSymbolSupported(symbol, chain);
-    } catch (error) {
-      logger.error(
-        `Failed to check symbol support for ${symbol} on provider ${provider}`,
-        error instanceof Error ? error : new Error(String(error)),
-        { symbol, chain }
-      );
-      return false;
-    }
-  }
-
-  getSupportedChainsForSymbol(provider: OracleProvider, symbol: string): Blockchain[] {
-    if (!symbol || symbol.trim() === '') {
-      return [];
-    }
-
-    try {
-      const client = this.getClient(provider);
-      return client.getSupportedChainsForSymbol(symbol);
-    } catch (error) {
-      logger.error(
-        `Failed to get supported chains for symbol ${symbol} on provider ${provider}`,
-        error instanceof Error ? error : new Error(String(error)),
-        { symbol }
-      );
-      return [];
-    }
-  }
-
-  getAllSupportedSymbols(): Record<OracleProvider, string[]> {
-    const result: Partial<Record<OracleProvider, string[]>> = {};
-    const providers = Object.values(OracleProvider);
-
-    for (const provider of providers) {
-      try {
-        result[provider] = this.getSupportedSymbols(provider);
-      } catch (error) {
-        logger.error(
-          `Failed to get supported symbols for provider ${provider}`,
-          error instanceof Error ? error : new Error(String(error))
-        );
-        result[provider] = [];
-      }
-    }
-
-    return result as Record<OracleProvider, string[]>;
   }
 
   private createClient(provider: OracleProvider): BaseOracleClient {

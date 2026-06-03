@@ -12,7 +12,7 @@ import {
 import { withOracleRetry, ORACLE_RETRY_PRESETS } from '@/lib/oracles/utils/retry';
 import { buildEvmVerification } from '@/lib/oracles/utils/verificationUtils';
 import { createLogger } from '@/lib/utils/logger';
-import { OracleProvider, Blockchain, OracleServiceError } from '@/types/oracle';
+import { OracleProvider, Blockchain } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
 import { FailureMode, buildSignalVector } from '@/types/oracle/signals';
 
@@ -77,7 +77,6 @@ export class ChainlinkClient extends BaseOracleClient {
   ];
 
   defaultUpdateIntervalMinutes = 60;
-  protected historicalPriceConfidence = 0.98;
   private useRealData: boolean;
 
   constructor(config?: OracleClientConfig & { useRealData?: boolean }) {
@@ -111,17 +110,6 @@ export class ChainlinkClient extends BaseOracleClient {
     );
 
     return Number(adjustedConfidence.toFixed(4));
-  }
-
-  protected onHistoricalDataError(symbol: string, error: unknown): PriceData[] {
-    if (error instanceof OracleServiceError) throw error;
-    logger.error(
-      `Failed to fetch historical prices for ${symbol}: ${error instanceof Error ? error.message : 'Unknown error'}`
-    );
-    throw this.createError(
-      error instanceof Error ? error.message : 'Failed to fetch historical prices from Chainlink',
-      'CHAINLINK_HISTORICAL_ERROR'
-    );
   }
 
   private convertToPriceData(chainlinkData: ChainlinkPriceData, chain?: Blockchain): PriceData {
