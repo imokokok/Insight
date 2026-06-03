@@ -14,7 +14,7 @@ export interface PriceHistoryEntry {
 
 export type PriceHistory = PriceHistoryEntry;
 
-export interface IOracleClient {
+interface IOracleClient {
   readonly name: OracleProvider;
   readonly supportedChains: Blockchain[];
   getPrice(

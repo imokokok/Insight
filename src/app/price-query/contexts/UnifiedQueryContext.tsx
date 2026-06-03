@@ -9,7 +9,6 @@ import { type QueryResult } from '../constants';
 import { usePriceQueryData, type QueryError } from '../hooks/usePriceQueryData';
 import { usePriceQueryState } from '../hooks/usePriceQueryState';
 import { usePriceStats, type PriceStats } from '../hooks/usePriceStats';
-import { type AnomalyInfo } from '../utils/priceValidator';
 
 type Stats = PriceStats;
 
@@ -36,18 +35,13 @@ interface UnifiedQueryContextValue {
   setSelectedChain: (chain: Blockchain | null) => void;
   selectedSymbol: string;
   setSelectedSymbol: (symbol: string) => void;
-  selectedTimeRange: number;
-  setSelectedTimeRange: (timeRange: number) => void;
   isCompareMode: boolean;
   setIsCompareMode: (mode: boolean) => void;
-  compareTimeRange: number;
-  setCompareTimeRange: (timeRange: number) => void;
   urlParamsParsed: boolean;
   // Data
   queryResults: QueryResult[];
   compareQueryResults: QueryResult[];
   primaryDataFetchTime: Date | null;
-  compareDataFetchTime: Date | null;
   supportedChainsBySelectedOracles: Set<Blockchain>;
   needsChainSelection: boolean;
   isLoading: boolean;
@@ -60,9 +54,6 @@ interface UnifiedQueryContextValue {
   retryDataSource: (provider: OracleProvider, chain: Blockchain) => Promise<void>;
   retryAllErrors: () => Promise<void>;
   refetch: () => Promise<void>;
-  validationWarnings: string[];
-  dataAnomalies: AnomalyInfo[];
-  hasDataQualityIssues: boolean;
   stats: Stats;
   autoRefresh: {
     isAutoRefreshEnabled: boolean;

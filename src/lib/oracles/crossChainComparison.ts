@@ -1,5 +1,6 @@
 import { getSymbolCategory } from '@/lib/constants';
 import { createLogger } from '@/lib/utils/logger';
+import { calculateMedian } from '@/lib/utils/statistics';
 import { type Blockchain } from '@/types/oracle';
 
 const logger = createLogger('CrossChainComparison');
@@ -74,13 +75,6 @@ function classifyChainStatus(
     return 'degraded';
   }
   return 'offline';
-}
-
-function calculateMedian(prices: number[]): number {
-  if (prices.length === 0) return 0;
-  const sorted = [...prices].sort((a, b) => a - b);
-  const mid = Math.floor(sorted.length / 2);
-  return sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
 }
 
 function calculateDeviationFromMedian(price: number, median: number): number {

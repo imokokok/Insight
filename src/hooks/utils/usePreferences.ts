@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 
 import { useUser, useProfile } from '@/stores/authStore';
 
@@ -87,22 +87,7 @@ export function usePreferences() {
     return { ...defaultPreferences, ...localPrefs };
   }, [user, profile]);
 
-  const savePreferencesToLocal = useCallback((prefs: UserPreferences) => {
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({
-        defaultOracle: prefs.defaultOracle,
-        defaultSymbol: prefs.defaultSymbol,
-        defaultTimeRange: prefs.defaultTimeRange,
-        defaultCurrency: prefs.defaultCurrency,
-        autoRefreshInterval: prefs.autoRefreshInterval,
-      })
-    );
-  }, []);
-
   return {
     preferences,
-    savePreferencesToLocal,
-    defaultPreferences,
   };
 }

@@ -449,14 +449,6 @@ class EnhancedRetryManager {
   getCircuitBreakerState(): string | undefined {
     return this.circuitBreaker?.getState();
   }
-
-  updateConfig(config: Partial<EnhancedRetryConfig>): void {
-    this.config = { ...this.config, ...config };
-  }
-
-  getConfig(): EnhancedRetryConfig {
-    return { ...this.config };
-  }
 }
 
 const retryManagerRegistry = new Map<string, EnhancedRetryManager>();

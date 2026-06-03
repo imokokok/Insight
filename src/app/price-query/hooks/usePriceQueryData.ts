@@ -10,8 +10,6 @@ import { createLogger } from '@/lib/utils/logger';
 import { type OracleProvider, type Blockchain } from '@/types/oracle';
 
 import { type QueryResult } from '../constants';
-import { usePerformanceMonitoring } from '../utils/performanceMonitoring';
-import { validatePrice, validateTimestamp, type AnomalyInfo } from '../utils/priceValidator';
 import { buildQueryTasks, type QueryError } from '../utils/queryTaskUtils';
 
 import { useBatchOracleQuery, type BatchQueryTask } from './usePriceQueries';
@@ -43,17 +41,8 @@ interface UsePriceQueryDataReturn {
   refetch: () => Promise<void>;
   compareQueryResults: QueryResult[];
   primaryDataFetchTime: Date | null;
-  compareDataFetchTime: Date | null;
-  validationWarnings: string[];
-  dataAnomalies: AnomalyInfo[];
-  hasDataQualityIssues: boolean;
   supportedChainsBySelectedOracles: Set<Blockchain>;
   needsChainSelection: boolean;
-  performanceMetrics: {
-    queryResponseTime: number | null;
-    dataProcessingTime: number | null;
-    validationTime: number | null;
-  };
 }
 
 export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQueryDataReturn {
@@ -71,15 +60,6 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
   const [dismissedSignature, setDismissedSignature] = useState('');
   const [queryDuration, setQueryDuration] = useState<number | null>(null);
   const queryStartTimeRef = useRef<number | null>(null);
-
-  const {
-    startQueryMeasure,
-    endQueryMeasure,
-    startDataProcessingMeasure,
-    endDataProcessingMeasure,
-    startValidationMeasure,
-    endValidationMeasure,
-  } = usePerformanceMonitoring();
 
   const selectionSignature = `${selectedOracle ?? ''}-${selectedChain ?? ''}-${selectedSymbol}`;
 
@@ -130,25 +110,15 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
   useEffect(() => {
     if (isLoading && queryStartTimeRef.current === null) {
       queryStartTimeRef.current = Date.now();
-      startQueryMeasure();
     }
     if (!isLoading && queryStartTimeRef.current !== null) {
       const duration = Date.now() - queryStartTimeRef.current;
       queryStartTimeRef.current = null;
       setQueryDuration(duration);
-      endQueryMeasure();
     }
-  }, [isLoading, startQueryMeasure, endQueryMeasure]);
+  }, [isLoading]);
 
-  const resultsDataSignature = batchResult.results
-    .map(
-      (r) =>
-        `${r.provider}:${r.chain}:${r.priceData ? `${r.priceData.price}:${r.priceData.timestamp}:${r.priceData.confidence}` : 'null'}:${r.isLoading ? '1' : '0'}`
-    )
-    .join('|');
-
-  const { queryResults, compareQueryResults, dataProcessingTime } = useMemo(() => {
-    startDataProcessingMeasure();
+  const { queryResults, compareQueryResults } = useMemo(() => {
     const qResults: QueryResult[] = [];
     const cResults: QueryResult[] = [];
 
@@ -169,13 +139,11 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
       }
     }
 
-    const processingTime = endDataProcessingMeasure();
     return {
       queryResults: qResults,
       compareQueryResults: cResults,
-      dataProcessingTime: processingTime,
     };
-  }, [resultsDataSignature, startDataProcessingMeasure, endDataProcessingMeasure]);
+  }, [batchResult.results]);
 
   const queryErrors: QueryError[] = useMemo(() => {
     return batchResult.errors
@@ -193,35 +161,10 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
     return { oracle: null as OracleProvider | null, chain: null as Blockchain | null };
   }, [batchResult.results]);
 
-  const { validationWarnings, dataAnomalies, validationTime } = useMemo(() => {
-    startValidationMeasure();
-    const allWarnings: string[] = [];
-    const allAnomalies: AnomalyInfo[] = [];
-    const now = Date.now();
-
-    for (const result of queryResults) {
-      if (!result.priceData) continue;
-      const priceValidation = validatePrice(result.priceData.price);
-      const timestampValidation = validateTimestamp(result.priceData.timestamp, undefined, now);
-      allWarnings.push(...priceValidation.warnings, ...timestampValidation.warnings);
-      allAnomalies.push(...priceValidation.anomalies, ...timestampValidation.anomalies);
-    }
-
-    const vTime = endValidationMeasure();
-    return { validationWarnings: allWarnings, dataAnomalies: allAnomalies, validationTime: vTime };
-  }, [queryResults, startValidationMeasure, endValidationMeasure]);
-
   const primaryDataFetchTime = useMemo(() => {
     const primary = batchResult.results.filter((r) => !r.isCompare && r.priceData);
     if (primary.length === 0) return null;
     const maxTime = Math.max(...primary.map((r) => r.dataUpdatedAt));
-    return maxTime > 0 ? new Date(maxTime) : null;
-  }, [batchResult.results]);
-
-  const compareDataFetchTime = useMemo(() => {
-    const compare = batchResult.results.filter((r) => r.isCompare && r.priceData);
-    if (compare.length === 0) return null;
-    const maxTime = Math.max(...compare.map((r) => r.dataUpdatedAt));
     return maxTime > 0 ? new Date(maxTime) : null;
   }, [batchResult.results]);
 
@@ -291,16 +234,7 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
     refetch,
     compareQueryResults,
     primaryDataFetchTime,
-    compareDataFetchTime,
-    validationWarnings,
-    dataAnomalies,
-    hasDataQualityIssues: validationWarnings.length > 0 || dataAnomalies.length > 0,
     supportedChainsBySelectedOracles,
     needsChainSelection: !!needsChainSelection,
-    performanceMetrics: {
-      queryResponseTime: queryDuration,
-      dataProcessingTime,
-      validationTime,
-    },
   };
 }

@@ -1,8 +1,8 @@
 import type { Blockchain } from '@/types/oracle';
 
-export type ThresholdType = 'fixed' | 'dynamic' | 'atr';
+type ThresholdType = 'fixed' | 'dynamic' | 'atr';
 
-export type OutlierDetectionMethod = 'zscore' | 'iqr';
+type OutlierDetectionMethod = 'zscore' | 'iqr';
 
 export interface ThresholdConfig {
   type: ThresholdType;

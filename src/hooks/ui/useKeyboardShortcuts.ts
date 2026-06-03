@@ -34,60 +34,6 @@ export interface KeyboardShortcut {
   scope?: string;
 }
 
-interface ShortcutConflict {
-  shortcut1: KeyboardShortcut;
-  shortcut2: KeyboardShortcut;
-  conflictKey: string;
-}
-
-/**
- * Check if keyboard shortcuts conflict
- */
-export function checkShortcutConflicts(shortcuts: KeyboardShortcut[]): ShortcutConflict[] {
-  const conflicts: ShortcutConflict[] = [];
-
-  for (let i = 0; i < shortcuts.length; i++) {
-    for (let j = i + 1; j < shortcuts.length; j++) {
-      const s1 = shortcuts[i];
-      const s2 = shortcuts[j];
-
-      if (
-        s1.key.toLowerCase() === s2.key.toLowerCase() &&
-        !!s1.ctrlKey === !!s2.ctrlKey &&
-        !!s1.altKey === !!s2.altKey &&
-        !!s1.shiftKey === !!s2.shiftKey &&
-        !!s1.metaKey === !!s2.metaKey &&
-        s1.scope === s2.scope
-      ) {
-        conflicts.push({
-          shortcut1: s1,
-          shortcut2: s2,
-          conflictKey: formatShortcut(s1),
-        });
-      }
-    }
-  }
-
-  return conflicts;
-}
-
-/**
- * Format shortcut as readable string
- */
-function formatShortcut(shortcut: KeyboardShortcut): string {
-  const parts: string[] = [];
-
-  if (shortcut.metaKey) parts.push('Cmd');
-  if (shortcut.ctrlKey) parts.push('Ctrl');
-  if (shortcut.altKey) parts.push('Alt');
-  if (shortcut.shiftKey) parts.push('Shift');
-
-  const keyDisplay = KEY_MAP[shortcut.key.toLowerCase()] || shortcut.key.toUpperCase();
-  parts.push(keyDisplay);
-
-  return parts.join('+');
-}
-
 /**
  * Get platform-specific shortcut display
  */
