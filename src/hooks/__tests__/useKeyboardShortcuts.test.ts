@@ -4,8 +4,6 @@ import {
   useKeyboardShortcuts,
   useGlobalKeyboardListener,
   useCommonShortcuts,
-  checkShortcutConflicts,
-  formatShortcut,
   getPlatformShortcut,
   shortcutManager,
   type KeyboardShortcut,
@@ -262,79 +260,6 @@ describe('useCommonShortcuts', () => {
 
     const shortcuts = shortcutManager.getAllShortcuts();
     expect(shortcuts.length).toBe(0);
-  });
-});
-
-describe('checkShortcutConflicts', () => {
-  it('should detect conflicts', () => {
-    const shortcuts: KeyboardShortcut[] = [
-      { key: 's', ctrlKey: true, handler: jest.fn() },
-      { key: 's', ctrlKey: true, handler: jest.fn() },
-    ];
-
-    const conflicts = checkShortcutConflicts(shortcuts);
-
-    expect(conflicts).toHaveLength(1);
-    expect(conflicts[0].conflictKey).toBe('Ctrl+S');
-  });
-
-  it('should not detect conflicts for different keys', () => {
-    const shortcuts: KeyboardShortcut[] = [
-      { key: 's', ctrlKey: true, handler: jest.fn() },
-      { key: 'a', ctrlKey: true, handler: jest.fn() },
-    ];
-
-    const conflicts = checkShortcutConflicts(shortcuts);
-
-    expect(conflicts).toHaveLength(0);
-  });
-
-  it('should not detect conflicts for different modifiers', () => {
-    const shortcuts: KeyboardShortcut[] = [
-      { key: 's', ctrlKey: true, handler: jest.fn() },
-      { key: 's', metaKey: true, handler: jest.fn() },
-    ];
-
-    const conflicts = checkShortcutConflicts(shortcuts);
-
-    expect(conflicts).toHaveLength(0);
-  });
-
-  it('should not detect conflicts for different scopes', () => {
-    const shortcuts: KeyboardShortcut[] = [
-      { key: 's', ctrlKey: true, handler: jest.fn(), scope: 'global' },
-      { key: 's', ctrlKey: true, handler: jest.fn(), scope: 'modal' },
-    ];
-
-    const conflicts = checkShortcutConflicts(shortcuts);
-
-    expect(conflicts).toHaveLength(0);
-  });
-});
-
-describe('formatShortcut', () => {
-  it('should format simple key', () => {
-    const shortcut: KeyboardShortcut = { key: 'a', handler: jest.fn() };
-    expect(formatShortcut(shortcut)).toBe('A');
-  });
-
-  it('should format key with modifiers', () => {
-    const shortcut: KeyboardShortcut = {
-      key: 's',
-      ctrlKey: true,
-      shiftKey: true,
-      handler: jest.fn(),
-    };
-    expect(formatShortcut(shortcut)).toBe('Ctrl+Shift+S');
-  });
-
-  it('should format special keys', () => {
-    expect(formatShortcut({ key: 'Escape', handler: jest.fn() })).toBe('Esc');
-    expect(formatShortcut({ key: 'Enter', handler: jest.fn() })).toBe('↵');
-    expect(formatShortcut({ key: 'ArrowUp', handler: jest.fn() })).toBe('↑');
-    expect(formatShortcut({ key: 'ArrowDown', handler: jest.fn() })).toBe('↓');
-    expect(formatShortcut({ key: 'ArrowLeft', handler: jest.fn() })).toBe('←');
-    expect(formatShortcut({ key: 'ArrowRight', handler: jest.fn() })).toBe('→');
   });
 });
 

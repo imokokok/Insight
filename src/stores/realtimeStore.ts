@@ -8,7 +8,6 @@ interface RealtimeState {
 }
 
 interface RealtimeActions {
-  setConnectionStatus: (status: ConnectionStatus) => void;
   reconnect: () => void;
   reset: () => void;
 }
@@ -23,10 +22,6 @@ export const useRealtimeStore = create<RealtimeStore>()(
   devtools(
     (set) => ({
       ...initialState,
-
-      setConnectionStatus: (status) => {
-        set({ connectionStatus: status });
-      },
 
       reconnect: () => {
         set({ connectionStatus: 'connecting' });

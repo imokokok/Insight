@@ -256,24 +256,6 @@ class FtsoDataService {
     }
   }
 
-  async fetchPrices(
-    symbols: string[],
-    network: string = 'flare',
-    signal?: AbortSignal
-  ): Promise<FtsoPriceData[]> {
-    const promises = symbols.map((symbol) =>
-      this.fetchPrice(symbol, network, signal).catch((error) => {
-        logger.warn(`Failed to fetch price for ${symbol}`, {
-          error: error instanceof Error ? error.message : String(error),
-        });
-        return null;
-      })
-    );
-
-    const results = await Promise.all(promises);
-    return results.filter((result): result is FtsoPriceData => result !== null);
-  }
-
   clearCache(): void {
     this.cache.clear();
     logger.info('Cache cleared');

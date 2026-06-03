@@ -37,7 +37,6 @@ interface UseOracleRetryReturn {
   retryAllFailed: (oracleDataError: OracleDataError) => Promise<void>;
   isRetrying: boolean;
   retryingOracles: OracleProvider[];
-  cancelRetry: () => void;
 }
 
 export function useOracleRetry({
@@ -65,20 +64,6 @@ export function useOracleRetry({
 
   const delay = useCallback((ms: number) => {
     return new Promise((resolve) => setTimeout(resolve, ms));
-  }, []);
-
-  const cancelRetry = useCallback(() => {
-    abortControllersRef.current.forEach((controller) => {
-      controller.abort();
-    });
-    abortControllersRef.current.clear();
-
-    if (batchAbortControllerRef.current) {
-      batchAbortControllerRef.current.abort();
-      batchAbortControllerRef.current = null;
-    }
-    retryAttemptsRef.current.clear();
-    setRetryingOracles([]);
   }, []);
 
   const retryOracle = useCallback(
@@ -241,6 +226,5 @@ export function useOracleRetry({
     retryAllFailed,
     isRetrying,
     retryingOracles,
-    cancelRetry,
   };
 }

@@ -50,11 +50,6 @@ interface AuthActions {
   updatePassword: (newPassword: string) => Promise<{ error: AuthError | null }>;
   resendVerification: (email: string) => Promise<{ error: AuthError | null }>;
   refreshProfile: () => Promise<void>;
-  setUser: (user: User | null) => void;
-  setSession: (session: Session | null) => void;
-  setProfile: (profile: UserProfile | null) => void;
-  setLoading: (loading: boolean) => void;
-  setError: (error: AuthError | Error | null) => void;
   clearError: () => void;
 }
 
@@ -320,11 +315,6 @@ export const useAuthStore = create<AuthStore>()(
           }
         },
 
-        setUser: (user) => set({ user }),
-        setSession: (session) => set({ session }),
-        setProfile: (profile) => set({ profile }),
-        setLoading: (loading) => set({ loading }),
-        setError: (error) => set({ error }),
         clearError: () => set({ error: null }),
       }),
       {

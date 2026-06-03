@@ -1,9 +1,9 @@
 import { createLogger } from '@/lib/utils/logger';
 import { OracleProvider, type Blockchain, type PriceData } from '@/types/oracle';
 
-import { OracleCache } from '../base';
+import { OracleCache, ORACLE_CACHE_TTL } from '../base';
 import { getDIAAssetConfig } from '../constants/diaConstants';
-import { CACHE_TTL, DIA_API_BASE_URL, fetchWithTimeout } from '../diaUtils';
+import { DIA_API_BASE_URL, fetchWithTimeout } from '../diaUtils';
 
 import type { DIAAssetQuotation } from '../diaTypes';
 
@@ -13,8 +13,6 @@ const REQUEST_TIMEOUT = 15000;
 
 export class DIAPriceService {
   constructor(private cache: OracleCache) {}
-
-  destroy(): void {}
 
   async getAssetPrice(
     symbol: string,
@@ -75,7 +73,7 @@ export class DIAPriceService {
         ingestionTimestamp: Date.now(),
       };
 
-      this.cache.set(cacheKey, result, CACHE_TTL.PRICE);
+      this.cache.set(cacheKey, result, ORACLE_CACHE_TTL.PRICE);
       logger.info('Successfully fetched price from DIA API', {
         symbol,
         price: result.price,

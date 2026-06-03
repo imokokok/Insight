@@ -389,18 +389,6 @@ class WINkLinkRealDataService {
     return selectors[method] || `${method}()`;
   }
 
-  getSupportedPriceFeeds(): Array<{ symbol: string; address: string }> {
-    return Object.entries(WINKLINK_PRICE_FEEDS).map(([symbol, address]) => ({
-      symbol: symbol.replace('-', '/'),
-      address,
-    }));
-  }
-
-  isSupported(symbol: string): boolean {
-    const pairKey = symbol.toUpperCase().replace('/', '-');
-    return pairKey in WINKLINK_PRICE_FEEDS;
-  }
-
   async getTokenOnChainData(symbol: string): Promise<WINkLinkTokenOnChainData | null> {
     const cacheKey = `onchain-data:${symbol.toUpperCase()}`;
     const cached = this.cache.get<WINkLinkTokenOnChainData>(cacheKey);

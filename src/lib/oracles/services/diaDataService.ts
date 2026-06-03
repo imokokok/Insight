@@ -25,10 +25,6 @@ class DIADataService {
     logger.info('DIADataService initialized', { baseUrl: DIA_API_BASE_URL });
   }
 
-  destroy(): void {
-    this.priceService.destroy();
-  }
-
   async getAssetPrice(
     symbol: string,
     chain?: Blockchain,

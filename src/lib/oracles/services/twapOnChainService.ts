@@ -34,16 +34,6 @@ interface TwapPriceData {
   confidence: number;
 }
 
-interface PoolInfo {
-  address: string;
-  token0: string;
-  token1: string;
-  feeTier: number;
-  liquidity: bigint;
-  sqrtPriceX96: bigint;
-  tick: number;
-}
-
 class TwapOnChainService {
   private rpcClient = new RpcClientWithFallback({ contextLabel: 'twap' });
   private cache = new OracleCache();
@@ -86,10 +76,6 @@ class TwapOnChainService {
 
   private encodeLiquidityCall(): `0x${string}` {
     return viemEncodeFunctionData({ abi: UNISWAP_V3_POOL_ABI, functionName: 'liquidity' });
-  }
-
-  private encodeFeeCall(): `0x${string}` {
-    return viemEncodeFunctionData({ abi: UNISWAP_V3_POOL_ABI, functionName: 'fee' });
   }
 
   private encodeGetPoolCall(
@@ -168,12 +154,6 @@ class TwapOnChainService {
     const cleanData = data.startsWith('0x') ? data.slice(2) : data;
     if (!cleanData) return BigInt(0);
     return BigInt('0x' + cleanData);
-  }
-
-  private decodeFee(data: string): number {
-    const cleanData = data.startsWith('0x') ? data.slice(2) : data;
-    if (!cleanData) return 0;
-    return parseInt(cleanData, 16);
   }
 
   private decodeAddress(data: string): string {
@@ -663,161 +643,6 @@ class TwapOnChainService {
         `Failed to fetch TWAP price for ${symbol} on chain ${chainId}: ${error instanceof Error ? error.message : String(error)}`
       );
     }
-  }
-
-  async getSpotPrice(
-    symbol: string,
-    chainId: number,
-    signal?: AbortSignal
-  ): Promise<TwapPriceData> {
-    const cacheKey = `spot-${symbol}-${chainId}`;
-    const cached = this.cache.get<TwapPriceData>(cacheKey);
-    if (cached) return cached;
-
-    const dedupeKey = `inflight-spot-${symbol}-${chainId}`;
-    const inFlight = this.inFlightRequests.get(dedupeKey);
-    if (inFlight) {
-      return inFlight as Promise<TwapPriceData>;
-    }
-
-    const requestPromise = this._executeGetSpotPrice(symbol, chainId, signal);
-    this.inFlightRequests.set(dedupeKey, requestPromise);
-
-    try {
-      const result = await requestPromise;
-      return result;
-    } finally {
-      this.inFlightRequests.delete(dedupeKey);
-    }
-  }
-
-  private async _executeGetSpotPrice(
-    symbol: string,
-    chainId: number,
-    signal?: AbortSignal
-  ): Promise<TwapPriceData> {
-    const cacheKey = `spot-${symbol}-${chainId}`;
-
-    const poolConfig = await this.getPoolAddress(symbol, chainId, signal);
-    if (!poolConfig) {
-      throw new Error(`Pool not found for ${symbol} on chain ${chainId}`);
-    }
-
-    const poolAddress = poolConfig.address as `0x${string}`;
-
-    try {
-      const [slot0Data, liquidityData] = await Promise.all([
-        this.ethCall(chainId, poolAddress, this.encodeSlot0Call(), signal),
-        this.ethCall(chainId, poolAddress, this.encodeLiquidityCall(), signal),
-      ]);
-
-      const { sqrtPriceX96, tick } = this.decodeSlot0(slot0Data);
-      const liquidity = this.decodeLiquidity(liquidityData);
-      const spotPrice = await this.calculateUsdPrice(
-        tick,
-        poolConfig.token0,
-        poolConfig.token1,
-        chainId,
-        signal
-      );
-
-      const liquidityScore =
-        liquidity > BigInt(1000000000000000000) ? 1.0 : Number(liquidity) / 1000000000000000000;
-      const confidence = Math.min(0.99, Math.max(0.85, 0.95 * liquidityScore));
-
-      const result: TwapPriceData = {
-        symbol,
-        twapPrice: spotPrice,
-        spotPrice,
-        tick,
-        sqrtPriceX96,
-        liquidity,
-        timestamp: Date.now(),
-        chainId,
-        poolAddress: poolAddress,
-        feeTier: poolConfig.feeTier,
-        twapInterval: 0,
-        confidence,
-      };
-
-      this.cache.set(cacheKey, result, this.cacheTTL);
-      return result;
-    } catch (error) {
-      logger.error(
-        `Failed to fetch spot price for ${symbol}`,
-        error instanceof Error ? error : undefined,
-        { symbol, chainId }
-      );
-      throw new Error(
-        `Failed to fetch spot price for ${symbol} on chain ${chainId}: ${error instanceof Error ? error.message : String(error)}`
-      );
-    }
-  }
-
-  async getPoolInfo(symbol: string, chainId: number, signal?: AbortSignal): Promise<PoolInfo> {
-    const cacheKey = `pool-${symbol}-${chainId}`;
-    const cached = this.cache.get<PoolInfo>(cacheKey);
-    if (cached) return cached;
-
-    const poolConfig = await this.getPoolAddress(symbol, chainId, signal);
-    if (!poolConfig) {
-      throw new Error(`Pool not found for ${symbol} on chain ${chainId}`);
-    }
-
-    const poolAddress = poolConfig.address as `0x${string}`;
-
-    try {
-      const [slot0Data, liquidityData, feeData] = await Promise.all([
-        this.ethCall(chainId, poolAddress, this.encodeSlot0Call(), signal),
-        this.ethCall(chainId, poolAddress, this.encodeLiquidityCall(), signal),
-        this.ethCall(chainId, poolAddress, this.encodeFeeCall(), signal),
-      ]);
-
-      const { sqrtPriceX96, tick } = this.decodeSlot0(slot0Data);
-      const liquidity = this.decodeLiquidity(liquidityData);
-      const feeTier = this.decodeFee(feeData);
-
-      const result: PoolInfo = {
-        address: poolAddress,
-        token0: poolConfig.token0,
-        token1: poolConfig.token1,
-        feeTier,
-        liquidity,
-        sqrtPriceX96,
-        tick,
-      };
-
-      this.cache.set(cacheKey, result, this.cacheTTL);
-      return result;
-    } catch (error) {
-      logger.error(
-        `Failed to fetch pool info for ${symbol}`,
-        error instanceof Error ? error : undefined,
-        { symbol, chainId }
-      );
-      throw new Error(
-        `Failed to fetch pool info for ${symbol} on chain ${chainId}: ${error instanceof Error ? error.message : String(error)}`
-      );
-    }
-  }
-
-  async getPrices(
-    symbols: string[],
-    chainId: number,
-    twapInterval: number = TWAP_INTERVALS.MEDIUM,
-    signal?: AbortSignal
-  ): Promise<TwapPriceData[]> {
-    const promises = symbols.map((symbol) =>
-      this.getTwapPrice(symbol, chainId, twapInterval, signal).catch((error) => {
-        logger.warn(`Failed to fetch TWAP price for ${symbol}`, {
-          error: error instanceof Error ? error.message : String(error),
-        });
-        return null;
-      })
-    );
-
-    const results = await Promise.all(promises);
-    return results.filter((result): result is TwapPriceData => result !== null);
   }
 
   getSupportedSymbols(): string[] {

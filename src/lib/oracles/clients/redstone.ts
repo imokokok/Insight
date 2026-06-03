@@ -55,7 +55,6 @@ export class RedStoneClient extends BaseOracleClient {
   supportedSymbolsList = redstoneSymbols;
 
   defaultUpdateIntervalMinutes = 10;
-  protected historicalPriceConfidence = 0.97;
   private cache = new OracleCache();
 
   constructor(config?: OracleClientConfig) {

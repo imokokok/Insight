@@ -1,5 +1,4 @@
 import { BaseOracleClient } from '@/lib/oracles/base';
-import type { OracleClientConfig } from '@/lib/oracles/base';
 import {
   TWAP_POOL_ADDRESSES,
   BLOCKCHAIN_TO_CHAIN_ID,
@@ -10,19 +9,6 @@ import { withOracleRetry, ORACLE_RETRY_PRESETS } from '@/lib/oracles/utils/retry
 import { buildEvmVerification } from '@/lib/oracles/utils/verificationUtils';
 import { OracleProvider, Blockchain, OracleServiceError } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
-
-const TWAP_QUALITY_CONFIG = {
-  chainReliability: {
-    [Blockchain.ETHEREUM]: 0.99,
-    [Blockchain.ARBITRUM]: 0.98,
-    [Blockchain.OPTIMISM]: 0.98,
-    [Blockchain.POLYGON]: 0.97,
-    [Blockchain.BASE]: 0.97,
-    [Blockchain.BNB_CHAIN]: 0.95,
-  } as Record<string, number>,
-  defaultConfidence: 0.95,
-  minConfidence: 0.85,
-};
 
 export class TWAPClient extends BaseOracleClient {
   name = OracleProvider.TWAP;
@@ -35,20 +21,9 @@ export class TWAPClient extends BaseOracleClient {
     Blockchain.BNB_CHAIN,
   ];
   defaultUpdateIntervalMinutes = 1;
-  private useRealData: boolean;
-
-  constructor(config?: OracleClientConfig & { useRealData?: boolean }) {
-    super(config);
-    this.useRealData = config?.useRealData ?? true;
-  }
 
   private getChainId(chain?: Blockchain): number {
     return BLOCKCHAIN_TO_CHAIN_ID[chain || Blockchain.ETHEREUM] || 1;
-  }
-
-  protected getHistoricalPriceConfidence(chain?: Blockchain): number {
-    const chainRel = TWAP_QUALITY_CONFIG.chainReliability[chain || Blockchain.ETHEREUM] || 0.95;
-    return Math.min(0.99, Math.max(TWAP_QUALITY_CONFIG.minConfidence, chainRel));
   }
 
   async getPrice(
@@ -61,13 +36,6 @@ export class TWAPClient extends BaseOracleClient {
 
     if (!this.isSymbolSupported(upperSymbol, chain)) {
       throw this.createUnsupportedSymbolError(upperSymbol, chain);
-    }
-
-    if (!this.useRealData) {
-      throw this.createError(
-        'Real TWAP data is required but useRealData is disabled',
-        'REAL_DATA_NOT_AVAILABLE'
-      );
     }
 
     try {

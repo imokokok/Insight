@@ -37,14 +37,6 @@ export class ReflectorClient extends BaseOracleClient {
       throw this.createUnsupportedSymbolError(upperSymbol, chain);
     }
 
-    if (this.config.useRealData === false) {
-      throw this.createError(
-        'Real Reflector data is disabled. USE_REAL_REFLECTOR_DATA must be true.',
-        'PROVIDER_UNAVAILABLE',
-        { retryable: false }
-      );
-    }
-
     try {
       const priceData = await withOracleRetry(
         async () => this.reflectorDataService.fetchLatestPrice(upperSymbol, options?.signal),
@@ -76,9 +68,5 @@ export class ReflectorClient extends BaseOracleClient {
 
   getSupportedSymbols(): string[] {
     return [...REFLECTOR_CRYPTO_ASSETS, ...REFLECTOR_FOREX_ASSETS];
-  }
-
-  protected onHistoricalDataError(_symbol: string, _error: unknown): PriceData[] {
-    return [];
   }
 }

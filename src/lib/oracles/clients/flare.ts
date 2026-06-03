@@ -34,7 +34,6 @@ export class FlareClient extends BaseOracleClient {
   supportedSymbolsList = flareSymbols;
 
   defaultUpdateIntervalMinutes = 1.5;
-  protected historicalPriceConfidence = 0.95;
   private cache = new OracleCache();
   private ftsoService: FtsoDataService;
 

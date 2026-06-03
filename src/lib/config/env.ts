@@ -24,25 +24,16 @@ interface AppConfig {
 }
 
 interface ClientFeatureFlags {
-  enableRealtime: boolean;
   enableAnalytics: boolean;
   enablePerformanceMonitoring: boolean;
-  enableCSRFProtection: boolean;
-  enableRateLimiting: boolean;
 }
 
 interface ServerFeatureFlags extends ClientFeatureFlags {
   useRealChainlinkData: boolean;
   useRealApi3Data: boolean;
-  useRealWinklinkData: boolean;
-  useRealSupraData: boolean;
   useRealTwapData: boolean;
   useRealReflectorData: boolean;
   useRealFlareData: boolean;
-}
-
-interface WebSocketConfig {
-  url: string | undefined;
 }
 
 interface SecurityConfig {
@@ -57,7 +48,6 @@ interface ClientEnvConfig {
   supabase: ClientSupabaseConfig;
   app: AppConfig;
   features: ClientFeatureFlags;
-  websocket: WebSocketConfig;
 }
 
 interface ServerEnvConfig extends ClientEnvConfig {
@@ -80,24 +70,16 @@ const clientEnvSchema = z.object({
   NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
   NEXT_PUBLIC_APP_URL: z.string().url().optional().default('http://localhost:3000'),
-  NEXT_PUBLIC_WS_URL: z.string().optional(),
-  NEXT_PUBLIC_ENABLE_REALTIME: envBoolean,
   NEXT_PUBLIC_ENABLE_ANALYTICS: envBoolean,
   NEXT_PUBLIC_ENABLE_PERFORMANCE_MONITORING: envBoolean,
-  NEXT_PUBLIC_ENABLE_CSRF: envBoolean,
-  NEXT_PUBLIC_ENABLE_RATE_LIMITING: envBoolean,
 });
 
 const lenientClientEnvSchema = z.object({
   NEXT_PUBLIC_SUPABASE_URL: z.string().optional().default(''),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().optional().default(''),
   NEXT_PUBLIC_APP_URL: z.string().optional().default('http://localhost:3000'),
-  NEXT_PUBLIC_WS_URL: z.string().optional().default(''),
-  NEXT_PUBLIC_ENABLE_REALTIME: envBoolean,
   NEXT_PUBLIC_ENABLE_ANALYTICS: envBoolean,
   NEXT_PUBLIC_ENABLE_PERFORMANCE_MONITORING: envBoolean,
-  NEXT_PUBLIC_ENABLE_CSRF: envBoolean,
-  NEXT_PUBLIC_ENABLE_RATE_LIMITING: envBoolean,
 });
 
 const serverEnvSchema = z.object({
@@ -105,18 +87,12 @@ const serverEnvSchema = z.object({
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
   NEXT_PUBLIC_APP_URL: z.string().url().optional().default('http://localhost:3000'),
-  NEXT_PUBLIC_WS_URL: z.string().optional(),
   CSRF_SECRET: z.string().min(1),
   JWT_SECRET: z.string().min(1),
-  NEXT_PUBLIC_ENABLE_REALTIME: envBoolean,
   NEXT_PUBLIC_ENABLE_ANALYTICS: envBoolean,
   NEXT_PUBLIC_ENABLE_PERFORMANCE_MONITORING: envBoolean,
-  NEXT_PUBLIC_ENABLE_CSRF: envBoolean,
-  NEXT_PUBLIC_ENABLE_RATE_LIMITING: envBoolean,
   USE_REAL_CHAINLINK_DATA: envBoolean.default(true),
   USE_REAL_API3_DATA: envBoolean.default(true),
-  USE_REAL_WINKLINK_DATA: envBoolean.default(true),
-  USE_REAL_SUPRA_DATA: envBoolean.default(true),
   USE_REAL_TWAP_DATA: envBoolean.default(true),
   USE_REAL_REFLECTOR_DATA: envBoolean.default(true),
   USE_REAL_FLARE_DATA: envBoolean.default(true),
@@ -133,18 +109,12 @@ const lenientServerEnvSchema = z.object({
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().optional().default(''),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1, 'SUPABASE_SERVICE_ROLE_KEY is required'),
   NEXT_PUBLIC_APP_URL: z.string().optional().default('http://localhost:3000'),
-  NEXT_PUBLIC_WS_URL: z.string().optional().default(''),
   CSRF_SECRET: z.string().min(1, 'CSRF_SECRET is required'),
   JWT_SECRET: z.string().min(1, 'JWT_SECRET is required'),
-  NEXT_PUBLIC_ENABLE_REALTIME: envBoolean,
   NEXT_PUBLIC_ENABLE_ANALYTICS: envBoolean,
   NEXT_PUBLIC_ENABLE_PERFORMANCE_MONITORING: envBoolean,
-  NEXT_PUBLIC_ENABLE_CSRF: envBoolean,
-  NEXT_PUBLIC_ENABLE_RATE_LIMITING: envBoolean,
   USE_REAL_CHAINLINK_DATA: envBoolean.default(true),
   USE_REAL_API3_DATA: envBoolean.default(true),
-  USE_REAL_WINKLINK_DATA: envBoolean.default(true),
-  USE_REAL_SUPRA_DATA: envBoolean.default(true),
   USE_REAL_TWAP_DATA: envBoolean.default(true),
   USE_REAL_REFLECTOR_DATA: envBoolean.default(true),
   USE_REAL_FLARE_DATA: envBoolean.default(true),
@@ -164,13 +134,9 @@ function getRawClientEnv() {
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
-    NEXT_PUBLIC_WS_URL: process.env.NEXT_PUBLIC_WS_URL,
-    NEXT_PUBLIC_ENABLE_REALTIME: process.env.NEXT_PUBLIC_ENABLE_REALTIME,
     NEXT_PUBLIC_ENABLE_ANALYTICS: process.env.NEXT_PUBLIC_ENABLE_ANALYTICS,
     NEXT_PUBLIC_ENABLE_PERFORMANCE_MONITORING:
       process.env.NEXT_PUBLIC_ENABLE_PERFORMANCE_MONITORING,
-    NEXT_PUBLIC_ENABLE_CSRF: process.env.NEXT_PUBLIC_ENABLE_CSRF,
-    NEXT_PUBLIC_ENABLE_RATE_LIMITING: process.env.NEXT_PUBLIC_ENABLE_RATE_LIMITING,
   };
 }
 
@@ -182,8 +148,6 @@ function getRawServerEnv() {
     JWT_SECRET: process.env.JWT_SECRET,
     USE_REAL_CHAINLINK_DATA: process.env.USE_REAL_CHAINLINK_DATA,
     USE_REAL_API3_DATA: process.env.USE_REAL_API3_DATA,
-    USE_REAL_WINKLINK_DATA: process.env.USE_REAL_WINKLINK_DATA,
-    USE_REAL_SUPRA_DATA: process.env.USE_REAL_SUPRA_DATA,
     USE_REAL_TWAP_DATA: process.env.USE_REAL_TWAP_DATA,
     USE_REAL_REFLECTOR_DATA: process.env.USE_REAL_REFLECTOR_DATA,
     USE_REAL_FLARE_DATA: process.env.USE_REAL_FLARE_DATA,
@@ -226,18 +190,12 @@ function parseServerEnv(): ServerEnv {
       NEXT_PUBLIC_SUPABASE_ANON_KEY: data.NEXT_PUBLIC_SUPABASE_ANON_KEY,
       SUPABASE_SERVICE_ROLE_KEY: data.SUPABASE_SERVICE_ROLE_KEY,
       NEXT_PUBLIC_APP_URL: data.NEXT_PUBLIC_APP_URL,
-      NEXT_PUBLIC_WS_URL: data.NEXT_PUBLIC_WS_URL ?? '',
       CSRF_SECRET: data.CSRF_SECRET,
       JWT_SECRET: data.JWT_SECRET,
-      NEXT_PUBLIC_ENABLE_REALTIME: data.NEXT_PUBLIC_ENABLE_REALTIME,
       NEXT_PUBLIC_ENABLE_ANALYTICS: data.NEXT_PUBLIC_ENABLE_ANALYTICS,
       NEXT_PUBLIC_ENABLE_PERFORMANCE_MONITORING: data.NEXT_PUBLIC_ENABLE_PERFORMANCE_MONITORING,
-      NEXT_PUBLIC_ENABLE_CSRF: data.NEXT_PUBLIC_ENABLE_CSRF,
-      NEXT_PUBLIC_ENABLE_RATE_LIMITING: data.NEXT_PUBLIC_ENABLE_RATE_LIMITING,
       USE_REAL_CHAINLINK_DATA: data.USE_REAL_CHAINLINK_DATA,
       USE_REAL_API3_DATA: data.USE_REAL_API3_DATA,
-      USE_REAL_WINKLINK_DATA: data.USE_REAL_WINKLINK_DATA,
-      USE_REAL_SUPRA_DATA: data.USE_REAL_SUPRA_DATA,
       USE_REAL_TWAP_DATA: data.USE_REAL_TWAP_DATA,
       USE_REAL_REFLECTOR_DATA: data.USE_REAL_REFLECTOR_DATA,
       USE_REAL_FLARE_DATA: data.USE_REAL_FLARE_DATA,
@@ -282,14 +240,8 @@ function buildClientEnvConfig(parsed: ClientEnv): ClientEnvConfig {
       isTest: getEnvironment() === 'test',
     },
     features: {
-      enableRealtime: parsed.NEXT_PUBLIC_ENABLE_REALTIME,
       enableAnalytics: parsed.NEXT_PUBLIC_ENABLE_ANALYTICS,
       enablePerformanceMonitoring: parsed.NEXT_PUBLIC_ENABLE_PERFORMANCE_MONITORING,
-      enableCSRFProtection: parsed.NEXT_PUBLIC_ENABLE_CSRF,
-      enableRateLimiting: parsed.NEXT_PUBLIC_ENABLE_RATE_LIMITING,
-    },
-    websocket: {
-      url: parsed.NEXT_PUBLIC_WS_URL || undefined,
     },
   };
 }
@@ -309,21 +261,13 @@ function buildServerEnvConfig(parsed: ServerEnv): ServerEnvConfig {
       isTest: getEnvironment() === 'test',
     },
     features: {
-      enableRealtime: parsed.NEXT_PUBLIC_ENABLE_REALTIME,
       enableAnalytics: parsed.NEXT_PUBLIC_ENABLE_ANALYTICS,
       enablePerformanceMonitoring: parsed.NEXT_PUBLIC_ENABLE_PERFORMANCE_MONITORING,
-      enableCSRFProtection: parsed.NEXT_PUBLIC_ENABLE_CSRF,
-      enableRateLimiting: parsed.NEXT_PUBLIC_ENABLE_RATE_LIMITING,
       useRealChainlinkData: parsed.USE_REAL_CHAINLINK_DATA,
       useRealApi3Data: parsed.USE_REAL_API3_DATA,
-      useRealWinklinkData: parsed.USE_REAL_WINKLINK_DATA,
-      useRealSupraData: parsed.USE_REAL_SUPRA_DATA,
       useRealTwapData: parsed.USE_REAL_TWAP_DATA,
       useRealReflectorData: parsed.USE_REAL_REFLECTOR_DATA,
       useRealFlareData: parsed.USE_REAL_FLARE_DATA,
-    },
-    websocket: {
-      url: parsed.NEXT_PUBLIC_WS_URL || undefined,
     },
     security: {
       csrfSecret: parsed.CSRF_SECRET,
@@ -355,16 +299,11 @@ export const env: ClientEnvConfig | ServerEnvConfig = getEnv();
 export const FEATURE_FLAGS: ServerFeatureFlags = _serverEnvConfig
   ? _serverEnvConfig.features
   : {
-      enableRealtime: _clientParsedEnv?.NEXT_PUBLIC_ENABLE_REALTIME ?? false,
       enableAnalytics: _clientParsedEnv?.NEXT_PUBLIC_ENABLE_ANALYTICS ?? false,
       enablePerformanceMonitoring:
         _clientParsedEnv?.NEXT_PUBLIC_ENABLE_PERFORMANCE_MONITORING ?? false,
-      enableCSRFProtection: _clientParsedEnv?.NEXT_PUBLIC_ENABLE_CSRF ?? false,
-      enableRateLimiting: _clientParsedEnv?.NEXT_PUBLIC_ENABLE_RATE_LIMITING ?? false,
       useRealChainlinkData: false,
       useRealApi3Data: false,
-      useRealWinklinkData: false,
-      useRealSupraData: false,
       useRealTwapData: false,
       useRealReflectorData: false,
       useRealFlareData: false,

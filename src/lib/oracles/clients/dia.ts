@@ -21,7 +21,6 @@ export class DIAClient extends BaseOracleClient {
   supportedSymbolsList = diaSymbols;
 
   defaultUpdateIntervalMinutes = 5;
-  protected historicalPriceConfidence = 0.95;
 
   constructor(config?: OracleClientConfig) {
     super(config);

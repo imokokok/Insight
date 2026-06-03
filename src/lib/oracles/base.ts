@@ -1,8 +1,4 @@
-import {
-  PriceDataSchema,
-  validateOracleData,
-  safeValidateOracleData,
-} from '@/lib/security/validation';
+import { PriceDataSchema, validateOracleData } from '@/lib/security/validation';
 import { TTLCache } from '@/lib/utils/cache';
 import { createLogger } from '@/lib/utils/logger';
 import {
@@ -132,25 +128,12 @@ export abstract class BaseOracleClient {
   defaultUpdateIntervalMinutes: number = 1;
   chainUpdateIntervals: Partial<Record<Blockchain, number>> = {};
 
-  protected historicalPriceConfidence: number = 0.95;
   protected defaultChain: Blockchain = Blockchain.ETHEREUM;
 
   protected config: OracleClientConfig;
 
   constructor(config?: OracleClientConfig) {
     this.config = { ...DEFAULT_CLIENT_CONFIG, ...config };
-  }
-
-  protected getHistoricalPriceConfidence(_chain?: Blockchain): number {
-    return this.historicalPriceConfidence;
-  }
-
-  protected onNoHistoricalData(_symbol: string): PriceData[] {
-    return [];
-  }
-
-  protected onHistoricalDataError(_symbol: string, _error: unknown): PriceData[] {
-    return [];
   }
 
   async getHistoricalPrices(
@@ -296,29 +279,6 @@ export abstract class BaseOracleClient {
       return data as PriceData;
     }
     return validateOracleData(PriceDataSchema, data, context) as PriceData;
-  }
-
-  protected safeValidatePriceData(data: unknown, context?: string): PriceData | null {
-    if (!this.config.validateData) {
-      if (process.env.NODE_ENV === 'development') {
-        logger.warn('Price data validation is disabled - skipping validation', { context });
-      }
-      return data as PriceData;
-    }
-    const result = safeValidateOracleData(PriceDataSchema, data, context);
-    if (!result.ok && process.env.NODE_ENV === 'development') {
-      logger.warn('Price data validation failed silently', { context, error: result.error });
-    }
-    return result.ok ? (result.data as PriceData) : null;
-  }
-
-  protected validatePriceDataArray(data: unknown[], context?: string): PriceData[] {
-    if (!this.config.validateData) {
-      return data as PriceData[];
-    }
-    return data.map((item, index) =>
-      this.validatePriceData(item, context ? `${context}[${index}]` : `[${index}]`)
-    );
   }
 
   async fetchPriceWithDatabase(symbol: string, chain: Blockchain | undefined): Promise<PriceData> {

@@ -1,37 +1,4 @@
-import { withOracleRetry } from './utils/retry';
-
-import type { RetryConfig } from './diaTypes';
-
 export const DIA_API_BASE_URL = process.env.DIA_API_URL || 'https://api.diadata.org/v1';
-
-export const CACHE_TTL = {
-  PRICE: 30000,
-  HISTORICAL: 60000,
-  SUPPLY: 300000,
-  DIGITAL_ASSETS: 300000,
-};
-
-export const DEFAULT_RETRY_CONFIG: RetryConfig = {
-  maxAttempts: 3,
-  baseDelay: 1000,
-  maxDelay: 10000,
-  backoffMultiplier: 2,
-};
-
-export async function withRetry<T>(
-  operation: () => Promise<T>,
-  config: RetryConfig = DEFAULT_RETRY_CONFIG,
-  operationName: string = 'operation'
-): Promise<T> {
-  const oracleConfig = {
-    maxAttempts: config.maxAttempts,
-    baseDelay: config.baseDelay,
-    maxDelay: config.maxDelay,
-    backoffMultiplier: config.backoffMultiplier,
-  };
-
-  return withOracleRetry(operation, operationName, oracleConfig);
-}
 
 interface FetchWithTimeoutOptions extends RequestInit {
   timeout?: number;

@@ -1,15 +1,15 @@
 import { createLogger } from '@/lib/utils/logger';
 
-import {
-  DIA_API_BASE_URL,
-  CACHE_TTL,
-  DEFAULT_RETRY_CONFIG,
-  withRetry,
-  fetchWithTimeout,
-} from '../diaUtils';
+import { DIA_API_BASE_URL, fetchWithTimeout } from '../diaUtils';
+import { withOracleRetry, ORACLE_RETRY_PRESETS } from '../utils/retry';
 
 import type { OracleCache } from '../base';
 import type { DIASupply, DIAExchange } from '../diaTypes';
+
+const DIA_CACHE_TTL = {
+  SUPPLY: 300000,
+  DIGITAL_ASSETS: 300000,
+} as const;
 
 const logger = createLogger('DIANetworkService');
 
@@ -26,17 +26,17 @@ export class DIANetworkService {
     }
 
     try {
-      const result = await withRetry(
+      const result = await withOracleRetry(
         async () => {
           const url = `${DIA_API_BASE_URL}/supply/${symbol.toUpperCase()}`;
           return fetchWithTimeout<DIASupply | null>(url, { timeout: REQUEST_TIMEOUT });
         },
-        DEFAULT_RETRY_CONFIG,
-        'getSupply'
+        'getSupply',
+        ORACLE_RETRY_PRESETS.standard
       );
 
       if (result) {
-        this.cache.set(cacheKey, result, CACHE_TTL.SUPPLY);
+        this.cache.set(cacheKey, result, DIA_CACHE_TTL.SUPPLY);
       }
 
       return result;
@@ -58,17 +58,17 @@ export class DIANetworkService {
     }
 
     try {
-      const result = await withRetry(
+      const result = await withOracleRetry(
         async () => {
           const url = `${DIA_API_BASE_URL}/exchanges`;
           return fetchWithTimeout<DIAExchange[]>(url, { timeout: REQUEST_TIMEOUT });
         },
-        DEFAULT_RETRY_CONFIG,
-        'getExchanges'
+        'getExchanges',
+        ORACLE_RETRY_PRESETS.standard
       );
 
       if (result) {
-        this.cache.set(cacheKey, result, CACHE_TTL.DIGITAL_ASSETS);
+        this.cache.set(cacheKey, result, DIA_CACHE_TTL.DIGITAL_ASSETS);
       }
 
       return result || [];

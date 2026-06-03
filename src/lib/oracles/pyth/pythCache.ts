@@ -18,16 +18,4 @@ export class PythCache {
   clear(): void {
     this.impl.clear();
   }
-
-  delete(key: string): boolean {
-    return this.impl.delete(key);
-  }
-
-  has(key: string): boolean {
-    return this.impl.has(key);
-  }
-
-  size(): number {
-    return this.impl.size;
-  }
 }

@@ -31,15 +31,6 @@ interface SupraLatestPriceData {
   symbol: string;
 }
 
-interface SupraOHLCDataPoint {
-  timestamp: number;
-  open: number;
-  high: number;
-  low: number;
-  close: number;
-  volume: number;
-}
-
 class SupraApiError extends Error {
   public readonly code: string;
   public readonly statusCode?: number;
@@ -80,10 +71,6 @@ class SupraDataService {
 
   getPairIndex(symbol: string): number | null {
     return SUPRA_PAIR_INDEX_MAP[symbol.toUpperCase()] ?? null;
-  }
-
-  getSymbolFromIndex(index: number): string | null {
-    return SUPRA_INDEX_TO_SYMBOL[index] ?? null;
   }
 
   async fetchLatestPrices(
@@ -208,16 +195,6 @@ class SupraDataService {
     }
 
     return result;
-  }
-
-  async fetchHistoricalPrices(
-    _tradingPair: string,
-    _startDate: number,
-    _endDate: number,
-    _interval: number,
-    _signal?: AbortSignal
-  ): Promise<SupraOHLCDataPoint[]> {
-    return [];
   }
 
   clearCache(): void {
