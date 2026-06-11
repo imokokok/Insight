@@ -5,17 +5,12 @@ import { render, screen } from '@testing-library/react';
 
 import HomePage from '../page';
 
-jest.mock('next/dynamic', () => ({
-  __esModule: true,
-  default: (_importFn: () => Promise<unknown>, _options?: { loading?: () => ReactNode }) => {
-    const MockComponent = () => <div data-testid="professional-hero">ProfessionalHero</div>;
-    MockComponent.displayName = 'DynamicComponent';
-    return MockComponent;
-  },
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({ push: jest.fn() }),
 }));
 
-jest.mock('@/components/ui', () => ({
-  HeroSkeleton: () => <div data-testid="hero-skeleton">Loading...</div>,
+jest.mock('@/hooks/data/useReputations', () => ({
+  useReputations: () => ({ data: null, isLoading: false }),
 }));
 
 const createWrapper = () => {
@@ -38,18 +33,22 @@ const renderHomePage = () => {
 
 describe('HomePage', () => {
   describe('Basic rendering', () => {
-    it('should render the home page correctly', () => {
+    it('should render the dashboard', () => {
       renderHomePage();
 
-      expect(screen.getByTestId('professional-hero')).toBeInTheDocument();
+      expect(screen.getByText('Insight Dashboard')).toBeInTheDocument();
     });
 
-    it('should render the main container', () => {
+    it('should render search bar', () => {
       renderHomePage();
 
-      const main = screen.getByRole('main');
-      expect(main).toBeInTheDocument();
-      expect(main).toHaveClass('min-h-screen', 'rounded-lg');
+      expect(screen.getByPlaceholderText('Search BTC, ETH, oracle...')).toBeInTheDocument();
+    });
+
+    it('should render consensus price section', () => {
+      renderHomePage();
+
+      expect(screen.getByText('Live Consensus Prices')).toBeInTheDocument();
     });
   });
 
