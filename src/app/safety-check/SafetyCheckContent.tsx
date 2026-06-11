@@ -102,9 +102,10 @@ export default function SafetyCheckContent() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">个人仓位临界偏差</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Position Critical Deviation</h1>
             <p className="text-sm text-gray-500 mt-1">
-              输入你的 DeFi 仓位，计算预言机价格偏差到多少时你的仓位会被清算
+              Enter your DeFi position to calculate the oracle price deviation at which your
+              position gets liquidated
             </p>
           </div>
         </div>
@@ -142,27 +143,27 @@ export default function SafetyCheckContent() {
                 >
                   <div className="flex items-center gap-2 mb-3">
                     <Calculator className="w-4 h-4 text-primary-600" />
-                    <h4 className="text-sm font-semibold text-gray-900">举个例子</h4>
+                    <h4 className="text-sm font-semibold text-gray-900">Example</h4>
                   </div>
                   <p className="text-sm text-gray-600 leading-relaxed mb-3">
-                    假设你在 <strong>Aave V3 (Ethereum)</strong> 存了 <strong>1 ETH</strong>{' '}
-                    作为抵押，借了 <strong>1000 USDC</strong>：
+                    Suppose you deposited <strong>1 ETH</strong> as collateral on{' '}
+                    <strong>Aave V3 (Ethereum)</strong> and borrowed <strong>1000 USDC</strong>:
                   </p>
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     <div className="bg-gray-50 rounded-md p-2.5">
-                      <span className="text-xs text-gray-500">协议清算阈值</span>
+                      <span className="text-xs text-gray-500">Liquidation Threshold</span>
                       <p className="font-medium text-gray-900 mt-0.5">120%</p>
                     </div>
                     <div className="bg-gray-50 rounded-md p-2.5">
-                      <span className="text-xs text-gray-500">当前 ETH 价格</span>
+                      <span className="text-xs text-gray-500">Current ETH Price</span>
                       <p className="font-medium text-gray-900 mt-0.5">~$3,000</p>
                     </div>
                     <div className="bg-gray-50 rounded-md p-2.5">
-                      <span className="text-xs text-gray-500">抵押品价值</span>
+                      <span className="text-xs text-gray-500">Collateral Value</span>
                       <p className="font-medium text-gray-900 mt-0.5">$3,000</p>
                     </div>
                     <div className="bg-gray-50 rounded-md p-2.5">
-                      <span className="text-xs text-gray-500">临界偏差</span>
+                      <span className="text-xs text-gray-500">Critical Deviation</span>
                       <p className="font-medium text-red-600 mt-0.5">-40.05%</p>
                     </div>
                   </div>
@@ -202,10 +203,11 @@ export default function SafetyCheckContent() {
                     <Shield className="w-7 h-7 text-primary-400" />
                   </div>
                   <h3 className="text-base font-semibold text-gray-900 mb-1">
-                    开始计算你的临界偏差
+                    Start Calculating Your Critical Deviation
                   </h3>
                   <p className="text-sm text-gray-500 max-w-sm">
-                    在左侧选择协议并填写你的仓位参数，系统将自动计算你的个人清算临界值
+                    Select a protocol and fill in your position parameters on the left, the system
+                    will automatically calculate your personal liquidation critical value
                   </p>
                 </motion.div>
               )}

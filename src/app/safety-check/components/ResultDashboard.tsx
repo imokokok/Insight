@@ -21,10 +21,10 @@ interface ResultDashboardProps {
 export function ResultDashboard({ result, onReset }: ResultDashboardProps) {
   const status = useMemo(() => {
     const hf = result.currentHealthFactor;
-    if (hf < 1) return { label: '已被清算', color: 'text-gray-500', bg: 'bg-gray-50' };
-    if (hf < 1.05) return { label: '清算边缘', color: 'text-red-600', bg: 'bg-red-50' };
-    if (hf < 1.2) return { label: '风险较高', color: 'text-amber-600', bg: 'bg-amber-50' };
-    return { label: '状态安全', color: 'text-emerald-600', bg: 'bg-emerald-50' };
+    if (hf < 1) return { label: 'Liquidated', color: 'text-gray-500', bg: 'bg-gray-50' };
+    if (hf < 1.05) return { label: 'Near Liquidation', color: 'text-red-600', bg: 'bg-red-50' };
+    if (hf < 1.2) return { label: 'High Risk', color: 'text-amber-600', bg: 'bg-amber-50' };
+    return { label: 'Safe', color: 'text-emerald-600', bg: 'bg-emerald-50' };
   }, [result.currentHealthFactor]);
 
   const deviationAbs = Math.abs(result.criticalDeviationPercent);
@@ -54,7 +54,7 @@ export function ResultDashboard({ result, onReset }: ResultDashboardProps) {
           className="lg:col-span-3 bg-white rounded-lg border border-gray-200 shadow-sm p-5 flex flex-col justify-center"
         >
           <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">
-            临界偏差
+            Critical Deviation
           </p>
           <div className="flex items-baseline gap-3">
             <span
@@ -72,19 +72,19 @@ export function ResultDashboard({ result, onReset }: ResultDashboardProps) {
                 isDown ? 'bg-red-50 text-red-700' : 'bg-emerald-50 text-emerald-700'
               )}
             >
-              {isDown ? '下跌' : '上涨'}
+              {isDown ? 'Down' : 'Up'}
             </span>
           </div>
           <p className="text-sm text-gray-500 mt-3">
-            当 {result.collateralSymbol} 价格{isDown ? '下跌' : '上涨'}到{' '}
+            When {result.collateralSymbol} price goes {isDown ? 'down' : 'up'} to{' '}
             <span className="text-gray-900 font-mono font-medium">
               {formatPrice(result.criticalCollateralPrice)}
             </span>{' '}
-            时，你的仓位将面临清算
+            your position will face liquidation
           </p>
           <div className="mt-4 flex items-center gap-4 text-xs text-gray-400">
             <span className="flex items-center gap-1">
-              <TrendingDown className="w-3 h-3" /> 当前: {formatPrice(result.collateralPrice)}
+              <TrendingDown className="w-3 h-3" /> Current: {formatPrice(result.collateralPrice)}
             </span>
             <span>HF: {result.currentHealthFactor.toFixed(2)}</span>
           </div>
@@ -106,7 +106,7 @@ export function ResultDashboard({ result, onReset }: ResultDashboardProps) {
           >
             <p className={cn('text-base font-bold', status.color)}>{status.label}</p>
             <p className="text-xs text-gray-400 mt-0.5">
-              清算阈值 {(result.liquidationThreshold * 100).toFixed(0)}%
+              Liquidation Threshold {(result.liquidationThreshold * 100).toFixed(0)}%
             </p>
           </motion.div>
         </motion.div>
@@ -130,24 +130,24 @@ export function ResultDashboard({ result, onReset }: ResultDashboardProps) {
       >
         {[
           {
-            label: '抵押资产',
+            label: 'Collateral Asset',
             value: `${result.collateralAmount} ${result.collateralSymbol}`,
             sub: `≈ ${formatPrice(result.collateralAmount * result.collateralPrice)}`,
             icon: Shield,
           },
           {
-            label: '借款资产',
+            label: 'Borrow Asset',
             value: `${result.borrowAmount} ${result.borrowSymbol}`,
             sub: `≈ ${formatPrice(result.borrowAmount * result.borrowPrice)}`,
             icon: AlertTriangle,
           },
           {
-            label: '当前抵押率',
+            label: 'Current Collateral Ratio',
             value: `${(result.currentCollateralRatio * 100).toFixed(2)}%`,
-            sub: `阈值: ${(result.liquidationThreshold * 100).toFixed(0)}%`,
+            sub: `Threshold: ${(result.liquidationThreshold * 100).toFixed(0)}%`,
             icon: TrendingDown,
           },
-          { label: '协议', value: result.protocolName, sub: result.chain, icon: Shield },
+          { label: 'Protocol', value: result.protocolName, sub: result.chain, icon: Shield },
         ].map((item, i) => (
           <motion.div
             key={item.label}
@@ -175,17 +175,27 @@ export function ResultDashboard({ result, onReset }: ResultDashboardProps) {
         transition={{ delay: 0.4 }}
         className="bg-white rounded-lg border border-gray-200 shadow-sm p-5"
       >
-        <h4 className="text-sm font-semibold text-gray-900 mb-4">价格偏差状态</h4>
+        <h4 className="text-sm font-semibold text-gray-900 mb-4">Price Deviation Status</h4>
         <div className="space-y-2">
           {heatmapData.map((point, index) => {
             const cfg =
               point.status === 'safe'
-                ? { color: '#10b981', bg: 'bg-emerald-50', label: '安全', text: 'text-emerald-700' }
+                ? { color: '#10b981', bg: 'bg-emerald-50', label: 'Safe', text: 'text-emerald-700' }
                 : point.status === 'warning'
-                  ? { color: '#f59e0b', bg: 'bg-amber-50', label: '警告', text: 'text-amber-700' }
+                  ? {
+                      color: '#f59e0b',
+                      bg: 'bg-amber-50',
+                      label: 'Warning',
+                      text: 'text-amber-700',
+                    }
                   : point.status === 'critical'
-                    ? { color: '#ef4444', bg: 'bg-red-50', label: '临界', text: 'text-red-700' }
-                    : { color: '#6b7280', bg: 'bg-gray-50', label: '清算', text: 'text-gray-700' };
+                    ? { color: '#ef4444', bg: 'bg-red-50', label: 'Critical', text: 'text-red-700' }
+                    : {
+                        color: '#6b7280',
+                        bg: 'bg-gray-50',
+                        label: 'Liquidated',
+                        text: 'text-gray-700',
+                      };
 
             const barWidth = Math.min(100, Math.max(15, (point.collateralRatio / 250) * 100));
 
@@ -211,7 +221,7 @@ export function ResultDashboard({ result, onReset }: ResultDashboardProps) {
                     {point.deviationPercent.toFixed(1)}%
                   </span>
                   {point.deviationPercent === 0 && (
-                    <span className="text-[10px] text-gray-400 ml-1">当前</span>
+                    <span className="text-[10px] text-gray-400 ml-1">Current</span>
                   )}
                 </div>
                 <div className="w-16 shrink-0 text-right">
@@ -268,7 +278,7 @@ export function ResultDashboard({ result, onReset }: ResultDashboardProps) {
           className="group flex items-center gap-2 text-sm text-gray-400 hover:text-primary-600 transition-colors"
         >
           <RefreshCw className="w-4 h-4 group-hover:rotate-180 transition-transform duration-500" />
-          重新计算
+          Recalculate
         </button>
       </motion.div>
     </motion.div>
