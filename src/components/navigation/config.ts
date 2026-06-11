@@ -8,6 +8,7 @@ import {
   Award,
   Bell,
   BarChart3,
+  ShieldCheck,
 } from 'lucide-react';
 
 import { oracleColors } from '@/lib/constants';
@@ -24,6 +25,11 @@ export const navigationConfig: NavStructure = [
     href: '/price-query',
     label: 'Price Query',
     icon: Search,
+  },
+  {
+    href: '/safety-check',
+    label: 'Safety Check',
+    icon: ShieldCheck,
   },
   {
     id: 'analysis',
