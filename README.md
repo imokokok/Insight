@@ -11,6 +11,7 @@ Insight is a professional oracle data analytics platform that provides comprehen
 - **Price Alerts & Notifications** - Configure custom price alerts with multiple trigger conditions and real-time event push
 - **Price Snapshots** - Save and compare price snapshots across time with detailed comparison analytics
 - **Data Export** - Export data in CSV, JSON, Excel, PDF, and PNG formats
+- **Personal Position Critical Deviation (Safety Check)** - Calculate the exact oracle price deviation that would trigger liquidation for individual DeFi positions across protocols like Aave and Compound, bringing oracle security from protocol-level analysis to everyday users
 - **Anomaly Detection** - Automatic detection of price anomalies and outliers
 - **Consensus Price** - Multiple consensus algorithms (median, trimmed mean, weighted median, confidence-weighted, reliability-weighted, IQR-filtered)
 - **Data Transparency** - Data source indicators and update time tracking
@@ -163,3 +164,7 @@ All V1 endpoints require an API key passed via `x-api-key` header or `Authorizat
 #### System
 
 - `GET /api/cron/reputation` - Cron job for reputation recalculation
+
+#### Protocol Health
+
+- `POST /api/protocol-health` - Calculate critical deviation and liquidation risk for a DeFi position (requires `protocolId`, `collateralSymbol`, `collateralAmount`, `borrowSymbol`, `borrowAmount`)
