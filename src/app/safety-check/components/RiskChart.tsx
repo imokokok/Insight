@@ -52,9 +52,9 @@ export function RiskChart({ result }: RiskChartProps) {
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4">
-      <h4 className="text-sm font-semibold text-gray-900 mb-1">抵押率变化曲线</h4>
+      <h4 className="text-sm font-semibold text-gray-900 mb-1">Collateral Ratio Curve</h4>
       <p className="text-xs text-gray-500 mb-4">
-        横轴为 {result.collateralSymbol} 预言机价格，纵轴为抵押率
+        X-axis: {result.collateralSymbol} oracle price, Y-axis: collateral ratio
       </p>
       <div className="h-64">
         <ResponsiveContainer width="100%" height="100%">
@@ -93,9 +93,9 @@ export function RiskChart({ result }: RiskChartProps) {
               }}
               formatter={(value, name) => [
                 name === 'ratio' ? `${Number(value).toFixed(1)}%` : value,
-                name === 'ratio' ? '抵押率' : name,
+                name === 'ratio' ? 'Collateral Ratio' : name,
               ]}
-              labelFormatter={(label) => `价格: $${Number(label).toFixed(2)}`}
+              labelFormatter={(label) => `Price: $${Number(label).toFixed(2)}`}
             />
             <ReferenceLine
               y={liquidationLineY}
@@ -103,7 +103,7 @@ export function RiskChart({ result }: RiskChartProps) {
               strokeDasharray="6 4"
               strokeWidth={1.5}
               label={{
-                value: `清算线 ${liquidationLineY.toFixed(0)}%`,
+                value: `Liq. Line ${liquidationLineY.toFixed(0)}%`,
                 position: 'insideTopRight',
                 fill: '#ef4444',
                 fontSize: 11,
@@ -118,7 +118,7 @@ export function RiskChart({ result }: RiskChartProps) {
               stroke="#fff"
               strokeWidth={2}
               label={{
-                value: '临界点',
+                value: 'Critical Point',
                 position: 'top',
                 fill: '#ef4444',
                 fontSize: 11,

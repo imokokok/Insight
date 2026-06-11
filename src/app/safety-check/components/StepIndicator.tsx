@@ -11,9 +11,9 @@ interface Step {
 }
 
 const STEPS: Step[] = [
-  { id: 1, label: '选择协议' },
-  { id: 2, label: '填写仓位' },
-  { id: 3, label: '查看结果' },
+  { id: 1, label: 'Select Protocol' },
+  { id: 2, label: 'Fill Position' },
+  { id: 3, label: 'View Results' },
 ];
 
 interface StepIndicatorProps {

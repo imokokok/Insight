@@ -92,7 +92,7 @@ export function ProtocolSearch({ selectedProtocol, onSelect, disabled }: Protoco
                 setIsOpen(true);
               }}
               onFocus={() => setIsOpen(true)}
-              placeholder="搜索协议（如 Aave、Compound）..."
+              placeholder="Search protocol (e.g. Aave, Compound)..."
               disabled={disabled}
               className="flex-1 bg-transparent outline-none text-sm text-gray-900 placeholder:text-gray-400 min-w-0"
             />
@@ -107,7 +107,9 @@ export function ProtocolSearch({ selectedProtocol, onSelect, disabled }: Protoco
         <div className="absolute z-50 mt-2 w-full bg-white rounded-lg border border-gray-200 shadow-lg overflow-hidden">
           <div className="max-h-64 overflow-y-auto py-1">
             {filtered.length === 0 ? (
-              <div className="px-4 py-6 text-center text-gray-500 text-sm">未找到匹配的协议</div>
+              <div className="px-4 py-6 text-center text-gray-500 text-sm">
+                No matching protocols found
+              </div>
             ) : (
               filtered.map((protocol) => (
                 <button

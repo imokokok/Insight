@@ -34,10 +34,10 @@ export function CircularGauge({
   }, [value]);
 
   const statusText = useMemo(() => {
-    if (value < 1) return '已清算';
-    if (value < 1.05) return '临界';
-    if (value < 1.2) return '警告';
-    return '安全';
+    if (value < 1) return 'Liquidated';
+    if (value < 1.05) return 'Critical';
+    if (value < 1.2) return 'Warning';
+    return 'Safe';
   }, [value]);
 
   return (

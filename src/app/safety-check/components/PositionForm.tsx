@@ -77,7 +77,7 @@ export function PositionForm({
       >
         <div className="flex items-center gap-2 mb-3">
           <Wallet className="w-4 h-4 text-primary-600" />
-          <h3 className="text-sm font-semibold text-gray-900">选择协议</h3>
+          <h3 className="text-sm font-semibold text-gray-900">Select Protocol</h3>
         </div>
         <ProtocolSearch
           selectedProtocol={selectedProtocol}
@@ -111,7 +111,7 @@ export function PositionForm({
         >
           <div className="flex items-center gap-2 mb-4">
             <Zap className="w-4 h-4 text-primary-600" />
-            <h3 className="text-sm font-semibold text-gray-900">填写仓位</h3>
+            <h3 className="text-sm font-semibold text-gray-900">Fill Position</h3>
           </div>
 
           <div className="space-y-4">
@@ -119,13 +119,13 @@ export function PositionForm({
               assets={assets}
               selected={collateralSymbol}
               onSelect={onCollateralSymbolChange}
-              label="抵押资产"
+              label="Collateral Asset"
               disabled={isLoading}
             />
 
             <div>
               <label className="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1.5">
-                抵押数量
+                Collateral Amount
               </label>
               <div className="relative">
                 <input
@@ -147,8 +147,9 @@ export function PositionForm({
               </div>
               {collateralAsset && (
                 <p className="text-[11px] text-gray-400 mt-1">
-                  清算阈值 {(collateralAsset.liquidationCollateralRatio * 100).toFixed(0)}%{' · '}
-                  最大 LTV {(collateralAsset.maxLtv * 100).toFixed(0)}%
+                  Liq. Threshold {(collateralAsset.liquidationCollateralRatio * 100).toFixed(0)}%
+                  {' · '}
+                  Max LTV {(collateralAsset.maxLtv * 100).toFixed(0)}%
                 </p>
               )}
             </div>
@@ -163,13 +164,13 @@ export function PositionForm({
               assets={assets}
               selected={borrowSymbol}
               onSelect={onBorrowSymbolChange}
-              label="借款资产"
+              label="Borrow Asset"
               disabled={isLoading}
             />
 
             <div>
               <label className="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1.5">
-                借款数量
+                Borrow Amount
               </label>
               <div className="relative">
                 <input
@@ -198,7 +199,7 @@ export function PositionForm({
               className="w-full"
               disabled={!isFormComplete}
             >
-              {isLoading ? '计算中...' : '计算临界偏差'}
+              {isLoading ? 'Calculating...' : 'Calculate Critical Deviation'}
             </Button>
           </div>
         </motion.div>
