@@ -20,15 +20,25 @@ interface AssetSelectorProps {
   onSelect: (symbol: string) => void;
   label: string;
   disabled?: boolean;
+  compact?: boolean;
 }
 
-export function AssetSelector({ assets, selected, onSelect, label, disabled }: AssetSelectorProps) {
+export function AssetSelector({
+  assets,
+  selected,
+  onSelect,
+  label,
+  disabled,
+  compact,
+}: AssetSelectorProps) {
   return (
     <div>
-      <label className="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">
-        {label}
-      </label>
-      <div className="flex flex-wrap gap-2">
+      {label && (
+        <label className="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">
+          {label}
+        </label>
+      )}
+      <div className={cn('flex flex-wrap gap-2', compact && 'gap-1.5')}>
         {assets.map((asset, i) => {
           const Icon = ICON_MAP[asset.symbol] ?? Coins;
           const isSelected = selected === asset.symbol;
@@ -44,6 +54,7 @@ export function AssetSelector({ assets, selected, onSelect, label, disabled }: A
               type="button"
               className={cn(
                 'relative flex items-center gap-1.5 px-3 py-2 rounded-lg border text-sm font-medium transition-all duration-200',
+                compact && 'px-2 py-1.5 text-xs',
                 isSelected
                   ? 'bg-primary-50 border-primary-300 text-primary-700 shadow-sm'
                   : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50'

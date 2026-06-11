@@ -22,22 +22,55 @@ interface RiskChartProps {
 
 export function RiskChart({ result }: RiskChartProps) {
   const data = useMemo(() => {
-    const points: Array<{ price: number; ratio: number; deviation: number }> = [];
-    const currentPrice = result.collateralPrice;
-    const minDeviation = Math.min(result.criticalDeviationPercent * 1.3, -5);
-    const maxDeviation = 5;
+    const points: Array<{ price: number; ratio: number; deviation: number; hf: number }> = [];
+    const worstDeviation = result.worstDeviation;
+    const isDown = worstDeviation.direction === 'down';
 
-    for (let d = maxDeviation; d >= minDeviation; d -= 0.5) {
-      const price = currentPrice * (1 + d / 100);
-      const cValue = result.collateralAmount * price;
+    // 找到主抵押品来展示价格轴
+    const primaryCollateral = result.collaterals.find((c) => c.symbol === worstDeviation.symbol);
+    const displayCollateral = primaryCollateral ?? result.collaterals[0];
+
+    const criticalDeviation = worstDeviation.criticalDeviationPercent;
+
+    // 动态范围
+    const absCritical = Math.abs(criticalDeviation);
+    const minDeviation = isDown ? Math.min(criticalDeviation * 1.3, -5) : -5;
+    const maxDeviation = isDown ? 5 : Math.max(criticalDeviation * 1.3, 5);
+
+    const step = absCritical > 30 ? 1 : absCritical > 10 ? 0.5 : 0.25;
+
+    for (let d = maxDeviation; d >= minDeviation; d -= step) {
+      let adjustedCollateralValue: number;
+      let adjustedBorrowValue: number;
+
+      if (isDown) {
+        const priceMultiplier = 1 + d / 100;
+        adjustedCollateralValue = result.collaterals.reduce((sum, c) => {
+          const isPrimary = c.symbol === worstDeviation.symbol;
+          const mult = isPrimary ? priceMultiplier : 1;
+          return sum + c.collateralFactor * c.exchangeRate * c.price * mult * c.amount;
+        }, 0);
+        adjustedBorrowValue = result.totalBorrowValue;
+      } else {
+        adjustedCollateralValue = result.totalAdjustedCollateralValue;
+        const priceMultiplier = 1 + d / 100;
+        adjustedBorrowValue = result.borrows.reduce((sum, b) => {
+          const isPrimary = b.symbol === worstDeviation.symbol;
+          const mult = isPrimary ? priceMultiplier : 1;
+          return sum + b.price * mult * b.amount;
+        }, 0);
+      }
+
       const ratio =
-        result.borrowAmount * result.borrowPrice > 0
-          ? (cValue / (result.borrowAmount * result.borrowPrice)) * 100
-          : 0;
+        adjustedBorrowValue > 0 ? (adjustedCollateralValue / adjustedBorrowValue) * 100 : 0;
+      const hf = result.liquidationThreshold > 0 ? ratio / (result.liquidationThreshold * 100) : 0;
+      const displayPrice = displayCollateral.price * (1 + d / 100);
+
       points.push({
-        price: Number(price.toFixed(2)),
+        price: Number(displayPrice.toFixed(2)),
         ratio: Number(Math.max(0, ratio).toFixed(2)),
         deviation: d,
+        hf: Number(hf.toFixed(4)),
       });
     }
     return points;
@@ -50,11 +83,15 @@ export function RiskChart({ result }: RiskChartProps) {
     return `$${value.toFixed(0)}`;
   };
 
+  const worstDeviation = result.worstDeviation;
+
   return (
     <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4">
       <h4 className="text-sm font-semibold text-gray-900 mb-1">Collateral Ratio Curve</h4>
       <p className="text-xs text-gray-500 mb-4">
-        X-axis: {result.collateralSymbol} oracle price, Y-axis: collateral ratio
+        {worstDeviation.direction === 'down'
+          ? `${worstDeviation.symbol} price drop → collateral ratio decline`
+          : `${worstDeviation.symbol} price rise → borrow value increase`}
       </p>
       <div className="h-64">
         <ResponsiveContainer width="100%" height="100%">
@@ -118,7 +155,7 @@ export function RiskChart({ result }: RiskChartProps) {
               stroke="#fff"
               strokeWidth={2}
               label={{
-                value: 'Critical Point',
+                value: 'Critical',
                 position: 'top',
                 fill: '#ef4444',
                 fontSize: 11,
