@@ -1,30 +1,10 @@
 'use client';
 
-import dynamic from 'next/dynamic';
-
 import { ErrorBoundary } from '@/components/error-boundary';
-import { HeroSkeleton } from '@/components/ui';
-
-const ProfessionalHero = dynamic(() => import('@/components/home/ProfessionalHero'), {
-  loading: () => <HeroSkeleton />,
-  ssr: false,
-});
-
-const HomeDashboard = dynamic(
-  () => import('@/components/home/HomeDashboard').then((m) => m.HomeDashboard),
-  {
-    loading: () => <HeroSkeleton />,
-    ssr: false,
-  }
-);
+import DashboardContent from '@/components/home/DashboardContent';
 
 function HomeContentInner() {
-  return (
-    <div className="min-h-screen">
-      <ProfessionalHero />
-      <HomeDashboard />
-    </div>
-  );
+  return <DashboardContent />;
 }
 
 export default function HomeContent() {
