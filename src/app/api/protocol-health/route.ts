@@ -13,13 +13,34 @@ import { type OracleProvider, type PriceData } from '@/types/oracle';
 
 const logger = createLogger('api-protocol-health');
 
-const PositionCriticalRequestSchema = z.object({
-  protocolId: z.string().min(1, 'Protocol ID is required'),
-  collateralSymbol: z.string().min(1, 'Collateral symbol is required'),
-  collateralAmount: z.number().positive('Collateral amount must be positive'),
-  borrowSymbol: z.string().min(1, 'Borrow symbol is required'),
-  borrowAmount: z.number().positive('Borrow amount must be positive'),
+const AssetEntrySchema = z.object({
+  symbol: z.string().min(1),
+  amount: z.number().positive(),
 });
+
+const PositionCriticalRequestSchema = z
+  .object({
+    protocolId: z.string().min(1, 'Protocol ID is required'),
+    // Multi-asset mode
+    collaterals: z.array(AssetEntrySchema).min(1, 'At least one collateral is required').optional(),
+    borrows: z.array(AssetEntrySchema).min(1, 'At least one borrow is required').optional(),
+    // Backward compatible single-asset mode
+    collateralSymbol: z.string().min(1).optional(),
+    collateralAmount: z.number().positive().optional(),
+    borrowSymbol: z.string().min(1).optional(),
+    borrowAmount: z.number().positive().optional(),
+  })
+  .refine(
+    (data) => {
+      // 多资产模式或单资产模式至少满足一种
+      const hasMultiAsset =
+        data.collaterals && data.collaterals.length > 0 && data.borrows && data.borrows.length > 0;
+      const hasSingleAsset =
+        data.collateralSymbol && data.collateralAmount && data.borrowSymbol && data.borrowAmount;
+      return hasMultiAsset || hasSingleAsset;
+    },
+    { message: 'Provide either collaterals/borrows arrays or single collateral/borrow fields' }
+  );
 
 async function fetchPricesForPosition(
   queries: { provider: OracleProvider; symbol: string }[]
@@ -101,7 +122,7 @@ export const POST = createApiHandler(
       );
     }
 
-    const input: PositionInput = validation.data;
+    const input: PositionInput = validation.data as PositionInput;
 
     try {
       const result = await calculatePositionCriticalDeviation(input, fetchPricesForPosition);

@@ -5,7 +5,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Shield, Calculator } from 'lucide-react';
 
-import type { PositionInput } from '@/lib/protocols/protocolHealth';
+import type { AssetEntry } from '@/lib/protocols/protocolHealth';
 import type { ProtocolConfig } from '@/lib/protocols/protocolRegistry';
 import { PROTOCOL_REGISTRY } from '@/lib/protocols/protocolRegistry';
 
@@ -14,15 +14,18 @@ import { ResultDashboard } from './components/ResultDashboard';
 import { StepIndicator } from './components/StepIndicator';
 import { useProtocolHealth } from './hooks/useProtocolHealth';
 
+interface AssetRow {
+  symbol: string;
+  amount: string;
+}
+
 export default function SafetyCheckContent() {
   const [step, setStep] = useState(1);
   const [selectedProtocol, setSelectedProtocol] = useState<ProtocolConfig | null>(null);
 
-  // Form state — lifted up so we can auto-fill on mount
-  const [collateralSymbol, setCollateralSymbol] = useState('');
-  const [collateralAmount, setCollateralAmount] = useState('');
-  const [borrowSymbol, setBorrowSymbol] = useState('');
-  const [borrowAmount, setBorrowAmount] = useState('');
+  // 多资产表单状态
+  const [collateralRows, setCollateralRows] = useState<AssetRow[]>([{ symbol: '', amount: '' }]);
+  const [borrowRows, setBorrowRows] = useState<AssetRow[]>([{ symbol: '', amount: '' }]);
 
   const { result, isLoading, error, calculate, clear } = useProtocolHealth();
 
@@ -35,42 +38,39 @@ export default function SafetyCheckContent() {
     const borrow = protocol.assets.find((a) => a.category === 'stablecoin') ?? protocol.assets[1];
 
     setSelectedProtocol(protocol);
-    setCollateralSymbol(collateral?.symbol ?? '');
-    setBorrowSymbol(borrow?.symbol ?? '');
-    setCollateralAmount('1.5');
-    setBorrowAmount('1000');
+    setCollateralRows([{ symbol: collateral?.symbol ?? '', amount: '1.5' }]);
+    setBorrowRows([{ symbol: borrow?.symbol ?? '', amount: '1000' }]);
     setStep(2);
   }, []);
 
-  // Auto-calculate once defaults are set and we have a protocol
+  // Auto-calculate once defaults are set
   useEffect(() => {
-    if (!selectedProtocol || !collateralSymbol || !borrowSymbol) return;
-    const c = parseFloat(collateralAmount);
-    const b = parseFloat(borrowAmount);
-    if (isNaN(c) || c <= 0 || isNaN(b) || b <= 0) return;
+    if (!selectedProtocol) return;
+
+    const collaterals = collateralRows.filter((r) => r.symbol && parseFloat(r.amount) > 0);
+    const borrows = borrowRows.filter((r) => r.symbol && parseFloat(r.amount) > 0);
+
+    if (collaterals.length === 0 || borrows.length === 0) return;
 
     // Only auto-calculate on first mount (result is null, not loading)
     if (result || isLoading) return;
 
     calculate({
       protocolId: selectedProtocol.id,
-      collateralSymbol,
-      collateralAmount: c,
-      borrowSymbol,
-      borrowAmount: b,
+      collaterals: collaterals.map((r) => ({ symbol: r.symbol, amount: parseFloat(r.amount) })),
+      borrows: borrows.map((r) => ({ symbol: r.symbol, amount: parseFloat(r.amount) })),
     });
     setStep(3);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedProtocol, collateralSymbol, borrowSymbol]);
+  }, [selectedProtocol]);
 
   const handleSelectProtocol = useCallback(
     (protocol: ProtocolConfig) => {
       setSelectedProtocol(protocol);
-      setCollateralSymbol(protocol.assets[0]?.symbol ?? '');
+      const collateral = protocol.assets[0];
       const borrow = protocol.assets.find((a) => a.category === 'stablecoin') ?? protocol.assets[1];
-      setBorrowSymbol(borrow?.symbol ?? '');
-      setCollateralAmount('1.5');
-      setBorrowAmount('1000');
+      setCollateralRows([{ symbol: collateral?.symbol ?? '', amount: '1.5' }]);
+      setBorrowRows([{ symbol: borrow?.symbol ?? '', amount: '1000' }]);
       setStep(2);
       clear();
     },
@@ -78,9 +78,13 @@ export default function SafetyCheckContent() {
   );
 
   const handleSubmit = useCallback(
-    async (data: Omit<PositionInput, 'protocolId'>) => {
+    async (data: { collaterals: AssetEntry[]; borrows: AssetEntry[] }) => {
       if (!selectedProtocol) return;
-      await calculate({ protocolId: selectedProtocol.id, ...data });
+      await calculate({
+        protocolId: selectedProtocol.id,
+        collaterals: data.collaterals,
+        borrows: data.borrows,
+      });
       setStep(3);
     },
     [selectedProtocol, calculate]
@@ -89,10 +93,8 @@ export default function SafetyCheckContent() {
   const handleReset = useCallback(() => {
     setStep(1);
     setSelectedProtocol(null);
-    setCollateralSymbol('');
-    setCollateralAmount('');
-    setBorrowSymbol('');
-    setBorrowAmount('');
+    setCollateralRows([{ symbol: '', amount: '' }]);
+    setBorrowRows([{ symbol: '', amount: '' }]);
     clear();
   }, [clear]);
 
@@ -123,14 +125,10 @@ export default function SafetyCheckContent() {
                 onSelectProtocol={handleSelectProtocol}
                 onSubmit={handleSubmit}
                 isLoading={isLoading}
-                collateralSymbol={collateralSymbol}
-                collateralAmount={collateralAmount}
-                borrowSymbol={borrowSymbol}
-                borrowAmount={borrowAmount}
-                onCollateralSymbolChange={setCollateralSymbol}
-                onCollateralAmountChange={setCollateralAmount}
-                onBorrowSymbolChange={setBorrowSymbol}
-                onBorrowAmountChange={setBorrowAmount}
+                collateralRows={collateralRows}
+                borrowRows={borrowRows}
+                onCollateralRowsChange={setCollateralRows}
+                onBorrowRowsChange={setBorrowRows}
               />
 
               {/* Example hint */}
@@ -152,11 +150,11 @@ export default function SafetyCheckContent() {
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     <div className="bg-gray-50 rounded-md p-2.5">
                       <span className="text-xs text-gray-500">Liquidation Threshold</span>
-                      <p className="font-medium text-gray-900 mt-0.5">120%</p>
+                      <p className="font-medium text-gray-900 mt-0.5">82.5%</p>
                     </div>
                     <div className="bg-gray-50 rounded-md p-2.5">
-                      <span className="text-xs text-gray-500">Current ETH Price</span>
-                      <p className="font-medium text-gray-900 mt-0.5">~$3,000</p>
+                      <span className="text-xs text-gray-500">Collateral Factor</span>
+                      <p className="font-medium text-gray-900 mt-0.5">80%</p>
                     </div>
                     <div className="bg-gray-50 rounded-md p-2.5">
                       <span className="text-xs text-gray-500">Collateral Value</span>
@@ -167,6 +165,9 @@ export default function SafetyCheckContent() {
                       <p className="font-medium text-red-600 mt-0.5">-40.05%</p>
                     </div>
                   </div>
+                  <p className="text-xs text-gray-400 mt-3">
+                    Supports multiple collateral/borrow assets with bidirectional deviation analysis
+                  </p>
                 </motion.div>
               )}
 

@@ -6,11 +6,19 @@ export interface ProtocolAssetConfig {
   symbol: string;
   category: AssetCategory;
   oracleProvider: OracleProvider;
-  // 清算抵押率：抵押品价值 / 借款价值 必须大于此值，否则被清算
-  // 如 1.2 表示抵押率必须 > 120%
-  liquidationCollateralRatio: number;
-  // 最大 LTV（Loan To Value）：如 0.8 表示最多借出抵押品价值的 80%
+  // Collateral factor: collateral value discount ratio (< 1), e.g. 0.825 means 82.5% of collateral value is counted
+  // Corresponds to collFact in the OVer paper
+  collateralFactor: number;
+  // Liquidation threshold: collateral ratio threshold that triggers liquidation (> 1), e.g. 1.2 means ratio must > 120%
+  // Corresponds to liquidation ratio in the OVer paper
+  liquidationThreshold: number;
+  // Max LTV (Loan To Value): e.g. 0.8 means you can borrow up to 80% of collateral value
   maxLtv: number;
+  // cToken/aToken to underlying asset exchange rate, e.g. 0.02 means 1 cETH = 0.02 ETH
+  // Corresponds to exchRt in the OVer paper
+  exchangeRate: number;
+  // Backward compatible: liquidationCollateralRatio = liquidationThreshold
+  get liquidationCollateralRatio(): number;
 }
 
 export interface ProtocolConfig {
@@ -26,15 +34,24 @@ function makeAsset(
   symbol: string,
   category: AssetCategory,
   provider: OracleProvider,
-  liquidationCollateralRatio: number,
-  maxLtv: number
+  liquidationThreshold: number,
+  maxLtv: number,
+  collateralFactor?: number,
+  exchangeRate?: number
 ): ProtocolAssetConfig {
+  const cf = collateralFactor ?? maxLtv; // Default collateralFactor = maxLtv (conservative estimate)
+  const er = exchangeRate ?? 1; // Default exchange rate = 1 (directly holding underlying asset)
   return {
     symbol,
     category,
     oracleProvider: provider,
-    liquidationCollateralRatio,
+    collateralFactor: cf,
+    liquidationThreshold,
     maxLtv,
+    exchangeRate: er,
+    get liquidationCollateralRatio() {
+      return this.liquidationThreshold;
+    },
   };
 }
 
@@ -46,12 +63,12 @@ export const PROTOCOL_REGISTRY: ProtocolConfig[] = [
     description: 'Leading decentralized lending protocol on Ethereum',
     tvlUsd: 12_000_000_000,
     assets: [
-      // Aave V3 ETH: LT=82.5%, 等效清算抵押率 ~1.20
-      makeAsset('ETH', 'major', OracleProvider.CHAINLINK, 1.2, 0.8),
-      makeAsset('WBTC', 'major', OracleProvider.CHAINLINK, 1.25, 0.73),
-      makeAsset('USDC', 'stablecoin', OracleProvider.CHAINLINK, 1.25, 0.77),
-      makeAsset('USDT', 'stablecoin', OracleProvider.CHAINLINK, 1.25, 0.75),
-      makeAsset('LINK', 'alt', OracleProvider.CHAINLINK, 1.4, 0.66),
+      // Aave V3 ETH: LT=82.5%, CF=80%, LTV=80%
+      makeAsset('ETH', 'major', OracleProvider.CHAINLINK, 1.2125, 0.8, 0.8),
+      makeAsset('WBTC', 'major', OracleProvider.CHAINLINK, 1.25, 0.73, 0.73),
+      makeAsset('USDC', 'stablecoin', OracleProvider.CHAINLINK, 1.25, 0.77, 0.77),
+      makeAsset('USDT', 'stablecoin', OracleProvider.CHAINLINK, 1.25, 0.75, 0.75),
+      makeAsset('LINK', 'alt', OracleProvider.CHAINLINK, 1.405, 0.66, 0.66),
     ],
   },
   {
@@ -61,10 +78,11 @@ export const PROTOCOL_REGISTRY: ProtocolConfig[] = [
     description: 'Algorithmic money market protocol on Ethereum',
     tvlUsd: 2_500_000_000,
     assets: [
-      makeAsset('ETH', 'major', OracleProvider.CHAINLINK, 1.15, 0.83),
-      makeAsset('WBTC', 'major', OracleProvider.CHAINLINK, 1.2, 0.78),
-      makeAsset('USDC', 'stablecoin', OracleProvider.CHAINLINK, 1.2, 0.82),
-      makeAsset('USDT', 'stablecoin', OracleProvider.CHAINLINK, 1.2, 0.8),
+      // Compound V3: collateralFactor = collateralFactorMantissa
+      makeAsset('ETH', 'major', OracleProvider.CHAINLINK, 1.15, 0.83, 0.83),
+      makeAsset('WBTC', 'major', OracleProvider.CHAINLINK, 1.2, 0.78, 0.78),
+      makeAsset('USDC', 'stablecoin', OracleProvider.CHAINLINK, 1.2, 0.82, 0.82),
+      makeAsset('USDT', 'stablecoin', OracleProvider.CHAINLINK, 1.2, 0.8, 0.8),
     ],
   },
   {
@@ -74,11 +92,11 @@ export const PROTOCOL_REGISTRY: ProtocolConfig[] = [
     description: 'Decentralized exchange with concentrated liquidity',
     tvlUsd: 4_000_000_000,
     assets: [
-      makeAsset('ETH', 'major', OracleProvider.TWAP, 1.15, 0.85),
-      makeAsset('WBTC', 'major', OracleProvider.TWAP, 1.2, 0.8),
-      makeAsset('USDC', 'stablecoin', OracleProvider.TWAP, 1.2, 0.85),
-      makeAsset('USDT', 'stablecoin', OracleProvider.TWAP, 1.2, 0.85),
-      makeAsset('LINK', 'alt', OracleProvider.CHAINLINK, 1.35, 0.7),
+      makeAsset('ETH', 'major', OracleProvider.TWAP, 1.15, 0.85, 0.85),
+      makeAsset('WBTC', 'major', OracleProvider.TWAP, 1.2, 0.8, 0.8),
+      makeAsset('USDC', 'stablecoin', OracleProvider.TWAP, 1.2, 0.85, 0.85),
+      makeAsset('USDT', 'stablecoin', OracleProvider.TWAP, 1.2, 0.85, 0.85),
+      makeAsset('LINK', 'alt', OracleProvider.CHAINLINK, 1.35, 0.7, 0.7),
     ],
   },
   {
@@ -88,11 +106,11 @@ export const PROTOCOL_REGISTRY: ProtocolConfig[] = [
     description: 'Aave lending protocol on Arbitrum',
     tvlUsd: 3_000_000_000,
     assets: [
-      makeAsset('ETH', 'major', OracleProvider.CHAINLINK, 1.2, 0.8),
-      makeAsset('WBTC', 'major', OracleProvider.CHAINLINK, 1.25, 0.73),
-      makeAsset('USDC', 'stablecoin', OracleProvider.CHAINLINK, 1.25, 0.77),
-      makeAsset('USDT', 'stablecoin', OracleProvider.CHAINLINK, 1.25, 0.75),
-      makeAsset('ARB', 'alt', OracleProvider.CHAINLINK, 1.45, 0.63),
+      makeAsset('ETH', 'major', OracleProvider.CHAINLINK, 1.2125, 0.8, 0.8),
+      makeAsset('WBTC', 'major', OracleProvider.CHAINLINK, 1.25, 0.73, 0.73),
+      makeAsset('USDC', 'stablecoin', OracleProvider.CHAINLINK, 1.25, 0.77, 0.77),
+      makeAsset('USDT', 'stablecoin', OracleProvider.CHAINLINK, 1.25, 0.75, 0.75),
+      makeAsset('ARB', 'alt', OracleProvider.CHAINLINK, 1.45, 0.63, 0.63),
     ],
   },
   {
@@ -102,10 +120,10 @@ export const PROTOCOL_REGISTRY: ProtocolConfig[] = [
     description: 'Compound lending market on Arbitrum',
     tvlUsd: 800_000_000,
     assets: [
-      makeAsset('ETH', 'major', OracleProvider.CHAINLINK, 1.15, 0.83),
-      makeAsset('WBTC', 'major', OracleProvider.CHAINLINK, 1.2, 0.78),
-      makeAsset('USDC', 'stablecoin', OracleProvider.CHAINLINK, 1.2, 0.82),
-      makeAsset('USDT', 'stablecoin', OracleProvider.CHAINLINK, 1.2, 0.8),
+      makeAsset('ETH', 'major', OracleProvider.CHAINLINK, 1.15, 0.83, 0.83),
+      makeAsset('WBTC', 'major', OracleProvider.CHAINLINK, 1.2, 0.78, 0.78),
+      makeAsset('USDC', 'stablecoin', OracleProvider.CHAINLINK, 1.2, 0.82, 0.82),
+      makeAsset('USDT', 'stablecoin', OracleProvider.CHAINLINK, 1.2, 0.8, 0.8),
     ],
   },
 ];
