@@ -11,7 +11,6 @@ export {
 export type { CreateAlertInput } from './useAlerts';
 export {
   useSnapshots,
-  useCreateSnapshot,
   useUpdateSnapshot,
   useDeleteSnapshot,
   useSnapshotsRealtime,

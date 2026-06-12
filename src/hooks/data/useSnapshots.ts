@@ -5,22 +5,12 @@ import { useRef, useEffect } from 'react';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 
 import { apiClient } from '@/lib/api';
-import { supabase, type UserSnapshot, type UserSnapshotInsert } from '@/lib/supabase/client';
+import { supabase, type UserSnapshot } from '@/lib/supabase/client';
 import { useUser } from '@/stores/authStore';
-import type { OracleProvider } from '@/types/oracle';
 
 const SNAPSHOTS_KEY = 'user-snapshots';
 
 const USER_NOT_LOGGED_IN = 'User not logged in';
-
-interface CreateSnapshotInput {
-  name?: string;
-  symbol: string;
-  selected_oracles: OracleProvider[];
-  price_data: UserSnapshotInsert['price_data'];
-  stats: UserSnapshotInsert['stats'];
-  is_public?: boolean;
-}
 
 interface UpdateSnapshotInput {
   name?: string;
@@ -32,23 +22,6 @@ interface UseSnapshotsReturn {
   isLoading: boolean;
   error: Error | null;
   refetch: () => Promise<void>;
-}
-
-interface UseCreateSnapshotReturn {
-  createSnapshot: (input: CreateSnapshotInput) => Promise<UserSnapshot | null>;
-  mutate: (
-    input: CreateSnapshotInput,
-    options?: {
-      onSuccess?: (data: UserSnapshot) => void;
-      onError?: (error: Error) => void;
-      onSettled?: () => void;
-    }
-  ) => void;
-  mutateAsync: (input: CreateSnapshotInput) => Promise<UserSnapshot | null>;
-  isPending: boolean;
-  error: Error | null;
-  data: UserSnapshot | undefined;
-  reset: () => void;
 }
 
 interface UseUpdateSnapshotReturn {
@@ -108,52 +81,6 @@ export function useSnapshots(): UseSnapshotsReturn {
     refetch: async () => {
       await refetch();
     },
-  };
-}
-
-export function useCreateSnapshot(): UseCreateSnapshotReturn {
-  const user = useUser();
-  const queryClient = useQueryClient();
-
-  const mutation = useMutation({
-    mutationFn: async (input: CreateSnapshotInput) => {
-      if (!user?.id) {
-        throw new Error(USER_NOT_LOGGED_IN);
-      }
-
-      const response = await apiClient.post<{ snapshot: UserSnapshot; message: string }>(
-        '/api/snapshots',
-        {
-          name: input.name,
-          symbol: input.symbol,
-          selected_oracles: input.selected_oracles,
-          price_data: input.price_data,
-          stats: input.stats,
-          is_public: input.is_public ?? false,
-        }
-      );
-
-      return response.data.snapshot;
-    },
-    onSuccess: () => {
-      if (user?.id) {
-        queryClient.invalidateQueries({ queryKey: [SNAPSHOTS_KEY, user.id] });
-      }
-    },
-  });
-
-  const createSnapshot = async (input: CreateSnapshotInput) => {
-    return mutation.mutateAsync(input);
-  };
-
-  return {
-    createSnapshot,
-    mutate: mutation.mutate,
-    mutateAsync: mutation.mutateAsync,
-    isPending: mutation.isPending,
-    error: mutation.error,
-    data: mutation.data,
-    reset: mutation.reset,
   };
 }
 

@@ -8,11 +8,6 @@ interface ChainlinkPriceFeed {
   category: 'crypto' | 'fiat' | 'commodity' | 'index';
 }
 
-interface ChainlinkContracts {
-  linkToken: `0x${string}`;
-  stakingPool?: `0x${string}`;
-}
-
 interface ChainlinkRPCConfig {
   endpoints: string[];
   chainId: number;
@@ -808,30 +803,6 @@ const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPriceFeed>> 
   },
 };
 
-const CHAINLINK_CONTRACTS: Record<number, ChainlinkContracts> = {
-  1: {
-    linkToken: '0x514910771AF9Ca656af840dff83E8264EcF986CA',
-  },
-  42161: {
-    linkToken: '0xf97f4df75117a78c1A5a0DBb814Af92458539FB4',
-  },
-  137: {
-    linkToken: '0xb0897686c545045aFc77CF20eC7A532E3120E0F1',
-  },
-  8453: {
-    linkToken: '0x88Fb150BdC53A65fe94Dea0c9BA0a6dAf8C6e196',
-  },
-  43114: {
-    linkToken: '0x5947BB275c521040051D82396192181b413227A3',
-  },
-  56: {
-    linkToken: '0xF8A0BF9cF54Bb92F17374d9e9A321E6a111a51bD',
-  },
-  10: {
-    linkToken: '0x350a791Bfc2C21F9Ed5d10980Dad2e2638ffa7f6',
-  },
-};
-
 // Build RPC endpoint list, prioritizing Alchemy, then using reliable public nodes
 function buildEndpoints(
   alchemyUrl: string,
@@ -953,31 +924,10 @@ export const CHAINLINK_AGGREGATOR_ABI = [
   },
 ] as const;
 
-export const CHAINLINK_TOKEN_ABI = [
-  {
-    inputs: [],
-    name: 'totalSupply',
-    outputs: [{ name: '', type: 'uint256' }],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [{ name: 'account', type: 'address' }],
-    name: 'balanceOf',
-    outputs: [{ name: '', type: 'uint256' }],
-    stateMutability: 'view',
-    type: 'function',
-  },
-] as const;
-
 export function getChainlinkPriceFeed(symbol: string, chainId: number): ChainlinkPriceFeed | null {
   const feeds = CHAINLINK_PRICE_FEEDS[symbol.toUpperCase()];
   if (!feeds) return null;
   return feeds[chainId] || null;
-}
-
-export function getChainlinkContracts(chainId: number): ChainlinkContracts | null {
-  return CHAINLINK_CONTRACTS[chainId] || null;
 }
 
 export function getChainlinkRPCConfig(chainId: number): ChainlinkRPCConfig | null {

@@ -62,5 +62,3 @@ export const useCrossChainConfigStore = create<CrossChainConfigStore>()(
 );
 
 export const useColorblindMode = () => useCrossChainConfigStore((state) => state.colorblindMode);
-export const useSetColorblindMode = () =>
-  useCrossChainConfigStore((state) => state.setColorblindMode);
