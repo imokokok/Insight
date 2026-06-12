@@ -1,7 +1,5 @@
 import * as Sentry from '@sentry/nextjs';
 
-import { reportCustomMetric } from './webVitals';
-
 import type { User } from '@supabase/supabase-js';
 
 interface SentryUser {
@@ -42,5 +40,3 @@ export const addBreadcrumb = (breadcrumb: Breadcrumb) => {
     Sentry.addBreadcrumb(breadcrumb);
   }
 };
-
-export { reportCustomMetric };

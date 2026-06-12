@@ -117,7 +117,7 @@ export interface CrossChainFeedResult {
   confidenceSurgeCount: number;
 }
 
-export interface CrossChainStabilityResult {
+interface CrossChainStabilityResult {
   stabilityResult: StabilityResult | null;
   scores: StabilityScoreType[];
   decliningCount: number;

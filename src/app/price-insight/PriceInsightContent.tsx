@@ -11,6 +11,7 @@ import { chartColors } from '@/lib/config/colors';
 import { formatTimeString } from '@/lib/utils/format';
 import { useCrossChainConfigStore } from '@/stores/crossChainConfigStore';
 import { useCrossChainDataStore } from '@/stores/crossChainDataStore';
+import { type RefreshInterval } from '@/types/common';
 
 import { ChainControlPanel } from './components/ChainControlPanel';
 import { ChainQueryResults } from './components/ChainQueryResults';
@@ -18,7 +19,6 @@ import { DimensionSwitcher, type Dimension } from './components/DimensionSwitche
 import { OracleControlPanel } from './components/OracleControlPanel';
 import { OracleQueryResults } from './components/OracleQueryResults';
 import { TabNavigation, type TabId } from './components/TabNavigation';
-import { type RefreshInterval } from './constants';
 
 function CrossChainDataInitializer() {
   useCrossChainDataState();

@@ -257,24 +257,3 @@ export const PROTOCOL_REGISTRY: ProtocolConfig[] = [
 export function getProtocolById(id: string): ProtocolConfig | undefined {
   return PROTOCOL_REGISTRY.find((p) => p.id === id);
 }
-
-export function getProtocolsByChain(chain: Blockchain): ProtocolConfig[] {
-  return PROTOCOL_REGISTRY.filter((p) => p.chain === chain);
-}
-
-export function searchProtocols(query: string): ProtocolConfig[] {
-  const q = query.toLowerCase().trim();
-  if (!q) return PROTOCOL_REGISTRY;
-  return PROTOCOL_REGISTRY.filter(
-    (p) =>
-      p.name.toLowerCase().includes(q) ||
-      p.id.toLowerCase().includes(q) ||
-      p.chain.toLowerCase().includes(q)
-  );
-}
-
-export function getAllSupportedChains(): Blockchain[] {
-  const chains = new Set<Blockchain>();
-  PROTOCOL_REGISTRY.forEach((p) => chains.add(p.chain));
-  return Array.from(chains);
-}

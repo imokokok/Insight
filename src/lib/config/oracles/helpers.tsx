@@ -68,7 +68,7 @@ export const COMMON_TABS = {
   DATA_STREAMS: { id: 'data-streams', label: 'Data Streams' },
 } as const;
 
-export function createClientSingleton<T>(
+function createClientSingleton<T>(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ClientClass: new (...args: any[]) => T,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

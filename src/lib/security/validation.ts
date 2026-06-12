@@ -234,28 +234,3 @@ export function validateOracleData<T>(schema: ZodSchema<T>, data: unknown, conte
 
   return result.data;
 }
-
-type SafeValidationResult<T> = { ok: true; data: T } | { ok: false; error: ZodValidationError };
-
-export function safeValidateOracleData<T>(
-  schema: ZodSchema<T>,
-  data: unknown,
-  context?: string
-): SafeValidationResult<T> {
-  try {
-    const validatedData = validateOracleData(schema, data, context);
-    return { ok: true, data: validatedData };
-  } catch (error) {
-    if (error instanceof ZodValidationError) {
-      validationLogger.warn(`Oracle data validation failed${context ? ` in ${context}` : ''}`, {
-        error,
-      });
-      return { ok: false, error };
-    }
-    validationLogger.error(
-      `Unexpected error during oracle data validation${context ? ` in ${context}` : ''}`,
-      error instanceof Error ? error : new Error(String(error))
-    );
-    throw error;
-  }
-}

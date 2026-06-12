@@ -2,7 +2,7 @@
 
 import { baseColors } from '@/lib/config/colors';
 
-export type TabId = 'overview' | 'charts' | 'risk' | 'divergence' | 'ranking';
+type TabId = 'overview' | 'charts' | 'risk' | 'divergence' | 'ranking';
 
 interface Tab {
   id: TabId;

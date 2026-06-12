@@ -12,7 +12,7 @@ import { usePriceStats } from './usePriceStats';
 import { useRiskMetrics } from './useRiskMetrics';
 import { useStabilityScore } from './useStabilityScore';
 
-export type CrossOracleTab = 'comparison' | 'divergence' | 'feedHealth' | 'risk' | 'ranking';
+type CrossOracleTab = 'comparison' | 'divergence' | 'feedHealth' | 'risk' | 'ranking';
 
 interface UseCrossOraclePageOptions {
   initialSymbol?: string;
