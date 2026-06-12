@@ -67,17 +67,27 @@ const CONDITION_OPTIONS: {
   },
 ];
 
-interface AlertConfigProps {
-  onAlertCreated?: () => void;
+interface AlertPrefill {
+  symbol?: string;
+  conditionType?: 'above' | 'below' | null;
+  targetValue?: string;
+  chain?: string;
 }
 
-export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
+interface AlertConfigProps {
+  onAlertCreated?: () => void;
+  prefill?: AlertPrefill;
+}
+
+export function AlertConfig({ onAlertCreated, prefill }: AlertConfigProps) {
   const [alertName, setAlertName] = useState<string>('');
-  const [symbol, setSymbol] = useState<string>('BTC');
+  const [symbol, setSymbol] = useState<string>(prefill?.symbol || 'BTC');
   const [provider, setProvider] = useState<OracleProvider | ''>('');
-  const [chain, setChain] = useState<Blockchain | ''>('');
-  const [conditionType, setConditionType] = useState<AlertConditionType>('above');
-  const [targetValue, setTargetValue] = useState<string>('');
+  const [chain, setChain] = useState<Blockchain | ''>((prefill?.chain as Blockchain | '') || '');
+  const [conditionType, setConditionType] = useState<AlertConditionType>(
+    prefill?.conditionType || 'above'
+  );
+  const [targetValue, setTargetValue] = useState<string>(prefill?.targetValue || '');
   const [isActive, setIsActive] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 

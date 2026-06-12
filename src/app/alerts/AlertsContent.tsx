@@ -3,6 +3,7 @@
 import { useCallback } from 'react';
 
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 
 import { AlertConfig } from '@/components/alerts/AlertConfig';
 import { AlertHistory } from '@/components/alerts/AlertHistory';
@@ -14,6 +15,7 @@ import { useUser, useAuthLoading } from '@/stores/authStore';
 function AlertsContentInner() {
   const user = useUser();
   const authLoading = useAuthLoading();
+  const searchParams = useSearchParams();
   const {
     alerts,
     isLoading: alertsLoading,
@@ -82,7 +84,15 @@ function AlertsContentInner() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1">
           <SectionErrorBoundary componentName="AlertConfig">
-            <AlertConfig onAlertCreated={handleAlertCreated} />
+            <AlertConfig
+              onAlertCreated={handleAlertCreated}
+              prefill={{
+                symbol: searchParams.get('symbol') || undefined,
+                conditionType: searchParams.get('condition_type') as 'above' | 'below' | null,
+                targetValue: searchParams.get('target_value') || undefined,
+                chain: searchParams.get('chain') || undefined,
+              }}
+            />
           </SectionErrorBoundary>
         </div>
 
