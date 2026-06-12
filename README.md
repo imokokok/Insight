@@ -1,21 +1,51 @@
-# Insight - Oracle Data Analytics Platform
+# Insight - Oracle Transparency & Risk Infrastructure
 
-Insight is a professional oracle data analytics platform that provides comprehensive analysis and comparison of mainstream oracle protocols including Chainlink, Pyth, API3, RedStone, DIA, WINkLink, Supra, TWAP, Reflector, and Flare.
+Insight is an oracle transparency and risk infrastructure platform that serves both professional researchers and everyday DeFi users. It provides real-time price monitoring, cross-oracle comparison, risk analysis, and position safety checks across 10+ oracle protocols and 54 blockchains.
+
+**See through every oracle. Trust with clarity.**
 
 ## Key Features
 
-- **Real-time Price Monitoring** - Live price feeds from multiple oracle providers with real-time updates
-- **Cross-Oracle Price Comparison** - Compare prices across different oracles for the same asset with consensus price calculation, divergence signal detection, and risk analysis
-- **Cross-Chain Performance Analysis** - Analyze oracle performance across multiple blockchain networks with price spread heatmap and chain reliability ranking
-- **Oracle Reputation System** - Persistent 7-day rolling reputation scores with accuracy, uptime, reliability, latency, and freshness metrics
-- **Price Alerts & Notifications** - Configure custom price alerts with multiple trigger conditions and real-time event push
-- **Price Snapshots** - Save and compare price snapshots across time with detailed comparison analytics
-- **Data Export** - Export data in CSV, JSON, Excel, PDF, and PNG formats
-- **Personal Position Critical Deviation (Safety Check)** - Calculate the exact oracle price deviation that would trigger liquidation for individual DeFi positions across protocols like Aave and Compound, bringing oracle security from protocol-level analysis to everyday users
-- **Anomaly Detection** - Automatic detection of price anomalies and outliers
-- **Consensus Price** - Multiple consensus algorithms (median, trimmed mean, weighted median, confidence-weighted, reliability-weighted, IQR-filtered)
-- **Data Transparency** - Data source indicators and update time tracking
-- **Accessibility Support** - Keyboard navigation, colorblind mode, screen reader support
+### For DeFi Users
+
+- **Safety Check (Position Critical Deviation)** - Enter your DeFi lending position to calculate the exact oracle price deviation that would trigger liquidation. Supports multi-asset positions across Aave V3, Compound V3, Spark, Morpho Blue, Venus, BENQI, and more. Provides health factor gauge, safety buffer analysis, and oracle reliability warnings.
+- **Price Query** - Query real-time prices from any oracle provider with a simple interface. View on-chain data, confidence intervals, and price freshness at a glance.
+- **Price Alerts** - Set custom price alerts and get notified when oracle prices deviate beyond your threshold. Supports real-time event push.
+
+### For Researchers & Analysts
+
+- **Price Insight** - Unified cross-oracle and cross-chain price analysis with dimension switching. Compare prices across providers and blockchains with 6 consensus algorithms, risk analysis, divergence signal detection, and feed health monitoring.
+- **Cross-Oracle Price Comparison** - Deep-dive comparison across multiple oracles for the same asset with consensus price calculation, anomaly detection, stability scoring, and performance metrics.
+- **Cross-Chain Performance Analysis** - Analyze oracle performance across blockchain networks with price spread heatmaps, chain reliability rankings, and 10-dimension risk analysis.
+- **Oracle Reputation System** - Persistent 7-day rolling reputation scores with accuracy, uptime, reliability, latency, and freshness metrics. Detailed provider profiles with trend charts and score breakdowns.
+
+### Shared Features
+
+- **Price Snapshots** - Save and compare price snapshots across time with detailed comparison analytics and public sharing.
+- **Data Export** - Export data in CSV, JSON, Excel, PDF, and PNG formats.
+- **Anomaly Detection** - Automatic detection of price anomalies and outliers.
+- **Consensus Price** - Multiple consensus algorithms (median, trimmed mean, weighted median, confidence-weighted, reliability-weighted, IQR-filtered).
+- **Data Transparency** - Data source indicators and update time tracking.
+- **Accessibility Support** - Keyboard navigation, colorblind mode, screen reader support.
+- **REST API** - V1 API with API key authentication for programmatic access.
+
+## Safety Check - Supported Protocols
+
+| Protocol       | Chain     | TVL   | Supported Assets                               |
+| -------------- | --------- | ----- | ---------------------------------------------- |
+| Aave V3        | Ethereum  | $12B  | ETH, WBTC, USDC, USDT, LINK                    |
+| Compound V3    | Ethereum  | $2.5B | ETH, WBTC, USDC, USDT                          |
+| Uniswap V3     | Ethereum  | $4B   | ETH, WBTC, USDC, USDT, LINK                    |
+| Aave V3        | Arbitrum  | $3B   | ETH, WBTC, USDC, USDT, ARB                     |
+| Compound V3    | Arbitrum  | $800M | ETH, WBTC, USDC, USDT                          |
+| Aave V3        | Base      | $2B   | ETH, WBTC, USDC, USDT, cbETH                   |
+| Compound V3    | Base      | $1B   | ETH, WBTC, USDC, USDT                          |
+| Spark Protocol | Ethereum  | $3.5B | ETH, WBTC, USDC, USDT, DAI, wstETH             |
+| Morpho Blue    | Ethereum  | $8B   | ETH, WBTC, wstETH, USDC, USDT, DAI             |
+| Venus Protocol | BNB Chain | $1.7B | BNB, BTCB, ETH, USDT, USDC                     |
+| BENQI          | Avalanche | $500M | AVAX, WETH, BTC.b, WBTC, USDC, USDt, DAI, LINK |
+
+Safety Check calculates: critical deviation percentage, liquidation trigger price, health factor (with circular gauge), safety buffer level (safe/moderate/risky/dangerous), per-asset bidirectional deviation analysis, collateral ratio curve chart, and oracle reliability warnings.
 
 ## Technology Stack
 
@@ -24,7 +54,9 @@ Insight is a professional oracle data analytics platform that provides comprehen
 - **State Management**: React Query 5.99.0, Zustand 5.0.11
 - **Charts**: Recharts 3.8.0
 - **Database & Auth**: Supabase 2.98.0 (PostgreSQL + RLS + Realtime)
+- **Blockchain**: viem 2.47.6, @pythnetwork/hermes-client 2.0.0, @api3/contracts 27.0.0, supra-oracle-sdk 1.0.4, @stellar/stellar-sdk 15.0.1
 - **Error Tracking**: Sentry 10.43.0
+- **Monitoring**: Vercel Analytics, Vercel Speed Insights, web-vitals 5.1.0
 
 ## Getting Started
 
@@ -32,11 +64,20 @@ Insight is a professional oracle data analytics platform that provides comprehen
 npm install
 ```
 
-Set up environment variables (see `src/lib/config/env.ts` and `src/lib/config/serverEnv.ts` for reference), then:
+Set up environment variables (see `src/lib/config/env.ts` for reference), then:
 
 ```bash
 npm run dev
 ```
+
+### Key Environment Variables
+
+- `NEXT_PUBLIC_SUPABASE_URL` - Supabase project URL
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Supabase anonymous key
+- `SUPABASE_SERVICE_ROLE_KEY` - Supabase service role key (server-side)
+- `CSRF_SECRET` - CSRF protection secret
+- `JWT_SECRET` - JWT signing secret
+- `NEXT_PUBLIC_SENTRY_DSN` - Sentry DSN (optional, enables error tracking)
 
 ## Supported Oracles
 
@@ -161,10 +202,24 @@ All V1 endpoints require an API key passed via `x-api-key` header or `Authorizat
 - `GET /api/snapshots/[id]` - Get specific snapshot
 - `DELETE /api/snapshots/[id]` - Delete snapshot
 
+#### Protocol Health
+
+- `POST /api/protocol-health` - Calculate critical deviation and liquidation risk for a DeFi position (supports multi-asset positions with `protocolId`, `collaterals[{symbol,amount}]`, `borrows[{symbol,amount}]`)
+
 #### System
 
 - `GET /api/cron/reputation` - Cron job for reputation recalculation
 
-#### Protocol Health
+## Navigation
 
-- `POST /api/protocol-health` - Calculate critical deviation and liquidation risk for a DeFi position (requires `protocolId`, `collateralSymbol`, `collateralAmount`, `borrowSymbol`, `borrowAmount`)
+| Page             | Path             | Description                                                                        | Auth Required |
+| ---------------- | ---------------- | ---------------------------------------------------------------------------------- | ------------- |
+| Home             | `/`              | Real-time dashboard with consensus prices, oracle health status, and quick actions | No            |
+| Price Query      | `/price-query`   | Single oracle price query with on-chain data and confidence intervals              | No            |
+| Safety Check     | `/safety-check`  | Position critical deviation calculator with liquidation risk analysis              | No            |
+| Price Insight    | `/price-insight` | Unified cross-oracle and cross-chain price analysis                                | No            |
+| Oracle Directory | `/reputation`    | Oracle provider profiles and 7-day rolling reputation scores                       | No            |
+| Price Snapshots  | `/snapshots`     | Save, compare, and share price snapshots                                           | Yes           |
+| Price Alerts     | `/alerts`        | Custom price alerts with real-time notifications                                   | Yes           |
+| Settings         | `/settings`      | Profile, preferences, notifications, data management, API keys                     | Yes           |
+| Documentation    | `/docs`          | Quick start, feature guides, and developer resources                               | No            |
