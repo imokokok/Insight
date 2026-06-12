@@ -4,7 +4,6 @@ import {
   Layers,
   Search,
   GitCompare,
-  Link2,
   Bell,
   ArrowRight,
   BarChart3,
@@ -30,26 +29,14 @@ export default function FeaturesGuideSection() {
     },
     {
       icon: <GitCompare className="w-6 h-6" />,
-      title: 'Cross-Oracle Comparison',
+      title: 'Price Insight',
       description:
-        'Compare prices across oracle providers with consensus price, divergence signals, and risk analysis',
-      href: '/cross-oracle',
+        'Compare oracle prices across providers and blockchains with consensus price, divergence signals, and risk analysis',
+      href: '/price-insight',
       highlights: [
-        '6 consensus algorithms (median, trimmed mean, etc.)',
-        'Divergence signals and anomaly detection',
-        'Feed health, risk metrics, and stability scores',
-      ],
-    },
-    {
-      icon: <Link2 className="w-6 h-6" />,
-      title: 'Cross-Chain Comparison',
-      description:
-        'Analyze price differences across blockchains with heatmap visualization and chain ranking',
-      href: '/cross-chain',
-      highlights: [
-        'Price spread heatmap across chains',
-        'Risk analysis with 10 dimensions',
-        'Chain reliability ranking and divergence signals',
+        'By Oracle / By Chain dimension switching',
+        '6 consensus algorithms and divergence signals',
+        'Risk analysis, feed health, and reliability ranking',
       ],
     },
     {

@@ -98,18 +98,11 @@ describe('Footer', () => {
       expect(priceQueryLink).toHaveAttribute('href', '/price-query');
     });
 
-    it('should render cross-oracle link', () => {
+    it('should render price insight link', () => {
       renderFooter();
 
-      const crossOracleLink = screen.getByText('BTC').closest('Mock Text');
-      expect(crossOracleLink).toHaveAttribute('href', '/cross-oracle');
-    });
-
-    it('should render cross-chain link', () => {
-      renderFooter();
-
-      const crossChainLink = screen.getByText('BTC').closest('Mock Text');
-      expect(crossChainLink).toHaveAttribute('href', '/cross-chain');
+      const priceInsightLink = screen.getByText('BTC').closest('Mock Text');
+      expect(priceInsightLink).toHaveAttribute('href', '/price-insight');
     });
   });
 

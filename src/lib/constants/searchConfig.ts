@@ -356,7 +356,7 @@ const searchableItems: SearchableItem[] = [
     symbol: 'ETH',
     aliases: ['ethereum', 'eth'],
     category: 'layer1',
-    path: '/cross-chain?chain=ethereum',
+    path: '/price-insight?chain=ethereum',
   },
   {
     id: 'chain-solana',
@@ -365,7 +365,7 @@ const searchableItems: SearchableItem[] = [
     symbol: 'SOL',
     aliases: ['solana', 'sol'],
     category: 'layer1',
-    path: '/cross-chain?chain=solana',
+    path: '/price-insight?chain=solana',
   },
   {
     id: 'chain-arbitrum',
@@ -374,7 +374,7 @@ const searchableItems: SearchableItem[] = [
     symbol: 'ARB',
     aliases: ['arbitrum', 'arb'],
     category: 'layer2',
-    path: '/cross-chain?chain=arbitrum',
+    path: '/price-insight?chain=arbitrum',
   },
   {
     id: 'chain-optimism',
@@ -383,7 +383,7 @@ const searchableItems: SearchableItem[] = [
     symbol: 'OP',
     aliases: ['optimism', 'op'],
     category: 'layer2',
-    path: '/cross-chain?chain=optimism',
+    path: '/price-insight?chain=optimism',
   },
   {
     id: 'chain-polygon',
@@ -392,7 +392,7 @@ const searchableItems: SearchableItem[] = [
     symbol: 'MATIC',
     aliases: ['polygon', 'matic'],
     category: 'layer1',
-    path: '/cross-chain?chain=polygon',
+    path: '/price-insight?chain=polygon',
   },
   {
     id: 'chain-avalanche',
@@ -401,7 +401,7 @@ const searchableItems: SearchableItem[] = [
     symbol: 'AVAX',
     aliases: ['avalanche', 'avax'],
     category: 'layer1',
-    path: '/cross-chain?chain=avalanche',
+    path: '/price-insight?chain=avalanche',
   },
   {
     id: 'chain-base',
@@ -410,7 +410,7 @@ const searchableItems: SearchableItem[] = [
     symbol: 'BASE',
     aliases: ['base', 'base chain', 'coinbase chain'],
     category: 'layer2',
-    path: '/cross-chain?chain=base',
+    path: '/price-insight?chain=base',
   },
   {
     id: 'chain-bnb',
@@ -419,7 +419,7 @@ const searchableItems: SearchableItem[] = [
     symbol: 'BNB',
     aliases: ['bnb', 'bnb chain', 'bsc', 'binance smart chain'],
     category: 'layer1',
-    path: '/cross-chain?chain=bnb-chain',
+    path: '/price-insight?chain=bnb-chain',
   },
   {
     id: 'chain-fantom',
@@ -428,7 +428,7 @@ const searchableItems: SearchableItem[] = [
     symbol: 'FTM',
     aliases: ['fantom', 'ftm'],
     category: 'layer1',
-    path: '/cross-chain?chain=fantom',
+    path: '/price-insight?chain=fantom',
   },
   {
     id: 'chain-cosmos',
@@ -437,7 +437,7 @@ const searchableItems: SearchableItem[] = [
     symbol: 'ATOM',
     aliases: ['cosmos', 'atom'],
     category: 'layer1',
-    path: '/cross-chain?chain=cosmos',
+    path: '/price-insight?chain=cosmos',
   },
   {
     id: 'chain-near',
@@ -446,7 +446,7 @@ const searchableItems: SearchableItem[] = [
     symbol: 'NEAR',
     aliases: ['near', 'near protocol'],
     category: 'layer1',
-    path: '/cross-chain?chain=near',
+    path: '/price-insight?chain=near',
   },
   {
     id: 'chain-aptos',
@@ -455,7 +455,7 @@ const searchableItems: SearchableItem[] = [
     symbol: 'APT',
     aliases: ['aptos', 'apt'],
     category: 'layer1',
-    path: '/cross-chain?chain=aptos',
+    path: '/price-insight?chain=aptos',
   },
   {
     id: 'chain-sui',
@@ -464,7 +464,7 @@ const searchableItems: SearchableItem[] = [
     symbol: 'SUI',
     aliases: ['sui'],
     category: 'layer1',
-    path: '/cross-chain?chain=sui',
+    path: '/price-insight?chain=sui',
   },
 ];
 

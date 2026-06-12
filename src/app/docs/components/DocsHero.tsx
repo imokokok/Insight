@@ -24,7 +24,7 @@ export default function DocsHero() {
 
           <p className="text-lg sm:text-xl text-blue-100 mb-8 leading-relaxed">
             Learn how to use the Insight oracle data platform for real-time price monitoring,
-            cross-oracle comparison, and deep data analysis.
+            multi-dimensional price comparison, and deep data analysis.
           </p>
 
           <div className="max-w-xl mx-auto">

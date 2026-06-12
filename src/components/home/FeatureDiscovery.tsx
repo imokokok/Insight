@@ -21,7 +21,7 @@ const STEPS = [
     step: 2,
     title: 'Compare Oracles',
     description: 'Spot deviations and anomalies across oracle providers',
-    href: '/cross-oracle',
+    href: '/price-insight',
     icon: GitCompare,
     color: 'text-indigo-500',
     bg: 'bg-indigo-50',

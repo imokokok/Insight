@@ -1,14 +1,13 @@
 import {
   LayoutDashboard,
   Search,
-  GitCompare,
-  Link2,
   BookOpen,
   Camera,
   Award,
   Bell,
   BarChart3,
   ShieldCheck,
+  Eye,
 } from 'lucide-react';
 
 import { oracleColors } from '@/lib/constants';
@@ -38,17 +37,11 @@ export const navigationConfig: NavStructure = [
     megaMenu: true,
     items: [
       {
-        href: '/cross-oracle',
-        label: 'Cross-Oracle Comparison',
-        icon: GitCompare,
+        href: '/price-insight',
+        label: 'Price Insight',
+        icon: Eye,
         description:
-          'Real-time multi-oracle price comparison, deviation analytics and anomaly detection',
-      },
-      {
-        href: '/cross-chain',
-        label: 'Cross-Chain Comparison',
-        icon: Link2,
-        description: 'Cross-chain oracle performance benchmarking and reliability analytics',
+          'Compare oracle prices across providers and blockchains with risk analysis and divergence tracking',
       },
       {
         href: '/reputation',

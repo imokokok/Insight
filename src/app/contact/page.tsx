@@ -88,7 +88,8 @@ export default function ContactPage() {
               analysis and comparison of mainstream oracle protocols including Chainlink, Pyth,
               API3, RedStone, DIA, WINkLink, Supra, TWAP, Reflector, and Flare. We help Web3
               developers and analysts make informed decisions with real-time price monitoring,
-              cross-oracle comparisons, and cross-chain performance analysis.
+              cross-oracle comparisons, and cross-chain performance analysis powered by Price
+              Insight.
             </p>
           </div>
 

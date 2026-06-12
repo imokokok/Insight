@@ -27,7 +27,7 @@ describe('exportUtils', () => {
     });
 
     it('should generate excel filename with xlsx extension', () => {
-      const fileName = generateFileName('cross-oracle', 'excel');
+      const fileName = generateFileName('price-insight', 'excel');
 
       expect(fileName).toMatch(/\.xlsx$/);
     });
@@ -42,7 +42,7 @@ describe('exportUtils', () => {
     it('should handle all data sources', () => {
       const sources: ExportDataSource[] = [
         'price-query',
-        'cross-oracle',
+        'price-insight',
         'oracle-detail',
         'custom',
       ];

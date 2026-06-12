@@ -46,8 +46,7 @@ const ALLOWED_REDIRECT_PATHS = [
   '/alerts',
   '/snapshots',
   '/price-query',
-  '/cross-chain',
-  '/cross-oracle',
+  '/price-insight',
 ];
 
 function isValidRedirectPath(path: string): boolean {
