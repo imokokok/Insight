@@ -42,7 +42,7 @@ function generateFileName(
   const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
   const sourceMap: Record<ExportDataSource, string> = {
     'price-query': 'price-query',
-    'cross-oracle': 'cross-oracle',
+    'price-insight': 'price-insight',
     'oracle-detail': 'oracle-detail',
     custom: 'custom',
   };

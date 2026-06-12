@@ -16,8 +16,7 @@ export default function Footer() {
   const platformLinks = [
     { label: 'Home', href: '/' },
     { label: 'Price Query', href: '/price-query' },
-    { label: 'Cross-Oracle Comparison', href: '/cross-oracle' },
-    { label: 'Cross-Chain Comparison', href: '/cross-chain' },
+    { label: 'Price Insight', href: '/price-insight' },
     { label: 'Oracle Reputation', href: '/reputation' },
     { label: 'Price Snapshots', href: '/snapshots' },
     { label: 'Price Alerts', href: '/alerts' },

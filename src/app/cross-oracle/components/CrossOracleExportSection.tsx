@@ -82,7 +82,7 @@ export default function CrossOracleExportSection({
   return (
     <UnifiedExport
       data={priceData}
-      dataSource="cross-oracle"
+      dataSource="price-insight"
       fields={exportFields}
       stats={stats}
       disabled={loading || priceData.length === 0}

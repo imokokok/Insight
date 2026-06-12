@@ -252,9 +252,9 @@ function SnapshotsContentInner() {
           size="lg"
         >
           {!searchQuery && (
-            <Link href="/cross-oracle">
+            <Link href="/price-insight">
               <Button variant="primary" size="sm" leftIcon={<Camera className="w-4 h-4" />}>
-                Go to Cross-Oracle Comparison
+                Go to Price Insight
               </Button>
             </Link>
           )}

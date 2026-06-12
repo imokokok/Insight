@@ -37,7 +37,7 @@ export default function HeroContent() {
 
       <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
         <Link
-          href="/cross-oracle"
+          href="/price-insight"
           className="inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-gray-900 text-white font-semibold hover:bg-gray-800 transition-colors duration-200 group rounded-lg"
         >
           Start Analysis

@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 import { useQuery } from '@tanstack/react-query';
-import { Activity, ArrowRight, Award, GitCompare, Shield, Link2, Search } from 'lucide-react';
+import { Activity, ArrowRight, Award, GitCompare, Shield, Search } from 'lucide-react';
 
 import { CompactStatCard } from '@/components/ui';
 import { useReputations } from '@/hooks/data/useReputations';
@@ -169,7 +169,7 @@ function SearchBar() {
       if (directMatch) {
         router.push(`/price-query?symbol=${directMatch.item.symbol}`);
       } else {
-        router.push(`/cross-oracle?symbol=${trimmed}`);
+        router.push(`/price-insight?symbol=${trimmed}`);
       }
       setSearchQuery('');
     }
@@ -387,20 +387,12 @@ function OracleHealthStrip() {
 function QuickLinks() {
   const links = [
     {
-      title: 'Cross-Oracle',
-      description: 'Compare prices across protocols',
-      href: '/cross-oracle',
+      title: 'Price Insight',
+      description: 'Compare prices across providers & chains',
+      href: '/price-insight',
       icon: GitCompare,
       color: 'text-indigo-500',
       bg: 'bg-indigo-50',
-    },
-    {
-      title: 'Cross-Chain',
-      description: 'Analyze chain performance',
-      href: '/cross-chain',
-      icon: Link2,
-      color: 'text-purple-500',
-      bg: 'bg-purple-50',
     },
     {
       title: 'Reputation',
@@ -518,7 +510,7 @@ export default function DashboardContent() {
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-semibold text-gray-900">Live Consensus Prices</h2>
             <Link
-              href="/cross-oracle"
+              href="/price-insight"
               className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1"
             >
               Full Comparison
