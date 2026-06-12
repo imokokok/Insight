@@ -52,6 +52,16 @@ export interface SafetyBufferAnalysis {
   recommendations: string[];
 }
 
+export interface OracleWarning {
+  provider: OracleProvider;
+  overallScore: number;
+  freshnessScore: number;
+  reliabilityScore: number;
+  avgDeviationPct: number;
+  level: 'healthy' | 'fair' | 'degraded' | 'critical';
+  message: string;
+}
+
 export interface PositionCriticalResult {
   protocolId: string;
   protocolName: string;
@@ -92,6 +102,9 @@ export interface PositionCriticalResult {
 
   // Safety buffer analysis
   safetyBuffer: SafetyBufferAnalysis;
+
+  // Oracle reliability warnings
+  oracleWarnings: OracleWarning[];
 
   lastUpdated: number;
 
@@ -138,7 +151,8 @@ function normalizeInput(input: PositionInput): {
 
 export async function calculatePositionCriticalDeviation(
   input: PositionInput,
-  fetchPrices: (queries: { provider: OracleProvider; symbol: string }[]) => Promise<PriceLookup[]>
+  fetchPrices: (queries: { provider: OracleProvider; symbol: string }[]) => Promise<PriceLookup[]>,
+  oracleWarnings?: OracleWarning[]
 ): Promise<PositionCriticalResult> {
   const startTime = Date.now();
 
@@ -313,6 +327,7 @@ export async function calculatePositionCriticalDeviation(
       worstDeviation,
       pricePoints,
       safetyBuffer,
+      oracleWarnings: oracleWarnings ?? [],
       lastUpdated: Date.now(),
       // Backward compatible
       collateralSymbol: primaryCollateral.symbol,

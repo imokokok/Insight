@@ -4,10 +4,13 @@ import { z } from 'zod';
 
 import { createApiHandler } from '@/lib/api/handler';
 import { fetchPriceWithDatabase } from '@/lib/oracles/base/databaseOperations';
+import { reputationService } from '@/lib/oracles/services/reputationService';
 import {
   calculatePositionCriticalDeviation,
   type PositionInput,
+  type OracleWarning,
 } from '@/lib/protocols/protocolHealth';
+import { getProtocolById } from '@/lib/protocols/protocolRegistry';
 import { createLogger } from '@/lib/utils/logger';
 import { type OracleProvider, type PriceData } from '@/types/oracle';
 
@@ -95,6 +98,88 @@ async function fetchPricesForPosition(
   });
 }
 
+async function buildOracleWarnings(providers: OracleProvider[]): Promise<OracleWarning[]> {
+  const warnings: OracleWarning[] = [];
+  const uniqueProviders = [...new Set(providers)];
+
+  const reputationMap = new Map<
+    OracleProvider,
+    Awaited<ReturnType<typeof reputationService.getReputation>>
+  >();
+  await Promise.all(
+    uniqueProviders.map(async (provider) => {
+      try {
+        const rep = await reputationService.getReputation(provider);
+        if (rep) reputationMap.set(provider, rep);
+      } catch {
+        logger.warn(`Failed to fetch reputation for ${provider}`);
+      }
+    })
+  );
+
+  for (const provider of uniqueProviders) {
+    const rep = reputationMap.get(provider);
+    if (!rep) {
+      warnings.push({
+        provider,
+        overallScore: 0,
+        freshnessScore: 0,
+        reliabilityScore: 0,
+        avgDeviationPct: 0,
+        level: 'critical',
+        message: `No reliability data available for ${provider}. Oracle performance is unknown, which adds uncertainty to the liquidation risk calculation.`,
+      });
+      continue;
+    }
+
+    const level: OracleWarning['level'] =
+      rep.overall_score >= 80
+        ? 'healthy'
+        : rep.overall_score >= 60
+          ? 'fair'
+          : rep.overall_score >= 40
+            ? 'degraded'
+            : 'critical';
+
+    const messages: string[] = [];
+    if (rep.freshness_score < 60) {
+      messages.push(
+        `Data freshness is low (${rep.freshness_score.toFixed(0)}/100), price updates may be delayed`
+      );
+    }
+    if (rep.reliability_score < 60) {
+      messages.push(
+        `Reliability score is degraded (${rep.reliability_score.toFixed(0)}/100), price may deviate from market`
+      );
+    }
+    if (rep.avg_deviation_pct > 0.5) {
+      messages.push(
+        `Average deviation from consensus is ${rep.avg_deviation_pct.toFixed(2)}%, which may affect liquidation accuracy`
+      );
+    }
+    if (rep.uptime_percentage < 95) {
+      messages.push(
+        `Uptime is ${rep.uptime_percentage.toFixed(1)}%, oracle outages could delay liquidation protection`
+      );
+    }
+
+    warnings.push({
+      provider,
+      overallScore: rep.overall_score,
+      freshnessScore: rep.freshness_score,
+      reliabilityScore: rep.reliability_score,
+      avgDeviationPct: rep.avg_deviation_pct,
+      level,
+      message:
+        messages.length > 0
+          ? messages.join('. ') + '.'
+          : `${provider} oracle is operating normally with a reliability score of ${rep.overall_score.toFixed(0)}/100.`,
+    });
+  }
+
+  return warnings;
+}
+
 export const POST = createApiHandler(
   async (request: NextRequest) => {
     let body: unknown;
@@ -125,11 +210,37 @@ export const POST = createApiHandler(
     const input: PositionInput = validation.data as PositionInput;
 
     try {
-      const result = await calculatePositionCriticalDeviation(input, fetchPricesForPosition);
+      // Collect oracle providers used by this protocol's assets
+      const protocol = getProtocolById(input.protocolId);
+      const oracleProviders: OracleProvider[] = [];
+      if (protocol) {
+        const allSymbols = new Set<string>();
+        (input.collaterals || []).forEach((c) => allSymbols.add(c.symbol));
+        (input.borrows || []).forEach((b) => allSymbols.add(b.symbol));
+        // Fallback for single-asset mode
+        if (input.collateralSymbol) allSymbols.add(input.collateralSymbol);
+        if (input.borrowSymbol) allSymbols.add(input.borrowSymbol);
+
+        for (const symbol of allSymbols) {
+          const asset = protocol.assets.find((a) => a.symbol === symbol);
+          if (asset && !oracleProviders.includes(asset.oracleProvider)) {
+            oracleProviders.push(asset.oracleProvider);
+          }
+        }
+      }
+
+      // Build oracle warnings in parallel with calculation
+      const [result, oracleWarnings] = await Promise.all([
+        calculatePositionCriticalDeviation(input, fetchPricesForPosition),
+        buildOracleWarnings(oracleProviders),
+      ]);
+
+      // Merge warnings into result
+      const resultWithWarnings = { ...result, oracleWarnings };
 
       return NextResponse.json({
         success: true,
-        data: result,
+        data: resultWithWarnings,
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error occurred';

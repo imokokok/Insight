@@ -2,8 +2,11 @@
 
 import { useMemo, useState } from 'react';
 
+import Link from 'next/link';
+
 import { motion } from 'framer-motion';
 import {
+  Bell,
   RefreshCw,
   TrendingDown,
   TrendingUp,
@@ -97,9 +100,9 @@ export function ResultDashboard({ result, onReset }: ResultDashboardProps) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="space-y-4"
+      className="space-y-5"
     >
-      {/* Top Row */}
+      {/* ── Section 1: Core Conclusion ── */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
         {/* Critical Deviation */}
         <motion.div
@@ -144,6 +147,15 @@ export function ResultDashboard({ result, onReset }: ResultDashboardProps) {
             </span>
             <span>HF: {result.currentHealthFactor.toFixed(2)}</span>
           </div>
+          <div className="mt-3">
+            <Link
+              href={buildAlertUrl(worstDeviation, result.chain)}
+              className="inline-flex items-center gap-1.5 text-xs font-medium text-primary-600 hover:text-primary-700 bg-primary-50 hover:bg-primary-100 px-3 py-1.5 rounded-md transition-colors"
+            >
+              <Bell className="w-3.5 h-3.5" />
+              Create Price Alert
+            </Link>
+          </div>
         </motion.div>
 
         {/* Gauge */}
@@ -168,294 +180,318 @@ export function ResultDashboard({ result, onReset }: ResultDashboardProps) {
         </motion.div>
       </div>
 
-      {/* Asset Deviations - Bidirectional Analysis */}
-      {result.assetDeviations.length > 1 && (
+      {/* ── Section 2: Risk Assessment (side-by-side) ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Safety Buffer Analysis */}
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
-          className="bg-white rounded-lg border border-gray-200 shadow-sm p-5"
+          transition={{ delay: 0.2 }}
+          className={cn('rounded-lg border shadow-sm p-5', safetyConfig.bg, safetyConfig.border)}
         >
-          <div className="flex items-center justify-between mb-4">
-            <h4 className="text-sm font-semibold text-gray-900">Asset-Level Deviation Analysis</h4>
-            <button
-              type="button"
-              onClick={() => setShowAllDeviations(!showAllDeviations)}
-              className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700"
-            >
-              {showAllDeviations ? 'Collapse' : 'Show All'}
-              {showAllDeviations ? (
-                <ChevronUp className="w-3 h-3" />
-              ) : (
-                <ChevronDown className="w-3 h-3" />
+          <div className="flex items-center gap-2 mb-3">
+            <SafetyIcon className={cn('w-5 h-5', safetyConfig.color)} />
+            <h4 className="text-sm font-semibold text-gray-900">Safety Buffer</h4>
+            <span
+              className={cn(
+                'text-xs font-semibold px-2 py-0.5 rounded-full capitalize',
+                safetyConfig.bg,
+                safetyConfig.color
               )}
-            </button>
+            >
+              {result.safetyBuffer.overallLevel}
+            </span>
           </div>
+          <p className="text-sm text-gray-700 mb-3">{result.safetyBuffer.description}</p>
+          {result.safetyBuffer.recommendations.length > 0 && (
+            <div className="space-y-1.5">
+              {result.safetyBuffer.recommendations.map((rec, i) => (
+                <div key={i} className="flex items-start gap-2 text-sm text-gray-600">
+                  <Info className="w-3.5 h-3.5 mt-0.5 text-gray-400 shrink-0" />
+                  <span>{rec}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </motion.div>
 
-          <div className="space-y-2">
-            {(showAllDeviations ? result.assetDeviations : result.assetDeviations.slice(0, 3)).map(
-              (deviation, index) => (
+        {/* Oracle Reliability Warnings */}
+        {result.oracleWarnings.length > 0 && (
+          <OracleReliabilityWarnings warnings={result.oracleWarnings} />
+        )}
+      </div>
+
+      {/* ── Section 3: Position Overview ── */}
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.25 }}
+        className="bg-white rounded-lg border border-gray-200 shadow-sm"
+      >
+        {/* Detail stat cards as a compact header row */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 divide-x divide-gray-100 border-b border-gray-100">
+          {[
+            {
+              label: 'Total Collateral',
+              value: `$${formatCompactNumber(result.totalCollateralValue)}`,
+              sub: result.collaterals.map((c) => c.symbol).join(' + '),
+              icon: Shield,
+            },
+            {
+              label: 'Total Borrow',
+              value: `$${formatCompactNumber(result.totalBorrowValue)}`,
+              sub: result.borrows.map((b) => b.symbol).join(' + '),
+              icon: AlertTriangle,
+            },
+            {
+              label: 'Collateral Ratio',
+              value: `${(result.currentCollateralRatio * 100).toFixed(2)}%`,
+              sub: `Adjusted: ${formatCompactNumber(result.totalAdjustedCollateralValue)}`,
+              icon: TrendingDown,
+            },
+            {
+              label: 'Protocol',
+              value: result.protocolName,
+              sub: result.chain,
+              icon: Shield,
+            },
+          ].map((item, i) => (
+            <motion.div
+              key={item.label}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 + i * 0.05 }}
+              className="px-4 py-3"
+            >
+              <div className="flex items-center gap-1.5 mb-1">
+                <item.icon className="w-3 h-3 text-gray-400" />
+                <span className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">
+                  {item.label}
+                </span>
+              </div>
+              <p className="text-sm font-semibold text-gray-900">{item.value}</p>
+              <p className="text-[11px] text-gray-400 mt-0.5">{item.sub}</p>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Asset Deviations (inside the same card) */}
+        {result.assetDeviations.length > 1 && (
+          <div className="p-5 pt-4">
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="text-sm font-semibold text-gray-900">
+                Asset-Level Deviation Analysis
+              </h4>
+              <button
+                type="button"
+                onClick={() => setShowAllDeviations(!showAllDeviations)}
+                className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700"
+              >
+                {showAllDeviations ? 'Collapse' : 'Show All'}
+                {showAllDeviations ? (
+                  <ChevronUp className="w-3 h-3" />
+                ) : (
+                  <ChevronDown className="w-3 h-3" />
+                )}
+              </button>
+            </div>
+            <div className="space-y-2">
+              {(showAllDeviations
+                ? result.assetDeviations
+                : result.assetDeviations.slice(0, 3)
+              ).map((deviation, index) => (
                 <AssetDeviationCard
                   key={index}
                   deviation={deviation}
                   isWorst={deviation === worstDeviation}
                 />
-              )
-            )}
-          </div>
-        </motion.div>
-      )}
-
-      {/* Safety Buffer Analysis */}
-      <motion.div
-        initial={{ opacity: 0, y: 15 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className={cn('rounded-lg border shadow-sm p-5', safetyConfig.bg, safetyConfig.border)}
-      >
-        <div className="flex items-center gap-2 mb-3">
-          <SafetyIcon className={cn('w-5 h-5', safetyConfig.color)} />
-          <h4 className="text-sm font-semibold text-gray-900">Safety Buffer Analysis</h4>
-          <span
-            className={cn(
-              'text-xs font-semibold px-2 py-0.5 rounded-full capitalize',
-              safetyConfig.bg,
-              safetyConfig.color
-            )}
-          >
-            {result.safetyBuffer.overallLevel}
-          </span>
-        </div>
-        <p className="text-sm text-gray-700 mb-3">{result.safetyBuffer.description}</p>
-        {result.safetyBuffer.recommendations.length > 0 && (
-          <div className="space-y-1.5">
-            {result.safetyBuffer.recommendations.map((rec, i) => (
-              <div key={i} className="flex items-start gap-2 text-sm text-gray-600">
-                <Info className="w-3.5 h-3.5 mt-0.5 text-gray-400 shrink-0" />
-                <span>{rec}</span>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         )}
       </motion.div>
 
-      {/* Chart */}
-      <motion.div
-        initial={{ opacity: 0, y: 15 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.25 }}
+      {/* ── Section 4: Detailed Data ── */}
+      <div
+        className={cn(
+          result.collaterals.length > 1 || result.borrows.length > 1
+            ? 'grid grid-cols-1 lg:grid-cols-2 gap-4'
+            : 'space-y-4'
+        )}
       >
-        <RiskChart result={result} />
-      </motion.div>
-
-      {/* Detail Cards */}
-      <motion.div
-        initial={{ opacity: 0, y: 15 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        className="grid grid-cols-2 lg:grid-cols-4 gap-3"
-      >
-        {[
-          {
-            label: 'Total Collateral',
-            value: `$${formatCompactNumber(result.totalCollateralValue)}`,
-            sub: result.collaterals.map((c) => c.symbol).join(' + '),
-            icon: Shield,
-          },
-          {
-            label: 'Total Borrow',
-            value: `$${formatCompactNumber(result.totalBorrowValue)}`,
-            sub: result.borrows.map((b) => b.symbol).join(' + '),
-            icon: AlertTriangle,
-          },
-          {
-            label: 'Collateral Ratio',
-            value: `${(result.currentCollateralRatio * 100).toFixed(2)}%`,
-            sub: `Adjusted: ${(result.currentCollateralRatio * 100).toFixed(2)}%`,
-            icon: TrendingDown,
-          },
-          { label: 'Protocol', value: result.protocolName, sub: result.chain, icon: Shield },
-        ].map((item, i) => (
-          <motion.div
-            key={item.label}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.35 + i * 0.06 }}
-            className="bg-white rounded-lg border border-gray-200 shadow-sm p-4"
-          >
-            <div className="flex items-center gap-1.5 mb-1.5">
-              <item.icon className="w-3.5 h-3.5 text-gray-400" />
-              <span className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">
-                {item.label}
-              </span>
-            </div>
-            <p className="text-sm font-semibold text-gray-900">{item.value}</p>
-            <p className="text-[11px] text-gray-400 mt-0.5">{item.sub}</p>
-          </motion.div>
-        ))}
-      </motion.div>
-
-      {/* Collateral & Borrow Details */}
-      {(result.collaterals.length > 1 || result.borrows.length > 1) && (
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.35 }}
-          className="grid grid-cols-1 lg:grid-cols-2 gap-4"
-        >
-          {/* Collateral Details */}
-          <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-5">
-            <h4 className="text-sm font-semibold text-gray-900 mb-3">Collateral Breakdown</h4>
-            <div className="space-y-2">
-              {result.collaterals.map((c, i) => (
-                <div key={i} className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium text-gray-900">{c.symbol}</span>
-                    <span className="text-xs text-gray-400">
-                      CF {(c.collateralFactor * 100).toFixed(0)}% · LT{' '}
-                      {(c.liquidationThreshold * 100).toFixed(0)}%
-                    </span>
+        {/* Left: Collateral & Borrow Details */}
+        {(result.collaterals.length > 1 || result.borrows.length > 1) && (
+          <div className="space-y-4">
+            {/* Collateral Details */}
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-5">
+              <h4 className="text-sm font-semibold text-gray-900 mb-3">Collateral Breakdown</h4>
+              <div className="space-y-2">
+                {result.collaterals.map((c, i) => (
+                  <div key={i} className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-gray-900">{c.symbol}</span>
+                      <span className="text-xs text-gray-400">
+                        CF {(c.collateralFactor * 100).toFixed(0)}% · LT{' '}
+                        {(c.liquidationThreshold * 100).toFixed(0)}%
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      <span className="font-mono text-gray-700">
+                        {c.amount} × {formatPrice(c.price)}
+                      </span>
+                      <span className="text-gray-400 ml-2">= {formatPrice(c.value)}</span>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <span className="font-mono text-gray-700">
-                      {c.amount} × {formatPrice(c.price)}
-                    </span>
-                    <span className="text-gray-400 ml-2">= {formatPrice(c.value)}</span>
-                  </div>
+                ))}
+                <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-sm font-medium">
+                  <span className="text-gray-600">Adjusted Total</span>
+                  <span className="text-gray-900 font-mono">
+                    {formatPrice(result.totalAdjustedCollateralValue)}
+                  </span>
                 </div>
-              ))}
-              <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-sm font-medium">
-                <span className="text-gray-600">Adjusted Total</span>
-                <span className="text-gray-900 font-mono">
-                  {formatPrice(result.totalAdjustedCollateralValue)}
-                </span>
+              </div>
+            </div>
+
+            {/* Borrow Details */}
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-5">
+              <h4 className="text-sm font-semibold text-gray-900 mb-3">Borrow Breakdown</h4>
+              <div className="space-y-2">
+                {result.borrows.map((b, i) => (
+                  <div key={i} className="flex items-center justify-between text-sm">
+                    <span className="font-medium text-gray-900">{b.symbol}</span>
+                    <div className="text-right">
+                      <span className="font-mono text-gray-700">
+                        {b.amount} × {formatPrice(b.price)}
+                      </span>
+                      <span className="text-gray-400 ml-2">= {formatPrice(b.value)}</span>
+                    </div>
+                  </div>
+                ))}
+                <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-sm font-medium">
+                  <span className="text-gray-600">Total Borrow</span>
+                  <span className="text-gray-900 font-mono">
+                    {formatPrice(result.totalBorrowValue)}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
+        )}
 
-          {/* Borrow Details */}
+        {/* Chart + Heatmap */}
+        <div className="space-y-4">
+          <RiskChart result={result} />
+
+          {/* Heatmap */}
           <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-5">
-            <h4 className="text-sm font-semibold text-gray-900 mb-3">Borrow Breakdown</h4>
+            <h4 className="text-sm font-semibold text-gray-900 mb-4">Price Deviation Status</h4>
             <div className="space-y-2">
-              {result.borrows.map((b, i) => (
-                <div key={i} className="flex items-center justify-between text-sm">
-                  <span className="font-medium text-gray-900">{b.symbol}</span>
-                  <div className="text-right">
-                    <span className="font-mono text-gray-700">
-                      {b.amount} × {formatPrice(b.price)}
-                    </span>
-                    <span className="text-gray-400 ml-2">= {formatPrice(b.value)}</span>
-                  </div>
-                </div>
-              ))}
-              <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-sm font-medium">
-                <span className="text-gray-600">Total Borrow</span>
-                <span className="text-gray-900 font-mono">
-                  {formatPrice(result.totalBorrowValue)}
-                </span>
-              </div>
+              {heatmapData.map((point, index) => {
+                const cfg =
+                  point.status === 'safe'
+                    ? {
+                        color: '#10b981',
+                        bg: 'bg-emerald-50',
+                        label: 'Safe',
+                        text: 'text-emerald-700',
+                      }
+                    : point.status === 'warning'
+                      ? {
+                          color: '#f59e0b',
+                          bg: 'bg-amber-50',
+                          label: 'Warning',
+                          text: 'text-amber-700',
+                        }
+                      : point.status === 'critical'
+                        ? {
+                            color: '#ef4444',
+                            bg: 'bg-red-50',
+                            label: 'Critical',
+                            text: 'text-red-700',
+                          }
+                        : {
+                            color: '#6b7280',
+                            bg: 'bg-gray-50',
+                            label: 'Liquidated',
+                            text: 'text-gray-700',
+                          };
+
+                const barWidth = Math.min(100, Math.max(15, (point.collateralRatio / 250) * 100));
+
+                return (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, x: -12 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.45 + index * 0.03 }}
+                    className={cn(
+                      'flex items-center gap-3 p-2.5 rounded-lg',
+                      point.isCritical && 'bg-red-50/60 border border-red-100'
+                    )}
+                  >
+                    <div className="w-20 shrink-0">
+                      <span
+                        className={cn(
+                          'text-sm font-mono font-semibold',
+                          point.deviationPercent === 0 ? 'text-gray-900' : 'text-gray-500'
+                        )}
+                      >
+                        {point.deviationPercent > 0 ? '+' : ''}
+                        {point.deviationPercent.toFixed(1)}%
+                      </span>
+                      {point.deviationPercent === 0 && (
+                        <span className="text-[10px] text-gray-400 ml-1">Current</span>
+                      )}
+                    </div>
+                    <div className="w-16 shrink-0 text-right">
+                      <span className="text-sm font-mono text-gray-600">
+                        {formatPrice(point.collateralPrice)}
+                      </span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="h-6 bg-gray-100 rounded-md overflow-hidden relative">
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: `${barWidth}%` }}
+                          transition={{
+                            delay: 0.6 + index * 0.03,
+                            duration: 0.5,
+                            ease: 'easeOut',
+                          }}
+                          className="h-full rounded-md"
+                          style={{ backgroundColor: cfg.color, opacity: 0.6 }}
+                        />
+                        <div
+                          className="absolute top-0 bottom-0 w-px bg-gray-300"
+                          style={{
+                            left: `${((result.liquidationThreshold * 100) / 250) * 100}%`,
+                          }}
+                        />
+                      </div>
+                    </div>
+                    <div className="w-14 text-right shrink-0">
+                      <span className="text-sm font-mono text-gray-600">
+                        {point.collateralRatio.toFixed(0)}%
+                      </span>
+                    </div>
+                    <div className="w-16 shrink-0 flex justify-end">
+                      <span
+                        className={cn(
+                          'text-[11px] font-semibold px-2 py-0.5 rounded-full',
+                          cfg.bg,
+                          cfg.text
+                        )}
+                      >
+                        {cfg.label}
+                      </span>
+                    </div>
+                  </motion.div>
+                );
+              })}
             </div>
           </div>
-        </motion.div>
-      )}
-
-      {/* Heatmap */}
-      <motion.div
-        initial={{ opacity: 0, y: 15 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
-        className="bg-white rounded-lg border border-gray-200 shadow-sm p-5"
-      >
-        <h4 className="text-sm font-semibold text-gray-900 mb-4">Price Deviation Status</h4>
-        <div className="space-y-2">
-          {heatmapData.map((point, index) => {
-            const cfg =
-              point.status === 'safe'
-                ? { color: '#10b981', bg: 'bg-emerald-50', label: 'Safe', text: 'text-emerald-700' }
-                : point.status === 'warning'
-                  ? {
-                      color: '#f59e0b',
-                      bg: 'bg-amber-50',
-                      label: 'Warning',
-                      text: 'text-amber-700',
-                    }
-                  : point.status === 'critical'
-                    ? { color: '#ef4444', bg: 'bg-red-50', label: 'Critical', text: 'text-red-700' }
-                    : {
-                        color: '#6b7280',
-                        bg: 'bg-gray-50',
-                        label: 'Liquidated',
-                        text: 'text-gray-700',
-                      };
-
-            const barWidth = Math.min(100, Math.max(15, (point.collateralRatio / 250) * 100));
-
-            return (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, x: -12 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.45 + index * 0.03 }}
-                className={cn(
-                  'flex items-center gap-3 p-2.5 rounded-lg',
-                  point.isCritical && 'bg-red-50/60 border border-red-100'
-                )}
-              >
-                <div className="w-20 shrink-0">
-                  <span
-                    className={cn(
-                      'text-sm font-mono font-semibold',
-                      point.deviationPercent === 0 ? 'text-gray-900' : 'text-gray-500'
-                    )}
-                  >
-                    {point.deviationPercent > 0 ? '+' : ''}
-                    {point.deviationPercent.toFixed(1)}%
-                  </span>
-                  {point.deviationPercent === 0 && (
-                    <span className="text-[10px] text-gray-400 ml-1">Current</span>
-                  )}
-                </div>
-                <div className="w-16 shrink-0 text-right">
-                  <span className="text-sm font-mono text-gray-600">
-                    {formatPrice(point.collateralPrice)}
-                  </span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="h-6 bg-gray-100 rounded-md overflow-hidden relative">
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${barWidth}%` }}
-                      transition={{ delay: 0.6 + index * 0.03, duration: 0.5, ease: 'easeOut' }}
-                      className="h-full rounded-md"
-                      style={{ backgroundColor: cfg.color, opacity: 0.6 }}
-                    />
-                    <div
-                      className="absolute top-0 bottom-0 w-px bg-gray-300"
-                      style={{ left: `${((result.liquidationThreshold * 100) / 250) * 100}%` }}
-                    />
-                  </div>
-                </div>
-                <div className="w-14 text-right shrink-0">
-                  <span className="text-sm font-mono text-gray-600">
-                    {point.collateralRatio.toFixed(0)}%
-                  </span>
-                </div>
-                <div className="w-16 shrink-0 flex justify-end">
-                  <span
-                    className={cn(
-                      'text-[11px] font-semibold px-2 py-0.5 rounded-full',
-                      cfg.bg,
-                      cfg.text
-                    )}
-                  >
-                    {cfg.label}
-                  </span>
-                </div>
-              </motion.div>
-            );
-          })}
         </div>
-      </motion.div>
+      </div>
 
       {/* Reset */}
       <motion.div
@@ -528,6 +564,83 @@ function AssetDeviationCard({
         {deviation.description}
       </div>
     </div>
+  );
+}
+
+function buildAlertUrl(deviation: AssetDeviationResult, chain: string): string {
+  const params = new URLSearchParams();
+  params.set('symbol', deviation.symbol);
+  params.set('condition_type', deviation.direction === 'down' ? 'below' : 'above');
+  params.set('target_value', deviation.criticalPrice.toString());
+  if (chain) params.set('chain', chain);
+  return `/alerts?${params.toString()}`;
+}
+
+function OracleReliabilityWarnings({
+  warnings,
+}: {
+  warnings: PositionCriticalResult['oracleWarnings'];
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.22 }}
+      className="bg-white rounded-lg border border-gray-200 shadow-sm p-5"
+    >
+      <div className="flex items-center gap-2 mb-3">
+        <AlertTriangle className="w-4 h-4 text-gray-500" />
+        <h4 className="text-sm font-semibold text-gray-900">Oracle Reliability</h4>
+      </div>
+      <div className="space-y-2">
+        {warnings.map((warning, i) => {
+          const levelConfig = {
+            healthy: { color: 'text-emerald-600', bg: 'bg-emerald-50', label: 'Healthy' },
+            fair: { color: 'text-blue-600', bg: 'bg-blue-50', label: 'Fair' },
+            degraded: { color: 'text-amber-600', bg: 'bg-amber-50', label: 'Degraded' },
+            critical: { color: 'text-red-600', bg: 'bg-red-50', label: 'Critical' },
+          }[warning.level];
+
+          return (
+            <div
+              key={i}
+              className={cn(
+                'rounded-lg border p-3',
+                levelConfig.bg,
+                warning.level === 'healthy'
+                  ? 'border-emerald-200'
+                  : warning.level === 'fair'
+                    ? 'border-blue-200'
+                    : warning.level === 'degraded'
+                      ? 'border-amber-200'
+                      : 'border-red-200'
+              )}
+            >
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-sm font-medium text-gray-900">{warning.provider}</span>
+                <span
+                  className={cn(
+                    'text-xs font-semibold px-2 py-0.5 rounded-full',
+                    levelConfig.bg,
+                    levelConfig.color
+                  )}
+                >
+                  {levelConfig.label} · {warning.overallScore.toFixed(0)}/100
+                </span>
+              </div>
+              <p className="text-xs text-gray-600">{warning.message}</p>
+              {warning.level !== 'healthy' && (
+                <div className="mt-2 flex items-center gap-3 text-[10px] text-gray-400">
+                  <span>Freshness: {warning.freshnessScore.toFixed(0)}</span>
+                  <span>Reliability: {warning.reliabilityScore.toFixed(0)}</span>
+                  <span>Avg Deviation: {warning.avgDeviationPct.toFixed(2)}%</span>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </motion.div>
   );
 }
 
