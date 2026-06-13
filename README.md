@@ -26,7 +26,6 @@ Insight is an oracle transparency and risk infrastructure platform that serves b
 - **Consensus Price** - Multiple consensus algorithms (median, trimmed mean, weighted median, IQR-filtered).
 - **Data Transparency** - Data source indicators and update time tracking.
 - **Accessibility Support** - Keyboard navigation, colorblind mode, screen reader support.
-- **REST API** - V1 API with API key authentication for programmatic access.
 
 ## Safety Check - Supported Protocols
 
@@ -133,36 +132,6 @@ npm run dev
 
 ## API Endpoints
 
-### V1 REST API (API Key Authentication)
-
-All V1 endpoints require an API key passed via `x-api-key` header or `Authorization: Bearer` header.
-
-#### Price
-
-- `GET /api/v1/price/[symbol]` - Get aggregated price across all oracles
-- `GET /api/v1/price/[symbol]/sources` - Get all oracle sources for a symbol
-- `GET /api/v1/price/[symbol]/history` - Get historical price data (requires `provider` parameter)
-
-#### Consensus
-
-- `GET /api/v1/consensus/[symbol]` - Get consensus price with configurable aggregation method
-
-#### Oracles
-
-- `GET /api/v1/oracles/[provider]` - Get price from a specific oracle (requires `symbol` parameter)
-
-#### API Keys
-
-- `GET /api/v1/api-keys` - List your API keys
-- `POST /api/v1/api-keys` - Create new API key
-- `GET /api/v1/api-keys/[id]` - Get API key details
-- `PATCH /api/v1/api-keys/[id]` - Update API key
-- `DELETE /api/v1/api-keys/[id]` - Delete API key
-
-#### Documentation
-
-- `GET /api/v1/docs` - OpenAPI 3.1.0 specification
-
 ### Internal API (Session Authentication)
 
 #### Authentication
@@ -209,7 +178,7 @@ All V1 endpoints require an API key passed via `x-api-key` header or `Authorizat
 | Oracle Directory    | `/reputation`               | Oracle provider profiles and 7-day rolling reputation scores                       | No            |
 | Provider Detail     | `/reputation/[provider]`    | Detailed provider profile with trend charts and score breakdowns                   | No            |
 | Price Snapshots     | `/snapshots`                | Save, compare, and share price snapshots                                           | Yes           |
-| Settings            | `/settings`                 | Profile, preferences, notifications, data management, API keys                     | Yes           |
+| Settings            | `/settings`                 | Profile, preferences, notifications, data management                               | Yes           |
 | Documentation       | `/docs`                     | Quick start, feature guides, and developer resources                               | No            |
 | Login               | `/login`                    | User login page                                                                    | No            |
 | Register            | `/register`                 | User registration page                                                             | No            |

@@ -1,6 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
-import { createServerClient } from '@/lib/supabase/server';
 import { createLogger } from '@/lib/utils/logger';
 
 import {
@@ -8,14 +7,11 @@ import {
   createLoggingMiddleware,
   createErrorMiddleware,
   createRateLimitMiddleware,
-  createApiKeyMiddleware,
   logResponse,
   type AuthContext,
   type LoggingMiddlewareOptions,
   type ErrorMiddlewareOptions,
   type RateLimitMiddlewareOptions,
-  type ApiKeyContext,
-  type ApiKeyMiddlewareOptions,
 } from './middleware';
 import { ApiResponseBuilder, type ApiResponse, type ApiSuccessResponse } from './response';
 
@@ -30,7 +26,6 @@ interface RateLimitInfo {
 interface ApiHandlerContext {
   requestId: string;
   auth?: AuthContext;
-  apiKey?: ApiKeyContext;
   rateLimitInfo?: RateLimitInfo;
   validated?: {
     body?: Record<string, unknown>;
@@ -49,7 +44,6 @@ interface MiddlewareConfig {
   logging?: LoggingMiddlewareOptions | boolean;
   error?: ErrorMiddlewareOptions;
   rateLimit?: RateLimitMiddlewareOptions | boolean;
-  apiKey?: ApiKeyMiddlewareOptions | boolean;
   cors?: CorsOptions | boolean;
 }
 
@@ -65,13 +59,7 @@ interface CreateApiHandlerOptions {
   onError?: (error: unknown, context: ApiHandlerContext) => Promise<NextResponse> | NextResponse;
 }
 
-const DEFAULT_CORS_HEADERS = [
-  'Content-Type',
-  'Authorization',
-  'x-api-key',
-  'X-Request-Id',
-  'Cache-Control',
-];
+const DEFAULT_CORS_HEADERS = ['Content-Type', 'Authorization', 'X-Request-Id', 'Cache-Control'];
 
 function getCorsHeaders(options: CorsOptions): Record<string, string> {
   const {
@@ -87,42 +75,6 @@ function getCorsHeaders(options: CorsOptions): Record<string, string> {
     'Access-Control-Allow-Headers': headers.join(', '),
     'Access-Control-Max-Age': String(maxAge),
   };
-}
-
-function recordApiKeyUsage(
-  keyId: string,
-  request: NextRequest,
-  statusCode: number,
-  responseTimeMs: number
-): void {
-  try {
-    const client = createServerClient();
-    const forwarded = request.headers.get('x-forwarded-for');
-    const realIp = request.headers.get('x-real-ip');
-    const ip = realIp || forwarded?.split(',').pop()?.trim() || null;
-
-    client
-      .from('api_key_usage')
-      .insert({
-        api_key_id: keyId,
-        endpoint: request.nextUrl.pathname,
-        method: request.method,
-        status_code: statusCode,
-        response_time_ms: responseTimeMs,
-        ip_address: ip,
-        user_agent: request.headers.get('user-agent')?.substring(0, 500) || null,
-      })
-      .then(({ error: insertError }) => {
-        if (insertError) {
-          logger.warn('Failed to record API key usage', { keyId, error: insertError.message });
-        }
-      });
-  } catch (error) {
-    logger.warn('Failed to record API key usage', {
-      keyId,
-      error: error instanceof Error ? error.message : String(error),
-    });
-  }
 }
 
 function applyRateLimitHeaders(response: NextResponse, rateLimitInfo: RateLimitInfo): NextResponse {
@@ -162,10 +114,6 @@ export function createApiHandler<T = unknown>(
     : null;
 
   const errorMiddleware = createErrorMiddleware(middlewares.error);
-
-  const apiKeyMiddleware = middlewares.apiKey
-    ? createApiKeyMiddleware(typeof middlewares.apiKey === 'boolean' ? {} : middlewares.apiKey)
-    : null;
 
   const baseRateLimitOptions = middlewares.rateLimit
     ? typeof middlewares.rateLimit === 'boolean'
@@ -212,28 +160,10 @@ export function createApiHandler<T = unknown>(
         apiContext.requestId = `req_${crypto.randomUUID().replace(/-/g, '')}`;
       }
 
-      if (apiKeyMiddleware) {
-        const apiKeyResult = await apiKeyMiddleware(request);
-        if (!apiKeyResult.success) {
-          logResponse(apiContext.requestId, apiKeyResult.response.status, startTime);
-          if (corsHeaders) applyCorsHeaders(apiKeyResult.response, corsHeaders);
-          return apiKeyResult.response;
-        }
-        apiContext.apiKey = apiKeyResult.context;
-      }
-
       let currentMaxRequests = 0;
 
       if (baseRateLimitOptions) {
         const rateLimitOptions = { ...baseRateLimitOptions };
-        if (apiContext.apiKey?.rateLimit) {
-          rateLimitOptions.maxRequests = apiContext.apiKey.rateLimit;
-          rateLimitOptions.keyGenerator = (req: NextRequest) => {
-            const baseKey = `api:${apiContext.apiKey!.keyId}`;
-            const path = req.nextUrl.pathname;
-            return `${baseKey}:${path}`;
-          };
-        }
         const rateLimitMiddleware = createRateLimitMiddleware(rateLimitOptions);
         const rateLimitResult = await rateLimitMiddleware(request);
         currentMaxRequests =
@@ -272,11 +202,6 @@ export function createApiHandler<T = unknown>(
 
       if (corsHeaders) {
         applyCorsHeaders(response, corsHeaders);
-      }
-
-      if (apiContext.apiKey?.keyId) {
-        const duration = Date.now() - startTime;
-        recordApiKeyUsage(apiContext.apiKey.keyId, request, response.status, duration);
       }
 
       logResponse(apiContext.requestId, response.status, startTime);

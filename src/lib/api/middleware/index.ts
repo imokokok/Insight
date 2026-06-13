@@ -9,9 +9,3 @@ export {
 export { createErrorMiddleware, type ErrorMiddlewareOptions } from './errorMiddleware';
 
 export { createRateLimitMiddleware, type RateLimitMiddlewareOptions } from './rateLimitMiddleware';
-
-export {
-  createApiKeyMiddleware,
-  type ApiKeyContext,
-  type ApiKeyMiddlewareOptions,
-} from './apiKeyMiddleware';
