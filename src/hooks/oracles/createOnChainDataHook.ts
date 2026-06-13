@@ -41,11 +41,50 @@ export function createOnChainDataHook<T>(
   createService: () => {
     getTokenOnChainData: (symbol: string, chain?: Blockchain) => Promise<T | null>;
   }
-) {
+): (options: OnChainDataOptions) => OnChainDataReturn<T>;
+export function createOnChainDataHook<T>(
+  providerName: string,
+  customQueryFn: (
+    symbol: string,
+    chain: Blockchain | undefined,
+    signal?: AbortSignal
+  ) => Promise<T | null>
+): (options: OnChainDataOptions) => OnChainDataReturn<T>;
+export function createOnChainDataHook<T>(
+  providerName: string,
+  serviceOrQueryFn:
+    | (() => {
+        getTokenOnChainData: (symbol: string, chain?: Blockchain) => Promise<T | null>;
+      })
+    | ((symbol: string, chain: Blockchain | undefined, signal?: AbortSignal) => Promise<T | null>)
+): (options: OnChainDataOptions) => OnChainDataReturn<T> {
+  const isCustomQueryFn = typeof serviceOrQueryFn === 'function' && serviceOrQueryFn.length >= 2;
+
   return function useOnChainData(options: OnChainDataOptions): OnChainDataReturn<T> {
     const { symbol, chain, enabled = true } = options;
-    const service = useMemo(() => createService(), []);
     const queryKey = [providerName, 'onchain-data', symbol.toUpperCase(), chain || 'default'];
+
+    const service = useMemo(() => {
+      if (!isCustomQueryFn) {
+        return (
+          serviceOrQueryFn as () => {
+            getTokenOnChainData: (symbol: string, chain?: Blockchain) => Promise<T | null>;
+          }
+        )();
+      }
+      return null;
+    }, []);
+
+    const queryFn = isCustomQueryFn
+      ? ({ signal }: { signal?: AbortSignal }) =>
+          (
+            serviceOrQueryFn as (
+              symbol: string,
+              chain: Blockchain | undefined,
+              signal?: AbortSignal
+            ) => Promise<T | null>
+          )(symbol, chain, signal)
+      : () => service!.getTokenOnChainData(symbol, chain);
 
     const {
       data,
@@ -55,7 +94,7 @@ export function createOnChainDataHook<T>(
       refetch: queryRefetch,
     } = useQuery<T | null, Error>({
       queryKey,
-      queryFn: () => service.getTokenOnChainData(symbol, chain),
+      queryFn,
       enabled: enabled && !!symbol,
       ...ON_CHAIN_DATA_QUERY_OPTIONS,
     });

@@ -8,13 +8,8 @@ import { Database, Layers, ShieldCheck } from 'lucide-react';
 
 import { DataSourceList, type DataSourceGroup } from '@/components/data-transparency';
 import { DataUpdateTime } from '@/components/data-transparency/DataUpdateTime';
-import { useReputations } from '@/hooks/data/useReputations';
 import { providerNames, chainNames } from '@/lib/constants';
-import {
-  getCredibilityFromScore,
-  getCredibilityFromVerification,
-  type CredibilityLevel,
-} from '@/lib/oracles/utils/reputationUtils';
+import { getCredibilityLevel, useReputationMap } from '@/lib/oracles/utils/dataSourceUtils';
 import { formatRelativeTime } from '@/lib/utils/format';
 import { OracleProvider, Blockchain, type OnChainVerification } from '@/types/oracle';
 
@@ -57,18 +52,6 @@ function getProviderForChain(chain: Blockchain): OracleProvider {
   return providerMap[chain] || OracleProvider.CHAINLINK;
 }
 
-function getCredibilityLevel(
-  _provider: OracleProvider,
-  reputationScore: number | undefined,
-  hasOnChainVerification: boolean,
-  confidence: number
-): CredibilityLevel {
-  if (reputationScore !== undefined && reputationScore > 0) {
-    return getCredibilityFromScore(reputationScore).level;
-  }
-  return getCredibilityFromVerification(hasOnChainVerification, confidence).level;
-}
-
 export function DataSourceSection({
   dataPoints,
   lastUpdated,
@@ -76,15 +59,7 @@ export function DataSourceSection({
   isLoading,
   error,
 }: DataSourceSectionProps) {
-  const { data: reputationsData } = useReputations();
-
-  const reputationMap = useMemo(() => {
-    const map = new Map<OracleProvider, number>();
-    reputationsData?.data.forEach((r) => {
-      map.set(r.provider, r.overall_score);
-    });
-    return map;
-  }, [reputationsData]);
+  const reputationMap = useReputationMap();
 
   const { uniqueProviders, avgConfidence, dataSources } = useMemo(() => {
     const providers = new Set<OracleProvider>();

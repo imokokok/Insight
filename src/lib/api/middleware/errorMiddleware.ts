@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-import { errorToResponse, isAppError } from '@/lib/errors';
+import { errorToResponse, isAppError, classifyByStringMatching } from '@/lib/errors';
 import { createLogger } from '@/lib/utils/logger';
 
 import { ApiResponseBuilder } from '../response';
@@ -60,11 +60,9 @@ export function createErrorMiddleware(options: ErrorMiddlewareOptions = {}) {
     }
 
     if (error instanceof Error) {
+      const stringResult = classifyByStringMatching(error);
       const isNetworkError =
-        error.message.includes('fetch') ||
-        error.message.includes('network') ||
-        error.message.includes('timeout') ||
-        error.message.includes('ECONNREFUSED');
+        stringResult?.errorType === 'network' || stringResult?.errorType === 'timeout';
 
       const response = ApiResponseBuilder.error('INTERNAL_ERROR', error.message, {
         retryable: isNetworkError,

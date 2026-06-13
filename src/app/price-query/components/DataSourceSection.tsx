@@ -3,13 +3,7 @@
 import { useMemo } from 'react';
 
 import { DataSourceList, type DataSourceGroup } from '@/components/data-transparency';
-import { useReputations } from '@/hooks/data/useReputations';
-import {
-  getCredibilityFromScore,
-  getCredibilityFromVerification,
-  type CredibilityLevel,
-} from '@/lib/oracles/utils/reputationUtils';
-import { type OracleProvider } from '@/types/oracle';
+import { getCredibilityLevel, useReputationMap } from '@/lib/oracles/utils/dataSourceUtils';
 
 import { type QueryResult } from '../constants';
 
@@ -20,18 +14,6 @@ interface DataSourceSectionProps {
   isLoading: boolean;
   error?: Error | null;
   chartContainerRef?: React.RefObject<HTMLDivElement | null>;
-}
-
-function getCredibilityLevel(
-  _provider: OracleProvider,
-  reputationScore: number | undefined,
-  hasOnChainVerification: boolean,
-  confidence: number
-): CredibilityLevel {
-  if (reputationScore !== undefined && reputationScore > 0) {
-    return getCredibilityFromScore(reputationScore).level;
-  }
-  return getCredibilityFromVerification(hasOnChainVerification, confidence).level;
 }
 
 function calculateConfidence(result: QueryResult): number {
@@ -55,15 +37,7 @@ export function DataSourceSection({
   error,
   chartContainerRef: _chartContainerRef,
 }: DataSourceSectionProps) {
-  const { data: reputationsData } = useReputations();
-
-  const reputationMap = useMemo(() => {
-    const map = new Map<OracleProvider, number>();
-    reputationsData?.data.forEach((r) => {
-      map.set(r.provider, r.overall_score);
-    });
-    return map;
-  }, [reputationsData]);
+  const reputationMap = useReputationMap();
 
   const dataSources: DataSourceGroup[] = useMemo(() => {
     return results.map((result) => {

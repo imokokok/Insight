@@ -3,7 +3,7 @@
  * @param value - The value to check
  * @returns Boolean indicating if value is a finite number
  */
-import { getTimeAgoDiff } from '@/lib/utils/timestamp';
+import { getTimeAgoDiff, formatTimeAgoShort, formatTimeAgo } from '@/lib/utils/timestamp';
 
 function isFiniteNumber(value: number): boolean {
   return typeof value === 'number' && Number.isFinite(value);
@@ -227,19 +227,12 @@ export function formatRelativeTime(
   const style = options?.style ?? 'short';
   const time = timestamp instanceof Date ? timestamp : new Date(timestamp);
   const diff = getTimeAgoDiff(time);
-  const { value, unit } = diff;
 
   if (style === 'short') {
-    if (unit === 'seconds') return `${value}s ago`;
-    if (unit === 'minutes') return `${value}m ago`;
-    if (unit === 'hours') return `${value}h ago`;
-    return `${value}d ago`;
+    return formatTimeAgoShort(diff);
   }
 
-  if (unit === 'seconds') return `${value} seconds ago`;
-  if (unit === 'minutes') return `${value} minute${value > 1 ? 's' : ''} ago`;
-  if (unit === 'hours') return `${value} hour${value > 1 ? 's' : ''} ago`;
-  return `${value} day${value > 1 ? 's' : ''} ago`;
+  return formatTimeAgo(diff);
 }
 
 export function capitalize(s: string): string {
