@@ -35,7 +35,7 @@ export default function FeaturesGuideSection() {
       href: '/price-insight',
       highlights: [
         'By Oracle / By Chain dimension switching',
-        '6 consensus algorithms and divergence signals',
+        '4 consensus algorithms and divergence signals',
         'Risk analysis, feed health, and reliability ranking',
       ],
     },
