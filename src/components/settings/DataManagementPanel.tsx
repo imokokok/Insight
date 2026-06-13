@@ -47,7 +47,6 @@ export function DataManagementPanel() {
   const { exportData, isExporting: isExportingUserData } = useDataExport();
   const { deleteAccount: deleteAccountApi, isDeleting: isDeletingAccount } = useDeleteAccount();
   const [isExportingPrice, setIsExportingPrice] = useState(false);
-  const [isExportingSnapshots, setIsExportingSnapshots] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -88,7 +87,6 @@ export function DataManagementPanel() {
           email: user.email,
         },
         profile: result.profile,
-        snapshots: result.snapshots,
       };
 
       exportToJson({ filename: 'user-data', data: exportPayload });
@@ -123,32 +121,6 @@ export function DataManagementPanel() {
       setError('Failed to export data');
     } finally {
       setIsExportingPrice(false);
-    }
-  };
-
-  const exportSnapshots = async () => {
-    if (!user) return;
-
-    setIsExportingSnapshots(true);
-    setError(null);
-
-    try {
-      const response = await apiClient.get<{ snapshots: unknown[]; count: number }>(
-        '/api/snapshots'
-      );
-
-      const snapshotExportData = {
-        exportedAt: new Date().toISOString(),
-        snapshots: response.data.snapshots,
-        count: response.data.snapshots?.length || 0,
-      };
-
-      exportToJson({ filename: 'snapshots', data: snapshotExportData });
-      showSuccess('Snapshots exported successfully');
-    } catch {
-      setError('Failed to export data');
-    } finally {
-      setIsExportingSnapshots(false);
     }
   };
 
@@ -269,32 +241,6 @@ export function DataManagementPanel() {
                   className="inline-flex items-center gap-2 px-4 py-2 bg-success-600 text-white rounded-lg hover:bg-success-700 active:bg-green-800 transition-all duration-200 disabled:opacity-50 text-sm font-medium shadow-sm hover:shadow-md"
                 >
                   {isExportingPrice ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Download className="w-4 h-4" />
-                  )}
-                  Export
-                </button>
-              </div>
-            </div>
-
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-md bg-purple-100 flex items-center justify-center">
-                    <Database className="w-5 h-5 text-purple-600" />
-                  </div>
-                  <div>
-                    <div className="font-medium text-gray-900">Export Snapshots</div>
-                    <div className="text-sm text-gray-500">Download your saved snapshots</div>
-                  </div>
-                </div>
-                <button
-                  onClick={exportSnapshots}
-                  disabled={isExportingSnapshots}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 active:bg-purple-800 transition-all duration-200 disabled:opacity-50 text-sm font-medium shadow-sm hover:shadow-md"
-                >
-                  {isExportingSnapshots ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
                     <Download className="w-4 h-4" />

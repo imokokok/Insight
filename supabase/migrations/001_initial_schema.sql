@@ -114,58 +114,6 @@ CREATE INDEX idx_price_records_active ON public.price_records(provider, symbol)
     WHERE (ttl > NOW());
 
 -- ============================================
--- Table: user_snapshots
--- Stores user price snapshots
--- ============================================
-CREATE TABLE IF NOT EXISTS public.user_snapshots (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-    symbol TEXT NOT NULL,
-    name TEXT,
-    selected_oracles TEXT[] NOT NULL,
-    price_data JSONB NOT NULL,
-    stats JSONB NOT NULL,
-    is_public BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Enable RLS
-ALTER TABLE public.user_snapshots ENABLE ROW LEVEL SECURITY;
-
--- RLS Policies for user_snapshots
-CREATE POLICY "Users can view own snapshots"
-    ON public.user_snapshots FOR SELECT
-    USING (auth.uid() = user_id);
-
-CREATE POLICY "Public snapshots are viewable by all"
-    ON public.user_snapshots FOR SELECT
-    USING (is_public = true);
-
-CREATE POLICY "Users can create own snapshots"
-    ON public.user_snapshots FOR INSERT
-    WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "Users can update own snapshots"
-    ON public.user_snapshots FOR UPDATE
-    USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can delete own snapshots"
-    ON public.user_snapshots FOR DELETE
-    USING (auth.uid() = user_id);
-
--- Indexes for user_snapshots
-CREATE INDEX idx_user_snapshots_user_id ON public.user_snapshots(user_id);
-CREATE INDEX idx_user_snapshots_symbol ON public.user_snapshots(symbol);
-CREATE INDEX idx_user_snapshots_created_at ON public.user_snapshots(created_at DESC);
-CREATE INDEX idx_user_snapshots_public ON public.user_snapshots(is_public) WHERE (is_public = true);
-
-CREATE TRIGGER update_user_snapshots_updated_at
-    BEFORE UPDATE ON public.user_snapshots
-    FOR EACH ROW
-    EXECUTE FUNCTION public.update_updated_at_column();
-
--- ============================================
 -- Table: user_favorites
 -- Stores user favorite configurations
 -- ============================================
@@ -310,9 +258,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 COMMENT ON TABLE public.user_profiles IS 'Extends Supabase auth.users with user preferences and settings';
 COMMENT ON TABLE public.price_records IS 'Historical price data from oracle providers with TTL for automatic cleanup';
-COMMENT ON TABLE public.user_snapshots IS 'User-saved price snapshots for comparison and historical reference';
 COMMENT ON TABLE public.user_favorites IS 'User favorite configurations (oracle configs, symbols, chain configs)';
 
 COMMENT ON COLUMN public.price_records.ttl IS 'Time-to-live: record expires after this timestamp';
 COMMENT ON COLUMN public.price_records.confidence IS 'Confidence score from 0 to 1';
-COMMENT ON COLUMN public.user_snapshots.is_public IS 'Whether snapshot is publicly shareable';

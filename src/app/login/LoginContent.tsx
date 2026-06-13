@@ -18,7 +18,6 @@ const ALLOWED_REDIRECT_PATHS = [
   '/settings',
   '/profile',
 
-  '/snapshots',
   '/price-query',
   '/price-insight',
 ];

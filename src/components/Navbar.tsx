@@ -6,7 +6,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-import { Menu, User, Camera } from 'lucide-react';
+import { Menu, User } from 'lucide-react';
 
 import { Button } from '@/components/ui';
 import { useKeyboardShortcuts } from '@/hooks';
@@ -140,18 +140,6 @@ export default function Navbar() {
 
               {user && !loading ? (
                 <div className="hidden lg:flex items-center gap-0.5">
-                  <Link
-                    href="/snapshots"
-                    className={`p-2.5 rounded-md transition-colors ${
-                      isActive('/snapshots')
-                        ? 'text-primary-600 bg-primary-50'
-                        : 'text-gray-600 hover:text-primary-600 hover:bg-gray-50'
-                    }`}
-                    title="Price Snapshots"
-                  >
-                    <Camera className="w-[18px] h-[18px]" />
-                  </Link>
-
                   <div className="relative ml-1">
                     <button
                       onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
