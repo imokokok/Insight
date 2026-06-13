@@ -12,7 +12,6 @@ interface CrossOracleDivergenceSignalTabProps {
   timeSeries: DivergenceTimeSeries[];
   leadership: OracleLeadership[];
   divergenceMatrix: DivergencePair[][];
-  alertCount: number;
   acceleratingCount: number;
   directionalBiasCount: number;
   leadingOracle: string | null;
@@ -23,7 +22,6 @@ export function CrossOracleDivergenceSignalTab({
   timeSeries,
   leadership,
   divergenceMatrix,
-  alertCount,
   acceleratingCount,
   directionalBiasCount,
   leadingOracle,
@@ -34,7 +32,6 @@ export function CrossOracleDivergenceSignalTab({
       timeSeries={timeSeries}
       leadership={leadership}
       divergenceMatrix={divergenceMatrix}
-      alertCount={alertCount}
       acceleratingCount={acceleratingCount}
       directionalBiasCount={directionalBiasCount}
       leadingEntity={leadingOracle}

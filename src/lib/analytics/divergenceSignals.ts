@@ -1,4 +1,3 @@
-import { getSymbolCategory } from '@/lib/constants';
 import { createLogger } from '@/lib/utils/logger';
 
 import {
@@ -53,12 +52,10 @@ export interface DivergenceSignalResult {
   timeSeries: DivergenceTimeSeries[];
   leadership: OracleLeadership[];
   divergenceMatrix: DivergencePair[][];
-  alertCount: number;
   acceleratingCount: number;
   directionalBiasCount: number;
   leadingOracle: string | null;
   maxAcceleration: number;
-  alertThreshold: number;
 }
 
 interface PriceData {
@@ -81,22 +78,6 @@ interface PriceHistoryEntry {
 
 const ACCELERATION_THRESHOLD = 0.1;
 
-function getDeviationAlertThreshold(symbol?: string): number {
-  if (!symbol) return 1;
-  const category = getSymbolCategory(symbol);
-  switch (category) {
-    case 'stablecoin':
-      return 0.1;
-    case 'major':
-      return 0.8;
-    case 'alt':
-      return 1.5;
-    case 'micro':
-      return 3.0;
-    default:
-      return 1;
-  }
-}
 const SIGNIFICANT_CHANGE_THRESHOLD = 0.01;
 const DIRECTIONAL_BIAS_MIN_CONSECUTIVE = 3;
 const LEADING_LAG_THRESHOLD = 1;
@@ -496,8 +477,7 @@ function calculateDivergenceMatrix(priceData: PriceData[]): DivergencePair[][] {
 
 export function calculateDivergenceSignals(
   priceData: PriceData[],
-  priceHistoryMap: Map<string, { price: number; timestamp: number; success: boolean }[]>,
-  symbol?: string
+  priceHistoryMap: Map<string, { price: number; timestamp: number; success: boolean }[]>
 ): DivergenceSignalResult {
   try {
     if (!priceData || priceData.length === 0) {
@@ -524,14 +504,6 @@ export function calculateDivergenceSignals(
 
     const directionalBiasCount = timeSeries.filter((ts) => ts.isDirectionalBias).length;
 
-    const alertThreshold = getDeviationAlertThreshold(symbol);
-    const alertCount = timeSeries.filter(
-      (ts) =>
-        Math.abs(ts.currentDeviation) > alertThreshold ||
-        ts.acceleration === 'accelerating' ||
-        ts.isDirectionalBias
-    ).length;
-
     const leadingOracle = leadership.find((l) => l.status === 'leading')?.provider ?? null;
 
     const maxAcceleration = timeSeries.reduce(
@@ -540,19 +512,17 @@ export function calculateDivergenceSignals(
     );
 
     logger.info(
-      `Divergence signals calculated. Alerts: ${alertCount}, Accelerating: ${acceleratingCount}, Directional bias: ${directionalBiasCount}`
+      `Divergence signals calculated. Accelerating: ${acceleratingCount}, Directional bias: ${directionalBiasCount}`
     );
 
     return {
       timeSeries,
       leadership,
       divergenceMatrix,
-      alertCount,
       acceleratingCount,
       directionalBiasCount,
       leadingOracle,
       maxAcceleration: Number(maxAcceleration.toFixed(4)),
-      alertThreshold,
     };
   } catch (error) {
     logger.error(
@@ -568,11 +538,9 @@ function getEmptyResult(): DivergenceSignalResult {
     timeSeries: [],
     leadership: [],
     divergenceMatrix: [],
-    alertCount: 0,
     acceleratingCount: 0,
     directionalBiasCount: 0,
     leadingOracle: null,
     maxAcceleration: 0,
-    alertThreshold: 1,
   };
 }

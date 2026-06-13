@@ -10,7 +10,6 @@ Insight is an oracle transparency and risk infrastructure platform that serves b
 
 - **Safety Check (Position Critical Deviation)** - Enter your DeFi lending position to calculate the exact oracle price deviation that would trigger liquidation. Supports multi-asset positions across Aave V3, Compound V3, Spark, Morpho Blue, Venus, BENQI, and more. Provides health factor gauge, safety buffer analysis, and oracle reliability warnings.
 - **Price Query** - Query real-time prices from any oracle provider with a simple interface. View on-chain data, confidence intervals, and price freshness at a glance.
-- **Price Alerts** - Set custom price alerts and get notified when oracle prices deviate beyond your threshold. Supports real-time event push.
 
 ### For Researchers & Analysts
 
@@ -173,17 +172,6 @@ All V1 endpoints require an API key passed via `x-api-key` header or `Authorizat
 - `PUT /api/auth/profile` - Update user profile
 - `POST /api/auth/delete-account` - Delete user account
 
-#### Alerts
-
-- `GET /api/alerts` - List user alerts
-- `POST /api/alerts` - Create new alert
-- `GET /api/alerts/[id]` - Get specific alert
-- `PUT /api/alerts/[id]` - Update alert
-- `DELETE /api/alerts/[id]` - Delete alert
-- `GET /api/alerts/events` - List alert events
-- `POST /api/alerts/events/[id]/acknowledge` - Acknowledge alert event
-- `POST /api/alerts/batch` - Batch alert operations
-
 #### Oracles
 
 - `GET /api/oracles/[provider]` - Get specific oracle data
@@ -221,7 +209,6 @@ All V1 endpoints require an API key passed via `x-api-key` header or `Authorizat
 | Oracle Directory    | `/reputation`               | Oracle provider profiles and 7-day rolling reputation scores                       | No            |
 | Provider Detail     | `/reputation/[provider]`    | Detailed provider profile with trend charts and score breakdowns                   | No            |
 | Price Snapshots     | `/snapshots`                | Save, compare, and share price snapshots                                           | Yes           |
-| Price Alerts        | `/alerts`                   | Custom price alerts with real-time notifications                                   | Yes           |
 | Settings            | `/settings`                 | Profile, preferences, notifications, data management, API keys                     | Yes           |
 | Documentation       | `/docs`                     | Quick start, feature guides, and developer resources                               | No            |
 | Login               | `/login`                    | User login page                                                                    | No            |

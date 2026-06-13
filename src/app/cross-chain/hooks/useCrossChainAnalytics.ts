@@ -97,7 +97,6 @@ export interface CrossChainDivergenceResult {
   timeSeries: DivergenceTimeSeries[];
   leadership: OracleLeadership[];
   divergenceMatrix: DivergencePair[][];
-  alertCount: number;
   acceleratingCount: number;
   directionalBiasCount: number;
   leadingOracle: string | null;
@@ -185,7 +184,6 @@ function getEmptyDivergenceResult(): CrossChainDivergenceResult {
     timeSeries: [],
     leadership: [],
     divergenceMatrix: [],
-    alertCount: 0,
     acceleratingCount: 0,
     directionalBiasCount: 0,
     leadingOracle: null,
@@ -392,11 +390,9 @@ export function useCrossChainAnalytics(currentPrices: PriceData[]): CrossChainAn
         confidenceInterval: p.confidenceInterval,
       }));
 
-      const selectedSymbol = chainPrices[0]?.symbol;
       const divergenceResult = calculateDivergenceSignals(
         divergencePriceData,
-        historyMapForDivergence,
-        selectedSymbol
+        historyMapForDivergence
       );
 
       const divergenceAccelScore = Math.min(
@@ -619,7 +615,6 @@ export function useCrossChainAnalytics(currentPrices: PriceData[]): CrossChainAn
         timeSeries: divergenceResult.timeSeries,
         leadership: divergenceResult.leadership,
         divergenceMatrix: divergenceResult.divergenceMatrix,
-        alertCount: divergenceResult.alertCount,
         acceleratingCount: divergenceResult.acceleratingCount,
         directionalBiasCount: divergenceResult.directionalBiasCount,
         leadingOracle: divergenceResult.leadingOracle,

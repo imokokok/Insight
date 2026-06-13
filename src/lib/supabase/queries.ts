@@ -1,6 +1,5 @@
 import { type SupabaseClient } from '@supabase/supabase-js';
 
-import { type AlertConditionType } from '@/lib/supabase/database.types';
 import { createLogger } from '@/lib/utils/logger';
 import { RequestQueue } from '@/lib/utils/requestQueue';
 import { normalizeTimestamp } from '@/lib/utils/timestamp';
@@ -122,44 +121,6 @@ export interface UserSnapshotInsert {
     standardDeviationPercent: number;
   };
   is_public?: boolean;
-}
-
-export interface PriceAlert {
-  id: string;
-  user_id: string;
-  name: string | null;
-  symbol: string;
-  chain: string | null;
-  condition_type: AlertConditionType;
-  target_value: number;
-  provider: string | null;
-  is_active: boolean;
-  last_triggered_at: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface PriceAlertInsert {
-  user_id: string;
-  name?: string | null;
-  symbol: string;
-  chain?: string | null;
-  condition_type: AlertConditionType;
-  target_value: number;
-  provider?: string | null;
-  is_active?: boolean;
-}
-
-export interface AlertEvent {
-  id: string;
-  alert_id: string;
-  user_id: string;
-  price: number;
-  triggered_at: string;
-  condition_met: string;
-  acknowledged: boolean;
-  acknowledged_at: string | null;
-  created_at: string;
 }
 
 export interface UserProfileUpdate {
@@ -425,20 +386,6 @@ export class DatabaseQueries {
     return true;
   }
 
-  async deleteAllAlerts(userId: string): Promise<boolean> {
-    const { error } = await this.client.from('price_alerts').delete().eq('user_id', userId);
-
-    if (error) {
-      logger.error(
-        'Failed to delete all alerts',
-        error instanceof Error ? error : new Error(String(error))
-      );
-      return false;
-    }
-
-    return true;
-  }
-
   async deleteAllSnapshots(userId: string): Promise<boolean> {
     const { error } = await this.client.from('user_snapshots').delete().eq('user_id', userId);
 
@@ -451,170 +398,6 @@ export class DatabaseQueries {
     }
 
     return true;
-  }
-
-  async createAlert(
-    userId: string,
-    alert: Omit<PriceAlertInsert, 'user_id'>
-  ): Promise<PriceAlert | null> {
-    const { data, error } = await this.client
-      .from('price_alerts')
-      .insert({ ...alert, user_id: userId, is_active: alert.is_active ?? true })
-      .select()
-      .single();
-
-    if (error) {
-      logger.error(
-        'Failed to create alert',
-        error instanceof Error ? error : new Error(String(error))
-      );
-      return null;
-    }
-
-    return data;
-  }
-
-  async getAlertById(id: string, userId: string): Promise<PriceAlert | null> {
-    const { data, error } = await this.client
-      .from('price_alerts')
-      .select('*')
-      .eq('id', id)
-      .eq('user_id', userId)
-      .single();
-
-    if (error) {
-      if (error.code !== 'PGRST116') {
-        logger.error(
-          'Failed to get alert by id',
-          error instanceof Error ? error : new Error(String(error))
-        );
-      }
-      return null;
-    }
-
-    return data;
-  }
-
-  async getAlerts(userId: string): Promise<PriceAlert[] | null> {
-    const { data, error } = await this.client
-      .from('price_alerts')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      logger.error(
-        'Failed to get alerts',
-        error instanceof Error ? error : new Error(String(error))
-      );
-      return null;
-    }
-
-    return data;
-  }
-
-  async updateAlert(
-    id: string,
-    data: Partial<PriceAlertInsert>,
-    userId: string
-  ): Promise<PriceAlert | null> {
-    const { data: updated, error } = await this.client
-      .from('price_alerts')
-      .update({ ...data, updated_at: new Date().toISOString() })
-      .eq('id', id)
-      .eq('user_id', userId)
-      .select()
-      .single();
-
-    if (error) {
-      logger.error(
-        'Failed to update alert',
-        error instanceof Error ? error : new Error(String(error))
-      );
-      return null;
-    }
-
-    return updated;
-  }
-
-  async deleteAlert(id: string, userId: string): Promise<boolean> {
-    const { error } = await this.client
-      .from('price_alerts')
-      .delete()
-      .eq('id', id)
-      .eq('user_id', userId);
-
-    if (error) {
-      logger.error(
-        'Failed to delete alert',
-        error instanceof Error ? error : new Error(String(error))
-      );
-      return false;
-    }
-
-    return true;
-  }
-
-  async getAlertEventById(id: string, userId: string): Promise<AlertEvent | null> {
-    const { data, error } = await this.client
-      .from('alert_events')
-      .select('*')
-      .eq('id', id)
-      .eq('user_id', userId)
-      .single();
-
-    if (error) {
-      if (error.code !== 'PGRST116') {
-        logger.error(
-          'Failed to get alert event by id',
-          error instanceof Error ? error : new Error(String(error))
-        );
-      }
-      return null;
-    }
-
-    return data;
-  }
-
-  async getAlertEvents(userId: string): Promise<AlertEvent[] | null> {
-    const { data, error } = await this.client
-      .from('alert_events')
-      .select('*')
-      .eq('user_id', userId)
-      .order('triggered_at', { ascending: false });
-
-    if (error) {
-      logger.error(
-        'Failed to get alert events',
-        error instanceof Error ? error : new Error(String(error))
-      );
-      return null;
-    }
-
-    return data;
-  }
-
-  async acknowledgeAlertEvent(eventId: string, userId: string): Promise<AlertEvent | null> {
-    const { data, error } = await this.client
-      .from('alert_events')
-      .update({
-        acknowledged: true,
-        acknowledged_at: new Date().toISOString(),
-      })
-      .eq('id', eventId)
-      .eq('user_id', userId)
-      .select()
-      .single();
-
-    if (error) {
-      logger.error(
-        'Failed to acknowledge alert event',
-        error instanceof Error ? error : new Error(String(error))
-      );
-      return null;
-    }
-
-    return data;
   }
 
   async getUserProfile(userId: string): Promise<UserProfile | null> {

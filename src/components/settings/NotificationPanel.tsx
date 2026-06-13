@@ -2,16 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 
-import {
-  Bell,
-  Mail,
-  Globe,
-  AlertTriangle,
-  TrendingUp,
-  Save,
-  Loader2,
-  CheckCircle,
-} from 'lucide-react';
+import { Bell, Mail, Globe, TrendingUp, Save, Loader2, CheckCircle } from 'lucide-react';
 
 import { useProfileUpdate } from '@/hooks/useProfileUpdate';
 import { useUser } from '@/stores/authStore';
@@ -19,7 +10,6 @@ import { useUser } from '@/stores/authStore';
 interface NotificationSettings {
   emailNotifications: boolean;
   browserNotifications: boolean;
-  alertNotifications: boolean;
   priceChangeThreshold: number;
   priceChangeEnabled: boolean;
 }
@@ -29,7 +19,6 @@ const STORAGE_KEY = 'notification_settings';
 const defaultSettings: NotificationSettings = {
   emailNotifications: false,
   browserNotifications: false,
-  alertNotifications: true,
   priceChangeThreshold: 5,
   priceChangeEnabled: false,
 };
@@ -117,9 +106,7 @@ export function NotificationPanel() {
       if (user) {
         await updateProfile({
           notification_settings: {
-            email_alerts: settings.emailNotifications,
             push_notifications: settings.browserNotifications,
-            alert_frequency: settings.alertNotifications ? 'immediate' : 'off',
             price_change_enabled: settings.priceChangeEnabled,
             price_change_threshold: settings.priceChangeThreshold,
           },
@@ -221,34 +208,6 @@ export function NotificationPanel() {
                 />
               </div>
             </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
-          <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-            <AlertTriangle className="w-5 h-5 text-gray-400" />
-            Alert Notifications
-          </h2>
-          <p className="text-sm text-gray-500 mt-1">Configure alert notification settings</p>
-        </div>
-
-        <div className="p-6 space-y-6">
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-md bg-warning-100 flex items-center justify-center">
-                <AlertTriangle className="w-5 h-5 text-warning-600" />
-              </div>
-              <div>
-                <div className="font-medium text-gray-900">Alert Trigger Notifications</div>
-                <div className="text-sm text-gray-500">Get notified when alerts are triggered</div>
-              </div>
-            </div>
-            <Toggle
-              enabled={settings.alertNotifications}
-              onChange={(value) => updateSetting('alertNotifications', value)}
-            />
           </div>
         </div>
       </div>

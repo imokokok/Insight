@@ -378,14 +378,6 @@ describe('Navbar', () => {
         expect(mockSignOut).toHaveBeenCalled();
       });
     });
-
-    it('should render alerts link', () => {
-      renderNavbar();
-
-      const alertsLink = screen.getByTitle('Alerts');
-
-      expect(alertsLink).toBeInTheDocument();
-    });
   });
 
   describe('navigation links', () => {

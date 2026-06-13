@@ -2,7 +2,7 @@
 
 import { memo } from 'react';
 
-import { TrendingUp, AlertTriangle, Activity } from 'lucide-react';
+import { TrendingUp, Activity } from 'lucide-react';
 
 import type {
   DivergenceTimeSeries,
@@ -27,7 +27,6 @@ interface DivergenceSignalTabProps {
   timeSeries: DivergenceTimeSeries[];
   leadership: OracleLeadership[];
   divergenceMatrix: DivergencePair[][];
-  alertCount: number;
   acceleratingCount: number;
   directionalBiasCount: number;
   leadingEntity: string | null;
@@ -41,7 +40,6 @@ function DivergenceSignalTabComponent({
   timeSeries,
   leadership,
   divergenceMatrix,
-  alertCount,
   acceleratingCount,
   directionalBiasCount,
   leadingEntity,
@@ -65,14 +63,6 @@ function DivergenceSignalTabComponent({
           </div>
           <p className="text-xs text-gray-500">{labels.subtitle}</p>
         </div>
-        {alertCount > 0 && (
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-50 border border-amber-200">
-            <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
-            <span className="text-xs font-semibold text-amber-700">
-              {alertCount} Alert{alertCount !== 1 ? 's' : ''}
-            </span>
-          </div>
-        )}
       </div>
 
       {timeSeries.length === 0 && (
@@ -95,7 +85,6 @@ function DivergenceSignalTabComponent({
       )}
 
       <DivergenceStatsCards
-        alertCount={alertCount}
         acceleratingCount={acceleratingCount}
         directionalBiasCount={directionalBiasCount}
         leadingEntity={leadingEntity}

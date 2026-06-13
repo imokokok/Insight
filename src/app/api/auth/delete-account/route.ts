@@ -49,12 +49,6 @@ export const POST = createApiHandler(
       logger.error('Failed to delete user API keys', new Error(String(apiKeysError)));
     }
 
-    const alertSuccess = await queries.deleteAllAlerts(userId);
-    if (!alertSuccess) {
-      deletionErrors.push('alerts');
-      logger.error('Failed to delete user alerts');
-    }
-
     const snapshotSuccess = await queries.deleteAllSnapshots(userId);
     if (!snapshotSuccess) {
       deletionErrors.push('snapshots');

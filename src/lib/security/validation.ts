@@ -6,7 +6,7 @@ import { ORACLE_PROVIDER_VALUES } from '@/types/oracle/enums';
 import type { OracleProvider, Blockchain } from '@/types/oracle/enums';
 import { FAILURE_MODE_VALUES } from '@/types/oracle/signals';
 
-import { sanitizeString, sanitizeSymbol, sanitizeProvider, sanitizeChain } from './inputSanitizer';
+import { sanitizeSymbol, sanitizeProvider, sanitizeChain } from './inputSanitizer';
 
 const validationLogger = createLogger('oracle-validation');
 
@@ -26,36 +26,6 @@ export const SafeChainSchema = z
   .string()
   .transform((val) => sanitizeChain(val))
   .pipe(z.string()) as unknown as z.ZodType<Blockchain>;
-
-const SafeNameSchema = z
-  .string()
-  .min(1, 'Name is required')
-  .max(100, 'Name too long')
-  .transform((val) => sanitizeString(val, { maxLength: 100 }));
-
-const SafeAlertConditionSchema = z.enum([
-  'above',
-  'below',
-  'change_percent',
-  'deviation_from_median',
-  'oracle_disagreement',
-  'stale_data',
-  'confidence_drop',
-  'anomaly_detected',
-]);
-
-const SafeAlertTargetValueSchema = z.number().finite();
-
-const SafeBooleanSchema = z.union([
-  z.boolean(),
-  z.string().transform((val) => val.toLowerCase() === 'true'),
-  z.union([z.literal(0), z.literal(1)]).transform((val) => val === 1),
-]);
-
-const SafeIdListSchema = z
-  .array(z.string().uuid())
-  .min(1, 'At least one ID required')
-  .max(100, 'Maximum 100 IDs allowed');
 
 const SafeActionSchema = z.enum(['enable', 'disable', 'delete']);
 
@@ -90,19 +60,8 @@ export function validateAndSanitize<T>(
   }
 }
 
-export const CreateAlertRequestSchema = z.object({
-  name: SafeNameSchema,
-  symbol: SafeSymbolSchema,
-  chain: SafeChainSchema.optional(),
-  condition_type: SafeAlertConditionSchema,
-  target_value: SafeAlertTargetValueSchema,
-  provider: SafeProviderSchema.optional(),
-  is_active: SafeBooleanSchema.optional().default(true),
-});
-
 export const BatchOperationSchema = z.object({
   action: SafeActionSchema,
-  alertIds: SafeIdListSchema,
 });
 
 const PriceDataBaseSchema = z.object({
@@ -184,26 +143,6 @@ export const PriceDataSchema = PriceDataBaseSchema.extend({
       blockNumber: z.number().optional(),
     })
     .optional(),
-});
-
-export const AlertListResponseSchema = z.object({
-  alerts: z.array(
-    z.object({
-      id: z.string().uuid(),
-      user_id: z.string().uuid(),
-      name: z.string().min(1),
-      symbol: z.string().min(1),
-      chain: SafeChainSchema.nullable().optional(),
-      condition_type: SafeAlertConditionSchema,
-      target_value: z.number(),
-      provider: SafeProviderSchema.nullable().optional(),
-      is_active: z.boolean(),
-      created_at: z.string().datetime(),
-      updated_at: z.string().datetime().optional(),
-      last_triggered_at: z.string().datetime().nullable().optional(),
-    })
-  ),
-  count: z.number().int().nonnegative(),
 });
 
 export const OracleProviderPathParamSchema = z

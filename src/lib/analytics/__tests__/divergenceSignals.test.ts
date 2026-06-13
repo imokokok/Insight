@@ -33,7 +33,6 @@ describe('divergenceSignals', () => {
       expect(result.timeSeries).toBeDefined();
       expect(result.leadership).toBeDefined();
       expect(result.divergenceMatrix).toBeDefined();
-      expect(result.alertCount).toBeGreaterThanOrEqual(0);
       expect(result.acceleratingCount).toBeGreaterThanOrEqual(0);
       expect(result.directionalBiasCount).toBeGreaterThanOrEqual(0);
       expect(result.maxAcceleration).toBeGreaterThanOrEqual(0);
@@ -45,7 +44,6 @@ describe('divergenceSignals', () => {
       expect(result.timeSeries).toEqual([]);
       expect(result.leadership).toEqual([]);
       expect(result.divergenceMatrix).toEqual([]);
-      expect(result.alertCount).toBe(0);
       expect(result.acceleratingCount).toBe(0);
       expect(result.directionalBiasCount).toBe(0);
       expect(result.leadingOracle).toBeNull();

@@ -4,7 +4,6 @@ import {
   Layers,
   Search,
   GitCompare,
-  Bell,
   ArrowRight,
   BarChart3,
   Clock,
@@ -49,17 +48,6 @@ export default function FeaturesGuideSection() {
         '7-day rolling aggregated scores',
         '5-metric evaluation (accuracy, uptime, reliability, latency, freshness)',
         'Provider detail pages with trend charts',
-      ],
-    },
-    {
-      icon: <Bell className="w-6 h-6" />,
-      title: 'Price Alerts',
-      description: 'Set up custom price alerts with real-time event push and preset templates',
-      href: '/alerts',
-      highlights: [
-        'Threshold-based alerts with templates',
-        'Real-time event push notifications',
-        'Alert history and batch operations',
       ],
     },
     {

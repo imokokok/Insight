@@ -36,7 +36,6 @@ export default function TermsPage() {
                 <li>Real-time price monitoring from multiple oracle providers</li>
                 <li>Cross-oracle price comparison and analysis</li>
                 <li>Cross-chain performance analysis</li>
-                <li>Price alerts and notifications</li>
                 <li>Data export functionality (CSV, JSON, Excel, PDF, PNG)</li>
                 <li>User preferences and saved configurations</li>
               </ul>

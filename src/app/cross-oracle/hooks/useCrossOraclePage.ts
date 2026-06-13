@@ -65,7 +65,7 @@ export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
 
   const riskMetrics = useRiskMetrics(priceData, priceHistoryMapRef, selectedSymbol);
 
-  const divergenceSignals = useDivergenceSignals(priceData, priceHistoryMapRef, selectedSymbol);
+  const divergenceSignals = useDivergenceSignals(priceData, priceHistoryMapRef);
   const feedBehavior = useFeedBehavior(priceData, priceHistoryMapRef);
   const stabilityScore = useStabilityScore(priceData, priceHistoryMapRef);
 

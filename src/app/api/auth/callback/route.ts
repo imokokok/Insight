@@ -43,7 +43,7 @@ const ALLOWED_REDIRECT_PATHS = [
   '/dashboard',
   '/settings',
   '/profile',
-  '/alerts',
+
   '/snapshots',
   '/price-query',
   '/price-insight',

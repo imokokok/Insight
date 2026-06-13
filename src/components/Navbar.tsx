@@ -6,7 +6,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-import { Menu, User, Bell, Camera } from 'lucide-react';
+import { Menu, User, Camera } from 'lucide-react';
 
 import { Button } from '@/components/ui';
 import { useKeyboardShortcuts } from '@/hooks';
@@ -151,17 +151,7 @@ export default function Navbar() {
                   >
                     <Camera className="w-[18px] h-[18px]" />
                   </Link>
-                  <Link
-                    href="/alerts"
-                    className={`p-2.5 rounded-md transition-colors ${
-                      isActive('/alerts')
-                        ? 'text-primary-600 bg-primary-50'
-                        : 'text-gray-600 hover:text-primary-600 hover:bg-gray-50'
-                    }`}
-                    title="Price Alerts"
-                  >
-                    <Bell className="w-[18px] h-[18px]" />
-                  </Link>
+
                   <div className="relative ml-1">
                     <button
                       onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}

@@ -3,7 +3,6 @@
 import { lazy, memo, Suspense, useMemo } from 'react';
 
 import { OracleErrorPanel } from '@/app/cross-oracle/components/OracleErrorPanel';
-import { RiskAlertBanner } from '@/app/cross-oracle/components/RiskAlertBanner';
 import type { DivergenceSignalsResult } from '@/app/cross-oracle/hooks/useDivergenceSignals';
 import type { FeedBehaviorHookResult } from '@/app/cross-oracle/hooks/useFeedBehavior';
 import type {
@@ -78,7 +77,7 @@ function OracleQueryResultsComponent({
   queryProgress,
   priceStats,
   anomalies,
-  anomalyDetection,
+  anomalyDetection: _anomalyDetection,
   riskMetrics,
   divergenceSignals,
   feedBehavior,
@@ -230,17 +229,6 @@ function OracleQueryResultsComponent({
 
   return (
     <div className="space-y-4 mt-4">
-      {anomalyDetection.hasAnomalies && (
-        <RiskAlertBanner
-          anomalies={anomalyDetection.anomalies}
-          count={anomalyDetection.count}
-          highRiskCount={anomalyDetection.highRiskCount}
-          mediumRiskCount={anomalyDetection.mediumRiskCount}
-          lowRiskCount={anomalyDetection.lowRiskCount}
-          maxDeviation={anomalyDetection.maxDeviation}
-        />
-      )}
-
       {oracleDataError?.hasError && oracleDataError.isPartialSuccess && (
         <OracleErrorPanel
           oracleDataError={oracleDataError}
@@ -281,7 +269,6 @@ function OracleQueryResultsComponent({
                 timeSeries={divergenceSignals.timeSeries}
                 leadership={divergenceSignals.leadership}
                 divergenceMatrix={divergenceSignals.divergenceMatrix}
-                alertCount={divergenceSignals.alertCount}
                 acceleratingCount={divergenceSignals.acceleratingCount}
                 directionalBiasCount={divergenceSignals.directionalBiasCount}
                 leadingOracle={divergenceSignals.leadingOracle}

@@ -21,7 +21,6 @@ export interface DivergenceSignalsResult {
   timeSeries: DivergenceTimeSeries[];
   leadership: OracleLeadership[];
   divergenceMatrix: DivergencePair[][];
-  alertCount: number;
   acceleratingCount: number;
   directionalBiasCount: number;
   leadingOracle: string | null;
@@ -31,8 +30,7 @@ export interface DivergenceSignalsResult {
 
 export function useDivergenceSignals(
   priceData: PriceData[],
-  priceHistoryMapRef?: React.MutableRefObject<PriceHistoryMap> | null,
-  symbol?: string
+  priceHistoryMapRef?: React.MutableRefObject<PriceHistoryMap> | null
 ): DivergenceSignalsResult {
   const [priceHistories, setPriceHistories] = useState<Map<string, HistoryEntry[]>>(new Map());
 
@@ -49,7 +47,6 @@ export function useDivergenceSignals(
         timeSeries: [],
         leadership: [],
         divergenceMatrix: [],
-        alertCount: 0,
         acceleratingCount: 0,
         directionalBiasCount: 0,
         leadingOracle: null,
@@ -73,14 +70,13 @@ export function useDivergenceSignals(
         }
       }
 
-      const divergenceResult = calculateDivergenceSignals(priceData, historyMap, symbol);
+      const divergenceResult = calculateDivergenceSignals(priceData, historyMap);
 
       return {
         divergenceResult,
         timeSeries: divergenceResult.timeSeries,
         leadership: divergenceResult.leadership,
         divergenceMatrix: divergenceResult.divergenceMatrix,
-        alertCount: divergenceResult.alertCount,
         acceleratingCount: divergenceResult.acceleratingCount,
         directionalBiasCount: divergenceResult.directionalBiasCount,
         leadingOracle: divergenceResult.leadingOracle,
@@ -97,7 +93,6 @@ export function useDivergenceSignals(
         timeSeries: [],
         leadership: [],
         divergenceMatrix: [],
-        alertCount: 0,
         acceleratingCount: 0,
         directionalBiasCount: 0,
         leadingOracle: null,
@@ -105,7 +100,7 @@ export function useDivergenceSignals(
         isCalculating: false,
       };
     }
-  }, [priceData, priceHistories, symbol]);
+  }, [priceData, priceHistories]);
 
   return result;
 }
