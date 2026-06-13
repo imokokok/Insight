@@ -18,9 +18,8 @@ export default function QuickStartSection() {
     },
     {
       icon: <Bell className="w-6 h-6" />,
-      title: 'Monitor & Alert',
-      description:
-        'Set price alerts, save snapshots for comparison, and track oracle reputation over time',
+      title: 'Monitor Prices',
+      description: 'Save snapshots for comparison, and track oracle reputation over time',
     },
   ];
 

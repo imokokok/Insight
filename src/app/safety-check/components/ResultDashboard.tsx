@@ -2,11 +2,8 @@
 
 import { useMemo, useState } from 'react';
 
-import Link from 'next/link';
-
 import { motion } from 'framer-motion';
 import {
-  Bell,
   RefreshCw,
   TrendingDown,
   TrendingUp,
@@ -146,15 +143,6 @@ export function ResultDashboard({ result, onReset }: ResultDashboardProps) {
               Current: {formatPrice(worstDeviation.currentPrice)}
             </span>
             <span>HF: {result.currentHealthFactor.toFixed(2)}</span>
-          </div>
-          <div className="mt-3">
-            <Link
-              href={buildAlertUrl(worstDeviation, result.chain)}
-              className="inline-flex items-center gap-1.5 text-xs font-medium text-primary-600 hover:text-primary-700 bg-primary-50 hover:bg-primary-100 px-3 py-1.5 rounded-md transition-colors"
-            >
-              <Bell className="w-3.5 h-3.5" />
-              Create Price Alert
-            </Link>
           </div>
         </motion.div>
 
@@ -565,15 +553,6 @@ function AssetDeviationCard({
       </div>
     </div>
   );
-}
-
-function buildAlertUrl(deviation: AssetDeviationResult, chain: string): string {
-  const params = new URLSearchParams();
-  params.set('symbol', deviation.symbol);
-  params.set('condition_type', deviation.direction === 'down' ? 'below' : 'above');
-  params.set('target_value', deviation.criticalPrice.toString());
-  if (chain) params.set('chain', chain);
-  return `/alerts?${params.toString()}`;
 }
 
 function OracleReliabilityWarnings({

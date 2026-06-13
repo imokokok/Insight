@@ -29,10 +29,6 @@ interface ProfileResponse {
   profile: Record<string, unknown>;
 }
 
-interface AlertsResponse {
-  alerts: unknown[];
-}
-
 interface SnapshotsResponse {
   snapshots: unknown[];
 }
@@ -45,12 +41,11 @@ export function useDataExport() {
     setIsExporting(true);
     setError(null);
     try {
-      const [profile, alerts, snapshots] = await Promise.all([
+      const [profile, snapshots] = await Promise.all([
         apiClient.get<ProfileResponse>('/api/auth/profile'),
-        apiClient.get<AlertsResponse>('/api/alerts'),
         apiClient.get<SnapshotsResponse>('/api/snapshots'),
       ]);
-      return { profile, alerts, snapshots };
+      return { profile, snapshots };
     } catch (err) {
       const appError = err instanceof Error ? err : new Error(String(err));
       logger.error('Failed to export data', appError);

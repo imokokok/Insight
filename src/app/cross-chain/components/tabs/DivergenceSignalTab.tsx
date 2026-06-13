@@ -38,7 +38,6 @@ export function CrossChainDivergenceSignalTab({
       timeSeries={divergence.timeSeries}
       leadership={divergence.leadership}
       divergenceMatrix={divergence.divergenceMatrix}
-      alertCount={divergence.alertCount}
       acceleratingCount={divergence.acceleratingCount}
       directionalBiasCount={divergence.directionalBiasCount}
       leadingEntity={divergence.leadingOracle}

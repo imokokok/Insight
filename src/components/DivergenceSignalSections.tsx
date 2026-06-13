@@ -1,6 +1,6 @@
 'use client';
 
-import { TrendingUp, AlertTriangle, Zap, Navigation, Grid3x3, Activity } from 'lucide-react';
+import { TrendingUp, Zap, Navigation, Grid3x3, Activity } from 'lucide-react';
 
 import { createBadgeMapper, type BadgeStyle } from '@/components/shared/badgeUtils';
 import type {
@@ -115,7 +115,6 @@ function getDirectionBadge(direction: DivergenceDirection): {
 }
 
 interface DivergenceStatsCardsProps {
-  alertCount: number;
   acceleratingCount: number;
   directionalBiasCount: number;
   leadingEntity: string | null;
@@ -127,7 +126,6 @@ interface DivergenceStatsCardsProps {
 }
 
 function DivergenceStatsCards({
-  alertCount,
   acceleratingCount,
   directionalBiasCount,
   leadingEntity,
@@ -139,15 +137,6 @@ function DivergenceStatsCards({
 }: DivergenceStatsCardsProps) {
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-      <div className="bg-white rounded-xl border border-gray-200 p-5">
-        <div className="flex items-center gap-2 mb-2">
-          <AlertTriangle className="w-4 h-4 text-amber-500" />
-          <span className="text-sm font-medium text-gray-700">Alert Count</span>
-        </div>
-        <p className="text-2xl font-bold text-gray-900 font-mono">{alertCount}</p>
-        <p className="text-[10px] text-gray-400 mt-1">Divergence alerts triggered</p>
-      </div>
-
       <div className="bg-white rounded-xl border border-gray-200 p-5">
         <div className="flex items-center gap-2 mb-2">
           <Zap

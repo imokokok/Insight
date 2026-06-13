@@ -24,9 +24,7 @@ CREATE TABLE IF NOT EXISTS public.user_profiles (
         }
     }'::jsonb,
     notification_settings JSONB DEFAULT '{
-        "email_alerts": true,
-        "push_notifications": false,
-        "alert_frequency": "immediate"
+        "push_notifications": false
     }'::jsonb,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -206,89 +204,6 @@ CREATE INDEX idx_user_favorites_config_type ON public.user_favorites(config_type
 CREATE INDEX idx_user_favorites_created_at ON public.user_favorites(created_at DESC);
 
 -- ============================================
--- Table: price_alerts
--- Stores price alert configurations
--- ============================================
-CREATE TABLE IF NOT EXISTS public.price_alerts (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-    symbol TEXT NOT NULL,
-    provider TEXT,
-    chain TEXT,
-    condition_type TEXT NOT NULL CHECK (condition_type IN ('above', 'below', 'change_percent')),
-    target_value DECIMAL(20, 8) NOT NULL,
-    is_active BOOLEAN DEFAULT TRUE,
-    last_triggered_at TIMESTAMPTZ,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Enable RLS
-ALTER TABLE public.price_alerts ENABLE ROW LEVEL SECURITY;
-
--- RLS Policies for price_alerts
-CREATE POLICY "Users can view own alerts"
-    ON public.price_alerts FOR SELECT
-    USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can create own alerts"
-    ON public.price_alerts FOR INSERT
-    WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "Users can update own alerts"
-    ON public.price_alerts FOR UPDATE
-    USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can delete own alerts"
-    ON public.price_alerts FOR DELETE
-    USING (auth.uid() = user_id);
-
--- Trigger for updated_at
-CREATE TRIGGER update_price_alerts_updated_at
-    BEFORE UPDATE ON public.price_alerts
-    FOR EACH ROW
-    EXECUTE FUNCTION public.update_updated_at_column();
-
--- Indexes for price_alerts
-CREATE INDEX idx_price_alerts_user_id ON public.price_alerts(user_id);
-CREATE INDEX idx_price_alerts_symbol ON public.price_alerts(symbol);
-CREATE INDEX idx_price_alerts_active ON public.price_alerts(is_active) WHERE (is_active = true);
-CREATE INDEX idx_price_alerts_provider ON public.price_alerts(provider);
-
--- ============================================
--- Table: alert_events
--- Stores alert trigger events
--- ============================================
-CREATE TABLE IF NOT EXISTS public.alert_events (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    alert_id UUID NOT NULL REFERENCES public.price_alerts(id) ON DELETE CASCADE,
-    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-    triggered_at TIMESTAMPTZ DEFAULT NOW(),
-    price DECIMAL(20, 8) NOT NULL,
-    condition_met TEXT NOT NULL,
-    acknowledged BOOLEAN DEFAULT FALSE,
-    acknowledged_at TIMESTAMPTZ
-);
-
--- Enable RLS
-ALTER TABLE public.alert_events ENABLE ROW LEVEL SECURITY;
-
--- RLS Policies for alert_events
-CREATE POLICY "Users can view own alert events"
-    ON public.alert_events FOR SELECT
-    USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can update own alert events"
-    ON public.alert_events FOR UPDATE
-    USING (auth.uid() = user_id);
-
--- Indexes for alert_events
-CREATE INDEX idx_alert_events_user_id ON public.alert_events(user_id);
-CREATE INDEX idx_alert_events_alert_id ON public.alert_events(alert_id);
-CREATE INDEX idx_alert_events_triggered_at ON public.alert_events(triggered_at DESC);
-CREATE INDEX idx_alert_events_acknowledged ON public.alert_events(acknowledged) WHERE (acknowledged = false);
-
--- ============================================
 -- Functions and Procedures
 -- ============================================
 
@@ -382,33 +297,6 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- Views
 -- ============================================
 
--- View for active alerts with latest prices
-CREATE OR REPLACE VIEW public.active_alerts_with_prices AS
-SELECT 
-    pa.id AS alert_id,
-    pa.user_id,
-    pa.symbol,
-    pa.provider,
-    pa.chain,
-    pa.condition_type,
-    pa.target_value,
-    pa.is_active,
-    pa.last_triggered_at,
-    pr.price AS current_price,
-    pr.timestamp AS price_timestamp
-FROM public.price_alerts pa
-LEFT JOIN LATERAL (
-    SELECT price, timestamp
-    FROM public.price_records pr
-    WHERE pr.symbol = pa.symbol
-        AND (pa.provider IS NULL OR pr.provider = pa.provider)
-        AND (pa.chain IS NULL OR pr.chain = pa.chain)
-        AND pr.ttl > NOW()
-    ORDER BY pr.timestamp DESC
-    LIMIT 1
-) pr ON true
-WHERE pa.is_active = true;
-
 -- ============================================
 -- Initial Data / Seeds (Optional)
 -- ============================================
@@ -424,11 +312,7 @@ COMMENT ON TABLE public.user_profiles IS 'Extends Supabase auth.users with user 
 COMMENT ON TABLE public.price_records IS 'Historical price data from oracle providers with TTL for automatic cleanup';
 COMMENT ON TABLE public.user_snapshots IS 'User-saved price snapshots for comparison and historical reference';
 COMMENT ON TABLE public.user_favorites IS 'User favorite configurations (oracle configs, symbols, chain configs)';
-COMMENT ON TABLE public.price_alerts IS 'Price alert configurations with trigger conditions';
-COMMENT ON TABLE public.alert_events IS 'Records of alert trigger events';
 
 COMMENT ON COLUMN public.price_records.ttl IS 'Time-to-live: record expires after this timestamp';
 COMMENT ON COLUMN public.price_records.confidence IS 'Confidence score from 0 to 1';
 COMMENT ON COLUMN public.user_snapshots.is_public IS 'Whether snapshot is publicly shareable';
-COMMENT ON COLUMN public.price_alerts.condition_type IS 'Alert condition: above, below, or change_percent';
-COMMENT ON COLUMN public.alert_events.condition_met IS 'Description of the condition that was met';

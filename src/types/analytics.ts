@@ -29,9 +29,7 @@ export interface UserPreferences {
 }
 
 export interface UserNotificationSettings {
-  email_alerts?: boolean;
   push_notifications?: boolean;
-  alert_frequency?: 'immediate' | 'hourly' | 'daily';
 }
 
 export interface UserProfile {

@@ -28,12 +28,6 @@ SET ttl = NOW() + INTERVAL '1 hour'
 WHERE ttl IS NULL OR ttl::text = '';
 
 -- ============================================
--- 修复 2: 为 alert_events 表添加 created_at 字段
--- ============================================
-ALTER TABLE public.alert_events 
-ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT NOW();
-
--- ============================================
 -- 修复 3: 为 user_favorites 表添加 updated_at 字段
 -- ============================================
 ALTER TABLE public.user_favorites 
@@ -91,7 +85,6 @@ $$;
 -- 修复 5: 添加注释
 -- ============================================
 COMMENT ON COLUMN public.price_records.ttl IS 'Record expiration timestamp';
-COMMENT ON COLUMN public.alert_events.created_at IS 'When the alert event was created';
 COMMENT ON COLUMN public.user_favorites.updated_at IS 'When the favorite was last updated';
 
 -- ============================================
@@ -104,5 +97,5 @@ SELECT
     is_nullable
 FROM information_schema.columns
 WHERE table_schema = 'public'
-AND table_name IN ('price_records', 'alert_events', 'user_favorites')
+AND table_name IN ('price_records', 'user_favorites')
 ORDER BY table_name, ordinal_position;

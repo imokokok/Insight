@@ -57,9 +57,7 @@ const mockProfile = {
   display_name: 'Test User',
   avatar_url: null,
   preferences: {},
-  notification_settings: {
-    email_alerts: true,
-  },
+  notification_settings: {},
 };
 
 const mockAuthError: AuthError = {

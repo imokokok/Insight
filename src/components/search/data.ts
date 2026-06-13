@@ -11,7 +11,6 @@ import {
   Sun,
   Search,
   GitCompare,
-  Bell,
   Settings,
   FileText,
 } from 'lucide-react';
@@ -175,16 +174,7 @@ function getPageSearchResults(): SearchResult[] {
       keywords: ['price insight', 'comparison', 'cross oracle', 'cross chain'],
       priority: 8,
     },
-    {
-      id: 'page-alerts',
-      title: 'Alerts',
-      description: 'Manage your price alert notifications',
-      type: 'page',
-      href: `/alerts`,
-      icon: Bell,
-      keywords: ['alerts', 'alert'],
-      priority: 7,
-    },
+
     {
       id: 'page-settings',
       title: 'Settings',
@@ -211,16 +201,7 @@ function getFeatureSearchResults(): SearchResult[] {
       keywords: ['comparison', 'compare'],
       priority: 8,
     },
-    {
-      id: 'feature-alerts',
-      title: 'Price Alerts',
-      description: 'Set up notifications for price changes',
-      type: 'feature',
-      href: `/alerts`,
-      icon: Bell,
-      keywords: ['alert', 'notification'],
-      priority: 7,
-    },
+
     {
       id: 'feature-charts',
       title: 'Price Charts',

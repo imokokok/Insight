@@ -1,13 +1,3 @@
-export type AlertConditionType =
-  | 'above'
-  | 'below'
-  | 'change_percent'
-  | 'deviation_from_median'
-  | 'oracle_disagreement'
-  | 'stale_data'
-  | 'confidence_drop'
-  | 'anomaly_detected';
-
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export interface Database {
@@ -134,137 +124,9 @@ export interface Database {
           },
         ];
       };
-      price_alerts: {
-        Row: {
-          id: string;
-          user_id: string;
-          name: string | null;
-          symbol: string;
-          provider: string | null;
-          chain: string | null;
-          condition_type: AlertConditionType;
-          target_value: number;
-          is_active: boolean;
-          last_triggered_at: string | null;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: {
-          id?: string;
-          user_id: string;
-          name?: string | null;
-          symbol: string;
-          provider?: string | null;
-          chain?: string | null;
-          condition_type: AlertConditionType;
-          target_value: number;
-          is_active?: boolean;
-          last_triggered_at?: string | null;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Update: {
-          id?: string;
-          user_id?: string;
-          name?: string | null;
-          symbol?: string;
-          provider?: string | null;
-          chain?: string | null;
-          condition_type?: AlertConditionType;
-          target_value?: number;
-          is_active?: boolean;
-          last_triggered_at?: string | null;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'price_alerts_user_id_fkey';
-            columns: ['user_id'];
-            isOneToOne: false;
-            referencedRelation: 'users';
-            referencedColumns: ['id'];
-          },
-        ];
-      };
-      alert_events: {
-        Row: {
-          id: string;
-          alert_id: string;
-          user_id: string;
-          triggered_at: string;
-          price: number;
-          condition_met: string;
-          acknowledged: boolean;
-          acknowledged_at: string | null;
-          created_at: string;
-        };
-        Insert: {
-          id?: string;
-          alert_id: string;
-          user_id: string;
-          triggered_at?: string;
-          price: number;
-          condition_met: string;
-          acknowledged?: boolean;
-          acknowledged_at?: string | null;
-          created_at?: string;
-        };
-        Update: {
-          id?: string;
-          alert_id?: string;
-          user_id?: string;
-          triggered_at?: string;
-          price?: number;
-          condition_met?: string;
-          acknowledged?: boolean;
-          acknowledged_at?: string | null;
-          created_at?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'alert_events_alert_id_fkey';
-            columns: ['alert_id'];
-            isOneToOne: false;
-            referencedRelation: 'price_alerts';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'alert_events_user_id_fkey';
-            columns: ['user_id'];
-            isOneToOne: false;
-            referencedRelation: 'users';
-            referencedColumns: ['id'];
-          },
-        ];
-      };
     };
-    Views: {
-      active_alerts_with_prices: {
-        Row: {
-          alert_id: string;
-          user_id: string;
-          symbol: string;
-          provider: string | null;
-          chain: string | null;
-          condition_type: string;
-          target_value: number;
-          is_active: boolean;
-          last_triggered_at: string | null;
-          current_price: number | null;
-          price_timestamp: string | null;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'price_alerts_user_id_fkey';
-            columns: ['user_id'];
-            isOneToOne: false;
-            referencedRelation: 'users';
-            referencedColumns: ['id'];
-          },
-        ];
-      };
-    };
+    // eslint-disable-next-line @typescript-eslint/no-empty-object-type
+    Views: {};
     Functions: {
       cleanup_expired_price_records: {
         Args: Record<string, never>;
@@ -323,6 +185,3 @@ export interface Database {
 
 export type Tables<T extends keyof Database['public']['Tables']> =
   Database['public']['Tables'][T]['Row'];
-
-export type PriceAlert = Tables<'price_alerts'>;
-export type AlertEvent = Tables<'alert_events'>;

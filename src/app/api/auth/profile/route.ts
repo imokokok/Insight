@@ -7,7 +7,6 @@ import { type UserProfileUpdate } from '@/lib/supabase/queries';
 import { getServerQueries } from '@/lib/supabase/server';
 
 const VALID_ORACLES = ['chainlink', 'pyth', 'api3', 'redstone', 'dia', 'winklink'] as const;
-const VALID_ALERT_FREQUENCIES = ['immediate', 'hourly', 'daily', 'off'] as const;
 const VALID_TIME_RANGES = ['1h', '6h', '24h', '7d', '30d'] as const;
 const VALID_CURRENCIES = ['USD', 'CNY', 'EUR', 'JPY', 'GBP'] as const;
 
@@ -30,10 +29,7 @@ const PreferencesSchema = z.object({
 });
 
 const NotificationSettingsSchema = z.object({
-  email_alerts: z.boolean().optional(),
   push_notifications: z.boolean().optional(),
-  alert_frequency: z.enum(VALID_ALERT_FREQUENCIES).optional(),
-  price_alerts: z.boolean().optional(),
   market_updates: z.boolean().optional(),
   price_change_enabled: z.boolean().optional(),
   price_change_threshold: z.number().min(1).max(20).optional(),

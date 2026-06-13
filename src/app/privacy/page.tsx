@@ -56,9 +56,7 @@ export default function PrivacyPage() {
                 <div>
                   <h3 className="font-semibold text-gray-900 mb-2">User-Generated Content</h3>
                   <ul className="list-disc list-inside space-y-1 ml-4">
-                    <li>Price alert configurations</li>
                     <li>Saved price snapshots</li>
-                    <li>Alert history and events</li>
                   </ul>
                 </div>
 
@@ -95,7 +93,6 @@ export default function PrivacyPage() {
                 <li>Provide, operate, and maintain the Platform</li>
                 <li>Process your account registration and authentication</li>
                 <li>Save and display your preferences and configurations</li>
-                <li>Send price alert notifications based on your settings</li>
                 <li>Improve the Platform&apos;s functionality and user experience</li>
                 <li>Analyze usage patterns to optimize features</li>
                 <li>Protect against unauthorized access and abuse</li>

@@ -616,7 +616,7 @@ function analyzeSafetyBuffer(
     overallLevel = 'risky';
     description = `Thin safety buffer, ${bufferPercent.toFixed(2)}% deviation triggers liquidation`;
     recommendations.push('Recommend adding collateral to widen the safety buffer');
-    recommendations.push('Monitor market volatility and set price alerts');
+    recommendations.push('Monitor market volatility');
   } else if (bufferPercent < 30) {
     overallLevel = 'moderate';
     description = `Moderate safety buffer, ${bufferPercent.toFixed(2)}% deviation triggers liquidation`;

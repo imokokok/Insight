@@ -3,7 +3,7 @@ import { type SupabaseClient } from '@supabase/supabase-js';
 
 import { createLogger } from '@/lib/utils/logger';
 
-export type { PriceAlert, AlertEvent, UserSnapshot } from './queries';
+export type { UserSnapshot } from './queries';
 
 const logger = createLogger('SupabaseClient');
 
