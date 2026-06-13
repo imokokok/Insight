@@ -55,7 +55,7 @@ export default function QuickStartSection() {
           </div>
           <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
             <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
-            <span className="text-sm text-gray-700">6 consensus algorithms</span>
+            <span className="text-sm text-gray-700">4 consensus algorithms</span>
           </div>
         </div>
       </div>

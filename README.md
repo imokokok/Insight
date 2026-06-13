@@ -14,7 +14,7 @@ Insight is an oracle transparency and risk infrastructure platform that serves b
 
 ### For Researchers & Analysts
 
-- **Price Insight** - Unified cross-oracle and cross-chain price analysis with dimension switching. Compare prices across providers and blockchains with 6 consensus algorithms, risk analysis, divergence signal detection, and feed health monitoring.
+- **Price Insight** - Unified cross-oracle and cross-chain price analysis with dimension switching. Compare prices across providers and blockchains with 4 consensus algorithms, risk analysis, divergence signal detection, and feed health monitoring.
 - **Cross-Oracle Price Comparison** - Deep-dive comparison across multiple oracles for the same asset with consensus price calculation, anomaly detection, stability scoring, and performance metrics.
 - **Cross-Chain Performance Analysis** - Analyze oracle performance across blockchain networks with price spread heatmaps, chain reliability rankings, and 10-dimension risk analysis.
 - **Oracle Reputation System** - Persistent 7-day rolling reputation scores with accuracy, uptime, reliability, latency, and freshness metrics. Detailed provider profiles with trend charts and score breakdowns.
@@ -24,7 +24,7 @@ Insight is an oracle transparency and risk infrastructure platform that serves b
 - **Price Snapshots** - Save and compare price snapshots across time with detailed comparison analytics and public sharing.
 - **Data Export** - Export data in CSV, JSON, Excel, PDF, and PNG formats.
 - **Anomaly Detection** - Automatic detection of price anomalies and outliers.
-- **Consensus Price** - Multiple consensus algorithms (median, trimmed mean, weighted median, confidence-weighted, reliability-weighted, IQR-filtered).
+- **Consensus Price** - Multiple consensus algorithms (median, trimmed mean, weighted median, IQR-filtered).
 - **Data Transparency** - Data source indicators and update time tracking.
 - **Accessibility Support** - Keyboard navigation, colorblind mode, screen reader support.
 - **REST API** - V1 API with API key authentication for programmatic access.
@@ -83,12 +83,12 @@ npm run dev
 
 ### Chainlink
 
-- **Supported Chains**: Ethereum, Arbitrum, Optimism, Polygon, Avalanche, BNB Chain, Base
+- **Supported Chains**: Ethereum, Arbitrum, Optimism, Polygon, Avalanche, Base, BNB Chain, Fantom, Gnosis, Metis, Scroll, Celo, Moonbeam, Moonriver, Starknet, Blast, Kava, Linea, Solana
 - **Features**: Node analytics, extensive data feeds, high reliability, on-chain data via Chainlink Data Feeds
 
 ### Pyth
 
-- **Supported Chains**: Solana, Ethereum, Arbitrum, Polygon, Avalanche, BNB Chain, Aptos, Sui, Base, Optimism
+- **Supported Chains**: Solana, Ethereum, Arbitrum, Polygon, Optimism, Avalanche, Base, Starknet, Blast, Sui, Aptos, Injective, Sei
 - **Features**: Publisher analytics, high-frequency updates, confidence intervals, Pyth Hermes Client integration
 
 ### API3
@@ -98,23 +98,23 @@ npm run dev
 
 ### RedStone
 
-- **Supported Chains**: Ethereum, Arbitrum, Optimism, Polygon, Avalanche, Base, BNB Chain, Fantom, Linea, Mantle, Scroll, zkSync
+- **Supported Chains**: Ethereum, Arbitrum, Optimism, Polygon, Avalanche, Base, BNB Chain, Fantom, Linea, Mantle, Scroll, zkSync, Blast, Starknet, Aptos, Sui
 - **Features**: Modular oracle design, data streams, cross-chain support
 
 ### DIA
 
-- **Supported Chains**: Ethereum, Arbitrum, Polygon, Avalanche, BNB Chain, Base
+- **Supported Chains**: Ethereum, Arbitrum, Polygon, Avalanche, BNB Chain, Base, Fantom, Cronos, Moonbeam, Gnosis, Kava
 - **Features**: Open-source cross-chain oracle, NFT floor price data feeds, transparent methodology, comprehensive token on-chain data (supply, market cap, exchange volume)
 - **Data Services**: DIADataService with dedicated PriceService, NFTService, and NetworkService modules
 
 ### WINkLink
 
-- **Supported Chains**: TRON
+- **Supported Chains**: BNB Chain, TRON, Ethereum
 - **Features**: TRON ecosystem integration, on-chain contract price fetching, gaming data feeds
 
 ### Supra
 
-- **Supported Chains**: Ethereum, Arbitrum, Optimism, Polygon, Base, Solana, BNB Chain, Avalanche, zkSync, Scroll, Mantle, Linea
+- **Supported Chains**: Ethereum, Arbitrum, Optimism, Polygon, Avalanche, Base, BNB Chain, Fantom, Scroll, zkSync, Mantle, Linea, Solana, Aptos, Sui, Injective, Sei, Celo, Gnosis, Cronos, Moonbeam, Kava, Metis, Blast, Starknet
 - **Features**: High-performance oracle with verifiable randomness, cross-chain data feeds, Supra Oracle SDK integration, DORA price feeds
 
 ### TWAP
@@ -212,14 +212,24 @@ All V1 endpoints require an API key passed via `x-api-key` header or `Authorizat
 
 ## Navigation
 
-| Page             | Path             | Description                                                                        | Auth Required |
-| ---------------- | ---------------- | ---------------------------------------------------------------------------------- | ------------- |
-| Home             | `/`              | Real-time dashboard with consensus prices, oracle health status, and quick actions | No            |
-| Price Query      | `/price-query`   | Single oracle price query with on-chain data and confidence intervals              | No            |
-| Safety Check     | `/safety-check`  | Position critical deviation calculator with liquidation risk analysis              | No            |
-| Price Insight    | `/price-insight` | Unified cross-oracle and cross-chain price analysis                                | No            |
-| Oracle Directory | `/reputation`    | Oracle provider profiles and 7-day rolling reputation scores                       | No            |
-| Price Snapshots  | `/snapshots`     | Save, compare, and share price snapshots                                           | Yes           |
-| Price Alerts     | `/alerts`        | Custom price alerts with real-time notifications                                   | Yes           |
-| Settings         | `/settings`      | Profile, preferences, notifications, data management, API keys                     | Yes           |
-| Documentation    | `/docs`          | Quick start, feature guides, and developer resources                               | No            |
+| Page                | Path                        | Description                                                                        | Auth Required |
+| ------------------- | --------------------------- | ---------------------------------------------------------------------------------- | ------------- |
+| Home                | `/`                         | Real-time dashboard with consensus prices, oracle health status, and quick actions | No            |
+| Price Query         | `/price-query`              | Single oracle price query with on-chain data and confidence intervals              | No            |
+| Safety Check        | `/safety-check`             | Position critical deviation calculator with liquidation risk analysis              | No            |
+| Price Insight       | `/price-insight`            | Unified cross-oracle and cross-chain price analysis                                | No            |
+| Oracle Directory    | `/reputation`               | Oracle provider profiles and 7-day rolling reputation scores                       | No            |
+| Provider Detail     | `/reputation/[provider]`    | Detailed provider profile with trend charts and score breakdowns                   | No            |
+| Price Snapshots     | `/snapshots`                | Save, compare, and share price snapshots                                           | Yes           |
+| Price Alerts        | `/alerts`                   | Custom price alerts with real-time notifications                                   | Yes           |
+| Settings            | `/settings`                 | Profile, preferences, notifications, data management, API keys                     | Yes           |
+| Documentation       | `/docs`                     | Quick start, feature guides, and developer resources                               | No            |
+| Login               | `/login`                    | User login page                                                                    | No            |
+| Register            | `/register`                 | User registration page                                                             | No            |
+| Forgot Password     | `/auth/forgot-password`     | Password reset request page                                                        | No            |
+| Reset Password      | `/auth/reset-password`      | Password reset confirmation page                                                   | No            |
+| Verify Email        | `/auth/verify-email`        | Email verification page                                                            | No            |
+| Resend Verification | `/auth/resend-verification` | Resend email verification link                                                     | No            |
+| Contact             | `/contact`                  | Contact page                                                                       | No            |
+| Privacy Policy      | `/privacy`                  | Privacy policy page                                                                | No            |
+| Terms of Service    | `/terms`                    | Terms of service page                                                              | No            |
