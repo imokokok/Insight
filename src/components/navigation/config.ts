@@ -2,7 +2,6 @@ import {
   LayoutDashboard,
   Search,
   BookOpen,
-  Camera,
   Award,
   BarChart3,
   ShieldCheck,
@@ -48,12 +47,6 @@ export const navigationConfig: NavStructure = [
         icon: Award,
         description:
           'Explore oracle providers, their unique capabilities, and historical performance tracking',
-      },
-      {
-        href: '/snapshots',
-        label: 'Price Snapshots',
-        icon: Camera,
-        description: 'Save, compare, and track oracle price snapshots over time',
       },
     ],
   },

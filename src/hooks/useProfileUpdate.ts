@@ -29,10 +29,6 @@ interface ProfileResponse {
   profile: Record<string, unknown>;
 }
 
-interface SnapshotsResponse {
-  snapshots: unknown[];
-}
-
 export function useDataExport() {
   const [isExporting, setIsExporting] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -41,11 +37,8 @@ export function useDataExport() {
     setIsExporting(true);
     setError(null);
     try {
-      const [profile, snapshots] = await Promise.all([
-        apiClient.get<ProfileResponse>('/api/auth/profile'),
-        apiClient.get<SnapshotsResponse>('/api/snapshots'),
-      ]);
-      return { profile, snapshots };
+      const profile = await apiClient.get<ProfileResponse>('/api/auth/profile');
+      return { profile };
     } catch (err) {
       const appError = err instanceof Error ? err : new Error(String(err));
       logger.error('Failed to export data', appError);

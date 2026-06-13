@@ -9,7 +9,6 @@ import {
   Clock,
   Shield,
   Award,
-  Camera,
 } from 'lucide-react';
 
 export default function FeaturesGuideSection() {
@@ -48,17 +47,6 @@ export default function FeaturesGuideSection() {
         '7-day rolling aggregated scores',
         '5-metric evaluation (accuracy, uptime, reliability, latency, freshness)',
         'Provider detail pages with trend charts',
-      ],
-    },
-    {
-      icon: <Camera className="w-6 h-6" />,
-      title: 'Price Snapshots',
-      description: 'Save price snapshots and compare them across time with detailed analytics',
-      href: '/snapshots',
-      highlights: [
-        'Save and share price snapshots',
-        'Snapshot comparison with change analytics',
-        'Public/private visibility control',
       ],
     },
   ];

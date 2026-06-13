@@ -18,7 +18,6 @@ export default function Footer() {
     { label: 'Price Query', href: '/price-query' },
     { label: 'Price Insight', href: '/price-insight' },
     { label: 'Oracle Reputation', href: '/reputation' },
-    { label: 'Price Snapshots', href: '/snapshots' },
   ];
 
   const resourceLinks = [

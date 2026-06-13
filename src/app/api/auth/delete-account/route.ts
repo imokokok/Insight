@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
 import { createApiHandler, ApiResponseBuilder } from '@/lib/api/handler';
-import { createServerClient, getServerQueries } from '@/lib/supabase/server';
+import { createServerClient } from '@/lib/supabase/server';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('api-auth-delete-account');
@@ -35,7 +35,6 @@ export const POST = createApiHandler(
       );
     }
 
-    const queries = getServerQueries();
     const supabaseAdmin = createServerClient();
 
     const deletionErrors: string[] = [];
@@ -47,12 +46,6 @@ export const POST = createApiHandler(
     if (apiKeysError) {
       deletionErrors.push('api_keys');
       logger.error('Failed to delete user API keys', new Error(String(apiKeysError)));
-    }
-
-    const snapshotSuccess = await queries.deleteAllSnapshots(userId);
-    if (!snapshotSuccess) {
-      deletionErrors.push('snapshots');
-      logger.error('Failed to delete user snapshots');
     }
 
     const { error: profileError } = await supabaseAdmin

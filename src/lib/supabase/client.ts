@@ -3,8 +3,6 @@ import { type SupabaseClient } from '@supabase/supabase-js';
 
 import { createLogger } from '@/lib/utils/logger';
 
-export type { UserSnapshot } from './queries';
-
 const logger = createLogger('SupabaseClient');
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;

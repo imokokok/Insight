@@ -77,53 +77,6 @@ export interface Database {
         };
         Relationships: [];
       };
-      user_snapshots: {
-        Row: {
-          id: string;
-          user_id: string;
-          symbol: string;
-          name: string | null;
-          selected_oracles: string[];
-          price_data: Json;
-          stats: Json;
-          is_public: boolean;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: {
-          id?: string;
-          user_id: string;
-          symbol: string;
-          name?: string | null;
-          selected_oracles: string[];
-          price_data: Json;
-          stats: Json;
-          is_public?: boolean;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Update: {
-          id?: string;
-          user_id?: string;
-          symbol?: string;
-          name?: string | null;
-          selected_oracles?: string[];
-          price_data?: Json;
-          stats?: Json;
-          is_public?: boolean;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'user_snapshots_user_id_fkey';
-            columns: ['user_id'];
-            isOneToOne: false;
-            referencedRelation: 'users';
-            referencedColumns: ['id'];
-          },
-        ];
-      };
     };
     // eslint-disable-next-line @typescript-eslint/no-empty-object-type
     Views: {};

@@ -54,13 +54,6 @@ export default function PrivacyPage() {
                 </div>
 
                 <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">User-Generated Content</h3>
-                  <ul className="list-disc list-inside space-y-1 ml-4">
-                    <li>Saved price snapshots</li>
-                  </ul>
-                </div>
-
-                <div>
                   <h3 className="font-semibold text-gray-900 mb-2">Usage Data</h3>
                   <ul className="list-disc list-inside space-y-1 ml-4">
                     <li>Pages visited and features used</li>
