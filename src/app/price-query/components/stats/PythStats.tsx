@@ -2,9 +2,6 @@ import { Hash, Settings, BarChart3, Clock, Shield } from 'lucide-react';
 
 import { StatCard } from '@/components/ui/StatCard';
 import { formatOracleTimestamp, truncateAddress, formatConfidenceScore } from '@/lib/utils/format';
-import type { OnChainVerification } from '@/types/oracle/price';
-
-import { VerificationStatCard } from './VerificationStatCard';
 
 interface PythStatsProps {
   priceId?: string;
@@ -15,7 +12,6 @@ interface PythStatsProps {
     widthPercentage?: number;
   };
   confidence?: number;
-  verification?: OnChainVerification;
 }
 
 export function PythStats({
@@ -25,7 +21,6 @@ export function PythStats({
   publishTime,
   confidenceInterval,
   confidence,
-  verification,
 }: PythStatsProps) {
   return (
     <>
@@ -75,7 +70,6 @@ export function PythStats({
         value={formatConfidenceScore(confidence)}
         description="Overall confidence score"
       />
-      <VerificationStatCard verification={verification} />
     </>
   );
 }

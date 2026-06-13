@@ -7,9 +7,6 @@ import {
   truncateAddress,
   formatConfidenceScore,
 } from '@/lib/utils/format';
-import type { OnChainVerification } from '@/types/oracle/price';
-
-import { VerificationStatCard } from './VerificationStatCard';
 
 interface API3StatsProps {
   dapiName?: string;
@@ -18,7 +15,6 @@ interface API3StatsProps {
   decimals?: number;
   dataAge?: number;
   confidence?: number;
-  verification?: OnChainVerification;
 }
 
 export function API3Stats({
@@ -28,7 +24,6 @@ export function API3Stats({
   decimals,
   dataAge,
   confidence,
-  verification,
 }: API3StatsProps) {
   return (
     <>
@@ -74,7 +69,6 @@ export function API3Stats({
         value={formatConfidenceScore(confidence)}
         description="Overall confidence score"
       />
-      <VerificationStatCard verification={verification} />
     </>
   );
 }

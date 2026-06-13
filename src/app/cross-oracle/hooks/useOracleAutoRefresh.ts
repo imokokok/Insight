@@ -9,7 +9,7 @@ const logger = createLogger('useOracleAutoRefresh');
 interface UseOracleAutoRefreshOptions {
   refreshInterval: RefreshInterval;
   onRefresh: () => Promise<void>;
-  isMountedRef: React.MutableRefObject<boolean>;
+  isMountedRef?: React.MutableRefObject<boolean>;
 }
 
 interface UseOracleAutoRefreshReturn {
@@ -28,6 +28,9 @@ export function useOracleAutoRefresh({
   const isRefreshingRef = useRef(false);
   const onRefreshRef = useRef(onRefresh);
   onRefreshRef.current = onRefresh;
+  const internalMountedRef = useRef(true);
+
+  const mountedRef = isMountedRef ?? internalMountedRef;
 
   const executeRefresh = useCallback(async () => {
     if (isRefreshingRef.current) return;
@@ -35,7 +38,7 @@ export function useOracleAutoRefresh({
 
     try {
       await onRefreshRef.current();
-      if (isMountedRef.current) {
+      if (mountedRef.current) {
         const now = new Date();
         setLastRefreshedAt(now);
         if (refreshInterval > 0) {
@@ -47,7 +50,7 @@ export function useOracleAutoRefresh({
     } finally {
       isRefreshingRef.current = false;
     }
-  }, [refreshInterval, isMountedRef]);
+  }, [refreshInterval, mountedRef]);
 
   useEffect(() => {
     if (refreshInterval === 0) {
@@ -58,7 +61,7 @@ export function useOracleAutoRefresh({
     setNextRefreshAt(new Date(Date.now() + refreshInterval));
 
     const intervalId = setInterval(() => {
-      if (!isMountedRef.current || document.hidden || isRefreshingRef.current) {
+      if (!mountedRef.current || document.hidden || isRefreshingRef.current) {
         return;
       }
       executeRefresh();
@@ -76,7 +79,13 @@ export function useOracleAutoRefresh({
       clearInterval(intervalId);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [refreshInterval, executeRefresh, isMountedRef]);
+  }, [refreshInterval, executeRefresh, mountedRef]);
+
+  useEffect(() => {
+    return () => {
+      internalMountedRef.current = false;
+    };
+  }, []);
 
   return { lastRefreshedAt, nextRefreshAt };
 }

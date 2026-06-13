@@ -130,3 +130,35 @@ export function formatTimeAgo(diff: TimeAgoResult): string {
       return '';
   }
 }
+
+export function formatTimeAgoShort(diff: TimeAgoResult): string {
+  const { value, unit } = diff;
+
+  if (value === 0 && unit === 'seconds') {
+    return 'just now';
+  }
+
+  switch (unit) {
+    case 'seconds':
+      return `${value}s ago`;
+    case 'minutes':
+      return `${value}m ago`;
+    case 'hours':
+      return `${value}h ago`;
+    case 'days':
+      return `${value}d ago`;
+    default:
+      return '';
+  }
+}
+
+export function formatTimeAgoWithColor(
+  diff: TimeAgoResult
+): { text: string; color: string } | null {
+  const { value, unit } = diff;
+
+  if (unit === 'seconds') return { text: 'just now', color: 'text-emerald-600' };
+  if (unit === 'minutes') return { text: `${value}m ago`, color: 'text-emerald-600' };
+  if (unit === 'hours') return { text: `${value}h ago`, color: 'text-gray-500' };
+  return { text: `${value}d ago`, color: 'text-gray-400' };
+}

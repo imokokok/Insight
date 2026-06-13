@@ -61,7 +61,6 @@ export function StatsCardsSelector({
             version={priceData.version}
             startedAt={priceData.startedAt}
             source={priceData.source}
-            verification={priceData.verification}
           />
         );
 
@@ -75,7 +74,6 @@ export function StatsCardsSelector({
             publishTime={priceData.publishTime}
             confidenceInterval={priceData.confidenceInterval}
             confidence={priceData.confidence}
-            verification={priceData.verification}
           />
         );
 
@@ -89,18 +87,12 @@ export function StatsCardsSelector({
             decimals={priceData.decimals}
             dataAge={priceData.dataAge}
             confidence={priceData.confidence}
-            verification={priceData.verification}
           />
         );
 
       case OracleProviderEnum.SUPRA:
         if (supraOnChainData) {
-          return (
-            <>
-              <SupraStats data={supraOnChainData as SupraTokenOnChainData} />
-              <VerificationStatCard verification={priceData?.verification} />
-            </>
-          );
+          return <SupraStats data={supraOnChainData as SupraTokenOnChainData} />;
         }
         if (priceData) {
           const supraStatsData: SupraTokenOnChainData = {
@@ -115,78 +107,43 @@ export function StatsCardsSelector({
             lastUpdated: priceData.timestamp,
             source: priceData.source || 'DORA V2',
           };
-          return (
-            <>
-              <SupraStats data={supraStatsData} />
-              <VerificationStatCard verification={priceData.verification} />
-            </>
-          );
+          return <SupraStats data={supraStatsData} />;
         }
         return null;
 
       case OracleProviderEnum.DIA:
         if (diaOnChainData) {
-          return (
-            <>
-              <DIAStats data={diaOnChainData as DIATokenOnChainData} />
-              <VerificationStatCard verification={priceData?.verification} />
-            </>
-          );
+          return <DIAStats data={diaOnChainData as DIATokenOnChainData} />;
         }
         return null;
 
       case OracleProviderEnum.WINKLINK:
         if (winklinkOnChainData) {
-          return (
-            <>
-              <WINkLinkStats data={winklinkOnChainData as WINkLinkTokenOnChainData} />
-              <VerificationStatCard verification={priceData?.verification} />
-            </>
-          );
+          return <WINkLinkStats data={winklinkOnChainData as WINkLinkTokenOnChainData} />;
         }
         return null;
 
       case OracleProviderEnum.REDSTONE:
         if (redstoneOnChainData) {
-          return (
-            <>
-              <RedStoneStats data={redstoneOnChainData as RedStoneTokenOnChainData} />
-              <VerificationStatCard verification={priceData?.verification} />
-            </>
-          );
+          return <RedStoneStats data={redstoneOnChainData as RedStoneTokenOnChainData} />;
         }
         return null;
 
       case OracleProviderEnum.TWAP:
         if (twapOnChainData) {
-          return (
-            <>
-              <TwapStats data={twapOnChainData as TwapOnChainData} />
-              <VerificationStatCard verification={priceData?.verification} />
-            </>
-          );
+          return <TwapStats data={twapOnChainData as TwapOnChainData} />;
         }
         return null;
 
       case OracleProviderEnum.REFLECTOR:
         if (reflectorOnChainData) {
-          return (
-            <>
-              <ReflectorStats data={reflectorOnChainData as ReflectorTokenOnChainData} />
-              <VerificationStatCard verification={priceData?.verification} />
-            </>
-          );
+          return <ReflectorStats data={reflectorOnChainData as ReflectorTokenOnChainData} />;
         }
         return null;
 
       case OracleProviderEnum.FLARE:
         if (flareOnChainData) {
-          return (
-            <>
-              <FlareStats data={flareOnChainData as FlareTokenOnChainData} />
-              <VerificationStatCard verification={priceData?.verification} />
-            </>
-          );
+          return <FlareStats data={flareOnChainData as FlareTokenOnChainData} />;
         }
         return null;
 
@@ -205,5 +162,10 @@ export function StatsCardsSelector({
     flareOnChainData,
   ]);
 
-  return <>{providerStatsComponent}</>;
+  return (
+    <>
+      {providerStatsComponent}
+      <VerificationStatCard verification={priceData?.verification} />
+    </>
+  );
 }
