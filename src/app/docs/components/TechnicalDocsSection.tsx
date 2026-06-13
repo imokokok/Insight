@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-import { Code, BookOpen, Server, Database, ArrowRight, Layers, Zap, Key } from 'lucide-react';
+import { Code, BookOpen, Server, Database, ArrowRight, Layers } from 'lucide-react';
 
 export default function TechnicalDocsSection() {
   const docs = [
@@ -16,9 +16,9 @@ export default function TechnicalDocsSection() {
       icon: <Server className="w-6 h-6" />,
       title: 'API Documentation',
       description:
-        'Integrate with our V1 REST API for real-time and historical price data with API Key authentication',
+        'Learn about our internal API architecture and data flow between oracle providers',
       href: '#technical',
-      tags: ['REST API', 'API Key', 'OpenAPI 3.1'],
+      tags: ['REST API', 'Architecture', 'Data Flow'],
     },
     {
       icon: <Layers className="w-6 h-6" />,
@@ -88,127 +88,6 @@ export default function TechnicalDocsSection() {
             </div>
           </div>
         ))}
-      </div>
-
-      <div className="mt-8 bg-gray-900 rounded-xl p-6 overflow-hidden">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <Zap className="w-5 h-5 text-yellow-400" />
-            <h3 className="text-white font-semibold">API Preview</h3>
-          </div>
-          <div className="flex items-center gap-2">
-            <Key className="w-3 h-3 text-gray-400" />
-            <span className="text-xs text-gray-400">Requires API Key</span>
-          </div>
-        </div>
-
-        <div className="bg-gray-800 rounded-lg p-4 font-mono text-sm overflow-x-auto mb-4">
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-green-400">GET</span>
-            <span className="text-blue-400">/api/v1/price/BTC%2FUSD</span>
-          </div>
-          <div className="text-gray-400 mb-2">Get aggregated price across all oracles</div>
-          <div className="text-gray-500 mb-2">
-            {'# Symbol with "/" must be URL-encoded: BTC/USD → BTC%2FUSD'}
-          </div>
-          <pre className="text-gray-300">
-            {`{
-  "success": true,
-  "data": {
-    "symbol": "BTC/USD",
-    "aggregatedPrice": 81345.37,
-    "priceRange": {
-      "min": 80749.27, "max": 81424.37,
-      "average": 81234.50, "median": 81340.50,
-      "spread": 675.10, "spreadPercent": 0.83
-    },
-    "providerCount": 10,
-    "providers": [
-      {
-        "provider": "chainlink",
-        "price": 81345.37,
-        "timestamp": 1700000000000,
-        "confidence": 0.97
-      }
-    ]
-  }
-}`}
-          </pre>
-        </div>
-
-        <div className="bg-gray-800 rounded-lg p-4 font-mono text-sm overflow-x-auto mb-4">
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-green-400">GET</span>
-            <span className="text-blue-400">/api/v1/consensus/BTC%2FUSD?method=median</span>
-          </div>
-          <div className="text-gray-400 mb-2">
-            Get consensus price with configurable aggregation method
-          </div>
-          <pre className="text-gray-300">
-            {`{
-  "success": true,
-  "data": {
-    "symbol": "BTC/USD",
-    "consensus": {
-      "price": 81340.50,
-      "method": "median",
-      "methodLabel": "Median",
-      "confidence": 0.95,
-      "confidenceLevel": "high",
-      "agreement": 0.97,
-      "participantCount": 10,
-      "excludedCount": 0,
-      "recommendedMethod": "iqr_filtered"
-    }
-  }
-}`}
-          </pre>
-        </div>
-
-        <div className="bg-gray-800 rounded-lg p-4 font-mono text-sm overflow-x-auto mb-4">
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-green-400">GET</span>
-            <span className="text-blue-400">/api/v1/oracles/chainlink?symbol=BTC</span>
-          </div>
-          <div className="text-gray-400 mb-2">
-            Query price from a specific oracle (symbol is required)
-          </div>
-          <pre className="text-gray-300">
-            {`{
-  "success": true,
-  "data": {
-    "provider": "chainlink",
-    "price": 81345.37,
-    "timestamp": 1700000000000,
-    "confidence": 0.97,
-    "confidenceInterval": { "lower": 81300, "upper": 81390 },
-    "source": "BTC / USD"
-  },
-  "meta": {
-    "provider": "chainlink",
-    "symbol": "BTC",
-    "chain": null
-  }
-}`}
-          </pre>
-        </div>
-
-        <div className="bg-gray-800 rounded-lg p-4 font-mono text-sm overflow-x-auto">
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-green-400">GET</span>
-            <span className="text-blue-400">
-              /api/v1/price/BTC%2FUSD/history?provider=chainlink
-            </span>
-          </div>
-          <div className="text-gray-400 mb-2">Historical data requires the provider parameter</div>
-          <pre className="text-gray-300">
-            {`{
-  "success": true,
-  "data": [...],
-  "meta": { "provider": "chainlink", "symbol": "BTC/USD" }
-}`}
-          </pre>
-        </div>
       </div>
     </section>
   );

@@ -36,10 +36,6 @@ const DataManagementPanel = dynamic(
   { loading: () => <PanelLoadingSkeleton /> }
 );
 
-const ApiKeyPanel = dynamic(() => import('@/components/settings').then((mod) => mod.ApiKeyPanel), {
-  loading: () => <PanelLoadingSkeleton />,
-});
-
 function PanelLoadingSkeleton() {
   return (
     <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-8">
@@ -118,7 +114,6 @@ export default function SettingsContent() {
           {activeTab === 'preferences' && <PreferencesPanel />}
           {activeTab === 'notifications' && <NotificationPanel />}
           {activeTab === 'data' && <DataManagementPanel />}
-          {activeTab === 'api-keys' && <ApiKeyPanel />}
         </SectionErrorBoundary>
       </SettingsLayout>
     </div>
