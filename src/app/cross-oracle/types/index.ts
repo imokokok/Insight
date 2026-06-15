@@ -8,9 +8,7 @@ import type { OracleProvider, PriceData, SnapshotStats } from '@/types/oracle';
 
 import type { PriceHistoryMap } from '../hooks/useOracleMemory';
 
-export type { RefreshInterval } from '@/types/common';
 export type { OracleRetryConfig as RetryConfig } from '@/lib/oracles/utils/retry';
-export type { ConsensusResult };
 
 export interface PriceStatsResult extends ExtendedPriceStats {
   currentStats: SnapshotStats;
@@ -96,5 +94,3 @@ export interface OracleFeature {
   features: string[];
   descriptionKey: string;
 }
-
-export type { OracleProvider, PriceData, SnapshotStats };
