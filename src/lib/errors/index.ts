@@ -66,7 +66,7 @@ export function classifyError(error: unknown): ErrorClassification {
   };
 }
 
-export type StringMatchErrorType =
+type StringMatchErrorType =
   | 'timeout'
   | 'cors'
   | 'server_error'

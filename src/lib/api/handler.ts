@@ -13,7 +13,9 @@ import {
   type ErrorMiddlewareOptions,
   type RateLimitMiddlewareOptions,
 } from './middleware';
-import { ApiResponseBuilder, type ApiResponse, type ApiSuccessResponse } from './response';
+import { ApiResponseBuilder } from './response';
+
+import type { ApiResponse, ApiSuccessResponse } from './response/ApiResponse';
 
 const logger = createLogger('api-handler');
 

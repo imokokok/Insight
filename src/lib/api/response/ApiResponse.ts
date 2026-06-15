@@ -11,7 +11,6 @@ interface ApiError {
   stackTrace?: string;
   suggestedAction?: string;
 }
-
 export interface ApiSuccessResponse<T = unknown> {
   success: true;
   data: T;

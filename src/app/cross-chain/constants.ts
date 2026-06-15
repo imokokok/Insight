@@ -43,7 +43,7 @@ export interface ChainStats {
   tooltip: string;
 }
 
-export interface Outlier {
+interface Outlier {
   chain: Blockchain;
   price: number;
   deviationPercent: number;
