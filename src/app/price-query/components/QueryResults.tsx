@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useEffect, useMemo, useState } from 'react';
+import { useRef, useEffect, useMemo } from 'react';
 
 import { Database, BarChart3, Clock, GitCompare, TrendingUp, TrendingDown } from 'lucide-react';
 
@@ -25,7 +25,7 @@ interface QueryResultsProps {
 export function QueryResults({ onChainData }: QueryResultsProps) {
   const query = useUnifiedQuery();
   const chartContainerRef = useRef<HTMLDivElement>(null);
-  const [previousPriceValue, setPreviousPriceValue] = useState<number | null>(null);
+  const previousPriceValueRef = useRef<number | null>(null);
   const wasLoadingRef = useRef(false);
 
   const { selectedSymbol } = query;
@@ -69,8 +69,7 @@ export function QueryResults({ onChainData }: QueryResultsProps) {
 
   useEffect(() => {
     if (wasLoadingRef.current && !isLoading && currentPriceValue > 0) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- Track previous price for flash animation
-      setPreviousPriceValue(currentPriceValue);
+      previousPriceValueRef.current = currentPriceValue;
     }
     wasLoadingRef.current = isLoading;
   }, [isLoading, currentPriceValue]);
@@ -113,7 +112,8 @@ export function QueryResults({ onChainData }: QueryResultsProps) {
               <div className="flex items-baseline gap-3 sm:justify-end">
                 <PriceFlash
                   value={currentPriceValue}
-                  previousValue={previousPriceValue ?? undefined}
+                  // eslint-disable-next-line react-hooks/refs -- previousPriceValueRef is updated in an effect after render; reading it here passes the pre-update value to PriceFlash for the flash animation, then the effect updates it for the next cycle.
+                  previousValue={previousPriceValueRef.current ?? undefined}
                 >
                   <span className="text-4xl sm:text-5xl font-bold text-gray-900 tracking-tight">
                     {formatPrice(currentPriceValue)}

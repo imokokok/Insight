@@ -137,8 +137,9 @@ function SimplePriceTableComponent({
       })();
 
       const updateTime = data.timestamp || 0;
-      const freshnessSeconds =
-        updateTime > 0 ? Math.max(0, Math.floor((now - updateTime) / 1000)) : -1;
+      // freshnessSeconds is computed in rowsWithFreshness to avoid
+      // recomputing tableRows when `now` updates every 10s.
+      const freshnessSeconds = -1;
 
       const zScore =
         anomalyDetectionMode === 'zscore' && standardDeviation > 0 && avgPrice > 0
@@ -170,14 +171,21 @@ function SimplePriceTableComponent({
     anomalyDetectionMode,
     avgPrice,
     standardDeviation,
-    now,
     thresholds,
   ]);
 
+  const rowsWithFreshness: TableRow[] = useMemo(() => {
+    return tableRows.map((row) => ({
+      ...row,
+      freshnessSeconds:
+        row.updateTime > 0 ? Math.max(0, Math.floor((now - row.updateTime) / 1000)) : -1,
+    }));
+  }, [tableRows, now]);
+
   const filteredAndSortedRows = useMemo(() => {
-    let filtered = tableRows;
+    let filtered = rowsWithFreshness;
     if (statusFilter !== 'all') {
-      filtered = tableRows.filter((row) => row.status === statusFilter);
+      filtered = rowsWithFreshness.filter((row) => row.status === statusFilter);
     }
 
     return [...filtered].sort((a, b) => {
@@ -198,7 +206,7 @@ function SimplePriceTableComponent({
       }
       return sortDirection === 'asc' ? comparison : -comparison;
     });
-  }, [tableRows, statusFilter, sortColumn, sortDirection]);
+  }, [rowsWithFreshness, statusFilter, sortColumn, sortDirection]);
 
   const handleSort = (column: SortColumn) => {
     if (sortColumn === column) {

@@ -2,10 +2,10 @@
 
 import { getDIADataService, type DIATokenOnChainData } from '@/lib/oracles/services/diaDataService';
 
-import { createOnChainDataHook, type OnChainDataReturn } from './createOnChainDataHook';
+import { createOnChainDataHookFromService, type OnChainDataReturn } from './createOnChainDataHook';
 
 export type UseDIAOnChainDataReturn = OnChainDataReturn<DIATokenOnChainData>;
 
-export const useDIAOnChainData = createOnChainDataHook<DIATokenOnChainData>('dia', () =>
+export const useDIAOnChainData = createOnChainDataHookFromService<DIATokenOnChainData>('dia', () =>
   getDIADataService()
 );

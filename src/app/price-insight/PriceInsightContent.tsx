@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 
 import { useCrossChainAnalytics } from '@/app/cross-chain/hooks/useCrossChainAnalytics';
 import { useCrossChainDataState } from '@/app/cross-chain/hooks/useCrossChainDataState';
@@ -107,14 +107,14 @@ function OracleDimension({
     nextRefreshAt,
   } = useCrossOraclePage();
 
-  const oracleChartColors = (() => {
+  const oracleChartColors = useMemo(() => {
     const colors: Record<string, string> = {};
     selectedOracles.forEach((oracle, index) => {
       const oracleColor = chartColors.oracle[oracle];
       colors[oracle] = oracleColor ?? chartColors.sequence[index % chartColors.sequence.length];
     });
     return colors;
-  })();
+  }, [selectedOracles]);
 
   const activeFilterCount = (() => {
     let count = 0;
@@ -169,7 +169,6 @@ function OracleDimension({
 
           <OracleQueryResults
             priceData={priceData}
-            selectedOracles={selectedOracles}
             selectedSymbol={selectedSymbol}
             isLoading={isLoading}
             queryProgress={queryProgress}

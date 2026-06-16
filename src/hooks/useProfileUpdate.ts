@@ -7,22 +7,25 @@ const logger = createLogger('useProfileUpdate');
 
 export function useProfileUpdate() {
   const [isUpdating, setIsUpdating] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
 
   const updateProfile = useCallback(async (data: Record<string, unknown>) => {
     setIsUpdating(true);
+    setError(null);
     try {
       const result = await apiClient.put('/api/auth/profile', data);
       return result;
     } catch (err) {
       const appError = err instanceof Error ? err : new Error(String(err));
       logger.error('Failed to update profile', appError);
-      return null;
+      setError(appError);
+      throw appError;
     } finally {
       setIsUpdating(false);
     }
   }, []);
 
-  return { updateProfile, isUpdating };
+  return { updateProfile, isUpdating, error };
 }
 
 interface ProfileResponse {

@@ -49,9 +49,11 @@ function parseAlchemyRpc() {
   };
   const result = alchemyRpcSchema.safeParse(raw);
   if (result.success) return result.data;
-  logger.warn('Alchemy RPC config validation warnings:', {
-    errors: result.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`),
-  });
+  const errors = result.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`);
+  logger.warn('Alchemy RPC config validation warnings:', { errors });
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error(`Alchemy RPC config validation failed: ${errors.join(', ')}`);
+  }
   return alchemyRpcSchema.parse({});
 }
 
@@ -78,9 +80,11 @@ function parseStellarConfig() {
   };
   const result = stellarConfigSchema.safeParse(raw);
   if (result.success) return result.data;
-  logger.warn('Stellar config validation warnings:', {
-    errors: result.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`),
-  });
+  const errors = result.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`);
+  logger.warn('Stellar config validation warnings:', { errors });
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error(`Stellar config validation failed: ${errors.join(', ')}`);
+  }
   return stellarConfigSchema.parse({});
 }
 

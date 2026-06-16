@@ -14,9 +14,12 @@ import { AssetSelector } from './AssetSelector';
 import { ProtocolSearch } from './ProtocolSearch';
 
 interface AssetRow {
+  id: string;
   symbol: string;
   amount: string;
 }
+
+let assetRowSeq = 0;
 
 interface PositionFormProps {
   step: number;
@@ -44,7 +47,10 @@ export function PositionForm({
   const assets = useMemo(() => selectedProtocol?.assets ?? [], [selectedProtocol]);
 
   const addCollateralRow = () => {
-    onCollateralRowsChange([...collateralRows, { symbol: '', amount: '' }]);
+    onCollateralRowsChange([
+      ...collateralRows,
+      { id: `asset-${++assetRowSeq}`, symbol: '', amount: '' },
+    ]);
   };
 
   const removeCollateralRow = (index: number) => {
@@ -59,7 +65,7 @@ export function PositionForm({
   };
 
   const addBorrowRow = () => {
-    onBorrowRowsChange([...borrowRows, { symbol: '', amount: '' }]);
+    onBorrowRowsChange([...borrowRows, { id: `asset-${++assetRowSeq}`, symbol: '', amount: '' }]);
   };
 
   const removeBorrowRow = (index: number) => {
@@ -161,7 +167,7 @@ export function PositionForm({
                 {collateralRows.map((row, index) => {
                   const assetConfig = assets.find((a) => a.symbol === row.symbol);
                   return (
-                    <div key={index} className="flex gap-2 items-start">
+                    <div key={row.id} className="flex gap-2 items-start">
                       <div className="flex-1 min-w-0">
                         <AssetSelector
                           assets={assets.filter(
@@ -240,7 +246,7 @@ export function PositionForm({
 
               <div className="space-y-3">
                 {borrowRows.map((row, index) => (
-                  <div key={index} className="flex gap-2 items-start">
+                  <div key={row.id} className="flex gap-2 items-start">
                     <div className="flex-1 min-w-0">
                       <AssetSelector
                         assets={assets.filter(

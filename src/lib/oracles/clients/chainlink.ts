@@ -18,6 +18,8 @@ import { FailureMode, buildSignalVector } from '@/types/oracle/signals';
 
 const logger = createLogger('ChainlinkClient');
 
+const ETHEREUM_CHAIN_ID = BLOCKCHAIN_TO_CHAIN_ID[Blockchain.ETHEREUM];
+
 const CHAINLINK_QUALITY_CONFIG = {
   chainReliability: {
     [Blockchain.ETHEREUM]: 0.99,
@@ -85,7 +87,7 @@ export class ChainlinkClient extends BaseOracleClient {
   }
 
   private getChainId(chain?: Blockchain): number {
-    if (!chain) return 1;
+    if (!chain) return ETHEREUM_CHAIN_ID;
     const chainId = BLOCKCHAIN_TO_CHAIN_ID[chain];
     if (!chainId || chainId === 0) {
       throw this.createError(

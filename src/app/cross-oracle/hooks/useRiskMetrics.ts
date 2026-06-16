@@ -13,7 +13,7 @@ import { getProviderDefaults } from '@/lib/oracles/utils/performanceMetricsConfi
 import { createLogger } from '@/lib/utils/logger';
 import { type PriceData, type OracleProvider } from '@/types/oracle';
 
-import { extractPriceHistories } from '../utils/historyExtraction';
+import { extractPriceHistories, extractPriceHistoryTimestamps } from '../utils/historyExtraction';
 
 import { type PriceHistoryMap } from './useOracleMemory';
 
@@ -59,10 +59,14 @@ export function useRiskMetrics(
   _selectedSymbol?: string
 ): RiskMetricsResult {
   const [priceHistories, setPriceHistories] = useState<Map<string, number[]>>(new Map());
+  const [priceHistoryTimestamps, setPriceHistoryTimestamps] = useState<Map<string, number[]>>(
+    new Map()
+  );
 
   useEffect(() => {
     if (priceHistoryMapRef?.current && priceHistoryMapRef.current.size > 0) {
       setPriceHistories(extractPriceHistories(priceHistoryMapRef.current));
+      setPriceHistoryTimestamps(extractPriceHistoryTimestamps(priceHistoryMapRef.current));
     }
   }, [priceHistoryMapRef, priceData]);
 
@@ -160,6 +164,7 @@ export function useRiskMetrics(
       const metrics = calculateRiskMetrics({
         oracleData,
         priceHistoriesByProvider,
+        priceHistoryTimestampsByProvider: priceHistoryTimestamps,
         oracleTimestamps,
         manipulationResistanceData,
         sharedDependencyData,
@@ -232,7 +237,7 @@ export function useRiskMetrics(
         isCalculating: false,
       };
     }
-  }, [priceData, priceHistories]);
+  }, [priceData, priceHistories, priceHistoryTimestamps]);
 
   return result;
 }

@@ -18,6 +18,12 @@ const PROVIDERS_WITH_EXTRA_FIELDS = new Set([
   OracleProvider.API3,
 ]);
 
+// Track consecutive fire-and-forget save failures so that a persistent
+// database connectivity problem is surfaced instead of being silently logged
+// away on every price fetch.
+const SAVE_FAILURE_THRESHOLD = 10;
+let consecutiveSaveFailures = 0;
+
 async function getOracleClient(provider: OracleProvider) {
   const { getDefaultFactory } = await import('@/lib/oracles/factory');
   return getDefaultFactory().getClient(provider);
@@ -55,13 +61,29 @@ export async function fetchPriceWithDatabase(
 
     const livePrice = await client.getPrice(symbol, chain);
     if (!PROVIDERS_WITH_EXTRA_FIELDS.has(provider)) {
-      savePriceToDatabase(livePrice).catch((err) => {
-        logger.error(
-          'Failed to save price to database',
-          err instanceof Error ? err : new Error(String(err)),
-          { provider, symbol }
-        );
-      });
+      savePriceToDatabase(livePrice)
+        .then(() => {
+          consecutiveSaveFailures = 0;
+        })
+        .catch((err) => {
+          consecutiveSaveFailures += 1;
+          logger.error(
+            'Failed to save price to database',
+            err instanceof Error ? err : new Error(String(err)),
+            { provider, symbol }
+          );
+          if (consecutiveSaveFailures >= SAVE_FAILURE_THRESHOLD) {
+            logger.warn(
+              'Price database save has failed consecutively; check database connectivity',
+              {
+                provider,
+                symbol,
+                consecutiveFailures: consecutiveSaveFailures,
+                threshold: SAVE_FAILURE_THRESHOLD,
+              }
+            );
+          }
+        });
     }
     return livePrice;
   } catch (error) {

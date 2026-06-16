@@ -5,9 +5,6 @@ import type {
   OracleReputation,
   ReputationTrendPoint,
 } from '@/lib/oracles/services/reputationService';
-import { createLogger } from '@/lib/utils/logger';
-
-const logger = createLogger('useReputations');
 
 interface ReputationApiResponse {
   success: boolean;
@@ -31,21 +28,13 @@ async function fetchReputations(): Promise<{
   message?: string;
   nextRecalcAt?: string | null;
 }> {
-  try {
-    const response = await apiClient.get<ReputationApiResponse>('/api/reputation');
-    return {
-      data: response.data.data ?? [],
-      calculating: response.data.meta?.calculating ?? false,
-      message: response.data.meta?.message,
-      nextRecalcAt: response.data.meta?.nextRecalcAt,
-    };
-  } catch (error) {
-    logger.error(
-      'Failed to fetch reputations',
-      error instanceof Error ? error : new Error(String(error))
-    );
-    return { data: [], calculating: false };
-  }
+  const response = await apiClient.get<ReputationApiResponse>('/api/reputation');
+  return {
+    data: response.data.data ?? [],
+    calculating: response.data.meta?.calculating ?? false,
+    message: response.data.meta?.message,
+    nextRecalcAt: response.data.meta?.nextRecalcAt,
+  };
 }
 
 export function useReputations() {
@@ -109,35 +98,27 @@ async function fetchReputationDetail(
   includeTrend: boolean = false,
   trendDays: number = 30
 ): Promise<ReputationDetailWithTrend | null> {
-  try {
-    const params = new URLSearchParams();
-    if (includeTrend) {
-      params.set('trend', 'true');
-      params.set('days', String(trendDays));
-    }
-    const qs = params.toString();
-    const url = `/api/reputation/${encodeURIComponent(provider)}${qs ? `?${qs}` : ''}`;
-
-    const response = await apiClient.get<{
-      success: boolean;
-      data: OracleReputation & { trend?: ReputationTrendPoint[] };
-    }>(url);
-
-    const raw = response.data.data;
-    if (!raw) return null;
-
-    const { trend, ...reputation } = raw;
-    return {
-      reputation: reputation as OracleReputation,
-      trend: trend ?? [],
-    };
-  } catch (error) {
-    logger.error(
-      `Failed to fetch reputation for ${provider}`,
-      error instanceof Error ? error : new Error(String(error))
-    );
-    return null;
+  const params = new URLSearchParams();
+  if (includeTrend) {
+    params.set('trend', 'true');
+    params.set('days', String(trendDays));
   }
+  const qs = params.toString();
+  const url = `/api/reputation/${encodeURIComponent(provider)}${qs ? `?${qs}` : ''}`;
+
+  const response = await apiClient.get<{
+    success: boolean;
+    data: OracleReputation & { trend?: ReputationTrendPoint[] };
+  }>(url);
+
+  const raw = response.data.data;
+  if (!raw) return null;
+
+  const { trend, ...reputation } = raw;
+  return {
+    reputation: reputation as OracleReputation,
+    trend: trend ?? [],
+  };
 }
 
 export function useReputationDetail(

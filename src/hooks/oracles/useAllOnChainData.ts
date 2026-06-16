@@ -3,7 +3,13 @@
 import { OracleProvider, type Blockchain } from '@/types/oracle';
 import type { OnChainData } from '@/types/oracle/onChainData';
 
-import { useOnChainDataByProvider } from './useOnChainDataByProvider';
+import { useDIAOnChainData } from './useDIAOnChainData';
+import { useFlareOnChainData } from './useFlareOnChainData';
+import { useRedStoneOnChainData } from './useRedStoneOnChainData';
+import { useReflectorOnChainData } from './useReflectorOnChainData';
+import { useSupraOnChainData } from './useSupraOnChainData';
+import { useTwapOnChainData } from './useTwapOnChainData';
+import { useWINkLinkOnChainData } from './useWINkLinkOnChainData';
 
 interface UseAllOnChainDataParams {
   selectedOracle: OracleProvider | null;
@@ -22,47 +28,41 @@ export function useAllOnChainData(params: UseAllOnChainDataParams): OnChainData 
 
   const enabled = (provider: OracleProvider) => shouldFetch(provider) && !!selectedSymbol;
 
-  const { data: diaOnChainData, isLoading: isDIADataLoading } = useOnChainDataByProvider({
-    provider: OracleProvider.DIA,
+  const { data: diaOnChainData, isLoading: isDIADataLoading } = useDIAOnChainData({
     symbol: selectedSymbol,
     chain: selectedChain ?? undefined,
     enabled: enabled(OracleProvider.DIA),
   });
 
-  const { data: winklinkOnChainData, isLoading: isWINkLinkDataLoading } = useOnChainDataByProvider({
-    provider: OracleProvider.WINKLINK,
+  const { data: winklinkOnChainData, isLoading: isWINkLinkDataLoading } = useWINkLinkOnChainData({
     symbol: selectedSymbol,
     enabled: enabled(OracleProvider.WINKLINK),
   });
 
-  const { data: redstoneOnChainData, isLoading: isRedStoneDataLoading } = useOnChainDataByProvider({
-    provider: OracleProvider.REDSTONE,
+  const { data: redstoneOnChainData, isLoading: isRedStoneDataLoading } = useRedStoneOnChainData({
     symbol: selectedSymbol,
     enabled: enabled(OracleProvider.REDSTONE),
   });
 
-  const { data: supraOnChainData, isLoading: isSupraDataLoading } = useOnChainDataByProvider({
-    provider: OracleProvider.SUPRA,
+  const { data: supraOnChainData, isLoading: isSupraDataLoading } = useSupraOnChainData({
     symbol: selectedSymbol,
     enabled: enabled(OracleProvider.SUPRA),
   });
 
-  const { data: twapOnChainData, isLoading: isTwapDataLoading } = useOnChainDataByProvider({
-    provider: OracleProvider.TWAP,
+  const { data: twapOnChainData, isLoading: isTwapDataLoading } = useTwapOnChainData({
     symbol: selectedSymbol,
     chain: selectedChain ?? undefined,
     enabled: enabled(OracleProvider.TWAP),
   });
 
-  const { data: reflectorOnChainData, isLoading: isReflectorDataLoading } =
-    useOnChainDataByProvider({
-      provider: OracleProvider.REFLECTOR,
+  const { data: reflectorOnChainData, isLoading: isReflectorDataLoading } = useReflectorOnChainData(
+    {
       symbol: selectedSymbol,
       enabled: enabled(OracleProvider.REFLECTOR),
-    });
+    }
+  );
 
-  const { data: flareOnChainData, isLoading: isFlareDataLoading } = useOnChainDataByProvider({
-    provider: OracleProvider.FLARE,
+  const { data: flareOnChainData, isLoading: isFlareDataLoading } = useFlareOnChainData({
     symbol: selectedSymbol,
     enabled: enabled(OracleProvider.FLARE),
   });

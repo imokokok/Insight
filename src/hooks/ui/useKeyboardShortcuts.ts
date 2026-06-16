@@ -199,8 +199,11 @@ export function useKeyboardShortcuts(shortcuts: KeyboardShortcut[]) {
 export function useGlobalKeyboardListener() {
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
     // whenuserininputinnottriggershortcut
-    const target = event.target as HTMLElement;
-    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+    const target = event.target;
+    if (
+      target instanceof HTMLElement &&
+      (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
+    ) {
       // Escape closefor
       if (event.key !== 'Escape') {
         return;

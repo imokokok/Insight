@@ -7,6 +7,9 @@ import { AppError } from './AppError';
 
 const logger = createLogger('error-handler');
 
+/** Maximum error message length exposed in development responses. */
+const MAX_DEV_ERROR_MESSAGE_LENGTH = 200;
+
 /**
  * Convert error to NextResponse response
  * Reuse the standard error response creation function from errorTypes.ts
@@ -35,7 +38,9 @@ export function errorToResponse(error: unknown): NextResponse {
     const isDev = process.env.NODE_ENV === 'development';
     const standardResponse = createStandardErrorResponse(
       ErrorCode.INTERNAL_ERROR,
-      isDev && error.message.length < 200 ? error.message : 'An internal error occurred'
+      isDev && error.message.length < MAX_DEV_ERROR_MESSAGE_LENGTH
+        ? error.message
+        : 'An internal error occurred'
     );
 
     return NextResponse.json(standardResponse, { status: 500 });

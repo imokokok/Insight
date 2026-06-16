@@ -1,6 +1,7 @@
 'use client';
 
 import { DivergenceSignalTab, type FeedHealthScore } from '@/components/DivergenceSignalTab';
+import { type Blockchain } from '@/types/oracle';
 
 import { chainNames } from '../../constants';
 import {
@@ -9,10 +10,7 @@ import {
 } from '../../hooks/useCrossChainAnalytics';
 
 function getChainDisplayName(chainKey: string): string {
-  return (
-    (chainNames as Record<string, string>)[chainKey] ||
-    chainKey.charAt(0).toUpperCase() + chainKey.slice(1)
-  );
+  return chainNames[chainKey as Blockchain] || chainKey.charAt(0).toUpperCase() + chainKey.slice(1);
 }
 
 interface CrossChainDivergenceSignalTabProps {

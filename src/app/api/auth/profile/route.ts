@@ -3,12 +3,10 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 
 import { createApiHandler, ApiResponseBuilder } from '@/lib/api/handler';
+import { PREFERENCE_CURRENCIES, PREFERENCE_TIME_RANGES } from '@/lib/constants';
 import { type UserProfileUpdate } from '@/lib/supabase/queries';
-import { getServerQueries } from '@/lib/supabase/server';
-
-const VALID_ORACLES = ['chainlink', 'pyth', 'api3', 'redstone', 'dia', 'winklink'] as const;
-const VALID_TIME_RANGES = ['1h', '6h', '24h', '7d', '30d'] as const;
-const VALID_CURRENCIES = ['USD', 'CNY', 'EUR', 'JPY', 'GBP'] as const;
+import { getUserQueries } from '@/lib/supabase/server';
+import { ORACLE_PROVIDER_VALUES } from '@/types/oracle';
 
 const ChartSettingsSchema = z.object({
   show_confidence_interval: z.boolean().optional(),
@@ -17,11 +15,11 @@ const ChartSettingsSchema = z.object({
 });
 
 const PreferencesSchema = z.object({
-  default_oracle: z.enum(VALID_ORACLES).optional(),
+  default_oracle: z.enum(ORACLE_PROVIDER_VALUES as [string, ...string[]]).optional(),
   default_symbol: z.string().max(20).optional(),
   default_chain: z.string().max(30).optional(),
-  default_time_range: z.enum(VALID_TIME_RANGES).optional(),
-  default_currency: z.enum(VALID_CURRENCIES).optional(),
+  default_time_range: z.enum(PREFERENCE_TIME_RANGES).optional(),
+  default_currency: z.enum(PREFERENCE_CURRENCIES).optional(),
   auto_refresh_interval: z.number().min(0).max(300000).optional(),
   refresh_interval: z.number().min(1000).max(300000).optional(),
   notifications_enabled: z.boolean().optional(),
@@ -48,11 +46,11 @@ const UpdateProfileSchema = z
 export const GET = createApiHandler(
   async (_request: NextRequest, context) => {
     const userId = context.auth?.userId;
-    if (!userId) {
+    if (!userId || !context.auth?.accessToken) {
       return ApiResponseBuilder.unauthorized();
     }
 
-    const queries = getServerQueries();
+    const queries = getUserQueries(context.auth.accessToken);
     const profile = await queries.getUserProfile(userId);
 
     if (!profile) {
@@ -82,7 +80,7 @@ export const GET = createApiHandler(
 export const PUT = createApiHandler(
   async (request: NextRequest, context) => {
     const userId = context.auth?.userId;
-    if (!userId) {
+    if (!userId || !context.auth?.accessToken) {
       return ApiResponseBuilder.unauthorized();
     }
 
@@ -103,7 +101,7 @@ export const PUT = createApiHandler(
 
     const updateData: UserProfileUpdate = result.data as UserProfileUpdate;
 
-    const queries = getServerQueries();
+    const queries = getUserQueries(context.auth.accessToken);
     const updatedProfile = await queries.upsertUserProfile(userId, updateData);
 
     if (!updatedProfile) {

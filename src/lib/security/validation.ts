@@ -2,8 +2,8 @@ import { z, type ZodSchema } from 'zod';
 
 import { createLogger } from '@/lib/utils/logger';
 import { ZodValidationError } from '@/lib/validation/errors';
-import { ORACLE_PROVIDER_VALUES } from '@/types/oracle/enums';
-import type { OracleProvider, Blockchain } from '@/types/oracle/enums';
+import { ORACLE_PROVIDER_VALUES, BLOCKCHAIN_VALUES } from '@/types/oracle/enums';
+import type { OracleProvider } from '@/types/oracle/enums';
 import { FAILURE_MODE_VALUES } from '@/types/oracle/signals';
 
 import { sanitizeSymbol, sanitizeProvider, sanitizeChain } from './inputSanitizer';
@@ -20,12 +20,12 @@ export const SafeSymbolSchema = z
 export const SafeProviderSchema = z
   .string()
   .transform((val) => sanitizeProvider(val))
-  .pipe(z.string()) as unknown as z.ZodType<OracleProvider>;
+  .pipe(z.enum(ORACLE_PROVIDER_VALUES as [string, ...string[]]));
 
 export const SafeChainSchema = z
   .string()
   .transform((val) => sanitizeChain(val))
-  .pipe(z.string()) as unknown as z.ZodType<Blockchain>;
+  .pipe(z.enum(BLOCKCHAIN_VALUES as [string, ...string[]]));
 
 const SafePeriodSchema = z
   .union([z.string(), z.number()])

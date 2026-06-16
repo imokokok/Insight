@@ -46,6 +46,8 @@ export async function middleware(request: NextRequest) {
   return NextResponse.next();
 }
 
+// NOTE: matcher must be a static array (Next.js requirement).
+// Keep in sync with PROTECTED_PATHS above when adding protected routes.
 export const config = {
   matcher: ['/settings/:path*', '/snapshots/:path*', '/dashboard/:path*', '/profile/:path*'],
 };

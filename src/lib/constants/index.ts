@@ -144,13 +144,14 @@ const STABLECOIN_PATTERNS = [
   'PAX',
 ];
 const MAJOR_PATTERNS = ['BTC', 'ETH', 'WBTC', 'WETH'];
-const MICRO_PATTERNS = ['SHIB', 'PEPE', 'FLOKI', 'BONK', 'DOGE', 'MEME', 'TRUMP'];
+const MICRO_PATTERNS = ['SHIB', 'PEPE', 'FLOKI', 'BONK', 'MEME', 'TRUMP'];
 
 export function getSymbolCategory(symbol: string): SymbolVolatilityCategory {
   const upper = symbol.toUpperCase();
-  if (STABLECOIN_PATTERNS.some((s) => upper.includes(s))) return 'stablecoin';
-  if (MAJOR_PATTERNS.some((s) => upper.includes(s))) return 'major';
-  if (MICRO_PATTERNS.some((s) => upper.includes(s))) return 'micro';
+  const base = upper.split('/')[0];
+  if (STABLECOIN_PATTERNS.some((s) => base === s)) return 'stablecoin';
+  if (MAJOR_PATTERNS.some((s) => base === s)) return 'major';
+  if (MICRO_PATTERNS.some((s) => base === s)) return 'micro';
   return 'alt';
 }
 
@@ -250,3 +251,7 @@ export const TIME_RANGES = [
   { value: 24, key: 'timeRange24Hours', label: '24H' },
   { value: 168, key: 'timeRange7Days', label: '7D' },
 ];
+
+export const PREFERENCE_TIME_RANGES = ['1h', '6h', '24h', '7d', '30d'] as const;
+
+export const PREFERENCE_CURRENCIES = ['USD', 'CNY', 'EUR', 'JPY', 'GBP'] as const;

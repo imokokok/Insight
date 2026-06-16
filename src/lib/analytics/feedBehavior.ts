@@ -150,13 +150,15 @@ function calculateUpdateRhythm(
       anomalyType = 'sudden_speedup';
     }
 
+    let runningSum = intervals.length > 0 ? intervals[0] : 0;
     for (let i = 1; i < intervals.length; i++) {
-      const rollingAvg = intervals.slice(0, i).reduce((sum, v) => sum + v, 0) / i;
+      const rollingAvg = runningSum / i;
       if (rollingAvg > 0 && intervals[i] > 3 * rollingAvg) {
         isAnomalous = true;
         anomalyType = 'gap_detected';
         break;
       }
+      runningSum += intervals[i];
     }
 
     logger.debug(

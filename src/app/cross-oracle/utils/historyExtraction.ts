@@ -40,6 +40,21 @@ export function extractPriceHistories(priceHistoryMap: PriceHistoryMap): Map<str
   return result;
 }
 
+export function extractPriceHistoryTimestamps(
+  priceHistoryMap: PriceHistoryMap
+): Map<string, number[]> {
+  const result = new Map<string, number[]>();
+  for (const [provider, history] of priceHistoryMap) {
+    const timestamps = history
+      .filter((h: { success: boolean; price: number }) => h.success && h.price > 0)
+      .map((h: { timestamp: number }) => h.timestamp);
+    if (timestamps.length > 0) {
+      result.set(provider, timestamps);
+    }
+  }
+  return result;
+}
+
 export function enrichWithConfidence(
   historyMap: Map<string, HistoryEntry[]>,
   priceData: PriceData[]

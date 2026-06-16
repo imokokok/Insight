@@ -121,8 +121,8 @@ export function BenchmarkComparisonSection({ chainPrices }: BenchmarkComparisonS
               </tr>
             </thead>
             <tbody>
-              {benchmarkData.metrics.map((metric, index) => (
-                <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
+              {benchmarkData.metrics.map((metric) => (
+                <tr key={metric.name} className="border-b border-gray-100 hover:bg-gray-50">
                   <td className="px-4 py-3 font-medium text-gray-900">{metric.displayName}</td>
                   <td className="px-4 py-3 text-right font-mono">{formatPrice(metric.value)}</td>
                   <td

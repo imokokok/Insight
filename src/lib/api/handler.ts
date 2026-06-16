@@ -144,8 +144,11 @@ export function createApiHandler<T = unknown>(
     try {
       const params = await routeContext.params;
       apiContext.validated = { ...apiContext.validated, params };
-    } catch {
-      // params may not be available in all contexts
+    } catch (error) {
+      logger.warn(
+        'Failed to parse route params',
+        error instanceof Error ? error : new Error(String(error))
+      );
     }
 
     if (corsHeaders && request.method === 'OPTIONS') {
@@ -162,16 +165,10 @@ export function createApiHandler<T = unknown>(
         apiContext.requestId = `req_${crypto.randomUUID().replace(/-/g, '')}`;
       }
 
-      let currentMaxRequests = 0;
-
       if (baseRateLimitOptions) {
         const rateLimitOptions = { ...baseRateLimitOptions };
         const rateLimitMiddleware = createRateLimitMiddleware(rateLimitOptions);
         const rateLimitResult = await rateLimitMiddleware(request);
-        currentMaxRequests =
-          (typeof rateLimitOptions === 'object' && 'maxRequests' in rateLimitOptions
-            ? (rateLimitOptions as { maxRequests?: number }).maxRequests
-            : undefined) ?? 100;
 
         if (!rateLimitResult.success) {
           logResponse(apiContext.requestId, 429, startTime);
@@ -182,7 +179,7 @@ export function createApiHandler<T = unknown>(
         apiContext.rateLimitInfo = {
           remaining: rateLimitResult.remaining,
           resetTime: rateLimitResult.resetTime,
-          limit: currentMaxRequests,
+          limit: rateLimitResult.limit,
         };
       }
 

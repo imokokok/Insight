@@ -40,45 +40,47 @@ async function fetchPricesForPosition(
 ): Promise<PriceLookup[]> {
   const results = await Promise.allSettled(
     queries.map(async (query) => {
-      try {
-        const priceData: PriceData = await fetchPriceWithDatabase(
-          query.provider,
-          query.symbol,
-          undefined,
-          true,
-          false
-        );
-        return {
-          provider: query.provider,
-          symbol: query.symbol,
-          price: priceData.price ?? 0,
-          timestamp: priceData.timestamp ?? Date.now(),
-        };
-      } catch (error) {
-        logger.warn(
-          `Failed to fetch price for ${query.provider}/${query.symbol}: ${error instanceof Error ? error.message : String(error)}`
-        );
-        return {
-          provider: query.provider,
-          symbol: query.symbol,
-          price: 0,
-          timestamp: Date.now(),
-        };
+      const priceData: PriceData = await fetchPriceWithDatabase(
+        query.provider,
+        query.symbol,
+        undefined,
+        true,
+        false
+      );
+      const price = priceData.price;
+      if (price === null || price === undefined || !Number.isFinite(price) || price <= 0) {
+        throw new Error(`Invalid or missing price for ${query.provider}/${query.symbol}`);
       }
+      return {
+        provider: query.provider,
+        symbol: query.symbol,
+        price,
+        timestamp: priceData.timestamp ?? Date.now(),
+      };
     })
   );
 
-  return results.map((result) => {
+  const failed: string[] = [];
+  const successful: PriceLookup[] = [];
+
+  for (let i = 0; i < results.length; i++) {
+    const result = results[i];
+    const query = queries[i];
     if (result.status === 'fulfilled') {
-      return result.value;
+      successful.push(result.value);
+    } else {
+      failed.push(`${query.provider}/${query.symbol}`);
+      logger.warn(
+        `Failed to fetch price for ${query.provider}/${query.symbol}: ${result.reason instanceof Error ? result.reason.message : String(result.reason)}`
+      );
     }
-    return {
-      provider: 'chainlink' as OracleProvider,
-      symbol: '',
-      price: 0,
-      timestamp: Date.now(),
-    };
-  });
+  }
+
+  if (failed.length > 0) {
+    throw new Error(`Failed to fetch prices for: ${failed.join(', ')}`);
+  }
+
+  return successful;
 }
 
 export const POST = createApiHandler(

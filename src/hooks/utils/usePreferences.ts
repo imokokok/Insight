@@ -84,7 +84,10 @@ export function usePreferences() {
             : (localPrefs.autoRefreshInterval ?? defaultPreferences.autoRefreshInterval),
       };
     }
-    return { ...defaultPreferences, ...localPrefs };
+    return {
+      ...defaultPreferences,
+      ...Object.fromEntries(Object.entries(localPrefs).filter(([, v]) => v !== undefined)),
+    };
   }, [user, profile]);
 
   return {

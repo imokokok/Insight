@@ -16,9 +16,9 @@ export function CompactStatsGrid({ statsData }: CompactStatsGridProps) {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-        {statsData.map((stat, index) => (
+        {statsData.map((stat) => (
           <CompactStatCard
-            key={`${stat.label}-${index}`}
+            key={stat.label}
             title={stat.label}
             value={stat.value}
             breakdown={stat.subValue ? [{ label: 'Detail', value: stat.subValue }] : undefined}
