@@ -62,6 +62,65 @@ export interface OracleWarning {
   message: string;
 }
 
+// ─── Safety Parameter Planning (反向求参数) ───
+
+/** 调整动作类型 */
+export type AdjustmentAction =
+  | 'add_collateral' // 追加抵押品
+  | 'repay_borrow' // 偿还借贷
+  | 'withdraw_collateral'; // 可提取抵押品（缓冲充足时）
+
+/** 单个资产的调整建议 */
+export interface AssetAdjustment {
+  symbol: string;
+  action: AdjustmentAction;
+  currentAmount: number;
+  targetAmount: number; // 调整后该资产应有数量
+  deltaAmount: number; // 需要变动的量（正数=追加/提取，负数=偿还/减少）
+  deltaValueUsd: number; // 变动量的美元价值
+  currentPrice: number;
+  direction: 'down' | 'up' | 'none'; // 该资产在偏差场景中的方向
+}
+
+/** 反向求参数的结果 */
+export interface SafetyParameterPlan {
+  // 用户输入
+  targetDeviationPercent: number; // 用户设定的目标偏差 δ（如 15 表示 15%）
+
+  // 推导出的目标值
+  targetHealthFactor: number; // (1+δ)/(1−δ)
+  targetCollateralRatio: number; // targetHF × weightedLT
+  currentHealthFactor: number; // 当前 HF（冗余，方便前端展示对比）
+
+  // 是否需要调整
+  needsAdjustment: boolean; // currentHF < targetHF 时为 true
+  gapPercent: number; // HF 缺口百分比 = (targetHF − currentHF) / currentHF × 100
+
+  // 三种调整方案（互斥，前端可切换展示）
+  plans: {
+    addCollateral: {
+      adjustments: AssetAdjustment[]; // 建议追加的抵押品（按贡献效率排序）
+      totalDeltaValueUsd: number;
+      description: string;
+    };
+    repayBorrow: {
+      adjustments: AssetAdjustment[]; // 建议偿还的借贷（按利率/优先级排序）
+      totalDeltaValueUsd: number;
+      description: string;
+    };
+    withdrawable?: {
+      adjustments: AssetAdjustment[]; // 可安全提取的抵押品
+      totalDeltaValueUsd: number;
+      description: string;
+    };
+  };
+
+  // 场景验证：按建议调整后，在最坏偏差下的 HF
+  projectedWorstCaseHF: number;
+
+  lastUpdated: number;
+}
+
 export interface PositionCriticalResult {
   protocolId: string;
   protocolName: string;
@@ -653,5 +712,159 @@ function analyzeSafetyBuffer(
     bufferPercent: Number(bufferPercent.toFixed(2)),
     description,
     recommendations: recommendations.length > 0 ? recommendations : ['Position is in good shape'],
+  };
+}
+
+/**
+ * 反向求安全参数：给定目标偏差容忍度，反算需要的头寸调整
+ *
+ * 核心公式（OVer 论文反向应用）：
+ *   清算条件 HF = 1
+ *   抗 δ 偏差要求 HF_worst ≥ 1
+ *   最坏情况：抵押品跌 δ、借贷品涨 δ
+ *   HF_worst = [adjustedColl × (1−δ)] / [borrow × (1+δ)] / LT ≥ 1
+ *   推导得 targetHF = (1+δ)/(1−δ)  （LT 在两边消掉）
+ *
+ * @param result 已计算的正向结果（复用其中的价格、参数、头寸）
+ * @param targetDeviationPercent 用户目标偏差（百分比，如 15 表示 15%）
+ */
+export function calculateSafetyParameterPlan(
+  result: PositionCriticalResult,
+  targetDeviationPercent: number
+): SafetyParameterPlan {
+  const delta = targetDeviationPercent / 100;
+
+  // 边界保护
+  if (delta <= 0 || delta >= 1) {
+    throw new Error('Target deviation must be between 0% and 100% (exclusive)');
+  }
+
+  // 1. 推导目标 HF
+  const targetHF = (1 + delta) / (1 - delta);
+  const weightedLT = result.liquidationThreshold;
+  const targetCollateralRatio = targetHF * weightedLT;
+
+  const currentHF = result.currentHealthFactor;
+  const needsAdjustment = currentHF < targetHF;
+  const gapPercent = currentHF > 0 ? ((targetHF - currentHF) / currentHF) * 100 : Infinity;
+
+  // 2. 当前头寸关键量
+  const currentAdjustedColl = result.totalAdjustedCollateralValue;
+  const currentBorrow = result.totalBorrowValue;
+
+  // 目标 adjusted collateral = targetHF × LT × borrow
+  const targetAdjustedColl = targetCollateralRatio * currentBorrow;
+
+  // 3. 方案 A：追加抵押品（按贡献效率 collFact×exchRt×price 排序，效率高的优先）
+  const needAdjustedDelta = Math.max(0, targetAdjustedColl - currentAdjustedColl);
+  const addCollateralRaw = result.collaterals.map((c) => {
+    const efficiency = c.collateralFactor * c.exchangeRate * c.price; // 每单位抵押贡献的 adjusted value
+    const deltaAmount = efficiency > 0 ? needAdjustedDelta / efficiency : 0;
+    const adjustment: AssetAdjustment = {
+      symbol: c.symbol,
+      action: 'add_collateral',
+      currentAmount: c.amount,
+      targetAmount: c.amount + deltaAmount,
+      deltaAmount,
+      deltaValueUsd: deltaAmount * c.price * c.exchangeRate,
+      currentPrice: c.price,
+      direction: 'down',
+    };
+    return { adjustment, efficiency };
+  });
+  addCollateralRaw.sort((a, b) => b.efficiency - a.efficiency);
+  const addCollateralAdjustments: AssetAdjustment[] = addCollateralRaw.map(
+    (item) => item.adjustment
+  );
+
+  // 4. 方案 B：偿还借贷（按当前借贷价值比例分配偿还量）
+  // 目标 borrow = currentAdjustedColl / (targetHF × LT)
+  const targetBorrow = currentAdjustedColl / targetCollateralRatio;
+  const borrowReduction = Math.max(0, currentBorrow - targetBorrow);
+
+  const repayBorrowAdjustments: AssetAdjustment[] = result.borrows.map((b) => {
+    const proportion = currentBorrow > 0 ? b.value / currentBorrow : 0;
+    const reduceValueUsd = borrowReduction * proportion;
+    const deltaAmount = b.price > 0 ? reduceValueUsd / b.price : 0;
+    return {
+      symbol: b.symbol,
+      action: 'repay_borrow' as const,
+      currentAmount: b.amount,
+      targetAmount: b.amount - deltaAmount,
+      deltaAmount: -deltaAmount, // 负数表示减少
+      deltaValueUsd: -reduceValueUsd,
+      currentPrice: b.price,
+      direction: 'up' as const,
+    };
+  });
+
+  // 5. 方案 C：可提取抵押品（当 currentHF > targetHF，缓冲充足）
+  let withdrawablePlan: SafetyParameterPlan['plans']['withdrawable'];
+  if (!needsAdjustment && currentHF > targetHF) {
+    const excessAdjusted = currentAdjustedColl - targetAdjustedColl;
+    const withdrawableAdjustments: AssetAdjustment[] = result.collaterals.map((c) => {
+      const efficiency = c.collateralFactor * c.exchangeRate * c.price;
+      const deltaAmount =
+        efficiency > 0 ? excessAdjusted / efficiency / result.collaterals.length : 0;
+      return {
+        symbol: c.symbol,
+        action: 'withdraw_collateral' as const,
+        currentAmount: c.amount,
+        targetAmount: c.amount - deltaAmount,
+        deltaAmount,
+        deltaValueUsd: deltaAmount * c.price * c.exchangeRate,
+        currentPrice: c.price,
+        direction: 'none' as const,
+      };
+    });
+    const totalWithdrawable = withdrawableAdjustments.reduce((s, a) => s + a.deltaValueUsd, 0);
+    withdrawablePlan = {
+      adjustments: withdrawableAdjustments,
+      totalDeltaValueUsd: totalWithdrawable,
+      description: `Current buffer exceeds target, you can safely withdraw up to $${totalWithdrawable.toFixed(2)} worth of collateral while still surviving ${targetDeviationPercent}% deviation`,
+    };
+  }
+
+  // 6. 场景验证：按方案 A 调整后，最坏偏差下的 HF
+  // 调整后 adjustedColl = targetAdjustedColl，borrow 不变
+  // worst HF = [targetAdjustedColl × (1−δ)] / [borrow × (1+δ)] / LT
+  const projectedWorstCaseHF =
+    currentBorrow > 0 && weightedLT > 0
+      ? (targetAdjustedColl * (1 - delta)) / (currentBorrow * (1 + delta)) / weightedLT
+      : Infinity;
+
+  const addCollateralTotal = addCollateralAdjustments.reduce((s, a) => s + a.deltaValueUsd, 0);
+  const repayBorrowTotal = Math.abs(
+    repayBorrowAdjustments.reduce((s, a) => s + a.deltaValueUsd, 0)
+  );
+
+  return {
+    targetDeviationPercent,
+    targetHealthFactor: Number(targetHF.toFixed(4)),
+    targetCollateralRatio: Number(targetCollateralRatio.toFixed(4)),
+    currentHealthFactor: currentHF,
+    needsAdjustment,
+    gapPercent: Number((isFinite(gapPercent) ? gapPercent : 0).toFixed(2)),
+    plans: {
+      addCollateral: {
+        adjustments: addCollateralAdjustments,
+        totalDeltaValueUsd: addCollateralTotal,
+        description: needsAdjustment
+          ? `Add $${addCollateralTotal.toFixed(2)} collateral to survive ${targetDeviationPercent}% price deviation`
+          : 'No additional collateral needed',
+      },
+      repayBorrow: {
+        adjustments: repayBorrowAdjustments,
+        totalDeltaValueUsd: repayBorrowTotal,
+        description: needsAdjustment
+          ? `Repay $${repayBorrowTotal.toFixed(2)} debt to survive ${targetDeviationPercent}% price deviation`
+          : 'No repayment needed',
+      },
+      withdrawable: withdrawablePlan,
+    },
+    projectedWorstCaseHF: Number(
+      (isFinite(projectedWorstCaseHF) ? projectedWorstCaseHF : 0).toFixed(4)
+    ),
+    lastUpdated: Date.now(),
   };
 }

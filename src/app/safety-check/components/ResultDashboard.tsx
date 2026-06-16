@@ -21,6 +21,7 @@ import type {
   PositionCriticalResult,
   AssetDeviationResult,
   SafetyBufferAnalysis,
+  PositionInput,
 } from '@/lib/protocols/protocolHealth';
 import { cn } from '@/lib/utils';
 import { formatPrice } from '@/lib/utils/format';
@@ -28,13 +29,15 @@ import { formatPrice } from '@/lib/utils/format';
 import { CircularGauge } from './CircularGauge';
 import { CountUp } from './CountUp';
 import { RiskChart } from './RiskChart';
+import { SafetyPlannerPanel } from './SafetyPlannerPanel';
 
 interface ResultDashboardProps {
   result: PositionCriticalResult;
+  position: PositionInput;
   onReset: () => void;
 }
 
-export function ResultDashboard({ result, onReset }: ResultDashboardProps) {
+export function ResultDashboard({ result, position, onReset }: ResultDashboardProps) {
   const [showAllDeviations, setShowAllDeviations] = useState(false);
 
   const status = useMemo(() => {
@@ -168,7 +171,12 @@ export function ResultDashboard({ result, onReset }: ResultDashboardProps) {
         </motion.div>
       </div>
 
-      {/* ── Section 2: Risk Assessment (side-by-side) ── */}
+      {/* ── Section 2: Risk Assessment & Action ── */}
+      <div className="mb-3">
+        <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+          Risk Assessment & Action
+        </h3>
+      </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Safety Buffer Analysis */}
         <motion.div
@@ -208,6 +216,9 @@ export function ResultDashboard({ result, onReset }: ResultDashboardProps) {
           <OracleReliabilityWarnings warnings={result.oracleWarnings} />
         )}
       </div>
+
+      {/* Safety Parameter Planner (反向求参数 - 行动处方) */}
+      <SafetyPlannerPanel position={position} />
 
       {/* ── Section 3: Position Overview ── */}
       <motion.div

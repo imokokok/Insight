@@ -5,7 +5,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Shield, Calculator } from 'lucide-react';
 
-import type { AssetEntry } from '@/lib/protocols/protocolHealth';
+import type { AssetEntry, PositionInput } from '@/lib/protocols/protocolHealth';
 import type { ProtocolConfig } from '@/lib/protocols/protocolRegistry';
 import { PROTOCOL_REGISTRY } from '@/lib/protocols/protocolRegistry';
 
@@ -28,6 +28,7 @@ export default function SafetyCheckContent() {
   const [borrowRows, setBorrowRows] = useState<AssetRow[]>([{ symbol: '', amount: '' }]);
 
   const { result, isLoading, error, calculate, clear } = useProtocolHealth();
+  const [lastPosition, setLastPosition] = useState<PositionInput | null>(null);
 
   // Auto-fill defaults on mount
   useEffect(() => {
@@ -55,11 +56,13 @@ export default function SafetyCheckContent() {
     // Only auto-calculate on first mount (result is null, not loading)
     if (result || isLoading) return;
 
-    calculate({
+    const position: PositionInput = {
       protocolId: selectedProtocol.id,
       collaterals: collaterals.map((r) => ({ symbol: r.symbol, amount: parseFloat(r.amount) })),
       borrows: borrows.map((r) => ({ symbol: r.symbol, amount: parseFloat(r.amount) })),
-    });
+    };
+    setLastPosition(position);
+    calculate(position);
     setStep(3);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedProtocol]);
@@ -80,11 +83,13 @@ export default function SafetyCheckContent() {
   const handleSubmit = useCallback(
     async (data: { collaterals: AssetEntry[]; borrows: AssetEntry[] }) => {
       if (!selectedProtocol) return;
-      await calculate({
+      const position: PositionInput = {
         protocolId: selectedProtocol.id,
         collaterals: data.collaterals,
         borrows: data.borrows,
-      });
+      };
+      setLastPosition(position);
+      await calculate(position);
       setStep(3);
     },
     [selectedProtocol, calculate]
@@ -95,6 +100,7 @@ export default function SafetyCheckContent() {
     setSelectedProtocol(null);
     setCollateralRows([{ symbol: '', amount: '' }]);
     setBorrowRows([{ symbol: '', amount: '' }]);
+    setLastPosition(null);
     clear();
   }, [clear]);
 
@@ -190,7 +196,7 @@ export default function SafetyCheckContent() {
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.4 }}
                 >
-                  <ResultDashboard result={result} onReset={handleReset} />
+                  <ResultDashboard result={result} position={lastPosition!} onReset={handleReset} />
                 </motion.div>
               ) : (
                 <motion.div
