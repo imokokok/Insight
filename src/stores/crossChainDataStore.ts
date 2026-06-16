@@ -2,8 +2,8 @@ import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
 import { type CrossChainComparisonResult } from '@/lib/oracles/crossChainComparison';
-import { type AnomalousPricePoint } from '@/lib/types/crossChain';
 import { type PriceStats } from '@/types/analytics';
+import { type AnomalousPricePoint } from '@/types/crossChain';
 import { type Blockchain, type PriceData } from '@/types/oracle';
 
 interface DataState {
@@ -16,6 +16,7 @@ interface DataState {
   prevStats: PriceStats | null;
   recommendedBaseChain: Blockchain | null;
   anomalies: AnomalousPricePoint[];
+  fetchData: (() => Promise<void>) | null;
 }
 
 interface DataActions {
@@ -24,16 +25,7 @@ interface DataActions {
   setLastUpdated: (date: Date | null) => void;
   setAnomalies: (anomalies: AnomalousPricePoint[]) => void;
   setCrossChainComparison: (results: CrossChainComparisonResult[]) => void;
-}
-
-let _fetchData: (() => Promise<void>) | null = null;
-
-export function setFetchDataRef(fn: () => Promise<void>) {
-  _fetchData = fn;
-}
-
-export function getFetchData(): (() => Promise<void>) | null {
-  return _fetchData;
+  setFetchData: (fn: (() => Promise<void>) | null) => void;
 }
 
 const initialState: DataState = {
@@ -46,6 +38,7 @@ const initialState: DataState = {
   prevStats: null,
   recommendedBaseChain: null,
   anomalies: [],
+  fetchData: null,
 };
 
 export const useCrossChainDataStore = create<DataState & DataActions>()(
@@ -58,6 +51,7 @@ export const useCrossChainDataStore = create<DataState & DataActions>()(
       setLastUpdated: (date) => set({ lastUpdated: date }),
       setAnomalies: (anomalies) => set({ anomalies }),
       setCrossChainComparison: (results) => set({ crossChainComparison: results }),
+      setFetchData: (fn) => set({ fetchData: fn }),
     }),
     { name: 'CrossChainDataStore' }
   )

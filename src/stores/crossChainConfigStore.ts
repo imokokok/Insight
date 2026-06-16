@@ -1,8 +1,8 @@
 import { create } from 'zustand';
 import { devtools, persist, createJSONStorage } from 'zustand/middleware';
 
-import { type ThresholdConfig, defaultThresholdConfig } from '@/lib/types/crossChain';
 import { type RefreshInterval } from '@/types/common';
+import { type ThresholdConfig, defaultThresholdConfig } from '@/types/crossChain';
 
 const CONFIG_STORE_VERSION = 1;
 

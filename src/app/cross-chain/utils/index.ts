@@ -8,6 +8,6 @@ export { calculateZScore, calculatePercentile, getTCriticalValue } from '@/lib/u
 
 export { isOutlier } from './outlierUtils';
 
-export { defaultThresholdConfig, type ThresholdConfig } from '@/lib/types/crossChain';
+export { defaultThresholdConfig, type ThresholdConfig } from '@/types/crossChain';
 
 export { formatPrice };

@@ -3,11 +3,6 @@
  * Provides IQR and standard deviation based anomalous price detection
  */
 
-import {
-  type AnomalousPricePoint,
-  defaultThresholdConfig,
-  type ThresholdConfig,
-} from '@/lib/types/crossChain';
 import { createLogger } from '@/lib/utils/logger';
 import {
   calculateMean,
@@ -16,9 +11,14 @@ import {
   calculateVariance,
   calculateZScore,
 } from '@/lib/utils/statistics';
+import {
+  type AnomalousPricePoint,
+  defaultThresholdConfig,
+  type ThresholdConfig,
+} from '@/types/crossChain';
 import { type Blockchain, type PriceData } from '@/types/oracle';
 
-export type { AnomalousPricePoint } from '@/lib/types/crossChain';
+export type { AnomalousPricePoint } from '@/types/crossChain';
 
 const logger = createLogger('anomalyDetection');
 

@@ -74,12 +74,11 @@ const clientEnvSchema = z.object({
   NEXT_PUBLIC_ENABLE_PERFORMANCE_MONITORING: envBoolean,
 });
 
-const lenientClientEnvSchema = z.object({
-  NEXT_PUBLIC_SUPABASE_URL: z.string().optional().default(''),
+// Lenient variants: in non-production, fall back to safe defaults per-field
+// instead of maintaining a full duplicate schema.
+const lenientClientEnvSchema = clientEnvSchema.extend({
+  NEXT_PUBLIC_SUPABASE_URL: z.string().url().optional().default(''),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().optional().default(''),
-  NEXT_PUBLIC_APP_URL: z.string().optional().default('http://localhost:3000'),
-  NEXT_PUBLIC_ENABLE_ANALYTICS: envBoolean,
-  NEXT_PUBLIC_ENABLE_PERFORMANCE_MONITORING: envBoolean,
 });
 
 const serverEnvSchema = z.object({
@@ -96,34 +95,18 @@ const serverEnvSchema = z.object({
   USE_REAL_TWAP_DATA: envBoolean.default(true),
   USE_REAL_REFLECTOR_DATA: envBoolean.default(true),
   USE_REAL_FLARE_DATA: envBoolean.default(true),
-  STELLAR_RPC_URL: z.string().url().optional().default(''),
-  REFLECTOR_CRYPTO_CONTRACT: z.string().optional().default(''),
-  REFLECTOR_FOREX_CONTRACT: z.string().optional().default(''),
   SESSION_TIMEOUT: z.coerce.number().optional().default(3600),
   MAX_REQUEST_SIZE: z.coerce.number().optional().default(1048576),
   ALLOWED_ORIGINS: z.string().optional().default('http://localhost:3000'),
 });
 
-const lenientServerEnvSchema = z.object({
+// Lenient server variant: only the genuinely required secrets stay required;
+// everything else falls back to safe defaults. STELLAR_RPC_URL and
+// REFLECTOR_*_CONTRACT are intentionally NOT here — they are parsed and
+// consumed by src/lib/config/serverEnv.ts (STELLAR_CONFIG).
+const lenientServerEnvSchema = serverEnvSchema.extend({
   NEXT_PUBLIC_SUPABASE_URL: z.string().optional().default(''),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().optional().default(''),
-  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1, 'SUPABASE_SERVICE_ROLE_KEY is required'),
-  NEXT_PUBLIC_APP_URL: z.string().optional().default('http://localhost:3000'),
-  CSRF_SECRET: z.string().min(1, 'CSRF_SECRET is required'),
-  JWT_SECRET: z.string().min(1, 'JWT_SECRET is required'),
-  NEXT_PUBLIC_ENABLE_ANALYTICS: envBoolean,
-  NEXT_PUBLIC_ENABLE_PERFORMANCE_MONITORING: envBoolean,
-  USE_REAL_CHAINLINK_DATA: envBoolean.default(true),
-  USE_REAL_API3_DATA: envBoolean.default(true),
-  USE_REAL_TWAP_DATA: envBoolean.default(true),
-  USE_REAL_REFLECTOR_DATA: envBoolean.default(true),
-  USE_REAL_FLARE_DATA: envBoolean.default(true),
-  STELLAR_RPC_URL: z.string().optional().default(''),
-  REFLECTOR_CRYPTO_CONTRACT: z.string().optional().default(''),
-  REFLECTOR_FOREX_CONTRACT: z.string().optional().default(''),
-  SESSION_TIMEOUT: z.coerce.number().optional().default(3600),
-  MAX_REQUEST_SIZE: z.coerce.number().optional().default(1048576),
-  ALLOWED_ORIGINS: z.string().optional().default('http://localhost:3000'),
 });
 
 type ClientEnv = z.infer<typeof clientEnvSchema>;
@@ -151,9 +134,6 @@ function getRawServerEnv() {
     USE_REAL_TWAP_DATA: process.env.USE_REAL_TWAP_DATA,
     USE_REAL_REFLECTOR_DATA: process.env.USE_REAL_REFLECTOR_DATA,
     USE_REAL_FLARE_DATA: process.env.USE_REAL_FLARE_DATA,
-    STELLAR_RPC_URL: process.env.STELLAR_RPC_URL,
-    REFLECTOR_CRYPTO_CONTRACT: process.env.REFLECTOR_CRYPTO_CONTRACT,
-    REFLECTOR_FOREX_CONTRACT: process.env.REFLECTOR_FOREX_CONTRACT,
     SESSION_TIMEOUT: process.env.SESSION_TIMEOUT,
     MAX_REQUEST_SIZE: process.env.MAX_REQUEST_SIZE,
     ALLOWED_ORIGINS: process.env.ALLOWED_ORIGINS,
@@ -184,28 +164,7 @@ function parseServerEnv(): ServerEnv {
   const result = serverEnvSchema.safeParse(raw);
 
   if (result.success) {
-    const data = result.data;
-    return {
-      NEXT_PUBLIC_SUPABASE_URL: data.NEXT_PUBLIC_SUPABASE_URL,
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: data.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-      SUPABASE_SERVICE_ROLE_KEY: data.SUPABASE_SERVICE_ROLE_KEY,
-      NEXT_PUBLIC_APP_URL: data.NEXT_PUBLIC_APP_URL,
-      CSRF_SECRET: data.CSRF_SECRET,
-      JWT_SECRET: data.JWT_SECRET,
-      NEXT_PUBLIC_ENABLE_ANALYTICS: data.NEXT_PUBLIC_ENABLE_ANALYTICS,
-      NEXT_PUBLIC_ENABLE_PERFORMANCE_MONITORING: data.NEXT_PUBLIC_ENABLE_PERFORMANCE_MONITORING,
-      USE_REAL_CHAINLINK_DATA: data.USE_REAL_CHAINLINK_DATA,
-      USE_REAL_API3_DATA: data.USE_REAL_API3_DATA,
-      USE_REAL_TWAP_DATA: data.USE_REAL_TWAP_DATA,
-      USE_REAL_REFLECTOR_DATA: data.USE_REAL_REFLECTOR_DATA,
-      USE_REAL_FLARE_DATA: data.USE_REAL_FLARE_DATA,
-      STELLAR_RPC_URL: data.STELLAR_RPC_URL,
-      REFLECTOR_CRYPTO_CONTRACT: data.REFLECTOR_CRYPTO_CONTRACT,
-      REFLECTOR_FOREX_CONTRACT: data.REFLECTOR_FOREX_CONTRACT,
-      SESSION_TIMEOUT: data.SESSION_TIMEOUT,
-      MAX_REQUEST_SIZE: data.MAX_REQUEST_SIZE,
-      ALLOWED_ORIGINS: data.ALLOWED_ORIGINS,
-    };
+    return result.data;
   }
 
   const allErrors = result.error.issues.map((issue) => `${issue.path.join('.')}: ${issue.message}`);
