@@ -241,10 +241,6 @@ function createZodValidationMiddleware<TBody, TQuery, TParams>(options: ZodValid
   };
 }
 
-export function validateBodySchema<T>(schema: ZodSchema<T>) {
-  return createZodValidationMiddleware<T, never, never>({ body: schema });
-}
-
 export function validateQuerySchema<T>(schema: ZodSchema<T>) {
   return createZodValidationMiddleware<never, T, never>({ query: schema });
 }

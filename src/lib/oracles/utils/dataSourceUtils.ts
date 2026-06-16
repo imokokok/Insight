@@ -10,8 +10,6 @@ import {
 } from '@/lib/oracles/utils/reputationUtils';
 import { type OracleProvider } from '@/types/oracle';
 
-export type { CredibilityLevel };
-
 export function getCredibilityLevel(
   _provider: OracleProvider,
   reputationScore: number | undefined,

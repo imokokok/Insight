@@ -1,1 +1,1 @@
-export { validateBodySchema, validateQuerySchema } from './middleware';
+export { validateQuerySchema } from './middleware';
