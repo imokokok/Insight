@@ -27,8 +27,6 @@ export const SafeChainSchema = z
   .transform((val) => sanitizeChain(val))
   .pipe(z.string()) as unknown as z.ZodType<Blockchain>;
 
-const SafeActionSchema = z.enum(['enable', 'disable', 'delete']);
-
 const SafePeriodSchema = z
   .union([z.string(), z.number()])
   .transform((val) => (typeof val === 'string' ? parseInt(val, 10) : val))
@@ -36,33 +34,6 @@ const SafePeriodSchema = z
     (val) => !isNaN(val) && val >= 1 && val <= 8760,
     'Period must be between 1 and 8760 hours (1 year)'
   );
-
-export function validateAndSanitize<T>(
-  schema: z.ZodSchema<T>,
-  data: unknown
-): { data: T; error: null } | { data: null; error: z.ZodError } {
-  try {
-    return { data: schema.parse(data), error: null };
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return { data: null, error };
-    }
-    return {
-      data: null,
-      error: new z.ZodError([
-        {
-          code: 'custom',
-          path: [],
-          message: error instanceof Error ? error.message : 'Unknown validation error',
-        },
-      ]),
-    };
-  }
-}
-
-export const BatchOperationSchema = z.object({
-  action: SafeActionSchema,
-});
 
 const PriceDataBaseSchema = z.object({
   symbol: z.string().min(1, 'Symbol is required'),

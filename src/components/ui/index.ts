@@ -9,4 +9,4 @@ export { EmptyStateEnhanced } from './EmptyStateEnhanced';
 
 export { CompactStatCard } from './CompactStatCard';
 export { SegmentedControl, DropdownSelect } from './selectors';
-export type { SelectorOption, SegmentedControlProps, DropdownSelectProps } from './selectors';
+export type { SelectorOption } from './selectors';

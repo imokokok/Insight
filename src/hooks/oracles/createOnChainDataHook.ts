@@ -14,13 +14,13 @@ export interface OnChainDataReturn<T> {
   refetch: () => Promise<void>;
 }
 
-export interface OnChainDataOptions {
+interface OnChainDataOptions {
   symbol: string;
   chain?: Blockchain;
   enabled?: boolean;
 }
 
-export const ON_CHAIN_DATA_QUERY_OPTIONS = {
+const ON_CHAIN_DATA_QUERY_OPTIONS = {
   staleTime: 0,
   gcTime: 300000,
   refetchInterval: 60000,

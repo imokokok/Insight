@@ -667,14 +667,6 @@ export const providerToSymbolKey: Record<OracleProvider, keyof typeof oracleSupp
   [OracleProvider.FLARE]: 'flare',
 };
 
-export function getProvidersForSymbol(baseSymbol: string): OracleProvider[] {
-  return Object.values(OracleProvider).filter((provider) => {
-    const key = providerToSymbolKey[provider];
-    const supported = oracleSupportedSymbols[key] as readonly string[];
-    return supported.includes(baseSymbol);
-  });
-}
-
 export function getAllSupportedSymbols(): string[] {
   const allSymbols = new Set<string>();
   Object.values(oracleSupportedSymbols).forEach((symbols) => {
