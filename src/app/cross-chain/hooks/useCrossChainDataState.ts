@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef } from 'react';
 
 import { getDefaultFactory, type BaseOracleClient } from '@/lib/oracles';
 import { useCrossChainConfigStore } from '@/stores/crossChainConfigStore';
-import { useCrossChainDataStore, setFetchDataRef } from '@/stores/crossChainDataStore';
+import { useCrossChainDataStore } from '@/stores/crossChainDataStore';
 import { useCrossChainSelectorStore } from '@/stores/crossChainSelectorStore';
 import { useCrossChainUIStore } from '@/stores/crossChainUIStore';
 import { type PriceStats } from '@/types/analytics';
@@ -52,6 +52,7 @@ export function useCrossChainDataState(): UseCrossChainDataStateReturn {
   const setRefreshStatus = useCrossChainDataStore((s) => s.setRefreshStatus);
   const setAnomalies = useCrossChainDataStore((s) => s.setAnomalies);
   const setCrossChainComparison = useCrossChainDataStore((s) => s.setCrossChainComparison);
+  const setFetchData = useCrossChainDataStore((s) => s.setFetchData);
 
   const currentClient = useMemo(
     () => getDefaultFactory().getClient(selectedProvider),
@@ -74,8 +75,9 @@ export function useCrossChainDataState(): UseCrossChainDataStateReturn {
   );
 
   useEffect(() => {
-    setFetchDataRef(fetchDataInternal);
-  }, [fetchDataInternal]);
+    setFetchData(fetchDataInternal);
+    return () => setFetchData(null);
+  }, [fetchDataInternal, setFetchData]);
 
   const prevParamsRef = useRef({
     selectedProvider,
