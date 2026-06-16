@@ -64,12 +64,15 @@ export function createErrorMiddleware(options: ErrorMiddlewareOptions = {}) {
       const isNetworkError =
         stringResult?.errorType === 'network' || stringResult?.errorType === 'timeout';
 
-      const response = ApiResponseBuilder.error('INTERNAL_ERROR', error.message, {
+      const isProduction = process.env.NODE_ENV === 'production';
+      const clientMessage = isProduction ? 'Internal server error' : error.message;
+
+      const response = ApiResponseBuilder.error('INTERNAL_ERROR', clientMessage, {
         retryable: isNetworkError,
         requestId,
       });
 
-      if (includeStackTrace && process.env.NODE_ENV !== 'production') {
+      if (includeStackTrace && !isProduction) {
         response.error.details = { ...response.error.details, stack: error.stack };
       }
 

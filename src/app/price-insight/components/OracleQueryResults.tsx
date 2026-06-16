@@ -42,7 +42,6 @@ const LazyRiskAnalysisTab = lazy(() =>
 
 interface OracleQueryResultsProps {
   priceData: PriceData[];
-  selectedOracles: OracleProvider[];
   selectedSymbol: string;
   isLoading: boolean;
   queryProgress: { completed: number; total: number };
@@ -71,7 +70,6 @@ interface OracleQueryResultsProps {
 
 function OracleQueryResultsComponent({
   priceData,
-  selectedOracles,
   selectedSymbol,
   isLoading,
   queryProgress,
@@ -246,14 +244,11 @@ function OracleQueryResultsComponent({
             <Suspense fallback={<div className="animate-pulse h-48 bg-gray-100 rounded-lg" />}>
               <LazySimplePriceComparisonTab
                 priceData={priceData}
-                selectedOracles={selectedOracles}
                 selectedSymbol={selectedSymbol}
                 medianPrice={priceStats.medianPrice}
                 minPrice={priceStats.minPrice}
                 maxPrice={priceStats.maxPrice}
-                priceRange={priceStats.priceRange}
                 standardDeviation={priceStats.standardDeviation}
-                standardDeviationPercent={priceStats.standardDeviationPercent}
                 avgPrice={priceStats.avgPrice}
                 validPrices={priceStats.validPrices}
                 anomalies={anomalies}

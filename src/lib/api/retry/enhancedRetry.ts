@@ -56,6 +56,7 @@ class CircuitBreaker {
   private readonly threshold: number;
   private readonly resetTime: number;
   private halfOpenInProgress = false;
+  private halfOpenStartedAt = 0;
   private halfOpenTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
   constructor(threshold: number, resetTime: number) {
@@ -77,15 +78,25 @@ class CircuitBreaker {
     }
 
     if (this.halfOpenInProgress) {
-      return false;
+      // Timeout fallback: if the half-open probe has been in progress longer
+      // than resetTime, force-release it. The setTimeout below may not fire
+      // reliably in serverless environments, so this timestamp check prevents
+      // halfOpenInProgress from being stuck forever.
+      if (this.halfOpenStartedAt && Date.now() - this.halfOpenStartedAt >= this.resetTime) {
+        this.halfOpenInProgress = false;
+      } else {
+        return false;
+      }
     }
     this.halfOpenInProgress = true;
+    this.halfOpenStartedAt = Date.now();
 
     if (this.halfOpenTimeoutId) {
       clearTimeout(this.halfOpenTimeoutId);
     }
     this.halfOpenTimeoutId = setTimeout(() => {
       this.halfOpenInProgress = false;
+      this.halfOpenStartedAt = 0;
       this.halfOpenTimeoutId = null;
     }, this.resetTime);
 
@@ -97,6 +108,7 @@ class CircuitBreaker {
     this.lastFailureTime = undefined;
     this.state = CircuitBreakerState.CLOSED;
     this.halfOpenInProgress = false;
+    this.halfOpenStartedAt = 0;
     if (this.halfOpenTimeoutId) {
       clearTimeout(this.halfOpenTimeoutId);
       this.halfOpenTimeoutId = null;
@@ -110,6 +122,7 @@ class CircuitBreaker {
     if (this.state === CircuitBreakerState.HALF_OPEN || this.failureCount >= this.threshold) {
       this.state = CircuitBreakerState.OPEN;
       this.halfOpenInProgress = false;
+      this.halfOpenStartedAt = 0;
       if (this.halfOpenTimeoutId) {
         clearTimeout(this.halfOpenTimeoutId);
         this.halfOpenTimeoutId = null;
@@ -436,7 +449,15 @@ class EnhancedRetryManager {
   }
 }
 
-const retryManagerRegistry = new Map<string, EnhancedRetryManager>();
+const retryManagerRegistry = new Map<
+  string,
+  { manager: EnhancedRetryManager; configKey: string }
+>();
+
+function configSignature(config?: Partial<EnhancedRetryConfig>): string {
+  if (!config) return '';
+  return JSON.stringify(config);
+}
 
 export async function withRetry<T>(
   operation: () => Promise<T>,
@@ -445,10 +466,16 @@ export async function withRetry<T>(
   callbacks?: RetryCallbacks<T>
 ): Promise<RetryResult<T>> {
   const key = operationName || '__default__';
-  let manager = retryManagerRegistry.get(key);
-  if (!manager) {
-    manager = new EnhancedRetryManager(config);
-    retryManagerRegistry.set(key, manager);
+  const signature = configSignature(config);
+  let entry = retryManagerRegistry.get(key);
+  // Create a new manager when there is no cached entry, or when the caller
+  // passes a different config than the one the cached manager was built with.
+  // Previously the config of subsequent calls was silently ignored, which meant
+  // callers could never change retry/circuit-breaker behaviour for a named
+  // operation after the first invocation.
+  if (!entry || entry.configKey !== signature) {
+    entry = { manager: new EnhancedRetryManager(config), configKey: signature };
+    retryManagerRegistry.set(key, entry);
   }
-  return manager.execute(operation, operationName, callbacks);
+  return entry.manager.execute(operation, operationName, callbacks);
 }

@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
-import { createServerClient } from '@/lib/supabase/server';
+import { createUserClient } from '@/lib/supabase/server';
 import { createLogger } from '@/lib/utils/logger';
 
 import { ApiResponseBuilder } from '../response';
@@ -11,6 +11,7 @@ export interface AuthContext {
   userId: string | null;
   email?: string;
   role?: string;
+  accessToken?: string;
 }
 
 interface AuthMiddlewareOptions {
@@ -31,7 +32,7 @@ async function extractAuthContext(request: NextRequest): Promise<AuthContext | n
   const token = authHeader.slice(7);
 
   try {
-    const client = createServerClient();
+    const client = createUserClient();
 
     const {
       data: { user },
@@ -47,6 +48,7 @@ async function extractAuthContext(request: NextRequest): Promise<AuthContext | n
       userId: user.id,
       email: user.email,
       role: user.app_metadata?.role,
+      accessToken: token,
     };
   } catch (error) {
     logger.error(

@@ -26,7 +26,7 @@ const PRESET_CONFIGS: Record<string, { windowMs: number; maxRequests: number }> 
 };
 
 type RateLimitMiddlewareResult =
-  | { success: true; remaining: number; resetTime: number }
+  | { success: true; remaining: number; resetTime: number; limit: number }
   | { success: false; response: NextResponse };
 
 export function createRateLimitMiddleware(options: RateLimitMiddlewareOptions = {}) {
@@ -50,7 +50,12 @@ export function createRateLimitMiddleware(options: RateLimitMiddlewareOptions = 
       return { success: false, response: handler(request, retryAfter, maxRequests) };
     }
 
-    return { success: true, remaining: maxRequests - result.count, resetTime: result.resetTime };
+    return {
+      success: true,
+      remaining: maxRequests - result.count,
+      resetTime: result.resetTime,
+      limit: maxRequests,
+    };
   };
 }
 
@@ -61,11 +66,15 @@ function defaultKeyGenerator(request: NextRequest): string {
 
   let ip: string;
   if (vercelIp) {
-    ip = vercelIp.split(',').pop()?.trim() || 'unknown';
+    // Take the first (leftmost) entry: that is the original client IP. Using
+    // the last entry (.pop()) would rate-limit by the last proxy hop, which is
+    // spoofable and shared across many clients.
+    ip = vercelIp.split(',')[0]?.trim() || 'unknown';
   } else if (realIp) {
     ip = realIp.trim();
   } else if (forwarded) {
-    ip = forwarded.split(',').pop()?.trim() || 'unknown';
+    // Take the first (leftmost) entry: that is the original client IP.
+    ip = forwarded.split(',')[0]?.trim() || 'unknown';
   } else {
     ip = 'unknown';
   }

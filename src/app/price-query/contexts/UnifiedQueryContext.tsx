@@ -156,6 +156,12 @@ export function UnifiedQueryProvider({ children }: { children: React.ReactNode }
     setAutoRefreshInterval((prev) => (prev === 0 ? 30000 : 0));
   }, []);
 
+  // Performance note: `state` and `data` are object references returned by hooks.
+  // Any internal field change produces a new reference, which invalidates this
+  // useMemo and re-renders all consumers of UnifiedQueryContext. The deps below
+  // are all necessary (each value is spread into `value`). Splitting into
+  // separate contexts (params / data / ui) would reduce re-renders but requires
+  // updating every consumer — kept as a single context for now.
   const value = useMemo(
     () => ({
       ...state,

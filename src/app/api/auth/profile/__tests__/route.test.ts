@@ -5,7 +5,7 @@ import type { UserProfile } from '@/lib/supabase/queries';
 import { GET, PUT } from '../route';
 
 const mockGetUserId = jest.fn();
-const mockGetServerQueries = jest.fn();
+const mockGetUserQueries = jest.fn();
 const mockSanitizeObject = jest.fn();
 const mockSanitizeString = jest.fn();
 
@@ -14,7 +14,7 @@ jest.mock('@/lib/api/utils', () => ({
 }));
 
 jest.mock('@/lib/supabase/server', () => ({
-  getServerQueries: () => mockGetServerQueries,
+  getUserQueries: () => mockGetUserQueries,
 }));
 
 jest.mock('@/lib/security', () => ({
@@ -68,7 +68,7 @@ describe('/api/auth/profile', () => {
       upsertUserProfile: jest.fn(),
     };
 
-    mockGetServerQueries.mockReturnValue(mockQueries);
+    mockGetUserQueries.mockReturnValue(mockQueries);
     mockSanitizeObject.mockImplementation((obj: unknown) => obj);
     mockSanitizeString.mockImplementation((str: string) => str);
   });

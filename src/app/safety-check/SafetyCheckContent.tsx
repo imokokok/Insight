@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { Shield, Calculator } from 'lucide-react';
@@ -15,6 +15,7 @@ import { StepIndicator } from './components/StepIndicator';
 import { useProtocolHealth } from './hooks/useProtocolHealth';
 
 interface AssetRow {
+  id: string;
   symbol: string;
   amount: string;
 }
@@ -24,11 +25,16 @@ export default function SafetyCheckContent() {
   const [selectedProtocol, setSelectedProtocol] = useState<ProtocolConfig | null>(null);
 
   // 多资产表单状态
-  const [collateralRows, setCollateralRows] = useState<AssetRow[]>([{ symbol: '', amount: '' }]);
-  const [borrowRows, setBorrowRows] = useState<AssetRow[]>([{ symbol: '', amount: '' }]);
+  const [collateralRows, setCollateralRows] = useState<AssetRow[]>([
+    { id: 'collateral-init', symbol: '', amount: '' },
+  ]);
+  const [borrowRows, setBorrowRows] = useState<AssetRow[]>([
+    { id: 'borrow-init', symbol: '', amount: '' },
+  ]);
 
   const { result, isLoading, error, calculate, clear } = useProtocolHealth();
   const [lastPosition, setLastPosition] = useState<PositionInput | null>(null);
+  const hasAutoCalculated = useRef(false);
 
   // Auto-fill defaults on mount
   useEffect(() => {
@@ -39,13 +45,16 @@ export default function SafetyCheckContent() {
     const borrow = protocol.assets.find((a) => a.category === 'stablecoin') ?? protocol.assets[1];
 
     setSelectedProtocol(protocol);
-    setCollateralRows([{ symbol: collateral?.symbol ?? '', amount: '1.5' }]);
-    setBorrowRows([{ symbol: borrow?.symbol ?? '', amount: '1000' }]);
+    setCollateralRows([
+      { id: 'collateral-default', symbol: collateral?.symbol ?? '', amount: '1.5' },
+    ]);
+    setBorrowRows([{ id: 'borrow-default', symbol: borrow?.symbol ?? '', amount: '1000' }]);
     setStep(2);
   }, []);
 
-  // Auto-calculate once defaults are set
+  // Auto-calculate once defaults are set (only on first mount)
   useEffect(() => {
+    if (hasAutoCalculated.current) return;
     if (!selectedProtocol) return;
 
     const collaterals = collateralRows.filter((r) => r.symbol && parseFloat(r.amount) > 0);
@@ -53,8 +62,9 @@ export default function SafetyCheckContent() {
 
     if (collaterals.length === 0 || borrows.length === 0) return;
 
-    // Only auto-calculate on first mount (result is null, not loading)
     if (result || isLoading) return;
+
+    hasAutoCalculated.current = true;
 
     const position: PositionInput = {
       protocolId: selectedProtocol.id,
@@ -64,16 +74,17 @@ export default function SafetyCheckContent() {
     setLastPosition(position);
     calculate(position);
     setStep(3);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedProtocol]);
+  }, [selectedProtocol, collateralRows, borrowRows, result, isLoading, calculate]);
 
   const handleSelectProtocol = useCallback(
     (protocol: ProtocolConfig) => {
       setSelectedProtocol(protocol);
       const collateral = protocol.assets[0];
       const borrow = protocol.assets.find((a) => a.category === 'stablecoin') ?? protocol.assets[1];
-      setCollateralRows([{ symbol: collateral?.symbol ?? '', amount: '1.5' }]);
-      setBorrowRows([{ symbol: borrow?.symbol ?? '', amount: '1000' }]);
+      setCollateralRows([
+        { id: 'collateral-default', symbol: collateral?.symbol ?? '', amount: '1.5' },
+      ]);
+      setBorrowRows([{ id: 'borrow-default', symbol: borrow?.symbol ?? '', amount: '1000' }]);
       setStep(2);
       clear();
     },
@@ -98,8 +109,8 @@ export default function SafetyCheckContent() {
   const handleReset = useCallback(() => {
     setStep(1);
     setSelectedProtocol(null);
-    setCollateralRows([{ symbol: '', amount: '' }]);
-    setBorrowRows([{ symbol: '', amount: '' }]);
+    setCollateralRows([{ id: 'collateral-init', symbol: '', amount: '' }]);
+    setBorrowRows([{ id: 'borrow-init', symbol: '', amount: '' }]);
     setLastPosition(null);
     clear();
   }, [clear]);

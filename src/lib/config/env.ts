@@ -107,6 +107,9 @@ const serverEnvSchema = z.object({
 const lenientServerEnvSchema = serverEnvSchema.extend({
   NEXT_PUBLIC_SUPABASE_URL: z.string().optional().default(''),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().optional().default(''),
+  SUPABASE_SERVICE_ROLE_KEY: z.string().optional().default('dev-service-role-key'),
+  CSRF_SECRET: z.string().optional().default('dev-csrf-secret'),
+  JWT_SECRET: z.string().optional().default('dev-jwt-secret'),
 });
 
 type ClientEnv = z.infer<typeof clientEnvSchema>;

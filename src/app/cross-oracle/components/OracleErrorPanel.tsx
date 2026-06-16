@@ -283,9 +283,9 @@ export const OracleErrorPanel = memo(function OracleErrorPanel({
             Failed Oracles
           </h4>
           <div className="grid gap-2">
-            {errors.map((error, index) => (
+            {errors.map((error) => (
               <OracleErrorItem
-                key={`${error.provider}-${index}`}
+                key={error.provider}
                 error={error}
                 onRetry={
                   error.retryable && retryOracle ? () => retryOracle(error.provider) : undefined

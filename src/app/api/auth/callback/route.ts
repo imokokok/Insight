@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 
 import { createServerClient } from '@supabase/ssr';
 
+import { sanitizeString } from '@/lib/security/inputSanitizer';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('api-auth-callback');
@@ -10,8 +11,22 @@ const CALLBACK_RATE_LIMIT_WINDOW = 60_000;
 const CALLBACK_RATE_LIMIT_MAX = 10;
 const callbackAttempts = new Map<string, { count: number; resetAt: number }>();
 
+// Lazy cleanup: prune expired entries on access instead of relying on a
+// module-level setInterval, which would keep a serverless function alive and
+// prevent it from being frozen/recycled.
+function cleanupExpiredCallbackAttempts(): void {
+  const now = Date.now();
+  for (const [ip, entry] of callbackAttempts) {
+    if (now > entry.resetAt) {
+      callbackAttempts.delete(ip);
+    }
+  }
+}
+
 function checkCallbackRateLimit(ip: string): boolean {
   const now = Date.now();
+  cleanupExpiredCallbackAttempts();
+
   const entry = callbackAttempts.get(ip);
 
   if (!entry || now > entry.resetAt) {
@@ -25,17 +40,6 @@ function checkCallbackRateLimit(ip: string): boolean {
 
   entry.count++;
   return true;
-}
-
-if (typeof setInterval !== 'undefined') {
-  setInterval(() => {
-    const now = Date.now();
-    for (const [ip, entry] of callbackAttempts) {
-      if (now > entry.resetAt) {
-        callbackAttempts.delete(ip);
-      }
-    }
-  }, CALLBACK_RATE_LIMIT_WINDOW);
 }
 
 const ALLOWED_REDIRECT_PATHS = [
@@ -143,14 +147,19 @@ export async function GET(request: NextRequest) {
 
   const { user } = data;
 
+  const rawDisplayName =
+    user.user_metadata?.display_name ||
+    user.user_metadata?.full_name ||
+    user.user_metadata?.name ||
+    null;
+  // Sanitize the OAuth-provided display name before persisting to prevent
+  // stored XSS (the value comes from an external identity provider).
+  const displayName = rawDisplayName ? sanitizeString(rawDisplayName, { maxLength: 100 }) : null;
+
   const { error: profileError } = await supabase.from('user_profiles').upsert(
     {
       id: user.id,
-      display_name:
-        user.user_metadata?.display_name ||
-        user.user_metadata?.full_name ||
-        user.user_metadata?.name ||
-        null,
+      display_name: displayName,
       updated_at: new Date().toISOString(),
     },
     {
@@ -171,7 +180,6 @@ export async function GET(request: NextRequest) {
   }
 
   let redirectPath: string;
-  const redirectQuery = '';
 
   if (type === 'recovery') {
     redirectPath = '/auth/reset-password';
@@ -183,7 +191,7 @@ export async function GET(request: NextRequest) {
     redirectPath = '/';
   }
 
-  const response = NextResponse.redirect(new URL(`${redirectPath}${redirectQuery}`, request.url));
+  const response = NextResponse.redirect(new URL(redirectPath, request.url));
 
   cookiesToSet.forEach(({ name, value, options }) => {
     response.cookies.set(name, value, options);

@@ -195,13 +195,13 @@ export function DataSourceSection({
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
-            {sortedDataPoints.map((point, index) => {
+            {sortedDataPoints.map((point) => {
               const chainName = chainNames[point.chain] || point.chain;
               const hasRealConfidence = point.confidence !== undefined && point.confidence !== null;
 
               return (
                 <div
-                  key={`${point.chain}-${index}`}
+                  key={point.chain}
                   className="flex flex-col p-2 bg-gray-50 rounded-lg border border-gray-200"
                 >
                   <span className="text-xs font-medium text-gray-900 truncate">{chainName}</span>

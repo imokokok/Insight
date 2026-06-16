@@ -51,11 +51,77 @@ const COMPONENT_WEIGHTS = {
 };
 
 const MAX_HISTORY_POINTS = 100;
+const MAX_HISTORY_ENTRIES = 1000;
+const HISTORY_TTL_MS = 10 * 60 * 1000; // 10 minutes
+const FIXED_COMPLETENESS_WINDOW_MS = 60 * 60 * 1000; // 1 hour
 
 const stabilityHistoryMap = new Map<string, StabilityHistoryPoint[]>();
 
 export function resetStabilityHistory(): void {
   stabilityHistoryMap.clear();
+}
+
+function getHistoryEntry(key: string): StabilityHistoryPoint[] | undefined {
+  const history = stabilityHistoryMap.get(key);
+  if (!history || history.length === 0) return undefined;
+
+  const now = Date.now();
+  const filtered = history.filter((point) => now - point.timestamp <= HISTORY_TTL_MS);
+
+  if (filtered.length === 0) {
+    stabilityHistoryMap.delete(key);
+    return undefined;
+  }
+
+  if (filtered.length !== history.length) {
+    stabilityHistoryMap.set(key, filtered);
+  }
+
+  return filtered;
+}
+
+function setHistoryEntry(key: string, value: StabilityHistoryPoint[]): void {
+  const now = Date.now();
+  const filtered = value.filter((point) => now - point.timestamp <= HISTORY_TTL_MS);
+
+  if (filtered.length === 0) {
+    stabilityHistoryMap.delete(key);
+    return;
+  }
+
+  stabilityHistoryMap.set(key, filtered);
+  enforceHistoryCapacity();
+}
+
+function enforceHistoryCapacity(): void {
+  if (stabilityHistoryMap.size <= MAX_HISTORY_ENTRIES) return;
+
+  const entries = Array.from(stabilityHistoryMap.entries());
+  entries.sort((a, b) => {
+    const aLast = a[1].length > 0 ? a[1][a[1].length - 1].timestamp : 0;
+    const bLast = b[1].length > 0 ? b[1][b[1].length - 1].timestamp : 0;
+    return aLast - bLast;
+  });
+
+  const toRemove = stabilityHistoryMap.size - MAX_HISTORY_ENTRIES;
+  for (let i = 0; i < toRemove; i++) {
+    stabilityHistoryMap.delete(entries[i][0]);
+  }
+}
+
+export function cleanupExpiredStabilityHistory(): number {
+  const now = Date.now();
+  let removed = 0;
+  for (const [key, history] of stabilityHistoryMap.entries()) {
+    const filtered = history.filter((point) => now - point.timestamp <= HISTORY_TTL_MS);
+    if (filtered.length === 0) {
+      stabilityHistoryMap.delete(key);
+      removed++;
+    } else if (filtered.length !== history.length) {
+      stabilityHistoryMap.set(key, filtered);
+    }
+  }
+  return removed;
 }
 
 function getStabilityLevel(score: number): StabilityLevel {
@@ -230,9 +296,11 @@ function calculateStabilityScore(
     const updateFrequencyConsistency = calculateUpdateFrequencyConsistency(timestamps);
     const confidenceStability = calculateConfidenceStability(confidences);
 
-    const timeWindow =
-      timestamps.length >= 2 ? timestamps[timestamps.length - 1] - timestamps[0] : 0;
-    const dataCompleteness = calculateDataCompleteness(timestamps, expectedInterval, timeWindow);
+    const dataCompleteness = calculateDataCompleteness(
+      timestamps,
+      expectedInterval,
+      FIXED_COMPLETENESS_WINDOW_MS
+    );
 
     const components: StabilityComponents = {
       priceConsistency: Math.round(priceConsistency),
@@ -250,7 +318,7 @@ function calculateStabilityScore(
 
     const level = getStabilityLevel(score);
 
-    const history = stabilityHistoryMap.get(provider) ?? [];
+    const history = getHistoryEntry(provider) ?? [];
     const trend = history.length >= 3 ? detectDecayTrend(history.map((h) => h.score)) : 'stable';
 
     const decayRate =
@@ -401,12 +469,12 @@ export function calculateStability(
         dataCompleteness: stabilityScore.components.dataCompleteness,
       };
 
-      const existingHistory = stabilityHistoryMap.get(provider) ?? [];
+      const existingHistory = getHistoryEntry(provider) ?? [];
       existingHistory.push(historyPoint);
       if (existingHistory.length > MAX_HISTORY_POINTS) {
         existingHistory.splice(0, existingHistory.length - MAX_HISTORY_POINTS);
       }
-      stabilityHistoryMap.set(provider, existingHistory);
+      setHistoryEntry(provider, existingHistory);
 
       allHistory.push(historyPoint);
       scores.push(stabilityScore);
@@ -419,7 +487,7 @@ export function calculateStability(
         decliningCount++;
       }
 
-      if (stabilityScore.score < worstScore) {
+      if (worstScore === null || stabilityScore.score < worstScore) {
         worstScore = stabilityScore.score;
         worstProvider = provider;
       }

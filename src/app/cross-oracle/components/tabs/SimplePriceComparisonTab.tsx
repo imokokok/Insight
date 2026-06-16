@@ -5,7 +5,7 @@ import { memo, useState, useMemo } from 'react';
 import { TrendingUp, Filter, Activity } from 'lucide-react';
 
 import { type ConsensusResult, type ConsensusMethod } from '@/lib/analytics/consensusPrice';
-import type { OracleProvider, PriceData } from '@/types/oracle';
+import type { PriceData } from '@/types/oracle';
 
 import {
   MarketConsensusCard,
@@ -21,14 +21,11 @@ import type { PriceAnomaly } from '../../hooks/usePriceAnomalyDetection';
 
 interface SimplePriceComparisonTabProps {
   priceData: PriceData[];
-  selectedOracles: OracleProvider[];
   selectedSymbol: string;
   medianPrice: number;
   minPrice: number;
   maxPrice: number;
-  priceRange: number;
   standardDeviation: number;
-  standardDeviationPercent: number;
   avgPrice: number;
   validPrices: number[];
   anomalies: PriceAnomaly[];
@@ -39,14 +36,11 @@ interface SimplePriceComparisonTabProps {
 
 function SimplePriceComparisonTabComponent({
   priceData,
-  selectedOracles: _selectedOracles,
   selectedSymbol,
   medianPrice,
   minPrice,
   maxPrice,
-  priceRange: _priceRange,
   standardDeviation,
-  standardDeviationPercent: _standardDeviationPercent,
   avgPrice,
   validPrices,
   anomalies,

@@ -51,11 +51,76 @@ export interface ConsensusHistoryPoint {
 }
 
 const MAX_HISTORY_POINTS = 100;
+const MAX_HISTORY_ENTRIES = 1000;
+const HISTORY_TTL_MS = 10 * 60 * 1000; // 10 minutes
 
 const consensusHistoryMap = new Map<string, ConsensusHistoryPoint[]>();
 
 export function resetConsensusHistory(): void {
   consensusHistoryMap.clear();
+}
+
+function getHistoryEntry(key: string): ConsensusHistoryPoint[] | undefined {
+  const history = consensusHistoryMap.get(key);
+  if (!history || history.length === 0) return undefined;
+
+  const now = Date.now();
+  const filtered = history.filter((point) => now - point.timestamp <= HISTORY_TTL_MS);
+
+  if (filtered.length === 0) {
+    consensusHistoryMap.delete(key);
+    return undefined;
+  }
+
+  if (filtered.length !== history.length) {
+    consensusHistoryMap.set(key, filtered);
+  }
+
+  return filtered;
+}
+
+function setHistoryEntry(key: string, value: ConsensusHistoryPoint[]): void {
+  const now = Date.now();
+  const filtered = value.filter((point) => now - point.timestamp <= HISTORY_TTL_MS);
+
+  if (filtered.length === 0) {
+    consensusHistoryMap.delete(key);
+    return;
+  }
+
+  consensusHistoryMap.set(key, filtered);
+  enforceHistoryCapacity();
+}
+
+function enforceHistoryCapacity(): void {
+  if (consensusHistoryMap.size <= MAX_HISTORY_ENTRIES) return;
+
+  const entries = Array.from(consensusHistoryMap.entries());
+  entries.sort((a, b) => {
+    const aLast = a[1].length > 0 ? a[1][a[1].length - 1].timestamp : 0;
+    const bLast = b[1].length > 0 ? b[1][b[1].length - 1].timestamp : 0;
+    return aLast - bLast;
+  });
+
+  const toRemove = consensusHistoryMap.size - MAX_HISTORY_ENTRIES;
+  for (let i = 0; i < toRemove; i++) {
+    consensusHistoryMap.delete(entries[i][0]);
+  }
+}
+
+export function cleanupExpiredConsensusHistory(): number {
+  const now = Date.now();
+  let removed = 0;
+  for (const [key, history] of consensusHistoryMap.entries()) {
+    const filtered = history.filter((point) => now - point.timestamp <= HISTORY_TTL_MS);
+    if (filtered.length === 0) {
+      consensusHistoryMap.delete(key);
+      removed++;
+    } else if (filtered.length !== history.length) {
+      consensusHistoryMap.set(key, filtered);
+    }
+  }
+  return removed;
 }
 
 const DEVIATION_THRESHOLDS: Record<string, number> = {
@@ -218,7 +283,7 @@ function checkSingleSourceOutlier(
 ): boolean {
   if (!context?.historyKey) return false;
 
-  const history = consensusHistoryMap.get(context.historyKey);
+  const history = getHistoryEntry(context.historyKey);
   if (!history || history.length < 3) return false;
 
   const recentPrices = history.slice(-10).map((h) => h.price);
@@ -258,7 +323,7 @@ function detectDualSourceOutliers(
   const scoreDiff = Math.abs(scoreA - scoreB);
   if (scoreDiff < 0.15) {
     if (context?.historyKey) {
-      const history = consensusHistoryMap.get(context.historyKey);
+      const history = getHistoryEntry(context.historyKey);
       if (history && history.length >= 3) {
         const recentPrices = history.slice(-10).map((h) => h.price);
         const histMean = calculateMean(recentPrices);
@@ -282,13 +347,19 @@ function detectDualSourceOutliers(
   return { valid: [valid], outliers: [outlier] };
 }
 
+/**
+ * Sensitivity multiplier for the coefficient of variation in agreement scoring.
+ * Higher values make agreement drop faster as price dispersion increases.
+ */
+const AGREEMENT_CV_SENSITIVITY = 10;
+
 function calculateAgreement(prices: number[]): number {
   if (prices.length < 2) return 1;
   const mean = calculateMean(prices);
   if (mean === 0) return 0;
   const stdDev = calculateStandardDeviationFromVariance(calculateVariance(prices, mean));
   const cv = stdDev / mean;
-  return Math.max(0, Math.min(1, 1 - cv * 10));
+  return Math.max(0, Math.min(1, 1 - cv * AGREEMENT_CV_SENSITIVITY));
 }
 
 function calculateConsensusConfidence(
@@ -314,7 +385,8 @@ function getConfidenceLevel(confidence: number): ConsensusConfidenceLevel {
 function computeMethod(
   method: ConsensusMethod,
   validInputs: ConsensusPriceInput[],
-  symbol?: string
+  symbol?: string,
+  currentTime: number = Date.now()
 ): number {
   const prices = validInputs.map((i) => i.price);
   switch (method) {
@@ -326,7 +398,7 @@ function computeMethod(
       return weightedMedianMethod(validInputs, (input) => {
         const confidenceWeight = input.confidence ?? 0.8;
         const refTime = input.ingestionTimestamp ?? input.timestamp;
-        const ageSeconds = Math.abs(Date.now() - refTime) / 1000;
+        const ageSeconds = (currentTime - refTime) / 1000;
         const freshnessWeight = Math.max(0.5, Math.exp(-ageSeconds / 600));
         const ciWidth = input.confidenceInterval?.widthPercentage ?? 10;
         const ciWeight = Math.max(0.1, 1 - ciWidth / 20);
@@ -339,13 +411,14 @@ function computeMethod(
 
 function computeAllMethods(
   validInputs: ConsensusPriceInput[],
-  symbol?: string
+  symbol?: string,
+  currentTime: number = Date.now()
 ): Record<ConsensusMethod, number> {
   return {
-    median: computeMethod('median', validInputs, symbol),
-    trimmed_mean: computeMethod('trimmed_mean', validInputs, symbol),
-    weighted_median: computeMethod('weighted_median', validInputs, symbol),
-    iqr_filtered: computeMethod('iqr_filtered', validInputs, symbol),
+    median: computeMethod('median', validInputs, symbol, currentTime),
+    trimmed_mean: computeMethod('trimmed_mean', validInputs, symbol, currentTime),
+    weighted_median: computeMethod('weighted_median', validInputs, symbol, currentTime),
+    iqr_filtered: computeMethod('iqr_filtered', validInputs, symbol, currentTime),
   };
 }
 
@@ -359,7 +432,8 @@ const EMPTY_METHOD_RESULTS: Record<ConsensusMethod, number> = {
 export function calculateConsensusPrice(
   inputs: ConsensusPriceInput[],
   method?: ConsensusMethod,
-  symbol?: string
+  symbol?: string,
+  currentTime: number = Date.now()
 ): ConsensusResult {
   try {
     const validInputs = inputs.filter((i) => i.price > 0 && Number.isFinite(i.price));
@@ -416,7 +490,7 @@ export function calculateConsensusPrice(
       excludedCount: outliers.length,
       excludedProviders,
       priceRange,
-      methodResults: computeAllMethods(valid, symbol),
+      methodResults: computeAllMethods(valid, symbol, currentTime),
       recommendedMethod,
     };
   } catch (error) {
@@ -442,7 +516,7 @@ export function calculateConsensusPrice(
 }
 
 export function recordConsensusHistory(key: string, result: ConsensusResult): void {
-  const history = consensusHistoryMap.get(key) ?? [];
+  const history = getHistoryEntry(key) ?? [];
   const point: ConsensusHistoryPoint = {
     timestamp: Date.now(),
     price: result.price,
@@ -455,11 +529,11 @@ export function recordConsensusHistory(key: string, result: ConsensusResult): vo
   if (history.length > MAX_HISTORY_POINTS) {
     history.shift();
   }
-  consensusHistoryMap.set(key, history);
+  setHistoryEntry(key, history);
 }
 
 export function getConsensusHistory(key: string): ConsensusHistoryPoint[] {
-  return consensusHistoryMap.get(key) ?? [];
+  return getHistoryEntry(key) ?? [];
 }
 
 export function getConsensusMethodLabel(method: ConsensusMethod): string {

@@ -1,4 +1,4 @@
-import { semanticColors, chartColors } from '@/lib/config/colors';
+import { semanticColors } from '@/lib/config/colors';
 import { type OracleMarketData } from '@/lib/services/marketData/types';
 import { createLogger } from '@/lib/utils/logger';
 
@@ -268,7 +268,7 @@ function calculateDiversificationScore(params: {
   }
 }
 
-function calculateVolatilityIndex(priceHistory: number[]): VolatilityResult {
+function calculateVolatilityIndex(priceHistory: number[], timestamps?: number[]): VolatilityResult {
   try {
     if (priceHistory.length < 2) {
       throw new Error('Insufficient price history data');
@@ -294,7 +294,8 @@ function calculateVolatilityIndex(priceHistory: number[]): VolatilityResult {
 
     const dailyVolatility = Math.sqrt(variance);
 
-    const annualizedVolatility = dailyVolatility * Math.sqrt(365);
+    const annualizationFactor = computeAnnualizationFactor(timestamps, priceHistory.length);
+    const annualizedVolatility = dailyVolatility * Math.sqrt(annualizationFactor);
 
     const index = Math.min(Math.round(annualizedVolatility * 100), 100);
 
@@ -339,6 +340,70 @@ function calculateVolatilityIndex(priceHistory: number[]): VolatilityResult {
   }
 }
 
+const MS_PER_YEAR = 365 * 24 * 60 * 60 * 1000;
+
+function computeAnnualizationFactor(timestamps: number[] | undefined, priceCount: number): number {
+  if (timestamps && timestamps.length >= 2) {
+    let totalInterval = 0;
+    let intervalCount = 0;
+    for (let i = 1; i < timestamps.length; i++) {
+      const interval = timestamps[i] - timestamps[i - 1];
+      if (interval > 0) {
+        totalInterval += interval;
+        intervalCount++;
+      }
+    }
+    if (intervalCount > 0) {
+      const avgIntervalMs = totalInterval / intervalCount;
+      if (avgIntervalMs > 0) {
+        return MS_PER_YEAR / avgIntervalMs;
+      }
+    }
+  }
+  return priceCount >= 2 ? 365 : 1;
+}
+
+function aggregateVolatilityResults(results: VolatilityResult[]): VolatilityResult {
+  if (results.length === 0) {
+    return {
+      index: 0,
+      level: 'low',
+      description: 'volatility_insufficient_data',
+      annualizedVolatility: 0,
+      dailyVolatility: 0,
+    };
+  }
+
+  const n = results.length;
+  const avgIndex = Math.round(results.reduce((sum, r) => sum + r.index, 0) / n);
+  const avgAnnualized = results.reduce((sum, r) => sum + r.annualizedVolatility, 0) / n;
+  const avgDaily = results.reduce((sum, r) => sum + r.dailyVolatility, 0) / n;
+
+  let level: RiskLevel;
+  let description: string;
+  if (avgIndex < 20) {
+    level = 'low';
+    description = 'volatility_low';
+  } else if (avgIndex < 40) {
+    level = 'medium';
+    description = 'volatility_moderate';
+  } else if (avgIndex < 60) {
+    level = 'high';
+    description = 'volatility_high';
+  } else {
+    level = 'critical';
+    description = 'volatility_extreme';
+  }
+
+  return {
+    index: avgIndex,
+    level,
+    description,
+    annualizedVolatility: Number(avgAnnualized.toFixed(4)),
+    dailyVolatility: Number(avgDaily.toFixed(4)),
+  };
+}
+
 function calculatePearsonCorrelation(x: number[], y: number[]): number {
   const n = Math.min(x.length, y.length);
   if (n < 2) return 0;
@@ -374,7 +439,11 @@ function calculateSpearmanCorrelation(x: number[], y: number[]): number {
     let i = 0;
     while (i < indexed.length) {
       let j = i;
-      while (j < indexed.length - 1 && indexed[j + 1].value === indexed[i].value) {
+      while (
+        j < indexed.length - 1 &&
+        Math.abs(indexed[j + 1].value - indexed[i].value) <=
+          Number.EPSILON * Math.max(Math.abs(indexed[j + 1].value), Math.abs(indexed[i].value), 1)
+      ) {
         j++;
       }
 
@@ -830,6 +899,7 @@ function buildRobustCorrelationMatrix(priceHistories: Map<string, number[]>): {
 interface RiskMetricsInput {
   oracleData: OracleMarketData[];
   priceHistoriesByProvider: Map<string, number[]>;
+  priceHistoryTimestampsByProvider?: Map<string, number[]>;
   oracleTimestamps: Array<{ name: string; timestamp: number }>;
   manipulationResistanceData: Array<{
     name: string;
@@ -864,20 +934,14 @@ export function calculateRiskMetrics(input: RiskMetricsInput): RiskMetrics {
       marketShares: oracleData.map((o) => o.share),
     });
 
-    const allPrices: number[] = [];
-    for (const prices of priceHistoriesByProvider.values()) {
-      allPrices.push(...prices);
+    const providerVolatilities: VolatilityResult[] = [];
+    for (const [provider, prices] of priceHistoriesByProvider) {
+      if (prices.length >= 2) {
+        const timestamps = input.priceHistoryTimestampsByProvider?.get(provider);
+        providerVolatilities.push(calculateVolatilityIndex(prices, timestamps));
+      }
     }
-    const volatility =
-      allPrices.length >= 2
-        ? calculateVolatilityIndex(allPrices)
-        : {
-            index: 0,
-            level: 'low' as RiskLevel,
-            description: 'volatility_insufficient_data',
-            annualizedVolatility: 0,
-            dailyVolatility: 0,
-          };
+    const volatility = aggregateVolatilityResults(providerVolatilities);
 
     const { matrix: correlationMatrix, names: corrOracleNames } =
       buildRobustCorrelationMatrix(priceHistoriesByProvider);
@@ -1021,7 +1085,7 @@ export function getRiskLevelColor(level: RiskLevel): string {
     low: semanticColors.success.DEFAULT,
     medium: semanticColors.warning.DEFAULT,
     high: semanticColors.danger.DEFAULT,
-    critical: chartColors.oracle['pyth'],
+    critical: semanticColors.danger.dark,
   };
   return colors[level];
 }

@@ -105,11 +105,9 @@ function cleanupStalePendingRequests(): void {
   }
 }
 
-if (typeof setInterval !== 'undefined') {
-  setInterval(() => {
-    cleanupStalePendingRequests();
-  }, PENDING_REQUEST_TIMEOUT);
-}
+// Note: cleanup is performed lazily inside deduplicatedFetch on each access,
+// rather than via a module-level setInterval which would keep a serverless
+// function alive and prevent it from being frozen/recycled.
 
 function setCachedResponse(key: string, data: unknown): void {
   responseCache.set(key, data, CACHE_TTL_MS);
@@ -182,7 +180,16 @@ function getBaseUrl(): string {
   if (typeof window !== 'undefined') {
     return window.location.origin;
   }
-  return process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+  if (appUrl) {
+    return appUrl;
+  }
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error(
+      'NEXT_PUBLIC_APP_URL environment variable is required in production but is not set'
+    );
+  }
+  return 'http://localhost:3000';
 }
 
 function extractErrorMessage(
@@ -256,6 +263,9 @@ function deduplicatedFetch<T>(
   provider?: string,
   forceRefresh: boolean = false
 ): Promise<T> {
+  // Lazy cleanup of stale pending requests on every access.
+  cleanupStalePendingRequests();
+
   const existing = pendingRequests.get(key);
   if (existing) {
     return existing.promise as Promise<T>;
@@ -273,6 +283,25 @@ function deduplicatedFetch<T>(
     externalSignal,
     provider
   );
+
+  // Reserve the map slot with a deferred placeholder BEFORE creating the real
+  // promise. This closes the dedup window and guarantees that even if the real
+  // promise is synchronously rejected, concurrent callers wait on the
+  // placeholder (which forwards the outcome) instead of reusing a stale
+  // rejected promise that would be cleaned up only asynchronously in finally.
+  let resolvePlaceholder!: (value: T | PromiseLike<T>) => void;
+  let rejectPlaceholder!: (reason?: unknown) => void;
+  const placeholder: Promise<T> = new Promise<T>((resolve, reject) => {
+    resolvePlaceholder = resolve;
+    rejectPlaceholder = reject;
+  });
+
+  pendingRequests.set(key, {
+    promise: placeholder,
+    controller,
+    timeoutId,
+    createdAt: Date.now(),
+  });
 
   const promise = withRetry(
     () =>
@@ -299,7 +328,9 @@ function deduplicatedFetch<T>(
       cleanup();
     });
 
-  pendingRequests.set(key, { promise, controller, timeoutId, createdAt: Date.now() });
+  // Forward the real promise outcome to the placeholder so concurrent waiters
+  // receive the same result.
+  promise.then(resolvePlaceholder, rejectPlaceholder);
 
   if (pendingRequests.size > MAX_PENDING_REQUESTS) {
     const oldestKey = pendingRequests.keys().next().value;

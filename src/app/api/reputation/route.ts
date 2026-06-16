@@ -8,7 +8,48 @@ const logger = createLogger('ReputationRoute');
 
 const RECALC_INTERVAL_MS = 60 * 60 * 1000;
 
+// NOTE: This module-level lock only prevents concurrent recalculations within a
+// single serverless/edge instance. In multi-instance deployments it cannot
+// guarantee mutual exclusion across instances. To avoid the lock being held
+// forever if a background calculation never settles (e.g. process frozen
+// mid-flight), a timestamp-based timeout auto-releases it after
+// CALC_LOCK_TIMEOUT_MS.
+const CALC_LOCK_TIMEOUT_MS = 5 * 60 * 1000;
+
 let calcInProgress = false;
+let calcStartedAt = 0;
+
+function acquireCalcLock(): boolean {
+  const now = Date.now();
+  if (calcInProgress) {
+    if (now - calcStartedAt > CALC_LOCK_TIMEOUT_MS) {
+      logger.warn('Reputation calculation lock held beyond timeout, force-releasing', {
+        heldMs: now - calcStartedAt,
+      });
+      calcInProgress = false;
+    } else {
+      return false;
+    }
+  }
+  calcInProgress = true;
+  calcStartedAt = now;
+  return true;
+}
+
+function releaseCalcLock(): void {
+  calcInProgress = false;
+  calcStartedAt = 0;
+}
+
+function isCalcInProgress(): boolean {
+  if (calcInProgress && Date.now() - calcStartedAt > CALC_LOCK_TIMEOUT_MS) {
+    logger.warn('Reputation calculation lock held beyond timeout, force-releasing', {
+      heldMs: Date.now() - calcStartedAt,
+    });
+    releaseCalcLock();
+  }
+  return calcInProgress;
+}
 
 export const GET = createApiHandler(
   async () => {
@@ -17,8 +58,7 @@ export const GET = createApiHandler(
     if (!reputations || reputations.length === 0) {
       await reputationService.seedInitialReputations();
 
-      if (!calcInProgress) {
-        calcInProgress = true;
+      if (acquireCalcLock()) {
         reputationService
           .calculateAndStore()
           .catch((error) => {
@@ -28,7 +68,7 @@ export const GET = createApiHandler(
             );
           })
           .finally(() => {
-            calcInProgress = false;
+            releaseCalcLock();
           });
       }
 
@@ -52,8 +92,7 @@ export const GET = createApiHandler(
       return now - lastCalc > RECALC_INTERVAL_MS;
     });
 
-    if (needsRecalc && !calcInProgress) {
-      calcInProgress = true;
+    if (needsRecalc && acquireCalcLock()) {
       reputationService
         .calculateAndStore()
         .catch((error) => {
@@ -63,7 +102,7 @@ export const GET = createApiHandler(
           );
         })
         .finally(() => {
-          calcInProgress = false;
+          releaseCalcLock();
         });
     }
 
@@ -73,14 +112,15 @@ export const GET = createApiHandler(
       return latest === null || ts > latest ? ts : latest;
     }, null);
 
-    const nextRecalcAt = latestCalcAt && !calcInProgress ? latestCalcAt + RECALC_INTERVAL_MS : null;
+    const calculating = isCalcInProgress();
+    const nextRecalcAt = latestCalcAt && !calculating ? latestCalcAt + RECALC_INTERVAL_MS : null;
 
     return NextResponse.json({
       success: true,
       data: reputations,
       meta: {
-        calculating: calcInProgress,
-        message: calcInProgress
+        calculating,
+        message: calculating
           ? 'Recalculation in progress, new data will be combined with historical records'
           : undefined,
         autoRecalc: true,
@@ -99,7 +139,7 @@ export const GET = createApiHandler(
 
 export const POST = createApiHandler(
   async () => {
-    if (calcInProgress) {
+    if (isCalcInProgress()) {
       return NextResponse.json(
         {
           success: false,
@@ -112,7 +152,18 @@ export const POST = createApiHandler(
       );
     }
 
-    calcInProgress = true;
+    if (!acquireCalcLock()) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'CALC_IN_PROGRESS',
+            message: 'A calculation is already in progress',
+          },
+        },
+        { status: 409 }
+      );
+    }
 
     try {
       const result = await reputationService.calculateAndStore();
@@ -122,7 +173,7 @@ export const POST = createApiHandler(
         message: `Reputation calculation complete: ${result.success} successful, ${result.failed} failed out of ${result.total} queries`,
       });
     } finally {
-      calcInProgress = false;
+      releaseCalcLock();
     }
   },
   {

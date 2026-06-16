@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { baseColors, semanticColors } from '@/lib/config/colors';
 import { type Blockchain, type PriceData } from '@/types/oracle';
@@ -37,11 +37,21 @@ export function HeatmapTooltip({
     return { xPrice, yPrice };
   }, [cell, currentPrices]);
 
+  const [viewportWidth, setViewportWidth] = useState(() =>
+    typeof window !== 'undefined' ? window.innerWidth : 0
+  );
+
+  useEffect(() => {
+    const handleResize = () => setViewportWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   if (!cell || !cellData) return null;
 
   const tooltipStyle = {
     position: 'fixed' as const,
-    left: Math.min(tooltipPosition.x + 10, window.innerWidth - 220),
+    left: Math.min(tooltipPosition.x + 10, viewportWidth - 220),
     top: Math.max(tooltipPosition.y - 10, 10),
     transform: 'translateY(-100%)',
     zIndex: 1000,

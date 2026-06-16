@@ -6,6 +6,8 @@ import Link from 'next/link';
 
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 
+import { captureException } from '@/lib/monitoring';
+
 interface ErrorProps {
   error: Error & { digest?: string };
   reset: () => void;
@@ -13,8 +15,7 @@ interface ErrorProps {
 
 export default function Error({ error, reset }: ErrorProps) {
   useEffect(() => {
-    // Route error handled by error boundary
-    void error;
+    captureException(error, { digest: error.digest, source: 'route-error' });
   }, [error]);
 
   return (

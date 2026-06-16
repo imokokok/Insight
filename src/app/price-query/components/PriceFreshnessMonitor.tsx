@@ -49,22 +49,6 @@ export function PriceFreshnessMonitor({ queryResults, avgPrice }: PriceFreshness
   const [now, setNow] = useState(() => Date.now());
   const [updateTimestamps, setUpdateTimestamps] = useState<Map<string, number[]>>(new Map());
   const [healthScoreHistory, setHealthScoreHistory] = useState<number[]>([]);
-  const [rhythmAnomalies, setRhythmAnomalies] = useState<
-    Map<
-      string,
-      {
-        avgInterval: number;
-        expectedInterval: number;
-        ratio: number;
-        label: string;
-        color: string;
-      }
-    >
-  >(new Map());
-  const [healthScoreTrend, setHealthScoreTrend] = useState<{
-    arrow: string;
-    color: string;
-  } | null>(null);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -159,7 +143,18 @@ export function PriceFreshnessMonitor({ queryResults, avgPrice }: PriceFreshness
       .sort((a, b) => b.healthScore - a.healthScore);
   }, [queryResults, avgPrice, now, hasMultipleSources]);
 
-  useEffect(() => {
+  const rhythmAnomalies = useMemo<
+    Map<
+      string,
+      {
+        avgInterval: number;
+        expectedInterval: number;
+        ratio: number;
+        label: string;
+        color: string;
+      }
+    >
+  >(() => {
     const anomalies = new Map<
       string,
       {
@@ -195,8 +190,7 @@ export function PriceFreshnessMonitor({ queryResults, avgPrice }: PriceFreshness
         anomalies.set(ds.key, { avgInterval, expectedInterval, ratio, label, color });
       }
     });
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setRhythmAnomalies(anomalies);
+    return anomalies;
   }, [dataSources, updateTimestamps]);
 
   const heartbeatLostCount = useMemo(() => {
@@ -250,18 +244,14 @@ export function PriceFreshnessMonitor({ queryResults, avgPrice }: PriceFreshness
     }
   }, [overallStats]);
 
-  useEffect(() => {
-    if (healthScoreHistory.length < 2) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setHealthScoreTrend(null);
-      return;
-    }
+  const healthScoreTrend = useMemo<{ arrow: string; color: string } | null>(() => {
+    if (healthScoreHistory.length < 2) return null;
     const latest = healthScoreHistory[healthScoreHistory.length - 1];
     const previous = healthScoreHistory[healthScoreHistory.length - 2];
     const diff = latest - previous;
-    if (diff > 2) setHealthScoreTrend({ arrow: '↑', color: '#10b981' });
-    else if (diff < -2) setHealthScoreTrend({ arrow: '↓', color: '#ef4444' });
-    else setHealthScoreTrend({ arrow: '→', color: '#9ca3af' });
+    if (diff > 2) return { arrow: '↑', color: '#10b981' };
+    if (diff < -2) return { arrow: '↓', color: '#ef4444' };
+    return { arrow: '→', color: '#9ca3af' };
   }, [healthScoreHistory]);
 
   if (dataSources.length === 0) {

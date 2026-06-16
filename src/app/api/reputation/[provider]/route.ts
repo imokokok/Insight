@@ -1,20 +1,23 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
+import { z } from 'zod';
+
 import { createApiHandler } from '@/lib/api/handler';
 import { reputationService } from '@/lib/oracles/services/reputationService';
 import { OracleProvider } from '@/types/oracle';
 
+const daysSchema = z.coerce.number().int().min(1).max(365).default(30);
+
 export const GET = createApiHandler(
-  async (request: NextRequest) => {
-    const pathSegments = request.nextUrl.pathname.split('/');
-    const providerSegment = pathSegments[pathSegments.length - 1];
-    const provider = decodeURIComponent(providerSegment);
+  async (request: NextRequest, context) => {
+    const providerParam = context.validated?.params?.provider;
+    const provider = providerParam ? decodeURIComponent(providerParam) : '';
 
     const searchParams = request.nextUrl.searchParams;
     const trend = searchParams.get('trend');
     const days = searchParams.get('days');
 
-    if (!Object.values(OracleProvider).includes(provider as OracleProvider)) {
+    if (!provider || !Object.values(OracleProvider).includes(provider as OracleProvider)) {
       return NextResponse.json(
         {
           success: false,
@@ -50,8 +53,23 @@ export const GET = createApiHandler(
     }
 
     if (trend === 'true') {
-      const trendDays = days ? parseInt(days, 10) : 30;
-      const trendData = await reputationService.getReputationTrend(oracleProvider, trendDays);
+      const trendDaysResult = daysSchema.safeParse(days ?? undefined);
+      if (!trendDaysResult.success) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: {
+              code: 'INVALID_DAYS',
+              message: 'Invalid days parameter: must be an integer between 1 and 365',
+            },
+          },
+          { status: 400 }
+        );
+      }
+      const trendData = await reputationService.getReputationTrend(
+        oracleProvider,
+        trendDaysResult.data
+      );
 
       return NextResponse.json({
         success: true,

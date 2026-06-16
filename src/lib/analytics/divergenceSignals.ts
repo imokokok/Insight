@@ -193,12 +193,53 @@ function detectDirectionalBias(directions: DivergenceDirection[]): {
   }
 }
 
+function findClosestByTimestamp(
+  sortedEntries: PriceHistoryEntry[],
+  targetTimestamp: number
+): PriceHistoryEntry | undefined {
+  if (sortedEntries.length === 0) return undefined;
+
+  let low = 0;
+  let high = sortedEntries.length - 1;
+
+  // Binary search for the first entry with timestamp >= targetTimestamp
+  while (low < high) {
+    const mid = Math.floor((low + high) / 2);
+    if (sortedEntries[mid].timestamp < targetTimestamp) {
+      low = mid + 1;
+    } else {
+      high = mid;
+    }
+  }
+
+  // `low` is the first entry with timestamp >= targetTimestamp.
+  // Compare candidates at `low` and `low - 1` to find the closest.
+  if (low === 0) return sortedEntries[0];
+
+  const prev = sortedEntries[low - 1];
+  const curr = sortedEntries[low];
+
+  if (Math.abs(curr.timestamp - targetTimestamp) < Math.abs(prev.timestamp - targetTimestamp)) {
+    return curr;
+  }
+  return prev;
+}
+
 function calculateDivergenceTimeSeries(
   priceHistoryMap: Map<string, PriceHistoryEntry[]>
 ): DivergenceTimeSeries[] {
   try {
     if (!priceHistoryMap || priceHistoryMap.size === 0) {
       return [];
+    }
+
+    // Pre-sort each provider's valid entries by timestamp for binary search
+    const sortedValidMap = new Map<string, PriceHistoryEntry[]>();
+    for (const [provider, entries] of priceHistoryMap) {
+      const valid = (entries ?? [])
+        .filter((e) => e.success)
+        .sort((a, b) => a.timestamp - b.timestamp);
+      sortedValidMap.set(provider, valid);
     }
 
     const results: DivergenceTimeSeries[] = [];
@@ -213,23 +254,18 @@ function calculateDivergenceTimeSeries(
 
       for (const entry of sortedEntries) {
         const otherPrices: number[] = [];
-        for (const [otherProvider, otherEntries] of priceHistoryMap) {
+        for (const [otherProvider, otherValidEntries] of sortedValidMap) {
           if (otherProvider === provider) continue;
-          const closestEntry = otherEntries
-            .filter((e) => e.success)
-            .sort(
-              (a, b) =>
-                Math.abs(a.timestamp - entry.timestamp) - Math.abs(b.timestamp - entry.timestamp)
-            )[0];
+          const closestEntry = findClosestByTimestamp(otherValidEntries, entry.timestamp);
           if (closestEntry) {
             otherPrices.push(closestEntry.price);
           }
         }
 
         const currentPrice = entry.price;
-        const consensusPrice = getConsensusPrice(
-          otherPrices.length > 0 ? [...otherPrices, currentPrice] : [currentPrice]
-        );
+        if (otherPrices.length < 2) continue;
+
+        const consensusPrice = getConsensusPrice(otherPrices);
 
         if (consensusPrice === 0) continue;
 
@@ -336,19 +372,10 @@ function calculateOracleLeadership(
       totalUpdates.set(provider, 0);
     }
 
-    for (const [provider, entries] of providerEntries) {
-      let changeCount = 0;
-      for (let i = 1; i < entries.length; i++) {
-        const prevPrice = entries[i - 1].price;
-        const currPrice = entries[i].price;
-        if (prevPrice > 0) {
-          const changePercent = Math.abs(((currPrice - prevPrice) / prevPrice) * 100);
-          if (changePercent > SIGNIFICANT_CHANGE_THRESHOLD) {
-            changeCount++;
-          }
-        }
+    for (const events of changeEvents) {
+      if (events.length > 0) {
+        totalUpdates.set(events[0].provider, events.length);
       }
-      totalUpdates.set(provider, changeCount);
     }
 
     const TIME_WINDOW = 10000;

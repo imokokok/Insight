@@ -315,15 +315,20 @@ export function useCrossChainAnalytics(currentPrices: PriceData[]): CrossChainAn
       }));
 
       const priceHistoriesByProvider = new Map<string, number[]>();
+      const priceHistoryTimestampsByProvider = new Map<string, number[]>();
       for (const [chain, entries] of historySnapshot) {
-        const prices = entries.filter((e) => e.success && e.price > 0).map((e) => e.price);
+        const validEntries = entries.filter((e) => e.success && e.price > 0);
+        const prices = validEntries.map((e) => e.price);
+        const timestamps = validEntries.map((e) => e.timestamp);
         if (prices.length > 0) {
           priceHistoriesByProvider.set(chain, prices);
+          priceHistoryTimestampsByProvider.set(chain, timestamps);
         }
       }
       for (const p of chainPrices) {
         if (!priceHistoriesByProvider.has(p.chain!) && p.price > 0) {
           priceHistoriesByProvider.set(p.chain!, [p.price]);
+          priceHistoryTimestampsByProvider.set(p.chain!, [p.timestamp]);
         }
       }
 
@@ -351,6 +356,7 @@ export function useCrossChainAnalytics(currentPrices: PriceData[]): CrossChainAn
       const riskMetrics = calculateRiskMetrics({
         oracleData,
         priceHistoriesByProvider,
+        priceHistoryTimestampsByProvider,
         oracleTimestamps,
         manipulationResistanceData,
         sharedDependencyData,

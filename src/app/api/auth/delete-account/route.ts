@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
 import { createApiHandler, ApiResponseBuilder } from '@/lib/api/handler';
-import { createServerClient } from '@/lib/supabase/server';
+import { createServiceRoleClient } from '@/lib/supabase/server';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('api-auth-delete-account');
@@ -35,7 +35,7 @@ export const POST = createApiHandler(
       );
     }
 
-    const supabaseAdmin = createServerClient();
+    const supabaseAdmin = createServiceRoleClient();
 
     const deletionErrors: string[] = [];
 

@@ -63,7 +63,7 @@ export const POST = createApiHandler(
 
     const { queries, forceRefresh } = validation.data;
 
-    const results = await Promise.allSettled(
+    const data: BatchPriceResult[] = await Promise.all(
       queries.map(async (query): Promise<BatchPriceResult> => {
         try {
           const price = await fetchPriceWithDatabase(
@@ -95,20 +95,6 @@ export const POST = createApiHandler(
         }
       })
     );
-
-    const data: BatchPriceResult[] = results.map((result, index) => {
-      if (result.status === 'fulfilled') {
-        return result.value;
-      }
-      const query = queries[index];
-      return {
-        provider: query.provider,
-        symbol: query.symbol,
-        chain: query.chain,
-        price: null,
-        error: result.reason instanceof Error ? result.reason.message : 'Unknown error',
-      };
-    });
 
     const hasErrors = data.some((item) => item.error !== null);
     const maxAge = ORACLE_CACHE_TTL.PRICE / 1000;

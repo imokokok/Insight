@@ -4,13 +4,13 @@ import { REFLECTOR_ASSET_CONTRACT_MAP } from '@/lib/oracles/constants/reflectorC
 import { getReflectorDataService } from '@/lib/oracles/services/reflectorDataService';
 import { type Blockchain, type ReflectorTokenOnChainData } from '@/types/oracle';
 
-import { createOnChainDataHook, type OnChainDataReturn } from './createOnChainDataHook';
+import { createOnChainDataHookFromQueryFn, type OnChainDataReturn } from './createOnChainDataHook';
 
 export type { ReflectorTokenOnChainData };
 
 export type UseReflectorOnChainDataReturn = OnChainDataReturn<ReflectorTokenOnChainData>;
 
-export const useReflectorOnChainData = createOnChainDataHook<ReflectorTokenOnChainData>(
+export const useReflectorOnChainData = createOnChainDataHookFromQueryFn<ReflectorTokenOnChainData>(
   'reflector',
   async (symbol: string, _chain?: Blockchain) => {
     const contractId = REFLECTOR_ASSET_CONTRACT_MAP[symbol.toUpperCase()];

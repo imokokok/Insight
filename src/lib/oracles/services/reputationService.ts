@@ -1,6 +1,6 @@
 import { calculateConsensusPrice } from '@/lib/analytics/consensusPrice';
 import { getDefaultFactory } from '@/lib/oracles/factory';
-import { createServerClient } from '@/lib/supabase/server';
+import { createServiceRoleClient } from '@/lib/supabase/server';
 import { createLogger } from '@/lib/utils/logger';
 import { OracleProvider, type PriceData } from '@/types/oracle';
 import {
@@ -108,7 +108,7 @@ interface ReputationHistoryInsertRow {
 
 class ReputationService {
   async calculateAndStore(): Promise<{ total: number; success: number; failed: number }> {
-    const supabase = createServerClient();
+    const supabase = createServiceRoleClient();
     const factory = getDefaultFactory();
     const now = Date.now();
     let total = 0;
@@ -262,7 +262,7 @@ class ReputationService {
   }
 
   private async insertReputationHistory(
-    supabase: ReturnType<typeof createServerClient>,
+    supabase: ReturnType<typeof createServiceRoleClient>,
     rows: ReputationHistoryInsertRow[]
   ): Promise<void> {
     const { error } = await supabase.from('reputation_history').insert(rows);
@@ -447,7 +447,7 @@ class ReputationService {
   }
 
   async getReputations(): Promise<OracleReputation[]> {
-    const supabase = createServerClient();
+    const supabase = createServiceRoleClient();
 
     const { data, error } = await supabase
       .from('oracle_reputation')
@@ -459,25 +459,27 @@ class ReputationService {
       return [];
     }
 
-    return data.map((row: Record<string, unknown>) => ({
-      provider: row.provider as OracleProvider,
-      overall_score: Number(row.overall_score) || 0,
-      accuracy_score: Number(row.accuracy_score) || 0,
-      uptime_percentage: Number(row.uptime_percentage) || 100,
-      avg_latency_ms: Number(row.avg_latency_ms) || 0,
-      avg_deviation_pct: Number(row.avg_deviation_pct) || 0,
-      reliability_score: Number(row.reliability_score) || 0,
-      freshness_score: Number(row.freshness_score) || 0,
-      total_queries: Number(row.total_queries) || 0,
-      failed_queries: Number(row.failed_queries) || 0,
-      supported_symbols_count: Number(row.supported_symbols_count) || 0,
-      supported_chains_count: Number(row.supported_chains_count) || 0,
-      last_calculated_at: row.last_calculated_at as string | null,
-    }));
+    return (
+      data?.map((row: Record<string, unknown>) => ({
+        provider: row.provider as OracleProvider,
+        overall_score: Number(row.overall_score) || 0,
+        accuracy_score: Number(row.accuracy_score) || 0,
+        uptime_percentage: Number(row.uptime_percentage) || 100,
+        avg_latency_ms: Number(row.avg_latency_ms) || 0,
+        avg_deviation_pct: Number(row.avg_deviation_pct) || 0,
+        reliability_score: Number(row.reliability_score) || 0,
+        freshness_score: Number(row.freshness_score) || 0,
+        total_queries: Number(row.total_queries) || 0,
+        failed_queries: Number(row.failed_queries) || 0,
+        supported_symbols_count: Number(row.supported_symbols_count) || 0,
+        supported_chains_count: Number(row.supported_chains_count) || 0,
+        last_calculated_at: row.last_calculated_at as string | null,
+      })) ?? []
+    );
   }
 
   async getReputation(provider: OracleProvider): Promise<OracleReputation | null> {
-    const supabase = createServerClient();
+    const supabase = createServiceRoleClient();
 
     const { data, error } = await supabase
       .from('oracle_reputation')
@@ -513,7 +515,7 @@ class ReputationService {
     provider: OracleProvider,
     days: number = 30
   ): Promise<ReputationTrendPoint[]> {
-    const supabase = createServerClient();
+    const supabase = createServiceRoleClient();
     const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
 
     const { data, error } = await supabase
@@ -570,7 +572,7 @@ class ReputationService {
   }
 
   async seedInitialReputations(): Promise<void> {
-    const supabase = createServerClient();
+    const supabase = createServiceRoleClient();
     const providers = Object.values(OracleProvider);
 
     for (const provider of providers) {

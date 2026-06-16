@@ -80,32 +80,29 @@ class MemoryRateLimitStore implements RateLimitStore {
   private store = new Map<string, MemoryRateLimitEntry>();
   private MAX_STORE_SIZE = 10000;
   private CLEANUP_INTERVAL = 60000;
-  private cleanupTimer: NodeJS.Timeout | null = null;
-  private isCleanupScheduled = false;
+  private lastCleanupAt = 0;
 
-  constructor() {
-    this.scheduleCleanup();
-  }
+  // Lazy cleanup: scan for expired entries at most once per CLEANUP_INTERVAL
+  // when increment() is called, instead of running a module-level setInterval
+  // that would keep a serverless function alive.
+  private lazyCleanup(): void {
+    const now = Date.now();
+    if (now - this.lastCleanupAt < this.CLEANUP_INTERVAL) {
+      return;
+    }
+    this.lastCleanupAt = now;
 
-  private scheduleCleanup(): void {
-    if (this.isCleanupScheduled) return;
-    this.isCleanupScheduled = true;
-
-    this.cleanupTimer = setInterval(() => {
-      const now = Date.now();
-      let cleanedCount = 0;
-
-      for (const [key, entry] of this.store.entries()) {
-        if (entry.resetTime < now) {
-          this.store.delete(key);
-          cleanedCount++;
-        }
+    let cleanedCount = 0;
+    for (const [key, entry] of this.store.entries()) {
+      if (entry.resetTime < now) {
+        this.store.delete(key);
+        cleanedCount++;
       }
+    }
 
-      if (cleanedCount > 0) {
-        logger.debug(`Cleaned up ${cleanedCount} expired rate limit entries`);
-      }
-    }, this.CLEANUP_INTERVAL);
+    if (cleanedCount > 0) {
+      logger.debug(`Cleaned up ${cleanedCount} expired rate limit entries`);
+    }
   }
 
   private cleanupOldestEntries(count: number): void {
@@ -120,6 +117,8 @@ class MemoryRateLimitStore implements RateLimitStore {
   async increment(key: string, windowMs: number): Promise<RateLimitResult> {
     const now = Date.now();
     const resetTime = now + windowMs;
+
+    this.lazyCleanup();
 
     if (this.store.size >= this.MAX_STORE_SIZE) {
       this.cleanupOldestEntries(Math.floor(this.MAX_STORE_SIZE * 0.1));
@@ -152,11 +151,8 @@ class MemoryRateLimitStore implements RateLimitStore {
   }
 
   stopCleanup(): void {
-    if (this.cleanupTimer) {
-      clearInterval(this.cleanupTimer);
-      this.cleanupTimer = null;
-      this.isCleanupScheduled = false;
-    }
+    // No-op: cleanup is now lazy (triggered on access) so there is no
+    // background timer to stop.
   }
 }
 

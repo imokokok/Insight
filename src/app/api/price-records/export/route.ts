@@ -1,22 +1,24 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
 import { createApiHandler } from '@/lib/api/handler';
-import { createServerClient } from '@/lib/supabase/server';
+import { createUserClient } from '@/lib/supabase/server';
 
 export const GET = createApiHandler(
   async (_request: NextRequest, context) => {
     const userId = context.auth?.userId;
-    if (!userId) {
+    if (!userId || !context.auth?.accessToken) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
     const searchParams = _request.nextUrl.searchParams;
-    const limit = Math.min(parseInt(searchParams.get('limit') || '10000', 10), 50000);
+    const parsedLimit = parseInt(searchParams.get('limit') || '10000', 10);
+    const limit =
+      Number.isFinite(parsedLimit) && parsedLimit > 0 ? Math.min(parsedLimit, 50000) : 10000;
 
-    const supabase = createServerClient();
+    const supabase = createUserClient(context.auth.accessToken);
     const { data, error } = await supabase
       .from('price_records')
-      .select('*')
+      .select('provider, symbol, chain, price, timestamp, confidence, source')
       .order('timestamp', { ascending: false })
       .limit(limit);
 

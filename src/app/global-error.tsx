@@ -6,6 +6,8 @@ import Link from 'next/link';
 
 import { AlertOctagon, RefreshCw, Home } from 'lucide-react';
 
+import { captureException } from '@/lib/monitoring';
+
 interface GlobalErrorProps {
   error: Error & { digest?: string };
   reset: () => void;
@@ -13,8 +15,7 @@ interface GlobalErrorProps {
 
 export default function GlobalError({ error, reset }: GlobalErrorProps) {
   useEffect(() => {
-    // Global error handled by error boundary
-    void error;
+    captureException(error, { digest: error.digest, source: 'global-error' });
   }, [error]);
 
   return (

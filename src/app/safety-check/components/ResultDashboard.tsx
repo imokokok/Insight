@@ -201,8 +201,8 @@ export function ResultDashboard({ result, position, onReset }: ResultDashboardPr
           <p className="text-sm text-gray-700 mb-3">{result.safetyBuffer.description}</p>
           {result.safetyBuffer.recommendations.length > 0 && (
             <div className="space-y-1.5">
-              {result.safetyBuffer.recommendations.map((rec, i) => (
-                <div key={i} className="flex items-start gap-2 text-sm text-gray-600">
+              {result.safetyBuffer.recommendations.map((rec) => (
+                <div key={rec} className="flex items-start gap-2 text-sm text-gray-600">
                   <Info className="w-3.5 h-3.5 mt-0.5 text-gray-400 shrink-0" />
                   <span>{rec}</span>
                 </div>
@@ -298,9 +298,9 @@ export function ResultDashboard({ result, position, onReset }: ResultDashboardPr
               {(showAllDeviations
                 ? result.assetDeviations
                 : result.assetDeviations.slice(0, 3)
-              ).map((deviation, index) => (
+              ).map((deviation) => (
                 <AssetDeviationCard
-                  key={index}
+                  key={deviation.symbol}
                   deviation={deviation}
                   isWorst={deviation === worstDeviation}
                 />
@@ -325,8 +325,8 @@ export function ResultDashboard({ result, position, onReset }: ResultDashboardPr
             <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-5">
               <h4 className="text-sm font-semibold text-gray-900 mb-3">Collateral Breakdown</h4>
               <div className="space-y-2">
-                {result.collaterals.map((c, i) => (
-                  <div key={i} className="flex items-center justify-between text-sm">
+                {result.collaterals.map((c) => (
+                  <div key={c.symbol} className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-2">
                       <span className="font-medium text-gray-900">{c.symbol}</span>
                       <span className="text-xs text-gray-400">
@@ -355,8 +355,8 @@ export function ResultDashboard({ result, position, onReset }: ResultDashboardPr
             <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-5">
               <h4 className="text-sm font-semibold text-gray-900 mb-3">Borrow Breakdown</h4>
               <div className="space-y-2">
-                {result.borrows.map((b, i) => (
-                  <div key={i} className="flex items-center justify-between text-sm">
+                {result.borrows.map((b) => (
+                  <div key={b.symbol} className="flex items-center justify-between text-sm">
                     <span className="font-medium text-gray-900">{b.symbol}</span>
                     <div className="text-right">
                       <span className="font-mono text-gray-700">
@@ -419,7 +419,7 @@ export function ResultDashboard({ result, position, onReset }: ResultDashboardPr
 
                 return (
                   <motion.div
-                    key={index}
+                    key={point.deviationPercent}
                     initial={{ opacity: 0, x: -12 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.45 + index * 0.03 }}
@@ -583,7 +583,7 @@ function OracleReliabilityWarnings({
         <h4 className="text-sm font-semibold text-gray-900">Oracle Reliability</h4>
       </div>
       <div className="space-y-2">
-        {warnings.map((warning, i) => {
+        {warnings.map((warning) => {
           const levelConfig = {
             healthy: { color: 'text-emerald-600', bg: 'bg-emerald-50', label: 'Healthy' },
             fair: { color: 'text-blue-600', bg: 'bg-blue-50', label: 'Fair' },
@@ -593,7 +593,7 @@ function OracleReliabilityWarnings({
 
           return (
             <div
-              key={i}
+              key={warning.provider}
               className={cn(
                 'rounded-lg border p-3',
                 levelConfig.bg,

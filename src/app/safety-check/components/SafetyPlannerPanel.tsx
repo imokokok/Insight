@@ -34,8 +34,7 @@ export function SafetyPlannerPanel({ position }: SafetyPlannerPanelProps) {
       generatePlan(position, targetDeviation);
     }, 500);
     return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [targetDeviation, position]);
+  }, [targetDeviation, position, generatePlan]);
 
   // 可用 tab 列表
   const availableTabs = useMemo(() => {

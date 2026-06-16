@@ -16,27 +16,21 @@ interface Breadcrumb {
 }
 
 export const captureException = (error: Error, context?: Record<string, unknown>) => {
-  if (typeof window !== 'undefined') {
-    Sentry.captureException(error, { extra: context });
-  }
+  Sentry.captureException(error, { extra: context });
 };
 
 export const setUser = (user: SentryUser | User | null) => {
-  if (typeof window !== 'undefined') {
-    if (user) {
-      Sentry.setUser({
-        id: user.id,
-        email: user.email,
-        username: (user as SentryUser).username,
-      });
-    } else {
-      Sentry.setUser(null);
-    }
+  if (user) {
+    Sentry.setUser({
+      id: user.id,
+      email: user.email,
+      username: (user as SentryUser).username,
+    });
+  } else {
+    Sentry.setUser(null);
   }
 };
 
 export const addBreadcrumb = (breadcrumb: Breadcrumb) => {
-  if (typeof window !== 'undefined') {
-    Sentry.addBreadcrumb(breadcrumb);
-  }
+  Sentry.addBreadcrumb(breadcrumb);
 };
