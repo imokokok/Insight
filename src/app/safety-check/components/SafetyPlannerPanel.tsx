@@ -98,6 +98,21 @@ export function SafetyPlannerPanel({ position }: SafetyPlannerPanelProps) {
           <span>15% (Common)</span>
           <span>60% (Aggressive)</span>
         </div>
+        {/* Per-asset δ breakdown (major-equiv × category ratio) */}
+        {plan && (
+          <div className="flex flex-wrap gap-1.5 mt-2">
+            <span className="text-[10px] text-gray-400 self-center">Per-asset δ:</span>
+            {Object.entries(plan.perAssetDeviationPercents).map(([symbol, delta]) => (
+              <span
+                key={symbol}
+                className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-600 border border-indigo-100"
+                title={`${symbol} deviation = ${delta.toFixed(2)}% (major-equiv × category ratio)`}
+              >
+                {symbol} {delta.toFixed(2)}%
+              </span>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* ── 目标 HF 对比 ── */}
@@ -105,24 +120,28 @@ export function SafetyPlannerPanel({ position }: SafetyPlannerPanelProps) {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="grid grid-cols-3 gap-3 mb-5"
+          className="grid grid-cols-4 gap-2 mb-5"
         >
           <div className="bg-white rounded-lg p-3 border border-gray-100">
             <p className="text-[10px] text-gray-400 uppercase tracking-wider">Current HF</p>
-            <p
-              className={cn(
-                'text-lg font-bold font-mono',
-                plan.currentHealthFactor < plan.targetHealthFactor
-                  ? 'text-red-600'
-                  : 'text-emerald-600'
-              )}
-            >
+            <p className="text-base font-bold font-mono text-gray-700">
               {plan.currentHealthFactor.toFixed(3)}
             </p>
           </div>
+          <div className="bg-white rounded-lg p-3 border border-gray-100">
+            <p className="text-[10px] text-gray-400 uppercase tracking-wider">Worst-case HF</p>
+            <p
+              className={cn(
+                'text-base font-bold font-mono',
+                plan.currentWorstCaseHF < 1 ? 'text-red-600' : 'text-emerald-600'
+              )}
+            >
+              {plan.currentWorstCaseHF.toFixed(3)}
+            </p>
+          </div>
           <div className="bg-white rounded-lg p-3 border border-indigo-100">
-            <p className="text-[10px] text-indigo-400 uppercase tracking-wider">Target HF</p>
-            <p className="text-lg font-bold font-mono text-indigo-600">
+            <p className="text-[10px] text-indigo-400 uppercase tracking-wider">Target HF*</p>
+            <p className="text-base font-bold font-mono text-indigo-600">
               {plan.targetHealthFactor.toFixed(3)}
             </p>
           </div>
@@ -142,7 +161,7 @@ export function SafetyPlannerPanel({ position }: SafetyPlannerPanelProps) {
             </p>
             <p
               className={cn(
-                'text-lg font-bold font-mono',
+                'text-base font-bold font-mono',
                 plan.needsAdjustment ? 'text-red-600' : 'text-emerald-600'
               )}
             >
@@ -156,8 +175,12 @@ export function SafetyPlannerPanel({ position }: SafetyPlannerPanelProps) {
       {/* ── 公式提示 ── */}
       {plan && (
         <div className="bg-indigo-50/50 rounded-md p-2.5 mb-4 text-xs text-gray-600 font-mono break-all">
-          targetHF = (1 + δ) / (1 − δ) = (1 + {(targetDeviation / 100).toFixed(3)}) / (1 −{' '}
+          targetHF* = (1 + δ) / (1 − δ) = (1 + {(targetDeviation / 100).toFixed(3)}) / (1 −{' '}
           {(targetDeviation / 100).toFixed(3)}) = {plan.targetHealthFactor.toFixed(3)}
+          <span className="block text-[10px] text-gray-400 mt-1 font-sans">
+            *Nominal (assumes uniform δ). Actual adjustment uses per-asset δ = major-equiv ×
+            category ratio. needsAdjustment is based on worst-case HF &lt; 1.
+          </span>
         </div>
       )}
 
