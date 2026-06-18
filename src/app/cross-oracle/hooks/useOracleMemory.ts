@@ -13,6 +13,12 @@ export interface PriceHistoryEntry {
   responseTime: number;
   success: boolean;
   source?: string;
+  // 流动性相关字段（仅 TWAP provider 有值，用于流动性操纵检测）
+  liquidity?: number;
+  sqrtPriceX96?: string;
+  tick?: number;
+  spotPrice?: number;
+  twapPrice?: number;
 }
 
 export type PriceHistoryMap = Map<OracleProvider, PriceHistoryEntry[]>;
