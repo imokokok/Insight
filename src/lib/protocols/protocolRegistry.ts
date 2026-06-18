@@ -2,6 +2,17 @@ import { OracleProvider, type Blockchain } from '@/types/oracle';
 
 export type AssetCategory = 'stablecoin' | 'major' | 'alt' | 'micro';
 
+// Per-category deviation ratios (relative to major = 1.0)
+// Used for per-asset deviation bounds in joint deviation & safety planning.
+// When user sets major δ = 15%, stablecoin δ = 3%, alt δ = 30%, micro δ = 50%.
+// Based on historical volatility: stablecoins ~3% (depeg), majors ~15%, alts ~30%, micro ~50%.
+export const CATEGORY_DEVIATION_RATIOS: Record<AssetCategory, number> = {
+  stablecoin: 0.2, // 0.2× of major
+  major: 1.0, // 1× (baseline)
+  alt: 2.0, // 2× of major
+  micro: 3.33, // 3.33× of major
+};
+
 export interface ProtocolAssetConfig {
   symbol: string;
   category: AssetCategory;

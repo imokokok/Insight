@@ -1,3 +1,4 @@
+import { CATEGORY_DEVIATION_RATIOS } from '@/lib/protocols/protocolRegistry';
 import { createLogger } from '@/lib/utils/logger';
 import { type OracleProvider } from '@/types/oracle';
 
@@ -85,16 +86,21 @@ export interface AssetAdjustment {
 /** 反向求参数的结果 */
 export interface SafetyParameterPlan {
   // 用户输入
-  targetDeviationPercent: number; // 用户设定的目标偏差 δ（如 15 表示 15%）
+  targetDeviationPercent: number; // 用户设定的目标偏差 δ（major-equivalent，如 15 表示 15%）
+
+  // Per-asset deviation breakdown (per-asset δ_i = targetDeviationPercent × ratio_i / 100)
+  // Keyed by symbol. Used by UI to show per-asset δ and by the planner for per-asset worst-case.
+  perAssetDeviationPercents: Record<string, number>;
 
   // 推导出的目标值
-  targetHealthFactor: number; // (1+δ)/(1−δ)
+  targetHealthFactor: number; // 名义 (1+δ)/(1−δ)，假设所有资产同 δ（仅用于显示直觉）
   targetCollateralRatio: number; // targetHF × weightedLT
   currentHealthFactor: number; // 当前 HF（冗余，方便前端展示对比）
+  currentWorstCaseHF: number; // 当前头寸在 per-asset δ 最坏情况下的 HF（实际判断依据）
 
   // 是否需要调整
-  needsAdjustment: boolean; // currentHF < targetHF 时为 true
-  gapPercent: number; // HF 缺口百分比 = (targetHF − currentHF) / currentHF × 100
+  needsAdjustment: boolean; // currentWorstCaseHF < 1 时为 true
+  gapPercent: number; // 最坏情况 HF 缺口 = (1 − currentWorstCaseHF) × 100
 
   // 三种调整方案（互斥，前端可切换展示）
   plans: {
@@ -159,6 +165,10 @@ export interface PositionCriticalResult {
 
   // Joint deviation: all collaterals drop δ and all borrows rise δ simultaneously (OVer-style worst case)
   jointDeviation: AssetDeviationResult;
+
+  // Per-asset deviation ratios (relative to major=1.0), keyed by symbol
+  // Used by UI to show per-asset δ breakdown and by safety planner for per-asset worst-case
+  deviationRatios: Record<string, number>;
 
   // The most dangerous deviation (smallest absolute critical deviation, considering both single & joint)
   worstDeviation: AssetDeviationResult;
@@ -254,6 +264,14 @@ export async function calculatePositionCriticalDeviation(
       assetConfigs.set(symbol, asset);
     }
 
+    // Build per-asset deviation ratios from asset categories
+    // Key: symbol → ratio (relative to major=1.0)
+    const deviationRatios: Record<string, number> = {};
+    for (const symbol of allSymbols) {
+      const config = assetConfigs.get(symbol)!;
+      deviationRatios[symbol] = CATEGORY_DEVIATION_RATIOS[config.category] ?? 1.0;
+    }
+
     // Fetch live prices
     const priceQueries = Array.from(allSymbols).map((symbol) => ({
       provider: assetConfigs.get(symbol)!.oracleProvider,
@@ -346,8 +364,12 @@ export async function calculatePositionCriticalDeviation(
       weightedLiquidationThreshold
     );
 
-    // Joint deviation: all collaterals drop δ and all borrows rise δ simultaneously (OVer-style)
+    // Joint deviation: all collaterals drop and all borrows rise simultaneously (OVer-style)
+    // Per-asset δ scaled by category ratio (enhancement 1)
     const jointDeviation = calculateJointDeviation(
+      collateralDetails,
+      borrowDetails,
+      deviationRatios,
       totalAdjustedCollateralValue,
       totalBorrowValue,
       weightedLiquidationThreshold
@@ -409,6 +431,7 @@ export async function calculatePositionCriticalDeviation(
       ),
       assetDeviations,
       jointDeviation,
+      deviationRatios,
       worstDeviation,
       pricePoints,
       safetyBuffer,
@@ -533,17 +556,28 @@ function calculateAssetDeviations(
 }
 
 /**
- * Calculate joint deviation: all collaterals drop δ and all borrows rise δ simultaneously.
+ * Calculate joint deviation: all collaterals drop and all borrows rise simultaneously.
  * This is the OVer paper's core insight — oracles can deviate together, not just one at a time.
  *
- * Liquidation condition (worst case):
- *   [Σ(exchRt × P_coll × (1−δ) × amount)] / [Σ(P_brw × (1+δ) × amount)] = LT
+ * Per-asset differentiated deviation (enhancement 1):
+ *   Each asset's deviation is scaled by its category ratio relative to major (1.0):
+ *     δ_i = k × ratio_i
+ *   where k is the major-equivalent deviation scalar (binary-searched).
+ *   - stablecoin: k × 0.2  (depeg-scale)
+ *   - major:      k × 1.0  (baseline)
+ *   - alt:        k × 2.0
+ *   - micro:      k × 3.33
  *
- * Solving for δ via binary search (closed-form is complex for multi-asset):
- *   HF(δ) = [rawColl × (1−δ)] / [borrow × (1+δ)] / LT
- *   Find smallest δ > 0 such that HF(δ) = 1
+ * Liquidation condition (worst case):
+ *   [Σ(exchRt × P_coll × (1 − k × ratio_i) × amount)] / [Σ(P_brw × (1 + k × ratio_j) × amount)] = LT
+ *
+ * Solving for k via binary search; the reported criticalDeviationPercent is k × 100
+ * (major-equivalent), so users interpret it on the major-asset scale.
  */
 function calculateJointDeviation(
+  collaterals: PositionCriticalResult['collaterals'],
+  borrows: PositionCriticalResult['borrows'],
+  deviationRatios: Record<string, number>,
   totalAdjustedCollateralValue: number,
   totalBorrowValue: number,
   weightedLiquidationThreshold: number
@@ -564,14 +598,7 @@ function calculateJointDeviation(
     };
   }
 
-  // Binary search for the critical δ where HF(δ) = 1
-  // HF(δ) = [rawColl × (1−δ)] / [borrow × (1+δ)] / LT
-  // At δ=0: HF = currentHF (should be ≥ 1 for a safe position)
-  // As δ → 1: HF → 0 (collateral wiped out)
-  let lo = 0;
-  let hi = 0.999; // δ must be < 1
-
-  // If already liquidated at δ=0, return 0
+  // If already liquidated at k=0, return 0
   const currentHF = totalAdjustedCollateralValue / totalBorrowValue / weightedLiquidationThreshold;
   if (currentHF < 1) {
     return {
@@ -584,12 +611,31 @@ function calculateJointDeviation(
     };
   }
 
-  // Binary search: find smallest δ where HF(δ) < 1
+  // Upper bound for k: ensure k × ratio_i < 1 for every asset (so values stay positive)
+  const allRatios = [
+    ...collaterals.map((c) => deviationRatios[c.symbol] ?? 1.0),
+    ...borrows.map((b) => deviationRatios[b.symbol] ?? 1.0),
+  ];
+  const maxK = Math.min(...allRatios.map((r) => (r > 0 ? 1 / r : 1))) * 0.999;
+
+  // Binary search for the critical k where HF(k) = 1
+  // HF(k) = [Σ collValue × (1 − k × ratio_coll)] / [Σ borrowValue × (1 + k × ratio_brw)] / LT
+  let lo = 0;
+  let hi = maxK;
+
   for (let i = 0; i < 60; i++) {
     const mid = (lo + hi) / 2;
-    const worstColl = totalAdjustedCollateralValue * (1 - mid);
-    const worstBorrow = totalBorrowValue * (1 + mid);
-    const hf = worstColl / worstBorrow / weightedLiquidationThreshold;
+    const worstColl = collaterals.reduce((sum, c) => {
+      const ratio = deviationRatios[c.symbol] ?? 1.0;
+      const mult = Math.max(0, 1 - mid * ratio);
+      return sum + c.exchangeRate * c.price * c.amount * mult;
+    }, 0);
+    const worstBorrow = borrows.reduce((sum, b) => {
+      const ratio = deviationRatios[b.symbol] ?? 1.0;
+      const mult = 1 + mid * ratio;
+      return sum + b.price * b.amount * mult;
+    }, 0);
+    const hf = worstBorrow > 0 ? worstColl / worstBorrow / weightedLiquidationThreshold : Infinity;
     if (hf < 1) {
       hi = mid;
     } else {
@@ -597,8 +643,24 @@ function calculateJointDeviation(
     }
   }
 
-  const criticalDelta = lo; // the δ where HF just crosses 1
-  const criticalDeviationPercent = criticalDelta * 100;
+  const criticalK = lo; // major-equivalent δ (since major ratio = 1.0)
+  const criticalDeviationPercent = criticalK * 100;
+
+  // Build description with per-asset δ breakdown
+  const collBreakdown = collaterals
+    .map((c) => {
+      const ratio = deviationRatios[c.symbol] ?? 1.0;
+      const assetDelta = criticalK * ratio * 100;
+      return `${c.symbol} −${assetDelta.toFixed(2)}%`;
+    })
+    .join(', ');
+  const brwBreakdown = borrows
+    .map((b) => {
+      const ratio = deviationRatios[b.symbol] ?? 1.0;
+      const assetDelta = criticalK * ratio * 100;
+      return `${b.symbol} +${assetDelta.toFixed(2)}%`;
+    })
+    .join(', ');
 
   return {
     symbol: 'JOINT',
@@ -606,7 +668,7 @@ function calculateJointDeviation(
     criticalDeviationPercent: Number(criticalDeviationPercent.toFixed(4)),
     criticalPrice: 0,
     direction: 'down',
-    description: `All collaterals drop ${criticalDeviationPercent.toFixed(2)}% AND all borrows rise ${criticalDeviationPercent.toFixed(2)}% simultaneously triggers liquidation`,
+    description: `Joint deviation triggers liquidation (major-equiv δ = ${criticalDeviationPercent.toFixed(2)}%): collaterals [${collBreakdown}], borrows [${brwBreakdown}]`,
   };
 }
 
@@ -825,46 +887,84 @@ function analyzeSafetyBuffer(
  *
  * 核心公式（OVer 论文反向应用）：
  *   清算条件 HF = 1
- *   抗 δ 偏差要求 HF_worst ≥ 1
- *   最坏情况：抵押品跌 δ、借贷品涨 δ
- *   HF_worst = [adjustedColl × (1−δ)] / [borrow × (1+δ)] / LT ≥ 1
- *   推导得 targetHF = (1+δ)/(1−δ)  （LT 在两边消掉）
+ *   抗 δ 偏差要求 worstHF ≥ 1
  *
- * @param result 已计算的正向结果（复用其中的价格、参数、头寸）
- * @param targetDeviationPercent 用户目标偏差（百分比，如 15 表示 15%）
+ * Per-asset differentiated deviation（增强项1）：
+ *   用户输入的 targetDeviationPercent 是 major-equivalent δ（k × 100）
+ *   每个资产的实际 δ_i = k × ratio_i（按类别比例缩放）
+ *   - stablecoin: k × 0.2  (depeg-scale)
+ *   - major:      k × 1.0  (baseline)
+ *   - alt:        k × 2.0
+ *   - micro:      k × 3.33
+ *
+ *   最坏情况 HF = [Σ collValue × (1 − δ_i)] / [Σ borrowValue × (1 + δ_j)] / LT
+ *
+ *   名义 targetHF = (1+δ)/(1−δ) 保留用于显示直觉（假设所有资产同 δ），
+ *   实际判断与调整计算使用 per-asset δ。
+ *
+ * @param result 已计算的正向结果（复用其中的价格、参数、头寸、deviationRatios）
+ * @param targetDeviationPercent 用户目标偏差（major-equivalent 百分比，如 15 表示 15%）
  */
 export function calculateSafetyParameterPlan(
   result: PositionCriticalResult,
   targetDeviationPercent: number
 ): SafetyParameterPlan {
-  const delta = targetDeviationPercent / 100;
+  const k = targetDeviationPercent / 100; // major-equivalent δ
 
   // 边界保护
-  if (delta <= 0 || delta >= 1) {
+  if (k <= 0 || k >= 1) {
     throw new Error('Target deviation must be between 0% and 100% (exclusive)');
   }
 
-  // 1. 推导目标 HF
-  const targetHF = (1 + delta) / (1 - delta);
+  // 1. Per-asset δ: δ_i = k × ratio_i
+  const deviationRatios = result.deviationRatios ?? {};
+  const perAssetDelta: Record<string, number> = {};
+  const perAssetDeviationPercents: Record<string, number> = {};
+  for (const symbol of Object.keys(deviationRatios)) {
+    const ratio = deviationRatios[symbol] ?? 1.0;
+    perAssetDelta[symbol] = k * ratio;
+    perAssetDeviationPercents[symbol] = k * ratio * 100;
+  }
+
+  // 2. 名义目标 HF（用于显示，假设所有资产同 δ=k）
+  const targetHF = (1 + k) / (1 - k);
   const weightedLT = result.liquidationThreshold;
   const targetCollateralRatio = targetHF * weightedLT;
 
   const currentHF = result.currentHealthFactor;
-  const needsAdjustment = currentHF < targetHF;
-  const gapPercent = currentHF > 0 ? ((targetHF - currentHF) / currentHF) * 100 : Infinity;
 
-  // 2. 当前头寸关键量
-  const currentAdjustedColl = result.totalAdjustedCollateralValue;
-  const currentBorrow = result.totalBorrowValue;
+  // 3. 实际最坏情况 HF（per-asset δ）
+  const worstCollCurrent = result.collaterals.reduce((sum, c) => {
+    const delta_i = perAssetDelta[c.symbol] ?? k;
+    const mult = Math.max(0, 1 - delta_i);
+    return sum + c.exchangeRate * c.price * c.amount * mult;
+  }, 0);
+  const worstBorrowCurrent = result.borrows.reduce((sum, b) => {
+    const delta_i = perAssetDelta[b.symbol] ?? k;
+    const mult = 1 + delta_i;
+    return sum + b.price * b.amount * mult;
+  }, 0);
+  const currentWorstHF =
+    worstBorrowCurrent > 0 && weightedLT > 0
+      ? worstCollCurrent / worstBorrowCurrent / weightedLT
+      : Infinity;
 
-  // 目标 adjusted collateral = targetHF × LT × borrow
-  const targetAdjustedColl = targetCollateralRatio * currentBorrow;
+  // needsAdjustment: 当前头寸无法承受目标偏差（最坏情况 HF < 1）
+  const needsAdjustment = currentWorstHF < 1;
+  const gapPercent =
+    currentWorstHF > 0 && isFinite(currentWorstHF) ? (1 - currentWorstHF) * 100 : Infinity;
 
-  // 3. 方案 A：追加抵押品（按贡献效率 exchRt×price 排序，效率高的优先）
-  // 注意：每个资产独立计算"若仅用该资产补足缺口"所需数量，用户任选其一即可
-  const needAdjustedDelta = Math.max(0, targetAdjustedColl - currentAdjustedColl);
+  // 4. 方案 A：追加抵押品（per-asset δ 精确计算）
+  // 对每个抵押品资产 X，求解 addedAmount 使 worstHF = 1:
+  //   worstColl_new = worstCollCurrent + addedAmount × exchRt_X × price_X × (1 − δ_X)
+  //   worstHF_new = worstColl_new / worstBorrowCurrent / LT = 1
+  //   => addedAmount = (LT × worstBorrowCurrent − worstCollCurrent) / (exchRt_X × price_X × (1 − δ_X))
+  const collGap = weightedLT * worstBorrowCurrent - worstCollCurrent; // worst-case raw value 缺口
+  const needAdjustedDelta = Math.max(0, collGap);
   const addCollateralRaw = result.collaterals.map((c) => {
-    const efficiency = c.exchangeRate * c.price; // 每单位抵押贡献的 raw value
+    const delta_i = perAssetDelta[c.symbol] ?? k;
+    // 每单位抵押在 worst-case 下的贡献（raw value）
+    const efficiency = c.exchangeRate * c.price * Math.max(0.0001, 1 - delta_i);
     const deltaAmount = efficiency > 0 ? needAdjustedDelta / efficiency : 0;
     const adjustment: AssetAdjustment = {
       symbol: c.symbol,
@@ -882,36 +982,41 @@ export function calculateSafetyParameterPlan(
   const addCollateralAdjustments: AssetAdjustment[] = addCollateralRaw.map(
     (item) => item.adjustment
   );
+  // addCollateralTotal：取最高效资产（排序后第一个）的当前 USD 需求量
+  const addCollateralTotal = addCollateralAdjustments[0]?.deltaValueUsd ?? 0;
 
-  // 4. 方案 B：偿还借贷（按当前借贷价值比例分配偿还量）
-  // 目标 borrow = currentAdjustedColl / (targetHF × LT)
-  const targetBorrow = currentAdjustedColl / targetCollateralRatio;
-  const borrowReduction = Math.max(0, currentBorrow - targetBorrow);
-
+  // 5. 方案 B：偿还借贷（per-asset δ 精确计算）
+  // 对每个借贷资产 Y，求解 repaidAmount 使 worstHF = 1:
+  //   worstBorrow_new = worstBorrowCurrent − repaidAmount × price_Y × (1 + δ_Y)
+  //   worstHF_new = worstCollCurrent / worstBorrow_new / LT = 1
+  //   => repaidAmount = (worstBorrowCurrent − worstCollCurrent / LT) / (price_Y × (1 + δ_Y))
+  const borrowGap = worstBorrowCurrent - worstCollCurrent / weightedLT;
+  const needBorrowReduction = Math.max(0, borrowGap);
   const repayBorrowAdjustments: AssetAdjustment[] = result.borrows.map((b) => {
-    const proportion = currentBorrow > 0 ? b.value / currentBorrow : 0;
-    const reduceValueUsd = borrowReduction * proportion;
-    const deltaAmount = b.price > 0 ? reduceValueUsd / b.price : 0;
+    const delta_i = perAssetDelta[b.symbol] ?? k;
+    const efficiency = b.price * (1 + delta_i); // 每单位偿还减少的 worst-case borrow
+    const deltaAmount = efficiency > 0 ? needBorrowReduction / efficiency : 0;
     return {
       symbol: b.symbol,
       action: 'repay_borrow' as const,
       currentAmount: b.amount,
       targetAmount: b.amount - deltaAmount,
       deltaAmount: -deltaAmount, // 负数表示减少
-      deltaValueUsd: -reduceValueUsd,
+      deltaValueUsd: -deltaAmount * b.price,
       currentPrice: b.price,
       direction: 'up' as const,
     };
   });
 
-  // 5. 方案 C：可提取抵押品（当 currentHF > targetHF，缓冲充足）
+  // 6. 方案 C：可提取抵押品（当 currentWorstHF > 1，缓冲充足）
   let withdrawablePlan: SafetyParameterPlan['plans']['withdrawable'];
-  if (!needsAdjustment && currentHF > targetHF) {
-    const excessAdjusted = currentAdjustedColl - targetAdjustedColl;
+  if (!needsAdjustment && currentWorstHF > 1) {
+    // 可提取的 worst-case collateral surplus
+    const surplusColl = worstCollCurrent - weightedLT * worstBorrowCurrent;
     const withdrawableAdjustments: AssetAdjustment[] = result.collaterals.map((c) => {
-      const efficiency = c.exchangeRate * c.price;
-      const deltaAmount =
-        efficiency > 0 ? excessAdjusted / efficiency / result.collaterals.length : 0;
+      const delta_i = perAssetDelta[c.symbol] ?? k;
+      const efficiency = c.exchangeRate * c.price * Math.max(0.0001, 1 - delta_i);
+      const deltaAmount = efficiency > 0 ? surplusColl / efficiency / result.collaterals.length : 0;
       return {
         symbol: c.symbol,
         action: 'withdraw_collateral' as const,
@@ -927,29 +1032,29 @@ export function calculateSafetyParameterPlan(
     withdrawablePlan = {
       adjustments: withdrawableAdjustments,
       totalDeltaValueUsd: totalWithdrawable,
-      description: `Current buffer exceeds target, you can safely withdraw up to $${totalWithdrawable.toFixed(2)} worth of collateral while still surviving ${targetDeviationPercent}% deviation`,
+      description: `Current buffer exceeds target, you can safely withdraw up to $${totalWithdrawable.toFixed(2)} worth of collateral while still surviving ${targetDeviationPercent}% major-equivalent deviation`,
     };
   }
 
-  // 6. 场景验证：按方案 A 调整后，最坏偏差下的 HF
-  // 调整后 adjustedColl = targetAdjustedColl，borrow 不变
-  // worst HF = [targetAdjustedColl × (1−δ)] / [borrow × (1+δ)] / LT
+  // 7. 场景验证：按方案 A 调整后，最坏偏差下的 HF
+  // 调整后 worstColl = worstCollCurrent + needAdjustedDelta（任选一资产补足缺口）
+  // worstHF = (worstCollCurrent + needAdjustedDelta) / worstBorrowCurrent / LT
   const projectedWorstCaseHF =
-    currentBorrow > 0 && weightedLT > 0
-      ? (targetAdjustedColl * (1 - delta)) / (currentBorrow * (1 + delta)) / weightedLT
+    worstBorrowCurrent > 0 && weightedLT > 0
+      ? (worstCollCurrent + needAdjustedDelta) / worstBorrowCurrent / weightedLT
       : Infinity;
 
-  // 修复：addCollateral 每个选项独立满足全额缺口（互斥），总额应为实际缺口而非各选项之和
-  const addCollateralTotal = needAdjustedDelta;
   const repayBorrowTotal = Math.abs(
     repayBorrowAdjustments.reduce((s, a) => s + a.deltaValueUsd, 0)
   );
 
   return {
     targetDeviationPercent,
+    perAssetDeviationPercents,
     targetHealthFactor: Number(targetHF.toFixed(4)),
     targetCollateralRatio: Number(targetCollateralRatio.toFixed(4)),
     currentHealthFactor: currentHF,
+    currentWorstCaseHF: Number((isFinite(currentWorstHF) ? currentWorstHF : 0).toFixed(4)),
     needsAdjustment,
     gapPercent: Number((isFinite(gapPercent) ? gapPercent : 0).toFixed(2)),
     plans: {
@@ -957,14 +1062,14 @@ export function calculateSafetyParameterPlan(
         adjustments: addCollateralAdjustments,
         totalDeltaValueUsd: addCollateralTotal,
         description: needsAdjustment
-          ? `Need $${addCollateralTotal.toFixed(2)} collateral to survive ${targetDeviationPercent}% deviation (pick ONE asset below)`
+          ? `Need ~$${addCollateralTotal.toFixed(2)} collateral to survive ${targetDeviationPercent}% major-equiv deviation (pick ONE asset below; amount varies by asset δ)`
           : 'No additional collateral needed',
       },
       repayBorrow: {
         adjustments: repayBorrowAdjustments,
         totalDeltaValueUsd: repayBorrowTotal,
         description: needsAdjustment
-          ? `Repay $${repayBorrowTotal.toFixed(2)} debt to survive ${targetDeviationPercent}% price deviation`
+          ? `Repay $${repayBorrowTotal.toFixed(2)} debt to survive ${targetDeviationPercent}% major-equiv price deviation`
           : 'No repayment needed',
       },
       withdrawable: withdrawablePlan,

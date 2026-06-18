@@ -37,6 +37,26 @@ interface ResultDashboardProps {
   onReset: () => void;
 }
 
+const SAFETY_CONFIGS: Record<
+  SafetyBufferAnalysis['overallLevel'],
+  { icon: typeof ShieldCheck; color: string; bg: string; border: string }
+> = {
+  safe: {
+    icon: ShieldCheck,
+    color: 'text-emerald-600',
+    bg: 'bg-emerald-50',
+    border: 'border-emerald-200',
+  },
+  moderate: { icon: Shield, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200' },
+  risky: {
+    icon: ShieldAlert,
+    color: 'text-amber-600',
+    bg: 'bg-amber-50',
+    border: 'border-amber-200',
+  },
+  dangerous: { icon: ShieldX, color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-200' },
+};
+
 export function ResultDashboard({ result, position, onReset }: ResultDashboardProps) {
   const [showAllDeviations, setShowAllDeviations] = useState(false);
 
@@ -60,39 +80,7 @@ export function ResultDashboard({ result, position, onReset }: ResultDashboardPr
     }));
   }, [result, worstDeviation]);
 
-  const safetyConfig = useMemo(() => {
-    const level = result.safetyBuffer.overallLevel;
-    const configs: Record<
-      SafetyBufferAnalysis['overallLevel'],
-      { icon: typeof ShieldCheck; color: string; bg: string; border: string }
-    > = {
-      safe: {
-        icon: ShieldCheck,
-        color: 'text-emerald-600',
-        bg: 'bg-emerald-50',
-        border: 'border-emerald-200',
-      },
-      moderate: {
-        icon: Shield,
-        color: 'text-blue-600',
-        bg: 'bg-blue-50',
-        border: 'border-blue-200',
-      },
-      risky: {
-        icon: ShieldAlert,
-        color: 'text-amber-600',
-        bg: 'bg-amber-50',
-        border: 'border-amber-200',
-      },
-      dangerous: {
-        icon: ShieldX,
-        color: 'text-red-600',
-        bg: 'bg-red-50',
-        border: 'border-red-200',
-      },
-    };
-    return configs[level];
-  }, [result.safetyBuffer.overallLevel]);
+  const safetyConfig = SAFETY_CONFIGS[result.safetyBuffer.overallLevel];
 
   const SafetyIcon = safetyConfig.icon;
 
@@ -321,6 +309,9 @@ export function ResultDashboard({ result, position, onReset }: ResultDashboardPr
             <JointDeviationCard
               deviation={result.jointDeviation}
               isWorst={result.jointDeviation === worstDeviation}
+              deviationRatios={result.deviationRatios}
+              collaterals={result.collaterals}
+              borrows={result.borrows}
             />
             {/* Per-asset single deviations */}
             {(showAllDeviations ? result.assetDeviations : result.assetDeviations.slice(0, 3)).map(
@@ -595,11 +586,29 @@ function AssetDeviationCard({
 function JointDeviationCard({
   deviation,
   isWorst,
+  deviationRatios,
+  collaterals,
+  borrows,
 }: {
   deviation: AssetDeviationResult;
   isWorst: boolean;
+  deviationRatios: Record<string, number>;
+  collaterals: PositionCriticalResult['collaterals'];
+  borrows: PositionCriticalResult['borrows'];
 }) {
   const absDeviation = Math.abs(deviation.criticalDeviationPercent);
+  // criticalDeviationPercent is now major-equivalent δ (k × 100)
+  const majorEquivK = absDeviation / 100;
+
+  // Build per-asset δ breakdown from ratios × k
+  const collBreakdown = collaterals.map((c) => {
+    const ratio = deviationRatios[c.symbol] ?? 1.0;
+    return { symbol: c.symbol, delta: majorEquivK * ratio * 100, direction: 'down' as const };
+  });
+  const brwBreakdown = borrows.map((b) => {
+    const ratio = deviationRatios[b.symbol] ?? 1.0;
+    return { symbol: b.symbol, delta: majorEquivK * ratio * 100, direction: 'up' as const };
+  });
 
   // Joint deviation is always the most conservative scenario — use purple accent
   const levelConfig =
@@ -614,31 +623,52 @@ function JointDeviationCard({
   return (
     <div
       className={cn(
-        'flex items-center gap-3 p-3 rounded-lg border',
+        'flex flex-col gap-2 p-3 rounded-lg border',
         isWorst
           ? cn(levelConfig.bg, levelConfig.border, 'ring-1 ring-purple-200')
           : 'border-purple-100 bg-purple-50/40'
       )}
     >
-      <div className="flex items-center gap-2 w-20 shrink-0">
-        <span className="font-medium text-gray-900 text-sm">JOINT</span>
-        {isWorst && (
-          <span className="text-[9px] font-bold px-1 py-0.5 rounded bg-purple-100 text-purple-600">
-            WORST
+      <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 w-20 shrink-0">
+          <span className="font-medium text-gray-900 text-sm">JOINT</span>
+          {isWorst && (
+            <span className="text-[9px] font-bold px-1 py-0.5 rounded bg-purple-100 text-purple-600">
+              WORST
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-1.5 shrink-0">
+          <AlertTriangle className="w-3.5 h-3.5 text-purple-500" />
+          <span className={cn('text-sm font-bold font-mono', levelConfig.color)}>
+            {absDeviation.toFixed(2)}%
           </span>
-        )}
+          <span className="text-[10px] text-gray-400">major-equiv δ</span>
+        </div>
+        <div className="text-xs text-gray-500 flex-1">
+          All collaterals drop & all borrows rise simultaneously (per-asset δ)
+        </div>
       </div>
-      <div className="flex items-center gap-1.5 shrink-0">
-        <AlertTriangle className="w-3.5 h-3.5 text-purple-500" />
-        <span className={cn('text-sm font-bold font-mono', levelConfig.color)}>
-          ±{absDeviation.toFixed(2)}%
-        </span>
-      </div>
-      <div className="text-xs text-gray-500 flex-1">
-        All collaterals drop & all borrows rise simultaneously
-      </div>
-      <div className="text-xs text-gray-400 shrink-0 max-w-[200px] truncate">
-        {deviation.description}
+      {/* Per-asset δ breakdown */}
+      <div className="flex flex-wrap gap-1.5 pl-[88px]">
+        {collBreakdown.map((item) => (
+          <span
+            key={`c-${item.symbol}`}
+            className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-red-50 text-red-600 border border-red-100"
+            title={`${item.symbol} collateral drops ${item.delta.toFixed(2)}%`}
+          >
+            {item.symbol} ↓{item.delta.toFixed(2)}%
+          </span>
+        ))}
+        {brwBreakdown.map((item) => (
+          <span
+            key={`b-${item.symbol}`}
+            className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-50 text-amber-600 border border-amber-100"
+            title={`${item.symbol} borrow rises ${item.delta.toFixed(2)}%`}
+          >
+            {item.symbol} ↑{item.delta.toFixed(2)}%
+          </span>
+        ))}
       </div>
     </div>
   );
