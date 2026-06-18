@@ -118,6 +118,11 @@ export function useOraclePerformance({
         responseTime,
         success: true,
         source: price.source,
+        liquidity: price.liquidity ? Number(BigInt(price.liquidity)) : undefined,
+        sqrtPriceX96: price.sqrtPriceX96,
+        tick: price.tick,
+        spotPrice: price.spotPrice,
+        twapPrice: price.twapPrice,
       });
 
       const memConfig = getPerformanceMetricsConfig().memoryManagement;
