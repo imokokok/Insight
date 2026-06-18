@@ -5,9 +5,7 @@ import {
   type WINkLinkTokenOnChainData,
 } from '@/lib/oracles/services/winklinkRealDataService';
 
-import { createOnChainDataHookFromService, type OnChainDataReturn } from './createOnChainDataHook';
-
-export type UseWINkLinkOnChainDataReturn = OnChainDataReturn<WINkLinkTokenOnChainData>;
+import { createOnChainDataHookFromService } from './createOnChainDataHook';
 
 export const useWINkLinkOnChainData = createOnChainDataHookFromService<WINkLinkTokenOnChainData>(
   'winklink',

@@ -6,7 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import type { Blockchain } from '@/types/oracle';
 
-export interface OnChainDataReturn<T> {
+interface OnChainDataReturn<T> {
   data: T | null;
   isLoading: boolean;
   isError: boolean;
@@ -26,14 +26,6 @@ const ON_CHAIN_DATA_QUERY_OPTIONS = {
   refetchInterval: 60000,
   refetchOnWindowFocus: true,
   retry: 2,
-};
-
-export const EMPTY_ON_CHAIN_RESULT = {
-  data: null,
-  isLoading: false,
-  isError: false,
-  error: null,
-  refetch: async () => {},
 };
 
 export function createOnChainDataHookFromService<T>(

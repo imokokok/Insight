@@ -124,39 +124,6 @@ export function sanitizeString(input: string, options: SanitizationOptions = {})
   return sanitized;
 }
 
-export function sanitizeObject<T extends Record<string, unknown>>(
-  obj: T,
-  options: SanitizationOptions = {}
-): T {
-  if (typeof obj !== 'object' || obj === null) {
-    return obj;
-  }
-
-  const MAX_DEPTH = 10;
-  const seen = new WeakSet();
-
-  function sanitizeRecursive(value: unknown, depth: number): unknown {
-    if (depth > MAX_DEPTH) return value;
-    if (typeof value === 'string') return sanitizeString(value, options);
-    if (typeof value !== 'object' || value === null) return value;
-    if (seen.has(value)) return '[Circular]';
-    seen.add(value);
-
-    if (Array.isArray(value)) {
-      return value.map((item) => sanitizeRecursive(item, depth + 1));
-    }
-
-    const result: Record<string, unknown> = {};
-    for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
-      const sanitizedKey = sanitizeString(k, { ...options, allowHtml: false });
-      result[sanitizedKey] = sanitizeRecursive(v, depth + 1);
-    }
-    return result;
-  }
-
-  return sanitizeRecursive(obj, 0) as T;
-}
-
 export function sanitizeSymbol(symbol: string): string {
   if (typeof symbol !== 'string') {
     return '';

@@ -4,11 +4,9 @@ import { BLOCKCHAIN_TO_CHAIN_ID } from '@/lib/oracles/constants/twapConstants';
 import { twapOnChainService } from '@/lib/oracles/services/twapOnChainService';
 import { Blockchain, type TwapOnChainData } from '@/types/oracle';
 
-import { createOnChainDataHookFromQueryFn, type OnChainDataReturn } from './createOnChainDataHook';
+import { createOnChainDataHookFromQueryFn } from './createOnChainDataHook';
 
 export type { TwapOnChainData };
-
-export type UseTwapOnChainDataReturn = OnChainDataReturn<TwapOnChainData>;
 
 export const useTwapOnChainData = createOnChainDataHookFromQueryFn<TwapOnChainData>(
   'twap',
