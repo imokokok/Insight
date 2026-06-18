@@ -48,7 +48,7 @@ export function RiskChart({ result }: RiskChartProps) {
         adjustedCollateralValue = result.collaterals.reduce((sum, c) => {
           const isPrimary = c.symbol === worstDeviation.symbol;
           const mult = isPrimary ? priceMultiplier : 1;
-          return sum + c.collateralFactor * c.exchangeRate * c.price * mult * c.amount;
+          return sum + c.exchangeRate * c.price * mult * c.amount;
         }, 0);
         adjustedBorrowValue = result.totalBorrowValue;
       } else {

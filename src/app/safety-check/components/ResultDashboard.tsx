@@ -51,6 +51,7 @@ export function ResultDashboard({ result, position, onReset }: ResultDashboardPr
   const worstDeviation = result.worstDeviation;
   const deviationAbs = Math.abs(worstDeviation.criticalDeviationPercent);
   const isDown = worstDeviation.direction === 'down';
+  const isJoint = worstDeviation.symbol === 'JOINT';
 
   const heatmapData = useMemo(() => {
     return result.pricePoints.map((p) => ({
@@ -127,24 +128,46 @@ export function ResultDashboard({ result, position, onReset }: ResultDashboardPr
             <span
               className={cn(
                 'text-xs font-semibold px-2 py-1 rounded-full',
-                isDown ? 'bg-red-50 text-red-700' : 'bg-amber-50 text-amber-700'
+                isJoint
+                  ? 'bg-purple-50 text-purple-700'
+                  : isDown
+                    ? 'bg-red-50 text-red-700'
+                    : 'bg-amber-50 text-amber-700'
               )}
             >
-              {isDown ? 'Price Drop' : 'Price Rise'}
+              {isJoint ? 'Joint Deviation' : isDown ? 'Price Drop' : 'Price Rise'}
             </span>
           </div>
           <p className="text-sm text-gray-500 mt-3">
-            When {worstDeviation.symbol} price {isDown ? 'drops' : 'rises'} to{' '}
-            <span className="text-gray-900 font-mono font-medium">
-              {formatPrice(worstDeviation.criticalPrice)}
-            </span>
-            , your position will face liquidation
+            {isJoint ? (
+              <>
+                When all collaterals drop{' '}
+                <span className="text-gray-900 font-mono font-medium">
+                  {deviationAbs.toFixed(2)}%
+                </span>{' '}
+                AND all borrows rise{' '}
+                <span className="text-gray-900 font-mono font-medium">
+                  {deviationAbs.toFixed(2)}%
+                </span>{' '}
+                simultaneously, your position will face liquidation
+              </>
+            ) : (
+              <>
+                When {worstDeviation.symbol} price {isDown ? 'drops' : 'rises'} to{' '}
+                <span className="text-gray-900 font-mono font-medium">
+                  {formatPrice(worstDeviation.criticalPrice)}
+                </span>
+                , your position will face liquidation
+              </>
+            )}
           </p>
           <div className="mt-4 flex items-center gap-4 text-xs text-gray-400">
-            <span className="flex items-center gap-1">
-              {isDown ? <TrendingDown className="w-3 h-3" /> : <TrendingUp className="w-3 h-3" />}
-              Current: {formatPrice(worstDeviation.currentPrice)}
-            </span>
+            {!isJoint && (
+              <span className="flex items-center gap-1">
+                {isDown ? <TrendingDown className="w-3 h-3" /> : <TrendingUp className="w-3 h-3" />}
+                Current: {formatPrice(worstDeviation.currentPrice)}
+              </span>
+            )}
             <span>HF: {result.currentHealthFactor.toFixed(2)}</span>
           </div>
         </motion.div>
@@ -245,7 +268,7 @@ export function ResultDashboard({ result, position, onReset }: ResultDashboardPr
             {
               label: 'Collateral Ratio',
               value: `${(result.currentCollateralRatio * 100).toFixed(2)}%`,
-              sub: `Adjusted: ${formatCompactNumber(result.totalAdjustedCollateralValue)}`,
+              sub: `Collateral: ${formatCompactNumber(result.totalAdjustedCollateralValue)}`,
               icon: TrendingDown,
             },
             {
@@ -275,12 +298,10 @@ export function ResultDashboard({ result, position, onReset }: ResultDashboardPr
         </div>
 
         {/* Asset Deviations (inside the same card) */}
-        {result.assetDeviations.length > 1 && (
-          <div className="p-5 pt-4">
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="text-sm font-semibold text-gray-900">
-                Asset-Level Deviation Analysis
-              </h4>
+        <div className="p-5 pt-4">
+          <div className="flex items-center justify-between mb-3">
+            <h4 className="text-sm font-semibold text-gray-900">Deviation Analysis</h4>
+            {result.assetDeviations.length > 3 && (
               <button
                 type="button"
                 onClick={() => setShowAllDeviations(!showAllDeviations)}
@@ -293,21 +314,26 @@ export function ResultDashboard({ result, position, onReset }: ResultDashboardPr
                   <ChevronDown className="w-3 h-3" />
                 )}
               </button>
-            </div>
-            <div className="space-y-2">
-              {(showAllDeviations
-                ? result.assetDeviations
-                : result.assetDeviations.slice(0, 3)
-              ).map((deviation) => (
+            )}
+          </div>
+          <div className="space-y-2">
+            {/* Joint Deviation (OVer-style worst case) */}
+            <JointDeviationCard
+              deviation={result.jointDeviation}
+              isWorst={result.jointDeviation === worstDeviation}
+            />
+            {/* Per-asset single deviations */}
+            {(showAllDeviations ? result.assetDeviations : result.assetDeviations.slice(0, 3)).map(
+              (deviation) => (
                 <AssetDeviationCard
                   key={deviation.symbol}
                   deviation={deviation}
                   isWorst={deviation === worstDeviation}
                 />
-              ))}
-            </div>
+              )
+            )}
           </div>
-        )}
+        </div>
       </motion.div>
 
       {/* ── Section 4: Detailed Data ── */}
@@ -343,7 +369,7 @@ export function ResultDashboard({ result, position, onReset }: ResultDashboardPr
                   </div>
                 ))}
                 <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-sm font-medium">
-                  <span className="text-gray-600">Adjusted Total</span>
+                  <span className="text-gray-600">Collateral Total</span>
                   <span className="text-gray-900 font-mono">
                     {formatPrice(result.totalAdjustedCollateralValue)}
                   </span>
@@ -558,6 +584,58 @@ function AssetDeviationCard({
       </div>
       <div className="text-xs text-gray-500 flex-1">
         {formatPrice(deviation.currentPrice)} → {formatPrice(deviation.criticalPrice)}
+      </div>
+      <div className="text-xs text-gray-400 shrink-0 max-w-[200px] truncate">
+        {deviation.description}
+      </div>
+    </div>
+  );
+}
+
+function JointDeviationCard({
+  deviation,
+  isWorst,
+}: {
+  deviation: AssetDeviationResult;
+  isWorst: boolean;
+}) {
+  const absDeviation = Math.abs(deviation.criticalDeviationPercent);
+
+  // Joint deviation is always the most conservative scenario — use purple accent
+  const levelConfig =
+    absDeviation < 5
+      ? { color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-200' }
+      : absDeviation < 15
+        ? { color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-200' }
+        : absDeviation < 30
+          ? { color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200' }
+          : { color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200' };
+
+  return (
+    <div
+      className={cn(
+        'flex items-center gap-3 p-3 rounded-lg border',
+        isWorst
+          ? cn(levelConfig.bg, levelConfig.border, 'ring-1 ring-purple-200')
+          : 'border-purple-100 bg-purple-50/40'
+      )}
+    >
+      <div className="flex items-center gap-2 w-20 shrink-0">
+        <span className="font-medium text-gray-900 text-sm">JOINT</span>
+        {isWorst && (
+          <span className="text-[9px] font-bold px-1 py-0.5 rounded bg-purple-100 text-purple-600">
+            WORST
+          </span>
+        )}
+      </div>
+      <div className="flex items-center gap-1.5 shrink-0">
+        <AlertTriangle className="w-3.5 h-3.5 text-purple-500" />
+        <span className={cn('text-sm font-bold font-mono', levelConfig.color)}>
+          ±{absDeviation.toFixed(2)}%
+        </span>
+      </div>
+      <div className="text-xs text-gray-500 flex-1">
+        All collaterals drop & all borrows rise simultaneously
       </div>
       <div className="text-xs text-gray-400 shrink-0 max-w-[200px] truncate">
         {deviation.description}
