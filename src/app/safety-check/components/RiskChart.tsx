@@ -21,9 +21,20 @@ interface RiskChartProps {
 }
 
 export function RiskChart({ result }: RiskChartProps) {
+  // Use worst single-asset deviation for chart visualization
+  // (JOINT deviation has no single price axis to plot)
+  const chartDeviation =
+    result.worstDeviation.symbol === 'JOINT'
+      ? result.assetDeviations.reduce((worst, curr) =>
+          Math.abs(curr.criticalDeviationPercent) < Math.abs(worst.criticalDeviationPercent)
+            ? curr
+            : worst
+        )
+      : result.worstDeviation;
+
   const data = useMemo(() => {
     const points: Array<{ price: number; ratio: number; deviation: number; hf: number }> = [];
-    const worstDeviation = result.worstDeviation;
+    const worstDeviation = chartDeviation;
     const isDown = worstDeviation.direction === 'down';
 
     // 找到主抵押品来展示价格轴
@@ -74,7 +85,7 @@ export function RiskChart({ result }: RiskChartProps) {
       });
     }
     return points;
-  }, [result]);
+  }, [result, chartDeviation]);
 
   const liquidationLineY = result.liquidationThreshold * 100;
 
@@ -83,7 +94,7 @@ export function RiskChart({ result }: RiskChartProps) {
     return `$${value.toFixed(0)}`;
   };
 
-  const worstDeviation = result.worstDeviation;
+  const worstDeviation = chartDeviation;
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4">

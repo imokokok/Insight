@@ -361,9 +361,19 @@ export async function calculatePositionCriticalDeviation(
         : worst
     );
 
-    // Generate adaptive price sampling points
+    // Worst single-asset deviation (for chart/heatmap visualization, which is single-asset by nature)
+    const worstSingleAssetDeviation =
+      assetDeviations.length > 0
+        ? assetDeviations.reduce((worst, curr) =>
+            Math.abs(curr.criticalDeviationPercent) < Math.abs(worst.criticalDeviationPercent)
+              ? curr
+              : worst
+          )
+        : jointDeviation;
+
+    // Generate adaptive price sampling points (based on worst single-asset deviation for visualization)
     const pricePoints = generateAdaptivePricePoints(
-      worstDeviation,
+      worstSingleAssetDeviation,
       collateralDetails,
       borrowDetails,
       totalBorrowValue,
@@ -413,7 +423,8 @@ export async function calculatePositionCriticalDeviation(
       borrowPrice: primaryBorrow.price,
       liquidationThreshold: Number(weightedLiquidationThreshold.toFixed(4)),
       criticalDeviationPercent: Number(worstDeviation.criticalDeviationPercent.toFixed(4)),
-      criticalCollateralPrice: Number(worstDeviation.criticalPrice.toFixed(4)),
+      // Use worst single-asset deviation's critical price (JOINT has criticalPrice=0, invalid for chart)
+      criticalCollateralPrice: Number(worstSingleAssetDeviation.criticalPrice.toFixed(4)),
     };
   } catch (error) {
     logger.error(
