@@ -189,4 +189,3 @@ class ApiClient {
 }
 
 export const apiClient = new ApiClient({ defaultTimeout: DEFAULT_TIMEOUT });
-export { ApiClient, ApiError, DEFAULT_TIMEOUT };

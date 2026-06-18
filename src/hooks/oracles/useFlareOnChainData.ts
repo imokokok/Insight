@@ -2,9 +2,7 @@
 
 import { FlareClient, type FlareTokenOnChainData } from '@/lib/oracles/clients/flare';
 
-import { createOnChainDataHookFromService, type OnChainDataReturn } from './createOnChainDataHook';
-
-export type UseFlareOnChainDataReturn = OnChainDataReturn<FlareTokenOnChainData>;
+import { createOnChainDataHookFromService } from './createOnChainDataHook';
 
 export const useFlareOnChainData = createOnChainDataHookFromService<FlareTokenOnChainData>(
   'flare',

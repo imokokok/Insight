@@ -2,9 +2,7 @@
 
 import { SupraClient, type SupraTokenOnChainData } from '@/lib/oracles/clients/supra';
 
-import { createOnChainDataHookFromService, type OnChainDataReturn } from './createOnChainDataHook';
-
-export type UseSupraOnChainDataReturn = OnChainDataReturn<SupraTokenOnChainData>;
+import { createOnChainDataHookFromService } from './createOnChainDataHook';
 
 export const useSupraOnChainData = createOnChainDataHookFromService<SupraTokenOnChainData>(
   'supra',

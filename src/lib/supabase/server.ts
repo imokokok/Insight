@@ -69,14 +69,6 @@ export function createUserClient(accessToken?: string): SupabaseClient {
   });
 }
 
-/**
- * @deprecated Use {@link createServiceRoleClient} for admin/cron operations or
- * {@link createUserClient} for user-scoped requests. This alias bypasses RLS.
- */
-export function createServerClient(): SupabaseClient {
-  return createServiceRoleClient();
-}
-
 export function getServerQueries(): DatabaseQueries {
   const client = createServiceRoleClient();
   return createQueries(client);

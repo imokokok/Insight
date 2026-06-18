@@ -108,21 +108,6 @@ function enforceHistoryCapacity(): void {
   }
 }
 
-export function cleanupExpiredConsensusHistory(): number {
-  const now = Date.now();
-  let removed = 0;
-  for (const [key, history] of consensusHistoryMap.entries()) {
-    const filtered = history.filter((point) => now - point.timestamp <= HISTORY_TTL_MS);
-    if (filtered.length === 0) {
-      consensusHistoryMap.delete(key);
-      removed++;
-    } else if (filtered.length !== history.length) {
-      consensusHistoryMap.set(key, filtered);
-    }
-  }
-  return removed;
-}
-
 const DEVIATION_THRESHOLDS: Record<string, number> = {
   stablecoin: 0.005,
   major: 0.05,

@@ -2,9 +2,7 @@
 
 import { RedStoneClient, type RedStoneTokenOnChainData } from '@/lib/oracles/clients/redstone';
 
-import { createOnChainDataHookFromService, type OnChainDataReturn } from './createOnChainDataHook';
-
-export type UseRedStoneOnChainDataReturn = OnChainDataReturn<RedStoneTokenOnChainData>;
+import { createOnChainDataHookFromService } from './createOnChainDataHook';
 
 export const useRedStoneOnChainData = createOnChainDataHookFromService<RedStoneTokenOnChainData>(
   'redstone',

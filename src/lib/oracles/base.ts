@@ -23,7 +23,7 @@ export const ORACLE_CACHE_TTL = {
   PROVIDERS: 60000,
 } as const;
 
-export const MAX_CACHE_SIZE = 1000;
+const MAX_CACHE_SIZE = 1000;
 
 export class OracleCache {
   private impl: TTLCache;

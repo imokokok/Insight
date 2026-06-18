@@ -1,10 +1,6 @@
 import { OracleProvider } from '@/types/oracle';
 
-import {
-  parsePythPrice,
-  calculateConfidenceInterval,
-  calculateConfidenceScore,
-} from '../pythParser';
+import { parsePythPrice } from '../pythParser';
 
 import type { PythPriceRaw } from '../types';
 
@@ -139,90 +135,6 @@ describe('pythParser', () => {
 
       expect(result.change24h).toBe(0);
       expect(result.change24hPercent).toBe(0);
-    });
-  });
-
-  describe('calculateConfidenceInterval', () => {
-    it('should calculate bid and ask correctly', () => {
-      const price = 100;
-      const confidence = 2;
-
-      const result = calculateConfidenceInterval(price, confidence);
-
-      expect(result.bid).toBe(99);
-      expect(result.ask).toBe(101);
-    });
-
-    it('should calculate width percentage correctly', () => {
-      const price = 100;
-      const confidence = 2;
-
-      const result = calculateConfidenceInterval(price, confidence);
-
-      expect(result.widthPercentage).toBe(2);
-    });
-
-    it('should handle zero price', () => {
-      const result = calculateConfidenceInterval(0, 10);
-
-      expect(result.bid).toBe(-5);
-      expect(result.ask).toBe(5);
-      expect(result.widthPercentage).toBe(0);
-    });
-
-    it('should handle small confidence values', () => {
-      const price = 68000;
-      const confidence = 0.01;
-
-      const result = calculateConfidenceInterval(price, confidence);
-
-      expect(result.bid).toBeCloseTo(67999.995, 5);
-      expect(result.ask).toBeCloseTo(68000.005, 5);
-    });
-
-    it('should handle large confidence values', () => {
-      const price = 100;
-      const confidence = 50;
-
-      const result = calculateConfidenceInterval(price, confidence);
-
-      expect(result.bid).toBe(75);
-      expect(result.ask).toBe(125);
-      expect(result.widthPercentage).toBe(50);
-    });
-  });
-
-  describe('calculateConfidenceScore', () => {
-    it('should return high score for low confidence ratio', () => {
-      const score = calculateConfidenceScore(0.01, 68000);
-
-      expect(score).toBeGreaterThan(0.99);
-    });
-
-    it('should return low score for high confidence ratio', () => {
-      const score = calculateConfidenceScore(100, 100);
-
-      expect(score).toBeLessThan(0.5);
-    });
-
-    it('should return 0 for zero price', () => {
-      const score = calculateConfidenceScore(10, 0);
-
-      expect(score).toBe(0);
-    });
-
-    it('should clamp score between 0 and 1', () => {
-      const veryHighScore = calculateConfidenceScore(0.0001, 100000);
-      expect(veryHighScore).toBeLessThanOrEqual(1);
-
-      const veryLowScore = calculateConfidenceScore(1000, 1);
-      expect(veryLowScore).toBeGreaterThanOrEqual(0);
-    });
-
-    it('should handle equal confidence and price', () => {
-      const score = calculateConfidenceScore(100, 100);
-
-      expect(score).toBe(0);
     });
   });
 });

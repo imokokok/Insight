@@ -109,21 +109,6 @@ function enforceHistoryCapacity(): void {
   }
 }
 
-export function cleanupExpiredStabilityHistory(): number {
-  const now = Date.now();
-  let removed = 0;
-  for (const [key, history] of stabilityHistoryMap.entries()) {
-    const filtered = history.filter((point) => now - point.timestamp <= HISTORY_TTL_MS);
-    if (filtered.length === 0) {
-      stabilityHistoryMap.delete(key);
-      removed++;
-    } else if (filtered.length !== history.length) {
-      stabilityHistoryMap.set(key, filtered);
-    }
-  }
-  return removed;
-}
-
 function getStabilityLevel(score: number): StabilityLevel {
   if (score >= 90) return 'excellent';
   if (score >= 75) return 'good';
