@@ -9,65 +9,7 @@ interface RateLimitResult {
 
 interface RateLimitStore {
   increment(key: string, windowMs: number): Promise<RateLimitResult>;
-  cleanup?(): void;
   clear?(): void;
-  stopCleanup?(): void;
-}
-
-class KvRateLimitStore implements RateLimitStore {
-  private prefix = 'ratelimit:';
-
-  private timeout(ms: number): Promise<never> {
-    return new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('KV operation timeout')), ms)
-    );
-  }
-
-  private failOpen(windowMs: number): RateLimitResult {
-    return { count: 1, resetTime: Date.now() + windowMs };
-  }
-
-  async increment(key: string, windowMs: number): Promise<RateLimitResult> {
-    try {
-      const { kv } = await import('@vercel/kv');
-      const fullKey = `${this.prefix}${key}`;
-      const windowMsInSeconds = Math.ceil(windowMs / 1000);
-
-      const count = (await Promise.race([kv.incr(fullKey), this.timeout(500)])) as number;
-
-      if (count === 1) {
-        try {
-          await Promise.race([kv.expire(fullKey, windowMsInSeconds), this.timeout(500)]);
-        } catch (expireError) {
-          logger.warn('KV expire failed after incr, attempting cleanup', { expireError });
-          try {
-            await kv.set(fullKey, 0, { ex: 1 });
-          } catch {
-            // best effort cleanup
-          }
-          return this.failOpen(windowMs);
-        }
-        return { count, resetTime: Date.now() + windowMs };
-      }
-
-      const ttl = (await Promise.race([kv.ttl(fullKey), this.timeout(500)])) as number;
-
-      if (ttl > 0) {
-        return { count, resetTime: Date.now() + ttl * 1000 };
-      }
-
-      try {
-        await Promise.race([kv.expire(fullKey, windowMsInSeconds), this.timeout(500)]);
-      } catch {
-        // best effort
-      }
-
-      return { count, resetTime: Date.now() + windowMs };
-    } catch (error) {
-      logger.warn('KV rate limit increment error, failing open', { error });
-      return this.failOpen(windowMs);
-    }
-  }
 }
 
 interface MemoryRateLimitEntry {
@@ -137,36 +79,12 @@ class MemoryRateLimitStore implements RateLimitStore {
     return { count: entry.count, resetTime: entry.resetTime };
   }
 
-  cleanup(): void {
-    const now = Date.now();
-    for (const [key, entry] of this.store.entries()) {
-      if (entry.resetTime < now) {
-        this.store.delete(key);
-      }
-    }
-  }
-
   clear(): void {
     this.store.clear();
-  }
-
-  stopCleanup(): void {
-    // No-op: cleanup is now lazy (triggered on access) so there is no
-    // background timer to stop.
   }
 }
 
 function createRateLimitStore(): RateLimitStore {
-  if (process.env.KV_REST_API_URL) {
-    try {
-      const store = new KvRateLimitStore();
-      logger.info('Using Vercel KV for rate limit storage');
-      return store;
-    } catch (error) {
-      logger.warn('Failed to create KV rate limit store, falling back', { error });
-    }
-  }
-
   logger.warn('Using in-memory rate limit storage - not suitable for serverless environments');
   return new MemoryRateLimitStore();
 }

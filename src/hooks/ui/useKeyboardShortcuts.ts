@@ -89,18 +89,6 @@ class ShortcutManager {
     };
   }
 
-  unregister(shortcut: KeyboardShortcut): void {
-    const scope = shortcut.scope || 'global';
-    const scopeShortcuts = this.shortcuts.get(scope);
-
-    if (scopeShortcuts) {
-      const index = scopeShortcuts.indexOf(shortcut);
-      if (index > -1) {
-        scopeShortcuts.splice(index, 1);
-      }
-    }
-  }
-
   setActiveScope(scope: string): void {
     this.activeScope = scope;
   }
