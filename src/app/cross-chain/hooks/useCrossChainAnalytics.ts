@@ -533,41 +533,81 @@ export function useCrossChainAnalytics(currentPrices: PriceData[]): CrossChainAn
               ? 'high'
               : 'critical';
 
+      const topStaleChains = riskMetrics.freshnessRisk.staleOracles
+        .slice(0, 3)
+        .map((o) => o.name)
+        .join(', ');
+      const topCorrelatedChains = riskMetrics.correlationRisk.highCorrelationPairs
+        .slice(0, 2)
+        .join(', ');
+      const topSharedProviders = riskMetrics.sharedDependency.sharedSourceGroups
+        .slice(0, 2)
+        .map((g) => `${g.source} → ${g.oracles.join(', ')}`)
+        .join('; ');
+      const manipFactorsChain = riskMetrics.manipulationResistance.factors;
+      const weakestManipFactorChain = [
+        { label: 'data source diversity', value: manipFactorsChain.dataSourceDiversity },
+        { label: 'aggregation robustness', value: manipFactorsChain.aggregationRobustness },
+        { label: 'update frequency', value: manipFactorsChain.updateFrequency },
+        { label: 'on-chain verification', value: manipFactorsChain.onChainVerification },
+      ].sort((a, b) => a.value - b.value)[0];
+
       const riskAttribution = [
         {
           dimension: 'Market Concentration (HHI)',
           contribution: hhiScore * w.hhi,
-          suggestion: 'Distribute oracle usage across more chains to reduce concentration',
+          suggestion:
+            riskMetrics.hhi.level !== 'low'
+              ? `Chain HHI at ${riskMetrics.hhi.value.toFixed(0)} — price data is concentrated on few chains; add ${riskMetrics.hhi.level === 'critical' ? '2-3 more' : '1-2 more'} chain sources to balance`
+              : `Chain concentration is balanced (HHI ${riskMetrics.hhi.value.toFixed(0)}) — no action needed`,
         },
         {
           dimension: 'Diversification',
           contribution: divScore * w.diversification,
-          suggestion: 'Add more chain sources to improve data diversity',
+          suggestion:
+            riskMetrics.diversification.level !== 'low'
+              ? `Diversification score at ${riskMetrics.diversification.score}/100 — current chain/protocol mix lacks variety; adding chains with different oracle providers would improve resilience`
+              : `Diversification is healthy (${riskMetrics.diversification.score}/100) — chain sources are well-distributed`,
         },
         {
           dimension: 'Volatility',
           contribution: volScore * w.volatility,
-          suggestion: 'Monitor high-volatility chains for price manipulation risk',
+          suggestion:
+            riskMetrics.volatility.level !== 'low'
+              ? `Cross-chain volatility at ${riskMetrics.volatility.index.toFixed(1)} (${riskMetrics.volatility.level} level) — significant inter-chain price instability detected; monitor for arbitrage or feed manipulation`
+              : `Cross-chain volatility is normal (${riskMetrics.volatility.index.toFixed(1)}) — prices are stable across chains`,
         },
         {
           dimension: 'Correlation Risk',
           contribution: corrScore * w.correlation,
-          suggestion: 'Investigate chains with high price correlation for shared dependencies',
+          suggestion:
+            riskMetrics.correlationRisk.level !== 'low'
+              ? `High inter-chain correlation: ${topCorrelatedChains || 'multiple pairs'} — these chains likely use the same oracle provider; a provider failure would impact all simultaneously`
+              : 'Chain sources are sufficiently independent — no high correlation risk',
         },
         {
           dimension: 'Data Freshness',
           contribution: freshScore * w.freshness,
-          suggestion: 'Check stale chains for oracle feed issues or network congestion',
+          suggestion:
+            riskMetrics.freshnessRisk.staleOracleCount > 0
+              ? `${riskMetrics.freshnessRisk.staleOracleCount} chain(s) stale: ${topStaleChains || 'unknown'} — stale cross-chain data enables arbitrage attacks; verify oracle node health on affected chains`
+              : 'All chain data is fresh — no staleness risk detected',
         },
         {
           dimension: 'Manipulation Resistance',
           contribution: manipScore * w.manipulationResistance,
-          suggestion: 'Verify on-chain verification and data source diversity per chain',
+          suggestion:
+            riskMetrics.manipulationResistance.level !== 'low'
+              ? `Manipulation resistance at ${riskMetrics.manipulationResistance.score}/100 — weakest factor is ${weakestManipFactorChain.label} (${weakestManipFactorChain.value}%); strengthen this to protect against cross-chain manipulation`
+              : `Manipulation resistance is adequate (${riskMetrics.manipulationResistance.score}/100) — all sub-factors above threshold`,
         },
         {
           dimension: 'Shared Dependency',
           contribution: sharedScore * w.sharedDependency,
-          suggestion: 'Identify chains using the same oracle provider as a single point of failure',
+          suggestion:
+            riskMetrics.sharedDependency.level !== 'low'
+              ? `Shared oracle provider risk: ${topSharedProviders || 'shared providers detected'} — if the shared provider fails, ${riskMetrics.sharedDependency.sharedSourceGroups.reduce((sum, g) => sum + g.oracles.length, 0)} chain(s) lose price data simultaneously`
+              : 'No shared oracle provider dependencies — chains use independent sources',
         },
       ]
         .filter((item) => item.contribution > 0)
