@@ -16,6 +16,7 @@ import { type RefreshInterval } from '@/types/common';
 import { ChainControlPanel } from './components/ChainControlPanel';
 import { ChainQueryResults } from './components/ChainQueryResults';
 import { DimensionSwitcher, type Dimension } from './components/DimensionSwitcher';
+import { MarketSnapshotSummary } from './components/MarketSnapshotSummary';
 import { OracleControlPanel } from './components/OracleControlPanel';
 import { OracleQueryResults } from './components/OracleQueryResults';
 import { TabNavigation, type TabId } from './components/TabNavigation';
@@ -143,6 +144,27 @@ function OracleDimension({
         )}
       </div>
 
+      <MarketSnapshotSummary
+        dimension="oracle"
+        isLoading={isLoading || priceData.length === 0}
+        oracleData={
+          priceData.length > 0
+            ? {
+                symbol: selectedSymbol,
+                oracleCount: priceData.length,
+                consensusPrice: consensus?.consensus?.price ?? priceStats.avgPrice,
+                priceSpread: priceStats.standardDeviationPercent,
+                riskLevel: riskMetrics.riskLevel,
+                riskScore: riskMetrics.riskScore,
+                anomalyCount: anomalyDetection.anomalies.length,
+                feedHealthLevel: feedBehavior.overallHealthLevel,
+                feedHealthAvg: feedBehavior.overallHealthAvg,
+                acceleratingCount: divergenceSignals.acceleratingCount,
+              }
+            : undefined
+        }
+      />
+
       <div className="flex flex-col xl:flex-row gap-6">
         <aside className="xl:w-[400px] xl:flex-shrink-0">
           <div className="xl:sticky xl:top-4">
@@ -241,6 +263,31 @@ function ChainDimension({
           </span>
         )}
       </div>
+
+      <MarketSnapshotSummary
+        dimension="chain"
+        isLoading={isInitialLoading}
+        chainData={
+          hasData
+            ? {
+                chainCount: currentPrices.length,
+                avgPrice: currentPrices.reduce((sum, p) => sum + p.price, 0) / currentPrices.length,
+                priceSpread: analytics.risk.volatilityIndex,
+                riskLevel: analytics.risk.riskLevel,
+                riskScore: analytics.risk.riskScore,
+                consistencyRating:
+                  analytics.risk.volatilityLevel === 'low'
+                    ? 'Good'
+                    : analytics.risk.volatilityLevel === 'medium'
+                      ? 'Fair'
+                      : 'Poor',
+                feedHealthLevel: analytics.feed.overallHealthLevel,
+                feedHealthAvg: analytics.feed.overallHealthAvg,
+                anomalyCount: analytics.feed.anomalyCount,
+              }
+            : undefined
+        }
+      />
 
       <div className="flex flex-col xl:flex-row gap-4">
         <div className="xl:w-[360px] flex-shrink-0">

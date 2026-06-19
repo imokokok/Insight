@@ -17,6 +17,8 @@ import type { ConsensusResult, ConsensusMethod } from '@/lib/analytics/consensus
 import type { PriceStats } from '@/types/analytics';
 import type { OracleProvider, PriceData } from '@/types/oracle';
 
+import { CrossDimensionInsight } from './CrossDimensionInsight';
+
 import type { TabId } from './TabNavigation';
 
 const LazySimplePriceComparisonTab = lazy(() =>
@@ -124,56 +126,80 @@ function OracleQueryResultsComponent({
         ? 'medium'
         : 'low';
 
-  const riskAttribution = useMemo(
-    () =>
-      [
-        {
-          dimension: 'Market Concentration',
-          contribution: riskMetrics.hhiValue * (riskMetrics.weights?.hhi ?? 0.1),
-          suggestion:
-            riskMetrics.hhiLevel !== 'low'
-              ? 'Consider diversifying oracle sources'
-              : 'Market concentration is healthy',
-        },
-        {
-          dimension: 'Volatility',
-          contribution: riskMetrics.volatilityIndex * (riskMetrics.weights?.volatility ?? 0.1),
-          suggestion:
-            riskMetrics.volatilityLevel !== 'low'
-              ? 'High price volatility increases oracle risk'
-              : 'Price volatility is within normal range',
-        },
-        {
-          dimension: 'Data Freshness',
-          contribution: riskMetrics.freshnessScore * (riskMetrics.weights?.freshness ?? 0.1),
-          suggestion:
-            riskMetrics.staleOracleCount > 0
-              ? `${riskMetrics.staleOracleCount} oracle(s) have stale data`
-              : 'All oracle data is fresh',
-        },
-        {
-          dimension: 'Correlation Risk',
-          contribution: riskMetrics.correlationScore * (riskMetrics.weights?.correlation ?? 0.1),
-          suggestion:
-            riskMetrics.correlationLevel !== 'low'
-              ? 'High correlation between oracles increases systemic risk'
-              : 'Oracle correlation is within safe range',
-        },
-        {
-          dimension: 'Manipulation Resistance',
-          contribution:
-            (100 - riskMetrics.manipulationResistanceScore) *
-            (riskMetrics.weights?.manipulationResistance ?? 0.1),
-          suggestion:
-            riskMetrics.manipulationResistanceLevel !== 'low'
-              ? 'Low manipulation resistance detected'
-              : 'Manipulation resistance is adequate',
-        },
-      ]
-        .sort((a, b) => b.contribution - a.contribution)
-        .slice(0, 5),
-    [riskMetrics]
-  );
+  const riskAttribution = useMemo(() => {
+    const topStale = riskMetrics.staleOracles
+      .slice(0, 3)
+      .map((o) => o.name)
+      .join(', ');
+    const topCorrelated = riskMetrics.highCorrelationPairs.slice(0, 2).join(', ');
+    const topShared = riskMetrics.sharedSourceGroups
+      .slice(0, 2)
+      .map((g) => `${g.source} → ${g.oracles.join(', ')}`)
+      .join('; ');
+    const manipFactors = riskMetrics.manipulationResistanceFactors;
+    const weakestManipFactor = [
+      { label: 'data source diversity', value: manipFactors.dataSourceDiversity },
+      { label: 'aggregation robustness', value: manipFactors.aggregationRobustness },
+      { label: 'update frequency', value: manipFactors.updateFrequency },
+      { label: 'on-chain verification', value: manipFactors.onChainVerification },
+    ].sort((a, b) => a.value - b.value)[0];
+
+    return [
+      {
+        dimension: 'Market Concentration',
+        contribution: riskMetrics.hhiValue * (riskMetrics.weights?.hhi ?? 0.1),
+        suggestion:
+          riskMetrics.hhiLevel !== 'low'
+            ? `HHI at ${riskMetrics.hhiValue.toFixed(0)} indicates ${riskMetrics.hhiLevel === 'critical' ? 'highly concentrated' : 'moderately concentrated'} market — consider adding ${riskMetrics.hhiLevel === 'critical' ? '2-3 more' : '1-2 more'} independent oracle sources to reduce dependency`
+            : `Market concentration is healthy (HHI ${riskMetrics.hhiValue.toFixed(0)}) — no action needed`,
+      },
+      {
+        dimension: 'Volatility',
+        contribution: riskMetrics.volatilityIndex * (riskMetrics.weights?.volatility ?? 0.1),
+        suggestion:
+          riskMetrics.volatilityLevel !== 'low'
+            ? `Price volatility index at ${riskMetrics.volatilityIndex.toFixed(1)} (${riskMetrics.volatilityLevel} level) — widen confidence thresholds or increase update frequency to reduce exposure`
+            : `Price volatility is within normal range (${riskMetrics.volatilityIndex.toFixed(1)}) — current configuration is adequate`,
+      },
+      {
+        dimension: 'Data Freshness',
+        contribution: riskMetrics.freshnessScore * (riskMetrics.weights?.freshness ?? 0.1),
+        suggestion:
+          riskMetrics.staleOracleCount > 0
+            ? `${riskMetrics.staleOracleCount} oracle(s) stale: ${topStale || 'unknown'} — check node health or switch to faster-updating feeds to prevent stale-price exploitation`
+            : 'All oracle data is fresh — no staleness risk detected',
+      },
+      {
+        dimension: 'Correlation Risk',
+        contribution: riskMetrics.correlationScore * (riskMetrics.weights?.correlation ?? 0.1),
+        suggestion:
+          riskMetrics.correlationLevel !== 'low'
+            ? `High correlation detected: ${topCorrelated || 'multiple pairs'} — these oracles likely share data sources, creating single-point-of-failure risk; diversify to independent sources`
+            : 'Oracle correlation is within safe range — sources are sufficiently independent',
+      },
+      {
+        dimension: 'Manipulation Resistance',
+        contribution:
+          (100 - riskMetrics.manipulationResistanceScore) *
+          (riskMetrics.weights?.manipulationResistance ?? 0.1),
+        suggestion:
+          riskMetrics.manipulationResistanceLevel !== 'low'
+            ? `Manipulation resistance at ${riskMetrics.manipulationResistanceScore}/100 — weakest factor is ${weakestManipFactor.label} (${weakestManipFactor.value}%); prioritize improving this to harden against price manipulation attacks`
+            : `Manipulation resistance is adequate (${riskMetrics.manipulationResistanceScore}/100) — all sub-factors above threshold`,
+      },
+      {
+        dimension: 'Shared Dependency',
+        contribution:
+          riskMetrics.sharedDependencyScore * (riskMetrics.weights?.sharedDependency ?? 0.1),
+        suggestion:
+          riskMetrics.sharedDependencyLevel !== 'low'
+            ? `Shared data source risk: ${topShared || 'shared sources detected'} — if the shared source fails, ${riskMetrics.sharedSourceGroups.reduce((sum, g) => sum + g.oracles.length, 0)} oracle(s) are affected simultaneously; add independent data paths`
+            : 'No shared data source dependencies — oracle sources are independent',
+      },
+    ]
+      .sort((a, b) => b.contribution - a.contribution)
+      .slice(0, 5);
+  }, [riskMetrics]);
 
   if (isLoading) {
     return (
@@ -303,6 +329,20 @@ function OracleQueryResultsComponent({
           )}
         </div>
       </div>
+
+      <CrossDimensionInsight
+        dimension="oracle"
+        riskLevel={riskMetrics.riskLevel}
+        riskScore={riskMetrics.riskScore}
+        anomalyCount={anomalies.length}
+        feedHealthLevel={feedBehavior.overallHealthLevel}
+        feedHealthAvg={feedBehavior.overallHealthAvg}
+        acceleratingCount={divergenceSignals.acceleratingCount}
+        heartbeatLostCount={feedBehavior.heartbeatLostCount}
+        healthScores={feedBehavior.healthScores}
+        staleOracles={riskMetrics.staleOracles}
+        sharedSourceGroups={riskMetrics.sharedSourceGroups}
+      />
     </div>
   );
 }
