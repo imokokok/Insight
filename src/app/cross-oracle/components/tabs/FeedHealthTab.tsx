@@ -76,8 +76,8 @@ function FeedHealthTabComponent({
       </div>
 
       <HealthScoreCards
+        providerCount={healthScores.length}
         overallHealthAvg={overallHealthAvg}
-        overallHealthLevel={overallHealthLevel}
         anomalyCount={anomalyCount}
         heartbeatLostCount={heartbeatLostCount}
         confidenceSurgeCount={confidenceSurgeCount}
