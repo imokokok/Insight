@@ -26,7 +26,6 @@ describe('SettingsLayout', () => {
 
     expect(screen.getByText('Profile')).toBeInTheDocument();
     expect(screen.getByText('Preferences')).toBeInTheDocument();
-    expect(screen.getByText('Notifications')).toBeInTheDocument();
     expect(screen.getByText('Data')).toBeInTheDocument();
   });
 

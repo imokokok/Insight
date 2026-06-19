@@ -178,7 +178,7 @@ npm run dev
 | Oracle Directory    | `/reputation`               | Oracle provider profiles and 7-day rolling reputation scores                       | No            |
 | Provider Detail     | `/reputation/[provider]`    | Detailed provider profile with trend charts and score breakdowns                   | No            |
 | Price Snapshots     | `/snapshots`                | Save, compare, and share price snapshots                                           | Yes           |
-| Settings            | `/settings`                 | Profile, preferences, notifications, data management                               | Yes           |
+| Settings            | `/settings`                 | Profile, preferences, data management                                              | Yes           |
 | Documentation       | `/docs`                     | Quick start, feature guides, and developer resources                               | No            |
 | Login               | `/login`                    | User login page                                                                    | No            |
 | Register            | `/register`                 | User registration page                                                             | No            |

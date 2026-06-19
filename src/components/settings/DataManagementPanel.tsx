@@ -33,12 +33,7 @@ function exportToJson(config: ExportConfig): void {
   downloadBlob(blob, `${filename}-${timestamp}.json`);
 }
 
-const LOCAL_STORAGE_PREFIXES = [
-  'insight-',
-  'auth-store',
-  'user_preferences',
-  'notification_settings',
-];
+const LOCAL_STORAGE_PREFIXES = ['insight-', 'auth-store', 'user_preferences'];
 
 export function DataManagementPanel() {
   const user = useUser();

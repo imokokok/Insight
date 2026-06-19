@@ -3,11 +3,7 @@ import { type SupabaseClient } from '@supabase/supabase-js';
 import { createLogger } from '@/lib/utils/logger';
 import { RequestQueue } from '@/lib/utils/requestQueue';
 import { normalizeTimestamp } from '@/lib/utils/timestamp';
-import {
-  type UserProfile,
-  type UserPreferences,
-  type UserNotificationSettings,
-} from '@/types/analytics';
+import { type UserProfile, type UserPreferences } from '@/types/analytics';
 import { type OracleProvider, type Blockchain } from '@/types/oracle';
 import type { OnChainVerification } from '@/types/oracle/price';
 
@@ -67,7 +63,6 @@ interface PriceRecordsFilters {
 export interface UserProfileUpdate {
   display_name?: string;
   preferences?: UserPreferences;
-  notification_settings?: UserNotificationSettings;
 }
 
 export class DatabaseQueries {

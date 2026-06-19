@@ -35,7 +35,6 @@ jest.mock('@/components/settings', () => ({
   ),
   ProfilePanel: () => <div data-testid="profile-panel">Profile Panel</div>,
   PreferencesPanel: () => <div data-testid="preferences-panel">Preferences Panel</div>,
-  NotificationPanel: () => <div data-testid="notification-panel">Notification Panel</div>,
   DataManagementPanel: () => <div data-testid="data-panel">Data Panel</div>,
 }));
 
