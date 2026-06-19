@@ -22,22 +22,13 @@ const PreferencesSchema = z.object({
   default_currency: z.enum(PREFERENCE_CURRENCIES).optional(),
   auto_refresh_interval: z.number().min(0).max(300000).optional(),
   refresh_interval: z.number().min(1000).max(300000).optional(),
-  notifications_enabled: z.boolean().optional(),
   chart_settings: ChartSettingsSchema.optional(),
-});
-
-const NotificationSettingsSchema = z.object({
-  push_notifications: z.boolean().optional(),
-  market_updates: z.boolean().optional(),
-  price_change_enabled: z.boolean().optional(),
-  price_change_threshold: z.number().min(1).max(20).optional(),
 });
 
 const UpdateProfileSchema = z
   .object({
     display_name: z.string().max(100).optional(),
     preferences: PreferencesSchema.optional(),
-    notification_settings: NotificationSettingsSchema.optional(),
   })
   .refine((data) => Object.keys(data).length > 0, {
     message: 'No valid fields to update',

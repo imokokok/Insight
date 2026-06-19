@@ -49,7 +49,6 @@ export default function PrivacyPage() {
                     <li>Default oracle provider preferences</li>
                     <li>Default trading pair preferences</li>
                     <li>Chart display settings</li>
-                    <li>Notification preferences</li>
                   </ul>
                 </div>
 

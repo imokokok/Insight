@@ -28,17 +28,12 @@ export interface UserPreferences {
   };
 }
 
-export interface UserNotificationSettings {
-  push_notifications?: boolean;
-}
-
 export interface UserProfile {
   id: string;
   email?: string;
   display_name: string | null;
   avatar_url?: string | null;
   preferences?: UserPreferences;
-  notification_settings?: UserNotificationSettings;
   created_at?: string | Date;
   updated_at?: string | Date;
 }

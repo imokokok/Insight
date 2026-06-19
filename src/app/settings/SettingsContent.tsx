@@ -26,11 +26,6 @@ const PreferencesPanel = dynamic(
   { loading: () => <PanelLoadingSkeleton /> }
 );
 
-const NotificationPanel = dynamic(
-  () => import('@/components/settings').then((mod) => mod.NotificationPanel),
-  { loading: () => <PanelLoadingSkeleton /> }
-);
-
 const DataManagementPanel = dynamic(
   () => import('@/components/settings').then((mod) => mod.DataManagementPanel),
   { loading: () => <PanelLoadingSkeleton /> }
@@ -112,7 +107,6 @@ export default function SettingsContent() {
         <SectionErrorBoundary componentName="SettingsPanel">
           {activeTab === 'profile' && <ProfilePanel />}
           {activeTab === 'preferences' && <PreferencesPanel />}
-          {activeTab === 'notifications' && <NotificationPanel />}
           {activeTab === 'data' && <DataManagementPanel />}
         </SectionErrorBoundary>
       </SettingsLayout>

@@ -2,9 +2,9 @@
 
 import { type ReactNode } from 'react';
 
-import { Settings, User, Bell, Database, Palette } from 'lucide-react';
+import { Settings, User, Database, Palette } from 'lucide-react';
 
-export type SettingsTab = 'profile' | 'preferences' | 'notifications' | 'data';
+export type SettingsTab = 'profile' | 'preferences' | 'data';
 
 interface SettingsLayoutProps {
   children: ReactNode;
@@ -32,12 +32,6 @@ export function SettingsLayout({ children, activeTab, onTabChange }: SettingsLay
       label: 'Preferences',
       icon: Palette,
       description: 'Customize your preferences',
-    },
-    {
-      id: 'notifications',
-      label: 'Notifications',
-      icon: Bell,
-      description: 'Configure notification settings',
     },
     {
       id: 'data',
