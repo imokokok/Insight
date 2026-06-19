@@ -12,15 +12,7 @@ import { Button } from '@/components/ui';
 import { PasswordInput } from '@/components/ui/PasswordInput';
 import { useUser, useAuthError, useAuthActions, useSession } from '@/stores/authStore';
 
-const ALLOWED_REDIRECT_PATHS = [
-  '/',
-  '/dashboard',
-  '/settings',
-  '/profile',
-
-  '/price-query',
-  '/price-insight',
-];
+const ALLOWED_REDIRECT_PATHS = ['/', '/settings', '/price-query', '/price-insight'];
 
 function isValidRedirectPath(path: string): boolean {
   if (!path || typeof path !== 'string') {

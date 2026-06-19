@@ -19,9 +19,6 @@
     "test:e2e:ui": "playwright test --ui",
     "clean:dev": "rm -rf .next && next dev",
     "clean:start": "rm -rf .next && next build && next start",
-    "perf:test": "ts-node scripts/performance-test.ts",
-    "perf:quick": "node scripts/quick-perf.mjs",
-    "naming:check": "node scripts/check-naming-convention.js",
     "prepare": "husky"
   },
   "performanceBudget": {
@@ -137,7 +134,6 @@
     "lint-staged": "^16.4.0",
     "playwright": "^1.58.2",
     "prettier": "^3.8.1",
-    "ts-node": "^10.9.2",
     "typescript": "^5"
   },
   "lint-staged": {

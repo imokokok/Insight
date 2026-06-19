@@ -1,9 +1,8 @@
 'use client';
 
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 
 import {
-  type AlertRecord,
   type FlashLoanDetectionResult,
   type OracleDeviationEntry,
   type SpotTwapDeviationPoint,
@@ -20,34 +19,16 @@ import {
 import { analyzeLiquidity, type LiquidityAnalysisResult } from '@/lib/analytics/liquidityAnalysis';
 import { createLogger } from '@/lib/utils/logger';
 import type { RefreshInterval } from '@/types/common';
-import { type Blockchain, type OracleProvider, type PriceData } from '@/types/oracle';
+import { type OracleProvider, type PriceData } from '@/types/oracle';
 
 const logger = createLogger('useAttackDetection');
 
 const MAX_DEVIATION_HISTORY = 60;
-const MAX_ALERT_HISTORY = 50;
 
-export interface UseAttackDetectionOptions {
+interface UseAttackDetectionOptions {
   symbol: string;
-  chain: Blockchain;
   selectedOracles: OracleProvider[];
   refreshIntervalMs: RefreshInterval;
-}
-
-export interface UseAttackDetectionReturn {
-  detectionResult: FlashLoanDetectionResult | null;
-  oracleDeviations: OracleDeviationEntry[];
-  deviationHistory: SpotTwapDeviationPoint[];
-  priceData: PriceData[];
-  isLoading: boolean;
-  error: Error | null;
-  lastUpdated: Date | null;
-  fetchPriceData: () => Promise<void>;
-  activeAlertCount: number;
-  alertHistory: AlertRecord[];
-  priceHistoryMapRef: React.MutableRefObject<
-    Map<OracleProvider, { price: number; timestamp: number; success: boolean }[]>
-  >;
 }
 
 function toConsensusInputs(priceData: PriceData[]): ConsensusPriceInput[] {
@@ -64,17 +45,15 @@ function toConsensusInputs(priceData: PriceData[]): ConsensusPriceInput[] {
 
 export function useAttackDetection({
   symbol,
-  chain,
   selectedOracles,
   refreshIntervalMs,
-}: UseAttackDetectionOptions): UseAttackDetectionReturn {
+}: UseAttackDetectionOptions) {
   // ── Oracle data fetching ──
-  const { priceData, isLoading, error, lastUpdated, fetchPriceData, priceHistoryMapRef } =
-    useOracleData({
-      selectedOracles,
-      selectedSymbol: symbol,
-      initialRefreshInterval: refreshIntervalMs,
-    });
+  const { priceData, error, lastUpdated, priceHistoryMapRef } = useOracleData({
+    selectedOracles,
+    selectedSymbol: symbol,
+    initialRefreshInterval: refreshIntervalMs,
+  });
 
   // ── Divergence signals ──
   const divergenceSignals = useDivergenceSignals(priceData, priceHistoryMapRef);
@@ -135,12 +114,6 @@ export function useAttackDetection({
 
   // ── Deviation history (local state, max 60 points) ──
   const [deviationHistory, setDeviationHistory] = useState<SpotTwapDeviationPoint[]>([]);
-
-  // ── Alert history (local state, max 50 items) ──
-  const [alertHistory, setAlertHistory] = useState<AlertRecord[]>([]);
-
-  // ── Alert counter ref for unique IDs ──
-  const alertCounterRef = useRef(0);
 
   // ── Flash loan detection ──
   const detectionResult = useMemo<FlashLoanDetectionResult | null>(() => {
@@ -252,49 +225,6 @@ export function useAttackDetection({
     });
   }, [priceData, twapData, consensusResult, oracleDeviations]);
 
-  // ── Update alert history when threat level is medium or above ──
-  useEffect(() => {
-    if (!detectionResult) return;
-
-    const threatLevel = detectionResult.threatLevel;
-    if (threatLevel !== 'medium' && threatLevel !== 'high' && threatLevel !== 'critical') return;
-
-    const now = new Date();
-
-    for (const alert of detectionResult.alerts) {
-      alertCounterRef.current += 1;
-
-      const record: AlertRecord = {
-        id: `alert-${alertCounterRef.current}-${now.getTime()}`,
-        level: alert.level,
-        threatLevel,
-        symbol,
-        chain,
-        provider: alert.provider,
-        spotTwapDeviation: detectionResult.signature.spotTwapDeviation,
-        deviationAcceleration: detectionResult.signature.deviationAcceleration,
-        crossOracleAgreement: detectionResult.signature.crossOracleAgreement,
-        directionalBiasCount: detectionResult.signature.directionalBiasCount,
-        message: alert.message,
-        recommendation: detectionResult.recommendation,
-        liquidityLevel: detectionResult.signature.liquidityLevel,
-        liquidityChangeRate: detectionResult.signature.liquidityChangeRate,
-        drainSeverity: detectionResult.signature.drainSeverity,
-        startedAt: now.toISOString(),
-        resolvedAt: null,
-        durationSeconds: null,
-      };
-
-      setAlertHistory((prev) => {
-        const next = [record, ...prev];
-        if (next.length > MAX_ALERT_HISTORY) {
-          return next.slice(0, MAX_ALERT_HISTORY);
-        }
-        return next;
-      });
-    }
-  }, [detectionResult, symbol, chain]);
-
   // ── Active alert count ──
   const activeAlertCount = useMemo(() => {
     if (!detectionResult) return 0;
@@ -309,13 +239,8 @@ export function useAttackDetection({
     detectionResult,
     oracleDeviations,
     deviationHistory,
-    priceData,
-    isLoading,
     error,
     lastUpdated,
-    fetchPriceData,
     activeAlertCount,
-    alertHistory,
-    priceHistoryMapRef,
   };
 }

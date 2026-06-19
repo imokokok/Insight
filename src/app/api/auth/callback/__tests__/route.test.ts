@@ -208,7 +208,7 @@ describe('/api/auth/callback', () => {
       mockUpsert.mockResolvedValue({ error: null });
 
       const request = createMockRequest(
-        'http://localhost/api/auth/callback?code=valid-code&state=/dashboard'
+        'http://localhost/api/auth/callback?code=valid-code&state=/settings'
       );
       const response = await GET(request);
 
