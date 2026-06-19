@@ -1,6 +1,5 @@
 import { Heart, Activity, BarChart3, AlertTriangle, Zap } from 'lucide-react';
 
-import { ProgressBar } from '@/components/ui/ProgressBar';
 import type {
   UpdateRhythmMetrics,
   ConfidenceIntervalMetrics,
@@ -9,7 +8,7 @@ import type {
   FeedHealthLevel,
   RhythmAnomalyType,
 } from '@/lib/analytics/feedBehavior';
-import { getScoreBadge, getScoreColor } from '@/lib/oracles/utils/reputationUtils';
+import { getScoreBadge } from '@/lib/oracles/utils/reputationUtils';
 import { capitalize } from '@/lib/utils/format';
 
 export function getHealthLevelBadge(level: FeedHealthLevel): {
@@ -78,37 +77,32 @@ function getTrendBadge(trend: string): { label: string; bgClass: string; textCla
 }
 
 interface HealthScoreCardsProps {
+  providerCount: number;
   overallHealthAvg: number;
-  overallHealthLevel: FeedHealthLevel;
   anomalyCount: number;
   heartbeatLostCount: number;
   confidenceSurgeCount: number;
 }
 
 export function HealthScoreCards({
+  providerCount,
   overallHealthAvg,
-  overallHealthLevel,
   anomalyCount,
   heartbeatLostCount,
   confidenceSurgeCount,
 }: HealthScoreCardsProps) {
-  const overallBadge = getHealthLevelBadge(overallHealthLevel);
-
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
       <div className="bg-white rounded-xl border border-gray-200 p-4">
         <div className="flex items-center gap-2 mb-2">
-          <Heart className="w-4 h-4 text-rose-500" />
-          <span className="text-xs font-medium text-gray-700">Overall Health</span>
+          <BarChart3 className="w-4 h-4 text-blue-500" />
+          <span className="text-xs font-medium text-gray-700">Providers Monitored</span>
         </div>
         <div className="flex items-baseline gap-1.5">
-          <span className="text-xl font-bold text-gray-900 font-mono">{overallHealthAvg}</span>
-          <span className="text-xs text-gray-500">/ 100</span>
+          <span className="text-xl font-bold text-gray-900 font-mono">{providerCount}</span>
         </div>
-        <span
-          className={`inline-flex items-center px-2 py-0.5 text-[10px] font-medium rounded mt-1.5 ${overallBadge.bgClass} ${overallBadge.textClass}`}
-        >
-          {overallBadge.label}
+        <span className="inline-flex items-center px-2 py-0.5 text-[10px] font-medium rounded mt-1.5 bg-blue-50 text-blue-700">
+          {overallHealthAvg >= 80 ? 'Broadly Healthy' : 'Needs Review'}
         </span>
       </div>
 
@@ -171,19 +165,39 @@ interface OracleHealthScoresSectionProps {
 }
 
 export function OracleHealthScoresSection({ healthScores }: OracleHealthScoresSectionProps) {
+  const rankedScores = [...healthScores].sort((a, b) => a.score - b.score);
+
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-5">
-      <div className="flex items-center gap-2 mb-4">
-        <BarChart3 className="w-5 h-5 text-gray-700" />
-        <span className="text-base font-semibold text-gray-900">Oracle Feed Health Scores</span>
+      <div className="flex items-start justify-between gap-3 mb-4">
+        <div className="flex items-center gap-2">
+          <BarChart3 className="w-5 h-5 text-gray-700" />
+          <div>
+            <span className="block text-base font-semibold text-gray-900">
+              Oracle Feed Health Scores
+            </span>
+            <p className="text-xs text-gray-500">
+              Ranked by overall feed quality. Detailed sub-metrics are hidden unless they are weak.
+            </p>
+          </div>
+        </div>
       </div>
       <div className="space-y-4">
-        {healthScores.map((oracle) => {
+        {rankedScores.map((oracle) => {
           const badge = getScoreBadge(oracle.score);
-          const scoreColor = getScoreColor(oracle.score);
+          const weakestSignals = [
+            { label: 'Rhythm', value: oracle.rhythmStability },
+            { label: 'Confidence', value: oracle.confidenceStability },
+            { label: 'Heartbeat', value: oracle.heartbeatReliability },
+            { label: 'Freshness', value: oracle.freshness },
+          ]
+            .sort((a, b) => a.value - b.value)
+            .filter((metric) => metric.value < 85)
+            .slice(0, 2);
+
           return (
             <div key={oracle.provider} className="border border-gray-100 rounded-lg p-4">
-              <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium text-gray-900">
                     {capitalize(oracle.provider)}
@@ -194,67 +208,27 @@ export function OracleHealthScoresSection({ healthScores }: OracleHealthScoresSe
                     {badge.label}
                   </span>
                 </div>
-                <span className="text-lg font-bold text-gray-900 font-mono">{oracle.score}</span>
+                <div className="text-right">
+                  <span className="block text-lg font-bold text-gray-900 font-mono">
+                    {oracle.score}
+                  </span>
+                  <span className="text-[10px] text-gray-500">overall score</span>
+                </div>
               </div>
-              <div className="w-full bg-gray-100 rounded-full h-2 mb-4">
-                <div
-                  className="h-2 rounded-full transition-all duration-500"
-                  style={{ width: `${oracle.score}%`, backgroundColor: scoreColor }}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-[10px] text-gray-500">Rhythm Stability</span>
-                    <span className="text-[10px] font-mono font-medium text-gray-700">
-                      {oracle.rhythmStability}%
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                {weakestSignals.length > 0 ? (
+                  weakestSignals.map((metric) => (
+                    <span
+                      key={`${oracle.provider}-${metric.label}`}
+                      className="inline-flex items-center gap-1 rounded-full bg-gray-50 px-2 py-1 text-[10px] font-medium text-gray-700"
+                    >
+                      {metric.label}
+                      <span className="font-mono">{metric.value}%</span>
                     </span>
-                  </div>
-                  <ProgressBar
-                    value={oracle.rhythmStability}
-                    maxValue={100}
-                    color={getScoreColor(oracle.rhythmStability)}
-                  />
-                </div>
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-[10px] text-gray-500">Confidence Stability</span>
-                    <span className="text-[10px] font-mono font-medium text-gray-700">
-                      {oracle.confidenceStability}%
-                    </span>
-                  </div>
-                  <ProgressBar
-                    value={oracle.confidenceStability}
-                    maxValue={100}
-                    color={getScoreColor(oracle.confidenceStability)}
-                  />
-                </div>
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-[10px] text-gray-500">Heartbeat Reliability</span>
-                    <span className="text-[10px] font-mono font-medium text-gray-700">
-                      {oracle.heartbeatReliability}%
-                    </span>
-                  </div>
-                  <ProgressBar
-                    value={oracle.heartbeatReliability}
-                    maxValue={100}
-                    color={getScoreColor(oracle.heartbeatReliability)}
-                  />
-                </div>
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-[10px] text-gray-500">Freshness</span>
-                    <span className="text-[10px] font-mono font-medium text-gray-700">
-                      {oracle.freshness}%
-                    </span>
-                  </div>
-                  <ProgressBar
-                    value={oracle.freshness}
-                    maxValue={100}
-                    color={getScoreColor(oracle.freshness)}
-                  />
-                </div>
+                  ))
+                ) : (
+                  <span className="text-xs text-gray-500">No material weakness detected</span>
+                )}
               </div>
             </div>
           );
@@ -269,14 +243,34 @@ interface RhythmAnalysisSectionProps {
 }
 
 export function RhythmAnalysisSection({ rhythmMetrics }: RhythmAnalysisSectionProps) {
+  const flaggedMetrics = [...rhythmMetrics]
+    .filter((oracle) => oracle.isAnomalous)
+    .sort((a, b) => b.intervalCV - a.intervalCV);
+  const hiddenHealthyCount = rhythmMetrics.length - flaggedMetrics.length;
+
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-5">
-      <div className="flex items-center gap-2 mb-4">
-        <Activity className="w-5 h-5 text-gray-700" />
-        <span className="text-base font-semibold text-gray-900">Update Rhythm Analysis</span>
+      <div className="flex items-start justify-between gap-3 mb-4">
+        <div className="flex items-center gap-2">
+          <Activity className="w-5 h-5 text-gray-700" />
+          <div>
+            <span className="block text-base font-semibold text-gray-900">
+              Update Rhythm Analysis
+            </span>
+            <p className="text-xs text-gray-500">Only cadence anomalies are shown.</p>
+          </div>
+        </div>
+        {hiddenHealthyCount > 0 && (
+          <span className="text-xs text-gray-500">{hiddenHealthyCount} healthy feeds hidden</span>
+        )}
       </div>
       <div className="space-y-3">
-        {rhythmMetrics.map((oracle) => {
+        {flaggedMetrics.length === 0 && (
+          <div className="rounded-lg border border-emerald-100 bg-emerald-50/60 p-4 text-sm text-emerald-800">
+            No update rhythm anomalies detected across monitored providers.
+          </div>
+        )}
+        {flaggedMetrics.map((oracle) => {
           const ratio =
             oracle.expectedIntervalSeconds > 0
               ? oracle.actualAvgIntervalSeconds / oracle.expectedIntervalSeconds
@@ -358,14 +352,41 @@ export function HeartbeatMonitorSection({
   heartbeatMetrics,
   currentTime,
 }: HeartbeatMonitorSectionProps) {
+  const flaggedMetrics = [...heartbeatMetrics]
+    .filter(
+      (oracle) => oracle.isHeartbeatLost || oracle.reliability < 0.9 || oracle.missedBeats > 0
+    )
+    .sort((a, b) => {
+      if (Number(b.isHeartbeatLost) !== Number(a.isHeartbeatLost)) {
+        return Number(b.isHeartbeatLost) - Number(a.isHeartbeatLost);
+      }
+      return a.reliability - b.reliability;
+    });
+  const hiddenHealthyCount = heartbeatMetrics.length - flaggedMetrics.length;
+
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-5">
-      <div className="flex items-center gap-2 mb-4">
-        <Heart className="w-5 h-5 text-gray-700" />
-        <span className="text-base font-semibold text-gray-900">Heartbeat Monitor</span>
+      <div className="flex items-start justify-between gap-3 mb-4">
+        <div className="flex items-center gap-2">
+          <Heart className="w-5 h-5 text-gray-700" />
+          <div>
+            <span className="block text-base font-semibold text-gray-900">Heartbeat Monitor</span>
+            <p className="text-xs text-gray-500">
+              Only feeds with missed beats or weak reliability are shown.
+            </p>
+          </div>
+        </div>
+        {hiddenHealthyCount > 0 && (
+          <span className="text-xs text-gray-500">{hiddenHealthyCount} healthy feeds hidden</span>
+        )}
       </div>
       <div className="space-y-3">
-        {heartbeatMetrics.map((oracle) => {
+        {flaggedMetrics.length === 0 && (
+          <div className="rounded-lg border border-emerald-100 bg-emerald-50/60 p-4 text-sm text-emerald-800">
+            All monitored feeds have active heartbeats with acceptable reliability.
+          </div>
+        )}
+        {flaggedMetrics.map((oracle) => {
           const reliabilityPct = Math.round(oracle.reliability * 100);
           const barColor = getReliabilityColor(reliabilityPct);
           const timeSinceLastUpdate =
@@ -435,88 +456,114 @@ interface ConfidenceIntervalSectionProps {
 }
 
 export function ConfidenceIntervalSection({ confidenceMetrics }: ConfidenceIntervalSectionProps) {
-  if (!confidenceMetrics.some((c) => c.widths.length > 0)) return null;
+  const trackedMetrics = confidenceMetrics.filter((c) => c.widths.length > 0);
+  if (trackedMetrics.length === 0) return null;
+
+  const flaggedMetrics = [...trackedMetrics]
+    .filter(
+      (oracle) =>
+        oracle.isSurge ||
+        oracle.trend === 'expanding' ||
+        oracle.currentWidth > Math.max(oracle.avgWidth * 1.5, oracle.avgWidth + 0.05)
+    )
+    .sort((a, b) => Number(b.isSurge) - Number(a.isSurge) || b.widthChangeRate - a.widthChangeRate);
+  const hiddenStableCount = trackedMetrics.length - flaggedMetrics.length;
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-5">
-      <div className="flex items-center gap-2 mb-4">
-        <Zap className="w-5 h-5 text-gray-700" />
-        <span className="text-base font-semibold text-gray-900">Confidence Interval Tracking</span>
+      <div className="flex items-start justify-between gap-3 mb-4">
+        <div className="flex items-center gap-2">
+          <Zap className="w-5 h-5 text-gray-700" />
+          <div>
+            <span className="block text-base font-semibold text-gray-900">
+              Confidence Interval Tracking
+            </span>
+            <p className="text-xs text-gray-500">
+              Stable confidence feeds are hidden to reduce noise.
+            </p>
+          </div>
+        </div>
+        {hiddenStableCount > 0 && (
+          <span className="text-xs text-gray-500">{hiddenStableCount} stable feeds hidden</span>
+        )}
       </div>
       <div className="space-y-3">
-        {confidenceMetrics
-          .filter((c) => c.widths.length > 0)
-          .map((oracle) => {
-            const trendBadge = getTrendBadge(oracle.trend);
-            const changePct = (oracle.widthChangeRate * 100).toFixed(1);
-            const maxW = Math.max(...oracle.widths, 0.01);
-            return (
-              <div key={oracle.provider} className="border border-gray-100 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-900">
-                    {capitalize(oracle.provider)}
+        {flaggedMetrics.length === 0 && (
+          <div className="rounded-lg border border-emerald-100 bg-emerald-50/60 p-4 text-sm text-emerald-800">
+            No expanding or surged confidence intervals detected.
+          </div>
+        )}
+        {flaggedMetrics.map((oracle) => {
+          const trendBadge = getTrendBadge(oracle.trend);
+          const changePct = (oracle.widthChangeRate * 100).toFixed(1);
+          const maxW = Math.max(...oracle.widths, 0.01);
+          return (
+            <div key={oracle.provider} className="border border-gray-100 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-gray-900">
+                  {capitalize(oracle.provider)}
+                </span>
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`inline-flex items-center px-2 py-0.5 text-[10px] font-medium rounded ${trendBadge.bgClass} ${trendBadge.textClass}`}
+                  >
+                    {trendBadge.label}
                   </span>
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`inline-flex items-center px-2 py-0.5 text-[10px] font-medium rounded ${trendBadge.bgClass} ${trendBadge.textClass}`}
-                    >
-                      {trendBadge.label}
+                  {oracle.isSurge && (
+                    <span className="inline-flex items-center px-2 py-0.5 text-[10px] font-medium rounded bg-red-50 text-red-700">
+                      Surge ({Math.round(oracle.surgeMagnitude * 100)}%)
                     </span>
-                    {oracle.isSurge && (
-                      <span className="inline-flex items-center px-2 py-0.5 text-[10px] font-medium rounded bg-red-50 text-red-700">
-                        ⚠ Surge ({Math.round(oracle.surgeMagnitude * 100)}%)
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <div className="flex items-center gap-4 mb-3 text-xs text-gray-600">
-                  <span>
-                    Current:{' '}
-                    <span className="font-mono font-medium text-gray-700">
-                      {oracle.currentWidth.toFixed(2)}
-                    </span>
-                  </span>
-                  <span className="text-gray-300">|</span>
-                  <span>
-                    Average:{' '}
-                    <span className="font-mono font-medium text-gray-700">
-                      {oracle.avgWidth.toFixed(2)}
-                    </span>
-                  </span>
-                  <span className="text-gray-300">|</span>
-                  <span>
-                    Change:{' '}
-                    <span
-                      className={`font-mono font-medium ${Number(changePct) > 0 ? 'text-amber-600' : Number(changePct) < 0 ? 'text-emerald-600' : 'text-gray-700'}`}
-                    >
-                      {Number(changePct) > 0 ? '+' : ''}
-                      {changePct}%
-                    </span>
-                  </span>
-                </div>
-                <div className="flex items-end gap-px h-8">
-                  {oracle.widths.map((w, i) => {
-                    const height = Math.max((w / maxW) * 100, 2);
-                    const isLast = i === oracle.widths.length - 1;
-                    return (
-                      <div
-                        key={i}
-                        className="flex-1 rounded-sm transition-all duration-300"
-                        style={{
-                          height: `${height}%`,
-                          backgroundColor: isLast
-                            ? '#3b82f6'
-                            : oracle.isSurge && i >= oracle.widths.length - 3
-                              ? '#f97316'
-                              : '#d1d5db',
-                        }}
-                      />
-                    );
-                  })}
+                  )}
                 </div>
               </div>
-            );
-          })}
+              <div className="flex items-center gap-4 mb-3 text-xs text-gray-600">
+                <span>
+                  Current:{' '}
+                  <span className="font-mono font-medium text-gray-700">
+                    {oracle.currentWidth.toFixed(2)}
+                  </span>
+                </span>
+                <span className="text-gray-300">|</span>
+                <span>
+                  Average:{' '}
+                  <span className="font-mono font-medium text-gray-700">
+                    {oracle.avgWidth.toFixed(2)}
+                  </span>
+                </span>
+                <span className="text-gray-300">|</span>
+                <span>
+                  Change:{' '}
+                  <span
+                    className={`font-mono font-medium ${Number(changePct) > 0 ? 'text-amber-600' : Number(changePct) < 0 ? 'text-emerald-600' : 'text-gray-700'}`}
+                  >
+                    {Number(changePct) > 0 ? '+' : ''}
+                    {changePct}%
+                  </span>
+                </span>
+              </div>
+              <div className="flex items-end gap-px h-8">
+                {oracle.widths.map((w, i) => {
+                  const height = Math.max((w / maxW) * 100, 2);
+                  const isLast = i === oracle.widths.length - 1;
+                  return (
+                    <div
+                      key={i}
+                      className="flex-1 rounded-sm transition-all duration-300"
+                      style={{
+                        height: `${height}%`,
+                        backgroundColor: isLast
+                          ? '#3b82f6'
+                          : oracle.isSurge && i >= oracle.widths.length - 3
+                            ? '#f97316'
+                            : '#d1d5db',
+                      }}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
