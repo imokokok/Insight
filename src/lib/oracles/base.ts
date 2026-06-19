@@ -1,3 +1,4 @@
+import { AppError } from '@/lib/errors/AppError';
 import { PriceDataSchema, validateOracleData } from '@/lib/security/validation';
 import { TTLCache } from '@/lib/utils/cache';
 import { createLogger } from '@/lib/utils/logger';
@@ -73,10 +74,6 @@ export class OracleCache {
 
   stopCleanupInterval(): void {
     this.impl.stopCleanupInterval();
-  }
-
-  cleanup(): number {
-    return 0;
   }
 }
 
@@ -190,7 +187,7 @@ export abstract class BaseOracleClient {
 
   protected handleGetPriceError(error: unknown, providerLabel: string, errorCode?: string): never {
     if (error instanceof OracleServiceError) throw error;
-    if (error && typeof error === 'object' && 'code' in error) throw error;
+    if (error instanceof AppError) throw error;
     throw this.createError(
       error instanceof Error ? error.message : `Failed to fetch price from ${providerLabel}`,
       (errorCode || 'PROVIDER_ERROR') as OracleErrorCode
