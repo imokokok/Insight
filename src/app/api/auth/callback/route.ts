@@ -42,15 +42,7 @@ function checkCallbackRateLimit(ip: string): boolean {
   return true;
 }
 
-const ALLOWED_REDIRECT_PATHS = [
-  '/',
-  '/dashboard',
-  '/settings',
-  '/profile',
-
-  '/price-query',
-  '/price-insight',
-];
+const ALLOWED_REDIRECT_PATHS = ['/', '/settings', '/price-query', '/price-insight'];
 
 function isValidRedirectPath(path: string): boolean {
   if (!path || typeof path !== 'string') {

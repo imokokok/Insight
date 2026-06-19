@@ -98,28 +98,6 @@ export interface OracleDeviationEntry {
   isOverThreshold: boolean;
 }
 
-// ── Alert Record ──
-export interface AlertRecord {
-  id: string;
-  level: 'warning' | 'critical';
-  threatLevel: ThreatLevel;
-  symbol: string;
-  chain: Blockchain;
-  provider: OracleProvider;
-  spotTwapDeviation: number;
-  deviationAcceleration: DivergenceAcceleration;
-  crossOracleAgreement: number;
-  directionalBiasCount: number;
-  message: string;
-  recommendation: string;
-  startedAt: string;
-  resolvedAt: string | null;
-  durationSeconds: number | null;
-  liquidityLevel?: LiquidityLevel;
-  liquidityChangeRate?: number;
-  drainSeverity?: number;
-}
-
 // ── Control Panel State ──
 export interface AttackDetectionConfig {
   symbol: string;

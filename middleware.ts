@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 
 import { createServerClient } from '@supabase/ssr';
 
-const PROTECTED_PATHS = ['/settings', '/snapshots', '/dashboard', '/profile'];
+const PROTECTED_PATHS = ['/settings'];
 
 async function isAuthenticated(request: NextRequest): Promise<boolean> {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -49,5 +49,5 @@ export async function middleware(request: NextRequest) {
 // NOTE: matcher must be a static array (Next.js requirement).
 // Keep in sync with PROTECTED_PATHS above when adding protected routes.
 export const config = {
-  matcher: ['/settings/:path*', '/snapshots/:path*', '/dashboard/:path*', '/profile/:path*'],
+  matcher: ['/settings/:path*'],
 };

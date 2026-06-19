@@ -84,7 +84,6 @@ function AttackDetectionMain({
     activeAlertCount,
   } = useAttackDetection({
     symbol: config.symbol,
-    chain: config.chain,
     selectedOracles: config.selectedOracles,
     refreshIntervalMs: config.refreshIntervalMs,
   });
