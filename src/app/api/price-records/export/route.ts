@@ -7,7 +7,10 @@ export const GET = createApiHandler(
   async (_request: NextRequest, context) => {
     const userId = context.auth?.userId;
     if (!userId || !context.auth?.accessToken) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+      return NextResponse.json(
+        { success: false, error: { code: 'UNAUTHORIZED', message: 'Authentication required' } },
+        { status: 401 }
+      );
     }
 
     const searchParams = _request.nextUrl.searchParams;
@@ -23,7 +26,13 @@ export const GET = createApiHandler(
       .limit(limit);
 
     if (error) {
-      return NextResponse.json({ error: 'Failed to fetch price records' }, { status: 500 });
+      return NextResponse.json(
+        {
+          success: false,
+          error: { code: 'INTERNAL_ERROR', message: 'Failed to fetch price records' },
+        },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({
