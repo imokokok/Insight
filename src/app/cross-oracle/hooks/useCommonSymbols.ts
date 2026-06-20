@@ -5,11 +5,7 @@
 
 import { useMemo } from 'react';
 
-import { tradingPairs } from '@/app/cross-oracle/constants';
-import {
-  oracleSupportedSymbols,
-  providerToSymbolKey,
-} from '@/lib/oracles/constants/supportedSymbols';
+import { useDynamicSymbols } from '@/lib/hooks/useDynamicSymbols';
 import { type OracleProvider } from '@/types/oracle';
 
 interface CommonSymbolInfo {
@@ -23,9 +19,12 @@ interface UseCommonSymbolsResult {
   commonSymbolDetails: CommonSymbolInfo[];
   oracleCountMap: Record<string, number>;
   unsupportedOracles: Record<string, OracleProvider[]>;
+  loading: boolean;
 }
 
 export function useCommonSymbols(selectedOracles: OracleProvider[]): UseCommonSymbolsResult {
+  const { symbols, oracleSymbols, loading } = useDynamicSymbols();
+
   return useMemo(() => {
     if (selectedOracles.length === 0) {
       return {
@@ -33,15 +32,15 @@ export function useCommonSymbols(selectedOracles: OracleProvider[]): UseCommonSy
         commonSymbolDetails: [],
         oracleCountMap: {},
         unsupportedOracles: {},
+        loading,
       };
     }
 
     const oracleSymbolSets = selectedOracles.map((oracle) => {
-      const key = providerToSymbolKey[oracle];
-      const symbols = oracleSupportedSymbols[key];
+      const providerSymbols = oracleSymbols[oracle] || [];
       return {
         oracle,
-        symbols: new Set(symbols as readonly string[]),
+        symbols: new Set(providerSymbols),
       };
     });
 
@@ -74,7 +73,7 @@ export function useCommonSymbols(selectedOracles: OracleProvider[]): UseCommonSy
     });
 
     const getMarketCapRank = (symbol: string): number => {
-      const index = tradingPairs.findIndex((p) => p === symbol);
+      const index = symbols.findIndex((s) => s === symbol);
       return index === -1 ? Number.MAX_SAFE_INTEGER : index;
     };
 
@@ -86,6 +85,7 @@ export function useCommonSymbols(selectedOracles: OracleProvider[]): UseCommonSy
       commonSymbolDetails,
       oracleCountMap,
       unsupportedOracles,
+      loading,
     };
-  }, [selectedOracles]);
+  }, [selectedOracles, oracleSymbols, symbols, loading]);
 }

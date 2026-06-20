@@ -1,3 +1,5 @@
+import { resolveFeed } from '@/lib/oracles/utils/dynamicFeedResolver';
+
 export const SUPRA_DORA_REST_URL = 'https://rpc-mainnet-dora-2.supra.com';
 
 export const SUPRA_CACHE_TTL = {
@@ -190,3 +192,24 @@ export const SUPRA_PAIR_INDEX_MAP: Record<string, number> = {
 export const SUPRA_INDEX_TO_SYMBOL: Record<number, string> = Object.fromEntries(
   Object.entries(SUPRA_PAIR_INDEX_MAP).map(([symbol, index]) => [index, symbol])
 );
+
+export async function getSupraPairIndexAsync(symbol: string): Promise<number | null> {
+  const upperSymbol = symbol.toUpperCase();
+
+  try {
+    const feed = await resolveFeed('supra', upperSymbol, 0);
+    if (feed) {
+      const pairIndex =
+        typeof feed.metadata?.pairIndex === 'number'
+          ? (feed.metadata.pairIndex as number)
+          : parseInt(feed.address, 10);
+      if (!isNaN(pairIndex)) {
+        return pairIndex;
+      }
+    }
+  } catch {
+    // Database lookup failed, return null
+  }
+
+  return null;
+}

@@ -60,6 +60,35 @@ interface PriceRecordsFilters {
   offset?: number;
 }
 
+export interface OracleFeed {
+  id?: string;
+  provider: string;
+  symbol: string;
+  chain_id: number;
+  address: string;
+  name: string;
+  decimals: number;
+  category: string;
+  is_active: boolean;
+  source: string;
+  metadata: Record<string, unknown> | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface OracleFeedInsert {
+  provider: string;
+  symbol: string;
+  chain_id: number;
+  address: string;
+  name: string;
+  decimals: number;
+  category: string;
+  is_active?: boolean;
+  source?: string;
+  metadata?: Record<string, unknown> | null;
+}
+
 export interface UserProfileUpdate {
   display_name?: string;
   preferences?: UserPreferences;
@@ -215,6 +244,112 @@ export class DatabaseQueries {
 
     return new Date(now.getTime() + 60 * 60 * 1000).toISOString();
   }
+
+  // ─── Oracle Feeds ──────────────────────────────────────────────────
+
+  async getOracleFeeds(provider: string, chainId?: number): Promise<OracleFeed[]> {
+    return queryQueue.add(async () => {
+      let query = this.client.from('oracle_feeds').select('*').eq('is_active', true);
+
+      if (provider) {
+        query = query.eq('provider', provider);
+      }
+
+      if (chainId !== undefined) {
+        query = query.eq('chain_id', chainId);
+      }
+
+      const { data, error } = await query;
+
+      if (error) {
+        logger.error(
+          'Failed to get oracle feeds',
+          error instanceof Error ? error : new Error(String(error))
+        );
+        return [];
+      }
+
+      return data || [];
+    });
+  }
+
+  async getOracleFeed(
+    provider: string,
+    symbol: string,
+    chainId: number
+  ): Promise<OracleFeed | null> {
+    return queryQueue.add(async () => {
+      const { data, error } = await this.client
+        .from('oracle_feeds')
+        .select('*')
+        .eq('provider', provider)
+        .eq('symbol', symbol)
+        .eq('chain_id', chainId)
+        .eq('is_active', true)
+        .maybeSingle();
+
+      if (error) {
+        logger.error(
+          'Failed to get oracle feed',
+          error instanceof Error ? error : new Error(String(error))
+        );
+        return null;
+      }
+
+      return data;
+    });
+  }
+
+  async upsertOracleFeeds(feeds: OracleFeedInsert[]): Promise<number> {
+    if (feeds.length === 0) return 0;
+
+    return queryQueue.add(async () => {
+      const rows = feeds.map((f) => ({
+        ...f,
+        is_active: f.is_active ?? true,
+        source: f.source || 'sync',
+        updated_at: new Date().toISOString(),
+      }));
+
+      const { data, error } = await this.client
+        .from('oracle_feeds')
+        .upsert(rows, { onConflict: 'provider,symbol,chain_id' })
+        .select();
+
+      if (error) {
+        logger.error(
+          'Failed to upsert oracle feeds',
+          error instanceof Error ? error : new Error(String(error))
+        );
+        return 0;
+      }
+
+      return data?.length || 0;
+    });
+  }
+
+  async deactivateOracleFeeds(provider: string, symbol: string, chainId: number): Promise<boolean> {
+    return queryQueue.add(async () => {
+      const { error } = await this.client
+        .from('oracle_feeds')
+        .update({ is_active: false, updated_at: new Date().toISOString() })
+        .eq('provider', provider)
+        .eq('symbol', symbol)
+        .eq('chain_id', chainId);
+
+      if (error) {
+        logger.error(
+          'Failed to deactivate oracle feed',
+          error instanceof Error ? error : new Error(String(error))
+        );
+        return false;
+      }
+
+      return true;
+    });
+  }
+
+  // ─── User Profiles ────────────────────────────────────────────────
 
   async getUserProfile(userId: string): Promise<UserProfile | null> {
     const { data, error } = await this.client

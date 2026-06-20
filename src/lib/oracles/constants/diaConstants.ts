@@ -1,13 +1,15 @@
+import { resolveFeed } from '@/lib/oracles/utils/dynamicFeedResolver';
+
 import { ETHEREUM_TOKEN_ADDRESSES } from './ethereumTokenAddresses';
 
-interface DIAAssetConfig {
+export interface DIAAssetConfig {
   symbol: string;
   blockchain: string;
   address: string;
   decimals?: number;
 }
 
-const DIA_ASSET_MAPPING: Record<string, DIAAssetConfig> = {
+export const DIA_ASSET_MAPPING: Record<string, DIAAssetConfig> = {
   BTC: {
     symbol: 'BTC',
     blockchain: 'Bitcoin',
@@ -207,4 +209,25 @@ const DIA_ASSET_MAPPING: Record<string, DIAAssetConfig> = {
 
 export function getDIAAssetConfig(symbol: string): DIAAssetConfig | null {
   return DIA_ASSET_MAPPING[symbol.toUpperCase()] || null;
+}
+
+export async function getDIAAssetConfigAsync(symbol: string): Promise<DIAAssetConfig | null> {
+  const upperSymbol = symbol.toUpperCase();
+
+  try {
+    const feed = await resolveFeed('dia', upperSymbol, 0);
+    if (feed) {
+      const metadata = feed.metadata as Record<string, unknown> | null;
+      return {
+        symbol: upperSymbol,
+        blockchain: (metadata?.blockchain as string) || '',
+        address: feed.address,
+        decimals: feed.decimals || undefined,
+      };
+    }
+  } catch {
+    // Database lookup failed, return null
+  }
+
+  return null;
 }

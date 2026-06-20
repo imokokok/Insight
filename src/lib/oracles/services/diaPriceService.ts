@@ -2,7 +2,7 @@ import { createLogger } from '@/lib/utils/logger';
 import { OracleProvider, type Blockchain, type PriceData } from '@/types/oracle';
 
 import { OracleCache, ORACLE_CACHE_TTL } from '../base';
-import { getDIAAssetConfig } from '../constants/diaConstants';
+import { getDIAAssetConfigAsync } from '../constants/diaConstants';
 import { DIA_API_BASE_URL, fetchWithTimeout } from '../diaUtils';
 
 import type { DIAAssetQuotation } from '../diaTypes';
@@ -36,7 +36,7 @@ export class DIAPriceService {
     try {
       logger.info('Fetching price from DIA official API', { symbol, chain });
 
-      const assetConfig = getDIAAssetConfig(upperSymbol);
+      const assetConfig = await getDIAAssetConfigAsync(upperSymbol);
 
       if (!assetConfig) {
         logger.warn('Symbol not supported by DIA oracle', { symbol });

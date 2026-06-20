@@ -3,7 +3,7 @@ import { type HermesClient } from '@pythnetwork/hermes-client';
 import { createLogger } from '@/lib/utils/logger';
 import type { PriceData } from '@/types/oracle';
 
-import { PYTH_PRICE_FEED_IDS, CACHE_TTL, normalizeSymbol } from '../constants/pythConstants';
+import { CACHE_TTL, normalizeSymbol, getPythFeedIdAsync } from '../constants/pythConstants';
 import { withOracleRetry, ORACLE_RETRY_PRESETS } from '../utils/retry';
 
 import { type PythCache } from './pythCache';
@@ -38,7 +38,7 @@ export async function fetchLatestPrice(
         }
 
         const pythSymbol = normalizeSymbol(symbol);
-        const priceId = PYTH_PRICE_FEED_IDS[pythSymbol];
+        const priceId = await getPythFeedIdAsync(symbol);
 
         if (!priceId) {
           logger.warn('No price feed ID found for symbol', { symbol });
@@ -109,7 +109,7 @@ export async function fetchHistoricalPrices(
 
   try {
     const pythSymbol = normalizeSymbol(symbol);
-    const priceId = PYTH_PRICE_FEED_IDS[pythSymbol];
+    const priceId = await getPythFeedIdAsync(symbol);
 
     if (!priceId) {
       logger.warn('No price feed ID found for symbol', { symbol });

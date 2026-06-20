@@ -5,6 +5,7 @@ import { ALCHEMY_RPC } from '@/lib/config/serverEnv';
 import { createLogger } from '@/lib/utils/logger';
 import { Blockchain } from '@/types/oracle';
 
+import { resolveFeedAddress } from '../utils/dynamicFeedResolver';
 import { bigIntToPrice } from '../utils/oracleDataUtils';
 import { RpcClientWithFallback } from '../utils/rpcClientWithFallback';
 
@@ -65,65 +66,16 @@ const RPC_ENDPOINTS: Record<number, string[]> = {
   250: ['https://rpc.ftm.tools', 'https://fantom.publicnode.com'],
 };
 
-// Token symbol to dAPI name mapping
-// Based on actual on-chain verification results (2026-04-14)
-const SYMBOL_TO_DAPI: Record<string, string> = {
-  // === Major Cryptocurrencies ===
-  ETH: 'ETH/USD',
-  BTC: 'BTC/USD',
-  BNB: 'BNB/USD',
-  SOL: 'SOL/USD',
-  // === Layer 2 Tokens ===
-  ARB: 'ARB/USD',
-  // === DeFi Tokens ===
-  COMP: 'COMP/USD',
-  BAL: 'BAL/USD',
-  // === Stablecoins ===
-  USDC: 'USDC/USD',
-  USDT: 'USDT/USD',
-  DAI: 'DAI/USD',
-  // === Wrapped Assets ===
-  WBTC: 'WBTC/USD',
-  // === Other Verified Tokens ===
-  AVAX: 'AVAX/USD',
-  // === The following tokens exist on API3 Market but may not be activated; mapping retained for future use ===
-  LINK: 'LINK/USD',
-  MATIC: 'MATIC/USD',
-  OP: 'OP/USD',
-  UNI: 'UNI/USD',
-  AAVE: 'AAVE/USD',
-  PYTH: 'PYTH/USD',
-  DOGE: 'DOGE/USD',
-  XRP: 'XRP/USD',
-  ADA: 'ADA/USD',
-  DOT: 'DOT/USD',
-  LTC: 'LTC/USD',
-  BCH: 'BCH/USD',
-  ETC: 'ETC/USD',
-  XLM: 'XLM/USD',
-  ATOM: 'ATOM/USD',
-  SHIB: 'SHIB/USD',
-  FTM: 'FTM/USD',
-  GRT: 'GRT/USD',
-  SUSHI: 'SUSHI/USD',
-  MKR: 'MKR/USD',
-  YFI: 'YFI/USD',
-  CRV: 'CRV/USD',
-  SNX: 'SNX/USD',
-  THETA: 'THETA/USD',
-  KAVA: 'KAVA/USD',
-  PEPE: 'PEPE/USD',
-  BONK: 'BONK/USD',
-  WIF: 'WIF/USD',
-  INJ: 'INJ/USD',
-  SUI: 'SUI/USD',
-  SEI: 'SEI/USD',
-  TIA: 'TIA/USD',
-  TON: 'TON/USD',
-  FRAX: 'FRAX/USD',
-  LUSD: 'LUSD/USD',
-  WETH: 'WETH/USD',
-};
+/**
+ * Resolve dAPI name dynamically from database.
+ */
+async function getApi3DapiNameAsync(symbol: string, chainId: number): Promise<string | null> {
+  const dynamicAddress = await resolveFeedAddress('api3', symbol, chainId);
+  if (dynamicAddress) {
+    return dynamicAddress;
+  }
+  return null;
+}
 
 interface PriceReading {
   value: number;
@@ -315,16 +267,15 @@ async function getAPI3Price(
   dataAge: number;
 } | null> {
   try {
-    const dapiName = SYMBOL_TO_DAPI[symbol.toUpperCase()];
-    if (!dapiName) {
-      logger.warn(`Symbol ${symbol} not supported by API3`);
-      return null;
-    }
-
-    // Get chain ID
     const chainId = CHAIN_ID_MAP[chain];
     if (!chainId) {
       logger.warn(`Chain ${chain} not supported`);
+      return null;
+    }
+
+    const dapiName = await getApi3DapiNameAsync(symbol, chainId);
+    if (!dapiName) {
+      logger.warn(`Symbol ${symbol} not supported by API3`);
       return null;
     }
 

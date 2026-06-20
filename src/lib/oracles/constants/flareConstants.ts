@@ -1,3 +1,5 @@
+import { resolveFeed, resolveFeedAddress } from '@/lib/oracles/utils/dynamicFeedResolver';
+
 export const FLARE_RPC_ENDPOINTS: Record<string, string[]> = {
   flare: [
     'https://flare-api.flare.network/ext/C/rpc',
@@ -113,4 +115,33 @@ for (const sym of flareSymbols) {
   } else {
     FLARE_SYMBOL_TO_FEED_ID[sym] = encodeFeedId(FLARE_FEED_CATEGORY.CRYPTO, sym);
   }
+}
+
+const FLARE_NETWORK_CHAIN_ID: Record<string, number> = {
+  flare: 14,
+  songbird: 19,
+  coston2: 114,
+};
+
+export async function getFlareFeedIdAsync(symbol: string, network: string): Promise<string | null> {
+  const upper = symbol.toUpperCase();
+  const chainId = FLARE_NETWORK_CHAIN_ID[network] ?? 14;
+  try {
+    const address = await resolveFeedAddress('flare', upper, chainId);
+    if (address) return address;
+  } catch {
+    // Database lookup failed, return null
+  }
+  return null;
+}
+
+export async function isFlareSymbolSupportedAsync(symbol: string): Promise<boolean> {
+  const upper = symbol.toUpperCase();
+  try {
+    const feed = await resolveFeed('flare', upper, 14);
+    if (feed && feed.is_active) return true;
+  } catch {
+    // Database lookup failed, return false
+  }
+  return false;
 }

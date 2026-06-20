@@ -1,3 +1,5 @@
+import { resolveFeedAddress } from '@/lib/oracles/utils/dynamicFeedResolver';
+
 export const PYTH_PRICE_FEED_IDS: Record<string, string> = {
   'BTC/USD': 'e62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43',
   'ETH/USD': 'ff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace',
@@ -187,4 +189,23 @@ export function normalizeSymbol(symbol: string): string {
     return `USD/${baseSymbol}`;
   }
   return `${baseSymbol}/USD`;
+}
+
+/**
+ * Synchronous feed ID lookup using only hardcoded data.
+ * Use this in non-async contexts.
+ */
+export function getPythFeedId(symbol: string): string | null {
+  const normalized = normalizeSymbol(symbol);
+  return PYTH_PRICE_FEED_IDS[normalized] ?? null;
+}
+
+/**
+ * Async feed ID lookup from database only.
+ * Make sure to run /api/cron/sync-feeds?mode=seed&provider=pyth first.
+ * For Pyth, chain_id=0 since feeds are chain-agnostic.
+ */
+export async function getPythFeedIdAsync(symbol: string): Promise<string | null> {
+  const normalized = normalizeSymbol(symbol);
+  return resolveFeedAddress('pyth', normalized, 0);
 }

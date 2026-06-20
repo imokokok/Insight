@@ -5,6 +5,7 @@ import {
   flareSymbols,
   FLARE_CACHE_TTL,
   FTSOV2_ADDRESS,
+  isFlareSymbolSupportedAsync,
 } from '@/lib/oracles/constants/flareConstants';
 import {
   getFtsoDataService,
@@ -173,6 +174,11 @@ export class FlareClient extends BaseOracleClient {
     options?: { signal?: AbortSignal }
   ): Promise<PriceData> {
     this.validateGetPriceParams(symbol, options);
+
+    const isSupported = await isFlareSymbolSupportedAsync(symbol);
+    if (!isSupported) {
+      throw this.createUnsupportedSymbolError(symbol.toUpperCase(), chain);
+    }
 
     try {
       const realPrice = await this.fetchRealPrice(symbol, options?.signal);
