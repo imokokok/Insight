@@ -81,6 +81,15 @@ function inferCategory(symbol: string): string {
   return 'crypto';
 }
 
+/**
+ * Normalize a symbol to base form without quote currency suffix.
+ * e.g. "BTC/USD" → "BTC", "USD/JPY" → "USD/JPY" (forex kept as-is)
+ */
+function normalizeSymbol(symbol: string): string {
+  // Strip /USD suffix (Pyth and some others store "BTC/USD")
+  return symbol.replace(/\/USD$/, '');
+}
+
 async function loadSymbolsFromDatabase() {
   if (symbolCache && Date.now() - symbolCache.timestamp < CACHE_TTL_MS) {
     return symbolCache.data;
@@ -97,17 +106,19 @@ async function loadSymbolsFromDatabase() {
     for (const feed of feeds) {
       if (!feed.is_active) continue;
 
-      allSymbols.add(feed.symbol);
+      const symbol = normalizeSymbol(feed.symbol);
+
+      allSymbols.add(symbol);
 
       if (!oracleSymbols[feed.provider]) {
         oracleSymbols[feed.provider] = [];
       }
-      if (!oracleSymbols[feed.provider].includes(feed.symbol)) {
-        oracleSymbols[feed.provider].push(feed.symbol);
+      if (!oracleSymbols[feed.provider].includes(symbol)) {
+        oracleSymbols[feed.provider].push(symbol);
       }
 
-      if (!categories[feed.symbol]) {
-        categories[feed.symbol] = feed.category || inferCategory(feed.symbol);
+      if (!categories[symbol]) {
+        categories[symbol] = feed.category || inferCategory(symbol);
       }
     }
 
