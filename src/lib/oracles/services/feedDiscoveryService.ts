@@ -58,6 +58,9 @@ class FeedDiscoveryService {
   /**
    * Discover Pyth price feeds from the Pyth Benchmark API.
    * API: https://benchmarks.pyth.network/v1/price_feeds
+   *
+   * The API returns a flat array with fields inside `attributes`:
+   * [{ id, attributes: { symbol, asset_type, base, description, display_symbol } }]
    */
   async discoverPythFeeds(): Promise<DiscoveryResult> {
     const result: DiscoveryResult = { provider: 'pyth', discovered: 0, feeds: [], errors: [] };
@@ -72,31 +75,66 @@ class FeedDiscoveryService {
         throw new Error(`Pyth API returned ${response.status}`);
       }
 
-      const data = (await response.json()) as {
-        data?: Array<{ id: string; symbol: string; description: string; asset_type: string }>;
-      };
-      const priceFeeds = data.data || [];
+      const json = await response.json();
+
+      // Handle both old format { data: [...] } and new flat array format
+      let priceFeeds: Array<Record<string, unknown>>;
+      if (Array.isArray(json)) {
+        priceFeeds = json;
+      } else if (json && Array.isArray((json as Record<string, unknown>).data)) {
+        priceFeeds = (json as Record<string, unknown>).data as Array<Record<string, unknown>>;
+      } else {
+        priceFeeds = [];
+      }
 
       for (const feed of priceFeeds) {
-        // Only include USD-denominated feeds
-        if (!feed.symbol.includes('/USD') && !feed.description?.includes('USD')) continue;
+        const id = (feed.id as string) || '';
+        const attrs = (feed.attributes as Record<string, unknown>) || {};
 
-        const symbol = feed.symbol || feed.description?.replace(/\s*\/\s*USD.*$/, '') || '';
+        // Support both new format (attributes) and legacy format (top-level fields)
+        const rawSymbol = (attrs.symbol as string) || (feed.symbol as string) || '';
+        const description = (attrs.description as string) || (feed.description as string) || '';
+        const assetType = (attrs.asset_type as string) || (feed.asset_type as string) || '';
+        const displaySymbol = (attrs.display_symbol as string) || '';
+        const base = (attrs.base as string) || '';
+
+        // Only include USD-denominated feeds
+        if (
+          !rawSymbol.includes('/USD') &&
+          !displaySymbol.includes('/USD') &&
+          !description.includes('USD')
+        )
+          continue;
+
+        // Normalize symbol to "XXX/USD" format (strip category prefix like "Crypto.")
+        let symbol: string;
+        if (displaySymbol && displaySymbol.includes('/USD')) {
+          symbol = displaySymbol;
+        } else if (rawSymbol) {
+          // Strip category prefix (e.g. "Crypto.BTC/USD" → "BTC/USD")
+          symbol = rawSymbol.replace(/^[A-Za-z]+\./, '');
+        } else if (base) {
+          symbol = `${base}/USD`;
+        } else {
+          symbol = description.replace(/\s*\/\s*USD.*$/, '').replace(/\s+/g, '');
+          if (symbol && !symbol.includes('/USD')) symbol = `${symbol}/USD`;
+        }
+
         if (!symbol) continue;
 
-        const category = this.inferCategoryFromAssetType(feed.asset_type, symbol);
+        const category = this.inferCategoryFromAssetType(assetType, symbol.replace('/USD', ''));
 
         result.feeds.push({
           provider: 'pyth',
           symbol,
           chain_id: 0,
-          address: feed.id,
-          name: feed.symbol || feed.description || symbol,
+          address: id,
+          name: displaySymbol || rawSymbol || symbol,
           decimals: 8,
           category,
           is_active: true,
           source: 'pyth-api',
-          metadata: { feedId: feed.id },
+          metadata: { feedId: id },
         });
       }
 
@@ -350,12 +388,35 @@ class FeedDiscoveryService {
   // ─── Flare ────────────────────────────────────────────────────────
 
   /**
-   * Discover Flare FTSO feeds from the Flare API.
-   * API: https://ftso-api.flare.network/api/v1/feeds
+   * Discover Flare FTSO feeds.
+   * Primary: on-chain via FTSO V2 getSupportedFeedIds contract method.
+   * Fallback: Flare API at https://ftso-api.flare.network/api/v1/feeds
+   *
+   * Feed ID format (bytes21): 1 byte category + 20 bytes hex-encoded name + zero padding
+   * e.g. BTC/USD = 0x014254432f55534400000000000000000000000000
    */
   async discoverFlareFeeds(): Promise<DiscoveryResult> {
     const result: DiscoveryResult = { provider: 'flare', discovered: 0, feeds: [], errors: [] };
 
+    // Try on-chain discovery first
+    try {
+      const onChainFeeds = await this.discoverFlareFeedsOnChain();
+      if (onChainFeeds.length > 0) {
+        result.feeds = onChainFeeds;
+        result.discovered = onChainFeeds.length;
+        logger.info(`Flare: discovered ${result.discovered} feeds on-chain`);
+        return result;
+      }
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      result.errors.push(`On-chain discovery failed: ${msg}`);
+      logger.warn(
+        'Flare on-chain discovery failed, trying API fallback',
+        error instanceof Error ? error : new Error(msg)
+      );
+    }
+
+    // Fallback: try Flare API
     try {
       const response = await fetch('https://ftso-api.flare.network/api/v1/feeds', {
         signal: AbortSignal.timeout(30000),
@@ -389,14 +450,189 @@ class FeedDiscoveryService {
       }
 
       result.discovered = result.feeds.length;
-      logger.info(`Flare: discovered ${result.discovered} feeds`);
+      logger.info(`Flare: discovered ${result.discovered} feeds via API`);
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
-      result.errors.push(msg);
-      logger.error('Flare discovery failed', error instanceof Error ? error : new Error(msg));
+      result.errors.push(`API discovery failed: ${msg}`);
+      logger.error(
+        'Flare API discovery also failed',
+        error instanceof Error ? error : new Error(msg)
+      );
     }
 
     return result;
+  }
+
+  /**
+   * Discover Flare feeds on-chain by calling getSupportedFeedIds on the FTSO V2 contract.
+   * Decodes the bytes21 feed IDs back to symbol names.
+   */
+  private async discoverFlareFeedsOnChain(): Promise<OracleFeedInsert[]> {
+    const { encodeFunctionData, decodeFunctionResult } = await import('viem');
+    const { FLARE_RPC_ENDPOINTS, FTSOV2_ADDRESS, FLARE_CONTRACT_REGISTRY, REGISTRY_ABI } =
+      await import('../constants/flareConstants');
+
+    const GET_SUPPORTED_FEED_IDS_ABI = [
+      {
+        inputs: [],
+        name: 'getSupportedFeedIds',
+        outputs: [{ internalType: 'bytes21[]', name: '', type: 'bytes21[]' }],
+        stateMutability: 'view',
+        type: 'function',
+      },
+    ] as const;
+
+    const endpoints = FLARE_RPC_ENDPOINTS.flare;
+    let ftsoV2Address = FTSOV2_ADDRESS.flare;
+
+    // Resolve FTSO V2 address from registry
+    try {
+      const registryData = encodeFunctionData({
+        abi: REGISTRY_ABI,
+        functionName: 'getContractAddressByName',
+        args: ['FtsoV2'],
+      });
+      for (const rpcUrl of endpoints) {
+        try {
+          const rpcResponse = await fetch(rpcUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              jsonrpc: '2.0',
+              id: 1,
+              method: 'eth_call',
+              params: [{ to: FLARE_CONTRACT_REGISTRY, data: registryData }, 'latest'],
+            }),
+            signal: AbortSignal.timeout(15000),
+          });
+          if (!rpcResponse.ok) continue;
+          const rpcJson = (await rpcResponse.json()) as { result?: string };
+          if (rpcJson.result && rpcJson.result.length >= 26) {
+            const resolved = `0x${rpcJson.result.slice(26)}` as `0x${string}`;
+            if (resolved.length === 42) {
+              ftsoV2Address = resolved;
+              break;
+            }
+          }
+        } catch {
+          continue;
+        }
+      }
+    } catch {
+      // Use hardcoded address
+    }
+
+    // Call getSupportedFeedIds
+    const callData = encodeFunctionData({
+      abi: GET_SUPPORTED_FEED_IDS_ABI,
+      functionName: 'getSupportedFeedIds',
+    });
+
+    let feedIds: string[] = [];
+    for (const rpcUrl of endpoints) {
+      try {
+        const rpcResponse = await fetch(rpcUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            jsonrpc: '2.0',
+            id: 1,
+            method: 'eth_call',
+            params: [{ to: ftsoV2Address, data: callData }, 'latest'],
+          }),
+          signal: AbortSignal.timeout(15000),
+        });
+        if (!rpcResponse.ok) continue;
+        const rpcJson = (await rpcResponse.json()) as { result?: string };
+        if (!rpcJson.result) continue;
+
+        const decoded = decodeFunctionResult({
+          abi: GET_SUPPORTED_FEED_IDS_ABI,
+          functionName: 'getSupportedFeedIds',
+          data: rpcJson.result as `0x${string}`,
+        });
+        feedIds = (decoded as string[]).filter(
+          (id) => id !== '0x0000000000000000000000000000000000000000'
+        );
+        break;
+      } catch (error) {
+        logger.warn(
+          `Failed to get feed IDs from ${rpcUrl}`,
+          error instanceof Error ? error : undefined
+        );
+        continue;
+      }
+    }
+
+    if (feedIds.length === 0) {
+      return [];
+    }
+
+    // Decode feed IDs to symbol names
+    const feeds: OracleFeedInsert[] = [];
+    for (const feedId of feedIds) {
+      const decoded = this.decodeFlareFeedId(feedId);
+      if (!decoded) continue;
+
+      const { symbol, category } = decoded;
+
+      // Only include USD-denominated feeds
+      if (!symbol.includes('/USD')) continue;
+
+      // Extract base symbol (e.g., "BTC" from "BTC/USD")
+      const baseSymbol = symbol.replace('/USD', '');
+
+      feeds.push({
+        provider: 'flare',
+        symbol: baseSymbol,
+        chain_id: 14,
+        address: feedId,
+        name: symbol,
+        decimals: 8,
+        category,
+        is_active: true,
+        source: 'flare-on-chain',
+        metadata: { feedId, network: 'flare' },
+      });
+    }
+
+    return feeds;
+  }
+
+  /**
+   * Decode a Flare bytes21 feed ID back to its symbol and category.
+   * Format: 1 byte category + 20 bytes hex-encoded name + zero padding
+   */
+  private decodeFlareFeedId(feedId: string): { symbol: string; category: string } | null {
+    try {
+      // Remove 0x prefix
+      const hex = feedId.startsWith('0x') ? feedId.slice(2) : feedId;
+      if (hex.length !== 42) return null; // 21 bytes = 42 hex chars
+
+      // First byte is category
+      const categoryByte = parseInt(hex.slice(0, 2), 16);
+      // Bytes 1-20 are the hex-encoded feed name
+      const nameHex = hex.slice(2);
+      // Decode hex to string, removing null bytes
+      const nameBytes = Buffer.from(nameHex, 'hex');
+      const name = nameBytes.toString('utf8').replace(/\0/g, '').trim();
+
+      if (!name) return null;
+
+      const categoryMap: Record<number, string> = {
+        1: 'crypto',
+        2: 'forex',
+        3: 'commodity',
+        4: 'equity',
+        33: 'crypto', // Custom crypto feed (0x21)
+      };
+
+      const category = categoryMap[categoryByte] || 'crypto';
+
+      return { symbol: name, category };
+    } catch {
+      return null;
+    }
   }
 
   // ─── WINkLink / TWAP / Reflector ──────────────────────────────────
