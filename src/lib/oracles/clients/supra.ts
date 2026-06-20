@@ -1,7 +1,11 @@
 import { BaseOracleClient, OracleCache } from '@/lib/oracles/base';
 import type { OracleClientConfig } from '@/lib/oracles/base';
 import { supraSymbols, SUPRA_AVAILABLE_PAIRS } from '@/lib/oracles/constants/supportedSymbols';
-import { SUPRA_PAIR_INDEX_MAP, SUPRA_DORA_REST_URL } from '@/lib/oracles/constants/supraConstants';
+import {
+  SUPRA_PAIR_INDEX_MAP,
+  SUPRA_DORA_REST_URL,
+  getSupraPairIndexAsync,
+} from '@/lib/oracles/constants/supraConstants';
 import { getSupraDataService } from '@/lib/oracles/services/supraDataService';
 import { buildApiVerification } from '@/lib/oracles/utils/verificationUtils';
 import { createLogger } from '@/lib/utils/logger';
@@ -51,9 +55,9 @@ export class SupraClient extends BaseOracleClient {
     this.validateGetPriceParams(symbol, options);
 
     const upperSymbol = symbol.toUpperCase();
-    const pairIndex = SUPRA_PAIR_INDEX_MAP[upperSymbol];
+    const pairIndex = await getSupraPairIndexAsync(upperSymbol);
 
-    if (pairIndex === undefined || pairIndex === null) {
+    if (pairIndex === null) {
       throw this.createError(
         `Symbol '${upperSymbol}' is not supported by Supra`,
         'SYMBOL_NOT_SUPPORTED'

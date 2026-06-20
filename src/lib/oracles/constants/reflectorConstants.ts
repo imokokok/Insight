@@ -1,4 +1,5 @@
 import { STELLAR_CONFIG } from '@/lib/config/serverEnv';
+import { resolveFeed, resolveFeedAddress } from '@/lib/oracles/utils/dynamicFeedResolver';
 
 export const REFLECTOR_CRYPTO_CONTRACT =
   STELLAR_CONFIG.reflectorCryptoContract ||
@@ -61,3 +62,25 @@ export const REFLECTOR_CONTRACT_METHODS = {
 } as const;
 
 export const REFLECTOR_TIMEOUT_MS = 15_000;
+
+export async function getReflectorContractIdAsync(symbol: string): Promise<string | null> {
+  const upper = symbol.toUpperCase();
+  try {
+    const address = await resolveFeedAddress('reflector', upper, 0);
+    if (address) return address;
+  } catch {
+    // Database lookup failed, return null
+  }
+  return null;
+}
+
+export async function isReflectorSymbolSupportedAsync(symbol: string): Promise<boolean> {
+  const upper = symbol.toUpperCase();
+  try {
+    const feed = await resolveFeed('reflector', upper, 0);
+    if (feed && feed.is_active) return true;
+  } catch {
+    // Database lookup failed, return false
+  }
+  return false;
+}

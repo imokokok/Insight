@@ -1,5 +1,7 @@
 import { ALCHEMY_RPC } from '@/lib/config/serverEnv';
 
+import { resolveFeed, resolveFeedAddress } from '../utils/dynamicFeedResolver';
+
 import { ETHEREUM_TOKEN_ADDRESSES } from './ethereumTokenAddresses';
 
 export const UNISWAP_V3_FACTORY: Record<number, `0x${string}`> = {
@@ -511,5 +513,39 @@ export const twapSymbols = [
   'STETH',
   'FRAX',
 ] as const;
+
+/**
+ * Resolve TWAP pool config dynamically from database.
+ */
+export async function getTwapPoolConfigAsync(
+  symbol: string,
+  chainId: number
+): Promise<TwapPoolConfig | null> {
+  const feed = await resolveFeed('twap', symbol, chainId);
+  if (feed) {
+    const metadata = feed.metadata as Record<string, unknown> | null;
+    return {
+      address: feed.address as `0x${string}`,
+      feeTier: (metadata?.feeTier as number) ?? 3000,
+      token0: (metadata?.token0 as string) ?? '',
+      token1: (metadata?.token1 as string) ?? '',
+    };
+  }
+  return null;
+}
+
+/**
+ * Resolve TWAP token address dynamically from database.
+ */
+export async function getTwapTokenAddressAsync(
+  tokenSymbol: string,
+  chainId: number
+): Promise<string | null> {
+  const dynamicAddress = await resolveFeedAddress('twap-token', tokenSymbol, chainId);
+  if (dynamicAddress) {
+    return dynamicAddress;
+  }
+  return null;
+}
 
 export { BLOCKCHAIN_TO_CHAIN_ID } from './chainMapping';

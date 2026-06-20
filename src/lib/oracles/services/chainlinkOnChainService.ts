@@ -8,7 +8,8 @@ import { RpcClientWithFallback } from '../utils/rpcClientWithFallback';
 
 import {
   CHAINLINK_AGGREGATOR_ABI,
-  getChainlinkPriceFeed,
+  getChainlinkPriceFeedAsync,
+  getChainlinkPriceFeed as getChainlinkPriceFeedSync,
   getChainlinkRPCConfig,
   getSupportedSymbols,
 } from './chainlinkDataSources';
@@ -211,7 +212,7 @@ class ChainlinkOnChainService {
       this.cache.delete(cacheKey);
     }
 
-    const feed = getChainlinkPriceFeed(symbol, chainId);
+    const feed = await getChainlinkPriceFeedAsync(symbol, chainId);
     if (!feed) {
       throw new Error(`Price feed not found for ${symbol} on chain ${chainId}`);
     }
@@ -349,7 +350,7 @@ class ChainlinkOnChainService {
     const supportedChains = [1, 42161, 137, 8453, 43114, 56, 10];
 
     for (const chainId of supportedChains) {
-      if (getChainlinkPriceFeed(symbol, chainId)) {
+      if (getChainlinkPriceFeedSync(symbol, chainId)) {
         chainIds.push(chainId);
       }
     }
@@ -358,7 +359,7 @@ class ChainlinkOnChainService {
   }
 
   isPriceFeedSupported(symbol: string, chainId: number): boolean {
-    return getChainlinkPriceFeed(symbol, chainId) !== null;
+    return getChainlinkPriceFeedSync(symbol, chainId) !== null;
   }
 
   clearCache(): void {

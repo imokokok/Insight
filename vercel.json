@@ -11,6 +11,9 @@
     },
     "src/app/api/cron/reputation/route.ts": {
       "maxDuration": 60
+    },
+    "src/app/api/cron/sync-feeds/route.ts": {
+      "maxDuration": 60
     }
   }
 }

@@ -1,11 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
 import { oracleApiClient } from '@/lib/api/oracleApiClient';
+import { useDynamicSymbols } from '@/lib/hooks/useDynamicSymbols';
 import { extractBaseSymbol } from '@/lib/oracles';
-import {
-  oracleSupportedSymbols,
-  providerToSymbolKey,
-} from '@/lib/oracles/constants/supportedSymbols';
 import { createLogger } from '@/lib/utils/logger';
 import { getRequestQueue, type RequestPriority } from '@/lib/utils/requestQueue';
 import { type OracleProvider, type PriceData } from '@/types/oracle';
@@ -69,6 +66,8 @@ export function useOracleDataCore(
     requestTimeout,
     requestPriority = 'normal',
   } = options;
+
+  const { oracleSymbols } = useDynamicSymbols();
 
   const {
     oracleDataError,
@@ -226,9 +225,8 @@ export function useOracleDataCore(
 
       const skipped: OracleProvider[] = [];
       const oraclesToFetch = selectedOracles.filter((oracle) => {
-        const key = providerToSymbolKey[oracle];
-        const supportedSymbols = oracleSupportedSymbols[key];
-        const isSupported = (supportedSymbols as readonly string[]).includes(baseSymbol);
+        const supportedSymbols = oracleSymbols[oracle] || [];
+        const isSupported = supportedSymbols.includes(baseSymbol);
         if (!isSupported) {
           skipped.push(oracle);
         }

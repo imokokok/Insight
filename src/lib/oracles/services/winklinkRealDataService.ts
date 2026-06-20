@@ -11,6 +11,7 @@ import {
 import { FailureMode, buildSignalVector } from '@/types/oracle/signals';
 
 import { OracleCache, createSingleton } from '../base';
+import { resolveFeedAddress } from '../utils/dynamicFeedResolver';
 import { withOracleRetry } from '../utils/retry';
 
 const logger = createLogger('WINkLinkRealDataService');
@@ -51,6 +52,17 @@ const WINKLINK_PRICE_FEEDS: Record<string, string> = {
   'USDJ-USD': 'TB1MyT7pDCNg8w7cSW1QvYKs4WPzErzP5k',
   'WBTC-USD': 'TCYS6aj9shB6rZNpTCqSkN1aTwkSnz1wHq',
 };
+
+/**
+ * Resolve WINkLink feed address dynamically from database.
+ */
+async function getWinklinkFeedAddressAsync(symbol: string): Promise<string | null> {
+  const dynamicAddress = await resolveFeedAddress('winklink', symbol, 0);
+  if (dynamicAddress) {
+    return dynamicAddress;
+  }
+  return null;
+}
 
 export type { WINkLinkTokenOnChainData };
 
@@ -99,21 +111,17 @@ class WINkLinkRealDataService {
     }
 
     try {
-      const normalizedSymbol = symbol.toUpperCase().replace('/', '-');
-      const pairKey = normalizedSymbol.includes('-') ? normalizedSymbol : `${normalizedSymbol}-USD`;
-      const contractAddress = WINKLINK_PRICE_FEEDS[pairKey];
+      const contractAddress = await getWinklinkFeedAddressAsync(symbol);
 
       if (!contractAddress) {
         logger.warn('No WINkLink price feed found for symbol', {
           symbol,
-          normalizedSymbol,
-          pairKey,
           availablePairs: Object.keys(WINKLINK_PRICE_FEEDS),
         });
         return null;
       }
 
-      logger.info('Fetching price from WINkLink contract', { symbol, pairKey, contractAddress });
+      logger.info('Fetching price from WINkLink contract', { symbol, contractAddress });
 
       const [decimalsResult, answerResult, timestampResult] = await Promise.allSettled([
         this.callContractMethodWithRetry(contractAddress, 'decimals', 3, signal),
@@ -406,9 +414,7 @@ class WINkLinkRealDataService {
         return null;
       }
 
-      const normalizedSymbol = symbol.toUpperCase().replace('/', '-');
-      const pairKey = normalizedSymbol.includes('-') ? normalizedSymbol : `${normalizedSymbol}-USD`;
-      const feedContractAddress = WINKLINK_PRICE_FEEDS[pairKey] || null;
+      const feedContractAddress = await getWinklinkFeedAddressAsync(symbol);
 
       const now = Date.now();
       const refTime = priceData.ingestionTimestamp ?? priceData.timestamp;

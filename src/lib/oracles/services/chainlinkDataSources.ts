@@ -1,6 +1,11 @@
 import { ALCHEMY_RPC } from '@/lib/config/serverEnv';
+import { type OracleFeed } from '@/lib/supabase/queries';
+import { getServerQueries } from '@/lib/supabase/server';
+import { createLogger } from '@/lib/utils/logger';
 
-interface ChainlinkPriceFeed {
+const logger = createLogger('ChainlinkDataSources');
+
+export interface ChainlinkPriceFeed {
   address: `0x${string}`;
   name: string;
   symbol: string;
@@ -14,7 +19,7 @@ interface ChainlinkRPCConfig {
   name: string;
 }
 
-const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPriceFeed>> = {
+export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPriceFeed>> = {
   ETH: {
     1: {
       address: '0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419',
@@ -924,10 +929,99 @@ export const CHAINLINK_AGGREGATOR_ABI = [
   },
 ] as const;
 
-export function getChainlinkPriceFeed(symbol: string, chainId: number): ChainlinkPriceFeed | null {
+// ─── In-memory cache for database-sourced feeds ──────────────────────
+// Avoids hitting Supabase on every price fetch. Refreshed periodically.
+const FEED_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+let feedCache: Map<string, ChainlinkPriceFeed> | null = null;
+let feedCacheTimestamp = 0;
+
+function feedCacheKey(symbol: string, chainId: number): string {
+  return `${symbol.toUpperCase()}-${chainId}`;
+}
+
+function isFeedCacheStale(): boolean {
+  return !feedCache || Date.now() - feedCacheTimestamp > FEED_CACHE_TTL_MS;
+}
+
+function oracleFeedToPriceFeed(feed: OracleFeed): ChainlinkPriceFeed {
+  return {
+    address: feed.address as `0x${string}`,
+    name: feed.name,
+    symbol: feed.symbol,
+    decimals: feed.decimals,
+    category: feed.category as ChainlinkPriceFeed['category'],
+  };
+}
+
+async function loadFeedsFromDatabase(): Promise<Map<string, ChainlinkPriceFeed>> {
+  const map = new Map<string, ChainlinkPriceFeed>();
+
+  try {
+    const queries = getServerQueries();
+    const feeds = await queries.getOracleFeeds('chainlink');
+
+    for (const feed of feeds) {
+      map.set(feedCacheKey(feed.symbol, feed.chain_id), oracleFeedToPriceFeed(feed));
+    }
+
+    logger.info(`Loaded ${map.size} chainlink feeds from database`);
+  } catch (error) {
+    logger.warn(
+      'Failed to load feeds from database, will use hardcoded fallback',
+      error instanceof Error ? error : undefined
+    );
+  }
+
+  return map;
+}
+
+async function getFeedFromDatabase(
+  symbol: string,
+  chainId: number
+): Promise<ChainlinkPriceFeed | null> {
+  // Check cache first
+  if (!isFeedCacheStale() && feedCache) {
+    return feedCache.get(feedCacheKey(symbol, chainId)) || null;
+  }
+
+  // Refresh cache
+  feedCache = await loadFeedsFromDatabase();
+  feedCacheTimestamp = Date.now();
+
+  return feedCache.get(feedCacheKey(symbol, chainId)) || null;
+}
+
+function getFeedFromHardcoded(symbol: string, chainId: number): ChainlinkPriceFeed | null {
   const feeds = CHAINLINK_PRICE_FEEDS[symbol.toUpperCase()];
   if (!feeds) return null;
   return feeds[chainId] || null;
+}
+
+/**
+ * Get Chainlink price feed info from database only.
+ * Make sure to run /api/cron/sync-feeds?mode=seed first to populate the database.
+ */
+export async function getChainlinkPriceFeedAsync(
+  symbol: string,
+  chainId: number
+): Promise<ChainlinkPriceFeed | null> {
+  if (typeof window === 'undefined') {
+    return getFeedFromDatabase(symbol, chainId);
+  }
+  return null;
+}
+
+/**
+ * Synchronous version — reads from database cache if available.
+ * Falls back to hardcoded data only if cache is empty (not yet seeded).
+ */
+export function getChainlinkPriceFeed(symbol: string, chainId: number): ChainlinkPriceFeed | null {
+  // Check database cache first
+  if (feedCache && !isFeedCacheStale()) {
+    return feedCache.get(feedCacheKey(symbol, chainId)) || null;
+  }
+  // Hardcoded fallback for bootstrapping before seed
+  return getFeedFromHardcoded(symbol, chainId);
 }
 
 export function getChainlinkRPCConfig(chainId: number): ChainlinkRPCConfig | null {
@@ -940,4 +1034,12 @@ export function getSupportedSymbols(): string[] {
 
 export function isPriceFeedSupported(symbol: string, chainId: number): boolean {
   return getChainlinkPriceFeed(symbol, chainId) !== null;
+}
+
+/**
+ * Invalidate the feed cache, forcing a fresh load from database on next access.
+ */
+export function invalidateFeedCache(): void {
+  feedCache = null;
+  feedCacheTimestamp = 0;
 }

@@ -2,7 +2,7 @@ import { BaseOracleClient } from '@/lib/oracles/base';
 import type { OracleClientConfig } from '@/lib/oracles/base';
 import { BLOCKCHAIN_TO_CHAIN_ID } from '@/lib/oracles/constants/chainMapping';
 import {
-  isPriceFeedSupported,
+  isPriceFeedSupported as isPriceFeedSupportedSync,
   getChainlinkPriceFeed,
 } from '@/lib/oracles/services/chainlinkDataSources';
 import {
@@ -228,7 +228,7 @@ export class ChainlinkClient extends BaseOracleClient {
 
   private isPriceFeedSupported(symbol: string, chain?: Blockchain): boolean {
     const chainId = this.getChainId(chain);
-    return isPriceFeedSupported(symbol, chainId);
+    return isPriceFeedSupportedSync(symbol, chainId);
   }
 
   getSupportedSymbols(): string[] {
@@ -259,6 +259,6 @@ export class ChainlinkClient extends BaseOracleClient {
   getSupportedSymbolsForChain(chain: Blockchain): string[] {
     const chainId = this.getChainId(chain);
     const allSymbols = this.getSupportedSymbols();
-    return allSymbols.filter((symbol) => isPriceFeedSupported(symbol, chainId));
+    return allSymbols.filter((symbol) => isPriceFeedSupportedSync(symbol, chainId));
   }
 }

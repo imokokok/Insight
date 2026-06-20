@@ -6,6 +6,7 @@ import { ChevronDown, ChevronUp, Filter } from 'lucide-react';
 
 import { DropdownSelect, SegmentedControl } from '@/components/ui';
 import { getPriceOracleProvidersSortedByMarketCap } from '@/lib/config/oracles';
+import { useDynamicSymbols } from '@/lib/hooks/useDynamicSymbols';
 import { getAssetClass, ASSET_CLASS_CATEGORIES } from '@/lib/oracles/constants/supportedSymbols';
 import { isBlockchain } from '@/lib/utils/chainUtils';
 import { useCrossChainDataStore } from '@/stores/crossChainDataStore';
@@ -20,6 +21,8 @@ import { ChainSelector } from './ChainSelector';
 
 export function CrossChainFilters() {
   const [isCollapsed, setIsCollapsed] = useState(false);
+
+  const { symbols: dynamicSymbols, categories } = useDynamicSymbols();
 
   const selectedProvider = useCrossChainSelectorStore((s) => s.selectedProvider);
   const setSelectedProvider = useCrossChainSelectorStore((s) => s.setSelectedProvider);
@@ -42,10 +45,10 @@ export function CrossChainFilters() {
     label: providerNames[provider],
   }));
 
-  const symbolOptions = symbols.map((symbol) => ({
+  const symbolOptions = (dynamicSymbols.length > 0 ? dynamicSymbols : symbols).map((symbol) => ({
     value: symbol,
     label: symbol,
-    category: getAssetClass(symbol),
+    category: categories[symbol] || getAssetClass(symbol),
   }));
 
   const filteredChains = supportedChains.filter((chain) => visibleChains.includes(chain));

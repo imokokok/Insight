@@ -1,7 +1,11 @@
 import { OracleProviderError } from '@/lib/errors';
 import { BaseOracleClient, OracleCache } from '@/lib/oracles/base';
 import type { OracleClientConfig } from '@/lib/oracles/base';
-import { SPREAD_PERCENTAGES, REDSTONE_API_BASE } from '@/lib/oracles/constants/redstoneConstants';
+import {
+  SPREAD_PERCENTAGES,
+  REDSTONE_API_BASE,
+  isRedStoneSymbolSupportedAsync,
+} from '@/lib/oracles/constants/redstoneConstants';
 import { redstoneSymbols } from '@/lib/oracles/constants/supportedSymbols';
 import { withOracleRetry, ORACLE_RETRY_PRESETS } from '@/lib/oracles/utils/retry';
 import { buildApiVerification } from '@/lib/oracles/utils/verificationUtils';
@@ -258,6 +262,10 @@ export class RedStoneClient extends BaseOracleClient {
     this.cache.stopCleanupInterval();
     this.cache.clear();
     this.cache.startCleanupInterval();
+  }
+
+  async isSymbolSupportedAsync(symbol: string): Promise<boolean> {
+    return isRedStoneSymbolSupportedAsync(symbol);
   }
 
   async getTokenOnChainData(symbol: string): Promise<RedStoneTokenOnChainData | null> {

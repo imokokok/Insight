@@ -1,0 +1,70 @@
+name: Weekly Feed Discovery
+
+on:
+  schedule:
+    # Every Monday at 4:00 AM UTC
+    - cron: '0 4 * * 1'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Sync mode (seed or discover)'
+        required: false
+        default: 'discover'
+      provider:
+        description: 'Single provider to sync (empty = all)'
+        required: false
+        default: ''
+
+env:
+  SITE_URL: ${{ vars.SITE_URL || 'https://insight-oracle.vercel.app' }}
+  CRON_SECRET: ${{ secrets.CRON_SECRET }}
+
+jobs:
+  discover-feeds:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        provider:
+          - chainlink
+          - pyth
+          - supra
+          - dia
+          - redstone
+          - api3
+          - winklink
+          - twap
+          - twap-token
+          - reflector
+          - flare
+    steps:
+      - name: Discover ${{ matrix.provider }} feeds
+        run: |
+          MODE="${{ github.event.inputs.mode || 'discover' }}"
+          PROVIDER="${{ matrix.provider }}"
+          echo "Syncing ${PROVIDER} in ${MODE} mode..."
+
+          RESPONSE=$(curl -s -w "\n%{http_code}" \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            "${SITE_URL}/api/cron/sync-feeds?mode=${MODE}&provider=${PROVIDER}")
+
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | sed '$d')
+
+          echo "HTTP Status: ${HTTP_CODE}"
+          echo "Response: ${BODY}"
+
+          if [ "$HTTP_CODE" -ne 200 ]; then
+            echo "::warning::Failed to sync ${PROVIDER}: HTTP ${HTTP_CODE}"
+          fi
+
+  keep-supabase-alive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase to prevent pausing
+        run: |
+          # Free tier Supabase pauses after 1 week of inactivity
+          # This ping keeps it active
+          RESPONSE=$(curl -s -w "\n%{http_code}" \
+            "${SITE_URL}/api/symbols")
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          echo "Supabase keep-alive ping: HTTP ${HTTP_CODE}"

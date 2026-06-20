@@ -6,6 +6,7 @@ import { Clock, Database, Save, Loader2, CheckCircle, RefreshCw, DollarSign } fr
 
 import { DropdownSelect, SegmentedControl } from '@/components/ui';
 import { useProfileUpdate } from '@/hooks/useProfileUpdate';
+import { useDynamicSymbols } from '@/lib/hooks/useDynamicSymbols';
 import { getAllSupportedSymbols } from '@/lib/oracles/constants/supportedSymbols';
 import { createLogger } from '@/lib/utils/logger';
 import { useUser, useProfile, useAuthInitialized } from '@/stores/authStore';
@@ -55,10 +56,6 @@ const oracleOptions = [
 
 // Generate trading pair options from unified symbol list
 const allSymbols = getAllSupportedSymbols();
-const symbolOptions = allSymbols.map((symbol) => ({
-  value: `${symbol}/USD`,
-  label: `${symbol}/USD`,
-}));
 
 const timeRangeOptions = [
   { value: '1h', label: '1 Hour' },
@@ -89,6 +86,12 @@ export function PreferencesPanel() {
   const profile = useProfile();
   const authInitialized = useAuthInitialized();
   const { updateProfile, isUpdating: isSaving } = useProfileUpdate();
+  const { symbols: dynamicSymbols } = useDynamicSymbols();
+
+  const symbolOptions = (dynamicSymbols.length > 0 ? dynamicSymbols : allSymbols).map((symbol) => ({
+    value: `${symbol}/USD`,
+    label: `${symbol}/USD`,
+  }));
 
   const computedPreferences = useMemo(() => {
     if (typeof window === 'undefined') return defaultPreferences;

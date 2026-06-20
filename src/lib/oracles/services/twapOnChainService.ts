@@ -11,9 +11,10 @@ import {
   UNISWAP_V3_FACTORY,
   TWAP_FEE_TIERS as _TWAP_FEE_TIERS,
   TWAP_INTERVALS,
-  TWAP_TOKEN_ADDRESSES,
   BLOCKCHAIN_TO_CHAIN_ID as _BLOCKCHAIN_TO_CHAIN_ID,
   type TwapPoolConfig,
+  getTwapPoolConfigAsync,
+  getTwapTokenAddressAsync,
 } from '../constants/twapConstants';
 import { RpcClientWithFallback } from '../utils/rpcClientWithFallback';
 
@@ -177,7 +178,7 @@ class TwapOnChainService {
       return this.ethUsdPrice;
     }
 
-    const usdcWethPool = TWAP_POOL_ADDRESSES['ETH']?.[chainId];
+    const usdcWethPool = await getTwapPoolConfigAsync('ETH', chainId);
     if (usdcWethPool) {
       try {
         const slot0Data = await this.ethCall(
@@ -224,7 +225,7 @@ class TwapOnChainService {
       return this.bnbUsdPrice;
     }
 
-    const bnbPool = TWAP_POOL_ADDRESSES['BNB']?.[chainId];
+    const bnbPool = await getTwapPoolConfigAsync('BNB', chainId);
     if (bnbPool) {
       try {
         const slot0Data = await this.ethCall(
@@ -271,7 +272,7 @@ class TwapOnChainService {
       return this.btcUsdPrice;
     }
 
-    const wbtcWethPool = TWAP_POOL_ADDRESSES['WBTC']?.[chainId];
+    const wbtcWethPool = await getTwapPoolConfigAsync('WBTC', chainId);
     if (wbtcWethPool) {
       try {
         const slot0Data = await this.ethCall(
@@ -433,10 +434,8 @@ class TwapOnChainService {
     return baseDecimals;
   }
 
-  private getPoolConfig(symbol: string, chainId: number): TwapPoolConfig | null {
-    const symbolPools = TWAP_POOL_ADDRESSES[symbol];
-    if (!symbolPools) return null;
-    return symbolPools[chainId] || null;
+  private async getPoolConfig(symbol: string, chainId: number): Promise<TwapPoolConfig | null> {
+    return getTwapPoolConfigAsync(symbol, chainId);
   }
 
   async findPoolAddress(
@@ -467,17 +466,17 @@ class TwapOnChainService {
     chainId: number,
     signal?: AbortSignal
   ): Promise<{ address: `0x${string}`; feeTier: number; token0: string; token1: string } | null> {
-    const poolConfig = this.getPoolConfig(symbol, chainId);
+    const poolConfig = await this.getPoolConfig(symbol, chainId);
     if (poolConfig) return poolConfig;
 
-    const tokenAddresses = TWAP_TOKEN_ADDRESSES[symbol];
-    if (!tokenAddresses || !tokenAddresses[chainId]) return null;
+    const tokenAddress = await getTwapTokenAddressAsync(symbol, chainId);
+    if (!tokenAddress) return null;
 
     for (const fee of [500, 3000, 10000]) {
-      const usdcAddress = TWAP_TOKEN_ADDRESSES['USDC']?.[chainId];
+      const usdcAddress = await getTwapTokenAddressAsync('USDC', chainId);
       if (usdcAddress) {
         const poolAddress = await this.findPoolAddress(
-          tokenAddresses[chainId] as `0x${string}`,
+          tokenAddress as `0x${string}`,
           usdcAddress as `0x${string}`,
           fee,
           chainId,
@@ -488,10 +487,10 @@ class TwapOnChainService {
         }
       }
 
-      const wethAddress = TWAP_TOKEN_ADDRESSES['WETH']?.[chainId];
+      const wethAddress = await getTwapTokenAddressAsync('WETH', chainId);
       if (wethAddress) {
         const poolAddress = await this.findPoolAddress(
-          tokenAddresses[chainId] as `0x${string}`,
+          tokenAddress as `0x${string}`,
           wethAddress as `0x${string}`,
           fee,
           chainId,
@@ -655,8 +654,8 @@ class TwapOnChainService {
     return Object.keys(symbolPools).map(Number);
   }
 
-  isPoolSupported(symbol: string, chainId: number): boolean {
-    return this.getPoolConfig(symbol, chainId) !== null;
+  async isPoolSupported(symbol: string, chainId: number): Promise<boolean> {
+    return (await this.getPoolConfig(symbol, chainId)) !== null;
   }
 
   clearCache(): void {

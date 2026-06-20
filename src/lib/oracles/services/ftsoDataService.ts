@@ -13,6 +13,7 @@ import {
   FLARE_SYMBOL_TO_FEED_ID,
   FLARE_CONTRACT_REGISTRY,
   REGISTRY_ABI,
+  getFlareFeedIdAsync,
 } from '../constants/flareConstants';
 import { bigIntToPrice } from '../utils/oracleDataUtils';
 import { withOracleRetry, ORACLE_RETRY_PRESETS } from '../utils/retry';
@@ -128,6 +129,10 @@ class FtsoDataService {
     return FLARE_SYMBOL_TO_FEED_ID[upperSymbol] || null;
   }
 
+  async getFeedIdAsync(symbol: string, network: string): Promise<string | null> {
+    return getFlareFeedIdAsync(symbol, network);
+  }
+
   private decodeFeedResult(result: string): FtsoFeedData {
     const cleanResult = result.startsWith('0x') ? result : `0x${result}`;
 
@@ -170,7 +175,7 @@ class FtsoDataService {
     const cached = this.cache.get<FtsoPriceData>(cacheKey);
     if (cached) return cached;
 
-    const feedId = this.getFeedId(symbol);
+    const feedId = await this.getFeedIdAsync(symbol, network);
     if (!feedId) {
       throw new FtsoApiError(
         `Symbol '${symbol}' not found in Flare feed registry`,

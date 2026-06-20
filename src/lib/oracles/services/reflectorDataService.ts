@@ -21,11 +21,11 @@ import {
   REFLECTOR_CACHE_TTL,
   REFLECTOR_CONTRACT_METHODS,
   REFLECTOR_TIMEOUT_MS,
-  REFLECTOR_ASSET_CONTRACT_MAP,
   REFLECTOR_CRYPTO_ASSETS,
   REFLECTOR_FOREX_ASSETS,
   REFLECTOR_CRYPTO_CONTRACT,
   REFLECTOR_FOREX_CONTRACT,
+  getReflectorContractIdAsync,
 } from '../constants/reflectorConstants';
 import { bigIntToPrice } from '../utils/oracleDataUtils';
 
@@ -95,8 +95,8 @@ class ReflectorDataService {
     this.cache.set(key, { data, expiry: Date.now() + ttlMs });
   }
 
-  private getContractIdForSymbol(symbol: string): string | null {
-    return REFLECTOR_ASSET_CONTRACT_MAP[symbol.toUpperCase()] ?? null;
+  private async getContractIdForSymbolAsync(symbol: string): Promise<string | null> {
+    return getReflectorContractIdAsync(symbol);
   }
 
   private async ensureAssetScVal(symbol: string, signal?: AbortSignal): Promise<xdr.ScVal> {
@@ -291,7 +291,7 @@ class ReflectorDataService {
     if (cached) return cached;
 
     try {
-      const contractId = this.getContractIdForSymbol(upper);
+      const contractId = await this.getContractIdForSymbolAsync(upper);
       if (!contractId) {
         logger.warn(`No contract mapping for symbol: ${upper}`);
         return null;

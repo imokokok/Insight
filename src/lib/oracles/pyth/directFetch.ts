@@ -2,10 +2,10 @@ import { createLogger } from '@/lib/utils/logger';
 import type { PriceData } from '@/types/oracle';
 
 import {
-  PYTH_PRICE_FEED_IDS,
   HERMES_FALLBACK_URLS,
   HERMES_DIRECT_IPS,
   normalizeSymbol,
+  getPythFeedIdAsync,
 } from '../constants/pythConstants';
 
 import { parsePythPrice } from './pythParser';
@@ -139,7 +139,7 @@ async function tryFetchFromEndpoints(priceId: string): Promise<ParsedPriceFeed |
 
 export async function fetchLatestPriceDirect(symbol: string): Promise<PriceData | null> {
   const pythSymbol = normalizeSymbol(symbol);
-  const priceId = PYTH_PRICE_FEED_IDS[pythSymbol];
+  const priceId = await getPythFeedIdAsync(symbol);
 
   if (!priceId) {
     logger.warn('No price feed ID found for symbol', { symbol });
@@ -160,7 +160,7 @@ export async function fetchHistoricalPricesDirect(
   intervalMinutes: number = 60
 ): Promise<PriceData[]> {
   const pythSymbol = normalizeSymbol(symbol);
-  const priceId = PYTH_PRICE_FEED_IDS[pythSymbol];
+  const priceId = await getPythFeedIdAsync(symbol);
 
   if (!priceId) {
     logger.warn('No price feed ID found for symbol', { symbol });

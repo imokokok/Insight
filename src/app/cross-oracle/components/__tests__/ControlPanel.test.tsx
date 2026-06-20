@@ -73,6 +73,16 @@ jest.mock('../../hooks/useCommonSymbols', () => ({
     commonSymbols: ['BTC', 'ETH', 'SOL'],
     oracleCountMap: { BTC: 2, ETH: 2, SOL: 1 },
     unsupportedOracles: {},
+    loading: false,
+  }),
+}));
+
+jest.mock('@/lib/hooks/useDynamicSymbols', () => ({
+  useDynamicSymbols: () => ({
+    symbols: ['BTC', 'ETH', 'SOL'],
+    oracleSymbols: {},
+    categories: {},
+    loading: false,
   }),
 }));
 

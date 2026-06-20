@@ -22,6 +22,7 @@ import {
 import { AutoRefreshControl } from '@/app/price-query/components/AutoRefreshControl';
 import { DropdownSelect } from '@/components/ui';
 import { getPriceOracleProvidersSortedByMarketCap, getOracleConfig } from '@/lib/config/oracles';
+import { useDynamicSymbols } from '@/lib/hooks/useDynamicSymbols';
 import { getAssetClass, ASSET_CLASS_CATEGORIES } from '@/lib/oracles/constants/supportedSymbols';
 import { addThousandSeparators } from '@/lib/utils/format';
 import { type OracleProvider } from '@/types/oracle';
@@ -87,6 +88,7 @@ export function ControlPanel({
   const [isMobileExpanded, setIsMobileExpanded] = useState(false);
   const [hoveredOracle, setHoveredOracle] = useState<OracleProvider | null>(null);
 
+  const { categories } = useDynamicSymbols();
   const { commonSymbols, oracleCountMap, unsupportedOracles } = useCommonSymbols(selectedOracles);
 
   const currentUnsupportedOracles = useMemo(() => {
@@ -109,7 +111,7 @@ export function ControlPanel({
     label: symbol,
     icon: true,
     color: '#6B7280',
-    category: getAssetClass(symbol),
+    category: categories[symbol] || getAssetClass(symbol),
   }));
 
   // Custom render option, showing oracle count

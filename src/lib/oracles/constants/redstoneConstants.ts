@@ -1,3 +1,5 @@
+import { resolveFeed } from '@/lib/oracles/utils/dynamicFeedResolver';
+
 export const REDSTONE_API_BASE = 'https://api.redstone.finance';
 
 export const SPREAD_PERCENTAGES: Record<string, number> = {
@@ -18,3 +20,18 @@ export const SPREAD_PERCENTAGES: Record<string, number> = {
   XAU: 0.01,
   XAG: 0.015,
 };
+
+export async function isRedStoneSymbolSupportedAsync(symbol: string): Promise<boolean> {
+  const upperSymbol = symbol.toUpperCase();
+
+  try {
+    const feed = await resolveFeed('redstone', upperSymbol, 0);
+    if (feed && feed.is_active) {
+      return true;
+    }
+  } catch {
+    // Database lookup failed, return false
+  }
+
+  return false;
+}

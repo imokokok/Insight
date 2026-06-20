@@ -6,6 +6,7 @@ import { Search, RefreshCw } from 'lucide-react';
 
 import { DropdownSelect, type SelectorOption } from '@/components/ui';
 import { getPriceOracleProvidersSortedByMarketCap } from '@/lib/config/oracles';
+import { useDynamicSymbols } from '@/lib/hooks/useDynamicSymbols';
 import { getDefaultFactory } from '@/lib/oracles';
 import { getAssetClass, ASSET_CLASS_CATEGORIES } from '@/lib/oracles/constants/supportedSymbols';
 import { type OracleProvider, type Blockchain, BLOCKCHAIN_VALUES } from '@/types/oracle';
@@ -26,8 +27,11 @@ function getFirstSupportedChain(oracle: OracleProvider): Blockchain | null {
   }
 }
 
-function getFirstSupportedSymbol(oracle: OracleProvider, chain: Blockchain): string {
-  const allSymbols = symbols;
+function getFirstSupportedSymbol(
+  oracle: OracleProvider,
+  chain: Blockchain,
+  allSymbols: string[]
+): string {
   try {
     const client = getDefaultFactory().getClient(oracle);
     for (const symbol of allSymbols) {
@@ -43,6 +47,7 @@ function getFirstSupportedSymbol(oracle: OracleProvider, chain: Blockchain): str
 
 export function Selectors() {
   const query = useUnifiedQuery();
+  const { symbols: dynamicSymbols, categories } = useDynamicSymbols();
 
   const {
     selectedOracle,
@@ -92,7 +97,7 @@ export function Selectors() {
     let availableSymbols: string[];
 
     if (!selectedOracle) {
-      availableSymbols = symbols;
+      availableSymbols = dynamicSymbols.length > 0 ? dynamicSymbols : symbols;
     } else if (selectedChain) {
       availableSymbols = getSymbolsForChain(selectedChain);
     } else {
@@ -102,9 +107,16 @@ export function Selectors() {
     return availableSymbols.map((symbol) => ({
       value: symbol,
       label: symbol,
-      category: getAssetClass(symbol),
+      category: categories[symbol] || getAssetClass(symbol),
     }));
-  }, [selectedOracle, selectedChain, supportedSymbols, getSymbolsForChain]);
+  }, [
+    selectedOracle,
+    selectedChain,
+    supportedSymbols,
+    getSymbolsForChain,
+    dynamicSymbols,
+    categories,
+  ]);
 
   const oracleOptions: SelectorOption<OracleProvider>[] =
     getPriceOracleProvidersSortedByMarketCap().map((oracle) => ({
@@ -159,7 +171,11 @@ export function Selectors() {
               const firstChain = getFirstSupportedChain(newOracle);
               setSelectedChain(firstChain);
               if (firstChain) {
-                const firstSymbol = getFirstSupportedSymbol(newOracle, firstChain);
+                const firstSymbol = getFirstSupportedSymbol(
+                  newOracle,
+                  firstChain,
+                  dynamicSymbols.length > 0 ? dynamicSymbols : symbols
+                );
                 setSelectedSymbol(firstSymbol);
               } else {
                 setSelectedSymbol('');
@@ -187,7 +203,11 @@ export function Selectors() {
               if (newChain && selectedSymbol && !isSymbolSupported(selectedSymbol, newChain)) {
                 // Auto-select first supported symbol for the new chain
                 if (selectedOracle) {
-                  const firstSymbol = getFirstSupportedSymbol(selectedOracle, newChain);
+                  const firstSymbol = getFirstSupportedSymbol(
+                    selectedOracle,
+                    newChain,
+                    dynamicSymbols.length > 0 ? dynamicSymbols : symbols
+                  );
                   setSelectedSymbol(firstSymbol);
                 } else {
                   setSelectedSymbol('');

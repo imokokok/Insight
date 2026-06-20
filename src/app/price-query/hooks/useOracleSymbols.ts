@@ -1,7 +1,6 @@
 import { useMemo, useCallback } from 'react';
 
-import { symbols } from '@/lib/constants';
-import { oracleSupportedSymbols } from '@/lib/oracles/constants/supportedSymbols';
+import { useDynamicSymbols } from '@/lib/hooks/useDynamicSymbols';
 import { getDefaultFactory } from '@/lib/oracles/factory';
 import { createLogger } from '@/lib/utils/logger';
 import { type Blockchain, type OracleProvider } from '@/types/oracle';
@@ -17,28 +16,27 @@ interface UseOracleSymbolsReturn {
   getChainsForSymbolOnOracle: (symbol: string, oracle: OracleProvider) => Blockchain[];
   getUnsupportedOraclesForSymbol: (symbol: string) => OracleProvider[];
   getSymbolsForChain: (chain: Blockchain) => string[];
+  loading: boolean;
 }
 
 export function useOracleSymbols(selectedOracles: OracleProvider[]): UseOracleSymbolsReturn {
+  const { symbols, oracleSymbols, loading } = useDynamicSymbols();
+
   const supportedSymbols = useMemo(() => {
     if (selectedOracles.length === 0) {
       return [];
     }
 
     const firstOracle = selectedOracles[0];
-    const firstOracleSymbols = new Set(
-      oracleSupportedSymbols[firstOracle as keyof typeof oracleSupportedSymbols] || []
-    );
+    const firstOracleSymbols = new Set(oracleSymbols[firstOracle] || []);
 
     let resultSymbols: string[];
     if (selectedOracles.length === 1) {
       resultSymbols = Array.from(firstOracleSymbols);
     } else {
       resultSymbols = selectedOracles.slice(1).reduce((commonSymbols, oracle) => {
-        const oracleSymbols = new Set(
-          oracleSupportedSymbols[oracle as keyof typeof oracleSupportedSymbols] || []
-        );
-        return commonSymbols.filter((symbol) => oracleSymbols.has(symbol));
+        const oracleSyms = new Set(oracleSymbols[oracle] || []);
+        return commonSymbols.filter((symbol) => oracleSyms.has(symbol));
       }, Array.from(firstOracleSymbols));
     }
 
@@ -48,14 +46,13 @@ export function useOracleSymbols(selectedOracles: OracleProvider[]): UseOracleSy
       const orderB = symbolOrder.get(b) ?? Infinity;
       return orderA - orderB;
     });
-  }, [selectedOracles]);
+  }, [selectedOracles, symbols, oracleSymbols]);
 
   const allSymbolsWithOracles = useMemo(() => {
     const symbolToOracles = new Map<string, OracleProvider[]>();
 
     selectedOracles.forEach((oracle) => {
-      const oracleSyms =
-        oracleSupportedSymbols[oracle as keyof typeof oracleSupportedSymbols] || [];
+      const oracleSyms = oracleSymbols[oracle] || [];
       oracleSyms.forEach((symbol) => {
         if (!symbolToOracles.has(symbol)) {
           symbolToOracles.set(symbol, []);
@@ -70,7 +67,7 @@ export function useOracleSymbols(selectedOracles: OracleProvider[]): UseOracleSy
         oracles,
       }))
       .sort((a, b) => (a.symbol < b.symbol ? -1 : a.symbol > b.symbol ? 1 : 0));
-  }, [selectedOracles]);
+  }, [selectedOracles, oracleSymbols]);
 
   const isSymbolSupportedByAllOracles = useCallback(
     (symbol: string): boolean => {
@@ -78,12 +75,11 @@ export function useOracleSymbols(selectedOracles: OracleProvider[]): UseOracleSy
         return false;
       }
       return selectedOracles.every((oracle) => {
-        const oracleSyms =
-          oracleSupportedSymbols[oracle as keyof typeof oracleSupportedSymbols] || [];
+        const oracleSyms = oracleSymbols[oracle] || [];
         return (oracleSyms as readonly string[]).includes(symbol);
       });
     },
-    [selectedOracles]
+    [selectedOracles, oracleSymbols]
   );
 
   const isSymbolSupported = useCallback(
@@ -93,8 +89,7 @@ export function useOracleSymbols(selectedOracles: OracleProvider[]): UseOracleSy
       }
 
       const isSupportedByOracle = selectedOracles.some((oracle) => {
-        const oracleSyms =
-          oracleSupportedSymbols[oracle as keyof typeof oracleSupportedSymbols] || [];
+        const oracleSyms = oracleSymbols[oracle] || [];
         return (oracleSyms as readonly string[]).includes(symbol);
       });
 
@@ -114,7 +109,7 @@ export function useOracleSymbols(selectedOracles: OracleProvider[]): UseOracleSy
 
       return true;
     },
-    [selectedOracles]
+    [selectedOracles, oracleSymbols]
   );
 
   const getSupportedChainsForSymbol = useCallback(
@@ -167,12 +162,11 @@ export function useOracleSymbols(selectedOracles: OracleProvider[]): UseOracleSy
         return [];
       }
       return selectedOracles.filter((oracle) => {
-        const oracleSyms =
-          oracleSupportedSymbols[oracle as keyof typeof oracleSupportedSymbols] || [];
+        const oracleSyms = oracleSymbols[oracle] || [];
         return !(oracleSyms as readonly string[]).includes(symbol);
       });
     },
-    [selectedOracles]
+    [selectedOracles, oracleSymbols]
   );
 
   const getSymbolsForChain = useCallback(
@@ -212,7 +206,7 @@ export function useOracleSymbols(selectedOracles: OracleProvider[]): UseOracleSy
         return orderA - orderB;
       });
     },
-    [selectedOracles]
+    [selectedOracles, symbols]
   );
 
   return {
@@ -224,5 +218,6 @@ export function useOracleSymbols(selectedOracles: OracleProvider[]): UseOracleSy
     getChainsForSymbolOnOracle,
     getUnsupportedOraclesForSymbol,
     getSymbolsForChain,
+    loading,
   };
 }
