@@ -41,11 +41,13 @@ jobs:
         run: |
           MODE="${{ github.event.inputs.mode || 'discover' }}"
           PROVIDER="${{ matrix.provider }}"
+          # Trim trailing slash from SITE_URL to avoid double slashes
+          BASE_URL="${SITE_URL%/}"
           echo "Syncing ${PROVIDER} in ${MODE} mode..."
 
           RESPONSE=$(curl -s -w "\n%{http_code}" \
             -H "Authorization: Bearer ${CRON_SECRET}" \
-            "${SITE_URL}/api/cron/sync-feeds?mode=${MODE}&provider=${PROVIDER}")
+            "${BASE_URL}/api/cron/sync-feeds?mode=${MODE}&provider=${PROVIDER}")
 
           HTTP_CODE=$(echo "$RESPONSE" | tail -1)
           BODY=$(echo "$RESPONSE" | sed '$d')
@@ -64,7 +66,8 @@ jobs:
         run: |
           # Free tier Supabase pauses after 1 week of inactivity
           # This ping keeps it active
+          BASE_URL="${SITE_URL%/}"
           RESPONSE=$(curl -s -w "\n%{http_code}" \
-            "${SITE_URL}/api/symbols")
+            "${BASE_URL}/api/symbols")
           HTTP_CODE=$(echo "$RESPONSE" | tail -1)
           echo "Supabase keep-alive ping: HTTP ${HTTP_CODE}"
