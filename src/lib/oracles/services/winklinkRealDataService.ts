@@ -35,22 +35,32 @@ const TRON_RPC_ENDPOINTS = [TRON_CONFIG.rpcUrl, 'https://api.trongrid.io'].filte
 
 const TRONGRID_API_KEY = TRON_CONFIG.apiKey;
 
+// WINkLink price feed addresses on TRON network
+// NOTE: TRON DAO announced migration to Chainlink in October 2024
+// Source: https://crypto.news/tron-blockchain-is-switching-oracles-from-winklink-to-chainlink/
+// These feeds may be deprecated - verify availability before use
+
 const WINKLINK_PRICE_FEEDS: Record<string, string> = {
+  // Major Cryptocurrencies
   'BTC-USD': 'TQoijQ1iZKRgJsAAWNPMu6amgtCJ3WMUV7',
   'ETH-USD': 'TR2yWYWovJaSM7TfZq7L7sT7ZRugdJJQmL',
   'TRX-USD': 'TR5HtpPK4gX4RFC4DCBUHfFgsGkGFEzSAb',
+  'LTC-USD': 'TGxGL85kN3W5sGdBiobgWabWFcMEtoqRJJ',
+  'WBTC-USD': 'TCYS6aj9shB6rZNpTCqSkN1aTwkSnz1wHq',
+
+  // Stablecoins
   'USDT-USD': 'TKePc46n5CiUCR8LL788TFeKA4kjvNnuem',
   'USDC-USD': 'TNu3zS55MP4KnBBP6Maw1nHSzRpc3CXAxm',
-  'USDD-USD': 'TJ7jEgoYVaeymVfYZ3bS57dYArwVDS1mhW',
-  'WIN-USD': 'TSCef3LT3jpLwwXCWhZe3hZoMsYk1ZLif2',
-  'BTT-USD': 'TBAAW545oJ6iTxqzezGvagrSUzCpz1S8eR',
-  'JST-USD': 'TE5rKoDzKmpVAQp1sn7x6V8biivR3d5r47',
-  'SUN-USD': 'TRMgzSPsuWEcVpd5hv19XtLeCk8Z799sZa',
-  'LTC-USD': 'TGxGL85kN3W5sGdBiobgWabWFcMEtoqRJJ',
-  'NFT-USD': 'TEC8b2oL6sAQFMiea73tTgjtTLwyV1GuZU',
+  'USDD-USD': 'TJ7jEgoYVaeymVfYZ3bS57dYArwVDS1mhW', // TRON's native stablecoin
   'TUSD-USD': 'TBc3yBP8xcyQ1E3hDTUhRxToMrgekLH2kh',
-  'USDJ-USD': 'TB1MyT7pDCNg8w7cSW1QvYKs4WPzErzP5k',
-  'WBTC-USD': 'TCYS6aj9shB6rZNpTCqSkN1aTwkSnz1wHq',
+  'USDJ-USD': 'TB1MyT7pDCNg8w7cSW1QvYKs4WPzErzP5k', // JUST stablecoin
+
+  // TRON Ecosystem Tokens
+  'WIN-USD': 'TSCef3LT3jpLwwXCWhZe3hZoMsYk1ZLif2', // WINkLink token
+  'BTT-USD': 'TBAAW545oJ6iTxqzezGvagrSUzCpz1S8eR', // BitTorrent
+  'JST-USD': 'TE5rKoDzKmpVAQp1sn7x6V8biivR3d5r47', // JUST
+  'SUN-USD': 'TRMgzSPsuWEcVpd5hv19XtLeCk8Z799sZa', // SUN
+  'NFT-USD': 'TEC8b2oL6sAQFMiea73tTgjtTLwyV1GuZU', // APENFT
 };
 
 /**
