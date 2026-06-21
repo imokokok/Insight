@@ -267,10 +267,25 @@ class FeedRegistryService {
     ];
     const commodity = ['XAU', 'XAG', 'XPT', 'XPD'];
     const equity = ['AAPL', 'AMZN', 'TSLA', 'GOOGL', 'MSFT', 'META', 'NVDA', 'COIN'];
+    const stablecoin = [
+      'USDC',
+      'USDT',
+      'DAI',
+      'FRAX',
+      'LUSD',
+      'BUSD',
+      'TUSD',
+      'USDD',
+      'USDP',
+      'PYUSD',
+      'GHO',
+      'CRVUSD',
+    ];
 
-    if (forex.includes(symbol)) return 'fiat';
+    if (forex.includes(symbol)) return 'forex';
     if (commodity.includes(symbol)) return 'commodity';
-    if (equity.includes(symbol)) return 'index';
+    if (stablecoin.includes(symbol)) return 'stablecoin';
+    if (equity.includes(symbol)) return 'equity';
     return 'crypto';
   }
 }

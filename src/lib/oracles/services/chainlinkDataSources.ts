@@ -10,7 +10,7 @@ export interface ChainlinkPriceFeed {
   name: string;
   symbol: string;
   decimals: number;
-  category: 'crypto' | 'fiat' | 'commodity' | 'index';
+  category: 'crypto' | 'forex' | 'stablecoin' | 'commodity' | 'equity' | 'etf';
 }
 
 interface ChainlinkRPCConfig {
@@ -179,14 +179,14 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
       name: 'USDC / USD',
       symbol: 'USDC',
       decimals: 8,
-      category: 'fiat',
+      category: 'stablecoin',
     },
     42161: {
       address: '0x50834F3163758fcC1Df9973b6e91f0F0F0434aD3',
       name: 'USDC / USD',
       symbol: 'USDC',
       decimals: 8,
-      category: 'fiat',
+      category: 'stablecoin',
     },
   },
   USDT: {
@@ -195,14 +195,14 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
       name: 'USDT / USD',
       symbol: 'USDT',
       decimals: 8,
-      category: 'fiat',
+      category: 'stablecoin',
     },
     42161: {
       address: '0x3f3f5dF88dC9F13eac63DF89EC16ef6e7E25DdE7',
       name: 'USDT / USD',
       symbol: 'USDT',
       decimals: 8,
-      category: 'fiat',
+      category: 'stablecoin',
     },
   },
   DAI: {
@@ -211,14 +211,14 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
       name: 'DAI / USD',
       symbol: 'DAI',
       decimals: 8,
-      category: 'fiat',
+      category: 'stablecoin',
     },
     42161: {
       address: '0xc5C8E77B397E531B8EC06BFb0048328B30E9eCfB',
       name: 'DAI / USD',
       symbol: 'DAI',
       decimals: 8,
-      category: 'fiat',
+      category: 'stablecoin',
     },
   },
   MATIC: {
@@ -398,7 +398,7 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
       name: 'FRAX / USD',
       symbol: 'FRAX',
       decimals: 8,
-      category: 'fiat',
+      category: 'stablecoin',
     },
   },
   WBTC: {
@@ -611,7 +611,7 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
       name: 'LUSD / USD',
       symbol: 'LUSD',
       decimals: 8,
-      category: 'fiat',
+      category: 'stablecoin',
     },
   },
   MNT: {
@@ -666,7 +666,7 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
       name: 'EUR / USD',
       symbol: 'EUR',
       decimals: 8,
-      category: 'fiat',
+      category: 'forex',
     },
   },
   GBP: {
@@ -675,7 +675,7 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
       name: 'GBP / USD',
       symbol: 'GBP',
       decimals: 8,
-      category: 'fiat',
+      category: 'forex',
     },
   },
   JPY: {
@@ -684,7 +684,7 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
       name: 'JPY / USD',
       symbol: 'JPY',
       decimals: 8,
-      category: 'fiat',
+      category: 'forex',
     },
   },
   CHF: {
@@ -693,7 +693,7 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
       name: 'CHF / USD',
       symbol: 'CHF',
       decimals: 8,
-      category: 'fiat',
+      category: 'forex',
     },
   },
   AUD: {
@@ -702,7 +702,7 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
       name: 'AUD / USD',
       symbol: 'AUD',
       decimals: 8,
-      category: 'fiat',
+      category: 'forex',
     },
   },
   CAD: {
@@ -711,7 +711,7 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
       name: 'CAD / USD',
       symbol: 'CAD',
       decimals: 8,
-      category: 'fiat',
+      category: 'forex',
     },
   },
   // === Commodity Price Feeds (verified on Ethereum Mainnet) ===
@@ -740,7 +740,7 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
       name: 'AAPL / USD',
       symbol: 'AAPL',
       decimals: 8,
-      category: 'index',
+      category: 'equity',
     },
   },
   AMZN: {
@@ -749,7 +749,7 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
       name: 'AMZN / USD',
       symbol: 'AMZN',
       decimals: 8,
-      category: 'index',
+      category: 'equity',
     },
   },
   TSLA: {
@@ -758,7 +758,7 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
       name: 'TSLA / USD',
       symbol: 'TSLA',
       decimals: 8,
-      category: 'index',
+      category: 'equity',
     },
   },
   GOOGL: {
@@ -767,7 +767,7 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
       name: 'GOOGL / USD',
       symbol: 'GOOGL',
       decimals: 8,
-      category: 'index',
+      category: 'equity',
     },
   },
   MSFT: {
@@ -776,7 +776,7 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
       name: 'MSFT / USD',
       symbol: 'MSFT',
       decimals: 8,
-      category: 'index',
+      category: 'equity',
     },
   },
   META: {
@@ -785,7 +785,7 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
       name: 'META / USD',
       symbol: 'META',
       decimals: 8,
-      category: 'index',
+      category: 'equity',
     },
   },
   NVDA: {
@@ -794,7 +794,7 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
       name: 'NVDA / USD',
       symbol: 'NVDA',
       decimals: 8,
-      category: 'index',
+      category: 'equity',
     },
   },
   COIN: {
@@ -803,7 +803,7 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
       name: 'COIN / USD',
       symbol: 'COIN',
       decimals: 8,
-      category: 'index',
+      category: 'equity',
     },
   },
 };
