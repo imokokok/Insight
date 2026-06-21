@@ -496,7 +496,7 @@ class FeedSyncService {
     const feeds: OracleFeedInsert[] = [];
 
     for (const [symbol, contractId] of Object.entries(REFLECTOR_ASSET_CONTRACT_MAP)) {
-      const isForex = ['EUR', 'GBP', 'CAD', 'BRL', 'JPY', 'CNY'].includes(symbol);
+      const category = this.inferCategory(symbol);
       feeds.push({
         provider: 'reflector',
         symbol,
@@ -504,10 +504,10 @@ class FeedSyncService {
         address: contractId,
         name: `${symbol}/USD`,
         decimals: 14,
-        category: isForex ? 'fiat' : 'crypto',
+        category,
         is_active: true,
         source: 'hardcoded',
-        metadata: { contractType: isForex ? 'forex' : 'crypto' },
+        metadata: { contractType: category === 'forex' ? 'forex' : 'crypto' },
       });
       result.discovered++;
     }
@@ -622,10 +622,25 @@ class FeedSyncService {
     ];
     const commodity = ['XAU', 'XAG', 'XPT', 'XPD'];
     const equity = ['AAPL', 'AMZN', 'TSLA', 'GOOGL', 'MSFT', 'META', 'NVDA', 'COIN'];
+    const stablecoin = [
+      'USDC',
+      'USDT',
+      'DAI',
+      'FRAX',
+      'LUSD',
+      'BUSD',
+      'TUSD',
+      'USDD',
+      'USDP',
+      'PYUSD',
+      'GHO',
+      'CRVUSD',
+    ];
 
-    if (forex.includes(symbol)) return 'fiat';
+    if (forex.includes(symbol)) return 'forex';
     if (commodity.includes(symbol)) return 'commodity';
-    if (equity.includes(symbol)) return 'index';
+    if (stablecoin.includes(symbol)) return 'stablecoin';
+    if (equity.includes(symbol)) return 'equity';
     return 'crypto';
   }
 }

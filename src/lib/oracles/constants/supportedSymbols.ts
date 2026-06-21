@@ -601,10 +601,13 @@ export const winklinkSymbols = [
   'USDC',
   'USDD',
   'WIN',
+  'BTT',
   'JST',
   'SUN',
   'LTC',
+  'NFT',
   'TUSD',
+  'USDJ',
   'WBTC',
 ] as const;
 
