@@ -14,24 +14,78 @@ export const STELLAR_NETWORK_PASSPHRASE = 'Public Global Stellar Network ; Septe
 
 export const REFLECTOR_DEFAULT_ACCOUNT = 'GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF';
 
+// Expanded based on Reflector oracle official documentation and Stellar ecosystem research
+// Source: https://developers.stellar.org/docs/data/oracles/oracle-providers
+// Reflector provides pricing for major crypto assets, stablecoins, and forex pairs
 export const REFLECTOR_CRYPTO_ASSETS = [
+  // Major Cryptocurrencies
   'BTC',
   'ETH',
-  'USDT',
-  'XRP',
   'SOL',
-  'USDC',
+  'XRP',
   'ADA',
   'AVAX',
   'DOT',
   'LINK',
   'ATOM',
-  'XLM',
+  'XLM', // Stellar native token
   'UNI',
-  'EURC',
+  'MATIC',
+  'LTC',
+  'BCH',
+  'ETC',
+  'ALGO',
+  'NEAR',
+  'FIL',
+  'ICP',
+  'APT',
+  'ARB',
+  'OP',
+  // Major Stablecoins
+  'USDT',
+  'USDC',
+  'DAI',
+  'EURC', // Circle Euro Coin
+  'USDD',
+  'TUSD',
+  'USDP',
+  'FRAX',
+  'LUSD',
+  // DeFi Tokens
+  'AAVE',
+  'CRV',
+  'SNX',
+  'MKR',
+  'COMP',
+  'SUSHI',
+  'YFI',
+  'BAL',
+  'GRT',
+  'LDO',
+  // Memecoins & Community Tokens (if supported by Reflector)
+  'DOGE',
+  'SHIB',
+  'PEPE',
 ] as const;
 
-export const REFLECTOR_FOREX_ASSETS = ['EUR', 'GBP', 'CAD', 'BRL', 'JPY', 'CNY'] as const;
+// Forex pairs supported by Reflector
+export const REFLECTOR_FOREX_ASSETS = [
+  'EUR', // Euro
+  'GBP', // British Pound
+  'JPY', // Japanese Yen
+  'CAD', // Canadian Dollar
+  'AUD', // Australian Dollar
+  'CHF', // Swiss Franc
+  'BRL', // Brazilian Real
+  'CNY', // Chinese Yuan
+  'KRW', // Korean Won
+  'INR', // Indian Rupee
+  'MXN', // Mexican Peso
+  'SGD', // Singapore Dollar
+  'HKD', // Hong Kong Dollar
+  'SEK', // Swedish Krona
+  'NOK', // Norwegian Krone
+] as const;
 
 export const REFLECTOR_ASSET_CONTRACT_MAP: Record<string, string> = {
   ...Object.fromEntries(REFLECTOR_CRYPTO_ASSETS.map((a) => [a, REFLECTOR_CRYPTO_CONTRACT])),

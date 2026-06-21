@@ -489,29 +489,51 @@ export const UNISWAP_V3_FACTORY_ABI = [
   },
 ] as const;
 
+// Expanded TWAP symbols based on high-liquidity Uniswap V3 pools
+// These are tokens with established pools across multiple networks
 export const twapSymbols = [
+  // Major cryptocurrencies with deep liquidity
   'BTC',
   'ETH',
+  'WBTC',
+
+  // Stablecoins (highest volume pairs)
   'USDC',
   'USDT',
   'DAI',
-  'WBTC',
+  'FRAX',
+  'LUSD',
+
+  // Major DeFi tokens
   'LINK',
   'UNI',
   'AAVE',
+  'MKR',
+  'COMP',
+  'SNX',
+  'CRV',
+  'SUSHI',
+  'YFI',
+  'BAL',
+  '1INCH',
+  'LDO',
+
+  // Layer 2 & Ecosystem tokens
   'ARB',
   'OP',
   'MATIC',
-  'SNX',
-  'CRV',
-  'COMP',
-  'MKR',
-  'SUSHI',
-  '1INCH',
-  'BAL',
+
+  // Other major tokens
   'BNB',
   'STETH',
-  'FRAX',
+  'RETH', // Rocket Pool ETH
+  'WSTETH', // Wrapped stETH
+
+  // Newer high-volume tokens
+  'PEPE',
+  'APE',
+  'GRT',
+  'ENS',
 ] as const;
 
 /**
