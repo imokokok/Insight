@@ -123,9 +123,9 @@ export async function getReflectorContractIdAsync(symbol: string): Promise<strin
     const address = await resolveFeedAddress('reflector', upper, 0);
     if (address) return address;
   } catch {
-    // Database lookup failed, return null
+    // Database lookup failed, fallback to hardcoded
   }
-  return null;
+  return REFLECTOR_ASSET_CONTRACT_MAP[upper] || null;
 }
 
 export async function isReflectorSymbolSupportedAsync(symbol: string): Promise<boolean> {
@@ -134,7 +134,7 @@ export async function isReflectorSymbolSupportedAsync(symbol: string): Promise<b
     const feed = await resolveFeed('reflector', upper, 0);
     if (feed && feed.is_active) return true;
   } catch {
-    // Database lookup failed, return false
+    // Database lookup failed, fallback to hardcoded
   }
-  return false;
+  return upper in REFLECTOR_ASSET_CONTRACT_MAP;
 }
