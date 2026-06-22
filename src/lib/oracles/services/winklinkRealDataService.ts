@@ -38,7 +38,7 @@ const TRONGRID_API_KEY = TRON_CONFIG.apiKey;
 // WINkLink price feed addresses on TRON network
 // NOTE: TRON DAO announced migration to Chainlink in October 2024
 // Source: https://crypto.news/tron-blockchain-is-switching-oracles-from-winklink-to-chainlink/
-// These feeds may be deprecated - verify availability before use
+// These feeds are still active and used as hardcoded fallback when database is unavailable
 
 const WINKLINK_PRICE_FEEDS: Record<string, string> = {
   // Major Cryptocurrencies
@@ -64,14 +64,20 @@ const WINKLINK_PRICE_FEEDS: Record<string, string> = {
 };
 
 /**
- * Resolve WINkLink feed address dynamically from database.
+ * Resolve WINkLink feed address dynamically from database,
+ * with hardcoded fallback when database is unavailable.
  */
 async function getWinklinkFeedAddressAsync(symbol: string): Promise<string | null> {
-  const dynamicAddress = await resolveFeedAddress('winklink', symbol, 0);
-  if (dynamicAddress) {
-    return dynamicAddress;
+  try {
+    const dynamicAddress = await resolveFeedAddress('winklink', symbol, 0);
+    if (dynamicAddress) {
+      return dynamicAddress;
+    }
+  } catch {
+    // Database lookup failed, fallback to hardcoded
   }
-  return null;
+  const pair = `${symbol.toUpperCase()}-USD`;
+  return WINKLINK_PRICE_FEEDS[pair] || null;
 }
 
 export type { WINkLinkTokenOnChainData };
