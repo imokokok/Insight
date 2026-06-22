@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { Shield, Calculator } from 'lucide-react';
@@ -34,9 +34,8 @@ export default function SafetyCheckContent() {
 
   const { result, isLoading, error, calculate, clear } = useProtocolHealth();
   const [lastPosition, setLastPosition] = useState<PositionInput | null>(null);
-  const hasAutoCalculated = useRef(false);
 
-  // Auto-fill defaults on mount
+  // Auto-fill defaults and calculate on mount
   useEffect(() => {
     const protocol = PROTOCOL_REGISTRY[0];
     if (!protocol) return;
@@ -50,31 +49,19 @@ export default function SafetyCheckContent() {
     ]);
     setBorrowRows([{ id: 'borrow-default', symbol: borrow?.symbol ?? '', amount: '1000' }]);
     setStep(2);
-  }, []);
 
-  // Auto-calculate once defaults are set (only on first mount)
-  useEffect(() => {
-    if (hasAutoCalculated.current) return;
-    if (!selectedProtocol) return;
-
-    const collaterals = collateralRows.filter((r) => r.symbol && parseFloat(r.amount) > 0);
-    const borrows = borrowRows.filter((r) => r.symbol && parseFloat(r.amount) > 0);
-
-    if (collaterals.length === 0 || borrows.length === 0) return;
-
-    if (result || isLoading) return;
-
-    hasAutoCalculated.current = true;
-
-    const position: PositionInput = {
-      protocolId: selectedProtocol.id,
-      collaterals: collaterals.map((r) => ({ symbol: r.symbol, amount: parseFloat(r.amount) })),
-      borrows: borrows.map((r) => ({ symbol: r.symbol, amount: parseFloat(r.amount) })),
-    };
-    setLastPosition(position);
-    calculate(position);
-    setStep(3);
-  }, [selectedProtocol, collateralRows, borrowRows, result, isLoading, calculate]);
+    // Auto-calculate with default data
+    if (collateral?.symbol && borrow?.symbol) {
+      const position: PositionInput = {
+        protocolId: protocol.id,
+        collaterals: [{ symbol: collateral.symbol, amount: 1.5 }],
+        borrows: [{ symbol: borrow.symbol, amount: 1000 }],
+      };
+      setLastPosition(position);
+      calculate(position);
+      setStep(3);
+    }
+  }, [calculate]);
 
   const handleSelectProtocol = useCallback(
     (protocol: ProtocolConfig) => {
@@ -87,8 +74,20 @@ export default function SafetyCheckContent() {
       setBorrowRows([{ id: 'borrow-default', symbol: borrow?.symbol ?? '', amount: '1000' }]);
       setStep(2);
       clear();
+
+      // Auto-calculate with default data for the new protocol
+      if (collateral?.symbol && borrow?.symbol) {
+        const position: PositionInput = {
+          protocolId: protocol.id,
+          collaterals: [{ symbol: collateral.symbol, amount: 1.5 }],
+          borrows: [{ symbol: borrow.symbol, amount: 1000 }],
+        };
+        setLastPosition(position);
+        calculate(position);
+        setStep(3);
+      }
     },
-    [clear]
+    [calculate, clear]
   );
 
   const handleSubmit = useCallback(
