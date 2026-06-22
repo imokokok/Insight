@@ -4,8 +4,10 @@ import { useState, useMemo, useRef, useEffect } from 'react';
 
 import { Search, ChevronDown, Shield, X } from 'lucide-react';
 
+import { chainNames } from '@/lib/constants';
 import { PROTOCOL_REGISTRY, type ProtocolConfig } from '@/lib/protocols/protocolRegistry';
 import { cn } from '@/lib/utils';
+import type { Blockchain } from '@/types/oracle';
 
 interface ProtocolSearchProps {
   selectedProtocol: ProtocolConfig | null;
@@ -69,8 +71,8 @@ export function ProtocolSearch({ selectedProtocol, onSelect, disabled }: Protoco
               <span className="font-medium text-gray-900 truncate text-sm">
                 {selectedProtocol.name}
               </span>
-              <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full capitalize">
-                {selectedProtocol.chain}
+              <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+                {chainNames[selectedProtocol.chain as Blockchain] ?? selectedProtocol.chain}
               </span>
             </div>
             <button
@@ -127,8 +129,8 @@ export function ProtocolSearch({ selectedProtocol, onSelect, disabled }: Protoco
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <span className="font-medium text-sm text-gray-900">{protocol.name}</span>
-                      <span className="text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded-full capitalize">
-                        {protocol.chain}
+                      <span className="text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded-full">
+                        {chainNames[protocol.chain as Blockchain] ?? protocol.chain}
                       </span>
                     </div>
                     <p className="text-xs text-gray-500 truncate">{protocol.description}</p>
