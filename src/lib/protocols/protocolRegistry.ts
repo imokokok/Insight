@@ -278,15 +278,12 @@ export const PROTOCOL_REGISTRY: ProtocolConfig[] = [
       // SupraLend Money Market parameters (per supralend.gitbook.io/supralend)
       // SUPRA: LTV=70%, Liquidation Factor=75% → LT=1/0.75=1.3333
       makeAsset('SUPRA', 'alt', OracleProvider.SUPRA, 1.3333, 0.7, 0.7),
-      // USDC: LTV=80%, Liquidation Factor=85% → LT=1/0.85=1.1765
-      // DORA does not provide USDC price feed; using DIA as price source
-      makeAsset('USDC', 'stablecoin', OracleProvider.DIA, 1.1765, 0.8, 0.8),
       // iSUPRA (liquid staked SUPRA): LTV=70%, Liquidation Factor=75%
       // iSUPRA tracks SUPRA price 1:1; priceSymbol='SUPRA' resolves via DORA
       makeAsset('iSUPRA', 'alt', OracleProvider.SUPRA, 1.3333, 0.7, 0.7, 1, 'SUPRA'),
-      // iUSDC (bridged USDC via SupraNova): LTV=80%, Liquidation Factor=85%
-      // iUSDC tracks USDC price 1:1; priceSymbol='USDC' resolves via DIA
-      makeAsset('iUSDC', 'stablecoin', OracleProvider.DIA, 1.1765, 0.8, 0.8, 1, 'USDC'),
+      // NOTE: USDC and iUSDC are supported by SupraLend but are excluded here
+      // because Supra DORA does not currently provide a native USDC or USDT/USD
+      // price feed. All listed SupraLend assets use Supra DORA natively.
     ],
   },
 ];
