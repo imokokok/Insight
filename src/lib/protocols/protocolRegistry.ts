@@ -17,6 +17,9 @@ export interface ProtocolAssetConfig {
   symbol: string;
   category: AssetCategory;
   oracleProvider: OracleProvider;
+  // Symbol used for price lookup; defaults to `symbol` if not set.
+  // Useful for derivative tokens (e.g. iSUPRA → SUPRA, iUSDC → USDC) that track an underlying asset price.
+  priceSymbol?: string;
   // Collateral factor: collateral value discount ratio (< 1), e.g. 0.825 means 82.5% of collateral value is counted
   // Corresponds to collFact in the OVer paper
   collateralFactor: number;
@@ -48,7 +51,8 @@ function makeAsset(
   liquidationThreshold: number,
   maxLtv: number,
   collateralFactor?: number,
-  exchangeRate?: number
+  exchangeRate?: number,
+  priceSymbol?: string
 ): ProtocolAssetConfig {
   const cf = collateralFactor ?? maxLtv; // Default collateralFactor = maxLtv (conservative estimate)
   const er = exchangeRate ?? 1; // Default exchange rate = 1 (directly holding underlying asset)
@@ -56,6 +60,7 @@ function makeAsset(
     symbol,
     category,
     oracleProvider: provider,
+    priceSymbol,
     collateralFactor: cf,
     liquidationThreshold,
     maxLtv,
@@ -261,6 +266,27 @@ export const PROTOCOL_REGISTRY: ProtocolConfig[] = [
       makeAsset('DAI', 'stablecoin', OracleProvider.CHAINLINK, 1.1765, 0.85, 0.85),
       // LINK CF=67.5%, LT=67.5%
       makeAsset('LINK', 'alt', OracleProvider.CHAINLINK, 1.4815, 0.675, 0.675),
+    ],
+  },
+  {
+    id: 'supralend-supra-chain',
+    name: 'SupraLend',
+    chain: 'supra-chain' as Blockchain,
+    description: 'Native lending protocol on Supra chain powered by DORA oracle (supralend.xyz)',
+    tvlUsd: 82_596,
+    assets: [
+      // SupraLend Money Market parameters (per supralend.gitbook.io/supralend)
+      // SUPRA: LTV=70%, Liquidation Factor=75% → LT=1/0.75=1.3333
+      makeAsset('SUPRA', 'alt', OracleProvider.SUPRA, 1.3333, 0.7, 0.7),
+      // USDC: LTV=80%, Liquidation Factor=85% → LT=1/0.85=1.1765
+      // DORA does not provide USDC price feed; using DIA as price source
+      makeAsset('USDC', 'stablecoin', OracleProvider.DIA, 1.1765, 0.8, 0.8),
+      // iSUPRA (liquid staked SUPRA): LTV=70%, Liquidation Factor=75%
+      // iSUPRA tracks SUPRA price 1:1; priceSymbol='SUPRA' resolves via DORA
+      makeAsset('iSUPRA', 'alt', OracleProvider.SUPRA, 1.3333, 0.7, 0.7, 1, 'SUPRA'),
+      // iUSDC (bridged USDC via SupraNova): LTV=80%, Liquidation Factor=85%
+      // iUSDC tracks USDC price 1:1; priceSymbol='USDC' resolves via DIA
+      makeAsset('iUSDC', 'stablecoin', OracleProvider.DIA, 1.1765, 0.8, 0.8, 1, 'USDC'),
     ],
   },
 ];

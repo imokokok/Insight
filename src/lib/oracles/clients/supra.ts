@@ -35,6 +35,7 @@ export class SupraClient extends BaseOracleClient {
     Blockchain.SCROLL,
     Blockchain.MANTLE,
     Blockchain.LINEA,
+    Blockchain.SUPRA_CHAIN,
   ];
 
   supportedSymbolsList = supraSymbols;

@@ -57,6 +57,7 @@ export const chainNames: Record<Blockchain, string> = {
   [Blockchain.STARKEX]: 'StarkEx',
   [Blockchain.STELLAR]: 'Stellar',
   [Blockchain.FLARE]: 'Flare',
+  [Blockchain.SUPRA_CHAIN]: 'Supra',
 };
 
 export const chainColors: Record<Blockchain, string> = {
@@ -99,6 +100,7 @@ export const chainColors: Record<Blockchain, string> = {
   [Blockchain.STARKEX]: configChainColors.starkex,
   [Blockchain.STELLAR]: configChainColors.stellar,
   [Blockchain.FLARE]: configChainColors.flare,
+  [Blockchain.SUPRA_CHAIN]: configChainColors.supra,
 };
 
 export const oracleColors: Record<OracleProvider, string> = {

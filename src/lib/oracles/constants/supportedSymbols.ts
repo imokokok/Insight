@@ -642,6 +642,8 @@ export const SUPRA_AVAILABLE_PAIRS: Record<string, string[]> = {
   aptos: [...supraSymbols],
   sui: [...supraSymbols],
   blast: [...supraSymbols],
+  // Supra L1 chain
+  'supra-chain': [...supraSymbols],
 };
 
 export const oracleSupportedSymbols = {

@@ -273,17 +273,24 @@ export async function calculatePositionCriticalDeviation(
     }
 
     // Fetch live prices
-    const priceQueries = Array.from(allSymbols).map((symbol) => ({
-      provider: assetConfigs.get(symbol)!.oracleProvider,
-      symbol,
-    }));
+    // Use priceSymbol (if defined) for price lookup, e.g. iSUPRA → SUPRA, iUSDC → USDC
+    const priceQueries = Array.from(allSymbols).map((symbol) => {
+      const config = assetConfigs.get(symbol)!;
+      return {
+        provider: config.oracleProvider,
+        symbol: config.priceSymbol ?? symbol,
+      };
+    });
 
     const prices = await fetchPrices(priceQueries);
 
     const priceMap = new Map<string, number>();
-    for (const p of prices) {
+    for (let i = 0; i < prices.length; i++) {
+      const p = prices[i];
       if (p.price > 0) {
-        priceMap.set(p.symbol, p.price);
+        // Map price back to the original asset symbol (e.g. SUPRA price → iSUPRA entry)
+        const originalSymbol = Array.from(allSymbols)[i];
+        priceMap.set(originalSymbol, p.price);
       }
     }
 

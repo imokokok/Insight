@@ -122,6 +122,7 @@ export const chainColors = {
   starkex: '#0C0C4F',
   flare: '#8B0FE5',
   stellar: '#14B8A6',
+  supra: '#3B82F6',
 } as const;
 
 export const chartColors = {

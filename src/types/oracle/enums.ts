@@ -51,6 +51,7 @@ export enum Blockchain {
   STARKEX = 'starkex',
   STELLAR = 'stellar',
   FLARE = 'flare',
+  SUPRA_CHAIN = 'supra-chain',
 }
 
 export const ORACLE_PROVIDER_VALUES: readonly OracleProvider[] = Object.values(OracleProvider);

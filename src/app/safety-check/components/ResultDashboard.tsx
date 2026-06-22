@@ -17,6 +17,7 @@ import {
   Info,
 } from 'lucide-react';
 
+import { chainNames } from '@/lib/constants';
 import type {
   PositionCriticalResult,
   AssetDeviationResult,
@@ -25,6 +26,7 @@ import type {
 } from '@/lib/protocols/protocolHealth';
 import { cn } from '@/lib/utils';
 import { formatPrice } from '@/lib/utils/format';
+import type { Blockchain } from '@/types/oracle';
 
 import { CircularGauge } from './CircularGauge';
 import { CountUp } from './CountUp';
@@ -262,7 +264,7 @@ export function ResultDashboard({ result, position, onReset }: ResultDashboardPr
             {
               label: 'Protocol',
               value: result.protocolName,
-              sub: result.chain,
+              sub: chainNames[result.chain as Blockchain] ?? result.chain,
               icon: Shield,
             },
           ].map((item, i) => (

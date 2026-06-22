@@ -111,6 +111,7 @@ const blockchainIcons: Record<Blockchain, string> = {
   [Blockchain.STARKEX]: '',
   [Blockchain.STELLAR]: '',
   [Blockchain.FLARE]: '',
+  [Blockchain.SUPRA_CHAIN]: '',
 };
 
 // Generate blockchain search results

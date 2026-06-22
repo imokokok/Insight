@@ -40,4 +40,5 @@ export const BLOCKCHAIN_TO_CHAIN_ID: Record<Blockchain, number> = {
   [Blockchain.STARKEX]: 0,
   [Blockchain.STELLAR]: 0,
   [Blockchain.FLARE]: 14,
+  [Blockchain.SUPRA_CHAIN]: 8,
 };

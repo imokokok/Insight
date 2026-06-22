@@ -6,9 +6,11 @@ import { motion } from 'framer-motion';
 import { Wallet, ArrowDown, Zap, Plus, X } from 'lucide-react';
 
 import { Button } from '@/components/ui';
+import { chainNames } from '@/lib/constants';
 import type { AssetEntry } from '@/lib/protocols/protocolHealth';
 import type { ProtocolConfig } from '@/lib/protocols/protocolRegistry';
 import { cn } from '@/lib/utils';
+import type { Blockchain } from '@/types/oracle';
 
 import { AssetSelector } from './AssetSelector';
 import { ProtocolSearch } from './ProtocolSearch';
@@ -124,8 +126,8 @@ export function PositionForm({
           >
             <div className="flex items-center justify-between">
               <span className="font-medium text-gray-900">{selectedProtocol.name}</span>
-              <span className="text-xs text-gray-500 bg-white px-2 py-0.5 rounded-full border border-gray-100 capitalize">
-                {selectedProtocol.chain}
+              <span className="text-xs text-gray-500 bg-white px-2 py-0.5 rounded-full border border-gray-100">
+                {chainNames[selectedProtocol.chain as Blockchain] ?? selectedProtocol.chain}
               </span>
             </div>
             <p className="text-xs text-gray-500 mt-1">{selectedProtocol.description}</p>
