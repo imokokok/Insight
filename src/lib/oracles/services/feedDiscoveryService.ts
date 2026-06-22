@@ -154,6 +154,9 @@ class FeedDiscoveryService {
   /**
    * Discover Supra DORA price feeds from the Supra API.
    * API: https://dora.supraoracles.com/v1/price_list
+   * NOTE: This endpoint may be deprecated or unreachable; the current DORA REST
+   * server is at https://rpc-mainnet-dora-2.supra.com (pull oracle proofs only).
+   * No public "list all feeds" API is documented by Supra as of 2025.
    */
   async discoverSupraFeeds(): Promise<DiscoveryResult> {
     const result: DiscoveryResult = { provider: 'supra', discovered: 0, feeds: [], errors: [] };
@@ -209,8 +212,8 @@ class FeedDiscoveryService {
 
   /**
    * Discover DIA asset feeds from the DIA API.
-   * API: https://api.diadata.org/v1/assetSupply/{blockchain}/{address}
-   * We use the symbols endpoint to get available assets.
+   * API: https://api.diadata.org/v1/assetQuotation/{blockchain}/{address}
+   * We use the assetQuotation endpoint with the zero address to get native token prices.
    */
   async discoverDIAFeeds(): Promise<DiscoveryResult> {
     const result: DiscoveryResult = { provider: 'dia', discovered: 0, feeds: [], errors: [] };
@@ -283,6 +286,8 @@ class FeedDiscoveryService {
   /**
    * Discover RedStone available tokens from the RedStone API.
    * API: https://api.redstone.finance/prices?provider=redstone&limit=1000
+   * NOTE: Without a `symbol` parameter, the API returns an object keyed by symbol
+   * (not an array). The code handles this via Array.isArray() fallback.
    */
   async discoverRedStoneFeeds(): Promise<DiscoveryResult> {
     const result: DiscoveryResult = { provider: 'redstone', discovered: 0, feeds: [], errors: [] };
@@ -336,6 +341,8 @@ class FeedDiscoveryService {
   /**
    * Discover API3 dAPIs from the API3 Market API.
    * API: https://market.api3.org/api/dapis
+   * NOTE: The API3 Market is a web SPA; this endpoint may return HTML instead of JSON.
+   * No public REST API for dAPI discovery is officially documented by API3.
    */
   async discoverAPI3Feeds(): Promise<DiscoveryResult> {
     const result: DiscoveryResult = { provider: 'api3', discovered: 0, feeds: [], errors: [] };
@@ -392,7 +399,7 @@ class FeedDiscoveryService {
    * Primary: on-chain via FTSO V2 getSupportedFeedIds contract method.
    * Fallback: Flare API at https://ftso-api.flare.network/api/v1/feeds
    *
-   * Feed ID format (bytes21): 1 byte category + 20 bytes hex-encoded name + zero padding
+   * Feed ID format (bytes21): 1 byte category + up to 20 bytes ASCII name + zero padding
    * e.g. BTC/USD = 0x014254432f55534400000000000000000000000000
    */
   async discoverFlareFeeds(): Promise<DiscoveryResult> {
@@ -601,7 +608,7 @@ class FeedDiscoveryService {
 
   /**
    * Decode a Flare bytes21 feed ID back to its symbol and category.
-   * Format: 1 byte category + 20 bytes hex-encoded name + zero padding
+   * Format: 1 byte category + up to 20 bytes ASCII name + zero padding
    */
   private decodeFlareFeedId(feedId: string): { symbol: string; category: string } | null {
     try {
