@@ -20,6 +20,49 @@ interface AssetRow {
   amount: string;
 }
 
+function getProtocolDefaults(protocol: ProtocolConfig): {
+  collateralRows: AssetRow[];
+  borrowRows: AssetRow[];
+  position: PositionInput | null;
+} {
+  if (protocol.defaultPosition) {
+    const { collaterals, borrows } = protocol.defaultPosition;
+    return {
+      collateralRows: collaterals.map((c, i) => ({
+        id: `collateral-default-${i}`,
+        symbol: c.symbol,
+        amount: String(c.amount),
+      })),
+      borrowRows: borrows.map((b, i) => ({
+        id: `borrow-default-${i}`,
+        symbol: b.symbol,
+        amount: String(b.amount),
+      })),
+      position: {
+        protocolId: protocol.id,
+        collaterals,
+        borrows,
+      },
+    };
+  }
+
+  const collateral = protocol.assets[0];
+  const borrow = protocol.assets.find((a) => a.category === 'stablecoin') ?? protocol.assets[1];
+
+  return {
+    collateralRows: [{ id: 'collateral-default', symbol: collateral?.symbol ?? '', amount: '1.5' }],
+    borrowRows: [{ id: 'borrow-default', symbol: borrow?.symbol ?? '', amount: '1000' }],
+    position:
+      collateral?.symbol && borrow?.symbol
+        ? {
+            protocolId: protocol.id,
+            collaterals: [{ symbol: collateral.symbol, amount: 1.5 }],
+            borrows: [{ symbol: borrow.symbol, amount: 1000 }],
+          }
+        : null,
+  };
+}
+
 export default function SafetyCheckContent() {
   const [step, setStep] = useState(1);
   const [selectedProtocol, setSelectedProtocol] = useState<ProtocolConfig | null>(null);
@@ -40,23 +83,15 @@ export default function SafetyCheckContent() {
     const protocol = PROTOCOL_REGISTRY[0];
     if (!protocol) return;
 
-    const collateral = protocol.assets[0];
-    const borrow = protocol.assets.find((a) => a.category === 'stablecoin') ?? protocol.assets[1];
+    const { collateralRows, borrowRows, position } = getProtocolDefaults(protocol);
 
     setSelectedProtocol(protocol);
-    setCollateralRows([
-      { id: 'collateral-default', symbol: collateral?.symbol ?? '', amount: '1.5' },
-    ]);
-    setBorrowRows([{ id: 'borrow-default', symbol: borrow?.symbol ?? '', amount: '1000' }]);
+    setCollateralRows(collateralRows);
+    setBorrowRows(borrowRows);
     setStep(2);
 
     // Auto-calculate with default data
-    if (collateral?.symbol && borrow?.symbol) {
-      const position: PositionInput = {
-        protocolId: protocol.id,
-        collaterals: [{ symbol: collateral.symbol, amount: 1.5 }],
-        borrows: [{ symbol: borrow.symbol, amount: 1000 }],
-      };
+    if (position) {
       setLastPosition(position);
       calculate(position);
       setStep(3);
@@ -66,22 +101,14 @@ export default function SafetyCheckContent() {
   const handleSelectProtocol = useCallback(
     (protocol: ProtocolConfig) => {
       setSelectedProtocol(protocol);
-      const collateral = protocol.assets[0];
-      const borrow = protocol.assets.find((a) => a.category === 'stablecoin') ?? protocol.assets[1];
-      setCollateralRows([
-        { id: 'collateral-default', symbol: collateral?.symbol ?? '', amount: '1.5' },
-      ]);
-      setBorrowRows([{ id: 'borrow-default', symbol: borrow?.symbol ?? '', amount: '1000' }]);
+      const { collateralRows, borrowRows, position } = getProtocolDefaults(protocol);
+      setCollateralRows(collateralRows);
+      setBorrowRows(borrowRows);
       setStep(2);
       clear();
 
       // Auto-calculate with default data for the new protocol
-      if (collateral?.symbol && borrow?.symbol) {
-        const position: PositionInput = {
-          protocolId: protocol.id,
-          collaterals: [{ symbol: collateral.symbol, amount: 1.5 }],
-          borrows: [{ symbol: borrow.symbol, amount: 1000 }],
-        };
+      if (position) {
         setLastPosition(position);
         calculate(position);
         setStep(3);

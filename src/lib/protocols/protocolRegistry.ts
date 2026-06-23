@@ -42,6 +42,13 @@ export interface ProtocolConfig {
   description: string;
   tvlUsd?: number;
   assets: ProtocolAssetConfig[];
+  // Optional safe default position used by the safety-check UI. Borrow value is
+  // roughly $1,000 and LTV is kept around 30% of max LTV so the initial result
+  // is not immediately liquidated or dangerous.
+  defaultPosition?: {
+    collaterals: { symbol: string; amount: number }[];
+    borrows: { symbol: string; amount: number }[];
+  };
 }
 
 function makeAsset(
@@ -86,6 +93,10 @@ export const PROTOCOL_REGISTRY: ProtocolConfig[] = [
       makeAsset('USDT', 'stablecoin', OracleProvider.CHAINLINK, 1.25, 0.75, 0.75),
       makeAsset('LINK', 'alt', OracleProvider.CHAINLINK, 1.405, 0.66, 0.66),
     ],
+    defaultPosition: {
+      collaterals: [{ symbol: 'ETH', amount: 2.5 }],
+      borrows: [{ symbol: 'USDC', amount: 1000 }],
+    },
   },
   {
     id: 'compound-v3-ethereum',
@@ -100,6 +111,10 @@ export const PROTOCOL_REGISTRY: ProtocolConfig[] = [
       makeAsset('USDC', 'stablecoin', OracleProvider.CHAINLINK, 1.2, 0.82, 0.82),
       makeAsset('USDT', 'stablecoin', OracleProvider.CHAINLINK, 1.2, 0.8, 0.8),
     ],
+    defaultPosition: {
+      collaterals: [{ symbol: 'ETH', amount: 2.5 }],
+      borrows: [{ symbol: 'USDC', amount: 1000 }],
+    },
   },
   {
     id: 'uniswap-v3-ethereum',
@@ -114,6 +129,10 @@ export const PROTOCOL_REGISTRY: ProtocolConfig[] = [
       makeAsset('USDT', 'stablecoin', OracleProvider.TWAP, 1.2, 0.85, 0.85),
       makeAsset('LINK', 'alt', OracleProvider.CHAINLINK, 1.35, 0.7, 0.7),
     ],
+    defaultPosition: {
+      collaterals: [{ symbol: 'ETH', amount: 2.5 }],
+      borrows: [{ symbol: 'USDC', amount: 1000 }],
+    },
   },
   {
     id: 'aave-v3-arbitrum',
@@ -128,6 +147,10 @@ export const PROTOCOL_REGISTRY: ProtocolConfig[] = [
       makeAsset('USDT', 'stablecoin', OracleProvider.CHAINLINK, 1.25, 0.75, 0.75),
       makeAsset('ARB', 'alt', OracleProvider.CHAINLINK, 1.45, 0.63, 0.63),
     ],
+    defaultPosition: {
+      collaterals: [{ symbol: 'ETH', amount: 2.5 }],
+      borrows: [{ symbol: 'USDC', amount: 1000 }],
+    },
   },
   {
     id: 'compound-v3-arbitrum',
@@ -141,6 +164,10 @@ export const PROTOCOL_REGISTRY: ProtocolConfig[] = [
       makeAsset('USDC', 'stablecoin', OracleProvider.CHAINLINK, 1.2, 0.82, 0.82),
       makeAsset('USDT', 'stablecoin', OracleProvider.CHAINLINK, 1.2, 0.8, 0.8),
     ],
+    defaultPosition: {
+      collaterals: [{ symbol: 'ETH', amount: 2.5 }],
+      borrows: [{ symbol: 'USDC', amount: 1000 }],
+    },
   },
   {
     id: 'aave-v3-base',
@@ -160,6 +187,10 @@ export const PROTOCOL_REGISTRY: ProtocolConfig[] = [
       // cbETH LTV=78%, LT=81%
       makeAsset('cbETH', 'alt', OracleProvider.CHAINLINK, 1.2346, 0.78, 0.78),
     ],
+    defaultPosition: {
+      collaterals: [{ symbol: 'ETH', amount: 2.5 }],
+      borrows: [{ symbol: 'USDC', amount: 1000 }],
+    },
   },
   {
     id: 'compound-v3-base',
@@ -177,6 +208,10 @@ export const PROTOCOL_REGISTRY: ProtocolConfig[] = [
       // USDT CF=80%, liquidation factor ~83%
       makeAsset('USDT', 'stablecoin', OracleProvider.CHAINLINK, 1.2, 0.8, 0.8),
     ],
+    defaultPosition: {
+      collaterals: [{ symbol: 'ETH', amount: 2.5 }],
+      borrows: [{ symbol: 'USDC', amount: 1000 }],
+    },
   },
   {
     id: 'spark-ethereum',
@@ -198,6 +233,10 @@ export const PROTOCOL_REGISTRY: ProtocolConfig[] = [
       // wstETH eMode: LTV=97%, LT=97% (ETH-correlated eMode per Messari/Credora report)
       makeAsset('wstETH', 'alt', OracleProvider.CHAINLINK, 1.0309, 0.97, 0.97),
     ],
+    defaultPosition: {
+      collaterals: [{ symbol: 'ETH', amount: 2.5 }],
+      borrows: [{ symbol: 'USDC', amount: 1000 }],
+    },
   },
   {
     id: 'morpho-blue-ethereum',
@@ -221,6 +260,10 @@ export const PROTOCOL_REGISTRY: ProtocolConfig[] = [
       // DAI (borrow asset)
       makeAsset('DAI', 'stablecoin', OracleProvider.CHAINLINK, 1.0406, 0.96, 0.96),
     ],
+    defaultPosition: {
+      collaterals: [{ symbol: 'ETH', amount: 2.5 }],
+      borrows: [{ symbol: 'USDC', amount: 1000 }],
+    },
   },
   {
     id: 'venus-bnb-chain',
@@ -241,6 +284,10 @@ export const PROTOCOL_REGISTRY: ProtocolConfig[] = [
       // USDC CF=85%, LT=85%
       makeAsset('USDC', 'stablecoin', OracleProvider.CHAINLINK, 1.1765, 0.85, 0.85),
     ],
+    defaultPosition: {
+      collaterals: [{ symbol: 'BNB', amount: 7 }],
+      borrows: [{ symbol: 'USDC', amount: 1000 }],
+    },
   },
   {
     id: 'benqi-avalanche',
@@ -267,6 +314,10 @@ export const PROTOCOL_REGISTRY: ProtocolConfig[] = [
       // LINK CF=67.5%, LT=67.5%
       makeAsset('LINK', 'alt', OracleProvider.CHAINLINK, 1.4815, 0.675, 0.675),
     ],
+    defaultPosition: {
+      collaterals: [{ symbol: 'AVAX', amount: 700 }],
+      borrows: [{ symbol: 'USDC', amount: 1000 }],
+    },
   },
   {
     id: 'supralend-supra-chain',
@@ -285,6 +336,10 @@ export const PROTOCOL_REGISTRY: ProtocolConfig[] = [
       // because Supra DORA does not currently provide a native USDC or USDT/USD
       // price feed. All listed SupraLend assets use Supra DORA natively.
     ],
+    defaultPosition: {
+      collaterals: [{ symbol: 'SUPRA', amount: 20_000_000 }],
+      borrows: [{ symbol: 'iSUPRA', amount: 3_700_000 }],
+    },
   },
 ];
 
