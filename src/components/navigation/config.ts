@@ -5,7 +5,6 @@ import {
   Award,
   BarChart3,
   ShieldCheck,
-  ShieldAlert,
   Eye,
 } from 'lucide-react';
 
@@ -41,13 +40,6 @@ export const navigationConfig: NavStructure = [
         icon: Eye,
         description:
           'Compare oracle prices across providers and blockchains with risk analysis and divergence tracking',
-      },
-      {
-        href: '/attack-detection',
-        label: 'Attack Detection',
-        icon: ShieldAlert,
-        description:
-          'Oracle manipulation and liquidity anomaly detection with 8-dimension attack signature scoring',
       },
       {
         href: '/reputation',

@@ -22,7 +22,6 @@ Insight is an oracle transparency and risk infrastructure platform that serves b
 
 - **Price Snapshots** - Save and compare price snapshots across time with detailed comparison analytics and public sharing.
 - **Data Export** - Export data in CSV, JSON, Excel, PDF, and PNG formats.
-- **Anomaly Detection** - Automatic detection of price anomalies and outliers.
 - **Consensus Price** - Multiple consensus algorithms (median, trimmed mean, weighted median, IQR-filtered).
 - **Data Transparency** - Data source indicators and update time tracking.
 - **Accessibility Support** - Keyboard navigation, colorblind mode, screen reader support.
