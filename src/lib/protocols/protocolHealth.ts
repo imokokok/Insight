@@ -48,7 +48,12 @@ export interface AssetDeviationResult {
 // Safety buffer analysis
 export interface SafetyBufferAnalysis {
   overallLevel: 'safe' | 'moderate' | 'risky' | 'dangerous';
+  // Effective safety buffer after subtracting oracle deviation (the real safety check value)
   bufferPercent: number;
+  // Theoretical liquidation buffer without considering oracle deviation
+  theoreticalBufferPercent: number;
+  // Average oracle deviation from consensus across providers used by this position
+  oracleAvgDeviationPercent: number;
   description: string;
   recommendations: string[];
 }
@@ -410,7 +415,12 @@ export async function calculatePositionCriticalDeviation(
     );
 
     // Safety buffer analysis
-    const safetyBuffer = analyzeSafetyBuffer(worstDeviation, currentHealthFactor, assetDeviations);
+    const safetyBuffer = analyzeSafetyBuffer(
+      worstDeviation,
+      currentHealthFactor,
+      assetDeviations,
+      oracleWarnings ?? []
+    );
 
     // Backward compatible fields
     const primaryCollateral = collateralDetails[0];
@@ -823,14 +833,29 @@ function generateAdaptivePricePoints(
 
 /**
  * Safety buffer analysis
- * Evaluate the safety distance from liquidation and generate recommendations
+ * Evaluate the safety distance from liquidation and generate recommendations.
+ *
+ * Real safety check: effective buffer = theoretical liquidation buffer minus the
+ * average oracle deviation from consensus. A large oracle deviation eats into
+ * the apparent safety margin because the oracle price can already be off before
+ * the market moves.
  */
 function analyzeSafetyBuffer(
   worstDeviation: AssetDeviationResult,
   healthFactor: number,
-  assetDeviations: AssetDeviationResult[]
+  assetDeviations: AssetDeviationResult[],
+  oracleWarnings: OracleWarning[]
 ): SafetyBufferAnalysis {
-  const bufferPercent = Math.abs(worstDeviation.criticalDeviationPercent);
+  const theoreticalBufferPercent = Math.abs(worstDeviation.criticalDeviationPercent);
+
+  // Average oracle deviation across all providers used by this position
+  const oracleAvgDeviationPercent =
+    oracleWarnings.length > 0
+      ? oracleWarnings.reduce((sum, w) => sum + w.avgDeviationPct, 0) / oracleWarnings.length
+      : 0;
+
+  // Effective (real) safety buffer after subtracting oracle inaccuracy
+  const bufferPercent = Math.max(0, theoreticalBufferPercent - oracleAvgDeviationPercent);
   const recommendations: string[] = [];
 
   let overallLevel: SafetyBufferAnalysis['overallLevel'];
@@ -842,21 +867,21 @@ function analyzeSafetyBuffer(
     recommendations.push('Position is in liquidation state, take action immediately');
   } else if (bufferPercent < 5) {
     overallLevel = 'dangerous';
-    description = `Extremely thin safety buffer, only ${bufferPercent.toFixed(2)}% deviation triggers liquidation`;
+    description = `Effective safety buffer only ${bufferPercent.toFixed(2)}% after ${oracleAvgDeviationPercent.toFixed(2)}% oracle deviation`;
     recommendations.push('Strongly recommend adding collateral or reducing borrow');
     recommendations.push('Consider raising Health Factor above 1.5');
   } else if (bufferPercent < 15) {
     overallLevel = 'risky';
-    description = `Thin safety buffer, ${bufferPercent.toFixed(2)}% deviation triggers liquidation`;
+    description = `Thin effective safety buffer (${bufferPercent.toFixed(2)}%) after ${oracleAvgDeviationPercent.toFixed(2)}% oracle deviation`;
     recommendations.push('Recommend adding collateral to widen the safety buffer');
     recommendations.push('Monitor market volatility');
   } else if (bufferPercent < 30) {
     overallLevel = 'moderate';
-    description = `Moderate safety buffer, ${bufferPercent.toFixed(2)}% deviation triggers liquidation`;
+    description = `Moderate effective safety buffer (${bufferPercent.toFixed(2)}%), oracle deviation ${oracleAvgDeviationPercent.toFixed(2)}%`;
     recommendations.push('Keep monitoring market changes');
   } else {
     overallLevel = 'safe';
-    description = `Adequate safety buffer, ${bufferPercent.toFixed(2)}% deviation needed to trigger liquidation`;
+    description = `Adequate effective safety buffer (${bufferPercent.toFixed(2)}%) after ${oracleAvgDeviationPercent.toFixed(2)}% oracle deviation`;
   }
 
   // Check for borrow-side risks
@@ -884,6 +909,8 @@ function analyzeSafetyBuffer(
   return {
     overallLevel,
     bufferPercent: Number(bufferPercent.toFixed(2)),
+    theoreticalBufferPercent: Number(theoreticalBufferPercent.toFixed(2)),
+    oracleAvgDeviationPercent: Number(oracleAvgDeviationPercent.toFixed(2)),
     description,
     recommendations: recommendations.length > 0 ? recommendations : ['Position is in good shape'],
   };

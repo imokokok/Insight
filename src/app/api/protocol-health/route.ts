@@ -177,11 +177,14 @@ export const POST = createApiHandler(
         }
       }
 
-      // Build oracle warnings in parallel with calculation
-      const [result, oracleWarnings] = await Promise.all([
-        calculatePositionCriticalDeviation(input, fetchPricesForPosition),
-        buildOracleWarnings(oracleProviders),
-      ]);
+      // Build oracle warnings first because the safety-buffer calculation
+      // subtracts the average oracle deviation from the theoretical buffer.
+      const oracleWarnings = await buildOracleWarnings(oracleProviders);
+      const result = await calculatePositionCriticalDeviation(
+        input,
+        fetchPricesForPosition,
+        oracleWarnings
+      );
 
       // Merge warnings into result
       const resultWithWarnings = { ...result, oracleWarnings };

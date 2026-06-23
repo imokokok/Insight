@@ -31,6 +31,7 @@ import type { Blockchain } from '@/types/oracle';
 import { CircularGauge } from './CircularGauge';
 import { CountUp } from './CountUp';
 import { RiskChart } from './RiskChart';
+import { SafetyBufferBreakdown } from './SafetyBufferBreakdown';
 import { SafetyPlannerPanel } from './SafetyPlannerPanel';
 
 interface ResultDashboardProps {
@@ -212,6 +213,9 @@ export function ResultDashboard({ result, position, onReset }: ResultDashboardPr
             </span>
           </div>
           <p className="text-sm text-gray-700 mb-3">{result.safetyBuffer.description}</p>
+
+          <SafetyBufferBreakdown safetyBuffer={result.safetyBuffer} />
+
           {result.safetyBuffer.recommendations.length > 0 && (
             <div className="space-y-1.5">
               {result.safetyBuffer.recommendations.map((rec) => (
