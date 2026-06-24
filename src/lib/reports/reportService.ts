@@ -749,12 +749,20 @@ export class ReportService {
       recommendations.push(
         `${metrics.highEvents} high deviation event(s) (1-2%) occurred. Monitor these feeds closely and verify whether outliers correlate with exchange-specific volatility.`
       );
+    } else if (deviationEvents.length > 0) {
+      recommendations.push(
+        `${deviationEvents.length} material deviation event(s) (0.5-1%) were recorded. Review the affected provider/asset pairs to confirm they remain within acceptable tolerance for your use case.`
+      );
     }
 
     const worstProvider = providerRankings[providerRankings.length - 1];
     if (worstProvider && (worstProvider.successRate < 95 || worstProvider.avgDeviationPct >= 0.5)) {
       recommendations.push(
         `${worstProvider.provider} underperformed with a ${worstProvider.successRate.toFixed(1)}% success rate and ${worstProvider.avgDeviationPct.toFixed(3)}% average deviation. Evaluate its weight in consensus calculations.`
+      );
+    } else if (worstProvider && worstProvider.avgLatencyMs > 2000) {
+      recommendations.push(
+        `${worstProvider.provider} showed the highest average latency (${worstProvider.avgLatencyMs} ms). Consider whether this introduces stale-price risk for latency-sensitive integrations.`
       );
     }
 
@@ -780,10 +788,23 @@ export class ReportService {
       );
     }
 
-    if (deviationEvents.length === 0 && metrics.overallSuccessRate >= 95) {
+    if (metrics.failedSnapshots > 0 && metrics.overallSuccessRate >= 95) {
       recommendations.push(
-        'All monitored providers stayed close to consensus with high uptime. Maintain current monitoring cadence and watch for any new feed degradation.'
+        `While overall success rate is healthy (${metrics.overallSuccessRate.toFixed(1)}%), ${metrics.failedSnapshots} snapshot(s) still failed. Review the failure breakdown to address recurring provider or asset issues before they escalate.`
       );
+    }
+
+    // Fallback: ensure at least one recommendation is always shown.
+    if (recommendations.length === 0) {
+      if (metrics.overallSuccessRate >= 95) {
+        recommendations.push(
+          'All monitored providers stayed close to consensus with high uptime. Maintain current monitoring cadence and watch for any new feed degradation.'
+        );
+      } else {
+        recommendations.push(
+          `Overall metrics look stable (${metrics.overallSuccessRate.toFixed(1)}% success rate, ${metrics.avgDeviationPct.toFixed(3)}% avg deviation), but keep monitoring for any emerging provider drift or latency spikes.`
+        );
+      }
     }
 
     return recommendations;

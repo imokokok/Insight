@@ -152,18 +152,20 @@ function MetricCard({
 }
 
 function ProviderRankingTable({ rankings }: { rankings: ProviderRanking[] }) {
+  const maxScore = useMemo(() => Math.max(1, ...rankings.map((r) => r.score)), [rankings]);
+
   return (
     <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
       <table className="w-full text-sm">
         <thead className="bg-gray-50 border-b border-gray-100">
           <tr>
-            <th className="text-left font-medium text-gray-500 px-5 py-3 text-xs uppercase tracking-wider">
+            <th className="text-left font-medium text-gray-500 px-5 py-3 text-xs uppercase tracking-wider w-16">
               Rank
             </th>
             <th className="text-left font-medium text-gray-500 px-5 py-3 text-xs uppercase tracking-wider">
               Provider
             </th>
-            <th className="text-right font-medium text-gray-500 px-5 py-3 text-xs uppercase tracking-wider">
+            <th className="text-left font-medium text-gray-500 px-5 py-3 text-xs uppercase tracking-wider w-40">
               Score
             </th>
             <th className="text-right font-medium text-gray-500 px-5 py-3 text-xs uppercase tracking-wider">
@@ -175,11 +177,21 @@ function ProviderRankingTable({ rankings }: { rankings: ProviderRanking[] }) {
             <th className="text-right font-medium text-gray-500 px-5 py-3 text-xs uppercase tracking-wider">
               Latency
             </th>
+            <th className="text-right font-medium text-gray-500 px-5 py-3 text-xs uppercase tracking-wider w-24">
+              Anomalies
+            </th>
           </tr>
         </thead>
         <tbody>
           {rankings.map((ranking, index) => {
             const color = oracleColors[ranking.provider] ?? '#9CA3AF';
+            const scorePct = (ranking.score / maxScore) * 100;
+            const devTone =
+              ranking.avgDeviationPct >= 0.5
+                ? 'text-red-600'
+                : ranking.avgDeviationPct >= 0.2
+                  ? 'text-amber-600'
+                  : 'text-emerald-600';
             return (
               <tr
                 key={ranking.provider}
@@ -206,17 +218,50 @@ function ProviderRankingTable({ rankings }: { rankings: ProviderRanking[] }) {
                     </span>
                   </div>
                 </td>
-                <td className="px-5 py-3.5 text-right font-semibold text-gray-900 font-tabular">
-                  {ranking.score.toFixed(0)}
+                <td className="px-5 py-3.5">
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm font-semibold text-gray-900 font-tabular w-8">
+                      {ranking.score.toFixed(0)}
+                    </span>
+                    <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden min-w-[60px]">
+                      <div
+                        className="h-full rounded-full transition-all"
+                        style={{
+                          width: `${scorePct}%`,
+                          backgroundColor: color,
+                        }}
+                      />
+                    </div>
+                  </div>
                 </td>
-                <td className="px-5 py-3.5 text-right text-gray-700 font-tabular">
-                  {ranking.successRate.toFixed(1)}%
+                <td className="px-5 py-3.5 text-right">
+                  <span
+                    className={cn(
+                      'text-sm font-tabular',
+                      ranking.successRate >= 99
+                        ? 'text-emerald-600'
+                        : ranking.successRate >= 95
+                          ? 'text-amber-600'
+                          : 'text-red-600'
+                    )}
+                  >
+                    {ranking.successRate.toFixed(1)}%
+                  </span>
                 </td>
-                <td className="px-5 py-3.5 text-right text-gray-700 font-tabular">
+                <td className={cn('px-5 py-3.5 text-right text-sm font-tabular', devTone)}>
                   {ranking.avgDeviationPct.toFixed(3)}%
                 </td>
-                <td className="px-5 py-3.5 text-right text-gray-700 font-tabular">
+                <td className="px-5 py-3.5 text-right text-sm text-gray-700 font-tabular">
                   {ranking.avgLatencyMs}ms
+                </td>
+                <td className="px-5 py-3.5 text-right">
+                  {ranking.anomalyCount > 0 ? (
+                    <span className="inline-flex items-center justify-center px-2 py-0.5 rounded text-xs font-semibold bg-red-50 text-red-700">
+                      {ranking.anomalyCount}
+                    </span>
+                  ) : (
+                    <span className="text-xs text-gray-400">—</span>
+                  )}
                 </td>
               </tr>
             );
@@ -228,6 +273,11 @@ function ProviderRankingTable({ rankings }: { rankings: ProviderRanking[] }) {
 }
 
 function AssetTable({ assets }: { assets: DailyReportData['topAssets'] }) {
+  const maxVolatility = useMemo(
+    () => Math.max(0.01, ...assets.map((a) => a.volatilityPct)),
+    [assets]
+  );
+
   if (assets.length === 0) {
     return (
       <p className="text-sm text-gray-500 text-center py-8">
@@ -241,55 +291,100 @@ function AssetTable({ assets }: { assets: DailyReportData['topAssets'] }) {
       <table className="w-full text-sm">
         <thead className="bg-gray-50 border-b border-gray-100">
           <tr>
-            <th className="text-left font-medium text-gray-500 px-5 py-3 text-xs uppercase tracking-wider">
+            <th className="text-left font-medium text-gray-500 px-5 py-3 text-xs uppercase tracking-wider w-24">
               Asset
             </th>
-            <th className="text-right font-medium text-gray-500 px-5 py-3 text-xs uppercase tracking-wider">
+            <th className="text-right font-medium text-gray-500 px-5 py-3 text-xs uppercase tracking-wider w-36">
               Consensus
             </th>
-            <th className="text-right font-medium text-gray-500 px-5 py-3 text-xs uppercase tracking-wider">
-              Range
+            <th className="text-left font-medium text-gray-500 px-5 py-3 text-xs uppercase tracking-wider">
+              Range vs Consensus
             </th>
-            <th className="text-right font-medium text-gray-500 px-5 py-3 text-xs uppercase tracking-wider">
+            <th className="text-left font-medium text-gray-500 px-5 py-3 text-xs uppercase tracking-wider w-40">
               Volatility
             </th>
-            <th className="text-right font-medium text-gray-500 px-5 py-3 text-xs uppercase tracking-wider">
+            <th className="text-right font-medium text-gray-500 px-5 py-3 text-xs uppercase tracking-wider w-28">
               Max Dev
             </th>
           </tr>
         </thead>
         <tbody>
-          {assets.map((asset) => (
-            <tr
-              key={asset.symbol}
-              className="border-b border-gray-100 last:border-0 hover:bg-gray-50/50"
-            >
-              <td className="px-5 py-3.5 font-medium text-gray-900">{asset.symbol}</td>
-              <td className="px-5 py-3.5 text-right text-gray-700 font-tabular">
-                {formatPrice(asset.avgConsensusPrice)}
-              </td>
-              <td className="px-5 py-3.5 text-right text-gray-500 text-xs font-tabular">
-                {formatPrice(asset.minPrice)} – {formatPrice(asset.maxPrice)}
-              </td>
-              <td className="px-5 py-3.5 text-right">
-                <span
-                  className={cn(
-                    'text-xs font-semibold font-tabular',
-                    asset.volatilityPct >= 1
-                      ? 'text-red-600'
-                      : asset.volatilityPct >= 0.5
-                        ? 'text-amber-600'
-                        : 'text-emerald-600'
-                  )}
-                >
-                  {asset.volatilityPct.toFixed(2)}%
-                </span>
-              </td>
-              <td className="px-5 py-3.5 text-right text-gray-700 font-tabular">
-                {asset.maxDeviationPct.toFixed(3)}%
-              </td>
-            </tr>
-          ))}
+          {assets.map((asset) => {
+            const volatilityPct = Math.min(100, (asset.volatilityPct / maxVolatility) * 100);
+            const rangeWidthPct =
+              asset.avgConsensusPrice > 0
+                ? Math.min(100, ((asset.maxPrice - asset.minPrice) / asset.avgConsensusPrice) * 100)
+                : 0;
+            const volTone =
+              asset.volatilityPct >= 1
+                ? 'bg-red-500'
+                : asset.volatilityPct >= 0.5
+                  ? 'bg-amber-500'
+                  : 'bg-emerald-500';
+            return (
+              <tr
+                key={asset.symbol}
+                className="border-b border-gray-100 last:border-0 hover:bg-gray-50/50"
+              >
+                <td className="px-5 py-3.5 font-medium text-gray-900">{asset.symbol}</td>
+                <td className="px-5 py-3.5 text-right text-gray-700 font-tabular">
+                  {formatPrice(asset.avgConsensusPrice)}
+                </td>
+                <td className="px-5 py-3.5">
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-gray-500 font-tabular w-20 text-right">
+                      {formatPrice(asset.minPrice)}
+                    </span>
+                    <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden min-w-[60px]">
+                      <div
+                        className="h-full rounded-full bg-gray-300"
+                        style={{ width: `${rangeWidthPct}%` }}
+                      />
+                    </div>
+                    <span className="text-xs text-gray-500 font-tabular w-20">
+                      {formatPrice(asset.maxPrice)}
+                    </span>
+                  </div>
+                </td>
+                <td className="px-5 py-3.5">
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden min-w-[40px]">
+                      <div
+                        className={cn('h-full rounded-full transition-all', volTone)}
+                        style={{ width: `${volatilityPct}%` }}
+                      />
+                    </div>
+                    <span
+                      className={cn(
+                        'text-xs font-semibold font-tabular w-14 text-right',
+                        asset.volatilityPct >= 1
+                          ? 'text-red-600'
+                          : asset.volatilityPct >= 0.5
+                            ? 'text-amber-600'
+                            : 'text-emerald-600'
+                      )}
+                    >
+                      {asset.volatilityPct.toFixed(2)}%
+                    </span>
+                  </div>
+                </td>
+                <td className="px-5 py-3.5 text-right">
+                  <span
+                    className={cn(
+                      'text-sm font-tabular',
+                      asset.maxDeviationPct >= 1
+                        ? 'text-red-600'
+                        : asset.maxDeviationPct >= 0.5
+                          ? 'text-amber-600'
+                          : 'text-emerald-600'
+                    )}
+                  >
+                    {asset.maxDeviationPct.toFixed(3)}%
+                  </span>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
@@ -441,6 +536,150 @@ function PreviousDayComparison({
           </div>
         );
       })}
+    </div>
+  );
+}
+
+function HealthScoreGauge({ report }: { report: DailyReportData }) {
+  const { metrics } = report;
+  const score = useMemo(() => {
+    const successScore = metrics.overallSuccessRate;
+    const deviationScore = Math.max(0, 100 - (metrics.avgDeviationPct / 0.5) * 100);
+    const anomalyScore =
+      metrics.totalSnapshots > 0
+        ? Math.max(0, 100 - (metrics.totalAnomalies / metrics.totalSnapshots) * 500)
+        : 100;
+    return Math.round(successScore * 0.5 + deviationScore * 0.3 + anomalyScore * 0.2);
+  }, [metrics]);
+
+  const config =
+    score >= 95
+      ? { label: 'Healthy', color: 'text-emerald-600', bg: 'bg-emerald-500' }
+      : score >= 85
+        ? { label: 'Good', color: 'text-emerald-600', bg: 'bg-emerald-500' }
+        : score >= 70
+          ? { label: 'Fair', color: 'text-amber-600', bg: 'bg-amber-500' }
+          : { label: 'At Risk', color: 'text-red-600', bg: 'bg-red-500' };
+
+  const circumference = 2 * Math.PI * 36;
+  const offset = circumference * (1 - score / 100);
+
+  return (
+    <div className="flex items-center gap-5">
+      <div className="relative w-24 h-24 flex-shrink-0">
+        <svg className="w-full h-full -rotate-90" viewBox="0 0 80 80">
+          <circle cx="40" cy="40" r="36" className="fill-none stroke-gray-100" strokeWidth="8" />
+          <circle
+            cx="40"
+            cy="40"
+            r="36"
+            className={cn('fill-none transition-all duration-500', config.bg)}
+            strokeWidth="8"
+            strokeLinecap="round"
+            strokeDasharray={circumference}
+            strokeDashoffset={offset}
+          />
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <span className={cn('text-xl font-bold font-tabular', config.color)}>{score}</span>
+          <span className="text-[10px] text-gray-500 uppercase tracking-wider">Health</span>
+        </div>
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className={cn('text-sm font-semibold', config.color)}>{config.label}</p>
+        <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+          Composite score based on {metrics.overallSuccessRate.toFixed(1)}% success rate,{' '}
+          {metrics.avgDeviationPct.toFixed(3)}% avg deviation, and {metrics.totalAnomalies}{' '}
+          anomalies.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function AnomalySourceBreakdown({ report }: { report: DailyReportData }) {
+  const topProviders = useMemo(() => {
+    return Object.entries(report.anomalySummary.byProvider)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5);
+  }, [report.anomalySummary.byProvider]);
+
+  const topAssets = useMemo(() => {
+    return Object.entries(report.anomalySummary.byAsset)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5);
+  }, [report.anomalySummary.byAsset]);
+
+  const total = Math.max(1, report.anomalySummary.total);
+
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+      <div>
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+          By Provider
+        </p>
+        <div className="space-y-2.5">
+          {topProviders.length > 0 ? (
+            topProviders.map(([provider, count]) => {
+              const color = oracleColors[provider as keyof typeof oracleColors] ?? '#9CA3AF';
+              return (
+                <div key={provider}>
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span
+                        className="w-2 h-2 rounded-full flex-shrink-0"
+                        style={{ backgroundColor: color }}
+                      />
+                      <span className="text-xs text-gray-700 truncate">
+                        {providerNames[provider as keyof typeof providerNames] ?? provider}
+                      </span>
+                    </div>
+                    <span className="text-xs font-semibold text-gray-900 font-tabular">
+                      {count}
+                    </span>
+                  </div>
+                  <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full"
+                      style={{
+                        width: `${Math.min(100, (count / total) * 100)}%`,
+                        backgroundColor: color,
+                      }}
+                    />
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            <p className="text-xs text-gray-500">No anomalies by provider.</p>
+          )}
+        </div>
+      </div>
+      <div>
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+          By Asset
+        </p>
+        <div className="space-y-2.5">
+          {topAssets.length > 0 ? (
+            topAssets.map(([asset, count]) => (
+              <div key={asset}>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs text-gray-700">{asset}</span>
+                  <span className="text-xs font-semibold text-gray-900 font-tabular">{count}</span>
+                </div>
+                <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-gray-400"
+                    style={{ width: `${Math.min(100, (count / total) * 100)}%` }}
+                  />
+                </div>
+              </div>
+            ))
+          ) : (
+            <p className="text-xs text-gray-500">No anomalies by asset.</p>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
@@ -679,45 +918,56 @@ export default function ReportDetailContent({ initialReport }: ReportDetailConte
             />
           </div>
 
-          {/* Main content */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
-            <div className="lg:col-span-8 space-y-6">
-              <SectionCard title="Key highlights" icon={Shield}>
-                <Highlights highlights={report.highlights} />
-              </SectionCard>
+          {/* Feedback overview */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            <SectionCard title="Network health" icon={Shield}>
+              <HealthScoreGauge report={report} />
+            </SectionCard>
 
-              <SectionCard title="Recommendations" icon={Lightbulb}>
-                <Recommendations recommendations={report.recommendations} />
-              </SectionCard>
+            <SectionCard title="Anomaly breakdown" icon={AlertTriangle}>
+              <AnomalyBreakdown report={report} />
+            </SectionCard>
 
-              <section>
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-sm font-semibold text-gray-900">Provider performance</h2>
-                </div>
-                <ProviderRankingTable rankings={report.providerRankings} />
-              </section>
+            <SectionCard title="Day-over-day" icon={ArrowLeftRight}>
+              <PreviousDayComparison comparison={report.previousDayComparison} />
+            </SectionCard>
+          </div>
 
-              <section>
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-sm font-semibold text-gray-900">Asset performance</h2>
-                </div>
-                <AssetTable assets={report.topAssets} />
-              </section>
+          {/* Highlights & recommendations */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <SectionCard title="Key highlights" icon={Shield}>
+              <Highlights highlights={report.highlights} />
+            </SectionCard>
+
+            <SectionCard title="Recommendations" icon={Lightbulb}>
+              <Recommendations recommendations={report.recommendations} />
+            </SectionCard>
+          </div>
+
+          {/* Full-width data tables */}
+          <section className="mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-sm font-semibold text-gray-900">Provider performance</h2>
             </div>
+            <ProviderRankingTable rankings={report.providerRankings} />
+          </section>
 
-            <div className="lg:col-span-4 space-y-6">
-              <SectionCard title="Anomaly breakdown" icon={AlertTriangle}>
-                <AnomalyBreakdown report={report} />
-              </SectionCard>
-
-              <SectionCard title="Day-over-day" icon={ArrowLeftRight}>
-                <PreviousDayComparison comparison={report.previousDayComparison} />
-              </SectionCard>
-
-              <SectionCard title="Deviation events" icon={AlertTriangle}>
-                <DeviationEvents events={report.deviationEvents} />
-              </SectionCard>
+          <section className="mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-sm font-semibold text-gray-900">Asset performance</h2>
             </div>
+            <AssetTable assets={report.topAssets} />
+          </section>
+
+          {/* Anomaly sources & deviation events */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <SectionCard title="Anomaly sources" icon={BarChart3}>
+              <AnomalySourceBreakdown report={report} />
+            </SectionCard>
+
+            <SectionCard title="Deviation events" icon={AlertTriangle}>
+              <DeviationEvents events={report.deviationEvents} />
+            </SectionCard>
           </div>
 
           {/* Coverage matrix */}
