@@ -117,8 +117,10 @@ class ReputationService {
 
     const entries: ReputationHistoryEntry[] = [];
 
-    for (const symbol of TOP_SYMBOLS) {
-      const result = await this.calculateSymbolEntries(factory, symbol);
+    const results = await Promise.all(
+      TOP_SYMBOLS.map((symbol) => this.calculateSymbolEntries(factory, symbol))
+    );
+    for (const result of results) {
       entries.push(...result.entries);
       total += result.total;
       success += result.success;

@@ -19,7 +19,7 @@ jobs:
           BASE_URL="${SITE_URL%/}"
           echo "Triggering reputation calculation..."
 
-          RESPONSE=$(curl -s -w "\n%{http_code}" \
+          RESPONSE=$(curl -s -w "\n%{http_code}" --max-time 90 \
             -H "Authorization: Bearer ${CRON_SECRET}" \
             "${BASE_URL}/api/cron/reputation")
 
