@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 
 import { calculateConsensusPrice } from '@/lib/analytics/consensusPrice';
 import { fetchPriceWithDatabase } from '@/lib/oracles/base/databaseOperations';
+import { getDefaultFactory } from '@/lib/oracles/factory';
 import { reportService, REPORT_ASSETS, REPORT_PROVIDERS } from '@/lib/reports/reportService';
 import { createLogger } from '@/lib/utils/logger';
 import { type OracleProvider, type PriceData } from '@/types/oracle';
@@ -14,27 +15,49 @@ interface BatchResultItem {
   chain?: string;
   price: PriceData | null;
   error: string | null;
+  skipped: boolean;
 }
 
 async function fetchBatchPrices(): Promise<BatchResultItem[]> {
-  const queries = REPORT_ASSETS.flatMap((symbol) =>
-    REPORT_PROVIDERS.map((provider) => ({ provider, symbol }))
+  const factory = getDefaultFactory();
+  const queries: { provider: OracleProvider; symbol: string }[] = [];
+  const skipped: BatchResultItem[] = [];
+
+  for (const symbol of REPORT_ASSETS) {
+    for (const provider of REPORT_PROVIDERS) {
+      const client = factory.getClient(provider);
+      if (client.isSymbolSupported(symbol)) {
+        queries.push({ provider, symbol });
+      } else {
+        skipped.push({
+          provider,
+          symbol,
+          price: null,
+          error: 'Symbol not supported by provider',
+          skipped: true,
+        });
+      }
+    }
+  }
+
+  logger.info(
+    `Price batch: ${queries.length} queries, ${skipped.length} unsupported pairs skipped`
   );
 
-  const results = await Promise.all(
+  const fetched = await Promise.all(
     queries.map(async ({ provider, symbol }): Promise<BatchResultItem> => {
       try {
         const price = await fetchPriceWithDatabase(provider, symbol, undefined, true, true);
-        return { provider, symbol, price, error: null };
+        return { provider, symbol, price, error: null, skipped: false };
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Unknown error';
         logger.error(`Price fetch failed for ${provider}/${symbol}: ${message}`);
-        return { provider, symbol, price: null, error: message };
+        return { provider, symbol, price: null, error: message, skipped: false };
       }
     })
   );
 
-  return results;
+  return [...fetched, ...skipped];
 }
 
 function calculateConsensusBySymbol(results: BatchResultItem[]): Record<string, { price: number }> {
@@ -89,8 +112,9 @@ export async function GET(request: Request) {
     const results = await fetchBatchPrices();
     const consensusBySymbol = calculateConsensusBySymbol(results);
 
-    const inputs = results.map(
-      (item): import('@/lib/reports/reportService').HourlySnapshotInput => {
+    const inputs = results
+      .filter((item) => !item.skipped)
+      .map((item): import('@/lib/reports/reportService').HourlySnapshotInput => {
         const consensus = item.symbol ? consensusBySymbol[item.symbol] : undefined;
         const consensusPrice = consensus?.price ?? null;
 
@@ -115,13 +139,13 @@ export async function GET(request: Request) {
           isSuccess: item.error === null && !!item.price && item.price.price > 0,
           errorMessage: item.error,
         };
-      }
-    );
+      });
 
     const successCount = inputs.filter((i) => i.isSuccess).length;
     const failedCount = inputs.length - successCount;
+    const skippedCount = results.filter((r) => r.skipped).length;
     logger.info(
-      `Price batch completed for ${reportDate}: ${successCount} success, ${failedCount} failed out of ${inputs.length}`
+      `Price batch completed for ${reportDate}: ${successCount} success, ${failedCount} failed, ${skippedCount} skipped out of ${results.length}`
     );
 
     let inserted = 0;
