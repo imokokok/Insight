@@ -106,6 +106,21 @@ export class DatabaseQueries {
       const ttlInterval = record.ttl || '1h';
       const ttl = this.calculateTtlTimestamp(ttlInterval);
 
+      // price_records.price is DECIMAL(20, 8)
+      const maxPrice = 999_999_999_999.99999999;
+      if (!Number.isFinite(record.price) || record.price <= 0 || record.price > maxPrice) {
+        logger.warn(
+          `Skipping price record save: price ${record.price} out of DECIMAL(20,8) range`,
+          {
+            provider: record.provider,
+            symbol: record.symbol,
+            chain: record.chain,
+            price: record.price,
+          }
+        );
+        return null;
+      }
+
       const { data, error } = await this.client
         .from('price_records')
         .insert({

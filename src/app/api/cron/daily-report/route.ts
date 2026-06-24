@@ -88,7 +88,7 @@ async function fetchBatchPrices(): Promise<BatchResultItem[]> {
         return { provider, symbol, price, error: null, skipped: false };
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Unknown error';
-        logger.error(`Price fetch failed for ${provider}/${symbol}: ${message}`);
+        logger.warn(`Price fetch failed for ${provider}/${symbol}: ${message}`);
         return { provider, symbol, price: null, error: message, skipped: false };
       }
     })
