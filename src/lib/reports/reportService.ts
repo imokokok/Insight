@@ -4,13 +4,18 @@ import { type OracleProvider } from '@/types/oracle';
 
 const logger = createLogger('ReportService');
 
-export const REPORT_ASSETS = ['BTC', 'ETH', 'USDT', 'SOL'] as const;
+export const REPORT_ASSETS = ['BTC', 'ETH', 'SOL', 'BNB', 'XRP', 'ADA', 'DOGE', 'LINK'] as const;
 export const REPORT_PROVIDERS: OracleProvider[] = [
   'chainlink',
   'pyth',
   'redstone',
   'api3',
   'dia',
+  'winklink',
+  'supra',
+  'twap',
+  'reflector',
+  'flare',
 ] as OracleProvider[];
 
 export interface HourlySnapshotInput {

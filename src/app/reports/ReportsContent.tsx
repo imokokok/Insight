@@ -113,7 +113,6 @@ function ReportCard({ report }: { report: DailyReportData }) {
       href={`/reports/${report.reportDate}`}
       className="group flex flex-col bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-lg hover:border-gray-300 transition-all duration-300 hover:-translate-y-0.5 overflow-hidden"
     >
-      <div className="h-1.5 w-full bg-gradient-to-r from-blue-500 via-indigo-500 to-violet-500" />
       <div className="p-5 flex-1 flex flex-col">
         <div className="flex items-start justify-between gap-3 mb-4">
           <div className="flex items-center gap-3">
@@ -338,7 +337,8 @@ function ReportsContentInner() {
           <p className="text-sm text-gray-700 leading-relaxed">
             Every day at 03:00 UTC, Insight captures a cross-oracle price snapshot for key crypto
             assets and publishes an aggregated report. Reports measure consensus alignment, provider
-            uptime, latency, and deviation events across Chainlink, Pyth, RedStone, API3, and DIA.
+            uptime, latency, and deviation events across all 10 integrated oracle networks:
+            Chainlink, Pyth, RedStone, API3, DIA, WINkLink, Supra, TWAP, Reflector, and Flare.
           </p>
         </div>
         <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl p-6 text-white shadow-lg shadow-blue-200/40 flex flex-col justify-center">
