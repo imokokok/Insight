@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import Link from 'next/link';
 
@@ -21,6 +21,10 @@ import {
   Twitter,
   FileDigit,
   ChevronRight,
+  Lightbulb,
+  Grid3X3,
+  XCircle,
+  ArrowLeftRight,
 } from 'lucide-react';
 
 import { ErrorBoundary } from '@/components/error-boundary';
@@ -83,7 +87,7 @@ function SectionTitle({
   return (
     <div className="flex items-center justify-between mb-4">
       <div className="flex items-center gap-2">
-        <Icon className="w-4 h-4 text-blue-500" />
+        <Icon className="w-4 h-4 text-slate-500" />
         <h2 className="text-sm font-bold text-gray-800 uppercase tracking-wide">{title}</h2>
       </div>
       {action}
@@ -290,7 +294,7 @@ function DeviationEventsList({ events }: { events: DailyReportData['deviationEve
               <span
                 className={cn(
                   'text-sm font-black font-mono flex-shrink-0',
-                  event.deviationPct > 0 ? 'text-red-600' : 'text-blue-600'
+                  event.deviationPct > 0 ? 'text-red-600' : 'text-slate-600'
                 )}
               >
                 {event.deviationPct > 0 ? '+' : ''}
@@ -316,11 +320,191 @@ function Highlights({ highlights }: { highlights: string[] }) {
       <ul className="space-y-3">
         {highlights.map((highlight, index) => (
           <li key={index} className="flex items-start gap-3">
-            <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 flex-shrink-0" />
+            <div className="w-1.5 h-1.5 rounded-full bg-slate-400 mt-2 flex-shrink-0" />
             <p className="text-sm text-gray-700 leading-relaxed">{highlight}</p>
           </li>
         ))}
       </ul>
+    </div>
+  );
+}
+
+function Recommendations({ recommendations }: { recommendations: string[] }) {
+  if (!recommendations || recommendations.length === 0) return null;
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+      <SectionTitle icon={Lightbulb} title="Actionable Recommendations" />
+      <ul className="space-y-3">
+        {recommendations.map((recommendation, index) => (
+          <li key={index} className="flex items-start gap-3">
+            <span className="flex-shrink-0 w-5 h-5 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-[10px] font-bold">
+              {index + 1}
+            </span>
+            <p className="text-sm text-gray-700 leading-relaxed">{recommendation}</p>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function PreviousDayComparison({
+  comparison,
+}: {
+  comparison: DailyReportData['previousDayComparison'];
+}) {
+  if (!comparison || !comparison.reportAvailable) return null;
+
+  const items = [
+    {
+      label: 'Success rate',
+      value: comparison.successRateChangePct,
+      unit: 'pp',
+      goodWhenPositive: true,
+    },
+    {
+      label: 'Avg deviation',
+      value: comparison.avgDeviationChangePct,
+      unit: 'pp',
+      goodWhenPositive: false,
+    },
+    {
+      label: 'Anomalies',
+      value: comparison.anomalyChangeCount,
+      unit: '',
+      goodWhenPositive: false,
+    },
+    {
+      label: 'Failed snapshots',
+      value: comparison.failedSnapshotsChangeCount,
+      unit: '',
+      goodWhenPositive: false,
+    },
+  ];
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+      <SectionTitle icon={ArrowLeftRight} title="Day-over-Day Change" />
+      <div className="grid grid-cols-2 gap-3">
+        {items.map((item) => {
+          const isPositive = item.value > 0;
+          const isNegative = item.value < 0;
+          const isGood = item.goodWhenPositive ? isPositive : isNegative;
+          const color = isGood
+            ? 'text-emerald-600'
+            : isNegative || isPositive
+              ? 'text-red-600'
+              : 'text-gray-500';
+          return (
+            <div key={item.label} className="bg-slate-50 rounded-lg p-3">
+              <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">
+                {item.label}
+              </p>
+              <p className={cn('text-sm font-black font-mono', color)}>
+                {isPositive ? '+' : ''}
+                {item.value.toFixed(item.unit === 'pp' ? 2 : 0)}
+                {item.unit}
+              </p>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function CoverageMatrix({ matrix }: { matrix: DailyReportData['coverageMatrix'] }) {
+  const providers = useMemo(() => [...new Set(matrix.map((m) => m.provider))].sort(), [matrix]);
+  const assets = useMemo(() => [...new Set(matrix.map((m) => m.symbol))].sort(), [matrix]);
+
+  if (providers.length === 0 || assets.length === 0) {
+    return (
+      <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+        <SectionTitle icon={Grid3X3} title="Provider × Asset Coverage" />
+        <p className="text-sm text-gray-500 text-center py-8">No coverage data available.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm overflow-x-auto">
+      <SectionTitle icon={Grid3X3} title="Provider × Asset Coverage" />
+      <table className="min-w-full text-xs">
+        <thead>
+          <tr>
+            <th className="text-left font-bold text-gray-500 p-2 sticky left-0 bg-white">
+              Provider
+            </th>
+            {assets.map((asset) => (
+              <th key={asset} className="text-center font-bold text-gray-500 p-2 min-w-[72px]">
+                {asset}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {providers.map((provider) => (
+            <tr key={provider} className="border-t border-gray-100">
+              <td className="p-2 font-medium text-gray-700 sticky left-0 bg-white">
+                {providerNames[provider] ?? provider}
+              </td>
+              {assets.map((asset) => {
+                const cell = matrix.find((m) => m.provider === provider && m.symbol === asset);
+                return (
+                  <td key={asset} className="p-2 text-center align-middle">
+                    {cell ? (
+                      <div className="flex flex-col items-center gap-0.5">
+                        <span
+                          className={cn(
+                            'font-mono font-bold',
+                            cell.failed > 0 ? 'text-amber-600' : 'text-emerald-600'
+                          )}
+                        >
+                          {cell.success}/{cell.total}
+                        </span>
+                        <span className="text-[10px] text-gray-400">
+                          {cell.avgDeviationPct.toFixed(2)}%
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-gray-300">—</span>
+                    )}
+                  </td>
+                );
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function FailureBreakdown({ breakdown }: { breakdown: DailyReportData['failureBreakdown'] }) {
+  if (!breakdown || breakdown.length === 0) return null;
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+      <SectionTitle icon={XCircle} title="Failure Breakdown" />
+      <div className="space-y-3">
+        {breakdown.slice(0, 10).map((item) => (
+          <div
+            key={`${item.provider}-${item.symbol}`}
+            className="flex items-start justify-between gap-3"
+          >
+            <div className="min-w-0">
+              <p className="text-sm font-bold text-gray-800">
+                {providerNames[item.provider] ?? item.provider} · {item.symbol}
+              </p>
+              {item.topError && <p className="text-xs text-gray-500 truncate">{item.topError}</p>}
+            </div>
+            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-red-50 text-red-700 border border-red-100 flex-shrink-0">
+              {item.failureCount}
+            </span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -334,23 +518,23 @@ function SummaryCard({ report }: { report: DailyReportData }) {
         : TrendingDown;
 
   return (
-    <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl p-6 text-white shadow-lg shadow-blue-200/40 h-full flex flex-col">
+    <div className="bg-slate-50 rounded-xl border border-gray-200 p-6 shadow-sm h-full flex flex-col">
       <div className="flex items-center gap-2 mb-3">
-        <Calendar className="w-4 h-4 text-blue-100" />
-        <span className="text-xs font-bold text-blue-100 uppercase tracking-wider">
+        <Calendar className="w-4 h-4 text-slate-500" />
+        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
           Daily Summary
         </span>
       </div>
-      <h2 className="text-xl font-black mb-3">{report.reportTitle}</h2>
-      <p className="text-sm text-blue-50 leading-relaxed mb-5 flex-1">{report.summary}</p>
+      <h2 className="text-xl font-black text-slate-700 mb-3">{report.reportTitle}</h2>
+      <p className="text-sm text-slate-600 leading-relaxed mb-5 flex-1">{report.summary}</p>
       <div className="flex flex-wrap items-center gap-2">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 border border-white/20">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-gray-200 text-slate-700">
           <TrendIcon className="w-3.5 h-3.5" />
           <span className="text-xs font-bold">
             Avg deviation {report.metrics.avgDeviationPct.toFixed(3)}%
           </span>
         </div>
-        <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 border border-white/20">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-gray-200 text-slate-700">
           <Shield className="w-3.5 h-3.5" />
           <span className="text-xs font-bold">
             {report.metrics.overallSuccessRate.toFixed(1)}% success rate
@@ -409,7 +593,7 @@ function ShareButtons({ url, title }: { url: string; title: string }) {
 function Breadcrumb({ dateLabel }: { dateLabel: string }) {
   return (
     <nav className="flex items-center gap-1.5 text-xs text-gray-500 mb-5">
-      <Link href="/reports" className="hover:text-primary-600 transition-colors font-medium">
+      <Link href="/reports" className="hover:text-slate-600 transition-colors font-medium">
         Reports
       </Link>
       <ChevronRight className="w-3 h-3" />
@@ -421,6 +605,7 @@ function Breadcrumb({ dateLabel }: { dateLabel: string }) {
 export default function ReportDetailContent({ initialReport }: ReportDetailContentProps) {
   const report = initialReport;
   const dateLabel = new Date(report.reportDate).toLocaleDateString('en-US', {
+    timeZone: 'UTC',
     weekday: 'long',
     year: 'numeric',
     month: 'long',
@@ -436,8 +621,8 @@ export default function ReportDetailContent({ initialReport }: ReportDetailConte
 
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-6">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-md shadow-blue-200/30">
-              <BarChart3 className="w-6 h-6 text-white" />
+            <div className="p-2.5 rounded-xl bg-slate-100 text-slate-600">
+              <BarChart3 className="w-6 h-6" />
             </div>
             <div>
               <h1 className="text-2xl font-black text-gray-900 tracking-tight">
@@ -505,7 +690,7 @@ export default function ReportDetailContent({ initialReport }: ReportDetailConte
           <div className="lg:col-span-2">
             <Highlights highlights={report.highlights} />
           </div>
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1 space-y-5">
             <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm h-full">
               <SectionTitle icon={Activity} title="Anomaly Breakdown" />
               <div className="space-y-3">
@@ -551,6 +736,16 @@ export default function ReportDetailContent({ initialReport }: ReportDetailConte
                 </div>
               </div>
             </div>
+            <PreviousDayComparison comparison={report.previousDayComparison} />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6">
+          <div className="lg:col-span-2">
+            <Recommendations recommendations={report.recommendations} />
+          </div>
+          <div className="lg:col-span-1">
+            <FailureBreakdown breakdown={report.failureBreakdown} />
           </div>
         </div>
 
@@ -563,6 +758,10 @@ export default function ReportDetailContent({ initialReport }: ReportDetailConte
               ))}
             </div>
           </div>
+        </div>
+
+        <div className="mb-6">
+          <CoverageMatrix matrix={report.coverageMatrix} />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-6">
@@ -584,10 +783,7 @@ export default function ReportDetailContent({ initialReport }: ReportDetailConte
                 This report was generated automatically by Insight at 03:00 UTC based on a single
                 daily cross-oracle snapshot. Data is collected from public oracle feeds and may not
                 represent the full intraday price history. For real-time data, visit the{' '}
-                <Link
-                  href="/price-insight"
-                  className="text-primary-600 hover:underline font-medium"
-                >
+                <Link href="/price-insight" className="text-slate-600 hover:underline font-medium">
                   Price Insight
                 </Link>{' '}
                 dashboard.

@@ -43,7 +43,7 @@ async function fetchBatchPrices(): Promise<BatchResultItem[]> {
   return Promise.all(
     queries.map(async ({ provider, symbol }): Promise<BatchResultItem> => {
       try {
-        const price = await fetchPriceWithDatabase(provider, symbol, undefined, true, false);
+        const price = await fetchPriceWithDatabase(provider, symbol, undefined, true, true);
         return {
           provider,
           symbol,

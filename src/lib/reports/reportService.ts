@@ -4,13 +4,18 @@ import { type OracleProvider } from '@/types/oracle';
 
 const logger = createLogger('ReportService');
 
-export const REPORT_ASSETS = ['BTC', 'ETH', 'USDT', 'SOL'] as const;
+export const REPORT_ASSETS = ['BTC', 'ETH', 'SOL', 'BNB', 'XRP', 'ADA', 'DOGE', 'LINK'] as const;
 export const REPORT_PROVIDERS: OracleProvider[] = [
   'chainlink',
   'pyth',
   'redstone',
   'api3',
   'dia',
+  'winklink',
+  'supra',
+  'twap',
+  'reflector',
+  'flare',
 ] as OracleProvider[];
 
 export interface HourlySnapshotInput {
@@ -61,6 +66,31 @@ export interface AssetDailyStats {
   sampleCount: number;
 }
 
+export interface CoverageCell {
+  provider: OracleProvider;
+  symbol: string;
+  total: number;
+  success: number;
+  failed: number;
+  avgDeviationPct: number;
+  maxDeviationPct: number;
+}
+
+export interface FailureBreakdown {
+  provider: OracleProvider;
+  symbol: string;
+  failureCount: number;
+  topError?: string;
+}
+
+export interface PreviousDayComparison {
+  reportAvailable: boolean;
+  successRateChangePct: number;
+  avgDeviationChangePct: number;
+  anomalyChangeCount: number;
+  failedSnapshotsChangeCount: number;
+}
+
 export interface DailyReportMetrics {
   totalSnapshots: number;
   successfulSnapshots: number;
@@ -74,6 +104,7 @@ export interface DailyReportMetrics {
   avgLatencyMs: number;
   activeProviders: number;
   activeAssets: number;
+  activeHours: number;
 }
 
 export interface DailyReportData {
@@ -81,6 +112,7 @@ export interface DailyReportData {
   reportTitle: string;
   summary: string;
   highlights: string[];
+  recommendations: string[];
   metrics: DailyReportMetrics;
   topAssets: AssetDailyStats[];
   providerRankings: ProviderRanking[];
@@ -91,6 +123,9 @@ export interface DailyReportData {
     byProvider: Record<string, number>;
     byAsset: Record<string, number>;
   };
+  coverageMatrix: CoverageCell[];
+  failureBreakdown: FailureBreakdown[];
+  previousDayComparison: PreviousDayComparison;
 }
 
 interface SnapshotRow {
@@ -203,10 +238,21 @@ export class ReportService {
     const providerRankings = this.calculateProviderRankings(snapshots);
     const deviationEvents = this.extractDeviationEvents(snapshots);
     const anomalySummary = this.calculateAnomalySummary(snapshots, deviationEvents);
+    const coverageMatrix = this.calculateCoverageMatrix(snapshots);
+    const failureBreakdown = this.calculateFailureBreakdown(snapshots);
+    const previousDayComparison = await this.calculatePreviousDayComparison(dateStr, metrics);
     const highlights = this.generateHighlights(
       metrics,
       topAssets,
       providerRankings,
+      deviationEvents,
+      failureBreakdown
+    );
+    const recommendations = this.generateRecommendations(
+      metrics,
+      providerRankings,
+      topAssets,
+      failureBreakdown,
       deviationEvents
     );
     const summary = this.generateSummary(
@@ -214,12 +260,15 @@ export class ReportService {
       metrics,
       topAssets,
       providerRankings,
-      deviationEvents
+      deviationEvents,
+      failureBreakdown,
+      previousDayComparison
     );
 
     const reportData: DailyReportData = {
       reportDate: dateStr,
       reportTitle: `Oracle Daily Report — ${new Date(dateStr).toLocaleDateString('en-US', {
+        timeZone: 'UTC',
         weekday: 'long',
         year: 'numeric',
         month: 'long',
@@ -227,11 +276,15 @@ export class ReportService {
       })}`,
       summary,
       highlights,
+      recommendations,
       metrics,
       topAssets,
       providerRankings,
       deviationEvents,
       anomalySummary,
+      coverageMatrix,
+      failureBreakdown,
+      previousDayComparison,
     };
 
     await this.persistReport(reportData);
@@ -248,11 +301,15 @@ export class ReportService {
         report_title: report.reportTitle,
         summary: report.summary,
         highlights: report.highlights,
+        recommendations: report.recommendations,
         metrics: report.metrics,
         top_assets: report.topAssets,
         provider_rankings: report.providerRankings,
         deviation_events: report.deviationEvents,
         anomaly_summary: report.anomalySummary,
+        coverage_matrix: report.coverageMatrix,
+        failure_breakdown: report.failureBreakdown,
+        previous_day_comparison: report.previousDayComparison,
         generated_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       },
@@ -301,11 +358,20 @@ export class ReportService {
   }
 
   private mapDbRowToReport(row: Record<string, unknown>): DailyReportData {
+    const emptyComparison: PreviousDayComparison = {
+      reportAvailable: false,
+      successRateChangePct: 0,
+      avgDeviationChangePct: 0,
+      anomalyChangeCount: 0,
+      failedSnapshotsChangeCount: 0,
+    };
+
     return {
       reportDate: String(row.report_date),
       reportTitle: String(row.report_title),
       summary: String(row.summary),
       highlights: (row.highlights as string[]) ?? [],
+      recommendations: (row.recommendations as string[]) ?? [],
       metrics: (row.metrics as DailyReportMetrics) ?? ({} as DailyReportMetrics),
       topAssets: (row.top_assets as AssetDailyStats[]) ?? [],
       providerRankings: (row.provider_rankings as ProviderRanking[]) ?? [],
@@ -313,6 +379,10 @@ export class ReportService {
       anomalySummary:
         (row.anomaly_summary as DailyReportData['anomalySummary']) ??
         ({} as DailyReportData['anomalySummary']),
+      coverageMatrix: (row.coverage_matrix as CoverageCell[]) ?? [],
+      failureBreakdown: (row.failure_breakdown as FailureBreakdown[]) ?? [],
+      previousDayComparison:
+        (row.previous_day_comparison as PreviousDayComparison) ?? emptyComparison,
     };
   }
 
@@ -343,9 +413,9 @@ export class ReportService {
         ? Math.round(latencies.reduce((a, b) => a + b, 0) / latencies.length)
         : 0;
 
-    const activeProviders = new Set(snapshots.filter((s) => s.is_success).map((s) => s.provider))
-      .size;
-    const activeAssets = new Set(snapshots.filter((s) => s.is_success).map((s) => s.symbol)).size;
+    const activeProviders = new Set(snapshots.map((s) => s.provider)).size;
+    const activeAssets = new Set(snapshots.map((s) => s.symbol)).size;
+    const activeHours = new Set(snapshots.map((s) => s.snapshot_hour.slice(0, 13))).size;
 
     const anomalies = this.extractDeviationEvents(snapshots);
     const criticalEvents = anomalies.filter((a) => a.severity === 'critical').length;
@@ -364,6 +434,7 @@ export class ReportService {
       avgLatencyMs: avgLatency,
       activeProviders,
       activeAssets,
+      activeHours,
     };
   }
 
@@ -514,11 +585,188 @@ export class ReportService {
     };
   }
 
+  private calculateCoverageMatrix(snapshots: SnapshotRow[]): CoverageCell[] {
+    const grouped = new Map<string, SnapshotRow[]>();
+
+    for (const s of snapshots) {
+      const key = `${s.provider}:${s.symbol}`;
+      const list = grouped.get(key) ?? [];
+      list.push(s);
+      grouped.set(key, list);
+    }
+
+    const cells: CoverageCell[] = [];
+    for (const [, rows] of grouped) {
+      const total = rows.length;
+      const success = rows.filter((r) => r.is_success).length;
+      const failed = total - success;
+      const deviations = rows
+        .filter((r) => r.is_success && r.deviation_pct != null)
+        .map((r) => Math.abs(r.deviation_pct!));
+      const avgDeviation =
+        deviations.length > 0 ? deviations.reduce((a, b) => a + b, 0) / deviations.length : 0;
+      const maxDeviation = deviations.length > 0 ? Math.max(...deviations) : 0;
+
+      cells.push({
+        provider: rows[0].provider as OracleProvider,
+        symbol: rows[0].symbol,
+        total,
+        success,
+        failed,
+        avgDeviationPct: Number(avgDeviation.toFixed(4)),
+        maxDeviationPct: Number(maxDeviation.toFixed(4)),
+      });
+    }
+
+    return cells.sort(
+      (a, b) => a.provider.localeCompare(b.provider) || a.symbol.localeCompare(b.symbol)
+    );
+  }
+
+  private calculateFailureBreakdown(snapshots: SnapshotRow[]): FailureBreakdown[] {
+    const grouped = new Map<string, SnapshotRow[]>();
+
+    for (const s of snapshots) {
+      if (s.is_success) continue;
+      const key = `${s.provider}:${s.symbol}`;
+      const list = grouped.get(key) ?? [];
+      list.push(s);
+      grouped.set(key, list);
+    }
+
+    const breakdown: FailureBreakdown[] = [];
+    for (const [, rows] of grouped) {
+      const errors = rows.map((r) => r.error_message).filter((e): e is string => !!e);
+      const topError =
+        errors.length > 0
+          ? Object.entries(
+              errors.reduce<Record<string, number>>((acc, e) => {
+                acc[e] = (acc[e] ?? 0) + 1;
+                return acc;
+              }, {})
+            ).sort((a, b) => b[1] - a[1])[0][0]
+          : undefined;
+
+      breakdown.push({
+        provider: rows[0].provider as OracleProvider,
+        symbol: rows[0].symbol,
+        failureCount: rows.length,
+        topError,
+      });
+    }
+
+    return breakdown.sort((a, b) => b.failureCount - a.failureCount);
+  }
+
+  private async calculatePreviousDayComparison(
+    dateStr: string,
+    metrics: DailyReportMetrics
+  ): Promise<PreviousDayComparison> {
+    const prev = new Date(dateStr);
+    prev.setUTCDate(prev.getUTCDate() - 1);
+    const prevDateStr = prev.toISOString().slice(0, 10);
+
+    let previousReport: DailyReportData | null = null;
+    try {
+      previousReport = await this.getReportByDate(prevDateStr);
+    } catch {
+      previousReport = null;
+    }
+
+    if (!previousReport) {
+      return {
+        reportAvailable: false,
+        successRateChangePct: 0,
+        avgDeviationChangePct: 0,
+        anomalyChangeCount: 0,
+        failedSnapshotsChangeCount: 0,
+      };
+    }
+
+    const prevMetrics = previousReport.metrics;
+
+    return {
+      reportAvailable: true,
+      successRateChangePct: Number(
+        (metrics.overallSuccessRate - prevMetrics.overallSuccessRate).toFixed(2)
+      ),
+      avgDeviationChangePct: Number(
+        (metrics.avgDeviationPct - prevMetrics.avgDeviationPct).toFixed(4)
+      ),
+      anomalyChangeCount: metrics.totalAnomalies - prevMetrics.totalAnomalies,
+      failedSnapshotsChangeCount: metrics.failedSnapshots - prevMetrics.failedSnapshots,
+    };
+  }
+
+  private generateRecommendations(
+    metrics: DailyReportMetrics,
+    providerRankings: ProviderRanking[],
+    topAssets: AssetDailyStats[],
+    failureBreakdown: FailureBreakdown[],
+    deviationEvents: DeviationEvent[]
+  ): string[] {
+    const recommendations: string[] = [];
+
+    if (metrics.overallSuccessRate < 90) {
+      recommendations.push(
+        `Overall snapshot success rate (${metrics.overallSuccessRate.toFixed(1)}%) is below 90%. Review provider endpoint health and consider adding fallback feeds for the most affected asset/provider pairs.`
+      );
+    }
+
+    if (metrics.criticalEvents > 0) {
+      recommendations.push(
+        `${metrics.criticalEvents} critical deviation event(s) (≥2%) occurred. Audit affected price feeds before using them as primary references for liquidations or collateral valuation.`
+      );
+    } else if (metrics.highEvents > 0) {
+      recommendations.push(
+        `${metrics.highEvents} high deviation event(s) (1-2%) occurred. Monitor these feeds closely and verify whether outliers correlate with exchange-specific volatility.`
+      );
+    }
+
+    const worstProvider = providerRankings[providerRankings.length - 1];
+    if (worstProvider && (worstProvider.successRate < 95 || worstProvider.avgDeviationPct >= 0.5)) {
+      recommendations.push(
+        `${worstProvider.provider} underperformed with a ${worstProvider.successRate.toFixed(1)}% success rate and ${worstProvider.avgDeviationPct.toFixed(3)}% average deviation. Evaluate its weight in consensus calculations.`
+      );
+    }
+
+    if (failureBreakdown.length > 0) {
+      const topFailure = failureBreakdown[0];
+      recommendations.push(
+        `The most frequent failure was ${topFailure.provider} / ${topFailure.symbol} (${topFailure.failureCount} times${topFailure.topError ? `: ${topFailure.topError}` : ''}). Investigate this feed pair first.`
+      );
+    }
+
+    if (topAssets.length > 0) {
+      const mostVolatile = topAssets[0];
+      if (mostVolatile.volatilityPct > 5) {
+        recommendations.push(
+          `${mostVolatile.symbol} exhibited high intraday volatility (${mostVolatile.volatilityPct.toFixed(2)}%). Consider using TWAP or multi-source aggregation for this asset during volatile periods.`
+        );
+      }
+    }
+
+    if (metrics.avgLatencyMs > 2000) {
+      recommendations.push(
+        `Average feed latency is ${metrics.avgLatencyMs} ms. Latency above 2 seconds may introduce stale-price risk for time-sensitive applications.`
+      );
+    }
+
+    if (deviationEvents.length === 0 && metrics.overallSuccessRate >= 95) {
+      recommendations.push(
+        'All monitored providers stayed close to consensus with high uptime. Maintain current monitoring cadence and watch for any new feed degradation.'
+      );
+    }
+
+    return recommendations;
+  }
+
   private generateHighlights(
     metrics: DailyReportMetrics,
     topAssets: AssetDailyStats[],
     providerRankings: ProviderRanking[],
-    _deviationEvents: DeviationEvent[]
+    deviationEvents: DeviationEvent[],
+    failureBreakdown: FailureBreakdown[]
   ): string[] {
     const highlights: string[] = [];
 
@@ -541,6 +789,15 @@ export class ReportService {
       highlights.push(
         `${mostVolatile.symbol} showed the highest intraday volatility at ${mostVolatile.volatilityPct.toFixed(2)}% between min/max consensus prices.`
       );
+
+      const mostDeviated = topAssets
+        .slice()
+        .sort((a, b) => b.avgDeviationPct - a.avgDeviationPct)[0];
+      if (mostDeviated.avgDeviationPct > 0) {
+        highlights.push(
+          `${mostDeviated.symbol} had the largest average deviation from consensus (${mostDeviated.avgDeviationPct.toFixed(3)}%), suggesting the most disagreement among providers.`
+        );
+      }
     }
 
     if (providerRankings.length > 0) {
@@ -562,6 +819,29 @@ export class ReportService {
       highlights.push(
         `${metrics.failedSnapshots} price snapshots failed (${failureRate.toFixed(1)}%), primarily due to provider timeouts or stale feeds.`
       );
+      if (failureBreakdown.length > 0) {
+        const top = failureBreakdown[0];
+        highlights.push(
+          `Most failures clustered on ${top.provider} / ${top.symbol} (${top.failureCount} failures).`
+        );
+      }
+    } else {
+      highlights.push(
+        'All hourly snapshots were collected successfully across every active provider.'
+      );
+    }
+
+    if (metrics.avgLatencyMs > 0) {
+      highlights.push(
+        `Average feed latency was ${metrics.avgLatencyMs} ms across ${metrics.activeHours} active hourly window${metrics.activeHours > 1 ? 's' : ''}.`
+      );
+    }
+
+    if (deviationEvents.length > 0) {
+      const worst = deviationEvents[0];
+      highlights.push(
+        `The largest single deviation was ${worst.provider} / ${worst.symbol} at ${Math.abs(worst.deviationPct).toFixed(3)}% during ${new Date(worst.hour).toISOString().slice(11, 16)} UTC.`
+      );
     }
 
     return highlights;
@@ -572,16 +852,19 @@ export class ReportService {
     metrics: DailyReportMetrics,
     topAssets: AssetDailyStats[],
     providerRankings: ProviderRanking[],
-    deviationEvents: DeviationEvent[]
+    deviationEvents: DeviationEvent[],
+    failureBreakdown: FailureBreakdown[],
+    previousDayComparison: PreviousDayComparison
   ): string {
     const dateLabel = new Date(dateStr).toLocaleDateString('en-US', {
+      timeZone: 'UTC',
       month: 'long',
       day: 'numeric',
       year: 'numeric',
     });
 
     const parts: string[] = [
-      `On ${dateLabel}, Insight monitored ${metrics.activeAssets} assets across ${metrics.activeProviders} oracle providers, capturing ${metrics.totalSnapshots} hourly price snapshots.`,
+      `On ${dateLabel}, Insight monitored ${metrics.activeAssets} assets across ${metrics.activeProviders} oracle providers, capturing ${metrics.totalSnapshots} hourly price snapshots over ${metrics.activeHours} active hourly window${metrics.activeHours > 1 ? 's' : ''}.`,
     ];
 
     if (metrics.overallSuccessRate >= 99) {
@@ -594,20 +877,49 @@ export class ReportService {
       );
     } else {
       parts.push(
-        `Data collection experienced some instability, achieving a ${metrics.overallSuccessRate.toFixed(1)}% success rate.`
+        `Data collection experienced some instability, achieving a ${metrics.overallSuccessRate.toFixed(1)}% success rate with ${metrics.failedSnapshots} failed snapshots.`
       );
+    }
+
+    if (previousDayComparison.reportAvailable) {
+      const srChange = previousDayComparison.successRateChangePct;
+      const devChange = previousDayComparison.avgDeviationChangePct;
+      const changeParts: string[] = [];
+      if (srChange !== 0) {
+        changeParts.push(
+          `success rate ${srChange > 0 ? 'improved' : 'declined'} by ${Math.abs(srChange).toFixed(1)} percentage points`
+        );
+      }
+      if (devChange !== 0) {
+        changeParts.push(
+          `average deviation ${devChange > 0 ? 'increased' : 'decreased'} by ${Math.abs(devChange).toFixed(3)} percentage points`
+        );
+      }
+      if (changeParts.length > 0) {
+        parts.push(`Compared to the previous day, ${changeParts.join(' and ')}.`);
+      }
     }
 
     if (topAssets.length > 0) {
       const top = topAssets[0];
       parts.push(
-        `${top.symbol} recorded the widest price range, from ${formatPrice(top.minPrice)} to ${formatPrice(top.maxPrice)}.`
+        `${top.symbol} recorded the widest price range, from ${formatPrice(top.minPrice)} to ${formatPrice(top.maxPrice)}, with ${top.volatilityPct.toFixed(2)}% intraday volatility.`
       );
+
+      const mostDeviated = topAssets
+        .slice()
+        .sort((a, b) => b.avgDeviationPct - a.avgDeviationPct)[0];
+      if (mostDeviated.avgDeviationPct > 0) {
+        parts.push(
+          `${mostDeviated.symbol} showed the largest average deviation from consensus (${mostDeviated.avgDeviationPct.toFixed(3)}%), indicating the most provider disagreement.`
+        );
+      }
     }
 
     if (deviationEvents.length > 0) {
+      const worst = deviationEvents[0];
       parts.push(
-        `Cross-oracle deviation analysis flagged ${deviationEvents.length} events where individual providers diverged meaningfully from consensus, with the largest single deviation at ${Math.abs(deviationEvents[0].deviationPct).toFixed(3)}%.`
+        `Cross-oracle deviation analysis flagged ${deviationEvents.length} event${deviationEvents.length > 1 ? 's' : ''}; the largest was ${worst.provider} / ${worst.symbol} diverging ${Math.abs(worst.deviationPct).toFixed(3)}% from consensus at ${new Date(worst.hour).toISOString().slice(11, 16)} UTC.`
       );
     } else {
       parts.push(
@@ -615,11 +927,23 @@ export class ReportService {
       );
     }
 
+    if (failureBreakdown.length > 0) {
+      const top = failureBreakdown[0];
+      parts.push(
+        `The most frequent failure cluster was ${top.provider} / ${top.symbol} (${top.failureCount} failures${top.topError ? `: ${top.topError}` : ''}).`
+      );
+    }
+
     if (providerRankings.length > 0) {
       const best = providerRankings[0];
+      const worst = providerRankings[providerRankings.length - 1];
       parts.push(
-        `${best.provider} led the daily performance ranking with a composite score of ${best.score.toFixed(1)}.`
+        `${best.provider} led the daily ranking with a composite score of ${best.score.toFixed(1)}, while ${worst.provider} scored the lowest at ${worst.score.toFixed(1)}.`
       );
+    }
+
+    if (metrics.avgLatencyMs > 0) {
+      parts.push(`Average feed latency was ${metrics.avgLatencyMs} ms.`);
     }
 
     return parts.join(' ');
