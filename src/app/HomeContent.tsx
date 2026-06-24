@@ -2,15 +2,20 @@
 
 import { ErrorBoundary } from '@/components/error-boundary';
 import DashboardContent from '@/components/home/DashboardContent';
+import type { ServerDashboardData } from '@/lib/home/dashboardData';
 
-function HomeContentInner() {
-  return <DashboardContent />;
+interface HomeContentProps {
+  initialData: ServerDashboardData;
 }
 
-export default function HomeContent() {
+function HomeContentInner({ initialData }: HomeContentProps) {
+  return <DashboardContent initialData={initialData} />;
+}
+
+export default function HomeContent({ initialData }: HomeContentProps) {
   return (
     <ErrorBoundary level="page" componentName="HomeContent">
-      <HomeContentInner />
+      <HomeContentInner initialData={initialData} />
     </ErrorBoundary>
   );
 }

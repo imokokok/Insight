@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 
 import { calculateConsensusPrice } from '@/lib/analytics/consensusPrice';
 import { fetchPriceWithDatabase } from '@/lib/oracles/base/databaseOperations';
+import { getDefaultFactory } from '@/lib/oracles/factory';
 import {
   reportService,
   REPORT_ASSETS,
@@ -19,6 +20,7 @@ interface BatchResultItem {
   chain?: string;
   price: PriceData | null;
   error: string | null;
+  skipped: boolean;
 }
 
 function getReportDate(): string {
@@ -36,32 +38,45 @@ function getSnapshotHour(): Date {
 }
 
 async function fetchBatchPrices(): Promise<BatchResultItem[]> {
-  const queries = REPORT_ASSETS.flatMap((symbol) =>
-    REPORT_PROVIDERS.map((provider) => ({ provider, symbol }))
-  );
+  const factory = getDefaultFactory();
+  const queries: { provider: OracleProvider; symbol: string }[] = [];
+  const skipped: BatchResultItem[] = [];
 
-  return Promise.all(
-    queries.map(async ({ provider, symbol }): Promise<BatchResultItem> => {
-      try {
-        const price = await fetchPriceWithDatabase(provider, symbol, undefined, true, true);
-        return {
-          provider,
-          symbol,
-          price,
-          error: null,
-        };
-      } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        logger.error(`Daily report price fetch failed for ${provider}/${symbol}: ${message}`);
-        return {
+  for (const symbol of REPORT_ASSETS) {
+    for (const provider of REPORT_PROVIDERS) {
+      const client = factory.getClient(provider);
+      if (client.isSymbolSupported(symbol)) {
+        queries.push({ provider, symbol });
+      } else {
+        skipped.push({
           provider,
           symbol,
           price: null,
-          error: message,
-        };
+          error: 'Symbol not supported by provider',
+          skipped: true,
+        });
+      }
+    }
+  }
+
+  logger.info(
+    `Price batch: ${queries.length} queries, ${skipped.length} unsupported pairs skipped`
+  );
+
+  const fetched = await Promise.all(
+    queries.map(async ({ provider, symbol }): Promise<BatchResultItem> => {
+      try {
+        const price = await fetchPriceWithDatabase(provider, symbol, undefined, true, true);
+        return { provider, symbol, price, error: null, skipped: false };
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        logger.error(`Price fetch failed for ${provider}/${symbol}: ${message}`);
+        return { provider, symbol, price: null, error: message, skipped: false };
       }
     })
   );
+
+  return [...fetched, ...skipped];
 }
 
 function calculateConsensusBySymbol(results: BatchResultItem[]): Record<string, { price: number }> {
@@ -111,39 +126,70 @@ export async function GET(request: Request) {
     const results = await fetchBatchPrices();
     const consensusBySymbol = calculateConsensusBySymbol(results);
 
-    const inputs = results.map((item): HourlySnapshotInput => {
-      const consensus = item.symbol ? consensusBySymbol[item.symbol] : undefined;
-      const consensusPrice = consensus?.price ?? null;
+    const inputs = results
+      .filter((item) => !item.skipped)
+      .map((item): HourlySnapshotInput => {
+        const consensus = item.symbol ? consensusBySymbol[item.symbol] : undefined;
+        const consensusPrice = consensus?.price ?? null;
 
-      let deviationPct: number | null = null;
-      if (consensusPrice && item.price && item.price.price > 0) {
-        deviationPct = ((item.price.price - consensusPrice) / consensusPrice) * 100;
-      }
+        let deviationPct: number | null = null;
+        if (consensusPrice && item.price && item.price.price > 0) {
+          deviationPct = ((item.price.price - consensusPrice) / consensusPrice) * 100;
+        }
 
-      const refTime = item.price?.ingestionTimestamp ?? item.price?.timestamp;
-      const dataAgeSeconds = refTime ? Math.floor((Date.now() - refTime) / 1000) : null;
+        const refTime = item.price?.ingestionTimestamp ?? item.price?.timestamp;
+        const dataAgeSeconds = refTime ? Math.floor((Date.now() - refTime) / 1000) : null;
 
-      return {
-        snapshotHour,
-        provider: item.provider as OracleProvider,
-        symbol: item.symbol,
-        price: item.price?.price ?? 0,
-        consensusPrice,
-        deviationPct,
-        latencyMs: null,
-        dataAgeSeconds,
-        confidence: item.price?.confidence ?? null,
-        isSuccess: item.error === null && !!item.price && item.price.price > 0,
-        errorMessage: item.error,
-      };
-    });
+        return {
+          snapshotHour,
+          provider: item.provider as OracleProvider,
+          symbol: item.symbol,
+          price: item.price?.price ?? 0,
+          consensusPrice,
+          deviationPct,
+          latencyMs: null,
+          dataAgeSeconds,
+          confidence: item.price?.confidence ?? null,
+          isSuccess: item.error === null && !!item.price && item.price.price > 0,
+          errorMessage: item.error,
+        };
+      });
 
-    const inserted = await reportService.upsertHourlySnapshots(inputs);
-    const report = await reportService.generateDailyReport(reportDate);
-
+    const successCount = inputs.filter((i) => i.isSuccess).length;
+    const failedCount = inputs.length - successCount;
+    const skippedCount = results.filter((r) => r.skipped).length;
     logger.info(
-      `Daily report completed for ${reportDate}: ${inserted} snapshots, report persisted`
+      `Price batch completed for ${reportDate}: ${successCount} success, ${failedCount} failed, ${skippedCount} skipped out of ${results.length}`
     );
+
+    let inserted = 0;
+    try {
+      inserted = await reportService.upsertHourlySnapshots(inputs);
+      logger.info(`Upserted ${inserted} hourly snapshots for ${reportDate}`);
+    } catch (upsertError) {
+      const message = upsertError instanceof Error ? upsertError.message : String(upsertError);
+      logger.error(`Failed to upsert hourly snapshots for ${reportDate}: ${message}`);
+      return NextResponse.json(
+        { success: false, stage: 'upsert_snapshots', error: message },
+        { status: 500 }
+      );
+    }
+
+    let report;
+    try {
+      report = await reportService.generateDailyReport(reportDate);
+      logger.info(
+        `Generated daily report for ${reportDate}: ${report.metrics.totalSnapshots} snapshots`
+      );
+    } catch (generateError) {
+      const message =
+        generateError instanceof Error ? generateError.message : String(generateError);
+      logger.error(`Failed to generate daily report for ${reportDate}: ${message}`);
+      return NextResponse.json(
+        { success: false, stage: 'generate_report', error: message },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({
       success: true,
@@ -156,10 +202,8 @@ export async function GET(request: Request) {
       },
     });
   } catch (error) {
-    logger.error(
-      'Daily report cron failed',
-      error instanceof Error ? error : new Error(String(error))
-    );
-    return NextResponse.json({ success: false, error: 'Daily report failed' }, { status: 500 });
+    const message = error instanceof Error ? error.message : String(error);
+    logger.error('Daily report cron failed', error instanceof Error ? error : new Error(message));
+    return NextResponse.json({ success: false, stage: 'unknown', error: message }, { status: 500 });
   }
 }

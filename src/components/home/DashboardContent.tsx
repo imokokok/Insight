@@ -2,28 +2,21 @@
 
 import { useMemo } from 'react';
 
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-
 import { useQuery } from '@tanstack/react-query';
-import { Activity, ArrowRight, Award, GitCompare, Shield, Search } from 'lucide-react';
+import { BarChart3, Clock, Layers, RefreshCw, ShieldCheck } from 'lucide-react';
 
-import { CompactStatCard } from '@/components/ui';
-import { useReputations } from '@/hooks/data/useReputations';
 import { calculateConsensusPrice } from '@/lib/analytics/consensusPrice';
-import { oracleColors, providerNames } from '@/lib/constants';
-import { OracleProvider, type PriceData } from '@/types/oracle';
+import { oracleColors } from '@/lib/constants';
+import { DASHBOARD_ASSETS, MAIN_ORACLES } from '@/lib/home/dashboardData';
+import type { DashboardPriceItem, ServerDashboardData } from '@/lib/home/dashboardData';
+import { type OracleProvider } from '@/types/oracle';
 
-import { useSearch } from './hooks/useSearch';
+import { AssetTable } from './AssetTable';
+import { FeatureGrid } from './FeatureGrid';
+import { HeroSection } from './HeroSection';
+import { OracleHealthGrid } from './OracleHealthGrid';
 
-interface BatchResultItem {
-  provider: string;
-  symbol: string;
-  price: PriceData | null;
-  error: string | null;
-}
-
-interface AssetConsensusData {
+export interface AssetConsensusData {
   symbol: string;
   consensusPrice: number;
   priceRange: { min: number; max: number; spreadPercent: number };
@@ -32,28 +25,13 @@ interface AssetConsensusData {
   sources: Array<{ provider: OracleProvider; price: number; color: string }>;
 }
 
-const DASHBOARD_ASSETS = ['BTC', 'ETH', 'USDT', 'SOL'];
-const MAIN_ORACLES: OracleProvider[] = [
-  OracleProvider.CHAINLINK,
-  OracleProvider.PYTH,
-  OracleProvider.REDSTONE,
-  OracleProvider.API3,
-  OracleProvider.DIA,
-];
-
-function getDashboardQueries() {
-  const queries: Array<{ provider: OracleProvider; symbol: string }> = [];
-  for (const symbol of DASHBOARD_ASSETS) {
-    for (const provider of MAIN_ORACLES) {
-      queries.push({ provider, symbol });
-    }
-  }
-  return queries;
+interface DashboardContentProps {
+  initialData: ServerDashboardData;
 }
 
 async function fetchDashboardBatch(
   queries: Array<{ provider: OracleProvider; symbol: string }>
-): Promise<BatchResultItem[]> {
+): Promise<DashboardPriceItem[]> {
   if (queries.length === 0) return [];
 
   const response = await fetch('/api/oracles/batch', {
@@ -70,12 +48,23 @@ async function fetchDashboardBatch(
   return data.data ?? [];
 }
 
-function useDashboardPrices() {
+function getDashboardQueries() {
+  const queries: Array<{ provider: OracleProvider; symbol: string }> = [];
+  for (const symbol of DASHBOARD_ASSETS) {
+    for (const provider of MAIN_ORACLES) {
+      queries.push({ provider, symbol });
+    }
+  }
+  return queries;
+}
+
+function useDashboardPrices(initialPrices: DashboardPriceItem[]) {
   const queries = useMemo(() => getDashboardQueries(), []);
 
-  return useQuery<BatchResultItem[], Error>({
+  return useQuery<DashboardPriceItem[], Error>({
     queryKey: ['dashboard-prices', queries.map((q) => `${q.provider}-${q.symbol}`).join(',')],
     queryFn: () => fetchDashboardBatch(queries),
+    initialData: initialPrices.length > 0 ? initialPrices : undefined,
     staleTime: 15_000,
     refetchInterval: 30_000,
     refetchOnWindowFocus: true,
@@ -83,7 +72,7 @@ function useDashboardPrices() {
   });
 }
 
-function computeAssetData(results: BatchResultItem[], symbol: string): AssetConsensusData {
+function computeAssetData(results: DashboardPriceItem[], symbol: string): AssetConsensusData {
   const validPrices = results
     .filter((r) => r.symbol === symbol && r.price !== null && r.price.price > 0)
     .map((r) => ({
@@ -137,326 +126,49 @@ function computeAssetData(results: BatchResultItem[], symbol: string): AssetCons
   };
 }
 
-function formatPrice(price: number, symbol: string): string {
-  if (price === 0) return '—';
-  if (symbol === 'USDT' || symbol === 'USDC') {
-    return `$${price.toFixed(4)}`;
-  }
-  if (price >= 1000) {
-    return `$${price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  }
-  return `$${price.toFixed(2)}`;
+interface StatBadgeProps {
+  icon: React.ElementType;
+  label: string;
+  value: string;
+  tone?: 'neutral' | 'blue' | 'emerald' | 'amber';
 }
 
-function formatSpread(percent: number): string {
-  if (percent === 0) return '—';
-  if (percent < 0.01) return '<0.01%';
-  return `${percent.toFixed(2)}%`;
-}
-
-function SearchBar() {
-  const router = useRouter();
-  const { searchQuery, setSearchQuery, searchResults } = useSearch();
-
-  const onSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const trimmed = searchQuery.trim().toUpperCase();
-    if (trimmed) {
-      // Check if it's a direct symbol match
-      const directMatch = searchResults.find(
-        (r) => r.item.symbol === trimmed || r.item.symbol === trimmed.replace(/USD$/i, '')
-      );
-      if (directMatch) {
-        router.push(`/price-query?symbol=${directMatch.item.symbol}`);
-      } else {
-        router.push(`/price-insight?symbol=${trimmed}`);
-      }
-      setSearchQuery('');
-    }
+function StatBadge({ icon: Icon, label, value, tone = 'neutral' }: StatBadgeProps) {
+  const toneStyles = {
+    neutral: 'bg-white border-gray-200 text-gray-900',
+    blue: 'bg-blue-50/50 border-blue-100 text-blue-900',
+    emerald: 'bg-emerald-50/50 border-emerald-100 text-emerald-900',
+    amber: 'bg-amber-50/50 border-amber-100 text-amber-900',
   };
 
   return (
-    <form onSubmit={onSubmit} className="relative w-full max-w-lg">
-      <div className="relative flex items-center bg-white rounded-lg border border-gray-200 shadow-sm hover:border-gray-300 focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-100 transition-all">
-        <Search className="w-4 h-4 text-gray-400 ml-3 flex-shrink-0" />
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search BTC, ETH, oracle..."
-          className="flex-1 px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 bg-transparent border-0 outline-none min-w-0"
-        />
-        <button
-          type="submit"
-          className="mr-1.5 px-3 py-1.5 bg-gray-900 text-white text-xs font-medium rounded-md hover:bg-gray-800 transition-colors"
-        >
-          Search
-        </button>
-      </div>
-    </form>
-  );
-}
-
-function ConsensusPriceCard({ data }: { data: AssetConsensusData }) {
-  const isLoading = data.consensusPrice === 0 && data.providerCount === 0;
-  const hasDivergence = data.priceRange.spreadPercent > 0.5;
-
-  return (
-    <Link
-      href={`/cross-oracle?symbol=${data.symbol}`}
-      className="group bg-white rounded-xl border border-gray-200 p-5 hover:border-gray-300 hover:shadow-md transition-all"
+    <div
+      className={`flex items-center gap-3 px-4 py-3 rounded-xl border shadow-sm ${toneStyles[tone]}`}
     >
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <span className="text-lg font-bold text-gray-900">{data.symbol}</span>
-          <span className="text-xs text-gray-400">/ USD</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          {isLoading ? (
-            <span className="text-xs text-gray-400">Loading...</span>
-          ) : (
-            <>
-              <span
-                className={`relative inline-flex h-2 w-2 rounded-full ${hasDivergence ? 'bg-amber-500' : 'bg-emerald-500'}`}
-              >
-                <span
-                  className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-60 [animation-duration:2s] ${hasDivergence ? 'bg-amber-500' : 'bg-emerald-500'}`}
-                />
-              </span>
-              <span className="text-xs font-medium text-gray-500">
-                {data.providerCount}/{data.totalProviders} oracles
-              </span>
-            </>
-          )}
-        </div>
+      <div className="w-9 h-9 rounded-lg bg-white border border-gray-100 flex items-center justify-center flex-shrink-0">
+        <Icon className="w-4 h-4 text-gray-600" />
       </div>
-
-      <div className="mb-3">
-        {isLoading ? (
-          <div className="h-8 bg-gray-100 rounded animate-pulse w-32" />
-        ) : (
-          <div className="text-2xl font-bold text-gray-900 tracking-tight">
-            {formatPrice(data.consensusPrice, data.symbol)}
-          </div>
-        )}
-      </div>
-
-      <div className="space-y-2">
-        <div className="flex items-center justify-between text-xs">
-          <span className="text-gray-500">Spread</span>
-          <span className={`font-medium ${hasDivergence ? 'text-amber-600' : 'text-emerald-600'}`}>
-            {formatSpread(data.priceRange.spreadPercent)}
-          </span>
-        </div>
-
-        <div className="flex items-center justify-between text-xs">
-          <span className="text-gray-500">Range</span>
-          <span className="font-medium text-gray-700">
-            {data.priceRange.min > 0
-              ? `${formatPrice(data.priceRange.min, data.symbol)} - ${formatPrice(data.priceRange.max, data.symbol)}`
-              : '—'}
-          </span>
-        </div>
-
-        <div className="flex items-center gap-1 pt-1">
-          {data.sources.slice(0, 5).map((s) => (
-            <span
-              key={s.provider}
-              className="inline-block w-2 h-2 rounded-full"
-              style={{ backgroundColor: s.color }}
-              title={`${providerNames[s.provider]}: ${formatPrice(s.price, data.symbol)}`}
-            />
-          ))}
-          {data.sources.length > 5 && (
-            <span className="text-[10px] text-gray-400 ml-0.5">+{data.sources.length - 5}</span>
-          )}
-        </div>
-      </div>
-
-      <div className="mt-3 pt-3 border-t border-gray-100 flex items-center gap-1 text-xs font-medium text-blue-600 group-hover:text-blue-700">
-        Compare
-        <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
-      </div>
-    </Link>
-  );
-}
-
-function OracleHealthStrip() {
-  const { data: reputationData, isLoading } = useReputations();
-  const reputations = reputationData?.data ?? [];
-
-  const allProviders: OracleProvider[] = [
-    OracleProvider.CHAINLINK,
-    OracleProvider.PYTH,
-    OracleProvider.REDSTONE,
-    OracleProvider.API3,
-    OracleProvider.DIA,
-    OracleProvider.SUPRA,
-    OracleProvider.TWAP,
-    OracleProvider.FLARE,
-    OracleProvider.REFLECTOR,
-    OracleProvider.WINKLINK,
-  ];
-
-  const statusMap = useMemo(() => {
-    const map = new Map<string, { score: number; status: 'healthy' | 'degraded' | 'down' }>();
-    for (const r of reputations) {
-      const score = r.overall_score;
-      let status: 'healthy' | 'degraded' | 'down';
-      if (score >= 80) status = 'healthy';
-      else if (score >= 50) status = 'degraded';
-      else status = 'down';
-      map.set(r.provider, { score, status });
-    }
-    return map;
-  }, [reputations]);
-
-  const getStatus = (provider: OracleProvider) => {
-    const rep = statusMap.get(provider);
-    if (rep) return rep;
-    if (isLoading) return { score: 0, status: 'healthy' as const };
-    return { score: 0, status: 'down' as const };
-  };
-
-  const statusColors = {
-    healthy: 'bg-emerald-500',
-    degraded: 'bg-amber-500',
-    down: 'bg-red-500',
-  };
-
-  return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <Activity className="w-4 h-4 text-blue-500" />
-          <h3 className="text-sm font-semibold text-gray-900">Oracle Network Health</h3>
-        </div>
-        <Link
-          href="/reputation"
-          className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1"
-        >
-          View Directory
-          <ArrowRight className="w-3 h-3" />
-        </Link>
-      </div>
-
-      <div className="grid grid-cols-5 sm:grid-cols-10 gap-3">
-        {allProviders.map((provider) => {
-          const { score, status } = getStatus(provider);
-
-          return (
-            <Link
-              key={provider}
-              href={`/reputation/${provider}`}
-              className="flex flex-col items-center gap-1.5 p-2 rounded-lg border border-gray-100 hover:border-gray-300 hover:bg-gray-50 transition-all group"
-            >
-              <span className={`w-2.5 h-2.5 rounded-full ${statusColors[status]}`} />
-              <img
-                src={`/logos/oracles/${provider}.svg`}
-                alt={providerNames[provider] ?? provider}
-                className="w-6 h-6 object-contain"
-                loading="lazy"
-              />
-              <span className="text-[10px] font-medium text-gray-600 group-hover:text-gray-900 capitalize truncate max-w-full">
-                {provider}
-              </span>
-              {score > 0 && <span className="text-[9px] text-gray-400">{score.toFixed(0)}</span>}
-            </Link>
-          );
-        })}
-      </div>
-
-      <div className="flex items-center gap-4 mt-3 pt-3 border-t border-gray-100">
-        <div className="flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-emerald-500" />
-          <span className="text-[10px] text-gray-500">Healthy (80+)</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-amber-500" />
-          <span className="text-[10px] text-gray-500">Degraded</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-red-500" />
-          <span className="text-[10px] text-gray-500">Down</span>
-        </div>
+      <div>
+        <div className="text-xs text-gray-500 font-medium">{label}</div>
+        <div className="text-sm font-semibold font-tabular">{value}</div>
       </div>
     </div>
   );
 }
 
-function QuickLinks() {
-  const links = [
-    {
-      title: 'Price Insight',
-      description: 'Compare prices across providers & chains',
-      href: '/price-insight',
-      icon: GitCompare,
-      color: 'text-indigo-500',
-      bg: 'bg-indigo-50',
-    },
-    {
-      title: 'Reputation',
-      description: 'Oracle rankings & scores',
-      href: '/reputation',
-      icon: Award,
-      color: 'text-amber-500',
-      bg: 'bg-amber-50',
-    },
-    {
-      title: 'Safety Check',
-      description: 'Position risk calculator',
-      href: '/safety-check',
-      icon: Shield,
-      color: 'text-emerald-600',
-      bg: 'bg-emerald-50',
-    },
-  ];
-
-  return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-      {links.map((link) => {
-        const Icon = link.icon;
-        return (
-          <Link
-            key={link.title}
-            href={link.href}
-            className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all group"
-          >
-            <div
-              className={`w-9 h-9 rounded-lg ${link.bg} flex items-center justify-center flex-shrink-0`}
-            >
-              <Icon className={`w-4 h-4 ${link.color}`} />
-            </div>
-            <div className="min-w-0">
-              <div className="text-sm font-medium text-gray-900 group-hover:text-blue-600 transition-colors">
-                {link.title}
-              </div>
-              <div className="text-[11px] text-gray-500 truncate">{link.description}</div>
-            </div>
-          </Link>
-        );
-      })}
-    </div>
-  );
-}
-
-export default function DashboardContent() {
-  const { data: batchResults, isLoading: pricesLoading } = useDashboardPrices();
+export default function DashboardContent({ initialData }: DashboardContentProps) {
+  const { data: batchResults, isLoading } = useDashboardPrices(initialData.prices);
 
   const assetData = useMemo(() => {
-    if (!batchResults) {
-      return DASHBOARD_ASSETS.map((symbol) => computeAssetData([], symbol));
-    }
-    return DASHBOARD_ASSETS.map((symbol) => computeAssetData(batchResults, symbol));
-  }, [batchResults]);
+    const results = batchResults ?? initialData.prices ?? [];
+    return DASHBOARD_ASSETS.map((symbol) => computeAssetData(results, symbol));
+  }, [batchResults, initialData.prices]);
 
   const activeProviders = useMemo(() => {
-    if (!batchResults) return 0;
-    const uniqueProviders = new Set(
-      batchResults.filter((r) => r.price !== null).map((r) => r.provider)
-    );
+    const results = batchResults ?? initialData.prices ?? [];
+    const uniqueProviders = new Set(results.filter((r) => r.price !== null).map((r) => r.provider));
     return uniqueProviders.size;
-  }, [batchResults]);
+  }, [batchResults, initialData.prices]);
 
   const avgSpread = useMemo(() => {
     const spreads = assetData
@@ -466,71 +178,64 @@ export default function DashboardContent() {
     return spreads.reduce((a, b) => a + b, 0) / spreads.length;
   }, [assetData]);
 
+  const healthyCount = assetData.filter(
+    (a) => a.priceRange.spreadPercent <= 0.5 && a.providerCount > 0
+  ).length;
+
   return (
     <div className="min-h-screen bg-gray-50/50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2">
-                <span className="relative flex h-2.5 w-2.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-60 [animation-duration:2s]" />
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
-                </span>
-                <span className="text-sm font-semibold text-gray-900">Insight Dashboard</span>
-              </div>
-              <span className="hidden sm:inline text-xs text-gray-400">
-                Real-time oracle aggregation
-              </span>
+      <HeroSection />
+
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        {/* Live status bar */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-60 [animation-duration:2s]" />
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
             </div>
-            <SearchBar />
+            <span className="text-sm font-medium text-gray-900">Live Dashboard</span>
+            <span className="text-xs text-gray-500 hidden sm:inline">Auto-refresh every 30s</span>
           </div>
-        </div>
-      </div>
 
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-        {/* Stats Row */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <CompactStatCard
-            title="Active Oracles"
-            value={pricesLoading ? '—' : `${activeProviders}/${MAIN_ORACLES.length}`}
-          />
-          <CompactStatCard
-            title="Avg Spread"
-            value={avgSpread > 0 ? `${avgSpread.toFixed(3)}%` : '—'}
-            change={avgSpread > 1 ? { value: avgSpread, percentage: true } : undefined}
-          />
-          <CompactStatCard title="Consensus Method" value="Median" />
-          <CompactStatCard title="Update Interval" value="30s" />
-        </div>
-
-        {/* Consensus Price Grid */}
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-semibold text-gray-900">Live Consensus Prices</h2>
-            <Link
-              href="/price-insight"
-              className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1"
-            >
-              Full Comparison
-              <ArrowRight className="w-3 h-3" />
-            </Link>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {assetData.map((data) => (
-              <ConsensusPriceCard key={data.symbol} data={data} />
-            ))}
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-3">
+            <StatBadge
+              icon={Layers}
+              label="Active Oracles"
+              value={`${activeProviders}/${MAIN_ORACLES.length}`}
+              tone="blue"
+            />
+            <StatBadge
+              icon={BarChart3}
+              label="Avg Spread"
+              value={avgSpread > 0 ? `${avgSpread.toFixed(3)}%` : '—'}
+              tone={avgSpread > 1 ? 'amber' : 'emerald'}
+            />
+            <StatBadge
+              icon={ShieldCheck}
+              label="Healthy Assets"
+              value={`${healthyCount}/${DASHBOARD_ASSETS.length}`}
+              tone="emerald"
+            />
+            <StatBadge icon={Clock} label="Update Interval" value="30s" />
           </div>
         </div>
 
-        {/* Oracle Health */}
-        <OracleHealthStrip />
+        {/* Asset table */}
+        <AssetTable assets={assetData} isLoading={isLoading} />
 
-        {/* Quick Links */}
-        <div>
-          <h2 className="text-sm font-semibold text-gray-900 mb-3">Quick Actions</h2>
-          <QuickLinks />
+        {/* Oracle health */}
+        <OracleHealthGrid />
+
+        {/* Features */}
+        <FeatureGrid />
+
+        {/* Footer note */}
+        <div className="flex items-center justify-center gap-2 text-xs text-gray-400 pt-4 pb-2">
+          <RefreshCw className="w-3 h-3" />
+          <span>
+            Prices are aggregated for reference. Verify critical values on-chain before execution.
+          </span>
         </div>
       </div>
     </div>

@@ -6,9 +6,16 @@ const mockFetchPriceWithDatabase = jest.fn();
 const mockUpsertHourlySnapshots = jest.fn();
 const mockGenerateDailyReport = jest.fn();
 const mockCalculateConsensusPrice = jest.fn();
+const mockGetClient = jest.fn();
 
 jest.mock('@/lib/oracles/base/databaseOperations', () => ({
   fetchPriceWithDatabase: (...args: unknown[]) => mockFetchPriceWithDatabase(...args),
+}));
+
+jest.mock('@/lib/oracles/factory', () => ({
+  getDefaultFactory: () => ({
+    getClient: (...args: unknown[]) => mockGetClient(...args),
+  }),
 }));
 
 jest.mock('@/lib/reports/reportService', () => ({
@@ -56,6 +63,9 @@ describe('/api/cron/daily-report', () => {
       CRON_SECRET: 'test-cron-secret',
     };
 
+    mockGetClient.mockImplementation(() => ({
+      isSymbolSupported: jest.fn(() => true),
+    }));
     mockCalculateConsensusPrice.mockReturnValue({ price: 100 });
     mockUpsertHourlySnapshots.mockResolvedValue(4);
     mockGenerateDailyReport.mockResolvedValue({

@@ -4,6 +4,22 @@ import { type OracleProvider } from '@/types/oracle';
 
 const logger = createLogger('ReportService');
 
+function sanitizeJsonValue(value: unknown): unknown {
+  if (typeof value === 'number') {
+    if (!Number.isFinite(value)) return 0;
+    return value;
+  }
+  if (Array.isArray(value)) {
+    return value.map(sanitizeJsonValue);
+  }
+  if (value !== null && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>).map(([k, v]) => [k, sanitizeJsonValue(v)])
+    );
+  }
+  return value;
+}
+
 export const REPORT_ASSETS = ['BTC', 'ETH', 'SOL', 'BNB', 'XRP', 'ADA', 'DOGE', 'LINK'] as const;
 export const REPORT_PROVIDERS: OracleProvider[] = [
   'chainlink',
@@ -207,6 +223,7 @@ export class ReportService {
   }
 
   async generateDailyReport(dateStr: string): Promise<DailyReportData> {
+    logger.info(`Generating daily report for ${dateStr}`);
     const supabase = createServiceRoleClient();
     const reportDate = new Date(dateStr);
     const nextDay = new Date(reportDate);
@@ -287,6 +304,9 @@ export class ReportService {
       previousDayComparison,
     };
 
+    logger.info(
+      `Persisting daily report for ${dateStr}: ${reportData.metrics.totalSnapshots} snapshots, ${reportData.metrics.overallSuccessRate}% success rate`
+    );
     await this.persistReport(reportData);
 
     return reportData;
@@ -295,26 +315,31 @@ export class ReportService {
   async persistReport(report: DailyReportData): Promise<void> {
     const supabase = createServiceRoleClient();
 
-    const { error } = await supabase.from('daily_reports').upsert(
-      {
-        report_date: report.reportDate,
-        report_title: report.reportTitle,
-        summary: report.summary,
-        highlights: report.highlights,
-        recommendations: report.recommendations,
-        metrics: report.metrics,
-        top_assets: report.topAssets,
-        provider_rankings: report.providerRankings,
-        deviation_events: report.deviationEvents,
-        anomaly_summary: report.anomalySummary,
-        coverage_matrix: report.coverageMatrix,
-        failure_breakdown: report.failureBreakdown,
-        previous_day_comparison: report.previousDayComparison,
-        generated_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: 'report_date' }
-    );
+    const payload = {
+      report_date: report.reportDate,
+      report_title: report.reportTitle,
+      summary: report.summary,
+      highlights: report.highlights,
+      recommendations: report.recommendations,
+      metrics: sanitizeJsonValue(report.metrics) as DailyReportMetrics,
+      top_assets: sanitizeJsonValue(report.topAssets) as AssetDailyStats[],
+      provider_rankings: sanitizeJsonValue(report.providerRankings) as ProviderRanking[],
+      deviation_events: sanitizeJsonValue(report.deviationEvents) as DeviationEvent[],
+      anomaly_summary: sanitizeJsonValue(
+        report.anomalySummary
+      ) as DailyReportData['anomalySummary'],
+      coverage_matrix: sanitizeJsonValue(report.coverageMatrix) as CoverageCell[],
+      failure_breakdown: sanitizeJsonValue(report.failureBreakdown) as FailureBreakdown[],
+      previous_day_comparison: sanitizeJsonValue(
+        report.previousDayComparison
+      ) as PreviousDayComparison,
+      generated_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    const { error } = await supabase
+      .from('daily_reports')
+      .upsert(payload, { onConflict: 'report_date' });
 
     if (error) {
       logger.error(`Failed to persist daily report ${report.reportDate}`, error);
