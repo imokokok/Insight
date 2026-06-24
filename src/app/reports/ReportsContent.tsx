@@ -116,11 +116,11 @@ function ReportCard({ report }: { report: DailyReportData }) {
       <div className="p-5 flex-1 flex flex-col">
         <div className="flex items-start justify-between gap-3 mb-4">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 shadow-md shadow-blue-200/30">
+            <div className="p-2.5 rounded-lg bg-gradient-to-br from-slate-700 to-slate-800 shadow-md shadow-slate-300/30">
               <FileText className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-gray-900 group-hover:text-primary-600 transition-colors">
+              <h3 className="text-sm font-bold text-gray-900 group-hover:text-slate-700 transition-colors">
                 {date.toLocaleDateString('en-US', {
                   month: 'long',
                   day: 'numeric',
@@ -203,7 +203,7 @@ function ReportCard({ report }: { report: DailyReportData }) {
               {report.topAssets.length} assets
             </span>
           </div>
-          <span className="flex items-center gap-0.5 text-xs font-bold text-gray-500 group-hover:text-primary-600 transition-colors">
+          <span className="flex items-center gap-0.5 text-xs font-bold text-gray-500 group-hover:text-slate-700 transition-colors">
             View
             <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
           </span>
@@ -299,7 +299,7 @@ function ReportsContentInner() {
         <Header />
         <div className="flex items-center justify-center py-24">
           <div className="flex items-center gap-3">
-            <Loader2 className="w-5 h-5 text-primary-500 animate-spin" />
+            <Loader2 className="w-5 h-5 text-slate-600 animate-spin" />
             <span className="text-sm text-gray-600 font-medium">Loading reports...</span>
           </div>
         </div>
@@ -329,7 +329,7 @@ function ReportsContentInner() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-8">
         <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
           <div className="flex items-center gap-2 mb-3">
-            <BarChart3 className="w-4 h-4 text-blue-500" />
+            <BarChart3 className="w-4 h-4 text-slate-600" />
             <span className="text-xs font-bold text-gray-500 uppercase tracking-wide">
               About Daily Reports
             </span>
@@ -341,15 +341,15 @@ function ReportsContentInner() {
             Chainlink, Pyth, RedStone, API3, DIA, WINkLink, Supra, TWAP, Reflector, and Flare.
           </p>
         </div>
-        <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl p-6 text-white shadow-lg shadow-blue-200/40 flex flex-col justify-center">
+        <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl p-6 text-white shadow-lg shadow-slate-300/40 flex flex-col justify-center">
           <div className="flex items-center gap-2 mb-2">
-            <Clock className="w-4 h-4 text-blue-100" />
-            <span className="text-xs font-bold text-blue-100 uppercase tracking-wide">
+            <Clock className="w-4 h-4 text-slate-300" />
+            <span className="text-xs font-bold text-slate-300 uppercase tracking-wide">
               Latest Update
             </span>
           </div>
           <p className="text-2xl font-black">{reports.length}</p>
-          <p className="text-xs text-blue-100 mt-0.5">
+          <p className="text-xs text-slate-300 mt-0.5">
             {reports.length === 1 ? 'report published' : 'reports published'} since launch
           </p>
         </div>
@@ -388,7 +388,7 @@ function Header() {
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
       <div className="flex items-center gap-3">
-        <div className="p-2.5 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-md shadow-blue-200/30">
+        <div className="p-2.5 rounded-xl bg-gradient-to-br from-slate-700 to-slate-800 shadow-md shadow-slate-300/30">
           <FileText className="w-6 h-6 text-white" />
         </div>
         <div>
