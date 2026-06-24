@@ -2,12 +2,11 @@ import { NextResponse } from 'next/server';
 
 import { feedDiscoveryService } from '@/lib/oracles/services/feedDiscoveryService';
 import { feedSyncService } from '@/lib/oracles/services/feedSyncService';
+import { type OracleFeedInsert } from '@/lib/supabase/queries';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('CronSyncFeeds');
-
-const CRON_SECRET = process.env.CRON_SECRET;
 
 const SUPPORTED_PROVIDERS = [
   'chainlink',
@@ -23,9 +22,7 @@ const SUPPORTED_PROVIDERS = [
   'flare',
 ];
 
-async function upsertDiscoveredFeeds(
-  feeds: import('@/lib/supabase/queries').OracleFeedInsert[]
-): Promise<number> {
+async function upsertDiscoveredFeeds(feeds: OracleFeedInsert[]): Promise<number> {
   if (feeds.length === 0) return 0;
   const supabase = createServiceRoleClient();
   const { data, error } = await supabase
@@ -44,7 +41,8 @@ async function upsertDiscoveredFeeds(
 
 export async function GET(request: Request) {
   const authHeader = request.headers.get('authorization');
-  if (!CRON_SECRET || authHeader !== `Bearer ${CRON_SECRET}`) {
+  const cronSecret = process.env.CRON_SECRET;
+  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

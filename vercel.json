@@ -1,8 +1,5 @@
 {
   "functions": {
-    "src/app/api/historical-prices/route.ts": {
-      "maxDuration": 30
-    },
     "src/app/api/oracles/[provider]/route.ts": {
       "maxDuration": 30
     },
@@ -23,6 +20,10 @@
     {
       "path": "/api/cron/daily-report",
       "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/cron/reputation",
+      "schedule": "0 */6 * * *"
     }
   ]
 }

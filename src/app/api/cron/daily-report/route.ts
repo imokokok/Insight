@@ -3,7 +3,12 @@ import { NextResponse } from 'next/server';
 import { calculateConsensusPrice } from '@/lib/analytics/consensusPrice';
 import { fetchPriceWithDatabase } from '@/lib/oracles/base/databaseOperations';
 import { getDefaultFactory } from '@/lib/oracles/factory';
-import { reportService, REPORT_ASSETS, REPORT_PROVIDERS } from '@/lib/reports/reportService';
+import {
+  reportService,
+  REPORT_ASSETS,
+  REPORT_PROVIDERS,
+  type HourlySnapshotInput,
+} from '@/lib/reports/reportService';
 import { createLogger } from '@/lib/utils/logger';
 import { type OracleProvider, type PriceData } from '@/types/oracle';
 
@@ -173,7 +178,7 @@ export async function GET(request: Request) {
 
     const inputs = results
       .filter((item) => !item.skipped)
-      .map((item): import('@/lib/reports/reportService').HourlySnapshotInput => {
+      .map((item): HourlySnapshotInput => {
         const rawConsensus = item.symbol ? consensusBySymbol[item.symbol] : undefined;
         const consensusPrice =
           rawConsensus && rawConsensus.price > 0 && rawConsensus.price <= MAX_SNAPSHOT_PRICE

@@ -103,8 +103,8 @@ export interface PreviousDayComparison {
   reportAvailable: boolean;
   successRateChangePct: number;
   avgDeviationChangePct: number;
-  anomalyChangeCount: number;
-  failedSnapshotsChangeCount: number;
+  anomalyChangePct: number;
+  failedSnapshotsChangePct: number;
 }
 
 export interface DailyReportMetrics {
@@ -164,6 +164,13 @@ function getSeverity(deviationPct: number): 'low' | 'medium' | 'high' | 'critica
   if (absDev >= 1) return 'high';
   if (absDev >= 0.5) return 'medium';
   return 'low';
+}
+
+function calculatePercentageChange(current: number, previous: number): number {
+  if (previous === 0) {
+    return current === 0 ? 0 : 100;
+  }
+  return ((current - previous) / previous) * 100;
 }
 
 function scoreProvider(ranking: Omit<ProviderRanking, 'score'>): number {
@@ -272,15 +279,7 @@ export class ReportService {
       failureBreakdown,
       deviationEvents
     );
-    const summary = this.generateSummary(
-      dateStr,
-      metrics,
-      topAssets,
-      providerRankings,
-      deviationEvents,
-      failureBreakdown,
-      previousDayComparison
-    );
+    const summary = this.generateSummary(dateStr, metrics, deviationEvents, previousDayComparison);
 
     const reportData: DailyReportData = {
       reportDate: dateStr,
@@ -387,8 +386,8 @@ export class ReportService {
       reportAvailable: false,
       successRateChangePct: 0,
       avgDeviationChangePct: 0,
-      anomalyChangeCount: 0,
-      failedSnapshotsChangeCount: 0,
+      anomalyChangePct: 0,
+      failedSnapshotsChangePct: 0,
     };
 
     return {
@@ -703,8 +702,8 @@ export class ReportService {
         reportAvailable: false,
         successRateChangePct: 0,
         avgDeviationChangePct: 0,
-        anomalyChangeCount: 0,
-        failedSnapshotsChangeCount: 0,
+        anomalyChangePct: 0,
+        failedSnapshotsChangePct: 0,
       };
     }
 
@@ -718,8 +717,12 @@ export class ReportService {
       avgDeviationChangePct: Number(
         (metrics.avgDeviationPct - prevMetrics.avgDeviationPct).toFixed(4)
       ),
-      anomalyChangeCount: metrics.totalAnomalies - prevMetrics.totalAnomalies,
-      failedSnapshotsChangeCount: metrics.failedSnapshots - prevMetrics.failedSnapshots,
+      anomalyChangePct: Number(
+        calculatePercentageChange(metrics.totalAnomalies, prevMetrics.totalAnomalies).toFixed(2)
+      ),
+      failedSnapshotsChangePct: Number(
+        calculatePercentageChange(metrics.failedSnapshots, prevMetrics.failedSnapshots).toFixed(2)
+      ),
     };
   }
 
@@ -875,10 +878,7 @@ export class ReportService {
   private generateSummary(
     dateStr: string,
     metrics: DailyReportMetrics,
-    topAssets: AssetDailyStats[],
-    providerRankings: ProviderRanking[],
     deviationEvents: DeviationEvent[],
-    failureBreakdown: FailureBreakdown[],
     previousDayComparison: PreviousDayComparison
   ): string {
     const dateLabel = new Date(dateStr).toLocaleDateString('en-US', {
@@ -925,26 +925,9 @@ export class ReportService {
       }
     }
 
-    if (topAssets.length > 0) {
-      const top = topAssets[0];
-      parts.push(
-        `${top.symbol} recorded the widest price range, from ${formatPrice(top.minPrice)} to ${formatPrice(top.maxPrice)}, with ${top.volatilityPct.toFixed(2)}% intraday volatility.`
-      );
-
-      const mostDeviated = topAssets
-        .slice()
-        .sort((a, b) => b.avgDeviationPct - a.avgDeviationPct)[0];
-      if (mostDeviated.avgDeviationPct > 0) {
-        parts.push(
-          `${mostDeviated.symbol} showed the largest average deviation from consensus (${mostDeviated.avgDeviationPct.toFixed(3)}%), indicating the most provider disagreement.`
-        );
-      }
-    }
-
     if (deviationEvents.length > 0) {
-      const worst = deviationEvents[0];
       parts.push(
-        `Cross-oracle deviation analysis flagged ${deviationEvents.length} event${deviationEvents.length > 1 ? 's' : ''}; the largest was ${worst.provider} / ${worst.symbol} diverging ${Math.abs(worst.deviationPct).toFixed(3)}% from consensus at ${new Date(worst.hour).toISOString().slice(11, 16)} UTC.`
+        `Cross-oracle deviation analysis flagged ${deviationEvents.length} material event${deviationEvents.length > 1 ? 's' : ''}, indicating some feed divergence from consensus.`
       );
     } else {
       parts.push(
@@ -952,40 +935,8 @@ export class ReportService {
       );
     }
 
-    if (failureBreakdown.length > 0) {
-      const top = failureBreakdown[0];
-      parts.push(
-        `The most frequent failure cluster was ${top.provider} / ${top.symbol} (${top.failureCount} failures${top.topError ? `: ${top.topError}` : ''}).`
-      );
-    }
-
-    if (providerRankings.length > 0) {
-      const best = providerRankings[0];
-      const worst = providerRankings[providerRankings.length - 1];
-      parts.push(
-        `${best.provider} led the daily ranking with a composite score of ${best.score.toFixed(1)}, while ${worst.provider} scored the lowest at ${worst.score.toFixed(1)}.`
-      );
-    }
-
-    if (metrics.avgLatencyMs > 0) {
-      parts.push(`Average feed latency was ${metrics.avgLatencyMs} ms.`);
-    }
-
     return parts.join(' ');
   }
-}
-
-function formatPrice(value: number): string {
-  if (!Number.isFinite(value)) return '—';
-  if (value === 0) return '$0.00';
-
-  const abs = Math.abs(value);
-  if (abs >= 1000) return `$${value.toLocaleString('en-US', { maximumFractionDigits: 2 })}`;
-  if (abs >= 1)
-    return `$${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 })}`;
-  if (abs >= 0.0001)
-    return `$${value.toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 6 })}`;
-  return `$${value.toLocaleString('en-US', { minimumFractionDigits: 6, maximumFractionDigits: 10 })}`;
 }
 
 export const reportService = new ReportService();

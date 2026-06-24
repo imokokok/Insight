@@ -34,18 +34,6 @@ interface ReportsApiResponse {
 }
 
 const ITEMS_PER_PAGE = 10;
-const PROVIDERS = [
-  'Chainlink',
-  'Pyth',
-  'RedStone',
-  'API3',
-  'DIA',
-  'WINkLink',
-  'Supra',
-  'TWAP',
-  'Reflector',
-  'Flare',
-];
 
 async function fetchReports(): Promise<DailyReportData[]> {
   const response = await apiClient.get<ReportsApiResponse>('/api/reports?limit=365');
@@ -87,7 +75,15 @@ function StatusBadge({ metrics }: { metrics: DailyReportData['metrics'] }) {
   );
 }
 
-function Header({ reportCount }: { reportCount: number }) {
+function Header({
+  reportCount,
+  providerCount,
+  assetCount,
+}: {
+  reportCount: number;
+  providerCount: number;
+  assetCount: number;
+}) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -108,8 +104,9 @@ function Header({ reportCount }: { reportCount: number }) {
             Daily Oracle Reports
           </h1>
           <p className="text-[15px] text-gray-500 leading-relaxed">
-            Automated cross-oracle consensus summaries published at 03:00 UTC. Track provider
-            uptime, price deviations, and risk highlights across integrated oracle networks.
+            Automated cross-oracle consensus summaries updated hourly from integrated oracle
+            networks. Track provider uptime, price deviations, and risk highlights across monitored
+            assets.
           </p>
         </div>
         <button
@@ -136,7 +133,7 @@ function Header({ reportCount }: { reportCount: number }) {
             <Globe className="w-4 h-4 text-gray-500" />
           </div>
           <div>
-            <p className="text-lg font-semibold text-gray-950">{PROVIDERS.length}</p>
+            <p className="text-lg font-semibold text-gray-950">{providerCount}</p>
             <p className="text-xs text-gray-500">Oracle providers</p>
           </div>
         </div>
@@ -153,7 +150,7 @@ function Header({ reportCount }: { reportCount: number }) {
             <ShieldCheck className="w-4 h-4 text-gray-500" />
           </div>
           <div>
-            <p className="text-lg font-semibold text-gray-950">8</p>
+            <p className="text-lg font-semibold text-gray-950">{assetCount}</p>
             <p className="text-xs text-gray-500">Tracked assets</p>
           </div>
         </div>
@@ -306,11 +303,14 @@ function ReportsContentInner() {
   if (isLoading) return <LoadingState />;
 
   const reportCount = reports?.length ?? 0;
+  const latestReport = reports?.[0];
+  const providerCount = latestReport?.metrics.activeProviders ?? 0;
+  const assetCount = latestReport?.metrics.activeAssets ?? 0;
 
   return (
     <div className="min-h-screen bg-[#FAFAFA]">
       <div className="max-w-7xl mx-auto px-6 py-12">
-        <Header reportCount={reportCount} />
+        <Header reportCount={reportCount} providerCount={providerCount} assetCount={assetCount} />
 
         <section>
           <div className="flex items-center justify-between mb-4">
@@ -326,7 +326,7 @@ function ReportsContentInner() {
             <EmptyStateEnhanced
               type="new"
               title="No reports yet"
-              description="Daily reports will appear here once the scheduled snapshot collection begins. The first report will be generated at 03:00 UTC."
+              description="Daily reports will appear here once the scheduled hourly snapshot collection begins."
               size="md"
               variant="card"
             />

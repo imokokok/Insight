@@ -5,11 +5,10 @@ import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('CronReputation');
 
-const CRON_SECRET = process.env.CRON_SECRET;
-
 export async function GET(request: Request) {
   const authHeader = request.headers.get('authorization');
-  if (!CRON_SECRET || authHeader !== `Bearer ${CRON_SECRET}`) {
+  const cronSecret = process.env.CRON_SECRET;
+  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

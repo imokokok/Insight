@@ -402,11 +402,11 @@ function PreviousDayComparison({
       unit: 'pp',
       goodWhenPositive: false,
     },
-    { label: 'Anomalies', value: comparison.anomalyChangeCount, unit: '', goodWhenPositive: false },
+    { label: 'Anomalies', value: comparison.anomalyChangePct, unit: '%', goodWhenPositive: false },
     {
       label: 'Failed snapshots',
-      value: comparison.failedSnapshotsChangeCount,
-      unit: '',
+      value: comparison.failedSnapshotsChangePct,
+      unit: '%',
       goodWhenPositive: false,
     },
   ];
@@ -434,7 +434,7 @@ function PreviousDayComparison({
               <Icon className="w-3.5 h-3.5" />
               <span>
                 {isPositive ? '+' : ''}
-                {item.value.toFixed(item.unit === 'pp' ? 2 : 0)}
+                {item.value.toFixed(item.unit === 'pp' || item.unit === '%' ? 2 : 0)}
                 {item.unit}
               </span>
             </div>
@@ -733,9 +733,9 @@ export default function ReportDetailContent({ initialReport }: ReportDetailConte
           {/* Footer note */}
           <footer className="mt-10 pt-6 border-t border-gray-200">
             <p className="text-xs text-gray-500 leading-relaxed">
-              Generated automatically by Insight at 03:00 UTC from a single daily cross-oracle
-              snapshot. Data is collected from public oracle feeds and may not represent full
-              intraday price history. For real-time data, visit the{' '}
+              Generated automatically by Insight from hourly cross-oracle snapshots collected
+              throughout the day. Data is collected from public oracle feeds and may not represent
+              full intraday price history. For real-time data, visit the{' '}
               <Link
                 href="/price-insight"
                 className="text-gray-900 underline hover:text-primary-600 transition-colors"
