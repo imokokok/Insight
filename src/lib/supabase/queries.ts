@@ -100,6 +100,9 @@ export class DatabaseQueries {
   async savePriceRecord(record: PriceRecordInsert): Promise<PriceRecord | null> {
     return queryQueue.add(async () => {
       const timestamp = new Date(normalizeTimestamp(record.timestamp)).toISOString();
+      const ingestionTimestamp = record.ingestion_timestamp
+        ? new Date(normalizeTimestamp(record.ingestion_timestamp)).toISOString()
+        : null;
       const ttlInterval = record.ttl || '1h';
       const ttl = this.calculateTtlTimestamp(ttlInterval);
 
@@ -114,7 +117,7 @@ export class DatabaseQueries {
           confidence: record.confidence || null,
           source: record.source || null,
           verification: record.verification || null,
-          ingestion_timestamp: record.ingestion_timestamp || null,
+          ingestion_timestamp: ingestionTimestamp,
           metadata_fallback: record.metadata_fallback || null,
           failure_mode: record.failure_mode || null,
           signal_vector: record.signal_vector || null,
