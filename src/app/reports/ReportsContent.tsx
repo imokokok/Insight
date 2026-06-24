@@ -100,6 +100,7 @@ function ReportStatusBadge({ metrics }: { metrics: DailyReportData['metrics'] })
 function ReportCard({ report }: { report: DailyReportData }) {
   const date = new Date(report.reportDate);
   const dateLabel = date.toLocaleDateString('en-US', {
+    timeZone: 'UTC',
     weekday: 'short',
     month: 'short',
     day: 'numeric',
@@ -116,12 +117,13 @@ function ReportCard({ report }: { report: DailyReportData }) {
       <div className="p-5 flex-1 flex flex-col">
         <div className="flex items-start justify-between gap-3 mb-4">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-lg bg-gradient-to-br from-slate-700 to-slate-800 shadow-md shadow-slate-300/30">
-              <FileText className="w-5 h-5 text-white" />
+            <div className="p-2.5 rounded-lg bg-slate-100 text-slate-600">
+              <FileText className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-gray-900 group-hover:text-slate-700 transition-colors">
+              <h3 className="text-sm font-bold text-gray-900 group-hover:text-slate-600 transition-colors">
                 {date.toLocaleDateString('en-US', {
+                  timeZone: 'UTC',
                   month: 'long',
                   day: 'numeric',
                   year: 'numeric',
@@ -203,7 +205,7 @@ function ReportCard({ report }: { report: DailyReportData }) {
               {report.topAssets.length} assets
             </span>
           </div>
-          <span className="flex items-center gap-0.5 text-xs font-bold text-gray-500 group-hover:text-slate-700 transition-colors">
+          <span className="flex items-center gap-0.5 text-xs font-bold text-gray-500 group-hover:text-slate-600 transition-colors">
             View
             <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
           </span>
@@ -278,6 +280,39 @@ function ShareReportButton({ url }: { url: string }) {
   );
 }
 
+function OverviewSection({ reportCount }: { reportCount: number }) {
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-8">
+      <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+        <div className="flex items-center gap-2 mb-3">
+          <BarChart3 className="w-4 h-4 text-slate-500" />
+          <span className="text-xs font-bold text-gray-500 uppercase tracking-wide">
+            About Daily Reports
+          </span>
+        </div>
+        <p className="text-sm text-gray-700 leading-relaxed">
+          Every day at 03:00 UTC, Insight captures a cross-oracle price snapshot for key crypto
+          assets and publishes an aggregated report. Reports measure consensus alignment, provider
+          uptime, latency, and deviation events across all 10 integrated oracle networks: Chainlink,
+          Pyth, RedStone, API3, DIA, WINkLink, Supra, TWAP, Reflector, and Flare.
+        </p>
+      </div>
+      <div className="bg-slate-50 rounded-xl border border-gray-200 p-6 shadow-sm flex flex-col justify-center">
+        <div className="flex items-center gap-2 mb-2">
+          <Clock className="w-4 h-4 text-slate-500" />
+          <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">
+            Latest Update
+          </span>
+        </div>
+        <p className="text-2xl font-black text-slate-700">{reportCount}</p>
+        <p className="text-xs text-slate-500 mt-0.5">
+          {reportCount === 1 ? 'report published' : 'reports published'} since launch
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function ReportsContentInner() {
   const { data: reports, isLoading, error } = useReports();
   const [currentPage, setCurrentPage] = useState(1);
@@ -299,7 +334,7 @@ function ReportsContentInner() {
         <Header />
         <div className="flex items-center justify-center py-24">
           <div className="flex items-center gap-3">
-            <Loader2 className="w-5 h-5 text-slate-600 animate-spin" />
+            <Loader2 className="w-5 h-5 text-slate-500 animate-spin" />
             <span className="text-sm text-gray-600 font-medium">Loading reports...</span>
           </div>
         </div>
@@ -308,15 +343,22 @@ function ReportsContentInner() {
   }
 
   if (error || !reports || reports.length === 0) {
+    const reportCount = reports?.length ?? 0;
     return (
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 min-h-screen">
         <Header />
+        <OverviewSection reportCount={reportCount} />
+
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-sm font-bold text-gray-800 uppercase tracking-wide">All Reports</h2>
+        </div>
+
         <EmptyStateEnhanced
           type="new"
-          title="No Reports Yet"
-          description="Daily reports will appear here once the cron job starts collecting snapshots. The first report will be generated at 03:00 UTC."
-          size="lg"
-          variant="page"
+          title="暂无报告"
+          description="每日报告将在定时任务开始收集快照后出现在此处。第一份报告将于 UTC 时间 03:00 生成。"
+          size="md"
+          variant="card"
         />
       </div>
     );
@@ -326,34 +368,7 @@ function ReportsContentInner() {
     <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 min-h-screen">
       <Header />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-8">
-        <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-          <div className="flex items-center gap-2 mb-3">
-            <BarChart3 className="w-4 h-4 text-slate-600" />
-            <span className="text-xs font-bold text-gray-500 uppercase tracking-wide">
-              About Daily Reports
-            </span>
-          </div>
-          <p className="text-sm text-gray-700 leading-relaxed">
-            Every day at 03:00 UTC, Insight captures a cross-oracle price snapshot for key crypto
-            assets and publishes an aggregated report. Reports measure consensus alignment, provider
-            uptime, latency, and deviation events across all 10 integrated oracle networks:
-            Chainlink, Pyth, RedStone, API3, DIA, WINkLink, Supra, TWAP, Reflector, and Flare.
-          </p>
-        </div>
-        <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl p-6 text-white shadow-lg shadow-slate-300/40 flex flex-col justify-center">
-          <div className="flex items-center gap-2 mb-2">
-            <Clock className="w-4 h-4 text-slate-300" />
-            <span className="text-xs font-bold text-slate-300 uppercase tracking-wide">
-              Latest Update
-            </span>
-          </div>
-          <p className="text-2xl font-black">{reports.length}</p>
-          <p className="text-xs text-slate-300 mt-0.5">
-            {reports.length === 1 ? 'report published' : 'reports published'} since launch
-          </p>
-        </div>
-      </div>
+      <OverviewSection reportCount={reports.length} />
 
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-sm font-bold text-gray-800 uppercase tracking-wide">All Reports</h2>
@@ -388,8 +403,8 @@ function Header() {
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
       <div className="flex items-center gap-3">
-        <div className="p-2.5 rounded-xl bg-gradient-to-br from-slate-700 to-slate-800 shadow-md shadow-slate-300/30">
-          <FileText className="w-6 h-6 text-white" />
+        <div className="p-2.5 rounded-xl bg-slate-100 text-slate-600">
+          <FileText className="w-6 h-6" />
         </div>
         <div>
           <h1 className="text-2xl font-black text-gray-900 tracking-tight">Daily Oracle Reports</h1>

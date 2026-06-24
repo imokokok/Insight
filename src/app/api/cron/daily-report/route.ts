@@ -24,7 +24,7 @@ async function fetchBatchPrices(): Promise<BatchResultItem[]> {
   const results = await Promise.all(
     queries.map(async ({ provider, symbol }): Promise<BatchResultItem> => {
       try {
-        const price = await fetchPriceWithDatabase(provider, symbol, undefined, true, false);
+        const price = await fetchPriceWithDatabase(provider, symbol, undefined, true, true);
         return { provider, symbol, price, error: null };
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Unknown error';
