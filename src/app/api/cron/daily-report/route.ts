@@ -1,13 +1,12 @@
 import { NextResponse } from 'next/server';
 
 import { calculateConsensusPrice } from '@/lib/analytics/consensusPrice';
+import { fetchPriceWithDatabase } from '@/lib/oracles/base/databaseOperations';
 import { reportService, REPORT_ASSETS, REPORT_PROVIDERS } from '@/lib/reports/reportService';
 import { createLogger } from '@/lib/utils/logger';
 import { type OracleProvider, type PriceData } from '@/types/oracle';
 
 const logger = createLogger('CronDailyReport');
-
-const CRON_SECRET = process.env.CRON_SECRET;
 
 interface BatchResultItem {
   provider: string;
@@ -17,31 +16,25 @@ interface BatchResultItem {
   error: string | null;
 }
 
-function getReportDate(): string {
-  const now = new Date();
-  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
-    .toISOString()
-    .split('T')[0];
-}
-
 async function fetchBatchPrices(): Promise<BatchResultItem[]> {
   const queries = REPORT_ASSETS.flatMap((symbol) =>
     REPORT_PROVIDERS.map((provider) => ({ provider, symbol }))
   );
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? '';
-  const response = await fetch(`${appUrl}/api/oracles/batch`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ queries, forceRefresh: false }),
-  });
+  const results = await Promise.all(
+    queries.map(async ({ provider, symbol }): Promise<BatchResultItem> => {
+      try {
+        const price = await fetchPriceWithDatabase(provider, symbol, undefined, true, false);
+        return { provider, symbol, price, error: null };
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        logger.error(`Price fetch failed for ${provider}/${symbol}: ${message}`);
+        return { provider, symbol, price: null, error: message };
+      }
+    })
+  );
 
-  if (!response.ok) {
-    throw new Error(`Batch price fetch failed: ${response.status} ${response.statusText}`);
-  }
-
-  const json = await response.json();
-  return json.data ?? [];
+  return results;
 }
 
 function calculateConsensusBySymbol(results: BatchResultItem[]): Record<string, { price: number }> {
@@ -80,13 +73,19 @@ function calculateConsensusBySymbol(results: BatchResultItem[]): Record<string, 
 
 export async function GET(request: Request) {
   const authHeader = request.headers.get('authorization');
-  if (!CRON_SECRET || authHeader !== `Bearer ${CRON_SECRET}`) {
+  const cronSecret = process.env.CRON_SECRET;
+  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   try {
-    const reportDate = getReportDate();
-    const snapshotHour = new Date(`${reportDate}T00:00:00.000Z`);
+    const now = new Date();
+    const reportDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
+      .toISOString()
+      .split('T')[0];
+    const snapshotHour = new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours())
+    );
     const results = await fetchBatchPrices();
     const consensusBySymbol = calculateConsensusBySymbol(results);
 
