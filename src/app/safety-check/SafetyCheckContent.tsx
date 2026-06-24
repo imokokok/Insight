@@ -77,6 +77,15 @@ export default function SafetyCheckContent() {
 
   const { result, isLoading, error, calculate, clear } = useProtocolHealth();
   const [lastPosition, setLastPosition] = useState<PositionInput | null>(null);
+  const [calculationKey, setCalculationKey] = useState(0);
+
+  const startCalculation = useCallback(
+    async (position: PositionInput) => {
+      setCalculationKey((k) => k + 1);
+      await calculate(position);
+    },
+    [calculate]
+  );
 
   // Auto-fill defaults and calculate on mount
   useEffect(() => {
@@ -93,10 +102,10 @@ export default function SafetyCheckContent() {
     // Auto-calculate with default data
     if (position) {
       setLastPosition(position);
-      calculate(position);
+      startCalculation(position);
       setStep(3);
     }
-  }, [calculate]);
+  }, [startCalculation]);
 
   const handleSelectProtocol = useCallback(
     (protocol: ProtocolConfig) => {
@@ -110,11 +119,11 @@ export default function SafetyCheckContent() {
       // Auto-calculate with default data for the new protocol
       if (position) {
         setLastPosition(position);
-        calculate(position);
+        startCalculation(position);
         setStep(3);
       }
     },
-    [calculate, clear]
+    [startCalculation, clear]
   );
 
   const handleSubmit = useCallback(
@@ -126,10 +135,10 @@ export default function SafetyCheckContent() {
         borrows: data.borrows,
       };
       setLastPosition(position);
-      await calculate(position);
+      await startCalculation(position);
       setStep(3);
     },
-    [selectedProtocol, calculate]
+    [selectedProtocol, startCalculation]
   );
 
   const handleReset = useCallback(() => {
@@ -160,7 +169,12 @@ export default function SafetyCheckContent() {
           {/* Left sidebar */}
           <aside className="xl:w-[400px] xl:flex-shrink-0">
             <div className="xl:sticky xl:top-4 space-y-4">
-              <StepIndicator currentStep={step} />
+              <StepIndicator
+                key={calculationKey}
+                isCalculating={isLoading}
+                hasResult={!!result}
+                hasError={!!error}
+              />
 
               <PositionForm
                 step={step}

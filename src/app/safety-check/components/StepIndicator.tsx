@@ -1,79 +1,154 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+
 import { motion } from 'framer-motion';
-import { Check } from 'lucide-react';
+import { AlertCircle, Check, Loader2 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 
-interface Step {
+interface StepIndicatorProps {
+  isCalculating: boolean;
+  hasResult: boolean;
+  hasError: boolean;
+}
+
+interface Phase {
   id: number;
   label: string;
 }
 
-const STEPS: Step[] = [
-  { id: 1, label: 'Select Protocol' },
-  { id: 2, label: 'Fill Position' },
-  { id: 3, label: 'View Results' },
+const PHASES: Phase[] = [
+  { id: 1, label: 'Prepare Position' },
+  { id: 2, label: 'Fetch Market Data' },
+  { id: 3, label: 'Compute Deviation' },
+  { id: 4, label: 'Generate Report' },
 ];
 
-interface StepIndicatorProps {
-  currentStep: number;
-}
+const PHASE_INTERVAL_MS = 900;
 
-export function StepIndicator({ currentStep }: StepIndicatorProps) {
+export function StepIndicator({ isCalculating, hasResult, hasError }: StepIndicatorProps) {
+  const [tick, setTick] = useState(0);
+
+  useEffect(() => {
+    if (!isCalculating) return;
+    const interval = setInterval(() => {
+      setTick((prev) => prev + 1);
+    }, PHASE_INTERVAL_MS);
+    return () => clearInterval(interval);
+  }, [isCalculating]);
+
+  const activeIndex = hasResult ? PHASES.length : isCalculating ? tick % PHASES.length : 0;
+  const progressWidth = isCalculating
+    ? `${((activeIndex + 1) / PHASES.length) * 100}%`
+    : hasResult || hasError
+      ? '100%'
+      : '0%';
+
   return (
-    <div className="w-full">
-      <div className="flex items-center justify-between">
-        {STEPS.map((step, index) => {
-          const isCompleted = currentStep > step.id;
-          const isCurrent = currentStep === step.id;
-          const isUpcoming = currentStep < step.id;
+    <div className="w-full bg-white rounded-lg border border-gray-200 shadow-sm p-4">
+      <div className="flex items-center justify-between mb-4">
+        <span className="text-sm font-semibold text-gray-900">Calculation Process</span>
+        <StatusBadge isCalculating={isCalculating} hasResult={hasResult} hasError={hasError} />
+      </div>
 
-          return (
-            <div key={step.id} className="flex items-center flex-1 last:flex-none">
-              {/* Step circle */}
-              <div className="flex flex-col items-center">
+      <div className="relative">
+        <div className="flex items-center justify-between relative z-10">
+          {PHASES.map((phase, index) => {
+            const isCompleted = hasResult || (!isCalculating && index < activeIndex);
+            const isCurrent = isCalculating && index === activeIndex;
+            const isError = hasError && !isCalculating && index === activeIndex - 1;
+
+            return (
+              <div key={phase.id} className="flex flex-col items-center flex-1">
                 <motion.div
                   initial={false}
                   animate={{ scale: isCurrent ? 1.1 : 1 }}
+                  transition={{ duration: 0.2 }}
                   className={cn(
-                    'w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold transition-colors duration-300 border-2',
+                    'w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold border-2 transition-colors duration-300',
                     isCompleted && 'bg-primary-600 border-primary-600 text-white',
                     isCurrent && 'bg-white border-primary-600 text-primary-600',
-                    isUpcoming && 'bg-white border-gray-200 text-gray-400'
+                    isError && 'bg-white border-red-500 text-red-500',
+                    !isCompleted &&
+                      !isCurrent &&
+                      !isError &&
+                      'bg-white border-gray-200 text-gray-400'
                   )}
                 >
-                  {isCompleted ? <Check className="w-4 h-4" /> : step.id}
+                  {isCompleted ? (
+                    <Check className="w-4 h-4" />
+                  ) : isCurrent ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : isError ? (
+                    <AlertCircle className="w-4 h-4" />
+                  ) : (
+                    phase.id
+                  )}
                 </motion.div>
                 <span
                   className={cn(
-                    'text-xs mt-1.5 font-medium transition-colors duration-300',
+                    'text-[10px] mt-1.5 font-medium text-center transition-colors duration-300 leading-tight',
                     isCompleted && 'text-primary-600',
-                    isCurrent && 'text-primary-600',
-                    isUpcoming && 'text-gray-400'
+                    (isCurrent || isError) && 'text-gray-900',
+                    !isCompleted && !isCurrent && !isError && 'text-gray-400'
                   )}
                 >
-                  {step.label}
+                  {phase.label}
                 </span>
               </div>
+            );
+          })}
+        </div>
 
-              {/* Connector line */}
-              {index < STEPS.length - 1 && (
-                <div className="flex-1 h-0.5 mx-3 mb-5">
-                  <div className="relative h-full bg-gray-200 rounded-full overflow-hidden">
-                    <motion.div
-                      className="absolute inset-y-0 left-0 bg-primary-600 rounded-full"
-                      initial={{ width: '0%' }}
-                      animate={{ width: isCompleted ? '100%' : '0%' }}
-                      transition={{ duration: 0.4, ease: 'easeInOut' }}
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-          );
-        })}
+        <div className="absolute top-4 left-0 right-0 h-0.5 bg-gray-200 -z-0">
+          <motion.div
+            className={cn('h-full rounded-full', hasError ? 'bg-red-500' : 'bg-primary-600')}
+            initial={false}
+            animate={{ width: progressWidth }}
+            transition={{ duration: 0.4, ease: 'easeInOut' }}
+          />
+        </div>
       </div>
     </div>
   );
+}
+
+function StatusBadge({
+  isCalculating,
+  hasResult,
+  hasError,
+}: {
+  isCalculating: boolean;
+  hasResult: boolean;
+  hasError: boolean;
+}) {
+  if (isCalculating) {
+    return (
+      <span className="flex items-center gap-1.5 text-xs font-medium text-primary-600">
+        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+        Calculating...
+      </span>
+    );
+  }
+
+  if (hasError) {
+    return (
+      <span className="flex items-center gap-1.5 text-xs font-medium text-red-600">
+        <AlertCircle className="w-3.5 h-3.5" />
+        Failed
+      </span>
+    );
+  }
+
+  if (hasResult) {
+    return (
+      <span className="flex items-center gap-1.5 text-xs font-medium text-emerald-600">
+        <Check className="w-3.5 h-3.5" />
+        Complete
+      </span>
+    );
+  }
+
+  return <span className="text-xs font-medium text-gray-400">Ready</span>;
 }
