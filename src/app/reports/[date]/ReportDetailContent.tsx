@@ -83,7 +83,7 @@ function SectionTitle({
   return (
     <div className="flex items-center justify-between mb-4">
       <div className="flex items-center gap-2">
-        <Icon className="w-4 h-4 text-blue-500" />
+        <Icon className="w-4 h-4 text-slate-600" />
         <h2 className="text-sm font-bold text-gray-800 uppercase tracking-wide">{title}</h2>
       </div>
       {action}
@@ -290,7 +290,7 @@ function DeviationEventsList({ events }: { events: DailyReportData['deviationEve
               <span
                 className={cn(
                   'text-sm font-black font-mono flex-shrink-0',
-                  event.deviationPct > 0 ? 'text-red-600' : 'text-blue-600'
+                  event.deviationPct > 0 ? 'text-red-600' : 'text-emerald-600'
                 )}
               >
                 {event.deviationPct > 0 ? '+' : ''}
@@ -316,7 +316,7 @@ function Highlights({ highlights }: { highlights: string[] }) {
       <ul className="space-y-3">
         {highlights.map((highlight, index) => (
           <li key={index} className="flex items-start gap-3">
-            <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 flex-shrink-0" />
+            <div className="w-1.5 h-1.5 rounded-full bg-slate-600 mt-2 flex-shrink-0" />
             <p className="text-sm text-gray-700 leading-relaxed">{highlight}</p>
           </li>
         ))}
@@ -334,15 +334,15 @@ function SummaryCard({ report }: { report: DailyReportData }) {
         : TrendingDown;
 
   return (
-    <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl p-6 text-white shadow-lg shadow-blue-200/40 h-full flex flex-col">
+    <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl p-6 text-white shadow-lg shadow-slate-300/40 h-full flex flex-col">
       <div className="flex items-center gap-2 mb-3">
-        <Calendar className="w-4 h-4 text-blue-100" />
-        <span className="text-xs font-bold text-blue-100 uppercase tracking-wider">
+        <Calendar className="w-4 h-4 text-slate-300" />
+        <span className="text-xs font-bold text-slate-300 uppercase tracking-wider">
           Daily Summary
         </span>
       </div>
       <h2 className="text-xl font-black mb-3">{report.reportTitle}</h2>
-      <p className="text-sm text-blue-50 leading-relaxed mb-5 flex-1">{report.summary}</p>
+      <p className="text-sm text-slate-200 leading-relaxed mb-5 flex-1">{report.summary}</p>
       <div className="flex flex-wrap items-center gap-2">
         <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 border border-white/20">
           <TrendIcon className="w-3.5 h-3.5" />
@@ -409,7 +409,7 @@ function ShareButtons({ url, title }: { url: string; title: string }) {
 function Breadcrumb({ dateLabel }: { dateLabel: string }) {
   return (
     <nav className="flex items-center gap-1.5 text-xs text-gray-500 mb-5">
-      <Link href="/reports" className="hover:text-primary-600 transition-colors font-medium">
+      <Link href="/reports" className="hover:text-slate-700 transition-colors font-medium">
         Reports
       </Link>
       <ChevronRight className="w-3 h-3" />
@@ -436,7 +436,7 @@ export default function ReportDetailContent({ initialReport }: ReportDetailConte
 
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-6">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-md shadow-blue-200/30">
+            <div className="p-2.5 rounded-xl bg-gradient-to-br from-slate-700 to-slate-800 shadow-md shadow-slate-300/30">
               <BarChart3 className="w-6 h-6 text-white" />
             </div>
             <div>
@@ -584,10 +584,7 @@ export default function ReportDetailContent({ initialReport }: ReportDetailConte
                 This report was generated automatically by Insight at 03:00 UTC based on a single
                 daily cross-oracle snapshot. Data is collected from public oracle feeds and may not
                 represent the full intraday price history. For real-time data, visit the{' '}
-                <Link
-                  href="/price-insight"
-                  className="text-primary-600 hover:underline font-medium"
-                >
+                <Link href="/price-insight" className="text-slate-700 hover:underline font-medium">
                   Price Insight
                 </Link>{' '}
                 dashboard.
