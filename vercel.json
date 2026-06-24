@@ -20,10 +20,6 @@
     {
       "path": "/api/cron/daily-report",
       "schedule": "0 3 * * *"
-    },
-    {
-      "path": "/api/cron/reputation",
-      "schedule": "0 */6 * * *"
     }
   ]
 }
