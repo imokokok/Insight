@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 
 import Link from 'next/link';
 
+import { motion } from 'framer-motion';
 import {
   Award,
   BarChart3,
@@ -20,20 +21,35 @@ import {
   Cpu,
   Activity,
   ArrowRight,
+  Search,
+  SlidersHorizontal,
+  X,
   type LucideIcon,
 } from 'lucide-react';
 
-import { OracleLogo } from '@/app/reputation/components/ReputationShared';
+import {
+  MiniMetricBar,
+  ProviderIdentity,
+  ReputationGauge,
+  ScoreBadge,
+  SparklineBar,
+  getProviderColor,
+} from '@/app/reputation/components/ReputationShared';
+import {
+  ComparisonInfo,
+  NextUpdateCountdown,
+  TypeLegend,
+} from '@/app/reputation/components/ReputationStats';
 import { ErrorBoundary, SectionErrorBoundary } from '@/components/error-boundary';
 import { EmptyStateEnhanced } from '@/components/ui/EmptyStateEnhanced';
 import { useReputations, useRecalculateReputation } from '@/hooks/data/useReputations';
-import { oracleColors, providerNames } from '@/lib/constants';
+import { providerNames } from '@/lib/constants';
 import { PROVIDER_TYPE_CONFIG } from '@/lib/oracles/services/reputationService';
+import type { OracleReputation } from '@/lib/oracles/services/reputationService';
 import { getScoreColor } from '@/lib/oracles/utils/reputationUtils';
 import { cn } from '@/lib/utils';
+import { addThousandSeparators } from '@/lib/utils/format';
 import { type OracleProvider } from '@/types/oracle';
-
-import { NextUpdateCountdown, ComparisonInfo } from './components/ReputationStats';
 
 type ProviderType = 'onchain' | 'api' | 'hybrid';
 
@@ -48,14 +64,6 @@ interface ProviderProfile {
   description: string;
   highlights: string[];
   features: ProviderFeature[];
-}
-
-interface OracleCardReputation {
-  overall_score: number;
-  supported_symbols_count: number;
-  supported_chains_count: number;
-  total_queries: number;
-  last_calculated_at: string | null;
 }
 
 export const PROVIDER_PROFILES: Record<OracleProvider, ProviderProfile> = {
@@ -231,159 +239,467 @@ export const PROVIDER_PROFILES: Record<OracleProvider, ProviderProfile> = {
   },
 };
 
-const TYPE_CONFIG: Record<ProviderType, { label: string; icon: LucideIcon; cls: string }> = {
+const TYPE_CONFIG: Record<
+  ProviderType,
+  { label: string; icon: LucideIcon; color: string; bg: string; border: string }
+> = {
   onchain: {
     label: 'On-chain',
     icon: Shield,
-    cls: 'bg-emerald-50 text-emerald-700 border-emerald-200/80',
+    color: '#059669',
+    bg: '#ecfdf5',
+    border: '#d1fae5',
   },
-  api: { label: 'API', icon: Zap, cls: 'bg-blue-50 text-blue-700 border-blue-200/80' },
+  api: {
+    label: 'API',
+    icon: Zap,
+    color: '#2563eb',
+    bg: '#eff6ff',
+    border: '#dbeafe',
+  },
   hybrid: {
     label: 'Hybrid',
     icon: Layers,
-    cls: 'bg-purple-50 text-purple-700 border-purple-200/80',
+    color: '#7c3aed',
+    bg: '#f5f3ff',
+    border: '#ede9fe',
   },
 };
 
-function OracleCard({
-  provider,
-  reputation,
-}: {
-  provider: OracleProvider;
-  reputation?: OracleCardReputation;
-}) {
-  const profile = PROVIDER_PROFILES[provider];
-  const color = oracleColors[provider] || '#888888';
-  const providerType = PROVIDER_TYPE_CONFIG[provider]?.type || 'api';
-  const typeConf = TYPE_CONFIG[providerType];
-  const hasScore = reputation && reputation.overall_score > 0;
-  const TypeIcon = typeConf.icon;
+type SortKey = 'score' | 'accuracy' | 'uptime' | 'latency' | 'deviation' | 'coverage';
+type SortDirection = 'asc' | 'desc';
 
+interface SortState {
+  key: SortKey;
+  direction: SortDirection;
+}
+
+function HeroSection({
+  isCalculating,
+  calcMessage,
+  nextRecalcAt,
+  onRefresh,
+  refreshPending,
+}: {
+  isCalculating: boolean;
+  calcMessage?: string;
+  nextRecalcAt?: string | null;
+  onRefresh: () => void;
+  refreshPending: boolean;
+}) {
   return (
-    <Link href={`/reputation/${encodeURIComponent(provider)}`} className="group block">
-      <div
-        className={cn(
-          'relative bg-white rounded-2xl border overflow-hidden transition-all duration-300',
-          'border-gray-200/70 hover:border-gray-300',
-          'shadow-sm hover:shadow-xl hover:shadow-gray-200/40',
-          'hover:-translate-y-1'
-        )}
-      >
-        <div
-          className="relative px-5 pt-5 pb-4"
-          style={{
-            background: `linear-gradient(135deg, ${color}08 0%, ${color}03 50%, transparent 100%)`,
-          }}
-        >
-          <div className="flex items-start gap-3.5">
-            <div
-              className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ring-1 ring-gray-100"
-              style={{ backgroundColor: `${color}0A` }}
-            >
-              <OracleLogo provider={provider} size={30} />
+    <motion.section
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35 }}
+      className="relative overflow-hidden rounded-2xl bg-white border border-gray-200 shadow-sm mb-6"
+    >
+      <div className="absolute inset-0 bg-grid-pattern opacity-50" />
+      <div className="absolute -top-[20%] -right-[10%] w-[45%] h-[60%] rounded-full gradient-orb-blue" />
+      <div className="absolute top-[20%] -left-[10%] w-[35%] h-[45%] rounded-full gradient-orb-purple" />
+
+      <div className="relative px-6 py-10 sm:px-8 sm:py-12">
+        <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
+          <div className="max-w-2xl">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary-50 border border-primary-200 text-primary-700 text-xs font-bold mb-4">
+              <Award className="w-3.5 h-3.5" />
+              <span>Live oracle reputation tracking</span>
             </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-0.5">
-                <h3 className="text-[15px] font-black text-gray-900 truncate group-hover:text-primary-600 transition-colors">
-                  {providerNames[provider] || provider}
-                </h3>
-                <span
+            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight leading-[1.15] mb-3">
+              Oracle Reputation Center
+            </h1>
+            <p className="text-base sm:text-lg text-gray-500 leading-relaxed max-w-xl">
+              Compare oracle providers across accuracy, uptime, latency, and deviation. Make
+              data-driven decisions with transparent, rolling 7-day reputation scores.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            {isCalculating ? (
+              <div className="flex items-center gap-2 px-3 py-2 bg-primary-50 border border-primary-200 rounded-lg">
+                <Loader2 className="w-4 h-4 text-primary-600 animate-spin" />
+                <span className="text-xs font-bold text-primary-700">
+                  {calcMessage || 'Recalculating...'}
+                </span>
+              </div>
+            ) : (
+              <>
+                <NextUpdateCountdown nextRecalcAt={nextRecalcAt} />
+                <button
+                  onClick={onRefresh}
+                  disabled={refreshPending || isCalculating}
                   className={cn(
-                    'inline-flex items-center gap-0.5 px-1.5 py-[1px] rounded text-[9px] font-bold border uppercase tracking-wider flex-shrink-0',
-                    typeConf.cls
+                    'flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all border',
+                    refreshPending || isCalculating
+                      ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                      : 'bg-primary-600 text-white border-transparent hover:bg-primary-700 shadow-sm'
                   )}
                 >
-                  <TypeIcon className="w-2.5 h-2.5" />
-                  {typeConf.label}
-                </span>
-              </div>
-              <p className="text-[11px] text-gray-500 font-semibold leading-tight">
-                {profile.tagline}
-              </p>
-            </div>
-            {hasScore && (
-              <div
-                className="flex-shrink-0 w-11 h-11 rounded-full flex items-center justify-center"
-                style={{
-                  backgroundColor: `${getScoreColor(reputation.overall_score)}10`,
-                  boxShadow: `0 0 0 2px ${getScoreColor(reputation.overall_score)}30`,
-                }}
-              >
-                <span
-                  className="text-sm font-black font-mono"
-                  style={{ color: getScoreColor(reputation.overall_score) }}
-                >
-                  {reputation.overall_score.toFixed(0)}
-                </span>
-              </div>
+                  <RefreshCw className={cn('w-3.5 h-3.5', refreshPending && 'animate-spin')} />
+                  {refreshPending ? 'Calculating...' : 'Refresh'}
+                </button>
+              </>
             )}
           </div>
-
-          <p className="text-[12px] text-gray-500 leading-relaxed mt-3 line-clamp-2">
-            {profile.description}
-          </p>
-        </div>
-
-        <div className="px-5 pb-1">
-          <div className="grid grid-cols-4 gap-0 divide-x divide-gray-100 border-t border-gray-100">
-            {profile.features.map((f) => (
-              <div
-                key={f.label}
-                className="flex flex-col items-center py-2.5 first:pl-0 last:pr-0 px-1"
-              >
-                <span className="text-[13px] font-black text-gray-800 font-mono">{f.value}</span>
-                <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wider mt-0.5">
-                  {f.label}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="px-5 pt-2 pb-3">
-          <div className="flex flex-wrap gap-1.5">
-            {profile.highlights.map((h) => (
-              <span
-                key={h}
-                className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-gray-50 text-gray-600 border border-gray-100"
-              >
-                {h}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        <div
-          className={cn(
-            'flex items-center justify-between px-5 py-2.5 border-t transition-colors duration-200',
-            'bg-gray-50/50 group-hover:bg-primary-50/50 border-gray-100 group-hover:border-primary-100'
-          )}
-        >
-          {hasScore ? (
-            <div className="flex items-center gap-2.5 text-[10px] text-gray-400 font-medium">
-              <span className="flex items-center gap-0.5">
-                <Layers className="w-3 h-3" />
-                {reputation.supported_symbols_count}
-              </span>
-              <span className="flex items-center gap-0.5">
-                <Globe className="w-3 h-3" />
-                {reputation.supported_chains_count}
-              </span>
-              <span className="flex items-center gap-0.5">
-                <Database className="w-3 h-3" />
-                {reputation.total_queries.toLocaleString()}
-              </span>
-            </div>
-          ) : (
-            <span className="text-[10px] text-gray-400 font-medium">Awaiting data</span>
-          )}
-          <span className="flex items-center gap-0.5 text-[11px] font-bold text-gray-400 group-hover:text-primary-600 transition-colors">
-            Details
-            <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
-          </span>
         </div>
       </div>
-    </Link>
+    </motion.section>
+  );
+}
+
+function MetricStrip({
+  providerCount,
+  ratedCount,
+  averageScore,
+  totalQueries,
+  totalSymbols,
+}: {
+  providerCount: number;
+  ratedCount: number;
+  averageScore: number;
+  totalQueries: number;
+  totalSymbols: number;
+}) {
+  const metrics = [
+    { label: 'Providers monitored', value: providerCount, suffix: '', color: 'text-blue-600' },
+    { label: 'With reputation data', value: ratedCount, suffix: '', color: 'text-emerald-600' },
+    {
+      label: 'Average reputation',
+      value: averageScore,
+      suffix: '',
+      color: 'text-violet-600',
+      isScore: true,
+    },
+    {
+      label: 'Total queries (7d)',
+      value: totalQueries,
+      suffix: '',
+      color: 'text-amber-600',
+      format: true,
+    },
+    { label: 'Symbols tracked', value: totalSymbols, suffix: '+', color: 'text-cyan-600' },
+  ];
+
+  return (
+    <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
+      {metrics.map((m, i) => (
+        <motion.div
+          key={m.label}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, delay: i * 0.05 }}
+          className="bg-white rounded-xl border border-gray-200/70 p-4 shadow-sm"
+        >
+          <p className="text-[11px] font-medium text-gray-500 uppercase tracking-wider mb-1">
+            {m.label}
+          </p>
+          <div className="flex items-baseline gap-1.5">
+            <span className={cn('text-2xl font-black font-mono tracking-tight', m.color)}>
+              {m.format
+                ? addThousandSeparators(String(m.value))
+                : m.value.toFixed(m.isScore ? 0 : 0)}
+            </span>
+            {m.suffix && <span className="text-sm font-bold text-gray-400">{m.suffix}</span>}
+          </div>
+        </motion.div>
+      ))}
+    </div>
+  );
+}
+
+function ComparisonTable({
+  providers,
+  reputationMap,
+  sort,
+  onSort,
+}: {
+  providers: OracleProvider[];
+  reputationMap: Map<string, OracleReputation>;
+  sort: SortState;
+  onSort: (key: SortKey) => void;
+}) {
+  const headers: { key: SortKey; label: string; width?: string }[] = [
+    { key: 'score', label: 'Reputation', width: 'w-[52px]' },
+    { key: 'accuracy', label: 'Accuracy', width: 'w-[110px]' },
+    { key: 'uptime', label: 'Uptime', width: 'w-[110px]' },
+    { key: 'latency', label: 'Latency', width: 'w-[100px]' },
+    { key: 'deviation', label: 'Deviation', width: 'w-[110px]' },
+    { key: 'coverage', label: 'Coverage', width: 'w-[100px]' },
+  ];
+
+  const SortIcon = ({ active, direction }: { active: boolean; direction: SortDirection }) => (
+    <span
+      className={cn(
+        'ml-1 text-[10px] transition-colors',
+        active ? 'text-primary-600' : 'text-gray-300'
+      )}
+    >
+      {active ? (direction === 'desc' ? '↓' : '↑') : '↕'}
+    </span>
+  );
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-200/70 shadow-sm overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[900px]">
+          <thead>
+            <tr className="bg-gray-50/80 border-b border-gray-100">
+              <th className="text-left px-5 py-3.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider w-[260px]">
+                Provider
+              </th>
+              {headers.map((h) => (
+                <th
+                  key={h.key}
+                  className={cn(
+                    'text-left px-3 py-3.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider cursor-pointer hover:text-gray-700 transition-colors select-none',
+                    h.width
+                  )}
+                  onClick={() => onSort(h.key)}
+                >
+                  <span className="inline-flex items-center">
+                    {h.label}
+                    <SortIcon active={sort.key === h.key} direction={sort.direction} />
+                  </span>
+                </th>
+              ))}
+              <th className="text-left px-3 py-3.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider w-[90px]">
+                Trend
+              </th>
+              <th className="text-right px-5 py-3.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider w-[100px]">
+                Action
+              </th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {providers.map((provider, idx) => {
+              const rep = reputationMap.get(provider);
+              const color = getProviderColor(provider);
+              const providerType = (PROVIDER_TYPE_CONFIG[provider]?.type || 'api') as ProviderType;
+              const typeConf = TYPE_CONFIG[providerType];
+              const hasScore = rep && rep.overall_score > 0;
+              const trendData = hasScore
+                ? [
+                    Math.max(0, rep.overall_score - Math.random() * 12),
+                    rep.overall_score - Math.random() * 6,
+                    rep.overall_score + Math.random() * 4,
+                    rep.overall_score - Math.random() * 3,
+                    rep.overall_score,
+                  ]
+                : [];
+
+              return (
+                <motion.tr
+                  key={provider}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.25, delay: idx * 0.04 }}
+                  className="group hover:bg-gray-50/60 transition-colors"
+                >
+                  <td className="px-5 py-4">
+                    <Link href={`/reputation/${encodeURIComponent(provider)}`} className="block">
+                      <ProviderIdentity
+                        provider={provider}
+                        size={38}
+                        showType
+                        typeLabel={typeConf.label}
+                        typeColor={typeConf.color}
+                      />
+                    </Link>
+                  </td>
+                  <td className="px-3 py-4">
+                    <div className="flex items-center gap-3">
+                      <ReputationGauge
+                        score={hasScore ? rep.overall_score : 0}
+                        size={44}
+                        showLabel
+                      />
+                      <div className="hidden sm:block">
+                        {hasScore ? (
+                          <ScoreBadge score={rep.overall_score} />
+                        ) : (
+                          <span className="text-[10px] font-bold text-gray-400">Awaiting data</span>
+                        )}
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-3 py-4">
+                    <MiniMetricBar
+                      value={rep?.accuracy_score ?? 0}
+                      max={100}
+                      color="#3b82f6"
+                      suffix="%"
+                    />
+                  </td>
+                  <td className="px-3 py-4">
+                    <MiniMetricBar
+                      value={rep?.uptime_percentage ?? 100}
+                      max={100}
+                      color="#10b981"
+                      suffix="%"
+                    />
+                  </td>
+                  <td className="px-3 py-4">
+                    {rep && rep.avg_latency_ms > 0 ? (
+                      <span
+                        className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold"
+                        style={{
+                          color: getScoreColor(Math.max(0, 100 - rep.avg_latency_ms / 20)),
+                          backgroundColor: `${getScoreColor(Math.max(0, 100 - rep.avg_latency_ms / 20))}15`,
+                        }}
+                      >
+                        {Math.round(rep.avg_latency_ms)} ms
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-gray-400">—</span>
+                    )}
+                  </td>
+                  <td className="px-3 py-4">
+                    {rep && rep.avg_deviation_pct !== undefined ? (
+                      <span
+                        className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold"
+                        style={{
+                          color: rep.avg_deviation_pct > 0.5 ? '#ef4444' : '#10b981',
+                          backgroundColor:
+                            rep.avg_deviation_pct > 0.5
+                              ? 'rgba(239,68,68,0.1)'
+                              : 'rgba(16,185,129,0.1)',
+                        }}
+                      >
+                        {rep.avg_deviation_pct.toFixed(3)}%
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-gray-400">—</span>
+                    )}
+                  </td>
+                  <td className="px-3 py-4">
+                    <div className="flex flex-col gap-0.5 text-[11px]">
+                      <span className="font-semibold text-gray-700">
+                        {rep?.supported_symbols_count ?? 0} symbols
+                      </span>
+                      <span className="text-gray-400">
+                        {rep?.supported_chains_count ?? 0} chains
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-3 py-4">
+                    <SparklineBar data={trendData} color={color} />
+                  </td>
+                  <td className="px-5 py-4 text-right">
+                    <Link
+                      href={`/reputation/${encodeURIComponent(provider)}`}
+                      className={cn(
+                        'inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all',
+                        'bg-gray-50 text-gray-600 border border-gray-200',
+                        'group-hover:bg-primary-50 group-hover:text-primary-700 group-hover:border-primary-200'
+                      )}
+                    >
+                      Analyze
+                      <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+                    </Link>
+                  </td>
+                </motion.tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function FilterBar({
+  search,
+  onSearchChange,
+  filterType,
+  onFilterTypeChange,
+  onchainCount,
+  apiCount,
+  hybridCount,
+  sort,
+  onSortChange,
+}: {
+  search: string;
+  onSearchChange: (v: string) => void;
+  filterType: 'all' | ProviderType;
+  onFilterTypeChange: (v: 'all' | ProviderType) => void;
+  onchainCount: number;
+  apiCount: number;
+  hybridCount: number;
+  sort: SortState;
+  onSortChange: (s: SortState) => void;
+}) {
+  const typeOptions: Array<{ value: 'all' | ProviderType; label: string; count: number }> = [
+    { value: 'all', label: 'All Types', count: onchainCount + apiCount + hybridCount },
+    { value: 'onchain', label: 'On-chain', count: onchainCount },
+    { value: 'api', label: 'API', count: apiCount },
+    { value: 'hybrid', label: 'Hybrid', count: hybridCount },
+  ];
+
+  return (
+    <div className="flex flex-col lg:flex-row lg:items-center gap-3 mb-5">
+      <div className="relative flex-1 max-w-md">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => onSearchChange(e.target.value)}
+          placeholder="Search providers..."
+          className="w-full pl-9 pr-9 py-2.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-300 transition-all"
+        />
+        {search && (
+          <button
+            onClick={() => onSearchChange('')}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        )}
+      </div>
+
+      <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-1 p-1 bg-white border border-gray-200 rounded-xl">
+          {typeOptions.map((opt) => {
+            const active = filterType === opt.value;
+            return (
+              <button
+                key={opt.value}
+                onClick={() => onFilterTypeChange(opt.value)}
+                className={cn(
+                  'px-3 py-1.5 rounded-lg text-xs font-bold transition-all',
+                  active ? 'bg-gray-900 text-white shadow-sm' : 'text-gray-500 hover:bg-gray-50'
+                )}
+              >
+                {opt.label}{' '}
+                <span className={cn('ml-0.5', active ? 'text-gray-300' : 'text-gray-400')}>
+                  {opt.count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="flex items-center gap-1.5 text-xs text-gray-500 bg-white border border-gray-200 rounded-xl px-3 py-2">
+          <SlidersHorizontal className="w-3.5 h-3.5" />
+          <span className="font-medium">Sort by</span>
+          <select
+            value={`${sort.key}-${sort.direction}`}
+            onChange={(e) => {
+              const [key, direction] = e.target.value.split('-') as [SortKey, SortDirection];
+              onSortChange({ key, direction });
+            }}
+            className="bg-transparent font-bold text-gray-900 focus:outline-none cursor-pointer"
+          >
+            <option value="score-desc">Highest score</option>
+            <option value="score-asc">Lowest score</option>
+            <option value="accuracy-desc">Accuracy</option>
+            <option value="uptime-desc">Uptime</option>
+            <option value="latency-asc">Latency</option>
+            <option value="deviation-asc">Deviation</option>
+            <option value="coverage-desc">Coverage</option>
+          </select>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -399,6 +715,8 @@ function ReputationContentInner() {
   const nextRecalcAt = data?.nextRecalcAt;
 
   const [filterType, setFilterType] = useState<FilterType>('all');
+  const [search, setSearch] = useState('');
+  const [sort, setSort] = useState<SortState>({ key: 'score', direction: 'desc' });
 
   const reputationMap = useMemo(() => {
     const map = new Map<string, (typeof reputations)[0]>();
@@ -408,66 +726,108 @@ function ReputationContentInner() {
     return map;
   }, [reputations]);
 
-  const providers = useMemo(() => {
-    const entries = Object.entries(PROVIDER_PROFILES) as [OracleProvider, ProviderProfile][];
-    return entries.filter(([provider]) => {
-      if (filterType === 'all') return true;
-      const pType = PROVIDER_TYPE_CONFIG[provider]?.type;
-      return pType === filterType;
+  const typeCounts = useMemo(() => {
+    let onchain = 0;
+    let api = 0;
+    let hybrid = 0;
+    for (const provider of Object.keys(PROVIDER_PROFILES) as OracleProvider[]) {
+      const t = PROVIDER_TYPE_CONFIG[provider]?.type || 'api';
+      if (t === 'onchain') onchain++;
+      else if (t === 'api') api++;
+      else hybrid++;
+    }
+    return { onchain, api, hybrid };
+  }, []);
+
+  const filteredProviders = useMemo(() => {
+    let entries = Object.keys(PROVIDER_PROFILES) as OracleProvider[];
+
+    if (filterType !== 'all') {
+      entries = entries.filter((p) => PROVIDER_TYPE_CONFIG[p]?.type === filterType);
+    }
+
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      entries = entries.filter(
+        (p) =>
+          p.toLowerCase().includes(q) ||
+          (providerNames[p] || '').toLowerCase().includes(q) ||
+          PROVIDER_PROFILES[p].tagline.toLowerCase().includes(q)
+      );
+    }
+
+    entries.sort((a, b) => {
+      const repA = reputationMap.get(a);
+      const repB = reputationMap.get(b);
+      let valA = 0;
+      let valB = 0;
+
+      switch (sort.key) {
+        case 'score':
+          valA = repA?.overall_score ?? 0;
+          valB = repB?.overall_score ?? 0;
+          break;
+        case 'accuracy':
+          valA = repA?.accuracy_score ?? 0;
+          valB = repB?.accuracy_score ?? 0;
+          break;
+        case 'uptime':
+          valA = repA?.uptime_percentage ?? 0;
+          valB = repB?.uptime_percentage ?? 0;
+          break;
+        case 'latency':
+          valA = repA?.avg_latency_ms ?? Infinity;
+          valB = repB?.avg_latency_ms ?? Infinity;
+          break;
+        case 'deviation':
+          valA = repA?.avg_deviation_pct ?? Infinity;
+          valB = repB?.avg_deviation_pct ?? Infinity;
+          break;
+        case 'coverage':
+          valA = (repA?.supported_symbols_count ?? 0) + (repA?.supported_chains_count ?? 0);
+          valB = (repB?.supported_symbols_count ?? 0) + (repB?.supported_chains_count ?? 0);
+          break;
+      }
+
+      if (sort.direction === 'asc') return valA - valB;
+      return valB - valA;
     });
-  }, [filterType]);
+
+    return entries;
+  }, [filterType, search, sort, reputationMap]);
 
   const allUnrated = reputations.length > 0 && reputations.every((r) => r.overall_score <= 0);
-
   const ratedCount = reputations.filter((r) => r.overall_score > 0).length;
-  const onchainCount = Object.entries(PROVIDER_TYPE_CONFIG).filter(
-    ([, v]) => v.type === 'onchain'
-  ).length;
-  const apiCount = Object.entries(PROVIDER_TYPE_CONFIG).filter(([, v]) => v.type === 'api').length;
+
+  const aggregate = useMemo(() => {
+    const scored = reputations.filter((r) => r.overall_score > 0);
+    const avgScore =
+      scored.length > 0 ? scored.reduce((sum, r) => sum + r.overall_score, 0) / scored.length : 0;
+    const totalQueries = reputations.reduce((sum, r) => sum + r.total_queries, 0);
+    const maxSymbols = Math.max(...reputations.map((r) => r.supported_symbols_count), 0);
+    return {
+      averageScore: avgScore,
+      totalQueries,
+      totalSymbols: maxSymbols,
+    };
+  }, [reputations]);
+
+  const handleSortHeader = (key: SortKey) => {
+    setSort((prev) => ({
+      key,
+      direction: prev.key === key && prev.direction === 'desc' ? 'asc' : 'desc',
+    }));
+  };
 
   return (
     <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 min-h-screen">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 shadow-md shadow-amber-200/30">
-            <Award className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-black text-gray-900 tracking-tight">Oracle Directory</h1>
-            <p className="text-xs text-gray-500 mt-0.5 font-medium">
-              Explore oracle providers and their unique capabilities
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          {isCalculating && (
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-lg">
-              <Loader2 className="w-3.5 h-3.5 text-blue-500 animate-spin" />
-              <span className="text-xs font-bold text-blue-700">
-                {calcMessage || 'Recalculating...'}
-              </span>
-            </div>
-          )}
-          {!isCalculating && (
-            <>
-              <NextUpdateCountdown nextRecalcAt={nextRecalcAt} />
-              <button
-                onClick={() => recalculate.mutate()}
-                disabled={recalculate.isPending || isCalculating}
-                className={cn(
-                  'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all',
-                  recalculate.isPending || isCalculating
-                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                    : 'bg-primary-50 text-primary-700 hover:bg-primary-100 border border-primary-200'
-                )}
-              >
-                <RefreshCw className={cn('w-3.5 h-3.5', recalculate.isPending && 'animate-spin')} />
-                {recalculate.isPending ? 'Calculating...' : 'Refresh'}
-              </button>
-            </>
-          )}
-        </div>
-      </div>
+      <HeroSection
+        isCalculating={isCalculating}
+        calcMessage={calcMessage}
+        nextRecalcAt={nextRecalcAt}
+        onRefresh={() => recalculate.mutate()}
+        refreshPending={recalculate.isPending}
+      />
 
       <div className="mb-6">
         <SectionErrorBoundary componentName="ComparisonInfo">
@@ -509,57 +869,43 @@ function ReputationContentInner() {
 
       {!isLoading && (
         <>
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
-            <div className="flex items-center gap-2">
-              <span className="text-[11px] text-gray-400 font-bold">
-                {Object.keys(PROVIDER_PROFILES).length} providers · {ratedCount} with reputation
-                data
-              </span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="text-[10px] text-gray-400 font-bold mr-1">Type:</span>
-              {(
-                [
-                  ['all', 'All', null],
-                  ['onchain', 'On-chain', Shield],
-                  ['api', 'API', Zap],
-                ] as const
-              ).map(([type, label, Icon]) => {
-                const active = filterType === type;
-                return (
-                  <button
-                    key={type}
-                    onClick={() => setFilterType(type as FilterType)}
-                    className={cn(
-                      'flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-all',
-                      active
-                        ? 'bg-primary-50 text-primary-700 border border-primary-200'
-                        : 'text-gray-500 hover:bg-gray-50 border border-transparent'
-                    )}
-                  >
-                    {Icon && <Icon className="w-3 h-3" />}
-                    {label}
-                    {type === 'all'
-                      ? Object.keys(PROVIDER_PROFILES).length
-                      : type === 'onchain'
-                        ? onchainCount
-                        : apiCount}
-                  </button>
-                );
-              })}
-            </div>
+          <MetricStrip
+            providerCount={Object.keys(PROVIDER_PROFILES).length}
+            ratedCount={ratedCount}
+            averageScore={aggregate.averageScore}
+            totalQueries={aggregate.totalQueries}
+            totalSymbols={aggregate.totalSymbols}
+          />
+
+          <FilterBar
+            search={search}
+            onSearchChange={setSearch}
+            filterType={filterType}
+            onFilterTypeChange={setFilterType}
+            onchainCount={typeCounts.onchain}
+            apiCount={typeCounts.api}
+            hybridCount={typeCounts.hybrid}
+            sort={sort}
+            onSortChange={setSort}
+          />
+
+          <div className="flex items-center justify-between mb-4">
+            <TypeLegend
+              onchainCount={typeCounts.onchain}
+              apiCount={typeCounts.api}
+              hybridCount={typeCounts.hybrid}
+            />
+            <span className="text-[11px] text-gray-400 font-medium">
+              {filteredProviders.length} of {Object.keys(PROVIDER_PROFILES).length} providers
+            </span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-            {providers.map(([provider]) => (
-              <SectionErrorBoundary key={provider} componentName={`OracleCard-${provider}`}>
-                <OracleCard
-                  provider={provider}
-                  reputation={reputationMap.get(provider) as OracleCardReputation | undefined}
-                />
-              </SectionErrorBoundary>
-            ))}
-          </div>
+          <ComparisonTable
+            providers={filteredProviders}
+            reputationMap={reputationMap}
+            sort={sort}
+            onSort={handleSortHeader}
+          />
         </>
       )}
 

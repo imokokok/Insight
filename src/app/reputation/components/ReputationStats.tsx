@@ -2,7 +2,9 @@
 
 import { useState, useEffect, useCallback } from 'react';
 
-import { Clock, Info } from 'lucide-react';
+import { Clock, Info, Shield, Zap, Layers } from 'lucide-react';
+
+import { cn } from '@/lib/utils';
 
 function NextUpdateCountdown({ nextRecalcAt }: { nextRecalcAt: string | null | undefined }) {
   const computeRemaining = useCallback(() => {
@@ -77,4 +79,54 @@ function ComparisonInfo() {
   );
 }
 
-export { NextUpdateCountdown, ComparisonInfo };
+function TypeLegend({
+  onchainCount,
+  apiCount,
+  hybridCount,
+}: {
+  onchainCount: number;
+  apiCount: number;
+  hybridCount: number;
+}) {
+  const items = [
+    {
+      icon: Shield,
+      label: 'On-chain',
+      count: onchainCount,
+      color: 'text-emerald-600',
+      bg: 'bg-emerald-50',
+    },
+    { icon: Zap, label: 'API', count: apiCount, color: 'text-blue-600', bg: 'bg-blue-50' },
+    {
+      icon: Layers,
+      label: 'Hybrid',
+      count: hybridCount,
+      color: 'text-violet-600',
+      bg: 'bg-violet-50',
+    },
+  ];
+
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      {items.map(({ icon: Icon, label, count, color, bg }) => (
+        <div
+          key={label}
+          className={cn(
+            'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold border',
+            bg,
+            color,
+            color.replace('text-', 'border-').replace('600', '200')
+          )}
+        >
+          <Icon className="w-3 h-3" />
+          {label}
+          <span className="ml-0.5 px-1 py-0 rounded bg-white/70 text-gray-700 font-bold">
+            {count}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export { NextUpdateCountdown, ComparisonInfo, TypeLegend };
