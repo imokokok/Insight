@@ -118,12 +118,40 @@ export async function GET(request: Request) {
       }
     );
 
-    const inserted = await reportService.upsertHourlySnapshots(inputs);
-    const report = await reportService.generateDailyReport(reportDate);
-
+    const successCount = inputs.filter((i) => i.isSuccess).length;
+    const failedCount = inputs.length - successCount;
     logger.info(
-      `Daily report completed for ${reportDate}: ${inserted} snapshots, report persisted`
+      `Price batch completed for ${reportDate}: ${successCount} success, ${failedCount} failed out of ${inputs.length}`
     );
+
+    let inserted = 0;
+    try {
+      inserted = await reportService.upsertHourlySnapshots(inputs);
+      logger.info(`Upserted ${inserted} hourly snapshots for ${reportDate}`);
+    } catch (upsertError) {
+      const message = upsertError instanceof Error ? upsertError.message : String(upsertError);
+      logger.error(`Failed to upsert hourly snapshots for ${reportDate}: ${message}`);
+      return NextResponse.json(
+        { success: false, stage: 'upsert_snapshots', error: message },
+        { status: 500 }
+      );
+    }
+
+    let report;
+    try {
+      report = await reportService.generateDailyReport(reportDate);
+      logger.info(
+        `Generated daily report for ${reportDate}: ${report.metrics.totalSnapshots} snapshots`
+      );
+    } catch (generateError) {
+      const message =
+        generateError instanceof Error ? generateError.message : String(generateError);
+      logger.error(`Failed to generate daily report for ${reportDate}: ${message}`);
+      return NextResponse.json(
+        { success: false, stage: 'generate_report', error: message },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({
       success: true,
@@ -136,10 +164,8 @@ export async function GET(request: Request) {
       },
     });
   } catch (error) {
-    logger.error(
-      'Daily report cron failed',
-      error instanceof Error ? error : new Error(String(error))
-    );
-    return NextResponse.json({ success: false, error: 'Daily report failed' }, { status: 500 });
+    const message = error instanceof Error ? error.message : String(error);
+    logger.error('Daily report cron failed', error instanceof Error ? error : new Error(message));
+    return NextResponse.json({ success: false, stage: 'unknown', error: message }, { status: 500 });
   }
 }
