@@ -124,10 +124,11 @@ export class DatabaseQueries {
         .single();
 
       if (error) {
-        logger.error(
-          'Failed to save price record',
-          error instanceof Error ? error : new Error(String(error))
-        );
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : ((error as { message?: string }).message ?? JSON.stringify(error));
+        logger.error('Failed to save price record', new Error(errorMessage));
         return null;
       }
 
