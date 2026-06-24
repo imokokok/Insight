@@ -14,6 +14,32 @@ import { type OracleProvider, type PriceData } from '@/types/oracle';
 
 const logger = createLogger('CronDailyReport');
 
+// DECIMAL(24, 8) max absolute value
+const MAX_SNAPSHOT_PRICE = 9_999_999_999_999_999.99999999;
+// DECIMAL(10, 4) max absolute value
+const MAX_DEVIATION_PCT = 9_999.9999;
+
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value);
+}
+
+function sanitizePriceForSnapshot(
+  price: number
+): { valid: true; price: number } | { valid: false; reason: string } {
+  if (!isFiniteNumber(price) || price <= 0) {
+    return { valid: false, reason: 'price is not a positive finite number' };
+  }
+  if (price > MAX_SNAPSHOT_PRICE) {
+    return { valid: false, reason: `price ${price} exceeds DECIMAL(24,8) range` };
+  }
+  return { valid: true, price };
+}
+
+function sanitizeDeviationPct(value: number): number {
+  if (!isFiniteNumber(value)) return 0;
+  return Math.max(-MAX_DEVIATION_PCT, Math.min(MAX_DEVIATION_PCT, value));
+}
+
 interface BatchResultItem {
   provider: string;
   symbol: string;
@@ -67,6 +93,17 @@ async function fetchBatchPrices(): Promise<BatchResultItem[]> {
     queries.map(async ({ provider, symbol }): Promise<BatchResultItem> => {
       try {
         const price = await fetchPriceWithDatabase(provider, symbol, undefined, true, true);
+        const check = sanitizePriceForSnapshot(price.price);
+        if (!check.valid) {
+          logger.error(`Price validation failed for ${provider}/${symbol}: ${check.reason}`);
+          return {
+            provider,
+            symbol,
+            price: null,
+            error: `Price validation failed: ${check.reason}`,
+            skipped: false,
+          };
+        }
         return { provider, symbol, price, error: null, skipped: false };
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Unknown error';
@@ -129,28 +166,40 @@ export async function GET(request: Request) {
     const inputs = results
       .filter((item) => !item.skipped)
       .map((item): HourlySnapshotInput => {
-        const consensus = item.symbol ? consensusBySymbol[item.symbol] : undefined;
-        const consensusPrice = consensus?.price ?? null;
+        const rawConsensus = item.symbol ? consensusBySymbol[item.symbol] : undefined;
+        const consensusPrice =
+          rawConsensus && rawConsensus.price > 0 && rawConsensus.price <= MAX_SNAPSHOT_PRICE
+            ? rawConsensus.price
+            : null;
 
         let deviationPct: number | null = null;
         if (consensusPrice && item.price && item.price.price > 0) {
-          deviationPct = ((item.price.price - consensusPrice) / consensusPrice) * 100;
+          const rawDeviation = ((item.price.price - consensusPrice) / consensusPrice) * 100;
+          deviationPct = sanitizeDeviationPct(rawDeviation);
+          if (rawDeviation !== deviationPct) {
+            logger.warn(
+              `Deviation clamped for ${item.provider}/${item.symbol}: ${rawDeviation} -> ${deviationPct}`
+            );
+          }
         }
 
         const refTime = item.price?.ingestionTimestamp ?? item.price?.timestamp;
         const dataAgeSeconds = refTime ? Math.floor((Date.now() - refTime) / 1000) : null;
 
+        const priceCheck = item.price ? sanitizePriceForSnapshot(item.price.price) : null;
+        const isSuccess = item.error === null && priceCheck?.valid === true;
+
         return {
           snapshotHour,
           provider: item.provider as OracleProvider,
           symbol: item.symbol,
-          price: item.price?.price ?? 0,
+          price: priceCheck?.valid ? priceCheck.price : 0,
           consensusPrice,
           deviationPct,
           latencyMs: null,
           dataAgeSeconds,
           confidence: item.price?.confidence ?? null,
-          isSuccess: item.error === null && !!item.price && item.price.price > 0,
+          isSuccess,
           errorMessage: item.error,
         };
       });
@@ -167,10 +216,18 @@ export async function GET(request: Request) {
       inserted = await reportService.upsertHourlySnapshots(inputs);
       logger.info(`Upserted ${inserted} hourly snapshots for ${reportDate}`);
     } catch (upsertError) {
-      const message = upsertError instanceof Error ? upsertError.message : String(upsertError);
-      logger.error(`Failed to upsert hourly snapshots for ${reportDate}: ${message}`);
+      const error = upsertError instanceof Error ? upsertError : new Error(String(upsertError));
+      logger.error(`Failed to upsert hourly snapshots for ${reportDate}: ${error.message}`, error, {
+        sampleInputs: inputs.slice(0, 5).map((i) => ({
+          provider: i.provider,
+          symbol: i.symbol,
+          price: i.price,
+          consensusPrice: i.consensusPrice,
+          deviationPct: i.deviationPct,
+        })),
+      });
       return NextResponse.json(
-        { success: false, stage: 'upsert_snapshots', error: message },
+        { success: false, stage: 'upsert_snapshots', error: error.message },
         { status: 500 }
       );
     }
