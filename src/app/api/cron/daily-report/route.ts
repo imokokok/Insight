@@ -9,6 +9,16 @@ import { type OracleProvider, type PriceData } from '@/types/oracle';
 
 const logger = createLogger('CronDailyReport');
 
+// Hard-coded unsupported pairs observed in production cron runs.
+// These providers advertise the symbol but either have no active feed
+// or return unusable prices for the default chain used by the report.
+const EXCLUDED_REPORT_PAIRS: Partial<Record<OracleProvider, string[]>> = {
+  api3: ['SOL', 'BNB', 'LINK'],
+  dia: ['XRP', 'DOGE'],
+  reflector: ['DOGE'],
+  twap: ['BNB'],
+};
+
 // DECIMAL(24, 8) max absolute value
 const MAX_SNAPSHOT_PRICE = 9_999_999_999_999_999.99999999;
 // DECIMAL(10, 4) max absolute value
@@ -51,6 +61,18 @@ async function fetchBatchPrices(): Promise<BatchResultItem[]> {
 
   for (const symbol of REPORT_ASSETS) {
     for (const provider of REPORT_PROVIDERS) {
+      const excluded = EXCLUDED_REPORT_PAIRS[provider]?.includes(symbol);
+      if (excluded) {
+        skipped.push({
+          provider,
+          symbol,
+          price: null,
+          error: 'Excluded from daily report based on observed unsupported pairs',
+          skipped: true,
+        });
+        continue;
+      }
+
       const client = factory.getClient(provider);
       if (client.isSymbolSupported(symbol)) {
         queries.push({ provider, symbol });
@@ -76,7 +98,7 @@ async function fetchBatchPrices(): Promise<BatchResultItem[]> {
         const price = await fetchPriceWithDatabase(provider, symbol, undefined, true, true);
         const check = sanitizePriceForSnapshot(price.price);
         if (!check.valid) {
-          logger.error(`Price validation failed for ${provider}/${symbol}: ${check.reason}`);
+          logger.warn(`Price validation failed for ${provider}/${symbol}: ${check.reason}`);
           return {
             provider,
             symbol,
