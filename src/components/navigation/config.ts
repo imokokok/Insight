@@ -6,6 +6,7 @@ import {
   BarChart3,
   ShieldCheck,
   Eye,
+  FileText,
 } from 'lucide-react';
 
 import { oracleColors } from '@/lib/constants';
@@ -47,6 +48,13 @@ export const navigationConfig: NavStructure = [
         icon: Award,
         description:
           'Explore oracle providers, their unique capabilities, and historical performance tracking',
+      },
+      {
+        href: '/reports',
+        label: 'Daily Reports',
+        icon: FileText,
+        description:
+          'Daily oracle performance summaries with price deviations, rankings, and risk highlights',
       },
     ],
   },
