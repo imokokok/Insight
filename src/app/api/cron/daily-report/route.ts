@@ -1,13 +1,17 @@
 import { NextResponse } from 'next/server';
 
 import { calculateConsensusPrice } from '@/lib/analytics/consensusPrice';
-import { reportService, REPORT_ASSETS, REPORT_PROVIDERS } from '@/lib/reports/reportService';
+import { fetchPriceWithDatabase } from '@/lib/oracles/base/databaseOperations';
+import {
+  reportService,
+  REPORT_ASSETS,
+  REPORT_PROVIDERS,
+  type HourlySnapshotInput,
+} from '@/lib/reports/reportService';
 import { createLogger } from '@/lib/utils/logger';
 import { type OracleProvider, type PriceData } from '@/types/oracle';
 
 const logger = createLogger('CronDailyReport');
-
-const CRON_SECRET = process.env.CRON_SECRET;
 
 interface BatchResultItem {
   provider: string;
@@ -24,24 +28,40 @@ function getReportDate(): string {
     .split('T')[0];
 }
 
+function getSnapshotHour(): Date {
+  const now = new Date();
+  return new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours())
+  );
+}
+
 async function fetchBatchPrices(): Promise<BatchResultItem[]> {
   const queries = REPORT_ASSETS.flatMap((symbol) =>
     REPORT_PROVIDERS.map((provider) => ({ provider, symbol }))
   );
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? '';
-  const response = await fetch(`${appUrl}/api/oracles/batch`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ queries, forceRefresh: false }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`Batch price fetch failed: ${response.status} ${response.statusText}`);
-  }
-
-  const json = await response.json();
-  return json.data ?? [];
+  return Promise.all(
+    queries.map(async ({ provider, symbol }): Promise<BatchResultItem> => {
+      try {
+        const price = await fetchPriceWithDatabase(provider, symbol, undefined, true, false);
+        return {
+          provider,
+          symbol,
+          price,
+          error: null,
+        };
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        logger.error(`Daily report price fetch failed for ${provider}/${symbol}: ${message}`);
+        return {
+          provider,
+          symbol,
+          price: null,
+          error: message,
+        };
+      }
+    })
+  );
 }
 
 function calculateConsensusBySymbol(results: BatchResultItem[]): Record<string, { price: number }> {
@@ -80,44 +100,43 @@ function calculateConsensusBySymbol(results: BatchResultItem[]): Record<string, 
 
 export async function GET(request: Request) {
   const authHeader = request.headers.get('authorization');
-  if (!CRON_SECRET || authHeader !== `Bearer ${CRON_SECRET}`) {
+  const cronSecret = process.env.CRON_SECRET;
+  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   try {
     const reportDate = getReportDate();
-    const snapshotHour = new Date(`${reportDate}T00:00:00.000Z`);
+    const snapshotHour = getSnapshotHour();
     const results = await fetchBatchPrices();
     const consensusBySymbol = calculateConsensusBySymbol(results);
 
-    const inputs = results.map(
-      (item): import('@/lib/reports/reportService').HourlySnapshotInput => {
-        const consensus = item.symbol ? consensusBySymbol[item.symbol] : undefined;
-        const consensusPrice = consensus?.price ?? null;
+    const inputs = results.map((item): HourlySnapshotInput => {
+      const consensus = item.symbol ? consensusBySymbol[item.symbol] : undefined;
+      const consensusPrice = consensus?.price ?? null;
 
-        let deviationPct: number | null = null;
-        if (consensusPrice && item.price && item.price.price > 0) {
-          deviationPct = ((item.price.price - consensusPrice) / consensusPrice) * 100;
-        }
-
-        const refTime = item.price?.ingestionTimestamp ?? item.price?.timestamp;
-        const dataAgeSeconds = refTime ? Math.floor((Date.now() - refTime) / 1000) : null;
-
-        return {
-          snapshotHour,
-          provider: item.provider as OracleProvider,
-          symbol: item.symbol,
-          price: item.price?.price ?? 0,
-          consensusPrice,
-          deviationPct,
-          latencyMs: null,
-          dataAgeSeconds,
-          confidence: item.price?.confidence ?? null,
-          isSuccess: item.error === null && !!item.price && item.price.price > 0,
-          errorMessage: item.error,
-        };
+      let deviationPct: number | null = null;
+      if (consensusPrice && item.price && item.price.price > 0) {
+        deviationPct = ((item.price.price - consensusPrice) / consensusPrice) * 100;
       }
-    );
+
+      const refTime = item.price?.ingestionTimestamp ?? item.price?.timestamp;
+      const dataAgeSeconds = refTime ? Math.floor((Date.now() - refTime) / 1000) : null;
+
+      return {
+        snapshotHour,
+        provider: item.provider as OracleProvider,
+        symbol: item.symbol,
+        price: item.price?.price ?? 0,
+        consensusPrice,
+        deviationPct,
+        latencyMs: null,
+        dataAgeSeconds,
+        confidence: item.price?.confidence ?? null,
+        isSuccess: item.error === null && !!item.price && item.price.price > 0,
+        errorMessage: item.error,
+      };
+    });
 
     const inserted = await reportService.upsertHourlySnapshots(inputs);
     const report = await reportService.generateDailyReport(reportDate);
