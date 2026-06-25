@@ -451,8 +451,50 @@ class EnhancedRetryManager {
 
 const retryManagerRegistry = new Map<
   string,
-  { manager: EnhancedRetryManager; configKey: string }
+  { manager: EnhancedRetryManager; configKey: string; lastAccessed: number }
 >();
+
+const MAX_REGISTRY_SIZE = 100;
+const REGISTRY_ENTRY_TTL = 30 * 60 * 1000; // 30 minutes
+let registryCleanupInterval: ReturnType<typeof setInterval> | null = null;
+
+function cleanupStaleRegistryEntries(): void {
+  const now = Date.now();
+  for (const [key, entry] of retryManagerRegistry) {
+    if (now - entry.lastAccessed > REGISTRY_ENTRY_TTL) {
+      retryManagerRegistry.delete(key);
+    }
+  }
+  enforceRegistryCapacity();
+}
+
+function enforceRegistryCapacity(): void {
+  if (retryManagerRegistry.size <= MAX_REGISTRY_SIZE) return;
+
+  const entries = Array.from(retryManagerRegistry.entries()).sort(
+    (a, b) => a[1].lastAccessed - b[1].lastAccessed
+  );
+
+  const toRemove = retryManagerRegistry.size - MAX_REGISTRY_SIZE;
+  for (let i = 0; i < toRemove; i++) {
+    retryManagerRegistry.delete(entries[i][0]);
+  }
+}
+
+export function startRetryRegistryCleanup(intervalMs: number = 60000): void {
+  if (registryCleanupInterval) return;
+  registryCleanupInterval = setInterval(cleanupStaleRegistryEntries, intervalMs);
+  if (registryCleanupInterval.unref) {
+    registryCleanupInterval.unref();
+  }
+}
+
+export function stopRetryRegistryCleanup(): void {
+  if (registryCleanupInterval) {
+    clearInterval(registryCleanupInterval);
+    registryCleanupInterval = null;
+  }
+}
 
 function configSignature(config?: Partial<EnhancedRetryConfig>): string {
   if (!config) return '';
@@ -474,8 +516,15 @@ export async function withRetry<T>(
   // callers could never change retry/circuit-breaker behaviour for a named
   // operation after the first invocation.
   if (!entry || entry.configKey !== signature) {
-    entry = { manager: new EnhancedRetryManager(config), configKey: signature };
+    entry = {
+      manager: new EnhancedRetryManager(config),
+      configKey: signature,
+      lastAccessed: Date.now(),
+    };
     retryManagerRegistry.set(key, entry);
+    enforceRegistryCapacity();
+  } else {
+    entry.lastAccessed = Date.now();
   }
   return entry.manager.execute(operation, operationName, callbacks);
 }

@@ -264,6 +264,10 @@ export class RedStoneClient extends BaseOracleClient {
     this.cache.startCleanupInterval();
   }
 
+  override destroy(): void {
+    this.cache.destroy();
+  }
+
   async isSymbolSupportedAsync(symbol: string): Promise<boolean> {
     return isRedStoneSymbolSupportedAsync(symbol);
   }

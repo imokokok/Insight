@@ -240,16 +240,21 @@ export async function uploadAvatar(userId: string, file: File): Promise<AvatarUp
 
 export async function deleteAvatar(userId: string): Promise<{ error: Error | null }> {
   try {
+    const sanitizedUserId = sanitizeUuid(userId);
+    if (!sanitizedUserId) {
+      return { error: new Error('Invalid user ID') };
+    }
+
     const { data: files, error: listError } = await supabase.storage
       .from(AVATAR_BUCKET)
-      .list(userId);
+      .list(sanitizedUserId);
 
     if (listError) {
       return { error: new Error(`Failed to list avatar files: ${listError.message}`) };
     }
 
     if (files && files.length > 0) {
-      const filesToDelete = files.map((file) => `${userId}/${file.name}`);
+      const filesToDelete = files.map((file) => `${sanitizedUserId}/${file.name}`);
       const { error: deleteError } = await supabase.storage
         .from(AVATAR_BUCKET)
         .remove(filesToDelete);
@@ -265,7 +270,7 @@ export async function deleteAvatar(userId: string): Promise<{ error: Error | nul
         avatar_url: null,
         updated_at: new Date().toISOString(),
       })
-      .eq('id', userId);
+      .eq('id', sanitizedUserId);
 
     if (updateError) {
       return { error: new Error(`Failed to update profile: ${updateError.message}`) };

@@ -33,6 +33,13 @@ export class OracleClientFactory {
     this.config = { ...DEFAULT_CONFIG, ...config };
   }
 
+  destroy(): void {
+    for (const client of this.instances.values()) {
+      client.destroy();
+    }
+    this.instances.clear();
+  }
+
   getClient(provider: OracleProvider): BaseOracleClient {
     if (this.mockFactory) {
       try {

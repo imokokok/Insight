@@ -59,9 +59,10 @@ export async function withOracleRetry<T>(
     throw new Error(`Operation ${operationName} was aborted before starting: ${reason}`);
   }
 
+  let onAbort: (() => void) | null = null;
   const abortPromise = signal
     ? new Promise<never>((_, reject) => {
-        const onAbort = () => {
+        onAbort = () => {
           const reason = signal.reason instanceof Error ? signal.reason.message : 'unknown reason';
           reject(new Error(`Operation ${operationName} was aborted: ${reason}`));
         };
@@ -71,28 +72,34 @@ export async function withOracleRetry<T>(
 
   const operationPromise = enhancedWithRetry(operation, operationName, enhancedConfig);
 
-  const result = abortPromise
-    ? await Promise.race([operationPromise, abortPromise])
-    : await operationPromise;
+  try {
+    const result = abortPromise
+      ? await Promise.race([operationPromise, abortPromise])
+      : await operationPromise;
 
-  if (!result.success) {
-    logger.error(`Oracle operation failed after ${result.attempts} attempts`, result.error, {
+    if (!result.success) {
+      logger.error(`Oracle operation failed after ${result.attempts} attempts`, result.error, {
+        operationName,
+        totalDuration: result.totalDuration,
+      });
+      if (result.error instanceof Error) {
+        throw result.error;
+      }
+      throw new Error(`${operationName} failed after ${result.attempts} attempts`);
+    }
+
+    logger.debug(`Oracle operation succeeded`, {
       operationName,
+      attempts: result.attempts,
       totalDuration: result.totalDuration,
     });
-    if (result.error instanceof Error) {
-      throw result.error;
+
+    return result.data!;
+  } finally {
+    if (signal && onAbort) {
+      signal.removeEventListener('abort', onAbort);
     }
-    throw new Error(`${operationName} failed after ${result.attempts} attempts`);
   }
-
-  logger.debug(`Oracle operation succeeded`, {
-    operationName,
-    attempts: result.attempts,
-    totalDuration: result.totalDuration,
-  });
-
-  return result.data!;
 }
 
 export function calculateRetryDelay(

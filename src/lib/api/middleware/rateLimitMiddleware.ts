@@ -95,7 +95,16 @@ function defaultKeyGenerator(request: NextRequest): string {
       h2 ^= Math.imul(h1 ^ (h1 >>> 13), 3266489909);
       const hash = 4294967296 * (2097151 & h2) + (h1 >>> 0);
       ip = `token:${hash.toString(36)}`;
+    } else {
+      // No IP and no auth token — use a per-request random identifier to avoid
+      // all unidentified clients sharing a single rate-limit bucket, which would
+      // let one attacker exhaust the limit for every other unknown-IP user.
+      ip = `anon:${crypto.randomUUID()}`;
     }
+    logger.warn('Rate limit key generated for unknown IP', {
+      keySource: authHeader ? 'auth-token-hash' : 'random-anon',
+      path: request.nextUrl.pathname,
+    });
   }
 
   const path = request.nextUrl.pathname;

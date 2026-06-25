@@ -206,6 +206,10 @@ export class FlareClient extends BaseOracleClient {
     this.ftsoService.clearCache();
   }
 
+  override destroy(): void {
+    this.cache.destroy();
+  }
+
   async getTokenOnChainData(symbol: string): Promise<FlareTokenOnChainData | null> {
     const cacheKey = `onchain-data:${symbol.toUpperCase()}`;
     const cached = this.cache.get<FlareTokenOnChainData>(cacheKey);

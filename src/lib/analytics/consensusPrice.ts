@@ -41,7 +41,7 @@ export interface ConsensusResult {
   recommendedMethod: ConsensusMethod;
 }
 
-export interface ConsensusHistoryPoint {
+interface ConsensusHistoryPoint {
   timestamp: number;
   price: number;
   confidence: number;
@@ -55,6 +55,35 @@ const MAX_HISTORY_ENTRIES = 1000;
 const HISTORY_TTL_MS = 10 * 60 * 1000; // 10 minutes
 
 const consensusHistoryMap = new Map<string, ConsensusHistoryPoint[]>();
+
+let cleanupInterval: ReturnType<typeof setInterval> | null = null;
+
+function cleanupStaleEntries(): void {
+  const now = Date.now();
+  for (const [key, history] of consensusHistoryMap) {
+    const filtered = history.filter((point) => now - point.timestamp <= HISTORY_TTL_MS);
+    if (filtered.length === 0) {
+      consensusHistoryMap.delete(key);
+    } else if (filtered.length !== history.length) {
+      consensusHistoryMap.set(key, filtered);
+    }
+  }
+}
+
+export function startConsensusHistoryCleanup(intervalMs: number = 60000): void {
+  if (cleanupInterval) return;
+  cleanupInterval = setInterval(cleanupStaleEntries, intervalMs);
+  if (cleanupInterval.unref) {
+    cleanupInterval.unref();
+  }
+}
+
+export function stopConsensusHistoryCleanup(): void {
+  if (cleanupInterval) {
+    clearInterval(cleanupInterval);
+    cleanupInterval = null;
+  }
+}
 
 export function resetConsensusHistory(): void {
   consensusHistoryMap.clear();
@@ -515,10 +544,6 @@ export function recordConsensusHistory(key: string, result: ConsensusResult): vo
     history.shift();
   }
   setHistoryEntry(key, history);
-}
-
-export function getConsensusHistory(key: string): ConsensusHistoryPoint[] {
-  return getHistoryEntry(key) ?? [];
 }
 
 export function getConsensusMethodLabel(method: ConsensusMethod): string {

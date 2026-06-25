@@ -167,4 +167,8 @@ export class SupraClient extends BaseOracleClient {
     this.cache.clear();
     this.cache.startCleanupInterval();
   }
+
+  override destroy(): void {
+    this.cache.destroy();
+  }
 }

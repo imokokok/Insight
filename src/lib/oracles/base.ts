@@ -133,6 +133,10 @@ export abstract class BaseOracleClient {
     this.config = { ...DEFAULT_CLIENT_CONFIG, ...config };
   }
 
+  destroy(): void {
+    // Override in subclasses to clean up resources (e.g. cache intervals)
+  }
+
   async getHistoricalPrices(
     _symbol: string,
     _chain?: Blockchain,

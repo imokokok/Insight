@@ -57,6 +57,35 @@ const FIXED_COMPLETENESS_WINDOW_MS = 60 * 60 * 1000; // 1 hour
 
 const stabilityHistoryMap = new Map<string, StabilityHistoryPoint[]>();
 
+let cleanupInterval: ReturnType<typeof setInterval> | null = null;
+
+function cleanupStaleEntries(): void {
+  const now = Date.now();
+  for (const [key, history] of stabilityHistoryMap) {
+    const filtered = history.filter((point) => now - point.timestamp <= HISTORY_TTL_MS);
+    if (filtered.length === 0) {
+      stabilityHistoryMap.delete(key);
+    } else if (filtered.length !== history.length) {
+      stabilityHistoryMap.set(key, filtered);
+    }
+  }
+}
+
+export function startStabilityHistoryCleanup(intervalMs: number = 60000): void {
+  if (cleanupInterval) return;
+  cleanupInterval = setInterval(cleanupStaleEntries, intervalMs);
+  if (cleanupInterval.unref) {
+    cleanupInterval.unref();
+  }
+}
+
+export function stopStabilityHistoryCleanup(): void {
+  if (cleanupInterval) {
+    clearInterval(cleanupInterval);
+    cleanupInterval = null;
+  }
+}
+
 export function resetStabilityHistory(): void {
   stabilityHistoryMap.clear();
 }

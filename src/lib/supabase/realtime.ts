@@ -19,6 +19,7 @@ class RealtimeManager {
   private connectionCheckTimer: ReturnType<typeof setInterval> | null = null;
   private static instance: RealtimeManager | null = null;
   private initialized = false;
+  private onVisibilityChange: (() => void) | null = null;
 
   constructor(client: SupabaseClient) {
     this.client = client;
@@ -58,7 +59,7 @@ class RealtimeManager {
     this.connectionCheckTimer = setInterval(checkConnection, 5000);
 
     if (typeof window !== 'undefined') {
-      const onVisibilityChange = () => {
+      this.onVisibilityChange = () => {
         if (document.visibilityState === 'visible') {
           if (!this.connectionCheckTimer) {
             this.connectionCheckTimer = setInterval(checkConnection, 5000);
@@ -68,7 +69,7 @@ class RealtimeManager {
           this.clearConnectionCheckTimer();
         }
       };
-      document.addEventListener('visibilitychange', onVisibilityChange);
+      document.addEventListener('visibilitychange', this.onVisibilityChange);
     }
   }
 
@@ -135,6 +136,10 @@ class RealtimeManager {
   }
 
   public destroy() {
+    if (this.onVisibilityChange && typeof window !== 'undefined') {
+      document.removeEventListener('visibilitychange', this.onVisibilityChange);
+      this.onVisibilityChange = null;
+    }
     this.clearConnectionCheckTimer();
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer);

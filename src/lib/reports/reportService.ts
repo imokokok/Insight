@@ -198,7 +198,7 @@ function scoreProvider(ranking: Omit<ProviderRanking, 'score'>): number {
   );
 }
 
-export class ReportService {
+class ReportService {
   async upsertHourlySnapshots(inputs: HourlySnapshotInput[]): Promise<number> {
     if (inputs.length === 0) return 0;
 
