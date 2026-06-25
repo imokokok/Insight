@@ -12,7 +12,7 @@ import {
 import { createLogger } from '@/lib/utils/logger';
 import { type OracleProvider, type PriceData } from '@/types/oracle';
 
-const logger = createLogger('CronDailyReport');
+const logger = createLogger('DailyReportSnapshot');
 
 // Hard-coded unsupported pairs observed in production cron runs.
 // These providers advertise the symbol but either have no active feed
@@ -258,7 +258,10 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    logger.error('Daily report cron failed', error instanceof Error ? error : new Error(message));
+    logger.error(
+      'Daily report snapshot failed',
+      error instanceof Error ? error : new Error(message)
+    );
     return NextResponse.json({ success: false, stage: 'unknown', error: message }, { status: 500 });
   }
 }
