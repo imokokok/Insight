@@ -29,50 +29,58 @@ export function HeroSection() {
 
   return (
     <section className="relative overflow-hidden bg-slate-950">
-      {/* Background gradients */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div
-          className="absolute -top-[40%] -left-[20%] w-[70%] h-[70%] rounded-full opacity-30"
-          style={{
-            background:
-              'radial-gradient(circle, rgba(59,130,246,0.35) 0%, rgba(37,99,235,0.12) 40%, transparent 70%)',
-          }}
-        />
-        <div
-          className="absolute top-[10%] -right-[20%] w-[60%] h-[60%] rounded-full opacity-25"
-          style={{
-            background:
-              'radial-gradient(circle, rgba(139,92,246,0.35) 0%, rgba(124,58,237,0.1) 40%, transparent 70%)',
-          }}
-        />
-        <div
-          className="absolute inset-0 opacity-[0.03]"
-          style={{
-            backgroundImage:
-              'linear-gradient(to right, rgba(255,255,255,0.15) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.15) 1px, transparent 1px)',
-            backgroundSize: '40px 40px',
-          }}
-        />
-      </div>
+      {/* Hero background image */}
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{
+          backgroundImage: 'url(/hero-bg.webp)',
+          filter: 'saturate(0.45) brightness(0.72)',
+        }}
+      />
+      {/* Left-to-right readability overlay for text area */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            'linear-gradient(90deg, rgba(2,6,23,0.88) 0%, rgba(2,6,23,0.55) 45%, rgba(2,6,23,0.2) 70%, transparent 100%)',
+        }}
+      />
+      {/* Bottom fade for content transition */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            'linear-gradient(to top, rgba(2,6,23,0.75) 0%, rgba(2,6,23,0.2) 30%, transparent 55%)',
+        }}
+      />
+      {/* Brand-tone color tint */}
+      <div
+        className="absolute inset-0 opacity-15 mix-blend-overlay"
+        style={{
+          background:
+            'linear-gradient(135deg, rgba(59,130,246,0.35) 0%, rgba(99,102,241,0.2) 50%, rgba(139,92,246,0.35) 100%)',
+        }}
+      />
 
       <div className="relative max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-20 sm:pt-20 sm:pb-24">
         <div className="max-w-3xl">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-400/20 text-blue-300 text-xs font-medium mb-6">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Real-time oracle aggregation across 10+ providers</span>
+            <span>Real-time oracle intelligence across 10+ providers</span>
           </div>
 
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight leading-[1.1] mb-6">
-            Compare oracle prices.
+            The oracle intelligence layer
             <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-violet-400">
-              Build with confidence.
+              for DeFi.
             </span>
           </h1>
 
           <p className="text-lg sm:text-xl text-slate-400 leading-relaxed mb-8 max-w-2xl">
-            Insight aggregates prices from Chainlink, Pyth, RedStone, API3, DIA and more. Spot
-            discrepancies, evaluate oracle health, and make data-driven decisions for your protocol.
+            Insight aggregates, validates and monitors oracle data across Chainlink, Pyth, RedStone,
+            API3, DIA and more. Detect deviations, measure provider health, and protect your
+            protocol from data-driven risks.
           </p>
 
           <form onSubmit={onSubmit} className="relative max-w-xl mb-8">
