@@ -61,7 +61,7 @@ function decodeAddress(data: string): `0x${string}` | null {
   return ('0x' + addressHex) as `0x${string}`;
 }
 
-export interface DiscoveredFeed {
+interface DiscoveredFeed {
   symbol: string;
   chainId: number;
   address: `0x${string}`;

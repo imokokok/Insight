@@ -207,10 +207,6 @@ export const DIA_ASSET_MAPPING: Record<string, DIAAssetConfig> = {
   },
 };
 
-export function getDIAAssetConfig(symbol: string): DIAAssetConfig | null {
-  return DIA_ASSET_MAPPING[symbol.toUpperCase()] || null;
-}
-
 export async function getDIAAssetConfigAsync(symbol: string): Promise<DIAAssetConfig | null> {
   const upperSymbol = symbol.toUpperCase();
 

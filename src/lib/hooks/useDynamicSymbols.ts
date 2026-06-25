@@ -62,35 +62,3 @@ export function useDynamicSymbols() {
 
   return { ...data, loading };
 }
-
-/**
- * Get symbols for a specific oracle provider.
- */
-export function useOracleSymbols(provider: string | null) {
-  const { oracleSymbols, symbols, loading } = useDynamicSymbols();
-
-  if (!provider) return { symbols, loading };
-  return {
-    symbols: oracleSymbols[provider] || [],
-    loading,
-  };
-}
-
-/**
- * Get common symbols across multiple oracle providers.
- */
-export function useCommonSymbols(providers: string[]) {
-  const { oracleSymbols, loading } = useDynamicSymbols();
-
-  if (providers.length === 0) return { symbols: [], loading };
-
-  const providerLists = providers.map((p) => oracleSymbols[p]).filter(Boolean);
-
-  if (providerLists.length === 0) return { symbols: [], loading };
-
-  const common = providerLists[0].filter((symbol) =>
-    providerLists.every((list) => list.includes(symbol))
-  );
-
-  return { symbols: common, loading };
-}

@@ -11,7 +11,7 @@ import { feedRegistryService } from './feedRegistryService';
 
 const logger = createLogger('FeedDiscoveryService');
 
-export interface DiscoveryResult {
+interface DiscoveryResult {
   provider: string;
   discovered: number;
   feeds: OracleFeedInsert[];

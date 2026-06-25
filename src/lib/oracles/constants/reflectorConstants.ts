@@ -1,5 +1,5 @@
 import { STELLAR_CONFIG } from '@/lib/config/serverEnv';
-import { resolveFeed, resolveFeedAddress } from '@/lib/oracles/utils/dynamicFeedResolver';
+import { resolveFeedAddress } from '@/lib/oracles/utils/dynamicFeedResolver';
 
 export const REFLECTOR_CRYPTO_CONTRACT =
   STELLAR_CONFIG.reflectorCryptoContract ||
@@ -126,15 +126,4 @@ export async function getReflectorContractIdAsync(symbol: string): Promise<strin
     // Database lookup failed, fallback to hardcoded
   }
   return REFLECTOR_ASSET_CONTRACT_MAP[upper] || null;
-}
-
-export async function isReflectorSymbolSupportedAsync(symbol: string): Promise<boolean> {
-  const upper = symbol.toUpperCase();
-  try {
-    const feed = await resolveFeed('reflector', upper, 0);
-    if (feed && feed.is_active) return true;
-  } catch {
-    // Database lookup failed, fallback to hardcoded
-  }
-  return upper in REFLECTOR_ASSET_CONTRACT_MAP;
 }

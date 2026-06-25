@@ -1,5 +1,3 @@
-import { OracleProvider } from '@/types/oracle';
-
 import { flareSymbols } from './flareConstants';
 import { reflectorSymbols } from './reflectorConstants';
 import { supraSymbols } from './supraConstants';
@@ -658,19 +656,6 @@ export const oracleSupportedSymbols = {
   reflector: reflectorSymbols,
   flare: flareSymbols,
 } as const;
-
-export const providerToSymbolKey: Record<OracleProvider, keyof typeof oracleSupportedSymbols> = {
-  [OracleProvider.CHAINLINK]: 'chainlink',
-  [OracleProvider.PYTH]: 'pyth',
-  [OracleProvider.API3]: 'api3',
-  [OracleProvider.REDSTONE]: 'redstone',
-  [OracleProvider.DIA]: 'dia',
-  [OracleProvider.WINKLINK]: 'winklink',
-  [OracleProvider.SUPRA]: 'supra',
-  [OracleProvider.TWAP]: 'twap',
-  [OracleProvider.REFLECTOR]: 'reflector',
-  [OracleProvider.FLARE]: 'flare',
-};
 
 export function getAllSupportedSymbols(): string[] {
   const allSymbols = new Set<string>();

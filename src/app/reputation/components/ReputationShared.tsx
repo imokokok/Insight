@@ -309,33 +309,6 @@ export function MiniMetricBar({
   );
 }
 
-export function StatusPill({
-  value,
-  thresholds,
-  labels,
-  suffix = '',
-}: {
-  value: number;
-  thresholds: number[];
-  labels: string[];
-  suffix?: string;
-}) {
-  let idx = thresholds.findIndex((t) => value < t);
-  if (idx === -1) idx = thresholds.length;
-  const label = labels[Math.min(idx, labels.length - 1)] || labels[labels.length - 1];
-  const color = getScoreColor(100 - idx * (100 / labels.length));
-
-  return (
-    <span
-      className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold"
-      style={{ color, backgroundColor: `${color}15` }}
-    >
-      {value.toFixed(value % 1 === 0 ? 0 : 2)}
-      {suffix} · {label}
-    </span>
-  );
-}
-
 export function ProviderIdentity({
   provider,
   size = 32,

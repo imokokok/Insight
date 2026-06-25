@@ -1035,11 +1035,3 @@ export function getSupportedSymbols(): string[] {
 export function isPriceFeedSupported(symbol: string, chainId: number): boolean {
   return getChainlinkPriceFeed(symbol, chainId) !== null;
 }
-
-/**
- * Invalidate the feed cache, forcing a fresh load from database on next access.
- */
-export function invalidateFeedCache(): void {
-  feedCache = null;
-  feedCacheTimestamp = 0;
-}

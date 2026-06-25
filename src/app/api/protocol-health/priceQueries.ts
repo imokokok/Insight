@@ -4,7 +4,7 @@ import { type OracleProvider, type PriceData } from '@/types/oracle';
 
 const logger = createLogger('protocol-health-prices');
 
-export interface PriceLookup {
+interface PriceLookup {
   provider: OracleProvider;
   symbol: string;
   price: number;

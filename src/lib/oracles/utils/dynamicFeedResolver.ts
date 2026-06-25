@@ -78,34 +78,3 @@ export async function resolveFeedAddress(
   const feed = await resolveFeed(provider, symbol, chainId);
   return feed?.address || null;
 }
-
-/**
- * Resolve a feed's metadata field.
- */
-export async function resolveFeedMetadata(
-  provider: string,
-  symbol: string,
-  chainId: number
-): Promise<Record<string, unknown> | null> {
-  const feed = await resolveFeed(provider, symbol, chainId);
-  return feed?.metadata || null;
-}
-
-/**
- * Get all feeds for a provider from the database cache.
- */
-export async function resolveAllFeeds(provider: string): Promise<OracleFeed[]> {
-  const feeds = await loadFeedsForProvider(provider);
-  return Array.from(feeds.values());
-}
-
-/**
- * Invalidate the cache for a specific provider (or all providers).
- */
-export function invalidateFeedCache(provider?: string): void {
-  if (provider) {
-    providerCaches.delete(provider);
-  } else {
-    providerCaches.clear();
-  }
-}

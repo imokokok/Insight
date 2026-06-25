@@ -19,7 +19,7 @@ import { feedRegistryService } from './feedRegistryService';
 
 const logger = createLogger('FeedSyncService');
 
-export interface SyncResult {
+interface SyncResult {
   provider: string;
   discovered: number;
   upserted: number;

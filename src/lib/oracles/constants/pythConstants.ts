@@ -192,15 +192,6 @@ export function normalizeSymbol(symbol: string): string {
 }
 
 /**
- * Synchronous feed ID lookup using only hardcoded data.
- * Use this in non-async contexts.
- */
-export function getPythFeedId(symbol: string): string | null {
-  const normalized = normalizeSymbol(symbol);
-  return PYTH_PRICE_FEED_IDS[normalized] ?? null;
-}
-
-/**
  * Async feed ID lookup from database only.
  * Make sure to run /api/cron/sync-feeds?mode=seed&provider=pyth first.
  * For Pyth, chain_id=0 since feeds are chain-agnostic.
