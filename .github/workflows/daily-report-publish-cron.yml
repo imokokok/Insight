@@ -1,0 +1,35 @@
+name: Daily Report Publish
+
+on:
+  schedule:
+    # Every day at 00:00 UTC (08:00 Beijing Time)
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+env:
+  SITE_URL: ${{ vars.SITE_URL || 'https://insight-oracle.vercel.app' }}
+  CRON_SECRET: ${{ secrets.CRON_SECRET }}
+
+jobs:
+  publish-report:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish previous day's daily report
+        run: |
+          BASE_URL="${SITE_URL%/}"
+          echo "Publishing previous day's daily report..."
+
+          RESPONSE=$(curl -s -w "\n%{http_code}" --max-time 90 \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            "${BASE_URL}/api/cron/daily-report/publish")
+
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | sed '$d')
+
+          echo "HTTP Status: ${HTTP_CODE}"
+          echo "Response: ${BODY}"
+
+          if [ "$HTTP_CODE" -ne 200 ]; then
+            echo "::error::Daily report publish failed: HTTP ${HTTP_CODE}"
+            exit 1
+          fi

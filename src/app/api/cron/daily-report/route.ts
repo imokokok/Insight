@@ -167,7 +167,9 @@ export async function GET(request: Request) {
 
   try {
     const now = new Date();
-    const reportDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
+    const snapshotDate = new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
+    )
       .toISOString()
       .split('T')[0];
     const snapshotHour = new Date(
@@ -221,55 +223,38 @@ export async function GET(request: Request) {
     const failedCount = inputs.length - successCount;
     const skippedCount = results.filter((r) => r.skipped).length;
     logger.info(
-      `Price batch completed for ${reportDate}: ${successCount} success, ${failedCount} failed, ${skippedCount} skipped out of ${results.length}`
+      `Price batch completed for ${snapshotDate}: ${successCount} success, ${failedCount} failed, ${skippedCount} skipped out of ${results.length}`
     );
 
     let inserted = 0;
     try {
       inserted = await reportService.upsertHourlySnapshots(inputs);
-      logger.info(`Upserted ${inserted} hourly snapshots for ${reportDate}`);
+      logger.info(`Upserted ${inserted} hourly snapshots for ${snapshotDate}`);
     } catch (upsertError) {
       const error = upsertError instanceof Error ? upsertError : new Error(String(upsertError));
-      logger.error(`Failed to upsert hourly snapshots for ${reportDate}: ${error.message}`, error, {
-        sampleInputs: inputs.slice(0, 5).map((i) => ({
-          provider: i.provider,
-          symbol: i.symbol,
-          price: i.price,
-          consensusPrice: i.consensusPrice,
-          deviationPct: i.deviationPct,
-        })),
-      });
+      logger.error(
+        `Failed to upsert hourly snapshots for ${snapshotDate}: ${error.message}`,
+        error,
+        {
+          sampleInputs: inputs.slice(0, 5).map((i) => ({
+            provider: i.provider,
+            symbol: i.symbol,
+            price: i.price,
+            consensusPrice: i.consensusPrice,
+            deviationPct: i.deviationPct,
+          })),
+        }
+      );
       return NextResponse.json(
         { success: false, stage: 'upsert_snapshots', error: error.message },
         { status: 500 }
       );
     }
 
-    let report;
-    try {
-      report = await reportService.generateDailyReport(reportDate);
-      logger.info(
-        `Generated daily report for ${reportDate}: ${report.metrics.totalSnapshots} snapshots`
-      );
-    } catch (generateError) {
-      const message =
-        generateError instanceof Error ? generateError.message : String(generateError);
-      logger.error(`Failed to generate daily report for ${reportDate}: ${message}`);
-      return NextResponse.json(
-        { success: false, stage: 'generate_report', error: message },
-        { status: 500 }
-      );
-    }
-
     return NextResponse.json({
       success: true,
-      reportDate,
+      snapshotDate,
       inserted,
-      metrics: {
-        totalSnapshots: report.metrics.totalSnapshots,
-        successRate: report.metrics.overallSuccessRate,
-        anomalies: report.metrics.totalAnomalies,
-      },
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
