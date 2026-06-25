@@ -35,20 +35,6 @@ interface ApiErrorResponse {
 export type ApiResponse<T = unknown> = ApiSuccessResponse<T> | ApiErrorResponse;
 
 export class ApiResponseBuilder {
-  static success<T>(
-    data: T,
-    meta?: { requestId?: string; [key: string]: unknown }
-  ): ApiSuccessResponse<T> {
-    return {
-      success: true,
-      data,
-      meta: {
-        timestamp: Date.now(),
-        ...meta,
-      },
-    };
-  }
-
   static error(
     code: string,
     message: string,
@@ -76,12 +62,6 @@ export class ApiResponseBuilder {
   static unauthorized(message = 'Unauthorized'): NextResponse {
     return NextResponse.json(ApiResponseBuilder.error('UNAUTHORIZED', message), {
       status: 401,
-    });
-  }
-
-  static notFound(message = 'Not found'): NextResponse {
-    return NextResponse.json(ApiResponseBuilder.error('NOT_FOUND', message), {
-      status: 404,
     });
   }
 

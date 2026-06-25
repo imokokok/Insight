@@ -6,44 +6,18 @@ import { Clock, Database, Save, Loader2, CheckCircle, RefreshCw, DollarSign } fr
 
 import { DropdownSelect, SegmentedControl } from '@/components/ui';
 import { useProfileUpdate } from '@/hooks/useProfileUpdate';
+import {
+  type UserPreferences,
+  type DbUserPreferences,
+  STORAGE_KEY,
+  defaultPreferences,
+} from '@/hooks/utils/usePreferences';
 import { useDynamicSymbols } from '@/lib/hooks/useDynamicSymbols';
 import { getAllSupportedSymbols } from '@/lib/oracles/constants/supportedSymbols';
 import { createLogger } from '@/lib/utils/logger';
 import { useUser, useProfile, useAuthInitialized } from '@/stores/authStore';
 
 const logger = createLogger('PreferencesPanel');
-
-interface UserPreferences {
-  defaultOracle: string;
-  defaultSymbol: string;
-  defaultTimeRange: string;
-  defaultCurrency: string;
-  autoRefreshInterval: string;
-}
-
-// Database field name mapping (snake_case)
-interface DbUserPreferences {
-  default_oracle?: string;
-  default_symbol?: string;
-  default_time_range?: string;
-  default_currency?: string;
-  auto_refresh_interval?: number;
-  chart_settings?: {
-    show_confidence_interval?: boolean;
-    auto_refresh?: boolean;
-    refresh_interval?: number;
-  };
-}
-
-const STORAGE_KEY = 'user_preferences';
-
-const defaultPreferences: UserPreferences = {
-  defaultOracle: 'chainlink',
-  defaultSymbol: 'BTC/USD',
-  defaultTimeRange: '24h',
-  defaultCurrency: 'USD',
-  autoRefreshInterval: '30',
-};
 
 const oracleOptions = [
   { value: 'chainlink', label: 'Chainlink' },

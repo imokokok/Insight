@@ -16,7 +16,6 @@ interface UseCrossChainTableParams {
 interface UseCrossChainTableReturn {
   priceDifferences: PriceDifferenceItem[];
   sortedPriceDifferences: PriceDifferenceItem[];
-  chainsWithHighDeviation: PriceDifferenceItem[];
   toggleChain: (chain: Blockchain) => void;
   handleSort: (column: string) => void;
   dynamicThreshold: number;
@@ -87,14 +86,9 @@ export function useCrossChainTable(params: UseCrossChainTableParams): UseCrossCh
     dynamicThreshold,
   ]);
 
-  const chainsWithHighDeviation = useMemo(() => {
-    return priceDifferences.filter((item) => Math.abs(item.diffPercent) > dynamicThreshold);
-  }, [priceDifferences, dynamicThreshold]);
-
   return {
     priceDifferences,
     sortedPriceDifferences,
-    chainsWithHighDeviation,
     toggleChain,
     handleSort,
     dynamicThreshold,

@@ -30,7 +30,6 @@ interface UseStatisticsReturn {
   maxPrice: number;
   minPrice: number;
   priceRange: number;
-  variance: number;
   standardDeviation: number;
   standardDeviationPercent: number;
   coefficientOfVariation: number;
@@ -162,7 +161,6 @@ export function useStatistics(params: UseStatisticsParams): UseStatisticsReturn 
     maxPrice,
     minPrice,
     priceRange,
-    variance,
     standardDeviation,
     standardDeviationPercent,
     coefficientOfVariation,

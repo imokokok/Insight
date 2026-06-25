@@ -1,13 +1,11 @@
-import { useMemo, useState, useCallback, useEffect, useRef } from 'react';
+import { useMemo, useEffect, useRef } from 'react';
 
 import {
   calculateConsensusPrice,
   recordConsensusHistory,
-  getConsensusHistory,
   resetConsensusHistory,
   type ConsensusMethod,
   type ConsensusResult,
-  type ConsensusHistoryPoint,
   type ConsensusPriceInput,
 } from '@/lib/analytics/consensusPrice';
 import { type PriceData } from '@/types/oracle';
@@ -19,11 +17,6 @@ interface UseConsensusPriceOptions {
 
 interface UseConsensusPriceReturn {
   consensus: ConsensusResult | null;
-  currentMethod: ConsensusMethod;
-  setMethod: (method: ConsensusMethod) => void;
-  recommendedMethod: ConsensusMethod;
-  consensusHistory: ConsensusHistoryPoint[];
-  isCalculating: boolean;
 }
 
 function toConsensusInputs(priceData: PriceData[]): ConsensusPriceInput[] {
@@ -45,8 +38,6 @@ export function useConsensusPrice(
 ): UseConsensusPriceReturn {
   const { defaultMethod, enableAutoSelect = true } = options;
 
-  const [currentMethod, setCurrentMethod] = useState<ConsensusMethod | null>(null);
-  const [consensusHistory, setConsensusHistory] = useState<ConsensusHistoryPoint[]>([]);
   const consensusRef = useRef<ConsensusResult | null>(null);
 
   const providerKey = priceData
@@ -61,7 +52,7 @@ export function useConsensusPrice(
     return tempResult.recommendedMethod;
   }, [priceData, symbol]);
 
-  const activeMethod: ConsensusMethod = currentMethod ?? defaultMethod ?? recommendedMethod;
+  const activeMethod: ConsensusMethod = defaultMethod ?? recommendedMethod;
 
   const consensus = useMemo(() => {
     if (priceData.length === 0) return null;
@@ -86,21 +77,10 @@ export function useConsensusPrice(
     if (consensus && consensus.price > 0) {
       const historyKey = symbol ?? 'default';
       recordConsensusHistory(historyKey, consensus);
-      const updated = getConsensusHistory(historyKey);
-      setConsensusHistory(updated);
     }
   }, [consensus, symbol]);
 
-  const setMethod = useCallback((method: ConsensusMethod) => {
-    setCurrentMethod(method);
-  }, []);
-
   return {
     consensus,
-    currentMethod: activeMethod,
-    setMethod,
-    recommendedMethod,
-    consensusHistory,
-    isCalculating: false,
   };
 }

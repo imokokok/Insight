@@ -20,7 +20,6 @@ export interface MemoryStats {
 class MemoryManager {
   private static instance: MemoryManager | null = null;
   private cleanupTimerId: ReturnType<typeof setInterval> | null = null;
-  private lastCleanupTime: number = 0;
 
   private constructor() {}
 
@@ -57,7 +56,6 @@ class MemoryManager {
 
   private performPeriodicCleanup(): void {
     logger.debug('Performing periodic memory cleanup');
-    this.lastCleanupTime = Date.now();
 
     const config = getPerformanceMetricsConfig().memoryManagement;
     if (!config.enabled) {
@@ -130,11 +128,6 @@ class MemoryManager {
     return result;
   }
 
-  estimateMemoryUsage(data: PriceHistoryEntry[]): number {
-    const bytesPerEntry = 100;
-    return data.length * bytesPerEntry;
-  }
-
   getMemoryStats(
     dataMap: Map<string, PriceHistory[]> | Map<string, PriceHistoryEntry[]>
   ): MemoryStats {
@@ -193,16 +186,6 @@ class MemoryManager {
     const i = Math.floor(Math.log(bytes) / Math.log(k));
 
     return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
-  }
-
-  getLastCleanupTime(): number {
-    return this.lastCleanupTime;
-  }
-
-  destroy(): void {
-    this.stopPeriodicCleanup();
-    this.lastCleanupTime = 0;
-    MemoryManager.instance = null;
   }
 }
 

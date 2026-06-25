@@ -141,55 +141,6 @@ export const chartColors = {
     flare: '#8B0FE5',
   } as const,
 
-  oracleAccessible: {
-    chainlink: { color: '#1e40af', pattern: 'solid' },
-    pyth: { color: '#5b21b6', pattern: 'dashDot' },
-    api3: { color: '#9d174d', pattern: 'longDash' },
-    redstone: { color: '#dc2626', pattern: 'solid' },
-    switchboard: { color: '#0d9488', pattern: 'dashed' },
-    dia: { color: '#059669', pattern: 'dotted' },
-    flux: { color: '#ea580c', pattern: 'dashDot' },
-    winklink: { color: '#dc2626', pattern: 'dashed' },
-    supra: { color: '#0d9488', pattern: 'dotted' },
-    twap: { color: '#FF007A', pattern: 'longDash' },
-    reflector: { color: '#d97706', pattern: 'dashDot' },
-    flare: { color: '#8B0FE5', pattern: 'dotted' },
-  } as const,
-
-  region: {
-    northAmerica: '#3B82F6',
-    europe: '#8B5CF6',
-    asia: '#10B981',
-    southAmerica: '#F59E0B',
-    africa: '#EF4444',
-    oceania: '#06B6D4',
-    other: '#64748b',
-  },
-
-  validator: {
-    institution: '#8B5CF6',
-    independent: '#3B82F6',
-    community: '#10B981',
-    exchange: '#F59E0B',
-    delegator: '#06B6D4',
-    unknown: '#64748b',
-  },
-
-  semantic: {
-    positive: '#10B981',
-    negative: '#EF4444',
-    neutral: '#64748b',
-    warning: '#F59E0B',
-    success: '#10B981',
-    danger: '#EF4444',
-  },
-
-  grid: {
-    line: '#E5E7EB',
-    axis: '#6B7280',
-    background: '#FFFFFF',
-  },
-
   sequence: [
     '#3B82F6',
     '#10B981',
@@ -200,19 +151,6 @@ export const chartColors = {
     '#F97316',
     '#84CC16',
   ],
-
-  pie: {
-    default: '#8884d8',
-    stroke: {
-      selected: '#ffffff',
-      none: 'none',
-    },
-  },
-
-  lineChart: {
-    grid: '#f3f4f6',
-    axis: '#9ca3af',
-  },
 
   recharts: {
     grid: '#e5e7eb',
@@ -246,44 +184,6 @@ export const chartColors = {
     white: '#ffffff',
     whiteLight: '#FFFFFF',
     none: 'none',
-  },
-
-  rsi: {
-    line: '#8B5CF6',
-    overbought: {
-      line: '#EF4444',
-      area: 'rgba(239, 68, 68, 0.1)',
-    },
-    oversold: {
-      line: '#10B981',
-      area: 'rgba(16, 185, 129, 0.1)',
-    },
-    neutral: '#6B7280',
-  },
-
-  macd: {
-    line: '#3B82F6',
-    signal: '#F59E0B',
-    histogram: {
-      positive: '#10B981',
-      negative: '#EF4444',
-    },
-    zeroLine: '#9CA3AF',
-  },
-
-  chart: {
-    blue: '#3B82F6',
-    blueLight: '#60A5FA',
-    indigo: '#6366F1',
-    indigoLight: '#818CF8',
-    violet: '#8B5CF6',
-    violetLight: '#A78BFA',
-    amber: '#F59E0B',
-    amberLight: '#FBBF24',
-    emerald: '#10B981',
-    emeraldLight: '#34D399',
-    cyan: '#06B6D4',
-    cyanLight: '#22D3EE',
   },
 } as const;
 

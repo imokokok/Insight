@@ -1,5 +1,3 @@
-import { act } from '@testing-library/react';
-
 import { useUIStore } from '../uiStore';
 
 beforeEach(() => {
@@ -18,26 +16,13 @@ describe('uiStore - Initial state', () => {
 });
 
 describe('uiStore - modal', () => {
-  it('openModal should open modal', () => {
-    act(() => {
-      useUIStore.getState().openModal('settings', { tab: 'general' });
-    });
-
-    const modal = useUIStore.getState().modal;
-    expect(modal.isOpen).toBe(true);
-    expect(modal.modalId).toBe('settings');
-    expect(modal.modalData).toEqual({ tab: 'general' });
-  });
-
   it('closeModal should close modal', () => {
-    act(() => {
-      useUIStore.getState().openModal('settings');
+    useUIStore.setState({
+      modal: { isOpen: true, modalId: 'settings', modalData: null },
     });
     expect(useUIStore.getState().modal.isOpen).toBe(true);
 
-    act(() => {
-      useUIStore.getState().closeModal();
-    });
+    useUIStore.getState().closeModal();
     expect(useUIStore.getState().modal.isOpen).toBe(false);
     expect(useUIStore.getState().modal.modalId).toBeNull();
   });

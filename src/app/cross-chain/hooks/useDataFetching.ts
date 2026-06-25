@@ -9,12 +9,9 @@ import {
 } from '@/lib/oracles/crossChainComparison';
 import { crossChainKeys } from '@/lib/queryKeys';
 import { createLogger } from '@/lib/utils/logger';
-import { calculatePriceStats, extractValidPrices } from '@/lib/utils/statistics';
-import { useCrossChainConfigStore } from '@/stores/crossChainConfigStore';
 import { useCrossChainDataStore } from '@/stores/crossChainDataStore';
 import { type OracleProvider, type Blockchain } from '@/types/oracle';
 
-import { detectAnomalies } from '../utils/anomalyDetection';
 import { validateCurrentPrices } from '../utils/validation';
 
 import { useCrossChainQueries } from './useCrossChainQueries';
@@ -56,12 +53,7 @@ export function useDataFetching(
     return validateCurrentPrices(prices);
   }, [chainResults, supportedChains]);
 
-  const thresholdConfig = useCrossChainConfigStore((s) => s.thresholdConfig);
-
   const derivedData = useMemo(() => {
-    const anomalies = detectAnomalies(currentPrices, supportedChains, thresholdConfig);
-    const prevStats = calculatePriceStats(extractValidPrices(currentPrices));
-
     let recommendedBaseChain: Blockchain | null = null;
     if (supportedChains.length > 0) {
       if (currentPrices.length === 0) {
@@ -113,8 +105,8 @@ export function useDataFetching(
       crossChainComparison = buildCrossChainComparisonFromPrices(chainPrices);
     }
 
-    return { anomalies, prevStats, recommendedBaseChain, crossChainComparison };
-  }, [currentPrices, supportedChains, thresholdConfig]);
+    return { recommendedBaseChain, crossChainComparison };
+  }, [currentPrices, supportedChains]);
 
   const prevDataSignatureRef = useRef('');
   const lastUpdateTimeRef = useRef<number>(0);
@@ -159,8 +151,6 @@ export function useDataFetching(
       ...(dataChanged
         ? {
             currentPrices,
-            prevStats: derivedData.prevStats,
-            anomalies: derivedData.anomalies,
             recommendedBaseChain: derivedData.recommendedBaseChain,
             crossChainComparison: derivedData.crossChainComparison,
           }

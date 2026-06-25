@@ -42,20 +42,3 @@ export interface ChainStats {
   subValue?: string | null;
   tooltip: string;
 }
-
-interface Outlier {
-  chain: Blockchain;
-  price: number;
-  deviationPercent: number;
-  boundType: 'lower' | 'upper';
-  expectedRange: string;
-}
-
-export interface IqrOutliers {
-  outliers: Outlier[];
-  q1: number;
-  q3: number;
-  iqr: number;
-  lowerBound: number;
-  upperBound: number;
-}

@@ -8,15 +8,14 @@ import { safeMax } from '@/lib/utils';
 import { downloadBlob } from '@/lib/utils/download';
 import { escapeCSVField } from '@/lib/utils/export';
 import { createLogger } from '@/lib/utils/logger';
-import { useColorblindMode, useCrossChainConfigStore } from '@/stores/crossChainConfigStore';
+import { useColorblindMode } from '@/stores/crossChainConfigStore';
 import { useCrossChainDataStore } from '@/stores/crossChainDataStore';
 import { useCrossChainSelectorStore } from '@/stores/crossChainSelectorStore';
 import { type Blockchain } from '@/types/oracle';
 
 import { getColorblindHeatmapColor, colorblindLegendConfig } from '../colorblindTheme';
 import { useChartData } from '../hooks/useChartData';
-import { useStatistics } from '../hooks/useStatistics';
-import { useFilteredChains, useCurrentClient } from '../useCrossChainData';
+import { useFilteredChains } from '../useCrossChainData';
 import { chainNames, getHeatmapColor } from '../utils';
 
 import { HeatmapTooltip } from './HeatmapTooltip';
@@ -26,25 +25,12 @@ const logger = createLogger('PriceSpreadHeatmap');
 function useHeatmapData() {
   const currentPrices = useCrossChainDataStore((s) => s.currentPrices);
   const selectedBaseChain = useCrossChainSelectorStore((s) => s.selectedBaseChain);
-  const thresholdConfig = useCrossChainConfigStore((s) => s.thresholdConfig);
   const filteredChains = useFilteredChains();
-  const currentClient = useCurrentClient();
-
-  const statistics = useStatistics({
-    currentPrices,
-    filteredChains,
-    currentClient,
-  });
 
   const chart = useChartData({
     currentPrices,
     filteredChains,
     selectedBaseChain,
-    validPrices: statistics.validPrices,
-    avgPrice: statistics.avgPrice,
-    standardDeviation: statistics.standardDeviation,
-    medianPrice: statistics.medianPrice,
-    thresholdConfig,
   });
 
   return {

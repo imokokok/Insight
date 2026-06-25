@@ -8,23 +8,13 @@ import { useMemo } from 'react';
 import { safeMax } from '@/lib/utils/statistics';
 import { type Blockchain, type PriceData } from '@/types/oracle';
 
-import { type HeatmapData, type IqrOutliers } from '../constants';
-import {
-  chainNames,
-  calculatePercentile,
-  defaultThresholdConfig,
-  type ThresholdConfig,
-} from '../utils';
+import { type HeatmapData } from '../constants';
+import { chainNames } from '../utils';
 
 interface UseChartDataParams {
   currentPrices: PriceData[];
   filteredChains: Blockchain[];
   selectedBaseChain: Blockchain | null;
-  validPrices: number[];
-  avgPrice: number;
-  standardDeviation: number;
-  medianPrice: number;
-  thresholdConfig?: ThresholdConfig;
 }
 
 interface UseChartDataReturn {
@@ -36,19 +26,10 @@ interface UseChartDataReturn {
   }[];
   heatmapData: HeatmapData[];
   maxHeatmapValue: number;
-  iqrOutliers: IqrOutliers;
 }
 
 export function useChartData(params: UseChartDataParams): UseChartDataReturn {
-  const {
-    currentPrices,
-    filteredChains,
-    selectedBaseChain,
-    validPrices,
-    thresholdConfig: thresholdConfigParam,
-  } = params;
-
-  const thresholdConfig = thresholdConfigParam ?? defaultThresholdConfig;
+  const { currentPrices, filteredChains, selectedBaseChain } = params;
 
   const priceDifferences = useMemo(() => {
     const filteredPrices = currentPrices.filter((p) => p.chain && filteredChains.includes(p.chain));
@@ -99,54 +80,9 @@ export function useChartData(params: UseChartDataParams): UseChartDataReturn {
     return safeMax(heatmapData.map((d) => d.percent));
   }, [heatmapData]);
 
-  const iqrOutliers = useMemo((): IqrOutliers => {
-    if (validPrices.length < 4) {
-      return { outliers: [], q1: 0, q3: 0, iqr: 0, lowerBound: 0, upperBound: 0 };
-    }
-
-    const multiplier =
-      thresholdConfig.outlierDetectionMethod === 'iqr' ? thresholdConfig.outlierThreshold : 1.5;
-
-    const sorted = [...validPrices].sort((a, b) => a - b);
-    const q1 = calculatePercentile(sorted, 25);
-    const q3 = calculatePercentile(sorted, 75);
-    const iqr = q3 - q1;
-    const lowerBound = q1 - multiplier * iqr;
-    const upperBound = q3 + multiplier * iqr;
-
-    const outliers: {
-      chain: Blockchain;
-      price: number;
-      deviationPercent: number;
-      boundType: 'lower' | 'upper';
-      expectedRange: string;
-    }[] = [];
-
-    currentPrices.forEach((priceData) => {
-      if (!priceData.chain || !filteredChains.includes(priceData.chain)) return;
-      if (priceData.price < lowerBound || priceData.price > upperBound) {
-        const boundType = priceData.price < lowerBound ? 'lower' : 'upper';
-        const boundValue = boundType === 'lower' ? lowerBound : upperBound;
-        const deviationPercent =
-          boundValue !== 0 ? Math.abs((priceData.price - boundValue) / boundValue) * 100 : 0;
-
-        outliers.push({
-          chain: priceData.chain,
-          price: priceData.price,
-          deviationPercent,
-          boundType,
-          expectedRange: `$${lowerBound.toFixed(4)} - $${upperBound.toFixed(4)}`,
-        });
-      }
-    });
-
-    return { outliers, q1, q3, iqr, lowerBound, upperBound };
-  }, [validPrices, currentPrices, filteredChains, thresholdConfig]);
-
   return {
     priceDifferences,
     heatmapData,
     maxHeatmapValue,
-    iqrOutliers,
   };
 }

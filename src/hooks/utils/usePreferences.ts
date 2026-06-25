@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 
 import { useUser, useProfile } from '@/stores/authStore';
 
-interface UserPreferences {
+export interface UserPreferences {
   defaultOracle: string;
   defaultSymbol: string;
   defaultTimeRange: string;
@@ -12,17 +12,7 @@ interface UserPreferences {
   autoRefreshInterval: string;
 }
 
-const STORAGE_KEY = 'user_preferences';
-
-const defaultPreferences: UserPreferences = {
-  defaultOracle: 'chainlink',
-  defaultSymbol: 'BTC/USD',
-  defaultTimeRange: '24h',
-  defaultCurrency: 'USD',
-  autoRefreshInterval: '30',
-};
-
-interface DbUserPreferences {
+export interface DbUserPreferences {
   default_oracle?: string;
   default_symbol?: string;
   default_time_range?: string;
@@ -34,6 +24,16 @@ interface DbUserPreferences {
     refresh_interval?: number;
   };
 }
+
+export const STORAGE_KEY = 'user_preferences';
+
+export const defaultPreferences: UserPreferences = {
+  defaultOracle: 'chainlink',
+  defaultSymbol: 'BTC/USD',
+  defaultTimeRange: '24h',
+  defaultCurrency: 'USD',
+  autoRefreshInterval: '30',
+};
 
 function getLocalPreferences(): Partial<UserPreferences> {
   if (typeof window === 'undefined') return {};

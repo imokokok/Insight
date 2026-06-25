@@ -51,10 +51,6 @@ export function PriceComparisonTable() {
     currentPrices,
     filteredChains,
     selectedBaseChain,
-    validPrices: statistics.validPrices,
-    avgPrice: statistics.avgPrice,
-    standardDeviation: statistics.standardDeviation,
-    medianPrice: statistics.medianPrice,
   });
 
   const table = useCrossChainTable({

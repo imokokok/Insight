@@ -19,17 +19,11 @@ import {
 import {
   calculateRiskMetrics,
   getRiskLevelColor,
-  type RiskMetrics,
   type RiskLevel,
   type RiskWeights,
   DEFAULT_RISK_WEIGHTS,
 } from '@/lib/analytics/riskMetrics';
-import {
-  calculateStability,
-  type StabilityResult,
-  type StabilityScore as StabilityScoreType,
-  type StabilityLevel,
-} from '@/lib/analytics/stabilityScore';
+import { calculateStability } from '@/lib/analytics/stabilityScore';
 import { chainColors } from '@/lib/constants';
 import { createLogger } from '@/lib/utils/logger';
 import { type Blockchain, type PriceData } from '@/types/oracle';
@@ -53,7 +47,6 @@ function getChainExpectedInterval(chain: string): number {
 }
 
 export interface CrossChainRiskResult {
-  riskMetrics: RiskMetrics | null;
   riskLevel: RiskLevel;
   riskScore: number;
   riskColor: string;
@@ -68,7 +61,6 @@ export interface CrossChainRiskResult {
   highCorrelationPairs: string[];
   freshnessScore: number;
   freshnessLevel: RiskLevel;
-  staleOracleCount: number;
   staleOracles: Array<{ name: string; stalenessSeconds: number }>;
   manipulationResistanceScore: number;
   manipulationResistanceLevel: RiskLevel;
@@ -116,29 +108,15 @@ export interface CrossChainFeedResult {
   confidenceSurgeCount: number;
 }
 
-interface CrossChainStabilityResult {
-  stabilityResult: StabilityResult | null;
-  scores: StabilityScoreType[];
-  decliningCount: number;
-  rapidlyDecliningCount: number;
-  averageScore: number;
-  averageLevel: StabilityLevel;
-  worstProvider: string | null;
-  worstScore: number;
-}
-
 interface CrossChainAnalyticsResult {
   risk: CrossChainRiskResult;
   divergence: CrossChainDivergenceResult;
   feed: CrossChainFeedResult;
-  stability: CrossChainStabilityResult;
   chainCount: number;
-  isCalculating: boolean;
 }
 
 function getEmptyRiskResult(): CrossChainRiskResult {
   return {
-    riskMetrics: null,
     riskLevel: 'low',
     riskScore: 0,
     riskColor: getRiskLevelColor('low'),
@@ -153,7 +131,6 @@ function getEmptyRiskResult(): CrossChainRiskResult {
     highCorrelationPairs: [],
     freshnessScore: 0,
     freshnessLevel: 'low',
-    staleOracleCount: 0,
     staleOracles: [],
     manipulationResistanceScore: 0,
     manipulationResistanceLevel: 'low',
@@ -203,19 +180,6 @@ function getEmptyFeedResult(): CrossChainFeedResult {
     anomalyCount: 0,
     heartbeatLostCount: 0,
     confidenceSurgeCount: 0,
-  };
-}
-
-function getEmptyStabilityResult(): CrossChainStabilityResult {
-  return {
-    stabilityResult: null,
-    scores: [],
-    decliningCount: 0,
-    rapidlyDecliningCount: 0,
-    averageScore: 0,
-    averageLevel: 'good',
-    worstProvider: null,
-    worstScore: 0,
   };
 }
 
@@ -287,9 +251,7 @@ export function useCrossChainAnalytics(currentPrices: PriceData[]): CrossChainAn
         risk: getEmptyRiskResult(),
         divergence: getEmptyDivergenceResult(),
         feed: getEmptyFeedResult(),
-        stability: getEmptyStabilityResult(),
         chainCount: chainPrices.length,
-        isCalculating: false,
       };
     }
 
@@ -622,7 +584,6 @@ export function useCrossChainAnalytics(currentPrices: PriceData[]): CrossChainAn
       }
 
       const risk: CrossChainRiskResult = {
-        riskMetrics,
         riskLevel: overallRiskLevel,
         riskScore: overallRiskScore,
         riskColor: getRiskLevelColor(overallRiskLevel),
@@ -637,7 +598,6 @@ export function useCrossChainAnalytics(currentPrices: PriceData[]): CrossChainAn
         highCorrelationPairs: riskMetrics.correlationRisk.highCorrelationPairs,
         freshnessScore: riskMetrics.freshnessRisk.score,
         freshnessLevel: riskMetrics.freshnessRisk.level,
-        staleOracleCount: riskMetrics.freshnessRisk.staleOracleCount,
         staleOracles: riskMetrics.freshnessRisk.staleOracles,
         manipulationResistanceScore: riskMetrics.manipulationResistance.score,
         manipulationResistanceLevel: riskMetrics.manipulationResistance.level,
@@ -680,24 +640,11 @@ export function useCrossChainAnalytics(currentPrices: PriceData[]): CrossChainAn
         confidenceSurgeCount: feedBehaviorResult.confidenceSurgeCount,
       };
 
-      const stability: CrossChainStabilityResult = {
-        stabilityResult,
-        scores: stabilityResult.scores,
-        decliningCount: stabilityResult.decliningCount,
-        rapidlyDecliningCount: stabilityResult.rapidlyDecliningCount,
-        averageScore: stabilityResult.averageScore,
-        averageLevel: stabilityResult.averageLevel,
-        worstProvider: stabilityResult.worstProvider,
-        worstScore: stabilityResult.worstScore,
-      };
-
       return {
         risk,
         divergence,
         feed,
-        stability,
         chainCount: chainPrices.length,
-        isCalculating: false,
       };
     } catch (error) {
       logger.error(
@@ -708,9 +655,7 @@ export function useCrossChainAnalytics(currentPrices: PriceData[]): CrossChainAn
         risk: getEmptyRiskResult(),
         divergence: getEmptyDivergenceResult(),
         feed: getEmptyFeedResult(),
-        stability: getEmptyStabilityResult(),
         chainCount: chainPrices.length,
-        isCalculating: false,
       };
     }
   }, [currentPrices, historySnapshot]);

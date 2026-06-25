@@ -369,32 +369,6 @@ export class PerformanceMetricsCalculator {
     });
   }
 
-  clearCache(): void {
-    this.metricsCache.clear();
-    logger.info('Cleared metrics cache');
-  }
-
-  clearOldData(maxAgeMs?: number): void {
-    const config = getPerformanceMetricsConfig();
-    const ageMs = maxAgeMs ?? config.memoryManagement.maxAgeMs;
-    const cutoff = Date.now() - ageMs;
-
-    for (const [key, data] of this.priceHistory) {
-      const filtered = memoryManager.cleanupByTime(data, ageMs);
-      if (filtered.length === 0) {
-        this.priceHistory.delete(key);
-        this.metricsCache.delete(key);
-      } else {
-        this.priceHistory.set(key, filtered);
-      }
-    }
-
-    logger.info('Cleared old performance metrics data', {
-      maxAgeMs: ageMs,
-      cutoffTime: new Date(cutoff).toISOString(),
-    });
-  }
-
   clearAllData(): void {
     this.priceHistory.clear();
     this.metricsCache.clear();

@@ -1,5 +1,3 @@
-import type { Blockchain } from '@/types/oracle';
-
 type ThresholdType = 'fixed' | 'dynamic' | 'atr';
 
 type OutlierDetectionMethod = 'zscore' | 'iqr';
@@ -25,11 +23,3 @@ export const defaultThresholdConfig: ThresholdConfig = {
   outlierDetectionMethod: 'iqr',
   outlierThreshold: 1.5,
 };
-
-export interface AnomalousPricePoint {
-  chain: Blockchain;
-  price: number;
-  timestamp: number;
-  reason: 'iqr_outlier' | 'std_dev_outlier';
-  deviation: number;
-}

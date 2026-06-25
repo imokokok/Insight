@@ -5,10 +5,7 @@ import { useCrossChainConfigStore } from '@/stores/crossChainConfigStore';
 import { useCrossChainDataStore } from '@/stores/crossChainDataStore';
 import { useCrossChainSelectorStore } from '@/stores/crossChainSelectorStore';
 import { useCrossChainUIStore } from '@/stores/crossChainUIStore';
-import { type PriceStats } from '@/types/analytics';
-import { type OracleProvider, type Blockchain, type PriceData } from '@/types/oracle';
-
-import { type AnomalousPricePoint } from '../utils/anomalyDetection';
+import { type Blockchain, type PriceData } from '@/types/oracle';
 
 import { useDataFetching } from './index';
 
@@ -22,10 +19,6 @@ interface UseCrossChainDataStateReturn {
   supportedChains: Blockchain[];
   currentClient: BaseOracleClient;
   fetchData: () => Promise<void>;
-  prevStats: PriceStats | null;
-  anomalies: AnomalousPricePoint[];
-  clearCache: () => void;
-  clearCacheForProvider: (provider: OracleProvider) => void;
 }
 
 export function useCrossChainDataState(): UseCrossChainDataStateReturn {
@@ -45,12 +38,9 @@ export function useCrossChainDataState(): UseCrossChainDataStateReturn {
   const showRefreshSuccess = useCrossChainDataStore((s) => s.showRefreshSuccess);
   const lastUpdated = useCrossChainDataStore((s) => s.lastUpdated);
   const recommendedBaseChain = useCrossChainDataStore((s) => s.recommendedBaseChain);
-  const prevStats = useCrossChainDataStore((s) => s.prevStats);
-  const anomalies = useCrossChainDataStore((s) => s.anomalies);
   const setCurrentPrices = useCrossChainDataStore((s) => s.setCurrentPrices);
   const setLastUpdated = useCrossChainDataStore((s) => s.setLastUpdated);
   const setRefreshStatus = useCrossChainDataStore((s) => s.setRefreshStatus);
-  const setAnomalies = useCrossChainDataStore((s) => s.setAnomalies);
   const setCrossChainComparison = useCrossChainDataStore((s) => s.setCrossChainComparison);
   const setFetchData = useCrossChainDataStore((s) => s.setFetchData);
 
@@ -60,11 +50,7 @@ export function useCrossChainDataState(): UseCrossChainDataStateReturn {
   );
   const supportedChains = useMemo(() => currentClient.supportedChains, [currentClient]);
 
-  const {
-    fetchData: fetchDataInternal,
-    clearCache,
-    clearCacheForProvider,
-  } = useDataFetching(
+  const { fetchData: fetchDataInternal } = useDataFetching(
     selectedProvider,
     supportedChains,
     {
@@ -101,7 +87,6 @@ export function useCrossChainDataState(): UseCrossChainDataStateReturn {
       setCurrentPrices([]);
       setLastUpdated(null);
       setRefreshStatus('idle');
-      setAnomalies([]);
       setCrossChainComparison([]);
     }
   }, [
@@ -111,7 +96,6 @@ export function useCrossChainDataState(): UseCrossChainDataStateReturn {
     setCurrentPrices,
     setLastUpdated,
     setRefreshStatus,
-    setAnomalies,
     setCrossChainComparison,
   ]);
 
@@ -152,9 +136,5 @@ export function useCrossChainDataState(): UseCrossChainDataStateReturn {
     supportedChains,
     currentClient,
     fetchData: fetchDataInternal,
-    prevStats,
-    anomalies,
-    clearCache,
-    clearCacheForProvider,
   };
 }
