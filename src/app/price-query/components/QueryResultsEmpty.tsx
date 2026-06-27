@@ -4,11 +4,11 @@ import { TrendingUp, Link2 } from 'lucide-react';
 
 import { EmptyStateEnhanced, SegmentedControl } from '@/components/ui';
 
-import { useUnifiedQuery } from '../contexts';
+import { useQueryParams } from '../contexts';
 
 export function QueryResultsEmpty() {
   const { selectedSymbol, setSelectedSymbol, selectedOracle, needsChainSelection } =
-    useUnifiedQuery();
+    useQueryParams();
 
   const getEmptyStateContent = () => {
     if (needsChainSelection) {

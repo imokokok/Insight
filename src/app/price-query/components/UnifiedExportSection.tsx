@@ -2,9 +2,15 @@
 
 import { useMemo } from 'react';
 
-import { UnifiedExport, type ExportField } from '@/components/export';
+import dynamic from 'next/dynamic';
+
+import { type ExportField } from '@/components/export';
 
 import { type QueryResult } from '../constants';
+
+const UnifiedExport = dynamic(() => import('@/components/export').then((m) => m.UnifiedExport), {
+  ssr: false,
+});
 
 interface UnifiedExportSectionProps {
   loading: boolean;

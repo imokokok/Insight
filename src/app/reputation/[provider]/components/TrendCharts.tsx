@@ -1,5 +1,7 @@
 'use client';
 
+import { useMemo } from 'react';
+
 import { Activity, BarChart3 } from 'lucide-react';
 import {
   LineChart,
@@ -22,6 +24,18 @@ export function TrendCharts({
   trend: ReputationTrendPoint[];
   providerColor: string;
 }) {
+  const chartData = useMemo(
+    () =>
+      trend.map((p) => ({
+        date: p.snapshot_time,
+        successRate: Number(p.success_rate.toFixed(1)),
+        deviation: Number(p.avg_deviation_pct.toFixed(4)),
+        latency: p.avg_latency_ms,
+        queries: p.query_count,
+      })),
+    [trend]
+  );
+
   if (trend.length < 2) {
     return (
       <div className="bg-white rounded-xl border border-gray-200/60 p-5">
@@ -39,14 +53,6 @@ export function TrendCharts({
       </div>
     );
   }
-
-  const chartData = trend.map((p) => ({
-    date: p.snapshot_time,
-    successRate: Number(p.success_rate.toFixed(1)),
-    deviation: Number(p.avg_deviation_pct.toFixed(4)),
-    latency: p.avg_latency_ms,
-    queries: p.query_count,
-  }));
 
   return (
     <div className="bg-white rounded-xl border border-gray-200/60 p-5">

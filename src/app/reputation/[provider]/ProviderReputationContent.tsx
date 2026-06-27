@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 
 import { ArrowLeft, Activity } from 'lucide-react';
@@ -26,7 +27,10 @@ import {
   HowItWorks,
   ProviderProfile,
 } from './components/ProviderDetailSections';
-import { TrendCharts } from './components/TrendCharts';
+
+const TrendCharts = dynamic(() => import('./components/TrendCharts').then((m) => m.TrendCharts), {
+  ssr: false,
+});
 
 function ProviderReputationContentInner({ provider }: { provider: string }) {
   const { data, isLoading, error } = useReputationDetail(provider, {

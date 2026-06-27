@@ -8,7 +8,7 @@ import { PriceFlash } from '@/components/ui/PriceFlash';
 import { safeMax } from '@/lib/utils';
 
 import { type OnChainData, type QueryResult } from '../constants';
-import { useUnifiedQuery } from '../contexts';
+import { useQueryData, useQueryParams } from '../contexts';
 import { formatPrice } from '../utils/queryResultsUtils';
 
 import { QueryResultsEmpty } from './QueryResultsEmpty';
@@ -23,17 +23,10 @@ interface QueryResultsProps {
 }
 
 export function QueryResults({ onChainData }: QueryResultsProps) {
-  const query = useUnifiedQuery();
-  const chartContainerRef = useRef<HTMLDivElement>(null);
-  const previousPriceValueRef = useRef<number | null>(null);
-  const wasLoadingRef = useRef(false);
-
-  const { selectedSymbol } = query;
-
+  const { selectedSymbol, isCompareMode } = useQueryParams();
   const {
     queryResults,
     compareQueryResults,
-    isCompareMode,
     isLoading,
     queryDuration,
     queryErrors,
@@ -42,7 +35,10 @@ export function QueryResults({ onChainData }: QueryResultsProps) {
     clearErrors,
     refetch,
     stats,
-  } = query;
+  } = useQueryData();
+  const chartContainerRef = useRef<HTMLDivElement>(null);
+  const previousPriceValueRef = useRef<number | null>(null);
+  const wasLoadingRef = useRef(false);
 
   const { avgPrice, standardDeviation, standardDeviationPercent } = stats;
 

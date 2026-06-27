@@ -1,13 +1,12 @@
 'use client';
 
-import { useUnifiedQuery } from '../contexts';
+import { useQueryData, useQueryParams } from '../contexts';
 
 import UnifiedExportSection from './UnifiedExportSection';
 
 export function QueryHeader() {
-  const query = useUnifiedQuery();
-
-  const { queryResults, isLoading: loading, stats, selectedSymbol } = query;
+  const { selectedSymbol } = useQueryParams();
+  const { queryResults, isLoading: loading, stats } = useQueryData();
 
   const { avgPrice, maxPrice, minPrice, priceRange, standardDeviation, standardDeviationPercent } =
     stats;

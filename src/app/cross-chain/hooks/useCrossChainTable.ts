@@ -26,8 +26,11 @@ export function useCrossChainTable(params: UseCrossChainTableParams): UseCrossCh
 
   const thresholdConfig = thresholdConfigParam ?? defaultThresholdConfig;
 
-  const { tableFilter, sortColumn, sortDirection, toggleChain, handleSort } =
-    useCrossChainUIStore();
+  const tableFilter = useCrossChainUIStore((s) => s.tableFilter);
+  const sortColumn = useCrossChainUIStore((s) => s.sortColumn);
+  const sortDirection = useCrossChainUIStore((s) => s.sortDirection);
+  const toggleChain = useCrossChainUIStore((s) => s.toggleChain);
+  const handleSort = useCrossChainUIStore((s) => s.handleSort);
 
   const dynamicThreshold = useMemo(() => {
     return thresholdConfig.fixedThreshold;

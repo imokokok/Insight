@@ -2,6 +2,8 @@
 
 import { memo, useState, useMemo } from 'react';
 
+import dynamic from 'next/dynamic';
+
 import { TrendingUp, Filter, Activity } from 'lucide-react';
 
 import { type ConsensusResult, type ConsensusMethod } from '@/lib/analytics/consensusPrice';
@@ -12,12 +14,22 @@ import {
   PriceDispersionCard,
   ChartTabSwitcher,
   type ChartTabType,
-  PriceDistributionHistogram,
-  DeviationScatterChart,
 } from '../price-comparison';
 import { SimplePriceTable } from '../SimplePriceTable';
 
 import type { PriceAnomaly } from '../../hooks/usePriceAnomalyDetection';
+
+const PriceDistributionHistogram = dynamic(
+  () =>
+    import('../price-comparison/PriceDistributionHistogram').then(
+      (m) => m.PriceDistributionHistogram
+    ),
+  { ssr: false }
+);
+const DeviationScatterChart = dynamic(
+  () => import('../price-comparison/DeviationScatterChart').then((m) => m.DeviationScatterChart),
+  { ssr: false }
+);
 
 interface SimplePriceComparisonTabProps {
   priceData: PriceData[];

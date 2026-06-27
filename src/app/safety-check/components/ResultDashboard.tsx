@@ -2,6 +2,8 @@
 
 import { useMemo, useState } from 'react';
 
+import dynamic from 'next/dynamic';
+
 import { motion } from 'framer-motion';
 import {
   RefreshCw,
@@ -30,9 +32,12 @@ import type { Blockchain } from '@/types/oracle';
 
 import { CircularGauge } from './CircularGauge';
 import { CountUp } from './CountUp';
-import { RiskChart } from './RiskChart';
 import { SafetyBufferBreakdown } from './SafetyBufferBreakdown';
 import { SafetyPlannerPanel } from './SafetyPlannerPanel';
+
+const RiskChart = dynamic(() => import('./RiskChart').then((m) => m.RiskChart), {
+  ssr: false,
+});
 
 interface ResultDashboardProps {
   result: PositionCriticalResult;

@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 
 import { extractBaseSymbol } from '@/lib/oracles';
 import { calculateRetryDelay, ORACLE_RETRY_PRESETS } from '@/lib/oracles/utils/retry';
@@ -55,6 +55,19 @@ export function useOracleRetry({
   const retryAttemptsRef = useRef<Map<OracleProvider, number>>(new Map());
   const abortControllersRef = useRef<Map<OracleProvider, AbortController>>(new Map());
   const batchAbortControllerRef = useRef<AbortController | null>(null);
+
+  // Abort all in-flight retries on unmount to prevent state updates after unmount
+  useEffect(() => {
+    return () => {
+      abortControllersRef.current.forEach((controller) => controller.abort());
+      abortControllersRef.current.clear();
+      if (batchAbortControllerRef.current) {
+        batchAbortControllerRef.current.abort();
+        batchAbortControllerRef.current = null;
+      }
+      retryAttemptsRef.current.clear();
+    };
+  }, []);
 
   const isRetrying = retryingOracles.length > 0;
 

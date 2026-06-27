@@ -54,7 +54,7 @@ class RealtimeManager {
       }
     };
 
-    this.client.realtime.connect();
+    this.safeConnect();
 
     this.connectionCheckTimer = setInterval(checkConnection, 5000);
 
@@ -105,8 +105,20 @@ class RealtimeManager {
 
     this.reconnectTimer = setTimeout(() => {
       this.updateConnectionStatus('connecting');
-      this.client.realtime.connect();
+      this.safeConnect();
     }, delay);
+  }
+
+  private safeConnect() {
+    try {
+      this.client.realtime.connect();
+    } catch (error) {
+      logger.error(
+        'Failed to connect realtime client',
+        error instanceof Error ? error : new Error(String(error))
+      );
+      this.updateConnectionStatus('error');
+    }
   }
 
   public getConnectionStatus(): ConnectionStatus {
@@ -132,7 +144,7 @@ class RealtimeManager {
     }
     this.reconnectAttempts = 0;
     this.updateConnectionStatus('connecting');
-    this.client.realtime.connect();
+    this.safeConnect();
   }
 
   public destroy() {

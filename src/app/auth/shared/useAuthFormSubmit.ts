@@ -15,15 +15,23 @@ export function useAuthFormSubmit() {
 
   const submit = async (action: () => Promise<{ error?: { message?: string } | null }>) => {
     setState({ isLoading: true, isSuccess: false, error: null });
-    const result = await action();
-    if (result.error) {
+    try {
+      const result = await action();
+      if (result.error) {
+        setState({
+          isLoading: false,
+          isSuccess: false,
+          error: result.error.message || 'An error occurred',
+        });
+      } else {
+        setState({ isLoading: false, isSuccess: true, error: null });
+      }
+    } catch (err) {
       setState({
         isLoading: false,
         isSuccess: false,
-        error: result.error.message || 'An error occurred',
+        error: err instanceof Error ? err.message : 'An unexpected error occurred',
       });
-    } else {
-      setState({ isLoading: false, isSuccess: true, error: null });
     }
   };
 

@@ -18,20 +18,11 @@ export const metadata: Metadata = {
   icons: {
     icon: '/logos/owl-logo-icon.svg',
   },
-  other: {
-    'dns-prefetch': 'https://fonts.googleapis.com',
-  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" crossOrigin="anonymous" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
-        <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
-      </head>
       <body className="antialiased min-h-screen flex flex-col">
         <QueryProvider>
           <ErrorBoundary>

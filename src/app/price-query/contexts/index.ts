@@ -1,1 +1,6 @@
-export { UnifiedQueryProvider, useUnifiedQuery } from './UnifiedQueryContext';
+export {
+  UnifiedQueryProvider,
+  useUnifiedQuery,
+  useQueryParams,
+  useQueryData,
+} from './UnifiedQueryContext';

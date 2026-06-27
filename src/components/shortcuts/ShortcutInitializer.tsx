@@ -11,7 +11,7 @@ import { useShortcutContext } from './ShortcutContext';
  */
 export function ShortcutInitializer() {
   const { toggleHelp } = useShortcutContext();
-  const { closeModal } = useUIStore();
+  const closeModal = useUIStore((s) => s.closeModal);
 
   // Initialize global keyboard listener
   useGlobalKeyboardListener();

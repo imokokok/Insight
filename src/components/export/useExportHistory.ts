@@ -95,11 +95,8 @@ export function useExportHistory(): UseExportHistoryReturn {
 
   // updatesettings
   const handleUpdateSettings = useCallback((newSettings: Partial<ExportSettings>) => {
-    setSettings((prev) => {
-      const updated = { ...prev, ...newSettings };
-      saveExportSettings(newSettings);
-      return updated;
-    });
+    setSettings((prev) => ({ ...prev, ...newSettings }));
+    saveExportSettings(newSettings);
   }, []);
 
   // bygethistoryrecord

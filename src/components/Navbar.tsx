@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react';
 
+import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -20,7 +21,9 @@ import {
   navigationConfig,
 } from './navigation';
 import { type NavGroup } from './navigation/types';
-import { GlobalSearch, SearchButton } from './search';
+import { SearchButton } from './search/SearchButton';
+
+const GlobalSearch = dynamic(() => import('./search').then((m) => m.GlobalSearch), { ssr: false });
 
 export default function Navbar() {
   const pathname = usePathname();

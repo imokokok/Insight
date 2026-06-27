@@ -12,7 +12,7 @@ import { getAssetClass, ASSET_CLASS_CATEGORIES } from '@/lib/oracles/constants/s
 import { type OracleProvider, type Blockchain, BLOCKCHAIN_VALUES } from '@/types/oracle';
 
 import { symbols, oracleColors, chainColors } from '../constants';
-import { useUnifiedQuery } from '../contexts';
+import { useQueryData, useQueryParams } from '../contexts';
 import { useOracleSymbols } from '../hooks/useOracleSymbols';
 
 import { AutoRefreshControl } from './AutoRefreshControl';
@@ -46,9 +46,6 @@ function getFirstSupportedSymbol(
 }
 
 export function Selectors() {
-  const query = useUnifiedQuery();
-  const { symbols: dynamicSymbols, categories } = useDynamicSymbols();
-
   const {
     selectedOracle,
     setSelectedOracle,
@@ -56,11 +53,10 @@ export function Selectors() {
     setSelectedChain,
     selectedSymbol,
     setSelectedSymbol,
-    isLoading,
-    refetch,
     supportedChainsBySelectedOracles,
-    autoRefresh,
-  } = query;
+  } = useQueryParams();
+  const { isLoading, refetch, autoRefresh } = useQueryData();
+  const { symbols: dynamicSymbols, categories } = useDynamicSymbols();
 
   const {
     supportedSymbols,

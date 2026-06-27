@@ -31,7 +31,14 @@ export function useProtocolHealth(): UseProtocolHealthReturn {
         body: JSON.stringify(input),
       });
 
-      const json = await response.json();
+      let json: { success?: boolean; error?: { message?: string }; data?: unknown };
+      try {
+        json = await response.json();
+      } catch {
+        throw new Error(
+          `Failed to calculate position critical deviation (HTTP ${response.status})`
+        );
+      }
 
       if (!response.ok || !json.success) {
         const message = json.error?.message || 'Failed to calculate position critical deviation';

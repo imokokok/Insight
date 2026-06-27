@@ -31,11 +31,20 @@ export function useSafetyPlanner(): UseSafetyPlannerReturn {
         body: JSON.stringify({ position, targetDeviationPercent: deviation }),
       });
 
-      const json = await response.json();
+      let json: { success?: boolean; error?: { message?: string }; data?: { plan?: unknown } };
+      try {
+        json = await response.json();
+      } catch {
+        throw new Error(`Failed to generate safety plan (HTTP ${response.status})`);
+      }
 
       if (!response.ok || !json.success) {
         const message = json.error?.message || 'Failed to generate safety plan';
         throw new Error(message);
+      }
+
+      if (!json.data?.plan) {
+        throw new Error('Failed to generate safety plan: missing plan in response');
       }
 
       setPlan(json.data.plan as SafetyParameterPlan);

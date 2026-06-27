@@ -2,11 +2,18 @@
 
 import { useEffect } from 'react';
 
-import { ShortcutProvider, ShortcutInitializer, ShortcutHelpPanel } from '@/components/shortcuts';
+import dynamic from 'next/dynamic';
+
+import { ShortcutProvider, ShortcutInitializer } from '@/components/shortcuts';
 import { setUser } from '@/lib/monitoring';
 import { initWebVitals } from '@/lib/monitoring/webVitals';
 import { useAuthStore } from '@/stores/authStore';
 import { useRealtimeStore } from '@/stores/realtimeStore';
+
+const ShortcutHelpPanel = dynamic(
+  () => import('@/components/shortcuts').then((m) => m.ShortcutHelpPanel),
+  { ssr: false }
+);
 
 export function AppInitializer({ children }: { children: React.ReactNode }) {
   const initializeAuth = useAuthStore((state) => state.initialize);

@@ -12,23 +12,7 @@ import { usePriceStats, type PriceStats } from '../hooks/usePriceStats';
 
 type Stats = PriceStats;
 
-interface QueryUIState {
-  filterText: string;
-  setFilterText: (text: string) => void;
-  sortField: 'oracle' | 'blockchain' | 'price' | 'timestamp';
-  sortDirection: 'asc' | 'desc';
-  hiddenSeries: Set<string>;
-  setHiddenSeries: (series: Set<string>) => void;
-  toggleSeries: (seriesName: string) => void;
-  handleSort: (field: 'oracle' | 'blockchain' | 'price' | 'timestamp') => void;
-  selectedRow: string | null;
-  setSelectedRow: (row: string | null) => void;
-  showBaseline: boolean;
-  setShowBaseline: (show: boolean) => void;
-}
-
-interface UnifiedQueryContextValue {
-  // Params
+interface QueryParamsContextValue {
   selectedOracle: OracleProvider | null;
   setSelectedOracle: (oracle: OracleProvider | null) => void;
   selectedChain: Blockchain | null;
@@ -38,12 +22,14 @@ interface UnifiedQueryContextValue {
   isCompareMode: boolean;
   setIsCompareMode: (mode: boolean) => void;
   urlParamsParsed: boolean;
-  // Data
+  supportedChainsBySelectedOracles: Set<Blockchain>;
+  needsChainSelection: boolean;
+}
+
+interface QueryDataContextValue {
   queryResults: QueryResult[];
   compareQueryResults: QueryResult[];
   primaryDataFetchTime: Date | null;
-  supportedChainsBySelectedOracles: Set<Blockchain>;
-  needsChainSelection: boolean;
   isLoading: boolean;
   isFetching: boolean;
   queryDuration: number | null;
@@ -64,11 +50,10 @@ interface UnifiedQueryContextValue {
     toggleAutoRefresh: () => void;
     isRefreshing: boolean;
   };
-  // UI
-  ui: QueryUIState;
 }
 
-const UnifiedQueryContext = createContext<UnifiedQueryContextValue | null>(null);
+const QueryParamsContext = createContext<QueryParamsContextValue | null>(null);
+const QueryDataContext = createContext<QueryDataContextValue | null>(null);
 
 export function UnifiedQueryProvider({ children }: { children: React.ReactNode }) {
   const state = usePriceQueryState();
@@ -92,80 +77,54 @@ export function UnifiedQueryProvider({ children }: { children: React.ReactNode }
 
   const stats = usePriceStats(data.queryResults, data.compareQueryResults);
 
-  const [filterText, setFilterText] = useState<string>('');
-  const [sortField, setSortField] = useState<'oracle' | 'blockchain' | 'price' | 'timestamp'>(
-    'oracle'
-  );
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
-  const [hiddenSeries, setHiddenSeries] = useState<Set<string>>(new Set());
-  const [selectedRow, setSelectedRow] = useState<string | null>(null);
-  const [showBaseline, setShowBaseline] = useState<boolean>(false);
-
-  const toggleSeries = useCallback((seriesName: string) => {
-    setHiddenSeries((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(seriesName)) {
-        newSet.delete(seriesName);
-      } else {
-        newSet.add(seriesName);
-      }
-      return newSet;
-    });
-  }, []);
-
-  const handleSort = useCallback((field: 'oracle' | 'blockchain' | 'price' | 'timestamp') => {
-    setSortField((prev) => {
-      if (prev === field) {
-        setSortDirection((dir) => (dir === 'asc' ? 'desc' : 'asc'));
-        return prev;
-      } else {
-        setSortDirection('asc');
-        return field;
-      }
-    });
-  }, []);
-
-  const ui: QueryUIState = useMemo(
-    () => ({
-      filterText,
-      setFilterText,
-      sortField,
-      sortDirection,
-      hiddenSeries,
-      setHiddenSeries,
-      toggleSeries,
-      handleSort,
-      selectedRow,
-      setSelectedRow,
-      showBaseline,
-      setShowBaseline,
-    }),
-    [
-      filterText,
-      sortField,
-      sortDirection,
-      hiddenSeries,
-      toggleSeries,
-      handleSort,
-      selectedRow,
-      showBaseline,
-    ]
-  );
-
   const toggleAutoRefresh = useCallback(() => {
     setAutoRefreshInterval((prev) => (prev === 0 ? 30000 : 0));
   }, []);
 
-  // Performance note: `state` and `data` are object references returned by hooks.
-  // Any internal field change produces a new reference, which invalidates this
-  // useMemo and re-renders all consumers of UnifiedQueryContext. The deps below
-  // are all necessary (each value is spread into `value`). Splitting into
-  // separate contexts (params / data / ui) would reduce re-renders but requires
-  // updating every consumer — kept as a single context for now.
-  const value = useMemo(
+  const paramsValue = useMemo<QueryParamsContextValue>(
     () => ({
-      ...state,
-      ...data,
+      selectedOracle: state.selectedOracle,
+      setSelectedOracle: state.setSelectedOracle,
+      selectedChain: state.selectedChain,
+      setSelectedChain: state.setSelectedChain,
+      selectedSymbol: state.selectedSymbol,
+      setSelectedSymbol: state.setSelectedSymbol,
+      isCompareMode: state.isCompareMode,
+      setIsCompareMode: state.setIsCompareMode,
+      urlParamsParsed: state.urlParamsParsed,
+      supportedChainsBySelectedOracles: data.supportedChainsBySelectedOracles,
+      needsChainSelection: data.needsChainSelection,
+    }),
+    [
+      state.selectedOracle,
+      state.setSelectedOracle,
+      state.selectedChain,
+      state.setSelectedChain,
+      state.selectedSymbol,
+      state.setSelectedSymbol,
+      state.isCompareMode,
+      state.setIsCompareMode,
+      state.urlParamsParsed,
+      data.supportedChainsBySelectedOracles,
+      data.needsChainSelection,
+    ]
+  );
+
+  const dataValue = useMemo<QueryDataContextValue>(
+    () => ({
+      queryResults: data.queryResults,
+      compareQueryResults: data.compareQueryResults,
+      primaryDataFetchTime: data.primaryDataFetchTime,
+      isLoading: data.isLoading,
+      isFetching: data.isFetching,
+      queryDuration: data.queryDuration,
+      queryProgress: data.queryProgress,
+      currentQueryTarget: data.currentQueryTarget,
+      queryErrors: data.queryErrors,
+      clearErrors: data.clearErrors,
+      retryDataSource: data.retryDataSource,
+      retryAllErrors: data.retryAllErrors,
+      refetch: data.refetch,
       stats,
       autoRefresh: {
         isAutoRefreshEnabled: autoRefreshInterval !== 0,
@@ -176,18 +135,56 @@ export function UnifiedQueryProvider({ children }: { children: React.ReactNode }
         toggleAutoRefresh,
         isRefreshing: data.isFetching,
       },
-      ui,
     }),
-    [state, data, stats, autoRefreshInterval, nextRefreshAt, ui, toggleAutoRefresh]
+    [
+      data.queryResults,
+      data.compareQueryResults,
+      data.primaryDataFetchTime,
+      data.isLoading,
+      data.isFetching,
+      data.queryDuration,
+      data.queryProgress,
+      data.currentQueryTarget,
+      data.queryErrors,
+      data.clearErrors,
+      data.retryDataSource,
+      data.retryAllErrors,
+      data.refetch,
+      stats,
+      autoRefreshInterval,
+      nextRefreshAt,
+      toggleAutoRefresh,
+    ]
   );
 
-  return <UnifiedQueryContext.Provider value={value}>{children}</UnifiedQueryContext.Provider>;
+  return (
+    <QueryParamsContext.Provider value={paramsValue}>
+      <QueryDataContext.Provider value={dataValue}>{children}</QueryDataContext.Provider>
+    </QueryParamsContext.Provider>
+  );
 }
 
-export function useUnifiedQuery() {
-  const context = useContext(UnifiedQueryContext);
+export function useQueryParams(): QueryParamsContextValue {
+  const context = useContext(QueryParamsContext);
   if (!context) {
-    throw new Error('useUnifiedQuery must be used within a UnifiedQueryProvider');
+    throw new Error('useQueryParams must be used within a UnifiedQueryProvider');
   }
   return context;
+}
+
+export function useQueryData(): QueryDataContextValue {
+  const context = useContext(QueryDataContext);
+  if (!context) {
+    throw new Error('useQueryData must be used within a UnifiedQueryProvider');
+  }
+  return context;
+}
+
+/**
+ * Backward-compatible hook that subscribes to both params and data contexts.
+ * Prefer useQueryParams() or useQueryData() for granular subscriptions to
+ * reduce unnecessary re-renders.
+ */
+export function useUnifiedQuery() {
+  return { ...useQueryParams(), ...useQueryData() };
 }

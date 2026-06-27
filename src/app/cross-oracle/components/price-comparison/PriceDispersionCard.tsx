@@ -2,9 +2,13 @@
 
 import { memo, useMemo } from 'react';
 
+import dynamic from 'next/dynamic';
+
 import { BarChart3 } from 'lucide-react';
 
-import { DispersionGauge } from './DispersionGauge';
+const DispersionGauge = dynamic(() => import('./DispersionGauge').then((m) => m.DispersionGauge), {
+  ssr: false,
+});
 
 interface PriceDispersionCardProps {
   standardDeviation: number;
