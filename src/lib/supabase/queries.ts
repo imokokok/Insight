@@ -39,7 +39,7 @@ export interface PriceRecordInsert {
   chain?: Blockchain | string | null;
   price: number;
   timestamp: number | string;
-  decimals?: number;
+  decimals?: number | null;
   confidence?: number | null;
   source?: string | null;
   verification?: OnChainVerification | null;

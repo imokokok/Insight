@@ -41,49 +41,62 @@ const PriceDataBaseSchema = z.object({
   timestamp: z.number().int().positive('Timestamp must be a positive integer'),
 });
 
-export const PriceDataSchema = PriceDataBaseSchema.extend({
+function nullsToUndefined<T>(obj: T): T {
+  if (obj === null || obj === undefined) return undefined as T;
+  if (Array.isArray(obj)) return obj.map((item) => nullsToUndefined(item)) as T;
+  if (typeof obj === 'object') {
+    const result: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(obj as Record<string, unknown>)) {
+      result[key] = value === null ? undefined : nullsToUndefined(value);
+    }
+    return result as T;
+  }
+  return obj;
+}
+
+const PriceDataSchemaRaw = PriceDataBaseSchema.extend({
   provider: SafeProviderSchema,
-  chain: SafeChainSchema.optional(),
-  decimals: z.number().int().nonnegative().optional(),
-  confidence: z.number().min(0).max(1).optional(),
-  confidenceSource: z.enum(['original', 'estimated', 'calculated']).optional(),
-  source: z.string().optional(),
-  change: z.number().optional(),
-  change24h: z.number().optional(),
-  change24hPercent: z.number().optional(),
-  dataSource: z.enum(['real', 'mock', 'api', 'fallback']).optional(),
+  chain: SafeChainSchema.nullish(),
+  decimals: z.number().int().nonnegative().nullish(),
+  confidence: z.number().min(0).max(1).nullish(),
+  confidenceSource: z.enum(['original', 'estimated', 'calculated']).nullish(),
+  source: z.string().nullish(),
+  change: z.number().nullish(),
+  change24h: z.number().nullish(),
+  change24hPercent: z.number().nullish(),
+  dataSource: z.enum(['real', 'mock', 'api', 'fallback']).nullish(),
   confidenceInterval: z
     .object({
       bid: z.number(),
       ask: z.number(),
       widthPercentage: z.number(),
     })
-    .optional(),
-  roundId: z.string().optional(),
-  answeredInRound: z.string().optional(),
-  version: z.string().optional(),
-  startedAt: z.number().optional(),
-  priceId: z.string().optional(),
-  exponent: z.number().optional(),
-  conf: z.number().optional(),
-  publishTime: z.number().optional(),
-  dapiName: z.string().optional(),
-  proxyAddress: z.string().optional(),
-  dataAge: z.number().optional(),
-  pairIndex: z.number().optional(),
-  poolAddress: z.string().optional(),
-  feeTier: z.number().optional(),
-  sqrtPriceX96: z.string().optional(),
-  tick: z.number().optional(),
-  twapInterval: z.number().optional(),
-  twapPrice: z.number().optional(),
-  spotPrice: z.number().optional(),
-  liquidity: z.string().optional(),
-  resolution: z.number().optional(),
-  contractVersion: z.number().optional(),
-  ingestionTimestamp: z.number().optional(),
-  metadataFallback: z.boolean().optional(),
-  failureMode: z.enum(FAILURE_MODE_VALUES as [string, ...string[]]).optional(),
+    .nullish(),
+  roundId: z.string().nullish(),
+  answeredInRound: z.string().nullish(),
+  version: z.string().nullish(),
+  startedAt: z.number().nullish(),
+  priceId: z.string().nullish(),
+  exponent: z.number().nullish(),
+  conf: z.number().nullish(),
+  publishTime: z.number().nullish(),
+  dapiName: z.string().nullish(),
+  proxyAddress: z.string().nullish(),
+  dataAge: z.number().nullish(),
+  pairIndex: z.number().nullish(),
+  poolAddress: z.string().nullish(),
+  feeTier: z.number().nullish(),
+  sqrtPriceX96: z.string().nullish(),
+  tick: z.number().nullish(),
+  twapInterval: z.number().nullish(),
+  twapPrice: z.number().nullish(),
+  spotPrice: z.number().nullish(),
+  liquidity: z.string().nullish(),
+  resolution: z.number().nullish(),
+  contractVersion: z.number().nullish(),
+  ingestionTimestamp: z.number().nullish(),
+  metadataFallback: z.boolean().nullish(),
+  failureMode: z.enum(FAILURE_MODE_VALUES as [string, ...string[]]).nullish(),
   signalVector: z
     .object({
       freshness: z.number().min(0).max(1),
@@ -92,7 +105,7 @@ export const PriceDataSchema = PriceDataBaseSchema.extend({
       consistency: z.number().min(0).max(1),
       auditStatus: z.number().min(0).max(1),
     })
-    .optional(),
+    .nullish(),
   consensusContext: z
     .object({
       consensusPrice: z.number(),
@@ -103,18 +116,20 @@ export const PriceDataSchema = PriceDataBaseSchema.extend({
       method: z.string(),
       confidenceLevel: z.string(),
     })
-    .optional(),
+    .nullish(),
   verification: z
     .object({
-      type: z.enum(['on-chain', 'api']).optional(),
+      type: z.enum(['on-chain', 'api']).nullish(),
       contractAddress: z.string(),
       chainId: z.number(),
       explorerUrl: z.string(),
       method: z.string(),
-      blockNumber: z.number().optional(),
+      blockNumber: z.number().nullish(),
     })
-    .optional(),
+    .nullish(),
 });
+
+export const PriceDataSchema = z.preprocess((data) => nullsToUndefined(data), PriceDataSchemaRaw);
 
 export const OracleProviderPathParamSchema = z
   .string()

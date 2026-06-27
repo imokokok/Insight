@@ -33,13 +33,13 @@ function priceDataToRecord(priceData: PriceData): PriceRecordInsert {
   return {
     provider: priceData.provider,
     symbol: priceData.symbol,
-    chain: priceData.chain,
+    chain: priceData.chain ?? null,
     price: priceData.price,
     timestamp: priceData.timestamp,
-    decimals: priceData.decimals,
-    confidence: priceData.confidence,
-    source: priceData.source,
-    verification: priceData.verification || null,
+    decimals: priceData.decimals ?? null,
+    confidence: priceData.confidence ?? null,
+    source: priceData.source ?? null,
+    verification: priceData.verification ?? null,
     ingestion_timestamp: priceData.ingestionTimestamp ?? null,
     metadata_fallback: priceData.metadataFallback ?? null,
     failure_mode: priceData.failureMode ?? null,
@@ -52,7 +52,7 @@ function recordToPriceData(record: PriceRecord): PriceData {
   return {
     provider: record.provider as OracleProvider,
     symbol: record.symbol,
-    chain: record.chain as Blockchain | undefined,
+    chain: (record.chain as Blockchain | null) ?? undefined,
     price: record.price,
     timestamp: new Date(record.timestamp).getTime(),
     decimals: record.decimals ?? undefined,
@@ -63,8 +63,8 @@ function recordToPriceData(record: PriceRecord): PriceData {
       ? new Date(record.ingestion_timestamp).getTime()
       : undefined,
     metadataFallback: record.metadata_fallback ?? undefined,
-    failureMode: record.failure_mode as FailureMode | undefined,
-    signalVector: record.signal_vector as OracleSignalVector | undefined,
+    failureMode: (record.failure_mode as FailureMode | null) ?? undefined,
+    signalVector: (record.signal_vector as OracleSignalVector | null) ?? undefined,
   };
 }
 
