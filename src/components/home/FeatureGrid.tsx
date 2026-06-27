@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 
-import { GitCompare, Award, Shield, BarChart3, ArrowRight, Zap, Globe, Clock } from 'lucide-react';
+import { GitCompare, Award, Shield, FileText, ArrowRight, Zap, Globe, Clock } from 'lucide-react';
 
 const features = [
   {
@@ -15,10 +15,10 @@ const features = [
     border: 'border-indigo-100',
   },
   {
-    title: 'Cross-Oracle',
-    description: 'Deep-dive into per-asset consensus, spread analysis and source breakdown.',
-    href: '/cross-oracle',
-    icon: BarChart3,
+    title: 'Daily Reports',
+    description: 'Daily aggregated oracle market snapshots and historical trend archives.',
+    href: '/reports',
+    icon: FileText,
     color: 'text-blue-600',
     bg: 'bg-blue-50',
     border: 'border-blue-100',

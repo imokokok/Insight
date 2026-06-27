@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 
 import dynamic from 'next/dynamic';
+import Link from 'next/link';
 
 import { motion } from 'framer-motion';
 import {
@@ -17,9 +18,11 @@ import {
   ChevronDown,
   ChevronUp,
   Info,
+  ExternalLink,
 } from 'lucide-react';
 
-import { chainNames } from '@/lib/constants';
+import { useReputations } from '@/hooks/data/useReputations';
+import { chainNames, providerNames } from '@/lib/constants';
 import type {
   PositionCriticalResult,
   AssetDeviationResult,
@@ -690,6 +693,15 @@ function OracleReliabilityWarnings({
 }: {
   warnings: PositionCriticalResult['oracleWarnings'];
 }) {
+  const { data: reputationData } = useReputations();
+  const reputationMap = useMemo(() => {
+    const map = new Map<string, number>();
+    reputationData?.data.forEach((r) => {
+      map.set(r.provider, r.overall_score);
+    });
+    return map;
+  }, [reputationData]);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 15 }}
@@ -710,6 +722,8 @@ function OracleReliabilityWarnings({
             critical: { color: 'text-red-600', bg: 'bg-red-50', label: 'Critical' },
           }[warning.level];
 
+          const reputationScore = reputationMap.get(warning.provider);
+
           return (
             <div
               key={warning.provider}
@@ -726,16 +740,37 @@ function OracleReliabilityWarnings({
               )}
             >
               <div className="flex items-center justify-between mb-1">
-                <span className="text-sm font-medium text-gray-900">{warning.provider}</span>
-                <span
-                  className={cn(
-                    'text-xs font-semibold px-2 py-0.5 rounded-full',
-                    levelConfig.bg,
-                    levelConfig.color
+                <div className="flex items-center gap-1.5">
+                  <Link
+                    href={`/reputation/${encodeURIComponent(warning.provider)}`}
+                    className="text-sm font-medium text-gray-900 hover:text-indigo-600 transition-colors"
+                  >
+                    {providerNames[warning.provider] ?? warning.provider}
+                  </Link>
+                  <Link
+                    href={`/reputation/${encodeURIComponent(warning.provider)}`}
+                    className="text-gray-300 hover:text-indigo-500 transition-colors"
+                    title="View reputation details"
+                  >
+                    <ExternalLink className="w-3 h-3" />
+                  </Link>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  {reputationScore !== undefined && (
+                    <span className="text-[10px] font-medium text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded-full">
+                      7d {reputationScore.toFixed(0)}
+                    </span>
                   )}
-                >
-                  {levelConfig.label} · {warning.overallScore.toFixed(0)}/100
-                </span>
+                  <span
+                    className={cn(
+                      'text-xs font-semibold px-2 py-0.5 rounded-full',
+                      levelConfig.bg,
+                      levelConfig.color
+                    )}
+                  >
+                    {levelConfig.label} · {warning.overallScore.toFixed(0)}/100
+                  </span>
+                </div>
               </div>
               <p className="text-xs text-gray-600">{warning.message}</p>
               {warning.level !== 'healthy' && (
