@@ -19,9 +19,7 @@
     "test:e2e:ui": "playwright test --ui",
     "clean:dev": "rm -rf .next && next dev",
     "clean:start": "rm -rf .next && next build && next start",
-    "prepare": "husky",
-    "verify-feeds": "tsx scripts/verify-oracle-feeds.ts",
-    "sync-feeds": "tsx scripts/sync-feeds-to-db.ts"
+    "prepare": "husky"
   },
   "performanceBudget": {
     "webVitals": {
