@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 env:
-  SITE_URL: ${{ vars.SITE_URL || 'https://insight-oracle.vercel.app' }}
+  SITE_URL: ${{ vars.SITE_URL || 'https://www.oracleinsight.xyz' }}
   CRON_SECRET: ${{ secrets.CRON_SECRET }}
 
 jobs:
