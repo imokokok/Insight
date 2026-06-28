@@ -68,6 +68,11 @@ export function useOracleDataCore(
   } = options;
 
   const { oracleSymbols } = useDynamicSymbols();
+  // Whether the dynamic symbol map has been resolved. On cold cache this starts
+  // false and flips to true once /api/symbols returns. We must not trigger the
+  // price fetch before this is ready, otherwise every oracle is filtered out
+  // as "unsupported" and no prices are requested.
+  const oracleSymbolsReady = !!oracleSymbols && Object.keys(oracleSymbols).length > 0;
 
   const {
     oracleDataError,
@@ -343,6 +348,7 @@ export function useOracleDataCore(
     [
       selectedOracles,
       selectedSymbol,
+      oracleSymbols,
       enablePerformanceMetrics,
       calculatePerformanceMetrics,
       fetchSingleOracle,
@@ -358,6 +364,15 @@ export function useOracleDataCore(
 
   useEffect(() => {
     isMountedRef.current = true;
+
+    // Wait for the dynamic symbol map before fetching. Without this, on cold
+    // cache every selected oracle is classified as "unsupported" (because
+    // oracleSymbols is empty) and the fetch returns no data. Once symbols
+    // arrive, this effect re-runs (oracleSymbolsReady is a dep) and the real
+    // fetch fires automatically.
+    if (!oracleSymbolsReady) {
+      return;
+    }
 
     const currentKey = `${selectedOracles.slice().sort().join(',')}_${selectedSymbol}`;
     const prevKey = `${prevDepsRef.current.selectedOracles.slice().sort().join(',')}_${prevDepsRef.current.selectedSymbol}`;
@@ -383,7 +398,7 @@ export function useOracleDataCore(
         abortControllerRef.current.abort();
       }
     };
-  }, [selectedOracles, selectedSymbol, resetErrors]);
+  }, [selectedOracles, selectedSymbol, oracleSymbolsReady, resetErrors]);
 
   const { lastRefreshedAt, nextRefreshAt } = useOracleAutoRefresh({
     refreshInterval,

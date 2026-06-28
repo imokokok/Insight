@@ -106,13 +106,17 @@ export function ControlPanel({
   }, [selectedOracles, commonSymbols, selectedSymbol, onSymbolChange]);
 
   // Symbol options for dropdown - use commonly supported symbols
-  const symbolOptions = commonSymbols.map((symbol) => ({
-    value: symbol,
-    label: symbol,
-    icon: true,
-    color: '#6B7280',
-    category: categories[symbol] || getAssetClass(symbol),
-  }));
+  const symbolOptions = useMemo(
+    () =>
+      commonSymbols.map((symbol) => ({
+        value: symbol,
+        label: symbol,
+        icon: true,
+        color: '#6B7280',
+        category: categories[symbol] || getAssetClass(symbol),
+      })),
+    [commonSymbols, categories]
+  );
 
   // Custom render option, showing oracle count
   const renderSymbolOption = useCallback(
@@ -134,13 +138,30 @@ export function ControlPanel({
     [oracleCountMap]
   );
 
-  // Oracle options for multi-select
-  const oracleOptions = getPriceOracleProvidersSortedByMarketCap().map((oracle) => ({
-    value: oracle,
-    label: oracleNames[oracle] || String(oracle),
-    icon: true,
-    color: oracleChartColors[oracle] || '#6B7280',
-  }));
+  // Oracle options for multi-select (memoized — getPriceOracleProvidersSortedByMarketCap
+  // is stable but we avoid rebuilding the array on every parent re-render, e.g. when
+  // fetch progress updates isLoading).
+  const oracleOptions = useMemo(
+    () =>
+      getPriceOracleProvidersSortedByMarketCap().map((oracle) => ({
+        value: oracle,
+        label: oracleNames[oracle] || String(oracle),
+        icon: true,
+        color: oracleChartColors[oracle] || '#6B7280',
+      })),
+    [oracleChartColors]
+  );
+
+  // Precompute oracle feature info once per render instead of calling
+  // getOracleFeatureInfo (which calls getOracleConfig) for every oracle in the
+  // render loop.
+  const oracleFeatureInfoMap = useMemo(() => {
+    const map: Record<string, OracleFeature> = {};
+    for (const option of oracleOptions) {
+      map[option.value as string] = getOracleFeatureInfo(option.value as OracleProvider);
+    }
+    return map;
+  }, [oracleOptions]);
 
   // Handle oracle toggle - support single oracle toggle
   const handleOracleToggle = (oracle: OracleProvider) => {
@@ -284,7 +305,7 @@ export function ControlPanel({
           <div className="flex flex-wrap gap-1.5 p-1 bg-gray-100/80 rounded-lg relative">
             {oracleOptions.map((option) => {
               const selected = selectedOracles.includes(option.value as OracleProvider);
-              const featureInfo = getOracleFeatureInfo(option.value as OracleProvider);
+              const featureInfo = oracleFeatureInfoMap[option.value as string];
               const isUnsupported = currentUnsupportedOracles.includes(
                 option.value as OracleProvider
               );
