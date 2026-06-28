@@ -46,6 +46,31 @@ function getChainExpectedInterval(chain: string): number {
   return CHAIN_EXPECTED_INTERVALS[chain.toLowerCase()] ?? 10;
 }
 
+/**
+ * Build a per-chain history map from the snapshot, falling back to a single
+ * synthetic entry for chains that have a current price but no history yet.
+ * The `transform`/`fallback` callbacks let each caller pick the exact entry
+ * shape it needs (divergence uses a minimal subset, feed/stability carry
+ * confidence/confidenceInterval).
+ */
+function buildHistoryMap<T>(
+  historySnapshot: Map<string, ChainPriceHistoryEntry[]>,
+  chainPrices: PriceData[],
+  transform: (entries: ChainPriceHistoryEntry[]) => T[],
+  fallback: (p: PriceData) => T
+): Map<string, T[]> {
+  const map = new Map<string, T[]>();
+  for (const [chain, entries] of historySnapshot) {
+    map.set(chain, transform(entries));
+  }
+  for (const p of chainPrices) {
+    if (!map.has(p.chain!) && p.price > 0) {
+      map.set(p.chain!, [fallback(p)]);
+    }
+  }
+  return map;
+}
+
 export interface CrossChainRiskResult {
   riskLevel: RiskLevel;
   riskScore: number;
@@ -332,23 +357,13 @@ export function useCrossChainAnalytics(currentPrices: PriceData[]): CrossChainAn
       const manipScore = riskMetrics.manipulationResistance.score;
       const sharedScore = riskMetrics.sharedDependency.score;
 
-      const historyMapForDivergence = new Map<
-        string,
-        Array<{ price: number; timestamp: number; success: boolean }>
-      >();
-      for (const [chain, entries] of historySnapshot) {
-        historyMapForDivergence.set(
-          chain,
-          entries.map((e) => ({ price: e.price, timestamp: e.timestamp, success: e.success }))
-        );
-      }
-      for (const p of chainPrices) {
-        if (!historyMapForDivergence.has(p.chain!) && p.price > 0) {
-          historyMapForDivergence.set(p.chain!, [
-            { price: p.price, timestamp: p.timestamp, success: true },
-          ]);
-        }
-      }
+      const historyMapForDivergence = buildHistoryMap(
+        historySnapshot,
+        chainPrices,
+        (entries) =>
+          entries.map((e) => ({ price: e.price, timestamp: e.timestamp, success: e.success })),
+        (p) => ({ price: p.price, timestamp: p.timestamp, success: true })
+      );
 
       const divergencePriceData = chainPrices.map((p) => ({
         provider: p.chain!,
@@ -376,32 +391,18 @@ export function useCrossChainAnalytics(currentPrices: PriceData[]): CrossChainAn
               ? 'high'
               : 'critical';
 
-      const historyMapForFeed = new Map<
-        string,
-        Array<{
-          price: number;
-          timestamp: number;
-          success: boolean;
-          confidence?: number;
-          confidenceInterval?: { bid: number; ask: number; widthPercentage: number };
-        }>
-      >();
-      for (const [chain, entries] of historySnapshot) {
-        historyMapForFeed.set(chain, [...entries]);
-      }
-      for (const p of chainPrices) {
-        if (!historyMapForFeed.has(p.chain!) && p.price > 0) {
-          historyMapForFeed.set(p.chain!, [
-            {
-              price: p.price,
-              timestamp: p.timestamp,
-              success: true,
-              confidence: p.confidence,
-              confidenceInterval: p.confidenceInterval,
-            },
-          ]);
-        }
-      }
+      const historyMapForFeed = buildHistoryMap(
+        historySnapshot,
+        chainPrices,
+        (entries) => [...entries],
+        (p) => ({
+          price: p.price,
+          timestamp: p.timestamp,
+          success: true,
+          confidence: p.confidence,
+          confidenceInterval: p.confidenceInterval,
+        })
+      );
 
       const feedPriceData = chainPrices.map((p) => ({
         provider: p.chain!,
@@ -424,28 +425,18 @@ export function useCrossChainAnalytics(currentPrices: PriceData[]): CrossChainAn
               ? 'high'
               : 'critical';
 
-      const historyMapForStability = new Map<
-        string,
-        Array<{ price: number; timestamp: number; success: boolean; confidence?: number }>
-      >();
-      for (const [chain, entries] of historySnapshot) {
-        historyMapForStability.set(
-          chain,
+      const historyMapForStability = buildHistoryMap(
+        historySnapshot,
+        chainPrices,
+        (entries) =>
           entries.map((e) => ({
             price: e.price,
             timestamp: e.timestamp,
             success: e.success,
             confidence: e.confidence,
-          }))
-        );
-      }
-      for (const p of chainPrices) {
-        if (!historyMapForStability.has(p.chain!) && p.price > 0) {
-          historyMapForStability.set(p.chain!, [
-            { price: p.price, timestamp: p.timestamp, success: true, confidence: p.confidence },
-          ]);
-        }
-      }
+          })),
+        (p) => ({ price: p.price, timestamp: p.timestamp, success: true, confidence: p.confidence })
+      );
 
       const stabilityResult = calculateStability(chainNameList, historyMapForStability);
 

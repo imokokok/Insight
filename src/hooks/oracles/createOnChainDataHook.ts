@@ -31,6 +31,47 @@ const ON_CHAIN_DATA_QUERY_OPTIONS = {
   retry: 2,
 };
 
+/**
+ * Shared react-query wiring for on-chain data hooks: builds the query key,
+ * runs the query with the project-wide on-chain options, and wraps refetch in
+ * a stable callback. Both factories below delegate to this so the
+ * useQuery/return boilerplate lives in exactly one place.
+ */
+function useOnChainQuery<T>(
+  providerName: string,
+  symbol: string,
+  chain: Blockchain | undefined,
+  enabled: boolean,
+  queryFn: (context: { signal?: AbortSignal }) => Promise<T | null>
+): OnChainDataReturn<T> {
+  const queryKey = [providerName, 'onchain-data', symbol.toUpperCase(), chain || 'default'];
+
+  const {
+    data,
+    error,
+    isLoading,
+    isError,
+    refetch: queryRefetch,
+  } = useQuery<T | null, Error>({
+    queryKey,
+    queryFn,
+    enabled: enabled && !!symbol,
+    ...ON_CHAIN_DATA_QUERY_OPTIONS,
+  });
+
+  const refetch = useCallback(async () => {
+    await queryRefetch();
+  }, [queryRefetch]);
+
+  return {
+    data: data ?? null,
+    isLoading,
+    isError,
+    error: error ?? null,
+    refetch,
+  };
+}
+
 export function createOnChainDataHookFromService<T>(
   providerName: string,
   createService: () => {
@@ -41,7 +82,6 @@ export function createOnChainDataHookFromService<T>(
 ): (options: OnChainDataOptions) => OnChainDataReturn<T> {
   return function useOnChainData(options: OnChainDataOptions): OnChainDataReturn<T> {
     const { symbol, chain, enabled = true } = options;
-    const queryKey = [providerName, 'onchain-data', symbol.toUpperCase(), chain || 'default'];
 
     const service = useMemo(() => createService(), []);
 
@@ -59,32 +99,9 @@ export function createOnChainDataHookFromService<T>(
       };
     }, [service, ownsService]);
 
-    const queryFn = () => service.getTokenOnChainData(symbol, chain);
-
-    const {
-      data,
-      error,
-      isLoading,
-      isError,
-      refetch: queryRefetch,
-    } = useQuery<T | null, Error>({
-      queryKey,
-      queryFn,
-      enabled: enabled && !!symbol,
-      ...ON_CHAIN_DATA_QUERY_OPTIONS,
-    });
-
-    const refetch = useCallback(async () => {
-      await queryRefetch();
-    }, [queryRefetch]);
-
-    return {
-      data: data ?? null,
-      isLoading,
-      isError,
-      error: error ?? null,
-      refetch,
-    };
+    return useOnChainQuery<T>(providerName, symbol, chain, enabled, () =>
+      service.getTokenOnChainData(symbol, chain)
+    );
   };
 }
 
@@ -98,33 +115,8 @@ export function createOnChainDataHookFromQueryFn<T>(
 ): (options: OnChainDataOptions) => OnChainDataReturn<T> {
   return function useOnChainData(options: OnChainDataOptions): OnChainDataReturn<T> {
     const { symbol, chain, enabled = true } = options;
-    const queryKey = [providerName, 'onchain-data', symbol.toUpperCase(), chain || 'default'];
-
-    const queryFn = ({ signal }: { signal?: AbortSignal }) => customQueryFn(symbol, chain, signal);
-
-    const {
-      data,
-      error,
-      isLoading,
-      isError,
-      refetch: queryRefetch,
-    } = useQuery<T | null, Error>({
-      queryKey,
-      queryFn,
-      enabled: enabled && !!symbol,
-      ...ON_CHAIN_DATA_QUERY_OPTIONS,
-    });
-
-    const refetch = useCallback(async () => {
-      await queryRefetch();
-    }, [queryRefetch]);
-
-    return {
-      data: data ?? null,
-      isLoading,
-      isError,
-      error: error ?? null,
-      refetch,
-    };
+    return useOnChainQuery<T>(providerName, symbol, chain, enabled, ({ signal }) =>
+      customQueryFn(symbol, chain, signal)
+    );
   };
 }
