@@ -1,6 +1,7 @@
 import { calculateConsensusPrice } from '@/lib/analytics/consensusPrice';
 import { getDefaultFactory } from '@/lib/oracles/factory';
 import { createServiceRoleClient } from '@/lib/supabase/server';
+import { TTLCache } from '@/lib/utils/cache';
 import { createLogger } from '@/lib/utils/logger';
 import { OracleProvider, type PriceData } from '@/types/oracle';
 import {
@@ -15,6 +16,13 @@ import {
 import { oracleSupportedSymbols } from '../constants/supportedSymbols';
 
 const logger = createLogger('ReputationService');
+
+// Short-lived in-memory cache for the directory list. The table is small
+// (10 providers) and recalculated at most hourly, so a 15s TTL absorbs burst
+// traffic and the periodic client refetch without serving noticeably stale
+// data. Writes (calculateAndStore / seedInitialReputations) invalidate it.
+const REPUTATIONS_CACHE_TTL_MS = 15 * 1000;
+const REPUTATIONS_CACHE_KEY = 'all';
 
 const TOP_SYMBOLS = ['BTC', 'ETH', 'SOL', 'BNB', 'USDC', 'USDT', 'DAI', 'XRP', 'ADA'] as const;
 
@@ -107,6 +115,9 @@ interface ReputationHistoryInsertRow {
 }
 
 class ReputationService {
+  // Module-level cache shared across requests within a server instance.
+  private readonly reputationsCache = new TTLCache({ cleanupIntervalMs: 0 });
+
   async calculateAndStore(): Promise<{ total: number; success: number; failed: number }> {
     const supabase = createServiceRoleClient();
     const factory = getDefaultFactory();
@@ -152,6 +163,10 @@ class ReputationService {
             }
           })
         );
+
+        // Fresh aggregations were persisted, drop the list cache so the next
+        // read sees the new scores immediately.
+        this.reputationsCache.delete(REPUTATIONS_CACHE_KEY);
       } catch (dbError) {
         logger.error(
           'Failed to persist reputation data',
@@ -449,6 +464,9 @@ class ReputationService {
   }
 
   async getReputations(): Promise<OracleReputation[]> {
+    const cached = this.reputationsCache.get<OracleReputation[]>(REPUTATIONS_CACHE_KEY);
+    if (cached) return cached;
+
     const supabase = createServiceRoleClient();
 
     const { data, error } = await supabase
@@ -461,7 +479,7 @@ class ReputationService {
       return [];
     }
 
-    return (
+    const result =
       data?.map((row: Record<string, unknown>) => ({
         provider: row.provider as OracleProvider,
         overall_score: Number(row.overall_score) || 0,
@@ -476,8 +494,10 @@ class ReputationService {
         supported_symbols_count: Number(row.supported_symbols_count) || 0,
         supported_chains_count: Number(row.supported_chains_count) || 0,
         last_calculated_at: row.last_calculated_at as string | null,
-      })) ?? []
-    );
+      })) ?? [];
+
+    this.reputationsCache.set(REPUTATIONS_CACHE_KEY, result, REPUTATIONS_CACHE_TTL_MS);
+    return result;
   }
 
   async getReputation(provider: OracleProvider): Promise<OracleReputation | null> {
@@ -607,6 +627,7 @@ class ReputationService {
       }
     }
 
+    this.reputationsCache.delete(REPUTATIONS_CACHE_KEY);
     logger.info(`Seeded initial reputations for ${providers.length} providers`);
   }
 

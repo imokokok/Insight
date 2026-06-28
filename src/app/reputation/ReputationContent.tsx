@@ -42,7 +42,11 @@ import {
 } from '@/app/reputation/components/ReputationStats';
 import { ErrorBoundary, SectionErrorBoundary } from '@/components/error-boundary';
 import { EmptyStateEnhanced } from '@/components/ui/EmptyStateEnhanced';
-import { useReputations, useRecalculateReputation } from '@/hooks/data/useReputations';
+import {
+  useReputations,
+  useRecalculateReputation,
+  type ReputationListData,
+} from '@/hooks/data/useReputations';
 import { providerNames } from '@/lib/constants';
 import { PROVIDER_TYPE_CONFIG } from '@/lib/oracles/services/reputationService';
 import type { OracleReputation } from '@/lib/oracles/services/reputationService';
@@ -705,8 +709,8 @@ function FilterBar({
 
 type FilterType = 'all' | ProviderType;
 
-function ReputationContentInner() {
-  const { data, isLoading, error } = useReputations();
+function ReputationContentInner({ initialData }: { initialData?: ReputationListData }) {
+  const { data, isLoading, error } = useReputations({ initialData });
   const recalculate = useRecalculateReputation();
 
   const reputations = useMemo(() => data?.data ?? [], [data?.data]);
@@ -922,10 +926,10 @@ function ReputationContentInner() {
   );
 }
 
-export default function ReputationContent() {
+export default function ReputationContent({ initialData }: { initialData?: ReputationListData }) {
   return (
     <ErrorBoundary level="page" componentName="ReputationContent">
-      <ReputationContentInner />
+      <ReputationContentInner initialData={initialData} />
     </ErrorBoundary>
   );
 }

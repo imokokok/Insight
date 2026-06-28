@@ -22,12 +22,14 @@ interface ReputationDetailWithTrend {
   trend: ReputationTrendPoint[];
 }
 
-async function fetchReputations(): Promise<{
+export interface ReputationListData {
   data: OracleReputation[];
   calculating: boolean;
   message?: string;
   nextRecalcAt?: string | null;
-}> {
+}
+
+async function fetchReputations(): Promise<ReputationListData> {
   const response = await apiClient.get<ReputationApiResponse>('/api/reputation');
   return {
     data: response.data.data ?? [],
@@ -37,18 +39,11 @@ async function fetchReputations(): Promise<{
   };
 }
 
-export function useReputations() {
-  return useQuery<
-    {
-      data: OracleReputation[];
-      calculating: boolean;
-      message?: string;
-      nextRecalcAt?: string | null;
-    },
-    Error
-  >({
+export function useReputations(options?: { initialData?: ReputationListData }) {
+  return useQuery<ReputationListData, Error>({
     queryKey: ['reputations'],
     queryFn: fetchReputations,
+    initialData: options?.initialData,
     staleTime: 3 * 60 * 1000,
     refetchOnWindowFocus: false,
     placeholderData: (previousData) => previousData,
