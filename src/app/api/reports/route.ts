@@ -11,9 +11,13 @@ export async function GET(request: Request) {
     const limit = Math.min(parseInt(url.searchParams.get('limit') ?? '30', 10), 100);
     const offset = Math.max(parseInt(url.searchParams.get('offset') ?? '0', 10), 0);
 
-    const reports = await reportService.listReports(limit, offset);
+    // Return lightweight summaries by default. This selects only the
+    // columns the list view renders (report_date, summary, metrics,
+    // deviation_events) and trims each row to a ReportSummary, avoiding
+    // transfer of the large nested arrays (coverageMatrix, etc.).
+    const reports = await reportService.listReportSummaries(limit, offset);
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       data: reports,
       meta: {
@@ -22,6 +26,10 @@ export async function GET(request: Request) {
         count: reports.length,
       },
     });
+
+    // Reports update at most hourly; allow downstream/edge caching.
+    response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
+    return response;
   } catch (error) {
     logger.error(
       'Failed to list reports',

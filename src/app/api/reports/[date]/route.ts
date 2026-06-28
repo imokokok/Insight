@@ -24,7 +24,18 @@ export async function GET(_request: Request, { params }: { params: Promise<{ dat
       return NextResponse.json({ success: false, error: 'Report not found' }, { status: 404 });
     }
 
-    return NextResponse.json({ success: true, data: report });
+    const response = NextResponse.json({ success: true, data: report });
+
+    // Historical reports are immutable; today's report updates hourly.
+    // Allow edge caching with a short stale window for the current day.
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const isHistorical = date < todayStr;
+    if (isHistorical) {
+      response.headers.set('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
+    } else {
+      response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
+    }
+    return response;
   } catch (error) {
     logger.error(
       'Failed to load report detail',

@@ -4,7 +4,6 @@ import { useMemo, useState } from 'react';
 
 import Link from 'next/link';
 
-import { useQuery } from '@tanstack/react-query';
 import {
   Calendar,
   CheckCircle2,
@@ -12,45 +11,20 @@ import {
   ChevronRight,
   FileText,
   Globe,
-  Loader2,
   Share2,
   ShieldCheck,
 } from 'lucide-react';
 
 import { ErrorBoundary } from '@/components/error-boundary';
 import { EmptyStateEnhanced } from '@/components/ui/EmptyStateEnhanced';
-import { apiClient } from '@/lib/api';
 import { providerNames } from '@/lib/constants';
-import { type DailyReportData } from '@/lib/reports/reportService';
-
-interface ReportsApiResponse {
-  success: boolean;
-  data: DailyReportData[];
-  meta: {
-    limit: number;
-    offset: number;
-    count: number;
-  };
-}
+import { type ReportSummary } from '@/lib/reports/reportService';
 
 const ITEMS_PER_PAGE = 10;
 
-async function fetchReports(): Promise<DailyReportData[]> {
-  const response = await apiClient.get<ReportsApiResponse>('/api/reports?limit=365');
-  return response.data.data ?? [];
-}
+type SummaryMetrics = ReportSummary['metrics'];
 
-function useReports() {
-  return useQuery<DailyReportData[], Error>({
-    queryKey: ['daily-reports'],
-    queryFn: fetchReports,
-    staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
-    retry: 2,
-  });
-}
-
-function StatusBadge({ metrics }: { metrics: DailyReportData['metrics'] }) {
+function StatusBadge({ metrics }: { metrics: SummaryMetrics }) {
   if (metrics.criticalEvents > 0) {
     return (
       <div className="inline-flex items-center gap-1.5 text-xs font-medium text-red-700">
@@ -181,9 +155,9 @@ function NextReportDate() {
   );
 }
 
-function ReportRow({ report }: { report: DailyReportData }) {
+function ReportRow({ report }: { report: ReportSummary }) {
   const date = new Date(report.reportDate);
-  const topEvent = report.deviationEvents[0];
+  const topEvent = report.topDeviationEvent;
 
   return (
     <Link
@@ -273,37 +247,21 @@ function Pagination({
   );
 }
 
-function LoadingState() {
-  return (
-    <div className="min-h-screen bg-[#FAFAFA]">
-      <div className="max-w-7xl mx-auto px-6 py-12">
-        <div className="flex items-center justify-center h-64">
-          <Loader2 className="w-6 h-6 text-gray-400 animate-spin" />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function ReportsContentInner() {
-  const { data: reports, isLoading, error } = useReports();
+function ReportsContentInner({ initialReports }: { initialReports: ReportSummary[] }) {
   const [currentPage, setCurrentPage] = useState(1);
 
   const paginatedReports = useMemo(() => {
-    if (!reports) return [];
     const start = (currentPage - 1) * ITEMS_PER_PAGE;
-    return reports.slice(start, start + ITEMS_PER_PAGE);
-  }, [reports, currentPage]);
+    return initialReports.slice(start, start + ITEMS_PER_PAGE);
+  }, [initialReports, currentPage]);
 
-  const totalPages = useMemo(() => {
-    if (!reports) return 0;
-    return Math.ceil(reports.length / ITEMS_PER_PAGE);
-  }, [reports]);
+  const totalPages = useMemo(
+    () => Math.ceil(initialReports.length / ITEMS_PER_PAGE),
+    [initialReports.length]
+  );
 
-  if (isLoading) return <LoadingState />;
-
-  const reportCount = reports?.length ?? 0;
-  const latestReport = reports?.[0];
+  const reportCount = initialReports.length;
+  const latestReport = initialReports[0];
   const providerCount = latestReport?.metrics.activeProviders ?? 0;
   const assetCount = latestReport?.metrics.activeAssets ?? 0;
 
@@ -315,14 +273,14 @@ function ReportsContentInner() {
         <section>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm font-semibold text-gray-900">All reports</h2>
-            {!error && reports && reports.length > 0 && (
+            {initialReports.length > 0 && (
               <span className="text-xs text-gray-500">
-                {paginatedReports.length} of {reports.length}
+                {paginatedReports.length} of {initialReports.length}
               </span>
             )}
           </div>
 
-          {error || !reports || reports.length === 0 ? (
+          {initialReports.length === 0 ? (
             <EmptyStateEnhanced
               type="new"
               title="No reports yet"
@@ -359,10 +317,10 @@ function ReportsContentInner() {
   );
 }
 
-export default function ReportsContent() {
+export default function ReportsContent({ initialReports }: { initialReports: ReportSummary[] }) {
   return (
     <ErrorBoundary level="page" componentName="ReportsContent">
-      <ReportsContentInner />
+      <ReportsContentInner initialReports={initialReports} />
     </ErrorBoundary>
   );
 }

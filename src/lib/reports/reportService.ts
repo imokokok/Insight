@@ -144,6 +144,26 @@ export interface DailyReportData {
   previousDayComparison: PreviousDayComparison;
 }
 
+/**
+ * Lightweight summary used by the reports list view.
+ * Only contains the fields the list UI actually renders,
+ * avoiding transfer of large nested arrays (coverageMatrix,
+ * providerRankings, topAssets, etc.).
+ */
+export interface ReportSummary {
+  reportDate: string;
+  summary: string;
+  metrics: {
+    criticalEvents: number;
+    highEvents: number;
+    overallSuccessRate: number;
+    avgDeviationPct: number;
+    activeProviders: number;
+    activeAssets: number;
+  };
+  topDeviationEvent: DeviationEvent | null;
+}
+
 interface SnapshotRow {
   snapshot_hour: string;
   provider: string;
@@ -379,6 +399,44 @@ class ReportService {
     }
 
     return (data ?? []).map((row: Record<string, unknown>) => this.mapDbRowToReport(row));
+  }
+
+  /**
+   * Lightweight listing that selects only the columns the reports
+   * list view actually renders. Avoids fetching large JSON arrays
+   * (top_assets, provider_rankings, coverage_matrix, etc.) which
+   * dominate the row size. Returns a trimmed ReportSummary.
+   */
+  async listReportSummaries(limit: number = 30, offset: number = 0): Promise<ReportSummary[]> {
+    const supabase = createServiceRoleClient();
+    const { data, error } = await supabase
+      .from('daily_reports')
+      .select('report_date, summary, metrics, deviation_events')
+      .order('report_date', { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    if (error) {
+      logger.error('Failed to list daily report summaries', error);
+      throw error;
+    }
+
+    return (data ?? []).map((row: Record<string, unknown>) => {
+      const metrics = (row.metrics as DailyReportMetrics | null) ?? ({} as DailyReportMetrics);
+      const deviationEvents = (row.deviation_events as DeviationEvent[] | null) ?? [];
+      return {
+        reportDate: String(row.report_date),
+        summary: String(row.summary ?? ''),
+        metrics: {
+          criticalEvents: metrics.criticalEvents ?? 0,
+          highEvents: metrics.highEvents ?? 0,
+          overallSuccessRate: metrics.overallSuccessRate ?? 0,
+          avgDeviationPct: metrics.avgDeviationPct ?? 0,
+          activeProviders: metrics.activeProviders ?? 0,
+          activeAssets: metrics.activeAssets ?? 0,
+        },
+        topDeviationEvent: deviationEvents[0] ?? null,
+      };
+    });
   }
 
   private mapDbRowToReport(row: Record<string, unknown>): DailyReportData {
