@@ -1,5 +1,7 @@
 'use client';
 
+import { memo } from 'react';
+
 import Link from 'next/link';
 
 import { ArrowRight, TrendingUp, TrendingDown, Minus } from 'lucide-react';
@@ -86,7 +88,7 @@ function AssetRowSkeleton() {
   );
 }
 
-export function AssetTable({ assets, isLoading }: AssetTableProps) {
+function AssetTableComponent({ assets, isLoading }: AssetTableProps) {
   return (
     <section>
       <div className="flex items-center justify-between mb-4">
@@ -198,3 +200,5 @@ export function AssetTable({ assets, isLoading }: AssetTableProps) {
     </section>
   );
 }
+
+export const AssetTable = memo(AssetTableComponent);

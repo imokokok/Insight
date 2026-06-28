@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useCallback } from 'react';
+import { useMemo, useCallback, useEffect } from 'react';
 
 import { useQuery } from '@tanstack/react-query';
 
@@ -21,6 +21,9 @@ interface OnChainDataOptions {
 }
 
 const ON_CHAIN_DATA_QUERY_OPTIONS = {
+  // staleTime: 0 preserves the "always fetch latest on focus/remount" semantics
+  // that on-chain price data requires. Trade-off: more requests, but freshest
+  // data wins. The 60s polling interval still bounds the steady-state rate.
   staleTime: 0,
   gcTime: 300000,
   refetchInterval: 60000,
@@ -32,13 +35,29 @@ export function createOnChainDataHookFromService<T>(
   providerName: string,
   createService: () => {
     getTokenOnChainData: (symbol: string, chain?: Blockchain) => Promise<T | null>;
-  }
+    destroy?: () => void;
+  },
+  hookOptions?: { ownsService?: boolean }
 ): (options: OnChainDataOptions) => OnChainDataReturn<T> {
   return function useOnChainData(options: OnChainDataOptions): OnChainDataReturn<T> {
     const { symbol, chain, enabled = true } = options;
     const queryKey = [providerName, 'onchain-data', symbol.toUpperCase(), chain || 'default'];
 
     const service = useMemo(() => createService(), []);
+
+    // Only destroy the service on unmount when this hook actually owns the
+    // instance (i.e. createService returns a fresh `new Client()`). For hooks
+    // that return a shared singleton (getDIADataService / getWINkLinkRealDataService),
+    // destroying would wipe the global cache and break other consumers — so
+    // ownsService defaults to false.
+    const ownsService = hookOptions?.ownsService ?? false;
+
+    useEffect(() => {
+      if (!ownsService) return;
+      return () => {
+        service.destroy?.();
+      };
+    }, [service, ownsService]);
 
     const queryFn = () => service.getTokenOnChainData(symbol, chain);
 

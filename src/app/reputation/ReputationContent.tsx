@@ -32,8 +32,6 @@ import {
   ProviderIdentity,
   ReputationGauge,
   ScoreBadge,
-  SparklineBar,
-  getProviderColor,
 } from '@/app/reputation/components/ReputationShared';
 import {
   ComparisonInfo,
@@ -466,9 +464,6 @@ function ComparisonTable({
                   </span>
                 </th>
               ))}
-              <th className="text-left px-3 py-3.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider w-[90px]">
-                Trend
-              </th>
               <th className="text-right px-5 py-3.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider w-[100px]">
                 Action
               </th>
@@ -477,19 +472,9 @@ function ComparisonTable({
           <tbody className="divide-y divide-gray-100">
             {providers.map((provider, idx) => {
               const rep = reputationMap.get(provider);
-              const color = getProviderColor(provider);
               const providerType = (PROVIDER_TYPE_CONFIG[provider]?.type || 'api') as ProviderType;
               const typeConf = TYPE_CONFIG[providerType];
               const hasScore = rep && rep.overall_score > 0;
-              const trendData = hasScore
-                ? [
-                    Math.max(0, rep.overall_score - Math.random() * 12),
-                    rep.overall_score - Math.random() * 6,
-                    rep.overall_score + Math.random() * 4,
-                    rep.overall_score - Math.random() * 3,
-                    rep.overall_score,
-                  ]
-                : [];
 
               return (
                 <motion.tr
@@ -584,9 +569,6 @@ function ComparisonTable({
                         {rep?.supported_chains_count ?? 0} chains
                       </span>
                     </div>
-                  </td>
-                  <td className="px-3 py-4">
-                    <SparklineBar data={trendData} color={color} />
                   </td>
                   <td className="px-5 py-4 text-right">
                     <Link

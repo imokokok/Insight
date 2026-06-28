@@ -6,5 +6,6 @@ import { createOnChainDataHookFromService } from './createOnChainDataHook';
 
 export const useRedStoneOnChainData = createOnChainDataHookFromService<RedStoneTokenOnChainData>(
   'redstone',
-  () => new RedStoneClient()
+  () => new RedStoneClient(),
+  { ownsService: true }
 );

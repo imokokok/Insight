@@ -150,5 +150,9 @@ async function loadSymbolsFromDatabase() {
 
 export async function GET() {
   const data = await loadSymbolsFromDatabase();
-  return NextResponse.json(data);
+  const response = NextResponse.json(data);
+  // Symbols are near-static (DB-driven feed list); allow CDN caching with
+  // background revalidation to reduce origin load under serverless.
+  response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
+  return response;
 }

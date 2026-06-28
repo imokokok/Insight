@@ -6,5 +6,6 @@ import { createOnChainDataHookFromService } from './createOnChainDataHook';
 
 export const useFlareOnChainData = createOnChainDataHookFromService<FlareTokenOnChainData>(
   'flare',
-  () => new FlareClient()
+  () => new FlareClient(),
+  { ownsService: true }
 );

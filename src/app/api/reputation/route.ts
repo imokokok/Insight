@@ -74,7 +74,7 @@ export const GET = createApiHandler(
 
       const seeded = await reputationService.getReputations();
 
-      return NextResponse.json({
+      const response = NextResponse.json({
         success: true,
         data: seeded,
         meta: {
@@ -83,6 +83,9 @@ export const GET = createApiHandler(
           recalcIntervalMs: RECALC_INTERVAL_MS,
         },
       });
+      // Do not cache while initial calculation is in progress.
+      response.headers.set('Cache-Control', 'no-store');
+      return response;
     }
 
     const now = Date.now();
@@ -115,7 +118,7 @@ export const GET = createApiHandler(
     const calculating = isCalcInProgress();
     const nextRecalcAt = latestCalcAt && !calculating ? latestCalcAt + RECALC_INTERVAL_MS : null;
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       data: reputations,
       meta: {
@@ -128,6 +131,13 @@ export const GET = createApiHandler(
         nextRecalcAt: nextRecalcAt ? new Date(nextRecalcAt).toISOString() : null,
       },
     });
+    // Reputation recalculates hourly; a short CDN cache aligns with the
+    // client 15s polling cadence without serving stale calculating state.
+    response.headers.set(
+      'Cache-Control',
+      calculating ? 'no-store' : 'public, s-maxage=15, stale-while-revalidate=15'
+    );
+    return response;
   },
   {
     middlewares: {

@@ -6,5 +6,6 @@ import { createOnChainDataHookFromService } from './createOnChainDataHook';
 
 export const useSupraOnChainData = createOnChainDataHookFromService<SupraTokenOnChainData>(
   'supra',
-  () => new SupraClient()
+  () => new SupraClient(),
+  { ownsService: true }
 );

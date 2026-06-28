@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { oracleApiClient } from '@/lib/api/oracleApiClient';
 import { useDynamicSymbols } from '@/lib/hooks/useDynamicSymbols';
 import { extractBaseSymbol } from '@/lib/oracles';
+import { TTLCache } from '@/lib/utils/cache';
 import { createLogger } from '@/lib/utils/logger';
 import { getRequestQueue, type RequestPriority } from '@/lib/utils/requestQueue';
 import { type OracleProvider, type PriceData } from '@/types/oracle';
@@ -19,6 +20,17 @@ import type { PriceHistoryMap, UseOracleMemoryReturn } from './useOracleMemory';
 import type { UseOraclePerformanceReturn } from './useOraclePerformance';
 
 const logger = createLogger('useOracleData');
+
+// Module-level cache so that navigating away from cross-oracle and back
+// restores the previous price snapshot immediately while a fresh fetch is
+// in flight (stale-while-revalidate style). Previously the component lost all
+// state on unmount and showed an empty loading state every time.
+const priceSnapshotCache = new TTLCache({ maxSize: 20, cleanupIntervalMs: 0 });
+const SNAPSHOT_TTL_MS = 5 * 60 * 1000;
+
+function snapshotCacheKey(oracles: OracleProvider[], symbol: string): string {
+  return `${oracles.slice().sort().join(',')}:${symbol}`;
+}
 
 interface UseOracleDataCoreOptions {
   selectedOracles: OracleProvider[];
@@ -307,6 +319,11 @@ export function useOracleDataCore(
 
         setPriceData(prices);
         setLastUpdated(new Date());
+        priceSnapshotCache.set(
+          snapshotCacheKey(selectedOracles, selectedSymbol),
+          prices,
+          SNAPSHOT_TTL_MS
+        );
         setOracleDataError({
           hasError,
           isPartialSuccess,
@@ -387,6 +404,17 @@ export function useOracleDataCore(
         isInitialMountRef.current = false;
       }
       prevDepsRef.current = { selectedOracles, selectedSymbol };
+
+      // Restore the last snapshot for this oracle/symbol combo so the UI
+      // shows stale data immediately instead of an empty loading state.
+      const snapshot = priceSnapshotCache.get<PriceData[]>(
+        snapshotCacheKey(selectedOracles, selectedSymbol)
+      );
+      if (snapshot && snapshot.length > 0 && isMountedRef.current) {
+        setPriceData(snapshot);
+        setLastUpdated(new Date());
+      }
+
       resetErrors();
       setError(null);
       fetchPriceDataRef.current();

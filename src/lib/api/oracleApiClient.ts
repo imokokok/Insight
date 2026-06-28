@@ -419,6 +419,17 @@ async function fetchBatchPricesFromApi({
 
   if (chains.length === 0) return result;
 
+  // Batch responses were previously fetched without any caching or request
+  // deduplication, unlike the single-price path. Reuse the shared response
+  // cache so repeated batch calls within the TTL reuse the same result.
+  const cacheKey = `batch:${provider}:${symbol.toUpperCase()}:${[...chains].sort().join(',')}`;
+  if (!forceRefresh) {
+    const cached = getCachedResponse<Map<Blockchain, PriceData>>(cacheKey);
+    if (cached) {
+      return new Map(cached);
+    }
+  }
+
   const url = new URL('/api/oracles/batch', getBaseUrl());
 
   const controller = new AbortController();
@@ -474,6 +485,9 @@ async function fetchBatchPricesFromApi({
       }
     }
 
+    if (!forceRefresh && result.size > 0) {
+      setCachedResponse(cacheKey, new Map(result));
+    }
     return result;
   } finally {
     clearTimeout(timeoutId);
