@@ -189,6 +189,9 @@ export function ResultDashboard({ result, position, onReset }: ResultDashboardPr
       {/* ── Section 1.6: Fixed Deviation Scenarios (1% / 3% / 5%) ── */}
       <DeviationScenarioPanel scenarios={result.deviationScenarios} />
 
+      {/* ── Section 1.7: Data Source Disclaimer ── */}
+      <ProtocolDisclaimer />
+
       {/* ── Section 2: Risk Assessment & Action ── */}
       <div className="mb-3">
         <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
@@ -603,7 +606,7 @@ function UserRiskSummary({ result }: { result: PositionCriticalResult }) {
     return (
       <div className="text-sm text-red-700 bg-red-50 border border-red-100 rounded-lg p-4">
         <AlertTriangle className="w-4 h-4 inline-block mr-1.5 -mt-0.5" />
-        当前仓位已经处于清算状态，请立即采取行动。
+        Your position is currently eligible for liquidation. Please take action immediately.
       </div>
     );
   }
@@ -612,7 +615,8 @@ function UserRiskSummary({ result }: { result: PositionCriticalResult }) {
     return (
       <div className="text-sm text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-lg p-4">
         <ShieldCheck className="w-4 h-4 inline-block mr-1.5 -mt-0.5" />
-        当前仓位安全。即使抵押品价格下跌 5%，距离清算仍有充足缓冲。
+        Your position is currently safe. Even if collateral prices drop 5%, there is still a
+        comfortable buffer before liquidation.
       </div>
     );
   }
@@ -621,12 +625,12 @@ function UserRiskSummary({ result }: { result: PositionCriticalResult }) {
   return (
     <div className="text-sm text-amber-700 bg-amber-50 border border-amber-100 rounded-lg p-4">
       <AlertTriangle className="w-4 h-4 inline-block mr-1.5 -mt-0.5" />
-      注意：当 <strong>{worstScenario.label}</strong> 时，Health Factor 会降至{' '}
-      <strong>{worstScenario.healthFactor.toFixed(2)}</strong>，距离清算仅剩{' '}
-      <strong>{worstScenario.distanceToLiquidationPercent.toFixed(2)}%</strong>。
+      Watch out: if <strong>{worstScenario.label}</strong>, your Health Factor would drop to{' '}
+      <strong>{worstScenario.healthFactor.toFixed(2)}</strong>, leaving only{' '}
+      <strong>{worstScenario.distanceToLiquidationPercent.toFixed(2)}%</strong> before liquidation.
       {isJoint
-        ? '这是多资产同时偏差的联合风险，建议提前增加抵押品或降低借贷。'
-        : '建议提前增加抵押品或降低借贷。'}
+        ? ' This is a joint-deviation risk across multiple assets. Consider adding collateral or reducing debt in advance.'
+        : ' Consider adding collateral or reducing debt in advance.'}
     </div>
   );
 }
@@ -709,6 +713,20 @@ function ScenarioGroup({ title, scenarios }: { title: string; scenarios: Deviati
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+function ProtocolDisclaimer() {
+  return (
+    <div className="text-xs text-gray-500 bg-gray-50 border border-gray-200 rounded-lg p-3 flex items-start gap-2">
+      <Info className="w-3.5 h-3.5 text-gray-400 mt-0.5 shrink-0" />
+      <p>
+        Risk parameters are sourced from public protocol documentation and represent commonly
+        published liquidation thresholds / LLTVs. Parameters vary by chain and may change after
+        governance votes. Always verify current on-chain values on the official protocol interface
+        before taking action.
+      </p>
     </div>
   );
 }

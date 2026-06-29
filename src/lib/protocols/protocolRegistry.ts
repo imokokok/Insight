@@ -86,12 +86,16 @@ export const PROTOCOL_REGISTRY: ProtocolConfig[] = [
     description: 'Leading decentralized lending protocol on Ethereum',
     tvlUsd: 12_000_000_000,
     assets: [
-      // Aave V3 ETH: LT=82.5%, CF=80%, LTV=80%
-      makeAsset('ETH', 'major', OracleProvider.CHAINLINK, 1.2125, 0.8, 0.8),
-      makeAsset('WBTC', 'major', OracleProvider.CHAINLINK, 1.25, 0.73, 0.73),
+      // Aave V3 ETH: LT=83%, LTV=80%, CF=80%
+      makeAsset('ETH', 'major', OracleProvider.CHAINLINK, 1.2048, 0.8, 0.8),
+      // Aave V3 WBTC: LT=78%, LTV=73%, CF=73%
+      makeAsset('WBTC', 'major', OracleProvider.CHAINLINK, 1.2821, 0.73, 0.73),
+      // Aave V3 USDC: LT=80%, LTV=77%, CF=77%
       makeAsset('USDC', 'stablecoin', OracleProvider.CHAINLINK, 1.25, 0.77, 0.77),
+      // Aave V3 USDT: LT=80%, LTV=75%, CF=75%
       makeAsset('USDT', 'stablecoin', OracleProvider.CHAINLINK, 1.25, 0.75, 0.75),
-      makeAsset('LINK', 'alt', OracleProvider.CHAINLINK, 1.405, 0.66, 0.66),
+      // Aave V3 LINK: LT=68%, LTV=65%, CF=65%
+      makeAsset('LINK', 'alt', OracleProvider.CHAINLINK, 1.4706, 0.65, 0.65),
     ],
     defaultPosition: {
       collaterals: [{ symbol: 'ETH', amount: 2.5 }],
@@ -141,11 +145,16 @@ export const PROTOCOL_REGISTRY: ProtocolConfig[] = [
     description: 'Aave lending protocol on Arbitrum',
     tvlUsd: 3_000_000_000,
     assets: [
-      makeAsset('ETH', 'major', OracleProvider.CHAINLINK, 1.2125, 0.8, 0.8),
-      makeAsset('WBTC', 'major', OracleProvider.CHAINLINK, 1.25, 0.73, 0.73),
+      // Aave V3 ETH: LT=83%, LTV=80%, CF=80%
+      makeAsset('ETH', 'major', OracleProvider.CHAINLINK, 1.2048, 0.8, 0.8),
+      // Aave V3 WBTC: LT=78%, LTV=73%, CF=73%
+      makeAsset('WBTC', 'major', OracleProvider.CHAINLINK, 1.2821, 0.73, 0.73),
+      // Aave V3 USDC: LT=80%, LTV=77%, CF=77%
       makeAsset('USDC', 'stablecoin', OracleProvider.CHAINLINK, 1.25, 0.77, 0.77),
+      // Aave V3 USDT: LT=80%, LTV=75%, CF=75%
       makeAsset('USDT', 'stablecoin', OracleProvider.CHAINLINK, 1.25, 0.75, 0.75),
-      makeAsset('ARB', 'alt', OracleProvider.CHAINLINK, 1.45, 0.63, 0.63),
+      // Aave V3 ARB: LT=65%, LTV=50%, CF=50%
+      makeAsset('ARB', 'alt', OracleProvider.CHAINLINK, 1.5385, 0.5, 0.5),
     ],
     defaultPosition: {
       collaterals: [{ symbol: 'ETH', amount: 2.5 }],
@@ -176,15 +185,15 @@ export const PROTOCOL_REGISTRY: ProtocolConfig[] = [
     description: 'Aave lending protocol on Base',
     tvlUsd: 2_000_000_000,
     assets: [
-      // Aave V3 Base: same as Ethereum — ETH LTV=80%, LT=82.5%
-      makeAsset('ETH', 'major', OracleProvider.CHAINLINK, 1.2125, 0.8, 0.8),
-      // WBTC LTV=73%, LT=78%
+      // Aave V3 Base: ETH LT=83%, LTV=80%, CF=80%
+      makeAsset('ETH', 'major', OracleProvider.CHAINLINK, 1.2048, 0.8, 0.8),
+      // WBTC LT=78%, LTV=73%, CF=73%
       makeAsset('WBTC', 'major', OracleProvider.CHAINLINK, 1.2821, 0.73, 0.73),
-      // USDC LTV=77%, LT=80%
+      // USDC LT=80%, LTV=77%, CF=77%
       makeAsset('USDC', 'stablecoin', OracleProvider.CHAINLINK, 1.25, 0.77, 0.77),
-      // USDT LTV=75%, LT=80%
+      // USDT LT=80%, LTV=75%, CF=75%
       makeAsset('USDT', 'stablecoin', OracleProvider.CHAINLINK, 1.25, 0.75, 0.75),
-      // cbETH LTV=78%, LT=81%
+      // cbETH LT=81%, LTV=78%, CF=78%
       makeAsset('cbETH', 'alt', OracleProvider.CHAINLINK, 1.2346, 0.78, 0.78),
     ],
     defaultPosition: {
@@ -220,19 +229,19 @@ export const PROTOCOL_REGISTRY: ProtocolConfig[] = [
     description: 'Aave lending protocol on Optimism',
     tvlUsd: 1_800_000_000,
     assets: [
-      // Aave V3 Optimism: ETH LTV=80%, LT=82.5%
-      makeAsset('ETH', 'major', OracleProvider.CHAINLINK, 1.2125, 0.8, 0.8),
-      // WBTC LTV=73%, LT=78%
+      // Aave V3 Optimism: ETH LT=83%, LTV=80%, CF=80%
+      makeAsset('ETH', 'major', OracleProvider.CHAINLINK, 1.2048, 0.8, 0.8),
+      // WBTC LT=78%, LTV=73%, CF=73%
       makeAsset('WBTC', 'major', OracleProvider.CHAINLINK, 1.2821, 0.73, 0.73),
-      // USDC LTV=77%, LT=80%
+      // USDC LT=80%, LTV=77%, CF=77%
       makeAsset('USDC', 'stablecoin', OracleProvider.CHAINLINK, 1.25, 0.77, 0.77),
-      // USDT LTV=75%, LT=80%
+      // USDT LT=80%, LTV=75%, CF=75%
       makeAsset('USDT', 'stablecoin', OracleProvider.CHAINLINK, 1.25, 0.75, 0.75),
-      // DAI LTV=77%, LT=80%
+      // DAI LT=80%, LTV=77%, CF=77%
       makeAsset('DAI', 'stablecoin', OracleProvider.CHAINLINK, 1.25, 0.77, 0.77),
-      // wstETH LTV=80%, LT=83% (ETH-correlated eMode)
-      makeAsset('wstETH', 'alt', OracleProvider.CHAINLINK, 1.2346, 0.8, 0.8),
-      // OP LTV=50%, LT=65%
+      // wstETH LT=81%, LTV=78%, CF=78%
+      makeAsset('wstETH', 'alt', OracleProvider.CHAINLINK, 1.2346, 0.78, 0.78),
+      // OP LT=65%, LTV=50%, CF=50%
       makeAsset('OP', 'alt', OracleProvider.CHAINLINK, 1.5385, 0.5, 0.5),
     ],
     defaultPosition: {
@@ -247,19 +256,19 @@ export const PROTOCOL_REGISTRY: ProtocolConfig[] = [
     description: 'Aave lending protocol on Polygon',
     tvlUsd: 1_200_000_000,
     assets: [
-      // Aave V3 Polygon: ETH LTV=80%, LT=82.5%
-      makeAsset('ETH', 'major', OracleProvider.CHAINLINK, 1.2125, 0.8, 0.8),
-      // WBTC LTV=73%, LT=78%
+      // Aave V3 Polygon: ETH LT=83%, LTV=80%, CF=80%
+      makeAsset('ETH', 'major', OracleProvider.CHAINLINK, 1.2048, 0.8, 0.8),
+      // WBTC LT=78%, LTV=73%, CF=73%
       makeAsset('WBTC', 'major', OracleProvider.CHAINLINK, 1.2821, 0.73, 0.73),
-      // USDC LTV=77%, LT=80%
+      // USDC LT=80%, LTV=77%, CF=77%
       makeAsset('USDC', 'stablecoin', OracleProvider.CHAINLINK, 1.25, 0.77, 0.77),
-      // USDT LTV=75%, LT=80%
+      // USDT LT=80%, LTV=75%, CF=75%
       makeAsset('USDT', 'stablecoin', OracleProvider.CHAINLINK, 1.25, 0.75, 0.75),
-      // DAI LTV=77%, LT=80%
+      // DAI LT=80%, LTV=77%, CF=77%
       makeAsset('DAI', 'stablecoin', OracleProvider.CHAINLINK, 1.25, 0.77, 0.77),
-      // wstETH LTV=80%, LT=83%
-      makeAsset('wstETH', 'alt', OracleProvider.CHAINLINK, 1.2346, 0.8, 0.8),
-      // MATIC LTV=50%, LT=65%
+      // wstETH LT=81%, LTV=78%, CF=78%
+      makeAsset('wstETH', 'alt', OracleProvider.CHAINLINK, 1.2346, 0.78, 0.78),
+      // MATIC LT=65%, LTV=50%, CF=50%
       makeAsset('MATIC', 'alt', OracleProvider.CHAINLINK, 1.5385, 0.5, 0.5),
     ],
     defaultPosition: {
@@ -274,21 +283,21 @@ export const PROTOCOL_REGISTRY: ProtocolConfig[] = [
     description: 'Permissionless lending engine with isolated markets on Base',
     tvlUsd: 5_000_000_000,
     assets: [
-      // Morpho Blue Base: major isolated markets
+      // Morpho Blue Base: isolated markets (LLTV = liquidation loan-to-value)
       // ETH/USDC market: LLTV=86%
       makeAsset('ETH', 'major', OracleProvider.CHAINLINK, 1.1628, 0.86, 0.86),
       // WBTC/USDC market: LLTV=77%
       makeAsset('WBTC', 'major', OracleProvider.CHAINLINK, 1.2987, 0.77, 0.77),
       // cbETH/ETH market: LLTV=94.5% (highly correlated LST)
       makeAsset('cbETH', 'alt', OracleProvider.CHAINLINK, 1.0582, 0.945, 0.945),
-      // wstETH/ETH market: LLTV=94.5%
-      makeAsset('wstETH', 'alt', OracleProvider.CHAINLINK, 1.0582, 0.945, 0.945),
-      // USDC (primary borrow asset)
-      makeAsset('USDC', 'stablecoin', OracleProvider.CHAINLINK, 1.0406, 0.96, 0.96),
-      // USDT (borrow asset)
-      makeAsset('USDT', 'stablecoin', OracleProvider.CHAINLINK, 1.0406, 0.96, 0.96),
-      // DAI (borrow asset)
-      makeAsset('DAI', 'stablecoin', OracleProvider.CHAINLINK, 1.0406, 0.96, 0.96),
+      // wstETH/ETH market: LLTV=96.5%
+      makeAsset('wstETH', 'alt', OracleProvider.CHAINLINK, 1.0363, 0.965, 0.965),
+      // USDC (primary borrow asset, stablecoin-correlated LLTV=94.5%)
+      makeAsset('USDC', 'stablecoin', OracleProvider.CHAINLINK, 1.0582, 0.945, 0.945),
+      // USDT (borrow asset, stablecoin-correlated LLTV=94.5%)
+      makeAsset('USDT', 'stablecoin', OracleProvider.CHAINLINK, 1.0582, 0.945, 0.945),
+      // DAI (borrow asset, stablecoin-correlated LLTV=94.5%)
+      makeAsset('DAI', 'stablecoin', OracleProvider.CHAINLINK, 1.0582, 0.945, 0.945),
     ],
     defaultPosition: {
       collaterals: [{ symbol: 'ETH', amount: 2.5 }],
