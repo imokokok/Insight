@@ -13,6 +13,7 @@ import {
   CheckCircle2,
   Coins,
   Globe,
+  Info,
   Lightbulb,
   Minus,
   Radio,
@@ -25,14 +26,17 @@ import {
 } from 'lucide-react';
 
 import { ErrorBoundary } from '@/components/error-boundary';
-import { providerNames, oracleColors } from '@/lib/constants';
+import { chainNames, providerNames, oracleColors } from '@/lib/constants';
 import {
   type DailyReportData,
   type ProviderRanking,
+  type ProtocolLiquidationRisk,
+  type ProtocolLiquidationScenario,
   type RiskImpact,
 } from '@/lib/reports/reportService';
 import { cn } from '@/lib/utils';
 import { formatPrice } from '@/lib/utils/format';
+import type { Blockchain } from '@/types/oracle';
 
 interface ReportDetailContentProps {
   initialReport: DailyReportData;
@@ -776,6 +780,174 @@ function RiskImpactSummary({ impacts }: { impacts: RiskImpact[] }) {
   );
 }
 
+function ProtocolLiquidationRiskPanel({ risks }: { risks: ProtocolLiquidationRisk[] }) {
+  if (risks.length === 0) {
+    return (
+      <div className="flex items-start gap-3 text-emerald-800 bg-emerald-50 border border-emerald-100 rounded-lg p-4">
+        <CheckCircle2 className="w-5 h-5 flex-shrink-0 mt-0.5" />
+        <div>
+          <p className="text-sm font-medium">No liquidation stress-test data</p>
+          <p className="text-xs text-emerald-600/80 mt-0.5">
+            No integrated lending protocols could be stress-tested for this report period.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <p className="text-sm text-gray-600 leading-relaxed">
+        Representative positions across integrated lending protocols are stress-tested at 1%, 3%,
+        and 5% oracle deviation. Joint-deviation scenarios (all collaterals drop and all borrows
+        rise together) are the primary risk indicator; single-asset drops are shown for reference.
+      </p>
+      <div className="space-y-3">
+        {risks.slice(0, 6).map((risk) => (
+          <ProtocolLiquidationRiskCard key={risk.protocolId} risk={risk} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ProtocolLiquidationRiskCard({ risk }: { risk: ProtocolLiquidationRisk }) {
+  const jointScenarios = risk.scenarios
+    .filter((s) => s.isJoint)
+    .sort((a, b) => a.deviationPercent - b.deviationPercent);
+  const singleScenarios = risk.scenarios
+    .filter((s) => !s.isJoint)
+    .sort((a, b) => a.deviationPercent - b.deviationPercent);
+
+  const hfColor =
+    risk.currentHealthFactor < 1
+      ? 'text-gray-500'
+      : risk.currentHealthFactor < 1.05
+        ? 'text-red-600'
+        : risk.currentHealthFactor < 1.2
+          ? 'text-amber-600'
+          : 'text-emerald-600';
+
+  return (
+    <div className="rounded-lg border border-gray-200 bg-white p-4">
+      <div className="flex items-start justify-between gap-4 mb-3">
+        <div>
+          <div className="flex items-center gap-2">
+            <h3 className="text-sm font-semibold text-gray-900">{risk.protocolName}</h3>
+            <span className="text-xs text-gray-500">
+              {chainNames[risk.chain as Blockchain] ?? risk.chain}
+            </span>
+          </div>
+          <p className="text-xs text-gray-500 mt-0.5">
+            {risk.collaterals.map((c) => `${c.amount} ${c.symbol}`).join(' + ')} collateral /{' '}
+            {risk.borrows.map((b) => `${b.amount} ${b.symbol}`).join(' + ')} debt
+          </p>
+        </div>
+        <div className="text-right">
+          <p className="text-xs text-gray-500">Current HF</p>
+          <p className={cn('text-sm font-semibold font-mono', hfColor)}>
+            {risk.currentHealthFactor.toFixed(2)}
+          </p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+        <ScenarioTable title="Joint deviation" scenarios={jointScenarios} variant="primary" />
+        <ScenarioTable title="Single-asset drop" scenarios={singleScenarios} variant="secondary" />
+      </div>
+
+      <div className="mt-3 flex items-center gap-2 text-xs text-gray-500">
+        <Info className="w-3.5 h-3.5 flex-shrink-0" />
+        Joint liquidation threshold: {Math.abs(risk.jointCriticalDeviationPercent).toFixed(2)}%
+        major-equiv
+        {risk.worstSingleAssetDeviation && (
+          <span className="hidden sm:inline">
+            {' '}
+            · Worst single-asset move: {risk.worstSingleAssetDeviation.symbol}{' '}
+            {risk.worstSingleAssetDeviation.direction === 'down' ? '↓' : '↑'}
+            {Math.abs(risk.worstSingleAssetDeviation.criticalDeviationPercent).toFixed(2)}%
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ScenarioStatusBadge({ status }: { status: ProtocolLiquidationScenario['status'] }) {
+  const config = {
+    safe: { label: 'Safe', bg: 'bg-emerald-100', text: 'text-emerald-700' },
+    warning: { label: 'Warning', bg: 'bg-amber-100', text: 'text-amber-700' },
+    critical: { label: 'Critical', bg: 'bg-red-100', text: 'text-red-700' },
+    liquidated: { label: 'Liquidated', bg: 'bg-gray-800', text: 'text-white' },
+  }[status];
+
+  return (
+    <span
+      className={cn('text-[10px] font-semibold px-2 py-0.5 rounded-full', config.bg, config.text)}
+    >
+      {config.label}
+    </span>
+  );
+}
+
+function ScenarioTable({
+  title,
+  scenarios,
+  variant,
+}: {
+  title: string;
+  scenarios: ProtocolLiquidationScenario[];
+  variant: 'primary' | 'secondary';
+}) {
+  if (scenarios.length === 0) return null;
+  const isPrimary = variant === 'primary';
+
+  return (
+    <div
+      className={cn(
+        'rounded-lg p-3',
+        isPrimary ? 'bg-primary-50/50 border border-primary-100' : 'bg-gray-50'
+      )}
+    >
+      <div className="flex items-center gap-2 mb-2">
+        <h4
+          className={cn('text-xs font-semibold', isPrimary ? 'text-primary-900' : 'text-gray-500')}
+        >
+          {title}
+        </h4>
+        {isPrimary && (
+          <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-primary-100 text-primary-700">
+            Primary
+          </span>
+        )}
+      </div>
+      <div className="space-y-2">
+        {scenarios.map((s) => (
+          <div key={s.label} className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-gray-900 w-16">{s.label}</span>
+              <ScenarioStatusBadge status={s.status} />
+            </div>
+            <div className="flex items-center gap-3 text-xs text-gray-500">
+              <span>
+                HF <span className="font-mono text-gray-900">{s.healthFactor.toFixed(2)}</span>
+              </span>
+              {s.status !== 'safe' && (
+                <span>
+                  Buffer{' '}
+                  <span className="font-mono text-gray-900">
+                    {s.distanceToLiquidationPercent.toFixed(2)}%
+                  </span>
+                </span>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function Highlights({ highlights }: { highlights: string[] }) {
   return (
     <ul className="space-y-3">
@@ -1028,6 +1200,11 @@ export default function ReportDetailContent({ initialReport }: ReportDetailConte
           {/* User risk impact summary */}
           <SectionCard title="User risk impact summary" icon={ShieldAlert} className="mb-6">
             <RiskImpactSummary impacts={report.riskImpacts ?? []} />
+          </SectionCard>
+
+          {/* Lending liquidation stress test */}
+          <SectionCard title="Lending liquidation stress test" icon={TrendingDown} className="mb-6">
+            <ProtocolLiquidationRiskPanel risks={report.protocolLiquidationRisks ?? []} />
           </SectionCard>
 
           {/* Highlights & recommendations */}

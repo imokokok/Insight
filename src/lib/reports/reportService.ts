@@ -1,3 +1,7 @@
+import {
+  calculatePositionCriticalDeviation,
+  type PositionInput,
+} from '@/lib/protocols/protocolHealth';
 import { PROTOCOL_REGISTRY, type ProtocolConfig } from '@/lib/protocols/protocolRegistry';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { createLogger } from '@/lib/utils/logger';
@@ -151,6 +155,36 @@ export interface RiskImpact {
   relatedProviders: string[];
 }
 
+export interface ProtocolLiquidationScenario {
+  label: string;
+  deviationPercent: number;
+  isJoint: boolean;
+  healthFactor: number;
+  collateralRatio: number;
+  status: 'safe' | 'warning' | 'critical' | 'liquidated';
+  distanceToLiquidationPercent: number;
+}
+
+export interface ProtocolLiquidationRisk {
+  protocolId: string;
+  protocolName: string;
+  chain: string;
+  collaterals: Array<{ symbol: string; amount: number; price: number; value: number }>;
+  borrows: Array<{ symbol: string; amount: number; price: number; value: number }>;
+  totalCollateralValue: number;
+  totalBorrowValue: number;
+  currentHealthFactor: number;
+  currentCollateralRatio: number;
+  liquidationThreshold: number;
+  jointCriticalDeviationPercent: number;
+  worstSingleAssetDeviation: {
+    symbol: string;
+    criticalDeviationPercent: number;
+    direction: 'down' | 'up';
+  } | null;
+  scenarios: ProtocolLiquidationScenario[];
+}
+
 export interface DailyReportMetrics {
   totalSnapshots: number;
   successfulSnapshots: number;
@@ -187,6 +221,7 @@ export interface DailyReportData {
   failureBreakdown: FailureBreakdown[];
   previousDayComparison: PreviousDayComparison;
   riskImpacts: RiskImpact[];
+  protocolLiquidationRisks: ProtocolLiquidationRisk[];
 }
 
 /**
@@ -336,13 +371,15 @@ class ReportService {
       providerRankings,
       topAssets
     );
+    const protocolLiquidationRisks = await this.calculateProtocolLiquidationRisks(snapshots);
     const highlights = this.generateHighlights(
       metrics,
       topAssets,
       providerRankings,
       deviationEvents,
       failureBreakdown,
-      riskImpacts
+      riskImpacts,
+      protocolLiquidationRisks
     );
     const recommendations = this.generateRecommendations(
       metrics,
@@ -350,14 +387,16 @@ class ReportService {
       topAssets,
       failureBreakdown,
       deviationEvents,
-      riskImpacts
+      riskImpacts,
+      protocolLiquidationRisks
     );
     const summary = this.generateSummary(
       dateStr,
       metrics,
       deviationEvents,
       previousDayComparison,
-      riskImpacts
+      riskImpacts,
+      protocolLiquidationRisks
     );
 
     const reportData: DailyReportData = {
@@ -381,6 +420,7 @@ class ReportService {
       failureBreakdown,
       previousDayComparison,
       riskImpacts,
+      protocolLiquidationRisks,
     };
 
     logger.info(
@@ -413,6 +453,9 @@ class ReportService {
         report.previousDayComparison
       ) as PreviousDayComparison,
       risk_impacts: sanitizeJsonValue(report.riskImpacts) as RiskImpact[],
+      protocol_liquidation_risks: sanitizeJsonValue(
+        report.protocolLiquidationRisks
+      ) as ProtocolLiquidationRisk[],
       generated_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
@@ -527,6 +570,7 @@ class ReportService {
       previousDayComparison:
         (row.previous_day_comparison as PreviousDayComparison) ?? emptyComparison,
       riskImpacts: (row.risk_impacts as RiskImpact[]) ?? [],
+      protocolLiquidationRisks: (row.protocol_liquidation_risks as ProtocolLiquidationRisk[]) ?? [],
     };
   }
 
@@ -979,6 +1023,135 @@ class ReportService {
       .slice(0, 8);
   }
 
+  private buildSnapshotPriceFetcher(snapshots: SnapshotRow[]) {
+    const byProviderSymbol = new Map<string, SnapshotRow[]>();
+    const bySymbol = new Map<string, SnapshotRow[]>();
+
+    for (const s of snapshots) {
+      if (!s.is_success || s.price <= 0) continue;
+      const key = `${s.provider}:${s.symbol}`;
+      const list1 = byProviderSymbol.get(key) ?? [];
+      list1.push(s);
+      byProviderSymbol.set(key, list1);
+
+      const list2 = bySymbol.get(s.symbol) ?? [];
+      list2.push(s);
+      bySymbol.set(s.symbol, list2);
+    }
+
+    for (const list of byProviderSymbol.values()) {
+      list.sort((a, b) => b.snapshot_hour.localeCompare(a.snapshot_hour));
+    }
+    for (const list of bySymbol.values()) {
+      list.sort((a, b) => b.snapshot_hour.localeCompare(a.snapshot_hour));
+    }
+
+    return async (queries: { provider: OracleProvider; symbol: string }[]) => {
+      return queries.map((query) => {
+        const key = `${query.provider}:${query.symbol}`;
+        const exactMatches = byProviderSymbol.get(key);
+        const exact = exactMatches?.[0];
+        if (exact) {
+          return {
+            provider: query.provider,
+            symbol: query.symbol,
+            price: exact.price,
+            timestamp: new Date(exact.snapshot_hour).getTime(),
+          };
+        }
+
+        const symbolMatches = bySymbol.get(query.symbol);
+        const fallback = symbolMatches?.[0];
+        if (fallback) {
+          return {
+            provider: query.provider,
+            symbol: query.symbol,
+            price: fallback.consensus_price ?? fallback.price,
+            timestamp: new Date(fallback.snapshot_hour).getTime(),
+          };
+        }
+
+        throw new Error(`No snapshot price found for ${query.provider}/${query.symbol}`);
+      });
+    };
+  }
+
+  private async calculateProtocolLiquidationRisks(
+    snapshots: SnapshotRow[]
+  ): Promise<ProtocolLiquidationRisk[]> {
+    if (snapshots.length === 0) return [];
+
+    const fetchPrices = this.buildSnapshotPriceFetcher(snapshots);
+    const risks: ProtocolLiquidationRisk[] = [];
+
+    for (const protocol of PROTOCOL_REGISTRY) {
+      if (!protocol.defaultPosition) continue;
+
+      const input: PositionInput = {
+        protocolId: protocol.id,
+        collaterals: protocol.defaultPosition.collaterals,
+        borrows: protocol.defaultPosition.borrows,
+      };
+
+      try {
+        const result = await calculatePositionCriticalDeviation(input, fetchPrices, []);
+        const worstSingle =
+          result.assetDeviations.length > 0
+            ? result.assetDeviations.reduce((worst, curr) =>
+                Math.abs(curr.criticalDeviationPercent) < Math.abs(worst.criticalDeviationPercent)
+                  ? curr
+                  : worst
+              )
+            : null;
+
+        risks.push({
+          protocolId: protocol.id,
+          protocolName: protocol.name,
+          chain: protocol.chain,
+          collaterals: result.collaterals.map((c) => ({
+            symbol: c.symbol,
+            amount: c.amount,
+            price: c.price,
+            value: c.value,
+          })),
+          borrows: result.borrows.map((b) => ({
+            symbol: b.symbol,
+            amount: b.amount,
+            price: b.price,
+            value: b.value,
+          })),
+          totalCollateralValue: result.totalCollateralValue,
+          totalBorrowValue: result.totalBorrowValue,
+          currentHealthFactor: result.currentHealthFactor,
+          currentCollateralRatio: result.currentCollateralRatio,
+          liquidationThreshold: result.liquidationThreshold,
+          jointCriticalDeviationPercent: result.jointDeviation.criticalDeviationPercent,
+          worstSingleAssetDeviation: worstSingle
+            ? {
+                symbol: worstSingle.symbol,
+                criticalDeviationPercent: worstSingle.criticalDeviationPercent,
+                direction: worstSingle.direction,
+              }
+            : null,
+          scenarios: result.deviationScenarios.map((s) => ({
+            label: s.label,
+            deviationPercent: s.deviationPercent,
+            isJoint: s.isJoint,
+            healthFactor: s.healthFactor,
+            collateralRatio: s.collateralRatio,
+            status: s.status,
+            distanceToLiquidationPercent: s.distanceToLiquidationPercent,
+          })),
+        });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        logger.warn(`Failed to calculate liquidation risk for ${protocol.id}: ${message}`);
+      }
+    }
+
+    return risks.sort((a, b) => a.currentHealthFactor - b.currentHealthFactor);
+  }
+
   private async calculatePreviousDayComparison(
     dateStr: string,
     metrics: DailyReportMetrics
@@ -1029,7 +1202,8 @@ class ReportService {
     topAssets: AssetDailyStats[],
     failureBreakdown: FailureBreakdown[],
     deviationEvents: DeviationEvent[],
-    riskImpacts: RiskImpact[]
+    riskImpacts: RiskImpact[],
+    protocolLiquidationRisks: ProtocolLiquidationRisk[]
   ): string[] {
     const recommendations: string[] = [];
 
@@ -1040,6 +1214,25 @@ class ReportService {
       recommendations.push(
         `${top.title}: Users of ${top.affectedEntities.slice(0, 3).join(', ')} should review leverage and add collateral buffers, especially for ${top.relatedAssets.join('/')} positions.`
       );
+    }
+
+    if (protocolLiquidationRisks.length > 0) {
+      const riskiest = protocolLiquidationRisks[0];
+      const criticalScenario = riskiest.scenarios.find((s) => s.status === 'liquidated');
+      if (criticalScenario) {
+        recommendations.push(
+          `${riskiest.protocolName} (${riskiest.chain}) is the most leveraged-sensitive protocol today: a representative position would be liquidated under the ${criticalScenario.label} joint-deviation scenario. Users should widen their Health Factor or reduce borrow exposure.`
+        );
+      } else {
+        const smallestBuffer = riskiest.scenarios
+          .filter((s) => s.isJoint)
+          .sort((a, b) => a.healthFactor - b.healthFactor)[0];
+        if (smallestBuffer) {
+          recommendations.push(
+            `${riskiest.protocolName} (${riskiest.chain}) has the smallest liquidation buffer among monitored protocols. Under the ${smallestBuffer.label} joint-deviation scenario, Health Factor drops to ${smallestBuffer.healthFactor.toFixed(2)} — consider adding collateral if this margin is too thin for your risk tolerance.`
+          );
+        }
+      }
     }
 
     const depegImpacts = riskImpacts.filter((i) => i.category === 'stablecoin_depeg');
@@ -1144,7 +1337,8 @@ class ReportService {
     providerRankings: ProviderRanking[],
     deviationEvents: DeviationEvent[],
     failureBreakdown: FailureBreakdown[],
-    riskImpacts: RiskImpact[]
+    riskImpacts: RiskImpact[],
+    protocolLiquidationRisks: ProtocolLiquidationRisk[]
   ): string[] {
     const highlights: string[] = [];
 
@@ -1153,6 +1347,14 @@ class ReportService {
       const top = riskImpacts[0];
       highlights.push(
         `${top.title} — affects ${top.affectedEntities.slice(0, 2).join(', ')}${top.affectedEntities.length > 2 ? ` and ${top.affectedEntities.length - 2} more` : ''}. ${top.description}`
+      );
+    }
+
+    if (protocolLiquidationRisks.length > 0) {
+      const riskiest = protocolLiquidationRisks[0];
+      const jointPct = Math.abs(riskiest.jointCriticalDeviationPercent);
+      highlights.push(
+        `Lending-position stress test: ${riskiest.protocolName} on ${riskiest.chain} has the smallest joint-deviation buffer (${jointPct.toFixed(2)}% major-equiv) before liquidation. A representative ${riskiest.collaterals.map((c) => c.symbol).join('/')} collateral / ${riskiest.borrows.map((b) => b.symbol).join('/')} debt position would be at risk if all oracles moved together beyond this threshold.`
       );
     }
 
@@ -1238,7 +1440,8 @@ class ReportService {
     metrics: DailyReportMetrics,
     deviationEvents: DeviationEvent[],
     previousDayComparison: PreviousDayComparison,
-    riskImpacts: RiskImpact[]
+    riskImpacts: RiskImpact[],
+    protocolLiquidationRisks: ProtocolLiquidationRisk[]
   ): string {
     const dateLabel = new Date(dateStr).toLocaleDateString('en-US', {
       timeZone: 'UTC',
@@ -1265,6 +1468,14 @@ class ReportService {
       const highCount = riskImpacts.filter((i) => i.severity === 'high').length;
       parts.push(
         `From a user-risk perspective, today's data translates into ${labels.join(', ')}: ${riskImpacts.length} impact${riskImpacts.length > 1 ? 's' : ''} identified${criticalCount > 0 ? `, including ${criticalCount} critical` : ''}${highCount > 0 && criticalCount === 0 ? `, including ${highCount} high-severity` : ''}.`
+      );
+    }
+
+    if (protocolLiquidationRisks.length > 0) {
+      const riskiest = protocolLiquidationRisks[0];
+      const jointPct = Math.abs(riskiest.jointCriticalDeviationPercent);
+      parts.push(
+        `Stress-testing representative positions across integrated lending protocols shows ${riskiest.protocolName} (${riskiest.chain}) is closest to liquidation: a joint oracle deviation of ${jointPct.toFixed(2)}% (major-equiv) would push its benchmark position below the liquidation threshold.`
       );
     }
 
