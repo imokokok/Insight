@@ -205,7 +205,6 @@ export interface DailyReportData {
   reportDate: string;
   reportTitle: string;
   summary: string;
-  highlights: string[];
   recommendations: string[];
   metrics: DailyReportMetrics;
   topAssets: AssetDailyStats[];
@@ -372,15 +371,6 @@ class ReportService {
       topAssets
     );
     const protocolLiquidationRisks = await this.calculateProtocolLiquidationRisks(snapshots);
-    const highlights = this.generateHighlights(
-      metrics,
-      topAssets,
-      providerRankings,
-      deviationEvents,
-      failureBreakdown,
-      riskImpacts,
-      protocolLiquidationRisks
-    );
     const recommendations = this.generateRecommendations(
       metrics,
       providerRankings,
@@ -409,7 +399,6 @@ class ReportService {
         day: 'numeric',
       })}`,
       summary,
-      highlights,
       recommendations,
       metrics,
       topAssets,
@@ -438,7 +427,6 @@ class ReportService {
       report_date: report.reportDate,
       report_title: report.reportTitle,
       summary: report.summary,
-      highlights: report.highlights,
       recommendations: report.recommendations,
       metrics: sanitizeJsonValue(report.metrics) as DailyReportMetrics,
       top_assets: sanitizeJsonValue(report.topAssets) as AssetDailyStats[],
@@ -556,7 +544,6 @@ class ReportService {
       reportDate: String(row.report_date),
       reportTitle: String(row.report_title),
       summary: String(row.summary),
-      highlights: (row.highlights as string[]) ?? [],
       recommendations: (row.recommendations as string[]) ?? [],
       metrics: (row.metrics as DailyReportMetrics) ?? ({} as DailyReportMetrics),
       topAssets: (row.top_assets as AssetDailyStats[]) ?? [],
@@ -1329,110 +1316,6 @@ class ReportService {
     }
 
     return recommendations;
-  }
-
-  private generateHighlights(
-    metrics: DailyReportMetrics,
-    topAssets: AssetDailyStats[],
-    providerRankings: ProviderRanking[],
-    deviationEvents: DeviationEvent[],
-    failureBreakdown: FailureBreakdown[],
-    riskImpacts: RiskImpact[],
-    protocolLiquidationRisks: ProtocolLiquidationRisk[]
-  ): string[] {
-    const highlights: string[] = [];
-
-    // Lead with the highest-severity user-risk impact when available.
-    if (riskImpacts.length > 0) {
-      const top = riskImpacts[0];
-      highlights.push(
-        `${top.title} — affects ${top.affectedEntities.slice(0, 2).join(', ')}${top.affectedEntities.length > 2 ? ` and ${top.affectedEntities.length - 2} more` : ''}. ${top.description}`
-      );
-    }
-
-    if (protocolLiquidationRisks.length > 0) {
-      const riskiest = protocolLiquidationRisks[0];
-      const jointPct = Math.abs(riskiest.jointCriticalDeviationPercent);
-      highlights.push(
-        `Lending-position stress test: ${riskiest.protocolName} on ${riskiest.chain} has the smallest joint-deviation buffer (${jointPct.toFixed(2)}% major-equiv) before liquidation. A representative ${riskiest.collaterals.map((c) => c.symbol).join('/')} collateral / ${riskiest.borrows.map((b) => b.symbol).join('/')} debt position would be at risk if all oracles moved together beyond this threshold.`
-      );
-    }
-
-    if (metrics.criticalEvents > 0) {
-      highlights.push(
-        `${metrics.criticalEvents} critical deviation event${metrics.criticalEvents > 1 ? 's' : ''} detected — oracles diverged ≥2% from consensus, indicating elevated liquidation risk.`
-      );
-    } else if (metrics.highEvents > 0) {
-      highlights.push(
-        `${metrics.highEvents} high-severity deviation event${metrics.highEvents > 1 ? 's' : ''} detected (1-2% from consensus). Price feeds remain usable but warrant monitoring.`
-      );
-    } else {
-      highlights.push(
-        'No severe deviation events (≥1%) detected. Oracle networks demonstrated strong consensus throughout the day.'
-      );
-    }
-
-    if (topAssets.length > 0) {
-      const mostVolatile = topAssets[0];
-      highlights.push(
-        `${mostVolatile.symbol} showed the highest intraday volatility at ${mostVolatile.volatilityPct.toFixed(2)}% between min/max consensus prices.`
-      );
-
-      const mostDeviated = topAssets
-        .slice()
-        .sort((a, b) => b.avgDeviationPct - a.avgDeviationPct)[0];
-      if (mostDeviated.avgDeviationPct > 0) {
-        highlights.push(
-          `${mostDeviated.symbol} had the largest average deviation from consensus (${mostDeviated.avgDeviationPct.toFixed(3)}%), suggesting the most disagreement among providers.`
-        );
-      }
-    }
-
-    if (providerRankings.length > 0) {
-      const best = providerRankings[0];
-      const worst = providerRankings[providerRankings.length - 1];
-      highlights.push(
-        `${best.provider} ranked #1 with ${best.successRate.toFixed(1)}% uptime and ${best.avgDeviationPct.toFixed(3)}% average deviation.`
-      );
-      if (worst.avgDeviationPct >= 0.5 || worst.successRate < 95) {
-        highlights.push(
-          `${worst.provider} lagged behind with ${worst.avgDeviationPct.toFixed(3)}% average deviation and ${worst.successRate.toFixed(1)}% success rate.`
-        );
-      }
-    }
-
-    if (metrics.failedSnapshots > 0) {
-      const failureRate =
-        metrics.totalSnapshots > 0 ? (metrics.failedSnapshots / metrics.totalSnapshots) * 100 : 0;
-      highlights.push(
-        `${metrics.failedSnapshots} price snapshots failed (${failureRate.toFixed(1)}%), primarily due to provider timeouts or stale feeds.`
-      );
-      if (failureBreakdown.length > 0) {
-        const top = failureBreakdown[0];
-        highlights.push(
-          `Most failures clustered on ${top.provider} / ${top.symbol} (${top.failureCount} failures).`
-        );
-      }
-    } else {
-      highlights.push(
-        'All hourly snapshots were collected successfully across every active provider.'
-      );
-    }
-
-    if (metrics.avgLatencyMs > 0) {
-      highlights.push(
-        `Average feed latency was ${metrics.avgLatencyMs} ms across ${metrics.activeHours} active hourly window${metrics.activeHours > 1 ? 's' : ''}.`
-      );
-    }
-
-    if (deviationEvents.length > 0) {
-      const worst = deviationEvents[0];
-      highlights.push(
-        `The largest single deviation was ${worst.provider} / ${worst.symbol} at ${Math.abs(worst.deviationPct).toFixed(3)}% during ${new Date(worst.hour).toISOString().slice(11, 16)} UTC.`
-      );
-    }
-
-    return highlights;
   }
 
   private generateSummary(

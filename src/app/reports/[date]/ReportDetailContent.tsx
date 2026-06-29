@@ -11,6 +11,8 @@ import {
   BarChart3,
   Calendar,
   CheckCircle2,
+  ChevronDown,
+  ChevronUp,
   Coins,
   Globe,
   Info,
@@ -402,7 +404,21 @@ function AssetTable({ assets }: { assets: DailyReportData['topAssets'] }) {
   );
 }
 
-function DeviationEvents({ events }: { events: DailyReportData['deviationEvents'] }) {
+function DeviationEvents({ report }: { report: DailyReportData }) {
+  const { deviationEvents: events, anomalySummary } = report;
+
+  const topProviders = useMemo(() => {
+    return Object.entries(anomalySummary.byProvider)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5);
+  }, [anomalySummary.byProvider]);
+
+  const topAssets = useMemo(() => {
+    return Object.entries(anomalySummary.byAsset)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5);
+  }, [anomalySummary.byAsset]);
+
   if (events.length === 0) {
     return (
       <div className="flex items-start gap-3 text-emerald-800 bg-emerald-50 border border-emerald-100 rounded-lg p-4">
@@ -418,39 +434,81 @@ function DeviationEvents({ events }: { events: DailyReportData['deviationEvents'
   }
 
   return (
-    <div className="space-y-2">
-      {events.slice(0, 8).map((event, index) => {
-        const config = getSeverityConfig(event.severity);
-        return (
-          <div
-            key={`${event.provider}-${event.symbol}-${event.hour}-${index}`}
-            className={cn(
-              'flex items-center justify-between rounded-lg border px-4 py-3',
-              config.bg,
-              config.border
-            )}
-          >
-            <div className="flex items-center gap-3 min-w-0">
-              <span className={cn('w-2 h-2 rounded-full flex-shrink-0', config.dot)} />
-              <div className="min-w-0">
-                <p className={cn('text-sm font-medium truncate', config.text)}>
-                  {providerNames[event.provider] ?? event.provider} · {event.symbol}
-                </p>
-                <p className={cn('text-xs truncate opacity-80', config.text)}>
-                  {formatPrice(event.price)} vs consensus {formatPrice(event.consensusPrice)}
-                </p>
-              </div>
+    <div className="space-y-4">
+      {/* Compact anomaly source summary */}
+      {(topProviders.length > 0 || topAssets.length > 0) && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-3 bg-gray-50 rounded-lg">
+          <div>
+            <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-2">
+              Top affected providers
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {topProviders.map(([provider, count]) => (
+                <span
+                  key={provider}
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium bg-white border border-gray-200 text-gray-700"
+                >
+                  {providerNames[provider as keyof typeof providerNames] ?? provider}
+                  <span className="text-gray-400">·</span>
+                  <span className="font-tabular">{count}</span>
+                </span>
+              ))}
             </div>
-            <span className="text-sm font-semibold font-tabular text-gray-900 flex-shrink-0">
-              {event.deviationPct > 0 ? '+' : ''}
-              {event.deviationPct.toFixed(3)}%
-            </span>
           </div>
-        );
-      })}
-      {events.length > 8 && (
-        <p className="text-xs text-gray-500 text-center py-2">+{events.length - 8} more events</p>
+          <div>
+            <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-2">
+              Top affected assets
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {topAssets.map(([asset, count]) => (
+                <span
+                  key={asset}
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium bg-white border border-gray-200 text-gray-700"
+                >
+                  {asset}
+                  <span className="text-gray-400">·</span>
+                  <span className="font-tabular">{count}</span>
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
       )}
+
+      <div className="space-y-2">
+        {events.slice(0, 8).map((event, index) => {
+          const config = getSeverityConfig(event.severity);
+          return (
+            <div
+              key={`${event.provider}-${event.symbol}-${event.hour}-${index}`}
+              className={cn(
+                'flex items-center justify-between rounded-lg border px-4 py-3',
+                config.bg,
+                config.border
+              )}
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <span className={cn('w-2 h-2 rounded-full flex-shrink-0', config.dot)} />
+                <div className="min-w-0">
+                  <p className={cn('text-sm font-medium truncate', config.text)}>
+                    {providerNames[event.provider] ?? event.provider} · {event.symbol}
+                  </p>
+                  <p className={cn('text-xs truncate opacity-80', config.text)}>
+                    {formatPrice(event.price)} vs consensus {formatPrice(event.consensusPrice)}
+                  </p>
+                </div>
+              </div>
+              <span className="text-sm font-semibold font-tabular text-gray-900 flex-shrink-0">
+                {event.deviationPct > 0 ? '+' : ''}
+                {event.deviationPct.toFixed(3)}%
+              </span>
+            </div>
+          );
+        })}
+        {events.length > 8 && (
+          <p className="text-xs text-gray-500 text-center py-2">+{events.length - 8} more events</p>
+        )}
+      </div>
     </div>
   );
 }
@@ -603,93 +661,6 @@ function HealthScoreGauge({ report }: { report: DailyReportData }) {
           {metrics.avgDeviationPct.toFixed(3)}% avg deviation, and {metrics.totalAnomalies}{' '}
           anomalies.
         </p>
-      </div>
-    </div>
-  );
-}
-
-function AnomalySourceBreakdown({ report }: { report: DailyReportData }) {
-  const topProviders = useMemo(() => {
-    return Object.entries(report.anomalySummary.byProvider)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 5);
-  }, [report.anomalySummary.byProvider]);
-
-  const topAssets = useMemo(() => {
-    return Object.entries(report.anomalySummary.byAsset)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 5);
-  }, [report.anomalySummary.byAsset]);
-
-  const total = Math.max(1, report.anomalySummary.total);
-
-  return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-      <div>
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-          By Provider
-        </p>
-        <div className="space-y-2.5">
-          {topProviders.length > 0 ? (
-            topProviders.map(([provider, count]) => {
-              const color = oracleColors[provider as keyof typeof oracleColors] ?? '#9CA3AF';
-              return (
-                <div key={provider}>
-                  <div className="flex items-center justify-between mb-1">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span
-                        className="w-2 h-2 rounded-full flex-shrink-0"
-                        style={{ backgroundColor: color }}
-                      />
-                      <span className="text-xs text-gray-700 truncate">
-                        {providerNames[provider as keyof typeof providerNames] ?? provider}
-                      </span>
-                    </div>
-                    <span className="text-xs font-semibold text-gray-900 font-tabular">
-                      {count}
-                    </span>
-                  </div>
-                  <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full"
-                      style={{
-                        width: `${Math.min(100, (count / total) * 100)}%`,
-                        backgroundColor: color,
-                      }}
-                    />
-                  </div>
-                </div>
-              );
-            })
-          ) : (
-            <p className="text-xs text-gray-500">No anomalies by provider.</p>
-          )}
-        </div>
-      </div>
-      <div>
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-          By Asset
-        </p>
-        <div className="space-y-2.5">
-          {topAssets.length > 0 ? (
-            topAssets.map(([asset, count]) => (
-              <div key={asset}>
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs text-gray-700">{asset}</span>
-                  <span className="text-xs font-semibold text-gray-900 font-tabular">{count}</span>
-                </div>
-                <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-gray-400"
-                    style={{ width: `${Math.min(100, (count / total) * 100)}%` }}
-                  />
-                </div>
-              </div>
-            ))
-          ) : (
-            <p className="text-xs text-gray-500">No anomalies by asset.</p>
-          )}
-        </div>
       </div>
     </div>
   );
@@ -948,19 +919,6 @@ function ScenarioTable({
   );
 }
 
-function Highlights({ highlights }: { highlights: string[] }) {
-  return (
-    <ul className="space-y-3">
-      {highlights.map((highlight, index) => (
-        <li key={index} className="flex items-start gap-3 text-sm text-gray-700 leading-relaxed">
-          <span className="w-1.5 h-1.5 rounded-full bg-gray-300 mt-2 flex-shrink-0" />
-          {highlight}
-        </li>
-      ))}
-    </ul>
-  );
-}
-
 function Recommendations({ recommendations }: { recommendations: string[] }) {
   if (!recommendations || recommendations.length === 0) {
     return <p className="text-sm text-gray-500">No recommendations for this period.</p>;
@@ -981,65 +939,135 @@ function Recommendations({ recommendations }: { recommendations: string[] }) {
 }
 
 function CoverageMatrix({ matrix }: { matrix: DailyReportData['coverageMatrix'] }) {
-  const providers = useMemo(() => [...new Set(matrix.map((m) => m.provider))].sort(), [matrix]);
-  const assets = useMemo(() => [...new Set(matrix.map((m) => m.symbol))].sort(), [matrix]);
+  const [showAll, setShowAll] = useState(true);
 
-  if (providers.length === 0 || assets.length === 0) {
+  const abnormalCells = useMemo(
+    () =>
+      matrix.filter((m) => m.failed > 0 || m.avgDeviationPct >= 0.5 || m.maxDeviationPct >= 0.5),
+    [matrix]
+  );
+
+  const visibleMatrix = showAll ? matrix : abnormalCells;
+
+  const providers = useMemo(
+    () => [...new Set(visibleMatrix.map((m) => m.provider))].sort(),
+    [visibleMatrix]
+  );
+  const assets = useMemo(
+    () => [...new Set(visibleMatrix.map((m) => m.symbol))].sort(),
+    [visibleMatrix]
+  );
+
+  if (matrix.length === 0) {
     return <p className="text-sm text-gray-500 text-center py-4">No coverage data available.</p>;
   }
 
+  if (abnormalCells.length === 0) {
+    return (
+      <div className="flex items-start gap-3 text-emerald-800 bg-emerald-50 border border-emerald-100 rounded-lg p-4">
+        <CheckCircle2 className="w-5 h-5 flex-shrink-0 mt-0.5" />
+        <div>
+          <p className="text-sm font-medium">No coverage anomalies</p>
+          <p className="text-xs text-emerald-600/80 mt-0.5">
+            All provider/asset pairs stayed within tolerance with no failed snapshots.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
-      <table className="min-w-full text-xs">
-        <thead className="bg-gray-50 border-b border-gray-100">
-          <tr>
-            <th className="text-left font-medium text-gray-500 px-4 py-3 sticky left-0 bg-gray-50">
-              Provider
-            </th>
-            {assets.map((asset) => (
-              <th
-                key={asset}
-                className="text-center font-medium text-gray-500 px-3 py-3 min-w-[70px]"
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <p className="text-xs text-gray-500">
+          {showAll ? (
+            <>Showing all {matrix.length} provider/asset pairs.</>
+          ) : (
+            <>
+              Showing {abnormalCells.length} anomalous pair
+              {abnormalCells.length > 1 ? 's' : ''}.{' '}
+              <button
+                onClick={() => setShowAll(true)}
+                className="text-gray-900 underline hover:text-primary-600"
               >
-                {asset}
+                Show all
+              </button>
+            </>
+          )}
+        </p>
+        <button
+          onClick={() => setShowAll((prev) => !prev)}
+          className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+        >
+          {showAll ? (
+            <>
+              <ChevronUp className="w-3.5 h-3.5" />
+              Show anomalies only
+            </>
+          ) : (
+            <>
+              <ChevronDown className="w-3.5 h-3.5" />
+              Show all
+            </>
+          )}
+        </button>
+      </div>
+
+      <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
+        <table className="min-w-full text-xs">
+          <thead className="bg-gray-50 border-b border-gray-100">
+            <tr>
+              <th className="text-left font-medium text-gray-500 px-4 py-3 sticky left-0 bg-gray-50">
+                Provider
               </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {providers.map((provider) => (
-            <tr key={provider} className="border-b border-gray-100 last:border-0">
-              <td className="px-4 py-3 font-medium text-gray-900 sticky left-0 bg-white">
-                {providerNames[provider] ?? provider}
-              </td>
-              {assets.map((asset) => {
-                const cell = matrix.find((m) => m.provider === provider && m.symbol === asset);
-                return (
-                  <td key={asset} className="px-3 py-3 text-center align-middle">
-                    {cell ? (
-                      <div className="flex flex-col items-center gap-0.5">
-                        <span
-                          className={cn(
-                            'font-tabular font-semibold',
-                            cell.failed > 0 ? 'text-amber-600' : 'text-emerald-600'
-                          )}
-                        >
-                          {cell.success}/{cell.total}
-                        </span>
-                        <span className="text-[10px] text-gray-400">
-                          {cell.avgDeviationPct.toFixed(2)}%
-                        </span>
-                      </div>
-                    ) : (
-                      <span className="text-gray-300">—</span>
-                    )}
-                  </td>
-                );
-              })}
+              {assets.map((asset) => (
+                <th
+                  key={asset}
+                  className="text-center font-medium text-gray-500 px-3 py-3 min-w-[70px]"
+                >
+                  {asset}
+                </th>
+              ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {providers.map((provider) => (
+              <tr key={provider} className="border-b border-gray-100 last:border-0">
+                <td className="px-4 py-3 font-medium text-gray-900 sticky left-0 bg-white">
+                  {providerNames[provider] ?? provider}
+                </td>
+                {assets.map((asset) => {
+                  const cell = matrix.find((m) => m.provider === provider && m.symbol === asset);
+                  const isVisible = visibleMatrix.some(
+                    (m) => m.provider === provider && m.symbol === asset
+                  );
+                  return (
+                    <td key={asset} className="px-3 py-3 text-center align-middle">
+                      {cell && isVisible ? (
+                        <div className="flex flex-col items-center gap-0.5">
+                          <span
+                            className={cn(
+                              'font-tabular font-semibold',
+                              cell.failed > 0 ? 'text-amber-600' : 'text-emerald-600'
+                            )}
+                          >
+                            {cell.success}/{cell.total}
+                          </span>
+                          <span className="text-[10px] text-gray-400">
+                            {cell.avgDeviationPct.toFixed(2)}%
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-gray-300">—</span>
+                      )}
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
@@ -1207,16 +1235,10 @@ export default function ReportDetailContent({ initialReport }: ReportDetailConte
             <ProtocolLiquidationRiskPanel risks={report.protocolLiquidationRisks ?? []} />
           </SectionCard>
 
-          {/* Highlights & recommendations */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            <SectionCard title="Key highlights" icon={Shield}>
-              <Highlights highlights={report.highlights} />
-            </SectionCard>
-
-            <SectionCard title="Recommendations" icon={Lightbulb}>
-              <Recommendations recommendations={report.recommendations} />
-            </SectionCard>
-          </div>
+          {/* Action-oriented recommendations */}
+          <SectionCard title="Recommendations" icon={Lightbulb} className="mb-6">
+            <Recommendations recommendations={report.recommendations} />
+          </SectionCard>
 
           {/* Full-width data tables */}
           <section className="mb-6">
@@ -1233,16 +1255,10 @@ export default function ReportDetailContent({ initialReport }: ReportDetailConte
             <AssetTable assets={report.topAssets} />
           </section>
 
-          {/* Anomaly sources & deviation events */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            <SectionCard title="Anomaly sources" icon={BarChart3}>
-              <AnomalySourceBreakdown report={report} />
-            </SectionCard>
-
-            <SectionCard title="Deviation events" icon={AlertTriangle}>
-              <DeviationEvents events={report.deviationEvents} />
-            </SectionCard>
-          </div>
+          {/* Deviation events with source summary */}
+          <SectionCard title="Deviation events" icon={AlertTriangle} className="mb-6">
+            <DeviationEvents report={report} />
+          </SectionCard>
 
           {/* Coverage matrix */}
           <section className="mb-6">
