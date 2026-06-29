@@ -214,6 +214,88 @@ export const PROTOCOL_REGISTRY: ProtocolConfig[] = [
     },
   },
   {
+    id: 'aave-v3-optimism',
+    name: 'Aave V3',
+    chain: 'optimism' as Blockchain,
+    description: 'Aave lending protocol on Optimism',
+    tvlUsd: 1_800_000_000,
+    assets: [
+      // Aave V3 Optimism: ETH LTV=80%, LT=82.5%
+      makeAsset('ETH', 'major', OracleProvider.CHAINLINK, 1.2125, 0.8, 0.8),
+      // WBTC LTV=73%, LT=78%
+      makeAsset('WBTC', 'major', OracleProvider.CHAINLINK, 1.2821, 0.73, 0.73),
+      // USDC LTV=77%, LT=80%
+      makeAsset('USDC', 'stablecoin', OracleProvider.CHAINLINK, 1.25, 0.77, 0.77),
+      // USDT LTV=75%, LT=80%
+      makeAsset('USDT', 'stablecoin', OracleProvider.CHAINLINK, 1.25, 0.75, 0.75),
+      // DAI LTV=77%, LT=80%
+      makeAsset('DAI', 'stablecoin', OracleProvider.CHAINLINK, 1.25, 0.77, 0.77),
+      // wstETH LTV=80%, LT=83% (ETH-correlated eMode)
+      makeAsset('wstETH', 'alt', OracleProvider.CHAINLINK, 1.2346, 0.8, 0.8),
+      // OP LTV=50%, LT=65%
+      makeAsset('OP', 'alt', OracleProvider.CHAINLINK, 1.5385, 0.5, 0.5),
+    ],
+    defaultPosition: {
+      collaterals: [{ symbol: 'ETH', amount: 2.5 }],
+      borrows: [{ symbol: 'USDC', amount: 1000 }],
+    },
+  },
+  {
+    id: 'aave-v3-polygon',
+    name: 'Aave V3',
+    chain: 'polygon' as Blockchain,
+    description: 'Aave lending protocol on Polygon',
+    tvlUsd: 1_200_000_000,
+    assets: [
+      // Aave V3 Polygon: ETH LTV=80%, LT=82.5%
+      makeAsset('ETH', 'major', OracleProvider.CHAINLINK, 1.2125, 0.8, 0.8),
+      // WBTC LTV=73%, LT=78%
+      makeAsset('WBTC', 'major', OracleProvider.CHAINLINK, 1.2821, 0.73, 0.73),
+      // USDC LTV=77%, LT=80%
+      makeAsset('USDC', 'stablecoin', OracleProvider.CHAINLINK, 1.25, 0.77, 0.77),
+      // USDT LTV=75%, LT=80%
+      makeAsset('USDT', 'stablecoin', OracleProvider.CHAINLINK, 1.25, 0.75, 0.75),
+      // DAI LTV=77%, LT=80%
+      makeAsset('DAI', 'stablecoin', OracleProvider.CHAINLINK, 1.25, 0.77, 0.77),
+      // wstETH LTV=80%, LT=83%
+      makeAsset('wstETH', 'alt', OracleProvider.CHAINLINK, 1.2346, 0.8, 0.8),
+      // MATIC LTV=50%, LT=65%
+      makeAsset('MATIC', 'alt', OracleProvider.CHAINLINK, 1.5385, 0.5, 0.5),
+    ],
+    defaultPosition: {
+      collaterals: [{ symbol: 'ETH', amount: 2.5 }],
+      borrows: [{ symbol: 'USDC', amount: 1000 }],
+    },
+  },
+  {
+    id: 'morpho-blue-base',
+    name: 'Morpho Blue',
+    chain: 'base' as Blockchain,
+    description: 'Permissionless lending engine with isolated markets on Base',
+    tvlUsd: 5_000_000_000,
+    assets: [
+      // Morpho Blue Base: major isolated markets
+      // ETH/USDC market: LLTV=86%
+      makeAsset('ETH', 'major', OracleProvider.CHAINLINK, 1.1628, 0.86, 0.86),
+      // WBTC/USDC market: LLTV=77%
+      makeAsset('WBTC', 'major', OracleProvider.CHAINLINK, 1.2987, 0.77, 0.77),
+      // cbETH/ETH market: LLTV=94.5% (highly correlated LST)
+      makeAsset('cbETH', 'alt', OracleProvider.CHAINLINK, 1.0582, 0.945, 0.945),
+      // wstETH/ETH market: LLTV=94.5%
+      makeAsset('wstETH', 'alt', OracleProvider.CHAINLINK, 1.0582, 0.945, 0.945),
+      // USDC (primary borrow asset)
+      makeAsset('USDC', 'stablecoin', OracleProvider.CHAINLINK, 1.0406, 0.96, 0.96),
+      // USDT (borrow asset)
+      makeAsset('USDT', 'stablecoin', OracleProvider.CHAINLINK, 1.0406, 0.96, 0.96),
+      // DAI (borrow asset)
+      makeAsset('DAI', 'stablecoin', OracleProvider.CHAINLINK, 1.0406, 0.96, 0.96),
+    ],
+    defaultPosition: {
+      collaterals: [{ symbol: 'ETH', amount: 2.5 }],
+      borrows: [{ symbol: 'USDC', amount: 1000 }],
+    },
+  },
+  {
     id: 'spark-ethereum',
     name: 'Spark Protocol',
     chain: 'ethereum' as Blockchain,
