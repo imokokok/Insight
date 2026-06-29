@@ -243,7 +243,7 @@ export const PROTOCOL_REGISTRY: ProtocolConfig[] = [
       // USDT LT=80%, LTV=75%, CF=75%
       makeAsset('USDT', 'stablecoin', OracleProvider.CHAINLINK, 1.25, 0.75, 0.75),
       // cbETH LT=81%, LTV=78%, CF=78%
-      makeAsset('cbETH', 'alt', OracleProvider.CHAINLINK, 1.2346, 0.78, 0.78),
+      makeAsset('cbETH', 'major', OracleProvider.CHAINLINK, 1.2346, 0.78, 0.78),
     ],
     defaultPosition: {
       collaterals: [{ symbol: 'ETH', amount: 2.5 }],
@@ -289,7 +289,7 @@ export const PROTOCOL_REGISTRY: ProtocolConfig[] = [
       // DAI LT=80%, LTV=77%, CF=77%
       makeAsset('DAI', 'stablecoin', OracleProvider.CHAINLINK, 1.25, 0.77, 0.77),
       // wstETH LT=81%, LTV=78%, CF=78%
-      makeAsset('wstETH', 'alt', OracleProvider.CHAINLINK, 1.2346, 0.78, 0.78),
+      makeAsset('wstETH', 'major', OracleProvider.CHAINLINK, 1.2346, 0.78, 0.78),
       // OP LT=65%, LTV=50%, CF=50%
       makeAsset('OP', 'alt', OracleProvider.CHAINLINK, 1.5385, 0.5, 0.5),
     ],
@@ -316,7 +316,7 @@ export const PROTOCOL_REGISTRY: ProtocolConfig[] = [
       // DAI LT=80%, LTV=77%, CF=77%
       makeAsset('DAI', 'stablecoin', OracleProvider.CHAINLINK, 1.25, 0.77, 0.77),
       // wstETH LT=81%, LTV=78%, CF=78%
-      makeAsset('wstETH', 'alt', OracleProvider.CHAINLINK, 1.2346, 0.78, 0.78),
+      makeAsset('wstETH', 'major', OracleProvider.CHAINLINK, 1.2346, 0.78, 0.78),
       // MATIC LT=65%, LTV=50%, CF=50%
       makeAsset('MATIC', 'alt', OracleProvider.CHAINLINK, 1.5385, 0.5, 0.5),
     ],
@@ -338,9 +338,9 @@ export const PROTOCOL_REGISTRY: ProtocolConfig[] = [
       // WBTC/USDC market: LLTV=77%
       makeAsset('WBTC', 'major', OracleProvider.CHAINLINK, 1.2987, 0.77, 0.77),
       // cbETH/ETH market: LLTV=94.5% (highly correlated LST)
-      makeAsset('cbETH', 'alt', OracleProvider.CHAINLINK, 1.0582, 0.945, 0.945),
+      makeAsset('cbETH', 'major', OracleProvider.CHAINLINK, 1.0582, 0.945, 0.945),
       // wstETH/ETH market: LLTV=96.5%
-      makeAsset('wstETH', 'alt', OracleProvider.CHAINLINK, 1.0363, 0.965, 0.965),
+      makeAsset('wstETH', 'major', OracleProvider.CHAINLINK, 1.0363, 0.965, 0.965),
       // USDC (primary borrow asset, stablecoin-correlated LLTV=94.5%)
       makeAsset('USDC', 'stablecoin', OracleProvider.CHAINLINK, 1.0582, 0.945, 0.945),
       // USDT (borrow asset, stablecoin-correlated LLTV=94.5%)
@@ -371,7 +371,7 @@ export const PROTOCOL_REGISTRY: ProtocolConfig[] = [
       // DAI LTV=77%, LT=80%
       makeAsset('DAI', 'stablecoin', OracleProvider.CHAINLINK, 1.25, 0.77, 0.77),
       // wstETH eMode: LTV=97%, LT=97% (ETH-correlated eMode per Messari/Credora report)
-      makeAsset('wstETH', 'alt', OracleProvider.CHAINLINK, 1.0309, 0.97, 0.97),
+      makeAsset('wstETH', 'major', OracleProvider.CHAINLINK, 1.0309, 0.97, 0.97),
     ],
     defaultPosition: {
       collaterals: [{ symbol: 'ETH', amount: 2.5 }],
@@ -392,7 +392,7 @@ export const PROTOCOL_REGISTRY: ProtocolConfig[] = [
       // WBTC/USDC market: LLTV=77%
       makeAsset('WBTC', 'major', OracleProvider.CHAINLINK, 1.2987, 0.77, 0.77),
       // wstETH/ETH market: LLTV=94.5% (highly correlated)
-      makeAsset('wstETH', 'alt', OracleProvider.CHAINLINK, 1.0582, 0.945, 0.945),
+      makeAsset('wstETH', 'major', OracleProvider.CHAINLINK, 1.0582, 0.945, 0.945),
       // USDC (primary borrow asset in most markets)
       makeAsset('USDC', 'stablecoin', OracleProvider.CHAINLINK, 1.0406, 0.96, 0.96),
       // USDT (borrow asset)
