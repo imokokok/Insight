@@ -9,6 +9,8 @@ Insight is an oracle transparency and risk infrastructure platform that serves b
 ### For DeFi Users
 
 - **Safety Check (Position Critical Deviation)** - Enter your DeFi lending position to calculate the exact oracle price deviation that would trigger liquidation. Supports multi-asset positions across Aave V3, Compound V3, Spark, Morpho Blue, Venus, BENQI, and more. Provides health factor gauge, safety buffer analysis, and oracle reliability warnings.
+- **Stablecoin Depeg Monitor** - Real-time monitoring of USDC, USDT, DAI, and other stablecoins across oracle providers and chains. Detects depegs, tracks duration, maps affected lending protocols, and explains how collateral and borrow positions are impacted.
+- **Wrapped Asset Peg Monitor** - Tracks WBTC, wstETH, cbETH, and other wrapped or liquid-staking tokens for deviations against their underlying assets. Includes on-chain LST exchange rates, cross-source deviation analysis, and protocol impact mapping.
 - **Price Query** - Query real-time prices from any oracle provider with a simple interface. View on-chain data, confidence intervals, and price freshness at a glance.
 
 ### For Researchers & Analysts
@@ -168,23 +170,25 @@ npm run dev
 
 ## Navigation
 
-| Page                | Path                        | Description                                                                        | Auth Required |
-| ------------------- | --------------------------- | ---------------------------------------------------------------------------------- | ------------- |
-| Home                | `/`                         | Real-time dashboard with consensus prices, oracle health status, and quick actions | No            |
-| Price Query         | `/price-query`              | Single oracle price query with on-chain data and confidence intervals              | No            |
-| Safety Check        | `/safety-check`             | Position critical deviation calculator with liquidation risk analysis              | No            |
-| Price Insight       | `/price-insight`            | Unified cross-oracle and cross-chain price analysis                                | No            |
-| Oracle Directory    | `/reputation`               | Oracle provider profiles and 7-day rolling reputation scores                       | No            |
-| Provider Detail     | `/reputation/[provider]`    | Detailed provider profile with trend charts and score breakdowns                   | No            |
-| Price Snapshots     | `/snapshots`                | Save, compare, and share price snapshots                                           | Yes           |
-| Settings            | `/settings`                 | Profile, preferences, data management                                              | Yes           |
-| Documentation       | `/docs`                     | Quick start, feature guides, and developer resources                               | No            |
-| Login               | `/login`                    | User login page                                                                    | No            |
-| Register            | `/register`                 | User registration page                                                             | No            |
-| Forgot Password     | `/auth/forgot-password`     | Password reset request page                                                        | No            |
-| Reset Password      | `/auth/reset-password`      | Password reset confirmation page                                                   | No            |
-| Verify Email        | `/auth/verify-email`        | Email verification page                                                            | No            |
-| Resend Verification | `/auth/resend-verification` | Resend email verification link                                                     | No            |
-| Contact             | `/contact`                  | Contact page                                                                       | No            |
-| Privacy Policy      | `/privacy`                  | Privacy policy page                                                                | No            |
-| Terms of Service    | `/terms`                    | Terms of service page                                                              | No            |
+| Page                      | Path                        | Description                                                                        | Auth Required |
+| ------------------------- | --------------------------- | ---------------------------------------------------------------------------------- | ------------- |
+| Home                      | `/`                         | Real-time dashboard with consensus prices, oracle health status, and quick actions | No            |
+| Price Query               | `/price-query`              | Single oracle price query with on-chain data and confidence intervals              | No            |
+| Safety Check              | `/safety-check`             | Position critical deviation calculator with liquidation risk analysis              | No            |
+| Stablecoin Depeg Monitor  | `/stablecoin-depeg`         | Stablecoin depeg monitoring with protocol impact analysis                          | No            |
+| Wrapped Asset Peg Monitor | `/wrapped-assets`           | Wrapped and LST peg risk monitoring against underlying assets                      | No            |
+| Price Insight             | `/price-insight`            | Unified cross-oracle and cross-chain price analysis                                | No            |
+| Oracle Directory          | `/reputation`               | Oracle provider profiles and 7-day rolling reputation scores                       | No            |
+| Provider Detail           | `/reputation/[provider]`    | Detailed provider profile with trend charts and score breakdowns                   | No            |
+| Price Snapshots           | `/snapshots`                | Save, compare, and share price snapshots                                           | Yes           |
+| Settings                  | `/settings`                 | Profile, preferences, data management                                              | Yes           |
+| Documentation             | `/docs`                     | Quick start, feature guides, and developer resources                               | No            |
+| Login                     | `/login`                    | User login page                                                                    | No            |
+| Register                  | `/register`                 | User registration page                                                             | No            |
+| Forgot Password           | `/auth/forgot-password`     | Password reset request page                                                        | No            |
+| Reset Password            | `/auth/reset-password`      | Password reset confirmation page                                                   | No            |
+| Verify Email              | `/auth/verify-email`        | Email verification page                                                            | No            |
+| Resend Verification       | `/auth/resend-verification` | Resend email verification link                                                     | No            |
+| Contact                   | `/contact`                  | Contact page                                                                       | No            |
+| Privacy Policy            | `/privacy`                  | Privacy policy page                                                                | No            |
+| Terms of Service          | `/terms`                    | Terms of service page                                                              | No            |

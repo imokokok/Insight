@@ -9,10 +9,49 @@ import {
   Clock,
   Shield,
   Award,
+  ShieldCheck,
+  AlertTriangle,
+  Anchor,
 } from 'lucide-react';
 
 export default function FeaturesGuideSection() {
   const features = [
+    {
+      icon: <ShieldCheck className="w-6 h-6" />,
+      title: 'Safety Check',
+      description:
+        'Calculate the exact oracle price deviation that would trigger liquidation for your DeFi lending positions across multiple protocols',
+      href: '/safety-check',
+      highlights: [
+        'Multi-asset collateral and borrow support',
+        'Health factor gauge and safety buffer analysis',
+        'Protocol-derived liquidation thresholds',
+      ],
+    },
+    {
+      icon: <AlertTriangle className="w-6 h-6" />,
+      title: 'Stablecoin Depeg Monitor',
+      description:
+        'Real-time stablecoin depeg monitoring across oracle providers and chains with protocol impact analysis',
+      href: '/stablecoin-depeg',
+      highlights: [
+        'Multi-oracle consensus price and deviation tracking',
+        'Affected protocol mapping for collateral and borrow roles',
+        'Risk level classification with duration tracking',
+      ],
+    },
+    {
+      icon: <Anchor className="w-6 h-6" />,
+      title: 'Wrapped Asset Peg Monitor',
+      description:
+        'Track WBTC, wstETH, cbETH, and other wrapped or liquid-staking tokens for deviations against their underlying assets',
+      href: '/wrapped-assets',
+      highlights: [
+        'On-chain LST exchange rate integration',
+        'Cross-source deviation heatmap',
+        'Collateral impact mapping across lending protocols',
+      ],
+    },
     {
       icon: <Search className="w-6 h-6" />,
       title: 'Price Query',
@@ -101,7 +140,7 @@ export default function FeaturesGuideSection() {
         ))}
       </div>
 
-      <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg">
           <Clock className="w-5 h-5 text-blue-600" />
           <div>
@@ -114,6 +153,15 @@ export default function FeaturesGuideSection() {
           <div>
             <p className="text-sm font-medium text-gray-900">10 Oracle Providers</p>
             <p className="text-xs text-gray-600">Chainlink, Pyth, API3, RedStone, DIA, and more</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3 p-4 bg-amber-50 rounded-lg">
+          <ShieldCheck className="w-5 h-5 text-amber-600" />
+          <div>
+            <p className="text-sm font-medium text-gray-900">Safety &amp; Risk</p>
+            <p className="text-xs text-gray-600">
+              Position, stablecoin, and wrapped asset monitoring
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-3 p-4 bg-purple-50 rounded-lg">

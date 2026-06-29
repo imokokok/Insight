@@ -2,6 +2,8 @@
 
 import { useState, useCallback, useEffect } from 'react';
 
+import { useSearchParams } from 'next/navigation';
+
 import { motion, AnimatePresence } from 'framer-motion';
 import { Shield, Calculator } from 'lucide-react';
 
@@ -78,6 +80,7 @@ export default function SafetyCheckContent() {
   const { result, isLoading, error, calculate, clear } = useProtocolHealth();
   const [lastPosition, setLastPosition] = useState<PositionInput | null>(null);
   const [calculationKey, setCalculationKey] = useState(0);
+  const searchParams = useSearchParams();
 
   const startCalculation = useCallback(
     async (position: PositionInput) => {
@@ -87,12 +90,21 @@ export default function SafetyCheckContent() {
     [calculate]
   );
 
-  // Auto-fill defaults and calculate on mount
+  // Auto-fill defaults and calculate on mount, optionally from URL params
   useEffect(() => {
-    const protocol = PROTOCOL_REGISTRY[0];
+    const protocolId = searchParams.get('protocol');
+    const collateralSymbol = searchParams.get('collateral');
+
+    const protocol = PROTOCOL_REGISTRY.find((p) => p.id === protocolId) ?? PROTOCOL_REGISTRY[0];
     if (!protocol) return;
 
-    const { collateralRows, borrowRows, position } = getProtocolDefaults(protocol);
+    const { collateralRows: defaults, borrowRows, position } = getProtocolDefaults(protocol);
+
+    // Override collateral with URL param if the asset is supported by the protocol
+    const collateralRows =
+      collateralSymbol && protocol.assets.some((a) => a.symbol === collateralSymbol)
+        ? [{ id: 'collateral-url', symbol: collateralSymbol, amount: defaults[0]?.amount ?? '1.5' }]
+        : defaults;
 
     setSelectedProtocol(protocol);
     setCollateralRows(collateralRows);
@@ -101,11 +113,20 @@ export default function SafetyCheckContent() {
 
     // Auto-calculate with default data
     if (position) {
-      setLastPosition(position);
-      startCalculation(position);
+      const urlPosition: PositionInput = {
+        protocolId: protocol.id,
+        collaterals: collateralRows
+          .filter((r) => r.symbol && r.amount)
+          .map((r) => ({ symbol: r.symbol, amount: Number(r.amount) })),
+        borrows: borrowRows
+          .filter((r) => r.symbol && r.amount)
+          .map((r) => ({ symbol: r.symbol, amount: Number(r.amount) })),
+      };
+      setLastPosition(urlPosition);
+      startCalculation(urlPosition);
       setStep(3);
     }
-  }, [startCalculation]);
+  }, [startCalculation, searchParams]);
 
   const handleSelectProtocol = useCallback(
     (protocol: ProtocolConfig) => {

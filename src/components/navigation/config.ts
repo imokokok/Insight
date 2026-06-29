@@ -7,6 +7,8 @@ import {
   ShieldCheck,
   Eye,
   FileText,
+  AlertTriangle,
+  Anchor,
 } from 'lucide-react';
 
 import { oracleColors } from '@/lib/constants';
@@ -25,9 +27,33 @@ export const navigationConfig: NavStructure = [
     icon: Search,
   },
   {
-    href: '/safety-check',
-    label: 'Safety Check',
+    id: 'safety',
+    label: 'Safety',
     icon: ShieldCheck,
+    megaMenu: true,
+    items: [
+      {
+        href: '/safety-check',
+        label: 'Safety Check',
+        icon: ShieldCheck,
+        description:
+          'Calculate your personal position critical deviation and liquidation risk across protocols',
+      },
+      {
+        href: '/stablecoin-depeg',
+        label: 'Stablecoin Depeg',
+        icon: AlertTriangle,
+        description:
+          'Real-time stablecoin depeg monitoring with multi-oracle price deviation and protocol impact',
+      },
+      {
+        href: '/wrapped-assets',
+        label: 'Wrapped Asset Peg',
+        icon: Anchor,
+        description:
+          'Monitor WBTC, LSTs and wrapped assets peg risks against their underlying collateral',
+      },
+    ],
   },
   {
     id: 'analysis',
