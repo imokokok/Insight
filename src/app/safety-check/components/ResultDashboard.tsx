@@ -177,7 +177,7 @@ export function ResultDashboard({ result, position, onReset }: ResultDashboardPr
           >
             <p className={cn('text-base font-bold', status.color)}>{status.label}</p>
             <p className="text-xs text-gray-400 mt-0.5">
-              Liq. Threshold {(result.liquidationThreshold * 100).toFixed(0)}%
+              Liq. Threshold {((1 / result.liquidationThreshold) * 100).toFixed(0)}%
             </p>
           </motion.div>
         </motion.div>
@@ -241,7 +241,7 @@ export function ResultDashboard({ result, position, onReset }: ResultDashboardPr
         )}
       </div>
 
-      {/* Safety Parameter Planner (反向求参数 - 行动处方) */}
+      {/* Safety Parameter Planner (inverse solver — action prescription) */}
       <SafetyPlannerPanel position={position} />
 
       {/* ── Section 3: Position Overview ── */}
@@ -336,7 +336,7 @@ export function ResultDashboard({ result, position, onReset }: ResultDashboardPr
                       <span className="font-medium text-gray-900">{c.symbol}</span>
                       <span className="text-xs text-gray-400">
                         CF {(c.collateralFactor * 100).toFixed(0)}% · LT{' '}
-                        {(c.liquidationThreshold * 100).toFixed(0)}%
+                        {((1 / c.liquidationThreshold) * 100).toFixed(0)}%
                       </span>
                     </div>
                     <div className="text-right">

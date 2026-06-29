@@ -97,7 +97,7 @@ export function PositionForm({
     collateralRows.some((r) => r.symbol && parseFloat(r.amount) > 0) &&
     borrowRows.some((r) => r.symbol && parseFloat(r.amount) > 0);
 
-  // 获取已选择的 symbol，避免重复选择
+  // Track already-selected symbols to avoid duplicates
   const usedCollateralSymbols = collateralRows.map((r) => r.symbol).filter(Boolean);
   const usedBorrowSymbols = borrowRows.map((r) => r.symbol).filter(Boolean);
 
@@ -205,7 +205,7 @@ export function PositionForm({
                         {assetConfig && (
                           <p className="text-[10px] text-gray-400 mt-0.5">
                             CF {(assetConfig.collateralFactor * 100).toFixed(0)}% · LT{' '}
-                            {(assetConfig.liquidationThreshold * 100).toFixed(0)}%
+                            {((1 / assetConfig.liquidationThreshold) * 100).toFixed(0)}%
                           </p>
                         )}
                       </div>
