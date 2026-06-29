@@ -68,6 +68,18 @@ export interface OracleWarning {
   message: string;
 }
 
+// ─── Fixed Deviation Scenarios (1% / 3% / 5%) ───
+
+export interface DeviationScenario {
+  label: string;
+  deviationPercent: number;
+  isJoint: boolean;
+  healthFactor: number;
+  collateralRatio: number;
+  status: 'safe' | 'warning' | 'critical' | 'liquidated';
+  distanceToLiquidationPercent: number;
+}
+
 // ─── Safety Parameter Planning (反向求参数) ───
 
 /** 调整动作类型 */
@@ -186,6 +198,9 @@ export interface PositionCriticalResult {
 
   // Oracle reliability warnings
   oracleWarnings: OracleWarning[];
+
+  // Fixed deviation scenarios (1% / 3% / 5%) for user-friendly risk assessment
+  deviationScenarios: DeviationScenario[];
 
   lastUpdated: number;
 
@@ -422,6 +437,16 @@ export async function calculatePositionCriticalDeviation(
       oracleWarnings ?? []
     );
 
+    // Fixed deviation scenarios (1% / 3% / 5%) for user-friendly risk assessment
+    const deviationScenarios = calculateDeviationScenarios(
+      collateralDetails,
+      borrowDetails,
+      deviationRatios,
+      totalAdjustedCollateralValue,
+      totalBorrowValue,
+      weightedLiquidationThreshold
+    );
+
     // Backward compatible fields
     const primaryCollateral = collateralDetails[0];
     const primaryBorrow = borrowDetails[0];
@@ -453,6 +478,7 @@ export async function calculatePositionCriticalDeviation(
       pricePoints,
       safetyBuffer,
       oracleWarnings: oracleWarnings ?? [],
+      deviationScenarios,
       lastUpdated: Date.now(),
       // Backward compatible
       collateralSymbol: primaryCollateral.symbol,
@@ -686,6 +712,103 @@ function calculateJointDeviation(
     criticalPrice: 0,
     direction: 'down',
     description: `Joint deviation triggers liquidation (major-equiv δ = ${criticalDeviationPercent.toFixed(2)}%): collaterals [${collBreakdown}], borrows [${brwBreakdown}]`,
+  };
+}
+
+/**
+ * Calculate fixed deviation scenarios (1% / 3% / 5%) for user-friendly risk assessment.
+ * For each fixed percentage we compute both:
+ *   1) single-asset drop of the primary collateral
+ *   2) joint deviation where all collaterals drop and all borrows rise (scaled by category ratio)
+ */
+function calculateDeviationScenarios(
+  collaterals: PositionCriticalResult['collaterals'],
+  borrows: PositionCriticalResult['borrows'],
+  deviationRatios: Record<string, number>,
+  totalAdjustedCollateralValue: number,
+  totalBorrowValue: number,
+  weightedLiquidationThreshold: number
+): DeviationScenario[] {
+  const scenarios: DeviationScenario[] = [];
+  const fixedPercents = [1, 3, 5];
+
+  const primaryCollateral = collaterals[0];
+  if (primaryCollateral) {
+    for (const pct of fixedPercents) {
+      const dropRatio = pct / 100;
+      const newCollateralValue = totalAdjustedCollateralValue * (1 - dropRatio);
+      const newRatio = totalBorrowValue > 0 ? newCollateralValue / totalBorrowValue : Infinity;
+      const hf =
+        weightedLiquidationThreshold > 0 ? newRatio / weightedLiquidationThreshold : Infinity;
+      scenarios.push(
+        buildDeviationScenario(
+          `${primaryCollateral.symbol} -${pct}%`,
+          -pct,
+          false,
+          hf,
+          newRatio,
+          weightedLiquidationThreshold
+        )
+      );
+    }
+  }
+
+  for (const pct of fixedPercents) {
+    const k = pct / 100;
+    const worstColl = collaterals.reduce((sum, c) => {
+      const ratio = deviationRatios[c.symbol] ?? 1.0;
+      const mult = Math.max(0, 1 - k * ratio);
+      return sum + c.exchangeRate * c.price * c.amount * mult;
+    }, 0);
+    const worstBorrow = borrows.reduce((sum, b) => {
+      const ratio = deviationRatios[b.symbol] ?? 1.0;
+      const mult = 1 + k * ratio;
+      return sum + b.price * b.amount * mult;
+    }, 0);
+    const newRatio = worstBorrow > 0 ? worstColl / worstBorrow : Infinity;
+    const hf =
+      weightedLiquidationThreshold > 0 ? newRatio / weightedLiquidationThreshold : Infinity;
+    scenarios.push(
+      buildDeviationScenario(
+        `Joint -${pct}%`,
+        -pct,
+        true,
+        hf,
+        newRatio,
+        weightedLiquidationThreshold
+      )
+    );
+  }
+
+  return scenarios;
+}
+
+function buildDeviationScenario(
+  label: string,
+  deviationPercent: number,
+  isJoint: boolean,
+  healthFactor: number,
+  collateralRatio: number,
+  weightedLiquidationThreshold: number
+): DeviationScenario {
+  let status: DeviationScenario['status'] = 'safe';
+  if (healthFactor < 1) status = 'liquidated';
+  else if (healthFactor < 1.05) status = 'critical';
+  else if (healthFactor < 1.2) status = 'warning';
+
+  const distanceToLiquidationPercent =
+    isFinite(collateralRatio) && collateralRatio >= weightedLiquidationThreshold
+      ? (collateralRatio / weightedLiquidationThreshold - 1) * 100
+      : 0;
+
+  return {
+    label,
+    deviationPercent,
+    isJoint,
+    healthFactor: Number(healthFactor.toFixed(4)),
+    collateralRatio: Number(collateralRatio.toFixed(4)),
+    status,
+    distanceToLiquidationPercent: Number(Math.max(0, distanceToLiquidationPercent).toFixed(2)),
   };
 }
 

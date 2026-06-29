@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
@@ -15,8 +15,6 @@ import {
   ShieldCheck,
   ShieldAlert,
   ShieldX,
-  ChevronDown,
-  ChevronUp,
   Info,
   ExternalLink,
 } from 'lucide-react';
@@ -28,6 +26,7 @@ import type {
   AssetDeviationResult,
   SafetyBufferAnalysis,
   PositionInput,
+  DeviationScenario,
 } from '@/lib/protocols/protocolHealth';
 import { cn } from '@/lib/utils';
 import { formatPrice } from '@/lib/utils/format';
@@ -69,8 +68,6 @@ const SAFETY_CONFIGS: Record<
 };
 
 export function ResultDashboard({ result, position, onReset }: ResultDashboardProps) {
-  const [showAllDeviations, setShowAllDeviations] = useState(false);
-
   const status = useMemo(() => {
     const hf = result.currentHealthFactor;
     if (hf < 1) return { label: 'Already Liquidated', color: 'text-gray-500', bg: 'bg-gray-50' };
@@ -83,13 +80,6 @@ export function ResultDashboard({ result, position, onReset }: ResultDashboardPr
   const deviationAbs = Math.abs(worstDeviation.criticalDeviationPercent);
   const isDown = worstDeviation.direction === 'down';
   const isJoint = worstDeviation.symbol === 'JOINT';
-
-  const heatmapData = useMemo(() => {
-    return result.pricePoints.map((p) => ({
-      ...p,
-      isCritical: Math.abs(p.deviationPercent - worstDeviation.criticalDeviationPercent) < 0.5,
-    }));
-  }, [result, worstDeviation]);
 
   const safetyConfig = SAFETY_CONFIGS[result.safetyBuffer.overallLevel];
 
@@ -192,6 +182,12 @@ export function ResultDashboard({ result, position, onReset }: ResultDashboardPr
           </motion.div>
         </motion.div>
       </div>
+
+      {/* ── Section 1.5: User-Friendly Risk Summary ── */}
+      <UserRiskSummary result={result} />
+
+      {/* ── Section 1.6: Fixed Deviation Scenarios (1% / 3% / 5%) ── */}
+      <DeviationScenarioPanel scenarios={result.deviationScenarios} />
 
       {/* ── Section 2: Risk Assessment & Action ── */}
       <div className="mb-3">
@@ -299,27 +295,12 @@ export function ResultDashboard({ result, position, onReset }: ResultDashboardPr
           ))}
         </div>
 
-        {/* Asset Deviations (inside the same card) */}
-        <div className="p-5 pt-4">
+        {/* Joint Deviation (OVer-style worst case) */}
+        <div className="p-5 pt-4 border-t border-gray-100">
           <div className="flex items-center justify-between mb-3">
-            <h4 className="text-sm font-semibold text-gray-900">Deviation Analysis</h4>
-            {result.assetDeviations.length > 3 && (
-              <button
-                type="button"
-                onClick={() => setShowAllDeviations(!showAllDeviations)}
-                className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700"
-              >
-                {showAllDeviations ? 'Collapse' : 'Show All'}
-                {showAllDeviations ? (
-                  <ChevronUp className="w-3 h-3" />
-                ) : (
-                  <ChevronDown className="w-3 h-3" />
-                )}
-              </button>
-            )}
+            <h4 className="text-sm font-semibold text-gray-900">Worst-Case Joint Deviation</h4>
           </div>
           <div className="space-y-2">
-            {/* Joint Deviation (OVer-style worst case) */}
             <JointDeviationCard
               deviation={result.jointDeviation}
               isWorst={result.jointDeviation === worstDeviation}
@@ -327,16 +308,6 @@ export function ResultDashboard({ result, position, onReset }: ResultDashboardPr
               collaterals={result.collaterals}
               borrows={result.borrows}
             />
-            {/* Per-asset single deviations */}
-            {(showAllDeviations ? result.assetDeviations : result.assetDeviations.slice(0, 3)).map(
-              (deviation) => (
-                <AssetDeviationCard
-                  key={deviation.symbol}
-                  deviation={deviation}
-                  isWorst={deviation === worstDeviation}
-                />
-              )
-            )}
           </div>
         </div>
       </motion.div>
@@ -408,118 +379,9 @@ export function ResultDashboard({ result, position, onReset }: ResultDashboardPr
           </div>
         )}
 
-        {/* Chart + Heatmap */}
+        {/* Chart */}
         <div className="space-y-4">
           <RiskChart result={result} />
-
-          {/* Heatmap */}
-          <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-5">
-            <h4 className="text-sm font-semibold text-gray-900 mb-4">Price Deviation Status</h4>
-            <div className="space-y-2">
-              {heatmapData.map((point, index) => {
-                const cfg =
-                  point.status === 'safe'
-                    ? {
-                        color: '#10b981',
-                        bg: 'bg-emerald-50',
-                        label: 'Safe',
-                        text: 'text-emerald-700',
-                      }
-                    : point.status === 'warning'
-                      ? {
-                          color: '#f59e0b',
-                          bg: 'bg-amber-50',
-                          label: 'Warning',
-                          text: 'text-amber-700',
-                        }
-                      : point.status === 'critical'
-                        ? {
-                            color: '#ef4444',
-                            bg: 'bg-red-50',
-                            label: 'Critical',
-                            text: 'text-red-700',
-                          }
-                        : {
-                            color: '#6b7280',
-                            bg: 'bg-gray-50',
-                            label: 'Liquidated',
-                            text: 'text-gray-700',
-                          };
-
-                const barWidth = Math.min(100, Math.max(15, (point.collateralRatio / 250) * 100));
-
-                return (
-                  <motion.div
-                    key={point.deviationPercent}
-                    initial={{ opacity: 0, x: -12 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.45 + index * 0.03 }}
-                    className={cn(
-                      'flex items-center gap-3 p-2.5 rounded-lg',
-                      point.isCritical && 'bg-red-50/60 border border-red-100'
-                    )}
-                  >
-                    <div className="w-20 shrink-0">
-                      <span
-                        className={cn(
-                          'text-sm font-mono font-semibold',
-                          point.deviationPercent === 0 ? 'text-gray-900' : 'text-gray-500'
-                        )}
-                      >
-                        {point.deviationPercent > 0 ? '+' : ''}
-                        {point.deviationPercent.toFixed(1)}%
-                      </span>
-                      {point.deviationPercent === 0 && (
-                        <span className="text-[10px] text-gray-400 ml-1">Current</span>
-                      )}
-                    </div>
-                    <div className="w-16 shrink-0 text-right">
-                      <span className="text-sm font-mono text-gray-600">
-                        {formatPrice(point.collateralPrice)}
-                      </span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="h-6 bg-gray-100 rounded-md overflow-hidden relative">
-                        <motion.div
-                          initial={{ width: 0 }}
-                          animate={{ width: `${barWidth}%` }}
-                          transition={{
-                            delay: 0.6 + index * 0.03,
-                            duration: 0.5,
-                            ease: 'easeOut',
-                          }}
-                          className="h-full rounded-md"
-                          style={{ backgroundColor: cfg.color, opacity: 0.6 }}
-                        />
-                        <div
-                          className="absolute top-0 bottom-0 w-px bg-gray-300"
-                          style={{
-                            left: `${((result.liquidationThreshold * 100) / 250) * 100}%`,
-                          }}
-                        />
-                      </div>
-                    </div>
-                    <div className="w-14 text-right shrink-0">
-                      <span className="text-sm font-mono text-gray-600">
-                        {point.collateralRatio.toFixed(0)}%
-                      </span>
-                    </div>
-                    <div className="w-16 shrink-0 flex justify-end">
-                      <span
-                        className={cn(
-                          'text-[11px] font-semibold px-2 py-0.5 rounded-full',
-                          cfg.bg,
-                          cfg.text
-                        )}
-                      >
-                        {cfg.label}
-                      </span>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </div>
-          </div>
         </div>
       </div>
 
@@ -539,61 +401,6 @@ export function ResultDashboard({ result, position, onReset }: ResultDashboardPr
         </button>
       </motion.div>
     </motion.div>
-  );
-}
-
-function AssetDeviationCard({
-  deviation,
-  isWorst,
-}: {
-  deviation: AssetDeviationResult;
-  isWorst: boolean;
-}) {
-  const isDown = deviation.direction === 'down';
-  const absDeviation = Math.abs(deviation.criticalDeviationPercent);
-
-  const levelConfig =
-    absDeviation < 5
-      ? { color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-200' }
-      : absDeviation < 15
-        ? { color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-200' }
-        : absDeviation < 30
-          ? { color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200' }
-          : { color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200' };
-
-  return (
-    <div
-      className={cn(
-        'flex items-center gap-3 p-3 rounded-lg border',
-        isWorst ? cn(levelConfig.bg, levelConfig.border) : 'border-gray-100 bg-gray-50/50'
-      )}
-    >
-      <div className="flex items-center gap-2 w-20 shrink-0">
-        <span className="font-medium text-gray-900 text-sm">{deviation.symbol}</span>
-        {isWorst && (
-          <span className="text-[9px] font-bold px-1 py-0.5 rounded bg-red-100 text-red-600">
-            WORST
-          </span>
-        )}
-      </div>
-      <div className="flex items-center gap-1.5 shrink-0">
-        {isDown ? (
-          <TrendingDown className="w-3.5 h-3.5 text-red-500" />
-        ) : (
-          <TrendingUp className="w-3.5 h-3.5 text-amber-500" />
-        )}
-        <span className={cn('text-sm font-bold font-mono', levelConfig.color)}>
-          {isDown ? '-' : '+'}
-          {absDeviation.toFixed(2)}%
-        </span>
-      </div>
-      <div className="text-xs text-gray-500 flex-1">
-        {formatPrice(deviation.currentPrice)} → {formatPrice(deviation.criticalPrice)}
-      </div>
-      <div className="text-xs text-gray-400 shrink-0 max-w-[200px] truncate">
-        {deviation.description}
-      </div>
-    </div>
   );
 }
 
@@ -785,6 +592,124 @@ function OracleReliabilityWarnings({
         })}
       </div>
     </motion.div>
+  );
+}
+
+function UserRiskSummary({ result }: { result: PositionCriticalResult }) {
+  const criticalScenarios = result.deviationScenarios.filter((s) => s.status !== 'safe');
+  const worstScenario = criticalScenarios.sort((a, b) => a.healthFactor - b.healthFactor)[0];
+
+  if (result.currentHealthFactor < 1) {
+    return (
+      <div className="text-sm text-red-700 bg-red-50 border border-red-100 rounded-lg p-4">
+        <AlertTriangle className="w-4 h-4 inline-block mr-1.5 -mt-0.5" />
+        当前仓位已经处于清算状态，请立即采取行动。
+      </div>
+    );
+  }
+
+  if (!worstScenario) {
+    return (
+      <div className="text-sm text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-lg p-4">
+        <ShieldCheck className="w-4 h-4 inline-block mr-1.5 -mt-0.5" />
+        当前仓位安全。即使抵押品价格下跌 5%，距离清算仍有充足缓冲。
+      </div>
+    );
+  }
+
+  const isJoint = worstScenario.isJoint;
+  return (
+    <div className="text-sm text-amber-700 bg-amber-50 border border-amber-100 rounded-lg p-4">
+      <AlertTriangle className="w-4 h-4 inline-block mr-1.5 -mt-0.5" />
+      注意：当 <strong>{worstScenario.label}</strong> 时，Health Factor 会降至{' '}
+      <strong>{worstScenario.healthFactor.toFixed(2)}</strong>，距离清算仅剩{' '}
+      <strong>{worstScenario.distanceToLiquidationPercent.toFixed(2)}%</strong>。
+      {isJoint
+        ? '这是多资产同时偏差的联合风险，建议提前增加抵押品或降低借贷。'
+        : '建议提前增加抵押品或降低借贷。'}
+    </div>
+  );
+}
+
+function ScenarioStatusBadge({ status }: { status: DeviationScenario['status'] }) {
+  const config = {
+    safe: { label: 'Safe', bg: 'bg-emerald-100', text: 'text-emerald-700' },
+    warning: { label: 'Warning', bg: 'bg-amber-100', text: 'text-amber-700' },
+    critical: { label: 'Critical', bg: 'bg-red-100', text: 'text-red-700' },
+    liquidated: { label: 'Liquidated', bg: 'bg-gray-800', text: 'text-white' },
+  }[status];
+
+  return (
+    <span
+      className={cn('text-[10px] font-semibold px-2 py-0.5 rounded-full', config.bg, config.text)}
+    >
+      {config.label}
+    </span>
+  );
+}
+
+function DeviationScenarioPanel({ scenarios }: { scenarios: DeviationScenario[] }) {
+  if (!scenarios || scenarios.length === 0) return null;
+
+  const singleScenarios = scenarios.filter((s) => !s.isJoint);
+  const jointScenarios = scenarios.filter((s) => s.isJoint);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.15 }}
+      className="bg-white rounded-lg border border-gray-200 shadow-sm p-5"
+    >
+      <div className="flex items-center gap-2 mb-4">
+        <TrendingDown className="w-4 h-4 text-gray-500" />
+        <h4 className="text-sm font-semibold text-gray-900">
+          What if oracle price deviates 1% / 3% / 5%?
+        </h4>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <ScenarioGroup title="Primary collateral drops" scenarios={singleScenarios} />
+        <ScenarioGroup title="All collaterals drop + borrows rise" scenarios={jointScenarios} />
+      </div>
+
+      <p className="text-[11px] text-gray-400 mt-3">
+        *Joint scenario assumes all collaterals fall and all borrows rise simultaneously, scaled by
+        asset category. This is often more conservative than a single-asset drop.
+      </p>
+    </motion.div>
+  );
+}
+
+function ScenarioGroup({ title, scenarios }: { title: string; scenarios: DeviationScenario[] }) {
+  return (
+    <div>
+      <h5 className="text-xs font-medium text-gray-500 mb-2">{title}</h5>
+      <div className="space-y-2">
+        {scenarios.map((s) => (
+          <div
+            key={s.label}
+            className="flex items-center justify-between p-2.5 rounded-lg bg-gray-50"
+          >
+            <div className="flex items-center gap-2.5">
+              <span className="text-sm font-medium text-gray-900 w-16">{s.label}</span>
+              <ScenarioStatusBadge status={s.status} />
+            </div>
+            <div className="flex items-center gap-3 text-xs text-gray-500">
+              <span>
+                HF <span className="font-mono text-gray-900">{s.healthFactor.toFixed(2)}</span>
+              </span>
+              <span>
+                Distance{' '}
+                <span className="font-mono text-gray-900">
+                  {s.distanceToLiquidationPercent.toFixed(2)}%
+                </span>
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 
