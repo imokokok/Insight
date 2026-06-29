@@ -408,7 +408,7 @@ function AssetTable({ assets }: { assets: DailyReportData['topAssets'] }) {
 }
 
 function DeviationEvents({ report }: { report: DailyReportData }) {
-  const { deviationEvents: events, anomalySummary } = report;
+  const { deviationEvents: events, anomalySummary, riskImpacts } = report;
 
   const topProviders = useMemo(() => {
     return Object.entries(anomalySummary.byProvider)
@@ -421,6 +421,20 @@ function DeviationEvents({ report }: { report: DailyReportData }) {
       .sort((a, b) => b[1] - a[1])
       .slice(0, 5);
   }, [anomalySummary.byAsset]);
+
+  // Map each asset to the user-risk impacts that mention it, so every deviation
+  // event can surface affected protocols, chains, and user types directly.
+  const impactsByAsset = useMemo(() => {
+    const map = new Map<string, RiskImpact[]>();
+    for (const impact of riskImpacts ?? []) {
+      for (const asset of impact.relatedAssets) {
+        const list = map.get(asset) ?? [];
+        list.push(impact);
+        map.set(asset, list);
+      }
+    }
+    return map;
+  }, [riskImpacts]);
 
   if (events.length === 0) {
     return (
@@ -478,33 +492,70 @@ function DeviationEvents({ report }: { report: DailyReportData }) {
         </div>
       )}
 
-      <div className="space-y-2">
+      <div className="space-y-3">
         {events.slice(0, 8).map((event, index) => {
           const config = getSeverityConfig(event.severity);
+          const relatedImpacts = impactsByAsset.get(event.symbol) ?? [];
+          const affectedEntities = [...new Set(relatedImpacts.flatMap((i) => i.affectedEntities))];
+          const primaryImpact = relatedImpacts[0];
+          const eventTime = new Date(event.hour).toLocaleTimeString('en-US', {
+            timeZone: 'UTC',
+            hour: '2-digit',
+            minute: '2-digit',
+          });
+
           return (
             <div
               key={`${event.provider}-${event.symbol}-${event.hour}-${index}`}
-              className={cn(
-                'flex items-center justify-between rounded-lg border px-4 py-3',
-                config.bg,
-                config.border
-              )}
+              className={cn('rounded-lg border px-4 py-3', config.bg, config.border)}
             >
-              <div className="flex items-center gap-3 min-w-0">
-                <span className={cn('w-2 h-2 rounded-full flex-shrink-0', config.dot)} />
-                <div className="min-w-0">
-                  <p className={cn('text-sm font-medium truncate', config.text)}>
-                    {providerNames[event.provider] ?? event.provider} · {event.symbol}
-                  </p>
-                  <p className={cn('text-xs truncate opacity-80', config.text)}>
-                    {formatPrice(event.price)} vs consensus {formatPrice(event.consensusPrice)}
-                  </p>
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <span className={cn('w-2 h-2 rounded-full flex-shrink-0', config.dot)} />
+                  <div className="min-w-0">
+                    <p className={cn('text-sm font-medium truncate', config.text)}>
+                      {providerNames[event.provider] ?? event.provider} · {event.symbol}
+                    </p>
+                    <p className={cn('text-xs truncate opacity-80', config.text)}>
+                      {formatPrice(event.price)} vs consensus {formatPrice(event.consensusPrice)} ·{' '}
+                      {eventTime} UTC
+                    </p>
+                  </div>
                 </div>
+                <span className="text-sm font-semibold font-tabular text-gray-900 flex-shrink-0">
+                  {event.deviationPct > 0 ? '+' : ''}
+                  {event.deviationPct.toFixed(3)}%
+                </span>
               </div>
-              <span className="text-sm font-semibold font-tabular text-gray-900 flex-shrink-0">
-                {event.deviationPct > 0 ? '+' : ''}
-                {event.deviationPct.toFixed(3)}%
-              </span>
+
+              {affectedEntities.length > 0 && (
+                <div className="mt-2.5 flex flex-wrap gap-1.5">
+                  {affectedEntities.slice(0, 5).map((entity) => (
+                    <span
+                      key={entity}
+                      className={cn(
+                        'inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium border',
+                        config.bg,
+                        config.border,
+                        config.text
+                      )}
+                    >
+                      {entity}
+                    </span>
+                  ))}
+                  {affectedEntities.length > 5 && (
+                    <span className={cn('text-[10px]', config.text)}>
+                      +{affectedEntities.length - 5} more
+                    </span>
+                  )}
+                </div>
+              )}
+
+              {primaryImpact && (
+                <p className={cn('text-xs mt-2 leading-relaxed opacity-90', config.text)}>
+                  {primaryImpact.description}
+                </p>
+              )}
             </div>
           );
         })}
