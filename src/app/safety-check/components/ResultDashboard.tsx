@@ -673,27 +673,72 @@ function DeviationScenarioPanel({ scenarios }: { scenarios: DeviationScenario[] 
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <ScenarioGroup title="Primary collateral drops" scenarios={singleScenarios} />
-        <ScenarioGroup title="All collaterals drop + borrows rise" scenarios={jointScenarios} />
+        {/* Joint deviation is the OVer-style worst case and the primary risk metric. */}
+        <ScenarioGroup
+          title="Joint deviation"
+          subtitle="All oracles move together — the risk that actually liquidates positions."
+          scenarios={jointScenarios}
+          variant="primary"
+        />
+        <ScenarioGroup
+          title="Isolated single-asset drop"
+          subtitle="For reference: only the primary collateral's oracle moves."
+          scenarios={singleScenarios}
+          variant="secondary"
+        />
       </div>
-
-      <p className="text-[11px] text-gray-400 mt-3">
-        *Joint scenario assumes all collaterals fall and all borrows rise simultaneously, scaled by
-        asset category. This is often more conservative than a single-asset drop.
-      </p>
     </motion.div>
   );
 }
 
-function ScenarioGroup({ title, scenarios }: { title: string; scenarios: DeviationScenario[] }) {
+function ScenarioGroup({
+  title,
+  subtitle,
+  scenarios,
+  variant,
+}: {
+  title: string;
+  subtitle: string;
+  scenarios: DeviationScenario[];
+  variant: 'primary' | 'secondary';
+}) {
+  const isPrimary = variant === 'primary';
+
   return (
-    <div>
-      <h5 className="text-xs font-medium text-gray-500 mb-2">{title}</h5>
+    <div
+      className={cn(
+        'rounded-lg p-3.5',
+        isPrimary ? 'bg-primary-50/50 border border-primary-100' : 'bg-gray-50'
+      )}
+    >
+      <div className="flex items-center gap-2 mb-1">
+        <h5
+          className={cn('text-xs font-semibold', isPrimary ? 'text-primary-900' : 'text-gray-500')}
+        >
+          {title}
+        </h5>
+        {isPrimary && (
+          <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-primary-100 text-primary-700">
+            Primary
+          </span>
+        )}
+      </div>
+      <p
+        className={cn(
+          'text-[11px] mb-3 leading-relaxed',
+          isPrimary ? 'text-primary-700/80' : 'text-gray-400'
+        )}
+      >
+        {subtitle}
+      </p>
       <div className="space-y-2">
         {scenarios.map((s) => (
           <div
             key={s.label}
-            className="flex items-center justify-between p-2.5 rounded-lg bg-gray-50"
+            className={cn(
+              'flex items-center justify-between p-2.5 rounded-lg',
+              isPrimary ? 'bg-white border border-primary-100' : 'bg-white border border-gray-100'
+            )}
           >
             <div className="flex items-center gap-2.5">
               <span className="text-sm font-medium text-gray-900 w-16">{s.label}</span>
