@@ -687,6 +687,11 @@ function DeviationScenarioPanel({ scenarios }: { scenarios: DeviationScenario[] 
           variant="secondary"
         />
       </div>
+
+      <p className="mt-3 text-[11px] text-gray-400 leading-relaxed">
+        Deviation ratios combine asset-category stress estimates with each protocol&apos;s own
+        liquidation-threshold parameters. Data source: on-chain protocol risk configs.
+      </p>
     </motion.div>
   );
 }

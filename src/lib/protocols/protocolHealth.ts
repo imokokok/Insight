@@ -1,4 +1,4 @@
-import { CATEGORY_DEVIATION_RATIOS } from '@/lib/protocols/protocolRegistry';
+import { deriveDeviationRatios } from '@/lib/protocols/protocolRegistry';
 import { createLogger } from '@/lib/utils/logger';
 import { type OracleProvider } from '@/types/oracle';
 
@@ -284,12 +284,13 @@ export async function calculatePositionCriticalDeviation(
       assetConfigs.set(symbol, asset);
     }
 
-    // Build per-asset deviation ratios from asset categories
-    // Key: symbol → ratio (relative to major=1.0)
+    // Build per-asset deviation ratios from the protocol's own risk parameters.
+    // Each integrated protocol contributes its liquidation-threshold assessment;
+    // the category baseline is only used when no protocol-specific signal exists.
+    const protocolDeviationRatios = deriveDeviationRatios(protocol);
     const deviationRatios: Record<string, number> = {};
     for (const symbol of allSymbols) {
-      const config = assetConfigs.get(symbol)!;
-      deviationRatios[symbol] = CATEGORY_DEVIATION_RATIOS[config.category] ?? 1.0;
+      deviationRatios[symbol] = protocolDeviationRatios[symbol] ?? 1.0;
     }
 
     // Fetch live prices

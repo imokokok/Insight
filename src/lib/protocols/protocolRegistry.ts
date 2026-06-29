@@ -4,14 +4,63 @@ export type AssetCategory = 'stablecoin' | 'major' | 'alt' | 'micro';
 
 // Per-category deviation ratios (relative to major = 1.0)
 // Used for per-asset deviation bounds in joint deviation & safety planning.
-// When user sets major δ = 15%, stablecoin δ = 3%, alt δ = 30%, micro δ = 50%.
-// Based on historical volatility: stablecoins ~3% (depeg), majors ~15%, alts ~30%, micro ~50%.
+// These values are conservative empirical estimates for typical crypto stress
+// moves: stablecoin depeg events ~3%, major assets ~15-20%, altcoins ~30-40%,
+// micro-cap tokens ~50-70%.
+//
+// In addition, `deriveDeviationRatios` below adjusts these baselines per asset
+// using each protocol's own liquidation-threshold parameters, so every
+// integrated protocol contributes its own risk assessment.
 export const CATEGORY_DEVIATION_RATIOS: Record<AssetCategory, number> = {
-  stablecoin: 0.2, // 0.2× of major
-  major: 1.0, // 1× (baseline)
-  alt: 2.0, // 2× of major
-  micro: 3.33, // 3.33× of major
+  stablecoin: 0.15, // ~3% vs ~20% major stress move
+  major: 1.0, // baseline
+  alt: 1.75, // ~35% vs ~20% major stress move
+  micro: 3.5, // ~70% vs ~20% major stress move
 };
+
+/**
+ * Derive per-asset oracle-deviation ratios from a protocol's own risk parameters.
+ *
+ * For each asset category we pick the asset with the highest liquidation
+ * threshold (i.e. the protocol considers it the safest in that category) as the
+ * reference. Other assets in the same category get a higher ratio proportional
+ * to how much lower their liquidation threshold is, reflecting the protocol's
+ * own risk assessment.
+ *
+ * This lets every integrated protocol use its own risk parameters instead of a
+ * single global guess.
+ */
+export function deriveDeviationRatios(protocol: ProtocolConfig): Record<string, number> {
+  const referenceByCategory: Record<AssetCategory, ProtocolAssetConfig | undefined> = {
+    stablecoin: undefined,
+    major: undefined,
+    alt: undefined,
+    micro: undefined,
+  };
+
+  for (const asset of protocol.assets) {
+    const current = referenceByCategory[asset.category];
+    if (!current || 1 / asset.liquidationThreshold > 1 / current.liquidationThreshold) {
+      referenceByCategory[asset.category] = asset;
+    }
+  }
+
+  const ratios: Record<string, number> = {};
+  for (const asset of protocol.assets) {
+    const baseline = CATEGORY_DEVIATION_RATIOS[asset.category] ?? 1.0;
+    const reference = referenceByCategory[asset.category];
+    if (reference && reference.symbol !== asset.symbol) {
+      const referenceLt = 1 / reference.liquidationThreshold;
+      const assetLt = 1 / asset.liquidationThreshold;
+      const riskMultiplier = Math.pow(referenceLt / assetLt, 2);
+      ratios[asset.symbol] = Number((baseline * riskMultiplier).toFixed(3));
+    } else {
+      ratios[asset.symbol] = baseline;
+    }
+  }
+
+  return ratios;
+}
 
 export interface ProtocolAssetConfig {
   symbol: string;
