@@ -34,7 +34,10 @@ import {
   type ProviderRanking,
   type ProtocolLiquidationRisk,
   type ProtocolLiquidationScenario,
+  type ReportRiskLevel,
   type RiskImpact,
+  type StablecoinDepegSummary,
+  type WrappedAssetPegSummary,
 } from '@/lib/reports/reportService';
 import { cn } from '@/lib/utils';
 import { formatPrice } from '@/lib/utils/format';
@@ -681,6 +684,149 @@ function getCategoryConfig(category: RiskImpact['category']) {
   }
 }
 
+function getReportRiskLevelConfig(level: ReportRiskLevel) {
+  switch (level) {
+    case 'severe':
+      return {
+        label: 'Severe',
+        dot: 'bg-purple-500',
+        text: 'text-purple-700',
+        bg: 'bg-purple-50',
+        border: 'border-purple-100',
+      };
+    case 'critical':
+      return {
+        label: 'Critical',
+        dot: 'bg-red-500',
+        text: 'text-red-700',
+        bg: 'bg-red-50',
+        border: 'border-red-100',
+      };
+    case 'warning':
+      return {
+        label: 'Warning',
+        dot: 'bg-amber-500',
+        text: 'text-amber-700',
+        bg: 'bg-amber-50',
+        border: 'border-amber-100',
+      };
+    default:
+      return {
+        label: 'Normal',
+        dot: 'bg-emerald-500',
+        text: 'text-emerald-700',
+        bg: 'bg-emerald-50',
+        border: 'border-emerald-100',
+      };
+  }
+}
+
+function PegSummaryPanel({
+  stablecoins,
+  wrappedAssets,
+}: {
+  stablecoins: StablecoinDepegSummary[];
+  wrappedAssets: WrappedAssetPegSummary[];
+}) {
+  const hasData = stablecoins.length > 0 || wrappedAssets.length > 0;
+
+  if (!hasData) {
+    return (
+      <div className="flex items-start gap-3 text-emerald-800 bg-emerald-50 border border-emerald-100 rounded-lg p-4">
+        <CheckCircle2 className="w-5 h-5 flex-shrink-0 mt-0.5" />
+        <div>
+          <p className="text-sm font-medium">No material peg deviations</p>
+          <p className="text-xs text-emerald-600/80 mt-0.5">
+            Stablecoins and wrapped assets stayed within normal deviation bands today.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  const renderCard = (item: StablecoinDepegSummary | WrappedAssetPegSummary) => {
+    const config = getReportRiskLevelConfig(item.riskLevel);
+    return (
+      <div
+        key={item.symbol}
+        className={cn('rounded-lg border px-4 py-3', config.bg, config.border)}
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className={cn('w-2 h-2 rounded-full flex-shrink-0', config.dot)} />
+            <p className={cn('text-sm font-semibold truncate', config.text)}>{item.symbol}</p>
+          </div>
+          <span
+            className={cn(
+              'inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider flex-shrink-0',
+              config.bg,
+              config.text
+            )}
+          >
+            {config.label}
+          </span>
+        </div>
+        <p className={cn('text-sm mt-2', config.text)}>
+          Max deviation:{' '}
+          <span className="font-mono font-semibold">{item.maxDeviationPercent.toFixed(2)}%</span>
+        </p>
+        {item.affectedProtocols.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 mt-2.5">
+            {item.affectedProtocols.slice(0, 4).map((entity) => (
+              <span
+                key={entity}
+                className={cn(
+                  'inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-medium border',
+                  config.bg,
+                  config.border,
+                  config.text
+                )}
+              >
+                {entity}
+              </span>
+            ))}
+            {item.affectedProtocols.length > 4 && (
+              <span className={cn('text-[10px]', config.text)}>
+                +{item.affectedProtocols.length - 4} more
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <div className="space-y-6">
+      {stablecoins.length > 0 && (
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <Coins className="w-4 h-4 text-amber-600" />
+            <h3 className="text-sm font-semibold text-gray-900">Stablecoin depeg</h3>
+            <span className="text-xs text-gray-500">{stablecoins.length} flagged</span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {stablecoins.map((s) => renderCard(s))}
+          </div>
+        </div>
+      )}
+
+      {wrappedAssets.length > 0 && (
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <ArrowLeftRight className="w-4 h-4 text-blue-600" />
+            <h3 className="text-sm font-semibold text-gray-900">Wrapped / LST peg</h3>
+            <span className="text-xs text-gray-500">{wrappedAssets.length} flagged</span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {wrappedAssets.map((w) => renderCard(w))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function RiskImpactSummary({ impacts }: { impacts: RiskImpact[] }) {
   if (impacts.length === 0) {
     return (
@@ -1228,6 +1374,14 @@ export default function ReportDetailContent({ initialReport }: ReportDetailConte
           {/* User risk impact summary */}
           <SectionCard title="User risk impact summary" icon={ShieldAlert} className="mb-6">
             <RiskImpactSummary impacts={report.riskImpacts ?? []} />
+          </SectionCard>
+
+          {/* Stablecoin & wrapped asset peg summary */}
+          <SectionCard title="Peg & depeg summary" icon={Coins} className="mb-6">
+            <PegSummaryPanel
+              stablecoins={report.stablecoinDepeg ?? []}
+              wrappedAssets={report.wrappedAssetPeg ?? []}
+            />
           </SectionCard>
 
           {/* Lending liquidation stress test */}

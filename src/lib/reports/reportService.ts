@@ -145,6 +145,22 @@ export type RiskImpactCategory =
   | 'oracle_reliability'
   | 'systemic';
 
+export type ReportRiskLevel = 'normal' | 'warning' | 'critical' | 'severe';
+
+export interface StablecoinDepegSummary {
+  symbol: string;
+  maxDeviationPercent: number;
+  riskLevel: ReportRiskLevel;
+  affectedProtocols: string[];
+}
+
+export interface WrappedAssetPegSummary {
+  symbol: string;
+  maxDeviationPercent: number;
+  riskLevel: ReportRiskLevel;
+  affectedProtocols: string[];
+}
+
 export interface RiskImpact {
   category: RiskImpactCategory;
   severity: 'low' | 'medium' | 'high' | 'critical';
@@ -221,6 +237,8 @@ export interface DailyReportData {
   previousDayComparison: PreviousDayComparison;
   riskImpacts: RiskImpact[];
   protocolLiquidationRisks: ProtocolLiquidationRisk[];
+  stablecoinDepeg: StablecoinDepegSummary[];
+  wrappedAssetPeg: WrappedAssetPegSummary[];
 }
 
 /**
@@ -263,6 +281,20 @@ function getSeverity(deviationPct: number): 'low' | 'medium' | 'high' | 'critica
   if (absDev >= 1) return 'high';
   if (absDev >= 0.5) return 'medium';
   return 'low';
+}
+
+function getDepegRiskLevel(absDeviation: number): ReportRiskLevel {
+  if (absDeviation >= 3) return 'severe';
+  if (absDeviation >= 1) return 'critical';
+  if (absDeviation >= 0.5) return 'warning';
+  return 'normal';
+}
+
+function getWrappedPegRiskLevel(absDeviation: number): ReportRiskLevel {
+  if (absDeviation >= 5) return 'severe';
+  if (absDeviation >= 2) return 'critical';
+  if (absDeviation >= 0.5) return 'warning';
+  return 'normal';
 }
 
 function calculatePercentageChange(current: number, previous: number): number {
@@ -371,6 +403,8 @@ class ReportService {
       topAssets
     );
     const protocolLiquidationRisks = await this.calculateProtocolLiquidationRisks(snapshots);
+    const stablecoinDepeg = this.calculateStablecoinDepegSummary(snapshots);
+    const wrappedAssetPeg = this.calculateWrappedAssetPegSummary(snapshots);
     const recommendations = this.generateRecommendations(
       metrics,
       providerRankings,
@@ -378,7 +412,9 @@ class ReportService {
       failureBreakdown,
       deviationEvents,
       riskImpacts,
-      protocolLiquidationRisks
+      protocolLiquidationRisks,
+      stablecoinDepeg,
+      wrappedAssetPeg
     );
     const summary = this.generateSummary(
       dateStr,
@@ -386,7 +422,9 @@ class ReportService {
       deviationEvents,
       previousDayComparison,
       riskImpacts,
-      protocolLiquidationRisks
+      protocolLiquidationRisks,
+      stablecoinDepeg,
+      wrappedAssetPeg
     );
 
     const reportData: DailyReportData = {
@@ -410,6 +448,8 @@ class ReportService {
       previousDayComparison,
       riskImpacts,
       protocolLiquidationRisks,
+      stablecoinDepeg,
+      wrappedAssetPeg,
     };
 
     logger.info(
@@ -444,6 +484,8 @@ class ReportService {
       protocol_liquidation_risks: sanitizeJsonValue(
         report.protocolLiquidationRisks
       ) as ProtocolLiquidationRisk[],
+      stablecoin_depeg: sanitizeJsonValue(report.stablecoinDepeg) as StablecoinDepegSummary[],
+      wrapped_asset_peg: sanitizeJsonValue(report.wrappedAssetPeg) as WrappedAssetPegSummary[],
       generated_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
@@ -558,6 +600,8 @@ class ReportService {
         (row.previous_day_comparison as PreviousDayComparison) ?? emptyComparison,
       riskImpacts: (row.risk_impacts as RiskImpact[]) ?? [],
       protocolLiquidationRisks: (row.protocol_liquidation_risks as ProtocolLiquidationRisk[]) ?? [],
+      stablecoinDepeg: (row.stablecoin_depeg as StablecoinDepegSummary[]) ?? [],
+      wrappedAssetPeg: (row.wrapped_asset_peg as WrappedAssetPegSummary[]) ?? [],
     };
   }
 
@@ -1063,6 +1107,58 @@ class ReportService {
     };
   }
 
+  private calculateStablecoinDepegSummary(snapshots: SnapshotRow[]): StablecoinDepegSummary[] {
+    const stablecoins = ['USDC', 'USDT', 'DAI'];
+    const bySymbol = new Map<string, number>();
+
+    for (const s of snapshots) {
+      if (!s.is_success || s.deviation_pct == null) continue;
+      if (!stablecoins.includes(s.symbol)) continue;
+      const current = bySymbol.get(s.symbol) ?? 0;
+      bySymbol.set(s.symbol, Math.max(current, Math.abs(s.deviation_pct)));
+    }
+
+    return Array.from(bySymbol.entries())
+      .map(([symbol, maxDeviation]) => ({
+        symbol,
+        maxDeviationPercent: Number(maxDeviation.toFixed(4)),
+        riskLevel: getDepegRiskLevel(maxDeviation),
+        affectedProtocols: this.findProtocolNamesUsingAsset(symbol),
+      }))
+      .filter((s) => s.riskLevel !== 'normal')
+      .sort((a, b) => b.maxDeviationPercent - a.maxDeviationPercent);
+  }
+
+  private calculateWrappedAssetPegSummary(snapshots: SnapshotRow[]): WrappedAssetPegSummary[] {
+    const wrappedAssets = ['WBTC', 'WSTETH', 'STETH', 'CBETH'];
+    const bySymbol = new Map<string, number>();
+
+    for (const s of snapshots) {
+      if (!s.is_success || s.deviation_pct == null) continue;
+      if (!wrappedAssets.includes(s.symbol.toUpperCase())) continue;
+      const current = bySymbol.get(s.symbol.toUpperCase()) ?? 0;
+      bySymbol.set(s.symbol.toUpperCase(), Math.max(current, Math.abs(s.deviation_pct)));
+    }
+
+    return Array.from(bySymbol.entries())
+      .map(([symbol, maxDeviation]) => ({
+        symbol,
+        maxDeviationPercent: Number(maxDeviation.toFixed(4)),
+        riskLevel: getWrappedPegRiskLevel(maxDeviation),
+        affectedProtocols: this.findProtocolNamesUsingAsset(symbol),
+      }))
+      .filter((s) => s.riskLevel !== 'normal')
+      .sort((a, b) => b.maxDeviationPercent - a.maxDeviationPercent);
+  }
+
+  private findProtocolNamesUsingAsset(symbol: string): string[] {
+    return PROTOCOL_REGISTRY.filter((p) =>
+      p.assets.some((a) => a.symbol === symbol || a.priceSymbol === symbol)
+    )
+      .map((p) => `${p.name} (${p.chain})`)
+      .sort();
+  }
+
   private async calculateProtocolLiquidationRisks(
     snapshots: SnapshotRow[]
   ): Promise<ProtocolLiquidationRisk[]> {
@@ -1190,7 +1286,9 @@ class ReportService {
     failureBreakdown: FailureBreakdown[],
     deviationEvents: DeviationEvent[],
     riskImpacts: RiskImpact[],
-    protocolLiquidationRisks: ProtocolLiquidationRisk[]
+    protocolLiquidationRisks: ProtocolLiquidationRisk[],
+    stablecoinDepeg: StablecoinDepegSummary[],
+    wrappedAssetPeg: WrappedAssetPegSummary[]
   ): string[] {
     const recommendations: string[] = [];
 
@@ -1222,17 +1320,17 @@ class ReportService {
       }
     }
 
-    const depegImpacts = riskImpacts.filter((i) => i.category === 'stablecoin_depeg');
-    if (depegImpacts.length > 0) {
+    if (stablecoinDepeg.length > 0) {
+      const top = stablecoinDepeg[0];
       recommendations.push(
-        `${depegImpacts.map((i) => i.relatedAssets.join('/')).join(', ')} showed oracle-side divergence today. DeFi users should treat these as early depeg signals and avoid entering new leveraged stablecoin positions until the divergence resolves.`
+        `${top.symbol} reached ${top.maxDeviationPercent.toFixed(2)}% deviation from consensus today (${top.riskLevel} level). Users holding ${top.symbol} collateral or stablecoin positions in ${top.affectedProtocols.slice(0, 3).join(', ')} should monitor the peg closely.`
       );
     }
 
-    const wrappedImpacts = riskImpacts.filter((i) => i.category === 'wrapped_asset');
-    if (wrappedImpacts.length > 0) {
+    if (wrappedAssetPeg.length > 0) {
+      const top = wrappedAssetPeg[0];
       recommendations.push(
-        `${wrappedImpacts.map((i) => i.relatedAssets.join('/')).join(', ')} peg divergence may not be immediately visible to standard price oracles. Holders and protocols using these assets as collateral should verify the underlying redemption rate independently.`
+        `${top.symbol} showed ${top.maxDeviationPercent.toFixed(2)}% divergence from its underlying reference (${top.riskLevel} level). Collateral positions in ${top.affectedProtocols.slice(0, 3).join(', ')} may face unexpected liquidation if the discount persists.`
       );
     }
 
@@ -1324,7 +1422,9 @@ class ReportService {
     deviationEvents: DeviationEvent[],
     previousDayComparison: PreviousDayComparison,
     riskImpacts: RiskImpact[],
-    protocolLiquidationRisks: ProtocolLiquidationRisk[]
+    protocolLiquidationRisks: ProtocolLiquidationRisk[],
+    stablecoinDepeg: StablecoinDepegSummary[],
+    wrappedAssetPeg: WrappedAssetPegSummary[]
   ): string {
     const dateLabel = new Date(dateStr).toLocaleDateString('en-US', {
       timeZone: 'UTC',
@@ -1351,6 +1451,20 @@ class ReportService {
       const highCount = riskImpacts.filter((i) => i.severity === 'high').length;
       parts.push(
         `From a user-risk perspective, today's data translates into ${labels.join(', ')}: ${riskImpacts.length} impact${riskImpacts.length > 1 ? 's' : ''} identified${criticalCount > 0 ? `, including ${criticalCount} critical` : ''}${highCount > 0 && criticalCount === 0 ? `, including ${highCount} high-severity` : ''}.`
+      );
+    }
+
+    const pegAssets = [...stablecoinDepeg, ...wrappedAssetPeg];
+    if (pegAssets.length > 0) {
+      const topPeg = pegAssets.sort((a, b) => b.maxDeviationPercent - a.maxDeviationPercent)[0];
+      const stableCount = stablecoinDepeg.length;
+      const wrappedCount = wrappedAssetPeg.length;
+      const parts2: string[] = [];
+      if (stableCount > 0) parts2.push(`${stableCount} stablecoin${stableCount > 1 ? 's' : ''}`);
+      if (wrappedCount > 0)
+        parts2.push(`${wrappedCount} wrapped/LST asset${wrappedCount > 1 ? 's' : ''}`);
+      parts.push(
+        `Peg monitoring flagged ${parts2.join(' and ')}: ${topPeg.symbol} recorded the largest divergence at ${topPeg.maxDeviationPercent.toFixed(2)}%.`
       );
     }
 
