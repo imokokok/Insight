@@ -1,3 +1,4 @@
+import { PROTOCOL_REGISTRY, type ProtocolConfig } from '@/lib/protocols/protocolRegistry';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { createLogger } from '@/lib/utils/logger';
 import { type OracleProvider } from '@/types/oracle';
@@ -20,7 +21,33 @@ function sanitizeJsonValue(value: unknown): unknown {
   return value;
 }
 
-export const REPORT_ASSETS = ['BTC', 'ETH', 'SOL', 'BNB', 'XRP', 'ADA', 'DOGE', 'LINK'] as const;
+export const REPORT_ASSETS = [
+  // Major crypto
+  'BTC',
+  'ETH',
+  'SOL',
+  'BNB',
+  'XRP',
+  'ADA',
+  'DOGE',
+  'LINK',
+  // Stablecoins (depeg risk)
+  'USDC',
+  'USDT',
+  'DAI',
+  // Wrapped / liquid-staking assets (peg risk)
+  'WBTC',
+  'STETH',
+  'WSTETH',
+  'CBETH',
+  // Major DeFi collateral/borrow assets (liquidation risk)
+  'AAVE',
+  'UNI',
+  'CRV',
+  'COMP',
+  'MKR',
+  'SNX',
+] as const;
 export const REPORT_PROVIDERS: OracleProvider[] = [
   'chainlink',
   'pyth',
@@ -107,6 +134,23 @@ export interface PreviousDayComparison {
   failedSnapshotsChangePct: number;
 }
 
+export type RiskImpactCategory =
+  | 'liquidation'
+  | 'stablecoin_depeg'
+  | 'wrapped_asset'
+  | 'oracle_reliability'
+  | 'systemic';
+
+export interface RiskImpact {
+  category: RiskImpactCategory;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  title: string;
+  affectedEntities: string[];
+  description: string;
+  relatedAssets: string[];
+  relatedProviders: string[];
+}
+
 export interface DailyReportMetrics {
   totalSnapshots: number;
   successfulSnapshots: number;
@@ -142,6 +186,7 @@ export interface DailyReportData {
   coverageMatrix: CoverageCell[];
   failureBreakdown: FailureBreakdown[];
   previousDayComparison: PreviousDayComparison;
+  riskImpacts: RiskImpact[];
 }
 
 /**
@@ -285,21 +330,35 @@ class ReportService {
     const coverageMatrix = this.calculateCoverageMatrix(snapshots);
     const failureBreakdown = this.calculateFailureBreakdown(snapshots);
     const previousDayComparison = await this.calculatePreviousDayComparison(dateStr, metrics);
+    const riskImpacts = this.generateRiskImpacts(
+      deviationEvents,
+      failureBreakdown,
+      providerRankings,
+      topAssets
+    );
     const highlights = this.generateHighlights(
       metrics,
       topAssets,
       providerRankings,
       deviationEvents,
-      failureBreakdown
+      failureBreakdown,
+      riskImpacts
     );
     const recommendations = this.generateRecommendations(
       metrics,
       providerRankings,
       topAssets,
       failureBreakdown,
-      deviationEvents
+      deviationEvents,
+      riskImpacts
     );
-    const summary = this.generateSummary(dateStr, metrics, deviationEvents, previousDayComparison);
+    const summary = this.generateSummary(
+      dateStr,
+      metrics,
+      deviationEvents,
+      previousDayComparison,
+      riskImpacts
+    );
 
     const reportData: DailyReportData = {
       reportDate: dateStr,
@@ -321,6 +380,7 @@ class ReportService {
       coverageMatrix,
       failureBreakdown,
       previousDayComparison,
+      riskImpacts,
     };
 
     logger.info(
@@ -352,6 +412,7 @@ class ReportService {
       previous_day_comparison: sanitizeJsonValue(
         report.previousDayComparison
       ) as PreviousDayComparison,
+      risk_impacts: sanitizeJsonValue(report.riskImpacts) as RiskImpact[],
       generated_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
@@ -465,6 +526,7 @@ class ReportService {
       failureBreakdown: (row.failure_breakdown as FailureBreakdown[]) ?? [],
       previousDayComparison:
         (row.previous_day_comparison as PreviousDayComparison) ?? emptyComparison,
+      riskImpacts: (row.risk_impacts as RiskImpact[]) ?? [],
     };
   }
 
@@ -740,6 +802,183 @@ class ReportService {
     return breakdown.sort((a, b) => b.failureCount - a.failureCount);
   }
 
+  private generateRiskImpacts(
+    deviationEvents: DeviationEvent[],
+    failureBreakdown: FailureBreakdown[],
+    providerRankings: ProviderRanking[],
+    topAssets: AssetDailyStats[]
+  ): RiskImpact[] {
+    const impacts: RiskImpact[] = [];
+    const addedKeys = new Set<string>();
+
+    const stablecoins = new Set(['USDC', 'USDT', 'DAI']);
+    const wrappedAssets = new Set([
+      'WBTC',
+      'WETH',
+      'wstETH',
+      'stETH',
+      'cbETH',
+      'BTCB',
+      'BTC.b',
+      'USDt',
+      'iSUPRA',
+    ]);
+
+    const findProtocolsUsingAsset = (symbol: string): ProtocolConfig[] => {
+      return PROTOCOL_REGISTRY.filter((p) =>
+        p.assets.some((a) => a.symbol === symbol || a.priceSymbol === symbol)
+      );
+    };
+
+    // 1. Deviation events → liquidation / depeg / wrapped asset impacts
+    for (const event of deviationEvents) {
+      const absDev = Math.abs(event.deviationPct);
+      if (absDev < 0.5) continue;
+
+      const protocols = findProtocolsUsingAsset(event.symbol);
+      const affectedProtocolNames = protocols.map((p) => `${p.name} (${p.chain})`);
+
+      const baseKey = `dev-${event.symbol}-${event.severity}`;
+      if (addedKeys.has(baseKey)) continue;
+
+      if (stablecoins.has(event.symbol)) {
+        const key = `depeg-${event.symbol}`;
+        if (!addedKeys.has(key)) {
+          addedKeys.add(key);
+          addedKeys.add(baseKey);
+          impacts.push({
+            category: 'stablecoin_depeg',
+            severity: event.severity,
+            title: `${event.symbol} oracle deviation detected`,
+            affectedEntities:
+              affectedProtocolNames.length > 0
+                ? affectedProtocolNames
+                : ['Stablecoin lenders, borrowers, and DEX LPs'],
+            description: `${event.provider} quoted ${event.symbol} ${event.deviationPct > 0 ? '+' : ''}${event.deviationPct.toFixed(3)}% away from consensus. If this reflects a real depeg rather than a feed glitch, borrowers using ${event.symbol} as collateral may face liquidation, while lenders and AMM LPs could suffer impermanent loss or bad debt.`,
+            relatedAssets: [event.symbol],
+            relatedProviders: [event.provider],
+          });
+        }
+        continue;
+      }
+
+      if (wrappedAssets.has(event.symbol)) {
+        const key = `wrapped-${event.symbol}`;
+        if (!addedKeys.has(key)) {
+          addedKeys.add(key);
+          addedKeys.add(baseKey);
+          impacts.push({
+            category: 'wrapped_asset',
+            severity: event.severity,
+            title: `${event.symbol} peg divergence`,
+            affectedEntities:
+              affectedProtocolNames.length > 0
+                ? affectedProtocolNames
+                : ['Users holding or using wrapped assets as collateral'],
+            description: `${event.symbol} diverged ${absDev.toFixed(3)}% from its underlying reference. Protocols valuing ${event.symbol} 1:1 with the native asset may misprice collateral, exposing borrowers to unexpected liquidation and lenders to under-collateralized debt.`,
+            relatedAssets: [event.symbol],
+            relatedProviders: [event.provider],
+          });
+        }
+        continue;
+      }
+
+      // Major / alt collateral assets → liquidation risk
+      if (affectedProtocolNames.length > 0 && !addedKeys.has(`liq-${event.symbol}`)) {
+        addedKeys.add(`liq-${event.symbol}`);
+        addedKeys.add(baseKey);
+        impacts.push({
+          category: 'liquidation',
+          severity: event.severity,
+          title: `${event.symbol} price-feed divergence raises liquidation risk`,
+          affectedEntities: affectedProtocolNames,
+          description: `${event.provider} reported ${event.symbol} ${event.deviationPct > 0 ? '+' : ''}${event.deviationPct.toFixed(3)}% vs consensus. In ${affectedProtocolNames.slice(0, 3).join(', ')} this feed divergence can push leveraged positions toward liquidation if the oracle used by the protocol tracks the outlier price.`,
+          relatedAssets: [event.symbol],
+          relatedProviders: [event.provider],
+        });
+      }
+    }
+
+    // 2. Failure breakdown → oracle reliability impacts
+    for (const failure of failureBreakdown.slice(0, 3)) {
+      const protocols = findProtocolsUsingAsset(failure.symbol).filter(
+        (p) =>
+          p.assets.find((a) => a.symbol === failure.symbol)?.oracleProvider === failure.provider
+      );
+      const key = `fail-${failure.provider}-${failure.symbol}`;
+      if (addedKeys.has(key)) continue;
+      addedKeys.add(key);
+
+      impacts.push({
+        category: 'oracle_reliability',
+        severity: failure.failureCount >= 6 ? 'high' : failure.failureCount >= 3 ? 'medium' : 'low',
+        title: `${failure.provider} feed failures on ${failure.symbol}`,
+        affectedEntities:
+          protocols.length > 0
+            ? protocols.map((p) => `${p.name} (${p.chain})`)
+            : [`Users relying on ${failure.provider} for ${failure.symbol}/USD pricing`],
+        description: `${failure.provider} failed ${failure.failureCount} hourly snapshot(s) for ${failure.symbol}${failure.topError ? ` (${failure.topError})` : ''}. Any protocol using this feed as its primary oracle may stall liquidations, misprice collateral, or temporarily freeze borrowing.`,
+        relatedAssets: [failure.symbol],
+        relatedProviders: [failure.provider],
+      });
+    }
+
+    // 3. Provider ranking → systemic risk impacts
+    if (providerRankings.length > 1) {
+      const worst = providerRankings[providerRankings.length - 1];
+      if (worst && (worst.successRate < 95 || worst.avgDeviationPct >= 0.5)) {
+        // Find protocols that depend on the worst provider for any monitored asset
+        const affectedProtocols = PROTOCOL_REGISTRY.filter((p) =>
+          p.assets.some((a) => a.oracleProvider === worst.provider)
+        );
+        const key = `systemic-${worst.provider}`;
+        if (!addedKeys.has(key)) {
+          addedKeys.add(key);
+          impacts.push({
+            category: 'systemic',
+            severity: worst.avgDeviationPct >= 1 || worst.successRate < 90 ? 'critical' : 'high',
+            title: `${worst.provider} underperformed the consensus network`,
+            affectedEntities:
+              affectedProtocols.length > 0
+                ? affectedProtocols.map((p) => `${p.name} (${p.chain})`)
+                : ['DeFi protocols using this oracle as a primary or fallback price source'],
+            description: `${worst.provider} delivered only ${worst.successRate.toFixed(1)}% successful snapshots with ${worst.avgDeviationPct.toFixed(3)}% average deviation. Protocols that use ${worst.provider} as a primary feed face higher stale-price and incorrect-liquidation risk today.`,
+            relatedAssets: [],
+            relatedProviders: [worst.provider],
+          });
+        }
+      }
+    }
+
+    // 4. Top volatile asset → broad liquidation risk
+    if (topAssets.length > 0) {
+      const mostVolatile = topAssets[0];
+      if (mostVolatile.volatilityPct > 5) {
+        const protocols = findProtocolsUsingAsset(mostVolatile.symbol);
+        const key = `vol-${mostVolatile.symbol}`;
+        if (!addedKeys.has(key) && protocols.length > 0) {
+          addedKeys.add(key);
+          impacts.push({
+            category: 'liquidation',
+            severity: mostVolatile.volatilityPct > 10 ? 'critical' : 'high',
+            title: `${mostVolatile.symbol} intraday volatility stressed leveraged positions`,
+            affectedEntities: protocols.map((p) => `${p.name} (${p.chain})`),
+            description: `${mostVolatile.symbol} swung ${mostVolatile.volatilityPct.toFixed(2)}% between min and max consensus prices today. High spot volatility combined with oracle deviation can trigger cascading liquidations in lending markets before users have time to add collateral.`,
+            relatedAssets: [mostVolatile.symbol],
+            relatedProviders: [],
+          });
+        }
+      }
+    }
+
+    return impacts
+      .sort((a, b) => {
+        const severityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
+        return severityOrder[a.severity] - severityOrder[b.severity];
+      })
+      .slice(0, 8);
+  }
+
   private async calculatePreviousDayComparison(
     dateStr: string,
     metrics: DailyReportMetrics
@@ -789,9 +1028,40 @@ class ReportService {
     providerRankings: ProviderRanking[],
     topAssets: AssetDailyStats[],
     failureBreakdown: FailureBreakdown[],
-    deviationEvents: DeviationEvent[]
+    deviationEvents: DeviationEvent[],
+    riskImpacts: RiskImpact[]
   ): string[] {
     const recommendations: string[] = [];
+
+    // User-risk-focused recommendations derived from risk impacts.
+    const liquidationImpacts = riskImpacts.filter((i) => i.category === 'liquidation');
+    if (liquidationImpacts.length > 0) {
+      const top = liquidationImpacts[0];
+      recommendations.push(
+        `${top.title}: Users of ${top.affectedEntities.slice(0, 3).join(', ')} should review leverage and add collateral buffers, especially for ${top.relatedAssets.join('/')} positions.`
+      );
+    }
+
+    const depegImpacts = riskImpacts.filter((i) => i.category === 'stablecoin_depeg');
+    if (depegImpacts.length > 0) {
+      recommendations.push(
+        `${depegImpacts.map((i) => i.relatedAssets.join('/')).join(', ')} showed oracle-side divergence today. DeFi users should treat these as early depeg signals and avoid entering new leveraged stablecoin positions until the divergence resolves.`
+      );
+    }
+
+    const wrappedImpacts = riskImpacts.filter((i) => i.category === 'wrapped_asset');
+    if (wrappedImpacts.length > 0) {
+      recommendations.push(
+        `${wrappedImpacts.map((i) => i.relatedAssets.join('/')).join(', ')} peg divergence may not be immediately visible to standard price oracles. Holders and protocols using these assets as collateral should verify the underlying redemption rate independently.`
+      );
+    }
+
+    const systemicImpacts = riskImpacts.filter((i) => i.category === 'systemic');
+    if (systemicImpacts.length > 0) {
+      recommendations.push(
+        `${systemicImpacts[0].title} — protocols that rely on it as a primary oracle should evaluate fallback feeds or multi-source aggregation to reduce single-provider dependency.`
+      );
+    }
 
     if (metrics.overallSuccessRate < 90) {
       recommendations.push(
@@ -873,9 +1143,18 @@ class ReportService {
     topAssets: AssetDailyStats[],
     providerRankings: ProviderRanking[],
     deviationEvents: DeviationEvent[],
-    failureBreakdown: FailureBreakdown[]
+    failureBreakdown: FailureBreakdown[],
+    riskImpacts: RiskImpact[]
   ): string[] {
     const highlights: string[] = [];
+
+    // Lead with the highest-severity user-risk impact when available.
+    if (riskImpacts.length > 0) {
+      const top = riskImpacts[0];
+      highlights.push(
+        `${top.title} — affects ${top.affectedEntities.slice(0, 2).join(', ')}${top.affectedEntities.length > 2 ? ` and ${top.affectedEntities.length - 2} more` : ''}. ${top.description}`
+      );
+    }
 
     if (metrics.criticalEvents > 0) {
       highlights.push(
@@ -958,7 +1237,8 @@ class ReportService {
     dateStr: string,
     metrics: DailyReportMetrics,
     deviationEvents: DeviationEvent[],
-    previousDayComparison: PreviousDayComparison
+    previousDayComparison: PreviousDayComparison,
+    riskImpacts: RiskImpact[]
   ): string {
     const dateLabel = new Date(dateStr).toLocaleDateString('en-US', {
       timeZone: 'UTC',
@@ -970,6 +1250,23 @@ class ReportService {
     const parts: string[] = [
       `On ${dateLabel}, Insight monitored ${metrics.activeAssets} assets across ${metrics.activeProviders} oracle providers, capturing ${metrics.totalSnapshots} hourly price snapshots over ${metrics.activeHours} active hourly window${metrics.activeHours > 1 ? 's' : ''}.`,
     ];
+
+    if (riskImpacts.length > 0) {
+      const categories = new Set(riskImpacts.map((i) => i.category));
+      const categoryLabels: Record<RiskImpactCategory, string> = {
+        liquidation: 'liquidation risk',
+        stablecoin_depeg: 'stablecoin depeg signals',
+        wrapped_asset: 'wrapped-asset peg risk',
+        oracle_reliability: 'oracle reliability issues',
+        systemic: 'systemic oracle dependency risk',
+      };
+      const labels = Array.from(categories).map((c) => categoryLabels[c]);
+      const criticalCount = riskImpacts.filter((i) => i.severity === 'critical').length;
+      const highCount = riskImpacts.filter((i) => i.severity === 'high').length;
+      parts.push(
+        `From a user-risk perspective, today's data translates into ${labels.join(', ')}: ${riskImpacts.length} impact${riskImpacts.length > 1 ? 's' : ''} identified${criticalCount > 0 ? `, including ${criticalCount} critical` : ''}${highCount > 0 && criticalCount === 0 ? `, including ${highCount} high-severity` : ''}.`
+      );
+    }
 
     if (metrics.overallSuccessRate >= 99) {
       parts.push(

@@ -21,7 +21,8 @@ const EXCLUDED_REPORT_PAIRS: Partial<Record<OracleProvider, string[]>> = {
   api3: ['SOL', 'BNB', 'LINK'],
   dia: ['XRP', 'DOGE'],
   reflector: ['DOGE'],
-  twap: ['BNB'],
+  // TWAP advertises these symbols but has no configured pool for them.
+  twap: ['BNB', 'STETH', 'WSTETH', 'CBETH'],
 };
 
 // DECIMAL(24, 8) max absolute value

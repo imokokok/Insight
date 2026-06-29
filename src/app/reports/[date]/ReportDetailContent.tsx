@@ -11,11 +11,14 @@ import {
   BarChart3,
   Calendar,
   CheckCircle2,
+  Coins,
   Globe,
   Lightbulb,
   Minus,
+  Radio,
   Share2,
   Shield,
+  ShieldAlert,
   TrendingDown,
   TrendingUp,
   XCircle,
@@ -23,7 +26,11 @@ import {
 
 import { ErrorBoundary } from '@/components/error-boundary';
 import { providerNames, oracleColors } from '@/lib/constants';
-import { type DailyReportData, type ProviderRanking } from '@/lib/reports/reportService';
+import {
+  type DailyReportData,
+  type ProviderRanking,
+  type RiskImpact,
+} from '@/lib/reports/reportService';
 import { cn } from '@/lib/utils';
 import { formatPrice } from '@/lib/utils/format';
 
@@ -684,6 +691,91 @@ function AnomalySourceBreakdown({ report }: { report: DailyReportData }) {
   );
 }
 
+function getCategoryConfig(category: RiskImpact['category']) {
+  switch (category) {
+    case 'liquidation':
+      return { label: 'Liquidation', icon: ShieldAlert };
+    case 'stablecoin_depeg':
+      return { label: 'Stablecoin', icon: Coins };
+    case 'wrapped_asset':
+      return { label: 'Wrapped', icon: ArrowLeftRight };
+    case 'oracle_reliability':
+      return { label: 'Reliability', icon: Radio };
+    case 'systemic':
+      return { label: 'Systemic', icon: Globe };
+  }
+}
+
+function RiskImpactSummary({ impacts }: { impacts: RiskImpact[] }) {
+  if (impacts.length === 0) {
+    return (
+      <div className="flex items-start gap-3 text-emerald-800 bg-emerald-50 border border-emerald-100 rounded-lg p-4">
+        <CheckCircle2 className="w-5 h-5 flex-shrink-0 mt-0.5" />
+        <div>
+          <p className="text-sm font-medium">No user-risk impacts identified</p>
+          <p className="text-xs text-emerald-600/80 mt-0.5">
+            Oracle data stayed within tolerance bands that would typically affect DeFi positions.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {impacts.map((impact, index) => {
+        const config = getSeverityConfig(impact.severity);
+        const categoryConfig = getCategoryConfig(impact.category);
+        return (
+          <div
+            key={`${impact.category}-${impact.title}-${index}`}
+            className={cn('rounded-lg border px-4 py-3', config.bg, config.border)}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-2 min-w-0">
+                <categoryConfig.icon className={cn('w-4 h-4 flex-shrink-0', config.text)} />
+                <p className={cn('text-sm font-medium truncate', config.text)}>{impact.title}</p>
+              </div>
+              <span
+                className={cn(
+                  'inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider flex-shrink-0',
+                  config.bg,
+                  config.text
+                )}
+              >
+                {config.label}
+              </span>
+            </div>
+            <p className={cn('text-sm mt-2 leading-relaxed', config.text)}>{impact.description}</p>
+            {impact.affectedEntities.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mt-2.5">
+                {impact.affectedEntities.slice(0, 4).map((entity) => (
+                  <span
+                    key={entity}
+                    className={cn(
+                      'inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium border',
+                      config.bg,
+                      config.border,
+                      config.text
+                    )}
+                  >
+                    {entity}
+                  </span>
+                ))}
+                {impact.affectedEntities.length > 4 && (
+                  <span className={cn('text-[10px]', config.text)}>
+                    +{impact.affectedEntities.length - 4} more
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function Highlights({ highlights }: { highlights: string[] }) {
   return (
     <ul className="space-y-3">
@@ -932,6 +1024,11 @@ export default function ReportDetailContent({ initialReport }: ReportDetailConte
               <PreviousDayComparison comparison={report.previousDayComparison} />
             </SectionCard>
           </div>
+
+          {/* User risk impact summary */}
+          <SectionCard title="User risk impact summary" icon={ShieldAlert} className="mb-6">
+            <RiskImpactSummary impacts={report.riskImpacts ?? []} />
+          </SectionCard>
 
           {/* Highlights & recommendations */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
