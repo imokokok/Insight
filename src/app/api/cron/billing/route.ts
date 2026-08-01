@@ -33,10 +33,23 @@ import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('CronBilling');
 
-export async function GET(request: Request) {
-  const authResponse = verifyCronSecret(request);
-  if (authResponse) return authResponse;
+/** Structured result returned by `runBilling` for both the HTTP route and the GH Actions script. */
+export interface BillingResult {
+  status: number;
+  body: Record<string, unknown>;
+}
 
+/**
+ * Core billing pipeline, extracted from the GET handler so the same logic
+ * runs from the Vercel route AND the GitHub Actions `scripts/billing.ts`
+ * job. The GH Actions job escapes Vercel's 60s timeout — billing touches
+ * every API key row and previously got truncated mid-run on Vercel during
+ * cold-start DB connection latency.
+ *
+ * @returns `{ status, body }` — the HTTP route wraps this in NextResponse;
+ *          the script reads `status` to decide its exit code.
+ */
+export async function runBilling(): Promise<BillingResult> {
   const now = new Date();
   const isMonthStart = now.getUTCDate() === 1;
 
@@ -88,15 +101,26 @@ export async function GET(request: Request) {
       utcDate: now.toISOString(),
     });
 
-    return NextResponse.json({
-      success: true,
-      data: results,
-      message: `Billing cron complete: ${results.trialsDowngraded} trials, ${results.subscriptionsDowngraded} expired subs, ${results.subscriptionsCleanedUp} zombies cleaned${
-        results.quotaReset !== undefined ? `, ${results.quotaReset} keys quota reset` : ''
-      }`,
-    });
+    return {
+      status: 200,
+      body: {
+        success: true,
+        data: results,
+        message: `Billing cron complete: ${results.trialsDowngraded} trials, ${results.subscriptionsDowngraded} expired subs, ${results.subscriptionsCleanedUp} zombies cleaned${
+          results.quotaReset !== undefined ? `, ${results.quotaReset} keys quota reset` : ''
+        }`,
+      },
+    };
   } catch (error) {
     logger.error('Billing cron failed', error instanceof Error ? error : new Error(String(error)));
-    return NextResponse.json({ success: false, error: 'Billing cron failed' }, { status: 500 });
+    return { status: 500, body: { success: false, error: 'Billing cron failed' } };
   }
+}
+
+export async function GET(request: Request) {
+  const authResponse = verifyCronSecret(request);
+  if (authResponse) return authResponse;
+
+  const { status, body } = await runBilling();
+  return NextResponse.json(body, { status });
 }
