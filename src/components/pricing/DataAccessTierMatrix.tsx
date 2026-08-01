@@ -110,7 +110,7 @@ const accessGroups: AccessGroup[] = [
         protocol: true,
       },
       {
-        label: 'Historical snapshots (1-year archive, 15-min grain)',
+        label: 'Historical snapshots (6-month archive, 15-min grain)',
         free: false,
         pro: true,
         protocol: true,

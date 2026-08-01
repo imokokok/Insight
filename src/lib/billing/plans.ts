@@ -53,7 +53,7 @@ export const PLANS = {
       '10,000 API calls / month',
       '30 requests / minute',
       'Full deep-analysis suite (deviation, correlation, latency, risk)',
-      'Historical 15-minute snapshots (1-year archive)',
+      'Historical 15-minute snapshots (6-month archive)',
       'Protocol risk parameters & position stress tests',
       'Anomaly detection (30-day window)',
       'Reliability rankings (30-day trend)',
