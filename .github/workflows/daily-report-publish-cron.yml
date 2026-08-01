@@ -1,5 +1,14 @@
 name: Daily Report Publish
 
+# Generates and persists the previous day's daily report (aggregates a full
+# day of snapshots across every provider into the daily_reports table).
+#
+# Runs the `scripts/daily-report-publish.ts` runner directly on GH Actions
+# (no Vercel curl) so the job escapes Vercel's 60s serverless timeout —
+# report generation can exceed the ceiling. Delegates to the same
+# `runDailyReportPublish()` used by the HTTP route, so behaviour is
+# identical — only the executor changes.
+
 on:
   schedule:
     # Every day at 00:00 UTC (08:00 Beijing Time)
@@ -9,38 +18,20 @@ on:
 permissions:
   contents: read
 
-env:
-  SITE_URL: ${{ vars.SITE_URL || 'https://www.oracleinsight.xyz' }}
-  CRON_SECRET: ${{ secrets.CRON_SECRET }}
-
 jobs:
   publish-report:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+
       - name: Publish previous day's daily report
-        run: |
-          set -u
-          if [ -z "${CRON_SECRET}" ]; then
-            echo "::error::CRON_SECRET secret is not configured. Add it under Settings → Secrets and variables → Actions (must match the cron_secret stored in cron_config)."
-            exit 1
-          fi
-
-          BASE_URL="${SITE_URL%/}"
-          echo "Publishing previous day's daily report..."
-
-          RESPONSE=$(curl -s -w "\n%{http_code}" --max-time 90 \
-            -H "Authorization: Bearer ${CRON_SECRET}" \
-            "${BASE_URL}/api/cron/daily-report/publish" || true)
-
-          HTTP_CODE=$(printf '%s' "$RESPONSE" | tail -n1 | tr -d '[:space:]')
-          case "$HTTP_CODE" in ''|*[!0-9]*) HTTP_CODE="000" ;; esac
-          BODY=$(printf '%s' "$RESPONSE" | sed '$d')
-
-          echo "HTTP Status: ${HTTP_CODE}"
-          echo "Response: ${BODY}"
-
-          if [ "$HTTP_CODE" -ne 200 ]; then
-            echo "::error::Daily report publish failed: HTTP ${HTTP_CODE}"
-            exit 1
-          fi
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: npx tsx scripts/daily-report-publish.ts
