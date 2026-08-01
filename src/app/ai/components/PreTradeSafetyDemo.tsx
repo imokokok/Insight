@@ -145,13 +145,7 @@ function formatPct(n: number, withSign = true): string {
   return `${n >= 0 && withSign ? '+' : ''}${n.toFixed(2)}%`;
 }
 
-export function PreTradeSafetyDemo({
-  apiKey,
-  onResult,
-}: {
-  apiKey?: string;
-  onResult?: (result: SafetyResult) => void;
-}) {
+export function PreTradeSafetyDemo({ apiKey }: { apiKey?: string }) {
   const session = useSession();
   const [asset, setAsset] = useState('ETH');
   const [chainId, setChainId] = useState(1);
@@ -194,9 +188,7 @@ export function PreTradeSafetyDemo({
         return;
       }
 
-      const data = json.data as SafetyResult;
-      setResult(data);
-      onResult?.(data);
+      setResult(json.data as SafetyResult);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Network error');
     } finally {

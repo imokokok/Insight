@@ -43,11 +43,11 @@ export const navigationConfig: NavStructure = [
           'Calculate your personal position critical deviation and liquidation risk across protocols',
       },
       {
-        href: '/pre-trade-safety',
-        label: 'Pre-Trade Safety',
+        href: '/ai#safety-check',
+        label: 'Pre-Trade Safety Check',
         icon: Bot,
         description:
-          'Run an oracle immune-system check before any on-chain trade — cross-oracle consensus, manipulation risk, anomaly detection and a PASS/CAUTION/DANGER/BLOCK verdict, plus verifiable attestations',
+          'AI-agent pre-trade oracle safety checkpoint — cross-oracle consensus, manipulation risk score and PASS/CAUTION/DANGER/BLOCK verdict',
       },
       {
         href: '/stablecoin-depeg',
